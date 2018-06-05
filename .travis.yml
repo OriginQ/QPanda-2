@@ -1,0 +1,6 @@
+language: cpp
+sudo: false
+before_install:
+- sudo apt-get install gcc-4.8 -y
+install: true
+script: make

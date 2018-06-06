@@ -21,11 +21,5 @@ limitations under the License.
 #include "../Utilities/Utilities.h"
 
 void Grover_Algorithm();
-
-QProg& Two_Qubit_DJ_Algorithm_Circuit(
-	Qubit* qubit1,
-	Qubit* qubit2,
-	CBit* cbit,
-	vector<bool> oracle_function);
-
+QProg& Grover(vector<Qubit*> qVec, vector<CBit*> cVec, int target);
 #endif

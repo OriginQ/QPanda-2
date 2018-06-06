@@ -46,9 +46,6 @@
     <ClInclude Include="QuantumMachine\QuantumMachineInterface.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="QPanda.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="QPanda\QPanda.cpp">

@@ -22,7 +22,7 @@ limitations under the License.
 #include <vector>
 #include <iterator>
 #include <map>
-//#include "../QuantumMachine/OriginQuantumMachine.h"
+
 #include "../QuantumCircuit/QGlobalVariable.h"
 #include "QGate.h"
 #include "ReadWriteLock.h"
@@ -31,70 +31,6 @@ limitations under the License.
 typedef complex<double> QComplex;
 using namespace std;
 class QuantumDriver;
-
- /*
-class OriginNode
-{
-private:
-    int m_iReference;
-    QNode * m_pQNode;
-public:
-    inline OriginNode() : m_iReference(0), m_pQNode(nullptr)
-    {
-        
-    }
-
-    inline OriginNode()
-    {
-        
-    }
-    template<typename T>
-    bool creatNode()
-    {
-        this->m_iReference++;
-        m_pQNode = new 
-    }
-
-    ~OriginNode()
-    {
-        if (0 != this->m_iReference)
-        {
-            this->m_iReference--;
-        }
-        else
-        {
-            delete m_pQNode;
-        }
-    }
-
-    inline OriginNode(OriginNode * old)
-    {
-        this->m_pQNode = old->getQNode();
-    }
-
-    inline NodeType getNodeType() const
-    {
-        return this->m_pQNode->getNodeType();
-    }
-
-    void operator ++ ()
-    {
-        this->m_iReference++;
-    }
-
-    inline QNode * getQNode()
-    {
-        return this->m_pQNode;
-    }
-
-    inline bool setQNode(QNode *)
-    {
-    }
-
-};
-*/
-
-
 
 /*
 *  Quantum gates node:QSingleGateNode and QDoubleGateNode

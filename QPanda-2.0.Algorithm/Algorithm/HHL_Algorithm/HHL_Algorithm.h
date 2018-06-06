@@ -21,10 +21,16 @@ limitations under the License.
 
 //solve linaer system equation Ax=b
 //matrix A=[1.5 0.5;0.5 1.5]
-void HHL_Algorithm();
+void HHL_Algorithm(size_t );
 
 map<string, bool> hhlalgorithm();
 QProg& hhl(vector<Qubit*> qVec, vector<CBit*> cVec);
 OriginQCircuit& hhlPse(vector<Qubit*> qVec);
 OriginQCircuit& CRotate(vector<Qubit*> qVec);
+
+
+
+
+
+
 #endif

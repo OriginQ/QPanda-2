@@ -30,6 +30,9 @@
     <ClCompile Include="Algorithm\Utilities\Utilities.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Algorithm\QPE_Algorithm\QPE_Algorithm.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="QAlgorithm.h">
@@ -48,6 +51,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Algorithm\Utilities\Utilities.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Algorithm\QPE_Algorithm\QPE_Algorithm.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

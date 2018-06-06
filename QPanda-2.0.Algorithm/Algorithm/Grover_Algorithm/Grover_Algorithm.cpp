@@ -16,6 +16,14 @@ limitations under the License.
 
 #include "Grover_Algorithm.h"
 
+
+/*****************************************************************************************************************
+Name:        Grover
+Description: program of 3-qubit Grover Search Algorithm
+Argin:       qVec          pointer vector of the qubits
+             cVec          pointer vector of the cbits
+return:      grover        program of Grover Search Algorithm
+*****************************************************************************************************************/
 QProg& Grover(vector<Qubit*> qVec, vector<CBit*> cVec, int target)
 {
     QProg & grover = CreateEmptyQProg();
@@ -26,7 +34,6 @@ QProg& Grover(vector<Qubit*> qVec, vector<CBit*> cVec, int target)
     vector<Qubit *> controlVector;
     controlVector.push_back(qVec[0]);
     controlVector.push_back(qVec[1]);
-    //QSingleGate  sqrtH(0.5*PI, 0, 0.25*PI, PI);
     OriginQGateNode  &toff = RX(qVec[2]);
     toff.setControl(controlVector);
     switch (target)
@@ -50,13 +57,21 @@ QProg& Grover(vector<Qubit*> qVec, vector<CBit*> cVec, int target)
     grover << init << oracle << reverse << Measure(qVec[0], cVec[0]) << Measure(qVec[1], cVec[1]);
     return grover;
 }
+
+
+/*****************************************************************************************************************
+Name:        Grover_Algorithm
+Description: 3-qubit Grover Algorithm,2 working qubits and 1 ancilla qubit.
+             find target number in the region of [0,3],user inputs the target
+             number,different target number corresponds to differnent oracle 
+             in Grover Algorithm.
+*****************************************************************************************************************/
 void Grover_Algorithm()
 {
     int target;
-    cout << "input the input function" << endl
-        << "The function has a boolean input" << endl
-        << "and has a boolean output" << endl
-        << "target=(0/1/2/3)?";
+    cout << "input the target number" << endl
+        << "The region is [0,3]" << endl
+        << "target= ";
     cin >> target;
     cout << "Programming the circuit..." << endl;
     init();

@@ -36,15 +36,15 @@ typedef vector <complex<double>> QStat;
 
 
 /*****************************************************************************************************************
-QuantumGates:quantum gate  
+QuantumGates:quantum gate
 *****************************************************************************************************************/
 class QuantumGates
 {
 
 public:
-     QuantumGates();
-     virtual ~QuantumGates() = 0;
-    
+    QuantumGates();
+    virtual ~QuantumGates() = 0;
+
     /*************************************************************************************************************
     Name:        getQState
     Description: get quantum state
@@ -52,13 +52,13 @@ public:
     Argout:      sState                state string
     return:      quantum error
     *************************************************************************************************************/
-     virtual bool getQState(string & sState,QuantumGateParam *pQuantumProParam) = 0;
+    virtual bool getQState(string & sState, QuantumGateParam *pQuantumProParam) = 0;
 
     /*************************************************************************************************************
     Name:        Hadamard
     Description: Hadamard gate,the matrix is:[1/sqrt(2),1/sqrt(2);1/sqrt(2),-1/sqrt(2)]
     Argin:       qn          qubit number that the Hadamard gate operates on.
-                 error_rate  the errorrate of the gate
+    error_rate  the errorrate of the gate
     Argout:      None
     return:      quantum error
     *************************************************************************************************************/
@@ -77,34 +77,34 @@ public:
     Name:        pMeasure
     Description: pMeasure gate
     Argin:       qnum        qubit bit number vector
-                 mResult     reuslt vector
+    mResult     reuslt vector
     Argout:      None
     return:      quantum error
     *************************************************************************************************************/
-    //virtual QError pMeasure(Qnum& qnum, vector<pair<size_t, double>> &mResult) = 0;
+    virtual QError pMeasure(Qnum& qnum, vector<pair<size_t, double>> &mResult) = 0;
 
     /*************************************************************************************************************
     Name:        Hadamard
     Description: Hadamard gate,the matrix is:[1/sqrt(2),1/sqrt(2);1/sqrt(2),-1/sqrt(2)]
     Argin:       qn                 qubit number that the Hadamard gate operates on.
-                 error_rate         the errorrate of the gate
-                 vControlBit        control bit vector
-                 stQuantumBitNumber quantum bit number
+    error_rate         the errorrate of the gate
+    vControlBit        control bit vector
+    stQuantumBitNumber quantum bit number
     Argout:      None
     return:      quantum error
     *************************************************************************************************************/
-    virtual QError Hadamard(size_t  qn,
-                            double  error_rate, 
-                            Qnum    vControlBit,
-                            size_t  stQuantumBitNumber) = 0;
+    virtual QError Hadamard(size_t qn,
+        double  error_rate,
+        Qnum    vControlBit,
+        size_t  stQuantumBitNumber) = 0;
 
     /*************************************************************************************************************
     Name:        RX
     Description: RX gate,quantum state rotates ¦È by x axis.The matric is:
-                 [cos(¦È/2),-i*sin(¦È/2);i*sin(¦È/2),cos(¦È/2)]
+    [cos(¦È/2),-i*sin(¦È/2);i*sin(¦È/2),cos(¦È/2)]
     Argin:       qn                 qubit number that the Hadamard gate operates on.
-                 theta              rotation angle
-                 error_rate         the errorrate of the gate
+    theta              rotation angle
+    error_rate         the errorrate of the gate
     Argout:      None
     return:      quantum error
     *************************************************************************************************************/
@@ -113,11 +113,11 @@ public:
     /*************************************************************************************************************
     Name:        RX
     Description: RX dagger gate,quantum state rotates ¦È by x axis.The matric is:
-                 [cos(¦È/2),-i*sin(¦È/2);i*sin(¦È/2),cos(¦È/2)]
+    [cos(¦È/2),-i*sin(¦È/2);i*sin(¦È/2),cos(¦È/2)]
     Argin:       qn          qubit number that the Hadamard gate operates on.
-                 theta       rotation angle
-                 error_rate  the errorrate of the gate
-                 iDagger     is dagger
+    theta       rotation angle
+    error_rate  the errorrate of the gate
+    iDagger     is dagger
     Argout:      None
     return:      quantum error
     *************************************************************************************************************/
@@ -127,111 +127,111 @@ public:
     Name:        RX
     Description: controled-RX gate
     Argin:       qn                 qubit number that the Hadamard gate operates on.
-                 theta              rotation angle
-                 error_rate         the errorrate of the gate
-                 vControlBitNumber  control bit number
-                 stQuantumBitNumber quantum bit number
+    theta              rotation angle
+    error_rate         the errorrate of the gate
+    vControlBitNumber  control bit number
+    stQuantumBitNumber quantum bit number
     Argout:      None
     return:      quantum error
     *************************************************************************************************************/
     virtual QError RX(size_t  qn,
-                      double  theta,
-                      double  error_rate,
-                      Qnum    vControlBitNumber,
-                      size_t  stQuantumBitNumber) = 0;
+        double  theta,
+        double  error_rate,
+        Qnum    vControlBitNumber,
+        size_t  stQuantumBitNumber) = 0;
 
     /*************************************************************************************************************
     Name:        RX
     Description: controled-RX dagger gate
     Argin:       qn                 qubit number that the Hadamard gate operates on.
-                 theta              rotation angle
-                 error_rate         the errorrate of the gate
-                 vControlBitNumber  control bit number
-                 stQuantumBitNumber quantum bit number
-                 iDagger            is dagger
+    theta              rotation angle
+    error_rate         the errorrate of the gate
+    vControlBitNumber  control bit number
+    stQuantumBitNumber quantum bit number
+    iDagger            is dagger
     Argout:      None
     return:      quantum error
     *************************************************************************************************************/
     virtual QError RX(size_t  qn,
-                      double  theta,
-                      double  error_rate,
-                      Qnum    vControlBitNumber,
-                      size_t  stQuantumBitNumber,
-                      int     iDagger) = 0;
+        double  theta,
+        double  error_rate,
+        Qnum    vControlBitNumber,
+        size_t  stQuantumBitNumber,
+        int     iDagger) = 0;
 
     /*************************************************************************************************************
     Name:        RY
     Description: RY gate,quantum state rotates ¦È by y axis.The matric is
-                 [cos(¦È/2),-sin(¦È/2);sin(¦È/2),cos(¦È/2)]
+    [cos(¦È/2),-sin(¦È/2);sin(¦È/2),cos(¦È/2)]
     Argin:       qn          qubit number that the Hadamard gate operates on.
-                 theta       rotation angle
-                 error_rate  the errorrate of the gate
+    theta       rotation angle
+    error_rate  the errorrate of the gate
     Argout:      None
     return:      quantum error
     *************************************************************************************************************/
-    virtual QError RY(size_t qn, double theta, double error_rate,int iDagger) = 0;
+    virtual QError RY(size_t qn, double theta, double error_rate, int iDagger) = 0;
 
     /*************************************************************************************************************
     Name:        RY
     Description: RY control gate
     Argin:       qn                 qubit number that the Hadamard gate operates on.
-                 theta              rotation angle
-                 error_rate         the errorrate of the gate
-                 vControlBit        control bit vector
-                 stQuantumBitNumber quantum bit number
+    theta              rotation angle
+    error_rate         the errorrate of the gate
+    vControlBit        control bit vector
+    stQuantumBitNumber quantum bit number
     Argout:      None
     return:      quantum error
     *************************************************************************************************************/
     virtual QError RY(size_t   qn,
-                      double   theta,
-                      double   error_rate,
-                      Qnum     vControlBit,
-                      size_t   stQuantumBitNumber,
-                      int      iDagger) = 0;
+        double   theta,
+        double   error_rate,
+        Qnum     vControlBit,
+        size_t   stQuantumBitNumber,
+        int      iDagger) = 0;
 
     /*************************************************************************************************************
     Name:        RZ
     Description: RZ gate,quantum state rotates ¦È by z axis.The matric is
-                 [1 0;0 exp(i*¦È)]
+    [1 0;0 exp(i*¦È)]
     Argin:       qn          qubit number that the Hadamard gate operates on.
-                 theta       rotation angle
-                 error_rate  the errorrate of the gate
-                 iDagger     is dagger
+    theta       rotation angle
+    error_rate  the errorrate of the gate
+    iDagger     is dagger
     Argout:      None
     return:      quantum error
     *************************************************************************************************************/
     virtual QError RZ(size_t   qn,
-                      double   theta,
-                      double   error_rate,
-                      int      iDagger) = 0;
+        double   theta,
+        double   error_rate,
+        int      iDagger) = 0;
 
     /*************************************************************************************************************
     Name:        RZ
-    Description: RZ control gate 
+    Description: RZ control gate
     Argin:       qn                 qubit number that the Hadamard gate operates on.
-                 theta              rotation angle
-                 error_rate         the errorrate of the gate
-                 vControlBitNumber  control bit number
-                 stQuantumBitNumber quantum bit number
-                 iDagger            is dagger
+    theta              rotation angle
+    error_rate         the errorrate of the gate
+    vControlBitNumber  control bit number
+    stQuantumBitNumber quantum bit number
+    iDagger            is dagger
     Argout:      None
     return:      quantum error
     *************************************************************************************************************/
-    virtual QError RZ(size_t   qn,
-                      double   theta,
-                      double   error_rate,
-                      Qnum     vControlBitNumber,
-                      size_t   stQuantumBitNumber,
-                      int      iDagger) = 0;
+    virtual QError RZ(
+        double   theta,
+        double   error_rate,
+        Qnum     vControlBitNumber,
+        size_t   stQuantumBitNumber,
+        int      iDagger) = 0;
 
     /*************************************************************************************************************
     Name:        CNOT
     Description: CNOT gate,when control qubit is |0>,goal qubit does flip,
-                 when control qubit is |1>,goal qubit flips.the matric is:
-                 [1 0 0 0;0 1 0 0;0 0 0 1;0 0 1 0]
+    when control qubit is |1>,goal qubit flips.the matric is:
+    [1 0 0 0;0 1 0 0;0 0 0 1;0 0 1 0]
     Argin:       qn_1        control qubit number
-                 qn_2        goal qubit number
-                 error_rate  the errorrate of the gate
+    qn_2        goal qubit number
+    error_rate  the errorrate of the gate
     Argout:      None
     return:      quantum error
     *************************************************************************************************************/
@@ -241,29 +241,29 @@ public:
     Name:        CNOT
     Description: CNOT control gate
     Argin:       qn_1               control qubit number
-                 qn_2               goal qubit number
-                 error_rate         the errorrate of the gate
-                 vControlBitNumber  control bit number
-                 stQuantumBitNumber quantum bit number
+    qn_2               goal qubit number
+    error_rate         the errorrate of the gate
+    vControlBitNumber  control bit number
+    stQuantumBitNumber quantum bit number
     Argout:      None
     return:      quantum error
     *************************************************************************************************************/
     virtual QError CNOT(size_t  qn_1,
-                        size_t  qn_2,
-                        double  error_rate,
-                        Qnum    vControlBitNumber,
-                        int     stQuantumBitNumber) = 0;
+        size_t  qn_2,
+        double  error_rate,
+        Qnum    vControlBitNumber,
+        int     stQuantumBitNumber) = 0;
 
     /*************************************************************************************************************
     Name:        CR
     Description: CR gate,when control qubit is |0>,goal qubit does not rotate,
-                 when control qubit is |1>,goal qubit rotate ¦È by z axis.the matric is:
-                 [1 0 0 0;0 1 0 0;0 0 1 0;0 0 0 exp(i*¦È)]
+    when control qubit is |1>,goal qubit rotate ¦È by z axis.the matric is:
+    [1 0 0 0;0 1 0 0;0 0 1 0;0 0 0 exp(i*¦È)]
     Argin:       qn_1        control qubit number
-                 qn_2        goal qubit number
-                 theta       roration angle
-                 error_rate  the errorrate of the gate
-                 iDagger     is dagger
+    qn_2        goal qubit number
+    theta       roration angle
+    error_rate  the errorrate of the gate
+    iDagger     is dagger
     Argout:      None
     return:      quantum error
     *************************************************************************************************************/
@@ -272,82 +272,80 @@ public:
     /*************************************************************************************************************
     Name:        iSWAP
     Description: iSWAP gate,both qubits swap and rotate ¦Ð by z-axis,the matric is:
-                 [1 0 0 0;0 0 -i 0;0 -i 0 0;0 0 0 1]
+    [1 0 0 0;0 0 -i 0;0 -i 0 0;0 0 0 1]
     Argin:       qn_1        first qubit number
-                 qn_2        second qubit number
-                 error_rate  the errorrate of the gate
-                 iDagger     is dagger
+    qn_2        second qubit number
+    error_rate  the errorrate of the gate
+    iDagger     is dagger
     Argout:      None
     return:      quantum error
     *************************************************************************************************************/
     virtual QError iSWAP(size_t  qn_1,
-                         size_t  qn_2,
-                         double  error_rate,
-                         int     iDagger) = 0;
+        size_t  qn_2,
+        double  error_rate,
+        int     iDagger) = 0;
 
     /*************************************************************************************************************
     Name:        iSWAP
     Description: iSWAP gate,both qubits swap and rotate ¦Ð by z-axis,the matric is:
     [1 0 0 0;0 0 -i 0;0 -i 0 0;0 0 0 1]
     Argin:       qn_1        first qubit number
-                 qn_2        second qubit number
-                 error_rate  the errorrate of the gate
-                 vControlBitNumber  control bit number
-                 stQuantumBitNumber quantum bit number
-                 iDagger     is dagger
+    qn_2        second qubit number
+    error_rate  the errorrate of the gate
+    vControlBitNumber  control bit number
+    stQuantumBitNumber quantum bit number
+    iDagger     is dagger
     Argout:      None
     return:      quantum error
     *************************************************************************************************************/
     virtual QError iSWAP(size_t  qn_1,
-                         size_t  qn_2,
-                         double  error_rate,
-                         Qnum    vControlBitNumber,
-                         int     stQuantumBitNumber,
-                         int     iDagger) = 0;
+        size_t  qn_2,
+        double  error_rate,
+        Qnum    vControlBitNumber,
+        int     iDagger) = 0;
 
     /*************************************************************************************************************
     Name:        sqiSWAP
     Description: sqiSWAP gate,both qubits swap and rotate ¦Ð by z-axis,the matrix is:
-                 [1 0 0 0;0 1/sqrt(2) -i/sqrt(2) 0;0 -i/sqrt(2) 1/sqrt(2) 0;0 0 0 1]
+    [1 0 0 0;0 1/sqrt(2) -i/sqrt(2) 0;0 -i/sqrt(2) 1/sqrt(2) 0;0 0 0 1]
     Argin:       qn_1        first qubit number
-                 qn_2        second qubit number
-                 error_rate  the errorrate of the gate
-                 iDagger     is dagger
+    qn_2        second qubit number
+    error_rate  the errorrate of the gate
+    iDagger     is dagger
     Argout:      None
     return:      quantum error
     *************************************************************************************************************/
     virtual QError sqiSWAP(size_t  qn_1,
-                           size_t  qn_2,
-                           double  error_rate,
-                           int     iDagger) = 0;
+        size_t  qn_2,
+        double  error_rate,
+        int     iDagger) = 0;
 
     /*************************************************************************************************************
     Name:        sqiSWAP
     Description: sqiSWAP gate,both qubits swap and rotate ¦Ð by z-axis,the matrix is:
-                 [1 0 0 0;0 1/sqrt(2) -i/sqrt(2) 0;0 -i/sqrt(2) 1/sqrt(2) 0;0 0 0 1]
+    [1 0 0 0;0 1/sqrt(2) -i/sqrt(2) 0;0 -i/sqrt(2) 1/sqrt(2) 0;0 0 0 1]
     Argin:       qn_1        first qubit number
-                 qn_2        second qubit number
-                 error_rate  the errorrate of the gate
-                 vControlBitNumber  control bit number
-                 stQuantumBitNumber quantum bit number
-                 iDagger     is dagger
+    qn_2        second qubit number
+    error_rate  the errorrate of the gate
+    vControlBitNumber  control bit number
+    stQuantumBitNumber quantum bit number
+    iDagger     is dagger
     Argout:      None
     return:      quantum error
     *************************************************************************************************************/
     virtual QError sqiSWAP(size_t  qn_1,
-                           size_t  qn_2,
-                           double  error_rate,
-                           Qnum    vControlBitNumber,
-                           int     stQuantumBitNumber,
-                           int     iDagger) = 0;
+        size_t  qn_2,
+        double  error_rate,
+        Qnum    vControlBitNumber,
+        int     iDagger) = 0;
 
     /*************************************************************************************************************
     Name:        controlSwap
     Description: c-swap gate
     Argin:       qn_1        control qubit number
-                 qn_2        1st swap qubit number
-                 qn_3        2nd swap qubit number
-                 error_rate  the errorrate of the gate
+    qn_2        1st swap qubit number
+    qn_3        2nd swap qubit number
+    error_rate  the errorrate of the gate
     Argout:      None
     return:      quantum error
     *************************************************************************************************************/
@@ -385,9 +383,9 @@ public:
     /*************************************************************************************************************
     Name:    NOT
     Description: NOT gate,invert the state.The matrix is
-                 [0 1;1 0]
+    [0 1;1 0]
     Argin:       qn                 qubit number that the Hadamard gate operates on.
-                 error_rate         the errorrate of the gate
+    error_rate         the errorrate of the gate
     Argout:      None
     return:      quantum error
     *************************************************************************************************************/
@@ -396,35 +394,34 @@ public:
     /*************************************************************************************************************
     Name:    NOT
     Description: NOT gate,invert the state.The matrix is
-                 [0 1;1 0]
+    [0 1;1 0]
     Argin:       qn                 qubit number that the Hadamard gate operates on.
-                 error_rate         the errorrate of the gate
-                 vControlBit        control bit vector
-                 stQuantumBitNumber quantum bit number
+    error_rate         the errorrate of the gate
+    vControlBit        control bit vector
+    stQuantumBitNumber quantum bit number
     Argout:      None
     return:      quantum error
     *************************************************************************************************************/
     virtual QError NOT(size_t  qn,
-                       double  error_rate,
-                       Qnum    vControlBit,
-                       int     stQuantumBitNumber) = 0;
+        double  error_rate,
+        Qnum    vControlBit,
+        int     stQuantumBitNumber) = 0;
 
     /*************************************************************************************************************
     Name:        toffoli
     Description: toffoli dagger gate,the same as toffoli gate
     Argin:       stControlBit1       first control qubit
-                 stControlBit2       the second control qubit
-                 stQuantumBit        target qubit
-                 errorRate           the errorrate of the gate
-                 stQuantumBitNumber  quantum bit number
+    stControlBit2       the second control qubit
+    stQuantumBit        target qubit
+    errorRate           the errorrate of the gate
+    stQuantumBitNumber  quantum bit number
     Argout:      None
     return:      quantum error
     *************************************************************************************************************/
     virtual QError toffoli(size_t stControlBit1,
-                           size_t stControlBit2,
-                           size_t stQuantumBit,
-                           double errorRate,
-                           int    stQuantumBitNumber) = 0;
+        size_t stControlBit2,
+        size_t stQuantumBit,
+        double errorRate) = 0;
 
     /*************************************************************************************************************
     Name:        destroyState
@@ -439,7 +436,7 @@ public:
     Name:        endGate
     Description: end gate
     Argin:       pQuantumProParam       quantum program param pointer
-                 pQGate                 quantum gate
+    pQGate                 quantum gate
     Argout:      None
     return:      quantum error
     *************************************************************************************************************/

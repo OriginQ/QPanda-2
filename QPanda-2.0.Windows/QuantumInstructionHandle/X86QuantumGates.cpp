@@ -37,59 +37,59 @@ X86QuantumGates::~X86QuantumGates()
 }
 
 /*****************************************************************************************************************
-Name:        getQState
-Description: get quantum state
-Argin:       pQuantumProParam       quantum program prarm pointer
-Argout:      sState                 string state
-return:      quantum error
+  Name:        getQState
+  Description: get quantum state
+  Argin:       pQuantumProParam       quantum program prarm pointer
+  Argout:      sState                 string state
+  return:      quantum error
 *****************************************************************************************************************/
-bool X86QuantumGates::getQState(string & sState,QuantumGateParam *pQuantumProParam)
+bool X86QuantumGates::getQState(string & sState, QuantumGateParam *pQuantumProParam)
 {
     stringstream ssTemp;
-    int i = 0;
+    size_t i = 0;
     for (auto aiter : mvQuantumStat)
     {
-        ssTemp << "state[" << i << "].real = " 
-               << aiter.real() << " " 
-               << "state[" << i << "].imag = "
-               << aiter.imag() << "\n";
+        ssTemp << "state[" << i << "].real = "
+            << aiter.real() << " "
+            << "state[" << i << "].imag = "
+            << aiter.imag() << "\n";
         i++;
     }
-    
+
     sState.append(ssTemp.str());
     return true;
 }
 
 /*****************************************************************************************************************
-Name:        Hadamard
-Description: Hadamard gate,the matrix is:[1/sqrt(2),1/sqrt(2);1/sqrt(2),-1/sqrt(2)]
-Argin:       qn           qubit number that the Hadamard gate operates on.
-             error_rate   the errorrate of the gate
-Argout:      None
-return:      quantum error
+  Name:        Hadamard
+  Description: Hadamard gate,the matrix is:[1/sqrt(2),1/sqrt(2);1/sqrt(2),-1/sqrt(2)]
+  Argin:       qn           qubit number that the Hadamard gate operates on.
+  error_rate   the errorrate of the gate
+  Argout:      None
+  return:      quantum error
 *****************************************************************************************************************/
 QError X86QuantumGates::Hadamard(size_t qn, double error_rate)
 {
     /*
-     *  judge errorrate of the gate
-     */
+    *  judge errorrate of the gate
+    */
     if (randGenerator() > error_rate)
     {
-        size_t ststep = (size_t)pow(2, qn);
+        size_t ststep = 1ull << qn;
         COMPLEX alpha, beta;
 
         /*
-         *  traverse all the states
-         */
+        *  traverse all the states
+        */
         size_t j;
-//#pragma omp parallel for private(j,alpha,beta)
+        //#pragma omp parallel for private(j,alpha,beta)
         for (LONG i = 0; i < (LONG)mvQuantumStat.size(); i += ststep * 2)
         {
             for (j = i; j<i + ststep; j++)
             {
-                alpha                     = mvQuantumStat[j];
-                beta                      = mvQuantumStat[j + ststep];
-                mvQuantumStat[j]          = (alpha + beta)*SQ2;         /* in j,the goal qubit is in |0>        */
+                alpha = mvQuantumStat[j];
+                beta = mvQuantumStat[j + ststep];
+                mvQuantumStat[j] = (alpha + beta)*SQ2;         /* in j,the goal qubit is in |0>        */
                 mvQuantumStat[j + ststep] = (alpha - beta)*SQ2;         /* in j+ststep,the goal qubit is in |1> */
             }
         }
@@ -99,22 +99,22 @@ QError X86QuantumGates::Hadamard(size_t qn, double error_rate)
 }
 
 /*****************************************************************************************************************
-Name:        Reset
-Description: reset bit gate
-Argin:       qn          qubit number that the Hadamard gate operates on.
-Argout:      None
-return:      quantum error
+  Name:        Reset
+  Description: reset bit gate
+  Argin:       qn          qubit number that the Hadamard gate operates on.
+  Argout:      None
+  return:      quantum error
 *****************************************************************************************************************/
 QError X86QuantumGates::Reset(size_t qn)
 {
-	size_t  ststep = 1ull << qn;
+    size_t  ststep = 1ull << qn;
     COMPLEX alpha, beta;
 
     /*
-     *  traverse all the states
-     */
+    *  traverse all the states
+    */
     size_t j;
-//#pragma omp parallel for private(j,alpha,beta)
+    //#pragma omp parallel for private(j,alpha,beta)
     for (LONG i = 0; i < (LONG)mvQuantumStat.size(); i += ststep * 2)
     {
         for (j = i; j<i + ststep; j++)
@@ -126,44 +126,43 @@ QError X86QuantumGates::Reset(size_t qn)
 }
 
 /*****************************************************************************************************************
-Name:        probcompare
-Description: prob compare 
-Argin:       a        pair
+  Name:        probcompare
+  Description: prob compare
+  Argin:       a        pair
              b        pair
-Argout:      None
-return:      true or false
+  Argout:      None
+  return:      true or false
 *****************************************************************************************************************/
-bool probcompare(pair<size_t,double>& a, pair<size_t, double>& b)
+bool probcompare(pair<size_t, double>& a, pair<size_t, double>& b)
 {
     return a.second > b.second;
 }
 
 /*****************************************************************************************************************
-Name:        pMeasure
-Description: pMeasure gate
-Argin:       qnum        qubit bit number vector
+  Name:        pMeasure
+  Description: pMeasure gate
+  Argin:       qnum        qubit bit number vector
              mResult     reuslt vector
-Argout:      None
-return:      quantum error
+  Argout:      None
+  return:      quantum error
 *****************************************************************************************************************/
-/*
 QError X86QuantumGates::pMeasure(Qnum& qnum, vector<pair<size_t, double>> &mResult)
 {
-	mResult.resize(1ull << qnum.size());
+    mResult.resize(1ull << qnum.size());
     for (LONG i = 0; i < (LONG)pow(2, qnum.size()); i++)
     {
-        mResult[i].first  = i;
+        mResult[i].first = i;
         mResult[i].second = 0;
     }
 
     for (size_t i = 0; i < mvQuantumStat.size(); i++)
     {
-        size_t idx=0;
+        size_t idx = 0;
         for (LONG j = 0; j < (LONG)qnum.size(); j++)
         {
-            idx+=(((i>>(qnum[j]))%2)<<(qnum.size()-1-j));            
+            idx += (((i >> (qnum[j])) % 2) << (qnum.size() - 1 - j));
         }
-        mResult[idx].second+=abs(mvQuantumStat[i])*abs(mvQuantumStat[i]);
+        mResult[idx].second += abs(mvQuantumStat[i])*abs(mvQuantumStat[i]);
     }
 
     if (mResult.size() <= 10)
@@ -174,39 +173,36 @@ QError X86QuantumGates::pMeasure(Qnum& qnum, vector<pair<size_t, double>> &mResu
     else
     {
         sort(mResult.begin(), mResult.end(), probcompare);
-        mResult.erase(mResult.begin()+10,mResult.end());
+        mResult.erase(mResult.begin() + 10, mResult.end());
     }
 
     return qErrorNone;
 }
-*/
 
 /*****************************************************************************************************************
-Name:        Hadamard
-Description: controled-Hadamard gate
-Argin:       qn                 qubit number that the Hadamard gate operates on.
-             error_rate         the errorrate of the gate
-             vControlBit        control bit vector
-             stQuantumBitNumber quantum bit number
-Argout:      None
-return:      quantum error
+  Name:        Hadamard
+  Description: controled-Hadamard gate
+  Argin:       qn                 qubit number that the Hadamard gate operates on.
+               error_rate         the errorrate of the gate
+               vControlBit        control bit vector
+               stQuantumBitNumber total number of qubits
+  Argout:      None
+  return:      quantum error
 *****************************************************************************************************************/
-QError X86QuantumGates::Hadamard(size_t  qn,
-                                 double  error_rate, 
-                                 Qnum    vControlBit, 
-                                 size_t  stQuantumBitNumber)
+QError X86QuantumGates::Hadamard(size_t qn,
+    double  error_rate,
+    Qnum    vControlBit,
+    size_t  stQuantumBitNumber)
 {
     if (randGenerator() > error_rate)
     {
-        int M = (int)(mvQuantumStat.size() / pow(2, vControlBit.size()));
-        int x;
-
-        size_t n      = stQuantumBitNumber;
-        size_t ststep = (size_t)pow(2, qn);
-        size_t index  = 0, block = 0;
-        
+        //size_t qn = *vControlBit.end();
+        size_t M = (size_t)(mvQuantumStat.size() / (1ull << vControlBit.size()));
+        size_t x;
+        size_t n = stQuantumBitNumber;             //total number of qubits
+        size_t ststep = 1ull << qn;
+        size_t index = 0, block = 0;
         COMPLEX alpha, beta;
-
         sort(vControlBit.begin(), vControlBit.end());
         for (Qnum::iterator j = vControlBit.begin(); j != vControlBit.end(); j++)
         {
@@ -216,11 +212,11 @@ QError X86QuantumGates::Hadamard(size_t  qn,
         Qnum::iterator qiter;
 
         size_t j;
-//#pragma omp parallel for private(j,alpha,beta,index,x,qiter)
+        //#pragma omp parallel for private(j,alpha,beta,index,x,qiter)
         for (int i = 0; i < M; i++)
         {
             index = 0;
-            x     = i;
+            x = i;
             qiter = vControlBit.begin();
 
             for (j = 0; j < n; j++)
@@ -235,12 +231,12 @@ QError X86QuantumGates::Hadamard(size_t  qn,
             }
 
             /*
-             * control qubits are 1,target qubit is 0
-             */
-            index                         = index + block - ststep;                             
-            alpha                         = mvQuantumStat[index];
-            beta                          = mvQuantumStat[index + ststep];
-            mvQuantumStat[index]          = (alpha + beta)*SQ2;
+            * control qubits are 1,target qubit is 0
+            */
+            index = index + block - ststep;
+            alpha = mvQuantumStat[index];
+            beta = mvQuantumStat[index + ststep];
+            mvQuantumStat[index] = (alpha + beta)*SQ2;
             mvQuantumStat[index + ststep] = (alpha - beta)*SQ2;
         }
     }
@@ -249,41 +245,41 @@ QError X86QuantumGates::Hadamard(size_t  qn,
 }
 
 /*****************************************************************************************************************
-Name:        RX
-Description: RX gate,quantum state rotates θ by x axis.The matric is:
-             [cos(θ/2),-i*sin(θ/2);i*sin(θ/2),cos(θ/2)]
-Argin:       qn          qubit number that the Hadamard gate operates on.
-             theta       rotation angle
-             error_rate  the errorrate of the gate
-Argout:      None
-return:      quantum error
+  Name:        RX
+  Description: RX gate,quantum state rotates θ by x axis.The matric is:
+               [cos(θ/2),-i*sin(θ/2);i*sin(θ/2),cos(θ/2)]
+  Argin:       qn          qubit number that the RX gate operates on.
+               theta       rotation angle
+               error_rate  the errorrate of the gate
+  Argout:      None
+  return:      quantum error
 *****************************************************************************************************************/
 QError X86QuantumGates::RX(size_t qn, double theta, double error_rate)
 {
     /*
-     *  judge errorrate of the gate
-     */
+    *  judge errorrate of the gate
+    */
     if (randGenerator() > error_rate)
     {
-        size_t ststep    = (size_t)pow(2, qn );
+        size_t ststep = 1ull << qn;
 
         double dcostheta = cos(theta / 2);
         double dsintheta = sin(theta / 2);
-        
+
         COMPLEX alpha, beta;
         COMPLEX compll(0, 1);
 
         /*
-         *  traverse all the states
-         */
+        *  traverse all the states
+        */
         size_t j;
         for (LONG i = 0; i < (LONG)mvQuantumStat.size(); i += ststep * 2)
         {
             for (j = i; j != i + ststep; j++)
             {
-                alpha                     = mvQuantumStat[j];
-                beta                      = mvQuantumStat[j + ststep];
-                mvQuantumStat[j]          = alpha * dcostheta - compll * dsintheta*beta;
+                alpha = mvQuantumStat[j];
+                beta = mvQuantumStat[j + ststep];
+                mvQuantumStat[j] = alpha * dcostheta - compll * dsintheta*beta;
                 mvQuantumStat[j + ststep] = beta * dcostheta - compll * dsintheta*alpha;
             }
         }
@@ -292,15 +288,15 @@ QError X86QuantumGates::RX(size_t qn, double theta, double error_rate)
 }
 
 /*****************************************************************************************************************
-Name:        RX
-Description: RX dagger gate,quantum state rotates θ by x axis.The matric is:
-             [cos(θ/2),-i*sin(θ/2);i*sin(θ/2),cos(θ/2)]
-Argin:       qn          qubit number that the Hadamard gate operates on.
-             theta       rotation angle
-             error_rate  the errorrate of the gate
-             iDagger     is dagger
-Argout:      None
-return:      quantum error
+  Name:        RX
+  Description: RX dagger gate,quantum state rotates θ by x axis.The matric is:
+               [cos(θ/2),-i*sin(θ/2);i*sin(θ/2),cos(θ/2)]
+  Argin:       qn          qubit number that the RX gate operates on.
+               theta       rotation angle
+               error_rate  the errorrate of the gate
+               iDagger     is dagger
+  Argout:      None
+  return:      quantum error
 *****************************************************************************************************************/
 QError X86QuantumGates::RX(size_t qn, double theta, double error_rate, int iDagger)
 {
@@ -308,67 +304,67 @@ QError X86QuantumGates::RX(size_t qn, double theta, double error_rate, int iDagg
     {
         return qParameterError;
     }
-   
+
     /*
-     *  judge errorrate of the gate
-     */
+    *  judge errorrate of the gate
+    */
     if (randGenerator() > error_rate)
     {
-        size_t ststep = (size_t)pow(2, qn);
+        size_t ststep = 1ull << qn;
 
         double dcostheta = cos(theta / 2);
         double dsintheta = sin(theta / 2);
-        
+
         COMPLEX alpha, beta;
         COMPLEX compll(0, 1);
-        
+
         /*
-         *  traverse all the states
-         */
+        *  traverse all the states
+        */
         size_t j;
         for (LONG i = 0; i < (LONG)mvQuantumStat.size(); i += ststep * 2)
-        for (j = i; j != i + ststep; j++)
-        {
-            alpha                     = mvQuantumStat[j];
-            beta                      = mvQuantumStat[j + ststep];
-            mvQuantumStat[j]          = alpha * dcostheta + compll *dsintheta*beta;
-            mvQuantumStat[j + ststep] = beta * dcostheta + compll *dsintheta*alpha;
-        }
+            for (j = i; j != i + ststep; j++)
+            {
+                alpha = mvQuantumStat[j];
+                beta = mvQuantumStat[j + ststep];
+                mvQuantumStat[j] = alpha * dcostheta + compll *dsintheta*beta;
+                mvQuantumStat[j + ststep] = beta * dcostheta + compll *dsintheta*alpha;
+            }
     }
 
     return qErrorNone;
 }
 
 /*****************************************************************************************************************
-Name:        RX
-Description: controled-RX gate
-Argin:       qn                 qubit number that the Hadamard gate operates on.
-             theta              rotation angle
-             error_rate         the errorrate of the gate
-             vControlBitNumber  control bit number
-             stQuantumBitNumber quantum bit number
-Argout:      None
-return:      quantum error
+  Name:        RX
+  Description: controled-RX gate
+  Argin:       qn                 qubit number that the RX gate operates on.
+               theta              rotation angle
+               error_rate         the errorrate of the gate
+               vControlBitNumber  control bit number
+               stQuantumBitNumber total number of qubits
+  Argout:      None
+  return:      quantum error
 *****************************************************************************************************************/
 QError X86QuantumGates::RX(size_t   qn,
-                           double   theta,
-                           double   error_rate,
-                           Qnum     vControlBitNumber,
-                           size_t   stQuantumBitNumber)
+    double   theta,
+    double   error_rate,
+    Qnum     vControlBitNumber,
+    size_t   stQuantumBitNumber)
 {
     if (randGenerator() > error_rate)
     {
 
-        int x;
-        int M          = (int)(mvQuantumStat.size() / pow(2, vControlBitNumber.size()));
+        size_t x;
+        size_t M = (size_t)(mvQuantumStat.size() / (1ull << vControlBitNumber.size()));
 
-        size_t  n      = stQuantumBitNumber;
-        size_t  ststep = (size_t)pow(2, qn);
-        size_t  index  = 0, block = 0;
-           
+        size_t  n = stQuantumBitNumber;            //total number of qubits
+        size_t  ststep = 1ull << qn;
+        size_t  index = 0, block = 0;
+
         double  dcostheta = cos(theta / 2);
         double  dsintheta = sin(theta / 2);
-        
+
         COMPLEX alpha, beta;
         COMPLEX compll(0, 1);
 
@@ -381,7 +377,7 @@ QError X86QuantumGates::RX(size_t   qn,
         Qnum::iterator qiter;
 
         size_t j;
-//#pragma omp parallel for private(j,alpha,beta,index,x,qiter)
+        //#pragma omp parallel for private(j,alpha,beta,index,x,qiter)
         for (int i = 0; i < M; i++)
         {
             index = 0;
@@ -397,10 +393,10 @@ QError X86QuantumGates::RX(size_t   qn,
                 index += (size_t)((x % 2)*pow(2, j));
                 x >>= 1;
             }
-            index                         = index + block - ststep;
-            alpha                         = mvQuantumStat[index];
-            beta                          = mvQuantumStat[index + ststep];
-            mvQuantumStat[index]          = alpha * dcostheta - compll *dsintheta*beta;
+            index = index + block - ststep;
+            alpha = mvQuantumStat[index];
+            beta = mvQuantumStat[index + ststep];
+            mvQuantumStat[index] = alpha * dcostheta - compll *dsintheta*beta;
             mvQuantumStat[index + ststep] = beta * dcostheta - compll *dsintheta*alpha;
         }
     }
@@ -408,37 +404,37 @@ QError X86QuantumGates::RX(size_t   qn,
 }
 
 /*****************************************************************************************************************
-Name:        RX
-Description: controled-RX dagger gate
-Argin:       qn                 qubit number that the Hadamard gate operates on.
-             theta              rotation angle
-             error_rate         the errorrate of the gate
-             vControlBitNumber  control bit number
-             stQuantumBitNumber quantum bit number
-             iDagger            is dagger
-Argout:      None
-return:      quantum error
+  Name:        RX
+  Description: controled-RX dagger gate
+  Argin:       qn                 target qubit number of the controled-RX gate。
+               theta              rotation angle
+               error_rate         the errorrate of the gate
+               vControlBitNumber  control bit number
+               stQuantumBitNumber total number of qubits
+               iDagger            is dagger
+  Argout:      None
+  return:      quantum error
 *****************************************************************************************************************/
 QError X86QuantumGates::RX(size_t  qn,
-                           double  theta,
-                           double  error_rate,
-                           Qnum    vControlBitNumber,
-                           size_t  stQuantumBitNumber,
-                           int     iDagger)
+    double  theta,
+    double  error_rate,
+    Qnum    vControlBitNumber,
+    size_t  stQuantumBitNumber,
+    int     iDagger)
 {
     if (!iDagger)
     {
-        return qParameterError;              
+        return qParameterError;
     }
     if (randGenerator() > error_rate)
     {
-        int M = (int)(mvQuantumStat.size() / pow(2, vControlBitNumber.size()));
-        int x;
+        size_t M = (int)(mvQuantumStat.size() / pow(2, vControlBitNumber.size()));
+        size_t x;
 
-        size_t n      = stQuantumBitNumber;
-        size_t ststep = (size_t)pow(2, qn);
-        size_t index  = 0;
-        size_t block  = 0;
+        size_t n = stQuantumBitNumber;         //total qubit number of the circuit
+        size_t ststep = 1ull << qn;
+        size_t index = 0;
+        size_t block = 0;
 
         double dcostheta = cos(theta / 2);
         double dsintheta = sin(theta / 2);
@@ -454,13 +450,13 @@ QError X86QuantumGates::RX(size_t  qn,
 
         Qnum::iterator qiter;
         size_t j;
-//#pragma omp parallel for private(j,alpha,beta,index,x,qiter)
+        //#pragma omp parallel for private(j,alpha,beta,index,x,qiter)
         for (int i = 0; i < M; i++)
         {
             index = 0;
             x = i;
             qiter = vControlBitNumber.begin();
-            for ( j = 0; j < n; j++)
+            for (j = 0; j < n; j++)
             {
                 while (qiter != vControlBitNumber.end() && *qiter == j)
                 {
@@ -470,10 +466,10 @@ QError X86QuantumGates::RX(size_t  qn,
                 index += size_t((x % 2)*pow(2, j));
                 x >>= 1;
             }
-            index                         = index + block - ststep;
-            alpha                         = mvQuantumStat[index];
-            beta                          = mvQuantumStat[index + ststep];
-            mvQuantumStat[index]          = alpha * dcostheta + compll *dsintheta*beta;
+            index = index + block - ststep;
+            alpha = mvQuantumStat[index];
+            beta = mvQuantumStat[index + ststep];
+            mvQuantumStat[index] = alpha * dcostheta + compll *dsintheta*beta;
             mvQuantumStat[index + ststep] = beta * dcostheta + compll *dsintheta*alpha;
         }
     }
@@ -482,30 +478,30 @@ QError X86QuantumGates::RX(size_t  qn,
 }
 
 /*****************************************************************************************************************
-Name:        RY
-Description: RY control gate
-Argin:       qn                 qubit number that the Hadamard gate operates on.
-             theta              rotation angle
-             error_rate         the errorrate of the gate
-             vControlBit        control bit vector
-             stQuantumBitNumber quantum bit number
-Argout:      None
-return:      quantum error
+  Name:        RY
+  Description: RY control gate
+  Argin:       qn                 qubit number that the RY gate operates on.
+               theta              rotation angle
+               error_rate         the errorrate of the gate
+               vControlBit        control bit vector
+               stQuantumBitNumber total number of qubits
+  Argout:      None
+  return:      quantum error
 *****************************************************************************************************************/
 QError X86QuantumGates::RY(size_t   qn,
-                          double   theta,
-                          double   error_rate,
-                          Qnum     vControlBit,
-                          size_t   stQuantumBitNumber, int iDagger)
+    double   theta,
+    double   error_rate,
+    Qnum     vControlBit,
+    size_t   stQuantumBitNumber, int iDagger)
 {
     if (randGenerator() > error_rate)
     {
-        int M = int(mvQuantumStat.size() / pow(2, vControlBit.size()));
-        int x;
+        size_t M = int(mvQuantumStat.size() / pow(2, vControlBit.size()));
+        size_t x;
 
-        size_t qn = vControlBit.back();
-        size_t n = stQuantumBitNumber;
-        size_t ststep = (size_t)pow(2, qn);
+        //size_t qn = vControlBit.back();
+        size_t n = stQuantumBitNumber;                 //total number of qubits
+        size_t ststep = 1ull << qn;
         size_t index = 0, block = 0;
 
         double dcostheta = cos(theta / 2);
@@ -528,7 +524,7 @@ QError X86QuantumGates::RY(size_t   qn,
             index = 0;
             x = i;
             qiter = vControlBit.begin();
-            for ( j = 0; j < n; j++)
+            for (j = 0; j < n; j++)
             {
                 while (qiter != vControlBit.end() && *qiter == j)
                 {
@@ -543,12 +539,12 @@ QError X86QuantumGates::RY(size_t   qn,
             beta = mvQuantumStat[index + ststep];
             if (iDagger)
             {
-                mvQuantumStat[index]          = alpha * dcostheta + compll * dsintheta*beta;
+                mvQuantumStat[index] = alpha * dcostheta + compll * dsintheta*beta;
                 mvQuantumStat[index + ststep] = beta * dcostheta - compll * dsintheta*alpha;
             }
             else
             {
-                mvQuantumStat[index]          = alpha * dcostheta - compll * dsintheta*beta;
+                mvQuantumStat[index] = alpha * dcostheta - compll * dsintheta*beta;
                 mvQuantumStat[index + ststep] = beta * dcostheta + compll * dsintheta*alpha;
             }
 
@@ -559,32 +555,31 @@ QError X86QuantumGates::RY(size_t   qn,
 }
 
 /*****************************************************************************************************************
-Name:        RY
- 
-Description: RY gate,quantum state rotates θ by y axis.The matric is
-             [cos(θ/2),-sin(θ/2);sin(θ/2),cos(θ/2)]
-Argin:       qn          qubit number that the Hadamard gate operates on.
-                         theta        rotation angle
-             error_rate   the errorrate of the gate
-Argout:      None
-return:      quantum error
+  Name:        RY
+  Description: RY gate,quantum state rotates θ by y axis.The matric is
+               [cos(θ/2),-sin(θ/2);sin(θ/2),cos(θ/2)]
+  Argin:       qn          qubit number that the RY gate operates on.
+               theta        rotation angle
+               error_rate   the errorrate of the gate
+  Argout:      None
+  return:      quantum error
 *****************************************************************************************************************/
 QError X86QuantumGates::RY(size_t qn, double theta, double error_rate, int iDagger)
 {
     /*
-     *  judge errorrate of the gate
-     */
+    *  judge errorrate of the gate
+    */
     if (randGenerator() > error_rate)
     {
         double dcostheta = cos(theta / 2);
         double dsintheta = sin(theta / 2);
-        
-        size_t ststep = (size_t)pow(2, qn);
+
+        size_t ststep = 1ull << qn;
 
         COMPLEX alpha, beta;
         /*
-         *  traverse all the states
-         */
+        *  traverse all the states
+        */
         size_t j;
 
         for (LONG i = 0; i < (LONG)mvQuantumStat.size(); i += ststep * 2)
@@ -595,12 +590,12 @@ QError X86QuantumGates::RY(size_t qn, double theta, double error_rate, int iDagg
                 beta = mvQuantumStat[j + ststep];
                 if (iDagger)
                 {
-                    mvQuantumStat[j]          = alpha * dcostheta + dsintheta * beta;
+                    mvQuantumStat[j] = alpha * dcostheta + dsintheta * beta;
                     mvQuantumStat[j + ststep] = beta * dcostheta - dsintheta * alpha;
                 }
                 else
                 {
-                    mvQuantumStat[j]          = alpha * dcostheta - dsintheta * beta;
+                    mvQuantumStat[j] = alpha * dcostheta - dsintheta * beta;
                     mvQuantumStat[j + ststep] = beta * dcostheta + dsintheta * alpha;
                 }
             }
@@ -610,31 +605,31 @@ QError X86QuantumGates::RY(size_t qn, double theta, double error_rate, int iDagg
 }
 
 /*****************************************************************************************************************
-Name:        RZ
-Description: RZ gate,quantum state rotates θ by z axis.The matric is
-             [1 0;0 exp(i*θ)]
-Argin:       qn          qubit number that the Hadamard gate operates on.
-             theta       rotation angle
-             error_rate  the errorrate of the gate
-             iDagger     is dagger
-Argout:      None
-return:      quantum error
+  Name:        RZ
+  Description: RZ gate,quantum state rotates θ by z axis.The matric is
+               [1 0;0 exp(i*θ)]
+  Argin:       qn          qubit number that the RZ gate operates on.
+               theta       rotation angle
+               error_rate  the errorrate of the gate
+               iDagger     is dagger
+  Argout:      None
+  return:      quantum error
 *****************************************************************************************************************/
 QError X86QuantumGates::RZ(size_t qn, double theta, double error_rate, int iDagger)
 {
     /*
-     *  judge errorrate of the gate
-     */
+    *  judge errorrate of the gate
+    */
     if (randGenerator() > error_rate)
     {
-        size_t ststep = (size_t)pow(2, qn);
+        size_t ststep = 1ull << qn;
 
         double dcostheta = cos(theta);
         double dsintheta = sin(theta);
-        
+
         COMPLEX alpha, beta;
         COMPLEX compll;
-        
+
         if (!iDagger)
         {
             compll.real(dcostheta);
@@ -647,16 +642,16 @@ QError X86QuantumGates::RZ(size_t qn, double theta, double error_rate, int iDagg
         }
 
         /*
-         *  traverse all the states
-         */
+        *  traverse all the states
+        */
         size_t j;
         for (LONG i = 0; i < (LONG)mvQuantumStat.size(); i += ststep * 2)
         {
             for (j = i; j != i + ststep; j++)
             {
-                alpha                     = mvQuantumStat[j];
-                beta                      = mvQuantumStat[j + ststep];
-                mvQuantumStat[j]          = alpha;
+                alpha = mvQuantumStat[j];
+                beta = mvQuantumStat[j + ststep];
+                mvQuantumStat[j] = alpha;
                 mvQuantumStat[j + ststep] = compll *mvQuantumStat[j + ststep];
             }
         }
@@ -666,35 +661,36 @@ QError X86QuantumGates::RZ(size_t qn, double theta, double error_rate, int iDagg
 }
 
 /*****************************************************************************************************************
-Name:        RZ
-Description: RZ gate
-Argin:       qn                 qubit number that the Hadamard gate operates on.
-             theta              rotation angle
-             error_rate         the errorrate of the gate
-             vControlBitNumber  control bit number
-             stQuantumBitNumber quantum bit number
-             iDagger            is dagger
-Argout:      None
-return:      quantum error
+  Name:        RZ
+  Description: RZ gate
+  Argin:       qn                 qubit number that the RZ gate operates on.
+               theta              rotation angle
+               error_rate         the errorrate of the gate
+               vControlBitNumber  control bit number
+               stQuantumBitNumber total number of qubits
+               iDagger            is dagger
+  Argout:      None
+  return:      quantum error
 *****************************************************************************************************************/
-QError X86QuantumGates :: RZ(size_t   qn,
-                             double   theta,
-                             double   error_rate,
-                             Qnum     vControlBitNumber,
-                             size_t   stQuantumBitNumber,
-                             int      iDagger)
+QError X86QuantumGates::RZ(
+    double   theta,
+    double   error_rate,
+    Qnum     vControlBitNumber,
+    size_t   stQuantumBitNumber,
+    int      iDagger)
 {
     if (randGenerator() > error_rate)
     {
-        int M = (int)(mvQuantumStat.size() / pow(2, vControlBitNumber.size()));
-        int x;
+        size_t M = (int)(mvQuantumStat.size() / pow(2, vControlBitNumber.size()));
+        size_t x;
 
-        size_t n = stQuantumBitNumber;
-        size_t index = 0, block = 0;
+        size_t n = stQuantumBitNumber;        //total number of qubits
+        size_t index = 0;
+        size_t block = 0;
 
         double dcostheta = cos(theta);
         double dsintheta = sin(theta);
-        
+
         COMPLEX compll;
 
         sort(vControlBitNumber.begin(), vControlBitNumber.end());
@@ -742,36 +738,36 @@ QError X86QuantumGates :: RZ(size_t   qn,
 }
 
 /*****************************************************************************************************************
-Name: CNOT
-Description: CNOT gate,when control qubit is |0>,goal qubit does flip,
-             when control qubit is |1>,goal qubit flips.the matric is:
-             [1 0 0 0;0 1 0 0;0 0 0 1;0 0 1 0]
-Argin:       qn_1        control qubit number
-             qn_2        goal qubit number
-             error_rate  the errorrate of the gate
-Argout:      None
-return:      quantum error
+  Name: CNOT
+  Description: CNOT gate,when control qubit is |0>,goal qubit does flip,
+               when control qubit is |1>,goal qubit flips.the matric is:
+               [1 0 0 0;0 1 0 0;0 0 0 1;0 0 1 0]
+  Argin:       qn_1        control qubit number
+               qn_2        goal qubit number
+               error_rate  the errorrate of the gate
+  Argout:      None
+  return:      quantum error
 *****************************************************************************************************************/
 QError X86QuantumGates::CNOT(size_t qn_1, size_t qn_2, double error_rate)
 {
     /*
-     *  judge errorrate of the gate
-     */
+    *  judge errorrate of the gate
+    */
     if (randGenerator() > error_rate)
     {
-        size_t ststep1 = (size_t)pow(2, qn_1);
-        size_t ststep2 = (size_t)pow(2, qn_2);
-        
-        bool bmark     = true;
-        
+        size_t ststep1 = 1ull << qn_1;
+        size_t ststep2 = 1ull << qn_2;
+
+        bool bmark = true;
+
         COMPLEX alpha, beta;
 
         if (qn_1>qn_2)                                                  /* control qubit number is higher       */
         {
             /*
-             *  traverse all the states
-             */
-            size_t j,k;
+            *  traverse all the states
+            */
+            size_t j, k;
             for (LONG i = 0; i < (LONG)mvQuantumStat.size(); i = i + ststep1)
             {
                 bmark = !bmark;
@@ -781,9 +777,9 @@ QError X86QuantumGates::CNOT(size_t qn_1, size_t qn_2, double error_rate)
                     {
                         if (bmark)
                         {
-                            alpha                      = mvQuantumStat[k];
-                            beta                       = mvQuantumStat[k + ststep2];
-                            mvQuantumStat[k]           = beta;          /* k:control |1>,goal |0>               */
+                            alpha = mvQuantumStat[k];
+                            beta = mvQuantumStat[k + ststep2];
+                            mvQuantumStat[k] = beta;          /* k:control |1>,goal |0>               */
                             mvQuantumStat[k + ststep2] = alpha;         /* k+ststep:control |1>,goal |1>        */
                         }
 
@@ -794,8 +790,8 @@ QError X86QuantumGates::CNOT(size_t qn_1, size_t qn_2, double error_rate)
         else                                                            /* control qubit numer is lower         */
         {
             /*
-             *  traverse all the states
-             */
+            *  traverse all the states
+            */
             size_t j, k;
             for (LONG i = 0; i < (LONG)mvQuantumStat.size(); i = i + 2 * ststep2)
             {
@@ -806,9 +802,9 @@ QError X86QuantumGates::CNOT(size_t qn_1, size_t qn_2, double error_rate)
                     {
                         if (bmark)
                         {
-                            alpha                      = mvQuantumStat[k];
-                            beta                       = mvQuantumStat[k + ststep2];
-                            mvQuantumStat[k]           = beta;
+                            alpha = mvQuantumStat[k];
+                            beta = mvQuantumStat[k + ststep2];
+                            mvQuantumStat[k] = beta;
                             mvQuantumStat[k + ststep2] = alpha;
                         }
 
@@ -819,64 +815,61 @@ QError X86QuantumGates::CNOT(size_t qn_1, size_t qn_2, double error_rate)
     }
 
     return qErrorNone;
-}  
+}
 
 /*****************************************************************************************************************
-Name:        CNOT
-Description: CNOT control gate
-Argin:       qn_1               control qubit number
-             qn_2               goal qubit number
-             error_rate         the errorrate of the gate
-             vControlBitNumber  control bit number
-             stQuantumBitNumber quantum bit number
-Argout:      None
-return:      quantum error
+  Name:        CNOT
+  Description: CNOT control gate
+  Argin:       qn_1               control qubit number
+               qn_2               goal qubit number
+               error_rate         the errorrate of the gate
+               vControlBitNumber  control bit number
+               stQuantumBitNumber total number of qubits
+  Argout:      None
+  return:      quantum error
 *****************************************************************************************************************/
-QError X86QuantumGates :: CNOT(size_t  qn_1,
-                               size_t  qn_2,
-                               double  error_rate,
-                               Qnum    vControlBitNumber,
-                               int     stQuantumBitNumber)
+QError X86QuantumGates::CNOT(size_t  qn_1,
+    size_t  qn_2,
+    double  error_rate,
+    Qnum    vControlBitNumber,
+    int     stQuantumBitNumber)
 {
+    NOT(qn_2, error_rate, vControlBitNumber, stQuantumBitNumber);
     return qErrorNone;
 }
 
 
 /*****************************************************************************************************************
-Name:        CR
-Description: CR gate,when control qubit is |0>,goal qubit does not rotate,
-             when control qubit is |1>,goal qubit rotate θ by z axis.the matric is:
-             [1 0 0 0;0 1 0 0;0 0 1 0;0 0 0 exp(i*θ)]
-Argin:       qn_1        control qubit number
-             qn_2        goal qubit number
-             theta       roration angle
-             error_rate  the errorrate of the gate
-             iDagger     is dagger
-Argout:      None
-return:      quantum error
+  Name:        CR
+  Description: CR gate,when control qubit is |0>,goal qubit does not rotate,
+               when control qubit is |1>,goal qubit rotate θ by z axis.the matric is:
+               [1 0 0 0;0 1 0 0;0 0 1 0;0 0 0 exp(i*θ)]
+  Argin:       qn_1        control qubit number
+               qn_2        goal qubit number
+               theta       roration angle
+               error_rate  the errorrate of the gate
+               iDagger     is dagger
+  Argout:      None
+  return:      quantum error
 *****************************************************************************************************************/
 QError X86QuantumGates::CR(size_t  qn_1,
-                           size_t  qn_2,
-                           double  theta,
-                           double  error_rate,
-                           int     iDagger)
+    size_t  qn_2,
+    double  theta,
+    double  error_rate,
+    int     iDagger)
 {
     /*
-     *  judge errorrate of the gate
-     */
+    *  judge errorrate of the gate
+    */
     if (randGenerator() > error_rate)
     {
-        size_t ststep1 = (size_t)pow(2, qn_1);
-        size_t ststep2 = (size_t)pow(2, qn_2);
-        
-        bool bmark = 1;
-        
+        size_t ststep1 = 1ull << qn_1;
+        size_t ststep2 = 1ull << qn_2;
+
         double dcostheta = cos(theta);
         double dsintheta = sin(theta);
-
-        COMPLEX alpha, beta;
         COMPLEX compll;
-        
+
         if (!iDagger)
         {
             compll.real(dcostheta);
@@ -887,92 +880,63 @@ QError X86QuantumGates::CR(size_t  qn_1,
             compll.real(dcostheta);
             compll.imag(-dsintheta);
         }
-        if (qn_1>qn_2)                                                  /* control qubit numer is higher        */
+        if (qn_1 < qn_2)
         {
-            
-            /*
-             *  traverse all the states
-             */
-            size_t j, k;
-            for (LONG i = 0; i < (LONG)mvQuantumStat.size(); i = i + ststep1)
-            {
-                bmark = !bmark;
-                for (j = i; j < i + ststep1; j = j + 2 * ststep2)
-                {
-                    for (k = j; k < j + ststep2; k++)
-                    {
-                        if (bmark)
-                        {
-                            alpha                      = mvQuantumStat[k];
-                            beta                       = mvQuantumStat[k + ststep2];
-                            mvQuantumStat[k]           = alpha;         /* k:control |1>,goal |0>               */
-                            mvQuantumStat[k + ststep2] = beta* compll;  /* k+ststep:control |1>,goal |1>        */
-                        }
-                    }
-                }
-            }
+            size_t i;
+            i = qn_1;
+            qn_1 = qn_2;
+            qn_2 = i;
         }
-        else
-        {                                                               /* control qubit numer is lower         */
-            /*
-             *  traverse all the states
-             */
-            size_t j, k;
-            for (LONG i = 0; i < (LONG)mvQuantumStat.size(); i = i + 2 * ststep2)
+        /*
+        *  traverse all the states
+        */
+        size_t j, k;
+        for (LONG i = ststep1; i < (LONG)mvQuantumStat.size(); i = i + 2 * ststep1)
+        {
+            for (j = i + ststep2; j < i + ststep1; j = j + 2 * ststep2)
             {
-                for (j = i; j < i + ststep2; j = j + ststep1)
+                for (k = j; k < j + ststep2; k++)
                 {
-                    bmark = !bmark;
-                    for (k = j; k < j + ststep1; k++)
-                    {
-                        if (bmark)
-                        {
-                            alpha                      = mvQuantumStat[k];
-                            beta                       = mvQuantumStat[k + ststep2];
-                            mvQuantumStat[k]           = alpha;
-                            mvQuantumStat[k + ststep2] = beta* compll;
-                        }
-                    }
+                    mvQuantumStat[k] = mvQuantumStat[k] * compll;
                 }
             }
         }
     }
-
     return qErrorNone;
 }
 
 /*****************************************************************************************************************
-Name:        iSWAP
-Description: iSWAP gate,both qubits swap and rotate π by z-axis,the matric is:
-[1 0 0 0;0 0 -i 0;0 -i 0 0;0 0 0 1]
-Argin:       qn_1        first qubit number
-             qn_2        second qubit number
-             error_rate  the errorrate of the gate
-             iDagger     is dagger
-Argout:      None
-return:      quantum error
+  Name:        iSWAP
+  Description: iSWAP gate,both qubits swap and rotate π by z-axis,the matric is:
+               [1 0 0 0;0 0 -i 0;0 -i 0 0;0 0 0 1]
+  Argin:       qn_1        first qubit number
+               qn_2        second qubit number
+               error_rate  the errorrate of the gate
+               iDagger     is dagger
+  Argout:      None
+  return:      quantum error
 *****************************************************************************************************************/
-QError X86QuantumGates::iSWAP(size_t qn_1, 
-                              size_t qn_2,
-                              double error_rate,
-                              int    iDagger)
+QError X86QuantumGates::iSWAP(size_t qn_1,
+    size_t qn_2,
+    double error_rate,
+    int    iDagger)
 {
     /*
-     *  judge errorrate of the gate
-     */
+    *  judge errorrate of the gate
+    */
     if (randGenerator() > error_rate)
     {
         size_t sttemp = 0;
-        size_t ststep1 = (size_t)pow(2, qn_1);
-        size_t ststep2 = (size_t)pow(2, qn_2);
+        size_t ststep1 = 1ull << qn_1;
+        size_t ststep2 = 1ull << qn_2;
 
-        /* 
-         * iSWAP(qn_1,qn_2) is agree with
-         * iSWAP(qn_2,qn_1)                     
-         */
-        if (qn_1 < qn_2)                                                
+        /*
+        * iSWAP(qn_1,qn_2) is agree with
+        * iSWAP(qn_2,qn_1)
+        */
+        if (qn_1 < qn_2)
         {
-            sttemp  = ststep1;
+            sttemp = ststep1;
             ststep1 = ststep2;
             ststep2 = sttemp;
         }
@@ -992,20 +956,20 @@ QError X86QuantumGates::iSWAP(size_t qn_1,
         COMPLEX alpha, beta;
 
         /*
-         *  traverse all the states
-         */
+        *  traverse all the states
+        */
         size_t j, k;
-//#pragma omp parallel for private(j,k,alpha,beta)
+        //#pragma omp parallel for private(j,k,alpha,beta)
         for (LONG i = 0; i < (LONG)mvQuantumStat.size(); i = i + 2 * ststep1)
         {
             for (j = i + ststep2; j < i + ststep1; j = j + 2 * ststep2)
             {
                 for (k = j; k < j + ststep2; k++)
                 {
-                    alpha  = mvQuantumStat[k];
-                    beta   = mvQuantumStat[k + sttemp];
-                    
-                    mvQuantumStat[k]          = compll *beta;           /* k:|01>                               */
+                    alpha = mvQuantumStat[k];
+                    beta = mvQuantumStat[k + sttemp];
+
+                    mvQuantumStat[k] = compll *beta;           /* k:|01>                               */
                     mvQuantumStat[k + sttemp] = compll *alpha;          /* k+sttemp:|10>                        */
                 }
             }
@@ -1016,62 +980,104 @@ QError X86QuantumGates::iSWAP(size_t qn_1,
 }
 
 /*****************************************************************************************************************
-Name:        iSWAP
-Description: iSWAP gate,both qubits swap and rotate π by z-axis,the matric is:
-             [1 0 0 0;0 0 -i 0;0 -i 0 0;0 0 0 1]
-Argin:       qn_1        first qubit number
-             qn_2        second qubit number
-             error_rate  the errorrate of the gate
-             vControlBitNumber  control bit number
-             stQuantumBitNumber quantum bit number
-             iDagger     is dagger
-Argout:      None
-return:      quantum error
+  Name:        iSWAP
+  Description: iSWAP gate,both qubits swap and rotate π by z-axis,the matrix is:
+               [1 0 0 0;0 0 -i 0;0 -i 0 0;0 0 0 1]
+  Argin:       qn_1        first qubit number
+               qn_2        second qubit number
+               error_rate  the errorrate of the gate
+               vControlBitNumber  control bit number
+               stQuantumBitNumber total number of qubits
+               iDagger     is dagger
+  Argout:      None
+  return:      quantum error
 *****************************************************************************************************************/
-QError X86QuantumGates :: iSWAP(size_t  qn_1,
-                                size_t  qn_2,
-                                double  error_rate,
-                                Qnum    vControlBitNumber,
-                                int     stQuantumBitNumber,
-                                int     iDagger)
+QError X86QuantumGates::iSWAP(size_t  qn_1,
+    size_t  qn_2,
+    double  error_rate,
+    Qnum    vControlBitNumber,
+    int     iDagger)
 {
+    if (randGenerator() > error_rate)
+    {
+        sort(vControlBitNumber.begin(), vControlBitNumber.end());
+        size_t M = mvQuantumStat.size() / pow(2, vControlBitNumber.size());
+        size_t x;
+        size_t n = log(mvQuantumStat.size()) / log(2);
+        size_t ststep1 = 1ull << qn_1;
+        size_t ststep2 = 1ull << qn_2;
+        COMPLEX  phi01, phi10;
+        COMPLEX temp(0, -1);         //0-1*i
+        if (iDagger)
+        {
+            temp = COMPLEX(0, 1);
+        }
+        size_t index = 0, block = 0;
+        for (Qnum::iterator j = vControlBitNumber.begin(); j != vControlBitNumber.end(); j++)
+        {
+            block += 1ull << (*j);
+        }
+
+        Qnum::iterator qiter;
+        for (size_t i = 0; i < M; i++)
+        {
+            index = 0;
+            x = i;
+            qiter = vControlBitNumber.begin();
+            for (int j = 0; j < n; j++)
+            {
+                while (qiter != vControlBitNumber.end() && *qiter == j)
+                {
+                    qiter++;
+                    j++;
+                }
+                index += (x % 2)*pow(2, j);
+                x >>= 1;
+            }
+            index = index + block - ststep1 - ststep2;                             /*control qubits are 0,target qubit are 0 */
+            phi01 = mvQuantumStat[index + ststep2];
+            phi10 = mvQuantumStat[index + ststep1];
+            mvQuantumStat[index + ststep2] = phi10*temp;
+            mvQuantumStat[index + ststep1] = phi01*temp;
+        }
+    }
+
     return qErrorNone;
 }
 
 /*****************************************************************************************************************
-Name:        controlSwap
-Description: iSWAP gate,both qubits swap and rotate π by z-axis,the matric is:
-             [1 0 0 0;0 0 -i 0;0 -i 0 0;0 0 0 1]
-Argin:       qn_1        first qubit number
-             qn_2        second qubit number
-             error_rate  the errorrate of the gate
-Argout:      None
-return:      quantum error
+  Name:        controlSwap
+  Description: iSWAP gate,both qubits swap and rotate π by z-axis,the matrix is:
+               [1 0 0 0;0 0 -i 0;0 -i 0 0;0 0 0 1]
+  Argin:       qn_1        first qubit number
+               qn_2        second qubit number
+               error_rate  the errorrate of the gate
+  Argout:      None
+  return:      quantum error
 *****************************************************************************************************************/
 QError X86QuantumGates::controlSwap(size_t qn_1, size_t qn_2, size_t qn_3, double error_rate)
 {
-    COMPLEX alpha, beta;
+    COMPLEX alpha;
     /*
-     *  judge errorrate of the gate
-     */
+    *  judge errorrate of the gate
+    */
     if (randGenerator() > error_rate)
     {
-        size_t  ststep1 = (size_t)pow(2, qn_1);
-        size_t  ststep2 = (size_t)pow(2, qn_2);
-        size_t  ststep3 = (size_t)pow(2, qn_3 );
+        size_t  ststep1 = 1ull << qn_1;
+        size_t  ststep2 = 1ull << qn_2;
+        size_t  ststep3 = 1ull << qn_3;
 
         /*
-         *  traverse all the states
-         */
+        *  traverse all the states
+        */
         for (size_t i = ststep1; i < mvQuantumStat.size(); i = i + 2 * ststep1)
         {
             for (size_t j = i; j < i + ststep1; ++j)
             {
                 if (j % (2 * ststep2) >= ststep2 && j % (2 * ststep3) < ststep3)
                 {
-                    alpha            = mvQuantumStat[j]; 
+                    alpha = mvQuantumStat[j];
                     mvQuantumStat[j] = mvQuantumStat[j - ststep2 + ststep3];
-
                     mvQuantumStat[j - ststep2 + ststep3] = alpha;
                 }
             }
@@ -1082,41 +1088,43 @@ QError X86QuantumGates::controlSwap(size_t qn_1, size_t qn_2, size_t qn_3, doubl
 }
 
 /*****************************************************************************************************************
-Name:        sqiSWAP
-Description: sqiSWAP gate,both qubits swap and rotate π by z-axis,the matrix is:
-             [1 0 0 0;0 1/sqrt(2) -i/sqrt(2) 0;0 -i/sqrt(2) 1/sqrt(2) 0;0 0 0 1]
-Argin:       qn_1        first qubit number
-             qn_2        second qubit number
-             error_rate  the errorrate of the gate
-             iDagger     is dagger
-Argout:      None
-return:      quantum error
+  Name:        sqiSWAP
+  Description: sqiSWAP gate,both qubits swap and rotate π by z-axis,the matrix is:
+               [1 0 0 0;0 1/sqrt(2) -i/sqrt(2) 0;0 -i/sqrt(2) 1/sqrt(2) 0;0 0 0 1]
+  Argin:       qn_1        first qubit number
+               qn_2        second qubit number
+               error_rate  the errorrate of the gate
+               iDagger     is dagger
+  Argout:      None
+  return:      quantum error
 *****************************************************************************************************************/
 QError X86QuantumGates::sqiSWAP(size_t  qn_1,
-                                size_t  qn_2,
-                                double  error_rate,
-                                int     iDagger)
+    size_t  qn_2,
+    double  error_rate,
+    int     iDagger)
 {
     /*
-     *  judge errorrate of the gate
-     */
+    *  judge errorrate of the gate
+    */
     if (randGenerator() > error_rate)
     {
-        size_t sttemp, ststep1 = (size_t)pow(2, qn_1 ), ststep2 = (size_t)pow(2, qn_2 );
-        /* 
-         * sqiSWAP(qn_1,qn_2) is agree with
-         * sqiSWAP(qn_2,qn_1) 
-         */
-        if (qn_1 < qn_2)                                                
+        size_t sttemp;
+        size_t ststep1 = 1ull << qn_1;
+        size_t ststep2 = 1ull << qn_2;
+        /*
+        * sqiSWAP(qn_1,qn_2) is agree with
+        * sqiSWAP(qn_2,qn_1)
+        */
+        if (qn_1 < qn_2)
         {
             sttemp = ststep1;
             ststep1 = ststep2;
             ststep2 = sttemp;
         }
         sttemp = ststep1 - ststep2;
-        
+
         COMPLEX compll;
-        
+
         if (!iDagger)
         {
             compll.real(0);
@@ -1128,12 +1136,12 @@ QError X86QuantumGates::sqiSWAP(size_t  qn_1,
             compll.imag(1.0);
         }
         COMPLEX alpha, beta;
-        
+
         /*
-         *  traverse all the states
-         */
+        *  traverse all the states
+        */
         size_t j, k;
-//#pragma omp parallel for private(j,k,alpha,beta)
+        //#pragma omp parallel for private(j,k,alpha,beta)
         for (LONG i = 0; i < (LONG)mvQuantumStat.size(); i = i + 2 * ststep1)
         {
             for (j = i + ststep2; j < i + ststep1; j = j + 2 * ststep2)
@@ -1141,9 +1149,8 @@ QError X86QuantumGates::sqiSWAP(size_t  qn_1,
                 for (k = j; k < j + ststep2; k++)
                 {
                     alpha = mvQuantumStat[k];
-                    beta  = mvQuantumStat[k + sttemp];
-                    
-                    mvQuantumStat[k]          = alpha *SQ2 + compll *beta *SQ2;
+                    beta = mvQuantumStat[k + sttemp];
+                    mvQuantumStat[k] = alpha *SQ2 + compll *beta *SQ2;
                     mvQuantumStat[k + sttemp] = compll *alpha *SQ2 + beta *SQ2;
                 }
             }
@@ -1154,39 +1161,81 @@ QError X86QuantumGates::sqiSWAP(size_t  qn_1,
 }
 
 /*****************************************************************************************************************
-Name:        sqiSWAP
-Description: sqiSWAP gate,both qubits swap and rotate π by z-axis,the matrix is:
-             [1 0 0 0;0 1/sqrt(2) -i/sqrt(2) 0;0 -i/sqrt(2) 1/sqrt(2) 0;0 0 0 1]
-Argin:       qn_1               first qubit number
-             qn_2               second qubit number
-             error_rate         the errorrate of the gate
-             vControlBitNumber  control bit number
-             stQuantumBitNumber quantum bit number
-             iDagger            is dagger
-Argout:      None
-return:      quantum error
+  Name:        sqiSWAP
+  Description: sqiSWAP gate,both qubits swap and rotate π by z-axis,the matrix is:
+               [1 0 0 0;0 1/sqrt(2) -i/sqrt(2) 0;0 -i/sqrt(2) 1/sqrt(2) 0;0 0 0 1]
+  Argin:       qn_1               first qubit number
+               qn_2               second qubit number
+               error_rate         the errorrate of the gate
+               vControlBitNumber  control bit number
+               stQuantumBitNumber total number of qubits
+               iDagger            is dagger
+  Argout:      None
+  return:      quantum error
 *****************************************************************************************************************/
-QError X86QuantumGates :: sqiSWAP(size_t  qn_1,
-                                  size_t  qn_2,
-                                  double  error_rate,
-                                  Qnum    vControlBitNumber,
-                                  int     stQuantumBitNumber,
-                                  int     iDagger)
+QError X86QuantumGates::sqiSWAP(size_t  qn_1,
+    size_t  qn_2,
+    double  error_rate,
+    Qnum    vControlBitNumber,
+    int     iDagger)
 {
+    if (randGenerator() > error_rate)
+    {
+        sort(vControlBitNumber.begin(), vControlBitNumber.end());
+        size_t M = mvQuantumStat.size() / pow(2, vControlBitNumber.size());
+        size_t x;
+        size_t n = log(mvQuantumStat.size()) / log(2);
+        size_t ststep1 = 1ull << qn_1;
+        size_t ststep2 = 1ull << qn_2;
+        COMPLEX  phi01, phi10;
+        COMPLEX temp(0, -1);         //0-1*i
+        if (iDagger)
+        {
+            temp = COMPLEX(0, 1);
+        }
+        size_t index = 0, block = 0;
+        for (Qnum::iterator j = vControlBitNumber.begin(); j != vControlBitNumber.end(); j++)
+        {
+            block += 1ull << (*j);
+        }
+
+        Qnum::iterator qiter;
+        for (size_t i = 0; i < M; i++)
+        {
+            index = 0;
+            x = i;
+            qiter = vControlBitNumber.begin();
+            for (int j = 0; j < n; j++)
+            {
+                while (qiter != vControlBitNumber.end() && *qiter == j)
+                {
+                    qiter++;
+                    j++;
+                }
+                index += (x % 2)*pow(2, j);
+                x >>= 1;
+            }
+            index = index + block - ststep1 - ststep2;                             /*control qubits are 0,target qubit are 0 */
+            phi01 = mvQuantumStat[index + ststep2];
+            phi10 = mvQuantumStat[index + ststep1];
+            mvQuantumStat[index + ststep2] = phi01*SQ2 - phi10*temp*SQ2;
+            mvQuantumStat[index + ststep1] = -phi01*temp*SQ2 + phi10*SQ2;
+        }
+    }
     return qErrorNone;
 }
 
 /*****************************************************************************************************************
-Name:        qubitMeasure
-Description: measure qubit and the state collapsed
-Argin:       qn    qubit number of the measurement
-Argout:      None
-return:      quantum error
+  Name:        qubitMeasure
+  Description: measure qubit and the state collapsed
+  Argin:       qn    qubit number of the measurement
+  Argout:      None
+  return:      quantum error
 *****************************************************************************************************************/
 int X86QuantumGates::qubitMeasure(size_t qn)
 {
-    size_t ststep = (size_t)pow(2, qn);
-    
+    size_t ststep = 1ull << qn;
+
     double dprob(0);
 
     for (size_t i = 0; i< mvQuantumStat.size(); i += ststep * 2)
@@ -1197,42 +1246,42 @@ int X86QuantumGates::qubitMeasure(size_t qn)
         }
     }
     int ioutcome(0);
-    
+
     float fi = (float)randGenerator();
-    
+
     if (fi> dprob)
     {
         ioutcome = 1;
     }
 
     /*
-     *  POVM measurement
-     */
+    *  POVM measurement
+    */
     if (ioutcome == 0)
     {
         dprob = 1 / sqrt(dprob);
 
         size_t j;
-//#pragma omp parallel for private(j)
+        //#pragma omp parallel for private(j)
         for (LONG i = 0; i < (LONG)mvQuantumStat.size(); i = i + 2 * ststep)
         {
             for (j = i; j < i + ststep; j++)
             {
-                mvQuantumStat[j]          *= dprob;
-                mvQuantumStat[j + ststep]  = 0;
+                mvQuantumStat[j] *= dprob;
+                mvQuantumStat[j + ststep] = 0;
             }
         }
     }
     else
     {
-        dprob = 1 / sqrt(1 - dprob); 
+        dprob = 1 / sqrt(1 - dprob);
 
         size_t j;
-//#pragma omp parallel for private(j)
+        //#pragma omp parallel for private(j)
         for (LONG i = 0; i < (LONG)mvQuantumStat.size(); i = i + 2 * ststep)
         {
             for (j = i; j<i + ststep; j++) {
-                mvQuantumStat[j]           = 0;
+                mvQuantumStat[j] = 0;
                 mvQuantumStat[j + ststep] *= dprob;
             }
         }
@@ -1242,11 +1291,11 @@ int X86QuantumGates::qubitMeasure(size_t qn)
 
 
 /*****************************************************************************************************************
-Name:        initState
-Description: initialize the quantum state
-Argin:       stNumber  Quantum number
-Argout:      None
-return:      quantum error
+  Name:        initState
+  Description: initialize the quantum state
+  Argin:       stNumber  Quantum number
+  Argout:      None
+  return:      quantum error
 *****************************************************************************************************************/
 QError X86QuantumGates::initState(QuantumGateParam *pQuantumProParam)
 {
@@ -1256,7 +1305,7 @@ QError X86QuantumGates::initState(QuantumGateParam *pQuantumProParam)
     }
 
     size_t stQuantumStat = (size_t)pow(2, pQuantumProParam->mQuantumBitNumber);
-    
+
     try
     {
         mvQuantumStat.resize(stQuantumStat);
@@ -1273,21 +1322,21 @@ QError X86QuantumGates::initState(QuantumGateParam *pQuantumProParam)
 
 
 /*****************************************************************************************************************
-Name:        matReverse
-Description: change the position of the qubits in 2-qubit gate
-Argin:       (*mat)[4]       pointer of the origin 2D array
-             (*mat_rev)[4]   pointer of the changed 2D array
-Argout:      2D array
-return:      quantum error
+  Name:        matReverse
+  Description: change the position of the qubits in 2-qubit gate
+  Argin:       (*mat)[4]       pointer of the origin 2D array
+               (*mat_rev)[4]   pointer of the changed 2D array
+  Argout:      2D array
+  return:      quantum error
 *****************************************************************************************************************/
 QError  X86QuantumGates::matReverse(COMPLEX(*mat)[4], COMPLEX(*mat_rev)[4])
 {
     COMPLEX  temp;
     /*  mat_rev = { { mat[0][0],mat[0][2],mat[0][1],mat[0][3] },
-     *            { mat[2][0],mat[2][2],mat[2][1],mat[2][3] },
-     *            { mat[1][0],mat[1][2],mat[1][1],mat[1][3] },
-     *            { mat[3][0],mat[3][2],mat[3][1],mat[3][3] }, };
-     */
+    *            { mat[2][0],mat[2][2],mat[2][1],mat[2][3] },
+    *            { mat[1][0],mat[1][2],mat[1][1],mat[1][3] },
+    *            { mat[3][0],mat[3][2],mat[3][1],mat[3][3] }, };
+    */
     for (size_t j = 0; j != 4; j++)                                     /* swap 2nd and 3rd row                 */
     {
         *(*mat_rev + j) = *(*mat + j);
@@ -1305,13 +1354,13 @@ QError  X86QuantumGates::matReverse(COMPLEX(*mat)[4], COMPLEX(*mat_rev)[4])
     return qErrorNone;
 }
 /*****************************************************************************************************************
-Name:        getCalculationUnitType
-Description: compare calculation unit type
-Argin:       sCalculationUnitType   external calculation unit type
-Argout:      None
-return:      comparison results
+  Name:        getCalculationUnitType
+  Description: compare calculation unit type
+  Argin:       sCalculationUnitType   external calculation unit type
+  Argout:      None
+  return:      comparison results
 *****************************************************************************************************************/
-bool X86QuantumGates :: compareCalculationUnitType(string& sCalculationUnitType)
+bool X86QuantumGates::compareCalculationUnitType(string& sCalculationUnitType)
 {
     bool bResult = false;
 
@@ -1328,35 +1377,35 @@ bool X86QuantumGates :: compareCalculationUnitType(string& sCalculationUnitType)
 }
 
 /*****************************************************************************************************************
-Name:        NOT
-Description: NOT gate,invert the state.The matrix is
-             [0 1;1 0]
-Argin:       qn          qubit number that the Hadamard gate operates on.
-             error_rate  the errorrate of the gate
-Argout:      None
-return:      quantum error
+  Name:        NOT
+  Description: NOT gate,invert the state.The matrix is
+               [0 1;1 0]
+  Argin:       qn          qubit number that the NOT gate operates on.
+               error_rate  the errorrate of the gate
+  Argout:      None
+  return:      quantum error
 *****************************************************************************************************************/
 QError X86QuantumGates::NOT(size_t qn, double error_rate)
 {
     /*
-     *  judge errorrate of the gate
-     */
+    *  judge errorrate of the gate
+    */
     if (randGenerator() > error_rate)
     {
-        size_t ststep = (size_t)pow(2, qn);
+        size_t ststep = 1ull << qn;
 
         COMPLEX alpha, beta;
 
         size_t j;
-//#pragma omp parallel for private(j,alpha,beta)
+        //#pragma omp parallel for private(j,alpha,beta)
         for (LONG i = 0; i < (LONG)mvQuantumStat.size(); i += ststep * 2)
         {
             for (j = i; j<i + ststep; j++)
             {
                 alpha = mvQuantumStat[j];
-                beta  = mvQuantumStat[j + ststep];
+                beta = mvQuantumStat[j + ststep];
 
-                mvQuantumStat[j]          = beta;
+                mvQuantumStat[j] = beta;
                 mvQuantumStat[j + ststep] = alpha;
             }
         }
@@ -1366,81 +1415,125 @@ QError X86QuantumGates::NOT(size_t qn, double error_rate)
 }
 
 /*****************************************************************************************************************
-Name:        NOT
-Description: NOT gate,invert the state.The matrix is
-[0 1;1 0]
-Argin:       qn                 qubit number that the Hadamard gate operates on.
-             error_rate         the errorrate of the gate
-             vControlBit        control bit vector
-             stQuantumBitNumber quantum bit number
-Argout:      None
-return:      quantum error
+  Name:        NOT
+  Description: NOT gate,invert the state.The matrix is
+               [0 1;1 0]
+  Argin:       qn                 qubit number that the NOT gate operates on.
+               error_rate         the errorrate of the gate
+               vControlBit        control bit vector
+               stQuantumBitNumber quantum bit number
+  Argout:      None
+  return:      quantum error
 *****************************************************************************************************************/
 QError X86QuantumGates::NOT(size_t  qn,
-                            double  error_rate,
-                            Qnum    vControlBit,
-                            int     stQuantumBitNumber)
+    double  error_rate,
+    Qnum    vControlBit,
+    int     stQuantumBitNumber)
 {
+    if (randGenerator() > error_rate)
+    {
+        size_t M = (size_t)(mvQuantumStat.size() / (1ull << vControlBit.size()));
+        size_t x;
+        size_t n = stQuantumBitNumber;             //total number of qubits
+        size_t ststep = 1ull << qn;
+        size_t index = 0;
+        size_t block = 0;
+        COMPLEX alpha, beta;
+        sort(vControlBit.begin(), vControlBit.end());
+        for (Qnum::iterator j = vControlBit.begin(); j != vControlBit.end(); j++)
+        {
+            block += (size_t)pow(2, *j);
+        }
+
+        Qnum::iterator qiter;
+
+        size_t j;
+        //#pragma omp parallel for private(j,alpha,beta,index,x,qiter)
+        for (int i = 0; i < M; i++)
+        {
+            index = 0;
+            x = i;
+            qiter = vControlBit.begin();
+
+            for (j = 0; j < n; j++)
+            {
+                while (qiter != vControlBit.end() && *qiter == j)
+                {
+                    qiter++;
+                    j++;
+                }
+                index += (size_t)((x % 2)*pow(2, j));
+                x >>= 1;
+            }
+
+            /*
+            * control qubits are 1,target qubit is 0
+            */
+            index = index + block - ststep;
+            alpha = mvQuantumStat[index];
+            beta = mvQuantumStat[index + ststep];
+            mvQuantumStat[index] = beta;
+            mvQuantumStat[index + ststep] = alpha;
+        }
+    }
     return qErrorNone;
 }
 
 /*****************************************************************************************************************
-Name:        toffoli
-Description: toffoli gate,the same as toffoli gate
-Argin:       stControlBit1       first control qubit
-             stControlBit2       the second control qubit
-             stQuantumBit        target qubit
-             errorRate           the errorrate of the gate
-             stQuantumBitNumber  quantum bit number
-Argout:      None
-return:      quantum error
+  Name:        toffoli
+  Description: toffoli gate,the same as toffoli gate
+  Argin:       stControlBit1       first control qubit
+               stControlBit2       the second control qubit
+               stQuantumBit        target qubit
+               errorRate           the errorrate of the gate
+  Argout:      None
+  return:      quantum error
 *****************************************************************************************************************/
-QError X86QuantumGates :: toffoli(size_t stControlBit1,
-                                  size_t stControlBit2,
-                                  size_t stQuantumBit,
-                                  double errorRate,
-                                  int    stQuantumBitNumber)
+QError X86QuantumGates::toffoli(size_t stControlBit1,
+    size_t stControlBit2,
+    size_t stQuantumBit,
+    double errorRate)
 {
     if (randGenerator() > errorRate)
     {
-		size_t ststep0 = 1ull << stControlBit1;
-		size_t ststep1 = 1ull << stControlBit2;
-		size_t ststep2 = 1ull << stQuantumBit;
+        size_t ststep0 = 1ull << stControlBit1;
+        size_t ststep1 = 1ull << stControlBit2;
+        size_t ststep2 = 1ull << stQuantumBit;
         size_t temp;
 
         COMPLEX dtemp2(0);
 
         if (ststep0 > ststep1)
         {
-            temp    = ststep1;
+            temp = ststep1;
             ststep1 = ststep0;
             ststep0 = temp;
         }
         if (ststep0 > ststep2)
         {
-            temp    = ststep2;
+            temp = ststep2;
             ststep2 = ststep0;
             ststep0 = temp;
         }
         if (ststep1 > ststep2)
         {
-            temp    = ststep2;
+            temp = ststep2;
             ststep2 = ststep1;
             ststep1 = temp;
         }                                                               /* sort */
 
-        temp = pow(2, stQuantumBit);
-        size_t j,k,m;
-//#pragma omp parallel for private(j,k,m)
+        temp = 1ull << stQuantumBit;
+        size_t j, k, m;
+        //#pragma omp parallel for private(j,k,m)
         for (LONG i = ststep2; i < (LONG)mvQuantumStat.size(); i += 2 * ststep2)
         {
-            for ( j = i + ststep1; j < i + ststep2; j += 2 * ststep1)
+            for (j = i + ststep1; j < i + ststep2; j += 2 * ststep1)
             {
-                for ( k = j + ststep0; k < j + ststep1; k += 2 * ststep0)
+                for (k = j + ststep0; k < j + ststep1; k += 2 * ststep0)
                 {
-                    for ( m = k; m < k + ststep0; m++)
+                    for (m = k; m < k + ststep0; m++)
                     {
-                        dtemp2           = mvQuantumStat[m];
+                        dtemp2 = mvQuantumStat[m];
                         mvQuantumStat[m] = mvQuantumStat[m - temp];
 
                         mvQuantumStat[m - temp] = dtemp2;
@@ -1455,12 +1548,12 @@ QError X86QuantumGates :: toffoli(size_t stControlBit1,
 }
 
 /*****************************************************************************************************************
-Name:        endGate
-Description: end gate
-Argin:       pQuantumProParam       quantum program param pointer
-             pQGate                 quantum gate
-Argout:      None
-return:      quantum error
+  Name:        endGate
+  Description: end gate
+  Argin:       pQuantumProParam       quantum program param pointer
+               pQGate                 quantum gate
+  Argout:      None
+  return:      quantum error
 *****************************************************************************************************************/
 QError X86QuantumGates::endGate(QuantumGateParam * pQuantumProParam, QuantumGates * pQGate)
 {
@@ -1469,19 +1562,19 @@ QError X86QuantumGates::endGate(QuantumGateParam * pQuantumProParam, QuantumGate
     {
         mvQuantumStat[i] = 0;
     }
-    mvQuantumStat[0] =1;
+    mvQuantumStat[0] = 1;
     return qErrorNone;
 }
 
 /*************************************************
-Name:      unitarySingleQubitGate
-Description:        unitary single qubit gate
-Argin:            psi        reference of vector<complex<double>> which contains quantum state information.
-qn        target qubit number
-matrix  matrix of the gate
-error_rate  the errorrate of the gate
-Argout:    the state after measurement
-return:    None
+  Name:      unitarySingleQubitGate
+  Description:        unitary single qubit gate
+  Argin:            psi        reference of vector<complex<double>> which contains quantum state information.
+                    qn        target qubit number
+                    matrix  matrix of the gate
+                    error_rate  the errorrate of the gate
+  Argout:    the state after measurement
+  return:    None
 *************************************************/
 void X86QuantumGates::unitarySingleQubitGate(size_t qn, QStat& matrix, double error_rate)
 {
@@ -1490,7 +1583,7 @@ void X86QuantumGates::unitarySingleQubitGate(size_t qn, QStat& matrix, double er
     */
     if (randGenerator() > error_rate)
     {
-        size_t ststep = pow(2, qn);
+        size_t ststep = 1ull << qn;
         COMPLEX alpha, beta;
         for (size_t i = 0; i< mvQuantumStat.size(); i += ststep * 2)
         {
@@ -1506,14 +1599,14 @@ void X86QuantumGates::unitarySingleQubitGate(size_t qn, QStat& matrix, double er
 }
 
 /*************************************************
-Name:      unitarySingleQubitGateDagger
-Description:        unitary single qubit gate
-Argin:            psi        reference of vector<complex<double>> which contains quantum state information.
-qn        target qubit number
-matrix  matrix of the gate
-error_rate  the errorrate of the gate
-Argout:    the state after measurement
-return:    None
+  Name:      unitarySingleQubitGateDagger
+  Description:        unitary single qubit gate
+  Argin:            psi        reference of vector<complex<double>> which contains quantum state information.
+                    qn        target qubit number
+                    matrix  matrix of the gate
+                    error_rate  the errorrate of the gate
+  Argout:    the state after measurement
+  return:    None
 *************************************************/
 void X86QuantumGates::unitarySingleQubitGateDagger(size_t qn, QStat& matrix, double error_rate)
 {
@@ -1522,7 +1615,7 @@ void X86QuantumGates::unitarySingleQubitGateDagger(size_t qn, QStat& matrix, dou
     */
     if (randGenerator() > error_rate)
     {
-        size_t ststep = pow(2, qn);
+        size_t ststep = 1ull << qn;
         QStat matrixdagger(4);
         for (size_t i = 0; i < 4; i++)
         {
@@ -1552,14 +1645,16 @@ void X86QuantumGates::controlunitarySingleQubitGate(Qnum& qnum, QStat& matrix, d
     {
         size_t qn = qnum.back();                                        /*qn is target number*/
         sort(qnum.begin(), qnum.end());
-        int M = mvQuantumStat.size() / pow(2, qnum.size()), x;
-        int n = log(mvQuantumStat.size()) / log(2);
-        size_t ststep = pow(2, qn);
+        size_t M = mvQuantumStat.size() / (1ull << qnum.size());
+        size_t x;
+        size_t n = log(mvQuantumStat.size()) / log(2);
+        size_t ststep = 1ull << qn;
         COMPLEX alpha, beta;
-        size_t index = 0, block = 0;
+        size_t index = 0;
+        size_t block = 0;
         for (Qnum::iterator j = qnum.begin(); j != qnum.end(); j++)
         {
-            block += pow(2, *j);
+            block += 1ull << (*j);
         }
         Qnum::iterator qiter;
         for (size_t i = 0; i < M; i++)
@@ -1578,7 +1673,7 @@ void X86QuantumGates::controlunitarySingleQubitGate(Qnum& qnum, QStat& matrix, d
                 x >>= 1;
             }
             index = index + block - ststep;                             /*control qubits are 1,target qubit is 0 */
-            //cout << index << endl;
+                                                                        //cout << index << endl;
             alpha = mvQuantumStat[index];
             beta = mvQuantumStat[index + ststep];
             mvQuantumStat[index] = alpha * matrix[0] + beta * matrix[1];
@@ -1601,14 +1696,15 @@ void X86QuantumGates::controlunitarySingleQubitGateDagger(Qnum& qnum, QStat& mat
         }//共轭
         size_t qn = qnum.back();                                        /*qn is target number                   */
         sort(qnum.begin(), qnum.end());
-        int M = mvQuantumStat.size() / pow(2, qnum.size()), x;
-        int n = log(mvQuantumStat.size()) / log(2);
-        size_t ststep = pow(2, qn);
+        size_t M = mvQuantumStat.size() / pow(2, qnum.size());
+        size_t x;
+        size_t n = log(mvQuantumStat.size()) / log(2);
+        size_t ststep = 1ull << qn;
         COMPLEX alpha, beta;
         size_t index = 0, block = 0;
         for (Qnum::iterator j = qnum.begin(); j != qnum.end(); j++)
         {
-            block += pow(2, *j);
+            block += 1ull << (*j);
         }
 
         Qnum::iterator qiter;
@@ -1627,8 +1723,8 @@ void X86QuantumGates::controlunitarySingleQubitGateDagger(Qnum& qnum, QStat& mat
                 index += (x % 2)*pow(2, j);
                 x >>= 1;
             }
-            index = index + block - ststep;                             /*control qubits are 1,target qubit is 0 */
-            //cout << index << endl;
+            index = index + block - ststep;                             /*control qubits are 0,target qubit is 0 */
+                                                                        //cout << index << endl;
             alpha = mvQuantumStat[index];
             beta = mvQuantumStat[index + ststep];
             mvQuantumStat[index] = alpha * matrix[0] + beta * matrix[1];
@@ -1650,7 +1746,8 @@ void X86QuantumGates::unitaryDoubleQubitGate(size_t qn_1, size_t qn_2, QStat& ma
     */
     if (randGenerator() > error_rate)
     {
-        size_t ststep1 = pow(2, qn_1), ststep2 = pow(2, qn_2);
+        size_t ststep1 = 1ull << qn_1;
+        size_t ststep2 = 1ull << qn_2;
         COMPLEX phi00, phi01, phi10, phi11;
         if (qn_1>qn_2)                                                  /* control qubit number is higher       */
         {
@@ -1715,7 +1812,8 @@ void X86QuantumGates::unitaryDoubleQubitGateDagger(size_t qn_1, size_t qn_2, QSt
     */
     if (randGenerator() > error_rate)
     {
-        size_t ststep1 = pow(2, qn_1), ststep2 = pow(2, qn_2);
+        size_t ststep1 = 1ull << qn_1;
+        size_t ststep2 = 1ull << qn_2;
         COMPLEX temp, phi00, phi01, phi10, phi11;
         for (size_t i = 0; i < 4; i++)
         {
@@ -1794,15 +1892,16 @@ void X86QuantumGates::controlunitaryDoubleQubitGate(Qnum& qnum, QStat& matrix, d
         size_t qn_1 = qnum[qnum.size() - 2];
         size_t qn_2 = qnum[qnum.size() - 1];  //qnum最后两个元素表示双门作用的两个比特
         sort(qnum.begin(), qnum.end());
-        int M = mvQuantumStat.size() / pow(2, qnum.size()), x;
-        int n = log(mvQuantumStat.size()) / log(2);
-        size_t ststep1 = pow(2, qn_1);
-        size_t ststep2 = pow(2, qn_2);
+        size_t M = mvQuantumStat.size() / (1ull << qnum.size());
+        size_t x;
+        size_t n = log(mvQuantumStat.size()) / log(2);
+        size_t ststep1 = 1ull << qn_1;
+        size_t ststep2 = 1ull << qn_2;
         COMPLEX phi00, phi01, phi10, phi11;
         size_t index = 0, block = 0;
         for (Qnum::iterator j = qnum.begin(); j != qnum.end(); j++)
         {
-            block += pow(2, *j);
+            block += 1ull << (*j);
         }
 
         Qnum::iterator qiter;
@@ -1821,7 +1920,7 @@ void X86QuantumGates::controlunitaryDoubleQubitGate(Qnum& qnum, QStat& matrix, d
                 index += (x % 2)*pow(2, j);
                 x >>= 1;
             }
-            index = index + block - ststep1 - ststep2;                             /*control qubits are 1,target qubit are 0 */
+            index = index + block - ststep1 - ststep2;                             /*control qubits are 0,target qubit are 0 */
             phi00 = mvQuantumStat[index];
             phi01 = mvQuantumStat[index + ststep2];
             phi10 = mvQuantumStat[index + ststep1];
@@ -1859,15 +1958,16 @@ void X86QuantumGates::controlunitaryDoubleQubitGateDagger(Qnum& qnum, QStat& mat
         size_t qn_1 = qnum[qnum.size() - 2];
         size_t qn_2 = qnum[qnum.size() - 1];  //qnum最后两个元素表示双门作用的两个比特
         sort(qnum.begin(), qnum.end());
-        int M = mvQuantumStat.size() / pow(2, qnum.size()), x;
-        int n = log(mvQuantumStat.size()) / log(2);
-        size_t ststep1 = pow(2, qn_1);
-        size_t ststep2 = pow(2, qn_2);
+        size_t M = mvQuantumStat.size() / (1ull << qnum.size());
+        size_t x;
+        size_t n = log(mvQuantumStat.size()) / log(2);
+        size_t ststep1 = 1ull << qn_1;
+        size_t ststep2 = 1ull << qn_2;
         COMPLEX phi00, phi01, phi10, phi11;
         size_t index = 0, block = 0;
         for (Qnum::iterator j = qnum.begin(); j != qnum.end(); j++)
         {
-            block += pow(2, *j);
+            block += 1ull << (*j);
         }
 
         Qnum::iterator qiter;
@@ -1886,7 +1986,7 @@ void X86QuantumGates::controlunitaryDoubleQubitGateDagger(Qnum& qnum, QStat& mat
                 index += (x % 2)*pow(2, j);
                 x >>= 1;
             }
-            index = index + block - ststep1 - ststep2;                             /*control qubits are 1,target qubit are 0 */
+            index = index + block - ststep1 - ststep2;                             /*control qubits are 0,target qubit are 0 */
             phi00 = mvQuantumStat[index];
             phi01 = mvQuantumStat[index + ststep2];
             phi10 = mvQuantumStat[index + ststep1];

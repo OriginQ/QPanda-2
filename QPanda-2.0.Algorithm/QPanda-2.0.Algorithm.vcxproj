@@ -124,6 +124,7 @@
     <ClCompile Include="Algorithm\DJ_Algorithm\DJ_Algorithm.cpp" />
     <ClCompile Include="Algorithm\Grover_Algorithm\Grover_Algorithm.cpp" />
     <ClCompile Include="Algorithm\HHL_Algorithm\HHL_Algorithm.cpp" />
+    <ClCompile Include="Algorithm\QPE_Algorithm\QPE_Algorithm.cpp" />
     <ClCompile Include="Algorithm\test\test.cpp" />
     <ClCompile Include="Algorithm\Utilities\Utilities.cpp" />
   </ItemGroup>
@@ -131,6 +132,7 @@
     <ClInclude Include="Algorithm\DJ_Algorithm\DJ_Algorithm.h" />
     <ClInclude Include="Algorithm\Grover_Algorithm\Grover_Algorithm.h" />
     <ClInclude Include="Algorithm\HHL_Algorithm\HHL_Algorithm.h" />
+    <ClInclude Include="Algorithm\QPE_Algorithm\QPE_Algorithm.h" />
     <ClInclude Include="QAlgorithm.h" />
     <ClInclude Include="Algorithm\test\test.h" />
     <ClInclude Include="Algorithm\Utilities\Utilities.h" />

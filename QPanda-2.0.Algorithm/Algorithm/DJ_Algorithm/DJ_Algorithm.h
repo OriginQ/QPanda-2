@@ -20,8 +20,20 @@ limitations under the License.
 #include "QPanda.h"
 #include "../../QAlgorithm.h"
 
+/*****************************************************************************************************************
+Name:        DJ_Algorithm
+Description: 2-qubit D-J Algorithm
+*****************************************************************************************************************/
 void DJ_Algorithm();
-
+/*****************************************************************************************************************
+  Name:        Two_Qubit_DJ_Algorithm_Circuit
+  Description: program of 2-qubit D-J Algorithm
+  Argin:       Qubit* qubit1          pointer of the working qubit
+               Qubit* qubit2          pointer of the ancilla qubit
+               CBit* cbit             pointer of the cbit which reserve the measurement result
+               vector<bool> oracle_function     information of f(x) in D-J Algorithm
+  return:      QProg&                 program of 2-qubit D-J Algorithm
+*****************************************************************************************************************/
 QProg& Two_Qubit_DJ_Algorithm_Circuit(
 	Qubit* qubit1,
 	Qubit* qubit2,

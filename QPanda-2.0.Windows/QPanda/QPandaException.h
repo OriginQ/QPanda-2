@@ -7,21 +7,21 @@ using namespace std;
 
 class QPandaException : public exception
 {
+	string errmsg;
+	bool isFree;
 public:
 
 	QPandaException(const char* str, bool isfree)
-#if defined (_WIN32)
-		: exception(str, isfree) {}
-#else
-		: exception(string(str), isfree) {}
-#endif
+		: exception() {
+		errmsg = str;
+		isFree = isfree;
+	}
 
 	QPandaException(string str,bool isfree)
-#if defined (_WIN32)
-		: exception(str.c_str(), isfree) {}
-#else
-		: exception(str, isfree) {}
-#endif
+		: exception() {
+		errmsg = str;
+		isFree = isfree;
+	}
 	
 };
 

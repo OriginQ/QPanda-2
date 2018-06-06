@@ -84,7 +84,9 @@ extern OriginQGateNode & QSingle(double alpha, double beta, double gamma, double
 // Create a control-U gate
 extern OriginQGateNode & QDouble(double alpha, double beta, double gamma, double delta, Qubit *, Qubit *);
 
-// to init the environment. Use this at the beginning
+/* Init the environment. Use this at the beginning
+* 
+*/
 void init();
 
 // to finalize the environment. Use this at the end

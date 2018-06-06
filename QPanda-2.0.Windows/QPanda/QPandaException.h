@@ -8,10 +8,20 @@ using namespace std;
 class QPandaException : public exception
 {
 public:
+
 	QPandaException(const char* str, bool isfree)
-		:exception(str,isfree){}
+#if defined (_WIN32)
+		: exception(str, isfree) {}
+#else
+		: exception(string(str), isfree) {}
+#endif
+
 	QPandaException(string str,bool isfree)
-		:exception(str.c_str(),isfree){}
+#if defined (_WIN32)
+		: exception(str.c_str(), isfree) {}
+#else
+		: exception(str, isfree) {}
+#endif
 	
 };
 

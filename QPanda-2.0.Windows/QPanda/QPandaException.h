@@ -5,12 +5,24 @@
 #include <string>
 using namespace std;
 
+/*
+r
+
+
+
+*/
+
 class QPandaException : public exception
 {
 	string errmsg;
 	bool isFree;
 public:
-
+	QPandaException()
+		: exception()
+	{
+		errmsg = "Unknown error";
+		isFree = false;
+	}
 	QPandaException(const char* str, bool isfree)
 		: exception() {
 		errmsg = str;
@@ -22,7 +34,11 @@ public:
 		errmsg = str;
 		isFree = isfree;
 	}
-	
+
+	virtual const char* what()
+	{
+		return errmsg.c_str();
+	}	
 };
 
 class qalloc_fail : public QPandaException
@@ -55,6 +71,11 @@ public:
 class classical_system_exception : public QPandaException
 {
 public:
+	classical_system_exception()
+		:QPandaException(
+			"Unknown Classical System Exception",
+			false)
+	{}
 	classical_system_exception(string err, bool isfree) 
 		: QPandaException(err,isfree)
 	{};
@@ -115,6 +136,11 @@ public:
 class qubit_pool_exception : public QPandaException
 {
 public:
+	qubit_pool_exception()
+		:QPandaException(
+			"Unknown Qubit Pool Exception",
+			false)
+	{}
 	qubit_pool_exception(string errmsg, bool isFree)
 		: QPandaException(errmsg, isFree)
 	{}
@@ -176,6 +202,18 @@ public:
 		)
 	{}
 };
+
+class cbit_not_allocated : public load_exception
+{
+public:
+	cbit_not_allocated()
+		:load_exception(
+			"CBit is Used Without Allocated",
+			false
+		)
+	{}
+};
+
 
 
 

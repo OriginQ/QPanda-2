@@ -77,7 +77,7 @@ IMPLEMENTATION void OriginQubitPool::Free_Qubit(Qubit* _Qubit)
 	auto iter = find(vecQubit.begin(), vecQubit.end(), ptPhysQ);
 	if (iter == vecQubit.end())
 	{
-		throw(exception());
+		throw(duplicate_free("QubitPool"));
 	}
 	else
 	{
@@ -97,7 +97,7 @@ IMPLEMENTATION size_t OriginQubitPool::getPhysicalQubitAddr(Qubit *qubit)
             return (*iter)->getQubitAddr();
 		}
 	}
-    throw exception();
+    throw invalid_qubit_ptr();
  }
 OriginQubitPool::~OriginQubitPool()
 {

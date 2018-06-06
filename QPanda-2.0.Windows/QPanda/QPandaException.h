@@ -6,10 +6,26 @@
 using namespace std;
 
 /*
-r
+|-QPandaException
+|---qalloc_fail
+|---calloc_fail
+|---factory_init_error
+|---duplicate_free
 
+|---load_exception
+|------qubit_not_allocated
+|------cbit_not_allocated
 
+|---classical_system_exception
+|------operator_specifier_error
+|------content_specifier_error
+|------eval_error
+|------invalid_cbit_ptr
+|------invalid_cmem
 
+|---qubit_pool_exception
+|------invalid_qubit_ptr
+|------invalid_pool
 */
 
 class QPandaException : public exception

@@ -22,6 +22,8 @@ export CC BIN ABIN QBIN OBJS_DIR AOBJS_DIR QOBJS_DIR COBJS_DIR BIN_DIR ROOT_DIR
 all : MKDIE $(SUBDIRS)  RELEASE
 	
 MKDIE :
+	mkdir -p $(OBJS_DIR)
+	mkdir -p $(BIN_DIR)
 	mkdir -p $(AOBJS_DIR)
 	mkdir -p $(QOBJS_DIR)
 	mkdir -p $(COBJS_DIR)

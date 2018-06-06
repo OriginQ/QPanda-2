@@ -85,7 +85,7 @@ IMPLEMENTATION void OriginCMem::Free_CBit(CBit *cbit)
 			if (!(*iter)->getOccupancy())
 			{
 				// if duplicate free
-				throw(exception());
+				throw(duplicate_free("CMem"));
 			}
 			else
 			{
@@ -95,7 +95,7 @@ IMPLEMENTATION void OriginCMem::Free_CBit(CBit *cbit)
 		}
 	}
 	// if not any matched
-	throw(exception());
+	throw(invalid_cbit_ptr());
 }
 
 IMPLEMENTATION void OriginCMem::clearAll()

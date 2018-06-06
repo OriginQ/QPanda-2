@@ -170,7 +170,10 @@ class qubit_not_allocated : public load_exception
 {
 public:
 	qubit_not_allocated()
-		:load_exception("Qubit is Used Without Allocated")
+		:load_exception(
+			"Qubit is Used Without Allocated",
+			false
+		)
 	{}
 };
 

@@ -25,7 +25,6 @@ int main()
 	//DJ_Algorithm();
     //Grover_Algorithm();
     HHL_Algorithm();
-    getchar();
     return 0;
 
 }

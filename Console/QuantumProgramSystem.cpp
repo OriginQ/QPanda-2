@@ -23,9 +23,9 @@ using namespace std;
 int main()
 {
 	//DJ_Algorithm();
-    Grover_Algorithm();
+    //Grover_Algorithm();
     HHL_Algorithm();
-    getchar(); getchar();
+    getchar();
     return 0;
 
 }

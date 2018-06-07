@@ -21,10 +21,13 @@
   <ItemGroup>
     <ClInclude Include="QPanda.h" />
     <ClInclude Include="QPanda\QPandaException.h" />
+    <ClInclude Include="QuantumCircuit\ControlFlow.h" />
     <ClInclude Include="QuantumCircuit\QException.h" />
     <ClInclude Include="QuantumCircuit\QGate.h" />
     <ClInclude Include="QuantumCircuit\QGlobalVariable.h" />
+    <ClInclude Include="QuantumCircuit\QNode.h" />
     <ClInclude Include="QuantumCircuit\QProgram.h" />
+    <ClInclude Include="QuantumCircuit\QuantumMeasure.h" />
     <ClInclude Include="QuantumCircuit\ReadWriteLock.h" />
     <ClInclude Include="QuantumInstructionHandle\QCircuitParse.h" />
     <ClInclude Include="QuantumInstructionHandle\QError.h" />
@@ -39,8 +42,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="QPanda\QPanda.cpp" />
+    <ClCompile Include="QuantumCircuit\ControlFlow.cpp" />
     <ClCompile Include="QuantumCircuit\QGate.cpp" />
+    <ClCompile Include="QuantumCircuit\QNode.cpp" />
     <ClCompile Include="QuantumCircuit\QProgram.cpp" />
+    <ClCompile Include="QuantumCircuit\QuantumMeasure.cpp" />
     <ClCompile Include="QuantumInstructionHandle\QCircuitParse.cpp" />
     <ClCompile Include="QuantumInstructionHandle\QuantumGates.cpp" />
     <ClCompile Include="QuantumInstructionHandle\X86QuantumGates.cpp" />

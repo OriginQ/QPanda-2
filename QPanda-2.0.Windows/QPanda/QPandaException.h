@@ -7,11 +7,19 @@ using std::string;
 
 class QPandaException : public exception
 {
+    bool isFree;
+    string errmsg;
 public:
     QPandaException(const char* str, bool isfree)
-        :exception(str, isfree) {}
+        :exception() {
+        errmsg = str;
+        isFree = isfree;
+    }
     QPandaException(string str, bool isfree)
-        :exception(str.c_str(), isfree) {}
+        :exception() {
+        errmsg = str;
+        isFree = isfree;
+    }
 
 };
 

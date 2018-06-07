@@ -21,7 +21,7 @@ limitations under the License.
 
 void Reset_Qubit(Qubit*,bool setVal);
 
-QProg & Reset_Qubit_Circuit(Qubit *q, CBit* cbit, bool setVal);
+QuantumProgram & Reset_Qubit_Circuit(Qubit *q, CBit* cbit, bool setVal);
 
 void Reset_All(vector<Qubit*> qubit_vector,bool setVal);
 

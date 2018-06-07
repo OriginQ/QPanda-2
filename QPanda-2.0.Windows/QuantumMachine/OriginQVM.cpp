@@ -34,7 +34,7 @@ void OriginQVM::init()
 		Factory::
 		CMemFactory::GetFactoryInstance().
 		GetInstanceFromSize(_Config.maxCMem);
-    QProg & temp = CreateEmptyQProg();
+    QuantumProgram & temp = CreateEmptyQProg();
     _QProgram = temp.getPosition();
 	_QResult =
 		Factory::
@@ -88,7 +88,7 @@ void OriginQVM::Free_CBit(CBit *cbit)
     this->_CMem->Free_CBit(cbit);
 }
 
-void OriginQVM::load(QProg &loadProgram)
+void OriginQVM::load(QuantumProgram &loadProgram)
 {
     QNodeAgency temp(&loadProgram, nullptr, nullptr);
     if (!temp.verify())
@@ -98,7 +98,7 @@ void OriginQVM::load(QProg &loadProgram)
     _QProgram = loadProgram.getPosition();
 }
 
-void OriginQVM::append(QProg & prog)
+void OriginQVM::append(QuantumProgram & prog)
 {
     QNodeAgency tempAgency(&prog, nullptr, nullptr);
     if (!tempAgency.verify())
@@ -106,7 +106,7 @@ void OriginQVM::append(QProg & prog)
         throw exception();
     }
     auto aiter = _G_QNodeVector.getNode(_QProgram);
-    QProg * temp = dynamic_cast<QProg *>(*aiter);
+    QuantumProgram * temp = dynamic_cast<QuantumProgram *>(*aiter);
     temp->operator<<(prog);
 }
 
@@ -118,7 +118,7 @@ void OriginQVM::run()
     }
     
     auto aiter =_G_QNodeVector.getNode(_QProgram);
-    QProg * pNode = (QProg *)*aiter;
+    QuantumProgram * pNode = (QuantumProgram *)*aiter;
     _pParam = new QuantumGateParam();
 
 	/* error may occur if user free working qubit before run() */

@@ -24,7 +24,7 @@ limitations under the License.
 void HHL_Algorithm();
 
 map<string, bool> hhlalgorithm();
-QProg& hhl(vector<Qubit*> qVec, vector<CBit*> cVec);
-OriginQCircuit& hhlPse(vector<Qubit*> qVec);
-OriginQCircuit& CRotate(vector<Qubit*> qVec);
+QuantumProgram& hhl(vector<Qubit*> qVec, vector<CBit*> cVec);
+QuantumCircuit& hhlPse(vector<Qubit*> qVec);
+QuantumCircuit& CRotate(vector<Qubit*> qVec);
 #endif

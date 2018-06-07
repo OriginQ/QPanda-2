@@ -57,14 +57,8 @@ class NoUnitaryException : public QGateException
 {
 
 };
-class QProgramException : public QException
-{
 
-};
-class ErrorNodeTypeException : public QProgramException
-{
 
-};
 
 #endif
 #endif

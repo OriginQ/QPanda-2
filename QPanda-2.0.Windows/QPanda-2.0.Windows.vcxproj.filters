@@ -48,6 +48,9 @@
     </ClInclude>
     <ClInclude Include="QPanda.h" />
     <ClInclude Include="QPanda\QPandaException.h" />
+    <ClInclude Include="QuantumCircuit\QNode.h" />
+    <ClInclude Include="QuantumCircuit\QuantumMeasure.h" />
+    <ClInclude Include="QuantumCircuit\ControlFlow.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="QPanda\QPanda.cpp">
@@ -104,6 +107,9 @@
     <ClCompile Include="QuantumMachine\QuantumMachineInterface.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="QuantumCircuit\QNode.cpp" />
+    <ClCompile Include="QuantumCircuit\QuantumMeasure.cpp" />
+    <ClCompile Include="QuantumCircuit\ControlFlow.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="源文件">

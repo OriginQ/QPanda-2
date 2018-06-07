@@ -23,11 +23,13 @@ limitations under the License.
 #include <iterator>
 #include <map>
 
-#include "../QuantumCircuit/QGlobalVariable.h"
+#include "QuantumMachine/OriginClassicalExpression.h"
+#include "QNode.h"
 #include "QGate.h"
 #include "ReadWriteLock.h"
-#include "../QuantumMachine/ClassicalConditionInterface.h"
-#include "../QuantumMachine/OriginClassicalExpression.h"
+#include "QuantumMeasure.h"
+#include "ControlFlow.h"
+
 typedef complex<double> QComplex;
 using namespace std;
 class QuantumDriver;
@@ -43,44 +45,11 @@ class NodeIter;
 
 class QGateNode 
 {
-public:	
-	
+public:
     virtual size_t getQuBitVector( vector<Qubit *> & ) const = 0;
     virtual size_t getQuBitNum() const = 0;
     virtual QGate * getQGate() const = 0;
-};
-
-class QNode
-{
-public:
-    virtual NodeType getNodeType() const = 0;
-    virtual int getPosition() const = 0;
-    virtual ~QNode() {};
-};
-
-
-
-class QMeasureNode : public QNode
-{
-private:
-    Qubit  *targetQuBit;
-    CBit   *targetCbit;
-    NodeType m_iNodeType;  
-    GateType m_iGateType;
-    int iPosition;
-    QMeasureNode();
-    QMeasureNode(QMeasureNode &);
-    QMeasureNode(Qubit *, CBit *);
-public:
-    
-    //QMeasureNode(QMeasureNode*);
-    friend QMeasureNode& Measure(Qubit * targetQuBit, CBit * targetCbit);
-    NodeType getNodeType() const;
-    Qubit * getQuBit() const;
-    CBit * getCBit()const;
-    int getQuBitNum() const;
-
-    int getPosition() const;
+    virtual ~QGateNode() {}
 };
  
 /*
@@ -90,7 +59,8 @@ public:
 *  
 */
 class QGateNodeFactory;
-class OriginQGateNode : public QNode, public QGateNode
+
+class QuantumGate : public QNode, public QGateNode
 {
 private:
 	vector<Qubit *> m_QuBitVector;
@@ -99,14 +69,14 @@ private:
     GateType m_iGateType;
     bool m_bIsDagger;
     vector<Qubit *> m_controlQuBitVector;
-    OriginQGateNode();
-    OriginQGateNode(OriginQGateNode&);
+    QuantumGate();
+    QuantumGate(QuantumGate&);
 
 public:
     int iPosition;
 
-    OriginQGateNode(Qubit*, QGate *);
-    OriginQGateNode(Qubit*, Qubit *, QGate *);
+    QuantumGate(Qubit*, QGate *);
+    QuantumGate(Qubit*, Qubit *, QGate *);
     NodeType getNodeType() const;
     size_t getQuBitVector(vector<Qubit *> &) const;
     size_t getQuBitNum() const;
@@ -157,7 +127,7 @@ public:
     void setNode(QNode * pNode);
 };
 
-class OriginQCircuit : public QCircuit, public QNode
+class QuantumCircuit : public QCircuit, public QNode
 {
 private:
     Item * m_pHead;
@@ -167,19 +137,19 @@ private:
     bool m_bIsDagger;
     int iPosition;
     vector<Qubit *> m_controlQuBitVector;
-    OriginQCircuit(OriginQCircuit &);
-    OriginQCircuit() : m_iNodeType(CIRCUIT_NODE), iPosition(-1),m_pHead(nullptr),m_pEnd(nullptr)
+    QuantumCircuit(QuantumCircuit &);
+    QuantumCircuit() : m_iNodeType(CIRCUIT_NODE), iPosition(-1),m_pHead(nullptr),m_pEnd(nullptr)
     {
     };
 public:
 
-    ~OriginQCircuit();
+    ~QuantumCircuit();
     void pushBackNode(QNode *);
-    friend OriginQCircuit & CreateEmptyCircuit();
-    OriginQCircuit & operator << (const OriginQGateNode &);
-    OriginQCircuit & operator << (const QMeasureNode &);
-    OriginQCircuit & dagger();
-    OriginQCircuit & control(vector<Qubit *> &);
+    friend QuantumCircuit & CreateEmptyCircuit();
+    QuantumCircuit & operator << (const QuantumGate &);
+    QuantumCircuit & operator << (const QuantumMeasure &);
+    QuantumCircuit & dagger();
+    QuantumCircuit & control(vector<Qubit *> &);
     NodeType getNodeType() const;
     bool isDagger() const;
     bool getControlVector(vector<Qubit *> &);
@@ -189,132 +159,18 @@ public:
     NodeIter getHeadNodeIter();
     int getPosition() const;
 };
-class QControlFlowNode
-{
-public:
-    virtual QNode * getTrueBranch() const = 0;
-    virtual QNode * getFalseBranch() const = 0;
-    virtual ClassicalCondition * getCExpr() const= 0;
-};
 
 /*
-*  QIfNode:  the start node of the IF circuit
-*  ccCondition:  judgement
-*  ptTrue:  the head pointer of the true circuit
-*  ptFalse:  the head pointer of the false circuit
-*  ifEnd:  the last pointer of the IF circuit
-*
-*/
-class QIfNode : public QNode, public QControlFlowNode
-{
-private:
-    ClassicalCondition * ccCondition;
-    int iTrueNum;
-    int iFalseNum;
-    int iPosition;
-    NodeType m_iNodeType;
-    QIfNode();
-    QIfNode(QIfNode &);
-    QIfNode(
-        ClassicalCondition * ccCon,
-        QNode* pTrueNode,
-        QNode * pFalseNode) : m_iNodeType(QIF_START_NODE)
-    {
-        this->ccCondition = ccCon;
-        this->iTrueNum = pTrueNode->getPosition();
-        this->iFalseNum = pFalseNode->getPosition();
-    }
-    QIfNode(
-        ClassicalCondition * ccCon,
-        QNode *node
-        ) : m_iNodeType(QIF_START_NODE)
-    {
-        this->ccCondition = ccCon;
-        this->iTrueNum = node->getPosition();
-        this->iFalseNum = -1;
-    }
-public:
-
-    /*
-    *  CreateIfProg:  create IF circuit
-    *  trueProg:  true circuit of the IF circuit.
-    *  falseProg is nullptr
-    */
-    friend QIfNode &CreateIfProg(
-        ClassicalCondition *,
-        QNode  *trueNode);
-    /*
-    *  CreateIfProg:  create IF circuit
-    *  trueProg:  true circuit of the IF circuit.
-    *  falseProg: flase circuit of the IF circuit.
-    */
-
-    friend QIfNode &CreateIfProg(
-        ClassicalCondition *,
-        QNode *trueNode,
-        QNode *falseNode);
-
-    NodeType getNodeType() const;
-    QNode * getTrueBranch() const;
-    QNode * getFalseBranch() const;
-    int getPosition() const;
-    ClassicalCondition * getCExpr()const;
-    
-};
-
-
-/*
-*  QWhileNode:  the start node of the WHILE circuit
-*  ccCondition:  judgement
-*  whileTrue:  the head pointer of the true circuit
-*  whileEnd:  the last pointer of the true circuit,
-*             whileEnd->next = QWhileNode *,in overall circuit,WHILE circuit
-*             is like a point.
-*/
-
-class QWhileNode : public QNode, public QControlFlowNode
-{
-private:
-    NodeType m_iNodeType;
-    ClassicalCondition * ccCondition;
-    int iTrueNum;
-    int iPosition;
-    QWhileNode() {};
-    QWhileNode(QWhileNode &);
-    QWhileNode(ClassicalCondition * ccCon, QNode * node) : m_iNodeType(WHILE_START_NODE), iPosition(-1)
-    {
-        this->ccCondition = ccCon;
-        this->iTrueNum = node->getPosition();
-    };
-public:
-    /*
-     *  CreateWhileProg:  create  WHILE circuit
-     *  trueProg:  true circuit of the WHILE circuit.
-     */
-    friend QWhileNode &CreateWhileProg(
-        ClassicalCondition *,
-        QNode* trueNode);
-    NodeType getNodeType() const;
-    QNode * getTrueBranch() const;
-    QNode * getFalseBranch() const ;
-    ClassicalCondition * getCExpr()const;
-    int getPosition() const;
-};
-
-/*
-*  QProg:  quantum program,can construct quantum circuit,data struct is linked list
-*  QListHeadNode:  QProg's head pointer.
-*  QListLastNode:  QProg's last pointer.
-*  QProg & operator<<(const T &)：
+*  QuantumProgram:  quantum program,can construct quantum circuit,data struct is linked list
+*  QListHeadNode:  QuantumProgram's head pointer.
+*  QListLastNode:  QuantumProgram's last pointer.
+*  QuantumProgram & operator<<(const T &)：
 *    if T is QSingleGateNode/QDoubleGateNode/QIfEndNode,
-*    deep copy T and insert it into left QProg;
-*    if T is QIfNode/QWhileNode/QProg,deepcopy 
-*    IF/WHILE/QProg circuit and insert it into left QProg;
+*    deep copy T and insert it into left QuantumProgram;
+*    if T is QuantumIf/QuantumWhile/QuantumProgram,deepcopy 
+*    IF/WHILE/QuantumProgram circuit and insert it into left QuantumProgram;
 */
-
-
-
-class QProg : public QNode ,public QCircuit
+class QuantumProgram : public QNode ,public QCircuit
 {
 private:
     Item * m_pHead;
@@ -322,20 +178,20 @@ private:
     SharedMutex m_sm;
     NodeType m_iNodeType;
     int iPosition;
-    QProg(): m_iNodeType(PROG_NODE), iPosition(-1), m_pHead(nullptr), m_pEnd(nullptr)
+    QuantumProgram(): m_iNodeType(PROG_NODE), iPosition(-1), m_pHead(nullptr), m_pEnd(nullptr)
     {
     }
-    QProg(QProg&);
+    QuantumProgram(QuantumProgram&);
 public:
-    ~QProg();
+    ~QuantumProgram();
     void pushBackNode(QNode *);
-    friend QProg & CreateEmptyQProg();
-    QProg & operator << (const QIfNode &);
-    QProg & operator << (const QWhileNode &);
-    QProg & operator << (const QMeasureNode &);
-    QProg & operator << (const QProg &);
-    QProg & operator << (const OriginQGateNode &);
-    QProg & operator << (const OriginQCircuit &);
+    friend QuantumProgram & CreateEmptyQProg();
+    QuantumProgram & operator << (const QuantumIf &);
+    QuantumProgram & operator << (const QuantumWhile &);
+    QuantumProgram & operator << (const QuantumMeasure &);
+    QuantumProgram & operator << (const QuantumProgram &);
+    QuantumProgram & operator << (const QuantumGate &);
+    QuantumProgram & operator << (const QuantumCircuit &);
     NodeIter getFirstNodeIter();
     NodeIter getLastNodeIter();
     NodeIter  getEndNodeIter();
@@ -345,28 +201,7 @@ public:
     int getPosition() const;
 };
 
-typedef void *RawData;
 
-
-class QNodeVector
-{
-private:
-    SharedMutex m_sm;
-    vector<QNode*> m_pQNodeVector;
-    vector<QNode*>::iterator m_currentIter;
-public:
-    QNodeVector();
-    ~QNodeVector();
-
-    bool pushBackNode(QNode *);
-    size_t getLastNode();
-    bool setHeadNode(QProg &);
-    
-    vector <QNode *>::iterator getNode(int);
-    vector <QNode *>::iterator getEnd();
-};
-
-extern QNodeVector _G_QNodeVector;
 
 
 class NodeIter
@@ -395,23 +230,12 @@ public:
     bool operator  == (NodeIter );
  };
 
- extern QProg & CreateEmptyQProg();
- extern QWhileNode &CreateWhileProg(
-     ClassicalCondition *,
-     QNode * trueNode);
+ extern QuantumProgram & CreateEmptyQProg();
 
- extern QIfNode &CreateIfProg(
-     ClassicalCondition *,
-     QNode *trueNode);
 
- extern QIfNode &CreateIfProg(
-     ClassicalCondition *,
-     QNode *trueNode,
-     QNode *falseNode);
+ extern QuantumCircuit & CreateEmptyCircuit();
 
- extern OriginQCircuit & CreateEmptyCircuit();
 
- extern QMeasureNode& Measure(Qubit * targetQuBit, CBit * targetCbit);
  class QGateNodeFactory
  {
  public:
@@ -421,11 +245,11 @@ public:
          return &s_gateNodeFactory;
      }
 
-     OriginQGateNode & getGateNode(string & name,Qubit *);
-     OriginQGateNode & getGateNode(string & name, Qubit *,double);
-     OriginQGateNode & getGateNode(string & name, Qubit *, Qubit*);
-     OriginQGateNode & getGateNode(double alpha, double beta, double gamma, double delta, Qubit *);
-     OriginQGateNode & getGateNode(double alpha, double beta, double gamma, double delta, Qubit *, Qubit *);
+     QuantumGate & getGateNode(string & name,Qubit *);
+     QuantumGate & getGateNode(string & name, Qubit *,double);
+     QuantumGate & getGateNode(string & name, Qubit *, Qubit*);
+     QuantumGate & getGateNode(double alpha, double beta, double gamma, double delta, Qubit *);
+     QuantumGate & getGateNode(double alpha, double beta, double gamma, double delta, Qubit *, Qubit *);
 
  private:
      QGateNodeFactory()

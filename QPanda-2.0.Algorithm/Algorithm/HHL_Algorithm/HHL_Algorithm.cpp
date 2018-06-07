@@ -67,49 +67,50 @@ map<string, bool> hhlalgorithm()
 }
 
 
-QProg& hhl(vector<Qubit*> qVec, vector<CBit*> cVec)
+QuantumProgram& hhl(vector<Qubit*> qVec, vector<CBit*> cVec)
 {
     ClassicalCondition *cc0=bind_a_cbit(cVec[0]);
 
 	// meaningless sentence
-    OriginQCircuit & ifcircuit = CreateEmptyCircuit();
+    QuantumCircuit & ifcircuit = CreateEmptyCircuit();
 
-    OriginQCircuit & PSEcircuit = hhlPse(qVec);//PSE
-    OriginQCircuit & CRot = CRotate(qVec);//control-lambda
-    OriginQCircuit & PSEcircuitdag = hhlPse(qVec);
+    QuantumCircuit & PSEcircuit = hhlPse(qVec);//PSE
+    QuantumCircuit & CRot = CRotate(qVec);//control-lambda
+    QuantumCircuit & PSEcircuitdag = hhlPse(qVec);
     //hhl circuit
-    QProg & PSEdagger = CreateEmptyQProg();
+    QuantumProgram & PSEdagger = CreateEmptyQProg();
+
     PSEdagger << PSEcircuitdag.dagger() << Measure(qVec[3], cVec[1]);
-    QIfNode & ifnode = CreateIfProg(cc0, &PSEdagger);
-    QProg & hhlProg = CreateEmptyQProg();
+    QuantumIf  ifnode = CreateIfProg(*cc0, &PSEdagger);
+    QuantumProgram & hhlProg = CreateEmptyQProg();
     //hhlProg << PSEcircuit <<CRot<<  Measure(qVec[0], cVec[0])<<ifnode;
     hhlProg << PSEcircuit << CRot << Measure(qVec[0], cVec[0]) << ifnode;
     return hhlProg;
 }
-OriginQCircuit& hhlPse(vector<Qubit*> qVec)
+QuantumCircuit& hhlPse(vector<Qubit*> qVec)
 {
-    OriginQCircuit & PSEcircuit = CreateEmptyCircuit();
+    QuantumCircuit & PSEcircuit = CreateEmptyCircuit();
     PSEcircuit << H(qVec[1]) << H(qVec[2]) << RZ(qVec[2], 0.75*PI);
-    OriginQGateNode & gat1 = QDouble(PI, 1.5*PI, -0.5*PI, PI / 2, qVec[2], qVec[3]);
-    OriginQGateNode  & gat2 = QDouble(PI, 1.5*PI, -PI, PI / 2, qVec[1], qVec[3]);
+    QuantumGate & gat1 = QDouble(PI, 1.5*PI, -0.5*PI, PI / 2, qVec[2], qVec[3]);
+    QuantumGate  & gat2 = QDouble(PI, 1.5*PI, -PI, PI / 2, qVec[1], qVec[3]);
     PSEcircuit << gat1 << RZ(qVec[1], 1.5*PI) << gat2;
     PSEcircuit << CNOT(qVec[1], qVec[2]) << CNOT(qVec[2], qVec[1]) << CNOT(qVec[1], qVec[2]);
     //PSEcircuit << gat1 << RZ(q1, 1.5*PI)<<gat2 ;
-    OriginQGateNode & gat3 = QDouble(-0.25*PI, -0.5*PI, 0, 0, qVec[2], qVec[1]);
+    QuantumGate & gat3 = QDouble(-0.25*PI, -0.5*PI, 0, 0, qVec[2], qVec[1]);
     PSEcircuit << H(qVec[2]) << gat3 << H(qVec[1]);     //PSE over
     return PSEcircuit;
 }
-OriginQCircuit& CRotate(vector<Qubit*> qVec)
+QuantumCircuit& CRotate(vector<Qubit*> qVec)
 {
-    OriginQCircuit & CRot = CreateEmptyCircuit();
+    QuantumCircuit & CRot = CreateEmptyCircuit();
     vector<Qubit *> controlVector;
     controlVector.push_back(qVec[1]);
     controlVector.push_back(qVec[2]);
-    OriginQGateNode & gat4 = RY(qVec[0], PI);
+    QuantumGate & gat4 = RY(qVec[0], PI);
     gat4.setControl(controlVector);
-    OriginQGateNode & gat5 = RY(qVec[0], PI / 3);
+    QuantumGate & gat5 = RY(qVec[0], PI / 3);
     gat5.setControl(controlVector);
-    OriginQGateNode & gat6 = RY(qVec[0], 0.679673818908);  //arcsin(1/3)
+    QuantumGate & gat6 = RY(qVec[0], 0.679673818908);  //arcsin(1/3)
     gat6.setControl(controlVector);
     CRot << RX(qVec[1]) << gat4 << RX(qVec[1]) << RX(qVec[2]) << gat5 << RX(qVec[2]) << gat6;
     //CRot << RX(qVec[1]) << gat4 << RX(qVec[1]);

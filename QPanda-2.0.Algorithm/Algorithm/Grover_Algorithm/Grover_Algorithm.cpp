@@ -16,18 +16,18 @@ limitations under the License.
 
 #include "Grover_Algorithm.h"
 
-QProg& Grover(vector<Qubit*> qVec, vector<CBit*> cVec, int target)
+QuantumProgram& Grover(vector<Qubit*> qVec, vector<CBit*> cVec, int target)
 {
-    QProg & grover = CreateEmptyQProg();
-    OriginQCircuit & init = CreateEmptyCircuit();
-    OriginQCircuit & oracle = CreateEmptyCircuit();
-    OriginQCircuit & reverse = CreateEmptyCircuit();
+    QuantumProgram & grover = CreateEmptyQProg();
+    QuantumCircuit & init = CreateEmptyCircuit();
+    QuantumCircuit & oracle = CreateEmptyCircuit();
+    QuantumCircuit & reverse = CreateEmptyCircuit();
     init << H(qVec[0]) << H(qVec[1]) << RX(qVec[2]) << H(qVec[2]);
     vector<Qubit *> controlVector;
     controlVector.push_back(qVec[0]);
     controlVector.push_back(qVec[1]);
     //QSingleGate  sqrtH(0.5*PI, 0, 0.25*PI, PI);
-    OriginQGateNode  &toff = RX(qVec[2]);
+    QuantumGate  &toff = RX(qVec[2]);
     toff.setControl(controlVector);
     switch (target)
     {

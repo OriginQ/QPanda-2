@@ -23,66 +23,66 @@ limitations under the License.
 
 extern QNodeVector _G_QNodeVector;
 
-// Create an empty QProg Container
-extern QProg & CreateEmptyQProg();
+// Create an empty QuantumProgram Container
+extern QuantumProgram & CreateEmptyQProg();
 
 // Create a While Program
-extern QWhileNode &CreateWhileProg(
-    ClassicalCondition *,
+extern QuantumWhile CreateWhileProg(
+    ClassicalCondition &,
     QNode * trueNode);
 
 // Create an If Program
-extern QIfNode &CreateIfProg(
-    ClassicalCondition *,
+extern QuantumIf CreateIfProg(
+    ClassicalCondition &,
     QNode *trueNode);
 
 // Create an If Program
-extern QIfNode &CreateIfProg(
-    ClassicalCondition *,
+extern QuantumIf CreateIfProg(
+    ClassicalCondition &,
     QNode *trueNode,
     QNode *falseNode);
 
 // Create an empty QCircuit Container
-extern OriginQCircuit & CreateEmptyCircuit();
+extern QuantumCircuit & CreateEmptyCircuit();
 
 // Create a Measure operation
-extern QMeasureNode& Measure(Qubit * targetQuBit, CBit * targetCbit);
+extern QuantumMeasure Measure(Qubit * targetQuBit, CBit * targetCbit);
 
 // Create a X gate
-extern OriginQGateNode & RX(Qubit* qbit);
+extern QuantumGate & RX(Qubit* qbit);
 
 // Create a X rotation
-extern OriginQGateNode & RX(Qubit*, double angle);
+extern QuantumGate & RX(Qubit*, double angle);
 
 // Create a Y gate
-extern OriginQGateNode & RY(Qubit* qbit);
+extern QuantumGate & RY(Qubit* qbit);
 
 // Create a Y rotation
-extern OriginQGateNode & RY(Qubit*, double angle);
+extern QuantumGate & RY(Qubit*, double angle);
 
 // Create a Z gate
-extern OriginQGateNode & RZ(Qubit* qbit);
+extern QuantumGate & RZ(Qubit* qbit);
 
 // Create a Z rotation
-extern OriginQGateNode & RZ(Qubit*, double angle);
+extern QuantumGate & RZ(Qubit*, double angle);
 
 // Create S gate
-extern OriginQGateNode & S(Qubit* qbit);
+extern QuantumGate & S(Qubit* qbit);
 
 // Create Hadamard Gate
-extern OriginQGateNode & H(Qubit* qbit);
+extern QuantumGate & H(Qubit* qbit);
 
 // Create an instance of CNOT gate
-extern OriginQGateNode & CNOT(Qubit* targetQBit, Qubit* controlQBit);
+extern QuantumGate & CNOT(Qubit* targetQBit, Qubit* controlQBit);
 
 // Create an instance of CZ gate
-extern OriginQGateNode & CZ(Qubit* targetQBit, Qubit* controlQBit);
+extern QuantumGate & CZ(Qubit* targetQBit, Qubit* controlQBit);
 
 // Create an arbitrary single unitary gate
-extern OriginQGateNode & QSingle(double alpha, double beta, double gamma, double delta, Qubit *);
+extern QuantumGate & QSingle(double alpha, double beta, double gamma, double delta, Qubit *);
 
 // Create a control-U gate
-extern OriginQGateNode & QDouble(double alpha, double beta, double gamma, double delta, Qubit *, Qubit *);
+extern QuantumGate & QDouble(double alpha, double beta, double gamma, double delta, Qubit *, Qubit *);
 
 // to init the environment. Use this at the beginning
 void init();
@@ -103,10 +103,10 @@ CBit* cAlloc();
 void cFree(CBit* c);
 
 // load a program
-void load(QProg& q);
+void load(QuantumProgram& q);
 
 // append a program after the loaded program
-void append(QProg& q);
+void append(QuantumProgram& q);
 
 // get the status(ptr) of the quantum machine
 QMachineStatus* getstat();

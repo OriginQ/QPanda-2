@@ -122,7 +122,7 @@ map<string, bool> getResultMap();
 bool getCBitValue(CBit* cbit);
 
 // bind a cbit to a classicalcondition variable
-ClassicalCondition* bind_a_cbit(CBit* c);
+ClassicalCondition bind_a_cbit(CBit* c);
 
 // run the loaded program
 void run();

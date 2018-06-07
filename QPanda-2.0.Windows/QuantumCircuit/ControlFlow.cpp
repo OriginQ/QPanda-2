@@ -129,7 +129,7 @@ QuantumIf::QuantumIf(ClassicalCondition * ccCon, QNode * node)
 NodeType QuantumIf::getNodeType() const
 {
     if (nullptr == m_pControlFlow)
-        throw  exception("there is not QIf", true);
+        throw  exception();
     return dynamic_cast<QNode *>(m_pControlFlow)->getNodeType();
 }
 
@@ -137,7 +137,7 @@ NodeType QuantumIf::getNodeType() const
 QNode * QuantumIf::getTrueBranch() const
 {
     if (nullptr == m_pControlFlow)
-        throw  exception("there is not QIf", true);
+        throw  exception();
     return m_pControlFlow->getTrueBranch();
 }
 
@@ -155,7 +155,7 @@ int QuantumIf::getPosition() const
 ClassicalCondition * QuantumIf::getCExpr() const
 {
     if (nullptr == m_pControlFlow)
-        throw  exception("there is not QIf", true);
+        throw  exception();
     return m_pControlFlow->getCExpr();
 }
 

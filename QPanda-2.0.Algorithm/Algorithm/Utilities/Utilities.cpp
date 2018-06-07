@@ -33,9 +33,9 @@ QuantumProgram & Reset_Qubit_Circuit(Qubit *q, CBit* cbit, bool setVal)
 	resetcircuit << RX(q);
 	auto &no_reset = CreateEmptyCircuit();
 	if (setVal==false)
-		prog << CreateIfProg(*cond, &resetcircuit, &no_reset);
+		prog << CreateIfProg(cond, &resetcircuit, &no_reset);
 	else
-		prog << CreateIfProg(*cond, &no_reset, &resetcircuit);
+		prog << CreateIfProg(cond, &no_reset, &resetcircuit);
 	return prog;
 }
 

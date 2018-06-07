@@ -69,7 +69,7 @@ map<string, bool> hhlalgorithm()
 
 QuantumProgram& hhl(vector<Qubit*> qVec, vector<CBit*> cVec)
 {
-    ClassicalCondition *cc0=bind_a_cbit(cVec[0]);
+    ClassicalCondition cc0=bind_a_cbit(cVec[0]);
 
 	// meaningless sentence
     QuantumCircuit & ifcircuit = CreateEmptyCircuit();
@@ -81,7 +81,7 @@ QuantumProgram& hhl(vector<Qubit*> qVec, vector<CBit*> cVec)
     QuantumProgram & PSEdagger = CreateEmptyQProg();
 
     PSEdagger << PSEcircuitdag.dagger() << Measure(qVec[3], cVec[1]);
-    QuantumIf  ifnode = CreateIfProg(*cc0, &PSEdagger);
+    QuantumIf  ifnode = CreateIfProg(cc0, &PSEdagger);
     QuantumProgram & hhlProg = CreateEmptyQProg();
     //hhlProg << PSEcircuit <<CRot<<  Measure(qVec[0], cVec[0])<<ifnode;
     hhlProg << PSEcircuit << CRot << Measure(qVec[0], cVec[0]) << ifnode;

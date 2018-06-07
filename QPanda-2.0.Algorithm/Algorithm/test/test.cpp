@@ -40,7 +40,7 @@ bool HelloWorld()
 	CBit * cbit1 = cAlloc();
 	// allocate a cbit
 
-	ClassicalCondition *cc1 = bind_a_cbit(cbit1);
+	ClassicalCondition cc1 = bind_a_cbit(cbit1);
 	// bind the cbit onto a classicalcondition variable
 	// But not used in this sample
 

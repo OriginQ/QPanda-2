@@ -70,9 +70,9 @@ QResult* getResult()
 	return qvm->getResult();
 }
 
-ClassicalCondition* bind_a_cbit(CBit * c)
+ClassicalCondition bind_a_cbit(CBit * c)
 {
-	return new ClassicalCondition(c);
+	return ClassicalCondition(c);
 }
 
 void run()

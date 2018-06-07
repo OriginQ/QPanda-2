@@ -54,7 +54,7 @@ Qubit * OriginQVM::Allocate_Qubit()
 		// check if the pointer is nullptr
 		// Before init
 		// After finalize
-		throw(exception());
+		throw(invalid_pool());
 	}
 	else
 	{
@@ -70,7 +70,7 @@ CBit * OriginQVM::Allocate_CBit()
 		// check if the pointer is nullptr
 		// Before init
 		// After finalize
-		throw(exception());
+		throw(invalid_cmem());
 	}
 	else
 	{
@@ -93,7 +93,7 @@ void OriginQVM::load(QuantumProgram &loadProgram)
     QNodeAgency temp(&loadProgram, nullptr, nullptr);
     if (!temp.verify())
     {
-        throw exception();
+		throw load_exception();
     }
     _QProgram = loadProgram.getPosition();
 }
@@ -103,7 +103,7 @@ void OriginQVM::append(QuantumProgram & prog)
     QNodeAgency tempAgency(&prog, nullptr, nullptr);
     if (!tempAgency.verify())
     {
-        throw exception();
+        throw load_exception();
     }
     auto aiter = _G_QNodeVector.getNode(_QProgram);
     QuantumProgram * temp = dynamic_cast<QuantumProgram *>(*aiter);

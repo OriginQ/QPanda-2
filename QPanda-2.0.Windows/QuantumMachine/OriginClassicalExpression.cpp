@@ -18,12 +18,39 @@ limitations under the License.
 #include "Factory.h"
 #include <functional>
 
+inline bool isBinary(int OperatorSpecifier)
+{
+	return OperatorSpecifier <= OR;
+}
+
+inline bool isUnary(int OperatorSpecifier)
+{
+	return
+		OperatorSpecifier > OR
+		&&
+		OperatorSpecifier <= NOT;
+}
+
+inline bool isOperator(int OperatorSpecifier)
+{
+	return OperatorSpecifier <= NOT;
+}
+
 static map<int, function<bool(bool, bool)>> _Binary_Operation =
 {
     {PLUS,[](bool a,bool b) {return a + b; }},
 {MINUS,[](bool a,bool b) {return a - b; } },
 { AND,[](bool a,bool b) {return a && b; } },
 { OR,[](bool a,bool b) {return a || b; } },
+};
+
+static map<int, string> _Operator_Name =
+{
+	{PLUS,"+"},
+{MINUS,"-"},
+{AND,"&&"},
+{OR,"||"},
+{NOT,"!"},
 };
 
 static map<int, function<bool(bool)>> _Unary_Operation=
@@ -63,23 +90,15 @@ string OriginCExpr::getName() const
 	case CBIT:
 		return this->content.cbit->getName();
 	case OPERATOR:
-		switch (content.iOperatorSpecifier)
-		{
-		case AND:
-			return "&&";
-		case OR:
-			return "||";
-		case PLUS:
-			return "+";
-		case MINUS:
-			return "-";
-		case NOT:
-			return "!";
-		default:
-			throw(exception());
-		}
+		if (isOperator(this->content.iOperatorSpecifier))
+			return
+			_Operator_Name[this->content.iOperatorSpecifier];
+		else
+			throw(operator_specifier_error());
+	
+	default:
+			throw(content_specifier_error());
 	}
-    return NULL;
 }
 
 CBit * OriginCExpr::getCBit() const
@@ -91,7 +110,7 @@ CBit * OriginCExpr::getCBit() const
 	case OPERATOR:
 		return nullptr;
 	default:
-		throw(exception());
+		throw(content_specifier_error());
 	}
 }
 
@@ -113,28 +132,32 @@ const
         auto iter = _Val_Map.find(this->content.cbit->getName());
         if (iter == _Val_Map.end())
         {
-            throw(exception());
+            throw(eval_error());
         }
         return iter->second;
     }
     else if (this->contentSpecifier==OPERATOR)
     {
-        if (this->contentSpecifier <= OR)
+        if (isBinary(this->content.iOperatorSpecifier))
         {
-            return _Binary_Operation[OPERATOR](this->leftExpr->eval(_Val_Map), this->rightExpr->eval(_Val_Map));
+            return _Binary_Operation[
+				this->content.iOperatorSpecifier
+			](this->leftExpr->eval(_Val_Map), this->rightExpr->eval(_Val_Map));
         }
-        else if (this->contentSpecifier <= NOT)
+        else if (isUnary(this->content.iOperatorSpecifier))
         {
-            return _Unary_Operation[OPERATOR](this->leftExpr->eval(_Val_Map));
+            return _Unary_Operation[
+				this->content.iOperatorSpecifier
+			](this->leftExpr->eval(_Val_Map));
         }
         else
         {
-            throw(exception());
+            throw(operator_specifier_error());
         }
     }
     else
     {
-        throw(exception());
+        throw(content_specifier_error());
     }
 }
 
@@ -148,17 +171,28 @@ CExpr * OriginCExpr::deepcopy() const
 	}
 	if (contentSpecifier == OPERATOR)
 	{
-		return
+		if (isBinary(this->content.iOperatorSpecifier))
+			return
 			Factory::CExprFactory::GetFactoryInstance().
 			GetCExprByOperation(
 				this->leftExpr->deepcopy(),
 				this->rightExpr->deepcopy(),
 				this->content.iOperatorSpecifier
 			);
+		else if (isUnary(this->content.iOperatorSpecifier))
+			return
+			Factory::CExprFactory::GetFactoryInstance().
+			GetCExprByOperation(
+				this->leftExpr->deepcopy(),
+				nullptr,
+				this->content.iOperatorSpecifier
+			);
+		else
+			throw operator_specifier_error();
 	}
 	else
 	{
-		throw(exception());
+		throw(content_specifier_error());
 	}
 }
 
@@ -191,15 +225,50 @@ bool OriginCExpr::checkValidity() const
     }
     else
     {
-        throw exception();
+        throw content_specifier_error();
     }
 
 }
 
 OriginCExpr::~OriginCExpr()
 {
-	delete leftExpr;
-	delete rightExpr;
+	if (contentSpecifier == CBIT)
+	{
+		if (leftExpr == nullptr && rightExpr == nullptr)
+		{
+			return;
+		}
+		else
+		{
+			throw classical_system_exception();
+		}
+	}
+	else if (contentSpecifier == OPERATOR)
+	{
+		if (leftExpr == nullptr)
+		{
+			throw classical_system_exception();
+		}
+		else
+		{
+			delete leftExpr;
+		}
+		if (rightExpr == nullptr)
+		{
+			if (isUnary(this->content.iOperatorSpecifier))
+			{
+				return;
+			}
+			else
+			{
+				throw operator_specifier_error();
+			}
+		}
+		else
+		{
+			delete rightExpr;
+		}
+	}
 }
 
 //REGISTER_CEXPR(OriginCExpr)

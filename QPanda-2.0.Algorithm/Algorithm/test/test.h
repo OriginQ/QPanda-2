@@ -1,8 +1,8 @@
-#pragma once
+#ifndef TEST_H
+#define TEST_H
 
 #include "QPanda.h"
 
-//bool test();
 void HHL_Algorithm1();
 void entangle();
 void controlandDagger();
@@ -11,3 +11,5 @@ int Grover(int target);
 bool DJalgorithm();
 bool HelloWorld();
 void ifwhile();
+
+#endif

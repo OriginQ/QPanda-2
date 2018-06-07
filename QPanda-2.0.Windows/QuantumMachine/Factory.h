@@ -19,6 +19,7 @@ limitations under the License.
 
 #include "QuantumMachineInterface.h"
 #include "ClassicalConditionInterface.h"
+#include "../QPanda/QPandaException.h"
 #include <functional>
 #include <stack>
 using namespace std;

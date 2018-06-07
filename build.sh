@@ -1,0 +1,2 @@
+make
+./Release/bin/test

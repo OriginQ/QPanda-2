@@ -76,7 +76,7 @@ string OriginCExpr::getName() const
 		case NOT:
 			return "!";
 		default:
-			throw(exception());
+			throw(operator_specifier_error());
 		}
 	}
     return NULL;
@@ -91,7 +91,7 @@ CBit * OriginCExpr::getCBit() const
 	case OPERATOR:
 		return nullptr;
 	default:
-		throw(exception());
+		throw(content_specifier_error());
 	}
 }
 
@@ -113,28 +113,32 @@ const
         auto iter = _Val_Map.find(this->content.cbit->getName());
         if (iter == _Val_Map.end())
         {
-            throw(exception());
+            throw(eval_error());
         }
         return iter->second;
     }
     else if (this->contentSpecifier==OPERATOR)
     {
-        if (this->contentSpecifier <= OR)
+        if (this->content.iOperatorSpecifier <= OR)
         {
-            return _Binary_Operation[OPERATOR](this->leftExpr->eval(_Val_Map), this->rightExpr->eval(_Val_Map));
+            return _Binary_Operation[
+				this->content.iOperatorSpecifier
+			](this->leftExpr->eval(_Val_Map), this->rightExpr->eval(_Val_Map));
         }
-        else if (this->contentSpecifier <= NOT)
+        else if (this->content.iOperatorSpecifier <= NOT)
         {
-            return _Unary_Operation[OPERATOR](this->leftExpr->eval(_Val_Map));
+            return _Unary_Operation[
+				this->content.iOperatorSpecifier
+			](this->leftExpr->eval(_Val_Map));
         }
         else
         {
-            throw(exception());
+            throw(operator_specifier_error());
         }
     }
     else
     {
-        throw(exception());
+        throw(content_specifier_error());
     }
 }
 
@@ -158,7 +162,7 @@ CExpr * OriginCExpr::deepcopy() const
 	}
 	else
 	{
-		throw(exception());
+		throw(content_specifier_error());
 	}
 }
 
@@ -191,7 +195,7 @@ bool OriginCExpr::checkValidity() const
     }
     else
     {
-        throw exception();
+        throw content_specifier_error();
     }
 
 }

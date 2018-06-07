@@ -23,6 +23,11 @@ _Value_Map)
 	return expr->eval(_Value_Map);
 }
 
+bool ClassicalCondition::checkValidity() const
+{
+	return expr->checkValidity();
+}
+
 ClassicalCondition::ClassicalCondition(CBit *cbit)
 {
 	auto &fac = Factory::CExprFactory::GetFactoryInstance();

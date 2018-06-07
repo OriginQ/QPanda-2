@@ -16,6 +16,7 @@ limitations under the License.
 
 #include "Factory.h"
 #include "OriginQuantumMachine.h"
+#include "../QPanda/QPandaException.h"
 
 /* 1. static variable initialization start */
 
@@ -76,6 +77,11 @@ QMachineStatus * Factory::QMachineStatusFactory::GetQMachineStatus()
 Factory::QuantumMachineFactory::QuantumMachineFactory()
 {
 	// constructor
+	if (_Quantum_Machine_Constructor.find("OriginQVM")
+		!= _Quantum_Machine_Constructor.end())
+	{
+		throw(factory_init_error("QuantumMachineFactory"));
+	}
 	_Quantum_Machine_Constructor.insert(
 		make_pair(
 			"OriginQVM", 
@@ -111,15 +117,22 @@ QuantumMachine * Factory::QuantumMachineFactory::
 	CreateByName(string _Name)
 {
 	// create a Quantum Machine by its name string
+	if (_Quantum_Machine_Constructor.find(_Name)
+		== _Quantum_Machine_Constructor.end())
+	{
+		// that means the quantum machine is not registered
+		return nullptr;
+	}
 	return Factory::QuantumMachineFactory::
 		_Quantum_Machine_Constructor[_Name]();
 }
 
 void Factory::QuantumMachineFactory::registerclass(string name, constructor_t constructor)
 {
-	if (_Quantum_Machine_Constructor.find(name) == _Quantum_Machine_Constructor.end())
+	if (_Quantum_Machine_Constructor.find(name) != _Quantum_Machine_Constructor.end())
 	{
-		throw(exception());
+		cerr << "QuantumMachineFactory Warning:" << endl
+		     << "re-register the class " << name << endl;
 	}
 	_Quantum_Machine_Constructor.insert(make_pair(name, constructor));
 }
@@ -129,6 +142,10 @@ void Factory::QuantumMachineFactory::registerclass(string name, constructor_t co
 /* 4. Physical Qubit Factory*/
 Factory::PhysicalQubitFactory::PhysicalQubitFactory()
 {
+	if (_Physical_Qubit_Constructor.empty() != true)
+	{
+		throw(factory_init_error("PhysicalQubitFactory"));
+	}
 	_Physical_Qubit_Constructor.push(
 		[]() {return new OriginPhysicalQubit(); }
 	);
@@ -147,18 +164,23 @@ PhysicalQubit * Factory::PhysicalQubitFactory::GetInstance()
 	// I think the last Constructor that user push
 	// to the top of the stack is the user defined
 	// class. So only Get the top is ok
+	if (_Physical_Qubit_Constructor.empty())
+	{
+		// that means the stack is empty
+		return nullptr;
+	}
 	return _Physical_Qubit_Constructor.top()();
 }
 
 void Factory::PhysicalQubitFactory::registerclass(constructor_t constructor)
 {
+	// Only push the Constructor to the top
 	_Physical_Qubit_Constructor.push(constructor);
 }
 
 /* Factory Helper Class */
 FactoryHelper::PhysicalQubitFactoryHelper::PhysicalQubitFactoryHelper(constructor_t _Constructor)
 {
-	// Only push the Constructor to the top
 	auto &fac = Factory::PhysicalQubitFactory::GetFactoryInstance();
 	fac.registerclass(_Constructor);
 }
@@ -169,6 +191,10 @@ FactoryHelper::PhysicalQubitFactoryHelper::PhysicalQubitFactoryHelper(constructo
 Factory::QubitFactory::
 QubitFactory()
 {
+	if (_Qubit_Constructor.empty() != true)
+	{
+		throw(factory_init_error("QubitFactory"));
+	}
 	_Qubit_Constructor.push(
 		[](PhysicalQubit* _Phys_Q) 
 	{
@@ -179,7 +205,6 @@ QubitFactory()
 /* Factory Helper Class */
 FactoryHelper::QubitFactoryHelper::QubitFactoryHelper(constructor_t _Constructor)
 {
-	// Only push the Constructor to the top
 	auto &fac=Factory::QubitFactory::GetFactoryInstance();
 	fac.registerclass(_Constructor);
 }
@@ -196,11 +221,17 @@ Qubit * Factory::QubitFactory::GetInstance(PhysicalQubit *_physQ)
 	// I think the last Constructor that user push
 	// to the top of the stack is the user defined
 	// class. So only Get the top is ok
+
+	if (_Qubit_Constructor.empty())
+	{
+		return nullptr;
+	}
 	return _Qubit_Constructor.top()(_physQ);
 }
 
 void Factory::QubitFactory::registerclass(constructor_t constructor)
 {
+	// Only push the Constructor to the top
 	_Qubit_Constructor.push(constructor);
 }
 
@@ -228,12 +259,21 @@ QubitPool * Factory::QubitPoolFactory::GetPoolWithoutTopology(size_t size)
 	// I think the last Constructor that user push
 	// to the top of the stack is the user defined
 	// class. So only Get the top is ok
+
+	if (_Qubit_Pool_Constructor.empty())
+	{
+		return nullptr;
+	}
 	return _Qubit_Pool_Constructor.top()(size);
 }
 
 void Factory::QubitPoolFactory::registerclass_size_(
 	size_constructor_t constructor)
 {
+	if (_Qubit_Pool_Constructor.empty() != true)
+	{
+		throw(factory_init_error("QubitPoolFactory"));
+	}
 	_Qubit_Pool_Constructor.push(constructor);
 }
 
@@ -252,6 +292,10 @@ FactoryHelper::QubitPoolFactoryHelper::QubitPoolFactoryHelper(
 
 Factory::CBitFactory::CBitFactory()
 {
+	if (_CBit_Constructor.empty() != true)
+	{
+		throw(factory_init_error("CBitFactory"));
+	}
 	_CBit_Constructor.push([](string name)
 	{
 		return new OriginCBit(name);
@@ -273,6 +317,10 @@ void Factory::CBitFactory::registerclass_name_
 
 CBit * Factory::CBitFactory::CreateCBitFromName(string name)
 {
+	if (_CBit_Constructor.empty())
+	{
+		return nullptr;
+	}
 	return _CBit_Constructor.top()(name);
 }
 
@@ -287,6 +335,10 @@ FactoryHelper::CBitFactoryHelper::CBitFactoryHelper(name_constructor_t _Construc
 /* 8. CMem Factory*/
 Factory::CMemFactory::CMemFactory()
 {
+	if (_CMem_Constructor.empty() != true)
+	{
+		throw(factory_init_error("CMemFactory"));
+	}
 	_CMem_Constructor.push(
 		[](size_t _Size)
 	{
@@ -297,6 +349,10 @@ Factory::CMemFactory::CMemFactory()
 
 CMem * Factory::CMemFactory::GetInstanceFromSize(size_t _Size)
 {
+	if (_CMem_Constructor.empty())
+	{
+		return nullptr;
+	}
 	return _CMem_Constructor.top()(_Size);
 }
 
@@ -307,8 +363,7 @@ FactoryHelper::CMemFactoryHelper::CMemFactoryHelper
 	fac.registerclass_size_(_Constructor);
 }
 
-void 
-Factory::CMemFactory::
+void Factory::CMemFactory::
 registerclass_size_(size_constructor_t constructor)
 {
 	_CMem_Constructor.push(constructor);
@@ -327,6 +382,10 @@ Factory::CMemFactory::GetFactoryInstance()
 Factory::QResultFactory::
 QResultFactory()
 {
+	if (_QResult_Constructor.empty() != true)
+	{
+		throw(factory_init_error("QResult"));
+	}
 	_QResult_Constructor.push([]()
 	{
 		return new OriginQResult();
@@ -335,6 +394,10 @@ QResultFactory()
 
 QResult * Factory::QResultFactory::GetEmptyQResult()
 {
+	if (_QResult_Constructor.empty())
+	{
+		return nullptr;
+	}
 	return _QResult_Constructor.top()();
 }
 
@@ -364,11 +427,19 @@ QResultFactoryHelper(constructor_t _Constructor)
 
 Factory::CExprFactory::CExprFactory()
 {
+	if (!_CExpr_CBit_Constructor.empty())
+	{
+		throw(factory_init_error("CExpr(CBit)"));
+	}
 	_CExpr_CBit_Constructor.push(
 		[](CBit* m)
 	{
 		return new OriginCExpr(m);
 	});
+	if (!_CExpr_Operator_Constructor.empty())
+	{
+		throw(factory_init_error("CExpr(Operator)"));
+	}
 	_CExpr_Operator_Constructor.push(
 		[](CExpr* left, CExpr* right, int op)
 	{
@@ -387,6 +458,10 @@ Factory::CExprFactory::GetFactoryInstance()
 
 CExpr * Factory::CExprFactory::GetCExprByCBit(CBit *bit)
 {
+	if (_CExpr_CBit_Constructor.empty())
+	{
+		return nullptr;
+	}
 	return 
 	_CExpr_CBit_Constructor.top()(bit);
 }
@@ -396,6 +471,10 @@ CExpr * Factory::CExprFactory::GetCExprByOperation(
 	CExpr *rightexpr, 
 	int op)
 {
+	if (_CExpr_Operator_Constructor.empty())
+	{
+		return nullptr;
+	}
 	return
 	_CExpr_Operator_Constructor.top()
 		(leftexpr, rightexpr, op);

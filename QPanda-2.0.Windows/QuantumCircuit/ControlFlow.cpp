@@ -20,7 +20,7 @@ QuantumWhile  CreateWhileProg(ClassicalCondition & ccCon, QNode * trueNode)
 {
     if (nullptr == trueNode)
         throw exception();
-    QuantumWhile quantumWhile(&ccCon, trueNode);
+    QuantumWhile quantumWhile(ccCon, trueNode);
     return quantumWhile;
 }
 
@@ -28,7 +28,7 @@ QuantumIf  CreateIfProg(ClassicalCondition & ccCon, QNode * trueNode)
 {
     if (nullptr == trueNode)
         throw exception();
-    QuantumIf quantumIf(&ccCon, trueNode);
+    QuantumIf quantumIf(ccCon, trueNode);
     return quantumIf;
 }
 
@@ -38,7 +38,7 @@ QuantumIf  CreateIfProg(ClassicalCondition &ccCon, QNode * trueNode, QNode * fal
         throw exception();
     if (nullptr == falseNode)
         throw exception();
-    QuantumIf quantumIf(&ccCon, trueNode, falseNode);
+    QuantumIf quantumIf(ccCon, trueNode, falseNode);
     return quantumIf;
 }
 
@@ -52,7 +52,7 @@ QuantumWhile::QuantumWhile(QuantumWhile &oldQWhile)
         throw exception();
 }
 
-QuantumWhile::QuantumWhile(ClassicalCondition * ccCon, QNode * node)
+QuantumWhile::QuantumWhile(ClassicalCondition & ccCon, QNode * node)
 {
     string sClasNname = "OriginWhile";
     auto aMeasure = QuantunIfFactory::getInstance().getQuantumIf(sClasNname, ccCon, node);
@@ -85,7 +85,7 @@ QNode * QuantumWhile::getFalseBranch() const
 }
 
 
-ClassicalCondition * QuantumWhile::getCExpr() const
+ClassicalCondition * QuantumWhile::getCExpr() 
 {
     if (nullptr == m_pControlFlow)
         throw exception();
@@ -108,7 +108,7 @@ QuantumIf::QuantumIf(const QuantumIf &oldQIf)
         throw exception();
 }
 
-QuantumIf::QuantumIf(ClassicalCondition * ccCon, QNode * pTrueNode, QNode * pFalseNode)
+QuantumIf::QuantumIf(ClassicalCondition & ccCon, QNode * pTrueNode, QNode * pFalseNode)
 {
     string sClasNname = "OriginIf";
     auto aMeasure = QuantunIfFactory::getInstance().getQuantumIf(sClasNname, ccCon, pTrueNode, pFalseNode);
@@ -117,7 +117,7 @@ QuantumIf::QuantumIf(ClassicalCondition * ccCon, QNode * pTrueNode, QNode * pFal
     m_pControlFlow = aMeasure;
 }
 
-QuantumIf::QuantumIf(ClassicalCondition * ccCon, QNode * node)
+QuantumIf::QuantumIf(ClassicalCondition & ccCon, QNode * node)
 {
     string sClasNname = "OriginIf";
     auto aMeasure = QuantunIfFactory::getInstance().getQuantumIf(sClasNname, ccCon, node);
@@ -152,19 +152,15 @@ int QuantumIf::getPosition() const
     return m_iPosition;
 }
 
-ClassicalCondition * QuantumIf::getCExpr() const
+ClassicalCondition * QuantumIf::getCExpr() 
 {
     if (nullptr == m_pControlFlow)
         throw  exception();
     return m_pControlFlow->getCExpr();
 }
 
-OriginIf::OriginIf(ClassicalCondition * ccCon, QNode * pTrueNode, QNode * pFalseNode):m_iNodeType(QIF_START_NODE)
+OriginIf::OriginIf(ClassicalCondition & ccCon, QNode * pTrueNode, QNode * pFalseNode):m_iNodeType(QIF_START_NODE),m_CCondition(ccCon)
 {
-    if (nullptr != ccCon)
-        m_pCCondition = ccCon;
-    else
-        throw exception();
     if (nullptr != pTrueNode)
         iTrueNum = pTrueNode->getPosition();
     else
@@ -176,12 +172,8 @@ OriginIf::OriginIf(ClassicalCondition * ccCon, QNode * pTrueNode, QNode * pFalse
         iFalseNum = -1;
 }
 
-OriginIf::OriginIf(ClassicalCondition * ccCon, QNode * node):m_iNodeType(QIF_START_NODE)
+OriginIf::OriginIf(ClassicalCondition & ccCon, QNode * node):m_iNodeType(QIF_START_NODE),m_CCondition(ccCon)
 {
-    if (nullptr != ccCon)
-        m_pCCondition = ccCon;
-    else
-        throw exception();
     if (nullptr != node)
         iTrueNum = node->getPosition();
     else
@@ -225,9 +217,9 @@ int OriginIf::getPosition() const
     throw exception();
 }
 
-ClassicalCondition * OriginIf::getCExpr() const
+ClassicalCondition * OriginIf::getCExpr() 
 {
-    return m_pCCondition;
+    return &m_CCondition;
 }
 
 void QuantunIfFactory::registClass(string name, CreateIfDoubleB method)
@@ -246,7 +238,7 @@ void QuantunIfFactory::registClass(string name, CreateIfSingleB method)
         throw exception();
 }
 
-AbstractControlFlowNode * QuantunIfFactory::getQuantumIf(std::string & classname, ClassicalCondition * ccCon, QNode * pTrueNode, QNode * pFalseNode)
+AbstractControlFlowNode * QuantunIfFactory::getQuantumIf(std::string & classname, ClassicalCondition & ccCon, QNode * pTrueNode, QNode * pFalseNode)
 {
     auto aiter = m_QIfDoubleMap.find(classname);
     if (aiter != m_QIfDoubleMap.end())
@@ -259,7 +251,7 @@ AbstractControlFlowNode * QuantunIfFactory::getQuantumIf(std::string & classname
     }
 }
 
-AbstractControlFlowNode * QuantunIfFactory::getQuantumIf(std::string & classname, ClassicalCondition * ccCon, QNode * pTrueNode)
+AbstractControlFlowNode * QuantunIfFactory::getQuantumIf(std::string & classname, ClassicalCondition & ccCon, QNode * pTrueNode)
 {
     auto aiter = m_QIfSingleMap.find(classname);
     if (aiter != m_QIfSingleMap.end())
@@ -274,16 +266,8 @@ AbstractControlFlowNode * QuantunIfFactory::getQuantumIf(std::string & classname
 
 REGISTER_QIF(OriginIf);
 
-OriginWhile::OriginWhile(ClassicalCondition * ccCon, QNode * node): m_iNodeType(WHILE_START_NODE)
+OriginWhile::OriginWhile(ClassicalCondition & ccCon, QNode * node): m_iNodeType(WHILE_START_NODE),m_CCondition(ccCon)
 {
-    if (nullptr == ccCon)
-    {
-        throw exception();
-    }
-    else
-    {
-        m_pCCondition = ccCon;
-    }
     if (nullptr == node)
     {
         iTrueNum = -1;
@@ -318,11 +302,9 @@ QNode * OriginWhile::getFalseBranch() const
     throw exception();
 }
 
-ClassicalCondition * OriginWhile::getCExpr() const
+ClassicalCondition * OriginWhile::getCExpr() 
 {
-    if (nullptr == m_pCCondition)
-        throw exception();
-    return m_pCCondition;
+    return &m_CCondition;
 }
 
 int OriginWhile::getPosition() const
@@ -342,9 +324,9 @@ void QuantunWhileFactory::registClass(string name, CreateWhile method)
     m_QWhileMap.insert(pair<string, CreateWhile>(name, method));
 }
 
-AbstractControlFlowNode * QuantunWhileFactory::getQuantumWhile(std::string & className, ClassicalCondition * ccCon, QNode * pTrueNode)
+AbstractControlFlowNode * QuantunWhileFactory::getQuantumWhile(std::string & className, ClassicalCondition & ccCon, QNode * pTrueNode)
 {
-    if ((className.size() <= 0) || (nullptr == ccCon) || (nullptr == pTrueNode))
+    if ((className.size() <= 0) || (nullptr == pTrueNode))
     {
         throw exception();
     }

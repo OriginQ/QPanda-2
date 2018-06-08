@@ -51,6 +51,7 @@
     <ClInclude Include="QuantumCircuit\QNode.h" />
     <ClInclude Include="QuantumCircuit\QuantumMeasure.h" />
     <ClInclude Include="QuantumCircuit\ControlFlow.h" />
+    <ClInclude Include="QPanda\QPandaException.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="QPanda\QPanda.cpp">

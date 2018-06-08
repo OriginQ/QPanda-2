@@ -242,6 +242,7 @@ OriginCExpr::~OriginCExpr()
 		{
 			throw classical_system_exception();
 		}
+		return;
 	}
 	else if (contentSpecifier == OPERATOR)
 	{

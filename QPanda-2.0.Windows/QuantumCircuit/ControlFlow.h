@@ -27,7 +27,7 @@ class AbstractControlFlowNode
 public:
     virtual QNode * getTrueBranch() const = 0;
     virtual QNode * getFalseBranch() const = 0;
-    virtual ClassicalCondition * getCExpr() const = 0;
+    virtual ClassicalCondition * getCExpr()  = 0;
     virtual ~AbstractControlFlowNode() {}
 };
 
@@ -47,25 +47,25 @@ private:
     QuantumIf();
 public:
     QuantumIf(const QuantumIf &);
-    QuantumIf(ClassicalCondition * ccCon, QNode* pTrueNode, QNode * pFalseNode);
-    QuantumIf(ClassicalCondition * ccCon, QNode *node);
+    QuantumIf(ClassicalCondition & ccCon, QNode* pTrueNode, QNode * pFalseNode);
+    QuantumIf(ClassicalCondition & ccCon, QNode *node);
     NodeType getNodeType() const;
     QNode * getTrueBranch() const;
     QNode * getFalseBranch() const;
     int getPosition() const;
-    ClassicalCondition * getCExpr()const;
+    ClassicalCondition * getCExpr();
 };
 
 
-typedef AbstractControlFlowNode * (*CreateIfDoubleB)(ClassicalCondition * ccCon, QNode* pTrueNode, QNode * pFalseNode);
-typedef AbstractControlFlowNode * (*CreateIfSingleB)(ClassicalCondition * ccCon, QNode* pTrueNode);
+typedef AbstractControlFlowNode * (*CreateIfDoubleB)(ClassicalCondition & ccCon, QNode* pTrueNode, QNode * pFalseNode);
+typedef AbstractControlFlowNode * (*CreateIfSingleB)(ClassicalCondition & ccCon, QNode* pTrueNode);
 class QuantunIfFactory
 {
 public:
     void registClass(string name, CreateIfDoubleB method);
     void registClass(string name, CreateIfSingleB method);
-    AbstractControlFlowNode * getQuantumIf(std::string &, ClassicalCondition * ccCon, QNode* pTrueNode, QNode * pFalseNode);
-    AbstractControlFlowNode * getQuantumIf(std::string &, ClassicalCondition * ccCon, QNode* pTrueNode);
+    AbstractControlFlowNode * getQuantumIf(std::string &, ClassicalCondition & ccCon, QNode* pTrueNode, QNode * pFalseNode);
+    AbstractControlFlowNode * getQuantumIf(std::string &, ClassicalCondition & ccCon, QNode* pTrueNode);
 
     static QuantunIfFactory & getInstance()
     {
@@ -92,10 +92,10 @@ public:
 };
 
 #define REGISTER_QIF(className)                                             \
-    AbstractControlFlowNode* QifSingleCreator##className( ClassicalCondition * ccCon, QNode* pTrueNode){      \
+    AbstractControlFlowNode* QifSingleCreator##className( ClassicalCondition & ccCon, QNode* pTrueNode){      \
         return new className(ccCon,pTrueNode);                    \
     }                                                                   \
-    AbstractControlFlowNode* QifDoubleCreator##className( ClassicalCondition * ccCon, QNode* pTrueNode, QNode * pFalseNode){      \
+    AbstractControlFlowNode* QifDoubleCreator##className( ClassicalCondition & ccCon, QNode* pTrueNode, QNode * pFalseNode){      \
         return new className(ccCon,pTrueNode,pFalseNode);                    \
     }                                                                   \
     QuantumIfRegisterAction g_qifCreatorDoubleRegister##className(                        \
@@ -108,18 +108,18 @@ public:
 class OriginIf : public QNode, public AbstractControlFlowNode
 {
 private:
-    ClassicalCondition * m_pCCondition;
+    ClassicalCondition  m_CCondition;
     int iTrueNum;
     int iFalseNum;
     NodeType m_iNodeType;
 public:
-    OriginIf(ClassicalCondition * ccCon, QNode* pTrueNode, QNode * pFalseNode);
-    OriginIf(ClassicalCondition * ccCon, QNode *node);
+    OriginIf(ClassicalCondition &ccCon, QNode* pTrueNode, QNode * pFalseNode);
+    OriginIf(ClassicalCondition & ccCon, QNode *node);
     NodeType getNodeType() const;
     QNode * getTrueBranch() const;
     QNode * getFalseBranch() const;
     int getPosition() const;
-    ClassicalCondition * getCExpr()const;
+    ClassicalCondition * getCExpr();
 };
 
 
@@ -165,7 +165,7 @@ private:
 public:
 
     QuantumWhile(QuantumWhile &);
-    QuantumWhile(ClassicalCondition * ccCon, QNode * node);
+    QuantumWhile(ClassicalCondition & ccCon, QNode * node);
 
     /*
     *  CreateWhileProg:  create  WHILE circuit
@@ -175,7 +175,7 @@ public:
     NodeType getNodeType() const;
     QNode * getTrueBranch() const;
     QNode * getFalseBranch() const;
-    ClassicalCondition * getCExpr()const;
+    ClassicalCondition * getCExpr();
     int getPosition() const;
 };
 
@@ -183,27 +183,27 @@ class OriginWhile :public QNode, public AbstractControlFlowNode
 {
 private :
     NodeType m_iNodeType;
-    ClassicalCondition * m_pCCondition;
+    ClassicalCondition  m_CCondition;
     int iTrueNum;
     OriginWhile();
 public :
-    OriginWhile(ClassicalCondition * ccCon, QNode * node);
+    OriginWhile(ClassicalCondition & ccCon, QNode * node);
     NodeType getNodeType() const;
     QNode * getTrueBranch() const;
     QNode * getFalseBranch() const;
-    ClassicalCondition * getCExpr()const;
+    ClassicalCondition * getCExpr();
     int getPosition() const;
 };
 
 
 
-typedef AbstractControlFlowNode * (*CreateWhile)(ClassicalCondition * ccCon, QNode* pTrueNode);
+typedef AbstractControlFlowNode * (*CreateWhile)(ClassicalCondition & ccCon, QNode* pTrueNode);
 class QuantunWhileFactory
 {
 public:
 
     void registClass(string name, CreateWhile method);
-    AbstractControlFlowNode * getQuantumWhile(std::string &, ClassicalCondition * ccCon, QNode* pTrueNode);
+    AbstractControlFlowNode * getQuantumWhile(std::string &, ClassicalCondition & ccCon, QNode* pTrueNode);
 
     static QuantunWhileFactory & getInstance()
     {
@@ -225,7 +225,7 @@ public:
 };
 
 #define REGISTER_QWHILE(className)                                             \
-    AbstractControlFlowNode* QWhileCreator##className( ClassicalCondition * ccCon, QNode* pTrueNode){      \
+    AbstractControlFlowNode* QWhileCreator##className( ClassicalCondition & ccCon, QNode* pTrueNode){      \
         return new className(ccCon,pTrueNode);                    \
     }                                                                   \
     QuantumWhileRegisterAction g_qWhileCreatorDoubleRegister##className(                        \

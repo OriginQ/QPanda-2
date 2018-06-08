@@ -19,13 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-<<<<<<< HEAD
     <ClInclude Include="QPanda.h" />
     <ClInclude Include="QPanda\QPandaException.h" />
     <ClInclude Include="QuantumCircuit\ControlFlow.h" />
-=======
-    <ClInclude Include="QPanda\QPandaException.h" />
->>>>>>> c081d7d6d4a9f182e66b5a2e1e764f4bf35f0c19
     <ClInclude Include="QuantumCircuit\QException.h" />
     <ClInclude Include="QuantumCircuit\QGate.h" />
     <ClInclude Include="QuantumCircuit\QGlobalVariable.h" />

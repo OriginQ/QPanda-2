@@ -24,7 +24,16 @@ int main()
 {
 	//DJ_Algorithm();
     //Grover_Algorithm();
-    HHL_Algorithm();
+   
+    try
+    {
+
+        HHL_Algorithm();
+    }
+    catch(exception & e)
+    {
+        cout<<e.what()<<endl;
+    }
     return 0;
 
 }

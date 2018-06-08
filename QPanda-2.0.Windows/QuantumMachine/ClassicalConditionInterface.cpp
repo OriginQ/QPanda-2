@@ -20,6 +20,10 @@ limitations under the License.
 bool ClassicalCondition::eval(map<string, bool>
 _Value_Map)
 {
+    if(nullptr == expr)
+    {
+        throw exception();
+    }
 	return expr->eval(_Value_Map);
 }
 

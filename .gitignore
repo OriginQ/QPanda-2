@@ -3,14 +3,8 @@ x64/*
 Console/x64/*
 QPanda-2.0.Algorithm/x64/*
 QPanda-2.0.Windows/x64/*
-<<<<<<< HEAD
 Release/bin/*
 Release/obj/*
 *.a
 *.o
 test
-=======
-*.a
-*.o
-test
->>>>>>> c081d7d6d4a9f182e66b5a2e1e764f4bf35f0c19

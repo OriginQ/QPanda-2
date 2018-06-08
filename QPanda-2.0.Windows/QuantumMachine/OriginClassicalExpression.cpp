@@ -234,20 +234,13 @@ OriginCExpr::~OriginCExpr()
 {
 	if (contentSpecifier == CBIT)
 	{
-		if (leftExpr == nullptr && rightExpr == nullptr)
-		{
-			return;
-		}
-		else
-		{
-			throw classical_system_exception();
-		}
+		return;
 	}
 	else if (contentSpecifier == OPERATOR)
 	{
 		if (leftExpr == nullptr)
 		{
-			throw classical_system_exception();
+			// do nothing
 		}
 		else
 		{
@@ -261,7 +254,7 @@ OriginCExpr::~OriginCExpr()
 			}
 			else
 			{
-				throw operator_specifier_error();
+				// do nothing
 			}
 		}
 		else

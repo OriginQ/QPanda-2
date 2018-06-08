@@ -50,6 +50,7 @@ ClassicalCondition::operator=(ClassicalCondition newcond)
 {
 	delete expr;
 	expr = newcond.expr->deepcopy();
+	return *this;
 }
 
 ClassicalCondition::ClassicalCondition

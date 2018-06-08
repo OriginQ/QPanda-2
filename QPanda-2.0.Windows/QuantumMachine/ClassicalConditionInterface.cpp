@@ -32,11 +32,24 @@ ClassicalCondition::ClassicalCondition(CBit *cbit)
 {
 	auto &fac = Factory::CExprFactory::GetFactoryInstance();
 	expr=fac.GetCExprByCBit(cbit);
+	if (expr == nullptr)
+	{
+		throw factory_get_instance_fail(
+			"CExpr"
+		);
+	}
 }
 
 ClassicalCondition::ClassicalCondition(CExpr *_Expr)
 {
 	expr = _Expr;
+}
+
+ClassicalCondition& 
+ClassicalCondition::operator=(ClassicalCondition newcond)
+{
+	delete expr;
+	expr = newcond.expr->deepcopy();
 }
 
 ClassicalCondition::ClassicalCondition
@@ -74,7 +87,8 @@ ClassicalCondition operator-(
 		(
 			leftcc.expr->deepcopy(),
 			rightcc.expr->deepcopy(),
-			MINUS);
+			MINUS
+		);
 }
 
 
@@ -88,7 +102,8 @@ ClassicalCondition operator&&(
 		(
 			leftcc.expr->deepcopy(),
 			rightcc.expr->deepcopy(),
-			AND);
+			AND
+		);
 }
 
 ClassicalCondition operator||(
@@ -101,7 +116,8 @@ ClassicalCondition operator||(
 		(
 			leftcc.expr->deepcopy(),
 			rightcc.expr->deepcopy(),
-			OR);
+			OR
+		);
 }
 
 ClassicalCondition operator!(
@@ -113,5 +129,6 @@ ClassicalCondition operator!(
 		(
 			leftcc.expr->deepcopy(),
 			nullptr,
-			NOT);
+			NOT
+		);
 }

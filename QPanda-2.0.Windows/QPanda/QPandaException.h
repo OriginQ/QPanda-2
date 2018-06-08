@@ -9,8 +9,11 @@ using namespace std;
 |-QPandaException
 |---qalloc_fail
 |---calloc_fail
-|---factory_init_error
 |---duplicate_free
+
+|---factory_exception
+|------factory_init_error
+|------factory_get_instance_fail
 
 |---load_exception
 |------qubit_not_allocated
@@ -75,13 +78,38 @@ public:
 	) {}
 };
 
-class factory_init_error : public QPandaException
+class factory_exception : public QPandaException
 {
 public:
-	factory_init_error(string cls) : QPandaException(
+	factory_exception() : QPandaException(
+		"Unknown factory exception",
+		false
+	){}
+	factory_exception(string errmsg,bool isfree)
+		: QPandaException(
+			errmsg,
+			isfree
+		)
+	{}
+};
+
+class factory_init_error : public factory_exception
+{
+public:
+	factory_init_error(string cls) : factory_exception(
 		cls+" initialization error",
 		false
 	) {}
+};
+
+class factory_get_instance_fail :public factory_exception
+{
+public:
+	factory_get_instance_fail(string cls) :factory_exception(
+		cls+ " get a nullptr",
+		false
+	)
+	{}
 };
 
 class classical_system_exception : public QPandaException

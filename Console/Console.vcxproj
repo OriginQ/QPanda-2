@@ -86,6 +86,7 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>QPanda-2.0.Algorithm.lib;QPanda-2.0.Windows.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Console</SubSystem>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

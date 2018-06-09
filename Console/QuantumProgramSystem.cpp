@@ -27,12 +27,13 @@ int main()
    
     try
     {
-
-        HHL_Algorithm();
+		int repeat = 10000;
+		return HHL_Test(repeat);
     }
     catch(exception & e)
     {
         cout<<e.what()<<endl;
+		return 1;
     }
     return 0;
 

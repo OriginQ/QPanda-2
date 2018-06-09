@@ -27,4 +27,5 @@ map<string, bool> hhlalgorithm();
 QuantumProgram& hhl(vector<Qubit*> qVec, vector<CBit*> cVec);
 QuantumCircuit& hhlPse(vector<Qubit*> qVec);
 QuantumCircuit& CRotate(vector<Qubit*> qVec);
+int HHL_Test(int);
 #endif

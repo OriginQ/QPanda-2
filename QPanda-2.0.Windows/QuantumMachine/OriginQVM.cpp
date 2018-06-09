@@ -118,12 +118,13 @@ void OriginQVM::run()
     }
     
     auto aiter =_G_QNodeVector.getNode(_QProgram);
-    QuantumProgram * pNode = (QuantumProgram *)*aiter;
+    QuantumProgram * pNode = dynamic_cast<QuantumProgram *>(*aiter);
     _pParam = new QuantumGateParam();
 
 	/* error may occur if user free working qubit before run() */
     _pParam->mQuantumBitNumber = _Qubit_Pool->getMaxQubit() - _Qubit_Pool->getIdleQubit();
-
+	delete _pGates;
+	_pGates = new X86QuantumGates();
     _pGates->initState(_pParam);
     QNodeAgency temp(pNode, _pParam, _pGates);
     if (temp.executeAction())

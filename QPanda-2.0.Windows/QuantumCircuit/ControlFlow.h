@@ -164,7 +164,7 @@ private:
     QuantumWhile();
 public:
 
-    QuantumWhile(QuantumWhile &);
+    QuantumWhile(const QuantumWhile &);
     QuantumWhile(ClassicalCondition & ccCon, QNode * node);
 
     /*
@@ -219,7 +219,7 @@ private:
 class QuantumWhileRegisterAction {
 public:
     QuantumWhileRegisterAction(string className, CreateWhile ptrCreateFn) {
-        QuantunIfFactory::getInstance().registClass(className, ptrCreateFn);
+        QuantunWhileFactory::getInstance().registClass(className, ptrCreateFn);
     }
 
 };

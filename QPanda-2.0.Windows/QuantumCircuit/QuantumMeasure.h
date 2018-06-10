@@ -37,7 +37,7 @@ private:
     QuantumMeasure();
 
 public:
-    QuantumMeasure(QuantumMeasure &);
+    QuantumMeasure(const QuantumMeasure &);
     QuantumMeasure(Qubit *, CBit *);
 
     Qubit * getQuBit() const;

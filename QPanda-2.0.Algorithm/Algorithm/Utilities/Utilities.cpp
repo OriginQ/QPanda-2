@@ -19,19 +19,20 @@ limitations under the License.
 void Reset_Qubit(Qubit* q, bool setVal)
 {
 	auto cbit = cAlloc();
-	append(Reset_Qubit_Circuit(q,cbit,setVal));
+    auto aTmep = Reset_Qubit_Circuit(q, cbit, setVal);
+	append(aTmep);
 	cFree(cbit);
 }
 
-QuantumProgram & Reset_Qubit_Circuit(Qubit *q, CBit* cbit, bool setVal)
+QuantumProgram  Reset_Qubit_Circuit(Qubit *q, CBit* cbit, bool setVal)
 {
 	//auto cbit = cAlloc();
-	auto &prog = CreateEmptyQProg();
+	auto prog = CreateEmptyQProg();
 	prog << Measure(q, cbit);
 	auto cond = bind_a_cbit(cbit);
-	auto &resetcircuit = CreateEmptyCircuit();
+	auto resetcircuit = CreateEmptyCircuit();
 	resetcircuit << RX(q);
-	auto &no_reset = CreateEmptyCircuit();
+	auto no_reset = CreateEmptyCircuit();
 	if (setVal==false)
 		prog << CreateIfProg(cond, &resetcircuit, &no_reset);
 	else

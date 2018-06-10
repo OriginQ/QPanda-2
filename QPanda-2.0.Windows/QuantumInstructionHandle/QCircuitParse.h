@@ -139,7 +139,7 @@ public:
     QNodeAgency(QuantumWhile * pNode, QuantumGateParam * pParam, QuantumGates* pGates);
     QNodeAgency(QuantumMeasure * pNode, QuantumGateParam * pParam, QuantumGates* pGates);
     QNodeAgency(QuantumProgram * pNode, QuantumGateParam * pParam, QuantumGates* pGates);
-    QNodeAgency(QuantumGate * pNode, QuantumGates* pGates, bool isDagger, vector<Qubit *> & controlQubitVector);
+    QNodeAgency(QGate * pNode, QuantumGates* pGates, bool isDagger, vector<Qubit *> & controlQubitVector);
     ~QNodeAgency();
     bool executeAction();
     bool verify();
@@ -150,7 +150,7 @@ private:
 };
 
 
-typedef void(*QGATE_FUN)(QGate *,vector<Qubit * > &, QuantumGates*, bool, vector<Qubit *> &) ;
+typedef void(*QGATE_FUN)(QuantumGate *,vector<Qubit * > &, QuantumGates*, bool, vector<Qubit *> &) ;
 typedef map<int, QGATE_FUN> QGATE_FUN_MAP;
 class QGateParseMap
 {

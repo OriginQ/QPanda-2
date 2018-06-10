@@ -34,7 +34,7 @@ void OriginQVM::init()
 		Factory::
 		CMemFactory::GetFactoryInstance().
 		GetInstanceFromSize(_Config.maxCMem);
-    QuantumProgram & temp = CreateEmptyQProg();
+    QuantumProgram  temp = CreateEmptyQProg();
     _QProgram = temp.getPosition();
 	_QResult =
 		Factory::

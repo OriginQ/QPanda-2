@@ -42,7 +42,7 @@ QuantumIf  CreateIfProg(ClassicalCondition &ccCon, QNode * trueNode, QNode * fal
     return quantumIf;
 }
 
-QuantumWhile::QuantumWhile(QuantumWhile &oldQWhile)
+QuantumWhile::QuantumWhile( const QuantumWhile &oldQWhile)
 {
     m_iPosition = oldQWhile.getPosition();
     auto aiter = _G_QNodeVector.getNode(m_iPosition);

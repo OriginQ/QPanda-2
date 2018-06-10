@@ -17,13 +17,13 @@ limitations under the License.
 #include "QuantumMeasure.h"
 #include "QPanda/QPandaException.h"
 
-QuantumMeasure Measure(Qubit * targetQuBit, CBit *targetCbit)
+QuantumMeasure  Measure(Qubit * targetQuBit, CBit *targetCbit)
 {
     QuantumMeasure qMeasure(targetQuBit, targetCbit);
     return qMeasure;
 }
 
-QuantumMeasure::QuantumMeasure(QuantumMeasure & oldMeasure)
+QuantumMeasure::QuantumMeasure(const QuantumMeasure & oldMeasure)
 {
     m_iPosition = oldMeasure.getPosition();    
     auto aiter = _G_QNodeVector.getNode(m_iPosition);

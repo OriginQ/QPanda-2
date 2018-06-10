@@ -24,7 +24,7 @@ limitations under the License.
 extern QNodeVector _G_QNodeVector;
 
 // Create an empty QuantumProgram Container
-extern QuantumProgram & CreateEmptyQProg();
+extern QuantumProgram  CreateEmptyQProg();
 
 // Create a While Program
 extern QuantumWhile CreateWhileProg(
@@ -43,46 +43,46 @@ extern QuantumIf CreateIfProg(
     QNode *falseNode);
 
 // Create an empty QCircuit Container
-extern QuantumCircuit & CreateEmptyCircuit();
+extern QuantumCircuit  CreateEmptyCircuit();
 
 // Create a Measure operation
 extern QuantumMeasure Measure(Qubit * targetQuBit, CBit * targetCbit);
 
 // Create a X gate
-extern QuantumGate & RX(Qubit* qbit);
+extern QGate & RX(Qubit* qbit);
 
 // Create a X rotation
-extern QuantumGate & RX(Qubit*, double angle);
+extern QGate & RX(Qubit*, double angle);
 
 // Create a Y gate
-extern QuantumGate & RY(Qubit* qbit);
+extern QGate & RY(Qubit* qbit);
 
 // Create a Y rotation
-extern QuantumGate & RY(Qubit*, double angle);
+extern QGate & RY(Qubit*, double angle);
 
 // Create a Z gate
-extern QuantumGate & RZ(Qubit* qbit);
+extern QGate & RZ(Qubit* qbit);
 
 // Create a Z rotation
-extern QuantumGate & RZ(Qubit*, double angle);
+extern QGate & RZ(Qubit*, double angle);
 
 // Create S gate
-extern QuantumGate & S(Qubit* qbit);
+extern QGate & S(Qubit* qbit);
 
 // Create Hadamard Gate
-extern QuantumGate & H(Qubit* qbit);
+extern QGate & H(Qubit* qbit);
 
 // Create an instance of CNOT gate
-extern QuantumGate & CNOT(Qubit* targetQBit, Qubit* controlQBit);
+extern QGate & CNOT(Qubit* targetQBit, Qubit* controlQBit);
 
 // Create an instance of CZ gate
-extern QuantumGate & CZ(Qubit* targetQBit, Qubit* controlQBit);
+extern QGate & CZ(Qubit* targetQBit, Qubit* controlQBit);
 
 // Create an arbitrary single unitary gate
-extern QuantumGate & QSingle(double alpha, double beta, double gamma, double delta, Qubit *);
+extern QGate & QSingle(double alpha, double beta, double gamma, double delta, Qubit *);
 
 // Create a control-U gate
-extern QuantumGate & QDouble(double alpha, double beta, double gamma, double delta, Qubit *, Qubit *);
+extern QGate & QDouble(double alpha, double beta, double gamma, double delta, Qubit *, Qubit *);
 
 // to init the environment. Use this at the beginning
 void init();

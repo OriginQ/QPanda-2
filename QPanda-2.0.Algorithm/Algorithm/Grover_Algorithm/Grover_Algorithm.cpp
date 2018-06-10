@@ -16,9 +16,9 @@ limitations under the License.
 
 #include "Grover_Algorithm.h"
 
-QuantumProgram Grover(vector<Qubit*> qVec, vector<CBit*> cVec, int target)
+QProg Grover(vector<Qubit*> qVec, vector<CBit*> cVec, int target)
 {
-    QuantumProgram  grover = CreateEmptyQProg();
+    QProg  grover = CreateEmptyQProg();
     QuantumCircuit  init = CreateEmptyCircuit();
     QuantumCircuit  oracle = CreateEmptyCircuit();
     QuantumCircuit  reverse = CreateEmptyCircuit();

@@ -18,9 +18,9 @@ limitations under the License.
 
 
 
-QuantumProgram  CreateEmptyQProg()
+QProg  CreateEmptyQProg()
 {
-    QuantumProgram temp;
+    QProg temp;
     return temp;
 }
 
@@ -231,7 +231,7 @@ int QuantumCircuit::getPosition() const
     return this->m_iPosition;
 }
 
-QuantumProgram::QuantumProgram()
+QProg::QProg()
 {
     string sClasNname = "OriginProgram";
     auto aMeasure = QuantumProgramFactory::getInstance().getQuantumCircuit(sClasNname);
@@ -240,7 +240,7 @@ QuantumProgram::QuantumProgram()
     m_pQuantumProgram = aMeasure;
 }
 
-QuantumProgram::QuantumProgram(const QuantumProgram &oldQProg)
+QProg::QProg(const QProg &oldQProg)
 {
     m_iPosition = oldQProg.getPosition();
     auto aiter = _G_QNodeVector.getNode(m_iPosition);
@@ -250,19 +250,19 @@ QuantumProgram::QuantumProgram(const QuantumProgram &oldQProg)
         throw exception();
 }
 
-QuantumProgram::~QuantumProgram()
+QProg::~QProg()
 {
 
 }
 
-void QuantumProgram :: pushBackNode(QNode * pNode)
+void QProg :: pushBackNode(QNode * pNode)
 {
     if (nullptr == m_pQuantumProgram)
         throw exception();
     m_pQuantumProgram->pushBackNode(pNode);
 }
 
-QuantumProgram & QuantumProgram::operator<<( QuantumIf  ifNode)
+QProg & QProg::operator<<( QuantumIf  ifNode)
 {
     if (nullptr == m_pQuantumProgram)
         throw exception();
@@ -270,7 +270,7 @@ QuantumProgram & QuantumProgram::operator<<( QuantumIf  ifNode)
     return *this;
 }
 
-QuantumProgram & QuantumProgram::operator<<( QuantumWhile  whileNode)
+QProg & QProg::operator<<( QuantumWhile  whileNode)
 {
     if (nullptr == m_pQuantumProgram)
         throw exception();
@@ -278,7 +278,7 @@ QuantumProgram & QuantumProgram::operator<<( QuantumWhile  whileNode)
     return *this;
 }
 
-QuantumProgram & QuantumProgram::operator<<( QuantumMeasure  measure)
+QProg & QProg::operator<<( QuantumMeasure  measure)
 {
     if (nullptr == m_pQuantumProgram)
         throw exception();
@@ -286,7 +286,7 @@ QuantumProgram & QuantumProgram::operator<<( QuantumMeasure  measure)
     return *this;
 }
 
-QuantumProgram & QuantumProgram::operator<<( QuantumProgram  qprog)
+QProg & QProg::operator<<( QProg  qprog)
 {
     if (nullptr == m_pQuantumProgram)
         throw exception();
@@ -294,7 +294,7 @@ QuantumProgram & QuantumProgram::operator<<( QuantumProgram  qprog)
     return *this;
 }
 
-QuantumProgram & QuantumProgram::operator<<(QGate & node)
+QProg & QProg::operator<<(QGate & node)
 {
     if (nullptr == m_pQuantumProgram)
         throw exception();
@@ -302,14 +302,14 @@ QuantumProgram & QuantumProgram::operator<<(QGate & node)
     return *this;
 }
 
-QuantumProgram & QuantumProgram::operator<<( QuantumCircuit  qCircuit)
+QProg & QProg::operator<<( QuantumCircuit  qCircuit)
 {
     if (nullptr != m_pQuantumProgram)
         m_pQuantumProgram->pushBackNode(dynamic_cast<QNode *>(&qCircuit));
     return *this;
 }
 
-NodeIter  QuantumProgram::getFirstNodeIter()
+NodeIter  QProg::getFirstNodeIter()
 {
     if (nullptr != m_pQuantumProgram)
         return m_pQuantumProgram->getFirstNodeIter();
@@ -317,7 +317,7 @@ NodeIter  QuantumProgram::getFirstNodeIter()
         throw exception();
 }
 
-NodeIter  QuantumProgram::getLastNodeIter()
+NodeIter  QProg::getLastNodeIter()
 {
     if (nullptr != m_pQuantumProgram)
         return m_pQuantumProgram->getLastNodeIter();
@@ -325,7 +325,7 @@ NodeIter  QuantumProgram::getLastNodeIter()
         throw exception();
 }
 
-NodeIter QuantumProgram::getEndNodeIter()
+NodeIter QProg::getEndNodeIter()
 {
     if (nullptr != m_pQuantumProgram)
         return m_pQuantumProgram->getEndNodeIter();
@@ -333,7 +333,7 @@ NodeIter QuantumProgram::getEndNodeIter()
         throw exception();
 }
 
-NodeIter QuantumProgram::getHeadNodeIter()
+NodeIter QProg::getHeadNodeIter()
 {
     if (nullptr != m_pQuantumProgram)
         return m_pQuantumProgram->getHeadNodeIter();
@@ -341,7 +341,7 @@ NodeIter QuantumProgram::getHeadNodeIter()
         throw exception();
 }
 
-NodeType QuantumProgram::getNodeType() const
+NodeType QProg::getNodeType() const
 {
     if (nullptr != m_pQuantumProgram)
         return dynamic_cast<QNode * >(m_pQuantumProgram)->getNodeType();
@@ -349,7 +349,7 @@ NodeType QuantumProgram::getNodeType() const
         throw exception();
 }
 
-void QuantumProgram::clear()
+void QProg::clear()
 {
     if (nullptr != m_pQuantumProgram)
         return m_pQuantumProgram->clear();
@@ -357,7 +357,7 @@ void QuantumProgram::clear()
         throw exception();
 }
 
-int QuantumProgram:: getPosition() const
+int QProg:: getPosition() const
 {
     return m_iPosition;
 }

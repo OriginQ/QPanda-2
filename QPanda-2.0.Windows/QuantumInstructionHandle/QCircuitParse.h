@@ -97,11 +97,11 @@ private:
 class QProgParse :public AbstractQNodeParse
 {
 private:
-    QuantumProgram * m_pNode;
+    QProg * m_pNode;
     QuantumGateParam * m_pParam;
     QuantumGates* m_pGates;
 public:
-    QProgParse(QuantumProgram * pNode, QuantumGateParam * pParam, QuantumGates* pGates);
+    QProgParse(QProg * pNode, QuantumGateParam * pParam, QuantumGates* pGates);
     ~QProgParse() {};
     bool executeAction();
     bool verify();
@@ -138,7 +138,7 @@ public:
     QNodeAgency(QuantumIf * pNode, QuantumGateParam * pParam, QuantumGates* pGates);
     QNodeAgency(QuantumWhile * pNode, QuantumGateParam * pParam, QuantumGates* pGates);
     QNodeAgency(QuantumMeasure * pNode, QuantumGateParam * pParam, QuantumGates* pGates);
-    QNodeAgency(QuantumProgram * pNode, QuantumGateParam * pParam, QuantumGates* pGates);
+    QNodeAgency(QProg * pNode, QuantumGateParam * pParam, QuantumGates* pGates);
     QNodeAgency(QGate * pNode, QuantumGates* pGates, bool isDagger, vector<Qubit *> & controlQubitVector);
     ~QNodeAgency();
     bool executeAction();

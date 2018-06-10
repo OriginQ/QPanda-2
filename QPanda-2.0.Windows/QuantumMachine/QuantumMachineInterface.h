@@ -21,7 +21,7 @@ limitations under the License.
 
 using namespace std;
 
-class QuantumProgram;
+class QProg;
 
 #define VIRTUAL // only to mark that the class is an abstract class
 
@@ -133,8 +133,8 @@ public:
 	virtual CBit* Allocate_CBit() = 0; // allocate and run a cbit
     virtual void Free_Qubit(Qubit*) = 0; // free a qubit
     virtual void Free_CBit(CBit*) = 0; // free a cbit
-	virtual void load(QuantumProgram &) = 0; // load a qprog
-	virtual void append(QuantumProgram&) = 0; // append the qprog after the original
+	virtual void load(QProg &) = 0; // load a qprog
+	virtual void append(QProg&) = 0; // append the qprog after the original
 	virtual void run() = 0; // run on the quantum machine
 	virtual QMachineStatus* getStatus() const = 0; // get the status of the quantum machine
 	virtual QResult* getResult() = 0; // get the result of the quantum program

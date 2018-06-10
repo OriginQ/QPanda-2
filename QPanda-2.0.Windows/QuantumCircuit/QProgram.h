@@ -237,32 +237,32 @@ public:
 
 
 /*
-*  QuantumProgram:  quantum program,can construct quantum circuit,data struct is linked list
-*  QListHeadNode:  QuantumProgram's head pointer.
-*  QListLastNode:  QuantumProgram's last pointer.
-*  QuantumProgram & operator<<(const T &)：
+*  QProg:  quantum program,can construct quantum circuit,data struct is linked list
+*  QListHeadNode:  QProg's head pointer.
+*  QListLastNode:  QProg's last pointer.
+*  QProg & operator<<(const T &)：
 *    if T is QSingleGateNode/QDoubleGateNode/QIfEndNode,
-*    deep copy T and insert it into left QuantumProgram;
-*    if T is QuantumIf/QuantumWhile/QuantumProgram,deepcopy
-*    IF/WHILE/QuantumProgram circuit and insert it into left QuantumProgram;
+*    deep copy T and insert it into left QProg;
+*    if T is QuantumIf/QuantumWhile/QProg,deepcopy
+*    IF/WHILE/QProg circuit and insert it into left QProg;
 */
-class QuantumProgram : public QNode, public AbstractQuantumProgram
+class QProg : public QNode, public AbstractQuantumProgram
 {
 private:
     AbstractQuantumProgram * m_pQuantumProgram;
     int m_iPosition;
 public:
-    QuantumProgram();
-    QuantumProgram(const QuantumProgram&);
-    ~QuantumProgram();
+    QProg();
+    QProg(const QProg&);
+    ~QProg();
     void pushBackNode(QNode *);
 
-    QuantumProgram & operator << ( QuantumIf );
-    QuantumProgram & operator << ( QuantumWhile );
-    QuantumProgram & operator << (QuantumMeasure );
-    QuantumProgram & operator << ( QuantumProgram );
-    QuantumProgram & operator << ( QGate &);
-    QuantumProgram & operator << ( QuantumCircuit );
+    QProg & operator << ( QuantumIf );
+    QProg & operator << ( QuantumWhile );
+    QProg & operator << (QuantumMeasure );
+    QProg & operator << ( QProg );
+    QProg & operator << ( QGate &);
+    QProg & operator << ( QuantumCircuit );
     NodeIter getFirstNodeIter();
     NodeIter getLastNodeIter();
     NodeIter  getEndNodeIter();
@@ -356,7 +356,7 @@ public:
     bool operator  == (NodeIter);
 };
 
-extern QuantumProgram  CreateEmptyQProg();
+extern QProg  CreateEmptyQProg();
 
 
 extern QuantumCircuit  CreateEmptyCircuit();

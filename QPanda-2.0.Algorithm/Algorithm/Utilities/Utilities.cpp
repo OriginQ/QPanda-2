@@ -24,7 +24,7 @@ void Reset_Qubit(Qubit* q, bool setVal)
 	cFree(cbit);
 }
 
-QuantumProgram  Reset_Qubit_Circuit(Qubit *q, CBit* cbit, bool setVal)
+QProg  Reset_Qubit_Circuit(Qubit *q, CBit* cbit, bool setVal)
 {
 	//auto cbit = cAlloc();
 	auto prog = CreateEmptyQProg();

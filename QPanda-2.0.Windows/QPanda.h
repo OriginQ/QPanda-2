@@ -23,8 +23,8 @@ limitations under the License.
 
 extern QNodeVector _G_QNodeVector;
 
-// Create an empty QuantumProgram Container
-extern QuantumProgram  CreateEmptyQProg();
+// Create an empty QProg Container
+extern QProg  CreateEmptyQProg();
 
 // Create a While Program
 extern QuantumWhile CreateWhileProg(
@@ -103,10 +103,10 @@ CBit* cAlloc();
 void cFree(CBit* c);
 
 // load a program
-void load(QuantumProgram& q);
+void load(QProg& q);
 
 // append a program after the loaded program
-void append(QuantumProgram& q);
+void append(QProg& q);
 
 // get the status(ptr) of the quantum machine
 QMachineStatus* getstat();

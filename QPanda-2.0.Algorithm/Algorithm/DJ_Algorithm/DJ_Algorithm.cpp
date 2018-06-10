@@ -52,7 +52,7 @@ void DJ_Algorithm()
 	}
 }
 
-QuantumProgram  Two_Qubit_DJ_Algorithm_Circuit(
+QProg  Two_Qubit_DJ_Algorithm_Circuit(
 	Qubit * qubit1, 
 	Qubit * qubit2, 
 	CBit * cbit, 

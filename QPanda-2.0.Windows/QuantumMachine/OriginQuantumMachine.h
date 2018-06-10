@@ -179,8 +179,8 @@ public:
 	CBit* Allocate_CBit();
     void Free_Qubit(Qubit*);
     void Free_CBit(CBit*);
-	void load(QuantumProgram &);
-	void append(QuantumProgram&);
+	void load(QProg &);
+	void append(QProg&);
 	void run();
 	QMachineStatus* getStatus() const;
 	QResult* getResult();

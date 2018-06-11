@@ -83,7 +83,7 @@ int HHL_Test(int repeat)
 		{
 			cv.push_back(cAlloc());
 		}
-		auto &hhlprog = CreateEmptyQProg();
+		auto hhlprog = CreateEmptyQProg();
 		hhlprog << RY(qv[3], PI / 2);
 		hhlprog << hhl(qv, cv);
 		load(hhlprog);

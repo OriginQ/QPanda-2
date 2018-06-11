@@ -114,7 +114,7 @@ void OriginQVM::run()
 {
     if (_QProgram < 0)
     {
-        return;
+        throw exception();
     }
     
     auto aiter =_G_QNodeVector.getNode(_QProgram);
@@ -122,7 +122,7 @@ void OriginQVM::run()
     _pParam = new QuantumGateParam();
 
 	/* error may occur if user free working qubit before run() */
-    _pParam->mQuantumBitNumber = _Qubit_Pool->getMaxQubit() - _Qubit_Pool->getIdleQubit();
+    _pParam->mQuantumBitNumber = _Qubit_Pool->getMaxQubit(); // -_Qubit_Pool->getIdleQubit();
 
     _pGates->initState(_pParam);
     QNodeAgency temp(pNode, _pParam, _pGates);
@@ -134,6 +134,11 @@ void OriginQVM::run()
             _QResult->append(aiter);
         }
     }
+    else
+    {
+        cout << "Warning:there is nothing in QProgram" << endl;
+    }
+    _pGates->endGate(nullptr,nullptr);
     delete _pParam;
     _pParam = nullptr;
     return ;

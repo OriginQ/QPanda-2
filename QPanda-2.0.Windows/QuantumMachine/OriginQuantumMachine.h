@@ -165,7 +165,7 @@ private:
     QuantumGates     * _pGates;
 	struct Configuration
 	{
-		size_t maxQubit=32;
+		size_t maxQubit=10;
 		size_t maxCMem=256;
 	};
 	Configuration _Config;

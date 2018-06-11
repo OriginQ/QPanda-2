@@ -152,7 +152,7 @@ QCircuit & QCircuit::operator<<(QGate & node)
     return *this;
 }
 
-QCircuit & QCircuit::operator<<( QuantumMeasure & node)
+QCircuit & QCircuit::operator<<( QMeasure & node)
 {
     if (nullptr == m_pQuantumCircuit)
         throw exception();
@@ -278,7 +278,7 @@ QProg & QProg::operator<<( QWhileProg  whileNode)
     return *this;
 }
 
-QProg & QProg::operator<<( QuantumMeasure  measure)
+QProg & QProg::operator<<( QMeasure  measure)
 {
     if (nullptr == m_pQuantumProgram)
         throw exception();

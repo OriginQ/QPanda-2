@@ -29,16 +29,16 @@ public:
     virtual ~AbstractQuantumMeasure() {}
 };
 
-class QuantumMeasure : public QNode, public AbstractQuantumMeasure
+class QMeasure : public QNode, public AbstractQuantumMeasure
 {
 private:
     AbstractQuantumMeasure * m_pQuantumMeasure;
     int m_iPosition;
-    QuantumMeasure();
+    QMeasure();
 
 public:
-    QuantumMeasure(const QuantumMeasure &);
-    QuantumMeasure(Qubit *, CBit *);
+    QMeasure(const QMeasure &);
+    QMeasure(Qubit *, CBit *);
 
     Qubit * getQuBit() const;
     CBit * getCBit()const;
@@ -103,7 +103,7 @@ private:
      
 };
 
-extern QuantumMeasure Measure(Qubit * targetQuBit, CBit * targetCbit);
+extern QMeasure Measure(Qubit * targetQuBit, CBit * targetCbit);
 
 
 

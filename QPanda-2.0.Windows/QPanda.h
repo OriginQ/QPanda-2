@@ -46,7 +46,7 @@ extern QIfProg CreateIfProg(
 extern QCircuit  CreateEmptyCircuit();
 
 // Create a Measure operation
-extern QuantumMeasure Measure(Qubit * targetQuBit, CBit * targetCbit);
+extern QMeasure Measure(Qubit * targetQuBit, CBit * targetCbit);
 
 // Create a X gate
 extern QGate & RX(Qubit* qbit);

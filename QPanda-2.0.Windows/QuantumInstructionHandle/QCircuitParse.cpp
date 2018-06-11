@@ -80,7 +80,7 @@ bool QCirCuitParse::executeAction()
             }
             else
             {
-                pQNodeAgency = new QNodeAgency((QuantumMeasure*)pNode,m_pParam, m_pGates);
+                pQNodeAgency = new QNodeAgency((QMeasure*)pNode,m_pParam, m_pGates);
             }
             
             if (false == pQNodeAgency->executeAction())
@@ -111,7 +111,7 @@ bool QCirCuitParse::executeAction()
             }
             else
             {
-                pQNodeAgency = new QNodeAgency((QuantumMeasure*)pNode, m_pParam, m_pGates);
+                pQNodeAgency = new QNodeAgency((QMeasure*)pNode, m_pParam, m_pGates);
             }
 
             if (false == pQNodeAgency->executeAction())
@@ -152,7 +152,7 @@ bool QCirCuitParse::verify()
             }
             else
             {
-                pQNodeAgency = new QNodeAgency((QuantumMeasure*)pNode, m_pParam, m_pGates);
+                pQNodeAgency = new QNodeAgency((QMeasure*)pNode, m_pParam, m_pGates);
             }
 
             if (false == pQNodeAgency->verify())
@@ -183,7 +183,7 @@ bool QCirCuitParse::verify()
             }
             else
             {
-                pQNodeAgency = new QNodeAgency((QuantumMeasure*)pNode, m_pParam, m_pGates);
+                pQNodeAgency = new QNodeAgency((QMeasure*)pNode, m_pParam, m_pGates);
             }
 
             if (false == pQNodeAgency->verify())
@@ -387,7 +387,7 @@ QNodeAgency::QNodeAgency(QWhileProg * pNode, QuantumGateParam * pParam, QuantumG
 }
 
 
-QNodeAgency::QNodeAgency(QuantumMeasure * pNode, QuantumGateParam * pParam, QuantumGates * pGates)
+QNodeAgency::QNodeAgency(QMeasure * pNode, QuantumGateParam * pParam, QuantumGates * pGates)
 {
     m_pQNodeParse = new MeasureParse(pNode, pParam, pGates);
 }
@@ -471,7 +471,7 @@ bool QIfParse::executeAction()
     }
     else if (MEASURE_GATE == iNodeType)
     {
-        pTempAgency = new QNodeAgency((QuantumMeasure *)pQNode, m_pParam, m_pGates);
+        pTempAgency = new QNodeAgency((QMeasure *)pQNode, m_pParam, m_pGates);
     }
     else if (WHILE_START_NODE == iNodeType)
     {
@@ -522,7 +522,7 @@ bool QIfParse::verify()
         }
         else if (MEASURE_GATE == iNodeType)
         {
-            pTempAgency = new QNodeAgency((QuantumMeasure *)pQNode, m_pParam, m_pGates);
+            pTempAgency = new QNodeAgency((QMeasure *)pQNode, m_pParam, m_pGates);
         }
         else if (WHILE_START_NODE == iNodeType)
         {
@@ -564,7 +564,7 @@ bool QIfParse::verify()
         }
         else if (MEASURE_GATE == iNodeType)
         {
-            pTempAgency = new QNodeAgency((QuantumMeasure *)pQNode, m_pParam, m_pGates);
+            pTempAgency = new QNodeAgency((QMeasure *)pQNode, m_pParam, m_pGates);
         }
         else if (WHILE_START_NODE == iNodeType)
         {
@@ -624,7 +624,7 @@ bool QWhileParse::executeAction()
         }
         else if (MEASURE_GATE == iNodeType)
         {
-            pTempAgency = new QNodeAgency((QuantumMeasure *)pQNode, m_pParam, m_pGates);
+            pTempAgency = new QNodeAgency((QMeasure *)pQNode, m_pParam, m_pGates);
         }
         else if (WHILE_START_NODE == iNodeType)
         {
@@ -677,7 +677,7 @@ bool QWhileParse::verify()
     }
     else if (MEASURE_GATE == iNodeType)
     {
-        pTempAgency = new QNodeAgency((QuantumMeasure *)pQNode, m_pParam, m_pGates);
+        pTempAgency = new QNodeAgency((QMeasure *)pQNode, m_pParam, m_pGates);
     }
     else if (WHILE_START_NODE == iNodeType)
     {
@@ -702,7 +702,7 @@ bool QWhileParse::verify()
     return true;
 }
 
-MeasureParse::MeasureParse(QuantumMeasure * pNode, QuantumGateParam * pParam, QuantumGates * pGates) :m_pNode(pNode), m_pGates(pGates), m_pParam(pParam)
+MeasureParse::MeasureParse(QMeasure * pNode, QuantumGateParam * pParam, QuantumGates * pGates) :m_pNode(pNode), m_pGates(pGates), m_pParam(pParam)
 {
 
 }
@@ -778,7 +778,7 @@ bool QProgParse::executeAction()
         }
         else if (MEASURE_GATE == iNodeType)
         {
-            pTempAgency = new QNodeAgency((QuantumMeasure *)pNode, m_pParam, m_pGates);
+            pTempAgency = new QNodeAgency((QMeasure *)pNode, m_pParam, m_pGates);
         }
         else if (WHILE_START_NODE == iNodeType)
         {
@@ -838,7 +838,7 @@ bool QProgParse::verify()
         }
         else if (MEASURE_GATE == iNodeType)
         {
-            pTempAgency = new QNodeAgency((QuantumMeasure *)pNode, m_pParam, m_pGates);
+            pTempAgency = new QNodeAgency((QMeasure *)pNode, m_pParam, m_pGates);
         }
         else if (WHILE_START_NODE == iNodeType)
         {

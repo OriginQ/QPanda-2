@@ -161,7 +161,7 @@ public:
     ~QCircuit();
     void pushBackNode(QNode *);
     QCircuit & operator << ( QGate &);
-    QCircuit & operator << ( QuantumMeasure &);
+    QCircuit & operator << ( QMeasure &);
     QCircuit & dagger();
     QCircuit & control(vector<Qubit *> &);
     NodeType getNodeType() const;
@@ -264,7 +264,7 @@ public:
 
     QProg & operator << ( QIfProg );
     QProg & operator << ( QWhileProg );
-    QProg & operator << (QuantumMeasure );
+    QProg & operator << (QMeasure );
     QProg & operator << ( QProg );
     QProg & operator << ( QGate &);
     QProg & operator << ( QCircuit );

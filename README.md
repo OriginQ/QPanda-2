@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/OriginQ/QPanda-SDK.svg?branch=master)](https://travis-ci.org/OriginQ/QPanda-SDK)
-
+## QPanda
 Qpanda is a software used to deal with quantum circuits and experiments on various quantum computers.
 
 There are three processes in QPanda: initialization, compilation, and running.
@@ -21,7 +21,7 @@ The design of **QPanda** is forward-looking, considering that quantum computing 
 
 3.  Standardized quantum machine model.
 
-## The QPanda Project Includes：
+## The Project Includes：
 
 -   **QPanda SDK**：
 
@@ -35,7 +35,7 @@ Qrunes is a set of quantum computing instructions developed by the Origin quantu
 
 Qrunes Generator is a C + + library that supports generating Qrunes directives in function calls.
 
--   **[QPanda Documentation](./)**：
+-   **[QPanda Documentation](./QPanda-2.0.Documentation\README.md)**：
 
  Instructions for QPanda software. It includes algorithm summary, corresponding quantum circuits, corresponding QPanda code, etc., aiming at guiding users to use QPanda correctly and quickly.
 

@@ -49,6 +49,10 @@ public:
     virtual size_t getQuBitVector(vector<Qubit *> &) const = 0;
     virtual size_t getQuBitNum() const = 0;
     virtual QuantumGate * getQGate() const = 0;
+    virtual bool isDagger() const = 0;
+    virtual size_t getControlVector(vector<Qubit *> &) const = 0;
+    virtual bool setDagger(bool) = 0;
+    virtual bool setControl(vector<Qubit *> &) = 0;
     virtual ~QGateNode() {}
 };
 
@@ -219,6 +223,7 @@ private:
 public:
     OriginCircuit() : m_iNodeType(CIRCUIT_NODE), m_pHead(nullptr), m_pEnd(nullptr), m_bIsDagger(false)
     {
+        m_controlQuBitVector.resize(0);
     };
     ~OriginCircuit();
     void pushBackNode(QNode *);
@@ -339,6 +344,19 @@ public:
     {
         m_pCur = pItem;
     }
+
+    NodeIter(const NodeIter & oldIter)
+    {
+        this->m_pCur = oldIter.getPCur();   
+    }
+
+
+
+    Item * getPCur() const
+    {
+        return this->m_pCur;
+    } 
+
 
     NodeIter()
     {

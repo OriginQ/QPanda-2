@@ -56,7 +56,7 @@ QCirCuitParse::QCirCuitParse(QuantumCircuit * pNode,QuantumGateParam * pParam, Q
 
 bool QCirCuitParse::executeAction()
 {
-    QuantumCircuit *temp = ((QuantumCircuit *)(m_pNode));
+    AbstractQuantumCircuit *temp =(dynamic_cast<AbstractQuantumCircuit *>(m_pNode));
     if (temp == nullptr)
     {
         return false;
@@ -128,7 +128,7 @@ bool QCirCuitParse::executeAction()
 
 bool QCirCuitParse::verify()
 {
-    QuantumCircuit *temp = ((QuantumCircuit *)(m_pNode));
+    AbstractQuantumCircuit *temp = (dynamic_cast<AbstractQuantumCircuit *>(m_pNode));
     if (temp == nullptr)
     {
         return false;
@@ -216,7 +216,7 @@ QGateParse::QGateParse(QNode * pNode, QuantumGates * pGates, bool isDagger, vect
 
 bool QGateParse::executeAction()
 {
-    QGate * temp = dynamic_cast<QGate *>(m_pNode);
+    QGateNode * temp = dynamic_cast<QGateNode *>(m_pNode);
     bool bDagger = temp->isDagger() ^ m_isDagger;
     QuantumGate * pGate = temp->getQGate();
     vector<Qubit * > qubitVector;
@@ -435,7 +435,7 @@ QIfParse::QIfParse(QuantumIf * pNode, QuantumGateParam * pParam, QuantumGates * 
 
 bool QIfParse::executeAction()
 {
-    QuantumIf * pQIfNode = (QuantumIf *)m_pNode;
+    AbstractControlFlowNode * pQIfNode = dynamic_cast<AbstractControlFlowNode*>(m_pNode);
     auto aCExpr = pQIfNode->getCExpr();
     QNode * pQNode;
     if (aCExpr->eval(m_pParam->mReturnValue))
@@ -498,7 +498,8 @@ bool QIfParse::executeAction()
 
 bool QIfParse::verify()
 {
-    QuantumIf * pQIfNode = (QuantumIf *)m_pNode;
+    
+    AbstractControlFlowNode * pQIfNode = dynamic_cast<AbstractControlFlowNode*>(m_pNode);
     auto aCExpr = pQIfNode->getCExpr();
     QNode * pQNode;
 
@@ -595,12 +596,12 @@ QWhileParse::QWhileParse(QuantumWhile * pNode, QuantumGateParam * pParam, Quantu
 
 bool QWhileParse::executeAction()
 {
-    QuantumWhile * pQIfNode = (QuantumWhile *)m_pNode;
-    auto aCExpr = pQIfNode->getCExpr();
+    AbstractControlFlowNode * pQWhileNode = dynamic_cast<AbstractControlFlowNode*>(m_pNode);
+    auto aCExpr = pQWhileNode->getCExpr();
     QNode * pQNode;
     while (aCExpr->eval(m_pParam->mReturnValue))
     {
-        pQNode = pQIfNode->getTrueBranch();
+        pQNode = pQWhileNode->getTrueBranch();
         if (pQNode == nullptr)
         {
             return true;
@@ -650,10 +651,10 @@ bool QWhileParse::executeAction()
 
 bool QWhileParse::verify()
 {
-    QuantumWhile * pQIfNode = (QuantumWhile *)m_pNode;
-    auto aCExpr = pQIfNode->getCExpr();
+    AbstractControlFlowNode * pQWhileNode = dynamic_cast<AbstractControlFlowNode*>(m_pNode);
+    auto aCExpr = pQWhileNode->getCExpr();
     QNode * pQNode;
-    pQNode = pQIfNode->getTrueBranch();
+    pQNode = pQWhileNode->getTrueBranch();
     if (pQNode == nullptr)
     {
         return true;
@@ -708,7 +709,7 @@ MeasureParse::MeasureParse(QuantumMeasure * pNode, QuantumGateParam * pParam, Qu
 
 bool MeasureParse::executeAction()
 {
-    QuantumMeasure * pMeasureParse = (QuantumMeasure *)m_pNode;
+    AbstractQuantumMeasure * pMeasureParse = dynamic_cast<AbstractQuantumMeasure *>(m_pNode);
     int iResult = m_pGates->qubitMeasure(pMeasureParse->getQuBit()->getPhysicalQubitPtr()->getQubitAddr());
     if (iResult < 0)
     {
@@ -731,7 +732,7 @@ bool MeasureParse::executeAction()
 
 bool MeasureParse::verify()
 {
-    QuantumMeasure * pMeasureParse = (QuantumMeasure *)m_pNode;
+    AbstractQuantumMeasure * pMeasureParse = dynamic_cast<AbstractQuantumMeasure *>(m_pNode);
     if (!pMeasureParse->getQuBit()->getPhysicalQubitPtr()->getOccupancy())
     {
         return false;

@@ -27,7 +27,7 @@ extern QNodeVector _G_QNodeVector;
 extern QProg  CreateEmptyQProg();
 
 // Create a While Program
-extern QuantumWhile CreateWhileProg(
+extern QWhileProg CreateWhileProg(
     ClassicalCondition &,
     QNode * trueNode);
 

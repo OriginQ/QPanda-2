@@ -320,7 +320,7 @@ void HHL_Algorithm1()
 //    ClassicalCondition cc2(cbit2);
 //    ClassicalCondition cc3 = cc1 + cc2;
 //    QuantumIf & ifnode = CreateIfProg(&cc3, &c);
-//    QuantumWhile & whileNode = CreateWhileProg(&cc2, &ifnode);
+//    QWhileProg & whileNode = CreateWhileProg(&cc2, &ifnode);
 //    prog << ifnode << whileNode;
 //
 //    QProg & prog1 = CreateEmptyQProg();
@@ -336,7 +336,7 @@ void HHL_Algorithm1()
 //
 //    QProg & whileprog = CreateEmptyQProg();
 //    whileprog << H(qb) << gat2 << ifnode;
-//    //QuantumWhile & whileNode = CreateWhileProg(&cc2, &whileprog);
+//    //QWhileProg & whileNode = CreateWhileProg(&cc2, &whileprog);
 //    prog << whileNode;
 //
 //

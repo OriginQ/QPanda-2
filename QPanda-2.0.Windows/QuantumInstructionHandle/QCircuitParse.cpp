@@ -381,7 +381,7 @@ QNodeAgency::QNodeAgency(QuantumIf * pNode, QuantumGateParam * pParam, QuantumGa
     m_pQNodeParse = new QIfParse(pNode, pParam, pGates);
 }
 
-QNodeAgency::QNodeAgency(QuantumWhile * pNode, QuantumGateParam * pParam, QuantumGates * pGates)
+QNodeAgency::QNodeAgency(QWhileProg * pNode, QuantumGateParam * pParam, QuantumGates * pGates)
 {
     m_pQNodeParse = new QWhileParse(pNode, pParam, pGates);
 }
@@ -475,7 +475,7 @@ bool QIfParse::executeAction()
     }
     else if (WHILE_START_NODE == iNodeType)
     {
-        pTempAgency = new QNodeAgency((QuantumWhile *)pQNode, m_pParam, m_pGates);
+        pTempAgency = new QNodeAgency((QWhileProg *)pQNode, m_pParam, m_pGates);
     }
     else if (QIF_START_NODE == iNodeType)
     {
@@ -526,7 +526,7 @@ bool QIfParse::verify()
         }
         else if (WHILE_START_NODE == iNodeType)
         {
-            pTempAgency = new QNodeAgency((QuantumWhile *)pQNode, m_pParam, m_pGates);
+            pTempAgency = new QNodeAgency((QWhileProg *)pQNode, m_pParam, m_pGates);
         }
         else if (QIF_START_NODE == iNodeType)
         {
@@ -568,7 +568,7 @@ bool QIfParse::verify()
         }
         else if (WHILE_START_NODE == iNodeType)
         {
-            pTempAgency = new QNodeAgency((QuantumWhile *)pQNode, m_pParam, m_pGates);
+            pTempAgency = new QNodeAgency((QWhileProg *)pQNode, m_pParam, m_pGates);
         }
         else if (QIF_START_NODE == iNodeType)
         {
@@ -590,7 +590,7 @@ bool QIfParse::verify()
     return true;
 }
 
-QWhileParse::QWhileParse(QuantumWhile * pNode, QuantumGateParam * pParam, QuantumGates * pGates) :m_pNode(pNode), m_pGates(pGates), m_pParam(pParam)
+QWhileParse::QWhileParse(QWhileProg * pNode, QuantumGateParam * pParam, QuantumGates * pGates) :m_pNode(pNode), m_pGates(pGates), m_pParam(pParam)
 {
 }
 
@@ -628,7 +628,7 @@ bool QWhileParse::executeAction()
         }
         else if (WHILE_START_NODE == iNodeType)
         {
-            pTempAgency = new QNodeAgency((QuantumWhile *)pQNode, m_pParam, m_pGates);
+            pTempAgency = new QNodeAgency((QWhileProg *)pQNode, m_pParam, m_pGates);
         }
         else if (QIF_START_NODE == iNodeType)
         {
@@ -681,7 +681,7 @@ bool QWhileParse::verify()
     }
     else if (WHILE_START_NODE == iNodeType)
     {
-        pTempAgency = new QNodeAgency((QuantumWhile *)pQNode, m_pParam, m_pGates);
+        pTempAgency = new QNodeAgency((QWhileProg *)pQNode, m_pParam, m_pGates);
     }
     else if (QIF_START_NODE == iNodeType)
     {
@@ -782,7 +782,7 @@ bool QProgParse::executeAction()
         }
         else if (WHILE_START_NODE == iNodeType)
         {
-            pTempAgency = new QNodeAgency((QuantumWhile *)pNode, m_pParam, m_pGates);
+            pTempAgency = new QNodeAgency((QWhileProg *)pNode, m_pParam, m_pGates);
         }
         else if (QIF_START_NODE == iNodeType)
         {
@@ -842,7 +842,7 @@ bool QProgParse::verify()
         }
         else if (WHILE_START_NODE == iNodeType)
         {
-            pTempAgency = new QNodeAgency((QuantumWhile *)pNode, m_pParam, m_pGates);
+            pTempAgency = new QNodeAgency((QWhileProg *)pNode, m_pParam, m_pGates);
         }
         else if (QIF_START_NODE == iNodeType)
         {

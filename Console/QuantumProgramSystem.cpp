@@ -34,7 +34,6 @@ int main()
     {
         cout<<e.what()<<endl;
     }
-    getchar();
     return 0;
 
 }

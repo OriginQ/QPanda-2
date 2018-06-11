@@ -270,7 +270,7 @@ QProg & QProg::operator<<( QuantumIf  ifNode)
     return *this;
 }
 
-QProg & QProg::operator<<( QuantumWhile  whileNode)
+QProg & QProg::operator<<( QWhileProg  whileNode)
 {
     if (nullptr == m_pQuantumProgram)
         throw exception();

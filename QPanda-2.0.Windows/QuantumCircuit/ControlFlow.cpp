@@ -16,11 +16,11 @@ limitations under the License.
 
 #include "ControlFlow.h"
 
-QuantumWhile  CreateWhileProg(ClassicalCondition & ccCon, QNode * trueNode)
+QWhileProg  CreateWhileProg(ClassicalCondition & ccCon, QNode * trueNode)
 {
     if (nullptr == trueNode)
         throw exception();
-    QuantumWhile quantumWhile(ccCon, trueNode);
+    QWhileProg quantumWhile(ccCon, trueNode);
     return quantumWhile;
 }
 
@@ -42,7 +42,7 @@ QuantumIf  CreateIfProg(ClassicalCondition &ccCon, QNode * trueNode, QNode * fal
     return quantumIf;
 }
 
-QuantumWhile::QuantumWhile( const QuantumWhile &oldQWhile)
+QWhileProg::QWhileProg( const QWhileProg &oldQWhile)
 {
     m_iPosition = oldQWhile.getPosition();
     auto aiter = _G_QNodeVector.getNode(m_iPosition);
@@ -52,7 +52,7 @@ QuantumWhile::QuantumWhile( const QuantumWhile &oldQWhile)
         throw exception();
 }
 
-QuantumWhile::QuantumWhile(ClassicalCondition & ccCon, QNode * node)
+QWhileProg::QWhileProg(ClassicalCondition & ccCon, QNode * node)
 {
     string sClasNname = "OriginWhile";
     auto aMeasure = QuantunIfFactory::getInstance().getQuantumIf(sClasNname, ccCon, node);
@@ -61,7 +61,7 @@ QuantumWhile::QuantumWhile(ClassicalCondition & ccCon, QNode * node)
     m_pControlFlow = aMeasure;
 }
 
-NodeType QuantumWhile::getNodeType() const
+NodeType QWhileProg::getNodeType() const
 {
     if (nullptr == m_pControlFlow)
         throw exception();
@@ -70,14 +70,14 @@ NodeType QuantumWhile::getNodeType() const
 
 
 
-QNode * QuantumWhile::getTrueBranch() const
+QNode * QWhileProg::getTrueBranch() const
 {
     if (nullptr == m_pControlFlow)
         throw exception();
     return m_pControlFlow->getTrueBranch();
 }
 
-QNode * QuantumWhile::getFalseBranch() const
+QNode * QWhileProg::getFalseBranch() const
 {
     if (nullptr == m_pControlFlow)
         throw exception();
@@ -85,7 +85,7 @@ QNode * QuantumWhile::getFalseBranch() const
 }
 
 
-ClassicalCondition * QuantumWhile::getCExpr() 
+ClassicalCondition * QWhileProg::getCExpr() 
 {
     if (nullptr == m_pControlFlow)
         throw exception();
@@ -93,7 +93,7 @@ ClassicalCondition * QuantumWhile::getCExpr()
 }
 
 
-int QuantumWhile::getPosition() const
+int QWhileProg::getPosition() const
 {
     return m_iPosition;
 }

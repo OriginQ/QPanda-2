@@ -1,5 +1,9 @@
 [![Build Status](https://travis-ci.org/OriginQ/QPanda-SDK.svg?branch=master)](https://travis-ci.org/OriginQ/QPanda-SDK)
 ## QPanda
+
+
+![图片: ](https://images-cdn.shimo.im/BtuP6aVe0oo2jRlZ/image.png)
+
 Qpanda is a software used to deal with quantum circuits and experiments on various quantum computers.
 
 There are three processes in QPanda: initialization, compilation and running.

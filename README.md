@@ -35,7 +35,7 @@ Qrunes is a set of quantum computing instructions developed by the Origin quantu
 
 Qrunes Generator is a C + + library that supports generating Qrunes directives in function calls.
 
--   **[QPanda Documentation](./QPanda-2.0.Documentation\README.md)**：
+-   **[QPanda Documentation](./QPanda-2.0.Documentation/README.md)**：
 
  Instructions for QPanda software. It includes algorithm summary, corresponding quantum circuits, corresponding QPanda code, etc., aiming at guiding users to use QPanda correctly and quickly.
 

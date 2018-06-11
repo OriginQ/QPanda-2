@@ -2,7 +2,7 @@
 ## QPanda
 Qpanda is a software used to deal with quantum circuits and experiments on various quantum computers.
 
-There are three processes in QPanda: initialization, compilation, and running.
+There are three processes in QPanda: initialization, compilation and running.
 
 **Initialization**:The initialization allows users to design different quantum circuits to deal with the corresponding problems.
 
@@ -22,6 +22,8 @@ The design of **QPanda** is forward-looking, considering that quantum computing 
 3.  Standardized quantum machine model.
 
 ## The Project Includes：
+
+![图片: ](https://images-cdn.shimo.im/j71VAaimgHkKWXEW/image.png)
 
 -   **QPanda SDK**：
 

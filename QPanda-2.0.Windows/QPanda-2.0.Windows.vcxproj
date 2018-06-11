@@ -22,7 +22,6 @@
     <ClInclude Include="QPanda.h" />
     <ClInclude Include="QPanda\QPandaException.h" />
     <ClInclude Include="QuantumCircuit\ControlFlow.h" />
-    <ClInclude Include="QuantumCircuit\QException.h" />
     <ClInclude Include="QuantumCircuit\QGate.h" />
     <ClInclude Include="QuantumCircuit\QGlobalVariable.h" />
     <ClInclude Include="QuantumCircuit\QNode.h" />

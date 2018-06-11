@@ -6,7 +6,7 @@ There are three processes in QPanda: initialization, compilation, and running.
 
 **Initialization**:The initialization allows users to design different quantum circuits to deal with the corresponding problems.
 
-**compilation**:Compilation allows users to rewrite them to run on different backends (such as simulators, quantum chips, quantum chips of different companies, etc.).
+**Compilation**:Compilation allows users to rewrite them to run on different backends (such as simulators, quantum chips, quantum chips of different companies, etc.).
 
 **Running**: that is, the process of collecting results(classical information), depending on the design of the problem to do the corresponding operation. Some problems may depend on the results of a previous quantum program before they can be executed, and so on.
 

@@ -24,6 +24,8 @@ limitations under the License.
 void HHL_Algorithm();
 
 map<string, bool> hhlalgorithm();
+
+int HHL_Test(int);
 QProg hhl(vector<Qubit*> qVec, vector<CBit*> cVec);
 QCircuit hhlPse(vector<Qubit*> qVec);
 QCircuit CRotate(vector<Qubit*> qVec);

@@ -66,6 +66,58 @@ map<string, bool> hhlalgorithm()
     return resultMap;
 }
 
+int HHL_Test(int repeat)
+{
+	try
+	{
+		init();
+		int qubitnum = 4;
+		vector<Qubit*> qv;
+		for (size_t i = 0u; i < qubitnum; i++)
+		{
+			qv.push_back(qAlloc());
+		}
+		vector<CBit*> cv;
+		int cbitnum = 2;
+		for (size_t i = 0u; i < cbitnum; i++)
+		{
+			cv.push_back(cAlloc());
+		}
+		auto &hhlprog = CreateEmptyQProg();
+		hhlprog << RY(qv[3], PI / 2);
+		hhlprog << hhl(qv, cv);
+		load(hhlprog);
+
+		int x0 = 0;
+		int x1 = 1;
+		for (size_t i = 0u; i < repeat; ++i)
+		{			
+			run();
+			auto resultMap = getResultMap();
+			if (resultMap["c0"])
+			{
+				if (resultMap["c1"])
+				{
+					x1++;
+				}
+				else
+				{
+					x0++;
+				}
+			}
+		}
+		finalize();
+		cout << "x0: " << x0 << endl
+			<< "x1: " << x1 << endl;
+	}
+	catch (QPandaException &e)
+	{
+		cout << e.what();
+		return 1;
+	}
+	return 0;
+}
+
 
 QProg hhl(vector<Qubit*> qVec, vector<CBit*> cVec)
 {

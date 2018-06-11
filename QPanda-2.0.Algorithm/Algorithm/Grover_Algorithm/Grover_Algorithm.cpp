@@ -19,9 +19,9 @@ limitations under the License.
 QProg Grover(vector<Qubit*> qVec, vector<CBit*> cVec, int target)
 {
     QProg  grover = CreateEmptyQProg();
-    QuantumCircuit  init = CreateEmptyCircuit();
-    QuantumCircuit  oracle = CreateEmptyCircuit();
-    QuantumCircuit  reverse = CreateEmptyCircuit();
+    QCircuit  init = CreateEmptyCircuit();
+    QCircuit  oracle = CreateEmptyCircuit();
+    QCircuit  reverse = CreateEmptyCircuit();
     init << H(qVec[0]) << H(qVec[1]) << RX(qVec[2]) << H(qVec[2]);
     vector<Qubit *> controlVector;
     controlVector.push_back(qVec[0]);

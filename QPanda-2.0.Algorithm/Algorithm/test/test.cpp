@@ -109,9 +109,9 @@ int Grover(int target)  //target is 0,1,2 or 3
     auto q1 = qvm.Allocate_Qubit();
     auto anc = qvm.Allocate_Qubit();
     QProg  grover = CreateEmptyQProg();
-    QuantumCircuit  init = CreateEmptyCircuit();
-    QuantumCircuit  oracle = CreateEmptyCircuit();
-    QuantumCircuit  reverse = CreateEmptyCircuit();
+    QCircuit  init = CreateEmptyCircuit();
+    QCircuit  oracle = CreateEmptyCircuit();
+    QCircuit  reverse = CreateEmptyCircuit();
     init << H(q) << H(q1) << RX(anc) << H(anc);
     vector<Qubit *> controlVector;
     controlVector.push_back(q);
@@ -232,8 +232,8 @@ void HHL_Algorithm1()
     auto cbit2 = qvm.Allocate_CBit();
     ClassicalCondition cc0(ancbit);
     ClassicalCondition cc1(cbit0);
-    QuantumCircuit  ifcircuit = CreateEmptyCircuit();
-    QuantumCircuit  PSEcircuit = CreateEmptyCircuit();
+    QCircuit  ifcircuit = CreateEmptyCircuit();
+    QCircuit  PSEcircuit = CreateEmptyCircuit();
     PSEcircuit << H(q1) << H(q2) << RZ(q2, 0.75*PI);
     QGate & gat1 = QDouble(PI, 1.5*PI, -0.5*PI, PI / 2, q2, q3);
     QGate  & gat2 = QDouble(PI, 1.5*PI, -PI, PI / 2, q1, q3);
@@ -244,7 +244,7 @@ void HHL_Algorithm1()
 
 
                                               //control-lambda
-    QuantumCircuit  CRotate = CreateEmptyCircuit();
+    QCircuit  CRotate = CreateEmptyCircuit();
     vector<Qubit *> controlVector;
     controlVector.push_back(q1);
     controlVector.push_back(q2);
@@ -296,7 +296,7 @@ void HHL_Algorithm1()
 //    Qubit * qb2 = qvm.Allocate_Qubit();
 //    Qubit * qb3 = qvm.Allocate_Qubit();
 //
-//    QuantumCircuit & whilecircuit = CreateEmptyCircuit();
+//    QCircuit & whilecircuit = CreateEmptyCircuit();
 //    whilecircuit << H(qb2) << Measure(qb2, cbit2);
 //
 //    QuantumGate & gat = RX(qb, PI / 2);
@@ -309,7 +309,7 @@ void HHL_Algorithm1()
 //    controlVector.push_back(qb2);
 //    gat2.setControl(controlVector);
 //
-//    QuantumCircuit & c = CreateEmptyCircuit();
+//    QCircuit & c = CreateEmptyCircuit();
 //    c << RZ(qb) << RY(qb, 23.456) << gat1;
 //
 //    c.dagger();

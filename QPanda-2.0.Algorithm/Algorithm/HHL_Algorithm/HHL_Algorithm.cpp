@@ -72,11 +72,11 @@ QProg hhl(vector<Qubit*> qVec, vector<CBit*> cVec)
     ClassicalCondition cc0=bind_a_cbit(cVec[0]);
 
 	// meaningless sentence
-    QuantumCircuit  ifcircuit = CreateEmptyCircuit();
+    QCircuit  ifcircuit = CreateEmptyCircuit();
 
-    QuantumCircuit  PSEcircuit = hhlPse(qVec);//PSE
-    QuantumCircuit  CRot = CRotate(qVec);//control-lambda
-    QuantumCircuit  PSEcircuitdag = hhlPse(qVec);
+    QCircuit  PSEcircuit = hhlPse(qVec);//PSE
+    QCircuit  CRot = CRotate(qVec);//control-lambda
+    QCircuit  PSEcircuitdag = hhlPse(qVec);
     //hhl circuit
     QProg  PSEdagger = CreateEmptyQProg();
 
@@ -87,9 +87,9 @@ QProg hhl(vector<Qubit*> qVec, vector<CBit*> cVec)
     hhlProg << PSEcircuit << CRot << Measure(qVec[0], cVec[0]) << ifnode;
     return hhlProg;
 }
-QuantumCircuit hhlPse(vector<Qubit*> qVec)
+QCircuit hhlPse(vector<Qubit*> qVec)
 {
-    QuantumCircuit  PSEcircuit = CreateEmptyCircuit();
+    QCircuit  PSEcircuit = CreateEmptyCircuit();
     PSEcircuit << H(qVec[1]) << H(qVec[2]) << RZ(qVec[2], 0.75*PI);
     QGate & gat1 = QDouble(PI, 1.5*PI, -0.5*PI, PI / 2, qVec[2], qVec[3]);
     QGate  & gat2 = QDouble(PI, 1.5*PI, -PI, PI / 2, qVec[1], qVec[3]);
@@ -100,9 +100,9 @@ QuantumCircuit hhlPse(vector<Qubit*> qVec)
     PSEcircuit << H(qVec[2]) << gat3 << H(qVec[1]);     //PSE over
     return PSEcircuit;
 }
-QuantumCircuit CRotate(vector<Qubit*> qVec)
+QCircuit CRotate(vector<Qubit*> qVec)
 {
-    QuantumCircuit  CRot = CreateEmptyCircuit();
+    QCircuit  CRot = CreateEmptyCircuit();
     vector<Qubit *> controlVector;
     controlVector.push_back(qVec[1]);
     controlVector.push_back(qVec[2]);

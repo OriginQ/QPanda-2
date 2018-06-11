@@ -25,9 +25,9 @@ QProg  CreateEmptyQProg()
 }
 
 
-QuantumCircuit  CreateEmptyCircuit()
+QCircuit  CreateEmptyCircuit()
 {
-    QuantumCircuit temp;
+    QCircuit temp;
     return temp;
 
 }
@@ -112,7 +112,7 @@ size_t QGate::getControlVector(vector<Qubit *>& quBitVector) const
 
 
 
-QuantumCircuit::QuantumCircuit()
+QCircuit::QCircuit()
 {
     string sClasNname = "OriginCircuit";
     auto aMeasure = QuantumCircuitFactory::getInstance().getQuantumCircuit(sClasNname);
@@ -121,7 +121,7 @@ QuantumCircuit::QuantumCircuit()
     m_pQuantumCircuit = aMeasure;
 }
 
-QuantumCircuit::QuantumCircuit(const QuantumCircuit & oldQCircuit)
+QCircuit::QCircuit(const QCircuit & oldQCircuit)
 {
     m_iPosition = oldQCircuit.getPosition();
     auto aiter = _G_QNodeVector.getNode(m_iPosition);
@@ -131,20 +131,20 @@ QuantumCircuit::QuantumCircuit(const QuantumCircuit & oldQCircuit)
         throw exception();
 }
 
-QuantumCircuit::~QuantumCircuit()
+QCircuit::~QCircuit()
 {
 
 
 }
 
-void QuantumCircuit::pushBackNode(QNode * pNode)
+void QCircuit::pushBackNode(QNode * pNode)
 {
     if (nullptr == m_pQuantumCircuit)
         throw exception();
     m_pQuantumCircuit->pushBackNode(pNode);
 }
 
-QuantumCircuit & QuantumCircuit::operator<<(QGate & node)
+QCircuit & QCircuit::operator<<(QGate & node)
 {
     if (nullptr == m_pQuantumCircuit)
         throw exception();
@@ -152,7 +152,7 @@ QuantumCircuit & QuantumCircuit::operator<<(QGate & node)
     return *this;
 }
 
-QuantumCircuit & QuantumCircuit::operator<<( QuantumMeasure & node)
+QCircuit & QCircuit::operator<<( QuantumMeasure & node)
 {
     if (nullptr == m_pQuantumCircuit)
         throw exception();
@@ -160,7 +160,7 @@ QuantumCircuit & QuantumCircuit::operator<<( QuantumMeasure & node)
     return *this;
 }
 
-QuantumCircuit & QuantumCircuit::dagger()
+QCircuit & QCircuit::dagger()
 {
     if (nullptr == m_pQuantumCircuit)
         throw exception();
@@ -168,7 +168,7 @@ QuantumCircuit & QuantumCircuit::dagger()
     return *this;
 }
 
-QuantumCircuit & QuantumCircuit::control(vector<Qubit *>& quBitVector)
+QCircuit & QCircuit::control(vector<Qubit *>& quBitVector)
 {
     if (nullptr == m_pQuantumCircuit)
         throw exception();
@@ -177,56 +177,56 @@ QuantumCircuit & QuantumCircuit::control(vector<Qubit *>& quBitVector)
 }
 
 
-NodeType QuantumCircuit::getNodeType() const
+NodeType QCircuit::getNodeType() const
 {
     if (nullptr == m_pQuantumCircuit)
         throw exception();
     return  dynamic_cast<QNode * >(m_pQuantumCircuit)->getNodeType();
 }
 
-bool QuantumCircuit::isDagger() const
+bool QCircuit::isDagger() const
 {
     if (nullptr == m_pQuantumCircuit)
         throw exception();
     return m_pQuantumCircuit->isDagger();
 }
 
-bool QuantumCircuit::getControlVector(vector<Qubit *>& qBitVector)
+bool QCircuit::getControlVector(vector<Qubit *>& qBitVector)
 {
     if (nullptr == m_pQuantumCircuit)
         throw exception();
     return m_pQuantumCircuit->getControlVector(qBitVector);
 }
 
-NodeIter  QuantumCircuit::getFirstNodeIter()
+NodeIter  QCircuit::getFirstNodeIter()
 {
     if (nullptr == m_pQuantumCircuit)
         throw exception();
     return m_pQuantumCircuit->getFirstNodeIter();
 }
 
-NodeIter  QuantumCircuit::getLastNodeIter()
+NodeIter  QCircuit::getLastNodeIter()
 {
     if (nullptr == m_pQuantumCircuit)
         throw exception();
     return m_pQuantumCircuit->getLastNodeIter();
 }
 
-NodeIter QuantumCircuit::getEndNodeIter()
+NodeIter QCircuit::getEndNodeIter()
 {
     if (nullptr == m_pQuantumCircuit)
         throw exception();
     return m_pQuantumCircuit->getEndNodeIter();
 }
 
-NodeIter QuantumCircuit::getHeadNodeIter()
+NodeIter QCircuit::getHeadNodeIter()
 {
     if (nullptr == m_pQuantumCircuit)
         throw exception();
     return m_pQuantumCircuit->getHeadNodeIter();
 }
 
-int QuantumCircuit::getPosition() const
+int QCircuit::getPosition() const
 {
     return this->m_iPosition;
 }
@@ -302,7 +302,7 @@ QProg & QProg::operator<<(QGate & node)
     return *this;
 }
 
-QProg & QProg::operator<<( QuantumCircuit  qCircuit)
+QProg & QProg::operator<<( QCircuit  qCircuit)
 {
     if (nullptr != m_pQuantumProgram)
         m_pQuantumProgram->pushBackNode(dynamic_cast<QNode *>(&qCircuit));

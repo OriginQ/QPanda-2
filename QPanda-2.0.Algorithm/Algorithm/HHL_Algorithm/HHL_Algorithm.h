@@ -25,6 +25,6 @@ void HHL_Algorithm();
 
 map<string, bool> hhlalgorithm();
 QProg hhl(vector<Qubit*> qVec, vector<CBit*> cVec);
-QuantumCircuit hhlPse(vector<Qubit*> qVec);
-QuantumCircuit CRotate(vector<Qubit*> qVec);
+QCircuit hhlPse(vector<Qubit*> qVec);
+QCircuit CRotate(vector<Qubit*> qVec);
 #endif

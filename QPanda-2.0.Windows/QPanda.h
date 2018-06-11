@@ -43,7 +43,7 @@ extern QIfProg CreateIfProg(
     QNode *falseNode);
 
 // Create an empty QCircuit Container
-extern QuantumCircuit  CreateEmptyCircuit();
+extern QCircuit  CreateEmptyCircuit();
 
 // Create a Measure operation
 extern QuantumMeasure Measure(Qubit * targetQuBit, CBit * targetCbit);

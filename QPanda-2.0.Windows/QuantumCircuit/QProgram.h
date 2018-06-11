@@ -106,7 +106,7 @@ public:
     virtual void clear() = 0;
 };
 
-class QuantumCircuit;
+class QCircuit;
 class AbstractQuantumCircuit
 {
 public:
@@ -150,20 +150,20 @@ public:
     void setNode(QNode * pNode);
 };
 
-class QuantumCircuit : public QNode, public AbstractQuantumCircuit
+class QCircuit : public QNode, public AbstractQuantumCircuit
 {
 private:
     AbstractQuantumCircuit * m_pQuantumCircuit;
     int m_iPosition;
 public:
-    QuantumCircuit();
-    QuantumCircuit(const QuantumCircuit &);
-    ~QuantumCircuit();
+    QCircuit();
+    QCircuit(const QCircuit &);
+    ~QCircuit();
     void pushBackNode(QNode *);
-    QuantumCircuit & operator << ( QGate &);
-    QuantumCircuit & operator << ( QuantumMeasure &);
-    QuantumCircuit & dagger();
-    QuantumCircuit & control(vector<Qubit *> &);
+    QCircuit & operator << ( QGate &);
+    QCircuit & operator << ( QuantumMeasure &);
+    QCircuit & dagger();
+    QCircuit & control(vector<Qubit *> &);
     NodeType getNodeType() const;
     bool isDagger() const;
     bool getControlVector(vector<Qubit *> &);
@@ -218,7 +218,7 @@ private:
     NodeType m_iNodeType;
     bool m_bIsDagger;
     vector<Qubit *> m_controlQuBitVector;
-    OriginCircuit(QuantumCircuit &);
+    OriginCircuit(QCircuit &);
 
 public:
     OriginCircuit() : m_iNodeType(CIRCUIT_NODE), m_pHead(nullptr), m_pEnd(nullptr), m_bIsDagger(false)
@@ -267,7 +267,7 @@ public:
     QProg & operator << (QuantumMeasure );
     QProg & operator << ( QProg );
     QProg & operator << ( QGate &);
-    QProg & operator << ( QuantumCircuit );
+    QProg & operator << ( QCircuit );
     NodeIter getFirstNodeIter();
     NodeIter getLastNodeIter();
     NodeIter  getEndNodeIter();
@@ -377,7 +377,7 @@ public:
 extern QProg  CreateEmptyQProg();
 
 
-extern QuantumCircuit  CreateEmptyCircuit();
+extern QCircuit  CreateEmptyCircuit();
 
 
 class QGateNodeFactory

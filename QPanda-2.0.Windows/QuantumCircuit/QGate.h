@@ -23,12 +23,12 @@ limitations under the License.
 #define PI 3.14159265358979
 using namespace std;
 
-class QGate
+class QuantumGate
 {
 protected:
 	int qOpNum;
 public:
-	QGate();
+	QuantumGate();
     virtual double getAlpha() const = 0;
     virtual double getBeta() const = 0;
     virtual double getGamma() const = 0;
@@ -37,9 +37,9 @@ public:
 };
 
 
-typedef QGate* (*CreateGate)(void);
-typedef QGate* (*CreateAngleGate)(double);
-typedef QGate* (*CreateUnknownGate)(double, double, double, double);
+typedef QuantumGate* (*CreateGate)(void);
+typedef QuantumGate* (*CreateAngleGate)(double);
+typedef QuantumGate* (*CreateUnknownGate)(double, double, double, double);
 
 class QGateFactory
 {
@@ -47,9 +47,9 @@ public:
     void registClass(string name, CreateGate method);
     void registClass(string name, CreateAngleGate method);
     void registClass(string name, CreateUnknownGate method);
-    QGate * getGateNode(std::string &);
-    QGate * getGateNode(std::string &, double angle);
-    QGate * getGateNode(std::string &, double alpha, double beta, double gamma, double delta);
+    QuantumGate * getGateNode(std::string &);
+    QuantumGate * getGateNode(std::string &, double angle);
+    QuantumGate * getGateNode(std::string &, double alpha, double beta, double gamma, double delta);
 
     static QGateFactory * getInstance()
     {
@@ -79,7 +79,7 @@ public:
 };
 
 
-class QSingleGate : public QGate
+class QSingleGate : public QuantumGate
 {
 protected:
     double alpha;
@@ -148,7 +148,7 @@ public:
     HadamardGate();
 };
 //double quantum gates,contain CNOT ,CZ gates
-class QDoubleGate : public QGate
+class QDoubleGate : public QuantumGate
 {
 
 protected:

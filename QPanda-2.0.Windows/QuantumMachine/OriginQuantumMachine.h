@@ -165,7 +165,7 @@ private:
     QuantumGates     * _pGates;
 	struct Configuration
 	{
-		size_t maxQubit=32;
+		size_t maxQubit=10;
 		size_t maxCMem=256;
 	};
 	Configuration _Config;
@@ -179,8 +179,8 @@ public:
 	CBit* Allocate_CBit();
     void Free_Qubit(Qubit*);
     void Free_CBit(CBit*);
-	void load(QuantumProgram &);
-	void append(QuantumProgram&);
+	void load(QProg &);
+	void append(QProg&);
 	void run();
 	QMachineStatus* getStatus() const;
 	QResult* getResult();

@@ -17,7 +17,7 @@ limitations under the License.
 #include "QGate.h"
 #include "QGlobalVariable.h"
 
-QGate::QGate()
+QuantumGate::QuantumGate()
 {
 	qOpNum = 0;
 }
@@ -168,7 +168,7 @@ void QGateFactory::registClass(string name, CreateUnknownGate method)
 }
 
 
-QGate * QGateFactory::getGateNode(std::string & name)
+QuantumGate * QGateFactory::getGateNode(std::string & name)
 {
     map<string, CreateGate>::const_iterator iter;
     iter = m_gateMap.find(name);
@@ -178,7 +178,7 @@ QGate * QGateFactory::getGateNode(std::string & name)
         return iter->second();
 }
 
-QGate * QGateFactory::getGateNode(std::string & name, double angle)
+QuantumGate * QGateFactory::getGateNode(std::string & name, double angle)
 {
     map<string, CreateAngleGate>::const_iterator iter;
     iter = m_angleGateMap.find(name);
@@ -188,7 +188,7 @@ QGate * QGateFactory::getGateNode(std::string & name, double angle)
         return iter->second(angle);
 }
 
-QGate * QGateFactory::getGateNode(std::string & name,double alpha, double beta, double gamma, double delta)
+QuantumGate * QGateFactory::getGateNode(std::string & name,double alpha, double beta, double gamma, double delta)
 {
     map<string, CreateUnknownGate>::const_iterator iter;
     iter = m_unknowGateMap.find(name);
@@ -199,7 +199,7 @@ QGate * QGateFactory::getGateNode(std::string & name,double alpha, double beta, 
 }
 
 #define REGISTER(className)                                             \
-    QGate* objectCreator##className(){                              \
+    QuantumGate* objectCreator##className(){                              \
         return new className();                                          \
     }                                                                   \
     RegisterAction g_creatorRegister##className(                        \
@@ -214,14 +214,14 @@ REGISTER(CNOTGate);
 REGISTER(CZGate);
 
 #define REGISTER_ANGLE(className)                                             \
-    QGate* objectCreator##className(double angle){                              \
+    QuantumGate* objectCreator##className(double angle){                              \
         return new className(angle);                                          \
     }                                                                   \
     RegisterAction g_angleCreatorRegister##className(                        \
         #className,(CreateAngleGate)objectCreator##className)
 
 #define REGISTER_UNKNOW(className)                                             \
-    QGate* objectCreator##className(double alpha,double beta,double gamma,double delta){      \
+    QuantumGate* objectCreator##className(double alpha,double beta,double gamma,double delta){      \
         return new className(alpha,beta,gamma,delta);                    \
     }                                                                   \
     RegisterAction g_unknowCreatorRegister##className(                        \

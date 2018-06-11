@@ -50,12 +50,12 @@ void cFree(CBit * c)
 	qvm->Free_CBit(c);
 }
 
-void load(QuantumProgram & q)
+void load(QProg & q)
 {
 	qvm->load(q);
 }
 
-void append(QuantumProgram & q)
+void append(QProg & q)
 {
 	qvm->append(q);
 }

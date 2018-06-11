@@ -17,13 +17,13 @@ limitations under the License.
 #include "QuantumMeasure.h"
 #include "QPanda/QPandaException.h"
 
-QuantumMeasure Measure(Qubit * targetQuBit, CBit *targetCbit)
+QMeasure  Measure(Qubit * targetQuBit, CBit *targetCbit)
 {
-    QuantumMeasure qMeasure(targetQuBit, targetCbit);
+    QMeasure qMeasure(targetQuBit, targetCbit);
     return qMeasure;
 }
 
-QuantumMeasure::QuantumMeasure(QuantumMeasure & oldMeasure)
+QMeasure::QMeasure(const QMeasure & oldMeasure)
 {
     m_iPosition = oldMeasure.getPosition();    
     auto aiter = _G_QNodeVector.getNode(m_iPosition);
@@ -33,7 +33,7 @@ QuantumMeasure::QuantumMeasure(QuantumMeasure & oldMeasure)
         throw QPandaException("there is not target QNode", true);
 }
 
-QuantumMeasure::QuantumMeasure(Qubit * qbit, CBit * cbit)
+QMeasure::QMeasure(Qubit * qbit, CBit * cbit)
 {
     string sClasNname = "OriginMeasure";
     auto aMeasure = QuantunMeasureFactory::getInstance().getQuantumMeasure(sClasNname, qbit, cbit);
@@ -42,35 +42,35 @@ QuantumMeasure::QuantumMeasure(Qubit * qbit, CBit * cbit)
     m_pQuantumMeasure = aMeasure;
 }
 
-Qubit * QuantumMeasure::getQuBit() const
+Qubit * QMeasure::getQuBit() const
 {
     if(nullptr == m_pQuantumMeasure)
-        throw  QPandaException("there is not QuantumMeasure", true);
+        throw  QPandaException("there is not QMeasure", true);
     return m_pQuantumMeasure->getQuBit();
 }
 
-CBit * QuantumMeasure::getCBit() const
+CBit * QMeasure::getCBit() const
 {
     if (nullptr == m_pQuantumMeasure)
-        throw  QPandaException("there is not QuantumMeasure", true);
+        throw  QPandaException("there is not QMeasure", true);
     return m_pQuantumMeasure->getCBit();
 }
 
-int QuantumMeasure::getQuBitNum() const
+int QMeasure::getQuBitNum() const
 {
     if (nullptr == m_pQuantumMeasure)
-        throw  QPandaException("there is not QuantumMeasure", true);
+        throw  QPandaException("there is not QMeasure", true);
     return m_pQuantumMeasure->getQuBitNum();
 }
 
-NodeType QuantumMeasure::getNodeType() const
+NodeType QMeasure::getNodeType() const
 {
     if (nullptr == m_pQuantumMeasure)
-        throw  QPandaException("there is not QuantumMeasure", true);
+        throw  QPandaException("there is not QMeasure", true);
     return (dynamic_cast<QNode *>(m_pQuantumMeasure))->getNodeType();
 }
 
-int QuantumMeasure::getPosition() const
+int QMeasure::getPosition() const
 {
     return m_iPosition;
 }

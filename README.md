@@ -4,16 +4,16 @@ Qpanda is a software used to deal with quantum circuits and experiments on vario
 
 There are three processes in QPanda: initialization, compilation, and running.
 
-The initialization allows users to design different quantum circuits to deal with the corresponding problems.
+**Initialization**:The initialization allows users to design different quantum circuits to deal with the corresponding problems.
 
-Compilation allows users to rewrite them to run on different backends (such as simulators, quantum chips, quantum chips of different companies, etc.).
+**compilation**:Compilation allows users to rewrite them to run on different backends (such as simulators, quantum chips, quantum chips of different companies, etc.).
 
-Running, that is, the process of collecting results, depending on the design of the problem to do the corresponding storage or transformation of the results.Some problems may depend on the results of a previous quantum program before they can be executed, and so on.
+**Running**: that is, the process of collecting results(classical information), depending on the design of the problem to do the corresponding operation. Some problems may depend on the results of a previous quantum program before they can be executed, and so on.
 
 ## The Design Ideas of QPanda
 
 
-The design ideas of Qpanda are as follows:
+The design of **QPanda** is forward-looking, considering that quantum computing will flourish and be widely applied in the future. So QPanda did the following consideration when it was designed:
 
 1.  Full series compatibility.
 
@@ -35,7 +35,7 @@ Qrunes is a set of quantum computing instructions developed by the Origin quantu
 
 Qrunes Generator is a C + + library that supports generating Qrunes directives in function calls.
 
--   **QPanda Documentation**：
+-   **[QPanda Documentation](./)**：
 
  Instructions for QPanda software. It includes algorithm summary, corresponding quantum circuits, corresponding QPanda code, etc., aiming at guiding users to use QPanda correctly and quickly.
 

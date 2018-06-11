@@ -32,23 +32,23 @@ public:
 };
 
 /*
-*  QuantumIf:  the start node of the IF circuit
+*  QIfProg:  the start node of the IF circuit
 *  ccCondition:  judgement
 *  ptTrue:  the head pointer of the true circuit
 *  ptFalse:  the head pointer of the false circuit
 *  ifEnd:  the last pointer of the IF circuit
 *
 */
-class QuantumIf : public QNode, public AbstractControlFlowNode
+class QIfProg : public QNode, public AbstractControlFlowNode
 {
 private:
     AbstractControlFlowNode * m_pControlFlow;
     int m_iPosition;
-    QuantumIf();
+    QIfProg();
 public:
-    QuantumIf(const QuantumIf &);
-    QuantumIf(ClassicalCondition & ccCon, QNode* pTrueNode, QNode * pFalseNode);
-    QuantumIf(ClassicalCondition & ccCon, QNode *node);
+    QIfProg(const QIfProg &);
+    QIfProg(ClassicalCondition & ccCon, QNode* pTrueNode, QNode * pFalseNode);
+    QIfProg(ClassicalCondition & ccCon, QNode *node);
     NodeType getNodeType() const;
     QNode * getTrueBranch() const;
     QNode * getFalseBranch() const;
@@ -131,7 +131,7 @@ public:
 *  trueProg:  true circuit of the IF circuit.
 *  falseProg is nullptr
 */
-extern QuantumIf CreateIfProg(
+extern QIfProg CreateIfProg(
     ClassicalCondition &,
     QNode  *trueNode);
 /*
@@ -140,7 +140,7 @@ extern QuantumIf CreateIfProg(
 *  falseProg: flase circuit of the IF circuit.
 */
 
-extern QuantumIf CreateIfProg(
+extern QIfProg CreateIfProg(
     ClassicalCondition &,
     QNode *trueNode,
     QNode *falseNode);

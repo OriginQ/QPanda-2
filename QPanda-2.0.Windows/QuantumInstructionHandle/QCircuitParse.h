@@ -51,11 +51,11 @@ private:
 class QIfParse :public AbstractQNodeParse
 {
 private:
-    QuantumIf * m_pNode;
+    QIfProg * m_pNode;
     QuantumGateParam * m_pParam;
     QuantumGates* m_pGates;
 public:
-    QIfParse(QuantumIf * pNode, QuantumGateParam * pParam, QuantumGates* pGates);
+    QIfParse(QIfProg * pNode, QuantumGateParam * pParam, QuantumGates* pGates);
     ~QIfParse() {};
     bool executeAction();
     bool verify();
@@ -135,7 +135,7 @@ class QNodeAgency :public AbstractQNodeParse
 {
 public:
     QNodeAgency(QuantumCircuit * pNode, QuantumGateParam * pParam, QuantumGates* pGates);
-    QNodeAgency(QuantumIf * pNode, QuantumGateParam * pParam, QuantumGates* pGates);
+    QNodeAgency(QIfProg * pNode, QuantumGateParam * pParam, QuantumGates* pGates);
     QNodeAgency(QWhileProg * pNode, QuantumGateParam * pParam, QuantumGates* pGates);
     QNodeAgency(QuantumMeasure * pNode, QuantumGateParam * pParam, QuantumGates* pGates);
     QNodeAgency(QProg * pNode, QuantumGateParam * pParam, QuantumGates* pGates);

@@ -248,7 +248,7 @@ public:
 *  QProg & operator<<(const T &)：
 *    if T is QSingleGateNode/QDoubleGateNode/QIfEndNode,
 *    deep copy T and insert it into left QProg;
-*    if T is QuantumIf/QWhileProg/QProg,deepcopy
+*    if T is QIfProg/QWhileProg/QProg,deepcopy
 *    IF/WHILE/QProg circuit and insert it into left QProg;
 */
 class QProg : public QNode, public AbstractQuantumProgram
@@ -262,7 +262,7 @@ public:
     ~QProg();
     void pushBackNode(QNode *);
 
-    QProg & operator << ( QuantumIf );
+    QProg & operator << ( QIfProg );
     QProg & operator << ( QWhileProg );
     QProg & operator << (QuantumMeasure );
     QProg & operator << ( QProg );

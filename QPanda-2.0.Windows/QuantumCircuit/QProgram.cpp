@@ -262,7 +262,7 @@ void QProg :: pushBackNode(QNode * pNode)
     m_pQuantumProgram->pushBackNode(pNode);
 }
 
-QProg & QProg::operator<<( QuantumIf  ifNode)
+QProg & QProg::operator<<( QIfProg  ifNode)
 {
     if (nullptr == m_pQuantumProgram)
         throw exception();

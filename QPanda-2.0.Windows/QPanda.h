@@ -32,12 +32,12 @@ extern QWhileProg CreateWhileProg(
     QNode * trueNode);
 
 // Create an If Program
-extern QuantumIf CreateIfProg(
+extern QIfProg CreateIfProg(
     ClassicalCondition &,
     QNode *trueNode);
 
 // Create an If Program
-extern QuantumIf CreateIfProg(
+extern QIfProg CreateIfProg(
     ClassicalCondition &,
     QNode *trueNode,
     QNode *falseNode);

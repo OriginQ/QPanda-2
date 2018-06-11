@@ -12,7 +12,7 @@ void ifwhile()
     ClassicalCondition cc1(cbit1);
     QProg  ifprog = CreateEmptyQProg();
     ifprog << H(q1);
-    QuantumIf  ifnode = CreateIfProg(cc1, &ifprog);
+    QIfProg  ifnode = CreateIfProg(cc1, &ifprog);
     prog << H(q0) << Measure(q0, cbit0) << ifnode << Measure(q1, cbit1);
     qvm.load(prog);
     qvm.run();
@@ -265,7 +265,7 @@ void HHL_Algorithm1()
 
     QProg  PSEdagger = CreateEmptyQProg();
     // PSEdagger << PSEcircuit.dagger() << Measure(q2, cbit2);
-    QuantumIf ifnode = CreateIfProg(cc0, &PSEdagger);
+    QIfProg ifnode = CreateIfProg(cc0, &PSEdagger);
     hhlProg << PSEcircuit << CRotate << Measure(q0, ancbit);
     //hhlProg << PSEcircuit << Measure(anc, ancbit) ;
     qvm.load(hhlProg);
@@ -319,14 +319,14 @@ void HHL_Algorithm1()
 //    ClassicalCondition cc1(cbit1);
 //    ClassicalCondition cc2(cbit2);
 //    ClassicalCondition cc3 = cc1 + cc2;
-//    QuantumIf & ifnode = CreateIfProg(&cc3, &c);
+//    QIfProg & ifnode = CreateIfProg(&cc3, &c);
 //    QWhileProg & whileNode = CreateWhileProg(&cc2, &ifnode);
 //    prog << ifnode << whileNode;
 //
 //    QProg & prog1 = CreateEmptyQProg();
 //    QProg & prog2 = CreateEmptyQProg();
 //
-//    QuantumIf & ifnode = CreateIfProg(&cc3, &prog1, &prog2);
+//    QIfProg & ifnode = CreateIfProg(&cc3, &prog1, &prog2);
 //
 //    QProg & prog = CreateEmptyQProg();
 //    prog << H(qb) << c.control(controlVector) << H(qb2);

@@ -24,21 +24,21 @@ QWhileProg  CreateWhileProg(ClassicalCondition & ccCon, QNode * trueNode)
     return quantumWhile;
 }
 
-QuantumIf  CreateIfProg(ClassicalCondition & ccCon, QNode * trueNode)
+QIfProg  CreateIfProg(ClassicalCondition & ccCon, QNode * trueNode)
 {
     if (nullptr == trueNode)
         throw exception();
-    QuantumIf quantumIf(ccCon, trueNode);
+    QIfProg quantumIf(ccCon, trueNode);
     return quantumIf;
 }
 
-QuantumIf  CreateIfProg(ClassicalCondition &ccCon, QNode * trueNode, QNode * falseNode)
+QIfProg  CreateIfProg(ClassicalCondition &ccCon, QNode * trueNode, QNode * falseNode)
 {
     if (nullptr == trueNode)
         throw exception();
     if (nullptr == falseNode)
         throw exception();
-    QuantumIf quantumIf(ccCon, trueNode, falseNode);
+    QIfProg quantumIf(ccCon, trueNode, falseNode);
     return quantumIf;
 }
 
@@ -98,7 +98,7 @@ int QWhileProg::getPosition() const
     return m_iPosition;
 }
 
-QuantumIf::QuantumIf(const QuantumIf &oldQIf)
+QIfProg::QIfProg(const QIfProg &oldQIf)
 {
     m_iPosition = oldQIf.getPosition();
     auto aiter = _G_QNodeVector.getNode(m_iPosition);
@@ -108,7 +108,7 @@ QuantumIf::QuantumIf(const QuantumIf &oldQIf)
         throw exception();
 }
 
-QuantumIf::QuantumIf(ClassicalCondition & ccCon, QNode * pTrueNode, QNode * pFalseNode)
+QIfProg::QIfProg(ClassicalCondition & ccCon, QNode * pTrueNode, QNode * pFalseNode)
 {
     string sClasNname = "OriginIf";
     auto aMeasure = QuantunIfFactory::getInstance().getQuantumIf(sClasNname, ccCon, pTrueNode, pFalseNode);
@@ -117,7 +117,7 @@ QuantumIf::QuantumIf(ClassicalCondition & ccCon, QNode * pTrueNode, QNode * pFal
     m_pControlFlow = aMeasure;
 }
 
-QuantumIf::QuantumIf(ClassicalCondition & ccCon, QNode * node)
+QIfProg::QIfProg(ClassicalCondition & ccCon, QNode * node)
 {
     string sClasNname = "OriginIf";
     auto aMeasure = QuantunIfFactory::getInstance().getQuantumIf(sClasNname, ccCon, node);
@@ -126,7 +126,7 @@ QuantumIf::QuantumIf(ClassicalCondition & ccCon, QNode * node)
     m_pControlFlow = aMeasure;
 }
 
-NodeType QuantumIf::getNodeType() const
+NodeType QIfProg::getNodeType() const
 {
     if (nullptr == m_pControlFlow)
         throw  exception();
@@ -134,25 +134,25 @@ NodeType QuantumIf::getNodeType() const
 }
 
 
-QNode * QuantumIf::getTrueBranch() const
+QNode * QIfProg::getTrueBranch() const
 {
     if (nullptr == m_pControlFlow)
         throw  exception();
     return m_pControlFlow->getTrueBranch();
 }
 
-QNode * QuantumIf::getFalseBranch() const
+QNode * QIfProg::getFalseBranch() const
 {
 
     return m_pControlFlow->getFalseBranch();
 }
 
-int QuantumIf::getPosition() const
+int QIfProg::getPosition() const
 {
     return m_iPosition;
 }
 
-ClassicalCondition * QuantumIf::getCExpr() 
+ClassicalCondition * QIfProg::getCExpr() 
 {
     if (nullptr == m_pControlFlow)
         throw  exception();

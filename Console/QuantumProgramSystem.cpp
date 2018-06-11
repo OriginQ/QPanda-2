@@ -27,7 +27,7 @@ int main()
    
     try
     {
-		int repeat = 10000;
+		int repeat = 1000;
 		return HHL_Test(repeat);
     }
     catch(exception & e)

@@ -17,7 +17,6 @@ limitations under the License.
 #ifndef _QPANDA_H
 #define _QPANDA_H
 #include "QuantumCircuit/QGate.h"
-#include "QuantumCircuit/QException.h"
 #include "QuantumCircuit/QProgram.h"
 #include "QuantumMachine/OriginQuantumMachine.h"
 

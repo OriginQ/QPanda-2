@@ -267,6 +267,33 @@ class cbit_not_allocated : public load_exception
     {}
 };
 
+class circuit_not_found_exception: public QPandaException
+{
+public:
+    circuit_not_found_exception(string errmsg, bool isFree)
+        : QPandaException(errmsg, isFree)
+    {}
+    circuit_not_found_exception()
+        : QPandaException(
+            "unknown not found error",
+            false)
+    {}
+};
+
+
+class param_error_exception : public QPandaException
+{
+public:
+    param_error_exception(string errmsg, bool isFree)
+        : QPandaException(errmsg, isFree)
+    {}
+    param_error_exception()
+        : QPandaException(
+            "unknown param error",
+            false)
+    {}
+};
+
 #endif
 
 

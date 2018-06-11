@@ -15,11 +15,12 @@ limitations under the License.
 */
 
 #include "ControlFlow.h"
+#include "QPanda/QPandaException.h"
 
 QWhileProg  CreateWhileProg(ClassicalCondition & ccCon, QNode * trueNode)
 {
     if (nullptr == trueNode)
-        throw exception();
+        throw param_error_exception("CreateWhileProg param err", false);
     QWhileProg quantumWhile(ccCon, trueNode);
     return quantumWhile;
 }
@@ -27,7 +28,7 @@ QWhileProg  CreateWhileProg(ClassicalCondition & ccCon, QNode * trueNode)
 QIfProg  CreateIfProg(ClassicalCondition & ccCon, QNode * trueNode)
 {
     if (nullptr == trueNode)
-        throw exception();
+        throw param_error_exception("CreateIfProg param err", false);
     QIfProg quantumIf(ccCon, trueNode);
     return quantumIf;
 }
@@ -35,9 +36,9 @@ QIfProg  CreateIfProg(ClassicalCondition & ccCon, QNode * trueNode)
 QIfProg  CreateIfProg(ClassicalCondition &ccCon, QNode * trueNode, QNode * falseNode)
 {
     if (nullptr == trueNode)
-        throw exception();
+        throw param_error_exception("CreateIfProg trueNode param err", false);
     if (nullptr == falseNode)
-        throw exception();
+        throw param_error_exception("CreateIfProg falseNode param err", false);
     QIfProg quantumIf(ccCon, trueNode, falseNode);
     return quantumIf;
 }
@@ -49,7 +50,7 @@ QWhileProg::QWhileProg( const QWhileProg &oldQWhile)
     if (aiter != _G_QNodeVector.getEnd())
         m_pControlFlow = dynamic_cast<AbstractControlFlowNode *>(*aiter);
     else
-        throw exception();
+        throw circuit_not_found_exception("QWhileProg cant found",false);
 }
 
 QWhileProg::QWhileProg(ClassicalCondition & ccCon, QNode * node)
@@ -105,7 +106,7 @@ QIfProg::QIfProg(const QIfProg &oldQIf)
     if (aiter != _G_QNodeVector.getEnd())
         m_pControlFlow = dynamic_cast<AbstractControlFlowNode *>(*aiter);
     else
-        throw exception();
+        throw circuit_not_found_exception("QIfProg cant found", false);
 }
 
 QIfProg::QIfProg(ClassicalCondition & ccCon, QNode * pTrueNode, QNode * pFalseNode)

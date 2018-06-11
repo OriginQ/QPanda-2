@@ -114,7 +114,7 @@ void OriginQVM::run()
 {
     if (_QProgram < 0)
     {
-        throw exception();
+        throw circuit_not_found_exception("QProgram cant found",false);
     }
     
     auto aiter =_G_QNodeVector.getNode(_QProgram);

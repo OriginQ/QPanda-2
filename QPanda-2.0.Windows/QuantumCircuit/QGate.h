@@ -18,7 +18,6 @@ limitations under the License.
 #define _QGATE_H_
 
 #include <map>
-#include "../QuantumCircuit/QException.h"
 #include <functional>
 #define PI 3.14159265358979
 using namespace std;

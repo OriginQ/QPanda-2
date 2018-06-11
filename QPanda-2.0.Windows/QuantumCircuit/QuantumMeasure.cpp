@@ -30,7 +30,7 @@ QMeasure::QMeasure(const QMeasure & oldMeasure)
     if (aiter != _G_QNodeVector.getEnd())
         m_pQuantumMeasure = dynamic_cast<AbstractQuantumMeasure *>(*aiter);
     else
-        throw QPandaException("there is not target QNode", true);
+        throw circuit_not_found_exception("there is not target QNode", false);
 }
 
 QMeasure::QMeasure(Qubit * qbit, CBit * cbit)
@@ -45,28 +45,28 @@ QMeasure::QMeasure(Qubit * qbit, CBit * cbit)
 Qubit * QMeasure::getQuBit() const
 {
     if(nullptr == m_pQuantumMeasure)
-        throw  QPandaException("there is not QMeasure", true);
+        throw  exception();
     return m_pQuantumMeasure->getQuBit();
 }
 
 CBit * QMeasure::getCBit() const
 {
     if (nullptr == m_pQuantumMeasure)
-        throw  QPandaException("there is not QMeasure", true);
+        throw  exception();
     return m_pQuantumMeasure->getCBit();
 }
 
 int QMeasure::getQuBitNum() const
 {
     if (nullptr == m_pQuantumMeasure)
-        throw  QPandaException("there is not QMeasure", true);
+        throw  exception();
     return m_pQuantumMeasure->getQuBitNum();
 }
 
 NodeType QMeasure::getNodeType() const
 {
     if (nullptr == m_pQuantumMeasure)
-        throw  QPandaException("there is not QMeasure", true);
+        throw  exception();
     return (dynamic_cast<QNode *>(m_pQuantumMeasure))->getNodeType();
 }
 
@@ -89,7 +89,7 @@ AbstractQuantumMeasure * QuantunMeasureFactory::getQuantumMeasure(std::string & 
     }
     else
     {
-        throw QPandaException("can not find targit measure class", true);
+        throw circuit_not_found_exception("can not find targit measure class", true);
     }
 }
 

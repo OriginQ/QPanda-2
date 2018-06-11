@@ -106,8 +106,10 @@ void OriginQVM::append(QProg & prog)
         throw load_exception();
     }
     auto aiter = _G_QNodeVector.getNode(_QProgram);
-    QProg * temp = dynamic_cast<QProg *>(*aiter);
-    temp->operator<<(prog);
+    if (_G_QNodeVector.getEnd() != aiter)
+        throw circuit_not_found_exception("cant found this QProgam", false);
+    AbstractQuantumProgram * temp = dynamic_cast<AbstractQuantumProgram *>(*aiter);
+    temp->pushBackNode(&prog);
 }
 
 void OriginQVM::run()

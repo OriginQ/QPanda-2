@@ -199,7 +199,7 @@ bool QCirCuitParse::verify()
 }
 
 
-QGateParse::QGateParse(QNode * pNode, QuantumGates * pGates, bool isDagger, vector<Qubit*>& controlQubitVector) : m_isDagger(isDagger)
+QGateParse::QGateParse(QGate * pNode, QuantumGates * pGates, bool isDagger, vector<Qubit*>& controlQubitVector) : m_isDagger(isDagger)
 {
     //pNode;
     if (nullptr == pNode)
@@ -217,27 +217,25 @@ QGateParse::QGateParse(QNode * pNode, QuantumGates * pGates, bool isDagger, vect
 
 bool QGateParse::executeAction()
 {
-    QGateNode * temp = dynamic_cast<QGateNode *>(m_pNode);
-    bool bDagger = temp->isDagger() ^ m_isDagger;
-    QuantumGate * pGate = temp->getQGate();
+    bool bDagger = m_pNode->isDagger() ^ m_isDagger;
+    QuantumGate * pGate = m_pNode->getQGate();
     vector<Qubit * > qubitVector;
-    temp->getQuBitVector(qubitVector);
+    m_pNode->getQuBitVector(qubitVector);
     vector<Qubit *> controlvector;
-    temp->getControlVector(controlvector);
+    m_pNode->getControlVector(controlvector);
     for (auto aiter : controlvector)
     {
         m_controlQubitVector.push_back(aiter);
     }
     auto aiter = QGateParseMap::getFunction(pGate->getOpNum());
-    aiter(temp->getQGate(),qubitVector, m_pGates, bDagger, m_controlQubitVector);
+    aiter(m_pNode->getQGate(),qubitVector, m_pGates, bDagger, m_controlQubitVector);
     return true;
 }
 
 bool QGateParse::verify()
 {
-    QGate * temp = dynamic_cast<QGate *>(m_pNode);
     vector<Qubit *> qubitVector;
-    temp->getQuBitVector(qubitVector);
+    m_pNode->getQuBitVector(qubitVector);
     if (qubitVector.size() <= 0)
     {
         return true;

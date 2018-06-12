@@ -27,7 +27,7 @@ QProg Grover(vector<Qubit*> qVec, vector<CBit*> cVec, int target)
     controlVector.push_back(qVec[0]);
     controlVector.push_back(qVec[1]);
     //QSingleGate  sqrtH(0.5*PI, 0, 0.25*PI, PI);
-    QGate  &toff = RX(qVec[2]);
+    QGate  toff = RX(qVec[2]);
     toff.setControl(controlVector);
     switch (target)
     {

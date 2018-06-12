@@ -20,7 +20,7 @@ limitations under the License.
 #include "QuantumCircuit/QProgram.h"
 #include "QuantumMachine/OriginQuantumMachine.h"
 
-extern QNodeVector _G_QNodeMap;
+extern QNodeMap _G_QNodeMap;
 
 // Create an empty QProg Container
 extern QProg  CreateEmptyQProg();
@@ -48,40 +48,40 @@ extern QCircuit  CreateEmptyCircuit();
 extern QMeasure Measure(Qubit * targetQuBit, CBit * targetCbit);
 
 // Create a X gate
-extern QGate & RX(Qubit* qbit);
+extern QGate  RX(Qubit* qbit);
 
 // Create a X rotation
-extern QGate & RX(Qubit*, double angle);
+extern QGate RX(Qubit*, double angle);
 
 // Create a Y gate
-extern QGate & RY(Qubit* qbit);
+extern QGate  RY(Qubit* qbit);
 
 // Create a Y rotation
-extern QGate & RY(Qubit*, double angle);
+extern QGate RY(Qubit*, double angle);
 
 // Create a Z gate
-extern QGate & RZ(Qubit* qbit);
+extern QGate RZ(Qubit* qbit);
 
 // Create a Z rotation
-extern QGate & RZ(Qubit*, double angle);
+extern QGate RZ(Qubit*, double angle);
 
 // Create S gate
-extern QGate & S(Qubit* qbit);
+extern QGate S(Qubit* qbit);
 
 // Create Hadamard Gate
-extern QGate & H(Qubit* qbit);
+extern QGate H(Qubit* qbit);
 
 // Create an instance of CNOT gate
-extern QGate & CNOT(Qubit* targetQBit, Qubit* controlQBit);
+extern QGate CNOT(Qubit* targetQBit, Qubit* controlQBit);
 
 // Create an instance of CZ gate
-extern QGate & CZ(Qubit* targetQBit, Qubit* controlQBit);
+extern QGate CZ(Qubit* targetQBit, Qubit* controlQBit);
 
 // Create an arbitrary single unitary gate
-extern QGate & QSingle(double alpha, double beta, double gamma, double delta, Qubit *);
+extern QGate QSingle(double alpha, double beta, double gamma, double delta, Qubit *);
 
 // Create a control-U gate
-extern QGate & QDouble(double alpha, double beta, double gamma, double delta, Qubit *, Qubit *);
+extern QGate QDouble(double alpha, double beta, double gamma, double delta, Qubit *, Qubit *);
 
 // to init the environment. Use this at the beginning
 void init();

@@ -117,7 +117,7 @@ int Grover(int target)  //target is 0,1,2 or 3
     controlVector.push_back(q);
     controlVector.push_back(q1);
     //QSingleGate  sqrtH(0.5*PI, 0, 0.25*PI, PI);
-    QGate  &toff = RX(anc);
+    QGate  toff = RX(anc);
 
     toff.setControl(controlVector);
     switch (target)
@@ -169,7 +169,7 @@ void controlandDagger()
     vector<Qubit *> controlVector;
     controlVector.push_back(q);
     //QSingleGate  sqrtH(0.5*PI, 0, 0.25*PI, PI);
-    QGate  &toff = RX(q1);
+    QGate  toff = RX(q1);
     toff.setControl(controlVector);
     aaa << H(q) << toff << Measure(q, cbit1) << Measure(q1, cbit2);
     qvm.load(aaa);
@@ -235,11 +235,11 @@ void HHL_Algorithm1()
     QCircuit  ifcircuit = CreateEmptyCircuit();
     QCircuit  PSEcircuit = CreateEmptyCircuit();
     PSEcircuit << H(q1) << H(q2) << RZ(q2, 0.75*PI);
-    QGate & gat1 = QDouble(PI, 1.5*PI, -0.5*PI, PI / 2, q2, q3);
-    QGate  & gat2 = QDouble(PI, 1.5*PI, -PI, PI / 2, q1, q3);
+    QGate  gat1 = QDouble(PI, 1.5*PI, -0.5*PI, PI / 2, q2, q3);
+    QGate   gat2 = QDouble(PI, 1.5*PI, -PI, PI / 2, q1, q3);
     PSEcircuit << gat1 << RZ(q1, 1.5*PI) << gat2 << CNOT(q1, q2) << CNOT(q2, q1) << CNOT(q1, q2);
     //PSEcircuit << gat1 << RZ(q1, 1.5*PI)<<gat2 ;
-    QGate & gat3 = QDouble(-0.25*PI, -0.5*PI, 0, 0, q2, q1);
+    QGate  gat3 = QDouble(-0.25*PI, -0.5*PI, 0, 0, q2, q1);
     PSEcircuit << H(q2) << gat3 << H(q1);     //PSE over
 
 
@@ -248,11 +248,11 @@ void HHL_Algorithm1()
     vector<Qubit *> controlVector;
     controlVector.push_back(q1);
     controlVector.push_back(q2);
-    QGate & gat4 = RY(q0, PI);
+    QGate  gat4 = RY(q0, PI);
     gat4.setControl(controlVector);
-    QGate & gat5 = RY(q0, PI / 3);
+    QGate  gat5 = RY(q0, PI / 3);
     gat5.setControl(controlVector);
-    QGate & gat6 = RY(q0, 0.6796738);  //arcsin(1/3)
+    QGate  gat6 = RY(q0, 0.6796738);  //arcsin(1/3)
     gat6.setControl(controlVector);
     CRotate << RX(q1) << gat4 << RX(q1) << RX(q2) << gat5 << RX(q2) << gat6;
     //hhl circuit

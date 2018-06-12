@@ -112,12 +112,12 @@ private:
 class QGateParse :public AbstractQNodeParse
 {
 private:
-    QNode * m_pNode;
+    QGate * m_pNode;
     QuantumGates* m_pGates;
     bool m_isDagger;
     vector<Qubit *> m_controlQubitVector;
 public:
-    QGateParse(QNode * pNode, QuantumGates* pGates, bool isDagger, vector<Qubit *> & controlQubitVector);
+    QGateParse(QGate * pNode, QuantumGates* pGates, bool isDagger, vector<Qubit *> & controlQubitVector);
     ~QGateParse() {};
     bool executeAction();
     bool verify();

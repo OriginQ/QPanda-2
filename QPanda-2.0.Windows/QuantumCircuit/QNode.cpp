@@ -1,13 +1,13 @@
 #include "QNode.h"
 
 
-QNodeVector _G_QNodeMap;
-QNodeVector::QNodeVector()
+QNodeMap _G_QNodeMap;
+QNodeMap::QNodeMap()
 {
 
 }
 
-QNodeVector::~QNodeVector()
+QNodeMap::~QNodeMap()
 {
     for (auto aiter = m_pQNodeVector.begin(); aiter != m_pQNodeVector.end(); aiter++)
     {
@@ -18,21 +18,21 @@ QNodeVector::~QNodeVector()
     }
 }
 
-bool QNodeVector::pushBackNode(QNode * pNode)
+bool QNodeMap::pushBackNode(QNode * pNode)
 {
     WriteLock wl(m_sm);
     m_pQNodeVector.push_back(pNode);
     return true;
 }
 
-size_t QNodeVector::getLastNode()
+size_t QNodeMap::getLastNode()
 {
     ReadLock rl(m_sm);
     return m_pQNodeVector.size();
 }
 
 /*
-bool QNodeVector::setHeadNode(QNode * prog)
+bool QNodeMap::setHeadNode(QNode * prog)
 {
 WriteLock wl(m_sm);
 if (prog->getPosition() > m_pQNodeVector.size())
@@ -44,7 +44,7 @@ return true;
 }
 */
 
-vector<QNode*>::iterator QNodeVector::getNode(int iNum)
+vector<QNode*>::iterator QNodeMap::getNode(int iNum)
 {
     ReadLock rl(m_sm);
     if (iNum > m_pQNodeVector.size()||(iNum == -1))
@@ -54,7 +54,7 @@ vector<QNode*>::iterator QNodeVector::getNode(int iNum)
     return m_pQNodeVector.begin() + (iNum - 1);
 }
 
-vector<QNode*>::iterator QNodeVector::getEnd()
+vector<QNode*>::iterator QNodeMap::getEnd()
 {
     return  m_pQNodeVector.end();
 }

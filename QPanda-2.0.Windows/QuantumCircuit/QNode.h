@@ -3,6 +3,7 @@
 
 #include "ReadWriteLock.h"
 #include <vector>
+#include <map>
 #include "QuantumCircuit/QGlobalVariable.h"
 class QNode
 {
@@ -12,25 +13,25 @@ public:
     virtual ~QNode() {};
 };
 
-class QNodeVector
+class QNodeMap
 {
 private:
     SharedMutex m_sm;
     vector<QNode*> m_pQNodeVector;
     vector<QNode*>::iterator m_currentIter;
 public:
-    QNodeVector();
-    ~QNodeVector();
+    QNodeMap();
+    ~QNodeMap();
 
     bool pushBackNode(QNode *);
     size_t getLastNode();
     //bool setHeadNode(QNode *);
-
+    
     vector <QNode *>::iterator getNode(int);
     vector <QNode *>::iterator getEnd();
 };
 
-extern QNodeVector _G_QNodeMap;
+extern QNodeMap _G_QNodeMap;
 
 #endif // !_QNODE_H
 

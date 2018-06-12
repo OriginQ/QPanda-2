@@ -39,11 +39,11 @@ class QuantumDriver;
 *
 *
 */
-class QNodeVector;
-extern  QNodeVector _G_QNodeMap;
+class QNodeMap;
+extern  QNodeMap _G_QNodeMap;
 
 
-class QGateNode
+class AbstractQGateNode
 {
 public:
     virtual size_t getQuBitVector(vector<Qubit *> &) const = 0;
@@ -53,7 +53,7 @@ public:
     virtual size_t getControlVector(vector<Qubit *> &) const = 0;
     virtual bool setDagger(bool) = 0;
     virtual bool setControl(vector<Qubit *> &) = 0;
-    virtual ~QGateNode() {}
+    virtual ~AbstractQGateNode() {}
 };
 
 /*
@@ -64,7 +64,31 @@ public:
 */
 class QGateNodeFactory;
 
-class QGate : public QNode, public QGateNode
+class QGate : public QNode, public AbstractQGateNode
+{
+private:
+
+    AbstractQGateNode * m_pQGateNode;
+    int m_iPosition;
+public:
+    int iPosition;
+    QGate(const QGate&);
+    QGate(Qubit*, QuantumGate *);
+    QGate(Qubit*, Qubit *, QuantumGate *);
+    NodeType getNodeType() const;
+    size_t getQuBitVector(vector<Qubit *> &) const;
+    size_t getQuBitNum() const;
+    QuantumGate * getQGate() const;
+    int getPosition() const;
+    bool setDagger(bool);
+    bool setControl(vector < Qubit *> &);
+    bool isDagger() const;
+    size_t getControlVector(vector<Qubit *> &) const;
+
+};
+
+
+class OriginQGate : public QNode, public AbstractQGateNode
 {
 private:
     vector<Qubit *> m_QuBitVector;
@@ -73,19 +97,14 @@ private:
     GateType m_iGateType;
     bool m_bIsDagger;
     vector<Qubit *> m_controlQuBitVector;
-    QGate();
-    QGate(QGate&);
 
 public:
-    int iPosition;
-
-    QGate(Qubit*, QuantumGate *);
-    QGate(Qubit*, Qubit *, QuantumGate *);
+    OriginQGate(Qubit*, QuantumGate *);
+    OriginQGate(Qubit*, Qubit *, QuantumGate *);
     NodeType getNodeType() const;
     size_t getQuBitVector(vector<Qubit *> &) const;
     size_t getQuBitNum() const;
     QuantumGate * getQGate() const;
-    GateType getQGateType() const;
     int getPosition() const;
     bool setDagger(bool);
     bool setControl(vector < Qubit *> &);
@@ -93,6 +112,9 @@ public:
     size_t getControlVector(vector<Qubit *> &) const;
 
 };
+
+
+
 
 class  Item
 {
@@ -211,8 +233,8 @@ public:
     QCircuit(const QCircuit &);
     ~QCircuit();
     void pushBackNode(QNode *);
-    QCircuit & operator << ( QGate &);
-    QCircuit & operator << ( QMeasure &);
+    QCircuit & operator << ( QGate );
+    QCircuit & operator << ( QMeasure );
     QCircuit & dagger();
     QCircuit & control(vector<Qubit *> &);
     NodeType getNodeType() const;
@@ -322,7 +344,7 @@ public:
     QProg & operator << ( QWhileProg );
     QProg & operator << (QMeasure );
     QProg & operator << ( QProg );
-    QProg & operator << ( QGate &);
+    QProg & operator << ( QGate );
     QProg & operator << ( QCircuit );
     NodeIter getFirstNodeIter();
     NodeIter getLastNodeIter();
@@ -412,11 +434,11 @@ public:
         return &s_gateNodeFactory;
     }
 
-    QGate & getGateNode(string & name, Qubit *);
-    QGate & getGateNode(string & name, Qubit *, double);
-    QGate & getGateNode(string & name, Qubit *, Qubit*);
-    QGate & getGateNode(double alpha, double beta, double gamma, double delta, Qubit *);
-    QGate & getGateNode(double alpha, double beta, double gamma, double delta, Qubit *, Qubit *);
+    QGate  getGateNode(string & name, Qubit *);
+    QGate  getGateNode(string & name, Qubit *, double);
+    QGate  getGateNode(string & name, Qubit *, Qubit*);
+    QGate  getGateNode(double alpha, double beta, double gamma, double delta, Qubit *);
+    QGate  getGateNode(double alpha, double beta, double gamma, double delta, Qubit *, Qubit *);
 
 private:
     QGateNodeFactory()

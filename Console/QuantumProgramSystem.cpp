@@ -28,14 +28,14 @@ int main()
     try
     {
 		int repeat = 1000;
-		return HHL_Test(repeat);
+	     HHL_Test(repeat);
     }
     catch(exception & e)
     {
         cout<<e.what()<<endl;
 		return 1;
     }
-   
+
    // getchar();
    // getchar();
     return 0;

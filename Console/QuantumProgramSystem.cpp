@@ -22,9 +22,9 @@ using namespace std;
 
 int main()
 {
-	DJ_Algorithm();
+	//DJ_Algorithm();
     //Grover_Algorithm();
-  /*
+  
     try
     {
 		int repeat = 1000;
@@ -35,9 +35,9 @@ int main()
         cout<<e.what()<<endl;
 		return 1;
     }
-    */
-    getchar();
-    getchar();
+   
+   // getchar();
+   // getchar();
     return 0;
 
 }

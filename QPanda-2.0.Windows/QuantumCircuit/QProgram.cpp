@@ -36,9 +36,9 @@ QGate::QGate(const QGate & oldGate)
 {
     m_iPosition = oldGate.getPosition();
     auto aiter = _G_QNodeMap.getNode(m_iPosition);
-    if (aiter == _G_QNodeMap.getEnd())
+    if (aiter == nullptr)
         throw circuit_not_found_exception("there is no this QGate", false);
-    m_pQGateNode = dynamic_cast<AbstractQGateNode *>(*aiter);
+    m_pQGateNode = dynamic_cast<AbstractQGateNode *>(aiter);
 }
 
 QGate::QGate(Qubit * qbit, QuantumGate *pQGate)
@@ -48,8 +48,7 @@ QGate::QGate(Qubit * qbit, QuantumGate *pQGate)
     if (nullptr == qbit)
         throw param_error_exception("OriginGate param err", false);
     AbstractQGateNode * pTemp = new OriginQGate(qbit, pQGate);
-    _G_QNodeMap.pushBackNode(dynamic_cast<QNode *>(pTemp) );
-    m_iPosition = _G_QNodeMap.getLastNode();
+    m_iPosition = _G_QNodeMap.pushBackNode(dynamic_cast<QNode *>(pTemp) );
     m_pQGateNode = pTemp;
 
 }
@@ -63,8 +62,7 @@ QGate::QGate(Qubit * targetQuBit, Qubit * controlQuBit, QuantumGate *pQGate)
     if (nullptr == controlQuBit)
         throw param_error_exception("OriginGate param err", false);
     AbstractQGateNode * pTemp = new OriginQGate(targetQuBit, controlQuBit, pQGate);
-    _G_QNodeMap.pushBackNode(dynamic_cast<QNode *>(pTemp));
-    m_iPosition = _G_QNodeMap.getLastNode();
+    m_iPosition = _G_QNodeMap.pushBackNode(dynamic_cast<QNode *>(pTemp));
     m_pQGateNode = pTemp;
 }
 
@@ -138,8 +136,7 @@ QCircuit::QCircuit()
 {
     string sClasNname = "OriginCircuit";
     auto aMeasure = QuantumCircuitFactory::getInstance().getQuantumCircuit(sClasNname);
-    _G_QNodeMap.pushBackNode(dynamic_cast<QNode *>(aMeasure));
-    m_iPosition = static_cast<int>(_G_QNodeMap.getLastNode());
+    m_iPosition =  _G_QNodeMap.pushBackNode(dynamic_cast<QNode *>(aMeasure));
     m_pQuantumCircuit = aMeasure;
 }
 
@@ -147,8 +144,8 @@ QCircuit::QCircuit(const QCircuit & oldQCircuit)
 {
     m_iPosition = oldQCircuit.getPosition();
     auto aiter = _G_QNodeMap.getNode(m_iPosition);
-    if (aiter != _G_QNodeMap.getEnd())
-        m_pQuantumCircuit = dynamic_cast<AbstractQuantumCircuit *>(*aiter);
+    if (aiter !=nullptr)
+        m_pQuantumCircuit = dynamic_cast<AbstractQuantumCircuit *>(aiter);
     else
         throw exception();
 }
@@ -255,12 +252,12 @@ NodeIter QCircuit::insertQNode(NodeIter & iter, QNode * pNode)
         throw circuit_not_found_exception("there is no this circuit", false);
     }
     auto aIter = _G_QNodeMap.getNode(m_iPosition);
-    if (_G_QNodeMap.getEnd() == aIter)
+    if (nullptr  == aIter)
     {
         throw circuit_not_found_exception("there is no this circuit", false);
     }
 
-    auto pCircuit = dynamic_cast<AbstractQuantumCircuit *>(*aIter);
+    auto pCircuit = dynamic_cast<AbstractQuantumCircuit *>(aIter);
     return pCircuit->insertQNode(iter, pNode);
 }
 
@@ -270,12 +267,12 @@ NodeIter QCircuit::deleteQNode(NodeIter & iter)
         throw circuit_not_found_exception("there is no this circuit", false);
     }
     auto aIter = _G_QNodeMap.getNode(m_iPosition);
-    if (_G_QNodeMap.getEnd() == aIter)
+    if (nullptr == aIter)
     {
         throw circuit_not_found_exception("there is no this circuit", false);
     }
 
-    auto pCircuit = dynamic_cast<AbstractQuantumCircuit *>(*aIter);
+    auto pCircuit = dynamic_cast<AbstractQuantumCircuit *>(aIter);
     return pCircuit->deleteQNode(iter);
 }
 
@@ -290,8 +287,7 @@ QProg::QProg()
 {
     string sClasNname = "OriginProgram";
     auto aMeasure = QuantumProgramFactory::getInstance().getQuantumCircuit(sClasNname);
-    _G_QNodeMap.pushBackNode(dynamic_cast<QNode *>(aMeasure));
-    m_iPosition = static_cast<int>(_G_QNodeMap.getLastNode());
+    m_iPosition = _G_QNodeMap.pushBackNode(dynamic_cast<QNode *>(aMeasure));
     m_pQuantumProgram = aMeasure;
 }
 
@@ -299,8 +295,8 @@ QProg::QProg(const QProg &oldQProg)
 {
     m_iPosition = oldQProg.getPosition();
     auto aiter = _G_QNodeMap.getNode(m_iPosition);
-    if (aiter != _G_QNodeMap.getEnd())
-        m_pQuantumProgram = dynamic_cast<AbstractQuantumProgram *>(*aiter);
+    if (nullptr != aiter)
+        m_pQuantumProgram = dynamic_cast<AbstractQuantumProgram *>(aiter);
     else
         throw exception();
 }
@@ -403,12 +399,12 @@ NodeIter QProg::insertQNode(NodeIter & iter, QNode * pNode)
         throw circuit_not_found_exception("there is no this circuit", false);
     }
     auto aIter = _G_QNodeMap.getNode(m_iPosition);
-    if (_G_QNodeMap.getEnd() == aIter)
+    if (nullptr == aIter)
     {
         throw circuit_not_found_exception("there is no this circuit", false);
     }
     
-    auto pProg = dynamic_cast<AbstractQuantumProgram *>(*aIter);
+    auto pProg = dynamic_cast<AbstractQuantumProgram *>(aIter);
     return pProg->insertQNode(iter, pNode);
 }
 
@@ -418,12 +414,12 @@ NodeIter QProg::deleteQNode(NodeIter & iter)
         throw circuit_not_found_exception("there is no this circuit", false);
     }
     auto aIter = _G_QNodeMap.getNode(m_iPosition);
-    if (_G_QNodeMap.getEnd() == aIter)
+    if (nullptr == aIter)
     {
         throw circuit_not_found_exception("there is no this circuit", false);
     }
 
-    auto pProg = dynamic_cast<AbstractQuantumProgram *>(*aIter);
+    auto pProg = dynamic_cast<AbstractQuantumProgram *>(aIter);
     return pProg->deleteQNode(iter);
 }
 
@@ -521,7 +517,7 @@ bool NodeIter::operator==(NodeIter iter)
  QNode *OriginItem:: getNode() const
  {
      auto aiter = _G_QNodeMap.getNode(m_iNodeNum);
-     return *aiter;
+     return aiter;
  }
  void  OriginItem::setNext(Item * pItem)
  {

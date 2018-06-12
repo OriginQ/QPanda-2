@@ -1,8 +1,8 @@
 #include "QNode.h"
-
+#include "QPanda/QPandaException.h"
 
 QNodeMap _G_QNodeMap;
-QNodeMap::QNodeMap()
+QNodeMap::QNodeMap() :m_sCount(0)
 {
 
 }
@@ -11,24 +11,20 @@ QNodeMap::~QNodeMap()
 {
     for (auto aiter = m_pQNodeVector.begin(); aiter != m_pQNodeVector.end(); aiter++)
     {
-        QNode * pNode = *aiter;
+        QNode * pNode = aiter->second.m_pNode;
         //std::cout<<"position = " << pNode->getPosition() << endl;
         //cout << "nodetype ="<< pNode->getNodeType() << endl;
         delete (pNode);
     }
 }
 
-bool QNodeMap::pushBackNode(QNode * pNode)
+QMAP_SIZE QNodeMap::pushBackNode(QNode * pNode)
 {
     WriteLock wl(m_sm);
-    m_pQNodeVector.push_back(pNode);
-    return true;
-}
-
-size_t QNodeMap::getLastNode()
-{
-    ReadLock rl(m_sm);
-    return m_pQNodeVector.size();
+    MapNode temp = { 1, pNode };
+    m_sCount++;
+    auto a =m_pQNodeVector.insert(pair<QMAP_SIZE, MapNode>(m_sCount,temp));
+    return m_sCount;
 }
 
 /*
@@ -44,17 +40,20 @@ return true;
 }
 */
 
-vector<QNode*>::iterator QNodeMap::getNode(int iNum)
+QNode * QNodeMap::getNode(QMAP_SIZE iNum)
 {
     ReadLock rl(m_sm);
     if (iNum > m_pQNodeVector.size()||(iNum == -1))
     {
-        return m_pQNodeVector.end();
+        return nullptr;
     }
-    return m_pQNodeVector.begin() + (iNum - 1);
+    auto aiter = m_pQNodeVector.find(iNum);
+    if (m_pQNodeVector.end() == aiter)
+        return nullptr;
+    return aiter->second.m_pNode;
 }
 
-vector<QNode*>::iterator QNodeMap::getEnd()
+map<int, MapNode>::iterator QNodeMap::getEnd()
 {
     return  m_pQNodeVector.end();
 }

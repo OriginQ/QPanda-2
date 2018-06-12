@@ -106,9 +106,9 @@ void OriginQVM::append(QProg & prog)
         throw load_exception();
     }
     auto aiter = _G_QNodeMap.getNode(_QProgram);
-    if (_G_QNodeMap.getEnd() == aiter)
+    if (nullptr == aiter)
         throw circuit_not_found_exception("cant found this QProgam", false);
-    AbstractQuantumProgram * temp = dynamic_cast<AbstractQuantumProgram *>(*aiter);
+    AbstractQuantumProgram * temp = dynamic_cast<AbstractQuantumProgram *>(aiter);
     temp->pushBackNode(&prog);
 }
 
@@ -120,8 +120,10 @@ void OriginQVM::run()
     }
     
     auto aiter =_G_QNodeMap.getNode(_QProgram);
+    if (nullptr == aiter)
+        throw circuit_not_found_exception("there is no this Qprog",false);
 
-    QProg * pNode = (QProg *)*aiter;
+    QProg * pNode = (QProg *)aiter;
     _pParam = new QuantumGateParam();
 
 	/* error may occur if user free working qubit before run() */

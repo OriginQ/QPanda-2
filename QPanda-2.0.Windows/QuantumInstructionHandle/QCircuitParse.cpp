@@ -70,6 +70,7 @@ bool QCirCuitParse::executeAction()
         }
         for (; aiter != temp->getHeadNodeIter(); --aiter)
         {
+
             QNode * pNode = *aiter;
             vector<Qubit *> controlQubitVector;
             temp->getControlVector(controlQubitVector);

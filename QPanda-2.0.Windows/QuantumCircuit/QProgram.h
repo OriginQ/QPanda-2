@@ -40,8 +40,8 @@ class QuantumDriver;
 *
 */
 class QNodeVector;
-extern  QNodeVector _G_QNodeVector;
-class NodeIter;
+extern  QNodeVector _G_QNodeMap;
+
 
 class QGateNode
 {
@@ -94,34 +94,6 @@ public:
 
 };
 
-class AbstractQuantumProgram
-{
-public:
-    virtual NodeIter  getFirstNodeIter() = 0;
-    virtual NodeIter  getLastNodeIter() = 0;
-    virtual NodeIter  getEndNodeIter() = 0;
-    virtual NodeIter getHeadNodeIter() = 0;
-    virtual void pushBackNode(QNode *) = 0;
-    virtual ~AbstractQuantumProgram() {};
-    virtual void clear() = 0;
-};
-
-class QCircuit;
-class AbstractQuantumCircuit
-{
-public:
-    virtual NodeIter  getFirstNodeIter() = 0;
-    virtual NodeIter  getLastNodeIter() = 0;
-    virtual NodeIter  getEndNodeIter() = 0;
-    virtual NodeIter getHeadNodeIter() = 0;
-    virtual void pushBackNode(QNode *) = 0;
-    virtual ~AbstractQuantumCircuit() {};
-    virtual bool isDagger() const = 0;
-    virtual bool getControlVector(vector<Qubit *> &) = 0;
-    virtual void  subDagger() {};
-    virtual void  subControl(vector<Qubit *> &) {};
-};
-
 class  Item
 {
 public:
@@ -150,7 +122,86 @@ public:
     void setNode(QNode * pNode);
 };
 
-class QCircuit : public QNode, public AbstractQuantumCircuit
+class NodeIter
+{
+private:
+    Item * m_pCur;
+public:
+    NodeIter(Item * pItem)
+    {
+        m_pCur = pItem;
+    }
+
+    NodeIter(const NodeIter & oldIter)
+    {
+        this->m_pCur = oldIter.getPCur();
+    }
+
+
+
+    Item * getPCur() const
+    {
+        return this->m_pCur;
+    }
+
+    void setPCur(Item * pItem)
+    {
+        m_pCur = pItem;
+    }
+    NodeIter()
+    {
+        m_pCur = nullptr;
+    }
+    /*
+    Item * getItem() const
+    {
+    return m_pCur;
+    }
+    */
+    NodeIter & operator ++();
+    NodeIter  operator ++(int);
+    QNode * operator *();
+    NodeIter & operator --();
+    NodeIter  operator --(int);
+    bool operator != (NodeIter);
+    bool operator  == (NodeIter);
+};
+
+class AbstractQuantumProgram
+{
+public:
+    virtual NodeIter  getFirstNodeIter() = 0;
+    virtual NodeIter  getLastNodeIter() = 0;
+    virtual NodeIter  getEndNodeIter() = 0;
+    virtual NodeIter  getHeadNodeIter() = 0;
+    virtual NodeIter  insertQNode(NodeIter &, QNode *) = 0;
+    virtual NodeIter  deleteQNode(NodeIter &) =0;
+    virtual void pushBackNode(QNode *) = 0;
+    virtual ~AbstractQuantumProgram() {};
+    virtual void clear() = 0;
+};
+
+//class QCircuit;
+class AbstractQuantumCircuit
+{
+public:
+    virtual NodeIter  getFirstNodeIter() = 0;
+    virtual NodeIter  getLastNodeIter() = 0;
+    virtual NodeIter  getEndNodeIter() = 0;
+    virtual NodeIter getHeadNodeIter() = 0;
+    virtual NodeIter  insertQNode(NodeIter &, QNode *) = 0;
+    virtual NodeIter  deleteQNode(NodeIter &) = 0;
+    virtual void pushBackNode(QNode *) = 0;
+    virtual ~AbstractQuantumCircuit() {};
+    virtual bool isDagger() const = 0;
+    virtual bool getControlVector(vector<Qubit *> &) = 0;
+    virtual void  subDagger() {};
+    virtual void  subControl(vector<Qubit *> &) {};
+};
+
+
+
+class QCircuit : public QNode,public AbstractQuantumCircuit
 {
 private:
     AbstractQuantumCircuit * m_pQuantumCircuit;
@@ -171,6 +222,9 @@ public:
     NodeIter  getLastNodeIter();
     NodeIter  getEndNodeIter();
     NodeIter getHeadNodeIter();
+
+    NodeIter  insertQNode(NodeIter & iter, QNode * pNode);
+    NodeIter  deleteQNode(NodeIter & iter);
     int getPosition() const;
 };
 
@@ -237,6 +291,8 @@ public:
     NodeIter  getLastNodeIter();
     NodeIter  getEndNodeIter();
     NodeIter getHeadNodeIter();
+    NodeIter  insertQNode(NodeIter &, QNode *);
+    NodeIter  deleteQNode(NodeIter &);
     int getPosition() const;
 };
 
@@ -251,7 +307,7 @@ public:
 *    if T is QIfProg/QWhileProg/QProg,deepcopy
 *    IF/WHILE/QProg circuit and insert it into left QProg;
 */
-class QProg : public QNode, public AbstractQuantumProgram
+class QProg : public QNode,public AbstractQuantumProgram
 {
 private:
     AbstractQuantumProgram * m_pQuantumProgram;
@@ -272,6 +328,8 @@ public:
     NodeIter getLastNodeIter();
     NodeIter  getEndNodeIter();
     NodeIter getHeadNodeIter();
+    NodeIter  insertQNode(NodeIter & iter, QNode * pNode);
+    NodeIter  deleteQNode(NodeIter & iter);
     NodeType getNodeType() const;
     void clear();
     int getPosition() const;
@@ -330,49 +388,14 @@ public:
     NodeIter getLastNodeIter();
     NodeIter  getEndNodeIter();
     NodeIter getHeadNodeIter();
+    NodeIter  insertQNode(NodeIter &, QNode *);
+    NodeIter  deleteQNode(NodeIter &);
     NodeType getNodeType() const;
     void clear();
     int getPosition() const;
 };
 
-class NodeIter
-{
-private:
-    Item * m_pCur;
-public:
-    NodeIter(Item * pItem)
-    {
-        m_pCur = pItem;
-    }
 
-    NodeIter(const NodeIter & oldIter)
-    {
-        this->m_pCur = oldIter.getPCur();   
-    }
-
-
-
-    Item * getPCur() const
-    {
-        return this->m_pCur;
-    } 
-
-
-    NodeIter()
-    {
-        m_pCur = nullptr;
-    }
-
-    Item * getItem() const
-    {
-        return m_pCur;
-    }
-    NodeIter & operator ++();
-    QNode * operator *();
-    NodeIter & operator --();
-    bool operator != (NodeIter);
-    bool operator  == (NodeIter);
-};
 
 extern QProg  CreateEmptyQProg();
 

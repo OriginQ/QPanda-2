@@ -30,7 +30,7 @@ public:
     vector <QNode *>::iterator getEnd();
 };
 
-extern QNodeVector _G_QNodeVector;
+extern QNodeVector _G_QNodeMap;
 
 #endif // !_QNODE_H
 

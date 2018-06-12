@@ -15,7 +15,7 @@ limitations under the License.
 */
 
 #include "QProgram.h"
-
+#include "QPanda/QPandaException.h"
 
 
 QProg  CreateEmptyQProg()
@@ -116,16 +116,16 @@ QCircuit::QCircuit()
 {
     string sClasNname = "OriginCircuit";
     auto aMeasure = QuantumCircuitFactory::getInstance().getQuantumCircuit(sClasNname);
-    _G_QNodeVector.pushBackNode(dynamic_cast<QNode *>(aMeasure));
-    m_iPosition = static_cast<int>(_G_QNodeVector.getLastNode());
+    _G_QNodeMap.pushBackNode(dynamic_cast<QNode *>(aMeasure));
+    m_iPosition = static_cast<int>(_G_QNodeMap.getLastNode());
     m_pQuantumCircuit = aMeasure;
 }
 
 QCircuit::QCircuit(const QCircuit & oldQCircuit)
 {
     m_iPosition = oldQCircuit.getPosition();
-    auto aiter = _G_QNodeVector.getNode(m_iPosition);
-    if (aiter != _G_QNodeVector.getEnd())
+    auto aiter = _G_QNodeMap.getNode(m_iPosition);
+    if (aiter != _G_QNodeMap.getEnd())
         m_pQuantumCircuit = dynamic_cast<AbstractQuantumCircuit *>(*aiter);
     else
         throw exception();
@@ -226,6 +226,39 @@ NodeIter QCircuit::getHeadNodeIter()
     return m_pQuantumCircuit->getHeadNodeIter();
 }
 
+NodeIter QCircuit::insertQNode(NodeIter & iter, QNode * pNode)
+{
+    if ((m_iPosition < 0))
+    {
+        throw circuit_not_found_exception("there is no this circuit", false);
+    }
+    auto aIter = _G_QNodeMap.getNode(m_iPosition);
+    if (_G_QNodeMap.getEnd() == aIter)
+    {
+        throw circuit_not_found_exception("there is no this circuit", false);
+    }
+
+    auto pCircuit = dynamic_cast<AbstractQuantumCircuit *>(*aIter);
+    return pCircuit->insertQNode(iter, pNode);
+}
+
+NodeIter QCircuit::deleteQNode(NodeIter & iter)
+{
+    {
+        throw circuit_not_found_exception("there is no this circuit", false);
+    }
+    auto aIter = _G_QNodeMap.getNode(m_iPosition);
+    if (_G_QNodeMap.getEnd() == aIter)
+    {
+        throw circuit_not_found_exception("there is no this circuit", false);
+    }
+
+    auto pCircuit = dynamic_cast<AbstractQuantumCircuit *>(*aIter);
+    return pCircuit->deleteQNode(iter);
+}
+
+
+
 int QCircuit::getPosition() const
 {
     return this->m_iPosition;
@@ -235,16 +268,16 @@ QProg::QProg()
 {
     string sClasNname = "OriginProgram";
     auto aMeasure = QuantumProgramFactory::getInstance().getQuantumCircuit(sClasNname);
-    _G_QNodeVector.pushBackNode(dynamic_cast<QNode *>(aMeasure));
-    m_iPosition = static_cast<int>(_G_QNodeVector.getLastNode());
+    _G_QNodeMap.pushBackNode(dynamic_cast<QNode *>(aMeasure));
+    m_iPosition = static_cast<int>(_G_QNodeMap.getLastNode());
     m_pQuantumProgram = aMeasure;
 }
 
 QProg::QProg(const QProg &oldQProg)
 {
     m_iPosition = oldQProg.getPosition();
-    auto aiter = _G_QNodeVector.getNode(m_iPosition);
-    if (aiter != _G_QNodeVector.getEnd())
+    auto aiter = _G_QNodeMap.getNode(m_iPosition);
+    if (aiter != _G_QNodeMap.getEnd())
         m_pQuantumProgram = dynamic_cast<AbstractQuantumProgram *>(*aiter);
     else
         throw exception();
@@ -341,6 +374,37 @@ NodeIter QProg::getHeadNodeIter()
         throw exception();
 }
 
+NodeIter QProg::insertQNode(NodeIter & iter, QNode * pNode)
+{
+    if ((m_iPosition < 0))
+    {
+        throw circuit_not_found_exception("there is no this circuit", false);
+    }
+    auto aIter = _G_QNodeMap.getNode(m_iPosition);
+    if (_G_QNodeMap.getEnd() == aIter)
+    {
+        throw circuit_not_found_exception("there is no this circuit", false);
+    }
+    
+    auto pProg = dynamic_cast<AbstractQuantumProgram *>(*aIter);
+    return pProg->insertQNode(iter, pNode);
+}
+
+NodeIter QProg::deleteQNode(NodeIter & iter)
+{
+    {
+        throw circuit_not_found_exception("there is no this circuit", false);
+    }
+    auto aIter = _G_QNodeMap.getNode(m_iPosition);
+    if (_G_QNodeMap.getEnd() == aIter)
+    {
+        throw circuit_not_found_exception("there is no this circuit", false);
+    }
+
+    auto pProg = dynamic_cast<AbstractQuantumProgram *>(*aIter);
+    return pProg->deleteQNode(iter);
+}
+
 NodeType QProg::getNodeType() const
 {
     if (nullptr != m_pQuantumProgram)
@@ -364,12 +428,22 @@ int QProg:: getPosition() const
 
 NodeIter &NodeIter::operator ++()
 {
-    if (nullptr != m_pCur) 
+    if (nullptr != m_pCur)
     {
         this->m_pCur = m_pCur->getNext();
     }
     return *this;
 
+}
+
+NodeIter  NodeIter::operator++(int)
+{
+    NodeIter temp(*this);
+    if (nullptr != m_pCur)
+    {
+        this->m_pCur = m_pCur->getNext();
+    }
+    return temp;
 }
 
 QNode * NodeIter::operator*()
@@ -390,6 +464,18 @@ NodeIter & NodeIter::operator--()
 
     }
     return *this;
+
+}
+
+NodeIter  NodeIter::operator--(int i)
+{
+    NodeIter temp(*this);
+    if (nullptr != m_pCur)
+    {
+        this->m_pCur = m_pCur->getPre();
+
+    }
+    return temp;
 }
 
 bool NodeIter::operator!=(NodeIter  iter)
@@ -412,7 +498,7 @@ bool NodeIter::operator==(NodeIter iter)
  }
  QNode *OriginItem:: getNode() const
  {
-     auto aiter = _G_QNodeVector.getNode(m_iNodeNum);
+     auto aiter = _G_QNodeMap.getNode(m_iNodeNum);
      return *aiter;
  }
  void  OriginItem::setNext(Item * pItem)
@@ -432,8 +518,8 @@ bool NodeIter::operator==(NodeIter iter)
 {
     QuantumGate * pGate = m_pGateFact->getGateNode(name);
     QGate * QGateNode = new QGate(qbit,pGate);
-    _G_QNodeVector.pushBackNode(QGateNode);
-    QGateNode->iPosition = static_cast<int>(_G_QNodeVector.getLastNode());
+    _G_QNodeMap.pushBackNode(QGateNode);
+    QGateNode->iPosition = static_cast<int>(_G_QNodeMap.getLastNode());
     return *QGateNode;
 }
 
@@ -441,8 +527,8 @@ QGate & QGateNodeFactory::getGateNode(string & name, Qubit * qbit, double angle)
 {
     QuantumGate * pGate = m_pGateFact->getGateNode(name, angle);
     QGate * QGateNode = new QGate(qbit, pGate);
-    _G_QNodeVector.pushBackNode(QGateNode);
-    QGateNode->iPosition = static_cast<int>(_G_QNodeVector.getLastNode());
+    _G_QNodeMap.pushBackNode(QGateNode);
+    QGateNode->iPosition = static_cast<int>(_G_QNodeMap.getLastNode());
     return *QGateNode;
 }
 
@@ -450,8 +536,8 @@ QGate & QGateNodeFactory::getGateNode(string & name, Qubit * targetQBit, Qubit *
 {
     QuantumGate * pGate = m_pGateFact->getGateNode(name);
     QGate * QGateNode = new QGate(targetQBit, controlQBit, pGate);
-    _G_QNodeVector.pushBackNode(QGateNode);
-    QGateNode->iPosition = static_cast<int>(_G_QNodeVector.getLastNode());
+    _G_QNodeMap.pushBackNode(QGateNode);
+    QGateNode->iPosition = static_cast<int>(_G_QNodeMap.getLastNode());
     return *QGateNode;
 }
 
@@ -460,8 +546,8 @@ QGate & QGateNodeFactory::getGateNode(double alpha, double beta, double gamma, d
     string name = "QSingleGate";
     QuantumGate * pGate = m_pGateFact->getGateNode(name,alpha, beta, gamma, delta);
     QGate * QGateNode = new QGate(qbit, pGate);
-    _G_QNodeVector.pushBackNode(QGateNode);
-    QGateNode->iPosition = static_cast<int>(_G_QNodeVector.getLastNode());
+    _G_QNodeMap.pushBackNode(QGateNode);
+    QGateNode->iPosition = static_cast<int>(_G_QNodeMap.getLastNode());
     return *QGateNode;
 }
 
@@ -470,8 +556,8 @@ QGate & QGateNodeFactory::getGateNode(double alpha, double beta, double gamma, d
     string name = "QDoubleGate";
     QuantumGate * pGate = m_pGateFact->getGateNode(name,alpha, beta, gamma, delta);
     QGate * QGateNode = new QGate(targetQBit, controlQBit, pGate);
-    _G_QNodeVector.pushBackNode(QGateNode);
-    QGateNode->iPosition = static_cast<int>(_G_QNodeVector.getLastNode());
+    _G_QNodeMap.pushBackNode(QGateNode);
+    QGateNode->iPosition = static_cast<int>(_G_QNodeMap.getLastNode());
     return *QGateNode;
 }
 
@@ -640,6 +726,130 @@ void OriginProgram::clear()
     }
 }
 
+NodeIter OriginProgram::insertQNode(NodeIter & perIter, QNode * pQNode)
+{
+
+    Item * pPerItem = perIter.getPCur();
+    if (nullptr == pPerItem)
+    {
+        throw exception();
+    }
+
+
+
+    auto aiter = this->getFirstNodeIter();
+
+    if (this->getHeadNodeIter() == aiter)
+    {
+        throw exception();
+    }
+
+    for (; aiter != this->getEndNodeIter(); aiter++)
+    {
+        if (pPerItem == aiter.getPCur())
+        {
+            break;
+        }
+    }
+    if (aiter == this->getEndNodeIter())
+    {
+        throw exception();
+    }
+
+    Item *pCurItem = new OriginItem();
+    pCurItem->setNode(pQNode);
+
+    if (nullptr != pPerItem->getNext())
+    {
+        pPerItem->getNext()->setPre(pCurItem);
+        pCurItem->setNext(pPerItem->getNext());
+        pPerItem->setNext(pCurItem);
+        pCurItem->setPre(pPerItem);
+    }
+    else
+    {
+        pPerItem->setNext(pCurItem);
+        pCurItem->setPre(pPerItem);
+        pCurItem->setNext(nullptr);
+    }
+    NodeIter temp(pCurItem);
+    return temp;
+}
+
+NodeIter OriginProgram::deleteQNode(NodeIter & targitIter)
+{
+
+    Item * pTargitItem = targitIter.getPCur();
+    if (nullptr == pTargitItem)
+        throw exception();
+
+    if (nullptr == m_pHead)
+    {
+        throw exception();
+    }
+
+    auto aiter = this->getFirstNodeIter();
+    for (; aiter != this->getEndNodeIter(); aiter++)
+    {
+        if (pTargitItem == aiter.getPCur())
+        {
+            break;
+        }
+    }
+    if (aiter == this->getEndNodeIter())
+    {
+        throw exception();
+    }
+
+    if (m_pHead == pTargitItem)
+    {
+        if (m_pHead == m_pEnd)
+        {
+            delete pTargitItem;
+            targitIter.setPCur(nullptr);
+            m_pHead = nullptr;
+            m_pEnd = nullptr;
+        }
+        else
+        {
+            m_pHead = pTargitItem->getNext();
+            m_pHead->setPre(nullptr);
+            delete pTargitItem;
+            targitIter.setPCur(nullptr);
+        }
+
+        NodeIter temp(m_pHead);
+        return temp;
+    }
+
+    if (m_pEnd = pTargitItem)
+    {
+        Item * pPerItem = pTargitItem->getPre();
+        if (nullptr == pPerItem)
+            throw exception();
+        pPerItem->setNext(nullptr);
+        delete(pTargitItem);
+        targitIter.setPCur(nullptr);
+        NodeIter temp(pPerItem);
+        return temp;
+    }
+
+    Item * pPerItem = pTargitItem->getPre();
+    if (nullptr == pPerItem)
+        throw exception();
+    pPerItem->setNext(nullptr);
+    Item * pNextItem = pTargitItem->getNext();
+    if (nullptr == pPerItem)
+        throw exception();
+    pPerItem->setNext(pNextItem);
+    pNextItem->setPre(pPerItem);
+    delete pTargitItem;
+    targitIter.setPCur(nullptr);
+
+    NodeIter temp(pPerItem);
+    return temp;
+}
+
 int OriginProgram::getPosition() const
 {
     throw exception();
@@ -776,6 +986,130 @@ NodeIter OriginCircuit::getHeadNodeIter()
     return temp;
 }
 
+NodeIter OriginCircuit::insertQNode(NodeIter & perIter, QNode * pQNode)
+{
+
+    Item * pPerItem = perIter.getPCur();
+    if (nullptr == pPerItem)
+    {
+        throw exception();
+    }
+
+
+
+    auto aiter = this->getFirstNodeIter();
+
+    if (this->getHeadNodeIter() == aiter)
+    {
+        throw exception();
+    }
+
+    for (;aiter != this->getEndNodeIter();aiter++)
+    {
+        if (pPerItem == aiter.getPCur())
+        {
+            break;
+        }
+    }
+    if (aiter == this->getEndNodeIter())
+    {
+        throw exception();
+    }
+
+    Item *pCurItem = new OriginItem();
+    pCurItem->setNode(pQNode);   
+
+    if (nullptr != pPerItem->getNext())
+    {
+        pPerItem->getNext()->setPre(pCurItem);
+        pCurItem->setNext(pPerItem->getNext());
+        pPerItem->setNext(pCurItem);
+        pCurItem->setPre(pPerItem);
+    }
+    else
+    {
+        pPerItem->setNext(pCurItem);
+        pCurItem->setPre(pPerItem);
+        pCurItem->setNext(nullptr);
+    }
+    NodeIter temp(pCurItem);
+    return temp;
+}
+
+NodeIter OriginCircuit::deleteQNode(NodeIter & targitIter)
+{
+
+    Item * pTargitItem= targitIter.getPCur();
+    if (nullptr == pTargitItem)
+        throw exception();
+
+    if (nullptr == m_pHead)
+    {
+        throw exception();
+    }
+
+    auto aiter = this->getFirstNodeIter();
+    for (; aiter != this->getEndNodeIter(); aiter++)
+    {
+        if (pTargitItem == aiter.getPCur())
+        {
+            break;
+        }
+    }
+    if (aiter == this->getEndNodeIter())
+    {
+        throw exception();
+    }
+
+    if (m_pHead == pTargitItem)
+    {
+        if (m_pHead == m_pEnd)
+        {
+            delete pTargitItem;
+            targitIter.setPCur(nullptr);
+            m_pHead = nullptr;
+            m_pEnd = nullptr;
+        }
+        else
+        {
+            m_pHead = pTargitItem->getNext();
+            m_pHead->setPre(nullptr);
+            delete pTargitItem;
+            targitIter.setPCur(nullptr);
+        }
+
+        NodeIter temp(m_pHead);
+        return temp;
+    }
+    
+    if (m_pEnd = pTargitItem)
+    {
+        Item * pPerItem = pTargitItem->getPre();
+        if (nullptr == pPerItem)
+            throw exception();
+        pPerItem->setNext(nullptr);
+        delete(pTargitItem);
+        targitIter.setPCur(nullptr);
+        NodeIter temp(pPerItem);
+        return temp;
+    }
+
+    Item * pPerItem = pTargitItem->getPre();
+    if (nullptr == pPerItem)
+        throw exception();
+    pPerItem->setNext(nullptr);
+    Item * pNextItem = pTargitItem->getNext();
+    if (nullptr == pPerItem)
+        throw exception();
+    pPerItem->setNext(pNextItem);
+    pNextItem->setPre(pPerItem);
+    delete pTargitItem;
+    targitIter.setPCur(nullptr);
+
+    NodeIter temp(pPerItem);
+    return temp;
+}
+
 int OriginCircuit::getPosition() const
 {
     throw exception();
@@ -800,3 +1134,5 @@ AbstractQuantumCircuit * QuantumCircuitFactory::getQuantumCircuit(std::string & 
     return nullptr;
 }
 REGISTER_QCIRCUIT(OriginCircuit);
+
+

@@ -26,8 +26,8 @@ QMeasure  Measure(Qubit * targetQuBit, CBit *targetCbit)
 QMeasure::QMeasure(const QMeasure & oldMeasure)
 {
     m_iPosition = oldMeasure.getPosition();    
-    auto aiter = _G_QNodeVector.getNode(m_iPosition);
-    if (aiter != _G_QNodeVector.getEnd())
+    auto aiter = _G_QNodeMap.getNode(m_iPosition);
+    if (aiter != _G_QNodeMap.getEnd())
         m_pQuantumMeasure = dynamic_cast<AbstractQuantumMeasure *>(*aiter);
     else
         throw circuit_not_found_exception("there is not target QNode", false);
@@ -37,8 +37,8 @@ QMeasure::QMeasure(Qubit * qbit, CBit * cbit)
 {
     string sClasNname = "OriginMeasure";
     auto aMeasure = QuantunMeasureFactory::getInstance().getQuantumMeasure(sClasNname, qbit, cbit);
-    _G_QNodeVector.pushBackNode(dynamic_cast<QNode *>(aMeasure));
-    m_iPosition = static_cast<int>(_G_QNodeVector.getLastNode());
+    _G_QNodeMap.pushBackNode(dynamic_cast<QNode *>(aMeasure));
+    m_iPosition = static_cast<int>(_G_QNodeMap.getLastNode());
     m_pQuantumMeasure = aMeasure;
 }
 

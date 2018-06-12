@@ -20,7 +20,7 @@ limitations under the License.
 #include "QuantumCircuit/QProgram.h"
 #include "QuantumMachine/OriginQuantumMachine.h"
 
-extern QNodeVector _G_QNodeVector;
+extern QNodeVector _G_QNodeMap;
 
 // Create an empty QProg Container
 extern QProg  CreateEmptyQProg();

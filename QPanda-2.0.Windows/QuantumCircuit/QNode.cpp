@@ -1,7 +1,7 @@
 #include "QNode.h"
 
 
-QNodeVector _G_QNodeVector;
+QNodeVector _G_QNodeMap;
 QNodeVector::QNodeVector()
 {
 

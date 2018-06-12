@@ -46,8 +46,8 @@ QIfProg  CreateIfProg(ClassicalCondition &ccCon, QNode * trueNode, QNode * false
 QWhileProg::QWhileProg( const QWhileProg &oldQWhile)
 {
     m_iPosition = oldQWhile.getPosition();
-    auto aiter = _G_QNodeVector.getNode(m_iPosition);
-    if (aiter != _G_QNodeVector.getEnd())
+    auto aiter = _G_QNodeMap.getNode(m_iPosition);
+    if (aiter != _G_QNodeMap.getEnd())
         m_pControlFlow = dynamic_cast<AbstractControlFlowNode *>(*aiter);
     else
         throw circuit_not_found_exception("QWhileProg cant found",false);
@@ -57,8 +57,8 @@ QWhileProg::QWhileProg(ClassicalCondition & ccCon, QNode * node)
 {
     string sClasNname = "OriginWhile";
     auto aMeasure = QuantunIfFactory::getInstance().getQuantumIf(sClasNname, ccCon, node);
-    _G_QNodeVector.pushBackNode(dynamic_cast<QNode *>(aMeasure));
-    m_iPosition = static_cast<int>(_G_QNodeVector.getLastNode());
+    _G_QNodeMap.pushBackNode(dynamic_cast<QNode *>(aMeasure));
+    m_iPosition = static_cast<int>(_G_QNodeMap.getLastNode());
     m_pControlFlow = aMeasure;
 }
 
@@ -102,8 +102,8 @@ int QWhileProg::getPosition() const
 QIfProg::QIfProg(const QIfProg &oldQIf)
 {
     m_iPosition = oldQIf.getPosition();
-    auto aiter = _G_QNodeVector.getNode(m_iPosition);
-    if (aiter != _G_QNodeVector.getEnd())
+    auto aiter = _G_QNodeMap.getNode(m_iPosition);
+    if (aiter != _G_QNodeMap.getEnd())
         m_pControlFlow = dynamic_cast<AbstractControlFlowNode *>(*aiter);
     else
         throw circuit_not_found_exception("QIfProg cant found", false);
@@ -113,8 +113,8 @@ QIfProg::QIfProg(ClassicalCondition & ccCon, QNode * pTrueNode, QNode * pFalseNo
 {
     string sClasNname = "OriginIf";
     auto aMeasure = QuantunIfFactory::getInstance().getQuantumIf(sClasNname, ccCon, pTrueNode, pFalseNode);
-    _G_QNodeVector.pushBackNode(dynamic_cast<QNode *>(aMeasure));
-    m_iPosition = static_cast<int>(_G_QNodeVector.getLastNode());
+    _G_QNodeMap.pushBackNode(dynamic_cast<QNode *>(aMeasure));
+    m_iPosition = static_cast<int>(_G_QNodeMap.getLastNode());
     m_pControlFlow = aMeasure;
 }
 
@@ -122,8 +122,8 @@ QIfProg::QIfProg(ClassicalCondition & ccCon, QNode * node)
 {
     string sClasNname = "OriginIf";
     auto aMeasure = QuantunIfFactory::getInstance().getQuantumIf(sClasNname, ccCon, node);
-    _G_QNodeVector.pushBackNode(dynamic_cast<QNode *>(aMeasure));
-    m_iPosition = static_cast<int>(_G_QNodeVector.getLastNode());
+    _G_QNodeMap.pushBackNode(dynamic_cast<QNode *>(aMeasure));
+    m_iPosition = static_cast<int>(_G_QNodeMap.getLastNode());
     m_pControlFlow = aMeasure;
 }
 
@@ -189,8 +189,8 @@ NodeType OriginIf::getNodeType() const
 
 QNode * OriginIf::getTrueBranch() const
 {
-    auto aiter = _G_QNodeVector.getNode(iTrueNum);
-    if (aiter != _G_QNodeVector.getEnd())
+    auto aiter = _G_QNodeMap.getNode(iTrueNum);
+    if (aiter != _G_QNodeMap.getEnd())
     {
         return *aiter;
     }
@@ -202,8 +202,8 @@ QNode * OriginIf::getTrueBranch() const
 
 QNode * OriginIf::getFalseBranch() const
 {
-    auto aiter = _G_QNodeVector.getNode(iFalseNum);
-    if (aiter != _G_QNodeVector.getEnd())
+    auto aiter = _G_QNodeMap.getNode(iFalseNum);
+    if (aiter != _G_QNodeMap.getEnd())
     {
         return *aiter;
     }
@@ -287,8 +287,8 @@ NodeType OriginWhile::getNodeType() const
 
 QNode * OriginWhile::getTrueBranch() const
 {
-    auto aiter = _G_QNodeVector.getNode(iTrueNum);
-    if (aiter != _G_QNodeVector.getEnd())
+    auto aiter = _G_QNodeMap.getNode(iTrueNum);
+    if (aiter != _G_QNodeMap.getEnd())
     {
         return *aiter;
     }

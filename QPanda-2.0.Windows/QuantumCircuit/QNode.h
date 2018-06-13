@@ -47,8 +47,43 @@ public:
     //bool setHeadNode(QNode *);
     
     QNode * getNode(QMAP_SIZE);
+    bool addNodeRefer(QMAP_SIZE sNum);
+    bool deleteNode(QMAP_SIZE);
     map<int, MapNode>::iterator getEnd();
 };
+
+
+
+
+class  Item
+{
+public:
+    virtual Item * getNext()const = 0;
+    virtual Item * getPre() const = 0;
+    virtual QNode * getNode() const = 0;
+    virtual void setNext(Item *) = 0;
+    virtual void setPre(Item *) = 0;
+    virtual void setNode(QNode *) = 0;
+    virtual ~Item() {};
+};
+
+class  OriginItem : public Item
+{
+private:
+    Item * m_pNext;
+    Item * m_pPre;
+    int    m_iNodeNum;
+public:
+    OriginItem();
+    ~OriginItem();
+    Item * getNext()const;
+    Item * getPre()const;
+    QNode * getNode() const;
+    void setNext(Item * pItem);
+    void setPre(Item * pItem);
+    void setNode(QNode * pNode);
+};
+
 
 extern QNodeMap _G_QNodeMap;
 

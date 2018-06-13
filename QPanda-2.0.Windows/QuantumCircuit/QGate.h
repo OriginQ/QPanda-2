@@ -28,6 +28,7 @@ protected:
 	int qOpNum;
 public:
 	QuantumGate();
+    virtual ~QuantumGate() {};
     virtual double getAlpha() const = 0;
     virtual double getBeta() const = 0;
     virtual double getGamma() const = 0;

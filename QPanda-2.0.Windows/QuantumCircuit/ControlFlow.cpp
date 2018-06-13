@@ -43,6 +43,11 @@ QIfProg  CreateIfProg(ClassicalCondition &ccCon, QNode * trueNode, QNode * false
     return quantumIf;
 }
 
+QWhileProg::~QWhileProg()
+{
+    _G_QNodeMap.deleteNode(m_iPosition);
+}
+
 QWhileProg::QWhileProg( const QWhileProg &oldQWhile)
 {
     m_iPosition = oldQWhile.getPosition();
@@ -51,6 +56,8 @@ QWhileProg::QWhileProg( const QWhileProg &oldQWhile)
         m_pControlFlow = dynamic_cast<AbstractControlFlowNode *>(aiter);
     else
         throw circuit_not_found_exception("QWhileProg cant found",false);
+    if (!_G_QNodeMap.addNodeRefer(m_iPosition))
+        throw exception();
 }
 
 QWhileProg::QWhileProg(ClassicalCondition & ccCon, QNode * node)
@@ -58,6 +65,10 @@ QWhileProg::QWhileProg(ClassicalCondition & ccCon, QNode * node)
     string sClasNname = "OriginWhile";
     auto aMeasure = QuantunIfFactory::getInstance().getQuantumIf(sClasNname, ccCon, node);
     m_iPosition = _G_QNodeMap.pushBackNode(dynamic_cast<QNode *>(aMeasure));
+    if (!_G_QNodeMap.addNodeRefer(node->getPosition()))
+        throw exception();
+    if (!_G_QNodeMap.addNodeRefer(m_iPosition))
+        throw exception();
     m_pControlFlow = aMeasure;
 }
 
@@ -98,6 +109,11 @@ int QWhileProg::getPosition() const
     return m_iPosition;
 }
 
+QIfProg::~QIfProg()
+{
+    _G_QNodeMap.deleteNode(m_iPosition);
+}
+
 QIfProg::QIfProg(const QIfProg &oldQIf)
 {
     m_iPosition = oldQIf.getPosition();
@@ -106,6 +122,8 @@ QIfProg::QIfProg(const QIfProg &oldQIf)
         m_pControlFlow = dynamic_cast<AbstractControlFlowNode *>(aiter);
     else
         throw circuit_not_found_exception("QIfProg cant found", false);
+    if (!_G_QNodeMap.addNodeRefer(m_iPosition))
+        throw exception();
 }
 
 QIfProg::QIfProg(ClassicalCondition & ccCon, QNode * pTrueNode, QNode * pFalseNode)
@@ -114,6 +132,8 @@ QIfProg::QIfProg(ClassicalCondition & ccCon, QNode * pTrueNode, QNode * pFalseNo
     auto aMeasure = QuantunIfFactory::getInstance().getQuantumIf(sClasNname, ccCon, pTrueNode, pFalseNode);
     m_iPosition = _G_QNodeMap.pushBackNode(dynamic_cast<QNode *>(aMeasure));
     m_pControlFlow = aMeasure;
+    if (!_G_QNodeMap.addNodeRefer(m_iPosition))
+        throw exception();
 }
 
 QIfProg::QIfProg(ClassicalCondition & ccCon, QNode * node)
@@ -122,6 +142,8 @@ QIfProg::QIfProg(ClassicalCondition & ccCon, QNode * node)
     auto aMeasure = QuantunIfFactory::getInstance().getQuantumIf(sClasNname, ccCon, node);
     m_iPosition = _G_QNodeMap.pushBackNode(dynamic_cast<QNode *>(aMeasure));
     m_pControlFlow = aMeasure;
+    if (!_G_QNodeMap.addNodeRefer(m_iPosition))
+        throw exception();
 }
 
 NodeType QIfProg::getNodeType() const
@@ -157,26 +179,51 @@ ClassicalCondition * QIfProg::getCExpr()
     return m_pControlFlow->getCExpr();
 }
 
+OriginIf::~OriginIf()
+{
+    if (nullptr != m_pTrueItem)
+    {
+        delete m_pTrueItem;
+        m_pTrueItem = nullptr;
+    }
+
+    if (nullptr != m_pFalseItem)
+    {
+        delete m_pFalseItem;
+        m_pFalseItem = nullptr;
+    }
+
+}
+
 OriginIf::OriginIf(ClassicalCondition & ccCon, QNode * pTrueNode, QNode * pFalseNode):m_iNodeType(QIF_START_NODE),m_CCondition(ccCon)
 {
     if (nullptr != pTrueNode)
-        iTrueNum = pTrueNode->getPosition();
+    {
+        m_pTrueItem = new OriginItem();
+        m_pTrueItem->setNode(pTrueNode);
+    }
     else
-        iTrueNum = -1;
+        m_pTrueItem = nullptr;
 
     if (nullptr != pFalseNode)
-        iFalseNum = pFalseNode->getPosition();
+    {
+        m_pFalseItem = new OriginItem();
+        m_pTrueItem->setNode(pFalseNode);
+    }
     else
-        iFalseNum = -1;
+        m_pFalseItem = nullptr;
 }
 
 OriginIf::OriginIf(ClassicalCondition & ccCon, QNode * node):m_iNodeType(QIF_START_NODE),m_CCondition(ccCon)
 {
     if (nullptr != node)
-        iTrueNum = node->getPosition();
+    {
+        m_pTrueItem = new OriginItem();
+        m_pTrueItem->setNode(node);
+    }
     else
-        iTrueNum = -1;
-    iFalseNum = -1;
+        m_pTrueItem = nullptr;
+    m_pFalseItem = nullptr;
 }
 
 NodeType OriginIf::getNodeType() const
@@ -186,14 +233,17 @@ NodeType OriginIf::getNodeType() const
 
 QNode * OriginIf::getTrueBranch() const
 {
-    auto aiter = _G_QNodeMap.getNode(iTrueNum);
-    return aiter;
+    if (nullptr != m_pTrueItem)
+        return m_pTrueItem->getNode();
+    else
+        throw exception();
 }
 
 QNode * OriginIf::getFalseBranch() const
 {
-    auto aiter = _G_QNodeMap.getNode(iFalseNum);
-    return aiter;
+    if(nullptr != m_pFalseItem)
+        return m_pFalseItem->getNode();
+    return nullptr;
 }
 
 int OriginIf::getPosition() const
@@ -250,15 +300,26 @@ AbstractControlFlowNode * QuantunIfFactory::getQuantumIf(std::string & classname
 
 REGISTER_QIF(OriginIf);
 
+OriginWhile::~OriginWhile()
+{
+    if (nullptr != m_pTrueItem)
+    {
+        delete m_pTrueItem;
+        m_pTrueItem = nullptr;
+    }
+
+}
+
 OriginWhile::OriginWhile(ClassicalCondition & ccCon, QNode * node): m_iNodeType(WHILE_START_NODE),m_CCondition(ccCon)
 {
     if (nullptr == node)
     {
-        iTrueNum = -1;
+        m_pTrueItem = nullptr;
     }
     else
     {
-        iTrueNum = node->getPosition();
+        m_pTrueItem = new OriginItem();
+        m_pTrueItem->setNode(node);
     }
 
 }
@@ -270,8 +331,9 @@ NodeType OriginWhile::getNodeType() const
 
 QNode * OriginWhile::getTrueBranch() const
 {
-    auto aiter = _G_QNodeMap.getNode(iTrueNum);
-    return aiter;
+    if (nullptr != m_pTrueItem)
+        return m_pTrueItem->getNode();
+    return nullptr;
 }
 
 QNode * OriginWhile::getFalseBranch() const

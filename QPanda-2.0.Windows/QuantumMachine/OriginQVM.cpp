@@ -36,6 +36,7 @@ void OriginQVM::init()
 		GetInstanceFromSize(_Config.maxCMem);
     QProg  temp = CreateEmptyQProg();
     _QProgram = temp.getPosition();
+    _G_QNodeMap.addNodeRefer(_QProgram);
 	_QResult =
 		Factory::
 		QResultFactory::GetFactoryInstance().
@@ -95,7 +96,9 @@ void OriginQVM::load(QProg &loadProgram)
     {
 		throw load_exception();
     }
+    _G_QNodeMap.deleteNode(_QProgram);
     _QProgram = loadProgram.getPosition();
+    _G_QNodeMap.addNodeRefer(_QProgram);
 }
 
 void OriginQVM::append(QProg & prog)
@@ -163,11 +166,13 @@ QResult * OriginQVM::getResult()
 
 void OriginQVM::finalize()
 {
+    _G_QNodeMap.deleteNode(_QProgram);
 	delete _Qubit_Pool;
 	delete _CMem;
 	delete _QResult;
 	delete _QMachineStatus;
     delete _pGates;
+
 }
 
 //REGISTER_QUANTUM_MACHINE(OriginQVM)

@@ -46,6 +46,7 @@ private:
     int m_iPosition;
     QIfProg();
 public:
+    ~QIfProg();
     QIfProg(const QIfProg &);
     QIfProg(ClassicalCondition & ccCon, QNode* pTrueNode, QNode * pFalseNode);
     QIfProg(ClassicalCondition & ccCon, QNode *node);
@@ -109,10 +110,11 @@ class OriginIf : public QNode, public AbstractControlFlowNode
 {
 private:
     ClassicalCondition  m_CCondition;
-    int iTrueNum;
-    int iFalseNum;
+    Item * m_pTrueItem;
+    Item * m_pFalseItem;
     NodeType m_iNodeType;
 public:
+    ~OriginIf();
     OriginIf(ClassicalCondition &ccCon, QNode* pTrueNode, QNode * pFalseNode);
     OriginIf(ClassicalCondition & ccCon, QNode *node);
     NodeType getNodeType() const;
@@ -163,7 +165,7 @@ private:
 
     QWhileProg();
 public:
-
+    ~QWhileProg();
     QWhileProg(const QWhileProg &);
     QWhileProg(ClassicalCondition & ccCon, QNode * node);
 
@@ -184,9 +186,10 @@ class OriginWhile :public QNode, public AbstractControlFlowNode
 private :
     NodeType m_iNodeType;
     ClassicalCondition  m_CCondition;
-    int iTrueNum;
+    Item * m_pTrueItem;
     OriginWhile();
 public :
+    ~OriginWhile();
     OriginWhile(ClassicalCondition & ccCon, QNode * node);
     NodeType getNodeType() const;
     QNode * getTrueBranch() const;

@@ -22,11 +22,12 @@ using namespace std;
 
 int main()
 {
-	//DJ_Algorithm();
+    /*
+	DJ_Algorithm();
     //Grover_Algorithm();
   
-    HHL_Algorithm();
-    /*
+    //HHL_Algorithm();
+ 
     init();
     auto qbit = qAlloc();
     auto cbit = cAlloc();
@@ -36,7 +37,7 @@ int main()
     prog << cir << Measure(qbit, cbit);
     load(prog);
     run();
-
+    */
     try
     {
 		int repeat = 1000;
@@ -47,9 +48,10 @@ int main()
         cout<<e.what()<<endl;
 		return 1;
     }
-    */
+
    // getchar();
-    //getchar();
+    
+    getchar();
     return 0;
 
 }

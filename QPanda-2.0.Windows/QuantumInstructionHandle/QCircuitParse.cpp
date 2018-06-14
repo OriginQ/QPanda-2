@@ -32,7 +32,6 @@ void QGateParse::singleGateAngletoNum(double alpha, double beta, double gamma, d
     matrix[3] = COMPLEX(cos(alpha + beta / 2 + delta / 2)*cos(gamma / 2),
         sin(alpha + beta / 2 + delta / 2)*cos(gamma / 2));
 
-    -1i;
 }
 
 void QGateParse::DoubleGateAngletoNum(double alpha, double beta, double gamma, double delta, QStat & matrix)

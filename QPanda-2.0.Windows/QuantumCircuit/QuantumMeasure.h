@@ -25,7 +25,6 @@ class AbstractQuantumMeasure
 public:
     virtual Qubit * getQuBit() const =0;
     virtual CBit * getCBit()const = 0;
-    virtual int getQuBitNum() const = 0;
     virtual ~AbstractQuantumMeasure() {}
 };
 
@@ -42,7 +41,6 @@ public:
 
     Qubit * getQuBit() const;
     CBit * getCBit()const;
-    int getQuBitNum() const;
 
     NodeType getNodeType() const;
     int getPosition() const;
@@ -89,7 +87,6 @@ public:
     
     Qubit * getQuBit() const;
     CBit * getCBit()const;
-    int getQuBitNum() const;
 
     NodeType getNodeType() const;
     int getPosition() const;

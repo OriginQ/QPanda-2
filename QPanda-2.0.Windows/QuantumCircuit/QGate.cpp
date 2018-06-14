@@ -162,9 +162,9 @@ void QGateFactory::registClass(string name, CreateAngleGate method)
     m_angleGateMap.insert(pair<string, CreateAngleGate>(name, method));
 }
 
-void QGateFactory::registClass(string name, CreateUnknownGate method)
+void QGateFactory::registClass(string name, CreateSingleGate method)
 {
-    m_unknowGateMap.insert(pair<string, CreateUnknownGate>(name, method));
+    m_unknowGateMap.insert(pair<string, CreateSingleGate>(name, method));
 }
 
 
@@ -190,7 +190,7 @@ QuantumGate * QGateFactory::getGateNode(std::string & name, double angle)
 
 QuantumGate * QGateFactory::getGateNode(std::string & name,double alpha, double beta, double gamma, double delta)
 {
-    map<string, CreateUnknownGate>::const_iterator iter;
+    map<string, CreateSingleGate>::const_iterator iter;
     iter = m_unknowGateMap.find(name);
     if (iter == m_unknowGateMap.end())
         return NULL;
@@ -225,7 +225,7 @@ REGISTER(CZGate);
         return new className(alpha,beta,gamma,delta);                    \
     }                                                                   \
     RegisterAction g_unknowCreatorRegister##className(                        \
-        #className,(CreateUnknownGate)objectCreator##className)
+        #className,(CreateSingleGate)objectCreator##className)
 
 
 

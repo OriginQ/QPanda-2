@@ -44,14 +44,14 @@ public:
 
 typedef QuantumGate* (*CreateGate)(void);
 typedef QuantumGate* (*CreateAngleGate)(double);
-typedef QuantumGate* (*CreateUnknownGate)(double, double, double, double);
+typedef QuantumGate* (*CreateSingleGate)(double, double, double, double);
 
 class QGateFactory
 {
 public:
     void registClass(string name, CreateGate method);
     void registClass(string name, CreateAngleGate method);
-    void registClass(string name, CreateUnknownGate method);
+    void registClass(string name, CreateSingleGate method);
     QuantumGate * getGateNode(std::string &);
     QuantumGate * getGateNode(std::string &, double angle);
     QuantumGate * getGateNode(std::string &, double alpha, double beta, double gamma, double delta);
@@ -65,7 +65,7 @@ private:
 private:
     map<string, CreateGate> m_gateMap;
     map<string, CreateAngleGate> m_angleGateMap;
-    map<string, CreateUnknownGate> m_unknowGateMap;
+    map<string, CreateSingleGate> m_unknowGateMap;
     QGateFactory() {};
 
 };
@@ -78,7 +78,7 @@ public:
     RegisterAction(string className, CreateAngleGate ptrCreateFn) {
         QGateFactory::getInstance()->registClass(className, ptrCreateFn);
     }
-    RegisterAction(string className, CreateUnknownGate ptrCreateFn) {
+    RegisterAction(string className, CreateSingleGate ptrCreateFn) {
         QGateFactory::getInstance()->registClass(className, ptrCreateFn);
     }
 };

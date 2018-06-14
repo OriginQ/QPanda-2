@@ -55,12 +55,6 @@ CBit * QMeasure::getCBit() const
     return m_pQuantumMeasure->getCBit();
 }
 
-int QMeasure::getQuBitNum() const
-{
-    if (nullptr == m_pQuantumMeasure)
-        throw  exception();
-    return m_pQuantumMeasure->getQuBitNum();
-}
 
 NodeType QMeasure::getNodeType() const
 {
@@ -112,10 +106,6 @@ CBit * OriginMeasure::getCBit() const
     return m_pCBit;
 }
 
-int OriginMeasure::getQuBitNum() const
-{
-    return 1;
-}
 
 int OriginMeasure::getPosition() const
 {

@@ -130,9 +130,6 @@ private:
 
 };
 
-
-
-
 class QNodeAgency :public AbstractQNodeParse
 {
 public:

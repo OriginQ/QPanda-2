@@ -725,6 +725,7 @@ NodeType OriginProgram::getNodeType() const
 
 void OriginProgram::clear()
 {
+    WriteLock wl(m_sm);
     Item *temp;
     if (m_pHead != nullptr)
     {
@@ -743,7 +744,7 @@ void OriginProgram::clear()
 
 NodeIter OriginProgram::insertQNode(NodeIter & perIter, QNode * pQNode)
 {
-
+    WriteLock wl(m_sm);
     Item * pPerItem = perIter.getPCur();
     if (nullptr == pPerItem)
     {
@@ -793,7 +794,7 @@ NodeIter OriginProgram::insertQNode(NodeIter & perIter, QNode * pQNode)
 
 NodeIter OriginProgram::deleteQNode(NodeIter & targitIter)
 {
-
+    WriteLock wl(m_sm);
     Item * pTargitItem = targitIter.getPCur();
     if (nullptr == pTargitItem)
         throw exception();
@@ -914,6 +915,7 @@ OriginCircuit::~OriginCircuit()
 
 void OriginCircuit::pushBackNode(QNode * pNode)
 {
+    WriteLock wl(m_sm);
     try
     {
 

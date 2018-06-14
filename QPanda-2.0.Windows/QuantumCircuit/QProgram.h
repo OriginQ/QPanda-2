@@ -205,6 +205,7 @@ public:
     ~QCircuit();
     void pushBackNode(QNode *);
     QCircuit & operator << ( QGate );
+    QCircuit & operator << (QCircuit);
     QCircuit & operator << ( QMeasure );
     QCircuit & dagger();
     QCircuit & control(vector<Qubit *> &);

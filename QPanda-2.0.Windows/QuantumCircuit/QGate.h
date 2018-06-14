@@ -20,6 +20,11 @@ limitations under the License.
 #include <map>
 #include <functional>
 #define PI 3.14159265358979
+
+#define SINGLE_GATE_TYPE 1
+#define CU_TYPE 2
+#define ISWAP 3
+
 using namespace std;
 
 class QuantumGate
@@ -77,7 +82,30 @@ public:
         QGateFactory::getInstance()->registClass(className, ptrCreateFn);
     }
 };
-
+class iSwapGate : public QuantumGate
+{
+public:
+    inline int getOpNum() const
+    {
+        return ISWAP;
+    }
+    inline double getAlpha()const
+    {
+        return 0;
+    }
+    inline double getBeta() const
+    {
+        return 0;
+    }
+    inline double getGamma() const
+    {
+        return 0;
+    }
+    inline double getDelta() const
+    {
+        return 0;
+    }
+};
 
 class QSingleGate : public QuantumGate
 {
@@ -96,7 +124,6 @@ public:
     {
         return alpha;
     }
-
     inline double getBeta() const
     {
         return this->beta;
@@ -109,7 +136,6 @@ public:
     {
         return this->delta;
     }
-
     inline int getOpNum() const
     {
         return this->qOpNum;

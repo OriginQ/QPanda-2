@@ -238,17 +238,13 @@ OriginCExpr::~OriginCExpr()
 		{
 			return;
 		}
-		else
-		{
-			throw classical_system_exception();
-		}
+
 		return;
 	}
 	else if (contentSpecifier == OPERATOR)
 	{
 		if (leftExpr == nullptr)
 		{
-			throw classical_system_exception();
 		}
 		else
 		{
@@ -259,10 +255,6 @@ OriginCExpr::~OriginCExpr()
 			if (isUnary(this->content.iOperatorSpecifier))
 			{
 				return;
-			}
-			else
-			{
-				throw operator_specifier_error();
 			}
 		}
 		else

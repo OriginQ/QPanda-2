@@ -31,6 +31,8 @@ void QGateParse::singleGateAngletoNum(double alpha, double beta, double gamma, d
         sin(alpha + beta / 2 - delta / 2)*sin(gamma / 2));
     matrix[3] = COMPLEX(cos(alpha + beta / 2 + delta / 2)*cos(gamma / 2),
         sin(alpha + beta / 2 + delta / 2)*cos(gamma / 2));
+
+    -1i;
 }
 
 void QGateParse::DoubleGateAngletoNum(double alpha, double beta, double gamma, double delta, QStat & matrix)
@@ -49,9 +51,13 @@ void QGateParse::DoubleGateAngletoNum(double alpha, double beta, double gamma, d
 
 
 
-QCirCuitParse::QCirCuitParse(QCircuit * pNode,QuantumGateParam * pParam, QuantumGates* pGates):m_pNode(pNode), m_pGates(pGates),m_pParam(pParam)
+QCirCuitParse::QCirCuitParse(QCircuit * pNode,QuantumGateParam * pParam, QuantumGates* pGates,bool isDagger,vector<Qubit *> controlQbitVector) :
+                                                                                        m_pNode(pNode), m_pGates(pGates),m_pParam(pParam),m_bDagger(isDagger)
 {
-
+    for (auto aiter : controlQbitVector)
+    {
+        m_controlQubitVector.push_back(aiter);
+    }
 }
 
 bool QCirCuitParse::executeAction()
@@ -61,7 +67,10 @@ bool QCirCuitParse::executeAction()
     {
         return false;
     }
-    if (temp->isDagger())
+
+    bool isDagger = temp->isDagger() ^ m_bDagger;
+
+    if (isDagger)
     {
         auto aiter = temp->getLastNodeIter();
         if (nullptr == *aiter)
@@ -74,16 +83,30 @@ bool QCirCuitParse::executeAction()
             QNode * pNode = *aiter;
             vector<Qubit *> controlQubitVector;
             temp->getControlVector(controlQubitVector);
+
+            for (auto aQubit : m_controlQubitVector)
+            {
+                controlQubitVector.push_back(aQubit);
+            }
+
             QNodeAgency * pQNodeAgency =  nullptr;
             if (pNode->getNodeType() == GATE_NODE)
             {
                 pQNodeAgency = new QNodeAgency((QGate*)pNode, m_pGates, true, controlQubitVector);
             }
-            else
+            else if(MEASURE_GATE == pNode->getNodeType())
             {
                 pQNodeAgency = new QNodeAgency((QMeasure*)pNode,m_pParam, m_pGates);
             }
-            
+            else if (CIRCUIT_NODE == pNode->getNodeType())
+            {
+                pQNodeAgency = new QNodeAgency((QCircuit *)pNode, m_pParam, m_pGates, true, controlQubitVector);
+            }
+            else
+            {
+                throw exception();
+            }
+
             if (false == pQNodeAgency->executeAction())
             {
                 delete pQNodeAgency;
@@ -105,15 +128,32 @@ bool QCirCuitParse::executeAction()
             QNode * pNode = *aiter;
             vector<Qubit *> controlQubitVector;
             temp->getControlVector(controlQubitVector);
+
+
+            for (auto aQubit : m_controlQubitVector)
+            {
+                controlQubitVector.push_back(aQubit);
+            }
+
             QNodeAgency * pQNodeAgency = nullptr;
+
             if (pNode->getNodeType() == GATE_NODE)
             {
                 pQNodeAgency = new QNodeAgency((QGate*)pNode, m_pGates, false, controlQubitVector);
             }
-            else
+            else if (MEASURE_GATE == pNode->getNodeType())
             {
                 pQNodeAgency = new QNodeAgency((QMeasure*)pNode, m_pParam, m_pGates);
             }
+            else if (CIRCUIT_NODE == pNode->getNodeType())
+            {
+                pQNodeAgency = new QNodeAgency((QCircuit *)pNode, m_pParam, m_pGates, false, controlQubitVector);
+            }
+            else
+            {
+                throw exception();
+            }
+
 
             if (false == pQNodeAgency->executeAction())
             {
@@ -134,7 +174,9 @@ bool QCirCuitParse::verify()
     {
         return false;
     }
-    if (temp->isDagger())
+
+    bool isDagger = temp->isDagger() ^ m_bDagger;
+    if (isDagger)
     {
         auto aiter = temp->getLastNodeIter();
         if (nullptr == *aiter)
@@ -146,14 +188,28 @@ bool QCirCuitParse::verify()
             QNode * pNode = *aiter;
             vector<Qubit *> controlQubitVector;
             temp->getControlVector(controlQubitVector);
+
+            for (auto aQubit : m_controlQubitVector)
+            {
+                controlQubitVector.push_back(aQubit);
+            }
+
             QNodeAgency * pQNodeAgency = nullptr;
             if (pNode->getNodeType() == GATE_NODE)
             {
                 pQNodeAgency = new QNodeAgency((QGate*)pNode, m_pGates, true, controlQubitVector);
             }
-            else
+            else if (MEASURE_GATE == pNode->getNodeType())
             {
                 pQNodeAgency = new QNodeAgency((QMeasure*)pNode, m_pParam, m_pGates);
+            }
+            else if (CIRCUIT_NODE == pNode->getNodeType())
+            {
+                pQNodeAgency = new QNodeAgency((QCircuit *)pNode, m_pParam, m_pGates, true, controlQubitVector);
+            }
+            else
+            {
+                throw exception();
             }
 
             if (false == pQNodeAgency->verify())
@@ -177,14 +233,28 @@ bool QCirCuitParse::verify()
             QNode * pNode = *aiter;
             vector<Qubit *> controlQubitVector;
             temp->getControlVector(controlQubitVector);
+
+            for (auto aQubit : m_controlQubitVector)
+            {
+                controlQubitVector.push_back(aQubit);
+            }
+
             QNodeAgency * pQNodeAgency = nullptr;
             if (pNode->getNodeType() == GATE_NODE)
             {
                 pQNodeAgency = new QNodeAgency((QGate*)pNode, m_pGates, false, controlQubitVector);
             }
-            else
+            else if (MEASURE_GATE == pNode->getNodeType())
             {
                 pQNodeAgency = new QNodeAgency((QMeasure*)pNode, m_pParam, m_pGates);
+            }
+            else if (CIRCUIT_NODE == pNode->getNodeType())
+            {
+                pQNodeAgency = new QNodeAgency((QCircuit *)pNode, m_pParam, m_pGates, false, controlQubitVector);
+            }
+            else
+            {
+                throw exception();
             }
 
             if (false == pQNodeAgency->verify())
@@ -227,6 +297,7 @@ bool QGateParse::executeAction()
     {
         m_controlQubitVector.push_back(aiter);
     }
+    sort(m_controlQubitVector.begin(), m_controlQubitVector.end());
     auto aiter = QGateParseMap::getFunction(pGate->getOpNum());
     aiter(m_pNode->getQGate(),qubitVector, m_pGates, bDagger, m_controlQubitVector);
     return true;
@@ -370,9 +441,9 @@ insertQGateMapHelper_##FunctionName _G_insertQGateHelper##FunctionName(BitCount,
 
 
 
-QNodeAgency::QNodeAgency(QCircuit * pNode, QuantumGateParam * pParam, QuantumGates * pGates)
+QNodeAgency::QNodeAgency(QCircuit * pNode, QuantumGateParam * pParam, QuantumGates * pGates,bool isDgger,vector<Qubit*> controlQubitVector)
 {
-    m_pQNodeParse = new QCirCuitParse(pNode, pParam, pGates);
+    m_pQNodeParse = new QCirCuitParse(pNode, pParam, pGates,isDgger,controlQubitVector);
 }
 
 QNodeAgency::QNodeAgency(QIfProg * pNode, QuantumGateParam * pParam, QuantumGates * pGates)
@@ -462,7 +533,8 @@ bool QIfParse::executeAction()
     }
     else if (CIRCUIT_NODE == iNodeType)
     {
-        pTempAgency = new QNodeAgency((QCircuit *)pQNode, m_pParam, m_pGates);
+        vector<Qubit *> controlQubitVector;
+        pTempAgency = new QNodeAgency((QCircuit *)pQNode, m_pParam, m_pGates, false, controlQubitVector);
     }
     else if (PROG_NODE == iNodeType)
     {
@@ -513,7 +585,8 @@ bool QIfParse::verify()
         }
         else if (CIRCUIT_NODE == iNodeType)
         {
-            pTempAgency = new QNodeAgency((QCircuit *)pQNode, m_pParam, m_pGates);
+            vector<Qubit *> controlQubitVector;
+            pTempAgency = new QNodeAgency((QCircuit *)pQNode, m_pParam, m_pGates, false, controlQubitVector);
         }
         else if (PROG_NODE == iNodeType)
         {
@@ -555,7 +628,8 @@ bool QIfParse::verify()
         }
         else if (CIRCUIT_NODE == iNodeType)
         {
-            pTempAgency = new QNodeAgency((QCircuit *)pQNode, m_pParam, m_pGates);
+            vector<Qubit *> controlQubitVector;
+            pTempAgency = new QNodeAgency((QCircuit *)pQNode, m_pParam, m_pGates, false, controlQubitVector);
         }
         else if (PROG_NODE == iNodeType)
         {
@@ -615,7 +689,8 @@ bool QWhileParse::executeAction()
         }
         else if (CIRCUIT_NODE == iNodeType)
         {
-            pTempAgency = new QNodeAgency((QCircuit *)pQNode, m_pParam, m_pGates);
+            vector<Qubit *> controlQubitVector;
+            pTempAgency = new QNodeAgency((QCircuit *)pQNode, m_pParam, m_pGates, false, controlQubitVector);
         }
         else if (PROG_NODE == iNodeType)
         {
@@ -668,7 +743,8 @@ bool QWhileParse::verify()
     }
     else if (CIRCUIT_NODE == iNodeType)
     {
-        pTempAgency = new QNodeAgency((QCircuit *)pQNode, m_pParam, m_pGates);
+        vector<Qubit *> controlQubitVector;
+        pTempAgency = new QNodeAgency((QCircuit *)pQNode, m_pParam, m_pGates, false, controlQubitVector);
     }
     else if (PROG_NODE == iNodeType)
     {
@@ -769,7 +845,8 @@ bool QProgParse::executeAction()
         }
         else if (CIRCUIT_NODE == iNodeType)
         {
-            pTempAgency = new QNodeAgency((QCircuit *)pNode, m_pParam, m_pGates);
+            vector<Qubit *> controlQubitVector;
+            pTempAgency = new QNodeAgency((QCircuit *)pNode, m_pParam, m_pGates, false, controlQubitVector);
         }
         else if(PROG_NODE == iNodeType)
         {
@@ -829,7 +906,8 @@ bool QProgParse::verify()
         }
         else if (CIRCUIT_NODE == iNodeType)
         {
-            pTempAgency = new QNodeAgency((QCircuit *)pNode, m_pParam, m_pGates);
+            vector<Qubit *> controlQubitVector;
+            pTempAgency = new QNodeAgency((QCircuit *)pNode, m_pParam, m_pGates, false, controlQubitVector);
         }
         else if (PROG_NODE == iNodeType)
         {

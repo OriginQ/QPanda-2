@@ -39,8 +39,10 @@ private:
     QCircuit * m_pNode;
     QuantumGateParam * m_pParam;
     QuantumGates * m_pGates;
+    bool   m_bDagger;
+    vector<Qubit *> m_controlQubitVector;
 public:
-    QCirCuitParse(QCircuit * pNode, QuantumGateParam * pParam, QuantumGates* pGates);
+    QCirCuitParse(QCircuit * pNode, QuantumGateParam * pParam, QuantumGates* pGates,bool isDagger, vector<Qubit *> controlQbitVector);
     ~QCirCuitParse() {};
     bool executeAction();
     bool verify();
@@ -134,7 +136,7 @@ private:
 class QNodeAgency :public AbstractQNodeParse
 {
 public:
-    QNodeAgency(QCircuit * pNode, QuantumGateParam * pParam, QuantumGates* pGates);
+    QNodeAgency(QCircuit * pNode, QuantumGateParam * pParam, QuantumGates * pGates, bool isDgger, vector<Qubit*> controlQubitVector);
     QNodeAgency(QIfProg * pNode, QuantumGateParam * pParam, QuantumGates* pGates);
     QNodeAgency(QWhileProg * pNode, QuantumGateParam * pParam, QuantumGates* pGates);
     QNodeAgency(QMeasure * pNode, QuantumGateParam * pParam, QuantumGates* pGates);

@@ -188,6 +188,15 @@ QCircuit & QCircuit::operator<<(QGate  node)
     return *this;
 }
 
+QCircuit & QCircuit::operator<<(QCircuit node)
+{
+    if (nullptr == m_pQuantumCircuit)
+        throw exception();
+    m_pQuantumCircuit->pushBackNode(dynamic_cast<QNode*>(&node));
+
+    return *this;
+}
+
 QCircuit & QCircuit::operator<<( QMeasure  node)
 {
     if (nullptr == m_pQuantumCircuit)
@@ -280,6 +289,7 @@ NodeIter QCircuit::insertQNode(NodeIter & iter, QNode * pNode)
 
 NodeIter QCircuit::deleteQNode(NodeIter & iter)
 {
+    if ((m_iPosition < 0))
     {
         throw circuit_not_found_exception("there is no this circuit", false);
     }
@@ -431,6 +441,7 @@ NodeIter QProg::insertQNode(NodeIter & iter, QNode * pNode)
 
 NodeIter QProg::deleteQNode(NodeIter & iter)
 {
+    if ((m_iPosition < 0))
     {
         throw circuit_not_found_exception("there is no this circuit", false);
     }
@@ -992,7 +1003,7 @@ NodeIter OriginCircuit::getHeadNodeIter()
 
 NodeIter OriginCircuit::insertQNode(NodeIter & perIter, QNode * pQNode)
 {
-
+    WriteLock wl(m_sm);
     Item * pPerItem = perIter.getPCur();
     if (nullptr == pPerItem)
     {
@@ -1042,7 +1053,7 @@ NodeIter OriginCircuit::insertQNode(NodeIter & perIter, QNode * pQNode)
 
 NodeIter OriginCircuit::deleteQNode(NodeIter & targitIter)
 {
-
+    WriteLock wl(m_sm);
     Item * pTargitItem= targitIter.getPCur();
     if (nullptr == pTargitItem)
         throw exception();

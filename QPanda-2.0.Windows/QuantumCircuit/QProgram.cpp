@@ -209,7 +209,7 @@ QCircuit & QCircuit::dagger()
 {
     if (nullptr == m_pQuantumCircuit)
         throw exception();
-    m_pQuantumCircuit->subDagger();
+    m_pQuantumCircuit->setDagger(true);
     return *this;
 }
 
@@ -217,7 +217,7 @@ QCircuit & QCircuit::control(vector<Qubit *>& quBitVector)
 {
     if (nullptr == m_pQuantumCircuit)
         throw exception();
-    m_pQuantumCircuit->subControl(quBitVector);
+    m_pQuantumCircuit->setControl(quBitVector);
     return *this;
 }
 
@@ -945,12 +945,12 @@ void OriginCircuit::pushBackNode(QNode * pNode)
     }
 }
 
-void OriginCircuit::subDagger()
+void OriginCircuit::setDagger(bool isDagger)
 {
-    m_bIsDagger = true;
+    m_bIsDagger = isDagger;
 }
 
-void OriginCircuit::subControl(vector<Qubit*>& quBitVector )
+void OriginCircuit::setControl(vector<Qubit*>& quBitVector )
 {
     for (auto aiter : quBitVector)
     {

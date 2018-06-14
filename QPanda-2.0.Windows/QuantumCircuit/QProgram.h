@@ -188,8 +188,8 @@ public:
     virtual ~AbstractQuantumCircuit() {};
     virtual bool isDagger() const = 0;
     virtual bool getControlVector(vector<Qubit *> &) = 0;
-    virtual void  subDagger() {};
-    virtual void  subControl(vector<Qubit *> &) {};
+    virtual void  setDagger(bool isDagger) {};
+    virtual void  setControl(vector<Qubit *> &) {};
 };
 
 
@@ -276,8 +276,8 @@ public:
     ~OriginCircuit();
     void pushBackNode(QNode *);
 
-    void subDagger();
-    void subControl(vector<Qubit *> &);
+    void setDagger(bool);
+    void setControl(vector<Qubit *> &);
     NodeType getNodeType() const;
     bool isDagger() const;
     bool getControlVector(vector<Qubit *> &);

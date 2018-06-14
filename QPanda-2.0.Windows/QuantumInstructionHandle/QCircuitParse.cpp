@@ -16,7 +16,7 @@ limitations under the License.
 
 #include "./QCircuitParse.h"
 #include "../QuantumCircuit/QGlobalVariable.h"
-
+#include "QPanda/QPandaException.h"
 QGATE_FUN_MAP QGateParseMap::m_QGateFunctionMap = {};
 
 
@@ -283,6 +283,15 @@ QGateParse::QGateParse(QGate * pNode, QuantumGates * pGates, bool isDagger, vect
         m_controlQubitVector.push_back(aiter);
     }
 }
+bool compareQubit(Qubit * a, Qubit * b)
+{
+    return a->getPhysicalQubitPtr()->getQubitAddr() < b->getPhysicalQubitPtr()->getQubitAddr();
+}
+
+bool Qubitequal(Qubit * a, Qubit * b)
+{
+    return a->getPhysicalQubitPtr()->getQubitAddr() == b->getPhysicalQubitPtr()->getQubitAddr();
+}
 
 bool QGateParse::executeAction()
 {
@@ -290,13 +299,32 @@ bool QGateParse::executeAction()
     QuantumGate * pGate = m_pNode->getQGate();
     vector<Qubit * > qubitVector;
     m_pNode->getQuBitVector(qubitVector);
+    if (qubitVector.size() <= 0)
+    {
+        throw exception();
+    }
     vector<Qubit *> controlvector;
     m_pNode->getControlVector(controlvector);
     for (auto aiter : controlvector)
     {
         m_controlQubitVector.push_back(aiter);
     }
-    sort(m_controlQubitVector.begin(), m_controlQubitVector.end());
+    if (m_controlQubitVector.size() > 0)
+    {
+        sort(m_controlQubitVector.begin(), m_controlQubitVector.end(), compareQubit);
+        m_controlQubitVector.erase(unique(m_controlQubitVector.begin(), m_controlQubitVector.end(), Qubitequal), m_controlQubitVector.end());
+    }
+
+    for (auto aQIter : qubitVector)
+    {
+        for (auto aCIter : controlvector)
+        {
+            if (Qubitequal(aQIter, aCIter))
+            {
+                throw QPandaException("targitQubit == controlQubit",false);
+            }
+        }
+    }
     auto aiter = QGateParseMap::getFunction(pGate->getOpNum());
     aiter(m_pNode->getQGate(),qubitVector, m_pGates, bDagger, m_controlQubitVector);
     return true;
@@ -306,6 +334,7 @@ bool QGateParse::verify()
 {
     vector<Qubit *> qubitVector;
     m_pNode->getQuBitVector(qubitVector);
+    m_pNode->getControlVector(qubitVector);
     if (qubitVector.size() <= 0)
     {
         return true;

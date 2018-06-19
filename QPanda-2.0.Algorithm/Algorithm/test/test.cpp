@@ -235,11 +235,11 @@ void HHL_Algorithm1()
     QCircuit  ifcircuit = CreateEmptyCircuit();
     QCircuit  PSEcircuit = CreateEmptyCircuit();
     PSEcircuit << H(q1) << H(q2) << RZ(q2, 0.75*PI);
-    QGate  gat1 = QDouble(PI, 1.5*PI, -0.5*PI, PI / 2, q2, q3);
-    QGate   gat2 = QDouble(PI, 1.5*PI, -PI, PI / 2, q1, q3);
+    QGate  gat1 = CU(PI, 1.5*PI, -0.5*PI, PI / 2, q2, q3);
+    QGate   gat2 = CU(PI, 1.5*PI, -PI, PI / 2, q1, q3);
     PSEcircuit << gat1 << RZ(q1, 1.5*PI) << gat2 << CNOT(q1, q2) << CNOT(q2, q1) << CNOT(q1, q2);
     //PSEcircuit << gat1 << RZ(q1, 1.5*PI)<<gat2 ;
-    QGate  gat3 = QDouble(-0.25*PI, -0.5*PI, 0, 0, q2, q1);
+    QGate  gat3 = CU(-0.25*PI, -0.5*PI, 0, 0, q2, q1);
     PSEcircuit << H(q2) << gat3 << H(q1);     //PSE over
 
 
@@ -302,7 +302,7 @@ void HHL_Algorithm1()
 //    QuantumGate & gat = RX(qb, PI / 2);
 //    QuantumGate & gat1 = H(qb);
 //    QuantumGate & gat2 = QSingle(PI, 1.5*PI, -0.5*PI, PI / 2, qb);
-//    QuantumGate & gat3 = QDouble(PI, 1.5*PI, -0.5*PI, PI / 2, qb, qb2);
+//    QuantumGate & gat3 = CU(PI, 1.5*PI, -0.5*PI, PI / 2, qb, qb2);
 //
 //    gat1.setDagger(1);
 //    vector<Qubit *> controlVector;

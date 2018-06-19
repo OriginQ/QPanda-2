@@ -16,7 +16,7 @@ limitations under the License.
 
 #include "QGate.h"
 #include "QGlobalVariable.h"
-
+#include "QPanda/QPandaException.h"
 QuantumGate::QuantumGate()
 {
 	qOpNum = 0;
@@ -58,7 +58,7 @@ YGate::YGate(double angle)
 ZGate::ZGate()
 {
     alpha = PI / 2;
-    beta = PI/2;
+    beta = PI;
     gamma = 0;
     delta = 0;
 }
@@ -115,7 +115,7 @@ QSingleGate::QSingleGate(double _alpha,double _beta,double _gamma,double _delta)
 
 ////////////////////////////////////////////////////////////////
 
-QDoubleGate::QDoubleGate()
+CU::CU()
 {
     qOpNum = 2;
     alpha = 0;
@@ -123,7 +123,7 @@ QDoubleGate::QDoubleGate()
     gamma = 0;
     delta = 0;
 }
-QDoubleGate::QDoubleGate(QDoubleGate &toCopy)
+CU::CU(CU &toCopy)
 {
     qOpNum = toCopy.qOpNum;
     this->alpha = toCopy.alpha;
@@ -131,7 +131,7 @@ QDoubleGate::QDoubleGate(QDoubleGate &toCopy)
     this->gamma = toCopy.gamma;
     this->delta = toCopy.delta;
 }
-QDoubleGate::QDoubleGate(double _alpha, double _beta,
+CU::CU(double _alpha, double _beta,
     double _gamma, double _delta)
     : alpha(_alpha), beta(_beta), gamma(_gamma), delta(_delta)
 {
@@ -147,7 +147,7 @@ CNOTGate::CNOTGate()
 CZGate::CZGate()
 {
     alpha = PI / 2;
-    beta = PI / 2;
+    beta = PI ;
     gamma = 0;
     delta = 0;
 }
@@ -162,9 +162,14 @@ void QGateFactory::registClass(string name, CreateAngleGate method)
     m_angleGateMap.insert(pair<string, CreateAngleGate>(name, method));
 }
 
-void QGateFactory::registClass(string name, CreateSingleGate method)
+void QGateFactory::registClass(string name, CreateSingleAndCUGate method)
 {
-    m_unknowGateMap.insert(pair<string, CreateSingleGate>(name, method));
+    m_singleAndCUGateMap.insert(pair<string, CreateSingleAndCUGate>(name, method));
+}
+
+void QGateFactory::registClass(string name, CreateDoubleGate method)
+{
+    m_DoubleGateMap.insert(pair<string, CreateDoubleGate>(name, method));
 }
 
 
@@ -173,7 +178,7 @@ QuantumGate * QGateFactory::getGateNode(std::string & name)
     map<string, CreateGate>::const_iterator iter;
     iter = m_gateMap.find(name);
     if (iter == m_gateMap.end())
-        return NULL;
+        return nullptr;
     else
         return iter->second();
 }
@@ -183,19 +188,29 @@ QuantumGate * QGateFactory::getGateNode(std::string & name, double angle)
     map<string, CreateAngleGate>::const_iterator iter;
     iter = m_angleGateMap.find(name);
     if (iter == m_angleGateMap.end())
-        return NULL;
+        return nullptr;
     else
         return iter->second(angle);
 }
 
 QuantumGate * QGateFactory::getGateNode(std::string & name,double alpha, double beta, double gamma, double delta)
 {
-    map<string, CreateSingleGate>::const_iterator iter;
-    iter = m_unknowGateMap.find(name);
-    if (iter == m_unknowGateMap.end())
-        return NULL;
+    map<string, CreateSingleAndCUGate>::const_iterator iter;
+    iter = m_singleAndCUGateMap.find(name);
+    if (iter == m_singleAndCUGateMap.end())
+        return nullptr;
     else
         return iter->second(alpha, beta, gamma, delta);
+}
+
+QuantumGate * QGateFactory::getGateNode(std::string & name, QStat & matrix)
+{
+
+    auto iter = m_DoubleGateMap.find(name);
+    if (iter == m_DoubleGateMap.end())
+        return nullptr;
+    else
+        return iter->second(matrix);
 }
 
 #define REGISTER(className)                                             \
@@ -212,6 +227,7 @@ REGISTER(SGate);
 REGISTER(HadamardGate);
 REGISTER(CNOTGate);
 REGISTER(CZGate);
+REGISTER(iSwapGate);
 
 #define REGISTER_ANGLE(className)                                             \
     QuantumGate* objectCreator##className(double angle){                              \
@@ -220,18 +236,78 @@ REGISTER(CZGate);
     RegisterAction g_angleCreatorRegister##className(                        \
         #className,(CreateAngleGate)objectCreator##className)
 
-#define REGISTER_UNKNOW(className)                                             \
+#define REGISTER_SINGLE_CU(className)                                             \
     QuantumGate* objectCreator##className(double alpha,double beta,double gamma,double delta){      \
         return new className(alpha,beta,gamma,delta);                    \
     }                                                                   \
-    RegisterAction g_unknowCreatorRegister##className(                        \
-        #className,(CreateSingleGate)objectCreator##className)
+    RegisterAction g_singleCreatorRegister##className(                        \
+        #className,(CreateSingleAndCUGate)objectCreator##className)
 
+#define REGISTER_DOUBLE(className)                                             \
+    QuantumGate* objectCreator##className(QStat & matrix){      \
+        return new className(matrix);                    \
+    }                                                                   \
+    RegisterAction g_doubleCreatorRegister##className(                        \
+        #className,(CreateDoubleGate)objectCreator##className)
 
 
 REGISTER_ANGLE(XGate);
 REGISTER_ANGLE(YGate);
 REGISTER_ANGLE(ZGate);
 
-REGISTER_UNKNOW(QSingleGate);
-REGISTER_UNKNOW(QDoubleGate);
+REGISTER_SINGLE_CU(QSingleGate);
+REGISTER_SINGLE_CU(CU);
+
+REGISTER_DOUBLE(QDoubleGate);
+
+QDoubleGate::QDoubleGate(const QDoubleGate & oldDouble) 
+{
+    this->qOpNum = ISWAP;
+    QStat Matrix(16,0);
+    oldDouble.getMatrix(Matrix);
+    
+    for (auto aiter : Matrix)
+    {
+        m_matrix.push_back(aiter);
+    }
+
+}
+
+QDoubleGate::QDoubleGate(QStat & matrix) : qOpNum(3)
+{
+    if (matrix.size() <= 0)
+        throw param_error_exception("this param for this function is err", false);
+    for (auto aIter : matrix)
+    {
+        m_matrix.push_back(aIter);
+    }
+}
+
+void QDoubleGate::getMatrix(QStat & matrix) const
+{
+    if (m_matrix.size() <= 0)
+        throw exception();
+    for (auto aIter : m_matrix)
+    {
+        matrix.push_back(aIter);
+    }
+}
+
+iSwapGate::iSwapGate() : m_matrix(16,0)
+{
+    m_matrix[0] = 1;
+    m_matrix[6] = -1i;
+    m_matrix[9] = -1i;
+    m_matrix[15] = 1;
+    qOpNum = ISWAP;
+}
+
+void iSwapGate::getMatrix(QStat & matrix) const
+{
+    if (m_matrix.size() <= 0)
+        throw exception();
+    for (auto aIter : m_matrix)
+    {
+        matrix.push_back(aIter);
+    }
+}

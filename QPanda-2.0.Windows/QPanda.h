@@ -81,8 +81,9 @@ extern QGate CZ(Qubit* targetQBit, Qubit* controlQBit);
 extern QGate QSingle(double alpha, double beta, double gamma, double delta, Qubit *);
 
 // Create a control-U gate
-extern QGate QDouble(double alpha, double beta, double gamma, double delta, Qubit *, Qubit *);
+extern QGate CU(double alpha, double beta, double gamma, double delta, Qubit *, Qubit *);
 
+extern QGate  iSwap(Qubit * targitBit, Qubit * controlBit);
 // to init the environment. Use this at the beginning
 void init();
 
@@ -125,4 +126,3 @@ ClassicalCondition bind_a_cbit(CBit* c);
 void run();
 
 #endif // !_QPANDA_H
-

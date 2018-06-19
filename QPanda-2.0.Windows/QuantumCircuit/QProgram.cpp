@@ -570,8 +570,16 @@ QGate  QGateNodeFactory::getGateNode(double alpha, double beta, double gamma, do
 
 QGate  QGateNodeFactory::getGateNode(double alpha, double beta, double gamma, double delta, Qubit * targetQBit, Qubit * controlQBit)
 {
-    string name = "QDoubleGate";
+    string name = "CU";
     QuantumGate * pGate = m_pGateFact->getGateNode(name,alpha, beta, gamma, delta);
+    QGate  QGateNode(targetQBit, controlQBit, pGate);
+    return QGateNode;
+}
+
+QGate QGateNodeFactory::getGateNode(QStat matrix, Qubit * targetQBit, Qubit * controlQBit)
+{
+    string name = "QDouble";
+    QuantumGate * pGate = m_pGateFact->getGateNode(name, matrix);
     QGate  QGateNode(targetQBit, controlQBit, pGate);
     return QGateNode;
 }
@@ -609,6 +617,13 @@ QGate  RZ(Qubit * qbit, double angle)
     return _gs_pGateNodeFactory->getGateNode(name, qbit, angle);
 }
 
+
+QGate  iSwap(Qubit * targitBit,Qubit * controlBit)
+{
+    string name = "iSwapGate";
+    return _gs_pGateNodeFactory->getGateNode(name, targitBit, controlBit);
+}
+
 QGate  S(Qubit * qbit)
 {
     string name = "SGate";
@@ -638,10 +653,17 @@ QGate  QSingle(double alpha, double beta, double gamma, double delta, Qubit * qb
     return _gs_pGateNodeFactory->getGateNode(alpha, beta, gamma, delta ,qbit);
 }
 
-QGate  QDouble(double alpha, double beta, double gamma, double delta, Qubit * targetQBit, Qubit * controlQBit)
+QGate  CU(double alpha, double beta, double gamma, double delta, Qubit * targetQBit, Qubit * controlQBit)
 {
     return _gs_pGateNodeFactory->getGateNode(alpha, beta, gamma, delta, targetQBit, controlQBit);
 }
+
+
+QGate  QDouble(QStat matrix, Qubit * targetQBit, Qubit * controlQBit)
+{
+    return _gs_pGateNodeFactory->getGateNode(matrix, targetQBit, controlQBit);
+}
+
 
 
 

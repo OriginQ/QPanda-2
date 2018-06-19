@@ -411,7 +411,7 @@ public:
     QGate  getGateNode(string & name, Qubit *, Qubit*);
     QGate  getGateNode(double alpha, double beta, double gamma, double delta, Qubit *);
     QGate  getGateNode(double alpha, double beta, double gamma, double delta, Qubit *, Qubit *);
-
+    QGate  getGateNode(QStat matrix, Qubit *, Qubit *);
 private:
     QGateNodeFactory()
     {

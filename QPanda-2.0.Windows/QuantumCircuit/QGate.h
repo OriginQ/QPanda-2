@@ -19,6 +19,8 @@ limitations under the License.
 
 #include <map>
 #include <functional>
+#include <vector>
+#include <complex>
 #define PI 3.14159265358979
 
 #define SINGLE_GATE_TYPE 1
@@ -27,6 +29,7 @@ limitations under the License.
 
 using namespace std;
 
+typedef vector <complex<double>> QStat;
 class QuantumGate
 {
 protected:
@@ -39,22 +42,26 @@ public:
     virtual double getGamma() const = 0;
     virtual double getDelta() const = 0;
     virtual int getOpNum() const = 0;
+    virtual void getMatrix(QStat & matrix) {};
 };
 
 
 typedef QuantumGate* (*CreateGate)(void);
 typedef QuantumGate* (*CreateAngleGate)(double);
-typedef QuantumGate* (*CreateSingleGate)(double, double, double, double);
+typedef QuantumGate* (*CreateSingleAndCUGate)(double, double, double, double);
+typedef QuantumGate* (*CreateDoubleGate)(QStat &);
 
 class QGateFactory
 {
 public:
     void registClass(string name, CreateGate method);
     void registClass(string name, CreateAngleGate method);
-    void registClass(string name, CreateSingleGate method);
+    void registClass(string name, CreateSingleAndCUGate method);
+    void registClass(string name, CreateDoubleGate method);
     QuantumGate * getGateNode(std::string &);
     QuantumGate * getGateNode(std::string &, double angle);
     QuantumGate * getGateNode(std::string &, double alpha, double beta, double gamma, double delta);
+    QuantumGate * getGateNode(std::string &, QStat&);
 
     static QGateFactory * getInstance()
     {
@@ -65,7 +72,8 @@ private:
 private:
     map<string, CreateGate> m_gateMap;
     map<string, CreateAngleGate> m_angleGateMap;
-    map<string, CreateSingleGate> m_unknowGateMap;
+    map<string, CreateSingleAndCUGate> m_singleAndCUGateMap;
+    map<string, CreateDoubleGate> m_DoubleGateMap;
     QGateFactory() {};
 
 };
@@ -78,34 +86,14 @@ public:
     RegisterAction(string className, CreateAngleGate ptrCreateFn) {
         QGateFactory::getInstance()->registClass(className, ptrCreateFn);
     }
-    RegisterAction(string className, CreateSingleGate ptrCreateFn) {
+    RegisterAction(string className, CreateSingleAndCUGate ptrCreateFn) {
+        QGateFactory::getInstance()->registClass(className, ptrCreateFn);
+    }
+    RegisterAction(string className, CreateDoubleGate ptrCreateFn) {
         QGateFactory::getInstance()->registClass(className, ptrCreateFn);
     }
 };
-class iSwapGate : public QuantumGate
-{
-public:
-    inline int getOpNum() const
-    {
-        return ISWAP;
-    }
-    inline double getAlpha()const
-    {
-        return 0;
-    }
-    inline double getBeta() const
-    {
-        return 0;
-    }
-    inline double getGamma() const
-    {
-        return 0;
-    }
-    inline double getDelta() const
-    {
-        return 0;
-    }
-};
+
 
 class QSingleGate : public QuantumGate
 {
@@ -174,7 +162,7 @@ public:
     HadamardGate();
 };
 //double quantum gates,contain CNOT ,CZ gates
-class QDoubleGate : public QuantumGate
+class CU : public QuantumGate
 {
 
 protected:
@@ -183,9 +171,9 @@ protected:
     double gamma;
     double delta;
 public:
-    QDoubleGate(QDoubleGate&);
-    QDoubleGate();
-    QDoubleGate(double, double, double,double);
+    CU(CU&);
+    CU();
+    CU(double, double, double,double);
 
     inline double getAlpha() const
     {
@@ -211,14 +199,64 @@ public:
     }
     //QSingleGate(double, double, double);
 };
-class CNOTGate : public QDoubleGate
+class CNOTGate : public CU
 {
 public:
     CNOTGate();
 };
-class CZGate : public QDoubleGate
+class CZGate : public CU
 {
 public:
     CZGate();
 };
+
+
+class QDoubleGate : public QuantumGate 
+{
+public:
+    QDoubleGate() {};
+    QDoubleGate(const QDoubleGate & oldDouble);
+    QDoubleGate (QStat & matrix);
+    ~QDoubleGate() {};
+    inline int getOpNum() const
+    {
+        return ISWAP;
+    }
+    inline double getAlpha()const
+    {
+        return 0;
+    }
+    inline double getBeta() const
+    {
+        return 0;
+    }
+    inline double getGamma() const
+    {
+        return 0;
+    }
+    inline double getDelta() const
+    {
+        return 0;
+    }
+
+    virtual void getMatrix(QStat & matrix) const;
+
+protected:
+    QStat m_matrix;
+    int qOpNum;
+
+};
+
+class iSwapGate : public QDoubleGate
+{
+public:
+    iSwapGate();
+    ~iSwapGate() {};
+    void getMatrix(QStat & matrix) const;
+private:
+    QStat m_matrix;
+    int qOpNum;
+
+};
+
 #endif

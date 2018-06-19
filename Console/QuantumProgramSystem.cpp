@@ -37,7 +37,7 @@ int main()
     prog << cir << Measure(qbit, cbit);
     load(prog);
     run();
-    */
+   
     try
     {
 		int repeat = 1000;
@@ -48,8 +48,18 @@ int main()
         cout<<e.what()<<endl;
 		return 1;
     }
+    */
+    init();
+    auto  a = qAlloc();
+    auto b = qAlloc();
+    auto cc = cAlloc();
+    auto prog = CreateEmptyQProg();
+    prog << RX(a) << iSwap(a, b)<<Measure(a,cc);
+    load(prog);
+    run();
+    finalize();
 
-   // getchar();
+    getchar();
     
 //    getchar();
     return 0;

@@ -59,7 +59,7 @@ int main()
     run();
     finalize();
 
-    getchar();
+//    getchar();
     
 //    getchar();
     return 0;

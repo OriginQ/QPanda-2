@@ -296,8 +296,8 @@ void QDoubleGate::getMatrix(QStat & matrix) const
 iSwapGate::iSwapGate() : m_matrix(16,0)
 {
     m_matrix[0] = 1;
-    m_matrix[6] = -1i;
-    m_matrix[9] = -1i;
+    m_matrix[6].imag(-1);
+    m_matrix[9].imag(-1);
     m_matrix[15] = 1;
     qOpNum = ISWAP;
 }

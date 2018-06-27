@@ -17,7 +17,8 @@ INCLUDE = -I $(ROOT_DIR)/Console \
 		  -I $(ROOT_DIR)/QPanda-2.0.Windows/QPanda \
 		  -I $(ROOT_DIR)/QPanda-2.0.Windows \
 		  -I $(ROOT_DIR)/QPanda-2.0.Windows/QuantumInstructionHandle \
-		  -I $(ROOT_DIR)/QPanda-2.0.Windows/QuantumMachin
+		  -I $(ROOT_DIR)/QPanda-2.0.Windows/QuantumMachin \
+		  -I $(ROOT_DIR)/TinyXML
 export CC BIN ABIN QBIN OBJS_DIR AOBJS_DIR QOBJS_DIR COBJS_DIR BIN_DIR ROOT_DIR
 all : MKDIE $(SUBDIRS)  RELEASE
 	

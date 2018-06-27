@@ -27,18 +27,28 @@ enum NodeType
     QIF_START_NODE
 };
 
-enum GateType
-{
-    GATE_UNDEFINED = -1,
-    H_GATE,
+enum GATE_TYPE {
+    PAULI_X_GATE,
+    PAULI_Y_GATE,
+    PAULI_Z_GATE,
+    HADAMARD_GATE,
+    T_GATE,
+    S_GATE,
     RX_GATE,
     RY_GATE,
     RZ_GATE,
-    S_GATE,
+    U1_GATE,
+    U2_GATE,
+    U3_GATE,
+    U4_GATE,
+    CU_GATE,
     CNOT_GATE,
     CZ_GATE,
-
-
+    CPHASE_GATE,
+    ISWAP_THETA_GATE,
+    ISWAP_GATE,
+    SQISWAP_GATE,
+    TWO_QUBIT_GATE
 };
 
 enum Operatortype

@@ -31,7 +31,7 @@ QProg  Reset_Qubit_Circuit(Qubit *q, CBit* cbit, bool setVal)
 	prog << Measure(q, cbit);
 	auto cond = bind_a_cbit(cbit);
 	auto resetcircuit = CreateEmptyCircuit();
-	resetcircuit << RX(q);
+	resetcircuit << X(q);
 	auto no_reset = CreateEmptyCircuit();
 	if (setVal==false)
 		prog << CreateIfProg(cond, &resetcircuit, &no_reset);

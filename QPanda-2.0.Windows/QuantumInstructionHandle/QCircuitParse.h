@@ -123,8 +123,6 @@ public:
     ~QGateParse() {};
     bool executeAction();
     bool verify();
-    static void singleGateAngletoNum(double alpha, double beta, double gamma, double delta, QStat &matrix);
-    static void DoubleGateAngletoNum(double alpha, double beta, double gamma, double delta, QStat &matrix);
 private:
     QGateParse();
 

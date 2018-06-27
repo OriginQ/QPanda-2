@@ -16,6 +16,7 @@ limitations under the License.
 
 #include "QProgram.h"
 #include "QPanda/QPandaException.h"
+#include "..\QPanda.h"
 
 
 QProg  CreateEmptyQProg()
@@ -560,9 +561,16 @@ QGate  QGateNodeFactory::getGateNode(string & name, Qubit * targetQBit, Qubit * 
     return QGateNode;
 }
 
+QGate  QGateNodeFactory::getGateNode(string & name, Qubit * targetQBit, Qubit * controlQBit,double theta)
+{
+    QuantumGate * pGate = m_pGateFact->getGateNode(name,theta);
+    QGate  QGateNode(targetQBit, controlQBit, pGate);
+    return QGateNode;
+}
+
 QGate  QGateNodeFactory::getGateNode(double alpha, double beta, double gamma, double delta, Qubit * qbit)
 {
-    string name = "QSingleGate";
+    string name = "U4";
     QuantumGate * pGate = m_pGateFact->getGateNode(name,alpha, beta, gamma, delta);
     QGate  QGateNode(qbit, pGate);
     return QGateNode;
@@ -586,65 +594,78 @@ QGate QGateNodeFactory::getGateNode(QStat matrix, Qubit * targetQBit, Qubit * co
 
 static QGateNodeFactory * _gs_pGateNodeFactory = QGateNodeFactory::getInstance();
 
-QGate  RX(Qubit * qbit)
+QGate  X(Qubit * qbit)
 {
-    string name = "XGate";
+    string name = "X";
     return _gs_pGateNodeFactory->getGateNode(name, qbit);
 }
 QGate  RX(Qubit * qbit,double angle)
 {
-    string name = "XGate";
+    string name = "RX";
     return _gs_pGateNodeFactory->getGateNode(name, qbit, angle);
 }
-QGate  RY(Qubit * qbit)
+QGate  Y(Qubit * qbit)
 {
-    string name = "YGate";
+    string name = "Y";
     return _gs_pGateNodeFactory->getGateNode(name, qbit);
 }
 QGate  RY(Qubit * qbit, double angle)
 {
-    string name = "YGate";
+    string name = "RY";
     return _gs_pGateNodeFactory->getGateNode(name, qbit, angle);
 }
-QGate  RZ(Qubit * qbit)
+QGate  Z(Qubit * qbit)
 {
-    string name = "ZGate";
+    string name = "Z";
     return _gs_pGateNodeFactory->getGateNode(name, qbit);
 }
 QGate  RZ(Qubit * qbit, double angle)
 {
-    string name = "ZGate";
+    string name = "RZ";
     return _gs_pGateNodeFactory->getGateNode(name, qbit, angle);
 }
 
 
-QGate  iSwap(Qubit * targitBit,Qubit * controlBit)
+QGate  iSWAP(Qubit * targitBit,Qubit * controlBit)
 {
-    string name = "iSwapGate";
+    string name = "ISWAP";
     return _gs_pGateNodeFactory->getGateNode(name, targitBit, controlBit);
 }
 
+QGate  iSWAP(Qubit * targitBit, Qubit * controlBit,double theta)
+{
+    string name = "ISWAP";
+    return _gs_pGateNodeFactory->getGateNode(name, targitBit, controlBit, theta);
+}
+
+QGate SqiSWAP(Qubit * targitBit, Qubit * controlBit)
+{
+    string name = "SQISWAP";
+    return _gs_pGateNodeFactory->getGateNode(name, targitBit, controlBit);
+}
+
+
 QGate  S(Qubit * qbit)
 {
-    string name = "SGate";
+    string name = "S";
     return _gs_pGateNodeFactory->getGateNode(name, qbit);
 }
 
 QGate  H(Qubit * qbit)
 {
-    string name = "HadamardGate";
+    string name = "H";
     return _gs_pGateNodeFactory->getGateNode(name, qbit);
 }
 
 QGate  CNOT(Qubit * targetQBit, Qubit * controlQBit)
 {
-    string name = "CNOTGate";
+    string name = "CNOT";
     return _gs_pGateNodeFactory->getGateNode(name, targetQBit, controlQBit);
 }
 
 QGate  CZ(Qubit * targetQBit, Qubit * controlQBit)
 {
-    string name = "CZGate";
+    string name = "CZ";
     return _gs_pGateNodeFactory->getGateNode(name, targetQBit, controlQBit);
 }
 

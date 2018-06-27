@@ -22,31 +22,31 @@ QProg Grover(vector<Qubit*> qVec, vector<CBit*> cVec, int target)
     QCircuit  init = CreateEmptyCircuit();
     QCircuit  oracle = CreateEmptyCircuit();
     QCircuit  reverse = CreateEmptyCircuit();
-    init << H(qVec[0]) << H(qVec[1]) << RX(qVec[2]) << H(qVec[2]);
+    init << H(qVec[0]) << H(qVec[1]) << X(qVec[2]) << H(qVec[2]);
     vector<Qubit *> controlVector;
     controlVector.push_back(qVec[0]);
     controlVector.push_back(qVec[1]);
-    //QSingleGate  sqrtH(0.5*PI, 0, 0.25*PI, PI);
-    QGate  toff = RX(qVec[2]);
+    //U4  sqrtH(0.5*PI, 0, 0.25*PI, PI);
+    QGate  toff = X(qVec[2]);
     toff.setControl(controlVector);
     switch (target)
     {
     case 0:
-        oracle << RX(qVec[0]) << RX(qVec[1]) << toff << RX(qVec[0]) << RX(qVec[1]);
+        oracle << X(qVec[0]) << X(qVec[1]) << toff << X(qVec[0]) << X(qVec[1]);
         break;
     case 1:
-        oracle << RX(qVec[0]) << toff << RX(qVec[0]);
+        oracle << X(qVec[0]) << toff << X(qVec[0]);
         break;
     case 2:
-        oracle << RX(qVec[1]) << toff << RX(qVec[1]);
+        oracle << X(qVec[1]) << toff << X(qVec[1]);
         break;
     case 3:
         oracle << toff;
         break;
     }
-    reverse << H(qVec[0]) << H(qVec[1]) << RX(qVec[0]) << RX(qVec[1])
+    reverse << H(qVec[0]) << H(qVec[1]) << X(qVec[0]) << X(qVec[1])
         << H(qVec[1]) << CNOT(qVec[0], qVec[1]);
-    reverse << H(qVec[1]) << RX(qVec[0]) << RX(qVec[1]) << H(qVec[0]) << H(qVec[1]) << RX(qVec[2]);
+    reverse << H(qVec[1]) << X(qVec[0]) << X(qVec[1]) << H(qVec[0]) << H(qVec[1]) << X(qVec[2]);
     grover << init << oracle << reverse << Measure(qVec[0], cVec[0]) << Measure(qVec[1], cVec[1]);
     return grover;
 }

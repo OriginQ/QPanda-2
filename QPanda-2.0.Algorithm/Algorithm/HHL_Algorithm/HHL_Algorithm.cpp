@@ -147,7 +147,7 @@ QCircuit hhlPse(vector<Qubit*> qVec)
     QGate   gat2 = CU(PI, 1.5*PI, -PI, PI / 2, qVec[1], qVec[3]);
     PSEcircuit << gat1 << RZ(qVec[1], 1.5*PI) << gat2;
     PSEcircuit << CNOT(qVec[1], qVec[2]) << CNOT(qVec[2], qVec[1]) << CNOT(qVec[1], qVec[2]);
-    //PSEcircuit << gat1 << RZ(q1, 1.5*PI)<<gat2 ;
+    //PSEcircuit << gat1 << RZ_GATE(q1, 1.5*PI)<<gat2 ;
     QGate  gat3 = CU(-0.25*PI, -0.5*PI, 0, 0, qVec[2], qVec[1]);
     PSEcircuit << H(qVec[2]) << gat3 << H(qVec[1]);     //PSE over
     return PSEcircuit;
@@ -164,7 +164,7 @@ QCircuit CRotate(vector<Qubit*> qVec)
     gat5.setControl(controlVector);
     QGate  gat6 = RY(qVec[0], 0.679673818908);  //arcsin(1/3)
     gat6.setControl(controlVector);
-    CRot << RX(qVec[1]) << gat4 << RX(qVec[1]) << RX(qVec[2]) << gat5 << RX(qVec[2]) << gat6;
-    //CRot << RX(qVec[1]) << gat4 << RX(qVec[1]);
+    CRot << X(qVec[1]) << gat4 << X(qVec[1]) << X(qVec[2]) << gat5 << X(qVec[2]) << gat6;
+    //CRot << X(qVec[1]) << gat4 << X(qVec[1]);
     return CRot;
 }

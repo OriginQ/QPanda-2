@@ -48,24 +48,24 @@ extern QCircuit  CreateEmptyCircuit();
 extern QMeasure Measure(Qubit * targetQuBit, CBit * targetCbit);
 
 // Create a X gate
-extern QGate  RX(Qubit* qbit);
+extern QGate  X(Qubit* qbit);
 
 // Create a X rotation
 extern QGate RX(Qubit*, double angle);
 
 // Create a Y gate
-extern QGate  RY(Qubit* qbit);
+extern QGate  Y(Qubit* qbit);
 
 // Create a Y rotation
 extern QGate RY(Qubit*, double angle);
 
 // Create a Z gate
-extern QGate RZ(Qubit* qbit);
+extern QGate Z(Qubit* qbit);
 
 // Create a Z rotation
 extern QGate RZ(Qubit*, double angle);
 
-// Create S gate
+// Create S_GATE gate
 extern QGate S(Qubit* qbit);
 
 // Create Hadamard Gate
@@ -83,7 +83,10 @@ extern QGate QSingle(double alpha, double beta, double gamma, double delta, Qubi
 // Create a control-U gate
 extern QGate CU(double alpha, double beta, double gamma, double delta, Qubit *, Qubit *);
 
-extern QGate  iSwap(Qubit * targitBit, Qubit * controlBit);
+extern QGate  iSWAP(Qubit * targitBit, Qubit * controlBit);
+extern QGate  iSWAP(Qubit * targitBit, Qubit * controlBit, double theta);
+
+extern QGate  SqiSWAP(Qubit * targitBit, Qubit * controlBit);
 // to init the environment. Use this at the beginning
 void init();
 

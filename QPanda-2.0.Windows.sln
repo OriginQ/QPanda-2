@@ -16,6 +16,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Console", "Console\Console.
 		{AF428F4C-099D-4635-92CC-E8C11AD52372} = {AF428F4C-099D-4635-92CC-E8C11AD52372}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TinyXML", "TinyXML\TingXML.vcxproj", "{8C36863D-0E20-493E-9D9E-873EE8B86A17}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -48,6 +50,14 @@ Global
 		{26FBE2D6-A662-44A8-8FA9-996E4AE90F8B}.Release|x64.Build.0 = Release|x64
 		{26FBE2D6-A662-44A8-8FA9-996E4AE90F8B}.Release|x86.ActiveCfg = Release|Win32
 		{26FBE2D6-A662-44A8-8FA9-996E4AE90F8B}.Release|x86.Build.0 = Release|Win32
+		{8C36863D-0E20-493E-9D9E-873EE8B86A17}.Debug|x64.ActiveCfg = Debug|x64
+		{8C36863D-0E20-493E-9D9E-873EE8B86A17}.Debug|x64.Build.0 = Debug|x64
+		{8C36863D-0E20-493E-9D9E-873EE8B86A17}.Debug|x86.ActiveCfg = Debug|Win32
+		{8C36863D-0E20-493E-9D9E-873EE8B86A17}.Debug|x86.Build.0 = Debug|Win32
+		{8C36863D-0E20-493E-9D9E-873EE8B86A17}.Release|x64.ActiveCfg = Release|x64
+		{8C36863D-0E20-493E-9D9E-873EE8B86A17}.Release|x64.Build.0 = Release|x64
+		{8C36863D-0E20-493E-9D9E-873EE8B86A17}.Release|x86.ActiveCfg = Release|Win32
+		{8C36863D-0E20-493E-9D9E-873EE8B86A17}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

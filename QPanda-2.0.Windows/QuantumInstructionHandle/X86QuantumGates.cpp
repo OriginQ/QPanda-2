@@ -249,8 +249,8 @@ QError X86QuantumGates::Hadamard(size_t  qn,
 }
 
 /*****************************************************************************************************************
-Name:        RX
-Description: RX gate,quantum state rotates ¦È by x axis.The matric is:
+Name:        RX_GATE
+Description: RX_GATE gate,quantum state rotates ¦È by x axis.The matric is:
              [cos(¦È/2),-i*sin(¦È/2);i*sin(¦È/2),cos(¦È/2)]
 Argin:       qn          qubit number that the Hadamard gate operates on.
              theta       rotation angle
@@ -258,7 +258,7 @@ Argin:       qn          qubit number that the Hadamard gate operates on.
 Argout:      None
 return:      quantum error
 *****************************************************************************************************************/
-QError X86QuantumGates::RX(size_t qn, double theta, double error_rate)
+QError X86QuantumGates::RX_GATE(size_t qn, double theta, double error_rate)
 {
     /*
      *  judge errorrate of the gate
@@ -292,8 +292,8 @@ QError X86QuantumGates::RX(size_t qn, double theta, double error_rate)
 }
 
 /*****************************************************************************************************************
-Name:        RX
-Description: RX dagger gate,quantum state rotates ¦È by x axis.The matric is:
+Name:        RX_GATE
+Description: RX_GATE dagger gate,quantum state rotates ¦È by x axis.The matric is:
              [cos(¦È/2),-i*sin(¦È/2);i*sin(¦È/2),cos(¦È/2)]
 Argin:       qn          qubit number that the Hadamard gate operates on.
              theta       rotation angle
@@ -302,7 +302,7 @@ Argin:       qn          qubit number that the Hadamard gate operates on.
 Argout:      None
 return:      quantum error
 *****************************************************************************************************************/
-QError X86QuantumGates::RX(size_t qn, double theta, double error_rate, int iDagger)
+QError X86QuantumGates::RX_GATE(size_t qn, double theta, double error_rate, int iDagger)
 {
     if (!iDagger)
     {
@@ -340,8 +340,8 @@ QError X86QuantumGates::RX(size_t qn, double theta, double error_rate, int iDagg
 }
 
 /*****************************************************************************************************************
-Name:        RX
-Description: controled-RX gate
+Name:        RX_GATE
+Description: controled-RX_GATE gate
 Argin:       qn                 qubit number that the Hadamard gate operates on.
              theta              rotation angle
              error_rate         the errorrate of the gate
@@ -350,7 +350,7 @@ Argin:       qn                 qubit number that the Hadamard gate operates on.
 Argout:      None
 return:      quantum error
 *****************************************************************************************************************/
-QError X86QuantumGates::RX(size_t   qn,
+QError X86QuantumGates::RX_GATE(size_t   qn,
                            double   theta,
                            double   error_rate,
                            Qnum     vControlBitNumber,
@@ -408,8 +408,8 @@ QError X86QuantumGates::RX(size_t   qn,
 }
 
 /*****************************************************************************************************************
-Name:        RX
-Description: controled-RX dagger gate
+Name:        RX_GATE
+Description: controled-RX_GATE dagger gate
 Argin:       qn                 qubit number that the Hadamard gate operates on.
              theta              rotation angle
              error_rate         the errorrate of the gate
@@ -419,7 +419,7 @@ Argin:       qn                 qubit number that the Hadamard gate operates on.
 Argout:      None
 return:      quantum error
 *****************************************************************************************************************/
-QError X86QuantumGates::RX(size_t  qn,
+QError X86QuantumGates::RX_GATE(size_t  qn,
                            double  theta,
                            double  error_rate,
                            Qnum    vControlBitNumber,
@@ -482,8 +482,8 @@ QError X86QuantumGates::RX(size_t  qn,
 }
 
 /*****************************************************************************************************************
-Name:        RY
-Description: RY control gate
+Name:        RY_GATE
+Description: RY_GATE control gate
 Argin:       qn                 qubit number that the Hadamard gate operates on.
              theta              rotation angle
              error_rate         the errorrate of the gate
@@ -559,9 +559,9 @@ QError X86QuantumGates::RY(size_t   qn,
 }
 
 /*****************************************************************************************************************
-Name:        RY
+Name:        RY_GATE
  
-Description: RY gate,quantum state rotates ¦È by y axis.The matric is
+Description: RY_GATE gate,quantum state rotates ¦È by y axis.The matric is
              [cos(¦È/2),-sin(¦È/2);sin(¦È/2),cos(¦È/2)]
 Argin:       qn          qubit number that the Hadamard gate operates on.
                          theta        rotation angle
@@ -610,8 +610,8 @@ QError X86QuantumGates::RY(size_t qn, double theta, double error_rate, int iDagg
 }
 
 /*****************************************************************************************************************
-Name:        RZ
-Description: RZ gate,quantum state rotates ¦È by z axis.The matric is
+Name:        RZ_GATE
+Description: RZ_GATE gate,quantum state rotates ¦È by z axis.The matric is
              [1 0;0 exp(i*¦È)]
 Argin:       qn          qubit number that the Hadamard gate operates on.
              theta       rotation angle
@@ -666,8 +666,8 @@ QError X86QuantumGates::RZ(size_t qn, double theta, double error_rate, int iDagg
 }
 
 /*****************************************************************************************************************
-Name:        RZ
-Description: RZ gate
+Name:        RZ_GATE
+Description: RZ_GATE gate
 Argin:       qn                 qubit number that the Hadamard gate operates on.
              theta              rotation angle
              error_rate         the errorrate of the gate
@@ -742,8 +742,8 @@ QError X86QuantumGates :: RZ(size_t   qn,
 }
 
 /*****************************************************************************************************************
-Name: CNOT
-Description: CNOT gate,when control qubit is |0>,goal qubit does flip,
+Name: CNOT_GATE
+Description: CNOT_GATE gate,when control qubit is |0>,goal qubit does flip,
              when control qubit is |1>,goal qubit flips.the matric is:
              [1 0 0 0;0 1 0 0;0 0 0 1;0 0 1 0]
 Argin:       qn_1        control qubit number
@@ -822,8 +822,8 @@ QError X86QuantumGates::CNOT(size_t qn_1, size_t qn_2, double error_rate)
 }  
 
 /*****************************************************************************************************************
-Name:        CNOT
-Description: CNOT control gate
+Name:        CNOT_GATE
+Description: CNOT_GATE control gate
 Argin:       qn_1               control qubit number
              qn_2               goal qubit number
              error_rate         the errorrate of the gate

@@ -89,8 +89,8 @@ public:
     QError Hadamard(size_t qn, double error_rate, Qnum  vControlBit, size_t stQuantumBitNumber);
 
     /*************************************************************************************************************
-    Name:        RX
-    Description: RX gate,quantum state rotates ¦È by x axis.The matric is:
+    Name:        RX_GATE
+    Description: RX_GATE gate,quantum state rotates ¦È by x axis.The matric is:
                  [cos(¦È/2),-i*sin(¦È/2);i*sin(¦È/2),cos(¦È/2)]
     Argin:       psi         reference of vector<complex<double>> which contains quantum state information.
                  qn          qubit number that the Hadamard gate operates on.
@@ -99,11 +99,11 @@ public:
     Argout:      psi         quantum state after the gate
     return:      quantum error
     *************************************************************************************************************/
-    QError RX(size_t qn, double theta, double error_rate = 0);
+    QError RX_GATE(size_t qn, double theta, double error_rate = 0);
 
     /*************************************************************************************************************
-    Name:        RX
-    Description: RX dagger gate,quantum state rotates ¦È by x axis.The matric is:
+    Name:        RX_GATE
+    Description: RX_GATE dagger gate,quantum state rotates ¦È by x axis.The matric is:
                  [cos(¦È/2),-i*sin(¦È/2);i*sin(¦È/2),cos(¦È/2)]
     Argin:       psi         reference of vector<complex<double>> which contains quantum state information.
                  qn          qubit number that the Hadamard gate operates on.
@@ -113,11 +113,11 @@ public:
     Argout:      psi         quantum state after the gate
     return:      quantum error
     *************************************************************************************************************/
-    QError RX(size_t qn, double theta, double error_rate, int iDagger);
+    QError RX_GATE(size_t qn, double theta, double error_rate, int iDagger);
 
     /*************************************************************************************************************
-    Name:        RX
-    Description: controled-RX gate
+    Name:        RX_GATE
+    Description: controled-RX_GATE gate
     Argin:       psi                reference of vector<complex<double>> which contains quantum state information.
                  qn                 qubit number that the Hadamard gate operates on.
                  theta              rotation angle
@@ -127,15 +127,15 @@ public:
     Argout:      psi                quantum state after the gate
     return:      quantum error
     *************************************************************************************************************/
-    QError RX(size_t  qn, 
+    QError RX_GATE(size_t  qn, 
               double  theta, 
               double  error_rate,
               Qnum    vControlBitNumber,
               size_t  stQuantumBitNumber);
 
     /*************************************************************************************************************
-    Name:        RX
-    Description: controled-RX dagger gate
+    Name:        RX_GATE
+    Description: controled-RX_GATE dagger gate
     Argin:       psi                reference of vector<complex<double>> which contains quantum state information.
                  qn                 qubit number that the Hadamard gate operates on.
                  theta              rotation angle
@@ -146,7 +146,7 @@ public:
     Argout:      psi                quantum state after the gate
     return:      quantum error
     *************************************************************************************************************/
-    QError RX(size_t  qn,
+    QError RX_GATE(size_t  qn,
               double  theta,
               double  error_rate,
               Qnum    vControlBitNumber,
@@ -154,8 +154,8 @@ public:
               int     iDagger);
 
     /*************************************************************************************************************
-    Name:        RY
-    Description: RY gate,quantum state rotates ¦È by y axis.The matric is
+    Name:        RY_GATE
+    Description: RY_GATE gate,quantum state rotates ¦È by y axis.The matric is
                  [cos(¦È/2),-sin(¦È/2);sin(¦È/2),cos(¦È/2)]
     Argin:       psi         reference of vector<complex<double>> which contains quantum state information.
                  qn          qubit number that the Hadamard gate operates on.
@@ -167,8 +167,8 @@ public:
     QError RY(size_t qn, double theta, double error_rate, int iDagger);
 
     /*************************************************************************************************************
-    Name:        RY
-    Description: RY control gate
+    Name:        RY_GATE
+    Description: RY_GATE control gate
     Argin:       psi                reference of vector<complex<double>> which contains quantum state information.
                  qn                 qubit number that the Hadamard gate operates on.
                  theta              rotation angle
@@ -186,8 +186,8 @@ public:
               int      iDagger);
 
     /*************************************************************************************************************
-    Name:        RZ
-    Description: RZ gate,quantum state rotates ¦È by z axis.The matric is
+    Name:        RZ_GATE
+    Description: RZ_GATE gate,quantum state rotates ¦È by z axis.The matric is
                  [1 0;0 exp(i*¦È)]
     Argin:       psi         reference of vector<complex<double>> which contains quantum state information.
                  qn          qubit number that the Hadamard gate operates on.
@@ -200,8 +200,8 @@ public:
     QError RZ(size_t qn, double theta, double error_rate,int iDagger);
 
     /*************************************************************************************************************
-    Name:        RZ
-    Description: RZ gate
+    Name:        RZ_GATE
+    Description: RZ_GATE gate
     Argin:       psi                reference of vector<complex<double>> which contains quantum state information.
                  qn                 qubit number that the Hadamard gate operates on.
                  theta              rotation angle

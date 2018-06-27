@@ -87,9 +87,9 @@ QProg  Two_Qubit_DJ_Algorithm_Circuit(
 		)
 	{
 		// f(x) = x + 1;
-		prog << RX(qubit2)
+		prog << X(qubit2)
 			<< CNOT(qubit1, qubit2)
-			<< RX(qubit2);
+			<< X(qubit2);
 	}
 	else if (oracle_function[0] == true
 		&&
@@ -97,7 +97,7 @@ QProg  Two_Qubit_DJ_Algorithm_Circuit(
 		)
 	{
 		// f(x) = 1
-		prog << RX(qubit2);
+		prog << X(qubit2);
 	}
 
 	// Finally, Hadamard the first qubit and measure it

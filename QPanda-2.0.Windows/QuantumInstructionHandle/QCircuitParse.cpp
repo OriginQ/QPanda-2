@@ -21,35 +21,6 @@ QGATE_FUN_MAP QGateParseMap::m_QGateFunctionMap = {};
 
 
 
-void QGateParse::singleGateAngletoNum(double alpha, double beta, double gamma, double delta,QStat &matrix)
-{
-    matrix[0] = COMPLEX(cos(alpha - beta / 2 - delta / 2)*cos(gamma / 2),
-        sin(alpha - beta / 2 - delta / 2)*cos(gamma / 2));
-    matrix[1] = COMPLEX(-cos(alpha - beta / 2 + delta / 2)*sin(gamma / 2),
-        -sin(alpha - beta / 2 + delta / 2)*sin(gamma / 2));
-    matrix[2] = COMPLEX(cos(alpha + beta / 2 - delta / 2)*sin(gamma / 2),
-        sin(alpha + beta / 2 - delta / 2)*sin(gamma / 2));
-    matrix[3] = COMPLEX(cos(alpha + beta / 2 + delta / 2)*cos(gamma / 2),
-        sin(alpha + beta / 2 + delta / 2)*cos(gamma / 2));
-
-}
-
-void QGateParse::DoubleGateAngletoNum(double alpha, double beta, double gamma, double delta, QStat & matrix)
-{
-    matrix[10] = COMPLEX(cos(alpha - beta / 2 - delta / 2)*cos(gamma / 2),
-        sin(alpha - beta / 2 - delta / 2)*cos(gamma / 2));
-    matrix[11] = COMPLEX(-cos(alpha - beta / 2 + delta / 2)*sin(gamma / 2),
-        -sin(alpha - beta / 2 + delta / 2)*sin(gamma / 2));
-    matrix[14] = COMPLEX(cos(alpha + beta / 2 - delta / 2)*sin(gamma / 2),
-        sin(alpha + beta / 2 - delta / 2)*sin(gamma / 2));
-    matrix[15] = COMPLEX(cos(alpha + beta / 2 + delta / 2)*cos(gamma / 2),
-        sin(alpha + beta / 2 + delta / 2)*cos(gamma / 2));
-    matrix[0] = -1;
-    matrix[5] = 1;
-}
-
-
-
 QCirCuitParse::QCirCuitParse(QCircuit * pNode,QuantumGateParam * pParam, QuantumGates* pGates,bool isDagger,vector<Qubit *> controlQbitVector) :
                                                                                         m_pNode(pNode), m_pGates(pGates),m_pParam(pParam),m_bDagger(isDagger)
 {
@@ -356,8 +327,8 @@ void QGateParseSingleBit(QuantumGate * pGate,vector<Qubit * > & qubitVector, Qua
         throw exception();
     //if (nullptr == pGates)
       //  throw exception();
-    QStat matrix(4, 0);
-    QGateParse::singleGateAngletoNum(pGate->getAlpha(),pGate->getBeta(), pGate->getGamma(), pGate->getDelta(), matrix);
+    QStat matrix;
+    pGate->getMatrix(matrix);
     Qubit * pQubit = *(qubitVector.begin());
     size_t bit = pQubit->getPhysicalQubitPtr()->getQubitAddr();
     if (isDagger)
@@ -401,64 +372,11 @@ void QGateParseSingleBit(QuantumGate * pGate,vector<Qubit * > & qubitVector, Qua
 }
 
 
-void QGateParseCU(QuantumGate * pGate, vector<Qubit * > & qubitVector, QuantumGates* pGates, bool isDagger, vector<Qubit *> & controlQubitVector)
-{
-    QStat matrix(16, 0);
-    QGateParse::DoubleGateAngletoNum(pGate->getAlpha(), pGate->getBeta(), pGate->getGamma(), pGate->getDelta(), matrix);
-    auto aiter = qubitVector.begin();
-    Qubit * pQubit = *aiter;
-    aiter++;
-    Qubit * pQubit2 = *aiter;
-    size_t bit = pQubit->getPhysicalQubitPtr()->getQubitAddr();
-    size_t bit2 = pQubit2->getPhysicalQubitPtr()->getQubitAddr();
-    if (isDagger)
-    {
-        if (controlQubitVector.size() == 0)
-        {
-            pGates->unitaryDoubleQubitGateDagger(bit, bit2, matrix, 0);
-        }
-        else
-        {
-            size_t sTemp;
-            vector<size_t> bitNumVector;
-            for (auto aiter : controlQubitVector)
-            {
-                sTemp = aiter->getPhysicalQubitPtr()->getQubitAddr();
-                bitNumVector.push_back(sTemp);
-            }
-            bitNumVector.push_back(bit2);
-            bitNumVector.push_back(bit);
-            pGates->controlunitaryDoubleQubitGateDagger(bitNumVector, matrix, 0);
-        }
-    }
-    else
-    {
-        if (controlQubitVector.size() == 0)
-        {
-            pGates->unitaryDoubleQubitGate(bit, bit2, matrix, 0);
-        }
-        else
-        {
-            size_t sTemp;
-            vector<size_t> bitNumVector;
-            for (auto aiter : controlQubitVector)
-            {
-                sTemp = aiter->getPhysicalQubitPtr()->getQubitAddr();
-                bitNumVector.push_back(sTemp);
-            }
-            bitNumVector.push_back(bit2);
-            bitNumVector.push_back(bit);
-            pGates->controlunitaryDoubleQubitGate(bitNumVector, matrix, 0);
-        }
-    }
-
-}
-
 
 void QGateParseDoubleBit(QuantumGate * pGate, vector<Qubit * > & qubitVector, QuantumGates* pGates, bool isDagger, vector<Qubit *> & controlQubitVector)
 {
     QStat matrix;
-    dynamic_cast<iSwapGate *>(pGate)->getMatrix(matrix);
+    pGate->getMatrix(matrix);
     //QGateParse::DoubleGateAngletoNum(pGate->getAlpha(), pGate->getBeta(), pGate->getGamma(), pGate->getDelta(), matrix);
     auto aiter = qubitVector.begin();
     Qubit * pQubit = *aiter;
@@ -1028,8 +946,7 @@ bool QProgParse::verify()
 
 
 REGISTER_QGATE_PARSE(1, QGateParseSingleBit);
-REGISTER_QGATE_PARSE(2, QGateParseCU);
-REGISTER_QGATE_PARSE(3, QGateParseDoubleBit);
+REGISTER_QGATE_PARSE(2, QGateParseDoubleBit);
 
 
 

@@ -22,18 +22,19 @@ using namespace std;
 
 int main()
 {
+
+    HHL_Algorithm();
     /*
 	DJ_Algorithm();
     //Grover_Algorithm();
-  
-    //HHL_Algorithm();
+
  
     init();
     auto qbit = qAlloc();
     auto cbit = cAlloc();
     auto prog = CreateEmptyQProg();
     auto cir = CreateEmptyCircuit();
-    cir << RX(qbit) << RY(qbit);
+    cir << X(qbit) << RY_GATE(qbit);
     prog << cir << Measure(qbit, cbit);
     load(prog);
     run();
@@ -48,18 +49,18 @@ int main()
         cout<<e.what()<<endl;
 		return 1;
     }
-    */
+  
     init();
     auto  a = qAlloc();
     auto b = qAlloc();
     auto cc = cAlloc();
     auto prog = CreateEmptyQProg();
-    prog << RX(a) << iSwap(a, b)<<Measure(a,cc);
+    prog << X(a) << iSWAP(a, b)<<Measure(a,cc);
     load(prog);
     run();
     finalize();
-
-//    getchar();
+    */
+    //getchar();
     
 //    getchar();
     return 0;

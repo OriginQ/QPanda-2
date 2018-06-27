@@ -57,7 +57,7 @@ public:
 };
 
 /*
-*  Quantum single gate node: RX,RY,RZ,H,S,      CAN ADD OTHER GATES
+*  Quantum single gate node: RX_GATE,RY_GATE,RZ_GATE,H,S_GATE,      CAN ADD OTHER GATES
 *  gate:  gate type
 *  opQuBit: qubit number
 *
@@ -95,7 +95,6 @@ private:
     vector<Qubit *> m_QuBitVector;
     QuantumGate *m_pQGate;
     NodeType m_iNodeType;
-    GateType m_iGateType;
     bool m_bIsDagger;
     vector<Qubit *> m_controlQuBitVector;
 
@@ -295,10 +294,10 @@ public:
 *  QProg:  quantum program,can construct quantum circuit,data struct is linked list
 *  QListHeadNode:  QProg's head pointer.
 *  QListLastNode:  QProg's last pointer.
-*  QProg & operator<<(const T &)：
-*    if T is QSingleGateNode/QDoubleGateNode/QIfEndNode,
-*    deep copy T and insert it into left QProg;
-*    if T is QIfProg/QWhileProg/QProg,deepcopy
+*  QProg & operator<<(const T_GATE &)：
+*    if T_GATE is QSingleGateNode/QDoubleGateNode/QIfEndNode,
+*    deep copy T_GATE and insert it into left QProg;
+*    if T_GATE is QIfProg/QWhileProg/QProg,deepcopy
 *    IF/WHILE/QProg circuit and insert it into left QProg;
 */
 class QProg : public QNode,public AbstractQuantumProgram
@@ -409,6 +408,7 @@ public:
     QGate  getGateNode(string & name, Qubit *);
     QGate  getGateNode(string & name, Qubit *, double);
     QGate  getGateNode(string & name, Qubit *, Qubit*);
+    QGate  getGateNode(string & name, Qubit * targetQBit, Qubit * controlQBit, double theta);
     QGate  getGateNode(double alpha, double beta, double gamma, double delta, Qubit *);
     QGate  getGateNode(double alpha, double beta, double gamma, double delta, Qubit *, Qubit *);
     QGate  getGateNode(QStat matrix, Qubit *, Qubit *);

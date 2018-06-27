@@ -99,8 +99,8 @@ public:
                             size_t  stQuantumBitNumber) = 0;
 
     /*************************************************************************************************************
-    Name:        RX
-    Description: RX gate,quantum state rotates ¦È by x axis.The matric is:
+    Name:        RX_GATE
+    Description: RX_GATE gate,quantum state rotates ¦È by x axis.The matric is:
                  [cos(¦È/2),-i*sin(¦È/2);i*sin(¦È/2),cos(¦È/2)]
     Argin:       qn                 qubit number that the Hadamard gate operates on.
                  theta              rotation angle
@@ -108,11 +108,11 @@ public:
     Argout:      None
     return:      quantum error
     *************************************************************************************************************/
-    virtual QError RX(size_t qn, double theta, double error_rate) = 0;
+    virtual QError RX_GATE(size_t qn, double theta, double error_rate) = 0;
 
     /*************************************************************************************************************
-    Name:        RX
-    Description: RX dagger gate,quantum state rotates ¦È by x axis.The matric is:
+    Name:        RX_GATE
+    Description: RX_GATE dagger gate,quantum state rotates ¦È by x axis.The matric is:
                  [cos(¦È/2),-i*sin(¦È/2);i*sin(¦È/2),cos(¦È/2)]
     Argin:       qn          qubit number that the Hadamard gate operates on.
                  theta       rotation angle
@@ -121,11 +121,11 @@ public:
     Argout:      None
     return:      quantum error
     *************************************************************************************************************/
-    virtual QError RX(size_t qn, double theta, double error_rate, int iDagger) = 0;
+    virtual QError RX_GATE(size_t qn, double theta, double error_rate, int iDagger) = 0;
 
     /*************************************************************************************************************
-    Name:        RX
-    Description: controled-RX gate
+    Name:        RX_GATE
+    Description: controled-RX_GATE gate
     Argin:       qn                 qubit number that the Hadamard gate operates on.
                  theta              rotation angle
                  error_rate         the errorrate of the gate
@@ -134,15 +134,15 @@ public:
     Argout:      None
     return:      quantum error
     *************************************************************************************************************/
-    virtual QError RX(size_t  qn,
+    virtual QError RX_GATE(size_t  qn,
                       double  theta,
                       double  error_rate,
                       Qnum    vControlBitNumber,
                       size_t  stQuantumBitNumber) = 0;
 
     /*************************************************************************************************************
-    Name:        RX
-    Description: controled-RX dagger gate
+    Name:        RX_GATE
+    Description: controled-RX_GATE dagger gate
     Argin:       qn                 qubit number that the Hadamard gate operates on.
                  theta              rotation angle
                  error_rate         the errorrate of the gate
@@ -152,7 +152,7 @@ public:
     Argout:      None
     return:      quantum error
     *************************************************************************************************************/
-    virtual QError RX(size_t  qn,
+    virtual QError RX_GATE(size_t  qn,
                       double  theta,
                       double  error_rate,
                       Qnum    vControlBitNumber,
@@ -160,8 +160,8 @@ public:
                       int     iDagger) = 0;
 
     /*************************************************************************************************************
-    Name:        RY
-    Description: RY gate,quantum state rotates ¦È by y axis.The matric is
+    Name:        RY_GATE
+    Description: RY_GATE gate,quantum state rotates ¦È by y axis.The matric is
                  [cos(¦È/2),-sin(¦È/2);sin(¦È/2),cos(¦È/2)]
     Argin:       qn          qubit number that the Hadamard gate operates on.
                  theta       rotation angle
@@ -172,8 +172,8 @@ public:
     virtual QError RY(size_t qn, double theta, double error_rate,int iDagger) = 0;
 
     /*************************************************************************************************************
-    Name:        RY
-    Description: RY control gate
+    Name:        RY_GATE
+    Description: RY_GATE control gate
     Argin:       qn                 qubit number that the Hadamard gate operates on.
                  theta              rotation angle
                  error_rate         the errorrate of the gate
@@ -190,8 +190,8 @@ public:
                       int      iDagger) = 0;
 
     /*************************************************************************************************************
-    Name:        RZ
-    Description: RZ gate,quantum state rotates ¦È by z axis.The matric is
+    Name:        RZ_GATE
+    Description: RZ_GATE gate,quantum state rotates ¦È by z axis.The matric is
                  [1 0;0 exp(i*¦È)]
     Argin:       qn          qubit number that the Hadamard gate operates on.
                  theta       rotation angle
@@ -206,8 +206,8 @@ public:
                       int      iDagger) = 0;
 
     /*************************************************************************************************************
-    Name:        RZ
-    Description: RZ control gate 
+    Name:        RZ_GATE
+    Description: RZ_GATE control gate 
     Argin:       qn                 qubit number that the Hadamard gate operates on.
                  theta              rotation angle
                  error_rate         the errorrate of the gate

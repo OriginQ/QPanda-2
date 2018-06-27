@@ -290,7 +290,8 @@ CPhaseGate::CPhaseGate(double angle)
     beta = angle;
     gamma = 0;
     delta = 0;
-    gatematrix[15] = cos(angle) + 1i*sin(angle);
+    gatematrix[15] = cos(angle);
+    gatematrix[15].imag(1*sin(angle));
 }
 CZ::CZ()
 {

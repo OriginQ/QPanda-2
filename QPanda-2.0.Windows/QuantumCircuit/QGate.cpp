@@ -94,8 +94,8 @@ Y::Y()
     gamma = PI;
     delta = 0;
     gatematrix[0] = 0;
-    gatematrix[1] = -1i;
-    gatematrix[2] = -1i;
+    gatematrix[1].imag( -1);
+    gatematrix[2].imag(-1);
     gatematrix[3] = 0;
 }
 
@@ -129,7 +129,7 @@ S::S()
     beta = PI / 2;
     gamma = 0;
     delta = 0;
-    gatematrix[3] = 1i;
+    gatematrix[3].imag(1);
 }
 T::T()
 {
@@ -137,7 +137,8 @@ T::T()
     beta = PI / 4;
     gamma = 0;
     delta = 0;
-    gatematrix[3] = 1 / SQRT2 + 1i / SQRT2;
+    gatematrix[3].real(1 / SQRT2);
+    gatematrix[3].imag(1 / SQRT2);
 }
 
 RX::RX(double angle)
@@ -148,8 +149,8 @@ RX::RX(double angle)
     delta = PI / 2;
     theta = angle;
     gatematrix[0] = cos(angle / 2);
-    gatematrix[1] = -1i*sin(angle / 2);
-    gatematrix[2] = -1i*sin(angle / 2);
+    gatematrix[1].imag(-1*sin(angle / 2)) ;
+    gatematrix[2].imag (-1*sin(angle / 2));
     gatematrix[3] = cos(angle / 2);
 }
 RY::RY(double angle)
@@ -173,8 +174,10 @@ RZ::RZ(double angle)
     gamma = 0;
     delta = 0;
     theta = angle;
-    gatematrix[0] = cos(angle / 2) - 1i*sin(angle / 2);
-    gatematrix[3] = cos(angle / 2) + 1i*sin(angle / 2);
+    gatematrix[0].real(cos(angle / 2));
+    gatematrix[0].imag(-1*sin(angle / 2));
+    gatematrix[3].real(cos(angle / 2));
+    gatematrix[3].imag(1*sin(angle / 2));
 }
 //U1_GATE=[1 0;0 exp(i*angle)]
 U1::U1(double angle)
@@ -184,7 +187,8 @@ U1::U1(double angle)
     gamma = 0;
     delta = 0;
     theta = angle;
-    gatematrix[3] = cos(angle) + 1i*sin(angle);
+    gatematrix[3].real(cos(angle));
+    gatematrix[3].imag(1*sin(angle));
 }
 
 

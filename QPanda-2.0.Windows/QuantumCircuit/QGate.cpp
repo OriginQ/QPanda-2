@@ -305,8 +305,8 @@ ISWAPTheta::ISWAPTheta(double angle)
 {
     theta = angle;
     gatematrix[5] = cos(angle);
-    gatematrix[6] = -1i*sin(angle);
-    gatematrix[9] = -1i*sin(angle);
+    gatematrix[6].imag(-1*sin(angle));
+    gatematrix[9].imag(-1*sin(angle));
     gatematrix[10] = cos(angle);
     //matrix
 }
@@ -314,16 +314,16 @@ ISWAP::ISWAP()
 {
     theta = PI / 2;
     gatematrix[5] = 0;
-    gatematrix[6] = -1i;
-    gatematrix[9] = -1i;
+    gatematrix[6].imag(-1);
+    gatematrix[9],imag(-1);
     gatematrix[10] = 0;
 }
 SQISWAP::SQISWAP()
 {
     theta = PI / 4;
     gatematrix[5] = 1 / SQRT2;
-    gatematrix[6] = -1i / SQRT2;
-    gatematrix[9] = -1i / SQRT2;
+    gatematrix[6].imag(-1 / SQRT2);
+    gatematrix[9] .imag(-1 / SQRT2);
     gatematrix[10] = 1 / SQRT2;
 }
 

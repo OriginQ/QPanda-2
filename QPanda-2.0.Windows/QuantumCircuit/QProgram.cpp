@@ -16,7 +16,7 @@ limitations under the License.
 
 #include "QProgram.h"
 #include "QPanda/QPandaException.h"
-#include "..\QPanda.h"
+#include "QPanda.h"
 
 
 QProg  CreateEmptyQProg()

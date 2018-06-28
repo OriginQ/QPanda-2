@@ -23,7 +23,7 @@ using namespace std;
 int main()
 {
 
-    HHL_Algorithm();
+    //HHL_Algorithm();
     /*
 	DJ_Algorithm();
     //Grover_Algorithm();
@@ -50,21 +50,22 @@ int main()
 		return 1;
     }
   
-  init();
-  auto  a = qAlloc();
-  auto b = qAlloc();
-  auto cc = cAlloc();
-  auto prog = CreateEmptyQProg();
-  vector<Qubit *> qubitvector = { a,b };
-  auto hQc = CreateHadamardQCircuit(qubitvector);
-  prog  << X(a) << iSWAP(a, b)<< Measure(a, cc);
-  load(prog);
-  run();
-  finalize();
+
     */
+    init();
+    auto  a = qAlloc();
+    auto b = qAlloc();
+    auto cc = cAlloc();
+    auto prog = CreateEmptyQProg();
+    vector<Qubit *> qubitvector = { a,b };
+    auto hQc = CreateHadamardQCircuit(qubitvector);
+    prog <<hQc << X(a) << iSWAP(a, b) << Measure(a, cc);
+    load(prog);
+    run();
+    finalize();
 
 
-    getchar();
+//    getchar();
     
 //    getchar();
     return 0;

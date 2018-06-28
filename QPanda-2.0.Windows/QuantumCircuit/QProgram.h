@@ -29,6 +29,7 @@ limitations under the License.
 #include "ReadWriteLock.h"
 #include "QuantumMeasure.h"
 #include "ControlFlow.h"
+#include "QPanda/QPandaException.h"
 
 typedef complex<double> QComplex;
 using namespace std;
@@ -205,9 +206,9 @@ public:
     QCircuit(const QCircuit &);
     ~QCircuit();
     void pushBackNode(QNode *);
-    QCircuit & operator << (QGate);
-    /*   
 
+    /*   
+    QCircuit & operator << (QGate);
     QCircuit & operator << (QCircuit);
     QCircuit & operator << ( QMeasure );
     */
@@ -235,7 +236,7 @@ private:
 };
 
 
-class HadamardQCircuit :protected QCircuit
+class HadamardQCircuit :public QCircuit
 {
 public:
     HadamardQCircuit(const HadamardQCircuit &);
@@ -458,5 +459,48 @@ private:
 
 };
 
+template<typename T>
+inline QProg & QProg::operator<<(T node)
+{
+    auto temp = dynamic_cast<QNode *>(&node);
+    if (nullptr == temp)
+    {
+        throw param_error_exception("param is not QNode", false);
+    }
+    if (nullptr == this->m_pQuantumProgram)
+    {
+        throw exception();
+    }
+    int iNodeType = temp->getNodeType();
+    m_pQuantumProgram->pushBackNode(dynamic_cast<QNode*>(&node));
+    return *this;
+}
 
+
+template<typename T>
+inline QCircuit & QCircuit::operator<<(T node)
+{
+    auto temp = dynamic_cast<QNode *>(&node);
+    if (nullptr == temp)
+    {
+        throw param_error_exception("param is not QNode", false);
+    }
+    if (nullptr == this->m_pQuantumCircuit)
+    {
+        throw exception();
+    }
+    int iNodeType = temp->getNodeType();
+
+    switch (iNodeType)
+    {
+    case GATE_NODE:
+    case CIRCUIT_NODE:
+    case MEASURE_GATE:
+        m_pQuantumCircuit->pushBackNode(dynamic_cast<QNode*>(&node));
+        break;
+    default:
+        throw param_error_exception("param node type error", false);
+    }
+    return *this;
+}
 #endif

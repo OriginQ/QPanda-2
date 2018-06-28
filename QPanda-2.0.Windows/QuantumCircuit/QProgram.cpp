@@ -15,7 +15,7 @@ limitations under the License.
 */
 
 //#include "QProgram.h"
-#include "QPanda/QPandaException.h"
+
 #include "QPanda.h"
 
 
@@ -185,17 +185,17 @@ void QCircuit::pushBackNode(QNode * pNode)
     m_pQuantumCircuit->pushBackNode(pNode);
 }
 
-QCircuit & QCircuit::operator<<(QGate  node)
-{
-    if (nullptr == m_pQuantumCircuit)
-        throw exception();
-    m_pQuantumCircuit->pushBackNode(dynamic_cast<QNode*>(&node));
-
-    return *this;
-}
 /*
 
 
+QCircuit & QCircuit::operator<<(QGate  node)
+{
+if (nullptr == m_pQuantumCircuit)
+throw exception();
+m_pQuantumCircuit->pushBackNode(dynamic_cast<QNode*>(&node));
+
+return *this;
+}
 QCircuit & QCircuit::operator<<(QCircuit node)
 {
     if (nullptr == m_pQuantumCircuit)
@@ -219,32 +219,7 @@ QCircuit & QCircuit::operator<<( QMeasure  node)
 */
 
 
-template<typename T>
-inline QCircuit & QCircuit::operator<<(T node)
-{
-    auto temp = dynamic_cast<QNode *>(&node);
-    if (nullptr == temp)
-    {
-        throw param_error_exception("param is not QNode", false);
-    }
-    if (nullptr == m_pQuantumCircuit)
-    {
-        throw exception();
-    }
-    int iNodeType = temp->getNodeType();
 
-    switch (iNodeType)
-    {
-    case GATE_NODE:
-    case CIRCUIT_NODE:
-    case MEASURE_GATE:
-        m_pQuantumCircuit->pushBackNode(dynamic_cast<QNode*>(&node));
-        break;
-    default:
-        throw param_error_exception("param node type error", false);
-    }
-
-}
 
 QCircuit QCircuit::dagger()
 {
@@ -483,21 +458,7 @@ QProg & QProg::operator<<( QCircuit  qCircuit)
 
 
 */
-template<typename T>
-QProg & QProg::operator<<(T node)
-{
-    auto temp = dynamic_cast<QNode *>(&node);
-    if (nullptr == temp)
-    {
-        throw param_error_exception("param is not QNode", false);
-    }
-    if (nullptr == m_pQuantumProgram)
-    {
-        throw exception();
-    }
-    int iNodeType = temp->getNodeType();
-    m_pQuantumProgram->pushBackNode(dynamic_cast<QNode*>(&node));
-}
+
 
 
 NodeIter  QProg::getFirstNodeIter()

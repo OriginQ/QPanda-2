@@ -32,18 +32,20 @@ class QMeasure : public QNode, public AbstractQuantumMeasure
 {
 private:
     AbstractQuantumMeasure * m_pQuantumMeasure;
-    int m_iPosition;
+    size_t m_iPosition;
     QMeasure();
 
 public:
     QMeasure(const QMeasure &);
     QMeasure(Qubit *, CBit *);
-
+    ~QMeasure();
     Qubit * getQuBit() const;
     CBit * getCBit()const;
 
     NodeType getNodeType() const;
-    int getPosition() const;
+    size_t getPosition() const;
+private:
+    void setPosition(size_t) {};
 };
 
 typedef AbstractQuantumMeasure * (*CreateMeasure)(Qubit *, CBit *);
@@ -89,14 +91,15 @@ public:
     CBit * getCBit()const;
 
     NodeType getNodeType() const;
-    int getPosition() const;
-
+    size_t getPosition() const;
+    void setPosition(size_t stPositio);
 private:
     OriginMeasure();
     OriginMeasure(OriginMeasure &);
     NodeType m_iNodeType;
     Qubit * m_pTargetQubit;
     CBit * m_pCBit;
+    size_t m_stPosition;
      
 };
 

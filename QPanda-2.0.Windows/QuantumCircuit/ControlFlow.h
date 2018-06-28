@@ -43,7 +43,7 @@ class QIfProg : public QNode, public AbstractControlFlowNode
 {
 private:
     AbstractControlFlowNode * m_pControlFlow;
-    int m_iPosition;
+    size_t m_iPosition;
     QIfProg();
 public:
     ~QIfProg();
@@ -53,8 +53,10 @@ public:
     NodeType getNodeType() const;
     QNode * getTrueBranch() const;
     QNode * getFalseBranch() const;
-    int getPosition() const;
+    size_t getPosition() const;
     ClassicalCondition * getCExpr();
+private:
+    void setPosition(size_t) {};
 };
 
 
@@ -113,6 +115,7 @@ private:
     Item * m_pTrueItem;
     Item * m_pFalseItem;
     NodeType m_iNodeType;
+    size_t m_stPosition;
 public:
     ~OriginIf();
     OriginIf(ClassicalCondition &ccCon, QNode* pTrueNode, QNode * pFalseNode);
@@ -120,7 +123,8 @@ public:
     NodeType getNodeType() const;
     QNode * getTrueBranch() const;
     QNode * getFalseBranch() const;
-    int getPosition() const;
+    size_t getPosition() const;
+    void setPosition(size_t);
     ClassicalCondition * getCExpr();
 };
 
@@ -161,7 +165,7 @@ class QWhileProg : public QNode, public AbstractControlFlowNode
 {
 private:
     AbstractControlFlowNode * m_pControlFlow;
-    int m_iPosition;
+    size_t m_iPosition;
 
     QWhileProg();
 public:
@@ -178,7 +182,9 @@ public:
     QNode * getTrueBranch() const;
     QNode * getFalseBranch() const;
     ClassicalCondition * getCExpr();
-    int getPosition() const;
+    size_t getPosition() const;
+private:
+    void setPosition(size_t) {};
 };
 
 class OriginWhile :public QNode, public AbstractControlFlowNode
@@ -187,7 +193,10 @@ private :
     NodeType m_iNodeType;
     ClassicalCondition  m_CCondition;
     Item * m_pTrueItem;
+    size_t m_stPosition;
+
     OriginWhile();
+    
 public :
     ~OriginWhile();
     OriginWhile(ClassicalCondition & ccCon, QNode * node);
@@ -195,7 +204,8 @@ public :
     QNode * getTrueBranch() const;
     QNode * getFalseBranch() const;
     ClassicalCondition * getCExpr();
-    int getPosition() const;
+    size_t getPosition() const;
+    void setPosition(size_t stPosition);
 };
 
 

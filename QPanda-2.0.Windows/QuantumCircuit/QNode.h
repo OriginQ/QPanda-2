@@ -9,7 +9,8 @@ class QNode
 {
 public:
     virtual NodeType getNodeType() const = 0;
-    virtual int getPosition() const = 0;
+    virtual size_t getPosition() const = 0;
+    virtual void setPosition(size_t) = 0;
     virtual ~QNode() {};
 };
 
@@ -37,7 +38,7 @@ class QNodeMap
 private:
     SharedMutex m_sm;
     QMAP_SIZE m_sCount;
-    map<int, MapNode> m_pQNodeVector;
+    map<int, MapNode> m_pQNodeMap;
     map<int, MapNode>::iterator m_currentIter;
 public:
     QNodeMap();

@@ -9,12 +9,16 @@ QNodeMap::QNodeMap() :m_sCount(0)
 
 QNodeMap::~QNodeMap()
 {
-    for (auto aiter = m_pQNodeVector.begin(); aiter != m_pQNodeVector.end(); aiter++)
+    for (auto aiter = m_pQNodeMap.begin(); aiter != m_pQNodeMap.end(); aiter++)
     {
         QNode * pNode = aiter->second.m_pNode;
+        int iRef = aiter->second.m_iReference;
+        if (iRef > 0)
+        {
+            delete (pNode);
+        }
         //std::cout<<"position = " << pNode->getPosition() << endl;
         //cout << "nodetype ="<< pNode->getNodeType() << endl;
-        delete (pNode);
     }
 }
 
@@ -23,7 +27,7 @@ QMAP_SIZE QNodeMap::pushBackNode(QNode * pNode)
     WriteLock wl(m_sm);
     MapNode temp = { 0, pNode };
     m_sCount++;
-    auto a =m_pQNodeVector.insert(pair<QMAP_SIZE, MapNode>(m_sCount,temp));
+    auto a =m_pQNodeMap.insert(pair<QMAP_SIZE, MapNode>(m_sCount,temp));
     return m_sCount;
 }
 
@@ -35,8 +39,8 @@ QNode * QNodeMap::getNode(QMAP_SIZE iNum)
     {
         return nullptr;
     }
-    auto aiter = m_pQNodeVector.find(iNum);
-    if (m_pQNodeVector.end() == aiter)
+    auto aiter = m_pQNodeMap.find(iNum);
+    if (m_pQNodeMap.end() == aiter)
         return nullptr;
     return aiter->second.m_pNode;
 }
@@ -44,8 +48,8 @@ QNode * QNodeMap::getNode(QMAP_SIZE iNum)
 bool QNodeMap::addNodeRefer(QMAP_SIZE sNum)
 {
     WriteLock wl(m_sm);
-    auto aiter = m_pQNodeVector.find(sNum);
-    if (m_pQNodeVector.end() == aiter)
+    auto aiter = m_pQNodeMap.find(sNum);
+    if (m_pQNodeMap.end() == aiter)
         return false;
     aiter->second.m_iReference++;
     return true;
@@ -57,8 +61,8 @@ bool QNodeMap::deleteNode(QMAP_SIZE sNum)
 
     ReadLock * rl = new ReadLock(m_sm);
     WriteLock * wl = nullptr;
-    auto aiter = m_pQNodeVector.find(sNum);
-    if (m_pQNodeVector.end() == aiter)
+    auto aiter = m_pQNodeMap.find(sNum);
+    if (m_pQNodeMap.end() == aiter)
     {
         delete rl;
         return false;
@@ -76,14 +80,14 @@ bool QNodeMap::deleteNode(QMAP_SIZE sNum)
         delete rl;
         delete aiter->second.m_pNode;
         WriteLock wl(m_sm);
-        m_pQNodeVector.erase(aiter);
+        m_pQNodeMap.erase(aiter);
     }
     return true;
 }
 
 map<QMAP_SIZE, MapNode>::iterator QNodeMap::getEnd()
 {
-    return  m_pQNodeVector.end();
+    return  m_pQNodeMap.end();
 }
 
 

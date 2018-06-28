@@ -25,13 +25,13 @@ QMeasure  Measure(Qubit * targetQuBit, CBit *targetCbit)
 
 QMeasure::QMeasure(const QMeasure & oldMeasure)
 {
-    m_iPosition = oldMeasure.getPosition();    
-    auto aiter = _G_QNodeMap.getNode(m_iPosition);
+    m_stPosition = oldMeasure.getPosition();    
+    auto aiter = _G_QNodeMap.getNode(m_stPosition);
     if (aiter != nullptr)
         m_pQuantumMeasure = dynamic_cast<AbstractQuantumMeasure *>(aiter);
     else
         throw circuit_not_found_exception("there is not target QNode", false);
-    if (!_G_QNodeMap.addNodeRefer(m_iPosition))
+    if (!_G_QNodeMap.addNodeRefer(m_stPosition))
         throw exception();
 }
 
@@ -40,16 +40,16 @@ QMeasure::QMeasure(Qubit * qbit, CBit * cbit)
     string sClasNname = "OriginMeasure";
     auto aMeasure = QuantunMeasureFactory::getInstance().getQuantumMeasure(sClasNname, qbit, cbit);
     auto temp = dynamic_cast<QNode *>(aMeasure);
-    m_iPosition = _G_QNodeMap.pushBackNode(temp);
-    temp->setPosition(m_iPosition);
-    if (!_G_QNodeMap.addNodeRefer(m_iPosition))
+    m_stPosition = _G_QNodeMap.pushBackNode(temp);
+    temp->setPosition(m_stPosition);
+    if (!_G_QNodeMap.addNodeRefer(m_stPosition))
         throw exception();
     m_pQuantumMeasure = aMeasure;
 }
 
 QMeasure::~QMeasure()
 {
-    _G_QNodeMap.deleteNode(m_iPosition);
+    _G_QNodeMap.deleteNode(m_stPosition);
 }
 
 Qubit * QMeasure::getQuBit() const
@@ -74,9 +74,9 @@ NodeType QMeasure::getNodeType() const
     return (dynamic_cast<QNode *>(m_pQuantumMeasure))->getNodeType();
 }
 
-size_t QMeasure::getPosition() const
+QMAP_SIZE QMeasure::getPosition() const
 {
-    return m_iPosition;
+    return m_stPosition;
 }
 
 void QuantunMeasureFactory::registClass(string name, CreateMeasure method)
@@ -118,12 +118,12 @@ CBit * OriginMeasure::getCBit() const
 }
 
 
-size_t OriginMeasure::getPosition() const
+QMAP_SIZE OriginMeasure::getPosition() const
 {
     return m_stPosition;
 }
 
-void OriginMeasure::setPosition(size_t stPositio)
+void OriginMeasure::setPosition(QMAP_SIZE stPositio)
 {
     m_stPosition = stPositio;
 }

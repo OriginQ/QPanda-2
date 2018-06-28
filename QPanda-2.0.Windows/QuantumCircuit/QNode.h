@@ -5,16 +5,17 @@
 #include <vector>
 #include <map>
 #include "QuantumCircuit/QGlobalVariable.h"
+typedef int QMAP_SIZE;
 class QNode
 {
 public:
     virtual NodeType getNodeType() const = 0;
-    virtual size_t getPosition() const = 0;
-    virtual void setPosition(size_t) = 0;
+    virtual QMAP_SIZE getPosition() const = 0;
+    virtual void setPosition(QMAP_SIZE) = 0;
     virtual ~QNode() {};
 };
 
-typedef int QMAP_SIZE;
+
 
 struct MapNode
 {

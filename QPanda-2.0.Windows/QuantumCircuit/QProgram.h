@@ -69,7 +69,7 @@ class QGate : public QNode, public AbstractQGateNode
 private:
 
     AbstractQGateNode * m_pQGateNode;
-    size_t m_iPosition;
+    QMAP_SIZE m_stPosition;
 public:
     ~QGate();
     QGate(const QGate&);
@@ -79,13 +79,13 @@ public:
     size_t getQuBitVector(vector<Qubit *> &) const;
     size_t getQuBitNum() const;
     QuantumGate * getQGate() const;
-    size_t getPosition() const;
+    QMAP_SIZE getPosition() const;
     bool setDagger(bool);
     bool setControl(vector < Qubit *> &);
     bool isDagger() const;
     size_t getControlVector(vector<Qubit *> &) const;
 private:
-    void setPosition(size_t) {};
+    void setPosition(QMAP_SIZE) {};
 
 };
 
@@ -98,7 +98,7 @@ private:
     NodeType m_iNodeType;
     bool m_bIsDagger;
     vector<Qubit *> m_controlQuBitVector;
-    int m_iPosition;
+    QMAP_SIZE m_stPosition;
 public:
     ~OriginQGate();
     OriginQGate(Qubit*, QuantumGate *);
@@ -107,8 +107,8 @@ public:
     size_t getQuBitVector(vector<Qubit *> &) const;
     size_t getQuBitNum() const;
     QuantumGate * getQGate() const;
-    size_t getPosition() const;
-    void setPosition(size_t stPosition);
+    QMAP_SIZE getPosition() const;
+    void setPosition(QMAP_SIZE stPosition);
     bool setDagger(bool);
     bool setControl(vector < Qubit *> &);
     bool isDagger() const;
@@ -199,7 +199,7 @@ class QCircuit : public QNode,public AbstractQuantumCircuit
 {
 private:
     AbstractQuantumCircuit * m_pQuantumCircuit;
-    size_t m_iPosition;
+    QMAP_SIZE m_stPosition;
 public:
     QCircuit();
     QCircuit(const QCircuit &);
@@ -223,9 +223,9 @@ public:
 
     void  setDagger(bool isDagger);
     void  setControl(vector<Qubit *> &);
-    size_t getPosition() const;
+    QMAP_SIZE getPosition() const;
 private:
-    void setPosition(size_t stPosition);
+    void setPosition(QMAP_SIZE stPosition);
 };
 
 typedef AbstractQuantumCircuit * (*CreateQCircuit)();
@@ -271,7 +271,7 @@ private:
     SharedMutex m_sm;
     NodeType m_iNodeType;
     bool m_bIsDagger;
-    size_t m_stPosition;
+    QMAP_SIZE m_stPosition;
     vector<Qubit *> m_controlQuBitVector;
     OriginCircuit(QCircuit &);
 
@@ -294,8 +294,8 @@ public:
     NodeIter getHeadNodeIter();
     NodeIter  insertQNode(NodeIter &, QNode *);
     NodeIter  deleteQNode(NodeIter &);
-    size_t getPosition() const;
-    void setPosition(size_t);
+    QMAP_SIZE getPosition() const;
+    void setPosition(QMAP_SIZE);
 
 };
 
@@ -314,7 +314,7 @@ class QProg : public QNode,public AbstractQuantumProgram
 {
 private:
     AbstractQuantumProgram * m_pQuantumProgram;
-    size_t m_iPosition;
+    QMAP_SIZE m_stPosition;
 public:
     QProg();
     QProg(const QProg&);
@@ -335,9 +335,9 @@ public:
     NodeIter  deleteQNode(NodeIter & iter);
     NodeType getNodeType() const;
     void clear();
-    size_t getPosition() const;
+    QMAP_SIZE getPosition() const;
 private:
-    void setPosition(size_t) {};
+    void setPosition(QMAP_SIZE) {};
 };
 
 typedef AbstractQuantumProgram * (*CreateQProgram)();
@@ -385,7 +385,7 @@ private:
     SharedMutex m_sm;
     NodeType m_iNodeType;
     OriginProgram(OriginProgram&);
-    size_t m_stPosition;
+    QMAP_SIZE m_stPosition;
 public:
     ~OriginProgram();
     OriginProgram();
@@ -398,8 +398,8 @@ public:
     NodeIter  deleteQNode(NodeIter &);
     NodeType getNodeType() const;
     void clear();
-    size_t getPosition() const;
-    void setPosition(size_t);
+    QMAP_SIZE getPosition() const;
+    void setPosition(QMAP_SIZE);
 };
 
 

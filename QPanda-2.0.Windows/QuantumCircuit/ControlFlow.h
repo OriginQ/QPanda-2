@@ -43,7 +43,7 @@ class QIfProg : public QNode, public AbstractControlFlowNode
 {
 private:
     AbstractControlFlowNode * m_pControlFlow;
-    size_t m_iPosition;
+    QMAP_SIZE m_stPosition;
     QIfProg();
 public:
     ~QIfProg();
@@ -53,10 +53,10 @@ public:
     NodeType getNodeType() const;
     QNode * getTrueBranch() const;
     QNode * getFalseBranch() const;
-    size_t getPosition() const;
+    QMAP_SIZE getPosition() const;
     ClassicalCondition * getCExpr();
 private:
-    void setPosition(size_t) {};
+    void setPosition(QMAP_SIZE) {};
 };
 
 
@@ -115,7 +115,7 @@ private:
     Item * m_pTrueItem;
     Item * m_pFalseItem;
     NodeType m_iNodeType;
-    size_t m_stPosition;
+    QMAP_SIZE m_stPosition;
 public:
     ~OriginIf();
     OriginIf(ClassicalCondition &ccCon, QNode* pTrueNode, QNode * pFalseNode);
@@ -123,8 +123,8 @@ public:
     NodeType getNodeType() const;
     QNode * getTrueBranch() const;
     QNode * getFalseBranch() const;
-    size_t getPosition() const;
-    void setPosition(size_t);
+    QMAP_SIZE getPosition() const;
+    void setPosition(QMAP_SIZE);
     ClassicalCondition * getCExpr();
 };
 
@@ -165,7 +165,7 @@ class QWhileProg : public QNode, public AbstractControlFlowNode
 {
 private:
     AbstractControlFlowNode * m_pControlFlow;
-    size_t m_iPosition;
+    QMAP_SIZE m_stPosition;
 
     QWhileProg();
 public:
@@ -182,9 +182,9 @@ public:
     QNode * getTrueBranch() const;
     QNode * getFalseBranch() const;
     ClassicalCondition * getCExpr();
-    size_t getPosition() const;
+    QMAP_SIZE getPosition() const;
 private:
-    void setPosition(size_t) {};
+    void setPosition(QMAP_SIZE) {};
 };
 
 class OriginWhile :public QNode, public AbstractControlFlowNode
@@ -193,7 +193,7 @@ private :
     NodeType m_iNodeType;
     ClassicalCondition  m_CCondition;
     Item * m_pTrueItem;
-    size_t m_stPosition;
+    QMAP_SIZE m_stPosition;
 
     OriginWhile();
     
@@ -204,8 +204,8 @@ public :
     QNode * getTrueBranch() const;
     QNode * getFalseBranch() const;
     ClassicalCondition * getCExpr();
-    size_t getPosition() const;
-    void setPosition(size_t stPosition);
+    QMAP_SIZE getPosition() const;
+    void setPosition(QMAP_SIZE stPosition);
 };
 
 

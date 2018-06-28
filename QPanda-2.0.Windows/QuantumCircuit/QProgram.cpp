@@ -35,18 +35,18 @@ QCircuit  CreateEmptyCircuit()
 
 QGate::~QGate()
 {
-    _G_QNodeMap.deleteNode(m_iPosition);
+    _G_QNodeMap.deleteNode(m_stPosition);
 
 }
 
 QGate::QGate(const QGate & oldGate)
 {
-    m_iPosition = oldGate.getPosition();
-    auto aiter = _G_QNodeMap.getNode(m_iPosition);
+    m_stPosition = oldGate.getPosition();
+    auto aiter = _G_QNodeMap.getNode(m_stPosition);
     if (aiter == nullptr)
         throw circuit_not_found_exception("there is no this QGate", false);
     m_pQGateNode = dynamic_cast<AbstractQGateNode *>(aiter);
-    if (!_G_QNodeMap.addNodeRefer(m_iPosition))
+    if (!_G_QNodeMap.addNodeRefer(m_stPosition))
         throw exception();
 }
 
@@ -58,9 +58,9 @@ QGate::QGate(Qubit * qbit, QuantumGate *pQGate)
         throw param_error_exception("OriginGate param err", false);
     AbstractQGateNode * pTemp = new OriginQGate(qbit, pQGate);
     auto temp = dynamic_cast<QNode *>(pTemp);
-    m_iPosition = _G_QNodeMap.pushBackNode(temp);
-    temp->setPosition(m_iPosition);
-    if (!_G_QNodeMap.addNodeRefer(m_iPosition))
+    m_stPosition = _G_QNodeMap.pushBackNode(temp);
+    temp->setPosition(m_stPosition);
+    if (!_G_QNodeMap.addNodeRefer(m_stPosition))
         throw exception();
     m_pQGateNode = pTemp;
 }
@@ -75,9 +75,9 @@ QGate::QGate(Qubit * targetQuBit, Qubit * controlQuBit, QuantumGate *pQGate)
         throw param_error_exception("OriginGate param err", false);
     AbstractQGateNode * pTemp = new OriginQGate(targetQuBit, controlQuBit, pQGate);
     auto temp = dynamic_cast<QNode *>(pTemp);
-    m_iPosition = _G_QNodeMap.pushBackNode(temp);
-    temp->setPosition(m_iPosition);
-    if (!_G_QNodeMap.addNodeRefer(m_iPosition))
+    m_stPosition = _G_QNodeMap.pushBackNode(temp);
+    temp->setPosition(m_stPosition);
+    if (!_G_QNodeMap.addNodeRefer(m_stPosition))
         throw exception();
     m_pQGateNode = pTemp;
 }
@@ -113,9 +113,9 @@ QuantumGate * QGate::getQGate() const
 }
 
 
-size_t QGate::getPosition() const
+QMAP_SIZE QGate::getPosition() const
 {
-    return m_iPosition;
+    return m_stPosition;
 }
 
 bool QGate::setDagger(bool bIsDagger)
@@ -153,28 +153,28 @@ QCircuit::QCircuit()
     string sClasNname = "OriginCircuit";
     auto aMeasure = QuantumCircuitFactory::getInstance().getQuantumCircuit(sClasNname);
     auto temp = dynamic_cast<QNode *>(aMeasure);
-    m_iPosition = _G_QNodeMap.pushBackNode(temp);
-    temp->setPosition(m_iPosition);
-    if (!_G_QNodeMap.addNodeRefer(m_iPosition))
+    m_stPosition = _G_QNodeMap.pushBackNode(temp);
+    temp->setPosition(m_stPosition);
+    if (!_G_QNodeMap.addNodeRefer(m_stPosition))
         throw exception();
     m_pQuantumCircuit = aMeasure;
 }
 
 QCircuit::QCircuit(const QCircuit & oldQCircuit)
 {
-    m_iPosition = oldQCircuit.getPosition();
-    auto aiter = _G_QNodeMap.getNode(m_iPosition);
+    m_stPosition = oldQCircuit.getPosition();
+    auto aiter = _G_QNodeMap.getNode(m_stPosition);
     if (aiter !=nullptr)
         m_pQuantumCircuit = dynamic_cast<AbstractQuantumCircuit *>(aiter);
     else
         throw exception();
-    if (!_G_QNodeMap.addNodeRefer(m_iPosition))
+    if (!_G_QNodeMap.addNodeRefer(m_stPosition))
         throw exception();
 }
 
 QCircuit::~QCircuit()
 {
-    _G_QNodeMap.deleteNode(m_iPosition);
+    _G_QNodeMap.deleteNode(m_stPosition);
 }
 
 
@@ -303,11 +303,11 @@ NodeIter QCircuit::getHeadNodeIter()
 
 NodeIter QCircuit::insertQNode(NodeIter & iter, QNode * pNode)
 {
-    if ((m_iPosition < 0))
+    if ((m_stPosition < 0))
     {
         throw circuit_not_found_exception("there is no this circuit", false);
     }
-    auto aIter = _G_QNodeMap.getNode(m_iPosition);
+    auto aIter = _G_QNodeMap.getNode(m_stPosition);
     if (nullptr  == aIter)
     {
         throw circuit_not_found_exception("there is no this circuit", false);
@@ -319,11 +319,11 @@ NodeIter QCircuit::insertQNode(NodeIter & iter, QNode * pNode)
 
 NodeIter QCircuit::deleteQNode(NodeIter & iter)
 {
-    if ((m_iPosition < 0))
+    if ((m_stPosition < 0))
     {
         throw circuit_not_found_exception("there is no this circuit", false);
     }
-    auto aIter = _G_QNodeMap.getNode(m_iPosition);
+    auto aIter = _G_QNodeMap.getNode(m_stPosition);
     if (nullptr == aIter)
     {
         throw circuit_not_found_exception("there is no this circuit", false);
@@ -353,14 +353,14 @@ void QCircuit::setControl(vector<Qubit*>& controlBitVector)
 
 
 
-size_t QCircuit::getPosition() const
+QMAP_SIZE QCircuit::getPosition() const
 {
-    return this->m_iPosition;
+    return this->m_stPosition;
 }
 
-void QCircuit::setPosition(size_t stPosition)
+void QCircuit::setPosition(QMAP_SIZE stPosition)
 {
-    m_iPosition = stPosition;
+    m_stPosition = stPosition;
 }
 
 QProg::QProg()
@@ -368,28 +368,28 @@ QProg::QProg()
     string sClasNname = "OriginProgram";
     auto aMeasure = QuantumProgramFactory::getInstance().getQuantumCircuit(sClasNname);
     auto temp = dynamic_cast<QNode *>(aMeasure);
-    m_iPosition = _G_QNodeMap.pushBackNode(temp);
-    temp->setPosition(m_iPosition);
-    if (!_G_QNodeMap.addNodeRefer(m_iPosition))
+    m_stPosition = _G_QNodeMap.pushBackNode(temp);
+    temp->setPosition(m_stPosition);
+    if (!_G_QNodeMap.addNodeRefer(m_stPosition))
         throw exception();
     m_pQuantumProgram = aMeasure;
 }
 
 QProg::QProg(const QProg &oldQProg)
 {
-    m_iPosition = oldQProg.getPosition();
-    auto aiter = _G_QNodeMap.getNode(m_iPosition);
+    m_stPosition = oldQProg.getPosition();
+    auto aiter = _G_QNodeMap.getNode(m_stPosition);
     if (nullptr != aiter)
         m_pQuantumProgram = dynamic_cast<AbstractQuantumProgram *>(aiter);
     else
         throw exception();
-    if (!_G_QNodeMap.addNodeRefer(m_iPosition))
+    if (!_G_QNodeMap.addNodeRefer(m_stPosition))
         throw exception();
 }
 
 QProg::~QProg()
 {
-    _G_QNodeMap.deleteNode(m_iPosition);
+    _G_QNodeMap.deleteNode(m_stPosition);
 }
 
 void QProg :: pushBackNode(QNode * pNode)
@@ -480,11 +480,11 @@ NodeIter QProg::getHeadNodeIter()
 
 NodeIter QProg::insertQNode(NodeIter & iter, QNode * pNode)
 {
-    if ((m_iPosition < 0))
+    if ((m_stPosition < 0))
     {
         throw circuit_not_found_exception("there is no this circuit", false);
     }
-    auto aIter = _G_QNodeMap.getNode(m_iPosition);
+    auto aIter = _G_QNodeMap.getNode(m_stPosition);
     if (nullptr == aIter)
     {
         throw circuit_not_found_exception("there is no this circuit", false);
@@ -496,11 +496,11 @@ NodeIter QProg::insertQNode(NodeIter & iter, QNode * pNode)
 
 NodeIter QProg::deleteQNode(NodeIter & iter)
 {
-    if ((m_iPosition < 0))
+    if ((m_stPosition < 0))
     {
         throw circuit_not_found_exception("there is no this circuit", false);
     }
-    auto aIter = _G_QNodeMap.getNode(m_iPosition);
+    auto aIter = _G_QNodeMap.getNode(m_stPosition);
     if (nullptr == aIter)
     {
         throw circuit_not_found_exception("there is no this circuit", false);
@@ -526,9 +526,9 @@ void QProg::clear()
         throw exception();
 }
 
-size_t QProg:: getPosition() const
+QMAP_SIZE QProg:: getPosition() const
 {
-    return m_iPosition;
+    return m_stPosition;
 }
 
 NodeIter &NodeIter::operator ++()
@@ -963,12 +963,12 @@ NodeIter OriginProgram::deleteQNode(NodeIter & targitIter)
     return temp;
 }
 
-size_t OriginProgram::getPosition() const
+QMAP_SIZE OriginProgram::getPosition() const
 {
     return m_stPosition;
 }
 
-void OriginProgram::setPosition(size_t stPosition)
+void OriginProgram::setPosition(QMAP_SIZE stPosition)
 {
     m_stPosition = stPosition;
 }
@@ -1229,12 +1229,12 @@ NodeIter OriginCircuit::deleteQNode(NodeIter & targitIter)
     return temp;
 }
 
-size_t OriginCircuit::getPosition() const
+QMAP_SIZE OriginCircuit::getPosition() const
 {
     return m_stPosition;
 }
 
-void OriginCircuit::setPosition(size_t stPosition)
+void OriginCircuit::setPosition(QMAP_SIZE stPosition)
 {
     m_stPosition = stPosition;
 }
@@ -1318,14 +1318,14 @@ QuantumGate * OriginQGate::getQGate() const
     return m_pQGate;
 }
 
-size_t OriginQGate::getPosition() const
+QMAP_SIZE OriginQGate::getPosition() const
 {
-    return  m_iPosition;
+    return  m_stPosition;
 }
-void OriginQGate::setPosition(size_t iPosition)
+void OriginQGate::setPosition(QMAP_SIZE iPosition)
 {
 
-    m_iPosition = iPosition;
+    m_stPosition = iPosition;
 }
 
 bool OriginQGate::setDagger(bool isDagger)

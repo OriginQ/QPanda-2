@@ -32,7 +32,7 @@ class QMeasure : public QNode, public AbstractQuantumMeasure
 {
 private:
     AbstractQuantumMeasure * m_pQuantumMeasure;
-    size_t m_iPosition;
+    QMAP_SIZE m_stPosition;
     QMeasure();
 
 public:
@@ -43,9 +43,9 @@ public:
     CBit * getCBit()const;
 
     NodeType getNodeType() const;
-    size_t getPosition() const;
+    QMAP_SIZE getPosition() const;
 private:
-    void setPosition(size_t) {};
+    void setPosition(QMAP_SIZE) {};
 };
 
 typedef AbstractQuantumMeasure * (*CreateMeasure)(Qubit *, CBit *);
@@ -91,15 +91,15 @@ public:
     CBit * getCBit()const;
 
     NodeType getNodeType() const;
-    size_t getPosition() const;
-    void setPosition(size_t stPositio);
+    QMAP_SIZE getPosition() const;
+    void setPosition(QMAP_SIZE stPositio);
 private:
     OriginMeasure();
     OriginMeasure(OriginMeasure &);
     NodeType m_iNodeType;
     Qubit * m_pTargetQubit;
     CBit * m_pCBit;
-    size_t m_stPosition;
+    QMAP_SIZE m_stPosition;
      
 };
 

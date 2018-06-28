@@ -45,19 +45,19 @@ QIfProg  CreateIfProg(ClassicalCondition &ccCon, QNode * trueNode, QNode * false
 
 QWhileProg::~QWhileProg()
 {
-    _G_QNodeMap.deleteNode(m_iPosition);
+    _G_QNodeMap.deleteNode(m_stPosition);
 }
 
 QWhileProg::QWhileProg( const QWhileProg &oldQWhile)
 {
-    m_iPosition = oldQWhile.getPosition();
-    auto aiter = _G_QNodeMap.getNode(m_iPosition);
+    m_stPosition = oldQWhile.getPosition();
+    auto aiter = _G_QNodeMap.getNode(m_stPosition);
     if (aiter != nullptr)
         m_pControlFlow = dynamic_cast<AbstractControlFlowNode *>(aiter);
     else
         throw circuit_not_found_exception("QWhileProg cant found",false);
     
-    if (!_G_QNodeMap.addNodeRefer(m_iPosition))
+    if (!_G_QNodeMap.addNodeRefer(m_stPosition))
         throw exception();
 }
 
@@ -66,9 +66,9 @@ QWhileProg::QWhileProg(ClassicalCondition & ccCon, QNode * node)
     string sClasNname = "OriginWhile";
     auto aMeasure = QuantunWhileFactory::getInstance().getQuantumWhile(sClasNname, ccCon, node);
     auto temp = dynamic_cast<QNode *>(aMeasure);
-    m_iPosition = _G_QNodeMap.pushBackNode(temp);
-    temp->setPosition(m_iPosition);
-    if (!_G_QNodeMap.addNodeRefer(m_iPosition))
+    m_stPosition = _G_QNodeMap.pushBackNode(temp);
+    temp->setPosition(m_stPosition);
+    if (!_G_QNodeMap.addNodeRefer(m_stPosition))
         throw exception();
     m_pControlFlow = aMeasure;
     
@@ -106,25 +106,25 @@ ClassicalCondition * QWhileProg::getCExpr()
 }
 
 
-size_t QWhileProg::getPosition() const
+QMAP_SIZE QWhileProg::getPosition() const
 {
-    return m_iPosition;
+    return m_stPosition;
 }
 
 QIfProg::~QIfProg()
 {
-    _G_QNodeMap.deleteNode(m_iPosition);
+    _G_QNodeMap.deleteNode(m_stPosition);
 }
 
 QIfProg::QIfProg(const QIfProg &oldQIf)
 {
-    m_iPosition = oldQIf.getPosition();
-    auto aiter = _G_QNodeMap.getNode(m_iPosition);
+    m_stPosition = oldQIf.getPosition();
+    auto aiter = _G_QNodeMap.getNode(m_stPosition);
     if (aiter != nullptr)
         m_pControlFlow = dynamic_cast<AbstractControlFlowNode *>(aiter);
     else
         throw circuit_not_found_exception("QIfProg cant found", false);
-    if (!_G_QNodeMap.addNodeRefer(m_iPosition))
+    if (!_G_QNodeMap.addNodeRefer(m_stPosition))
         throw exception();
 }
 
@@ -133,10 +133,10 @@ QIfProg::QIfProg(ClassicalCondition & ccCon, QNode * pTrueNode, QNode * pFalseNo
     string sClasNname = "OriginIf";
     auto aMeasure = QuantunIfFactory::getInstance().getQuantumIf(sClasNname, ccCon, pTrueNode, pFalseNode);
     auto temp = dynamic_cast<QNode *>(aMeasure);
-    m_iPosition = _G_QNodeMap.pushBackNode(temp);
-    temp->setPosition(m_iPosition);
+    m_stPosition = _G_QNodeMap.pushBackNode(temp);
+    temp->setPosition(m_stPosition);
     m_pControlFlow = aMeasure;
-    if (!_G_QNodeMap.addNodeRefer(m_iPosition))
+    if (!_G_QNodeMap.addNodeRefer(m_stPosition))
         throw exception();
 }
 
@@ -145,10 +145,10 @@ QIfProg::QIfProg(ClassicalCondition & ccCon, QNode * node)
     string sClasNname = "OriginIf";
     auto aMeasure = QuantunIfFactory::getInstance().getQuantumIf(sClasNname, ccCon, node);
     auto temp = dynamic_cast<QNode *>(aMeasure);
-    m_iPosition = _G_QNodeMap.pushBackNode(temp);
-    temp->setPosition(m_iPosition);
+    m_stPosition = _G_QNodeMap.pushBackNode(temp);
+    temp->setPosition(m_stPosition);
     m_pControlFlow = aMeasure;
-    if (!_G_QNodeMap.addNodeRefer(m_iPosition))
+    if (!_G_QNodeMap.addNodeRefer(m_stPosition))
         throw exception();
 }
 
@@ -173,9 +173,9 @@ QNode * QIfProg::getFalseBranch() const
     return m_pControlFlow->getFalseBranch();
 }
 
-size_t QIfProg::getPosition() const
+QMAP_SIZE QIfProg::getPosition() const
 {
-    return m_iPosition;
+    return m_stPosition;
 }
 
 ClassicalCondition * QIfProg::getCExpr() 
@@ -252,12 +252,12 @@ QNode * OriginIf::getFalseBranch() const
     return nullptr;
 }
 
-size_t OriginIf::getPosition() const
+QMAP_SIZE OriginIf::getPosition() const
 {
     return m_stPosition;
 }
 
-void OriginIf::setPosition(size_t stPosition)
+void OriginIf::setPosition(QMAP_SIZE stPosition)
 {
     m_stPosition = stPosition;
 }
@@ -357,12 +357,12 @@ ClassicalCondition * OriginWhile::getCExpr()
     return &m_CCondition;
 }
 
-size_t OriginWhile::getPosition() const
+QMAP_SIZE OriginWhile::getPosition() const
 {
     return m_stPosition;
 }
 
-void OriginWhile::setPosition(size_t stPosition)
+void OriginWhile::setPosition(QMAP_SIZE stPosition)
 {
     m_stPosition = stPosition;
 }

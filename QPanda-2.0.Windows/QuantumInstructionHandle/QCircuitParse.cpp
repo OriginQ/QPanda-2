@@ -317,7 +317,6 @@ bool QGateParse::verify()
             return false;
         }
     }
-
     return true;
 }
 

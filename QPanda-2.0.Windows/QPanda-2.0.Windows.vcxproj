@@ -39,6 +39,7 @@
     <ClInclude Include="QuantumMachine\OriginQuantumMachine.h" />
     <ClInclude Include="QuantumMachine\QuantumMachineInterface.h" />
     <ClInclude Include="QuantumMachine\QuantumMetadata.h" />
+    <ClInclude Include="QuantumCircuit\StatisticsQGateCountAlgorithm.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="QPanda\QPanda.cpp" />
@@ -63,6 +64,7 @@
     <ClCompile Include="QuantumMachine\OriginQVM.cpp" />
     <ClCompile Include="QuantumMachine\QuantumMachineInterface.cpp" />
     <ClCompile Include="QuantumMachine\QuantumMetadata.cpp" />
+    <ClCompile Include="QuantumCircuit\StatisticsQGateCountAlgorithm.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

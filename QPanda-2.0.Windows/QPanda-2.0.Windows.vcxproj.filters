@@ -50,6 +50,7 @@
     <ClInclude Include="QuantumCircuit\ControlFlow.h" />
     <ClInclude Include="QPanda\QPandaException.h" />
     <ClInclude Include="QuantumMachine\QuantumMetadata.h" />
+    <ClInclude Include="QuantumCircuit\StatisticsQGateCountAlgorithm.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="QPanda\QPanda.cpp">
@@ -110,6 +111,7 @@
     <ClCompile Include="QuantumCircuit\QuantumMeasure.cpp" />
     <ClCompile Include="QuantumCircuit\ControlFlow.cpp" />
     <ClCompile Include="QuantumMachine\QuantumMetadata.cpp" />
+    <ClCompile Include="QuantumCircuit\StatisticsQGateCountAlgorithm.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="源文件">

@@ -30,18 +30,10 @@ class QuantumGateParam
 {
     typedef std::vector <std::complex<double>> QStat;
  public:
-    int                           mPMeasureSize;                        /* PMeasure bit size                    */
     int                           mQuantumBitNumber;                    /* quantum bit number                   */
 
     std::map<string , bool>              mReturnValue;               /* MonteCarlo result                    */
-    std::vector<std::pair<size_t, double>>  mPMeasure;                  /* Pmeasure result                      */
 
-    QuantumGateParam() : mPMeasureSize(0),mQuantumBitNumber(0){};
-    ~QuantumGateParam()
-    {
-        mReturnValue.clear();
-        mPMeasure.clear();
-    };
 
     /*************************************************************************************************************
     Name:        setQBitNum

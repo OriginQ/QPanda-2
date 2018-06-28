@@ -238,7 +238,7 @@ QCircuit QCircuit::dagger()
         qCircuit.pushBackNode( *aiter);
     }
 
-    qCircuit.setDagger(true);
+    qCircuit.setDagger(true^this->isDagger());
     return qCircuit;
 }
 

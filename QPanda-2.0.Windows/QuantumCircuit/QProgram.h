@@ -215,8 +215,8 @@ public:
 
     template<typename T>
     QCircuit & operator <<(T);
-    QCircuit  dagger();
-    QCircuit  control(vector<Qubit *> &);
+    virtual QCircuit  dagger();
+    virtual QCircuit  control(vector<Qubit *> &);
     NodeType getNodeType() const;
     bool isDagger() const;
     bool getControlVector(vector<Qubit *> &);
@@ -228,8 +228,8 @@ public:
     NodeIter  insertQNode(NodeIter & iter, QNode * pNode);
     NodeIter  deleteQNode(NodeIter & iter);
 
-    void  setDagger(bool isDagger);
-    void  setControl(vector<Qubit *> &);
+    virtual void  setDagger(bool isDagger);
+    virtual void  setControl(vector<Qubit *> &);
     QMAP_SIZE getPosition() const;
 private:
     void setPosition(QMAP_SIZE stPosition);
@@ -239,7 +239,6 @@ private:
 class HadamardQCircuit :public QCircuit
 {
 public:
-    HadamardQCircuit(const HadamardQCircuit &);
     HadamardQCircuit(vector<Qubit * > & pQubitVector);
     ~HadamardQCircuit() {};
 private:

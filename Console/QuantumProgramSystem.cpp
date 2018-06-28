@@ -57,7 +57,7 @@ int main()
   auto prog = CreateEmptyQProg();
   vector<Qubit *> qubitvector = { a,b };
   auto hQc = CreateHadamardQCircuit(qubitvector);
-  prog <<hQc << X(a) << iSWAP(a, b) << Measure(a, cc);
+  prog << hQc << X(a) << iSWAP(a, b) << Measure(a, cc);
   load(prog);
   run();
   finalize();

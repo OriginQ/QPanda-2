@@ -1372,17 +1372,6 @@ size_t OriginQGate::getControlVector(vector<Qubit *>& quBitVector) const
     return quBitVector.size();
 }
 
-HadamardQCircuit::HadamardQCircuit(const HadamardQCircuit & oldQCircuit)
-{
-    m_stPosition = oldQCircuit.getPosition();
-    auto aiter = _G_QNodeMap.getNode(m_stPosition);
-    if (aiter != nullptr)
-        m_pQuantumCircuit = dynamic_cast<AbstractQuantumCircuit *>(aiter);
-    else
-        throw exception();
-    if (!_G_QNodeMap.addNodeRefer(m_stPosition))
-        throw exception();
-}
 
 HadamardQCircuit::HadamardQCircuit(vector<Qubit*>& pQubitVector)
 {

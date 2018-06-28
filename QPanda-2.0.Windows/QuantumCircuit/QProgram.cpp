@@ -491,7 +491,7 @@ QProg & QProg::operator<<(T node)
     {
         throw param_error_exception("param is not QNode", false);
     }
-    if (nullptr == m_pQuantumCircuit)
+    if (nullptr == m_pQuantumProgram)
     {
         throw exception();
     }

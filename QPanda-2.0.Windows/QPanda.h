@@ -23,6 +23,8 @@ limitations under the License.
 
 extern size_t countQGateUnderQCircuit(AbstractQuantumCircuit *);
 
+extern HadamardQCircuit CreateHadamardQCircuit(vector<Qubit *> & pQubitVector);
+
 extern QNodeMap _G_QNodeMap;
 
 // Create an empty QProg Container

@@ -193,6 +193,8 @@ QCircuit & QCircuit::operator<<(QGate  node)
 
     return *this;
 }
+/*
+
 
 QCircuit & QCircuit::operator<<(QCircuit node)
 {
@@ -203,12 +205,45 @@ QCircuit & QCircuit::operator<<(QCircuit node)
     return *this;
 }
 
+
+
+
 QCircuit & QCircuit::operator<<( QMeasure  node)
 {
     if (nullptr == m_pQuantumCircuit)
         throw exception();
     m_pQuantumCircuit->pushBackNode(dynamic_cast<QNode*>(&node));
     return *this;
+}
+
+*/
+
+
+template<typename T>
+inline QCircuit & QCircuit::operator<<(T node)
+{
+    auto temp = dynamic_cast<QNode *>(&node);
+    if (nullptr == temp)
+    {
+        throw param_error_exception("param is not QNode", false);
+    }
+    if (nullptr == m_pQuantumCircuit)
+    {
+        throw exception();
+    }
+    int iNodeType = temp->getNodeType();
+
+    switch (iNodeType)
+    {
+    case GATE_NODE:
+    case CIRCUIT_NODE:
+    case MEASURE_GATE:
+        m_pQuantumCircuit->pushBackNode(dynamic_cast<QNode*>(&node));
+        break;
+    default:
+        throw param_error_exception("param node type error", false);
+    }
+
 }
 
 QCircuit QCircuit::dagger()
@@ -398,7 +433,7 @@ void QProg :: pushBackNode(QNode * pNode)
         throw exception();
     m_pQuantumProgram->pushBackNode(pNode);
 }
-
+/*
 QProg & QProg::operator<<( QIfProg  ifNode)
 {
     if (nullptr == m_pQuantumProgram)
@@ -445,6 +480,25 @@ QProg & QProg::operator<<( QCircuit  qCircuit)
         m_pQuantumProgram->pushBackNode(dynamic_cast<QNode *>(&qCircuit));
     return *this;
 }
+
+
+*/
+template<typename T>
+QProg & QProg::operator<<(T node)
+{
+    auto temp = dynamic_cast<QNode *>(&node);
+    if (nullptr == temp)
+    {
+        throw param_error_exception("param is not QNode", false);
+    }
+    if (nullptr == m_pQuantumCircuit)
+    {
+        throw exception();
+    }
+    int iNodeType = temp->getNodeType();
+    m_pQuantumProgram->pushBackNode(dynamic_cast<QNode*>(&node));
+}
+
 
 NodeIter  QProg::getFirstNodeIter()
 {
@@ -1355,4 +1409,31 @@ size_t OriginQGate::getControlVector(vector<Qubit *>& quBitVector) const
         quBitVector.push_back(aiter);
     }
     return quBitVector.size();
+}
+
+HadamardQCircuit::HadamardQCircuit(const HadamardQCircuit & oldQCircuit)
+{
+    m_stPosition = oldQCircuit.getPosition();
+    auto aiter = _G_QNodeMap.getNode(m_stPosition);
+    if (aiter != nullptr)
+        m_pQuantumCircuit = dynamic_cast<AbstractQuantumCircuit *>(aiter);
+    else
+        throw exception();
+    if (!_G_QNodeMap.addNodeRefer(m_stPosition))
+        throw exception();
+}
+
+HadamardQCircuit::HadamardQCircuit(vector<Qubit*>& pQubitVector)
+{
+    for (auto aiter :pQubitVector)
+    {
+        auto  temp = H(aiter);
+        m_pQuantumCircuit->pushBackNode((QNode *)&temp);
+    }
+}
+
+HadamardQCircuit CreateHadamardQCircuit(vector<Qubit *> & pQubitVector)
+{
+    HadamardQCircuit temp(pQubitVector);
+    return temp;
 }

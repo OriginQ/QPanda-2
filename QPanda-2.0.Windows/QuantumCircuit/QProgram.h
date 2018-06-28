@@ -197,7 +197,7 @@ public:
 
 class QCircuit : public QNode,public AbstractQuantumCircuit
 {
-private:
+protected:
     AbstractQuantumCircuit * m_pQuantumCircuit;
     QMAP_SIZE m_stPosition;
 public:
@@ -205,9 +205,15 @@ public:
     QCircuit(const QCircuit &);
     ~QCircuit();
     void pushBackNode(QNode *);
-    QCircuit & operator << ( QGate );
+    QCircuit & operator << (QGate);
+    /*   
+
     QCircuit & operator << (QCircuit);
     QCircuit & operator << ( QMeasure );
+    */
+
+    template<typename T>
+    QCircuit & operator <<(T);
     QCircuit  dagger();
     QCircuit  control(vector<Qubit *> &);
     NodeType getNodeType() const;
@@ -227,6 +233,19 @@ public:
 private:
     void setPosition(QMAP_SIZE stPosition);
 };
+
+
+class HadamardQCircuit :protected QCircuit
+{
+public:
+    HadamardQCircuit(const HadamardQCircuit &);
+    HadamardQCircuit(vector<Qubit * > & pQubitVector);
+    ~HadamardQCircuit() {};
+private:
+    HadamardQCircuit();
+
+};
+
 
 typedef AbstractQuantumCircuit * (*CreateQCircuit)();
 class QuantumCircuitFactory
@@ -320,13 +339,17 @@ public:
     QProg(const QProg&);
     ~QProg();
     void pushBackNode(QNode *);
-
+    /*
     QProg & operator << ( QIfProg );
     QProg & operator << ( QWhileProg );
     QProg & operator << (QMeasure );
     QProg & operator << ( QProg );
     QProg & operator << ( QGate );
     QProg & operator << ( QCircuit );
+
+    */
+    template<typename T>
+    QProg & operator <<(T);
     NodeIter getFirstNodeIter();
     NodeIter getLastNodeIter();
     NodeIter  getEndNodeIter();

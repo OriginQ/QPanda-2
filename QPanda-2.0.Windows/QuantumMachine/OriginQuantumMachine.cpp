@@ -15,5 +15,6 @@ limitations under the License.
 */
 
 #include "OriginQuantumMachine.h"
-
+//REGISTER_QUANTUM_MACHINE(OriginQVM);
+//REGISTER_QUBIT(OriginQubit);
 //REGISTER_QRES_NAME(OriginQResult)

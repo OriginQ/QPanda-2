@@ -133,4 +133,6 @@ ClassicalCondition bind_a_cbit(CBit* c);
 // run the loaded program
 void run();
 
+
+
 #endif // !_QPANDA_H

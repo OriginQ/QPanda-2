@@ -85,7 +85,7 @@
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>QPanda-2.0.Algorithm.lib;QPanda-2.0.Windows.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>QPanda-2.0.Algorithm.lib;QPanda-2.0.Windows.lib;TinyXML.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
     </Link>
   </ItemDefinitionGroup>

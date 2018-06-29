@@ -16,9 +16,8 @@ limitations under the License.
 
 #include "OriginQuantumMachine.h"
 #include "Factory.h"
-#include "../QuantumCircuit/QProgram.h"
-#include "../QuantumInstructionHandle/X86QuantumGates.h"
-
+#include "QuantumInstructionHandle/QCircuitParse.h"
+#include "QuantumInstructionHandle/X86QuantumGates.h"
 OriginQVM::OriginQVM()
 {
 	return;
@@ -175,5 +174,5 @@ void OriginQVM::finalize()
 
 }
 
-//REGISTER_QUANTUM_MACHINE(OriginQVM)
+
 

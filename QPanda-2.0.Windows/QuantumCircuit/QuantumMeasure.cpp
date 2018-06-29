@@ -16,7 +16,7 @@ limitations under the License.
 
 #include "QuantumMeasure.h"
 #include "QPanda/QPandaException.h"
-
+#include "QPanda/ConfigMap.h"
 QMeasure  Measure(Qubit * targetQuBit, CBit *targetCbit)
 {
     QMeasure qMeasure(targetQuBit, targetCbit);
@@ -37,7 +37,7 @@ QMeasure::QMeasure(const QMeasure & oldMeasure)
 
 QMeasure::QMeasure(Qubit * qbit, CBit * cbit)
 {
-    string sClasNname = "OriginMeasure";
+    auto sClasNname = _G_configMap["QMeasure"];
     auto aMeasure = QuantunMeasureFactory::getInstance().getQuantumMeasure(sClasNname, qbit, cbit);
     auto temp = dynamic_cast<QNode *>(aMeasure);
     m_stPosition = _G_QNodeMap.pushBackNode(temp);

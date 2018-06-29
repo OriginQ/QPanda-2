@@ -15,13 +15,16 @@ limitations under the License.
 */
 
 #include "QPanda.h"
+#include "QPanda/ConfigMap.h"
 #include "../QuantumMachine/Factory.h"
 
-QuantumMachine* qvm = Factory::QuantumMachineFactory
-::GetFactoryInstance().CreateByName("OriginQVM");// global
+static QuantumMachine* qvm;
+
 
 void init()
 {
+    qvm = Factory::QuantumMachineFactory
+        ::GetFactoryInstance().CreateByName(_G_configMap["QuantumMachine"]);// global
 	qvm->init();
 }
 
@@ -90,6 +93,7 @@ bool getCBitValue(CBit * cbit)
 	auto resmap = getResultMap();
 	return resmap[cbit->getName()];
 }
+
 
 
 

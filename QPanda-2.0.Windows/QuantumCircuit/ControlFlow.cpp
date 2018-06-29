@@ -16,7 +16,7 @@ limitations under the License.
 
 #include "ControlFlow.h"
 #include "QPanda/QPandaException.h"
-
+#include "QPanda/ConfigMap.h"
 QWhileProg  CreateWhileProg(ClassicalCondition & ccCon, QNode * trueNode)
 {
     if (nullptr == trueNode)
@@ -63,7 +63,7 @@ QWhileProg::QWhileProg( const QWhileProg &oldQWhile)
 
 QWhileProg::QWhileProg(ClassicalCondition & ccCon, QNode * node)
 {
-    string sClasNname = "OriginWhile";
+    auto sClasNname = _G_configMap["QWhileProg"];
     auto aMeasure = QuantunWhileFactory::getInstance().getQuantumWhile(sClasNname, ccCon, node);
     auto temp = dynamic_cast<QNode *>(aMeasure);
     m_stPosition = _G_QNodeMap.pushBackNode(temp);
@@ -130,7 +130,7 @@ QIfProg::QIfProg(const QIfProg &oldQIf)
 
 QIfProg::QIfProg(ClassicalCondition & ccCon, QNode * pTrueNode, QNode * pFalseNode)
 {
-    string sClasNname = "OriginIf";
+    auto sClasNname = _G_configMap["QIfProg"];
     auto aMeasure = QuantunIfFactory::getInstance().getQuantumIf(sClasNname, ccCon, pTrueNode, pFalseNode);
     auto temp = dynamic_cast<QNode *>(aMeasure);
     m_stPosition = _G_QNodeMap.pushBackNode(temp);
@@ -142,7 +142,7 @@ QIfProg::QIfProg(ClassicalCondition & ccCon, QNode * pTrueNode, QNode * pFalseNo
 
 QIfProg::QIfProg(ClassicalCondition & ccCon, QNode * node)
 {
-    string sClasNname = "OriginIf";
+    auto sClasNname = _G_configMap["QIfProg"];
     auto aMeasure = QuantunIfFactory::getInstance().getQuantumIf(sClasNname, ccCon, node);
     auto temp = dynamic_cast<QNode *>(aMeasure);
     m_stPosition = _G_QNodeMap.pushBackNode(temp);

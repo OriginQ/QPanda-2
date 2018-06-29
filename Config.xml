@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<head>
+	<ClassNameConfig>
+		<QProg>OriginProgram</QProg>
+		<QCircuit>OriginCircuit</QCircuit>		
+		<QIfProg>OriginIf</QIfProg>
+		<QWhileProg>OriginWhile</QWhileProg>
+		<QMeasure>OriginMeasure</QMeasure>
+		<QuantumMachine>OriginQVM</QuantumMachine>
+		<QubitPool>OriginQubitPool</QubitPool>
+		<Qubit>OriginQubit</Qubit>
+		<PhysicalQubit>OriginPhysicalQubit</PhysicalQubit>
+		<CBit>OriginCBit</CBit>
+		<CMem>OriginCMem</CMem>
+		<QResult>OriginQResult</QResult>
+		<CExpr>OriginCExpr</CExpr>
+	</ClassNameConfig>
+	<MetadataPath>
+		./path/config/
+	</MetadataPath>
+</head>

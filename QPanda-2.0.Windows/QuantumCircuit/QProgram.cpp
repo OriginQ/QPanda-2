@@ -17,7 +17,7 @@ limitations under the License.
 //#include "QProgram.h"
 
 #include "QPanda.h"
-
+#include "QPanda/ConfigMap.h"
 
 QProg  CreateEmptyQProg()
 {
@@ -150,7 +150,7 @@ size_t QGate::getControlVector(vector<Qubit *>& quBitVector) const
 
 QCircuit::QCircuit()
 {
-    string sClasNname = "OriginCircuit";
+    auto sClasNname = _G_configMap["QCircuit"];
     auto aMeasure = QuantumCircuitFactory::getInstance().getQuantumCircuit(sClasNname);
     auto temp = dynamic_cast<QNode *>(aMeasure);
     m_stPosition = _G_QNodeMap.pushBackNode(temp);
@@ -375,7 +375,7 @@ void QCircuit::setPosition(QMAP_SIZE stPosition)
 
 QProg::QProg()
 {
-    string sClasNname = "OriginProgram";
+    auto sClasNname = _G_configMap["QProg"];
     auto aMeasure = QuantumProgramFactory::getInstance().getQuantumCircuit(sClasNname);
     auto temp = dynamic_cast<QNode *>(aMeasure);
     m_stPosition = _G_QNodeMap.pushBackNode(temp);

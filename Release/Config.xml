@@ -16,6 +16,6 @@
 		<CExpr>OriginCExpr</CExpr>
 	</ClassNameConfig>
 	<MetadataPath>
-		./path/config/
+		./path/config/../
 	</MetadataPath>
 </head>

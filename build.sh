@@ -1,2 +1,3 @@
 make
-./Release/bin/test
+cd ./Release/bin/
+./test

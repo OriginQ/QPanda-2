@@ -14,15 +14,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#ifndef QALGORITHM_H
-#define QALGORITHM_H
+#ifndef COINFLIPGAME_H
+#define COINFLIPGAME_H
 
-#include "Algorithm/DJ_Algorithm/DJ_Algorithm.h"
-#include "Algorithm/Grover_Algorithm/Grover_Algorithm.h"
-#include "Algorithm/HHL_Algorithm/HHL_Algorithm.h"
-//#include "Algorithm/QPE_Algorithm/QPE_Algorithm.h"
-#include "Algorithm/PennyGame_Algorithm/CoinFlipGame.h"
-#include "Algorithm/B_V_Algorithm/BernsteinVaziraniAlgorithm.h"
-#include "Algorithm/Hamiltonian/Hamiltonian.h"
+#include "QPanda.h"
+#include "../../QAlgorithm.h"
+
+void CoinFlip_Game();
+
+QProg CoinFlip_Algorithm(vector<Qubit*> qVec, vector<CBit*> cVec,bool fx);
+int CoinFlip_Prog(vector<Qubit*> qVec, vector<CBit*> cVec, bool fx);
+void CoinFlip_Game();
 
 #endif

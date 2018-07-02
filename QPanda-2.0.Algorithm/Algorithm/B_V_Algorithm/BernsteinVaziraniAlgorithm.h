@@ -13,16 +13,19 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+//Bernstein Vazirani Algorithm: f(x)=ax+b mod 2;
+//                            a,x:{0,1}^n,b:{0,1}
+//questions: find a and b;
+#ifndef BERNSTEINVAZIRANIALGORITHM_H
+#define BERNSTEINVAZIRANIALGORITHM_H
 
-#ifndef QALGORITHM_H
-#define QALGORITHM_H
+#include "QPanda.h"
+#include "../../QAlgorithm.h"
 
-#include "Algorithm/DJ_Algorithm/DJ_Algorithm.h"
-#include "Algorithm/Grover_Algorithm/Grover_Algorithm.h"
-#include "Algorithm/HHL_Algorithm/HHL_Algorithm.h"
-//#include "Algorithm/QPE_Algorithm/QPE_Algorithm.h"
-#include "Algorithm/PennyGame_Algorithm/CoinFlipGame.h"
-#include "Algorithm/B_V_Algorithm/BernsteinVaziraniAlgorithm.h"
-#include "Algorithm/Hamiltonian/Hamiltonian.h"
+void BernsteinVaziraniAlgorithm();
+
+//QProg BV_Algorithm(vector<Qubit*> qVec, vector<CBit*> cVec,vector<bool> & ,bool );
+
+QProg BV_QProg(vector<Qubit*> qVec, vector<Qubit*> cVec, vector<bool> &, bool);
 
 #endif

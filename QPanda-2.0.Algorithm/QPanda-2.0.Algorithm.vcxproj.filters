@@ -30,6 +30,18 @@
     <ClCompile Include="Algorithm\Utilities\Utilities.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Algorithm\B_V_Algorithm\BernsteinVaziraniAlgorithm.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Algorithm\Hamiltonian\asa047.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Algorithm\Hamiltonian\Hamiltonian.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Algorithm\PennyGame_Algorithm\CoinFlipGame.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="QAlgorithm.h">
@@ -48,6 +60,18 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Algorithm\Utilities\Utilities.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Algorithm\B_V_Algorithm\BernsteinVaziraniAlgorithm.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Algorithm\Hamiltonian\asa047.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Algorithm\Hamiltonian\Hamiltonian.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Algorithm\PennyGame_Algorithm\CoinFlipGame.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

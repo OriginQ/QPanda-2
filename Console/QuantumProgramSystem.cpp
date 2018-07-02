@@ -68,6 +68,8 @@ int main()
 //    getchar();
     
 //    getchar();
+
+    qaoaopall();
     return  0;
 
 }

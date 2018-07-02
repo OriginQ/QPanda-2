@@ -22,7 +22,7 @@ QProg BV_QProg(vector<Qubit*> qVec, vector<CBit*> cVec, vector<bool>& a, bool b)
 {
     if (qVec.size() != (a.size()+1))
     {
-        throw exception("error");
+        throw exception();
     }
     size_t length = qVec.size();
     QProg  bv_qprog = CreateEmptyQProg();

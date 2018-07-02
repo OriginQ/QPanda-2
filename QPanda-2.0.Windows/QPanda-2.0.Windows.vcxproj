@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="QPanda\MetadataValidity.h" />
     <ClInclude Include="QuantumMachine\OriginQMachine.h" />
     <ClInclude Include="QPanda\ConfigMap.h" />
     <ClInclude Include="QPanda.h" />
@@ -45,6 +46,7 @@
     <ClInclude Include="QuantumCircuit\StatisticsQGateCountAlgorithm.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="QPanda\MetadataValidity.cpp" />
     <ClCompile Include="QuantumMachine\OriginQMachine.cpp" />
     <ClCompile Include="QPanda\ConfigMap.cpp" />
     <ClCompile Include="QPanda\QPanda.cpp" />

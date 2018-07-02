@@ -3,7 +3,8 @@
 #include "QPanda.h"
 #include "QPanda/QuantumMetadata.h"
 #include "QPanda/ConfigMap.h"
-
+#include "../QPanda/MetadataValidity.h"
+#include "QuantumInstructionHandle/QCircuitParse.h"
 OriginQMachine::OriginQMachine()
 {
 }
@@ -44,4 +45,98 @@ void OriginQMachine::init()
         Factory::
         QMachineStatusFactory::
         GetQMachineStatus();
+
+    
 }
+
+Qubit * OriginQMachine::Allocate_Qubit()
+{
+    if (m_pQubitPool == nullptr)
+    {
+        // check if the pointer is nullptr
+        // Before init
+        // After finalize
+        throw(invalid_pool());
+    }
+    else
+    {
+        return m_pQubitPool->Allocate_Qubit();
+    }
+}
+
+CBit * OriginQMachine::Allocate_CBit()
+{
+    if (m_pCMem == nullptr)
+    {
+        // check if the pointer is nullptr
+        // Before init
+        // After finalize
+        throw(invalid_cmem());
+    }
+    else
+    {
+        return m_pCMem->Allocate_CBit();
+    }
+}
+
+void OriginQMachine::Free_Qubit(Qubit * pQubit)
+{
+    this->m_pQubitPool->Free_Qubit(pQubit);
+}
+
+void OriginQMachine::Free_CBit(CBit * pCBit)
+{
+    this->m_pCMem->Free_CBit(pCBit);
+}
+
+void OriginQMachine::load(QProg & loadProgram)
+{
+    QNodeAgency temp(&loadProgram, nullptr, nullptr);
+    if (!temp.verify())
+    {
+        throw load_exception();
+    }
+    _G_QNodeMap.deleteNode(m_iQProgram);
+    m_iQProgram = loadProgram.getPosition();
+    if (!_G_QNodeMap.addNodeRefer(m_iQProgram))
+        throw exception();
+}
+
+void OriginQMachine::append(QProg &prog)
+{
+    QNodeAgency tempAgency(&prog, nullptr, nullptr);
+    if (!tempAgency.verify())
+    {
+        throw load_exception();
+    }
+    auto aiter = _G_QNodeMap.getNode(m_iQProgram);
+    if (nullptr == aiter)
+        throw circuit_not_found_exception("cant found this QProgam", false);
+    AbstractQuantumProgram * temp = dynamic_cast<AbstractQuantumProgram *>(aiter);
+    temp->pushBackNode(&prog);
+}
+
+void OriginQMachine::run()
+{
+}
+
+QMachineStatus * OriginQMachine::getStatus() const
+{
+    return nullptr;
+}
+
+QResult * OriginQMachine::getResult()
+{
+    return nullptr;
+}
+
+void OriginQMachine::finalize()
+{
+    _G_QNodeMap.deleteNode(m_iQProgram);
+    delete m_pQubitPool;
+    delete m_pCMem;
+    delete m_pQResult;
+    delete m_pQMachineStatus;
+}
+
+

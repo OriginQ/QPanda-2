@@ -69,7 +69,7 @@ int main()
     
 //    getchar();
 
-    qaoaopall();
+    //qaoaopall();
     return  0;
 
 }

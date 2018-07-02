@@ -4,7 +4,7 @@
 #include <vector>
 using std::vector;
 using std::string;
-class OriginQMachine //:public QuantumMachine
+class OriginQMachine :public QuantumMachine
 {
 public:
     OriginQMachine();

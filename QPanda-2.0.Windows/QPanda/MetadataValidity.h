@@ -36,8 +36,6 @@ int doubleGateMetadataValidity(vector<string>&sQGateVector, vector<string>&sVali
 
 
 typedef  function<int(vector<string>&, vector<string>&)> MetadataValidityFunction;
-
-
 class MetadataValidity
 {
 public:

@@ -16,6 +16,7 @@ public:
     QuantumMetadata & operator =(const QuantumMetadata &) = delete;
     QuantumMetadata(const string & xmlFile);
 
+    size_t getQubitCount();
     bool getQubiteMatrix(vector<vector<int> > &qubitMatrix);
     bool getSingleGate(vector<string> &singleGate);
     bool getDoubleGate(vector<string> &doubleGate);

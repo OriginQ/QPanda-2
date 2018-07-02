@@ -13,6 +13,24 @@ QuantumMetadata::QuantumMetadata(const string & xmlFile):
     m_rootElement = m_doc.RootElement();
 }
 
+size_t QuantumMetadata::getQubitCount()
+{
+    if (!m_rootElement)
+    {
+        return false;
+    }
+
+    TiXmlElement *firstEle = m_rootElement->FirstChildElement("QubitCount");
+    if (!firstEle)
+    {
+        return false;
+    }
+
+    const char *c_str = firstEle->GetText();
+    size_t qubitCount = strtoul(c_str, nullptr, 0);
+    return qubitCount;
+}
+
 bool QuantumMetadata::getQubiteMatrix(vector<vector<int>> & qubitMatrix)
 {
     if (!m_rootElement)

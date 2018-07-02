@@ -330,44 +330,23 @@ void QGateParseSingleBit(QuantumGate * pGate,vector<Qubit * > & qubitVector, Qua
     pGate->getMatrix(matrix);
     Qubit * pQubit = *(qubitVector.begin());
     size_t bit = pQubit->getPhysicalQubitPtr()->getQubitAddr();
-    if (isDagger)
+    if (controlQubitVector.size() == 0)
     {
-        if (controlQubitVector.size() == 0)
-        {
-            pGates->unitarySingleQubitGateDagger(bit, matrix, 0);
-        }
-        else
-        {
-            size_t sTemp;
-            vector<size_t> bitNumVector;
-            for (auto aiter : controlQubitVector)
-            {
-                sTemp = aiter->getPhysicalQubitPtr()->getQubitAddr();
-                bitNumVector.push_back(sTemp);
-            }
-            bitNumVector.push_back(bit);
-            pGates->controlunitarySingleQubitGateDagger(bitNumVector, matrix, 0);
-        }
+        pGates->unitarySingleQubitGate(bit, matrix, isDagger, 0);
     }
     else
     {
-        if (controlQubitVector.size() == 0)
+        size_t sTemp;
+        vector<size_t> bitNumVector;
+        for (auto aiter : controlQubitVector)
         {
-            pGates->unitarySingleQubitGate(bit, matrix, 0);
+            sTemp = aiter->getPhysicalQubitPtr()->getQubitAddr();
+            bitNumVector.push_back(sTemp);
         }
-        else
-        {
-            size_t sTemp;
-            vector<size_t> bitNumVector;
-            for (auto aiter : controlQubitVector)
-            {
-                sTemp = aiter->getPhysicalQubitPtr()->getQubitAddr();
-                bitNumVector.push_back(sTemp);
-            }
-            bitNumVector.push_back(bit);
-            pGates->controlunitarySingleQubitGate(bitNumVector, matrix, 0);
-        }
+        bitNumVector.push_back(bit);
+        pGates->controlunitarySingleQubitGate(bit, bitNumVector, matrix, isDagger, 0);
     }
+   
 }
 
 
@@ -383,47 +362,24 @@ void QGateParseDoubleBit(QuantumGate * pGate, vector<Qubit * > & qubitVector, Qu
     Qubit * pQubit2 = *aiter;
     size_t bit = pQubit->getPhysicalQubitPtr()->getQubitAddr();
     size_t bit2 = pQubit2->getPhysicalQubitPtr()->getQubitAddr();
-    if (isDagger)
+   
+    if (controlQubitVector.size() == 0)
     {
-        if (controlQubitVector.size() == 0)
-        {
-            pGates->unitaryDoubleQubitGateDagger(bit, bit2,matrix , 0);
-        }
-        else
-        {
-            size_t sTemp;
-            vector<size_t> bitNumVector;
-            for (auto aiter : controlQubitVector)
-            {
-                sTemp = aiter->getPhysicalQubitPtr()->getQubitAddr();
-                bitNumVector.push_back(sTemp);
-            }
-            bitNumVector.push_back(bit2);
-            bitNumVector.push_back(bit);
-            pGates->controlunitaryDoubleQubitGateDagger(bitNumVector, matrix, 0);
-        }
+        pGates->unitaryDoubleQubitGate(bit, bit2, matrix,isDagger, 0);
     }
     else
     {
-        if (controlQubitVector.size() == 0)
+        size_t sTemp;
+        vector<size_t> bitNumVector;
+        for (auto aiter : controlQubitVector)
         {
-            pGates->unitaryDoubleQubitGate(bit, bit2, matrix, 0);
+            sTemp = aiter->getPhysicalQubitPtr()->getQubitAddr();
+            bitNumVector.push_back(sTemp);
         }
-        else
-        {
-            size_t sTemp;
-            vector<size_t> bitNumVector;
-            for (auto aiter : controlQubitVector)
-            {
-                sTemp = aiter->getPhysicalQubitPtr()->getQubitAddr();
-                bitNumVector.push_back(sTemp);
-            }
-            bitNumVector.push_back(bit2);
-            bitNumVector.push_back(bit);
-            pGates->controlunitaryDoubleQubitGate(bitNumVector, matrix, 0);
-        }
+        bitNumVector.push_back(bit2);
+        bitNumVector.push_back(bit);
+        pGates->controlunitaryDoubleQubitGate(bit, bit2,bitNumVector, matrix,isDagger, 0);
     }
-
 }
 
 

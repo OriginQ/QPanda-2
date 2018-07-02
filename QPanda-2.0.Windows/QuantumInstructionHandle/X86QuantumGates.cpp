@@ -92,7 +92,7 @@ b        pair
 Argout:      None
 return:      true or false
 *****************************************************************************************************************/
-bool probcompare(pair<size_t, double>& a, pair<size_t, double>& b)
+bool probcompare(pair<size_t, double> a, pair<size_t, double> b)
 {
     return a.second > b.second;
 }

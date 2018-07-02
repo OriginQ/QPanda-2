@@ -316,7 +316,7 @@ double rigettiQaoaTestv4(double x[])
 {
     double maxx;
     double ave = 0;
-    for (auto i = 0; i < 10; i++)
+    for (auto i = 0; i < 50; i++)
     {
         maxx = rigettiQaoaTestv2(x[0], x[1]);
        /* if (maxx > ave)
@@ -325,7 +325,7 @@ double rigettiQaoaTestv4(double x[])
         }*/
         ave += maxx;
     }
-    ave = -ave / 10;
+    ave = -ave / 50;
     cout << "ooooo" << endl;
     return ave;
 }

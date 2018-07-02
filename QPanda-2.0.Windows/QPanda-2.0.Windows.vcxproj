@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="QuantumMachine\OriginQMachine.h" />
     <ClInclude Include="QPanda\ConfigMap.h" />
     <ClInclude Include="QPanda.h" />
     <ClInclude Include="QPanda\QPandaException.h" />
@@ -44,6 +45,7 @@
     <ClInclude Include="QuantumCircuit\StatisticsQGateCountAlgorithm.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="QuantumMachine\OriginQMachine.cpp" />
     <ClCompile Include="QPanda\ConfigMap.cpp" />
     <ClCompile Include="QPanda\QPanda.cpp" />
     <ClCompile Include="QPanda\XMLConfigParam.cpp" />

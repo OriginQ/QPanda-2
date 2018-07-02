@@ -53,6 +53,7 @@
     <ClInclude Include="QPanda\QuantumMetadata.h" />
     <ClInclude Include="QPanda\XMLConfigParam.h" />
     <ClInclude Include="QPanda\ConfigMap.h" />
+    <ClInclude Include="QuantumMachine\OriginQMachine.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="QPanda\QPanda.cpp">
@@ -116,6 +117,7 @@
     <ClCompile Include="QPanda\QuantumMetadata.cpp" />
     <ClCompile Include="QPanda\XMLConfigParam.cpp" />
     <ClCompile Include="QPanda\ConfigMap.cpp" />
+    <ClCompile Include="QuantumMachine\OriginQMachine.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="源文件">

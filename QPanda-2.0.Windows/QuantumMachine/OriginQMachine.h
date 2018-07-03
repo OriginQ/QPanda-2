@@ -37,6 +37,8 @@ private:
     vector<vector<int>> m_qubitMatrix;
     vector<string> m_sSingleGateVector;
     vector<string> m_sDoubleGateVector;
+    vector<string> m_sVildSingleGateVector;
+    vector<string> m_sVildDoubleGateVector;
 };
 
 #endif

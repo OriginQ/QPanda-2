@@ -48,8 +48,10 @@ class AbstractQGateNode
 {
 public:
     virtual size_t getQuBitVector(vector<Qubit *> &) const = 0;
+    virtual Qubit * popBackQuBit() = 0;
     virtual size_t getQuBitNum() const = 0;
     virtual QuantumGate * getQGate() const = 0;
+    virtual void setQGate(QuantumGate *) = 0;
     virtual bool isDagger() const = 0;
     virtual size_t getControlVector(vector<Qubit *> &) const = 0;
     virtual bool setDagger(bool) = 0;
@@ -87,6 +89,8 @@ public:
     size_t getControlVector(vector<Qubit *> &) const;
 private:
     void setPosition(QMAP_SIZE) {};
+    Qubit * popBackQuBit() { return nullptr; };
+    void setQGate(QuantumGate *) {};
 
 };
 
@@ -107,8 +111,10 @@ public:
     NodeType getNodeType() const;
     size_t getQuBitVector(vector<Qubit *> &) const;
     size_t getQuBitNum() const;
+    Qubit * popBackQuBit();
     QuantumGate * getQGate() const;
     QMAP_SIZE getPosition() const;
+    void setQGate(QuantumGate *);
     void setPosition(QMAP_SIZE stPosition);
     bool setDagger(bool);
     bool setControl(vector < Qubit *> &);

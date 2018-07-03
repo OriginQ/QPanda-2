@@ -293,6 +293,18 @@ public:
             false)
     {}
 };
+class metadate_error_exception : public QPandaException
+{
+public:
+    metadate_error_exception(string errmsg, bool isFree)
+        : QPandaException(errmsg, isFree)
+    {}
+    metadate_error_exception()
+        : QPandaException(
+            "unknown param error",
+            false)
+    {}
+};
 
 #endif
 

@@ -46,7 +46,16 @@ void OriginQMachine::init()
         QMachineStatusFactory::
         GetQMachineStatus();
 
-    
+    if (SingleGateTypeValidator::GateType(m_sSingleGateVector, m_sVildSingleGateVector) <= 0)
+    {
+        throw metadate_error_exception();
+    }
+    if (DoubleGateTypeValidator::GateType(m_sDoubleGateVector, m_sVildDoubleGateVector) <= 0)
+    {
+        throw metadate_error_exception();
+    }
+
+
 }
 
 Qubit * OriginQMachine::Allocate_Qubit()
@@ -139,4 +148,5 @@ void OriginQMachine::finalize()
     delete m_pQMachineStatus;
 }
 
+REGISTER_QUANTUM_MACHINE(OriginQMachine);
 

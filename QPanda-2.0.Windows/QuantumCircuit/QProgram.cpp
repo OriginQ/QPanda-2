@@ -1326,6 +1326,13 @@ size_t OriginQGate::getQuBitNum() const
     return m_QuBitVector.size();
 }
 
+Qubit * OriginQGate::popBackQuBit()
+{
+    auto temp = m_QuBitVector.back();
+    m_QuBitVector.pop_back();
+    return temp;
+}
+
 QuantumGate * OriginQGate::getQGate() const
 {
     if (nullptr == m_pQGate)
@@ -1336,6 +1343,10 @@ QuantumGate * OriginQGate::getQGate() const
 QMAP_SIZE OriginQGate::getPosition() const
 {
     return  m_stPosition;
+}
+void OriginQGate::setQGate(QuantumGate * pQGate)
+{
+    m_pQGate = pQGate;
 }
 void OriginQGate::setPosition(QMAP_SIZE iPosition)
 {

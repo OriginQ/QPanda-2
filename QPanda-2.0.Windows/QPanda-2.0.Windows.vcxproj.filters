@@ -55,6 +55,7 @@
     <ClInclude Include="QPanda\ConfigMap.h" />
     <ClInclude Include="QuantumMachine\OriginQMachine.h" />
     <ClInclude Include="QPanda\MetadataValidity.h" />
+    <ClInclude Include="QuantumCircuit\TraversalDecompositionAlgorithm.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="QPanda\QPanda.cpp">
@@ -120,6 +121,7 @@
     <ClCompile Include="QPanda\ConfigMap.cpp" />
     <ClCompile Include="QuantumMachine\OriginQMachine.cpp" />
     <ClCompile Include="QPanda\MetadataValidity.cpp" />
+    <ClCompile Include="QuantumCircuit\TraversalDecompositionAlgorithm.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="源文件">

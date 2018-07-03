@@ -44,6 +44,7 @@
     <ClInclude Include="QuantumMachine\QuantumMachineInterface.h" />
     <ClInclude Include="QPanda\QuantumMetadata.h" />
     <ClInclude Include="QuantumCircuit\StatisticsQGateCountAlgorithm.h" />
+    <ClInclude Include="QuantumCircuit\TraversalDecompositionAlgorithm.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="QPanda\MetadataValidity.cpp" />
@@ -73,6 +74,7 @@
     <ClCompile Include="QuantumMachine\QuantumMachineInterface.cpp" />
     <ClCompile Include="QPanda\QuantumMetadata.cpp" />
     <ClCompile Include="QuantumCircuit\StatisticsQGateCountAlgorithm.cpp" />
+    <ClCompile Include="QuantumCircuit\TraversalDecompositionAlgorithm.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

@@ -148,5 +148,5 @@ void OriginQMachine::finalize()
     delete m_pQMachineStatus;
 }
 
-REGISTER_QUANTUM_MACHINE(OriginQMachine);
+
 

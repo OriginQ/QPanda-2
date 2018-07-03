@@ -12,10 +12,10 @@ public:
     static QNode * traversalDecomposition(T pNode);
 private:
     template<typename PNODE>
-    void doubleGateToCU(AbstractQGateNode *, PNODE) {};
+    void doubleGateToCNOTAndSingleGate(AbstractQGateNode *, PNODE) {};
     template<typename PNODE>
     void multipleControlGateToQCircuit(AbstractQGateNode *, PNODE) {};
-    void CUToControlSingleGate(AbstractQGateNode *);
+    void CNOTToControlSingleGate(AbstractQGateNode *);
     template<typename T>
     void Traversal(AbstractControlFlowNode *, T);
     template<typename T>
@@ -38,9 +38,9 @@ inline QNode * TraversalDecompositionAlgorithm::traversalDecomposition(T Node)
     int iNodeType = pNode->getNodeType();
     if((GATE_NODE == iNodeType) || (MEASURE_GATE == iNodeType))
         throw param_error_exception("the param cannot be a QGate or Measure", false);
-    Traversal(Node, doubleGateToCU);
+    Traversal(Node, doubleGateToCNOTAndSingleGate);
     Traversal(Node, multipleControlGateToQCircuit);
-    Traversal(Node, CUToControlSingleGate);
+    Traversal(Node, CNOTToControlSingleGate);
 }
 
 template<typename T>

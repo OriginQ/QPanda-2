@@ -11,7 +11,7 @@ TraversalDecompositionAlgorithm::~TraversalDecompositionAlgorithm()
 {
 }
 
-void TraversalDecompositionAlgorithm::CUToControlSingleGate(AbstractQGateNode * pNode)
+void TraversalDecompositionAlgorithm::CNOTToControlSingleGate(AbstractQGateNode * pNode)
 {
     if (pNode->getQuBitNum() == 1)
     {

@@ -115,14 +115,14 @@ inline void TraversalDecompositionAlgorithm::TraversalByType(QNode * pNode, PNOD
         function(pNode, fatherNode);
         break;
     case CIRCUIT_NODE:
-        Traversal(dynamic_cast<AbstractQuantumCircuit *>(*aiter), function);
+        Traversal(dynamic_cast<AbstractQuantumCircuit *>(pNode), function);
         break;
     case PROG_NODE:
-        Traversal(dynamic_cast<AbstractQuantumProgram *>(*aiter), function);
+        Traversal(dynamic_cast<AbstractQuantumProgram *>(pNode), function);
         break;
     case WHILE_START_NODE:
     case QIF_START_NODE:
-        Traversal(dynamic_cast<AbstractControlFlowNode>(*aiter), function);
+        Traversal(dynamic_cast<AbstractControlFlowNode>(pNode), function);
         break;
     case MEASURE_GATE:
         break;

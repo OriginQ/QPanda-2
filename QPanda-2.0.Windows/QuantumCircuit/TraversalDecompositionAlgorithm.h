@@ -12,9 +12,9 @@ public:
     static QNode * traversalDecomposition(T pNode);
 private:
     template<typename PNODE>
-    void doubleGateToCU(AbstractQGateNode *, PNODE);
+    void doubleGateToCU(AbstractQGateNode *, PNODE) {};
     template<typename PNODE>
-    void multipleControlGateToQCircuit(AbstractQGateNode *, PNODE);
+    void multipleControlGateToQCircuit(AbstractQGateNode *, PNODE) {};
     void CUToControlSingleGate(AbstractQGateNode *);
     template<typename T>
     void Traversal(AbstractControlFlowNode *, T);
@@ -22,25 +22,25 @@ private:
     void Traversal(AbstractQuantumCircuit *, T);
     template<typename T>
     void Traversal(AbstractQuantumProgram *, T);
-    template<typename T>
-    void TraversalByType(QNode * pNode, T);
+    template<typename T, typename PNODE>
+    void TraversalByType(QNode * pNode, PNODE, T);
 
 
 };
 
 template<typename T>
-inline QNode * TraversalDecompositionAlgorithm::traversalDecomposition(T pNode)
+inline QNode * TraversalDecompositionAlgorithm::traversalDecomposition(T Node)
 {
-    QNode * pNode = dynamic_cast<QNode *> (pNode);
+    QNode * pNode = dynamic_cast<QNode *> (Node);
     if (nullptr == pNode)
         throw param_error_exception("this param is not QNode", false);
     
     int iNodeType = pNode->getNodeType();
     if((GATE_NODE == iNodeType) || (MEASURE_GATE == iNodeType))
         throw param_error_exception("the param cannot be a QGate or Measure", false);
-    Traversal(pNode, doubleGateToCU);
-    Traversal(pNode, multipleControlGateToQCircuit);
-    Traversal(pNode, CUToControlSingleGate);
+    Traversal(Node, doubleGateToCU);
+    Traversal(Node, multipleControlGateToQCircuit);
+    Traversal(Node, CUToControlSingleGate);
 }
 
 template<typename T>
@@ -54,35 +54,34 @@ inline void TraversalDecompositionAlgorithm::Traversal(AbstractControlFlowNode *
     auto iNodeType = pNode->getNodeType();
     if (WHILE_START_NODE == iNodeType)
     {
-        int TrueBranchNodeType = pControlNode->getTrueBranch()->getNodeType();
-        TraversalByType(TrueBranchNodeType, function);
+        TraversalByType(pControlNode->getTrueBranch(), pControlNode, function);
     }
     else if (QIF_START_NODE == iNodeType)
     {
-        TraversalByType(pControlNode->getTrueBranch(), function);
-        TraversalByType(pControlNode->getFalseBranch(), function);
+        TraversalByType(pControlNode->getTrueBranch(), pControlNode,function);
+        TraversalByType(pControlNode->getFalseBranch(), pControlNode,function);
     }
 }
 
 template<typename T>
 inline void TraversalDecompositionAlgorithm::Traversal(AbstractQuantumCircuit * pQCircuit, T function)
 {
-    if (nullptr == pProg)
+    if (nullptr == pQCircuit)
         throw param_error_exception("param error", false);
 
-    auto aiter = pProg->getFirstNodeIter();
-    if (aiter == pProg->getEndNodeIter())
+    auto aiter = pQCircuit->getFirstNodeIter();
+    if (aiter == pQCircuit->getEndNodeIter())
         return;
-    for (; aiter != pProg->getEndNodeIter(); ++aiter)
+    for (; aiter != pQCircuit->getEndNodeIter(); ++aiter)
     {
         int iNodeType = (*aiter)->getNodeType();
         switch (iNodeType)
         {
         case GATE_NODE:
-            function(*aiter, pControlNode);
+            function(*aiter, pQCircuit);
             break;
         case CIRCUIT_NODE:
-            Traversal(dynamic_cast<AbstractQuantumCircuit *>(*aiter), function);
+            Traversal(dynamic_cast<AbstractQuantumCircuit *>(*aiter), pQCircuit, function);
             break;
         default:
             throw exception();
@@ -100,12 +99,12 @@ inline void TraversalDecompositionAlgorithm::Traversal(AbstractQuantumProgram * 
         return;
     for (; aiter != pProg->getEndNodeIter(); ++aiter)
     {
-        TraversalByType((*aiter), function);
+        TraversalByType((*aiter), pProg, function);
     }
 }
 
-template<typename T>
-inline void TraversalDecompositionAlgorithm::TraversalByType(QNode * pNode, T function)
+template<typename T,typename PNODE>
+inline void TraversalDecompositionAlgorithm::TraversalByType(QNode * pNode, PNODE fatherNode, T function)
 {
     int iNodeType = pNode->getNodeType();
     if (-1 == iNodeType)
@@ -113,7 +112,7 @@ inline void TraversalDecompositionAlgorithm::TraversalByType(QNode * pNode, T fu
     switch (iNodeType)
     {
     case GATE_NODE:
-        function(*aiter, pControlNode);
+        function(pNode, fatherNode);
         break;
     case CIRCUIT_NODE:
         Traversal(dynamic_cast<AbstractQuantumCircuit *>(*aiter), function);

@@ -15,7 +15,10 @@
 		<QResult>OriginQResult</QResult>
 		<CExpr>OriginCExpr</CExpr>
 	</ClassNameConfig>
-	<MetadataPath>
-		./path/config/../
-	</MetadataPath>
+	<MetadataPathWindows>
+		../TinyXML/QubitConfig.xml
+	</MetadataPathWindows>
+	<MetadataPathLinux>
+		./ConfigFile/Config.xml
+	</MetadataPathLinux>
 </head>

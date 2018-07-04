@@ -3,7 +3,12 @@
 #include "XMLConfigParam.h"
 ConfigMap::ConfigMap()
 {
+#if defined(__linux__)
+    m_sConfigFilePath.assign("./ConfigFile/Config.xml");
+#elif defined(_WIN32)
     m_sConfigFilePath.assign("../Config.xml");
+#endif
+
     XmlConfigParam xml(m_sConfigFilePath);
     xml.getClassNameConfig(m_configMap);
     string metadataPath;

@@ -17,7 +17,12 @@ bool XmlConfigParam::getMetadataPath(string &path)
         return false;
     }
 
-    TiXmlElement *metadataPathEle = m_rootElement->FirstChildElement("MetadataPath");
+#if defined(__linux__)
+    TiXmlElement *metadataPathEle = m_rootElement->FirstChildElement("MetadataPathLinux");
+#elif defined(_WIN32)
+    TiXmlElement *metadataPathEle = m_rootElement->FirstChildElement("MetadataPathWindows");
+#endif
+
     if (!metadataPathEle)
     {
         return false;

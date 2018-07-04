@@ -13,3 +13,6 @@ $(ALIB) : $(ROOT_DIR)/$(AOBJS_DIR)/$(OBJS) $(ROOT_DIR)/$(QOBJS_DIR)/$(OBJS)
 	ar rcs $@ $^
 $(QLIB) : $(ROOT_DIR)/$(QOBJS_DIR)/$(OBJS)
 	ar rcs $@ $^
+	
+	
+	

@@ -43,6 +43,7 @@
     <ClInclude Include="QuantumMachine\OriginQuantumMachine.h" />
     <ClInclude Include="QuantumMachine\QuantumMachineInterface.h" />
     <ClInclude Include="QPanda\QuantumMetadata.h" />
+    <ClInclude Include="TraversalAlgorithm\QGateCompare.h" />
     <ClInclude Include="TraversalAlgorithm\StatisticsQGateCountAlgorithm.h" />
     <ClInclude Include="TraversalAlgorithm\TraversalDecompositionAlgorithm.h" />
   </ItemGroup>
@@ -73,6 +74,7 @@
     <ClCompile Include="QuantumMachine\OriginQVM.cpp" />
     <ClCompile Include="QuantumMachine\QuantumMachineInterface.cpp" />
     <ClCompile Include="QPanda\QuantumMetadata.cpp" />
+    <ClCompile Include="TraversalAlgorithm\QGateCompare.cpp" />
     <ClCompile Include="TraversalAlgorithm\StatisticsQGateCountAlgorithm.cpp" />
     <ClCompile Include="TraversalAlgorithm\TraversalDecompositionAlgorithm.cpp" />
   </ItemGroup>

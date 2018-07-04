@@ -17,7 +17,7 @@ limitations under the License.
 #include "QGate.h"
 #include "QGlobalVariable.h"
 #include "QPanda/QPandaException.h"
-
+using namespace QGATE_SPACE;
 QuantumGate::QuantumGate()
 {
     qOpNum = 0;

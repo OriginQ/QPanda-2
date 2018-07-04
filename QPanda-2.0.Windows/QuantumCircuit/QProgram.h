@@ -33,6 +33,8 @@ limitations under the License.
 
 typedef complex<double> QComplex;
 using namespace std;
+using QGATE_SPACE::QuantumGate;
+using QGATE_SPACE::QGateFactory;
 class QuantumDriver;
 
 /*

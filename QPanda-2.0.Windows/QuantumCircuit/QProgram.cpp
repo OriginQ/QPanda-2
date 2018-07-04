@@ -18,7 +18,7 @@ limitations under the License.
 
 #include "QPanda.h"
 #include "QPanda/ConfigMap.h"
-
+using namespace QGATE_SPACE;
 QProg  CreateEmptyQProg()
 {
     QProg temp;
@@ -1407,7 +1407,7 @@ HadamardQCircuit::HadamardQCircuit(vector<Qubit*>& pQubitVector)
 {
     for (auto aiter :pQubitVector)
     {
-        auto  temp = H(aiter);
+        auto  temp = ::H(aiter);
         m_pQuantumCircuit->pushBackNode((QNode *)&temp);
     }
 }

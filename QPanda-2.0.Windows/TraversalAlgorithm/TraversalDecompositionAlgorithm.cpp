@@ -34,7 +34,7 @@ void TraversalDecompositionAlgorithm::CNOTToControlSingleGate(AbstractQGateNode 
         throw exception();
     }
     auto targetQubit = qubitVector[0];
-    auto pU4 = new U4(pQGate->getAlpha(), pQGate->getBeta(), pQGate->getGamma(), pQGate->getDelta());
+    auto pU4 = new QGATE_SPACE::U4(pQGate->getAlpha(), pQGate->getBeta(), pQGate->getGamma(), pQGate->getDelta());
     delete(pQGate);
     pNode->setQGate(pU4);
 

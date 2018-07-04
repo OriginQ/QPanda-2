@@ -20,7 +20,7 @@ limitations under the License.
 #include <thread>
 #include <mutex>
 #include <condition_variable>
-
+#include <functional>
 using namespace std;
 
 class SharedMutex

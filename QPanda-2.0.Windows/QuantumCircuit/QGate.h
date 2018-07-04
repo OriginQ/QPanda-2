@@ -71,7 +71,7 @@ public:
 typedef QuantumGate* (*CreateGate)(void);
 typedef QuantumGate* (*CreateAngleGate)(double);
 typedef QuantumGate* (*CreateSingleAndCUGate)(double, double, double, double);
-typedef QuantumGate* (*CreateDoubleGate)(QStat &);
+typedef QuantumGate* (*CreateGateByMatrix)(QStat &);
 
 class QGateFactory
 {
@@ -79,7 +79,7 @@ public:
     void registClass(string name, CreateGate method);
     void registClass(string name, CreateAngleGate method);
     void registClass(string name, CreateSingleAndCUGate method);
-    void registClass(string name, CreateDoubleGate method);
+    void registClass(string name, CreateGateByMatrix method);
     QuantumGate * getGateNode(std::string &);
     QuantumGate * getGateNode(std::string &, double angle);
     QuantumGate * getGateNode(std::string &, double alpha, double beta, double gamma, double delta);
@@ -95,7 +95,7 @@ private:
     map<string, CreateGate> m_gateMap;
     map<string, CreateAngleGate> m_angleGateMap;
     map<string, CreateSingleAndCUGate> m_singleAndCUGateMap;
-    map<string, CreateDoubleGate> m_DoubleGateMap;
+    map<string, CreateGateByMatrix> m_DoubleGateMap;
     QGateFactory() {};
 
 };
@@ -111,7 +111,7 @@ public:
     RegisterAction(string className, CreateSingleAndCUGate ptrCreateFn) {
         QGateFactory::getInstance()->registClass(className, ptrCreateFn);
     }
-    RegisterAction(string className, CreateDoubleGate ptrCreateFn) {
+    RegisterAction(string className, CreateGateByMatrix ptrCreateFn) {
         QGateFactory::getInstance()->registClass(className, ptrCreateFn);
     }
 };
@@ -124,11 +124,24 @@ protected:
     double beta;
     double gamma;
     double delta;
+    inline double argc(COMPLEX num)
+    {
+        if (num.imag() >= 0)
+        {
+            return acos(num.real() / sqrt(num.real()*num.real() + num.imag()*num.imag()));
+        }
+        else
+        {
+            return -acos(num.real() / sqrt(num.real()*num.real() + num.imag()*num.imag()));
+        }
+
+    }
 
 public:
     U4();
     U4(U4&);
     U4(double, double, double, double);
+    U4(QStat & matrix);      //initialize through matrix element 
     inline virtual int getGateType() const
     {
         return GATE_TYPE::U4_GATE;
@@ -319,10 +332,23 @@ protected:
     double beta;
     double gamma;
     double delta;
+    inline static double argc(COMPLEX num)
+    {
+        if (num.imag() >= 0)
+        {
+            return acos(num.real() / sqrt(num.real()*num.real() + num.imag()*num.imag()));
+        }
+        else
+        {
+            return -acos(num.real() / sqrt(num.real()*num.real() + num.imag()*num.imag()));
+        }
+
+    }
 public:
     CU();
     CU(CU&);
     CU(double, double, double, double);  //init (4,4) matrix 
+    CU(QStat& matrix);
     inline virtual int getGateType() const
     {
         return GATE_TYPE::CU_GATE;

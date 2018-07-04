@@ -62,7 +62,22 @@ U4::U4(double _alpha, double _beta, double _gamma, double _delta)
         sin(alpha + beta / 2 - delta / 2)*sin(gamma / 2)));
     gatematrix.push_back(COMPLEX(cos(alpha + beta / 2 + delta / 2)*cos(gamma / 2),
         sin(alpha + beta / 2 + delta / 2)*cos(gamma / 2)));
-};
+}
+U4::U4(QStat & matrix)
+{
+    qOpNum = 1;
+    //QStat matrix;
+    gatematrix.resize(4);
+    gatematrix[0] = matrix[0];
+    gatematrix[1] = matrix[1];
+    gatematrix[2] = matrix[2];
+    gatematrix[3] = matrix[3];
+    gamma = 2 * acos(abs(matrix[0]));
+    beta = argc(matrix[2] - matrix[0]);
+    delta = argc(matrix[2] - matrix[0]) + PI;
+    alpha = argc(matrix[2]) + delta / 2 - beta / 2;
+}
+;
 void U4::getMatrix(QStat & matrix) const
 {
     if (gatematrix.size() != 4)
@@ -271,7 +286,22 @@ CU::CU(double _alpha, double _beta,
         sin(alpha + beta / 2 - delta / 2)*sin(gamma / 2));
     gatematrix[15] = COMPLEX(cos(alpha + beta / 2 + delta / 2)*cos(gamma / 2),
         sin(alpha + beta / 2 + delta / 2)*cos(gamma / 2));
-};
+}
+CU::CU(QStat & matrix)
+{
+    qOpNum = 2;
+    //QStat matrix;
+    gatematrix.resize(4);
+    gatematrix[10] = matrix[0];
+    gatematrix[11] = matrix[1];
+    gatematrix[14] = matrix[2];
+    gatematrix[15] = matrix[3];
+    gamma = 2 * acos(abs(matrix[0]));
+    beta = argc(matrix[2] - matrix[0]);
+    delta = argc(matrix[2] - matrix[0]) + PI;
+    alpha = argc(matrix[2]) + delta / 2 - beta / 2;
+}
+;
 CNOT::CNOT()
 {
     alpha = PI / 2;
@@ -344,9 +374,9 @@ void QGateFactory::registClass(string name, CreateSingleAndCUGate method)
     m_singleAndCUGateMap.insert(pair<string, CreateSingleAndCUGate>(name, method));
 }
 
-void QGateFactory::registClass(string name, CreateDoubleGate method)
+void QGateFactory::registClass(string name, CreateGateByMatrix method)
 {
-    m_DoubleGateMap.insert(pair<string, CreateDoubleGate>(name, method));
+    m_DoubleGateMap.insert(pair<string, CreateGateByMatrix>(name, method));
 }
 
 
@@ -421,12 +451,12 @@ REGISTER(SQISWAP);
     RegisterAction g_singleCreatorRegister##className(                        \
         #className,(CreateSingleAndCUGate)objectCreator##className)
 
-#define REGISTER_DOUBLE(className)                                             \
+#define REGISTER_MATRIX(className)                                             \
     QuantumGate* objectCreator##className(QStat & matrix){      \
         return new className(matrix);                    \
     }                                                                   \
     RegisterAction g_doubleCreatorRegister##className(                        \
-        #className,(CreateDoubleGate)objectCreator##className)
+        #className,(CreateGateByMatrix)objectCreator##className)
 
 
 REGISTER_ANGLE(RX);
@@ -437,7 +467,9 @@ REGISTER_ANGLE(ISWAPTheta);
 REGISTER_SINGLE_CU(U4);
 REGISTER_SINGLE_CU(CU);
 
-REGISTER_DOUBLE(QDoubleGate);
+REGISTER_MATRIX(QDoubleGate);
+REGISTER_MATRIX(U4);
+REGISTER_MATRIX(CU);
 
 
 

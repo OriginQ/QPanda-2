@@ -653,11 +653,17 @@ QGate  QGateNodeFactory::getGateNode(double alpha, double beta, double gamma, do
     return QGateNode;
 }
 
-QGate QGateNodeFactory::getGateNode(QStat matrix, Qubit * targetQBit, Qubit * controlQBit)
+QGate QGateNodeFactory::getGateNode(string &name, QStat matrix, Qubit * targetQBit, Qubit * controlQBit)
 {
-    string name = "QDouble";
     QuantumGate * pGate = m_pGateFact->getGateNode(name, matrix);
     QGate  QGateNode(targetQBit, controlQBit, pGate);
+    return QGateNode;
+}
+
+QGate QGateNodeFactory::getGateNode(string &name, QStat matrix, Qubit * targetQBit)
+{
+    QuantumGate * pGate = m_pGateFact->getGateNode(name, matrix);
+    QGate  QGateNode(targetQBit, pGate);
     return QGateNode;
 }
 
@@ -743,15 +749,28 @@ QGate  QSingle(double alpha, double beta, double gamma, double delta, Qubit * qb
     return _gs_pGateNodeFactory->getGateNode(alpha, beta, gamma, delta ,qbit);
 }
 
+QGate QSingle(QStat & matrix, Qubit *qubit)
+{
+    string name = "U4";
+    return _gs_pGateNodeFactory->getGateNode(name, matrix, qubit);
+}
+
 QGate  CU(double alpha, double beta, double gamma, double delta, Qubit * targetQBit, Qubit * controlQBit)
 {
     return _gs_pGateNodeFactory->getGateNode(alpha, beta, gamma, delta, targetQBit, controlQBit);
 }
 
+QGate CU(QStat & matrix, Qubit * targetQBit, Qubit* controlQBit)
+{
+    string name = "CU";
+    return _gs_pGateNodeFactory->getGateNode(name, matrix, targetQBit, controlQBit);
+}
+
 
 QGate  QDouble(QStat matrix, Qubit * targetQBit, Qubit * controlQBit)
 {
-    return _gs_pGateNodeFactory->getGateNode(matrix, targetQBit, controlQBit);
+    string name = "QDoubleGate";
+    return _gs_pGateNodeFactory->getGateNode(name,matrix, targetQBit, controlQBit);
 }
 
 

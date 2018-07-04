@@ -85,8 +85,10 @@ extern QGate CZ(Qubit* targetQBit, Qubit* controlQBit);
 // Create an arbitrary single unitary gate
 extern QGate QSingle(double alpha, double beta, double gamma, double delta, Qubit *);
 
+extern QGate QSingle(QStat& matrix, Qubit*);
 // Create a control-U gate
 extern QGate CU(double alpha, double beta, double gamma, double delta, Qubit *, Qubit *);
+extern QGate CU(QStat& matrix, Qubit*, Qubit*);
 
 extern QGate  iSWAP(Qubit * targitBit, Qubit * controlBit);
 extern QGate  iSWAP(Qubit * targitBit, Qubit * controlBit, double theta);

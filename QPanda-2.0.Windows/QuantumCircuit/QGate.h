@@ -64,6 +64,7 @@ public:
     virtual double getDelta() const = 0;
     virtual int getOpNum() const = 0;
     virtual void getMatrix(QStat & matrix) const = 0;
+    virtual int getGateType()const = 0;
 };
 
 

@@ -19,7 +19,7 @@ limitations under the License.
 #include "QuantumCircuit/QGate.h"
 #include "QuantumCircuit/QProgram.h"
 #include "QuantumMachine/OriginQuantumMachine.h"
-#include "QuantumCircuit/StatisticsQGateCountAlgorithm.h"
+#include "TraversalAlgorithm/StatisticsQGateCountAlgorithm.h"
 
 extern size_t countQGateUnderQCircuit(AbstractQuantumCircuit *);
 

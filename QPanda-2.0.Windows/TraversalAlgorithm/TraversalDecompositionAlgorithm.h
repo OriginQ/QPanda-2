@@ -1,47 +1,57 @@
 #ifndef _TRAVERSAL_DECOMPOSITION_ALGORITHM_H
 #define _TRAVERSAL_DECOMPOSITION_ALGORITHM_H
-#include "QProgram.h"
+#include "QuantumCircuit/QProgram.h"
 class TraversalDecompositionAlgorithm
 {
-    //typedef function<QCircuit(AbstractQGateNode *)> TransferAlgorithm;
 public:
-    TraversalDecompositionAlgorithm();
+    TraversalDecompositionAlgorithm(vector<vector<string>> &ValidQGateMatrix);
     ~TraversalDecompositionAlgorithm();
 
     template<typename T>
-    static QNode * traversalDecomposition(T pNode);
+    void traversalDecomposition(T pNode);
 private:
-    template<typename PNODE>
-    void doubleGateToCNOTAndSingleGate(AbstractQGateNode *, PNODE) {};
-    template<typename PNODE>
-    void multipleControlGateToQCircuit(AbstractQGateNode *, PNODE) {};
-    void CNOTToControlSingleGate(AbstractQGateNode *);
+    vector<vector<string>> m_ValidQGateMatrix;
+
+    TraversalDecompositionAlgorithm() {};
+
+    void doubleGateToCNOTAndSingleGate(AbstractQGateNode *, QNode *) {};
+
+    void multipleControlGateToQCircuit(AbstractQGateNode *, QNode *) {};
+
+    void CNOTToControlSingleGate(AbstractQGateNode *, QNode *);
+
+    void controlSingleGateToMetadataDoubleGate(AbstractQGateNode *, QNode *) {};
+
+    void singGateToMetadataSingleGate(AbstractQGateNode *, QNode *);
+
     template<typename T>
     void Traversal(AbstractControlFlowNode *, T);
     template<typename T>
     void Traversal(AbstractQuantumCircuit *, T);
     template<typename T>
     void Traversal(AbstractQuantumProgram *, T);
-    template<typename T, typename PNODE>
-    void TraversalByType(QNode * pNode, PNODE, T);
-
-
+    template<typename T>
+    void TraversalByType(QNode * pNode, QNode *, T);
 };
 
 template<typename T>
-inline QNode * TraversalDecompositionAlgorithm::traversalDecomposition(T Node)
+inline void TraversalDecompositionAlgorithm::traversalDecomposition(T node)
 {
-    QNode * pNode = dynamic_cast<QNode *> (Node);
+    QNode * pNode = dynamic_cast<QNode *> (node);
     if (nullptr == pNode)
         throw param_error_exception("this param is not QNode", false);
     
     int iNodeType = pNode->getNodeType();
     if((GATE_NODE == iNodeType) || (MEASURE_GATE == iNodeType))
         throw param_error_exception("the param cannot be a QGate or Measure", false);
-    Traversal(Node, doubleGateToCNOTAndSingleGate);
-    Traversal(Node, multipleControlGateToQCircuit);
-    Traversal(Node, CNOTToControlSingleGate);
+    Traversal(node, doubleGateToCNOTAndSingleGate);
+    Traversal(node, CNOTToControlSingleGate);
+    Traversal(node, multipleControlGateToQCircuit);
+    Traversal(node, controlSingleGateToMetadataDoubleGate);
+    Traversal(node, singGateToMetadataSingleGate);
 }
+
+
 
 template<typename T>
 inline void TraversalDecompositionAlgorithm::Traversal(AbstractControlFlowNode * pControlNode, T function)
@@ -103,8 +113,8 @@ inline void TraversalDecompositionAlgorithm::Traversal(AbstractQuantumProgram * 
     }
 }
 
-template<typename T,typename PNODE>
-inline void TraversalDecompositionAlgorithm::TraversalByType(QNode * pNode, PNODE fatherNode, T function)
+template<typename T >
+inline void TraversalDecompositionAlgorithm::TraversalByType(QNode * pNode, QNode * fatherNode, T function)
 {
     int iNodeType = pNode->getNodeType();
     if (-1 == iNodeType)
@@ -130,6 +140,7 @@ inline void TraversalDecompositionAlgorithm::TraversalByType(QNode * pNode, PNOD
         throw exception();
     }
 }
+
 
 #endif // !_TRAVERSAL_DECOMPOSITION_ALGORITHM_H
 

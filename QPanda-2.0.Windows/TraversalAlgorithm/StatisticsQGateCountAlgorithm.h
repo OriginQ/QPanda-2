@@ -1,6 +1,6 @@
 #ifndef _STATISTICS_QGATE_COUNT_ALGORITHM
 #define _STATISTICS_QGATE_COUNT_ALGORITHM
-#include "QProgram.h"
+#include "QuantumCircuit/QProgram.h"
 class StatisticsQGateCountAlgorithm
 {
 public:

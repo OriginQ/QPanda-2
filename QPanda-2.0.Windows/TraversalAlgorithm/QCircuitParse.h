@@ -36,13 +36,13 @@ public:
 class QCirCuitParse :public AbstractQNodeParse
 {
 private:
-    QCircuit * m_pNode;
+    AbstractQuantumCircuit * m_pNode;
     QuantumGateParam * m_pParam;
     QuantumGates * m_pGates;
     bool   m_bDagger;
     vector<Qubit *> m_controlQubitVector;
 public:
-    QCirCuitParse(QCircuit * pNode, QuantumGateParam * pParam, QuantumGates* pGates, bool isDagger, vector<Qubit *> controlQbitVector);
+    QCirCuitParse(AbstractQuantumCircuit * pNode, QuantumGateParam * pParam, QuantumGates* pGates, bool isDagger, vector<Qubit *> controlQbitVector);
     ~QCirCuitParse() {};
     bool executeAction();
     bool verify();
@@ -53,11 +53,11 @@ private:
 class QIfParse :public AbstractQNodeParse
 {
 private:
-    QIfProg * m_pNode;
+    AbstractControlFlowNode * m_pNode;
     QuantumGateParam * m_pParam;
     QuantumGates* m_pGates;
 public:
-    QIfParse(QIfProg * pNode, QuantumGateParam * pParam, QuantumGates* pGates);
+    QIfParse(AbstractControlFlowNode * pNode, QuantumGateParam * pParam, QuantumGates* pGates);
     ~QIfParse() {};
     bool executeAction();
     bool verify();
@@ -68,11 +68,11 @@ class QWhileProg;
 class QWhileParse :public AbstractQNodeParse
 {
 private:
-    QWhileProg * m_pNode;
+    AbstractControlFlowNode * m_pNode;
     QuantumGateParam * m_pParam;
     QuantumGates* m_pGates;
 public:
-    QWhileParse(QWhileProg * pNode, QuantumGateParam * pParam, QuantumGates* pGates);
+    QWhileParse(AbstractControlFlowNode * pNode, QuantumGateParam * pParam, QuantumGates* pGates);
     ~QWhileParse() {};
     bool executeAction();
     bool verify();
@@ -83,11 +83,11 @@ private:
 class MeasureParse :public AbstractQNodeParse
 {
 private:
-    QMeasure * m_pNode;
+    AbstractQuantumMeasure * m_pNode;
     QuantumGateParam * m_pParam;
     QuantumGates* m_pGates;
 public:
-    MeasureParse(QMeasure * pNode, QuantumGateParam * pParam, QuantumGates* pGates);
+    MeasureParse(AbstractQuantumMeasure * pNode, QuantumGateParam * pParam, QuantumGates* pGates);
     ~MeasureParse() {};
     bool executeAction();
     bool verify();
@@ -99,11 +99,11 @@ private:
 class QProgParse :public AbstractQNodeParse
 {
 private:
-    QProg * m_pNode;
+    AbstractQuantumProgram * m_pNode;
     QuantumGateParam * m_pParam;
     QuantumGates* m_pGates;
 public:
-    QProgParse(QProg * pNode, QuantumGateParam * pParam, QuantumGates* pGates);
+    QProgParse(AbstractQuantumProgram * pNode, QuantumGateParam * pParam, QuantumGates* pGates);
     ~QProgParse() {};
     bool executeAction();
     bool verify();
@@ -131,11 +131,10 @@ private:
 class QNodeAgency :public AbstractQNodeParse
 {
 public:
-    QNodeAgency(QCircuit * pNode, QuantumGateParam * pParam, QuantumGates * pGates, bool isDgger, vector<Qubit*> controlQubitVector);
-    QNodeAgency(QIfProg * pNode, QuantumGateParam * pParam, QuantumGates* pGates);
-    QNodeAgency(QWhileProg * pNode, QuantumGateParam * pParam, QuantumGates* pGates);
-    QNodeAgency(QMeasure * pNode, QuantumGateParam * pParam, QuantumGates* pGates);
-    QNodeAgency(QProg * pNode, QuantumGateParam * pParam, QuantumGates* pGates);
+    QNodeAgency(AbstractQuantumCircuit * pNode, QuantumGateParam * pParam, QuantumGates * pGates, bool isDgger, vector<Qubit*> controlQubitVector);
+    QNodeAgency(AbstractControlFlowNode * pNode, QuantumGateParam * pParam, QuantumGates* pGates);
+    QNodeAgency(AbstractQuantumMeasure * pNode, QuantumGateParam * pParam, QuantumGates* pGates);
+    QNodeAgency(AbstractQuantumProgram * pNode, QuantumGateParam * pParam, QuantumGates* pGates);
     QNodeAgency(AbstractQGateNode * pNode, QuantumGates* pGates, bool isDagger, vector<Qubit *> & controlQubitVector);
     ~QNodeAgency();
     bool executeAction();

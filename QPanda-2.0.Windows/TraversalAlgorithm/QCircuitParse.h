@@ -42,7 +42,7 @@ private:
     bool   m_bDagger;
     vector<Qubit *> m_controlQubitVector;
 public:
-    QCirCuitParse(QCircuit * pNode, QuantumGateParam * pParam, QuantumGates* pGates,bool isDagger, vector<Qubit *> controlQbitVector);
+    QCirCuitParse(QCircuit * pNode, QuantumGateParam * pParam, QuantumGates* pGates, bool isDagger, vector<Qubit *> controlQbitVector);
     ~QCirCuitParse() {};
     bool executeAction();
     bool verify();
@@ -114,12 +114,12 @@ private:
 class QGateParse :public AbstractQNodeParse
 {
 private:
-    QGate * m_pNode;
+    AbstractQGateNode * m_pNode;
     QuantumGates* m_pGates;
     bool m_isDagger;
     vector<Qubit *> m_controlQubitVector;
 public:
-    QGateParse(QGate * pNode, QuantumGates* pGates, bool isDagger, vector<Qubit *> & controlQubitVector);
+    QGateParse(AbstractQGateNode * pNode, QuantumGates* pGates, bool isDagger, vector<Qubit *> & controlQubitVector);
     ~QGateParse() {};
     bool executeAction();
     bool verify();
@@ -136,7 +136,7 @@ public:
     QNodeAgency(QWhileProg * pNode, QuantumGateParam * pParam, QuantumGates* pGates);
     QNodeAgency(QMeasure * pNode, QuantumGateParam * pParam, QuantumGates* pGates);
     QNodeAgency(QProg * pNode, QuantumGateParam * pParam, QuantumGates* pGates);
-    QNodeAgency(QGate * pNode, QuantumGates* pGates, bool isDagger, vector<Qubit *> & controlQubitVector);
+    QNodeAgency(AbstractQGateNode * pNode, QuantumGates* pGates, bool isDagger, vector<Qubit *> & controlQubitVector);
     ~QNodeAgency();
     bool executeAction();
     bool verify();
@@ -147,30 +147,30 @@ private:
 };
 
 
-typedef void(*QGATE_FUN)(QuantumGate *,vector<Qubit * > &, QuantumGates*, bool, vector<Qubit *> &) ;
+typedef void(*QGATE_FUN)(QuantumGate *, vector<Qubit * > &, QuantumGates*, bool, vector<Qubit *> &);
 typedef map<int, QGATE_FUN> QGATE_FUN_MAP;
 class QGateParseMap
 {
- 
+
     static QGATE_FUN_MAP m_QGateFunctionMap;
 public:
 
-    static void insertMap(int iOpNum,QGATE_FUN pFunction)
+    static void insertMap(int iOpNum, QGATE_FUN pFunction)
     {
         m_QGateFunctionMap.insert(pair<int, QGATE_FUN>(iOpNum, pFunction));
     }
 
     static QGATE_FUN getFunction(int iOpNum)
     {
-       auto aiter = m_QGateFunctionMap.find(iOpNum);
-       if (aiter == m_QGateFunctionMap.end() )
-       {
-           return nullptr;
-       }
+        auto aiter = m_QGateFunctionMap.find(iOpNum);
+        if (aiter == m_QGateFunctionMap.end())
+        {
+            return nullptr;
+        }
 
-       return aiter->second;
+        return aiter->second;
     }
-    
+
 
 };
 

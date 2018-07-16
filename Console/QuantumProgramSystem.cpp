@@ -16,60 +16,15 @@ limitations under the License.
 
 #include <iostream>
 #include "QAlgorithm.h"
-#include "Algorithm/test/test.h"
+//#include "Algorithm/test/test.h"
 
 using namespace std;
 
 int main()
 {
 
-    HHL_Algorithm();
-    /*
-	DJ_Algorithm();
-    //Grover_Algorithm();
+    HHL_Algorithm();  
 
- 
-    init();
-    auto qbit = qAlloc();
-    auto cbit = cAlloc();
-    auto prog = CreateEmptyQProg();
-    auto cir = CreateEmptyCircuit();
-    cir << X(qbit) << RY_GATE(qbit);
-    prog << cir << Measure(qbit, cbit);
-    load(prog);
-    run();
-   
-    try
-    {
-		int repeat = 1000;
-	     HHL_Test(repeat);
-    }
-    catch(exception & e)
-    {
-        cout<<e.what()<<endl;
-		return 1;
-    }
-  
-  init();
-  auto  a = qAlloc();
-  auto b = qAlloc();
-  auto cc = cAlloc();
-  auto prog = CreateEmptyQProg();
-  vector<Qubit *> qubitvector = { a,b };
-  auto hQc = CreateHadamardQCircuit(qubitvector);
-  prog << hQc << X(a) << iSWAP(a, b) << Measure(a, cc);
-  load(prog);
-  run();
-  finalize();
-    */
-
-
-
-//    getchar();
-    
-//    getchar();
-
-    //qaoaopall();
     return  0;
 
 }

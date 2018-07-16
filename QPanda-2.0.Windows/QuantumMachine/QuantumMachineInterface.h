@@ -139,7 +139,10 @@ public:
 	virtual QMachineStatus* getStatus() const = 0; // get the status of the quantum machine
 	virtual QResult* getResult() = 0; // get the result of the quantum program
 	virtual void finalize() = 0; // finish the program
+	virtual size_t getAllocateQubit() = 0;
+	virtual size_t getAllocateCMem() = 0;
 	virtual ~QuantumMachine() {} // destructor
+
 };
 
 #endif

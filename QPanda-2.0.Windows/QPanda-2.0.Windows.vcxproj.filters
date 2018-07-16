@@ -46,17 +46,11 @@
     <ClInclude Include="QuantumCircuit\QuantumMeasure.h" />
     <ClInclude Include="QuantumCircuit\ControlFlow.h" />
     <ClInclude Include="QPanda\QPandaException.h" />
-    <ClInclude Include="QPanda\QuantumMetadata.h" />
     <ClInclude Include="QPanda\XMLConfigParam.h" />
     <ClInclude Include="QPanda\ConfigMap.h" />
-    <ClInclude Include="QuantumMachine\OriginQMachine.h" />
-    <ClInclude Include="QPanda\MetadataValidity.h" />
-    <ClInclude Include="TraversalAlgorithm\TraversalDecompositionAlgorithm.h" />
-    <ClInclude Include="TraversalAlgorithm\StatisticsQGateCountAlgorithm.h" />
     <ClInclude Include="TraversalAlgorithm\QCircuitParse.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="TraversalAlgorithm\QGateCompare.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="QPanda\QPanda.cpp">
@@ -113,17 +107,11 @@
     <ClCompile Include="QuantumCircuit\QNode.cpp" />
     <ClCompile Include="QuantumCircuit\QuantumMeasure.cpp" />
     <ClCompile Include="QuantumCircuit\ControlFlow.cpp" />
-    <ClCompile Include="QPanda\QuantumMetadata.cpp" />
     <ClCompile Include="QPanda\XMLConfigParam.cpp" />
     <ClCompile Include="QPanda\ConfigMap.cpp" />
-    <ClCompile Include="QuantumMachine\OriginQMachine.cpp" />
-    <ClCompile Include="QPanda\MetadataValidity.cpp" />
-    <ClCompile Include="TraversalAlgorithm\TraversalDecompositionAlgorithm.cpp" />
-    <ClCompile Include="TraversalAlgorithm\StatisticsQGateCountAlgorithm.cpp" />
     <ClCompile Include="TraversalAlgorithm\QCircuitParse.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="TraversalAlgorithm\QGateCompare.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="源文件">

@@ -126,6 +126,11 @@ void OriginItem::setPre(Item * pItem)
 }
 void OriginItem::setNode(QNode * pNode)
 {
+    if (m_iNodeNum != -1)
+    {
+        _G_QNodeMap.deleteNode(m_iNodeNum);
+    }
+
     m_iNodeNum = pNode->getPosition();
     if (!_G_QNodeMap.addNodeRefer(m_iNodeNum))
         throw exception();

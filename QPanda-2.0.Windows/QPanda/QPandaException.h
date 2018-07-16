@@ -37,6 +37,10 @@ using namespace std;
 |------invalid_pool
 */
 
+#define getssErrMsg(ssERRMSG,ERRMSG) \
+                    ssERRMSG << __FILE__ <<" " <<__LINE__ << " " \
+                             << __FUNCTION__ << ERRMSG
+
 class QPandaException : public exception
 {
     string errmsg;

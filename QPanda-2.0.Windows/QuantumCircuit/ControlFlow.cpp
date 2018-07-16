@@ -252,6 +252,38 @@ QNode * OriginIf::getFalseBranch() const
     return nullptr;
 }
 
+void OriginIf::setTrueBranch(QNode * pNode)
+{
+    if (nullptr == pNode)
+        throw param_error_exception("param is nullptr",false);
+
+    if (nullptr != m_pTrueItem)
+    {
+        delete(m_pTrueItem);
+        m_pTrueItem = nullptr;
+
+        Item * temp = new OriginItem();
+        temp->setNode(pNode);
+
+        m_pTrueItem = temp;
+    }
+       
+}
+
+void OriginIf::setFalseBranch(QNode * pNode)
+{
+    if (nullptr != m_pFalseItem)
+    {
+        delete(m_pFalseItem);
+        m_pFalseItem = nullptr;
+
+        Item * temp = new OriginItem();
+        temp->setNode(pNode);
+
+        m_pFalseItem = temp;
+    }
+}
+
 QMAP_SIZE OriginIf::getPosition() const
 {
     return m_stPosition;
@@ -350,6 +382,24 @@ QNode * OriginWhile::getTrueBranch() const
 QNode * OriginWhile::getFalseBranch() const
 {
     throw exception();
+}
+
+void OriginWhile::setTrueBranch(QNode * pNode)
+{
+    if (nullptr == pNode)
+        throw param_error_exception("param is nullptr", false);
+
+    if (nullptr != m_pTrueItem)
+    {
+        delete(m_pTrueItem);
+        m_pTrueItem = nullptr;
+
+        Item * temp = new OriginItem();
+        temp->setNode(pNode);
+
+        m_pTrueItem = temp;
+    }
+
 }
 
 ClassicalCondition * OriginWhile::getCExpr() 

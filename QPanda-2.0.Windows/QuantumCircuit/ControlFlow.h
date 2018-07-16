@@ -27,6 +27,8 @@ class AbstractControlFlowNode
 public:
     virtual QNode * getTrueBranch() const = 0;
     virtual QNode * getFalseBranch() const = 0;
+    virtual void setTrueBranch(QNode *) = 0;
+    virtual void setFalseBranch(QNode *) = 0;
     virtual ClassicalCondition * getCExpr()  = 0;
     virtual ~AbstractControlFlowNode() {}
 };
@@ -57,6 +59,8 @@ public:
     ClassicalCondition * getCExpr();
 private:
     void setPosition(QMAP_SIZE) {};
+    void setTrueBranch(QNode *) {};
+    void setFalseBranch(QNode *) {};
 };
 
 
@@ -123,6 +127,10 @@ public:
     NodeType getNodeType() const;
     QNode * getTrueBranch() const;
     QNode * getFalseBranch() const;
+
+    void setTrueBranch(QNode *);
+    void setFalseBranch(QNode *);
+
     QMAP_SIZE getPosition() const;
     void setPosition(QMAP_SIZE);
     ClassicalCondition * getCExpr();
@@ -185,6 +193,8 @@ public:
     QMAP_SIZE getPosition() const;
 private:
     void setPosition(QMAP_SIZE) {};
+    void setTrueBranch(QNode *) {};
+    void setFalseBranch(QNode *) {};
 };
 
 class OriginWhile :public QNode, public AbstractControlFlowNode
@@ -203,6 +213,10 @@ public :
     NodeType getNodeType() const;
     QNode * getTrueBranch() const;
     QNode * getFalseBranch() const;
+
+    void setTrueBranch(QNode *);
+    void setFalseBranch(QNode *) {};
+
     ClassicalCondition * getCExpr();
     QMAP_SIZE getPosition() const;
     void setPosition(QMAP_SIZE stPosition);

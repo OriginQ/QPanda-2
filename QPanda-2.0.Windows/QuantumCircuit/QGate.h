@@ -32,6 +32,7 @@ using namespace std;
 typedef complex <double> COMPLEX;
 typedef vector <complex<double>> QStat;
 
+
 namespace QGATE_SPACE 
 {
     class angleParameter
@@ -56,9 +57,10 @@ namespace QGATE_SPACE
         int qOpNum;
         int gateType;
         QStat gatematrix;
-        //double theta;
+       // double theta;
     public:
         QuantumGate();
+        //QuantumGate(QuantumGate*);
         virtual ~QuantumGate() {};
         virtual double getAlpha() const = 0;
         virtual double getBeta() const = 0;
@@ -67,6 +69,7 @@ namespace QGATE_SPACE
         virtual int getOpNum() const = 0;
         virtual void getMatrix(QStat & matrix) const = 0;
         virtual int getGateType()const = 0;
+		//virtual double getParameter() const =0;
     };
 
 
@@ -197,6 +200,34 @@ namespace QGATE_SPACE
         inline int getGateType() const
         {
             return GATE_TYPE::PAULI_Z_GATE;
+        }
+    };
+
+    class X1 :public U4
+    {
+    public:
+        X1();
+        inline int getGateType() const
+        {
+            return GATE_TYPE::X_HALF_PI;
+        }
+    };
+    class Y1 :public U4
+    {
+    public:
+        Y1();
+        inline int getGateType() const
+        {
+            return GATE_TYPE::Y_HALF_PI;
+        }
+    };
+    class Z1 :public U4
+    {
+    public:
+        Z1();
+        inline int getGateType() const
+        {
+            return GATE_TYPE::Z_HALF_PI;
         }
     };
     class H :public U4
@@ -447,7 +478,6 @@ namespace QGATE_SPACE
             return GATE_TYPE::SQISWAP_GATE;
         }
     };
-
 }
 
 #endif

@@ -72,10 +72,25 @@ U4::U4(QStat & matrix)
     gatematrix[1] = matrix[1];
     gatematrix[2] = matrix[2];
     gatematrix[3] = matrix[3];
-    gamma = 2 * acos(abs(matrix[0]));
-    beta = argc(matrix[2] - matrix[0]);
-    delta = argc(matrix[2] - matrix[0]) + PI;
-    alpha = argc(matrix[2]) + delta / 2 - beta / 2;
+    gamma = 2 * acos(abs(gatematrix[0]));
+    if (abs(gatematrix[0] * gatematrix[1]) > 1e-20)
+    {
+        beta = argc(gatematrix[2] / gatematrix[0]);
+        delta = argc(gatematrix[3] / gatematrix[2]);
+        alpha = beta / 2 + delta / 2 + argc(gatematrix[0]);
+    }
+    else if (abs(gatematrix[0]) > 1e-10)
+    {
+        beta = argc(gatematrix[3] / gatematrix[0]);
+        delta = 0;
+        alpha = beta / 2 + argc(gatematrix[0]);
+    }
+    else
+    {
+        beta = argc(gatematrix[2] / gatematrix[1]) + PI;
+        delta = 0;
+        alpha = argc(gatematrix[1]) + beta / 2 - PI;
+    }
 }
 ;
 void U4::getMatrix(QStat & matrix) const
@@ -109,7 +124,7 @@ Y::Y()
     gamma = PI;
     delta = 0;
     gatematrix[0] = 0;
-    gatematrix[1].imag( -1);
+    gatematrix[1].imag(-1);
     gatematrix[2].imag(-1);
     gatematrix[3] = 0;
 }
@@ -123,6 +138,45 @@ Z::Z()
     gamma = 0;
     delta = 0;
     gatematrix[3] = -1;
+}
+
+//RX(pi/2) gate
+X1::X1()
+{
+    alpha = PI;
+    beta = 3.0 / 2 * PI;
+    gamma = PI / 2;
+    delta = PI / 2;
+    gatematrix[0] = 1 / SQRT2;
+    gatematrix[1] = COMPLEX(0, -1 / SQRT2);
+    gatematrix[2] = COMPLEX(0, -1 / SQRT2);
+    gatematrix[3] = 1 / SQRT2;
+}
+
+
+//RY(pi/2) gate
+Y1::Y1()
+{
+    alpha = 0;
+    beta = 0;
+    gamma = PI / 2;
+    delta = 0;
+    gatematrix[0] = 1 / SQRT2;
+    gatematrix[1] = -1 / SQRT2;
+    gatematrix[2] = 1 / SQRT2;
+    gatematrix[3] = 1 / SQRT2;
+}
+
+
+//RZ(pi/2) gate
+Z1::Z1()
+{
+    alpha = 0;
+    beta = PI / 2;
+    gamma = 0;
+    delta = 0;
+    gatematrix[0] = COMPLEX(1 / SQRT2, -1 / SQRT2);
+    gatematrix[3] = COMPLEX(1 / SQRT2, 1 / SQRT2);
 }
 
 H::H()
@@ -164,8 +218,8 @@ RX::RX(double angle)
     delta = PI / 2;
     theta = angle;
     gatematrix[0] = cos(angle / 2);
-    gatematrix[1].imag(-1*sin(angle / 2)) ;
-    gatematrix[2].imag (-1*sin(angle / 2));
+    gatematrix[1].imag(-1 * sin(angle / 2));
+    gatematrix[2].imag(-1 * sin(angle / 2));
     gatematrix[3] = cos(angle / 2);
 }
 RY::RY(double angle)
@@ -190,9 +244,9 @@ RZ::RZ(double angle)
     delta = 0;
     theta = angle;
     gatematrix[0].real(cos(angle / 2));
-    gatematrix[0].imag(-1*sin(angle / 2));
+    gatematrix[0].imag(-1 * sin(angle / 2));
     gatematrix[3].real(cos(angle / 2));
-    gatematrix[3].imag(1*sin(angle / 2));
+    gatematrix[3].imag(1 * sin(angle / 2));
 }
 //U1_GATE=[1 0;0 exp(i*angle)]
 U1::U1(double angle)
@@ -203,7 +257,7 @@ U1::U1(double angle)
     delta = 0;
     theta = angle;
     gatematrix[3].real(cos(angle));
-    gatematrix[3].imag(1*sin(angle));
+    gatematrix[3].imag(1 * sin(angle));
 }
 
 
@@ -213,10 +267,7 @@ U1::U1(double angle)
 QDoubleGate::QDoubleGate()
 {
     qOpNum = 2;
-    for (auto i = 0; i < 16; i++)
-    {
-        gatematrix.push_back(0);
-    }
+    gatematrix.resize(16);
     gatematrix[0] = 1;
     gatematrix[5] = 1;
     gatematrix[10] = 1;
@@ -291,15 +342,32 @@ CU::CU(QStat & matrix)
 {
     qOpNum = 2;
     //QStat matrix;
-    gatematrix.resize(4);
+    gatematrix.resize(16);
+    gatematrix[0] = 1;
+    gatematrix[5] = 1;
     gatematrix[10] = matrix[0];
     gatematrix[11] = matrix[1];
     gatematrix[14] = matrix[2];
     gatematrix[15] = matrix[3];
-    gamma = 2 * acos(abs(matrix[0]));
-    beta = argc(matrix[2] - matrix[0]);
-    delta = argc(matrix[2] - matrix[0]) + PI;
-    alpha = argc(matrix[2]) + delta / 2 - beta / 2;
+    gamma = 2 * acos(abs(gatematrix[0]));
+    if (abs(gatematrix[10] * gatematrix[11]) > 1e-20)
+    {
+        beta = argc(gatematrix[14] / gatematrix[10]);
+        delta = argc(gatematrix[15] / gatematrix[14]);
+        alpha = beta / 2 + delta / 2 + argc(gatematrix[10]);
+    }
+    else if (abs(gatematrix[10]) > 1e-10)
+    {
+        beta = argc(gatematrix[15] / gatematrix[10]);
+        delta = 0;
+        alpha = beta / 2 + argc(gatematrix[10]);
+    }
+    else
+    {
+        beta = argc(gatematrix[14] / gatematrix[11]) + PI;
+        delta = 0;
+        alpha = argc(gatematrix[11]) + beta / 2 - PI;
+    }
 }
 ;
 CNOT::CNOT()
@@ -321,7 +389,7 @@ CPhaseGate::CPhaseGate(double angle)
     gamma = 0;
     delta = 0;
     gatematrix[15] = cos(angle);
-    gatematrix[15].imag(1*sin(angle));
+    gatematrix[15].imag(1 * sin(angle));
 }
 CZ::CZ()
 {
@@ -336,8 +404,8 @@ ISWAPTheta::ISWAPTheta(double angle)
 {
     theta = angle;
     gatematrix[5] = cos(angle);
-    gatematrix[6].imag(-1*sin(angle));
-    gatematrix[9].imag(-1*sin(angle));
+    gatematrix[6].imag(-1 * sin(angle));
+    gatematrix[9].imag(-1 * sin(angle));
     gatematrix[10] = cos(angle);
     //matrix
 }
@@ -346,7 +414,7 @@ ISWAP::ISWAP()
     theta = PI / 2;
     gatematrix[5] = 0;
     gatematrix[6].imag(-1);
-    gatematrix[9],imag(-1);
+    gatematrix[9].imag(-1);
     gatematrix[10] = 0;
 }
 SQISWAP::SQISWAP()
@@ -354,7 +422,7 @@ SQISWAP::SQISWAP()
     theta = PI / 4;
     gatematrix[5] = 1 / SQRT2;
     gatematrix[6].imag(-1 / SQRT2);
-    gatematrix[9] .imag(-1 / SQRT2);
+    gatematrix[9].imag(-1 / SQRT2);
     gatematrix[10] = 1 / SQRT2;
 }
 
@@ -432,6 +500,9 @@ REGISTER(Y);
 REGISTER(Z);
 REGISTER(S);
 REGISTER(H);
+REGISTER(X1);
+REGISTER(Y1);
+REGISTER(Z1);
 REGISTER(CNOT);
 REGISTER(CZ);
 REGISTER(ISWAP);
@@ -462,6 +533,7 @@ REGISTER(SQISWAP);
 REGISTER_ANGLE(RX);
 REGISTER_ANGLE(RY);
 REGISTER_ANGLE(RZ);
+REGISTER_ANGLE(U1);
 REGISTER_ANGLE(ISWAPTheta);
 
 REGISTER_SINGLE_CU(U4);

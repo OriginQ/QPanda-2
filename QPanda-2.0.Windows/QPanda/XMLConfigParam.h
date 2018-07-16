@@ -17,7 +17,6 @@ public:
     XmlConfigParam() = delete;
     XmlConfigParam(const string &xmlFile);
 
-    bool getMetadataPath(string &path);
     bool getClassNameConfig(map<string, string> &classNameMap);
 
     virtual ~XmlConfigParam();

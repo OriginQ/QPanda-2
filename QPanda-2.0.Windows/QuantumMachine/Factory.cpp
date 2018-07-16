@@ -19,7 +19,6 @@ limitations under the License.
 #include "../QPanda/QPandaException.h"
 #include "QPanda/ConfigMap.h"
 #include "OriginClassicalExpression.h"
-#include "OriginQMachine.h"
 /* 1. static variable initialization start */
 
 #if false
@@ -143,7 +142,6 @@ void Factory::QuantumMachineFactory::registerclass(string name, constructor_t co
 }
 
 REGISTER_QUANTUM_MACHINE(OriginQVM);
-REGISTER_QUANTUM_MACHINE(OriginQMachine);
 
 /* 3. Quantum Machine Factory End*/
 

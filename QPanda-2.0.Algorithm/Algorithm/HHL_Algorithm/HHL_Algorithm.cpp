@@ -18,6 +18,7 @@ limitations under the License.
 
 void HHL_Algorithm()
 {
+
     map<string, bool> temp;
     int x0 = 0;
     int x1 = 0;
@@ -37,8 +38,10 @@ void HHL_Algorithm()
         }
     }
     int sum = x0 + x1;
+
     cout << "prob0:" << x0*1.0/sum << endl;
     cout << "prob1:" << x1*1.0/sum << endl;
+
 }
 
 map<string, bool> hhlalgorithm()

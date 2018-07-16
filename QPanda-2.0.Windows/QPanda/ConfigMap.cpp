@@ -12,9 +12,6 @@ ConfigMap::ConfigMap()
     XmlConfigParam xml(m_sConfigFilePath);
     xml.getClassNameConfig(m_configMap);
     string metadataPath;
-    xml.getMetadataPath(metadataPath);
-    CONFIGPAIR metadataPathPair = { "MetadataPath",metadataPath };
-    insert(metadataPathPair);
 }
 
 

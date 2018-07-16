@@ -10,28 +10,6 @@ XmlConfigParam::XmlConfigParam(const string &xmlFile) :
     m_rootElement = m_doc.RootElement();
 }
 
-bool XmlConfigParam::getMetadataPath(string &path)
-{
-    if (!m_rootElement)
-    {
-        return false;
-    }
-
-#if defined(__linux__)
-    TiXmlElement *metadataPathEle = m_rootElement->FirstChildElement("MetadataPathLinux");
-#elif defined(_WIN32)
-    TiXmlElement *metadataPathEle = m_rootElement->FirstChildElement("MetadataPathWindows");
-#endif
-
-    if (!metadataPathEle)
-    {
-        return false;
-    }
-
-    path = metadataPathEle->GetText();
-    return true;
-}
-
 bool XmlConfigParam::getClassNameConfig(map<string, string> &classNameMap)
 {
     if (!m_rootElement)

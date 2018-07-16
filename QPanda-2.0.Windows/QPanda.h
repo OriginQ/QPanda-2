@@ -19,9 +19,6 @@ limitations under the License.
 #include "QuantumCircuit/QGate.h"
 #include "QuantumCircuit/QProgram.h"
 #include "QuantumMachine/OriginQuantumMachine.h"
-#include "TraversalAlgorithm/StatisticsQGateCountAlgorithm.h"
-
-extern size_t countQGateUnderQCircuit(AbstractQuantumCircuit *);
 
 extern HadamardQCircuit CreateHadamardQCircuit(vector<Qubit *> & pQubitVector);
 
@@ -54,18 +51,23 @@ extern QMeasure Measure(Qubit * targetQuBit, CBit * targetCbit);
 
 // Create a X gate
 extern QGate  X(Qubit* qbit);
+extern QGate  X1(Qubit* qbit);
 
 // Create a X rotation
 extern QGate RX(Qubit*, double angle);
 
+extern QGate U1(Qubit*, double angle);
 // Create a Y gate
 extern QGate  Y(Qubit* qbit);
+extern QGate  Y1(Qubit* qbit);
 
 // Create a Y rotation
 extern QGate RY(Qubit*, double angle);
 
 // Create a Z gate
 extern QGate Z(Qubit* qbit);
+
+extern QGate Z1(Qubit* qbit);
 
 // Create a Z rotation
 extern QGate RZ(Qubit*, double angle);
@@ -83,9 +85,12 @@ extern QGate CNOT(Qubit* targetQBit, Qubit* controlQBit);
 extern QGate CZ(Qubit* targetQBit, Qubit* controlQBit);
 
 // Create an arbitrary single unitary gate
-extern QGate QSingle(double alpha, double beta, double gamma, double delta, Qubit *);
+extern QGate U4(double alpha, double beta, double gamma, double delta, Qubit *);
 
-extern QGate QSingle(QStat& matrix, Qubit*);
+extern QGate U4(QStat& matrix, Qubit*);
+
+QGate  QDouble(QStat matrix, Qubit * pQubit1, Qubit * pQubit2);
+
 // Create a control-U gate
 extern QGate CU(double alpha, double beta, double gamma, double delta, Qubit *, Qubit *);
 extern QGate CU(QStat& matrix, Qubit*, Qubit*);
@@ -123,6 +128,10 @@ QMachineStatus* getstat();
 
 // get the result(ptr)
 QResult* getResult();
+
+extern size_t getAllocateQubitNum();
+
+extern size_t getAllocateCMem();
 
 // directly get the result map
 map<string, bool> getResultMap();

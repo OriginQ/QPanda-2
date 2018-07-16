@@ -19,8 +19,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="QPanda\MetadataValidity.h" />
-    <ClInclude Include="QuantumMachine\OriginQMachine.h" />
     <ClInclude Include="QPanda\ConfigMap.h" />
     <ClInclude Include="QPanda.h" />
     <ClInclude Include="QPanda\QPandaException.h" />
@@ -42,14 +40,8 @@
     <ClInclude Include="QuantumMachine\OriginClassicalExpression.h" />
     <ClInclude Include="QuantumMachine\OriginQuantumMachine.h" />
     <ClInclude Include="QuantumMachine\QuantumMachineInterface.h" />
-    <ClInclude Include="QPanda\QuantumMetadata.h" />
-    <ClInclude Include="TraversalAlgorithm\QGateCompare.h" />
-    <ClInclude Include="TraversalAlgorithm\StatisticsQGateCountAlgorithm.h" />
-    <ClInclude Include="TraversalAlgorithm\TraversalDecompositionAlgorithm.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="QPanda\MetadataValidity.cpp" />
-    <ClCompile Include="QuantumMachine\OriginQMachine.cpp" />
     <ClCompile Include="QPanda\ConfigMap.cpp" />
     <ClCompile Include="QPanda\QPanda.cpp" />
     <ClCompile Include="QPanda\XMLConfigParam.cpp" />
@@ -73,10 +65,6 @@
     <ClCompile Include="QuantumMachine\OriginQubitPool.cpp" />
     <ClCompile Include="QuantumMachine\OriginQVM.cpp" />
     <ClCompile Include="QuantumMachine\QuantumMachineInterface.cpp" />
-    <ClCompile Include="QPanda\QuantumMetadata.cpp" />
-    <ClCompile Include="TraversalAlgorithm\QGateCompare.cpp" />
-    <ClCompile Include="TraversalAlgorithm\StatisticsQGateCountAlgorithm.cpp" />
-    <ClCompile Include="TraversalAlgorithm\TraversalDecompositionAlgorithm.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
@@ -152,6 +140,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)TinyXML;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <Lib>
       <AdditionalDependencies>TinyXML.lib;%(AdditionalDependencies)</AdditionalDependencies>

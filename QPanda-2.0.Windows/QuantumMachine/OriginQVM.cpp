@@ -174,5 +174,15 @@ void OriginQVM::finalize()
 
 }
 
+size_t OriginQVM::getAllocateQubit()
+{
+	return _Qubit_Pool->getMaxQubit() - _Qubit_Pool->getIdleQubit();
+}
+
+size_t OriginQVM::getAllocateCMem()
+{
+	return _CMem->getMaxMem()- _CMem->getIdleMem();
+}
+
 
 

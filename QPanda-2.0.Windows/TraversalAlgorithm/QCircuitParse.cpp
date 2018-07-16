@@ -412,7 +412,7 @@ QNodeAgency::QNodeAgency(AbstractControlFlowNode * pNode, QuantumGateParam * pPa
     else if (WHILE_START_NODE == pQNode->getNodeType())
         m_pQNodeParse = new QWhileParse(pNode, pParam, pGates);
     else
-        throw param_error_exception("this node is not controlflow",false);
+        throw param_error_exception("this node is not controlflow", false);
 }
 
 

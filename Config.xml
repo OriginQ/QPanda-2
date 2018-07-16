@@ -15,7 +15,4 @@
 		<QResult>OriginQResult</QResult>
 		<CExpr>OriginCExpr</CExpr>
 	</ClassNameConfig>
-	<MetadataPath>
-		./path/config/
-	</MetadataPath>
 </head>

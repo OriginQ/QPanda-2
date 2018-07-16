@@ -38,6 +38,17 @@ Qubit * qAlloc()
 	return qvm->Allocate_Qubit();
 }
 
+size_t getAllocateQubitNum()
+{
+	return qvm->getAllocateQubit();
+}
+
+size_t getAllocateCMem()
+{
+	return qvm->getAllocateCMem();
+}
+
+
 void qFree(Qubit * q)
 {
 	qvm->Free_Qubit(q);
@@ -82,6 +93,9 @@ void run()
 {
 	qvm->run();
 }
+
+
+
 
 map<string, bool> getResultMap()
 {

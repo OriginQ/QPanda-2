@@ -192,7 +192,6 @@ bool X86QuantumGates::qubitMeasure(size_t qn)
         dprob = 1 / sqrt(dprob);
 
         size_t j;
-        //#pragma omp parallel for private(j)
         for (size_t i = 0; i < qgroup.qstate.size(); i = i + 2 * ststep)
         {
             for (j = i; j < i + ststep; j++)
@@ -207,7 +206,6 @@ bool X86QuantumGates::qubitMeasure(size_t qn)
         dprob = 1 / sqrt(1 - dprob);
 
         size_t j;
-        //#pragma omp parallel for private(j)
         for (size_t i = 0; i < qgroup.qstate.size(); i = i + 2 * ststep)
         {
             for (j = i; j<i + ststep; j++) {
@@ -229,24 +227,7 @@ return:      quantum error
 *****************************************************************************************************************/
 QError X86QuantumGates::initState(QuantumGateParam * param)
 {
-    /* if (nullptr == qbit2stat.begin())
-    {
-    return undefineError;
-    }*/
-
-    /*size_t stQuantumStat = (size_t)pow(2, pQuantumProParam->mQuantumBitNumber);
-
-    try
-    {
-    mvQuantumStat.resize(stQuantumStat);
-    }
-    catch (const std::exception &e)
-    {
-    std::cout << e.what() << std::endl;
-    return undefineError;
-    }
-    mvQuantumStat[0] = 1;*/
-
+    qbit2stat.erase(qbit2stat.begin(),qbit2stat.end());
     qbit2stat.resize(param->mQuantumBitNumber);
     for (auto i = 0; i<param->mQuantumBitNumber; i++)
     {
@@ -267,33 +248,6 @@ QError X86QuantumGates::initState(QuantumGateParam * param)
     return qErrorNone;
 }
 
-
-
-///*****************************************************************************************************************
-//Name:        getCalculationUnitType
-//Description: compare calculation unit type
-//Argin:       sCalculationUnitType   external calculation unit type
-//Argout:      None
-//return:      comparison results
-//*****************************************************************************************************************/
-//bool X86QuantumGates :: compareCalculationUnitType(string& sCalculationUnitType)
-//{
-//    bool bResult = false;
-//
-//    if (0 == sCalculationUnitType.compare(this->sCalculationUnitType))
-//    {
-//        bResult = true;
-//    }
-//    else
-//    {
-//        bResult = false;
-//    }
-//
-//    return bResult;
-//}
-//
-//
-//
 /*****************************************************************************************************************
 Name:        endGate
 Description: end gate
@@ -304,15 +258,6 @@ return:      quantum error
 *****************************************************************************************************************/
 QError X86QuantumGates::endGate(QuantumGateParam * pQuantumProParam, QuantumGates * pQGate)
 {
-
-    /* vQParam qtemp;
-    for (auto iter = qbit2stat.begin(); iter != qbit2stat.end(); iter++)
-    {
-    for (auto iter1 = (*iter).qVec.begin(); iter1 != (*iter).qVec.end(); iter++)
-    {
-
-    }
-    }*/
     return qErrorNone;
 }
 
@@ -340,8 +285,7 @@ unitarySingleQubitGate(size_t qn,
             matrix[i] = COMPLEX(matrix[i].real(), -matrix[i].imag());
         }//dagger
     }
-    //#pragma omp parallel for private(j,alpha,beta)
-    for (size_t i = 0; i < qgroup.qstate.size(); i += ststep * 2)
+    for (long long i = 0; i < qgroup.qstate.size(); i += ststep * 2)
     {
         for (j = i; j<i + ststep; j++)
         {
@@ -401,8 +345,7 @@ controlunitarySingleQubitGate(size_t qn,
         sort(qvtemp.begin(), qvtemp.end());
         Qnum::iterator qiter;
         size_t j;
-        //#pragma omp parallel for private(j,alpha,beta,index,x,qiter)
-        for (size_t i = 0; i < M; i++)
+        for (long long i = 0; i < M; i++)
         {
             index = 0;
             x = i;
@@ -479,11 +422,12 @@ unitaryDoubleQubitGate(size_t qn_0,
                 matrix[i] = COMPLEX(matrix[i].real(), -matrix[i].imag());
             }//dagger
         }
-        for (size_t i = 0; i<stateSize; i = i + 2 * stemp1)
+        long long j, k;
+        for (long long i = 0; i<stateSize; i = i + 2 * stemp1)
         {
-            for (size_t j = i; j < i + stemp1; j = j + 2 * stemp2)
+            for (j = i; j < i + stemp1; j = j + 2 * stemp2)
             {
-                for (size_t k = j; k < j + stemp2; k++)
+                for (k = j; k < j + stemp2; k++)
                 {
                     phi00 = qgroup0.qstate[k];        //00
                     phi01 = qgroup0.qstate[k + ststep2];  //01
@@ -566,9 +510,8 @@ controlunitaryDoubleQubitGate(size_t qn_0,
         size_t index = 0;
         size_t x;
         size_t n = qgroup0.qVec.size();
-        //#pragma omp parallel for private(j,alpha,beta,index,x,qiter)
-
-        for (size_t i = 0; i < M; i++)
+        
+        for (long long i = 0; i < M; i++)
         {
             index = 0;
             x = i;
@@ -648,7 +591,6 @@ QError  X86QuantumGates::iSWAP(size_t qn_0, size_t qn_1, double theta, bool isCo
         *  traverse all the states
         */
         size_t j, k;
-        //#pragma omp parallel for private(j,k,alpha,beta)
         for (size_t i = 0; i < qgroup0.qstate.size(); i = i + 2 * ststep0)
         {
             for (j = i + ststep1; j < i + ststep0; j = j + 2 * ststep1)
@@ -718,7 +660,6 @@ QError  X86QuantumGates::iSWAP(size_t qn_0, size_t qn_1, Qnum & vControlBit, dou
         size_t index = 0;
         size_t x;
         size_t n = qgroup0.qVec.size();
-        //#pragma omp parallel for private(j,alpha,beta,index,x,qiter)
         COMPLEX alpha, beta;
         for (size_t i = 0; i < M; i++)
         {
@@ -787,7 +728,6 @@ QError  X86QuantumGates::CR(size_t qn_0, size_t qn_1, double theta, bool isConju
         *  traverse all the states
         */
         size_t j, k;
-        //#pragma omp parallel for private(j,k,alpha,beta)
         for (size_t i = ststep0; i < qgroup0.qstate.size(); i = i + 2 * ststep0)
         {
             for (j = i + ststep1; j < i + ststep0; j = j + 2 * ststep1)
@@ -853,7 +793,6 @@ QError  X86QuantumGates::CR(size_t qn_0, size_t qn_1, Qnum & vControlBit, double
         size_t index = 0;
         size_t x;
         size_t n = qgroup0.qVec.size();
-        //#pragma omp parallel for private(j,alpha,beta,index,x,qiter)
         for (size_t i = 0; i < M; i++)
         {
             index = 0;
@@ -882,7 +821,6 @@ QError X86QuantumGates::Reset(size_t qn)
     size_t j;
     size_t ststep = 1ull << (find(qgroup.qVec.begin(), qgroup.qVec.end(), qn)
         - qgroup.qVec.begin());
-    //#pragma omp parallel for private(j,alpha,beta)
     for (size_t i = 0; i < qgroup.qstate.size(); i += ststep * 2)
     {
         for (j = i; j<i + ststep; j++)

@@ -51,6 +51,7 @@ class AbstractQGateNode
 public:
     virtual size_t getQuBitVector(vector<Qubit *> &) const = 0;
     virtual Qubit * popBackQuBit() = 0;
+    virtual void PushBackQuBit(Qubit *) = 0;
     virtual size_t getQuBitNum() const = 0;
     virtual QuantumGate * getQGate() const = 0;
     virtual void setQGate(QuantumGate *) = 0;
@@ -93,6 +94,7 @@ private:
     void setPosition(QMAP_SIZE) {};
     Qubit * popBackQuBit() { return nullptr; };
     void setQGate(QuantumGate *) {};
+    void PushBackQuBit(Qubit *) {};
 
 };
 
@@ -122,6 +124,7 @@ public:
     bool setControl(vector < Qubit *> &);
     bool isDagger() const;
     size_t getControlVector(vector<Qubit *> &) const;
+    void PushBackQuBit(Qubit *) ;
 
 };
 
@@ -166,6 +169,7 @@ public:
     QNode * operator *();
     NodeIter & operator --();
     NodeIter  operator --(int);
+    NodeIter getNextIter();
     bool operator != (NodeIter);
     bool operator  == (NodeIter);
 };
@@ -199,7 +203,7 @@ public:
     virtual bool isDagger() const = 0;
     virtual bool getControlVector(vector<Qubit *> &) = 0;
     virtual void  setDagger(bool isDagger) = 0;
-    virtual void  setControl(vector<Qubit *> &) = 0;;
+    virtual void  setControl(vector<Qubit *> &) = 0;
 };
 
 
@@ -231,7 +235,7 @@ public:
     NodeIter  getFirstNodeIter();
     NodeIter  getLastNodeIter();
     NodeIter  getEndNodeIter();
-    NodeIter getHeadNodeIter();
+    NodeIter  getHeadNodeIter();
 
     NodeIter  insertQNode(NodeIter & iter, QNode * pNode);
     NodeIter  deleteQNode(NodeIter & iter);
@@ -453,7 +457,7 @@ public:
     QGate  getGateNode(string & name, Qubit *);
     QGate  getGateNode(string & name, Qubit *, double);
     QGate  getGateNode(string & name, Qubit *, Qubit*);
-    QGate  getGateNode(string & name, Qubit * targetQBit, Qubit * controlQBit, double theta);
+    QGate  getGateNode(string & name, Qubit * controlQBit , Qubit * targetQBit, double theta);
     QGate  getGateNode(double alpha, double beta, double gamma, double delta, Qubit *);
     QGate  getGateNode(double alpha, double beta, double gamma, double delta, Qubit *, Qubit *);
     QGate  getGateNode(string &name, QStat matrix, Qubit *, Qubit *);

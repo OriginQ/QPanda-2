@@ -188,6 +188,8 @@ public:
 	QMachineStatus* getStatus() const;
 	QResult* getResult();
 	void finalize();
+	size_t getAllocateQubit();
+	size_t getAllocateCMem();
 };
 
 #endif

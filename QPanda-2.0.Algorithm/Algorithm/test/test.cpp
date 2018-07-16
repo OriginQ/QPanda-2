@@ -4,15 +4,15 @@ void ifwhile()
 {
     OriginQVM qvm;
     qvm.init();
-    QProg & prog = CreateEmptyQProg();
+    QProg  prog = CreateEmptyQProg();
     CBit * cbit0 = qvm.Allocate_CBit();
     CBit * cbit1 = qvm.Allocate_CBit();
     auto q0 = qvm.Allocate_Qubit();
     auto q1 = qvm.Allocate_Qubit();
     ClassicalCondition cc1(cbit1);
-    QProg & ifprog = CreateEmptyQProg();
+    QProg  ifprog = CreateEmptyQProg();
     ifprog << H(q1);
-    QIfNode & ifnode = CreateIfProg(&cc1, &ifprog);
+    QIfProg  ifnode = CreateIfProg(cc1, &ifprog);
     prog << H(q0) << Measure(q0, cbit0) << ifnode << Measure(q1, cbit1);
     qvm.load(prog);
     qvm.run();
@@ -34,13 +34,13 @@ bool HelloWorld()
 	init(); 
 	// initialize the environment
     
-	QProg & A_Hello_World_Program = CreateEmptyQProg();
+	QProg  A_Hello_World_Program = CreateEmptyQProg();
 	// Create an empty program
 
 	CBit * cbit1 = cAlloc();
 	// allocate a cbit
 
-	ClassicalCondition *cc1 = bind_a_cbit(cbit1);
+	ClassicalCondition cc1 = bind_a_cbit(cbit1);
 	// bind the cbit onto a classicalcondition variable
 	// But not used in this sample
 
@@ -81,12 +81,12 @@ bool DJalgorithm()
 {
     OriginQVM qvm;
     qvm.init();
-    QProg & dj = CreateEmptyQProg();
+    QProg  dj = CreateEmptyQProg();
     CBit * cbit1 = qvm.Allocate_CBit();
     auto qb = qvm.Allocate_Qubit();
     ClassicalCondition cc1(cbit1);
     auto anc = qvm.Allocate_Qubit();
-    dj << RX(anc) << H(qb) << H(anc) << CNOT(qb, anc) << H(qb) << Measure(qb, cbit1);
+    dj << X(anc) << H(qb) << H(anc) << CNOT(qb, anc) << H(qb) << Measure(qb, cbit1);
     qvm.load(dj);
     qvm.run();
     auto temp = qvm.getResult();
@@ -108,37 +108,37 @@ int Grover(int target)  //target is 0,1,2 or 3
     auto q = qvm.Allocate_Qubit();
     auto q1 = qvm.Allocate_Qubit();
     auto anc = qvm.Allocate_Qubit();
-    QProg & grover = CreateEmptyQProg();
-    OriginQCircuit & init = CreateEmptyCircuit();
-    OriginQCircuit & oracle = CreateEmptyCircuit();
-    OriginQCircuit & reverse = CreateEmptyCircuit();
-    init << H(q) << H(q1) << RX(anc) << H(anc);
+    QProg  grover = CreateEmptyQProg();
+    QCircuit  init = CreateEmptyCircuit();
+    QCircuit  oracle = CreateEmptyCircuit();
+    QCircuit  reverse = CreateEmptyCircuit();
+    init << H(q) << H(q1) << X(anc) << H(anc);
     vector<Qubit *> controlVector;
     controlVector.push_back(q);
     controlVector.push_back(q1);
-    //QSingleGate  sqrtH(0.5*PI, 0, 0.25*PI, PI);
-    OriginQGateNode  &toff = RX(anc);
+    //U4  sqrtH(0.5*PI, 0, 0.25*PI, PI);
+    QGate  toff = X(anc);
 
     toff.setControl(controlVector);
     switch (target)
     {
     case 0:
-        oracle << RX(q) << RX(q1) << toff << RX(q) << RX(q1);
+        oracle << X(q) << X(q1) << toff << X(q) << X(q1);
         break;
     case 1:
-        oracle << RX(q) << toff << RX(q);
+        oracle << X(q) << toff << X(q);
         break;
     case 2:
-        oracle << RX(q1) << toff << RX(q1);
+        oracle << X(q1) << toff << X(q1);
         break;
     case 3:
         oracle << toff;
         break;
     }
-    reverse << H(q) << H(q1) << RX(q) << RX(q1) << H(q1) << CNOT(q, q1);
-    reverse << H(q1) << RX(q) << RX(q1) << H(q) << H(q1) << RX(anc);
+    reverse << H(q) << H(q1) << X(q) << X(q1) << H(q1) << CNOT(q, q1);
+    reverse << H(q1) << X(q) << X(q1) << H(q) << H(q1) << X(anc);
     grover << init << oracle << reverse << Measure(q, cbit1) << Measure(q1, cbit2);
-    QProg & grover1 = CreateEmptyQProg();
+    QProg  grover1 = CreateEmptyQProg();
     //grover1<<H(q)<<H(q1)<<toff<< Measure(q, cbit1) << Measure(q1, cbit2) << Measure(anc, cbit3);
     qvm.load(grover);
     qvm.run();
@@ -165,11 +165,11 @@ void controlandDagger()
     auto q = qvm.Allocate_Qubit();
     auto q1 = qvm.Allocate_Qubit();
     auto anc = qvm.Allocate_Qubit();
-    QProg & aaa = CreateEmptyQProg();
+    QProg  aaa = CreateEmptyQProg();
     vector<Qubit *> controlVector;
     controlVector.push_back(q);
-    //QSingleGate  sqrtH(0.5*PI, 0, 0.25*PI, PI);
-    OriginQGateNode  &toff = RX(q1);
+    //U4  sqrtH(0.5*PI, 0, 0.25*PI, PI);
+    QGate  toff = X(q1);
     toff.setControl(controlVector);
     aaa << H(q) << toff << Measure(q, cbit1) << Measure(q1, cbit2);
     qvm.load(aaa);
@@ -186,9 +186,9 @@ void controlandDagger()
     return;
 }
 
-QProg& bell(Qubit* a, Qubit * b)
+QProg bell(Qubit* a, Qubit * b)
 {
-    auto &bb = CreateEmptyQProg();
+    auto bb = CreateEmptyQProg();
     bb << H(a) << CNOT(a, b);
     return bb;
 }
@@ -201,7 +201,7 @@ void entangle()
     auto q1 = qvm.Allocate_Qubit();
     auto cbit0 = qvm.Allocate_CBit();
     auto cbit1 = qvm.Allocate_CBit();
-    QProg & entangle = CreateEmptyQProg();
+    QProg  entangle = CreateEmptyQProg();
     entangle << H(q0) << CNOT(q0, q1);
     entangle << Measure(q0, cbit0) << Measure(q1, cbit1);
     qvm.load(entangle);
@@ -220,7 +220,7 @@ void HHL_Algorithm1()
 
     OriginQVM qvm;
     qvm.init();
-    QProg & hhlProg = CreateEmptyQProg();
+    QProg  hhlProg = CreateEmptyQProg();
 
     auto q0 = qvm.Allocate_Qubit();
     auto q1 = qvm.Allocate_Qubit();
@@ -232,40 +232,40 @@ void HHL_Algorithm1()
     auto cbit2 = qvm.Allocate_CBit();
     ClassicalCondition cc0(ancbit);
     ClassicalCondition cc1(cbit0);
-    OriginQCircuit & ifcircuit = CreateEmptyCircuit();
-    OriginQCircuit & PSEcircuit = CreateEmptyCircuit();
+    QCircuit  ifcircuit = CreateEmptyCircuit();
+    QCircuit  PSEcircuit = CreateEmptyCircuit();
     PSEcircuit << H(q1) << H(q2) << RZ(q2, 0.75*PI);
-    OriginQGateNode & gat1 = QDouble(PI, 1.5*PI, -0.5*PI, PI / 2, q2, q3);
-    OriginQGateNode  & gat2 = QDouble(PI, 1.5*PI, -PI, PI / 2, q1, q3);
+    QGate  gat1 = CU(PI, 1.5*PI, -0.5*PI, PI / 2, q2, q3);
+    QGate   gat2 = CU(PI, 1.5*PI, -PI, PI / 2, q1, q3);
     PSEcircuit << gat1 << RZ(q1, 1.5*PI) << gat2 << CNOT(q1, q2) << CNOT(q2, q1) << CNOT(q1, q2);
-    //PSEcircuit << gat1 << RZ(q1, 1.5*PI)<<gat2 ;
-    OriginQGateNode & gat3 = QDouble(-0.25*PI, -0.5*PI, 0, 0, q2, q1);
+    //PSEcircuit << gat1 << RZ_GATE(q1, 1.5*PI)<<gat2 ;
+    QGate  gat3 = CU(-0.25*PI, -0.5*PI, 0, 0, q2, q1);
     PSEcircuit << H(q2) << gat3 << H(q1);     //PSE over
 
 
                                               //control-lambda
-    OriginQCircuit & CRotate = CreateEmptyCircuit();
+    QCircuit  CRotate = CreateEmptyCircuit();
     vector<Qubit *> controlVector;
     controlVector.push_back(q1);
     controlVector.push_back(q2);
-    OriginQGateNode & gat4 = RY(q0, PI);
+    QGate  gat4 = RY(q0, PI);
     gat4.setControl(controlVector);
-    OriginQGateNode & gat5 = RY(q0, PI / 3);
+    QGate  gat5 = RY(q0, PI / 3);
     gat5.setControl(controlVector);
-    OriginQGateNode & gat6 = RY(q0, 0.6796738);  //arcsin(1/3)
+    QGate  gat6 = RY(q0, 0.6796738);  //arcsin(1/3)
     gat6.setControl(controlVector);
-    CRotate << RX(q1) << gat4 << RX(q1) << RX(q2) << gat5 << RX(q2) << gat6;
+    CRotate << X(q1) << gat4 << X(q1) << X(q2) << gat5 << X(q2) << gat6;
     //hhl circuit
-    QProg & prog = CreateEmptyQProg();
-    QProg & prog1 = CreateEmptyQProg();
-    QProg & prog2 = CreateEmptyQProg();
+    QProg  prog = CreateEmptyQProg();
+    QProg  prog1 = CreateEmptyQProg();
+    QProg  prog2 = CreateEmptyQProg();
 
     prog << prog1 << prog2;
 
 
-    QProg & PSEdagger = CreateEmptyQProg();
+    QProg  PSEdagger = CreateEmptyQProg();
     // PSEdagger << PSEcircuit.dagger() << Measure(q2, cbit2);
-    QIfNode & ifnode = CreateIfProg(&cc0, &PSEdagger);
+    QIfProg ifnode = CreateIfProg(cc0, &PSEdagger);
     hhlProg << PSEcircuit << CRotate << Measure(q0, ancbit);
     //hhlProg << PSEcircuit << Measure(anc, ancbit) ;
     qvm.load(hhlProg);
@@ -296,21 +296,21 @@ void HHL_Algorithm1()
 //    Qubit * qb2 = qvm.Allocate_Qubit();
 //    Qubit * qb3 = qvm.Allocate_Qubit();
 //
-//    OriginQCircuit & whilecircuit = CreateEmptyCircuit();
+//    QCircuit & whilecircuit = CreateEmptyCircuit();
 //    whilecircuit << H(qb2) << Measure(qb2, cbit2);
 //
-//    OriginQGateNode & gat = RX(qb, PI / 2);
-//    OriginQGateNode & gat1 = H(qb);
-//    OriginQGateNode & gat2 = QSingle(PI, 1.5*PI, -0.5*PI, PI / 2, qb);
-//    OriginQGateNode & gat3 = QDouble(PI, 1.5*PI, -0.5*PI, PI / 2, qb, qb2);
+//    QuantumGate & gat = X(qb, PI / 2);
+//    QuantumGate & gat1 = H(qb);
+//    QuantumGate & gat2 = QSingle(PI, 1.5*PI, -0.5*PI, PI / 2, qb);
+//    QuantumGate & gat3 = CU(PI, 1.5*PI, -0.5*PI, PI / 2, qb, qb2);
 //
 //    gat1.setDagger(1);
 //    vector<Qubit *> controlVector;
 //    controlVector.push_back(qb2);
 //    gat2.setControl(controlVector);
 //
-//    OriginQCircuit & c = CreateEmptyCircuit();
-//    c << RZ(qb) << RY(qb, 23.456) << gat1;
+//    QCircuit & c = CreateEmptyCircuit();
+//    c << RZ_GATE(qb) << RY_GATE(qb, 23.456) << gat1;
 //
 //    c.dagger();
 //    c.control(controlVector);
@@ -319,14 +319,14 @@ void HHL_Algorithm1()
 //    ClassicalCondition cc1(cbit1);
 //    ClassicalCondition cc2(cbit2);
 //    ClassicalCondition cc3 = cc1 + cc2;
-//    QIfNode & ifnode = CreateIfProg(&cc3, &c);
-//    QWhileNode & whileNode = CreateWhileProg(&cc2, &ifnode);
+//    QIfProg & ifnode = CreateIfProg(&cc3, &c);
+//    QWhileProg & whileNode = CreateWhileProg(&cc2, &ifnode);
 //    prog << ifnode << whileNode;
 //
 //    QProg & prog1 = CreateEmptyQProg();
 //    QProg & prog2 = CreateEmptyQProg();
 //
-//    QIfNode & ifnode = CreateIfProg(&cc3, &prog1, &prog2);
+//    QIfProg & ifnode = CreateIfProg(&cc3, &prog1, &prog2);
 //
 //    QProg & prog = CreateEmptyQProg();
 //    prog << H(qb) << c.control(controlVector) << H(qb2);
@@ -336,7 +336,7 @@ void HHL_Algorithm1()
 //
 //    QProg & whileprog = CreateEmptyQProg();
 //    whileprog << H(qb) << gat2 << ifnode;
-//    //QWhileNode & whileNode = CreateWhileProg(&cc2, &whileprog);
+//    //QWhileProg & whileNode = CreateWhileProg(&cc2, &whileprog);
 //    prog << whileNode;
 //
 //

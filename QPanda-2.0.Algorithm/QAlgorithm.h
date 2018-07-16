@@ -20,6 +20,4 @@ limitations under the License.
 #include "Algorithm/DJ_Algorithm/DJ_Algorithm.h"
 #include "Algorithm/Grover_Algorithm/Grover_Algorithm.h"
 #include "Algorithm/HHL_Algorithm/HHL_Algorithm.h"
-#include "Algorithm/Utilities/Utilities.h"
-
 #endif

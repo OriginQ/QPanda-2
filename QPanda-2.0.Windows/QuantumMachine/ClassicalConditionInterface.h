@@ -64,6 +64,7 @@ public:
 	ClassicalCondition(CBit*);
 	ClassicalCondition(CExpr*);
 	ClassicalCondition(const ClassicalCondition&);
+	ClassicalCondition& operator=(ClassicalCondition);
 	friend ClassicalCondition operator+(ClassicalCondition, ClassicalCondition);
 	friend ClassicalCondition operator-(ClassicalCondition, ClassicalCondition);
 	friend ClassicalCondition operator&&(ClassicalCondition, ClassicalCondition);

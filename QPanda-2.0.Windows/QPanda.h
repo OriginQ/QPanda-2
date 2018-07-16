@@ -17,73 +17,88 @@ limitations under the License.
 #ifndef _QPANDA_H
 #define _QPANDA_H
 #include "QuantumCircuit/QGate.h"
-#include "QuantumCircuit/QException.h"
 #include "QuantumCircuit/QProgram.h"
 #include "QuantumMachine/OriginQuantumMachine.h"
 
-extern QNodeVector _G_QNodeVector;
+extern HadamardQCircuit CreateHadamardQCircuit(vector<Qubit *> & pQubitVector);
+
+extern QNodeMap _G_QNodeMap;
 
 // Create an empty QProg Container
-extern QProg & CreateEmptyQProg();
+extern QProg  CreateEmptyQProg();
 
 // Create a While Program
-extern QWhileNode &CreateWhileProg(
-    ClassicalCondition *,
+extern QWhileProg CreateWhileProg(
+    ClassicalCondition &,
     QNode * trueNode);
 
 // Create an If Program
-extern QIfNode &CreateIfProg(
-    ClassicalCondition *,
+extern QIfProg CreateIfProg(
+    ClassicalCondition &,
     QNode *trueNode);
 
 // Create an If Program
-extern QIfNode &CreateIfProg(
-    ClassicalCondition *,
+extern QIfProg CreateIfProg(
+    ClassicalCondition &,
     QNode *trueNode,
     QNode *falseNode);
 
 // Create an empty QCircuit Container
-extern OriginQCircuit & CreateEmptyCircuit();
+extern QCircuit  CreateEmptyCircuit();
 
 // Create a Measure operation
-extern QMeasureNode& Measure(Qubit * targetQuBit, CBit * targetCbit);
+extern QMeasure Measure(Qubit * targetQuBit, CBit * targetCbit);
 
 // Create a X gate
-extern OriginQGateNode & RX(Qubit* qbit);
+extern QGate  X(Qubit* qbit);
+extern QGate  X1(Qubit* qbit);
 
 // Create a X rotation
-extern OriginQGateNode & RX(Qubit*, double angle);
+extern QGate RX(Qubit*, double angle);
 
+extern QGate U1(Qubit*, double angle);
 // Create a Y gate
-extern OriginQGateNode & RY(Qubit* qbit);
+extern QGate  Y(Qubit* qbit);
+extern QGate  Y1(Qubit* qbit);
 
 // Create a Y rotation
-extern OriginQGateNode & RY(Qubit*, double angle);
+extern QGate RY(Qubit*, double angle);
 
 // Create a Z gate
-extern OriginQGateNode & RZ(Qubit* qbit);
+extern QGate Z(Qubit* qbit);
+
+extern QGate Z1(Qubit* qbit);
 
 // Create a Z rotation
-extern OriginQGateNode & RZ(Qubit*, double angle);
+extern QGate RZ(Qubit*, double angle);
 
-// Create S gate
-extern OriginQGateNode & S(Qubit* qbit);
+// Create S_GATE gate
+extern QGate S(Qubit* qbit);
 
 // Create Hadamard Gate
-extern OriginQGateNode & H(Qubit* qbit);
+extern QGate H(Qubit* qbit);
 
 // Create an instance of CNOT gate
-extern OriginQGateNode & CNOT(Qubit* targetQBit, Qubit* controlQBit);
+extern QGate CNOT(Qubit* targetQBit, Qubit* controlQBit);
 
 // Create an instance of CZ gate
-extern OriginQGateNode & CZ(Qubit* targetQBit, Qubit* controlQBit);
+extern QGate CZ(Qubit* targetQBit, Qubit* controlQBit);
 
 // Create an arbitrary single unitary gate
-extern OriginQGateNode & QSingle(double alpha, double beta, double gamma, double delta, Qubit *);
+extern QGate U4(double alpha, double beta, double gamma, double delta, Qubit *);
+
+extern QGate U4(QStat& matrix, Qubit*);
+
+QGate  QDouble(QStat matrix, Qubit * pQubit1, Qubit * pQubit2);
 
 // Create a control-U gate
-extern OriginQGateNode & QDouble(double alpha, double beta, double gamma, double delta, Qubit *, Qubit *);
+extern QGate CU(double alpha, double beta, double gamma, double delta, Qubit *, Qubit *);
+extern QGate CU(QStat& matrix, Qubit*, Qubit*);
 
+extern QGate  iSWAP(Qubit * targitBit, Qubit * controlBit);
+extern QGate  iSWAP(Qubit * targitBit, Qubit * controlBit, double theta);
+
+extern QGate  SqiSWAP(Qubit * targitBit, Qubit * controlBit);
 // to init the environment. Use this at the beginning
 void init();
 
@@ -114,16 +129,21 @@ QMachineStatus* getstat();
 // get the result(ptr)
 QResult* getResult();
 
+extern size_t getAllocateQubitNum();
+
+extern size_t getAllocateCMem();
+
 // directly get the result map
 map<string, bool> getResultMap();
 
 bool getCBitValue(CBit* cbit);
 
 // bind a cbit to a classicalcondition variable
-ClassicalCondition* bind_a_cbit(CBit* c);
+ClassicalCondition bind_a_cbit(CBit* c);
 
 // run the loaded program
 void run();
 
-#endif // !_QPANDA_H
 
+
+#endif // !_QPANDA_H

@@ -3,9 +3,4 @@ sudo: false
 before_install:
 - sudo apt-get install gcc-4.8 -y
 install: true
-script: 
-- make
-- cd Release/bin/
-- nohup ./test > test.out &
-- sleep 3
-- cat test.out
+script: bash build.sh

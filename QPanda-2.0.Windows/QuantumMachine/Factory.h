@@ -29,64 +29,71 @@ QuantumMachine* classname##_Constructor()\
 {\
     return new classname();\
 }\
-static FactoryHelper::QuantumMachineFactoryHelper _Quantum_Machine_Factory_Helper(\
+static FactoryHelper::QuantumMachineFactoryHelper _Quantum_Machine_Factory_Helper_##classname(\
 	#classname,\
 	classname##_Constructor\
-);
+)
 
-#define REGISTER_PHYSICAL_QUBIT(classname) \
-PhysicalQubit* classname##_Constructor()\
+#define REGISTER_PHYSICAL_QUBIT(classname)  \
+PhysicalQubit * classname##_Constructor()\
 {\
     return new classname();\
 }\
-static FactoryHelper::PhysicalQubitFactoryHelper _Physical_Qubit_Factory_Helper(\
-	classname##_Constructor\
-);
+ FactoryHelper::PhysicalQubitFactoryHelper  _Physical_Qubit_Factory_Helper_##classname(\
+    #classname, \
+    classname##_Constructor \
+) 
+
 
 #define REGISTER_QUBIT(classname) \
 Qubit* classname##_Constructor(PhysicalQubit* physQ)\
 {\
     return new classname(physQ);\
 }\
-static FactoryHelper::QubitFactoryHelper _Qubit_Factory_Helper(\
+ FactoryHelper::QubitFactoryHelper _Qubit_Factory_Helper_##classname(\
+    #classname, \
 	classname##_Constructor\
-);
+)
 
 #define REGISTER_QUBIT_POOL_SIZE_(classname) \
 QubitPool* classname##_Constructor(size_t size)\
 {\
     return new classname(size);\
 }\
-static FactoryHelper::QubitPoolFactoryHelper _Qubit_Pool_Factory_Helper(\
+static FactoryHelper::QubitPoolFactoryHelper _Qubit_Pool_Factory_Helper_##classname(\
+    #classname,\
 	classname##_Constructor\
-);
+)
 
 #define REGISTER_CBIT_NAME_(classname) \
 CBit* classname##_Constructor(string name)\
 {\
     return new classname(name);\
 }\
-static FactoryHelper::CBitFactoryHelper _CBit_Factory_Helper(\
+static FactoryHelper::CBitFactoryHelper _CBit_Factory_Helper_##classname(\
+    #classname, \
 	classname##_Constructor\
-);
+)
 
 #define REGISTER_CMEM_SIZE_(classname) \
 CMem* classname##_Constructor(size_t size)\
 {\
     return new classname(size);\
 }\
-static FactoryHelper::CMemFactoryHelper _CMem_Factory_Helper(\
+static FactoryHelper::CMemFactoryHelper _CMem_Factory_Helper_##classname(\
+    #classname,\
 	classname##_Constructor\
-);
+)
 
 #define REGISTER_QRES_NAME(classname) \
 QResult* classname##_Constructor()\
 {\
     return new classname();\
 }\
-static FactoryHelper::QResultFactoryHelper _QRes_Factory_Helper(\
+static FactoryHelper::QResultFactoryHelper _QRes_Factory_Helper_##classname(\
+    #classname,\
 	classname##_Constructor\
-);
+)
 
 #define REGISTER_CEXPR(classname)\
 CExpr* classname##_CBit_Constructor(CBit* cbit)\
@@ -101,12 +108,15 @@ CExpr* classname##_Operator_Constructor(\
 {\
 	return new classname(leftexpr, rightexpr, op);\
 }\
+static FactoryHelper::CExprFactoryHelper _CBit_Constructor_Helper_##classname( \
+    #classname,\
+    classname##_CBit_Constructor\
+);\
 static FactoryHelper::CExprFactoryHelper \
-_classname##_CBit_Constructor_Helper\
-(classname##_CBit_Constructor);\
-static FactoryHelper::CExprFactoryHelper \
-_classname##_Operator_Constructor_Helper\
-(classname##_Operator_Constructor);
+_Operator_Constructor_Helper_##classname\
+(\
+#classname,\
+classname##_Operator_Constructor)
 
 class Factory
 {
@@ -150,10 +160,10 @@ public:
 
 		PhysicalQubit* GetInstance();
 		typedef function<PhysicalQubit*()> constructor_t;
-		typedef stack<constructor_t> constructor_stack_t;
-		void registerclass(constructor_t constructor);
+		typedef map<string,constructor_t> constructor_Map_t;
+		void registerclass(string &,constructor_t constructor);
 		// the constructor stack
-		constructor_stack_t _Physical_Qubit_Constructor;
+		constructor_Map_t _Physical_Qubit_Constructor;
 	};
 
 	/* 5. Qubit Factory */
@@ -164,10 +174,10 @@ public:
 		static QubitFactory & GetFactoryInstance();
 		Qubit* GetInstance(PhysicalQubit*);
 		typedef function<Qubit*(PhysicalQubit*)> constructor_t;
-		typedef stack<constructor_t> constructor_stack_t;
-		void registerclass(constructor_t constructor);
+		typedef map<string,constructor_t> constructor_Map_t;
+		void registerclass(string & ,constructor_t constructor);
 		// the constructor stack
-		constructor_stack_t _Qubit_Constructor;
+		constructor_Map_t _Qubit_Constructor;
 	};
 
 	/* 6. Qubit Pool Factory */
@@ -178,10 +188,10 @@ public:
 	public:
 		static QubitPoolFactory& GetFactoryInstance();
 		typedef function<QubitPool*(size_t)> size_constructor_t;
-		typedef stack<size_constructor_t> size_constructor_stack_t;
+		typedef map<string,size_constructor_t> size_constructor_stack_t;
         size_constructor_stack_t _Qubit_Pool_Constructor;
 		QubitPool* GetPoolWithoutTopology(size_t);
-		void registerclass_size_(size_constructor_t constructor);
+		void registerclass_size_(string &,size_constructor_t constructor);
 	};
 
 	/* 7. CBit Factory */
@@ -191,9 +201,9 @@ public:
 	public:
 		static CBitFactory & GetFactoryInstance();
 		typedef function<CBit*(string)> name_constructor_t;
-		typedef stack<name_constructor_t> name_constructor_stack_t;
+		typedef map<string,name_constructor_t> name_constructor_stack_t;
 		name_constructor_stack_t _CBit_Constructor;
-		void registerclass_name_(name_constructor_t constructor);
+		void registerclass_name_(string&,name_constructor_t constructor);
 		CBit* CreateCBitFromName(string);
 	};
 
@@ -203,10 +213,10 @@ public:
 		CMemFactory();
 	public:
 		typedef function<CMem*(size_t)> size_constructor_t;
-		typedef stack<size_constructor_t> size_constructor_stack_t;		
+		typedef map<string,size_constructor_t> size_constructor_stack_t;		
 		size_constructor_stack_t _CMem_Constructor;
 		CMem* GetInstanceFromSize(size_t);
-		void registerclass_size_(size_constructor_t);
+		void registerclass_size_(string &,size_constructor_t);
 		static CMemFactory& GetFactoryInstance();
 	};
 
@@ -216,10 +226,10 @@ public:
 		QResultFactory();
 	public:
 		typedef function<QResult*()> constructor_t;
-		typedef stack<constructor_t> constructor_stack_t;
-        constructor_stack_t _QResult_Constructor ;
+		typedef map<string,constructor_t> constructor_Map_t;
+        constructor_Map_t _QResult_Constructor ;
 		QResult* GetEmptyQResult();
-		void registerclass(constructor_t);
+		void registerclass(string &,constructor_t);
 		static QResultFactory& GetFactoryInstance();
 	};
 
@@ -232,16 +242,16 @@ public:
 		static CExprFactory & GetFactoryInstance();
 
 		typedef function<CExpr*(CBit*)> cbit_constructor_t;
-		typedef stack<cbit_constructor_t> cbit_constructor_stack_t;
-		cbit_constructor_stack_t _CExpr_CBit_Constructor;
+		typedef map<string,cbit_constructor_t> cbit_constructor_map_t;
+		cbit_constructor_map_t _CExpr_CBit_Constructor;
 		CExpr* GetCExprByCBit(CBit*);
-		void registerclass_CBit_(cbit_constructor_t);
+		void registerclass_CBit_(string &,cbit_constructor_t);
 		
 		typedef function<CExpr*(CExpr*, CExpr*, int)> operator_constructor_t;
-		typedef stack<operator_constructor_t> operator_constructor_stack_t;
-		operator_constructor_stack_t _CExpr_Operator_Constructor;
+		typedef map<string,operator_constructor_t> operator_constructor_map_t;
+		operator_constructor_map_t _CExpr_Operator_Constructor;
 		CExpr* GetCExprByOperation(CExpr*, CExpr*, int);
-		void registerclass_operator_(operator_constructor_t);
+		void registerclass_operator_(string &,operator_constructor_t);
 	};
 
 };
@@ -262,14 +272,14 @@ public:
 	{
 		typedef Factory::PhysicalQubitFactory::constructor_t constructor_t;
 	public:
-		PhysicalQubitFactoryHelper(constructor_t);
+		PhysicalQubitFactoryHelper(string,constructor_t);
 	};
 
 	class QubitFactoryHelper
 	{
 		typedef Factory::QubitFactory::constructor_t constructor_t;
 	public:
-		QubitFactoryHelper(constructor_t);
+		QubitFactoryHelper(string,constructor_t);
 	};
 
 	class QubitPoolFactoryHelper
@@ -277,7 +287,7 @@ public:
 		typedef Factory::QubitPoolFactory::
 			size_constructor_t size_constructor_t;
 	public:
-		QubitPoolFactoryHelper(size_constructor_t);
+		QubitPoolFactoryHelper(string ,size_constructor_t);
 	};
 
 	class CBitFactoryHelper
@@ -285,7 +295,7 @@ public:
 		typedef Factory::CBitFactory::name_constructor_t
 			name_constructor_t;
 	public:
-		CBitFactoryHelper(name_constructor_t);
+		CBitFactoryHelper(string,name_constructor_t);
 	};
 
 	class CMemFactoryHelper
@@ -293,7 +303,7 @@ public:
 		typedef Factory::CMemFactory::size_constructor_t
 			size_constructor_t;
 	public:
-		CMemFactoryHelper(size_constructor_t _Constructor);
+		CMemFactoryHelper(string,size_constructor_t _Constructor);
 	};
 	
 	class QResultFactoryHelper
@@ -301,7 +311,7 @@ public:
 		typedef Factory::QResultFactory::constructor_t
 			constructor_t;
 	public:
-		QResultFactoryHelper(constructor_t _Constructor);
+		QResultFactoryHelper(string ,constructor_t _Constructor);
 	};
 
 	class CExprFactoryHelper
@@ -311,8 +321,8 @@ public:
 		typedef Factory::CExprFactory::operator_constructor_t
 			operator_constructor_t;
 	public:
-		CExprFactoryHelper(cbit_constructor_t _Constructor);
-		CExprFactoryHelper(operator_constructor_t _Constructor);
+		CExprFactoryHelper(string,cbit_constructor_t _Constructor);
+		CExprFactoryHelper(string,operator_constructor_t _Constructor);
 	};
 };
 

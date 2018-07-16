@@ -22,7 +22,16 @@ limitations under the License.
 #include <complex>
 #include <algorithm>
 #include <vector>
+using std::map;
+using std::vector;
+using std::complex;
 using std::string;
+using std::pair;
+using std::size_t;
+typedef complex <double> COMPLEX;
+typedef vector<size_t>  Qnum;
+typedef vector <complex<double>> QStat;
+#define iunit COMPLEX(0,1)
 /*****************************************************************************************************************
 QuantumGateParam:quantum gate param 
 *****************************************************************************************************************/
@@ -30,18 +39,10 @@ class QuantumGateParam
 {
     typedef std::vector <std::complex<double>> QStat;
  public:
-    int                           mPMeasureSize;                        /* PMeasure bit size                    */
     int                           mQuantumBitNumber;                    /* quantum bit number                   */
 
     std::map<string , bool>              mReturnValue;               /* MonteCarlo result                    */
-    std::vector<std::pair<size_t, double>>  mPMeasure;                  /* Pmeasure result                      */
 
-    QuantumGateParam() : mPMeasureSize(0),mQuantumBitNumber(0){};
-    ~QuantumGateParam()
-    {
-        mReturnValue.clear();
-        mPMeasure.clear();
-    };
 
     /*************************************************************************************************************
     Name:        setQBitNum
@@ -56,5 +57,23 @@ class QuantumGateParam
         return true;
     }
 };
+class QGateParam
+{
 
+public:
+    QGateParam() {};
+    QGateParam(int qn) :qVec(qn, 0), qstate(1 << qn, 0), qubitnumber(qn)
+    {
+        for (auto i = 0; i < qubitnumber; i++)
+        {
+            qVec[i] = i;
+        }
+        qstate[0] = 1;
+    }
+    Qnum qVec;
+    QStat qstate;
+    int qubitnumber;
+    bool enable = true;
+
+};
 #endif

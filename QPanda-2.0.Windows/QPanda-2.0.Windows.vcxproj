@@ -19,13 +19,18 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="QPanda\ConfigMap.h" />
+    <ClInclude Include="QPanda.h" />
     <ClInclude Include="QPanda\QPandaException.h" />
-    <ClInclude Include="QuantumCircuit\QException.h" />
+    <ClInclude Include="QPanda\XMLConfigParam.h" />
+    <ClInclude Include="QuantumCircuit\ControlFlow.h" />
     <ClInclude Include="QuantumCircuit\QGate.h" />
     <ClInclude Include="QuantumCircuit\QGlobalVariable.h" />
+    <ClInclude Include="QuantumCircuit\QNode.h" />
     <ClInclude Include="QuantumCircuit\QProgram.h" />
+    <ClInclude Include="QuantumCircuit\QuantumMeasure.h" />
     <ClInclude Include="QuantumCircuit\ReadWriteLock.h" />
-    <ClInclude Include="QuantumInstructionHandle\QCircuitParse.h" />
+    <ClInclude Include="TraversalAlgorithm\QCircuitParse.h" />
     <ClInclude Include="QuantumInstructionHandle\QError.h" />
     <ClInclude Include="QuantumInstructionHandle\QuantumGateParameter.h" />
     <ClInclude Include="QuantumInstructionHandle\QuantumGates.h" />
@@ -37,10 +42,15 @@
     <ClInclude Include="QuantumMachine\QuantumMachineInterface.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="QPanda\ConfigMap.cpp" />
     <ClCompile Include="QPanda\QPanda.cpp" />
+    <ClCompile Include="QPanda\XMLConfigParam.cpp" />
+    <ClCompile Include="QuantumCircuit\ControlFlow.cpp" />
     <ClCompile Include="QuantumCircuit\QGate.cpp" />
+    <ClCompile Include="QuantumCircuit\QNode.cpp" />
     <ClCompile Include="QuantumCircuit\QProgram.cpp" />
-    <ClCompile Include="QuantumInstructionHandle\QCircuitParse.cpp" />
+    <ClCompile Include="QuantumCircuit\QuantumMeasure.cpp" />
+    <ClCompile Include="TraversalAlgorithm\QCircuitParse.cpp" />
     <ClCompile Include="QuantumInstructionHandle\QuantumGates.cpp" />
     <ClCompile Include="QuantumInstructionHandle\X86QuantumGates.cpp" />
     <ClCompile Include="QuantumMachine\ClassicalConditionInterface.cpp" />
@@ -129,7 +139,13 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(SolutionDir)TinyXML;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
+    <Lib>
+      <AdditionalDependencies>TinyXML.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>

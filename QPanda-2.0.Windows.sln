@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 15.0.27703.2018
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "QPanda-2.0.Windows", "QPanda-2.0.Windows\QPanda-2.0.Windows.vcxproj", "{82013C14-57E0-49B1-8B40-6A9F366F9D03}"
+	ProjectSection(ProjectDependencies) = postProject
+		{8C36863D-0E20-493E-9D9E-873EE8B86A17} = {8C36863D-0E20-493E-9D9E-873EE8B86A17}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "QPanda-2.0.Algorithm", "QPanda-2.0.Algorithm\QPanda-2.0.Algorithm.vcxproj", "{AF428F4C-099D-4635-92CC-E8C11AD52372}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -13,8 +16,11 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Console", "Console\Console.vcxproj", "{26FBE2D6-A662-44A8-8FA9-996E4AE90F8B}"
 	ProjectSection(ProjectDependencies) = postProject
 		{82013C14-57E0-49B1-8B40-6A9F366F9D03} = {82013C14-57E0-49B1-8B40-6A9F366F9D03}
+		{8C36863D-0E20-493E-9D9E-873EE8B86A17} = {8C36863D-0E20-493E-9D9E-873EE8B86A17}
 		{AF428F4C-099D-4635-92CC-E8C11AD52372} = {AF428F4C-099D-4635-92CC-E8C11AD52372}
 	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TinyXML", "TinyXML\TingXML.vcxproj", "{8C36863D-0E20-493E-9D9E-873EE8B86A17}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -48,6 +54,14 @@ Global
 		{26FBE2D6-A662-44A8-8FA9-996E4AE90F8B}.Release|x64.Build.0 = Release|x64
 		{26FBE2D6-A662-44A8-8FA9-996E4AE90F8B}.Release|x86.ActiveCfg = Release|Win32
 		{26FBE2D6-A662-44A8-8FA9-996E4AE90F8B}.Release|x86.Build.0 = Release|Win32
+		{8C36863D-0E20-493E-9D9E-873EE8B86A17}.Debug|x64.ActiveCfg = Debug|x64
+		{8C36863D-0E20-493E-9D9E-873EE8B86A17}.Debug|x64.Build.0 = Debug|x64
+		{8C36863D-0E20-493E-9D9E-873EE8B86A17}.Debug|x86.ActiveCfg = Debug|Win32
+		{8C36863D-0E20-493E-9D9E-873EE8B86A17}.Debug|x86.Build.0 = Debug|Win32
+		{8C36863D-0E20-493E-9D9E-873EE8B86A17}.Release|x64.ActiveCfg = Release|x64
+		{8C36863D-0E20-493E-9D9E-873EE8B86A17}.Release|x64.Build.0 = Release|x64
+		{8C36863D-0E20-493E-9D9E-873EE8B86A17}.Release|x86.ActiveCfg = Release|Win32
+		{8C36863D-0E20-493E-9D9E-873EE8B86A17}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -14,10 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+#ifndef _READWIRTE_LOCK_H
+#define _READWIRTE_LOCK_H
+
 #include <thread>
 #include <mutex>
 #include <condition_variable>
-
+#include <functional>
 using namespace std;
 
 class SharedMutex
@@ -34,7 +37,7 @@ private:
     {
         return false == m_is_w;
     }
-  
+
     bool write_cond() const
     {
         return false == m_is_w && 0 == m_read_c;
@@ -44,7 +47,7 @@ public:
     void read()
     {
         unique_lock<mutex> lck(m_mutex);
-  
+
         m_cond.wait(lck, bind(&SharedMutex::read_cond, this));
         m_read_c++;
     }
@@ -106,3 +109,8 @@ public:
         m_sm->unwrite();
     }
 };
+
+
+#endif // !_READWIRTE_LOCK_H
+
+

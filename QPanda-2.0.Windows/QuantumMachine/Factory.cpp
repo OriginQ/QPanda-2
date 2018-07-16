@@ -17,7 +17,8 @@ limitations under the License.
 #include "Factory.h"
 #include "OriginQuantumMachine.h"
 #include "../QPanda/QPandaException.h"
-
+#include "QPanda/ConfigMap.h"
+#include "OriginClassicalExpression.h"
 /* 1. static variable initialization start */
 
 #if false
@@ -77,6 +78,7 @@ QMachineStatus * Factory::QMachineStatusFactory::GetQMachineStatus()
 Factory::QuantumMachineFactory::QuantumMachineFactory()
 {
 	// constructor
+    /*
 	if (_Quantum_Machine_Constructor.find("OriginQVM")
 		!= _Quantum_Machine_Constructor.end())
 	{
@@ -88,6 +90,8 @@ Factory::QuantumMachineFactory::QuantumMachineFactory()
 			[]() {return new OriginQVM(); }
 		)
 	);
+    */
+    
 }
 
 FactoryHelper::QuantumMachineFactoryHelper::
@@ -137,18 +141,14 @@ void Factory::QuantumMachineFactory::registerclass(string name, constructor_t co
 	_Quantum_Machine_Constructor.insert(make_pair(name, constructor));
 }
 
+REGISTER_QUANTUM_MACHINE(OriginQVM);
+
 /* 3. Quantum Machine Factory End*/
 
 /* 4. Physical Qubit Factory*/
 Factory::PhysicalQubitFactory::PhysicalQubitFactory()
 {
-	if (_Physical_Qubit_Constructor.empty() != true)
-	{
-		throw(factory_init_error("PhysicalQubitFactory"));
-	}
-	_Physical_Qubit_Constructor.push(
-		[]() {return new OriginPhysicalQubit(); }
-	);
+
 }
 
 Factory::PhysicalQubitFactory& 
@@ -164,26 +164,37 @@ PhysicalQubit * Factory::PhysicalQubitFactory::GetInstance()
 	// I think the last Constructor that user push
 	// to the top of the stack is the user defined
 	// class. So only Get the top is ok
-	if (_Physical_Qubit_Constructor.empty())
-	{
-		// that means the stack is empty
-		return nullptr;
-	}
-	return _Physical_Qubit_Constructor.top()();
+
+    auto sClassName = _G_configMap["PhysicalQubit"];
+    if (sClassName.size()<=0)
+    {
+        return nullptr;
+    }
+	auto aiter = _Physical_Qubit_Constructor.find(sClassName); 
+
+    if (aiter == _Physical_Qubit_Constructor.end())
+    {
+        return nullptr;
+    }
+
+    return aiter->second();
 }
 
-void Factory::PhysicalQubitFactory::registerclass(constructor_t constructor)
+void Factory::PhysicalQubitFactory::registerclass(string & sClassName, constructor_t constructor)
 {
 	// Only push the Constructor to the top
-	_Physical_Qubit_Constructor.push(constructor);
+	_Physical_Qubit_Constructor.insert(make_pair(sClassName, constructor));
 }
 
 /* Factory Helper Class */
-FactoryHelper::PhysicalQubitFactoryHelper::PhysicalQubitFactoryHelper(constructor_t _Constructor)
+FactoryHelper::PhysicalQubitFactoryHelper::PhysicalQubitFactoryHelper(string  sClassName,constructor_t _Constructor)
 {
 	auto &fac = Factory::PhysicalQubitFactory::GetFactoryInstance();
-	fac.registerclass(_Constructor);
+	fac.registerclass(sClassName,_Constructor);
 }
+
+
+REGISTER_PHYSICAL_QUBIT(OriginPhysicalQubit);
 
 /* 4. Physical Qubit Factory End */
 
@@ -191,22 +202,13 @@ FactoryHelper::PhysicalQubitFactoryHelper::PhysicalQubitFactoryHelper(constructo
 Factory::QubitFactory::
 QubitFactory()
 {
-	if (_Qubit_Constructor.empty() != true)
-	{
-		throw(factory_init_error("QubitFactory"));
-	}
-	_Qubit_Constructor.push(
-		[](PhysicalQubit* _Phys_Q) 
-	{
-		return new OriginQubit(_Phys_Q); }
-	);
 }
 
 /* Factory Helper Class */
-FactoryHelper::QubitFactoryHelper::QubitFactoryHelper(constructor_t _Constructor)
+FactoryHelper::QubitFactoryHelper::QubitFactoryHelper(string sClassName ,constructor_t _Constructor)
 {
 	auto &fac=Factory::QubitFactory::GetFactoryInstance();
-	fac.registerclass(_Constructor);
+	fac.registerclass(sClassName,_Constructor);
 }
 
 Factory::QubitFactory & Factory::QubitFactory::GetFactoryInstance()
@@ -222,29 +224,41 @@ Qubit * Factory::QubitFactory::GetInstance(PhysicalQubit *_physQ)
 	// to the top of the stack is the user defined
 	// class. So only Get the top is ok
 
-	if (_Qubit_Constructor.empty())
-	{
-		return nullptr;
-	}
-	return _Qubit_Constructor.top()(_physQ);
+    auto sClassName = _G_configMap["Qubit"];
+    if (sClassName.size() <= 0)
+    {
+        return nullptr;
+    }
+    auto aiter = _Qubit_Constructor.find(sClassName);
+
+    if (aiter == _Qubit_Constructor.end())
+    {
+        return nullptr;
+    }
+
+	return aiter->second(_physQ);
 }
 
-void Factory::QubitFactory::registerclass(constructor_t constructor)
+void Factory::QubitFactory::registerclass(string &sClassName,constructor_t constructor)
 {
 	// Only push the Constructor to the top
-	_Qubit_Constructor.push(constructor);
+	_Qubit_Constructor.insert(make_pair(sClassName, constructor));
 }
+
+REGISTER_QUBIT(OriginQubit);
 
 /* 6. Qubit Pool Factory */
 
 Factory::QubitPoolFactory::QubitPoolFactory()
 {
+    /*
 	_Qubit_Pool_Constructor.push(
 		[](size_t _Size)
 	{
 		return new OriginQubitPool(_Size);
 	}
 	);
+    */
 }
 Factory::QubitPoolFactory &
 Factory::QubitPoolFactory::GetFactoryInstance()
@@ -264,34 +278,46 @@ QubitPool * Factory::QubitPoolFactory::GetPoolWithoutTopology(size_t size)
 	{
 		return nullptr;
 	}
-	return _Qubit_Pool_Constructor.top()(size);
+
+    auto sClassName = _G_configMap["QubitPool"];
+    if (sClassName.size() <= 0)
+    {
+        return nullptr;
+    }
+    auto aiter = _Qubit_Pool_Constructor.find(sClassName);
+
+    if (aiter == _Qubit_Pool_Constructor.end())
+    {
+        return nullptr;
+    }
+
+    return aiter->second(size);
+
 }
 
-void Factory::QubitPoolFactory::registerclass_size_(
+void Factory::QubitPoolFactory::registerclass_size_(string & sClassName,
 	size_constructor_t constructor)
 {
-	if (_Qubit_Pool_Constructor.empty() != true)
-	{
-		throw(factory_init_error("QubitPoolFactory"));
-	}
-	_Qubit_Pool_Constructor.push(constructor);
+	_Qubit_Pool_Constructor.insert(make_pair(sClassName, constructor));
 }
 
 /* Factory Helper Class */
-FactoryHelper::QubitPoolFactoryHelper::QubitPoolFactoryHelper(
+FactoryHelper::QubitPoolFactoryHelper::QubitPoolFactoryHelper(string  sClassName,
 	size_constructor_t constructor)
 {
 	// Only push the Constructor to the top
 	auto &fac = Factory::QubitPoolFactory::GetFactoryInstance();
-	fac.registerclass_size_(constructor);
+	fac.registerclass_size_(sClassName,constructor);
 }
 
+REGISTER_QUBIT_POOL_SIZE_(OriginQubitPool);
 /* 6. Qubit Pool Factory End*/
 
 /* 7. CBit Factory */
 
 Factory::CBitFactory::CBitFactory()
 {
+    /*
 	if (_CBit_Constructor.empty() != true)
 	{
 		throw(factory_init_error("CBitFactory"));
@@ -300,6 +326,7 @@ Factory::CBitFactory::CBitFactory()
 	{
 		return new OriginCBit(name);
 	});
+    */
 }
 
 Factory::CBitFactory&
@@ -310,31 +337,46 @@ Factory::CBitFactory::GetFactoryInstance()
 }
 
 void Factory::CBitFactory::registerclass_name_
-(name_constructor_t constructor)
+(string &sClassName, name_constructor_t constructor)
 {
-	_CBit_Constructor.push(constructor);
+	_CBit_Constructor.insert(make_pair(sClassName, constructor));
 }
 
 CBit * Factory::CBitFactory::CreateCBitFromName(string name)
 {
-	if (_CBit_Constructor.empty())
-	{
-		return nullptr;
-	}
-	return _CBit_Constructor.top()(name);
+    if (_CBit_Constructor.empty())
+    {
+        return nullptr;
+    }
+
+    auto sClassName = _G_configMap["CBit"];
+    if (sClassName.size() <= 0)
+    {
+        return nullptr;
+    }
+    auto aiter = _CBit_Constructor.find(sClassName);
+
+    if (aiter == _CBit_Constructor.end())
+    {
+        return nullptr;
+    }
+    return aiter->second(name);
+	//return _CBit_Constructor.top()(name);
 }
 
-FactoryHelper::CBitFactoryHelper::CBitFactoryHelper(name_constructor_t _Constructor)
+FactoryHelper::CBitFactoryHelper::CBitFactoryHelper(string sClassName,name_constructor_t _Constructor)
 {
 	auto &fac = Factory::CBitFactory::GetFactoryInstance();
-	fac.registerclass_name_(_Constructor);
+	fac.registerclass_name_(sClassName,_Constructor);
 }
 
+REGISTER_CBIT_NAME_(OriginCBit);
 /* 7. CBit Factory End*/
 
 /* 8. CMem Factory*/
 Factory::CMemFactory::CMemFactory()
 {
+    /*
 	if (_CMem_Constructor.empty() != true)
 	{
 		throw(factory_init_error("CMemFactory"));
@@ -345,28 +387,42 @@ Factory::CMemFactory::CMemFactory()
 		return new OriginCMem(_Size);
 	}
 	);
+
+    */
 }
 
 CMem * Factory::CMemFactory::GetInstanceFromSize(size_t _Size)
 {
-	if (_CMem_Constructor.empty())
-	{
-		return nullptr;
-	}
-	return _CMem_Constructor.top()(_Size);
+    if (_CMem_Constructor.empty())
+    {
+        return nullptr;
+    }
+
+    auto sClassName = _G_configMap["CMem"];
+    if (sClassName.size() <= 0)
+    {
+        return nullptr;
+    }
+    auto aiter = _CMem_Constructor.find(sClassName);
+
+    if (aiter == _CMem_Constructor.end())
+    {
+        return nullptr;
+    }
+    return aiter->second(_Size);
 }
 
 FactoryHelper::CMemFactoryHelper::CMemFactoryHelper
-(size_constructor_t _Constructor)
+(string sClassName,size_constructor_t _Constructor)
 {
 	auto &fac = Factory::CMemFactory::GetFactoryInstance();
-	fac.registerclass_size_(_Constructor);
+	fac.registerclass_size_(sClassName,_Constructor);
 }
 
 void Factory::CMemFactory::
-registerclass_size_(size_constructor_t constructor)
+registerclass_size_(string & sClassName,size_constructor_t constructor)
 {
-	_CMem_Constructor.push(constructor);
+	_CMem_Constructor.insert(make_pair(sClassName, constructor));
 }
 
 Factory::CMemFactory&
@@ -375,13 +431,14 @@ Factory::CMemFactory::GetFactoryInstance()
 	static CMemFactory fac;
 	return fac;
 }
-
+REGISTER_CMEM_SIZE_(OriginCMem);
 /* 8. CMem Factory End*/
 
 /* 10. QResult Factory */
 Factory::QResultFactory::
 QResultFactory()
 {
+    /*
 	if (_QResult_Constructor.empty() != true)
 	{
 		throw(factory_init_error("QResult"));
@@ -390,21 +447,35 @@ QResultFactory()
 	{
 		return new OriginQResult();
 	});
+    */
 }
 
 QResult * Factory::QResultFactory::GetEmptyQResult()
 {
-	if (_QResult_Constructor.empty())
-	{
-		return nullptr;
-	}
-	return _QResult_Constructor.top()();
+    if (_QResult_Constructor.empty())
+    {
+        return nullptr;
+    }
+
+    auto sClassName = _G_configMap["QResult"];
+    if (sClassName.size() <= 0)
+    {
+        return nullptr;
+    }
+    auto aiter = _QResult_Constructor.find(sClassName);
+
+    if (aiter == _QResult_Constructor.end())
+    {
+        return nullptr;
+    }
+    return aiter->second();
+
 }
 
-void Factory::QResultFactory::registerclass(constructor_t
+void Factory::QResultFactory::registerclass(string& sClassName,constructor_t
 _Constructor)
 {
-	_QResult_Constructor.push(_Constructor);
+	_QResult_Constructor.insert(make_pair(sClassName, _Constructor));
 }
 
 Factory::QResultFactory&
@@ -415,18 +486,19 @@ Factory::QResultFactory::GetFactoryInstance()
 }
 
 FactoryHelper::QResultFactoryHelper::
-QResultFactoryHelper(constructor_t _Constructor)
+QResultFactoryHelper(string sClassName,constructor_t _Constructor)
 {
 	auto &fac = Factory::QResultFactory::GetFactoryInstance();
-	fac.registerclass(_Constructor);
+	fac.registerclass(sClassName,_Constructor);
 }
-
+REGISTER_QRES_NAME(OriginQResult);
 /* 10. QResult Factory End */
 
 /* 11. CExpr Factory */
 
 Factory::CExprFactory::CExprFactory()
 {
+    /*
 	if (!_CExpr_CBit_Constructor.empty())
 	{
 		throw(factory_init_error("CExpr(CBit)"));
@@ -446,6 +518,7 @@ Factory::CExprFactory::CExprFactory()
 		return new OriginCExpr(left, right, op);
 	}
 	);
+    */
 }
 
 Factory::CExprFactory&
@@ -458,12 +531,24 @@ Factory::CExprFactory::GetFactoryInstance()
 
 CExpr * Factory::CExprFactory::GetCExprByCBit(CBit *bit)
 {
-	if (_CExpr_CBit_Constructor.empty())
-	{
-		return nullptr;
-	}
-	return 
-	_CExpr_CBit_Constructor.top()(bit);
+    if (_CExpr_CBit_Constructor.empty())
+    {
+        return nullptr;
+    }
+
+    auto sClassName = _G_configMap["CExpr"];
+    if (sClassName.size() <= 0)
+    {
+        return nullptr;
+    }
+    auto aiter = _CExpr_CBit_Constructor.find(sClassName);
+
+    if (aiter == _CExpr_CBit_Constructor.end())
+    {
+        return nullptr;
+    }
+    return aiter->second(bit);
+
 }
 
 CExpr * Factory::CExprFactory::GetCExprByOperation(
@@ -471,45 +556,60 @@ CExpr * Factory::CExprFactory::GetCExprByOperation(
 	CExpr *rightexpr, 
 	int op)
 {
-	if (_CExpr_Operator_Constructor.empty())
-	{
-		return nullptr;
-	}
-	return
-	_CExpr_Operator_Constructor.top()
-		(leftexpr, rightexpr, op);
+    if (_CExpr_Operator_Constructor.empty())
+    {
+        return nullptr;
+    }
+
+    auto sClassName = _G_configMap["CExpr"];
+    if (sClassName.size() <= 0)
+    {
+        return nullptr;
+    }
+    auto aiter = _CExpr_Operator_Constructor.find(sClassName);
+
+    if (aiter == _CExpr_Operator_Constructor.end())
+    {
+        return nullptr;
+    }
+    return aiter->second(leftexpr, rightexpr, op);
+
 }
 
 void Factory::CExprFactory::registerclass_CBit_(
-	cbit_constructor_t _Constructor
+	string &sClassName,cbit_constructor_t _Constructor
 )
 {
-	_CExpr_CBit_Constructor.push(_Constructor);
+	_CExpr_CBit_Constructor.insert(make_pair(sClassName, _Constructor));
 }
 
 FactoryHelper::CExprFactoryHelper::CExprFactoryHelper(
+    string sClassName,
 	cbit_constructor_t _Constructor
 )
 {
 	auto &fac =
 		Factory::CExprFactory::GetFactoryInstance();
-	fac.registerclass_CBit_(_Constructor);
+	fac.registerclass_CBit_(sClassName,_Constructor);
 }
 
 void Factory::CExprFactory::registerclass_operator_
-(operator_constructor_t _Constructor)
+(string &sClassName,operator_constructor_t _Constructor)
 {
-	_CExpr_Operator_Constructor.push(_Constructor);
+	_CExpr_Operator_Constructor.insert(make_pair(sClassName, _Constructor));
 }
 
 FactoryHelper::CExprFactoryHelper::CExprFactoryHelper(
+    string sClassName,
 	operator_constructor_t _Constructor
 )
 {
 	auto &fac =
 		Factory::CExprFactory::GetFactoryInstance();
-	fac.registerclass_operator_(_Constructor);
+	fac.registerclass_operator_(sClassName,_Constructor);
 }
+
+REGISTER_CEXPR(OriginCExpr);
 
 
 

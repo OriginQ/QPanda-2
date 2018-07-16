@@ -18,12 +18,39 @@ limitations under the License.
 #include "Factory.h"
 #include <functional>
 
+inline bool isBinary(int OperatorSpecifier)
+{
+	return OperatorSpecifier <= OR;
+}
+
+inline bool isUnary(int OperatorSpecifier)
+{
+	return
+		OperatorSpecifier > OR
+		&&
+		OperatorSpecifier <= NOT;
+}
+
+inline bool isOperator(int OperatorSpecifier)
+{
+	return OperatorSpecifier <= NOT;
+}
+
 static map<int, function<bool(bool, bool)>> _Binary_Operation =
 {
     {PLUS,[](bool a,bool b) {return a + b; }},
 {MINUS,[](bool a,bool b) {return a - b; } },
 { AND,[](bool a,bool b) {return a && b; } },
 { OR,[](bool a,bool b) {return a || b; } },
+};
+
+static map<int, string> _Operator_Name =
+{
+	{PLUS,"+"},
+{MINUS,"-"},
+{AND,"&&"},
+{OR,"||"},
+{NOT,"!"},
 };
 
 static map<int, function<bool(bool)>> _Unary_Operation=
@@ -63,23 +90,15 @@ string OriginCExpr::getName() const
 	case CBIT:
 		return this->content.cbit->getName();
 	case OPERATOR:
-		switch (content.iOperatorSpecifier)
-		{
-		case AND:
-			return "&&";
-		case OR:
-			return "||";
-		case PLUS:
-			return "+";
-		case MINUS:
-			return "-";
-		case NOT:
-			return "!";
-		default:
+		if (isOperator(this->content.iOperatorSpecifier))
+			return
+			_Operator_Name[this->content.iOperatorSpecifier];
+		else
 			throw(operator_specifier_error());
-		}
+	
+	default:
+			throw(content_specifier_error());
 	}
-    return NULL;
 }
 
 CBit * OriginCExpr::getCBit() const
@@ -119,13 +138,13 @@ const
     }
     else if (this->contentSpecifier==OPERATOR)
     {
-        if (this->content.iOperatorSpecifier <= OR)
+        if (isBinary(this->content.iOperatorSpecifier))
         {
             return _Binary_Operation[
 				this->content.iOperatorSpecifier
 			](this->leftExpr->eval(_Val_Map), this->rightExpr->eval(_Val_Map));
         }
-        else if (this->content.iOperatorSpecifier <= NOT)
+        else if (isUnary(this->content.iOperatorSpecifier))
         {
             return _Unary_Operation[
 				this->content.iOperatorSpecifier
@@ -152,13 +171,24 @@ CExpr * OriginCExpr::deepcopy() const
 	}
 	if (contentSpecifier == OPERATOR)
 	{
-		return
+		if (isBinary(this->content.iOperatorSpecifier))
+			return
 			Factory::CExprFactory::GetFactoryInstance().
 			GetCExprByOperation(
 				this->leftExpr->deepcopy(),
 				this->rightExpr->deepcopy(),
 				this->content.iOperatorSpecifier
 			);
+		else if (isUnary(this->content.iOperatorSpecifier))
+			return
+			Factory::CExprFactory::GetFactoryInstance().
+			GetCExprByOperation(
+				this->leftExpr->deepcopy(),
+				nullptr,
+				this->content.iOperatorSpecifier
+			);
+		else
+			throw operator_specifier_error();
 	}
 	else
 	{
@@ -202,8 +232,36 @@ bool OriginCExpr::checkValidity() const
 
 OriginCExpr::~OriginCExpr()
 {
-	delete leftExpr;
-	delete rightExpr;
+	if (contentSpecifier == CBIT)
+	{
+		if (leftExpr == nullptr && rightExpr == nullptr)
+		{
+			return;
+		}
+
+		return;
+	}
+	else if (contentSpecifier == OPERATOR)
+	{
+		if (leftExpr == nullptr)
+		{
+		}
+		else
+		{
+			delete leftExpr;
+		}
+		if (rightExpr == nullptr)
+		{
+			if (isUnary(this->content.iOperatorSpecifier))
+			{
+				return;
+			}
+		}
+		else
+		{
+			delete rightExpr;
+		}
+	}
 }
 
 //REGISTER_CEXPR(OriginCExpr)

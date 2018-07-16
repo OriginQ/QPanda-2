@@ -16,9 +16,12 @@ limitations under the License.
 
 #ifndef ORIGIN_QUANTUM_MACHINE_H
 #define ORIGIN_QUANTUM_MACHINE_H
-#include "QuantumMachineInterface.h"
-#include "../QuantumInstructionHandle/QCircuitParse.h"
 #include "Factory.h"
+#include "QuantumMachineInterface.h"
+#include "QuantumInstructionHandle/QuantumGates.h"
+#include "../QuantumInstructionHandle/QuantumGateParameter.h"
+//#include "../QuantumInstructionHandle/QCircuitParse.h"
+
 //#include "../QuantumInstructionHandle/QCircuitParse.h"
 //#define implements : public
 #define UNIQUE // To mark the function is not existed in interface
@@ -165,7 +168,7 @@ private:
     QuantumGates     * _pGates;
 	struct Configuration
 	{
-		size_t maxQubit=32;
+		size_t maxQubit=20;
 		size_t maxCMem=256;
 	};
 	Configuration _Config;
@@ -185,6 +188,8 @@ public:
 	QMachineStatus* getStatus() const;
 	QResult* getResult();
 	void finalize();
+	size_t getAllocateQubit();
+	size_t getAllocateCMem();
 };
 
 #endif

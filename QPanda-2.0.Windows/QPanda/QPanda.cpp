@@ -15,13 +15,16 @@ limitations under the License.
 */
 
 #include "QPanda.h"
+#include "QPanda/ConfigMap.h"
 #include "../QuantumMachine/Factory.h"
 
-QuantumMachine* qvm = Factory::QuantumMachineFactory
-::GetFactoryInstance().CreateByName("OriginQVM");// global
+static QuantumMachine* qvm;
+
 
 void init()
 {
+    qvm = Factory::QuantumMachineFactory
+        ::GetFactoryInstance().CreateByName(_G_configMap["QuantumMachine"]);// global
 	qvm->init();
 }
 
@@ -34,6 +37,17 @@ Qubit * qAlloc()
 {
 	return qvm->Allocate_Qubit();
 }
+
+size_t getAllocateQubitNum()
+{
+	return qvm->getAllocateQubit();
+}
+
+size_t getAllocateCMem()
+{
+	return qvm->getAllocateCMem();
+}
+
 
 void qFree(Qubit * q)
 {
@@ -70,15 +84,18 @@ QResult* getResult()
 	return qvm->getResult();
 }
 
-ClassicalCondition* bind_a_cbit(CBit * c)
+ClassicalCondition bind_a_cbit(CBit * c)
 {
-	return new ClassicalCondition(c);
+	return ClassicalCondition(c);
 }
 
 void run()
 {
 	qvm->run();
 }
+
+
+
 
 map<string, bool> getResultMap()
 {
@@ -90,6 +107,7 @@ bool getCBitValue(CBit * cbit)
 	auto resmap = getResultMap();
 	return resmap[cbit->getName()];
 }
+
 
 
 

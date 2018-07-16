@@ -16,17 +16,16 @@ limitations under the License.
 
 #include <iostream>
 #include "QAlgorithm.h"
-#include "Algorithm/test/test.h"
+//#include "Algorithm/test/test.h"
 
 using namespace std;
 
 int main()
 {
-	//DJ_Algorithm();
-    //Grover_Algorithm();
-    HHL_Algorithm();
-    getchar(); getchar();
-    return 0;
+
+    HHL_Algorithm();  
+
+    return  0;
 
 }
 

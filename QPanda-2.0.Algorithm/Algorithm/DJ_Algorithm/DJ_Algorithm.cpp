@@ -36,7 +36,8 @@ void DJ_Algorithm()
 	Reset_Qubit(q1, false);
 	Reset_Qubit(q2, true);
 
-	append(Two_Qubit_DJ_Algorithm_Circuit(q1, q2, c1, oracle_function));
+    auto temp = Two_Qubit_DJ_Algorithm_Circuit(q1, q2, c1, oracle_function);
+	append(temp);
 
 	run();
 
@@ -51,14 +52,14 @@ void DJ_Algorithm()
 	}
 }
 
-QProg & Two_Qubit_DJ_Algorithm_Circuit(
+QProg  Two_Qubit_DJ_Algorithm_Circuit(
 	Qubit * qubit1, 
 	Qubit * qubit2, 
 	CBit * cbit, 
 	vector<bool> oracle_function)
 
 {
-	auto &prog = CreateEmptyQProg();
+	auto prog = CreateEmptyQProg();
 	//Firstly, create a circuit container
 	
 	prog << H(qubit1) << H(qubit2);
@@ -86,9 +87,9 @@ QProg & Two_Qubit_DJ_Algorithm_Circuit(
 		)
 	{
 		// f(x) = x + 1;
-		prog << RX(qubit2)
+		prog << X(qubit2)
 			<< CNOT(qubit1, qubit2)
-			<< RX(qubit2);
+			<< X(qubit2);
 	}
 	else if (oracle_function[0] == true
 		&&
@@ -96,7 +97,7 @@ QProg & Two_Qubit_DJ_Algorithm_Circuit(
 		)
 	{
 		// f(x) = 1
-		prog << RX(qubit2);
+		prog << X(qubit2);
 	}
 
 	// Finally, Hadamard the first qubit and measure it

@@ -33,6 +33,8 @@ limitations under the License.
 
 typedef complex<double> QComplex;
 using namespace std;
+using QGATE_SPACE::QuantumGate;
+using QGATE_SPACE::QGateFactory;
 class QuantumDriver;
 
 /*
@@ -454,7 +456,8 @@ public:
     QGate  getGateNode(string & name, Qubit * targetQBit, Qubit * controlQBit, double theta);
     QGate  getGateNode(double alpha, double beta, double gamma, double delta, Qubit *);
     QGate  getGateNode(double alpha, double beta, double gamma, double delta, Qubit *, Qubit *);
-    QGate  getGateNode(QStat matrix, Qubit *, Qubit *);
+    QGate  getGateNode(string &name, QStat matrix, Qubit *, Qubit *);
+    QGate  getGateNode(string &name,QStat matrix, Qubit *);
 private:
     QGateNodeFactory()
     {

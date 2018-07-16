@@ -32,7 +32,7 @@
     <ClInclude Include="QuantumCircuit\QProgram.h" />
     <ClInclude Include="QuantumCircuit\QuantumMeasure.h" />
     <ClInclude Include="QuantumCircuit\ReadWriteLock.h" />
-    <ClInclude Include="QuantumInstructionHandle\QCircuitParse.h" />
+    <ClInclude Include="TraversalAlgorithm\QCircuitParse.h" />
     <ClInclude Include="QuantumInstructionHandle\QError.h" />
     <ClInclude Include="QuantumInstructionHandle\QuantumGateParameter.h" />
     <ClInclude Include="QuantumInstructionHandle\QuantumGates.h" />
@@ -43,8 +43,9 @@
     <ClInclude Include="QuantumMachine\OriginQuantumMachine.h" />
     <ClInclude Include="QuantumMachine\QuantumMachineInterface.h" />
     <ClInclude Include="QPanda\QuantumMetadata.h" />
-    <ClInclude Include="QuantumCircuit\StatisticsQGateCountAlgorithm.h" />
-    <ClInclude Include="QuantumCircuit\TraversalDecompositionAlgorithm.h" />
+    <ClInclude Include="TraversalAlgorithm\QGateCompare.h" />
+    <ClInclude Include="TraversalAlgorithm\StatisticsQGateCountAlgorithm.h" />
+    <ClInclude Include="TraversalAlgorithm\TraversalDecompositionAlgorithm.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="QPanda\MetadataValidity.cpp" />
@@ -57,7 +58,7 @@
     <ClCompile Include="QuantumCircuit\QNode.cpp" />
     <ClCompile Include="QuantumCircuit\QProgram.cpp" />
     <ClCompile Include="QuantumCircuit\QuantumMeasure.cpp" />
-    <ClCompile Include="QuantumInstructionHandle\QCircuitParse.cpp" />
+    <ClCompile Include="TraversalAlgorithm\QCircuitParse.cpp" />
     <ClCompile Include="QuantumInstructionHandle\QuantumGates.cpp" />
     <ClCompile Include="QuantumInstructionHandle\X86QuantumGates.cpp" />
     <ClCompile Include="QuantumMachine\ClassicalConditionInterface.cpp" />
@@ -73,8 +74,9 @@
     <ClCompile Include="QuantumMachine\OriginQVM.cpp" />
     <ClCompile Include="QuantumMachine\QuantumMachineInterface.cpp" />
     <ClCompile Include="QPanda\QuantumMetadata.cpp" />
-    <ClCompile Include="QuantumCircuit\StatisticsQGateCountAlgorithm.cpp" />
-    <ClCompile Include="QuantumCircuit\TraversalDecompositionAlgorithm.cpp" />
+    <ClCompile Include="TraversalAlgorithm\QGateCompare.cpp" />
+    <ClCompile Include="TraversalAlgorithm\StatisticsQGateCountAlgorithm.cpp" />
+    <ClCompile Include="TraversalAlgorithm\TraversalDecompositionAlgorithm.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

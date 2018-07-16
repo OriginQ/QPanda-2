@@ -4,7 +4,7 @@
 #include "QPanda/QuantumMetadata.h"
 #include "QPanda/ConfigMap.h"
 #include "../QPanda/MetadataValidity.h"
-#include "QuantumInstructionHandle/QCircuitParse.h"
+#include "TraversalAlgorithm/QCircuitParse.h"
 OriginQMachine::OriginQMachine()
 {
 }

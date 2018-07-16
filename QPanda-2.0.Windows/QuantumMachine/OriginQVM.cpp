@@ -16,7 +16,7 @@ limitations under the License.
 
 #include "OriginQuantumMachine.h"
 #include "Factory.h"
-#include "QuantumInstructionHandle/QCircuitParse.h"
+#include "TraversalAlgorithm/QCircuitParse.h"
 #include "QuantumInstructionHandle/X86QuantumGates.h"
 OriginQVM::OriginQVM()
 {

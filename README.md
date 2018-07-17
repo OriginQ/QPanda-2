@@ -7,9 +7,7 @@
 
 Qpanda 2.0 is a quantum software development kit used to deal with quantum circuits and experiments on various quantum computers launched by the Origin Quantum Computing Company. It supports mainstream quantum logic gate operation and can be adapted to a variety of quantum chips, and the targeted optimization of quantum programs under different platforms.
 
-QPanda 2.0 uses the C++ language as the host language and supports quantum languages ​​written in QRunes and QASM. Currently, QPanda 2.0 supports up to 32-qubits in the local simulation. It integrates a quantum virtual machine(QVM) and encapsulates the mainstream quantum algorithms.
-
-Besides, quantum programs can make logical decisions where we have increased the idea of ​​control flow(q-if). Thus in line with the programming specifications of high-level languages.
+QPanda 2.0 uses the C++ language as the host language and supports quantum languages ​​written in QRunes and QASM. Currently, QPanda 2.0 supports up to 32-qubits in the local simulation. It integrates a quantum virtual machine(QVM) and encapsulates the mainstream quantum algorithms. Besides, quantum programs can make logical decisions where we have increased the idea of ​​control flow(q-if). Thus in line with the programming specifications of high-level languages.
 
 There are three processes in QPanda 2.0: **initialization**, **compilation** and **running**.
 

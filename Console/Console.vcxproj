@@ -70,7 +70,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)QPanda-2.0.Windows;$(SolutionDir)QPanda-2.0.Algorithm;$(SolutionDir)QPanda-2.0.Algorithm\Algorithm;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)QPanda-2.0.Core;$(SolutionDir)QPanda-2.0.Algorithm;$(SolutionDir)QPanda-2.0.Algorithm\Algorithm;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)$(Platform)\$(Configuration)\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -85,7 +85,7 @@
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>QPanda-2.0.Algorithm.lib;QPanda-2.0.Windows.lib;TinyXML.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>QPanda-2.0.Algorithm.lib;QPanda-2.0.Core.lib;TinyXML.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
     </Link>
   </ItemDefinitionGroup>

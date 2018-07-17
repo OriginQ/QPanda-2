@@ -1,0 +1,124 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClInclude Include="QuantumCircuit\QGate.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="QuantumCircuit\QGlobalVariable.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="QuantumCircuit\ReadWriteLock.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="QuantumCircuit\QProgram.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="QuantumInstructionHandle\QError.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="QuantumInstructionHandle\QuantumGateParameter.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="QuantumInstructionHandle\QuantumGates.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="QuantumInstructionHandle\X86QuantumGates.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="QuantumMachine\ClassicalConditionInterface.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="QuantumMachine\Factory.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="QuantumMachine\OriginClassicalExpression.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="QuantumMachine\OriginQuantumMachine.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="QuantumMachine\QuantumMachineInterface.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="QPanda.h" />
+    <ClInclude Include="QPanda\QPandaException.h" />
+    <ClInclude Include="QuantumCircuit\QNode.h" />
+    <ClInclude Include="QuantumCircuit\QuantumMeasure.h" />
+    <ClInclude Include="QuantumCircuit\ControlFlow.h" />
+    <ClInclude Include="QPanda\QPandaException.h" />
+    <ClInclude Include="QPanda\XMLConfigParam.h" />
+    <ClInclude Include="QPanda\ConfigMap.h" />
+    <ClInclude Include="TraversalAlgorithm\QCircuitParse.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="QPanda\QPanda.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="QuantumCircuit\QGate.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="QuantumCircuit\QProgram.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="QuantumInstructionHandle\QuantumGates.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="QuantumInstructionHandle\X86QuantumGates.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="QuantumMachine\ClassicalConditionInterface.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="QuantumMachine\Factory.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="QuantumMachine\OriginClassicalExpression.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="QuantumMachine\OriginClassicalSystem.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="QuantumMachine\OriginPhysicalQubit.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="QuantumMachine\OriginQMachineStatus.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="QuantumMachine\OriginQResult.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="QuantumMachine\OriginQuantumMachine.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="QuantumMachine\OriginQubit.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="QuantumMachine\OriginQubitPool.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="QuantumMachine\OriginQVM.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="QuantumMachine\QuantumMachineInterface.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="QuantumCircuit\QNode.cpp" />
+    <ClCompile Include="QuantumCircuit\QuantumMeasure.cpp" />
+    <ClCompile Include="QuantumCircuit\ControlFlow.cpp" />
+    <ClCompile Include="QPanda\XMLConfigParam.cpp" />
+    <ClCompile Include="QPanda\ConfigMap.cpp" />
+    <ClCompile Include="TraversalAlgorithm\QCircuitParse.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{af035841-0647-465b-bfc6-fc5b5f3b7a04}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件">
+      <UniqueIdentifier>{316da0f2-75f1-46c8-a74d-12c58c29f923}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

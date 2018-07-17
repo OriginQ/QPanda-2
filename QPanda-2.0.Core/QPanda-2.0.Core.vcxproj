@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="QPanda\ConfigMap.h" />
+    <ClInclude Include="QPanda.h" />
+    <ClInclude Include="QPanda\QPandaException.h" />
+    <ClInclude Include="QPanda\XMLConfigParam.h" />
+    <ClInclude Include="QuantumCircuit\ControlFlow.h" />
+    <ClInclude Include="QuantumCircuit\QGate.h" />
+    <ClInclude Include="QuantumCircuit\QGlobalVariable.h" />
+    <ClInclude Include="QuantumCircuit\QNode.h" />
+    <ClInclude Include="QuantumCircuit\QProgram.h" />
+    <ClInclude Include="QuantumCircuit\QuantumMeasure.h" />
+    <ClInclude Include="QuantumCircuit\ReadWriteLock.h" />
+    <ClInclude Include="TraversalAlgorithm\QCircuitParse.h" />
+    <ClInclude Include="QuantumInstructionHandle\QError.h" />
+    <ClInclude Include="QuantumInstructionHandle\QuantumGateParameter.h" />
+    <ClInclude Include="QuantumInstructionHandle\QuantumGates.h" />
+    <ClInclude Include="QuantumInstructionHandle\X86QuantumGates.h" />
+    <ClInclude Include="QuantumMachine\ClassicalConditionInterface.h" />
+    <ClInclude Include="QuantumMachine\Factory.h" />
+    <ClInclude Include="QuantumMachine\OriginClassicalExpression.h" />
+    <ClInclude Include="QuantumMachine\OriginQuantumMachine.h" />
+    <ClInclude Include="QuantumMachine\QuantumMachineInterface.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="QPanda\ConfigMap.cpp" />
+    <ClCompile Include="QPanda\QPanda.cpp" />
+    <ClCompile Include="QPanda\XMLConfigParam.cpp" />
+    <ClCompile Include="QuantumCircuit\ControlFlow.cpp" />
+    <ClCompile Include="QuantumCircuit\QGate.cpp" />
+    <ClCompile Include="QuantumCircuit\QNode.cpp" />
+    <ClCompile Include="QuantumCircuit\QProgram.cpp" />
+    <ClCompile Include="QuantumCircuit\QuantumMeasure.cpp" />
+    <ClCompile Include="TraversalAlgorithm\QCircuitParse.cpp" />
+    <ClCompile Include="QuantumInstructionHandle\QuantumGates.cpp" />
+    <ClCompile Include="QuantumInstructionHandle\X86QuantumGates.cpp" />
+    <ClCompile Include="QuantumMachine\ClassicalConditionInterface.cpp" />
+    <ClCompile Include="QuantumMachine\Factory.cpp" />
+    <ClCompile Include="QuantumMachine\OriginClassicalExpression.cpp" />
+    <ClCompile Include="QuantumMachine\OriginClassicalSystem.cpp" />
+    <ClCompile Include="QuantumMachine\OriginPhysicalQubit.cpp" />
+    <ClCompile Include="QuantumMachine\OriginQMachineStatus.cpp" />
+    <ClCompile Include="QuantumMachine\OriginQResult.cpp" />
+    <ClCompile Include="QuantumMachine\OriginQuantumMachine.cpp" />
+    <ClCompile Include="QuantumMachine\OriginQubit.cpp" />
+    <ClCompile Include="QuantumMachine\OriginQubitPool.cpp" />
+    <ClCompile Include="QuantumMachine\OriginQVM.cpp" />
+    <ClCompile Include="QuantumMachine\QuantumMachineInterface.cpp" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>15.0</VCProjectVersion>
+    <ProjectGuid>{82013C14-57E0-49B1-8B40-6A9F366F9D03}</ProjectGuid>
+    <RootNamespace>QPanda20Windows</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>$(ProjectDir);$(IncludePath)</IncludePath>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>$(ProjectDir);$(IncludePath)</IncludePath>
+    <OutDir>$(SolutionDir)bin\</OutDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(SolutionDir)TinyXML;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OpenMPSupport>true</OpenMPSupport>
+    </ClCompile>
+    <Lib>
+      <AdditionalDependencies>TinyXML.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

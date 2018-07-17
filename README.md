@@ -1,18 +1,24 @@
 [![Build Status](https://travis-ci.org/OriginQ/QPanda-SDK.svg?branch=master)](https://travis-ci.org/OriginQ/QPanda-SDK)
-## QPanda
+## QPanda 2.0
 
 
 ![图片: ](https://images-cdn.shimo.im/BtuP6aVe0oo2jRlZ/image.png)
 
-Qpanda is a software used to deal with quantum circuits and experiments on various quantum computers.
+Qpanda 2.0 is a quantum software development kit used to deal with quantum circuits and experiments on various quantum computers.
 
-There are three processes in QPanda: initialization, compilation and running.
+There are three processes in QPanda: **initialization**, **compilation** and **running**.
 
-**Initialization**:The initialization allows users to design different quantum circuits to deal with the corresponding problems.
+**Initialization**:
 
-**Compilation**:Compilation allows users to rewrite them to run on different backends (such as simulators, quantum chips, quantum chips of different companies, etc.).
+The initialization allows users to design different quantum circuits to deal with the corresponding problems.
 
-**Running**: that is, the process of collecting results(classical information), depending on the design of the problem to do the corresponding operation. Some problems may depend on the results of a previous quantum program before they can be executed, and so on.
+**Compilation**:
+
+Compilation allows users to rewrite them to run on different backends (such as simulators, quantum chips, quantum chips of different companies, etc.).
+
+**Running**:
+
+that is, the process of collecting results(classical information), depending on the design of the problem to do the corresponding operation.
 
 ## The Design Ideas of QPanda
 
@@ -31,13 +37,13 @@ The design of **QPanda** is forward-looking, considering that quantum computing 
 
 -   **QPanda SDK**：
 
-C++ is used as the host language to compiling quantum programs in QPanda SDK. It enables users to connect and execute quantum programs conveniently.
+C++ is used as the host language to compiling quantum programs in QPanda 2.0 SDK. It enables users to connect and execute quantum programs conveniently.
 
 -   **QRunes**：
 
 Qrunes is a set of quantum computing instructions developed by the Origin quantum team.
 
--   **QRunes Generator**：
+-   **QRunes(QASM) Generator**：
 
 Qrunes Generator is a C + + library that supports generating Qrunes directives in function calls.
 

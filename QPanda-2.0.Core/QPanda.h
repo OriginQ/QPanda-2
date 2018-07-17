@@ -20,6 +20,7 @@ limitations under the License.
 #include "QuantumCircuit/QProgram.h"
 #include "QuantumMachine/OriginQuantumMachine.h"
 
+
 extern HadamardQCircuit CreateHadamardQCircuit(vector<Qubit *> & pQubitVector);
 
 extern QNodeMap _G_QNodeMap;

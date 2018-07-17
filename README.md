@@ -6,7 +6,7 @@
 
 Qpanda 2.0 is a quantum software development kit used to deal with quantum circuits and experiments on various quantum computers.
 
-There are three processes in QPanda: **initialization**, **compilation** and **running**.
+There are three processes in QPanda 2.0: **initialization**, **compilation** and **running**.
 
 **Initialization**:
 
@@ -23,7 +23,7 @@ that is, the process of collecting results(classical information), depending on 
 ## The Design Ideas of QPanda
 
 
-The design of **QPanda** is forward-looking, considering that quantum computing will flourish and be widely applied in the future. So QPanda did the following consideration when it was designed:
+The design of **QPanda 2.0** is forward-looking, considering that quantum computing will flourish and be widely applied in the future. So QPanda did the following consideration when it was designed:
 
 1.  Full series compatibility.
 
@@ -45,11 +45,11 @@ Qrunes is a set of quantum computing instructions developed by the Origin quantu
 
 -   **QRunes(QASM) Generator**：
 
-Qrunes Generator is a C + + library that supports generating Qrunes directives in function calls.
+Qrunes Generator is a C + + library that supports generating Qrunes(QASM) directives in function calls.
 
 -   **[QPanda Documentation](./QPanda-2.0.Documentation/README.md)**：
 
- Instructions for QPanda software. It includes algorithm summary, corresponding quantum circuits, corresponding QPanda code, etc., aiming at guiding users to use QPanda correctly and quickly.
+ Instructions for QPanda 2.0. It includes algorithm summary, corresponding quantum circuits, corresponding QPanda 2.0 code, etc., aiming at guiding users to use QPanda correctly and quickly.
 
  ## License
  Apache License 2.0

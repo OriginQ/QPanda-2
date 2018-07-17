@@ -16,11 +16,11 @@ CUR_OBJS = ${patsubst %.cpp, %.o, $(CUR_SOURCE)}
 INCLUDE = -I $(ROOT_DIR)/Console \
 		  -I $(ROOT_DIR)/QPanda-2.0.Algorithm \
 		  -I $(ROOT_DIR)/QPanda-2.0.Algorithm/Algorithm \
-		  -I $(ROOT_DIR)/QPanda-2.0.Windows/QPanda \
-		  -I $(ROOT_DIR)/QPanda-2.0.Windows \
-		  -I $(ROOT_DIR)/QPanda-2.0.Windows/QuantumInstructionHandle \
-		  -I $(ROOT_DIR)/QPanda-2.0.Windows/QuantumMachin \
-		  -I $(ROOT_DIR)/QPanda-2.0.Windows/TraversalAlgorithm \
+		  -I $(ROOT_DIR)/QPanda-2.0.Core/QPanda \
+		  -I $(ROOT_DIR)/QPanda-2.0.Core \
+		  -I $(ROOT_DIR)/QPanda-2.0.Core/QuantumInstructionHandle \
+		  -I $(ROOT_DIR)/QPanda-2.0.Core/QuantumMachin \
+		  -I $(ROOT_DIR)/QPanda-2.0.Core/TraversalAlgorithm \
 		  -I $(ROOT_DIR)/TinyXML
 export CC BIN ABIN QBIN OBJS_DIR AOBJS_DIR QOBJS_DIR COBJS_DIR BIN_DIR ROOT_DIR CONFIF_FILE MEATADATA_FILE
 all : MKDIE $(SUBDIRS)  RELEASE

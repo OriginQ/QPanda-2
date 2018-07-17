@@ -70,7 +70,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)QPanda-2.0.Windows\;$(SolutionDir)QPanda-2.0.Algorithm\Algorithm\;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)QPanda-2.0.Core\;$(SolutionDir)QPanda-2.0.Algorithm\Algorithm\;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)bin\</OutDir>

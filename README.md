@@ -1,8 +1,9 @@
 [![Build Status](https://travis-ci.org/OriginQ/QPanda-SDK.svg?branch=master)](https://travis-ci.org/OriginQ/QPanda-SDK)
 ## QPanda 2.0
 
+ 
 
-![图片: ](https://images-cdn.shimo.im/BtuP6aVe0oo2jRlZ/image.png)
+![图片: ](https://images-cdn.shimo.im/GCEO3o2i9dcRrfV0/68747470733a2f2f696d616765732d63646e2e7368696d6f2e696d2f4274755036615665306f6f326a526c5a2f696d6167652e706e67.png)
 
 Qpanda 2.0 is a quantum software development kit used to deal with quantum circuits and experiments on various quantum computers.
 

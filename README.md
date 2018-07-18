@@ -7,7 +7,7 @@
 
 Qpanda 2.0 is a quantum software development kit used to deal with quantum circuits and experiments on various quantum computers launched by the Origin Quantum Computing Company. It supports mainstream quantum logic gate operation and can be adapted to a variety of quantum chips, and the targeted optimization of quantum programs under different platforms.
 
-QPanda 2.0 uses the C++ language as the host language and supports quantum languages ​​written in QRunes and QASM. Currently, QPanda 2.0 supports up to 32-qubits in the local simulation. It integrates the quantum virtual machine(QVM) and encapsulates the mainstream quantum algorithms. Besides,in QPanda 2.0, quantum programs can make logical decisions where we have increased the idea of ​​control flow(q-if), thus in line with the programming specifications of high-level languages.
+C++ language is used as the host language in QPanda 2.0, and QPanda 2.0 also supports quantum languages ​​written in QRunes or QASM. Currently, QPanda 2.0 supports up to 32-qubits in the local simulation. It integrates the quantum virtual machine(QVM) and encapsulates the typical quantum algorithms. Besides,in QPanda 2.0, quantum programs can make logical decisions where we have added the idea of ​​control flow(q-if), thus in line with the programming specifications of high-level languages.
 
 There are three processes in QPanda 2.0: **initialization**, **compilation** and **running**.
 
@@ -17,7 +17,7 @@ The initialization allows users to design different quantum circuits to deal wit
 
 **Compilation**:
 
-Compilation allows users to rewrite them to run on different backends (such as simulators, quantum chips, quantum chips of different companies, and such).
+Compilation allows users to rewrite them to run on different backends (such as simulators, quantum chips, quantum chips of different companies, and so on).
 
 **Running**:
 
@@ -26,7 +26,7 @@ That is the process of collecting results(classical information), depending on t
 ## The Design Ideas of QPanda
 
 
-The design of **QPanda 2.0** is forward-looking, considering that quantum computing will flourish and be widely applied in the future. So QPanda did the following consideration when it was designed:
+The design of **QPanda 2.0** is forward-looking, considering that quantum computing will flourish and be widely applied in the future. So QPanda 2.0 did the following consideration when it was designed:
 
 1.  Full series compatibility.
 
@@ -44,16 +44,16 @@ C++ is used as the host language for compiling quantum programs in QPanda 2.0 SD
 
 -   **QRunes**：
 
-QRunes is a set of quantum computing instructions developed by the Origin quantum team.
+QRunes is a set of quantum computing instructions developed by the Origin quantum team.It is similar to the assembly language in classical computer.
 
 -   **QRunes(QASM) Generator**：
 
-Qrunes Generator is a C + + library that supports generating Qrunes(QASM) directives in function calls.
+QRunes Generator is a C + + library that supports generating QRunes(QASM) directives in function calls.
 
 -   **[QPanda Documentation](./QPanda-2.0.Documentation/README.md)**：
 
 
-The QPanda 2.0 documentation is detailed documentation. It includes algorithm summary, corresponding quantum circuits, and QPanda 2.0 code. Aiming at guiding users to use QPanda correctly and quickly.
+The QPanda 2.0 documentation is detailed documentation for the user. It includes algorithm summary, corresponding quantum circuits, and QPanda 2.0 code. Aiming at guiding users to use QPanda 2.0 correctly and quickly.
 
  ## License
  Apache License 2.0

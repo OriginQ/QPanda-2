@@ -9,7 +9,7 @@ Qpanda 2.0 is a quantum software development kit used to deal with quantum circu
 
 The C++ language is used as the host language in QPanda 2.0, and QPanda 2.0 also supports quantum languages ​​written in QRunes or QASM. Currently, QPanda 2.0 supports up to 32-qubits in the local simulation. It integrates the quantum virtual machine(QVM) and encapsulates the typical quantum algorithms. Besides,in QPanda 2.0, quantum programs can make logical decisions where we have added the idea of ​​control flow(q-if), thus in line with the programming specifications of high-level languages.
 
-There are three processes in QPanda 2.0: **initialization**, **compilation** and **running**.
+There are three processes in QPanda 2.0: `initialization`, `compilation` and `running`.
 
 **Initialization**:
 
@@ -23,7 +23,9 @@ Compilation allows users to rewrite them to run on different backends (such as s
 
 That is the process of collecting results(classical information), depending on the design of the problem(algorithm) to do the corresponding operation.
 
-## The Design Ideas of QPanda
+运行程序，从而获得结果。
+
+## The Design Ideas of QPanda 2.0
 
 
 The design of **QPanda 2.0** is forward-looking, considering that quantum computing will flourish and be widely applied in the future. So QPanda 2.0 did the following consideration when it was designed:

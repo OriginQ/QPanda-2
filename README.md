@@ -42,7 +42,7 @@ The design of **QPanda 2.0** is forward-looking, considering that quantum comput
 
 -   **QPanda SDK**：
 
-C++ is used as the host language for compiling quantum programs in QPanda 2.0 SDK. It enables users to connect and execute quantum programs conveniently.
+The C++ is used as the host language for compiling quantum programs in QPanda 2.0 SDK. It enables users to connect and execute quantum programs conveniently.
 
 -   **QRunes**：
 

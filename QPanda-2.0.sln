@@ -15,6 +15,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TinyXML", "TinyXML\TingXML.vcxproj", "{8C36863D-0E20-493E-9D9E-873EE8B86A17}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "QPanda-2.0.Core", "QPanda-2.0.Core\QPanda-2.0.Core.vcxproj", "{82013C14-57E0-49B1-8B40-6A9F366F9D03}"
+	ProjectSection(ProjectDependencies) = postProject
+		{8C36863D-0E20-493E-9D9E-873EE8B86A17} = {8C36863D-0E20-493E-9D9E-873EE8B86A17}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

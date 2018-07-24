@@ -88,6 +88,10 @@ public:
     QMAP_SIZE getPosition() const;
     bool setDagger(bool);
     bool setControl(vector < Qubit *> &);
+
+    QGate dagger();
+    QGate control(vector<Qubit *> &);
+
     bool isDagger() const;
     size_t getControlVector(vector<Qubit *> &) const;
 private:
@@ -124,7 +128,7 @@ public:
     bool setControl(vector < Qubit *> &);
     bool isDagger() const;
     size_t getControlVector(vector<Qubit *> &) const;
-    void PushBackQuBit(Qubit *) ;
+    void PushBackQuBit(Qubit *);
 
 };
 
@@ -182,7 +186,7 @@ public:
     virtual NodeIter  getEndNodeIter() = 0;
     virtual NodeIter  getHeadNodeIter() = 0;
     virtual NodeIter  insertQNode(NodeIter &, QNode *) = 0;
-    virtual NodeIter  deleteQNode(NodeIter &) =0;
+    virtual NodeIter  deleteQNode(NodeIter &) = 0;
     virtual void pushBackNode(QNode *) = 0;
     virtual ~AbstractQuantumProgram() {};
     virtual void clear() = 0;
@@ -195,7 +199,7 @@ public:
     virtual NodeIter  getFirstNodeIter() = 0;
     virtual NodeIter  getLastNodeIter() = 0;
     virtual NodeIter  getEndNodeIter() = 0;
-    virtual NodeIter getHeadNodeIter() = 0;
+    virtual NodeIter  getHeadNodeIter() = 0;
     virtual NodeIter  insertQNode(NodeIter &, QNode *) = 0;
     virtual NodeIter  deleteQNode(NodeIter &) = 0;
     virtual void pushBackNode(QNode *) = 0;
@@ -204,11 +208,12 @@ public:
     virtual bool getControlVector(vector<Qubit *> &) = 0;
     virtual void  setDagger(bool isDagger) = 0;
     virtual void  setControl(vector<Qubit *> &) = 0;
+    virtual void clearControl() = 0;
 };
 
 
 
-class QCircuit : public QNode,public AbstractQuantumCircuit
+class QCircuit : public QNode, public AbstractQuantumCircuit
 {
 protected:
     AbstractQuantumCircuit * m_pQuantumCircuit;
@@ -219,7 +224,7 @@ public:
     ~QCircuit();
     void pushBackNode(QNode *);
 
-    /*   
+    /*
     QCircuit & operator << (QGate);
     QCircuit & operator << (QCircuit);
     QCircuit & operator << ( QMeasure );
@@ -245,6 +250,7 @@ public:
     QMAP_SIZE getPosition() const;
 private:
     void setPosition(QMAP_SIZE stPosition);
+    void clearControl() {};
 };
 
 
@@ -327,6 +333,7 @@ public:
     NodeIter  deleteQNode(NodeIter &);
     QMAP_SIZE getPosition() const;
     void setPosition(QMAP_SIZE);
+    void clearControl();
 
 };
 
@@ -341,7 +348,7 @@ public:
 *    if T_GATE is QIfProg/QWhileProg/QProg,deepcopy
 *    IF/WHILE/QProg circuit and insert it into left QProg;
 */
-class QProg : public QNode,public AbstractQuantumProgram
+class QProg : public QNode, public AbstractQuantumProgram
 {
 private:
     AbstractQuantumProgram * m_pQuantumProgram;
@@ -457,11 +464,11 @@ public:
     QGate  getGateNode(string & name, Qubit *);
     QGate  getGateNode(string & name, Qubit *, double);
     QGate  getGateNode(string & name, Qubit *, Qubit*);
-    QGate  getGateNode(string & name, Qubit * controlQBit , Qubit * targetQBit, double theta);
+    QGate  getGateNode(string & name, Qubit * controlQBit, Qubit * targetQBit, double theta);
     QGate  getGateNode(double alpha, double beta, double gamma, double delta, Qubit *);
     QGate  getGateNode(double alpha, double beta, double gamma, double delta, Qubit *, Qubit *);
     QGate  getGateNode(string &name, QStat matrix, Qubit *, Qubit *);
-    QGate  getGateNode(string &name,QStat matrix, Qubit *);
+    QGate  getGateNode(string &name, QStat matrix, Qubit *);
 private:
     QGateNodeFactory()
     {

@@ -29,7 +29,7 @@ public:
     virtual QNode * getFalseBranch() const = 0;
     virtual void setTrueBranch(QNode *) = 0;
     virtual void setFalseBranch(QNode *) = 0;
-    virtual ClassicalCondition * getCExpr()  = 0;
+    virtual ClassicalCondition * getCExpr() = 0;
     virtual ~AbstractControlFlowNode() {}
 };
 
@@ -199,15 +199,15 @@ private:
 
 class OriginWhile :public QNode, public AbstractControlFlowNode
 {
-private :
+private:
     NodeType m_iNodeType;
     ClassicalCondition  m_CCondition;
     Item * m_pTrueItem;
     QMAP_SIZE m_stPosition;
 
     OriginWhile();
-    
-public :
+
+public:
     ~OriginWhile();
     OriginWhile(ClassicalCondition & ccCon, QNode * node);
     NodeType getNodeType() const;

@@ -25,6 +25,7 @@ QProg  CreateEmptyQProg()
     return temp;
 }
 
+static QGateNodeFactory * _gs_pGateNodeFactory = QGateNodeFactory::getInstance();
 
 QCircuit  CreateEmptyCircuit()
 {
@@ -132,6 +133,78 @@ bool QGate::setControl(vector<Qubit *>& quBitVector)
     return m_pQGateNode->setControl(quBitVector);
 }
 
+/*****************************************************************
+Name        : dagger
+Description : dagger the QGate
+argin       :
+argout      :
+Return      : new QGate
+*****************************************************************/
+QGate QGate::dagger()
+{
+    vector<Qubit *> qubitVector;
+    this->getQuBitVector(qubitVector);
+    vector<Qubit*> controlVector;
+    this->getControlVector(controlVector);
+
+    QStat matrix;
+    auto pQgate = this->m_pQGateNode->getQGate();
+    pQgate->getMatrix(matrix);
+
+    if (qubitVector.size() == 1)
+    {
+        string name = "U4";
+        auto tempGate = _gs_pGateNodeFactory->getGateNode(name, matrix, qubitVector[0]);
+        tempGate.setControl(controlVector);
+        tempGate.setDagger(this->isDagger() ^ true);
+        return tempGate;
+    }
+    else
+    {
+        string name = "QDoubleGate";
+        auto tempGate = _gs_pGateNodeFactory->getGateNode(name, matrix, qubitVector[0], qubitVector[1]);
+        tempGate.setControl(controlVector);
+        tempGate.setDagger(this->isDagger() ^ true);
+        return tempGate;
+    }
+}
+
+/*****************************************************************
+Name        : dagger
+Description : set controlQubit to QGate
+argin       :
+argout      :
+Return      : new QGate
+*****************************************************************/
+QGate QGate::control(vector<Qubit*>& controlVector)
+{
+    vector<Qubit *> qubitVector;
+    this->getQuBitVector(qubitVector);
+    this->getControlVector(controlVector);
+
+    QStat matrix;
+    auto pQgate = this->m_pQGateNode->getQGate();
+
+    pQgate->getMatrix(matrix);
+
+    if (qubitVector.size() == 1)
+    {
+        string name = "U4";
+        auto tempGate = _gs_pGateNodeFactory->getGateNode(name, matrix, qubitVector[0]);
+        tempGate.setControl(controlVector);
+        tempGate.setDagger(this->isDagger());
+        return tempGate;
+    }
+    else
+    {
+        string name = "QDoubleGate";
+        auto tempGate = _gs_pGateNodeFactory->getGateNode(name, matrix, qubitVector[0], qubitVector[1]);
+        tempGate.setControl(controlVector);
+        tempGate.setDagger(this->isDagger());
+        return tempGate;
+    }
+}
+
 bool QGate::isDagger() const
 {
     if (nullptr == m_pQGateNode)
@@ -164,7 +237,7 @@ QCircuit::QCircuit(const QCircuit & oldQCircuit)
 {
     m_stPosition = oldQCircuit.getPosition();
     auto aiter = _G_QNodeMap.getNode(m_stPosition);
-    if (aiter !=nullptr)
+    if (aiter != nullptr)
         m_pQuantumCircuit = dynamic_cast<AbstractQuantumCircuit *>(aiter);
     else
         throw exception();
@@ -198,11 +271,11 @@ return *this;
 }
 QCircuit & QCircuit::operator<<(QCircuit node)
 {
-    if (nullptr == m_pQuantumCircuit)
-        throw exception();
-    m_pQuantumCircuit->pushBackNode(dynamic_cast<QNode*>(&node));
+if (nullptr == m_pQuantumCircuit)
+throw exception();
+m_pQuantumCircuit->pushBackNode(dynamic_cast<QNode*>(&node));
 
-    return *this;
+return *this;
 }
 
 
@@ -210,10 +283,10 @@ QCircuit & QCircuit::operator<<(QCircuit node)
 
 QCircuit & QCircuit::operator<<( QMeasure  node)
 {
-    if (nullptr == m_pQuantumCircuit)
-        throw exception();
-    m_pQuantumCircuit->pushBackNode(dynamic_cast<QNode*>(&node));
-    return *this;
+if (nullptr == m_pQuantumCircuit)
+throw exception();
+m_pQuantumCircuit->pushBackNode(dynamic_cast<QNode*>(&node));
+return *this;
 }
 
 */
@@ -235,10 +308,10 @@ QCircuit QCircuit::dagger()
     for (; aiter != m_pQuantumCircuit->getEndNodeIter(); ++aiter)
     {
 
-        qCircuit.pushBackNode( *aiter);
+        qCircuit.pushBackNode(*aiter);
     }
 
-    qCircuit.setDagger(true^this->isDagger());
+    qCircuit.setDagger(true ^ this->isDagger());
     return qCircuit;
 }
 
@@ -318,7 +391,7 @@ NodeIter QCircuit::insertQNode(NodeIter & iter, QNode * pNode)
         throw circuit_not_found_exception("there is no this circuit", false);
     }
     auto aIter = _G_QNodeMap.getNode(m_stPosition);
-    if (nullptr  == aIter)
+    if (nullptr == aIter)
     {
         throw circuit_not_found_exception("there is no this circuit", false);
     }
@@ -402,7 +475,7 @@ QProg::~QProg()
     _G_QNodeMap.deleteNode(m_stPosition);
 }
 
-void QProg :: pushBackNode(QNode * pNode)
+void QProg::pushBackNode(QNode * pNode)
 {
     if (nullptr == m_pQuantumProgram)
         throw exception();
@@ -411,49 +484,49 @@ void QProg :: pushBackNode(QNode * pNode)
 /*
 QProg & QProg::operator<<( QIfProg  ifNode)
 {
-    if (nullptr == m_pQuantumProgram)
-        throw exception();
-    m_pQuantumProgram->pushBackNode(dynamic_cast<QNode *>(&ifNode));
-    return *this;
+if (nullptr == m_pQuantumProgram)
+throw exception();
+m_pQuantumProgram->pushBackNode(dynamic_cast<QNode *>(&ifNode));
+return *this;
 }
 
 QProg & QProg::operator<<( QWhileProg  whileNode)
 {
-    if (nullptr == m_pQuantumProgram)
-        throw exception();
-    m_pQuantumProgram->pushBackNode(dynamic_cast<QNode *>(&whileNode));
-    return *this;
+if (nullptr == m_pQuantumProgram)
+throw exception();
+m_pQuantumProgram->pushBackNode(dynamic_cast<QNode *>(&whileNode));
+return *this;
 }
 
 QProg & QProg::operator<<( QMeasure  measure)
 {
-    if (nullptr == m_pQuantumProgram)
-        throw exception();
-    m_pQuantumProgram->pushBackNode(dynamic_cast<QNode *>(&measure));
-    return *this;
+if (nullptr == m_pQuantumProgram)
+throw exception();
+m_pQuantumProgram->pushBackNode(dynamic_cast<QNode *>(&measure));
+return *this;
 }
 
 QProg & QProg::operator<<( QProg  qprog)
 {
-    if (nullptr == m_pQuantumProgram)
-        throw exception();
-    m_pQuantumProgram->pushBackNode(dynamic_cast<QNode *>(&qprog));
-    return *this;
+if (nullptr == m_pQuantumProgram)
+throw exception();
+m_pQuantumProgram->pushBackNode(dynamic_cast<QNode *>(&qprog));
+return *this;
 }
 
 QProg & QProg::operator<<(QGate  node)
 {
-    if (nullptr == m_pQuantumProgram)
-        throw exception();
-    m_pQuantumProgram->pushBackNode(dynamic_cast<QNode *>(&node));
-    return *this;
+if (nullptr == m_pQuantumProgram)
+throw exception();
+m_pQuantumProgram->pushBackNode(dynamic_cast<QNode *>(&node));
+return *this;
 }
 
 QProg & QProg::operator<<( QCircuit  qCircuit)
 {
-    if (nullptr != m_pQuantumProgram)
-        m_pQuantumProgram->pushBackNode(dynamic_cast<QNode *>(&qCircuit));
-    return *this;
+if (nullptr != m_pQuantumProgram)
+m_pQuantumProgram->pushBackNode(dynamic_cast<QNode *>(&qCircuit));
+return *this;
 }
 
 
@@ -504,7 +577,7 @@ NodeIter QProg::insertQNode(NodeIter & iter, QNode * pNode)
     {
         throw circuit_not_found_exception("there is no this circuit", false);
     }
-    
+
     auto pProg = dynamic_cast<AbstractQuantumProgram *>(aIter);
     return pProg->insertQNode(iter, pNode);
 }
@@ -541,7 +614,7 @@ void QProg::clear()
         throw exception();
 }
 
-QMAP_SIZE QProg:: getPosition() const
+QMAP_SIZE QProg::getPosition() const
 {
     return m_stPosition;
 }
@@ -626,7 +699,7 @@ bool NodeIter::operator==(NodeIter iter)
 }
 
 
- QGate  QGateNodeFactory::getGateNode(string & name, Qubit * qbit)
+QGate  QGateNodeFactory::getGateNode(string & name, Qubit * qbit)
 {
     QuantumGate * pGate = m_pGateFact->getGateNode(name);
     QGate  QGateNode(qbit, pGate);
@@ -640,16 +713,16 @@ QGate  QGateNodeFactory::getGateNode(string & name, Qubit * qbit, double angle)
     return QGateNode;
 }
 
-QGate  QGateNodeFactory::getGateNode(string & name, Qubit * controlQBit , Qubit * targetQBit)
+QGate  QGateNodeFactory::getGateNode(string & name, Qubit * controlQBit, Qubit * targetQBit)
 {
     QuantumGate * pGate = m_pGateFact->getGateNode(name);
     QGate  QGateNode(controlQBit, targetQBit, pGate);
     return QGateNode;
 }
 
-QGate  QGateNodeFactory::getGateNode(string & name, Qubit * controlQBit, Qubit * targetQBit,double theta)
+QGate  QGateNodeFactory::getGateNode(string & name, Qubit * controlQBit, Qubit * targetQBit, double theta)
 {
-    QuantumGate * pGate = m_pGateFact->getGateNode(name,theta);
+    QuantumGate * pGate = m_pGateFact->getGateNode(name, theta);
     QGate  QGateNode(controlQBit, targetQBit, pGate);
     return QGateNode;
 }
@@ -657,7 +730,7 @@ QGate  QGateNodeFactory::getGateNode(string & name, Qubit * controlQBit, Qubit *
 QGate  QGateNodeFactory::getGateNode(double alpha, double beta, double gamma, double delta, Qubit * qbit)
 {
     string name = "U4";
-    QuantumGate * pGate = m_pGateFact->getGateNode(name,alpha, beta, gamma, delta);
+    QuantumGate * pGate = m_pGateFact->getGateNode(name, alpha, beta, gamma, delta);
     QGate  QGateNode(qbit, pGate);
     return QGateNode;
 }
@@ -665,7 +738,7 @@ QGate  QGateNodeFactory::getGateNode(double alpha, double beta, double gamma, do
 QGate  QGateNodeFactory::getGateNode(double alpha, double beta, double gamma, double delta, Qubit * controlQBit, Qubit * targetQBit)
 {
     string name = "CU";
-    QuantumGate * pGate = m_pGateFact->getGateNode(name,alpha, beta, gamma, delta);
+    QuantumGate * pGate = m_pGateFact->getGateNode(name, alpha, beta, gamma, delta);
     QGate  QGateNode(controlQBit, targetQBit, pGate);
     return QGateNode;
 }
@@ -684,7 +757,7 @@ QGate QGateNodeFactory::getGateNode(string &name, QStat matrix, Qubit * targetQB
     return QGateNode;
 }
 
-static QGateNodeFactory * _gs_pGateNodeFactory = QGateNodeFactory::getInstance();
+
 
 QGate  X(Qubit * qbit)
 {
@@ -696,7 +769,7 @@ QGate X1(Qubit * qbit)
     string name = "X1";
     return _gs_pGateNodeFactory->getGateNode(name, qbit);
 }
-QGate  RX(Qubit * qbit,double angle)
+QGate  RX(Qubit * qbit, double angle)
 {
     string name = "RX";
     return _gs_pGateNodeFactory->getGateNode(name, qbit, angle);
@@ -739,15 +812,21 @@ QGate  RZ(Qubit * qbit, double angle)
 }
 
 
-QGate  iSWAP(Qubit * targitBit,Qubit * controlBit)
+QGate  iSWAP(Qubit * targitBit, Qubit * controlBit)
 {
     string name = "ISWAP";
     return _gs_pGateNodeFactory->getGateNode(name, targitBit, controlBit);
 }
 
-QGate  iSWAP(Qubit * targitBit, Qubit * controlBit,double theta)
+QGate  iSWAP(Qubit * targitBit, Qubit * controlBit, double theta)
 {
     string name = "ISWAP";
+    return _gs_pGateNodeFactory->getGateNode(name, targitBit, controlBit, theta);
+}
+
+QGate CR(Qubit * targitBit, Qubit * controlBit, double theta)
+{
+    string name = "CPhaseGate";
     return _gs_pGateNodeFactory->getGateNode(name, targitBit, controlBit, theta);
 }
 
@@ -761,6 +840,12 @@ QGate SqiSWAP(Qubit * targitBit, Qubit * controlBit)
 QGate  S(Qubit * qbit)
 {
     string name = "S";
+    return _gs_pGateNodeFactory->getGateNode(name, qbit);
+}
+
+QGate T(Qubit * qbit)
+{
+    string name = "T";
     return _gs_pGateNodeFactory->getGateNode(name, qbit);
 }
 
@@ -784,7 +869,7 @@ QGate  CZ(Qubit * targetQBit, Qubit * controlQBit)
 
 QGate  U4(double alpha, double beta, double gamma, double delta, Qubit * qbit)
 {
-    return _gs_pGateNodeFactory->getGateNode(alpha, beta, gamma, delta ,qbit);
+    return _gs_pGateNodeFactory->getGateNode(alpha, beta, gamma, delta, qbit);
 }
 
 QGate U4(QStat & matrix, Qubit *qubit)
@@ -808,30 +893,23 @@ QGate CU(QStat & matrix, Qubit * controlQBit, Qubit * targetQBit)
 QGate  QDouble(QStat matrix, Qubit * pQubit1, Qubit * pQubit2)
 {
     string name = "QDoubleGate";
-    return _gs_pGateNodeFactory->getGateNode(name,matrix, pQubit1, pQubit2);
+    return _gs_pGateNodeFactory->getGateNode(name, matrix, pQubit1, pQubit2);
 }
-
-
-
-
 
 OriginProgram::~OriginProgram()
 {
     Item *temp;
-    if (m_pHead != nullptr)
-    {
-        while (m_pHead != m_pEnd)
-        {
-            temp = m_pHead;
-            m_pHead = m_pHead->getNext();
-            m_pHead->setPre(nullptr);
-            delete temp;
-        }
 
-        delete m_pHead;
-        m_pHead = nullptr;
-        m_pEnd = nullptr;
+    while (m_pHead != nullptr)
+    {
+        m_pHead->setPre(nullptr);
+        temp = m_pHead;
+        m_pHead = m_pHead->getNext();
+        delete temp;
     }
+    m_pHead = nullptr;
+    m_pEnd = nullptr;
+
 }
 
 OriginProgram::OriginProgram() : m_pHead(nullptr), m_pEnd(nullptr), m_iNodeType(PROG_NODE)
@@ -956,6 +1034,7 @@ NodeIter OriginProgram::insertQNode(NodeIter & perIter, QNode * pQNode)
         pPerItem->setNext(pCurItem);
         pCurItem->setPre(pPerItem);
         pCurItem->setNext(nullptr);
+        m_pEnd = pCurItem;
     }
     NodeIter temp(pCurItem);
     return temp;
@@ -1011,7 +1090,7 @@ NodeIter OriginProgram::deleteQNode(NodeIter & targitIter)
         return temp;
     }
 
-    if (m_pEnd = pTargitItem)
+    if (m_pEnd == pTargitItem)
     {
         Item * pPerItem = pTargitItem->getPre();
         if (nullptr == pPerItem)
@@ -1128,7 +1207,7 @@ void OriginCircuit::setDagger(bool isDagger)
     m_bIsDagger = isDagger;
 }
 
-void OriginCircuit::setControl(vector<Qubit*>& quBitVector )
+void OriginCircuit::setControl(vector<Qubit*>& quBitVector)
 {
     for (auto aiter : quBitVector)
     {
@@ -1197,7 +1276,7 @@ NodeIter OriginCircuit::insertQNode(NodeIter & perIter, QNode * pQNode)
         throw exception();
     }
 
-    for (;aiter != this->getEndNodeIter();aiter++)
+    for (; aiter != this->getEndNodeIter(); aiter++)
     {
         if (pPerItem == aiter.getPCur())
         {
@@ -1212,7 +1291,7 @@ NodeIter OriginCircuit::insertQNode(NodeIter & perIter, QNode * pQNode)
 
     WriteLock wl(m_sm);
     Item *pCurItem = new OriginItem();
-    pCurItem->setNode(pQNode);   
+    pCurItem->setNode(pQNode);
 
     if (nullptr != pPerItem->getNext())
     {
@@ -1226,6 +1305,7 @@ NodeIter OriginCircuit::insertQNode(NodeIter & perIter, QNode * pQNode)
         pPerItem->setNext(pCurItem);
         pCurItem->setPre(pPerItem);
         pCurItem->setNext(nullptr);
+        m_pEnd = pCurItem;
     }
     NodeIter temp(pCurItem);
     return temp;
@@ -1234,7 +1314,7 @@ NodeIter OriginCircuit::insertQNode(NodeIter & perIter, QNode * pQNode)
 NodeIter OriginCircuit::deleteQNode(NodeIter & targitIter)
 {
     ReadLock * rl = new ReadLock(m_sm);
-    Item * pTargitItem= targitIter.getPCur();
+    Item * pTargitItem = targitIter.getPCur();
     if (nullptr == pTargitItem)
         throw exception();
 
@@ -1242,7 +1322,7 @@ NodeIter OriginCircuit::deleteQNode(NodeIter & targitIter)
     {
         throw exception();
     }
-    
+
     auto aiter = this->getFirstNodeIter();
     for (; aiter != this->getEndNodeIter(); aiter++)
     {
@@ -1279,7 +1359,7 @@ NodeIter OriginCircuit::deleteQNode(NodeIter & targitIter)
         NodeIter temp(m_pHead);
         return temp;
     }
-    
+
     if (m_pEnd == pTargitItem)
     {
         Item * pPerItem = pTargitItem->getPre();
@@ -1317,6 +1397,12 @@ QMAP_SIZE OriginCircuit::getPosition() const
 void OriginCircuit::setPosition(QMAP_SIZE stPosition)
 {
     m_stPosition = stPosition;
+}
+
+void OriginCircuit::clearControl()
+{
+    m_controlQuBitVector.clear();
+    m_controlQuBitVector.resize(0);
 }
 
 void QuantumCircuitFactory::registClass(string name, CreateQCircuit method)
@@ -1358,7 +1444,7 @@ OriginQGate::OriginQGate(Qubit * qbit, QuantumGate *pQGate)
     m_iNodeType = GATE_NODE;
 }
 
-OriginQGate::OriginQGate(Qubit * controlQuBit , Qubit * targetQuBit, QuantumGate * pQGate)
+OriginQGate::OriginQGate(Qubit * controlQuBit, Qubit * targetQuBit, QuantumGate * pQGate)
 {
     if (nullptr == pQGate)
         throw param_error_exception("OriginGate param err", false);
@@ -1377,7 +1463,7 @@ NodeType OriginQGate::getNodeType() const
     return m_iNodeType;
 }
 
-size_t OriginQGate::getQuBitVector(vector<Qubit*>& vector ) const
+size_t OriginQGate::getQuBitVector(vector<Qubit*>& vector) const
 {
     for (auto aiter : m_QuBitVector)
     {
@@ -1454,7 +1540,7 @@ void OriginQGate::PushBackQuBit(Qubit * pQubit)
     if (nullptr == pQubit)
     {
         stringstream ssErrMsg;
-        ssErrMsg<< __FUNCTION__ << " param is null";
+        ssErrMsg << __FUNCTION__ << " param is null";
         throw param_error_exception(ssErrMsg.str(), false);
     }
 
@@ -1465,7 +1551,7 @@ void OriginQGate::PushBackQuBit(Qubit * pQubit)
 
 HadamardQCircuit::HadamardQCircuit(vector<Qubit*>& pQubitVector)
 {
-    for (auto aiter :pQubitVector)
+    for (auto aiter : pQubitVector)
     {
         auto  temp = ::H(aiter);
         m_pQuantumCircuit->pushBackNode((QNode *)&temp);

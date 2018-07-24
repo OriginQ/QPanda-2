@@ -8,17 +8,20 @@ QPanda是一套用于处理量子电路，并适应近期开发出的各式量�
 
 ## 使用目录
 
-#### [1、量子计算简介](./Doc/0.Quantum_Computing.md)
+#### [1、量子计算简介](./Doc/1.Quantum_Computing.md)
 
-#### [2、安装与配置](./Doc/1.Installation.md)
-#### [3、项目总览](./Doc/3.Overview.md)
-#### [4、初识QPanda](./Doc/2.Hello_QPanda.md)
+#### [2、项目总览](./Doc/2.Overview.md)
 
-#### [5、开发者文档](./Doc/4.Developer_Documentation.md)
-#### [6、高级开发者文档](./Doc/5.Advanced_Developer_Documentation.md)
-#### [7、用户API参照](./Doc/6.API_References.md)
-#### [8、开发版本与日志](./Doc/7.Version_and_Log.md)
+
+#### [2、安装与配置](./Doc/3.Installation.md)
+
+#### [4、初识QPanda](./Doc/4.Hello_QPanda.md)
+
+#### [5、开发者文档](./Doc/5.Developer_Documentation.md)
+#### [6、高级开发者文档](./Doc/6.Advanced_Developer_Documentation.md)
+#### [7、用户API参照](./Doc/7.API_References.md)
+#### [8、开发版本与日志](./Doc/8.Version_and_Log.md)
 
 English Content
 
-#### [2. QPanda 2.0 Installation](./Doc/1.Installation_en.md)
+#### [3. QPanda 2.0 Installation](./Doc/3.Installation_en.md)

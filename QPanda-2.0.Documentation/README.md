@@ -22,6 +22,6 @@ QPanda是一套用于处理量子电路，并适应近期开发出的各式量�
 #### [7、用户API参照](./Doc/7.API_References.md)
 #### [8、开发版本与日志](./Doc/8.Version_and_Log.md)
 
-English Content
+## English Content
 
 #### [3. QPanda 2.0 Installation](./Doc/3.Installation_en.md)

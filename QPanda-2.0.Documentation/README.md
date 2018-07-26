@@ -8,7 +8,7 @@ QPanda是一套用于处理量子电路，并适应近期开发出的各式量�
 
 ## 文档目录
 
-#### [1、初识量子计算常见的问题](./Doc/1.Quantum_Computing.md)
+#### [1、量子计算常见的问题](./Doc/1.Quantum_Computing.md)
 
 #### [2、项目总览](./Doc/2.Overview.md)
 

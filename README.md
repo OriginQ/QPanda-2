@@ -5,7 +5,7 @@
 
 ![图片: ](https://images-cdn.shimo.im/7c6ytIs143ckvZGG/Snipaste_2018_09_03_09_17_53.png)
 
-                         Quantum Programming Architecture for Nisq Device Application
+                               Quantum Programming Architecture for Nisq Device Application
 
 
 

@@ -2,8 +2,8 @@
 ## QPanda 2.0
 
 
-
-![图片: ](https://images-cdn.shimo.im/7c6ytIs143ckvZGG/Snipaste_2018_09_03_09_17_53.png)
+ 
+![图片: ](https://images-cdn.shimo.im/disVJ89G0uYsSPGq/image.png)
 
                                Quantum Programming Architecture for Nisq Device Application
 

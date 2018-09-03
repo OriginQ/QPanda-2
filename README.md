@@ -3,9 +3,13 @@
 
 
 
-![图片: ](https://images-cdn.shimo.im/GCEO3o2i9dcRrfV0/68747470733a2f2f696d616765732d63646e2e7368696d6f2e696d2f4274755036615665306f6f326a526c5a2f696d6167652e706e67.png)
+![图片: ](https://images-cdn.shimo.im/7c6ytIs143ckvZGG/Snipaste_2018_09_03_09_17_53.png)
 
-Qpanda 2.0 is a quantum software development kit used to deal with quantum circuits and experiments on various quantum computers launched by the Origin Quantum Computing Company. It supports mainstream quantum logic gate operation and can be adapted to a variety of quantum chips, and the targeted optimization of quantum programs under different platforms.
+              Quantum Programming Architecture for Nisq Device Application
+
+
+
+QPanda 2.0 is an abbreviation of Quantum Programming Architecture for Nisq Device Application 2.0. Which is a quantum software development kit used to deal with quantum circuits and experiments on various quantum computers launched by the Origin Quantum Computing Company. It supports mainstream quantum logic gate operation and can be adapted to a variety of quantum chips, and the targeted optimization of quantum programs under different platforms.
 
 The C++ language is used as the host language in QPanda 2.0, it is also supports quantum languages ​​written in QRunes or QASM. Currently, QPanda 2.0 supports up to 32-qubits in the local simulation. It integrates the quantum virtual machine(QVM) and encapsulates the typical quantum algorithms. Besides,in QPanda 2.0, quantum programs can make logical decisions where we have added the idea of ​​control flow(q-if), thus in line with the programming specifications of high-level languages.
 

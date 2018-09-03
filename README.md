@@ -2,7 +2,7 @@
 ## QPanda 2.0
 
 
- 
+
 ![图片: ](https://images-cdn.shimo.im/disVJ89G0uYsSPGq/image.png)
 
                                Quantum Programming Architecture for Nisq Device Application
@@ -15,15 +15,15 @@ The C++ language is used as the host language in QPanda 2.0, it is also supports
 
 There are three processes in QPanda 2.0: `initialization`, `compilation` and `running`.
 
-**Initialization**:
+- **Initialization**:
 
 The initialization allows users to design different quantum circuits to deal with the corresponding problems.
 
-**Compilation**:
+- **Compilation**:
 
 Compilation allows users to rewrite them to run on different backends (such as simulators, quantum chips, quantum chips of different companies, and so on).
 
-**Running**:
+- **Running**:
 
 That is the process of collecting results(classical information), Moreover, the results depending on the design of the problem(algorithm) to do the corresponding operation.
 
@@ -34,11 +34,11 @@ That is the process of collecting results(classical information), Moreover, the 
 
 The design of **QPanda 2.0** is forward-looking, considering that quantum computing will flourish and be widely applied in the future. So QPanda 2.0 did the following consideration when it was designed:
 
-1.  Full series compatibility.
+- Full series compatibility.
 
-2.  Standard architecture.
+- Standard architecture.
 
-3.  Standardized quantum machine model.
+- Standardized quantum machine model.
 
 ## The Project Includes：
 

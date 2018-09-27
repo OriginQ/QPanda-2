@@ -16,16 +16,14 @@ limitations under the License.
 
 #include <iostream>
 #include "QAlgorithm.h"
-//#include "Algorithm/test/test.h"
-
+#include "QPanda.h"
+#include "Transform/TransformDecomposition.h"
 using namespace std;
 
 int main()
 {
-
     HHL_Algorithm();  
-
     return  0;
-
 }
+
 

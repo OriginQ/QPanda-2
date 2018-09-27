@@ -166,14 +166,14 @@ CExpr * OriginCExpr::deepcopy() const
 	if (contentSpecifier == CBIT)
 	{
 		return
-			Factory::CExprFactory::GetFactoryInstance().
+			CExprFactory::GetFactoryInstance().
 			GetCExprByCBit(this->content.cbit);
 	}
 	if (contentSpecifier == OPERATOR)
 	{
 		if (isBinary(this->content.iOperatorSpecifier))
 			return
-			Factory::CExprFactory::GetFactoryInstance().
+			CExprFactory::GetFactoryInstance().
 			GetCExprByOperation(
 				this->leftExpr->deepcopy(),
 				this->rightExpr->deepcopy(),
@@ -181,7 +181,7 @@ CExpr * OriginCExpr::deepcopy() const
 			);
 		else if (isUnary(this->content.iOperatorSpecifier))
 			return
-			Factory::CExprFactory::GetFactoryInstance().
+			CExprFactory::GetFactoryInstance().
 			GetCExprByOperation(
 				this->leftExpr->deepcopy(),
 				nullptr,

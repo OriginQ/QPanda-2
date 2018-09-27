@@ -19,11 +19,27 @@ limitations under the License.
 #include "QuantumCircuit/QGate.h"
 #include "QuantumCircuit/QProgram.h"
 #include "QuantumMachine/OriginQuantumMachine.h"
+#include "Transform/QGateCounter.h"
+#include "Transform/QProgToQRunes.h"
+#include "Transform/QProgToQASM.h"
+#include "Transform/QProgToQuil.h"
+#include "Transform/QRunesToQProg.h"
+#include "Transform/QProgStored.h"
+#include "Transform/QProgDataParse.h"
 
+extern size_t countQGateUnderQCircuit(AbstractQuantumCircuit *);
+
+extern size_t countQGateUnderQProg(AbstractQuantumProgram * pQProg);
+extern string qProgToQuil(QProg &prog);
+extern void qProgBinaryStored(QProg &prog, const string &filename = DEF_QPROG_FILENAME);
+extern bool binaryQProgFileParse(QProg &prog, const string &filename = DEF_QPROG_FILENAME);
+
+extern string qProgToQRunes(QProg &pQPro);
+extern string qProgToQasm(QProg &pQPro);
+
+extern QProg qRunesToProg();
 
 extern HadamardQCircuit CreateHadamardQCircuit(vector<Qubit *> & pQubitVector);
-
-extern QNodeMap _G_QNodeMap;
 
 // Create an empty QProg Container
 extern QProg  CreateEmptyQProg();
@@ -76,6 +92,8 @@ extern QGate RZ(Qubit*, double angle);
 // Create S_GATE gate
 extern QGate S(Qubit* qbit);
 
+extern QGate T(Qubit*);
+
 // Create Hadamard Gate
 extern QGate H(Qubit* qbit);
 
@@ -99,6 +117,8 @@ extern QGate CU(QStat& matrix, Qubit*, Qubit*);
 extern QGate  iSWAP(Qubit * targitBit, Qubit * controlBit);
 extern QGate  iSWAP(Qubit * targitBit, Qubit * controlBit, double theta);
 
+extern QGate  CR(Qubit * targitBit, Qubit * controlBit, double theta);
+
 extern QGate  SqiSWAP(Qubit * targitBit, Qubit * controlBit);
 // to init the environment. Use this at the beginning
 void init();
@@ -109,11 +129,17 @@ void finalize();
 // Allocate a qubit
 Qubit* qAlloc();
 
+// Allocate a qubit
+Qubit* qAlloc(size_t stQubitAddr);
+
 // Free a qubit
 void qFree(Qubit* q);
 
 // Allocate a cbit
 CBit* cAlloc();
+
+// Allocate a cbit
+CBit* cAlloc(size_t stCBitaddr);
 
 // Free a cbit
 void cFree(CBit* c);
@@ -145,6 +171,19 @@ ClassicalCondition bind_a_cbit(CBit* c);
 // run the loaded program
 void run();
 
+vector<pair<size_t, double>> PMeasure(vector<Qubit*>& qubit_vector, int select_max);
+vector<double> PMeasure_no_index(vector<Qubit*>& qubit_vector);
+vector<double> accumulateProbability(vector<double> &prob_list);
+map<string, size_t> quick_measure(vector<Qubit*>& qubit_vector, int shots,
+    vector<double>& accumulate_probabilites);
+
+
+#if! defined(_MSC_VER)
+inline complex<double> operator""i(unsigned long long _Val)
+{	// return imaginary _Val
+    return (complex<double>(0.0, static_cast<double>(_Val)));
+}
+#endif
 
 
 #endif // !_QPANDA_H

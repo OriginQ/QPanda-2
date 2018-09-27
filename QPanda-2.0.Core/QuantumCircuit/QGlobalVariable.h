@@ -14,8 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#ifndef _QGlobalVariable_H_
-#define _QGlobalVariable_H_
+#ifndef _QGlobalVariable_H
+#define _QGlobalVariable_H
+
+#include <complex>
+#include <vector>
+using std::complex;
+using std::vector;
 enum NodeType
 {
     NODE_UNDEFINED = -1,
@@ -27,7 +32,7 @@ enum NodeType
     QIF_START_NODE
 };
 
-enum GATE_TYPE {
+enum GateType {
     PAULI_X_GATE,
     PAULI_Y_GATE,
     PAULI_Z_GATE,
@@ -74,27 +79,12 @@ enum OperatorType
 {
     TYPE_OPERATOR_NODE,
     TYPE_CBIT_NODE,
-    TYPE_CINT_NODE,
-    /*TYPE_CINT8_NODE,
-    TYPE_CINT16_NODE,
-    TYPE_CVEC_NODE,*/
+    TYPE_CINT_NODE
 };
-//const map<int, string> Operator_String_Map
-//{
-//    { OP_AND,"&&"},
-//    { OP_OR,"||" },
-//    { OP_NOT,"!" },
-//    { OP_ADD,"+" },
-//    { OP_MINUS,"-" },
-//    { OP_MULTIPLY,"*" },
-//    { OP_DIVIDE,"/" },
-//    { OP_MODE,"%" },
-//    { OP_EQUAL,"==" },
-//    { OP_LESS,"<" },
-//    { OP_MORE,">" },
-//    { OP_NO_MORE,"<=" },
-//    { OP_NO_LESS,">=" }
-//};
+
+typedef complex <double> qcomplex_t;
+typedef vector <complex<double>> QStat;
+const double PI = 3.14159265358979;
 
 constexpr double SQRT2 = 1.4142135623730950488016887242097;
 #endif

@@ -1,17 +1,15 @@
 ﻿/*
 Copyright (c) 2017-2018 Origin Quantum Computing. All Right Reserved.
+Licensed under the Apache License 2.0
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+QGate.cpp
+Author: Menghan.Dou
+Created in 2018-6-30
 
-http://www.apache.org/licenses/LICENSE-2.0
+Classes for QGate
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+Update@2018-8-30
+Update by code specification
 */
 
 #include "QGate.h"
@@ -20,84 +18,82 @@ limitations under the License.
 using namespace QGATE_SPACE;
 QuantumGate::QuantumGate()
 {
-    qOpNum = 0;
-    gateType = -1;
+    operation_num = 0;
+    gate_type = -1;
 }
 
 
 U4::U4(U4 &toCopy)
 {
-    qOpNum = toCopy.qOpNum;
+    operation_num = toCopy.operation_num;
     this->alpha = toCopy.alpha;
     this->beta = toCopy.beta;
     this->gamma = toCopy.gamma;
     this->delta = toCopy.delta;
-    this->gatematrix = toCopy.gatematrix;
+    this->gate_matrix = toCopy.gate_matrix;
 }
 
 U4::U4()
 {
-    qOpNum = 1;
+    operation_num = 1;
     alpha = 0;
     beta = 0;
     gamma = 0;
     delta = 0;
-    gatematrix.push_back(1);
-    gatematrix.push_back(0);
-    gatematrix.push_back(0);
-    gatematrix.push_back(1);
+    gate_matrix.push_back(1);
+    gate_matrix.push_back(0);
+    gate_matrix.push_back(0);
+    gate_matrix.push_back(1);
 
 }
 
 U4::U4(double _alpha, double _beta, double _gamma, double _delta)
     : alpha(_alpha), beta(_beta), gamma(_gamma), delta(_delta)
 {
-    qOpNum = 1;
+    operation_num = 1;
     QStat matrix;
-    gatematrix.push_back(COMPLEX(cos(alpha - beta / 2 - delta / 2)*cos(gamma / 2),
+    gate_matrix.push_back(qcomplex_t(cos(alpha - beta / 2 - delta / 2)*cos(gamma / 2),
         sin(alpha - beta / 2 - delta / 2)*cos(gamma / 2)));
-    gatematrix.push_back(COMPLEX(-cos(alpha - beta / 2 + delta / 2)*sin(gamma / 2),
+    gate_matrix.push_back(qcomplex_t(-cos(alpha - beta / 2 + delta / 2)*sin(gamma / 2),
         -sin(alpha - beta / 2 + delta / 2)*sin(gamma / 2)));
-    gatematrix.push_back(COMPLEX(cos(alpha + beta / 2 - delta / 2)*sin(gamma / 2),
+    gate_matrix.push_back(qcomplex_t(cos(alpha + beta / 2 - delta / 2)*sin(gamma / 2),
         sin(alpha + beta / 2 - delta / 2)*sin(gamma / 2)));
-    gatematrix.push_back(COMPLEX(cos(alpha + beta / 2 + delta / 2)*cos(gamma / 2),
+    gate_matrix.push_back(qcomplex_t(cos(alpha + beta / 2 + delta / 2)*cos(gamma / 2),
         sin(alpha + beta / 2 + delta / 2)*cos(gamma / 2)));
 }
 U4::U4(QStat & matrix)
 {
-    qOpNum = 1;
-    //QStat matrix;
-    gatematrix.resize(4);
-    gatematrix[0] = matrix[0];
-    gatematrix[1] = matrix[1];
-    gatematrix[2] = matrix[2];
-    gatematrix[3] = matrix[3];
-    gamma = 2 * acos(abs(gatematrix[0]));
-    if (abs(gatematrix[0] * gatematrix[1]) > 1e-20)
+    operation_num = 1;
+    gate_matrix.resize(4);
+    gate_matrix[0] = matrix[0];
+    gate_matrix[1] = matrix[1];
+    gate_matrix[2] = matrix[2];
+    gate_matrix[3] = matrix[3];
+    gamma = 2 * acos(abs(gate_matrix[0]));
+    if (abs(gate_matrix[0] * gate_matrix[1]) > 1e-20)
     {
-        beta = argc(gatematrix[2] / gatematrix[0]);
-        delta = argc(gatematrix[3] / gatematrix[2]);
-        alpha = beta / 2 + delta / 2 + argc(gatematrix[0]);
+        beta = argc(gate_matrix[2] / gate_matrix[0]);
+        delta = argc(gate_matrix[3] / gate_matrix[2]);
+        alpha = beta / 2 + delta / 2 + argc(gate_matrix[0]);
     }
-    else if (abs(gatematrix[0]) > 1e-10)
+    else if (abs(gate_matrix[0]) > 1e-10)
     {
-        beta = argc(gatematrix[3] / gatematrix[0]);
+        beta = argc(gate_matrix[3] / gate_matrix[0]);
         delta = 0;
-        alpha = beta / 2 + argc(gatematrix[0]);
+        alpha = beta / 2 + argc(gate_matrix[0]);
     }
     else
     {
-        beta = argc(gatematrix[2] / gatematrix[1]) + PI;
+        beta = argc(gate_matrix[2] / gate_matrix[1]) + PI;
         delta = 0;
-        alpha = argc(gatematrix[1]) + beta / 2 - PI;
+        alpha = argc(gate_matrix[1]) + beta / 2 - PI;
     }
 }
-;
 void U4::getMatrix(QStat & matrix) const
 {
-    if (gatematrix.size() != 4)
+    if (gate_matrix.size() != 4)
         throw exception();
-    for (auto aIter : gatematrix)
+    for (auto aIter : gate_matrix)
     {
         matrix.push_back(aIter);
     }
@@ -109,10 +105,10 @@ X::X()
     beta = 0;
     gamma = PI;
     delta = PI;
-    gatematrix[0] = 0;
-    gatematrix[1] = 1;
-    gatematrix[2] = 1;
-    gatematrix[3] = 0;
+    gate_matrix[0] = 0;
+    gate_matrix[1] = 1;
+    gate_matrix[2] = 1;
+    gate_matrix[3] = 0;
 }
 
 
@@ -123,10 +119,10 @@ Y::Y()
     beta = 0;
     gamma = PI;
     delta = 0;
-    gatematrix[0] = 0;
-    gatematrix[1].imag(-1);
-    gatematrix[2].imag(-1);
-    gatematrix[3] = 0;
+    gate_matrix[0] = 0;
+    gate_matrix[1].imag(-1);
+    gate_matrix[2].imag(1);
+    gate_matrix[3] = 0;
 }
 
 
@@ -137,7 +133,7 @@ Z::Z()
     beta = PI;
     gamma = 0;
     delta = 0;
-    gatematrix[3] = -1;
+    gate_matrix[3] = -1;
 }
 
 //RX(pi/2) gate
@@ -147,10 +143,10 @@ X1::X1()
     beta = 3.0 / 2 * PI;
     gamma = PI / 2;
     delta = PI / 2;
-    gatematrix[0] = 1 / SQRT2;
-    gatematrix[1] = COMPLEX(0, -1 / SQRT2);
-    gatematrix[2] = COMPLEX(0, -1 / SQRT2);
-    gatematrix[3] = 1 / SQRT2;
+    gate_matrix[0] = 1 / SQRT2;
+    gate_matrix[1] = qcomplex_t(0, -1 / SQRT2);
+    gate_matrix[2] = qcomplex_t(0, -1 / SQRT2);
+    gate_matrix[3] = 1 / SQRT2;
 }
 
 
@@ -161,10 +157,10 @@ Y1::Y1()
     beta = 0;
     gamma = PI / 2;
     delta = 0;
-    gatematrix[0] = 1 / SQRT2;
-    gatematrix[1] = -1 / SQRT2;
-    gatematrix[2] = 1 / SQRT2;
-    gatematrix[3] = 1 / SQRT2;
+    gate_matrix[0] = 1 / SQRT2;
+    gate_matrix[1] = -1 / SQRT2;
+    gate_matrix[2] = 1 / SQRT2;
+    gate_matrix[3] = 1 / SQRT2;
 }
 
 
@@ -175,8 +171,8 @@ Z1::Z1()
     beta = PI / 2;
     gamma = 0;
     delta = 0;
-    gatematrix[0] = COMPLEX(1 / SQRT2, -1 / SQRT2);
-    gatematrix[3] = COMPLEX(1 / SQRT2, 1 / SQRT2);
+    gate_matrix[0] = qcomplex_t(1 / SQRT2, -1 / SQRT2);
+    gate_matrix[3] = qcomplex_t(1 / SQRT2, 1 / SQRT2);
 }
 
 H::H()
@@ -185,10 +181,10 @@ H::H()
     beta = 0;
     gamma = PI / 2;
     delta = PI;
-    gatematrix[0] = 1 / SQRT2;
-    gatematrix[1] = 1 / SQRT2;
-    gatematrix[2] = 1 / SQRT2;
-    gatematrix[3] = -1 / SQRT2;
+    gate_matrix[0] = 1 / SQRT2;
+    gate_matrix[1] = 1 / SQRT2;
+    gate_matrix[2] = 1 / SQRT2;
+    gate_matrix[3] = -1 / SQRT2;
 }
 
 //S:RZ_GATE(pi/2)
@@ -198,7 +194,7 @@ S::S()
     beta = PI / 2;
     gamma = 0;
     delta = 0;
-    gatematrix[3].imag(1);
+    gate_matrix[3].imag(1);
 }
 T::T()
 {
@@ -206,8 +202,8 @@ T::T()
     beta = PI / 4;
     gamma = 0;
     delta = 0;
-    gatematrix[3].real(1 / SQRT2);
-    gatematrix[3].imag(1 / SQRT2);
+    gate_matrix[3].real(1 / SQRT2);
+    gate_matrix[3].imag(1 / SQRT2);
 }
 
 RX::RX(double angle)
@@ -217,10 +213,10 @@ RX::RX(double angle)
     gamma = angle;
     delta = PI / 2;
     theta = angle;
-    gatematrix[0] = cos(angle / 2);
-    gatematrix[1].imag(-1 * sin(angle / 2));
-    gatematrix[2].imag(-1 * sin(angle / 2));
-    gatematrix[3] = cos(angle / 2);
+    gate_matrix[0] = cos(angle / 2);
+    gate_matrix[1].imag(-1 * sin(angle / 2));
+    gate_matrix[2].imag(-1 * sin(angle / 2));
+    gate_matrix[3] = cos(angle / 2);
 }
 RY::RY(double angle)
 {
@@ -229,10 +225,10 @@ RY::RY(double angle)
     gamma = angle;
     delta = 0;
     theta = angle;
-    gatematrix[0] = cos(angle / 2);
-    gatematrix[1] = -sin(angle / 2);
-    gatematrix[2] = sin(angle / 2);
-    gatematrix[3] = cos(angle / 2);
+    gate_matrix[0] = cos(angle / 2);
+    gate_matrix[1] = -sin(angle / 2);
+    gate_matrix[2] = sin(angle / 2);
+    gate_matrix[3] = cos(angle / 2);
 }
 
 RZ::RZ(double angle)
@@ -243,10 +239,10 @@ RZ::RZ(double angle)
     gamma = 0;
     delta = 0;
     theta = angle;
-    gatematrix[0].real(cos(angle / 2));
-    gatematrix[0].imag(-1 * sin(angle / 2));
-    gatematrix[3].real(cos(angle / 2));
-    gatematrix[3].imag(1 * sin(angle / 2));
+    gate_matrix[0].real(cos(angle / 2));
+    gate_matrix[0].imag(-1 * sin(angle / 2));
+    gate_matrix[3].real(cos(angle / 2));
+    gate_matrix[3].imag(1 * sin(angle / 2));
 }
 //U1_GATE=[1 0;0 exp(i*angle)]
 U1::U1(double angle)
@@ -256,8 +252,8 @@ U1::U1(double angle)
     gamma = 0;
     delta = 0;
     theta = angle;
-    gatematrix[3].real(cos(angle));
-    gatematrix[3].imag(1 * sin(angle));
+    gate_matrix[3].real(cos(angle));
+    gate_matrix[3].imag(1 * sin(angle));
 }
 
 
@@ -266,17 +262,17 @@ U1::U1(double angle)
 
 QDoubleGate::QDoubleGate()
 {
-    qOpNum = 2;
-    gatematrix.resize(16);
-    gatematrix[0] = 1;
-    gatematrix[5] = 1;
-    gatematrix[10] = 1;
-    gatematrix[15] = 1;
+    operation_num = 2;
+    gate_matrix.resize(16);
+    gate_matrix[0] = 1;
+    gate_matrix[5] = 1;
+    gate_matrix[10] = 1;
+    gate_matrix[15] = 1;
 }
 QDoubleGate::QDoubleGate(const QDoubleGate & oldDouble)
 {
-    this->qOpNum = oldDouble.qOpNum;
-    this->gatematrix = oldDouble.gatematrix;
+    this->operation_num = oldDouble.operation_num;
+    this->gate_matrix = oldDouble.gate_matrix;
     //oldDouble.getMatrix(Matrix);
 
     //for (auto aiter : Matrix)
@@ -284,11 +280,11 @@ QDoubleGate::QDoubleGate(const QDoubleGate & oldDouble)
     //m_matrix.push_back(aiter);
     //}
 }
-QDoubleGate::QDoubleGate(QStat & matrix) : qOpNum(2)
+QDoubleGate::QDoubleGate(QStat & matrix) : operation_num(2)
 {
     if (matrix.size() != 16)
         throw param_error_exception("this param for this function is err", false);
-    this->gatematrix = matrix;
+    this->gate_matrix = matrix;
     // for (auto aIter : matrix)
     // {
     //     gatematrix.push_back(aIter);
@@ -296,9 +292,9 @@ QDoubleGate::QDoubleGate(QStat & matrix) : qOpNum(2)
 }
 void QDoubleGate::getMatrix(QStat & matrix) const
 {
-    if (gatematrix.size() != 16)
+    if (gate_matrix.size() != 16)
         throw exception();
-    matrix = gatematrix;
+    matrix = gate_matrix;
     //for (auto aIter : gatematrix)
     // {
     //    matrix.push_back(aIter);
@@ -307,7 +303,7 @@ void QDoubleGate::getMatrix(QStat & matrix) const
 
 CU::CU()
 {
-    qOpNum = 2;
+    operation_num = 2;
     alpha = 0;
     beta = 0;
     gamma = 0;
@@ -316,57 +312,57 @@ CU::CU()
 }
 CU::CU(CU &toCopy)
 {
-    qOpNum = toCopy.qOpNum;
+    operation_num = toCopy.operation_num;
     this->alpha = toCopy.alpha;
     this->beta = toCopy.beta;
     this->gamma = toCopy.gamma;
     this->delta = toCopy.delta;
     //matrix
-    this->gatematrix = toCopy.gatematrix;
+    this->gate_matrix = toCopy.gate_matrix;
 }
 CU::CU(double _alpha, double _beta,
     double _gamma, double _delta)
     : alpha(_alpha), beta(_beta), gamma(_gamma), delta(_delta)
 {
-    qOpNum = 2;
-    gatematrix[10] = COMPLEX(cos(alpha - beta / 2 - delta / 2)*cos(gamma / 2),
+    operation_num = 2;
+    gate_matrix[10] = qcomplex_t(cos(alpha - beta / 2 - delta / 2)*cos(gamma / 2),
         sin(alpha - beta / 2 - delta / 2)*cos(gamma / 2));
-    gatematrix[11] = COMPLEX(-cos(alpha - beta / 2 + delta / 2)*sin(gamma / 2),
+    gate_matrix[11] = qcomplex_t(-cos(alpha - beta / 2 + delta / 2)*sin(gamma / 2),
         -sin(alpha - beta / 2 + delta / 2)*sin(gamma / 2));
-    gatematrix[14] = COMPLEX(cos(alpha + beta / 2 - delta / 2)*sin(gamma / 2),
+    gate_matrix[14] = qcomplex_t(cos(alpha + beta / 2 - delta / 2)*sin(gamma / 2),
         sin(alpha + beta / 2 - delta / 2)*sin(gamma / 2));
-    gatematrix[15] = COMPLEX(cos(alpha + beta / 2 + delta / 2)*cos(gamma / 2),
+    gate_matrix[15] = qcomplex_t(cos(alpha + beta / 2 + delta / 2)*cos(gamma / 2),
         sin(alpha + beta / 2 + delta / 2)*cos(gamma / 2));
 }
 CU::CU(QStat & matrix)
 {
-    qOpNum = 2;
+    operation_num = 2;
     //QStat matrix;
-    gatematrix.resize(16);
-    gatematrix[0] = 1;
-    gatematrix[5] = 1;
-    gatematrix[10] = matrix[0];
-    gatematrix[11] = matrix[1];
-    gatematrix[14] = matrix[2];
-    gatematrix[15] = matrix[3];
-    gamma = 2 * acos(abs(gatematrix[0]));
-    if (abs(gatematrix[10] * gatematrix[11]) > 1e-20)
+    gate_matrix.resize(16);
+    gate_matrix[0] = 1;
+    gate_matrix[5] = 1;
+    gate_matrix[10] = matrix[0];
+    gate_matrix[11] = matrix[1];
+    gate_matrix[14] = matrix[2];
+    gate_matrix[15] = matrix[3];
+    gamma = 2 * acos(abs(gate_matrix[10]));
+    if (abs(gate_matrix[10] * gate_matrix[11]) > 1e-20)
     {
-        beta = argc(gatematrix[14] / gatematrix[10]);
-        delta = argc(gatematrix[15] / gatematrix[14]);
-        alpha = beta / 2 + delta / 2 + argc(gatematrix[10]);
+        beta = argc(gate_matrix[14] / gate_matrix[10]);
+        delta = argc(gate_matrix[15] / gate_matrix[14]);
+        alpha = beta / 2 + delta / 2 + argc(gate_matrix[10]);
     }
-    else if (abs(gatematrix[10]) > 1e-10)
+    else if (abs(gate_matrix[10]) > 1e-10)
     {
-        beta = argc(gatematrix[15] / gatematrix[10]);
+        beta = argc(gate_matrix[15] / gate_matrix[10]);
         delta = 0;
-        alpha = beta / 2 + argc(gatematrix[10]);
+        alpha = beta / 2 + argc(gate_matrix[10]);
     }
     else
     {
-        beta = argc(gatematrix[14] / gatematrix[11]) + PI;
+        beta = argc(gate_matrix[14] / gate_matrix[11]) + PI;
         delta = 0;
-        alpha = argc(gatematrix[11]) + beta / 2 - PI;
+        alpha = argc(gate_matrix[11]) + beta / 2 - PI;
     }
 }
 ;
@@ -376,10 +372,10 @@ CNOT::CNOT()
     beta = 0;
     gamma = PI;
     delta = PI;
-    gatematrix[10] = 0;
-    gatematrix[11] = 1;
-    gatematrix[14] = 1;
-    gatematrix[15] = 0;
+    gate_matrix[10] = 0;
+    gate_matrix[11] = 1;
+    gate_matrix[14] = 1;
+    gate_matrix[15] = 0;
 }
 
 CPhaseGate::CPhaseGate(double angle)
@@ -388,8 +384,9 @@ CPhaseGate::CPhaseGate(double angle)
     beta = angle;
     gamma = 0;
     delta = 0;
-    gatematrix[15] = cos(angle);
-    gatematrix[15].imag(1 * sin(angle));
+    theta = angle;
+    gate_matrix[15] = cos(angle);
+    gate_matrix[15].imag(1 * sin(angle));
 }
 CZ::CZ()
 {
@@ -397,92 +394,96 @@ CZ::CZ()
     beta = PI;
     gamma = 0;
     delta = 0;
-    gatematrix[15] = -1;
+    gate_matrix[15] = -1;
 }
 
 ISWAPTheta::ISWAPTheta(double angle)
 {
     theta = angle;
-    gatematrix[5] = cos(angle);
-    gatematrix[6].imag(-1 * sin(angle));
-    gatematrix[9].imag(-1 * sin(angle));
-    gatematrix[10] = cos(angle);
+    gate_matrix[5] = cos(angle);
+    gate_matrix[6].imag(-1 * sin(angle));
+    gate_matrix[9].imag(-1 * sin(angle));
+    gate_matrix[10] = cos(angle);
     //matrix
 }
 ISWAP::ISWAP()
 {
     theta = PI / 2;
-    gatematrix[5] = 0;
-    gatematrix[6].imag(-1);
-    gatematrix[9].imag(-1);
-    gatematrix[10] = 0;
+    gate_matrix[5] = 0;
+    gate_matrix[6].imag(-1);
+    gate_matrix[9].imag(-1);
+    gate_matrix[10] = 0;
 }
 SQISWAP::SQISWAP()
 {
     theta = PI / 4;
-    gatematrix[5] = 1 / SQRT2;
-    gatematrix[6].imag(-1 / SQRT2);
-    gatematrix[9].imag(-1 / SQRT2);
-    gatematrix[10] = 1 / SQRT2;
+    gate_matrix[5] = 1 / SQRT2;
+    gate_matrix[6].imag(-1 / SQRT2);
+    gate_matrix[9].imag(-1 / SQRT2);
+    gate_matrix[10] = 1 / SQRT2;
 }
 
 
-void QGateFactory::registClass(string name, CreateGate method)
+void QGateFactory::registClass(string name, CreateGate_cb method)
 {
-    m_gateMap.insert(pair<string, CreateGate>(name, method));
+    m_gate_map.insert(pair<string, CreateGate_cb>(name, method));
 }
 
-void QGateFactory::registClass(string name, CreateAngleGate method)
+void QGateFactory::registClass(string name, CreateAngleGate_cb method)
 {
-    m_angleGateMap.insert(pair<string, CreateAngleGate>(name, method));
+    m_angle_gate_map.insert(pair<string, CreateAngleGate_cb>(name, method));
 }
 
-void QGateFactory::registClass(string name, CreateSingleAndCUGate method)
+void QGateFactory::registClass(string name, CreateSingleAndCUGate_cb method)
 {
-    m_singleAndCUGateMap.insert(pair<string, CreateSingleAndCUGate>(name, method));
+    m_single_and_cu_gate_map.insert(pair<string, CreateSingleAndCUGate_cb>(name, method));
 }
 
-void QGateFactory::registClass(string name, CreateGateByMatrix method)
+void QGateFactory::registClass(string name, CreateGateByMatrix_cb method)
 {
-    m_DoubleGateMap.insert(pair<string, CreateGateByMatrix>(name, method));
+    m_double_gate_map.insert(pair<string, CreateGateByMatrix_cb>(name, method));
 }
 
 
-QuantumGate * QGateFactory::getGateNode(std::string & name)
+QuantumGate * QGateFactory::getGateNode(const std::string & name)
 {
-    map<string, CreateGate>::const_iterator iter;
-    iter = m_gateMap.find(name);
-    if (iter == m_gateMap.end())
+    map<string, CreateGate_cb>::const_iterator iter;
+    iter = m_gate_map.find(name);
+    if (iter == m_gate_map.end())
         return nullptr;
     else
         return iter->second();
 }
 
-QuantumGate * QGateFactory::getGateNode(std::string & name, double angle)
+QuantumGate * QGateFactory::getGateNode(const std::string & name,const double angle)
 {
-    map<string, CreateAngleGate>::const_iterator iter;
-    iter = m_angleGateMap.find(name);
-    if (iter == m_angleGateMap.end())
+    map<string, CreateAngleGate_cb>::const_iterator iter;
+    iter = m_angle_gate_map.find(name);
+    if (iter == m_angle_gate_map.end())
         return nullptr;
     else
         return iter->second(angle);
 }
 
-QuantumGate * QGateFactory::getGateNode(std::string & name, double alpha, double beta, double gamma, double delta)
+QuantumGate * QGateFactory::getGateNode(const std::string & name, 
+                                        const double alpha,
+                                        const double beta,
+                                        const double gamma,
+                                        const double delta)
 {
-    map<string, CreateSingleAndCUGate>::const_iterator iter;
-    iter = m_singleAndCUGateMap.find(name);
-    if (iter == m_singleAndCUGateMap.end())
+    map<string, CreateSingleAndCUGate_cb>::const_iterator iter;
+    iter = m_single_and_cu_gate_map.find(name);
+    if (iter == m_single_and_cu_gate_map.end())
         return nullptr;
     else
         return iter->second(alpha, beta, gamma, delta);
 }
 
-QuantumGate * QGateFactory::getGateNode(std::string & name, QStat & matrix)
+QuantumGate * QGateFactory::getGateNode(const std::string & name, QStat & matrix)
 {
 
-    auto iter = m_DoubleGateMap.find(name);
-    if (iter == m_DoubleGateMap.end())
+    auto iter = m_double_gate_map.find(name);
+    if (iter == m_double_gate_map.end())
         return nullptr;
     else
         return iter->second(matrix);
@@ -493,9 +494,10 @@ QuantumGate * QGateFactory::getGateNode(std::string & name, QStat & matrix)
         return new className();                                          \
     }                                                                   \
     RegisterAction g_creatorRegister##className(                        \
-        #className,(CreateGate)objectCreator##className)
+        #className,(CreateGate_cb)objectCreator##className)
 
 REGISTER(X);
+REGISTER(T);
 REGISTER(Y);
 REGISTER(Z);
 REGISTER(S);
@@ -513,21 +515,21 @@ REGISTER(SQISWAP);
         return new className(angle);                                          \
     }                                                                   \
     RegisterAction g_angleCreatorRegister##className(                        \
-        #className,(CreateAngleGate)objectCreator##className)
+        #className,(CreateAngleGate_cb)objectCreator##className)
 
 #define REGISTER_SINGLE_CU(className)                                             \
     QuantumGate* objectCreator##className(double alpha,double beta,double gamma,double delta){      \
         return new className(alpha,beta,gamma,delta);                    \
     }                                                                   \
     RegisterAction g_singleCreatorRegister##className(                        \
-        #className,(CreateSingleAndCUGate)objectCreator##className)
+        #className,(CreateSingleAndCUGate_cb)objectCreator##className)
 
 #define REGISTER_MATRIX(className)                                             \
     QuantumGate* objectCreator##className(QStat & matrix){      \
         return new className(matrix);                    \
     }                                                                   \
     RegisterAction g_doubleCreatorRegister##className(                        \
-        #className,(CreateGateByMatrix)objectCreator##className)
+        #className,(CreateGateByMatrix_cb)objectCreator##className)
 
 
 REGISTER_ANGLE(RX);
@@ -535,6 +537,7 @@ REGISTER_ANGLE(RY);
 REGISTER_ANGLE(RZ);
 REGISTER_ANGLE(U1);
 REGISTER_ANGLE(ISWAPTheta);
+REGISTER_ANGLE(CPhaseGate);
 
 REGISTER_SINGLE_CU(U4);
 REGISTER_SINGLE_CU(CU);

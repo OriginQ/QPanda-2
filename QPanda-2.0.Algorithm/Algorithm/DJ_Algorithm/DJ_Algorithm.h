@@ -20,12 +20,16 @@ limitations under the License.
 #include "QPanda.h"
 #include "../../QAlgorithm.h"
 
-void DJ_Algorithm();
+namespace QPanda
+{
 
-QProg Two_Qubit_DJ_Algorithm_Circuit(
-	Qubit* qubit1,
-	Qubit* qubit2,
-	CBit* cbit,
-	vector<bool> oracle_function);
+	void DJ_Algorithm();
 
+	QProg Two_Qubit_DJ_Algorithm_Circuit(
+		Qubit* qubit1,
+		Qubit* qubit2,
+		CBit* cbit,
+		vector<bool> oracle_function);
+
+}
 #endif

@@ -15,6 +15,8 @@ limitations under the License.
 */
 
 #include "OriginQuantumMachine.h"
+#include "PhysicalQubitFactory.h"
+#include "QubitFactory.h"
 #include <algorithm>
 
 OriginQubitPool::OriginQubitPool(size_t maxQubit)
@@ -22,7 +24,7 @@ OriginQubitPool::OriginQubitPool(size_t maxQubit)
 	for (auto i = 0U; i < maxQubit; ++i)
 	{
 		auto _New_Physical_Qubit =
-			Factory::PhysicalQubitFactory::GetFactoryInstance().
+			PhysicalQubitFactory::GetFactoryInstance().
 			GetInstance();
 		vecQubit.push_back(_New_Physical_Qubit);
         _New_Physical_Qubit->setQubitAddr(i);
@@ -63,12 +65,26 @@ IMPLEMENTATION Qubit * OriginQubitPool::Allocate_Qubit()
 		if (!(*iter)->getOccupancy())
 		{
             (*iter)->setOccupancy(true);
-			return Factory::QubitFactory::GetFactoryInstance().
+			return QubitFactory::GetFactoryInstance().
 				GetInstance(*iter);
             
 		}
 	}
 	return nullptr;
+}
+
+IMPLEMENTATION Qubit * OriginQubitPool::Allocate_Qubit(size_t stQubitAddr)
+{
+    for (auto iter = vecQubit.begin(); iter != vecQubit.end(); ++iter)
+    {
+        if ((*iter)->getQubitAddr() == stQubitAddr)
+        {
+            (*iter)->setOccupancy(true);
+            return QubitFactory::GetFactoryInstance().
+                GetInstance(*iter);
+        }
+    }
+    return nullptr;
 }
 
 IMPLEMENTATION void OriginQubitPool::Free_Qubit(Qubit* _Qubit)

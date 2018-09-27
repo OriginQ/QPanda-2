@@ -1,25 +1,70 @@
 #include "ConfigMap.h"
 #include "QPandaException.h"
 #include "XMLConfigParam.h"
-ConfigMap::ConfigMap()
-{
-#if defined(__linux__)
-    m_sConfigFilePath.assign("./ConfigFile/Config.xml");
-#elif defined(_WIN32)
-    m_sConfigFilePath.assign("../Config.xml");
+#include <cstdlib>
+
+#ifdef _WIN32
+#pragma warning(disable : 4996)
 #endif
 
-    XmlConfigParam xml(m_sConfigFilePath);
-    xml.getClassNameConfig(m_configMap);
-    string metadataPath;
+ConfigMap::ConfigMap()
+{
+    char * config_path = nullptr;
+    string metadata_path = "";
+    config_path = getenv("QPANDA_CONFIG_PATH");
+    if (nullptr != config_path)
+    {
+#ifdef _WIN32
+        //metadata_path = config_path + "\\MetadataConfig.xml";
+        //config_path = config_path + "\\Config.xml";
+        metadata_path.append(config_path);
+        metadata_path.append("\\MetadataConfig.xml");
+        m_sConfigFilePath.append(config_path);
+        m_sConfigFilePath.append("\\Config.xml");
+#else
+        metadata_path.append(config_path);
+        metadata_path.append("/MetadataConfig.xml");
+        m_sConfigFilePath.append(config_path);
+        m_sConfigFilePath.append("/Config.xml");
+#endif
+        XmlConfigParam xml(m_sConfigFilePath);
+        xml.getClassNameConfig(m_configMap);
+        string metadataPath(metadata_path);
+        CONFIGPAIR metadataPathPair = { "MetadataPath",metadataPath };
+        insert(metadataPathPair);
+    }
+    else
+    {
+        insert(CONFIGPAIR("QProg", "OriginProgram"));
+        insert(CONFIGPAIR("QCircuit", "OriginCircuit"));
+        insert(CONFIGPAIR("QIfProg", "OriginQIf"));
+        insert(CONFIGPAIR("QWhileProg", "OriginQWhile"));
+        insert(CONFIGPAIR("QMeasure", "OriginMeasure"));
+        insert(CONFIGPAIR("QuantumMachine", "OriginQVM"));
+        insert(CONFIGPAIR("QubitPool", "OriginQubitPool"));
+        insert(CONFIGPAIR("Qubit", "OriginQubit"));
+        insert(CONFIGPAIR("PhysicalQubit", "OriginPhysicalQubit"));
+        insert(CONFIGPAIR("CBit", "OriginCBit"));
+        insert(CONFIGPAIR("CMem", "OriginCMem"));
+        insert(CONFIGPAIR("QResult", "OriginQResult"));
+        insert(CONFIGPAIR("CExpr", "OriginCExpr"));
+        CONFIGPAIR metadataPathPair = { "MetadataPath","" };
+        insert(metadataPathPair);
+    }
 }
 
+
+ConfigMap & ConfigMap::getInstance()
+{
+    static ConfigMap config;
+    return config;
+}
 
 ConfigMap::~ConfigMap()
 {
 }
 
-void ConfigMap::insert(CONFIGPAIR & configPair)
+void ConfigMap::insert(CONFIGPAIR  configPair)
 {
     auto aiter = m_configMap.find(configPair.first);
     if (aiter != m_configMap.end())
@@ -40,5 +85,3 @@ string ConfigMap::operator[](const char * name)
         throw param_error_exception("param error",false);
     return aiter->second;
 }
-
-ConfigMap _G_configMap;

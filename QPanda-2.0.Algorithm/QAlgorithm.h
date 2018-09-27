@@ -20,4 +20,13 @@ limitations under the License.
 #include "Algorithm/DJ_Algorithm/DJ_Algorithm.h"
 #include "Algorithm/Grover_Algorithm/Grover_Algorithm.h"
 #include "Algorithm/HHL_Algorithm/HHL_Algorithm.h"
+#include "Algorithm/PennyGame_Algorithm/CoinFlipGame.h"
+#include "Algorithm/B_V_Algorithm/BernsteinVaziraniAlgorithm.h"
+#include "Algorithm/Hamiltonian/Hamiltonian.h"
+#include "Algorithm/QuantumWalk/QuantumWalk.h"
+#include "Algorithm/SimonAlgorithm/SimonAlgorithm.h"
+#include "Algorithm/SwapTest/swapTest.h"
+#include "Algorithm/QPEAlgorithm/QPE_Algorithm.h"
+#include "Algorithm/QAOA/QAOA.h"
+
 #endif

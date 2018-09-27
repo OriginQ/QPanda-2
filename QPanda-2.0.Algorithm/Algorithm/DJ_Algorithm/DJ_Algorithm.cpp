@@ -15,92 +15,98 @@ limitations under the License.
 */
 
 #include "DJ_Algorithm.h"
+#include "../../Utility/Utilities.h"
 
-void DJ_Algorithm()
+namespace QPanda
 {
-	bool fx0 = 0, fx1 = 0;
-	cout << "input the input function" << endl
-		<< "The function has a boolean input" << endl
-		<< "and has a boolean output" << endl
-		<< "f(0)= (0/1)?";
-	cin >> fx0;
-	cout << "f(1)=(0/1)?";
-	cin >> fx1;
-	vector<bool> oracle_function({ fx0,fx1 });
-	cout << "Programming the circuit..." << endl;
-	init();
-	auto q1 = qAlloc();
-	auto q2 = qAlloc();
-	auto c1 = cAlloc();
 
-	Reset_Qubit(q1, false);
-	Reset_Qubit(q2, true);
-
-    auto temp = Two_Qubit_DJ_Algorithm_Circuit(q1, q2, c1, oracle_function);
-	append(temp);
-
-	run();
-
-	//auto resultMap = getResultMap();
-	if (getCBitValue(c1) == false)
+	void DJ_Algorithm()
 	{
-		cout << "Constant function!";
-	}
-	else if (getCBitValue(c1) == true)
-	{
-		cout << "Balanced function!";
-	}
-}
+		bool fx0 = 0, fx1 = 0;
+		cout << "input the input function" << endl
+			<< "The function has a boolean input" << endl
+			<< "and has a boolean output" << endl
+			<< "f(0)= (0/1)?";
+		cin >> fx0;
+		cout << "f(1)=(0/1)?";
+		cin >> fx1;
+		vector<bool> oracle_function({ fx0,fx1 });
+		cout << "Programming the circuit..." << endl;
+		init();
+		auto q1 = qAlloc();
+		auto q2 = qAlloc();
+		auto c1 = cAlloc();
 
-QProg  Two_Qubit_DJ_Algorithm_Circuit(
-	Qubit * qubit1, 
-	Qubit * qubit2, 
-	CBit * cbit, 
-	vector<bool> oracle_function)
+		Reset_Qubit(q1, false);
+		Reset_Qubit(q2, true);
 
-{
-	auto prog = CreateEmptyQProg();
-	//Firstly, create a circuit container
-	
-	prog << H(qubit1) << H(qubit2);
-	// Perform Hadamard gate on all qubits
+		auto temp = Two_Qubit_DJ_Algorithm_Circuit(q1, q2, c1, oracle_function);
+		append(temp);
 
-	if (oracle_function[0] == false
-		&&
-		oracle_function[1] == false)
-		// different oracle leads to different circuit
-		// f(x) = oracle_function[x]
-	{
-		// f(x) = 0, do nothing
-	}
-	else if (oracle_function[0] == false
-		&&
-		oracle_function[1] == true
-		)
-	{
-		// f(x) = x;
-		prog << CNOT(qubit1, qubit2);
-	}
-	else if (oracle_function[0] == true
-		&&
-		oracle_function[1] == false
-		)
-	{
-		// f(x) = x + 1;
-		prog << X(qubit2)
-			<< CNOT(qubit1, qubit2)
-			<< X(qubit2);
-	}
-	else if (oracle_function[0] == true
-		&&
-		oracle_function[1] == true
-		)
-	{
-		// f(x) = 1
-		prog << X(qubit2);
+		run();
+
+		//auto resultMap = getResultMap();
+		if (getCBitValue(c1) == false)
+		{
+			cout << "Constant function!";
+		}
+		else if (getCBitValue(c1) == true)
+		{
+			cout << "Balanced function!";
+		}
 	}
 
-	// Finally, Hadamard the first qubit and measure it
-	prog << H(qubit1) << Measure(qubit1, cbit);
-	return prog;
+	QProg  Two_Qubit_DJ_Algorithm_Circuit(
+		Qubit * qubit1,
+		Qubit * qubit2,
+		CBit * cbit,
+		vector<bool> oracle_function)
+
+	{
+		auto prog = CreateEmptyQProg();
+		//Firstly, create a circuit container
+
+		prog << H(qubit1) << H(qubit2);
+		// Perform Hadamard gate on all qubits
+
+		if (oracle_function[0] == false
+			&&
+			oracle_function[1] == false)
+			// different oracle leads to different circuit
+			// f(x) = oracle_function[x]
+		{
+			// f(x) = 0, do nothing
+		}
+		else if (oracle_function[0] == false
+			&&
+			oracle_function[1] == true
+			)
+		{
+			// f(x) = x;
+			prog << CNOT(qubit1, qubit2);
+		}
+		else if (oracle_function[0] == true
+			&&
+			oracle_function[1] == false
+			)
+		{
+			// f(x) = x + 1;
+			prog << X(qubit2)
+				<< CNOT(qubit1, qubit2)
+				<< X(qubit2);
+		}
+		else if (oracle_function[0] == true
+			&&
+			oracle_function[1] == true
+			)
+		{
+			// f(x) = 1
+			prog << X(qubit2);
+		}
+
+		// Finally, Hadamard the first qubit and measure it
+		prog << H(qubit1) << Measure(qubit1, cbit);
+		return prog;
+	}
+
 }

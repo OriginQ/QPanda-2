@@ -3,8 +3,8 @@
 	<ClassNameConfig>
 		<QProg>OriginProgram</QProg>
 		<QCircuit>OriginCircuit</QCircuit>		
-		<QIfProg>OriginIf</QIfProg>
-		<QWhileProg>OriginWhile</QWhileProg>
+		<QIfProg>OriginQIf</QIfProg>
+		<QWhileProg>OriginQWhile</QWhileProg>
 		<QMeasure>OriginMeasure</QMeasure>
 		<QuantumMachine>OriginQVM</QuantumMachine>
 		<QubitPool>OriginQubitPool</QubitPool>

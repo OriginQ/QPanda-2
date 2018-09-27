@@ -16,8 +16,9 @@ limitations under the License.
 
 #include "OriginQuantumMachine.h"
 #include "Factory.h"
-#include "TraversalAlgorithm/QCircuitParse.h"
-#include "QuantumInstructionHandle/X86QuantumGates.h"
+#include "QuantumMachineFactory.h"
+#include "Transform/QCircuitParse.h"
+#include "QuantumVirtualMachine/CPUQuantumGates.h"
 OriginQVM::OriginQVM()
 {
 	return;
@@ -26,25 +27,21 @@ OriginQVM::OriginQVM()
 void OriginQVM::init()
 {
 	_Qubit_Pool = 
-		Factory::
 		QubitPoolFactory::GetFactoryInstance().
 		GetPoolWithoutTopology(_Config.maxQubit);
 	_CMem = 
-		Factory::
 		CMemFactory::GetFactoryInstance().
 		GetInstanceFromSize(_Config.maxCMem);
     QProg  temp = CreateEmptyQProg();
     _QProgram = temp.getPosition();
-    _G_QNodeMap.addNodeRefer(_QProgram);
+    QNodeMap::getInstance().addNodeRefer(_QProgram);
 	_QResult =
-		Factory::
 		QResultFactory::GetFactoryInstance().
 		GetEmptyQResult();
 	_QMachineStatus =
-		Factory::
 		QMachineStatusFactory::
 		GetQMachineStatus();
-    _pGates = new X86QuantumGates();
+    _pGates = new CPUQuantumGates();
 }
 
 Qubit * OriginQVM::Allocate_Qubit()
@@ -78,6 +75,37 @@ CBit * OriginQVM::Allocate_CBit()
 	}
 }
 
+CBit * OriginQVM::Allocate_CBit(size_t stCBitaddr)
+{
+    if (_CMem == nullptr)
+    {
+        // check if the pointer is nullptr
+        // Before init
+        // After finalize
+        throw(invalid_cmem());
+    }
+    else
+    {
+        return _CMem->Allocate_CBit(stCBitaddr);
+    }
+}
+
+Qubit * OriginQVM::Allocate_Qubit(size_t stQubitNum)
+{
+    if (_Qubit_Pool == nullptr)
+    {
+        // check if the pointer is nullptr
+        // Before init
+        // After finalize
+        throw(invalid_pool());
+    }
+    else
+    {
+        return _Qubit_Pool->Allocate_Qubit(stQubitNum);
+    }
+}
+
+
 void OriginQVM::Free_Qubit(Qubit *qubit)
 {
     this->_Qubit_Pool->Free_Qubit(qubit);
@@ -95,9 +123,9 @@ void OriginQVM::load(QProg &loadProgram)
     {
 		throw load_exception();
     }
-    _G_QNodeMap.deleteNode(_QProgram);
+    QNodeMap::getInstance().deleteNode(_QProgram);
     _QProgram = loadProgram.getPosition();
-    _G_QNodeMap.addNodeRefer(_QProgram);
+    QNodeMap::getInstance().addNodeRefer(_QProgram);
 }
 
 void OriginQVM::append(QProg & prog)
@@ -107,7 +135,7 @@ void OriginQVM::append(QProg & prog)
     {
         throw load_exception();
     }
-    auto aiter = _G_QNodeMap.getNode(_QProgram);
+    auto aiter = QNodeMap::getInstance().getNode(_QProgram);
     if (nullptr == aiter)
         throw circuit_not_found_exception("cant found this QProgam", false);
     AbstractQuantumProgram * temp = dynamic_cast<AbstractQuantumProgram *>(aiter);
@@ -121,16 +149,14 @@ void OriginQVM::run()
         throw circuit_not_found_exception("QProgram cant found",false);
     }
     
-    auto aiter =_G_QNodeMap.getNode(_QProgram);
+    auto aiter =QNodeMap::getInstance().getNode(_QProgram);
     if (nullptr == aiter)
         throw circuit_not_found_exception("there is no this Qprog",false);
 
     QProg * pNode = (QProg *)aiter;
     _pParam = new QuantumGateParam();
 
-	/* error may occur if user free working qubit before run() */
-    _pParam->mQuantumBitNumber = _Qubit_Pool->getMaxQubit(); // -_Qubit_Pool->getIdleQubit();
-
+    _pParam->mQuantumBitNumber = _Qubit_Pool->getMaxQubit(); 
 
     _pGates->initState(_pParam);
     QNodeAgency temp(pNode, _pParam, _pGates);
@@ -165,7 +191,7 @@ QResult * OriginQVM::getResult()
 
 void OriginQVM::finalize()
 {
-    _G_QNodeMap.deleteNode(_QProgram);
+    QNodeMap::getInstance().deleteNode(_QProgram);
 	delete _Qubit_Pool;
 	delete _CMem;
 	delete _QResult;
@@ -182,6 +208,13 @@ size_t OriginQVM::getAllocateQubit()
 size_t OriginQVM::getAllocateCMem()
 {
 	return _CMem->getMaxMem()- _CMem->getIdleMem();
+}
+
+QuantumGates * OriginQVM::getQuantumGates() const
+{
+    if (!_pGates)
+        throw exception();
+    return _pGates;
 }
 
 

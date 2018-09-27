@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<head>
+	<QubitCount>4</QubitCount>
+	<QubitMatrix>
+		<Qubit QubitNum = 1>
+			<AdjacentQubit QubitNum = 2>1</AdjacentQubit>
+			<AdjacentQubit QubitNum = 3>1</AdjacentQubit>
+		</Qubit>
+		<Qubit QubitNum = 2>
+			<AdjacentQubit QubitNum = 1>1</AdjacentQubit>
+			<AdjacentQubit QubitNum = 4>1</AdjacentQubit>
+		</Qubit>
+		<Qubit QubitNum = 3>
+			<AdjacentQubit QubitNum = 1>1</AdjacentQubit>
+			<AdjacentQubit QubitNum = 4>1</AdjacentQubit>
+		</Qubit>
+		<Qubit QubitNum = 4>
+			<AdjacentQubit QubitNum = 2>1</AdjacentQubit>
+			<AdjacentQubit QubitNum = 3>1</AdjacentQubit>
+		</Qubit>
+	</QubitMatrix>
+	<SingleGate>
+		<Gate>rx</Gate>
+		<Gate>Ry</Gate>
+		<Gate>RZ</Gate>
+		<Gate>S</Gate>
+		<Gate>H</Gate>
+		<Gate>X1</Gate>
+	</SingleGate>
+	<DoubleGate>
+		<Gate>CNOT</Gate>
+		<Gate>CZ</Gate>
+		<Gate>ISWAP</Gate>
+	</DoubleGate>
+</head>

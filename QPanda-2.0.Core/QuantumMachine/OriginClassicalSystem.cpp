@@ -39,7 +39,7 @@ OriginCMem::OriginCMem(size_t maxMem)
 	for (auto i = 0U; i < maxMem; ++i)
 	{		
 		auto _New_CBit =
-			Factory::CBitFactory::GetFactoryInstance().
+			CBitFactory::GetFactoryInstance().
 			CreateCBitFromName("c"+obj2str(i));
 		vecBit.push_back(_New_CBit);
 	}
@@ -56,6 +56,20 @@ IMPLEMENTATION CBit * OriginCMem::Allocate_CBit()
 		}
 	}
 	return nullptr;
+}
+
+IMPLEMENTATION CBit * OriginCMem::Allocate_CBit(size_t stCBitNum)
+{
+    for (auto iter = vecBit.begin(); iter != vecBit.end(); ++iter)
+    {
+        string sCBitName = "c" + to_string(stCBitNum);
+        if (sCBitName == (*iter)->getName())
+        {
+            (*iter)->setOccupancy(true);
+            return *iter;
+        }
+    }
+    return nullptr;
 }
 
 IMPLEMENTATION size_t OriginCMem::getMaxMem() const

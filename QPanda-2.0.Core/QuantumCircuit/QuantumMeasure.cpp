@@ -26,30 +26,30 @@ QMeasure  Measure(Qubit * targetQuBit, CBit *targetCbit)
 QMeasure::QMeasure(const QMeasure & oldMeasure)
 {
     m_stPosition = oldMeasure.getPosition();    
-    auto aiter = _G_QNodeMap.getNode(m_stPosition);
+    auto aiter = QNodeMap::getInstance().getNode(m_stPosition);
     if (aiter != nullptr)
         m_pQuantumMeasure = dynamic_cast<AbstractQuantumMeasure *>(aiter);
     else
         throw circuit_not_found_exception("there is not target QNode", false);
-    if (!_G_QNodeMap.addNodeRefer(m_stPosition))
+    if (!QNodeMap::getInstance().addNodeRefer(m_stPosition))
         throw exception();
 }
 
 QMeasure::QMeasure(Qubit * qbit, CBit * cbit)
 {
-    auto sClasNname = _G_configMap["QMeasure"];
+    auto sClasNname = ConfigMap::getInstance()["QMeasure"];
     auto aMeasure = QuantunMeasureFactory::getInstance().getQuantumMeasure(sClasNname, qbit, cbit);
     auto temp = dynamic_cast<QNode *>(aMeasure);
-    m_stPosition = _G_QNodeMap.pushBackNode(temp);
+    m_stPosition = QNodeMap::getInstance().pushBackNode(temp);
     temp->setPosition(m_stPosition);
-    if (!_G_QNodeMap.addNodeRefer(m_stPosition))
+    if (!QNodeMap::getInstance().addNodeRefer(m_stPosition))
         throw exception();
     m_pQuantumMeasure = aMeasure;
 }
 
 QMeasure::~QMeasure()
 {
-    _G_QNodeMap.deleteNode(m_stPosition);
+    QNodeMap::getInstance().deleteNode(m_stPosition);
 }
 
 Qubit * QMeasure::getQuBit() const
@@ -74,7 +74,7 @@ NodeType QMeasure::getNodeType() const
     return (dynamic_cast<QNode *>(m_pQuantumMeasure))->getNodeType();
 }
 
-QMAP_SIZE QMeasure::getPosition() const
+qmap_size_t QMeasure::getPosition() const
 {
     return m_stPosition;
 }
@@ -118,12 +118,12 @@ CBit * OriginMeasure::getCBit() const
 }
 
 
-QMAP_SIZE OriginMeasure::getPosition() const
+qmap_size_t OriginMeasure::getPosition() const
 {
     return m_stPosition;
 }
 
-void OriginMeasure::setPosition(QMAP_SIZE stPositio)
+void OriginMeasure::setPosition(qmap_size_t stPositio)
 {
     m_stPosition = stPositio;
 }

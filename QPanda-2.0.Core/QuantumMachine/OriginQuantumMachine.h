@@ -18,12 +18,9 @@ limitations under the License.
 #define ORIGIN_QUANTUM_MACHINE_H
 #include "Factory.h"
 #include "QuantumMachineInterface.h"
-#include "QuantumInstructionHandle/QuantumGates.h"
-#include "../QuantumInstructionHandle/QuantumGateParameter.h"
-//#include "../QuantumInstructionHandle/QCircuitParse.h"
+#include "QuantumVirtualMachine/QuantumGates.h"
+#include "QuantumVirtualMachine/QuantumGateParameter.h"
 
-//#include "../QuantumInstructionHandle/QCircuitParse.h"
-//#define implements : public
 #define UNIQUE // To mark the function is not existed in interface
 #define IMPLEMENTATION // To mark it is an implementation
 #define CONSTRUCTOR
@@ -74,6 +71,7 @@ public:
 	IMPLEMENTATION size_t getIdleQubit() const;
 
 	IMPLEMENTATION Qubit*  Allocate_Qubit();
+    IMPLEMENTATION Qubit*  Allocate_Qubit(size_t);
 	IMPLEMENTATION void Free_Qubit(Qubit*);
 	//IMPLEMENTATION void init(size_t iMaxQubit);
 	IMPLEMENTATION size_t getPhysicalQubitAddr(Qubit*);
@@ -107,6 +105,7 @@ public:
 	CONSTRUCTOR OriginCMem(size_t maxMem);
 
 	IMPLEMENTATION CBit * Allocate_CBit();
+    IMPLEMENTATION CBit * Allocate_CBit(size_t stCBitNum);
 	IMPLEMENTATION size_t getMaxMem() const;
 	IMPLEMENTATION size_t getIdleMem() const;
 	IMPLEMENTATION void Free_CBit(CBit*);
@@ -144,7 +143,7 @@ private:
 
 public:
 
-	friend class Factory::QMachineStatusFactory;
+	friend class QMachineStatusFactory;
 
 	IMPLEMENTATION inline int getStatusCode() const
 	{
@@ -176,10 +175,12 @@ private:
 	//friend class Factory::QuantumMachineFactory;
 
 public:
-	CONSTRUCTOR OriginQVM();
+	CONSTRUCTOR OriginQVM() {};
 	void init();
 	Qubit* Allocate_Qubit();
 	CBit* Allocate_CBit();
+    CBit *Allocate_CBit(size_t stCbitNum);
+    Qubit* Allocate_Qubit(size_t); // allocate and return a qubit
     void Free_Qubit(Qubit*);
     void Free_CBit(CBit*);
 	void load(QProg &);
@@ -190,6 +191,8 @@ public:
 	void finalize();
 	size_t getAllocateQubit();
 	size_t getAllocateCMem();
+    QuantumGates * getQuantumGates() const;
+    virtual map<int, size_t> getGateTimeMap() const;
 };
 
 #endif

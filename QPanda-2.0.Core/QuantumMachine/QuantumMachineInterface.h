@@ -18,6 +18,7 @@ limitations under the License.
 #define QUANTUM_MACHINE_INTERFACE_H
 #include <map>
 #include <vector>
+#include "../QuantumVirtualMachine/QuantumGates.h"
 
 using namespace std;
 
@@ -79,6 +80,8 @@ public:
 
 	// Allocator and dellocator
 	virtual Qubit* Allocate_Qubit() = 0;
+    // Allocator and dellocator
+    virtual Qubit* Allocate_Qubit(size_t) = 0;
 	virtual void Free_Qubit(Qubit*) = 0;
 	//virtual void init(size_t iMaxQubit) = 0;
 	virtual void clearAll() = 0;
@@ -100,6 +103,7 @@ VIRTUAL class CMem
 	// this class is considered as the container of the CBit
 public:
 	virtual CBit* Allocate_CBit() = 0;
+    virtual CBit* Allocate_CBit(size_t) = 0;
 	virtual size_t getMaxMem() const = 0;
 	virtual size_t getIdleMem() const = 0;
 	virtual void Free_CBit(CBit*) = 0;
@@ -128,9 +132,12 @@ public:
 VIRTUAL class QuantumMachine
 {
 public:
+    virtual QuantumGates *getQuantumGates()const = 0;
 	virtual void init() = 0; // to initialize the quantum machine
 	virtual Qubit* Allocate_Qubit() = 0; // allocate and return a qubit
 	virtual CBit* Allocate_CBit() = 0; // allocate and run a cbit
+    virtual Qubit* Allocate_Qubit(size_t) = 0; // allocate and return a qubit
+    virtual CBit* Allocate_CBit(size_t) = 0; // allocate and run a cbit
     virtual void Free_Qubit(Qubit*) = 0; // free a qubit
     virtual void Free_CBit(CBit*) = 0; // free a cbit
 	virtual void load(QProg &) = 0; // load a qprog
@@ -141,6 +148,8 @@ public:
 	virtual void finalize() = 0; // finish the program
 	virtual size_t getAllocateQubit() = 0;
 	virtual size_t getAllocateCMem() = 0;
+    virtual map<int, size_t> getGateTimeMap() const = 0;
+
 	virtual ~QuantumMachine() {} // destructor
 
 };

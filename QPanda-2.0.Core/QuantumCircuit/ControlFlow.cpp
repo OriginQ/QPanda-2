@@ -1,326 +1,328 @@
 /*
 Copyright (c) 2017-2018 Origin Quantum Computing. All Right Reserved.
+Licensed under the Apache License 2.0
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+ControlFlow.cpp 
+Author: Menghan.Dou
+Created in 2018-6-30
 
-http://www.apache.org/licenses/LICENSE-2.0
+Classes for ControlFlow
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+Update@2018-8-30
+    Update by code specification
 */
 
 #include "ControlFlow.h"
 #include "QPanda/QPandaException.h"
 #include "QPanda/ConfigMap.h"
-QWhileProg  CreateWhileProg(ClassicalCondition & ccCon, QNode * trueNode)
+
+QWhileProg  CreateWhileProg(ClassicalCondition & classical_condition, QNode * true_node)
 {
-    if (nullptr == trueNode)
+    if (nullptr == true_node)
         throw param_error_exception("CreateWhileProg param err", false);
-    QWhileProg quantumWhile(ccCon, trueNode);
-    return quantumWhile;
+    QWhileProg qwhile(classical_condition, true_node);
+    return qwhile;
 }
 
-QIfProg  CreateIfProg(ClassicalCondition & ccCon, QNode * trueNode)
+QIfProg  CreateIfProg(ClassicalCondition & classical_condition, QNode * true_node)
 {
-    if (nullptr == trueNode)
+    
+    if (nullptr == true_node)
         throw param_error_exception("CreateIfProg param err", false);
-    QIfProg quantumIf(ccCon, trueNode);
-    return quantumIf;
+    QIfProg qif(classical_condition, true_node);
+    return qif;
 }
 
-QIfProg  CreateIfProg(ClassicalCondition &ccCon, QNode * trueNode, QNode * falseNode)
+QIfProg  CreateIfProg(ClassicalCondition &classical_condition, QNode * true_node, QNode * false_node)
 {
-    if (nullptr == trueNode)
-        throw param_error_exception("CreateIfProg trueNode param err", false);
-    if (nullptr == falseNode)
-        throw param_error_exception("CreateIfProg falseNode param err", false);
-    QIfProg quantumIf(ccCon, trueNode, falseNode);
-    return quantumIf;
+    if (nullptr == true_node)
+        throw param_error_exception("CreateIfProg true_node param err", false);
+    if (nullptr == false_node)
+        throw param_error_exception("CreateIfProg false_node param err", false);
+    QIfProg qif(classical_condition, true_node, false_node);
+    return qif;
 }
 
 QWhileProg::~QWhileProg()
 {
-    _G_QNodeMap.deleteNode(m_stPosition);
+    QNodeMap::getInstance().deleteNode(m_position);
 }
 
-QWhileProg::QWhileProg(const QWhileProg &oldQWhile)
+QWhileProg::QWhileProg( const QWhileProg &old_qwhile)
 {
-    m_stPosition = oldQWhile.getPosition();
-    auto aiter = _G_QNodeMap.getNode(m_stPosition);
+    m_position = old_qwhile.getPosition();
+    auto aiter = QNodeMap::getInstance().getNode(m_position);
     if (aiter != nullptr)
-        m_pControlFlow = dynamic_cast<AbstractControlFlowNode *>(aiter);
+        m_control_flow = dynamic_cast<AbstractControlFlowNode *>(aiter);
     else
-        throw circuit_not_found_exception("QWhileProg cant found", false);
-
-    if (!_G_QNodeMap.addNodeRefer(m_stPosition))
+        throw circuit_not_found_exception("QWhileProg cant found",false);
+    
+    if (!QNodeMap::getInstance().addNodeRefer(m_position))
         throw exception();
 }
 
-QWhileProg::QWhileProg(ClassicalCondition & ccCon, QNode * node)
+QWhileProg::QWhileProg(ClassicalCondition & classical_condition, QNode * node)
 {
-    auto sClasNname = _G_configMap["QWhileProg"];
-    auto aMeasure = QuantunWhileFactory::getInstance().getQuantumWhile(sClasNname, ccCon, node);
-    auto temp = dynamic_cast<QNode *>(aMeasure);
-    m_stPosition = _G_QNodeMap.pushBackNode(temp);
-    temp->setPosition(m_stPosition);
-    if (!_G_QNodeMap.addNodeRefer(m_stPosition))
+    auto class_name = ConfigMap::getInstance()["QWhileProg"];
+    auto qwhile = QWhileFactory::getInstance()
+                    .getQWhile(class_name, classical_condition, node);
+    auto temp = dynamic_cast<QNode*>(qwhile);
+    m_position = QNodeMap::getInstance().pushBackNode(temp);
+    temp->setPosition(m_position);
+    if (!QNodeMap::getInstance().addNodeRefer(m_position))
         throw exception();
-    m_pControlFlow = aMeasure;
-
+    m_control_flow = qwhile;
+    
 }
 
 NodeType QWhileProg::getNodeType() const
 {
-    if (nullptr == m_pControlFlow)
+    if (nullptr == m_control_flow)
         throw exception();
-    return dynamic_cast<QNode *> (m_pControlFlow)->getNodeType();
+    return dynamic_cast<QNode *> (m_control_flow)->getNodeType();
 }
-
-
 
 QNode * QWhileProg::getTrueBranch() const
 {
-    if (nullptr == m_pControlFlow)
+    if (nullptr == m_control_flow)
         throw exception();
-    return m_pControlFlow->getTrueBranch();
+    return m_control_flow->getTrueBranch();
 }
 
 QNode * QWhileProg::getFalseBranch() const
 {
-    if (nullptr == m_pControlFlow)
+    if (nullptr == m_control_flow)
         throw exception();
-    return m_pControlFlow->getFalseBranch();
+    return m_control_flow->getFalseBranch();
 }
 
 
-ClassicalCondition * QWhileProg::getCExpr()
+ClassicalCondition * QWhileProg::getCExpr() 
 {
-    if (nullptr == m_pControlFlow)
+    if (nullptr == m_control_flow)
         throw exception();
-    return m_pControlFlow->getCExpr();
+    return m_control_flow->getCExpr();
 }
 
 
-QMAP_SIZE QWhileProg::getPosition() const
+qmap_size_t QWhileProg::getPosition() const
 {
-    return m_stPosition;
+    return m_position;
 }
 
 QIfProg::~QIfProg()
 {
-    _G_QNodeMap.deleteNode(m_stPosition);
+    QNodeMap::getInstance().deleteNode(m_position);
 }
 
-QIfProg::QIfProg(const QIfProg &oldQIf)
+QIfProg::QIfProg(const QIfProg &old_qif)
 {
-    m_stPosition = oldQIf.getPosition();
-    auto aiter = _G_QNodeMap.getNode(m_stPosition);
+    m_position = old_qif.getPosition();
+    auto aiter = QNodeMap::getInstance().getNode(m_position);
     if (aiter != nullptr)
-        m_pControlFlow = dynamic_cast<AbstractControlFlowNode *>(aiter);
+        m_control_flow = dynamic_cast<AbstractControlFlowNode *>(aiter);
     else
         throw circuit_not_found_exception("QIfProg cant found", false);
-    if (!_G_QNodeMap.addNodeRefer(m_stPosition))
+    if (!QNodeMap::getInstance().addNodeRefer(m_position))
         throw exception();
 }
 
-QIfProg::QIfProg(ClassicalCondition & ccCon, QNode * pTrueNode, QNode * pFalseNode)
+QIfProg::QIfProg(ClassicalCondition & classical_condition, QNode * true_node, QNode * false_node)
 {
-    auto sClasNname = _G_configMap["QIfProg"];
-    auto aMeasure = QuantunIfFactory::getInstance().getQuantumIf(sClasNname, ccCon, pTrueNode, pFalseNode);
-    auto temp = dynamic_cast<QNode *>(aMeasure);
-    m_stPosition = _G_QNodeMap.pushBackNode(temp);
-    temp->setPosition(m_stPosition);
-    m_pControlFlow = aMeasure;
-    if (!_G_QNodeMap.addNodeRefer(m_stPosition))
+    auto sClasNname = ConfigMap::getInstance()["QIfProg"];
+    auto qif = QIfFactory::getInstance()
+               .getQIf(sClasNname, classical_condition, true_node, false_node);
+    auto temp = dynamic_cast<QNode *>(qif);
+    m_position = QNodeMap::getInstance().pushBackNode(temp);
+    temp->setPosition(m_position);
+    m_control_flow = qif;
+    if (!QNodeMap::getInstance().addNodeRefer(m_position))
         throw exception();
 }
 
-QIfProg::QIfProg(ClassicalCondition & ccCon, QNode * node)
+QIfProg::QIfProg(ClassicalCondition & classical_condition, QNode * node)
 {
-    auto sClasNname = _G_configMap["QIfProg"];
-    auto aMeasure = QuantunIfFactory::getInstance().getQuantumIf(sClasNname, ccCon, node);
-    auto temp = dynamic_cast<QNode *>(aMeasure);
-    m_stPosition = _G_QNodeMap.pushBackNode(temp);
-    temp->setPosition(m_stPosition);
-    m_pControlFlow = aMeasure;
-    if (!_G_QNodeMap.addNodeRefer(m_stPosition))
+    auto sClasNname = ConfigMap::getInstance()["QIfProg"];
+    auto qif = QIfFactory::getInstance().getQIf(sClasNname, classical_condition, node);
+    auto temp = dynamic_cast<QNode *>(qif);
+    m_position = QNodeMap::getInstance().pushBackNode(temp);
+    temp->setPosition(m_position);
+    m_control_flow = qif;
+    if (!QNodeMap::getInstance().addNodeRefer(m_position))
         throw exception();
 }
 
 NodeType QIfProg::getNodeType() const
 {
-    if (nullptr == m_pControlFlow)
+    if (nullptr == m_control_flow)
         throw  exception();
-    return dynamic_cast<QNode *>(m_pControlFlow)->getNodeType();
+    return dynamic_cast<QNode *>(m_control_flow)->getNodeType();
 }
-
 
 QNode * QIfProg::getTrueBranch() const
 {
-    if (nullptr == m_pControlFlow)
+    if (nullptr == m_control_flow)
         throw  exception();
-    return m_pControlFlow->getTrueBranch();
+    return m_control_flow->getTrueBranch();
 }
 
 QNode * QIfProg::getFalseBranch() const
 {
 
-    return m_pControlFlow->getFalseBranch();
+    return m_control_flow->getFalseBranch();
 }
 
-QMAP_SIZE QIfProg::getPosition() const
+qmap_size_t QIfProg::getPosition() const
 {
-    return m_stPosition;
+    return m_position;
 }
 
-ClassicalCondition * QIfProg::getCExpr()
+ClassicalCondition * QIfProg::getCExpr() 
 {
-    if (nullptr == m_pControlFlow)
+    if (nullptr == m_control_flow)
         throw  exception();
-    return m_pControlFlow->getCExpr();
+    return m_control_flow->getCExpr();
 }
 
-OriginIf::~OriginIf()
+OriginQIf::~OriginQIf()
 {
-    if (nullptr != m_pTrueItem)
+    if (nullptr != m_true_item)
     {
-        delete m_pTrueItem;
-        m_pTrueItem = nullptr;
+        delete m_true_item;
+        m_true_item = nullptr;
     }
 
-    if (nullptr != m_pFalseItem)
+    if (nullptr != m_false_item)
     {
-        delete m_pFalseItem;
-        m_pFalseItem = nullptr;
+        delete m_false_item;
+        m_false_item = nullptr;
     }
 
 }
 
-OriginIf::OriginIf(ClassicalCondition & ccCon, QNode * pTrueNode, QNode * pFalseNode) :m_iNodeType(QIF_START_NODE), m_CCondition(ccCon)
+OriginQIf::OriginQIf(ClassicalCondition & classical_condition,
+                     QNode * true_node,
+                     QNode * false_node)
+                     :m_node_type(QIF_START_NODE),m_classical_condition(classical_condition)
 {
-    if (nullptr != pTrueNode)
+    if (nullptr != true_node)
     {
-        m_pTrueItem = new OriginItem();
-        m_pTrueItem->setNode(pTrueNode);
+        m_true_item = new OriginItem();
+        m_true_item->setNode(true_node);
     }
     else
-        m_pTrueItem = nullptr;
+        m_true_item = nullptr;
 
-    if (nullptr != pFalseNode)
+    if (nullptr != false_node)
     {
-        m_pFalseItem = new OriginItem();
-        m_pFalseItem->setNode(pFalseNode);
+        m_false_item = new OriginItem();
+        m_false_item->setNode(false_node);
     }
     else
-        m_pFalseItem = nullptr;
+        m_false_item = nullptr;
 }
 
-OriginIf::OriginIf(ClassicalCondition & ccCon, QNode * node) :m_iNodeType(QIF_START_NODE), m_CCondition(ccCon)
+OriginQIf::OriginQIf(ClassicalCondition & classical_condition, QNode * node)
+                    :m_node_type(QIF_START_NODE),m_classical_condition(classical_condition)
 {
     if (nullptr != node)
     {
-        m_pTrueItem = new OriginItem();
-        m_pTrueItem->setNode(node);
+        m_true_item = new OriginItem();
+        m_true_item->setNode(node);
     }
     else
-        m_pTrueItem = nullptr;
-    m_pFalseItem = nullptr;
+        m_true_item = nullptr;
+    m_false_item = nullptr;
 }
 
-NodeType OriginIf::getNodeType() const
+NodeType OriginQIf::getNodeType() const
 {
-    return m_iNodeType;
+    return m_node_type;
 }
 
-QNode * OriginIf::getTrueBranch() const
+QNode * OriginQIf::getTrueBranch() const
 {
-    if (nullptr != m_pTrueItem)
-        return m_pTrueItem->getNode();
+    if (nullptr != m_true_item)
+        return m_true_item->getNode();
     else
         throw exception();
 }
 
-QNode * OriginIf::getFalseBranch() const
+QNode * OriginQIf::getFalseBranch() const
 {
-    if (nullptr != m_pFalseItem)
-        return m_pFalseItem->getNode();
+    if(nullptr != m_false_item)
+        return m_false_item->getNode();
     return nullptr;
 }
 
-void OriginIf::setTrueBranch(QNode * pNode)
+void OriginQIf::setTrueBranch(QNode * node)
 {
-    if (nullptr == pNode)
-        throw param_error_exception("param is nullptr", false);
+    if (nullptr == node)
+        throw param_error_exception("param is nullptr",false);
 
-    if (nullptr != m_pTrueItem)
+    if (nullptr != m_true_item)
     {
-        delete(m_pTrueItem);
-        m_pTrueItem = nullptr;
-
+        delete(m_true_item);
+        m_true_item = nullptr;
         Item * temp = new OriginItem();
-        temp->setNode(pNode);
-
-        m_pTrueItem = temp;
+        temp->setNode(node);
+        m_true_item = temp;
     }
-
+       
 }
 
-void OriginIf::setFalseBranch(QNode * pNode)
+void OriginQIf::setFalseBranch(QNode * node)
 {
-    if (nullptr != m_pFalseItem)
+    if (nullptr != m_false_item)
     {
-        delete(m_pFalseItem);
-        m_pFalseItem = nullptr;
-
+        delete(m_false_item);
+        m_false_item = nullptr;
         Item * temp = new OriginItem();
-        temp->setNode(pNode);
-
-        m_pFalseItem = temp;
+        temp->setNode(node);
+        m_false_item = temp;
     }
 }
 
-QMAP_SIZE OriginIf::getPosition() const
+qmap_size_t OriginQIf::getPosition() const
 {
-    return m_stPosition;
+    return m_position;
 }
 
-void OriginIf::setPosition(QMAP_SIZE stPosition)
+void OriginQIf::setPosition(qmap_size_t position)
 {
-    m_stPosition = stPosition;
+    m_position = position;
 }
 
-ClassicalCondition * OriginIf::getCExpr()
+ClassicalCondition * OriginQIf::getCExpr() 
 {
-    return &m_CCondition;
+    return &m_classical_condition;
 }
 
-void QuantunIfFactory::registClass(string name, CreateIfDoubleB method)
+void QIfFactory::registClass(string name, CreateQIfTrueFalse_cb method)
+{
+    if((name.size() > 0) &&(nullptr != method))
+        m_qif_true_false_map.insert(pair<string, CreateQIfTrueFalse_cb>(name, method));
+    else
+        throw exception();
+}
+
+void QIfFactory::registClass(string name, CreateQIfTrueOnly_cb method)
 {
     if ((name.size() > 0) && (nullptr != method))
-        m_QIfDoubleMap.insert(pair<string, CreateIfDoubleB>(name, method));
+        m_qif_true_only_map.insert(pair<string, CreateQIfTrueOnly_cb>(name, method));
     else
         throw exception();
 }
 
-void QuantunIfFactory::registClass(string name, CreateIfSingleB method)
+AbstractControlFlowNode * QIfFactory::getQIf(std::string & class_name, 
+                                             ClassicalCondition & classical_condition,
+                                             QNode * true_node,
+                                             QNode * false_node)
 {
-    if ((name.size() > 0) && (nullptr != method))
-        m_QIfSingleMap.insert(pair<string, CreateIfSingleB>(name, method));
-    else
-        throw exception();
-}
-
-AbstractControlFlowNode * QuantunIfFactory::getQuantumIf(std::string & classname, ClassicalCondition & ccCon, QNode * pTrueNode, QNode * pFalseNode)
-{
-    auto aiter = m_QIfDoubleMap.find(classname);
-    if (aiter != m_QIfDoubleMap.end())
+    auto aiter = m_qif_true_false_map.find(class_name);
+    if (aiter != m_qif_true_false_map.end())
     {
-        return aiter->second(ccCon, pTrueNode, pFalseNode);
+        return aiter->second(classical_condition, true_node, false_node);
     }
     else
     {
@@ -328,12 +330,14 @@ AbstractControlFlowNode * QuantunIfFactory::getQuantumIf(std::string & classname
     }
 }
 
-AbstractControlFlowNode * QuantunIfFactory::getQuantumIf(std::string & classname, ClassicalCondition & ccCon, QNode * pTrueNode)
+AbstractControlFlowNode * QIfFactory::getQIf(std::string & class_name,
+                                             ClassicalCondition & classical_condition,
+                                             QNode * true_node)
 {
-    auto aiter = m_QIfSingleMap.find(classname);
-    if (aiter != m_QIfSingleMap.end())
+    auto aiter = m_qif_true_only_map.find(class_name);
+    if (aiter != m_qif_true_only_map.end())
     {
-        return aiter->second(ccCon, pTrueNode);
+        return aiter->second(classical_condition, true_node);
     }
     else
     {
@@ -341,106 +345,109 @@ AbstractControlFlowNode * QuantunIfFactory::getQuantumIf(std::string & classname
     }
 }
 
-REGISTER_QIF(OriginIf);
+QIF_REGISTER(OriginQIf);
 
-OriginWhile::~OriginWhile()
+OriginQWhile::~OriginQWhile()
 {
-    if (nullptr != m_pTrueItem)
+    if (nullptr != m_true_item)
     {
-        delete m_pTrueItem;
-        m_pTrueItem = nullptr;
+        delete m_true_item;
+        m_true_item = nullptr;
     }
 
 }
 
-OriginWhile::OriginWhile(ClassicalCondition & ccCon, QNode * node) : m_iNodeType(WHILE_START_NODE), m_CCondition(ccCon)
+OriginQWhile::OriginQWhile(ClassicalCondition & classical_condition, QNode * node)
+                          : m_node_type(WHILE_START_NODE),
+                            m_classical_condition(classical_condition)
 {
     if (nullptr == node)
     {
-        m_pTrueItem = nullptr;
+        m_true_item = nullptr;
     }
     else
     {
-        m_pTrueItem = new OriginItem();
-        m_pTrueItem->setNode(node);
+        m_true_item = new OriginItem();
+        m_true_item->setNode(node);
     }
 
 }
 
-NodeType OriginWhile::getNodeType() const
+NodeType OriginQWhile::getNodeType() const
 {
-    return m_iNodeType;
+    return m_node_type;
 }
 
-QNode * OriginWhile::getTrueBranch() const
+QNode * OriginQWhile::getTrueBranch() const
 {
-    if (nullptr != m_pTrueItem)
-        return m_pTrueItem->getNode();
+    if (nullptr != m_true_item)
+        return m_true_item->getNode();
     return nullptr;
 }
 
-QNode * OriginWhile::getFalseBranch() const
+QNode * OriginQWhile::getFalseBranch() const
 {
     throw exception();
 }
 
-void OriginWhile::setTrueBranch(QNode * pNode)
+void OriginQWhile::setTrueBranch(QNode * node)
 {
-    if (nullptr == pNode)
+    if (nullptr == node)
         throw param_error_exception("param is nullptr", false);
 
-    if (nullptr != m_pTrueItem)
+    if (nullptr != m_true_item)
     {
-        delete(m_pTrueItem);
-        m_pTrueItem = nullptr;
+        delete(m_true_item);
+        m_true_item = nullptr;
 
         Item * temp = new OriginItem();
-        temp->setNode(pNode);
+        temp->setNode(node);
 
-        m_pTrueItem = temp;
+        m_true_item = temp;
     }
 
 }
 
-ClassicalCondition * OriginWhile::getCExpr()
+ClassicalCondition * OriginQWhile::getCExpr() 
 {
-    return &m_CCondition;
+    return &m_classical_condition;
 }
 
-QMAP_SIZE OriginWhile::getPosition() const
+qmap_size_t OriginQWhile::getPosition() const
 {
-    return m_stPosition;
+    return m_position;
 }
 
-void OriginWhile::setPosition(QMAP_SIZE stPosition)
+void OriginQWhile::setPosition(qmap_size_t position)
 {
-    m_stPosition = stPosition;
+    m_position = position;
 }
 
+QWHILE_REGISTER(OriginQWhile);
 
-REGISTER_QWHILE(OriginWhile);
-
-void QuantunWhileFactory::registClass(string name, CreateWhile method)
+void QWhileFactory::registClass(string name, CreateQWhile_cb method)
 {
     if ((name.size() <= 0) || (nullptr == method))
     {
         throw exception();
     }
 
-    m_QWhileMap.insert(pair<string, CreateWhile>(name, method));
+    m_qwhile_map.insert(pair<string, CreateQWhile_cb>(name, method));
 }
 
-AbstractControlFlowNode * QuantunWhileFactory::getQuantumWhile(std::string & className, ClassicalCondition & ccCon, QNode * pTrueNode)
+AbstractControlFlowNode * QWhileFactory::getQWhile(std::string & class_name,
+                                                   ClassicalCondition & classical_condition,
+                                                   QNode * true_node)
 {
-    if ((className.size() <= 0) || (nullptr == pTrueNode))
+    if ((class_name.size() <= 0) || (nullptr == true_node))
     {
         throw exception();
     }
 
-    auto aiter = m_QWhileMap.find(className);
-    if (aiter != m_QWhileMap.end())
+    auto aiter = m_qwhile_map.find(class_name);
+    if (aiter != m_qwhile_map.end())
     {
-        return aiter->second(ccCon, pTrueNode);
+        return aiter->second(classical_condition, true_node);
     }
     else
     {

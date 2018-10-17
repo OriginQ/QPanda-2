@@ -1,4 +1,7 @@
 #include "test.h"
+#include "../../Utility/QOptimizer/AbstractQOptimizer.h"
+#include "../../Utility/QPauliOperator/QPauliOperator.h"
+#include "../QAOA/QAOA.h"
 
 void ifwhile()
 {
@@ -213,8 +216,6 @@ void entangle()
     auto amap = temp->getResultMap();
 }
 
-
-
 void HHL_Algorithm1()
 {
 
@@ -282,6 +283,102 @@ void HHL_Algorithm1()
 
     return;
 
+}
+
+void testQPauliOperator()
+{
+	QPanda::QPauliMap pauli_map{
+		{ "X0 X1 X2",{ 2,1 } },
+	{ "Y0 Y1 Y2",{ 3,2 } },
+	{ "Z0 Z1 Z2",{ 5, 3 } },
+	{ "X0 Y1 Z2",{ 7,4 } } };
+
+	QPanda::QPauliOperator pauli(pauli_map);
+
+	std::cout << pauli << std::endl;
+	pauli += 1;
+	std::cout << pauli << std::endl;
+	pauli -= 1;
+	pauli *= pauli;
+	std::cout << pauli << std::endl;
+}
+
+double myFunc(const std::string &key, const QPanda::QPauliMap &pauli_map)
+{
+	double sum = 0;
+
+	QPanda::QPauliOperator pauli_op(pauli_map);
+	QPanda::QHamiltonian hamiltonian = pauli_op.toHamiltonian();
+	std::map<size_t, size_t> index_map = pauli_op.getIndexMap();
+
+	for_each(hamiltonian.begin(),
+		hamiltonian.end(),
+		[&](const QPanda::QHamiltonianItem &item)
+	{
+		std::vector<size_t> index_vec;
+		for (auto iter = item.first.begin();
+			iter != item.first.end();
+			iter++)
+		{
+			index_vec.push_back(iter->first);
+		}
+
+		double value = item.second;
+		size_t i = index_vec.front();
+		size_t j = index_vec.back();
+		if (key[i] != key[j])
+		{
+			sum += item.second;
+		}
+	});
+
+	return sum;
+}
+
+void testQAOA()
+{
+	QPanda::QPauliMap pauli_map;
+	pauli_map.insert(std::make_pair("Z0 Z6", 0.49));
+	pauli_map.insert(std::make_pair("Z6 Z1", 0.59));
+	pauli_map.insert(std::make_pair("Z1 Z7", 0.44));
+	pauli_map.insert(std::make_pair("Z7 Z2", 0.36));
+
+	pauli_map.insert(std::make_pair("Z2 Z8", 0.63));
+	pauli_map.insert(std::make_pair("Z8 Z13", 0.36));
+	pauli_map.insert(std::make_pair("Z13 Z19", 0.81));
+	pauli_map.insert(std::make_pair("Z19 Z14", 0.29));
+
+	pauli_map.insert(std::make_pair("Z14 Z9", 0.52));
+	pauli_map.insert(std::make_pair("Z9 Z4", 0.43));
+	pauli_map.insert(std::make_pair("Z13 Z18", 0.72));
+	pauli_map.insert(std::make_pair("Z18 Z12", 0.40));
+
+	pauli_map.insert(std::make_pair("Z12 Z7", 0.60));
+	pauli_map.insert(std::make_pair("Z12 Z17", 0.71));
+	pauli_map.insert(std::make_pair("Z17 Z11", 0.50));
+	pauli_map.insert(std::make_pair("Z11 Z6", 0.64));
+
+	pauli_map.insert(std::make_pair("Z11 Z16", 0.57));
+	pauli_map.insert(std::make_pair("Z16 Z10", 0.41));
+	pauli_map.insert(std::make_pair("Z10 Z5", 0.23));
+	pauli_map.insert(std::make_pair("Z10 Z15", 0.40));
+
+	pauli_map.insert(std::make_pair("Z5 Z0", 0.18));
+
+	QPanda::vector_d optimize_para_vec(2, 0);
+	QPanda::QAOA qaoa;
+	qaoa.setHamiltonian(pauli_map);
+	qaoa.setShots(2000);
+	qaoa.regiestUserDefinedFunc(std::bind(&myFunc,
+		std::placeholders::_1,
+		pauli_map));
+
+	QPanda::AbstractQOptimizer* optimizer = qaoa.getOptimizer();
+	optimizer->setMaxFCalls(2000);
+	optimizer->setMaxIter(2000);
+	optimizer->setDisp(true);
+
+	QPanda::OptimizationResult result = qaoa.exec();
 }
 
 //

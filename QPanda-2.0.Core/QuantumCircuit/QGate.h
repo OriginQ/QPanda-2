@@ -1,38 +1,24 @@
 ﻿/*
 Copyright (c) 2017-2018 Origin Quantum Computing. All Right Reserved.
+Licensed under the Apache License 2.0
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+QGate.h
+Author: Menghan.Dou
+Created in 2018-6-30
 
-http://www.apache.org/licenses/LICENSE-2.0
+Classes for QGate
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+Update@2018-8-30
+Update by code specification
 */
 
-#ifndef _QGATE_H_
-#define _QGATE_H_
-
+#ifndef _QGATE_H
+#define _QGATE_H
 #include <map>
 #include <functional>
-#include <vector>
 #include "QGlobalVariable.h"
-#include <complex>
-#define PI 3.14159265358979
-
-#define SINGLE_GATE_TYPE 1
-#define CU_TYPE 2
-//#define ISWAP 3
 
 using namespace std;
-typedef complex <double> COMPLEX;
-typedef vector <complex<double>> QStat;
-
-
 namespace QGATE_SPACE 
 {
     class angleParameter
@@ -41,83 +27,79 @@ namespace QGATE_SPACE
         double theta;
         virtual double getParameter() const = 0;
     };
-    /*
-    class matrixParameter
-    {
-    public:
-    QStat doublegatematrix;
-    virtual  void getParameter(QStat&) const = 0;
-    };
-    */
-
 
     class QuantumGate
     {
     protected:
-        int qOpNum;
-        int gateType;
-        QStat gatematrix;
-       // double theta;
+        int operation_num;
+        int gate_type;
+        size_t time = 0;
+        QStat gate_matrix;
     public:
         QuantumGate();
-        //QuantumGate(QuantumGate*);
+
         virtual ~QuantumGate() {};
         virtual double getAlpha() const = 0;
         virtual double getBeta() const = 0;
         virtual double getGamma() const = 0;
         virtual double getDelta() const = 0;
-        virtual int getOpNum() const = 0;
+        virtual int getOperationNum() const = 0;
         virtual void getMatrix(QStat & matrix) const = 0;
         virtual int getGateType()const = 0;
-		//virtual double getParameter() const =0;
     };
 
 
-    typedef QuantumGate* (*CreateGate)(void);
-    typedef QuantumGate* (*CreateAngleGate)(double);
-    typedef QuantumGate* (*CreateSingleAndCUGate)(double, double, double, double);
-    typedef QuantumGate* (*CreateGateByMatrix)(QStat &);
+
+
+    typedef QuantumGate* (*CreateGate_cb)(void);
+    typedef QuantumGate* (*CreateAngleGate_cb)(double);
+    typedef QuantumGate* (*CreateSingleAndCUGate_cb)(double, double, double, double);
+    typedef QuantumGate* (*CreateGateByMatrix_cb)(QStat &);
 
     class QGateFactory
     {
     public:
-        void registClass(string name, CreateGate method);
-        void registClass(string name, CreateAngleGate method);
-        void registClass(string name, CreateSingleAndCUGate method);
-        void registClass(string name, CreateGateByMatrix method);
-        QuantumGate * getGateNode(std::string &);
-        QuantumGate * getGateNode(std::string &, double angle);
-        QuantumGate * getGateNode(std::string &, double alpha, double beta, double gamma, double delta);
-        QuantumGate * getGateNode(std::string &, QStat&);
+        void registClass(string name, CreateGate_cb method);
+        void registClass(string name, CreateAngleGate_cb method);
+        void registClass(string name, CreateSingleAndCUGate_cb method);
+        void registClass(string name, CreateGateByMatrix_cb method);
+        QuantumGate * getGateNode(const std::string &);
+        QuantumGate * getGateNode(const std::string &, double angle);
+        QuantumGate * getGateNode(const std::string &,
+                                  const double alpha,
+                                  const double beta,
+                                  const double gamma,
+                                  const double delta);
+        QuantumGate * getGateNode(const std::string &, QStat&);
 
         static QGateFactory * getInstance()
         {
-            static QGateFactory  s_Instance;
-            return &s_Instance;
+            static QGateFactory  instance;
+            return &instance;
         }
     private:
     private:
-        map<string, CreateGate> m_gateMap;
-        map<string, CreateAngleGate> m_angleGateMap;
-        map<string, CreateSingleAndCUGate> m_singleAndCUGateMap;
-        map<string, CreateGateByMatrix> m_DoubleGateMap;
+        map<string, CreateGate_cb> m_gate_map;
+        map<string, CreateAngleGate_cb> m_angle_gate_map;
+        map<string, CreateSingleAndCUGate_cb> m_single_and_cu_gate_map;
+        map<string, CreateGateByMatrix_cb> m_double_gate_map;
         QGateFactory() {};
 
     };
 
     class RegisterAction {
     public:
-        RegisterAction(string className, CreateGate ptrCreateFn) {
-            QGateFactory::getInstance()->registClass(className, ptrCreateFn);
+        RegisterAction(string class_name, CreateGate_cb create_qgate_callback) {
+            QGateFactory::getInstance()->registClass(class_name, create_qgate_callback);
         }
-        RegisterAction(string className, CreateAngleGate ptrCreateFn) {
-            QGateFactory::getInstance()->registClass(className, ptrCreateFn);
+        RegisterAction(string class_name, CreateAngleGate_cb create_qgate_callback) {
+            QGateFactory::getInstance()->registClass(class_name, create_qgate_callback);
         }
-        RegisterAction(string className, CreateSingleAndCUGate ptrCreateFn) {
-            QGateFactory::getInstance()->registClass(className, ptrCreateFn);
+        RegisterAction(string class_name, CreateSingleAndCUGate_cb create_qgate_callback) {
+            QGateFactory::getInstance()->registClass(class_name, create_qgate_callback);
         }
-        RegisterAction(string className, CreateGateByMatrix ptrCreateFn) {
-            QGateFactory::getInstance()->registClass(className, ptrCreateFn);
+        RegisterAction(string class_name, CreateGateByMatrix_cb create_qgate_callback) {
+            QGateFactory::getInstance()->registClass(class_name, create_qgate_callback);
         }
     };
 
@@ -129,7 +111,7 @@ namespace QGATE_SPACE
         double beta;
         double gamma;
         double delta;
-        inline double argc(COMPLEX num)
+        inline double argc(qcomplex_t num)
         {
             if (num.imag() >= 0)
             {
@@ -149,7 +131,7 @@ namespace QGATE_SPACE
         U4(QStat & matrix);      //initialize through matrix element 
         inline virtual int getGateType() const
         {
-            return GATE_TYPE::U4_GATE;
+            return GateType::U4_GATE;
         }
         inline double getAlpha()const
         {
@@ -167,12 +149,11 @@ namespace QGATE_SPACE
         {
             return this->delta;
         }
-        inline int getOpNum() const
+        inline int getOperationNum() const
         {
-            return this->qOpNum;
+            return this->operation_num;
         }
         void getMatrix(QStat & matrix) const;
-        //U4(double, double, double);
     };
 
     class X :public U4
@@ -181,7 +162,7 @@ namespace QGATE_SPACE
         X();
         inline int getGateType() const
         {
-            return GATE_TYPE::PAULI_X_GATE;
+            return GateType::PAULI_X_GATE;
         }
     };
     class Y :public U4
@@ -190,7 +171,7 @@ namespace QGATE_SPACE
         Y();
         inline int getGateType() const
         {
-            return GATE_TYPE::PAULI_Y_GATE;
+            return GateType::PAULI_Y_GATE;
         }
     };
     class Z :public U4
@@ -199,7 +180,7 @@ namespace QGATE_SPACE
         Z();
         inline int getGateType() const
         {
-            return GATE_TYPE::PAULI_Z_GATE;
+            return GateType::PAULI_Z_GATE;
         }
     };
 
@@ -209,7 +190,7 @@ namespace QGATE_SPACE
         X1();
         inline int getGateType() const
         {
-            return GATE_TYPE::X_HALF_PI;
+            return GateType::X_HALF_PI;
         }
     };
     class Y1 :public U4
@@ -218,7 +199,7 @@ namespace QGATE_SPACE
         Y1();
         inline int getGateType() const
         {
-            return GATE_TYPE::Y_HALF_PI;
+            return GateType::Y_HALF_PI;
         }
     };
     class Z1 :public U4
@@ -227,7 +208,7 @@ namespace QGATE_SPACE
         Z1();
         inline int getGateType() const
         {
-            return GATE_TYPE::Z_HALF_PI;
+            return GateType::Z_HALF_PI;
         }
     };
     class H :public U4
@@ -236,7 +217,7 @@ namespace QGATE_SPACE
         H();
         inline int getGateType() const
         {
-            return GATE_TYPE::HADAMARD_GATE;
+            return GateType::HADAMARD_GATE;
         }
     };
     class T :public U4
@@ -245,7 +226,7 @@ namespace QGATE_SPACE
         T();
         inline int getGateType() const
         {
-            return GATE_TYPE::T_GATE;
+            return GateType::T_GATE;
         }
     };
     class S :public U4
@@ -254,7 +235,7 @@ namespace QGATE_SPACE
         S();
         inline int getGateType() const
         {
-            return GATE_TYPE::S_GATE;
+            return GateType::S_GATE;
         }
     };
 
@@ -264,7 +245,7 @@ namespace QGATE_SPACE
         RX(double);
         inline int getGateType() const
         {
-            return GATE_TYPE::RX_GATE;
+            return GateType::RX_GATE;
         }
         inline double getParameter() const
         {
@@ -277,7 +258,7 @@ namespace QGATE_SPACE
         RY(double);
         inline int getGateType() const
         {
-            return GATE_TYPE::RY_GATE;
+            return GateType::RY_GATE;
         }
         inline double getParameter() const
         {
@@ -290,21 +271,21 @@ namespace QGATE_SPACE
         RZ(double);
         inline int getGateType() const
         {
-            return GATE_TYPE::RZ_GATE;
+            return GateType::RZ_GATE;
         }
         inline double getParameter() const
         {
             return this->theta;
         }
     };
-    //U1_GATE=[1 0;0 exp(i*theta)
+
     class U1 :public U4, public angleParameter
     {
     public:
         U1(double);
         inline int getGateType() const
         {
-            return GATE_TYPE::RZ_GATE;
+            return GateType::U1_GATE;
         }
         inline double getParameter() const
         {
@@ -316,7 +297,7 @@ namespace QGATE_SPACE
     class QDoubleGate : public QuantumGate
     {
     protected:
-        //QStat gatematrix;
+
     public:
         QDoubleGate();
         QDoubleGate(const QDoubleGate & oldDouble);
@@ -325,11 +306,11 @@ namespace QGATE_SPACE
 
         inline int getGateType() const
         {
-            return GATE_TYPE::TWO_QUBIT_GATE;
+            return GateType::TWO_QUBIT_GATE;
         }
-        inline int getOpNum() const
+        inline int getOperationNum() const
         {
-            return qOpNum;
+            return operation_num;
         }
         inline virtual double getAlpha() const
         {
@@ -348,11 +329,11 @@ namespace QGATE_SPACE
             return 0;
         }
         void getMatrix(QStat &) const;
-        //virtual void getMatrix(QStat & matrix) const;
+
 
     protected:
-        //QStat m_matrix;
-        int qOpNum;
+
+        int operation_num;
 
     };
 
@@ -365,7 +346,7 @@ namespace QGATE_SPACE
         double beta;
         double gamma;
         double delta;
-        inline static double argc(COMPLEX num)
+        inline static double argc(qcomplex_t num)
         {
             if (num.imag() >= 0)
             {
@@ -384,7 +365,7 @@ namespace QGATE_SPACE
         CU(QStat& matrix);
         inline virtual int getGateType() const
         {
-            return GATE_TYPE::CU_GATE;
+            return GateType::CU_GATE;
         }
         inline double getAlpha() const
         {
@@ -402,11 +383,11 @@ namespace QGATE_SPACE
         {
             return this->delta;
         }
-        inline int getOpNum() const
+        inline int getOperationNum() const
         {
-            return this->qOpNum;
+            return this->operation_num;
         }
-        //U4(double, double, double);
+
     };
     //CNOT_GATE
     class CNOT :public CU
@@ -415,7 +396,7 @@ namespace QGATE_SPACE
         CNOT();
         inline int getGateType() const
         {
-            return GATE_TYPE::CNOT_GATE;
+            return GateType::CNOT_GATE;
         }
     };
 
@@ -427,7 +408,7 @@ namespace QGATE_SPACE
         CPhaseGate(double);
         inline virtual int getGateType() const
         {
-            return GATE_TYPE::CPHASE_GATE;
+            return GateType::CPHASE_GATE;
         }
         inline virtual double getParameter() const
         {
@@ -441,7 +422,7 @@ namespace QGATE_SPACE
         CZ();
         inline int getGateType() const
         {
-            return GATE_TYPE::CZ_GATE;
+            return GateType::CZ_GATE;
         }
     };
 
@@ -452,7 +433,7 @@ namespace QGATE_SPACE
         ISWAPTheta(double);
         inline virtual int getGateType() const
         {
-            return GATE_TYPE::ISWAP_THETA_GATE;
+            return GateType::ISWAP_THETA_GATE;
         }
         inline double getParameter() const
         {
@@ -465,7 +446,7 @@ namespace QGATE_SPACE
         ISWAP();
         inline int getGateType() const
         {
-            return GATE_TYPE::ISWAP_GATE;
+            return GateType::ISWAP_GATE;
         }
     };
 
@@ -475,10 +456,9 @@ namespace QGATE_SPACE
         SQISWAP();
         inline int getGateType() const
         {
-            return GATE_TYPE::SQISWAP_GATE;
+            return GateType::SQISWAP_GATE;
         }
     };
 }
 
 #endif
-

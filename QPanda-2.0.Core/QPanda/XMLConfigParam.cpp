@@ -1,35 +1,53 @@
 #include "XMLConfigParam.h"
+#include "QPandaException.h"
 
-XmlConfigParam::XmlConfigParam(const string &xmlFile) :
-    m_doc(xmlFile.c_str()), m_rootElement(0)
+XmlConfigParam::XmlConfigParam(const string &filename) :
+    m_doc(filename.c_str()), m_root_element(0)
 {
     if (!m_doc.LoadFile())
     {
-        throw exception();
+        throw param_error_exception("load file failure", false);
     }
-    m_rootElement = m_doc.RootElement();
+    m_root_element = m_doc.RootElement();
 }
 
-bool XmlConfigParam::getClassNameConfig(map<string, string> &classNameMap)
+bool XmlConfigParam::getMetadataPath(string &path)
 {
-    if (!m_rootElement)
+    if (!m_root_element)
+    {
+        return false;
+    }
+    TiXmlElement *metadata_path_element = m_root_element->FirstChildElement("MetadataPath");
+
+    if (!metadata_path_element)
     {
         return false;
     }
 
-    TiXmlElement *classNameConfigEle = m_rootElement->FirstChildElement("ClassNameConfig");
-    if (!classNameConfigEle)
+    path = metadata_path_element->GetText();
+    return true;
+}
+
+bool XmlConfigParam::getClassNameConfig(map<string, string> &class_name_map)
+{
+    if (!m_root_element)
     {
         return false;
     }
 
-    for(TiXmlElement *classMsgEle = classNameConfigEle->FirstChildElement();
-        classMsgEle;
-        classMsgEle = classMsgEle->NextSiblingElement())
+    TiXmlElement *class_name_config_element = m_root_element->FirstChildElement("ClassNameConfig");
+    if (!class_name_config_element)
     {
-        if (!classMsgEle->GetText())
+        return false;
+    }
+
+    for(TiXmlElement *class_msg_element = class_name_config_element->FirstChildElement();
+        class_msg_element;
+        class_msg_element = class_msg_element->NextSiblingElement())
+    {
+        if (!class_msg_element->GetText())
             continue;
-        classNameMap.insert(pair<string, string>(classMsgEle->Value(), classMsgEle->GetText()));
+        class_name_map.insert(pair<string, string>(class_msg_element->Value(), class_msg_element->GetText()));
     }
 
     return true;

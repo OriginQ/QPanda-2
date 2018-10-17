@@ -12,4 +12,7 @@ bool DJalgorithm();
 bool HelloWorld();
 void ifwhile();
 
+void testQPauliOperator();
+void testQAOA();
+
 #endif

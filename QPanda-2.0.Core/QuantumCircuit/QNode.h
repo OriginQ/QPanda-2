@@ -5,13 +5,16 @@
 #include <vector>
 #include <map>
 #include "QuantumCircuit/QGlobalVariable.h"
-typedef int QMAP_SIZE;
+typedef int qmap_size_t;
+
+
+
 class QNode
 {
 public:
     virtual NodeType getNodeType() const = 0;
-    virtual QMAP_SIZE getPosition() const = 0;
-    virtual void setPosition(QMAP_SIZE) = 0;
+    virtual qmap_size_t getPosition() const = 0;
+    virtual void setPosition(qmap_size_t) = 0;
     virtual ~QNode() {};
 };
 
@@ -19,14 +22,14 @@ public:
 
 struct MapNode
 {
-    QMAP_SIZE m_iReference;
+    qmap_size_t m_iReference;
     QNode   * m_pNode;
     MapNode(const MapNode& old)
     {
         m_iReference = old.m_iReference;
         m_pNode = old.m_pNode;
     }
-    MapNode(QMAP_SIZE iCount, QNode * pNode) :m_iReference(iCount), m_pNode(pNode)
+    MapNode(qmap_size_t iCount, QNode * pNode) :m_iReference(iCount), m_pNode(pNode)
     {
     }
 };
@@ -34,23 +37,25 @@ struct MapNode
 
 class QNodeMap
 {
-
-
+protected:
+    QNodeMap();
+    QNodeMap(const QNodeMap &);
+    QNodeMap &operator =(const QNodeMap &);
 private:
     SharedMutex m_sm;
-    QMAP_SIZE m_sCount;
+    qmap_size_t m_sCount;
     map<int, MapNode> m_pQNodeMap;
     map<int, MapNode>::iterator m_currentIter;
 public:
-    QNodeMap();
+    static QNodeMap &getInstance();
     ~QNodeMap();
 
-    QMAP_SIZE pushBackNode(QNode *);
+    qmap_size_t pushBackNode(QNode *);
     //bool setHeadNode(QNode *);
     
-    QNode * getNode(QMAP_SIZE);
-    bool addNodeRefer(QMAP_SIZE sNum);
-    bool deleteNode(QMAP_SIZE);
+    QNode * getNode(qmap_size_t);
+    bool addNodeRefer(qmap_size_t sNum);
+    bool deleteNode(qmap_size_t);
     map<int, MapNode>::iterator getEnd();
 };
 
@@ -87,7 +92,6 @@ public:
 };
 
 
-extern QNodeMap _G_QNodeMap;
 
 #endif // !_QNODE_H
 

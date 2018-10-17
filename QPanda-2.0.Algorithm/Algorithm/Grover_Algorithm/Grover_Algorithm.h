@@ -18,14 +18,11 @@ limitations under the License.
 #define GROVER_ALGORITHM_H
 
 #include "QPanda.h"
-#include "../Utilities/Utilities.h"
 
-void Grover_Algorithm();
-
-QProg Two_Qubit_DJ_Algorithm_Circuit(
-	Qubit* qubit1,
-	Qubit* qubit2,
-	CBit* cbit,
-	vector<bool> oracle_function);
+namespace QPanda
+{
+	QProg Grover(vector<Qubit*> qVec, vector<CBit*> cVec, int target);
+	void Grover_Algorithm();
+}
 
 #endif

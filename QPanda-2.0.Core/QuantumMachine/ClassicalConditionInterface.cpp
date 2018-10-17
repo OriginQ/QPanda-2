@@ -34,7 +34,7 @@ bool ClassicalCondition::checkValidity() const
 
 ClassicalCondition::ClassicalCondition(CBit *cbit)
 {
-	auto &fac = Factory::CExprFactory::GetFactoryInstance();
+	auto &fac = CExprFactory::GetFactoryInstance();
 	expr=fac.GetCExprByCBit(cbit);
 	if (expr == nullptr)
 	{
@@ -73,7 +73,7 @@ ClassicalCondition operator+(
 	ClassicalCondition rightcc)
 {
 	return
-		Factory::CExprFactory::
+		CExprFactory::
 		GetFactoryInstance().GetCExprByOperation
 		(
 			leftcc.expr->deepcopy(),
@@ -87,7 +87,7 @@ ClassicalCondition operator-(
 	ClassicalCondition rightcc)
 {
 	return
-		Factory::CExprFactory::
+		CExprFactory::
 		GetFactoryInstance().GetCExprByOperation
 		(
 			leftcc.expr->deepcopy(),
@@ -102,7 +102,7 @@ ClassicalCondition operator&&(
 	ClassicalCondition rightcc)
 {
 	return
-		Factory::CExprFactory::
+		CExprFactory::
 		GetFactoryInstance().GetCExprByOperation
 		(
 			leftcc.expr->deepcopy(),
@@ -116,7 +116,7 @@ ClassicalCondition operator||(
 	ClassicalCondition rightcc)
 {
 	return
-		Factory::CExprFactory::
+		CExprFactory::
 		GetFactoryInstance().GetCExprByOperation
 		(
 			leftcc.expr->deepcopy(),
@@ -129,7 +129,7 @@ ClassicalCondition operator!(
 	ClassicalCondition leftcc)
 {
 	return
-		Factory::CExprFactory::
+		CExprFactory::
 		GetFactoryInstance().GetCExprByOperation
 		(
 			leftcc.expr->deepcopy(),

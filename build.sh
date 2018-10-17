@@ -1,3 +1,7 @@
+mkdir -p build
+cd ./build/
+cmake ..
+make clean
 make
-cd ./Release/bin/
-./test
+./bin/Console
+

@@ -20,6 +20,9 @@ limitations under the License.
 #include "Transform/QProgToQRunes.h"
 #include "Transform/QProgToQuil.h"
 #include "Transform/QRunesToQProg.h"
+#include "QPanda/TranformQGateTypeStringAndEnum.h"
+#include "Transform/QProgClockCycle.h"
+
 
 static QuantumMachine* qvm;
 
@@ -277,4 +280,10 @@ map<string, size_t> quick_measure(vector<Qubit*>& qubit_vector, int shots,
         }
     }
     return meas_result;
+}
+
+size_t getQProgClockCycle(QProg &prog)
+{
+    QProgClockCycle counter(qvm->getGateTimeMap());
+    return counter.countQProgClockCycle(&prog);
 }

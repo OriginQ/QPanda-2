@@ -765,7 +765,7 @@ void decomposeMultipleControlQGate(AbstractQGateNode *pNode, QNode * pParentNode
     }
     else if (vControlQubit.size() == 2)
     {
-        pNode->setControl(vControlQubit);
+        //pNode->setControl(vControlQubit);
         qCircuit << traversalAlgorithm->decomposeTwoControlSingleQGate(pNode);
     }
     else if (vControlQubit.size() == 3)

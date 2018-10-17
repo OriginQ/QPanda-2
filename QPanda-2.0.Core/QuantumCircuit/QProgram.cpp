@@ -1437,7 +1437,7 @@ OriginQGate::~OriginQGate()
     }
 }
 
-OriginQGate::OriginQGate(Qubit * qbit, QuantumGate *pQGate)
+OriginQGate::OriginQGate(Qubit * qbit, QuantumGate *pQGate) :m_bIsDagger(false)
 {
     if (nullptr == pQGate)
         throw param_error_exception("OriginGate param err", false);
@@ -1448,7 +1448,7 @@ OriginQGate::OriginQGate(Qubit * qbit, QuantumGate *pQGate)
     m_iNodeType = GATE_NODE;
 }
 
-OriginQGate::OriginQGate(Qubit * controlQuBit , Qubit * targetQuBit, QuantumGate * pQGate)
+OriginQGate::OriginQGate(Qubit * controlQuBit , Qubit * targetQuBit, QuantumGate * pQGate) :m_bIsDagger(false)
 {
     if (nullptr == pQGate)
         throw param_error_exception("OriginGate param err", false);
@@ -1462,7 +1462,7 @@ OriginQGate::OriginQGate(Qubit * controlQuBit , Qubit * targetQuBit, QuantumGate
     m_iNodeType = GATE_NODE;
 }
 
-OriginQGate::OriginQGate(vector<Qubit*> &qubit_vector, QuantumGate *pQGate)
+OriginQGate::OriginQGate(vector<Qubit*> &qubit_vector, QuantumGate *pQGate) :m_bIsDagger(false)
 {
     if (nullptr == pQGate)
         throw param_error_exception("OriginGate param err", false);

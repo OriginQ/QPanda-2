@@ -22,7 +22,7 @@ using namespace std;
 
 int main()
 {
-    HHL_Algorithm();  
+    HHL_Algorithm(); 
     return  0;
 }
 

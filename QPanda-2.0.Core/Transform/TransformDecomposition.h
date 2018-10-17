@@ -115,6 +115,7 @@ argin       : pNode    Target Node pointer
 argout      : pNode    Target Node pointer
 Return      :
 ******************************************************************/
+extern QGate U4(QStat & matrix, Qubit *qubit);
 template<typename T>
 void TransformDecomposition::mergeCircuitandProgSingleGate(T  pNode)
 {

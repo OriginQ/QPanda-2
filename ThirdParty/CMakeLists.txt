@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.1)
 project(TinyXML)
 file(GLOB_RECURSE TinyXML_SRC_H ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 file(GLOB_RECURSE TinyXML_SRC_CPP ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)

@@ -32,8 +32,8 @@ void OriginQMachine::init()
     
     metadata->getSingleGate(m_sSingleGateVector);
     metadata->getDoubleGate(m_sDoubleGateVector);
-
     metadata->getQubiteMatrix(m_qubitMatrix);
+    metadata->getGateTime(m_gate_type_time);
 
     m_pQubitPool =
         QubitPoolFactory::GetFactoryInstance().
@@ -198,6 +198,11 @@ void OriginQMachine::finalize()
     delete m_pCMem;
     delete m_pQResult;
     delete m_pQMachineStatus;
+}
+
+map<int, size_t> OriginQMachine::getGateTimeMap() const
+{
+    return m_gate_type_time;
 }
 
 

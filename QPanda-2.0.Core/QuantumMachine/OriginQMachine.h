@@ -1,6 +1,7 @@
 #ifndef _QRIGIN_QUANTUM_MACHINE_H
 #define _QRIGIN_QUANTUM_MACHINE_H
 #include "QuantumMachineInterface.h"
+#include "QuantumCircuit/QGlobalVariable.h"
 #include <vector>
 using std::vector;
 using std::string;
@@ -26,6 +27,7 @@ public:
 	size_t getAllocateQubit() { return 0; };
 	size_t getAllocateCMem() { return 0; };
     QuantumGates * getQuantumGates() const { return nullptr; };
+    virtual map<int, size_t> getGateTimeMap() const;
 
 private:
     QubitPool * m_pQubitPool = nullptr;
@@ -45,6 +47,8 @@ private:
     vector<string> m_sDoubleGateVector;
     vector<string> m_sValidSingleGateVector;
     vector<string> m_sValidDoubleGateVector;
+
+    map<int, size_t> m_gate_type_time;
 };
 
 #endif

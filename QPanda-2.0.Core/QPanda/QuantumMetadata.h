@@ -16,15 +16,23 @@ Classes for get the shortes path of graph
 #include "TinyXML/tinyxml.h"
 #include <iostream>
 #include <vector>
+#include <map>
+#include <string>
+#include "QuantumCircuit/QGlobalVariable.h"
+#include "TranformQGateTypeStringAndEnum.h"
 
-using namespace std;
+
+using std::string;
+using std::vector;
+using std::map;
+using std::pair;
 
 
 /*
 Parse xml config and get metadata
 */
 class QuantumMetadata
-{
+{   
 public:
     QuantumMetadata() ;
     QuantumMetadata & operator =(const QuantumMetadata &) = delete;
@@ -74,7 +82,32 @@ public:
     */
     bool getDoubleGate(vector<string> &double_gate);
 
+    /*
+    Parse xml config file and get gate time
+    param:
+        gate_time_map: gate type map gate time
+    return:
+        sucess or not
+
+    Note:
+    */
+    bool getGateTime(map<int, size_t> &gate_time_map);
+
     ~QuantumMetadata();
+
+protected:
+    /*
+    insert time to gate_time_map
+    param:
+        gate: gate string type
+        time: gate clock cycle
+        gate_time_map: gate type map gate time
+    return:
+        None
+
+    Note:
+    */
+    void insertGateTimeMap(const pair<string, size_t> &gate_time, map<int, size_t> &gate_time_map);
 
 private:
     TiXmlDocument m_doc;

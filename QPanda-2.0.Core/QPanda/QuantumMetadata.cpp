@@ -178,7 +178,79 @@ bool QuantumMetadata::getDoubleGate(vector<string> &double_gate)
     return true;
 }
 
+bool QuantumMetadata::getGateTime(map<int, size_t> &gate_time_map)
+{    
+    if (!m_root_element)
+    {   
+        insertGateTimeMap({"RX", 2}, gate_time_map);
+        insertGateTimeMap({"RY", 2}, gate_time_map);
+        insertGateTimeMap({"RZ", 2}, gate_time_map);
+        insertGateTimeMap({"X1", 2}, gate_time_map);
+        insertGateTimeMap({"H", 2}, gate_time_map);
+        insertGateTimeMap({"S", 2}, gate_time_map);
+
+        insertGateTimeMap({"CNOT", 2}, gate_time_map);
+        insertGateTimeMap({"CZ", 2}, gate_time_map);
+        insertGateTimeMap({"ISWAP", 2}, gate_time_map);
+        
+        return true;
+    }
+
+    TiXmlElement *single_gate_element = m_root_element->FirstChildElement("SingleGate");
+    if (!single_gate_element)
+    {
+        return false;
+    }
+
+    for (TiXmlElement *gate_element = single_gate_element->FirstChildElement("Gate");
+         gate_element;
+         gate_element = gate_element->NextSiblingElement("Gate"))
+    {
+        if (gate_element)
+        {
+            string gate_str = gate_element->GetText();
+            transform(gate_str.begin(), gate_str.end(), gate_str.begin(), ::toupper);
+            size_t time = std::stoi(gate_element->Attribute("time"));
+            pair<string, size_t> single_gate = {gate_str, time};
+            insertGateTimeMap(single_gate, gate_time_map);
+        }
+    }
+
+    TiXmlElement *double_gate_element = m_root_element->FirstChildElement("DoubleGate");
+    if (!double_gate_element)
+    {
+        return false;
+    }
+
+    for (TiXmlElement *gate_element = double_gate_element->FirstChildElement("Gate");
+         gate_element;
+         gate_element = gate_element->NextSiblingElement("Gate"))
+    {
+        if (gate_element)
+        {
+            string gate_str = gate_element->GetText();
+            transform(gate_str.begin(), gate_str.end(), gate_str.begin(), ::toupper);
+            size_t time = std::stoi(gate_element->Attribute("time"));
+            pair<string, size_t> double_gate = {gate_str, time};
+            insertGateTimeMap(double_gate, gate_time_map);
+        }
+    }
+
+    return true;
+}
+
+void QuantumMetadata::insertGateTimeMap(const pair<string, size_t> &gate_time, map<int, size_t> &gate_time_map)
+{
+
+    pair<int, size_t> gate_type_time(QGateTypeStringToEnum::getInstance()[gate_time.first],
+                                            gate_time.second);
+    gate_time_map.insert(gate_type_time);
+
+    return ;
+}
+
 
 QuantumMetadata::~QuantumMetadata()
 {
 }
+

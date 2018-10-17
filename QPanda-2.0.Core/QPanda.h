@@ -177,13 +177,7 @@ vector<double> accumulateProbability(vector<double> &prob_list);
 map<string, size_t> quick_measure(vector<Qubit*>& qubit_vector, int shots,
     vector<double>& accumulate_probabilites);
 
-
-#if! defined(_MSC_VER)
-inline complex<double> operator""i(unsigned long long _Val)
-{	// return imaginary _Val
-    return (complex<double>(0.0, static_cast<double>(_Val)));
-}
-#endif
+extern size_t getQProgClockCycle(QProg &prog);
 
 
 #endif // !_QPANDA_H

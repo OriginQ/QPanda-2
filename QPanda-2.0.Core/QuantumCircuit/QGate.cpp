@@ -15,6 +15,8 @@ Update by code specification
 #include "QGate.h"
 #include "QGlobalVariable.h"
 #include "QPanda/QPandaException.h"
+#include "QPanda/QuantumMetadata.h"
+
 using namespace QGATE_SPACE;
 QuantumGate::QuantumGate()
 {
@@ -45,6 +47,10 @@ U4::U4()
     gate_matrix.push_back(0);
     gate_matrix.push_back(1);
 
+//    QuantumMetadata metadata("/home/wj/QPanda2.0/QPanda2_0/qpanda2.0/MetadataConfig.xml");
+//    map<int, size_t> test;
+//    metadata.getGateTime(test);
+//    time = test[this->getGateType()];
 }
 
 U4::U4(double _alpha, double _beta, double _gamma, double _delta)

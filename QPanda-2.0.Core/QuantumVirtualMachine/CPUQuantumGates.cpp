@@ -13,6 +13,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+#include "config.h"
+
+#ifndef USE_CUDA
 
 #include "CPUQuantumGates.h"
 #include <algorithm>
@@ -929,3 +932,4 @@ QError CPUQuantumGates::Reset(size_t qn)
     return qErrorNone;
 }
 
+#endif

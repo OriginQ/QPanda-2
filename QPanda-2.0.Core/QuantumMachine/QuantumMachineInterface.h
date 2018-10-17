@@ -148,6 +148,7 @@ public:
 	virtual void finalize() = 0; // finish the program
 	virtual size_t getAllocateQubit() = 0;
 	virtual size_t getAllocateCMem() = 0;
+    virtual map<int, size_t> getGateTimeMap() const = 0;
 
 	virtual ~QuantumMachine() {} // destructor
 

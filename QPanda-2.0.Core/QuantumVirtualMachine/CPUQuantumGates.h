@@ -14,8 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#ifndef _X86_QUANTUM_GATE_H
-#define _X86_QUANTUM_GATE_H
+#ifndef CPU_QUANTUM_GATE_H
+#define CPU_QUANTUM_GATE_H
+
+#ifndef USE_CUDA
 
 #include "QuantumGates.h"
 #include <stdio.h>
@@ -517,5 +519,7 @@ protected:
     string sCalculationUnitType = "X86";
 
 };
+
+#endif // !USE_CUDA
 
 #endif

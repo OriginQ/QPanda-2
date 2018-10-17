@@ -175,7 +175,7 @@ private:
 	//friend class Factory::QuantumMachineFactory;
 
 public:
-	CONSTRUCTOR OriginQVM();
+	CONSTRUCTOR OriginQVM() {};
 	void init();
 	Qubit* Allocate_Qubit();
 	CBit* Allocate_CBit();
@@ -192,6 +192,7 @@ public:
 	size_t getAllocateQubit();
 	size_t getAllocateCMem();
     QuantumGates * getQuantumGates() const;
+    virtual map<int, size_t> getGateTimeMap() const;
 };
 
 #endif

@@ -33,6 +33,7 @@ namespace QGATE_SPACE
     protected:
         int operation_num;
         int gate_type;
+        size_t time = 0;
         QStat gate_matrix;
     public:
         QuantumGate();

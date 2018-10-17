@@ -25,12 +25,15 @@ limitations under the License.
 using std::function;
 using std::map;
 
+class QNodeAgency;
 class AbstractQNodeParse
 {
 public:
     virtual bool executeAction() = 0;
     virtual bool verify() = 0;
     virtual ~AbstractQNodeParse() {};
+private:
+	virtual QNodeAgency * getAgency(QNode * pNode) = 0;
 };
 
 class QCirCuitParse :public AbstractQNodeParse
@@ -48,6 +51,7 @@ public:
     bool verify();
 private:
     QCirCuitParse();
+	QNodeAgency * getAgency(QNode * pNode);
 };
 
 class QIfParse :public AbstractQNodeParse
@@ -62,6 +66,7 @@ public:
     bool executeAction();
     bool verify();
 private:
+    QNodeAgency * getAgency(QNode * pNode);
     QIfParse();
 };
 class QWhileProg;
@@ -77,6 +82,7 @@ public:
     bool executeAction();
     bool verify();
 private:
+	QNodeAgency * getAgency(QNode * pNode);
     QWhileParse();
 };
 
@@ -92,6 +98,7 @@ public:
     bool executeAction();
     bool verify();
 private:
+	QNodeAgency * getAgency(QNode * pNode) { return nullptr; };
     MeasureParse();
 };
 
@@ -107,7 +114,9 @@ public:
     ~QProgParse() {};
     bool executeAction();
     bool verify();
+	
 private:
+	QNodeAgency * getAgency(QNode * pNode);
     QProgParse();
 };
 
@@ -124,6 +133,7 @@ public:
     bool executeAction();
     bool verify();
 private:
+	virtual QNodeAgency * getAgency(QNode * pNode) { return nullptr; };
     QGateParse();
 
 };
@@ -141,6 +151,7 @@ public:
     bool verify();
 private:
     QNodeAgency();
+	virtual QNodeAgency * getAgency(QNode * pNode) { return nullptr; };
     AbstractQNodeParse * m_pQNodeParse;
 
 };

@@ -18,11 +18,12 @@ limitations under the License.
 #include "Factory.h"
 #include "QuantumMachineFactory.h"
 #include "Transform/QCircuitParse.h"
+#include "config.h"
+#ifdef USE_CUDA
+#include "QuantumVirtualMachine/GPUQuantumGates.h"
+#else
 #include "QuantumVirtualMachine/CPUQuantumGates.h"
-OriginQVM::OriginQVM()
-{
-	return;
-}
+#endif // USE_CUDA
 
 void OriginQVM::init()
 {
@@ -41,7 +42,13 @@ void OriginQVM::init()
 	_QMachineStatus =
 		QMachineStatusFactory::
 		GetQMachineStatus();
-    _pGates = new CPUQuantumGates();
+
+
+#ifdef USE_CUDA
+	_pGates = new GPUQuantumGates();
+#else
+	_pGates = new CPUQuantumGates();
+#endif // USE_CUDA
 }
 
 Qubit * OriginQVM::Allocate_Qubit()
@@ -216,6 +223,12 @@ QuantumGates * OriginQVM::getQuantumGates() const
         throw exception();
     return _pGates;
 }
+
+map<int, size_t> OriginQVM::getGateTimeMap() const
+{
+    return map<int, size_t>();
+}
+
 
 
 

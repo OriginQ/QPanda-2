@@ -288,7 +288,7 @@ void checkAngleExper(string str)
             {
                 throw param_error_exception("Formal Error", false);
             }
-            else if (*(iter + 1) == NULL)
+            else
             {
                 throw param_error_exception("Formal Error", false);
             }

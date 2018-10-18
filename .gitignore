@@ -15,3 +15,4 @@ pyQPanda/*.so
 pyQPanda/*.pyd
 .vscode/
 build/*
+config.h

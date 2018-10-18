@@ -1,8 +1,18 @@
 cmake_minimum_required(VERSION 3.1)
 #cmake_policy(SET CMP0054 NEW)
 
-option(USE_PYQPANDA "use pyQpanda" OFF)
+include_directories(${PROJECT_SOURCE_DIR}/Console
+                    ${PROJECT_SOURCE_DIR}/QPanda-2.0.Algorithm
+                    ${PROJECT_SOURCE_DIR}/QPanda-2.0.Algorithm/Algorithm
+                    ${PROJECT_SOURCE_DIR}/QPanda-2.0.Core
+                    ${PROJECT_SOURCE_DIR}/QPanda-2.0.Core/QuantumVirtualMachine
+                    ${PROJECT_SOURCE_DIR}/QPanda-2.0.Core/QuantumMachine
+                    ${PROJECT_SOURCE_DIR}/QPanda-2.0.Core/Transform
+                    ${PROJECT_SOURCE_DIR}/QPanda-2.0.GPUGates
+                    ${PROJECT_SOURCE_DIR}/ThirdParty
+                    ${PROJECT_SOURCE_DIR})
 
+option(USE_PYQPANDA "use pyQpanda" ON)
 if(USE_PYQPANDA)
     include_directories(${PROJECT_SOURCE_DIR}/pyQPanda)
     if (UNIX)
@@ -21,18 +31,7 @@ if(USE_PYQPANDA)
     add_subdirectory(pyQPanda)
 endif(USE_PYQPANDA)
 
-include_directories(${PROJECT_SOURCE_DIR}/Console
-                    ${PROJECT_SOURCE_DIR}/QPanda-2.0.Algorithm
-                    ${PROJETC_SOURCE_DIR}/QPanda-2.0.Algorithm/Algorithm
-                    ${PROJECT_SOURCE_DIR}/QPanda-2.0.Core
-                    ${PROJECT_SOURCE_DIR}/QPanda-2.0.Core/QuantumVirtualMachine
-                    ${PROJECT_SOURCE_DIR}/QPanda-2.0.Core/QuantumVirtualMachine/CPUQuantumGates
-                    ${PROJECT_SOURCE_DIR}/QPanda-2.0.Core/QuantumMachin
-                    ${PROJECT_SOURCE_DIR}/QPanda-2.0.Core/Transform
-                    ${PROJECT_SOURCE_DIR}/QPanda-2.0.GPUGates
-                    ${PROJECT_SOURCE_DIR}/ThirdParty
-					${PROJECT_SOURCE_DIR}
-                    ${PYTHON_PATH_INCLUDE})
+
 
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
@@ -41,7 +40,7 @@ find_package(CUDA)
 if(CUDA_FOUND)
     option (USE_CUDA "Use cuda" ON)
     include_directories(${CUDA_INCLUDE_DIRS}
-						${PROJECT_SOURCE_DIR}/QPanda-2.0.GPUGates)
+                        ${PROJECT_SOURCE_DIR}/QPanda-2.0.GPUGates)
     add_subdirectory(QPanda-2.0.GPUGates)
 else(CUDA_FOUND)
     option (USE_CUDA "Use cuda" OFF)

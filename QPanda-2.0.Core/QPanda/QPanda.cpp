@@ -37,6 +37,8 @@ void init()
 void finalize()
 {
 	qvm->finalize();
+	delete qvm;
+	qvm = nullptr;
 }
 
 Qubit * qAlloc()

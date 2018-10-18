@@ -1,7 +1,7 @@
 language: cpp
 sudo: false
 before_install:
-- sudo apt-get install gcc-4.9 -y
+- sudo apt-get install gcc-5.0 -y
 - sudo apt-get install cmake -y
 install: true
 script: bash build.sh

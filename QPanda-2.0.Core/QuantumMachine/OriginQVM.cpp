@@ -205,6 +205,12 @@ void OriginQVM::finalize()
 	delete _QMachineStatus;
     delete _pGates;
 
+	_Qubit_Pool = nullptr;
+	_CMem = nullptr;
+	_QResult = nullptr;
+	_QMachineStatus = nullptr;
+	_pGates = nullptr;
+
 }
 
 size_t OriginQVM::getAllocateQubit()

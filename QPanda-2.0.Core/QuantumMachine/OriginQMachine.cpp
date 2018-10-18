@@ -198,6 +198,11 @@ void OriginQMachine::finalize()
     delete m_pCMem;
     delete m_pQResult;
     delete m_pQMachineStatus;
+
+	m_pQubitPool = nullptr;
+	m_pCMem = nullptr;
+	m_pQResult = nullptr;
+	m_pQMachineStatus = nullptr;
 }
 
 map<int, size_t> OriginQMachine::getGateTimeMap() const

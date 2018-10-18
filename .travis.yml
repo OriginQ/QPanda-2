@@ -16,7 +16,6 @@ addons:
   apt:
     packages:
       - cmake
-      - libopencv-dev
 before_script:
   - cmake --version
   - mkdir build

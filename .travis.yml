@@ -1,7 +1,11 @@
 language: cpp
 sudo: false
 before_install:
-- sudo apt-get install gcc -y
+- sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+- sudo apt-get update -y
+- sudo apt-get install gcc-7 -y
+- sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 100
+- gcc -v
 - sudo apt-get install cmake -y
 install: true
 script: bash build.sh

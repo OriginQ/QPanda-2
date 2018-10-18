@@ -12,7 +12,7 @@ include_directories(${PROJECT_SOURCE_DIR}/Console
                     ${PROJECT_SOURCE_DIR}/ThirdParty
                     ${PROJECT_SOURCE_DIR})
 
-option(USE_PYQPANDA "use pyQpanda" ON)
+option(USE_PYQPANDA "use pyQpanda" OFF)
 if(USE_PYQPANDA)
     include_directories(${PROJECT_SOURCE_DIR}/pyQPanda)
     if (UNIX)

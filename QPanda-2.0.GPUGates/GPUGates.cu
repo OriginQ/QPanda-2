@@ -1422,14 +1422,14 @@ bool GATEGPU::destroyState(QState& psi, QState& psigpu,size_t stQnum)
 
     if (stQnum<30)
     {
-        cudaError_t cudaStates = cudaFree(psigpu.real);
-        if (cudaSuccess != cudaStates)
+        cudaError_t cuda_statuss = cudaFree(psigpu.real);
+        if (cudaSuccess != cuda_statuss)
         {
             cout << "psigpu.real free error" << endl;
             return false;
         }
-        cudaStates =cudaFree(psigpu.imag);
-        if (cudaSuccess != cudaStates)
+        cuda_statuss =cudaFree(psigpu.imag);
+        if (cudaSuccess != cuda_statuss)
         {
             cout << "psigpu.imag free error" << endl;
             return false;
@@ -1470,12 +1470,12 @@ bool GATEGPU::clearState(QState& psi, QState& psigpu,size_t stQnum)
         cudaError_t cudaStatue = cudaMemcpy(psigpu.real, psi.real, sizeof(STATE_T)*qsDim, cudaMemcpyHostToDevice);
         if (cudaSuccess != cudaStatue)
         {
-            cout << "psigpu real memcpy error" << endl;
+            cout << "psigpu real cudaMemcpy error" << endl;
         }
         cudaStatue = cudaMemcpy(psigpu.imag, psi.imag, sizeof(STATE_T)*qsDim, cudaMemcpyHostToDevice);
         if (cudaSuccess != cudaStatue)
         {
-            cout << "psigpu imag memcpy error" << endl;
+            cout << "psigpu imag cudaMemcpy error" << endl;
         }
     }
     else
@@ -1493,16 +1493,17 @@ bool GATEGPU::initstate(QState& psi, QState& psigpu, int qnum)
     //QState psigpu;
     if (qnum >= 30)
     {
-        cudaError_t cudaStatus = cudaHostAlloc(&psi.real, sizeof(double)*(1ll << qnum), cudaHostAllocMapped);
-        if (cudaStatus != cudaSuccess)
+        cudaError_t cuda_status = cudaHostAlloc(&psi.real, sizeof(double)*(1ll << qnum), cudaHostAllocMapped);
+        if (cuda_status != cudaSuccess)
         {
             printf("host alloc fail!\n");
             return false;
         }
-        cudaError_t cudaStatus1 = cudaHostAlloc(&psi.imag, sizeof(double)*(1ll << qnum), cudaHostAllocMapped);
-        if (cudaStatus1 != cudaSuccess)
+        cudaError_t cuda_status1 = cudaHostAlloc(&psi.imag, sizeof(double)*(1ll << qnum), cudaHostAllocMapped);
+        if (cuda_status1 != cudaSuccess)
         {
             printf("host alloc fail!\n");
+            cudaFreeHost(psi.real);
             return false;
         }
         cudaHostGetDevicePointer(&psigpu.real, psi.real, 0);
@@ -1517,7 +1518,7 @@ bool GATEGPU::initstate(QState& psi, QState& psigpu, int qnum)
     else 
     {
         QSIZE Dim = 1 << qnum;
-        cudaError_t cudaStatus;
+        cudaError_t cuda_status;
         psi.real = (STATE_T*)malloc(Dim * sizeof(STATE_T));
         if (nullptr == psi.real)
         {
@@ -1531,16 +1532,16 @@ bool GATEGPU::initstate(QState& psi, QState& psigpu, int qnum)
             free(psi.imag);
             return false;
         }
-        cudaStatus = cudaMalloc((void**)&psigpu.real, sizeof(STATE_T)*Dim);
-        if (cudaSuccess != cudaStatus)
+        cuda_status = cudaMalloc((void**)&psigpu.real, sizeof(STATE_T)*Dim);
+        if (cudaSuccess != cuda_status)
         {
             printf("psigpu.real alloc gpu memoery error!\n");
             free(psi.real);
             free(psi.imag);
             return false;
         }
-        cudaStatus = cudaMalloc((void**)&psigpu.imag, sizeof(STATE_T)*Dim);
-        if (cudaSuccess != cudaStatus)
+        cuda_status = cudaMalloc((void**)&psigpu.imag, sizeof(STATE_T)*Dim);
+        if (cudaSuccess != cuda_status)
         {
             printf("psigpu.imag alloc gpu memoery error!\n");
             free(psi.real);
@@ -1553,10 +1554,10 @@ bool GATEGPU::initstate(QState& psi, QState& psigpu, int qnum)
         memset(psi.imag, 0, Dim * sizeof(STATE_T));
         psi.real[0] = 1;
         
-        cudaStatus = cudaMemcpy(psigpu.real, psi.real, sizeof(STATE_T)*Dim, cudaMemcpyHostToDevice);
-        if (cudaSuccess != cudaStatus)
+        cuda_status = cudaMemcpy(psigpu.real, psi.real, sizeof(STATE_T)*Dim, cudaMemcpyHostToDevice);
+        if (cudaSuccess != cuda_status)
         {
-            printf("psigpu.imag alloc gpu memoery error!\n");
+            printf("psigpu.imag alloc gpu cudaMemcpy error!\n");
             free(psi.real);
             free(psi.imag);
             cudaFree(psigpu.real);
@@ -1564,10 +1565,10 @@ bool GATEGPU::initstate(QState& psi, QState& psigpu, int qnum)
             return false;
         }
 
-        cudaStatus = cudaMemcpy(psigpu.imag, psi.imag, sizeof(STATE_T)*Dim, cudaMemcpyHostToDevice);
-        if (cudaSuccess != cudaStatus)
+        cuda_status = cudaMemcpy(psigpu.imag, psi.imag, sizeof(STATE_T)*Dim, cudaMemcpyHostToDevice);
+        if (cudaSuccess != cuda_status)
         {
-            printf("psigpu.imag alloc gpu memoery error!\n");
+            printf("psigpu.imag alloc gpu cudaMemcpy error!\n");
             free(psi.real);
             free(psi.imag);
             cudaFree(psigpu.real);
@@ -2237,14 +2238,58 @@ bool GATEGPU::unitarysingle(
                // matrix[i] = qcomplex_t(matrix[i].real(), -matrix[i].imag());
             }//dagger
         }
+
+        size_t kSingleGateElementNumber = 4;
+        double *d_real = nullptr;
+        double *d_imag = nullptr;
+
+        cudaError_t cuda_status;
+        cuda_status = cudaMalloc((void **)&d_real, sizeof(double) * kSingleGateElementNumber);
+        if (cudaSuccess != cuda_status)
+        {
+            fprintf(stderr, "cudaMalloc error\n");
+            return false;
+        }
+
+        cuda_status = cudaMalloc((void **)&d_imag, sizeof(double) * kSingleGateElementNumber);
+        if (cudaSuccess != cuda_status)
+        {
+            fprintf(stderr, "cudaMalloc error\n");
+            cudaFree(d_real);
+            return false;
+        }
+
+        cuda_status = cudaMemcpy(d_real, matrix.real, sizeof(double) * kSingleGateElementNumber, cudaMemcpyHostToDevice);
+        if (cudaSuccess != cuda_status)
+        {
+            fprintf(stderr, "cudaMalloc error\n");
+            cudaFree(d_real);
+            cudaFree(d_imag);
+            return false;
+        }
+
+        cuda_status = cudaMemcpy(d_imag, matrix.imag, sizeof(double) * kSingleGateElementNumber, cudaMemcpyHostToDevice);
+        if (cudaSuccess != cuda_status)
+        {
+            fprintf(stderr, "cudaMalloc error\n");
+            cudaFree(d_real);
+            cudaFree(d_imag);
+            return false;
+        }
+
         QSIZE BLOCKDIM;
 		SET_BLOCKDIM
 
 		gpu::unitarysingle << < (BLOCKDIM == 0 ? 1 : BLOCKDIM), THREADDIM >> >
-            (psigpu.real, psigpu.imag, 1 << (psigpu.qnum), 1 << qn, matrix.real, matrix.imag);
+            (psigpu.real, psigpu.imag, 1 << (psigpu.qnum), 1 << qn, d_real, d_imag);
+        cuda_status = cudaDeviceSynchronize();
+
+        cudaFree(d_real);
+        cudaFree(d_imag);
+        return getSynchronizeResult(cuda_status, "unitarysingle");
     }
 
-    GET_SYN_RES("unitarysingle")
+    return true;
 }
 
 bool GATEGPU::controlunitarysingle(
@@ -2274,24 +2319,103 @@ bool GATEGPU::controlunitarysingle(
             }//dagger
         }
 
+        cudaError_t cuda_status;
         QSIZE m = qnum.size();
         QSIZE target = qnum.back();
         sort(qnum.begin(), qnum.end());
-        QSIZE *block, *blockgpu;
-        cudaHostAlloc((void **)&block, sizeof(QSIZE)*m, cudaHostAllocMapped);
-        cudaHostGetDevicePointer(&blockgpu, block, 0);
+
+        QSIZE *d_block = nullptr;
+        QSIZE *h_block = nullptr;
+        h_block = (QSIZE *)malloc(sizeof(QSIZE)*m);
+        if (nullptr == h_block)
+        {
+            fprintf(stderr, "malloc error\n");
+            return false;
+        }
+
         for (QSIZE i = 0; i < m; i++)
         {
-            block[i] = 1 << qnum[i];
+            h_block[i] = 1 << qnum[i];
         }
+
+        cuda_status = cudaMalloc((void **)&d_block, sizeof(QSIZE)*m);
+        if (cudaSuccess != cuda_status)
+        {
+            fprintf(stderr, "cudaMalloc error\n");
+            free(h_block);
+            return false;
+        }
+
+        cuda_status = cudaMemcpy(d_block, h_block, sizeof(QSIZE) * m, cudaMemcpyHostToDevice);
+        if (cudaSuccess != cuda_status)
+        {
+            fprintf(stderr, "cudaMemcpy error\n");
+            free(h_block);
+            cudaFree(d_block);
+            return false;
+        }
+
+        size_t kSingleGateElementNumber = 4;
+        double *d_real = nullptr;
+        double *d_imag = nullptr;
+
+        cuda_status = cudaMalloc((void **)&d_real, sizeof(double) * kSingleGateElementNumber);
+        if (cudaSuccess != cuda_status)
+        {
+            fprintf(stderr, "cudaMalloc error\n");
+            free(h_block);
+            cudaFree(d_block);
+            return false;
+        }
+
+        cuda_status = cudaMalloc((void **)&d_imag, sizeof(double) * kSingleGateElementNumber);
+        if (cudaSuccess != cuda_status)
+        {
+            fprintf(stderr, "cudaMalloc error\n");
+            free(h_block);
+            cudaFree(d_block);
+            cudaFree(d_real);
+            return false;
+        }
+
+        cuda_status = cudaMemcpy(d_real, matrix.real, sizeof(double) * kSingleGateElementNumber, cudaMemcpyHostToDevice);
+        if (cudaSuccess != cuda_status)
+        {
+            fprintf(stderr, "cudaMemcpy error\n");
+            free(h_block);
+            cudaFree(d_block);
+            cudaFree(d_real);
+            cudaFree(d_imag);
+            return false;
+        }
+
+        cuda_status = cudaMemcpy(d_imag, matrix.imag, sizeof(double) * kSingleGateElementNumber, cudaMemcpyHostToDevice);
+        if (cudaSuccess != cuda_status)
+        {
+            fprintf(stderr, "cudaMemcpy error\n");
+            free(h_block);
+            cudaFree(d_block);
+            cudaFree(d_real);
+            cudaFree(d_imag);
+            return false;
+        }
+
         QSIZE BLOCKDIM;
         SET_BLOCKDIM
-		gpu::controlunitarysingle << < (BLOCKDIM == 0 ? 1 : BLOCKDIM), THREADDIM >> >
-            (psigpu.real, psigpu.imag, 1 << (psigpu.qnum), blockgpu, 1 << target, m,matrix.real, matrix.imag);
-        cudaFreeHost(block);
 
+        BLOCKDIM = (1 << (psigpu.qnum - 1)) / THREADDIM;
+		gpu::controlunitarysingle << < (BLOCKDIM == 0 ? 1 : BLOCKDIM), THREADDIM >> >
+            (psigpu.real, psigpu.imag, 1 << (psigpu.qnum), d_block, 1 << target, m,d_real, d_imag);
+        cuda_status = cudaDeviceSynchronize();
+
+        free(h_block);
+        cudaFree(d_block);
+        cudaFree(d_real);
+        cudaFree(d_imag);
+
+        return getSynchronizeResult(cuda_status, "controlunitarysingle");
     }
-    GET_SYN_RES("controlunitarysingle")
+    return true;
 }
 
 
@@ -2330,13 +2454,57 @@ bool GATEGPU::unitarydouble(
 ;                //matrix[i] = qcomplex_t(matrix[i].real(), -matrix[i].imag());
             }//dagger
         }
+
+        size_t kDoubleGateElementNumber = 16;
+        double *d_real = nullptr;
+        double *d_imag = nullptr;
+        cudaError_t cuda_status;
+
+        cuda_status = cudaMalloc((void **)&d_real, sizeof(double) * kDoubleGateElementNumber);
+        if (cudaSuccess != cuda_status)
+        {
+            fprintf(stderr, "cudaMalloc error\n");
+            return false;
+        }
+
+        cuda_status = cudaMalloc((void **)&d_imag, sizeof(double) * kDoubleGateElementNumber);
+        if (cudaSuccess != cuda_status)
+        {
+            fprintf(stderr, "cudaMalloc error\n");
+            cudaFree(d_real);
+            return false;
+        }
+
+        cuda_status = cudaMemcpy(d_real, matrix.real, sizeof(double) * kDoubleGateElementNumber, cudaMemcpyHostToDevice);
+        if (cudaSuccess != cuda_status)
+        {
+            fprintf(stderr, "cudaMemcpy error\n");
+            cudaFree(d_real);
+            cudaFree(d_imag);
+            return false;
+        }
+
+        cuda_status = cudaMemcpy(d_imag, matrix.imag, sizeof(double) * kDoubleGateElementNumber, cudaMemcpyHostToDevice);
+        if (cudaSuccess != cuda_status)
+        {
+            fprintf(stderr, "cudaMemcpy error\n");
+            cudaFree(d_real);
+            cudaFree(d_imag);
+            return false;
+        }
+
         QSIZE BLOCKDIM;
         SET_BLOCKDIM
         gpu::unitarydouble << < (BLOCKDIM == 0 ? 1 : BLOCKDIM), THREADDIM >> >
-            (psigpu.real, psigpu.imag, 1 << (psigpu.qnum), 1 << qn_0, 1 << qn_1, matrix.real, matrix.imag);
+            (psigpu.real, psigpu.imag, 1 << (psigpu.qnum), 1 << qn_0, 1 << qn_1, d_real, d_imag);
+        cuda_status = cudaDeviceSynchronize();
+
+        cudaFree(d_real);
+        cudaFree(d_imag);
+        return getSynchronizeResult(cuda_status, "unitarydouble");
     }
 
-    GET_SYN_RES("unitarysingle")
+    return true;
 }
 
 bool GATEGPU::controlunitarydouble(
@@ -2376,22 +2544,98 @@ bool GATEGPU::controlunitarydouble(
         QSIZE target0 = qnum[m-2];
         QSIZE target1 = qnum.back();
         sort(qnum.begin(), qnum.end());
-        QSIZE *block, *blockgpu;
-        cudaHostAlloc((void **)&block, sizeof(QSIZE)*m, cudaHostAllocMapped);
-        cudaHostGetDevicePointer(&blockgpu, block, 0);
+        QSIZE *h_block, *d_block;
+
+        h_block = (QSIZE *)malloc(sizeof(QSIZE) * m);
+        if (nullptr == h_block)
+        {
+            fprintf(stderr, "malloc error\n");
+            return false;
+        }
+
         for (QSIZE i = 0; i < m; i++)
         {
-            block[i] = 1 << qnum[i];
+            h_block[i] = 1 << qnum[i];
         }
+
+        cudaError_t cuda_status;
+        cuda_status = cudaMalloc((void **)&d_block, sizeof(QSIZE) * m);
+        if (cudaSuccess != cuda_status)
+        {
+            fprintf(stderr, "cudaMalloc error\n");
+            free(h_block);
+            return false;
+        }
+
+        cuda_status = cudaMemcpy(d_block, h_block, sizeof (QSIZE) * m, cudaMemcpyHostToDevice);
+        if (cudaSuccess != cuda_status)
+        {
+            fprintf(stderr, "cudaMemcpy error\n");
+            free(h_block);
+            cudaFree(d_block);
+            return false;
+        }
+
+        size_t kDoubleGateElementNumber = 16;
+        double *d_real = nullptr;
+        double *d_imag = nullptr;
+
+        cuda_status = cudaMalloc((void **)&d_real, sizeof(double) * kDoubleGateElementNumber);
+        if (cudaSuccess != cuda_status)
+        {
+            fprintf(stderr, "cudaMalloc error\n");
+            free(h_block);
+            cudaFree(d_block);
+            return false;
+        }
+
+        cuda_status = cudaMalloc((void **)&d_imag, sizeof(double) * kDoubleGateElementNumber);
+        if (cudaSuccess != cuda_status)
+        {
+            fprintf(stderr, "cudaMalloc error\n");
+            free(h_block);
+            cudaFree(d_block);
+            cudaFree(d_real);
+            return false;
+        }
+
+        cuda_status = cudaMemcpy(d_real, matrix.real, sizeof(double) * kDoubleGateElementNumber, cudaMemcpyHostToDevice);
+        if (cudaSuccess != cuda_status)
+        {
+            fprintf(stderr, "cudaMemcpy error\n");
+            free(h_block);
+            cudaFree(d_block);
+            cudaFree(d_real);
+            cudaFree(d_imag);
+            return false;
+        }
+
+        cuda_status = cudaMemcpy(d_imag, matrix.imag, sizeof(double) * kDoubleGateElementNumber, cudaMemcpyHostToDevice);
+        if (cudaSuccess != cuda_status)
+        {
+            fprintf(stderr, "cudaMemcpy error\n");
+            free(h_block);
+            cudaFree(d_block);
+            cudaFree(d_real);
+            cudaFree(d_imag);
+            return false;
+        }
+
         QSIZE BLOCKDIM;
         SET_BLOCKDIM
         gpu::controlunitarydouble << < (BLOCKDIM == 0 ? 1 : BLOCKDIM), THREADDIM >> > 
-            (psigpu.real, psigpu.imag, 1 << (psigpu.qnum), blockgpu,
-                1 << target0,1<<target1, m, matrix.real, matrix.imag);
-        cudaFreeHost(block);
+            (psigpu.real, psigpu.imag, 1 << (psigpu.qnum), d_block,
+                1 << target0,1<<target1, m, d_real, d_imag);
+        cuda_status = cudaDeviceSynchronize();
 
+        free(h_block);
+        cudaFree(d_block);
+        cudaFree(d_real);
+        cudaFree(d_imag);
+        return getSynchronizeResult(cuda_status, "controlunitarydouble");
     }
-    GET_SYN_RES("controlunitarysingle")
+    
+    return true;
 }
 
 
@@ -2401,29 +2645,44 @@ bool GATEGPU::qbReset(QState& psigpu, size_t qn, double error_rate)
 {
     if (gpu::randGenerator() > error_rate)
     {
+        cudaError_t cuda_status;
         double * resultgpu;
         // cudaHostAlloc((void **)&result, sizeof(STATE_T)*(psigpu.qnum-1))/THREADDIM, cudaHostAllocMapped);
         //cudaHostGetDevicePointer(&resultgpu, result, 0);
-        cudaMalloc((void **)&resultgpu, sizeof(STATE_T)*(1 << (psigpu.qnum - 1)) / THREADDIM);
+
+        cuda_status = cudaMalloc((void **)&resultgpu, sizeof(STATE_T)*(1 << (psigpu.qnum - 1)) / THREADDIM);
+        if (cudaSuccess != cuda_status)
+        {
+            fprintf(stderr, "cudaMalloc error\n");
+            return false;
+        }
+
         double * probgpu, *prob;
-        cudaHostAlloc((void **)&prob, sizeof(STATE_T), cudaHostAllocMapped);
-        cudaHostGetDevicePointer(&probgpu, prob, 0);
+        cuda_status = cudaHostAlloc((void **)&prob, sizeof(STATE_T), cudaHostAllocMapped);
+        if (cudaSuccess != cuda_status)
+        {
+            fprintf(stderr, "cudaHostAlloc error\n");
+            cudaFree(resultgpu);
+        }
+
         QSIZE BLOCKDIM;
         SET_BLOCKDIM
 		gpu::qubitprob << < (BLOCKDIM == 0 ? 1 : BLOCKDIM), THREADDIM, THREADDIM * sizeof(STATE_T) >> >
             (psigpu.real, psigpu.imag, 1 << (psigpu.qnum), 1 << qn, resultgpu);    //概率第一次归约
+        cuda_status = cudaDeviceSynchronize();
 		gpu::probsum << < (BLOCKDIM == 0 ? 1 : BLOCKDIM), THREADDIM >> > (resultgpu, probgpu);                   //要测量的态的概率存在prob中
-        cudaDeviceSynchronize();           //等概率完全计算出来
+        cuda_status = cudaDeviceSynchronize();           //等概率完全计算出来
         *prob = 1 / sqrt(*prob);
         gpu::qubitcollapse0 << < (BLOCKDIM == 0 ? 1 : BLOCKDIM), THREADDIM >> > 
             (psigpu.real, psigpu.imag, 1 << (psigpu.qnum), 1 << qn, *prob);
-        cudaDeviceSynchronize();
+        cuda_status = cudaDeviceSynchronize();
+
         cudaFree(resultgpu);
         cudaFreeHost(prob);
-        // std::cout << "err = " << cudaGetErrorString(cudaDeviceSynchronize()) << endl;
+        return getSynchronizeResult(cuda_status, "qReset");
     }
-    GET_SYN_RES("qbReset")
 
+    return true;
 }
 
 int GATEGPU::qubitmeasure(QState& psigpu, QSIZE Block)
@@ -2436,88 +2695,90 @@ int GATEGPU::qubitmeasure(QState& psigpu, QSIZE Block)
     //QSIZE BLOCKDIM = (1 << (psigpu.qnum - 1)) / THREADDIM;
     QSIZE BLOCKDIM;
     SET_BLOCKDIM
-        cudaError_t cudaState = cudaMalloc(&resultgpu, sizeof(STATE_T)* (BLOCKDIM == 0 ? 1 : BLOCKDIM));
-    if (cudaSuccess != cudaState)
+
+    int count = (0 == BLOCKDIM) ? 1 : BLOCKDIM;
+    cudaError_t cuda_status = cudaMalloc(&resultgpu, sizeof(STATE_T)* count);
+    if (cudaSuccess != cuda_status)
     {
-        cout << "resultgpu  " << cudaGetErrorString(cudaState) << endl;
+        cout << "resultgpu  " << cudaGetErrorString(cuda_status) << endl;
         return -1;
     }
     double * probgpu, prob;
     //cudaHostAlloc((void **)&prob, sizeof(STATE_T), cudaHostAllocMapped);
     //cudaHostGetDevicePointer(&probgpu, prob, 0);
-    cudaState = cudaMalloc(&probgpu, sizeof(STATE_T));
-    if (cudaSuccess != cudaState)
+    cuda_status = cudaMalloc(&probgpu, sizeof(STATE_T));
+    if (cudaSuccess != cuda_status)
     {
-        cout << "probgpu  " << cudaGetErrorString(cudaState) << endl;
+        cout << "probgpu  " << cudaGetErrorString(cuda_status) << endl;
         cudaFree(resultgpu);
         return -1;
     }
     gpu::qubitprob << < (BLOCKDIM == 0 ? 1 : BLOCKDIM), THREADDIM, THREADDIM * sizeof(STATE_T) >> > 
         (psigpu.real, psigpu.imag, 1 << (psigpu.qnum), Block, resultgpu);    //概率第一次归约
-    cudaState = cudaDeviceSynchronize();           //等概率完全计算出来
-    if (cudaSuccess != cudaState)
+    cuda_status = cudaDeviceSynchronize();           //等概率完全计算出来
+    if (cudaSuccess != cuda_status)
     {
-        cout << cudaGetErrorString(cudaState) << endl;
+        cout << cudaGetErrorString(cuda_status) << endl;
         cudaFree(resultgpu);
         cudaFree(probgpu);
         return -1;
     }
     //double *prob;
 	gpu::probsum << < (BLOCKDIM == 0 ? 1 : BLOCKDIM), THREADDIM >> > (resultgpu, probgpu);                   //要测量的态的概率存在prob中
-    cudaState = cudaDeviceSynchronize();           //等概率完全计算出来
-    if (cudaSuccess != cudaState)
+    cuda_status = cudaDeviceSynchronize();           //等概率完全计算出来
+    if (cudaSuccess != cuda_status)
     {
-        cout << cudaGetErrorString(cudaState) << endl;
+        cout << cudaGetErrorString(cuda_status) << endl;
         cudaFree(resultgpu);
         cudaFree(probgpu);
         return -1;
     }
-    cudaMemcpy(&prob, probgpu, sizeof(STATE_T), cudaMemcpyDeviceToHost);
-    cudaState = cudaDeviceSynchronize();           //等概率完全计算出来
-    if (cudaSuccess != cudaState)
+
+    cuda_status = cudaMemcpy(&prob, probgpu, sizeof(STATE_T), cudaMemcpyDeviceToHost);
+    if (cudaSuccess != cuda_status)
     {
-        cout << cudaGetErrorString(cudaState) << endl;
+        fprintf(stderr, "cudaMemcpy error\n");
         cudaFree(resultgpu);
         cudaFree(probgpu);
         return -1;
     }
-    //cudaMemcpy((void GATEGPU::*)&prob1, (void GATEGPU::*)prob, sizeof(STATE_T), cudaMemcpyDeviceToHost);
-    //dprob.prob = prob[0];
-    //cout << prob[0] << "\t" << *prob << endl;
-    //cout << "prob\t" << dprob.prob << endl;
-    //*prob = prob1;
+
+    cuda_status = cudaDeviceSynchronize();           //等概率完全计算出来
+    if (cudaSuccess != cuda_status)
+    {
+        cout << cudaGetErrorString(cuda_status) << endl;
+        cudaFree(resultgpu);
+        cudaFree(probgpu);
+        return -1;
+    }
+
     int outcome = 0;
     if (gpu::randGenerator() > prob)
     {
         outcome = 1;
     }
+
     if (0 == outcome)
     {
 
         prob = 1 / sqrt(prob);
-		gpu::qubitcollapse0 << < (BLOCKDIM == 0 ? 1 : BLOCKDIM), THREADDIM >> > (psigpu.real, psigpu.imag, 1 << (psigpu.qnum), Block, prob);
+        gpu::qubitcollapse0 <<< (BLOCKDIM == 0 ? 1 : BLOCKDIM), THREADDIM >>>
+            (psigpu.real, psigpu.imag, 1 << (psigpu.qnum), Block, prob);
         //GET_SYN_RES("qubitmeasure")
     }
     else
     {
 
         prob = 1 / sqrt(1 - prob);
-		gpu::qubitcollapse1 << < (BLOCKDIM == 0 ? 1 : BLOCKDIM), THREADDIM >> > (psigpu.real, psigpu.imag, 1 << (psigpu.qnum), Block, prob);
-        //    GET_SYN_RES("qubitmeasure")
+        gpu::qubitcollapse1 <<< (BLOCKDIM == 0 ? 1 : BLOCKDIM), THREADDIM >>>
+            (psigpu.real, psigpu.imag, 1 << (psigpu.qnum), Block, prob);
+        //GET_SYN_RES("qubitmeasure")
     }
-    cudaState = cudaFree(resultgpu);
-    if (cudaSuccess != cudaState)
-    {
-        cout << "resultgpu free error" << endl;
-        return -1;
-    }
-    cudaState = cudaFree(probgpu);
-    if (cudaSuccess != cudaState)
-    {
-        cout << "probgpu free error" << endl;
-        return -1;
-    }
-    //cudaFreeHost(prob);
+    cuda_status = cudaDeviceSynchronize();
+    cudaFree(probgpu);
+    cudaFree(resultgpu);
+    getSynchronizeResult(cuda_status, "qubitmeasure");
+
     return outcome;
 }//checked
 
@@ -2532,10 +2793,18 @@ bool GATEGPU::pMeasurenew(QState& psigpu, vector<pair<size_t, double>>& vprob, Q
     cudaDeviceSynchronize();
     QSIZE m = qnum.size();
     sort(qnum.begin(), qnum.end());
+    cudaError_t cuda_status;
+
     if (m <= psigpu.qnum / 2)
     {
         QSIZE *block, *blockgpu;
-        cudaHostAlloc(&block, sizeof(QSIZE)*m, cudaHostAllocMapped);
+        cuda_status = cudaHostAlloc(&block, sizeof(QSIZE)*m, cudaHostAllocMapped);
+        if (cudaSuccess != cuda_status)
+        {
+            fprintf(stderr, "cudaHostAlloc error\n");
+            return false;
+        }
+
         cudaHostGetDevicePointer(&blockgpu, block, 0);
         QSIZE temp;
         for (size_t i = 0; i < m; i++)
@@ -2544,20 +2813,47 @@ bool GATEGPU::pMeasurenew(QState& psigpu, vector<pair<size_t, double>>& vprob, Q
         }//排序
         double *probgpu;
         double * probc, *result;
-        cudaError_t cudaStatus = cudaHostAlloc(&probc, sizeof(STATE_T)*(1 << m), cudaHostAllocMapped);
-        if (cudaStatus != cudaSuccess)
+        cuda_status = cudaHostAlloc(&probc, sizeof(STATE_T)*(1 << m), cudaHostAllocMapped);
+        if (cuda_status != cudaSuccess)
         {
-            printf("host alloc fail!\n");
+            fprintf(stderr, "cudaHostAlloc fail!\n");
+            cudaFreeHost(block);
             return false;
         }
         cudaHostGetDevicePointer(&probgpu, probc, 0);
         //probc=(STATE_T*)malloc(sizeof(STATE_T)*(1<<m));          //各个态的概率
         QSIZE *blockgpu1;                       //block
         QSIZE BLOCKDIM = (1u << (psigpu.qnum - 1)) / THREADDIM;
-        cudaMalloc((&blockgpu1), sizeof(QSIZE)*m);
-        cudaMalloc((&result), sizeof(double)*(BLOCKDIM == 0 ? 1 : BLOCKDIM));          //求概率的中间变量
-                                                                                       //cudaMalloc((void **)(&probgpu), sizeof(STATE_T)*(1<<m));
-        cudaMemcpy(blockgpu1, block, sizeof(QSIZE)*m, cudaMemcpyHostToDevice);
+        cuda_status = cudaMalloc((&blockgpu1), sizeof(QSIZE)*m);
+        if (cudaSuccess != cuda_status)
+        {
+            fprintf(stderr, "cudaMallco error\n");
+            cudaFreeHost(block);
+            cudaFreeHost(probc);
+            return false;
+        }
+
+        cuda_status = cudaMalloc((&result), sizeof(double)*(BLOCKDIM == 0 ? 1 : BLOCKDIM));          //求概率的中间变量
+        if (cudaSuccess != cuda_status)
+        {
+            fprintf(stderr, "cudaMallco error\n");
+            cudaFreeHost(block);
+            cudaFreeHost(probc);
+            cudaFree(blockgpu1);
+            return false;
+        }
+
+        cuda_status = cudaMemcpy(blockgpu1, block, sizeof(QSIZE)*m, cudaMemcpyHostToDevice);
+        if (cudaSuccess != cuda_status)
+        {
+            fprintf(stderr, "cudaMallco error\n");
+            cudaFreeHost(block);
+            cudaFreeHost(probc);
+            cudaFree(result);
+            cudaFree(blockgpu1);
+            return false;
+        }
+
         for (size_t i = 0; i < 1u << m; i++)
         {
             size_t index = 0;
@@ -2597,30 +2893,35 @@ bool GATEGPU::pMeasurenew(QState& psigpu, vector<pair<size_t, double>>& vprob, Q
         size_t Dim = 1u << psigpu.qnum;
         size_t blocknum = 1u << (m - psigpu.qnum / 4);         //blocknum表示block数
         STATE_T *probtemp, *probtempgpu;
-        cudaError_t cudastate;
-        cudastate = cudaHostAlloc(&probtemp, sizeof(double) * blocknum, cudaHostAllocMapped);
-        if (cudastate != cudaSuccess)
+        cuda_status = cudaHostAlloc(&probtemp, sizeof(double) * blocknum, cudaHostAllocMapped);
+
+        if (cuda_status != cudaSuccess)
         {
+            fprintf(stderr, "cudaHostAlloc error\n");
+            return false;
+        }
+
+        cuda_status = cudaHostGetDevicePointer(&probtempgpu, probtemp, 0);
+        if (cuda_status != cudaSuccess)
+        {
+            fprintf(stderr, "cudaHostAlloc error\n");
             cudaFreeHost(probtemp);
             return false;
         }
-        cudastate = cudaHostGetDevicePointer(&probtempgpu, probtemp, 0);
-        if (cudastate != cudaSuccess)
-        {
-            cudaFreeHost(probtemp);
-            return false;
-        }
+
         size_t *block, *blockgpu;
-        cudastate = cudaHostAlloc(&block, sizeof(size_t)*m, cudaHostAllocMapped);
-        if (cudastate != cudaSuccess)
+        cuda_status = cudaHostAlloc(&block, sizeof(size_t)*m, cudaHostAllocMapped);
+        if (cuda_status != cudaSuccess)
         {
+            fprintf(stderr, "cudaHostAlloc error\n");
             cudaFreeHost(probtemp);
-            cudaFreeHost(block);
             return false;
         }
-        cudastate = cudaHostGetDevicePointer(&blockgpu, block, 0);
-        if (cudastate != cudaSuccess)
+
+        cuda_status = cudaHostGetDevicePointer(&blockgpu, block, 0);
+        if (cuda_status != cudaSuccess)
         {
+            fprintf(stderr, "cudaHostAlloc error\n");
             cudaFreeHost(probtemp);
             cudaFreeHost(block);
             return false;
@@ -2645,8 +2946,8 @@ bool GATEGPU::pMeasurenew(QState& psigpu, vector<pair<size_t, double>>& vprob, Q
             gpu::probsumnew1 << < (BLOCKDIM == 0 ? 1 : BLOCKDIM), THREADDIM >> > 
                 (psigpu.real, psigpu.imag, probtempgpu, i, m, Dim, blockgpu);
 
-            cudastate = cudaDeviceSynchronize();
-            if (cudaSuccess != cudastate)
+            cuda_status = cudaDeviceSynchronize();
+            if (cudaSuccess != cuda_status)
             {
                 cout << "error" << endl;
             }
@@ -2669,11 +2970,24 @@ bool GATEGPU::pMeasurenew(QState& psigpu, vector<pair<size_t, double>>& vprob, Q
 
 bool GATEGPU::getState(QState &psi, QState &psigpu, int qnum)
 {
+    cudaError_t cuda_status;
+
     if (qnum < 30)
     {
         QSIZE Dim = 1 << qnum;
-        cudaMemcpy(psi.real, psigpu.real, sizeof(STATE_T)*Dim, cudaMemcpyDeviceToHost);
-        cudaMemcpy(psi.imag, psigpu.imag, sizeof(STATE_T)*Dim, cudaMemcpyDeviceToHost);
+        cuda_status = cudaMemcpy(psi.real, psigpu.real, sizeof(STATE_T)*Dim, cudaMemcpyDeviceToHost);
+        if (cudaSuccess != cuda_status)
+        {
+            fprintf(stderr, "cudaMemcpy error\n");
+            return false;
+        }
+
+        cuda_status = cudaMemcpy(psi.imag, psigpu.imag, sizeof(STATE_T)*Dim, cudaMemcpyDeviceToHost);
+        if (cudaSuccess != cuda_status)
+        {
+            fprintf(stderr, "cudaMemcpy error\n");
+            return false;
+        }
     }
     return true;
 }

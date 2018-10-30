@@ -6,7 +6,7 @@ include_directories(${PROJECT_SOURCE_DIR}/Console
                     ${PROJECT_SOURCE_DIR}/QPanda-2.0.Core
                     ${PROJECT_SOURCE_DIR}/QPanda-2.0.Core/QuantumVirtualMachine
                     ${PROJECT_SOURCE_DIR}/QPanda-2.0.Core/QuantumVirtualMachine/CPUQuantumGates
-                    ${PROJECT_SOURCE_DIR}/QPanda-2.0.Core/QuantumMachin
+                    ${PROJECT_SOURCE_DIR}/QPanda-2.0.Core/QuantumMachine
                     ${PROJECT_SOURCE_DIR}/QPanda-2.0.Core/Transform
                     ${PROJECT_SOURCE_DIR}/QPanda-2.0.GPUGates
                     ${PROJECT_SOURCE_DIR}/ThirdParty

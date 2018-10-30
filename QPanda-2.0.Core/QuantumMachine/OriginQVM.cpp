@@ -179,7 +179,7 @@ void OriginQVM::run()
     {
         cout << "Warning:there is nothing in QProgram" << endl;
     }
-    _pGates->endGate(nullptr,nullptr);
+    _pGates->endGate(_pParam,nullptr);
     delete _pParam;
     _pParam = nullptr;
     return ;

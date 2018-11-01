@@ -8,7 +8,7 @@
                                Quantum Programming Architecture for Nisq Device Application
 
 
- 
+
 QPanda 2.0 is an abbreviation of Quantum Programming Architecture for Nisq Device Application 2.0, which is a quantum software development kit used to deal with quantum circuits and experiments on various quantum computers, launched by the Origin Quantum Computing Team. It supports mainstream quantum logic gate operation and can be adapted to a variety of quantum chips, and the targeted optimization of quantum programs under different platforms.
 
 The C++ language is used as the host language in QPanda 2.0, it is also supports quantum languages ​​written in QRunes or QASM. Currently, QPanda 2.0 supports up to 32-qubits in the local simulation. It integrates the quantum virtual machine(QVM) and encapsulates the typical quantum algorithms. Besides,in QPanda 2.0, quantum programs can make logical decisions where we have added the idea of ​​control flow(q-if), thus in line with the programming specifications of high-level languages.
@@ -60,6 +60,10 @@ QRunes Generator is a C + + library that supports generating QRunes(QASM) direct
 
 
 The QPanda 2.0 documentation is detailed documentation for the user. It includes algorithm summary, corresponding quantum circuits, and QPanda 2.0 code. Aiming at guiding users to use QPanda 2.0 correctly and quickly.
+
+##Installation and configuration
+
+-   **[Click for detailed！](./QPanda-2.0.Documentation/Doc/3.Installation.md)**：
 
  ## License
  Apache License 2.0

@@ -63,7 +63,7 @@ The QPanda 2.0 documentation is detailed documentation for the user. It includes
 
 ##Installation and configuration
 
--   **[Click for detailed！](./QPanda-2.0.Documentation/Doc/3.Installation.md)**：
+-   **[Click for detailed！](./QPanda-2.0.Documentation/Doc/3.Installation_en.md)**：
 
  ## License
  Apache License 2.0

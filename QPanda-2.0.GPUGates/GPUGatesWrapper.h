@@ -1,30 +1,22 @@
-/***********************************************************************
-Copyright:
-Author:Xue Cheng
-Date:2017-12-13
-Description: Cuda function of quantum gates, defined in GPUGates.cu
-************************************************************************/
+#ifndef GPU_GATES_WRAPPER_H
+#define GPU_GATES_WRAPPER_H
 
-#ifndef _GPU_GATES_DECL_H
-#define _GPU_GATES_DECL_H
-
-
-#include <string>
-#include <math.h>
-#include <vector>	
-#include <iostream>
 #include "GPUStruct.h"
 
-using std::pair;
-using std::vector;
-typedef pair<size_t, double> GPUPAIR;
+#include <vector>
+#include <algorithm>
+#include <map>
+#include <time.h>
 
 namespace GATEGPU
 {
+	using std::pair;
+	using std::vector;
 
-    typedef vector<GPUPAIR> vecprob;                          //pmeasure 返回类型
-    typedef vector<size_t> Qnum;
-    typedef vector< size_t> vecuint;
+	typedef pair<size_t, double> GPUPAIR;
+	typedef vector<GPUPAIR> vecprob;                          //pmeasure 返回类型
+	typedef vector<size_t> Qnum;
+	typedef vector<size_t> vecuint;
 
 	int devicecount();
 	bool initstate(QState& psi, QState& psigpu, int);
@@ -68,9 +60,11 @@ namespace GATEGPU
 
 	bool qbReset(QState& psi, size_t, double error_rate = 0);
 	bool pMeasure(QState&, vecprob&, size_t *block, size_t m);
-	bool pMeasurenew(QState&, vector<pair<size_t, double>>&, Qnum&);
+	bool pMeasurenew(QState&, vector<pair<size_t, double>>&, Qnum&, int);
 	bool getState(QState &psi, QState &psigpu, int qnum);
-	int  qubitmeasure(QState& psi, size_t Block);
+	int  qubitmeasure(QState& psi, size_t Block, double* &resultgpu, double* &probgpu);
+	bool pMeasure_no_index(QState&, vector<double> &mResult, Qnum&);
+	void gpuFree(double* memory);
 }
-#endif // !_GPU_GATES_DECL_H
 
+#endif // GPU_GATE_WRAPPER_H

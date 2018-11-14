@@ -15,7 +15,7 @@ limitations under the License.
 */
 #include "config.h"
 
-#ifndef USE_CUDA
+//#ifndef USE_CUDA
 
 #include "CPUQuantumGates.h"
 #include <algorithm>
@@ -23,8 +23,10 @@ limitations under the License.
 #include <map>
 #include <iostream>
 #include <sstream>
+#ifdef USE_OPENMP
 #include <omp.h>
-//#include <omp.h>
+#endif
+
 
 using namespace std;
 
@@ -372,7 +374,7 @@ unitarySingleQubitGate(size_t qn,
         temp = matrix[1];
         matrix[1] = matrix[2];
         matrix[2] = temp;  //convert
-        for (size_t i = 0; i < 3; i++)
+        for (size_t i = 0; i < 4; i++)
         {
             matrix[i] = qcomplex_t(matrix[i].real(), -matrix[i].imag());
         }//dagger
@@ -421,7 +423,7 @@ controlunitarySingleQubitGate(size_t qn,
             temp = matrix[1];
             matrix[1] = matrix[2];
             matrix[2] = temp;  //×ªÖÃ
-            for (size_t i = 0; i < 3; i++)
+            for (size_t i = 0; i < 4; i++)
             {
                 matrix[i] = qcomplex_t(matrix[i].real(), -matrix[i].imag());
             }//¹²éî
@@ -932,4 +934,4 @@ QError CPUQuantumGates::Reset(size_t qn)
     return qErrorNone;
 }
 
-#endif
+//#endif

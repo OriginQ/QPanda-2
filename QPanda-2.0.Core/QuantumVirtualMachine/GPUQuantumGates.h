@@ -12,9 +12,11 @@ class GPUQuantumGates : public QuantumGates
 {
 	size_t miQbitNum;
 	bool mbIsInitQState;
+	double* m_probgpu;
+	double* m_resultgpu;
 public:
 
-	GPUQuantumGates() :mbIsInitQState(false) {}
+	GPUQuantumGates() :mbIsInitQState(false), m_probgpu(nullptr), m_resultgpu(nullptr) {}
 	~GPUQuantumGates();
 
 	GATEGPU::QState mvQuantumStat;
@@ -22,24 +24,8 @@ public:
 
 	size_t getQStateSize();
 
-	/*************************************************************************************************************
-	Name:        getQState
-	Description: get quantum state
-	Argin:       pQuantumProParam      quantum program param.
-	Argout:      sState                state string
-	return:      quantum error
-	*************************************************************************************************************/
 	bool getQState(string & sState, QuantumGateParam *pQuantumProParam);
 
-	/*************************************************************************************************************
-	Name:        Hadamard
-	Description: Hadamard gate,the matrix is:[1/sqrt(2),1/sqrt(2);1/sqrt(2),-1/sqrt(2)]
-	Argin:       psi          reference of vector<complex<double>> which contains quantum state information.
-	qn           qubit number that the Hadamard gate operates on.
-	error_rate   the errorrate of the gate
-	Argout:      psi          quantum state after the gate
-	return:      quantum error
-	*************************************************************************************************************/
 	QError Hadamard(size_t qn, bool isConjugate,
 		double error_rate);
 	QError Hadamard(size_t qn, Qnum& vControlBit,
@@ -60,13 +46,10 @@ public:
 		double error_rate);
 	QError T(size_t qn, Qnum& vControlBit,
 		bool isConjugate, double error_rate);
-
 	QError S(size_t qn, bool isConjugate,
 		double error_rate);
 	QError S(size_t qn, Qnum& vControlBit,
 		bool isConjugate, double error_rate);
-
-
 	QError RX_GATE(size_t qn, double theta,
 		bool isConjugate, double error_rate);
 	QError RX_GATE(size_t qn, double theta,
@@ -104,7 +87,6 @@ public:
 		Qnum& vControlBit,
 		bool isConjugate,
 		double error_rate);
-
 	QError iSWAP(size_t qn_0, size_t qn_1,
 		double theta,
 		bool isConjugate,
@@ -114,7 +96,6 @@ public:
 		double theta,
 		bool isConjugate,
 		double error_rate);
-
 	QError iSWAP(size_t qn_0, size_t qn_1,
 		bool isConjugate,
 		double error_rate);
@@ -129,9 +110,6 @@ public:
 		Qnum& vControlBit,
 		bool isConjugate,
 		double error_rate);
-
-
-
 
 	QError Reset(size_t qn);
 	bool qubitMeasure(size_t qn);

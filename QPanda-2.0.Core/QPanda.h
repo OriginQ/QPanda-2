@@ -121,7 +121,7 @@ extern QGate  CR(Qubit * targitBit, Qubit * controlBit, double theta);
 
 extern QGate  SqiSWAP(Qubit * targitBit, Qubit * controlBit);
 // to init the environment. Use this at the beginning
-void init();
+bool init(int type = CPU);
 
 // to finalize the environment. Use this at the end
 void finalize();

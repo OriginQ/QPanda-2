@@ -27,11 +27,16 @@ limitations under the License.
 static QuantumMachine* qvm;
 
 
-void init()
+bool init(int type)
 {
     qvm = QuantumMachineFactory
         ::GetFactoryInstance().CreateByName(ConfigMap::getInstance()["QuantumMachine"]);// global
-	qvm->init();
+    if (!qvm->init(type))
+    {
+        return false;
+    }
+
+    return true;
 }
 
 void finalize()
@@ -65,6 +70,8 @@ size_t getAllocateCMem()
 void qFree(Qubit * q)
 {
 	qvm->Free_Qubit(q);
+    delete q;
+    q = nullptr;
 }
 
 CBit * cAlloc()

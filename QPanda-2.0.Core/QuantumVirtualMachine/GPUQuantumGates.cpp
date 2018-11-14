@@ -25,7 +25,7 @@ Description:gpu quantum logic gates class
 *****************************************************************************************************************/
 #include "GPUQuantumGates.h"
 #ifdef USE_CUDA
-#include "GPUGatesDecl.h"
+#include "GPUGatesWrapper.h"
 #include <algorithm>
 #include <thread>
 #include <map>
@@ -37,6 +37,15 @@ GPUQuantumGates::~GPUQuantumGates()
 {
 	if (miQbitNum > 0)
 		GATEGPU::destroyState(mvCPUQuantumStat, mvQuantumStat, miQbitNum);
+
+	if (m_probgpu != nullptr)
+	{
+		GATEGPU::gpuFree(m_probgpu);
+	}
+	if (m_resultgpu != nullptr)
+	{
+		GATEGPU::gpuFree(m_resultgpu);
+	}
 }
 
 size_t GPUQuantumGates::getQStateSize()
@@ -59,7 +68,6 @@ return:      quantum error
 QError GPUQuantumGates::initState(QuantumGateParam * pQuantumProParam)
 {
     miQbitNum     = pQuantumProParam->mQuantumBitNumber;
-    
     if (!initstate(mvCPUQuantumStat, mvQuantumStat, pQuantumProParam->mQuantumBitNumber))
     {
         return undefineError;
@@ -105,31 +113,12 @@ return:      quantum error
 *****************************************************************************************************************/
 QError GPUQuantumGates::endGate(QuantumGateParam *pQuantumProParam, QuantumGates * pQGate)
 {
-	if (!clearState(mvCPUQuantumStat, mvQuantumStat, pQuantumProParam->mQuantumBitNumber))
-	{
-		return undefineError;
-	}
-
 	return qErrorNone;
 }
 
-
-
-/*****************************************************************************************************************
-Name:        Hadamard
-Description: Hadamard gate,the matrix is:[1/sqrt(2),1/sqrt(2);1/sqrt(2),-1/sqrt(2)]
-Argin:       qn          qubit number that the Hadamard gate operates on.
-error_rate   the errorrate of the gate
-Argout:      None
-return:      quantum error
-*****************************************************************************************************************/
 QError GPUQuantumGates::Hadamard(size_t qn, bool isConjugate, double error_rate)
 {
-	if (!GATEGPU::Hadamard(mvQuantumStat, qn, isConjugate, error_rate))
-	{
-		return undefineError;
-	}
-	return qErrorNone;
+	return undefineError;
 }
 
 QError GPUQuantumGates::Hadamard(
@@ -138,43 +127,26 @@ QError GPUQuantumGates::Hadamard(
 	bool isConjugate,
 	double error_rate)
 {
-	if (!GATEGPU::controlHadamard(mvQuantumStat, vControlBit, isConjugate, error_rate))
-	{	
-		return undefineError;
-	}
-
-	return qErrorNone;
+	return undefineError;
 }
 
 QError GPUQuantumGates::X(size_t qn, bool isConjugate, double error_rate)
 {
-	if (!GATEGPU::X(mvQuantumStat, qn, isConjugate, error_rate))
-	{
-		return undefineError;
-	}
-	return qErrorNone;
+	return undefineError;
 }
+
 QError GPUQuantumGates::X(
 	size_t qn,
 	Qnum& vControlBit,
 	bool isConjugate,
 	double error_rate)
 {
-	if (!GATEGPU::controlX(mvQuantumStat, vControlBit, isConjugate, error_rate))
-	{
-		return undefineError;
-	}
-
-	return qErrorNone;
+	return undefineError;
 }
 
 QError GPUQuantumGates::Y(size_t qn, bool isConjugate, double error_rate)
 {
-	if (!GATEGPU::Y(mvQuantumStat, qn, isConjugate, error_rate))
-	{
-		return undefineError;
-	}
-	return qErrorNone;
+	return undefineError;
 }
 QError GPUQuantumGates::Y(
 	size_t qn,
@@ -182,21 +154,12 @@ QError GPUQuantumGates::Y(
 	bool isConjugate,
 	double error_rate)
 {
-	if (!GATEGPU::controlY(mvQuantumStat, vControlBit, isConjugate, error_rate))
-	{
-		return undefineError;
-	}
-
-	return qErrorNone;
+	return undefineError;
 }
 
 QError GPUQuantumGates::Z(size_t qn, bool isConjugate, double error_rate)
 {
-	if (!GATEGPU::Z(mvQuantumStat, qn, isConjugate, error_rate))
-	{
-		return undefineError;
-	}
-	return qErrorNone;
+	return undefineError;
 }
 QError GPUQuantumGates::Z(
 	size_t qn,
@@ -204,20 +167,11 @@ QError GPUQuantumGates::Z(
 	bool isConjugate,
 	double error_rate)
 {
-	if (!GATEGPU::controlZ(mvQuantumStat, vControlBit, isConjugate, error_rate))
-	{
-		return undefineError;
-	}
-
-	return qErrorNone;
+	return undefineError;
 }
 QError GPUQuantumGates::S(size_t qn, bool isConjugate, double error_rate)
 {
-	if (!GATEGPU::S(mvQuantumStat, qn, isConjugate, error_rate))
-	{
-		return undefineError;
-	}
-	return qErrorNone;
+	return undefineError;
 }
 QError GPUQuantumGates::S(
 	size_t qn,
@@ -225,20 +179,11 @@ QError GPUQuantumGates::S(
 	bool isConjugate,
 	double error_rate)
 {
-	if (!GATEGPU::controlS(mvQuantumStat, vControlBit, isConjugate, error_rate))
-	{
-		return undefineError;
-	}
-
-	return qErrorNone;
+	return undefineError;
 }
 QError GPUQuantumGates::T(size_t qn, bool isConjugate, double error_rate)
 {
-	if (!GATEGPU::T(mvQuantumStat, qn, isConjugate, error_rate))
-	{
-		return undefineError;
-	}
-	return qErrorNone;
+	return undefineError;
 }
 
 QError GPUQuantumGates::T(
@@ -247,24 +192,14 @@ QError GPUQuantumGates::T(
 	bool isConjugate,
 	double error_rate)
 {
-	if (!GATEGPU::controlT(mvQuantumStat, vControlBit, isConjugate, error_rate))
-	{
-		return undefineError;
-	}
-
-	return qErrorNone;
+	return undefineError;
 }
 
 
 QError GPUQuantumGates::RX_GATE(size_t qn, double theta,
 	bool isConjugate, double error_rate)
 {
-	if (!GATEGPU::RX(mvQuantumStat, qn, theta, isConjugate, error_rate))
-	{
-		return undefineError;
-	}
-
-	return qErrorNone;
+	return undefineError;
 }
 
 QError GPUQuantumGates::RX_GATE(
@@ -274,23 +209,13 @@ QError GPUQuantumGates::RX_GATE(
 	bool isConjugate,
 	double error_rate)
 {
-	if (!GATEGPU::controlRX(mvQuantumStat, vControlBit, theta, isConjugate, error_rate))
-	{
-		return undefineError;
-	}
-
-	return qErrorNone;
+	return undefineError;
 }
 
 QError GPUQuantumGates::RY_GATE(size_t qn, double theta,
 	bool isConjugate, double error_rate)
 {
-	if (!GATEGPU::RY(mvQuantumStat, qn, theta, isConjugate, error_rate))
-	{
-		return undefineError;
-	}
-
-	return qErrorNone;
+	return undefineError;
 }
 
 QError GPUQuantumGates::RY_GATE(
@@ -300,23 +225,14 @@ QError GPUQuantumGates::RY_GATE(
 	bool isConjugate,
 	double error_rate)
 {
-	if (!GATEGPU::controlRY(mvQuantumStat, vControlBit, theta, isConjugate, error_rate))
-	{
-		return undefineError;
-	}
-
-	return qErrorNone;
+	return undefineError;
 }
 
 
 QError GPUQuantumGates::RZ_GATE(size_t qn, double theta,
 	bool isConjugate, double error_rate)
 {
-	if (!GATEGPU::RZ(mvQuantumStat, qn, theta, isConjugate, error_rate))
-	{
-		return undefineError;
-	}
-	return qErrorNone;
+	return undefineError;
 }
 
 QError GPUQuantumGates::RZ_GATE(
@@ -326,12 +242,7 @@ QError GPUQuantumGates::RZ_GATE(
 	bool isConjugate,
 	double error_rate)
 {
-	if (!GATEGPU::controlRZ(mvQuantumStat, vControlBit, theta, isConjugate, error_rate))
-	{
-		return undefineError;
-	}
-
-	return qErrorNone;
+	return undefineError;
 }
 
 
@@ -339,12 +250,7 @@ QError GPUQuantumGates::RZ_GATE(
 //double quantum gate
 QError GPUQuantumGates::CNOT(size_t qn_0, size_t qn_1, bool isConjugate, double error_rate)
 {
-	if (!GATEGPU::CNOT(mvQuantumStat, qn_0, qn_1, isConjugate, error_rate))
-	{
-		return undefineError;
-	}
-
-	return qErrorNone;
+	return undefineError;
 }
 
 QError GPUQuantumGates::CNOT(
@@ -354,22 +260,12 @@ QError GPUQuantumGates::CNOT(
 	bool isConjugate,
 	double error_rate)
 {
-	if (!GATEGPU::controlCNOT(mvQuantumStat, qn_0, qn_1, vControlBit, isConjugate, error_rate))
-	{
-		return undefineError;
-	}
-
-	return qErrorNone;
+	return undefineError;
 }
 
 QError GPUQuantumGates::CZ(size_t qn_0, size_t qn_1, bool isConjugate, double error_rate)
 {
-	if (!GATEGPU::CZ(mvQuantumStat, qn_0, qn_1, isConjugate, error_rate))
-	{
-		return undefineError;
-	}
-
-	return qErrorNone;
+	return undefineError;
 }
 
 QError GPUQuantumGates::CZ(
@@ -379,22 +275,12 @@ QError GPUQuantumGates::CZ(
 	bool isConjugate,
 	double error_rate)
 {
-	if (!GATEGPU::controlCZ(mvQuantumStat, qn_0, qn_1, vControlBit, isConjugate, error_rate))
-	{
-		return undefineError;
-	}
-
-	return qErrorNone;
+	return undefineError;
 }
 
 QError GPUQuantumGates::CR(size_t qn_0, size_t qn_1, double theta, bool isConjugate, double error_rate)
 {
-	if (!GATEGPU::CR(mvQuantumStat, qn_0, qn_1, theta, isConjugate, error_rate))
-	{
-		return undefineError;
-	}
-
-	return qErrorNone;
+	return undefineError;
 }
 
 QError GPUQuantumGates::CR(
@@ -405,22 +291,12 @@ QError GPUQuantumGates::CR(
 	bool isConjugate,
 	double error_rate)
 {
-	if (!GATEGPU::controlCR(mvQuantumStat, qn_0, qn_1, vControlBit, theta, isConjugate, error_rate))
-	{
-		return undefineError;
-	}
-
-	return qErrorNone;
+	return undefineError;
 }
 
 QError GPUQuantumGates::iSWAP(size_t qn_0, size_t qn_1, double theta, bool isConjugate, double error_rate)
 {
-	if (!GATEGPU::iSWAP(mvQuantumStat, qn_0, qn_1, theta, isConjugate, error_rate))
-	{
-		return undefineError;
-	}
-
-	return qErrorNone;
+	return undefineError;
 }
 
 QError GPUQuantumGates::iSWAP(
@@ -431,25 +307,13 @@ QError GPUQuantumGates::iSWAP(
 	bool isConjugate,
 	double error_rate)
 {
-	if (!GATEGPU::controliSWAP(mvQuantumStat, qn_0, qn_1, vControlBit, theta, isConjugate, error_rate))
-	{
-		return undefineError;
-	}
-
-	return qErrorNone;
+	return undefineError;
 }
 
 //pi/2 iSWAP
 QError GPUQuantumGates::iSWAP(size_t qn_0, size_t qn_1, bool isConjugate, double error_rate)
 {
-	double half_pi = 3.1415926 / 2;
-
-	if (!GATEGPU::iSWAP(mvQuantumStat, qn_0, qn_1, half_pi, isConjugate, error_rate))
-	{
-		return undefineError;
-	}
-
-	return qErrorNone;
+	return undefineError;
 }
 
 QError GPUQuantumGates::iSWAP(
@@ -459,29 +323,14 @@ QError GPUQuantumGates::iSWAP(
 	bool isConjugate,
 	double error_rate)
 {
-	double half_pi = 3.1415926 / 2;
-
-	if (!GATEGPU::controliSWAP(mvQuantumStat, qn_0, qn_1, vControlBit, half_pi, isConjugate, error_rate))
-	{
-		return undefineError;
-	}
-
-	return qErrorNone;
+	return undefineError;
 }
 
 
 //pi/4 SqiSWAP
 QError GPUQuantumGates::SqiSWAP(size_t qn_0, size_t qn_1, bool isConjugate, double error_rate)
 {
-
-	double quarter_pi = 3.1415926 / 4;
-
-	if (!GATEGPU::iSWAP(mvQuantumStat, qn_0, qn_1, quarter_pi, isConjugate, error_rate))
-	{
-		return undefineError;
-	}
-
-	return qErrorNone;
+	return undefineError;
 }
 QError GPUQuantumGates::SqiSWAP(
 	size_t qn_0,
@@ -490,16 +339,8 @@ QError GPUQuantumGates::SqiSWAP(
 	bool isConjugate,
 	double error_rate)
 {
-	double quarter_pi = 3.1415926 / 4;
-
-	if (!GATEGPU::controliSWAP(mvQuantumStat, qn_0, qn_1, vControlBit, quarter_pi, isConjugate, error_rate))
-	{
-		return undefineError;
-	}
-
-	return qErrorNone;
+	return undefineError;
 }
-
 
 QError GPUQuantumGates::unitarySingleQubitGate(
 	size_t qn,
@@ -592,17 +433,8 @@ QError GPUQuantumGates::controlunitaryDoubleQubitGate(
 	return qErrorNone;
 }
 
-
-/*****************************************************************************************************************
-Name:        Reset
-Description: reset bit gate
-Argin:       qn          qubit number that the Hadamard gate operates on.
-Argout:      None
-return:      quantum error
-*****************************************************************************************************************/
 QError GPUQuantumGates::Reset(size_t qn)
 {
-
 	if (!GATEGPU::qbReset(mvQuantumStat, qn, 0))
 	{
 		return undefineError;
@@ -610,44 +442,27 @@ QError GPUQuantumGates::Reset(size_t qn)
 	return qErrorNone;
 }
 
-
 bool GPUQuantumGates::qubitMeasure(size_t qn)
 {
-	return GATEGPU::qubitmeasure(mvQuantumStat, 1 << qn);
+	return GATEGPU::qubitmeasure(mvQuantumStat, 1 << qn, m_resultgpu, m_probgpu);
 }
-/*****************************************************************************************************************
-Name:        pMeasure
-Description: pMeasure gate
-Argin:       qnum        qubit bit number vector
-mResult     reuslt vector
-Argout:      None
-return:      quantum error
-*****************************************************************************************************************/
+
 QError GPUQuantumGates::pMeasure(Qnum& qnum, vector<pair<size_t, double>> &mResult,int select_max)
 {
-	if (!GATEGPU::pMeasurenew(mvQuantumStat, mResult, qnum))
+	if (!GATEGPU::pMeasurenew(mvQuantumStat, mResult, qnum, select_max))
 	{
 		return undefineError;
 	}
 	return qErrorNone;
 }
-
 
 QError GPUQuantumGates::pMeasure(Qnum& qnum, vector<double> &mResult)
 {
-	vector<pair<size_t, double>> pair_reuslt;
-	if (!GATEGPU::pMeasurenew(mvQuantumStat, pair_reuslt, qnum))
+	if (!GATEGPU::pMeasure_no_index(mvQuantumStat, mResult, qnum))
 	{
 		return undefineError;
 	}
-
-	for (auto aiter : pair_reuslt)
-	{
-		mResult.push_back(aiter.second);
-	}
-
 	return qErrorNone;
-
 }
 
 

@@ -17,7 +17,7 @@ limitations under the License.
 #ifndef CPU_QUANTUM_GATE_H
 #define CPU_QUANTUM_GATE_H
 
-#ifndef USE_CUDA
+//#ifndef USE_CUDA
 
 #include "QuantumGates.h"
 #include <stdio.h>
@@ -28,8 +28,13 @@ using std::string;
 using std::vector;
 
 //#define SQ2 0.707106781186548
-constexpr double SQ2 = 1 / 1.4142135623731;
+#ifndef SQ2
+#define SQ2 (1 / 1.4142135623731)
+#endif
+
+#ifndef PI
 #define PI 3.14159265358979
+#endif
 
 #define DECL_GATE_MATRIX(NAME)\
 extern const qcomplex_t NAME##00;\
@@ -491,8 +496,6 @@ public:
         return qErrorNone;
     }
 
-
-
     //define unitary single/double quantum gate
     QError unitarySingleQubitGate(size_t qn, QStat& matrix, bool isConjugate, double error_rate);
     QError controlunitarySingleQubitGate(size_t qn, Qnum& vControlBit, QStat& matrix, bool isConjugate, double error_rate);
@@ -504,8 +507,7 @@ public:
         bool isConjugate,
         double error_rate);
 
-
-    bool InitStat() {};
+    bool InitStat() { return true; };
     bool getQState(string & sState, QuantumGateParam *pQuantumProParam);
     QError Reset(size_t qn);
     bool qubitMeasure(size_t qn);
@@ -520,6 +522,6 @@ protected:
 
 };
 
-#endif // !USE_CUDA
+//#endif // !USE_CUDA
 
 #endif

@@ -11,7 +11,7 @@ public:
     OriginQMachine();
     ~OriginQMachine();
 
-    void init(); // to initialize the quantum machine
+    bool init(int type); // to initialize the quantum machine
     Qubit* Allocate_Qubit(); // allocate and return a qubit
     Qubit* Allocate_Qubit(size_t); // allocate and return a qubit
     CBit* Allocate_CBit(); // allocate and run a cbit

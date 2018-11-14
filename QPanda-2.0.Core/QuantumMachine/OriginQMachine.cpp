@@ -16,7 +16,7 @@ OriginQMachine::~OriginQMachine()
 {
 }
 
-void OriginQMachine::init()
+bool OriginQMachine::init(int type)
 {
     auto metadata_path = ConfigMap::getInstance()["MetadataPath"];
     QuantumMetadata * metadata;
@@ -60,7 +60,7 @@ void OriginQMachine::init()
         throw metadate_error_exception();
     }
 
-
+    return true;
 }
 
 Qubit * OriginQMachine::Allocate_Qubit()

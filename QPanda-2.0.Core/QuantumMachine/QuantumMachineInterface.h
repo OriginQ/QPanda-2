@@ -20,6 +20,12 @@ limitations under the License.
 #include <vector>
 #include "../QuantumVirtualMachine/QuantumGates.h"
 
+
+enum QuantumMachine_type {
+    CPU,
+    GPU
+};
+
 using namespace std;
 
 class QProg;
@@ -133,7 +139,7 @@ VIRTUAL class QuantumMachine
 {
 public:
     virtual QuantumGates *getQuantumGates()const = 0;
-	virtual void init() = 0; // to initialize the quantum machine
+    virtual bool init(int type = CPU) = 0; // to initialize the quantum machine
 	virtual Qubit* Allocate_Qubit() = 0; // allocate and return a qubit
 	virtual CBit* Allocate_CBit() = 0; // allocate and run a cbit
     virtual Qubit* Allocate_Qubit(size_t) = 0; // allocate and return a qubit

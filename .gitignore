@@ -15,4 +15,5 @@ pyQPanda/*.so
 pyQPanda/*.pyd
 .vscode/
 build/*
-config.h
+./config.h
+/pyQPanda/benchmark.py

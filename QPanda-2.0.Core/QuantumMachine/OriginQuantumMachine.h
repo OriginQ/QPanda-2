@@ -155,42 +155,43 @@ public:
 	}
 };
 
+
 class OriginQVM : public QuantumMachine
 {
 private:
-	QubitPool * _Qubit_Pool = nullptr;
-	CMem * _CMem = nullptr;
+    QubitPool * _Qubit_Pool = nullptr;
+    CMem * _CMem = nullptr;
     int _QProgram = -1;;
-	QResult* _QResult = nullptr;
-	QMachineStatus* _QMachineStatus = nullptr;	
+    QResult* _QResult = nullptr;
+    QMachineStatus* _QMachineStatus = nullptr;
     QuantumGateParam * _pParam;
     QuantumGates     * _pGates;
-	struct Configuration
-	{
-		size_t maxQubit=20;
-		size_t maxCMem=256;
-	};
-	Configuration _Config;
-	
-	//friend class Factory::QuantumMachineFactory;
+    struct Configuration
+    {
+        size_t maxQubit=20;
+        size_t maxCMem=256;
+    };
+    Configuration _Config;
+
+    //friend class Factory::QuantumMachineFactory;
 
 public:
-	CONSTRUCTOR OriginQVM() {};
-	void init();
-	Qubit* Allocate_Qubit();
-	CBit* Allocate_CBit();
+    CONSTRUCTOR OriginQVM() {}
+    bool init(int type = CPU);
+    Qubit* Allocate_Qubit();
+    CBit* Allocate_CBit();
     CBit *Allocate_CBit(size_t stCbitNum);
     Qubit* Allocate_Qubit(size_t); // allocate and return a qubit
     void Free_Qubit(Qubit*);
     void Free_CBit(CBit*);
-	void load(QProg &);
-	void append(QProg&);
-	void run();
-	QMachineStatus* getStatus() const;
-	QResult* getResult();
-	void finalize();
-	size_t getAllocateQubit();
-	size_t getAllocateCMem();
+    void load(QProg &);
+    void append(QProg&);
+    void run();
+    QMachineStatus* getStatus() const;
+    QResult* getResult();
+    void finalize();
+    size_t getAllocateQubit();
+    size_t getAllocateCMem();
     QuantumGates * getQuantumGates() const;
     virtual map<int, size_t> getGateTimeMap() const;
 };

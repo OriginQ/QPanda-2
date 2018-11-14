@@ -19,13 +19,10 @@ limitations under the License.
 #include "QuantumMachineFactory.h"
 #include "Transform/QCircuitParse.h"
 #include "config.h"
-#ifdef USE_CUDA
 #include "QuantumVirtualMachine/GPUQuantumGates.h"
-#else
 #include "QuantumVirtualMachine/CPUQuantumGates.h"
-#endif // USE_CUDA
 
-void OriginQVM::init()
+bool OriginQVM::init(int type)
 {
 	_Qubit_Pool = 
 		QubitPoolFactory::GetFactoryInstance().
@@ -43,12 +40,28 @@ void OriginQVM::init()
 		QMachineStatusFactory::
 		GetQMachineStatus();
 
+    bool is_success = false;
+    if (CPU == type)
+    {
+        _pGates = new CPUQuantumGates();
+        is_success = true;
+    }
+    else if (GPU == type)
+    {
+    #ifdef USE_CUDA
+        _pGates = new GPUQuantumGates();
+        is_success = true;
+    #else
+        _pGates = nullptr;
+        is_success = false;;
+    #endif // USE_CUDA
+    }
+    else
+    {
+        is_success = false;
+    }
 
-#ifdef USE_CUDA
-	_pGates = new GPUQuantumGates();
-#else
-	_pGates = new CPUQuantumGates();
-#endif // USE_CUDA
+    return is_success;
 }
 
 Qubit * OriginQVM::Allocate_Qubit()

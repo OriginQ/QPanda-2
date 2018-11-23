@@ -15,6 +15,8 @@ The C++ language is used as the host language in QPanda 2.0, it is also supports
 
 There are three processes in QPanda 2.0: `initialization`, `compilation` and `running`.
 
+![图片: ](https://uploader.shimo.im/f/EYszKuVBIacvxlFc)
+
 - **Initialization**:
 
 The initialization allows users to design different quantum circuits to deal with the corresponding problems.
@@ -29,7 +31,7 @@ That is the process of collecting results(classical information), Moreover, the 
 
 
 
-![图片: ](https://uploader.shimo.im/f/EYszKuVBIacvxlFc)
+
 
 
 

@@ -48,7 +48,10 @@ The design of **QPanda 2.0** is forward-looking, considering that quantum comput
 
 ## The Project Includes：
 
+
 ![图片](https://uploader.shimo.im/f/2wm3VNw4ueQEfSI4)
+
+
 
 -   **QPanda SDK**：
 
@@ -67,8 +70,8 @@ QRunes Generator is a C + + library that supports generating QRunes(QASM) direct
 
 The QPanda 2.0 documentation is detailed documentation for the user. It includes algorithm summary, corresponding quantum circuits, and QPanda 2.0 code. Aiming at guiding users to use QPanda 2.0 correctly and quickly.
 
-
 ![图片](https://uploader.shimo.im/f/yCqyjn0gbpsufwwQ)
+
 
 ## Installation and configuration
 

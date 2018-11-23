@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/OriginQ/QPanda-SDK.svg?branch=master)](https://travis-ci.org/OriginQ/QPanda-SDK)
+[![Build Status](https://travis-ci.org/OriginQ/QPanda-2.0.svg?branch=master)](https://travis-ci.org/OriginQ/QPanda-2.0)
 ## QPanda 2
 
 
@@ -85,4 +85,4 @@ The QPanda 2 documentation is detailed documentation for the user. It includes a
  Apache License 2.0
 
 
- Copyright (c) 2017-2018 Origin Quantum Computing. All Right Reserved.
+ Copyright (c) 2017-2018 By Origin Quantum Computing. All Right Reserved.

@@ -72,7 +72,7 @@ QRunes Generator is a C + + library that supports generating QRunes(QASM) direct
 
 The QPanda 2.0 documentation is detailed documentation for the user. It includes algorithm summary, corresponding quantum circuits, and QPanda 2.0 code. Aiming at guiding users to use QPanda 2.0 correctly and quickly.
 
-![图片](https://uploader.shimo.im/f/yCqyjn0gbpsufwwQ)
+![图片](https://uploader.shimo.im/f/xLSZlVHWmJEhuGZr)
 
 
 ## Installation and configuration

@@ -3,8 +3,7 @@
 
 
 
-![图片: ]( https://uploader.shimo.im/f/DdnEufoqk4EULpsT
-)
+![图片: ](./QPanda-2.0.Documentation/img/1.png)
 
 
 
@@ -15,7 +14,7 @@ The C++ language is used as the host language in QPanda 2, it is also supports q
 
 There are three processes in QPanda 2: `initialization`, `compilation` and `running`.
 
-![图片: ](https://uploader.shimo.im/f/EYszKuVBIacvxlFc)
+![图片: ](./QPanda-2.0.Documentation/img/2.png)
 
 - **Initialization**:
 
@@ -53,7 +52,7 @@ The design of **QPanda 2** is forward-looking, considering that quantum computin
 ## The Project Includes：
 
 
-![图片](https://uploader.shimo.im/f/2wm3VNw4ueQEfSI4)
+![图片](./QPanda-2.0.Documentation/img/3.png)
 
 
 
@@ -74,7 +73,7 @@ QRunes Generator is a C + + library that supports generating QRunes(QASM) direct
 
 The QPanda 2 documentation is detailed documentation for the user. It includes algorithm summary, corresponding quantum circuits, and QPanda 2 code. Aiming at guiding users to use QPanda 2 correctly and quickly.
 
-![图片](https://uploader.shimo.im/f/xLSZlVHWmJEhuGZr)
+![图片](./QPanda-2.0.Documentation/img/4.png)
 
 
 ## Installation and configuration

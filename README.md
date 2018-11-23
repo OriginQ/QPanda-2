@@ -1,12 +1,8 @@
 [![Build Status](https://travis-ci.org/OriginQ/QPanda-2.0.svg?branch=master)](https://travis-ci.org/OriginQ/QPanda-2.0)
+
 ## QPanda 2
 
-
-
 ![图片: ](./QPanda-2.0.Documentation/img/1.png)
-
-
-
 
 QPanda 2 is an abbreviation of Quantum Programming Architecture for Nisq Device Application 2, which is a quantum software development kit used to deal with quantum circuits and experiments on various quantum computers, launched by the Origin Quantum Computing Team. It supports mainstream quantum logic gate operation and can be adapted to a variety of quantum chips, and the targeted optimization of quantum programs under different platforms.
 

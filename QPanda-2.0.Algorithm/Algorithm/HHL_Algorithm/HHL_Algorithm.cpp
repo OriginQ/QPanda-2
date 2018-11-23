@@ -22,7 +22,7 @@ void HHL_Algorithm()
     map<string, bool> temp;
     int x0 = 0;
     int x1 = 0;
-    for (size_t i = 0; i < 1000;i++)
+    for (size_t i = 0; i < 100;i++)
     {
         temp = hhlalgorithm();
         if (temp["c0"])
@@ -47,9 +47,9 @@ void HHL_Algorithm()
 map<string, bool> hhlalgorithm()
 {
     init();
-    int qubitnum = 4;
+    int qubit_number = 4;
     vector<Qubit*> qv;
-    for (size_t i = 0; i < qubitnum; i++)
+    for (size_t i = 0; i < qubit_number; i++)
     {
         qv.push_back(qAlloc());
     }
@@ -74,9 +74,9 @@ int HHL_Test(int repeat)
 	try
 	{
 		init();
-		int qubitnum = 4;
+		int qubit_number = 4;
 		vector<Qubit*> qv;
-		for (size_t i = 0u; i < qubitnum; i++)
+		for (size_t i = 0u; i < qubit_number; i++)
 		{
 			qv.push_back(qAlloc());
 		}
@@ -125,7 +125,6 @@ int HHL_Test(int repeat)
 QProg hhl(vector<Qubit*> qVec, vector<CBit*> cVec)
 {
     ClassicalCondition cc0=bind_a_cbit(cVec[0]);
-
 	// meaningless sentence
     QCircuit  ifcircuit = CreateEmptyCircuit();
 

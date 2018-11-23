@@ -32,6 +32,9 @@ That is the process of collecting results(classical information), Moreover, the 
 ![图片: ](https://uploader.shimo.im/f/BHm9tF9LhnUVsRAy)
 
 
+
+
+
 ## The Design Ideas of QPanda 2.0
 
 

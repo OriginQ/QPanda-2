@@ -3,9 +3,9 @@
 
 
 
-![图片: ](https://images-cdn.shimo.im/disVJ89G0uYsSPGq/image.png)
+![图片: ]( https://uploader.shimo.im/f/DdnEufoqk4EULpsT
+)
 
-                               Quantum Programming Architecture for Nisq Device Application
 
 
 
@@ -27,7 +27,7 @@ Compilation allows users to rewrite them to run on different backends (such as s
 
 That is the process of collecting results(classical information), Moreover, the results depending on the design of the problem(algorithm) to do the corresponding operation.
 
-
+![](https://uploader.shimo.im/f/BHm9tF9LhnUVsRAy)
 
 ## The Design Ideas of QPanda 2.0
 
@@ -42,7 +42,8 @@ The design of **QPanda 2.0** is forward-looking, considering that quantum comput
 
 ## The Project Includes：
 
-![图片: ](https://images-cdn.shimo.im/j71VAaimgHkKWXEW/image.png)
+![图片: ](https://uploader.shimo.im/f/2wm3VNw4ueQEfSI4
+)
 
 -   **QPanda SDK**：
 
@@ -60,6 +61,8 @@ QRunes Generator is a C + + library that supports generating QRunes(QASM) direct
 
 
 The QPanda 2.0 documentation is detailed documentation for the user. It includes algorithm summary, corresponding quantum circuits, and QPanda 2.0 code. Aiming at guiding users to use QPanda 2.0 correctly and quickly.
+
+![](https://uploader.shimo.im/f/yCqyjn0gbpsufwwQ)
 
 ## Installation and configuration
 

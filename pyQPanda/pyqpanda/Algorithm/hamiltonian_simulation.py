@@ -30,10 +30,10 @@ def simulate_z_term(qubit_list, coef, t):
 
     if len(qubit_list) > 1:
         prog.insert(parity_check_circuit(qubit_list))\
-            .insert(RZ(qubit_list[-1],coef*t*-1))\
+            .insert(RZ(qubit_list[-1],coef*t))\
             .insert(parity_check_circuit(qubit_list))
     else:
-        prog.insert(RZ(qubit_list[0],coef*t*-1))
+        prog.insert(RZ(qubit_list[0],coef*t))
 
     return prog
 
@@ -74,6 +74,28 @@ def simulate_one_term(qubit_list, hamiltonian_term, coef, t):
         .insert(transform.dagger())
 
     return prog
+
+def simulate_pauliZ_hamiltonian(qubit_list,pauliOperator,t):
+    '''
+    Simulate hamiltonian consists of pauli-Z operators
+    '''
+    prog=QCircuit()
+    pauliOperator.arrange()
+    for op in pauliOperator.ops:
+        hamiltonian_term=PauliOperator.parse_pauli(op)
+        actual_qlist=list()
+        for single_term in hamiltonian_term: 
+            if single_term[0] is 'Z':
+                actual_qlist.append(qubit_list[single_term[1]])
+            elif single_term[0] is '':
+                pass
+            else:
+                assert(False)  
+        if len(actual_qlist)!=0:
+            prog.insert(simulate_z_term(actual_qlist, pauliOperator.ops[op], t))
+    return prog
+
+
 
 def simulate_hamiltonian(qubit_list,pauliOperator,t,slices=3):
     '''
@@ -122,8 +144,11 @@ def adiabatic_simulation_with_configuration(qn_, Hp_, Hd_, step_, slices_, t_, s
         Ht.arrange()
         prog.insert(simulate_hamiltonian(q,Ht,t=t_/step_,slices=slices_))
 
-    prog.insert(meas_all(q,c))
-    result=run_with_configuration(program=prog, shots=shots_, cbit_list=c)
+    #prog.insert(meas_all(q,c))
+    #result=run_with_configuration(program=prog, shots=shots_, cbit_list=c)
+
+    directly_run(QProg=prog)
+    result=get_probabilites(q, select_max=-1, dataType="dict")
     finalize()
     return result
 
@@ -262,4 +287,6 @@ def qaoa(graph,step_=1,shots_=1000, method="Nelder-Mead"):
     initial_guess=gamma_+beta_
     result = minimize(binding(graph,shots_), initial_guess, method=method)    
     return result
+
+
 

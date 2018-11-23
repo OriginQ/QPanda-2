@@ -6,6 +6,8 @@ Licensed Under Apache Licence 2.0
 
 import json
 from copy import deepcopy
+import numpy as np
+#from pyqpanda.Algorithm.fragments import get_dense_pauli
 
 class PauliOperator:
     '''
@@ -40,9 +42,9 @@ class PauliOperator:
         '''
         wordlist=input_str.split() # split by space
         tuplelist=list()           # tuple[0] is its type; tuple[1] is qubit index
-
+        
         for term in wordlist:
-            if term[0] is 'X' or term[0] is 'Y' or term[0] is 'Z':
+            if term[0] is 'X' or term[0] is 'Y' or term[0] is 'Z' :
                 tuplelist.append((term[0],int(term[1:])))            
             elif term[0] is 'x' or term[0] is 'y' or term[0] is 'z':
                 tuplelist.append((term[0].capitalize(),int(term[1:])))
@@ -52,7 +54,11 @@ class PauliOperator:
                 # should not come here
                 assert(False)    
         return tuplelist
-    
+
+
+
+
+
     @staticmethod
     def tuple_list_sort_by_qubit(tuplelist):
         tuplelist.sort(key=lambda tuple:tuple[1])
@@ -73,50 +79,56 @@ class PauliOperator:
         merge a tuple into a tuplelist.
         '''
         retval=1        # the coefficient
-        for i,tuple_left in enumerate(tuplelist):
-            if tuple_left[1]<tuple_right[1]:            
-                if tuple_left is tuplelist[-1]:       
-                    tuplelist.append(tuple_right)
+        if len(tuplelist)==0:
+            tuplelist.append(tuple_right)
+        else:
+            for i,tuple_left in enumerate(tuplelist):
+                if tuple_left[1]<tuple_right[1]:            
+                    if tuple_left is tuplelist[-1]:       
+                        tuplelist.append(tuple_right)
+                        retval=1
+                        break
+                    else:                    
+                        continue
+                elif tuple_left[1]==tuple_right[1]:            
+                    # decide what [PAULI] should be
+                    if tuple_left[0] == tuple_right[0]:                    
+                        tuplelist.remove(tuple_left)
+                        retval=1
+                        break
+                    elif tuple_left[0] == 'X':
+                        if tuple_right[0] == 'Y':                        
+                            tuplelist[i]='Z',tuple_left[1] # XY=iZ
+                            retval=1j                 
+                        else:
+                            tuplelist[i]='Y',tuple_left[1] # XZ=-iY
+                            retval=-1j
+                        break
+                    elif tuple_left[0] == 'Y':
+                        if tuple_right[0] == 'X':
+                            tuplelist[i]='Z',tuple_left[1] # YX=-iZ
+                            retval=-1j
+                        else:
+                            tuplelist[i]='X',tuple_left[1] # YZ=iX
+                            retval=1j
+                        break
+                    elif tuple_left[0] == 'Z':
+                        if tuple_right[0] == 'X':
+                            tuplelist[i]='Y',tuple_left[1] # ZX=iY
+                            retval=1j
+                        else:
+                            tuplelist[i]='X',tuple_left[1] # ZY=-iX
+                            retval=-1j
+                        break
+                    elif tuple_left[0] == '':
+                        tuplelist[i]=tuple_right[0]
+
+                    else:
+                        assert False
+                elif tuple_left[1]>tuple_right[1]:
+                    tuplelist.insert(tuplelist.index(tuple_left),tuple_right)
                     retval=1
-                    break
-                else:                    
-                    continue
-            elif tuple_left[1]==tuple_right[1]:            
-                # decide what [PAULI] should be
-                if tuple_left[0] == tuple_right[0]:                    
-                    tuplelist.remove(tuple_left)
-                    retval=1
-                    break
-                elif tuple_left[0] == 'X':
-                    if tuple_right[0] == 'Y':                        
-                        tuplelist[i]='Z',tuple_left[1] # XY=iZ
-                        retval=1j                 
-                    else:
-                        tuplelist[i]='Y',tuple_left[1] # XZ=-iY
-                        retval=-1j
-                    break
-                elif tuple_left[0] == 'Y':
-                    if tuple_right[0] == 'X':
-                        tuplelist[i]='Z',tuple_left[1] # YX=-iZ
-                        retval=-1j
-                    else:
-                        tuplelist[i]='X',tuple_left[1] # YZ=iX
-                        retval=1j
-                    break
-                elif tuple_left[0] == 'Z':
-                    if tuple_right[0] == 'X':
-                        tuplelist[i]='Y',tuple_left[1] # ZX=iY
-                        retval=1j
-                    else:
-                        tuplelist[i]='X',tuple_left[1] # ZY=-iX
-                        retval=-1j
-                    break
-                else:
-                    assert False
-            elif tuple_left[1]>tuple_right[1]:
-                tuplelist.insert(tuplelist.index(tuple_left),tuple_right)
-                retval=1
-                break  
+                    break  
 
         return retval      
 
@@ -127,6 +139,8 @@ class PauliOperator:
             retval*=PauliOperator.tuplelist_merge_single(tuplelist1,tuple2)
         return retval
 
+    
+
     def eliminate(self):
         '''
         Remove all terms with value under the threshold.
@@ -134,6 +148,12 @@ class PauliOperator:
         for term in list(self.m_ops):
             if abs(self.m_ops[term]) < self.m_error_threshold:
                 self.m_ops.pop(term)  
+    
+    
+    
+    
+
+
 
     def arrange(self):
         '''
@@ -156,7 +176,16 @@ class PauliOperator:
 
         self.m_ops=new_ops
         self.eliminate()
-        
+
+    def dagger(self):
+        '''
+        return dagger of the PauliOperator
+        '''
+        new_ops=deepcopy(self.ops)
+        for term in new_ops:
+            new_ops[term]=new_ops[term].real-new_ops[term].imag*1j
+        return PauliOperator(new_ops) 
+
     def __init__(self, op_dict, error_threshold=1e-6):
         self.m_ops=op_dict
         self.m_error_threshold=error_threshold
@@ -196,6 +225,29 @@ class PauliOperator:
                     max_qubit_index=_tuple_[1]
         
         return max_qubit_index+1
+    # def to_dense(self):
+    #     '''
+    #     get eigenvalues and eigenvectors of PauliOperator
+    #     '''
+    #     op=self.ops
+    #     n_qubit=self.get_qubit_count()
+    #     #preparation for numpy array
+    #     I_=np.eye(1<<n_qubit,dtype='complex128')
+    #     result=np.zeros((1<<n_qubit,1<<n_qubit),dtype='complex128')
+    
+    #     for term in op:
+    #         one_term_result=deepcopy(I_)
+    #         tuplelist=PauliOperator.parse_pauli(term)
+    #         for pauli_tuple in tuplelist:
+    #             one_term_result=one_term_result.dot(get_dense_pauli(pauli_tuple,n_qubit))
+    #         result+=one_term_result*op[term]
+    #     eigval,_=eig(result)
+    #     return min(eigval).real
+
+
+
+
+
 
     def __add__(self, roprand):    
         '''
@@ -268,7 +320,7 @@ class PauliOperator:
                     tuplelist2_tmp=deepcopy(tuplelist2)
                     coef=PauliOperator.tuplelist_merge(tuplelist1_tmp,tuplelist2_tmp)
                     coef=dict1[term1]*dict2[term2]*coef
-                    one_term=dict({PauliOperator.tuplelist_to_str(tuplelist1_tmp):coef})                
+                    one_term=dict({PauliOperator.tuplelist_to_str(tuplelist1_tmp):coef})               
                     new_paulioperator+=PauliOperator(one_term)
 
             return new_paulioperator
@@ -288,6 +340,8 @@ class PauliOperator:
         value=complex(loprand)
         newdict={'':value}
         return self*PauliOperator(newdict)        
+    
+
 
 def create_x_driver_hamiltonian(qubit_count):
     hamiltonian_dict=dict()

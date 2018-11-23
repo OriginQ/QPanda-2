@@ -3,15 +3,6 @@ QPanda Python Wrapper\n
 Copyright (C) Origin Quantum 2017-2018\n
 Licensed Under Apache Licence 2.0
 '''
-
-# add the source path into sys.path
-# otherwise importing pyQPanda will fail
-import os
-import sys
-p = os.path.dirname(os.path.dirname((os.path.abspath(__file__))))
-if p not in sys.path:
-    sys.path.append(p)
-
 from pyqpanda import pyQPanda
 
 def init():
@@ -265,6 +256,8 @@ def RZ(qubit,angle):
     Create a RZ gate \n
     Qubit,double -> QGate  
     """
+
+    angle=angle.real
     return pyQPanda.RZ(qubit,angle)
 
 def CNOT(control_qubit,target_qubit):
@@ -370,6 +363,21 @@ def get_prob(qlist, select_max=-1, listonly=False):
     else:
         return pyQPanda.PMeasure_no_index(qlist)
 
+def get_qstate(qlist):
+    '''
+    `QPanda Basic API`
+    get the qstate 
+
+    list<Qubit>, int -> list<complex> 
+    '''
+    return pyQPanda.PMeasure_complex(qlist)
+
+
+
+
+
+
+
 def accumulate_probabilities(problist):
     """
     `QPanda Basic API`
@@ -388,6 +396,3 @@ def quick_measure_cpp(qlist, shots, accumulate_probabilities):
     list<Qubit>, int, list<double> -> dict<string, int>
     """
     return pyQPanda.quick_measure(qlist, shots, accumulate_probabilities)
-
-def get_config_path():
-    return pyQPanda.getConfigFilePath()

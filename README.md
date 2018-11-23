@@ -27,7 +27,10 @@ Compilation allows users to rewrite them to run on different backends (such as s
 
 That is the process of collecting results(classical information), Moreover, the results depending on the design of the problem(algorithm) to do the corresponding operation.
 
-![](https://uploader.shimo.im/f/BHm9tF9LhnUVsRAy)
+
+
+![图片: ](https://uploader.shimo.im/f/BHm9tF9LhnUVsRAy)
+
 
 ## The Design Ideas of QPanda 2.0
 
@@ -62,8 +65,8 @@ QRunes Generator is a C + + library that supports generating QRunes(QASM) direct
 
 The QPanda 2.0 documentation is detailed documentation for the user. It includes algorithm summary, corresponding quantum circuits, and QPanda 2.0 code. Aiming at guiding users to use QPanda 2.0 correctly and quickly.
 
-![x](https://uploader.shimo.im/f/yCqyjn0gbpsufwwQ)
 
+![图片: ](https://uploader.shimo.im/f/yCqyjn0gbpsufwwQ)
 ## Installation and configuration
 
 -   **[Click for detailed！](./QPanda-2.0.Documentation/Doc/3.Installation_en.md)**：

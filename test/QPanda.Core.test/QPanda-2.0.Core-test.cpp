@@ -184,7 +184,6 @@ TEST(CirCuitTest, test)
     }
 
     finalize();
-    getchar();
 
 }
 

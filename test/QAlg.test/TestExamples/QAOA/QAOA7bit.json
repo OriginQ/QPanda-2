@@ -1,0 +1,52 @@
+{
+    "algorithm": {
+        "name": "QAOA"
+    },
+    "problem": [
+        ["Z0", "Z4", 0.73],
+        ["Z0", "Z5", 0.33],
+        ["Z0", "Z6", 0.50],
+        ["Z1", "Z4", 0.69],
+        ["Z1", "Z5", 0.36],
+        ["Z2", "Z5", 0.88],
+        ["Z2", "Z6", 0.58],
+        ["Z3", "Z5", 0.67],
+        ["Z3", "Z6", 0.43]
+    ],
+    "optimizer": {
+        "name": "Nelder-Mead",
+        "max_iter": 200,
+        "max_fcalls": 100,
+        "disp": true
+    },
+    "parameters": {
+        "step": 1,
+        "shots": 1000,
+        "initial": {
+            "random": false,
+            "value": [
+                -1,
+                1
+            ]
+        },
+        "test": {
+            "name": "ScanPara",
+            "use_mpi": false,
+            "para": {
+                "2p": {
+                    "x_min" : -3,
+                    "x_max" : 3,
+                    "x_step": 0.1,
+                    "y_min" : -3,
+                    "y_max" : 3,
+                    "y_step": 0.1
+                },
+                "2pos": [0, 1],
+                "keys": [
+                    "0000111",
+                    "1111000"
+                ]
+            }
+        }
+    }
+}

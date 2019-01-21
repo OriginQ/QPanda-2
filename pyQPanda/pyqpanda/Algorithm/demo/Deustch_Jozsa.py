@@ -59,4 +59,3 @@ def Two_Qubit_DJ_Demo():
         finalize()
         print("")
         
-

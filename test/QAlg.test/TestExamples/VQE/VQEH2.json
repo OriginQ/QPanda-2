@@ -1,0 +1,29 @@
+{
+    "algorithm": {
+        "name": "VQE"
+    },
+    "problem": [
+        ["H", [0, 0, 0]],
+        ["H", [0, 0, 0.74]]
+    ],
+    "optimizer": {
+        "name": "Powell",
+        "max_iter": 200,
+        "max_fcalls": 200,
+        "disp": true
+    },
+    "parameters": {
+        "psi4_path": "D:/psi4/bin/psi4",
+        "shots": 1000,
+        "use_mpi": false,
+        "output_file": "H2.txt",
+        "basis": "sto-3g",
+        "multiplicity": 1,
+        "charge": 0,
+        "atoms_pos": {
+            "begin": 0.25,
+            "end": 2.5,
+            "size": 50
+        }
+    }
+}

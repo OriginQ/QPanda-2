@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.1)
+add_subdirectory(QAlg.test)
+add_subdirectory(QPanda.Core.test)
+add_subdirectory(Variational.test)
+add_subdirectory(Autodiff.test)

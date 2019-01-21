@@ -1,8 +1,7 @@
-from pyqpanda.Hamiltonian import (PauliOperator, 
-                                  chem_client)
-from pyqpanda.Hamiltonian.QubitOperator import *
+from pyqpanda.Hamiltonian import chem_client
+#from pyqpanda.Hamiltonian.QubitOperator import *
 from pyqpanda import *
-from pyqpanda.utils import *
+#from pyqpanda.utils import *
 from pyqpanda.Algorithm.hamiltonian_simulation import *
 from pyqpanda.Algorithm.fragments import *
 from scipy.optimize import minimize

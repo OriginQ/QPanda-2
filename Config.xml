@@ -6,7 +6,7 @@
         <QIfProg>OriginQIf</QIfProg>
         <QWhileProg>OriginQWhile</QWhileProg>
         <QMeasure>OriginMeasure</QMeasure>
-        <QuantumMachine>OriginQMachine</QuantumMachine>
+        <QuantumMachine>OriginQVM</QuantumMachine>
         <QubitPool>OriginQubitPool</QubitPool>
         <Qubit>OriginQubit</Qubit>
         <PhysicalQubit>OriginPhysicalQubit</PhysicalQubit>
@@ -14,5 +14,6 @@
         <CMem>OriginCMem</CMem>
         <QResult>OriginQResult</QResult>
         <CExpr>OriginCExpr</CExpr>
+        <ClassicalProg>OriginClassicalProg</ClassicalProg>
     </ClassNameConfig>
 </head>

@@ -4,7 +4,6 @@ from pyqpanda.utils import *
 from pyqpanda.Algorithm.VariationalQuantumEigensolver import *
 from pyqpanda.Algorithm.QuantumCircuitLearning.quantum_circuit_learning import (qcl,generate_train_data)
 
-
 def quantum_circuit_learning_test(function_kind):   
 
     test=qcl(qubit_number=6,
@@ -23,13 +22,11 @@ def quantum_circuit_learning_test(function_kind):
         print("target function is: f(x)=abs(x)")
     else:
         print("undefined")
-
     x=np.linspace(-1,1,10)
-    init()
+    init(QuantumMachine_type.CPU_SINGLE_THREAD)
     qlist=qAlloc_many(test.qnum)
     cost=test.function_learning(qlist,train_data,step=10,velocity=0.1)
     print('cost is:',cost)
-
     y1=[]
     for i in x:
         y1.append(test.get_function_value(qlist,i))

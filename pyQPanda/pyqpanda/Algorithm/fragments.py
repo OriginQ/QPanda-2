@@ -1,13 +1,5 @@
 from pyqpanda import *
 from pyqpanda.utils import *
-from pyqpanda.Hamiltonian import PauliOperator
-import numpy as np
-from pyqpanda import *
-from numpy.linalg import eig
-from copy import deepcopy
-#from pyqpanda.Hamiltonian.QubitOperator import parse_pauli
-
-
 
 def parity_check_circuit(qubit_list):
     '''CNOT all qubits (except last) with the last qubit'''
@@ -85,74 +77,4 @@ def set_zero(qubit,cbit):
             ))
 
 
-def parity_check(string, paulis):
-    '''
-    string has element '0' or '1',paulis is a str like 'X1 Y2 Z3'.
-    parity check of partial element of string, number of paulis are 
-    invloved position,
-    to be repaired
-    '''
-    check=0
-    tuplelist=PauliOperator.parse_pauli(paulis)
-    qubit_idx_list=list()
-    for term in tuplelist:
-        qubit_idx_list.append(term[1])
-    
-    for i in qubit_idx_list:
-        if string[i]=='1':
-            check+=1
-    
-    return check%2      
 
-def krons(matlist):
-    mat=np.array([1])
-    for term in matlist:
-        mat=np.kron(mat,term)
-        
-    return mat
-
-def get_dense_pauli(pauli_tuple, n_qubit):
-    result=np.array([1],dtype='complex128')
-    for i in range(n_qubit):
-        if i == pauli_tuple[1]:
-            result=np.kron(result, pauli_mat[pauli_tuple[0]])
-        else:
-            result=np.kron(result,I)
-    return result
-
-def get_matrix(pauliOperator):
-    op=pauliOperator.ops
-    n_qubit=pauliOperator.get_qubit_count()
-    
-    #preparation for numpy array
-    I_=np.eye(1<<n_qubit,dtype='complex128')
-    result=np.zeros((1<<n_qubit,1<<n_qubit),dtype='complex128')
-    
-    for term in op:
-        one_term_result=deepcopy(I_)
-        tuplelist=PauliOperator.parse_pauli(term)
-        for pauli_tuple in tuplelist:
-            one_term_result=one_term_result.dot(get_dense_pauli(pauli_tuple,n_qubit))
-        result+=one_term_result*op[term]
-    return result
-
-
-def to_dense(pauliOperator):
-        '''
-        get eigenvalues and eigenvectors of PauliOperator
-        '''
-        op=pauliOperator.ops
-        n_qubit=pauliOperator.get_qubit_count()
-        #preparation for numpy array
-        I_=np.eye(1<<n_qubit,dtype='complex128')
-        result=np.zeros((1<<n_qubit,1<<n_qubit),dtype='complex128')
-    
-        for term in op:
-            one_term_result=deepcopy(I_)
-            tuplelist=PauliOperator.parse_pauli(term)
-            for pauli_tuple in tuplelist:
-                one_term_result=one_term_result.dot(get_dense_pauli(pauli_tuple,n_qubit))
-            result+=one_term_result*op[term]
-        eigval,_=eig(result)
-        # return min(eigval).real
-        return eig(result)

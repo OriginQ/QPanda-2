@@ -3,7 +3,7 @@
 ## QPanda 2
 
 
-![图片: ](./QPanda-2.0.Documentation/img/1.png)
+![图片: ](./Documentation/img/1.png)
 
 QPanda 2 is an abbreviation of Quantum Programming Architecture for Nisq Device Application 2, which is a quantum software development kit used to deal with quantum circuits and experiments on various quantum computers, launched by the Origin Quantum Computing Team. It supports mainstream quantum logic gate operation and can be adapted to a variety of quantum chips, and the targeted optimization of quantum programs under different platforms.
 
@@ -11,7 +11,7 @@ The C++ language is used as the host language in QPanda 2, it is also supports q
 
 There are three processes in QPanda 2: `initialization`, `compilation` and `running`.
 
-![图片: ](./QPanda-2.0.Documentation/img/2.png)
+![图片: ](./Documentation/img/2.png)
 
 - **Initialization**:
 
@@ -49,7 +49,7 @@ The design of **QPanda 2** is forward-looking, considering that quantum computin
 ## The Project Includes：
 
 
-![图片](./QPanda-2.0.Documentation/img/3.png)
+![图片](./Documentation/img/3.png)
 
 
 
@@ -65,17 +65,17 @@ QRunes is a set of quantum computing instructions developed by the Origin quantu
 
 QRunes Generator is a C + + library that supports generating QRunes(QASM) directives in function calls.
 
--   **[QPanda Documentation](./QPanda-2.0.Documentation/README.md)**：
+-   **[QPanda Documentation](./Documentation/README.md)**：
 
 
 The QPanda 2 documentation is detailed documentation for the user. It includes algorithm summary, corresponding quantum circuits, and QPanda 2 code. Aiming at guiding users to use QPanda 2 correctly and quickly.
 
-![图片](./QPanda-2.0.Documentation/img/4.png)
+![图片](./Documentation/img/4.png)
 
 
 ## Installation and configuration
 
--   **[Click for detailed！](./QPanda-2.0.Documentation/Doc/3.Installation_en.md)**：
+-   **[Click for detailed！](./Documentation/Doc/3.Installation_en.md)**：
 
  ## License
  Apache License 2.0

@@ -1,2 +1,3 @@
 #cmakedefine USE_CUDA
 #cmakedefine USE_PYQPANDA
+#cmakedefine USE_OPENMP

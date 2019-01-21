@@ -297,7 +297,7 @@ template<> EIGEN_STRONG_INLINE void pstoreu<std::complex<double> >(std::complex<
 template<> EIGEN_DEVICE_FUNC inline Packet2cd pgather<std::complex<double>, Packet2cd>(const std::complex<double>* from, Index stride)
 {
   return Packet2cd(_mm256_set_pd(std::imag(from[1*stride]), std::real(from[1*stride]),
-				 std::imag(from[0*stride]), std::real(from[0*stride])));
+                 std::imag(from[0*stride]), std::real(from[0*stride])));
 }
 
 template<> EIGEN_DEVICE_FUNC inline void pscatter<std::complex<double>, Packet2cd>(std::complex<double>* to, const Packet2cd& from, Index stride)

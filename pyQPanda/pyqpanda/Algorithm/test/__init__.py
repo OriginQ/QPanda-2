@@ -3,7 +3,7 @@ Test Module\n
 Copyright (C) Origin Quantum 2017-2018\n
 Licensed Under Apache Licence 2.0
 '''
-
+from pyqpanda import *
 from . import state_preparation_test
 
 def full_test():

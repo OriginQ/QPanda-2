@@ -13,7 +13,7 @@
 namespace Eigen {
 
 #if defined(SUPERLU_MAJOR_VERSION) && (SUPERLU_MAJOR_VERSION >= 5)
-#define DECL_GSSVX(PREFIX,FLOATTYPE,KEYTYPE)		\
+#define DECL_GSSVX(PREFIX,FLOATTYPE,KEYTYPE)        \
     extern "C" {                                                                                          \
       extern void PREFIX##gssvx(superlu_options_t *, SuperMatrix *, int *, int *, int *,                  \
                                 char *, FLOATTYPE *, FLOATTYPE *, SuperMatrix *, SuperMatrix *,           \
@@ -37,7 +37,7 @@ namespace Eigen {
     return mem_usage.for_lu; /* bytes used by the factor storage */                                       \
   }
 #else // version < 5.0
-#define DECL_GSSVX(PREFIX,FLOATTYPE,KEYTYPE)		\
+#define DECL_GSSVX(PREFIX,FLOATTYPE,KEYTYPE)        \
     extern "C" {                                                                                          \
       extern void PREFIX##gssvx(superlu_options_t *, SuperMatrix *, int *, int *, int *,                  \
                                 char *, FLOATTYPE *, FLOATTYPE *, SuperMatrix *, SuperMatrix *,           \

@@ -439,12 +439,12 @@ static bool colamd(IndexType n_row, IndexType n_col, IndexType Alen, IndexType *
   /* === Initialize scores, kill dense rows/columns ======================= */
 
   Eigen::internal::init_scoring (n_row, n_col, Row, Col, A, p, knobs,
-		&n_row2, &n_col2, &max_deg) ;
+        &n_row2, &n_col2, &max_deg) ;
   
   /* === Order the supercolumns =========================================== */
   
   ngarbage = Eigen::internal::find_ordering (n_row, n_col, Alen, Row, Col, A, p,
-			    n_col2, max_deg, 2*nnz) ;
+                n_col2, max_deg, 2*nnz) ;
   
   /* === Order the non-principal columns ================================== */
   
@@ -551,34 +551,34 @@ static IndexType init_rows_cols  /* returns true if OK, or false otherwise */
       /* make sure row indices within range */
       if (row < 0 || row >= n_row)
       {
-	stats [COLAMD_STATUS] = COLAMD_ERROR_row_index_out_of_bounds ;
-	stats [COLAMD_INFO1] = col ;
-	stats [COLAMD_INFO2] = row ;
-	stats [COLAMD_INFO3] = n_row ;
-	COLAMD_DEBUG0 (("colamd: row %d col %d out of bounds\n", row, col)) ;
-	return (false) ;
+    stats [COLAMD_STATUS] = COLAMD_ERROR_row_index_out_of_bounds ;
+    stats [COLAMD_INFO1] = col ;
+    stats [COLAMD_INFO2] = row ;
+    stats [COLAMD_INFO3] = n_row ;
+    COLAMD_DEBUG0 (("colamd: row %d col %d out of bounds\n", row, col)) ;
+    return (false) ;
       }
 
       if (row <= last_row || Row [row].shared2.mark == col)
       {
-	/* row index are unsorted or repeated (or both), thus col */
-	/* is jumbled.  This is a notice, not an error condition. */
-	stats [COLAMD_STATUS] = COLAMD_OK_BUT_JUMBLED ;
-	stats [COLAMD_INFO1] = col ;
-	stats [COLAMD_INFO2] = row ;
-	(stats [COLAMD_INFO3]) ++ ;
-	COLAMD_DEBUG1 (("colamd: row %d col %d unsorted/duplicate\n",row,col));
+    /* row index are unsorted or repeated (or both), thus col */
+    /* is jumbled.  This is a notice, not an error condition. */
+    stats [COLAMD_STATUS] = COLAMD_OK_BUT_JUMBLED ;
+    stats [COLAMD_INFO1] = col ;
+    stats [COLAMD_INFO2] = row ;
+    (stats [COLAMD_INFO3]) ++ ;
+    COLAMD_DEBUG1 (("colamd: row %d col %d unsorted/duplicate\n",row,col));
       }
 
       if (Row [row].shared2.mark != col)
       {
-	Row [row].length++ ;
+    Row [row].length++ ;
       }
       else
       {
-	/* this is a repeated entry in the column, */
-	/* it will be removed */
-	Col [col].length-- ;
+    /* this is a repeated entry in the column, */
+    /* it will be removed */
+    Col [col].length-- ;
       }
 
       /* mark the row as having been seen in this column */
@@ -613,12 +613,12 @@ static IndexType init_rows_cols  /* returns true if OK, or false otherwise */
       cp_end = &A [p [col+1]] ;
       while (cp < cp_end)
       {
-	row = *cp++ ;
-	if (Row [row].shared2.mark != col)
-	{
-	  A [(Row [row].shared1.p)++] = col ;
-	  Row [row].shared2.mark = col ;
-	}
+    row = *cp++ ;
+    if (Row [row].shared2.mark != col)
+    {
+      A [(Row [row].shared1.p)++] = col ;
+      Row [row].shared2.mark = col ;
+    }
       }
     }
   }
@@ -631,7 +631,7 @@ static IndexType init_rows_cols  /* returns true if OK, or false otherwise */
       cp_end = &A [p [col+1]] ;
       while (cp < cp_end)
       {
-	A [(Row [*cp++].shared1.p)++] = col ;
+    A [(Row [*cp++].shared1.p)++] = col ;
       }
     }
   }
@@ -675,7 +675,7 @@ static IndexType init_rows_cols  /* returns true if OK, or false otherwise */
       rp_end = rp + Row [row].length ;
       while (rp < rp_end)
       {
-	A [(p [*rp++])++] = row ;
+    A [(p [*rp++])++] = row ;
       }
     }
   }
@@ -775,7 +775,7 @@ static void init_scoring
       cp_end = cp + Col [c].length ;
       while (cp < cp_end)
       {
-	Row [*cp++].shared1.degree-- ;
+    Row [*cp++].shared1.degree-- ;
       }
       KILL_PRINCIPAL_COL (c) ;
     }
@@ -828,7 +828,7 @@ static void init_scoring
       /* skip if dead */
       if (ROW_IS_DEAD (row))
       {
-	continue ;
+    continue ;
       }
       /* compact the column */
       *new_cp++ = row ;
@@ -857,7 +857,7 @@ static void init_scoring
     }
   }
   COLAMD_DEBUG1 (("colamd: Dense, null, and newly-null columns killed: %d\n",
-		  n_col-n_col2)) ;
+          n_col-n_col2)) ;
 
   /* At this point, all empty rows and columns are dead.  All live columns */
   /* are "clean" (containing no dead rows) and simplicial (no supercolumns */
@@ -881,7 +881,7 @@ static void init_scoring
     if (COL_IS_ALIVE (c))
     {
       COLAMD_DEBUG4 (("place %d score %d minscore %d ncol %d\n",
-		      c, Col [c].shared2.score, min_score, n_col)) ;
+              c, Col [c].shared2.score, min_score, n_col)) ;
 
       /* === Add columns score to DList =============================== */
 
@@ -902,7 +902,7 @@ static void init_scoring
       /* previous pointer to this new column */
       if (next_col != COLAMD_EMPTY)
       {
-	Col [next_col].shared3.prev = c ;
+    Col [next_col].shared3.prev = c ;
       }
       head [score] = c ;
 
@@ -1068,25 +1068,25 @@ static IndexType find_ordering /* return the number of garbage collections */
       /* skip if row is dead */
       if (ROW_IS_DEAD (row))
       {
-	continue ;
+    continue ;
       }
       rp = &A [Row [row].start] ;
       rp_end = rp + Row [row].length ;
       while (rp < rp_end)
       {
-	/* get a column */
-	col = *rp++ ;
-	/* add the column, if alive and untagged */
-	col_thickness = Col [col].shared1.thickness ;
-	if (col_thickness > 0 && COL_IS_ALIVE (col))
-	{
-	  /* tag column in pivot row */
-	  Col [col].shared1.thickness = -col_thickness ;
-	  COLAMD_ASSERT (pfree < Alen) ;
-	  /* place column in pivot row */
-	  A [pfree++] = col ;
-	  pivot_row_degree += col_thickness ;
-	}
+    /* get a column */
+    col = *rp++ ;
+    /* add the column, if alive and untagged */
+    col_thickness = Col [col].shared1.thickness ;
+    if (col_thickness > 0 && COL_IS_ALIVE (col))
+    {
+      /* tag column in pivot row */
+      Col [col].shared1.thickness = -col_thickness ;
+      COLAMD_ASSERT (pfree < Alen) ;
+      /* place column in pivot row */
+      A [pfree++] = col ;
+      pivot_row_degree += col_thickness ;
+    }
       }
     }
 
@@ -1175,15 +1175,15 @@ static IndexType find_ordering /* return the number of garbage collections */
       COLAMD_ASSERT (cur_score >= COLAMD_EMPTY) ;
       if (prev_col == COLAMD_EMPTY)
       {
-	head [cur_score] = next_col ;
+    head [cur_score] = next_col ;
       }
       else
       {
-	Col [prev_col].shared4.degree_next = next_col ;
+    Col [prev_col].shared4.degree_next = next_col ;
       }
       if (next_col != COLAMD_EMPTY)
       {
-	Col [next_col].shared3.prev = prev_col ;
+    Col [next_col].shared3.prev = prev_col ;
       }
 
       /* === Scan the column ========================================== */
@@ -1192,36 +1192,36 @@ static IndexType find_ordering /* return the number of garbage collections */
       cp_end = cp + Col [col].length ;
       while (cp < cp_end)
       {
-	/* get a row */
-	row = *cp++ ;
-	row_mark = Row [row].shared2.mark ;
-	/* skip if dead */
-	if (ROW_IS_MARKED_DEAD (row_mark))
-	{
-	  continue ;
-	}
-	COLAMD_ASSERT (row != pivot_row) ;
-	set_difference = row_mark - tag_mark ;
-	/* check if the row has been seen yet */
-	if (set_difference < 0)
-	{
-	  COLAMD_ASSERT (Row [row].shared1.degree <= max_deg) ;
-	  set_difference = Row [row].shared1.degree ;
-	}
-	/* subtract column thickness from this row's set difference */
-	set_difference -= col_thickness ;
-	COLAMD_ASSERT (set_difference >= 0) ;
-	/* absorb this row if the set difference becomes zero */
-	if (set_difference == 0)
-	{
-	  COLAMD_DEBUG3 (("aggressive absorption. Row: %d\n", row)) ;
-	  KILL_ROW (row) ;
-	}
-	else
-	{
-	  /* save the new mark */
-	  Row [row].shared2.mark = set_difference + tag_mark ;
-	}
+    /* get a row */
+    row = *cp++ ;
+    row_mark = Row [row].shared2.mark ;
+    /* skip if dead */
+    if (ROW_IS_MARKED_DEAD (row_mark))
+    {
+      continue ;
+    }
+    COLAMD_ASSERT (row != pivot_row) ;
+    set_difference = row_mark - tag_mark ;
+    /* check if the row has been seen yet */
+    if (set_difference < 0)
+    {
+      COLAMD_ASSERT (Row [row].shared1.degree <= max_deg) ;
+      set_difference = Row [row].shared1.degree ;
+    }
+    /* subtract column thickness from this row's set difference */
+    set_difference -= col_thickness ;
+    COLAMD_ASSERT (set_difference >= 0) ;
+    /* absorb this row if the set difference becomes zero */
+    if (set_difference == 0)
+    {
+      COLAMD_DEBUG3 (("aggressive absorption. Row: %d\n", row)) ;
+      KILL_ROW (row) ;
+    }
+    else
+    {
+      /* save the new mark */
+      Row [row].shared2.mark = set_difference + tag_mark ;
+    }
       }
     }
 
@@ -1249,24 +1249,24 @@ static IndexType find_ordering /* return the number of garbage collections */
 
       while (cp < cp_end)
       {
-	/* get a row */
-	row = *cp++ ;
-	COLAMD_ASSERT(row >= 0 && row < n_row) ;
-	row_mark = Row [row].shared2.mark ;
-	/* skip if dead */
-	if (ROW_IS_MARKED_DEAD (row_mark))
-	{
-	  continue ;
-	}
-	COLAMD_ASSERT (row_mark > tag_mark) ;
-	/* compact the column */
-	*new_cp++ = row ;
-	/* compute hash function */
-	hash += row ;
-	/* add set difference */
-	cur_score += row_mark - tag_mark ;
-	/* integer overflow... */
-	cur_score = numext::mini(cur_score, n_col) ;
+    /* get a row */
+    row = *cp++ ;
+    COLAMD_ASSERT(row >= 0 && row < n_row) ;
+    row_mark = Row [row].shared2.mark ;
+    /* skip if dead */
+    if (ROW_IS_MARKED_DEAD (row_mark))
+    {
+      continue ;
+    }
+    COLAMD_ASSERT (row_mark > tag_mark) ;
+    /* compact the column */
+    *new_cp++ = row ;
+    /* compute hash function */
+    hash += row ;
+    /* add set difference */
+    cur_score += row_mark - tag_mark ;
+    /* integer overflow... */
+    cur_score = numext::mini(cur_score, n_col) ;
       }
 
       /* recompute the column's length */
@@ -1276,50 +1276,50 @@ static IndexType find_ordering /* return the number of garbage collections */
 
       if (Col [col].length == 0)
       {
-	COLAMD_DEBUG4 (("further mass elimination. Col: %d\n", col)) ;
-	/* nothing left but the pivot row in this column */
-	KILL_PRINCIPAL_COL (col) ;
-	pivot_row_degree -= Col [col].shared1.thickness ;
-	COLAMD_ASSERT (pivot_row_degree >= 0) ;
-	/* order it */
-	Col [col].shared2.order = k ;
-	/* increment order count by column thickness */
-	k += Col [col].shared1.thickness ;
+    COLAMD_DEBUG4 (("further mass elimination. Col: %d\n", col)) ;
+    /* nothing left but the pivot row in this column */
+    KILL_PRINCIPAL_COL (col) ;
+    pivot_row_degree -= Col [col].shared1.thickness ;
+    COLAMD_ASSERT (pivot_row_degree >= 0) ;
+    /* order it */
+    Col [col].shared2.order = k ;
+    /* increment order count by column thickness */
+    k += Col [col].shared1.thickness ;
       }
       else
       {
-	/* === Prepare for supercolumn detection ==================== */
+    /* === Prepare for supercolumn detection ==================== */
 
-	COLAMD_DEBUG4 (("Preparing supercol detection for Col: %d.\n", col)) ;
+    COLAMD_DEBUG4 (("Preparing supercol detection for Col: %d.\n", col)) ;
 
-	/* save score so far */
-	Col [col].shared2.score = cur_score ;
+    /* save score so far */
+    Col [col].shared2.score = cur_score ;
 
-	/* add column to hash table, for supercolumn detection */
-	hash %= n_col + 1 ;
+    /* add column to hash table, for supercolumn detection */
+    hash %= n_col + 1 ;
 
-	COLAMD_DEBUG4 ((" Hash = %d, n_col = %d.\n", hash, n_col)) ;
-	COLAMD_ASSERT (hash <= n_col) ;
+    COLAMD_DEBUG4 ((" Hash = %d, n_col = %d.\n", hash, n_col)) ;
+    COLAMD_ASSERT (hash <= n_col) ;
 
-	head_column = head [hash] ;
-	if (head_column > COLAMD_EMPTY)
-	{
-	  /* degree list "hash" is non-empty, use prev (shared3) of */
-	  /* first column in degree list as head of hash bucket */
-	  first_col = Col [head_column].shared3.headhash ;
-	  Col [head_column].shared3.headhash = col ;
-	}
-	else
-	{
-	  /* degree list "hash" is empty, use head as hash bucket */
-	  first_col = - (head_column + 2) ;
-	  head [hash] = - (col + 2) ;
-	}
-	Col [col].shared4.hash_next = first_col ;
+    head_column = head [hash] ;
+    if (head_column > COLAMD_EMPTY)
+    {
+      /* degree list "hash" is non-empty, use prev (shared3) of */
+      /* first column in degree list as head of hash bucket */
+      first_col = Col [head_column].shared3.headhash ;
+      Col [head_column].shared3.headhash = col ;
+    }
+    else
+    {
+      /* degree list "hash" is empty, use head as hash bucket */
+      first_col = - (head_column + 2) ;
+      head [hash] = - (col + 2) ;
+    }
+    Col [col].shared4.hash_next = first_col ;
 
-	/* save hash function in Col [col].shared3.hash */
-	Col [col].shared3.hash = (IndexType) hash ;
-	COLAMD_ASSERT (COL_IS_ALIVE (col)) ;
+    /* save hash function in Col [col].shared3.hash */
+    Col [col].shared3.hash = (IndexType) hash ;
+    COLAMD_ASSERT (COL_IS_ALIVE (col)) ;
       }
     }
 
@@ -1359,7 +1359,7 @@ static IndexType find_ordering /* return the number of garbage collections */
       /* skip dead columns */
       if (COL_IS_DEAD (col))
       {
-	continue ;
+    continue ;
       }
       *new_rp++ = col ;
       /* add new pivot row to column */
@@ -1397,7 +1397,7 @@ static IndexType find_ordering /* return the number of garbage collections */
       Col [col].shared3.prev = COLAMD_EMPTY ;
       if (next_col != COLAMD_EMPTY)
       {
-	Col [next_col].shared3.prev = col ;
+    Col [next_col].shared3.prev = col ;
       }
       head [cur_score] = col ;
 
@@ -1471,7 +1471,7 @@ static inline  void order_children
       /* once found, find its principal parent */
       do
       {
-	parent = Col [parent].shared1.parent ;
+    parent = Col [parent].shared1.parent ;
       } while (!COL_IS_DEAD_PRINCIPAL (parent)) ;
 
       /* now, order all un-ordered non-principal columns along path */
@@ -1482,19 +1482,19 @@ static inline  void order_children
 
       do
       {
-	COLAMD_ASSERT (Col [c].shared2.order == COLAMD_EMPTY) ;
+    COLAMD_ASSERT (Col [c].shared2.order == COLAMD_EMPTY) ;
 
-	/* order this column */
-	Col [c].shared2.order = order++ ;
-	/* collaps tree */
-	Col [c].shared1.parent = parent ;
+    /* order this column */
+    Col [c].shared2.order = order++ ;
+    /* collaps tree */
+    Col [c].shared1.parent = parent ;
 
-	/* get immediate parent of this column */
-	c = Col [c].shared1.parent ;
+    /* get immediate parent of this column */
+    c = Col [c].shared1.parent ;
 
-	/* continue until we hit an ordered column.  There are */
-	/* guarranteed not to be anymore unordered columns */
-	/* above an ordered column */
+    /* continue until we hit an ordered column.  There are */
+    /* guarranteed not to be anymore unordered columns */
+    /* above an ordered column */
       } while (Col [c].shared2.order == COLAMD_EMPTY) ;
 
       /* re-order the super_col parent to largest order for this group */
@@ -1602,7 +1602,7 @@ static void detect_super_cols
     /* === Consider each column in the hash bucket ====================== */
 
     for (super_c = first_col ; super_c != COLAMD_EMPTY ;
-	 super_c = Col [super_c].shared4.hash_next)
+     super_c = Col [super_c].shared4.hash_next)
     {
       COLAMD_ASSERT (COL_IS_ALIVE (super_c)) ;
       COLAMD_ASSERT (Col [super_c].shared3.hash == hash) ;
@@ -1614,55 +1614,55 @@ static void detect_super_cols
       /* === Compare super_c with all columns after it ================ */
 
       for (c = Col [super_c].shared4.hash_next ;
-	   c != COLAMD_EMPTY ; c = Col [c].shared4.hash_next)
+       c != COLAMD_EMPTY ; c = Col [c].shared4.hash_next)
       {
-	COLAMD_ASSERT (c != super_c) ;
-	COLAMD_ASSERT (COL_IS_ALIVE (c)) ;
-	COLAMD_ASSERT (Col [c].shared3.hash == hash) ;
+    COLAMD_ASSERT (c != super_c) ;
+    COLAMD_ASSERT (COL_IS_ALIVE (c)) ;
+    COLAMD_ASSERT (Col [c].shared3.hash == hash) ;
 
-	/* not identical if lengths or scores are different */
-	if (Col [c].length != length ||
-	    Col [c].shared2.score != Col [super_c].shared2.score)
-	{
-	  prev_c = c ;
-	  continue ;
-	}
+    /* not identical if lengths or scores are different */
+    if (Col [c].length != length ||
+        Col [c].shared2.score != Col [super_c].shared2.score)
+    {
+      prev_c = c ;
+      continue ;
+    }
 
-	/* compare the two columns */
-	cp1 = &A [Col [super_c].start] ;
-	cp2 = &A [Col [c].start] ;
+    /* compare the two columns */
+    cp1 = &A [Col [super_c].start] ;
+    cp2 = &A [Col [c].start] ;
 
-	for (i = 0 ; i < length ; i++)
-	{
-	  /* the columns are "clean" (no dead rows) */
-	  COLAMD_ASSERT (ROW_IS_ALIVE (*cp1))  ;
-	  COLAMD_ASSERT (ROW_IS_ALIVE (*cp2))  ;
-	  /* row indices will same order for both supercols, */
-	  /* no gather scatter nessasary */
-	  if (*cp1++ != *cp2++)
-	  {
-	    break ;
-	  }
-	}
+    for (i = 0 ; i < length ; i++)
+    {
+      /* the columns are "clean" (no dead rows) */
+      COLAMD_ASSERT (ROW_IS_ALIVE (*cp1))  ;
+      COLAMD_ASSERT (ROW_IS_ALIVE (*cp2))  ;
+      /* row indices will same order for both supercols, */
+      /* no gather scatter nessasary */
+      if (*cp1++ != *cp2++)
+      {
+        break ;
+      }
+    }
 
-	/* the two columns are different if the for-loop "broke" */
-	if (i != length)
-	{
-	  prev_c = c ;
-	  continue ;
-	}
+    /* the two columns are different if the for-loop "broke" */
+    if (i != length)
+    {
+      prev_c = c ;
+      continue ;
+    }
 
-	/* === Got it!  two columns are identical =================== */
+    /* === Got it!  two columns are identical =================== */
 
-	COLAMD_ASSERT (Col [c].shared2.score == Col [super_c].shared2.score) ;
+    COLAMD_ASSERT (Col [c].shared2.score == Col [super_c].shared2.score) ;
 
-	Col [super_c].shared1.thickness += Col [c].shared1.thickness ;
-	Col [c].shared1.parent = super_c ;
-	KILL_NON_PRINCIPAL_COL (c) ;
-	/* order c later, in order_children() */
-	Col [c].shared2.order = COLAMD_EMPTY ;
-	/* remove c from hash bucket */
-	Col [prev_c].shared4.hash_next = Col [c].shared4.hash_next ;
+    Col [super_c].shared1.thickness += Col [c].shared1.thickness ;
+    Col [c].shared1.parent = super_c ;
+    KILL_NON_PRINCIPAL_COL (c) ;
+    /* order c later, in order_children() */
+    Col [c].shared2.order = COLAMD_EMPTY ;
+    /* remove c from hash bucket */
+    Col [prev_c].shared4.hash_next = Col [c].shared4.hash_next ;
       }
     }
 
@@ -1731,11 +1731,11 @@ static IndexType garbage_collection  /* returns the new value of pfree */
       length = Col [c].length ;
       for (j = 0 ; j < length ; j++)
       {
-	r = *psrc++ ;
-	if (ROW_IS_ALIVE (r))
-	{
-	  *pdest++ = r ;
-	}
+    r = *psrc++ ;
+    if (ROW_IS_ALIVE (r))
+    {
+      *pdest++ = r ;
+    }
       }
       Col [c].length = (IndexType) (pdest - &A [Col [c].start]) ;
     }
@@ -1749,18 +1749,18 @@ static IndexType garbage_collection  /* returns the new value of pfree */
     {
       if (Row [r].length == 0)
       {
-	/* this row is of zero length.  cannot compact it, so kill it */
-	COLAMD_DEBUG3 (("Defrag row kill\n")) ;
-	KILL_ROW (r) ;
+    /* this row is of zero length.  cannot compact it, so kill it */
+    COLAMD_DEBUG3 (("Defrag row kill\n")) ;
+    KILL_ROW (r) ;
       }
       else
       {
-	/* save first column index in Row [r].shared2.first_column */
-	psrc = &A [Row [r].start] ;
-	Row [r].shared2.first_column = *psrc ;
-	COLAMD_ASSERT (ROW_IS_ALIVE (r)) ;
-	/* flag the start of the row with the one's complement of row */
-	*psrc = ONES_COMPLEMENT (r) ;
+    /* save first column index in Row [r].shared2.first_column */
+    psrc = &A [Row [r].start] ;
+    Row [r].shared2.first_column = *psrc ;
+    COLAMD_ASSERT (ROW_IS_ALIVE (r)) ;
+    /* flag the start of the row with the one's complement of row */
+    *psrc = ONES_COMPLEMENT (r) ;
 
       }
     }
@@ -1788,11 +1788,11 @@ static IndexType garbage_collection  /* returns the new value of pfree */
       length = Row [r].length ;
       for (j = 0 ; j < length ; j++)
       {
-	c = *psrc++ ;
-	if (COL_IS_ALIVE (c))
-	{
-	  *pdest++ = c ;
-	}
+    c = *psrc++ ;
+    if (COL_IS_ALIVE (c))
+    {
+      *pdest++ = c ;
+    }
       }
       Row [r].length = (IndexType) (pdest - &A [Row [r].start]) ;
 

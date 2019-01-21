@@ -1,2 +1,3 @@
 /* #undef USE_CUDA */
-/* #undef USE_PYQPANDA */
+#define USE_PYQPANDA
+#define USE_OPENMP

@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.1)
+project(Variational.test)
+file(GLOB_RECURSE VariationalTestSrc ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
+add_executable(${PROJECT_NAME} ${VariationalTestSrc})
+target_link_libraries(${PROJECT_NAME} QPanda2.0 Variational QAlg gtest)

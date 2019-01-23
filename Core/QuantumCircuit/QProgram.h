@@ -492,17 +492,17 @@ QGate RZ(Qubit*, double angle);
 QGate S(Qubit* qbit);
 QGate T(Qubit*);
 QGate H(Qubit* qbit);
-QGate CNOT(Qubit* targetQBit, Qubit* controlQBit);
-QGate CZ(Qubit* targetQBit, Qubit* controlQBit);
+QGate CNOT(Qubit* controlQBit , Qubit* targetQBit);
+QGate CZ(Qubit*  controlQBit, Qubit* targetQBit);
 QGate U4(double alpha, double beta, double gamma, double delta, Qubit*);
 QGate U4(QStat& matrix, Qubit*);
 QGate QDouble(QStat matrix, Qubit * pQubit1, Qubit * pQubit2);
 QGate CU(double alpha, double beta, double gamma, double delta, Qubit *, Qubit *);
 QGate CU(QStat& matrix, Qubit*, Qubit*);
-QGate iSWAP(Qubit * targitBit, Qubit * controlBit);
-QGate iSWAP(Qubit * targitBit, Qubit * controlBit, double theta);
-QGate CR(Qubit * targitBit, Qubit * controlBit, double theta);
-QGate SqiSWAP(Qubit * targitBit, Qubit * controlBit);
+QGate iSWAP(Qubit * targitBit_fisrt, Qubit * targitBit_second);
+QGate iSWAP(Qubit * targitBit_fisrt, Qubit * targitBit_second, double theta);
+QGate CR(Qubit * controlBit, Qubit * targitBit, double theta);
+QGate SqiSWAP(Qubit * targitBit_fisrt, Qubit * targitBit_second);
 
 QPANDA_END
 #endif

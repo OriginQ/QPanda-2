@@ -893,28 +893,33 @@ QGate QPanda::RZ(Qubit * qbit, double angle)
     return _gs_pGateNodeFactory->getGateNode(name, qbit, angle);
 }
 
-QGate QPanda::iSWAP(Qubit * targitBit,Qubit * controlBit)
+QGate QPanda::iSWAP(Qubit * targitBit_fisrt,Qubit * targitBit_second)
 {
     string name = "ISWAP";
-    return _gs_pGateNodeFactory->getGateNode(name, targitBit, controlBit);
+    return _gs_pGateNodeFactory->getGateNode(name, targitBit_fisrt, targitBit_second);
 }
 
-QGate QPanda::iSWAP(Qubit * targitBit, Qubit * controlBit,double theta)
+QGate QPanda::iSWAP(Qubit * targitBit_fisrt, Qubit * targitBit_second,double theta)
 {
     string name = "ISWAP";
-    return _gs_pGateNodeFactory->getGateNode(name, targitBit, controlBit, theta);
+    return _gs_pGateNodeFactory->getGateNode(name, 
+        targitBit_fisrt,
+        targitBit_second,
+        theta);
 }
 
-QGate QPanda::CR(Qubit * targitBit, Qubit * controlBit, double theta)
+QGate QPanda::CR(Qubit * controlBit , Qubit * targitBit, double theta)
 {
     string name = "CPhaseGate";
-    return _gs_pGateNodeFactory->getGateNode(name, targitBit, controlBit, theta);
+    return _gs_pGateNodeFactory->getGateNode(name, controlBit , targitBit , theta);
 }
 
-QGate QPanda::SqiSWAP(Qubit * targitBit, Qubit * controlBit)
+QGate QPanda::SqiSWAP(Qubit * targitBit_fisrt, Qubit * targitBit_second)
 {
     string name = "SQISWAP";
-    return _gs_pGateNodeFactory->getGateNode(name, targitBit, controlBit);
+    return _gs_pGateNodeFactory->getGateNode(name, 
+        targitBit_fisrt,
+        targitBit_second);
 }
 
 QGate QPanda::S(Qubit * qbit)
@@ -935,16 +940,16 @@ QGate  QPanda::H(Qubit * qbit)
     return _gs_pGateNodeFactory->getGateNode(name, qbit);
 }
 
-QGate  QPanda::CNOT(Qubit * targetQBit, Qubit * controlQBit)
+QGate  QPanda::CNOT(Qubit * controlQBit , Qubit * targetQBit)
 {
     string name = "CNOT";
-    return _gs_pGateNodeFactory->getGateNode(name, targetQBit, controlQBit);
+    return _gs_pGateNodeFactory->getGateNode(name, controlQBit , targetQBit);
 }
 
-QGate QPanda::CZ(Qubit * targetQBit, Qubit * controlQBit)
+QGate QPanda::CZ(Qubit * controlQBit , Qubit *targetQBit)
 {
     string name = "CZ";
-    return _gs_pGateNodeFactory->getGateNode(name, targetQBit, controlQBit);
+    return _gs_pGateNodeFactory->getGateNode(name, controlQBit , targetQBit);
 }
 
 QGate QPanda::U4(double alpha, double beta, double gamma, double delta, Qubit * qbit)

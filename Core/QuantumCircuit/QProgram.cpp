@@ -182,7 +182,7 @@ bool QGate::setDagger(bool bIsDagger)
     return m_pQGateNode->setDagger(bIsDagger);
 }
 
-bool QGate::setControl(vector<Qubit *>& quBitVector)
+bool QGate::setControl(QVec quBitVector)
 {
     if (nullptr == m_pQGateNode)
     {
@@ -236,7 +236,7 @@ argin       :
 argout      :
 Return      : new QGate
 *****************************************************************/
-QGate QGate::control(vector<Qubit*>& controlVector)
+QGate QGate::control(QVec controlVector)
 {
     vector<Qubit *> qubitVector;
     this->getQuBitVector(qubitVector);
@@ -1671,7 +1671,7 @@ bool OriginQGate::setDagger(bool isDagger)
     return m_bIsDagger;
 }
 
-bool OriginQGate::setControl(vector<Qubit *>& quBitVector)
+bool OriginQGate::setControl(QVec quBitVector)
 {
     for (auto aiter : quBitVector)
     {

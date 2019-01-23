@@ -53,7 +53,7 @@ public:
     virtual bool isDagger() const = 0;
     virtual size_t getControlVector(std::vector<Qubit *> &) const = 0;
     virtual bool setDagger(bool) = 0;
-    virtual bool setControl(std::vector<Qubit *> &) = 0;
+    virtual bool setControl(QVec) = 0;
     virtual ~AbstractQGateNode() {}
 };
 
@@ -82,9 +82,9 @@ public:
     QuantumGate *getQGate() const;
     qmap_size_t getPosition() const;
     bool setDagger(bool);
-    bool setControl(std::vector<Qubit*>&);
+    bool setControl(QVec);
     QGate dagger();
-    QGate control(std::vector<Qubit*>&);
+    QGate control(QVec );
     bool isDagger() const;
     size_t getControlVector(std::vector<Qubit *> &) const;
 private:
@@ -117,7 +117,7 @@ public:
     void setQGate(QuantumGate *);
     void setPosition(qmap_size_t stPosition);
     bool setDagger(bool);
-    bool setControl(std::vector<Qubit*>&);
+    bool setControl(QVec);
     bool isDagger() const;
     size_t getControlVector(std::vector<Qubit *> &) const;
     void PushBackQuBit(Qubit *);

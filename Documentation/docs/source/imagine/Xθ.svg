@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 22.1.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="图层_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 50 50" style="enable-background:new 0 0 50 50;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:#178CEC;}
+	.st1{fill:#FFFFFF;}
+	.st2{font-family:'MicrosoftYaHei';}
+	.st3{font-size:20.7055px;}
+	.st4{font-size:12.4233px;}
+</style>
+<g>
+	<path class="st0" d="M46,40c0,2.8-2.2,5-5,5H11c-2.8,0-5-2.2-5-5V10c0-2.8,2.2-5,5-5h30c2.8,0,5,2.2,5,5V40z"/>
+	<text transform="matrix(0.9659 0 -0.2588 0.9659 14.1193 33.0626)" class="st1 st2 st3">X</text>
+	<text transform="matrix(0.9659 0 -0.2588 0.9659 27.0187 33.0626)" class="st1 st2 st4">θ</text>
+</g>
+</svg>

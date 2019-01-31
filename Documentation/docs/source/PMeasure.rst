@@ -3,12 +3,13 @@ PMeasure接口
 
 PMeasure只能在量子虚拟机上实现，就是计算出末态在目标量子比特序列对应的空间的各个基矢上的投影(概率), 在量子线路中的表示符号与 :ref:`Measure` 相同，如下图表示：
 
-.. image:: imagine/measure.svg
+.. image:: imags/measure.svg
     :width: 65
 
 接口介绍
 ----------------
 
+.. _getProbTupleList:
 .. cpp:function:: std::vector<std::pair<size_t, double>> getProbTupleList(QVec &qvec,int selectMax=-1)
 
     **功能**
@@ -46,6 +47,7 @@ PMeasure只能在量子虚拟机上实现，就是计算出末态在目标量子
                 return 0;
             }
 
+.. _getProbList:
 .. cpp:function:: std::vector<double> getProbList(QVec& qvec, int selectMax = -1)
 
     **功能**
@@ -83,6 +85,7 @@ PMeasure只能在量子虚拟机上实现，就是计算出末态在目标量子
                 return 0;
             }
 
+.. _getProbDict:
 .. cpp:function:: std::map<std::string, double>  getProbDict(QVec &qvec, int selectMax = -1)
 
     **功能**
@@ -156,6 +159,8 @@ PMeasure只能在量子虚拟机上实现，就是计算出末态在目标量子
                 return 0;
             }
 
+**see also** getProbTupleList_
+
 .. cpp:function:: std::vector<double> probRunList(QProg &prog,QVec &qvec , int selectMax = -1)
     
     **功能**
@@ -192,6 +197,8 @@ PMeasure只能在量子虚拟机上实现，就是计算出末态在目标量子
                 return 0;
             }
 
+**see also** getProbList_ 
+
 .. cpp:function:: std::vector<double> probRunDict(QProg &prog,QVec &qvec, int selectMax = -1)
     
     **功能**
@@ -205,29 +212,26 @@ PMeasure只能在量子虚拟机上实现，就是计算出末态在目标量子
     **实例**
         .. code-block:: c
 
-        #include <QPanda.h>
-        USING_QPANDA
+            #include <QPanda.h>
+            USING_QPANDA
 
 
-        int main(void)
-        {
-            init();
-            QProg prog;
-            auto qvec = qAllocMany(4);
-            prog << H(qvec[0]) << CNOT(qvec[0],qvec[1])
-                << CNOT(qvec[1],qvec[2]) << CNOT(qvec[2],qvec[3]);
-
-            auto result = probRunDict(prog, qvec); // 对所有的目标比特做概率测量
-            for (auto &val : result) // 输出所有的PMeasure结果
+            int main(void)
             {
-                std::cout << val.first << ", " << val.second << std::endl;
+                init();
+                QProg prog;
+                auto qvec = qAllocMany(4);
+                prog << H(qvec[0]) << CNOT(qvec[0],qvec[1])
+                    << CNOT(qvec[1],qvec[2]) << CNOT(qvec[2],qvec[3]);
+
+                auto result = probRunDict(prog, qvec); // 对所有的目标比特做概率测量
+                for (auto &val : result) // 输出所有的PMeasure结果
+                {
+                    std::cout << val.first << ", " << val.second << std::endl;
+                }
+
+                finalize();
+                return 0;
             }
 
-            finalize();
-            return 0;
-        }
-
-
-
-
-
+**see also** getProbDict_

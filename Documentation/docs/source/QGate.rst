@@ -8,10 +8,10 @@
 量子逻辑门由酉矩阵表示。最常见的量子门在一个或两个量子位的空间上工作，就像常见的经典逻辑门在一个或两个位上操作一样。
 
 常见量子逻辑门矩阵形式
->>>>>>>>>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>>>>>>>>
 ----
 
-.. image:: imagine/H.svg
+.. image:: imags/H.svg
    :align: left
    :width: 65
 
@@ -19,7 +19,7 @@
 
 .. math:: \begin{bmatrix} 1/\sqrt {2} & 1/\sqrt {2} \\ 1/\sqrt {2} & -1/\sqrt {2} \end{bmatrix}\quad
 
-.. image:: imagine/X.svg
+.. image:: imags/X.svg
    :align: left
    :width: 65
 
@@ -27,7 +27,7 @@
 
 .. math:: \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}\quad
 
-.. image:: imagine/Y.svg
+.. image:: imags/Y.svg
    :align: left
    :width: 65
 
@@ -35,7 +35,7 @@
 
 .. math:: \begin{bmatrix} 0 & -i \\ i & 0 \end{bmatrix}\quad
 
-.. image:: imagine/Z.svg
+.. image:: imags/Z.svg
    :align: left
    :width: 65
 
@@ -43,7 +43,7 @@
 
 .. math:: \begin{bmatrix} 1 & 0 \\ 0 & -1 \end{bmatrix}\quad
 
-.. image:: imagine/not.svg
+.. image:: imags/not.svg
    :align: left
    :width: 65
 
@@ -51,7 +51,7 @@
 
 .. math:: \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}\quad
 
-.. image:: imagine/Xθ.svg
+.. image:: imags/Xθ.svg
    :align: left
    :width: 65
 
@@ -59,7 +59,7 @@
 
 .. math:: \begin{bmatrix} \cos(θ/2) & -1i×\sin(θ/2) \\ -1i×\sin(θ/2) & \cos(θ/2) \end{bmatrix}\quad
 
-.. image:: imagine/Yθ.svg
+.. image:: imags/Yθ.svg
    :align: left
    :width: 65
 
@@ -67,7 +67,7 @@
 
 .. math:: \begin{bmatrix} \cos(θ/2) & \sin(θ/2) \\ \sin(θ/2) & \cos(θ/2) \end{bmatrix}\quad
 
-.. image:: imagine/Zθ.svg
+.. image:: imags/Zθ.svg
    :align: left
    :width: 65
 
@@ -75,7 +75,7 @@
 
 .. math:: \begin{bmatrix} \exp(-iθ/2) & 0 \\ 0 & \exp(iθ/2) \end{bmatrix}\quad
 
-.. image:: imagine/+.svg
+.. image:: imags/+.svg
    :align: left
    :width: 65
 
@@ -83,7 +83,7 @@
 
 .. math:: \begin{bmatrix} 1 & 0 & 0 & 0  \\ 0 & 1 & 0 & 0 \\ 0 & 0 & 0 & 1 \\ 0 & 0 & 1 & 0 \end{bmatrix}\quad
 
-.. image:: imagine/CR.svg
+.. image:: imags/CR.svg
    :align: left
    :width: 65
 
@@ -91,7 +91,7 @@
 
 .. math:: \begin{bmatrix} 1 & 0 & 0 & 0  \\ 0 & 1 & 0 & 0 \\ 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & \exp(iθ) \end{bmatrix}\quad
 
-.. image:: imagine/切换.svg
+.. image:: imags/切换.svg
    :align: left
    :width: 65
 
@@ -99,7 +99,7 @@
 
 .. math:: \begin{bmatrix} 1 & 0 & 0 & 0  \\ 0 & 0 & -i & 0 \\ 0 & -i & 0 & 0 \\ 0 & 0 & 0 & 1 \end{bmatrix}\quad
 
-.. image:: imagine/Toff.svg
+.. image:: imags/Toff.svg
    :align: left
    :width: 65
 

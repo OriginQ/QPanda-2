@@ -3,6 +3,7 @@
 
 简介
 --------------
+
 逻辑门的统计是指统计一个量子线路或量子程序中所有的量子逻辑门个数方法
 
 接口介绍
@@ -10,21 +11,19 @@
 
 .. cpp:function:: size_t countQGateUnderQCircuit(AbstractQuantumCircuit * pQCircuit)
     
-    统计量子线路中的量子逻辑门个数
-
+    **功能**
+        统计量子线路中的量子逻辑门个数
     **参数**  
         - pQCircuit 量子线路指针
-
     **返回值** 
         量子线路中的量子逻辑门个数    
 
 .. cpp:function:: size_t countQGateUnderQProg(AbstractQuantumProgram * pQProg)
 
-    统计量子程序中的量子逻辑门个数 
-
+    **功能**
+        - 统计量子程序中的量子逻辑门个数 
     **参数**
-        - pQProg 量子程序指针
-        
+        - pQProg 量子程序指针      
     **返回值** 
         量子程序中的量子逻辑门个数 
 

@@ -19,18 +19,19 @@ QRunes的书写格式规范与例程可以参考量子程序转化QRunes模块�
 >>>>>>>>>>>>
 ----
 
-你可以通过调用 ``qRunesToQProg(string sQRunesPath)`` 接口来调用该功能,该接口说明如下：
+你可以通过调用 ``qRunesToQProg(string sQRunesPath,QProg& newQProg)`` 接口来调用该功能,该接口说明如下：
   
-    .. cpp:function:: qRunesToQProg(string sQRunesPath)
+.. cpp:function:: qRunesToQProg(string sQRunesPath,QProg& newQProg)
 
-       **功能**
+    **功能**
         - 将QRunes转化为量子程序
 
-       **参数**
+    **参数**
         - QRunes文件路径
+        - 用于接收解析结果的QProg量子程序
 
-       **返回值**
-        - QProg量子程序
+    **返回值**
+        - 无
 
 使用例程
 >>>>>>>>
@@ -70,7 +71,7 @@ QRunes的书写格式规范与例程可以参考量子程序转化QRunes模块�
 
             auto prog = CreateEmptyQProg();
 
-            prog = qRunesToQProg(sQRunesPath);
+            qRunesToQProg(sQRunesPath, prog);
 
             finalize();
             return 0;
@@ -83,7 +84,7 @@ QRunes的书写格式规范与例程可以参考量子程序转化QRunes模块�
 
  - 接着用 ``CreateEmptyQProg()`` 创建一个空的量子程序，用于接收返回值
 
- - 然后调用 ``qRunesToQProg(sQRunesPath)`` 获取转化后的量子程序
+ - 然后调用 ``qRunesToQProg(sQRunesPath, prog)`` 转化
 
  - 最后用 ``finalize()`` 结束，并释放系统资源
 

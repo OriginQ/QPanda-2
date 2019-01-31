@@ -30,14 +30,12 @@
 
 .. cpp:function:: size_t getQProgClockCycle(QProg &prog)
     
-    统计量子程序的时钟周期
-
+    **功能**
+        - 统计量子程序的时钟周期
     **参数**  
         - prog 量子程序
-
     **返回值** 
         量子程序的时钟周期    
-
 
 使用实例
 ---------

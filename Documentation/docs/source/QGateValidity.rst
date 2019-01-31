@@ -37,12 +37,11 @@
 
     .. cpp:function:: SingleGateTypeValidator::GateType(std::vector<std::string>&gates, std::vector<std::string>&valid_gates)
     
-    判断单量子门的有效性，并输出有效组合
-
+    **功能**
+        判断单量子门的有效性，并输出有效组合
     **参数**  
         - gates 输入的单量子门
         - valid_gates 输出有效的单量子门组合
-
     **返回值** 
         单量子门有效的组合类型
 
@@ -52,12 +51,11 @@
 
     .. cpp:function:: doubleGateTypeValidator::GateType(std::vector<std::string>&gates, std::vector<std::string>&valid_gates)
     
-    判断双量子门的有效性，并输出有效组合  
-
+    **功能**
+        判断双量子门的有效性，并输出有效组合  
     **参数**
         - gates 输入的双量子门
-        - valid_gates 输出有效的双量子门组合
-        
+        - valid_gates 输出有效的双量子门组合 
     **返回值** 
         双量子门有效的组合类型
 

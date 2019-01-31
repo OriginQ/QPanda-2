@@ -11,8 +11,8 @@
 
 .. cpp:function:: bool binaryQProgFileParse(QProg &prog, const std::string &filename = DEF_QPROG_FILENAME)
     
-    将存储的量子程序二进制文件解析成量子程序
-
+    **功能**
+        - 将存储的量子程序二进制文件解析成量子程序
     **参数**  
         - prog 量子程序
         - filename 文件名    
@@ -42,3 +42,4 @@
             finalize();
             return 0;
         }
+

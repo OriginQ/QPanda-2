@@ -7,7 +7,7 @@
 --------------
 
 QuantumMachine_type
-```````````````````````
+````````````````````````
 .. code-block:: c
 
     enum QuantumMachine_type {
@@ -51,7 +51,7 @@ C 模式的接口类型
 .. _qAllocMany:
 .. cpp:function:: QVec qAllocMany(size_t stQubitNumber)
 
-     **功能**
+    **功能**
         申请多个量子比特
     **参数**
         - qubit_count 量子比特个数
@@ -80,7 +80,7 @@ C 模式的接口类型
 .. _cAllocMany:
 .. cpp:function:: std::vector<ClassicalCondition> cAllocMany(size_t stCBitNumber)
 
-     **功能**
+    **功能**
         申请多个量子表达式
     **参数**
         - cbit_count 量子表达式个数
@@ -108,7 +108,7 @@ C 模式的接口类型
 
 .. cpp:function:: void run()
 
-     **功能**
+    **功能**
         运行量子程序
     **参数**
         无
@@ -117,7 +117,7 @@ C 模式的接口类型
 
 .. cpp:function:: void finalize()
 
-     **功能**
+    **功能**
         释放资源，与 init_ 配对使用
     **参数**
         无
@@ -171,53 +171,53 @@ C++ 模式的接口类型
 
     该类的功能是量子虚拟机的构建和使用。
 
-.. cpp:function:: bool init(QuantumMachine_type type = CPU)
+    .. cpp:function:: bool init(QuantumMachine_type type = CPU)
 
-    初始化量子虚拟机， 参照 init_
+        初始化量子虚拟机， 参照 init_
 
-.. cpp:function:: Qubit* Allocate_Qubit()
+    .. cpp:function:: Qubit* Allocate_Qubit()
 
-    申请一个量子比特， 参照 qAlloc_
+        申请一个量子比特， 参照 qAlloc_
 
-.. cpp:function:: Qubit* Allocate_Qubit(size_t qubit_num)
+    .. cpp:function:: Qubit* Allocate_Qubit(size_t qubit_num)
 
-    在指定位置申请一个量子比特， 参照 qAlloc_
+        在指定位置申请一个量子比特， 参照 qAlloc_
 
-.. cpp:function:: QVec Allocate_Qubits(size_t qubit_count)
+    .. cpp:function:: QVec Allocate_Qubits(size_t qubit_count)
 
-    申请多个量子比特， 参照 qAllocMany_
+        申请多个量子比特， 参照 qAllocMany_
 
-.. cpp:function:: ClassicalCondition Allocate_CBit()
+    .. cpp:function:: ClassicalCondition Allocate_CBit()
 
-    申请一个量子表达式， 参照 cAlloc_
+        申请一个量子表达式， 参照 cAlloc_
 
-.. cpp:function:: ClassicalCondition Allocate_CBit(size_t stCbitNum)
+    .. cpp:function:: ClassicalCondition Allocate_CBit(size_t stCbitNum)
 
-    在指定位置申请一个量子表达式， 参照 cAlloc_
+        在指定位置申请一个量子表达式， 参照 cAlloc_
 
-.. cpp:function:: std::vector<ClassicalCondition> Allocate_CBits(size_t cbit_count)
+    .. cpp:function:: std::vector<ClassicalCondition> Allocate_CBits(size_t cbit_count)
 
-    申请多个量子表达式， 参照 cAllocMany_
+        申请多个量子表达式， 参照 cAllocMany_
 
-.. cpp:function:: void load(QProg &prog)
+    .. cpp:function:: void load(QProg &prog)
 
-    加载量子程序， 参照 load_
+        加载量子程序， 参照 load_
 
-.. cpp:function:: void append(QProg& prog)
+    .. cpp:function:: void append(QProg& prog)
 
-    追加量子程序， 参照 append_
+        追加量子程序， 参照 append_
 
-.. cpp:function:: void run()
+    .. cpp:function:: void run()
 
-    运行量子程序， 参照 run_
+        运行量子程序， 参照 run_
 
-.. cpp:function:: void finalize()
+    .. cpp:function:: void finalize()
 
-    释放资源， 参照 finalize_
+        释放资源， 参照 finalize_
 
-.. cpp:function:: std::map<std::string, bool> getResultMap()
+    .. cpp:function:: std::map<std::string, bool> getResultMap()
 
-    获得量子程序运行结果， 参照 getResultMap_
+        获得量子程序运行结果， 参照 getResultMap_
 
 实例
 >>>>>>>>>>>>>>>>>>>>

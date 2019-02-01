@@ -1,21 +1,21 @@
 入门教程
-============
+==============
 
 构建QPanda-2
---------------
+------------------
 | 为了方便用户使用，我们支持在Windows、Linux、MacOS下构建QPanda-2。用户可以通过CMake的方式来构建QPanda-2。用户可以通过CMake的方式来构建QPanda-2。
 
 Windows
-*************
+***************
 | 在Windows构建QPanda-2。用户首先需要保证在当前主机下安装了CMake环境和C++编译环境，用户可以通过以下方式编译QPanda-2：1、使用Visual Studio；2、使用minGW。
 
 1. 使用Visual Studio
-********************
+***************************
 
 | 使用Visual Studio编译QPanda-2,只需要安装Visual Studio，并需要在组件中安装CMake组件。安装完成之后，用Visual Studio打开QPanda-2文件夹，即可使用CMake编译QPanda-2。
 
 2. 使用minGW
-***************
+********************
 
 | 使用minGW编译QPanda-2，需要自行搭建CMake和minGW环境，用户可自行在网上查询环境搭建教程。（注意： minGW需要安装64位版本）
 | CMake+minGW的编译命令如下：
@@ -30,7 +30,7 @@ Windows
     mingw32-make
 
 Linux 和MacOS
-***************
+******************
 
 | 在Linux和MacOS下构建QPanda-2，命令是一样的（注意：MacOS下编译需要安装g++编译器，不能使用clang）
 | 编译步骤如下：
@@ -46,7 +46,7 @@ Linux 和MacOS
     make
 
 cmake链接QPanda-2库的方法
-**************************
+******************************
 
 1. 进入QPanda-2根目录
 2. 在cmakeLists.txt下面输入以下内容：
@@ -60,7 +60,7 @@ cmake链接QPanda-2库的方法
 
 
 入门指南
-----------
+--------------
 
 | QPanda-2构建完成后，我们就可以开始量子编程之旅了，首先先实现一个小的示例程序。
 

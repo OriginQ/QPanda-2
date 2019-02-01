@@ -1,7 +1,7 @@
 .. _QProgStored:
 
 量子程序存储为二进制文件
-=====================
+==========================
 
 简介
 --------------
@@ -13,13 +13,15 @@
 .. cpp:function:: void qProgBinaryStored(QProg &prog, const std::string &filename = DEF_QPROG_FILENAME)
     
     **功能**
-        - 量子程序存储为二进制文件
+        量子程序存储为二进制文件
     **参数**  
         - prog 量子程序
-        - filename 文件名    
+        - filename 文件名 
+    **返回值**
+        无  
 
-使用实例
----------
+实例
+--------------
 
     .. code-block:: c
     

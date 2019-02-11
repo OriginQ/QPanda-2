@@ -1,5 +1,5 @@
 量子程序转化QASM
-====================
+=====================
 ----
 
 通过该功能模块，你可以解析通过QPanda2构建的量子程序，将其中包含的量子比特信息以及量子逻辑门操作信息提取出来，得到按固定格式存储的QASM指令集。
@@ -8,7 +8,7 @@
 .. _IBM Q Experience量子云平台: https://quantumexperience.ng.bluemix.net/qx/editor
 
 QASM介绍
->>>>>>>>>>>>
+>>>>>>>>>>>>>>>
 ----
 
 QASM(Quantum Assembly Language)是IBM公司提出的量子汇编语言，与 :ref:`QRunes介绍` 中的语法规则类似，一段QASM代码如下所示：
@@ -45,8 +45,8 @@ QASM(Quantum Assembly Language)是IBM公司提出的量子汇编语言，与 :re
 关于QASM更多详细信息的介绍、使用与体验请参考 `IBM Q Experience量子云平台`_
 
 
-功能函数接口
->>>>>>>>>>>>
+接口介绍
+>>>>>>>>>>>>>>>>>
 ----
 
 你可以通过调用 ``qProgToQASM(QProg &)`` 接口来调用该功能,该接口说明如下：
@@ -54,16 +54,14 @@ QASM(Quantum Assembly Language)是IBM公司提出的量子汇编语言，与 :re
     .. cpp:function:: qProgToQASM(QProg &)
 
        **功能**
-        - 将量子程序转化为QASM
-
+            将量子程序转化为QASM
        **参数**
-        - 待转化的量子程序
-
+            - QProg 待转化的量子程序
        **返回值**
-        - QASM指令集
+            QASM指令集
 
-使用例程
->>>>>>>>
+实例
+>>>>>>>>>>>>>>
 ----
 
 下面的例程通过简单的接口调用演示了量子程序转化QASM指令集的过程

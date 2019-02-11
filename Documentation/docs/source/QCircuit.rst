@@ -16,82 +16,70 @@
 在目前的量子计算理论研究中，各种量子算法常用量子线路表示，比如下方列出的量子算法中的 ``HHL算法`` 量子线路图。
 
 
-.. image:: imags/hhl.bmp
+.. image:: images/hhl.bmp
    :align: center   
    
-量子线路类及常用接口介绍
->>>>>>>>>>>>>>>>>>>>>>
+接口介绍
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ----
 
 .. cpp:class:: QCircuit
 
     该类用于表述一个线路节点的各项信息，同时包含多种可调用的接口。
 
-    .. cpp:function:: QCircuit::getNodeType()
+    .. cpp:function:: NodeType getNodeType()
 
-       **功能**
-        - 获取节点类型
+        **功能**
+            获取节点类型
+        **参数**
+            无
+        **返回值**
+            节点类型
 
-       **参数**
-        - 无
+    .. cpp:function:: void setDagger(bool)
 
-       **返回值**
-        - 节点类型
+        **功能**
+            设置量子线路转置共轭形式
+        **参数**
+            - bool 是否dagger
+        **返回值**
+            无
 
-    .. cpp:function:: QCircuit::setDagger(bool)
+    .. cpp:function:: void setControl(std::vector<Qubit*>&)
 
-       **功能**
-        - 设置量子线路转置共轭形式
+        **功能**
+            设置量子线路受控状态
+        **参数**
+            - std::vector<Qubit *> 控制比特
+        **返回值**
+            无
 
-       **参数**
-        - bool
+    .. cpp:function:: bool isDagger()
 
-       **返回值**
-        - 无
+        **功能**
+            判断是否处于转置共轭形式
+        **参数**
+            无
+        **返回值**
+            是否dagger
 
-    .. cpp:function:: QCircuit::setControl(std::vector<Qubit*>&)
+    .. cpp:function:: QCircuit dagger()
 
-       **功能**
-        - 设置量子线路受控状态
+        **功能**
+            返回一个当前量子线路节点转置共轭形式的新节点
+        **参数**
+            无
+        **返回值**
+            量子线路
 
-       **参数**
-        - std::vector<Qubit *>
+    .. cpp:function:: QCircuit control(std::vector<Qubit*>&)
 
-       **返回值**
-        - 无
-
-    .. cpp:function:: QCircuit::isDagger()
-
-       **功能**
-        - 判断是否处于转置共轭形式
-
-       **参数**
-        - 无
-
-       **返回值**
-        - QuantumGate*
-
-    .. cpp:function:: QCircuit::dagger()
-
-       **功能**
-        - 返回一个当前量子线路节点转置共轭形式的新节点
-
-       **参数**
-        - 无
-
-       **返回值**
-        - QCircuit
-
-    .. cpp:function:: QCircuit::control(std::vector<Qubit*>&)
-
-       **功能**
-        - 返回一个当前量子线路节点施加控制操作的新节点
-
-       **参数**
-        - std::vector<Qubit *>
-
-       **返回值**
-        - QCircuit
+        **功能**
+            返回一个当前量子线路节点施加控制操作的新节点
+        **参数**
+            - std::vector<Qubit *>
+        **返回值**
+            量子线路
 
 实例
 >>>>>>>>>>>

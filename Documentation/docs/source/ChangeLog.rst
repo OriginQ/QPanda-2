@@ -1,11 +1,11 @@
 ============
 Change Log
-============
+================
 
 1.2.0 - 2019-01-18 
--------------------
+-------------------------
 add
-****
+*******
 
 1. 用户可使用QProg()、QCircuit()、QWhileProg(...)、QIfProg(...)构造相关对象。
 2. 对外隐藏CBit类型，统一替换为ClassicalCondition。
@@ -26,7 +26,7 @@ add
 17. 添加initQuantumMachine接口，此接口可根据输入的QuantumMachine_type返回一个QuantumMachine类型的虚拟机指针
 
 update
-*******
+***********
 
 1. cAlloc和cAlloc(size_t)返回值修类型修改为ClassicalCondition
 2. cFree的输入参数类型改为ClassicalCondition&

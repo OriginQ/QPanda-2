@@ -21,14 +21,14 @@
 .. cpp:function:: size_t countQGateUnderQProg(AbstractQuantumProgram * pQProg)
 
     **功能**
-        - 统计量子程序中的量子逻辑门个数 
+        统计量子程序中的量子逻辑门个数 
     **参数**
         - pQProg 量子程序指针      
     **返回值** 
         量子程序中的量子逻辑门个数 
 
-使用实例
----------
+实例
+-------------
 
     .. code-block:: c
     

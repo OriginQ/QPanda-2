@@ -29,38 +29,38 @@
 判断量子门有效性的方法
 --------------------------
 
-判断量子门有效性是由 ``SingleGateTypeValidator`` 和 ``DoubleGateTypeValidator`` 两个类实现的。下面分别对这两个类中的接口介绍
+判断量子门有效性是由 ``SingleGateTypeValidator`` 和 ``DoubleGateTypeValidator`` 两个类实现的。下面分别对这两个类中的接口介绍。
 
 接口介绍
 ---------------
 
 .. cpp:class:: SingleGateTypeValidator
 
-    判断单量子门的有效性
+    判断单量子门的有效性。
 
     .. cpp:function:: SingleGateTypeValidator::GateType(std::vector<std::string>&gates, std::vector<std::string>&valid_gates)
     
     **功能**
-        判断单量子门的有效性，并输出有效组合
+        判断单量子门的有效性，并输出有效组合。
     **参数**  
         - gates 输入的单量子门
         - valid_gates 输出有效的单量子门组合
     **返回值** 
-        单量子门有效的组合类型
+        单量子门有效的组合类型。
 
 .. cpp:class:: DoubleGateTypeValidator
 
-    判断双量子门的有效性
+    判断双量子门的有效性。
 
     .. cpp:function:: doubleGateTypeValidator::GateType(std::vector<std::string>&gates, std::vector<std::string>&valid_gates)
     
     **功能**
-        判断双量子门的有效性，并输出有效组合  
+        判断双量子门的有效性，并输出有效组合。  
     **参数**
         - gates 输入的双量子门
         - valid_gates 输出有效的双量子门组合 
     **返回值** 
-        双量子门有效的组合类型
+        双量子门有效的组合类型。
 
 实例
 ------------

@@ -8,18 +8,20 @@
 .. image:: images/measure.svg
     :width: 65
 
+.. _api_introduction:
+
 接口介绍
 ----------------
 
 .. cpp:function:: QMeasure Measure(Qubit * targetQuBit, ClassicalCondition & cc)
 
     **功能**
-        获得量子测量对象
+        获得量子测量对象。
     **参数**
         - targetQuBit 测量比特
         - cc 量子表达式，测量结果存储在量子表达式的经典寄存器中
     **返回值**
-        量子测量对象
+        量子测量对象。
     **实例**
             .. code-block:: c
 
@@ -97,9 +99,9 @@
     **功能**
         末态在目标量子比特序列在量子程序多次运行结果中出现的次数,不需要load和run
     **参数**
-        prog 量子程序
-        cvec 量子表达式vector
-        shorts 量子程序运行的次数
+        - prog 量子程序
+        - cvec 量子表达式vector
+        - shorts 量子程序运行的次数
     **返回值**
         目标量子比特序列二进制及其对应的次数
     **实例**
@@ -134,8 +136,8 @@
     **功能**
         末态在目标量子比特序列在量子程序多次运行结果中出现的次数
     **参数**
-        qvec 目标量子比特
-        shorts 量子程序运行的次数
+        - qvec 目标量子比特
+        - shorts 量子程序运行的次数
     **返回值**
         目标量子比特序列二进制及其对应的次数
     **实例**
@@ -166,4 +168,4 @@
             }
 
 
-**see also** runWithConfiguration_
+**参照** runWithConfiguration_

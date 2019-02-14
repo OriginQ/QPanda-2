@@ -18,14 +18,25 @@
 
 .. image:: images/hhl.bmp
    :align: center   
-   
+
+.. _api_introduction:
+
 接口介绍
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ----
 
 .. cpp:class:: QCircuit
+    
+    QCircuit类是一个仅装载量子逻辑门的容器类型。
 
-    该类用于表述一个线路节点的各项信息，同时包含多种可调用的接口。
+    .. cpp:function:: QCircuit & operator << (T)
+
+        **功能**
+            向量子线路中添加节点
+        **参数**
+            - T QCircuit__ 、QGate__ 、 QIfProg__ 和 QWhileProg__ 类型
+        **返回值**
+            量子线路
 
     .. cpp:function:: NodeType getNodeType()
 
@@ -50,7 +61,7 @@
         **功能**
             设置量子线路受控状态
         **参数**
-            - std::vector<Qubit *> 控制比特
+            - std::vector<Qubit *> 设置作为控制位的一组量子比特
         **返回值**
             无
 
@@ -66,7 +77,7 @@
     .. cpp:function:: QCircuit dagger()
 
         **功能**
-            返回一个当前量子线路节点转置共轭形式的新节点
+            返回一个当前量子线路节点转置共轭形式的副本
         **参数**
             无
         **返回值**
@@ -75,11 +86,21 @@
     .. cpp:function:: QCircuit control(std::vector<Qubit*>&)
 
         **功能**
-            返回一个当前量子线路节点施加控制操作的新节点
+            返回一个当前量子线路节点施加控制操作的副本
         **参数**
-            - std::vector<Qubit *>
+            - std::vector<Qubit *> 设置作为控制位的一组量子比特
         **返回值**
             量子线路
+
+    __ ./QCircuit.html#api-introduction
+
+    __ ./QGate.html#api-introduction
+
+    __ ./QIf.html#api-introduction
+
+    __ ./QWhile.html#api-introduction
+
+.. note:: QCircuit类不能插入QMeasure类型。所以QCircuit类是一个QGate对象和另一些QCircuit对象的集合。
 
 实例
 >>>>>>>>>>>
@@ -115,4 +136,3 @@
             finalize();
             return 0;
         }
-

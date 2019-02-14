@@ -23,7 +23,7 @@
 
 .. _pyQuil: https://pyquil.readthedocs.io/en/stable/compiler.html
 
-上述仅为Quil指令集语法的一小部分， 详细介绍请参考 pyQuil_
+上述仅为Quil指令集语法的一小部分， 详细介绍请参考 pyQuil_ 。
 
 接口介绍
 -----------------
@@ -31,11 +31,11 @@
 .. cpp:function:: std::string qProgToQuil(QProg &prog)
     
     **功能**
-        量子程序转化为Quil指令集
+        量子程序转化为Quil指令集。
     **参数**
         - prog 量子程序
     **返回值**
-        Quil指令集
+        Quil指令集。
 
 实例
 ---------------

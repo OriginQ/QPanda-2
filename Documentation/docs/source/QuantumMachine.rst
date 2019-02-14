@@ -1,7 +1,7 @@
 量子虚拟机
 =================
 
-在真正的量子计算机没有成型之前，需要使用量子虚拟机承担量子算法，量子应用的验证的问题，QPanda-2的量子虚拟机是全振幅量子虚拟机，其模拟的量子比特数跟用户机器配置息息相关，所以用户可根据自己的机器配置申请量子比特数。用户可以C和C++两种方式使用量子虚拟机。QPanda-2计算方式支持CPU和GPU，可以通过初始化来配置。
+在真正的量子计算机没有成型之前，需要使用量子虚拟机承担量子算法、量子应用的验证的问题，QPanda-2的量子虚拟机是全振幅量子虚拟机，其模拟的量子比特数跟用户机器配置息息相关，所以用户可根据自己的机器配置申请量子比特数。用户可以C和C++两种接口方式使用量子虚拟机。QPanda-2计算方式支持CPU和GPU，可以在初始化时进行配置。
 
 接口介绍
 --------------
@@ -22,117 +22,117 @@ C 模式的接口类型
 .. cpp:function:: bool init(QuantumMachine_type type = CPU)
 
     **功能**
-        初始化虚拟机
+        初始化虚拟机。
     **参数**
-        - type 选择量子虚拟机的类型 QuantumMachine_type_
+        - type 选择量子虚拟机的类型 QuantumMachine_type_ 。
     **返回值**
-        是否初始化成功
+        是否初始化成功。
 
 .. _qAlloc:
 .. cpp:function:: Qubit* qAlloc()
 
     **功能**
-        申请一个量子比特
+        申请一个量子比特。
     **参数**
-        - 无
+        - 无。
     **返回值**
-        量子比特
+        量子比特。
 
 
 .. cpp:function:: Qubit* qAlloc(size_t stQubitAddr)
 
     **功能**
-        在指定位置申请一个量子比特
+        在指定位置申请一个量子比特。
     **参数**
-        无
+        无。
     **返回值**
-        量子比特
+        量子比特。
 
 .. _qAllocMany:
 .. cpp:function:: QVec qAllocMany(size_t stQubitNumber)
 
     **功能**
-        申请多个量子比特
+        申请多个量子比特。
     **参数**
-        - qubit_count 量子比特个数
+        - qubit_count 量子比特个数。
     **返回值**
-        量子比特容器
+        量子比特容器。
 
 .. _cAlloc:
 .. cpp:function:: ClassicalCondition cAlloc()
 
     **功能**
-        申请一个量子表达式
+        申请一个量子表达式。
     **参数**
-        无
+        无。
     **返回值**
-        量子表达式
+        量子表达式。
 
 .. cpp:function:: ClassicalCondition cAlloc(size_t stCBitaddr)
 
     **功能**
-        在指定位置申请一个量子表达式
+        在指定位置申请一个量子表达式。
     **参数**
-        无
+        无。
     **返回值**
-        量子表达式
+        量子表达式。
 
 .. _cAllocMany:
 .. cpp:function:: std::vector<ClassicalCondition> cAllocMany(size_t stCBitNumber)
 
     **功能**
-        申请多个量子表达式
+        申请多个量子表达式。
     **参数**
-        - cbit_count 量子表达式个数
+        - cbit_count 量子表达式个数。
     **返回值**
-        量子表达式容器
+        量子表达式容器。
 
 .. cpp:function:: void load(QProg& q)
 
     **功能**
-        加载量子程序
+        加载量子程序。
     **参数**
-        - prog 量子程序
+        - prog 量子程序。
     **返回值**
-        无
+        无。
 
 
 .. cpp:function:: void append(QProg& q)
 
     **功能**
-        追加量子程序
+        追加量子程序。
     **参数**
-        - prog 量子程序
+        - prog 量子程序。
     **返回值**
-        无
+        无。
 
 .. cpp:function:: void run()
 
     **功能**
-        运行量子程序
+        运行量子程序。
     **参数**
-        无
+        无。
     **返回值**
-        无
+        无。
 
 .. cpp:function:: void finalize()
 
     **功能**
-        释放资源，与 init_ 配对使用
+        释放资源，与 init_ 配对使用。
     **参数**
-        无
+        无。
     **返回值**
-        无
+        无。
 
 .. _getResultMap:
 .. cpp:function:: std::map<std::string, bool> getResultMap()
 
     **功能**
-        获得量子程序运行结果
+        获得量子程序运行结果。
     **参数**
-        无
+        无。
     **返回值**
-        经典寄存器地址及其存储的测量量子比特的结果
+        经典寄存器地址及其存储的测量量子比特的结果。
 
 实例
 >>>>>>>>>>>>>>>
@@ -173,52 +173,52 @@ C++ 模式的接口类型
 
     .. cpp:function:: bool init(QuantumMachine_type type = CPU)
 
-        初始化量子虚拟机， 参照 init_
+        初始化量子虚拟机， 参照 init_ 。
 
     .. cpp:function:: Qubit* Allocate_Qubit()
 
-        申请一个量子比特， 参照 qAlloc_
+        申请一个量子比特， 参照 qAlloc_ 。
 
     .. cpp:function:: Qubit* Allocate_Qubit(size_t qubit_num)
 
-        在指定位置申请一个量子比特， 参照 qAlloc_
+        在指定位置申请一个量子比特， 参照 qAlloc_ 。
 
     .. cpp:function:: QVec Allocate_Qubits(size_t qubit_count)
 
-        申请多个量子比特， 参照 qAllocMany_
+        申请多个量子比特， 参照 qAllocMany_ 。
 
     .. cpp:function:: ClassicalCondition Allocate_CBit()
 
-        申请一个量子表达式， 参照 cAlloc_
+        申请一个量子表达式， 参照 cAlloc_ 。
 
     .. cpp:function:: ClassicalCondition Allocate_CBit(size_t stCbitNum)
 
-        在指定位置申请一个量子表达式， 参照 cAlloc_
+        在指定位置申请一个量子表达式， 参照 cAlloc_ 。
 
     .. cpp:function:: std::vector<ClassicalCondition> Allocate_CBits(size_t cbit_count)
 
-        申请多个量子表达式， 参照 cAllocMany_
+        申请多个量子表达式， 参照 cAllocMany_ 。
 
     .. cpp:function:: void load(QProg &prog)
 
-        加载量子程序， 参照 load_
+        加载量子程序， 参照 load_ 。
 
     .. cpp:function:: void append(QProg& prog)
 
-        追加量子程序， 参照 append_
+        追加量子程序， 参照 append_ 。
 
     .. cpp:function:: void run()
 
-        运行量子程序， 参照 run_
+        运行量子程序， 参照 run_ 。
 
     .. cpp:function:: void finalize()
 
-        释放资源， 参照 finalize_
+        释放资源， 参照 finalize_ 。
 
     .. cpp:function:: std::map<std::string, bool> getResultMap()
 
-        获得量子程序运行结果， 参照 getResultMap_
-
+        获得量子程序运行结果， 参照 getResultMap_ 。
+ 
 实例
 >>>>>>>>>>>>>>>>>>>>
 

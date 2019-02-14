@@ -23,7 +23,7 @@ add
 14. 添加probRunDict接口，根据输入的量子程序，使用PMEASURE获取量子程序结果，并返回pair<量子态，概率>类型的map。
 15. 添加runWithConfiguration接口，根据输入的量子程序和循环次数，统计测量结果，并返回pari<量子态，概率>的map。
 16. 添加MeasureAll接口，返回一个量子程序，该量子程序对输入的所有量子比特进行Measure操作。
-17. 添加initQuantumMachine接口，此接口可根据输入的QuantumMachine_type返回一个QuantumMachine类型的虚拟机指针
+17. 添加initQuantumMachine接口，此接口可根据输入的QuantumMachine_type返回一个QuantumMachine类型的虚拟机指针。
 
 update
 ***********

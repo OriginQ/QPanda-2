@@ -2,15 +2,9 @@ QWhile
 ==============
 ----
 
-量子程序循环控制操作，输入参数为条件判断表达式，功能是执行while循环操作
+量子程序循环控制操作，输入参数为条件判断表达式，功能是执行while循环操作。QWhile的语法规则参考量子程序转化QRunes模块中的 :ref:`QRunes介绍` 部分。
 
-QWhile语法规则
->>>>>>>>>>>>>>>>>>
-----
-
-QWHILE控制语句，起始标识是QWHILE,终止标识是 ENDWHILE。
-QWHILE带有输入参数 条件判断表达式 。QWHILE与ENDWHILE标识之间为QWHILE的正确分支，QWhile不包含错误分支。
-QWHILE中可嵌套QWHILE，也可包含QIF。
+.. _api_introduction:
 
 接口介绍
 >>>>>>>>>>>>>

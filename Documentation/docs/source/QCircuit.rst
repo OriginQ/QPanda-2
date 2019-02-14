@@ -34,7 +34,7 @@
         **功能**
             向量子线路中添加节点
         **参数**
-            - T QCircuit__ 、QGate__ 、 QIfProg__ 和 QWhileProg__ 类型
+            - T QCircuit__ 和 QGate__ 类型
         **返回值**
             量子线路
 
@@ -95,10 +95,6 @@
     __ ./QCircuit.html#api-introduction
 
     __ ./QGate.html#api-introduction
-
-    __ ./QIf.html#api-introduction
-
-    __ ./QWhile.html#api-introduction
 
 .. note:: QCircuit类不能插入QMeasure类型。所以QCircuit类是一个QGate对象和另一些QCircuit对象的集合。
 

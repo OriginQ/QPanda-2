@@ -32,7 +32,8 @@ That is the process of collecting results(classical information), Moreover, the 
 
 
 
-
+## Documentation
+Documentation is hosted at https://qpanda-2.readthedocs.io/zh_CN/master/
 
 
 ## The Design Ideas of QPanda 2

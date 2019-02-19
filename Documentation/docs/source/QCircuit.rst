@@ -96,6 +96,7 @@
 
     __ ./QGate.html#api-introduction
 
+
 .. note:: QCircuit类不能插入QMeasure类型。所以QCircuit类是一个QGate对象和另一些QCircuit对象的集合。
 
 实例

@@ -49,18 +49,72 @@ QPanda提供了标准化的量子程序（Quantum Program）架构。架构者�
 
 
 .. toctree::
-   :maxdepth: 1
-   
-   ChangeLog
+    :maxdepth: 1
+
+    ChangeLog
    
 目录：
 
 .. toctree::
-   :maxdepth: 2
-   
-   Tutorial
-   detailInstruction
-   ToolComponents
-   QuantumProgramConversion
-   量子算法
-   VQNet
+    :maxdepth: 2
+
+    Tutorial
+
+.. toctree::
+    :caption: 深入学习
+    :maxdepth: 2
+
+    QGate
+    QCircuit
+    QWhile
+    QIf
+    QProg
+    QuantumMachine
+    Measure
+    PMeasure
+
+.. toctree::
+    :caption: 工具组件
+    :maxdepth: 2
+
+    QGateValidity
+    QGateCounter
+    QProgClockCycle
+    QProgStored
+    QProgDataParse
+    QRunesToQProg
+
+.. toctree::
+    :caption: 量子程序转换
+    :maxdepth: 2
+    
+    QProgToQASM
+    QProgToQRunes
+    QProgToQuil
+
+.. toctree::
+    :caption: 量子算法
+    :maxdepth: 2
+
+    QAOA
+    VQE
+
+.. toctree::
+    :caption: 算法组件
+    :maxdepth: 2
+
+    PauliOperator
+    FermionOperator
+    Optimizer
+
+.. toctree::
+    :caption: VQNet
+    :maxdepth: 2
+    
+    Variable
+    VarOperator
+    Expression
+    可变量子逻辑门
+    可变量子线路
+    GradientOptimizer
+    VQNetExample

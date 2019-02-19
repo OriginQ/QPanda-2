@@ -49,9 +49,6 @@ QRunes语句中部分关键词作用如下：
  -  ``MEASURE`` 的作用对目标量子比特进行测量并将测量结果保存在对应的经典寄存器里面，输入参数为目标量子比特序号和保存测量结果的经典寄存器序号。
  -  ``CONTROL & ENDCONTROL`` 的作用是根据经典寄存器的值对CONTROL与ENDCONTROL语句之间的操作进行受控操作
  -  ``DAGGER & ENDDAGGER`` 的作用是对DAGGER与ENDDAGGER语句之间的操作进行转置共轭操作
- -  ``QIF & ENDQIF`` 表示QIF控制语句，起始标识是QIF,终止标识是 ENDQIF，分支分割标识为ELSE。QIF 带有输入参数条件判断表达式 。QIF与ELSE标识之间为QIF的正确分支，ELSE与ENDQIF标识之间为QIF的错误分支。QIF中可嵌套QIF，也可包含QWHILE。
- -  ``QWHILE & ENDQWHILE`` 表示QWHILE控制语句，起始标识是QWHILE,终止标识是 ENDWHILE。QWHILE带有输入参数 条件判断表达式 。QWHILE与ENDWHILE标识之间为QWHILE的正确分支，QWhile不包含错误分支。QWHILE中可嵌套QWHILE，也可包含QIF。
-
 
 上述语句只是QRunes语法中的一小部分,QRunes支持更多的逻辑门种类同时还包含每个量子线路和每个量子逻辑门中是否包含受控量子比特信息以及是否Dagger。
 

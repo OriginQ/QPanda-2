@@ -34,6 +34,7 @@
             auto qubits = qAllocMany(4);
             auto cbits = cAllocMany(1);
             auto prog = CreateEmptyQProg();
+            
             prog << H(qubits[0]) << CNOT(qubits[0], qubits[1])
                 << iSWAP(qubits[1], qubits[2]) << RX(qubits[3], PI/4)
                 << Measure(qubits[0], cbits[0]);

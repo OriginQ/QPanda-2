@@ -14,22 +14,29 @@
 
     量子编程的一个容器类，是一个量子程序的最高单位。
 
+    .. cpp:function:: QProg()
+
+        **功能**
+            构造函数， 构造一个空的量子程序。
+        **参数**
+            无
+
     .. cpp:function:: getNodeType()
 
-       **功能**
+        **功能**
             获取节点类型。
-       **参数**
+        **参数**
             无
-       **返回值**
+        **返回值**
             节点类型。
 
     .. cpp:function:: QProg & operator <<(T)
 
-       **功能**
+        **功能**
             像量子程序中添加节点。
-       **参数**
+        **参数**
             - T QProg__ 、QCircuit__ 、QGate__ 、QMeasure__ 、QIfProg__ 和 QWhileProg__ 类型
-       **返回值**
+        **返回值**
             量子程序。
 
     __ ./QProg.html#api-introduction
@@ -43,6 +50,18 @@
     __ ./QIf.html#api-introduction
 
     __ ./QWhile.html#api-introduction
+
+C 接口创建量子程序的方式
+`````````````````````````
+
+.. cpp:function:: QProg CreateEmptyQProg()
+    
+    **功能**
+        创建一个空的量子程序。
+    **参数**
+        无
+    **返回值**
+        量子程序。
 
 实例
 >>>>>>>>>>
@@ -61,7 +80,9 @@
             auto circuit = CreateEmptyCircuit();
             circuit << CNOT(qvec[0], qvec[1]) << CNOT(qvec[1], qvec[2])
                     << CNOT(qvec[2], qvec[3]);
-            QProg prog;
+
+            // QProg prog;
+            auto prog = CreateEmptyQProg(); // 与 QProg prog 的功能相同
             prog << H(qvec[0]) << circuit << Measure(qvec[0], cvec[0]);
             load(prog);
 

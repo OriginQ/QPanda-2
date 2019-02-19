@@ -2,7 +2,7 @@ QWhile
 ==============
 ----
 
-量子程序循环控制操作，输入参数为条件判断表达式，功能是执行while循环操作。QWhile的语法规则参考量子程序转化QRunes模块中的 :ref:`QRunes介绍` 部分。
+量子程序循环控制操作，输入参数为条件判断表达式，功能是执行while循环操作。
 
 .. _api_introduction:
 
@@ -12,35 +12,55 @@ QWhile
 
 .. cpp:class:: QWhileProg
 
-    该类用于表述一个QWhile节点的各项信息，同时包含多种可调用的接口。
+     该类用于表述一个QWhile节点的各项信息，同时包含多种可调用的接口。
 
-    .. cpp:function:: NodeType getNodeType()
+     .. cpp:function:: QWhileProg(ClassicalCondition &, QNode *)
 
-       **功能**
-            获取节点类型
-       **参数**
-            无
-       **返回值**
-            节点类型
+          **功能**
+               构造函数
+          **参数**
+               - ClassicalCondition 量子表达式
+               - QNode 正确分支
 
-    .. cpp:function:: QNode* getTrueBranch()
+     .. cpp:function:: NodeType getNodeType()
 
-       **功能**
-            获取正确分支节点
-       **参数**
-            无
-       **返回值**
-            正确分支节点
+          **功能**
+               获取节点类型
+          **参数**
+               无
+          **返回值**
+               节点类型
 
-    .. cpp:function:: ClassicalCondition getCExpr()
+     .. cpp:function:: QNode* getTrueBranch()
 
-       **功能**
-            获取逻辑判断表达式
-       **参数**
-            无
-       **返回值**
-            量子表达式
+          **功能**
+               获取正确分支节点
+          **参数**
+               无
+          **返回值**
+               正确分支节点
 
+     .. cpp:function:: ClassicalCondition getCExpr()
+
+          **功能**
+               获取逻辑判断表达式
+          **参数**
+               无
+          **返回值**
+               量子表达式
+
+C 接口创建QWhile的方式
+```````````````````````````
+  
+.. cpp:function:: QWhileProg CreateWhileProg(ClassicalCondition, QNode*)
+
+     **功能**
+          创建QWhile量子程序
+     **参数**
+          - ClassicalCondition 条件判断表达式
+          - QNode 正确分支
+     **返回值**
+          QWhileProg
 
 实例
 >>>>>>>>>>

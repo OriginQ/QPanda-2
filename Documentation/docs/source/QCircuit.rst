@@ -29,6 +29,13 @@
     
     QCircuit类是一个仅装载量子逻辑门的容器类型。
 
+    .. cpp:function:: QCircuit()
+
+        **功能**
+            构造函数，构造一个空的量子线路
+        **参数**
+            无
+
     .. cpp:function:: QCircuit & operator << (T)
 
         **功能**
@@ -96,6 +103,18 @@
 
     __ ./QGate.html#api-introduction
 
+C 接口创建量子线路的方式
+`````````````````````````
+
+.. cpp:function:: QCircuit CreateEmptyCircuit()
+
+    **功能**
+        创建一个空的量子线路。
+    **参数**
+        无
+    **返回值**
+        量子线路
+
 
 .. note:: QCircuit类不能插入QMeasure类型。所以QCircuit类是一个QGate对象和另一些QCircuit对象的集合。
 
@@ -113,17 +132,20 @@
             init();
             auto qvec = qAllocMany(4);
             auto cbits = cAllocMany(4);
-            QCircuit circuit;
+            // QCircuit circuit;
+            auto circuit = CreateEmptyCircuit(); // 与 QCircuit circuit 功能相同
+
             circuit << H(qvec[0]) << CNOT(qvec[0], qvec[1])
                     << CNOT(qvec[1], qvec[2]) << CNOT(qvec[2], qvec[3]);
-
             circuit.setDagger(true);
             std::vector<Qubit *> qubits = {qvec[0], qvec[3]};
+
             circuit.setControl(qubits);
             auto prog = CreateEmptyQProg();
             prog << H(qvec[3]) << circuit << Measure(qvec[3], cbits[3]);
             load(prog);
             run();
+
             auto result = getResultMap();
             for (auto &val : result)
             {

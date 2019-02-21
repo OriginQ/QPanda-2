@@ -62,21 +62,22 @@ cmake链接QPanda-2库的方法
     - QPanda2.0 ``QPanda-2`` 库
 
 
-入门指南
+第一个量子程序
 --------------
 
 | QPanda-2构建完成后，我们就可以开始量子编程之旅了，首先先实现一个小的示例程序。
 
-.. code-block:: c
+.. code-block:: cpp
 
     #include "QPanda.h"
-    USING_QPANDA
+    using namespace QPanda;
+    // 引用头文件，并且使用名字空间
 
-    int main(void)
+    int main()
     {
-        init();
+        init();             //QPanda环境初始化
+        auto qvec = qAllocMany(2);
         auto c = cAlloc();
-        auto qvec = qAllocMany(5);
         c.setValue(0);
         QProg while_prog;
         while_prog<<H(qvec[c])<<(c=c+1);

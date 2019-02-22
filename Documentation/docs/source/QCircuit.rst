@@ -16,82 +16,107 @@
 在目前的量子计算理论研究中，各种量子算法常用量子线路表示，比如下方列出的量子算法中的 ``HHL算法`` 量子线路图。
 
 
-.. image:: imags/hhl.bmp
+.. image:: images/hhl.bmp
    :align: center   
-   
-量子线路类及常用接口介绍
->>>>>>>>>>>>>>>>>>>>>>
+
+.. _api_introduction:
+
+接口介绍
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ----
 
 .. cpp:class:: QCircuit
+    
+    QCircuit类是一个仅装载量子逻辑门的容器类型。
 
-    该类用于表述一个线路节点的各项信息，同时包含多种可调用的接口。
+    .. cpp:function:: QCircuit()
 
-    .. cpp:function:: QCircuit::getNodeType()
+        **功能**
+            构造函数，构造一个空的量子线路
+        **参数**
+            无
 
-       **功能**
-        - 获取节点类型
+    .. cpp:function:: QCircuit & operator << (T)
 
-       **参数**
-        - 无
+        **功能**
+            向量子线路中添加节点
+        **参数**
+            - T QCircuit__ 和 QGate__ 类型
+        **返回值**
+            量子线路
 
-       **返回值**
-        - 节点类型
+    .. cpp:function:: NodeType getNodeType()
 
-    .. cpp:function:: QCircuit::setDagger(bool)
+        **功能**
+            获取节点类型
+        **参数**
+            无
+        **返回值**
+            节点类型
 
-       **功能**
-        - 设置量子线路转置共轭形式
+    .. cpp:function:: void setDagger(bool)
 
-       **参数**
-        - bool
+        **功能**
+            设置量子线路转置共轭形式
+        **参数**
+            - bool 是否dagger
+        **返回值**
+            无
 
-       **返回值**
-        - 无
+    .. cpp:function:: void setControl(std::vector<Qubit*>&)
 
-    .. cpp:function:: QCircuit::setControl(std::vector<Qubit*>&)
+        **功能**
+            设置量子线路受控状态
+        **参数**
+            - std::vector<Qubit *> 设置作为控制位的一组量子比特
+        **返回值**
+            无
 
-       **功能**
-        - 设置量子线路受控状态
+    .. cpp:function:: bool isDagger()
 
-       **参数**
-        - std::vector<Qubit *>
+        **功能**
+            判断是否处于转置共轭形式
+        **参数**
+            无
+        **返回值**
+            是否dagger
 
-       **返回值**
-        - 无
+    .. cpp:function:: QCircuit dagger()
 
-    .. cpp:function:: QCircuit::isDagger()
+        **功能**
+            返回一个当前量子线路节点转置共轭形式的副本
+        **参数**
+            无
+        **返回值**
+            量子线路
 
-       **功能**
-        - 判断是否处于转置共轭形式
+    .. cpp:function:: QCircuit control(std::vector<Qubit*>&)
 
-       **参数**
-        - 无
+        **功能**
+            返回一个当前量子线路节点施加控制操作的副本
+        **参数**
+            - std::vector<Qubit *> 设置作为控制位的一组量子比特
+        **返回值**
+            量子线路
 
-       **返回值**
-        - QuantumGate*
+    __ ./QCircuit.html#api-introduction
 
-    .. cpp:function:: QCircuit::dagger()
+    __ ./QGate.html#api-introduction
 
-       **功能**
-        - 返回一个当前量子线路节点转置共轭形式的新节点
+C 接口创建量子线路的方式
+`````````````````````````
 
-       **参数**
-        - 无
+.. cpp:function:: QCircuit CreateEmptyCircuit()
 
-       **返回值**
-        - QCircuit
+    **功能**
+        创建一个空的量子线路。
+    **参数**
+        无
+    **返回值**
+        量子线路
 
-    .. cpp:function:: QCircuit::control(std::vector<Qubit*>&)
 
-       **功能**
-        - 返回一个当前量子线路节点施加控制操作的新节点
-
-       **参数**
-        - std::vector<Qubit *>
-
-       **返回值**
-        - QCircuit
+.. note:: QCircuit类不能插入QMeasure类型。所以QCircuit类是一个QGate对象和另一些QCircuit对象的集合。
 
 实例
 >>>>>>>>>>>
@@ -107,17 +132,20 @@
             init();
             auto qvec = qAllocMany(4);
             auto cbits = cAllocMany(4);
-            QCircuit circuit;
+            // QCircuit circuit;
+            auto circuit = CreateEmptyCircuit(); // 与 QCircuit circuit 功能相同
+
             circuit << H(qvec[0]) << CNOT(qvec[0], qvec[1])
                     << CNOT(qvec[1], qvec[2]) << CNOT(qvec[2], qvec[3]);
-
             circuit.setDagger(true);
             std::vector<Qubit *> qubits = {qvec[0], qvec[3]};
+
             circuit.setControl(qubits);
             auto prog = CreateEmptyQProg();
             prog << H(qvec[3]) << circuit << Measure(qvec[3], cbits[3]);
             load(prog);
             run();
+
             auto result = getResultMap();
             for (auto &val : result)
             {
@@ -127,4 +155,3 @@
             finalize();
             return 0;
         }
-

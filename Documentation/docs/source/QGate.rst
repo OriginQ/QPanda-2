@@ -8,182 +8,138 @@
 量子逻辑门由酉矩阵表示。最常见的量子门在一个或两个量子位的空间上工作，就像常见的经典逻辑门在一个或两个位上操作一样。
 
 常见量子逻辑门矩阵形式
->>>>>>>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>>>>>>>>>>>
 ----
 
-.. image:: imags/H.svg
-   :align: left
-   :width: 65
+.. |H| image:: images/H.svg
+   :width: 70px
+   :height: 70px
 
-``Hadamard`` ：
+.. |X| image:: images/X.svg
+   :width: 70px
+   :height: 70px
 
-.. math:: \begin{bmatrix} 1/\sqrt {2} & 1/\sqrt {2} \\ 1/\sqrt {2} & -1/\sqrt {2} \end{bmatrix}\quad
+.. |Y| image:: images/Y.svg
+   :width: 70px
+   :height: 70px
+   
+.. |Z| image:: images/Z.svg
+   :width: 70px
+   :height: 70px
 
-.. image:: imags/X.svg
-   :align: left
-   :width: 65
+.. |NOT| image:: images/not.svg
+   :width: 70px
+   :height: 70px
 
-``Pauli-X`` ：
+.. |RX| image:: images/Xθ.svg
+   :width: 70px
+   :height: 70px
 
-.. math:: \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}\quad
+.. |RY| image:: images/Yθ.svg
+   :width: 70px
+   :height: 70px
 
-.. image:: imags/Y.svg
-   :align: left
-   :width: 65
+.. |RZ| image:: images/Zθ.svg
+   :width: 70px
+   :height: 70px
 
-``Pauli-Y`` ：
+.. |CNOT| image:: images/+.svg
+   :width: 70px
+   :height: 70px
 
-.. math:: \begin{bmatrix} 0 & -i \\ i & 0 \end{bmatrix}\quad
+.. |CR| image:: images/CR.svg
+   :width: 70px
+   :height: 70px
 
-.. image:: imags/Z.svg
-   :align: left
-   :width: 65
+.. |iSWAP| image:: images/切换.svg
+   :width: 70px
+   :height: 70px
 
-``Pauli-Z`` ：
+.. |Toffoli| image:: images/Toff.svg
+   :width: 70px
+   :height: 70px
 
-.. math:: \begin{bmatrix} 1 & 0 \\ 0 & -1 \end{bmatrix}\quad
+================================================================================================ =======================         ============================================================================================================================
+|H|                                                                                                 ``Hadamard``                        .. math:: \begin{bmatrix} 1/\sqrt {2} & 1/\sqrt {2} \\ 1/\sqrt {2} & -1/\sqrt {2} \end{bmatrix}\quad
+|X|                                                                                                 ``Pauli-X``                         .. math:: \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}\quad
+|Y|                                                                                                 ``Pauli-Y``                         .. math:: \begin{bmatrix} 0 & -i \\ i & 0 \end{bmatrix}\quad
+|Z|                                                                                                 ``Pauli-Z``                         .. math:: \begin{bmatrix} 1 & 0 \\ 0 & -1 \end{bmatrix}\quad
+|NOT|                                                                                               ``NOT``                             .. math:: \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}\quad
+|RX|                                                                                                ``RX``                              .. math:: \begin{bmatrix} \cos(θ/2) & -1i×\sin(θ/2) \\ -1i×\sin(θ/2) & \cos(θ/2) \end{bmatrix}\quad
+|RY|                                                                                                ``RY``                              .. math:: \begin{bmatrix} \cos(θ/2) & \sin(θ/2) \\ \sin(θ/2) & \cos(θ/2) \end{bmatrix}\quad
+|RZ|                                                                                                ``RZ``                              .. math:: \begin{bmatrix} \exp(-iθ/2) & 0 \\ 0 & \exp(iθ/2) \end{bmatrix}\quad
+|CNOT|                                                                                              ``CNOT``                            .. math:: \begin{bmatrix} 1 & 0 & 0 & 0  \\ 0 & 1 & 0 & 0 \\ 0 & 0 & 0 & 1 \\ 0 & 0 & 1 & 0 \end{bmatrix}\quad
+|CR|                                                                                                ``CR``                              .. math:: \begin{bmatrix} 1 & 0 & 0 & 0  \\ 0 & 1 & 0 & 0 \\ 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & \exp(iθ) \end{bmatrix}\quad
+|iSWAP|                                                                                             ``iSWAP``                           .. math:: \begin{bmatrix} 1 & 0 & 0 & 0  \\ 0 & 0 & -i & 0 \\ 0 & -i & 0 & 0 \\ 0 & 0 & 0 & 1 \end{bmatrix}\quad
+|Toffoli|                                                                                           ``Toffoli``                         .. math:: \begin{bmatrix} 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\ 0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 \\ 0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 \\ 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 \\ 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0  \\ 0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 \\ 0 & 0 & 0 & 0 & 0 & 0 & 0 & 1  \\ 0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 \\ \end{bmatrix}\quad
+================================================================================================ =======================         ============================================================================================================================
 
-.. image:: imags/not.svg
-   :align: left
-   :width: 65
+.. _api_introduction:
 
-``NOT`` ：
-
-.. math:: \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}\quad
-
-.. image:: imags/Xθ.svg
-   :align: left
-   :width: 65
-
-``RX`` ：
-
-.. math:: \begin{bmatrix} \cos(θ/2) & -1i×\sin(θ/2) \\ -1i×\sin(θ/2) & \cos(θ/2) \end{bmatrix}\quad
-
-.. image:: imags/Yθ.svg
-   :align: left
-   :width: 65
-
-``RY`` ：
-
-.. math:: \begin{bmatrix} \cos(θ/2) & \sin(θ/2) \\ \sin(θ/2) & \cos(θ/2) \end{bmatrix}\quad
-
-.. image:: imags/Zθ.svg
-   :align: left
-   :width: 65
-
-``RZ`` ：
-
-.. math:: \begin{bmatrix} \exp(-iθ/2) & 0 \\ 0 & \exp(iθ/2) \end{bmatrix}\quad
-
-.. image:: imags/+.svg
-   :align: left
-   :width: 65
-
-``CNOT`` ：
-
-.. math:: \begin{bmatrix} 1 & 0 & 0 & 0  \\ 0 & 1 & 0 & 0 \\ 0 & 0 & 0 & 1 \\ 0 & 0 & 1 & 0 \end{bmatrix}\quad
-
-.. image:: imags/CR.svg
-   :align: left
-   :width: 65
-
-``CR`` ：
-
-.. math:: \begin{bmatrix} 1 & 0 & 0 & 0  \\ 0 & 1 & 0 & 0 \\ 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & \exp(iθ) \end{bmatrix}\quad
-
-.. image:: imags/切换.svg
-   :align: left
-   :width: 65
-
-``iSWAP`` ：
-
-.. math:: \begin{bmatrix} 1 & 0 & 0 & 0  \\ 0 & 0 & -i & 0 \\ 0 & -i & 0 & 0 \\ 0 & 0 & 0 & 1 \end{bmatrix}\quad
-
-.. image:: imags/Toff.svg
-   :align: left
-   :width: 65
-
-``Toffoli`` ：
-
-.. math:: \begin{bmatrix} 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0  \\ 0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 \\ 
-                          0 & 0 & 1 & 0 & 0 & 0 & 0 & 0  \\ 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 \\ 
-                          0 & 0 & 0 & 0 & 1 & 0 & 0 & 0  \\ 0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 \\ 
-                          0 & 0 & 0 & 0 & 0 & 0 & 0 & 1  \\ 0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 \\ \end{bmatrix}\quad
-
-
-量子逻辑门类及常用接口介绍
->>>>>>>>>>>>>>>>>>>>>>>>
+接口介绍
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ----
 
 .. cpp:class:: QGate
 
     该类用于表述一个量子逻辑门节点的各项信息，同时包含多种可调用的接口。
 
-    .. cpp:function:: QGate::getNodeType()
+    .. cpp:function:: NodeType getNodeType()
 
        **功能**
-        - 获取量子逻辑门节点类型
-
+            获取量子逻辑门节点类型
        **参数**
-        - 无
-
+            无
        **返回值**
-        - 节点类型
+            节点类型
 
-    .. cpp:function:: QGate::setDagger(bool)
+    .. cpp:function:: void setDagger(bool)
 
        **功能**
-        - 设置量子逻辑门转置共轭形式
-
+            设置量子逻辑门转置共轭形式
        **参数**
-        - bool
-
+            - bool 是否dagger
        **返回值**
-        - bool
+            无
 
-    .. cpp:function:: QGate::setControl(std::vector<Qubit*>&)
+    .. cpp:function:: void setControl(std::vector<Qubit*>&)
 
        **功能**
-        - 设置量子逻辑门受控状态
-
+            设置量子逻辑门受控状态
        **参数**
-        - std::vector<Qubit *>
-
+            - std::vector<Qubit *> 设置作为控制位的一组量子比特
        **返回值**
-        - bool
+            无
 
-    .. cpp:function:: QGate::getQGate()
+    .. cpp:function:: QuantumGate *getQGate()
 
        **功能**
-        - 获取量子逻辑门参数
-
+            获取量子逻辑门参数
        **参数**
-        - 无
-
+            无
        **返回值**
-        - QuantumGate*
+            量子逻辑门参数
 
-    .. cpp:function:: QGate::dagger()
+    .. cpp:function:: QGate dagger()
 
        **功能**
-        - 返回一个当前节点量子逻辑门转置共轭形式的新节点
-
+            返回一个当前节点量子逻辑门转置共轭形式的副本
        **参数**
-        - 无
-
+            无
        **返回值**
-        - QGate
+            量子逻辑门
 
-    .. cpp:function:: QGate::control(std::vector<Qubit*>&)
+    .. cpp:function:: QGate control(std::vector<Qubit*>&)
 
        **功能**
-        - 返回一个当前节点量子逻辑门施加控制操作的新节点
-
+            返回一个当前节点量子逻辑门施加控制操作的副本
        **参数**
-        - 无
-
+            - std::vector<Qubit*>& 设置作为控制位的一组量子比特
        **返回值**
-        - QGate
+            量子逻辑门
+
+.. note:: QGate构建时必须接受参数，否则是没有意义的，参数一般是Qubit类型和浮点数类型，浮点数类型一般象征着可变的角度。
+
 
 实例
 >>>>>>>>>>
@@ -208,7 +164,7 @@
             gate2.setControl(qubits); // 设置逻辑门的受控量子比特
             auto gate3 = CNOT(q[2], q[3]);
 
-            auto prog = CreateEmptyQProg();
+            auto prog = CreateEmpxyQProg();
             prog << gate0 << gate1 << gate2 << gate3;
             auto result = probRunTupleList(prog, q);
             for(auto & aiter : result)

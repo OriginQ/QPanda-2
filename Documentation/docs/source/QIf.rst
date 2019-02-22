@@ -1,72 +1,100 @@
-QIF
-====
+QIf
+==========
 ----
 
-QIF表示量子程序条件判断操作，输入参数为条件判断表达式，功能是执行条件判断
+QIf表示量子程序条件判断操作，输入参数为条件判断表达式，功能是执行条件判断
 
-QIF语法规则
->>>>>>>>>>>>
-----
+.. _api_introduction:
 
-QIF控制语句，起始标识是QIF,终止标识是 ENDQIF，分支分割标识为ELSE。
-QIF 带有输入参数条件判断表达式 。QIF与ELSE标识之间为QIF的正确分支，ELSE与ENDQIF标识之间为QIF的错误分支。
-QIF中可嵌套QIF，也可包含QWHILE
-
-QIF类
->>>>>>
+接口介绍
+>>>>>>>>>>>
 ----
 
 .. cpp:class:: QIfProg
 
-    该类用于表述一个QIf节点的各项信息，同时包含多种可调用的接口。
+     QIfProg是一种和量子控制流相关的节点。QIf接受一个储存在测控设备中的变量，或者由这些变量构成的表达式，通过判断它的值为True/False，选择程序接下来的执行分支。
 
-    .. cpp:function:: QIfProg::getNodeType()
+     .. cpp:function:: QIfProg(ClassicalCondition& classical_condition, QNode *true_node, QNode *false_node)
 
-       **功能**
-        - 获取节点类型
+          **功能**
+               构造函数
+          **参数**
+               - classical_condition 量子表达式
+               - true_node 正确分支
+               - false_node 错误分支
 
-       **参数**
-        - 无
+     .. cpp:function:: QIfProg(ClassicalCondition& classical_condition, QNode *true_node)
 
-       **返回值**
-        - 节点类型
+          **功能**
+               构造函数
+          **参数**
+               - classical_condition 量子表达式
+               - true_node 正确分支
 
-    .. cpp:function:: QIfProg::getTrueBranch()
+     .. cpp:function:: NodeType getNodeType()
 
-       **功能**
-        - 获取正确分支节点
+          **功能**
+               获取节点类型
+          **参数**
+               无
+          **返回值**
+               节点类型
 
-       **参数**
-        - 无
+     .. cpp:function::  QNode* getTrueBranch()
 
-       **返回值**
-        - QNode*
+          **功能**
+               获取正确分支节点
+          **参数**
+               无
+          **返回值**
+               正确分支节点
 
-    .. cpp:function:: QIfProg::getFalseBranch()
+     .. cpp:function:: QNode* getFalseBranch()
 
-       **功能**
-        - 获取错误分支节点
+          **功能**
+               获取错误分支节点
+          **参数**
+               无
+          **返回值**
+               错误分支节点
 
-       **参数**
-        - 无
+     .. cpp:function:: ClassicalCondition getCExpr()
 
-       **返回值**
-        - QNode*
+          **功能**
+               获取逻辑判断表达式
+          **参数**
+               无
+          **返回值**
+               量子表达式
 
-    .. cpp:function:: QIfProg::getCExpr()
+.. note:: QIfProg和普通的If， While截然不同的原因是这个判断过程仅仅在测控设备中执行，并且要求了极高的实时性。因此，所有的True和False分支都会被输入到QlfProg里面去执行。
+  
+C 函数接口构造QIf的方式
+```````````````````````````````````
 
-       **功能**
-        - 获取逻辑判断表达式
+.. cpp:function:: QIfProg CreateIfProg(ClassicalCondition classical_condition,QNode *true_node,QNode *false_node)
 
-       **参数**
-        - 无
+     **功能**
+          创建QIf量子程序
+     **参数**
+          - classical_condition 条件判断表达式
+          - true_node 正确分支
+          - false_node 错误分支
+     **返回值**
+          QIfProg
 
-       **返回值**
-        - ClassicalCondition
+.. cpp:function:: QIfProg CreateIfProg(ClassicalCondition classical_condition,QNode *true_node)
 
+     **功能**
+          创建QIf量子程序
+     **参数**
+          - classical_condition 条件判断表达式
+          - true_node 正确分支
+     **返回值**
+          QIfProg
 
 实例
->>>>>>
+>>>>>>>>>
 ----
 
     .. code-block:: c
@@ -83,11 +111,13 @@ QIF类
             auto cvec = cAllocMany(2);
             cvec[1].setValue(0);
             cvec[0].setValue(0);
+
             QProg branch_true;
             QProg branch_false;
             branch_true << (cvec[1]=cvec[1]+1) << H(qvec[cvec[0]]) << (cvec[0]=cvec[0]+1);
             branch_false << H(qvec[0]) << CNOT(qvec[0],qvec[1]) << CNOT(qvec[1],qvec[2])
                         << CNOT(qvec[2],qvec[3]) << CNOT(qvec[3],qvec[4]);
+
             auto qwhile = CreateIfProg(cvec[1]>5,&branch_true, &branch_false);
             prog<<qwhile;
             auto result = probRunTupleList(prog, qvec);

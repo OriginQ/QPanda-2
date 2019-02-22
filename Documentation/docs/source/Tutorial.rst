@@ -105,6 +105,6 @@ cmake链接QPanda-2库的方法
     - CreateWhileProg 创建一个QWhileProg
     - load 加载量子程序
     - run 运行量子程序
-    - getProbDict PMeasure的方式获取量子程序运行结果
+    - getProbDict 概率测量的方式获取量子程序运行结果
     - finalize 释放资源
-    - 上面的示例程序主要是对从量子虚拟机申请的5个量子比特做Hadamard门操作，然后通过PMeasure的方式获取计算结果并输出。该示例程序体现了QPanda-2的部分功能特征，我们会在以下章节中详细介绍QPanda-2的使用。
+    - 上面的示例程序主要是对从量子虚拟机申请的5个量子比特做Hadamard门操作，然后通过概率测量的方式获取计算结果并输出。该示例程序体现了QPanda-2的部分功能特征，我们会在以下章节中详细介绍QPanda-2的使用。

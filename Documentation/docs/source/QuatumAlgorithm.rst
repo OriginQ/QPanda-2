@@ -4,6 +4,6 @@
 .. toctree::
    :maxdepth: 3
    
-   应用算法
-   算法组件
+   ApplicationAlgorithm
+   AlgorithmComponents
 

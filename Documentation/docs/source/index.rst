@@ -93,7 +93,7 @@ QPanda提供了标准化的量子程序（Quantum Program）架构。架构者�
     QProgToQuil
 
 .. toctree::
-    :caption: 量子算法
+    :caption: 应用算法
     :maxdepth: 2
 
     QAOA
@@ -114,7 +114,7 @@ QPanda提供了标准化的量子程序（Quantum Program）架构。架构者�
     Variable
     VarOperator
     Expression
-    可变量子逻辑门
-    可变量子线路
+    VariableQGate
+    VariableQCircuit
     GradientOptimizer
     VQNetExample

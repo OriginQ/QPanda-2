@@ -53,13 +53,15 @@ cmake链接QPanda-2库的方法
 
 .. code-block:: c
 
-    add_executable(QvmTest main.cpp)
+    add_executable(QvmTest test.cpp)
     target_link_libraries(QvmTest QPanda2.0)
 
 .. note:: 
-    - QvmTest 生成的可执行程序
-    - main.cpp 调用 ``QPanda2.0`` c++文件
-    - QPanda2.0 ``QPanda-2`` 库
+    - *add_executable* 添加可执行程序
+    - *QvmTest*  可执行程序
+    - *test.cpp*  测试cpp
+    - *target_link_libraries* 链接库
+    - *QPanda2.0*  QPanda2库
 
 
 第一个量子程序
@@ -99,13 +101,13 @@ cmake链接QPanda-2库的方法
     }
 
 .. note::
-    - init 初始化
-    - cAlloc 申请一个量子表达式
-    - qAllocMany 申请多个量子比特
-    - setValue 设置量子表达式的值
-    - CreateWhileProg 创建一个QWhileProg
-    - load 加载量子程序
-    - run 运行量子程序
-    - getProbDict 概率测量的方式获取量子程序运行结果
-    - finalize 释放资源
+    - *init* 初始化
+    - *cAlloc* 申请一个量子表达式
+    - *qAllocMany* 申请多个量子比特
+    - *setValue* 设置量子表达式的值
+    - *CreateWhileProg* 创建一个QWhileProg
+    - *load* 加载量子程序
+    - *run* 运行量子程序
+    - *getProbDict* 概率测量的方式获取量子程序运行结果
+    - *finalize* 释放资源
     - 上面的示例程序主要是对从量子虚拟机申请的5个量子比特做Hadamard门操作，然后通过概率测量的方式获取计算结果并输出。该示例程序体现了QPanda-2的部分功能特征，我们会在以下章节中详细介绍QPanda-2的使用。

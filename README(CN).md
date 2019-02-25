@@ -8,5 +8,5 @@ QPanda是一个基于量子编程的开发环境，可以被应用于各类量�
 QPanda由本源量子软件团队开发和维护。自2018年起，QPanda依据Apache 2.0 License发布于GitHub。
 
 ## 文档
-文档地址 https://qpanda-2.readthedocs.io/zh_CN/master/
+文档地址 https://qpanda-2.readthedocs.io/zh_CN/latest/
 

@@ -15,8 +15,8 @@ Classes for tranform gate type enum and std::string
 #include <iostream>
 #include <map>
 #include <string>
-#include "QuantumCircuit/QGlobalVariable.h"
-#include "QPandaNamespace.h"
+#include "Core/QuantumCircuit/QGlobalVariable.h"
+#include "Core/Utilities/QPandaNamespace.h"
 
 QPANDA_BEGIN
 

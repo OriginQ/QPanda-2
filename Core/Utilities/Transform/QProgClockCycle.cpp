@@ -19,7 +19,7 @@ size_t QProgClockCycle::countQProgClockCycle(AbstractQuantumProgram *prog)
     size_t clock_cycle = 0;
     for (auto iter = prog->getFirstNodeIter(); iter != prog->getEndNodeIter(); iter++)
     {
-        QNode * node = *iter;
+        QNode * node = (*iter).get();
         clock_cycle += countQNodeClockCycle(node);
     }
 
@@ -37,7 +37,7 @@ size_t QProgClockCycle::countQCircuitClockCycle(AbstractQuantumCircuit *circuit)
     size_t clock_cycle = 0;
     for (auto iter = circuit->getFirstNodeIter(); iter != circuit->getEndNodeIter(); iter++)
     {
-        QNode * node = *iter;
+        QNode * node = (*iter).get();
         clock_cycle += countQNodeClockCycle(node);
     }
 

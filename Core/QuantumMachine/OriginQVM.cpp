@@ -1,4 +1,4 @@
-/*
+ /*
 Copyright (c) 2017-2018 Origin Quantum Computing. All Right Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,12 +17,11 @@ limitations under the License.
 #include "OriginQuantumMachine.h"
 #include "Factory.h"
 #include "QuantumMachineFactory.h"
-#include "Utilities/Transform/QCircuitParse.h"
 #include "Utilities/ConfigMap.h"
 #include "config.h"
-#include "VirtualQuantumProcessor/GPUQuantumGates.h"
-#include "VirtualQuantumProcessor/CPUQuantumGates.h"
-#include "VirtualQuantumProcessor/CPUQuantumGatesSingleThread.h"
+#include "VirtualQuantumProcessor/GPUImplQPU.h"
+#include "VirtualQuantumProcessor/CPUImplQPU.h"
+#include "VirtualQuantumProcessor/CPUImplQPUSingleThread.h"
 
 USING_QPANDA
 using namespace std;
@@ -34,9 +33,6 @@ bool OriginQVM::init(QuantumMachine_type type)
     _CMem = 
         CMemFactory::GetFactoryInstance().
         GetInstanceFromSize(_Config.maxCMem);
-    QProg  temp = CreateEmptyQProg();
-    _QProgram = temp.getPosition();
-    QNodeMap::getInstance().addNodeRefer(_QProgram);
     _QResult =
         QResultFactory::GetFactoryInstance().
         GetEmptyQResult();
@@ -47,13 +43,13 @@ bool OriginQVM::init(QuantumMachine_type type)
     bool is_success = false;
     if (CPU == type)
     {
-        _pGates = new CPUQuantumGates();
+        _pGates = new CPUImplQPU();
         is_success = true;
     }
     else if (GPU == type)
     {
     #ifdef USE_CUDA
-        _pGates = new GPUQuantumGates();
+        _pGates = new GPUImplQPU();
         is_success = true;
     #else
         _pGates = nullptr;
@@ -62,7 +58,7 @@ bool OriginQVM::init(QuantumMachine_type type)
     }
     else if (CPU_SINGLE_THREAD == type)
     {
-        _pGates = new CPUQuantumGatesSingleThread();
+        _pGates = new CPUImplQPUSingleThread();
         is_success = true;
     }
     else
@@ -199,7 +195,6 @@ void OriginQVM::Free_Qubits(QVec &vQubit)
     }
 }
 
-
 void OriginQVM::Free_CBit(ClassicalCondition & class_cond)
 {
     auto cbit = class_cond.getExprPtr()->getCBit();
@@ -225,73 +220,23 @@ void OriginQVM::Free_CBits(vector<ClassicalCondition> & vCBit)
     }
 }
 
-void OriginQVM::load(QProg &loadProgram)
+void OriginQVM::run(QProg & node)
 {
-    QNodeAgency temp(&loadProgram, nullptr, nullptr);
-    if (!temp.verify())
-    {
-        QCERR("Bad program");
-        throw invalid_argument("Bad program");
-    }
-    QNodeMap::getInstance().deleteNode(_QProgram);
-    _QProgram = loadProgram.getPosition();
-    QNodeMap::getInstance().addNodeRefer(_QProgram);
-}
-
-void OriginQVM::append(QProg & prog)
-{
-    QNodeAgency tempAgency(&prog, nullptr, nullptr);
-    if (!tempAgency.verify())
-    {
-        QCERR("Bad program");
-        throw invalid_argument("Bad program");
-    }
-    auto aiter = QNodeMap::getInstance().getNode(_QProgram);
-    if (nullptr == aiter)
-    {
-        QCERR("Bad program");
-        throw invalid_argument("Bad program");
-    }
-
-    AbstractQuantumProgram * temp = dynamic_cast<AbstractQuantumProgram *>(aiter);
-    temp->pushBackNode(&prog);
-}
-
-void OriginQVM::run()
-{
-    if (_QProgram < 0)
-    {
-        QCERR("Bad program");
-        throw invalid_argument("Bad program");
-    }
     
-    auto aiter =QNodeMap::getInstance().getNode(_QProgram);
-    if (nullptr == aiter)
-    {
-        QCERR("Bad program");
-        throw invalid_argument("Bad program");
-    }
-
-
-    QProg * pNode = (QProg *)aiter;
     _pParam = new QuantumGateParam();
 
-    _pParam->mQuantumBitNumber = _Qubit_Pool->getMaxQubit(); 
+    _pParam->m_qbit_number = _Qubit_Pool->getMaxQubit(); 
 
     _pGates->initState(_pParam);
-    QNodeAgency temp(pNode, _pParam, _pGates);
-    if (temp.executeAction())
+
+    node.getImplementationPtr()->execute(_pGates, _pParam);
+
+    /* aiter has been used in line 120 */
+    for (auto aiter : _pParam->m_return_value)
     {
-        /* aiter has been used in line 120 */
-        for (auto aiter : _pParam->mReturnValue)
-        {
-            _QResult->append(aiter);
-        }
+        _QResult->append(aiter);
     }
-    else
-    {
-        cout << "Warning: there is nothing in QProgram" << endl;
-    }
+
     _pGates->endGate(_pParam,nullptr);
     delete _pParam;
     _pParam = nullptr;
@@ -310,7 +255,8 @@ QResult * OriginQVM::getResult()
 
 void OriginQVM::finalize()
 {
-    QNodeMap::getInstance().deleteNode(_QProgram);
+
+    _QProgram.reset();
     delete _Qubit_Pool;
     delete _CMem;
     delete _QResult;
@@ -385,15 +331,7 @@ vector<double> OriginQVM::PMeasure_no_index(QVec qubit_vector)
 
 map<string, bool> OriginQVM::directlyRun(QProg & qProg)
 {
-    if (qProg.getFirstNodeIter() != nullptr)
-    {
-        load(qProg);
-        run();
-    }
-    else
-    {
-        run();
-    }
+    run(qProg);
     return _QResult->getResultMap();
 }
 
@@ -493,34 +431,45 @@ map<string, double> OriginQVM::getProbDict(QVec vQubit, int selectMax)
 vector<pair<size_t, double>> OriginQVM::
 probRunTupleList(QProg & qProg, QVec vQubit, int selectMax)
 {
-    load(qProg);
-    run();
+    run(qProg);
     return getProbTupleList(vQubit, selectMax);
 }
 
 vector<double> OriginQVM::
 probRunList(QProg & qProg, QVec vQubit,int selectMax)
 {
-    load(qProg);
-    run();
+    run(qProg);
     return getProbList(vQubit, selectMax);
 }
 map<string, double> OriginQVM::
 probRunDict(QProg & qProg, QVec vQubit, int selectMax)
 {
-    load(qProg);
-    run();
+    run(qProg);
     return getProbDict(vQubit,  selectMax);
 }
 
 map<string, size_t> OriginQVM::
-runWithConfiguration(QProg & qProg, vector<ClassicalCondition>& vCBit,  int shots)
+runWithConfiguration(QProg & qProg, vector<ClassicalCondition>& vCBit, rapidjson::Document & param)
 {
-    load(qProg);
     map<string, size_t> mResult;
+    if (!param.HasMember("shots"))
+    {
+        QCERR("OriginCollection don't  have shots");
+        throw invalid_argument("OriginCollection don't  have shots");
+    }
+    size_t shots = 0;
+    if (param["shots"].IsString())
+    {
+        shots = (size_t)atoll(param["shots"].GetString());
+    }
+    else
+    {
+        shots = param["shots"].GetUint64();
+    }
+
     for (size_t i = 0; i < shots; i++)
     {
-        run();
+        run(qProg);
         string sResult = ResultToBinaryString(vCBit);
         if (mResult.find(sResult) == mResult.end())
         {
@@ -629,6 +578,13 @@ map<int, size_t> OriginQVM::getGateTimeMap() const
     return map<int, size_t>();
 }
 
-
+QStat OriginQVM::getQStat()
+{
+    if (nullptr == _pGates)
+    {
+        QCERR("_pGates is null");
+        throw runtime_error("_pGates is null");
+    }
+}
 
 

@@ -14,22 +14,21 @@
 #include "rapidjson/writer.h"
 #include "rapidjson/istreamwrapper.h"
 #include "rapidjson/ostreamwrapper.h"
-#include "bplus-tree/include/bplus.h"
+
 
 QPANDA_BEGIN
 
 using Value = rapidjson::Value;
+
 /**
  * @brief Origin Collection
  * A relatively free data collection class for saving data
  * @tparam number The num of key 
  */
-template<size_t number>
 class OriginCollection
 {
 private:
     std::vector<std::string> m_key_vector; ///< key vector
-    size_t m_number;                       ///< The num of key 
     rapidjson::Document m_doc;             ///< json doc
     std::string m_file_path;
     std::string m_db_dir = "QPanda_DB";
@@ -64,9 +63,6 @@ private:
         return aiter;
     }
 
-
-public:
-
     /**
     * @brief add value
     * Set the value corresponding to the key
@@ -78,10 +74,10 @@ public:
     * @param arg Variable length parameter
     */
     template<typename T, typename... ARG>
-    void addValue(const std::string & key_name,const T value,ARG... arg)
+    void addValue(const std::string & key_name, const T value, ARG... arg)
     {
         int i = -1;
-        for (size_t num = 0;num < m_key_vector.size();num++)
+        for (size_t num = 0; num < m_key_vector.size(); num++)
         {
             if (m_key_vector[num] == key_name)
             {
@@ -94,10 +90,66 @@ public:
             return;
         }
         addValue(key_name, value);
-        addValue(m_key_vector[i + 1],arg...);
+
+        if (i < m_key_vector.size() - 1)
+        {
+            addValue(m_key_vector[i + 1], arg...);
+        }
     }
 
+    void addValue(const std::vector<std::string> & key_vector)
+    {
+        for (auto aiter : m_key_vector)
+        {
+            auto iter = std::find(key_vector.begin(), key_vector.end(), aiter);
+            if (iter == key_vector.end())
+            {
+                addValue(aiter);
+            }
+        }
+    }
 
+    template<typename T>
+    void addValue(const std::vector<std::string> & key_vector, const int key_num, const T value)
+    {
+        if (key_num >= key_vector.size())
+        {
+            return;
+        }
+        auto iter = std::find(m_key_vector.begin(), m_key_vector.end(), key_vector[key_num]);
+        if (iter != m_key_vector.end())
+        {
+            addValue(*iter, value);
+            addValue(key_vector);
+        }
+        else
+        {
+            QCERR("key_vector element is not an element in m_key_vector");
+            throw std::runtime_error("key_vector element is not an element in m_key_vector");
+        }
+    }
+
+    template<typename T, typename... ARG>
+    void addValue(const std::vector<std::string> & key_vector, const int key_num, const T value, ARG... arg)
+    {
+        if (key_num >= key_vector.size())
+        {
+            return;
+        }
+        auto iter = std::find(m_key_vector.begin(), m_key_vector.end(), key_vector[key_num]);
+        if (iter != m_key_vector.end())
+        {
+            addValue(*iter, value);
+            addValue(key_vector, key_num + 1, arg...);
+        }
+        else
+        {
+            QCERR("key_vector element is not an element in m_key_vector");
+            throw std::runtime_error("key_vector element is not an element in m_key_vector");
+        }
+    }
+
+public:
 
     /**
     * @brief add value
@@ -281,80 +333,22 @@ public:
         }
     }
 
-
-
-    void addValue(const std::vector<std::string> & key_vector)
-    {
-        for (auto aiter : m_key_vector)
-        {
-            auto iter = std::find(key_vector.begin(), key_vector.end(), aiter);
-            if (iter == key_vector.end())
-            {
-                addValue(aiter);
-            }
-        }
-    }
-
-    template<typename T>
-    void addValue(const std::vector<std::string> & key_vector,const int key_num,const T value)
-    {
-        if (key_num >= key_vector.size())
-        {
-            return;
-        }
-        auto iter = std::find(m_key_vector.begin(), m_key_vector.end(), key_vector[key_num]);
-        if (iter != m_key_vector.end())
-        {
-            addValue(*iter, value);
-            addValue(key_vector);
-        }
-        else
-        {
-            QCERR("key_vector element is not an element in m_key_vector");
-            throw std::runtime_error("key_vector element is not an element in m_key_vector");
-        }
-    }
-
-    template<typename T, typename... ARG>
-    void addValue(const std::vector<std::string> & key_vector,const int key_num,const T value, ARG... arg)
-    {
-        if (key_num >= key_vector.size())
-        {
-            return;
-        }
-        auto iter = std::find(m_key_vector.begin(), m_key_vector.end(), key_vector[key_num]);
-        if (iter != m_key_vector.end())
-        {
-            addValue(*iter, value);
-            addValue(key_vector, key_num + 1, arg...);
-        }
-        else
-        {
-            QCERR("key_vector element is not an element in m_key_vector");
-            throw std::runtime_error("key_vector element is not an element in m_key_vector");
-        }
-    }
-
-
-
     /**
-     * @brief Construct a new Origin Collection<number> object
+     * @brief Construct a new Origin Collection object
      * 
      */
-    inline OriginCollection<number>()
+    inline OriginCollection()
     {
-        m_number =number;
         m_doc.Parse("{}");
-        static_assert(number > 0, "number must > 0");
         m_file_count = 0;
     }
 
     /**
-     * @brief Construct a new Origin Collection<number> 
+     * @brief Construct a new Origin Collection 
      * Construct a new Origin Collection by file_path
      * @param file_path File path
      */
-    inline OriginCollection<number>(const std::string & file_path,bool is_suffix = true)
+    inline OriginCollection(const std::string & file_path,bool is_suffix = true)
     {
         m_file_count = 0;
         std::string command;
@@ -379,9 +373,7 @@ public:
                 hour, min, sec);
             m_file_path.append("_").append(tmp_str);
         }
-        m_number =number;
         m_doc.Parse("{}");
-        static_assert(number > 0, "number must > 0");
     }
     /**
      * @brief operator=
@@ -391,11 +383,6 @@ public:
      */
     inline OriginCollection& operator=(const std::initializer_list<std::string> & args)
     {
-        if(m_number != args.size())
-        {
-            QCERR("m_number != args size");
-            throw std::invalid_argument("m_number != args size");
-        }
         for(auto & aiter : args)
         {
             m_key_vector.push_back(aiter);
@@ -411,11 +398,6 @@ public:
     */
     inline OriginCollection& operator=(const std::vector<std::string> & args)
     {
-        if (m_number != args.size())
-        {
-            QCERR("m_number != args size");
-            throw std::invalid_argument("m_number != args size");
-        }
         m_key_vector.resize(0);
         m_key_vector.insert(m_key_vector.end(), args.begin(), args.end());
         return *this;
@@ -424,9 +406,8 @@ public:
      * @brief Construct a new Origin Collection object by other Origin Collection
      * @param old target OriginCollection
      */
-    inline OriginCollection(const OriginCollection<number> & old)
+    inline OriginCollection(const OriginCollection & old)
     {
-        m_number = old.m_number;
         for(auto & aiter : old.m_key_vector)
         {
             m_key_vector.push_back(aiter);
@@ -442,13 +423,12 @@ public:
      * @brief operator= by other OriginCollection
      * 
      * @param old target OriginCollection
-     * @return OriginCollection<number>& 
+     * @return OriginCollection& 
      */
-    inline OriginCollection<number> & operator=(const OriginCollection<number> & old)
+    inline OriginCollection & operator=(const OriginCollection & old)
     {
         m_file_count = old.m_file_count;
         m_file_path = old.m_file_path;
-        m_number = old.m_number;
         m_key_vector.resize(0);
 
         for(auto & aiter : old.m_key_vector)
@@ -493,7 +473,7 @@ public:
         auto iter = checkVaild(name);
         Value temp(rapidjson::kArrayType);
         auto & allocator = m_doc.GetAllocator();
-        for (std::string & aiter : args)
+        for (std::string  aiter : args)
         {
             temp.PushBack(Value().SetString(aiter.c_str(),allocator).Move(), allocator);
         }
@@ -552,7 +532,7 @@ public:
     template<class... ARG>
     inline void insertValue(const std::string & key ,ARG... arg)
     {
-        if (sizeof...(arg)+1 != m_number)
+        if (sizeof...(arg)+1 != m_key_vector.size())
         {
             QCERR("param size is not equal to m_number");
             throw std::invalid_argument("param size count is not equal to m_number");
@@ -573,7 +553,7 @@ public:
     template<class... ARG>
     inline void insertValue(const int key, ARG... arg)
     {
-        if (sizeof...(arg) + 1 != m_number)
+        if (sizeof...(arg) + 1 != m_key_vector.size())
         {
             QCERR("param size is not equal to m_number");
             throw std::invalid_argument("param size count is not equal to m_number");
@@ -641,6 +621,7 @@ public:
      * @param name Key name
      * @return std::vector<std::string> value vector
      */
+    
     inline std::vector<std::string> getValue(const std::string & name)
     {
         std::vector<std::string> value_vector;
@@ -649,8 +630,9 @@ public:
             QCERR("Object does not contain this name");
             throw std::invalid_argument("Object does not contain this name");
         }
-
+        
         Value & name_value = m_doc[name.c_str()];
+        
         if((name_value.IsArray()) && (!name_value.Empty()))
         {
             if(name_value[0].IsString())
@@ -782,7 +764,6 @@ public:
                     break;
                 }
             }
-
         }
 
         if (num == -1)
@@ -847,12 +828,6 @@ public:
                 QCERR("Json name type error");
                 throw std::runtime_error("Json name type error");
             }
-        }
-
-        if (m_key_vector.size() != m_number)
-        {
-            QCERR("Json member count error");
-            throw std::runtime_error("Json member count error");
         }
         
         return true;

@@ -14,15 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include "QuantumGates.h"
+#include "QPUImpl.h"
 #include <time.h>
 using namespace std;
-QuantumGates::QuantumGates()
+QPUImpl::QPUImpl()
 {
 }
 
 
-QuantumGates::~QuantumGates()
+QPUImpl::~QPUImpl()
 {
 }
 
@@ -34,7 +34,7 @@ Argin:       None
 Argout:      None
 return:      random number in the region of [0,1]
 *****************************************************************************************************************/
-double QuantumGates::randGenerator()
+double QPUImpl::randGenerator()
 {
     /*
      *  difine constant number in 16807 generator.

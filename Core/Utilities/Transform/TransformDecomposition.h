@@ -148,11 +148,11 @@ void TransformDecomposition::mergeCircuitandProgSingleGate(T  pNode)
         */
         if (GATE_NODE != iNodeType)
         {
-            mergeSingleGate(*aiter);
+            mergeSingleGate((*aiter).get());
             continue;
         }
 
-        AbstractQGateNode * pCurGateNode = dynamic_cast<AbstractQGateNode *>(*aiter);
+        AbstractQGateNode * pCurGateNode = std::dynamic_pointer_cast<AbstractQGateNode>(*aiter).get();
 
         if (pCurGateNode->getQuBitNum() == 2)
             continue;
@@ -172,14 +172,14 @@ void TransformDecomposition::mergeCircuitandProgSingleGate(T  pNode)
             if (GATE_NODE != iNextNodeType)
                 break;
 
-            pNextGateNode = dynamic_cast<AbstractQGateNode *>(*nextIter);
+            pNextGateNode = std::dynamic_pointer_cast<AbstractQGateNode>(*nextIter).get();
 
             if (pNextGateNode->getQuBitNum() == 1)
             {
-                std::vector<Qubit *> CurQubitVector;
+                QVec CurQubitVector;
                 pCurGateNode->getQuBitVector(CurQubitVector);
 
-                std::vector<Qubit *> NextQubitVector;
+                QVec NextQubitVector;
                 pNextGateNode->getQuBitVector(NextQubitVector);
 
                 auto pCurPhyQubit = CurQubitVector[0]->getPhysicalQubitPtr();
@@ -214,8 +214,8 @@ void TransformDecomposition::mergeCircuitandProgSingleGate(T  pNode)
                     QStat newMatrix = CurMatrix * NextMatrix;
                     auto temp = U4(newMatrix, CurQubitVector[0]);
                     auto pCurtItem = aiter.getPCur();
-                    pCurtItem->setNode(&temp);
-                    pCurGateNode = dynamic_cast<AbstractQGateNode *>(pCurtItem->getNode());
+                    pCurtItem->setNode(temp.getImplementationPtr());
+                    pCurGateNode = std::dynamic_pointer_cast<AbstractQGateNode>(pCurtItem->getNode()).get();
                     nextIter = pNode->deleteQNode(nextIter);
                 }
             }

@@ -19,9 +19,9 @@ Classes for vector caculate
 #include <exception>
 #include <vector>
 #include <initializer_list>
-#include "ComplexMatrix.h"
 #include <assert.h>
-#include "QPandaNamespace.h"
+#include "Core/Utilities/ComplexMatrix.h"
+#include "Core/Utilities/QPandaNamespace.h"
 
 QPANDA_BEGIN
 template<size_t qubit_number, typename precision_t=double>

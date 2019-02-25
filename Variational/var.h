@@ -18,8 +18,8 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <map>
-#include "QPanda.h"
-#include "PauliOperator/PauliOperator.h"
+#include "Core/QPanda.h"
+#include "QAlg/Components/PauliOperator/PauliOperator.h"
 #include <type_traits>
 using Eigen::MatrixXd;
 using Eigen::VectorXd;

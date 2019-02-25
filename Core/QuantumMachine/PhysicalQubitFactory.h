@@ -16,11 +16,11 @@ limitations under the License.
 
 #ifndef PHYSICAL_QUBIT_FACTORY_H
 #define PHYSICAL_QUBIT_FACTORY_H
-
-#include "QPandaNamespace.h"
 #include <functional>
 #include <stack>
 #include<map>
+#include "Core/Utilities/QPandaNamespace.h"
+
 QPANDA_BEGIN
 class PhysicalQubit
 {

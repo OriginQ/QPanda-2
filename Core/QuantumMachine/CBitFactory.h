@@ -17,12 +17,13 @@ limitations under the License.
 #ifndef CBIT_FACTORY_H
 #define CBIT_FACTORY_H
 
-#include "QPandaNamespace.h"
+#include "Core/Utilities/QPandaNamespace.h"
 #include <functional>
 #include <stack>
 #include <map>
 
 QPANDA_BEGIN
+
 typedef long long cbit_size_t;
 class CBit
 {

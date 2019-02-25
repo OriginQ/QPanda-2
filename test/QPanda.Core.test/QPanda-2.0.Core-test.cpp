@@ -31,8 +31,7 @@ TEST_F(ClassicalConditionTest, testClassicalConditionADD)
     prog<<(c1=c1+1)<<(c2=c2+c1+cc3+cc4);
     auto qwhile = CreateWhileProg(c1<11,&prog);
     m_prog<<qwhile;
-    m_qvm->load(m_prog);
-    m_qvm->run();
+    directlyRun(prog);
     ASSERT_EQ(c1.eval(),11);
     ASSERT_EQ(c2.eval(),83);
     
@@ -61,8 +60,7 @@ TEST_F(ClassicalConditionTest, testClassicalConditionSUB)
     prog<<(c1=c1+1)<<(c2=c2-c1-cc3-cc4);
     auto qwhile = CreateWhileProg(c1<11,&prog);
     m_prog<<qwhile;
-    m_qvm->load(m_prog);
-    m_qvm->run();
+    directlyRun(prog);
     ASSERT_EQ(c1.eval(),11);
     ASSERT_EQ(c2.eval(),-1);
 }
@@ -90,8 +88,7 @@ TEST_F(ClassicalConditionTest, testClassicalConditionMUL)
     prog<<(c1=c1+1)<<(c2=c2*c1*cc3*cc4);
     auto qwhile = CreateWhileProg(c1<11,&prog);
     m_prog<<qwhile;
-    m_qvm->load(m_prog);
-    m_qvm->run();
+    directlyRun(prog);
     std::cout <<c2.eval()<<std::endl;
     ASSERT_EQ(c1.eval(),11);
     ASSERT_EQ(c2.eval(),5324000);
@@ -119,8 +116,7 @@ TEST_F(ClassicalConditionTest, testClassicalConditionDIV)
     prog<<(c1=c1+1)<<(c2 = c2 + 2)<<(c2=c2/c1*(c1/11));
     auto qwhile = CreateWhileProg(c1<11,&prog);
     m_prog<<qwhile;
-    m_qvm->load(m_prog);
-    m_qvm->run();
+    directlyRun(prog);
 
     ASSERT_EQ(c1.eval(),11);
     ASSERT_EQ(c2.eval(),2);
@@ -140,13 +136,12 @@ TEST(QVecTest,test)
     prog_in<<(cvec[1]=cvec[1]+1)<<H(qvec[cvec[0]])<<(cvec[0]=cvec[0]+1);
     auto qwhile = CreateWhileProg(cvec[1]<5,&prog_in); 
     prog<<qwhile;
-    load(prog);
-    run();
-    //auto result =PMeasure_no_index(qvec);
-    /*for(auto & aiter : result)
+    directlyRun(prog);
+    auto result =PMeasure_no_index(qvec);
+    for(auto & aiter : result)
     {
         std::cout<<aiter<<std::endl;
-    }*/
+    }
     finalize();
 }
 
@@ -184,12 +179,11 @@ TEST(CirCuitTest, test)
     }
 
     finalize();
-
 }
 
 TEST(OriginCollectionTest,CreateTest)
 {
-    OriginCollection<3> test("./test");
+    OriginCollection test("./test");
     test={"key","value","value2"};
 
 
@@ -203,14 +197,16 @@ TEST(OriginCollectionTest,CreateTest)
     test.insertValue(key_n, "888", 122);
     test.insertValue(key_n, 6564465, 345);
     
-    auto value =test.getValue("value");
+    auto & value =test.getValue("value");
     test.write();
+
+    
     for(auto & aiter : value)
     {
         std::cout<<aiter<<std::endl;
     }
 
-    OriginCollection<2> test2("test2");
+    OriginCollection test2("test2");
     test2 = { "key","value" };
     std::map<std::string, bool> a;
     a.insert(std::make_pair("c0", true));
@@ -222,4 +218,29 @@ TEST(OriginCollectionTest,CreateTest)
     }
 
     std::cout << test2.getJsonString() << std::endl;
+}
+
+TEST(QProgTransformQuil, QUIL)
+{
+
+    init();
+    auto qubits = qAllocMany(4);
+    auto cbits = cAllocMany(4);
+    QProg prog;
+    QCircuit circuit;
+
+    circuit << RX(qubits[0], PI / 6) << H(qubits[1]) << Y(qubits[2])
+        << iSWAP(qubits[2], qubits[3]);
+    prog << circuit << MeasureAll(qubits, cbits);
+    auto result = runWithConfiguration(prog, cbits, 10000);
+    for (auto &aiter : result)
+    {
+        std::cout << aiter.first << " : " << aiter.second << endl;
+    }
+    auto quil = qProgToQuil(prog);
+    std::cout << quil << std::endl;
+
+    finalize();
+    system("pause");
+    return;
 }

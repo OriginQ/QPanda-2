@@ -176,9 +176,7 @@ public:
      void qProgToQASM(QNode * pNode);
 
 private:
-    std::map<int, std::string>  m_gatetype_majuscule;
-    std::map<int, std::string>  m_gatetype_qasm;
-
+    std::map<int, std::string>  m_gatetype;
     std::vector<std::string> m_qasm;
 };
 QPANDA_END

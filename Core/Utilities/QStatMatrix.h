@@ -14,8 +14,7 @@ Classes for get the shortes path of graph
 
 #ifndef QSTATMATRIX_H
 #define QSTATMATRIX_H
-
-#include "QPandaNamespace.h"
+#include "Core/Utilities/QPandaNamespace.h"
 #include <iostream>
 #include <complex>
 #include <vector>

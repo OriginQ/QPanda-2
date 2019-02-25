@@ -11,12 +11,12 @@ Classes for get the shortes path of graph
 */
 #ifndef XMLCONFIGPARAM_H
 #define XMLCONFIGPARAM_H
-
-#include "TinyXML/tinyxml.h"
+#include "Core/Utilities/QPandaNamespace.h"
+#include "ThirdParty/TinyXML/tinyxml.h"
 #include <iostream>
 #include <string>
 #include <map>
-#include "QPandaNamespace.h"
+
 
 QPANDA_BEGIN
 

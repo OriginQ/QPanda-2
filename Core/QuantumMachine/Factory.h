@@ -17,11 +17,11 @@ limitations under the License.
 #ifndef FACTORY_H
 #define FACTORY_H
 
-#include "QuantumMachineFactory.h"
-#include "QubitPoolFactory.h"
-#include "CBitFactory.h"
-#include "CMemFactory.h"
-#include "QResultFactory.h"
-#include "QuantumMachineInterface.h"
+#include "Core/QuantumMachine/QuantumMachineFactory.h"
+#include "Core/QuantumMachine/QubitPoolFactory.h"
+#include "Core/QuantumMachine/CBitFactory.h"
+#include "Core/QuantumMachine/CMemFactory.h"
+#include "Core/QuantumMachine/QResultFactory.h"
+#include "Core/QuantumMachine/QuantumMachineInterface.h"
 
 #endif

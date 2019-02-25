@@ -16,14 +16,12 @@ limitations under the License.
 
 #ifndef ORIGIN_CLASSICAL_EXPRESSION_H
 #define ORIGIN_CLASSICAL_EXPRESSION_H
-
-//#include "QuantumCircuit/ClassicalConditionInterface.h"
-#include "CBitFactory.h"
-#include "CExprFactory.h"
-#include "QNode.h"
+#include "Core/QuantumMachine/CBitFactory.h"
+#include "Core/QuantumCircuit/CExprFactory.h"
+#include "Core/QuantumCircuit/QNode.h"
 USING_QPANDA
 
-class OriginCExpr :public QNode,public CExpr
+class OriginCExpr :public CExpr
 {
 public:
     union content_u

@@ -13,7 +13,7 @@ Classes for get the shortes path of graph
 #ifndef GRAPH_DIJKSTAR_H
 #define GRAPH_DIJKSTAR_H
 
-#include "QPandaNamespace.h"
+#include "Core/Utilities/QPandaNamespace.h"
 #include <iostream>
 #include <vector>
 QPANDA_BEGIN

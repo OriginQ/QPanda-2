@@ -19,6 +19,7 @@ limitations under the License.
 
 #include "Core/QuantumCircuit/QGate.h"
 #include "Core/QuantumCircuit/QProgram.h"
+#include "Core/QuantumCircuit/QCircuit.h"
 #include "Core/Utilities/Transform/QGateCounter.h"
 #include "Core/Utilities/Transform/QProgToQRunes.h"
 #include "Core/Utilities/Transform/QProgToQASM.h"
@@ -30,11 +31,12 @@ limitations under the License.
 #include "Core/QuantumCircuit/ClassicalProgam.h"
 #include "Core/QuantumMachine/QVec.h"
 #include "Core/Utilities/OriginCollection.h"
+#include "Core/QuantumMachine/OriginQuantumMachine.h"
 QPANDA_BEGIN
 
 std::string qProgToQRunes(QProg &pQPro);
-std::string qProgToQasm(QProg &pQPro);
-QProg qRunesToProg();
+std::string qProgToQASM(QProg &pQPro);
+void qRunesToQProg(std::string sFilePath,QProg& newQProg);
 
 // to init the environment. Use this at the beginning
 bool init(QuantumMachine_type type = CPU);
@@ -48,14 +50,10 @@ Qubit* qAlloc();
 // Allocate a qubit
 Qubit* qAlloc(size_t stQubitAddr);
 
+std::map<std::string, bool> directlyRun(QProg & qProg);
+
 // Allocate many qubits
 QVec qAllocMany(size_t stQubitNumber);
-
-// Free a qubit
-void qFree(Qubit* q);
-
-// Free a list of qubits
-void qFreeAll(QVec &vQubit);
 
 // Allocate a cbit
 ClassicalCondition cAlloc();
@@ -72,27 +70,13 @@ void cFree(ClassicalCondition &);
 // Free a list of CBits
 void cFreeAll(std::vector<ClassicalCondition> vCBit);
 
-// load a program
-void load(QProg& q);
-
-// append a program after the loaded program
-void append(QProg& q);
-
 // get the status(ptr) of the quantum machine
 QMachineStatus* getstat();
 
-// get the result(ptr)
-QResult* getResult();
 
  size_t getAllocateQubitNum();
 
  size_t getAllocateCMem();
-
-// directly get the result std::map
-std::map<std::string, bool> getResultMap();
-
-//Load, Run and Fetch Result
-std::map<std::string, bool> directlyRun(QProg &);
 
 std::vector<std::pair<size_t, double>> getProbTupleList(QVec &,int selectMax=-1);
 std::vector<double> getProbList(QVec &, int selectMax = -1);
@@ -102,9 +86,6 @@ std::vector<double> probRunList(QProg &,QVec&, int selectMax = -1);
 std::map<std::string, double>  probRunDict(QProg &,QVec &, int selectMax = -1);
 std::map<std::string, size_t> runWithConfiguration(QProg &, std::vector<ClassicalCondition> &, int);
 std::map<std::string, size_t> quickMeasure(QVec &, int);
-
-// run the loaded program
-void run();
 
 std::vector<std::pair<size_t, double>> PMeasure(QVec& qubit_vector, int select_max);
 std::vector<double> PMeasure_no_index(QVec& qubit_vector);
@@ -117,6 +98,6 @@ size_t getQProgClockCycle(QProg &prog);
 QuantumMachine *initQuantumMachine(QuantumMachine_type type=CPU);
 void destroyQuantumMachine(QuantumMachine * qvm);
 
-QProg MeasureAll(QVec&, std::vector<ClassicalCondition> &);
+QPanda::QProg MeasureAll(QVec&, std::vector<ClassicalCondition> &);
 QPANDA_END
 #endif // !_QPANDA_H

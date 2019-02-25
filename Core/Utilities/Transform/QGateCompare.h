@@ -16,8 +16,9 @@ update comment
 #ifndef  QGATE_COMPARE_H_
 #define  QGATE_COMPARE_H_
 
-#pragma once
-
+#include "QuantumCircuit/QGate.h"
+#include "QuantumCircuit/ControlFlow.h"
+#include "QuantumCircuit/QCircuit.h"
 #include "QuantumCircuit/QProgram.h"
 #include <map>
 #include "QuantumCircuit/QGlobalVariable.h"

@@ -1,7 +1,7 @@
 #ifndef _QVEC_H
 #define _QVEC_H
 #include <vector>
-#include "QubitReference.h"
+#include "Core/QuantumMachine/QubitReference.h"
 QPANDA_BEGIN
 
 class QVec : public std::vector<Qubit *>

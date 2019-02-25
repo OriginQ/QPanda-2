@@ -1,6 +1,6 @@
 #pragma once
 
-#include "expression.h"
+#include "Variational/expression.h"
 #include <set>
 
 namespace QPanda {

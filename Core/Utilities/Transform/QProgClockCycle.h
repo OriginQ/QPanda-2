@@ -15,6 +15,9 @@ update comment
 #ifndef _QPROG_CLOCK_CYCLE_H
 #define _QPROG_CLOCK_CYCLE_H
 #include "QuantumCircuit/QProgram.h"
+#include "QuantumCircuit/QCircuit.h"
+#include "QuantumCircuit/ControlFlow.h"
+#include "QuantumCircuit/QGate.h"
 #include <map>
 QPANDA_BEGIN
 

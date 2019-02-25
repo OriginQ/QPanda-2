@@ -17,9 +17,9 @@ limitations under the License.
 #ifndef _QUANTUM_MEASURE_H
 #define _QUANTUM_MEASURE_H
 
-#include "QuantumMachine/QubitFactory.h"
-#include "QNode.h"
-#include "ClassicalConditionInterface.h"
+#include "Core/QuantumMachine/QubitFactory.h"
+#include "Core/QuantumCircuit/QNode.h"
+#include "Core/QuantumCircuit/ClassicalConditionInterface.h"
 QPANDA_BEGIN
 class AbstractQuantumMeasure
 {
@@ -32,21 +32,18 @@ public:
 class QMeasure : public QNode, public AbstractQuantumMeasure
 {
 private:
-    AbstractQuantumMeasure * m_pQuantumMeasure;
-    qmap_size_t m_stPosition;
-    QMeasure();
-
+    std::shared_ptr<AbstractQuantumMeasure> m_measure;
 public:
     QMeasure(const QMeasure &);
     QMeasure(Qubit *, CBit *);
+    std::shared_ptr<QNode> getImplementationPtr();
     ~QMeasure();
     Qubit * getQuBit() const;
     CBit * getCBit()const;
-
     NodeType getNodeType() const;
-    qmap_size_t getPosition() const;
 private:
-    void setPosition(qmap_size_t) {};
+    virtual void execute(QPUImpl *, QuantumGateParam *) {};
+    QMeasure();
 };
 
 typedef AbstractQuantumMeasure * (*CreateMeasure)(Qubit *, CBit *);
@@ -90,24 +87,23 @@ public:
     
     Qubit * getQuBit() const;
     CBit * getCBit()const;
-
     NodeType getNodeType() const;
-    qmap_size_t getPosition() const;
-    void setPosition(qmap_size_t stPositio);
+    virtual void execute(QPUImpl *, QuantumGateParam *) ;
 private:
     OriginMeasure();
     OriginMeasure(OriginMeasure &);
-    NodeType m_iNodeType;
-    Qubit * m_pTargetQubit;
-    CBit * m_pCBit;
-    qmap_size_t m_stPosition;
+    std::shared_ptr<QNode> getImplementationPtr()
+    {
+        QCERR("Can't use this function");
+        throw std::runtime_error("Can't use this function");
+    };
+    NodeType m_node_type;
+    Qubit * m_target_qbit;
+    CBit * m_target_cbit;
      
 };
 
-QMeasure Measure(Qubit * targetQuBit, ClassicalCondition );
-
-
-
+QMeasure Measure(Qubit * , ClassicalCondition );
 QPANDA_END
 
 #endif // !_QUANTUM_MEASURE_H

@@ -13,8 +13,8 @@ Created in 2018-09-06
 #ifndef ORIGINNELDERMEAD_H
 #define ORIGINNELDERMEAD_H
 
-#include "Eigen/Dense"
-#include "AbstractOptimizer.h"
+#include "ThirdParty/Eigen/Dense"
+#include "QAlg/Components/Optimizer/AbstractOptimizer.h"
 
 namespace QPanda
 {

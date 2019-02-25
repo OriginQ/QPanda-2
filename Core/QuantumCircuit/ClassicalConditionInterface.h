@@ -17,10 +17,11 @@ limitations under the License.
 #ifndef _CLASSICAL_CONDITION_INTERFACE_H
 #define _CLASSICAL_CONDITION_INTERFACE_H
 #include <string>
-#include "QuantumMachine/CBitFactory.h"
-#include "CExprFactory.h"
-#include "QNode.h"
 #include <memory>
+#include "Core/QuantumMachine/CBitFactory.h"
+#include "Core/QuantumCircuit/CExprFactory.h"
+#include "Core/QuantumCircuit/QNode.h"
+
 QPANDA_BEGIN
 /**
  * @brief Content specifier

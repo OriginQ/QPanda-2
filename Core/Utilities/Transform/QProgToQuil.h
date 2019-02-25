@@ -16,9 +16,13 @@ update comment
 #define  _QPROG_TO_QUIL_
 
 #include "QuantumCircuit/QProgram.h"
-#include <map>
+#include "QuantumCircuit/QGate.h"
+#include "QuantumCircuit/QCircuit.h"
+#include "QuantumCircuit/QuantumMeasure.h"
 #include "QuantumCircuit/QGlobalVariable.h"
+#include <map>
 #include <string>
+
 QPANDA_BEGIN
 
 

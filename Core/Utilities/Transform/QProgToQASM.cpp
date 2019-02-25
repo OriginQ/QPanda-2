@@ -9,64 +9,34 @@ USING_QPANDA
 
 QProgToQASM::QProgToQASM()
 {
-    m_gatetype_majuscule.insert(pair<int, string>(PAULI_X_GATE, "X"));
-    m_gatetype_majuscule.insert(pair<int, string>(PAULI_Y_GATE, "Y"));
-    m_gatetype_majuscule.insert(pair<int, string>(PAULI_Z_GATE, "Z"));
+    m_gatetype.insert(pair<int, string>(PAULI_X_GATE, "X"));
+    m_gatetype.insert(pair<int, string>(PAULI_Y_GATE, "Y"));
+    m_gatetype.insert(pair<int, string>(PAULI_Z_GATE, "Z"));
 
-    m_gatetype_majuscule.insert(pair<int, string>(X_HALF_PI, "X1"));
-    m_gatetype_majuscule.insert(pair<int, string>(Y_HALF_PI, "Y1"));
-    m_gatetype_majuscule.insert(pair<int, string>(Z_HALF_PI, "Z1"));
+    m_gatetype.insert(pair<int, string>(X_HALF_PI, "X1"));
+    m_gatetype.insert(pair<int, string>(Y_HALF_PI, "Y1"));
+    m_gatetype.insert(pair<int, string>(Z_HALF_PI, "Z1"));
 
-    m_gatetype_majuscule.insert(pair<int, string>(HADAMARD_GATE, "H"));
-    m_gatetype_majuscule.insert(pair<int, string>(T_GATE, "T"));
-    m_gatetype_majuscule.insert(pair<int, string>(S_GATE, "S"));
+    m_gatetype.insert(pair<int, string>(HADAMARD_GATE, "H"));
+    m_gatetype.insert(pair<int, string>(T_GATE, "T"));
+    m_gatetype.insert(pair<int, string>(S_GATE, "S"));
 
-    m_gatetype_majuscule.insert(pair<int, string>(RX_GATE, "RX"));
-    m_gatetype_majuscule.insert(pair<int, string>(RY_GATE, "RY"));
-    m_gatetype_majuscule.insert(pair<int, string>(RZ_GATE, "RZ"));
+    m_gatetype.insert(pair<int, string>(RX_GATE, "RX"));
+    m_gatetype.insert(pair<int, string>(RY_GATE, "RY"));
+    m_gatetype.insert(pair<int, string>(RZ_GATE, "RZ"));
 
-    m_gatetype_majuscule.insert(pair<int, string>(U1_GATE, "U1"));
-    m_gatetype_majuscule.insert(pair<int, string>(U2_GATE, "U2"));
-    m_gatetype_majuscule.insert(pair<int, string>(U3_GATE, "U3"));
-    m_gatetype_majuscule.insert(pair<int, string>(U4_GATE, "U4"));
+    m_gatetype.insert(pair<int, string>(U1_GATE, "U1"));
+    m_gatetype.insert(pair<int, string>(U2_GATE, "U2"));
+    m_gatetype.insert(pair<int, string>(U3_GATE, "U3"));
+    m_gatetype.insert(pair<int, string>(U4_GATE, "U4"));
 
-    m_gatetype_majuscule.insert(pair<int, string>(CU_GATE, "CU"));
-    m_gatetype_majuscule.insert(pair<int, string>(CNOT_GATE, "CNOT"));
-    m_gatetype_majuscule.insert(pair<int, string>(CZ_GATE, "CZ"));
-    m_gatetype_majuscule.insert(pair<int, string>(CPHASE_GATE, "CPHASE"));
-    m_gatetype_majuscule.insert(pair<int, string>(ISWAP_GATE, "ISWAP"));
-    m_gatetype_majuscule.insert(pair<int, string>(SQISWAP_GATE, "SQISWAP"));
+    m_gatetype.insert(pair<int, string>(CU_GATE, "CU"));
+    m_gatetype.insert(pair<int, string>(CNOT_GATE, "CNOT"));
+    m_gatetype.insert(pair<int, string>(CZ_GATE, "CZ"));
+    m_gatetype.insert(pair<int, string>(CPHASE_GATE, "CPHASE"));
+    m_gatetype.insert(pair<int, string>(ISWAP_GATE, "ISWAP"));
+    m_gatetype.insert(pair<int, string>(SQISWAP_GATE, "SQISWAP"));
 
-
-
-
-    m_gatetype_qasm.insert(pair<int, string>(PAULI_X_GATE, "x"));
-    m_gatetype_qasm.insert(pair<int, string>(PAULI_Y_GATE, "y"));
-    m_gatetype_qasm.insert(pair<int, string>(PAULI_Z_GATE, "u"));
-
-    m_gatetype_qasm.insert(pair<int, string>(X_HALF_PI, "x1"));
-    m_gatetype_qasm.insert(pair<int, string>(Y_HALF_PI, "y1"));
-    m_gatetype_qasm.insert(pair<int, string>(Z_HALF_PI, "z1"));
-
-    m_gatetype_qasm.insert(pair<int, string>(HADAMARD_GATE, "h"));
-    m_gatetype_qasm.insert(pair<int, string>(T_GATE, "t"));
-    m_gatetype_qasm.insert(pair<int, string>(S_GATE, "s"));
-
-    m_gatetype_qasm.insert(pair<int, string>(RX_GATE, "rx"));
-    m_gatetype_qasm.insert(pair<int, string>(RY_GATE, "ry"));
-    m_gatetype_qasm.insert(pair<int, string>(RZ_GATE, "rz"));
-
-    m_gatetype_qasm.insert(pair<int, string>(U1_GATE, "u1"));
-    m_gatetype_qasm.insert(pair<int, string>(U2_GATE, "u2"));
-    m_gatetype_qasm.insert(pair<int, string>(U3_GATE, "u3"));
-    m_gatetype_qasm.insert(pair<int, string>(U4_GATE, "u4"));
-
-    m_gatetype_qasm.insert(pair<int, string>(CU_GATE, "cu"));
-    m_gatetype_qasm.insert(pair<int, string>(CNOT_GATE, "cnot"));
-    m_gatetype_qasm.insert(pair<int, string>(CZ_GATE, "cz"));
-    m_gatetype_qasm.insert(pair<int, string>(CPHASE_GATE, "cphase"));
-    m_gatetype_qasm.insert(pair<int, string>(ISWAP_GATE, "iswap"));
-    m_gatetype_qasm.insert(pair<int, string>(SQISWAP_GATE, "sqiswap"));
 
     m_qasm.clear();
 
@@ -88,24 +58,24 @@ void QProgToQASM::qProgToQasm(AbstractQuantumProgram *pQpro)
     vector<vector<string>> QGateMatrix(KMETADATA_GATE_TYPE_COUNT, vector<string>(0));
     vector<vector<int>> vAdjacentMatrix;
 
-    QGateMatrix[MetadataGateType::METADATA_SINGLE_GATE].emplace_back(m_gatetype_majuscule[PAULI_X_GATE]);
-    QGateMatrix[MetadataGateType::METADATA_SINGLE_GATE].emplace_back(m_gatetype_majuscule[PAULI_Y_GATE]);
-    QGateMatrix[MetadataGateType::METADATA_SINGLE_GATE].emplace_back(m_gatetype_majuscule[PAULI_Z_GATE]);
+    QGateMatrix[MetadataGateType::METADATA_SINGLE_GATE].emplace_back(m_gatetype[PAULI_X_GATE]);
+    QGateMatrix[MetadataGateType::METADATA_SINGLE_GATE].emplace_back(m_gatetype[PAULI_Y_GATE]);
+    QGateMatrix[MetadataGateType::METADATA_SINGLE_GATE].emplace_back(m_gatetype[PAULI_Z_GATE]);
 
-    QGateMatrix[MetadataGateType::METADATA_SINGLE_GATE].emplace_back(m_gatetype_majuscule[HADAMARD_GATE]);
-    QGateMatrix[MetadataGateType::METADATA_SINGLE_GATE].emplace_back(m_gatetype_majuscule[T_GATE]);
-    QGateMatrix[MetadataGateType::METADATA_SINGLE_GATE].emplace_back(m_gatetype_majuscule[S_GATE]);
-    QGateMatrix[MetadataGateType::METADATA_SINGLE_GATE].emplace_back(m_gatetype_majuscule[RX_GATE]);
-    QGateMatrix[MetadataGateType::METADATA_SINGLE_GATE].emplace_back(m_gatetype_majuscule[RY_GATE]);
+    QGateMatrix[MetadataGateType::METADATA_SINGLE_GATE].emplace_back(m_gatetype[HADAMARD_GATE]);
+    QGateMatrix[MetadataGateType::METADATA_SINGLE_GATE].emplace_back(m_gatetype[T_GATE]);
+    QGateMatrix[MetadataGateType::METADATA_SINGLE_GATE].emplace_back(m_gatetype[S_GATE]);
+    QGateMatrix[MetadataGateType::METADATA_SINGLE_GATE].emplace_back(m_gatetype[RX_GATE]);
+    QGateMatrix[MetadataGateType::METADATA_SINGLE_GATE].emplace_back(m_gatetype[RY_GATE]);
 
-    QGateMatrix[MetadataGateType::METADATA_SINGLE_GATE].emplace_back(m_gatetype_majuscule[RZ_GATE]);
-    QGateMatrix[MetadataGateType::METADATA_SINGLE_GATE].emplace_back(m_gatetype_majuscule[U1_GATE]);
-    QGateMatrix[MetadataGateType::METADATA_DOUBLE_GATE].emplace_back(m_gatetype_majuscule[CU_GATE]);
-    QGateMatrix[MetadataGateType::METADATA_DOUBLE_GATE].emplace_back(m_gatetype_majuscule[CNOT_GATE]);
+    QGateMatrix[MetadataGateType::METADATA_SINGLE_GATE].emplace_back(m_gatetype[RZ_GATE]);
+    QGateMatrix[MetadataGateType::METADATA_SINGLE_GATE].emplace_back(m_gatetype[U1_GATE]);
+    QGateMatrix[MetadataGateType::METADATA_DOUBLE_GATE].emplace_back(m_gatetype[CU_GATE]);
+    QGateMatrix[MetadataGateType::METADATA_DOUBLE_GATE].emplace_back(m_gatetype[CNOT_GATE]);
 
-    QGateMatrix[MetadataGateType::METADATA_DOUBLE_GATE].emplace_back(m_gatetype_majuscule[CZ_GATE]);
-    QGateMatrix[MetadataGateType::METADATA_DOUBLE_GATE].emplace_back(m_gatetype_majuscule[CPHASE_GATE]);
-    QGateMatrix[MetadataGateType::METADATA_DOUBLE_GATE].emplace_back(m_gatetype_majuscule[ISWAP_GATE]);
+    QGateMatrix[MetadataGateType::METADATA_DOUBLE_GATE].emplace_back(m_gatetype[CZ_GATE]);
+    QGateMatrix[MetadataGateType::METADATA_DOUBLE_GATE].emplace_back(m_gatetype[CPHASE_GATE]);
+    QGateMatrix[MetadataGateType::METADATA_DOUBLE_GATE].emplace_back(m_gatetype[ISWAP_GATE]);
 
     SingleGateTypeValidator::GateType(QGateMatrix[MetadataGateType::METADATA_SINGLE_GATE],
         ValidQGateMatrix[MetadataGateType::METADATA_SINGLE_GATE]);  /* single gate data MetadataValidity */
@@ -131,119 +101,81 @@ void QProgToQASM::qProgToQASM(AbstractQGateNode * pQGata)
         throw invalid_argument("pQGata->getQGate() is null");
     }
 
-    int gate_type = pQGata->getQGate()->getGateType();
-
-    vector<Qubit*> qubits_vector;
-
+    QVec qubits_vector;
     pQGata->getQuBitVector(qubits_vector);
-    auto iter = m_gatetype_qasm.find(gate_type);
+    auto iter = m_gatetype.find(pQGata->getQGate()->getGateType());
 
-    string item = iter->second;
-    string first_qubit = to_string(qubits_vector.front()->getPhysicalQubitPtr()->getQubitAddr());
+    string tarQubit = to_string(qubits_vector.front()->getPhysicalQubitPtr()->getQubitAddr());
+
     string all_qubits;
-
     for (auto _val : qubits_vector)
     {
         all_qubits = all_qubits + "q["+to_string(_val->getPhysicalQubitPtr()->getQubitAddr())+"]" + ",";
     }
-
     all_qubits = all_qubits.substr(0, all_qubits.length() - 1);
+
+
+    string sTemp = iter->second;
     switch (iter->first)
     {
-    case PAULI_X_GATE:
-    case PAULI_Y_GATE:
-    case PAULI_Z_GATE:
-    case X_HALF_PI:
-    case Y_HALF_PI:
-    case Z_HALF_PI:
-    case HADAMARD_GATE:
-    case T_GATE:
-    case S_GATE:
-        {
-            if (pQGata->isDagger())
+        case PAULI_X_GATE:
+        case PAULI_Y_GATE:
+        case PAULI_Z_GATE:
+        case X_HALF_PI:
+        case Y_HALF_PI:
+        case Z_HALF_PI:
+        case HADAMARD_GATE:
+        case T_GATE:
+        case S_GATE:
             {
-                m_qasm.emplace_back(item + "dg q[" + first_qubit + "];");
+                sTemp.append(pQGata->isDagger() ? "dg q[" + tarQubit + "];" : " q[" + tarQubit + "];");
             }
-            else
-            {
-                m_qasm.emplace_back(item + " q[" + first_qubit + "];");
-            }
-        }
-        break;
+            break;
 
-    case U1_GATE:
-    case RX_GATE:
-    case RY_GATE:
-    case RZ_GATE: 
-        {
-            string  gate_angle = to_string(dynamic_cast<angleParameter *>(pQGata->getQGate())->getParameter());
-            if (pQGata->isDagger())
+        case U1_GATE:
+        case RX_GATE:
+        case RY_GATE:
+        case RZ_GATE: 
             {
-             m_qasm.emplace_back(item + "dg(" + gate_angle + ")" + " q[" + first_qubit + "];");
+                string  gate_angle = to_string(dynamic_cast<angleParameter *>(pQGata->getQGate())->getParameter());
+                sTemp.append(pQGata->isDagger() ? "dg(" + gate_angle + ")" : "(" + gate_angle + ")");
+                sTemp.append(" q[" + tarQubit + "];");
             }
-            else
-            {
-             m_qasm.emplace_back(item + "(" + gate_angle + ")" + " q[" + first_qubit + "];");
-            }
-        }
-        break;
+            break;
 
-    case CNOT_GATE:
-    case CZ_GATE:
-    case ISWAP_GATE:
-    case SQISWAP_GATE:
-        {
-            if (pQGata->isDagger())
+        case CNOT_GATE:
+        case CZ_GATE:
+        case ISWAP_GATE:
+        case SQISWAP_GATE:
             {
-                m_qasm.emplace_back(item + "dg " + all_qubits + ";");
+                sTemp.append(pQGata->isDagger() ? "dg " + all_qubits + ";" : " " + all_qubits + ";");
             }
-            else
-            {
-                m_qasm.emplace_back(item + " " + all_qubits + ";");
-            }
-        }
-        break;
+            break;
 
-    case CPHASE_GATE: 
-        {
-            string  gate_parameter = to_string(dynamic_cast<angleParameter *>(pQGata->getQGate())->getParameter());
-            if (pQGata->isDagger())
+        case CPHASE_GATE: 
             {
-                m_qasm.emplace_back(item + "dg(" + gate_parameter + ") " + all_qubits + ";");
+                string  gate_parameter = to_string(dynamic_cast<angleParameter *>(pQGata->getQGate())->getParameter());
+                sTemp.append(pQGata->isDagger() ? "dg(" : "(");
+                sTemp.append(gate_parameter + ") " + all_qubits + ";");
             }
-            else
-            {
-                m_qasm.emplace_back(item + "(" + gate_parameter + ") " + all_qubits + ";");
-            }
-        }
-        break;
+            break;
 
-    case CU_GATE: 
-        {
-            QuantumGate * gate_parameter = dynamic_cast<QuantumGate *>(pQGata->getQGate());
-            if (nullptr == gate_parameter)
+        case CU_GATE: 
             {
-                QCERR("gate_parameter is null");
-                throw invalid_argument("gate_parameter is null");
-            }
+                QuantumGate * gate_parameter = dynamic_cast<QuantumGate *>(pQGata->getQGate());
+                string gate_four_theta = to_string(gate_parameter->getAlpha()) + ',' + to_string(gate_parameter->getBeta())+ ','
+                                  + to_string(gate_parameter->getDelta()) + ',' + to_string(gate_parameter->getGamma());
 
-            string gate_four_theta = to_string(gate_parameter->getAlpha()) + ',' + to_string(gate_parameter->getBeta())+ ','
-                              + to_string(gate_parameter->getDelta()) + ',' + to_string(gate_parameter->getGamma());
-
-            if (pQGata->isDagger())
-            {
-                m_qasm.emplace_back(item + "dg(" + gate_four_theta + ") " + all_qubits + ";");
+                sTemp.append(pQGata->isDagger() ? "dg(" : "(");
+                sTemp.append(gate_four_theta + ") " + all_qubits + ";");
             }
-            else
-            {
-                m_qasm.emplace_back(item + "(" + gate_four_theta + ") " + all_qubits + ";");
-            }
-        }
-        break;
+            break;
 
-    default:m_qasm.emplace_back("NoGateSupport;"); 
-        break;
+        default:sTemp = "NoGateSupport;";
+            break;
     }
+    m_qasm.emplace_back(sTemp);
+
 
 }
 
@@ -262,9 +194,8 @@ void QProgToQASM::qProgToQASM(AbstractQuantumMeasure *pMeasure)
     }
 
     std::string tar_qubit = to_string(pMeasure->getQuBit()->getPhysicalQubitPtr()->getQubitAddr());
-    std::string creg_name = pMeasure->getCBit()->getName();
+    std::string creg_name = pMeasure->getCBit()->getName().substr(1);
 
-    creg_name = creg_name.substr(1);
     m_qasm.emplace_back("measure q[" + tar_qubit + "]" +" -> "+ "c[" + creg_name + "];");
 }
 
@@ -278,7 +209,7 @@ void QProgToQASM::qProgToQASM(AbstractQuantumProgram *pQPro)
     }
     for (auto aiter = pQPro->getFirstNodeIter(); aiter != pQPro->getEndNodeIter(); aiter++)
     {
-        QNode * pNode = *aiter;
+        QNode * pNode = (*aiter).get();
         qProgToQASM(pNode);
     }
 }
@@ -310,8 +241,8 @@ void QProgToQASM::qProgToQASM(QNode * pNode)
 
     case NodeType::QIF_START_NODE:
     case NodeType::WHILE_START_NODE:
-        QCERR("Un Support QNode");
-        throw invalid_argument("Un Support QNode");
+        QCERR("UnSupported QNode");
+        throw invalid_argument("UnSupported QNode");
         break;
 
     case NodeType::MEASURE_GATE:
@@ -319,8 +250,6 @@ void QProgToQASM::qProgToQASM(QNode * pNode)
         break;
 
     case NodeType::NODE_UNDEFINED:
-        break;
-
     default:m_qasm.emplace_back("UnSupported ProgNode");
         break;
     }
@@ -398,9 +327,6 @@ void QProgToQASM::qDaggerCirToQASM(QNode * pNode)
 
     case NodeType::MEASURE_GATE:
         qProgToQASM(dynamic_cast<AbstractQuantumMeasure *>(pNode));
-        break;
-
-    case NodeType::NODE_UNDEFINED:
         break;
 
     default:m_qasm.emplace_back("UnSupported Prog Node");
@@ -490,7 +416,7 @@ void QProgToQASM::qProgToQASM(AbstractQuantumCircuit * pCircuit)
     {
         for (auto aiter = pCircuit->getLastNodeIter(); aiter != pCircuit->getHeadNodeIter(); aiter--)
         {
-            QNode * pNode = *aiter;
+            QNode * pNode = (*aiter).get();
             qDaggerCirToQASM(pNode);
         }
     }
@@ -498,7 +424,7 @@ void QProgToQASM::qProgToQASM(AbstractQuantumCircuit * pCircuit)
     {
         for (auto aiter = pCircuit->getFirstNodeIter(); aiter != pCircuit->getEndNodeIter(); aiter++)
         {
-            QNode * pNode = *aiter;
+            QNode * pNode = (*aiter).get();
             qProgToQASM(pNode);
         }
     }
@@ -509,9 +435,11 @@ void QProgToQASM::qProgToQASM(AbstractQuantumCircuit * pCircuit)
 string QProgToQASM::insturctionsQASM()
 {
     string instructions;
-    for (auto &instruct_out : m_qasm)
+
+    for (auto &val : m_qasm)
     {
-        instructions.append(instruct_out).append("\n");
+        transform(val.begin(), val.end(), val.begin(), ::tolower);
+        instructions.append(val).append("\n");
     }
     instructions.erase(instructions.size() - 1);
 

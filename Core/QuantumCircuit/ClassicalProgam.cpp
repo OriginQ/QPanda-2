@@ -21,7 +21,6 @@ using namespace std;
 OriginClassicalProg::OriginClassicalProg(ClassicalCondition & classical_prog)
 {
     m_node_type = CLASS_COND_NODE;
-    m_stPosition = -1;
     m_expr = classical_prog.getExprPtr();
 }
 
@@ -35,15 +34,6 @@ NodeType OriginClassicalProg::getNodeType() const
     return m_node_type;
 }
 
-qmap_size_t OriginClassicalProg::getPosition() const
-{
-    return m_stPosition;
-}
-
-void OriginClassicalProg::setPosition(qmap_size_t postion)
-{
-    m_stPosition = postion;
-}
 
 cbit_size_t OriginClassicalProg::eval()
 {
@@ -56,10 +46,20 @@ cbit_size_t OriginClassicalProg::eval()
     return m_expr->eval();
 }
 
+void OriginClassicalProg::execute(QPUImpl * quantum_gates, QuantumGateParam * param)
+{
+    eval();
+}
+
 
 NodeType ClassicalProg::getNodeType() const
 {
-    auto temp = dynamic_cast<QNode *>(m_node);
+    if (!m_node)
+    {
+        QCERR("Unknown internal error");
+        throw runtime_error("Unknown internal error");
+    }
+    auto temp = dynamic_pointer_cast<QNode >(m_node);
     if (nullptr == temp)
     {
         QCERR("m_node type error");
@@ -69,24 +69,23 @@ NodeType ClassicalProg::getNodeType() const
     return temp->getNodeType();
 }
 
-qmap_size_t ClassicalProg::getPosition() const
-{
-    auto temp = dynamic_cast<QNode *>(m_node);
-    if (nullptr == temp)
-    {
-        QCERR("m_node type error");
-        throw runtime_error("m_node type error");
-    }
 
-    return temp->getPosition();
+std::shared_ptr<QNode> ClassicalProg::getImplementationPtr()
+{
+    if (!m_node)
+    {
+        QCERR("Unknown internal error");
+        throw runtime_error("Unknown internal error");
+    }
+    return dynamic_pointer_cast<QNode>(m_node);
 }
 
 cbit_size_t ClassicalProg::eval()
 {
-    if (nullptr == m_node)
+    if (!m_node)
     {
-        QCERR("m_node nullptr");
-        throw runtime_error("m_node nullptr");
+        QCERR("Unknown internal error");
+        throw runtime_error("Unknown internal error");
     }
 
     return m_node->eval();
@@ -97,42 +96,18 @@ ClassicalProg::ClassicalProg(ClassicalCondition & classical_cond)
     auto sClasNname = ConfigMap::getInstance()["ClassicalProg"];
     auto aMeasure = ClassicalProgFactory::getInstance().
                     getClassicalProgm(sClasNname,classical_cond);
-    auto temp = dynamic_cast<QNode *>(aMeasure);
 
-    auto postion = QNodeMap::getInstance().pushBackNode(temp);
-    temp->setPosition(postion);
-    if (!QNodeMap::getInstance().addNodeRefer(postion))
-    {
-        QCERR("Unknown internal error");
-        throw runtime_error("Unknown internal error");
-    }
-
-
-    m_node = aMeasure;
+    m_node.reset(aMeasure);
 }
 
 ClassicalProg::ClassicalProg(const ClassicalProg & old_prog)
 {
-    auto position = old_prog.getPosition();
-    auto aiter = QNodeMap::getInstance().getNode(position);
-    if (aiter == nullptr)
-    {
-        QCERR("Cannot find classical prog");
-        throw invalid_argument("Cannot find classical prog");
-    }
-
-
-    m_node = dynamic_cast<AbstractClassicalProg *>(aiter);
-    if (!QNodeMap::getInstance().addNodeRefer(position))
-    {
-        QCERR("Unknown internal error");
-        throw runtime_error("Unknown internal error");
-    }
+    m_node = old_prog.m_node;
 }
 
 ClassicalProg::~ClassicalProg()
 {
-    QNodeMap::getInstance().deleteNode(getPosition());
+    m_node.reset();
 }
 
 void ClassicalProgFactory::registClass(string name, CreateClassicalQProgram method)

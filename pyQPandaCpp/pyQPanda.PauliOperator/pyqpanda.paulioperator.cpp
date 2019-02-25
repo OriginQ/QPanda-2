@@ -1,9 +1,9 @@
 #include <math.h>
-#include "pybind11/pybind11.h"
-#include "pybind11/stl.h"
-#include "pybind11/complex.h"
-#include "pybind11/operators.h"
-#include "PauliOperator/PauliOperator.h"
+#include "ThirdParty/pybind11/pybind11.h"
+#include "ThirdParty/pybind11/stl.h"
+#include "ThirdParty/pybind11/complex.h"
+#include "ThirdParty/pybind11/operators.h"
+#include "QAlg/Components/PauliOperator/PauliOperator.h"
 
 namespace py = pybind11;
 USING_QPANDA

@@ -19,7 +19,7 @@ Classes for matrix caculate
 #include <vector>
 #include <stdexcept>
 #include <initializer_list>
-#include "ComplexVector.h"
+#include "Core/Utilities/ComplexVector.h"
 
 USING_QPANDA
 template<size_t qubit_number, typename precision_t=double>

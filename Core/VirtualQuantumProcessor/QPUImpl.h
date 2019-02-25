@@ -14,15 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#ifndef _QUANTUM_GATE_H
-#define _QUANTUM_GATE_H
+#ifndef _QPUIMPL_H
+#define _QPUIMPL_H
 #include <iostream>
 #include <stdio.h>
 #include <vector>
 #include <complex>
 #include <map>
-#include "QuantumGateParameter.h"
-#include "QError.h"
+#include "Core/VirtualQuantumProcessor/QuantumGateParameter.h"
+#include "Core/VirtualQuantumProcessor/QError.h"
 
 typedef std::vector<QGateParam> vQParam;
 
@@ -30,12 +30,12 @@ typedef std::vector<QGateParam> vQParam;
 /*****************************************************************************************************************
 QuantumGates:quantum gate
 *****************************************************************************************************************/
-class QuantumGates
+class QPUImpl
 {
 
 public:
-    QuantumGates();
-    virtual ~QuantumGates() = 0;
+    QPUImpl();
+    virtual ~QPUImpl() = 0;
 
     /*************************************************************************************************************
     Name:        getQState
@@ -147,7 +147,7 @@ public:
     virtual QError initState(QuantumGateParam *) = 0;
 
     virtual QError endGate(QuantumGateParam *pQuantumProParam, 
-                        QuantumGates * pQGate) = 0;
+                        QPUImpl * pQGate) = 0;
     
     virtual QError unitarySingleQubitGate(size_t qn, QStat& matrix, 
                         bool isConjugate, 

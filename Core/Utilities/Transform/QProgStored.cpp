@@ -1,4 +1,5 @@
 #include "QProgStored.h"
+#include "QVec.h"
 #include "Utilities/MetadataValidity.h"
 #include "TransformDecomposition.h"
 using namespace std;
@@ -88,7 +89,7 @@ void QProgStored::traversal()
 
     for (auto iter = p_prog->getFirstNodeIter(); iter != p_prog->getEndNodeIter(); iter++)
     {
-        QNode * p_node = *iter;
+        QNode * p_node = (*iter).get();
         traversalQNode(p_node);
     }
 
@@ -144,7 +145,7 @@ void QProgStored::traversalQProg(AbstractQuantumProgram *p_prog)
 
     for (auto iter = p_prog->getFirstNodeIter(); iter != p_prog->getEndNodeIter(); iter++)
     {
-        QNode * pNode = *iter;
+        QNode * pNode = (*iter).get();
         traversalQNode(pNode);
     }
 
@@ -164,7 +165,7 @@ void QProgStored::traversalQCircuit(AbstractQuantumCircuit *p_circuit)
     {
         for (auto iter = p_circuit->getLastNodeIter(); iter != p_circuit->getHeadNodeIter(); iter--)
         {
-            QNode *p_node = *iter;
+            QNode *p_node = (*iter).get();
             int type = p_node->getNodeType();
 
             switch (type)
@@ -195,7 +196,7 @@ void QProgStored::traversalQCircuit(AbstractQuantumCircuit *p_circuit)
     {
         for (auto iter = p_circuit->getFirstNodeIter(); iter != p_circuit->getEndNodeIter(); iter++)
         {
-            QNode * p_node = *iter;
+            QNode * p_node = (*iter).get();
             traversalQNode(p_node);
         }
     }
@@ -319,7 +320,7 @@ void QProgStored::traversalQGate(AbstractQGateNode *p_gate)
     }
 
     const int kQubitNumberMax = 2;
-    vector<Qubit*> qubits;
+    QVec qubits;
     p_gate->getQuBitVector(qubits);
 
     /* only support singleGate and doubleGate */

@@ -14,9 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include "CBitFactory.h"
-#include "Utilities/ConfigMap.h"
-#include "OriginQuantumMachine.h"
+#include "Core/QuantumMachine/CBitFactory.h"
+#include "Core/Utilities/ConfigMap.h"
+#include "Core/QuantumMachine/OriginQuantumMachine.h"
 USING_QPANDA
 using namespace std;
 CBitFactory::CBitFactory()

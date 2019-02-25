@@ -16,10 +16,10 @@ limitations under the License.
 
 #ifndef ORIGIN_QUANTUM_MACHINE_H
 #define ORIGIN_QUANTUM_MACHINE_H
-#include "Factory.h"
-#include "QuantumMachineInterface.h"
-#include "VirtualQuantumProcessor/QuantumGates.h"
-#include "VirtualQuantumProcessor/QuantumGateParameter.h"
+#include "Core/QuantumMachine/Factory.h"
+#include "Core/QuantumMachine/QuantumMachineInterface.h"
+#include "Core/VirtualQuantumProcessor/QPUImpl.h"
+#include "Core/VirtualQuantumProcessor/QuantumGateParameter.h"
 USING_QPANDA
 
 class OriginPhysicalQubit : public PhysicalQubit
@@ -145,23 +145,23 @@ public:
     }
 };
 
-class OriginQVM : public QuantumMachine
+class OriginQVM : public QuantumMachine,public IdealMachineInterface
 {
 private:
     QubitPool * _Qubit_Pool = nullptr;
     CMem * _CMem = nullptr;
-    qmap_size_t _QProgram = -1;
+    std::shared_ptr<AbstractQuantumProgram> _QProgram ;
     QResult* _QResult = nullptr;
     QMachineStatus* _QMachineStatus = nullptr;
     QuantumGateParam * _pParam;
-    QuantumGates     * _pGates;
+    QPUImpl     * _pGates;
     struct Configuration
     {
         size_t maxQubit=25;
         size_t maxCMem=256;
     };
     Configuration _Config;
-
+    void run(QProg&);
 public:
     OriginQVM() {}
     bool init(QuantumMachine_type type = CPU);
@@ -175,9 +175,6 @@ public:
     void Free_Qubits(QVec&); //free a list of qubits
     void Free_CBit(ClassicalCondition &);
     void Free_CBits(std::vector<ClassicalCondition>&);
-    void load(QProg &);
-    void append(QProg&);
-    void run();
     QMachineStatus* getStatus() const;
     QResult* getResult();
     void finalize();
@@ -194,9 +191,10 @@ public:
     std::vector<double> probRunList(QProg &, QVec , int);
     std::map<std::string, double> probRunDict(QProg &, QVec , int);
     std::string ResultToBinaryString(std::vector<ClassicalCondition>& vCBit);
-    std::map<std::string, size_t> runWithConfiguration(QProg &, std::vector<ClassicalCondition> &, int);
+    std::map<std::string, size_t> runWithConfiguration(QProg &, std::vector<ClassicalCondition> &, rapidjson::Document &);
     std::map<std::string, size_t> quickMeasure(QVec , size_t);
     virtual std::map<int, size_t> getGateTimeMap() const;
+    QStat getQStat();
 };
 
 #endif

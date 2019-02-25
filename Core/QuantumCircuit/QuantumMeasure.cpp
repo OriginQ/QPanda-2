@@ -18,91 +18,74 @@ limitations under the License.
 #include "Utilities/ConfigMap.h"
 USING_QPANDA
 using namespace std;
-QMeasure  QPanda::Measure(Qubit * targetQuBit,ClassicalCondition  classical_cond)
+QMeasure  QPanda::Measure(Qubit * target_qbit,ClassicalCondition  classical_cond)
 {
-    auto targetCbit = classical_cond.getExprPtr()->getCBit();
-    if (nullptr == targetCbit)
+    auto target_cbit = classical_cond.getExprPtr()->getCBit();
+    if (nullptr == target_cbit)
     {
         QCERR("param error");
         throw invalid_argument("param error");
     }
-    QMeasure qMeasure(targetQuBit, targetCbit);
-    return qMeasure;
+    QMeasure measure(target_qbit, target_cbit);
+    return measure;
 }
 
-QMeasure::QMeasure(const QMeasure & oldMeasure)
+QMeasure::QMeasure(const QMeasure & old_measure)
 {
-    m_stPosition = oldMeasure.getPosition();    
-    auto aiter = QNodeMap::getInstance().getNode(m_stPosition);
-    if (aiter != nullptr)
-        m_pQuantumMeasure = dynamic_cast<AbstractQuantumMeasure *>(aiter);
-    else
-    {
-        QCERR("there is not target QNode");
-        throw runtime_error("there is not target QNode");
-    }
-
-    if (!QNodeMap::getInstance().addNodeRefer(m_stPosition))
-    {
-        QCERR("Unknown internal error");
-        throw runtime_error("Unknown internal error");
-    }
+    m_measure = old_measure.m_measure;
 }
 
 QMeasure::QMeasure(Qubit * qbit, CBit * cbit)
 {
-    auto sClasNname = ConfigMap::getInstance()["QMeasure"];
-    auto aMeasure = QuantunMeasureFactory::getInstance().getQuantumMeasure(sClasNname, qbit, cbit);
-    auto temp = dynamic_cast<QNode *>(aMeasure);
-    m_stPosition = QNodeMap::getInstance().pushBackNode(temp);
-    temp->setPosition(m_stPosition);
-    if (!QNodeMap::getInstance().addNodeRefer(m_stPosition))
+    auto class_name = ConfigMap::getInstance()["QMeasure"];
+    auto measure = QuantunMeasureFactory::getInstance().getQuantumMeasure(class_name, qbit, cbit);
+    m_measure.reset(measure);
+}
+
+std::shared_ptr<QNode> QMeasure::getImplementationPtr()
+{
+    if (!m_measure)
     {
         QCERR("Unknown internal error");
         throw runtime_error("Unknown internal error");
     }
-    m_pQuantumMeasure = aMeasure;
+    return dynamic_pointer_cast<QNode>(m_measure);
 }
 
 QMeasure::~QMeasure()
 {
-    QNodeMap::getInstance().deleteNode(m_stPosition);
+    m_measure.reset();
 }
 
 Qubit * QMeasure::getQuBit() const
 {
-    if (nullptr == m_pQuantumMeasure)
+    if (nullptr == m_measure)
     {
         QCERR("Unknown internal error");
         throw runtime_error("Unknown internal error");
     }
-    return m_pQuantumMeasure->getQuBit();
+    return m_measure->getQuBit();
 }
 
 CBit * QMeasure::getCBit() const
 {
-    if (nullptr == m_pQuantumMeasure)
+    if (!m_measure)
     {
         QCERR("Unknown internal error");
         throw runtime_error("Unknown internal error");
     }
-    return m_pQuantumMeasure->getCBit();
+    return m_measure->getCBit();
 }
 
 
 NodeType QMeasure::getNodeType() const
 {
-    if (nullptr == m_pQuantumMeasure)
+    if (!m_measure)
     {
         QCERR("Unknown internal error");
         throw runtime_error("Unknown internal error");
     }
-    return (dynamic_cast<QNode *>(m_pQuantumMeasure))->getNodeType();
-}
-
-qmap_size_t QMeasure::getPosition() const
-{
-    return m_stPosition;
+    return (dynamic_pointer_cast<QNode >(m_measure))->getNodeType();
 }
 
 void QuantunMeasureFactory::registClass(string name, CreateMeasure method)
@@ -126,32 +109,53 @@ AbstractQuantumMeasure * QuantunMeasureFactory::getQuantumMeasure(std::string & 
 
 NodeType OriginMeasure::getNodeType() const
 {
-    return m_iNodeType;
+    return m_node_type;
 }
 
-OriginMeasure::OriginMeasure(Qubit * pQubit, CBit * pCBit):m_pTargetQubit(pQubit),m_pCBit(pCBit),m_iNodeType(MEASURE_GATE)
+void OriginMeasure::execute(QPUImpl * quantum_gates, QuantumGateParam * param)
+{
+    int iResult = quantum_gates->qubitMeasure(getQuBit()->getPhysicalQubitPtr()->getQubitAddr());
+    if (iResult < 0)
+    {
+        QCERR("result error");
+        throw runtime_error("result error");
+    }
+    CBit * cexpr = getCBit();
+    if (nullptr == cexpr)
+    {
+        QCERR("unknow error");
+        throw runtime_error("unknow error");
+    }
+
+    cexpr->setValue(iResult);
+
+    string name = cexpr->getName();
+    auto aiter = param->m_return_value.find(name);
+    if (aiter != param->m_return_value.end())
+    {
+        aiter->second = (bool)iResult;
+    }
+    else
+    {
+        param->m_return_value.insert(pair<string, bool>(name, (bool)iResult));
+    }
+}
+
+OriginMeasure::OriginMeasure(Qubit * qbit, CBit * cbit):
+    m_target_qbit(qbit),
+    m_target_cbit(cbit),
+    m_node_type(MEASURE_GATE)
 {
 }
 
 Qubit * OriginMeasure::getQuBit() const
 {
-    return m_pTargetQubit;
+    return m_target_qbit;
 }
 
 CBit * OriginMeasure::getCBit() const
 {
-    return m_pCBit;
-}
-
-
-qmap_size_t OriginMeasure::getPosition() const
-{
-    return m_stPosition;
-}
-
-void OriginMeasure::setPosition(qmap_size_t stPositio)
-{
-    m_stPosition = stPositio;
+    return m_target_cbit;
 }
 
 REGISTER_MEASURE(OriginMeasure);

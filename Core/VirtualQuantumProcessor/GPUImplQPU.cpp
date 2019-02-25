@@ -23,7 +23,7 @@ Author:Dou Menghan
 Date:2017-11-10
 Description:gpu quantum logic gates class
 *****************************************************************************************************************/
-#include "GPUQuantumGates.h"
+#include "GPUImplQPU.h"
 #ifdef USE_CUDA
 using namespace std;
 #include "QPandaNamespace.h"
@@ -35,7 +35,7 @@ using namespace std;
 #include <sstream>
 using std::stringstream;
 
-GPUQuantumGates::~GPUQuantumGates()
+GPUImplQPU::~GPUImplQPU()
 {
     if (miQbitNum > 0)
         GATEGPU::destroyState(mvCPUQuantumStat, mvQuantumStat, miQbitNum);
@@ -50,7 +50,7 @@ GPUQuantumGates::~GPUQuantumGates()
     }
 }
 
-size_t GPUQuantumGates::getQStateSize()
+size_t GPUImplQPU::getQStateSize()
 {
     if (!mbIsInitQState)
         return 0;
@@ -67,10 +67,10 @@ Argin:       stNumber  Quantum number
 Argout:      None
 return:      quantum error
 *****************************************************************************************************************/
-QError GPUQuantumGates::initState(QuantumGateParam * pQuantumProParam)
+QError GPUImplQPU::initState(QuantumGateParam * pQuantumProParam)
 {
-    miQbitNum     = pQuantumProParam->mQuantumBitNumber;
-    if (!initstate(mvCPUQuantumStat, mvQuantumStat, pQuantumProParam->mQuantumBitNumber))
+    miQbitNum     = pQuantumProParam->m_qbit_number;
+    if (!initstate(mvCPUQuantumStat, mvQuantumStat, pQuantumProParam->m_qbit_number))
     {
         return undefineError;
     }
@@ -86,13 +86,13 @@ Argin:       pQuantumProParam       quantum program prarm pointer
 Argout:      sState                 string state
 return:      quantum error
 *****************************************************************************************************************/
-bool GPUQuantumGates::getQState(string & sState, QuantumGateParam *pQuantumProParam)
+bool GPUImplQPU::getQState(string & sState, QuantumGateParam *pQuantumProParam)
 {
     if (miQbitNum <= 0)
         return false;
 
-    getState(mvCPUQuantumStat, mvQuantumStat, pQuantumProParam->mQuantumBitNumber);
-    size_t uiDim = 1ull << (pQuantumProParam->mQuantumBitNumber);
+    getState(mvCPUQuantumStat, mvQuantumStat, pQuantumProParam->m_qbit_number);
+    size_t uiDim = 1ull << (pQuantumProParam->m_qbit_number);
     stringstream ssTemp;
     for (size_t i = 0; i < uiDim; i++)
     {
@@ -113,17 +113,17 @@ pQGate                 quantum gate
 Argout:      None
 return:      quantum error
 *****************************************************************************************************************/
-QError GPUQuantumGates::endGate(QuantumGateParam *pQuantumProParam, QuantumGates * pQGate)
+QError GPUImplQPU::endGate(QuantumGateParam *pQuantumProParam, QPUImpl * pQGate)
 {
     return qErrorNone;
 }
 
-QError GPUQuantumGates::Hadamard(size_t qn, bool isConjugate, double error_rate)
+QError GPUImplQPU::Hadamard(size_t qn, bool isConjugate, double error_rate)
 {
     return undefineError;
 }
 
-QError GPUQuantumGates::Hadamard(
+QError GPUImplQPU::Hadamard(
     size_t qn,
     Qnum& vControlBit,
     bool isConjugate,
@@ -132,12 +132,12 @@ QError GPUQuantumGates::Hadamard(
     return undefineError;
 }
 
-QError GPUQuantumGates::X(size_t qn, bool isConjugate, double error_rate)
+QError GPUImplQPU::X(size_t qn, bool isConjugate, double error_rate)
 {
     return undefineError;
 }
 
-QError GPUQuantumGates::X(
+QError GPUImplQPU::X(
     size_t qn,
     Qnum& vControlBit,
     bool isConjugate,
@@ -146,11 +146,11 @@ QError GPUQuantumGates::X(
     return undefineError;
 }
 
-QError GPUQuantumGates::Y(size_t qn, bool isConjugate, double error_rate)
+QError GPUImplQPU::Y(size_t qn, bool isConjugate, double error_rate)
 {
     return undefineError;
 }
-QError GPUQuantumGates::Y(
+QError GPUImplQPU::Y(
     size_t qn,
     Qnum& vControlBit,
     bool isConjugate,
@@ -159,11 +159,11 @@ QError GPUQuantumGates::Y(
     return undefineError;
 }
 
-QError GPUQuantumGates::Z(size_t qn, bool isConjugate, double error_rate)
+QError GPUImplQPU::Z(size_t qn, bool isConjugate, double error_rate)
 {
     return undefineError;
 }
-QError GPUQuantumGates::Z(
+QError GPUImplQPU::Z(
     size_t qn,
     Qnum& vControlBit,
     bool isConjugate,
@@ -171,11 +171,11 @@ QError GPUQuantumGates::Z(
 {
     return undefineError;
 }
-QError GPUQuantumGates::S(size_t qn, bool isConjugate, double error_rate)
+QError GPUImplQPU::S(size_t qn, bool isConjugate, double error_rate)
 {
     return undefineError;
 }
-QError GPUQuantumGates::S(
+QError GPUImplQPU::S(
     size_t qn,
     Qnum& vControlBit,
     bool isConjugate,
@@ -183,12 +183,12 @@ QError GPUQuantumGates::S(
 {
     return undefineError;
 }
-QError GPUQuantumGates::T(size_t qn, bool isConjugate, double error_rate)
+QError GPUImplQPU::T(size_t qn, bool isConjugate, double error_rate)
 {
     return undefineError;
 }
 
-QError GPUQuantumGates::T(
+QError GPUImplQPU::T(
     size_t qn,
     Qnum& vControlBit,
     bool isConjugate,
@@ -198,13 +198,13 @@ QError GPUQuantumGates::T(
 }
 
 
-QError GPUQuantumGates::RX_GATE(size_t qn, double theta,
+QError GPUImplQPU::RX_GATE(size_t qn, double theta,
     bool isConjugate, double error_rate)
 {
     return undefineError;
 }
 
-QError GPUQuantumGates::RX_GATE(
+QError GPUImplQPU::RX_GATE(
     size_t qn,
     double theta,
     Qnum& vControlBit,
@@ -214,13 +214,13 @@ QError GPUQuantumGates::RX_GATE(
     return undefineError;
 }
 
-QError GPUQuantumGates::RY_GATE(size_t qn, double theta,
+QError GPUImplQPU::RY_GATE(size_t qn, double theta,
     bool isConjugate, double error_rate)
 {
     return undefineError;
 }
 
-QError GPUQuantumGates::RY_GATE(
+QError GPUImplQPU::RY_GATE(
     size_t qn,
     double theta,
     Qnum& vControlBit,
@@ -231,13 +231,13 @@ QError GPUQuantumGates::RY_GATE(
 }
 
 
-QError GPUQuantumGates::RZ_GATE(size_t qn, double theta,
+QError GPUImplQPU::RZ_GATE(size_t qn, double theta,
     bool isConjugate, double error_rate)
 {
     return undefineError;
 }
 
-QError GPUQuantumGates::RZ_GATE(
+QError GPUImplQPU::RZ_GATE(
     size_t qn,
     double theta,
     Qnum& vControlBit,
@@ -250,12 +250,12 @@ QError GPUQuantumGates::RZ_GATE(
 
 
 //double quantum gate
-QError GPUQuantumGates::CNOT(size_t qn_0, size_t qn_1, bool isConjugate, double error_rate)
+QError GPUImplQPU::CNOT(size_t qn_0, size_t qn_1, bool isConjugate, double error_rate)
 {
     return undefineError;
 }
 
-QError GPUQuantumGates::CNOT(
+QError GPUImplQPU::CNOT(
     size_t qn_0,
     size_t qn_1,
     Qnum& vControlBit,
@@ -265,12 +265,12 @@ QError GPUQuantumGates::CNOT(
     return undefineError;
 }
 
-QError GPUQuantumGates::CZ(size_t qn_0, size_t qn_1, bool isConjugate, double error_rate)
+QError GPUImplQPU::CZ(size_t qn_0, size_t qn_1, bool isConjugate, double error_rate)
 {
     return undefineError;
 }
 
-QError GPUQuantumGates::CZ(
+QError GPUImplQPU::CZ(
     size_t qn_0,
     size_t qn_1,
     Qnum& vControlBit,
@@ -280,12 +280,12 @@ QError GPUQuantumGates::CZ(
     return undefineError;
 }
 
-QError GPUQuantumGates::CR(size_t qn_0, size_t qn_1, double theta, bool isConjugate, double error_rate)
+QError GPUImplQPU::CR(size_t qn_0, size_t qn_1, double theta, bool isConjugate, double error_rate)
 {
     return undefineError;
 }
 
-QError GPUQuantumGates::CR(
+QError GPUImplQPU::CR(
     size_t qn_0,
     size_t qn_1,
     Qnum& vControlBit,
@@ -296,12 +296,12 @@ QError GPUQuantumGates::CR(
     return undefineError;
 }
 
-QError GPUQuantumGates::iSWAP(size_t qn_0, size_t qn_1, double theta, bool isConjugate, double error_rate)
+QError GPUImplQPU::iSWAP(size_t qn_0, size_t qn_1, double theta, bool isConjugate, double error_rate)
 {
     return undefineError;
 }
 
-QError GPUQuantumGates::iSWAP(
+QError GPUImplQPU::iSWAP(
     size_t qn_0,
     size_t qn_1,
     Qnum& vControlBit,
@@ -313,12 +313,12 @@ QError GPUQuantumGates::iSWAP(
 }
 
 //pi/2 iSWAP
-QError GPUQuantumGates::iSWAP(size_t qn_0, size_t qn_1, bool isConjugate, double error_rate)
+QError GPUImplQPU::iSWAP(size_t qn_0, size_t qn_1, bool isConjugate, double error_rate)
 {
     return undefineError;
 }
 
-QError GPUQuantumGates::iSWAP(
+QError GPUImplQPU::iSWAP(
     size_t qn_0,
     size_t qn_1,
     Qnum& vControlBit,
@@ -330,11 +330,11 @@ QError GPUQuantumGates::iSWAP(
 
 
 //pi/4 SqiSWAP
-QError GPUQuantumGates::SqiSWAP(size_t qn_0, size_t qn_1, bool isConjugate, double error_rate)
+QError GPUImplQPU::SqiSWAP(size_t qn_0, size_t qn_1, bool isConjugate, double error_rate)
 {
     return undefineError;
 }
-QError GPUQuantumGates::SqiSWAP(
+QError GPUImplQPU::SqiSWAP(
     size_t qn_0,
     size_t qn_1,
     Qnum& vControlBit,
@@ -344,7 +344,7 @@ QError GPUQuantumGates::SqiSWAP(
     return undefineError;
 }
 
-QError GPUQuantumGates::unitarySingleQubitGate(
+QError GPUImplQPU::unitarySingleQubitGate(
     size_t qn,
     QStat & matrix,
     bool isConjugate,
@@ -363,7 +363,7 @@ QError GPUQuantumGates::unitarySingleQubitGate(
     return qErrorNone;
 }
 
-QError GPUQuantumGates::controlunitarySingleQubitGate(
+QError GPUImplQPU::controlunitarySingleQubitGate(
     size_t qn,
     Qnum& qnum,
     QStat& matrix,
@@ -384,7 +384,7 @@ QError GPUQuantumGates::controlunitarySingleQubitGate(
 }
 
 
-QError GPUQuantumGates::unitaryDoubleQubitGate(
+QError GPUImplQPU::unitaryDoubleQubitGate(
     size_t qn_0,
     size_t qn_1,
     QStat& matrix,
@@ -409,7 +409,7 @@ QError GPUQuantumGates::unitaryDoubleQubitGate(
     return qErrorNone;
 }
 
-QError GPUQuantumGates::controlunitaryDoubleQubitGate(
+QError GPUImplQPU::controlunitaryDoubleQubitGate(
     size_t qn_0,
     size_t qn_1,
     Qnum& qnum,
@@ -435,7 +435,7 @@ QError GPUQuantumGates::controlunitaryDoubleQubitGate(
     return qErrorNone;
 }
 
-QError GPUQuantumGates::Reset(size_t qn)
+QError GPUImplQPU::Reset(size_t qn)
 {
     if (!GATEGPU::qbReset(mvQuantumStat, qn, 0))
     {
@@ -444,12 +444,12 @@ QError GPUQuantumGates::Reset(size_t qn)
     return qErrorNone;
 }
 
-bool GPUQuantumGates::qubitMeasure(size_t qn)
+bool GPUImplQPU::qubitMeasure(size_t qn)
 {
     return GATEGPU::qubitmeasure(mvQuantumStat, 1ull << qn, m_resultgpu, m_probgpu);
 }
 
-QError GPUQuantumGates::pMeasure(Qnum& qnum, vector<pair<size_t, double>> &mResult,int select_max)
+QError GPUImplQPU::pMeasure(Qnum& qnum, vector<pair<size_t, double>> &mResult,int select_max)
 {
     if (!GATEGPU::pMeasurenew(mvQuantumStat, mResult, qnum, select_max))
     {
@@ -458,7 +458,7 @@ QError GPUQuantumGates::pMeasure(Qnum& qnum, vector<pair<size_t, double>> &mResu
     return qErrorNone;
 }
 
-QError GPUQuantumGates::pMeasure(Qnum& qnum, vector<double> &mResult)
+QError GPUImplQPU::pMeasure(Qnum& qnum, vector<double> &mResult)
 {
     if (!GATEGPU::pMeasure_no_index(mvQuantumStat, mResult, qnum))
     {

@@ -17,7 +17,7 @@ limitations under the License.
 #ifndef QUBIT_POOL_FACTORY_H
 #define QUBIT_POOL_FACTORY_H
 
-#include "QubitFactory.h"
+#include "Core/QuantumMachine/QubitFactory.h"
 #include <functional>
 #include <stack>
 QPANDA_BEGIN

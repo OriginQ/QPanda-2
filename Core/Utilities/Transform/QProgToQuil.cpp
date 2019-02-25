@@ -74,7 +74,7 @@ void QProgToQuil::progToQuil(AbstractQuantumProgram *p_prog)
 
     for (auto iter = p_prog->getFirstNodeIter(); iter != p_prog->getEndNodeIter(); iter++)
     {
-        QNode * p_node = *iter;
+        QNode * p_node = (*iter).get();
         nodeToQuil(p_node);
     }
 
@@ -105,7 +105,7 @@ void QProgToQuil::gateToQuil(AbstractQGateNode *p_gate)
     auto circuit = transformQPandaBaseGateToQuilBaseGate(p_gate);
     for (auto iter = circuit.getFirstNodeIter(); iter != circuit.getEndNodeIter(); iter++)
     {
-        QNode * p_node = *iter;
+        QNode * p_node = (*iter).get();
         dealWithQuilGate(dynamic_cast<AbstractQGateNode *>(p_node));
     }
 
@@ -125,7 +125,7 @@ void QProgToQuil::circuitToQuil(AbstractQuantumCircuit *p_circuit)
     {
         for (auto iter = p_circuit->getLastNodeIter(); iter != p_circuit->getHeadNodeIter(); iter--)
         {
-            QNode *p_node = *iter;
+            QNode *p_node = (*iter).get();
             int type = p_node->getNodeType();
 
             switch (type)
@@ -157,7 +157,7 @@ void QProgToQuil::circuitToQuil(AbstractQuantumCircuit *p_circuit)
     {
         for (auto iter = p_circuit->getFirstNodeIter(); iter != p_circuit->getEndNodeIter(); iter++)
         {
-            QNode * p_node = *iter;
+            QNode * p_node = (*iter).get();
             nodeToQuil(p_node);
         }
     }
@@ -242,7 +242,7 @@ void QProgToQuil::dealWithQuilGate(AbstractQGateNode *p_gate)
 
     auto p_quantum_gate = p_gate->getQGate();
     int gate_type = p_quantum_gate->getGateType();
-    vector<Qubit*> qubits;
+    QVec qubits;
     p_gate->getQuBitVector(qubits);
 
     auto iter = m_gate_type_map.find(gate_type);
@@ -321,7 +321,7 @@ ostream & QPanda::operator<<(ostream & out, const QProgToQuil & prog)
 
 QCircuit QProgToQuil::transformQPandaBaseGateToQuilBaseGate(AbstractQGateNode *p_gate)
 {
-    vector<Qubit*> target_qubits;
+    QVec target_qubits;
     if (p_gate->getQuBitVector(target_qubits) <= 0)
     {
         QCERR("gate is null");

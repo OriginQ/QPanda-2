@@ -13,7 +13,8 @@ Created in 2018-09-19
 #ifndef HAMILTONIANSIMULATION_H
 #define HAMILTONIANSIMULATION_H
 
-#include "QuantumCircuit/QProgram.h"
+#include "Core/QuantumCircuit/QProgram.h"
+#include "Core/QuantumCircuit/QCircuit.h"
 #include "QAlg/DataStruct.h"
 
 namespace QPanda

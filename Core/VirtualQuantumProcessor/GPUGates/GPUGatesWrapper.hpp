@@ -1,7 +1,7 @@
 #ifndef GPU_GATES_WRAPPER_H
 #define GPU_GATES_WRAPPER_H
 
-#include "GPUStruct.hpp"
+#include "Core/VirtualQuantumProcessor/GPUGates/GPUStruct.hpp"
 
 #include <vector>
 #include <algorithm>

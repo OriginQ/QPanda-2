@@ -18,12 +18,13 @@ limitations under the License.
 #define QUANTUM_MACHINE_INTERFACE_H
 #include <map>
 #include <vector>
-#include "QResultFactory.h"
-#include "QVec.h"
-#include "VirtualQuantumProcessor/QuantumGates.h"
-#include "QuantumCircuit/QProgram.h"
-#include "QPandaNamespace.h"
+#include "Core/QuantumMachine/QResultFactory.h"
 #include "Core/QuantumMachine/QVec.h"
+#include "VirtualQuantumProcessor/QPUImpl.h"                             
+#include "Core/QuantumCircuit/QProgram.h"
+#include "Core/Utilities/QPandaNamespace.h"
+#include "Core/QuantumMachine/QVec.h"
+#include "Core/Utilities/OriginCollection.h"
 QPANDA_BEGIN
 
 enum QuantumMachine_type {
@@ -59,6 +60,21 @@ public:
     virtual ~QMachineStatus() {}
 };
 
+class IdealMachineInterface
+{
+public:
+    virtual std::vector<double> PMeasure_no_index(QVec qubit_vector) = 0;
+    virtual std::vector<std::pair<size_t, double>> getProbTupleList(QVec, int) = 0;
+    virtual std::vector<double> getProbList(QVec, int) = 0;
+    virtual std::map<std::string, double>  getProbDict(QVec, int) = 0;
+    virtual std::vector<std::pair<size_t, double>> probRunTupleList(QProg &, QVec, int) = 0;
+    virtual std::vector<double> probRunList(QProg &, QVec, int) = 0;
+    virtual std::map<std::string, double> probRunDict(QProg &, QVec, int) = 0;
+    virtual std::map<std::string, size_t> quickMeasure(QVec, size_t) = 0;
+    virtual QStat getQStat() = 0;
+    virtual ~IdealMachineInterface() {}
+};
+ 
 class QuantumMachine
 {
 public:
@@ -73,28 +89,15 @@ public:
     virtual void Free_Qubits(QVec &) = 0; //free a list of qubits
     virtual void Free_CBit(ClassicalCondition &) = 0; // free a cbit
     virtual void Free_CBits(std::vector<ClassicalCondition > &) = 0; //free a list of CBits
-    virtual void load(QProg &) = 0; // load a qprog
-    virtual void append(QProg&) = 0; // append the qprog after the original
-    virtual void run() = 0; // run on the quantum machine
     virtual QMachineStatus* getStatus() const = 0; // get the status of the quantum machine
-    virtual QResult* getResult() = 0; // get the result of the quantum program
-    virtual void finalize() = 0; // finish the program
-
-    virtual std::map<std::string, bool> getResultMap()=0;
-    virtual std::vector<std::pair<size_t, double>> PMeasure(QVec qubit_vector, int select_max)=0;
-    virtual std::vector<double> PMeasure_no_index(QVec qubit_vector)=0;
-    virtual std::map<std::string, bool> directlyRun(QProg &) = 0;
-    virtual std::vector<std::pair<size_t, double>> getProbTupleList(QVec , int )=0;
-    virtual std::vector<double> getProbList(QVec, int) = 0;
-    virtual std::map<std::string, double>  getProbDict(QVec, int) = 0;
-    virtual std::vector<std::pair<size_t, double>> probRunTupleList(QProg & , QVec , int) = 0;
-    virtual std::vector<double> probRunList(QProg &, QVec , int) = 0;
-    virtual std::map<std::string, double> probRunDict(QProg &, QVec , int) = 0;
-    virtual std::map<std::string, size_t> runWithConfiguration(QProg &, std::vector<ClassicalCondition> &, int) = 0;
-    virtual std::map<std::string, size_t> quickMeasure(QVec, size_t) = 0;
+    virtual std::map<std::string, bool> directlyRun(QProg & qProg) = 0;
+    virtual std::map<std::string, size_t> runWithConfiguration(QProg &, std::vector<ClassicalCondition> &, rapidjson::Document&) = 0;
+    virtual std::vector<std::pair<size_t, double>> PMeasure(QVec qubit_vector, int select_max) = 0;
     virtual size_t getAllocateQubit() = 0;
     virtual size_t getAllocateCMem() = 0;
     virtual std::map<int, size_t> getGateTimeMap() const = 0;
+    virtual void finalize() = 0; // finish the program
+
     virtual ~QuantumMachine() {} // destructor
 };
 QPANDA_END

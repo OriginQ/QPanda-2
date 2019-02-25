@@ -1,6 +1,8 @@
 #ifndef _QGATECOUNTER_H
 #define _QGATECOUNTER_H
 #include "QuantumCircuit/QProgram.h"
+#include "QuantumCircuit/ControlFlow.h"
+#include "QuantumCircuit/QCircuit.h"
 QPANDA_BEGIN
 class QGateCounter
 {

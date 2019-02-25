@@ -25,6 +25,7 @@ update comment
 #include "QProgToQuil.h"
 #include "QuantumCircuit/QGlobalVariable.h"
 #include "QuantumCircuit/QProgram.h"
+#include "QuantumCircuit/ControlFlow.h"
 
 QPANDA_BEGIN
 #ifndef _DATPARSE_

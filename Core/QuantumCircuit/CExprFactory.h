@@ -17,10 +17,11 @@ limitations under the License.
 #ifndef CEXPR_FACTORY_H
 #define CEXPR_FACTORY_H
 
-#include "CBitFactory.h"
+#include "Core/QuantumMachine/CBitFactory.h"
 #include <functional>
 #include <stack>
 #include <map>
+
 QPANDA_BEGIN
 
 /**

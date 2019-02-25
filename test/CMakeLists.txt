@@ -3,3 +3,8 @@ add_subdirectory(QAlg.test)
 add_subdirectory(QPanda.Core.test)
 add_subdirectory(Variational.test)
 add_subdirectory(Autodiff.test)
+add_subdirectory(QProgTransform.test)
+
+if (USE_CURL)
+    #add_subdirectory(CloudHttp.test)
+endif (USE_CURL)

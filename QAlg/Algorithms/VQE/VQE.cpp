@@ -105,8 +105,6 @@ namespace QPanda
 
     void VQE::QFinalize()
     {
-        std::for_each(m_qubit_vec.begin(), m_qubit_vec.end(),
-            [](Qubit* qbit) { qFree(qbit); });
         std::for_each(m_cbit_vec.begin(), m_cbit_vec.end(),
             [](ClassicalCondition cbit) { cFree(cbit); });
 
@@ -491,8 +489,7 @@ namespace QPanda
             m_prog << transformBase(component.first);
         }
 
-        load(m_prog);
-        run();
+        directlyRun(m_prog);
 
         double expectation = 0.0;
         auto result = getProbabilites();

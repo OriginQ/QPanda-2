@@ -304,7 +304,7 @@ void QPanda::decomposeDoubleQGate(AbstractQGateNode * pNode,
         return;
     }
 
-    vector<Qubit*> vQubit;
+    QVec vQubit;
 
     if (pNode->getQuBitVector(vQubit) <= 0)
     {
@@ -464,7 +464,7 @@ void TransformDecomposition::transformAxisToMatrix(axis &Axis, double Angle, QSt
 QCircuit TransformDecomposition::
 firstStepOfMultipleControlQGateDecomposition(AbstractQGateNode* pNode, Qubit * AncillaQubit)
 {
-    vector<Qubit*> vTargetQubit;
+    QVec vTargetQubit;
 
     if (pNode->getQuBitVector(vTargetQubit) <= 0)
     {
@@ -472,7 +472,7 @@ firstStepOfMultipleControlQGateDecomposition(AbstractQGateNode* pNode, Qubit * A
         throw runtime_error("the num of qubit vector error");
     }
 
-    vector<Qubit*> vControlQubit;
+    QVec vControlQubit;
 
     if (pNode->getControlVector(vControlQubit) <= 0)
     {
@@ -572,7 +572,7 @@ firstStepOfMultipleControlQGateDecomposition(AbstractQGateNode* pNode, Qubit * A
 QCircuit TransformDecomposition::
 secondStepOfMultipleControlQGateDecomposition(AbstractQGateNode *pNode, vector<Qubit*> AncillaQubitVector)
 {
-    vector<Qubit*> vTargetQubit;
+    QVec vTargetQubit;
 
     if (pNode->getQuBitVector(vTargetQubit) <= 0)
     {
@@ -580,7 +580,7 @@ secondStepOfMultipleControlQGateDecomposition(AbstractQGateNode *pNode, vector<Q
         throw runtime_error("the num of qubit vector error");
     }
 
-    vector<Qubit*> vControlQubit;
+    QVec vControlQubit;
 
     if (pNode->getControlVector(vControlQubit) <= 0)
     {
@@ -655,7 +655,7 @@ QCircuit TransformDecomposition::decomposeToffoliQGate(Qubit * TargetQubit, vect
 }
 QCircuit TransformDecomposition::decomposeTwoControlSingleQGate(AbstractQGateNode * pNode)
 {
-    vector<Qubit*> vTargetQubit;
+    QVec vTargetQubit;
 
     auto qCircuit = CreateEmptyCircuit();
 
@@ -665,7 +665,7 @@ QCircuit TransformDecomposition::decomposeTwoControlSingleQGate(AbstractQGateNod
         throw runtime_error("the num of qubit vector error");
     }
 
-    vector<Qubit*> vControlQubit;
+    QVec vControlQubit;
 
     if (pNode->getControlVector(vControlQubit) <= 0)
     {
@@ -745,14 +745,14 @@ Return      :
 ******************************************************************/
 void QPanda::decomposeMultipleControlQGate(AbstractQGateNode *pNode, QNode * pParentNode, TransformDecomposition * traversalAlgorithm)
 {
-    vector<Qubit*> vTargetQubit;
+    QVec vTargetQubit;
 
     if (pNode->getQuBitVector(vTargetQubit) != 1)
     {
         return;
     }
 
-    vector<Qubit*> vControlQubit;
+    QVec vControlQubit;
 
     if (CIRCUIT_NODE == pParentNode->getNodeType())
     {
@@ -867,7 +867,7 @@ void QPanda::decomposeControlUnitarySingleQGate(AbstractQGateNode * pNode, QNode
         throw runtime_error("pQGate is null");
     }
 
-    vector<Qubit*> qubitVector;
+    QVec qubitVector;
 
     if (pNode->getQuBitVector(qubitVector) <= 0)
     {
@@ -908,13 +908,13 @@ void QPanda::decomposeControlSingleQGateIntoMetadataDoubleQGate(AbstractQGateNod
         throw runtime_error("the size of sGateName is error");
     }
 
-    vector<Qubit*> vTargetQubit;
+    QVec vTargetQubit;
     if (pNode->getQuBitVector(vTargetQubit) != 1)
     {
         return;
     }
 
-    vector<Qubit*> vControlQubit;
+    QVec vControlQubit;
     if (pNode->getControlVector(vControlQubit) != 1)
     {
         return;
@@ -1050,7 +1050,7 @@ void TransformDecomposition::insertQCircuit(AbstractQGateNode * pGateNode, QCirc
         for (; aiter != pParentCircuit->getEndNodeIter(); ++aiter)
         {
             auto temp = dynamic_cast<QNode *>(pGateNode);
-            if (temp->getPosition() == (*aiter)->getPosition())
+            if (temp == (*aiter).get())
             {
                 break;
             }
@@ -1089,7 +1089,7 @@ void TransformDecomposition::insertQCircuit(AbstractQGateNode * pGateNode, QCirc
         for (; aiter != pParentQProg->getEndNodeIter(); ++aiter)
         {
             auto temp = dynamic_cast<QNode *>(pGateNode);
-            if (temp->getPosition() == (*aiter)->getPosition())
+            if (temp == (*aiter).get())
             {
                 break;
             }
@@ -1256,7 +1256,7 @@ void QPanda::decomposeUnitarySingleQGateIntoMetadataSingleQGate(AbstractQGateNod
     if (QGateCompare::countQGateNotSupport(pNode, traversalAlgorithm->m_sQGateMatrix) <= 0)
         return;
 
-    vector<Qubit*> vTargetQubit;
+    QVec vTargetQubit;
 
     if (pNode->getQuBitVector(vTargetQubit) != 1)
     {
@@ -1447,7 +1447,7 @@ void QPanda::deleteUnitQnode(AbstractQGateNode * pNode, QNode * pParentNode, Tra
                 for (; aiter != pQCircuitNode->getEndNodeIter(); ++aiter)
                 {
                     auto temp = dynamic_cast<QNode *>(pNode);
-                    if (temp->getPosition() == (*aiter)->getPosition())
+                    if (temp == (*aiter).get())
                     {
                         break;
                     }
@@ -1463,7 +1463,7 @@ void QPanda::deleteUnitQnode(AbstractQGateNode * pNode, QNode * pParentNode, Tra
             for (; aiter != pQProgNode->getEndNodeIter(); ++aiter)
             {
                 auto temp = dynamic_cast<QNode *>(pNode);
-                if (temp->getPosition() == (*aiter)->getPosition())
+                if (temp == (*aiter).get())
                 {
                     break;
                 }
@@ -1667,7 +1667,7 @@ void TransformDecomposition::cancelControlQubitVector(QNode * pNode)
 
         for (auto aiter = pProg->getFirstNodeIter(); aiter != pProg->getEndNodeIter(); aiter++)
         {
-            cancelControlQubitVector(*aiter);
+            cancelControlQubitVector((*aiter).get());
         }
     }
     else if (CIRCUIT_NODE == iNodeType)
@@ -1683,7 +1683,7 @@ void TransformDecomposition::cancelControlQubitVector(QNode * pNode)
 
         for (auto aiter = pQCircuit->getFirstNodeIter(); aiter != pQCircuit->getEndNodeIter(); aiter++)
         {
-            cancelControlQubitVector(*aiter);
+            cancelControlQubitVector((*aiter).get());
         }
     }
     else if (QIF_START_NODE == iNodeType)
@@ -1789,7 +1789,7 @@ void TransformDecomposition::Traversal(AbstractQuantumCircuit * pQCircuit, Trave
     while (aiter != pQCircuit->getEndNodeIter())
     {
         auto next = aiter.getNextIter();
-        TraversalByType(*aiter, pNode, function, iType);
+        TraversalByType((*aiter).get(), pNode, function, iType);
         aiter = next;
     }
 }
@@ -1825,7 +1825,7 @@ inline void TransformDecomposition::Traversal(AbstractQuantumProgram * pProg, Tr
     while (aiter != pProg->getEndNodeIter())
     {
         auto next = aiter.getNextIter();
-        TraversalByType(*aiter, pNode, function, iType);
+        TraversalByType((*aiter).get(), pNode, function, iType);
         aiter = next;
     }
 }
@@ -1880,7 +1880,7 @@ TraversalByType(QNode * pNode, QNode * ParentNode, TraversalDecompositionFunctio
             if (CIRCUIT_NODE == ParentNode->getNodeType())
             {
                 AbstractQuantumCircuit *pQcir = dynamic_cast<AbstractQuantumCircuit*>(ParentNode);
-                vector<Qubit*> vControlQubit;
+                QVec vControlQubit;
                 pQcir->getControlVector(vControlQubit);
 
                 pQCircuitNode->setControl(vControlQubit);

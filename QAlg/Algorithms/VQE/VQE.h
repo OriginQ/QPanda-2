@@ -15,8 +15,8 @@ Created in 2018-09-28
 
 #include <map>
 #include <memory>
-#include "QPanda.h"
-#include "DataStruct.h"
+#include "Core/QPanda.h"
+#include "QAlg/DataStruct.h"
 
 namespace QPanda
 {

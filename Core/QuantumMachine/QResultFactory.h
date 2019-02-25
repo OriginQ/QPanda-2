@@ -20,7 +20,7 @@ limitations under the License.
 #include <functional>
 #include <stack>
 #include <map>
-#include "QPandaNamespace.h"
+#include "Core/Utilities/QPandaNamespace.h"
 QPANDA_BEGIN
 
 class QResult

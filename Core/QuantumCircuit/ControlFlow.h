@@ -15,8 +15,8 @@ Update@2018-8-30
 
 #ifndef  _CONTROL_FLOW_H
 #define  _CONTROL_FLOW_H
-#include "QNode.h"
-#include "ClassicalConditionInterface.h"
+#include "Core/QuantumCircuit/QNode.h"
+#include "Core/QuantumCircuit/ClassicalConditionInterface.h"
 
 QPANDA_BEGIN
 
@@ -64,8 +64,7 @@ public:
 class QIfProg : public QNode, public AbstractControlFlowNode
 {
 private:
-    AbstractControlFlowNode * m_control_flow;
-    qmap_size_t m_position;
+    std::shared_ptr<AbstractControlFlowNode> m_control_flow;
     QIfProg();
 public:
     ~QIfProg();
@@ -109,21 +108,17 @@ public:
     virtual QNode* getFalseBranch() const;
 
     /**
-     * @brief Get this node position in global QNode map
-     * @return position 
-     */
-    virtual qmap_size_t getPosition() const;
-
-    /**
      * @brief Get classical condition
      * @return classical condition ptr 
      */
     virtual ClassicalCondition *getCExpr();
 
+    std::shared_ptr<QNode> getImplementationPtr();
+
 private:
-    virtual void setPosition(qmap_size_t) {};
     virtual void setTrueBranch(QNode*) {};
     virtual void setFalseBranch(QNode*) {};
+    virtual void execute(QPUImpl *, QuantumGateParam *) {};
 };
 
 typedef AbstractControlFlowNode * (*CreateQIfTrueFalse_cb)(ClassicalCondition &, QNode *, QNode *);
@@ -252,7 +247,11 @@ private:
     Item * m_true_item;
     Item * m_false_item;
     NodeType m_node_type;
-    qmap_size_t m_position;
+    std::shared_ptr<QNode> getImplementationPtr()
+    {
+        QCERR("Can't use this function");
+        throw std::runtime_error("Can't use this function");
+    };
 public:
     ~OriginQIf();
     
@@ -299,13 +298,6 @@ public:
     */
     virtual QNode* getFalseBranch() const;
 
-    /*
-    Get this node position in global QNode map
-    param :
-    return : position
-    Note:
-    */
-    virtual qmap_size_t getPosition() const;
 
     /*
     Set true branch
@@ -326,21 +318,14 @@ public:
     virtual void setFalseBranch(QNode * node);
 
     /*
-    Set position
-    param :
-    position : this node position in global QNode map
-    return :
-    Note:
-    */
-    virtual void setPosition(qmap_size_t position);
-
-    /*
     Get classical condition
     param :
     return : classical condition
     Note:
     */
     virtual ClassicalCondition *getCExpr();
+
+    virtual void execute(QPUImpl *, QuantumGateParam *);
 };
 
 /*
@@ -375,8 +360,7 @@ QIfProg CreateIfProg(
 class QWhileProg : public QNode, public AbstractControlFlowNode
 {
 private:
-    AbstractControlFlowNode * m_control_flow;
-    qmap_size_t m_position;
+    std::shared_ptr<AbstractControlFlowNode> m_control_flow;
 
     QWhileProg();
 public:
@@ -384,6 +368,7 @@ public:
     QWhileProg(const QWhileProg &);
     QWhileProg(ClassicalCondition &, QNode *);
 
+    std::shared_ptr<QNode> getImplementationPtr();
     /*
     Get the current node type
     param :
@@ -409,14 +394,6 @@ public:
     virtual QNode* getFalseBranch() const;
 
     /*
-    Get this node position in global QNode map
-    param :
-    return : position
-    Note:
-    */
-    virtual qmap_size_t getPosition() const;
-
-    /*
     Get classical condition
     param :
     return : classical condition
@@ -425,9 +402,9 @@ public:
     virtual ClassicalCondition *getCExpr();
 
 private:
-    virtual void setPosition(qmap_size_t) {};
     virtual void setTrueBranch(QNode*) {};
     virtual void setFalseBranch(QNode*) {};
+    virtual void execute(QPUImpl *, QuantumGateParam *) {};
 };
 
 /*
@@ -439,9 +416,13 @@ private:
     NodeType m_node_type;
     ClassicalCondition  m_classical_condition;
     Item * m_true_item;
-    qmap_size_t m_position;
 
     OriginQWhile();
+    std::shared_ptr<QNode> getImplementationPtr()
+    {
+        QCERR("Can't use this function");
+        throw std::runtime_error("Can't use this function");
+    };
 public:
     ~OriginQWhile();
     OriginQWhile(ClassicalCondition & ccCon, QNode * node);
@@ -470,14 +451,6 @@ public:
     virtual QNode* getFalseBranch() const;
 
     /*
-    Get this node position in global QNode map
-    param :
-    return : position
-    Note:
-    */
-    virtual qmap_size_t getPosition() const;
-
-    /*
     Set true branch
     param :
     node : true branch node
@@ -496,21 +469,14 @@ public:
     virtual void setFalseBranch(QNode * node) {};
 
     /*
-    Set position
-    param :
-    position : this node position in global QNode map
-    return :
-    Note:
-    */
-    virtual void setPosition(qmap_size_t position);
-
-    /*
     Get classical condition
     param :
     return : classical condition
     Note:
     */
     virtual ClassicalCondition *getCExpr();
+
+    virtual void execute(QPUImpl *, QuantumGateParam *);
 };
 
 typedef AbstractControlFlowNode * (*CreateQWhile_cb)(ClassicalCondition &, QNode *);

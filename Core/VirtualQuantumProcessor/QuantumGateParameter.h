@@ -22,10 +22,9 @@ limitations under the License.
 #include <complex>
 #include <algorithm>
 #include <vector>
+#include "QubitFactory.h"
+#include "Core/Utilities/QPandaNamespace.h"
 
-typedef std::complex <double> qcomplex_t;
-typedef std::vector<size_t> Qnum;
-typedef std::vector <std::complex<double>> QStat;
 #define iunit qcomplex_t(0,1)
 /*****************************************************************************************************************
 QuantumGateParam:quantum gate param 
@@ -33,21 +32,15 @@ QuantumGateParam:quantum gate param
 class QuantumGateParam
 {
  public:
-    size_t mQuantumBitNumber; /* quantum bit number */
+    size_t m_qbit_number; /* quantum bit number */
+    std::map<std::string , bool> m_return_value; /* MonteCarlo result */
+    bool m_is_dagger;
+    std::vector<QPanda::Qubit *> m_control_qbit_vector;
 
-    std::map<std::string , bool> mReturnValue; /* MonteCarlo result */
-
-    /*************************************************************************************************************
-    Name:        setQBitNum
-    Description: set quantum number
-    Argin:       iQuantumBitNum      quantum bit number
-    Argout:      None
-    return:      true or false
-    *************************************************************************************************************/
-    inline bool setQBitNum(int iQuantumBitNum)
+    QuantumGateParam()
     {
-        mQuantumBitNumber = iQuantumBitNum;
-        return true;
+        m_qbit_number = 0;
+        m_is_dagger = false;
     }
 };
 
@@ -68,4 +61,5 @@ struct QGateParam
     bool enable = true;
 
 };
+
 #endif

@@ -17,8 +17,12 @@ update comment
 #define  _PROGTOQRUNES_H_
 
 #include "QuantumCircuit/QProgram.h"
-#include <map>
 #include "QuantumCircuit/QGlobalVariable.h"
+#include "QuantumCircuit/ControlFlow.h"
+#include "QuantumCircuit/QuantumMeasure.h"
+#include "QuantumCircuit/QGate.h"
+#include "QuantumCircuit/QCircuit.h"
+#include <map>
 QPANDA_BEGIN
 
 /*
@@ -75,7 +79,7 @@ public:
      Note:
      None
      */
-     void progToQRunes(AbstractQuantumProgram *pQpro);
+     void transformQProg(AbstractQuantumProgram *pQpro);
 
     /*
      QGate to QRunes instruction
@@ -87,7 +91,7 @@ public:
      Note:
      None
      */
-    void progToQRunes(AbstractQGateNode *pQGata);
+    void transformQProg(AbstractQGateNode *pQGata);
 
     /*
      Traversal QProg to instructions
@@ -99,7 +103,7 @@ public:
      Note:
      None
      */
-    void progToQRunes(AbstractControlFlowNode *pCtrFlow);
+    void transformQProg(AbstractControlFlowNode *pCtrFlow);
 
     /*
      Traversal QCircuit to QRunes instructions
@@ -111,7 +115,7 @@ public:
      Note:
      None
      */
-    void progToQRunes(AbstractQuantumCircuit *pCircuit);
+    void transformQProg(AbstractQuantumCircuit *pCircuit);
 
     /*
     QMeasure to QRunes instruction
@@ -123,7 +127,7 @@ public:
     Note:
     None
     */
-    void progToQRunes(AbstractQuantumMeasure *pMeasure);
+    void transformQProg(AbstractQuantumMeasure *pMeasure);
 
     /*
      Traversal QNode to QRunes
@@ -135,10 +139,9 @@ public:
      Note:
      None
      */
-    void progToQRunes(QNode * pNode);
+    void transformQProg(QNode * pNode);
 private:
-    std::vector<std::string> m_qrunes;
-
+    std::vector<std::string> m_QRunes;
     std::map<int, std::string>  m_gatetype;
 };
 QPANDA_END

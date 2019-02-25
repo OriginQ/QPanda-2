@@ -16,17 +16,12 @@ update comment
 #ifndef  _QRUNESTOQPROG_H_
 #define  _QRUNESTOQPROG_H_
 
-
 #include "QuantumCircuit/QProgram.h"
+#include "QuantumCircuit/QGate.h"
 #include <map>
+#include <functional>
 #include "QuantumCircuit/QGlobalVariable.h"
 QPANDA_BEGIN
-
-enum QRunesLines {
-    FIRST_LINE,
-    SECOND_LINE,
-    THIRD_LINE
-};
 
 enum QRunesKeyWords {
     DAGGER = 23,
@@ -46,8 +41,9 @@ Travesal QRunes instruction set
 */
 class QRunesToQprog {
 public:
-    QRunesToQprog();
-    virtual ~QRunesToQprog();
+    QRunesToQprog() = delete;
+    QRunesToQprog(std::string sFilePath);
+    ~QRunesToQprog();
 
 
     /*
@@ -59,20 +55,21 @@ public:
     Note:
     None
     */
-    QProg qRunesParser();
+    void qRunesParser(QProg& newQProg);
 
 
     /*
     Traversal QRunes instructions
     param:
-    m_qrunes: std::vector<std::string>
+    m_QRunes: std::vector<std::string>
     return:
     None
 
     Note:
     None
     */
-    void qRunesAllocation(std::vector<std::string> &m_qrunes);
+
+    void qRunesAllocation(std::vector<std::string> &m_QRunes, QProg& newQProg);
 
     /*
     Traversal QRunes instructions
@@ -92,7 +89,7 @@ public:
     param:
     iter: std::vector<std::string>::iterator
     qNode:QNode pointer
-    gate_name:gate type
+    gateName:gate type
     qubit_addr
     return:
     instructions number
@@ -101,14 +98,14 @@ public:
     None
     */
     int handleSingleGate(std::vector<std::string>::iterator iter, QNode *qNode, 
-                         const std::string &gate_name, int qubit_addr);
+                         const std::string &gateName, int qubit_addr);
 
     /*
     handle Double Gate
     param:
     iter: std::vector<std::string>::iterator
     qNode:QNode pointer
-    gate_name:gate type
+    gateName:gate type
     ctr_qubit_addr
     tar_qubit_addr
     return:
@@ -118,14 +115,14 @@ public:
     None
     */
     int handleDoubleGate(std::vector<std::string>::iterator iter, QNode *qNode, 
-                         const std::string &gate_name, int ctr_qubit_addr,int tar_qubit_addr);
+                         const std::string &gateName, int ctr_qubit_addr,int tar_qubit_addr);
 
     /*
     handle Angle Gate
     param:
     iter: std::vector<std::string>::iterator
     qNode:QNode pointer
-    gate_name:gate type
+    gateName:gate type
     qubit_addr
     gate_angle
     return:
@@ -135,14 +132,14 @@ public:
     None
     */
     int handleAngleGate(std::vector<std::string>::iterator iter, QNode *qNode, 
-                         const std::string &gate_name, int qubit_addr, double gate_angle);
+                         const std::string &gateName, int qubit_addr, double gate_angle);
 
     /*
     handle Measure Gate
     param:
     iter: std::vector<std::string>::iterator
     qNode:QNode pointer
-    gate_name:gate type
+    gateName:gate type
     qubit_addr
     creg_addr
     return:
@@ -152,7 +149,7 @@ public:
     None
     */
     int handleMeasureGate(std::vector<std::string>::iterator iter, QNode *qNode, 
-                         const std::string &key_word, int qubit_addr, int creg_addr);
+                         const std::string &keyWord, int qubit_addr, int creg_addr);
 
     /*
     handle DaggerCircuit
@@ -195,7 +192,7 @@ public:
     Note:
     None
     */
-    int handleQifProg(std::vector<std::string>::iterator iter, QNode *qNode, ClassicalCondition &exper);
+    int handleQIfProg(std::vector<std::string>::iterator iter, QNode *qNode, ClassicalCondition &exper);
 
     /*
     handle QWhileProg
@@ -233,21 +230,20 @@ public:
     Note:
     None
     */
-    void static setFilePath(std::string file_path);
-
 private:
-    std::vector<std::string> m_qrunes;
-    std::vector<std::string> m_check_legal;
-    std::vector<std::string> m_first_check;
+
+    std::vector<std::string> m_QRunes;
+    std::vector<std::string> m_keyWords;
+
     std::vector<Qubit* > m_all_qubits;
     std::vector<ClassicalCondition > m_all_cregs;
 
-    int m_max_qubits;
-    int m_max_cregs;
+    std::map<std::string, std::function<QGate(Qubit *)> > m_singleGateFunc;
+    std::map<std::string, std::function<QGate(Qubit *,double)> > m_angleGateFunc;
+    std::map<std::string, std::function<QGate(Qubit *,Qubit*)> > m_doubleGateFunc;
 
-    static std::string  m_file_path;
+    std::string  m_sFilePath;
 
-    QProg m_new_qprog;
 };
 QPANDA_END
 

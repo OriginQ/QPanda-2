@@ -13,6 +13,9 @@ using namespace std;
 
 #define SET_BLOCKDIM  BLOCKDIM = (1ull << (psigpu.qnum - 1)) / THREADDIM;
 
+static bool pMeasure_few_target(GATEGPU::QState&, vector<double>&, GATEGPU::Qnum&);
+static bool pMeasure_many_target(GATEGPU::QState&, vector<double>&, GATEGPU::Qnum&);
+
 static QSIZE getControllerMask(GATEGPU::Qnum& qnum, int target = 1)
 {
     QSIZE qnum_mask = 0;
@@ -555,11 +558,31 @@ bool GATEGPU::pMeasurenew(
     Qnum& qnum,
     int select_max)
 {
-    return false;
-}
+	// 10 可能是一个比较好的阈值，因为1024为线程单位，就更适合使用many_target
+	vector<double> mResult;
+	bool status = false;
+	if (qnum.size() < 10)
+	{
+		status = pMeasure_few_target(psigpu, mResult, qnum);
+	}
+	else
+	{
+		status = pMeasure_many_target(psigpu, mResult, qnum);
+	}
 
-static bool pMeasure_few_target(GATEGPU::QState&, vector<double>&, GATEGPU::Qnum&);
-static bool pMeasure_many_target(GATEGPU::QState&, vector<double>&, GATEGPU::Qnum&);
+	if (status)
+	{
+		size_t i = 0;
+		for (auto &aiter : mResult)
+		{
+			vprob.push_back(make_pair(i, aiter));
+			i++;
+		}
+	}
+
+	return status;
+	
+}
 
 bool GATEGPU::pMeasure_no_index(
     QState& psigpu,

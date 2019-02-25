@@ -17,7 +17,7 @@ limitations under the License.
 
 //#ifndef USE_CUDA
 
-#include "CPUQuantumGates.h"
+#include "CPUImplQPU.h"
 #include <algorithm>
 #include <thread>
 #include <map>
@@ -41,19 +41,19 @@ REGISTER_ANGLE_GATE_MATRIX(RZ_GATE, 0, 0, 1)
 
 typedef vector<complex<double>> QStat;
 
-CPUQuantumGates::CPUQuantumGates()
+CPUImplQPU::CPUImplQPU()
 {
 }
 
-CPUQuantumGates::~CPUQuantumGates()
+CPUImplQPU::~CPUImplQPU()
 {
     qbit2stat.clear();
 }
-CPUQuantumGates::CPUQuantumGates(size_t qubitSumNumber) :qbit2stat(qubitSumNumber)
+CPUImplQPU::CPUImplQPU(size_t qubitSumNumber) :qbit2stat(qubitSumNumber)
 {
 }
 
-QGateParam& CPUQuantumGates::findgroup(size_t qn)
+QGateParam& CPUImplQPU::findgroup(size_t qn)
 {
     for (auto iter = qbit2stat.begin(); iter != qbit2stat.end(); ++iter)
     {
@@ -69,7 +69,7 @@ static bool probcompare(pair<size_t, double> a, pair<size_t, double> b)
     return a.second > b.second;
 }
 
-QError CPUQuantumGates::pMeasure(Qnum& qnum, vector<pair<size_t, double>> &mResult, int select_max)
+QError CPUImplQPU::pMeasure(Qnum& qnum, vector<pair<size_t, double>> &mResult, int select_max)
 {
     mResult.resize(1ull << qnum.size());
     QGateParam& group0 = findgroup(qnum[0]);
@@ -122,7 +122,7 @@ QError CPUQuantumGates::pMeasure(Qnum& qnum, vector<pair<size_t, double>> &mResu
 Note: Added by Agony5757, it is a simplified version of pMeasure and with
 more efficiency.
 **/
-QError CPUQuantumGates::pMeasure(Qnum& qnum, vector<double> &mResult)
+QError CPUImplQPU::pMeasure(Qnum& qnum, vector<double> &mResult)
 {
     mResult.resize(1ull << qnum.size());
     QGateParam& group0 = findgroup(qnum[0]);
@@ -151,7 +151,7 @@ QError CPUQuantumGates::pMeasure(Qnum& qnum, vector<double> &mResult)
     return qErrorNone;
 }
 
-bool CPUQuantumGates::qubitMeasure(size_t qn)
+bool CPUImplQPU::qubitMeasure(size_t qn)
 {
     QGateParam& qgroup = findgroup(qn);
     size_t ststep = 1ull << find(qgroup.qVec.begin(), qgroup.qVec.end(), qn) - qgroup.qVec.begin();
@@ -208,11 +208,11 @@ bool CPUQuantumGates::qubitMeasure(size_t qn)
     return ioutcome;
 }
 
-QError CPUQuantumGates::initState(QuantumGateParam * param)
+QError CPUImplQPU::initState(QuantumGateParam * param)
 {
     qbit2stat.erase(qbit2stat.begin(),qbit2stat.end());
-    qbit2stat.resize(param->mQuantumBitNumber);
-    for (auto i = 0; i<param->mQuantumBitNumber; i++)
+    qbit2stat.resize(param->m_qbit_number);
+    for (auto i = 0; i<param->m_qbit_number; i++)
     {
         qbit2stat[i].qVec.push_back(i);
         qbit2stat[i].qstate.push_back(1);
@@ -231,7 +231,7 @@ QError CPUQuantumGates::initState(QuantumGateParam * param)
     return qErrorNone;
 }
 
-QError CPUQuantumGates::endGate(QuantumGateParam * pQuantumProParam, QuantumGates * pQGate)
+QError CPUImplQPU::endGate(QuantumGateParam * pQuantumProParam, QPUImpl * pQGate)
 {
 
     /* vQParam qtemp;
@@ -245,7 +245,7 @@ QError CPUQuantumGates::endGate(QuantumGateParam * pQuantumProParam, QuantumGate
     return qErrorNone;
 }
 
-QError  CPUQuantumGates::
+QError  CPUImplQPU::
 unitarySingleQubitGate(size_t qn,
     QStat& matrix,
     bool isConjugate,
@@ -281,7 +281,7 @@ unitarySingleQubitGate(size_t qn,
     return qErrorNone;
 }
 
-QError  CPUQuantumGates::
+QError  CPUImplQPU::
 controlunitarySingleQubitGate(size_t qn,
     Qnum& vControlBit,
     QStat & matrix,
@@ -360,7 +360,7 @@ controlunitarySingleQubitGate(size_t qn,
     return qErrorNone;
 }
 
-QError CPUQuantumGates::
+QError CPUImplQPU::
 unitaryDoubleQubitGate(size_t qn_0,
     size_t qn_1,
     QStat& matrix,
@@ -434,7 +434,7 @@ unitaryDoubleQubitGate(size_t qn_0,
     return qErrorNone;
 }
 
-QError  CPUQuantumGates::
+QError  CPUImplQPU::
 controlunitaryDoubleQubitGate(size_t qn_0,
     size_t qn_1,
     Qnum& vControlBit,
@@ -530,7 +530,7 @@ controlunitaryDoubleQubitGate(size_t qn_0,
     return qErrorNone;
 }
 
-QError CPUQuantumGates::iSWAP(size_t qn_0, size_t qn_1, double theta, bool isConjugate, double error_rate)
+QError CPUImplQPU::iSWAP(size_t qn_0, size_t qn_1, double theta, bool isConjugate, double error_rate)
 {
     if (randGenerator() > error_rate)
     {
@@ -593,7 +593,7 @@ QError CPUQuantumGates::iSWAP(size_t qn_0, size_t qn_1, double theta, bool isCon
     return qErrorNone;
 }
 
-QError CPUQuantumGates::iSWAP(size_t qn_0, size_t qn_1, Qnum & vControlBit, double theta, bool isConjugate, double error_rate)
+QError CPUImplQPU::iSWAP(size_t qn_0, size_t qn_1, Qnum & vControlBit, double theta, bool isConjugate, double error_rate)
 {
     if (randGenerator() > error_rate)
     {
@@ -673,7 +673,7 @@ QError CPUQuantumGates::iSWAP(size_t qn_0, size_t qn_1, Qnum & vControlBit, doub
     return qErrorNone;
 }
 
-QError CPUQuantumGates::CR(size_t qn_0, size_t qn_1, double theta, bool isConjugate, double error_rate)
+QError CPUImplQPU::CR(size_t qn_0, size_t qn_1, double theta, bool isConjugate, double error_rate)
 {
     if (randGenerator() > error_rate)
     {
@@ -729,7 +729,7 @@ QError CPUQuantumGates::CR(size_t qn_0, size_t qn_1, double theta, bool isConjug
     return qErrorNone;
 }
 
-QError CPUQuantumGates::CR(size_t qn_0, size_t qn_1, Qnum & vControlBit, double theta, bool isConjugate, double error_rate)
+QError CPUImplQPU::CR(size_t qn_0, size_t qn_1, Qnum & vControlBit, double theta, bool isConjugate, double error_rate)
 {
     if (randGenerator() > error_rate)
     {
@@ -804,7 +804,7 @@ QError CPUQuantumGates::CR(size_t qn_0, size_t qn_1, Qnum & vControlBit, double 
     return qErrorNone;
 }
 
-QError CPUQuantumGates::Reset(size_t qn)
+QError CPUImplQPU::Reset(size_t qn)
 {
     QGateParam& qgroup = findgroup(qn);
     size_t j;
@@ -822,3 +822,31 @@ QError CPUQuantumGates::Reset(size_t qn)
 }
 
 //#endif
+
+QStat CPUImplQPU::getQState()
+{
+    size_t sEnable = 0;
+    while (!qbit2stat[sEnable].enable)
+    {
+        sEnable++;
+    }
+    for (auto i = sEnable; i < qbit2stat.size(); i++)
+    {
+        if (qbit2stat[i].enable)
+        {
+            TensorProduct(qbit2stat[sEnable], qbit2stat[i]);
+        }
+    }
+    QStat state(qbit2stat[sEnable].qstate.size(), 0);
+    size_t slabel = 0;
+    for (auto i = 0; i < qbit2stat[sEnable].qstate.size(); i++)
+    {
+        slabel = 0;
+        for (auto j = 0; j < qbit2stat[sEnable].qVec.size(); j++)
+        {
+            slabel += (((i >> j) % 2) << qbit2stat[sEnable].qVec[j]);
+        }
+        state[slabel] = qbit2stat[sEnable].qstate[i];
+    }
+    return state;
+}

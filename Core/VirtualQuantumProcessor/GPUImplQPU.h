@@ -5,10 +5,10 @@
 
 #ifdef USE_CUDA
 
-#include "QuantumGates.h"
-#include "GPUStruct.hpp"
+#include "Core/VirtualQuantumProcessor/QPUImpl.h"
+#include "Core/VirtualQuantumProcessor/GPUGates/GPUStruct.hpp"
 
-class GPUQuantumGates : public QuantumGates
+class GPUImplQPU : public QPUImpl
 {
     size_t miQbitNum;
     bool mbIsInitQState;
@@ -16,8 +16,8 @@ class GPUQuantumGates : public QuantumGates
     double* m_resultgpu;
 public:
 
-    GPUQuantumGates() :mbIsInitQState(false), m_probgpu(nullptr), m_resultgpu(nullptr) {}
-    ~GPUQuantumGates();
+    GPUImplQPU() :mbIsInitQState(false), m_probgpu(nullptr), m_resultgpu(nullptr) {}
+    ~GPUImplQPU();
 
     GATEGPU::QState mvQuantumStat;
     GATEGPU::QState mvCPUQuantumStat;
@@ -121,7 +121,7 @@ public:
     QError initState(QuantumGateParam *);
 
     QError endGate(QuantumGateParam *pQuantumProParam,
-        QuantumGates * pQGate);
+        QPUImpl * pQGate);
 
     QError unitarySingleQubitGate(size_t qn, QStat& matrix,
         bool isConjugate,

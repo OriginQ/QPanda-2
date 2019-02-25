@@ -16,7 +16,7 @@ Created in 2018-09-18
 #include <string>
 #include <vector>
 #include <ostream>
-#include "QPandaNamespace.h"
+#include "Core/Utilities/QPandaNamespace.h"
 QPANDA_BEGIN
 class QString
 {

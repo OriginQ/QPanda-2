@@ -12,7 +12,7 @@ Description: Cuda function of quantum gates, defined in GPUGates.cu
 #include <math.h>
 #include <vector>    
 #include <iostream>
-#include "GPUStruct.hpp"
+#include "Core/VirtualQuantumProcessor/GPUGates/GPUStruct.hpp"
 
 namespace gpu{
 

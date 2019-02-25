@@ -18,7 +18,7 @@ limitations under the License.
 #define QUBIT_FACTORY_H
 
 
-#include "PhysicalQubitFactory.h"
+#include "Core/QuantumMachine/PhysicalQubitFactory.h"
 #include <functional>
 #include <stack>
 #include <map>

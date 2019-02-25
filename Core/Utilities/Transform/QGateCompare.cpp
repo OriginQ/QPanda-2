@@ -77,7 +77,7 @@ size_t QGateCompare::countQGateNotSupport(AbstractQuantumProgram *p_prog, const 
     size_t count = 0;
     for (auto iter = p_prog->getFirstNodeIter(); iter != p_prog->getEndNodeIter(); iter++)
     {
-        QNode * p_node = *iter;
+        QNode * p_node = (*iter).get();
         count += countQGateNotSupport(p_node, instructions);
     }
 
@@ -133,7 +133,7 @@ size_t QGateCompare::countQGateNotSupport(AbstractQuantumCircuit * p_circuit, co
     size_t count = 0;
     for (auto iter = p_circuit->getFirstNodeIter(); iter != p_circuit->getEndNodeIter(); iter++)
     {
-        QNode * p_node = *iter;
+        QNode * p_node = (*iter).get();
         count += countQGateNotSupport(p_node, instructions);
     }
 

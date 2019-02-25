@@ -19,7 +19,7 @@ limitations under the License.
 
 //#ifndef USE_CUDA
 
-#include "QuantumGates.h"
+#include "Core/VirtualQuantumProcessor/QPUImpl.h"
 #include <stdio.h>
 #include <iostream>
 #include <vector>
@@ -123,7 +123,7 @@ DECL_ANGLE_GATE_MATRIX(RY_GATE)
 DECL_ANGLE_GATE_MATRIX(RZ_GATE)
 //DECL_ANGLE_GATE_MATRIX(NAME)
 
-class CPUQuantumGates : public QuantumGates
+class CPUImplQPU : public QPUImpl
 {
 
 public:
@@ -131,9 +131,9 @@ public:
     //size_t qbitsum;
     //QStat mvQuantumStat;
     QGateParam & findgroup(size_t qn);
-    CPUQuantumGates();
-    CPUQuantumGates(size_t);
-    ~CPUQuantumGates();
+    CPUImplQPU();
+    CPUImplQPU(size_t);
+    ~CPUImplQPU();
 
     bool TensorProduct(QGateParam& qgroup0, QGateParam& qgroup1)
     {
@@ -501,8 +501,7 @@ public:
         bool isConjugate,
         double error_rate);
 
-    bool InitStat() { return true; };
-    bool getQState(std::string & sState, QuantumGateParam *pQuantumProParam);
+    QStat getQState();
     QError Reset(size_t qn);
     bool qubitMeasure(size_t qn);
     QError pMeasure(Qnum& qnum, std::vector<std::pair<size_t, double>> &mResult, int select_max=-1);
@@ -510,7 +509,7 @@ public:
     QError initState(QuantumGateParam *);
     
     // bool compareCalculationUnitType(std::string& sCalculationUnitType);
-    QError endGate(QuantumGateParam *pQuantumProParam, QuantumGates * pQGate);
+    QError endGate(QuantumGateParam *pQuantumProParam, QPUImpl * pQGate);
 protected:
     std::string sCalculationUnitType = "X86";
 

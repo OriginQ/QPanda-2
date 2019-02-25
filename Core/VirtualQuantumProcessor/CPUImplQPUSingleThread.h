@@ -19,7 +19,7 @@ limitations under the License.
 
 //#ifndef USE_CUDA
 
-#include "QuantumGates.h"
+#include "Core/VirtualQuantumProcessor/QPUImpl.h"
 #include <stdio.h>
 #include <iostream>
 #include <vector>
@@ -33,14 +33,14 @@ limitations under the License.
 #define PI 3.14159265358979
 #endif
 
-class CPUQuantumGatesSingleThread : public QuantumGates
+class CPUImplQPUSingleThread : public QPUImpl
 {
 public:
     vQParam qbit2stat;
     QGateParam &findgroup(size_t qn);
-    CPUQuantumGatesSingleThread();
-    CPUQuantumGatesSingleThread(size_t);
-    ~CPUQuantumGatesSingleThread();
+    CPUImplQPUSingleThread();
+    CPUImplQPUSingleThread(size_t);
+    ~CPUImplQPUSingleThread();
 
     bool TensorProduct(QGateParam& qgroup0, QGateParam& qgroup1);
 
@@ -190,7 +190,7 @@ public:
     QError pMeasure(Qnum& qnum, std::vector<double> &mResult);
     QError initState(QuantumGateParam *);
 
-    QError endGate(QuantumGateParam *pQuantumProParam, QuantumGates * pQGate);
+    QError endGate(QuantumGateParam *pQuantumProParam, QPUImpl * pQGate);
 protected:
     std::string sCalculationUnitType = "X86";
 

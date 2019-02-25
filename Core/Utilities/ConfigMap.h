@@ -2,7 +2,7 @@
 #define _CONFIG_MAP_H
 #include <map>
 #include <string>
-#include "QPandaNamespace.h"
+#include "Core/Utilities/QPandaNamespace.h"
 QPANDA_BEGIN
 typedef std::pair<std::string, std::string> CONFIGPAIR;
 class ConfigMap

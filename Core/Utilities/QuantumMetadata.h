@@ -13,14 +13,15 @@ Classes for get the shortes path of graph
 #ifndef QUBITCONFIG_H
 #define QUBITCONFIG_H
 
-#include "QPandaNamespace.h"
-#include "TinyXML/tinyxml.h"
+#include "Core/Utilities/QPandaNamespace.h"
+#include "Core/QuantumCircuit/QGlobalVariable.h"
+#include "Core/Utilities/TranformQGateTypeStringAndEnum.h"
+#include "ThirdParty/TinyXML/tinyxml.h"
 #include <iostream>
 #include <vector>
 #include <map>
 #include <string>
-#include "QuantumCircuit/QGlobalVariable.h"
-#include "TranformQGateTypeStringAndEnum.h"
+
 QPANDA_BEGIN
 
 

@@ -1,7 +1,3 @@
-#include "CPUQuantumGatesSingleThread.h"
-#include "CPUQuantumGatesSingleThread.h"
-#include "CPUQuantumGatesSingleThread.h"
-#include "CPUQuantumGatesSingleThread.h"
 /*
 Copyright (c) 2017-2018 Origin Quantum Computing. All Right Reserved.
 
@@ -18,10 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 #include "config.h"
-
-//#ifndef USE_CUDA
-
-#include "CPUQuantumGatesSingleThread.h"
+#include "CPUImplQPUSingleThread.h"
 #include <algorithm>
 #include <thread>
 #include <map>
@@ -32,21 +25,21 @@ using namespace std;
 
 typedef vector<complex<double>> QStat;
 
-CPUQuantumGatesSingleThread::CPUQuantumGatesSingleThread()
+CPUImplQPUSingleThread::CPUImplQPUSingleThread()
 {
 }
 
-CPUQuantumGatesSingleThread::~CPUQuantumGatesSingleThread()
+CPUImplQPUSingleThread::~CPUImplQPUSingleThread()
 {
     qbit2stat.clear();
 }
 
-CPUQuantumGatesSingleThread::CPUQuantumGatesSingleThread(size_t qubitSumNumber) 
+CPUImplQPUSingleThread::CPUImplQPUSingleThread(size_t qubitSumNumber) 
     :qbit2stat(qubitSumNumber)
 {
 }
 
-QGateParam& CPUQuantumGatesSingleThread::findgroup(size_t qn)
+QGateParam& CPUImplQPUSingleThread::findgroup(size_t qn)
 {
     for (auto iter = qbit2stat.begin(); iter != qbit2stat.end(); ++iter)
     {
@@ -57,7 +50,7 @@ QGateParam& CPUQuantumGatesSingleThread::findgroup(size_t qn)
     throw runtime_error("unknow error");
 }
 
-bool CPUQuantumGatesSingleThread::TensorProduct(QGateParam& qgroup0, QGateParam& qgroup1)
+bool CPUImplQPUSingleThread::TensorProduct(QGateParam& qgroup0, QGateParam& qgroup1)
 {
     if (qgroup0.qVec[0] == qgroup1.qVec[0])
     {
@@ -84,7 +77,7 @@ static bool probcompare(pair<size_t, double> a, pair<size_t, double> b)
     return a.second > b.second;
 }
 
-QError CPUQuantumGatesSingleThread::pMeasure
+QError CPUImplQPUSingleThread::pMeasure
 (Qnum& qnum, vector<pair<size_t, double>> &mResult, int select_max)
 {
     mResult.resize(1ull << qnum.size());
@@ -138,7 +131,7 @@ QError CPUQuantumGatesSingleThread::pMeasure
 Note: Added by Agony5757, it is a simplified version of pMeasure and with
 more efficiency.
 **/
-QError CPUQuantumGatesSingleThread::pMeasure(Qnum& qnum, vector<double> &mResult)
+QError CPUImplQPUSingleThread::pMeasure(Qnum& qnum, vector<double> &mResult)
 {
     mResult.resize(1ull << qnum.size());
     QGateParam& group0 = findgroup(qnum[0]);
@@ -167,7 +160,7 @@ QError CPUQuantumGatesSingleThread::pMeasure(Qnum& qnum, vector<double> &mResult
     return qErrorNone;
 }
 
-bool CPUQuantumGatesSingleThread::qubitMeasure(size_t qn)
+bool CPUImplQPUSingleThread::qubitMeasure(size_t qn)
 {
     QGateParam& qgroup = findgroup(qn);
     size_t ststep = 1ull << find(qgroup.qVec.begin(), qgroup.qVec.end(), qn) - qgroup.qVec.begin();
@@ -223,11 +216,11 @@ bool CPUQuantumGatesSingleThread::qubitMeasure(size_t qn)
     return ioutcome;
 }
 
-QError CPUQuantumGatesSingleThread::initState(QuantumGateParam * param)
+QError CPUImplQPUSingleThread::initState(QuantumGateParam * param)
 {
     qbit2stat.erase(qbit2stat.begin(),qbit2stat.end());
-    qbit2stat.resize(param->mQuantumBitNumber);
-    for (auto i = 0; i<param->mQuantumBitNumber; i++)
+    qbit2stat.resize(param->m_qbit_number);
+    for (auto i = 0; i<param->m_qbit_number; i++)
     {
         qbit2stat[i].qVec.push_back(i);
         qbit2stat[i].qstate.push_back(1);
@@ -246,13 +239,13 @@ QError CPUQuantumGatesSingleThread::initState(QuantumGateParam * param)
     return qErrorNone;
 }
 
-QError CPUQuantumGatesSingleThread::endGate
-(QuantumGateParam * pQuantumProParam, QuantumGates * pQGate)
+QError CPUImplQPUSingleThread::endGate
+(QuantumGateParam * pQuantumProParam, QPUImpl * pQGate)
 {
     return qErrorNone;
 }
 
-QError  CPUQuantumGatesSingleThread::unitarySingleQubitGate
+QError  CPUImplQPUSingleThread::unitarySingleQubitGate
 (size_t qn, QStat& matrix, bool isConjugate, double error_rate)
 {
     qcomplex_t alpha;
@@ -285,7 +278,7 @@ QError  CPUQuantumGatesSingleThread::unitarySingleQubitGate
     return qErrorNone;
 }
 
-QError CPUQuantumGatesSingleThread::
+QError CPUImplQPUSingleThread::
 controlunitarySingleQubitGate(size_t qn,
     Qnum& vControlBit,
     QStat & matrix,
@@ -364,7 +357,7 @@ controlunitarySingleQubitGate(size_t qn,
     return qErrorNone;
 }
 
-QError CPUQuantumGatesSingleThread::
+QError CPUImplQPUSingleThread::
 unitaryDoubleQubitGate(size_t qn_0,
     size_t qn_1,
     QStat& matrix,
@@ -436,7 +429,7 @@ unitaryDoubleQubitGate(size_t qn_0,
     return qErrorNone;
 }
 
-QError CPUQuantumGatesSingleThread::
+QError CPUImplQPUSingleThread::
 controlunitaryDoubleQubitGate(size_t qn_0,
     size_t qn_1,
     Qnum& vControlBit,
@@ -531,12 +524,12 @@ controlunitaryDoubleQubitGate(size_t qn_0,
     return qErrorNone;
 }
 
-QError CPUQuantumGatesSingleThread::Hadamard(size_t qn, bool isConjugate, double error_rate)
+QError CPUImplQPUSingleThread::Hadamard(size_t qn, bool isConjugate, double error_rate)
 {
     return undefineError;
 }
 
-QError CPUQuantumGatesSingleThread::Hadamard(
+QError CPUImplQPUSingleThread::Hadamard(
     size_t qn,
     Qnum& vControlBit,
     bool isConjugate,
@@ -545,12 +538,12 @@ QError CPUQuantumGatesSingleThread::Hadamard(
     return undefineError;
 }
 
-QError CPUQuantumGatesSingleThread::X(size_t qn, bool isConjugate, double error_rate)
+QError CPUImplQPUSingleThread::X(size_t qn, bool isConjugate, double error_rate)
 {
     return undefineError;
 }
 
-QError CPUQuantumGatesSingleThread::X(
+QError CPUImplQPUSingleThread::X(
     size_t qn,
     Qnum& vControlBit,
     bool isConjugate,
@@ -559,11 +552,11 @@ QError CPUQuantumGatesSingleThread::X(
     return undefineError;
 }
 
-QError CPUQuantumGatesSingleThread::Y(size_t qn, bool isConjugate, double error_rate)
+QError CPUImplQPUSingleThread::Y(size_t qn, bool isConjugate, double error_rate)
 {
     return undefineError;
 }
-QError CPUQuantumGatesSingleThread::Y(
+QError CPUImplQPUSingleThread::Y(
     size_t qn,
     Qnum& vControlBit,
     bool isConjugate,
@@ -572,11 +565,11 @@ QError CPUQuantumGatesSingleThread::Y(
     return undefineError;
 }
 
-QError CPUQuantumGatesSingleThread::Z(size_t qn, bool isConjugate, double error_rate)
+QError CPUImplQPUSingleThread::Z(size_t qn, bool isConjugate, double error_rate)
 {
     return undefineError;
 }
-QError CPUQuantumGatesSingleThread::Z(
+QError CPUImplQPUSingleThread::Z(
     size_t qn,
     Qnum& vControlBit,
     bool isConjugate,
@@ -584,11 +577,11 @@ QError CPUQuantumGatesSingleThread::Z(
 {
     return undefineError;
 }
-QError CPUQuantumGatesSingleThread::S(size_t qn, bool isConjugate, double error_rate)
+QError CPUImplQPUSingleThread::S(size_t qn, bool isConjugate, double error_rate)
 {
     return undefineError;
 }
-QError CPUQuantumGatesSingleThread::S(
+QError CPUImplQPUSingleThread::S(
     size_t qn,
     Qnum& vControlBit,
     bool isConjugate,
@@ -596,12 +589,12 @@ QError CPUQuantumGatesSingleThread::S(
 {
     return undefineError;
 }
-QError CPUQuantumGatesSingleThread::T(size_t qn, bool isConjugate, double error_rate)
+QError CPUImplQPUSingleThread::T(size_t qn, bool isConjugate, double error_rate)
 {
     return undefineError;
 }
 
-QError CPUQuantumGatesSingleThread::T(
+QError CPUImplQPUSingleThread::T(
     size_t qn,
     Qnum& vControlBit,
     bool isConjugate,
@@ -611,13 +604,13 @@ QError CPUQuantumGatesSingleThread::T(
 }
 
 
-QError CPUQuantumGatesSingleThread::RX_GATE(size_t qn, double theta,
+QError CPUImplQPUSingleThread::RX_GATE(size_t qn, double theta,
     bool isConjugate, double error_rate)
 {
     return undefineError;
 }
 
-QError CPUQuantumGatesSingleThread::RX_GATE(
+QError CPUImplQPUSingleThread::RX_GATE(
     size_t qn,
     double theta,
     Qnum& vControlBit,
@@ -627,13 +620,13 @@ QError CPUQuantumGatesSingleThread::RX_GATE(
     return undefineError;
 }
 
-QError CPUQuantumGatesSingleThread::RY_GATE(size_t qn, double theta,
+QError CPUImplQPUSingleThread::RY_GATE(size_t qn, double theta,
     bool isConjugate, double error_rate)
 {
     return undefineError;
 }
 
-QError CPUQuantumGatesSingleThread::RY_GATE(
+QError CPUImplQPUSingleThread::RY_GATE(
     size_t qn,
     double theta,
     Qnum& vControlBit,
@@ -643,13 +636,13 @@ QError CPUQuantumGatesSingleThread::RY_GATE(
     return undefineError;
 }
 
-QError CPUQuantumGatesSingleThread::RZ_GATE(size_t qn, double theta,
+QError CPUImplQPUSingleThread::RZ_GATE(size_t qn, double theta,
     bool isConjugate, double error_rate)
 {
     return undefineError;
 }
 
-QError CPUQuantumGatesSingleThread::RZ_GATE(
+QError CPUImplQPUSingleThread::RZ_GATE(
     size_t qn,
     double theta,
     Qnum& vControlBit,
@@ -660,12 +653,12 @@ QError CPUQuantumGatesSingleThread::RZ_GATE(
 }
 
 //double quantum gate
-QError CPUQuantumGatesSingleThread::CNOT(size_t qn_0, size_t qn_1, bool isConjugate, double error_rate)
+QError CPUImplQPUSingleThread::CNOT(size_t qn_0, size_t qn_1, bool isConjugate, double error_rate)
 {
     return undefineError;
 }
 
-QError CPUQuantumGatesSingleThread::CNOT(
+QError CPUImplQPUSingleThread::CNOT(
     size_t qn_0,
     size_t qn_1,
     Qnum& vControlBit,
@@ -675,12 +668,12 @@ QError CPUQuantumGatesSingleThread::CNOT(
     return undefineError;
 }
 
-QError CPUQuantumGatesSingleThread::CZ(size_t qn_0, size_t qn_1, bool isConjugate, double error_rate)
+QError CPUImplQPUSingleThread::CZ(size_t qn_0, size_t qn_1, bool isConjugate, double error_rate)
 {
     return undefineError;
 }
 
-QError CPUQuantumGatesSingleThread::CZ(
+QError CPUImplQPUSingleThread::CZ(
     size_t qn_0,
     size_t qn_1,
     Qnum& vControlBit,
@@ -690,12 +683,12 @@ QError CPUQuantumGatesSingleThread::CZ(
     return undefineError;
 }
 
-QError CPUQuantumGatesSingleThread::CR(size_t qn_0, size_t qn_1, double theta, bool isConjugate, double error_rate)
+QError CPUImplQPUSingleThread::CR(size_t qn_0, size_t qn_1, double theta, bool isConjugate, double error_rate)
 {
     return undefineError;
 }
 
-QError CPUQuantumGatesSingleThread::CR(
+QError CPUImplQPUSingleThread::CR(
     size_t qn_0,
     size_t qn_1,
     Qnum& vControlBit,
@@ -706,12 +699,12 @@ QError CPUQuantumGatesSingleThread::CR(
     return undefineError;
 }
 
-QError CPUQuantumGatesSingleThread::iSWAP(size_t qn_0, size_t qn_1, double theta, bool isConjugate, double error_rate)
+QError CPUImplQPUSingleThread::iSWAP(size_t qn_0, size_t qn_1, double theta, bool isConjugate, double error_rate)
 {
     return undefineError;
 }
 
-QError CPUQuantumGatesSingleThread::iSWAP(
+QError CPUImplQPUSingleThread::iSWAP(
     size_t qn_0,
     size_t qn_1,
     Qnum& vControlBit,
@@ -723,12 +716,12 @@ QError CPUQuantumGatesSingleThread::iSWAP(
 }
 
 //pi/2 iSWAP
-QError CPUQuantumGatesSingleThread::iSWAP(size_t qn_0, size_t qn_1, bool isConjugate, double error_rate)
+QError CPUImplQPUSingleThread::iSWAP(size_t qn_0, size_t qn_1, bool isConjugate, double error_rate)
 {
     return undefineError;
 }
 
-QError CPUQuantumGatesSingleThread::iSWAP(
+QError CPUImplQPUSingleThread::iSWAP(
     size_t qn_0,
     size_t qn_1,
     Qnum& vControlBit,
@@ -740,11 +733,11 @@ QError CPUQuantumGatesSingleThread::iSWAP(
 
 
 //pi/4 SqiSWAP
-QError CPUQuantumGatesSingleThread::SqiSWAP(size_t qn_0, size_t qn_1, bool isConjugate, double error_rate)
+QError CPUImplQPUSingleThread::SqiSWAP(size_t qn_0, size_t qn_1, bool isConjugate, double error_rate)
 {
     return undefineError;
 }
-QError CPUQuantumGatesSingleThread::SqiSWAP(
+QError CPUImplQPUSingleThread::SqiSWAP(
     size_t qn_0,
     size_t qn_1,
     Qnum& vControlBit,
@@ -754,7 +747,7 @@ QError CPUQuantumGatesSingleThread::SqiSWAP(
     return undefineError;
 }
 
-QError CPUQuantumGatesSingleThread::Reset(size_t qn)
+QError CPUImplQPUSingleThread::Reset(size_t qn)
 {
     QGateParam& qgroup = findgroup(qn);
     size_t j;

@@ -1,7 +1,7 @@
 #ifndef EXPRESSION_H
 #define EXPRESSION_H
 
-#include "var.h"
+#include "Variational/var.h"
 #include <queue>
 #include <unordered_map>
 #include <unordered_set>

@@ -17,8 +17,8 @@ limitations under the License.
 #ifndef CMEM_FACTORY_H
 #define CMEM_FACTORY_H
 
-#include "CBitFactory.h"
-#include "QPandaNamespace.h"
+#include "Core/QuantumMachine/CBitFactory.h"
+#include "Core/Utilities/QPandaNamespace.h"
 #include <functional>
 #include <stack>
 

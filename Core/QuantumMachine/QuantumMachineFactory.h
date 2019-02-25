@@ -17,8 +17,8 @@ limitations under the License.
 #ifndef QUANTUM_MACHINE_FACTORY_H
 #define QUANTUM_MACHINE_FACTORY_H
 
-#include "QuantumMachineInterface.h"
-#include "QPandaNamespace.h"
+#include "Core/QuantumMachine/QuantumMachineInterface.h"
+#include "Core/Utilities/QPandaNamespace.h"
 #include <functional>
 #include <stack>
 

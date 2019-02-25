@@ -15,9 +15,10 @@ limitations under the License.
 */
 #ifndef  _CLASSICAL_PROGAM_H
 #define  _CLASSICAL_PROGAM_H
-#include "QNode.h"
-#include "QuantumMachine/CBitFactory.h"
-#include "ClassicalConditionInterface.h"
+#include "Core/QuantumCircuit/QNode.h"
+#include "Core/QuantumMachine/CBitFactory.h"
+#include "Core/QuantumCircuit/ClassicalConditionInterface.h"
+#include <iostream>
 QPANDA_BEGIN
 
 /**
@@ -64,12 +65,7 @@ public:
      */
     NodeType getNodeType() const;
 
-    /**
-     * @brief Get Position 
-     * Get the current object`s position in the QNodeMap
-     * @return qmap_size_t 
-     */
-    qmap_size_t getPosition() const;
+    std::shared_ptr<QNode> getImplementationPtr();
 
     /**
      * @brief Get classical program value
@@ -78,9 +74,10 @@ public:
      */
     virtual cbit_size_t eval();
 
+
 private:
-    AbstractClassicalProg * m_node;
-    void setPosition(qmap_size_t) {};
+    std::shared_ptr<AbstractClassicalProg> m_node;
+    virtual void execute(QPUImpl *, QuantumGateParam *) {};
 };
 
 /**
@@ -109,20 +106,6 @@ public:
      * @return NodeType 
      */
     NodeType getNodeType() const;
-
-    /**
-     * @brief Get Position 
-     * Get the current object`s position in the QNodeMap
-     * @return qmap_size_t 
-     */
-    qmap_size_t getPosition() const;
-
-    /**
-     * @brief Set Position 
-     * Set the current object`s position in the QNodeMap
-     * @Param position The current object`s position in the QNodeMap
-     */
-    void setPosition(qmap_size_t position);
     
     /**
      * @brief Get classical program value
@@ -131,10 +114,17 @@ public:
      */
     virtual cbit_size_t eval();
 
+    virtual void execute(QPUImpl *, QuantumGateParam *);
+
 private:
     std::shared_ptr<CExpr> m_expr;  ///< classical expr share ptr
     NodeType m_node_type;           ///< current QNode type
-    qmap_size_t m_stPosition;       ///< current QNode position in the QNodeMap
+
+    std::shared_ptr<QNode> getImplementationPtr()
+    {
+        QCERR("Can't use this function");
+        throw std::runtime_error("Can't use this function");
+    };
 };
 
 typedef AbstractClassicalProg * (*CreateClassicalQProgram)(ClassicalCondition &);

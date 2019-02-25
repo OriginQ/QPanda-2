@@ -266,8 +266,7 @@ namespace QPanda
             insertPaulixModel(m_prog, m_qubit_vec, beta_vec[i]);
         }
 
-        load(m_prog);
-        run();
+        directlyRun(m_prog);
 
         vector_d prob_vec = PMeasure_no_index(m_qubit_vec);
         prob_vec = accumulateProbability(prob_vec);
@@ -372,8 +371,6 @@ namespace QPanda
 
     void QAOA::QFinalize()
     {
-        std::for_each(m_qubit_vec.begin(), m_qubit_vec.end(),
-            [](Qubit* qbit) { qFree(qbit); });
         std::for_each(m_cbit_vec.begin(), m_cbit_vec.end(),
             [](ClassicalCondition cbit) { cFree(cbit); });
 
@@ -424,8 +421,7 @@ namespace QPanda
             insertPaulixModel(m_prog, m_qubit_vec, beta_vec[i]);
         }
 
-        load(m_prog);
-        run();
+        directlyRun(m_prog);
 
         vector_d prob_vec = PMeasure_no_index(m_qubit_vec);
         double key_probability = 0.0;

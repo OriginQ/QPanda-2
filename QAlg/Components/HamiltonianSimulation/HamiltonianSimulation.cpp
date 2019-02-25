@@ -1,8 +1,22 @@
 #include "HamiltonianSimulation/HamiltonianSimulation.h"
-#include "BasicCircuit/BasicCircuit.h"
+#include "QuantumCircuit/QGate.h"
 
 namespace QPanda
 {
+    static QCircuit parity_check_circuit(std::vector<Qubit*> qubit_vec)
+    {
+        QCircuit circuit;
+        for (auto i = 0; i < qubit_vec.size() - 1; i++)
+        {
+            circuit << QGateNodeFactory::getInstance()->getGateNode(
+                "CNOT",
+                qubit_vec[i],
+                qubit_vec[qubit_vec.size() - 1]);
+        }
+
+        return circuit;
+    }
+
     QCircuit simulateZTerm(
         const std::vector<Qubit*> &qubit_vec,
         double coef,

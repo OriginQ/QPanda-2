@@ -10,6 +10,7 @@
 #include "Core/QuantumCircuit/QuantumGate.h"
 #include "Core/QuantumMachine/QubitFactory.h"
 #include "Core/QuantumMachine/QVec.h"
+#include "Core/QuantumCircuit/QGlobalVariable.h"
 QPANDA_BEGIN
 using QGATE_SPACE::QuantumGate;
 using QGATE_SPACE::QGateFactory;
@@ -128,7 +129,8 @@ typedef void(*QGATE_FUN)(QuantumGate *,
     QVec &,
     QPUImpl*,
     bool,
-    QVec &);
+    QVec &,
+    GateType);
 typedef std::map<int, QGATE_FUN> QGATE_FUN_MAP;
 
 class QGateParseMap

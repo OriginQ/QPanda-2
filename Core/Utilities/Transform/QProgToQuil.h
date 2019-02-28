@@ -29,12 +29,6 @@ QPANDA_BEGIN
 using QGATE_SPACE::angleParameter;
 
 
-enum MetadataGateType {
-    METADATA_SINGLE_GATE,
-    METADATA_DOUBLE_GATE
-};
-
-
 
 /*
 Travesal QProg print QGates us Quil instruction set

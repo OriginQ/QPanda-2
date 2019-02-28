@@ -234,29 +234,24 @@ static string dec2bin(unsigned n, size_t size)
 vector<pair<size_t, double>> QPanda::PMeasure(QVec& qubit_vector,
     int select_max)
 {
-    if (0 == qubit_vector.size())
-        throw invalid_argument("qubit is zero");
-
-    auto pmeasure_vector = qvm->PMeasure(qubit_vector,select_max);
-
-    return pmeasure_vector;
+    auto temp = dynamic_cast<IdealMachineInterface *>(qvm);
+    if (nullptr == temp)
+    {
+        QCERR("qvm is not ideal machine");
+        throw runtime_error("qvm is not ideal machine");
+    }
+    return temp->PMeasure(qubit_vector, select_max);
 }
 
 vector<double> QPanda::PMeasure_no_index(QVec& qubit_vector)
 {
-    if (0 == qubit_vector.size())
-        throw exception();
-
-    auto pmeasure_vector = qvm->PMeasure(qubit_vector,-1);
-
-    vector<double> temp;
-
-    for(auto aiter : pmeasure_vector)
+    auto temp = dynamic_cast<IdealMachineInterface *>(qvm);
+    if (nullptr == temp)
     {
-        temp.push_back(aiter.second);
+        QCERR("qvm is not ideal machine");
+        throw runtime_error("qvm is not ideal machine");
     }
-
-    return temp;
+    return temp->PMeasure_no_index(qubit_vector);
 }
 
 

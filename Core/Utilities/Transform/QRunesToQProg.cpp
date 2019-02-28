@@ -418,7 +418,7 @@ int isIntNum(string str)
     return stoi(str);
 }
 
-void checkNumberLegal(int number,int max_number)
+void checkNumberLegal(int number,size_t max_number)
 {
     if ((number < 0 ) || (number>=max_number))
     {

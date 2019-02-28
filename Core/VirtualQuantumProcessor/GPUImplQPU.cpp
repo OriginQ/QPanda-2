@@ -86,23 +86,24 @@ Argin:       pQuantumProParam       quantum program prarm pointer
 Argout:      sState                 string state
 return:      quantum error
 *****************************************************************************************************************/
-bool GPUImplQPU::getQState(string & sState, QuantumGateParam *pQuantumProParam)
+QStat GPUImplQPU::getQState()
 {
-    if (miQbitNum <= 0)
-        return false;
+	if (miQbitNum <= 0)
+	{
+		QCERR("qbit num error");
+		throw runtime_error("qbit num error");
+	}
 
-    getState(mvCPUQuantumStat, mvQuantumStat, pQuantumProParam->m_qbit_number);
-    size_t uiDim = 1ull << (pQuantumProParam->m_qbit_number);
+    getState(mvCPUQuantumStat, mvQuantumStat, miQbitNum);
+    size_t uiDim = 1ull << miQbitNum;
     stringstream ssTemp;
+	QStat temp;
     for (size_t i = 0; i < uiDim; i++)
     {
-        ssTemp << "state[" << i << "].real = "
-            << mvCPUQuantumStat.real[i]
-            << " " << "state[" << i << "].imag = "
-            << mvCPUQuantumStat.imag[i] << "\n";
+        qcomplex_t qstate = { mvCPUQuantumStat.real[i] ,mvCPUQuantumStat.imag[i] };
+        temp.push_back(qstate);
     }
-    sState.append(ssTemp.str());
-    return true;
+    return temp;
 }
 
 /*****************************************************************************************************************
@@ -348,7 +349,8 @@ QError GPUImplQPU::unitarySingleQubitGate(
     size_t qn,
     QStat & matrix,
     bool isConjugate,
-    double error_rate)
+    double error_rate,
+    GateType type)
 {
     STATE_T matrix_real[4] = { matrix[0].real(),matrix[1].real(), matrix[2].real(), matrix[3].real()};
     STATE_T matrix_imag[4] = { matrix[0].imag(),matrix[1].imag(), matrix[2].imag(), matrix[3].imag() };
@@ -368,7 +370,8 @@ QError GPUImplQPU::controlunitarySingleQubitGate(
     Qnum& qnum,
     QStat& matrix,
     bool isConjugate,
-    double error_rate)
+    double error_rate,
+    GateType type)
 {
     STATE_T matrix_real[4] = { matrix[0].real(),matrix[1].real(), matrix[2].real(), matrix[3].real() };
     STATE_T matrix_imag[4] = { matrix[0].imag(),matrix[1].imag(), matrix[2].imag(), matrix[3].imag() };
@@ -389,7 +392,8 @@ QError GPUImplQPU::unitaryDoubleQubitGate(
     size_t qn_1,
     QStat& matrix,
     bool isConjugate,
-    double error_rate)
+    double error_rate,
+    GateType type)
 {
     STATE_T matrix_real[16];
     STATE_T matrix_imag[16];
@@ -415,7 +419,8 @@ QError GPUImplQPU::controlunitaryDoubleQubitGate(
     Qnum& qnum,
     QStat& matrix,
     bool isConjugate,
-    double error_rate)
+    double error_rate,
+    GateType type)
 {
     STATE_T matrix_real[16];
     STATE_T matrix_imag[16];

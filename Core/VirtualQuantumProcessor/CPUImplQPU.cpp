@@ -249,7 +249,8 @@ QError  CPUImplQPU::
 unitarySingleQubitGate(size_t qn,
     QStat& matrix,
     bool isConjugate,
-    double error_rate)
+    double error_rate,
+    GateType type)
 {
     qcomplex_t alpha;
     qcomplex_t beta;
@@ -286,7 +287,8 @@ controlunitarySingleQubitGate(size_t qn,
     Qnum& vControlBit,
     QStat & matrix,
     bool isConjugate,
-    double error_rate)
+    double error_rate,
+    GateType type)
 {
     if (randGenerator() > error_rate)
     {
@@ -365,7 +367,8 @@ unitaryDoubleQubitGate(size_t qn_0,
     size_t qn_1,
     QStat& matrix,
     bool isConjugate,
-    double error_rate)
+    double error_rate,
+    GateType type)
 {
     if (randGenerator() > error_rate)
     {
@@ -440,7 +443,8 @@ controlunitaryDoubleQubitGate(size_t qn_0,
     Qnum& vControlBit,
     QStat& matrix,
     bool isConjugate,
-    double error_rate)
+    double error_rate,
+    GateType type)
 {
     if (randGenerator() > error_rate)
     {

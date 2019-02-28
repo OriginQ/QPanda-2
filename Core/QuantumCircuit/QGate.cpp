@@ -427,7 +427,7 @@ void OriginQGate::execute(QPUImpl * quantum_gates, QuantumGateParam * param)
         }
     }
     auto aiter = QGateParseMap::getFunction(m_qgate->getOperationNum());
-    aiter(m_qgate, m_qbit_vector, quantum_gates, dagger, control_qbit_vector);
+    aiter(m_qgate, m_qbit_vector, quantum_gates, dagger, control_qbit_vector, (GateType)m_qgate->getGateType());
 }
 
 
@@ -511,7 +511,8 @@ void QGateParseSingleBit(QuantumGate * qgate,
     QVec & qbit_vector, 
     QPUImpl* qgates,
     bool is_dagger,
-    QVec & control_qbit_vector)
+    QVec & control_qbit_vector,
+    GateType type)
 {
     if (nullptr == qgate)
     {
@@ -525,7 +526,7 @@ void QGateParseSingleBit(QuantumGate * qgate,
     size_t bit = qbit->getPhysicalQubitPtr()->getQubitAddr();
     if (control_qbit_vector.size() == 0)
     {
-        qgates->unitarySingleQubitGate(bit, matrix, is_dagger, 0);
+        qgates->unitarySingleQubitGate(bit, matrix, is_dagger, 0, type);
     }
     else
     {
@@ -537,7 +538,7 @@ void QGateParseSingleBit(QuantumGate * qgate,
             bit_num_vector.push_back(temp);
         }
         bit_num_vector.push_back(bit);
-        qgates->controlunitarySingleQubitGate(bit, bit_num_vector, matrix, is_dagger, 0);
+        qgates->controlunitarySingleQubitGate(bit, bit_num_vector, matrix, is_dagger, 0, type);
     }
 
 }
@@ -546,7 +547,8 @@ void QGateParseDoubleBit(QuantumGate * qgate,
     QVec & qbit_vector,
     QPUImpl* qgates,
     bool is_dagger,
-    QVec & control_qbit_vector)
+    QVec & control_qbit_vector,
+    GateType type)
 {
     QStat matrix;
     qgate->getMatrix(matrix);
@@ -559,7 +561,7 @@ void QGateParseDoubleBit(QuantumGate * qgate,
 
     if (control_qbit_vector.size() == 0)
     {
-        qgates->unitaryDoubleQubitGate(bit, bit2, matrix, is_dagger, 0);
+        qgates->unitaryDoubleQubitGate(bit, bit2, matrix, is_dagger, 0, type);
     }
     else
     {
@@ -572,7 +574,7 @@ void QGateParseDoubleBit(QuantumGate * qgate,
         }
         bit_num_vector.push_back(bit2);
         bit_num_vector.push_back(bit);
-        qgates->controlunitaryDoubleQubitGate(bit, bit2, bit_num_vector, matrix, is_dagger, 0);
+        qgates->controlunitaryDoubleQubitGate(bit, bit2, bit_num_vector, matrix, is_dagger, 0, type);
     }
 }
 

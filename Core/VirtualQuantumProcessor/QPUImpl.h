@@ -23,6 +23,7 @@ limitations under the License.
 #include <map>
 #include "Core/VirtualQuantumProcessor/QuantumGateParameter.h"
 #include "Core/VirtualQuantumProcessor/QError.h"
+#include "Core/QuantumCircuit/QGlobalVariable.h"
 
 typedef std::vector<QGateParam> vQParam;
 
@@ -151,24 +152,30 @@ public:
     
     virtual QError unitarySingleQubitGate(size_t qn, QStat& matrix, 
                         bool isConjugate, 
-                        double error_rate) = 0;
+                        double error_rate,
+                        GateType ) = 0;
 
     virtual QError controlunitarySingleQubitGate(size_t qn, Qnum& qnum,
                         QStat& matrix, 
                         bool isConjugate,
-                        double error_rate) = 0;
+                        double error_rate,
+                        GateType) = 0;
     
     virtual QError unitaryDoubleQubitGate(size_t qn_0, size_t qn_1,
                         QStat& matrix,
                         bool isConjugate,
-                        double error_rate) = 0;
+                        double error_rate,
+                        GateType) = 0;
 
     virtual QError controlunitaryDoubleQubitGate(size_t qn_0,
                         size_t qn_1,
                         Qnum& qnum,
                         QStat& matrix,
                         bool isConjugate,
-                        double error_rate) = 0;
+                        double error_rate,
+                        GateType) = 0;
+
+    virtual QStat getQState() = 0;
 
 protected:
     //string sCalculationUnitType;

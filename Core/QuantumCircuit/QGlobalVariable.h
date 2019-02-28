@@ -82,8 +82,13 @@ enum OperatorType
     TYPE_CINT_NODE
 };
 
-typedef std::complex <double> qcomplex_t;
-typedef std::vector <std::complex<double>> QStat;
+
+
+enum MetadataGateType {
+    METADATA_SINGLE_GATE,
+    METADATA_DOUBLE_GATE
+};
+
 const double PI = 3.14159265358979;
 
 constexpr double SQRT2 = 1.4142135623730950488016887242097;

@@ -20,9 +20,6 @@ Classes for get the shortes path of graph
 #include <vector>
 QPANDA_BEGIN
 
-typedef std::vector<std::complex<double>> QStat;
-
-
 bool isPerfectSquare(int number);
 QStat operator+(const QStat &matrix_left, const QStat &matrix_right);
 QStat operator+(const QStat &matrix_left, const std::complex<double> value);

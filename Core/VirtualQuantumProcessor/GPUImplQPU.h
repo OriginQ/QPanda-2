@@ -24,7 +24,7 @@ public:
 
     size_t getQStateSize();
 
-    bool getQState(std::string & sState, QuantumGateParam *pQuantumProParam);
+    QStat getQState();
 
     QError Hadamard(size_t qn, bool isConjugate,
         double error_rate);
@@ -125,24 +125,28 @@ public:
 
     QError unitarySingleQubitGate(size_t qn, QStat& matrix,
         bool isConjugate,
-        double error_rate);
+        double error_rate,
+        GateType type);
 
     QError controlunitarySingleQubitGate(size_t qn, Qnum& qnum,
         QStat& matrix,
         bool isConjugate,
-        double error_rate);
+        double error_rate,
+        GateType type);
 
     QError unitaryDoubleQubitGate(size_t qn_0, size_t qn_1,
         QStat& matrix,
         bool isConjugate,
-        double error_rate);
+        double error_rate, 
+        GateType type);
 
     QError controlunitaryDoubleQubitGate(size_t qn_0,
         size_t qn_1,
         Qnum& qnum,
         QStat& matrix,
         bool isConjugate,
-        double error_rate);
+        double error_rate,
+        GateType type);
 
 };
 

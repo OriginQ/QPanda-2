@@ -52,6 +52,20 @@ private:
     std::map<std::string, int> m_QGate_type_map;
 };
 
+class TransformQGateType
+{
+public:
+    static TransformQGateType &getInstance();
+    ~TransformQGateType() {};
+    std::string operator [](GateType);
+    GateType operator [](std::string gate_name);
+private:
+    std::map<std::string, GateType> m_qgate_type_map;
+    TransformQGateType &operator=(const TransformQGateType &);
+    TransformQGateType();
+    TransformQGateType(const TransformQGateType &);
+};
+
 
 
 

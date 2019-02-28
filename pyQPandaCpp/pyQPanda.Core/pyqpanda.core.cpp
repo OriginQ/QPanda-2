@@ -536,7 +536,7 @@ PYBIND11_MODULE(pyQPanda, m)
     size_t (QuantumMachine::*get_allocate_qubit)() = &QuantumMachine::getAllocateQubit;
     size_t (QuantumMachine::*get_allocate_CMem)() = &QuantumMachine::getAllocateCMem;
     void (QuantumMachine::*_finalize)() = &QuantumMachine::finalize;
-    vector<pair<size_t, double>>(QuantumMachine::*pmeasure)(QVec , int) = &QuantumMachine::PMeasure;
+    vector<pair<size_t, double>>(OriginQVM::*pmeasure)(QVec , int) = &OriginQVM::PMeasure;
     map<string, size_t>(OriginQVM::*quick_measure)(QVec, size_t) = &OriginQVM::quickMeasure;
     /*
     vector<double>(QuantumMachine::*pmeasure_no_index)(QVec) = &QuantumMachine::PMeasure_no_index;

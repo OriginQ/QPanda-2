@@ -145,56 +145,81 @@ public:
     }
 };
 
-class OriginQVM : public QuantumMachine,public IdealMachineInterface
+
+class QVM : public QuantumMachine
 {
-private:
+protected:
     QubitPool * _Qubit_Pool = nullptr;
     CMem * _CMem = nullptr;
-    std::shared_ptr<AbstractQuantumProgram> _QProgram ;
     QResult* _QResult = nullptr;
     QMachineStatus* _QMachineStatus = nullptr;
     QuantumGateParam * _pParam;
     QPUImpl     * _pGates;
     struct Configuration
     {
-        size_t maxQubit=25;
-        size_t maxCMem=256;
+        size_t maxQubit = 25;
+        size_t maxCMem = 256;
     };
     Configuration _Config;
-    void run(QProg&);
+    virtual void run(QProg&);
+    std::string _ResultToBinaryString(std::vector<ClassicalCondition>& vCBit);
+public:
+    QVM() {}
+    virtual bool init(QuantumMachine_type type = CPU);
+    virtual Qubit* Allocate_Qubit();
+    virtual Qubit* Allocate_Qubit(size_t qubit_num);
+    virtual QVec Allocate_Qubits(size_t qubit_count);
+    virtual QMachineStatus* getStatus() const;
+    virtual QResult* getResult();
+    virtual std::map<std::string, bool> getResultMap();
+    virtual void finalize();
+    virtual size_t getAllocateQubit();
+    virtual size_t getAllocateCMem();
+    virtual void Free_Qubit(Qubit*);
+    virtual void Free_Qubits(QVec&); //free a list of qubits
+    virtual void Free_CBit(ClassicalCondition &);
+    virtual void Free_CBits(std::vector<ClassicalCondition>&);
+    virtual ClassicalCondition Allocate_CBit();
+    virtual std::vector<ClassicalCondition> Allocate_CBits(size_t cbit_count);
+    virtual ClassicalCondition Allocate_CBit(size_t stCbitNum);
+    virtual std::map<std::string, bool> directlyRun(QProg & qProg);
+    virtual std::map<std::string, size_t> runWithConfiguration(QProg &, std::vector<ClassicalCondition> &, rapidjson::Document &);
+    virtual std::map<int, size_t> getGateTimeMap() const;
+
+};
+
+
+class OriginQVM : public QVM,public IdealMachineInterface
+{
 public:
     OriginQVM() {}
-    bool init(QuantumMachine_type type = CPU);
-    Qubit* Allocate_Qubit();
-    Qubit* Allocate_Qubit(size_t qubit_num);
-    QVec Allocate_Qubits(size_t qubit_count);
-    ClassicalCondition Allocate_CBit();
-    std::vector<ClassicalCondition> Allocate_CBits(size_t cbit_count);
-    ClassicalCondition Allocate_CBit(size_t stCbitNum);
-    void Free_Qubit(Qubit*);
-    void Free_Qubits(QVec&); //free a list of qubits
-    void Free_CBit(ClassicalCondition &);
-    void Free_CBits(std::vector<ClassicalCondition>&);
-    QMachineStatus* getStatus() const;
-    QResult* getResult();
-    void finalize();
-    size_t getAllocateQubit();
-    size_t getAllocateCMem();
-    std::map<std::string, bool> getResultMap();
     std::vector<std::pair<size_t, double>> PMeasure(QVec qubit_vector, int select_max);
     std::vector<double> PMeasure_no_index(QVec qubit_vector);
-    std::map<std::string, bool> directlyRun(QProg & qProg);
     std::vector<std::pair<size_t, double>> getProbTupleList(QVec , int);
     std::vector<double> getProbList(QVec , int);
     std::map<std::string, double> getProbDict(QVec , int);
     std::vector<std::pair<size_t, double>> probRunTupleList(QProg &, QVec , int);
     std::vector<double> probRunList(QProg &, QVec , int);
     std::map<std::string, double> probRunDict(QProg &, QVec , int);
-    std::string ResultToBinaryString(std::vector<ClassicalCondition>& vCBit);
-    std::map<std::string, size_t> runWithConfiguration(QProg &, std::vector<ClassicalCondition> &, rapidjson::Document &);
     std::map<std::string, size_t> quickMeasure(QVec , size_t);
-    virtual std::map<int, size_t> getGateTimeMap() const;
     QStat getQStat();
 };
+
+
+class NoiseQVM : public QVM
+{
+private:
+    std::vector<std::vector<std::string>> m_gates_matrix;
+    std::vector<std::vector<std::string>> m_valid_gates_matrix;
+    void start();
+    void run(QProg&);
+public:
+    NoiseQVM();
+    bool init(QuantumMachine_type type = NONE);
+    bool init(rapidjson::Document &);
+   // std::map<std::string, size_t> runWithConfiguration(QProg &, std::vector<ClassicalCondition> &, rapidjson::Document &);
+    //std::map<std::string, bool> directlyRun(QProg & qProg);
+};
+
 
 #endif

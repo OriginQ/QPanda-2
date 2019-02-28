@@ -16,7 +16,7 @@ Update by code specification
 #define _QUANTUM_GATE_H
 #include <map>
 #include "Core/QuantumCircuit/QGlobalVariable.h"
-
+#include "Core/Utilities/QPandaNamespace.h"
 namespace QGATE_SPACE 
 {
     class angleParameter
@@ -45,9 +45,6 @@ namespace QGATE_SPACE
         virtual void getMatrix(QStat & matrix) const = 0;
         virtual int getGateType()const = 0;
     };
-
-
-
 
     typedef QuantumGate* (*CreateGate_cb)(void);
     typedef QuantumGate* (*CreateAngleGate_cb)(double);

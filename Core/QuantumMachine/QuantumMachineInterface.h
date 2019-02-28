@@ -30,7 +30,8 @@ QPANDA_BEGIN
 enum QuantumMachine_type {
     CPU,
     GPU,
-    CPU_SINGLE_THREAD
+    CPU_SINGLE_THREAD,
+    NONE
 };
 
 class QubitAddr 
@@ -71,6 +72,7 @@ public:
     virtual std::vector<double> probRunList(QProg &, QVec, int) = 0;
     virtual std::map<std::string, double> probRunDict(QProg &, QVec, int) = 0;
     virtual std::map<std::string, size_t> quickMeasure(QVec, size_t) = 0;
+    virtual std::vector<std::pair<size_t, double>> PMeasure(QVec qubit_vector, int select_max) = 0;
     virtual QStat getQStat() = 0;
     virtual ~IdealMachineInterface() {}
 };
@@ -92,7 +94,6 @@ public:
     virtual QMachineStatus* getStatus() const = 0; // get the status of the quantum machine
     virtual std::map<std::string, bool> directlyRun(QProg & qProg) = 0;
     virtual std::map<std::string, size_t> runWithConfiguration(QProg &, std::vector<ClassicalCondition> &, rapidjson::Document&) = 0;
-    virtual std::vector<std::pair<size_t, double>> PMeasure(QVec qubit_vector, int select_max) = 0;
     virtual size_t getAllocateQubit() = 0;
     virtual size_t getAllocateCMem() = 0;
     virtual std::map<int, size_t> getGateTimeMap() const = 0;

@@ -2,6 +2,7 @@
 #include <limits>
 #include "ClassicalCondition.test.h"
 #include "Utilities/OriginCollection.h"
+
 #include "QPanda.h"
 USING_QPANDA
 using namespace std;
@@ -197,7 +198,7 @@ TEST(OriginCollectionTest,CreateTest)
     test.insertValue(key_n, "888", 122);
     test.insertValue(key_n, 6564465, 345);
     
-    auto & value =test.getValue("value");
+    auto value =test.getValue("value");
     test.write();
 
     
@@ -241,6 +242,29 @@ TEST(QProgTransformQuil, QUIL)
     std::cout << quil << std::endl;
 
     finalize();
-    system("pause");
     return;
+}
+
+TEST(NoiseMachineTest, test)
+{
+    NoiseQVM qvm;
+    qvm.init();
+    auto qvec = qvm.Allocate_Qubits(2);
+    auto cvec = qvm.Allocate_CBits(2);
+    auto prog = QProg();
+    prog << X(qvec[0])
+       << X(qvec[1])
+       <<Measure(qvec[0],cvec[0])
+       << Measure(qvec[1],cvec[1]);
+    rapidjson::Document doc;
+    doc.Parse("{}");
+    auto &alloc = doc.GetAllocator();
+    doc.AddMember("shots", 1000, alloc);
+    auto result = qvm.runWithConfiguration(prog, cvec, doc);
+    for (auto &aiter : result)
+    {
+        std::cout << aiter.first << " : " << aiter.second << endl;
+    }
+
+    qvm.finalize();
 }

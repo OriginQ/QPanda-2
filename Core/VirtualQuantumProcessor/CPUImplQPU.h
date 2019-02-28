@@ -491,15 +491,16 @@ public:
     }
 
     //define unitary single/double quantum gate
-    QError unitarySingleQubitGate(size_t qn, QStat& matrix, bool isConjugate, double error_rate);
-    QError controlunitarySingleQubitGate(size_t qn, Qnum& vControlBit, QStat& matrix, bool isConjugate, double error_rate);
-    QError unitaryDoubleQubitGate(size_t qn_0, size_t qn_1, QStat& matrix, bool isConjugate, double error_rate);
+    QError unitarySingleQubitGate(size_t qn, QStat& matrix, bool isConjugate, double error_rate, GateType);
+    QError controlunitarySingleQubitGate(size_t qn, Qnum& vControlBit, QStat& matrix, bool isConjugate, double error_rate, GateType);
+    QError unitaryDoubleQubitGate(size_t qn_0, size_t qn_1, QStat& matrix, bool isConjugate, double error_rate, GateType);
     QError controlunitaryDoubleQubitGate(size_t qn_0,
         size_t qn_1,
         Qnum& vControlBit,
         QStat& matrix,
         bool isConjugate,
-        double error_rate);
+        double error_rate,
+        GateType);
 
     QStat getQState();
     QError Reset(size_t qn);

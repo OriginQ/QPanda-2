@@ -14,12 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#ifndef CPU_QUANTUM_GATE_SINGLE_THREAD_H
-#define CPU_QUANTUM_GATE_SINGLE_THREAD_H
+#ifndef NOISY_CPU_QUANTUM_GATE_SINGLE_THREAD_H
+#define NOISY_CPU_QUANTUM_GATE_SINGLE_THREAD_H
 
 //#ifndef USE_CUDA
 
 #include "Core/VirtualQuantumProcessor/QPUImpl.h"
+#include "Core/VirtualQuantumProcessor/NoiseQPU/NoiseModel.h"
+#include "ThirdParty/rapidjson/document.h"
 #include <stdio.h>
 #include <iostream>
 #include <vector>
@@ -33,36 +35,53 @@ limitations under the License.
 #define PI 3.14159265358979
 #endif
 
-class CPUImplQPUSingleThread : public QPUImpl
+#define NoiseOp std::vector<std::vector<qcomplex_t>>
+
+
+
+QStat matrix_multiply(const QStat &matrix_left, const QStat &matrix_right);
+
+class NoisyCPUImplQPU : public QPUImpl
 {
 public:
     vQParam qbit2stat;
     QGateParam &findgroup(size_t qn);
-    CPUImplQPUSingleThread();
-    CPUImplQPUSingleThread(size_t);
-    ~CPUImplQPUSingleThread();
+    NoisyCPUImplQPU();
+    NoisyCPUImplQPU(rapidjson::Document &);
+    ~NoisyCPUImplQPU();
 
     bool TensorProduct(QGateParam& qgroup0, QGateParam& qgroup1);
-
+    QError singleQubitGateNoise(size_t qn, NoiseOp & noise);
+    QError doubleQubitGateNoise(size_t qn_0,size_t qn_1, NoiseOp & noise);
     QError unitarySingleQubitGate(size_t qn,
         QStat& matrix,
         bool isConjugate,
         double error_rate,
-        GateType);
+        GateType type);
+    QError noisyUnitarySingleQubitGate(size_t qn,
+        QStat& matrix,
+        bool isConjugate,
+        NoiseOp & noise);
 
     QError controlunitarySingleQubitGate(size_t qn,
         Qnum& vControlBit,
         QStat& matrix, 
         bool isConjugate,
         double error_rate,
-        GateType);
+        GateType type);
     
     QError unitaryDoubleQubitGate(size_t qn_0,
         size_t qn_1, 
         QStat& matrix, 
         bool isConjugate, 
         double error_rate,
-        GateType);
+        GateType type);
+
+    QError noisyUnitaryDoubleQubitGate(size_t qn_0,
+        size_t qn_1,
+        QStat& matrix,
+        bool isConjugate,
+        NoiseOp & noise);
    
     QError controlunitaryDoubleQubitGate(size_t qn_0,
         size_t qn_1,
@@ -70,7 +89,7 @@ public:
         QStat& matrix,
         bool isConjugate,
         double error_rate,
-        GateType);
+        GateType type);
 
     virtual QError Hadamard(size_t qn, bool isConjugate,
         double error_rate);
@@ -194,6 +213,13 @@ public:
     QError initState(QuantumGateParam *);
 
     QError endGate(QuantumGateParam *pQuantumProParam, QPUImpl * pQGate);
+
+private:
+    QError _get_probabilities(std::vector<double> & probabilities, size_t qn, NoiseOp & noise);
+    QError _get_probabilities(std::vector<double> & probabilities, size_t qn_0,size_t qn_1, NoiseOp & noise);
+    //static QError _apply_matrix(QStat *stat, std::vector<qcomplex_t> matrix);
+    rapidjson::Document m_doc;
+
 protected:
     std::string sCalculationUnitType = "X86";
 
@@ -201,4 +227,4 @@ protected:
 
 //#endif // !USE_CUDA
 
-#endif
+#endif // ! NOISY_CPU_QUANTUM_GATE_SINGLE_THREAD_H

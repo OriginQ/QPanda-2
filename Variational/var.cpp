@@ -884,7 +884,14 @@ double impl_vqp::_get_expectation_one_term(QCircuit c,
     }
     m_machine->directlyRun(qprog);
 
-    auto result = m_machine->PMeasure(vqubit,-1);
+    auto ideal_machine = dynamic_cast<IdealMachineInterface*>(m_machine);
+    if (nullptr == ideal_machine)
+    {
+        QCERR("m_machine is not idealmachine");
+        throw runtime_error("m_machine is not idealmachine");
+    }
+
+    auto result = ideal_machine->PMeasure(vqubit,-1);
 
 
     for (auto i = 0; i < result.size(); i++)

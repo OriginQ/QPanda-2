@@ -622,7 +622,7 @@ public:
      * @return std::vector<std::string> value vector
      */
     
-    inline std::vector<std::string> getValue(const std::string & name)
+    inline std::vector<std::string> getValue(const std::string  name)
     {
         std::vector<std::string> value_vector;
         if(!m_doc.HasMember(name.c_str()))

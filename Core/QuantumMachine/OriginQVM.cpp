@@ -25,7 +25,7 @@ limitations under the License.
 
 USING_QPANDA
 using namespace std;
-bool OriginQVM::init(QuantumMachine_type type)
+bool QVM::init(QuantumMachine_type type)
 {
     _Qubit_Pool = 
         QubitPoolFactory::GetFactoryInstance().
@@ -70,7 +70,7 @@ bool OriginQVM::init(QuantumMachine_type type)
 }
 
 
-Qubit * OriginQVM::Allocate_Qubit()
+Qubit * QVM::Allocate_Qubit()
 {
     if (_Qubit_Pool == nullptr)
     {
@@ -87,7 +87,7 @@ Qubit * OriginQVM::Allocate_Qubit()
         
 }
 
-QVec OriginQVM::Allocate_Qubits(size_t qubitNumber)
+QVec QVM::Allocate_Qubits(size_t qubitNumber)
 {
     if (_Qubit_Pool == nullptr)
     {
@@ -106,7 +106,7 @@ QVec OriginQVM::Allocate_Qubits(size_t qubitNumber)
 }
 
 
-ClassicalCondition OriginQVM::Allocate_CBit()
+ClassicalCondition QVM::Allocate_CBit()
 {
     if (_CMem == nullptr)
     {
@@ -125,7 +125,7 @@ ClassicalCondition OriginQVM::Allocate_CBit()
 }
 
 
-vector<ClassicalCondition> OriginQVM::Allocate_CBits(size_t cbitNumber)
+vector<ClassicalCondition> QVM::Allocate_CBits(size_t cbitNumber)
 {
     if (_CMem == nullptr)
     {
@@ -148,7 +148,7 @@ vector<ClassicalCondition> OriginQVM::Allocate_CBits(size_t cbitNumber)
 }
 
 
-ClassicalCondition OriginQVM::Allocate_CBit(size_t stCBitaddr)
+ClassicalCondition QVM::Allocate_CBit(size_t stCBitaddr)
 {
     if (_CMem == nullptr)
     {
@@ -166,7 +166,7 @@ ClassicalCondition OriginQVM::Allocate_CBit(size_t stCBitaddr)
     }
 }
 
-Qubit * OriginQVM::Allocate_Qubit(size_t stQubitNum)
+Qubit * QVM::Allocate_Qubit(size_t stQubitNum)
 {
     if (_Qubit_Pool == nullptr)
     {
@@ -182,12 +182,12 @@ Qubit * OriginQVM::Allocate_Qubit(size_t stQubitNum)
     }
 }
 
-void OriginQVM::Free_Qubit(Qubit *qubit)
+void QVM::Free_Qubit(Qubit *qubit)
 {
     this->_Qubit_Pool->Free_Qubit(qubit);
 }
 
-void OriginQVM::Free_Qubits(QVec &vQubit)
+void QVM::Free_Qubits(QVec &vQubit)
 {
     for (auto iter : vQubit)
     {
@@ -195,7 +195,7 @@ void OriginQVM::Free_Qubits(QVec &vQubit)
     }
 }
 
-void OriginQVM::Free_CBit(ClassicalCondition & class_cond)
+void QVM::Free_CBit(ClassicalCondition & class_cond)
 {
     auto cbit = class_cond.getExprPtr()->getCBit();
     if (nullptr == cbit)
@@ -206,7 +206,7 @@ void OriginQVM::Free_CBit(ClassicalCondition & class_cond)
     _CMem->Free_CBit(cbit);
 }
 
-void OriginQVM::Free_CBits(vector<ClassicalCondition> & vCBit)
+void QVM::Free_CBits(vector<ClassicalCondition> & vCBit)
 {
     for (auto iter : vCBit)
     {
@@ -220,7 +220,7 @@ void OriginQVM::Free_CBits(vector<ClassicalCondition> & vCBit)
     }
 }
 
-void OriginQVM::run(QProg & node)
+void QVM::run(QProg & node)
 {
     
     _pParam = new QuantumGateParam();
@@ -243,20 +243,18 @@ void OriginQVM::run(QProg & node)
     return;
 }
 
-QMachineStatus * OriginQVM::getStatus() const
+QMachineStatus * QVM::getStatus() const
 {
     return _QMachineStatus;
 }
 
-QResult * OriginQVM::getResult()
+QResult * QVM::getResult()
 {
     return _QResult;
 }
 
-void OriginQVM::finalize()
+void QVM::finalize()
 {
-
-    _QProgram.reset();
     delete _Qubit_Pool;
     delete _CMem;
     delete _QResult;
@@ -270,17 +268,17 @@ void OriginQVM::finalize()
     _pGates = nullptr;
 }
 
-size_t OriginQVM::getAllocateQubit()
+size_t QVM::getAllocateQubit()
 {
     return _Qubit_Pool->getMaxQubit() - _Qubit_Pool->getIdleQubit();
 }
 
-size_t OriginQVM::getAllocateCMem()
+size_t QVM::getAllocateCMem()
 {
     return _CMem->getMaxMem()- _CMem->getIdleMem();
 }
 
-map<string, bool> OriginQVM::getResultMap()
+map<string, bool> QVM::getResultMap()
 {
     if (nullptr == _QResult)
     {
@@ -329,7 +327,7 @@ vector<double> OriginQVM::PMeasure_no_index(QVec qubit_vector)
     return pmeasure_vector;
 }
 
-map<string, bool> OriginQVM::directlyRun(QProg & qProg)
+map<string, bool> QVM::directlyRun(QProg & qProg)
 {
     run(qProg);
     return _QResult->getResultMap();
@@ -380,7 +378,7 @@ static string dec2bin(size_t n, size_t size)
     }
     return binstr;
 }
-string OriginQVM::ResultToBinaryString(vector<ClassicalCondition> & vCBit)
+string QVM::_ResultToBinaryString(vector<ClassicalCondition> & vCBit)
 {
     string sTemp;
     if (nullptr == _QResult)
@@ -448,7 +446,7 @@ probRunDict(QProg & qProg, QVec vQubit, int selectMax)
     return getProbDict(vQubit,  selectMax);
 }
 
-map<string, size_t> OriginQVM::
+map<string, size_t> QVM::
 runWithConfiguration(QProg & qProg, vector<ClassicalCondition>& vCBit, rapidjson::Document & param)
 {
     map<string, size_t> mResult;
@@ -470,7 +468,7 @@ runWithConfiguration(QProg & qProg, vector<ClassicalCondition>& vCBit, rapidjson
     for (size_t i = 0; i < shots; i++)
     {
         run(qProg);
-        string sResult = ResultToBinaryString(vCBit);
+        string sResult = _ResultToBinaryString(vCBit);
         if (mResult.find(sResult) == mResult.end())
         {
             mResult[sResult] = 1;
@@ -573,7 +571,7 @@ map<string, size_t> OriginQVM::quickMeasure(QVec vQubit, size_t shots)
 }
 
 
-map<int, size_t> OriginQVM::getGateTimeMap() const
+map<int, size_t> QVM::getGateTimeMap() const
 {
     return map<int, size_t>();
 }
@@ -585,6 +583,7 @@ QStat OriginQVM::getQStat()
         QCERR("_pGates is null");
         throw runtime_error("_pGates is null");
     }
+    return _pGates->getQState();
 }
 
 

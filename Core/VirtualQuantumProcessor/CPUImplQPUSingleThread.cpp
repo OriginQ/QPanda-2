@@ -23,8 +23,6 @@ limitations under the License.
 #include "QPandaNamespace.h"
 using namespace std;
 
-typedef vector<complex<double>> QStat;
-
 CPUImplQPUSingleThread::CPUImplQPUSingleThread()
 {
 }
@@ -246,7 +244,8 @@ QError CPUImplQPUSingleThread::endGate
 }
 
 QError  CPUImplQPUSingleThread::unitarySingleQubitGate
-(size_t qn, QStat& matrix, bool isConjugate, double error_rate)
+(size_t qn, QStat& matrix, bool isConjugate, double error_rate,
+    GateType type)
 {
     qcomplex_t alpha;
     qcomplex_t beta;
@@ -283,7 +282,8 @@ controlunitarySingleQubitGate(size_t qn,
     Qnum& vControlBit,
     QStat & matrix,
     bool isConjugate,
-    double error_rate)
+    double error_rate,
+    GateType type)
 {
     if (randGenerator() > error_rate)
     {
@@ -362,7 +362,8 @@ unitaryDoubleQubitGate(size_t qn_0,
     size_t qn_1,
     QStat& matrix,
     bool isConjugate,
-    double error_rate)
+    double error_rate,
+    GateType type)
 {
     if (randGenerator() > error_rate)
     {
@@ -435,7 +436,8 @@ controlunitaryDoubleQubitGate(size_t qn_0,
     Qnum& vControlBit,
     QStat& matrix,
     bool isConjugate,
-    double error_rate)
+    double error_rate,
+    GateType type)
 {
     if (randGenerator() > error_rate)
     {
@@ -745,6 +747,35 @@ QError CPUImplQPUSingleThread::SqiSWAP(
     double error_rate)
 {
     return undefineError;
+}
+
+QStat CPUImplQPUSingleThread::getQState()
+{
+
+    size_t sEnable = 0;
+    while (!qbit2stat[sEnable].enable)
+    {
+        sEnable++;
+    }
+    for (auto i = sEnable; i < qbit2stat.size(); i++)
+    {
+        if (qbit2stat[i].enable)
+        {
+            TensorProduct(qbit2stat[sEnable], qbit2stat[i]);
+        }
+    }
+    QStat state(qbit2stat[sEnable].qstate.size(), 0);
+    size_t slabel = 0;
+    for (auto i = 0; i < qbit2stat[sEnable].qstate.size(); i++)
+    {
+        slabel = 0;
+        for (auto j = 0; j < qbit2stat[sEnable].qVec.size(); j++)
+        {
+            slabel += (((i >> j) % 2) << qbit2stat[sEnable].qVec[j]);
+        }
+        state[slabel] = qbit2stat[sEnable].qstate[i];
+    }
+    return state;
 }
 
 QError CPUImplQPUSingleThread::Reset(size_t qn)

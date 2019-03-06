@@ -23,7 +23,7 @@ def quantum_circuit_learning_test(function_kind):
     else:
         print("undefined")
     x=np.linspace(-1,1,10)
-    init(QuantumMachine_type.CPU_SINGLE_THREAD)
+    init(QMachineType.CPU_SINGLE_THREAD)
     qlist=qAlloc_many(test.qnum)
     cost=test.function_learning(qlist,train_data,step=10,velocity=0.1)
     print('cost is:',cost)

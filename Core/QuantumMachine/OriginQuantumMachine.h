@@ -163,9 +163,11 @@ protected:
     Configuration _Config;
     virtual void run(QProg&);
     std::string _ResultToBinaryString(std::vector<ClassicalCondition>& vCBit);
-public:
+    virtual void _start();
     QVM() {}
-    virtual bool init(QuantumMachine_type type = CPU);
+    virtual ~QVM() {}
+public:
+    virtual void init(){}
     virtual Qubit* Allocate_Qubit();
     virtual Qubit* Allocate_Qubit(size_t qubit_num);
     virtual QVec Allocate_Qubits(size_t qubit_count);
@@ -189,10 +191,11 @@ public:
 };
 
 
-class OriginQVM : public QVM,public IdealMachineInterface
+class CPUQVM : public QVM,public IdealMachineInterface
 {
 public:
-    OriginQVM() {}
+    CPUQVM() {}
+    virtual void init();
     std::vector<std::pair<size_t, double>> PMeasure(QVec qubit_vector, int select_max);
     std::vector<double> PMeasure_no_index(QVec qubit_vector);
     std::vector<std::pair<size_t, double>> getProbTupleList(QVec , int);
@@ -205,6 +208,20 @@ public:
     QStat getQStat();
 };
 
+class GPUQVM : public CPUQVM
+{
+public:
+    GPUQVM() {}
+    void init();
+};
+
+class CPUSingleThreadQVM : public CPUQVM
+{
+public:
+    CPUSingleThreadQVM() {}
+    void init();
+};
+
 
 class NoiseQVM : public QVM
 {
@@ -215,11 +232,10 @@ private:
     void run(QProg&);
 public:
     NoiseQVM();
-    bool init(QuantumMachine_type type = NONE);
+    void init();
     bool init(rapidjson::Document &);
-   // std::map<std::string, size_t> runWithConfiguration(QProg &, std::vector<ClassicalCondition> &, rapidjson::Document &);
-    //std::map<std::string, bool> directlyRun(QProg & qProg);
 };
+
 
 
 #endif

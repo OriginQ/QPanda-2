@@ -93,7 +93,7 @@ class QProgStored
 
     typedef std::map<std::string, int>                    operatorMap_t;
 public:
-    QProgStored(QProg &prog);
+    QProgStored(const uint_t &qubit_number, const uint_t &cbit_number, QProg &prog);
     ~QProgStored();
 
     /*
@@ -231,12 +231,15 @@ private:
     QProg m_QProg;
     uint_t m_file_length;
     uint_t m_node_counter;
-    dataList_t m_data_list;
+    uint_t m_qubit_number;
 
+    uint_t m_cbit_number;
+    dataList_t m_data_list;
     gateMap_t m_gate_type_map;
     operatorMap_t m_operator_map;
 };
-void qProgBinaryStored(QProg &prog, 
+
+void qProgBinaryStored(const uint32_t &qubit_number, const uint32_t &cbit_number, QProg &prog,
     const std::string &filename = DEF_QPROG_FILENAME);
 QPANDA_END
 #endif // QPROGSTORED_H

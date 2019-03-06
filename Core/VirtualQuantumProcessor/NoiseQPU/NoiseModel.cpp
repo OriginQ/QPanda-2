@@ -95,7 +95,7 @@ bool decoherence_kraus_operator(Value & value, NoiseOp & noise)
         QCERR("param error");
         throw std::invalid_argument("param error");
     }
-    if (NOISE_MODEL::DEPHASING_KRAUS_OPERATOR != (NOISE_MODEL)value[0].GetUint())
+    if (NOISE_MODEL::DECOHERENCE_KRAUS_OPERATOR != (NOISE_MODEL)value[0].GetUint())
     {
         QCERR("param error");
         throw std::invalid_argument("param error");
@@ -120,14 +120,14 @@ bool decoherence_kraus_operator(Value & value, NoiseOp & noise)
     NoiseOp damping, dephasing;
 
     Value damping_value(kArrayType);
-    damping_value.PushBack(NOISE_MODEL::DECOHERENCE_KRAUS_OPERATOR,alloc);
+    damping_value.PushBack(NOISE_MODEL::DAMPING_KRAUS_OPERATOR,alloc);
     damping_value.PushBack(1 - exp(-gate_time / t1), alloc);
     damping_kraus_operator(damping_value, damping);
     double gamma_phi = gate_time / t2;
     gamma_phi -= gate_time / (2 * t1);
 
     Value dephasing_value(kArrayType);
-    dephasing_value.PushBack(NOISE_MODEL::DECOHERENCE_KRAUS_OPERATOR, alloc);
+    dephasing_value.PushBack(NOISE_MODEL::DEPHASING_KRAUS_OPERATOR, alloc);
     dephasing_value.PushBack(0.5 * (1 - exp(-2 * gamma_phi)), alloc);
     dephasing_kraus_operator(dephasing_value, dephasing);
 

@@ -2,7 +2,6 @@
 #include <limits>
 #include "ClassicalCondition.test.h"
 #include "Utilities/OriginCollection.h"
-
 #include "QPanda.h"
 USING_QPANDA
 using namespace std;

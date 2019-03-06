@@ -82,7 +82,7 @@ namespace QPanda
 
         bool exec();
 
-        auto getOptimizerResult()
+        QOptimizationResult getOptimizerResult()
         {
             return m_optimization_result;
         }

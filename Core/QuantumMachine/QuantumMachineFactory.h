@@ -24,15 +24,6 @@ limitations under the License.
 
 QPANDA_BEGIN
 
-#define REGISTER_QUANTUM_MACHINE(classname) \
-QuantumMachine* classname##_Constructor()\
-{\
-    return new classname();\
-}\
-static QuantumMachineFactoryHelper _Quantum_Machine_Factory_Helper_##classname(\
-    #classname,\
-    classname##_Constructor\
-)
 
 /* 2. Quantum Machine Status Factory */
 class QMachineStatusFactory
@@ -58,7 +49,7 @@ public:
     constructor_map_t _Quantum_Machine_Constructor;
 
     // class register std::function
-    void registerclass(std::string name, constructor_t constructor);
+    void registerclass(std::string, constructor_t constructor);
 };
 
 class QuantumMachineFactoryHelper
@@ -67,5 +58,18 @@ class QuantumMachineFactoryHelper
 public:
     QuantumMachineFactoryHelper(std::string, constructor_t);
 };
+
+
+#define REGISTER_QUANTUM_MACHINE(classname) \
+QuantumMachine* classname##_Constructor()\
+{\
+    return new classname();\
+}\
+volatile static QuantumMachineFactoryHelper _Quantum_Machine_Factory_Helper_##classname(\
+    #classname,\
+    classname##_Constructor\
+)
+
+
 QPANDA_END
 #endif

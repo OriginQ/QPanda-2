@@ -9,7 +9,7 @@ def paulioperator_test2():
     print(H1)
     print(H1.toHamiltonian(0))
     H2=H1.toHamiltonian(0)
-    machine=init(QuantumMachine_type.CPU)
+    machine=init(QMachineType.CPU)
     qlist=machine.qAlloc_many(H1.getMaxIndex())
     prog=QProg()
     #prog.insert(simulate_pauliZ_hamiltonian(qlist,H1,1.2))

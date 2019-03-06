@@ -27,11 +27,11 @@ limitations under the License.
 #include "Core/Utilities/OriginCollection.h"
 QPANDA_BEGIN
 
-enum QuantumMachine_type {
+enum QMachineType {
     CPU,
     GPU,
     CPU_SINGLE_THREAD,
-    NONE
+    NOISE
 };
 
 class QubitAddr 
@@ -80,7 +80,7 @@ public:
 class QuantumMachine
 {
 public:
-    virtual bool init(QuantumMachine_type type = CPU) = 0; // to initialize the quantum machine
+    virtual void init() = 0; // to initialize the quantum machine
     virtual Qubit* Allocate_Qubit() = 0; // allocate and return a qubit
     virtual ClassicalCondition Allocate_CBit() = 0; // allocate and run a cbit
     virtual std::vector<ClassicalCondition> Allocate_CBits(size_t) = 0; // allocate and return a list of cbits

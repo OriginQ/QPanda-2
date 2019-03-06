@@ -14,46 +14,11 @@ Created in 2018-12-13
 
 namespace QPanda
 {
-    const char kMolecular_s [] =
-        "# Set molecular geometry and symmetry.                                           \n"
-        "molecule mol {                                                                   \n";
-    const char kMolecular_e [] =
-        "symmetry c1                                                                      \n"
-        "}                                                                                \n";
-    const char kMultiplicit_s [] = "mol.set_multiplicity(";
-    const char kMultiplicit_e [] = ")\n";
-    const char kCharge_s [] = "mol.set_molecular_charge(";
-    const char kCharge_e [] = ")\n";
-
-    const char kGlobals_s [] =
-        "# Set global parameters of calculation.                                          \n"
-        "set globals {                                                                    \n";
-    const char kBasis [] = "    basis ";
-    const char kGlobals_e [] =
-        "\n    scf_type pk                                                                \n"
-        "    soscf false                                                                  \n"
-        "    freeze_core false                                                            \n"
-        "    df_scf_guess false                                                           \n"
-        "    opdm true                                                                    \n"
-        "    tpdm true                                                                    \n"
-        "    maxiter 1e6                                                                  \n"
-        "    num_amps_print 1e6                                                           \n"
-        "    r_convergence 1e-6                                                           \n"
-        "    d_convergence 1e-6                                                           \n"
-        "    e_convergence 1e-6                                                           \n"
-        "    damping_percentage 0                                                         \n"
-        "}                                                                                \n";
-    const char kPsi4ConstData [] =
-        "if mol.multiplicity == 1:                                                        \n"
-        "    set reference rhf                                                            \n"
-        "    set guess sad                                                                \n"
-        "else:                                                                            \n"
-        "    set reference rohf                                                           \n"
-        "    set guess gwh                                                                \n"
-        "                                                                                 \n"
+    const char kPsi4_s [] =
         "import copy                                                                      \n"
         "import itertools                                                                 \n"
         "import numpy                                                                     \n"
+        "import traceback                                                                 \n"
         "                                                                                 \n"
         "def general_basis_change(general_tensor, rotation_matrix, key):                  \n"
         "    \"\"\"Change the basis of an general interaction tensor.                     \n"
@@ -173,16 +138,54 @@ namespace QPanda
         "        \"\"\"Print out the non-zero elements of PolynomialTensor.\"\"\"         \n"
         "        strings = []                                                             \n"
         "        for key in self:                                                         \n"
-        "            strings.append('{} : {}\\n'.format(key, self[key]))                   \n"
+        "            strings.append('{} : {}\\n'.format(key, self[key]))                  \n"
         "        return ''.join(strings) if strings else '0'                              \n"
         "                                                                                 \n"
-        "# Run self-consistent field (SCF) calculation.                                   \n"
-        "try:                                                                             \n"
+        "try:                                                                             \n";
+    const char kMolecular_s [] =
+        "    # Set molecular geometry and symmetry.                                           \n"
+        "    molecule mol {                                                                   \n";
+    const char kMolecular_e [] =
+        "    symmetry c1                                                                      \n"
+        "    }                                                                                \n";
+    const char kMultiplicit_s [] = "    mol.set_multiplicity(";
+    const char kMultiplicit_e [] = ")\n";
+    const char kCharge_s [] = "    mol.set_molecular_charge(";
+    const char kCharge_e [] = ")\n";
+
+    const char kGlobals_s [] =
+        "    # Set global parameters of calculation.                                          \n"
+        "    set globals {                                                                    \n";
+    const char kBasis [] = "    basis ";
+    const char kGlobals_e [] =
+        "\n        scf_type pk                                                                \n"
+        "        soscf false                                                                  \n"
+        "        freeze_core false                                                            \n"
+        "        df_scf_guess false                                                           \n"
+        "        opdm true                                                                    \n"
+        "        tpdm true                                                                    \n"
+        "        maxiter 1e6                                                                  \n"
+        "        num_amps_print 1e6                                                           \n"
+        "        r_convergence 1e-6                                                           \n"
+        "        d_convergence 1e-6                                                           \n"
+        "        e_convergence 1e-6                                                           \n"
+        "        damping_percentage 0                                                         \n"
+        "    }                                                                                \n";
+    const char kPsi4_e [] =
+        "    if mol.multiplicity == 1:                                                        \n"
+        "        set reference rhf                                                            \n"
+        "        set guess sad                                                                \n"
+        "    else:                                                                            \n"
+        "        set reference rohf                                                           \n"
+        "        set guess gwh                                                                \n"
+        "    # Run self-consistent field (SCF) calculation.                                   \n"
         "    hf_energy, hf_wavefunction = energy('scf', return_wfn=True)                  \n"
         "except Exception as exception:                                                   \n"
-        "    print(exception)                                                             \n"
+        "    fo = open(\"psi4.log\", \"w\")                                               \n"
+        "    fo.write(traceback.format_exc())                                             \n"
+        "    fo.close()                                                                   \n"
         "    raise                                                                        \n"
-        "finally:                                                                         \n"
+        "else:                                                                            \n"
         "    # Get orbitals and Fock matrix.                                              \n"
         "    nuclear_repulsion = mol.nuclear_repulsion_energy()                           \n"
         "    canonical_orbitals = numpy.asarray(hf_wavefunction.Ca())                     \n"
@@ -250,7 +253,7 @@ namespace QPanda
         "             (1, 0): one_body_coefficients,                                      \n"
         "             (1, 1, 0, 0): two_body_coefficients})                               \n"
         "                                                                                 \n"
-        "fo = open(\"psi4.data.tmp\", \"w\")                                            \n"
+        "fo = open(\"psi4.data.tmp\", \"w\")                                              \n"
         "fo.write(operator.__str__())                                                     \n"
         "fo.close()                                                                       \n";
 }

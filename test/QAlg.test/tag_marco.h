@@ -46,6 +46,8 @@ namespace QPanda
 #define STR_PARAMETERS              "parameters"
 #define STR_USE_MPI                 "use_mpi"
 #define STR_OUTPUT_FILE             "output_file"
+#define STR_DATA_SAVE_PATH          "data_save_path"
+#define STR_SAVE_OPTIMIZER_DATA     "save_optimizer_data"
 #define STR_PARA                    "para"
 
 #define STR_PSI4_PATH               "psi4_path"

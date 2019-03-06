@@ -6,10 +6,16 @@
 #include "VQE.h"
 #include "Optimizer/OptimizerFactory.h"
 #include "Optimizer/AbstractOptimizer.h"
-#include "PauliOperator/PauliOperator.h"
 #include "HamiltonianSimulation/HamiltonianSimulation.h"
 #include "QString.h"
 #include "psi4_input_template.h"
+#include "OriginCollection.h"
+#include "Operator/PauliOperator.h"
+
+#ifdef _WIN32
+#include <Windows.h>
+#endif
+
 using namespace std;
 namespace QPanda
 {
@@ -17,6 +23,7 @@ namespace QPanda
 #define STR_PSI4_INPUT_FILE                         ("psi4.input.inp")
 #define STR_PSI4_OUPUT_FILE                         ("psi4.input.inp.dat")
 #define STR_PSI4_USER_DEFINED_DATA_FILE             ("psi4.data.tmp")
+#define STR_PSI4_LOG_FILE                           ("psi4.log")
 
     std::string dec2Bin(size_t n, size_t size)
     {
@@ -32,7 +39,7 @@ namespace QPanda
 
     VQE::VQE(OptimizerType optimizer)
     {
-        m_optimizer = OptimizerFactory::makeQOptimizer(optimizer);
+        m_optimizer = OptimizerFactory::makeOptimizer(optimizer);
         if (nullptr == m_optimizer.get())
         {
             QCERR("No optimizer.");
@@ -42,7 +49,7 @@ namespace QPanda
 
     VQE::VQE(const string &optimizer)
     {
-        m_optimizer = OptimizerFactory::makeQOptimizer(optimizer);
+        m_optimizer = OptimizerFactory::makeOptimizer(optimizer);
         if (nullptr == m_optimizer.get())
         {
             QCERR("No optimizer.");
@@ -57,37 +64,69 @@ namespace QPanda
 
     bool VQE::exec()
     {
-        std::string err_str;
-        if (!initVQE(err_str))
+        bool exec_flag = true;
+        do
         {
-            return false;
-        }
-
-        QInit();
-
-        m_energies.clear();
-        for (size_t i = 0; i < m_atoms_pos_group.size(); i++)
-        {
-            PauliOperator pauli;
-            auto geometry = genMoleculeGeometry(i);
-            if (!getDataFromPsi4(geometry, pauli))
+#ifdef _WIN32
+        ::ShowWindow(::GetConsoleWindow(), SW_HIDE);
+#endif
+            if (!initVQE())
             {
-                return false;
+                exec_flag = false;
+                break;
             }
 
-            m_optimizer->registerFunc(std::bind(&VQE::callVQE,
-                this,
-                std::placeholders::_1,
-                pauli.toHamiltonian()),
-                m_optimized_para);
+            QInit();
 
-            m_optimizer->exec();
-            m_energies.push_back(m_optimizer->getResult().fun_val);
-        }
+            m_energies.clear();
+            for (size_t i = 0; i < m_atoms_pos_group.size(); i++)
+            {
+                PauliOperator pauli;
+                auto geometry = genMoleculeGeometry(i);
+                if (!getDataFromPsi4(geometry, pauli))
+                {
+                    exec_flag = false;
+                    break;
+                }
 
-        QFinalize();
+                m_optimizer->registerFunc(std::bind(&VQE::callVQE,
+                    this,
+                    std::placeholders::_1,
+                    pauli.toHamiltonian()),
+                    m_optimized_para);
 
-        return true;
+                if (m_enable_optimizer_data)
+                {
+                    std::string filename = m_data_save_path + "optimizer_" +
+                            std::to_string(i) + ".dat";
+                    m_optimizer_data_db = OriginCollection(filename, false);
+                    m_optimizer_data_db = {"index", "fun_val", "para"};
+                    m_func_calls = 0;
+                }
+
+                m_optimizer->exec();
+
+                if (m_enable_optimizer_data)
+                {
+                    m_optimizer_data_db.write();
+                }
+
+                auto result = m_optimizer->getResult();
+                m_energies.push_back(result.fun_val);
+
+                saveResult(result, i);
+            }
+
+            QFinalize();
+        } while (0);
+
+        writeExecLog(exec_flag);
+
+#ifdef _WIN32
+        ::ShowWindow(::GetConsoleWindow(), SW_SHOW);
+#endif
+
+        return exec_flag;
     }
 
     void VQE::QInit()
@@ -111,10 +150,10 @@ namespace QPanda
         finalize();
     }
 
-    bool VQE::initVQE(std::string &err_msg)
+    bool VQE::initVQE()
     {
         do {
-            if (!checkPara(err_msg))
+            if (!checkPara(m_last_err))
             {
                 break;
             }
@@ -131,11 +170,17 @@ namespace QPanda
             auto n_param = getCCS_N_Trem(m_qn, m_electron_num);
             m_optimized_para.resize(n_param, 0.5);
 
+            if (!m_data_save_path.empty())
+            {
+                auto pos = m_data_save_path.find_last_of('/');
+                if (pos != (m_data_save_path.length() -1))
+                {
+                    m_data_save_path += '/';
+                }
+            }
+
             return true;
         } while (0);
-
-        err_msg = DEF_WARING + err_msg;
-        std::cout << err_msg << std::endl;
 
         return false;
     }
@@ -195,7 +240,7 @@ namespace QPanda
         return geometry;
     }
 
-    PauliOperator VQE::genPauliOperator(const std::string &s, bool *ok)
+    PauliOperator VQE::genPauliOpComplex(const std::string &s, bool *ok)
     {
         QString str(s);
         auto vec = str.split("\n", QString::SkipEmptyParts);
@@ -552,6 +597,7 @@ namespace QPanda
         }
 
         std::string file_content =
+                std::string(kPsi4_s) +
                 std::string(kMolecular_s) +
                 QMoleculeGeometry2String(geometry) +
                 std::string(kMolecular_e) +
@@ -564,16 +610,41 @@ namespace QPanda
                 std::string(kGlobals_s) +
                 std::string(kBasis) + m_basis +
                 std::string(kGlobals_e) +
-                std::string(kPsi4ConstData);
+                std::string(kPsi4_e);
 
         f << file_content << std::endl;
         f.close();
 
         std::string cmd = std::string("python ")
                 + m_psi4_path + " " + STR_PSI4_INPUT_FILE;
-        int ret = system(cmd.c_str());
+        int ret = 0;
+
+#ifdef _WIN32
+//        ::ShowWindow(::GetConsoleWindow(), SW_HIDE);
+        ret = system(cmd.c_str());
+//        ::ShowWindow(::GetConsoleWindow(), SW_SHOW);
+#else
+        ret = system(cmd.c_str());
+#endif
+
         if (0 != ret)
         {
+            std::fstream out(STR_PSI4_LOG_FILE, std::ios::in);
+            if (out.fail())
+            {
+                m_last_err = "Unknow error!";
+            }
+            else
+            {
+                std::string line;
+                while(std::getline(out, line))
+                {
+                    m_last_err += line + "\n";
+                }
+
+                out.close();
+                std::remove(STR_PSI4_LOG_FILE);
+            }
             std::cout << "Run cmd falid. cmd: " << cmd << std::endl;
             return false;
         }
@@ -701,7 +772,41 @@ namespace QPanda
             expectation += getExpectation(ucc_hamiltonian, hamiltonian[i]);
         }
 
+        if (m_enable_optimizer_data)
+        {
+            m_optimizer_data_db.insertValue(m_func_calls, expectation, para);
+            m_func_calls++;
+        }
+
         return std::make_pair("", expectation);
+    }
+
+    bool VQE::saveResult(const QOptimizationResult &result, size_t index)
+    {
+        if (m_data_save_path.empty())
+        {
+            return true;
+        }
+
+        std::string filename = m_data_save_path + "result_" +
+                std::to_string(index) + ".dat";
+
+        OriginCollection collection(filename, false);
+        collection = {"index", "fun_val", "key",
+                      "iters", "fcalls", "message", "para"};
+
+        collection.insertValue(index, result.fun_val, result.key, result.iters,
+                               result.fcalls, result.message, result.para);
+
+        return collection.write();
+    }
+
+    void VQE::writeExecLog(bool exec_flag)
+    {
+        OriginCollection collection("VQE.log", false);
+        collection = {"status", "message"};
+
+        collection.insertValue(exec_flag ? 0: -1, m_last_err);
     }
 
 }

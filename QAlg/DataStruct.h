@@ -92,8 +92,6 @@ namespace QPanda {
     using QHamiltonianItem = std::pair<QTerm, double>;
     using QHamiltonian = std::vector<QHamiltonianItem>;
     using QPauliPair = std::pair<QTerm, std::string>;
-    using QPauliItem = std::pair<QPauliPair, complex_d>;
-    using QPauli = std::vector<QPauliItem>;
     using QPauliMap = std::map<std::string, complex_d>;
     using QIndexMap = std::map<size_t, size_t>;
 
@@ -120,7 +118,7 @@ namespace QPanda {
     {
         {"H", 1},{"He", 2},{"Li", 3},{"Be",4},{"B", 5},{"C", 6},{"N", 7},      
         {"O", 8},{"F", 9},{"Ne", 10},{"Na", 11},{"Mg", 12},{"Al", 13},
-        {"Si", 14},{"P", 15},{"S", 16},{"Cl", 17}
+        {"Si", 14},{"P", 15},{"S", 16},{"Cl", 17},{"Ar", 18}
 
     };
 

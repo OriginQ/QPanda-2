@@ -17,7 +17,7 @@ yTask.json"
 #define BETA_INQUREAPI     "http://10.10.12.53:4630/api/QCode/queryTask.json"
 #define BETA_TERMINATEAPI  "http://10.10.12.53:4630/api/QCode/terminateTask.json"
 
-#define BETA_APIKEY "BEA59283D1754096BF28632FDFD220E2"
+#define BETA_APIKEY "4570596AD0F545BEA0A7D81D2169EF98"
 #define RELEASE_APIKEY "02A564B301D34666AAE82CE5A4E6A389"
 
 USING_QPANDA
@@ -159,22 +159,15 @@ QuantumCloudHttp::~QuantumCloudHttp()
 
 void QuantumCloudHttp::MeasureRun(int repeat_num)
 {
-    if (getQProg() < 0)
+    if (!getQProg())
     {
         QCERR("Bad program");
         throw std::invalid_argument("Bad program");
     }
 
-    auto aiter = QNodeMap::getInstance().getNode(getQProg());
-    if (nullptr == aiter)
-    {
-        QCERR("Bad program");
-        throw std::invalid_argument("Bad program");
-    }
-
-    QProg *pNode = (QProg *)aiter;
-
-    std::string sQRunes(qProgToQRunes(*pNode));
+    QProgToQRunes temp;
+    temp.qProgToQRunes(dynamic_cast<AbstractQuantumProgram*>(getQProg().get()));
+    std::string sQRunes(temp.insturctionsQRunes());
 
     if (-1 == getQRunesTyp("MEASURE", sQRunes))
     {
@@ -187,14 +180,14 @@ void QuantumCloudHttp::MeasureRun(int repeat_num)
     rapidjson::Value root(kObjectType);
     rapidjson::Value json_elem(kStringType);
 
-    json_elem.SetString(sQRunes.c_str(), sQRunes.size(), allocator);
+    json_elem.SetString(sQRunes.c_str(), (rapidjson::SizeType)sQRunes.size(), allocator);
     root.AddMember("qprog", json_elem, allocator);
 
-    json_elem.SetString(m_APIKey.c_str(), m_APIKey.size(), allocator);
+    json_elem.SetString(m_APIKey.c_str(), (rapidjson::SizeType)m_APIKey.size(), allocator);
     root.AddMember("token", json_elem, allocator);
 
     root.AddMember("meaarr", "{1,10}", allocator);
-    root.AddMember("task_typ", "2", allocator);
+    root.AddMember("taskTyp", "2", allocator);
     root.AddMember("typ", "mcpr", allocator);
 
     root.AddMember("repeat", repeat_num, allocator);
@@ -391,14 +384,14 @@ std::string QuantumCloudHttp::inqureResult(std::string task_typ)
     rapidjson::Value json_elem(kStringType);
 
 
-    json_elem.SetString(m_APIKey.c_str(), m_APIKey.size(), allocator);
+    json_elem.SetString(m_APIKey.c_str(), (rapidjson::SizeType)m_APIKey.size(), allocator);
     root.AddMember("token", json_elem, allocator);
 
-    json_elem.SetString(m_taskid.c_str(), m_taskid.size(), allocator);
+    json_elem.SetString(m_taskid.c_str(), (rapidjson::SizeType)m_taskid.size(), allocator);
     root.AddMember("taskid", json_elem, allocator);
     root.AddMember("impTyp", 1, allocator);
 
-    json_elem.SetString(task_typ.c_str(), task_typ.size(), allocator);
+    json_elem.SetString(task_typ.c_str(), (rapidjson::SizeType)task_typ.size(), allocator);
     root.AddMember("task_typ", json_elem, allocator);
 
     root.AddMember("typ", "qrytask", allocator);
@@ -430,7 +423,7 @@ std::map<std::string, bool> QuantumCloudHttp::getResultMap()
     for (int i = 0; i < (1ull << sKey.size()); ++i)
     {
         stringstream bin;
-        for (int j = sKey.size() - 1; j > -1; --j)
+        for (size_t j = sKey.size() - 1; j > -1; --j)
         {
             bin << ((i >> j) & 1);
         }
@@ -457,17 +450,17 @@ std::map<std::string, size_t> QuantumCloudHttp::runWithConfiguration(QProg & qPr
 
     std::map<std::string, size_t> result_map;
 
-    int len = recv_res.cbegin()->first.size();
+    size_t len = recv_res.cbegin()->first.size();
     for (int i = 0; i < (1ull << len); ++i)
     {
         stringstream bin;
-        for (int j = len - 1; j > -1; --j)
+        for (size_t j = len - 1; j > -1; --j)
         {
             bin << ((i >> j) & 1);
         }
 
         double prob= recv_res.find(bin.str()) == recv_res.end()?
-            0.0 : atof(recv_res.find(bin.str())->second.c_str());;
+            0.0 : atof(recv_res.find(bin.str())->second.c_str());
 
         result_map.insert(std::pair<std::string, size_t>
             (bin.str(), (size_t)round(prob*shots)));
@@ -478,21 +471,15 @@ std::map<std::string, size_t> QuantumCloudHttp::runWithConfiguration(QProg & qPr
 
 int QuantumCloudHttp::PMeasureRun(QVec& qubit_vec)
 {
-    if (getQProg() < 0)
+    if (!getQProg())
     {
         QCERR("Bad program");
         throw std::invalid_argument("Bad program");
     }
-    
-    auto aiter = QNodeMap::getInstance().getNode(getQProg());
-    if (nullptr == aiter)
-    {
-        QCERR("Bad program");
-        throw std::invalid_argument("Bad program");
-    }
-    QProg *pNode = (QProg *)aiter;
-    
-    std::string sQRunes(qProgToQRunes(*pNode));
+
+    QProgToQRunes temp;
+    temp.qProgToQRunes(dynamic_cast<AbstractQuantumProgram*>(getQProg().get()));
+    std::string sQRunes(temp.insturctionsQRunes());
     
     sQRunes.append("\nPMEASURE ");
     for_each(qubit_vec.begin(), qubit_vec.end(), [&](Qubit *Qn) 
@@ -522,10 +509,10 @@ int QuantumCloudHttp::PMeasureRun(QVec& qubit_vec)
         throw std::invalid_argument("invalid argument");
     }
     
-    json_elem.SetString(sQRunes.c_str(), sQRunes.size(), allocator);
+    json_elem.SetString(sQRunes.c_str(), (rapidjson::SizeType)sQRunes.size(), allocator);
     root.AddMember("qprog", json_elem, allocator);
     
-    json_elem.SetString(m_APIKey.c_str(), m_APIKey.size(), allocator);
+    json_elem.SetString(m_APIKey.c_str(), (rapidjson::SizeType)m_APIKey.size(), allocator);
     root.AddMember("token", json_elem, allocator);
     root.AddMember("meaarr", "{1,10}", allocator);
         

@@ -36,12 +36,9 @@ namespace QPanda
         else
         {
             setVQEPara(vqe, doc[STR_PARAMETERS]);
-            if (!vqe.exec())
-            {
-                return false;
-            }
 
-            return writeResultToFile(filename, vqe, doc[STR_PARAMETERS]);
+            return vqe.exec();
+//            return writeResultToFile(filename, vqe, doc[STR_PARAMETERS]);
         }
     }
 
@@ -111,6 +108,18 @@ namespace QPanda
             vqe.setShots(static_cast<size_t>(value[STR_SHOTS].GetInt()));
         }
 
+        if (value.HasMember(STR_DATA_SAVE_PATH))
+        {
+            std::string data_save_path;
+            RJson::GetStr(data_save_path, STR_DATA_SAVE_PATH, &value);
+            vqe.setDataSavePath(data_save_path);
+        }
+
+        if (value.HasMember(STR_SAVE_OPTIMIZER_DATA))
+        {
+            vqe.enableOptimizerData(value[STR_SAVE_OPTIMIZER_DATA].GetBool());
+        }
+
         std::string str_basis;
         RJson::GetStr(str_basis, STR_BASIS, &value);
         vqe.setBasis(str_basis);
@@ -126,30 +135,31 @@ namespace QPanda
         }
         else
         {
-            size_t check_size = 0;
-            size_t size = value[STR_ATOMS_POS].Size();
-            for (rapidjson::SizeType i = 0; i < size; i++)
-            {
-                auto &item = value[STR_ATOMS_POS][i];
-                if (i == 0)
-                {
-                    check_size = item.Size();
-                }
-                else if (item.Size() != check_size)
-                {
-                    atom_pos_group.clear();
-                    break;
-                }
+            atom_pos_group = getNormalAtomPosGroup(value[STR_ATOMS_POS]);
+//            size_t check_size = 0;
+//            size_t size = value[STR_ATOMS_POS].Size();
+//            for (rapidjson::SizeType i = 0; i < size; i++)
+//            {
+//                auto &item = value[STR_ATOMS_POS][i];
+//                if (i == 0)
+//                {
+//                    check_size = item.Size();
+//                }
+//                else if (item.Size() != check_size)
+//                {
+//                    atom_pos_group.clear();
+//                    break;
+//                }
 
-                std::vector<QPosition> vec;
-                for (rapidjson::SizeType j = 0; j < item.Size(); j++)
-                {
-                    QPosition pos = getPos(item[j]);
-                    vec.push_back(pos);
-                }
+//                std::vector<QPosition> vec;
+//                for (rapidjson::SizeType j = 0; j < item.Size(); j++)
+//                {
+//                    QPosition pos = getPos(item[j]);
+//                    vec.push_back(pos);
+//                }
 
-                atom_pos_group.push_back(vec);
-            }
+//                atom_pos_group.push_back(vec);
+//            }
         }
 
         if (size != 0)
@@ -191,15 +201,22 @@ namespace QPanda
 
         if (value.IsArray())
         {
-            for (rapidjson::SizeType i = 0; i < value.Size(); i++)
+            if (value[0].IsArray())
             {
-                std::vector<QPosition> vec;
-                QPosition second(0, 0, 0);
-                RJson::GetDouble(second.z, i, &value);
+                atoms_pos_group = getNormalAtomPosGroup(value);
+            }
+            else
+            {
+                for (rapidjson::SizeType i = 0; i < value.Size(); i++)
+                {
+                    std::vector<QPosition> vec;
+                    QPosition second(0, 0, 0);
+                    RJson::GetDouble(second.z, i, &value);
 
-                vec.push_back(first);
-                vec.push_back(second);
-                atoms_pos_group.push_back(vec);
+                    vec.push_back(first);
+                    vec.push_back(second);
+                    atoms_pos_group.push_back(vec);
+                }
             }
         }
         else
@@ -232,6 +249,38 @@ namespace QPanda
         }
 
         return atoms_pos_group;
+    }
+
+    QAtomsPosGroup
+    VQETest::getNormalAtomPosGroup(const rapidjson::Value &value) const
+    {
+        QAtomsPosGroup atom_pos_group;
+        size_t check_size = 0;
+        size_t size = value.Size();
+        for (rapidjson::SizeType i = 0; i < size; i++)
+        {
+            auto &item = value[i];
+            if (i == 0)
+            {
+                check_size = item.Size();
+            }
+            else if (item.Size() != check_size)
+            {
+                atom_pos_group.clear();
+                break;
+            }
+
+            std::vector<QPosition> vec;
+            for (rapidjson::SizeType j = 0; j < item.Size(); j++)
+            {
+                QPosition pos = getPos(item[j]);
+                vec.push_back(pos);
+            }
+
+            atom_pos_group.push_back(vec);
+        }
+
+        return atom_pos_group;
     }
 
     vector_d VQETest::get2AtomDistances(const rapidjson::Value &value) const

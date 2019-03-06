@@ -23,5 +23,51 @@ limitations under the License.
 #include "Core/QuantumMachine/CMemFactory.h"
 #include "Core/QuantumMachine/QResultFactory.h"
 #include "Core/QuantumMachine/QuantumMachineInterface.h"
+QPANDA_BEGIN
+class QMachineTypeTarnfrom
+{
+public:
+    static QMachineTypeTarnfrom &getInstance()
+    {
+        static QMachineTypeTarnfrom temp;
+        return temp;
+    }
+    ~QMachineTypeTarnfrom() {};
+    std::string operator [](QMachineType type)
+    {
+        auto iter =m_qmachine_type_map.find(type);
+        if (iter == m_qmachine_type_map.end())
+        {
+            QCERR("quantum machine type error ");
+            throw std::invalid_argument("quantum machine type error");
+        }
+        return iter->second;
+    }
+    QMachineType operator [](std::string gate_name)
+    {
+        for (auto & aiter : m_qmachine_type_map)
+        {
+            if (gate_name == aiter.second)
+            {
+                return aiter.first;
+            }
+        }
+        QCERR("quantum machine type error ");
+        throw std::invalid_argument("quantum machine type error");
+    }
+private:
+    std::map<QMachineType,std::string> m_qmachine_type_map;
+    QMachineTypeTarnfrom &operator=(const QMachineTypeTarnfrom &);
+    QMachineTypeTarnfrom()
+    {
+        m_qmachine_type_map = { {QMachineType::CPU,"CPUQVM"},
+        {QMachineType::CPU_SINGLE_THREAD,"CPUSingleThreadQVM"},
+        {QMachineType::GPU,"GPUQVM"},
+        {QMachineType::NOISE,"NoiseQVM"} };
 
+    }
+    QMachineTypeTarnfrom(const QMachineTypeTarnfrom &);
+};
+
+QPANDA_END
 #endif

@@ -22,24 +22,40 @@ limitations under the License.
 #include "Core/Utilities/TranformQGateTypeStringAndEnum.h"
 #include "Core/Utilities/Transform/QProgClockCycle.h"
 #include "Core/Utilities/OriginCollection.h"
-#include "Factory.h"
+#include "Core/QuantumMachine/Factory.h"
 
 USING_QPANDA
 using namespace std;
-static QuantumMachine* qvm;
+static QuantumMachine* qvm = nullptr;
 
-QuantumMachine *QPanda::initQuantumMachine(QuantumMachine_type type)
+QuantumMachine *QPanda::initQuantumMachine(const QMachineType class_type)
 {
-    qvm = QuantumMachineFactory
-        ::GetFactoryInstance().CreateByName(ConfigMap::getInstance()["QuantumMachine"]);// global
-    if (!qvm->init(type))
+    auto class_name = QMachineTypeTarnfrom::getInstance()[class_type];
+    switch (class_type)
     {
-        return nullptr;
+    case QMachineType::CPU:
+        qvm = new CPUQVM();
+        break;
+    case QMachineType::CPU_SINGLE_THREAD:
+        qvm = new CPUSingleThreadQVM();
+        break;
+    case QMachineType::GPU:
+        qvm = new GPUQVM();
+        break;
+    case QMachineType::NOISE:
+        qvm = new NoiseQVM();
+        break;
+    default:
+        qvm = nullptr;
+        break;
     }
-    else
+    if (nullptr == qvm)
     {
-        return qvm;
+        QCERR("quantum machine alloc fail");
+        throw runtime_error("quantum machine alloc fail");
     }
+    qvm->init();
+    return qvm;
 }
 
 void QPanda::destroyQuantumMachine(QuantumMachine * qvm)
@@ -55,9 +71,9 @@ void QPanda::destroyQuantumMachine(QuantumMachine * qvm)
 
 }
 
-bool QPanda::init(QuantumMachine_type type)
+bool QPanda::init(const QMachineType class_type )
 {
-    qvm = initQuantumMachine(type);
+    qvm = initQuantumMachine(class_type);
     return true;
 }
 

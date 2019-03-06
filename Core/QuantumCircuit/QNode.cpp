@@ -24,7 +24,7 @@ shared_ptr<QNode>OriginItem::getNode() const
 {
     if (!m_node)
     {
-        QCERR("m_node is nullpt");
+        QCERR("m_node is nullptr");
         throw runtime_error("m_node is nullptr");
     }
     return m_node;
@@ -77,8 +77,7 @@ shared_ptr<QNode> NodeIter::operator*()
     }
     else
     {
-        QCERR("m_pCur is nullptr");
-        throw invalid_argument("m_pCur is nullptr");
+        return nullptr;
     }
 }
 

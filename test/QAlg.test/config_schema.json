@@ -54,7 +54,7 @@
                                 "enum": [
                                     "H","He","Li","Be","B","C","N",
                                     "O","F","Ne","Na","Mg","Al",
-                                    "Si","P","S","Cl"
+                                    "Si","P","S","Cl","Ar"
                                 ]
                             },
                             {
@@ -294,8 +294,8 @@
                     "description": "VQE",
                     "type": "object",
                     "properties": {
-                        "server_url": {
-                            "description": "chemistry server url",
+                        "psi4_path": {
+                            "description": "psi4 path",
                             "type": "string"
                         },
                         "shots": {
@@ -305,8 +305,11 @@
                         "use_mpi": {
                             "type": "boolean"
                         },
-                        "output_file": {
+                        "data_save_path": {
                             "type": "string"
+                        },
+                        "save_optimizer_data": {
+                            "type": "boolean"
                         },
                         "basis": {
                             "type": "string"

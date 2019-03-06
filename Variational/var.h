@@ -19,7 +19,7 @@
 #include <unordered_map>
 #include <map>
 #include "Core/QPanda.h"
-#include "QAlg/Components/PauliOperator/PauliOperator.h"
+#include "QAlg/Components/Operator/PauliOperator.h"
 #include <type_traits>
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
@@ -49,11 +49,11 @@ enum class op_type : int {
     sum,
     stack,
     subscript,
-    vqp,
+    qop,
 	qop_pmeasure,
 	sigmoid,
 	softmax,
-	crossEntropy,
+    cross_entropy,
 	dropout,
     none
 };
@@ -72,6 +72,7 @@ template <> struct hash<QPanda::Variational::var> {
     size_t operator()(const QPanda::Variational::var&) const;
 };
 }
+
 
 namespace QPanda {
 namespace Variational {
@@ -537,12 +538,12 @@ typedef VariationalQuantumCircuit VQC;
 struct impl_vqp : public impl {
 public:
     impl_vqp(VariationalQuantumCircuit, 
-        QPanda::PauliOperator, 
+        PauliOperator,
         QuantumMachine*, 
         std::vector<Qubit*>);
 
     impl_vqp(VariationalQuantumCircuit,
-        QPanda::PauliOperator,
+        PauliOperator,
         QuantumMachine*,
         std::map<size_t, Qubit*>);
 
@@ -553,7 +554,7 @@ public:
 
 private:
     std::map<size_t, Qubit*> m_measure_qubits;
-    QPanda::PauliOperator m_op;
+    PauliOperator m_op;
     QuantumMachine* m_machine;
     VariationalQuantumCircuit m_circuit;    
 };
@@ -659,7 +660,7 @@ inline const var softmax(var v) {
 }
 
 inline const var crossEntropy(var lhs, var rhs) {
-	return pack_expression(op_type::crossEntropy, lhs, rhs);
+    return pack_expression(op_type::cross_entropy, lhs, rhs);
 }
 
 inline const var dropout(var lhs, var rhs) {
@@ -751,6 +752,30 @@ inline MatrixXd ones_like(const var& like) {
 }
 
 } // namespace Variational
+
+using complex_var = std::pair<Variational::var, Variational::var>;
+
+inline complex_var operator + (const complex_var &lhs, const complex_var &rhs)
+{
+    return std::make_pair(lhs.first + rhs.first, lhs.second + rhs.second);
+}
+
+inline complex_var operator * (const complex_var &lhs, const complex_var &rhs)
+{
+    return std::make_pair(lhs.first * rhs.first - lhs.second * rhs.second,
+                          lhs.first * rhs.second + lhs.second * rhs.first);
+}
+
+inline complex_var operator * (const complex_var &lhs, const double &rhs)
+{
+    return std::make_pair(lhs.first * rhs, lhs.second * rhs);
+}
+
+inline complex_var operator * (const double &lhs, const complex_var &rhs)
+{
+    return std::make_pair(lhs * rhs.first, lhs * rhs.second);
+}
+
 } // namespace QPanda
 
 #endif // ! VAR_H

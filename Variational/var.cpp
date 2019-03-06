@@ -26,7 +26,7 @@ int numOpArgs(op_type op){
         { op_type::sum, 1 },
 		{ op_type::sigmoid, 1},
 		{ op_type::softmax, 1},
-		{ op_type::crossEntropy,2},
+        { op_type::cross_entropy,2},
 		{ op_type::dropout, 2},
         { op_type::none, 0 }
     };
@@ -216,7 +216,7 @@ MatrixXd var::_eval()
         }
         else throw exception();
     }
-    case op_type::vqp:
+    case op_type::qop:
     {
         auto pimpl_vqp = dynamic_pointer_cast<impl_vqp>(pimpl);
         double expectation = pimpl_vqp->_get_expectation();
@@ -234,7 +234,7 @@ MatrixXd var::_eval()
 	case op_type::softmax: {
 		return _mval(operands[0]).array().exp() / (_mval(operands[0]).array().exp()).sum();
 	}
-	case op_type::crossEntropy: {
+    case op_type::cross_entropy: {
 		// Cross Entropy: H(p,q) p and q are probability distribution
 		MatrixXd Hpq = _mval(operands[1]).array().log();
 		return  -Hpq * _mval(operands[0]).transpose();
@@ -397,7 +397,7 @@ MatrixXd var::_back_single(const MatrixXd & dx, size_t op_idx)
         }
         else throw exception();        
     }
-    case op_type::vqp: {
+    case op_type::qop: {
         auto pimpl_vqp = dynamic_pointer_cast<impl_vqp>(pimpl);
         return scalar(_sval(dx)*pimpl_vqp->_get_gradient(pimpl_vqp->children[op_idx]));
     }
@@ -440,7 +440,7 @@ MatrixXd var::_back_single(const MatrixXd & dx, size_t op_idx)
 				* (Vec2DiagMat - operd * operd.transpose());
 		}
 	}
-	case op_type::crossEntropy: {
+    case op_type::cross_entropy: {
 		// Cross Entropy: H(p,q) 
 		// dHdp = dH/dp; dHdq = dH/dq
 		MatrixXd dHdp = _mval(operands[1]).array().log();
@@ -770,22 +770,22 @@ size_t hash<var>::operator()(const var& v) const{
 }
 
 impl_vqp::impl_vqp(VariationalQuantumCircuit circuit, 
-    QPanda::PauliOperator op, 
+    PauliOperator op,
     QuantumMachine* machine,
     std::vector<Qubit*> qubits)
     :
-    impl(op_type::vqp, circuit.get_vars()),
+    impl(op_type::qop, circuit.get_vars()),
     m_circuit(circuit), m_op(op), m_machine(machine)
 {
     for (int i = 0; i < qubits.size(); ++i) m_measure_qubits[i] = qubits[i];
 }
 
 impl_vqp::impl_vqp(VariationalQuantumCircuit circuit,
-    QPanda::PauliOperator op,
+    PauliOperator op,
     QuantumMachine* machine,
     std::map<size_t, Qubit*> qubits)
     :
-    impl(op_type::vqp, circuit.get_vars()),
+    impl(op_type::qop, circuit.get_vars()),
     m_circuit(circuit), m_op(op), m_machine(machine),
     m_measure_qubits(qubits.begin(),qubits.end())
 {

@@ -68,7 +68,7 @@ def reduce_sum(y):
 def classifier():
     qubit_num=10
     layer=2
-    machine=init_quantum_machine(QuantumMachine_type.CPU_SINGLE_THREAD)
+    machine=init_quantum_machine(QMachineType.CPU_SINGLE_THREAD)
     qlist=machine.qAlloc_many(qubit_num)
     H1=PauliOperator({'Z0':1})
     data, label = datasets.load_breast_cancer(return_X_y=True)

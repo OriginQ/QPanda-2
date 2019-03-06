@@ -2,25 +2,23 @@
 #define QUANTUM_CLOUD_HTTP_H
 
 #include <config.h>
-#if 0
-//#ifdef USE_CURL
-#include <curl/curl.h>
+#ifdef USE_CURL
+
+#include "Factory.h"
+#include "OriginQuantumMachine.h"
 #include <iostream>
 #include <sstream>
 #include <string>
-#include "Core/QuantumMachine/Factory.h"
-#include "Core/QuantumMachine/OriginQuantumMachine.h"
 #include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
-
-//#define CURL_STATICLIB
+#include <curl/curl.h>
 
 
 QPANDA_BEGIN
 
-class QuantumCloudHttp:public OriginQVM
+class QuantumCloudHttp:public CPUQVM
 {
 private:
     std::string m_taskid;

@@ -1,18 +1,15 @@
 #include <iostream>
-#include "QPanda.h"
-#include <iostream>
 #include "gtest/gtest.h"
-#include "QPanda.h"
 #include <map>
 #include <cstdlib>
 #include <sstream>
 #include <string>
 #include <algorithm>  
+#include "QPanda.h"
 
 using namespace std;
 USING_QPANDA
 
-const string sQRunesPath("D:\\QRunes");
 
 TEST(QProgTransform, QASM)
 {
@@ -84,4 +81,7 @@ TEST(QProgTransform, QRunes)
     getchar();
 }
 
-
+int main(int argc, char **argv) {
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
+}

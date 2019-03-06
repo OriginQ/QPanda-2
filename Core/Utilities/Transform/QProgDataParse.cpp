@@ -2,6 +2,8 @@
 #include "../QPanda.h"
 using namespace std;
 USING_QPANDA
+
+
 QProgDataParse::QProgDataParse(const string &filename) :
     m_file_length(0), m_node_counter(0), m_filename(filename)
 { }
@@ -46,6 +48,15 @@ bool QProgDataParse::loadFile()
     }
     m_node_counter = one_data_node.second.qubit_data;
 
+    if (kMemNumber != fread(&one_data_node, sizeof(uint_t) + sizeof(DataNode), kMemNumber, fp))
+    {
+        return false;
+    }
+    uint_t qubit_number = one_data_node.first;
+    uint_t cbit_number = one_data_node.second.qubit_data;
+    m_qubits = qAllocMany(qubit_number);
+    m_cbits = cAllocMany(cbit_number);
+
     while (kMemNumber == fread(&one_data_node, sizeof(uint_t) + sizeof(DataNode), kMemNumber, fp))
     {
         m_data_list.push_back(one_data_node);
@@ -75,6 +86,16 @@ bool QProgDataParse::parse(QProg &prog)
     return true;
 }
 
+inline QVec QProgDataParse::getQubits() const
+{
+    return m_qubits;
+}
+
+inline std::vector<ClassicalCondition> QProgDataParse::getCbits() const
+{
+    return m_cbits;
+}
+
 
 void QProgDataParse::parseQGateDataNode(QProg &prog, const uint_t type_and_number, const uint_t qubits_data)
 {
@@ -84,14 +105,14 @@ void QProgDataParse::parseQGateDataNode(QProg &prog, const uint_t type_and_numbe
     const int kQubitMax = 2;
     ushort_t qubit_array[kQubitMax] = {0};
     qubit_array[0] = qubits_data & 0xffff;
-    qubit_array[1] = (qubits_data >> (kCountMoveBit));
+    qubit_array[1] = qubits_data >> (kCountMoveBit);
 
-    auto qubit0 = qAlloc(qubit_array[0]);
-    if (!qubit0)
+    if (qubit_array[0] > m_qubits.size())
     {
-        QCERR("qAlloc fail");
-        throw runtime_error("qAlloc fail");
+        QCERR("parse qubits error!");
+        throw runtime_error("parse qubits error!");
     }
+    auto qubit0 = m_qubits[qubit_array[0]];
 
     switch (type)
     {
@@ -160,12 +181,12 @@ void QProgDataParse::parseQGateDataNode(QProg &prog, const uint_t type_and_numbe
         break;
     case QPROG_NODE_TYPE_CNOT_GATE:
         {
-            auto qubit1 = qAlloc(qubit_array[1]);
-            if (!qubit1)
+            if (qubit_array[1] > m_qubits.size())
             {
-                QCERR("qAlloc fail");
-                throw runtime_error("qAlloc fail");
+                QCERR("parse qubits error!");
+                throw runtime_error("parse qubits error!");
             }
+            auto qubit1 = m_qubits[qubit_array[1]];
 
             auto gate = CNOT(qubit0, qubit1);
             gate.setDagger(is_dagger);
@@ -174,12 +195,12 @@ void QProgDataParse::parseQGateDataNode(QProg &prog, const uint_t type_and_numbe
         break;
     case QPROG_NODE_TYPE_CZ_GATE:
         {
-            auto qubit1 = qAlloc(qubit_array[1]);
-            if (!qubit1)
+            if (qubit_array[1] > m_qubits.size())
             {
-                QCERR("qAlloc fail");
-                throw runtime_error("qAlloc fail");
+                QCERR("parse qubits error!");
+                throw runtime_error("parse qubits error!");
             }
+            auto qubit1 = m_qubits[qubit_array[1]];
 
             auto gate = CZ(qubit0, qubit1);
             gate.setDagger(is_dagger);
@@ -188,12 +209,12 @@ void QProgDataParse::parseQGateDataNode(QProg &prog, const uint_t type_and_numbe
         break;
     case QPROG_NODE_TYPE_ISWAP_GATE:
         {
-            auto qubit1 = qAlloc(qubit_array[1]);
-            if (!qubit1)
+            if (qubit_array[1] > m_qubits.size())
             {
-                QCERR("qAlloc fail");
-                throw runtime_error("qAlloc fail");
+                QCERR("parse qubits error!");
+                throw runtime_error("parse qubits error!");
             }
+            auto qubit1 = m_qubits[qubit_array[1]];
 
             auto gate = iSWAP(qubit0, qubit1);
             gate.setDagger(is_dagger);
@@ -202,11 +223,12 @@ void QProgDataParse::parseQGateDataNode(QProg &prog, const uint_t type_and_numbe
         break;
     case QPROG_NODE_TYPE_SQISWAP_GATE:
         {
-            auto qubit1 = qAlloc(qubit_array[1]);
-            if (!qubit1)
+            if (qubit_array[1] > m_qubits.size())
             {
-                throw runtime_error("qAlloc fail");
+                QCERR("parse qubits error!");
+                throw runtime_error("parse qubits error!");
             }
+            auto qubit1 = m_qubits[qubit_array[1]];
 
             auto gate = SqiSWAP(qubit0, qubit1);
             gate.setDagger(is_dagger);
@@ -253,12 +275,13 @@ void QProgDataParse::parseQGateDataNode(QProg &prog, const uint_t type_and_numbe
         {
             m_iter++;
             float angle = getAngle(*m_iter);
-            auto qubit1 = qAlloc(qubit_array[1]);
-            if (!qubit1)
+
+            if (qubit_array[1] > m_qubits.size())
             {
-                QCERR("qAlloc fail");
-                throw runtime_error("qAlloc fail");
+                QCERR("parse qubits error!");
+                throw runtime_error("parse qubits error!");
             }
+            auto qubit1 = m_qubits[qubit_array[1]];
 
             auto gate = CR(qubit0,  qubit1, angle);
             gate.setDagger(is_dagger);
@@ -484,20 +507,23 @@ void QProgDataParse::parseDataNode(QProg &prog, const uint_t tail_number)
 }
 
 
-bool QPanda::binaryQProgFileParse(QProg &prog, const string &filename)
+bool QPanda::binaryQProgFileParse(QVec &qubits, std::vector<ClassicalCondition> &cbits,
+                          QProg &prog, const std::string &filename)
 {
-    QProgDataParse datParse(filename);
-    if (!datParse.loadFile())
+    QProgDataParse dataParse(filename);
+    if (!dataParse.loadFile())
     {
         std::cout << "load file error" << std::endl;
-        return false;
+        throw runtime_error("Parse file error");
     }
 
-    if (!datParse.parse(prog))
+    if (!dataParse.parse(prog))
     {
-        std::cout << "parse file error" << std::endl;
-        return false;
+        throw runtime_error("Parse file error");
     }
+
+    qubits = dataParse.getQubits();
+    cbits = dataParse.getCbits();
 
     return true;
 }

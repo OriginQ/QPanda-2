@@ -1,7 +1,7 @@
 import pyqpanda.pyQPanda as pq
 # from pyqpanda import *
 def Bell_State():
-    machine=pq.init_quantum_machine(pq.QuantumMachine_type.CPU)
+    machine=pq.init_quantum_machine(pq.QMachineType.CPU)
     qlist=machine.qAlloc_many(2)
     clist=machine.cAlloc_many(2)
     qprog=pq.QProg()
@@ -13,22 +13,25 @@ def Bell_State():
     result=machine.getResultMap()
     return result
 def test():
-    machine=pq.init_quantum_machine(pq.QuantumMachine_type.CPU)
+    machine=pq.init_quantum_machine(pq.QMachineType.CPU)
     qlist=machine.qAlloc_many(4)
+    clist = machine.cAlloc_many(4)
     prog=pq.QProg()
-    prog.insert(pq.H(qlist[2]))
-    result=machine.prob_run_tuple_list(prog,qlist,-1)
+    prog.insert(pq.H(qlist[2])).insert(pq.meas_all(qlist,clist))
+    data = {'shots':1000}
+    result=machine.run_with_configuration(prog,clist,data) 
+    print("result11111",result)
     pq.destroy_quantum_machine(machine)
     
 
-    machine2=pq.init_quantum_machine(pq.QuantumMachine_type.CPU)
+    machine2=pq.init_quantum_machine(pq.QMachineType.CPU)
     qlist2=machine2.qAlloc_many(3)
     prog2=pq.QProg()
     prog2.insert(pq.H(qlist2[0])).insert(pq.CNOT(qlist2[0],qlist2[1]))
     result2=machine2.prob_run_dict(prog2,qlist2,-1)
     pq.destroy_quantum_machine(machine2)
 
-    pq.init(pq.QuantumMachine_type.CPU)
+    pq.init(pq.QMachineType.CPU)
     qlist3=pq.qAlloc_many(5)
     clist3=pq.cAlloc_many(5)
     prog3=pq.QProg()

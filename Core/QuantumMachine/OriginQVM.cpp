@@ -16,7 +16,6 @@ limitations under the License.
 
 #include "OriginQuantumMachine.h"
 #include "Factory.h"
-#include "QuantumMachineFactory.h"
 #include "Utilities/ConfigMap.h"
 #include "config.h"
 #include "VirtualQuantumProcessor/GPUImplQPU.h"
@@ -25,49 +24,19 @@ limitations under the License.
 
 USING_QPANDA
 using namespace std;
-bool QVM::init(QuantumMachine_type type)
+
+QuantumMachine* CPUQVM_Constructor()
 {
-    _Qubit_Pool = 
-        QubitPoolFactory::GetFactoryInstance().
-        GetPoolWithoutTopology(_Config.maxQubit);
-    _CMem = 
-        CMemFactory::GetFactoryInstance().
-        GetInstanceFromSize(_Config.maxCMem);
-    _QResult =
-        QResultFactory::GetFactoryInstance().
-        GetEmptyQResult();
-    _QMachineStatus =
-        QMachineStatusFactory::
-        GetQMachineStatus();
-
-    bool is_success = false;
-    if (CPU == type)
-    {
-        _pGates = new CPUImplQPU();
-        is_success = true;
-    }
-    else if (GPU == type)
-    {
-    #ifdef USE_CUDA
-        _pGates = new GPUImplQPU();
-        is_success = true;
-    #else
-        _pGates = nullptr;
-        is_success = false;;
-    #endif // USE_CUDA
-    }
-    else if (CPU_SINGLE_THREAD == type)
-    {
-        _pGates = new CPUImplQPUSingleThread();
-        is_success = true;
-    }
-    else
-    {
-        is_success = false;
-    }
-
-    return is_success;
+    return new CPUQVM();
 }
+volatile QuantumMachineFactoryHelper _Quantum_Machine_Factory_Helper_CPUQVM(
+    "CPUQVM",
+    CPUQVM_Constructor
+);
+
+//REGISTER_QUANTUM_MACHINE(CPUQVM);
+REGISTER_QUANTUM_MACHINE(CPUSingleThreadQVM);
+REGISTER_QUANTUM_MACHINE(GPUQVM);
 
 
 Qubit * QVM::Allocate_Qubit()
@@ -104,7 +73,6 @@ QVec QVM::Allocate_Qubits(size_t qubitNumber)
     }
     return vQubit;
 }
-
 
 ClassicalCondition QVM::Allocate_CBit()
 {
@@ -288,7 +256,7 @@ map<string, bool> QVM::getResultMap()
     return _QResult->getResultMap();
 }
 
-vector<pair<size_t, double>> OriginQVM::PMeasure(QVec qubit_vector, int select_max)
+vector<pair<size_t, double>> CPUQVM::PMeasure(QVec qubit_vector, int select_max)
 {
     if (0 == qubit_vector.size())
     {
@@ -308,7 +276,7 @@ vector<pair<size_t, double>> OriginQVM::PMeasure(QVec qubit_vector, int select_m
     return pmeasure_vector;
 }
 
-vector<double> OriginQVM::PMeasure_no_index(QVec qubit_vector)
+vector<double> CPUQVM::PMeasure_no_index(QVec qubit_vector)
 {
     if (0 == qubit_vector.size())
     {
@@ -333,7 +301,7 @@ map<string, bool> QVM::directlyRun(QProg & qProg)
     return _QResult->getResultMap();
 }
 
-vector<pair<size_t, double>> OriginQVM::getProbTupleList(QVec vQubit,  int selectMax)
+vector<pair<size_t, double>> CPUQVM::getProbTupleList(QVec vQubit,  int selectMax)
 {
     if (0 == vQubit.size())
     {
@@ -351,7 +319,7 @@ vector<pair<size_t, double>> OriginQVM::getProbTupleList(QVec vQubit,  int selec
     return vResult;
 }
 
-vector<double> OriginQVM::getProbList(QVec vQubit, int selectMax)
+vector<double> CPUQVM::getProbList(QVec vQubit, int selectMax)
 {
     if (0 == vQubit.size())
     {
@@ -407,7 +375,32 @@ string QVM::_ResultToBinaryString(vector<ClassicalCondition> & vCBit)
     return sTemp;
 }
 
-map<string, double> OriginQVM::getProbDict(QVec vQubit, int selectMax)
+void QVM::_start()
+{
+    _Qubit_Pool =
+        QubitPoolFactory::GetFactoryInstance().
+        GetPoolWithoutTopology(_Config.maxQubit);
+    _CMem =
+        CMemFactory::GetFactoryInstance().
+        GetInstanceFromSize(_Config.maxCMem);
+    _QResult =
+        QResultFactory::GetFactoryInstance().
+        GetEmptyQResult();
+    _QMachineStatus =
+        QMachineStatusFactory::
+        GetQMachineStatus();
+
+    if ((nullptr == _Qubit_Pool) ||
+        (nullptr == _CMem) ||
+        (nullptr == _QResult) ||
+        (nullptr == _QMachineStatus))
+    {
+        QCERR("new fail");
+        throw std::runtime_error("new fail");
+    }
+}
+
+map<string, double> CPUQVM::getProbDict(QVec vQubit, int selectMax)
 {
     if (0 == vQubit.size())
     {
@@ -426,20 +419,20 @@ map<string, double> OriginQVM::getProbDict(QVec vQubit, int selectMax)
     return mResult;
 }
 
-vector<pair<size_t, double>> OriginQVM::
+vector<pair<size_t, double>> CPUQVM::
 probRunTupleList(QProg & qProg, QVec vQubit, int selectMax)
 {
     run(qProg);
     return getProbTupleList(vQubit, selectMax);
 }
 
-vector<double> OriginQVM::
+vector<double> CPUQVM::
 probRunList(QProg & qProg, QVec vQubit,int selectMax)
 {
     run(qProg);
     return getProbList(vQubit, selectMax);
 }
-map<string, double> OriginQVM::
+map<string, double> CPUQVM::
 probRunDict(QProg & qProg, QVec vQubit, int selectMax)
 {
     run(qProg);
@@ -456,13 +449,14 @@ runWithConfiguration(QProg & qProg, vector<ClassicalCondition>& vCBit, rapidjson
         throw invalid_argument("OriginCollection don't  have shots");
     }
     size_t shots = 0;
-    if (param["shots"].IsString())
+    if (param["shots"].IsUint64())
     {
-        shots = (size_t)atoll(param["shots"].GetString());
+        shots = param["shots"].GetUint64();
     }
     else
     {
-        shots = param["shots"].GetUint64();
+        QCERR("shots data type error");
+        throw invalid_argument("shots data type error");
     }
 
     for (size_t i = 0; i < shots; i++)
@@ -477,6 +471,7 @@ runWithConfiguration(QProg & qProg, vector<ClassicalCondition>& vCBit, rapidjson
         {
             mResult[sResult] += 1;
         }
+
     }
     return mResult;
 }
@@ -543,7 +538,7 @@ static double RandomNumberGenerator()
      return (double)irandnewseed / im;
 }
 
-map<string, size_t> OriginQVM::quickMeasure(QVec vQubit, size_t shots)
+map<string, size_t> CPUQVM::quickMeasure(QVec vQubit, size_t shots)
 {
     map<string, size_t>  meas_result;
     vector<double> probList=getProbList(vQubit,-1);
@@ -576,7 +571,7 @@ map<int, size_t> QVM::getGateTimeMap() const
     return map<int, size_t>();
 }
 
-QStat OriginQVM::getQStat()
+QStat CPUQVM::getQStat()
 {
     if (nullptr == _pGates)
     {
@@ -586,4 +581,42 @@ QStat OriginQVM::getQStat()
     return _pGates->getQState();
 }
 
+void CPUQVM::init()
+{
+    _start();
 
+    _pGates = new CPUImplQPU();
+    if (nullptr == _pGates)
+    {
+        QCERR("new _pGates fail");
+        throw std::runtime_error("new _pGates fail");
+    }
+}
+
+void GPUQVM::init()
+{
+    _start();
+
+#ifdef USE_CUDA
+    _pGates = new GPUImplQPU();
+#else
+    _pGates = nullptr;
+#endif // USE_CUDA
+    if (nullptr == _pGates)
+    {
+        QCERR("new _pGates fail");
+        throw std::runtime_error("new _pGates fail");
+    }
+}
+
+void CPUSingleThreadQVM::init()
+{
+    _start();
+
+    _pGates = new CPUImplQPUSingleThread();
+    if (nullptr == _pGates)
+    {
+        QCERR("new _pGates fail");
+        throw std::runtime_error("new _pGates fail");
+    }
+}

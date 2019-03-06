@@ -33,10 +33,10 @@ namespace QPanda
         AbstractOptimizer& operator = (const AbstractOptimizer &) = delete;
         virtual ~AbstractOptimizer();
 
-        void registerFunc(const QFunc &func, const vector_d &func_para)
+        void registerFunc(const QFunc &func, const vector_d &optimized_para)
         {
             m_func = func;
-            m_optimized_para = func_para;
+            m_optimized_para = optimized_para;
         }
 
         void setDisp(bool disp)

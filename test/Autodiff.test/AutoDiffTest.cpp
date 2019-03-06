@@ -7,6 +7,8 @@
 #include <limits>
 #include "gtest/gtest.h"
 #include "QPanda.h"
+#include "Operator/PauliOperator.h"
+#include "Variational/VarPauliOperator.h"
 USING_QPANDA
 using namespace std;
 using namespace QPanda::Variational;
@@ -14,7 +16,27 @@ static int test_main();
 
 TEST(AutoDiffTest, test_no_quantum)
 {
-    // EXPECT_EQ(0,test_main());
+    auto machine=initQuantumMachine();
+    auto qlist=machine->Allocate_Qubits(4);
+    auto prog=CreateEmptyQProg();
+    auto vqc=VariationalQuantumCircuit();
+
+    auto v1 = var(0, true);
+    VarPauliOperator p1("X0", complex_var(v1, var(0, false)));
+    auto p2=p1.data();
+    auto tmp = p2[0].second.first;
+    vqc.insert(VariationalQuantumGate_RX(qlist[0],tmp));
+
+    PauliOperator op("Z0", 1);
+    auto loss = qop(vqc, op, machine, qlist);
+
+    MatrixXd x(1, 1);
+    x(0, 0) = Q_PI_2;
+
+    v1.setValue(x);
+
+    std::cout << eval(loss, true) << std::endl;
+
 }
 
 VQC parity_check_circuit(std::vector<Qubit*> qubit_vec)
@@ -117,9 +139,9 @@ TEST(AutoDiffTest, qaoa)
 
     pauli_map.insert(std::make_pair("Z5 Z0", 0.18));
 
-    QPanda::PauliOperator op(pauli_map);
+    PauliOperator op(pauli_map);
 
-    QuantumMachine *machine = initQuantumMachine(QuantumMachine_type::CPU_SINGLE_THREAD);
+    QuantumMachine *machine = initQuantumMachine();
     vector<Qubit*> q;
     for (int i = 0; i < op.getMaxIndex(); ++i) 
         q.push_back(machine->Allocate_Qubit());

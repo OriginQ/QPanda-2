@@ -19,7 +19,7 @@ Created in 2018-09-06
 namespace QPanda
 {
     /*
-    Abstract class of QOptimizer.
+    Abstract class of Optimizer.
     */
     class AbstractOptimizer;
     class OptimizerFactory
@@ -28,9 +28,9 @@ namespace QPanda
         OptimizerFactory();
 
         static std::unique_ptr<AbstractOptimizer>
-            makeQOptimizer(const OptimizerType &optimizer);
+            makeOptimizer(const OptimizerType &optimizer);
         static std::unique_ptr<AbstractOptimizer>
-            makeQOptimizer(const std::string &optimizer);
+            makeOptimizer(const std::string &optimizer);
     };
 
 }

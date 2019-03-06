@@ -115,6 +115,8 @@ public:
         None
     */
     bool parse(QProg &prog);
+    inline QVec getQubits() const;
+    inline  std::vector<ClassicalCondition> getCbits() const;
 
 protected:
     void parseDataNode(QProg &prog, const uint_t tail_number);
@@ -212,11 +214,17 @@ private:
     uint_t m_file_length;
     uint_t m_node_counter;
     dataList_t m_data_list;
+    QVec m_qubits;
+    std::vector<ClassicalCondition> m_cbits;
 
     std::list<std::pair<uint_t, DataNode>>::iterator m_iter;
     std::stack<ClassicalCondition> m_stack_cc;
 };
-bool binaryQProgFileParse(QProg &prog, 
-    const std::string &filename = DEF_QPROG_FILENAME);
+
+bool binaryQProgFileParse(QVec &qubits, std::vector<ClassicalCondition> &cbits,
+                          QProg &prog, const std::string &filename = DEF_QPROG_FILENAME);
+
+
+
 QPANDA_END
 #endif // QPROGDATPARSE_H

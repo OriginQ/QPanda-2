@@ -30,7 +30,7 @@ QuantumMachineFactory::QuantumMachineFactory()
 
 QuantumMachineFactoryHelper::
 QuantumMachineFactoryHelper(
-    string _Classname,
+    std::string _Classname,
     constructor_t _Constructor
 )
 {
@@ -52,7 +52,7 @@ QuantumMachineFactory & QuantumMachineFactory::GetFactoryInstance()
 
 /* Factory Method */
 QuantumMachine * QuantumMachineFactory::
-    CreateByName(string _Name)
+    CreateByName(std::string _Name)
 {
     // create a Quantum Machine by its name string
     if (_Quantum_Machine_Constructor.find(_Name)
@@ -65,7 +65,7 @@ QuantumMachine * QuantumMachineFactory::
         _Quantum_Machine_Constructor[_Name]();
 }
 
-void QuantumMachineFactory::registerclass(string name, constructor_t constructor)
+void QuantumMachineFactory::registerclass(std::string name, constructor_t constructor)
 {
     if (_Quantum_Machine_Constructor.find(name) != _Quantum_Machine_Constructor.end())
     {
@@ -77,7 +77,8 @@ void QuantumMachineFactory::registerclass(string name, constructor_t constructor
 
 
 
-REGISTER_QUANTUM_MACHINE(OriginQVM);
+
+
 
 
 

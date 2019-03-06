@@ -4,7 +4,7 @@
 #include "QAOA.h"
 #include "Optimizer/OptimizerFactory.h"
 #include "Optimizer/AbstractOptimizer.h"
-#include "PauliOperator/PauliOperator.h"
+#include "Operator/PauliOperator.h"
 #include "HamiltonianSimulation/HamiltonianSimulation.h"
 
 using namespace std;
@@ -12,7 +12,7 @@ namespace QPanda
 {
     QAOA::QAOA(OptimizerType optimizer)
     {
-        m_optimizer = OptimizerFactory::makeQOptimizer(optimizer);
+        m_optimizer = OptimizerFactory::makeOptimizer(optimizer);
         if (nullptr == m_optimizer.get())
         {
             QCERR("No optimizer.");
@@ -22,7 +22,7 @@ namespace QPanda
 
     QAOA::QAOA(const string &optimizer)
     {
-        m_optimizer = OptimizerFactory::makeQOptimizer(optimizer);
+        m_optimizer = OptimizerFactory::makeOptimizer(optimizer);
         if (nullptr == m_optimizer.get())
         {
             QCERR("No optimizer.");

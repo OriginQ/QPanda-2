@@ -41,7 +41,6 @@ public:
         double learning_rate = 0.01,
         double stop_condition = 1.e-6,
         OptimizerMode mode = OptimizerMode::MINIMIZE);
-
     static std::shared_ptr<Optimizer>
         minimize(var,double,double);
 
@@ -50,6 +49,8 @@ public:
         compute_gradients(std::unordered_set<var> &var_set);
     virtual double get_loss();
     virtual bool run(std::unordered_set<var> &leaves, size_t t = 0);
+
+
 
 private:
     double m_stop_condition;

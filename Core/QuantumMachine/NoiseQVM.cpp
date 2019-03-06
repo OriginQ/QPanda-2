@@ -47,10 +47,9 @@ void NoiseQVM::start()
         m_valid_gates_matrix[MetadataGateType::METADATA_DOUBLE_GATE]);   /* double gate data MetadataValidity */
 }
 
-bool NoiseQVM::init(QuantumMachine_type type)
+void NoiseQVM::init()
 {
     start();
-    bool is_success = false;
     rapidjson::Document doc;
     doc.Parse("{}");
     auto & alloc = doc.GetAllocator();
@@ -78,8 +77,6 @@ bool NoiseQVM::init(QuantumMachine_type type)
         QCERR("new NoisyCPUImplQPU fail");
         throw std::runtime_error("new NoisyCPUImplQPU fail");
     }
-
-    return is_success;
 }
 
 bool NoiseQVM::init(rapidjson::Document & doc)
@@ -121,4 +118,4 @@ void NoiseQVM::run(QProg & prog)
     return;
 }
 
-
+REGISTER_QUANTUM_MACHINE(NoiseQVM);

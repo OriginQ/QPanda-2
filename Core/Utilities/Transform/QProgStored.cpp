@@ -4,8 +4,9 @@
 #include "TransformDecomposition.h"
 using namespace std;
 USING_QPANDA
-QProgStored::QProgStored(QProg &prog) :
-    m_file_length(0u), m_node_counter(0u), m_QProg(prog)
+QProgStored::QProgStored(const uint_t &qubit_number, const uint_t &cbit_number,QProg &prog) :
+    m_file_length(0u), m_node_counter(0u),
+    m_qubit_number(qubit_number), m_cbit_number(cbit_number), m_QProg(prog)
 {
     m_gate_type_map.insert(pair<int, string>(PAULI_X_GATE, "X"));
     m_gate_type_map.insert(pair<int, string>(PAULI_Y_GATE, "Y"));
@@ -93,7 +94,10 @@ void QProgStored::traversal()
         traversalQNode(p_node);
     }
 
-    m_file_length = 2 * sizeof(uint_t) * (m_node_counter + 1);
+    // first node : file length and qubit node bumber
+    // second mode: qubit number and cbit number
+    m_data_list.emplace_front(pair<uint_t, DataNode>(m_qubit_number, m_cbit_number));
+    m_file_length = 2 * sizeof(uint_t) * (m_node_counter + 2);
     m_data_list.emplace_front(pair<uint_t, DataNode>(m_file_length, m_node_counter));
 
     return;
@@ -605,9 +609,10 @@ void QProgStored::traversalCExpr(CExpr *p_cexpr)
     return;
 }
 
-void QPanda::qProgBinaryStored(QProg &prog, const string &filename)
+void QPanda::qProgBinaryStored(const uint32_t &qubit_number, const uint32_t &cbit_number,
+                               QProg &prog, const string &filename)
 {
-    QProgStored storeProg(prog);
+    QProgStored storeProg(qubit_number, cbit_number, prog);
     storeProg.traversal();
     storeProg.store(filename);
 }

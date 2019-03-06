@@ -1,7 +1,7 @@
 #include <time.h>
 #include "QAOATest.h"
 #include "QAOA/QAOA.h"
-#include "PauliOperator/PauliOperator.h"
+#include "Operator/PauliOperator.h"
 #include "QAOATestFactory.h"
 #include "AbstractQAOATest.h"
 #include "TestManager/TestManager.h"

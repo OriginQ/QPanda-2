@@ -20,6 +20,11 @@ limitations under the License.
 #include "Core/QuantumCircuit/QGate.h"
 #include "Core/QuantumCircuit/QProgram.h"
 #include "Core/QuantumCircuit/QCircuit.h"
+#include "Core/QuantumMachine/QuantumMachineInterface.h"
+#include "Core/QuantumCircuit/ClassicalProgam.h"
+#include "Core/QuantumMachine/QVec.h"
+#include "Core/Utilities/OriginCollection.h"
+#include "Core/QuantumMachine/OriginQuantumMachine.h"
 #include "Core/Utilities/Transform/QGateCounter.h"
 #include "Core/Utilities/Transform/QProgToQRunes.h"
 #include "Core/Utilities/Transform/QProgToQASM.h"
@@ -27,11 +32,6 @@ limitations under the License.
 #include "Core/Utilities/Transform/QRunesToQProg.h"
 #include "Core/Utilities/Transform/QProgStored.h"
 #include "Core/Utilities/Transform/QProgDataParse.h"
-#include "Core/QuantumMachine/QuantumMachineInterface.h"
-#include "Core/QuantumCircuit/ClassicalProgam.h"
-#include "Core/QuantumMachine/QVec.h"
-#include "Core/Utilities/OriginCollection.h"
-#include "Core/QuantumMachine/OriginQuantumMachine.h"
 QPANDA_BEGIN
 
 std::string qProgToQRunes(QProg &pQPro);
@@ -39,7 +39,7 @@ std::string qProgToQASM(QProg &pQPro);
 void qRunesToQProg(std::string sFilePath,QProg& newQProg);
 
 // to init the environment. Use this at the beginning
-bool init(QuantumMachine_type type = CPU);
+bool init(QMachineType type = CPU);
 
 // to finalize the environment. Use this at the end
 void finalize();
@@ -95,7 +95,7 @@ std::map<std::string, size_t> quick_measure(QVec& qubit_vector, int shots,
 
 size_t getQProgClockCycle(QProg &prog);
 
-QuantumMachine *initQuantumMachine(QuantumMachine_type type=CPU);
+QuantumMachine *initQuantumMachine(QMachineType type=CPU);
 void destroyQuantumMachine(QuantumMachine * qvm);
 
 QPanda::QProg MeasureAll(QVec&, std::vector<ClassicalCondition> &);

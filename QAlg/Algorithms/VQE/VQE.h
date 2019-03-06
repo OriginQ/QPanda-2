@@ -17,16 +17,16 @@ Created in 2018-09-28
 #include <memory>
 #include "Core/QPanda.h"
 #include "QAlg/DataStruct.h"
-
+#include "OriginCollection.h"
+#include "Operator/PauliOperator.h"
 namespace QPanda
 {
     /*
 
     Variational Quantum Eigensolver
-    
+
     */
     class AbstractOptimizer;
-    class PauliOperator;
     class VQE
     {
     public:
@@ -87,6 +87,15 @@ namespace QPanda
             m_psi4_path = path;
         }
 
+        void setDataSavePath(const std::string &path)
+        {
+            m_data_save_path = path;
+        }
+
+        void enableOptimizerData(bool enable)
+        {
+            m_enable_optimizer_data = enable;
+        }
 
         AbstractOptimizer* getOptimizer()
         {
@@ -99,27 +108,32 @@ namespace QPanda
         {
             return m_energies;
         }
+
+        std::string getLastError()
+        {
+            return m_last_err;
+        }
     private:
         void QInit();
         void QFinalize();
 
-        bool initVQE(std::string &err_msg);
+        bool initVQE();
         bool checkPara(std::string &err_msg);
 
         QMoleculeGeometry genMoleculeGeometry(const size_t &index);
-        PauliOperator genPauliOperator(const std::string &s, bool *ok = nullptr);
+        PauliOperator genPauliOpComplex(const std::string &s, bool *ok = nullptr);
         complex_d genComplex(const std::string &s);
         size_t getElectronNum(const QMoleculeGeometry &geometry);
 
         /*
-        
+
         Coupled cluster single model.
         e.g. 4 qubits, 2 electrons
         then 0 and 1 are occupied,just consider 0->2,0->3,1->2,1->3
 
         */
         size_t getCCS_N_Trem(const size_t &qn, const size_t &en);
-        
+
         /*
 
         Coupled cluster single and double model.
@@ -132,25 +146,25 @@ namespace QPanda
         /*
 
         Coupled cluster single model.
-        J-W transform on CCS, get paulioperator
-        
+        J-W transform on CCS, get PauliOpComplex
+
         */
         PauliOperator getCCS(
-            const size_t &qn, 
-            const size_t &en, 
+            const size_t &qn,
+            const size_t &en,
             const vector_d &para_vec);
 
         /*
 
         Coupled cluster single and double model.
-        J-W transform on CCSD, get paulioperator
-        
+        J-W transform on CCSD, get PauliOpComplex
+
         */
         PauliOperator getCCSD(
             const size_t &qn,
             const size_t &en,
             const vector_d &para_vec);
-        
+
         /*
 
         fermion_op = ('a',1) or ('c',1)
@@ -164,7 +178,7 @@ namespace QPanda
 
         /*
 
-        Generate Hamiltonian form of unitary coupled cluster based on coupled 
+        Generate Hamiltonian form of unitary coupled cluster based on coupled
         cluster,H=1j*(T-dagger(T)), then exp(-jHt)=exp(T-dagger(T))
 
         */
@@ -180,8 +194,8 @@ namespace QPanda
 
         /*
 
-        Get expectation of one paulioperator.
-        
+        Get expectation of one PauliOpComplex.
+
         */
         double getExpectation(
             const QHamiltonian &unitary_cc,
@@ -199,7 +213,7 @@ namespace QPanda
         String has element '0' or '1',paulis is a map like '1:X 2:Y 3:Z'.
         parity check of partial element of string, number of paulis are
         invloved position, to be repaired
-        
+
         */
         bool PairtyCheck(const std::string &str, const QTerm &paulis);
 
@@ -216,13 +230,22 @@ namespace QPanda
         QResultPair callVQE(
                 const vector_d &para,
                 const QHamiltonian &hamiltonian);
+
+        bool saveResult(const QOptimizationResult &result, size_t index);
+        void writeExecLog(bool exec_flag);
     private:
         vector_d m_optimized_para;
         vector_d m_energies;
         QAtomsPosGroup m_atoms_pos_group;
 
+        std::string m_data_save_path;
         std::string m_psi4_path;
         std::string m_basis{"sto-3g"};
+        std::string m_last_err;
+
+        bool m_enable_optimizer_data{false};
+        OriginCollection m_optimizer_data_db;
+        size_t m_func_calls{0};
 
         int m_multiplicity{1};
         int m_charge{0};

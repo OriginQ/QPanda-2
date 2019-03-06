@@ -11,7 +11,7 @@ namespace QPanda
     { }
 
     std::unique_ptr<AbstractOptimizer>
-        OptimizerFactory::makeQOptimizer(const OptimizerType &optimizer)
+        OptimizerFactory::makeOptimizer(const OptimizerType &optimizer)
     {
         switch (optimizer)
         {
@@ -20,12 +20,12 @@ namespace QPanda
         case OptimizerType::POWELL:
             return std::unique_ptr<AbstractOptimizer>(new OriginPowell);
         default:
-            return  std::unique_ptr<AbstractOptimizer>(nullptr);
+            return std::unique_ptr<AbstractOptimizer>(nullptr);
         }
     }
 
     std::unique_ptr<AbstractOptimizer>
-        OptimizerFactory::makeQOptimizer(const std::string &optimizer)
+        OptimizerFactory::makeOptimizer(const std::string &optimizer)
     {
         if ("Nelder-Mead" == optimizer)
         {

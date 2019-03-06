@@ -3,7 +3,7 @@ project(QPanda-2.0.GPUQGates)
 
 set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --expt-extended-lambda -gencode arch=compute_50,code=sm_50")
 if (MSVC)
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -Xcompiler /FS") 
+    list(APPEND CUDA_NVCC_FLAGS -Xcompiler /FS -Xcompiler /w)
 else()
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11 -w -Xcompiler -fPIC")   
 endif()

@@ -36,6 +36,7 @@ namespace QPanda
                 size_t size = 0) const;
         QMoleculeGeometry getProblem(const rapidjson::Value &value) const;
         QAtomsPosGroup get2AtomPosGroup(const rapidjson::Value &value) const;
+        QAtomsPosGroup getNormalAtomPosGroup(const rapidjson::Value &value) const;
         vector_d get2AtomDistances(const rapidjson::Value &value) const;
         QPosition getPos(const rapidjson::Value &value) const;
         bool writeResultToFile(const std::string &filename,

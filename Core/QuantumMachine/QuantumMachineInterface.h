@@ -98,7 +98,7 @@ public:
     virtual size_t getAllocateCMem() = 0;
     virtual std::map<int, size_t> getGateTimeMap() const = 0;
     virtual void finalize() = 0; // finish the program
-
+    virtual QStat getQState() const =0;
     virtual ~QuantumMachine() {} // destructor
 };
 QPANDA_END

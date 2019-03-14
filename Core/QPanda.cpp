@@ -401,3 +401,13 @@ QProg QPanda::MeasureAll(QVec& vQubit, vector<ClassicalCondition> &vCBit)
     }
     return qprog;
 }
+
+QStat QPanda::getQState()
+{
+    if (nullptr == qvm)
+    {
+        QCERR("qvm is nullptr");
+        throw invalid_argument("qvm is nullptr");
+    }
+    return qvm->getQState();
+}

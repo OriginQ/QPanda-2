@@ -100,7 +100,7 @@ void NoiseQVM::run(QProg & prog)
 
     _pParam = new QuantumGateParam();
 
-    _pParam->m_qbit_number = _Qubit_Pool->getMaxQubit();
+    _pParam->m_qbit_number = _Qubit_Pool->getMaxQubit() - _Qubit_Pool->getIdleQubit();
 
     _pGates->initState(_pParam);
 
@@ -112,7 +112,6 @@ void NoiseQVM::run(QProg & prog)
         _QResult->append(aiter);
     }
 
-    _pGates->endGate(_pParam, nullptr);
     delete _pParam;
     _pParam = nullptr;
     return;

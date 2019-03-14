@@ -1078,6 +1078,11 @@ QError NoisyCPUImplQPU::SqiSWAP(
 
 QStat NoisyCPUImplQPU::getQState()
 {
+    if (0 == qbit2stat.size())
+    {
+        return QStat();
+    }
+
     size_t sEnable = 0;
     while (!qbit2stat[sEnable].enable)
     {

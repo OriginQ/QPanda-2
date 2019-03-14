@@ -280,8 +280,9 @@ QDoubleGate::QDoubleGate(const QDoubleGate & oldDouble)
     this->operation_num = oldDouble.operation_num;
     this->gate_matrix = oldDouble.gate_matrix;
 }
-QDoubleGate::QDoubleGate(QStat & matrix) : operation_num(2)
+QDoubleGate::QDoubleGate(QStat & matrix)
 {
+    operation_num = 2;
     if (matrix.size() != 16)
     {
         QCERR("Given matrix is invalid.");

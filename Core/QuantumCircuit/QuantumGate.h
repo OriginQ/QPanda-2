@@ -324,12 +324,6 @@ namespace QGATE_SPACE
             return 0;
         }
         void getMatrix(QStat &) const;
-
-
-    protected:
-
-        int operation_num;
-
     };
 
 

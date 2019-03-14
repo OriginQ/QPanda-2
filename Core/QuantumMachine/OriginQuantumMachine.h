@@ -187,6 +187,7 @@ public:
     virtual std::map<std::string, bool> directlyRun(QProg & qProg);
     virtual std::map<std::string, size_t> runWithConfiguration(QProg &, std::vector<ClassicalCondition> &, rapidjson::Document &);
     virtual std::map<int, size_t> getGateTimeMap() const;
+    virtual QStat getQState() const;
 
 };
 

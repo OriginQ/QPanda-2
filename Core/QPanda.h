@@ -95,6 +95,8 @@ std::map<std::string, size_t> quick_measure(QVec& qubit_vector, int shots,
 
 size_t getQProgClockCycle(QProg &prog);
 
+QStat getQState();
+
 QuantumMachine *initQuantumMachine(QMachineType type=CPU);
 void destroyQuantumMachine(QuantumMachine * qvm);
 

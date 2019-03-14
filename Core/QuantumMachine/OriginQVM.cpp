@@ -193,7 +193,7 @@ void QVM::run(QProg & node)
     
     _pParam = new QuantumGateParam();
 
-    _pParam->m_qbit_number = _Qubit_Pool->getMaxQubit(); 
+    _pParam->m_qbit_number = _Qubit_Pool->getMaxQubit()- _Qubit_Pool->getIdleQubit();
 
     _pGates->initState(_pParam);
 
@@ -204,8 +204,6 @@ void QVM::run(QProg & node)
     {
         _QResult->append(aiter);
     }
-
-    _pGates->endGate(_pParam,nullptr);
     delete _pParam;
     _pParam = nullptr;
     return;
@@ -214,6 +212,16 @@ void QVM::run(QProg & node)
 QMachineStatus * QVM::getStatus() const
 {
     return _QMachineStatus;
+}
+
+QStat QVM::getQState() const
+{
+    if (nullptr == _pGates)
+    {
+        QCERR("pgates is nullptr");
+        throw std::runtime_error("pgates is nullptr");
+    }
+    return _pGates->getQState();
 }
 
 QResult * QVM::getResult()

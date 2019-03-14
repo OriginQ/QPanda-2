@@ -90,8 +90,7 @@ QStat GPUImplQPU::getQState()
 {
 	if (miQbitNum <= 0)
 	{
-		QCERR("qbit num error");
-		throw runtime_error("qbit num error");
+        return QStat();
 	}
 
     getState(mvCPUQuantumStat, mvQuantumStat, miQbitNum);

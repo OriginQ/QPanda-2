@@ -553,7 +553,7 @@ QError CPUImplQPU::iSWAP(size_t qn_0, size_t qn_1, double theta, bool isConjugat
         * iSWAP(qn_1,qn_2) is agree with
         * iSWAP(qn_2,qn_1)
         */
-        if (qn_0 < qn_1)
+        if (ststep0 < ststep1)
         {
             sttemp = ststep0;
             ststep0 = ststep1;
@@ -614,7 +614,7 @@ QError CPUImplQPU::iSWAP(size_t qn_0, size_t qn_1, Qnum & vControlBit, double th
             - qgroup0.qVec.begin());
         size_t ststep1 = 1ull << (find(qgroup0.qVec.begin(), qgroup0.qVec.end(), qn_1)
             - qgroup0.qVec.begin());
-        if (qn_0 < qn_1)
+        if (ststep0 < ststep1)
         {
             sttemp = ststep0;
             ststep0 = ststep1;
@@ -696,7 +696,7 @@ QError CPUImplQPU::CR(size_t qn_0, size_t qn_1, double theta, bool isConjugate, 
         * iSWAP(qn_1,qn_2) is agree with
         * iSWAP(qn_2,qn_1)
         */
-        if (qn_0 < qn_1)
+        if (ststep0 < ststep1)
         {
             sttemp = ststep0;
             ststep0 = ststep1;
@@ -750,7 +750,7 @@ QError CPUImplQPU::CR(size_t qn_0, size_t qn_1, Qnum & vControlBit, double theta
             - qgroup0.qVec.begin());
         size_t ststep1 = 1ull << (find(qgroup0.qVec.begin(), qgroup0.qVec.end(), qn_1)
             - qgroup0.qVec.begin());
-        if (qn_0 < qn_1)
+        if (ststep0 < ststep1)
         {
             sttemp = ststep0;
             ststep0 = ststep1;
@@ -829,6 +829,10 @@ QError CPUImplQPU::Reset(size_t qn)
 
 QStat CPUImplQPU::getQState()
 {
+    if (0 == qbit2stat.size())
+    {
+        return QStat();
+    }
     size_t sEnable = 0;
     while (!qbit2stat[sEnable].enable)
     {

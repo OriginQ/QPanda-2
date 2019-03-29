@@ -1,18 +1,19 @@
 #include <iostream>
 #include <limits>
-#include "ClassicalCondition.test.h"
 #include "Utilities/OriginCollection.h"
 #include "QPanda.h"
+#include "gtest/gtest.h"
 USING_QPANDA
 using namespace std;
-TEST_F(ClassicalConditionTest, testClassicalConditionADD)
+TEST(ClassicalConditionTest, testClassicalConditionADD)
 {    
-    auto c1 = m_qvm->Allocate_CBit();
-    auto c2 = m_qvm->Allocate_CBit();
+    CPUQVM* m_qvm = new CPUQVM();
+    m_qvm->init();
+    auto c1 = m_qvm->allocateCBit();
+    auto c2 = m_qvm->allocateCBit();
 
     c1.setValue(10);
     c2.setValue(20);
-
     ASSERT_EQ(c1.eval(),10);
     ASSERT_EQ(c2.eval(),20);
     // cc3 is classicalCondition
@@ -31,16 +32,20 @@ TEST_F(ClassicalConditionTest, testClassicalConditionADD)
     prog<<(c1=c1+1)<<(c2=c2+c1+cc3+cc4);
     auto qwhile = CreateWhileProg(c1<11,&prog);
     m_prog<<qwhile;
-    directlyRun(prog);
+    m_qvm->directlyRun(prog);
     ASSERT_EQ(c1.eval(),11);
     ASSERT_EQ(c2.eval(),83);
     
+    m_qvm->finalize();
+    delete m_qvm;
 }
 
-TEST_F(ClassicalConditionTest, testClassicalConditionSUB)
+TEST(ClassicalConditionTest, testClassicalConditionSUB)
 {    
-    auto c1 = m_qvm->Allocate_CBit();
-    auto c2 = m_qvm->Allocate_CBit();
+    CPUQVM* m_qvm = new CPUQVM();
+    m_qvm->init();
+    auto c1 = m_qvm->allocateCBit();
+    auto c2 = m_qvm->allocateCBit();
 
     c1.setValue(10);
     c2.setValue(20);
@@ -60,15 +65,19 @@ TEST_F(ClassicalConditionTest, testClassicalConditionSUB)
     prog<<(c1=c1+1)<<(c2=c2-c1-cc3-cc4);
     auto qwhile = CreateWhileProg(c1<11,&prog);
     m_prog<<qwhile;
-    directlyRun(prog);
+    m_qvm->directlyRun(prog);
     ASSERT_EQ(c1.eval(),11);
     ASSERT_EQ(c2.eval(),-1);
+    m_qvm->finalize();
+    delete m_qvm;
 }
 
-TEST_F(ClassicalConditionTest, testClassicalConditionMUL)
+TEST(ClassicalConditionTest, testClassicalConditionMUL)
 {    
-    auto c1 = m_qvm->Allocate_CBit();
-    auto c2 = m_qvm->Allocate_CBit();
+    CPUQVM* m_qvm = new CPUQVM();
+    m_qvm->init();
+    auto c1 = m_qvm->allocateCBit();
+    auto c2 = m_qvm->allocateCBit();
 
     c1.setValue(10);
     c2.setValue(20);
@@ -88,16 +97,20 @@ TEST_F(ClassicalConditionTest, testClassicalConditionMUL)
     prog<<(c1=c1+1)<<(c2=c2*c1*cc3*cc4);
     auto qwhile = CreateWhileProg(c1<11,&prog);
     m_prog<<qwhile;
-    directlyRun(prog);
+    m_qvm->directlyRun(prog);
     std::cout <<c2.eval()<<std::endl;
     ASSERT_EQ(c1.eval(),11);
     ASSERT_EQ(c2.eval(),5324000);
+    m_qvm->finalize();
+    delete m_qvm;
 }
 
-TEST_F(ClassicalConditionTest, testClassicalConditionDIV)
+TEST(ClassicalConditionTest, testClassicalConditionDIV)
 {    
-    auto c1 = m_qvm->Allocate_CBit();
-    auto c2 = m_qvm->Allocate_CBit();
+    CPUQVM* m_qvm = new CPUQVM();
+    m_qvm->init();
+    auto c1 = m_qvm->allocateCBit();
+    auto c2 = m_qvm->allocateCBit();
 
     c1.setValue(10);
     c2.setValue(20);
@@ -116,10 +129,11 @@ TEST_F(ClassicalConditionTest, testClassicalConditionDIV)
     prog<<(c1=c1+1)<<(c2 = c2 + 2)<<(c2=c2/c1*(c1/11));
     auto qwhile = CreateWhileProg(c1<11,&prog);
     m_prog<<qwhile;
-    directlyRun(prog);
-
+    m_qvm->directlyRun(prog);
     ASSERT_EQ(c1.eval(),11);
     ASSERT_EQ(c2.eval(),2);
+    m_qvm->finalize();
+    delete m_qvm;
 }
 
 TEST(QVecTest,test)
@@ -239,31 +253,8 @@ TEST(QProgTransformQuil, QUIL)
     }
     auto quil = qProgToQuil(prog);
     std::cout << quil << std::endl;
-
     finalize();
     return;
 }
 
-TEST(NoiseMachineTest, test)
-{
-    NoiseQVM qvm;
-    qvm.init();
-    auto qvec = qvm.Allocate_Qubits(2);
-    auto cvec = qvm.Allocate_CBits(2);
-    auto prog = QProg();
-    prog << X(qvec[0])
-       << X(qvec[1])
-       <<Measure(qvec[0],cvec[0])
-       << Measure(qvec[1],cvec[1]);
-    rapidjson::Document doc;
-    doc.Parse("{}");
-    auto &alloc = doc.GetAllocator();
-    doc.AddMember("shots", 1000, alloc);
-    auto result = qvm.runWithConfiguration(prog, cvec, doc);
-    for (auto &aiter : result)
-    {
-        std::cout << aiter.first << " : " << aiter.second << endl;
-    }
 
-    qvm.finalize();
-}

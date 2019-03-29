@@ -1,21 +1,12 @@
-#include <iostream>
-#include "gtest/gtest.h"
 #include "QPanda.h"
+#include "gtest/gtest.h"
 #include "QuantumMachine/QuantumCloudHTTP.h"
-#include "QuantumMachine/QuantumCloudHTTP.cpp"
-#include <curl/curl.h>
-#include "TinyXML/tinyxml.h"
-#include <map>
-#include <cstdlib>
-#include <sstream>
-#include <string>
-
 using namespace std;
 using namespace rapidjson;
 
 USING_QPANDA
 
-void very_important_function()
+void HttpDemo()
 {
     rapidjson::Document jsonDoc;
     rapidjson::Document::AllocatorType &allocator = jsonDoc.GetAllocator();
@@ -127,24 +118,43 @@ void very_important_function()
 TEST(CloudHttpTest, Post)
 {
     auto  test = QuantumCloudHttp();
+
     init();
     test.init();
 
     auto prog = CreateEmptyQProg();
-    vector<ClassicalCondition> c;
-    QVec vec = qAllocMany(3);
+    auto qlist = qAllocMany(5);
+    auto clist = cAllocMany(3);
 
-    std::map<std::string, bool> result;
-    std::map<std::string, double> result1;
-    std::map<std::string, size_t> result2;
+    prog << H(qlist[0]) << H(qlist[1]) << H(qlist[2]) << H(qlist[2]);
 
-    //result2 = test.runWithConfiguration(prog, c, 100);
+    test.load(prog);
 
-    result1 = test.getProbDict(vec, 1);
-    for (auto val : result1)
+    auto result = test.getProbDict(qlist, 1);
+    for (auto val : result)
     {
         cout << val.first << " : " << val.second << endl;
     }
+
+    finalize();
+
+
+
+    //auto prog = CreateEmptyQProg();
+    //vector<ClassicalCondition> c;
+    //QVec vec = qAllocMany(3);
+
+    //std::map<std::string, bool> result;
+    //std::map<std::string, double> result1;
+    //std::map<std::string, size_t> result2;
+
+    ////result2 = test.runWithConfiguration(prog, c, 100);
+
+    //result1 = test.getProbDict(vec, 1);
+    //for (auto val : result1)
+    //{
+    //    cout << val.first << " : " << val.second << endl;
+    //}
 
 
     //result = test.getResultMap();

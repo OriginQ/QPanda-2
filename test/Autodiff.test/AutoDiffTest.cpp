@@ -17,7 +17,7 @@ static int test_main();
 TEST(AutoDiffTest, test_no_quantum)
 {
     auto machine=initQuantumMachine();
-    auto qlist=machine->Allocate_Qubits(4);
+    auto qlist=machine->allocateQubits(4);
     auto prog=CreateEmptyQProg();
     auto vqc=VariationalQuantumCircuit();
 
@@ -144,12 +144,12 @@ TEST(AutoDiffTest, qaoa)
     QuantumMachine *machine = initQuantumMachine();
     vector<Qubit*> q;
     for (int i = 0; i < op.getMaxIndex(); ++i) 
-        q.push_back(machine->Allocate_Qubit());
+        q.push_back(machine->allocateQubit());
 
     VQC vqc;
-    for_each(q.begin(), q.end(), [&vqc](Qubit* qbit)
+    for_each(q.begin(), q.end(), [&vqc](Qubit* qubit)
     {
-        vqc.insert(VQG_H(qbit));
+        vqc.insert(VQG_H(qubit));
     });
 
     int qaoa_step = 1;

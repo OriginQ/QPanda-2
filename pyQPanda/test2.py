@@ -20,7 +20,6 @@ def test():
     prog.insert(pq.H(qlist[2])).insert(pq.meas_all(qlist,clist))
     data = {'shots':1000}
     result=machine.run_with_configuration(prog,clist,data) 
-    print("result11111",result)
     pq.destroy_quantum_machine(machine)
     
 

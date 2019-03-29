@@ -27,7 +27,7 @@ Description:gpu quantum logic gates class
 #ifdef USE_CUDA
 using namespace std;
 #include "QPandaNamespace.h"
-#include "GPUGatesWrapper.hpp"
+#include "GPUGatesWrapper.h"
 #include <algorithm>
 #include <thread>
 #include <map>
@@ -69,8 +69,8 @@ return:      quantum error
 *****************************************************************************************************************/
 QError GPUImplQPU::initState(QuantumGateParam * pQuantumProParam)
 {
-    miQbitNum     = pQuantumProParam->m_qbit_number;
-    if (!initstate(mvCPUQuantumStat, mvQuantumStat, pQuantumProParam->m_qbit_number))
+    miQbitNum     = pQuantumProParam->m_qubit_number;
+    if (!initstate(mvCPUQuantumStat, mvQuantumStat, pQuantumProParam->m_qubit_number))
     {
         return undefineError;
     }
@@ -471,5 +471,32 @@ QError GPUImplQPU::pMeasure(Qnum& qnum, vector<double> &mResult)
     return qErrorNone;
 }
 
+
+
+QError GPUImplQPU::P0(size_t qn, bool isConjugate, double error_rate)
+{
+    return undefineError;
+}
+QError GPUImplQPU::P0(
+    size_t qn,
+    Qnum& vControlBit,
+    bool isConjugate,
+    double error_rate)
+{
+    return undefineError;
+}
+
+QError GPUImplQPU::P1(size_t qn, bool isConjugate, double error_rate)
+{
+    return undefineError;
+}
+QError GPUImplQPU::P1(
+    size_t qn,
+    Qnum& vControlBit,
+    bool isConjugate,
+    double error_rate)
+{
+    return undefineError;
+}
 
 #endif

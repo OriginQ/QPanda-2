@@ -18,7 +18,7 @@ limitations under the License.
 #include "Utilities/ConfigMap.h"
 USING_QPANDA
 using namespace std;
-QMeasure  QPanda::Measure(Qubit * target_qbit,ClassicalCondition  classical_cond)
+QMeasure  QPanda::Measure(Qubit * target_qubit,ClassicalCondition  classical_cond)
 {
     auto target_cbit = classical_cond.getExprPtr()->getCBit();
     if (nullptr == target_cbit)
@@ -26,7 +26,7 @@ QMeasure  QPanda::Measure(Qubit * target_qbit,ClassicalCondition  classical_cond
         QCERR("param error");
         throw invalid_argument("param error");
     }
-    QMeasure measure(target_qbit, target_cbit);
+    QMeasure measure(target_qubit, target_cbit);
     return measure;
 }
 
@@ -35,10 +35,10 @@ QMeasure::QMeasure(const QMeasure & old_measure)
     m_measure = old_measure.m_measure;
 }
 
-QMeasure::QMeasure(Qubit * qbit, CBit * cbit)
+QMeasure::QMeasure(Qubit * qubit, CBit * cbit)
 {
     auto class_name = ConfigMap::getInstance()["QMeasure"];
-    auto measure = QuantunMeasureFactory::getInstance().getQuantumMeasure(class_name, qbit, cbit);
+    auto measure = QuantunMeasureFactory::getInstance().getQuantumMeasure(class_name, qubit, cbit);
     m_measure.reset(measure);
 }
 
@@ -141,8 +141,8 @@ void OriginMeasure::execute(QPUImpl * quantum_gates, QuantumGateParam * param)
     }
 }
 
-OriginMeasure::OriginMeasure(Qubit * qbit, CBit * cbit):
-    m_target_qbit(qbit),
+OriginMeasure::OriginMeasure(Qubit * qubit, CBit * cbit):
+    m_target_qubit(qubit),
     m_target_cbit(cbit),
     m_node_type(MEASURE_GATE)
 {
@@ -150,7 +150,7 @@ OriginMeasure::OriginMeasure(Qubit * qbit, CBit * cbit):
 
 Qubit * OriginMeasure::getQuBit() const
 {
-    return m_target_qbit;
+    return m_target_qubit;
 }
 
 CBit * OriginMeasure::getCBit() const

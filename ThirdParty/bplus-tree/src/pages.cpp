@@ -106,9 +106,9 @@ int bp__page_read(bp_db_t *t, bp__page_t *page)
     i = 0;
     o = 0;
     while (o < size) {
-        page->keys[i].length = ntohll(*(uint64_t *) (buff + o));
-        page->keys[i].offset = ntohll(*(uint64_t *) (buff + o + 8));
-        page->keys[i].config = ntohll(*(uint64_t *) (buff + o + 16));
+        page->keys[i].length = myntohll(*(uint64_t *) (buff + o));
+        page->keys[i].offset = myntohll(*(uint64_t *) (buff + o + 8));
+        page->keys[i].config = myntohll(*(uint64_t *) (buff + o + 16));
         page->keys[i].value = buff + o + 24;
         page->keys[i].allocated = 0;
 
@@ -167,9 +167,9 @@ int bp__page_save(bp_db_t *t, bp__page_t *page)
     for (i = 0; i < page->length; i++) {
         assert(o + BP__KV_SIZE(page->keys[i]) <= page->byte_size);
 
-        *(uint64_t *) (buff + o) = htonll(page->keys[i].length);
-        *(uint64_t *) (buff + o + 8) = htonll(page->keys[i].offset);
-        *(uint64_t *) (buff + o + 16) = htonll(page->keys[i].config);
+        *(uint64_t *) (buff + o) = myhtonll(page->keys[i].length);
+        *(uint64_t *) (buff + o + 8) = myhtonll(page->keys[i].offset);
+        *(uint64_t *) (buff + o + 16) = myhtonll(page->keys[i].config);
 
         memcpy(buff + o + 24, page->keys[i].value, page->keys[i].length);
 

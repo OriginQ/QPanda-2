@@ -15,12 +15,14 @@ limitations under the License.
 */
 #include "config.h"
 #include "CPUImplQPUSingleThread.h"
+#include "QPandaNamespace.h"
+#include "Utilities/Utilities.h"
 #include <algorithm>
 #include <thread>
 #include <map>
 #include <iostream>
 #include <sstream>
-#include "QPandaNamespace.h"
+
 using namespace std;
 
 CPUImplQPUSingleThread::CPUImplQPUSingleThread()
@@ -29,17 +31,17 @@ CPUImplQPUSingleThread::CPUImplQPUSingleThread()
 
 CPUImplQPUSingleThread::~CPUImplQPUSingleThread()
 {
-    qbit2stat.clear();
+    qubit2stat.clear();
 }
 
 CPUImplQPUSingleThread::CPUImplQPUSingleThread(size_t qubitSumNumber) 
-    :qbit2stat(qubitSumNumber)
+    :qubit2stat(qubitSumNumber)
 {
 }
 
 QGateParam& CPUImplQPUSingleThread::findgroup(size_t qn)
 {
-    for (auto iter = qbit2stat.begin(); iter != qbit2stat.end(); ++iter)
+    for (auto iter = qubit2stat.begin(); iter != qubit2stat.end(); ++iter)
     {
         if (iter->enable == false) continue;
         if (find(iter->qVec.begin(), iter->qVec.end(), qn) != iter->qVec.end()) return *iter;
@@ -173,7 +175,7 @@ bool CPUImplQPUSingleThread::qubitMeasure(size_t qn)
     }
     int ioutcome(0);
 
-    float fi = (float)randGenerator();
+    float fi = (float)QPanda::RandomNumberGenerator();
 
     if (fi> dprob)
     {
@@ -216,17 +218,17 @@ bool CPUImplQPUSingleThread::qubitMeasure(size_t qn)
 
 QError CPUImplQPUSingleThread::initState(QuantumGateParam * param)
 {
-    qbit2stat.erase(qbit2stat.begin(),qbit2stat.end());
-    qbit2stat.resize(param->m_qbit_number);
-    for (auto i = 0; i<param->m_qbit_number; i++)
+    qubit2stat.erase(qubit2stat.begin(),qubit2stat.end());
+    qubit2stat.resize(param->m_qubit_number);
+    for (auto i = 0; i<param->m_qubit_number; i++)
     {
-        qbit2stat[i].qVec.push_back(i);
-        qbit2stat[i].qstate.push_back(1);
-        qbit2stat[i].qstate.push_back(0);
-        qbit2stat[i].qubitnumber = 1;
+        qubit2stat[i].qVec.push_back(i);
+        qubit2stat[i].qstate.push_back(1);
+        qubit2stat[i].qstate.push_back(0);
+        qubit2stat[i].qubitnumber = 1;
     }
 
-    for (auto iter = qbit2stat.begin(); iter != qbit2stat.end(); iter++)
+    for (auto iter = qubit2stat.begin(); iter != qubit2stat.end(); iter++)
     {
         for (auto iter1 = (*iter).qstate.begin(); iter1 != (*iter).qstate.end(); iter1++)
         {
@@ -285,7 +287,7 @@ controlunitarySingleQubitGate(size_t qn,
     double error_rate,
     GateType type)
 {
-    if (randGenerator() > error_rate)
+    if (QPanda::RandomNumberGenerator() > error_rate)
     {
         QGateParam& qgroup0 = findgroup(qn);
         for (auto iter = vControlBit.begin(); iter != vControlBit.end(); iter++)
@@ -365,7 +367,7 @@ unitaryDoubleQubitGate(size_t qn_0,
     double error_rate,
     GateType type)
 {
-    if (randGenerator() > error_rate)
+    if (QPanda::RandomNumberGenerator() > error_rate)
     {
 
         QGateParam& qgroup0 = findgroup(qn_0);
@@ -439,7 +441,7 @@ controlunitaryDoubleQubitGate(size_t qn_0,
     double error_rate,
     GateType type)
 {
-    if (randGenerator() > error_rate)
+    if (QPanda::RandomNumberGenerator() > error_rate)
     {
         QGateParam& qgroup0 = findgroup(qn_0);
         QGateParam& qgroup1 = findgroup(qn_1);
@@ -566,6 +568,38 @@ QError CPUImplQPUSingleThread::Y(
 {
     return undefineError;
 }
+
+QError CPUImplQPUSingleThread::P0(size_t qn, bool isConjugate, double error_rate)
+{
+    return undefineError;
+}
+QError CPUImplQPUSingleThread::P0(
+    size_t qn,
+    Qnum& vControlBit,
+    bool isConjugate,
+    double error_rate)
+{
+    return undefineError;
+}
+
+QError CPUImplQPUSingleThread::P1(size_t qn, bool isConjugate, double error_rate)
+{
+    return undefineError;
+}
+QError CPUImplQPUSingleThread::P1(
+    size_t qn,
+    Qnum& vControlBit,
+    bool isConjugate,
+    double error_rate)
+{
+    return undefineError;
+}
+
+
+
+
+
+
 
 QError CPUImplQPUSingleThread::Z(size_t qn, bool isConjugate, double error_rate)
 {
@@ -753,27 +787,27 @@ QStat CPUImplQPUSingleThread::getQState()
 {
 
     size_t sEnable = 0;
-    while (!qbit2stat[sEnable].enable)
+    while (!qubit2stat[sEnable].enable)
     {
         sEnable++;
     }
-    for (auto i = sEnable; i < qbit2stat.size(); i++)
+    for (auto i = sEnable; i < qubit2stat.size(); i++)
     {
-        if (qbit2stat[i].enable)
+        if (qubit2stat[i].enable)
         {
-            TensorProduct(qbit2stat[sEnable], qbit2stat[i]);
+            TensorProduct(qubit2stat[sEnable], qubit2stat[i]);
         }
     }
-    QStat state(qbit2stat[sEnable].qstate.size(), 0);
+    QStat state(qubit2stat[sEnable].qstate.size(), 0);
     size_t slabel = 0;
-    for (auto i = 0; i < qbit2stat[sEnable].qstate.size(); i++)
+    for (auto i = 0; i < qubit2stat[sEnable].qstate.size(); i++)
     {
         slabel = 0;
-        for (auto j = 0; j < qbit2stat[sEnable].qVec.size(); j++)
+        for (auto j = 0; j < qubit2stat[sEnable].qVec.size(); j++)
         {
-            slabel += (((i >> j) % 2) << qbit2stat[sEnable].qVec[j]);
+            slabel += (((i >> j) % 2) << qubit2stat[sEnable].qVec[j]);
         }
-        state[slabel] = qbit2stat[sEnable].qstate[i];
+        state[slabel] = qubit2stat[sEnable].qstate[i];
     }
     return state;
 }

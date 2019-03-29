@@ -167,7 +167,7 @@ QProg & QProg::operator<<<ClassicalCondition>(ClassicalCondition cc)
     if (nullptr == node)
     {
         QCERR("node is not base of ClassicalProg");
-        throw runtime_error("node is not base of ClassicalProg");
+        throw qprog_construction_fail("node is not base of ClassicalProg");
     }
     pushBackNode(node);
     return *this;

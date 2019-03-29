@@ -872,7 +872,7 @@ double impl_vqp::_get_expectation_one_term(QCircuit c,
     vector<Qubit *> vqubit;
     for (auto iter : term)
     {
-        vqubit.push_back(m_machine->Allocate_Qubit(iter.first));
+        vqubit.push_back(m_machine->allocateQubitThroughPhyAddress(iter.first));
         if (iter.second == 'X')
         {
             qprog << H(m_measure_qubits[iter.first]);

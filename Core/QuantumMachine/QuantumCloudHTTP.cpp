@@ -1,16 +1,13 @@
 #include <fstream>
-#include "QuantumCloudHTTP.h"
-#include "TinyXML/tinyxml.h"
-#include "QPanda.h"
-#include <map>
 #include <math.h>
 #include <algorithm>
+#include "ThirdParty/TinyXML/tinyxml.h"
+#include "include/Core/QuantumMachine/QuantumCloudHTTP.h"
 #if 0
 //#ifdef USE_CURL
 
 #define COMPUTEAPI    "https://qcode.qubitonline.cn/api/QCode/submitTask.json"
-#define INQUREAPI     "https://qcode.qubitonline.cn/api/QCode/quer
-yTask.json"
+#define INQUREAPI     "https://qcode.qubitonline.cn/api/QCode/queryTask.json"
 #define TERMINATEAPI  "https://qcode.qubitonline.cn/api/QCode/terminateTask.json"
 
 #define BETA_COMPUTEAPI    "http://10.10.12.53:4630/api/QCode/submitTask.json"
@@ -348,7 +345,6 @@ std::map<std::string, double> QuantumCloudHttp::getProbDict(QVec& qubit_vec, int
 
     std::string recv_json = inqureResult(std::to_string(task_typ));
 
-
     std::map<std::string, std::string> recv_res;
     while (!parserRecvJson(recv_json, recv_res))
     {
@@ -392,7 +388,7 @@ std::string QuantumCloudHttp::inqureResult(std::string task_typ)
     root.AddMember("impTyp", 1, allocator);
 
     json_elem.SetString(task_typ.c_str(), (rapidjson::SizeType)task_typ.size(), allocator);
-    root.AddMember("task_typ", json_elem, allocator);
+    root.AddMember("taskTyp", json_elem, allocator);
 
     root.AddMember("typ", "qrytask", allocator);
 
@@ -423,7 +419,7 @@ std::map<std::string, bool> QuantumCloudHttp::getResultMap()
     for (int i = 0; i < (1ull << sKey.size()); ++i)
     {
         stringstream bin;
-        for (size_t j = sKey.size() - 1; j > -1; --j)
+        for (int j = (int)sKey.size() - 1; j > -1; --j)
         {
             bin << ((i >> j) & 1);
         }
@@ -454,7 +450,7 @@ std::map<std::string, size_t> QuantumCloudHttp::runWithConfiguration(QProg & qPr
     for (int i = 0; i < (1ull << len); ++i)
     {
         stringstream bin;
-        for (size_t j = len - 1; j > -1; --j)
+        for (int j = (int)(len - 1); j > -1; --j)
         {
             bin << ((i >> j) & 1);
         }
@@ -499,11 +495,11 @@ int QuantumCloudHttp::PMeasureRun(QVec& qubit_vec)
         throw std::invalid_argument("Bad program");
     case 3:
         root.AddMember("typ", "smapr", allocator);
-        root.AddMember("task_typ", "3", allocator);
+        root.AddMember("taskTyp", "3", allocator);
         break;
     case 4:
         root.AddMember("typ", "midpr", allocator);
-        root.AddMember("task_typ", "4", allocator);
+        root.AddMember("taskTyp", "4", allocator);
         break;
     default:
         throw std::invalid_argument("invalid argument");

@@ -128,7 +128,8 @@ string OriginCExpr::getName() const
             QCERR("Bad operator specifier");
             throw invalid_argument("Bad operator specifier");
         }
-
+    case CONSTVALUE:
+        return std::to_string(content.const_value);
     default:
         QCERR("Bad operator specifier");
         throw invalid_argument("Bad content specifier");
@@ -316,6 +317,11 @@ qmap_size_t OriginCExpr::getPosition() const
 void OriginCExpr::setPosition(qmap_size_t  postion)
 {
     m_postion = postion;
+}
+
+int OriginCExpr::getContentSpecifier() const
+{
+    return contentSpecifier;
 }
 
 OriginCExpr::~OriginCExpr()

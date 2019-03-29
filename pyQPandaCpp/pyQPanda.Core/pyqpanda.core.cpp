@@ -8,6 +8,7 @@
 #include "pybind11/operators.h"
 #include "Core/Utilities/OriginCollection.h"
 #include "Variational/Optimizer.h"
+#include "Core/VirtualQuantumProcessor/NoiseQPU/NoiseModel.h"
 #include <map>
 
 USING_QPANDA
@@ -65,6 +66,10 @@ PYBIND11_MODULE(pyQPanda, m)
     m.def("init_quantum_machine", &initQuantumMachine,
         "Create and initialize a quantum machine",
         py::return_value_policy::reference);
+
+    m.def("get_qstate", &getQState,
+        "get prog qstate",
+        py::return_value_policy::automatic);
 
 #define DEFINE_DESTROY(type)\
     m.def("destroy_quantum_machine", [] (type *machine){\
@@ -335,8 +340,8 @@ PYBIND11_MODULE(pyQPanda, m)
     );
 
     m.def("U4", [](double alpha, double beta, double gamma, double delta,
-        Qubit * qbit)
-    {return U4(alpha, beta, gamma, delta, qbit); }, "alpha"_a, "beta"_a, "delta"_a, "gamma"_a, "qubit"_a,
+        Qubit * qubit)
+    {return U4(alpha, beta, gamma, delta, qubit); }, "alpha"_a, "beta"_a, "delta"_a, "gamma"_a, "qubit"_a,
         "Create a U4 gate",
         py::return_value_policy::automatic
     );
@@ -528,11 +533,18 @@ PYBIND11_MODULE(pyQPanda, m)
         .value("NOISE", QMachineType::NOISE)
         ;
 
+    py::enum_<NOISE_MODEL>(m, "NoiseModel")
+        .value("DAMPING_KRAUS_OPERATOR", NOISE_MODEL::DAMPING_KRAUS_OPERATOR)
+        .value("DECOHERENCE_KRAUS_OPERATOR", NOISE_MODEL::DECOHERENCE_KRAUS_OPERATOR)
+        .value("DEPHASING_KRAUS_OPERATOR", NOISE_MODEL::DEPHASING_KRAUS_OPERATOR)
+        .value("PAULI_KRAUS_MAP", NOISE_MODEL::PAULI_KRAUS_MAP)
+        ;
+
     py::enum_<QError>(m, "QError")
         .value("UndefineError", QError::undefineError)
         .value("qErrorNone", QError::qErrorNone)
         .value("qParameterError", QError::qParameterError)
-        .value("qbitError", QError::qbitError)
+        .value("qubitError", QError::qubitError)
         .value("loadFileError", QError::loadFileError)
         .value("initStateError", QError::initStateError)
         .value("destroyStateError", QError::destroyStateError)
@@ -542,9 +554,9 @@ PYBIND11_MODULE(pyQPanda, m)
         .value("getQStateError", QError::getQStateError)
         ;
 
-    Qubit*(QuantumMachine::*qalloc)() = &QuantumMachine::Allocate_Qubit;
-    QVec (QuantumMachine::*qallocMany)(size_t) = &QuantumMachine::Allocate_Qubits;
-    vector<ClassicalCondition>(QuantumMachine::*callocMany)(size_t) = &QuantumMachine::Allocate_CBits;
+    Qubit*(QuantumMachine::*qalloc)() = &QuantumMachine::allocateQubit;
+    QVec (QuantumMachine::*qallocMany)(size_t) = &QuantumMachine::allocateQubits;
+    vector<ClassicalCondition>(QuantumMachine::*callocMany)(size_t) = &QuantumMachine::allocateCBits;
     void (QuantumMachine::*free_qubit)(Qubit *) = &QuantumMachine::Free_Qubit;
     void (QuantumMachine::*free_qubits)(QVec&) = &QuantumMachine::Free_Qubits;
     void (QuantumMachine::*free_cbit)(ClassicalCondition & ) = &QuantumMachine::Free_CBit;
@@ -606,11 +618,47 @@ PYBIND11_MODULE(pyQPanda, m)
         .def("getFilePath", &OriginCollection::getFilePath, "Get file path")
         .def("getKeyVector", &OriginCollection::getKeyVector, "Get key vector");
 
+
+    py::class_<QuantumMachine>(m, "QuantumMachine")
+        .def("finalize", &QuantumMachine::finalize, "finalize")
+        .def("get_qstate", &QuantumMachine::getQState, "getState", py::return_value_policy::automatic)
+        .def("qAlloc", qalloc, "Allocate a qubit", py::return_value_policy::reference)
+        .def("qAlloc_many", qallocMany, "Allocate a list of qubits", "n_qubit"_a,
+            py::return_value_policy::reference)
+        .def("cAlloc", calloc, "Allocate a cbit", py::return_value_policy::reference)
+        .def("cAlloc_many", callocMany, "Allocate a list of cbits", "n_cbit"_a,
+            py::return_value_policy::reference)
+        .def("qFree", free_qubit, "Free a qubit")
+        .def("qFree_all", free_qubits, "qubit_list"_a,
+            "Free a list of qubits")
+        .def("cFree", free_cbit, "Free a cbit")
+        .def("cFree_all", free_cbits, "cbit_list"_a,
+            "Free a list of cbits")
+        .def("getStatus", get_status, "get the status(ptr) of the quantum machine",
+            py::return_value_policy::reference)
+        .def("getAllocateQubitNum", get_allocate_qubit, "getAllocateQubitNum", py::return_value_policy::reference)
+        .def("getAllocateCMem", get_allocate_CMem, "getAllocateCMem", py::return_value_policy::reference)
+        .def("directly_run", &QuantumMachine::directlyRun, "program"_a,
+            py::return_value_policy::reference)
+        .def("run_with_configuration", [](QuantumMachine &qvm, QProg & prog, vector<ClassicalCondition> & cc_vector, py::dict param) {
+        py::object json = py::module::import("json");
+        py::object dumps = json.attr("dumps");
+        auto json_string = std::string(py::str(dumps(param)));
+        rapidjson::Document doc;
+        auto & alloc = doc.GetAllocator();
+        doc.Parse(json_string.c_str());
+        return qvm.runWithConfiguration(prog, cc_vector, doc);
+    },
+            "program"_a, "cbit_list"_a, "data"_a,
+        py::return_value_policy::automatic);
+
+
 #define DEFINE_IDEAL_QVM(class_name)\
-    py::class_<class_name>(m, #class_name)\
+    py::class_<class_name,QuantumMachine>(m, #class_name)\
         .def(py::init<>())\
         .def("initQVM", &class_name::init, "init quantum virtual machine")\
         .def("finalize", &class_name::finalize, "finalize")\
+        .def("get_qstate", &class_name::getQState, "getState",py::return_value_policy::automatic)\
         .def("qAlloc", qalloc, "Allocate a qubit", py::return_value_policy::reference)\
         .def("qAlloc_many", qallocMany, "Allocate a list of qubits", "n_qubit"_a,\
             py::return_value_policy::reference)\
@@ -663,7 +711,7 @@ PYBIND11_MODULE(pyQPanda, m)
     DEFINE_IDEAL_QVM(CPUSingleThreadQVM);
     DEFINE_IDEAL_QVM(GPUQVM);
 
-    py::class_<NoiseQVM>(m, "NoiseQVM")
+    py::class_<NoiseQVM, QuantumMachine>(m, "NoiseQVM")
         .def(py::init<>())
         .def("initQVM", [](NoiseQVM& qvm, py::dict param) {
             py::object json = py::module::import("json");
@@ -675,6 +723,7 @@ PYBIND11_MODULE(pyQPanda, m)
             qvm.init(doc);
         }, "init quantum virtual machine")
         .def("finalize", &NoiseQVM::finalize, "finalize")
+        .def("get_qstate", &NoiseQVM::getQState, "getState", py::return_value_policy::automatic)
         .def("qAlloc", qalloc, "Allocate a qubit", py::return_value_policy::reference)
         .def("qAlloc_many", qallocMany, "Allocate a list of qubits", "n_qubit"_a,
             py::return_value_policy::reference)
@@ -706,37 +755,6 @@ PYBIND11_MODULE(pyQPanda, m)
         py::return_value_policy::automatic);
 
 
-        py::class_<QuantumMachine>(m, "QuantumMachine")
-            .def("finalize", &QuantumMachine::finalize, "finalize")
-            .def("qAlloc", qalloc, "Allocate a qubit", py::return_value_policy::reference)
-            .def("qAlloc_many", qallocMany, "Allocate a list of qubits", "n_qubit"_a,
-                py::return_value_policy::reference)
-            .def("cAlloc", calloc, "Allocate a cbit", py::return_value_policy::reference)
-            .def("cAlloc_many", callocMany, "Allocate a list of cbits", "n_cbit"_a,
-                py::return_value_policy::reference)
-            .def("qFree", free_qubit, "Free a qubit")
-            .def("qFree_all", free_qubits, "qubit_list"_a,
-                "Free a list of qubits")
-            .def("cFree", free_cbit, "Free a cbit")
-            .def("cFree_all", free_cbits, "cbit_list"_a,
-                "Free a list of cbits")
-            .def("getStatus", get_status, "get the status(ptr) of the quantum machine",
-                py::return_value_policy::reference)
-            .def("getAllocateQubitNum", get_allocate_qubit, "getAllocateQubitNum", py::return_value_policy::reference)
-            .def("getAllocateCMem", get_allocate_CMem, "getAllocateCMem", py::return_value_policy::reference)
-            .def("directly_run", &QuantumMachine::directlyRun, "program"_a,
-                py::return_value_policy::reference)
-            .def("run_with_configuration", [](QuantumMachine &qvm, QProg & prog, vector<ClassicalCondition> & cc_vector, py::dict param) {
-            py::object json = py::module::import("json");
-            py::object dumps = json.attr("dumps");
-            auto json_string = std::string(py::str(dumps(param)));
-            rapidjson::Document doc;
-            auto & alloc = doc.GetAllocator();
-            doc.Parse(json_string.c_str());
-            return qvm.runWithConfiguration(prog, cc_vector, doc);
-        },
-                "program"_a, "cbit_list"_a, "data"_a,
-            py::return_value_policy::automatic);
 
     py::class_<QResult>(m, "QResult")
         .def("getResultMap", &QResult::getResultMap, py::return_value_policy::reference);

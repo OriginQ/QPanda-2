@@ -161,9 +161,9 @@ namespace QPanda
         const std::vector<Qubit*> &qubit_vec)
     {
         QCircuit circuit;
-        for_each(qubit_vec.begin(), qubit_vec.end(), [&](Qubit* qbit)
+        for_each(qubit_vec.begin(), qubit_vec.end(), [&](Qubit* qubit)
         {
-            circuit << QGateNodeFactory::getInstance()->getGateNode(gate, qbit);
+            circuit << QGateNodeFactory::getInstance()->getGateNode(gate, qubit);
         });
 
         return circuit;
@@ -174,9 +174,9 @@ namespace QPanda
         const std::vector<Qubit*>& qubit_vec, 
         QCircuit & circuit)
     {
-        for_each(qubit_vec.begin(), qubit_vec.end(), [&](Qubit* qbit)
+        for_each(qubit_vec.begin(), qubit_vec.end(), [&](Qubit* qubit)
         {
-            circuit << QGateNodeFactory::getInstance()->getGateNode(gate, qbit);
+            circuit << QGateNodeFactory::getInstance()->getGateNode(gate, qubit);
         });
     }
 
@@ -224,11 +224,11 @@ namespace QPanda
         for (size_t i = 0; i < beta.size(); i++)
         {
             QCircuit qcirc = QCircuit();
-            for_each(qubit_vec.begin(), qubit_vec.end(), [&](Qubit* qbit)
+            for_each(qubit_vec.begin(), qubit_vec.end(), [&](Qubit* qubit)
             {
                 qcirc << QGateNodeFactory::getInstance()->getGateNode(
                     "RX",
-                    qbit,
+                    qubit,
                     2 * beta[i]
                 );
 

@@ -6,8 +6,8 @@ Date:2017-12-13
 Description: Definition of Encapsulation of GPU gates
 ************************************************************************/
 
-#include "GPUGatesWrapper.hpp"
-#include "GPUGates.hpp"
+#include "GPUGatesWrapper.h"
+#include "GPUGates.h"
 
 using namespace std;
 

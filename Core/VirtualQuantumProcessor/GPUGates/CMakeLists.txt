@@ -7,9 +7,25 @@ if (MSVC)
 else()
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11 -w -Xcompiler -fPIC")   
 endif()
-file(GLOB_RECURSE CURRENT_HEADERS "*.hpp")
 file(GLOB_RECURSE CURRENT_SOURCES "*.cu")
 cuda_add_library(${PROJECT_NAME} STATIC ${CURRENT_HEADERS} ${CURRENT_SOURCES})
 set_target_properties(${PROJECT_NAME} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+
+INSTALL(TARGETS ${PROJECT_NAME}
+        EXPORT  ${TARGETS_EXPORT_NAME}
+        ARCHIVE DESTINATION lib
+        LIBRARY DESTINATION lib
+        RUNTIME DESTINATION bin)
+
+target_include_directories(${PROJECT_NAME} INTERFACE
+                           $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+                           $<INSTALL_INTERFACE:include/qpanda-2>)
+        
+export(TARGETS ${PROJECT_NAME} 
+       APPEND FILE ${PROJECT_BINARY_DIR}/qpanda-2.0.gpugates-target.cmake
+       NAMESPACE QPANDA::
+       )
+
+
 
 

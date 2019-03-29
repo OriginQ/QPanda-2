@@ -6,6 +6,8 @@ add_subdirectory(Autodiff.test)
 add_subdirectory(QProgTransform.test)
 add_subdirectory(QProgTransformQuil.test)
 add_subdirectory(QProgTransformBinary.test)
+add_subdirectory(QVM.test)
+
 
 if (USE_CURL)
     #add_subdirectory(CloudHttp.test)

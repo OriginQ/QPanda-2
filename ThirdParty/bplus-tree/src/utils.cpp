@@ -25,7 +25,7 @@ uint64_t bp__compute_hashl(uint64_t key)
                        bp__compute_hash(keyl);
 }
 
-uint64_t htonll(uint64_t value)
+uint64_t myhtonll(uint64_t value)
 {
     static const int num = 23;
 
@@ -37,7 +37,7 @@ uint64_t htonll(uint64_t value)
     return ((uint64_t) low_part << 32) | high_part;
 }
 
-uint64_t ntohll(uint64_t value)
+uint64_t myntohll(uint64_t value)
 {
     static const int num = 23;
 

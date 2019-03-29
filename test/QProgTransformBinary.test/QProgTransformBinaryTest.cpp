@@ -1,6 +1,5 @@
 #include <iostream>
 #include "QPanda.h"
-#include <iostream>
 #include "gtest/gtest.h"
 #include "QPanda.h"
 #include <map>
@@ -30,7 +29,7 @@ TEST(QProgTransformBinaryStore, QBinaryStore)
     {
         std::cout << val.first << ", " << val.second << std::endl;
     }
-    qProgBinaryStored(qubits.size(), cbits.size(), prog);
+    storeQProgInBinary(qubits.size(), cbits.size(), prog);
     finalize();
     return;
 }
@@ -55,6 +54,50 @@ TEST(QProgTransformBinaryParse, QBinaryParse)
     }
 
     finalize();
+
+    return;
+}
+
+
+TEST(QProgTransformBinaryData, QBinaryData)
+{
+    init();
+    auto qubits = qAllocMany(4);
+    auto cbits = cAllocMany(4);
+    cbits[0].setValue(0);
+
+    QProg prog;
+    prog << H(qubits[0]) << CNOT(qubits[0], qubits[1])
+              << CNOT(qubits[1], qubits[2])
+              << CNOT(qubits[2], qubits[3])
+              ;
+    auto data = getQProgBinaryData(4, 4, prog);
+
+    auto result = probRunTupleList(prog, qubits);
+    for (auto &val : result)
+    {
+        std::cout << val.first << ", " << val.second << std::endl;
+    }
+    finalize();
+
+    init();
+    QProg parseProg;
+    QVec qubits_parse;
+    std::vector<ClassicalCondition> cbits_parse;
+
+    binaryQProgDataParse(qubits_parse, cbits_parse, parseProg, data);
+    std::cout << "binary data Parse" << std::endl;
+    //std::cout << qProgToQRunes(parseProg) << std::endl;
+
+    auto result_parse = probRunTupleList(parseProg, qubits_parse);
+    for (auto &val : result_parse)
+    {
+        std::cout << val.first << ", " << val.second << std::endl;
+    }
+
+    finalize();
+
+    return;
 }
 
 

@@ -14,7 +14,6 @@ elseif(WIN32)
     set_target_properties(${PROJECT_NAME} PROPERTIES SUFFIX ".pyd")
 endif(UNIX)
 target_link_libraries(${PROJECT_NAME} QPanda2.0 QAlg Variational ${PYTHON_LIBRARIES})
-
 set(PYQPANDA_OUT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../pyQPanda/pyqpanda")
 if (UNIX)
     set(PYQPANDA_OUT_LIB "${PROJECT_NAME}.so")

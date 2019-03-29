@@ -15,6 +15,7 @@ Update by code specification
 #include "QuantumGate.h"
 #include "QGlobalVariable.h"
 #include "Utilities/QuantumMetadata.h"
+#include "Core/Utilities/QPandaException.h"
 
 using namespace QGATE_SPACE;
 using namespace std;
@@ -425,6 +426,14 @@ SQISWAP::SQISWAP()
     gate_matrix[10] = 1 / SQRT2;
 }
 
+SWAP::SWAP()
+{
+    gate_matrix[5] = 0;
+    gate_matrix[6] = 1;
+    gate_matrix[9] = 1;
+    gate_matrix[10] = 0;
+}
+
 void QGateFactory::registClass(string name, CreateGate_cb method)
 {
     m_gate_map.insert(pair<string, CreateGate_cb>(name, method));
@@ -450,7 +459,12 @@ QuantumGate * QGateFactory::getGateNode(const std::string & name)
     map<string, CreateGate_cb>::const_iterator iter;
     iter = m_gate_map.find(name);
     if (iter == m_gate_map.end())
-        return nullptr;
+    {
+        stringstream error;
+        error <<"there is no "<< name << " in m_gate_map";
+        QCERR(error.str());
+        throw QPanda::gate_alloc_fail(error.str());
+    }
     else
         return iter->second();
 }
@@ -460,7 +474,12 @@ QuantumGate * QGateFactory::getGateNode(const std::string & name,const double an
     map<string, CreateAngleGate_cb>::const_iterator iter;
     iter = m_angle_gate_map.find(name);
     if (iter == m_angle_gate_map.end())
-        return nullptr;
+    {
+        stringstream error;
+        error << "there is no " << name << " in m_angle_gate_map";
+        QCERR(error.str());
+        throw QPanda::gate_alloc_fail(error.str());
+    }
     else
         return iter->second(angle);
 }
@@ -474,7 +493,12 @@ QuantumGate * QGateFactory::getGateNode(const std::string & name,
     map<string, CreateSingleAndCUGate_cb>::const_iterator iter;
     iter = m_single_and_cu_gate_map.find(name);
     if (iter == m_single_and_cu_gate_map.end())
-        return nullptr;
+    {
+        stringstream error;
+        error << "there is no " << name << " in m_single_and_cu_gate_map";
+        QCERR(error.str());
+        throw QPanda::gate_alloc_fail(error.str());
+    }
     else
         return iter->second(alpha, beta, gamma, delta);
 }
@@ -484,7 +508,12 @@ QuantumGate * QGateFactory::getGateNode(const std::string & name, QStat & matrix
 
     auto iter = m_double_gate_map.find(name);
     if (iter == m_double_gate_map.end())
-        return nullptr;
+    {
+        stringstream error;
+        error << "there is no " << name << " in m_double_gate_map";
+        QCERR(error.str());
+        throw QPanda::gate_alloc_fail(error.str());
+    }
     else
         return iter->second(matrix);
 }
@@ -509,6 +538,7 @@ REGISTER(CNOT);
 REGISTER(CZ);
 REGISTER(ISWAP);
 REGISTER(SQISWAP);
+REGISTER(SWAP);
 
 #define REGISTER_ANGLE(className)                                       \
     QuantumGate* objectCreator##className(double angle){                \

@@ -21,7 +21,8 @@ limitations under the License.
 #include "VirtualQuantumProcessor/GPUImplQPU.h"
 #include "VirtualQuantumProcessor/CPUImplQPU.h"
 #include "VirtualQuantumProcessor/CPUImplQPUSingleThread.h"
-
+#include "Core/Utilities/QPandaException.h"
+#include "Core/Utilities/Utilities.h"
 USING_QPANDA
 using namespace std;
 
@@ -39,7 +40,9 @@ REGISTER_QUANTUM_MACHINE(CPUSingleThreadQVM);
 REGISTER_QUANTUM_MACHINE(GPUQVM);
 
 
-Qubit * QVM::Allocate_Qubit()
+
+
+Qubit * QVM::allocateQubit()
 {
     if (_Qubit_Pool == nullptr)
     {
@@ -47,16 +50,25 @@ Qubit * QVM::Allocate_Qubit()
         // Before init
         // After finalize
         QCERR("Must initialize the system first");
-        throw(runtime_error("Must initialize the system first"));
+        throw(qvm_attributes_error("Must initialize the system first"));
     }
     else
     {
-        return _Qubit_Pool->Allocate_Qubit();
+        try
+        {
+            return _Qubit_Pool->allocateQubit();
+        }
+        catch (const std::exception&e)
+        {
+            QCERR(e.what());
+            throw(qalloc_fail(e.what()));
+        }
+
     }
         
 }
 
-QVec QVM::Allocate_Qubits(size_t qubitNumber)
+QVec QVM::allocateQubits(size_t qubitNumber)
 {
     if (_Qubit_Pool == nullptr)
     {
@@ -64,17 +76,33 @@ QVec QVM::Allocate_Qubits(size_t qubitNumber)
         // Before init
         // After finalize
         QCERR("Must initialize the system first");
-        throw(runtime_error("Must initialize the system first"));
+        throw(qvm_attributes_error("Must initialize the system first"));
     }
-    QVec vQubit;
-    for (size_t i = 0; i < qubitNumber; i++)
+
+    if (qubitNumber > _Config.maxQubit)
     {
-        vQubit.push_back(_Qubit_Pool->Allocate_Qubit());
+        QCERR("qubitNumber > maxQubit");
+        throw(qalloc_fail("qubitNumber > maxQubit"));
     }
-    return vQubit;
+
+    try
+    {
+        QVec vQubit;
+
+        for (size_t i = 0; i < qubitNumber; i++)
+        {
+            vQubit.push_back(_Qubit_Pool->allocateQubit());
+        }
+        return vQubit;
+    }
+    catch (const std::exception &e)
+    {
+        QCERR(e.what());
+        throw(qalloc_fail(e.what()));
+    }
 }
 
-ClassicalCondition QVM::Allocate_CBit()
+ClassicalCondition QVM::allocateCBit()
 {
     if (_CMem == nullptr)
     {
@@ -82,41 +110,26 @@ ClassicalCondition QVM::Allocate_CBit()
         // Before init
         // After finalize
         QCERR("Must initialize the system first");
-        throw(runtime_error("Must initialize the system first"));
+        throw(qvm_attributes_error("Must initialize the system first"));
     }
     else
     {
-        auto cbit = _CMem->Allocate_CBit();
-        ClassicalCondition temp(cbit);
-        return temp;
-    }
-}
-
-
-vector<ClassicalCondition> QVM::Allocate_CBits(size_t cbitNumber)
-{
-    if (_CMem == nullptr)
-    {
-        // check if the pointer is nullptr
-        // Before init
-        // After finalize
-        QCERR("Must initialize the system first");
-        throw(runtime_error("Must initialize the system first"));
-    }
-    else
-    {
-        vector<ClassicalCondition> cbit_vector;
-        for (size_t i = 0; i < cbitNumber; i++)
+        try
         {
             auto cbit = _CMem->Allocate_CBit();
-            cbit_vector.push_back(cbit);
+            ClassicalCondition temp(cbit);
+            return temp;
         }
-        return cbit_vector;
+        catch (const std::exception&e)
+        {
+            QCERR(e.what());
+            throw(calloc_fail(e.what()));
+        }
     }
 }
 
 
-ClassicalCondition QVM::Allocate_CBit(size_t stCBitaddr)
+vector<ClassicalCondition> QVM::allocateCBits(size_t cbitNumber)
 {
     if (_CMem == nullptr)
     {
@@ -124,17 +137,66 @@ ClassicalCondition QVM::Allocate_CBit(size_t stCBitaddr)
         // Before init
         // After finalize
         QCERR("Must initialize the system first");
-        throw(runtime_error("Must initialize the system first"));
+        throw(qvm_attributes_error("Must initialize the system first"));
     }
     else
     {
-        auto cbit = _CMem->Allocate_CBit(stCBitaddr);
-        ClassicalCondition temp(cbit);
-        return temp;
+        if (cbitNumber > _Config.maxCMem)
+        {
+            QCERR("cbitNumber > maxCMem");
+            throw(calloc_fail("cbitNumber > maxCMem"));
+        }
+        try
+        {
+            vector<ClassicalCondition> cbit_vector;
+            for (size_t i = 0; i < cbitNumber; i++)
+            {
+                auto cbit = _CMem->Allocate_CBit();
+                cbit_vector.push_back(cbit);
+            }
+            return cbit_vector;
+        }
+        catch (const std::exception&e)
+        {
+            QCERR(e.what());
+            throw(calloc_fail(e.what()));
+        }
     }
 }
 
-Qubit * QVM::Allocate_Qubit(size_t stQubitNum)
+
+ClassicalCondition QVM::allocateCBit(size_t stCBitaddr)
+{
+    if (_CMem == nullptr)
+    {
+        // check if the pointer is nullptr
+        // Before init
+        // After finalize
+        QCERR("Must initialize the system first");
+        throw(qvm_attributes_error("Must initialize the system first"));
+    }
+    else
+    {
+        try
+        {
+            auto cbit = _CMem->Allocate_CBit(stCBitaddr);
+            if (nullptr == cbit)
+            {
+                QCERR("stCBitaddr > maxCMem");
+                throw calloc_fail("stCBitaddr > maxCMem");
+            }
+            ClassicalCondition temp(cbit);
+            return temp;
+        }
+        catch (const std::exception&e)
+        {
+            QCERR(e.what());
+            throw(calloc_fail(e.what()));
+        }
+    }
+}
+
+Qubit * QVM::allocateQubitThroughPhyAddress(size_t stQubitNum)
 {
     if (_Qubit_Pool == nullptr)
     {
@@ -142,12 +204,31 @@ Qubit * QVM::Allocate_Qubit(size_t stQubitNum)
         // Before init
         // After finalize
         QCERR("Must initialize the system first");
-        throw(runtime_error("Must initialize the system first"));
+        throw(qvm_attributes_error("Must initialize the system first"));
     }
     else
     {
-        return _Qubit_Pool->Allocate_Qubit(stQubitNum);
+        try
+        {
+            return _Qubit_Pool->allocateQubitThroughPhyAddress(stQubitNum);
+        }
+        catch (const std::exception&e)
+        {
+            QCERR(e.what());
+            throw(qalloc_fail(e.what()));
+        }
+
     }
+}
+
+Qubit * QVM::allocateQubitThroughVirAddress(size_t qubit_num)
+{
+    if (nullptr == _Qubit_Pool)
+    {
+        QCERR("_Qubit_Pool is nullptr ,you must init qvm at first");
+        throw qvm_attributes_error("_Qubit_Pool is nullptr ,you must init qvm at first");
+    }
+    return _Qubit_Pool->allocateQubitThroughVirAddress(qubit_num);
 }
 
 void QVM::Free_Qubit(Qubit *qubit)
@@ -191,26 +272,40 @@ void QVM::Free_CBits(vector<ClassicalCondition> & vCBit)
 void QVM::run(QProg & node)
 {
     
-    _pParam = new QuantumGateParam();
-
-    _pParam->m_qbit_number = _Qubit_Pool->getMaxQubit()- _Qubit_Pool->getIdleQubit();
-
-    _pGates->initState(_pParam);
-
-    node.getImplementationPtr()->execute(_pGates, _pParam);
-
-    /* aiter has been used in line 120 */
-    for (auto aiter : _pParam->m_return_value)
+    try
     {
-        _QResult->append(aiter);
+        auto _pParam = new QuantumGateParam();
+        _ptrIsNull(_pParam, "_pParam");
+
+        _pParam->m_qubit_number = _Qubit_Pool->getMaxQubit() - _Qubit_Pool->getIdleQubit();
+
+        _pGates->initState(_pParam);
+
+        node.getImplementationPtr()->execute(_pGates, _pParam);
+
+        /* aiter has been used in line 120 */
+        for (auto aiter : _pParam->m_return_value)
+        {
+            _QResult->append(aiter);
+        }
+        delete _pParam;
+        _pParam = nullptr;
+        return;
     }
-    delete _pParam;
-    _pParam = nullptr;
-    return;
+    catch (const std::exception&e)
+    {
+        QCERR(e.what());
+        throw run_fail(e.what());
+    }
 }
 
 QMachineStatus * QVM::getStatus() const
 {
+    if (nullptr == _QMachineStatus)
+    {
+        QCERR("_QMachineStatus is null");
+        throw qvm_attributes_error("_QMachineStatus is null");
+    }
     return _QMachineStatus;
 }
 
@@ -219,23 +314,78 @@ QStat QVM::getQState() const
     if (nullptr == _pGates)
     {
         QCERR("pgates is nullptr");
-        throw std::runtime_error("pgates is nullptr");
+        throw qvm_attributes_error("pgates is nullptr");
     }
     return _pGates->getQState();
 }
 
+size_t QVM::getVirtualQubitAddress(Qubit *qubit)const
+{
+    if (nullptr == qubit)
+    {
+        QCERR("qubit is nullptr");
+        throw invalid_argument("qubit is nullptr");
+    }
+
+    if (nullptr == _Qubit_Pool)
+    {
+        QCERR("_Qubit_Pool is nullptr,you must init qvm");
+        throw qvm_attributes_error("_Qubit_Pool is nullptr,you must init qvm");
+    }
+
+    return _Qubit_Pool->getVirtualQubitAddress(qubit);
+}
+
+bool QVM::swapQubitPhysicalAddress(Qubit * first_qubit, Qubit* second_qubit)
+{
+    if ((nullptr == first_qubit) || (nullptr == second_qubit))
+    {
+        return false;
+    }
+
+    auto first_addr = first_qubit->getPhysicalQubitPtr()->getQubitAddr();
+    auto second_addr = second_qubit->getPhysicalQubitPtr()->getQubitAddr();
+
+    first_qubit->getPhysicalQubitPtr()->setQubitAddr(second_addr);
+    second_qubit->getPhysicalQubitPtr()->setQubitAddr(first_addr);
+}
+
 QResult * QVM::getResult()
 {
+    if (nullptr == _QResult)
+    {
+        QCERR("_QResult is nullptr");
+        throw qvm_attributes_error("_QResult is nullptr");
+    }
     return _QResult;
 }
 
 void QVM::finalize()
 {
-    delete _Qubit_Pool;
-    delete _CMem;
-    delete _QResult;
-    delete _QMachineStatus;
-    delete _pGates;
+    if (nullptr != _Qubit_Pool)
+    {
+        delete _Qubit_Pool;
+    }
+
+    if (nullptr != _CMem)
+    {
+        delete _CMem;
+    }
+
+    if (nullptr != _QResult)
+    {
+        delete _QResult;
+    }
+
+    if (nullptr != _QMachineStatus)
+    {
+        delete _QMachineStatus;
+    }
+
+    if (nullptr != _pGates)
+    {
+        delete _pGates;
+    }
 
     _Qubit_Pool = nullptr;
     _CMem = nullptr;
@@ -246,11 +396,21 @@ void QVM::finalize()
 
 size_t QVM::getAllocateQubit()
 {
+    if (nullptr == _Qubit_Pool)
+    {
+        QCERR("_QResult is nullptr");
+        throw qvm_attributes_error("_QResult is nullptr");
+    }
     return _Qubit_Pool->getMaxQubit() - _Qubit_Pool->getIdleQubit();
 }
 
 size_t QVM::getAllocateCMem()
 {
+    if (nullptr == _CMem)
+    {
+        QCERR("_CMem is nullptr");
+        throw qvm_attributes_error("_CMem is nullptr");
+    }
     return _CMem->getMaxMem()- _CMem->getIdleMem();
 }
 
@@ -259,7 +419,7 @@ map<string, bool> QVM::getResultMap()
     if (nullptr == _QResult)
     {
         QCERR("QResult is null");
-        throw runtime_error("QResult is null");
+        throw qvm_attributes_error("QResult is null");
     }
     return _QResult->getResultMap();
 }
@@ -272,16 +432,30 @@ vector<pair<size_t, double>> CPUQVM::PMeasure(QVec qubit_vector, int select_max)
         throw invalid_argument("the size of qubit_vector is zero");
     }
 
-    Qnum vqubit;
-    for (auto aiter = qubit_vector.begin(); aiter != qubit_vector.end(); ++aiter)
+    if (nullptr == _pGates)
     {
-        vqubit.push_back((*aiter)->getPhysicalQubitPtr()->getQubitAddr());
+        QCERR("_pGates is null");
+        throw qvm_attributes_error("_pGates is null");
+    }
+    try
+    {
+        Qnum vqubit;
+        for (auto aiter = qubit_vector.begin(); aiter != qubit_vector.end(); ++aiter)
+        {
+            vqubit.push_back((*aiter)->getPhysicalQubitPtr()->getQubitAddr());
+        }
+
+        vector<pair<size_t, double>> pmeasure_vector;
+        _pGates->pMeasure(vqubit, pmeasure_vector, select_max);
+
+        return pmeasure_vector;
+    }
+    catch (const std::exception&e)
+    {
+        QCERR(e.what());
+        throw result_get_fail(e.what());
     }
 
-    vector<pair<size_t, double>> pmeasure_vector;
-    _pGates->pMeasure(vqubit, pmeasure_vector, select_max);
-
-    return pmeasure_vector;
 }
 
 vector<double> CPUQVM::PMeasure_no_index(QVec qubit_vector)
@@ -292,15 +466,32 @@ vector<double> CPUQVM::PMeasure_no_index(QVec qubit_vector)
         throw invalid_argument("the size of qubit_vector is zero");
     }
 
-    Qnum vqubit;
-    for (auto aiter = qubit_vector.begin(); aiter != qubit_vector.end(); ++aiter)
+    if (nullptr == _pGates)
     {
-        vqubit.push_back((*aiter)->getPhysicalQubitPtr()->getQubitAddr());
+        QCERR("_pGates is null");
+        throw qvm_attributes_error("_pGates is null");
     }
-    vector<double> pmeasure_vector;
-    _pGates->pMeasure(vqubit, pmeasure_vector);
 
-    return pmeasure_vector;
+    try
+    {
+
+        Qnum vqubit;
+        for (auto aiter = qubit_vector.begin(); aiter != qubit_vector.end(); ++aiter)
+        {
+            vqubit.push_back((*aiter)->getPhysicalQubitPtr()->getQubitAddr());
+        }
+        vector<double> pmeasure_vector;
+        _pGates->pMeasure(vqubit, pmeasure_vector);
+
+        return pmeasure_vector;
+    }
+    catch (const std::exception&e)
+    {
+        QCERR(e.what());
+        throw result_get_fail(e.what());
+    }
+
+
 }
 
 map<string, bool> QVM::directlyRun(QProg & qProg)
@@ -317,14 +508,28 @@ vector<pair<size_t, double>> CPUQVM::getProbTupleList(QVec vQubit,  int selectMa
         throw invalid_argument("the size of qubit_vector is zero");
     }
 
-    vector<pair<size_t, double>> vResult;
-    Qnum vqubitAddr;
-    for (auto aiter = vQubit.begin(); aiter != vQubit.end(); ++aiter)
+    if (nullptr == _pGates)
     {
-        vqubitAddr.push_back((*aiter)->getPhysicalQubitPtr()->getQubitAddr());
+        QCERR("_pGates is null");
+        throw qvm_attributes_error("_pGates is null");
     }
-    _pGates->pMeasure(vqubitAddr, vResult, selectMax);
-    return vResult;
+
+    try
+    {
+        vector<pair<size_t, double>> vResult;
+        Qnum vqubitAddr;
+        for (auto aiter = vQubit.begin(); aiter != vQubit.end(); ++aiter)
+        {
+            vqubitAddr.push_back((*aiter)->getPhysicalQubitPtr()->getQubitAddr());
+        }
+        _pGates->pMeasure(vqubitAddr, vResult, selectMax);
+        return vResult;
+    }
+    catch (const std::exception&e)
+    {
+        QCERR(e.what());
+        throw result_get_fail(e.what());
+    }
 }
 
 vector<double> CPUQVM::getProbList(QVec vQubit, int selectMax)
@@ -334,33 +539,40 @@ vector<double> CPUQVM::getProbList(QVec vQubit, int selectMax)
         QCERR("the size of qubit_vector is zero");
         throw invalid_argument("the size of qubit_vector is zero");
     }
-    vector<double> vResult;
-    Qnum vqubitAddr;
-    for (auto aiter = vQubit.begin(); aiter != vQubit.end(); ++aiter)
+
+    if (nullptr == _pGates)
     {
-        vqubitAddr.push_back((*aiter)->getPhysicalQubitPtr()->getQubitAddr());
+        QCERR("_pGates is null");
+        throw qvm_attributes_error("_pGates is null");
     }
-    _pGates->pMeasure(vqubitAddr, vResult);
-    return vResult;
+
+    try
+    {
+        vector<double> vResult;
+        Qnum vqubitAddr;
+        for (auto aiter = vQubit.begin(); aiter != vQubit.end(); ++aiter)
+        {
+            vqubitAddr.push_back((*aiter)->getPhysicalQubitPtr()->getQubitAddr());
+        }
+        _pGates->pMeasure(vqubitAddr, vResult);
+        return vResult;
+    }
+    catch (const std::exception&e)
+    {
+        QCERR(e.what());
+        throw result_get_fail(e.what());
+    }
+
+
 }
 
-static string dec2bin(size_t n, size_t size)
-{
-    string binstr = "";
-    for (int i = 0; i < size; ++i)
-    {
-        binstr = (char)((n & 1) + '0') + binstr;
-        n >>= 1;
-    }
-    return binstr;
-}
 string QVM::_ResultToBinaryString(vector<ClassicalCondition> & vCBit)
 {
     string sTemp;
     if (nullptr == _QResult)
     {
         QCERR("_QResult is null");
-        throw runtime_error("_QResult is null");
+        throw qvm_attributes_error("_QResult is null");
     }
     auto resmap = _QResult->getResultMap();
     for (auto c : vCBit)
@@ -369,7 +581,7 @@ string QVM::_ResultToBinaryString(vector<ClassicalCondition> & vCBit)
         if (nullptr == cbit)
         {
             QCERR("vcbit is error");
-            throw invalid_argument("vcbit is error");
+            throw runtime_error("vcbit is error");
         }
         if (resmap[cbit->getName()])
         {
@@ -383,29 +595,41 @@ string QVM::_ResultToBinaryString(vector<ClassicalCondition> & vCBit)
     return sTemp;
 }
 
+void QVM::_ptrIsNull(void * ptr, std::string name)
+{
+    if (nullptr == ptr)
+    {
+        stringstream error;
+        error << "alloc " << name << " fail";
+        QCERR(error.str());
+        throw bad_alloc();
+    }
+}
+
 void QVM::_start()
 {
     _Qubit_Pool =
         QubitPoolFactory::GetFactoryInstance().
         GetPoolWithoutTopology(_Config.maxQubit);
+    _ptrIsNull(_Qubit_Pool, "_Qubit_Pool");
+
     _CMem =
         CMemFactory::GetFactoryInstance().
         GetInstanceFromSize(_Config.maxCMem);
+
+    _ptrIsNull(_CMem, "_CMem");
+
     _QResult =
         QResultFactory::GetFactoryInstance().
         GetEmptyQResult();
+
+    _ptrIsNull(_QResult, "_QResult");
+
     _QMachineStatus =
         QMachineStatusFactory::
         GetQMachineStatus();
 
-    if ((nullptr == _Qubit_Pool) ||
-        (nullptr == _CMem) ||
-        (nullptr == _QResult) ||
-        (nullptr == _QMachineStatus))
-    {
-        QCERR("new fail");
-        throw std::runtime_error("new fail");
-    }
+    _ptrIsNull(_QMachineStatus, "_QMachineStatus");
 }
 
 map<string, double> CPUQVM::getProbDict(QVec vQubit, int selectMax)
@@ -454,7 +678,7 @@ runWithConfiguration(QProg & qProg, vector<ClassicalCondition>& vCBit, rapidjson
     if (!param.HasMember("shots"))
     {
         QCERR("OriginCollection don't  have shots");
-        throw invalid_argument("OriginCollection don't  have shots");
+        throw run_fail("runWithConfiguration param don't  have shots");
     }
     size_t shots = 0;
     if (param["shots"].IsUint64())
@@ -464,7 +688,7 @@ runWithConfiguration(QProg & qProg, vector<ClassicalCondition>& vCBit, rapidjson
     else
     {
         QCERR("shots data type error");
-        throw invalid_argument("shots data type error");
+        throw run_fail("shots data type error");
     }
 
     for (size_t i = 0; i < shots; i++)
@@ -492,58 +716,6 @@ static void accumulateProbability(vector<double>& probList, vector<double> & acc
     {
         accumulateProb.push_back(accumulateProb[i - 1] + probList[i]);
     }
-}
-
-static void add_up_a_map(map<string, size_t> &meas_result, string key)
-{
-     if (meas_result.find(key) != meas_result.end())
-     {
-         meas_result[key]++;
-     }
-     else
-     {
-         meas_result[key] = 1;
-     }
-}
-static double RandomNumberGenerator()
-{
-     /*
-     *  difine constant number in 16807 generator.
-     */
-     int  ia = 16807, im = 2147483647, iq = 127773, ir = 2836;
-#ifdef _WIN32
-     time_t rawtime;
-     struct tm  timeinfo;
-     time(&rawtime);
-     localtime_s(&timeinfo, &rawtime);
-     static int irandseed = timeinfo.tm_year + 70 *
-         (timeinfo.tm_mon + 1 + 12 *
-         (timeinfo.tm_mday + 31 *
-             (timeinfo.tm_hour + 23 *
-             (timeinfo.tm_min + 59 * timeinfo.tm_sec))));
-#else
-     time_t rawtime;
-     struct tm * timeinfo;
-     time(&rawtime);
-     timeinfo = localtime(&rawtime);
-
-     static int irandseed = timeinfo->tm_year + 70 *
-         (timeinfo->tm_mon + 1 + 12 *
-         (timeinfo->tm_mday + 31 *
-             (timeinfo->tm_hour + 23 *
-             (timeinfo->tm_min + 59 * timeinfo->tm_sec))));
-#endif
-     static int irandnewseed = 0;
-     if (ia * (irandseed % iq) - ir * (irandseed / iq) >= 0)
-     {
-         irandnewseed = ia * (irandseed % iq) - ir * (irandseed / iq);
-     }
-     else
-     {
-         irandnewseed = ia * (irandseed % iq) - ir * (irandseed / iq) + im;
-     }
-     irandseed = irandnewseed;
-     return (double)irandnewseed / im;
 }
 
 map<string, size_t> CPUQVM::quickMeasure(QVec vQubit, size_t shots)
@@ -584,47 +756,62 @@ QStat CPUQVM::getQStat()
     if (nullptr == _pGates)
     {
         QCERR("_pGates is null");
-        throw runtime_error("_pGates is null");
+        throw qvm_attributes_error("_pGates is null");
     }
     return _pGates->getQState();
 }
 
 void CPUQVM::init()
 {
-    _start();
-
-    _pGates = new CPUImplQPU();
-    if (nullptr == _pGates)
+    try
     {
-        QCERR("new _pGates fail");
-        throw std::runtime_error("new _pGates fail");
+        _start();
+        _pGates = new CPUImplQPU();
+        _ptrIsNull(_pGates, "CPUImplQPU");
     }
+    catch (const std::exception &e)
+    {
+        finalize();
+        QCERR(e.what());
+        throw init_fail(e.what());
+    }
+
 }
 
 void GPUQVM::init()
 {
-    _start();
-
-#ifdef USE_CUDA
-    _pGates = new GPUImplQPU();
-#else
-    _pGates = nullptr;
-#endif // USE_CUDA
-    if (nullptr == _pGates)
+    try
     {
-        QCERR("new _pGates fail");
-        throw std::runtime_error("new _pGates fail");
+        _start();
+#ifdef USE_CUDA
+        _pGates = new GPUImplQPU();
+#else
+        _pGates = nullptr;
+#endif // USE_CUDA
+        _ptrIsNull(_pGates, "GPUImplQPU");
     }
+    catch (const std::exception&e)
+    {
+        finalize();
+        QCERR(e.what());
+        throw init_fail(e.what());
+    }
+
 }
 
 void CPUSingleThreadQVM::init()
 {
-    _start();
-
-    _pGates = new CPUImplQPUSingleThread();
-    if (nullptr == _pGates)
+    try
     {
-        QCERR("new _pGates fail");
-        throw std::runtime_error("new _pGates fail");
+        _start();
+        _pGates = new CPUImplQPUSingleThread();
+        _ptrIsNull(_pGates, "CPUImplQPUSingleThread");
     }
+    catch (const std::exception &e)
+    {
+        finalize();
+        QCERR(e.what());
+        throw init_fail(e.what());
+    }
+
 }

@@ -1,6 +1,5 @@
 #include <iostream>
 #include "QPanda.h"
-#include <iostream>
 #include "gtest/gtest.h"
 #include "QPanda.h"
 #include <map>

@@ -30,7 +30,7 @@ Description: Definition of Cuda function of gates
 #include <cuda_device_runtime_api.h>
 #include <device_launch_parameters.h>
 #include <cuda_runtime.h>
-#include "GPUGates.hpp"
+#include "GPUGates.h"
 using namespace std;
 
 namespace gpu {

@@ -8,20 +8,20 @@
         "msvc_x64_x64"
       ],
       "buildRoot": "${projectDir}\\build\\${name}",
-      "installRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\install\\${name}",
+      "installRoot": "${env.USERPROFILE}\\CMakeBuilds\\install",
       "cmakeCommandArgs": "-DUSE_PYQPANDA=ON",
       "buildCommandArgs": "-v",
       "ctestCommandArgs": ""
     },
     {
       "name": "x64-Release",
-      "generator": "Ninja" ,
+      "generator": "Ninja",
       "configurationType": "Release",
       "inheritEnvironments": [
         "msvc_x64_x64"
       ],
       "buildRoot": "${projectDir}\\build\\${name}",
-      "installRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\install\\${name}",
+      "installRoot": "${env.USERPROFILE}\\CMakeBuilds\\install",
       "cmakeCommandArgs": "-DUSE_PYQPANDA=ON",
       "buildCommandArgs": "-v",
       "ctestCommandArgs": ""

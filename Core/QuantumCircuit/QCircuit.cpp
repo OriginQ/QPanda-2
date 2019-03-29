@@ -92,7 +92,7 @@ QCircuit QCircuit::dagger()
     return qCircuit;
 }
 
-QCircuit  QCircuit::control(QVec& qbit_vector)
+QCircuit  QCircuit::control(QVec& qubit_vector)
 {
     QCircuit qcircuit;
     if (nullptr == m_pQuantumCircuit)
@@ -111,7 +111,7 @@ QCircuit  QCircuit::control(QVec& qbit_vector)
         qcircuit.pushBackNode(*aiter);
     }
 
-    qcircuit.setControl(qbit_vector);
+    qcircuit.setControl(qubit_vector);
     return qcircuit;
 }
 
@@ -138,7 +138,7 @@ bool QCircuit::isDagger() const
     return m_pQuantumCircuit->isDagger();
 }
 
-bool QCircuit::getControlVector(QVec& qbit_vector)
+bool QCircuit::getControlVector(QVec& qubit_vector)
 {
     if (!m_pQuantumCircuit)
     {
@@ -146,7 +146,7 @@ bool QCircuit::getControlVector(QVec& qbit_vector)
         throw runtime_error("Unknown internal error");
     }
 
-    return m_pQuantumCircuit->getControlVector(qbit_vector);
+    return m_pQuantumCircuit->getControlVector(qubit_vector);
 }
 
 NodeIter  QCircuit::getFirstNodeIter()
@@ -232,7 +232,7 @@ void QCircuit::setDagger(bool is_dagger)
     m_pQuantumCircuit->setDagger(is_dagger);
 }
 
-void QCircuit::setControl(QVec control_qbit_vector)
+void QCircuit::setControl(QVec control_qubit_vector)
 {
     if (!m_pQuantumCircuit)
     {
@@ -240,7 +240,7 @@ void QCircuit::setControl(QVec control_qbit_vector)
         throw runtime_error("Unknown internal error");
     }
 
-    m_pQuantumCircuit->setControl(control_qbit_vector);
+    m_pQuantumCircuit->setControl(control_qubit_vector);
 }
 
 OriginCircuit::~OriginCircuit()
@@ -313,11 +313,11 @@ void OriginCircuit::setDagger(bool is_dagger)
     m_Is_dagger = is_dagger;
 }
 
-void OriginCircuit::setControl(QVec qbit_vector)
+void OriginCircuit::setControl(QVec qubit_vector)
 {
-    for (auto aiter : qbit_vector)
+    for (auto aiter : qubit_vector)
     {
-        m_control_qbit_vector.push_back(aiter);
+        m_control_qubit_vector.push_back(aiter);
     }
 }
 
@@ -331,13 +331,13 @@ bool OriginCircuit::isDagger() const
     return m_Is_dagger;
 }
 
-bool OriginCircuit::getControlVector(QVec& qbit_vector)
+bool OriginCircuit::getControlVector(QVec& qubit_vector)
 {
-    for (auto aiter : m_control_qbit_vector)
+    for (auto aiter : m_control_qubit_vector)
     {
-        qbit_vector.push_back(aiter);
+        qubit_vector.push_back(aiter);
     }
-    return qbit_vector.size();
+    return qubit_vector.size();
 }
 
 NodeIter OriginCircuit::getFirstNodeIter()
@@ -518,21 +518,21 @@ NodeIter OriginCircuit::deleteQNode(NodeIter & target_iter)
 
 void OriginCircuit::clearControl()
 {
-    m_control_qbit_vector.clear();
-    m_control_qbit_vector.resize(0);
+    m_control_qubit_vector.clear();
+    m_control_qubit_vector.resize(0);
 }
 
 void OriginCircuit::execute(QPUImpl * quantum_gates, QuantumGateParam * param)
 {
     bool save_dagger = param->m_is_dagger;
-    size_t control_qbit_count = 0;
+    size_t control_qubit_count = 0;
 
     param->m_is_dagger = isDagger() ^ param->m_is_dagger;
 
-    for (auto aiter : m_control_qbit_vector)
+    for (auto aiter : m_control_qubit_vector)
     {
-        param->m_control_qbit_vector.push_back(aiter);
-        control_qbit_count++;
+        param->m_control_qubit_vector.push_back(aiter);
+        control_qubit_count++;
     }
 
     if (param->m_is_dagger)
@@ -577,9 +577,9 @@ void OriginCircuit::execute(QPUImpl * quantum_gates, QuantumGateParam * param)
 
     param->m_is_dagger = save_dagger;
 
-    for (size_t i = 0; i < control_qbit_count; i++)
+    for (size_t i = 0; i < control_qubit_count; i++)
     {
-        param->m_control_qbit_vector.pop_back();
+        param->m_control_qubit_vector.pop_back();
     }
 }
 
@@ -613,17 +613,17 @@ REGISTER_QCIRCUIT(OriginCircuit);
 
 
 
-HadamardQCircuit::HadamardQCircuit(QVec& qbit_vector)
+HadamardQCircuit::HadamardQCircuit(QVec& qubit_vector)
 {
-    for (auto aiter : qbit_vector)
+    for (auto aiter : qubit_vector)
     {
         auto  temp = H(aiter);
         m_pQuantumCircuit->pushBackNode((QNode *)&temp);
     }
 }
 
-HadamardQCircuit QPanda::CreateHadamardQCircuit(QVec & qbit_vector)
+HadamardQCircuit QPanda::CreateHadamardQCircuit(QVec & qubit_vector)
 {
-    HadamardQCircuit temp(qbit_vector);
+    HadamardQCircuit temp(qubit_vector);
     return temp;
 }

@@ -38,29 +38,33 @@ private:
     template<typename T>
     void valuePushBack(Value &value_json,T & value )
     {
-        if (std::is_same<std::decay<T>, int>::value)
+        if (std::is_same<typename std::decay<T>::type, int>::value)
         {
             value_json.PushBack((int)value, m_doc.GetAllocator());
         }
-        else if (std::is_same<std::decay<T>, unsigned>::value)
+        else if (std::is_same<typename std::decay<T>::type, unsigned>::value)
         {
             value_json.PushBack((unsigned)value, m_doc.GetAllocator());
         }
-        else if (std::is_same<std::decay<T>, int64_t>::value)
+        else if (std::is_same<typename std::decay<T>::type, int64_t>::value)
         {
             value_json.PushBack((int64_t)value, m_doc.GetAllocator());
         }
-        else if (std::is_same<std::decay<T>, uint64_t>::value)
+        else if (std::is_same<typename std::decay<T>::type, uint64_t>::value)
         {
             value_json.PushBack((uint64_t)value, m_doc.GetAllocator());
         }
-        else if (std::is_same<std::decay<T>, double>::value)
+        else if (std::is_same<typename std::decay<T>::type, double>::value)
         {
             value_json.PushBack((double)value, m_doc.GetAllocator());
         }
-        else if (std::is_same<std::decay<T>, float>::value)
+        else if (std::is_same<typename std::decay<T>::type, float>::value)
         {
             value_json.PushBack((float)value, m_doc.GetAllocator());
+        }
+        else if (std::is_same<typename std::decay<T>::type, bool>::value)
+        {
+            value_json.PushBack((bool)value, m_doc.GetAllocator());
         }
         else 
         {

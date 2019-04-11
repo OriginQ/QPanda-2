@@ -2,14 +2,13 @@
 ====================
 ----
 
-经典计算中，最基本的单元是比特，最基本的控制模式是逻辑门。类似地，在量子计算中，特别是量子线路计算模型中，处理量子比特的基本方式就是量子逻辑门。
-它们是量子线路的构建模块，就像传统数字电路的经典逻辑门一样，与许多经典逻辑门不同，量子逻辑门是可逆的。
+经典计算中，最基本的单元是比特，而最基本的控制模式是逻辑门。我们可以通过逻辑门的组合来达到我们控制电路的目的。类似地，处理量子比特的方式就是量子逻辑门。
+使用量子逻辑门，我们有意识的使量子态发生演化。所以量子逻辑门是构成量子算法的基础。
 
 量子逻辑门由酉矩阵表示。最常见的量子门在一个或两个量子位的空间上工作，就像常见的经典逻辑门在一个或两个位上操作一样。
 
 常见量子逻辑门矩阵形式
->>>>>>>>>>>>>>>>>>>>>>>>
-----
+--------------------------------------
 
 .. |H| image:: images/H.svg
    :width: 70px
@@ -76,96 +75,91 @@
 
 .. _api_introduction:
 
+QPanda-2把所有的量子逻辑门封装为API向用户提供使用，并可获得QGate类型的返回值。比如，您想要使用Hadamard门，就可以通过如下方式获得：
+
+     .. code-block:: c
+          
+          QGate h = H(qubit);
+
+可以看到，H函数只接收一个qubit，qubit如何申请会在 :ref:`量子虚拟机` 部分介绍。
+
+再比如，您想要使用RX门，可以通过如下方式获得：
+
+     .. code-block:: c
+          
+          QGate rx = RX(qubit，PI);
+
+如上所示，RX门接收两个参数，第一个是目标量子比特，第二个偏转角度。您也可以通过相同的方式使用RY，RZ门。
+
+两比特量子逻辑门的使用和单比特量子逻辑门的用法相似，只不过是输入的参数不同，举个使用CNOT的例子：
+
+     .. code-block:: c
+          
+          QGate cnot = CNOT(control_qubit，target_qubit);
+
+CNOT门接收两个参数，第一个是控制比特，第二个是目标比特。
+
+
 接口介绍
->>>>>>>>>>>>>>>>>>>>>>>>>>>>
-----
+----------------
 
-.. cpp:class:: QGate
+在本章的开头介绍过，所有的量子逻辑门都是酉矩阵，那么您也可以对量子逻辑门做转置共轭操作。QGate类型有两个成员函数可以做转置共轭操作：
+dagger、setDagger。
 
-    该类用于表述一个量子逻辑门节点的各项信息，同时包含多种可调用的接口。
+setDagger的作用是根据输入参数更新当前量子逻辑门的dagger标记，在计算时计算后端会根据dagger判断当前量子逻辑门是否需要执行转置共轭操作。举个列子：
 
-    .. cpp:function:: NodeType getNodeType()
+     .. code-block:: c
+          
+          QGate h_dagger = H(qubit).setDagger(true);
 
-       **功能**
-            获取量子逻辑门节点类型
-       **参数**
-            无
-       **返回值**
-            节点类型
+.. note:: setDagger有一个布尔类型参数，用来设置当前逻辑门是否需要转置共轭操作。
 
-    .. cpp:function:: void setDagger(bool)
+dagger的作用是复制一份当前的量子逻辑门，并更新复制的量子逻辑门的dagger标记。举个例子：
 
-       **功能**
-            设置量子逻辑门转置共轭形式
-       **参数**
-            - bool 是否dagger
-       **返回值**
-            无
+     .. code-block:: c
+          
+          QGate rx_dagger = RX(qubit,PI).dagger();
 
-    .. cpp:function:: void setControl(std::vector<Qubit*>&)
+除了转置共轭操作，您也可以为量子逻辑门添加控制比特，添加控制比特后，当前量子逻辑门是否执行需要根据控制比特的量子态决定，而控制比特有可能处于叠加态，
+所以当前量子逻辑门是否执行，不好说。QGate类型有两个成员函数帮助您添加控制比特：control、setControl。
 
-       **功能**
-            设置量子逻辑门受控状态
-       **参数**
-            - std::vector<Qubit *> 设置作为控制位的一组量子比特
-       **返回值**
-            无
+setControl的作用是给当前的量子逻辑门添加控制比特，例如：
 
-    .. cpp:function:: QuantumGate *getQGate()
+     .. code-block:: c
+          
+          QGate rx_control = RX(qubit,PI).setControl(qvec);
 
-       **功能**
-            获取量子逻辑门参数
-       **参数**
-            无
-       **返回值**
-            量子逻辑门参数
 
-    .. cpp:function:: QGate dagger()
 
-       **功能**
-            返回一个当前节点量子逻辑门转置共轭形式的副本
-       **参数**
-            无
-       **返回值**
-            量子逻辑门
+control的作用是复制当前的量子逻辑门，并给复制的量子逻辑门添加控制比特，例如：
 
-    .. cpp:function:: QGate control(std::vector<Qubit*>&)
+     .. code-block:: c
+          
+          QGate rx_control = RX(qubit,PI).control(qvec);
 
-       **功能**
-            返回一个当前节点量子逻辑门施加控制操作的副本
-       **参数**
-            - std::vector<Qubit*>& 设置作为控制位的一组量子比特
-       **返回值**
-            量子逻辑门
-
-.. note:: QGate构建时必须接受参数，否则是没有意义的，参数一般是Qubit类型和浮点数类型，浮点数类型一般象征着可变的角度。
-
+.. note:: setControl、control都需要接收一个参数，参数类型为QVec，QVec是qubit的vector。
 
 实例
->>>>>>>>>>
-----
+----------------
+
+以下实例主要是向您展现QGate类型接口的使用方式.
 
     .. code-block:: c
 
         #include "QPanda.h"
-        USING_QPANDA
+        using namespace QPanda
 
         int main(void)
         {
-            init(QuantumMachine_type::CPU);
-            auto c = cAllocMany(2);
-            auto q = qAllocMany(4);
-
-            auto gate0 = H(q[0]);
-            gate0.setDagger(true); // 设置量子逻辑门转置共轭
-            auto gate1 = CNOT(q[0], q[1]);
-            auto gate2 = CNOT(q[1], q[2]);
-            std::vector<Qubit *> qubits = {q[0], q[3]};
-            gate2.setControl(qubits); // 设置逻辑门的受控量子比特
-            auto gate3 = CNOT(q[2], q[3]);
-
-            auto prog = CreateEmpxyQProg();
-            prog << gate0 << gate1 << gate2 << gate3;
+            init(QMachineType::CPU);
+            auto q = qAllocMany(3);
+            QVec qubits = {q[0],q[1]};
+            
+            auto prog = CreateEmptyQProg();
+            prog << H(q[0])
+                 << H(q[1]) 
+                 << H(q[0]).dagger()
+                 << X(q[2]).control(qubits);
             auto result = probRunTupleList(prog, q);
             for(auto & aiter : result)
             {
@@ -175,3 +169,10 @@
             finalize();
             return 0;
         }
+
+计算结果如下：
+
+    .. code-block:: c
+        
+        000:0.5
+        010:0.5

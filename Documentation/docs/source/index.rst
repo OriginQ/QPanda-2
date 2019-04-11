@@ -28,6 +28,7 @@ QPanda由本源量子软件团队开发和维护。自2018年起，QPanda依据A
 .. toctree::
     :maxdepth: 2
 
+    GettingStarted
     Tutorial
 
 .. toctree::

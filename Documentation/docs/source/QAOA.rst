@@ -1,10 +1,10 @@
 量子近似优化算法(QAOA)
 =========================
 
-量子近似优化算法(QAOA)，是由Farhi, Goldstone和Gutmann开发的，是用于发现“一种‘好’的解决方案的最优化问题”一个多项式时间算法 [`1 <https://arxiv.org/abs/1602.07674>`_, `2 <https://arxiv.org/abs/1411.4028>`_] 。
+量子近似优化算法(Quantum Approximate Optimization Algorithm, QAOA)，是由Farhi, Goldstone和Gutmann开发的，是用于*寻找最优化问题的一种好的解决方案*的一个多项式时间算法[`1 <https://arxiv.org/abs/1602.07674>`_, `2 <https://arxiv.org/abs/1411.4028>`_]
 
 这个名字是什么意思呢？对于给定的NP-Hard问题，近似算法是一种多项式时间算法，该算法以期望的一些质量保证来解决每个问题实例。品质因数是多项式时间解的质量与真实解的质量之间的比率。
-QAOA很有意思的一个原因是它具有展示量子霸权潜力 [`1 <https://arxiv.org/abs/1602.07674>`_] 。
+QAOA很有意思的一个原因是它具有展示量子优势(Quantum Advantage)的潜力 [`1 <https://arxiv.org/abs/1602.07674>`_] 。
 
 接口介绍
 --------------

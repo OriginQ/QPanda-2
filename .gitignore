@@ -21,3 +21,4 @@ config.h
 /pyQPanda/benchmark.py
 __pycache__/
 CMakeLists.txt.user
+Documentation/docs/source/_build/html

@@ -132,7 +132,7 @@ def adiabatic_simulation_with_configuration(qn_, Hp_, Hd_, step_, slices_, t_, s
         t_ : total time for adiabatic simulation
         shots_ : number of shots
     '''
-    machine=init_quantum_machine(QuantumMachine_type.CPU)
+    machine=init_quantum_machine(QMachineType.CPU)
     prog=QProg()
     q=machine.qAlloc_many(qn_)
     c=machine.cAlloc_many(qn_)

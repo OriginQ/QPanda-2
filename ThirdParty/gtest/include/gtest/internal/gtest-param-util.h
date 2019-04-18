@@ -136,7 +136,7 @@ class ParamIterator {
   scoped_ptr<ParamIteratorInterface<T> > impl_;
 };
 
-// ParamGeneratorInterface<T> is the binary interface to access generators
+// ParamGeneratorInterface<T> is the binary interface for access generators
 // defined in other translation units.
 template <typename T>
 class ParamGeneratorInterface {

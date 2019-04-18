@@ -28,7 +28,7 @@ size_t QGateCounter::countQGate(AbstractQuantumCircuit * pQCircuit)
 
     for (; aiter != pQCircuit->getEndNodeIter(); ++aiter)
     {
-        QNode * pNode = *aiter;
+        QNode * pNode = (*aiter).get();
 
         if (pNode->getNodeType() == GATE_NODE)
         {
@@ -71,7 +71,7 @@ size_t QGateCounter::countQGate(AbstractQuantumProgram * pQProg)
 
     for (; aiter != pQProg->getEndNodeIter(); ++aiter)
     {
-        QNode * pNode = *aiter;
+        QNode * pNode = (*aiter).get();
 
         int iNodeType = pNode->getNodeType();
         if ((GATE_NODE == iNodeType) || (MEASURE_GATE == iNodeType))

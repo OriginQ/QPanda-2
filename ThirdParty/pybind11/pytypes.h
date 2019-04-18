@@ -133,7 +133,7 @@ NAMESPACE_END(detail)
 
     The `handle` class is a thin wrapper around an arbitrary Python object (i.e. a
     ``PyObject *`` in Python's C API). It does not perform any automatic reference
-    counting and merely provides a basic C++ interface to various Python API functions.
+    counting and merely provides a basic C++ interface for various Python API functions.
 
     .. seealso::
         The `object` class inherits from `handle` and adds automatic reference

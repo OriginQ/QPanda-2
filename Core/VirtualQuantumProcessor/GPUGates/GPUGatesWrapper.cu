@@ -6,12 +6,15 @@ Date:2017-12-13
 Description: Definition of Encapsulation of GPU gates
 ************************************************************************/
 
-#include "GPUGatesWrapper.hpp"
-#include "GPUGates.hpp"
+#include "GPUGatesWrapper.h"
+#include "GPUGates.h"
 
 using namespace std;
 
 #define SET_BLOCKDIM  BLOCKDIM = (1ull << (psigpu.qnum - 1)) / THREADDIM;
+
+static bool pMeasure_few_target(GATEGPU::QState&, vector<double>&, GATEGPU::Qnum&);
+static bool pMeasure_many_target(GATEGPU::QState&, vector<double>&, GATEGPU::Qnum&);
 
 static QSIZE getControllerMask(GATEGPU::Qnum& qnum, int target = 1)
 {
@@ -412,6 +415,39 @@ bool GATEGPU::controlunitarydouble(
     return true;
 }
 
+//bool GATEGPU::DiagonalGate(
+//    QState& psigpu,
+//    Qnum& qnum,
+//    QState& matrix,
+//    bool isConjugate,
+//    double error_rate)
+//{
+//    if (gpu::randGenerator() > error_rate)
+//    {
+//        if (isConjugate)
+//        {
+//            for (size_t i = 0; i < (1 << qnum); i++)
+//            {
+//                matrix.image[i] = -matrix.imag[i];
+//            }
+//        }
+//        QSIZE m = qnum.size();
+//        QSIZE mask = getControllerMask(qnum, 1);
+//        QSIZE BLOCKDIM;
+//        SET_BLOCKDIM
+//            gpu::DiagonalGate << < (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)THREADDIM >> >
+//            (psigpu.real, psigpu.imag, 1ull << (psigpu.qnum), mask, matrix);
+//        return true;
+//    }
+//
+//    return true;
+//}
+
+
+
+
+
+
 //qbReset
 bool GATEGPU::qbReset(QState& psigpu, size_t qn, double error_rate)
 {
@@ -555,11 +591,31 @@ bool GATEGPU::pMeasurenew(
     Qnum& qnum,
     int select_max)
 {
-    return false;
-}
+	// 10 可能是一个比较好的阈值，因为1024为线程单位，就更适合使用many_target
+	vector<double> mResult;
+	bool status = false;
+	if (qnum.size() < 10)
+	{
+		status = pMeasure_few_target(psigpu, mResult, qnum);
+	}
+	else
+	{
+		status = pMeasure_many_target(psigpu, mResult, qnum);
+	}
 
-static bool pMeasure_few_target(GATEGPU::QState&, vector<double>&, GATEGPU::Qnum&);
-static bool pMeasure_many_target(GATEGPU::QState&, vector<double>&, GATEGPU::Qnum&);
+	if (status)
+	{
+		size_t i = 0;
+		for (auto &aiter : mResult)
+		{
+			vprob.push_back(make_pair(i, aiter));
+			i++;
+		}
+	}
+
+	return status;
+	
+}
 
 bool GATEGPU::pMeasure_no_index(
     QState& psigpu,

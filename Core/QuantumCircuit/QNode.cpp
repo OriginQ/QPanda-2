@@ -1,105 +1,13 @@
 #include "QNode.h"
 USING_QPANDA
 using namespace std;
-QNodeMap &QNodeMap::getInstance()
-{
-    static QNodeMap node_map;
-    return node_map;
-}
 
-QNodeMap::QNodeMap() :m_sCount(0)
-{ }
-
-QNodeMap::~QNodeMap()
-{
-    auto aiter = m_pQNodeMap.begin();
-    while (aiter != m_pQNodeMap.end())
-    {
-        QNode * pNode = aiter->second.m_pNode;
-        qmap_size_t iRef = aiter->second.m_iReference;
-
-        delete (pNode);
-        aiter = m_pQNodeMap.erase(aiter);
-    }
-}
-
-qmap_size_t QNodeMap::pushBackNode(QNode *pNode)
-{
-    WriteLock wl(m_sm);
-    MapNode temp = { 0, pNode };
-    m_sCount++;
-    auto a =m_pQNodeMap.insert(pair<qmap_size_t, MapNode>(m_sCount,temp));
-    return m_sCount;
-}
-
-
-QNode *QNodeMap::getNode(qmap_size_t iNum)
-{
-    ReadLock rl(m_sm);
-    if (iNum == -1)
-    {
-        return nullptr;
-    }
-    auto aiter = m_pQNodeMap.find(iNum);
-    if (m_pQNodeMap.end() == aiter)
-        return nullptr;
-    return aiter->second.m_pNode;
-}
-
-bool QNodeMap::addNodeRefer(qmap_size_t sNum)
-{
-    WriteLock wl(m_sm);
-    auto aiter = m_pQNodeMap.find(sNum);
-    if (m_pQNodeMap.end() == aiter)
-        return false;
-    aiter->second.m_iReference++;
-    return true;
-}
-
-bool QNodeMap::deleteNode(qmap_size_t sNum)
-{
-
-    ReadLock * rl = new ReadLock(m_sm);
-    WriteLock * wl = nullptr;
-    auto aiter = m_pQNodeMap.find(sNum);
-    if (m_pQNodeMap.end() == aiter)
-    {
-        delete rl;
-        return false;
-    }
-        
-    if (aiter->second.m_iReference > 1)
-    {
-        delete rl;
-        wl = new WriteLock(m_sm);
-        aiter->second.m_iReference--;
-        delete wl;
-    }
-    else
-    {
-        delete rl;
-        if (nullptr != aiter->second.m_pNode)
-        {
-            delete aiter->second.m_pNode;
-            aiter->second.m_pNode = nullptr;
-        }
-        WriteLock wl(m_sm);
-        m_pQNodeMap.erase(aiter);
-    }
-    return true;
-}
-
-map<qmap_size_t, MapNode>::iterator QNodeMap::getEnd()
-{
-    return m_pQNodeMap.end();
-}
-
-OriginItem::OriginItem() :m_iNodeNum(-1), m_pNext(nullptr), m_pPre(nullptr)
+OriginItem::OriginItem(): m_pNext(nullptr), m_pPre(nullptr)
 { }
 
 OriginItem::~OriginItem()
 {
-    QNodeMap::getInstance().deleteNode(m_iNodeNum);
+    m_node.reset();
 }
 
 Item * OriginItem::getNext() const
@@ -112,10 +20,14 @@ Item * OriginItem::getPre() const
     return m_pPre;
 }
 
-QNode *OriginItem::getNode() const
+shared_ptr<QNode>OriginItem::getNode() const
 {
-    auto aiter = QNodeMap::getInstance().getNode(m_iNodeNum);
-    return aiter;
+    if (!m_node)
+    {
+        QCERR("m_node is nullptr");
+        throw runtime_error("m_node is nullptr");
+    }
+    return m_node;
 }
 
 void  OriginItem::setNext(Item *pItem)
@@ -128,16 +40,88 @@ void OriginItem::setPre(Item *pItem)
     m_pPre = pItem;
 }
 
-void OriginItem::setNode(QNode *pNode)
+void OriginItem::setNode(std::shared_ptr<QNode> pNode)
 {
-    if (m_iNodeNum != -1)
+    if (!pNode)
     {
-        QNodeMap::getInstance().deleteNode(m_iNodeNum);
+        QCERR("pNode is nullptr");
+        throw invalid_argument("pNode is nullptr");
     }
-    m_iNodeNum = pNode->getPosition();
-    if (!QNodeMap::getInstance().addNodeRefer(m_iNodeNum))
+    m_node=pNode;
+}
+
+NodeIter& NodeIter::operator++()
+{
+    if (nullptr != m_pCur)
     {
-        QCERR("unknow error");
-        throw runtime_error("unknown error");
+        this->m_pCur = m_pCur->getNext();
     }
+    return *this;
+}
+
+NodeIter NodeIter::operator++(int)
+{
+    NodeIter temp(*this);
+    if (nullptr != m_pCur)
+    {
+        this->m_pCur = m_pCur->getNext();
+    }
+    return temp;
+}
+
+shared_ptr<QNode> NodeIter::operator*()
+{
+    if (m_pCur)
+    {
+        return m_pCur->getNode();
+    }
+    else
+    {
+        return nullptr;
+    }
+}
+
+NodeIter& NodeIter::operator--()
+{
+    if (nullptr != m_pCur)
+    {
+        this->m_pCur = m_pCur->getPre();
+    }
+    return *this;
+}
+
+NodeIter NodeIter::operator--(int i)
+{
+    NodeIter temp(*this);
+    if (nullptr != m_pCur)
+    {
+        this->m_pCur = m_pCur->getPre();
+
+    }
+    return temp;
+}
+
+NodeIter NodeIter::getNextIter()
+{
+    if (nullptr != m_pCur)
+    {
+        auto pItem = m_pCur->getNext();
+        NodeIter temp(pItem);
+        return temp;
+    }
+    else
+    {
+        NodeIter temp(nullptr);
+        return temp;
+    }
+}
+
+bool NodeIter::operator!=(NodeIter  iter)
+{
+    return this->m_pCur != iter.m_pCur;
+}
+
+bool NodeIter::operator==(NodeIter iter)
+{
+    return this->m_pCur == iter.m_pCur;
 }

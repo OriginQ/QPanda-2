@@ -158,6 +158,8 @@ namespace QPanda
 
         m_result.key = m_fval.first;
         m_result.fun_val = m_fval.second;
+        m_result.fcalls = m_fcalls;
+        m_result.iters = m_iter;
         m_result.para.resize(m_n);
         memcpy(m_result.para.data(),
             m_x.data(),

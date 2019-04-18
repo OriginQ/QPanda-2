@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.1)
+project(QVM.test)
+file(GLOB_RECURSE QVM ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
+add_executable(${PROJECT_NAME} ${QVM})
+target_link_libraries(${PROJECT_NAME} ${LIB_QPANDA} ${LIB_GTEST})

@@ -82,6 +82,9 @@ int GraphDijkstra::getShortestPath(int begin, int end, vector<int> &path_vec)
     {
         return kError;
     }
+
+    Dist dis;
+    m_dist_vec.assign(m_vertex_count, dis);
     if(!dijkstra(begin))
     {
         return kError;

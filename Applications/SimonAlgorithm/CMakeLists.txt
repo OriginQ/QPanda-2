@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.1)
+project(Simon_Algorithm)
+file(GLOB_RECURSE Simon_Algorithm_CPP ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp )
+add_executable(${PROJECT_NAME} ${Simon_Algorithm_CPP})
+target_link_libraries(${PROJECT_NAME} ${LIB_QPANDA})

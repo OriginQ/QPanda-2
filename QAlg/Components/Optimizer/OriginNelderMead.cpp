@@ -163,10 +163,14 @@ namespace QPanda
 
         m_result.key = m_key[0];
         m_result.fun_val = m_fsim[0];
+        m_result.fcalls = m_fcalls;
+        m_result.iters = m_iter;
         m_result.para.resize(m_n);
-        memcpy(m_result.para.data(),
-            m_sim.row(0).data(),
-            m_n * sizeof(m_sim.row(0)[0]));
+
+        for (auto i = 0u; i < m_n; i++)
+        {
+            m_result.para[i] = m_sim.row(0)[i];
+        }
 
         return m_result;
     }
@@ -349,7 +353,7 @@ namespace QPanda
                 << m_fcalls << std::endl;
             
             std::cout << "         Optimized para: " << std::endl;
-            for (auto i = 0; i < m_n; i++)
+            for (auto i = 0u; i < m_n; i++)
             {
                 std::cout << "             " << m_sim.row(0)[i] << std::endl;
             }

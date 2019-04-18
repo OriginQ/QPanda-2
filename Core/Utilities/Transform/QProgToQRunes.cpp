@@ -1,10 +1,9 @@
-#include <iostream>
-#include "QProgToQRunes.h"
+#include "Core/Utilities/Transform/QProgToQRunes.h"
 #include "QPanda.h"
-using QGATE_SPACE::angleParameter;
 using namespace std;
 USING_QPANDA
-QProgToQRunes::QProgToQRunes()
+
+QProgToQRunes::QProgToQRunes(QuantumMachine * quantum_machine)
 {
     m_gatetype.insert(pair<int, string>(PAULI_X_GATE, "X"));
     m_gatetype.insert(pair<int, string>(PAULI_Y_GATE, "Y"));
@@ -30,58 +29,42 @@ QProgToQRunes::QProgToQRunes()
     m_gatetype.insert(pair<int, string>(CU_GATE, "CU"));
     m_gatetype.insert(pair<int, string>(CNOT_GATE, "CNOT"));
     m_gatetype.insert(pair<int, string>(CZ_GATE, "CZ"));
-    m_gatetype.insert(pair<int, string>(CPHASE_GATE, "CPHASE"));
+    m_gatetype.insert(pair<int, string>(CPHASE_GATE, "CR"));
     m_gatetype.insert(pair<int, string>(ISWAP_GATE, "ISWAP"));
     m_gatetype.insert(pair<int, string>(SQISWAP_GATE, "SQISWAP"));
-    m_qrunes.clear();
-}
+    m_QRunes.clear();
 
+    m_quantum_machine = quantum_machine;
+}
 
 QProgToQRunes::~QProgToQRunes()
+{}
+
+void QProgToQRunes::transform(QProg &prog)
 {
+    m_QRunes.emplace_back("QINIT " + to_string(m_quantum_machine->getAllocateQubit()));
+    m_QRunes.emplace_back("CREG "  + to_string(m_quantum_machine->getAllocateCMem()));
+    transformQProg(&prog);
 }
 
-
-void QProgToQRunes::qProgToQRunes(AbstractQuantumProgram * pQpro)
+void QProgToQRunes::transformQGate(AbstractQGateNode * pQGate)
 {
-    if (nullptr == pQpro)
+    if (nullptr == pQGate || nullptr == pQGate->getQGate())
     {
-        QCERR("pQPro is null");
-        throw invalid_argument("pQPro is null");
-    }
-    m_qrunes.emplace_back("#QUBITS_NUM " + to_string(getAllocateQubitNum()));
-    m_qrunes.emplace_back("#CREGS_NUM " + to_string(getAllocateCMem()));
-
-    QProgToQRunes::progToQRunes(pQpro);
-
-}
-
-
-void QProgToQRunes::progToQRunes(AbstractQGateNode * pQGata)
-{
-    if (nullptr == pQGata)
-    {
-        QCERR("pQGata is null");
-        throw invalid_argument("pQGata is null");
-    }
-    if (nullptr == pQGata->getQGate())
-    {
-        QCERR("pQGata->getQGate() is null");
-        throw invalid_argument("pQGata->getQGate() is null");
+        QCERR("pQGate is null");
+        throw invalid_argument("pQGate is null");
     }
 
-    int gate_type = pQGata->getQGate()->getGateType();
-
-    vector<Qubit*> qubits_vector;
-    vector<Qubit*> ctr_qubits_vector;
+    QVec qubits_vector;
+    QVec ctr_qubits_vector;
 
     std::string all_ctr_qubits;
-    pQGata->getQuBitVector(qubits_vector);
-    pQGata->getControlVector(ctr_qubits_vector);
+    pQGate->getQuBitVector(qubits_vector);
+    pQGate->getControlVector(ctr_qubits_vector);
 
-    if (pQGata->isDagger())
+    if (pQGate->isDagger())
     {
-        m_qrunes.emplace_back("DAGGER");
+        m_QRunes.emplace_back("DAGGER");
     }
     if (!ctr_qubits_vector.empty())
     {
@@ -89,27 +72,26 @@ void QProgToQRunes::progToQRunes(AbstractQGateNode * pQGata)
         {
             all_ctr_qubits = all_ctr_qubits + to_string(val->getPhysicalQubitPtr()->getQubitAddr()) + ",";
         }
-        all_ctr_qubits = all_ctr_qubits.substr(0, all_ctr_qubits.length() - 1);
-        m_qrunes.emplace_back("CONTROL " + all_ctr_qubits);
+        m_QRunes.emplace_back("CONTROL " + all_ctr_qubits.substr(0, all_ctr_qubits.length() - 1));
     }
 
-    auto iter = m_gatetype.find(gate_type);
+    auto iter = m_gatetype.find(pQGate->getQGate()->getGateType());
     if (iter == m_gatetype.end())
     {
         QCERR("unknow error");
         throw runtime_error("unknow error");
     }
 
-    string item = iter->second;
     string first_qubit = to_string(qubits_vector.front()->getPhysicalQubitPtr()->getQubitAddr());
-    string all_qubits;
 
+    string all_qubits;
     for (auto _val : qubits_vector)
     {
         all_qubits = all_qubits + to_string(_val->getPhysicalQubitPtr()->getQubitAddr()) + ",";
     }
-
     all_qubits = all_qubits.substr(0, all_qubits.length() - 1);
+
+    string item = iter->second;
     switch (iter->first)
     {
     case PAULI_X_GATE:
@@ -122,7 +104,7 @@ void QProgToQRunes::progToQRunes(AbstractQGateNode * pQGata)
     case T_GATE:
     case S_GATE: 
         {
-            m_qrunes.emplace_back(item + " " + first_qubit);
+            m_QRunes.emplace_back(item + " " + first_qubit);
         }
         break;
 
@@ -131,14 +113,9 @@ void QProgToQRunes::progToQRunes(AbstractQGateNode * pQGata)
     case RY_GATE:
     case RZ_GATE:
         {
-            angleParameter * gate_parameter = dynamic_cast<angleParameter *>(pQGata->getQGate());
-            if (nullptr == gate_parameter)
-            {
-                QCERR("gate_parameter is null");
-                throw runtime_error("gate_parameter is null");
-            }
+            angleParameter * gate_parameter = dynamic_cast<angleParameter *>(pQGate->getQGate());
             string  gate_angle = to_string(gate_parameter->getParameter());
-            m_qrunes.emplace_back(item + " " + first_qubit + ","+"\"" + gate_angle+"\"");
+            m_QRunes.emplace_back(item + " " + first_qubit + ","+"\"" + gate_angle+"\"");
         }
         break;
 
@@ -147,92 +124,73 @@ void QProgToQRunes::progToQRunes(AbstractQGateNode * pQGata)
     case ISWAP_GATE:
     case SQISWAP_GATE:
         {
-            m_qrunes.emplace_back(item + " " + all_qubits);
+            m_QRunes.emplace_back(item + " " + all_qubits);
         }
         break;
 
     case CPHASE_GATE: 
         {
-            angleParameter * gate_parameter = dynamic_cast<angleParameter *>(pQGata->getQGate());
-            if (nullptr == gate_parameter)
-            {
-                QCERR("gate_parameter is null");
-                throw runtime_error("gate_parameter is null");
-            }
+            angleParameter * gate_parameter = dynamic_cast<angleParameter *>(pQGate->getQGate());
             string  gate_theta = to_string(gate_parameter->getParameter());
-            m_qrunes.emplace_back(item + " " + all_qubits + "," + gate_theta);
+            m_QRunes.emplace_back(item + " " + all_qubits + "," + "\"" + gate_theta + "\"");
         }
         break;
 
     case CU_GATE: 
        { 
-            QuantumGate * gate_parameter = dynamic_cast<QuantumGate *>(pQGata->getQGate());
-            if (nullptr == gate_parameter)
-            {
-                QCERR("gate_parameter is null");
-                throw runtime_error("gate_parameter is null");
-            }
+            QuantumGate * gate_parameter = dynamic_cast<QuantumGate *>(pQGate->getQGate());
             string gate_four_theta = to_string(gate_parameter->getAlpha()) + ',' + 
-                                to_string(gate_parameter->getBeta())  + ',' +
-                                to_string(gate_parameter->getDelta()) + ',' + 
-                                to_string(gate_parameter->getGamma());
-            m_qrunes.emplace_back(item + " " + all_qubits + "," + gate_four_theta);
+                                     to_string(gate_parameter->getBeta())  + ',' +
+                                     to_string(gate_parameter->getDelta()) + ',' + 
+                                     to_string(gate_parameter->getGamma());
+            m_QRunes.emplace_back(item + " " + all_qubits + "," + gate_four_theta);
        }
        break;
 
-    default:m_qrunes.emplace_back("NoGateSupport");
+    default:m_QRunes.emplace_back("UnSupported GateNode");
     }
     if (!ctr_qubits_vector.empty())
     {
-        m_qrunes.emplace_back("ENCONTROL " + all_ctr_qubits);
+        m_QRunes.emplace_back("ENCONTROL " + all_ctr_qubits);
     }
-    if (pQGata->isDagger())
+    if (pQGate->isDagger())
     {
-        m_qrunes.emplace_back("ENDAGGER");
+        m_QRunes.emplace_back("ENDAGGER");
     }
 }
 
 
-void QProgToQRunes::progToQRunes(AbstractQuantumMeasure *pMeasure)
+void QProgToQRunes::transformQMeasure(AbstractQuantumMeasure *pMeasure)
 {
-    if (nullptr == pMeasure)
+    if (nullptr == pMeasure || nullptr == pMeasure->getQuBit()->getPhysicalQubitPtr())
     {
         QCERR("pMeasure is null");
         throw invalid_argument("pMeasure is null");
     }
 
     PhysicalQubit* qbitPtr = pMeasure->getQuBit()->getPhysicalQubitPtr();
-
-    if (nullptr == qbitPtr)
-    {
-        QCERR("pMeasure is null");
-        throw runtime_error("pMeasure is null");
-    }
-
     std::string tar_qubit = to_string(qbitPtr->getQubitAddr());
     std::string creg_name = pMeasure->getCBit()->getName();
 
-    creg_name = creg_name.substr(1);
-    m_qrunes.emplace_back("MEASURE " + tar_qubit + ",$" + creg_name);
+    m_QRunes.emplace_back("MEASURE " + tar_qubit + ",$" + creg_name.substr(1));
 }
 
-
-void QProgToQRunes::progToQRunes(AbstractQuantumProgram *pQPro)
+void QProgToQRunes::transformQProg(AbstractQuantumProgram *pQProg)
 {
-    if (nullptr == pQPro)
+    if (nullptr == pQProg)
     {
-        QCERR("pQPro is null");
-        throw runtime_error("pQPro is null");
+        QCERR("pQProg is null");
+        throw runtime_error("pQProg is null");
     }
-    for (auto aiter = pQPro->getFirstNodeIter(); aiter != pQPro->getEndNodeIter(); aiter++)
+
+    for (auto aiter = pQProg->getFirstNodeIter(); aiter != pQProg->getEndNodeIter(); aiter++)
     {
-        QNode * pNode = *aiter;
-        progToQRunes(pNode);
+        QNode * pNode = (*aiter).get();
+        transformQNode(pNode);
     }
 }
 
-
-void QProgToQRunes::progToQRunes(QNode * pNode)
+void QProgToQRunes::transformQNode(QNode * pNode)
 {
     if (nullptr == pNode)
     {
@@ -240,35 +198,31 @@ void QProgToQRunes::progToQRunes(QNode * pNode)
         throw runtime_error("pNode is null");
     }
 
-    int type = pNode->getNodeType();
-
-    switch (type)
+    switch (pNode->getNodeType())
     {
     case NodeType::GATE_NODE:
-        progToQRunes(dynamic_cast<AbstractQGateNode *>(pNode));
+        QProgToQRunes::transformQGate(dynamic_cast<AbstractQGateNode *>(pNode));
         break;
 
     case NodeType::CIRCUIT_NODE:
-        progToQRunes(dynamic_cast<AbstractQuantumCircuit *>(pNode));
+        QProgToQRunes::transformQCircuit(dynamic_cast<AbstractQuantumCircuit *>(pNode));
         break;
 
     case NodeType::PROG_NODE:
-        progToQRunes(dynamic_cast<AbstractQuantumProgram *>(pNode)); 
+        QProgToQRunes::transformQProg(dynamic_cast<AbstractQuantumProgram *>(pNode));
         break;
 
     case NodeType::QIF_START_NODE:
     case NodeType::WHILE_START_NODE:
-        progToQRunes(dynamic_cast<AbstractControlFlowNode *>(pNode));
+        QProgToQRunes::transformQControlFlow(dynamic_cast<AbstractControlFlowNode *>(pNode));
         break;
 
     case NodeType::MEASURE_GATE:
-        progToQRunes(dynamic_cast<AbstractQuantumMeasure *>(pNode));
+        QProgToQRunes::transformQMeasure(dynamic_cast<AbstractQuantumMeasure *>(pNode));
         break;
 
     case NodeType::NODE_UNDEFINED:
-        break;
-
-    default:m_qrunes.emplace_back("UnSupported ProgNode");
+    default:m_QRunes.emplace_back("UnSupported ProgNode");
         break;
     }
 }
@@ -285,7 +239,7 @@ static void traversalInOrderPCtr(const CExpr* pCtrFlow,string &ctr_statement)
 }
 
 
-void QProgToQRunes::progToQRunes(AbstractControlFlowNode * pCtrFlow)
+void QProgToQRunes::transformQControlFlow(AbstractControlFlowNode * pCtrFlow)
 {
     if (nullptr == pCtrFlow)
     {
@@ -294,15 +248,7 @@ void QProgToQRunes::progToQRunes(AbstractControlFlowNode * pCtrFlow)
     }
 
     QNode *pNode = dynamic_cast<QNode *>(pCtrFlow);
-    if (nullptr == pNode)
-    {
-        QCERR("pNode is null");
-        throw runtime_error("pNode is null");
-    }
-
-    int node_type = pNode->getNodeType();
-
-    switch (node_type)
+    switch (pNode->getNodeType())
     {
     case NodeType::WHILE_START_NODE:
         {
@@ -310,40 +256,39 @@ void QProgToQRunes::progToQRunes(AbstractControlFlowNode * pCtrFlow)
             auto expr = pCtrFlow->getCExpr()->getExprPtr().get();
 
             traversalInOrderPCtr(expr, exper);
-            m_qrunes.emplace_back("QWHILE " + exper);
+            m_QRunes.emplace_back("QWHILE " + exper);
 
             QNode *truth_branch_node = pCtrFlow->getTrueBranch();
             if (nullptr != truth_branch_node)
             {
-                progToQRunes(truth_branch_node);
+                transformQNode(truth_branch_node);
             }
 
-            m_qrunes.emplace_back("ENDQWHILE");
+            m_QRunes.emplace_back("ENDQWHILE");
         }
         break;
 
     case NodeType::QIF_START_NODE:
         {
             string exper;
-
             auto expr = pCtrFlow->getCExpr()->getExprPtr().get();
 
             traversalInOrderPCtr(expr, exper);
-            m_qrunes.emplace_back("QIF "+exper);
+            m_QRunes.emplace_back("QIF "+exper);
 
             QNode * truth_branch_node = pCtrFlow->getTrueBranch();
             if (nullptr != truth_branch_node)
             {
-                progToQRunes(truth_branch_node);
+                transformQNode(truth_branch_node);
             }
-            m_qrunes.emplace_back("ELSE");
+            m_QRunes.emplace_back("ELSE");
 
             QNode *false_branch_node = pCtrFlow->getFalseBranch();
             if (nullptr != false_branch_node)
             {
-                progToQRunes(false_branch_node);
+                transformQNode(false_branch_node);
             }
-            m_qrunes.emplace_back("ENDQIF");
+            m_QRunes.emplace_back("ENDQIF");
         }
         break;
 
@@ -351,7 +296,7 @@ void QProgToQRunes::progToQRunes(AbstractControlFlowNode * pCtrFlow)
 }
 
 
-void QProgToQRunes::progToQRunes(AbstractQuantumCircuit * pCircuit)
+void QProgToQRunes::transformQCircuit(AbstractQuantumCircuit * pCircuit)
 {
     if (nullptr == pCircuit)
     {
@@ -360,46 +305,43 @@ void QProgToQRunes::progToQRunes(AbstractQuantumCircuit * pCircuit)
     }
     if (pCircuit->isDagger())
     {
-        m_qrunes.emplace_back("DAGGER");
+        m_QRunes.emplace_back("DAGGER");
     }
 
-    std::vector<Qubit*> circuit_ctr_qubits;
-
+    QVec circuit_ctr_qubits;
     string all_ctr_qubits;
-
     pCircuit->getControlVector(circuit_ctr_qubits);
     if (!circuit_ctr_qubits.empty())
     {
         for (auto val : circuit_ctr_qubits)
         {
             all_ctr_qubits = all_ctr_qubits + to_string(val->getPhysicalQubitPtr()->getQubitAddr()) + ",";
-
         }
         all_ctr_qubits = all_ctr_qubits.substr(0, all_ctr_qubits.length() - 1);
-        m_qrunes.emplace_back("CONTROL " + all_ctr_qubits);
+        m_QRunes.emplace_back("CONTROL " + all_ctr_qubits);
     }
     for (auto aiter = pCircuit->getFirstNodeIter(); aiter != pCircuit->getEndNodeIter(); aiter++)
     {
-        QNode * pNode = *aiter;
-        progToQRunes(pNode);
+        QNode * pNode = (*aiter).get();
+        transformQNode(pNode);
     }
     if (!circuit_ctr_qubits.empty())
     {
-        m_qrunes.emplace_back("ENCONTROL " + all_ctr_qubits);
+        m_QRunes.emplace_back("ENCONTROL " + all_ctr_qubits);
     }
     if (pCircuit->isDagger())
     {
-        m_qrunes.emplace_back("ENDAGGER");
+        m_QRunes.emplace_back("ENDAGGER");
     }
 
 }
 
 
-string QProgToQRunes::insturctionsQRunes()
+string QProgToQRunes::getInsturctions()
 {
     string instructions;
 
-    for (auto &instruct_out : m_qrunes)
+    for (auto &instruct_out : m_QRunes)
     {
         instructions.append(instruct_out).append("\n");
     }
@@ -409,12 +351,14 @@ string QProgToQRunes::insturctionsQRunes()
 }
 
 
-ostream & QPanda::operator<<(ostream & out, const QProgToQRunes &qrunes_prog)
+string QPanda::transformQProgToQRunes(QProg &prog,QuantumMachine * quantum_machine)
 {
-    for (auto instruct_out : qrunes_prog.m_qrunes)
+    if (nullptr == quantum_machine)
     {
-        out << instruct_out << "\n";
+        QCERR("Quantum machine is nullptr");
+        throw std::invalid_argument("Quantum machine is nullptr");
     }
-
-    return out;
+    QProgToQRunes qRunesTraverse(quantum_machine);
+    qRunesTraverse.transform(prog);
+    return qRunesTraverse.getInsturctions();
 }

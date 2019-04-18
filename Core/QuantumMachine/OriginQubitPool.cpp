@@ -59,7 +59,7 @@ size_t OriginQubitPool::getIdleQubit() const
     return retIdle;
 }
 
-Qubit * OriginQubitPool::Allocate_Qubit()
+Qubit * OriginQubitPool::allocateQubit()
 {
     for (auto iter = vecQubit.begin(); iter != vecQubit.end(); ++iter)
     {
@@ -74,7 +74,7 @@ Qubit * OriginQubitPool::Allocate_Qubit()
     return nullptr;
 }
 
-Qubit * OriginQubitPool::Allocate_Qubit(size_t stQubitAddr)
+Qubit * OriginQubitPool::allocateQubitThroughPhyAddress(size_t stQubitAddr)
 {
     for (auto iter = vecQubit.begin(); iter != vecQubit.end(); ++iter)
     {
@@ -86,6 +86,17 @@ Qubit * OriginQubitPool::Allocate_Qubit(size_t stQubitAddr)
         }
     }
     return nullptr;
+}
+
+Qubit * OriginQubitPool::allocateQubitThroughVirAddress(size_t qubit_num)
+{
+    if (qubit_num >= vecQubit.size())
+    {
+        return nullptr;
+    }
+
+    return  QubitFactory::GetFactoryInstance().
+        GetInstance(vecQubit[qubit_num]);
 }
 
 void OriginQubitPool::Free_Qubit(Qubit* _Qubit)
@@ -105,12 +116,37 @@ void OriginQubitPool::Free_Qubit(Qubit* _Qubit)
 
 size_t OriginQubitPool::getPhysicalQubitAddr(Qubit *qubit)
 {
+    if (nullptr == qubit)
+    {
+        QCERR("qubit is nullptr");
+        throw invalid_argument("qubit is nullptr");
+    }
     for (auto iter = vecQubit.begin(); iter != vecQubit.end(); ++iter)
     {
         auto physAddr = qubit->getPhysicalQubitPtr();
         if (*iter == physAddr)
         {
             return (*iter)->getQubitAddr();
+        }
+    }
+    QCERR("qubit argument error");
+    throw invalid_argument("qubit argument error");
+}
+
+size_t OriginQubitPool::getVirtualQubitAddress(Qubit* qubit) const
+{
+    if (nullptr == qubit)
+    {
+        QCERR("qubit is nullptr");
+        throw invalid_argument("qubit is nullptr");
+    }
+
+    for (size_t i = 0; i<vecQubit.size(); ++i)
+    {
+        auto physAddr = qubit->getPhysicalQubitPtr();
+        if (vecQubit[i] == physAddr)
+        {
+            return i;
         }
     }
     QCERR("qubit argument error");

@@ -1,30 +1,42 @@
 cmake_minimum_required(VERSION 3.1)
 project(QPanda2.0)
 
-if (FIND_CUDA)
-    find_package(CUDA)
-endif(FIND_CUDA)
-
 if(CUDA_FOUND)
-    option (USE_CUDA "Use cuda" ON)
-    include_directories(${CUDA_INCLUDE_DIRS}
-                        ${PROJECT_SOURCE_DIR}/VirtualQuantumProcessor/GPUGates)
+    set(LIB_GPUGATES QPanda-2.0.GPUQGates)
     add_subdirectory(VirtualQuantumProcessor/GPUGates)
-else(CUDA_FOUND)
-    option (USE_CUDA "Use cuda" OFF)
-endif(CUDA_FOUND)
+    list(APPEND LIB_LIST ${LIB_GPUGATES})
+endif (CUDA_FOUND)
 
-file(GLOB_RECURSE QPandaCore_SRCS_H ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 file(GLOB_RECURSE QPandaCore_SRCS_CPP ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp )
-add_library(${PROJECT_NAME} STATIC  ${QPandaCore_SRCS_H} ${QPandaCore_SRCS_CPP} )
+add_library(${LIB_QPANDA} STATIC ${QPandaCore_SRCS_CPP} )
+list(APPEND LIB_LIST ${LIB_XML})
+target_link_libraries(${LIB_QPANDA} ${LIB_LIST})
 
-if(CUDA_FOUND)
-    target_link_libraries(${PROJECT_NAME} TinyXML QPanda-2.0.GPUQGates)   
-else (CUDA_FOUND)
-    target_link_libraries(${PROJECT_NAME} TinyXML)
-endif(CUDA_FOUND)
+if (UNIX)
+    set(LIB_SHARED_QPANDA DLL_QPANDA)
+    add_library(${LIB_SHARED_QPANDA} SHARED ${QPandaCore_SRCS_CPP})
+    target_link_libraries(${LIB_SHARED_QPANDA} ${LIB_LIST})
+    set_target_properties(${LIB_SHARED_QPANDA} PROPERTIES
+                          VERSION ${QPANDA_VERSION} SOVERSION ${QPANDA_MAJOR_VERSION})
+    set_target_properties(${LIB_SHARED_QPANDA} PROPERTIES OUTPUT_NAME "${LIB_QPANDA}")
+    set_target_properties(${LIB_QPANDA} PROPERTIES CLEAN_DIRECT_OUTPUT 1)
+    set_target_properties(${DLL_QPANDA} PROPERTIES CLEAN_DIRECT_OUTPUT 1)
+endif()
 
+INSTALL(TARGETS ${LIB_QPANDA}
+        EXPORT  ${TARGETS_EXPORT_NAME}
+        ARCHIVE DESTINATION lib
+        LIBRARY DESTINATION lib
+        RUNTIME DESTINATION bin)
 
+target_include_directories(${LIB_QPANDA} INTERFACE
+                           $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+                           $<INSTALL_INTERFACE:include/qpanda-2>)
+        
+export(TARGETS ${LIB_QPANDA}
+       APPEND FILE ${PROJECT_BINARY_DIR}/qpanda2.0-target.cmake
+       NAMESPACE QPANDA::
+       )
 
 
 

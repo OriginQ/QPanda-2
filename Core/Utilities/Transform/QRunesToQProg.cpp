@@ -1,39 +1,10 @@
-#include <iostream>
-#include <iomanip>
+#include <regex>
 #include <fstream>
-#include <sstream>
-#include <vector>
-#include <stack>
-#include <stdlib.h>
-#include <iostream>
 #include <algorithm>
-#include <string.h>
-#include "QRunesToQProg.h"
 #include "QPanda.h"
+#include "Core/Utilities/Transform/QRunesToQProg.h"
 USING_QPANDA
 using namespace std;
-string QRunesToQprog::m_file_path ;
-
-
-string calculationFormat(string exper) 
-{
-    for (int i = 0; i < exper.length(); i++) 
-    {
-        if (exper[i] == '-') 
-        {
-            if (i == 0) 
-            {
-                exper.insert(0, 1, '0');
-            }
-            else if (exper[i - 1] == '(') 
-            {
-                exper.insert(i, 1, '0');
-            }
-        }
-
-    }
-    return exper;
-}
 
 int operationType(char c) 
 {
@@ -175,10 +146,22 @@ double calculationResult(vector<string> calculationsolve)
 
 double calculationSolve(string exper) 
 {
-    exper = calculationFormat(exper);
+    for (int i = 0; i < exper.length(); i++)
+    {
+        if (exper[i] == '-')
+        {
+            if (i == 0)
+            {
+                exper.insert(0, 1, '0');
+            }
+            else if (exper[i - 1] == '(')
+            {
+                exper.insert(i, 1, '0');
+            }
+        }
+    }
     vector<string> calculationsolve = operationStack(exper);
-    double result = calculationResult(calculationsolve);
-    return result;
+    return calculationResult(calculationsolve);
 }
 
 void checkAngleExper(string str)
@@ -213,13 +196,11 @@ void checkAngleExper(string str)
                 QCERR("Formal Error");
                 throw invalid_argument("Formal Error");
                      break;
-
             default: 
                 break;
             }
             s.push(str[i]);
             break;
-
         case ')':
         {
             if (s.empty() || s.top() != '(' || str[i - 1] == '(')
@@ -240,7 +221,6 @@ void checkAngleExper(string str)
                 break;
             default:
                 break;
-
             }
             switch (str[i + 1])
             {
@@ -254,15 +234,12 @@ void checkAngleExper(string str)
                 QCERR("Formal Error");
                 throw invalid_argument("Formal Error");
                 break;
-
             }
             s.pop();
             break;
-
         }
         default:
             break;
-
         }
     }
     if (!s.empty())
@@ -301,67 +278,74 @@ void checkAngleExper(string str)
                 throw invalid_argument("Formal Error");
             }
             else
-            {
-                QCERR("Formal Error");
-                throw invalid_argument("Formal Error");
-            }
+            {}
         }
     }
 }
 
-QRunesToQprog::QRunesToQprog()
+QRunesToQProg::QRunesToQProg(string sFilePath):
+m_sFilePath(sFilePath)
 {
-    m_check_legal.emplace_back("#QUBITS_NUM");
-    m_check_legal.emplace_back("#CREGS_NUM");
-    m_check_legal.emplace_back("X");
-    m_check_legal.emplace_back("Y");
-    m_check_legal.emplace_back("Z");
+    m_keyWords.emplace_back("QINIT");
+    m_keyWords.emplace_back("CREG");
+    m_keyWords.emplace_back("X");
+    m_keyWords.emplace_back("Y");
+    m_keyWords.emplace_back("Z");
 
-    m_check_legal.emplace_back("H");
-    m_check_legal.emplace_back("T");
-    m_check_legal.emplace_back("S");
+    m_keyWords.emplace_back("H");
+    m_keyWords.emplace_back("T");
+    m_keyWords.emplace_back("S");
 
-    m_check_legal.emplace_back("RX");
-    m_check_legal.emplace_back("RY");
-    m_check_legal.emplace_back("RZ");
+    m_keyWords.emplace_back("X1");
+    m_keyWords.emplace_back("Y1");
+    m_keyWords.emplace_back("Z1");
 
-    m_check_legal.emplace_back("X1");
-    m_check_legal.emplace_back("Y1");
-    m_check_legal.emplace_back("Z1");
+    m_keyWords.emplace_back("RX");
+    m_keyWords.emplace_back("RY");
+    m_keyWords.emplace_back("RZ");
+    m_keyWords.emplace_back("U1");
 
-    m_check_legal.emplace_back("U1");
-    m_check_legal.emplace_back("U2");
-    m_check_legal.emplace_back("U3");
-    m_check_legal.emplace_back("U4");
+    m_keyWords.emplace_back("CNOT");
+    m_keyWords.emplace_back("CZ");
 
-    m_check_legal.emplace_back("CU");
-    m_check_legal.emplace_back("CNOT");
-    m_check_legal.emplace_back("CZ");
+    m_keyWords.emplace_back("ISWAP");
+    m_keyWords.emplace_back("SQISWAP");
 
-    m_check_legal.emplace_back("CPHASE");
-    m_check_legal.emplace_back("ISWAP");
-    m_check_legal.emplace_back("SQISWAP");
+    m_keyWords.emplace_back("CR");
 
-    m_check_legal.emplace_back("DAGGER");
-    m_check_legal.emplace_back("ENDAGGER");
-    m_check_legal.emplace_back("CONTROL");
-    m_check_legal.emplace_back("ENDCONTROL");
+    m_keyWords.emplace_back("DAGGER");
+    m_keyWords.emplace_back("ENDAGGER");
+    m_keyWords.emplace_back("CONTROL");
+    m_keyWords.emplace_back("ENDCONTROL");
 
-    m_check_legal.emplace_back("QIF");
-    m_check_legal.emplace_back("ELSE");
-    m_check_legal.emplace_back("ENDQIF");
-    m_check_legal.emplace_back("QWHILE");
-    m_check_legal.emplace_back("ENDQWHILE");
+    m_keyWords.emplace_back("MEASURE");
 
-    m_check_legal.emplace_back("MEASURE");
+    m_singleGateFunc.insert(pair<string, std::function<QGate(Qubit *)> >("H",  H));
+    m_singleGateFunc.insert(pair<string, std::function<QGate(Qubit *)> >("T",  T));
+    m_singleGateFunc.insert(pair<string, std::function<QGate(Qubit *)> >("S",  S));
 
+    m_singleGateFunc.insert(pair<string, std::function<QGate(Qubit *)> >("X",  X));
+    m_singleGateFunc.insert(pair<string, std::function<QGate(Qubit *)> >("Y",  Y));
+    m_singleGateFunc.insert(pair<string, std::function<QGate(Qubit *)> >("Z",  Z));
+
+    m_singleGateFunc.insert(pair<string, std::function<QGate(Qubit *)> >("X1", X1));
+    m_singleGateFunc.insert(pair<string, std::function<QGate(Qubit *)> >("Y1", Y1));
+    m_singleGateFunc.insert(pair<string, std::function<QGate(Qubit *)> >("Z1", Z1));
+
+    m_doubleGateFunc.insert(pair<string, std::function<QGate(Qubit *, Qubit *)> >("CNOT", CNOT));
+    m_doubleGateFunc.insert(pair<string, std::function<QGate(Qubit *, Qubit *)> >("CZ", CZ));
+    // m_doubleGateFunc.insert(pair<string, std::function<QGate(Qubit *, Qubit *)> >("ISWAP", iSWAP);
+    m_doubleGateFunc.insert(pair<string, std::function<QGate(Qubit *, Qubit *)> >("SQISWAP", SqiSWAP));
+
+    m_angleGateFunc.insert(pair<string, std::function<QGate(Qubit *, double)> >("RX", RX));
+    m_angleGateFunc.insert(pair<string, std::function<QGate(Qubit *, double)> >("RY", RY));
+    m_angleGateFunc.insert(pair<string, std::function<QGate(Qubit *, double)> >("RZ", RZ));
+    m_angleGateFunc.insert(pair<string, std::function<QGate(Qubit *, double)> >("U1", U1));
+
+    m_doubleAngleGateFunc.insert(pair<string, std::function<QGate(Qubit *, Qubit *, double)> >("CR", CR));
 }
 
-QRunesToQprog::~QRunesToQprog()
-{
-}
-
-void isIntNum(string str)
+int isIntNum(string str)
 {
     stringstream sin(str);
     int int_number;
@@ -370,7 +354,7 @@ void isIntNum(string str)
 
     if (!(sin >> int_number))
     {
-        QCERR("Formal Error");
+        QCERR("isIntError");
         throw invalid_argument("Formal Error");
     }
     if (sin >> char_number)
@@ -378,27 +362,11 @@ void isIntNum(string str)
         QCERR("Formal Error");
         throw invalid_argument("Formal Error");
     }
+
+    return stoi(str);
 }
 
-void isDoubleNum(string str)
-{
-    stringstream sin(str);
-
-    double double_number;
-    char char_number;
-    if (!(sin >> double_number))
-    {
-        QCERR("Formal Error");
-        throw invalid_argument("Formal Error");
-    }
-    if (sin >> char_number)
-    {
-        QCERR("Formal Error");
-        throw invalid_argument("Formal Error");
-    }
-}
-
-void checkNumberLegal(int number,int max_number)
+void checkNumberLegal(int number,size_t max_number)
 {
     if ((number < 0 ) || (number>=max_number))
     {
@@ -407,292 +375,47 @@ void checkNumberLegal(int number,int max_number)
     }
 }
 
-void countKeywords(vector<string> &keywords_vector)
+void countKeywords(vector<string> &keyVec)
 {
-    int dagger_number = (int)count(keywords_vector.begin(), keywords_vector.end(), "DAGGER");
-    int endagger_number = (int)count(keywords_vector.begin(), keywords_vector.end(), "ENDAGGER");
-    int control_number = (int)count(keywords_vector.begin(), keywords_vector.end(), "CONTROL");
-    int endcontrol_number = (int)count(keywords_vector.begin(), keywords_vector.end(), "ENDCONTROL");
-    int qif_number = (int)count(keywords_vector.begin(), keywords_vector.end(), "QIF");
-    int endqif_number = (int)count(keywords_vector.begin(), keywords_vector.end(), "ENDQIF");
-    int qwhile_number = (int)count(keywords_vector.begin(), keywords_vector.end(), "QWHILE");
-    int endqwhile_number = (int)count(keywords_vector.begin(), keywords_vector.end(), "ENDQWHILE");
+    auto countFunc = [=](string keyWords) 
+    { return (int)count(keyVec.begin(), keyVec.end(), keyWords); };
 
-    if (dagger_number != endagger_number || control_number != endcontrol_number || 
-             qif_number != endqif_number || qwhile_number  != endqwhile_number )
-    {
-        QCERR("Illegal KeyWords");
-        throw invalid_argument("Illegal KeyWords");
-    }
+    if (countFunc("DAGGER")  != countFunc("ENDDAGGER")  ||
+        countFunc("CONTROL") != countFunc("ENDCONTROL"))
+        {
+            QCERR("MatchingError");
+            throw invalid_argument("Illegal KeyWords");
+        }
 }
 
-ClassicalCondition QRunesToQprog::checkIfWhileLegal(string ctr_info)
+void QRunesToQProg::qRunesAllocation(vector<string> &m_QRunes, QProg& newQProg)
 {
-    int count_not_number = 0;
-    int first_number_length = 0;
-    int number_length = 0;
-    if (ctr_info.substr(0, 1) == "!")
+    string qubits_number = m_QRunes[0].substr(m_QRunes[0].find(" ") + 1, m_QRunes[0].length());
+    string cregs_number  = m_QRunes[1].substr(m_QRunes[1].find(" ") + 1, m_QRunes[1].length());
+
+    m_all_qubits = qAllocMany(isIntNum(qubits_number));
+    m_all_cregs = cAllocMany(isIntNum(cregs_number));
+
+    for (auto iter = m_QRunes.begin() + 2; iter != m_QRunes.end();)
     {
-        for (; ctr_info.substr(count_not_number, 1) == "!"; count_not_number++);
-        if (   ctr_info.substr(count_not_number, 1) != "c")
-        {
-            QCERR("Formal Error");
-            throw invalid_argument("Formal Error");
-        }
-    }
-    else if (ctr_info.substr(0, 1) == "c")
-    {}
-    else
-    {
-        QCERR("Formal Error");
-        throw invalid_argument("Formal Error");
-    }
-    for (; ctr_info.substr(count_not_number + first_number_length + 1, 1) != "|" && 
-           ctr_info.substr(count_not_number + first_number_length + 1, 1) != "+" && 
-           ctr_info.substr(count_not_number + first_number_length + 1, 1) != "&" && 
-           ctr_info.substr(count_not_number + first_number_length + 1, 1) != "-"; 
-           first_number_length++);
-    if (first_number_length == 0)
-    {
-        QCERR("Formal Error");
-        throw invalid_argument("Formal Error");
-    }
-
-    isIntNum(ctr_info.substr(count_not_number + 1, first_number_length ));
-    int creg_addr = stoi(ctr_info.substr(count_not_number + 1, first_number_length + 1));
-    checkNumberLegal(creg_addr, m_max_cregs);
-    ClassicalCondition condition_exper = m_all_cregs[creg_addr];
-
-    for (int i = 0;i < count_not_number;i++)
-    {
-        condition_exper = !condition_exper;
-    }
-
-    for (int position = first_number_length + 1 + count_not_number ; 
-                                       position !=ctr_info.length();  )
-    {
-        number_length = 0;
-        if (ctr_info.substr(position, 1) == "+")
-        {
-            int count_not_number = 0;
-            for (; ctr_info.substr(position + count_not_number + 1, 1) == "!";
-                count_not_number++);
-            if (ctr_info.substr(position + count_not_number + 1, 1) != "c")
-            {
-                QCERR("Formal Error");
-                throw invalid_argument("Formal Error");
-            }
-
-            for (; (position + count_not_number + number_length + 2) < ctr_info.length() &&
-                ctr_info.substr(position + count_not_number + number_length + 2, 1) != "|" &&
-                ctr_info.substr(position + count_not_number + number_length + 2, 1) != "+" &&
-                ctr_info.substr(position + count_not_number + number_length + 2, 1) != "&" &&
-                ctr_info.substr(position + count_not_number + number_length + 2, 1) != "-";
-                number_length++);
-            if (number_length == 0)
-            {
-                QCERR("Formal Error");
-                throw invalid_argument("Formal Error");
-            }
-
-            isIntNum(ctr_info.substr(position + count_not_number + 2, number_length));
-            int creg_addr = stoi(ctr_info.substr(position + count_not_number + 2, number_length));
-            checkNumberLegal(creg_addr, m_max_cregs);
-            ClassicalCondition condition_exper = m_all_cregs[creg_addr];
-
-            for (int i = 0; i < count_not_number; i++)
-            {
-                condition_exper = !condition_exper;
-            }
-            condition_exper = condition_exper + condition_exper;
-            position = position + count_not_number + number_length + 2;
-        }
-
-        else if (ctr_info.substr(position, 1) == "-")
-        {
-            int count_not_number = 0;
-            for (; ctr_info.substr(position + count_not_number + 1, 1) == "!"; count_not_number++);
-            if (ctr_info.substr(position + count_not_number + 1, 1) != "c")
-            {
-                QCERR("Formal Error");
-                throw invalid_argument("Formal Error");
-            }
-            for (; (position + count_not_number + number_length + 2) < ctr_info.length() &&
-                   ctr_info.substr(position + count_not_number + number_length + 2, 1) != "|" &&
-                   ctr_info.substr(position + count_not_number + number_length + 2, 1) != "+" &&
-                   ctr_info.substr(position + count_not_number + number_length + 2, 1) != "&" &&
-                   ctr_info.substr(position + count_not_number + number_length + 2, 1) != "-"; number_length++);
-
-            if (number_length == 0)
-            {
-                QCERR("Formal Error");
-                throw invalid_argument("Formal Error");
-            }
-
-            isIntNum(ctr_info.substr(position + count_not_number + 2, number_length));
-            int creg_addr = stoi(ctr_info.substr(position + count_not_number + 2, number_length));
-            checkNumberLegal(creg_addr, m_max_cregs);
-            ClassicalCondition condition_exper = m_all_cregs[creg_addr];
-
-            for (int i = 0; i < count_not_number; i++)
-            {
-                condition_exper = !condition_exper;
-            }
-
-            condition_exper = condition_exper - condition_exper;
-            position = position + count_not_number + number_length + 2;
-        }
-
-        else if (ctr_info.substr(  position, 1) == "|")
-        {
-             if (ctr_info.substr(++position, 1) != "|")
-             {
-                 QCERR("Formal Error");
-                throw invalid_argument("Formal Error");
-             }
-
-            int count_not_number = 0;
-            for (; ctr_info.substr(position + count_not_number + 1, 1) == "!"; count_not_number++);
-
-            if (ctr_info.substr(position + count_not_number + 1, 1) != "c")
-            {
-                QCERR("Formal Error");
-                throw invalid_argument("Formal Error");
-            }
-
-            for (; (position + count_not_number + number_length + 2) < ctr_info.length() &&
-                    ctr_info.substr(position + count_not_number + number_length + 2, 1) != "|" &&
-                    ctr_info.substr(position + count_not_number + number_length + 2, 1) != "+" &&
-                    ctr_info.substr(position + count_not_number + number_length + 2, 1) != "&" &&
-                    ctr_info.substr(position + count_not_number + number_length + 2, 1) != "-"; number_length++);
-
-            if (number_length == 0)
-            {
-                QCERR("Formal Error");
-                throw invalid_argument("Formal Error");
-            }
-
-            isIntNum(ctr_info.substr(position + count_not_number + 2, number_length));
-            int creg_addr = stoi(ctr_info.substr(position + count_not_number + 2, number_length));
-            checkNumberLegal(creg_addr, m_max_cregs);
-            ClassicalCondition condition_exper = m_all_cregs[creg_addr];
-
-            for (int i = 0; i < count_not_number; i++)
-            {
-                condition_exper = !condition_exper;
-            }
-
-            condition_exper = condition_exper || condition_exper;
-            position = position + count_not_number + number_length + 2;
-        }
-
-        else if (ctr_info.substr(  position, 1) == "&")
-        {
-            if ( ctr_info.substr(++position, 1) != "&")
-            {
-                QCERR("Formal Error");
-                throw invalid_argument("Formal Error");
-            }
-
-            int count_not_number = 0;
-            for (; ctr_info.substr(position + count_not_number + 1,1) == "!"; count_not_number++);
-            if (ctr_info.substr(position + count_not_number + 1, 1) != "c")
-            {
-                QCERR("Formal Error");
-                throw invalid_argument("Formal Error");
-            }
-
-            for (; (position + count_not_number + number_length + 2) < ctr_info.length() &&
-                    ctr_info.substr(position + count_not_number + number_length + 2, 1) != "|" &&
-                    ctr_info.substr(position + count_not_number + number_length + 2, 1) != "+" &&
-                    ctr_info.substr(position + count_not_number + number_length + 2, 1) != "&" &&
-                    ctr_info.substr(position + count_not_number + number_length + 2, 1) != "-"; number_length++);
-
-            if (number_length == 0)
-            {
-                QCERR("Formal Error");
-                throw invalid_argument("Formal Error");
-            }
-
-            isIntNum(ctr_info.substr(position + count_not_number + 2, number_length));
-            int creg_addr = stoi(ctr_info.substr(position + count_not_number + 2, number_length));
-            checkNumberLegal(creg_addr, m_max_cregs);
-            ClassicalCondition condition_exper = m_all_cregs[creg_addr];
-
-            for (int i = 0; i < count_not_number; i++)
-            {
-                condition_exper = !condition_exper;
-            }
-
-            condition_exper = condition_exper && condition_exper;
-            position = position + count_not_number + number_length + 2;
-        }
-
-        else
-        {
-            QCERR("Formal Error");
-            throw invalid_argument("Formal Error");
-        }
-    }
-
-    return condition_exper;
-
-}
-
-void QRunesToQprog::qRunesAllocation(vector<string> &m_qrunes)
-{
-    string first_line_keyword  = m_qrunes[FIRST_LINE ].substr(0, m_qrunes[FIRST_LINE ].find(" "));
-    string second_line_keyword = m_qrunes[SECOND_LINE].substr(0, m_qrunes[SECOND_LINE].find(" "));
-    string qubits_number = m_qrunes[FIRST_LINE ].substr(m_qrunes[FIRST_LINE].find(" ") + 1, 
-                                                          m_qrunes[FIRST_LINE].length());
-    string cregs_number  = m_qrunes[SECOND_LINE].substr(m_qrunes[SECOND_LINE].find(" ") + 1, 
-                                                          m_qrunes[SECOND_LINE].length());
-
-
-    isIntNum(qubits_number);
-    isIntNum(cregs_number);
-
-    m_max_qubits = stoi(qubits_number);
-    m_max_cregs = stoi(cregs_number);
-
-    for ( int i = 0; i<m_max_qubits; i++ )
-    {
-        m_all_qubits.emplace_back(qAlloc());
-    }
-    for ( int i = 0; i < m_max_cregs; i++)
-    {
-        m_all_cregs.emplace_back(cAlloc());
-    }
-
-
-    for (auto iter = m_qrunes.begin()+2 ; iter!=m_qrunes .end() ;)
-    {
-        iter += QRunesToQprog::traversalQRunes(iter,&m_new_qprog);
+        iter += QRunesToQProg::traversalQRunes(iter, &newQProg);
     }
 
 }
 
-int  QRunesToQprog::handleDaggerCircuit(vector<string>::iterator iter, QNode *qNode)
+int  QRunesToQProg::handleDaggerCircuit(vector<string>::iterator iter, QNode *qNode)
 {
-    if (nullptr == qNode)
-    {
-        QCERR("qNode is Null");
-        throw invalid_argument("qNode is Null");
-    }
-    int node_type = qNode->getNodeType();
-    int circuit_length = 0;
-    int increment = 0;
-
-    auto quantum_circuit = CreateEmptyCircuit();
+    int cirSize{ 0 }, increment{ 0 };
+    auto qCircuit = CreateEmptyCircuit();
 
     for (; (*iter != "ENDAGGER");)
     {
-        increment = traversalQRunes(iter, &quantum_circuit);
+        increment = traversalQRunes(iter, &qCircuit);
         iter += increment;
-        circuit_length += increment;
+        cirSize += increment;
     }
-    quantum_circuit.setDagger(true);
-    if (PROG_NODE == node_type)
+    qCircuit.setDagger(true);
+    if (PROG_NODE == qNode->getNodeType())
     {
         QProg *qProg = dynamic_cast<QProg*>(qNode);
         if (nullptr == qProg)
@@ -700,9 +423,9 @@ int  QRunesToQprog::handleDaggerCircuit(vector<string>::iterator iter, QNode *qN
             QCERR(" Error");
             throw invalid_argument(" error");
         }
-        *qProg << quantum_circuit;
+        *qProg << qCircuit;
     }
-    else if (CIRCUIT_NODE == node_type)
+    else if (CIRCUIT_NODE == qNode->getNodeType())
     {
         QCircuit *qCirCuit = dynamic_cast<QCircuit*>(qNode);
         if (nullptr == qCirCuit)
@@ -710,7 +433,7 @@ int  QRunesToQprog::handleDaggerCircuit(vector<string>::iterator iter, QNode *qN
             QCERR(" Error");
             throw invalid_argument(" error");
         }
-        *qCirCuit << quantum_circuit;
+        *qCirCuit << qCircuit;
     }
     else
     {
@@ -718,41 +441,31 @@ int  QRunesToQprog::handleDaggerCircuit(vector<string>::iterator iter, QNode *qN
         throw invalid_argument("Error");
     }
 
-    return circuit_length;
-
+    return cirSize;
 }
 
-int  QRunesToQprog::handleControlCircuit(vector<string>::iterator iter, QNode *qNode,
+int  QRunesToQProg::handleControlCircuit(vector<string>::iterator iter, QNode *qNode,
                                          vector<Qubit*> &all_ctr_qubits, 
-                                         string &ctr_info)
+                                         string &cExpr)
 {
-    if (nullptr == qNode)
-    {
-        QCERR("qNode is Null");
-        throw invalid_argument("qNode is Null");
-    }
-    int node_type = qNode->getNodeType();
-
-    auto quantum_circuit = CreateEmptyCircuit();
-
-    int circuit_length = 0;
-    int increment = 0;
+    auto qCircuit = CreateEmptyCircuit();
+    int cirSize{ 0 }, increment{ 0 };
 
     for (; (*iter).substr(0, (*iter).find(" ")) != "ENDCONTROL";)
     {
-        increment = traversalQRunes(iter, &quantum_circuit);
+        increment = traversalQRunes(iter, &qCircuit);
         iter += increment;
-        circuit_length += increment;
+        cirSize += increment;
     }
-    string sEnCtrStr = (*iter).substr((*iter).find(" ") + 1);
-    if (sEnCtrStr != ctr_info)
+
+    if ((*iter).substr((*iter).find(" ") + 1) != cExpr)
     {
         QCERR(" Error");
         throw invalid_argument("Error");
     }
-    quantum_circuit.setControl(all_ctr_qubits);
+    qCircuit.setControl(all_ctr_qubits);
 
-    if (PROG_NODE == node_type)
+    if (PROG_NODE == qNode->getNodeType())
     {
         QProg *qProg = dynamic_cast<QProg*>(qNode);
         if (nullptr == qProg)
@@ -760,9 +473,9 @@ int  QRunesToQprog::handleControlCircuit(vector<string>::iterator iter, QNode *q
             QCERR(" Error");
             throw invalid_argument(" error");
         }
-        *qProg << quantum_circuit;
+        *qProg << qCircuit;
     }
-    else if (CIRCUIT_NODE == node_type)
+    else if (CIRCUIT_NODE == qNode->getNodeType())
     {
         QCircuit *qCirCuit = dynamic_cast<QCircuit*>(qNode);
         if (nullptr == qCirCuit)
@@ -770,7 +483,7 @@ int  QRunesToQprog::handleControlCircuit(vector<string>::iterator iter, QNode *q
             QCERR(" Error");
             throw invalid_argument(" error");
         }
-        *qCirCuit << quantum_circuit;
+        *qCirCuit << qCircuit;
     }
     else
     {
@@ -778,25 +491,65 @@ int  QRunesToQprog::handleControlCircuit(vector<string>::iterator iter, QNode *q
         throw invalid_argument("Error");
     }
 
-    return circuit_length;
+    return cirSize;
 
 }
 
-int  QRunesToQprog::handleSingleGate (vector<string>::iterator iter, QNode *qNode,
-                                     const string &gate_name,int qubit_addr)
+int  QRunesToQProg::handleSingleGate (QNode *qNode,
+                                     const string &gateName,int qubit_addr)
 {
-    if (nullptr == qNode)
+    if ( CIRCUIT_NODE == qNode->getNodeType())
     {
-        QCERR("qNode is Null");
-        throw invalid_argument("qNode is Null");
+        QCircuit * qCir = dynamic_cast<QCircuit*>(qNode);
+        if (nullptr == qCir)
+        {
+            QCERR("CircuitError");
+            throw invalid_argument("CircuitError");
+        }
+
+        auto iter = m_singleGateFunc.find(gateName);
+        if (iter != m_singleGateFunc.end())
+        {
+            *qCir << iter->second(m_all_qubits[qubit_addr]);
+        } 
+        else
+        {
+            QCERR("undefined Gate");
+            throw invalid_argument("undefined Gate");
+        }
     }
-    int node_type = qNode->getNodeType();
-    if ( NODE_UNDEFINED == node_type)
+    else if ( PROG_NODE == qNode->getNodeType())
     {
-        QCERR("param error");
-        throw invalid_argument("param error");
+        QProg * qProg = dynamic_cast<QProg*>(qNode);
+        if (nullptr == qProg)
+        {
+            QCERR("QProgError");
+            throw invalid_argument("QProgError");
+        }
+
+        auto iter = m_singleGateFunc.find(gateName);
+        if (iter != m_singleGateFunc.end())
+        {
+            *qProg << iter->second(m_all_qubits[qubit_addr]);
+        }
+        else
+        {
+            QCERR("undefined Gate");
+            throw invalid_argument("undefined Gate");
+        }
     }
-    else if ( CIRCUIT_NODE == node_type )
+    else
+    {
+        QCERR("error");
+        throw invalid_argument(" error");
+    }
+    return 1;
+}
+
+int  QRunesToQProg::handleDoubleGate (QNode *qNode, 
+                                     const string &gateName, int ctr_qubit_addr,int tar_qubit_addr)
+{
+    if (CIRCUIT_NODE == qNode->getNodeType())
     {
         QCircuit * qCir = dynamic_cast<QCircuit*>(qNode);
         if (nullptr == qCir)
@@ -804,44 +557,20 @@ int  QRunesToQprog::handleSingleGate (vector<string>::iterator iter, QNode *qNod
             QCERR("error");
             throw invalid_argument(" error");
         }
-        if (gate_name == "H")
+
+        auto iter = m_doubleGateFunc.find(gateName);
+        if (iter != m_doubleGateFunc.end())
         {
-            *qCir << H(m_all_qubits[qubit_addr]);
+            *qCir << iter->second(m_all_qubits[ctr_qubit_addr], m_all_qubits[tar_qubit_addr]);
         }
-        else if (gate_name == "T")
+        else
         {
-            *qCir << T(m_all_qubits[qubit_addr]);
+            QCERR("undefined Gate");
+            throw invalid_argument("undefined Gate");
         }
-        else if (gate_name == "S")
-        {
-            *qCir << S(m_all_qubits[qubit_addr]);
-        }
-        else if (gate_name == "X")
-        {
-            *qCir << X(m_all_qubits[qubit_addr]);
-        }
-        else if (gate_name == "Y")
-        {
-            *qCir << Y(m_all_qubits[qubit_addr]);
-        }
-        else if (gate_name == "Z")
-        {
-            *qCir << Z(m_all_qubits[qubit_addr]);
-        }
-        else if (gate_name == "X1")
-        {
-            *qCir << X1(m_all_qubits[qubit_addr]);
-        }
-        else if (gate_name == "Y1")
-        {
-            *qCir << Y1(m_all_qubits[qubit_addr]);
-        }
-        else if (gate_name == "Z1")
-        {
-            *qCir << Z1(m_all_qubits[qubit_addr]);
-        }
+
     }
-    else if ( PROG_NODE == node_type)
+    else if (PROG_NODE == qNode->getNodeType())
     {
         QProg * qProg = dynamic_cast<QProg*>(qNode);
         if (nullptr == qProg)
@@ -849,62 +578,24 @@ int  QRunesToQprog::handleSingleGate (vector<string>::iterator iter, QNode *qNod
             QCERR("error");
             throw invalid_argument(" error");
         }
-        if (gate_name == "H")
+        auto iter = m_doubleGateFunc.find(gateName);
+        if (iter != m_doubleGateFunc.end())
         {
-            *qProg << H(m_all_qubits[qubit_addr]);
+            *qProg << iter->second(m_all_qubits[ctr_qubit_addr], m_all_qubits[tar_qubit_addr]);
         }
-        else if (gate_name == "T")
+        else
         {
-            cout << "T " << qubit_addr << endl;
-            *qProg << T(m_all_qubits[qubit_addr]);
-        }
-        else if (gate_name == "S")
-        {
-            *qProg << S(m_all_qubits[qubit_addr]);
-        }
-        else if (gate_name == "X")
-        {
-            *qProg << X(m_all_qubits[qubit_addr]);
-        }
-        else if (gate_name == "Y")
-        {
-            *qProg << Y(m_all_qubits[qubit_addr]);
-        }
-        else if (gate_name == "Z")
-        {
-            *qProg << Z(m_all_qubits[qubit_addr]);
-        }
-        else if (gate_name == "X1")
-        {
-            *qProg << X1(m_all_qubits[qubit_addr]);
-        }
-        else if (gate_name == "Y1")
-        {
-            *qProg << Y1(m_all_qubits[qubit_addr]);
-        }
-        else if (gate_name == "Z1")
-        {
-            *qProg << Z1(m_all_qubits[qubit_addr]);
+            QCERR("undefined Gate");
+            throw invalid_argument("undefined Gate");
         }
     }
     return 1;
 }
 
-int  QRunesToQprog::handleDoubleGate (vector<string>::iterator iter, QNode *qNode, 
-                                     const string &gate_name, int ctr_qubit_addr,int tar_qubit_addr)
+int  QRunesToQProg::handleDoubleAngleGate(QNode *qNode,
+    const string &gateName, int ctr_qubit_addr, int tar_qubit_addr,double angle)
 {
-    if (nullptr == qNode)
-    {
-        QCERR("qNode is Null");
-        throw invalid_argument("qNode is Null");
-    }
-    int node_type = qNode->getNodeType();
-    if (NODE_UNDEFINED == node_type)
-    {
-        QCERR("param error");
-        throw invalid_argument("param error");
-    }
-    else if (CIRCUIT_NODE == node_type)
+    if (CIRCUIT_NODE == qNode->getNodeType())
     {
         QCircuit * qCir = dynamic_cast<QCircuit*>(qNode);
         if (nullptr == qCir)
@@ -912,24 +603,20 @@ int  QRunesToQprog::handleDoubleGate (vector<string>::iterator iter, QNode *qNod
             QCERR("error");
             throw invalid_argument(" error");
         }
-        if (gate_name == "CNOT")
+
+        auto iter = m_doubleAngleGateFunc.find(gateName);
+        if (iter != m_doubleAngleGateFunc.end())
         {
-            *qCir << CNOT(m_all_qubits[ctr_qubit_addr], m_all_qubits[tar_qubit_addr]);
+            *qCir << iter->second(m_all_qubits[ctr_qubit_addr], m_all_qubits[tar_qubit_addr],angle);
         }
-        else if (gate_name == "CZ")
+        else
         {
-            *qCir << CZ(m_all_qubits[ctr_qubit_addr], m_all_qubits[tar_qubit_addr]);
+            QCERR("undefined Gate");
+            throw invalid_argument("undefined Gate");
         }
-        else if (gate_name == "ISWAP")
-        {
-            *qCir << iSWAP(m_all_qubits[ctr_qubit_addr], m_all_qubits[tar_qubit_addr]);
-        }
-        else if (gate_name == "SQISWAP")
-        {
-            *qCir << SqiSWAP(m_all_qubits[ctr_qubit_addr], m_all_qubits[tar_qubit_addr]);
-        }
+
     }
-    else if (PROG_NODE == node_type)
+    else if (PROG_NODE == qNode->getNodeType())
     {
         QProg * qProg = dynamic_cast<QProg*>(qNode);
         if (nullptr == qProg)
@@ -937,41 +624,24 @@ int  QRunesToQprog::handleDoubleGate (vector<string>::iterator iter, QNode *qNod
             QCERR("error");
             throw invalid_argument(" error");
         }
-        if (gate_name == "CNOT")
+        auto iter = m_doubleAngleGateFunc.find(gateName);
+        if (iter != m_doubleAngleGateFunc.end())
         {
-            *qProg << CNOT(m_all_qubits[ctr_qubit_addr], m_all_qubits[tar_qubit_addr]);
+            *qProg << iter->second(m_all_qubits[ctr_qubit_addr], m_all_qubits[tar_qubit_addr],angle);
         }
-        else if (gate_name == "CZ")
+        else
         {
-            *qProg << CZ(m_all_qubits[ctr_qubit_addr], m_all_qubits[tar_qubit_addr]);
-        }
-        else if (gate_name == "ISWAP")
-        {
-            *qProg << iSWAP(m_all_qubits[ctr_qubit_addr], m_all_qubits[tar_qubit_addr]);
-        }
-        else if (gate_name == "SQISWAP")
-        {
-            *qProg << SqiSWAP(m_all_qubits[ctr_qubit_addr], m_all_qubits[tar_qubit_addr]);
+            QCERR("undefined Gate");
+            throw invalid_argument("undefined Gate");
         }
     }
     return 1;
 }
 
-int  QRunesToQprog::handleAngleGate  (vector<string>::iterator iter, QNode *qNode, 
-                                     const string &gate_name, int qubit_addr, double gate_angle)
+int  QRunesToQProg::handleAngleGate  (QNode *qNode, 
+                                     const string &gateName, int qubit_addr, double gate_angle)
 {
-    if (nullptr == qNode)
-    {
-        QCERR("qNode is Null");
-        throw invalid_argument("qNode is Null");
-    }
-    int node_type = qNode->getNodeType();
-    if (NODE_UNDEFINED == node_type)
-    {
-        QCERR("Formal Error");
-        throw invalid_argument("param error");
-    }
-    else if (CIRCUIT_NODE == node_type)
+    if (CIRCUIT_NODE == qNode->getNodeType())
     {
         QCircuit * qCir = dynamic_cast<QCircuit*>(qNode);
         if (nullptr == qCir)
@@ -979,20 +649,20 @@ int  QRunesToQprog::handleAngleGate  (vector<string>::iterator iter, QNode *qNod
             QCERR("Error");
             throw invalid_argument(" error");
         }
-        if (gate_name == "RX")
+
+        auto iter = m_angleGateFunc.find(gateName);
+        if (iter != m_angleGateFunc.end())
         {
-            *qCir << RX(m_all_qubits[qubit_addr], gate_angle);
+            *qCir << iter->second(m_all_qubits[qubit_addr], gate_angle);
         }
-        else if (gate_name == "RY")
+        else
         {
-            *qCir << RY(m_all_qubits[qubit_addr], gate_angle);
+            QCERR("undefined Gate");
+            throw invalid_argument("undefined Gate");
         }
-        else if (gate_name == "RZ")
-        {
-            *qCir << RZ(m_all_qubits[qubit_addr], gate_angle);
-        }
+
     }
-    else if (PROG_NODE == node_type)
+    else if (PROG_NODE == qNode->getNodeType())
     {
         QProg * qProg = dynamic_cast<QProg*>(qNode);
         if (nullptr == qProg)
@@ -1000,165 +670,57 @@ int  QRunesToQprog::handleAngleGate  (vector<string>::iterator iter, QNode *qNod
             QCERR("Formal Error");
             throw invalid_argument(" error");
         }
-        if (gate_name == "RX")
+        auto iter = m_angleGateFunc.find(gateName);
+        if (iter != m_angleGateFunc.end())
         {
-            *qProg << RX(m_all_qubits[qubit_addr], gate_angle);
+            *qProg << iter->second(m_all_qubits[qubit_addr], gate_angle);
         }
-        else if (gate_name == "RY")
+        else
         {
-            *qProg << RY(m_all_qubits[qubit_addr], gate_angle);
-        }
-        else if (gate_name == "RZ")
-        {
-            *qProg << RZ(m_all_qubits[qubit_addr], gate_angle);
+            QCERR("undefined Gate");
+            throw invalid_argument("undefined Gate");
         }
     }
     return 1;
 }
 
-int  QRunesToQprog::handleMeasureGate(vector<string>::iterator iter, QNode *qNode, 
-                                     const string &key_word, int qubit_addr, int creg_addr)
+int  QRunesToQProg::handleMeasureGate(QNode *qNode, 
+                                     const string &keyWord, int qubit_addr, int creg_addr)
 {
-    if (nullptr == qNode)
+    if (nullptr == qNode || PROG_NODE != qNode->getNodeType())
     {
-        QCERR("qNode is Null");
-        throw invalid_argument("qNode is Null");
-    }
-    int node_type = qNode->getNodeType();
-    if (PROG_NODE != node_type)
-    {
-        QCERR("param error");
-        throw invalid_argument("param error");
+        QCERR("NodeError");
+        throw invalid_argument("NodeError");
     }
     else 
     {
         QProg * qProg = dynamic_cast<QProg*>(qNode);
-        if (nullptr == qProg)
-        {
-            QCERR("error");
-            throw invalid_argument(" error");
-        }
         *qProg << Measure(m_all_qubits[qubit_addr], m_all_cregs[creg_addr]);
     }
     return 1;
 }
 
-int  QRunesToQprog::handleQifProg(vector<string>::iterator iter, QNode *qNode,
-                                     ClassicalCondition &condition_exper)
+int  QRunesToQProg::traversalQRunes(vector<string>::iterator iter, QNode *qNode)
 {
     if (nullptr == qNode)
     {
-        QCERR("qNode is Null");
-        throw invalid_argument("qNode is Null");
-    }
-    int node_type = qNode->getNodeType();
-    if (PROG_NODE != node_type)
-    {
-        QCERR("param error");
-        throw invalid_argument("param error");
+        QCERR("NodeError");
+        throw invalid_argument("NodeError");
     }
 
-    auto true_prog = CreateEmptyQProg();
-    auto pFalseProg= CreateEmptyQProg();
-
-    int circuit_length = 0;
-    int increment = 0;
-    int elseincrement = 0;
-    for (; (*iter != "ENDQIF") && (*iter != "ELSE");)
+    string keyWord = (*iter).substr(0, (*iter).find(" "));
+    if (keyWord == "H"  || keyWord == "T"  || keyWord == "S"||
+        keyWord == "X"  || keyWord == "Y"  || keyWord == "Z"||
+        keyWord == "X1" || keyWord == "Y1" || keyWord == "Z1")
     {
-        increment = traversalQRunes(iter, &true_prog);
-        iter += increment;
-        circuit_length += increment;
+        int qubit_addr = isIntNum((*iter).substr((*iter).find(" ") + 1));
+        checkNumberLegal(qubit_addr, m_all_qubits.size());
+        return handleSingleGate(qNode, keyWord, qubit_addr);
     }
 
-    if (*iter == "ELSE")
+    else if (keyWord == "RX" || keyWord == "RY" || keyWord == "RZ" )
     {
-        ++iter;
-        ++circuit_length;
-
-        for (; *iter != "ENDQIF" ;)
-        {
-            increment = traversalQRunes(iter, &pFalseProg);
-            iter += increment;
-            circuit_length += increment;
-        }
-        auto ifProg = CreateIfProg(condition_exper, &true_prog, &pFalseProg);
-        QProg *qProg = dynamic_cast<QProg*>(qNode);
-        if (nullptr == qProg)
-        {
-            QCERR(" error");
-            throw invalid_argument(" error");
-        }
-        *qProg << ifProg;
-    }
-    else
-    {
-        auto ifProg = CreateIfProg(condition_exper, &true_prog);
-        QProg *qProg = dynamic_cast<QProg*>(qNode);
-        if (nullptr == qProg)
-        {
-            QCERR(" error");
-            throw invalid_argument(" error");
-        }
-        *qProg << ifProg;
-    }
-
-    return circuit_length;
-}
-
-int  QRunesToQprog::handleQWhileProg(vector<string>::iterator iter, QNode *qNode, 
-                                     ClassicalCondition &condition_exper)
-{
-    if (nullptr == qNode)
-    {
-        QCERR(" qNode is Null");
-        throw invalid_argument("qNode is Null");
-    }
-    int node_type = qNode->getNodeType();
-    if (PROG_NODE != node_type)
-    {
-        QCERR("param error");
-        throw invalid_argument("param error");
-    }
-
-    auto true_prog=CreateEmptyQProg();
-    int circuit_length = 0;
-    int increment = 0;
-
-    for (; *iter != "ENDQWHILE";)
-    {
-        increment = traversalQRunes(iter, &true_prog);
-        iter += increment;
-        circuit_length += increment;
-    }
-    auto ifProg = CreateWhileProg(condition_exper, &true_prog);
-    QProg *qProg = dynamic_cast<QProg*>(qNode);
-    if (nullptr == qProg)
-    {
-        QCERR("error");
-        throw invalid_argument(" error");
-    }
-    *qProg << ifProg;
-
-    return circuit_length;
-}
-
-int  QRunesToQprog::traversalQRunes(vector<string>::iterator iter, QNode *qNode)
-{
-    string key_word = (*iter).substr(0, (*iter).find(" "));
-    if (key_word == "H"  || key_word == "T"  || key_word == "S"||
-        key_word == "X"  || key_word == "Y"  || key_word == "Z"||
-        key_word == "X1" || key_word == "Y1" || key_word == "Z1")
-    {
-        isIntNum((*iter).substr((*iter).find(" ") + 1));
-        int qubit_addr = stoi((*iter).substr((*iter).find(" ") + 1));
-        checkNumberLegal(qubit_addr, m_max_qubits);
-        return handleSingleGate(iter, qNode, key_word, qubit_addr);
-    }
-
-    else if (key_word == "RX" || key_word == "RY" || key_word == "RZ" )
-    {
-        if ( (-1) ==(*iter).substr((*iter).find(" ")+1).find(","))
+        if ((-1) == (*iter).substr((*iter).find(" ") + 1).find(","))
         {
             QCERR("Formal Error");
             throw invalid_argument("Formal Error");
@@ -1170,151 +732,168 @@ int  QRunesToQprog::traversalQRunes(vector<string>::iterator iter, QNode *qNode)
             throw invalid_argument("Formal Error");
         }
 
-        int number_length = (int)((*iter).find(",")-(*iter).find(" ")-1);
-        isIntNum((*iter).substr( 3 , number_length));
-        int qubit_addr = stoi((*iter).substr(3, number_length));
-        checkNumberLegal(qubit_addr, m_max_qubits);
+        int NumSize = (int)((*iter).find(",")-(*iter).find(" ")-1);
+        
+        int qubit_addr = isIntNum((*iter).substr(3, NumSize));
+        checkNumberLegal(qubit_addr, m_all_qubits.size());
 
-        checkAngleExper((*iter).substr((*iter).find(",") + 2, (*iter).length()- (*iter).find(",")-3));
+        checkAngleExper((*iter).substr((*iter).find(",") + 2, (*iter).length() - (*iter).find(",") - 3));
         double gate_angle = calculationSolve((*iter).substr((*iter).find(",") + 2, (*iter).length() - (*iter).find(",") - 3));
-        return handleAngleGate(++iter, qNode, key_word, qubit_addr,gate_angle);
+        ++iter;
+        return handleAngleGate(qNode, keyWord, qubit_addr,gate_angle);
     }
 
-    else if (key_word == "CNOT" || key_word == "CZ" || key_word == "ISWAP" || key_word == "SQISWAP")
+    else if (keyWord == "CNOT" || keyWord == "CZ" || keyWord == "ISWAP" || keyWord == "SQISWAP")
     {
-        if ((-1) == (*iter).substr((*iter).find(" ") + 1).find(","))
-        {
-            QCERR("Formal Error");
-            throw invalid_argument("Formal Error");
-        }
-        int number_length = (int)((*iter).find(",") - (*iter).find(" ") - 1);
-        isIntNum((*iter).substr((*iter).find(" ") + 1, number_length));
+        int NumSize = (int)((*iter).find(",") - (*iter).find(" ") - 1);
+        int ctr_qubit_addr = isIntNum((*iter).substr((*iter).find(" ") + 1, NumSize));
+        int tar_qubit_addr = isIntNum((*iter).substr((*iter).find(",") + 1));
 
-        int ctr_qubit_addr = stoi((*iter).substr((*iter).find(" ") + 1, number_length));
-        isIntNum((*iter).substr((*iter).find(",") + 1));
-
-        int tar_qubit_addr = stoi((*iter).substr((*iter).find(",") + 1));
-        checkNumberLegal(ctr_qubit_addr, m_max_qubits);
-        checkNumberLegal(tar_qubit_addr, m_max_qubits);
+        checkNumberLegal(ctr_qubit_addr, m_all_qubits.size());
+        checkNumberLegal(tar_qubit_addr, m_all_qubits.size());
 
         if ((ctr_qubit_addr == tar_qubit_addr))
         {
             QCERR("Formal Error");
             throw invalid_argument("Formal Error");
         }
-        return handleDoubleGate(++iter, qNode, key_word, ctr_qubit_addr, tar_qubit_addr);
+        ++iter;
+        return handleDoubleGate(qNode, keyWord, ctr_qubit_addr, tar_qubit_addr);
     }
 
-    else if (key_word == "MEASURE")
+    else if (keyWord == "CR")
+    {
+        std::smatch results;
+        regex num{ "[0-9]+" };
+        regex angle{ "\".*\"" };
+        regex CR{ "CR [0-9]*,[0-9]*,\".*\"" };
+        if (!regex_match((*iter),CR))
+        {
+            QCERR("Formal Error");
+            throw invalid_argument("Formal Error");
+        }
+        else
+        {   
+            std::string s1 = (*iter);
+
+            std::regex_search(s1, results, num);
+            int ctr_qubit_addr = stoi(results[0]);
+            s1 = results.suffix().str();
+            std::regex_search(s1, results, num);
+            int tar_qubit_addr = stoi(results[0]);
+
+            if ((ctr_qubit_addr == tar_qubit_addr))
+            {
+                QCERR("Formal Error");
+                throw invalid_argument("Formal Error");
+            }
+
+            std::regex_search(s1, results, angle);
+            std::string angle = results[0].str().substr(1, results[0].str().length() - 2);
+            double gate_angle = calculationSolve(angle);
+            ++iter;
+            return handleDoubleAngleGate(qNode, keyWord, ctr_qubit_addr, tar_qubit_addr, gate_angle);
+        }
+    }
+
+    else if (keyWord == "MEASURE")
     {
         if ((-1) == (*iter).substr((*iter).find(" ") + 1).find(",$"))
         {
             QCERR("Formal Error");
             throw invalid_argument("Formal Error");
         }
-        int number_length = (int)((*iter).find(",") - (*iter).find(" ") - 1);
-        isIntNum((*iter).substr((*iter).find(" ") + 1, number_length));
+        int NumSize = (int)((*iter).find(",") - (*iter).find(" ") - 1);
 
-        int qubit_addr = stoi((*iter).substr((*iter).find(" ") + 1, number_length));
-        checkNumberLegal(qubit_addr, m_max_qubits);
-
-        isIntNum((*iter).substr((*iter).find(",") + 2));
-        int creg_addr = stoi((*iter).substr((*iter).find(",") + 2));
-
-        checkNumberLegal(creg_addr, m_max_cregs);
-        return handleMeasureGate(++iter, qNode, key_word, qubit_addr, creg_addr);
+        int qubit_addr = isIntNum((*iter).substr((*iter).find(" ") + 1, NumSize));
+        checkNumberLegal(qubit_addr, m_all_qubits.size());
+        
+        int creg_addr = isIntNum((*iter).substr((*iter).find(",") + 2));
+        checkNumberLegal(creg_addr, m_all_cregs.size());
+        ++iter;
+        return handleMeasureGate(qNode, keyWord, qubit_addr, creg_addr);
     }
 
-    else if (key_word == "DAGGER")
+    else if (keyWord == "DAGGER")
     {
-        return handleDaggerCircuit(++iter, qNode)+2;
+        return handleDaggerCircuit(++iter, qNode) + 2;
     }
-    else if (key_word == "CONTROL")
+    else if (keyWord == "CONTROL")
     {
-        string ctr_info=(*iter).substr((*iter).find(" ") + 1);
+        string cExpr=(*iter).substr((*iter).find(" ") + 1);
         vector<Qubit* > all_ctr_qubits;
 
-        for (auto i = 0; i <= ctr_info.length(); i += 2)
+        for (auto i = 0; i <= cExpr.length(); i += 2)
         {
-            isIntNum(ctr_info.substr(i,1));
-            checkNumberLegal(stoi(ctr_info.substr(i, 1)), m_max_qubits);
-            all_ctr_qubits.emplace_back(m_all_qubits[stoi(ctr_info.substr(i, 1))]);
+            checkNumberLegal(isIntNum(cExpr.substr(i, 1)), m_all_qubits.size());
+            all_ctr_qubits.emplace_back(m_all_qubits[stoi(cExpr.substr(i, 1))]);
         }
 
-        for (auto i = 1; i <= ctr_info.length()-1; i += 2)
+        for (auto i = 1; i <= cExpr.length()-1; i += 2)
         {
-            if ("," != ctr_info.substr(i, 1))
+            if ("," != cExpr.substr(i, 1))
             {
                 QCERR("Formal Error");
                 throw invalid_argument("Formal Error");
             }
         }
-        return handleControlCircuit(++iter, qNode, all_ctr_qubits, ctr_info) + 2;
-    }
 
-    else if (key_word == "QIF")
+
+
+        return handleControlCircuit(++iter, qNode, all_ctr_qubits, cExpr) + 2;
+    }
+    else if (keyWord == "")
     {
-        string ctr_info = (*iter).substr((*iter).find(" ") + 1);
-        ClassicalCondition condition_exper = checkIfWhileLegal(ctr_info);
-        return handleQifProg(++iter, qNode, condition_exper)+2;
+        return 1;
     }
-
-    else if (key_word == "QWHILE")
-    {
-        string ctr_info = (*iter).substr((*iter).find(" ") + 1);
-        ClassicalCondition condition_exper = checkIfWhileLegal(ctr_info);
-        return handleQWhileProg(++iter, qNode, condition_exper)+2;
-    }
-
     else
     {
         QCERR("Formal Error");
         throw invalid_argument("Formal Error");
     }
-
-
 }
 
-QProg QRunesToQprog::qRunesParser()
+void QRunesToQProg::qRunesParser(QProg& newQProg)
 {
-    ifstream fin(m_file_path);
+    ifstream fin(m_sFilePath);
+    std::vector<std::string> firstCheck;
+
     if (!fin)
     {
-        QCERR("Open File Failed");
-        throw invalid_argument("Open File Failed");
+        QCERR("FileOpenError");
+        throw init_fail("Open File Failed");
     }
     else
     {
-        string qrunes_line;
+        string sQRunes;
+        regex pattern("PI", regex::icase);
         while (!fin.eof())
         {
-            getline(fin, qrunes_line);
-            string instructions_keyword = qrunes_line.substr(0, qrunes_line.find(" "));
+            getline(fin, sQRunes);
+            sQRunes = regex_replace(sQRunes, pattern, "3.14159265358979");
+            string instruction = sQRunes.substr(0, sQRunes.find(" "));
 
-            auto iter = find(m_check_legal.begin(), m_check_legal.end(), instructions_keyword);
-
-            if (iter == m_check_legal.end())
+            if (find(m_keyWords.begin(), m_keyWords.end(), instruction) == m_keyWords.end())
             {
-                QCERR("UnSupported KeyWords");
-                throw invalid_argument("UnSupported KeyWords");
+                QCERR("KeyWordsError");
+                throw qprog_syntax_error("UnSupported KeyWords");
             }
             else
             {
-                m_first_check.emplace_back(instructions_keyword);
-                m_qrunes.emplace_back(qrunes_line);
+                firstCheck.emplace_back(instruction); 
+                m_QRunes.emplace_back(sQRunes);
             }
         }
         fin.close();
     }
-    countKeywords(m_first_check);
 
-    QRunesToQprog::qRunesAllocation(m_qrunes);
-
-    return m_new_qprog;
-
+    countKeywords(firstCheck);
+    QRunesToQProg::qRunesAllocation(m_QRunes,newQProg);
 }
 
-void QRunesToQprog::setFilePath(string s_FilePath   )
+
+void QPanda::qRunesToQProg(std::string sFilePath, QProg& newQProg)
 {
-    m_file_path = s_FilePath;
- }
+    QRunesToQProg qRunesTraverse(sFilePath);
+    qRunesTraverse.qRunesParser(newQProg);
+}

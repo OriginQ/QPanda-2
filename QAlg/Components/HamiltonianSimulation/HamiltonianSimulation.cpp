@@ -1,8 +1,22 @@
 #include "HamiltonianSimulation/HamiltonianSimulation.h"
-#include "BasicCircuit/BasicCircuit.h"
+#include "QuantumCircuit/QGate.h"
 
 namespace QPanda
 {
+    static QCircuit parity_check_circuit(std::vector<Qubit*> qubit_vec)
+    {
+        QCircuit circuit;
+        for (auto i = 0; i < qubit_vec.size() - 1; i++)
+        {
+            circuit << QGateNodeFactory::getInstance()->getGateNode(
+                "CNOT",
+                qubit_vec[i],
+                qubit_vec[qubit_vec.size() - 1]);
+        }
+
+        return circuit;
+    }
+
     QCircuit simulateZTerm(
         const std::vector<Qubit*> &qubit_vec,
         double coef,
@@ -147,9 +161,9 @@ namespace QPanda
         const std::vector<Qubit*> &qubit_vec)
     {
         QCircuit circuit;
-        for_each(qubit_vec.begin(), qubit_vec.end(), [&](Qubit* qbit)
+        for_each(qubit_vec.begin(), qubit_vec.end(), [&](Qubit* qubit)
         {
-            circuit << QGateNodeFactory::getInstance()->getGateNode(gate, qbit);
+            circuit << QGateNodeFactory::getInstance()->getGateNode(gate, qubit);
         });
 
         return circuit;
@@ -160,9 +174,9 @@ namespace QPanda
         const std::vector<Qubit*>& qubit_vec, 
         QCircuit & circuit)
     {
-        for_each(qubit_vec.begin(), qubit_vec.end(), [&](Qubit* qbit)
+        for_each(qubit_vec.begin(), qubit_vec.end(), [&](Qubit* qubit)
         {
-            circuit << QGateNodeFactory::getInstance()->getGateNode(gate, qbit);
+            circuit << QGateNodeFactory::getInstance()->getGateNode(gate, qubit);
         });
     }
 
@@ -210,11 +224,11 @@ namespace QPanda
         for (size_t i = 0; i < beta.size(); i++)
         {
             QCircuit qcirc = QCircuit();
-            for_each(qubit_vec.begin(), qubit_vec.end(), [&](Qubit* qbit)
+            for_each(qubit_vec.begin(), qubit_vec.end(), [&](Qubit* qubit)
             {
                 qcirc << QGateNodeFactory::getInstance()->getGateNode(
                     "RX",
-                    qbit,
+                    qubit,
                     2 * beta[i]
                 );
 

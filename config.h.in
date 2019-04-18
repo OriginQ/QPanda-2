@@ -1,3 +1,5 @@
 #cmakedefine USE_CUDA
 #cmakedefine USE_PYQPANDA
 #cmakedefine USE_OPENMP
+#cmakedefine USE_CURL
+#cmakedefine USE_MPI

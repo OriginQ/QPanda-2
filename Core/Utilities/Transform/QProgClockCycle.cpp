@@ -2,7 +2,7 @@
 #include "Utilities/TranformQGateTypeStringAndEnum.h"
 using namespace std;
 USING_QPANDA
-QProgClockCycle::QProgClockCycle(map<int, size_t> gate_time)
+QProgClockCycle::QProgClockCycle(std::map<GateType, size_t> gate_time)
     :m_gate_time(gate_time)
 { }
 
@@ -19,7 +19,7 @@ size_t QProgClockCycle::countQProgClockCycle(AbstractQuantumProgram *prog)
     size_t clock_cycle = 0;
     for (auto iter = prog->getFirstNodeIter(); iter != prog->getEndNodeIter(); iter++)
     {
-        QNode * node = *iter;
+        QNode * node = (*iter).get();
         clock_cycle += countQNodeClockCycle(node);
     }
 
@@ -37,7 +37,7 @@ size_t QProgClockCycle::countQCircuitClockCycle(AbstractQuantumCircuit *circuit)
     size_t clock_cycle = 0;
     for (auto iter = circuit->getFirstNodeIter(); iter != circuit->getEndNodeIter(); iter++)
     {
-        QNode * node = *iter;
+        QNode * node = (*iter).get();
         clock_cycle += countQNodeClockCycle(node);
     }
 
@@ -113,7 +113,7 @@ size_t QProgClockCycle::getQGateTime(AbstractQGateNode *gate)
         throw invalid_argument("gate is a nullptr");
     }
 
-    int gate_type = gate->getQGate()->getGateType();
+    GateType gate_type = static_cast<GateType>(gate->getQGate()->getGateType());
     auto iter = m_gate_time.find(gate_type);
     size_t gate_time_value = 0;
 
@@ -122,7 +122,7 @@ size_t QProgClockCycle::getQGateTime(AbstractQGateNode *gate)
         gate_time_value = getDefalutQGateTime(gate_type);
         m_gate_time.insert({gate_type, gate_time_value});
         std::cout << "warning: "
-                  << QGateTypeEnumToString::getInstance()[gate_type]
+                  << TransformQGateType::getInstance()[gate_type]
                   + " gate is not Configured, will be set a default value "
                   + std::to_string(gate_time_value) + "\n";
     }
@@ -171,7 +171,7 @@ size_t QProgClockCycle::countQNodeClockCycle(QNode *node)
     return clock_cycle;
 }
 
-size_t QProgClockCycle::getDefalutQGateTime(int gate_type)
+size_t QProgClockCycle::getDefalutQGateTime(GateType gate_type)
 {
     const size_t kSingleGateDefaultTime = 2;
     const size_t kDoubleGateDefaultTime = 5;
@@ -211,4 +211,10 @@ size_t QProgClockCycle::getDefalutQGateTime(int gate_type)
     }
 
     return 0;
+}
+
+size_t QPanda::getQProgClockCycle(QuantumMachine *qm, QProg &prog)
+{
+    QProgClockCycle counter(qm->getGateTimeMap());
+    return counter.countQProgClockCycle(&prog);
 }

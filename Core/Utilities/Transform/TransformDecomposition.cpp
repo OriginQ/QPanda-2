@@ -1,6 +1,6 @@
 /******************************************************************
 Filename     : TransformDecomposition.cpp
-Creator      : Menghan Dou¡¢cheng xue
+Creator      : Menghan Douï¿½ï¿½cheng xue
 Create time  : 2018-07-04
 Description  : Quantum program adaptation metadata instruction set
 *******************************************************************/
@@ -8,183 +8,66 @@ Description  : Quantum program adaptation metadata instruction set
 #include "QPanda.h"
 #include "QGateCompare.h"
 #include "Utilities/ComplexMatrix.h"
+#include "QPandaException.h"
+#include "Core/Utilities/Utilities.h"
 #define iunit qcomplex_t(0,1)
 USING_QPANDA
 using namespace std;
-inline double getArgument(qcomplex_t num)
+
+
+inline double getArgument(qcomplex_t cNumber)
 {
-    if (num.imag() >= 0)
+    if (cNumber.imag() >= 0)
     {
-        return acos(num.real() / sqrt(num.real()*num.real() + num.imag()*num.imag()));
+        return acos(cNumber.real() / sqrt(cNumber.real()*cNumber.real() + cNumber.imag()*cNumber.imag()));
     }
     else
     {
-        return -acos(num.real() / sqrt(num.real()*num.real() + num.imag()*num.imag()));
+        return -acos(cNumber.real() / sqrt(cNumber.real()*cNumber.real() + cNumber.imag()*cNumber.imag()));
     }
-
 }
 
-/*****************************************************************
-Name        : TransformDecomposition
-Description : structure TransformDecomposition
-argin       : ValidQGateMatrix  Validated instruction set
-QGateMatrix       Original instruction set
-argout      :
-Return      :
-*****************************************************************/
-TransformDecomposition::
-TransformDecomposition(vector<vector<string>> &ValidQGateMatrix,
-    vector<vector<string>> &QGateMatrix,
-    vector<vector<int> > &vAdjacentMatrix)
+double transformMatrixToAxis(QStat &QMatrix, axis &Axis)
 {
+
+    double dRotateAngle;
+
+    double a0 = abs((QMatrix[0] + QMatrix[3])) / 2.0;
+    double a1 = abs((QMatrix[1] + QMatrix[2])) / 2.0;
+    double a2 = abs((QMatrix[1] - QMatrix[2])*qcomplex_t(0, 1)) / 2.0;
+    double a3 = abs((QMatrix[0] - QMatrix[3])) / 2.0;
+
+    dRotateAngle = acos(abs(a0));
+
     /*
-    * Initialize member variable
+    if QMatrix is unit matrix,set axis is Z axis,rotate angle is 0
     */
-    if (ValidQGateMatrix[0][0] == "RX")
+    if (abs(abs(a0) - 1) < ZeroJudgement)
     {
-        base.n1 = { 1,0,0 };
-        if (ValidQGateMatrix[0][1] == "RY")
-        {
-            base.n2 = { 0,1,0 };
-        }
-        else if (ValidQGateMatrix[0][1] == "RZ" || ValidQGateMatrix[0][1] == "U1")
-        {
-            base.n2 = { 0,0,1 };
-        }
-        else if (ValidQGateMatrix[0][1] == "H")
-        {
-            QStat QMatrix = { 1 / SQRT2,1 / SQRT2 ,1 / SQRT2 ,-1 / SQRT2 };
-            rotateAxis(QMatrix, base.n1, base.n2);
-        }
-        else if (ValidQGateMatrix[0][1] == "Y1")
-        {
-            QStat QMatrix = { cos(PI / 4),-sin(PI / 4),sin(PI / 4),cos(PI / 4) };
-            rotateAxis(QMatrix, base.n1, base.n2);
-        }
-        else if (ValidQGateMatrix[0][1] == "Z1")
-        {
-            QStat QMatrix = { qcomplex_t(cos(PI / 4),-sin(PI / 4)),0,0,qcomplex_t(cos(PI / 4),+sin(PI / 4)) };
-            rotateAxis(QMatrix, base.n1, base.n2);
-        }
-        else if (ValidQGateMatrix[0][1] == "S")
-        {
-            QStat QMatrix = { 1,0,0,iunit };
-            rotateAxis(QMatrix, base.n1, base.n2);
-        }
-        else if (ValidQGateMatrix[0][1] == "T")
-        {
-            QStat QMatrix = { 1,0,0,1 / SQRT2 + iunit / SQRT2 };
-            rotateAxis(QMatrix, base.n1, base.n2);
-        }
-        else
-        {
-            QCERR("unknow error");
-            throw runtime_error("unknow error");
-        }
-    }
-    else if (ValidQGateMatrix[0][0] == "RY")
-    {
-        base.n1 = { 0,1,0 };
-        if (ValidQGateMatrix[0][1] == "RX")
-        {
-            base.n2 = { 1,0,0 };
-        }
-        else if (ValidQGateMatrix[0][1] == "RZ" || ValidQGateMatrix[0][1] == "U1")
-        {
-            base.n2 = { 0,0,1 };
-        }
-        else if (ValidQGateMatrix[0][1] == "X1")
-        {
-            QStat QMatrix = { cos(PI / 4),-iunit * sin(PI / 4),-iunit * sin(PI / 4) ,cos(PI / 4) };
-            rotateAxis(QMatrix, base.n1, base.n2);
-        }
-        else if (ValidQGateMatrix[0][1] == "Z1")
-        {
-            QStat QMatrix = { qcomplex_t(cos(PI / 4),-sin(PI / 4)),0,0,qcomplex_t(cos(PI / 4),sin(PI / 4)) };
-            rotateAxis(QMatrix, base.n1, base.n2);
-        }
-        else if (ValidQGateMatrix[0][1] == "S")
-        {
-            QStat QMatrix = { 1,0,0,iunit };
-            rotateAxis(QMatrix, base.n1, base.n2);
-        }
-        else if (ValidQGateMatrix[0][1] == "T")
-        {
-            QStat QMatrix = { 1,0,0,1 / SQRT2 + iunit / SQRT2 };
-            rotateAxis(QMatrix, base.n1, base.n2);
-        }
-        else
-        {
-            QCERR("unknow error");
-            throw runtime_error("unknow error");
-        }
-    }
-    else if (ValidQGateMatrix[0][0] == "RZ" || ValidQGateMatrix[0][0] == "U1")
-    {
-        base.n1 = { 0,0,1 };
-        if (ValidQGateMatrix[0][1] == "RX")
-        {
-            base.n2 = { 1,0,0 };
-        }
-        else if (ValidQGateMatrix[0][1] == "RY")
-        {
-            base.n2 = { 0,1,0 };
-        }
-        else if (ValidQGateMatrix[0][1] == "H")
-        {
-            QStat QMatrix = { 1 / SQRT2,1 / SQRT2 ,1 / SQRT2 ,-1 / SQRT2 };
-            rotateAxis(QMatrix, base.n1, base.n2);
-        }
-        else if (ValidQGateMatrix[0][1] == "Y1")
-        {
-            QStat QMatrix = { cos(PI / 4),-sin(PI / 4),sin(PI / 4),cos(PI / 4) };
-            rotateAxis(QMatrix, base.n1, base.n2);
-        }
-        else if (ValidQGateMatrix[0][1] == "X1")
-        {
-            QStat QMatrix = { cos(PI / 4),-iunit * sin(PI / 4),-iunit * sin(PI / 4) ,cos(PI / 4) };
-            rotateAxis(QMatrix, base.n1, base.n2);
-        }
-        else if (ValidQGateMatrix[0][1] == "S")
-        {
-            QStat QMatrix = { 1,0,0,iunit };
-            rotateAxis(QMatrix, base.n1, base.n2);
-        }
-        else
-        {
-            QCERR("unknow error");
-            throw runtime_error("unknow error");
-        }
+        Axis.nx = 0;
+        Axis.ny = 0;
+        Axis.nz = 1;
     }
     else
     {
-        QCERR("unknow error");
-        throw runtime_error("unknow error");
+
+        Axis.nx = a1;
+        Axis.ny = a2;
+        Axis.nz = a3;
+
+        double dSum = Axis.nx*Axis.nx + Axis.ny*Axis.ny + Axis.nz*Axis.nz;
+        dSum = sqrt(dSum);
+
+        Axis.nx = Axis.nx / dSum;
+        Axis.ny = Axis.ny / dSum;
+        Axis.nz = Axis.nz / dSum;
     }
 
-    m_sValidQGateMatrix = ValidQGateMatrix;
-    m_sQGateMatrix = QGateMatrix;
-    m_iAdjacentMatrix = vAdjacentMatrix;
+    return 2 * dRotateAngle;
+
 }
 
-
-
-TransformDecomposition::~TransformDecomposition()
-{
-}
-
-void TransformDecomposition::matrixMultiplicationOfSingleQGate(QStat & LeftMatrix, QStat & RightMatrix)
-{
-    QStat QMatrix(SingleGateMatrixSize);
-
-    QMatrix[0] = LeftMatrix[0] * RightMatrix[0] + LeftMatrix[1] * RightMatrix[2];
-    QMatrix[1] = LeftMatrix[0] * RightMatrix[1] + LeftMatrix[1] * RightMatrix[3];
-    QMatrix[2] = LeftMatrix[2] * RightMatrix[0] + LeftMatrix[3] * RightMatrix[2];
-    QMatrix[3] = LeftMatrix[2] * RightMatrix[1] + LeftMatrix[3] * RightMatrix[3];
-
-    RightMatrix = QMatrix;
-}
-void TransformDecomposition::rotateAxis(QStat & QMatrix, axis & OriginAxis, axis& NewAxis)
+void DecomposeUnitarySingleQGateIntoMetadataSingleQGate::rotateAxis(QStat & QMatrix, axis & OriginAxis, axis& NewAxis)
 {
     double dTheta;
     double dAlpha;
@@ -234,7 +117,7 @@ void TransformDecomposition::rotateAxis(QStat & QMatrix, axis & OriginAxis, axis
 
     return;
 }
-void TransformDecomposition::matrixMultiplicationOfDoubleQGate(QStat & LeftMatrix, QStat & RightMatrix)
+void DecomposeDoubleQGate::matrixMultiplicationOfDoubleQGate(QStat & LeftMatrix, QStat & RightMatrix)
 {
     QStat vMatrix(DoubleGateMatrixSize, 0);
 
@@ -255,7 +138,7 @@ void TransformDecomposition::matrixMultiplicationOfDoubleQGate(QStat & LeftMatri
     LeftMatrix = vMatrix;
 }
 
-void TransformDecomposition::generateMatrixOfTwoLevelSystem(QStat & NewMatrix, QStat & OldMatrix, size_t Row, size_t Column)
+void DecomposeDoubleQGate::generateMatrixOfTwoLevelSystem(QStat & NewMatrix, QStat & OldMatrix, size_t Row, size_t Column)
 {
     for (auto iter = NewMatrix.begin(); iter != NewMatrix.end(); iter++)
     {
@@ -278,18 +161,8 @@ void TransformDecomposition::generateMatrixOfTwoLevelSystem(QStat & NewMatrix, Q
     }
 }
 
-/*****************************************************************
-Name        : decomposeDoubleQGate
-Description : DoubleGate conversion to CU and singleGate
-argin       : pNode              Target gate pointer
-pParentNode        Target gate's parent node
-traversalAlgorithm traversalAlgorithm pointer
-argout      :
-Return      :
-******************************************************************/
-void QPanda::decomposeDoubleQGate(AbstractQGateNode * pNode,
-    QNode * pParentNode,
-    TransformDecomposition * traversalAlgorithm)
+void DecomposeDoubleQGate::execute(AbstractQGateNode * pNode,
+    QNode * pParentNode)
 {
     if (nullptr == pNode)
     {
@@ -299,12 +172,12 @@ void QPanda::decomposeDoubleQGate(AbstractQGateNode * pNode,
     QuantumGate* qGate;
     qGate = pNode->getQGate();
 
-    if (pNode->getQuBitNum() == 1)
+    if (pNode->getTargetQubitNum() == 1)
     {
         return;
     }
 
-    vector<Qubit*> vQubit;
+    QVec vQubit;
 
     if (pNode->getQuBitVector(vQubit) <= 0)
     {
@@ -337,7 +210,7 @@ void QPanda::decomposeDoubleQGate(AbstractQGateNode * pNode,
                 vMatrix2[2] = vMatrix[SingleGateMatrixSize * j + i] / dSum;
                 vMatrix2[3] = -vMatrix[5 * i] / dSum;
 
-                traversalAlgorithm->generateMatrixOfTwoLevelSystem(vMatrix1, vMatrix2, i, j);
+                generateMatrixOfTwoLevelSystem(vMatrix1, vMatrix2, i, j);
 
                 size_t stMatrixIndex = SingleGateMatrixSize * j + i;
 
@@ -369,59 +242,19 @@ void QPanda::decomposeDoubleQGate(AbstractQGateNode * pNode,
                     qCircuit << CU(vMatrix2, vQubit[0], vQubit[1]);
                     break;
                 }
-                traversalAlgorithm->matrixMultiplicationOfDoubleQGate(vMatrix, vMatrix1);
+                matrixMultiplicationOfDoubleQGate(vMatrix, vMatrix1);
             }
         }
     }
 
     auto qCircuitDagger = qCircuit.dagger();
 
-    traversalAlgorithm->insertQCircuit(pNode, qCircuitDagger, pParentNode);
-
-
+    insertQCircuit(pNode, qCircuitDagger, pParentNode);
 }
 
-double TransformDecomposition::transformMatrixToAxis(QStat &QMatrix, axis &Axis)
-{
 
-    double dRotateAngle;
 
-    double a0 = abs((QMatrix[0] + QMatrix[3])) / 2.0;
-    double a1 = abs((QMatrix[1] + QMatrix[2])) / 2.0;
-    double a2 = abs((QMatrix[1] - QMatrix[2])*qcomplex_t(0, 1)) / 2.0;
-    double a3 = abs((QMatrix[0] - QMatrix[3])) / 2.0;
-
-    dRotateAngle = acos(abs(a0));
-
-    /*
-    if QMatrix is unit matrix,set axis is Z axis,rotate angle is 0
-    */
-    if (abs(abs(a0) - 1) < ZeroJudgement)
-    {
-        Axis.nx = 0;
-        Axis.ny = 0;
-        Axis.nz = 1;
-    }
-    else
-    {
-
-        Axis.nx = a1;
-        Axis.ny = a2;
-        Axis.nz = a3;
-
-        double dSum = Axis.nx*Axis.nx + Axis.ny*Axis.ny + Axis.nz*Axis.nz;
-        dSum = sqrt(dSum);
-
-        Axis.nx = Axis.nx / dSum;
-        Axis.ny = Axis.ny / dSum;
-        Axis.nz = Axis.nz / dSum;
-    }
-
-    return 2 * dRotateAngle;
-
-}
-
-void TransformDecomposition::QGateExponentArithmetic(AbstractQGateNode * pNode, double Exponent, QStat & QMatrix)
+void DecomposeMultipleControlQGate::QGateExponentArithmetic(AbstractQGateNode * pNode, double Exponent, QStat & QMatrix)
 {
     QuantumGate *gat = pNode->getQGate();
 
@@ -451,7 +284,7 @@ void TransformDecomposition::QGateExponentArithmetic(AbstractQGateNode * pNode, 
 
 }
 
-void TransformDecomposition::transformAxisToMatrix(axis &Axis, double Angle, QStat &QMatrix)
+void DecomposeMultipleControlQGate::transformAxisToMatrix(axis &Axis, double Angle, QStat &QMatrix)
 {
     QMatrix.resize(SingleGateMatrixSize);
 
@@ -461,10 +294,10 @@ void TransformDecomposition::transformAxisToMatrix(axis &Axis, double Angle, QSt
     QMatrix[3] = qcomplex_t(cos(Angle / 2), sin(Angle / 2)*Axis.nz);
 }
 
-QCircuit TransformDecomposition::
+QCircuit DecomposeMultipleControlQGate::
 firstStepOfMultipleControlQGateDecomposition(AbstractQGateNode* pNode, Qubit * AncillaQubit)
 {
-    vector<Qubit*> vTargetQubit;
+    QVec vTargetQubit;
 
     if (pNode->getQuBitVector(vTargetQubit) <= 0)
     {
@@ -472,7 +305,7 @@ firstStepOfMultipleControlQGateDecomposition(AbstractQGateNode* pNode, Qubit * A
         throw runtime_error("the num of qubit vector error");
     }
 
-    vector<Qubit*> vControlQubit;
+    QVec vControlQubit;
 
     if (pNode->getControlVector(vControlQubit) <= 0)
     {
@@ -569,10 +402,10 @@ firstStepOfMultipleControlQGateDecomposition(AbstractQGateNode* pNode, Qubit * A
     return qCircuit;
 }
 
-QCircuit TransformDecomposition::
+QCircuit DecomposeMultipleControlQGate::
 secondStepOfMultipleControlQGateDecomposition(AbstractQGateNode *pNode, vector<Qubit*> AncillaQubitVector)
 {
-    vector<Qubit*> vTargetQubit;
+    QVec vTargetQubit;
 
     if (pNode->getQuBitVector(vTargetQubit) <= 0)
     {
@@ -580,7 +413,7 @@ secondStepOfMultipleControlQGateDecomposition(AbstractQGateNode *pNode, vector<Q
         throw runtime_error("the num of qubit vector error");
     }
 
-    vector<Qubit*> vControlQubit;
+    QVec vControlQubit;
 
     if (pNode->getControlVector(vControlQubit) <= 0)
     {
@@ -633,7 +466,7 @@ secondStepOfMultipleControlQGateDecomposition(AbstractQGateNode *pNode, vector<Q
     return qCircuit;
 }
 
-QCircuit TransformDecomposition::decomposeToffoliQGate(Qubit * TargetQubit, vector<Qubit*> ControlQubits)
+QCircuit DecomposeMultipleControlQGate::decomposeToffoliQGate(Qubit * TargetQubit, vector<Qubit*> ControlQubits)
 {
     auto qCircuit = CreateEmptyCircuit();
 
@@ -653,9 +486,9 @@ QCircuit TransformDecomposition::decomposeToffoliQGate(Qubit * TargetQubit, vect
 
     return qCircuit;
 }
-QCircuit TransformDecomposition::decomposeTwoControlSingleQGate(AbstractQGateNode * pNode)
+QCircuit DecomposeMultipleControlQGate::decomposeTwoControlSingleQGate(AbstractQGateNode * pNode)
 {
-    vector<Qubit*> vTargetQubit;
+    QVec vTargetQubit;
 
     auto qCircuit = CreateEmptyCircuit();
 
@@ -665,7 +498,7 @@ QCircuit TransformDecomposition::decomposeTwoControlSingleQGate(AbstractQGateNod
         throw runtime_error("the num of qubit vector error");
     }
 
-    vector<Qubit*> vControlQubit;
+    QVec vControlQubit;
 
     if (pNode->getControlVector(vControlQubit) <= 0)
     {
@@ -692,7 +525,7 @@ QCircuit TransformDecomposition::decomposeTwoControlSingleQGate(AbstractQGateNod
 
     return qCircuit;
 }
-QCircuit TransformDecomposition::tempStepOfMultipleControlQGateDecomposition(vector<Qubit*> ControlQubits, vector<Qubit*> AncillaQubits)
+QCircuit DecomposeMultipleControlQGate::tempStepOfMultipleControlQGateDecomposition(vector<Qubit*> ControlQubits, vector<Qubit*> AncillaQubits)
 {
     auto qCircuit = CreateEmptyCircuit();
 
@@ -734,38 +567,29 @@ QCircuit TransformDecomposition::tempStepOfMultipleControlQGateDecomposition(vec
     return qCircuit;
 }
 
-/******************************************************************
-Name        : decomposeMultipleControlQGate
-Description : Multiple control gate conversion to quantum circuit
-argin       : pNode              Target gate pointer
-pParentNode        Target gate's parent node
-traversalAlgorithm traversalAlgorithm pointer
-argout      :
-Return      :
-******************************************************************/
-void QPanda::decomposeMultipleControlQGate(AbstractQGateNode *pNode, QNode * pParentNode, TransformDecomposition * traversalAlgorithm)
+void DecomposeMultipleControlQGate::execute(AbstractQGateNode *node, QNode * parent_node)
 {
-    vector<Qubit*> vTargetQubit;
+    QVec vTargetQubit;
 
-    if (pNode->getQuBitVector(vTargetQubit) != 1)
+    if (node->getQuBitVector(vTargetQubit) != 1)
     {
         return;
     }
 
-    vector<Qubit*> vControlQubit;
+    QVec vControlQubit;
 
-    if (CIRCUIT_NODE == pParentNode->getNodeType())
+    if (CIRCUIT_NODE == parent_node->getNodeType())
     {
-        AbstractQuantumCircuit *pQcir = dynamic_cast<AbstractQuantumCircuit*>(pParentNode);
+        AbstractQuantumCircuit *pQcir = dynamic_cast<AbstractQuantumCircuit*>(parent_node);
         pQcir->getControlVector(vControlQubit);
     }
 
-    if (pNode->getControlVector(vControlQubit) <= 0)
+    if (node->getControlVector(vControlQubit) <= 0)
     {
         return;
     }
 
-    QuantumGate* qgate = pNode->getQGate();
+    QuantumGate* qgate = node->getQGate();
 
     QStat qMatrix;
     qgate->getMatrix(qMatrix);
@@ -773,7 +597,7 @@ void QPanda::decomposeMultipleControlQGate(AbstractQGateNode *pNode, QNode * pPa
     QStat vMatrix;
     QStat matrixdagger;
 
-    traversalAlgorithm->QGateExponentArithmetic(pNode, 0.5, vMatrix);
+    QGateExponentArithmetic(node, 0.5, vMatrix);
 
     auto qCircuit = CreateEmptyCircuit();
 
@@ -787,7 +611,7 @@ void QPanda::decomposeMultipleControlQGate(AbstractQGateNode *pNode, QNode * pPa
     else if (vControlQubit.size() == 2)
     {
         //pNode->setControl(vControlQubit);
-        qCircuit << traversalAlgorithm->decomposeTwoControlSingleQGate(pNode);
+        qCircuit << decomposeTwoControlSingleQGate(node);
     }
     else if (vControlQubit.size() == 3)
     {
@@ -801,9 +625,9 @@ void QPanda::decomposeMultipleControlQGate(AbstractQGateNode *pNode, QNode * pPa
         qGate.setControl(vTempQubit);
 
         qCircuit << CU(vMatrix, vControlQubit[2], vTargetQubit[0])
-            << traversalAlgorithm->decomposeToffoliQGate(vControlQubit[2], { vControlQubit[0],vControlQubit[1] })
-            << qGate0 << traversalAlgorithm->decomposeToffoliQGate(vControlQubit[2], { vControlQubit[0],vControlQubit[1] })
-            << traversalAlgorithm->decomposeTwoControlSingleQGate(&qGate);
+            << decomposeToffoliQGate(vControlQubit[2], { vControlQubit[0],vControlQubit[1] })
+            << qGate0 << decomposeToffoliQGate(vControlQubit[2], { vControlQubit[0],vControlQubit[1] })
+            << decomposeTwoControlSingleQGate(&qGate);
     }
     else if (vControlQubit.size() > 3)
     {
@@ -816,19 +640,44 @@ void QPanda::decomposeMultipleControlQGate(AbstractQGateNode *pNode, QNode * pPa
 
         qGate1.setControl(vControlQubit);
 
-        auto qCircuit1 = traversalAlgorithm->firstStepOfMultipleControlQGateDecomposition(&qGate1, vTargetQubit[0]);
-        auto qCircuit2 = traversalAlgorithm->firstStepOfMultipleControlQGateDecomposition(&qGate1, vTargetQubit[0]);
+        auto qCircuit1 = firstStepOfMultipleControlQGateDecomposition(&qGate1, vTargetQubit[0]);
+        auto qCircuit2 = firstStepOfMultipleControlQGateDecomposition(&qGate1, vTargetQubit[0]);
 
         auto qGate2 = U4(vMatrix, vTargetQubit[0]);
         qGate2.setControl(vControlQubit);
 
-        auto qCircuit3 = traversalAlgorithm->firstStepOfMultipleControlQGateDecomposition(&qGate2, temp);
+        auto qCircuit3 = firstStepOfMultipleControlQGateDecomposition(&qGate2, temp);
 
         qCircuit << CU(vMatrix, vControlQubit[vControlQubit.size() - 1], vTargetQubit[0]) << qCircuit1         //CV and CC..C-NOT
             << qGate0 << qCircuit2 << qCircuit3;
     }
 
-    traversalAlgorithm->insertQCircuit(pNode, qCircuit, pParentNode);
+    insertQCircuit(node, qCircuit, parent_node);
+}
+
+void DecomposeMultipleControlQGate::execute(AbstractQuantumCircuit * node, QNode * parent_node)
+{
+    if (nullptr == node)
+    {
+        QCERR("node is nullptr");
+        throw invalid_argument("node is nullptr");
+    }
+
+    if (nullptr == parent_node)
+    {
+        QCERR("parent node is nullptr");
+        throw invalid_argument("parent node is nullptr");
+    }
+
+    if (CIRCUIT_NODE == parent_node->getNodeType())
+    {
+        AbstractQuantumCircuit *parent_qcircuit = dynamic_cast<AbstractQuantumCircuit*>(parent_node);
+        QVec vControlQubit;
+        parent_qcircuit->getControlVector(vControlQubit);
+        node->setControl(vControlQubit);
+    }
+
+    Traversal::traversal(node, this, false);
 }
 
 /******************************************************************
@@ -840,36 +689,33 @@ traversalAlgorithm traversalAlgorithm pointer
 argout      :
 Return      :
 ******************************************************************/
-void QPanda::decomposeControlUnitarySingleQGate(AbstractQGateNode * pNode, QNode * pParentNode, TransformDecomposition * traversalAlgorithm)
+void DecomposeControlUnitarySingleQGate::execute(AbstractQGateNode * node, QNode * parent_node)
 {
-
-    if (pNode->getQuBitNum() == 1)
+    if (node->getTargetQubitNum() == 1)
     {
         return;
     }
 
-    auto pTargetQuBit = pNode->popBackQuBit();
-    auto pControlQuBit = pNode->popBackQuBit();
+    auto target_qubit = node->popBackQuBit();
+    auto control_qubit = node->popBackQuBit();
 
-    pNode->PushBackQuBit(pTargetQuBit);
+    node->PushBackQuBit(target_qubit);
 
-    vector<Qubit *> vControlQubit = { pControlQuBit };
+    vector<Qubit *> vControlQubit = { control_qubit };
 
-    pNode->setControl(vControlQubit);
+    node->setControl(vControlQubit);
 
-    auto pQGate = pNode->getQGate();
+    auto qgate = node->getQGate();
 
-    auto qg = pNode->getQGate();
-
-    if (nullptr == pQGate)
+    if (nullptr == qgate)
     {
-        QCERR("pQGate is null");
-        throw runtime_error("pQGate is null");
+        QCERR("qgate is null");
+        throw runtime_error("qgate is null");
     }
 
-    vector<Qubit*> qubitVector;
+    QVec qubitVector;
 
-    if (pNode->getQuBitVector(qubitVector) <= 0)
+    if (node->getQuBitVector(qubitVector) <= 0)
     {
         QCERR("the size of qubit vector is error");
         throw runtime_error("the size of qubit vector is error");
@@ -877,15 +723,14 @@ void QPanda::decomposeControlUnitarySingleQGate(AbstractQGateNode * pNode, QNode
 
     auto targetQubit = qubitVector[0];
 
-    auto pU4 = new QGATE_SPACE::U4(pQGate->getAlpha(),
-        pQGate->getBeta(),
-        pQGate->getGamma(),
-        pQGate->getDelta());
-    delete(pQGate);
-    pNode->setQGate(pU4);
+    auto pU4 = new QGATE_SPACE::U4(qgate->getAlpha(),
+        qgate->getBeta(),
+        qgate->getGamma(),
+        qgate->getDelta());
+    delete(qgate);
+    node->setQGate(pU4);
 }
 
-extern QCircuit QPanda::swapQGate(vector<int> ShortestWay, string MetadataQGate);
 /******************************************************************
 Name        : decomposeControlSingleQGateIntoMetadataDoubleQGate
 Description : Control single gate conversion to metadata double
@@ -896,11 +741,12 @@ traversalAlgorithm traversalAlgorithm pointer
 argout      :
 Return      :
 ******************************************************************/
-void QPanda::decomposeControlSingleQGateIntoMetadataDoubleQGate(AbstractQGateNode * pNode,
-    QNode * pParentNode, TransformDecomposition * traversalAlgorithm)
+void DecomposeControlSingleQGateIntoMetadataDoubleQGate ::
+     execute(AbstractQGateNode * node,
+     QNode * parent_node)
 {
 
-    string sGateName = traversalAlgorithm->m_sValidQGateMatrix[1][0];
+    string sGateName = m_valid_qgate_matrix[1][0];
 
     if (sGateName.size() <= 0)
     {
@@ -908,24 +754,24 @@ void QPanda::decomposeControlSingleQGateIntoMetadataDoubleQGate(AbstractQGateNod
         throw runtime_error("the size of sGateName is error");
     }
 
-    vector<Qubit*> vTargetQubit;
-    if (pNode->getQuBitVector(vTargetQubit) != 1)
+    QVec vTargetQubit;
+    if (node->getQuBitVector(vTargetQubit) != 1)
     {
         return;
     }
 
-    vector<Qubit*> vControlQubit;
-    if (pNode->getControlVector(vControlQubit) != 1)
+    QVec vControlQubit;
+    if (node->getControlVector(vControlQubit) != 1)
     {
         return;
     }
 
-    if (CIRCUIT_NODE == pParentNode->getNodeType())
+    if (CIRCUIT_NODE == parent_node->getNodeType())
     {
-        AbstractQuantumCircuit *pQcir = dynamic_cast<AbstractQuantumCircuit*>(pParentNode);
+        AbstractQuantumCircuit *pQcir = dynamic_cast<AbstractQuantumCircuit*>(parent_node);
         pQcir->getControlVector(vControlQubit);
     }
-    QuantumGate* qgate = pNode->getQGate();
+    QuantumGate* qgate = node->getQGate();
 
     double dAlpha = qgate->getAlpha();
     double dBeta = qgate->getBeta();
@@ -944,14 +790,14 @@ void QPanda::decomposeControlSingleQGateIntoMetadataDoubleQGate(AbstractQGateNod
     auto qSwap = CreateEmptyCircuit();
     auto qSwapDagger = CreateEmptyCircuit();
 
-    if (traversalAlgorithm->m_iAdjacentMatrix.size() != 0)
+    if (m_adjacent_matrix.size() != 0)
     {
         int iBeginNumber = (int)vControlQubit[0]->getPhysicalQubitPtr()->getQubitAddr();
         int iEndNumber = (int)vTargetQubit[0]->getPhysicalQubitPtr()->getQubitAddr();
 
         vector<int> viShortestConnection;
 
-        GraphDijkstra gd(traversalAlgorithm->m_iAdjacentMatrix);
+        GraphDijkstra gd(m_adjacent_matrix);
 
         int iDistance = gd.getShortestPath(iBeginNumber, iEndNumber, viShortestConnection);
 
@@ -1006,142 +852,77 @@ void QPanda::decomposeControlSingleQGateIntoMetadataDoubleQGate(AbstractQGateNod
         throw runtime_error("unknow error");
     }
 
-    traversalAlgorithm->insertQCircuit(pNode, qCircuit, pParentNode);
+    insertQCircuit(node, qCircuit, parent_node);
 }
 
-/******************************************************************
-Name        : insertQCircuit
-Description : insert QCircuit into parent node
-quantum gate
-argin       : pGateNode   The replaced target node
-qCircuit    Inserted quantum circuit
-pParentNode The inserted parent node
-argout      : pParentNode The inserted parent node
-Return      :
-******************************************************************/
-void TransformDecomposition::insertQCircuit(AbstractQGateNode * pGateNode, QCircuit & qCircuit, QNode * pParentNode)
+
+QCircuit DecomposeControlSingleQGateIntoMetadataDoubleQGate::
+         swapQGate(vector<int> shortest_way, string metadata_qgate)
 {
-    if ((nullptr == pParentNode) || (nullptr == pGateNode))
+    auto qcircuit = CreateEmptyCircuit();
+
+    Qubit *qTemp1 = nullptr;
+    Qubit *qTemp2 = nullptr;
+
+    if (metadata_qgate == "CNOT")
     {
-        QCERR("param is nullptr");
-        throw invalid_argument("param is nullptr");
-    }
-
-    int iNodeType = pParentNode->getNodeType();
-
-    if (CIRCUIT_NODE == iNodeType)
-    {
-        auto pParentCircuit = dynamic_cast<AbstractQuantumCircuit *>(pParentNode);
-
-        if (nullptr == pParentCircuit)
+        for (auto iter = shortest_way.begin(); iter != shortest_way.end() - 2; iter++)
         {
-            QCERR("Unknown internal error");
-            throw runtime_error("Unknown internal error");
-        }
-
-        auto aiter = pParentCircuit->getFirstNodeIter();
-
-        if (pParentCircuit->getEndNodeIter() == aiter)
-        {
-            QCERR("Unknown internal error");
-            throw runtime_error("Unknown internal error");
-        }
-
-        for (; aiter != pParentCircuit->getEndNodeIter(); ++aiter)
-        {
-            auto temp = dynamic_cast<QNode *>(pGateNode);
-            if (temp->getPosition() == (*aiter)->getPosition())
+            if (m_quantum_machine->allocateQubitThroughVirAddress(*iter) != nullptr &&
+                m_quantum_machine->allocateQubitThroughVirAddress(*(iter + 1)) != nullptr)
             {
-                break;
+                qTemp1 = m_quantum_machine->allocateQubitThroughVirAddress(*iter);
+                qTemp2 = m_quantum_machine->allocateQubitThroughVirAddress(*(iter + 1));
+
             }
-        }
-
-        aiter = pParentCircuit->deleteQNode(aiter);
-
-        if (nullptr == aiter.getPCur())
-        {
-            pParentCircuit->pushBackNode(&qCircuit);
-        }
-        else
-        {
-            pParentCircuit->insertQNode(aiter, &qCircuit);
-        }
-
-    }
-    else if (PROG_NODE == iNodeType)
-    {
-        auto pParentQProg = dynamic_cast<AbstractQuantumProgram *>(pParentNode);
-
-        if (nullptr == pParentQProg)
-        {
-            QCERR("parent node type error");
-            throw invalid_argument("parent node type error");
-        }
-
-        auto aiter = pParentQProg->getFirstNodeIter();
-
-        if (pParentQProg->getEndNodeIter() == aiter)
-        {
-            QCERR("unknow error");
-            throw runtime_error("unknow error");
-        }
-
-        for (; aiter != pParentQProg->getEndNodeIter(); ++aiter)
-        {
-            auto temp = dynamic_cast<QNode *>(pGateNode);
-            if (temp->getPosition() == (*aiter)->getPosition())
+            else
             {
-                break;
+                QCERR("Unknown internal error");
+                throw runtime_error("Unknown internal error");
             }
+            qcircuit << CNOT(qTemp1, qTemp2) << CNOT(qTemp2, qTemp1) << CNOT(qTemp1, qTemp2);
         }
-        pParentQProg->insertQNode(aiter, &qCircuit);
-        aiter = pParentQProg->deleteQNode(aiter);
-
     }
-    else if (QIF_START_NODE == iNodeType)
+    else if (metadata_qgate == "CZ")
     {
-        auto pParentIf = dynamic_cast<AbstractControlFlowNode *>(pParentNode);
+        for (auto iter = shortest_way.begin(); iter != shortest_way.end() - 2; iter++)
+        {
+            if (m_quantum_machine->allocateQubitThroughVirAddress(*iter) != nullptr &&
+                m_quantum_machine->allocateQubitThroughVirAddress(*(iter + 1)) != nullptr)
+            {
+                qTemp1 = m_quantum_machine->allocateQubitThroughVirAddress(*iter);
+                qTemp2 = m_quantum_machine->allocateQubitThroughVirAddress(*(iter + 1));
 
-        if (nullptr == pParentIf)
-        {
-            QCERR("Unknown internal error");
-            throw runtime_error("Unknown internal error");
+            }
+            else
+            {
+                QCERR("Unknown internal error");
+                throw runtime_error("Unknown internal error");
+            }
+            qcircuit << H(qTemp1) << CZ(qTemp1, qTemp2) << H(qTemp1)
+                << H(qTemp2) << CZ(qTemp2, qTemp1) << H(qTemp2)
+                << H(qTemp1) << CZ(qTemp1, qTemp2) << H(qTemp1);
         }
-
-        if (pGateNode == (AbstractQGateNode *)pParentIf->getTrueBranch())
-        {
-            pParentIf->setTrueBranch(&qCircuit);
-        }
-        else if (pGateNode == (AbstractQGateNode *)pParentIf->getFalseBranch())
-        {
-            pParentIf->setFalseBranch(&qCircuit);
-        }
-        else
-        {
-            QCERR("Unknown internal error");
-            throw runtime_error("Unknown internal error");
-        }
-
     }
-    else if (WHILE_START_NODE == iNodeType)
+    else if (metadata_qgate == "ISWAP")
     {
-        auto pParentIf = dynamic_cast<AbstractControlFlowNode *>(pParentNode);
-
-        if (nullptr == pParentIf)
+        for (auto iter = shortest_way.begin(); iter != shortest_way.end() - 2; iter++)
         {
-            QCERR("parent if type is error");
-            throw runtime_error("parent if type is error");
-        }
+            if (m_quantum_machine->allocateQubitThroughVirAddress(*iter) != nullptr &&
+                m_quantum_machine->allocateQubitThroughVirAddress(*(iter + 1)) != nullptr)
+            {
+                qTemp1 = m_quantum_machine->allocateQubitThroughVirAddress(*iter);
+                qTemp2 = m_quantum_machine->allocateQubitThroughVirAddress(*(iter + 1));
 
-
-        if (pGateNode == (AbstractQGateNode *)pParentIf->getTrueBranch())
-        {
-            pParentIf->setTrueBranch(&qCircuit);
-        }
-        else
-        {
-            QCERR("Unknown internal error");
-            throw runtime_error("Unknown internal error");
+            }
+            auto qgate = iSWAP(qTemp1, qTemp2);
+            qgate.setDagger(true);
+            qcircuit << RZ(qTemp2, PI / 2) << qgate << RX(qTemp1, -PI / 2) << qgate << RZ(qTemp1, -PI / 2)
+                << RZ(qTemp2, PI / 2) << RX(qTemp2, PI / 2)
+                << RZ(qTemp1, PI / 2) << qgate << RX(qTemp2, -PI / 2) << qgate << RZ(qTemp2, -PI / 2)
+                << RZ(qTemp1, PI / 2) << RX(qTemp1, PI / 2)
+                << RZ(qTemp2, PI / 2) << qgate << RX(qTemp1, -PI / 2) << qgate << RZ(qTemp1, -PI / 2)
+                << RZ(qTemp2, PI / 2) << RX(qTemp2, PI / 2);
         }
     }
     else
@@ -1149,10 +930,144 @@ void TransformDecomposition::insertQCircuit(AbstractQGateNode * pGateNode, QCirc
         QCERR("Unknown internal error");
         throw runtime_error("Unknown internal error");
     }
-
+    return qcircuit;
 }
 
-void TransformDecomposition::getDecompositionAngle(QStat & QMatrix, vector<double> & vdAngle)
+DecomposeUnitarySingleQGateIntoMetadataSingleQGate::
+DecomposeUnitarySingleQGateIntoMetadataSingleQGate(
+    vector<vector<string>> qgate_matrix,
+    vector<vector<string>> &valid_qgate_matrix)
+{
+    m_qgate_matrix = qgate_matrix;
+    m_valid_qgate_matrix = valid_qgate_matrix;
+    /*
+    * Initialize member variable
+    */
+    if (valid_qgate_matrix[0][0] == "RX")
+    {
+        base.n1 = { 1,0,0 };
+        if (valid_qgate_matrix[0][1] == "RY")
+        {
+            base.n2 = { 0,1,0 };
+        }
+        else if (valid_qgate_matrix[0][1] == "RZ" || valid_qgate_matrix[0][1] == "U1")
+        {
+            base.n2 = { 0,0,1 };
+        }
+        else if (valid_qgate_matrix[0][1] == "H")
+        {
+            QStat QMatrix = { 1 / SQRT2,1 / SQRT2 ,1 / SQRT2 ,-1 / SQRT2 };
+            rotateAxis(QMatrix, base.n1, base.n2);
+        }
+        else if (valid_qgate_matrix[0][1] == "Y1")
+        {
+            QStat QMatrix = { cos(PI / 4),-sin(PI / 4),sin(PI / 4),cos(PI / 4) };
+            rotateAxis(QMatrix, base.n1, base.n2);
+        }
+        else if (valid_qgate_matrix[0][1] == "Z1")
+        {
+            QStat QMatrix = { qcomplex_t(cos(PI / 4),-sin(PI / 4)),0,0,qcomplex_t(cos(PI / 4),+sin(PI / 4)) };
+            rotateAxis(QMatrix, base.n1, base.n2);
+        }
+        else if (valid_qgate_matrix[0][1] == "S")
+        {
+            QStat QMatrix = { 1,0,0,iunit };
+            rotateAxis(QMatrix, base.n1, base.n2);
+        }
+        else if (valid_qgate_matrix[0][1] == "T")
+        {
+            QStat QMatrix = { 1,0,0,1 / SQRT2 + iunit / SQRT2 };
+            rotateAxis(QMatrix, base.n1, base.n2);
+        }
+        else
+        {
+            QCERR("unknow error");
+            throw runtime_error("unknow error");
+        }
+    }
+    else if (valid_qgate_matrix[0][0] == "RY")
+    {
+        base.n1 = { 0,1,0 };
+        if (valid_qgate_matrix[0][1] == "RX")
+        {
+            base.n2 = { 1,0,0 };
+        }
+        else if (valid_qgate_matrix[0][1] == "RZ" || valid_qgate_matrix[0][1] == "U1")
+        {
+            base.n2 = { 0,0,1 };
+        }
+        else if (valid_qgate_matrix[0][1] == "X1")
+        {
+            QStat QMatrix = { cos(PI / 4),-iunit * sin(PI / 4),-iunit * sin(PI / 4) ,cos(PI / 4) };
+            rotateAxis(QMatrix, base.n1, base.n2);
+        }
+        else if (valid_qgate_matrix[0][1] == "Z1")
+        {
+            QStat QMatrix = { qcomplex_t(cos(PI / 4),-sin(PI / 4)),0,0,qcomplex_t(cos(PI / 4),sin(PI / 4)) };
+            rotateAxis(QMatrix, base.n1, base.n2);
+        }
+        else if (valid_qgate_matrix[0][1] == "S")
+        {
+            QStat QMatrix = { 1,0,0,iunit };
+            rotateAxis(QMatrix, base.n1, base.n2);
+        }
+        else if (valid_qgate_matrix[0][1] == "T")
+        {
+            QStat QMatrix = { 1,0,0,1 / SQRT2 + iunit / SQRT2 };
+            rotateAxis(QMatrix, base.n1, base.n2);
+        }
+        else
+        {
+            QCERR("unknow error");
+            throw runtime_error("unknow error");
+        }
+    }
+    else if (valid_qgate_matrix[0][0] == "RZ" || valid_qgate_matrix[0][0] == "U1")
+    {
+        base.n1 = { 0,0,1 };
+        if (valid_qgate_matrix[0][1] == "RX")
+        {
+            base.n2 = { 1,0,0 };
+        }
+        else if (valid_qgate_matrix[0][1] == "RY")
+        {
+            base.n2 = { 0,1,0 };
+        }
+        else if (valid_qgate_matrix[0][1] == "H")
+        {
+            QStat QMatrix = { 1 / SQRT2,1 / SQRT2 ,1 / SQRT2 ,-1 / SQRT2 };
+            rotateAxis(QMatrix, base.n1, base.n2);
+        }
+        else if (valid_qgate_matrix[0][1] == "Y1")
+        {
+            QStat QMatrix = { cos(PI / 4),-sin(PI / 4),sin(PI / 4),cos(PI / 4) };
+            rotateAxis(QMatrix, base.n1, base.n2);
+        }
+        else if (valid_qgate_matrix[0][1] == "X1")
+        {
+            QStat QMatrix = { cos(PI / 4),-iunit * sin(PI / 4),-iunit * sin(PI / 4) ,cos(PI / 4) };
+            rotateAxis(QMatrix, base.n1, base.n2);
+        }
+        else if (valid_qgate_matrix[0][1] == "S")
+        {
+            QStat QMatrix = { 1,0,0,iunit };
+            rotateAxis(QMatrix, base.n1, base.n2);
+        }
+        else
+        {
+            QCERR("unknow error");
+            throw runtime_error("unknow error");
+        }
+    }
+    else
+    {
+        QCERR("unknow error");
+        throw runtime_error("unknow error");
+    }
+}
+
+void DecomposeUnitarySingleQGateIntoMetadataSingleQGate::
+     getDecompositionAngle(QStat & qmatrix, vector<double> & vdAngle)
 {
     double dTheta;
     double dAlpha;
@@ -1185,7 +1100,7 @@ void TransformDecomposition::getDecompositionAngle(QStat & QMatrix, vector<doubl
 
     axis TargetAxis;
 
-    double dBeta = transformMatrixToAxis(QMatrix, TargetAxis);
+    double dBeta = transformMatrixToAxis(qmatrix, TargetAxis);
     double dBeta1;
     double dBeta2;
     double dBeta3;
@@ -1245,175 +1160,174 @@ traversalAlgorithm traversalAlgorithm pointer
 argout      :
 Return      :
 ******************************************************************/
-void QPanda::decomposeUnitarySingleQGateIntoMetadataSingleQGate(AbstractQGateNode * pNode,
-    QNode * pParentNode,
-    TransformDecomposition * traversalAlgorithm)
+void DecomposeUnitarySingleQGateIntoMetadataSingleQGate::execute(AbstractQGateNode * node,
+    QNode * parent_node)
 {
     /*
     * Check if the quantum gate is supported
     */
 
-    if (QGateCompare::countQGateNotSupport(pNode, traversalAlgorithm->m_sQGateMatrix) <= 0)
+    if (QGateCompare::countQGateNotSupport(node, m_qgate_matrix) <= 0)
         return;
 
-    vector<Qubit*> vTargetQubit;
+    QVec vTargetQubit;
 
-    if (pNode->getQuBitVector(vTargetQubit) != 1)
+    if (node->getQuBitVector(vTargetQubit) != 1)
     {
         return;
     }
 
-    QuantumGate * qGate = pNode->getQGate();
-    QStat QMatrix;
-    qGate->getMatrix(QMatrix);
+    QuantumGate * qgate = node->getQGate();
+    QStat qmatrix;
+    qgate->getMatrix(qmatrix);
 
     vector<double> vdAngle;
 
-    traversalAlgorithm->getDecompositionAngle(QMatrix, vdAngle);
+    getDecompositionAngle(qmatrix, vdAngle);
 
-    auto qCircuit = CreateEmptyCircuit();
+    auto qcircuit = CreateEmptyCircuit();
 
-    if (traversalAlgorithm->m_sValidQGateMatrix[0][0] == "RX")
+    if (m_valid_qgate_matrix[0][0] == "RX")
     {
-        if (traversalAlgorithm->m_sValidQGateMatrix[0][1] == "RY")
+        if (m_valid_qgate_matrix[0][1] == "RY")
         {
-            qCircuit << RX(vTargetQubit[0], vdAngle[2]) << RY(vTargetQubit[0], vdAngle[1])
+            qcircuit << RX(vTargetQubit[0], vdAngle[2]) << RY(vTargetQubit[0], vdAngle[1])
                 << RX(vTargetQubit[0], vdAngle[0]);
         }
-        else if (traversalAlgorithm->m_sValidQGateMatrix[0][1] == "RZ")
+        else if (m_valid_qgate_matrix[0][1] == "RZ")
         {
-            qCircuit << RX(vTargetQubit[0], vdAngle[2]) << RZ(vTargetQubit[0], vdAngle[1])
+            qcircuit << RX(vTargetQubit[0], vdAngle[2]) << RZ(vTargetQubit[0], vdAngle[1])
                 << RX(vTargetQubit[0], vdAngle[0]);
         }
-        else if (traversalAlgorithm->m_sValidQGateMatrix[0][1] == "U1")
+        else if (m_valid_qgate_matrix[0][1] == "U1")
         {
-            qCircuit << RX(vTargetQubit[0], vdAngle[2]) << U1(vTargetQubit[0], vdAngle[1]) << RX(vTargetQubit[0], vdAngle[0]);
+            qcircuit << RX(vTargetQubit[0], vdAngle[2]) << U1(vTargetQubit[0], vdAngle[1]) << RX(vTargetQubit[0], vdAngle[0]);
         }
-        else if (traversalAlgorithm->m_sValidQGateMatrix[0][1] == "H")
+        else if (m_valid_qgate_matrix[0][1] == "H")
         {
-            qCircuit << RX(vTargetQubit[0], vdAngle[2]) << H(vTargetQubit[0])
+            qcircuit << RX(vTargetQubit[0], vdAngle[2]) << H(vTargetQubit[0])
                 << RX(vTargetQubit[0], vdAngle[1]) << H(vTargetQubit[0]) << RX(vTargetQubit[0], vdAngle[0]);
         }
-        else if (traversalAlgorithm->m_sValidQGateMatrix[0][1] == "Y1")
+        else if (m_valid_qgate_matrix[0][1] == "Y1")
         {
             auto ygate = Y1(vTargetQubit[0]);
             ygate.setDagger(1);
-            qCircuit << RX(vTargetQubit[0], vdAngle[2]) << ygate
+            qcircuit << RX(vTargetQubit[0], vdAngle[2]) << ygate
                 << RX(vTargetQubit[0], vdAngle[1]) << Y1(vTargetQubit[0]) << RX(vTargetQubit[0], vdAngle[0]);
         }
-        else if (traversalAlgorithm->m_sValidQGateMatrix[0][1] == "Z1")
+        else if (m_valid_qgate_matrix[0][1] == "Z1")
         {
             auto zgate = Z1(vTargetQubit[0]);
             zgate.setDagger(1);
-            qCircuit << RX(vTargetQubit[0], vdAngle[2]) << zgate
+            qcircuit << RX(vTargetQubit[0], vdAngle[2]) << zgate
                 << RX(vTargetQubit[0], vdAngle[1]) << Z1(vTargetQubit[0]) << RX(vTargetQubit[0], vdAngle[0]);
         }
-        else if (traversalAlgorithm->m_sValidQGateMatrix[0][1] == "S")
+        else if (m_valid_qgate_matrix[0][1] == "S")
         {
             auto S_dagger = S(vTargetQubit[0]);
             S_dagger.setDagger(1);
-            qCircuit << RX(vTargetQubit[0], vdAngle[2]) << S_dagger
+            qcircuit << RX(vTargetQubit[0], vdAngle[2]) << S_dagger
                 << RX(vTargetQubit[0], vdAngle[1]) << S(vTargetQubit[0]) << RX(vTargetQubit[0], vdAngle[0]);
         }
     }
-    else if (traversalAlgorithm->m_sValidQGateMatrix[0][0] == "RY")
+    else if (m_valid_qgate_matrix[0][0] == "RY")
     {
-        if (traversalAlgorithm->m_sValidQGateMatrix[0][1] == "RX")
+        if (m_valid_qgate_matrix[0][1] == "RX")
         {
-            qCircuit << RY(vTargetQubit[0], vdAngle[2]) << RX(vTargetQubit[0], vdAngle[1]) << RY(vTargetQubit[0], vdAngle[0]);
+            qcircuit << RY(vTargetQubit[0], vdAngle[2]) << RX(vTargetQubit[0], vdAngle[1]) << RY(vTargetQubit[0], vdAngle[0]);
         }
-        else if (traversalAlgorithm->m_sValidQGateMatrix[0][1] == "RZ")
+        else if (m_valid_qgate_matrix[0][1] == "RZ")
         {
-            qCircuit << RY(vTargetQubit[0], vdAngle[2]) << RZ(vTargetQubit[0], vdAngle[1]) << RY(vTargetQubit[0], vdAngle[0]);
+            qcircuit << RY(vTargetQubit[0], vdAngle[2]) << RZ(vTargetQubit[0], vdAngle[1]) << RY(vTargetQubit[0], vdAngle[0]);
         }
-        else if (traversalAlgorithm->m_sValidQGateMatrix[0][1] == "U1")
+        else if (m_valid_qgate_matrix[0][1] == "U1")
         {
-            qCircuit << RY(vTargetQubit[0], vdAngle[2]) << U1(vTargetQubit[0], vdAngle[1]) << RY(vTargetQubit[0], vdAngle[0]);
+            qcircuit << RY(vTargetQubit[0], vdAngle[2]) << U1(vTargetQubit[0], vdAngle[1]) << RY(vTargetQubit[0], vdAngle[0]);
         }
-        else if (traversalAlgorithm->m_sValidQGateMatrix[0][1] == "H")
+        else if (m_valid_qgate_matrix[0][1] == "H")
         {
-            qCircuit << RY(vTargetQubit[0], vdAngle[2]) << H(vTargetQubit[0])
+            qcircuit << RY(vTargetQubit[0], vdAngle[2]) << H(vTargetQubit[0])
                 << RY(vTargetQubit[0], vdAngle[1]) << H(vTargetQubit[0]) << RY(vTargetQubit[0], vdAngle[0]);
         }
-        else if (traversalAlgorithm->m_sValidQGateMatrix[0][1] == "X1")
+        else if (m_valid_qgate_matrix[0][1] == "X1")
         {
             auto xgate = X1(vTargetQubit[0]);
             xgate.setDagger(1);
-            qCircuit << RY(vTargetQubit[0], vdAngle[2]) << xgate
+            qcircuit << RY(vTargetQubit[0], vdAngle[2]) << xgate
                 << RY(vTargetQubit[0], vdAngle[1]) << X1(vTargetQubit[0]) << RY(vTargetQubit[0], vdAngle[0]);
         }
-        else if (traversalAlgorithm->m_sValidQGateMatrix[0][1] == "Z1")
+        else if (m_valid_qgate_matrix[0][1] == "Z1")
         {
             auto zgate = Z1(vTargetQubit[0]);
             zgate.setDagger(1);
-            qCircuit << RY(vTargetQubit[0], vdAngle[2]) << zgate
+            qcircuit << RY(vTargetQubit[0], vdAngle[2]) << zgate
                 << RY(vTargetQubit[0], vdAngle[1]) << Z1(vTargetQubit[0]) << RY(vTargetQubit[0], vdAngle[0]);
         }
-        else if (traversalAlgorithm->m_sValidQGateMatrix[0][1] == "S")
+        else if (m_valid_qgate_matrix[0][1] == "S")
         {
             auto S_dagger = S(vTargetQubit[0]);
             S_dagger.setDagger(1);
-            qCircuit << RY(vTargetQubit[0], vdAngle[2]) << S_dagger
+            qcircuit << RY(vTargetQubit[0], vdAngle[2]) << S_dagger
                 << RY(vTargetQubit[0], vdAngle[1]) << S(vTargetQubit[0]) << RY(vTargetQubit[0], vdAngle[0]);
         }
     }
-    else if (traversalAlgorithm->m_sValidQGateMatrix[0][0] == "RZ")
+    else if (m_valid_qgate_matrix[0][0] == "RZ")
     {
-        if (traversalAlgorithm->m_sValidQGateMatrix[0][1] == "RX")
+        if (m_valid_qgate_matrix[0][1] == "RX")
         {
-            qCircuit << RZ(vTargetQubit[0], vdAngle[2]) << RX(vTargetQubit[0], vdAngle[1]) << RZ(vTargetQubit[0], vdAngle[0]);
+            qcircuit << RZ(vTargetQubit[0], vdAngle[2]) << RX(vTargetQubit[0], vdAngle[1]) << RZ(vTargetQubit[0], vdAngle[0]);
         }
-        else if (traversalAlgorithm->m_sValidQGateMatrix[0][1] == "RY")
+        else if (m_valid_qgate_matrix[0][1] == "RY")
         {
-            qCircuit << RZ(vTargetQubit[0], vdAngle[2]) << RY(vTargetQubit[0], vdAngle[1]) << RZ(vTargetQubit[0], vdAngle[0]);
+            qcircuit << RZ(vTargetQubit[0], vdAngle[2]) << RY(vTargetQubit[0], vdAngle[1]) << RZ(vTargetQubit[0], vdAngle[0]);
         }
-        else if (traversalAlgorithm->m_sValidQGateMatrix[0][1] == "H")
+        else if (m_valid_qgate_matrix[0][1] == "H")
         {
-            qCircuit << RZ(vTargetQubit[0], vdAngle[2]) << H(vTargetQubit[0])
+            qcircuit << RZ(vTargetQubit[0], vdAngle[2]) << H(vTargetQubit[0])
                 << RZ(vTargetQubit[0], vdAngle[1]) << H(vTargetQubit[0]) << RZ(vTargetQubit[0], vdAngle[0]);
         }
-        else if (traversalAlgorithm->m_sValidQGateMatrix[0][1] == "X1")
+        else if (m_valid_qgate_matrix[0][1] == "X1")
         {
             auto xgate = X1(vTargetQubit[0]);
             xgate.setDagger(1);
-            qCircuit << RZ(vTargetQubit[0], vdAngle[2]) << xgate
+            qcircuit << RZ(vTargetQubit[0], vdAngle[2]) << xgate
                 << RZ(vTargetQubit[0], vdAngle[1]) << X1(vTargetQubit[0]) << RZ(vTargetQubit[0], vdAngle[0]);
         }
-        else if (traversalAlgorithm->m_sValidQGateMatrix[0][1] == "Y1")
+        else if (m_valid_qgate_matrix[0][1] == "Y1")
         {
             auto ygate = Y1(vTargetQubit[0]);
             ygate.setDagger(1);
-            qCircuit << RZ(vTargetQubit[0], vdAngle[2]) << ygate
+            qcircuit << RZ(vTargetQubit[0], vdAngle[2]) << ygate
                 << RZ(vTargetQubit[0], vdAngle[1]) << Y1(vTargetQubit[0]) << RZ(vTargetQubit[0], vdAngle[0]);
         }
     }
-    else if (traversalAlgorithm->m_sValidQGateMatrix[0][0] == "U1")
+    else if (m_valid_qgate_matrix[0][0] == "U1")
     {
-        if (traversalAlgorithm->m_sValidQGateMatrix[0][1] == "RX")
+        if (m_valid_qgate_matrix[0][1] == "RX")
         {
-            qCircuit << U1(vTargetQubit[0], vdAngle[2]) << RX(vTargetQubit[0], vdAngle[1]) << U1(vTargetQubit[0], vdAngle[0]);
+            qcircuit << U1(vTargetQubit[0], vdAngle[2]) << RX(vTargetQubit[0], vdAngle[1]) << U1(vTargetQubit[0], vdAngle[0]);
         }
-        else if (traversalAlgorithm->m_sValidQGateMatrix[0][1] == "RY")
+        else if (m_valid_qgate_matrix[0][1] == "RY")
         {
-            qCircuit << U1(vTargetQubit[0], vdAngle[2]) << RY(vTargetQubit[0], vdAngle[1]) << U1(vTargetQubit[0], vdAngle[0]);
+            qcircuit << U1(vTargetQubit[0], vdAngle[2]) << RY(vTargetQubit[0], vdAngle[1]) << U1(vTargetQubit[0], vdAngle[0]);
         }
-        else if (traversalAlgorithm->m_sValidQGateMatrix[0][1] == "H")
+        else if (m_valid_qgate_matrix[0][1] == "H")
         {
-            qCircuit << U1(vTargetQubit[0], vdAngle[2]) << H(vTargetQubit[0])
+            qcircuit << U1(vTargetQubit[0], vdAngle[2]) << H(vTargetQubit[0])
                 << U1(vTargetQubit[0], vdAngle[1]) << H(vTargetQubit[0]) << U1(vTargetQubit[0], vdAngle[0]);
         }
-        else if (traversalAlgorithm->m_sValidQGateMatrix[0][1] == "X1")
+        else if (m_valid_qgate_matrix[0][1] == "X1")
         {
             auto xgate = X1(vTargetQubit[0]);
             xgate.setDagger(1);
-            qCircuit << U1(vTargetQubit[0], vdAngle[2]) << xgate
+            qcircuit << U1(vTargetQubit[0], vdAngle[2]) << xgate
                 << U1(vTargetQubit[0], vdAngle[1]) << X1(vTargetQubit[0]) << U1(vTargetQubit[0], vdAngle[0]);
         }
-        else if (traversalAlgorithm->m_sValidQGateMatrix[0][1] == "Y1")
+        else if (m_valid_qgate_matrix[0][1] == "Y1")
         {
             auto ygate = Y1(vTargetQubit[0]);
             ygate.setDagger(1);
-            qCircuit << U1(vTargetQubit[0], vdAngle[2]) << ygate
+            qcircuit << U1(vTargetQubit[0], vdAngle[2]) << ygate
                 << U1(vTargetQubit[0], vdAngle[1]) << Y1(vTargetQubit[0]) << U1(vTargetQubit[0], vdAngle[0]);
         }
     }
@@ -1423,47 +1337,46 @@ void QPanda::decomposeUnitarySingleQGateIntoMetadataSingleQGate(AbstractQGateNod
         throw runtime_error("Unknown internal error");
     }
 
-    traversalAlgorithm->insertQCircuit(pNode, qCircuit, pParentNode);
+    insertQCircuit(node, qcircuit, parent_node);
 }
 
-void QPanda::deleteUnitQnode(AbstractQGateNode * pNode, QNode * pParentNode, TransformDecomposition *)
+void DeleteUnitQNode::execute(AbstractQGateNode * node, QNode * parent_node)
 {
 
-    auto qGate = pNode->getQGate();
+    auto qgate = node->getQGate();
 
-    QStat qMatrix;
-    qGate->getMatrix(qMatrix);
+    QStat qmatrix;
+    qgate->getMatrix(qmatrix);
 
-    if (qMatrix.size() == SingleGateMatrixSize
-        && abs(qMatrix[0] - qMatrix[3]) < ZeroJudgement
-        && abs(abs(qMatrix[0]) - 1) < ZeroJudgement)
+    if (qmatrix.size() == SingleGateMatrixSize
+        && abs(qmatrix[0] - qmatrix[3]) < ZeroJudgement
+        && abs(abs(qmatrix[0]) - 1) < ZeroJudgement)
     {
-        if (CIRCUIT_NODE == pParentNode->getNodeType())
+        if (CIRCUIT_NODE == parent_node->getNodeType())
         {
-            auto pQCircuitNode = dynamic_cast<AbstractQuantumCircuit *>(pParentNode);
+            auto pQCircuitNode = dynamic_cast<AbstractQuantumCircuit *>(parent_node);
             if (pQCircuitNode != nullptr)
             {
                 auto aiter = pQCircuitNode->getFirstNodeIter();
                 for (; aiter != pQCircuitNode->getEndNodeIter(); ++aiter)
                 {
-                    auto temp = dynamic_cast<QNode *>(pNode);
-                    if (temp->getPosition() == (*aiter)->getPosition())
+                    auto temp = dynamic_cast<QNode *>(node);
+                    if (temp == (*aiter).get())
                     {
                         break;
                     }
                 }
                 aiter = pQCircuitNode->deleteQNode(aiter);
             }
-
         }
-        else if (PROG_NODE == pParentNode->getNodeType())
+        else if (PROG_NODE == parent_node->getNodeType())
         {
-            auto pQProgNode = dynamic_cast<AbstractQuantumProgram *>(pNode);
+            auto pQProgNode = dynamic_cast<AbstractQuantumProgram *>(node);
             auto aiter = pQProgNode->getFirstNodeIter();
             for (; aiter != pQProgNode->getEndNodeIter(); ++aiter)
             {
-                auto temp = dynamic_cast<QNode *>(pNode);
-                if (temp->getPosition() == (*aiter)->getPosition())
+                auto temp = dynamic_cast<QNode *>(node);
+                if (temp == (*aiter).get())
                 {
                     break;
                 }
@@ -1474,453 +1387,6 @@ void QPanda::deleteUnitQnode(AbstractQGateNode * pNode, QNode * pParentNode, Tra
 
 }
 
-QCircuit QPanda::swapQGate(vector<int> ShortestWay, string MetadataQGate)
-{
-    auto qCircuit = CreateEmptyCircuit();
-
-    Qubit *qTemp1 = nullptr;
-    Qubit *qTemp2 = nullptr;
-
-    if (MetadataQGate == "CNOT")
-    {
-        for (auto iter = ShortestWay.begin(); iter != ShortestWay.end() - 2; iter++)
-        {
-            if (qAlloc(*iter) != nullptr && qAlloc(*(iter + 1)) != nullptr)
-            {
-                qTemp1 = qAlloc(*iter);
-                qTemp2 = qAlloc(*(iter + 1));
-
-            }
-            else
-            {
-                QCERR("Unknown internal error");
-                throw runtime_error("Unknown internal error");
-            }
-            qCircuit << CNOT(qTemp1, qTemp2) << CNOT(qTemp2, qTemp1) << CNOT(qTemp1, qTemp2);
-        }
-    }
-    else if (MetadataQGate == "CZ")
-    {
-        for (auto iter = ShortestWay.begin(); iter != ShortestWay.end() - 2; iter++)
-        {
-            if (qAlloc(*iter) != nullptr && qAlloc(*(iter + 1)) != nullptr)
-            {
-                qTemp1 = qAlloc(*iter);
-                qTemp2 = qAlloc(*(iter + 1));
-
-            }
-            else
-            {
-                QCERR("Unknown internal error");
-                throw runtime_error("Unknown internal error");
-            }
-            qCircuit << H(qTemp1) << CZ(qTemp1, qTemp2) << H(qTemp1)
-                << H(qTemp2) << CZ(qTemp2, qTemp1) << H(qTemp2)
-                << H(qTemp1) << CZ(qTemp1, qTemp2) << H(qTemp1);
-        }
-    }
-    else if (MetadataQGate == "ISWAP")
-    {
-        for (auto iter = ShortestWay.begin(); iter != ShortestWay.end() - 2; iter++)
-        {
-            if (qAlloc(*iter) != nullptr && qAlloc(*(iter + 1)) != nullptr)
-            {
-                qTemp1 = qAlloc(*iter);
-                qTemp2 = qAlloc(*(iter + 1));
-
-            }
-            auto qgate = iSWAP(qTemp1, qTemp2);
-            qgate.setDagger(true);
-            qCircuit << RZ(qTemp2, PI / 2) << qgate << RX(qTemp1, -PI / 2) << qgate << RZ(qTemp1, -PI / 2)
-                << RZ(qTemp2, PI / 2) << RX(qTemp2, PI / 2)
-                << RZ(qTemp1, PI / 2) << qgate << RX(qTemp2, -PI / 2) << qgate << RZ(qTemp2, -PI / 2)
-                << RZ(qTemp1, PI / 2) << RX(qTemp1, PI / 2)
-                << RZ(qTemp2, PI / 2) << qgate << RX(qTemp1, -PI / 2) << qgate << RZ(qTemp1, -PI / 2)
-                << RZ(qTemp2, PI / 2) << RX(qTemp2, PI / 2);
-        }
-    }
-    else
-    {
-        QCERR("Unknown internal error");
-        throw runtime_error("Unknown internal error");
-    }
-    return qCircuit;
-}
-
-/******************************************************************
-Name        : checkControlFlowBranch
-Description : Check if the branch is a QGate type
-argin       : pNode Target Node pointer
-argout      :
-Return      :
-******************************************************************/
-void TransformDecomposition::checkControlFlowBranch(QNode * pNode)
-{
-    int iChildNodeType = -1;
-
-    if (nullptr != pNode)
-    {
-        iChildNodeType = pNode->getNodeType();
-
-        if (GATE_NODE != iChildNodeType)
-        {
-            mergeSingleGate(pNode);
-        }
-    }
-}
-
-/******************************************************************
-Name        : mergeSingleGate
-Description : merge single gate
-argin       : pNode  Target node pointer
-argout      :
-Return      :
-******************************************************************/
-void TransformDecomposition::mergeSingleGate(QNode * pNode)
-{
-    if (nullptr == pNode)
-    {
-        QCERR("pNode is a nullptr");
-        throw invalid_argument("pNode is a nullptr");
-    }
-
-    int iNodeType = pNode->getNodeType();
-
-    /*
-    * Check node type
-    */
-    if (QIF_START_NODE == iNodeType)
-    {
-        auto pIfNode = dynamic_cast<AbstractControlFlowNode *>(pNode);
-        mergeControlFlowSingleGate(pIfNode, iNodeType);
-    }
-    else if (WHILE_START_NODE == iNodeType)
-    {
-        auto pWhileNode = dynamic_cast<AbstractControlFlowNode *>(pNode);
-        mergeControlFlowSingleGate(pWhileNode, iNodeType);
-    }
-    else if (PROG_NODE == iNodeType)
-    {
-        auto pProg = dynamic_cast<AbstractQuantumProgram *>(pNode);
-        mergeCircuitandProgSingleGate(pProg);
-    }
-    else if (CIRCUIT_NODE == iNodeType)
-    {
-        auto pQCircuit = dynamic_cast<AbstractQuantumCircuit *>(pNode);
-        mergeCircuitandProgSingleGate(pQCircuit);
-    }
-    else
-    {
-        return;
-    }
-}
-
-/******************************************************************
-Name        : mergeControlFlowSingleGate
-Description : Merge control flow single gate
-argin       : pNode      Target Node pointer
-iNodeType  Node Type
-argout      :
-Return      :
-******************************************************************/
-void TransformDecomposition::mergeControlFlowSingleGate(AbstractControlFlowNode * pNode, int iNodeType)
-{
-    if (nullptr == pNode)
-    {
-        QCERR("Unknown internal error");
-        throw runtime_error("Unknown internal error");
-    }
-
-    if (QIF_START_NODE == iNodeType)
-    {
-        QNode *pChildNode = pNode->getTrueBranch();
-        checkControlFlowBranch(pChildNode);
-
-        pChildNode = pNode->getFalseBranch();
-        checkControlFlowBranch(pChildNode);
-    }
-    else if (WHILE_START_NODE == iNodeType)
-    {
-        QNode *pChildNode = pNode->getTrueBranch();
-        checkControlFlowBranch(pChildNode);
-    }
-}
-
-void TransformDecomposition::cancelControlQubitVector(QNode * pNode)
-{
-    if (nullptr == pNode)
-    {
-        QCERR("pNode is nullptr");
-        throw invalid_argument("pNode is nullptr");
-    }
-
-    int iNodeType = pNode->getNodeType();
-
-    if (PROG_NODE == iNodeType)
-    {
-        auto pProg = dynamic_cast<AbstractQuantumProgram *>(pNode);
-        if (nullptr == pProg)
-        {
-            QCERR("Unknown internal error");
-            throw runtime_error("Unknown internal error");
-        }
-
-        for (auto aiter = pProg->getFirstNodeIter(); aiter != pProg->getEndNodeIter(); aiter++)
-        {
-            cancelControlQubitVector(*aiter);
-        }
-    }
-    else if (CIRCUIT_NODE == iNodeType)
-    {
-        auto pQCircuit = dynamic_cast<AbstractQuantumCircuit *>(pNode);
-        if (nullptr == pQCircuit)
-        {
-            QCERR("Unknown internal error");
-            throw runtime_error("Unknown internal error");
-        }
-
-        pQCircuit->clearControl();
-
-        for (auto aiter = pQCircuit->getFirstNodeIter(); aiter != pQCircuit->getEndNodeIter(); aiter++)
-        {
-            cancelControlQubitVector(*aiter);
-        }
-    }
-    else if (QIF_START_NODE == iNodeType)
-    {
-        auto pIf = dynamic_cast<AbstractControlFlowNode *>(pNode);
-        if (nullptr == pIf)
-        {
-            QCERR("Unknown internal error");
-            throw runtime_error("Unknown internal error");
-        }
-        cancelControlQubitVector(pIf->getTrueBranch());
-        if (nullptr != pIf->getFalseBranch())
-            cancelControlQubitVector(pIf->getFalseBranch());
-    }
-    else if (WHILE_START_NODE == iNodeType)
-    {
-        auto pWhile = dynamic_cast<AbstractControlFlowNode *>(pNode);
-        if (nullptr == pWhile)
-        {
-            QCERR("Unknown internal error");
-            throw runtime_error("Unknown internal error");
-        }
-        cancelControlQubitVector(pWhile->getTrueBranch());
-    }
-    else
-    { }
-
-    return;
-}
-
-/******************************************************************
-Name        : Traversal
-Description : Traversal AbstractControlFlowNode's child Node
-argin       : pNode      Target Node pointer
-function   Optimization of quantum program algorithm
-argout      : pNode      Target Node pointer
-Return      :
-******************************************************************/
-void TransformDecomposition::Traversal(AbstractControlFlowNode * pControlNode, TraversalDecompositionFunction function, int iType)
-{
-    if (nullptr == pControlNode)
-    {
-        QCERR("pControlNode is nullptr");
-        throw invalid_argument("pControlNode is nullptr");
-    }
-
-    auto pNode = dynamic_cast<QNode *>(pControlNode);
-
-    if (nullptr == pNode)
-    {
-        QCERR("Unknown internal error");
-        throw runtime_error("Unknown internal error");
-    }
-    auto iNodeType = pNode->getNodeType();
-    if (WHILE_START_NODE == iNodeType)
-    {
-        TraversalByType(pControlNode->getTrueBranch(), pNode, function, iType);
-    }
-    else if (QIF_START_NODE == iNodeType)
-    {
-        TraversalByType(pControlNode->getTrueBranch(), pNode, function, iType);
-        auto pFalseBranchNode = pControlNode->getFalseBranch();
-
-        if (nullptr != pFalseBranchNode)
-        {
-            TraversalByType(pControlNode->getFalseBranch(), pNode, function, iType);
-        }
-    }
-}
-
-/******************************************************************
-Name        : Traversal
-Description : Traversal AbstractQuantumCircuit's child Node
-argin       : pNode      Target Node pointer
-function   Optimization of quantum program algorithm
-argout      : pNode      Target Node pointer
-Return      :
-******************************************************************/
-void TransformDecomposition::Traversal(AbstractQuantumCircuit * pQCircuit, TraversalDecompositionFunction function, int iType)
-{
-    if (nullptr == pQCircuit)
-    {
-        QCERR("pQCircuit is nullptr");
-        throw invalid_argument("pQCircuit is nullptr");
-    }
-
-    auto aiter = pQCircuit->getFirstNodeIter();
-
-    if (aiter == pQCircuit->getEndNodeIter())
-        return;
-
-    auto pNode = dynamic_cast<QNode *>(pQCircuit);
-
-    if (nullptr == pNode)
-    {
-        QCERR("Unknown internal error");
-        throw runtime_error("Unknown internal error");
-    }
-
-    /*
-    * Traversal QCircuit's child node
-    */
-    while (aiter != pQCircuit->getEndNodeIter())
-    {
-        auto next = aiter.getNextIter();
-        TraversalByType(*aiter, pNode, function, iType);
-        aiter = next;
-    }
-}
-
-/******************************************************************
-Name        : Traversal
-Description : Traversal AbstractQuantumProgram's child Node
-argin       : pNode      Target Node pointer
-function   Optimization of quantum program algorithm
-argout      : pNode      Target Node pointer
-Return      :
-******************************************************************/
-inline void TransformDecomposition::Traversal(AbstractQuantumProgram * pProg, TraversalDecompositionFunction function, int iType)
-{
-    if (nullptr == pProg)
-    {
-        QCERR("param error");
-        throw invalid_argument("param error");
-    }
-
-    auto aiter = pProg->getFirstNodeIter();
-
-    if (aiter == pProg->getEndNodeIter())
-        return;
-    auto pNode = dynamic_cast<QNode *>(pProg);
-
-    if (nullptr == pNode)
-    {
-        QCERR("pNode is nullptr");
-        throw invalid_argument("pNode is nullptr");
-    }
-
-    while (aiter != pProg->getEndNodeIter())
-    {
-        auto next = aiter.getNextIter();
-        TraversalByType(*aiter, pNode, function, iType);
-        aiter = next;
-    }
-}
-
-/******************************************************************
-Name        : TraversalByType
-Description : Traversal by type
-argin       : pNode      Target Node pointer
-ParentNode Target parent Node
-function   Optimization of quantum program algorithm
-argout      : ParentNode Target parent Node
-Return      :
-******************************************************************/
-void TransformDecomposition::
-TraversalByType(QNode * pNode, QNode * ParentNode, TraversalDecompositionFunction function, int iType)
-{
-    int iNodeType = pNode->getNodeType();
-
-    if (NODE_UNDEFINED == iNodeType)
-    {
-        QCERR("param error");
-        throw invalid_argument("param error");
-    }
-
-
-    /*
-    * Check node type
-    */
-    if (GATE_NODE == iNodeType)
-    {
-        auto pGateNode = dynamic_cast<AbstractQGateNode *>(pNode);
-
-        if (nullptr == pGateNode)
-        {
-            QCERR("Unknown internal error");
-            throw runtime_error("Unknown internal error");
-        }
-        function(pGateNode, ParentNode, this);            /* Call optimization algorithm */
-    }
-    else if (CIRCUIT_NODE == iNodeType)
-    {
-        auto pQCircuitNode = dynamic_cast<AbstractQuantumCircuit *>(pNode);
-
-        if (nullptr == pQCircuitNode)
-        {
-            QCERR("Unknown internal error");
-            throw runtime_error("Unknown internal error");
-        }
-
-        if (3 == iType)
-        {
-            if (CIRCUIT_NODE == ParentNode->getNodeType())
-            {
-                AbstractQuantumCircuit *pQcir = dynamic_cast<AbstractQuantumCircuit*>(ParentNode);
-                vector<Qubit*> vControlQubit;
-                pQcir->getControlVector(vControlQubit);
-
-                pQCircuitNode->setControl(vControlQubit);
-            }
-        }
-        Traversal(pQCircuitNode, function, iType);
-    }
-    else if (PROG_NODE == iNodeType)
-    {
-        auto pQProgNode = dynamic_cast<AbstractQuantumProgram *>(pNode);
-
-        if (nullptr == pQProgNode)
-        {
-            QCERR("Unknown internal error");
-            throw runtime_error("Unknown internal error");
-        }
-        Traversal(pQProgNode, function, iType);
-    }
-    else if ((WHILE_START_NODE == iNodeType) || (QIF_START_NODE == iNodeType))
-    {
-        auto pControlFlowNode = dynamic_cast<AbstractControlFlowNode *>(pNode);
-
-        if (nullptr == pControlFlowNode)
-        {
-            QCERR("Unknown internal error");
-            throw runtime_error("Unknown internal error");
-        }
-        Traversal(pControlFlowNode, function, iType);
-    }
-    else if (MEASURE_GATE == iNodeType)
-    {
-        return;
-    }
-    else
-    {
-        QCERR("Unknown internal error");
-        throw runtime_error("Unknown internal error");
-    }
-}
-
 /******************************************************************
 Name        : TraversalOptimizationMerge
 Description : Traversal optimization merge algorithm
@@ -1928,32 +1394,265 @@ argin       : pNode    Target Node pointer
 argout      : pNode    Target Node pointer
 Return      :
 ******************************************************************/
-void TransformDecomposition::TraversalOptimizationMerge(QNode * pNode)
+void TransformDecomposition::TraversalOptimizationMerge(QProg & prog)
 {
-    if (nullptr == pNode)
-    {
-        QCERR("this param is not QNode");
-        throw invalid_argument("this param is not QNode");
-    }
+    Traversal::traversal(&prog, static_cast<TraversalInterface *>(&m_decompose_double_gate));
+    Traversal::traversal(&prog, static_cast<TraversalInterface *>(&m_decompose_control_unitary_single_qgate));
+    Traversal::traversal(&prog, static_cast<TraversalInterface *>(&m_decompose_multiple_control_qgate));
+    Traversal::traversal(&prog, static_cast<TraversalInterface *>(&m_decompose_control_unitary_single_qgate));
+    Traversal::traversal(&prog, static_cast<TraversalInterface *>(&m_control_single_qgate_to_metadata_double_qgate));
+    Traversal::traversal(&prog, static_cast<TraversalInterface *>(&m_merge_single_gate));
+    Traversal::traversal(&prog, static_cast<TraversalInterface *>(&m_unitary_single_qgate_to_metadata_double_qgate));
+    Traversal::traversal(&prog, static_cast<TraversalInterface *>(&m_cancel_control_qubit_vector));
+    Traversal::traversal(&prog, static_cast<TraversalInterface *>(&m_delete_unit_qnode));
+}
 
-    int iNodeType = pNode->getNodeType();
+/*****************************************************************
+Name        : TransformDecomposition
+Description : structure TransformDecomposition
+argin       : ValidQGateMatrix  Validated instruction set
+QGateMatrix       Original instruction set
+argout      :
+Return      :
+*****************************************************************/
+TransformDecomposition::
+TransformDecomposition(vector<vector<string>> &valid_qgate_matrix,
+    vector<vector<string>> &qgate_matrix,
+    vector<vector<int> > &agjacent_matrix,
+    QuantumMachine *quantum_machine) :
+    m_control_single_qgate_to_metadata_double_qgate(quantum_machine,
+        valid_qgate_matrix,
+        agjacent_matrix),
+    m_unitary_single_qgate_to_metadata_double_qgate(qgate_matrix, valid_qgate_matrix)
+{}
 
-    if ((GATE_NODE == iNodeType) || (MEASURE_GATE == iNodeType))
+
+
+TransformDecomposition::~TransformDecomposition()
+{
+}
+
+void MergeSingleGate::execute(AbstractQuantumCircuit * node, QNode * parent_node)
+{
+    if (nullptr == node)
     {
-        QCERR("the param cannot be a QGate or Measure");
-        throw invalid_argument("the param cannot be a QGate or Measure");
+        QCERR("Unknown internal error");
+        throw std::runtime_error("Unknown internal error");
     }
+    auto aiter = node->getFirstNodeIter();
 
     /*
-    * Begin Traversal optimization merge algorithm
+    * Traversal PNode's children node
     */
-    TraversalByType(pNode, nullptr, &decomposeDoubleQGate, 1);
-    TraversalByType(pNode, nullptr, &decomposeControlUnitarySingleQGate, 2);
-    TraversalByType(pNode, nullptr, &decomposeMultipleControlQGate, 3);
-    TraversalByType(pNode, nullptr, &decomposeControlUnitarySingleQGate, 2);
-    TraversalByType(pNode, nullptr, &decomposeControlSingleQGateIntoMetadataDoubleQGate, 4);
-    //mergeSingleGate(pNode);
-    TraversalByType(pNode, nullptr, &decomposeUnitarySingleQGateIntoMetadataSingleQGate, 5);
-    cancelControlQubitVector(pNode);
-    TraversalByType(pNode, nullptr, deleteUnitQnode, 6);
+    for (; aiter != node->getEndNodeIter(); ++aiter)
+    {
+        int node_type = (*aiter)->getNodeType();
+
+        /*
+        * If it is not a gate type, the algorithm goes deeper
+        */
+        if (CLASS_COND_NODE == node_type)
+            continue;
+        else if (CIRCUIT_NODE == node_type)
+        {
+            Traversal::traversal(
+                dynamic_cast<AbstractQuantumCircuit *>((*aiter).get()),
+                this,
+                false);
+            continue;
+        }
+
+        AbstractQGateNode * cur_gate_node =
+            dynamic_pointer_cast<AbstractQGateNode>(*aiter).get();
+
+        if (cur_gate_node->getTargetQubitNum()
+            +cur_gate_node->getControlQubitNum() >= 2)
+            continue;
+
+        auto next_iter = aiter.getNextIter();
+
+        AbstractQGateNode * next_gate_node = nullptr;
+
+        /*
+        * Loop through the nodes behind the target node
+        * and execute the merge algorithm
+        */
+        int next_node_type = NODE_UNDEFINED;
+        while (next_iter != node->getEndNodeIter())
+        {
+            int next_node_type = (*next_iter)->getNodeType();
+
+            if (CLASS_COND_NODE == next_node_type)
+                continue;
+            else if (GATE_NODE != next_node_type)
+                break;
+
+            next_gate_node = 
+                dynamic_pointer_cast<AbstractQGateNode>(*next_iter).get();
+
+            if (next_gate_node->getTargetQubitNum()
+                +next_gate_node->getControlQubitNum() == 1)
+            {
+                QVec CurQubitVector;
+                cur_gate_node->getQuBitVector(CurQubitVector);
+
+                QVec NextQubitVector;
+                next_gate_node->getQuBitVector(NextQubitVector);
+
+                auto cur_phy_qubit = CurQubitVector[0]->getPhysicalQubitPtr();
+                auto next_phy_qubit = NextQubitVector[0]->getPhysicalQubitPtr();
+
+                if ((nullptr == cur_phy_qubit) || (nullptr == next_phy_qubit))
+                {
+                    QCERR("Unknown internal error");
+                    throw std::runtime_error("Unknown internal error");
+                }
+
+                /*
+                * Determine if it is the same qubit
+                */
+                if (cur_phy_qubit->getQubitAddr() == 
+                    next_phy_qubit->getQubitAddr())
+                {
+                    auto pCurQGate = cur_gate_node->getQGate();
+                    auto pNextQGate = next_gate_node->getQGate();
+
+                    if ((nullptr == pCurQGate) || (nullptr == pNextQGate))
+                    {
+                        QCERR("Unknown internal error");
+                        throw std::runtime_error("Unknown internal error");
+                    }
+
+                    /*
+                    * Merge node
+                    */
+                    QStat CurMatrix, NextMatrix;
+                    pCurQGate->getMatrix(CurMatrix);
+                    pNextQGate->getMatrix(NextMatrix);
+                    QStat newMatrix = NextMatrix * CurMatrix;
+                    auto temp = U4(newMatrix, CurQubitVector[0]);
+                    auto pCurtItem = aiter.getPCur();
+                    pCurtItem->setNode(temp.getImplementationPtr());
+                    cur_gate_node = std::dynamic_pointer_cast<AbstractQGateNode>(pCurtItem->getNode()).get();
+                    next_iter = node->deleteQNode(next_iter);
+                }
+            }
+            next_iter = next_iter.getNextIter();
+        }
+    }
+}
+
+void MergeSingleGate::execute(AbstractQuantumProgram * node, QNode * parent_node)
+{
+    if (nullptr == node)
+    {
+        QCERR("Unknown internal error");
+        throw std::runtime_error("Unknown internal error");
+    }
+    auto aiter = node->getFirstNodeIter();
+
+    /*
+    * Traversal PNode's children node
+    */
+    for (; aiter != node->getEndNodeIter(); ++aiter)
+    {
+        int node_type = (*aiter)->getNodeType();
+
+        /*
+        * If it is not a gate type, the algorithm goes deeper
+        */
+        if (CLASS_COND_NODE == node_type)
+            continue;
+        else if (CIRCUIT_NODE == node_type)
+        {
+            Traversal::traversal(
+                dynamic_cast<AbstractQuantumCircuit *>((*aiter).get()),
+                this,
+                false);
+            continue;
+        }
+        else if (GATE_NODE != node_type)
+        {
+            Traversal::traversalByType((*aiter).get(), parent_node, this);
+            continue;
+        }
+
+        AbstractQGateNode * cur_gate_node =
+            dynamic_pointer_cast<AbstractQGateNode>(*aiter).get();
+
+        if (cur_gate_node->getTargetQubitNum() + 
+            cur_gate_node->getControlQubitNum() >= 2)
+            continue;
+
+        auto next_iter = aiter.getNextIter();
+
+        AbstractQGateNode * next_gate_node = nullptr;
+
+        /*
+        * Loop through the nodes behind the target node
+        * and execute the merge algorithm
+        */
+        int next_node_type = NODE_UNDEFINED;
+        while (next_iter != node->getEndNodeIter())
+        {
+            int next_node_type = (*next_iter)->getNodeType();
+
+            if (CLASS_COND_NODE == next_node_type)
+                continue;
+            else if (GATE_NODE != next_node_type)
+                break;
+
+            next_gate_node =
+                dynamic_pointer_cast<AbstractQGateNode>(*next_iter).get();
+
+            if (next_gate_node->getTargetQubitNum() + 
+                next_gate_node->getControlQubitNum() == 1)
+            {
+                QVec CurQubitVector;
+                cur_gate_node->getQuBitVector(CurQubitVector);
+
+                QVec NextQubitVector;
+                next_gate_node->getQuBitVector(NextQubitVector);
+
+                auto cur_phy_qubit = CurQubitVector[0]->getPhysicalQubitPtr();
+                auto next_phy_qubit = NextQubitVector[0]->getPhysicalQubitPtr();
+
+                if ((nullptr == cur_phy_qubit) || (nullptr == next_phy_qubit))
+                {
+                    QCERR("Unknown internal error");
+                    throw std::runtime_error("Unknown internal error");
+                }
+
+                /*
+                * Determine if it is the same qubit
+                */
+                if (cur_phy_qubit->getQubitAddr() ==
+                    next_phy_qubit->getQubitAddr())
+                {
+                    auto pCurQGate = cur_gate_node->getQGate();
+                    auto pNextQGate = next_gate_node->getQGate();
+
+                    if ((nullptr == pCurQGate) || (nullptr == pNextQGate))
+                    {
+                        QCERR("Unknown internal error");
+                        throw std::runtime_error("Unknown internal error");
+                    }
+
+                    /*
+                    * Merge node
+                    */
+                    QStat CurMatrix, NextMatrix;
+                    pCurQGate->getMatrix(CurMatrix);
+                    pNextQGate->getMatrix(NextMatrix);
+                    QStat newMatrix = NextMatrix * CurMatrix;
+                    auto temp = U4(newMatrix, CurQubitVector[0]);
+                    auto pCurtItem = aiter.getPCur();
+                    pCurtItem->setNode(temp.getImplementationPtr());
+                    cur_gate_node = std::dynamic_pointer_cast<AbstractQGateNode>(pCurtItem->getNode()).get();
+                    next_iter = node->deleteQNode(next_iter);
+                }
+            }
+            next_iter = next_iter.getNextIter();
+        }
+    }
 }

@@ -1,13 +1,25 @@
 #include <math.h>
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
+#include "pybind11/complex.h"
+#include "pybind11/functional.h"
+#include "pybind11/chrono.h"
 #include "Core/QPanda.h"
-#include "Components/MaxCutProblemGenerator/MaxCutProblemGenerator.h"
+#include "MaxCutProblemGenerator/MaxCutProblemGenerator.h"
 #include "Variational/utils.h"
 #include "pybind11/eigen.h"
 #include "pybind11/operators.h"
-#include "OriginCollection.h"
+#include "Core/Utilities/OriginCollection.h"
+#include "Variational/Optimizer.h"
+#include "Core/VirtualQuantumProcessor/NoiseQPU/NoiseModel.h"
 #include <map>
+#include "QAlg/DataStruct.h"
+#include "Optimizer/AbstractOptimizer.h"
+#include "Optimizer/OptimizerFactory.h"
+#include "Optimizer/OriginNelderMead.h"
+#include "Core/QuantumMachine/QCloudMachine.h"
+
+
 
 USING_QPANDA
 using namespace std;
@@ -61,6 +73,25 @@ PYBIND11_MODULE(pyQPanda, m)
         "to init the environment. Use this at the beginning"
     );
 
+    m.def("init_quantum_machine", &initQuantumMachine,
+        "Create and initialize a quantum machine",
+        py::return_value_policy::reference);
+
+    m.def("get_qstate", &getQState,
+        "get prog qstate",
+        py::return_value_policy::automatic);
+
+#define DEFINE_DESTROY(type)\
+    m.def("destroy_quantum_machine", [] (type *machine){\
+        destroyQuantumMachine(machine);\
+    },\
+        "destroy a quantum machine", py::return_value_policy::automatic)
+
+    DEFINE_DESTROY(CPUQVM);
+    DEFINE_DESTROY(CPUSingleThreadQVM);
+    DEFINE_DESTROY(GPUQVM);
+    DEFINE_DESTROY(NoiseQVM);
+
     m.def("finalize", &finalize,
         "to finalize the environment. Use this at the end"
     );
@@ -80,9 +111,8 @@ PYBIND11_MODULE(pyQPanda, m)
         py::return_value_policy::reference
     );
 
-    m.def("qFree", &qFree, "Free a qubit");
 
-    m.def("qFree_all", &qFreeAll, "Free all qubit");
+    m.def("measure_all", &MeasureAll, "directly run");
 
     m.def("cAlloc", []() {return cAlloc(); },
         "Allocate a CBit",
@@ -96,16 +126,8 @@ PYBIND11_MODULE(pyQPanda, m)
 
     m.def("cFree", &cFree, "Free a CBit");
 
-    m.def("load", &load, "load a program");
-
-    m.def("append", &append,
-        "append a program after the loaded program");
-
     m.def("getstat", &getstat,
         "get the status(ptr) of the quantum machine");
-
-    m.def("getResult", &getResult,
-        "get the result(ptr)");
 
     m.def("getAllocateQubitNum", &getAllocateQubitNum,
         "getAllocateQubitNum");
@@ -115,11 +137,6 @@ PYBIND11_MODULE(pyQPanda, m)
     m.def("directly_run", &directlyRun, "directly run");
 
     m.def("quick_measure", &quickMeasure, "qubit_list"_a, "shots"_a, "quick measure");
-
-    m.def("run", &run, "run the loaded program");
-
-    m.def("getResultMap", &getResultMap,
-        "Directly get the result map");
 
     m.def("CreateEmptyQProg", &CreateEmptyQProg,
         "Create an empty QProg Container",
@@ -336,8 +353,8 @@ PYBIND11_MODULE(pyQPanda, m)
     );
 
     m.def("U4", [](double alpha, double beta, double gamma, double delta,
-        Qubit * qbit)
-    {return U4(alpha, beta, gamma, delta, qbit); }, "alpha"_a, "beta"_a, "delta"_a, "gamma"_a, "qubit"_a,
+        Qubit * qubit)
+    {return U4(alpha, beta, gamma, delta, qubit); }, "alpha"_a, "beta"_a, "delta"_a, "gamma"_a, "qubit"_a,
         "Create a U4 gate",
         py::return_value_policy::automatic
     );
@@ -377,9 +394,11 @@ PYBIND11_MODULE(pyQPanda, m)
         py::return_value_policy::automatic
     );
 
-    m.def("qRunesProg", &qProgToQRunes,"program"_a, "QProg to QRunes",
+
+    m.def("qRunesProg", &transformQProgToQRunes,"program"_a, "qvm"_a, "QProg to QRunes",
         py::return_value_policy::automatic_reference
     );
+
 
     m.def("PMeasure", &PMeasure,
         "Get the probability distribution over qubits",
@@ -522,17 +541,28 @@ PYBIND11_MODULE(pyQPanda, m)
     m.def("assign", [](ClassicalCondition a, cbit_size_t b)
     {return a = b; });
 
-    py::enum_<QuantumMachine_type>(m, "QuantumMachine_type")
-        .value("CPU", QuantumMachine_type::CPU)
-        .value("GPU", QuantumMachine_type::GPU)
-        .value("CPU_SINGLE_THREAD", QuantumMachine_type::CPU_SINGLE_THREAD)
+    py::enum_<QMachineType>(m, "QMachineType")
+        .value("CPU", QMachineType::CPU)
+        .value("GPU", QMachineType::GPU)
+        .value("CPU_SINGLE_THREAD", QMachineType::CPU_SINGLE_THREAD)
+        .value("NOISE", QMachineType::NOISE)
+        .export_values();
+
+    py::enum_<NOISE_MODEL>(m, "NoiseModel")
+        .value("DAMPING_KRAUS_OPERATOR", NOISE_MODEL::DAMPING_KRAUS_OPERATOR)
+        .value("DECOHERENCE_KRAUS_OPERATOR", NOISE_MODEL::DECOHERENCE_KRAUS_OPERATOR)
+        .value("DEPHASING_KRAUS_OPERATOR", NOISE_MODEL::DEPHASING_KRAUS_OPERATOR)
+        .value("PAULI_KRAUS_MAP", NOISE_MODEL::PAULI_KRAUS_MAP)
+        .value("DOUBLE_DAMPING_KRAUS_OPERATOR", NOISE_MODEL::DOUBLE_DAMPING_KRAUS_OPERATOR)
+        .value("DOUBLE_DECOHERENCE_KRAUS_OPERATOR", NOISE_MODEL::DOUBLE_DECOHERENCE_KRAUS_OPERATOR)
+        .value("DOUBLE_DEPHASING_KRAUS_OPERATOR", NOISE_MODEL::DOUBLE_DEPHASING_KRAUS_OPERATOR)
         ;
 
     py::enum_<QError>(m, "QError")
         .value("UndefineError", QError::undefineError)
         .value("qErrorNone", QError::qErrorNone)
         .value("qParameterError", QError::qParameterError)
-        .value("qbitError", QError::qbitError)
+        .value("qubitError", QError::qubitError)
         .value("loadFileError", QError::loadFileError)
         .value("initStateError", QError::initStateError)
         .value("destroyStateError", QError::destroyStateError)
@@ -542,34 +572,18 @@ PYBIND11_MODULE(pyQPanda, m)
         .value("getQStateError", QError::getQStateError)
         ;
 
-    Qubit*(QuantumMachine::*qalloc)() = &QuantumMachine::Allocate_Qubit;
-    QVec (QuantumMachine::*qallocMany)(size_t) = &QuantumMachine::Allocate_Qubits;
-    vector<ClassicalCondition>(QuantumMachine::*callocMany)(size_t) = &QuantumMachine::Allocate_CBits;
+    Qubit*(QuantumMachine::*qalloc)() = &QuantumMachine::allocateQubit;
+    QVec (QuantumMachine::*qallocMany)(size_t) = &QuantumMachine::allocateQubits;
+    vector<ClassicalCondition>(QuantumMachine::*callocMany)(size_t) = &QuantumMachine::allocateCBits;
     void (QuantumMachine::*free_qubit)(Qubit *) = &QuantumMachine::Free_Qubit;
     void (QuantumMachine::*free_qubits)(QVec&) = &QuantumMachine::Free_Qubits;
     void (QuantumMachine::*free_cbit)(ClassicalCondition & ) = &QuantumMachine::Free_CBit;
     void (QuantumMachine::*free_cbits)(vector<ClassicalCondition> &) = &QuantumMachine::Free_CBits;
-    void (QuantumMachine::*_load)(QProg &) = &QuantumMachine::load;
-    void (QuantumMachine::*_append)(QProg &) = &QuantumMachine::append;
-    void (QuantumMachine::*_run)() = &QuantumMachine::run;
     QMachineStatus * (QuantumMachine::*get_status)() const = &QuantumMachine::getStatus;
-    QResult * (QuantumMachine::*get_result)() = &QuantumMachine::getResult;
     size_t (QuantumMachine::*get_allocate_qubit)() = &QuantumMachine::getAllocateQubit;
     size_t (QuantumMachine::*get_allocate_CMem)() = &QuantumMachine::getAllocateCMem;
     void (QuantumMachine::*_finalize)() = &QuantumMachine::finalize;
-    map<string,bool> (QuantumMachine::*get_result_map)() = &QuantumMachine::getResultMap;
-    vector<pair<size_t, double>>(QuantumMachine::*pmeasure)(QVec , int) = &QuantumMachine::PMeasure;
-    vector<double>(QuantumMachine::*pmeasure_no_index)(QVec) = &QuantumMachine::PMeasure_no_index;
-    map<string, bool>(QuantumMachine::*directly_run)(QProg &) = &QuantumMachine::directlyRun;
-    vector<pair<size_t, double>>(QuantumMachine::*get_prob_tuple_list)(QVec , int) = &QuantumMachine::getProbTupleList;
-    vector<double>(QuantumMachine::*get_prob_list)(QVec , int) = &QuantumMachine::getProbList;
-    map<string, double>(QuantumMachine::*get_prob_dict)(QVec , int) = &QuantumMachine::getProbDict;
-    vector<pair<size_t, double>>(QuantumMachine::*prob_run_tuple_list)(QProg &, QVec , int) = &QuantumMachine::probRunTupleList;
-    vector<double>(QuantumMachine::*prob_run_list)(QProg &, QVec , int) = &QuantumMachine::probRunList;
-    map<string, double>(QuantumMachine::*prob_run_dict)(QProg &, QVec , int) = &QuantumMachine::probRunDict;
-    map<string, size_t>(QuantumMachine::*run_with_configuration)(QProg &, vector<ClassicalCondition> &, int) = &QuantumMachine::runWithConfiguration;
-    map<string, size_t>(QuantumMachine::*quick_measure)(QVec , size_t ) = &QuantumMachine::quickMeasure;
-    ClassicalCondition(QuantumMachine::*calloc)() = &QuantumMachine::Allocate_CBit;
+
 
     Qubit*(QVec::*qvec_subscript_cbit_size_t)(cbit_size_t) = &QVec::operator[];
     Qubit*(QVec::*qvec_subscript_cc)(ClassicalCondition&) = &QVec::operator[];
@@ -581,63 +595,51 @@ PYBIND11_MODULE(pyQPanda, m)
         .def("__getitem__", qvec_subscript_cc, py::return_value_policy::reference)
         .def("__len__", &QVec::size);
 
-#define BIND_ORIGINCOLLECTION(columns) \
-    OriginCollection<columns>&(OriginCollection<columns>::*assign_initlist_##columns)(const std::initializer_list<std::string> &)\
-        = &OriginCollection<columns>::operator=;\
-    py::class_<OriginCollection<columns>>(m, "OriginCollection_"#columns)\
-        .def(py::init<>())\
-        .def(py::init<std::string>())\
-        .def(py::init<OriginCollection<columns>>())\
-        .def("setNames", [](OriginCollection<columns>& c, py::args args) {\
-        std::vector<std::string> all_key;\
-            for (auto arg : args) { all_key.push_back(std::string(py::str(arg))); }\
-            c = all_key; \
-        })\
-        .def("insertValue", [](OriginCollection<columns>& c, std::string key, py::args args) {\
-            int i = 1;\
-            auto vector = c.getKeyVector();\
-            c.addValue(vector[0], key);\
-            for (auto arg : args) {\
-                c.addValue(vector[i],std::string(py::str (arg)));\
-                i++;\
-                }\
-        })\
-        .def("insertValue", [](OriginCollection<columns>& c, int key, py::args args) {\
-        int i = 1;\
-        auto vector = c.getKeyVector();\
-        c.addValue(vector[0], key);\
-        for (auto arg : args) {\
-            c.addValue(vector[i], std::string(py::str(arg)));\
-            i++;\
-        }\
-    })\
-        .def("getValue",&OriginCollection<columns>::getValue,"Get value by Key name")\
-        .def("getValueByKey", [](OriginCollection<columns> & c, std::string key_value) {\
-        return c.getValueByKey(key_value);\
-    }, "Get Value by key value")\
-        .def("getValueByKey", [](OriginCollection<columns> & c, int key_value) {\
-        return c.getValueByKey(key_value);\
-    }, "Get Value by key value")\
-        .def("open",&OriginCollection<columns>::open,"Open json file")\
-        .def("write", &OriginCollection<columns>::write, "write json file")\
-        .def("getJsonString", &OriginCollection<columns>::getJsonString, "Get Json String")\
-        .def("getFilePath", &OriginCollection<columns>::getFilePath, "Get file path")\
-        .def("getKeyVector", &OriginCollection<columns>::getKeyVector, "Get key vector");
-        
-    BIND_ORIGINCOLLECTION(1)
-    BIND_ORIGINCOLLECTION(2)
-    BIND_ORIGINCOLLECTION(3)
-    BIND_ORIGINCOLLECTION(4)
-    BIND_ORIGINCOLLECTION(5)
-    BIND_ORIGINCOLLECTION(6)
-    BIND_ORIGINCOLLECTION(7)
-    BIND_ORIGINCOLLECTION(8)
-    BIND_ORIGINCOLLECTION(9)
-    BIND_ORIGINCOLLECTION(10)
-    BIND_ORIGINCOLLECTION(11)
-    BIND_ORIGINCOLLECTION(12)
+
+    py::class_<OriginCollection>(m, "OriginCollection")
+        .def(py::init<>())
+        .def(py::init<std::string>())
+        .def(py::init<OriginCollection>())
+        .def("setNames", [](OriginCollection& c, py::args args) {
+            std::vector<std::string> all_key;
+            for (auto arg : args) { all_key.push_back(std::string(py::str(arg))); }
+            c = all_key; 
+        })
+        .def("insertValue", [](OriginCollection& c, std::string key, py::args args) {
+            int i = 1;
+            auto vector = c.getKeyVector();
+            c.addValue(vector[0], key);
+            for (auto arg : args) {
+                c.addValue(vector[i],std::string(py::str (arg)));
+                i++;
+                }
+        })
+        .def("insertValue", [](OriginCollection& c, int key, py::args args) {
+        int i = 1;
+        auto vector = c.getKeyVector();
+        c.addValue(vector[0], key);
+        for (auto arg : args) {
+            c.addValue(vector[i], std::string(py::str(arg)));
+            i++;
+        }
+    })
+        .def("getValue",&OriginCollection::getValue,"Get value by Key name")
+        .def("getValueByKey", [](OriginCollection & c, std::string key_value) {
+        return c.getValueByKey(key_value);
+    }, "Get Value by key value")
+        .def("getValueByKey", [](OriginCollection & c, int key_value) {
+        return c.getValueByKey(key_value);
+    }, "Get Value by key value")
+        .def("open", &OriginCollection::open, "Open json file")
+        .def("write", &OriginCollection::write, "write json file")
+        .def("getJsonString", &OriginCollection::getJsonString, "Get Json String")
+        .def("getFilePath", &OriginCollection::getFilePath, "Get file path")
+        .def("getKeyVector", &OriginCollection::getKeyVector, "Get key vector");
+
 
     py::class_<QuantumMachine>(m, "QuantumMachine")
+        .def("finalize", &QuantumMachine::finalize, "finalize")
+        .def("get_qstate", &QuantumMachine::getQState, "getState", py::return_value_policy::automatic)
         .def("qAlloc", qalloc, "Allocate a qubit", py::return_value_policy::reference)
         .def("qAlloc_many", qallocMany, "Allocate a list of qubits", "n_qubit"_a,
             py::return_value_policy::reference)
@@ -650,51 +652,131 @@ PYBIND11_MODULE(pyQPanda, m)
         .def("cFree", free_cbit, "Free a cbit")
         .def("cFree_all", free_cbits, "cbit_list"_a,
             "Free a list of cbits")
-        .def("load", _load, "program"_a, "load a program")
-        .def("append", _append, "program"_a, "append a program after the loaded program")
-        .def("run", _run, "run the loaded program")
         .def("getStatus", get_status, "get the status(ptr) of the quantum machine",
-            py::return_value_policy::reference)
-        .def("getResult", get_result, "get the result(ptr)",
             py::return_value_policy::reference)
         .def("getAllocateQubitNum", get_allocate_qubit, "getAllocateQubitNum", py::return_value_policy::reference)
         .def("getAllocateCMem", get_allocate_CMem, "getAllocateCMem", py::return_value_policy::reference)
-        .def("getResultMap", get_result_map, "Directly get the result map", py::return_value_policy::reference)
-        .def("pmeasure", pmeasure, "qubit_list"_a, "select_max"_a = -1,
-            "Get the probability distribution over qubits", py::return_value_policy::reference)
-        .def("pmeasure_no_index", pmeasure_no_index, "qubit_list"_a,
-            "Get the probability distribution over qubits", py::return_value_policy::reference)
-        .def("directly_run", directly_run, "program"_a,
+        .def("directly_run", &QuantumMachine::directlyRun, "program"_a,
             py::return_value_policy::reference)
-        .def("get_prob_tuple_list", get_prob_tuple_list, "qubit_list"_a, "select_max"_a = -1,
+        .def("run_with_configuration", [](QuantumMachine &qvm, QProg & prog, vector<ClassicalCondition> & cc_vector, py::dict param) {
+        py::object json = py::module::import("json");
+        py::object dumps = json.attr("dumps");
+        auto json_string = std::string(py::str(dumps(param)));
+        rapidjson::Document doc;
+        auto & alloc = doc.GetAllocator();
+        doc.Parse(json_string.c_str());
+        return qvm.runWithConfiguration(prog, cc_vector, doc);
+    },
+            "program"_a, "cbit_list"_a, "data"_a,
+        py::return_value_policy::automatic);
+
+
+#define DEFINE_IDEAL_QVM(class_name)\
+    py::class_<class_name,QuantumMachine>(m, #class_name)\
+        .def(py::init<>())\
+        .def("initQVM", &class_name::init, "init quantum virtual machine")\
+        .def("finalize", &class_name::finalize, "finalize")\
+        .def("get_qstate", &class_name::getQState, "getState",py::return_value_policy::automatic)\
+        .def("qAlloc", qalloc, "Allocate a qubit", py::return_value_policy::reference)\
+        .def("qAlloc_many", qallocMany, "Allocate a list of qubits", "n_qubit"_a,\
+            py::return_value_policy::reference)\
+        .def("cAlloc", calloc, "Allocate a cbit", py::return_value_policy::reference)\
+        .def("cAlloc_many", callocMany, "Allocate a list of cbits", "n_cbit"_a,\
+            py::return_value_policy::reference)\
+        .def("qFree", free_qubit, "Free a qubit")\
+        .def("qFree_all", free_qubits, "qubit_list"_a,\
+            "Free a list of qubits")\
+        .def("cFree", free_cbit, "Free a cbit")\
+        .def("cFree_all", free_cbits, "cbit_list"_a,\
+            "Free a list of cbits")\
+        .def("getStatus", get_status, "get the status(ptr) of the quantum machine",\
+            py::return_value_policy::reference)\
+        .def("getAllocateQubitNum", get_allocate_qubit, "getAllocateQubitNum", py::return_value_policy::reference)\
+        .def("getAllocateCMem", get_allocate_CMem, "getAllocateCMem", py::return_value_policy::reference)\
+        .def("directly_run", &class_name::directlyRun, "program"_a,\
+            py::return_value_policy::reference)\
+        .def("run_with_configuration", [](class_name &qvm, QProg &prog, vector<ClassicalCondition> & cc_vector, py::dict param){\
+            py::object json = py::module::import("json");\
+            py::object dumps = json.attr("dumps");\
+            auto json_string = std::string(py::str(dumps(param)));\
+            rapidjson::Document doc;\
+            auto & alloc = doc.GetAllocator();\
+            doc.Parse(json_string.c_str());\
+            return qvm.runWithConfiguration(prog, cc_vector, doc);\
+        }, \
+            "program"_a, "cbit_list"_a, "data"_a,\
+            py::return_value_policy::automatic)\
+        .def("pmeasure", &class_name::PMeasure, "qubit_list"_a, "select_max"_a = -1,\
+            "Get the probability distribution over qubits", py::return_value_policy::reference)\
+        .def("pmeasure_no_index", &class_name::PMeasure_no_index, "qubit_list"_a,\
+            "Get the probability distribution over qubits", py::return_value_policy::reference)\
+        .def("get_prob_tuple_list", &class_name::getProbTupleList, "qubit_list"_a, "select_max"_a = -1,\
+            py::return_value_policy::reference)\
+        .def("get_prob_list", &class_name::getProbList, "qubit_list"_a, "select_max"_a = -1,\
+            py::return_value_policy::reference)\
+        .def("get_prob_dict", &class_name::getProbDict, "qubit_list"_a, "select_max"_a = -1,\
+            py::return_value_policy::reference)\
+        .def("prob_run_tuple_list", &class_name::probRunDict, "program"_a, "qubit_list"_a, "select_max"_a = -1,\
+            py::return_value_policy::reference)\
+        .def("prob_run_list", &class_name::probRunList, "program"_a, "qubit_list"_a, "select_max"_a = -1,\
+            py::return_value_policy::reference)\
+        .def("prob_run_dict", &class_name::probRunDict, "program"_a, "qubit_list"_a, "select_max"_a = -1,\
+            py::return_value_policy::reference)\
+        .def("quick_measure", &class_name::quickMeasure, "qubit_list"_a, "shots"_a,\
+            py::return_value_policy::reference)\
+
+    DEFINE_IDEAL_QVM(CPUQVM);
+    DEFINE_IDEAL_QVM(CPUSingleThreadQVM);
+    DEFINE_IDEAL_QVM(GPUQVM);
+
+    py::class_<NoiseQVM, QuantumMachine>(m, "NoiseQVM")
+        .def(py::init<>())
+        .def("initQVM", [](NoiseQVM& qvm, py::dict param) {
+            py::object json = py::module::import("json");
+            py::object dumps = json.attr("dumps");
+            auto json_string = std::string(py::str(dumps(param)));
+            rapidjson::Document doc; 
+            auto & alloc = doc.GetAllocator(); 
+            doc.Parse(json_string.c_str()); 
+            qvm.init(doc);
+        }, "init quantum virtual machine")
+        .def("finalize", &NoiseQVM::finalize, "finalize")
+        .def("get_qstate", &NoiseQVM::getQState, "getState", py::return_value_policy::automatic)
+        .def("qAlloc", qalloc, "Allocate a qubit", py::return_value_policy::reference)
+        .def("qAlloc_many", qallocMany, "Allocate a list of qubits", "n_qubit"_a,
             py::return_value_policy::reference)
-        .def("get_prob_list", get_prob_list, "qubit_list"_a, "select_max"_a = -1,
+        .def("cAlloc", calloc, "Allocate a cbit", py::return_value_policy::reference)
+        .def("cAlloc_many", callocMany, "Allocate a list of cbits", "n_cbit"_a,
             py::return_value_policy::reference)
-        .def("get_prob_dict", get_prob_dict, "qubit_list"_a, "select_max"_a = -1,
+        .def("qFree", free_qubit, "Free a qubit")
+        .def("qFree_all", free_qubits, "qubit_list"_a,
+            "Free a list of qubits")
+        .def("cFree", free_cbit, "Free a cbit")
+        .def("cFree_all", free_cbits, "cbit_list"_a,
+            "Free a list of cbits")
+        .def("getStatus", get_status, "get the status(ptr) of the quantum machine",
             py::return_value_policy::reference)
-        .def("prob_run_tuple_list", prob_run_tuple_list, "program"_a, "qubit_list"_a, "select_max"_a = -1,
+        .def("getAllocateQubitNum", get_allocate_qubit, "getAllocateQubitNum", py::return_value_policy::reference)
+        .def("getAllocateCMem", get_allocate_CMem, "getAllocateCMem", py::return_value_policy::reference)
+        .def("directly_run", &NoiseQVM::directlyRun, "program"_a,
             py::return_value_policy::reference)
-        .def("prob_run_list", prob_run_list, "program"_a, "qubit_list"_a, "select_max"_a = -1,
-            py::return_value_policy::reference)
-        .def("prob_run_dict", prob_run_dict, "program"_a, "qubit_list"_a, "select_max"_a = -1,
-            py::return_value_policy::reference)
-        .def("run_with_configuration", run_with_configuration, "program"_a, "cbit_list"_a, "shots"_a,
-            py::return_value_policy::reference)
-        .def("quick_measure", quick_measure, "qubit_list"_a, "shots"_a,
-             py::return_value_policy::reference);
+        .def("run_with_configuration", [](NoiseQVM &qvm, QProg & prog, vector<ClassicalCondition> & cc_vector, py::dict param) {
+            py::object json = py::module::import("json");
+            py::object dumps = json.attr("dumps");
+            auto json_string = std::string(py::str(dumps(param)));
+            rapidjson::Document doc;
+            auto & alloc = doc.GetAllocator();
+            doc.Parse(json_string.c_str());
+            return qvm.runWithConfiguration(prog, cc_vector, doc);
+        },
+            "program"_a, "cbit_list"_a, "data"_a,
+        py::return_value_policy::automatic);
 
 
 
     py::class_<QResult>(m, "QResult")
         .def("getResultMap", &QResult::getResultMap, py::return_value_policy::reference);
     
-    m.def("init_quantum_machine", initQuantumMachine, 
-		"backend_type"_a = QuantumMachine_type::CPU_SINGLE_THREAD,
-		"Create and initialize a quantum machine",
-        py::return_value_policy::automatic);
-
-    m.def("destroy_quantum_machine", destroyQuantumMachine, "machine"_a,
-          "destroy a quantum machine",py::return_value_policy::automatic);
     m.def("vector_dot", &vector_dot,"x"_a,"y"_a, "Inner product of vector x and y");
     m.def("all_cut_of_graph", &all_cut_of_graph, "generate graph of maxcut problem");
 
@@ -717,7 +799,9 @@ PYBIND11_MODULE(pyQPanda, m)
         .def(py::self == py::self);
 
     py::class_<Var::VariationalQuantumGate>
-        (m, "VariationalQuantumGate");
+        (m, "VariationalQuantumGate")
+        .def("get_constants",&Var::VariationalQuantumGate::get_constants, py::return_value_policy::reference);
+
 
     GET_FEED_PTR_NO_OFFSET(feed_vqg_h_no_ptr, Var::VariationalQuantumGate_H);
 
@@ -725,6 +809,12 @@ PYBIND11_MODULE(pyQPanda, m)
         (m, "VariationalQuantumGate_H")
         .def(py::init<QPanda::Qubit*>())
         .def("feed", feed_vqg_h_no_ptr);
+    GET_FEED_PTR_NO_OFFSET(feed_vqg_x_no_ptr, Var::VariationalQuantumGate_X);
+
+    py::class_<Var::VariationalQuantumGate_X, Var::VariationalQuantumGate>
+        (m, "VariationalQuantumGate_X")
+        .def(py::init<QPanda::Qubit*>())
+        .def("feed", feed_vqg_x_no_ptr);
 
     GET_FEED_PTR_NO_OFFSET(feed_vqg_rx_no_ptr, Var::VariationalQuantumGate_RX);
     GET_FEED_PTR_WITH_OFFSET(feed_vqg_rx_with_ptr, Var::VariationalQuantumGate_RX);
@@ -755,6 +845,32 @@ PYBIND11_MODULE(pyQPanda, m)
         .def(py::init<QPanda::Qubit*, double>())
         .def("feed", feed_vqg_rz_no_ptr)
         .def("feed", feed_vqg_rz_with_ptr);
+
+    GET_FEED_PTR_NO_OFFSET(feed_vqg_crx_no_ptr, Var::VariationalQuantumGate_CRX);
+
+    py::class_<Var::VariationalQuantumGate_CRX, Var::VariationalQuantumGate>
+        (m, "VariationalQuantumGate_CRX")
+        .def(py::init<QPanda::Qubit*, QVec &, double>())
+        .def(py::init<Var::VariationalQuantumGate_CRX &>())
+        .def("feed", feed_vqg_crx_no_ptr);
+
+    GET_FEED_PTR_NO_OFFSET(feed_vqg_cry_no_ptr, Var::VariationalQuantumGate_CRY);
+
+    py::class_<Var::VariationalQuantumGate_CRY, Var::VariationalQuantumGate>
+        (m, "VariationalQuantumGate_CRY")
+        .def(py::init<QPanda::Qubit*, QVec &, double>())
+        .def(py::init<Var::VariationalQuantumGate_CRY &>())
+        .def("feed", feed_vqg_cry_no_ptr);
+
+    GET_FEED_PTR_NO_OFFSET(feed_vqg_crz_no_ptr, Var::VariationalQuantumGate_CRZ);
+
+    py::class_<Var::VariationalQuantumGate_CRZ, Var::VariationalQuantumGate>
+        (m, "VariationalQuantumGate_CRZ")
+        .def(py::init<QPanda::Qubit*, QVec &, double>())
+        .def(py::init<Var::VariationalQuantumGate_CRZ &>())
+        .def("feed", feed_vqg_crz_no_ptr);
+
+
 
     GET_FEED_PTR_NO_OFFSET(feed_vqg_cnot_no_ptr, Var::VariationalQuantumGate_CNOT);
 
@@ -795,11 +911,15 @@ PYBIND11_MODULE(pyQPanda, m)
         .def(py::init<>())
         .def(py::init<QCircuit>())
         .def("insert", &Var::VariationalQuantumCircuit::insert<Var::VQG_H>, py::return_value_policy::reference)
+        .def("insert", &Var::VariationalQuantumCircuit::insert<Var::VQG_X>, py::return_value_policy::reference)
         .def("insert", &Var::VariationalQuantumCircuit::insert<Var::VQG_RX>, py::return_value_policy::reference)
         .def("insert", &Var::VariationalQuantumCircuit::insert<Var::VQG_RY>, py::return_value_policy::reference)
         .def("insert", &Var::VariationalQuantumCircuit::insert<Var::VQG_RZ>, py::return_value_policy::reference)
         .def("insert", &Var::VariationalQuantumCircuit::insert<Var::VQG_CNOT>, py::return_value_policy::reference)
         .def("insert", &Var::VariationalQuantumCircuit::insert<Var::VQG_CZ>, py::return_value_policy::reference)
+        .def("insert", &Var::VariationalQuantumCircuit::insert<Var::VQG_CRX>, py::return_value_policy::reference)
+        .def("insert", &Var::VariationalQuantumCircuit::insert<Var::VQG_CRY>, py::return_value_policy::reference)
+        .def("insert", &Var::VariationalQuantumCircuit::insert<Var::VQG_CRZ>, py::return_value_policy::reference)
         .def("insert", insert_vqc_vqc, py::return_value_policy::reference)
         .def("insert", insert_vqc_qc, py::return_value_policy::reference)
         .def("insert", insert_vqc_qg, py::return_value_policy::reference)
@@ -862,16 +982,183 @@ PYBIND11_MODULE(pyQPanda, m)
     const Var::var(*qop_plain)(Var::VariationalQuantumCircuit&,
         QPanda::PauliOperator,
         QPanda::QuantumMachine*,
-        std::vector<Qubit*>) = Var::qop;
+        std::vector<Qubit*>,
+        bool is_pmeasure) = Var::qop;
 
     const Var::var(*qop_map)(Var::VariationalQuantumCircuit&,
         QPanda::PauliOperator,
         QPanda::QuantumMachine*,
-        std::map<size_t, Qubit*>) = Var::qop;
-    m.def("qop", qop_plain);
-    m.def("qop", qop_map);
+        std::map<size_t, Qubit*>,
+        bool is_pmeasure) = Var::qop;
+    m.def("qop", qop_plain,"VariationalQuantumCircuit"_a,"Hamiltonian"_a,"QuantumMachine"_a,"qubitList"_a, "is_pmeasure"_a = true);
+    m.def("qop", qop_map, "VariationalQuantumCircuit"_a, "Hamiltonian"_a, "QuantumMachine"_a, "qubitList"_a, "is_pmeasure"_a = true);
 	m.def("qop_pmeasure", Var::qop_pmeasure);
     py::implicitly_convertible<double, Var::var>();
     py::implicitly_convertible<ClassicalCondition, ClassicalProg>();
     py::implicitly_convertible<cbit_size_t, ClassicalCondition>();
+
+	py::class_<Var::Optimizer>(m, "Optimizer")
+		.def("get_variables", &Var::Optimizer::get_variables)
+		.def("get_loss", &Var::Optimizer::get_loss)
+		.def("run", &Var::Optimizer::run);
+	
+
+	py::enum_<Var::OptimizerMode>(m, "OptimizerMode");
+
+	py::class_<Var::VanillaGradientDescentOptimizer, std::shared_ptr<Var::VanillaGradientDescentOptimizer>>
+		(m, "VanillaGradientDescentOptimizer")
+		.def(py::init<>([](
+			Var::var lost_function,
+			double learning_rate = 0.01,
+			double stop_condition = 1.e-6,
+			Var::OptimizerMode mode = Var::OptimizerMode::MINIMIZE) {
+		return Var::VanillaGradientDescentOptimizer(lost_function,
+			learning_rate, stop_condition, mode);
+	}))
+		.def("minimize", &Var::VanillaGradientDescentOptimizer::minimize)
+		.def("get_variables", &Var::VanillaGradientDescentOptimizer::get_variables)
+		.def("get_loss", &Var::VanillaGradientDescentOptimizer::get_loss)
+		.def("run", &Var::VanillaGradientDescentOptimizer::run);
+		
+
+	py::class_<Var::MomentumOptimizer, std::shared_ptr<Var::MomentumOptimizer>>
+		(m, "MomentumOptimizer")
+		.def(py::init<>([](
+			Var::var lost,
+			double learning_rate = 0.01,
+			double momentum = 0.9) {
+		return Var::MomentumOptimizer(lost,
+			learning_rate, momentum);
+			}))
+		.def("minimize", &Var::MomentumOptimizer::minimize)
+		.def("get_variables", &Var::MomentumOptimizer::get_variables)
+		.def("get_loss", &Var::MomentumOptimizer::get_loss)
+		.def("run", &Var::MomentumOptimizer::run);
+
+	py::class_<Var::AdaGradOptimizer, std::shared_ptr<Var::AdaGradOptimizer>>
+		(m, "AdaGradOptimizer")
+		.def(py::init<>([](
+			Var::var lost,
+			double learning_rate = 0.01,
+			double initial_accumulator_value = 0.0,
+			double epsilon = 1e-10) {
+		return Var::AdaGradOptimizer(lost,
+			learning_rate, initial_accumulator_value, epsilon);
+		}))
+		.def("minimize", &Var::AdaGradOptimizer::minimize)
+		.def("get_variables", &Var::AdaGradOptimizer::get_variables)
+		.def("get_loss", &Var::AdaGradOptimizer::get_loss)
+		.def("run", &Var::AdaGradOptimizer::run);
+
+	py::class_<Var::RMSPropOptimizer, std::shared_ptr<Var::RMSPropOptimizer>>
+		(m, "RMSPropOptimizer")
+		.def(py::init<>([](
+			Var::var lost,
+			double learning_rate = 0.001,
+			double decay = 0.9,
+			double epsilon = 1e-10) {
+		return Var::RMSPropOptimizer(lost,
+			learning_rate, decay, epsilon);
+			}))
+		.def("minimize", &Var::RMSPropOptimizer::minimize)
+		.def("get_variables", &Var::RMSPropOptimizer::get_variables)
+		.def("get_loss", &Var::RMSPropOptimizer::get_loss)
+		.def("run", &Var::RMSPropOptimizer::run);
+
+
+	py::class_<Var::AdamOptimizer, std::shared_ptr<Var::AdamOptimizer>>
+		(m, "AdamOptimizer")
+		.def(py::init<>([](
+			Var::var lost,
+			double learning_rate = 0.001,
+			double beta1 = 0.9,
+			double beta2 = 0.999,
+			double epsilon = 1e-8) {
+		return Var::AdamOptimizer(lost,
+			learning_rate, beta1, beta2, epsilon);
+			}))
+		.def("minimize", &Var::AdamOptimizer::minimize)
+		.def("get_variables", &Var::AdamOptimizer::get_variables)
+		.def("get_loss", &Var::AdamOptimizer::get_loss)
+		.def("run", &Var::AdamOptimizer::run);
+
+    py::enum_<QPanda::OptimizerType>(m, "OptimizerType", py::arithmetic())
+        .value("NELDER_MEAD", QPanda::OptimizerType::NELDER_MEAD)
+        .value("POWELL", QPanda::OptimizerType::POWELL)
+        .export_values();
+
+    py::class_<QPanda::AbstractOptimizer>(m, "AbstractOptimizer")
+        .def("registerFunc", &QPanda::AbstractOptimizer::registerFunc)
+        .def("setXatol", &QPanda::AbstractOptimizer::setXatol)
+        .def("exec", &QPanda::AbstractOptimizer::exec)
+        .def("getResult", &QPanda::AbstractOptimizer::getResult)
+        .def("setAdaptive", &QPanda::AbstractOptimizer::setAdaptive)
+        .def("setDisp", &QPanda::AbstractOptimizer::setDisp)
+        .def("setFatol", &QPanda::AbstractOptimizer::setFatol)
+        .def("setMaxFCalls", &QPanda::AbstractOptimizer::setMaxFCalls)
+        .def("setMaxIter", &QPanda::AbstractOptimizer::setMaxIter);
+
+    py::class_<QPanda::OptimizerFactory>(m, "OptimizerFactory")
+        .def(py::init<>())
+        .def("makeOptimizer", py::overload_cast<const QPanda::OptimizerType &>
+            (&QPanda::OptimizerFactory::makeOptimizer), "Please input OptimizerType ")
+        .def("makeOptimizer", py::overload_cast<const std::string &>
+            (&QPanda::OptimizerFactory::makeOptimizer), "Please input the Optimizer's name(string)")
+        ;
+
+    py::class_<QPanda::QOptimizationResult>(m, "QOptimizationResult")
+        .def(py::init<std::string &, size_t &, size_t &, std::string &, double &, vector_d &>())
+        .def_readwrite("message",&QPanda::QOptimizationResult::message)
+        .def_readwrite("fcalls", &QPanda::QOptimizationResult::fcalls)
+        .def_readwrite("fun_val", &QPanda::QOptimizationResult::fun_val)
+        .def_readwrite("iters", &QPanda::QOptimizationResult::iters)
+        .def_readwrite("key", &QPanda::QOptimizationResult::key)
+        .def_readwrite("para", &QPanda::QOptimizationResult::para);
+
+#ifdef USE_CURL
+    m.def("QProgToBinary", [](size_t qubit_num, size_t cbit_num, QProg prog)
+    {return QProgToBinary(qubit_num, cbit_num, prog); },
+        "QProg To BinaryData",
+        py::return_value_policy::automatic_reference
+    );
+
+    py::class_<QCloudMachine, QuantumMachine>(m, "QCloud")
+        .def("initQVM", &QCloudMachine::init, "init quantum virtual machine")
+        .def("finalize", &QCloudMachine::finalize, "finalize")
+        .def("qAlloc", qalloc, "Allocate a qubit", py::return_value_policy::reference)
+        .def("qAlloc_many", qallocMany, "Allocate a list of qubits", "n_qubit"_a,
+            py::return_value_policy::reference)
+        .def("cAlloc", calloc, "Allocate a cbit", py::return_value_policy::reference)
+        .def("cAlloc_many", callocMany, "Allocate a list of cbits", "n_cbit"_a,
+            py::return_value_policy::reference)
+        .def("qFree", free_qubit, "Free a qubit")
+        .def("qFree_all", free_qubits, "qubit_list"_a,
+            "Free a list of qubits")
+        .def("cFree", free_cbit, "Free a cbit")
+        .def("cFree_all", free_cbits, "cbit_list"_a,
+            "Free a list of cbits")
+        .def("getAllocateQubitNum", get_allocate_qubit, "getAllocateQubitNum", py::return_value_policy::reference)
+        .def("getAllocateCMem", get_allocate_CMem, "getAllocateCMem", py::return_value_policy::reference)
+        .def(py::init<>())
+        .def("run_with_configuration", [](QCloudMachine &qcm, QProg & prog, py::dict param)
+    {
+        py::object json = py::module::import("json");
+        py::object dumps = json.attr("dumps");
+        auto json_string = std::string(py::str(dumps(param)));
+        rapidjson::Document doc;
+        auto &alloc = doc.GetAllocator();
+        doc.Parse(json_string.c_str());
+        return qcm.runWithConfiguration(prog, doc);
+    })
+        .def("prob_run_dict", [](QCloudMachine &qcm, QProg & prog, QVec qvec, py::dict param)
+    {
+        py::object json = py::module::import("json");
+        py::object dumps = json.attr("dumps");
+        auto json_string = std::string(py::str(dumps(param)));
+        rapidjson::Document doc;
+        auto &alloc = doc.GetAllocator();
+        doc.Parse(json_string.c_str());
+        return qcm.probRunDict(prog, qvec, doc);
+    });
+#endif // USE_CURL
 }

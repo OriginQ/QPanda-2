@@ -2,6 +2,7 @@
 #include "Optimizer.h"
 #include "QPandaNamespace.h"
 
+
 using namespace QPanda::Variational;
 
 Optimizer::Optimizer(var lost_function, double learning_rate) :

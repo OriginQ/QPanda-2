@@ -114,7 +114,7 @@ def generate_graph(dimension,n_edge):
 #     hp=generate_maxcut_problem_Hamiltonian(adjacent_matrix=adjacent_matrix)
 #     hp=hp+PauliOperator({'':-graph['all_cut_sum']/2})
 #     hd=generate_drive_hamiltonian(qubit_number)
-#     init(backend_type=pyQPanda.QuantumMachine_type.GPU)
+#     init(backend_type=pyQPanda.QMachineType.GPU)
 #     qlist=qAlloc_many(qubit_number)
 #     gamma=np.ones(step)*(-0.01)
 #     beta=np.ones(step)*0.01
@@ -153,9 +153,9 @@ def qaoa_maxcut_gradient_threshold(graph,step,threshold_value=0.05,optimize_time
     hp=hp+PauliOperator({'':-graph['all_cut_sum']/2})
     hd=generate_drive_hamiltonian(qubit_number)
     if use_GPU:
-        machine_type=QuantumMachine_type.GPU
+        machine_type=QMachineType.GPU
     else:
-        machine_type=QuantumMachine_type.CPU
+        machine_type=QMachineType.CPU
     init(machine_type)
     qlist=qAlloc_many(qubit_number)
     #gamma=(1-2*np.random.random_sample(step))*pi

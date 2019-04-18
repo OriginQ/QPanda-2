@@ -368,10 +368,10 @@ int bp__tree_read_head(bp__writer_t *w, void *data)
     bp_db_t *t = (bp_db_t *) w;
     bp__tree_head_t* head = (bp__tree_head_t *) data;
 
-    t->head.offset = ntohll(head->offset);
-    t->head.config = ntohll(head->config);
-    t->head.page_size = ntohll(head->page_size);
-    t->head.hash = ntohll(head->hash);
+    t->head.offset = myntohll(head->offset);
+    t->head.config = myntohll(head->config);
+    t->head.page_size = myntohll(head->page_size);
+    t->head.hash = myntohll(head->hash);
 
     /* we've copied all data - free it */
     free(data);
@@ -413,10 +413,10 @@ int bp__tree_write_head(bp__writer_t *w, void *data)
     t->head.hash = bp__compute_hashl(t->head.offset);
 
     /* Create temporary head with fields in network byte order */
-    nhead.offset = htonll(t->head.offset);
-    nhead.config = htonll(t->head.config);
-    nhead.page_size = htonll(t->head.page_size);
-    nhead.hash = htonll(t->head.hash);
+    nhead.offset = myhtonll(t->head.offset);
+    nhead.config = myhtonll(t->head.config);
+    nhead.page_size = myhtonll(t->head.page_size);
+    nhead.hash = myhtonll(t->head.hash);
 
     size = BP__HEAD_SIZE;
     ret = bp__writer_write(w,

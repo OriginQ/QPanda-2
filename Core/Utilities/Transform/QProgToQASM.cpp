@@ -5,7 +5,8 @@
 using namespace std;
 USING_QPANDA
 
-QProgToQASM::QProgToQASM()
+QProgToQASM::QProgToQASM(QuantumMachine * quantum_machine)
+
 {
     m_gatetype.insert(pair<int, string>(PAULI_X_GATE, "X"));
     m_gatetype.insert(pair<int, string>(PAULI_Y_GATE, "Y"));
@@ -32,16 +33,19 @@ QProgToQASM::QProgToQASM()
     m_gatetype.insert(pair<int, string>(SQISWAP_GATE, "SQISWAP"));
 
     m_qasm.clear();
+    m_quantum_machine = quantum_machine;
 }
 
-QProgToQASM::~QProgToQASM()
-{}
-
-void QProgToQASM::progToQASM(AbstractQuantumProgram *pQProg)
+void QProgToQASM::transform(QProg &prog)
 {
     m_qasm.emplace_back("OPENQASM 2.0;");
-    m_qasm.emplace_back("qreg q[" + to_string(getAllocateQubitNum()) + "];");
-    m_qasm.emplace_back("creg c[" + to_string(getAllocateCMem()) + "];");
+    m_qasm.emplace_back("qreg q[" + to_string(m_quantum_machine->getAllocateQubit()) + "];");
+    m_qasm.emplace_back("creg c[" + to_string(m_quantum_machine->getAllocateCMem()) + "];");
+    if (nullptr == m_quantum_machine)
+    {
+        QCERR("Quantum machine is nullptr");
+        throw std::invalid_argument("Quantum machine is nullptr");
+    }
 
     const int KMETADATA_GATE_TYPE_COUNT = 2;
     vector<vector<string>> ValidQGateMatrix(KMETADATA_GATE_TYPE_COUNT, vector<string>(0));
@@ -71,14 +75,14 @@ void QProgToQASM::progToQASM(AbstractQuantumProgram *pQProg)
         ValidQGateMatrix[MetadataGateType::METADATA_SINGLE_GATE]);  /* single gate data MetadataValidity */
     DoubleGateTypeValidator::GateType(QGateMatrix[MetadataGateType::METADATA_DOUBLE_GATE],
         ValidQGateMatrix[MetadataGateType::METADATA_DOUBLE_GATE]);  /* double gate data MetadataValidity */
-    TransformDecomposition traversal_vector(ValidQGateMatrix, QGateMatrix, vAdjacentMatrix);
-    traversal_vector.TraversalOptimizationMerge(dynamic_cast<QNode *>(pQProg));
+    TransformDecomposition traversal_vector(ValidQGateMatrix, QGateMatrix, vAdjacentMatrix, m_quantum_machine);
 
-    QProgToQASM::qProgToQASM(pQProg);
+    auto p_prog = &prog;
+    traversal_vector.TraversalOptimizationMerge(prog);
+    transformQProg(p_prog);
 }
 
-
-void QProgToQASM::qProgToQASM(AbstractQGateNode * pQGate)
+void QProgToQASM::transformQGate(AbstractQGateNode * pQGate)
 {
     if (nullptr == pQGate || nullptr == pQGate->getQGate())
     {
@@ -162,7 +166,7 @@ void QProgToQASM::qProgToQASM(AbstractQGateNode * pQGate)
     m_qasm.emplace_back(sTemp);
 }
 
-void QProgToQASM::qProgToQASM(AbstractQuantumMeasure *pMeasure)
+void QProgToQASM::transformQMeasure(AbstractQuantumMeasure *pMeasure)
 {
     if (nullptr == pMeasure)
     {
@@ -181,7 +185,7 @@ void QProgToQASM::qProgToQASM(AbstractQuantumMeasure *pMeasure)
 }
 
 
-void QProgToQASM::qProgToQASM(AbstractQuantumProgram *pQProg)
+void QProgToQASM::transformQProg(AbstractQuantumProgram *pQProg)
 {
     if (nullptr == pQProg)
     {
@@ -191,11 +195,11 @@ void QProgToQASM::qProgToQASM(AbstractQuantumProgram *pQProg)
     for (auto aiter = pQProg->getFirstNodeIter(); aiter != pQProg->getEndNodeIter(); aiter++)
     {
         QNode * pNode = (*aiter).get();
-        qProgToQASM(pNode);
+        transformQNode(pNode);
     }
 }
 
-void QProgToQASM::qProgToQASM(QNode * pNode)
+void QProgToQASM::transformQNode(QNode * pNode)
 {
     if (nullptr == pNode)
     {
@@ -206,19 +210,19 @@ void QProgToQASM::qProgToQASM(QNode * pNode)
     switch (pNode->getNodeType())
     {
     case NodeType::GATE_NODE:
-        qProgToQASM(dynamic_cast<AbstractQGateNode *>(pNode));
+        transformQGate(dynamic_cast<AbstractQGateNode *>(pNode));
         break;
 
     case NodeType::CIRCUIT_NODE:
-        qProgToQASM(dynamic_cast<AbstractQuantumCircuit *>(pNode));
+        transformQCircuit(dynamic_cast<AbstractQuantumCircuit *>(pNode));
         break;
 
     case NodeType::PROG_NODE:
-        qProgToQASM(dynamic_cast<AbstractQuantumProgram *>(pNode));
+        transformQProg(dynamic_cast<AbstractQuantumProgram *>(pNode));
         break;
 
     case NodeType::MEASURE_GATE:
-        qProgToQASM(dynamic_cast<AbstractQuantumMeasure *>(pNode));
+        transformQMeasure(dynamic_cast<AbstractQuantumMeasure *>(pNode));
         break;
 
     case NodeType::QIF_START_NODE:
@@ -240,13 +244,13 @@ void QProgToQASM::handleDaggerNode(QNode * pNode,int nodetype)
     {
         AbstractQGateNode * pGATE = dynamic_cast<AbstractQGateNode *>(pNode);
         pGATE->setDagger(!pGATE->isDagger());
-        qProgToQASM(pGATE);
+        transformQGate(pGATE);
     }
     else if (CIRCUIT_NODE == nodetype)
     {
         AbstractQuantumCircuit * qCircuit = dynamic_cast<AbstractQuantumCircuit *>(pNode);
         qCircuit->setDagger(!qCircuit->isDagger());
-        qProgToQASM(qCircuit);
+        transformQCircuit(qCircuit);
     }
     else
     {
@@ -273,16 +277,13 @@ void QProgToQASM::handleDaggerCir(QNode * pNode)
         break;
 
     case NodeType::PROG_NODE:
-        QProgToQASM::qProgToQASM(dynamic_cast<AbstractQuantumProgram *>(pNode));
+        QProgToQASM::transformQProg(dynamic_cast<AbstractQuantumProgram *>(pNode));
         break;
 
     case NodeType::MEASURE_GATE:
-        QProgToQASM::qProgToQASM(dynamic_cast<AbstractQuantumMeasure *>(pNode));
-        break;
-
     case NodeType::QIF_START_NODE:
     case NodeType::WHILE_START_NODE:
-    default:m_qasm.emplace_back("UnSupported Prog Node");
+    default:m_qasm.emplace_back("UnSupported QNode");
     }
 }
 
@@ -296,7 +297,7 @@ static void traversalInOrderPCtr(const CExpr* pCtrFlow, string &ctr_statement)
     }
 }
 
-void QProgToQASM::handleIfWhileQASM(AbstractControlFlowNode * pCtrFlow,string ctrflowtype)
+void QProgToQASM::handleIfWhileQNode(AbstractControlFlowNode * pCtrFlow,string ctrflowtype)
 {
     if (nullptr == pCtrFlow)
     {
@@ -312,12 +313,12 @@ void QProgToQASM::handleIfWhileQASM(AbstractControlFlowNode * pCtrFlow,string ct
     QNode *truth_branch_node = pCtrFlow->getTrueBranch();
     if (nullptr != truth_branch_node)
     {
-        qProgToQASM(truth_branch_node);
+        transformQNode(truth_branch_node);
     }
 
 }
 
-void QProgToQASM::qProgToQASM(AbstractControlFlowNode * pCtrFlow)
+void QProgToQASM::transformQControlFlow(AbstractControlFlowNode * pCtrFlow)
 {
     if (nullptr == pCtrFlow)
     {
@@ -330,25 +331,25 @@ void QProgToQASM::qProgToQASM(AbstractControlFlowNode * pCtrFlow)
     {
         case NodeType::WHILE_START_NODE:
             {
-                QProgToQASM::handleIfWhileQASM(pCtrFlow, "while");
+                handleIfWhileQNode(pCtrFlow, "while");
             }
             break;
 
         case NodeType::QIF_START_NODE:
             {
-                QProgToQASM::handleIfWhileQASM(pCtrFlow, "if");
+                handleIfWhileQNode(pCtrFlow, "if");
                 m_qasm.emplace_back("else");
                 QNode *false_branch_node = pCtrFlow->getFalseBranch();
                 if (nullptr != false_branch_node)
                 {
-                    qProgToQASM(false_branch_node);
+                    transformQNode(false_branch_node);
                 }
             }
             break;
   }
 }
 
-void QProgToQASM::qProgToQASM(AbstractQuantumCircuit * pCircuit)
+void QProgToQASM::transformQCircuit(AbstractQuantumCircuit * pCircuit)
 {
     if (nullptr == pCircuit)
     {
@@ -368,29 +369,32 @@ void QProgToQASM::qProgToQASM(AbstractQuantumCircuit * pCircuit)
         for (auto aiter = pCircuit->getFirstNodeIter(); aiter != pCircuit->getEndNodeIter(); aiter++)
         {
             QNode * pNode = (*aiter).get();
-            qProgToQASM(pNode);
+            transformQNode(pNode);
         }
     }
 }
 
-string QProgToQASM::insturctionsQASM()
+string QProgToQASM::getInsturctions()
 {
     string instructions;
 
     for (auto &val : m_qasm)
     {
-        transform(val.begin(), val.end(), val.begin(), ::tolower);
+        std::transform(val.begin(), val.end(), val.begin(), ::tolower);
         instructions.append(val).append("\n");
     }
     instructions.erase(instructions.size() - 1);
     return instructions;
 }
 
-ostream & QPanda::operator<<(ostream & out, const QProgToQASM &qasm_qprog)
+string QPanda::transformQProgToQASM(QProg &prog, QuantumMachine* quantum_machine)
 {
-    for (auto instruct_out : qasm_qprog.m_qasm)
+    if (nullptr == quantum_machine)
     {
-        out << instruct_out << "\n";
+        QCERR("Quantum machine is nullptr");
+        throw std::invalid_argument("Quantum machine is nullptr");
     }
-    return out;
+    QProgToQASM pQASMTraverse(quantum_machine);
+    pQASMTraverse.transform(prog);
+    return pQASMTraverse.getInsturctions();
 }

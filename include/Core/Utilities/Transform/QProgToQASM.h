@@ -4,14 +4,12 @@ Licensed under the Apache License 2.0
 
 QProgToQASM.h
 Author: Yulei
-Created in 2018-7-19
+Updated in 2019/04/09 14:39
 
-Classes for Travesing QProg QGates as std::string use QASM instruction set .
-
-Update@2018-8-31
-update comment
+Classes for QProgToQASM.
 
 */
+/*! \file QProgToQASM.h */
 #ifndef  _QPROGTOQASM_H_
 #define  _QPROGTOQASM_H_
 #include "Core/QuantumCircuit/QProgram.h"
@@ -20,165 +18,78 @@ update comment
 #include "Core/QuantumCircuit/QuantumMeasure.h"
 #include "Core/QuantumCircuit/QGlobalVariable.h"
 #include "Core/QuantumCircuit/ControlFlow.h"
+#include "Core/QuantumMachine/QuantumMachineInterface.h"
 QPANDA_BEGIN
+/**
+* @namespace QPanda
+*/
 
-/*
-Travesal QProg print QGates us QASM instruction set
+/**
+* @class QProgToQASM
+* @ingroup Utilities
+* @brief Quantum Prog Transform To QASM instruction sets
 */
 class QProgToQASM 
 {
 public:
-    QProgToQASM();
-   ~QProgToQASM();
+    QProgToQASM(QuantumMachine * quantum_machine);
+    ~QProgToQASM() {}
+    /**
+    * @brief  get QASM insturction set
+    * @return     std::string  
+    * @exception
+    * @note
+    */
+    virtual std::string getInsturctions();
 
-     /*
-     overload operator <<
-     param:
-     out: output stream
-     prog: QProg
-     return:
-     output stream
-     Note:
-     None
-     */
-     friend std::ostream & operator<<(std::ostream &, const QProgToQASM &);
-
-     /*
-     out insturctionsQASM
-     param:
-     return:
-     std::string
-
-     Note:
-     None
-     */
-     std::string insturctionsQASM();
-
-     /*
-     Traversal QProg to instructions
-     param:
-     pQProg: AbstractQuantumProgram pointer
-     return:
-     None
-
-     Note:
-     None
-     */
-     void progToQASM(AbstractQuantumProgram *);
-
-     /*
-     Traversal QProg to instructions
-     param:
-     pQProg: AbstractQuantumProgram pointer
-     return:
-     None
-
-     Note:
-     None
-     */
-     void qProgToQASM(AbstractQuantumProgram *);
-
-     /*
-     QGate to QASM instruction
-     param:
-     pGate: AbstractQGateNode pointer
-     return:
-     None
-
-     Note:
-     None
-     */
-     void qProgToQASM(AbstractQGateNode *);
-
-     /*
-     Traversal QProg to instructions
-     param:
-     pCtrFlow: AbstractQuantumProgram pointer
-     return:
-     None
-
-     Note:
-     None
-     */
-     void qProgToQASM(AbstractControlFlowNode *);
-
-     /*
-     handleIfWhileQASM
-     param:
-     pCtrFlow: AbstractQuantumProgram pointer
-     return:
-     None
-
-     Note:
-     None
-     */
-     void handleIfWhileQASM(AbstractControlFlowNode *, std::string);
-
-     /*
-     Traversal QCircuit to QASM instructions
-     param:
-     pQProg: AbstractQuantumCircuit pointer
-     return:
-     None
-
-     Note:
-     None
-     */
-     void qProgToQASM(AbstractQuantumCircuit *);
-
-     /*
-     QMeasure to QASM instruction
-     param:
-     pMeasure: AbstractQuantumMeasure pointer
-     return:
-     None
-
-     Note:
-     None
-     */
-     void qProgToQASM(AbstractQuantumMeasure *);
-
-     /*
-     handleDaggerNode
-     param:
-     pNode: QNode pointer
-     return:
-     None
-
-     Note:
-     None
-     */
-     void handleDaggerNode(QNode *, int);
-
-     /*
-     Traversal Dagger Circuit to QASM
-     param:
-     pNode: QNode pointer
-     return:
-     None
-
-     Note:
-     None
-     */
-     void handleDaggerCir(QNode *);
-     
-     /*
-     Traversal QNode to QASM
-     param:
-     pNode: QNode pointer
-     return:
-     None
-
-     Note:
-     None
-     */
-     void qProgToQASM(QNode *);
+    /*!
+    * @brief  transform Quantum program
+    * @param[in]  QProg&  quantum program
+    * @return     void  
+    * @exception
+    * @note
+    */
+    virtual void transform(QProg &);
 
 private:
-    std::map<int, std::string>  m_gatetype;
-    std::vector<std::string> m_qasm;
+    virtual void transformQProg(AbstractQuantumProgram*);
+    virtual void transformQGate(AbstractQGateNode*);
+    virtual void transformQControlFlow(AbstractControlFlowNode*);
+    virtual void transformQCircuit(AbstractQuantumCircuit*);
+    virtual void transformQMeasure(AbstractQuantumMeasure*);
+    virtual void transformQNode(QNode*);
+
+    void handleDaggerNode(QNode*, int);
+    void handleDaggerCir(QNode*);
+    void handleIfWhileQNode(AbstractControlFlowNode*, std::string);
+    std::map<int, std::string>  m_gatetype; /**< Quantum gatetype map   */
+    std::vector<std::string> m_qasm; /**< QASM instructin vector   */
+    QuantumMachine * m_quantum_machine;
 };
 
-std::ostream & operator<<(std::ostream & out, const QProgToQASM &qasm_qprog);
+    /**
+    * @brief  Quantum program transform to qasm instruction set
+    * @ingroup Utilities
+    * @param[in]  QProg&   Quantum Program 
+    * @return     std::string    QASM instruction set
+    * @see
+        * @code
+                init(QuantumMachine_type::CPU);
+
+                auto qubit = qAllocMany(6);
+                auto cbit  = cAllocMany(2);
+                auto prog = CreateEmptyQProg();
+
+                prog << CZ(qubit[0], qubit[2]) << H(qubit[1]) << CNOT(qubit[1], qubit[2])
+                << RX(qubit[0],pi/2) << Measure(qubit[1],cbit[1]);
+
+                std::cout << transformQProgToQASM(prog) << std::endl;
+                finalize();
+        * @endcode
+    * @exception
+    * @note
+    */
+    std::string transformQProgToQASM(QProg &pQProg, QuantumMachine * quantum_machine);
+
 QPANDA_END
 #endif

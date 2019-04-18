@@ -1,3 +1,4 @@
+/*! \file QNode.h */
 #ifndef _QNODE_H
 #define _QNODE_H
 
@@ -8,12 +9,25 @@
 #include <vector>
 #include <map>
 #include <memory>
-
+/**
+* @namespace QPanda
+*/
 QPANDA_BEGIN
 typedef int64_t qmap_size_t;
+
+/**
+* @class QNode
+* @brief   Quantum node basic abstract class
+* @ingroup Core
+*/
 class QNode
 {
 public:
+    /**
+    * @brief  Get current node type
+    * @return     NodeType  current node type
+    * @see  NodeType
+    */
     virtual NodeType getNodeType() const = 0;
     virtual std::shared_ptr<QNode> getImplementationPtr() = 0;
     virtual void execute(QPUImpl *,QuantumGateParam *) = 0;
@@ -48,6 +62,7 @@ public:
     void setPre(Item * pItem);
     void setNode(std::shared_ptr<QNode> pNode);
 };
+
 
 class NodeIter
 {

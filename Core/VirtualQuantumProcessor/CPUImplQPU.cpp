@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-#include "config.h"
+#include "QPandaConfig.h"
 
 //#ifndef USE_CUDA
 
@@ -316,11 +316,11 @@ controlunitarySingleQubitGate(size_t qn,
             qcomplex_t temp;
             temp = matrix[1];
             matrix[1] = matrix[2];
-            matrix[2] = temp;  //杞疆
+            matrix[2] = temp;  //转置
             for (size_t i = 0; i < 4; i++)
             {
                 matrix[i] = qcomplex_t(matrix[i].real(), -matrix[i].imag());
-            }//鍏辫江
+            }//共轭
         }
 
         Qnum qvtemp;
@@ -861,4 +861,92 @@ QStat CPUImplQPU::getQState()
         state[slabel] = qubit2stat[sEnable].qstate[i];
     }
     return state;
+}
+
+QError CPUImplQPU::DiagonalGate(Qnum & vQubit, QStat & matrix, bool isConjugate, double error_rate)
+{
+
+    QGateParam& qgroup0 = findgroup(vQubit[0]);
+    for (auto iter = vQubit.begin() + 1; iter != vQubit.end(); iter++)
+    {
+        TensorProduct(qgroup0, findgroup(*iter));
+    }
+    size_t index = 0;
+    if (isConjugate)
+    {
+        for (size_t i = 0; i < matrix.size(); i++)
+        {
+            matrix[i] = qcomplex_t(matrix[i].real(), -matrix[i].imag());
+        }//共轭
+    }
+    size_t  j, k;
+#pragma omp parallel for private(j,k,index)
+    for (long long i = 0; i < qgroup0.qstate.size(); i++)
+    {
+        index = 0;
+        for (j = 0; j < qgroup0.qVec.size(); j++)
+        {
+            for (k = 0; k < vQubit.size(); k++)
+            {
+                if (qgroup0.qVec[j] == vQubit[k])
+                {
+                    index += (i >> j) % 2 * (1 << k);
+                }
+            }
+        }
+        qgroup0.qstate[i] *= matrix[index];
+    }
+    return QError();
+}
+
+QError CPUImplQPU::controlDiagonalGate(Qnum & vQubit, QStat & matrix, Qnum & vControlBit, bool isConjugate, double error_rate)
+{
+
+    QGateParam& qgroup0 = findgroup(vQubit[0]);
+    for (auto iter = vQubit.begin() + 1; iter != vQubit.end(); iter++)
+    {
+        TensorProduct(qgroup0, findgroup(*iter));
+    }
+    for (auto iter = vControlBit.begin(); iter != vControlBit.end(); iter++)
+    {
+        TensorProduct(qgroup0, findgroup(*iter));
+    }
+    if (isConjugate)
+    {
+        for (size_t i = 0; i < matrix.size(); i++)
+        {
+            matrix[i] = qcomplex_t(matrix[i].real(), -matrix[i].imag());
+        }//共轭
+    }
+    size_t index = 0;
+    size_t block = 0;
+    size_t j, k;
+#pragma omp parallel for private(j,k,index,block)
+    for (long long i = 0; i < qgroup0.qstate.size(); i++)
+    {
+        index = 0;    // corresponding matrix number of i
+        block = 0;    // The number of control bits is 1.
+        for (j = 0; j < qgroup0.qVec.size(); j++)
+        {
+            for ( k = 0; k < vQubit.size(); k++)
+            {
+                if (qgroup0.qVec[j] == vQubit[k])
+                {
+                    index += (i >> j) % 2 * (1 << k);
+                }
+            }
+            for ( k = 0; k < vControlBit.size(); k++)
+            {
+                if (qgroup0.qVec[j] == vControlBit[k] && (i << j) % 2 == 1)
+                {
+                    block++;
+                }
+            }
+        }
+        if (block == vControlBit.size())
+        {
+            qgroup0.qstate[i] *= matrix[index];
+        }
+    }
+    return QError();
 }

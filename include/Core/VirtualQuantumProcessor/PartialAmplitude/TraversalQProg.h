@@ -15,9 +15,10 @@ public:
     virtual void handleDaggerNode(QNode*, int) final;
     virtual void handleDaggerCircuit(QNode*) final;
 
+private:
+
     virtual void traversal(AbstractQGateNode *) = 0;
     virtual void traversalAll(AbstractQuantumProgram *) = 0;
-private:
 };
 
 QPANDA_END

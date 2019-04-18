@@ -1,10 +1,6 @@
 cmake_minimum_required(VERSION 3.1)
-
-find_package(PythonInterp 3)
-find_package(PythonLibs 3)
-include_directories(${PYTHON_INCLUDE_DIRS})
-if (MSVC)
-    add_compile_options("/bigobj")
-endif(MSVC)
+#if (MSVC)
+    #add_compile_options("/bigobj")
+#endif(MSVC)
 add_subdirectory(pyQPanda.Core)
 add_subdirectory(pyQPanda.PauliOperator)

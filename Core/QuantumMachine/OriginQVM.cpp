@@ -17,12 +17,14 @@ limitations under the License.
 #include "OriginQuantumMachine.h"
 #include "Factory.h"
 #include "Utilities/ConfigMap.h"
-#include "config.h"
+#include "QPandaConfig.h"
 #include "VirtualQuantumProcessor/GPUImplQPU.h"
 #include "VirtualQuantumProcessor/CPUImplQPU.h"
 #include "VirtualQuantumProcessor/CPUImplQPUSingleThread.h"
 #include "Core/Utilities/QPandaException.h"
 #include "Core/Utilities/Utilities.h"
+#include "Core/Utilities/QuantumMetadata.h"
+
 USING_QPANDA
 using namespace std;
 
@@ -41,6 +43,12 @@ REGISTER_QUANTUM_MACHINE(GPUQVM);
 
 
 
+
+void QVM::setConfig(const Configuration & config)
+{
+    _Config.maxQubit = config.maxQubit;
+    _Config.maxCMem = config.maxCMem;
+}
 
 Qubit * QVM::allocateQubit()
 {
@@ -746,9 +754,13 @@ map<string, size_t> CPUQVM::quickMeasure(QVec vQubit, size_t shots)
 }
 
 
-map<int, size_t> QVM::getGateTimeMap() const
+map<GateType, size_t> QVM::getGateTimeMap() const
 {
-    return map<int, size_t>();
+    QuantumMetadata metadata;
+    map<GateType, size_t> gate_time;
+    metadata.getGateTime(gate_time);
+
+    return gate_time;
 }
 
 QStat CPUQVM::getQStat()
@@ -771,7 +783,6 @@ void CPUQVM::init()
     }
     catch (const std::exception &e)
     {
-        finalize();
         QCERR(e.what());
         throw init_fail(e.what());
     }
@@ -792,7 +803,6 @@ void GPUQVM::init()
     }
     catch (const std::exception&e)
     {
-        finalize();
         QCERR(e.what());
         throw init_fail(e.what());
     }
@@ -809,7 +819,6 @@ void CPUSingleThreadQVM::init()
     }
     catch (const std::exception &e)
     {
-        finalize();
         QCERR(e.what());
         throw init_fail(e.what());
     }

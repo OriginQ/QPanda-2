@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-
+/*! \file QuantumMachineInterface.h */
 #ifndef QUANTUM_MACHINE_INTERFACE_H
 #define QUANTUM_MACHINE_INTERFACE_H
 #include <map>
@@ -27,11 +27,26 @@ limitations under the License.
 #include "Core/Utilities/OriginCollection.h"
 QPANDA_BEGIN
 
+/*
+*  @enum  QMachineType
+*  @brief   Quantum machine type
+*/
 enum QMachineType {
-    CPU,
-    GPU,
-    CPU_SINGLE_THREAD,
-    NOISE
+    CPU,  /**< Cpu quantum machine  */
+    GPU, /**< Gpu quantum machine  */
+    CPU_SINGLE_THREAD, /**< Cpu quantum machine with single thread */
+    NOISE  /**< Cpu quantum machine with  noise */
+};
+/**
+* @class Configuration
+* @brief  Quantum qubit and cbit Configuration
+* @note  Default number is 25
+* @see QVM
+*/
+struct Configuration
+{
+    size_t maxQubit;/**< Config max qubit num   */
+    size_t maxCMem;/**< Config max qubit num   */
 };
 
 class QubitAddr 
@@ -77,32 +92,38 @@ public:
     virtual ~IdealMachineInterface() {}
 };
  
+/**
+* @class QuantumMachine
+* @brief Abstract quantum machine base classes
+* @ingroup QuantumMachine
+*/
 class QuantumMachine
 {
 public:
-    virtual void init() = 0; // to initialize the quantum machine
-    virtual Qubit* allocateQubit() = 0; // allocate and return a qubit
-    virtual ClassicalCondition allocateCBit() = 0; // allocate and run a cbit
-    virtual std::vector<ClassicalCondition> allocateCBits(size_t) = 0; // allocate and return a list of cbits
-    virtual Qubit* allocateQubitThroughPhyAddress(size_t) = 0; // allocate and return a qubit
-    virtual Qubit* allocateQubitThroughVirAddress(size_t) = 0; // allocate and return a qubit
-    virtual QVec allocateQubits(size_t qubit_count) = 0;
-    virtual ClassicalCondition allocateCBit(size_t) = 0; // allocate and run a cbit
-    virtual void Free_Qubit(Qubit*) = 0; // free a qubit
-    virtual void Free_Qubits(QVec &) = 0; //free a list of qubits
-    virtual void Free_CBit(ClassicalCondition &) = 0; // free a cbit
-    virtual void Free_CBits(std::vector<ClassicalCondition > &) = 0; //free a list of CBits
-    virtual QMachineStatus* getStatus() const = 0; // get the status of the quantum machine
-    virtual std::map<std::string, bool> directlyRun(QProg & qProg) = 0;
-    virtual std::map<std::string, size_t> runWithConfiguration(QProg &, std::vector<ClassicalCondition> &, rapidjson::Document&) = 0;
-    virtual size_t getAllocateQubit() = 0;
-    virtual size_t getAllocateCMem() = 0;
-    virtual std::map<int, size_t> getGateTimeMap() const = 0;
-    virtual void finalize() = 0; // finish the program
-    virtual QStat getQState() const =0;
-    virtual size_t getVirtualQubitAddress(Qubit *) const = 0;
-    virtual bool swapQubitPhysicalAddress(Qubit *, Qubit*) = 0;
-    virtual ~QuantumMachine() {} // destructor
+    virtual void init() = 0; //! To initialize the quantum machine
+    virtual void setConfig(const Configuration &) = 0; //! To initialize the quantum machine
+    virtual Qubit* allocateQubit() = 0; //! Allocate and return a qubit
+    virtual ClassicalCondition allocateCBit() = 0; //! Allocate and run a cbit
+    virtual std::vector<ClassicalCondition> allocateCBits(size_t) = 0; //! Allocate and return a list of cbits
+    virtual Qubit* allocateQubitThroughPhyAddress(size_t) = 0; //! Allocate and return a qubit
+    virtual Qubit* allocateQubitThroughVirAddress(size_t) = 0; //! Allocate and return a qubit
+    virtual QVec allocateQubits(size_t qubit_count) = 0;//! allocateQubits
+    virtual ClassicalCondition allocateCBit(size_t) = 0; //! Allocate and run a cbit
+    virtual void Free_Qubit(Qubit*) = 0; //! Free a qubit
+    virtual void Free_Qubits(QVec &) = 0; //!Gree a list of qubits
+    virtual void Free_CBit(ClassicalCondition &) = 0; //! Gree a cbit
+    virtual void Free_CBits(std::vector<ClassicalCondition > &) = 0; //!Gree a list of CBits
+    virtual QMachineStatus* getStatus() const = 0; //! Get the status of the quantum machine
+    virtual std::map<std::string, bool> directlyRun(QProg & qProg) = 0;//! directlyRun
+    virtual std::map<std::string, size_t> runWithConfiguration(QProg &, std::vector<ClassicalCondition> &, rapidjson::Document&) = 0;//! Run with configuration
+    virtual size_t getAllocateQubit() = 0;//! getAllocateQubit
+    virtual size_t getAllocateCMem() = 0;//! getAllocateCMem
+    virtual std::map<GateType, size_t> getGateTimeMap() const = 0;//! Get gate time map
+    virtual void finalize() = 0; //! Finish the program
+    virtual QStat getQState() const =0;//! Get quantum state
+    virtual size_t getVirtualQubitAddress(Qubit *) const = 0;//! Get virtualqubit  address
+    virtual bool swapQubitPhysicalAddress(Qubit *, Qubit*) = 0;//! Swap qubit physical address
+    virtual ~QuantumMachine() {} //! Destructor
 };
 QPANDA_END
 #endif

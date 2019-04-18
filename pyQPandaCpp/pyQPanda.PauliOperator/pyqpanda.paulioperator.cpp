@@ -1,9 +1,9 @@
 #include <math.h>
-#include "ThirdParty/pybind11/pybind11.h"
-#include "ThirdParty/pybind11/stl.h"
-#include "ThirdParty/pybind11/complex.h"
-#include "ThirdParty/pybind11/operators.h"
-#include "QAlg/Components/Operator/PauliOperator.h"
+#include "pybind11/pybind11.h"
+#include "pybind11/stl.h"
+#include "pybind11/complex.h"
+#include "pybind11/operators.h"
+#include "Operator/PauliOperator.h"
 
 namespace py = pybind11;
 USING_QPANDA
@@ -12,6 +12,7 @@ PYBIND11_MODULE(pyQPandaPauliOperator, m)
     m.doc() = "";
 
     py::class_<PauliOperator>(m, "PauliOperator")
+        .def(py::init<>())
         .def(py::init<>([](const complex_d &val)
             { return PauliOperator(val); }))
         .def(py::init<>([](const std::string &key, const complex_d &val)
@@ -25,6 +26,7 @@ PYBIND11_MODULE(pyQPandaPauliOperator, m)
         .def("isAllPauliZorI", &PauliOperator::isAllPauliZorI)
         .def("setErrorThreshold", &PauliOperator::setErrorThreshold)
         .def("error_threshold", &PauliOperator::error_threshold)
+        .def("remapQubitIndex", &PauliOperator::remapQubitIndex)
         .def(py::self + py::self)
         .def(py::self - py::self)
         .def(py::self * py::self)

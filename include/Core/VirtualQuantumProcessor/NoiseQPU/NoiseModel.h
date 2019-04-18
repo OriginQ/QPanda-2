@@ -25,7 +25,10 @@ enum NOISE_MODEL
     DAMPING_KRAUS_OPERATOR,
     DEPHASING_KRAUS_OPERATOR,
     DECOHERENCE_KRAUS_OPERATOR,
-    PAULI_KRAUS_MAP
+    PAULI_KRAUS_MAP,
+    DOUBLE_DAMPING_KRAUS_OPERATOR,
+    DOUBLE_DEPHASING_KRAUS_OPERATOR,
+    DOUBLE_DECOHERENCE_KRAUS_OPERATOR
 };
 
 #define NoiseOp std::vector<std::vector<qcomplex_t>>
@@ -33,6 +36,8 @@ QStat matrix_tensor(const QStat &matrix_left, const QStat &matrix_right);
 bool damping_kraus_operator(rapidjson::Value &, NoiseOp & noise);
 bool dephasing_kraus_operator(rapidjson::Value &, NoiseOp & noise);
 bool decoherence_kraus_operator(rapidjson::Value &, NoiseOp & noise);
+bool double_damping_kraus_operator(rapidjson::Value &, NoiseOp & noise);
+bool double_decoherence_kraus_operator(rapidjson::Value &, NoiseOp & noise);
 bool pauli_kraus_map(rapidjson::Value &, NoiseOp & noise);
 
 typedef bool(*noise_mode_function)(rapidjson::Value &, NoiseOp &);

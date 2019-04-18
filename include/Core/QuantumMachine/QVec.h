@@ -1,9 +1,18 @@
+/*! \file QVec.h */
 #ifndef _QVEC_H
 #define _QVEC_H
 #include <vector>
 #include "Core/QuantumMachine/QubitReference.h"
 QPANDA_BEGIN
+/**
+* @namespace QPanda
+*/
 
+/**
+* @class QVec
+* @brief Qubit vector  basic class
+* @ingroup Core
+*/
 class QVec : public std::vector<Qubit *>
 {
     typedef std::vector<Qubit *> BaseClass;

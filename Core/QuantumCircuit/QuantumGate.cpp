@@ -21,7 +21,6 @@ using namespace QGATE_SPACE;
 using namespace std;
 QuantumGate::QuantumGate()
 {
-    operation_num = 0;
     gate_type = -1;
 }
 
@@ -310,7 +309,7 @@ CU::CU()
     delta = 0;
 }
 
-CU::CU(CU &toCopy)
+CU::CU(const CU &toCopy)
 {
     operation_num = toCopy.operation_num;
     this->alpha = toCopy.alpha;
@@ -379,8 +378,19 @@ CNOT::CNOT()
     gate_matrix[15] = 0;
 }
 
+CNOT::CNOT(const CNOT & toCopy)
+{
+    operation_num = toCopy.operation_num;
+    this->alpha = toCopy.alpha;
+    this->beta = toCopy.beta;
+    this->gamma = toCopy.gamma;
+    this->delta = toCopy.delta;
+    this->gate_matrix = toCopy.gate_matrix;
+}
+
 CPhaseGate::CPhaseGate(double angle)
 {
+    operation_num = 2;
     alpha = angle / 2;
     beta = angle;
     gamma = 0;
@@ -392,6 +402,7 @@ CPhaseGate::CPhaseGate(double angle)
 
 CZ::CZ()
 {
+    operation_num = 2;
     alpha = PI / 2;
     beta = PI;
     gamma = 0;
@@ -401,6 +412,7 @@ CZ::CZ()
 
 ISWAPTheta::ISWAPTheta(double angle)
 {
+    operation_num = 2;
     theta = angle;
     gate_matrix[5] = cos(angle);
     gate_matrix[6].imag(-1 * sin(angle));
@@ -410,7 +422,7 @@ ISWAPTheta::ISWAPTheta(double angle)
 
 ISWAP::ISWAP()
 {
-    theta = PI / 2;
+    operation_num = 2;
     gate_matrix[5] = 0;
     gate_matrix[6].imag(-1);
     gate_matrix[9].imag(-1);
@@ -419,6 +431,7 @@ ISWAP::ISWAP()
 
 SQISWAP::SQISWAP()
 {
+    operation_num = 2;
     theta = PI / 4;
     gate_matrix[5] = 1 / SQRT2;
     gate_matrix[6].imag(-1 / SQRT2);
@@ -466,7 +479,12 @@ QuantumGate * QGateFactory::getGateNode(const std::string & name)
         throw QPanda::gate_alloc_fail(error.str());
     }
     else
-        return iter->second();
+    {
+        //return iter->second();
+        auto temp = iter->second();
+        return temp;
+    }
+
 }
 
 QuantumGate * QGateFactory::getGateNode(const std::string & name,const double angle)
@@ -516,11 +534,12 @@ QuantumGate * QGateFactory::getGateNode(const std::string & name, QStat & matrix
     }
     else
         return iter->second(matrix);
+    
 }
 
 #define REGISTER(className)                                             \
     QuantumGate* objectCreator##className(){                            \
-        return new className();                                         \
+        return dynamic_cast<QuantumGate *>(new className());            \
     }                                                                   \
     RegisterAction g_creatorRegister##className(                        \
         #className,(CreateGate_cb)objectCreator##className)
@@ -542,21 +561,21 @@ REGISTER(SWAP);
 
 #define REGISTER_ANGLE(className)                                       \
     QuantumGate* objectCreator##className(double angle){                \
-        return new className(angle);}                                    \
+        return dynamic_cast<QuantumGate *>(new className(angle));}                \
     RegisterAction g_angleCreatorRegister##className(                   \
         #className,(CreateAngleGate_cb)objectCreator##className)
 
 #define REGISTER_SINGLE_CU(className)                                   \
     QuantumGate* objectCreator##className(double alpha,                    \
                 double beta, double gamma, double delta){                \
-        return new className(alpha,beta,gamma,delta);                    \
+        return dynamic_cast<QuantumGate *>(new className(alpha,beta,gamma,delta));  \
     }                                                                   \
     RegisterAction g_singleCreatorRegister##className(                  \
         #className,(CreateSingleAndCUGate_cb)objectCreator##className)
 
 #define REGISTER_MATRIX(className)                                      \
     QuantumGate* objectCreator##className(QStat & matrix){                \
-        return new className(matrix);                                    \
+        return dynamic_cast<QuantumGate *>(new className(matrix));       \
     }                                                                   \
     RegisterAction g_doubleCreatorRegister##className(                  \
         #className,(CreateGateByMatrix_cb)objectCreator##className)

@@ -76,15 +76,26 @@ size_t QGate::getQuBitVector(QVec& vector) const
     return m_qgate_node->getQuBitVector(vector);
 }
 
-size_t QGate::getQuBitNum() const
+size_t QGate::getTargetQubitNum() const
 {
     if (!m_qgate_node)
     {
         QCERR("Unknown internal error");
         throw runtime_error("Unknown internal error");
     }
-    return m_qgate_node->getQuBitNum();
+    return m_qgate_node->getTargetQubitNum();
 }
+
+size_t QGate::getControlQubitNum() const
+{
+        if (!m_qgate_node)
+    {
+        QCERR("Unknown internal error");
+        throw runtime_error("Unknown internal error");
+    }
+    return m_qgate_node->getControlQubitNum();
+}
+
 
 QuantumGate * QGate::getQGate() const
 {
@@ -304,9 +315,14 @@ size_t OriginQGate::getQuBitVector(QVec& vector) const
     return m_qubit_vector.size();
 }
 
-size_t OriginQGate::getQuBitNum() const
+size_t OriginQGate::getTargetQubitNum() const
 {
     return m_qubit_vector.size();
+}
+
+size_t OriginQGate::getControlQubitNum() const
+{
+        return m_control_qubit_vector.size();
 }
 
 Qubit * OriginQGate::popBackQuBit()
@@ -357,7 +373,7 @@ size_t OriginQGate::getControlVector(QVec& qubit_vector) const
     {
         qubit_vector.push_back(aiter);
     }
-    return qubit_vector.size();
+    return m_control_qubit_vector.size();
 }
 
 void OriginQGate::PushBackQuBit(Qubit * qubit)
@@ -742,7 +758,7 @@ QGate QPanda::iSWAP(Qubit * targitBit_fisrt, Qubit * targitBit_second)
 
 QGate QPanda::iSWAP(Qubit * targitBit_fisrt, Qubit * targitBit_second, double theta)
 {
-    string name = "ISWAP";
+    string name = "ISWAPTheta";
     return _gs_pGateNodeFactory->getGateNode(name,
         targitBit_fisrt,
         targitBit_second,

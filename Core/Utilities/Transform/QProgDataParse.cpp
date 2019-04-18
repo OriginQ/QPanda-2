@@ -80,7 +80,7 @@ const std::map<int, function<QGate(Qubit *, Qubit *)>> kDoubleGateFun =
 };
 
 const uint32_t kDoubleGateAngleValue =
-(1u << QPROG_CPHASE_GATE);
+(1u << QPROG_CPHASE_GATE) | (1u << QPROG_ISWAP_THETA_GATE);
 const std::map<int, function<QGate(Qubit *, Qubit *, double)>> kDoubleGateAngleFun =
 {
     {QPROG_ISWAP_THETA_GATE, [](Qubit *q1, Qubit *q2, double a) {return iSWAP(q1, q2, a); }},
@@ -88,11 +88,14 @@ const std::map<int, function<QGate(Qubit *, Qubit *, double)>> kDoubleGateAngleF
 };
 
 
-
-QProgDataParse::QProgDataParse()
+QProgDataParse::QProgDataParse(QuantumMachine* qm)
 {
+    if (nullptr == qm)
+    {
+        throw std::invalid_argument("QuantumMachine is nullptr");
+    }
+    m_quantum_machine = qm;
 }
-
 
 QProgDataParse::~QProgDataParse()
 {
@@ -126,8 +129,8 @@ bool QProgDataParse::load(const std::string &filename)
     in.read((char *)&one_data_node, sizeof(one_data_node));
     uint32_t qubit_number = one_data_node.first;
     uint32_t cbit_number = one_data_node.second.qubit_data;
-    m_qubits = qAllocMany(qubit_number);
-    m_cbits = cAllocMany(cbit_number);
+    m_qubits = m_quantum_machine->allocateQubits(qubit_number);
+    m_cbits = m_quantum_machine->allocateCBits(cbit_number);
 
     m_data_vector.resize(m_node_counter);
     in.read((char *)m_data_vector.data(), m_node_counter * sizeof(one_data_node));
@@ -156,8 +159,8 @@ bool QProgDataParse::load(const std::vector<uint8_t>& data)
     uint32_t qubit_number = one_data_node.first;
     uint32_t cbit_number = one_data_node.second.qubit_data;
 
-    m_qubits = qAllocMany(qubit_number);
-    m_cbits = cAllocMany(cbit_number);
+    m_qubits = m_quantum_machine->allocateQubits(qubit_number);
+    m_cbits = m_quantum_machine->allocateCBits(cbit_number);
     m_data_vector.resize(m_node_counter);
     memcpy(m_data_vector.data(), data.data() + 2 * sizeof(one_data_node),
         m_node_counter * sizeof(one_data_node));
@@ -543,10 +546,10 @@ void QProgDataParse::parseDataNode(QProg &prog, const uint32_t &tail_number)
 }
 
 
-bool QPanda::binaryQProgFileParse(QVec &qubits, std::vector<ClassicalCondition> &cbits,
+bool QPanda::binaryQProgFileParse(QuantumMachine *qm, QVec &qubits, std::vector<ClassicalCondition> &cbits,
     QProg &prog, const std::string &filename)
 {
-    QProgDataParse dataParse;
+    QProgDataParse dataParse(qm);
     if (!dataParse.load(filename))
     {
         std::cout << "load file error" << std::endl;
@@ -564,10 +567,10 @@ bool QPanda::binaryQProgFileParse(QVec &qubits, std::vector<ClassicalCondition> 
     return true;
 }
 
-bool QPanda::binaryQProgDataParse(QVec & qubits, std::vector<ClassicalCondition>& cbits,
+bool QPanda::binaryQProgDataParse(QuantumMachine *qm, QVec & qubits, std::vector<ClassicalCondition>& cbits,
     QProg & prog, const std::vector<uint8_t>& data)
 {
-    QProgDataParse dataParse;
+    QProgDataParse dataParse(qm);
     if (!dataParse.load(data))
     {
         std::cout << "load binary data error" << std::endl;

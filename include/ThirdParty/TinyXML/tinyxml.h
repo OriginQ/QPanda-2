@@ -109,7 +109,7 @@ struct TiXmlCursor
 
 
 /**
-    Implements the interface to the "Visitor pattern" (see the Accept() method.)
+    Implements the interface for the "Visitor pattern" (see the Accept() method.)
     If you call the Accept() method, it requires being passed a TiXmlVisitor
     class to handle callbacks. For nodes that contain other nodes (Document, Element)
     you will get called with a VisitEnter/VisitExit pair. Nodes that are always leaves

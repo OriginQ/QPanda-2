@@ -182,6 +182,15 @@ public:
                         bool isConjugate,
                         double error_rate,
                         GateType) = 0;
+    virtual QError DiagonalGate(Qnum& vQubit,
+                        QStat & matrix,
+                        bool isConjugate, 
+                        double error_rate)=0;
+    virtual QError controlDiagonalGate(Qnum& vQubit,
+                        QStat & matrix,
+                        Qnum& vControlBit,
+                        bool isConjugate,
+                        double error_rate)=0;
 
     virtual QStat getQState() = 0;
 

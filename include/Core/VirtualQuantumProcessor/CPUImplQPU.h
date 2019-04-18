@@ -507,6 +507,11 @@ public:
         double error_rate,
         GateType);
 
+    QError DiagonalGate(Qnum& vQubit, QStat & matrix,
+        bool isConjugate, double error_rate);
+    QError controlDiagonalGate(Qnum& vQubit, QStat & matrix, Qnum& vControlBit,
+        bool isConjugate, double error_rate);
+
     QStat getQState();
     QError Reset(size_t qn);
     bool qubitMeasure(size_t qn);

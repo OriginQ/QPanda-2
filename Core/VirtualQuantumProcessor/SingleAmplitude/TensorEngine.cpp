@@ -1,6 +1,6 @@
 #include "Core/VirtualQuantumProcessor/SingleAmplitude/TensorEngine.h"
 #include <algorithm>
-#include "config.h"
+#include "QPandaConfig.h"
 #ifdef USE_OPENMP
 #include <omp.h>
 #endif
@@ -386,7 +386,7 @@ map<qsize_t, Vertice>::iterator TensorEngine::MergeQuantumProgMap(QuantumProgMap
         }
        return vertice->deleteVertice(qubit_vertice.m_qubit_id, qubit_vertice.m_num);
     }
-    catch (const std::exception&e)
+    catch (const calloc_fail&e)
     {
         throw e;
     }

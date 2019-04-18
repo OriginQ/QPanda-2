@@ -20,6 +20,11 @@ PartialAmplitudeQVM::~PartialAmplitudeQVM()
     delete  m_prog_map;
 }
 
+void PartialAmplitudeQVM::init()
+{
+    _start();
+}
+
 void PartialAmplitudeQVM::run(QProg& prog)
 {
     if (nullptr == m_prog_map)
@@ -30,10 +35,123 @@ void PartialAmplitudeQVM::run(QProg& prog)
     else
     {
         m_prog_map->clear();
-        m_prog_map->traversalAll(dynamic_cast<AbstractQuantumProgram *>
+        traversalAll(dynamic_cast<AbstractQuantumProgram *>
             (prog.getImplementationPtr().get()));
     }
 }
+
+
+void PartialAmplitudeQVM::traversalAll(AbstractQuantumProgram *pQProg)
+{
+    m_qubit_num = m_prog_map->m_qubit_num = getAllocateQubit();
+    if (nullptr == pQProg || m_qubit_num <= 0 || m_qubit_num % 2 != 0)
+    {
+        QCERR("Error");
+        throw invalid_argument("Error");
+    }
+
+    TraversalQProg::traversal(pQProg);
+    m_prog_map->traversalQlist(m_prog_map->m_circuit);
+}
+
+
+void PartialAmplitudeQVM::traversal(AbstractQGateNode *pQGate)
+{
+    if (nullptr == pQGate || nullptr == pQGate->getQGate())
+    {
+        QCERR("pQGate is null");
+        throw invalid_argument("pQGate is null");
+    }
+
+    QVec qubits_vector;
+    pQGate->getQuBitVector(qubits_vector);
+
+    auto gate_type = (unsigned short)pQGate->getQGate()->getGateType();
+    QGateNode node = { gate_type,pQGate->isDagger() };
+    switch (gate_type)
+    {
+    case GateType::P0_GATE:
+    case GateType::P1_GATE:
+    case GateType::PAULI_X_GATE:
+    case GateType::PAULI_Y_GATE:
+    case GateType::PAULI_Z_GATE:
+    case GateType::X_HALF_PI:
+    case GateType::Y_HALF_PI:
+    case GateType::Z_HALF_PI:
+    case GateType::HADAMARD_GATE:
+    case GateType::T_GATE:
+    case GateType::S_GATE:
+    {
+        node.tar_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
+    }
+    break;
+
+    case GateType::U1_GATE:
+    case GateType::RX_GATE:
+    case GateType::RY_GATE:
+    case GateType::RZ_GATE:
+    {
+        node.tar_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
+        node.gate_parm = dynamic_cast<angleParameter *>(pQGate->getQGate())->getParameter();
+    }
+    break;
+
+    case GateType::ISWAP_GATE:
+    case GateType::SQISWAP_GATE:
+    {
+        auto ctr_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
+        auto tar_qubit = qubits_vector[1]->getPhysicalQubitPtr()->getQubitAddr();
+        if (ctr_qubit == tar_qubit || m_prog_map->isCorssNode(ctr_qubit, tar_qubit))
+        {
+            QCERR("Error");
+            throw qprog_syntax_error();
+        }
+        else
+        {
+            node.ctr_qubit = ctr_qubit;
+            node.tar_qubit = tar_qubit;
+        }
+    }
+    break;
+
+    case GateType::CNOT_GATE:
+    case GateType::CZ_GATE:
+    {
+        node.ctr_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
+        node.tar_qubit = qubits_vector[1]->getPhysicalQubitPtr()->getQubitAddr();
+    }
+    break;
+
+    case GateType::CPHASE_GATE:
+    {
+        auto ctr_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
+        auto tar_qubit = qubits_vector[1]->getPhysicalQubitPtr()->getQubitAddr();
+        if (ctr_qubit == tar_qubit || m_prog_map->isCorssNode(ctr_qubit, tar_qubit))
+        {
+            QCERR("Error");
+            throw qprog_syntax_error();
+        }
+        else
+        {
+            node.ctr_qubit = ctr_qubit;
+            node.tar_qubit = tar_qubit;
+            node.gate_parm = dynamic_cast<angleParameter *>(pQGate->getQGate())->getParameter();
+        }
+    }
+    break;
+
+    default:
+    {
+        QCERR("UnSupported QGate Node");
+        throw undefine_error("QGate");
+    }
+    break;
+    }
+    m_prog_map->m_circuit.emplace_back(node);
+}
+
+
+
 
 QStat PartialAmplitudeQVM::getQStat()
 {
@@ -44,7 +162,6 @@ QStat PartialAmplitudeQVM::getQStat()
     }
 
     vector<vector<QStat>> calculateMap_vector;
-    MergeMap mergeEngine;
     for (unsigned long i = 0; i < m_prog_map->getMapVecSize(); ++i)
     {
         vector<QStat> calculateMap;
@@ -53,8 +170,18 @@ QStat PartialAmplitudeQVM::getQStat()
             QuantumGateParam* pGateParam = new QuantumGateParam();
             pGateParam->m_qubit_number = m_prog_map->m_qubit_num / 2;
             QPUImpl *pQGate = new CPUImplQPU();
-            pQGate->initState(pGateParam);
-            mergeEngine.traversalMap(m_prog_map->m_circuit_vec[i][j], pQGate, pGateParam);
+
+            try
+            {
+                pQGate->initState(pGateParam);
+                m_prog_map->traversalMap(m_prog_map->m_circuit_vec[i][j], pQGate, pGateParam);
+            }
+            catch (invalid_argument &e)
+            {
+                delete pGateParam;
+                delete pQGate;
+            }
+
             calculateMap.emplace_back(pQGate->getQState());
             delete pGateParam;
             delete pQGate;
@@ -67,7 +194,7 @@ QStat PartialAmplitudeQVM::getQStat()
     {
         complex<double> addResult(0, 0);
         getAvgBinary(i, m_prog_map->m_qubit_num);
-        for (size_t j = 0; j < calculateMap_vector.size(); j++)
+        for (size_t j = 0; j < calculateMap_vector.size(); ++j)
         {
             complex<double> multiResult(1, 0);
             if (calculateMap_vector[j].size() > 1)
@@ -199,8 +326,6 @@ PartialAmplitudeQVM::probRunDict(QProg &prog, QVec qvec, int select_max)
     run(prog);
     return getProbDict(qvec, select_max);
 }
-
-
 
 std::vector<std::pair<size_t, double>> 
 PartialAmplitudeQVM::getProbTupleList(QVec qvec, int select_max)

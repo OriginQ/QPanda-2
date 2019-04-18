@@ -3,7 +3,7 @@
 using namespace std;
 USING_QPANDA
 
-QProgToQRunes::QProgToQRunes()
+QProgToQRunes::QProgToQRunes(QuantumMachine * quantum_machine)
 {
     m_gatetype.insert(pair<int, string>(PAULI_X_GATE, "X"));
     m_gatetype.insert(pair<int, string>(PAULI_Y_GATE, "Y"));
@@ -33,26 +33,21 @@ QProgToQRunes::QProgToQRunes()
     m_gatetype.insert(pair<int, string>(ISWAP_GATE, "ISWAP"));
     m_gatetype.insert(pair<int, string>(SQISWAP_GATE, "SQISWAP"));
     m_QRunes.clear();
+
+    m_quantum_machine = quantum_machine;
 }
 
 QProgToQRunes::~QProgToQRunes()
 {}
 
-void QProgToQRunes::qProgToQRunes(AbstractQuantumProgram * pQProg)
+void QProgToQRunes::transform(QProg &prog)
 {
-    if (nullptr == pQProg)
-    {
-        QCERR("pQProg is null");
-        throw invalid_argument("pQProg is null");
-    }
-    m_QRunes.emplace_back("QINIT " + to_string(getAllocateQubitNum()));
-    m_QRunes.emplace_back("CREG "  + to_string(getAllocateCMem()));
-
-    QProgToQRunes::transformQProg(pQProg);
+    m_QRunes.emplace_back("QINIT " + to_string(m_quantum_machine->getAllocateQubit()));
+    m_QRunes.emplace_back("CREG "  + to_string(m_quantum_machine->getAllocateCMem()));
+    transformQProg(&prog);
 }
 
-
-void QProgToQRunes::transformQProg(AbstractQGateNode * pQGate)
+void QProgToQRunes::transformQGate(AbstractQGateNode * pQGate)
 {
     if (nullptr == pQGate || nullptr == pQGate->getQGate())
     {
@@ -165,9 +160,9 @@ void QProgToQRunes::transformQProg(AbstractQGateNode * pQGate)
 }
 
 
-void QProgToQRunes::transformQProg(AbstractQuantumMeasure *pMeasure)
+void QProgToQRunes::transformQMeasure(AbstractQuantumMeasure *pMeasure)
 {
-    if (nullptr == pMeasure || pMeasure->getQuBit()->getPhysicalQubitPtr())
+    if (nullptr == pMeasure || nullptr == pMeasure->getQuBit()->getPhysicalQubitPtr())
     {
         QCERR("pMeasure is null");
         throw invalid_argument("pMeasure is null");
@@ -191,11 +186,11 @@ void QProgToQRunes::transformQProg(AbstractQuantumProgram *pQProg)
     for (auto aiter = pQProg->getFirstNodeIter(); aiter != pQProg->getEndNodeIter(); aiter++)
     {
         QNode * pNode = (*aiter).get();
-        transformQProg(pNode);
+        transformQNode(pNode);
     }
 }
 
-void QProgToQRunes::transformQProg(QNode * pNode)
+void QProgToQRunes::transformQNode(QNode * pNode)
 {
     if (nullptr == pNode)
     {
@@ -206,11 +201,11 @@ void QProgToQRunes::transformQProg(QNode * pNode)
     switch (pNode->getNodeType())
     {
     case NodeType::GATE_NODE:
-        QProgToQRunes::transformQProg(dynamic_cast<AbstractQGateNode *>(pNode));
+        QProgToQRunes::transformQGate(dynamic_cast<AbstractQGateNode *>(pNode));
         break;
 
     case NodeType::CIRCUIT_NODE:
-        QProgToQRunes::transformQProg(dynamic_cast<AbstractQuantumCircuit *>(pNode));
+        QProgToQRunes::transformQCircuit(dynamic_cast<AbstractQuantumCircuit *>(pNode));
         break;
 
     case NodeType::PROG_NODE:
@@ -219,11 +214,11 @@ void QProgToQRunes::transformQProg(QNode * pNode)
 
     case NodeType::QIF_START_NODE:
     case NodeType::WHILE_START_NODE:
-        QProgToQRunes::transformQProg(dynamic_cast<AbstractControlFlowNode *>(pNode));
+        QProgToQRunes::transformQControlFlow(dynamic_cast<AbstractControlFlowNode *>(pNode));
         break;
 
     case NodeType::MEASURE_GATE:
-        QProgToQRunes::transformQProg(dynamic_cast<AbstractQuantumMeasure *>(pNode));
+        QProgToQRunes::transformQMeasure(dynamic_cast<AbstractQuantumMeasure *>(pNode));
         break;
 
     case NodeType::NODE_UNDEFINED:
@@ -244,7 +239,7 @@ static void traversalInOrderPCtr(const CExpr* pCtrFlow,string &ctr_statement)
 }
 
 
-void QProgToQRunes::transformQProg(AbstractControlFlowNode * pCtrFlow)
+void QProgToQRunes::transformQControlFlow(AbstractControlFlowNode * pCtrFlow)
 {
     if (nullptr == pCtrFlow)
     {
@@ -266,7 +261,7 @@ void QProgToQRunes::transformQProg(AbstractControlFlowNode * pCtrFlow)
             QNode *truth_branch_node = pCtrFlow->getTrueBranch();
             if (nullptr != truth_branch_node)
             {
-                transformQProg(truth_branch_node);
+                transformQNode(truth_branch_node);
             }
 
             m_QRunes.emplace_back("ENDQWHILE");
@@ -284,14 +279,14 @@ void QProgToQRunes::transformQProg(AbstractControlFlowNode * pCtrFlow)
             QNode * truth_branch_node = pCtrFlow->getTrueBranch();
             if (nullptr != truth_branch_node)
             {
-                transformQProg(truth_branch_node);
+                transformQNode(truth_branch_node);
             }
             m_QRunes.emplace_back("ELSE");
 
             QNode *false_branch_node = pCtrFlow->getFalseBranch();
             if (nullptr != false_branch_node)
             {
-                transformQProg(false_branch_node);
+                transformQNode(false_branch_node);
             }
             m_QRunes.emplace_back("ENDQIF");
         }
@@ -301,7 +296,7 @@ void QProgToQRunes::transformQProg(AbstractControlFlowNode * pCtrFlow)
 }
 
 
-void QProgToQRunes::transformQProg(AbstractQuantumCircuit * pCircuit)
+void QProgToQRunes::transformQCircuit(AbstractQuantumCircuit * pCircuit)
 {
     if (nullptr == pCircuit)
     {
@@ -328,7 +323,7 @@ void QProgToQRunes::transformQProg(AbstractQuantumCircuit * pCircuit)
     for (auto aiter = pCircuit->getFirstNodeIter(); aiter != pCircuit->getEndNodeIter(); aiter++)
     {
         QNode * pNode = (*aiter).get();
-        transformQProg(pNode);
+        transformQNode(pNode);
     }
     if (!circuit_ctr_qubits.empty())
     {
@@ -342,7 +337,7 @@ void QProgToQRunes::transformQProg(AbstractQuantumCircuit * pCircuit)
 }
 
 
-string QProgToQRunes::insturctionsQRunes()
+string QProgToQRunes::getInsturctions()
 {
     string instructions;
 
@@ -356,12 +351,14 @@ string QProgToQRunes::insturctionsQRunes()
 }
 
 
-ostream & QPanda::operator<<(ostream & out, const QProgToQRunes &qrunes_prog)
+string QPanda::transformQProgToQRunes(QProg &prog,QuantumMachine * quantum_machine)
 {
-    for (auto instruct_out : qrunes_prog.m_QRunes)
+    if (nullptr == quantum_machine)
     {
-        out << instruct_out << "\n";
+        QCERR("Quantum machine is nullptr");
+        throw std::invalid_argument("Quantum machine is nullptr");
     }
-
-    return out;
+    QProgToQRunes qRunesTraverse(quantum_machine);
+    qRunesTraverse.transform(prog);
+    return qRunesTraverse.getInsturctions();
 }

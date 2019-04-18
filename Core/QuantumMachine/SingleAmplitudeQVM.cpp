@@ -29,6 +29,11 @@ SingleAmplitudeQVM::SingleAmplitudeQVM()
     m_doubleAngleGateFunc.insert(make_pair(GateType::CPHASE_GATE, CR_Gate));
 }
 
+void SingleAmplitudeQVM::init()
+{
+    _start();
+}
+
 void SingleAmplitudeQVM::traversalAll(AbstractQuantumProgram *pQProg)
 {
     if (nullptr==pQProg)
@@ -37,8 +42,8 @@ void SingleAmplitudeQVM::traversalAll(AbstractQuantumProgram *pQProg)
         throw invalid_argument("pQProg is null");
     }
     VerticeMatrix  *vertice_matrix = m_prog_map.getVerticeMatrix();
-    vertice_matrix->initVerticeMatrix(getAllocateQubitNum());
-    m_prog_map.setQubitNum(getAllocateQubitNum());
+    vertice_matrix->initVerticeMatrix(getAllocateQubit());
+    m_prog_map.setQubitNum(getAllocateQubit());
     TraversalQProg::traversal(pQProg);
 }
 
@@ -112,6 +117,7 @@ void SingleAmplitudeQVM::traversal(AbstractQGateNode *pQGate)
 
 void SingleAmplitudeQVM::run(QProg &prog)
 {
+    m_prog = prog;
     m_prog_map.clear();
     traversalAll(dynamic_cast<AbstractQuantumProgram *>
         (prog.getImplementationPtr().get()));
@@ -119,6 +125,7 @@ void SingleAmplitudeQVM::run(QProg &prog)
 
 QStat SingleAmplitudeQVM::getQStat()
 {
+    run(m_prog);
     if (m_prog_map.isEmptyQProg())
     {
         QCERR("pQProg is null");
@@ -146,6 +153,7 @@ QStat SingleAmplitudeQVM::getQStat()
         qubit_vertice_begen.m_num = (*vertice_map_iter_b).first;
         TensorEngine::dimDecrementbyValue(m_prog_map, qubit_vertice_begen, 0);
     }
+
     for (size_t j = 0; j < 1ull << qubit_num; j++)
     {
         auto new_map = new QuantumProgMap(m_prog_map);
@@ -183,6 +191,18 @@ QStat SingleAmplitudeQVM::getQStat()
 
 double SingleAmplitudeQVM::PMeasure_index(size_t index)
 {
+    run(m_prog);
+    if (m_prog_map.isEmptyQProg())
+    {
+        QCERR("pQProg is null");
+        throw run_fail("pQProg is null");
+    }
+    if (index <= 0 || index >(1ull<< m_prog_map.getQubitNum()))
+    {
+        QCERR("PMeasure error");
+        throw qprog_syntax_error("PMeasure");
+    }
+
     vector<pair<size_t, double>> temp;
     auto vertice = m_prog_map.getVerticeMatrix();
     qubit_vertice_t qubit_vertice_end, qubit_vertice_begen;
@@ -216,6 +236,7 @@ double SingleAmplitudeQVM::PMeasure_index(size_t index)
 vector<double> 
 SingleAmplitudeQVM::PMeasure(QVec qvec, int select_max)
 {
+    run(m_prog);
     if (m_prog_map.isEmptyQProg())
     {
         QCERR("pQProg is null");
@@ -229,7 +250,7 @@ SingleAmplitudeQVM::PMeasure(QVec qvec, int select_max)
     auto qubit_num = m_prog_map.getQubitNum();
     sort(qubit_vec.begin(), qubit_vec.end());
     auto iter = adjacent_find(qubit_vec.begin(), qubit_vec.end());
-    if ((qubit_vec.end() != iter) || select_max > (1ull << qubit_vec.size())
+    if ((qubit_vec.end() != iter) || select_max > (1 << qubit_vec.size())
         || *(qubit_vec.end() - 1) > (qubit_num - 1))
     {
         QCERR("PMeasure error");
@@ -268,6 +289,7 @@ SingleAmplitudeQVM::PMeasure(QVec qvec, int select_max)
                 }
                 continue;
             }
+            vertice_map_iter--;
             qubit_vertice_end.m_qubit_id = i;
             qubit_vertice_end.m_num = (*vertice_map_iter).first;
             TensorEngine::dimDecrementbyValue(*new_map, qubit_vertice_end, value);
@@ -299,7 +321,7 @@ SingleAmplitudeQVM::PMeasure(QVec qvec, int select_max)
         }
 
         vector<double> res;
-        for (size_t i = 0; i < select_max; ++i)
+        for (int i = 0; i < select_max; ++i)
         {
             res.emplace_back(result_vec[i]);
         }
@@ -307,20 +329,26 @@ SingleAmplitudeQVM::PMeasure(QVec qvec, int select_max)
     }
     else
     {
-        return temp;
+        vector<double> res;
+        for (int i = 0; i < select_max; ++i)
+        {
+            res.emplace_back(temp[i]);
+        }
+        return res;
     }
 }
 
 vector<pair<size_t, double>> 
 SingleAmplitudeQVM::PMeasure(int select_max)
 {
+    run(m_prog);
     if (m_prog_map.isEmptyQProg())
     {
         QCERR("pQProg is null");
         throw run_fail("pQProg is null");
     }
     auto qubit_num = m_prog_map.getQubitNum();
-    if (select_max > (1ull << qubit_num))
+    if (select_max > (1 << qubit_num))
     {
         QCERR("PMeasure Error");
         throw qprog_syntax_error("PMeasure");
@@ -354,7 +382,6 @@ SingleAmplitudeQVM::PMeasure(int select_max)
         {
             auto iter = new_map->getVerticeMatrix()->getQubitMapIter(qubit_vec[i]);
             auto vertice_map_iter = (*iter).end();
-            vertice_map_iter--;
             size_t value = j;
             value = (value >> (qubit_num - 1) - i) & 1;
             if ((*iter).size() == 0)
@@ -366,6 +393,7 @@ SingleAmplitudeQVM::PMeasure(int select_max)
                 }
                 continue;
             }
+            vertice_map_iter--;
             qubit_vertice_end.m_qubit_id = i;
             qubit_vertice_end.m_num = (*vertice_map_iter).first;
             TensorEngine::dimDecrementbyValue(*new_map, qubit_vertice_end, value);
@@ -379,6 +407,9 @@ SingleAmplitudeQVM::PMeasure(int select_max)
         }
         delete new_map;
     }
+
+
+    m_prog_map.clear();
     return temp;
 }
 

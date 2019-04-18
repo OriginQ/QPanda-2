@@ -415,6 +415,39 @@ bool GATEGPU::controlunitarydouble(
     return true;
 }
 
+//bool GATEGPU::DiagonalGate(
+//    QState& psigpu,
+//    Qnum& qnum,
+//    QState& matrix,
+//    bool isConjugate,
+//    double error_rate)
+//{
+//    if (gpu::randGenerator() > error_rate)
+//    {
+//        if (isConjugate)
+//        {
+//            for (size_t i = 0; i < (1 << qnum); i++)
+//            {
+//                matrix.image[i] = -matrix.imag[i];
+//            }
+//        }
+//        QSIZE m = qnum.size();
+//        QSIZE mask = getControllerMask(qnum, 1);
+//        QSIZE BLOCKDIM;
+//        SET_BLOCKDIM
+//            gpu::DiagonalGate << < (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)THREADDIM >> >
+//            (psigpu.real, psigpu.imag, 1ull << (psigpu.qnum), mask, matrix);
+//        return true;
+//    }
+//
+//    return true;
+//}
+
+
+
+
+
+
 //qbReset
 bool GATEGPU::qbReset(QState& psigpu, size_t qn, double error_rate)
 {

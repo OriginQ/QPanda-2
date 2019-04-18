@@ -381,6 +381,19 @@ public:
     }
 };
 
+class VariationalQuantumGate_X : public VariationalQuantumGate
+{
+private:
+    Qubit* m_q;
+public:
+    explicit VariationalQuantumGate_X(Qubit* q);
+    inline QGate feed() const { return X(m_q); }
+    inline std::shared_ptr<VariationalQuantumGate> copy()
+    {
+        return std::make_shared<VariationalQuantumGate_X>(m_q);
+    }
+};
+
 class VariationalQuantumGate_RX : public VariationalQuantumGate
 {
 private:
@@ -398,6 +411,8 @@ public:
             return std::make_shared<VariationalQuantumGate_RX>(m_q, m_vars[0]);
     }
 };
+
+
 
 class VariationalQuantumGate_RY : public VariationalQuantumGate
 {
@@ -434,7 +449,53 @@ public:
             return std::make_shared<VariationalQuantumGate_RZ>(m_q, m_vars[0]);
     }
 };
+class VariationalQuantumGate_CRX : public VariationalQuantumGate
+{
+private:
+    Qubit* m_target;
+    QVec m_control;
+public:
+    explicit VariationalQuantumGate_CRX(Qubit*, QVec &, double angle);
+    VariationalQuantumGate_CRX(VariationalQuantumGate_CRX & old);
+    inline QGate feed() const;
+    inline std::shared_ptr<VariationalQuantumGate> copy()
+    {
+        if (m_vars.size() == 0)
+            return std::make_shared<VariationalQuantumGate_CRX>(m_target, m_control, m_constants[0]);
+    }
+};
+class VariationalQuantumGate_CRY : public VariationalQuantumGate
+{
+private:
+    Qubit* m_target;
+    QVec m_control;
+public:
+    explicit VariationalQuantumGate_CRY(Qubit*, QVec &, double angle);
+    VariationalQuantumGate_CRY(VariationalQuantumGate_CRY & old);
+    inline QGate feed() const;
+    inline std::shared_ptr<VariationalQuantumGate> copy()
+    {
+        if (m_vars.size() == 0)
+            return std::make_shared<VariationalQuantumGate_CRY>(m_target, m_control, m_constants[0]);
 
+
+    }
+};
+class VariationalQuantumGate_CRZ : public VariationalQuantumGate
+{
+private:
+    Qubit* m_target;
+    QVec m_control;
+public:
+    explicit VariationalQuantumGate_CRZ(Qubit*, QVec &, double angle);
+    VariationalQuantumGate_CRZ(VariationalQuantumGate_CRZ & old);
+    inline QGate feed() const;
+    inline std::shared_ptr<VariationalQuantumGate> copy()
+    {
+        if (m_vars.size() == 0)
+            return std::make_shared<VariationalQuantumGate_CRZ>(m_target, m_control, m_constants[0]);
+    }
+};
 class VariationalQuantumGate_CZ : public VariationalQuantumGate
 {
 private:
@@ -500,7 +561,7 @@ private:
 };
 
 template<typename VQG_Ty> 
-VariationalQuantumCircuit& VariationalQuantumCircuit::insert(VQG_Ty gate)
+VariationalQuantumCircuit& VariationalQuantumCircuit::insert(VQG_Ty  gate)
 {
     static_assert(std::is_base_of<VariationalQuantumGate, VQG_Ty>::value, "Bad VQG Type");
     auto copy_gate = gate.copy();
@@ -521,16 +582,21 @@ VariationalQuantumCircuit& VariationalQuantumCircuit::insert<QGate&>(QGate &gate
 
 template<>
 VariationalQuantumCircuit& VariationalQuantumCircuit::insert<QGate>(QGate gate);
-    
+
 template<>
 VariationalQuantumCircuit& VariationalQuantumCircuit::insert<QCircuit>(QCircuit c);
 
 typedef VariationalQuantumGate_H VQG_H;
+typedef VariationalQuantumGate_X VQG_X;
 typedef VariationalQuantumGate_RX VQG_RX;
 typedef VariationalQuantumGate_RY VQG_RY;
 typedef VariationalQuantumGate_RZ VQG_RZ;
 typedef VariationalQuantumGate_CNOT VQG_CNOT;
 typedef VariationalQuantumGate_CZ VQG_CZ;
+typedef VariationalQuantumGate_CRX VQG_CRX;
+typedef VariationalQuantumGate_CRY VQG_CRY;
+typedef VariationalQuantumGate_CRZ VQG_CRZ;
+
 
 typedef VariationalQuantumGate VQG;
 typedef VariationalQuantumCircuit VQC;
@@ -540,19 +606,24 @@ public:
     impl_vqp(VariationalQuantumCircuit, 
         PauliOperator,
         QuantumMachine*, 
-        std::vector<Qubit*>);
+        std::vector<Qubit*>,
+        bool is_pmeasure=true);
 
     impl_vqp(VariationalQuantumCircuit,
         PauliOperator,
         QuantumMachine*,
-        std::map<size_t, Qubit*>);
+        std::map<size_t, Qubit*>,
+        bool is_pmeasure=true);
 
     double _get_gradient(var _var);
+    //double _get_gradient_perturbation(var _var);
     double _get_gradient_one_term(var _var, QTerm);
+    double _get_expectation_one_term_old(QCircuit, QTerm);
     double _get_expectation_one_term(QCircuit, QTerm);
     double _get_expectation();
 
 private:
+    bool m_is_pmeasure;
     std::map<size_t, Qubit*> m_measure_qubits;
     PauliOperator m_op;
     QuantumMachine* m_machine;
@@ -674,9 +745,10 @@ inline const var stack(int axis, T&... v) {
 inline const var qop(VariationalQuantumCircuit& circuit,
     PauliOperator Hamiltonian,
     QuantumMachine* machine,
-    std::vector<Qubit*> measure_qubits)
+    std::vector<Qubit*> measure_qubits,
+    bool is_pmeasure=true)
 {
-    auto pimpl = std::make_shared<impl_vqp>(circuit, Hamiltonian, machine, measure_qubits);
+    auto pimpl = std::make_shared<impl_vqp>(circuit, Hamiltonian, machine, measure_qubits, is_pmeasure);
     var res(pimpl);
     std::vector<var>& vars = circuit.get_vars();
     for (auto &var : vars)
@@ -689,9 +761,10 @@ inline const var qop(VariationalQuantumCircuit& circuit,
 inline const var qop(VariationalQuantumCircuit& circuit,
     PauliOperator Hamiltonian,
     QuantumMachine* machine,
-    std::map<size_t, Qubit*> measure_qubits)
+    std::map<size_t, Qubit*> measure_qubits,
+    bool is_pmeasure=true)
 {
-    auto pimpl = std::make_shared<impl_vqp>(circuit, Hamiltonian, machine, measure_qubits);
+    auto pimpl = std::make_shared<impl_vqp>(circuit, Hamiltonian, machine, measure_qubits, is_pmeasure);
     var res(pimpl);
     std::vector<var>& vars = circuit.get_vars();
     for (auto &var : vars)

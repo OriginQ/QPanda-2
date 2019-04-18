@@ -1,12 +1,4 @@
 .vs/*
-x64/*
-Console/x64/*
-QPanda-2.0.Algorithm/x64/*
-QPanda-2.0.Core/x64/*
-pyQPanda/x64/*
-ThirdParty/TinyXML/x64/*
-Release/bin/* 
-Release/obj/*
 *.a
 *.o
 *.log
@@ -18,7 +10,8 @@ pyQPanda/pyqpanda.egg-info
 .vscode/
 build/*
 config.h
+include/QPandaConfig.h
+include/QPandaVersion.h
 /pyQPanda/benchmark.py
 __pycache__/
 CMakeLists.txt.user
-Documentation/docs/source/_build/html

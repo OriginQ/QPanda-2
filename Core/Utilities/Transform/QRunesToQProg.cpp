@@ -283,7 +283,7 @@ void checkAngleExper(string str)
     }
 }
 
-QRunesToQprog::QRunesToQprog(string sFilePath):
+QRunesToQProg::QRunesToQProg(string sFilePath):
 m_sFilePath(sFilePath)
 {
     m_keyWords.emplace_back("QINIT");
@@ -388,7 +388,7 @@ void countKeywords(vector<string> &keyVec)
         }
 }
 
-void QRunesToQprog::qRunesAllocation(vector<string> &m_QRunes, QProg& newQProg)
+void QRunesToQProg::qRunesAllocation(vector<string> &m_QRunes, QProg& newQProg)
 {
     string qubits_number = m_QRunes[0].substr(m_QRunes[0].find(" ") + 1, m_QRunes[0].length());
     string cregs_number  = m_QRunes[1].substr(m_QRunes[1].find(" ") + 1, m_QRunes[1].length());
@@ -398,12 +398,12 @@ void QRunesToQprog::qRunesAllocation(vector<string> &m_QRunes, QProg& newQProg)
 
     for (auto iter = m_QRunes.begin() + 2; iter != m_QRunes.end();)
     {
-        iter += QRunesToQprog::traversalQRunes(iter, &newQProg);
+        iter += QRunesToQProg::traversalQRunes(iter, &newQProg);
     }
 
 }
 
-int  QRunesToQprog::handleDaggerCircuit(vector<string>::iterator iter, QNode *qNode)
+int  QRunesToQProg::handleDaggerCircuit(vector<string>::iterator iter, QNode *qNode)
 {
     int cirSize{ 0 }, increment{ 0 };
     auto qCircuit = CreateEmptyCircuit();
@@ -444,7 +444,7 @@ int  QRunesToQprog::handleDaggerCircuit(vector<string>::iterator iter, QNode *qN
     return cirSize;
 }
 
-int  QRunesToQprog::handleControlCircuit(vector<string>::iterator iter, QNode *qNode,
+int  QRunesToQProg::handleControlCircuit(vector<string>::iterator iter, QNode *qNode,
                                          vector<Qubit*> &all_ctr_qubits, 
                                          string &cExpr)
 {
@@ -495,7 +495,7 @@ int  QRunesToQprog::handleControlCircuit(vector<string>::iterator iter, QNode *q
 
 }
 
-int  QRunesToQprog::handleSingleGate (vector<string>::iterator iter, QNode *qNode,
+int  QRunesToQProg::handleSingleGate (QNode *qNode,
                                      const string &gateName,int qubit_addr)
 {
     if ( CIRCUIT_NODE == qNode->getNodeType())
@@ -546,7 +546,7 @@ int  QRunesToQprog::handleSingleGate (vector<string>::iterator iter, QNode *qNod
     return 1;
 }
 
-int  QRunesToQprog::handleDoubleGate (vector<string>::iterator iter, QNode *qNode, 
+int  QRunesToQProg::handleDoubleGate (QNode *qNode, 
                                      const string &gateName, int ctr_qubit_addr,int tar_qubit_addr)
 {
     if (CIRCUIT_NODE == qNode->getNodeType())
@@ -592,7 +592,7 @@ int  QRunesToQprog::handleDoubleGate (vector<string>::iterator iter, QNode *qNod
     return 1;
 }
 
-int  QRunesToQprog::handleDoubleAngleGate(vector<string>::iterator iter, QNode *qNode,
+int  QRunesToQProg::handleDoubleAngleGate(QNode *qNode,
     const string &gateName, int ctr_qubit_addr, int tar_qubit_addr,double angle)
 {
     if (CIRCUIT_NODE == qNode->getNodeType())
@@ -638,7 +638,7 @@ int  QRunesToQprog::handleDoubleAngleGate(vector<string>::iterator iter, QNode *
     return 1;
 }
 
-int  QRunesToQprog::handleAngleGate  (vector<string>::iterator iter, QNode *qNode, 
+int  QRunesToQProg::handleAngleGate  (QNode *qNode, 
                                      const string &gateName, int qubit_addr, double gate_angle)
 {
     if (CIRCUIT_NODE == qNode->getNodeType())
@@ -684,7 +684,7 @@ int  QRunesToQprog::handleAngleGate  (vector<string>::iterator iter, QNode *qNod
     return 1;
 }
 
-int  QRunesToQprog::handleMeasureGate(vector<string>::iterator iter, QNode *qNode, 
+int  QRunesToQProg::handleMeasureGate(QNode *qNode, 
                                      const string &keyWord, int qubit_addr, int creg_addr)
 {
     if (nullptr == qNode || PROG_NODE != qNode->getNodeType())
@@ -700,7 +700,7 @@ int  QRunesToQprog::handleMeasureGate(vector<string>::iterator iter, QNode *qNod
     return 1;
 }
 
-int  QRunesToQprog::traversalQRunes(vector<string>::iterator iter, QNode *qNode)
+int  QRunesToQProg::traversalQRunes(vector<string>::iterator iter, QNode *qNode)
 {
     if (nullptr == qNode)
     {
@@ -715,7 +715,7 @@ int  QRunesToQprog::traversalQRunes(vector<string>::iterator iter, QNode *qNode)
     {
         int qubit_addr = isIntNum((*iter).substr((*iter).find(" ") + 1));
         checkNumberLegal(qubit_addr, m_all_qubits.size());
-        return handleSingleGate(iter, qNode, keyWord, qubit_addr);
+        return handleSingleGate(qNode, keyWord, qubit_addr);
     }
 
     else if (keyWord == "RX" || keyWord == "RY" || keyWord == "RZ" )
@@ -739,7 +739,8 @@ int  QRunesToQprog::traversalQRunes(vector<string>::iterator iter, QNode *qNode)
 
         checkAngleExper((*iter).substr((*iter).find(",") + 2, (*iter).length() - (*iter).find(",") - 3));
         double gate_angle = calculationSolve((*iter).substr((*iter).find(",") + 2, (*iter).length() - (*iter).find(",") - 3));
-        return handleAngleGate(++iter, qNode, keyWord, qubit_addr,gate_angle);
+        ++iter;
+        return handleAngleGate(qNode, keyWord, qubit_addr,gate_angle);
     }
 
     else if (keyWord == "CNOT" || keyWord == "CZ" || keyWord == "ISWAP" || keyWord == "SQISWAP")
@@ -756,7 +757,8 @@ int  QRunesToQprog::traversalQRunes(vector<string>::iterator iter, QNode *qNode)
             QCERR("Formal Error");
             throw invalid_argument("Formal Error");
         }
-        return handleDoubleGate(++iter, qNode, keyWord, ctr_qubit_addr, tar_qubit_addr);
+        ++iter;
+        return handleDoubleGate(qNode, keyWord, ctr_qubit_addr, tar_qubit_addr);
     }
 
     else if (keyWord == "CR")
@@ -789,8 +791,8 @@ int  QRunesToQprog::traversalQRunes(vector<string>::iterator iter, QNode *qNode)
             std::regex_search(s1, results, angle);
             std::string angle = results[0].str().substr(1, results[0].str().length() - 2);
             double gate_angle = calculationSolve(angle);
-
-            return handleDoubleAngleGate(++iter, qNode, keyWord, ctr_qubit_addr, tar_qubit_addr, gate_angle);
+            ++iter;
+            return handleDoubleAngleGate(qNode, keyWord, ctr_qubit_addr, tar_qubit_addr, gate_angle);
         }
     }
 
@@ -808,8 +810,8 @@ int  QRunesToQprog::traversalQRunes(vector<string>::iterator iter, QNode *qNode)
         
         int creg_addr = isIntNum((*iter).substr((*iter).find(",") + 2));
         checkNumberLegal(creg_addr, m_all_cregs.size());
-
-        return handleMeasureGate(++iter, qNode, keyWord, qubit_addr, creg_addr);
+        ++iter;
+        return handleMeasureGate(qNode, keyWord, qubit_addr, creg_addr);
     }
 
     else if (keyWord == "DAGGER")
@@ -835,6 +837,9 @@ int  QRunesToQprog::traversalQRunes(vector<string>::iterator iter, QNode *qNode)
                 throw invalid_argument("Formal Error");
             }
         }
+
+
+
         return handleControlCircuit(++iter, qNode, all_ctr_qubits, cExpr) + 2;
     }
     else if (keyWord == "")
@@ -848,7 +853,7 @@ int  QRunesToQprog::traversalQRunes(vector<string>::iterator iter, QNode *qNode)
     }
 }
 
-void QRunesToQprog::qRunesParser(QProg& newQProg)
+void QRunesToQProg::qRunesParser(QProg& newQProg)
 {
     ifstream fin(m_sFilePath);
     std::vector<std::string> firstCheck;
@@ -856,7 +861,7 @@ void QRunesToQprog::qRunesParser(QProg& newQProg)
     if (!fin)
     {
         QCERR("FileOpenError");
-        throw invalid_argument("Open File Failed");
+        throw init_fail("Open File Failed");
     }
     else
     {
@@ -871,7 +876,7 @@ void QRunesToQprog::qRunesParser(QProg& newQProg)
             if (find(m_keyWords.begin(), m_keyWords.end(), instruction) == m_keyWords.end())
             {
                 QCERR("KeyWordsError");
-                throw invalid_argument("UnSupported KeyWords");
+                throw qprog_syntax_error("UnSupported KeyWords");
             }
             else
             {
@@ -883,5 +888,12 @@ void QRunesToQprog::qRunesParser(QProg& newQProg)
     }
 
     countKeywords(firstCheck);
-    QRunesToQprog::qRunesAllocation(m_QRunes,newQProg);
+    QRunesToQProg::qRunesAllocation(m_QRunes,newQProg);
+}
+
+
+void QPanda::qRunesToQProg(std::string sFilePath, QProg& newQProg)
+{
+    QRunesToQProg qRunesTraverse(sFilePath);
+    qRunesTraverse.qRunesParser(newQProg);
 }

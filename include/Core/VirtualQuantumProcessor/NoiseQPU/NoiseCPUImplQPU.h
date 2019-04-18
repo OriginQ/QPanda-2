@@ -216,6 +216,15 @@ public:
         Qnum& vControlBit,
         bool isConjugate,
         double error_rate);
+    virtual QError DiagonalGate(Qnum& vQubit,
+        QStat & matrix,
+        bool isConjugate,
+        double error_rate);
+    virtual QError controlDiagonalGate(Qnum& vQubit,
+        QStat & matrix,
+        Qnum& vControlBit,
+        bool isConjugate,
+        double error_rate);
 
     QStat getQState();
     QError Reset(size_t qn);

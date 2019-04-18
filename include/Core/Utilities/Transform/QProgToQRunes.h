@@ -4,14 +4,13 @@ Licensed under the Apache License 2.0
 
 QProgToQRunes.h
 Author: Yulei
-Created in 2018-7-19
+Updated in 2019/04/09 14:37
 
-Classes for Travesing QProg QGates as string use QRunes instruction set .
-
-Update@2018-8-31
-update comment
+Classes for QProgToQRunes.
 
 */
+
+/*! \file QProgToQRunes.h */
 
 #ifndef  _PROGTOQRUNES_H_
 #define  _PROGTOQRUNES_H_
@@ -21,125 +20,77 @@ update comment
 #include "Core/QuantumCircuit/QuantumMeasure.h"
 #include "Core/QuantumCircuit/QGlobalVariable.h"
 #include "Core/QuantumCircuit/ControlFlow.h"
-QPANDA_BEGIN
+#include "Core/QuantumMachine/QuantumMachineInterface.h"
+#include "Core/Utilities/Transform/QProgTransform.h"
 
-class QProgToQRunes 
+QPANDA_BEGIN
+/**
+* @namespace QPanda
+*/
+/**
+* @class QProgToQRunes
+* @ingroup Utilities
+* @brief QuantumProg Transform To QRunes instruction sets.
+*/
+class QProgToQRunes : public QProgTransform
 {
 public:
-    QProgToQRunes();
+    QProgToQRunes(QuantumMachine * quantum_machine);
    ~QProgToQRunes();
 
-    /*
-    overload operator <<
-    param:
-    out: output stream
-    prog: QProg
-    return:
-    output stream
-    Note:
-    None
+    /**
+    * @brief  Transform quantum program
+    * @param[in]  QProg&    quantum program
+    * @return     void
+    * @exception  invalid_argument
+    * @code
+    * @endcode
+    * @note
     */
-    friend std::ostream & operator<<(std::ostream &, const QProgToQRunes &);
+    virtual void transform(QProg &prog);
 
-    /*
-    out insturctionsQRunes
-    param:
-    return:
-    string
-
-    Note:
-    None
-    */
-    std::string insturctionsQRunes();
-
-    /*
-    Traversal QProg to instructions
-    param:
-    pQProg: AbstractQuantumProgram pointer
-    return:
-    None
-
-    Note:
-    None
-    */
-    void qProgToQRunes(AbstractQuantumProgram *);
-
-    /*
-     Traversal QProg to instructions
-     param:
-     pQProg: AbstractQuantumProgram pointer
-     return:
-     None
-
-     Note:
-     None
+    /**
+     * @brief  get QRunes insturction set
+     * @return     std::string
+     * @exception
+     * @note
      */
-     void transformQProg(AbstractQuantumProgram *);
-
-    /*
-     QGate to QRunes instruction
-     param:
-     pGate: AbstractQGateNode pointer
-     return:
-     None
-
-     Note:
-     None
-     */
-    void transformQProg(AbstractQGateNode *);
-
-    /*
-     Traversal QProg to instructions
-     param:
-     pCtrFlow: AbstractQuantumProgram pointer
-     return:
-     None
-
-     Note:
-     None
-     */
-    void transformQProg(AbstractControlFlowNode *);
-
-    /*
-     Traversal QCircuit to QRunes instructions
-     param:
-     pQProg: AbstractQuantumCircuit pointer
-     return:
-     None
-
-     Note:
-     None
-     */
-    void transformQProg(AbstractQuantumCircuit *);
-
-    /*
-    QMeasure to QRunes instruction
-    param:
-    pMeasure: AbstractQuantumMeasure pointer
-    return:
-    None
-
-    Note:
-    None
-    */
-    void transformQProg(AbstractQuantumMeasure *);
-
-    /*
-     Traversal QNode to QRunes
-     param:
-     pNode: QNode pointer
-     return:
-     None
-
-     Note:
-     None
-     */
-    void transformQProg(QNode *);
+    virtual std::string getInsturctions();
 private:
-    std::vector<std::string> m_QRunes;
-    std::map<int, std::string>  m_gatetype;
+    virtual void transformQProg(AbstractQuantumProgram*);
+    virtual void transformQGate(AbstractQGateNode*);
+    virtual void transformQControlFlow(AbstractControlFlowNode*);
+    virtual void transformQCircuit(AbstractQuantumCircuit*);
+    virtual void transformQMeasure(AbstractQuantumMeasure*);
+    virtual void transformQNode(QNode *);
+    
+    std::vector<std::string> m_QRunes;/**< QRunes insturction vector */
+    std::map<int, std::string>  m_gatetype; /**< quantum gate type map */
+    QuantumMachine * m_quantum_machine;
 };
 
-std::ostream & operator<<(std::ostream & out, const QProgToQRunes &qrunes_prog);
+/**
+* @brief  Quantum Program Transform To QRunes  instruction set
+* @ingroup Utilities
+* @param[in]  QProg&   Quantum Program
+* @return     std::string    QASM instruction set
+* @see
+      @code
+          init(QuantumMachine_type::CPU);
+
+          auto qubit = qAllocMany(6);
+          auto cbit  = cAllocMany(2);
+          auto prog = CreateEmptyQProg();
+
+          prog << CZ(qubit[0], qubit[2]) << H(qubit[1]) << CNOT(qubit[1], qubit[2])
+          << RX(qubit[0],pi/2) << Measure(qubit[1],cbit[1]);
+
+          std::cout << transformQProgToQRunes(prog) << std::endl;
+          finalize();
+      @endcode
+* @exception
+* @note
+*/
+std::string transformQProgToQRunes(QProg &prog, QuantumMachine * quantum_machine);
 QPANDA_END
 #endif

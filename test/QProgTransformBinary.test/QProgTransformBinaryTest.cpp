@@ -12,7 +12,7 @@ USING_QPANDA
 
 TEST(QProgTransformBinaryStore, QBinaryStore)
 {
-    init();
+    auto qvm = initQuantumMachine();
     auto qubits = qAllocMany(4);
     auto cbits = cAllocMany(4);
     cbits[0].setValue(0);
@@ -20,7 +20,7 @@ TEST(QProgTransformBinaryStore, QBinaryStore)
     QProg prog;
     prog << H(qubits[3]);
 
-    std::cout << qProgToQRunes(prog) << std::endl;;
+    std::cout << transformQProgToQRunes(prog,qvm) << std::endl;;
 
     directlyRun(prog);
 
@@ -29,22 +29,21 @@ TEST(QProgTransformBinaryStore, QBinaryStore)
     {
         std::cout << val.first << ", " << val.second << std::endl;
     }
-    storeQProgInBinary(qubits.size(), cbits.size(), prog);
-    finalize();
+    storeQProgInBinary(prog, qvm, "QProg.dat");
+    destroyQuantumMachine(qvm);
     return;
 }
 
 TEST(QProgTransformBinaryParse, QBinaryParse)
 {
-    init();
+    auto qvm = initQuantumMachine();
     QProg parseProg;
     QVec qubits;
     std::vector<ClassicalCondition> cbits;
 
-    binaryQProgFileParse(qubits, cbits, parseProg);
+    binaryQProgFileParse(qvm, qubits, cbits, parseProg);
     std::cout << "Parse" << std::endl;
-    std::cout << qProgToQRunes(parseProg) << std::endl;
-
+    std::cout << transformQProgToQRunes(parseProg, qvm) << std::endl;
     directlyRun(parseProg);
 
     auto result = getProbTupleList(qubits);
@@ -53,7 +52,7 @@ TEST(QProgTransformBinaryParse, QBinaryParse)
         std::cout << val.first << ", " << val.second << std::endl;
     }
 
-    finalize();
+    destroyQuantumMachine(qvm);
 
     return;
 }
@@ -61,9 +60,9 @@ TEST(QProgTransformBinaryParse, QBinaryParse)
 
 TEST(QProgTransformBinaryData, QBinaryData)
 {
-    init();
-    auto qubits = qAllocMany(4);
-    auto cbits = cAllocMany(4);
+    auto qvm_store = initQuantumMachine();
+    auto qubits = qvm_store->allocateQubits(4);
+    auto cbits = qvm_store->allocateCBits(4);
     cbits[0].setValue(0);
 
     QProg prog;
@@ -71,23 +70,23 @@ TEST(QProgTransformBinaryData, QBinaryData)
               << CNOT(qubits[1], qubits[2])
               << CNOT(qubits[2], qubits[3])
               ;
-    auto data = getQProgBinaryData(4, 4, prog);
+    auto data = transformQProgToBinary(prog, qvm_store);
 
     auto result = probRunTupleList(prog, qubits);
     for (auto &val : result)
     {
         std::cout << val.first << ", " << val.second << std::endl;
     }
-    finalize();
+    destroyQuantumMachine(qvm_store);
 
-    init();
+    auto qvm = initQuantumMachine();
     QProg parseProg;
     QVec qubits_parse;
     std::vector<ClassicalCondition> cbits_parse;
 
-    binaryQProgDataParse(qubits_parse, cbits_parse, parseProg, data);
+    binaryQProgDataParse(qvm, qubits_parse, cbits_parse, parseProg, data);
     std::cout << "binary data Parse" << std::endl;
-    //std::cout << qProgToQRunes(parseProg) << std::endl;
+    //std::cout << transformToQRunes(parseProg) << std::endl;
 
     auto result_parse = probRunTupleList(parseProg, qubits_parse);
     for (auto &val : result_parse)
@@ -95,7 +94,7 @@ TEST(QProgTransformBinaryData, QBinaryData)
         std::cout << val.first << ", " << val.second << std::endl;
     }
 
-    finalize();
+    destroyQuantumMachine(qvm);
 
     return;
 }

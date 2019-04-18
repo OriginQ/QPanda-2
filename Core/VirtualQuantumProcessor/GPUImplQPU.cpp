@@ -439,6 +439,27 @@ QError GPUImplQPU::controlunitaryDoubleQubitGate(
     return qErrorNone;
 }
 
+QError GPUImplQPU::DiagonalGate(Qnum & vQubit, QStat & matrix, bool isConjugate, double error_rate)
+{
+   /* size_t sdimension = matrix.size();
+    STATE_T matrix_real;
+    STATE_T matrix_imag;
+    if (!GATEGPU::DiagonalGate(mvQuantumStat, vQubit, matrix, isConjugate, error_rate))
+    {
+        return undefineError;
+    }*/
+    return qErrorNone;
+}
+
+QError GPUImplQPU::controlDiagonalGate(Qnum & vQubit, QStat & matrix, Qnum & vControlBit, bool isConjugate, double error_rate)
+{
+    /*if (!GATEGPU::controlDiagonalGate(mvQuantumStat, vQubit, matrix, vControlBit, isConjugate, error_rate))
+    {
+        return undefineError;
+    }*/
+    return qErrorNone;
+}
+
 QError GPUImplQPU::Reset(size_t qn)
 {
     if (!GATEGPU::qbReset(mvQuantumStat, qn, 0))

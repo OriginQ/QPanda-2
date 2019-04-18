@@ -1,55 +1,39 @@
 #include "ConfigMap.h"
-#include "XMLConfigParam.h"
 #include <cstdlib>
+
 using namespace std;
 USING_QPANDA
 #ifdef _WIN32
 #pragma warning(disable : 4996)
 #endif
 
-ConfigMap::ConfigMap()
+
+ConfigMap::ConfigMap(const string &filename)
 {
-    char * config_path = nullptr;
-    string metadata_path = "";
-    config_path = getenv("QPANDA_CONFIG_PATH");
-    if (nullptr != config_path)
+
+    XmlConfigParam config_file;
+    if (config_file.loadFile(filename))
     {
-#ifdef _WIN32
-        metadata_path.append(config_path);
-        metadata_path.append("\\MetadataConfig.xml");
-        m_sConfigFilePath.append(config_path);
-        m_sConfigFilePath.append("\\Config.xml");
-#else
-        metadata_path.append(config_path);
-        metadata_path.append("/MetadataConfig.xml");
-        m_sConfigFilePath.append(config_path);
-        m_sConfigFilePath.append("/Config.xml");
-#endif
-        XmlConfigParam xml(m_sConfigFilePath);
-        xml.getClassNameConfig(m_configMap);
-        string metadataPath(metadata_path);
-        CONFIGPAIR metadataPathPair = { "MetadataPath",metadataPath };
-        insert(metadataPathPair);
+        if (config_file.getClassNameConfig(m_configMap))
+        {
+            return ;
+        }
     }
-    else
-    {
-        insert(CONFIGPAIR("QProg", "OriginProgram"));
-        insert(CONFIGPAIR("QCircuit", "OriginCircuit"));
-        insert(CONFIGPAIR("QIfProg", "OriginQIf"));
-        insert(CONFIGPAIR("QWhileProg", "OriginQWhile"));
-        insert(CONFIGPAIR("QMeasure", "OriginMeasure"));
-        insert(CONFIGPAIR("QuantumMachine", "CPUQVM"));
-        insert(CONFIGPAIR("QubitPool", "OriginQubitPool"));
-        insert(CONFIGPAIR("Qubit", "OriginQubit"));
-        insert(CONFIGPAIR("PhysicalQubit", "OriginPhysicalQubit"));
-        insert(CONFIGPAIR("CBit", "OriginCBit"));
-        insert(CONFIGPAIR("CMem", "OriginCMem"));
-        insert(CONFIGPAIR("QResult", "OriginQResult"));
-        insert(CONFIGPAIR("CExpr", "OriginCExpr"));
-        insert(CONFIGPAIR("ClassicalProg", "OriginClassicalProg"));
-        CONFIGPAIR metadataPathPair = { "MetadataPath","" };
-        insert(metadataPathPair);
-    }
+
+    insert(CONFIGPAIR("QProg", "OriginProgram"));
+    insert(CONFIGPAIR("QCircuit", "OriginCircuit"));
+    insert(CONFIGPAIR("QIfProg", "OriginQIf"));
+    insert(CONFIGPAIR("QWhileProg", "OriginQWhile"));
+    insert(CONFIGPAIR("QMeasure", "OriginMeasure"));
+    insert(CONFIGPAIR("QuantumMachine", "CPUQVM"));
+    insert(CONFIGPAIR("QubitPool", "OriginQubitPool"));
+    insert(CONFIGPAIR("Qubit", "OriginQubit"));
+    insert(CONFIGPAIR("PhysicalQubit", "OriginPhysicalQubit"));
+    insert(CONFIGPAIR("CBit", "OriginCBit"));
+    insert(CONFIGPAIR("CMem", "OriginCMem"));
+    insert(CONFIGPAIR("QResult", "OriginQResult"));
+    insert(CONFIGPAIR("CExpr", "OriginCExpr"));
+    insert(CONFIGPAIR("ClassicalProg", "OriginClassicalProg"));
 }
 
 
@@ -88,3 +72,4 @@ string ConfigMap::operator[](const char * name)
 
     return aiter->second;
 }
+

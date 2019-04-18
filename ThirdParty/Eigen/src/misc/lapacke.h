@@ -26,7 +26,7 @@
   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
   THE POSSIBILITY OF SUCH DAMAGE.
 ******************************************************************************
-* Contents: Native C interface to LAPACK
+* Contents: Native C interface for LAPACK
 * Author: Intel Corporation
 * Generated November, 2011
 *****************************************************************************/

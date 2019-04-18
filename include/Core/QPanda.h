@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-
+/*! \file QPanda.h */
 #ifndef _QPANDA_H
 #define _QPANDA_H
 
@@ -34,73 +34,282 @@ limitations under the License.
 #include "Core/Utilities/Transform/QProgStored.h"
 #include "Core/Utilities/Transform/QProgDataParse.h"
 #include "Core/Utilities/QPandaException.h"
-
-
+#include "Core/Utilities/QPandaException.h"
 QPANDA_BEGIN
-
-std::string qProgToQRunes(QProg &pQProg);
-std::string qProgToQASM(QProg &pQProg);
-void qRunesToQProg(std::string sFilePath,QProg& newQProg);
-
-// to init the environment. Use this at the beginning
+/**
+* @brief  Init the environment
+* @ingroup QuantumMachine
+* @param[in]  QMachineType   Quantum machine type
+* @retval 1   Init success
+* @retval 0   Init failed
+* @see    QMachineType
+* @note   Use this at the beginning
+*/
 bool init(QMachineType type = CPU);
 
-// to finalize the environment. Use this at the end
+/**
+* @brief  Finalize the environment
+* @ingroup QuantumMachine
+* @return    void
+* @note   Use this at the end
+*/
 void finalize();
 
-// Allocate a qubit
+/**    
+* @brief  Allocate a qubit
+* @ingroup Core
+* @return    void
+* @note   Brfore use this,call init()
+*/
 Qubit* qAlloc();
 
-// Allocate a qubit
+/**
+* @brief  Allocate a qubit
+* @ingroup Core
+* @param[in]  size_t set qubit address
+* @return    void
+* @note   Brfore use this,call init()
+*/
 Qubit* qAlloc(size_t stQubitAddr);
 
+/**
+* @brief  Directly run a quantum program
+* @ingroup QuantumMachine
+* @param[in]  QProg& Quantum program
+* @return     std::map<std::string, bool>   Result
+*/
 std::map<std::string, bool> directlyRun(QProg & qProg);
 
-// Allocate many qubits
+/**
+* @brief  Allocate many qubits
+* @ingroup Core
+* @param[in]  size_t Set qubit number 
+* @note    Brfore use this,call init()
+*/
 QVec qAllocMany(size_t stQubitNumber);
 
-// Allocate a cbit
+/**
+* @brief  Allocate a cbit
+* @ingroup Core
+* @return    ClassicalCondition  Cbit
+* @note   Brfore use this,call init()
+*/
 ClassicalCondition cAlloc();
 
-// Allocate a cbit
+/**
+* @brief  Allocate a cbit
+* @ingroup Core
+* @param[in]  size_t Set cbit address
+* @return    ClassicalCondition  Cbit
+* @note   Brfore use this,call init()
+*/
 ClassicalCondition cAlloc(size_t stCBitaddr);
 
-// Allocate many cbits
+/**
+* @brief  Allocate many cbits
+* @ingroup Core
+* @param[in]  size_t Set cbit number
+* @note    Brfore use this,call init()
+*/
 std::vector<ClassicalCondition> cAllocMany(size_t stCBitNumber);
 
-// Free a cbit
+
+
+/**
+* @brief  Free a cbit
+* @ingroup Core
+* @param[in]  ClassicalCondition&  A reference to a cbit
+* @return     void  
+*/
 void cFree(ClassicalCondition &);
 
-// Free a list of CBits
+/**
+* @brief  Free a list of cbits
+* @ingroup Core
+* @param[in]  std::vector<ClassicalCondition>    A list of cbits
+* @return     void  
+*/
 void cFreeAll(std::vector<ClassicalCondition> vCBit);
 
-// get the status(ptr) of the quantum machine
+
+
+/**
+* @brief  Get the status(ptr) of the Quantum machine
+* @ingroup QuantumMachine
+* @return     QPanda::QMachineStatus*  Quantum machine  status(ptr)
+*/
 QMachineStatus* getstat();
 
 
+ /**
+ * @brief  Get all allocate qubit num
+ * @ingroup Core
+ * @return     size_t  Qubit num
+ */
  size_t getAllocateQubitNum();
 
+ /**
+ * @brief  Get allocate cbit nmu
+ * @ingroup Core
+ * @return    size_t Cbit num
+ */
  size_t getAllocateCMem();
 
+/**
+* @brief  Get pmeasure result as tuple list
+* @ingroup QuantumMachine
+* @param[in]  QVec&  Pmeasure qubits vector
+* @param[in]  int Selectmax:the returned value num
+* @return     std::vector<std::pair<size_t, double>>  Result
+* @note   selectMax  Can not exceed (1ull << the size of qubits vector)
+*/
 std::vector<std::pair<size_t, double>> getProbTupleList(QVec &,int selectMax=-1);
+
+/**
+* @brief  Get pmeasure result as list
+* @ingroup QuantumMachine
+* @param[in]  QVec&  Pmeasure qubits vector
+* @param[in]  int Selectmax:the returned value num
+* @return     std::vector<double>  Result
+* @note   SelectMax  can not exceed (1ull << the size of qubits vector)
+*/
 std::vector<double> getProbList(QVec &, int selectMax = -1);
+
+/**
+* @brief  Get pmeasure result as dict
+* @ingroup QuantumMachine
+* @param[in]  QVec&  Pmeasure qubits vector
+* @param[in]  int Selectmax:the returned value num
+* @return     std::map<std::string, double>  Result
+* @note   SelectMax  can not exceed (1ull << the size of qubits vector)
+*/
 std::map<std::string, double>  getProbDict(QVec &, int selectMax = -1);
+
+/**
+* @brief  Get pmeasure result as dict
+* @ingroup QuantumMachine
+* @param[in]  QProg&  Quantum program
+* @param[in]  QVec&  Pmeasure qubits vector
+* @param[in]  int Selectmax:the returned value num
+* @return     std::vector<std::pair<size_t, double>>  Result
+* @note   SelectMax  can not exceed (1ull << the size of qubits vector)
+*/
 std::vector<std::pair<size_t, double>> probRunTupleList(QProg &,QVec &, int selectMax = -1);
+
+/**
+* @brief  Get pmeasure result as list
+* @ingroup QuantumMachine
+* @param[in]  QProg&  Quantum program
+* @param[in]  QVec&  Pmeasure qubits vector
+* @param[in]  int selectmax:the returned value num
+* @return     std::vector<double>  Result
+* @note   SelectMax  can not exceed (1ull << the size of qubits vector)
+*/
 std::vector<double> probRunList(QProg &,QVec&, int selectMax = -1);
+
+
+/**
+* @brief  Get pmeasure result as dict
+* @ingroup QuantumMachine
+* @param[in]  QProg&  Quantum program
+* @param[in]  QVec&  Pmeasure qubits vector
+* @param[in]  int Selectmax:the returned value num
+* @return     std::map<std::string, double>  Result
+* @note   SelectMax  can not exceed (1ull << the size of qubits vector)
+*/
 std::map<std::string, double>  probRunDict(QProg &,QVec &, int selectMax = -1);
+
+/**
+* @brief  Measure run with configuration
+* @ingroup QuantumMachine
+* @param[in]  QProg&  Quantum program
+* @param[in]  std::vector<ClassicalCondition>&  Cbits vector
+* @param[in]  int Shots:the repeat num  of measure operate
+* @return     std::map<std::string, size_t>   Result
+*/
 std::map<std::string, size_t> runWithConfiguration(QProg &, std::vector<ClassicalCondition> &, int);
+
+/**
+* @brief  Quick measure operate
+* @ingroup QuantumMachine
+* @param[in]  QVec&  Qubits vector
+* @param[in]  int Shots:the repeat num  of measure operate
+* @return     std::map<std::string,size_t>  Result
+*/
 std::map<std::string, size_t> quickMeasure(QVec &, int);
 
+
+
+/**
+* @brief  PMeasure
+* @ingroup QuantumMachine
+* @param[in]  QVec& Qubit  vector
+* @param[in]  int  Selectmax:the returned value num
+* @return     std::vector<std::pair<size_t, double>>   Result
+*/
 std::vector<std::pair<size_t, double>> PMeasure(QVec& qubit_vector, int select_max);
+
+/**
+* @brief  PMeasure only return result  with no index
+* @ingroup QuantumMachine
+* @param[in]  QVec& Qubit  vector
+* @return     std::vector<double>  Result
+*/
 std::vector<double> PMeasure_no_index(QVec& qubit_vector);
+
+
+/**
+* @brief  AccumulateProbability
+* @ingroup QuantumMachine
+* @param[in]  std::vector<double> & prob_list  Abstract Quantum program pointer
+* @return     std::vector<double>  
+*/
 std::vector<double> accumulateProbability(std::vector<double> &prob_list);
+
+
+/**
+* @brief  Quick measure
+* @ingroup QuantumMachine
+* @param[in]  QVec&  Qubits vector
+* @param[in]  int Shots:the repeat num  of measure operate
+* @param[in]  std::vector<double>& accumulate  Probabilites 
+* @return     std::map<std::string,size_t>  Results
+*/
 std::map<std::string, size_t> quick_measure(QVec& qubit_vector, int shots,
     std::vector<double>& accumulate_probabilites);
 
-size_t getQProgClockCycle(QProg &prog);
+/**
+* @brief  Get quantum state
+* @ingroup QuantumMachine
+* @return     qstat  Quantum state  vector
+*/
 QStat getQState();
+/**
+* @brief  Init a Quantum machine
+* @ingroup QuantumMachine
+* @param[in]  QMachineType
+* @return     QPanda::QuantumMachine*  Quantum machine pointer
+* @see  QMachineType
+* @note  default  Quantum machine type :cpu
+*/
 QuantumMachine *initQuantumMachine(QMachineType type=CPU);
+
+/**
+* @brief  Destroy Quantum machine
+* @ingroup QuantumMachine
+* @param[in]  QuantumMachine* Quantum machine pointer
+* @return     void  
+*/
 void destroyQuantumMachine(QuantumMachine * qvm);
+
+/**
+* @brief  Measure All  ClassicalCondition
+* @ingroup QuantumMachine
+* @param[in]  QVec&  Qubits vector
+* @param[in]  std::vector<ClassicalCondition>&  Cbits vector
+* @return    QPanda::QProg   Quantum program
+*/
 QPanda::QProg MeasureAll(QVec&, std::vector<ClassicalCondition> &);
+
 QPANDA_END
 #endif // !_QPANDA_H

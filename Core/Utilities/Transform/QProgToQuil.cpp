@@ -3,9 +3,11 @@
 #include "QPanda.h"
 #include "TransformDecomposition.h"
 #include "Utilities/MetadataValidity.h"
+
+
 USING_QPANDA
 using namespace std;
-QProgToQuil::QProgToQuil()
+QProgToQuil::QProgToQuil(QuantumMachine * quantum_machine)
 {
     m_gate_type_map.insert(pair<int, string>(PAULI_X_GATE, "X"));
     m_gate_type_map.insert(pair<int, string>(PAULI_Y_GATE, "Y"));
@@ -26,19 +28,20 @@ QProgToQuil::QProgToQuil()
     m_gate_type_map.insert(pair<int, string>(CPHASE_GATE, "CPHASE"));
     m_gate_type_map.insert(pair<int, string>(ISWAP_GATE, "ISWAP"));
     m_instructs.clear();
+
+    m_quantum_machine = quantum_machine;
 }
 
 QProgToQuil::~QProgToQuil()
 {
 }
 
-
-void QProgToQuil::progToQuil(AbstractQuantumProgram *p_prog)
+void QProgToQuil::transform(QProg &prog)
 {
-    if (nullptr == p_prog)
+    if (nullptr == m_quantum_machine)
     {
-        QCERR("p_prog is null");
-        throw runtime_error("p_prog is null");
+        QCERR("Quantum machine is nullptr");
+        throw std::invalid_argument("Quantum machine is nullptr");
     }
 
     const int kMetadata_gate_type_count = 2;
@@ -65,17 +68,28 @@ void QProgToQuil::progToQuil(AbstractQuantumProgram *p_prog)
     gate_matrix[METADATA_DOUBLE_GATE].emplace_back(m_gate_type_map[CPHASE_GATE]);
     gate_matrix[METADATA_DOUBLE_GATE].emplace_back(m_gate_type_map[ISWAP_GATE]);
 
-    SingleGateTypeValidator::GateType(gate_matrix[METADATA_SINGLE_GATE], 
+    SingleGateTypeValidator::GateType(gate_matrix[METADATA_SINGLE_GATE],
                                       valid_gate_matrix[METADATA_SINGLE_GATE]);  /* single gate data MetadataValidity */
-    DoubleGateTypeValidator::GateType(gate_matrix[METADATA_DOUBLE_GATE], 
+    DoubleGateTypeValidator::GateType(gate_matrix[METADATA_DOUBLE_GATE],
                                       valid_gate_matrix[METADATA_DOUBLE_GATE]);  /* double gate data MetadataValidity */
-    TransformDecomposition traversal_vec(valid_gate_matrix,gate_matrix,adjacent_matrixes);
-    traversal_vec.TraversalOptimizationMerge(dynamic_cast<QNode *>(p_prog));
+    TransformDecomposition traversal_vec(valid_gate_matrix,gate_matrix,adjacent_matrixes,m_quantum_machine);
+    auto p_prog = &prog;
+    traversal_vec.TraversalOptimizationMerge(prog);
+    transformQProg(p_prog);
+}
 
-    for (auto iter = p_prog->getFirstNodeIter(); iter != p_prog->getEndNodeIter(); iter++)
+void QProgToQuil::transformQProg(AbstractQuantumProgram * prog)
+{
+    if (nullptr == prog)
+    {
+        QCERR("p_prog is null");
+        throw runtime_error("p_prog is null");
+    }
+
+    for (auto iter = prog->getFirstNodeIter(); iter != prog->getEndNodeIter(); iter++)
     {
         QNode * p_node = (*iter).get();
-        nodeToQuil(p_node);
+        transformQNode(p_node);
     }
 
     return;
@@ -94,15 +108,15 @@ string QProgToQuil::getInsturctions()
 }
 
 
-void QProgToQuil::gateToQuil(AbstractQGateNode *p_gate)
+void QProgToQuil::transformQGate(AbstractQGateNode *gate)
 {
-    if (nullptr == p_gate)
+    if (nullptr == gate)
     {
         QCERR("p_gate is null");
         throw runtime_error("p_gate is null");
     }
 
-    auto circuit = transformQPandaBaseGateToQuilBaseGate(p_gate);
+    auto circuit = transformQPandaBaseGateToQuilBaseGate(gate);
     for (auto iter = circuit.getFirstNodeIter(); iter != circuit.getEndNodeIter(); iter++)
     {
         QNode * p_node = (*iter).get();
@@ -113,17 +127,17 @@ void QProgToQuil::gateToQuil(AbstractQGateNode *p_gate)
 }
 
 
-void QProgToQuil::circuitToQuil(AbstractQuantumCircuit *p_circuit)
+void QProgToQuil::transformQCircuit(AbstractQuantumCircuit *circuit)
 {
-    if (nullptr == p_circuit)
+    if (nullptr == circuit)
     {
         QCERR("p_circuit is null");
         throw runtime_error("p_circuit is null");
     }
 
-    if (p_circuit->isDagger())
+    if (circuit->isDagger())
     {
-        for (auto iter = p_circuit->getLastNodeIter(); iter != p_circuit->getHeadNodeIter(); iter--)
+        for (auto iter = circuit->getLastNodeIter(); iter != circuit->getHeadNodeIter(); iter--)
         {
             QNode *p_node = (*iter).get();
             int type = p_node->getNodeType();
@@ -150,15 +164,15 @@ void QProgToQuil::circuitToQuil(AbstractQuantumCircuit *p_circuit)
                 break;
             }
 
-            nodeToQuil(p_node);
+            transformQNode(p_node);
         }
     }
     else
     {
-        for (auto iter = p_circuit->getFirstNodeIter(); iter != p_circuit->getEndNodeIter(); iter++)
+        for (auto iter = circuit->getFirstNodeIter(); iter != circuit->getEndNodeIter(); iter++)
         {
             QNode * p_node = (*iter).get();
-            nodeToQuil(p_node);
+            transformQNode(p_node);
         }
     }
 
@@ -166,20 +180,20 @@ void QProgToQuil::circuitToQuil(AbstractQuantumCircuit *p_circuit)
 }
 
 
-void QProgToQuil::measureToQuil(AbstractQuantumMeasure *p_measure)
+void QProgToQuil::transformQMeasure(AbstractQuantumMeasure *measure)
 {
-    if (nullptr == p_measure)
+    if (nullptr == measure)
     {
         QCERR("p_measure is null");
         throw runtime_error("p_measure is null");
     }
 
-    Qubit *p_qubit = p_measure->getQuBit();
+    Qubit *p_qubit = measure->getQuBit();
     auto p_physical_qubit = p_qubit->getPhysicalQubitPtr();
     size_t qubit_addr = p_physical_qubit->getQubitAddr();
     string qubit_addr_str = to_string(qubit_addr);
 
-    auto p_cbit = p_measure->getCBit();
+    auto p_cbit = measure->getCBit();
     string cbit_name = p_cbit->getName();
     string cbit_number_str = cbit_name.substr(1);
     string instruct = "MEASURE " + qubit_addr_str + " [" + cbit_number_str + "]";
@@ -189,26 +203,26 @@ void QProgToQuil::measureToQuil(AbstractQuantumMeasure *p_measure)
 }
 
 
-void QProgToQuil::nodeToQuil(QNode *p_node)
+void QProgToQuil::transformQNode(QNode *node)
 {
-    if (nullptr == p_node)
+    if (nullptr == node)
     {
         QCERR("p_node is null");
         throw runtime_error("p_node is null");
     }
 
-    int type = p_node->getNodeType();
+    int type = node->getNodeType();
 
     switch (type)
     {
     case NodeType::GATE_NODE:
-        gateToQuil(dynamic_cast<AbstractQGateNode *>(p_node));
+        transformQGate(dynamic_cast<AbstractQGateNode *>(node));
         break;
     case NodeType::CIRCUIT_NODE:
-        circuitToQuil(dynamic_cast<AbstractQuantumCircuit *>(p_node));
+        transformQCircuit(dynamic_cast<AbstractQuantumCircuit *>(node));
         break;
     case NodeType::PROG_NODE:
-        progToQuil(dynamic_cast<AbstractQuantumProgram *>(p_node));
+        transformQProg(dynamic_cast<AbstractQuantumProgram *>(node));
         break;
     case NodeType::QIF_START_NODE:
     case NodeType::WHILE_START_NODE:
@@ -216,7 +230,7 @@ void QProgToQuil::nodeToQuil(QNode *p_node)
         throw invalid_argument("Don't support QWhileProg or QIfProg");
         break;
     case NodeType::MEASURE_GATE:
-        measureToQuil(dynamic_cast<AbstractQuantumMeasure *>(p_node));
+        transformQMeasure(dynamic_cast<AbstractQuantumMeasure *>(node));
         break;
     case NodeType::NODE_UNDEFINED:
         QCERR("NodeType UNDEFINED");
@@ -229,6 +243,11 @@ void QProgToQuil::nodeToQuil(QNode *p_node)
     }
 
     return;
+}
+
+void QProgToQuil::transformQControlFlow(AbstractControlFlowNode *controlflow)
+{
+    throw std::runtime_error("not support control flow");
 }
 
 
@@ -305,17 +324,6 @@ void QProgToQuil::dealWithQuilGate(AbstractQGateNode *p_gate)
     }
 
     return ;
-}
-
-
-ostream & QPanda::operator<<(ostream & out, const QProgToQuil & prog)
-{
-    for (auto instruct : prog.m_instructs)
-    {
-        out << instruct << "\n";
-    }
-
-    return out;
 }
 
 
@@ -496,10 +504,16 @@ QCircuit QProgToQuil::transformQPandaBaseGateToQuilBaseGate(AbstractQGateNode *p
 }
 
 
-string QPanda::qProgToQuil(QProg &prog)
+string QPanda::transformQProgToQuil(QProg& prog, QuantumMachine * quantum_machine)
 {
-    QProgToQuil quil_traverse;
-    quil_traverse.progToQuil(&prog);
+    if (nullptr == quantum_machine)
+    {
+        QCERR("Quantum machine is nullptr");
+        throw std::invalid_argument("Quantum machine is nullptr");
+    }
+
+    QProgToQuil quil_traverse(quantum_machine);
+    quil_traverse.transform(prog);
     return quil_traverse.getInsturctions();
 }
 

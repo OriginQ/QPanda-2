@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2017-2018 Origin Quantum Computing. All Right Reserved.
 Licensed under the Apache License 2.0
 
@@ -11,14 +11,23 @@ Classes for QGate
 Update@2018-8-30
 Update by code specification
 */
-
+/*! \file QuantumGate.h */
 #ifndef _QUANTUM_GATE_H
 #define _QUANTUM_GATE_H
 #include <map>
 #include "Core/QuantumCircuit/QGlobalVariable.h"
 #include "Core/Utilities/QPandaNamespace.h"
+
+/**
+* @namespace QGATE_SPACE
+* @brief QGATE namespace
+*/
 namespace QGATE_SPACE 
 {
+    /**
+    * @class angleParameter
+    * @brief Quantum gate angle parameter  basic abstract class
+    */
     class angleParameter
     {
     public:
@@ -26,6 +35,10 @@ namespace QGATE_SPACE
         virtual double getParameter() const = 0;
     };
 
+    /**
+    * @class QuantumGate
+    * @brief Quantum gate basic abstract class
+    */
     class QuantumGate
     {
     protected:
@@ -124,6 +137,7 @@ namespace QGATE_SPACE
         U4(U4&);
         U4(double, double, double, double);
         U4(QStat & matrix);      //initialize through matrix element 
+        virtual ~U4() {};
         inline virtual int getGateType() const
         {
             return GateType::U4_GATE;
@@ -297,7 +311,7 @@ namespace QGATE_SPACE
         QDoubleGate();
         QDoubleGate(const QDoubleGate & oldDouble);
         QDoubleGate(QStat & matrix);
-        ~QDoubleGate() {};
+        virtual ~QDoubleGate() {};
 
         inline int getGateType() const
         {
@@ -349,9 +363,10 @@ namespace QGATE_SPACE
         }
     public:
         CU();
-        CU(CU&);
+        CU(const CU&);
         CU(double, double, double, double);  //init (4,4) matrix 
         CU(QStat& matrix);
+        virtual ~CU() {}
         inline virtual int getGateType() const
         {
             return GateType::CU_GATE;
@@ -383,6 +398,7 @@ namespace QGATE_SPACE
     {
     public:
         CNOT();
+        CNOT(const CNOT &);
         inline int getGateType() const
         {
             return GateType::CNOT_GATE;
@@ -392,8 +408,10 @@ namespace QGATE_SPACE
     //control phase gate
     class CPhaseGate :public CU, public angleParameter
     {
-    public:
+    protected:
         CPhaseGate() {};
+    public:
+
         CPhaseGate(double);
         inline virtual int getGateType() const
         {
@@ -417,8 +435,10 @@ namespace QGATE_SPACE
 
     class ISWAPTheta : public QDoubleGate, public angleParameter
     {
-    public:
+    protected:
         ISWAPTheta() {};
+    public:
+
         ISWAPTheta(double);
         inline virtual int getGateType() const
         {

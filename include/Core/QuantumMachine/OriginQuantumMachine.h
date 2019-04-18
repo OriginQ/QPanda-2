@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-
+/*! \file OriginQuantumMachine.h */
 #ifndef ORIGIN_QUANTUM_MACHINE_H
 #define ORIGIN_QUANTUM_MACHINE_H
 #include "Core/QuantumMachine/Factory.h"
@@ -22,6 +22,15 @@ limitations under the License.
 #include "Core/VirtualQuantumProcessor/QuantumGateParameter.h"
 #include "Core/Utilities/QPandaException.h"
 USING_QPANDA
+/**
+* @namespace QPanda
+*/
+
+/**
+* @defgroup QuantumMachine
+* @brief    QPanda2 quantum virtual machine
+*/
+
 
 class OriginPhysicalQubit : public PhysicalQubit
 {
@@ -162,11 +171,6 @@ protected:
     QResult* _QResult;
     QMachineStatus* _QMachineStatus;
     QPUImpl     * _pGates;
-    struct Configuration
-    {
-        size_t maxQubit = 25;
-        size_t maxCMem = 256;
-    };
     Configuration _Config;
     virtual void run(QProg&);
     std::string _ResultToBinaryString(std::vector<ClassicalCondition>& vCBit);
@@ -176,11 +180,15 @@ protected:
         _QResult(nullptr),
         _QMachineStatus(nullptr),
         _pGates(nullptr)
-    {}
+    {
+        _Config.maxQubit = 25;
+        _Config.maxCMem = 256;
+    }
     void _ptrIsNull(void * ptr, std::string name);
     virtual ~QVM() {}
     virtual void init() {}
 public:
+    virtual void setConfig(const Configuration &config);
     virtual Qubit* allocateQubit();
     virtual Qubit* allocateQubitThroughPhyAddress(size_t qubit_num);
     virtual Qubit* allocateQubitThroughVirAddress(size_t qubit_num); // allocate and return a qubit
@@ -200,7 +208,7 @@ public:
     virtual ClassicalCondition allocateCBit(size_t stCbitNum);
     virtual std::map<std::string, bool> directlyRun(QProg & qProg);
     virtual std::map<std::string, size_t> runWithConfiguration(QProg &, std::vector<ClassicalCondition> &, rapidjson::Document &);
-    virtual std::map<int, size_t> getGateTimeMap() const;
+    virtual std::map<GateType, size_t> getGateTimeMap() const;
     virtual QStat getQState() const;
     virtual size_t getVirtualQubitAddress(Qubit *) const;
     virtual bool swapQubitPhysicalAddress(Qubit *, Qubit*);

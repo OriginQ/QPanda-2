@@ -1,5 +1,5 @@
 #include "QAOAParaScan.h"
-#include "QAOA/QAOA.h"
+#include "Applications/QApplication/QAOA/QAOA.h"
 #include "QString.h"
 #include "RJson/RJson.h"
 #include "mpi.h"

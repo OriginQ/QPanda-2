@@ -1,6 +1,6 @@
 #ifndef _GPU_QUANTUM_GATE_H
 #define _GPU_QUANTUM_GATE_H
-#include "config.h"
+#include "QPandaConfig.h"
 
 
 #ifdef USE_CUDA
@@ -154,6 +154,10 @@ public:
         bool isConjugate,
         double error_rate,
         GateType type);
+    QError DiagonalGate(Qnum& vQubit, QStat & matrix,
+        bool isConjugate, double error_rate);
+    QError controlDiagonalGate(Qnum& vQubit, QStat & matrix, Qnum& vControlBit,
+        bool isConjugate, double error_rate);
 
 };
 

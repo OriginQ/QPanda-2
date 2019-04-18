@@ -3,7 +3,6 @@
 #include "Utilities/MetadataValidity.h"
 #include "TransformDecomposition.h"
 
-
 using namespace std;
 USING_QPANDA
 
@@ -35,9 +34,8 @@ const std::map<int, QProgStoredNodeType> kGateTypeAndQProgTypeMap =
 };
 
 
-QProgStored::QProgStored(const uint32_t &qubit_number, const uint32_t &cbit_number, QProg &prog) :
-    m_node_counter(0u),
-    m_qubit_number(qubit_number), m_cbit_number(cbit_number), m_QProg(prog)
+QProgStored::QProgStored(QuantumMachine *qm) :
+    m_node_counter(0u)
 {
     m_operator_map.insert(pair<string, int>("+", PLUS));
     m_operator_map.insert(pair<string, int>("-", MINUS));
@@ -53,30 +51,20 @@ QProgStored::QProgStored(const uint32_t &qubit_number, const uint32_t &cbit_numb
     m_operator_map.insert(pair<string, int>("||", OR));
     m_operator_map.insert(pair<string, int>("!", NOT));
     m_operator_map.insert(pair<string, int>("=", ASSIGN));
+
+    m_quantum_machine = qm;
 }
 
 QProgStored::~QProgStored()
 { }
 
-
-void QProgStored::traversal()
+void QProgStored::transform(QProg &prog)
 {
-    AbstractQuantumProgram *p_prog = dynamic_cast<AbstractQuantumProgram *>(&m_QProg);
-    if (nullptr == p_prog)
-    {
-        QCERR("QProg is error");
-        throw invalid_argument("QProg is error");
-    }
-
-    for (auto iter = p_prog->getFirstNodeIter(); iter != p_prog->getEndNodeIter(); iter++)
-    {
-        QNode * p_node = (*iter).get();
-        traversalQNode(p_node);
-    }
-
+    m_qubit_number = m_quantum_machine->getAllocateQubit();
+    m_cbit_number = m_quantum_machine->getAllocateCMem();
+    transformQProg(&prog);
     return;
 }
-
 
 void QProgStored::store(const string &filename)
 {
@@ -103,7 +91,7 @@ void QProgStored::store(const string &filename)
     return;
 }
 
-std::vector<uint8_t> QProgStored::getQProgBinaryData()
+std::vector<uint8_t> QProgStored::getInsturctions()
 {
     size_t size = (sizeof(uint32_t) + sizeof(DataNode));
     pair<uint32_t, DataNode> qubits_cbits_data(m_qubit_number, m_cbit_number);
@@ -118,7 +106,7 @@ std::vector<uint8_t> QProgStored::getQProgBinaryData()
 }
 
 
-void QProgStored::traversalQProg(AbstractQuantumProgram *p_prog)
+void QProgStored::transformQProg(AbstractQuantumProgram *p_prog)
 {
     if (nullptr == p_prog)
     {
@@ -129,14 +117,14 @@ void QProgStored::traversalQProg(AbstractQuantumProgram *p_prog)
     for (auto iter = p_prog->getFirstNodeIter(); iter != p_prog->getEndNodeIter(); iter++)
     {
         QNode * pNode = (*iter).get();
-        traversalQNode(pNode);
+        transformQNode(pNode);
     }
 
     return;
 }
 
 
-void QProgStored::traversalQCircuit(AbstractQuantumCircuit *p_circuit)
+void QProgStored::transformQCircuit(AbstractQuantumCircuit *p_circuit)
 {
     if (nullptr == p_circuit)
     {
@@ -172,7 +160,7 @@ void QProgStored::traversalQCircuit(AbstractQuantumCircuit *p_circuit)
                 throw invalid_argument("Circuit is error");
                 break;
             }
-            traversalQNode(p_node);
+            transformQNode(p_node);
         }
     }
     else
@@ -180,7 +168,7 @@ void QProgStored::traversalQCircuit(AbstractQuantumCircuit *p_circuit)
         for (auto iter = p_circuit->getFirstNodeIter(); iter != p_circuit->getEndNodeIter(); iter++)
         {
             QNode * p_node = (*iter).get();
-            traversalQNode(p_node);
+            transformQNode(p_node);
         }
     }
 
@@ -188,7 +176,7 @@ void QProgStored::traversalQCircuit(AbstractQuantumCircuit *p_circuit)
 }
 
 
-void QProgStored::traversalQControlFlow(AbstractControlFlowNode *p_controlflow)
+void QProgStored::transformQControlFlow(AbstractControlFlowNode *p_controlflow)
 {
     if (nullptr == p_controlflow)
     {
@@ -198,7 +186,7 @@ void QProgStored::traversalQControlFlow(AbstractControlFlowNode *p_controlflow)
 
     ClassicalCondition *p_classcical_condition = p_controlflow->getCExpr();
     auto expr = p_classcical_condition->getExprPtr().get();
-    traversalCExpr(expr);
+    transformCExpr(expr);
 
     QNode *p_node = dynamic_cast<QNode *>(p_controlflow);
     int node_type = p_node->getNodeType();
@@ -206,10 +194,10 @@ void QProgStored::traversalQControlFlow(AbstractControlFlowNode *p_controlflow)
     switch (node_type)
     {
     case NodeType::QIF_START_NODE:
-        traversalQIfProg(p_controlflow);
+        transformQIfProg(p_controlflow);
         break;
     case NodeType::WHILE_START_NODE:
-        traversalQWhilePro(p_controlflow);
+        transformQWhilePro(p_controlflow);
         break;
     default:
         QCERR("NodeType is error");
@@ -221,7 +209,7 @@ void QProgStored::traversalQControlFlow(AbstractControlFlowNode *p_controlflow)
 }
 
 
-void QProgStored::traversalQIfProg(AbstractControlFlowNode *p_controlFlow)
+void QProgStored::transformQIfProg(AbstractControlFlowNode *p_controlFlow)
 {
     if (nullptr == p_controlFlow)
     {
@@ -232,10 +220,10 @@ void QProgStored::traversalQIfProg(AbstractControlFlowNode *p_controlFlow)
     uint32_t true_and_false_node = 0;
     addDataNode(QPROG_QIF_NODE, true_and_false_node);
     auto iter_head_node = --m_data_vector.end();
-    traversalQNode(p_controlFlow->getTrueBranch());
+    transformQNode(p_controlFlow->getTrueBranch());
 
     true_and_false_node |= (m_node_counter << kCountMoveBit);
-    traversalQNode(p_controlFlow->getFalseBranch());
+    transformQNode(p_controlFlow->getFalseBranch());
     true_and_false_node |= m_node_counter;
     iter_head_node->second.qubit_data = true_and_false_node;
 
@@ -243,7 +231,7 @@ void QProgStored::traversalQIfProg(AbstractControlFlowNode *p_controlFlow)
 }
 
 
-void QProgStored::traversalQWhilePro(AbstractControlFlowNode *p_controlflow)
+void QProgStored::transformQWhilePro(AbstractControlFlowNode *p_controlflow)
 {
     if (nullptr == p_controlflow)
     {
@@ -255,7 +243,7 @@ void QProgStored::traversalQWhilePro(AbstractControlFlowNode *p_controlflow)
     std::cout << "true_and_false_node: " << true_and_false_node << std::endl;
     addDataNode(QPROG_QWHILE_NODE, true_and_false_node);
     auto iter_head_node = --m_data_vector.end();
-    traversalQNode(p_controlflow->getTrueBranch());
+    transformQNode(p_controlflow->getTrueBranch());
 
     true_and_false_node |= (m_node_counter << kCountMoveBit);
     iter_head_node->second.qubit_data = true_and_false_node;
@@ -264,7 +252,7 @@ void QProgStored::traversalQWhilePro(AbstractControlFlowNode *p_controlflow)
 }
 
 
-void QProgStored::traversalQGate(AbstractQGateNode *p_gate)
+void QProgStored::transformQGate(AbstractQGateNode *p_gate)
 {
     if (nullptr == p_gate)
     {
@@ -309,7 +297,7 @@ void QProgStored::traversalQGate(AbstractQGateNode *p_gate)
 
     if (GateType::RX_GATE == gate_type || GateType::RY_GATE == gate_type
         || GateType::RZ_GATE == gate_type || GateType::U1_GATE == gate_type
-        || GateType::CPHASE_GATE == gate_type)
+        || GateType::CPHASE_GATE == gate_type || GateType::ISWAP_THETA_GATE == gate_type)
     {
         handleQGateWithOneAngle(p_gate);
     }
@@ -321,7 +309,7 @@ void QProgStored::traversalQGate(AbstractQGateNode *p_gate)
     return;
 }
 
-void QProgStored::traversalQMeasure(AbstractQuantumMeasure *p_measure)
+void QProgStored::transformQMeasure(AbstractQuantumMeasure *p_measure)
 {
     if (nullptr == p_measure)
     {
@@ -363,7 +351,7 @@ void QProgStored::traversalQMeasure(AbstractQuantumMeasure *p_measure)
 }
 
 
-void QProgStored::traversalQNode(QNode *p_node)
+void QProgStored::transformQNode(QNode *p_node)
 {
     if (nullptr == p_node)
     {
@@ -375,13 +363,13 @@ void QProgStored::traversalQNode(QNode *p_node)
     switch (type)
     {
     case NodeType::GATE_NODE:
-        traversalQGate(dynamic_cast<AbstractQGateNode *>(p_node));
+        transformQGate(dynamic_cast<AbstractQGateNode *>(p_node));
         break;
     case NodeType::CIRCUIT_NODE:
-        traversalQCircuit(dynamic_cast<AbstractQuantumCircuit *>(p_node));
+        transformQCircuit(dynamic_cast<AbstractQuantumCircuit *>(p_node));
         break;
     case NodeType::PROG_NODE:
-        traversalQProg(dynamic_cast<AbstractQuantumProgram *>(p_node));
+        transformQProg(dynamic_cast<AbstractQuantumProgram *>(p_node));
         break;
     case NodeType::QIF_START_NODE:
     case NodeType::WHILE_START_NODE:
@@ -390,10 +378,10 @@ void QProgStored::traversalQNode(QNode *p_node)
         //traversalQControlFlow(dynamic_cast<AbstractControlFlowNode *>(p_node));
         break;
     case NodeType::MEASURE_GATE:
-        traversalQMeasure(dynamic_cast<AbstractQuantumMeasure *>(p_node));
+        transformQMeasure(dynamic_cast<AbstractQuantumMeasure *>(p_node));
         break;
     case NodeType::CLASS_COND_NODE:
-        traversalClassicalProg(dynamic_cast<AbstractClassicalProg *>(p_node));
+        transformClassicalProg(dynamic_cast<AbstractClassicalProg *>(p_node));
         break;
     case NodeType::NODE_UNDEFINED:
         QCERR("NodeType UNDEFINED");
@@ -409,15 +397,15 @@ void QProgStored::traversalQNode(QNode *p_node)
 }
 
 
-void QProgStored::traversalCExpr(CExpr *p_cexpr)
+void QProgStored::transformCExpr(CExpr *p_cexpr)
 {
     if (nullptr == p_cexpr)
     {
         return;
     }
 
-    traversalCExpr(p_cexpr->getLeftExpr());
-    traversalCExpr(p_cexpr->getRightExpr());
+    transformCExpr(p_cexpr->getLeftExpr());
+    transformCExpr(p_cexpr->getRightExpr());
     string cexpr_name = p_cexpr->getName();
 
     int cexpr_specifier = p_cexpr->getContentSpecifier();
@@ -457,7 +445,7 @@ void QProgStored::traversalCExpr(CExpr *p_cexpr)
     return;
 }
 
-void QProgStored::traversalClassicalProg(AbstractClassicalProg *cc_pro)
+void QProgStored::transformClassicalProg(AbstractClassicalProg *cc_pro)
 {
     if (nullptr == cc_pro)
     {
@@ -467,7 +455,7 @@ void QProgStored::traversalClassicalProg(AbstractClassicalProg *cc_pro)
     }
 
     auto expr = dynamic_cast<OriginClassicalProg *>(cc_pro)->getExpr().get();
-    traversalCExpr(expr);
+    transformCExpr(expr);
 }
 
 void QProgStored::handleQGateWithOneAngle(AbstractQGateNode * gate)
@@ -539,18 +527,16 @@ void QProgStored::addDataNode(const QProgStoredNodeType &type, const DataNode & 
     return;
 }
 
-void QPanda::storeQProgInBinary(const uint32_t &qubit_number, const uint32_t &cbit_number,
-    QProg &prog, const string &filename)
+void QPanda::storeQProgInBinary(QProg &prog, QuantumMachine *qm, const string &filename)
 {
-    QProgStored storeProg(qubit_number, cbit_number, prog);
-    storeProg.traversal();
+    QProgStored storeProg(qm);
+    storeProg.transform(prog);
     storeProg.store(filename);
 }
 
-std::vector<uint8_t> QPanda::getQProgBinaryData(const uint32_t & qubit_number,
-    const uint32_t & cbit_number, QProg & prog)
+std::vector<uint8_t> QPanda::transformQProgToBinary(QProg & prog, QuantumMachine *qm)
 {
-    QProgStored storeProg(qubit_number, cbit_number, prog);
-    storeProg.traversal();
-    return storeProg.getQProgBinaryData();
+    QProgStored storeProg(qm);
+    storeProg.transform(prog);
+    return storeProg.getInsturctions();
 }

@@ -4,15 +4,12 @@ Licensed under the Apache License 2.0
 
 QGateCompare.h
 Author: Wangjing
-Created in 2018-6-25
+Updated in 2019/04/09 15:05
 
-Classes for get count that QVM don't support QGates.
-
-Update@2018-8-30
-update comment
+Classes for QGateCompare.
 
 */
-
+/*! \file QGateCompare.h */
 #ifndef  QGATE_COMPARE_H_
 #define  QGATE_COMPARE_H_
 
@@ -23,103 +20,77 @@ update comment
 #include <map>
 #include "Core/QuantumCircuit/QGlobalVariable.h"
 QPANDA_BEGIN
-/*
-get the number that QGate of QProg is not in setting instructions
+/**
+* @namespace QPanda
+*/
+
+/**
+* @defgroup Utilities
+* @brief QPanda2  base  Utilities  classes and  interface
+*/
+
+/**
+* @class QGateCompare  
+* @ingroup Utilities
+* @brief Qunatum Gate Compare
 */
 class QGateCompare {
 public:
     QGateCompare();
     virtual ~QGateCompare();
     
-    /*
-    get the number that QGate of QProg is not in setting instructions
-    param:
-        p_prog: target QProg
-        instructions: set instructions
-    return:
-        not support number
-
-    Note:
-        None
+    /**
+    * @brief  Count 1uantumprogram unsupported gatenum
+    * @param[in]  AbstractQuantumProgram*    Abstract Quantum program pointer
+    * @param[in]  const std::vector<std::vector<std::string>>&    Instructions  
+    * @return     size_t     Unsupported QGate num
+    * @exception    invalid_argument    Quantum program pointer is a nullptr
+    * @note
     */
-    static size_t countQGateNotSupport(AbstractQuantumProgram *p_prog,
-                                       const std::vector<std::vector<std::string>> &instructions);
+    static size_t countQGateNotSupport(AbstractQuantumProgram *,
+                                       const std::vector<std::vector<std::string>> &);
 
-    /*
-    get the number that QGate of QGate is not in setting instructions
-    param:
-        p_gata: target QGate
-        instructions: set instructions
-    return:
-        not support number
-
-    Note:
-        None
+    /**
+    * @brief  Count 1uantumprogram unsupported gatenum
+    * @param[in]  AbstractQGateNode*   Abstract QGate Node pointer
+    * @param[in]  const std::vector<std::vector<std::string>>&    Instructions
+    * @return     size_t   Unsupported QGate num
+    * @exception    invalid_argument    Quantum gate pointer is a nullptr
+    * @note
     */
-    static size_t countQGateNotSupport(AbstractQGateNode *p_gata,
-                                       const std::vector<std::vector<std::string>> &instructions);
 
-    /*
-    get the number that QGate of AbstractControlFlowNode is not in setting instructions
-    param:
-        p_controlflow: target AbstractControlFlowNode
-        instructions: set instructions
-    return:
-        not support number
+    static size_t countQGateNotSupport(AbstractQGateNode *,
+                                       const std::vector<std::vector<std::string>> &);
 
-    Note:
-        None
+    /**
+    * @brief  Count 1uantumprogram unsupported gatenum
+    * @param[in]  AbstractControlFlowNode*    Abstract Control Flow Node pointer
+    * @param[in]  const std::vector<std::vector<std::string>>&    Instructions
+    * @return     size_t    Unsupported QGate num
+    * @exception    invalid_argument    Quantum controlflow pointer is a nullptr
+    * @note
     */
-    static size_t countQGateNotSupport(AbstractControlFlowNode *p_controlflow,
-                                       const std::vector<std::vector<std::string>> &instructions);
-
-    /*
-    get the number that QGate of QCircuit is not in setting instructions
-    param:
-        p_circuit: target QCircuit
-        instructions: set instructions
-    return:
-        not support number
-
-    Note:
-        None
+    static size_t countQGateNotSupport(AbstractControlFlowNode *,
+                                       const std::vector<std::vector<std::string>> &);
+    /**
+    * @brief  Count 1uantumprogram unsupported gatenum
+    * @param[in]  AbstractQuantumCircuit*    Abstract Quantum Circuit Node pointer
+    * @param[in]  const std::vector<std::vector<std::string>>&    Instructions
+    * @return     size_t    Unsupported QGate num
+    * @exception    invalid_argument   Quantum circuit pointer is a nullptr
+    * @note
     */
-    static size_t countQGateNotSupport(AbstractQuantumCircuit *p_circuit,
-                                       const std::vector<std::vector<std::string>> &instructions);
-
+    static size_t countQGateNotSupport(AbstractQuantumCircuit *,
+                                       const std::vector<std::vector<std::string>> &);
 protected:
-    /*
-    get the number that QGate of QNode is not in setting instructions
-    param:
-        p_node: target QNode
-        instructions: set instructions
-    return:
-        not support number
 
-    Note:
-        None
-    */
-    static size_t countQGateNotSupport(QNode *p_node, 
-                                       const std::vector<std::vector<std::string>> &instructions);
+    static size_t countQGateNotSupport(QNode *, 
+                                       const std::vector<std::vector<std::string>> &);
 
-    /*
-    get the result of the item is or not in setting instructions
-    param:
-        item: target item
-        instructions: set instructions
-    return:
-        not support number
-
-    Note:
-        None
-    */
-    static bool isItemExist(const std::string &item,
-                            const std::vector<std::vector<std::string>> &instructions);
+    static bool isItemExist(const std::string &,
+                            const std::vector<std::vector<std::string>> &);
 private:
 };
-
-
-
 QPANDA_END
 
 

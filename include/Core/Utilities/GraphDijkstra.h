@@ -9,7 +9,7 @@ Created in 2018-8-31
 Classes for get the shortes path of graph
 
 */
-
+/*! \file GraphDijkstra.h */
 #ifndef GRAPH_DIJKSTAR_H
 #define GRAPH_DIJKSTAR_H
 
@@ -17,8 +17,25 @@ Classes for get the shortes path of graph
 #include <iostream>
 #include <vector>
 QPANDA_BEGIN
+/**
+* @namespace QPanda
+*/
+
+/**
+* @brief   Int infinite 
+*/
 const int kInfinite = 0xffff;
+
+/**
+* @brief   Error identifier
+*/
 const int kError = -1;
+
+
+/**
+* @class Dist
+* @brief Dijkstra graph node
+*/
 struct Dist{
     Dist() : value(0), visit(false){}
 
@@ -27,47 +44,40 @@ struct Dist{
     bool visit;
 };
 
+/**
+* @class   GraphDijkstra
+* @brief   Solutions for Dijkstra  algorithm
+* @ingroup Utilities
+*/
 class GraphDijkstra
 {
 public:
     GraphDijkstra() = delete;
     GraphDijkstra(const std::vector<std::vector<int> > &matrix);
 
-    /*
-    get the shortest path of the graph between begin with end
-    param:
-        begin: starting point 
-        end:   end point
-        path_vec:  the points at which the shortes path passes
-    return:
-        Return the length of the shortes path
-
-    Note:
+    /**
+    * @brief  Get the shortest path of the graph between begin with end
+    * @param[in]  int Begin: starting point  
+    * @param[in]  int End: end point
+    * @param[in]  std::vector<int>& path_vec:  The points at which the shortes path passes
+    * @return     int  The length of the shortes path
     */
     int getShortestPath(int begin, int end, std::vector<int> &path_vec);
 
-    /*
-    Determine if the graph is connected
-    param:
-        None
-    return:
-        Return result of the judgement
-
-    Note:
+    /**
+    * @brief  Determine if the graph is connected
+    * @return   bool  Result of the judgement  
+    * @see
     */
     bool is_connective();
 
     virtual ~GraphDijkstra();
 
 protected:
-    /*
-    Dijkstra algorithm
-    param:
-        begin: stating point
-    return:
-        if the execution is correct
-
-    Note:
+    /**
+    * @brief  Dijkstra algorithm
+    * @param[in]  int Begin: stating point
+    * @return     bool  If the execution is correct
     */
     bool dijkstra(int begin);
     

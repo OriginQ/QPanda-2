@@ -13,22 +13,27 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-
+/*! \file QError.h */
 #ifndef _QERROR_H
 #define _QERROR_H
+/*
+*  @enum	QError
+*  @brief   quantum program error type
+*  @ingroup   QuantumMachine
+*/
 enum QError
 {
-    qErrorNone = 2,
-    undefineError,
-    qParameterError,
-    qubitError,
-    loadFileError,
-    initStateError,
-    destroyStateError,
-    setComputeUnitError,
-    runProgramError,
-    getResultError,
-    getQStateError
+    qErrorNone = 2,    /**< no error   */
+    undefineError,    /**< undefined error   */
+    qParameterError,    /**<wrong parameter   */
+    qubitError,    /**< qubits error not only numbers   */
+    loadFileError,    /**< load file failed   */
+    initStateError,    /**< init quantum state error   */
+    destroyStateError,    /**< destroy state error   */
+    setComputeUnitError,    /**< set compute unit error   */
+    runProgramError,    /**< quantum program running time error   */
+    getResultError,    /**< get result error   */
+    getQStateError    /**< get quantum state error    */
 };
 
 #endif

@@ -75,6 +75,7 @@ void NoiseQVM::initGates(rapidjson::Document & doc)
 {
     if (!doc.HasMember("gates"))
     {
+
         QCERR("doc do not include gates");
         throw invalid_argument("doc do not include gates");
     }
@@ -126,39 +127,41 @@ void NoiseQVM::initGates(rapidjson::Document & doc)
 
 void NoiseQVM::init(rapidjson::Document & doc)
 {
-    if (!doc.HasMember("noisemodel"))
+    if (!doc.HasMember("noisemodel")&&(!doc.HasMember("gates")))
     {
         init();
     }
-    try
+    else
     {
-        if (doc.HasMember("gates"))
+        try
         {
-            initGates(doc);
-        }
-        else
-        {
+            if (doc.HasMember("gates"))
+            {
+                initGates(doc);
+            }
             _start();
             _getValidGatesMatrix();
             _pGates = new NoisyCPUImplQPU(doc);
             _ptrIsNull(_pGates, "NoisyCPUImplQPU");
+
+        }
+        catch (const std::exception&e)
+        {
+            finalize();
+            QCERR(e.what());
+            throw init_fail(e.what());
         }
     }
-    catch (const std::exception&e)
-    {
-        finalize();
-        QCERR(e.what());
-        throw init_fail(e.what());
-    }
+
 }
 
 void NoiseQVM::run(QProg & prog)
 {
     try
     {
-        vector<vector<int>> adjacent_matrixes;
+        /*vector<vector<int>> adjacent_matrixes;
         TransformDecomposition traversal_vec(m_valid_gates_matrix, m_gates_matrix, adjacent_matrixes);
-        traversal_vec.TraversalOptimizationMerge(dynamic_cast<QNode *>(&prog));
+        traversal_vec.TraversalOptimizationMerge(dynamic_cast<QNode *>(&prog));*/
 
         auto _pParam = new QuantumGateParam();
         _ptrIsNull(_pParam, "_pParam");

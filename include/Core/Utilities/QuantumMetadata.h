@@ -21,6 +21,7 @@ Classes for get the shortes path of graph
 #include <vector>
 #include <map>
 #include <string>
+#include "Core/Utilities/XMLConfigParam.h"
 
 QPANDA_BEGIN
 
@@ -31,85 +32,19 @@ Parse xml config and get metadata
 class QuantumMetadata
 {   
 public:
-    QuantumMetadata() ;
+    QuantumMetadata(const std::string & filename = CONFIG_PATH);
     QuantumMetadata & operator =(const QuantumMetadata &) = delete;
-    QuantumMetadata(const std::string & filename);
 
-    /*
-    Parse xml config file and get qubit count
-    param:
-        None
-    return:
-        qubit count
-
-    Note:
-    */
-    size_t getQubitCount();
-
-    /*
-    Parse xml config file and get qubit matrix
-    param:
-        qubit_matrix: output qubit matrix
-    return:
-        sucess or not
-
-    Note:
-    */
-    bool getQubiteMatrix(std::vector<std::vector<int> > &qubit_matrix);
-
-    /*
-    Parse xml config file and get single gate
-    param:
-        single_gate: output single gate
-    return:
-        sucess or not
-
-    Note:
-    */
-    bool getSingleGate(std::vector<std::string> &single_gate);
-
-    /*
-    Parse xml config file and get double gate
-    param:
-        double_gate: output double gate
-    return:
-        sucess or not
-
-    Note:
-    */
-    bool getDoubleGate(std::vector<std::string> &double_gate);
-
-    /*
-    Parse xml config file and get gate time
-    param:
-        gate_time_map: gate type std::map gate time
-    return:
-        sucess or not
-
-    Note:
-    */
-    bool getGateTime(std::map<int, size_t> &gate_time_map);
+    bool getMetadata(int &qubit_num, std::vector<std::vector<int>> &matrix);
+    bool getQGate(std::vector<std::string> &single_gates, std::vector<std::string> double_gates);
+    bool getGateTime(std::map<GateType, size_t> &gate_time_map);
 
     ~QuantumMetadata();
-
-protected:
-    /*
-    insert time to gate_time_map
-    param:
-        gate: gate std::string type
-        time: gate clock cycle
-        gate_time_map: gate type std::map gate time
-    return:
-        None
-
-    Note:
-    */
-    void insertGateTimeMap(const std::pair<std::string, size_t> &gate_time,
-                           std::map<int, size_t> &gate_time_map);
-
 private:
-    TiXmlDocument m_doc;
-    TiXmlElement *m_root_element;
+    void insertGateTimeMap(const std::pair<std::string, size_t> &gate_time,
+                           std::map<GateType, size_t> &gate_time_map);
+    XmlConfigParam m_config;
+    bool m_is_config_exist;
 };
 
 QPANDA_END

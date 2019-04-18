@@ -327,7 +327,7 @@ struct vector_has_data_and_format : std::false_type {};
 template <typename Vector>
 struct vector_has_data_and_format<Vector, enable_if_t<std::is_same<decltype(format_descriptor<typename Vector::value_type>::format(), std::declval<Vector>().data()), typename Vector::value_type*>::value>> : std::true_type {};
 
-// Add the buffer interface to a vector
+// Add the buffer interface for a vector
 template <typename Vector, typename Class_, typename... Args>
 enable_if_t<detail::any_of<std::is_same<Args, buffer_protocol>...>::value>
 vector_buffer(Class_& cl) {

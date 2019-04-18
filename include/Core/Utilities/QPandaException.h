@@ -1,9 +1,13 @@
+/*! \file QPandaException.h */
 #ifndef QPANDA_EXCEPTION_H
 #define QPANDA_EXCEPTION_H
 #include "Core/Utilities/QPandaNamespace.h"
 #include <exception>
 #include <string>
 QPANDA_BEGIN
+/**
+* @namespace QPanda
+*/
 /*
 |-QPandaException
 |---qalloc_fail
@@ -36,6 +40,11 @@ QPANDA_BEGIN
 |------invalid_pool
 */
 
+/**
+* @class QPandaException
+* @brief QPanda2 exception basic class
+* @ingroup Core
+*/
 class QPandaException : public std::exception
 {
     std::string errmsg;
@@ -63,6 +72,10 @@ class QPandaException : public std::exception
     }	
 };
 
+/**
+* @class qalloc_fail
+* @brief QPanda2 alloc qubit failed exception
+*/
 class qalloc_fail : public QPandaException
 {
     public:
@@ -76,6 +89,10 @@ class qalloc_fail : public QPandaException
     {}
 };
 
+/**
+* @class qalloc_fail
+* @brief QPanda2 alloc cbit failed exception
+*/
 class calloc_fail : public QPandaException
 {
     public:
@@ -89,6 +106,10 @@ class calloc_fail : public QPandaException
     {}
 };
 
+/**
+* @class init_fail
+* @brief QPanda2 init failed exception
+*/
 class init_fail : public QPandaException
 {
     public:
@@ -102,6 +123,10 @@ class init_fail : public QPandaException
     {}
 };
 
+/**
+* @class run_fail
+* @brief QPanda2 running time error exception
+*/
 class run_fail : public QPandaException
 {
     public:
@@ -110,6 +135,10 @@ class run_fail : public QPandaException
         ) {}
 };
 
+/**
+* @class result_get_fail
+* @brief QPanda2 get result failed  exception
+*/
 class result_get_fail :public QPandaException
 {
     public:
@@ -119,6 +148,10 @@ class result_get_fail :public QPandaException
     {}
 };
 
+/**
+* @class result_get_fail
+* @brief QPanda2 alloc quantum gate failed exception
+*/
 class gate_alloc_fail : public QPandaException
 {
     public:
@@ -131,6 +164,10 @@ class gate_alloc_fail : public QPandaException
     {};
 };
 
+/**
+* @class qcircuit_construction_fail
+* @brief QPanda2 qcircuit construction failed exception
+*/
 class qcircuit_construction_fail : public QPandaException
 {
 public:
@@ -143,6 +180,10 @@ public:
     {};
 };
 
+/**
+* @class qprog_construction_fail
+* @brief QPanda2 quantum program construction failed exception
+*/
 class qprog_construction_fail : public QPandaException
 {
     public:
@@ -155,7 +196,10 @@ class qprog_construction_fail : public QPandaException
     {};
 };
 
-
+/**
+* @class qprog_syntax_error
+* @brief QPanda2 quantum program syntax error exception
+*/
 class qprog_syntax_error : public QPandaException
 {
 public:
@@ -168,7 +212,10 @@ public:
     {};
 };
 
-
+/**
+* @class undefine_error
+* @brief QPanda2  undefined error exception
+*/
 class undefine_error : public QPandaException
 {
 public:
@@ -181,7 +228,10 @@ public:
     {};
 };
 
-
+/**
+* @class qvm_attributes_error
+* @brief QPanda2  quantum machine attributes error exception
+*/
 class qvm_attributes_error : public QPandaException
 {
 public:

@@ -17,15 +17,55 @@ TEST(CPUQVMTest, testInit)
     ASSERT_THROW(auto qvec = qvm.allocateQubits(26), qalloc_fail);
     ASSERT_THROW(auto cvec = qvm.allocateCBits(257), calloc_fail); 
 
+    qvm.finalize();
+    ASSERT_THROW(auto qvec = qvm.allocateQubits(2), qvm_attributes_error);
+    ASSERT_THROW(auto cvec = qvm.allocateCBits(2), qvm_attributes_error);
+    ASSERT_THROW(auto qvec = qvm.getAllocateQubit(), qvm_attributes_error);
+    ASSERT_THROW(auto qvec = qvm.getAllocateCMem(), qvm_attributes_error);
+    ASSERT_THROW(auto qvec = qvm.getResultMap(), qvm_attributes_error);
+
 
 }
 
 TEST(NoiseMachineTest, test)
 {
-    NoiseQVM qvm;
     rapidjson::Document doc1;
     doc1.Parse("{}");
-    qvm.init();
+    Value value(rapidjson::kObjectType);
+    Value value_rx(rapidjson::kArrayType);
+    value_rx.PushBack(2, doc1.GetAllocator());
+    value_rx.PushBack(10.0, doc1.GetAllocator());
+    value_rx.PushBack(2.0, doc1.GetAllocator());
+    value_rx.PushBack(0.03, doc1.GetAllocator());
+    value.AddMember("RX", value_rx, doc1.GetAllocator());
+
+    Value value_ry(rapidjson::kArrayType);
+    value_ry.PushBack(2, doc1.GetAllocator());
+    value_ry.PushBack(10.0, doc1.GetAllocator());
+    value_ry.PushBack(2.0, doc1.GetAllocator());
+    value_ry.PushBack(0.03, doc1.GetAllocator());
+    value.AddMember("RY", value_ry, doc1.GetAllocator());
+
+    Value value_rz(rapidjson::kArrayType);
+    value_rz.PushBack(2, doc1.GetAllocator());
+    value_rz.PushBack(10.0, doc1.GetAllocator());
+    value_rz.PushBack(2.0, doc1.GetAllocator());
+    value_rz.PushBack(0.03, doc1.GetAllocator());
+    value.AddMember("RX", value_rz, doc1.GetAllocator());
+
+    Value value_H(rapidjson::kArrayType);
+    value_H.PushBack(2, doc1.GetAllocator());
+    value_H.PushBack(10.0, doc1.GetAllocator());
+    value_H.PushBack(2.0, doc1.GetAllocator());
+    value_H.PushBack(0.03, doc1.GetAllocator());
+    value.AddMember("H", value_H, doc1.GetAllocator());
+
+    doc1.AddMember("noisemodel", value, doc1.GetAllocator());
+
+    
+
+    NoiseQVM qvm;
+    qvm.init(doc1);
     auto qvec = qvm.allocateQubits(2);
     auto cvec = qvm.allocateCBits(2);
     auto prog = QProg();

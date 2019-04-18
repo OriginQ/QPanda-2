@@ -337,7 +337,7 @@ bool OriginCircuit::getControlVector(QVec& qubit_vector)
     {
         qubit_vector.push_back(aiter);
     }
-    return qubit_vector.size();
+    return m_control_qubit_vector.size();
 }
 
 NodeIter OriginCircuit::getFirstNodeIter()

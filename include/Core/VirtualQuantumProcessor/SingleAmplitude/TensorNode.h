@@ -34,7 +34,6 @@ public:
 
     ~ComplexTensor();
 
-    friend class ComplexTensor;
     int getRank() const;
     qcomplex_data_t getElem(size_t num);
     void mulElem(size_t, qcomplex_data_t);
@@ -116,7 +115,6 @@ class QuantumProgMap;
 class Edge
 {
 public:
-    friend class Edge;
     inline Edge(qsize_t qubit_count,
                 ComplexTensor &tensor,
                 vector<pair<qsize_t, qsize_t>> &contect_vertice) noexcept :
@@ -164,7 +162,6 @@ private:
 class Vertice
 {
 public:
-	friend class Vertice;
     inline Vertice(int value, vector<qsize_t> &contect_edge) noexcept 
                    :m_contect_edge(contect_edge), m_value(value)
     {}
@@ -218,7 +215,6 @@ typedef vector<vertice_map_t> vertice_matrix_t;
 class VerticeMatrix
 {
 public:
-    friend class VerticeMatrix;
     VerticeMatrix();
     VerticeMatrix(const VerticeMatrix &);
     VerticeMatrix operator = (const VerticeMatrix &);
@@ -246,6 +242,8 @@ public:
     void changeContectEdge(qsize_t, qsize_t, qsize_t,qsize_t);
     void deleteContectEdge(qsize_t, qsize_t, qsize_t);
     void clearVertice() noexcept;
+    bool isEmpty() noexcept;
+    void clear() noexcept;
     ~VerticeMatrix();
 private:
     qsize_t m_qubit_count;
@@ -260,7 +258,6 @@ private:
     EdgeMap * m_edge_map;
     size_t m_qubit_num;
 public:
-    friend class QuantumProgMap;
     QuantumProgMap()
     {
         m_vertice_matrix = new VerticeMatrix();
@@ -290,8 +287,8 @@ public:
 
     inline bool isEmptyQProg()
     {
-        return ((m_vertice_matrix == nullptr) || 
-                (m_edge_map == nullptr) || 
+        return ((m_vertice_matrix->isEmpty()) || 
+                (m_edge_map->empty()) || 
                 (m_qubit_num == 0));
     }
 
@@ -312,7 +309,7 @@ public:
 
     inline void clear() noexcept
     {
-        m_vertice_matrix->clearVertice();
+        m_vertice_matrix->clear();
         m_edge_map->clear();
         m_qubit_num = 0;;
     }

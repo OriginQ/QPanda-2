@@ -11,6 +11,7 @@ Description  : Quantum program adaptation metadata instruction set
 #include <functional>
 #include "Core/Utilities/QStatMatrix.h"
 #include "Core/Utilities/GraphDijkstra.h"
+#include "Core/Utilities/Traversal.h"
 QPANDA_BEGIN
 using QGATE_SPACE::angleParameter;
 
@@ -30,199 +31,272 @@ struct QGatesTransform
     axis n2;
 };
 
-class TransformDecomposition;
-typedef std::function<void(AbstractQGateNode *,
-    QNode *,
-    TransformDecomposition *)> TraversalDecompositionFunction;
-QCircuit swapQGate(std::vector<int> ShortestWay, std::string MetadataQGate);
-void decomposeDoubleQGate(AbstractQGateNode * pNode, QNode * pParentNode, TransformDecomposition *);
-void decomposeMultipleControlQGate(AbstractQGateNode * pNode, QNode * pParentNode, TransformDecomposition *);
-void decomposeControlUnitarySingleQGate(AbstractQGateNode * pNode, QNode * pParentNode, TransformDecomposition *);
-void decomposeControlSingleQGateIntoMetadataDoubleQGate(AbstractQGateNode * pNode,
-        QNode * pParentNode, TransformDecomposition *);
-void decomposeUnitarySingleQGateIntoMetadataSingleQGate(AbstractQGateNode * pNode,
-        QNode * pParentNode, TransformDecomposition *);
- void deleteUnitQnode(AbstractQGateNode * pNode,
-        QNode * pParentNode, TransformDecomposition *);
-
-/******************************************************************
-Name£ºTransformDecomposition
-Description£ºQuantum program adaptation metadata instruction set
-******************************************************************/
-class TransformDecomposition
+/**
+* @class DecomposeDoubleQGate
+* @ingroup Utilities
+* @brief Decomposing double gates in qprog
+*/
+class DecomposeDoubleQGate : public TraversalInterface
 {
 public:
-    TransformDecomposition(std::vector<std::vector<std::string>> &ValidQGateMatrix,
-        std::vector<std::vector<std::string>> &QGateMatrix,
-        std::vector<std::vector<int> > &vAdjacentMatrix);
-    ~TransformDecomposition();
-
-    void TraversalOptimizationMerge(QNode * node);
-    QCircuit decomposeToffoliQGate(Qubit* TargetQubit, std::vector<Qubit*> ControlQubits);
-    QCircuit decomposeTwoControlSingleQGate(AbstractQGateNode* pNode);
+    /*!
+    * @brief  Execution traversal qgatenode
+    * @param[in|out]  AbstractQGateNode*  quantum gate
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    * @exception invalid_argument
+    * @note
+    */
+    void execute(AbstractQGateNode * pNode, QNode * pParentNode);
 private:
-    std::vector<std::vector<std::string>> m_sValidQGateMatrix;
-    std::vector<std::vector<std::string>> m_sQGateMatrix;
-    std::vector<std::vector<int> > m_iAdjacentMatrix;
-    QGatesTransform base;
-
-    TransformDecomposition() {};
-
-    void cancelControlQubitVector(QNode * pNode);
-
-    void Traversal(AbstractControlFlowNode *, TraversalDecompositionFunction, int iType);
-    void Traversal(AbstractQuantumCircuit *, TraversalDecompositionFunction, int iType);
-    void Traversal(AbstractQuantumProgram *, TraversalDecompositionFunction, int iType);
-    void TraversalByType(QNode * pNode, QNode *, TraversalDecompositionFunction, int iType);
-
-    void mergeSingleGate(QNode * pNode);
-    void mergeControlFlowSingleGate(AbstractControlFlowNode * pNode, int);
-    template<typename T>
-    void mergeCircuitandProgSingleGate(T pNode);
-
-    friend QCircuit swapQGate(std::vector<int> ShortestWay, std::string MetadataQGate);
-    friend void decomposeDoubleQGate(AbstractQGateNode * pNode, QNode * pParentNode, TransformDecomposition *);
-    friend void decomposeMultipleControlQGate(AbstractQGateNode * pNode, QNode * pParentNode, TransformDecomposition *);
-    friend void decomposeControlUnitarySingleQGate(AbstractQGateNode * pNode, QNode * pParentNode, TransformDecomposition *);
-    friend void decomposeControlSingleQGateIntoMetadataDoubleQGate(AbstractQGateNode * pNode,
-        QNode * pParentNode, TransformDecomposition *);
-    friend void decomposeUnitarySingleQGateIntoMetadataSingleQGate(AbstractQGateNode * pNode,
-        QNode * pParentNode, TransformDecomposition *);
-    friend void deleteUnitQnode(AbstractQGateNode * pNode,
-        QNode * pParentNode, TransformDecomposition *);
-    void checkControlFlowBranch(QNode *pNode);
-    void insertQCircuit(AbstractQGateNode *pGateNode, QCircuit &, QNode *pParentNode);
-    void getDecompositionAngle(QStat &Qmatrix, std::vector<double> &vdAngle);
-    void matrixMultiplicationOfSingleQGate(QStat &LeftMatrix, QStat &RightMatrix);
-    void rotateAxis(QStat &QMatrix, axis &OriginAxis, axis &NewAxis);
-    void matrixMultiplicationOfDoubleQGate(QStat &LeftMatrix, QStat &RightMatrix);
     void generateMatrixOfTwoLevelSystem(QStat &NewMatrix, QStat &OldMatrix, size_t Row, size_t Column);
-    inline double getArgument(qcomplex_t cNumber)
-    {
-        if (cNumber.imag() >= 0)
-        {
-            return acos(cNumber.real() / sqrt(cNumber.real()*cNumber.real() + cNumber.imag()*cNumber.imag()));
-        }
-        else
-        {
-            return -acos(cNumber.real() / sqrt(cNumber.real()*cNumber.real() + cNumber.imag()*cNumber.imag()));
-        }
-    }
+    void matrixMultiplicationOfDoubleQGate(QStat &LeftMatrix, QStat &RightMatrix);
+};
 
-    double transformMatrixToAxis(QStat &QMatrix, axis &Axis);
+/**
+* @class DecomposeMultipleControlQGate
+* @ingroup Utilities
+* @brief Decomposing multiple control qgate in qprog
+*/
+class DecomposeMultipleControlQGate : public TraversalInterface
+{
+public:
+    /*!
+    * @brief  Execution traversal qgatenode
+    * @param[in|out]  AbstractQGateNode*  quantum gate
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    * @exception invalid_argument
+    * @note
+    */
+    void execute(AbstractQGateNode * node, QNode * parent_node);
+
+    /*!
+    * @brief  Execution traversal qcircuit
+    * @param[in|out]  AbstractQuantumCircuit*  quantum circuit
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    * @exception invalid_argument
+    * @note
+    */
+    void execute(AbstractQuantumCircuit * node, QNode * parent_node);
+private:
     void QGateExponentArithmetic(AbstractQGateNode *pNode, double Exponent, QStat &QMatrix);
     void transformAxisToMatrix(axis &Axis, double Angle, QStat &QMatrix);
-
+    QCircuit decomposeTwoControlSingleQGate(AbstractQGateNode* pNode);
+    QCircuit decomposeToffoliQGate(Qubit* TargetQubit, std::vector<Qubit*> ControlQubits);
     QCircuit firstStepOfMultipleControlQGateDecomposition(AbstractQGateNode *pNode, Qubit *AncillaQubit);
     QCircuit secondStepOfMultipleControlQGateDecomposition(AbstractQGateNode *pNode, std::vector<Qubit*> AncillaQubitVector);
     QCircuit tempStepOfMultipleControlQGateDecomposition(std::vector<Qubit*> ControlQubits, std::vector<Qubit*> AncillaQubits);
 };
 
-/******************************************************************
-Name        : mergeCircuitandProgSingleGate
-Description : Merge quantum  circuit and quantum prog single gate
-argin       : pNode    Target Node pointer
-argout      : pNode    Target Node pointer
-Return      :
-******************************************************************/
-extern QGate U4(QStat & matrix, Qubit *qubit);
-template<typename T>
-void TransformDecomposition::mergeCircuitandProgSingleGate(T  pNode)
+/**
+* @class DecomposeControlUnitarySingleQGate
+* @ingroup Utilities
+* @brief Decomposing control unitary single qgate in qprog
+*/
+class DecomposeControlUnitarySingleQGate : public TraversalInterface
 {
-    if (nullptr == pNode)
-    {
-        QCERR("Unknown internal error");
-        throw std::runtime_error("Unknown internal error");
-    }
-    auto aiter = pNode->getFirstNodeIter();
-
-    /*
-    * Traversal PNode's children node
+public:
+    /*!
+    * @brief  Execution traversal qgatenode
+    * @param[in|out]  AbstractQGateNode*  quantum gate
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    * @exception invalid_argument
+    * @note
     */
-    for (; aiter != pNode->getEndNodeIter(); ++aiter)
+    void execute(AbstractQGateNode * node, QNode * parent_node);
+};
+
+/**
+* @class DecomposeDoubleQGate
+* @ingroup Utilities
+* @brief Decomposing control unitary single qgate in qprog
+*/
+class DecomposeControlSingleQGateIntoMetadataDoubleQGate : public TraversalInterface
+{
+public:
+    /*!
+    * @brief  Execution traversal qgatenode
+    * @param[in|out]  AbstractQGateNode*  quantum gate
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    * @exception invalid_argument
+    * @note
+    */
+    void execute(AbstractQGateNode * node, QNode * parent_node);
+
+    DecomposeControlSingleQGateIntoMetadataDoubleQGate(QuantumMachine * quantum_machine,
+        std::vector<std::vector<std::string>> valid_qgate_matrix,
+        std::vector<std::vector<int> > adjacent_matrix)
     {
-        int iNodeType = (*aiter)->getNodeType();
-
-        /*
-        * If it is not a gate type, the algorithm goes deeper
-        */
-        if (GATE_NODE != iNodeType)
-        {
-            mergeSingleGate((*aiter).get());
-            continue;
-        }
-
-        AbstractQGateNode * pCurGateNode = std::dynamic_pointer_cast<AbstractQGateNode>(*aiter).get();
-
-        if (pCurGateNode->getQuBitNum() == 2)
-            continue;
-
-        auto nextIter = aiter.getNextIter();
-
-        AbstractQGateNode * pNextGateNode = nullptr;
-
-        /*
-        * Loop through the nodes behind the target node
-        * and execute the merge algorithm
-        */
-        while (nextIter != pNode->getEndNodeIter())
-        {
-            int iNextNodeType = (*nextIter)->getNodeType();
-
-            if (GATE_NODE != iNextNodeType)
-                break;
-
-            pNextGateNode = std::dynamic_pointer_cast<AbstractQGateNode>(*nextIter).get();
-
-            if (pNextGateNode->getQuBitNum() == 1)
-            {
-                QVec CurQubitVector;
-                pCurGateNode->getQuBitVector(CurQubitVector);
-
-                QVec NextQubitVector;
-                pNextGateNode->getQuBitVector(NextQubitVector);
-
-                auto pCurPhyQubit = CurQubitVector[0]->getPhysicalQubitPtr();
-                auto pNextPhyQubit = NextQubitVector[0]->getPhysicalQubitPtr();
-
-                if ((nullptr == pCurPhyQubit) || (nullptr == pNextPhyQubit))
-                {
-                    QCERR("Unknown internal error");
-                    throw std::runtime_error("Unknown internal error");
-                }
-
-                /*
-                * Determine if it is the same qubit
-                */
-                if (pCurPhyQubit->getQubitAddr() == pNextPhyQubit->getQubitAddr())
-                {
-                    auto pCurQGate = pCurGateNode->getQGate();
-                    auto pNextQGate = pNextGateNode->getQGate();
-
-                    if ((nullptr == pCurQGate) || (nullptr == pNextQGate))
-                    {
-                        QCERR("Unknown internal error");
-                        throw std::runtime_error("Unknown internal error");
-                    }
-
-                    /*
-                    * Merge node
-                    */
-                    QStat CurMatrix, NextMatrix;
-                    pCurQGate->getMatrix(CurMatrix);
-                    pNextQGate->getMatrix(NextMatrix);
-                    QStat newMatrix = CurMatrix * NextMatrix;
-                    auto temp = U4(newMatrix, CurQubitVector[0]);
-                    auto pCurtItem = aiter.getPCur();
-                    pCurtItem->setNode(temp.getImplementationPtr());
-                    pCurGateNode = std::dynamic_pointer_cast<AbstractQGateNode>(pCurtItem->getNode()).get();
-                    nextIter = pNode->deleteQNode(nextIter);
-                }
-            }
-            nextIter = nextIter.getNextIter();
-        }
+        m_quantum_machine = quantum_machine;
+        m_valid_qgate_matrix = valid_qgate_matrix;
+        m_adjacent_matrix = adjacent_matrix;
     }
-}
+private:
+    DecomposeControlSingleQGateIntoMetadataDoubleQGate();
+    DecomposeControlSingleQGateIntoMetadataDoubleQGate(
+        const DecomposeControlSingleQGateIntoMetadataDoubleQGate &old
+    );
+    DecomposeControlSingleQGateIntoMetadataDoubleQGate &operator = (
+        const DecomposeControlSingleQGateIntoMetadataDoubleQGate &old
+        );
+    QCircuit swapQGate(std::vector<int> shortest_way, std::string metadata_qgate);
+    std::vector<std::vector<std::string>> m_valid_qgate_matrix;
+    std::vector<std::vector<int> > m_adjacent_matrix;
+    QuantumMachine * m_quantum_machine;
+};
+
+/**
+* @class DecomposeUnitarySingleQGateIntoMetadataSingleQGate
+* @ingroup Utilities
+* @brief Decomposing unitary single qgate into metadata single qgate in qprog
+*/
+class DecomposeUnitarySingleQGateIntoMetadataSingleQGate : public TraversalInterface
+{
+public:
+    DecomposeUnitarySingleQGateIntoMetadataSingleQGate(std::vector<std::vector<std::string>> qgate_matrix,
+        std::vector<std::vector<std::string>> &valid_qgate_matrix);
+
+    /*!
+    * @brief  Execution traversal qgatenode
+    * @param[in|out]  AbstractQGateNode*  quantum gate
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    * @exception invalid_argument
+    * @note
+    */
+    void execute(AbstractQGateNode * node, QNode * parent_node);
+private:
+    DecomposeUnitarySingleQGateIntoMetadataSingleQGate();
+    DecomposeUnitarySingleQGateIntoMetadataSingleQGate(
+        const DecomposeUnitarySingleQGateIntoMetadataSingleQGate &old
+    );
+    DecomposeUnitarySingleQGateIntoMetadataSingleQGate &operator = (
+        const DecomposeUnitarySingleQGateIntoMetadataSingleQGate &old
+        );
+    std::vector<std::vector<std::string>> m_qgate_matrix;
+    std::vector<std::vector<std::string>> m_valid_qgate_matrix;
+    QGatesTransform base;
+    void getDecompositionAngle(QStat &Qmatrix, std::vector<double> &vdAngle);
+    void rotateAxis(QStat &QMatrix, axis &OriginAxis, axis &NewAxis);
+};
+
+/**
+* @class DeleteUnitQnode
+* @ingroup Utilities
+* @brief Decomposing unit qnode in qprog
+*/
+ class DeleteUnitQNode : public TraversalInterface
+ {
+ public:
+     /*!
+     * @brief  Execution traversal qgatenode
+     * @param[in|out]  AbstractQGateNode*  quantum gate
+     * @param[in]  AbstractQGateNode*  quantum gate
+     * @return     void
+     * @exception invalid_argument
+     * @note
+     */
+     void execute(AbstractQGateNode * node, QNode * parent_node);
+ };
+
+ /**
+ * @class CancelControlQubitVector
+ * @ingroup Utilities
+ * @brief Cancel control qubit vector in qprog
+ */
+ class CancelControlQubitVector :public TraversalInterface
+ {
+ public:
+     /*!
+     * @brief  Execution traversal qcircuit
+     * @param[in|out]  AbstractQuantumCircuit*  quantum circuit
+     * @param[in]  AbstractQGateNode*  quantum gate
+     * @return     void
+     * @exception invalid_argument
+     * @note
+     */
+     inline void execute(AbstractQuantumCircuit * node, QNode * parent_node)
+     {
+         if (nullptr == node)
+         {
+             QCERR("node is nullptr");
+             throw std::invalid_argument("node is nullptr");
+         }
+
+         node->clearControl();
+         Traversal::traversal(node, this, false);
+     }
+ };
+
+ /**
+ * @class MergeSingleGate
+ * @ingroup Utilities
+ * @brief Merge single gate in qprog
+ */
+ class MergeSingleGate :public TraversalInterface
+ {
+ public:
+     /*!
+     * @brief  Execution traversal qcircuit
+     * @param[in|out]  AbstractQuantumCircuit*  quantum circuit
+     * @param[in]  AbstractQGateNode*  quantum gate
+     * @return     void
+     * @exception invalid_argument
+     * @note
+     */
+     void execute(AbstractQuantumCircuit * node, QNode * parent_node);
+
+     /*!
+     * @brief  Execution traversal qprog
+     * @param[in|out]  AbstractQuantumCircuit*  quantum prog
+     * @param[in]  AbstractQGateNode*  quantum gate
+     * @return     void
+     * @exception invalid_argument
+     * @note
+     */
+     void execute(AbstractQuantumProgram * node, QNode * parent_node);
+ };
+
+ /**
+ * @class TransformDecomposition
+ * @ingroup Utilities
+ * @brief Transform and decompose qprog
+ */
+class TransformDecomposition
+{
+public:
+    TransformDecomposition(std::vector<std::vector<std::string>> &ValidQGateMatrix,
+        std::vector<std::vector<std::string>> &QGateMatrix,
+        std::vector<std::vector<int> > &vAdjacentMatrix,
+        QuantumMachine * quantum_machine);
+    ~TransformDecomposition();
+
+    void TraversalOptimizationMerge(QProg & prog);
+private:
+    TransformDecomposition();
+    TransformDecomposition(
+        const TransformDecomposition &old
+    );
+    TransformDecomposition &operator = (
+        const TransformDecomposition &old
+        );
+
+    DecomposeDoubleQGate m_decompose_double_gate;
+    DecomposeMultipleControlQGate m_decompose_multiple_control_qgate;
+    DecomposeControlUnitarySingleQGate m_decompose_control_unitary_single_qgate;
+    DecomposeControlSingleQGateIntoMetadataDoubleQGate
+        m_control_single_qgate_to_metadata_double_qgate;
+    DecomposeUnitarySingleQGateIntoMetadataSingleQGate
+        m_unitary_single_qgate_to_metadata_double_qgate;
+    DeleteUnitQNode m_delete_unit_qnode;
+    CancelControlQubitVector m_cancel_control_qubit_vector;
+    MergeSingleGate m_merge_single_gate;
+};
+
 QPANDA_END
-#endif // !_TRAVERSAL_DECOMPOSITION_ALGORITHM_H
+#endif // 
 

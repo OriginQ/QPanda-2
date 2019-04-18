@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.1)
 project(gtest)
+
+set(LIB_GTEST gtest)
 file(GLOB_RECURSE GTEST_SRC_H ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 file(GLOB_RECURSE GTEST_SRC_CPP ${CMAKE_CURRENT_SOURCE_DIR}/*.cc)
-add_library(${PROJECT_NAME} STATIC ${GTEST_SRC_H} ${GTEST_SRC_CPP})
+add_library(${LIB_GTEST} STATIC ${GTEST_SRC_H} ${GTEST_SRC_CPP})

@@ -1,3 +1,4 @@
+/*! \file QCircuit.h */
 #ifndef _QCIRCUIT_H
 #define _QCIRCUIT_H
 
@@ -12,7 +13,15 @@
 #include "Core/Utilities/ReadWriteLock.h"
 #include "Core/Utilities/QPandaException.h"
 QPANDA_BEGIN
+/**
+* @namespace QPanda
+*/
 
+/**
+* @class AbstractQuantumCircuit
+* @brief Quantum circuit basic abstract class
+* @ingroup Core
+*/
 class AbstractQuantumCircuit
 {
 public:
@@ -32,6 +41,11 @@ public:
     virtual ~AbstractQuantumCircuit() {};
 };
 
+/**
+* @class QCircuit
+* @brief Quantum circuit basic abstract class
+* @ingroup Core
+*/
 class QCircuit : public QNode, public AbstractQuantumCircuit
 {
 protected:
@@ -41,16 +55,59 @@ public:
     QCircuit(const QCircuit &);
     ~QCircuit();
     std::shared_ptr<QNode> getImplementationPtr();
+
+    /**
+    * @brief  Insert new Node at the end of current quantum circuit node
+    * @param[in]  QNode*  quantum node
+    * @return     void
+    * @see  QNode
+    */
     void pushBackNode(QNode *);
     void pushBackNode(std::shared_ptr<QNode>) ;
 
+    /**
+    * @brief  Insert new Node at the end of current node
+    * @param[in]  Node  QGate/QCircuit
+    * @return     QPanda::QCircuit&   quantum circuit
+    * @see QNode
+    */
     template<typename T>
     QCircuit & operator <<(T node);
 
+    /**
+    * @brief  Get a dagger circuit  base on current quantum circuit node
+    * @return     QPanda::QCircuit  quantum circuit
+    */
     virtual QCircuit  dagger();
+    /**
+    * @brief  Get a control quantumgate  base on current quantum circuit node
+    * @param[in]  QVec control qubits  vector
+    * @return     QPanda::QCircuit  quantum circuit
+    * @see QVec
+    */
     virtual QCircuit  control(QVec &);
+
+    /**
+    * @brief  Get current node type
+    * @return     NodeType  current node type
+    * @see  NodeType
+    */
     NodeType getNodeType() const;
+
+    /**
+    * @brief  Judge current quantum circuit is dagger
+    * @retval   0  true
+    * @retval   1  false
+    */
     bool isDagger() const;
+
+    /**
+    * @brief  Get control vector fron current quantum circuit node
+    * @param[in]  QVec& qubits  vector
+    * @retval   0  true
+    * @retval   1  false
+    * @see QVec
+    */
     bool getControlVector(QVec &);
     NodeIter getFirstNodeIter();
     NodeIter getLastNodeIter();
@@ -60,7 +117,17 @@ public:
     NodeIter insertQNode(NodeIter &iter, QNode *pNode);
     NodeIter deleteQNode(NodeIter &iter);
 
+    /**
+    * @brief  Set dagger to current quantum circuit
+    * @param[in]  bool is dagger
+    */
     virtual void  setDagger(bool isDagger);
+
+    /**
+    * @brief  Set control qubits to current quantum circuit
+    * @param[in]  QVec  control qubits  vector
+    * @see QVec
+    */
     virtual void  setControl(QVec );
 private:
     void clearControl() {}
@@ -77,7 +144,18 @@ private:
 };
 
 
+/**
+* @brief  QPanda2 basic interface for creating a empty circuit
+* @return     QPanda::QCircuit  
+* @ingroup Core
+*/
 QCircuit CreateEmptyCircuit();
+
+/**
+* @brief  Create a hadamard qcircuit
+* @param[in]  QVec&  qubit vector 
+* @return     QPanda::HadamardQCircuit  hadamard qcircuit 
+*/
 HadamardQCircuit CreateHadamardQCircuit(QVec & pQubitVector);
 
 

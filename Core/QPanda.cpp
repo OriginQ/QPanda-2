@@ -315,29 +315,6 @@ map<string, double> QPanda::probRunDict(QProg & qProg, QVec & vQubit, int select
     return temp->probRunDict(qProg, vQubit, selectMax);
 }
 
-string QPanda::qProgToQRunes(QProg &qProg)
-{
-
-    QProgToQRunes qRunesTraverse;
-    qRunesTraverse.qProgToQRunes(dynamic_cast<AbstractQuantumProgram*>(qProg.getImplementationPtr().get()));
-    return qRunesTraverse.insturctionsQRunes();
-}
-
-string QPanda::qProgToQASM(QProg &pQProg)
-{
-    QProgToQASM pQASMTraverse;
-    pQASMTraverse.progToQASM(dynamic_cast<AbstractQuantumProgram*>(pQProg.getImplementationPtr().get()));
-    return pQASMTraverse.insturctionsQASM();
-}
-
-void QPanda::qRunesToQProg(std::string sFilePath, QProg& newQProg)
-{
-    QRunesToQprog qRunesTraverse(sFilePath);
-    qRunesTraverse.qRunesParser(newQProg);
-}
-
-
-
 vector<pair<size_t, double>> QPanda::PMeasure(QVec& qubit_vector,
     int select_max)
 {
@@ -425,12 +402,6 @@ map<string, size_t> QPanda::quick_measure(QVec& qubit_vector, int shots,
     return meas_result;
 }
 
-size_t QPanda::getQProgClockCycle(QProg &prog)
-{
-    QProgClockCycle counter(qvm->getGateTimeMap());
-    return counter.countQProgClockCycle(&prog);
-}
-
 map<string, size_t> QPanda::runWithConfiguration(QProg & qProg, vector<ClassicalCondition>& vCBit, int shots)
 {
     if (nullptr == qvm)
@@ -481,3 +452,4 @@ QStat QPanda::getQState()
     }
     return qvm->getQState();
 }
+

@@ -4,6 +4,7 @@ Copyright (C) Origin Quantum 2017-2018\n
 Licensed Under Apache Licence 2.0
 '''
 import pyqpanda as pywrap
+from json import JSONEncoder
 
 def single_gate_apply_to_all(gate,qubit_list):
     '''
@@ -53,4 +54,22 @@ def get_fidelity(result, shots, target_result):
     for term in target_result:
         if term in result:
             correct_shots+=result[term]
-    return correct_shots/shots
+    return correct_shots / shots
+
+def exportToQCloud(output):
+    print(output)
+
+
+""" Module that monkey-patches the json module when it's imported so
+JSONEncoder.default() automatically checks to see if the object being encoded
+is an instance of an user-defined type and, if so, returns its name or value
+"""
+_saved_default = JSONEncoder().default  # Save default method.
+
+def _new_default(self, obj):
+    if isinstance(obj, pywrap.QMachineType):
+        return int(obj)  # Could also be obj.value
+    else:
+        return _saved_default
+
+JSONEncoder.default = _new_default

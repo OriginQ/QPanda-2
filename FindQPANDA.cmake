@@ -20,30 +20,68 @@
 
 
 # Look for the header file.
-find_path(QPANDA_INCLUDE_DIR NAMES qpanda-2/Core/QPanda.h PATHS ${CMAKE_INSTALL_PREFIX}/include)
-set(QPANDA_INCLUDE_DIR "${QPANDA_INCLUDE_DIR}/qpanda-2/")
-find_path(THIRD_INCLUDE_DIR NAMES qpanda-2/ThirdParty/TinyXML/tinyxml.h PATHS ${CMAKE_INSTALL_PREFIX}/include)
-set(THIRD_INCLUDE_DIR "${THIRD_INCLUDE_DIR}/qpanda-2/ThirdParty")
+find_path(QPANDA_INCLUDE_DIR NAMES qpanda2/Core/QPanda.h qpanda2/QPandaVersion.h 
+          PATHS 
+          ${CMAKE_INSTALL_PREFIX}/include)
+set(QPANDA_INCLUDE_DIR "${QPANDA_INCLUDE_DIR}/qpanda2/")
+
+find_path(THIRD_INCLUDE_DIR NAMES qpanda2/ThirdParty/TinyXML/tinyxml.h 
+          PATHS 
+          ${CMAKE_INSTALL_PREFIX}/include)
+include_directories(${THIRD_INCLUDE_DIR}/qpanda2/ThirdParty)
 mark_as_advanced(QPANDA_INCLUDE_DIR)
+
 # Look for the library (sorted from most current/relevant entry to least).
-find_library(QALG_LIBRARY NAMES QAlg PATHS ${CMAKE_INSTALL_PREFIX}/lib)
-find_library(QPANDA_LIBRARY NAMES QPanda2.0 PATHS ${CMAKE_INSTALL_PREFIX}/lib)
-find_library(VAR_LIBRARY NAMES Variational PATHS ${CMAKE_INSTALL_PREFIX}/lib)
-find_library(TINY_LIBRARY NAMES TinyXML PATHS ${CMAKE_INSTALL_PREFIX}/lib)
-find_library(GPU_LIBRARY NAMES QPanda-2.0.GPUQGates PATHS ${CMAKE_INSTALL_PREFIX}/lib)
+find_library(QALG_LIBRARY NAMES QAlg 
+             PATHS 
+             ${CMAKE_INSTALL_PREFIX}/lib)
+find_library(QPANDA_LIBRARY NAMES QPanda2 
+             PATHS 
+             ${CMAKE_INSTALL_PREFIX}/lib)
+find_library(VAR_LIBRARY NAMES Variational 
+             PATHS 
+             ${CMAKE_INSTALL_PREFIX}/lib)
+find_library(TINY_LIBRARY NAMES TinyXML 
+             PATHS 
+             ${CMAKE_INSTALL_PREFIX}/lib)
+
 mark_as_advanced(QPANDA_LIBRARY)
 mark_as_advanced(QALG_LIBRARY)
 mark_as_advanced(VAR_LIBRARY)
+mark_as_advanced(TINY_LIBRARY)
+
 if(QPANDA_INCLUDE_DIR AND QPANDA_LIBRARY)
-    set(QPANDA_FOUND 1)
+    set(QPANDA_FOUND TRUE)
+    set(QPANDA_LIBRARIES ${QPANDA_LIBRARY} ${QALG_LIBRARY} ${VAR_LIBRARY} ${TINY_LIBRARY})
+    mark_as_advanced(QPANDA_LIBRARIES)
+    if(QPANDA_INCLUDE_DIR AND NOT QPANDA_VERSION_STRING)
+        foreach(_qpanda_version_header QPandaVersion.h)
+            if(EXISTS "${QPANDA_INCLUDE_DIR}/${_qpanda_version_header}")
+                file(READ "${QPANDA_INCLUDE_DIR}/${_qpanda_version_header}" QPANDA_VERSION_H_CONTENTS)
+
+                string(REGEX MATCH "#define QPANDA_MAJOR_VERSION [0-9]+"
+                QPANDA_MAJOR_VERSION ${QPANDA_VERSION_H_CONTENTS})
+                string(REGEX REPLACE "[^0-9]" "" QPANDA_MAJOR_VERSION ${QPANDA_MAJOR_VERSION})
+
+                string(REGEX MATCH "#define QPANDA_MINOR_VERSION [0-9]+"
+                QPANDA_MINOR_VERSION ${QPANDA_VERSION_H_CONTENTS})
+                string(REGEX REPLACE "[^0-9]" "" QPANDA_MINOR_VERSION ${QPANDA_MINOR_VERSION})
+
+                string(REGEX MATCH "#define QPANDA_PATCH_VERSION [0-9]+"
+                QPANDA_PATCH_VERSION ${QPANDA_VERSION_H_CONTENTS})
+                string(REGEX REPLACE "[^0-9]" "" QPANDA_PATCH_VERSION ${QPANDA_PATCH_VERSION})
+                set(QPANDA_VERSION_STR "${QPANDA_MAJOR_VERSION}.${QPANDA_MINOR_VERSION}.${QPANDA_PATCH_VERSION}")
+                unset(qpanda_version_str)
+                break()
+            endif()
+        endforeach()
+    endif()
 else(QPANDA_INCLUDE_DIR AND QPANDA_LIBRARY)
     message("QPANDA Not Find")
 endif(QPANDA_INCLUDE_DIR AND QPANDA_LIBRARY)
-if(QPANDA_FOUND)
-    if(GPU_LIBRARY)
-        set(QPANDA_LIBRARIES ${QPANDA_LIBRARY} ${QALG_LIBRARY} ${VAR_LIBRARY} ${TINY_LIBRARY} ${GPU_LIBRARY})
-    else(GPU_LIBRARY)
-        set(QPANDA_LIBRARIES ${QPANDA_LIBRARY} ${QALG_LIBRARY} ${VAR_LIBRARY} ${TINY_LIBRARY})
-    endif(GPU_LIBRARY)
-    mark_as_advanced(QPANDA_LIBRARIES)
-endif()
+
+include(${CMAKE_ROOT}/Modules/FindPackageHandleStandardArgs.cmake)
+find_package_handle_standard_args(QPANDA
+                                  REQUIRED_VARS QPANDA_LIBRARY QPANDA_INCLUDE_DIR
+                                  VERSION_VAR QPANDA_VERSION_STR
+                                  HANDLE_COMPONENTS)

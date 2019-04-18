@@ -77,7 +77,12 @@ std::vector<var>& var::getChildren() const{ return pimpl->children; }
 std::vector<var> var::getParents() const {
     std::vector<var> _parents;
     for( std::weak_ptr<impl> parent : pimpl->parents ){
-        _parents.emplace_back( parent.lock() );
+//        _parents.emplace_back( parent.lock() );
+        auto tmp_data = parent.lock();
+        if (nullptr != tmp_data)
+        {
+            _parents.emplace_back(tmp_data);
+        }
     } 
     return _parents;
 }
@@ -543,6 +548,10 @@ VariationalQuantumGate_H::VariationalQuantumGate_H(Qubit* q)
 {
     m_q = q;
 }
+VariationalQuantumGate_X::VariationalQuantumGate_X(Qubit* q)
+{
+    m_q = q;
+}
 
 VariationalQuantumGate_RX::VariationalQuantumGate_RX(Qubit *q, var _var)
 {
@@ -628,6 +637,74 @@ QGate VariationalQuantumGate_RZ::feed(map<size_t, double> offset) const
     return RZ(m_q, _sval(m_vars[0]) + offset[0]);
 }
 
+VariationalQuantumGate_CRX::VariationalQuantumGate_CRX(Qubit* q_target, QVec & q_control, double angle)
+{
+    m_target = q_target;
+    m_control.clear();
+    for (auto iter : q_control)
+    {
+        m_control.push_back(iter);
+    }
+    m_constants.push_back(angle);
+}
+VariationalQuantumGate_CRX::VariationalQuantumGate_CRX(VariationalQuantumGate_CRX & old)
+{
+    m_target = old.m_target;
+    m_control = old.m_control;
+    m_constants = old.m_constants;
+}
+
+QGate VariationalQuantumGate_CRX::feed() const
+{
+    return RX(m_target, m_constants[0]).control(m_control);
+}
+
+VariationalQuantumGate_CRY::VariationalQuantumGate_CRY(Qubit* q_target, QVec & q_control, double angle)
+{
+    m_target = q_target;
+    m_control.clear();
+    m_constants.resize(1);
+    for (auto iter : q_control)
+    {
+        m_control.push_back(iter);
+    }
+    m_constants[0]=angle;
+}
+
+VariationalQuantumGate_CRY::VariationalQuantumGate_CRY(VariationalQuantumGate_CRY & old)
+{
+    m_target = old.m_target;
+    m_control = old.m_control;
+    m_constants = old.m_constants;
+}
+
+QGate VariationalQuantumGate_CRY::feed() const
+{
+    return RY(m_target, m_constants[0]).control(m_control);
+}
+
+VariationalQuantumGate_CRZ::VariationalQuantumGate_CRZ(Qubit* q_target, QVec & q_control, double angle)
+{
+    m_target = q_target;
+    m_control.clear();
+    for (auto iter : q_control)
+    {
+        m_control.push_back(iter);
+    }
+    m_constants.push_back(angle);
+}
+VariationalQuantumGate_CRZ::VariationalQuantumGate_CRZ(VariationalQuantumGate_CRZ & old)
+{
+    m_target = old.m_target;
+    m_control = old.m_control;
+    m_constants = old.m_constants;
+}
+
+QGate VariationalQuantumGate_CRZ::feed() const
+{
+    return RZ(m_target, m_constants[0]).control(m_control);
+}
+
 VariationalQuantumGate_CZ::VariationalQuantumGate_CZ(Qubit* q1, Qubit* q2)
     :m_q1(q1), m_q2(q2)
 {}
@@ -639,7 +716,6 @@ VariationalQuantumGate_CNOT::VariationalQuantumGate_CNOT(Qubit* q1, Qubit* q2)
 void VariationalQuantumCircuit::_insert_copied_gate(std::shared_ptr<VariationalQuantumGate> gate)
 {
     m_gates.push_back(gate);
-
     auto vars = gate->get_vars();
     for (auto _var : vars)
     {
@@ -772,10 +848,13 @@ size_t hash<var>::operator()(const var& v) const{
 impl_vqp::impl_vqp(VariationalQuantumCircuit circuit, 
     PauliOperator op,
     QuantumMachine* machine,
-    std::vector<Qubit*> qubits)
+    std::vector<Qubit*> qubits,
+    bool is_pmeasure)
     :
     impl(op_type::qop, circuit.get_vars()),
-    m_circuit(circuit), m_op(op), m_machine(machine)
+    m_circuit(circuit), m_op(op), m_machine(machine),
+    m_is_pmeasure(is_pmeasure)
+
 {
     for (int i = 0; i < qubits.size(); ++i) m_measure_qubits[i] = qubits[i];
 }
@@ -783,11 +862,13 @@ impl_vqp::impl_vqp(VariationalQuantumCircuit circuit,
 impl_vqp::impl_vqp(VariationalQuantumCircuit circuit,
     PauliOperator op,
     QuantumMachine* machine,
-    std::map<size_t, Qubit*> qubits)
+    std::map<size_t, Qubit*> qubits,
+    bool is_pmeasure)
     :
     impl(op_type::qop, circuit.get_vars()),
     m_circuit(circuit), m_op(op), m_machine(machine),
-    m_measure_qubits(qubits.begin(),qubits.end())
+    m_measure_qubits(qubits.begin(),qubits.end()),
+    m_is_pmeasure(is_pmeasure)
 {
 }
 
@@ -795,7 +876,6 @@ double impl_vqp::_get_gradient(var _var)
 {
 
     double grad = 0;
-
     auto hamiltonian = m_op.data();
     for (auto term : hamiltonian)
     {
@@ -816,6 +896,18 @@ double impl_vqp::_get_gradient(var _var)
     }
     return grad;
 }
+
+//double impl_vqp::_get_gradient_perturbation(var _var)
+//{
+//
+//    double grad = 0;
+//    auto value = _var.getValue();
+//    _var.setValue(value+ MatrixXd(1e-5));
+//    double expectation_add_delta = _get_expectation();
+//    _var.setValue(value - MatrixXd(1e-5));
+//    double expectation_minus_delta = _get_expectation();
+//    return (expectation_add_delta- expectation_minus_delta)/2e-5;
+//}
 
 double impl_vqp::_get_gradient_one_term(var _var, QTerm hamiltonian_term)
 {
@@ -863,7 +955,7 @@ static bool _parity_check(size_t number)
     return label;
 }
 
-double impl_vqp::_get_expectation_one_term(QCircuit c,
+double impl_vqp::_get_expectation_one_term_old(QCircuit c,
     QTerm term)
 {
     double expectation = 0;
@@ -890,7 +982,6 @@ double impl_vqp::_get_expectation_one_term(QCircuit c,
         QCERR("m_machine is not idealmachine");
         throw runtime_error("m_machine is not idealmachine");
     }
-
     auto result = ideal_machine->PMeasure(vqubit,-1);
 
 
@@ -900,6 +991,100 @@ double impl_vqp::_get_expectation_one_term(QCircuit c,
             expectation += result[i].second;
         else
             expectation -= result[i].second;
+    }
+    return expectation;
+}
+
+double impl_vqp::_get_expectation_one_term(QCircuit c,
+    QTerm term)
+{
+    double expectation = 0;
+    auto qprog = CreateEmptyQProg();
+    qprog << c;
+    vector<Qubit *> vqubit;
+    vector<ClassicalCondition> vcbit;
+
+    if (m_is_pmeasure)
+    {
+        for (auto iter : term)
+        {
+            vqubit.push_back(m_machine->allocateQubitThroughVirAddress(iter.first));
+            if (iter.second == 'X')
+            {
+                qprog << H(m_measure_qubits[iter.first]);
+            }
+            else if (iter.second == 'Y')
+            {
+                qprog << RX(m_measure_qubits[iter.first], PI / 2);
+            }
+        }
+        m_machine->directlyRun(qprog);
+
+        auto ideal_machine = dynamic_cast<IdealMachineInterface*>(m_machine);
+        if (nullptr == ideal_machine)
+        {
+            QCERR("m_machine is not idealmachine");
+            throw runtime_error("m_machine is not idealmachine");
+        }
+        auto result = ideal_machine->PMeasure(vqubit, -1);
+
+
+        for (auto i = 0; i < result.size(); i++)
+        {
+            if (_parity_check(result[i].first))
+                expectation += result[i].second;
+            else
+                expectation -= result[i].second;
+        }
+    }
+    else
+    {
+        for (auto iter : term)
+        {
+            vqubit.push_back(m_machine->allocateQubitThroughVirAddress(iter.first));
+            vcbit.push_back(m_machine->allocateCBit());
+            if (iter.second == 'X')
+            {
+                qprog << H(m_measure_qubits[iter.first]);
+            }
+            else if (iter.second == 'Y')
+            {
+                qprog << RX(m_measure_qubits[iter.first], PI / 2);
+            }
+        }
+        for (auto i = 0; i < vqubit.size(); i++)
+        {
+            qprog << Measure(vqubit[i], vcbit[i]);
+        }
+        //size_t times = 500 * (1 << (vqubit.size()-1));
+        size_t times = 1000;
+        rapidjson::Document doc;
+        doc.Parse("{}");
+        auto &alloc = doc.GetAllocator();
+        doc.AddMember("shots", (uint64_t)times, alloc);
+        auto outcome = m_machine->runWithConfiguration(qprog, vcbit, doc);
+        size_t label = 0;
+        for (auto iter : outcome)
+        {
+            label = 0;
+            for (auto iter1 : iter.first)
+            {
+                if (iter1 == '1')
+                {
+                    label++;
+                }
+            }
+            if (label % 2 == 0)
+            {
+                expectation += iter.second*1.0 / times;
+            }
+            else
+            {
+                expectation -= iter.second*1.0 / times;
+            }
+        }
+
+        m_machine->Free_CBits(vcbit);
     }
     return expectation;
 }
@@ -1046,11 +1231,15 @@ shared_ptr<VariationalQuantumGate> VariationalQuantumCircuit::_cast_qg_vqg(QGate
     QGATE_SPACE::RY* ry;
     QGATE_SPACE::RZ* rz;
     QGATE_SPACE::H* h;
+    QGATE_SPACE::X* pauli_x;
     switch (gate_type)
     {
     case GateType::HADAMARD_GATE:
         h = dynamic_cast<QGATE_SPACE::H*>(qgate);
         return std::make_shared<VariationalQuantumGate_H>(op_qubit[0]);
+    case GateType::PAULI_X_GATE:
+        pauli_x = dynamic_cast<QGATE_SPACE::X*>(qgate);
+        return std::make_shared<VariationalQuantumGate_X>(op_qubit[0]);
     case GateType::RX_GATE:
         rx = dynamic_cast<QGATE_SPACE::RX*>(qgate);
         return std::make_shared<VariationalQuantumGate_RX>(op_qubit[0], rx->theta);

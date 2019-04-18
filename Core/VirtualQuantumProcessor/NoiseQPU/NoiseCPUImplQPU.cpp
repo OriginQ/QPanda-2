@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-#include "config.h"
+#include "QPandaConfig.h"
 
 //#ifndef USE_CUDA
 
@@ -66,7 +66,6 @@ bool NoisyCPUImplQPU::TensorProduct(QGateParam& qgroup0, QGateParam& qgroup1)
     {
         for (auto i = 0; i < length; i++)
         {
-            //*iter1 *= *iter;
             qgroup0.qstate.push_back(qgroup0.qstate[i] * (*iter0));
         }
     }
@@ -534,11 +533,11 @@ controlunitarySingleQubitGate(size_t qn,
     //        qcomplex_t temp;
     //        temp = matrix[1];
     //        matrix[1] = matrix[2];
-    //        matrix[2] = temp;  //è½¬ç½®
+    //        matrix[2] = temp;  //×ªÖÃ
     //        for (size_t i = 0; i < 4; i++)
     //        {
     //            matrix[i] = qcomplex_t(matrix[i].real(), -matrix[i].imag());
-    //        }//å…±è½­
+    //        }//¹²éî
     //    }
 
     //    Qnum qvtemp;
@@ -988,6 +987,22 @@ QError NoisyCPUImplQPU::SqiSWAP(size_t qn_0, size_t qn_1, bool isConjugate, doub
 QError NoisyCPUImplQPU::SqiSWAP(
     size_t qn_0,
     size_t qn_1,
+    Qnum& vControlBit,
+    bool isConjugate,
+    double error_rate)
+{
+    return undefineError;
+}
+
+QError NoisyCPUImplQPU::DiagonalGate(Qnum& vQubit,
+    QStat & matrix,
+    bool isConjugate,
+    double error_rate)
+{
+    return undefineError;
+}
+QError NoisyCPUImplQPU::controlDiagonalGate(Qnum& vQubit,
+    QStat & matrix,
     Qnum& vControlBit,
     bool isConjugate,
     double error_rate)

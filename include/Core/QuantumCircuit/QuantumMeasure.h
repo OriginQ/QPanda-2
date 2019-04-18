@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-
+/*! \file QuantumMeasure.h */
 #ifndef _QUANTUM_MEASURE_H
 #define _QUANTUM_MEASURE_H
 
@@ -21,6 +21,15 @@ limitations under the License.
 #include "Core/QuantumCircuit/QNode.h"
 #include "Core/QuantumCircuit/ClassicalConditionInterface.h"
 QPANDA_BEGIN
+/**
+* @namespace QPanda
+*/
+
+/**
+* @class AbstractQuantumMeasure
+* @brief Quantum Measure basic abstract class
+* @ingroup Core
+*/
 class AbstractQuantumMeasure
 {
 public:
@@ -29,6 +38,11 @@ public:
     virtual ~AbstractQuantumMeasure() {}
 };
 
+/**
+* @class QMeasure
+* @brief Quantum Measure  basic  class
+* @ingroup Core
+*/
 class QMeasure : public QNode, public AbstractQuantumMeasure
 {
 private:
@@ -79,14 +93,31 @@ public:
     QuantumMeasureRegisterAction g_measureCreatorRegister##className(                        \
         #className,(CreateMeasure)objectCreator##className)
 
+/**
+* @class  OriginMeasure
+* @brief  Qrigin quantum measure basic class
+*/
 class OriginMeasure : public QNode ,public AbstractQuantumMeasure
 {
 public:
     OriginMeasure (Qubit *, CBit *);
     ~OriginMeasure() {};
     
+    /**
+    * @brief  Get measure node qubit address
+    * @return    QPanda::Qubit*  QuBit address
+    */
     Qubit * getQuBit() const;
+    /**
+    * @brief  Get measure node cbit address
+    * @return    QPanda::CBit*  cBit address
+    */
     CBit * getCBit()const;
+    /**
+    * @brief  Get current node type
+    * @return     NodeType  current node type
+    * @see  NodeType
+    */
     NodeType getNodeType() const;
     virtual void execute(QPUImpl *, QuantumGateParam *) ;
 private:
@@ -103,6 +134,13 @@ private:
      
 };
 
+/**
+* @brief  QPanda2 basic interface for creating a quantum measure node
+* @param[in]  Qubit*   qubit address
+* @param[in]  ClassicalCondition  cbit
+* @return     QPanda::QMeasure  quantum measure node
+* @ingroup Core
+*/
 QMeasure Measure(Qubit * , ClassicalCondition );
 QPANDA_END
 

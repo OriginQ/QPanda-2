@@ -1,7 +1,7 @@
 #include "Core/VirtualQuantumProcessor/SingleAmplitude/TensorNode.h"
 #include <algorithm>
 #include <iostream>
-#include "config.h"
+#include "QPandaConfig.h"
 #ifdef USE_OPENMP
 #include "omp.h"
 #endif
@@ -113,7 +113,11 @@ void ComplexTensor::dimIncrement(size_t increment_size)
             new_tensor[(i << increment_size) + j] = m_tensor[i];
         }
     }
+
+    auto tem = m_tensor;
     m_tensor = new_tensor;
+    free(tem);
+    tem = nullptr;
 }
 
 void ComplexTensor::getSubTensor(size_t num, int value)
@@ -157,7 +161,11 @@ void ComplexTensor::getSubTensor(size_t num, int value)
             }
         }
     }
-	m_tensor = new_tensor;
+
+    auto tem = m_tensor;
+    m_tensor = new_tensor;
+    free(tem);
+    tem = nullptr;
 }
 
 
@@ -207,7 +215,11 @@ void ComplexTensor::dimDecrement(size_t num)
                 }
             }
     }
-	m_tensor = new_tensor;
+
+    auto tem = m_tensor;
+    m_tensor = new_tensor;
+    free(tem);
+    tem = nullptr;
 }
 
 void ComplexTensor::swap(qsize_t src, qsize_t des)
@@ -318,28 +330,42 @@ void Edge::premultiplication(Edge & src_edge)
 {
     ComplexTensor left = src_edge.getComplexTensor();
     ComplexTensor right = this->m_tensor;
-    m_tensor = matrixMultiplication(left , right);
-
-    auto size = m_contect_vertice.size();
-    for (auto iter : src_edge.m_contect_vertice)
+    try
     {
-        auto find_result = std::find(m_contect_vertice.begin(),
-            m_contect_vertice.end(), iter);
-        if (find_result == m_contect_vertice.end())
+        m_tensor = matrixMultiplication(left, right);
+
+        auto size = m_contect_vertice.size();
+        for (auto iter : src_edge.m_contect_vertice)
         {
-            m_contect_vertice.push_back(iter);
-        }
-        else
-        {
-            m_contect_vertice.erase(find_result);
+            auto find_result = std::find(m_contect_vertice.begin(),
+                m_contect_vertice.end(), iter);
+            if (find_result == m_contect_vertice.end())
+            {
+                m_contect_vertice.push_back(iter);
+            }
+            else
+            {
+                m_contect_vertice.erase(find_result);
+            }
         }
     }
+    catch (calloc_fail&e)
+    {
+        throw e;
+    }
+
+
 }
 
 bool Edge::mergeEdge(Edge & edge)
 {
     dimIncrementByEdge(edge);
     size_t * mask_array = new size_t[edge.getRank()];
+    if (mask_array == nullptr)
+    {
+        QCERR("calloc_fail");
+        throw calloc_fail();
+    }
     edge.getEdgeMap(*this, mask_array);
     mul(edge, mask_array);
     delete[] mask_array;
@@ -353,20 +379,29 @@ void Edge::dimDecrementbyValue(qsize_t qubit,qsize_t num, int value)
         throw exception();
     }
 
-    int i = 1;
-    for (auto iter = m_contect_vertice.begin();
-        iter != m_contect_vertice.end();
-        ++iter)
+    try
     {
-        if (((*iter).first == qubit) &&
-            ((*iter).second == num))
+        int i = 1;
+        for (auto iter = m_contect_vertice.begin();
+            iter != m_contect_vertice.end();
+            ++iter)
         {
-            m_tensor.getSubTensor(i,value);
-            iter = m_contect_vertice.erase(iter);
-            return;
+            if (((*iter).first == qubit) &&
+                ((*iter).second == num))
+            {
+                m_tensor.getSubTensor(i, value);
+                iter = m_contect_vertice.erase(iter);
+                return;
+            }
+            i++;
         }
-        i++;
     }
+    catch (calloc_fail&e)
+    {
+        throw e;
+    }
+
+
 }
 
 
@@ -388,19 +423,27 @@ void Edge::earseContectVertice(qsize_t qubit, size_t num)
 
 void Edge::dimDecrement(qsize_t qubit, qsize_t num)
 {
-    int i = 1;
-    for (auto iter = m_contect_vertice.begin();
-         iter != m_contect_vertice.end();
-         ++iter)
+    try
     {
-        if (((*iter).first == qubit)&&((*iter).second == num))
+        int i = 1;
+        for (auto iter = m_contect_vertice.begin();
+            iter != m_contect_vertice.end();
+            ++iter)
         {
-            m_tensor.dimDecrement(i);
-            iter = m_contect_vertice.erase(iter);
-            return;
+            if (((*iter).first == qubit) && ((*iter).second == num))
+            {
+                m_tensor.dimDecrement(i);
+                iter = m_contect_vertice.erase(iter);
+                return;
+            }
+            i++;
         }
-        i++;
     }
+    catch (calloc_fail&e)
+    {
+        throw e;
+    }
+
 }
 
 void Edge::dimIncrementByEdge(Edge & edge)
@@ -426,7 +469,14 @@ void Edge::dimIncrementByEdge(Edge & edge)
         }
 
     }
-    m_tensor.dimIncrement(i);
+    try
+    {
+        m_tensor.dimIncrement(i);
+    }
+    catch (calloc_fail&e)
+    {
+        throw e;
+    }
 }
 void Edge::getEdgeMap(Edge &edge,
            size_t * mask)
@@ -960,6 +1010,20 @@ void VerticeMatrix::clearVertice() noexcept
             (*map_iter).second.setValue(-1);
         }
     }
+}
+
+void VerticeMatrix::clear() noexcept
+{
+    m_vertice_matrix.clear();
+    m_vertice_count = 0;
+    m_qubit_count = 0;
+}
+
+bool VerticeMatrix::isEmpty() noexcept
+{
+    return m_vertice_matrix.empty() ||
+           m_qubit_count == 0 ||
+           m_vertice_count == 0;
 }
 
 VerticeMatrix::~VerticeMatrix()

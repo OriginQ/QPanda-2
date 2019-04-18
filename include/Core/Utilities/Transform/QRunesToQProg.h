@@ -2,199 +2,118 @@
 Copyright (c) 2017-2018 Origin Quantum Computing. All Right Reserved.
 Licensed under the Apache License 2.0
 
-QRunesToQprog.h
+QRunesToQProg.h
 Author: Yulei
-Created in 2018-08-01
+Updated in 2019/04/09 14:47
 
-Classes for Travesing QRunes instruction set into Qprog
-
-Update@2018-8-31
-update comment
+Classes for QRunesToQProg.
 
 */
 
+/*! \file QRunesToQProg.h */
 #ifndef  _QRUNESTOQPROG_H_
 #define  _QRUNESTOQPROG_H_
 #include "Core/QPanda.h"
 #include <functional>
 QPANDA_BEGIN
+/**
+* @namespace QPanda
+* @namespace QGATE_SPACE
+*/
 
+/**
+* @enum QRunesKeyWords
+* @brief Qrunes keywords type
+*/
 enum QRunesKeyWords {
-    DAGGER = 24,
-    ENDAGGER,
-    CONTROL,
-    ENCONTROL,
-    QIF,
-    ELSE,
-    ENDQIF,
-    QWHILE,
-    ENDQWHILE,
-    MEASURE,
+    DAGGER = 24,/**<  QRunes Dagger start  */
+    ENDAGGER,/**<  QRunes Dagger end  */
+    CONTROL,/**<  QRunes Dagger start  */
+    ENCONTROL,/**<  QRunes control end  */
+    QIF,/**<  QRunes QIf start  */
+    ELSE,/**<  QRunes else  */
+    ENDQIF,/**<  QRunes QIf end  */
+    QWHILE,/**<  QRunes QWhile start  */
+    ENDQWHILE,/**<  QRunes QWhile end  */
+    MEASURE,/**<  QRunes measure node  */
 };
-
-
-class QRunesToQprog {
+/**
+* @class QRunesToQProg
+* @ingroup Utilities
+* @brief QRunes instruction set To Quantum QProg
+*/
+class QRunesToQProg {
 public:
-    QRunesToQprog() = delete;
-    QRunesToQprog(std::string);
-    ~QRunesToQprog() {};
+    QRunesToQProg() = delete;
+    QRunesToQProg(std::string);
+    ~QRunesToQProg() {};
 
+    /**
+    * @brief  QRunes Parser interpreter
+    * @param[in]  QProg&  Quantum program reference 
+    * @return     void  
+    * @exception  qprog_syntax_error   quantum program syntax error
+    */
     void qRunesParser(QProg&);
 
-
-    /*
-    Traversal QRunes instructions
-    param:
-    m_QRunes: std::vector<std::string>
-    return:
-    None
-
-    Note:
-    None
-    */
-
-    void qRunesAllocation(std::vector<std::string> &, QProg&);
-
-    /*
-    Traversal QRunes instructions
-    param:
-    iter: std::vector<std::string>::iterator
-    qNode:QNode pointer
-    return:
-    instructions number
-
-    Note:
-    None
-    */
-    int traversalQRunes(std::vector<std::string>::iterator, QNode *);
-
-    /*
-    handle SingleGate
-    param:
-    iter: std::vector<std::string>::iterator
-    qNode:QNode pointer
-    gateName:gate type
-    qubit_addr
-    return:
-    instructions number
-
-    Note:
-    None
-    */
-    int handleSingleGate(std::vector<std::string>::iterator, QNode *, 
-                         const std::string &, int);
-
-    /*
-    handle Double Gate
-    param:
-    iter: std::vector<std::string>::iterator
-    qNode:QNode pointer
-    gateName:gate type
-    ctr_qubit_addr
-    tar_qubit_addr
-    return:
-    instructions number
-
-    Note:
-    None
-    */
-    int handleDoubleGate(std::vector<std::string>::iterator , QNode *, 
-                         const std::string &, int,int);
-
-    /*
-    handle Angle Gate
-    param:
-    iter: std::vector<std::string>::iterator
-    qNode:QNode pointer
-    gateName:gate type
-    qubit_addr
-    gate_angle
-    return:
-    instructions number
-
-    Note:
-    None
-    */
-    int handleAngleGate(std::vector<std::string>::iterator, QNode *, 
-                         const std::string &, int, double);
-
-    /*
-    handle Double Angle Gate
-    param:
-    iter: std::vector<std::string>::iterator
-    qNode:QNode pointer
-    gateName:gate type
-    qubit_addr
-    gate_angle
-    return:
-    instructions number
-
-    Note:
-    None
-    */
-    int handleDoubleAngleGate(std::vector<std::string>::iterator , QNode *,
-        const std::string &, int, int, double);
-    /*
-    handle Measure Gate
-    param:
-    iter: std::vector<std::string>::iterator
-    qNode:QNode pointer
-    gateName:gate type
-    qubit_addr
-    creg_addr
-    return:
-    instructions number
-
-    Note:
-    None
-    */
-    int handleMeasureGate(std::vector<std::string>::iterator , QNode *, 
-                         const std::string &, int, int);
-
-    /*
-    handle DaggerCircuit
-    param:
-    iter: std::vector<std::string>::iterator
-    qNode:QNode pointer
-    return:
-    instructions number
-
-    Note:
-    None
-    */
-    int handleDaggerCircuit(std::vector<std::string>::iterator, QNode *);
-
-    /*
-    handle Control Circuit
-    param:
-    iter: std::vector<std::string>::iterator
-    qNode:QNode pointer
-    all_ctr_qubits :std::vector<Qubit*>
-    ctr_info: conctrl info
-    return:
-    instructions number
-
-    Note:
-    None
-    */
-    int handleControlCircuit(std::vector<std::string>::iterator, QNode *,
-                             std::vector<Qubit*> &, std::string &);
-
 private:
+    void qRunesAllocation(std::vector<std::string>&, QProg&);
 
-    std::vector<std::string> m_QRunes;
-    std::vector<std::string> m_keyWords;
+    int traversalQRunes(std::vector<std::string>::iterator, QNode*);
 
-    QVec m_all_qubits;
-    std::vector<ClassicalCondition > m_all_cregs;
+    int handleSingleGate(QNode*, const std::string&, int);
 
-    std::map<std::string, std::function<QGate(Qubit *)> > m_singleGateFunc;
-    std::map<std::string, std::function<QGate(Qubit *, Qubit*)> > m_doubleGateFunc;
-    std::map<std::string, std::function<QGate(Qubit *,double)> > m_angleGateFunc;
-    std::map<std::string, std::function<QGate(Qubit *, Qubit*, double)> > m_doubleAngleGateFunc;
+    int handleDoubleGate(QNode*, const std::string&, int, int);
 
-    std::string  m_sFilePath;
+    int handleAngleGate(QNode*, const std::string&, int, double);
+
+    int handleDoubleAngleGate(QNode*, const std::string&, int, int, double);
+
+    int handleMeasureGate(QNode*, const std::string&, int, int);
+
+    int handleDaggerCircuit(std::vector<std::string>::iterator, QNode*);
+
+    int handleControlCircuit(std::vector<std::string>::iterator, QNode*,
+        std::vector<Qubit*>&, std::string &);
+
+    std::vector<std::string> m_QRunes;/**< QRunes instruction sets   */
+    std::vector<std::string> m_keyWords;/**< keywords instruction sets   */
+
+    QVec m_all_qubits;/**< Qubit vector   */
+    std::vector<ClassicalCondition > m_all_cregs;/**< ClassicalCondition vector   */
+
+    std::map<std::string, std::function<QGate(Qubit *)> > 
+        m_singleGateFunc;/**< Single quantumgate function map   */
+    std::map<std::string, std::function<QGate(Qubit *, Qubit*)> > 
+        m_doubleGateFunc;/**< Double quantumgate function map   */
+    std::map<std::string, std::function<QGate(Qubit *,double)> > 
+        m_angleGateFunc;/**< Single angle quantumgate function map   */
+    std::map<std::string, std::function<QGate(Qubit *, Qubit*, double)> > 
+        m_doubleAngleGateFunc;/**< Double angle quantumgate function map   */
+
+    std::string  m_sFilePath;/**< QRunes file path  */
 };
+
+
+/**
+* @brief   QRunes instruction set transform to quantum program interface
+* @ingroup Utilities
+* @param[in]  QProg&   Empty Quantum Prog
+* @return    void
+* @see
+    @code
+        const string sQRunesPath("D:\\QRunes");
+        init(QuantumMachine_type::CPU);
+        auto prog = CreateEmptyQProg();
+
+        qRunesToQProg(sQRunesPath, prog);
+
+        finalize();
+    @endcode
+* @exception    qprog_syntax_error   quantum program syntax error
+* @note
+*/
+void qRunesToQProg(std::string, QProg&);
 QPANDA_END
 
 #endif

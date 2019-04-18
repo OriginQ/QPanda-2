@@ -199,6 +199,16 @@ public:
         bool isConjugate,
         double error_rate);
 
+/*
+add multi-qubit gate which has diagonal matrix
+2019/03/15 
+*/
+
+    virtual QError DiagonalGate(Qnum& vQubit, QStat & matrix,
+        bool isConjugate, double error_rate);
+    virtual QError controlDiagonalGate(Qnum& vQubit, QStat & matrix, Qnum& vControlBit,
+        bool isConjugate, double error_rate);
+
     QStat getQState();
     QError Reset(size_t qn);
     bool qubitMeasure(size_t qn);

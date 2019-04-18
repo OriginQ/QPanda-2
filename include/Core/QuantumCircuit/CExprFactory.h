@@ -209,7 +209,7 @@ public:
 
 /**
  * @brief CExpr factory helper
- * Provide CExprFactory class registration interface to the outside
+ * Provide CExprFactory class registration interface for the outside
  */
 class CExprFactoryHelper
 {
@@ -222,7 +222,7 @@ class CExprFactoryHelper
 public:
     /**
      * @brief Construct a new CExprFactoryHelper object
-     * Call the CExprFactory class registration interface to register the CExpr subclass
+     * Call the CExprFactory class registration interface for register the CExpr subclass
      * @param CExpr subclass name 
      * @param _Constructor cbit_constructor_t  function 
      */
@@ -230,7 +230,7 @@ public:
     
     /**
      * @brief Construct a new CExprFactoryHelper object
-     * Call the CExprFactory class registration interface to register the CExpr subclass
+     * Call the CExprFactory class registration interface for register the CExpr subclass
      * @param CExpr subclass name 
      * @param _Constructor value_constructor_t  function 
      */
@@ -238,7 +238,7 @@ public:
 
     /**
      * @brief Construct a new CExprFactoryHelper object
-     * Call the CExprFactory class registration interface to register the CExpr subclass
+     * Call the CExprFactory class registration interface for register the CExpr subclass
      * @param CExpr subclass name 
      * @param _Constructor operator_constructor_t  function 
      */

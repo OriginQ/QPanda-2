@@ -3,7 +3,11 @@
 #include <map>
 #include <string>
 #include "Core/Utilities/QPandaNamespace.h"
+#include "Core/Utilities/XMLConfigParam.h"
+
 QPANDA_BEGIN
+
+
 typedef std::pair<std::string, std::string> CONFIGPAIR;
 class ConfigMap
 {
@@ -12,13 +16,12 @@ public:
     ~ConfigMap();
     std::string operator [](const char *);
 protected:
-    ConfigMap();
+    ConfigMap(const std::string &filename = CONFIG_PATH);
     ConfigMap(const ConfigMap &);
     ConfigMap &operator=(const ConfigMap &);
 private:
     void insert(CONFIGPAIR);
     std::map<std::string, std::string> m_configMap;
-    std::string m_sConfigFilePath;
 };
 QPANDA_END
 

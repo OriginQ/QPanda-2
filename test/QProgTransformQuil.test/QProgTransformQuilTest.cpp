@@ -9,10 +9,10 @@
 #include <algorithm>  
 
 USING_QPANDA
-
+  
 TEST(QProgTransformQuil, QUIL)
 {
-    init();
+    auto qvm = initQuantumMachine();
     auto qubits = qAllocMany(4);
     auto cbits = cAllocMany(4);
     QProg prog;
@@ -21,10 +21,24 @@ TEST(QProgTransformQuil, QUIL)
     circuit << RX(qubits[0], PI / 6) << H(qubits[1]) << Y(qubits[2])
         << iSWAP(qubits[2], qubits[3]);
     prog << circuit << MeasureAll(qubits, cbits);
-    auto quil = qProgToQuil(prog);
+
+    auto result_1 = runWithConfiguration(prog, cbits, 100);
+
+    for (auto aiter : result_1)
+    {
+        std::cout << aiter.first << " : " << aiter.second << std::endl;
+    }
+
+    auto quil = transformQProgToQuil(prog,qvm);
     std::cout << quil << std::endl;
 
-    finalize();
+    auto result_2 = runWithConfiguration(prog, cbits, 100);
+    for (auto aiter : result_2)
+    {
+        std::cout << aiter.first << " : " << aiter.second << std::endl;
+    }
+
+    destroyQuantumMachine(qvm);
     system("pause");
     return;
 }

@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+/*! \file ClassicalProgam.h */
 #ifndef  _CLASSICAL_PROGAM_H
 #define  _CLASSICAL_PROGAM_H
 #include "Core/QuantumCircuit/QNode.h"
@@ -22,15 +23,16 @@ limitations under the License.
 QPANDA_BEGIN
 
 /**
- * @brief Classical program abstract class
- */
+* @class AbstractClassicalProg
+* @brief Classical program abstract class
+* @ingroup Core
+*/
 class AbstractClassicalProg
 {
 public:
     virtual ~AbstractClassicalProg() {};
     /**
      * @brief Get classical program value
-     * 
      * @return cbit_size_t 
      */
     virtual cbit_size_t eval() = 0;
@@ -39,9 +41,11 @@ private:
 };
 
 /**
- * @brief classical program class
- * The proxy class of the AbstractClassicalProg implementation class
- */
+* @class ClassicalProg
+* @brief Classical program class
+* @ingroup Core
+* @note  The proxy class of the AbstractClassicalProg implementation class
+*/
 class ClassicalProg :public QNode,public AbstractClassicalProg
 {
 public:
@@ -59,17 +63,16 @@ public:
     ~ClassicalProg();
 
     /**
-     * @brief Get the Node Type 
-     * 
-     * @return NodeType 
-     */
+    * @brief  Get current node type
+    * @return  NodeType  current node type
+    * @see  NodeType
+    */
     NodeType getNodeType() const;
 
     std::shared_ptr<QNode> getImplementationPtr();
 
     /**
      * @brief Get classical program value
-     * 
      * @return cbit_size_t 
      */
     virtual cbit_size_t eval();
@@ -81,8 +84,9 @@ private:
 };
 
 /**
+* @class OriginClassicalProg
  * @brief Origin classical program class
- * Implementation class of AbstractClassicalProg and QNode
+ * @note Implementation class of AbstractClassicalProg and QNode
  * This class type can hold classical expr and insert into QNodeMap
  */
 class OriginClassicalProg :public QNode, public AbstractClassicalProg
@@ -96,20 +100,18 @@ public:
     
     /**
      * @brief Destroy the Origin Classical Prog object
-     * 
      */
     ~OriginClassicalProg();
 
     /**
-     * @brief Get the Node Type 
-     * 
-     * @return NodeType 
-     */
+    * @brief  Get current node type
+    * @return  NodeType  current node type
+    * @see  NodeType
+    */
     NodeType getNodeType() const;
     
     /**
      * @brief Get classical program value
-     * 
      * @return cbit_size_t 
      */
     virtual cbit_size_t eval();
@@ -134,59 +136,27 @@ private:
 
 typedef AbstractClassicalProg * (*CreateClassicalQProgram)(ClassicalCondition &);
 
-/**
- * @brief classical program factory
- * Users can register their own implementation of AbstractClassicalProg 
- * through the ClassicalProgFactory class.
- */
+
 class ClassicalProgFactory
 {
 public:
-
-    /**
-     * @brief register AbstractClassicalProg implementation class 
-     * 
-     * @param name Subclass name 
-     * @param method Construction method for AbstractClassicalProg implementation class
-     */
     void registClass(std::string name, CreateClassicalQProgram method);
-    /**
-     * @brief Get the AbstractClassicalProg implementation class ptr
-     * @param name AbstractClassicalProg implementation class`s name
-     * @param classical_cond classcial condition
-     * @return AbstractClassicalProg* 
-     */
+
     AbstractClassicalProg * getClassicalProgm(std::string & name,ClassicalCondition & classical_cond);
 
-    /**
-     * @brief Get the ClassicalProgFactory object
-     * 
-     * @return ClassicalProgFactory& 
-     */
     static ClassicalProgFactory & getInstance()
     {
         static ClassicalProgFactory  s_Instance;
         return s_Instance;
     }
 private:
-    /**
-     * @brief AbstractClassicalProg implementation class name and Construction method
-     */
     std::map<std::string, CreateClassicalQProgram> m_ProgMap; 
     ClassicalProgFactory() {};
 };
 
-/**
- * @brief Classical program register action
- * Provide ClassicalProgFactory class registration interface to the outside
- */
 class ClassicalProgRegisterAction {
 public:
-    /**
-     * @brief Construct a new Classical Prog Register Action object
-     * @param className AbstractClassicalProg implementation class`s name
-     * @param ptrCreateFn Construction method for AbstractClassicalProg implementation class
-     */
+
     inline ClassicalProgRegisterAction(std::string className, CreateClassicalQProgram ptrCreateFn) {
         ClassicalProgFactory::getInstance().registClass(className, ptrCreateFn);
     }

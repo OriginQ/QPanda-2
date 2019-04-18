@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2017-2018 Origin Quantum Computing. All Right Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-
+/*! \file QProgram.h */
 #ifndef _QPROGRAM_H_
 #define _QPROGRAM_H_
 
@@ -30,8 +30,16 @@ limitations under the License.
 #include "Core/Utilities/QPandaException.h"
 QPANDA_BEGIN
 
-//class QuantumDriver;
+/**
+* @defgroup Core
+* @brief QPanda2 core component
+*/
 
+/**
+* @class  AbstractQuantumProgram
+* @brief   Quantum program basic abstract class
+* @ingroup Core
+*/
 class AbstractQuantumProgram
 {
 public:
@@ -48,15 +56,10 @@ public:
     virtual void clear() = 0;
 };
 
-/*
-*  QProg:  quantum program,can construct quantum circuit,data struct is linked list
-*  QListHeadNode:  QProg's head pointer.
-*  QListLastNode:  QProg's last pointer.
-*  QProg & operator<<(const T_GATE &)：
-*    if T_GATE is QSingleGateNode/QDoubleGateNode/QIfEndNode,
-*    deep copy T_GATE and insert it into left QProg;
-*    if T_GATE is QIfProg/QWhileProg/QProg,deepcopy
-*    IF/WHILE/QProg circuit and insert it into left QProg;
+/**
+* @class QProg
+* @brief    Quantum program,can construct quantum circuit,data struct is linked list
+* @ingroup  Core
 */
 class QProg : public QNode,public AbstractQuantumProgram
 {
@@ -131,6 +134,12 @@ private:
 public:
     ~OriginProgram();
     OriginProgram();
+    /**
+    * @brief  Insert new node at the end of current quantum program node
+    * @param[in]  QNode*  quantum node
+    * @return     void
+    * @see  QNode
+    */
     void pushBackNode(QNode *);
     void pushBackNode(std::shared_ptr<QNode>);
     NodeIter getFirstNodeIter();
@@ -140,12 +149,33 @@ public:
     NodeIter insertQNode(NodeIter &, QNode *);
     NodeIter deleteQNode(NodeIter &);
     NodeType getNodeType() const;
+
+    /**
+    * @brief  Clear all node in current quantum program node
+    * @return     void
+    */
     void clear();
     void execute(QPUImpl *, QuantumGateParam *);
 };
 
+/**
+* @brief  QPanda2 basic interface for creating a empty quantum program
+* @ingroup  Core
+* @return     QPanda::QProg  quantum program
+*/
 QProg CreateEmptyQProg();
 
+/**
+* @brief  Insert new Node at the end of current node
+* @param[in]  Node  QGate/QCircuit/QProg/QIf/QWhile
+* @return     QPanda::QProg&   quantum program
+* @see QNode
+* @note
+*    if T_GATE is QSingleGateNode/QDoubleGateNode/QIfEndNode,
+*    deep copy T_GATE and insert it into left QProg;
+*    if T_GATE is QIfProg/QWhileProg/QProg,deepcopy
+*    IF/WHILE/QProg circuit and insert it into left QProg
+*/
 template<typename T>
 QProg & QProg::operator<<(T node)
 {

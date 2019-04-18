@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-
+/*! \file ClassicalConditionInterface.h */
 #ifndef _CLASSICAL_CONDITION_INTERFACE_H
 #define _CLASSICAL_CONDITION_INTERFACE_H
 #include <string>
@@ -24,11 +24,16 @@ limitations under the License.
 
 QPANDA_BEGIN
 /**
- * @brief Content specifier
+* @namespace QPanda
+*/
+
+/**
+* @enum ContentSpecifier
+* @brief Content specifier
  */
 enum ContentSpecifier
 {
-    CBIT,      ///< CBit type
+    CBIT,      ///< Cbit type
     OPERATOR,  ///< Operator type
     CONSTVALUE ///< Const value type
 };
@@ -56,9 +61,10 @@ enum OperatorSpecifier
 
 
 /**
- * @brief Classical condition class
- * Proxy class of cexpr class
- */
+* @class ClassicalCondition
+* @brief Classical condition class  Proxy class of cexpr class
+* @ingroup Core
+*/
 class ClassicalCondition
 {
     std::shared_ptr<CExpr> expr; ///< CExpr share ptr
@@ -66,7 +72,6 @@ class ClassicalCondition
 public:
     /**
      * @brief Get the Expr Ptr 
-     * 
      * @return std::shared_ptr<CExpr> 
      */
     inline std::shared_ptr<CExpr>  getExprPtr() const { return expr; }
@@ -83,7 +88,7 @@ public:
     void setValue(cbit_size_t);
 
     /**
-     * @brief check validity
+     * @brief Check validity
      * 
      * @return true check validity ture
      * @return false  check validity false
@@ -124,8 +129,7 @@ public:
 };
 
 /**
- * @brief overload operator +
- * 
+ * @brief Overload operator +
  * @param value cbit_size_t type left operand
  * @param class_cond  ClassicalCondition type right operand 
  * @return ClassicalCondition 
@@ -150,8 +154,7 @@ inline ClassicalCondition operator+(cbit_size_t value, ClassicalCondition & clas
         );
 }
 /**
- * @brief overload operator +
- * 
+ * @brief Uverload operator +
  * @param left_operand left operand
  * @param right_operand cbit_size_t type right operand 
  * @return ClassicalCondition 
@@ -159,7 +162,7 @@ inline ClassicalCondition operator+(cbit_size_t value, ClassicalCondition & clas
 ClassicalCondition operator+(ClassicalCondition left_operand, ClassicalCondition right_operand);
 
 /**
- * @brief overload operator +
+ * @brief Overload operator +
  * 
  * @param left_operand left operand
  * @param right_operand cbit_size_t type right operand 
@@ -168,7 +171,7 @@ ClassicalCondition operator+(ClassicalCondition left_operand, ClassicalCondition
 ClassicalCondition operator+(ClassicalCondition left_operand, cbit_size_t right_operand);
 
 /**
- * @brief overload operator -
+ * @brief Overload operator -
  * 
  * @param left_operand left operand
  * @param right_operand right operand 
@@ -177,7 +180,7 @@ ClassicalCondition operator+(ClassicalCondition left_operand, cbit_size_t right_
 ClassicalCondition operator-(ClassicalCondition left_operand, ClassicalCondition right_operand);
 
 /**
- * @brief overload operator -
+ * @brief Overload operator -
  * 
  * @param left_operand left operand
  * @param right_operand cbit_size_t type right operand 
@@ -186,7 +189,7 @@ ClassicalCondition operator-(ClassicalCondition left_operand, ClassicalCondition
 ClassicalCondition operator-(ClassicalCondition left_operand, cbit_size_t right_operand);
 
 /**
- * @brief overload operator -
+ * @brief Overload operator -
  * 
  * @param value cbit_size_t type left operand
  * @param class_cond  right operand 
@@ -210,8 +213,7 @@ inline ClassicalCondition operator-(cbit_size_t value,
 }
 
 /**
- * @brief overload operator *
- * 
+ * @brief Overload operator *
  * @param left_operand left operand
  * @param right_operand right operand 
  * @return ClassicalCondition 
@@ -219,8 +221,7 @@ inline ClassicalCondition operator-(cbit_size_t value,
 ClassicalCondition operator*(ClassicalCondition, ClassicalCondition);
 
 /**
- * @brief overload operator *
- * 
+ * @brief Overload operator *
  * @param left_operand left operand
  * @param right_operand cbit_size_t type right operand 
  * @return ClassicalCondition 
@@ -228,8 +229,7 @@ ClassicalCondition operator*(ClassicalCondition, ClassicalCondition);
 ClassicalCondition operator*(ClassicalCondition, cbit_size_t);
 
 /**
- * @brief overload operator -
- * 
+ * @brief Overload operator -
  * @param value cbit_size_t type left operand
  * @param class_cond  right operand 
  * @return ClassicalCondition 
@@ -252,8 +252,7 @@ inline ClassicalCondition operator*(cbit_size_t value,
 }
 
 /**
- * @brief overload operator /
- * 
+ * @brief Overload operator /
  * @param left_operand left operand
  * @param right_operand right operand 
  * @return ClassicalCondition 
@@ -261,8 +260,7 @@ inline ClassicalCondition operator*(cbit_size_t value,
 ClassicalCondition operator/(ClassicalCondition, ClassicalCondition);
 
 /**
- * @brief overload operator /
- * 
+ * @brief Overload operator /
  * @param left_operand left operand
  * @param right_operand cbit_size_t type right operand 
  * @return ClassicalCondition 
@@ -270,8 +268,7 @@ ClassicalCondition operator/(ClassicalCondition, ClassicalCondition);
 ClassicalCondition operator/(ClassicalCondition, cbit_size_t);
 
 /**
- * @brief overload operator /
- * 
+ * @brief Overload operator /
  * @param value cbit_size_t type left operand
  * @param class_cond  right operand 
  * @return ClassicalCondition 
@@ -294,8 +291,7 @@ inline ClassicalCondition operator/(cbit_size_t value,
 }
 
 /**
- * @brief overload operator ==
- * 
+ * @brief Overload operator ==
  * @param left_operand left operand
  * @param right_operand right operand 
  * @return ClassicalCondition 
@@ -303,8 +299,7 @@ inline ClassicalCondition operator/(cbit_size_t value,
 ClassicalCondition operator==(ClassicalCondition, ClassicalCondition);
 
 /**
- * @brief overload operator ==
- * 
+ * @brief Overload operator ==
  * @param left_operand left operand
  * @param right_operand cbit_size_t type right operand 
  * @return ClassicalCondition 
@@ -312,8 +307,7 @@ ClassicalCondition operator==(ClassicalCondition, ClassicalCondition);
 ClassicalCondition operator==(ClassicalCondition, cbit_size_t);
 
 /**
- * @brief overload operator ==
- * 
+ * @brief Overload operator ==
  * @param value cbit_size_t type left operand
  * @param class_cond  right operand 
  * @return ClassicalCondition 
@@ -335,16 +329,14 @@ inline ClassicalCondition operator==(cbit_size_t value,
         EQUAL);
 }
 /**
- * @brief overload operator !=
- * 
+ * @brief Overload operator !=
  * @param left_operand left operand
  * @param right_operand right operand 
  * @return ClassicalCondition 
  */
 ClassicalCondition operator!=(ClassicalCondition, ClassicalCondition);
 /**
- * @brief overload operator !=
- * 
+ * @brief Overload operator !=
  * @param left_operand left operand
  * @param right_operand cbit_size_t type right operand 
  * @return ClassicalCondition 
@@ -352,8 +344,7 @@ ClassicalCondition operator!=(ClassicalCondition, ClassicalCondition);
 ClassicalCondition operator!=(ClassicalCondition, cbit_size_t);
 
 /**
- * @brief overload operator !=
- * 
+ * @brief Overload operator !=
  * @param value cbit_size_t type left operand
  * @param class_cond  right operand 
  * @return ClassicalCondition 
@@ -365,8 +356,7 @@ inline ClassicalCondition operator!=(cbit_size_t value,
 }
 
 /**
- * @brief overload operator &&
- * 
+ * @brief Overload operator &&
  * @param left_operand left operand
  * @param right_operand right operand 
  * @return ClassicalCondition 
@@ -374,8 +364,7 @@ inline ClassicalCondition operator!=(cbit_size_t value,
 ClassicalCondition operator&&(ClassicalCondition, ClassicalCondition);
 
 /**
- * @brief overload operator &&
- * 
+ * @brief Overload operator &&
  * @param left_operand left operand
  * @param right_operand cbit_size_t type right operand 
  * @return ClassicalCondition 
@@ -383,8 +372,7 @@ ClassicalCondition operator&&(ClassicalCondition, ClassicalCondition);
 ClassicalCondition operator&&(ClassicalCondition, cbit_size_t);
 
 /**
- * @brief overload operator &&
- * 
+ * @brief Overload operator && 
  * @param value cbit_size_t type left operand
  * @param class_cond  right operand 
  * @return ClassicalCondition 
@@ -396,8 +384,7 @@ inline ClassicalCondition operator&&(cbit_size_t value,
 }
 
 /**
- * @brief overload operator ||
- * 
+ * @brief Overload operator ||
  * @param left_operand left operand
  * @param right_operand right operand 
  * @return ClassicalCondition 
@@ -405,8 +392,7 @@ inline ClassicalCondition operator&&(cbit_size_t value,
 ClassicalCondition operator||(ClassicalCondition, ClassicalCondition);
 
 /**
- * @brief overload operator ||
- * 
+ * @brief Overload operator ||
  * @param left_operand left operand
  * @param right_operand cbit_size_t type right operand 
  * @return ClassicalCondition 
@@ -414,8 +400,7 @@ ClassicalCondition operator||(ClassicalCondition, ClassicalCondition);
 ClassicalCondition operator||(ClassicalCondition, cbit_size_t);
 
 /**
- * @brief overload operator ||
- * 
+ * @brief Overload operator ||
  * @param value cbit_size_t type left operand
  * @param class_cond  right operand 
  * @return ClassicalCondition 
@@ -427,8 +412,7 @@ inline ClassicalCondition operator||(cbit_size_t value,
 }
 
 /**
- * @brief overload operator >
- * 
+ * @brief Overload operator >
  * @param left_operand left operand
  * @param right_operand right operand 
  * @return ClassicalCondition 
@@ -436,8 +420,7 @@ inline ClassicalCondition operator||(cbit_size_t value,
 ClassicalCondition operator>(ClassicalCondition, ClassicalCondition);
 
 /**
- * @brief overload operator >
- * 
+ * @brief Overload operator >
  * @param left_operand left operand
  * @param right_operand cbit_size_t type right operand 
  * @return ClassicalCondition 
@@ -445,8 +428,7 @@ ClassicalCondition operator>(ClassicalCondition, ClassicalCondition);
 ClassicalCondition operator>(ClassicalCondition, cbit_size_t);
 
 /**
- * @brief overload operator >
- * 
+ * @brief Overload operator >
  * @param value cbit_size_t type left operand
  * @param class_cond  right operand 
  * @return ClassicalCondition 
@@ -469,8 +451,7 @@ inline ClassicalCondition operator>(cbit_size_t value,
 }
 
 /**
- * @brief overload operator >=
- * 
+ * @brief Overload operator >=
  * @param left_operand left operand
  * @param right_operand right operand 
  * @return ClassicalCondition 
@@ -478,8 +459,7 @@ inline ClassicalCondition operator>(cbit_size_t value,
 ClassicalCondition operator>=(ClassicalCondition, ClassicalCondition);
 
 /**
- * @brief overload operator >=
- * 
+ * @brief Overload operator >=
  * @param left_operand left operand
  * @param right_operand cbit_size_t type right operand 
  * @return ClassicalCondition 
@@ -487,8 +467,7 @@ ClassicalCondition operator>=(ClassicalCondition, ClassicalCondition);
 ClassicalCondition operator>=(ClassicalCondition, cbit_size_t);
 
 /**
- * @brief overload operator >=
- * 
+ * @brief Overload operator >=
  * @param value cbit_size_t type left operand
  * @param class_cond  right operand 
  * @return ClassicalCondition 
@@ -511,8 +490,7 @@ inline ClassicalCondition operator>=(cbit_size_t value,
 }
 
 /**
- * @brief overload operator <
- * 
+ * @brief Overload operator <
  * @param left_operand left operand
  * @param right_operand right operand 
  * @return ClassicalCondition 
@@ -520,8 +498,7 @@ inline ClassicalCondition operator>=(cbit_size_t value,
 ClassicalCondition operator<(ClassicalCondition, ClassicalCondition);
 
 /**
- * @brief overload operator <
- * 
+ * @brief Overload operator <
  * @param left_operand left operand
  * @param right_operand cbit_size_t type right operand 
  * @return ClassicalCondition 
@@ -529,8 +506,7 @@ ClassicalCondition operator<(ClassicalCondition, ClassicalCondition);
 ClassicalCondition operator<(ClassicalCondition, cbit_size_t);
 
 /**
- * @brief overload operator <
- * 
+ * @brief Overload operator <
  * @param value cbit_size_t type left operand
  * @param class_cond  right operand 
  * @return ClassicalCondition 
@@ -553,8 +529,7 @@ inline ClassicalCondition operator<(cbit_size_t value,
 }
 
 /**
- * @brief overload operator <=
- * 
+ * @brief Overload operator <=
  * @param left_operand left operand
  * @param right_operand right operand 
  * @return ClassicalCondition 
@@ -562,8 +537,7 @@ inline ClassicalCondition operator<(cbit_size_t value,
 ClassicalCondition operator<=(ClassicalCondition, ClassicalCondition);
 
 /**
- * @brief overload operator <=
- * 
+ * @brief Overload operator <=
  * @param left_operand left operand
  * @param right_operand cbit_size_t type right operand 
  * @return ClassicalCondition 
@@ -571,8 +545,7 @@ ClassicalCondition operator<=(ClassicalCondition, ClassicalCondition);
 ClassicalCondition operator<=(ClassicalCondition, cbit_size_t);
 
 /**
- * @brief overload operator <=
- * 
+ * @brief Overload operator <=
  * @param value cbit_size_t type left operand
  * @param class_cond  right operand 
  * @return ClassicalCondition 
@@ -595,8 +568,7 @@ inline ClassicalCondition operator<=(cbit_size_t value,
 }
 
 /**
- * @brief overload operator !
- * 
+ * @brief Overload operator !
  * @param right_operand right operand 
  * @return ClassicalCondition 
  */

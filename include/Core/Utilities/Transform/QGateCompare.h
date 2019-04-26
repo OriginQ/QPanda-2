@@ -19,7 +19,10 @@ Classes for QGateCompare.
 #include "Core/QuantumCircuit/QProgram.h"
 #include <map>
 #include "Core/QuantumCircuit/QGlobalVariable.h"
+#include "Core/Utilities/Transform/QGateCounter.h"
+
 QPANDA_BEGIN
+
 /**
 * @namespace QPanda
 */
@@ -30,67 +33,56 @@ QPANDA_BEGIN
 */
 
 /**
-* @class QGateCompare  
+* @class QGateCompare
 * @ingroup Utilities
 * @brief Qunatum Gate Compare
 */
-class QGateCompare {
+class QGateCompare : public TraversalInterface
+{
 public:
-    QGateCompare();
-    virtual ~QGateCompare();
-    
-    /**
-    * @brief  Count 1uantumprogram unsupported gatenum
-    * @param[in]  AbstractQuantumProgram*    Abstract Quantum program pointer
-    * @param[in]  const std::vector<std::vector<std::string>>&    Instructions  
-    * @return     size_t     Unsupported QGate num
-    * @exception    invalid_argument    Quantum program pointer is a nullptr
-    * @note
-    */
-    static size_t countQGateNotSupport(AbstractQuantumProgram *,
-                                       const std::vector<std::vector<std::string>> &);
+    QGateCompare(const std::vector<std::vector<std::string>> &);
 
     /**
-    * @brief  Count 1uantumprogram unsupported gatenum
-    * @param[in]  AbstractQGateNode*   Abstract QGate Node pointer
-    * @param[in]  const std::vector<std::vector<std::string>>&    Instructions
-    * @return     size_t   Unsupported QGate num
-    * @exception    invalid_argument    Quantum gate pointer is a nullptr
+    * @brief  traversal quantum program, quantum circuit, quantum while or quantum if
+    * @param[in]  _Ty& quantum program, quantum circuit, quantum while or quantum if
+    * @return     void
     * @note
     */
-
-    static size_t countQGateNotSupport(AbstractQGateNode *,
-                                       const std::vector<std::vector<std::string>> &);
+    template <typename _Ty>
+    void traversal(_Ty &node)
+    {
+        static_assert(std::is_base_of<QNode, _Ty>::value, "bad node type");
+        Traversal::traversalByType(&node, &node, this);
+    }
 
     /**
-    * @brief  Count 1uantumprogram unsupported gatenum
-    * @param[in]  AbstractControlFlowNode*    Abstract Control Flow Node pointer
-    * @param[in]  const std::vector<std::vector<std::string>>&    Instructions
-    * @return     size_t    Unsupported QGate num
-    * @exception    invalid_argument    Quantum controlflow pointer is a nullptr
+    * @brief  get unsupported gate numner
+    * @return     size_t     Unsupported QGate number
     * @note
     */
-    static size_t countQGateNotSupport(AbstractControlFlowNode *,
-                                       const std::vector<std::vector<std::string>> &);
-    /**
-    * @brief  Count 1uantumprogram unsupported gatenum
-    * @param[in]  AbstractQuantumCircuit*    Abstract Quantum Circuit Node pointer
-    * @param[in]  const std::vector<std::vector<std::string>>&    Instructions
-    * @return     size_t    Unsupported QGate num
-    * @exception    invalid_argument   Quantum circuit pointer is a nullptr
-    * @note
-    */
-    static size_t countQGateNotSupport(AbstractQuantumCircuit *,
-                                       const std::vector<std::vector<std::string>> &);
-protected:
-
-    static size_t countQGateNotSupport(QNode *, 
-                                       const std::vector<std::vector<std::string>> &);
-
-    static bool isItemExist(const std::string &,
-                            const std::vector<std::vector<std::string>> &);
+    size_t count();
 private:
+    virtual void execute(AbstractQGateNode * cur_node, QNode * parent_node);
+    size_t m_count;
+    std::vector<std::vector<std::string>> m_gates;
 };
+
+/**
+* @brief  Count quantum program unsupported gate numner
+* @param[in]  _Ty& quantum program, quantum circuit, quantum while or quantum if
+* @param[in]  const std::vector<std::vector<std::string>>&    support gates
+* @return     size_t     Unsupported QGate number
+* @note
+*/
+template <typename _Ty>
+size_t getUnSupportQGateNumber(_Ty &node, const std::vector<std::vector<std::string>> &gates)
+{
+    static_assert(std::is_base_of<QNode, _Ty>::value, "bad node type");
+    QGateCompare compare(gates);
+    compare.traversal(node);
+    return compare.count();
+}
+
 QPANDA_END
 
 

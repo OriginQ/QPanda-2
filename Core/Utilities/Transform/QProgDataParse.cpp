@@ -187,12 +187,12 @@ bool QProgDataParse::parse(QProg &prog)
     return true;
 }
 
-inline QVec QProgDataParse::getQubits() const
+QVec QProgDataParse::getQubits() const
 {
     return m_qubits;
 }
 
-inline std::vector<ClassicalCondition> QProgDataParse::getCbits() const
+std::vector<ClassicalCondition> QProgDataParse::getCbits() const
 {
     return m_cbits;
 }
@@ -546,8 +546,8 @@ void QProgDataParse::parseDataNode(QProg &prog, const uint32_t &tail_number)
 }
 
 
-bool QPanda::binaryQProgFileParse(QuantumMachine *qm, QVec &qubits, std::vector<ClassicalCondition> &cbits,
-    QProg &prog, const std::string &filename)
+bool QPanda::binaryQProgFileParse(QuantumMachine *qm, const std::string &filename, QVec &qubits, 
+                                  std::vector<ClassicalCondition> &cbits, QProg &prog)
 {
     QProgDataParse dataParse(qm);
     if (!dataParse.load(filename))
@@ -567,8 +567,8 @@ bool QPanda::binaryQProgFileParse(QuantumMachine *qm, QVec &qubits, std::vector<
     return true;
 }
 
-bool QPanda::binaryQProgDataParse(QuantumMachine *qm, QVec & qubits, std::vector<ClassicalCondition>& cbits,
-    QProg & prog, const std::vector<uint8_t>& data)
+bool QPanda::binaryQProgDataParse(QuantumMachine *qm, const std::vector<uint8_t>& data, QVec & qubits,
+                                  std::vector<ClassicalCondition>& cbits, QProg & prog)
 {
     QProgDataParse dataParse(qm);
     if (!dataParse.load(data))

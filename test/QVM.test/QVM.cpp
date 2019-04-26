@@ -44,95 +44,28 @@ TEST(QVM, SingleAmplitudeQVM)
 
 
     auto prog = QProg();
-    for_each(qlist.begin(), qlist.end(), [&](Qubit *val) { prog << H(val); });
-    prog << CZ(qlist[1], qlist[5])
-        << CZ(qlist[3], qlist[5])
-        << CZ(qlist[2], qlist[4])
-        << CZ(qlist[3], qlist[7])
-        << CZ(qlist[0], qlist[4])
-        << RY(qlist[7], PI / 2)
-        << RX(qlist[8], PI / 2)
-        << RX(qlist[9], PI / 2)
-        << CR(qlist[0], qlist[1], PI)
-        << CR(qlist[2], qlist[3], PI)
-        << RY(qlist[4], PI / 2)
-        << RZ(qlist[5], PI / 4)
-        << RX(qlist[6], PI / 2)
-        << RZ(qlist[7], PI / 4)
-        << CR(qlist[8], qlist[9], PI)
-        << CR(qlist[1], qlist[2], PI)
-        << RY(qlist[3], PI / 2)
-        << RX(qlist[4], PI / 2)
-        << RX(qlist[5], PI / 2)
-        << CR(qlist[9], qlist[1], PI)
-        << RY(qlist[1], PI / 2)
-        << RY(qlist[2], PI / 2)
-        << RZ(qlist[3], PI / 4)
-        << CR(qlist[7], qlist[8], PI);
-         //<< RZ(qlist[9], PI / 4)
-         //<< RZ(qlist[1], PI / 4)
-         //<< RX(qlist[2], PI / 2)
-         //<< CR(qlist[5], qlist[6], PI)
-         //<< RZ(qlist[9], PI / 4)
-         //<< RX(qlist[0], PI / 2)
-         //<< CR(qlist[3], qlist[4], PI)
-         //<< RY(qlist[7], PI / 2)
-         //<< RX(qlist[8], PI / 2)
-         //<< CR(qlist[1], qlist[5], PI)
-         //<< CR(qlist[3], qlist[7], PI)
-         //<< RZ(qlist[7], PI / 4)
-         //<< RX(qlist[5], PI / 4)
-         //<< RX(qlist[4], PI / 4)
-         //<< RY(qlist[3], PI / 4)
-         //<< CZ(qlist[2], qlist[6])
-         //<< RZ(qlist[3], PI / 4)
-         //<< RZ(qlist[8], PI / 4)
-         //<< CZ(qlist[9], qlist[5])
-         //<< RY(qlist[2], PI / 4)
-         //<< RZ(qlist[9], PI / 4)
-         //<< CZ(qlist[2], qlist[3]);
+    prog <<H(qlist[7])
+        << H(qlist[8])
+        << H(qlist[9])
+        << CNOT(qlist[7], qlist[1])
+        << CNOT(qlist[8], qlist[2])
+        << CNOT(qlist[9], qlist[3]);
 
-    machine->run(prog);
-    QVec qvec;
-    for_each(qlist.begin(), qlist.end(), [&](Qubit *val) { qvec.emplace_back(val); });
+    machine->directlyRun(prog);
+    auto res = machine->getProbDict(qlist,1024);
 
-    /*Test PMeasure  selectmax*/
-    //EXPECT_NO_THROW(machine->PMeasure(-5));
-    //EXPECT_NO_THROW(machine->PMeasure(128));
-    auto res = machine->PMeasure(qvec, 6);
-    //auto res = machine->PMeasure(128);
+    init();
+    auto qlist1 = qAllocMany(10);
+
+    auto res2 =probRunDict(prog, qlist1, 1024);
 
     for (auto val :res)
     {
-        std::cout << val << endl;
+        std::cout << val.first <<" :(single) "<<val.second<<"  " <<res2[val.first]<< endl;
     }
-    //for (auto val :res)
-    //{
-    //    std::cout << val.first << ":" << val.second << endl;
-    //}
-    //EXPECT_THROW(machine->PMeasure(1280), qprog_syntax_error);
-
-    ///*Test PMeasure Qvec selectmax*/
-    EXPECT_NO_THROW(machine->PMeasure(qvec, 6));
-    //EXPECT_NO_THROW(machine->PMeasure(qvec, 128));
-
-    //EXPECT_THROW(machine->PMeasure(qvec, 1280), qprog_syntax_error);
-
-    //QVec temp;
-    //EXPECT_THROW(machine->PMeasure(temp, 128), qprog_syntax_error);
-
-    //QVec temp1 = { qlist[0],qlist[0] };
-    //EXPECT_THROW(machine->PMeasure(temp1, 128), qprog_syntax_error);
-
-    ///*Test getQStat*/
-    //EXPECT_NO_THROW(machine->getQStat());
-
-    ///*Test PMeasure_index*/
-    //EXPECT_THROW(machine->PMeasure_index(-8), qprog_syntax_error);
-    //EXPECT_THROW(machine->PMeasure_index(1280), qprog_syntax_error);
-    //EXPECT_NO_THROW(machine->PMeasure_index(124));
 
     machine->finalize();
+    delete machine;
     getchar();
 }
 

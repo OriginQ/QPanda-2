@@ -41,7 +41,7 @@ TEST(QProgTransformBinaryParse, QBinaryParse)
     QVec qubits;
     std::vector<ClassicalCondition> cbits;
 
-    binaryQProgFileParse(qvm, qubits, cbits, parseProg);
+    binaryQProgFileParse(qvm, "QProg.dat", qubits, cbits, parseProg);
     std::cout << "Parse" << std::endl;
     std::cout << transformQProgToQRunes(parseProg, qvm) << std::endl;
     directlyRun(parseProg);
@@ -84,7 +84,7 @@ TEST(QProgTransformBinaryData, QBinaryData)
     QVec qubits_parse;
     std::vector<ClassicalCondition> cbits_parse;
 
-    binaryQProgDataParse(qvm, qubits_parse, cbits_parse, parseProg, data);
+    binaryQProgDataParse(qvm, data, qubits_parse, cbits_parse, parseProg);
     std::cout << "binary data Parse" << std::endl;
     //std::cout << transformToQRunes(parseProg) << std::endl;
 

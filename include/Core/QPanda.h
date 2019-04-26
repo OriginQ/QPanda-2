@@ -35,6 +35,9 @@ limitations under the License.
 #include "Core/Utilities/Transform/QProgDataParse.h"
 #include "Core/Utilities/QPandaException.h"
 #include "Core/Utilities/QPandaException.h"
+#include "Core/Utilities/Transform/QGateCompare.h"
+#include "Core/Utilities/MetadataValidity.h"
+#include "Core/Utilities/Transform/QProgClockCycle.h"
 QPANDA_BEGIN
 /**
 * @brief  Init the environment

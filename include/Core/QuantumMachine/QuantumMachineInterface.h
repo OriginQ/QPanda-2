@@ -45,8 +45,8 @@ enum QMachineType {
 */
 struct Configuration
 {
-    size_t maxQubit;/**< Config max qubit num   */
-    size_t maxCMem;/**< Config max qubit num   */
+    size_t maxQubit = 25;/**< Config max qubit num   */
+    size_t maxCMem = 25;/**< Config max cbit num   */
 };
 
 class QubitAddr 

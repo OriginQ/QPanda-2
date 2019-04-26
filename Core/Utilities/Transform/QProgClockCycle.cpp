@@ -2,12 +2,24 @@
 #include "Utilities/TranformQGateTypeStringAndEnum.h"
 using namespace std;
 USING_QPANDA
-QProgClockCycle::QProgClockCycle(std::map<GateType, size_t> gate_time)
-    :m_gate_time(gate_time)
-{ }
+QProgClockCycle::QProgClockCycle(QuantumMachine *qm)
+    :m_count(0)
+{
+    m_gate_time = qm->getGateTimeMap();
+}
 
 QProgClockCycle::~QProgClockCycle()
 { }
+
+void QProgClockCycle::traversal(QProg &prog)
+{
+    m_count = countQProgClockCycle(&prog);
+}
+
+size_t QProgClockCycle::count()
+{
+    return m_count;
+}
 
 size_t QProgClockCycle::countQProgClockCycle(AbstractQuantumProgram *prog)
 {
@@ -215,6 +227,7 @@ size_t QProgClockCycle::getDefalutQGateTime(GateType gate_type)
 
 size_t QPanda::getQProgClockCycle(QuantumMachine *qm, QProg &prog)
 {
-    QProgClockCycle counter(qm->getGateTimeMap());
-    return counter.countQProgClockCycle(&prog);
+    QProgClockCycle counter(qm);
+    counter.traversal(prog);
+    return counter.count();
 }

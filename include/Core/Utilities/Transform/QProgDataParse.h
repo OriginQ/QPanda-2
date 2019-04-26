@@ -84,14 +84,14 @@ public:
 
     /**
     * @brief   Parse binary file to QProg
-    * @param[in]  QProg& prog
+    * @param[out]  QProg& prog
     * @retval 1     parse success
     * @retval 0     parse failed
     * @exception  invalid_argument  parse error
     */
     bool parse(QProg &prog);
-    inline QVec getQubits() const;
-    inline  std::vector<ClassicalCondition> getCbits() const;
+    QVec getQubits() const;
+    std::vector<ClassicalCondition> getCbits() const;
 
 private:
 
@@ -122,31 +122,31 @@ private:
 * @brief  Parse quantum program interface for  binary file
 * @ingroup Utilities
 * @param[in]  QuantumMachine* quantum machine pointer
-* @param[in]  QVec& qubits  
-* @param[in]  std::vector<ClassicalCondition>& cbits
-* @param[in]  QProg& Quantum program
 * @param[in]  std::string& filename
+* @param[out]  QVec& qubits  
+* @param[out]  std::vector<ClassicalCondition>& cbits
+* @param[out]  QProg& Quantum program
 * @retval 1   parse success
 * @retval 0   parse failed
 * @exception  runtime_error  parse file error
 */
-bool binaryQProgFileParse(QuantumMachine *qm, QVec &qubits, std::vector<ClassicalCondition> &cbits,
-                          QProg &prog, const std::string &filename = DEF_QPROG_FILENAME);
+bool binaryQProgFileParse(QuantumMachine *qm, const std::string &filename, QVec &qubits,
+                          std::vector<ClassicalCondition> &cbits, QProg &prog);
 
 /**
 * @brief  Parse quantum program interface for  binary data vector
 * @ingroup Utilities
 * @param[in]  QuantumMachine* quantum machine pointer
-* @param[in]  QVec& qubits
-* @param[in]  std::vector<ClassicalCondition>& cbits
-* @param[in]  QProg& Quantum program
 * @param[in]  std::vector<uint8_t>& data   binary data vector
+* @param[out]  QVec& qubits
+* @param[out]  std::vector<ClassicalCondition>& cbits
+* @param[out]  QProg& Quantum program
 * @retval 1  parse success
 * @retval 0  parse failed
 * @exception  runtime_error  parse file error
 */
-bool binaryQProgDataParse(QuantumMachine *qm, QVec & qubits, std::vector<ClassicalCondition>& cbits, QProg & prog,
-                          const std::vector<uint8_t>& data);
+bool binaryQProgDataParse(QuantumMachine *qm, const std::vector<uint8_t>& data, QVec & qubits, 
+                          std::vector<ClassicalCondition>& cbits, QProg & prog);
 
 QPANDA_END
 

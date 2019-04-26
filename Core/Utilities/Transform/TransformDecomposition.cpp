@@ -1167,11 +1167,10 @@ void DecomposeUnitarySingleQGateIntoMetadataSingleQGate::execute(AbstractQGateNo
     * Check if the quantum gate is supported
     */
 
-    if (QGateCompare::countQGateNotSupport(node, m_qgate_matrix) <= 0)
+    if (getUnSupportQGateNumber(*(dynamic_cast<QGate *>(node)), m_qgate_matrix) <= 0)
         return;
 
     QVec vTargetQubit;
-
     if (node->getQuBitVector(vTargetQubit) != 1)
     {
         return;

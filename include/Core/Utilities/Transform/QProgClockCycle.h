@@ -46,55 +46,21 @@ QPANDA_BEGIN
 class QProgClockCycle
 {
 public:
-    QProgClockCycle(std::map<GateType, size_t> gate_time);
+    QProgClockCycle(QuantumMachine *qm);
     ~QProgClockCycle();
-
-
-    /**
-    * @brief  Count QProg clock cycle
-    * @param[in]  AbstractQuantumProgram*  Abstract Quantum program pointer
-    * @return     size_t  Clock cycle
-    * @exception  invalid_argument  Quantum program pointer is a nullptr
-    */
+    void traversal(QProg &prog);
+    size_t count();
+private:
     size_t countQProgClockCycle(AbstractQuantumProgram *prog);
-
-    /**
-    * @brief  Count QCircuit Clock Cycle
-    * @param[in]  AbstractQuantumCircuit*  Abstract Quantum circuit pointer
-    * @return     size_t   Clock cycle
-    * @exception  invalid_argument  Quantum circuit pointer is a nullptr
-    */
     size_t countQCircuitClockCycle(AbstractQuantumCircuit *circuit);
-
-    /**
-    * @brief  Count QProg clock cycle
-    * @param[in]  AbstractControlFlowNode*  Abstract Quantum ControlFlow pointer
-    * @return     size_t   Clock cycle
-    * @exception  invalid_argument  Quantum controlflow qwhile pointer is a nullptr
-    */
     size_t countQWhileClockCycle(AbstractControlFlowNode *qwhile);
-
-    /**
-    * @brief  Count QProg clock cycle
-    * @param[in]  AbstractControlFlowNode*  Abstract Quantum ControlFlow pointer
-    * @return     size_t    Clock cycle
-    * @exception  invalid_argument  Quantum controlflow qif pointer is a nullptr
-    */
     size_t countQIfClockCycle(AbstractControlFlowNode *qif);
 
-    /**
-    * @brief  Get QGate Time
-    * @param[in]  AbstractQGateNode * gate  Abstract Quantum gate pointer
-    * @return     size_t   Set time
-    * @exception   invalid_argument  Gate is a nullptr
-    */
     size_t getQGateTime(AbstractQGateNode *gate);
-protected:
     size_t countQNodeClockCycle(QNode * node);
-
     size_t getDefalutQGateTime(GateType gate_type);
-private:
     std::map<GateType, size_t> m_gate_time;
+    size_t m_count;
 };
 
 /**

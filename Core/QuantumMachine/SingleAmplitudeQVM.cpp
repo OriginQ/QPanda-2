@@ -164,7 +164,7 @@ QStat SingleAmplitudeQVM::getQStat()
             auto vertice_map_iter = (*iter).end();
             vertice_map_iter--;
             size_t value = j;
-            value = (value >> (qubit_num - 1) - i) & 1;
+            value = (value >> i) & 1;
             if ((*iter).size() == 0)
             {
                 if (value != 0)
@@ -221,7 +221,7 @@ double SingleAmplitudeQVM::PMeasure_index(size_t index)
         auto iter = m_prog_map.getVerticeMatrix()->getQubitMapIter(i);
         auto vertice_map_iter = (*iter).end();
         vertice_map_iter--;
-        size_t value = (index >> (size - 1) - i) & 1;
+        size_t value = (index >> i) & 1;
         qubit_vertice_end.m_qubit_id = i;
         qubit_vertice_end.m_num = (*vertice_map_iter).first;
         TensorEngine::dimDecrementbyValue(m_prog_map, qubit_vertice_end, value);
@@ -279,7 +279,7 @@ SingleAmplitudeQVM::PMeasure(QVec qvec, int select_max)
             auto iter = new_map->getVerticeMatrix()->getQubitMapIter(qubit_vec[i]);
             auto vertice_map_iter = (*iter).end();
             size_t value = j;
-            value = (value >> (qubit_num - 1) - i) & 1;
+            value = (value >>i) & 1;
             if ((*iter).size() == 0)
             {
                 if (value != 0)
@@ -303,7 +303,7 @@ SingleAmplitudeQVM::PMeasure(QVec qvec, int select_max)
         }
         delete new_map;
     }
-
+    
     auto pmeasure_size = qubit_vec.size();
     if (pmeasure_size < m_prog_map.getQubitNum())
     {
@@ -336,6 +336,7 @@ SingleAmplitudeQVM::PMeasure(QVec qvec, int select_max)
         }
         return res;
     }
+    
 }
 
 vector<pair<size_t, double>> 
@@ -383,7 +384,7 @@ SingleAmplitudeQVM::PMeasure(int select_max)
             auto iter = new_map->getVerticeMatrix()->getQubitMapIter(qubit_vec[i]);
             auto vertice_map_iter = (*iter).end();
             size_t value = j;
-            value = (value >> (qubit_num - 1) - i) & 1;
+            value = (value >> i) & 1;
             if ((*iter).size() == 0)
             {
                 if (value != 0)

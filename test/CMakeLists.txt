@@ -7,6 +7,7 @@ add_subdirectory(QProgTransformQuil.test)
 add_subdirectory(QProgTransformBinary.test)
 add_subdirectory(QVM.test)
 add_subdirectory(ReadConfig.test)
+add_subdirectory(QProgQGateCount.test)
 
 if (CURL_FOUND)
     #add_subdirectory(CloudHttp.test)

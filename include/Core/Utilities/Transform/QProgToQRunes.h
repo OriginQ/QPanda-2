@@ -72,7 +72,7 @@ private:
 /**
 * @brief  Quantum Program Transform To QRunes  instruction set
 * @ingroup Utilities
-* @param[in]  QProg&   Quantum Program
+* @param[in]  QProg&   quantum Program
 * @return     std::string    QASM instruction set
 * @see
       @code

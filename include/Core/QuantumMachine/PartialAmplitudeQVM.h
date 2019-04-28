@@ -48,17 +48,17 @@ public:
     */
     QStat getQStat();
 
-    std::vector<double> PMeasure(QVec, int);
-    std::vector<std::pair<size_t, double> > PMeasure(int);
+    std::vector<double> PMeasure(QVec, size_t);
+    std::vector<std::pair<size_t, double> > PMeasure(size_t);
 
-    std::vector<double> getProbList(QVec, int);
-    std::vector<double> probRunList(QProg &, QVec, int);
+    std::vector<double> getProbList(QVec, size_t);
+    std::vector<double> probRunList(QProg &, QVec, size_t);
 
-    std::map<std::string, double> getProbDict(QVec, int);
-    std::map<std::string, double> probRunDict(QProg &, QVec, int);
+    std::map<std::string, double> getProbDict(QVec, size_t);
+    std::map<std::string, double> probRunDict(QProg &, QVec, size_t);
 
-    std::vector<std::pair<size_t, double>> getProbTupleList(QVec, int);
-    std::vector<std::pair<size_t, double>> probRunTupleList(QProg &, QVec, int);
+    std::vector<std::pair<size_t, double>> getProbTupleList(QVec, size_t);
+    std::vector<std::pair<size_t, double>> probRunTupleList(QProg &, QVec, size_t);
 
 private:
     MergeMap *m_prog_map;

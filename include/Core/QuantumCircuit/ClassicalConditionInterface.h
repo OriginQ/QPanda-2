@@ -33,9 +33,9 @@ QPANDA_BEGIN
  */
 enum ContentSpecifier
 {
-    CBIT,      ///< Cbit type
-    OPERATOR,  ///< Operator type
-    CONSTVALUE ///< Const value type
+    CBIT,      ///< cbit type
+    OPERATOR,  ///< operator type
+    CONSTVALUE ///< const value type
 };
 
 /**

@@ -98,7 +98,7 @@ private:
 /**
 * @brief   QRunes instruction set transform to quantum program interface
 * @ingroup Utilities
-* @param[in]  QProg&   Empty Quantum Prog
+* @param[in]  QProg&   empty quantum program
 * @return    void
 * @see
     @code

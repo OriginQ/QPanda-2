@@ -33,6 +33,7 @@ limitations under the License.
 #include "Core/Utilities/Transform/QRunesToQProg.h"
 #include "Core/Utilities/Transform/QProgStored.h"
 #include "Core/Utilities/Transform/QProgDataParse.h"
+#include "Core/Utilities/XMLConfigParam.h"
 #include "Core/Utilities/QPandaException.h"
 #include "Core/Utilities/QPandaException.h"
 #include "Core/Utilities/Transform/QGateCompare.h"
@@ -79,14 +80,14 @@ Qubit* qAlloc(size_t stQubitAddr);
 * @brief  Directly run a quantum program
 * @ingroup QuantumMachine
 * @param[in]  QProg& Quantum program
-* @return     std::map<std::string, bool>   Result
+* @return     std::map<std::string, bool>   result
 */
 std::map<std::string, bool> directlyRun(QProg & qProg);
 
 /**
 * @brief  Allocate many qubits
 * @ingroup Core
-* @param[in]  size_t Set qubit number 
+* @param[in]  size_t set qubit number 
 * @note    Brfore use this,call init()
 */
 QVec qAllocMany(size_t stQubitNumber);
@@ -94,7 +95,7 @@ QVec qAllocMany(size_t stQubitNumber);
 /**
 * @brief  Allocate a cbit
 * @ingroup Core
-* @return    ClassicalCondition  Cbit
+* @return    ClassicalCondition  cbit
 * @note   Brfore use this,call init()
 */
 ClassicalCondition cAlloc();
@@ -102,7 +103,7 @@ ClassicalCondition cAlloc();
 /**
 * @brief  Allocate a cbit
 * @ingroup Core
-* @param[in]  size_t Set cbit address
+* @param[in]  size_t set cbit address
 * @return    ClassicalCondition  Cbit
 * @note   Brfore use this,call init()
 */
@@ -111,7 +112,7 @@ ClassicalCondition cAlloc(size_t stCBitaddr);
 /**
 * @brief  Allocate many cbits
 * @ingroup Core
-* @param[in]  size_t Set cbit number
+* @param[in]  size_t set cbit number
 * @note    Brfore use this,call init()
 */
 std::vector<ClassicalCondition> cAllocMany(size_t stCBitNumber);
@@ -121,7 +122,7 @@ std::vector<ClassicalCondition> cAllocMany(size_t stCBitNumber);
 /**
 * @brief  Free a cbit
 * @ingroup Core
-* @param[in]  ClassicalCondition&  A reference to a cbit
+* @param[in]  ClassicalCondition&  a reference to a cbit
 * @return     void  
 */
 void cFree(ClassicalCondition &);
@@ -129,7 +130,7 @@ void cFree(ClassicalCondition &);
 /**
 * @brief  Free a list of cbits
 * @ingroup Core
-* @param[in]  std::vector<ClassicalCondition>    A list of cbits
+* @param[in]  std::vector<ClassicalCondition>    a list of cbits
 * @return     void  
 */
 void cFreeAll(std::vector<ClassicalCondition> vCBit);
@@ -161,19 +162,19 @@ QMachineStatus* getstat();
 /**
 * @brief  Get pmeasure result as tuple list
 * @ingroup QuantumMachine
-* @param[in]  QVec&  Pmeasure qubits vector
+* @param[in]  QVec&  pmeasure qubits vector
 * @param[in]  int Selectmax:the returned value num
-* @return     std::vector<std::pair<size_t, double>>  Result
-* @note   selectMax  Can not exceed (1ull << the size of qubits vector)
+* @return     std::vector<std::pair<size_t, double>>  result
+* @note   selectMax  can not exceed (1ull << the size of qubits vector)
 */
 std::vector<std::pair<size_t, double>> getProbTupleList(QVec &,int selectMax=-1);
 
 /**
 * @brief  Get pmeasure result as list
 * @ingroup QuantumMachine
-* @param[in]  QVec&  Pmeasure qubits vector
+* @param[in]  QVec&  pmeasure qubits vector
 * @param[in]  int Selectmax:the returned value num
-* @return     std::vector<double>  Result
+* @return     std::vector<double>  result
 * @note   SelectMax  can not exceed (1ull << the size of qubits vector)
 */
 std::vector<double> getProbList(QVec &, int selectMax = -1);
@@ -181,9 +182,9 @@ std::vector<double> getProbList(QVec &, int selectMax = -1);
 /**
 * @brief  Get pmeasure result as dict
 * @ingroup QuantumMachine
-* @param[in]  QVec&  Pmeasure qubits vector
+* @param[in]  QVec&  pmeasure qubits vector
 * @param[in]  int Selectmax:the returned value num
-* @return     std::map<std::string, double>  Result
+* @return     std::map<std::string, double>  result
 * @note   SelectMax  can not exceed (1ull << the size of qubits vector)
 */
 std::map<std::string, double>  getProbDict(QVec &, int selectMax = -1);
@@ -192,9 +193,9 @@ std::map<std::string, double>  getProbDict(QVec &, int selectMax = -1);
 * @brief  Get pmeasure result as dict
 * @ingroup QuantumMachine
 * @param[in]  QProg&  Quantum program
-* @param[in]  QVec&  Pmeasure qubits vector
+* @param[in]  QVec&  pmeasure qubits vector
 * @param[in]  int Selectmax:the returned value num
-* @return     std::vector<std::pair<size_t, double>>  Result
+* @return     std::vector<std::pair<size_t, double>>  result
 * @note   SelectMax  can not exceed (1ull << the size of qubits vector)
 */
 std::vector<std::pair<size_t, double>> probRunTupleList(QProg &,QVec &, int selectMax = -1);
@@ -205,7 +206,7 @@ std::vector<std::pair<size_t, double>> probRunTupleList(QProg &,QVec &, int sele
 * @param[in]  QProg&  Quantum program
 * @param[in]  QVec&  Pmeasure qubits vector
 * @param[in]  int selectmax:the returned value num
-* @return     std::vector<double>  Result
+* @return     std::vector<double>  result
 * @note   SelectMax  can not exceed (1ull << the size of qubits vector)
 */
 std::vector<double> probRunList(QProg &,QVec&, int selectMax = -1);
@@ -215,9 +216,9 @@ std::vector<double> probRunList(QProg &,QVec&, int selectMax = -1);
 * @brief  Get pmeasure result as dict
 * @ingroup QuantumMachine
 * @param[in]  QProg&  Quantum program
-* @param[in]  QVec&  Pmeasure qubits vector
+* @param[in]  QVec&  pmeasure qubits vector
 * @param[in]  int Selectmax:the returned value num
-* @return     std::map<std::string, double>  Result
+* @return     std::map<std::string, double>  result
 * @note   SelectMax  can not exceed (1ull << the size of qubits vector)
 */
 std::map<std::string, double>  probRunDict(QProg &,QVec &, int selectMax = -1);
@@ -226,18 +227,18 @@ std::map<std::string, double>  probRunDict(QProg &,QVec &, int selectMax = -1);
 * @brief  Measure run with configuration
 * @ingroup QuantumMachine
 * @param[in]  QProg&  Quantum program
-* @param[in]  std::vector<ClassicalCondition>&  Cbits vector
+* @param[in]  std::vector<ClassicalCondition>&  cbits vector
 * @param[in]  int Shots:the repeat num  of measure operate
-* @return     std::map<std::string, size_t>   Result
+* @return     std::map<std::string, size_t>   result
 */
 std::map<std::string, size_t> runWithConfiguration(QProg &, std::vector<ClassicalCondition> &, int);
 
 /**
 * @brief  Quick measure operate
 * @ingroup QuantumMachine
-* @param[in]  QVec&  Qubits vector
+* @param[in]  QVec&  qubits vector
 * @param[in]  int Shots:the repeat num  of measure operate
-* @return     std::map<std::string,size_t>  Result
+* @return     std::map<std::string,size_t>  result
 */
 std::map<std::string, size_t> quickMeasure(QVec &, int);
 
@@ -246,17 +247,17 @@ std::map<std::string, size_t> quickMeasure(QVec &, int);
 /**
 * @brief  PMeasure
 * @ingroup QuantumMachine
-* @param[in]  QVec& Qubit  vector
+* @param[in]  QVec& qubit  vector
 * @param[in]  int  Selectmax:the returned value num
-* @return     std::vector<std::pair<size_t, double>>   Result
+* @return     std::vector<std::pair<size_t, double>>   result
 */
 std::vector<std::pair<size_t, double>> PMeasure(QVec& qubit_vector, int select_max);
 
 /**
 * @brief  PMeasure only return result  with no index
 * @ingroup QuantumMachine
-* @param[in]  QVec& Qubit  vector
-* @return     std::vector<double>  Result
+* @param[in]  QVec& qubit vector
+* @return     std::vector<double>  result
 */
 std::vector<double> PMeasure_no_index(QVec& qubit_vector);
 
@@ -273,7 +274,7 @@ std::vector<double> accumulateProbability(std::vector<double> &prob_list);
 /**
 * @brief  Quick measure
 * @ingroup QuantumMachine
-* @param[in]  QVec&  Qubits vector
+* @param[in]  QVec&  qubits vector
 * @param[in]  int Shots:the repeat num  of measure operate
 * @param[in]  std::vector<double>& accumulate  Probabilites 
 * @return     std::map<std::string,size_t>  Results
@@ -308,7 +309,7 @@ void destroyQuantumMachine(QuantumMachine * qvm);
 /**
 * @brief  Measure All  ClassicalCondition
 * @ingroup QuantumMachine
-* @param[in]  QVec&  Qubits vector
+* @param[in]  QVec&  qubits vector
 * @param[in]  std::vector<ClassicalCondition>&  Cbits vector
 * @return    QPanda::QProg   Quantum program
 */

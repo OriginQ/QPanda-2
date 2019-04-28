@@ -1,6 +1,3 @@
-
-#ifdef USE_CURL
-
 #include <fstream>
 #include <math.h>
 #include <algorithm>
@@ -8,10 +5,9 @@
 #include "include/Core/Utilities/base64.hpp"
 #include "include/Core/QuantumMachine/QCloudMachine.h"
 
-#define COMPUTEAPI    "https://qcode.qubitonline.cn/api/QCode/submitTask.json"
-#define BETA_COMPUTEAPI    "http://10.10.12.53:4630/api/QCode/QRunes2/submitTask.json"
-
-#define BETA_APIKEY "4570596AD0F545BEA0A7D81D2169EF98"
+#define DEFAULT_COMPUTEAPI    "http://10.10.10.53:4630/api/QCode/QRunes2/submitTask.json"
+#define DEFAULT_INQUREAPI     "http://10.10.12.53:4630/api/QCode/QRunes2/queryTask.json"
+#define DEFAULT_TOKEN         "3CD107AEF1364924B9325305BF046FF3"
 
 USING_QPANDA
 using namespace std;
@@ -22,13 +18,39 @@ QCloudMachine::QCloudMachine()
     curl_global_init(CURL_GLOBAL_ALL);
 }
 
-QCloudMachine::~QCloudMachine()
+QCloudMachine::~QCloudMachine()        
 {
     curl_global_cleanup();
 }
 
 void QCloudMachine::init()
 {
+    XmlConfigParam config;
+    if (!config.loadFile(CONFIG_PATH))
+    {
+        m_compute_url = DEFAULT_COMPUTEAPI;
+        m_inqure_url = DEFAULT_INQUREAPI;
+        m_token = DEFAULT_TOKEN;
+    }
+    else
+    {
+        map<string, string> QCloudConfig;
+        bool is_success = config.getQuantumCloudConfig(QCloudConfig);
+        if (!is_success)
+        {
+            QCERR("config error");
+            m_compute_url = DEFAULT_COMPUTEAPI;
+            m_inqure_url = DEFAULT_INQUREAPI;
+            m_token = DEFAULT_TOKEN;
+        }
+        else
+        {
+            m_compute_url = QCloudConfig["ComputeAPI"];
+            m_inqure_url = QCloudConfig["InqureAPI"];
+            m_token = QCloudConfig["APIKEY"];
+        }
+    }
+
     _start();
 }
 
@@ -43,9 +65,9 @@ size_t recvJsonData
 }
 
 std::string QPanda::QProgToBinary
-(size_t qubit_num, size_t cbit_num, QProg prog)
+(QProg prog,QuantumMachine* qm)
 {
-    auto avec = getQProgBinaryData(qubit_num, cbit_num, prog);
+    auto avec = transformQProgToBinary(prog,qm);
 
     auto res = Base64::encode(avec);
 
@@ -58,7 +80,7 @@ string QCloudMachine::runWithConfiguration
 {
     auto qubit_num = getAllocateQubit();
     rapidjson::Document::AllocatorType &allocator = parm.GetAllocator();
-    auto prog_bin = QProgToBinary(getAllocateQubit(), getAllocateCMem(), prog);
+    auto prog_bin = QProgToBinary(prog,this);
 
     rapidjson::Value json_elem(kStringType);
     json_elem.SetString(prog_bin.c_str(), (rapidjson::SizeType)prog_bin.size(), allocator);
@@ -71,10 +93,7 @@ string QCloudMachine::runWithConfiguration
     parm.Accept(writer);
 
     std::string post_json = buffer.GetString();
-    std::string recv_json = postHttpJson(BETA_COMPUTEAPI, post_json);
-
-    //cout << post_json << endl;
-    //cout << recv_json << endl;
+    std::string recv_json = postHttpJson(m_compute_url, post_json);
 
     Document recv_doc;
     if (recv_doc.Parse(recv_json.c_str()).HasParseError() ||
@@ -165,7 +184,7 @@ string QCloudMachine::probRunDict
 (QProg &prog, QVec qvec, rapidjson::Document &parm)
 {
     auto qubit_num = getAllocateQubit();
-    auto prog_bin = QProgToBinary(qubit_num, getAllocateCMem(), prog);
+    auto prog_bin = QProgToBinary(prog,this);
     rapidjson::Document::AllocatorType &allocator = parm.GetAllocator();
 
     rapidjson::Value prog_elem(kStringType);
@@ -189,10 +208,7 @@ string QCloudMachine::probRunDict
     parm.Accept(writer);
 
     std::string post_json = buffer.GetString();
-    std::string recv_json = postHttpJson(BETA_COMPUTEAPI, post_json);
-
-    //cout << post_json << endl;
-    //cout << recv_json << endl;
+    std::string recv_json = postHttpJson(m_compute_url, post_json);
 
     Document recv_doc;
     if (recv_doc.Parse(recv_json.c_str()).HasParseError() ||
@@ -224,7 +240,107 @@ string QCloudMachine::probRunDict
     }
 }
 
+std::map<std::string, double> QCloudMachine::getResult(std::string taskid)
+{
+    Document json_doc;
+    Document::AllocatorType &allocator = json_doc.GetAllocator();
+    Value root(kObjectType);
+    Value json_elem(kStringType);
+
+
+    json_elem.SetString(m_token.c_str(), (SizeType)m_token.size(), allocator);
+    root.AddMember("token", json_elem, allocator);
+
+    json_elem.SetString(taskid.c_str(), (SizeType)taskid.size(), allocator);
+    root.AddMember("taskid", json_elem, allocator);
+    root.AddMember("TaskType", 0, allocator);
+
+    StringBuffer buffer;
+    Writer<StringBuffer> writer(buffer);
+    root.Accept(writer);
+
+    std::string post_json = buffer.GetString();
+    std::string recv_json = postHttpJson(m_inqure_url, post_json);
+
+
+    std::map<std::string, double> recv_res;
+    std::cout << parserRecvJson(recv_json, recv_res) << std::endl;
+
+    return recv_res;
+}
+
+std::string QCloudMachine::parserRecvJson
+(std::string recv_json, std::map<std::string, double>& recv_res)
+{
+    Document recv_doc;
+    if (recv_doc.Parse(recv_json.c_str()).HasParseError())
+    {
+        return "inqure result failed : parser recv json error";
+    }
+    else
+    {
+        if (!recv_doc.HasMember("obj") 
+         || !recv_doc.HasMember("message")
+         || !recv_doc.HasMember("success"))
+        {
+            return "inqure result failed : obj/message/success not found";
+        } 
+        else
+        {
+            Value &is_success = recv_doc["success"];
+            if (!is_success.GetBool())
+            {
+                Value &message = recv_doc["message"];
+                return message.GetString();
+            }
+        }
+
+        Value &Obj = recv_doc["obj"];
+        if (!Obj.IsObject() || !Obj.HasMember("TaskState"))
+        {
+            return "inqure result failed : TaskState not found";
+        }
+        else
+        {
+            Value &tasksta = Obj["TaskState"];
+            switch (atoi(tasksta.GetString()))
+            {
+            case TASK_STATUS::WAITING: return "Waiting ...";
+            case TASK_STATUS::COMPUTING: return "Computing ...";
+            case TASK_STATUS::FAILED:
+            {
+                Value &err_msg = Obj["ErrorMsg"];
+                return err_msg.GetString();
+            }
+            case TASK_STATUS::FINISHED:
+            {
+                Document result_doc;
+                Value &res = Obj["TaskResult"];
+                if (result_doc.Parse(res.GetString()).HasParseError() 
+                || !result_doc.HasMember("key") 
+                || !result_doc.HasMember("value"))
+                {
+                    return "inqure result failed : key/value not found";
+                }
+                else
+                {
+                    Value &key = result_doc["key"];
+                    Value &value = result_doc["value"];
+
+                    for (SizeType i = 0; i < key.Size(); ++i)
+                    {
+                        recv_res.insert(make_pair(key[i].GetString(), value[i].GetDouble()));
+                    }
+                    return "inqure result success";
+                }
+            }
+            default:
+                return "inqure result failed : task status error";
+                break;
+            }
+        }
+    }
+}
 
 REGISTER_QUANTUM_MACHINE(QCloudMachine);
 
-#endif // USE_CURL

@@ -134,7 +134,7 @@ QStat SingleAmplitudeQVM::getQStat()
 
     auto qubit_num = m_prog_map.getQubitNum();
 
-    vector<qsize_t> qubit_vec;
+    vector<size_t> qubit_vec;
     for (size_t i = 0; i < qubit_num; ++i)
     {
         qubit_vec.emplace_back(i);
@@ -142,8 +142,7 @@ QStat SingleAmplitudeQVM::getQStat()
 
     vector<complex<double>> temp;
     auto vertice = m_prog_map.getVerticeMatrix();
-    qubit_vertice_t qubit_vertice_end;
-    qubit_vertice_t qubit_vertice_begen;
+    qubit_vertice_t qubit_vertice_end, qubit_vertice_begen;
 
     for (size_t i = 0; i < qubit_num; i++)
     {
@@ -197,7 +196,8 @@ double SingleAmplitudeQVM::PMeasure_index(size_t index)
         QCERR("pQProg is null");
         throw run_fail("pQProg is null");
     }
-    if (index <= 0 || index >(1ull<< m_prog_map.getQubitNum()))
+
+    if (index >=(1ull << m_prog_map.getQubitNum()))
     {
         QCERR("PMeasure error");
         throw qprog_syntax_error("PMeasure");
@@ -234,7 +234,7 @@ double SingleAmplitudeQVM::PMeasure_index(size_t index)
 }
 
 vector<double> 
-SingleAmplitudeQVM::PMeasure(QVec qvec, int select_max)
+SingleAmplitudeQVM::PMeasure(QVec qvec, size_t select_max)
 {
     run(m_prog);
     if (m_prog_map.isEmptyQProg())
@@ -250,8 +250,9 @@ SingleAmplitudeQVM::PMeasure(QVec qvec, int select_max)
     auto qubit_num = m_prog_map.getQubitNum();
     sort(qubit_vec.begin(), qubit_vec.end());
     auto iter = adjacent_find(qubit_vec.begin(), qubit_vec.end());
-    if ((qubit_vec.end() != iter) || select_max > (1 << qubit_vec.size())
-        || *(qubit_vec.end() - 1) > (qubit_num - 1))
+
+    if ((qubit_vec.end() != iter) || 
+         select_max >= (1ull << qubit_vec.size()))
     {
         QCERR("PMeasure error");
         throw qprog_syntax_error("PMeasure");
@@ -279,7 +280,7 @@ SingleAmplitudeQVM::PMeasure(QVec qvec, int select_max)
             auto iter = new_map->getVerticeMatrix()->getQubitMapIter(qubit_vec[i]);
             auto vertice_map_iter = (*iter).end();
             size_t value = j;
-            value = (value >>i) & 1;
+            value = (value >> i) & 1;
             if ((*iter).size() == 0)
             {
                 if (value != 0)
@@ -303,7 +304,7 @@ SingleAmplitudeQVM::PMeasure(QVec qvec, int select_max)
         }
         delete new_map;
     }
-    
+
     auto pmeasure_size = qubit_vec.size();
     if (pmeasure_size < m_prog_map.getQubitNum())
     {
@@ -321,26 +322,30 @@ SingleAmplitudeQVM::PMeasure(QVec qvec, int select_max)
         }
 
         vector<double> res;
-        for (int i = 0; i < select_max; ++i)
+        for (size_t i = 0; i < select_max; ++i)
         {
             res.emplace_back(result_vec[i]);
         }
         return res;
     }
-    else
+    else if (pmeasure_size == m_prog_map.getQubitNum())
     {
         vector<double> res;
-        for (int i = 0; i < select_max; ++i)
+        for (size_t i = 0; i < select_max; ++i)
         {
             res.emplace_back(temp[i]);
         }
         return res;
     }
-    
+    else
+    {
+        QCERR("PMeasure error");
+        throw qprog_syntax_error("PMeasure");
+    }
 }
 
 vector<pair<size_t, double>> 
-SingleAmplitudeQVM::PMeasure(int select_max)
+SingleAmplitudeQVM::PMeasure(size_t select_max)
 {
     run(m_prog);
     if (m_prog_map.isEmptyQProg())
@@ -349,13 +354,14 @@ SingleAmplitudeQVM::PMeasure(int select_max)
         throw run_fail("pQProg is null");
     }
     auto qubit_num = m_prog_map.getQubitNum();
-    if (select_max > (1 << qubit_num))
+
+    if (select_max > (1ull << qubit_num))
     {
         QCERR("PMeasure Error");
         throw qprog_syntax_error("PMeasure");
     }
 
-    vector<qsize_t> qubit_vec;
+    vector<size_t> qubit_vec;
     for (size_t i = 0; i < qubit_num; ++i)
     {
         qubit_vec.emplace_back(i);
@@ -416,13 +422,13 @@ SingleAmplitudeQVM::PMeasure(int select_max)
 
 
 std::vector<double> 
-SingleAmplitudeQVM::getProbList(QVec qvec, int select_max)
+SingleAmplitudeQVM::getProbList(QVec qvec, size_t select_max)
 {
     return PMeasure(qvec, select_max);
 }
 
 std::vector<double> 
-SingleAmplitudeQVM::probRunList(QProg &prog, QVec qvec, int select_max)
+SingleAmplitudeQVM::probRunList(QProg &prog, QVec qvec, size_t select_max)
 {
     run(prog);
     return PMeasure(qvec, select_max);
@@ -430,7 +436,7 @@ SingleAmplitudeQVM::probRunList(QProg &prog, QVec qvec, int select_max)
 
 
 std::map<std::string, double> 
-SingleAmplitudeQVM::getProbDict(QVec qvec, int select_max)
+SingleAmplitudeQVM::getProbDict(QVec qvec, size_t select_max)
 {
     auto res = PMeasure(qvec, select_max);
 
@@ -449,7 +455,7 @@ SingleAmplitudeQVM::getProbDict(QVec qvec, int select_max)
 }
 
 std::map<std::string, double> 
-SingleAmplitudeQVM::probRunDict(QProg &prog, QVec qvec, int select_max)    
+SingleAmplitudeQVM::probRunDict(QProg &prog, QVec qvec, size_t select_max)    
 {
     run(prog);
     return getProbDict(qvec,select_max);
@@ -457,7 +463,7 @@ SingleAmplitudeQVM::probRunDict(QProg &prog, QVec qvec, int select_max)
 
 
 std::vector<std::pair<size_t, double>> 
-SingleAmplitudeQVM::getProbTupleList(QVec qvec, int select_max)
+SingleAmplitudeQVM::getProbTupleList(QVec qvec, size_t select_max)
 {
     auto res = PMeasure(qvec, select_max);
     std::vector<std::pair<size_t, double>> result_vec;
@@ -469,7 +475,7 @@ SingleAmplitudeQVM::getProbTupleList(QVec qvec, int select_max)
 }
 
 std::vector<std::pair<size_t, double>> 
-SingleAmplitudeQVM::probRunTupleList(QProg &prog, QVec qvec, int select_max)
+SingleAmplitudeQVM::probRunTupleList(QProg &prog, QVec qvec, size_t select_max)
 {
     run(prog);
     return getProbTupleList(qvec, select_max);

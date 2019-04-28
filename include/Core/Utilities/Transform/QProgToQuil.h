@@ -73,7 +73,7 @@ private:
 /**
 * @brief  Quantum program transform to quil instruction set interface
 * @ingroup Utilities
-* @param[in]  QProg&   Quantum Prog
+* @param[in]  QProg&   quantum program
 * @return     std::string   instruction set
 * @see
       @code

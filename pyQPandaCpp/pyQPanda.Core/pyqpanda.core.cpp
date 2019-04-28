@@ -18,8 +18,7 @@
 #include "Optimizer/OptimizerFactory.h"
 #include "Optimizer/OriginNelderMead.h"
 #include "Core/QuantumMachine/QCloudMachine.h"
-
-
+#include "Core/Utilities/Transform/QProgClockCycle.h"
 
 USING_QPANDA
 using namespace std;
@@ -394,8 +393,46 @@ PYBIND11_MODULE(pyQPanda, m)
         py::return_value_policy::automatic
     );
 
+    m.def("to_QRunes", &transformQProgToQRunes,"program"_a, "qvm"_a, "QProg to QRunes",
+        py::return_value_policy::automatic_reference
+    );
 
-    m.def("qRunesProg", &transformQProgToQRunes,"program"_a, "qvm"_a, "QProg to QRunes",
+    m.def("to_QASM", &transformQProgToQASM, "program"_a, "qvm"_a, "QProg to QASM",
+        py::return_value_policy::automatic_reference
+    );
+
+    m.def("to_Quil", &transformQProgToQuil, "program"_a, "qvm"_a, "QProg to Quil",
+        py::return_value_policy::automatic_reference
+    );
+
+    m.def("count_gate", [](QProg & qn)
+    {return getQGateNumber(qn); },
+        "quantum_prog"_a,
+        "Count quantum gate num under quantum program, quantum circuit",
+        py::return_value_policy::automatic
+        );
+
+    m.def("count_gate", [](QCircuit & qn)
+    {return getQGateNumber(qn); },
+        "quantum_circuit"_a,
+        "Count quantum gate num under quantum program, quantum circuit",
+        py::return_value_policy::automatic
+        );
+
+    m.def("get_clock_cycle", &getQProgClockCycle, "qvm"_a,"program"_a, "Get Quantum Program Clock Cycle",
+        py::return_value_policy::automatic_reference
+    );
+
+    m.def("get_bin_data", &transformQProgToBinary, "program"_a ,"qvm"_a, "Get quantum program binary data",
+        py::return_value_policy::automatic_reference
+    );
+
+    m.def("get_bin_str", &QProgToBinary, "program"_a, "qvm"_a, "Get quantum program binary data string",
+        py::return_value_policy::automatic_reference
+    );
+
+    m.def("bin_to_prog", &binaryQProgDataParse, "qvm"_a, "data"_a, "qlist"_a, "clist"_a, "program"_a,
+        "Parse quantum program interface for  binary data vector",
         py::return_value_policy::automatic_reference
     );
 
@@ -461,6 +498,10 @@ PYBIND11_MODULE(pyQPanda, m)
             py::return_value_policy::reference)
         .def("dagger", &QCircuit::dagger)
         .def("control", &QCircuit::control);
+
+    py::class_<HadamardQCircuit, QCircuit>(m, "Hadamard_Circuit")
+        .def(py::init<QVec&>());
+
 
     py::class_<QGate>(m, "QGate")
         .def("dagger", &QGate::dagger)
@@ -1116,13 +1157,8 @@ PYBIND11_MODULE(pyQPanda, m)
         .def_readwrite("para", &QPanda::QOptimizationResult::para);
 
 #ifdef USE_CURL
-    m.def("QProgToBinary", [](size_t qubit_num, size_t cbit_num, QProg prog)
-    {return QProgToBinary(qubit_num, cbit_num, prog); },
-        "QProg To BinaryData",
-        py::return_value_policy::automatic_reference
-    );
-
     py::class_<QCloudMachine, QuantumMachine>(m, "QCloud")
+        .def(py::init<>())
         .def("initQVM", &QCloudMachine::init, "init quantum virtual machine")
         .def("finalize", &QCloudMachine::finalize, "finalize")
         .def("qAlloc", qalloc, "Allocate a qubit", py::return_value_policy::reference)
@@ -1139,26 +1175,29 @@ PYBIND11_MODULE(pyQPanda, m)
             "Free a list of cbits")
         .def("getAllocateQubitNum", get_allocate_qubit, "getAllocateQubitNum", py::return_value_policy::reference)
         .def("getAllocateCMem", get_allocate_CMem, "getAllocateCMem", py::return_value_policy::reference)
-        .def(py::init<>())
         .def("run_with_configuration", [](QCloudMachine &qcm, QProg & prog, py::dict param)
-    {
-        py::object json = py::module::import("json");
-        py::object dumps = json.attr("dumps");
-        auto json_string = std::string(py::str(dumps(param)));
-        rapidjson::Document doc;
-        auto &alloc = doc.GetAllocator();
-        doc.Parse(json_string.c_str());
-        return qcm.runWithConfiguration(prog, doc);
-    })
+            {
+                py::object json = py::module::import("json");
+                py::object dumps = json.attr("dumps");
+                auto json_string = std::string(py::str(dumps(param)));
+                rapidjson::Document doc;
+                auto &alloc = doc.GetAllocator();
+                doc.Parse(json_string.c_str());
+                return qcm.runWithConfiguration(prog, doc);
+            })
         .def("prob_run_dict", [](QCloudMachine &qcm, QProg & prog, QVec qvec, py::dict param)
-    {
-        py::object json = py::module::import("json");
-        py::object dumps = json.attr("dumps");
-        auto json_string = std::string(py::str(dumps(param)));
-        rapidjson::Document doc;
-        auto &alloc = doc.GetAllocator();
-        doc.Parse(json_string.c_str());
-        return qcm.probRunDict(prog, qvec, doc);
-    });
+            {
+                py::object json = py::module::import("json");
+                py::object dumps = json.attr("dumps");
+                auto json_string = std::string(py::str(dumps(param)));
+                rapidjson::Document doc;
+                auto &alloc = doc.GetAllocator();
+                doc.Parse(json_string.c_str());
+                return qcm.probRunDict(prog, qvec, doc);
+            })
+        .def("get_result", [](QCloudMachine &qcm, std::string tasdid)
+        {
+            return qcm.getResult(tasdid);
+        });
 #endif // USE_CURL
 }

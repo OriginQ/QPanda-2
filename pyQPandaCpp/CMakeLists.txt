@@ -1,6 +1,3 @@
 cmake_minimum_required(VERSION 3.1)
-#if (MSVC)
-    #add_compile_options("/bigobj")
-#endif(MSVC)
 add_subdirectory(pyQPanda.Core)
 add_subdirectory(pyQPanda.PauliOperator)

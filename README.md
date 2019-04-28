@@ -146,7 +146,7 @@ pyQPanda只需要通过pip就可安装使用。
     00 : 512
     11 : 488 
 
-一个示例不够？请移步到[Applications]()，这里有更多示例。
+一个示例不够？请移步到[Applications](./Applications)，这里有更多示例。
 
 ## 团队介绍
 

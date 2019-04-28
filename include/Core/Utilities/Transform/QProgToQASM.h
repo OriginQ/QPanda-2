@@ -43,7 +43,7 @@ public:
     virtual std::string getInsturctions();
 
     /*!
-    * @brief  transform Quantum program
+    * @brief  Transform Quantum program
     * @param[in]  QProg&  quantum program
     * @return     void  
     * @exception

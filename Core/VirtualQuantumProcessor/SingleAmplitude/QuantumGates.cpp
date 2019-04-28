@@ -58,9 +58,11 @@ static void addDoubleDiagonalGateVerticeAndEdge(QuantumProgMap & prog_map,
 
     auto vertice_qubit2_id = vertice_matrix->getQubitVerticeLastID(qubit2);
 
+    
     vector<pair<qsize_t, qsize_t>> contect_vertice =
                 { { qubit1,vertice_qubit1_id },
                   { qubit2,vertice_qubit2_id } };
+
     edge_count++;
     Edge edge(2, temp, contect_vertice);
     edge_map->insert(pair<qsize_t, Edge>(edge_count, edge));

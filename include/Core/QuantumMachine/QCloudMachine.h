@@ -1,20 +1,7 @@
-/*
-* Copyright (c) 2019 Origin Quantum Computing. All Right Reserved.
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-* http://www.apache.org/licenses/LICENSE-2.0
-*/
 /*! \file QCloudMachine.h */
 #ifndef QCLOUD_MACHINE_H
 #define QCLOUD_MACHINE_H
-
-#ifdef USE_CURL
-
 #include <include/QPandaConfig.h>
-//#ifdef USE_CURL
-
 #include "QPanda.h"
 
 #ifdef USE_CURL
@@ -25,7 +12,6 @@
 #include "ThirdParty/rapidjson/writer.h"
 #include "ThirdParty/rapidjson/stringbuffer.h"
 #include "include/Core/QuantumMachine/Factory.h"
-using namespace rapidjson;
 QPANDA_BEGIN
 /**
 * @namespace QPanda
@@ -33,9 +19,10 @@ QPANDA_BEGIN
 
 /*
 * @class QCloudMachine
-* @brief Quantum Cloud Machine  for  connecting  QCloud server
+* @brief Quantum Cloud Machine  for connecting  QCloud server
 * @ingroup QuantumMachine
-* @note  QCloudMachine  also provides  python interface
+* @see QuantumMachine
+* @note  QCloudMachine also provides  python interface
 */
 class QCloudMachine:public QVM
 {
@@ -44,9 +31,9 @@ public:
     ~QCloudMachine();
 
     /**
-    * @brief  Init  the quantum  machine environment
+    * @brief  Init the quantum machine environment
     * @return     void
-    * @note   use  this at the begin
+    * @note   use this at the begin
     */
     void init();
 
@@ -87,24 +74,31 @@ public:
     */
     std::string probRunDict(QProg &,QVec, rapidjson::Document &);
 
+    std::map<std::string, double> getResult(std::string taskid);
+
+
+
 private:
-    /** @brief TASK_TYPE enum, with inline docs */
+    std::string m_compute_url;
+    std::string m_inqure_url;
+    std::string m_token;
+
     enum TASK_TYPE
     {
-        MEASURE = 0, /**< enum value MEASURE. */
-        PMEASURE     /**< enum value PMEASURE. */
+        MEASURE = 0,
+        PMEASURE
     }; 
 
-    /*
-    	@brief  PostHttpJson
-    	@author Yulei
-    	@date   2019/04/08 13:38
-    	@param[out] 
-    	@param[in]  const std::string &  
-    	@param[in]  std::string &  
-    	@return     std::string  
-    */
+    enum TASK_STATUS
+    {
+        WAITING = 1,
+        COMPUTING,
+        FINISHED,
+        FAILED
+    };
+
     std::string postHttpJson(const std::string &, std::string &);
+    std::string parserRecvJson(std::string recv_json, std::map<std::string, double>& recv_res);
 };
 
 
@@ -116,10 +110,8 @@ private:
 * @param[in]  QProg the reference to a quantum program
 * @return     std::string  binary data
 */
-std::string QProgToBinary(size_t qubit_num, size_t cbit_num, QProg prog);
+std::string QProgToBinary(QProg,QuantumMachine*);
 
 
 QPANDA_END
 #endif // USE_CURL
-
-#endif

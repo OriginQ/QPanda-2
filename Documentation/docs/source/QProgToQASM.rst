@@ -44,21 +44,7 @@ QASM(Quantum Assembly Language)是IBM公司提出的量子汇编语言，与 :re
 
 关于QASM更多详细信息的介绍、使用与体验请参考 `IBM Q Experience量子云平台`_
 
-
-接口介绍
->>>>>>>>>>>>>>>>>
-----
-
-你可以通过调用 ``qProgToQASM(QProg &)`` 接口来调用该功能,该接口说明如下：
-
-    .. cpp:function:: qProgToQASM(QProg &)
-
-       **功能**
-            将量子程序转化为QASM
-       **参数**
-            - QProg 待转化的量子程序
-       **返回值**
-            QASM指令集
+QPanda2提供了QASM转换工具接口 ``std::string transformQProgToQASM(QProg &, QuantumMachine*)`` 该接口使用非常简单，具体可参考下方示例程序。
 
 实例
 >>>>>>>>>>>>>>
@@ -73,28 +59,64 @@ QASM(Quantum Assembly Language)是IBM公司提出的量子汇编语言，与 :re
 
         int main(void)
         {
-            init(QuantumMachine_type::CPU);
+            auto qvm = initQuantumMachine();
 
-            auto qubit = qAllocMany(6);
-            auto cbit  = cAllocMany(2);     
             auto prog = CreateEmptyQProg();
+            auto cir = CreateEmptyCircuit();
 
-            prog << CZ(qubit[0], qubit[2]) << H(qubit[1]) << CNOT(qubit[1], qubit[2]) 
-                 << RX(qubit[0],pi/2) << Measure(qubit[1],cbit[1]);
+            auto q = qvm->allocateQubits(6);
+            auto c = qvm->allocateCBits(6);
 
-            std::cout << qProgToQASM(prog) << std::endl;
 
-            finalize();
+            cir << Y(q[2]) << H(q[2]);
+            cir.setDagger(true);
+
+            auto h1 = H(q[1]);
+            h1.setDagger(true);
+            
+            prog << H(q[1]) 
+                 << X(q[2]) 
+                 << h1 
+                 << RX(q[1], 2 / PI) 
+                 << cir 
+                 << CR(q[1], q[2], PI / 2)
+                 <<MeasureAll(q,c);
+
+            cout << transformQProgToQASM(prog,qvm);
+
+            qvm->finalize();
+            delete qvm;
             return 0;
         }
 
-
 具体步骤如下:
 
- - 首先在主程序中用 ``init()`` 进行全局初始化
+ - 首先在主程序中用 ``initQuantumMachine()`` 初始化一个量子虚拟机对象，用于管理后续一系列行为
 
- - 接着用 ``qAllocMany()`` 和 ``cAllocMany()`` 初始化量子比特与经典寄存器数目
+ - 接着用 ``allocateQubits()`` 和 ``allocateCBits()`` 初始化量子比特与经典寄存器数目
 
  - 然后调用 ``CreateEmptyQProg()`` 构建量子程序
 
- - 最后调用接口 ``qProgToQASM(QProg &)`` 输出QASM指令集并用 ``finalize()`` 释放系统资源
+ - 最后调用接口 ``transformQProgToQASM`` 输出QASM指令集并用 ``finalize()`` 释放系统资源
+
+
+运行结果如下：
+
+    .. code-block:: c
+
+        openqasm 2.0;
+        qreg q[6];
+        creg c[6];
+        h q[1];
+        x q[2];
+        hdg q[1];
+        rx(0.636620) q[1];
+        hdg q[2];
+        ydg q[2];
+        cr(1.570796) q[1],q[2];
+        measure q[0] -> c[0];
+        measure q[1] -> c[1];
+        measure q[2] -> c[2];
+        measure q[3] -> c[3];
+        measure q[4] -> c[4];
+        measure q[5] -> c[5];

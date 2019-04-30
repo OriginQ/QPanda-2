@@ -64,13 +64,6 @@ QPanda由本源量子软件团队开发和维护。自2018年起，QPanda依据A
     QProgToQuil
 
 .. toctree::
-    :caption: 应用算法
-    :maxdepth: 2
-
-    QAOA
-    VQE
-
-.. toctree::
     :caption: 算法组件
     :maxdepth: 2
 
@@ -82,10 +75,9 @@ QPanda由本源量子软件团队开发和维护。自2018年起，QPanda依据A
     :caption: VQNet
     :maxdepth: 2
     
-    Variable
+    Var
     VarOperator
-    Expression
-    VariableQGate
-    VariableQCircuit
+    VQG
+    VQC
     GradientOptimizer
     VQNetExample

@@ -1,149 +1,53 @@
-如何使用
-===========
-为了兼容 \ **高效**\与\ **便捷**\，我们为您提供了C++ 和 Python（pyQPanda）两个版本，pyQPanda封装了C++对外提供的接口。
+系统配置和下载
+=========================
 
-Python 
----------
+.. _pyqpanda: https://qpanda-2.readthedocs.io/zh_CN/latest/
+为了兼容 \ **高效**\与\ **便捷**\，QPanda2提供了C++ 和 Python(后期会发布Python版本的使用文档) 两个版本，本文中主要介绍C++版本的使用。
 
-pyQPanda只需要通过pip就可安装使用。
-
-    .. code-block:: c
-
-        pip install pyqpanda
-
-我们接下来通过一个示例介绍pyQPanda的使用，此例子构造了一个量子叠加态。在量子程序中依次添加H门和CNOT门，最后对所有的量子比特进行测量操作。此时，将有50%的概率得到00或者11的测量结果。
-    
-    .. code-block:: c
-    
-        from pyqpanda import *
-
-        init(QMachineType.CPU)
-        prog = QProg()
-        q = qAlloc_many(2)
-        c = cAlloc_many(2)
-        prog.insert(H(q[0]))
-        prog.insert(CNOT(q[0],q[1]))
-        prog.insert(measure_all(q,c))
-        result = run_with_configuration(prog, cbit_list = c, shots = 1000)
-        print(result)
-        finalize()
-
-运行结果如下:
-
-    .. code-block:: c
-
-        {'00': 493, '11': 507}
-
-C++
----------
-
-使用QPanda 2相对于pyQPanda会复杂一些，不过学会编译和使用QPanda 2，您会有更多的体验，话不多说，我们先从介绍Linux下的编译环境开始。
+.. 如要了解和学习python版本的使用请移步 pyqpanda_。
 
 编译环境
->>>>>>>>>>
+>>>>>>>>>>>>
 
-在下载编译之前，我们需要：
+QPanda-2是以C++为宿主语言，其对系统的环境要求如下：
 
 .. list-table::
 
     * - software
       - version
     * - CMake
-      - >= 5.0
+      - >= 3.1
     * - GCC
-      - >= 3.1 
+      - >= 5.0 
     * - Python
       - >= 3.6.0  
 
 
-下载和编译
->>>>>>>>>>>>
+下载QPanda-2
+>>>>>>>>>>>>>>>>>
 
-我们需要在Linux终端下输入以下命令：
+如果在您的系统上已经安装了git， 你可以直接输入以下命令来获取QPanda2：
 
     .. code-block:: c
 
         $ git clone https://github.com/OriginQ/QPanda-2.git
-        $ cd qpanda-2
-        $ mkdir build
-        $ cd build
-        $ cmake -DCMAKE_INSTALL_PREFIX=/usr/local .. 
-        $ make
-    
-安装
->>>>>>>>
 
-编译完成后，安装就简单的多，只需要输入以下命令：
+当然了，对于一些为安装git的伙伴来说，也可以直接通过浏览器去下载QPanda-2， 具体的操作步骤如下：
 
-    .. code-block:: c
+1. 在浏览器中输入 https://github.com/OriginQ/QPanda-2 ， 进入网页会看到：
 
-        $ make install
+.. image:: images/QPanda_github.png
+    :align: center  
 
-开始量子编程
->>>>>>>>>>>>>>
+2. 点击 ``Clone or Download`` 看到如下界面：
 
-现在我们来到最后一关，创建和编译自己的量子应用。
+.. image:: images/Clone.png
+    :align: center  
 
-我相信对于关心如何使用QPanda 2的朋友来说，如何创建C++项目，不需要我多说。不过，我还是需要提供CMakelist的示例，方便大家参考。
+3. 然后点击 ``Download zip``， 就会完成QPanda2的下载。
 
-    .. code-block:: c
+.. image:: images/Download.png
+    :align: center  
 
-        cmake_minimum_required(VERSION 3.1)
-        project(testQPanda)
-        SET(CMAKE_INSTALL_PREFIX "/usr/local")
-        SET(CMAKE_MODULE_PATH  ${CMAKE_MODULE_PATH} "${CMAKE_INSTALL_PREFIX} lib/cmake")
-
-        add_definitions("-std=c++14 -w -DGTEST_USE_OWN_TR1_TUPLE=1")
-        set(CMAKE_BUILD_TYPE "Release")
-        set(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -g -ggdb")
-        set(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3")
-        add_compile_options(-fPIC -fpermissive)
-        find_package(QPANDA REQUIRED)
-        if (QPANDA_FOUND)
-
-            include_directories(${QPANDA_INCLUDE_DIR}
-                            ${THIRD_INCLUDE_DIR})
-            add_executable(${PROJECT_NAME} test.cpp)
-            target_link_libraries(${PROJECT_NAME} ${QPANDA_LIBRARIES})
-        endif (QPANDA_FOUND)
-
-
-下面的示例和Python版本提供的示例是一样的，在这里我就不多说了。
-
-    .. code-block:: c
-
-        #include "QPanda.h"
-        #include <stdio.h>
-        using namespace QPanda;
-        int main()
-        {
-            init(QMachineType::CPU);
-            QProg prog;
-            auto q = qAllocMany(2);
-            auto c = cAllocMany(2);
-            prog << H(q[0])
-                << CNOT(q[0],q[1])
-                << MeasureAll(q, c);
-            auto results = runWithConfiguration(prog, c, 1000);
-            for (auto result : results){
-                printf("%s : %d\n", result.first.c_str(), result.second);
-            }
-            finalize();
-        }
-
-最后，编译，齐活。
-
-    .. code-block:: c
-
-        $ mkdir build
-        $ cd build
-        $ cmake .. 
-        $ make
-
-运行结果如下:
-
-    .. code-block:: c
-
-        00 : 512
-        11 : 488 
+4. 解压下载的文件，就会看到我们的QPanda-2项目。
 

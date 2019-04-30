@@ -4,8 +4,6 @@
 
 通过该功能模块，你可以解析通过QPanda2构建的量子程序，将其中包含的量子比特信息以及量子逻辑门操作信息提取出来，得到按固定格式存储的QRunes指令集。
 
-
-
 .. _本源量子计算云平台官网: https://qcode.qubitonline.cn/QCode/index.html
 
 .. _QRunes介绍:
@@ -54,20 +52,7 @@ QRunes语句中部分关键词作用如下：
 
 关于QRunes更多详细信息的介绍、使用与体验请参考 `本源量子计算云平台官网`_
 
-接口介绍
->>>>>>>>>>>>>>>>>
-----
-
-你可以通过调用 ``qProgToQRunes(QProg &)`` 接口来调用该功能,该接口说明如下：
-
-    .. cpp:function:: qProgToQRunes(QProg  &)
-
-       **功能**
-            将量子程序转化为QRunes
-       **参数**
-            - QProg 待转化的量子程序
-       **返回值**
-            QRunes指令集
+QPanda2提供了QRunes转换工具接口 ``std::string transformQProgToQRunes(QProg &, QuantumMachine*)`` 该接口使用非常简单，具体可参考下方示例程序。
 
 实例
 >>>>>>>>>>>>>>
@@ -82,30 +67,70 @@ QRunes语句中部分关键词作用如下：
 
         int main(void)
         {
-            init(QuantumMachine_type::CPU);
+            auto qvm = initQuantumMachine();
 
-            auto qubit = qAllocMany(6);
-            auto cbit  = cAllocMany(2);     
             auto prog = CreateEmptyQProg();
+            auto cir = CreateEmptyCircuit();
 
-            prog << CZ(qubit[0], qubit[2]) << H(qubit[1]) << CNOT(qubit[1], qubit[2]) 
-                 << RX(qubit[0],pi/2) << Measure(qubit[1],cbit[1]);
+            auto q = qvm->allocateQubits(6);
+            auto c = qvm->allocateCBits(6);
 
-            std::cout << qProgToQRunes(prog) << std::endl;
 
-            finalize();
+            cir << Y(q[2]) << H(q[2]);
+            cir.setDagger(true);
+
+            auto h1 = H(q[1]);
+            h1.setDagger(true);
+            
+            prog << H(q[1]) 
+                << X(q[2]) 
+                << h1 
+                << RX(q[1], 2 / PI) 
+                << cir 
+                << CR(q[1], q[2], PI / 2)
+                <<MeasureAll(q,c);
+
+            cout << transformQProgToQRunes(prog,qvm);
+
+            qvm->finalize();
+            delete qvm;
             return 0;
         }
 
 
+
 具体步骤如下:
 
- - 首先在主程序中用 ``init()`` 进行全局初始化
+ - 首先在主程序中用 ``initQuantumMachine()`` 初始化一个量子虚拟机对象，用于管理后续一系列行为
 
- - 接着用 ``qAllocMany()`` 和 ``cAllocMany()`` 初始化量子比特与经典寄存器数目
+ - 接着用 ``allocateQubits()`` 和 ``allocateCBits()`` 初始化量子比特与经典寄存器数目
 
  - 然后调用 ``CreateEmptyQProg()`` 构建量子程序
 
- - 最后调用接口 ``qProgToQRunes(QProg &)`` 输出QRunes指令集并用 ``finalize()`` 释放系统资源
+ - 最后调用接口 ``transformQProgToQRunes`` 输出QRunes指令集并用 ``finalize()`` 释放系统资源
+
+运行结果如下：
+
+    .. code-block:: c
+
+        QINIT 6
+        CREG 6
+        H 1
+        X 2
+        DAGGER
+        H 1
+        ENDAGGER
+        RX 1,"0.636620"
+        DAGGER
+        Y 2
+        H 2
+        ENDAGGER
+        CR 1,2,"1.570796"
+        MEASURE 0,$0
+        MEASURE 1,$1
+        MEASURE 2,$2
+        MEASURE 3,$3
+        MEASURE 4,$4
+        MEASURE 5,$5
 
    .. note:: 对于暂不支持的操作类型，QRunes会显示UnSupported XXXNode，其中XXX为具体的节点类型。

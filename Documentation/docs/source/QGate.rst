@@ -26,19 +26,15 @@
    :width: 70px
    :height: 70px
 
-.. |NOT| image:: images/not.svg
+.. |RX| image:: images/X_Theta.svg
    :width: 70px
    :height: 70px
 
-.. |RX| image:: images/Xθ.svg
+.. |RY| image:: images/Y_Theta.svg
    :width: 70px
    :height: 70px
 
-.. |RY| image:: images/Yθ.svg
-   :width: 70px
-   :height: 70px
-
-.. |RZ| image:: images/Zθ.svg
+.. |RZ| image:: images/Z_Theta.svg
    :width: 70px
    :height: 70px
 
@@ -50,7 +46,7 @@
    :width: 70px
    :height: 70px
 
-.. |iSWAP| image:: images/切换.svg
+.. |iSWAP| image:: images/iSWAP.svg
    :width: 70px
    :height: 70px
 
@@ -63,7 +59,6 @@
 |X|                                                                                                 ``Pauli-X``                         .. math:: \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}\quad
 |Y|                                                                                                 ``Pauli-Y``                         .. math:: \begin{bmatrix} 0 & -i \\ i & 0 \end{bmatrix}\quad
 |Z|                                                                                                 ``Pauli-Z``                         .. math:: \begin{bmatrix} 1 & 0 \\ 0 & -1 \end{bmatrix}\quad
-|NOT|                                                                                               ``NOT``                             .. math:: \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}\quad
 |RX|                                                                                                ``RX``                              .. math:: \begin{bmatrix} \cos(θ/2) & -1i×\sin(θ/2) \\ -1i×\sin(θ/2) & \cos(θ/2) \end{bmatrix}\quad
 |RY|                                                                                                ``RY``                              .. math:: \begin{bmatrix} \cos(θ/2) & \sin(θ/2) \\ \sin(θ/2) & \cos(θ/2) \end{bmatrix}\quad
 |RZ|                                                                                                ``RZ``                              .. math:: \begin{bmatrix} \exp(-iθ/2) & 0 \\ 0 & \exp(iθ/2) \end{bmatrix}\quad

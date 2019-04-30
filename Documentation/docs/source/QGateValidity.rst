@@ -1,3 +1,5 @@
+.. _QGateVaildity:
+
 量子门的有效性
 =================
 
@@ -34,33 +36,27 @@
 接口介绍
 ---------------
 
-.. cpp:class:: SingleGateTypeValidator
+``SingleGateTypeValidator`` 是验证单量子逻辑门有效性的工具类，使用方式如下：
 
-    判断单量子门的有效性。
+    .. code-block:: c
 
-    .. cpp:function:: SingleGateTypeValidator::GateType(std::vector<std::string>&gates, std::vector<std::string>&valid_gates)
-    
-    **功能**
-        判断单量子门的有效性，并输出有效组合。
-    **参数**  
-        - gates 输入的单量子门
-        - valid_gates 输出有效的单量子门组合
-    **返回值** 
-        单量子门有效的组合类型。
+        std::vector<std::string> single_gate;
+        std::vector<std::string> valid_single_gate; // 有效的量子逻辑门组合会输出到这个容器中
+        single_gate.push_back("T");
+        single_gate.push_back("H");
+        single_gate.push_back("S");
+        auto single_gate_type = SingleGateTypeValidator::GateType(single_gate, valid_single_gate); // 得到有效的量子逻辑门组合，和有效组合的类型
 
-.. cpp:class:: DoubleGateTypeValidator
+``DoubleGateTypeValidator`` 是验证双量子逻辑门有效性的工具类，使用方式如下：
 
-    判断双量子门的有效性。
+    .. code-block:: c
 
-    .. cpp:function:: doubleGateTypeValidator::GateType(std::vector<std::string>&gates, std::vector<std::string>&valid_gates)
-    
-    **功能**
-        判断双量子门的有效性，并输出有效组合。  
-    **参数**
-        - gates 输入的双量子门
-        - valid_gates 输出有效的双量子门组合 
-    **返回值** 
-        双量子门有效的组合类型。
+        std::vector<std::string> double_gate;
+        std::vector<std::string> valid_double_gate; // 有效的量子逻辑门组合会输出到这个容器中
+        double_gate.push_back("CNOT");
+        double_gate.push_back("SWAP");
+        double_gate.push_back("CZ");
+        auto double_gate_type = DoubleGateTypeValidator::GateType(double_gate, valid_double_gate); // 得到有效的量子逻辑门组合，和有效组合的类型
 
 实例
 ------------
@@ -74,32 +70,47 @@
         {
             // 单量子门有效性验证
             std::vector<std::string> single_gate;
-            std::vector<std::string> valid_single_gate;
+            std::vector<std::string> valid_single_gate; // 有效的量子逻辑门组合会输出到这个容器中
             single_gate.push_back("T");
             single_gate.push_back("H");
             single_gate.push_back("S");
+
+            // 得到有效的量子逻辑门组合，和有效组合的类型
             auto single_gate_type = SingleGateTypeValidator::GateType(single_gate, valid_single_gate);
 
             std::cout << "SingleGateTransferType: " << single_gate_type << std::endl;
             for (auto &val : valid_single_gate)
             {
-                std::cout << val << std::endl;
+                std::cout << val << " ";
             }
+            std::cout << std::endl;
 
             // 双量子门有效性验证
             std::vector<std::string> double_gate;
-            std::vector<std::string> valid_double_gate;
+            std::vector<std::string> valid_double_gate; // 有效的量子逻辑门组合会输出到这个容器中
             double_gate.push_back("CNOT");
             double_gate.push_back("SWAP");
             double_gate.push_back("CZ");
+
+            // 得到有效的量子逻辑门组合，和有效组合的类型
             auto double_gate_type = DoubleGateTypeValidator::GateType(double_gate, valid_double_gate);
 
             std::cout << "doubleGateTransferType: " << double_gate_type << std::endl;
             for (auto &val : valid_double_gate)
             {
-                std::cout << val << std::endl;
+                std::cout << val << " ";
             }
+            std::cout << std::endl;
 
             return 0;
         }
+
     
+运行结果：
+
+    .. code-block:: c
+
+        SingleGateTransferType: 3
+        T H 
+        doubleGateTransferType: 0
+        CNOT 

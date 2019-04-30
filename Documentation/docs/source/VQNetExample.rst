@@ -32,10 +32,10 @@ QAOA
         return PauliOperator(pauli_map);
     }
 
-然后，使用哈密顿量和变量x，构建 ``QAOA`` 的vqc。 
-``QOP`` 的输入参数是问题哈密顿量和 ``VQC``，``QOP`` 的输出是问题哈密顿量的期望。 
+然后，使用哈密顿量和待优化的变量参数x，构建 ``QAOA`` 的vqc。 
+``QOP`` 的输入参数是问题哈密顿量、``VQC`` 、一组量子比特和量子运行环境。``QOP`` 的输出是问题哈密顿量的期望。 
 在这个问题中，损失函数是问题哈密顿量的期望，因此需要最小化 ``QOP`` 的输出。 
-可以通过反向传播获得成本函数的梯度，并使用优化器更新vqc的变量x。
+我们通过使用梯度下降优化器 ``MomentumOptimizer`` 来优化vqc中的变量x。
 
 .. code-block:: cpp
 
@@ -51,7 +51,7 @@ QAOA
     using namespace QPanda;
     using namespace QPanda::Variational;
 
-    VQC parity_check_circuit(std::vector<Qubit*> qubit_vec)
+    VQC parity_check_circuit(QVec &qubit_vec)
     {
         VQC circuit;
         for (auto i = 0; i < qubit_vec.size() - 1; i++)
@@ -65,7 +65,7 @@ QAOA
     }
 
     VQC simulateZTerm(
-        const std::vector<Qubit*> &qubit_vec,
+        QVec &qubit_vec,
         var coef,
         var t)
     {
@@ -89,7 +89,7 @@ QAOA
     }
 
     VQC simulatePauliZHamiltonian(
-        const std::vector<Qubit*>& qubit_vec,
+        QVec& qubit_vec,
         const QPanda::QHamiltonian & hamiltonian,
         var t)
     {
@@ -97,7 +97,7 @@ QAOA
 
         for (auto j = 0; j < hamiltonian.size(); j++)
         {
-            std::vector<Qubit*> tmp_vec;
+            QVec tmp_vec;
             auto item = hamiltonian[j];
             auto map = item.first;
 
@@ -125,43 +125,56 @@ QAOA
     {
         PauliOperator op = getHamiltonian();
 
-        QuantumMachine *machine = initQuantumMachine(QuantumMachine_type::CPU_SINGLE_THREAD);
-        vector<Qubit*> q;
+        QuantumMachine *machine = initQuantumMachine();
+        QVec qlist;
         for (int i = 0; i < op.getMaxIndex(); ++i)
-            q.push_back(machine->Allocate_Qubit());
+            qlist.push_back(machine->allocateQubit());
 
         VQC vqc;
-        for_each(q.begin(), q.end(), [&vqc](Qubit* qbit)
+        for_each(qlist.begin(), qlist.end(), [&vqc](Qubit* qbit)
         {
             vqc.insert(VQG_H(qbit));
         });
 
-        int qaoa_step = 2;
+        int qaoa_step = 4;
 
         var x(MatrixXd::Random(2 * qaoa_step, 1), true);
 
         for (auto i = 0u; i < 2*qaoa_step; i+=2)
         {
-            vqc.insert(simulatePauliZHamiltonian(q, op.toHamiltonian(), x[i + 1]));
-            for (auto _q : q) {
+            vqc.insert(simulatePauliZHamiltonian(qlist, op.toHamiltonian(), x[i + 1]));
+            for (auto _q : qlist) {
                 vqc.insert(VQG_RX(_q, x[i]));
             }
         }
 
-        var loss = qop(vqc, op, machine, q);
-        auto optimizer = VanillaGradientDescentOptimizer::minimize(loss, 0.1, 1.e-6);
+        var loss = qop(vqc, op, machine, qlist);
+        auto optimizer = MomentumOptimizer::minimize(loss, 0.02, 0.9);
 
         auto leaves = optimizer->get_variables();
-        constexpr size_t iterations = 50;
+        constexpr size_t iterations = 100;
         for (auto i = 0u; i < iterations; i++)
         {
             optimizer->run(leaves);
-            std::cout << "iter: " << i << " loss : " << optimizer->get_loss() << std::endl;
+            std::cout << " iter: " << i << " loss : " << optimizer->get_loss() << std::endl;
+        }
+
+        QProg prog;
+        QCircuit circuit = vqc.feed();
+        prog << circuit;
+
+        directlyRun(prog);
+        auto result = quickMeasure(qlist, 100);
+
+        for (auto i:result)
+        {
+            std::cout << i.first << " : " << i.second << " ";
         }
 
         return 0;
     }
-
 .. image:: images/QAOA_7bit_Optimizer_Example.png
 
-.. image:: images/QAOA_7bit_Optimizer_Example_Plot.png
+我们将测量的结果绘制出柱状图，可以看到'0001111'和'1110000'这两个比特串测量得到的概率最大，也正是我们这个问题的解。
+
+.. image:: images/QAOA_result.png

@@ -264,8 +264,6 @@ QError NoisyCPUImplQPU::_get_probabilities(std::vector<double>& probabilities, s
     return qErrorNone;
 }
 
-
-
 size_t choose_operator(vector<double> & probabilities, double drand)
 {
     size_t number = 0;

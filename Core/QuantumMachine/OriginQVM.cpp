@@ -32,6 +32,7 @@ QuantumMachine* CPUQVM_Constructor()
 {
     return new CPUQVM();
 }
+
 volatile QuantumMachineFactoryHelper _Quantum_Machine_Factory_Helper_CPUQVM(
     "CPUQVM",
     CPUQVM_Constructor
@@ -40,9 +41,6 @@ volatile QuantumMachineFactoryHelper _Quantum_Machine_Factory_Helper_CPUQVM(
 //REGISTER_QUANTUM_MACHINE(CPUQVM);
 REGISTER_QUANTUM_MACHINE(CPUSingleThreadQVM);
 REGISTER_QUANTUM_MACHINE(GPUQVM);
-
-
-
 
 void QVM::setConfig(const Configuration & config)
 {
@@ -71,9 +69,7 @@ Qubit * QVM::allocateQubit()
             QCERR(e.what());
             throw(qalloc_fail(e.what()));
         }
-
-    }
-        
+    }        
 }
 
 QVec QVM::allocateQubits(size_t qubitNumber)
@@ -172,7 +168,6 @@ vector<ClassicalCondition> QVM::allocateCBits(size_t cbitNumber)
     }
 }
 
-
 ClassicalCondition QVM::allocateCBit(size_t stCBitaddr)
 {
     if (_CMem == nullptr)
@@ -225,7 +220,6 @@ Qubit * QVM::allocateQubitThroughPhyAddress(size_t stQubitNum)
             QCERR(e.what());
             throw(qalloc_fail(e.what()));
         }
-
     }
 }
 
@@ -278,8 +272,7 @@ void QVM::Free_CBits(vector<ClassicalCondition> & vCBit)
 }
 
 void QVM::run(QProg & node)
-{
-    
+{    
     try
     {
         auto _pParam = new QuantumGateParam();
@@ -463,7 +456,6 @@ vector<pair<size_t, double>> CPUQVM::PMeasure(QVec qubit_vector, int select_max)
         QCERR(e.what());
         throw result_get_fail(e.what());
     }
-
 }
 
 vector<double> CPUQVM::PMeasure_no_index(QVec qubit_vector)
@@ -479,7 +471,6 @@ vector<double> CPUQVM::PMeasure_no_index(QVec qubit_vector)
         QCERR("_pGates is null");
         throw qvm_attributes_error("_pGates is null");
     }
-
     try
     {
 
@@ -498,8 +489,6 @@ vector<double> CPUQVM::PMeasure_no_index(QVec qubit_vector)
         QCERR(e.what());
         throw result_get_fail(e.what());
     }
-
-
 }
 
 map<string, bool> QVM::directlyRun(QProg & qProg)

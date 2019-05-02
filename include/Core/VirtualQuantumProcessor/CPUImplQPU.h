@@ -25,8 +25,6 @@ limitations under the License.
 #include <iostream>
 #include <vector>
 
-
-//#define SQ2 0.707106781186548
 #ifndef SQ2
 #define SQ2 (1 / 1.4142135623731)
 #endif
@@ -71,7 +69,6 @@ NAME(size_t qn, Qnum& vControlBit,bool isConjugate , double error_rate)\
     return  qErrorNone;                      \
 }
 
-
 #define SINGLE_ANGLE_GATE(NAME) \
 QError                                          \
 NAME(size_t qn,double theta,bool isConjugate, double error_rate)\
@@ -91,9 +88,6 @@ NAME(size_t qn, double theta,Qnum& vControlBit,bool isConjugate, double error_ra
 #define REGISTER_DOUBLE_GATE_MATRIX(NAME,matrix) \
 extern const QStat NAME##_Matrix=matrix;
 
-
-
-
 #define const_single_qubit_gate(GATE_NAME,qn,isConjugate,error_rate) \
 single_gate<GATE_NAME##00,GATE_NAME##01,GATE_NAME##10,GATE_NAME##11>(qn,isConjugate,error_rate)
 
@@ -108,9 +102,6 @@ single_angle_gate<GATE_NAME##_Nx,GATE_NAME##_Ny,GATE_NAME##_Nz>(qn,theta,isConju
 control_single_angle_gate<GATE_NAME##_Nx,GATE_NAME##_Ny,GATE_NAME##_Nz>     \
 (qn,theta,vControlBit,isConjugate,error_rate)
 
-//#define double_const_qubit_gate(GATE_NAME,qn_0,qn_1,isConjugate,error_rate) \
-//double_gate<GATE_NAME##_Matrix>(qn_0,qn_1,error_rate)
-
 DECL_GATE_MATRIX(Hadamard)
 DECL_GATE_MATRIX(X)
 DECL_GATE_MATRIX(Y)
@@ -122,21 +113,17 @@ DECL_GATE_MATRIX(P1)
 DECL_ANGLE_GATE_MATRIX(RX_GATE)
 DECL_ANGLE_GATE_MATRIX(RY_GATE)
 DECL_ANGLE_GATE_MATRIX(RZ_GATE)
-//DECL_ANGLE_GATE_MATRIX(NAME)
 
 class CPUImplQPU : public QPUImpl
 {
-
 public:
     vQParam qubit2stat;
-    //size_t qubitsum;
-    //QStat mvQuantumStat;
     QGateParam & findgroup(size_t qn);
     CPUImplQPU();
     CPUImplQPU(size_t);
     ~CPUImplQPU();
 
-    bool TensorProduct(QGateParam& qgroup0, QGateParam& qgroup1)
+    inline bool TensorProduct(QGateParam& qgroup0, QGateParam& qgroup1)
     {
         if (qgroup0.qVec[0] == qgroup1.qVec[0])
         {
@@ -425,11 +412,9 @@ public:
     CONTROL_CONST_GATE(P0);
     CONTROL_CONST_GATE(P1);
 
-
-
     //define const CNOT,CZ,ISWAP,SQISWAP
-
-    QError CNOT(size_t qn_0, size_t qn_1, bool isConjugate, double error_rate)
+    inline QError CNOT(size_t qn_0, size_t qn_1, 
+		bool isConjugate, double error_rate)
     {
         Qnum qvtemp;
         qvtemp.push_back(qn_0);
@@ -437,52 +422,43 @@ public:
         X(qn_1, qvtemp, isConjugate, error_rate);           //qn_1 is target
         return qErrorNone;
     }
-    QError CNOT(size_t qn_0, size_t qn_1, Qnum& vControlBit, bool isConjugate, double error_rate)
+    inline QError CNOT(size_t qn_0, size_t qn_1, Qnum& vControlBit, 
+		bool isConjugate, double error_rate)
     {
-
-        X(qn_1, vControlBit, isConjugate, error_rate);           //qn_1 is target
+        X(qn_1, vControlBit, isConjugate, error_rate);      //qn_1 is target
         return qErrorNone;
     }
 
-    /*QError CZ(size_t qn_0, size_t qn_1, bool isConjugate, double)
-    {
-    Qnum qvtemp;
-    qvtemp.push_back(qn_0);
-    qvtemp.push_back(qn_1);
-    Z(qn_1, qvtemp, 0);
-    return qErrorNone;
-    }*/
-    QError iSWAP(size_t qn_0, size_t qn_1, double theta, bool isConjugate, double);
-
-    QError iSWAP(size_t qn_0, size_t qn_1, Qnum& vControlBit, double theta, bool isConjugate, double);
-
-    inline QError iSWAP(size_t qn_0, size_t qn_1, bool isConjugate, double error_rate)
+    inline QError iSWAP(size_t qn_0, size_t qn_1, 
+		bool isConjugate, double error_rate)
     {
         iSWAP(qn_0, qn_1, PI / 2, isConjugate, error_rate);
         return qErrorNone;
     }
-    inline QError iSWAP(size_t qn_0, size_t qn_1, Qnum& vControlBit, bool isConjugate, double error_rate)
+    inline QError iSWAP(size_t qn_0, size_t qn_1, Qnum& vControlBit, 
+		bool isConjugate, double error_rate)
     {
         iSWAP(qn_0, qn_1, vControlBit, PI / 2, isConjugate, error_rate);
         return qErrorNone;
     }
-    inline QError SqiSWAP(size_t qn_0, size_t qn_1, bool isConjugate, double error_rate)
+
+    inline QError SqiSWAP(size_t qn_0, size_t qn_1, 
+		bool isConjugate, double error_rate)
     {
         iSWAP(qn_0, qn_1, PI / 4, isConjugate, error_rate);
         return qErrorNone;
     }
-    inline QError SqiSWAP(size_t qn_0, size_t qn_1, Qnum& vControlBit, bool isConjugate, double error_rate)
+    inline QError SqiSWAP(size_t qn_0, size_t qn_1, Qnum& vControlBit, 
+		bool isConjugate, double error_rate)
     {
         iSWAP(qn_0, qn_1, vControlBit, PI / 4, isConjugate, error_rate);
         return qErrorNone;
     }
-    QError CR(size_t qn_0, size_t qn_1, double theta, bool isConjugate, double error_rate);
-    QError CR(size_t qn_0,
-        size_t qn_1,
-        Qnum& vControlBit,
-        double theta,
-        bool isConjugate,
-        double error_rate);
+
+	QError CR(size_t qn_0, size_t qn_1, 
+		double theta, bool isConjugate, double error_rate);
+	QError CR(size_t qn_0, size_t qn_1, Qnum& vControlBit, 
+		double theta, bool isConjugate, double error_rate);
 
     inline QError CZ(size_t qn_0, size_t qn_1, bool isConjugate, double error_rate)
     {
@@ -496,30 +472,25 @@ public:
     }
 
     //define unitary single/double quantum gate
-    QError unitarySingleQubitGate(size_t qn, QStat& matrix, bool isConjugate, double error_rate, GateType);
-    QError controlunitarySingleQubitGate(size_t qn, Qnum& vControlBit, QStat& matrix, bool isConjugate, double error_rate, GateType);
-    QError unitaryDoubleQubitGate(size_t qn_0, size_t qn_1, QStat& matrix, bool isConjugate, double error_rate, GateType);
-    QError controlunitaryDoubleQubitGate(size_t qn_0,
-        size_t qn_1,
-        Qnum& vControlBit,
-        QStat& matrix,
-        bool isConjugate,
-        double error_rate,
-        GateType);
-
+    QError unitarySingleQubitGate(size_t qn, 
+		QStat& matrix, bool isConjugate, double error_rate, GateType);
+    QError controlunitarySingleQubitGate(size_t qn, Qnum& vControlBit, 
+		QStat& matrix, bool isConjugate, double error_rate, GateType);
+    QError unitaryDoubleQubitGate(size_t qn_0, size_t qn_1, 
+		QStat& matrix, bool isConjugate, double error_rate, GateType);
+    QError controlunitaryDoubleQubitGate(size_t qn_0, size_t qn_1, Qnum& vControlBit, 
+		QStat& matrix, bool isConjugate, double error_rate, GateType);
     QError DiagonalGate(Qnum& vQubit, QStat & matrix,
         bool isConjugate, double error_rate);
     QError controlDiagonalGate(Qnum& vQubit, QStat & matrix, Qnum& vControlBit,
         bool isConjugate, double error_rate);
-
     QStat getQState();
     QError Reset(size_t qn);
     bool qubitMeasure(size_t qn);
-    QError pMeasure(Qnum& qnum, std::vector<std::pair<size_t, double>> &mResult, int select_max=-1);
+    QError pMeasure(Qnum& qnum, std::vector<std::pair<size_t, double>> &mResult, 
+		int select_max=-1);
     QError pMeasure(Qnum& qnum, std::vector<double> &mResult);
-    QError initState(QuantumGateParam *);
-    
-    // bool compareCalculationUnitType(std::string& sCalculationUnitType);
+    QError initState(QuantumGateParam *);    
     QError endGate(QuantumGateParam *pQuantumProParam, QPUImpl * pQGate);
 protected:
     std::string sCalculationUnitType = "X86";

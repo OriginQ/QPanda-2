@@ -46,8 +46,6 @@ public:
     ~NoisyCPUImplQPU();
 
     bool TensorProduct(QGateParam& qgroup0, QGateParam& qgroup1);
-    QError singleQubitGateNoise(size_t qn, NoiseOp & noise);
-    QError doubleQubitGateNoise(size_t qn_0,size_t qn_1, NoiseOp & noise);
     QError unitarySingleQubitGate(size_t qn,
         QStat& matrix,
         bool isConjugate,
@@ -227,13 +225,16 @@ public:
     QError pMeasure(Qnum& qnum, std::vector<std::pair<size_t, double>> &mResult, int select_max=-1);
     QError pMeasure(Qnum& qnum, std::vector<double> &mResult);
     QError initState(QuantumGateParam *);
-
     QError endGate(QuantumGateParam *pQuantumProParam, QPUImpl * pQGate);
 
 private:
-    QError _get_probabilities(std::vector<double> & probabilities, size_t qn, NoiseOp & noise);
-    QError _get_probabilities(std::vector<double> & probabilities, size_t qn_0,size_t qn_1, NoiseOp & noise);
-    //static QError _apply_matrix(QStat *stat, std::vector<qcomplex_t> matrix);
+	QError singleQubitGateNoise(size_t qn, NoiseOp &noise);
+	QError doubleQubitGateNoise(size_t qn_0, size_t qn_1, NoiseOp &noise);
+    QError _get_probabilities(std::vector<double> &probabilities, 
+		size_t qn, NoiseOp & noise);
+    QError _get_probabilities(std::vector<double> &probabilities, 
+		size_t qn_0, size_t qn_1, NoiseOp & noise);
+
     rapidjson::Document m_doc;
 };
 

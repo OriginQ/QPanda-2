@@ -385,7 +385,6 @@ QError GPUImplQPU::controlunitarySingleQubitGate(
     return qErrorNone;
 }
 
-
 QError GPUImplQPU::unitaryDoubleQubitGate(
     size_t qn_0,
     size_t qn_1,

@@ -217,9 +217,6 @@ add multi-qubit gate which has diagonal matrix
     QError initState(QuantumGateParam *);
 
     QError endGate(QuantumGateParam *pQuantumProParam, QPUImpl * pQGate);
-protected:
-    std::string sCalculationUnitType = "X86";
-
 };
 
 //#endif // !USE_CUDA

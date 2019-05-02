@@ -17,15 +17,12 @@ limitations under the License.
 #ifndef NOISY_CPU_QUANTUM_GATE_SINGLE_THREAD_H
 #define NOISY_CPU_QUANTUM_GATE_SINGLE_THREAD_H
 
-//#ifndef USE_CUDA
-
 #include "Core/VirtualQuantumProcessor/QPUImpl.h"
 #include "Core/VirtualQuantumProcessor/NoiseQPU/NoiseModel.h"
 #include "ThirdParty/rapidjson/document.h"
 #include <stdio.h>
 #include <iostream>
 #include <vector>
-
 
 #ifndef SQ2
 #define SQ2 (1 / 1.4142135623731)
@@ -36,8 +33,6 @@ limitations under the License.
 #endif
 
 #define NoiseOp std::vector<std::vector<qcomplex_t>>
-
-
 
 QStat matrix_multiply(const QStat &matrix_left, const QStat &matrix_right);
 
@@ -240,12 +235,6 @@ private:
     QError _get_probabilities(std::vector<double> & probabilities, size_t qn_0,size_t qn_1, NoiseOp & noise);
     //static QError _apply_matrix(QStat *stat, std::vector<qcomplex_t> matrix);
     rapidjson::Document m_doc;
-
-protected:
-    std::string sCalculationUnitType = "X86";
-
 };
-
-//#endif // !USE_CUDA
 
 #endif // ! NOISY_CPU_QUANTUM_GATE_SINGLE_THREAD_H

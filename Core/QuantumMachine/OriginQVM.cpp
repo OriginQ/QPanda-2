@@ -351,6 +351,11 @@ bool QVM::swapQubitPhysicalAddress(Qubit * first_qubit, Qubit* second_qubit)
     second_qubit->getPhysicalQubitPtr()->setQubitAddr(first_addr);
 }
 
+void QVM::set_random_engine(RandomEngine* rng)
+{
+	random_engine = rng;
+}
+
 QResult * QVM::getResult()
 {
     if (nullptr == _QResult)
@@ -425,7 +430,7 @@ map<string, bool> QVM::getResultMap()
     return _QResult->getResultMap();
 }
 
-vector<pair<size_t, double>> CPUQVM::PMeasure(QVec qubit_vector, int select_max)
+vector<pair<size_t, double>> IdealQVM::PMeasure(QVec qubit_vector, int select_max)
 {
     if (0 == qubit_vector.size())
     {
@@ -458,7 +463,7 @@ vector<pair<size_t, double>> CPUQVM::PMeasure(QVec qubit_vector, int select_max)
     }
 }
 
-vector<double> CPUQVM::PMeasure_no_index(QVec qubit_vector)
+vector<double> IdealQVM::PMeasure_no_index(QVec qubit_vector)
 {
     if (0 == qubit_vector.size())
     {
@@ -497,7 +502,7 @@ map<string, bool> QVM::directlyRun(QProg & qProg)
     return _QResult->getResultMap();
 }
 
-vector<pair<size_t, double>> CPUQVM::getProbTupleList(QVec vQubit,  int selectMax)
+vector<pair<size_t, double>> IdealQVM::getProbTupleList(QVec vQubit,  int selectMax)
 {
     if (0 == vQubit.size())
     {
@@ -529,7 +534,7 @@ vector<pair<size_t, double>> CPUQVM::getProbTupleList(QVec vQubit,  int selectMa
     }
 }
 
-vector<double> CPUQVM::getProbList(QVec vQubit, int selectMax)
+vector<double> IdealQVM::getProbList(QVec vQubit, int selectMax)
 {
     if (0 == vQubit.size())
     {
@@ -629,7 +634,7 @@ void QVM::_start()
     _ptrIsNull(_QMachineStatus, "_QMachineStatus");
 }
 
-map<string, double> CPUQVM::getProbDict(QVec vQubit, int selectMax)
+map<string, double> IdealQVM::getProbDict(QVec vQubit, int selectMax)
 {
     if (0 == vQubit.size())
     {
@@ -648,20 +653,20 @@ map<string, double> CPUQVM::getProbDict(QVec vQubit, int selectMax)
     return mResult;
 }
 
-vector<pair<size_t, double>> CPUQVM::
+vector<pair<size_t, double>> IdealQVM::
 probRunTupleList(QProg & qProg, QVec vQubit, int selectMax)
 {
     run(qProg);
     return getProbTupleList(vQubit, selectMax);
 }
 
-vector<double> CPUQVM::
+vector<double> IdealQVM::
 probRunList(QProg & qProg, QVec vQubit,int selectMax)
 {
     run(qProg);
     return getProbList(vQubit, selectMax);
 }
-map<string, double> CPUQVM::
+map<string, double> IdealQVM::
 probRunDict(QProg & qProg, QVec vQubit, int selectMax)
 {
     run(qProg);
@@ -715,7 +720,7 @@ static void accumulateProbability(vector<double>& probList, vector<double> & acc
     }
 }
 
-map<string, size_t> CPUQVM::quickMeasure(QVec vQubit, size_t shots)
+map<string, size_t> IdealQVM::quickMeasure(QVec vQubit, size_t shots)
 {
     map<string, size_t>  meas_result;
     vector<double> probList=getProbList(vQubit,-1);
@@ -752,7 +757,7 @@ map<GateType, size_t> QVM::getGateTimeMap() const
     return gate_time;
 }
 
-QStat CPUQVM::getQStat()
+QStat IdealQVM::getQStat()
 {
     if (nullptr == _pGates)
     {
@@ -805,6 +810,8 @@ void CPUSingleThreadQVM::init()
         _start();
         _pGates = new CPUImplQPUSingleThread();
         _ptrIsNull(_pGates, "CPUImplQPUSingleThread");
+		if (!random_engine)
+			_pGates->set_random_engine(random_engine);
     }
     catch (const std::exception &e)
     {

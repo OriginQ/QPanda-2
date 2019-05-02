@@ -17,13 +17,10 @@ limitations under the License.
 #ifndef CPU_QUANTUM_GATE_SINGLE_THREAD_H
 #define CPU_QUANTUM_GATE_SINGLE_THREAD_H
 
-//#ifndef USE_CUDA
-
 #include "Core/VirtualQuantumProcessor/QPUImpl.h"
 #include <stdio.h>
 #include <iostream>
 #include <vector>
-
 
 #ifndef SQ2
 #define SQ2 (1 / 1.4142135623731)
@@ -215,10 +212,7 @@ add multi-qubit gate which has diagonal matrix
     QError pMeasure(Qnum& qnum, std::vector<std::pair<size_t, double>> &mResult, int select_max=-1);
     QError pMeasure(Qnum& qnum, std::vector<double> &mResult);
     QError initState(QuantumGateParam *);
-
     QError endGate(QuantumGateParam *pQuantumProParam, QPUImpl * pQGate);
 };
-
-//#endif // !USE_CUDA
 
 #endif

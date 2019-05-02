@@ -102,7 +102,7 @@ bool NoisyCPUImplQPU::qubitMeasure(size_t qn)
     }
     int ioutcome(0);
 
-    float fi = (float)QPanda::RandomNumberGenerator();
+    double fi = get_random_double();
 
     if (fi> dprob)
     {
@@ -308,7 +308,7 @@ QError  NoisyCPUImplQPU::singleQubitGateNoise
     size_t ststep = 1ull << find(qgroup.qVec.begin(), qgroup.qVec.end(), qn) - qgroup.qVec.begin();
     vector<double> probabilities;
     _get_probabilities(probabilities, qn, noise);
-    double dtemp = QPanda::RandomNumberGenerator();
+    double dtemp = get_random_double();
     size_t op_number = choose_operator(probabilities, dtemp);
     double dsum = 0;
     for (size_t i = 0; i < (size_t)qgroup.qstate.size(); i += ststep * 2)
@@ -336,7 +336,7 @@ QError NoisyCPUImplQPU::doubleQubitGateNoise
 {
     vector<double> probabilities;
     _get_probabilities(probabilities, qn_0, qn_1, noise);
-    double dtemp = QPanda::RandomNumberGenerator();
+    double dtemp = get_random_double();
     size_t op_number = choose_operator(probabilities, dtemp);
     QGateParam& qgroup0 = findgroup(qn_0);
     QGateParam& qgroup1 = findgroup(qn_1);
@@ -400,7 +400,7 @@ QError NoisyCPUImplQPU::noisyUnitarySingleQubitGate
     size_t ststep = 1ull << find(qgroup.qVec.begin(), qgroup.qVec.end(), qn) - qgroup.qVec.begin();
     vector<double> probabilities;
     _get_probabilities(probabilities, qn,noise);
-    double dtemp = QPanda::RandomNumberGenerator();
+    double dtemp = get_random_double();
     size_t op_number = choose_operator(probabilities, dtemp);
 
     if (isConjugate)
@@ -536,7 +536,7 @@ unitaryDoubleQubitGate(size_t qn_0,
     }
     else
     {
-        if (QPanda::RandomNumberGenerator() > error_rate)
+        if (get_random_double() > error_rate)
         {
 
             QGateParam& qgroup0 = findgroup(qn_0);
@@ -608,7 +608,7 @@ noisyUnitaryDoubleQubitGate(size_t qn_0,
   
     vector<double> probabilities;
     _get_probabilities(probabilities, qn_0,qn_1,noise);
-    double dtemp = QPanda::RandomNumberGenerator();
+    double dtemp = get_random_double();
     size_t op_number = choose_operator(probabilities, dtemp);
     QGateParam& qgroup0 = findgroup(qn_0);
     QGateParam& qgroup1 = findgroup(qn_1);

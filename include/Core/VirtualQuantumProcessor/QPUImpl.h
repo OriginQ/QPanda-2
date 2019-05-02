@@ -23,12 +23,15 @@ limitations under the License.
 #include <map>
 #include "Core/VirtualQuantumProcessor/QuantumGateParameter.h"
 #include "Core/VirtualQuantumProcessor/QError.h"
+#include "Core/VirtualQuantumProcessor/RandomEngine/RandomEngine.h"
 #include "Core/QuantumCircuit/QGlobalVariable.h"
 
 typedef std::vector<QGateParam> vQParam;
 
 class QPUImpl
 {
+private:
+	RandomEngine* random_engine = nullptr;
 public:
     QPUImpl();
     virtual ~QPUImpl() = 0;
@@ -177,6 +180,17 @@ public:
                         bool isConjugate,
                         double error_rate)=0;
     virtual QStat getQState() = 0;
+
+	virtual inline void set_random_engine(RandomEngine* rng) {
+		random_engine = rng;
+	}
+	virtual inline double get_random_double() {
+		if (!random_engine)
+			return _default_random_generator();
+		else
+			return (*random_engine)();
+	}
+
 };
 
 #endif

@@ -16,12 +16,9 @@ limitations under the License.
 
 #ifndef RANDOM_ENGINE_H
 #define RANDOM_ENGINE_H
-#include "Core/Utilities/QPandaNamespace.h"
-#include "Core/Utilities/QPandaException.h"
 #include <random>
 #include <chrono>
 #include <vector>
-QPANDA_BEGIN
 
 class RandomEngine {
 public:
@@ -30,7 +27,7 @@ public:
 		std::vector<double> ret;
 		ret.reserve(n);
 		for (size_t i = 0u; i < n; ++i) {
-			ret.push_back(RandomEngine());
+			ret.push_back((*this)());
 		}
 		return ret;
 	}
@@ -52,8 +49,8 @@ public:
 	}
 };
 
-class XC_RandomEngine16807 :public RandomEngine {
-	int seed = 0;
+class XC_RandomEngine16807 : public RandomEngine {
+	int irandseed = 0;
 	int ia = 16807;
 	int im = 2147483647;
 	int iq = 127773;
@@ -61,9 +58,11 @@ class XC_RandomEngine16807 :public RandomEngine {
 	int irandnewseed;
 public:
 	XC_RandomEngine16807() {
-		seed = (int)std::chrono::system_clock::now().time_since_epoch().count();
+		irandseed = (int)std::chrono::system_clock::now().time_since_epoch().count();
 	}
-	XC_RandomEngine16807(long long _seed) :seed((int)_seed) { }
+	XC_RandomEngine16807(long long _seed) 
+		: irandseed((int)_seed) 
+	{ }
 
 	inline double operator()() {
 		if (ia * (irandseed % iq) - ir * (irandseed / iq) >= 0)
@@ -79,6 +78,9 @@ public:
 	}
 };
 
-QPANDA_END
+inline double _default_random_generator() {
+	static XC_RandomEngine16807 engine;
+	return engine();
+}
 
 #endif RANDOM_ENGINE

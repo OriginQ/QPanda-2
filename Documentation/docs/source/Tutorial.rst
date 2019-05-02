@@ -1,6 +1,7 @@
 编译、安装和使用
 ==================
 
+
 编译
 ------------------
 我们支持在Windows、Linux、MacOS下构建QPanda-2。用户可以通过CMake的方式来构建QPanda-2。
@@ -12,6 +13,7 @@ Windows
 1. 使用Visual Studio
 ***************************
 使用Visual Studio编译QPanda-2,只需要安装Visual Studio，并需要在组件中安装CMake组件。安装完成之后，用Visual Studio打开QPanda-2文件夹，即可使用CMake编译QPanda-2。
+
 
 .. image:: images/VSCompiler.png
     :align: center   
@@ -213,7 +215,5 @@ linux、MacOS和MinGW下使用QPanda2的方式是相同的，其CmakeList的写�
 编译方式与编译QPanda库的方式基本类似，在这里就不多做赘述。
 
 编译之后的可执行文件会生成在build下的bin文件夹中，进入到bin目录下就可以执行自己编写的量子程序了。
-
-
 
 

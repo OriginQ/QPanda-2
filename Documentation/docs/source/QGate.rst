@@ -132,6 +132,15 @@ control的作用是复制当前的量子逻辑门，并给复制的量子逻辑�
           
           QGate rx_control = RX(qubit,PI).control(qvec);
 
+
+.. note:: setControl、control都需要接收一个参数，参数类型为QVec，QVec是qubit的vector。
+
+control的作用是复制当前的量子逻辑门，并给复制的量子逻辑门添加控制比特，例如：
+
+     .. code-block:: c
+          
+          QGate rx_control = RX(qubit,PI).control(qvec);
+
 .. note:: setControl、control都需要接收一个参数，参数类型为QVec，QVec是qubit的vector。
 
 实例

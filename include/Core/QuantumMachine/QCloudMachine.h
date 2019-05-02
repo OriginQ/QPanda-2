@@ -6,7 +6,6 @@
 
 #ifdef USE_CURL
 #include <curl/curl.h>
-#endif // USE_CURL
 
 #include "ThirdParty/rapidjson/document.h"
 #include "ThirdParty/rapidjson/writer.h"
@@ -114,4 +113,6 @@ std::string QProgToBinary(QProg,QuantumMachine*);
 
 
 QPANDA_END
+
 #endif // USE_CURL
+#endif // ! QCLOUD_MACHINE_H

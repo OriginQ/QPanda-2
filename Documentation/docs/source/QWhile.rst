@@ -10,57 +10,37 @@ QWhile
 >>>>>>>>>>>>>
 ----
 
-.. cpp:class:: QWhileProg
+在QPanda2中，QWhileProg类用于表示执行量子程序while循环操作，它也是QNode中的一种，初始化一个QWhileProg对象有以下两种
 
-     该类用于表述一个QWhile节点的各项信息，同时包含多种可调用的接口。
+C++风格
 
-     .. cpp:function:: QWhileProg(ClassicalCondition &, QNode *)
+    .. code-block:: c
 
-          **功能**
-               构造函数
-          **参数**
-               - ClassicalCondition 量子表达式
-               - QNode 正确分支
+        QWhileProg qwile = QWhileProg(ClassicalCondition&, QNode*);
 
-     .. cpp:function:: NodeType getNodeType()
+C语言风格
 
-          **功能**
-               获取节点类型
-          **参数**
-               无
-          **返回值**
-               节点类型
+    .. code-block:: c
 
-     .. cpp:function:: QNode* getTrueBranch()
+        QWhileProg qwile = CreateWhileProg(ClassicalCondition&, QNode*);
 
-          **功能**
-               获取正确分支节点
-          **参数**
-               无
-          **返回值**
-               正确分支节点
+上述函数需要提供两个参数，即ClassicalCondition量子表达式与QNode节点
 
-     .. cpp:function:: ClassicalCondition getCExpr()
+同时，通过该类内置的函数可以轻松获取QWhile操作正确分支节点
 
-          **功能**
-               获取逻辑判断表达式
-          **参数**
-               无
-          **返回值**
-               量子表达式
+    .. code-block:: c
 
-C 接口创建QWhile的方式
-```````````````````````````
-  
-.. cpp:function:: QWhileProg CreateWhileProg(ClassicalCondition, QNode*)
+        QWhileProg qwhile = CreateWhileProg(ClassicalCondition&, QNode*);
+        QNode* true_branch_node = qwhile.getTrueBranch();
 
-     **功能**
-          创建QWhile量子程序
-     **参数**
-          - ClassicalCondition 条件判断表达式
-          - QNode 正确分支
-     **返回值**
-          QWhileProg
+也可以获取量子表达式
+
+    .. code-block:: c
+
+        QWhileProg qwhile = CreateWhileProg(ClassicalCondition&, QNode*);
+        ClassicalCondition* expr = qwhile.getCExpr();
+
+具体的操作流程可以参考下方示例
 
 实例
 >>>>>>>>>>
@@ -77,13 +57,12 @@ C 接口创建QWhile的方式
             QProg prog;
             auto qvec = qAllocMany(3);
             auto cvec = cAllocMany(3);
-            cvec[1].setValue(0);
             cvec[0].setValue(0);
-            
+
             QProg prog_in;
-            prog_in<<H(cvec) ;
-            auto qwhile = CreateWhileProg(cvec[1]<3,&prog_in);
-            prog<<qwhile;
+            prog_in<< cvec[0] << H(qvec[cvec[0]]) << (cvec[0] = cvec[0]+1);
+            auto qwhile = CreateWhileProg(cvec[0]<3,&prog_in);
+            prog << qwhile;
             auto result = probRunTupleList(prog, qvec);
 
             for (auto & val : result)
@@ -94,3 +73,16 @@ C 接口创建QWhile的方式
             finalize();
             return 0;
         }
+
+运行结果：
+
+    .. code-block:: c
+
+        0, 0.125
+        1, 0.125
+        2, 0.125
+        3, 0.125
+        4, 0.125
+        5, 0.125
+        6, 0.125
+        7, 0.125

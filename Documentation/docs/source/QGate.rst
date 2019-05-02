@@ -26,19 +26,15 @@
    :width: 70px
    :height: 70px
 
-.. |NOT| image:: images/not.svg
+.. |RX| image:: images/X_Theta.svg
    :width: 70px
    :height: 70px
 
-.. |RX| image:: images/Xθ.svg
+.. |RY| image:: images/Y_Theta.svg
    :width: 70px
    :height: 70px
 
-.. |RY| image:: images/Yθ.svg
-   :width: 70px
-   :height: 70px
-
-.. |RZ| image:: images/Zθ.svg
+.. |RZ| image:: images/Z_Theta.svg
    :width: 70px
    :height: 70px
 
@@ -50,7 +46,7 @@
    :width: 70px
    :height: 70px
 
-.. |iSWAP| image:: images/切换.svg
+.. |iSWAP| image:: images/iSWAP.svg
    :width: 70px
    :height: 70px
 
@@ -63,7 +59,6 @@
 |X|                                                                                                 ``Pauli-X``                         .. math:: \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}\quad
 |Y|                                                                                                 ``Pauli-Y``                         .. math:: \begin{bmatrix} 0 & -i \\ i & 0 \end{bmatrix}\quad
 |Z|                                                                                                 ``Pauli-Z``                         .. math:: \begin{bmatrix} 1 & 0 \\ 0 & -1 \end{bmatrix}\quad
-|NOT|                                                                                               ``NOT``                             .. math:: \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}\quad
 |RX|                                                                                                ``RX``                              .. math:: \begin{bmatrix} \cos(θ/2) & -1i×\sin(θ/2) \\ -1i×\sin(θ/2) & \cos(θ/2) \end{bmatrix}\quad
 |RY|                                                                                                ``RY``                              .. math:: \begin{bmatrix} \cos(θ/2) & \sin(θ/2) \\ \sin(θ/2) & \cos(θ/2) \end{bmatrix}\quad
 |RZ|                                                                                                ``RZ``                              .. math:: \begin{bmatrix} \exp(-iθ/2) & 0 \\ 0 & \exp(iθ/2) \end{bmatrix}\quad
@@ -130,6 +125,15 @@ setControl的作用是给当前的量子逻辑门添加控制比特，例如：
           QGate rx_control = RX(qubit,PI).setControl(qvec);
 
 
+
+control的作用是复制当前的量子逻辑门，并给复制的量子逻辑门添加控制比特，例如：
+
+     .. code-block:: c
+          
+          QGate rx_control = RX(qubit,PI).control(qvec);
+
+
+.. note:: setControl、control都需要接收一个参数，参数类型为QVec，QVec是qubit的vector。
 
 control的作用是复制当前的量子逻辑门，并给复制的量子逻辑门添加控制比特，例如：
 

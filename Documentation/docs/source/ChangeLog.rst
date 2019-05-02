@@ -1,6 +1,27 @@
 Change Log
 ================
 
+1.3.0 - 2019-04-28 
+-------------------------
+add
+*******
+1. 添加量子机器学习框架VQNet。
+2. 添加部分振幅量子虚拟机PartialAmplitudeQVM。
+3. 添加单振幅量子虚拟机SingleAmplitudeQVM。
+4. 添加含噪声量子虚拟机NoiseQVM。
+5. 添加云虚拟机QCloudQVM。
+6. 添加量子程序持久化存储功能QProgStored
+7. 添加解析持久化存储的量子程序文件QProgDataParse
+8. 添加统计量子程序中逻辑门个数的功能QGateCounter
+
+update
+***********
+
+1. 更新QProgToQASM的对外接口为transformQProgToQASM
+2. 更新QProgToQRunes的对外接口为transformQProgToQRunes
+3. 更新量子虚拟机部分对外接口
+
+
 1.2.0 - 2019-01-18 
 -------------------------
 add

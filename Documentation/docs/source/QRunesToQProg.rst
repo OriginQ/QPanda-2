@@ -4,40 +4,21 @@ QRunes转化量子程序
 
 通过该功能模块，你可以解析QRunes文本文件，将其中的量子逻辑门操作信息提取出来，得到QPanda2内部可操作的量子程序。
 
-QRunes格式
->>>>>>>>>>>>>>>>
+QRunes
+>>>>>>>
 ----
 
-QRunes的书写格式规范与例程可以参考量子程序转化QRunes模块中的 :ref:`QRunes介绍` 部分,本模块对QRunes的书写格式添加了额外的功能拓展。主要有以下几点。
+QRunes的书写格式规范与例程可以参考量子程序转化QRunes模块中的 :ref:`QRunes介绍` 部分。
 
- -  ``RX`` 表示旋转门操作，第一个参数是目标量子比特，第二个参数可以是一个确定的角度值，也可以是一个数学表达式，支持浮点型数据的四则运算与括号等，
-    如 ``RX q1,(-1.1+3)*(pi/2)`` 等。与之类似的量子逻辑门操作有 ``RY`` ， ``RZ`` 等。
- -  ``QIF`` 与 ``QWHILE`` 的作用是根据经典寄存器的值进行逻辑判断，后面的参数可以是一个经典寄存器，如 ``c0`` ，也可以是包含经典寄存器的逻辑运算表达式，
-    如 ``c0+c1||c2+c0&c3`` 等。
-
-接口介绍
->>>>>>>>>>>>>>>>>
-----
-
-你可以通过调用 ``qRunesToQProg(string sQRunesPath,QProg& newQProg)`` 接口来调用该功能,该接口说明如下：
-  
-.. cpp:function:: qRunesToQProg(string sQRunesPath,QProg& newQProg)
-
-    **功能**
-        将QRunes转化为量子程序
-    **参数**
-        - QRunes文件路径
-        - 用于接收解析结果的QProg量子程序
-    **返回值**
-        无
+QPanda2提供了QRunes文件转换工具接口 ``transformQRunesToQProg(std::string sFilePath, QProg& prog,QuantumMachine* qvm)`` 该接口使用非常简单，具体可参考下方示例程序。
 
 实例
->>>>>>>>>>>>>>
+>>>>>>>
 ----
 
 在使用该功能之前，需要先书写QRunes量子程序，以 :ref:`QRunes介绍` 中的文件格式作为例子
 
-    :: 
+    ::
 
         QINIT 6
         CREG 2
@@ -65,24 +46,23 @@ QRunes的书写格式规范与例程可以参考量子程序转化QRunes模块�
 
         int main(void)
         {
-            init(QuantumMachine_type::CPU);
-
+            auto qvm = initQuantumMachine();
             auto prog = CreateEmptyQProg();
+            transformQRunesToQProg("D:\\QRunes", prog,qvm);
 
-            qRunesToQProg(sQRunesPath, prog);
-
-            finalize();
+            qvm->finalize();
+            delete qvm;
             return 0;
         }
 
 
 具体步骤如下:
 
- - 首先在主程序中用 ``init()`` 进行全局初始化
+ - 首先在主程序中用 ``initQuantumMachine()`` 初始化一个量子虚拟机对象，用于管理后续一系列行为
 
  - 接着用 ``CreateEmptyQProg()`` 创建一个空的量子程序，用于接收返回值
 
- - 然后调用 ``qRunesToQProg(sQRunesPath, prog)`` 转化
+ - 然后调用 ``transformQRunesToQProg(sQRunesPath, prog，qvm)`` 转化
 
  - 最后用 ``finalize()`` 结束，并释放系统资源
 

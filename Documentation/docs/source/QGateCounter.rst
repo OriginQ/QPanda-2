@@ -1,31 +1,45 @@
+.. _QGateCounter:
+
 逻辑门统计
 ===============
 
 简介
 --------------
 
-逻辑门的统计是指统计一个量子线路或量子程序中所有的量子逻辑门个数方法。
+逻辑门的统计是指统计量子程序、量子线路、量子循环控制或量子条件控制中所有的量子逻辑门（这里也会将测量门统计进去）个数方法。
 
 接口介绍
 --------------
 
-.. cpp:function:: size_t countQGateUnderQCircuit(AbstractQuantumCircuit * pQCircuit)
-    
-    **功能**
-        统计量子线路中的量子逻辑门个数。
-    **参数**  
-        - pQCircuit 量子线路指针
-    **返回值** 
-        量子线路中的量子逻辑门个数。    
+``QGateCounter`` 类是统计一个量子程序(量子线路、量子循环控制、量子条件控制)中量子逻辑门个数的工具类，我们先用QPanda2构建一个量子程序：
 
-.. cpp:function:: size_t countQGateUnderQProg(AbstractQuantumProgram * pQProg)
+    .. code-block:: c
+          
+        auto qubits = qAllocMany(4);
+        auto cbits = cAllocMany(4);
 
-    **功能**
-        统计量子程序中的量子逻辑门个数。 
-    **参数**
-        - pQProg 量子程序指针      
-    **返回值** 
-        量子程序中的量子逻辑门个数。 
+        QProg prog;
+        prog << X(qubits[0])
+            << Y(qubits[1])
+            << H(qubits[0])
+            << RX(qubits[0], 3.14)
+            << Measure(qubits[1], cbits[0]);
+
+然后调用 ``QGateCounter`` 类统计量子逻辑门的个数，
+
+    .. code-block:: c
+          
+        QGateCounter t;
+        t.traversal(prog);
+        size_t num = t.count(prog);;
+
+我们还可以使用QPanda2封装的一个接口：
+
+    .. code-block:: c
+          
+        size_t num = getQGateNumber(prog);
+
+.. note::  统计 ``QCircuit`` 、 ``QWhileProg`` 、``QIfProg`` 中量子逻辑门的个数和 ``QProg`` 类似。
 
 实例
 -------------
@@ -41,19 +55,24 @@
             auto qubits = qAllocMany(4);
             auto cbits = cAllocMany(4);
 
-            auto circuit = CreateEmptyCircuit(); 
-            circuit << H(qubits[0]) << X(qubits[1]) << S(qubits[2])
-                    << CNOT(qubits[0], qubits[1]) << iSWAP(qubits[1], qubits[2])
-                    << RX(qubits[3], PI/4);
-            auto count = countQGateUnderQCircuit(&circuit);
-            std::cout << "QCircuit count: " << count << std::endl;
+            QProg prog;
+            prog << X(qubits[0])
+                << Y(qubits[1])
+                << H(qubits[0])
+                << RX(qubits[0], 3.14)
+                << Measure(qubits[1], cbits[0]);
 
-            auto prog = CreateEmptyQProg();
-            prog << Y(qubits[0]) << CZ(qubits[2], qubits[3]) << circuit;
-            count = countQGateUnderQProg(&prog); 
-            std::cout << "QProg count: " << count << std::endl;
-
+            size_t num = getQGateNumber(prog);
+            std::cout << "QGate number: " << num << std::endl;
             finalize();
-            return 0;
+
+            return;
         }
+
+运行结果：
+
+    .. code-block:: c
+
+        QGate number: 5
+
     

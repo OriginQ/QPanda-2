@@ -62,7 +62,6 @@ void QPanda::add_up_a_map(map<string, size_t> &meas_result, string key)
     }
 }
 
-
 void QPanda::insertQCircuit(AbstractQGateNode * pGateNode, QCircuit & qCircuit, QNode * pParentNode)
 {
     if ((nullptr == pParentNode) || (nullptr == pGateNode))

@@ -24,7 +24,7 @@ std::string QPanda::dec2bin(unsigned n, size_t size)
 double QPanda::RandomNumberGenerator()
 {
     /*
-    *  difine constant number in 16807 generator.
+    *  define constant number in 16807 generator.
     */
     int  ia = 16807, im = 2147483647, iq = 127773, ir = 2836;
     time_t rawtime;

@@ -17,8 +17,6 @@ limitations under the License.
 #ifndef CPU_QUANTUM_GATE_H
 #define CPU_QUANTUM_GATE_H
 
-//#ifndef USE_CUDA
-
 #include "Core/VirtualQuantumProcessor/QPUImpl.h"
 #include "Core/Utilities/Utilities.h"
 #include <stdio.h>
@@ -301,7 +299,6 @@ public:
         return qErrorNone;
     }
 
-
     template<const qcomplex_t& U00,
         const qcomplex_t& U01,
         const qcomplex_t& U10,
@@ -429,6 +426,11 @@ public:
         return qErrorNone;
     }
 
+	QError iSWAP(size_t qn_0, size_t qn_1, double theta, 
+		bool isConjugate, double);
+	QError iSWAP(size_t qn_0, size_t qn_1, Qnum& vControlBit, 
+		double theta, bool isConjugate, double);
+
     inline QError iSWAP(size_t qn_0, size_t qn_1, 
 		bool isConjugate, double error_rate)
     {
@@ -494,9 +496,6 @@ public:
     QError endGate(QuantumGateParam *pQuantumProParam, QPUImpl * pQGate);
 protected:
     std::string sCalculationUnitType = "X86";
-
 };
-
-//#endif // !USE_CUDA
 
 #endif

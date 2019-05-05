@@ -11,7 +11,7 @@ using namespace std;
 /* enum find */
 
 
-int numOpArgs(op_type op){
+int numOpArgs(op_type op) {
     static const std::map<op_type, int> op_args = {
         { op_type::plus, 2 },
         { op_type::minus, 2 },
@@ -24,10 +24,10 @@ int numOpArgs(op_type op){
         { op_type::inverse, 1 },
         { op_type::transpose, 1 },
         { op_type::sum, 1 },
-		{ op_type::sigmoid, 1},
-		{ op_type::softmax, 1},
+        { op_type::sigmoid, 1},
+        { op_type::softmax, 1},
         { op_type::cross_entropy,2},
-		{ op_type::dropout, 2},
+        { op_type::dropout, 2},
         { op_type::none, 0 }
     };
     return op_args.find(op)->second;
@@ -38,8 +38,8 @@ var& var::operator=(var&&) = default;
 var::~var() = default;
 var::var(const var&) = default;
 var& var::operator=(const var&) = default;
-var var::clone(){
-    return var(std::make_shared<impl>(*pimpl)); 
+var var::clone() {
+    return var(std::make_shared<impl>(*pimpl));
 }
 
 size_t var::getNumOpArgs()
@@ -47,13 +47,13 @@ size_t var::getNumOpArgs()
     return getChildren().size();
 }
 
-var::var(std::shared_ptr<impl> _pimpl) : pimpl(_pimpl){};
+var::var(std::shared_ptr<impl> _pimpl) : pimpl(_pimpl) {};
 
-var::var(const MatrixXd& _val) 
-: pimpl(new impl(_val)) {}
+var::var(const MatrixXd& _val)
+    : pimpl(new impl(_val)) {}
 
-var::var(double _val) 
-: pimpl(new impl(scalar(_val))){}
+var::var(double _val)
+    : pimpl(new impl(scalar(_val))) {}
 
 var::var(const MatrixXd& _val, bool isDifferentiable)
     : pimpl(new impl(_val, isDifferentiable)) {}
@@ -62,32 +62,32 @@ var::var(double _val, bool isDifferentiable)
     : pimpl(new impl(scalar(_val), isDifferentiable)) {}
 
 var::var(op_type _op, const std::vector<var>& _children)
-: pimpl(new impl(_op, _children)){}
+    : pimpl(new impl(_op, _children)) {}
 
-MatrixXd var::getValue() const{ return pimpl->val; }
+MatrixXd var::getValue() const { return pimpl->val; }
 
-void var::setValue(const MatrixXd& _val){ pimpl->val = _val; }
+void var::setValue(const MatrixXd& _val) { pimpl->val = _val; }
 
-op_type var::getOp() const{ return pimpl->op; }
+op_type var::getOp() const { return pimpl->op; }
 
-void var::setOp(op_type _op){ pimpl->op = _op; }
+void var::setOp(op_type _op) { pimpl->op = _op; }
 
-std::vector<var>& var::getChildren() const{ return pimpl->children; }
+std::vector<var>& var::getChildren() const { return pimpl->children; }
 
 std::vector<var> var::getParents() const {
     std::vector<var> _parents;
-    for( std::weak_ptr<impl> parent : pimpl->parents ){
-//        _parents.emplace_back( parent.lock() );
+    for (std::weak_ptr<impl> parent : pimpl->parents) {
+        //        _parents.emplace_back( parent.lock() );
         auto tmp_data = parent.lock();
         if (nullptr != tmp_data)
         {
             _parents.emplace_back(tmp_data);
         }
-    } 
+    }
     return _parents;
 }
 
-long var::getUseCount() const{
+long var::getUseCount() const {
     return pimpl.use_count();
 }
 
@@ -154,10 +154,10 @@ MatrixXd var::_eval()
     case op_type::sum: {
         return scalar(_mval(operands[0]).array().sum());
     }
-    case op_type::stack: {        
+    case op_type::stack: {
         auto pimpl_stack = dynamic_pointer_cast<impl_stack>(pimpl);
-        int axis = pimpl_stack->m_axis;        
-        if (axis == 0){
+        int axis = pimpl_stack->m_axis;
+        if (axis == 0) {
             const auto &children = pimpl_stack->children;
             auto rows = children[0].pimpl->val.rows();
             Eigen::Index cols = 0;
@@ -227,41 +227,53 @@ MatrixXd var::_eval()
         double expectation = pimpl_vqp->_get_expectation();
         return scalar(expectation);
     }
-	case op_type::qop_pmeasure:
-	{
-		auto pimpl_pmeasure = dynamic_pointer_cast<impl_qop_pmeasure>(pimpl);
-		std::vector<double> values = pimpl_pmeasure->_get_value();
-		return vector2mat(values);
-	}
-	case op_type::sigmoid: {
-		return 1 / (1 + (-1 * _mval(operands[0]).array()).exp());
-	}
-	case op_type::softmax: {
-		return _mval(operands[0]).array().exp() / (_mval(operands[0]).array().exp()).sum();
-	}
+    case op_type::qop_pmeasure:
+    {
+        auto pimpl_pmeasure = dynamic_pointer_cast<impl_qop_pmeasure>(pimpl);
+        std::vector<double> values = pimpl_pmeasure->_get_value();
+        return vector2mat(values);
+    }
+    case op_type::qop_real_chip:
+    {
+        auto pimpl_vqp = dynamic_pointer_cast<impl_vqp_real_chip>(pimpl);
+        double expectation = pimpl_vqp->_get_expectation();
+        return scalar(expectation);
+    }
+    case op_type::qop_pmeasure_real_chip:
+    {
+        auto pimpl_pmeasure = dynamic_pointer_cast<impl_qop_pmeasure_real_chip>(pimpl);
+        std::vector<double> values = pimpl_pmeasure->_get_value();
+        return vector2mat(values);
+    }
+    case op_type::sigmoid: {
+        return 1 / (1 + (-1 * _mval(operands[0]).array()).exp());
+    }
+    case op_type::softmax: {
+        return _mval(operands[0]).array().exp() / (_mval(operands[0]).array().exp()).sum();
+    }
     case op_type::cross_entropy: {
-		// Cross Entropy: H(p,q) p and q are probability distribution
-		MatrixXd Hpq = _mval(operands[1]).array().log();
-		return  -Hpq * _mval(operands[0]).transpose();
-	}
-	case op_type::dropout: {
+        // Cross Entropy: H(p,q) p and q are probability distribution
+        MatrixXd Hpq = _mval(operands[1]).array().log();
+        return  -Hpq * _mval(operands[0]).transpose();
+    }
+    case op_type::dropout: {
 
-		MatrixXd input_x = _mval(operands[0]);
-		MatrixXd input_p = _mval(operands[1]);
-		MatrixXd randomNumber = MatrixXd::Random(1, input_x.size());
-		randomNumber = randomNumber.cwiseAbs();
+        MatrixXd input_x = _mval(operands[0]);
+        MatrixXd input_p = _mval(operands[1]);
+        MatrixXd randomNumber = MatrixXd::Random(1, input_x.size());
+        randomNumber = randomNumber.cwiseAbs();
 
-		pimpl->m_prob = MatrixXd::Zero(1, input_x.size());
-		for (auto i = 0; i < input_x.size(); i++) {
-			if (randomNumber(i) < input_p(i))
-				pimpl->m_prob(i) = 1 / input_p(i);
-			else
-				pimpl->m_prob(i) = 0;
-		}
-		return input_x.array() * pimpl->m_prob.array();
-	}
-    case op_type::none: 
-        throw std::invalid_argument("Cannot have a non-leaf contain none-op.");    
+        pimpl->m_prob = MatrixXd::Zero(1, input_x.size());
+        for (auto i = 0; i < input_x.size(); i++) {
+            if (randomNumber(i) < input_p(i))
+                pimpl->m_prob(i) = 1 / input_p(i);
+            else
+                pimpl->m_prob(i) = 0;
+        }
+        return input_x.array() * pimpl->m_prob.array();
+    }
+    case op_type::none:
+        throw std::invalid_argument("Cannot have a non-leaf contain none-op.");
     };
     throw exception();
 }
@@ -400,65 +412,75 @@ MatrixXd var::_back_single(const MatrixXd & dx, size_t op_idx)
             s.row(subscript) = dx;
             return s;
         }
-        else throw exception();        
+        else throw exception();
     }
     case op_type::qop: {
         auto pimpl_vqp = dynamic_pointer_cast<impl_vqp>(pimpl);
         return scalar(_sval(dx)*pimpl_vqp->_get_gradient(pimpl_vqp->children[op_idx]));
     }
-	case op_type::qop_pmeasure: {
-		auto pimpl_pmeasure = dynamic_pointer_cast<impl_qop_pmeasure>(pimpl);
-		auto deriv = vector2mat(pimpl_pmeasure->
-			_get_gradient(pimpl_pmeasure->children[op_idx]));
-		return scalar((dx.cwiseProduct(deriv)).sum());
-	}
-	case op_type::sigmoid: {
-		return dx.array() *
-			1 / (1 + (-1 * _mval(operands[0]).array()).exp()) *
-			(1 - 1 / (1 + (-1 * _mval(operands[0]).array()).exp()));
-	}
-	case op_type::softmax: {
-		if (_is_scalar(dx))
-			throw std::invalid_argument("invalid dx");
-		auto m = _mval(operands[0]);
-		auto size = m.rows() > m.cols() ? m.rows() : m.cols();
-		auto softmaxSum = _mval(operands[0]).array().exp().sum();
+    case op_type::qop_pmeasure: {
+        auto pimpl_pmeasure = dynamic_pointer_cast<impl_qop_pmeasure>(pimpl);
+        auto deriv = vector2mat(pimpl_pmeasure->
+            _get_gradient(pimpl_pmeasure->children[op_idx]));
+        return scalar((dx.cwiseProduct(deriv)).sum());
+    }
+    case op_type::qop_real_chip: {
+        auto pimpl_vqp = dynamic_pointer_cast<impl_vqp_real_chip>(pimpl);
+        return scalar(_sval(dx)*pimpl_vqp->_get_gradient(pimpl_vqp->children[op_idx]));
+    }
+    case op_type::qop_pmeasure_real_chip: {
+        auto pimpl_pmeasure = dynamic_pointer_cast<impl_qop_pmeasure_real_chip>(pimpl);
+        auto deriv = vector2mat(pimpl_pmeasure->
+            _get_gradient(pimpl_pmeasure->children[op_idx]));
+        return scalar((dx.cwiseProduct(deriv)).sum());
+    }
+    case op_type::sigmoid: {
+        return dx.array() *
+            1 / (1 + (-1 * _mval(operands[0]).array()).exp()) *
+            (1 - 1 / (1 + (-1 * _mval(operands[0]).array()).exp()));
+    }
+    case op_type::softmax: {
+        if (_is_scalar(dx))
+            throw std::invalid_argument("invalid dx");
+        auto m = _mval(operands[0]);
+        auto size = m.rows() > m.cols() ? m.rows() : m.cols();
+        auto softmaxSum = _mval(operands[0]).array().exp().sum();
 
-		MatrixXd Vec2DiagMat = MatrixXd::Zero(size, size);
-		for (auto i = 0; i < size; i++)
-		{
-			if (m.rows() > m.cols()) {
-				Vec2DiagMat.row(i)[i] = std::exp(m.row(i)[0]) / softmaxSum;
-			}
-			else {
-			    Vec2DiagMat.row(i)[i] = std::exp(m.row(0)[i]) / softmaxSum;
-			}
-		}
-		MatrixXd operd = _mval(operands[0]).array().exp() / _mval(operands[0]).array().exp().sum();
-	
-		if (m.cols() > m.rows()) {
-			return dx
-				*(Vec2DiagMat - operd.transpose() * operd);
-		}
-		else {
-			return dx
-				* (Vec2DiagMat - operd * operd.transpose());
-		}
-	}
+        MatrixXd Vec2DiagMat = MatrixXd::Zero(size, size);
+        for (auto i = 0; i < size; i++)
+        {
+            if (m.rows() > m.cols()) {
+                Vec2DiagMat.row(i)[i] = std::exp(m.row(i)[0]) / softmaxSum;
+            }
+            else {
+                Vec2DiagMat.row(i)[i] = std::exp(m.row(0)[i]) / softmaxSum;
+            }
+        }
+        MatrixXd operd = _mval(operands[0]).array().exp() / _mval(operands[0]).array().exp().sum();
+
+        if (m.cols() > m.rows()) {
+            return dx
+                * (Vec2DiagMat - operd.transpose() * operd);
+        }
+        else {
+            return dx
+                * (Vec2DiagMat - operd * operd.transpose());
+        }
+    }
     case op_type::cross_entropy: {
-		// Cross Entropy: H(p,q) 
-		// dHdp = dH/dp; dHdq = dH/dq
-		MatrixXd dHdp = _mval(operands[1]).array().log();
-		MatrixXd dHdq = _mval(operands[0]).array() / _mval(operands[1]).array();
+        // Cross Entropy: H(p,q) 
+        // dHdp = dH/dp; dHdq = dH/dq
+        MatrixXd dHdp = _mval(operands[1]).array().log();
+        MatrixXd dHdq = _mval(operands[0]).array() / _mval(operands[1]).array();
 
-		if (op_idx == 0)
-			return -dx * dHdp;
-		else
-			return -dx * dHdq;
-	}
-	case op_type::dropout: {
-		return dx.array() * pimpl->m_prob.array();
-	}
+        if (op_idx == 0)
+            return -dx * dHdp;
+        else
+            return -dx * dHdq;
+    }
+    case op_type::dropout: {
+        return dx.array() * pimpl->m_prob.array();
+    }
     case op_type::none: {
         throw std::invalid_argument("Cannot have a non-leaf contain none-op.");
     }
@@ -483,35 +505,35 @@ std::vector<MatrixXd> var::_back(const MatrixXd & dx)
 {
     auto operands = getChildren();
     std::vector<MatrixXd> derivatives;
-	try {
-		for (size_t i = 0; i < operands.size(); i++) {
-			derivatives.push_back(_back_single(dx, i));
-		}
-	}
-	catch (exception e)
-	{
-		cout << e.what();
-	}
+    try {
+        for (size_t i = 0; i < operands.size(); i++) {
+            derivatives.push_back(_back_single(dx, i));
+        }
+    }
+    catch (exception e)
+    {
+        cout << e.what();
+    }
     return derivatives;
 }
 
 /* hash/comparisons */
-bool var::operator==(const var& rhs) const{ return pimpl.get() == rhs.pimpl.get(); }
+bool var::operator==(const var& rhs) const { return pimpl.get() == rhs.pimpl.get(); }
 
 /* et::var::impl funcs: */
-impl::impl(const MatrixXd& _val) : 
-    val(_val), 
+impl::impl(const MatrixXd& _val) :
+    val(_val),
     m_is_differentiable(false),
-    op(op_type::none){}
+    op(op_type::none) {}
 
-impl::impl(const MatrixXd& _val,bool is_differentiable) :
+impl::impl(const MatrixXd& _val, bool is_differentiable) :
     val(_val),
     m_is_differentiable(is_differentiable),
     op(op_type::none) {}
 
 impl::impl(op_type _op, const std::vector<var>& _children)
-: op(_op) {
-    for(const var& v : _children){
+    : op(_op) {
+    for (const var& v : _children) {
         children.emplace_back(v);
     }
     bool is_differentiable = false;
@@ -527,12 +549,12 @@ impl::impl(op_type _op, const std::vector<var>& _children)
 
 impl_stack::impl_stack(int axis, const std::vector<var>& vars)
     :impl(op_type::stack, vars), m_axis(axis)
-{    
+{
 }
 
 impl_subscript::impl_subscript(int subscript, const std::vector<var>& vars)
-    :impl(op_type::subscript, vars), m_subscript(subscript)
-{     
+    : impl(op_type::subscript, vars), m_subscript(subscript)
+{
 }
 
 static vector<size_t> is_gate_match(const std::vector<
@@ -668,7 +690,7 @@ VariationalQuantumGate_CRY::VariationalQuantumGate_CRY(Qubit* q_target, QVec & q
     {
         m_control.push_back(iter);
     }
-    m_constants[0]=angle;
+    m_constants[0] = angle;
 }
 
 VariationalQuantumGate_CRY::VariationalQuantumGate_CRY(VariationalQuantumGate_CRY & old)
@@ -837,23 +859,21 @@ static vector<size_t> is_gate_match(const std::vector<
     return i_offsets;
 }
 
-namespace std{
+namespace std {
 
-// Template specialize hash for vars
-size_t hash<var>::operator()(const var& v) const{
-    return std::hash<std::shared_ptr<impl> >{}(v.pimpl);
-}
+    // Template specialize hash for vars
+    size_t hash<var>::operator()(const var& v) const {
+        return std::hash<std::shared_ptr<impl> >{}(v.pimpl);
+    }
 }
 
-impl_vqp::impl_vqp(VariationalQuantumCircuit circuit, 
+impl_vqp::impl_vqp(VariationalQuantumCircuit circuit,
     PauliOperator op,
     QuantumMachine* machine,
-    std::vector<Qubit*> qubits,
-    bool is_pmeasure)
+    std::vector<Qubit*> qubits)
     :
     impl(op_type::qop, circuit.get_vars()),
-    m_circuit(circuit), m_op(op), m_machine(machine),
-    m_is_pmeasure(is_pmeasure)
+    m_circuit(circuit), m_op(op), m_machine(machine)
 
 {
     for (int i = 0; i < qubits.size(); ++i) m_measure_qubits[i] = qubits[i];
@@ -862,13 +882,11 @@ impl_vqp::impl_vqp(VariationalQuantumCircuit circuit,
 impl_vqp::impl_vqp(VariationalQuantumCircuit circuit,
     PauliOperator op,
     QuantumMachine* machine,
-    std::map<size_t, Qubit*> qubits,
-    bool is_pmeasure)
+    std::map<size_t, Qubit*> qubits)
     :
     impl(op_type::qop, circuit.get_vars()),
     m_circuit(circuit), m_op(op), m_machine(machine),
-    m_measure_qubits(qubits.begin(),qubits.end()),
-    m_is_pmeasure(is_pmeasure)
+    m_measure_qubits(qubits.begin(), qubits.end())
 {
 }
 
@@ -883,7 +901,7 @@ double impl_vqp::_get_gradient(var _var)
         double coefficient_real = 0;
         if (coefficient.imag() < m_op.error_threshold()
             &&
-            coefficient.imag() > - m_op.error_threshold()
+            coefficient.imag() > -m_op.error_threshold()
             )
         {
             coefficient_real = coefficient.real();
@@ -955,7 +973,7 @@ static bool _parity_check(size_t number)
     return label;
 }
 
-double impl_vqp::_get_expectation_one_term_old(QCircuit c,
+double impl_vqp::_get_expectation_one_term(QCircuit c,
     QTerm term)
 {
     double expectation = 0;
@@ -982,7 +1000,7 @@ double impl_vqp::_get_expectation_one_term_old(QCircuit c,
         QCERR("m_machine is not idealmachine");
         throw runtime_error("m_machine is not idealmachine");
     }
-    auto result = ideal_machine->PMeasure(vqubit,-1);
+    auto result = ideal_machine->PMeasure(vqubit, -1);
 
 
     for (auto i = 0; i < result.size(); i++)
@@ -995,99 +1013,7 @@ double impl_vqp::_get_expectation_one_term_old(QCircuit c,
     return expectation;
 }
 
-double impl_vqp::_get_expectation_one_term(QCircuit c,
-    QTerm term)
-{
-    double expectation = 0;
-    auto qprog = CreateEmptyQProg();
-    qprog << c;
-    vector<Qubit *> vqubit;
-    vector<ClassicalCondition> vcbit;
 
-    if (m_is_pmeasure)
-    {
-        for (auto iter : term)
-        {
-            vqubit.push_back(m_machine->allocateQubitThroughVirAddress(iter.first));
-            if (iter.second == 'X')
-            {
-                qprog << H(m_measure_qubits[iter.first]);
-            }
-            else if (iter.second == 'Y')
-            {
-                qprog << RX(m_measure_qubits[iter.first], PI / 2);
-            }
-        }
-        m_machine->directlyRun(qprog);
-
-        auto ideal_machine = dynamic_cast<IdealMachineInterface*>(m_machine);
-        if (nullptr == ideal_machine)
-        {
-            QCERR("m_machine is not idealmachine");
-            throw runtime_error("m_machine is not idealmachine");
-        }
-        auto result = ideal_machine->PMeasure(vqubit, -1);
-
-
-        for (auto i = 0; i < result.size(); i++)
-        {
-            if (_parity_check(result[i].first))
-                expectation += result[i].second;
-            else
-                expectation -= result[i].second;
-        }
-    }
-    else
-    {
-        for (auto iter : term)
-        {
-            vqubit.push_back(m_machine->allocateQubitThroughVirAddress(iter.first));
-            vcbit.push_back(m_machine->allocateCBit());
-            if (iter.second == 'X')
-            {
-                qprog << H(m_measure_qubits[iter.first]);
-            }
-            else if (iter.second == 'Y')
-            {
-                qprog << RX(m_measure_qubits[iter.first], PI / 2);
-            }
-        }
-        for (auto i = 0; i < vqubit.size(); i++)
-        {
-            qprog << Measure(vqubit[i], vcbit[i]);
-        }
-        //size_t times = 500 * (1 << (vqubit.size()-1));
-        size_t times = 1000;
-        rapidjson::Document doc;
-        doc.Parse("{}");
-        auto &alloc = doc.GetAllocator();
-        doc.AddMember("shots", (uint64_t)times, alloc);
-        auto outcome = m_machine->runWithConfiguration(qprog, vcbit, doc);
-        size_t label = 0;
-        for (auto iter : outcome)
-        {
-            label = 0;
-            for (auto iter1 : iter.first)
-            {
-                if (iter1 == '1')
-                {
-                    label++;
-                }
-            }
-            if (label % 2 == 0)
-            {
-                expectation += iter.second*1.0 / times;
-            }
-            else
-            {
-                expectation -= iter.second*1.0 / times;
-            }
-        }
-
-        m_machine->Free_CBits(vcbit);
-    }
-    return expectation;
-}
 
 double impl_vqp::_get_expectation()
 {
@@ -1105,80 +1031,364 @@ double impl_vqp::_get_expectation()
         {
             coefficient_real = coefficient.real();
         }
-        else 
+        else
             throw(invalid_argument("Hamiltonian has imagine parts"));
 
-        expectation += (coefficient_real * 
+        expectation += (coefficient_real *
             _get_expectation_one_term(c, term.first.first));
     }
     return expectation;
 }
 
 impl_qop_pmeasure::impl_qop_pmeasure(
-	VariationalQuantumCircuit circuit,
-	std::vector<size_t> components,
-	QuantumMachine *machine,
-	std::vector<Qubit*> qubits)
-	:
-	impl(op_type::qop_pmeasure, circuit.get_vars()),
-	m_circuit(circuit),
-	m_machine(machine),
-	m_components(components),
-	m_measure_qubits(qubits.begin(), qubits.end())
+    VariationalQuantumCircuit circuit,
+    std::vector<size_t> components,
+    QuantumMachine *machine,
+    std::vector<Qubit*> qubits)
+    :
+    impl(op_type::qop_pmeasure, circuit.get_vars()),
+    m_circuit(circuit),
+    m_machine(machine),
+    m_components(components),
+    m_measure_qubits(qubits.begin(), qubits.end())
 {
 }
 
 std::vector<double> impl_qop_pmeasure::_get_value()
 {
-	auto c = m_circuit.feed();
-	return _get_circuit_value(c);
+    auto c = m_circuit.feed();
+    return _get_circuit_value(c);
 }
 
 std::vector<double> impl_qop_pmeasure::_get_circuit_value(QCircuit c)
-{	
+{
     auto temp = dynamic_cast<IdealMachineInterface *>(m_machine);
     if (nullptr == temp)
     {
         QCERR("m_machine is error");
         throw runtime_error("m_machine is error");
     }
-	vector<double> probs =
+    vector<double> probs =
         temp->probRunList(QProg() << c, m_measure_qubits, -1);
-	vector<double> values;
-	for (auto component : m_components)
-		values.push_back(probs[component]);
-	return values;
+    vector<double> values;
+    for (auto component : m_components)
+        values.push_back(probs[component]);
+    return values;
 }
 
 std::vector<double> impl_qop_pmeasure::_get_gradient(var _var)
 {
-	auto gates = m_circuit.get_var_in_which_gate(_var);
-	vector<double> grad;
-	grad.resize(m_components.size());
-	for (auto gate : gates)
-	{
-		int pos = shared_ptr<VariationalQuantumGate>(gate)
-			->var_pos(_var);
-		if (pos < 0) throw(invalid_argument("Error VQG"));
+    auto gates = m_circuit.get_var_in_which_gate(_var);
+    vector<double> grad;
+    grad.resize(m_components.size());
+    for (auto gate : gates)
+    {
+        int pos = shared_ptr<VariationalQuantumGate>(gate)
+            ->var_pos(_var);
+        if (pos < 0) throw(invalid_argument("Error VQG"));
 
-		vector<tuple<
-			weak_ptr<VariationalQuantumGate>, size_t, double>> plus;
-		plus.push_back(make_tuple(gate, pos, PI / 2));
+        vector<tuple<
+            weak_ptr<VariationalQuantumGate>, size_t, double>> plus;
+        plus.push_back(make_tuple(gate, pos, PI / 2));
 
-		QCircuit plus_circuit = m_circuit.feed(plus);
-		auto plus_expectation = _get_circuit_value(plus_circuit);
+        QCircuit plus_circuit = m_circuit.feed(plus);
+        auto plus_expectation = _get_circuit_value(plus_circuit);
 
-		vector<tuple<
-			weak_ptr<VariationalQuantumGate>, size_t, double>> minus;
-		minus.push_back(make_tuple(gate, pos, -PI / 2));
+        vector<tuple<
+            weak_ptr<VariationalQuantumGate>, size_t, double>> minus;
+        minus.push_back(make_tuple(gate, pos, -PI / 2));
 
-		QCircuit minus_circuit = m_circuit.feed(minus);
-		auto minus_expectation = _get_circuit_value(minus_circuit);
-		for (size_t i = 0; i < m_components.size(); ++i)
-			grad[i] += ((plus_expectation[i] - minus_expectation[i]) / 2);
-	}
-	return grad;
+        QCircuit minus_circuit = m_circuit.feed(minus);
+        auto minus_expectation = _get_circuit_value(minus_circuit);
+        for (size_t i = 0; i < m_components.size(); ++i)
+            grad[i] += ((plus_expectation[i] - minus_expectation[i]) / 2);
+    }
+    return grad;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+impl_vqp_real_chip::impl_vqp_real_chip(VariationalQuantumCircuit circuit,
+    PauliOperator op,
+    QuantumMachine* machine,
+    std::vector<Qubit*> qubits,
+    int shots)
+    :
+    impl(op_type::qop_real_chip, circuit.get_vars()),
+    m_circuit(circuit), m_op(op), m_machine(machine),
+    m_shots(shots)
+
+{
+    for (int i = 0; i < qubits.size(); ++i) m_measure_qubits[i] = qubits[i];
+}
+
+impl_vqp_real_chip::impl_vqp_real_chip(VariationalQuantumCircuit circuit,
+    PauliOperator op,
+    QuantumMachine* machine,
+    std::map<size_t, Qubit*> qubits,
+    int shots)
+    :
+    impl(op_type::qop_real_chip, circuit.get_vars()),
+    m_circuit(circuit), m_op(op), m_machine(machine),
+    m_measure_qubits(qubits.begin(), qubits.end()),
+    m_shots(shots)
+{
+}
+
+double impl_vqp_real_chip::_get_gradient(var _var)
+{
+
+    double grad = 0;
+    auto hamiltonian = m_op.data();
+    for (auto term : hamiltonian)
+    {
+        auto coefficient = term.second;
+        double coefficient_real = 0;
+        if (coefficient.imag() < m_op.error_threshold()
+            &&
+            coefficient.imag() > -m_op.error_threshold()
+            )
+        {
+            coefficient_real = coefficient.real();
+        }
+        else
+            throw(invalid_argument("Hamiltonian has imagine parts"));
+
+        grad += (coefficient_real*
+            _get_gradient_one_term(_var, term.first.first));
+    }
+    return grad;
+}
+
+double impl_vqp_real_chip::_get_gradient_one_term(var _var, QTerm hamiltonian_term)
+{
+    auto gates = m_circuit.get_var_in_which_gate(_var);
+    double grad = 0;
+    for (auto gate : gates)
+    {
+        int pos = shared_ptr<VariationalQuantumGate>(gate)
+            ->var_pos(_var);
+        if (pos < 0) throw(invalid_argument("Error VQG"));
+
+        vector<tuple<
+            weak_ptr<VariationalQuantumGate>, size_t, double>> plus;
+        plus.push_back(make_tuple(gate, pos, PI / 2));
+
+        QCircuit plus_circuit = m_circuit.feed(plus);
+        auto plus_expectation = _get_expectation_one_term(
+            plus_circuit, hamiltonian_term);
+
+        vector<tuple<
+            weak_ptr<VariationalQuantumGate>, size_t, double>> minus;
+        minus.push_back(make_tuple(gate, pos, -PI / 2));
+
+        QCircuit minus_circuit = m_circuit.feed(minus);
+        auto minus_expectation = _get_expectation_one_term(
+            minus_circuit, hamiltonian_term);
+
+        grad += ((plus_expectation - minus_expectation) / 2);
+    }
+    return grad;
+}
+
+double impl_vqp_real_chip::_get_expectation_one_term(QCircuit c,
+    QTerm term)
+{
+    double expectation = 0;
+    auto qprog = CreateEmptyQProg();
+    qprog << c;
+    vector<Qubit *> vqubit;
+    vector<ClassicalCondition> vcbit;
+    for (auto iter : term)
+    {
+        vqubit.push_back(m_machine->allocateQubitThroughVirAddress(iter.first));
+        vcbit.push_back(m_machine->allocateCBit());
+        if (iter.second == 'X')
+        {
+            qprog << H(m_measure_qubits[iter.first]);
+        }
+        else if (iter.second == 'Y')
+        {
+            qprog << RX(m_measure_qubits[iter.first], PI / 2);
+        }
+    }
+    for (auto i = 0; i < vqubit.size(); i++)
+    {
+        qprog << Measure(vqubit[i], vcbit[i]);
+    }
+    rapidjson::Document doc;
+    doc.Parse("{}");
+    auto &alloc = doc.GetAllocator();
+    doc.AddMember("shots", m_shots, alloc);
+    auto outcome = m_machine->runWithConfiguration(qprog, vcbit, doc);
+    size_t label = 0;
+    for (auto iter : outcome)
+    {
+        label = 0;
+        for (auto iter1 : iter.first)
+        {
+            if (iter1 == '1')
+            {
+                label++;
+            }
+        }
+        if (label % 2 == 0)
+        {
+            expectation += iter.second*1.0 / m_shots;
+        }
+        else
+        {
+            expectation -= iter.second*1.0 / m_shots;
+        }
+    }
+    m_machine->Free_CBits(vcbit);
+    return expectation;
+}
+double impl_vqp_real_chip::_get_expectation()
+{
+    auto c = m_circuit.feed();
+    double expectation = 0;
+    auto terms = m_op.data();
+    for (auto term : terms)
+    {
+        auto coefficient = term.second;
+        double coefficient_real = 0;
+        if (coefficient.imag() < m_op.error_threshold()
+            &&
+            coefficient.imag() > -m_op.error_threshold()
+            )
+        {
+            coefficient_real = coefficient.real();
+        }
+        else
+            throw(invalid_argument("Hamiltonian has imagine parts"));
+
+        expectation += (coefficient_real *
+            _get_expectation_one_term(c, term.first.first));
+    }
+    return expectation;
+}
+
+
+
+impl_qop_pmeasure_real_chip::impl_qop_pmeasure_real_chip(
+    VariationalQuantumCircuit circuit,
+    std::vector<size_t> components,
+    QuantumMachine *machine,
+    std::vector<Qubit*> qubits,
+    std::vector<ClassicalCondition> cbits,
+    int shots)
+    :
+    impl(op_type::qop_pmeasure_real_chip, circuit.get_vars()),
+    m_circuit(circuit),
+    m_machine(machine),
+    m_components(components),
+    m_measure_qubits(qubits.begin(), qubits.end()),
+    m_cbits(cbits.begin(), cbits.end()),
+    m_shots(shots)
+{
+}
+
+std::vector<double> impl_qop_pmeasure_real_chip::_get_value()
+{
+    auto c = m_circuit.feed();
+    return _get_circuit_value(c);
+}
+
+std::vector<double> impl_qop_pmeasure_real_chip::_get_circuit_value(QCircuit c)
+{
+    auto temp = dynamic_cast<IdealMachineInterface *>(m_machine);
+    if (nullptr == temp)
+    {
+        QCERR("m_machine is error");
+        throw runtime_error("m_machine is error");
+    }
+
+    auto qprog = CreateEmptyQProg();
+    qprog << c;
+    for (auto i = 0; i < m_measure_qubits.size(); i++)
+    {
+        qprog << Measure(m_measure_qubits[i], m_cbits[i]);
+    }
+
+    rapidjson::Document doc;
+    doc.Parse("{}");
+    auto &alloc = doc.GetAllocator();
+    doc.AddMember("shots", m_shots, alloc);
+    auto outcome = m_machine->runWithConfiguration(qprog, m_cbits, doc);
+    vector<double> values;
+    size_t stemp = 0;
+    bool label = false;
+    for (auto component : m_components)
+    {
+        label = false;
+        for (auto key : outcome)
+        {
+            stemp = 0;
+            for (auto i = 0; i < key.first.size(); i++)
+            {
+                if (key.first[i] == '1')
+                {
+                    stemp += (1 << i);
+                }
+
+            }
+            if (component == stemp)
+            {
+                values.push_back(key.second*1.0 / m_shots);
+                label = true;
+            }
+        }
+        if (!label)
+        {
+            values.push_back(0);
+        }
+    }
+    return values;
+}
+
+std::vector<double> impl_qop_pmeasure_real_chip::_get_gradient(var _var)
+{
+    auto gates = m_circuit.get_var_in_which_gate(_var);
+    vector<double> grad;
+    grad.resize(m_components.size());
+    for (auto gate : gates)
+    {
+        int pos = shared_ptr<VariationalQuantumGate>(gate)
+            ->var_pos(_var);
+        if (pos < 0) throw(invalid_argument("Error VQG"));
+
+        vector<tuple<
+            weak_ptr<VariationalQuantumGate>, size_t, double>> plus;
+        plus.push_back(make_tuple(gate, pos, PI / 2));
+
+        QCircuit plus_circuit = m_circuit.feed(plus);
+        auto plus_expectation = _get_circuit_value(plus_circuit);
+
+        vector<tuple<
+            weak_ptr<VariationalQuantumGate>, size_t, double>> minus;
+        minus.push_back(make_tuple(gate, pos, -PI / 2));
+
+        QCircuit minus_circuit = m_circuit.feed(minus);
+        auto minus_expectation = _get_circuit_value(minus_circuit);
+        for (size_t i = 0; i < m_components.size(); ++i)
+            grad[i] += ((plus_expectation[i] - minus_expectation[i]) / 2);
+    }
+    return grad;
+}
+
+
+
 
 template<>
 VariationalQuantumCircuit&  VariationalQuantumCircuit::insert<std::shared_ptr<VariationalQuantumGate>>(std::shared_ptr<VariationalQuantumGate> gate)
@@ -1212,7 +1422,7 @@ VariationalQuantumCircuit&  VariationalQuantumCircuit::insert<QGate >(QGate  gat
     _insert_copied_gate(copy_gate);
     return *this;
 }
-    
+
 template<>
 VariationalQuantumCircuit&  VariationalQuantumCircuit::insert<QCircuit>(QCircuit c)
 {
@@ -1253,7 +1463,7 @@ shared_ptr<VariationalQuantumGate> VariationalQuantumCircuit::_cast_qg_vqg(QGate
         return std::make_shared<VariationalQuantumGate_CNOT>(op_qubit[0], op_qubit[1]);
     case GateType::CZ_GATE:
         return std::make_shared<VariationalQuantumGate_CZ>(op_qubit[0], op_qubit[1]);
-    default: 
+    default:
         throw runtime_error("Unsupported VQG type");
     }
 }

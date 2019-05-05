@@ -1019,16 +1019,14 @@ PYBIND11_MODULE(pyQPanda, m)
     const Var::var(*qop_plain)(Var::VariationalQuantumCircuit&,
         QPanda::PauliOperator,
         QPanda::QuantumMachine*,
-        std::vector<Qubit*>,
-        bool is_pmeasure) = Var::qop;
+        std::vector<Qubit*>) = Var::qop;
 
     const Var::var(*qop_map)(Var::VariationalQuantumCircuit&,
         QPanda::PauliOperator,
         QPanda::QuantumMachine*,
-        std::map<size_t, Qubit*>,
-        bool is_pmeasure) = Var::qop;
-    m.def("qop", qop_plain,"VariationalQuantumCircuit"_a,"Hamiltonian"_a,"QuantumMachine"_a,"qubitList"_a, "is_pmeasure"_a = true);
-    m.def("qop", qop_map, "VariationalQuantumCircuit"_a, "Hamiltonian"_a, "QuantumMachine"_a, "qubitList"_a, "is_pmeasure"_a = true);
+        std::map<size_t, Qubit*>) = Var::qop;
+    m.def("qop", qop_plain,"VariationalQuantumCircuit"_a,"Hamiltonian"_a,"QuantumMachine"_a,"qubitList"_a);
+    m.def("qop", qop_map, "VariationalQuantumCircuit"_a, "Hamiltonian"_a, "QuantumMachine"_a, "qubitList"_a);
 	m.def("qop_pmeasure", Var::qop_pmeasure);
     py::implicitly_convertible<double, Var::var>();
     py::implicitly_convertible<ClassicalCondition, ClassicalProg>();

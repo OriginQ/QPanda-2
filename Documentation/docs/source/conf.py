@@ -20,8 +20,8 @@
 # -- Project information -----------------------------------------------------
 
 project = 'QPanda-2'
-copyright = '2019, wangjing'
-author = 'wangjing'
+copyright = '2019, OriginQC'
+author = 'OriginQC'
 
 # The short X.Y version
 version = ''
@@ -154,7 +154,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'QPanda2introduction.tex', 'QPanda2 introduction Documentation',
-     'wangjing', 'manual'),
+     'OriginQC', 'manual'),
 ]
 
 

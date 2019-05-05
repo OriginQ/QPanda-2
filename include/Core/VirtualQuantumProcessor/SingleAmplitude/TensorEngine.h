@@ -11,7 +11,6 @@
 
 using namespace std;
 
-
 typedef struct QubitVertice
 {
     qsize_t m_qubit_id;
@@ -36,38 +35,25 @@ typedef struct QubitVertice
     }
     QubitVertice() :m_num(0), m_qubit_id(0), m_max(0), m_count(0)
     {}
-} qubit_vertice_t;
+}
+qubit_vertice_t;
 
-
-void split(QuantumProgMap * prog_map,
-	qubit_vertice_t * qubit_vertice,
-	qcomplex_data_t * result);
+void split(QuantumProgMap* prog_map,
+	qubit_vertice_t* qubit_vertice,
+	qcomplex_data_t* result);
 
 class TensorEngine
 {
 public:
-    static qubit_vertice_t getNoValueVertice(QuantumProgMap & prog_map,size_t contect_edge);
-    static qubit_vertice_t getNoValueAndContectEdgeMaxVertice
-                                (QuantumProgMap & prog_map);
-    static void Merge(QuantumProgMap & prog_map);
-    /*
-    qcomplex_data_t split(QuantumProgMap & prog_map,
-                          qubit_vertice_t *);
-                          */
-    static qcomplex_data_t Merge(QuantumProgMap & prog_map,
-                          qubit_vertice_t *);
+    static qubit_vertice_t getNoValueVertice(QuantumProgMap& prog_map,size_t contect_edge);
+    static qubit_vertice_t getNoValueAndContectEdgeMaxVertice(QuantumProgMap& prog_map);
+    static void Merge(QuantumProgMap& prog_map);
+    static qcomplex_data_t Merge(QuantumProgMap& prog_map, qubit_vertice_t*);
     static qcomplex_data_t computing(QuantumProgMap & prog_map);
-    /*
-    qsize_t getSubQuantumProgMap(QuantumProgMap &,
-                                 QuantumProgMap &, 
-                                 qubit_vertice_t &,
-                                 int);
-    */
-    static map<qsize_t, Vertice>::iterator MergeQuantumProgMap(QuantumProgMap &,
-                                qubit_vertice_t &);
+    static map<qsize_t, Vertice>::iterator 
+		MergeQuantumProgMap(QuantumProgMap&, qubit_vertice_t&);
     
-    static void dimDecrementbyValue(QuantumProgMap &,
-        qubit_vertice_t &,int value);
+    static void dimDecrementbyValue(QuantumProgMap&, qubit_vertice_t &,int value);
 };
 
 #endif // !TENSOR_ENGINE_H

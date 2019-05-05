@@ -23,32 +23,20 @@ limitations under the License.
 #include <map>
 #include "Core/VirtualQuantumProcessor/QuantumGateParameter.h"
 #include "Core/VirtualQuantumProcessor/QError.h"
+#include "Core/VirtualQuantumProcessor/RandomEngine/RandomEngine.h"
 #include "Core/QuantumCircuit/QGlobalVariable.h"
 
 typedef std::vector<QGateParam> vQParam;
 
-
-/*****************************************************************************************************************
-QuantumGates:quantum gate
-*****************************************************************************************************************/
 class QPUImpl
 {
-
+private:
+	RandomEngine* random_engine = nullptr;
 public:
     QPUImpl();
     virtual ~QPUImpl() = 0;
 
-    /*************************************************************************************************************
-    Name:        getQState
-    Description: get quantum state
-    Argin:       pQuantumProParam      quantum program param.
-    Argout:      sState                state string
-    return:      quantum error
-    *************************************************************************************************************/
-    //virtual bool getQState(string & sState, QuantumGateParam *pQuantumProParam) = 0;
-
-    //virtual QError Hadamard(size_t qn, double error_rate) = 0;
-    virtual QError Hadamard(size_t qn, bool isConjugate, 
+	virtual QError Hadamard(size_t qn, bool isConjugate, 
                         double error_rate) = 0;
     virtual QError Hadamard(size_t qn, Qnum& vControlBit, 
                         bool isConjugate, double error_rate) = 0;
@@ -191,19 +179,18 @@ public:
                         Qnum& vControlBit,
                         bool isConjugate,
                         double error_rate)=0;
-
     virtual QStat getQState() = 0;
 
-protected:
-    //string sCalculationUnitType;
-    /*************************************************************************************************************
-    Name:        randGenerator
-    Description: 16807 random number generator
-    Argin:       None
-    Argout:      None
-    return:      random number in the region of [0,1]
-    *************************************************************************************************************/
-    //double randGenerator();
+	virtual inline void set_random_engine(RandomEngine* rng) {
+		random_engine = rng;
+	}
+	virtual inline double get_random_double() {
+		if (!random_engine)
+			return _default_random_generator();
+		else
+			return (*random_engine)();
+	}
+
 };
 
 #endif

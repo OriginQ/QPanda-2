@@ -21,6 +21,7 @@ limitations under the License.
 #include "Core/VirtualQuantumProcessor/QPUImpl.h"
 #include "Core/VirtualQuantumProcessor/QuantumGateParameter.h"
 #include "Core/Utilities/QPandaException.h"
+#include "Core/VirtualQuantumProcessor/RandomEngine/RandomEngine.h"
 USING_QPANDA
 /**
 * @namespace QPanda
@@ -30,7 +31,6 @@ USING_QPANDA
 * @defgroup QuantumMachine
 * @brief    QPanda2 quantum virtual machine
 */
-
 
 class OriginPhysicalQubit : public PhysicalQubit
 {
@@ -162,25 +162,20 @@ public:
     }
 };
 
-
 class QVM : public QuantumMachine
 {
 protected:
-    QubitPool * _Qubit_Pool;
-    CMem * _CMem;
-    QResult* _QResult;
-    QMachineStatus* _QMachineStatus;
-    QPUImpl     * _pGates;
+	RandomEngine* random_engine;
+    QubitPool * _Qubit_Pool = nullptr;
+    CMem * _CMem = nullptr;
+    QResult* _QResult = nullptr;
+    QMachineStatus* _QMachineStatus = nullptr;
+    QPUImpl     * _pGates = nullptr;
     Configuration _Config;
     virtual void run(QProg&);
     std::string _ResultToBinaryString(std::vector<ClassicalCondition>& vCBit);
     virtual void _start();
-    QVM() :_Qubit_Pool(nullptr),
-        _CMem(nullptr),
-        _QResult(nullptr),
-        _QMachineStatus(nullptr),
-        _pGates(nullptr)
-    {
+    QVM() {
         _Config.maxQubit = 25;
         _Config.maxCMem = 256;
     }
@@ -212,15 +207,13 @@ public:
     virtual QStat getQState() const;
     virtual size_t getVirtualQubitAddress(Qubit *) const;
     virtual bool swapQubitPhysicalAddress(Qubit *, Qubit*);
-
+	virtual void set_random_engine(RandomEngine* rng);
 };
 
 
-class CPUQVM : public QVM,public IdealMachineInterface
+class IdealQVM : public QVM, public IdealMachineInterface
 {
 public:
-    CPUQVM() {}
-    virtual void init();
     std::vector<std::pair<size_t, double>> PMeasure(QVec qubit_vector, int select_max);
     std::vector<double> PMeasure_no_index(QVec qubit_vector);
     std::vector<std::pair<size_t, double>> getProbTupleList(QVec , int);
@@ -233,20 +226,25 @@ public:
     QStat getQStat();
 };
 
-class GPUQVM : public CPUQVM
+class CPUQVM : public IdealQVM {
+public:
+	CPUQVM() {}
+	void init();
+};
+
+class GPUQVM : public IdealQVM
 {
 public:
     GPUQVM() {}
     void init();
 };
 
-class CPUSingleThreadQVM : public CPUQVM
+class CPUSingleThreadQVM : public IdealQVM
 {
 public:
-    CPUSingleThreadQVM() {}
+    CPUSingleThreadQVM() { }
     void init();
 };
-
 
 class NoiseQVM : public QVM
 {
@@ -261,7 +259,5 @@ public:
     void init();
     void init(rapidjson::Document &);
 };
-
-
 
 #endif

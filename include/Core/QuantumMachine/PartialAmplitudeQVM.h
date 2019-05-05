@@ -35,7 +35,7 @@ public:
     ~PartialAmplitudeQVM();
 
     /**
-    * @brief  load the quanyum program
+    * @brief  load the quantum program
     * @param[in]  QProg&  the reference to a quantum program
     * @return     void
     */

@@ -173,8 +173,7 @@ bool CPUImplQPUSingleThread::qubitMeasure(size_t qn)
         }
     }
     int ioutcome(0);
-
-    float fi = (float)QPanda::RandomNumberGenerator();
+	float fi = get_random_double();
 
     if (fi> dprob)
     {
@@ -286,7 +285,8 @@ controlunitarySingleQubitGate(size_t qn,
     double error_rate,
     GateType type)
 {
-    if (QPanda::RandomNumberGenerator() > error_rate)
+
+    if (get_random_double() > error_rate)
     {
         QGateParam& qgroup0 = findgroup(qn);
         for (auto iter = vControlBit.begin(); iter != vControlBit.end(); iter++)
@@ -366,7 +366,7 @@ unitaryDoubleQubitGate(size_t qn_0,
     double error_rate,
     GateType type)
 {
-    if (QPanda::RandomNumberGenerator() > error_rate)
+    if (get_random_double() > error_rate)
     {
 
         QGateParam& qgroup0 = findgroup(qn_0);
@@ -440,7 +440,7 @@ controlunitaryDoubleQubitGate(size_t qn_0,
     double error_rate,
     GateType type)
 {
-    if (QPanda::RandomNumberGenerator() > error_rate)
+    if (get_random_double() > error_rate)
     {
         QGateParam& qgroup0 = findgroup(qn_0);
         QGateParam& qgroup1 = findgroup(qn_1);

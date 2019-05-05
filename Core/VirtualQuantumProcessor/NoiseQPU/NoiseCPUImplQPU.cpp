@@ -14,9 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 #include "QPandaConfig.h"
-
-//#ifndef USE_CUDA
-
 #include "NoiseCPUImplQPU.h"
 #include "Utilities/Utilities.h"
 #include <algorithm>
@@ -85,11 +82,11 @@ QError NoisyCPUImplQPU::pMeasure
 {
     return undefineError;
 }
+
 QError NoisyCPUImplQPU::pMeasure(Qnum& qnum, std::vector<double> &mResult)
 {
     return undefineError;
 }
-
 
 bool NoisyCPUImplQPU::qubitMeasure(size_t qn)
 {
@@ -105,7 +102,7 @@ bool NoisyCPUImplQPU::qubitMeasure(size_t qn)
     }
     int ioutcome(0);
 
-    float fi = (float)QPanda::RandomNumberGenerator();
+    double fi = get_random_double();
 
     if (fi> dprob)
     {
@@ -169,8 +166,6 @@ QError NoisyCPUImplQPU::endGate
 {
     return qErrorNone;
 }
-
-
 
 QError NoisyCPUImplQPU::_get_probabilities(std::vector<double>& probabilities, size_t qn, NoiseOp & noise)
 {
@@ -269,8 +264,6 @@ QError NoisyCPUImplQPU::_get_probabilities(std::vector<double>& probabilities, s
     return qErrorNone;
 }
 
-
-
 size_t choose_operator(vector<double> & probabilities, double drand)
 {
     size_t number = 0;
@@ -315,7 +308,7 @@ QError  NoisyCPUImplQPU::singleQubitGateNoise
     size_t ststep = 1ull << find(qgroup.qVec.begin(), qgroup.qVec.end(), qn) - qgroup.qVec.begin();
     vector<double> probabilities;
     _get_probabilities(probabilities, qn, noise);
-    double dtemp = QPanda::RandomNumberGenerator();
+    double dtemp = get_random_double();
     size_t op_number = choose_operator(probabilities, dtemp);
     double dsum = 0;
     for (size_t i = 0; i < (size_t)qgroup.qstate.size(); i += ststep * 2)
@@ -338,12 +331,12 @@ QError  NoisyCPUImplQPU::singleQubitGateNoise
     return qErrorNone;
 }
 
-QError  NoisyCPUImplQPU::doubleQubitGateNoise
+QError NoisyCPUImplQPU::doubleQubitGateNoise
 (size_t qn_0,size_t qn_1, NoiseOp & noise)
 {
     vector<double> probabilities;
     _get_probabilities(probabilities, qn_0, qn_1, noise);
-    double dtemp = QPanda::RandomNumberGenerator();
+    double dtemp = get_random_double();
     size_t op_number = choose_operator(probabilities, dtemp);
     QGateParam& qgroup0 = findgroup(qn_0);
     QGateParam& qgroup1 = findgroup(qn_1);
@@ -397,7 +390,7 @@ QError  NoisyCPUImplQPU::doubleQubitGateNoise
     return qErrorNone;
 }
 
-QError  NoisyCPUImplQPU::noisyUnitarySingleQubitGate
+QError NoisyCPUImplQPU::noisyUnitarySingleQubitGate
 (size_t qn, QStat& matrix, bool isConjugate, NoiseOp & noise)
 {
     qcomplex_t alpha;
@@ -407,7 +400,7 @@ QError  NoisyCPUImplQPU::noisyUnitarySingleQubitGate
     size_t ststep = 1ull << find(qgroup.qVec.begin(), qgroup.qVec.end(), qn) - qgroup.qVec.begin();
     vector<double> probabilities;
     _get_probabilities(probabilities, qn,noise);
-    double dtemp = QPanda::RandomNumberGenerator();
+    double dtemp = get_random_double();
     size_t op_number = choose_operator(probabilities, dtemp);
 
     if (isConjugate)
@@ -445,7 +438,7 @@ QError  NoisyCPUImplQPU::noisyUnitarySingleQubitGate
     return qErrorNone;
 }
 
-QError  NoisyCPUImplQPU::unitarySingleQubitGate
+QError NoisyCPUImplQPU::unitarySingleQubitGate
 (size_t qn, QStat& matrix, bool isConjugate, double error_rate, GateType type)
 {   
     auto gate_name = TransformQGateType::getInstance()[type];
@@ -502,7 +495,6 @@ QError  NoisyCPUImplQPU::unitarySingleQubitGate
     return qErrorNone;
 }
 
-
 QError NoisyCPUImplQPU::
 controlunitarySingleQubitGate(size_t qn,
     Qnum& vControlBit,
@@ -511,75 +503,6 @@ controlunitarySingleQubitGate(size_t qn,
     double error_rate,
     GateType type)
 {
-    //if (randGenerator() > error_rate)
-    //{
-    //    QGateParam& qgroup0 = findgroup(qn);
-    //    for (auto iter = vControlBit.begin(); iter != vControlBit.end(); iter++)
-    //    {
-    //        TensorProduct(qgroup0, findgroup(*iter));
-    //    }
-    //    size_t M = 1ull << (qgroup0.qVec.size() - vControlBit.size());
-    //    size_t x;
-
-    //    size_t n = qgroup0.qVec.size();
-    //    size_t ststep = 1ull << (find(qgroup0.qVec.begin(), qgroup0.qVec.end(), qn)
-    //        - qgroup0.qVec.begin());
-    //    size_t index = 0;
-    //    size_t block = 0;
-
-    //    qcomplex_t alpha, beta;
-    //    if (isConjugate)
-    //    {
-    //        qcomplex_t temp;
-    //        temp = matrix[1];
-    //        matrix[1] = matrix[2];
-    //        matrix[2] = temp;  //×ªÖÃ
-    //        for (size_t i = 0; i < 4; i++)
-    //        {
-    //            matrix[i] = qcomplex_t(matrix[i].real(), -matrix[i].imag());
-    //        }//¹²éî
-    //    }
-
-    //    Qnum qvtemp;
-    //    for (auto iter = vControlBit.begin(); iter != vControlBit.end(); iter++)
-    //    {
-    //        size_t stemp = (find(qgroup0.qVec.begin(), qgroup0.qVec.end(), *iter)
-    //            - qgroup0.qVec.begin());
-    //        block += 1ull << stemp;
-    //        qvtemp.push_back(stemp);
-    //    }
-    //    sort(qvtemp.begin(), qvtemp.end());
-    //    Qnum::iterator qiter;
-    //    size_t j;
-
-    //    for (size_t i = 0; i < (size_t)M; i++)
-    //    {
-    //        index = 0;
-    //        x = i;
-    //        qiter = qvtemp.begin();
-
-    //        for (j = 0; j < n; j++)
-    //        {
-    //            while (qiter != qvtemp.end() && *qiter == j)
-    //            {
-    //                qiter++;
-    //                j++;
-    //            }
-    //            //index += ((x % 2)*(1ull << j));
-    //            index += ((x & 1) << j);
-    //            x >>= 1;
-    //        }
-
-    //        /*
-    //        * control qubits are 1,target qubit is 0
-    //        */
-    //        index = index + block - ststep;
-    //        alpha = qgroup0.qstate[index];
-    //        beta = qgroup0.qstate[index + ststep];
-    //        qgroup0.qstate[index] = alpha * matrix[0] + beta * matrix[1];
-    //        qgroup0.qstate[index + ststep] = alpha * matrix[2] + beta * matrix[3];
-    //    }
-    //}
     return qErrorNone;
 }
 
@@ -613,7 +536,7 @@ unitaryDoubleQubitGate(size_t qn_0,
     }
     else
     {
-        if (QPanda::RandomNumberGenerator() > error_rate)
+        if (get_random_double() > error_rate)
         {
 
             QGateParam& qgroup0 = findgroup(qn_0);
@@ -685,7 +608,7 @@ noisyUnitaryDoubleQubitGate(size_t qn_0,
   
     vector<double> probabilities;
     _get_probabilities(probabilities, qn_0,qn_1,noise);
-    double dtemp = QPanda::RandomNumberGenerator();
+    double dtemp = get_random_double();
     size_t op_number = choose_operator(probabilities, dtemp);
     QGateParam& qgroup0 = findgroup(qn_0);
     QGateParam& qgroup1 = findgroup(qn_1);
@@ -756,8 +679,6 @@ noisyUnitaryDoubleQubitGate(size_t qn_0,
     }
     return qErrorNone;
 }
-
-
 
 QError NoisyCPUImplQPU::
 controlunitaryDoubleQubitGate(size_t qn_0,
@@ -849,7 +770,6 @@ QError NoisyCPUImplQPU::T(
 {
     return undefineError;
 }
-
 
 QError NoisyCPUImplQPU::RX_GATE(size_t qn, double theta,
     bool isConjugate, double error_rate)
@@ -978,7 +898,6 @@ QError NoisyCPUImplQPU::iSWAP(
     return undefineError;
 }
 
-
 //pi/4 SqiSWAP
 QError NoisyCPUImplQPU::SqiSWAP(size_t qn_0, size_t qn_1, bool isConjugate, double error_rate)
 {
@@ -1001,6 +920,7 @@ QError NoisyCPUImplQPU::DiagonalGate(Qnum& vQubit,
 {
     return undefineError;
 }
+
 QError NoisyCPUImplQPU::controlDiagonalGate(Qnum& vQubit,
     QStat & matrix,
     Qnum& vControlBit,
@@ -1060,8 +980,6 @@ QError NoisyCPUImplQPU::Reset(size_t qn)
     return qErrorNone;
 }
 
-
-
 QError NoisyCPUImplQPU::P0(size_t qn, bool isConjugate, double error_rate)
 {
     return undefineError;
@@ -1087,5 +1005,3 @@ QError NoisyCPUImplQPU::P1(
 {
     return undefineError;
 }
-
-//#endif

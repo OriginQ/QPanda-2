@@ -14,9 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 #include "QPandaConfig.h"
-
-//#ifndef USE_CUDA
-
 #include "CPUImplQPU.h"
 #include "QPandaNamespace.h"
 #include "Utilities/Utilities.h"
@@ -237,15 +234,6 @@ QError CPUImplQPU::initState(QuantumGateParam * param)
 
 QError CPUImplQPU::endGate(QuantumGateParam * pQuantumProParam, QPUImpl * pQGate)
 {
-
-    /* vQParam qtemp;
-    for (auto iter = qubit2stat.begin(); iter != qubit2stat.end(); iter++)
-    {
-    for (auto iter1 = (*iter).qVec.begin(); iter1 != (*iter).qVec.end(); iter++)
-    {
-
-    }
-    }*/
     return qErrorNone;
 }
 
@@ -828,8 +816,6 @@ QError CPUImplQPU::Reset(size_t qn)
     }
     return qErrorNone;
 }
-
-//#endif
 
 QStat CPUImplQPU::getQState()
 {

@@ -427,10 +427,6 @@ PYBIND11_MODULE(pyQPanda, m)
         py::return_value_policy::automatic_reference
     );
 
-    m.def("get_bin_str", &QProgToBinary, "program"_a, "qvm"_a, "Get quantum program binary data string",
-        py::return_value_policy::automatic_reference
-    );
-
     m.def("bin_to_prog", &binaryQProgDataParse, "qvm"_a, "data"_a, "qlist"_a, "clist"_a, "program"_a,
         "Parse quantum program interface for  binary data vector",
         py::return_value_policy::automatic_reference

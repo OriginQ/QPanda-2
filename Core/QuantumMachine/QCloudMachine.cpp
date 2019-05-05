@@ -1,3 +1,4 @@
+#ifdef USE_CURL
 #include <fstream>
 #include <math.h>
 #include <algorithm>
@@ -343,4 +344,5 @@ std::string QCloudMachine::parserRecvJson
 }
 
 REGISTER_QUANTUM_MACHINE(QCloudMachine);
+#endif //USE_CURL
 

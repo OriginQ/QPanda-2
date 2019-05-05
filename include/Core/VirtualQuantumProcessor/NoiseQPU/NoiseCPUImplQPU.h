@@ -17,15 +17,12 @@ limitations under the License.
 #ifndef NOISY_CPU_QUANTUM_GATE_SINGLE_THREAD_H
 #define NOISY_CPU_QUANTUM_GATE_SINGLE_THREAD_H
 
-//#ifndef USE_CUDA
-
 #include "Core/VirtualQuantumProcessor/QPUImpl.h"
 #include "Core/VirtualQuantumProcessor/NoiseQPU/NoiseModel.h"
 #include "ThirdParty/rapidjson/document.h"
 #include <stdio.h>
 #include <iostream>
 #include <vector>
-
 
 #ifndef SQ2
 #define SQ2 (1 / 1.4142135623731)
@@ -36,8 +33,6 @@ limitations under the License.
 #endif
 
 #define NoiseOp std::vector<std::vector<qcomplex_t>>
-
-
 
 QStat matrix_multiply(const QStat &matrix_left, const QStat &matrix_right);
 
@@ -51,8 +46,6 @@ public:
     ~NoisyCPUImplQPU();
 
     bool TensorProduct(QGateParam& qgroup0, QGateParam& qgroup1);
-    QError singleQubitGateNoise(size_t qn, NoiseOp & noise);
-    QError doubleQubitGateNoise(size_t qn_0,size_t qn_1, NoiseOp & noise);
     QError unitarySingleQubitGate(size_t qn,
         QStat& matrix,
         bool isConjugate,
@@ -232,20 +225,17 @@ public:
     QError pMeasure(Qnum& qnum, std::vector<std::pair<size_t, double>> &mResult, int select_max=-1);
     QError pMeasure(Qnum& qnum, std::vector<double> &mResult);
     QError initState(QuantumGateParam *);
-
     QError endGate(QuantumGateParam *pQuantumProParam, QPUImpl * pQGate);
 
 private:
-    QError _get_probabilities(std::vector<double> & probabilities, size_t qn, NoiseOp & noise);
-    QError _get_probabilities(std::vector<double> & probabilities, size_t qn_0,size_t qn_1, NoiseOp & noise);
-    //static QError _apply_matrix(QStat *stat, std::vector<qcomplex_t> matrix);
+	QError singleQubitGateNoise(size_t qn, NoiseOp &noise);
+	QError doubleQubitGateNoise(size_t qn_0, size_t qn_1, NoiseOp &noise);
+    QError _get_probabilities(std::vector<double> &probabilities, 
+		size_t qn, NoiseOp & noise);
+    QError _get_probabilities(std::vector<double> &probabilities, 
+		size_t qn_0, size_t qn_1, NoiseOp & noise);
+
     rapidjson::Document m_doc;
-
-protected:
-    std::string sCalculationUnitType = "X86";
-
 };
-
-//#endif // !USE_CUDA
 
 #endif // ! NOISY_CPU_QUANTUM_GATE_SINGLE_THREAD_H

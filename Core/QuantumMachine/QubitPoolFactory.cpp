@@ -53,9 +53,7 @@ QubitPool * QubitPoolFactory::GetPoolWithoutTopology(size_t size)
     {
         return nullptr;
     }
-
     return aiter->second(size);
-
 }
 
 void QubitPoolFactory::registerclass_size_(string & sClassName,

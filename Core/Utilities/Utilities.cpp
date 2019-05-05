@@ -24,7 +24,7 @@ std::string QPanda::dec2bin(unsigned n, size_t size)
 double QPanda::RandomNumberGenerator()
 {
     /*
-    *  difine constant number in 16807 generator.
+    *  define constant number in 16807 generator.
     */
     int  ia = 16807, im = 2147483647, iq = 127773, ir = 2836;
     time_t rawtime;
@@ -61,7 +61,6 @@ void QPanda::add_up_a_map(map<string, size_t> &meas_result, string key)
         meas_result[key] = 1;
     }
 }
-
 
 void QPanda::insertQCircuit(AbstractQGateNode * pGateNode, QCircuit & qCircuit, QNode * pParentNode)
 {

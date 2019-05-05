@@ -49,8 +49,8 @@ public:
     noise_mode_function operator [](NOISE_MODEL);
 private:
     std::map<NOISE_MODEL, noise_mode_function> m_function_map;
-    NoiseModeMap &operator=(const NoiseModeMap &);
+    NoiseModeMap &operator=(const NoiseModeMap &) = delete;
     NoiseModeMap();
-    NoiseModeMap(const NoiseModeMap &);
+    NoiseModeMap(const NoiseModeMap &) = delete;
 };
 #endif  // ! NOISE_MODEL_H

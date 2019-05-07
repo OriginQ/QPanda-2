@@ -428,6 +428,12 @@ PYBIND11_MODULE(pyQPanda, m)
         py::return_value_policy::automatic_reference
     );
 
+#ifdef USE_CURL
+    m.def("get_bin_str", &QProgToBinary, "program"_a, "qvm"_a, "Get quantum program binary data string",
+        py::return_value_policy::automatic_reference
+    );
+#endif // USE_CURL
+
     m.def("bin_to_prog", &binaryQProgDataParse, "qvm"_a, "data"_a, "qlist"_a, "clist"_a, "program"_a,
         "Parse quantum program interface for  binary data vector",
         py::return_value_policy::automatic_reference
@@ -773,8 +779,7 @@ PYBIND11_MODULE(pyQPanda, m)
             py::object json = py::module::import("json");
             py::object dumps = json.attr("dumps");
             auto json_string = std::string(py::str(dumps(param)));
-            rapidjson::Document doc; 
-            auto & alloc = doc.GetAllocator(); 
+            rapidjson::Document doc(rapidjson::kObjectType); 
             doc.Parse(json_string.c_str()); 
             qvm.init(doc);
         }, "init quantum virtual machine")

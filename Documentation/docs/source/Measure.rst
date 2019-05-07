@@ -84,7 +84,7 @@
                     << H(qubits[3])
                     << MeasureAll(qubits, cbits);
 
-            auto result = quickMeasure(prog, 1000);
+            auto result = runWithConfiguration(prog, cbits, 1000);
             for (auto &val: result)
             {
                 std::cout << val.first << ", " << val.second << std::endl;

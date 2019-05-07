@@ -1,7 +1,7 @@
 /*! \file QCloudMachine.h */
 #ifndef QCLOUD_MACHINE_H
 #define QCLOUD_MACHINE_H
-#include <include/QPandaConfig.h>
+#include "QPandaConfig.h"
 #include "QPanda.h"
 
 #ifdef USE_CURL

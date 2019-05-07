@@ -19,6 +19,7 @@
 #include "Optimizer/OriginNelderMead.h"
 #include "Core/QuantumMachine/QCloudMachine.h"
 #include "Core/Utilities/Transform/QProgClockCycle.h"
+#include "QPandaConfig.h"
 
 USING_QPANDA
 using namespace std;

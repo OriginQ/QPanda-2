@@ -1,10 +1,11 @@
-#ifdef USE_CURL
+
 #include <fstream>
 #include <math.h>
 #include <algorithm>
 #include "ThirdParty/TinyXML/tinyxml.h"
 #include "include/Core/Utilities/base64.hpp"
 #include "include/Core/QuantumMachine/QCloudMachine.h"
+#ifdef USE_CURL
 
 #define DEFAULT_COMPUTEAPI    "http://10.10.10.53:4630/api/QCode/QRunes2/submitTask.json"
 #define DEFAULT_INQUREAPI     "http://10.10.12.53:4630/api/QCode/QRunes2/queryTask.json"

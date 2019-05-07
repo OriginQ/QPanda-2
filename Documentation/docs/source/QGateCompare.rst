@@ -42,7 +42,7 @@
 
     .. code-block:: c
           
-        size_t num = size_t num = getUnSupportQGateNumber(prog, gates);
+        size_t num = getUnSupportQGateNumber(prog, gates);
 
 .. note:: 统计 ``QCircuit`` 、 ``QWhileProg`` 、``QIfProg`` 、 ``QGate`` 中不支持的量子逻辑门的个数和 ``QProg`` 类似。
 

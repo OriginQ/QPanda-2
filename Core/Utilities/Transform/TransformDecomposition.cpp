@@ -1167,7 +1167,7 @@ void DecomposeUnitarySingleQGateIntoMetadataSingleQGate::execute(AbstractQGateNo
     * Check if the quantum gate is supported
     */
 
-    if (getUnSupportQGateNumber(*(dynamic_cast<QGate *>(node)), m_qgate_matrix) <= 0)
+    if (getUnSupportQGateNumber(*(dynamic_cast<OriginQGate *>(node)), m_qgate_matrix) <= 0)
         return;
 
     QVec vTargetQubit;

@@ -1287,7 +1287,7 @@ impl_qop_pmeasure_real_chip::impl_qop_pmeasure_real_chip(
     QuantumMachine *machine,
     std::vector<Qubit*> qubits,
     std::vector<ClassicalCondition> cbits,
-    int shots)
+    size_t shots)
     :
     impl(op_type::qop_pmeasure_real_chip, circuit.get_vars()),
     m_circuit(circuit),

@@ -1324,7 +1324,7 @@ std::vector<double> impl_qop_pmeasure_real_chip::_get_circuit_value(QCircuit c)
     rapidjson::Document doc;
     doc.Parse("{}");
     auto &alloc = doc.GetAllocator();
-    doc.AddMember("shots", m_shots, alloc);
+    doc.AddMember("shots", (uint64_t)m_shots, alloc);
     auto outcome = m_machine->runWithConfiguration(qprog, m_cbits, doc);
     vector<double> values;
     size_t stemp = 0;

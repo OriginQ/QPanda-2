@@ -39,12 +39,12 @@ QPanda-2是以C++为宿主语言，其对系统的环境要求如下：
 .. image:: images/QPanda_github.png
     :align: center  
 
-2. 点击 ``Clone or Download`` 看到如下界面：
+2. 点击 ``Clone or download`` 看到如下界面：
 
 .. image:: images/Clone.png
     :align: center  
 
-3. 然后点击 ``Download zip``， 就会完成QPanda2的下载。
+3. 然后点击 ``Download ZIP``， 就会完成QPanda2的下载。
 
 .. image:: images/Download.png
     :align: center  

@@ -22,3 +22,5 @@ config.h
 __pycache__/
 CMakeLists.txt.user
 _build/
+include/QPandaConfig.h
+include/QPandaVersion.h

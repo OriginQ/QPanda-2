@@ -76,7 +76,7 @@ QPanda-2把所有的量子逻辑门封装为API向用户提供使用，并可获
           
           QGate h = H(qubit);
 
-可以看到，H函数只接收一个qubit，qubit如何申请会在 :ref:`量子虚拟机` 部分介绍。
+可以看到，H函数只接收一个qubit，qubit如何申请会在 :ref:`QuantumMachine` 部分介绍。
 
 再比如，您想要使用RX门，可以通过如下方式获得：
 

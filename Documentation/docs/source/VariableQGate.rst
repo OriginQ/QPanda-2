@@ -63,7 +63,7 @@ VariationalQuantumGate_CZ     VQG_CZ
         **参数**
             - _var 变量
         **返回值**
-            内部索引，如果不存在返回-1。
+            内部索引，如果不存在在返回-1。
 
    .. cpp:function:: virtual QGate feed() const = 0
       

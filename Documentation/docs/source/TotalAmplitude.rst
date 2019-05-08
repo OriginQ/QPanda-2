@@ -93,7 +93,7 @@ QPanda2中在构造量子虚拟机时有以下几种方式：
         size_t num_qubit = qvm->getAllocateQubit(); // 申请量子比特的个数
         size_t num_cbit = qvm->getAllocateCMem(); // 申请经典寄存器的个数
 
-我门该如何使用量子虚拟机来执行量子程序呢？ 可以用下面的方法：
+我们该如何使用量子虚拟机来执行量子程序呢？ 可以用下面的方法：
 
     .. code-block:: c
 

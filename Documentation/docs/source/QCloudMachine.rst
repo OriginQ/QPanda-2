@@ -79,7 +79,7 @@ pyQPanda封装了量子云虚拟机，可以向本源量子的计算服务器集
 
             0000000000 , 1.0
 
-    - ``prob_run_dict(QProg，dict)`` ：
+- ``prob_run_dict(QProg，dict)`` ：
 
         概率操作前也需要先配置操作参数，与测量不同，仅需要配置 ``token`` (量子云平台用户验证标识)与 ``BackendType`` (量子虚拟机类型)即可。
 

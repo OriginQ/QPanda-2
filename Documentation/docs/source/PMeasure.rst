@@ -1,236 +1,103 @@
+.. _PMeasure:
+
 概率测量
 ==================
 
-PMeasure和 :ref:`Measure` 是完全不同的过程，Measure是执行了一次测量， 并返回一个确定的0/1结果。PMeasure是输出当前时刻的量子虚拟机的概率结果，PMeasure并不会改变量子态。
-
-PMeasure的输入参数是 ``QVec``， 它指定了我们关注的量子比特。例如，一共有10个Qubit的系统，我们指定了前三个Qubit作为PMeasure的目标，就会输出一个长度为8的vector。
+概率测量是指获得目标量子比特的振幅，目标量子比特可以是一个量子比特也可以是多个量子比特的集合。 在QPanda2中概率测量又称为 ``PMeasure`` 。
+概率测量和 :ref:`Measure` 是完全不同的过程，Measure是执行了一次测量， 并返回一个确定的0/1结果，并且改变了量子态，
+PMeasure是获得我们所关注的量子比特的振幅，并不会改变量子态。PMeasure的输入参数是 ``QVec``， 它指定了我们关注的量子比特。
+例如，一共有10个Qubit的系统，我们指定了前三个Qubit作为PMeasure的目标，就会输出一个长度为8的vector。
 
 接口介绍
 ----------------
 
-.. _getProbTupleList:
-.. cpp:function:: std::vector<std::pair<size_t, double>> getProbTupleList(QVec &qvec,int selectMax=-1)
+QPanda2提供了三种获得PMeasure结果的方式，其中有 ``probRunList`` 、 ``probRunTupleList``  、 ``probRunDict``。
 
-    **功能**
-         获得PMeasure结果。
-    **参数**
-        - qvec 目标量子比特
-        - selectMax 需要PMeasure的目标量子比特个数，若为-1，则是所有的目标量子比特
-    **返回值**
-         PMeasure得到的结果， 返回下标和对应的概率。
-    **实例**
-        .. code-block:: c
+- ``probRunList`` ： 获得目标量子比特的概率测量结果， 并没有其对应的下标。
+- ``probRunTupleList``： 获得目标量子比特的概率测量结果， 其对应的下标为十进制。
+- ``probRunDict`` ： 获得目标量子比特的概率测量结果， 其对应的下标为二进制。
 
-            #include <QPanda.h>
-            USING_QPANDA
+这三个函数的使用方式是一样的，下面就以 ``probRunDict`` 为例介绍，使用方式如下：
 
+    .. code-block:: c
 
-            int main(void)
+        auto qubits = qvm->allocateQubits(4);
+        auto cbits = qvm->allocateCBits(4);
+
+        QProg prog;
+        prog   << H(qubits[0])
+                << CNOT(qubits[0], qubits[1])
+                << CNOT(qubits[1], qubits[2])
+                << CNOT(qubits[2], qubits[3]);
+        auto result = probRunDict(prog, qubits， 3);
+
+第一个参数是量子程序， 第二个参数是 ``QVec`` 它指定了我们关注的量子比特。
+第三个参的值为-1时，是指我们以第二个参数中所有的量子比特作为目标，当其值不为-1时，则表示我们关注 ``QVec`` 中的前几个。
+如上述例子，一共有4个Qubit的系统， 第三参数设置为3，得到结果将会是8个元素。
+
+除了上述的方式外，我们还可以先使用 ``directlyRun``， 再调用 ``getProbList`` 、 ``getProbTupleList`` 、 ``getProbDict`` 得到和上述三种方法一样的结果。
+
+实例
+-----------
+
+    .. code-block:: c
+
+        #include <QPanda.h>
+        USING_QPANDA
+
+        int main(void)
+        {
+            auto qvm = initQuantumMachine();
+            auto qubits = qvm->allocateQubits(2);
+            auto cbits = qvm->allocateCBits(2);
+
+            QProg prog;
+            prog << H(qubits[0])
+                << CNOT(qubits[0], qubits[1]);
+
+            std::cout << "probRunDict: " << std::endl;
+            auto result1 = probRunDict(prog, qubits);
+            for (auto &val: result1)
             {
-                init();
-                QProg prog;
-                auto qvec = qAllocMany(4);
-                auto cvec = cAllocMany(4);
-                prog << H(qvec[0]) << CNOT(qvec[0],qvec[1])
-                    << CNOT(qvec[1],qvec[2]) << CNOT(qvec[2],qvec[3]);
-
-                load(prog);
-                run();
-                auto result = getProbTupleList(qvec, -1); // 对所有的目标比特做概率测量
-                for (auto &val : result)  // 输出所有的PMeasure结果
-                {
-                    std::cout << val.first << ", " << val.second << std::endl;
-                }
-
-                finalize();
-                return 0;
+                std::cout << val.first << ", " << val.second << std::endl;
             }
 
-.. _getProbList:
-.. cpp:function:: std::vector<double> getProbList(QVec& qvec, int selectMax = -1)
-
-    **功能**
-        获得PMeasure结果
-    **参数**
-        - qvec 目标量子比特
-        - selectMax 需要PMeasure的目标量子比特个数，若为-1，则是所有的目标量子比特
-    **返回值**
-        PMeasure得到的概率
-    **实例**
-        .. code-block:: c
-        
-            #include <QPanda.h>
-            USING_QPANDA
-
-
-            int main(void)
+            std::cout << "probRunTupleList: " << std::endl;
+            auto result2 = probRunTupleList(prog, qubits);
+            for (auto &val: result2)
             {
-                init();
-                QProg prog;
-                auto qvec = qAllocMany(4);
-                auto cvec = cAllocMany(4);
-                prog << H(qvec[0]) << CNOT(qvec[0],qvec[1])
-                    << CNOT(qvec[1],qvec[2]) << CNOT(qvec[2],qvec[3]);
-
-                load(prog);
-                run();
-                auto result = getProbList(qvec); // 对所有的目标比特做概率测量
-                for (auto &val : result) // 输出所有的PMeasure结果
-                {
-                    std::cout << val << std::endl;
-                }
-
-                finalize();
-                return 0;
+                std::cout << val.first << ", " << val.second << std::endl;
             }
 
-.. _getProbDict:
-.. cpp:function:: std::map<std::string, double>  getProbDict(QVec &qvec, int selectMax = -1)
-
-    **功能**
-        获得PMeasure结果
-    **参数**
-        - qvec 目标量子比特
-        - selectMax 需要PMeasure的目标量子比特个数，若为-1，则是所有的目标量子比特
-    **返回值**
-        PMeasure得到结果， 下标的二进制和对应的概率
-    **实例**
-        .. code-block:: c
-
-            #include <QPanda.h>
-            USING_QPANDA
-
-
-            int main(void)
+            std::cout << "probRunList: " << std::endl;
+            auto result3 = probRunList(prog, qubits);
+            for (auto &val: result3)
             {
-                init();
-                QProg prog;
-                auto qvec = qAllocMany(4);
-                auto cvec = cAllocMany(4);
-                prog << H(qvec[0]) << CNOT(qvec[0],qvec[1])
-                    << CNOT(qvec[1],qvec[2]) << CNOT(qvec[2],qvec[3]);
-
-                load(prog);
-                run();
-                auto result = getProbDict(qvec); // 对所有的目标比特做概率测量
-                for (auto &val : result) // 输出所有的PMeasure结果
-                {
-                    std::cout << val.first << ", " << val.second << std::endl;
-                }
-
-                finalize();
-                return 0;
+                std::cout << val<< std::endl;
             }
 
-.. cpp:function:: std::vector<std::pair<size_t, double>> probRunTupleList(QProg &prog,QVec &qvec, int selectMax = -1)
-    
-    **功能**
-        获得PMeasure结果,不需要load和run
-    **参数**
-        - prog 量子程序
-        - qvec 目标量子比特
-        - selectMax 需要PMeasure的目标量子比特个数，若为-1，则是所有的目标量子比特
-    **返回值**
-        PMeasure得到结果， 下标的二进制和对应的概率
-    **实例**
-        .. code-block:: c
+            qvm->finalize();
+            delete qvm;
+            return 0;
+        }
 
-            #include <QPanda.h>
-            USING_QPANDA
+运行结果：
 
+    .. code-block:: c
 
-            int main(void)
-            {
-                init();
-                QProg prog;
-                auto qvec = qAllocMany(4);
-                auto cvec = cAllocMany(4);
-                prog << H(qvec[0]) << CNOT(qvec[0],qvec[1])
-                    << CNOT(qvec[1],qvec[2]) << CNOT(qvec[2],qvec[3]);
+        probRunDict: 
+        00, 0.5
+        01, 0
+        10, 0
+        11, 0.5
+        probRunTupleList: 
+        0, 0.5
+        3, 0.5
+        1, 0
+        2, 0
+        probRunList: 
+        0.5
+        0
+        0
+        0.5
 
-                auto result = probRunTupleList(prog, qvec); // 对所有的目标比特做概率测量
-                for (auto &val : result) // 输出所有的PMeasure结果
-                {
-                    std::cout << val.first << ", " << val.second << std::endl;
-                }
-
-                finalize();
-                return 0;
-            }
-
-**参照** getProbTupleList_
-
-.. cpp:function:: std::vector<double> probRunList(QProg &prog,QVec &qvec , int selectMax = -1)
-    
-    **功能**
-        获得PMeasure结果,不需要load和run
-    **参数**
-        - prog 量子程序
-        - qvec 目标量子比特
-        - selectMax 需要PMeasure的目标量子比特个数，若为-1，则是所有的目标量子比特
-    **返回值**
-        PMeasure得到概率
-    **实例**
-        .. code-block:: c
-
-            #include <QPanda.h>
-            USING_QPANDA
-
-
-            int main(void)
-            {
-                init();
-                QProg prog;
-                auto qvec = qAllocMany(4);
-                auto cvec = cAllocMany(4);
-                prog << H(qvec[0]) << CNOT(qvec[0],qvec[1])
-                    << CNOT(qvec[1],qvec[2]) << CNOT(qvec[2],qvec[3]);
-
-                auto result = probRunList(prog, qvec); // 对所有的目标比特做概率测量
-                for (auto &val : result) // 输出所有的PMeasure结果
-                {
-                    std::cout << val << std::endl;
-                }
-
-                finalize();
-                return 0;
-            }
-
-**参照** getProbList_ 
-
-.. cpp:function:: std::vector<double> probRunDict(QProg &prog,QVec &qvec, int selectMax = -1)
-    
-    **功能**
-        获得PMeasure结果,不需要load和run
-    **参数**
-        - prog 量子程序
-        - qvec 目标量子比特
-        - selectMax 需要PMeasure的目标量子比特个数，若为-1，则是所有的目标量子比特
-    **返回值**
-        PMeasure得到结果， 下标的二进制和对应的概率
-    **实例**
-        .. code-block:: c
-
-            #include <QPanda.h>
-            USING_QPANDA
-
-
-            int main(void)
-            {
-                init();
-                QProg prog;
-                auto qvec = qAllocMany(4);
-                prog << H(qvec[0]) << CNOT(qvec[0],qvec[1])
-                    << CNOT(qvec[1],qvec[2]) << CNOT(qvec[2],qvec[3]);
-
-                auto result = probRunDict(prog, qvec); // 对所有的目标比特做概率测量
-                for (auto &val : result) // 输出所有的PMeasure结果
-                {
-                    std::cout << val.first << ", " << val.second << std::endl;
-                }
-
-                finalize();
-                return 0;
-            }
-
-**参照** getProbDict_

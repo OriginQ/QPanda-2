@@ -3,129 +3,19 @@
 
 本章节将讲解VQNet中优化算法的使用，包括经典梯度下降算法和改进后的梯度下降算法，它们都是在求解机器学习算法的模型参数，即无约束优化问题时，最常采用的方法之一。我们在 ``QPanda::Variational`` 中实现了这些算法，``VanillaGradientDescentOptimizer`` 、 ``MomentumOptimizer`` 、 ``AdaGradOptimizer`` 、 ``RMSPropOptimizer`` 和 ``AdamOptimizer``，它们都继承自 ``Optimizer`` 。
 
-接口介绍
--------------
-
-.. cpp:class:: Optimizer
-
-   .. cpp:function:: Optimizer(var lost_function, double learning_rate = 0.01)
-
-        **功能**
-            构造函数。
-        **参数**
-            - lost_function 损失函数表达式
-            - learning_rate 学习率
-
-   .. cpp:function:: virtual std::unordered_set<var> get_variables() = 0
-      
-        **功能**  
-            获取损失函数内部变量。
-        **参数**
-            无
-        **返回值**
-            损失函数内部变量。
-
-   .. cpp:function:: std::unordered_map<var, MatrixXd> compute_gradients(std::unordered_set<var> &var_set) = 0
-      
-        **功能** 
-            计算指定变量的梯度值。
-        **参数**
-            - var_set 变量组
-        **返回值**
-            变量的对应的梯度值。
-
-   .. cpp:function:: double get_loss() = 0
-
-        **功能**  
-            计算损失函数值。
-        **参数**
-            无
-        **返回值**
-            损失函数值。
-
-   .. cpp:function:: bool run(std::unordered_set<var> &leaves, size_t t = 0) = 0
-      
-        **功能**
-            执行一次优化。
-        **参数**
-            - leaves 待优化的参数节点
-            - t 当前优化的次数
-        **返回值**
-            是否运行成功
-
-.. cpp:class:: VanillaGradientDescentOptimizer
-
-   .. cpp:function:: static std::shared_ptr<Optimizer> minimize(var lost_function ,double learning_rate, double stop_condition)
-      
-        **功能**
-            通过传入指定参数构造优化器。
-        **参数**
-            - lost_function 损失函数表达式
-            - learning_rate 学习率
-            - stop_condition 结束条件[暂未使用]
-        **返回值**
-            优化器。
-
-.. cpp:class:: MomentumOptimizer
-
-   .. cpp:function:: static std::shared_ptr<Optimizer> minimize(var &lost, double learning_rate = 0.01, double momentum = 0.9)
-      
-        **功能**  
-            通过传入指定参数构造优化器。
-        **参数**
-            - lost 损失函数表达式
-            - learning_rate 学习率
-            - momentum 动量系数
-        **返回值**
-            优化器。
-
-.. cpp:class:: AdaGradOptimizer
-
-   .. cpp:function:: static std::shared_ptr<Optimizer> minimize(var &lost, double learning_rate = 0.01, double initial_accumulator_value = 0.0, double epsilon = 0.0000000001)
-      
-        **功能**
-            通过传入指定参数构造优化器。
-        **参数**
-            - lost 损失函数表达式
-            - learning_rate 学习率
-            - initial_accumulator_value 累加量的起始值
-            - epsilon 很小的数值以避免零分母      
-        **返回值**
-            优化器。
-
-.. cpp:class:: RMSPropOptimizer
-
-   .. cpp:function:: static std::shared_ptr<Optimizer> minimize(var &lost, double learning_rate = 0.001, double decay = 0.9, double epsilon = 0.0000000001)
-      
-        **功能**  
-            通过传入指定参数构造优化器。
-        **参数**
-            - lost 损失函数表达式
-            - learning_rate 学习率
-            - decay 历史或即将到来的梯度的贴现因子。
-            - epsilon 很小的数值以避免零分母       
-        **返回值**
-            优化器。
-
-.. cpp:class:: RMSPropOptimizer
-
-   .. cpp:function:: static std::shared_ptr<Optimizer> minimize(var &lost, double learning_rate = 0.001, double beta1 = 0.9, double beta2 = 0.999, double epsilon = 0.0000000001)
-      
-        **功能** 
-            通过传入指定参数构造优化器。
-        **参数**
-            - lost 损失函数表达式
-            - learning_rate 学习率
-            - beta1 衰减率。
-            - beta2 衰减率。
-            - epsilon 很小的数值以避免零分母      
-        **返回值**
-            优化器。 
 
 实例
 -------------
 
-给定一些散列点，我们来拟合一条直线，使得散列点到直线的距离和最小。定义直线的函数的表达式为 ``y = w*x + b`` ，接下来我们将通过使用优化算法得到w和b的优化值。
+示例代码主要演示对离散点用直线进行拟合，我们定义训练数据X和Y，这两个变量表示离散点的坐标。定义两个可微分的变量w和b，其中w表示斜率b表示y轴截距。定义变量Y下划线表示斜率w乘上变量x加上截距。
+
+接着我们定义损失函数loss。计算变量Y和变量Y下划线之间的均方值。
+
+然后以损失函数，学习率和结束条件作为参数构造生成一个经典梯度下降优化器。
+
+我们通过优化器的get_variables接口获得所有可微分的节点。
+
+我们定义迭代次数为1000。然后调用优化器的run接口执行一次优化操作。我们可以通过优化器get_loss接口获得当前优化后的损失值。我们通过eval接口可以求得可微分变量的当前值。
 
 .. code-block:: cpp
 

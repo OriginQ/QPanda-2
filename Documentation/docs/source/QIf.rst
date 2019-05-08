@@ -10,88 +10,41 @@ QIf表示量子程序条件判断操作，输入参数为条件判断表达式�
 >>>>>>>>>>>
 ----
 
-.. cpp:class:: QIfProg
+在QPanda2中，QIfProg类用于表示执行量子程序if条件判断操作，它也是QNode中的一种，初始化一个QIfProg对象有以下两种
 
-     QIfProg是一种和量子控制流相关的节点。QIf接受一个储存在测控设备中的变量，或者由这些变量构成的表达式，通过判断它的值为True/False，选择程序接下来的执行分支。
+C++风格
 
-     .. cpp:function:: QIfProg(ClassicalCondition& classical_condition, QNode *true_node, QNode *false_node)
+    .. code-block:: c
 
-          **功能**
-               构造函数
-          **参数**
-               - classical_condition 量子表达式
-               - true_node 正确分支
-               - false_node 错误分支
+        QIfProg qif = QIfProg(ClassicalCondition&, QNode*);
+        QIfProg qif = QIfProg(ClassicalCondition&, QNode*, QNode*);
 
-     .. cpp:function:: QIfProg(ClassicalCondition& classical_condition, QNode *true_node)
+C语言风格
 
-          **功能**
-               构造函数
-          **参数**
-               - classical_condition 量子表达式
-               - true_node 正确分支
+    .. code-block:: c
 
-     .. cpp:function:: NodeType getNodeType()
+        QIfProg qif = CreateIfProg(ClassicalCondition&, QNode*);
+        QIfProg qif = CreateIfProg(ClassicalCondition&, QNode*, QNode*);
 
-          **功能**
-               获取节点类型
-          **参数**
-               无
-          **返回值**
-               节点类型
+上述函数需要提供两种类型参数，即ClassicalCondition量子表达式与QNode节点，
+当传入1个QNode参数时，QNode表示正确分支节点，当传入2个QNode参数时，第一个表示正确分支节点，第二个表示错误分支节点
 
-     .. cpp:function::  QNode* getTrueBranch()
+同时，通过该类内置的函数可以轻松获取QIf操作正确分支节点与错误分支节点
 
-          **功能**
-               获取正确分支节点
-          **参数**
-               无
-          **返回值**
-               正确分支节点
+    .. code-block:: c
 
-     .. cpp:function:: QNode* getFalseBranch()
+        QIfProg qif = CreateIfProg(ClassicalCondition&, QNode*, QNode*);
+        QNode* true_branch_node  = qif.getTrueBranch();
+        QNode* false_branch_node = qif.getFalseBranch();
 
-          **功能**
-               获取错误分支节点
-          **参数**
-               无
-          **返回值**
-               错误分支节点
+也可以获取量子表达式
 
-     .. cpp:function:: ClassicalCondition getCExpr()
+    .. code-block:: c
 
-          **功能**
-               获取逻辑判断表达式
-          **参数**
-               无
-          **返回值**
-               量子表达式
+        QIfProg qif = CreateIfProg(ClassicalCondition&, QNode*, QNode*);
+        ClassicalCondition* expr = qif.getCExpr();
 
-.. note:: QIfProg和普通的If， While截然不同的原因是这个判断过程仅仅在测控设备中执行，并且要求了极高的实时性。因此，所有的True和False分支都会被输入到QlfProg里面去执行。
-  
-C 函数接口构造QIf的方式
-```````````````````````````````````
-
-.. cpp:function:: QIfProg CreateIfProg(ClassicalCondition classical_condition,QNode *true_node,QNode *false_node)
-
-     **功能**
-          创建QIf量子程序
-     **参数**
-          - classical_condition 条件判断表达式
-          - true_node 正确分支
-          - false_node 错误分支
-     **返回值**
-          QIfProg
-
-.. cpp:function:: QIfProg CreateIfProg(ClassicalCondition classical_condition,QNode *true_node)
-
-     **功能**
-          创建QIf量子程序
-     **参数**
-          - classical_condition 条件判断表达式
-          - true_node 正确分支
-     **返回值**
-          QIfProg
+具体的操作流程可以参考下方示例
 
 实例
 >>>>>>>>>
@@ -107,19 +60,18 @@ C 函数接口构造QIf的方式
             init();
             QProg prog;
 
-            auto qvec = qAllocMany(5);
-            auto cvec = cAllocMany(2);
+            auto qvec = qAllocMany(3);
+            auto cvec = cAllocMany(3);
             cvec[1].setValue(0);
             cvec[0].setValue(0);
 
             QProg branch_true;
             QProg branch_false;
             branch_true << (cvec[1]=cvec[1]+1) << H(qvec[cvec[0]]) << (cvec[0]=cvec[0]+1);
-            branch_false << H(qvec[0]) << CNOT(qvec[0],qvec[1]) << CNOT(qvec[1],qvec[2])
-                        << CNOT(qvec[2],qvec[3]) << CNOT(qvec[3],qvec[4]);
+            branch_false << H(qvec[0]) << CNOT(qvec[0],qvec[1]) << CNOT(qvec[1],qvec[2]);
 
-            auto qwhile = CreateIfProg(cvec[1]>5,&branch_true, &branch_false);
-            prog<<qwhile;
+            auto qif = CreateIfProg(cvec[1]>5,&branch_true, &branch_false);
+            prog << qif;
             auto result = probRunTupleList(prog, qvec);
 
             for (auto & val : result)
@@ -130,4 +82,18 @@ C 函数接口构造QIf的方式
             finalize();
             return 0;
         }
+
+运行结果：
+
+    .. code-block:: c
+
+        0, 0.5
+        7, 0.5
+        1, 0
+        2, 0
+        3, 0
+        4, 0
+        5, 0
+        6, 0
+
 

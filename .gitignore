@@ -18,6 +18,8 @@ pyQPanda/pyqpanda.egg-info
 .vscode/
 build/*
 config.h
+include/QPandaConfig.h
+include/QPandaVersion.h
 /pyQPanda/benchmark.py
 __pycache__/
 CMakeLists.txt.user

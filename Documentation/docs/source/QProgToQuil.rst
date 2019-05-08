@@ -1,3 +1,5 @@
+.. _QProgToQuil:
+
 量子程序转化为Quil
 ======================
 
@@ -28,14 +30,32 @@
 接口介绍
 -----------------
 
-.. cpp:function:: std::string qProgToQuil(QProg &prog)
-    
-    **功能**
-        量子程序转化为Quil指令集。
-    **参数**
-        - prog 量子程序
-    **返回值**
-        Quil指令集。
+``QProgToQuil`` 类是QPanda2提供的一个将量子程序转换为Quil指令集的工具类，我们先用QPanda2构建一个量子程序：
+
+    .. code-block:: c
+          
+        QProg prog;
+        auto qubits = qvm->allocateQubits(4);
+        auto cbits = qvm->allocateCBits(4);
+
+        prog << X(qvec[0])
+             << Y(qvec[1])
+             << H(qvec[0])
+             << RX(qvec[0], 3.14)
+             << Measure(qvec[1], cvec[0]);
+然后调用 ``QProgToQuil`` 类实现转化
+
+    .. code-block:: c
+          
+        QProgToQuil t(qvm);
+        t.transform(prog);
+        std::string instructions = t.getInsturctions();
+
+我们还可以使用QPanda2封装的一个接口：
+
+    .. code-block:: c
+          
+        std::string instructions = transformQProgToQuil(prog, qvm);
 
 实例
 ---------------
@@ -48,23 +68,32 @@
 
         int main(void)
         {
-            init();
+            auto qvm = initQuantumMachine(QMachineType::CPU);
+            auto qubits = qvm->allocateQubits(4);
+            auto cbits = qvm->allocateCBits(4);
             QProg prog;
-            auto qvec = qAllocMany(4);
-            auto cvec = cAllocMany(4);
+            prog << X(qubits[0])
+                 << Y(qubits[1])
+                 << H(qubits[2])
+                 << RX(qubits[3], 3.14)
+                 << Measure(qubits[0], cbits[0]);
 
-            prog << X(qvec[0])
-                << Y(qvec[1])
-                << H(qvec[0])
-                << RX(qvec[0], 3.14)
-                << Measure(qvec[1], cvec[0])
-                ;
-            load(prog);
-
-            auto quil = qProgToQuil(prog);
-            std::cout << quil << std::endl;
-            finalize();
+            std::string instructions = transformQProgToQuil(prog, qvm);
+            std::cout << instructions << std::endl;
+            qvm->finalize();
+            delete qvm;
             return 0;
         }
+
+运行结果：
+
+    .. code-block:: c
+
+        X 0
+        Y 1
+        H 2
+        RX(3.140000) 3
+        MEASURE 0 [0]
+
 
 

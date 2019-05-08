@@ -4,8 +4,6 @@
 
 通过该功能模块，你可以解析通过QPanda2构建的量子程序，将其中包含的量子比特信息以及量子逻辑门操作信息提取出来，得到按固定格式存储的QRunes指令集。
 
-
-
 .. _本源量子计算云平台官网: https://qcode.qubitonline.cn/QCode/index.html
 
 .. _QRunes介绍:
@@ -58,16 +56,18 @@ QRunes语句中部分关键词作用如下：
 >>>>>>>>>>>>>>>>>
 ----
 
-你可以通过调用 ``qProgToQRunes(QProg &)`` 接口来调用该功能,该接口说明如下：
+接口介绍
+>>>>>>>>>>>>>>>>>
+----
 
-    .. cpp:function:: qProgToQRunes(QProg  &)
+QPanda2提供了QRunes转换工具接口 ``transformQProgToQRunes(QProg &)`` 该接口使用非常简单。
 
-       **功能**
-            将量子程序转化为QRunes
-       **参数**
-            - QProg 待转化的量子程序
-       **返回值**
-            QRunes指令集
+    .. code-block:: c
+
+        QProg prog = QProg();
+        std::string QRunes = transformQProgToQRunes(prog);
+
+仅需传入一个QProg类型即可转化为对应的QRunes指令集，输出为std::string类型。
 
 实例
 >>>>>>>>>>>>>>
@@ -91,7 +91,7 @@ QRunes语句中部分关键词作用如下：
             prog << CZ(qubit[0], qubit[2]) << H(qubit[1]) << CNOT(qubit[1], qubit[2]) 
                  << RX(qubit[0],pi/2) << Measure(qubit[1],cbit[1]);
 
-            std::cout << qProgToQRunes(prog) << std::endl;
+            std::cout << transformQProgToQRunes(prog) << std::endl;
 
             finalize();
             return 0;
@@ -106,6 +106,6 @@ QRunes语句中部分关键词作用如下：
 
  - 然后调用 ``CreateEmptyQProg()`` 构建量子程序
 
- - 最后调用接口 ``qProgToQRunes(QProg &)`` 输出QRunes指令集并用 ``finalize()`` 释放系统资源
+ - 最后调用接口 ``transformQProgToQRunes(QProg &)`` 输出QRunes指令集并用 ``finalize()`` 释放系统资源
 
    .. note:: 对于暂不支持的操作类型，QRunes会显示UnSupported XXXNode，其中XXX为具体的节点类型。

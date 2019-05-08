@@ -49,16 +49,14 @@ QASM(Quantum Assembly Language)是IBM公司提出的量子汇编语言，与 :re
 >>>>>>>>>>>>>>>>>
 ----
 
-你可以通过调用 ``qProgToQASM(QProg &)`` 接口来调用该功能,该接口说明如下：
+QPanda2提供了QASM转换工具接口 ``std::string transformQProgToQASM(QProg &, QuantumMachine *)`` 该接口使用非常简单。
 
-    .. cpp:function:: qProgToQASM(QProg &)
+    .. code-block:: c
 
-       **功能**
-            将量子程序转化为QASM
-       **参数**
-            - QProg 待转化的量子程序
-       **返回值**
-            QASM指令集
+        QProg prog = QProg();
+        std::string qasm = transformQProgToQASM(prog);
+
+该接口需要传入一个QProg类型以及当前构建的量子虚拟机即可转化为对应的QASM指令集，输出为std::string类型。
 
 实例
 >>>>>>>>>>>>>>
@@ -82,7 +80,7 @@ QASM(Quantum Assembly Language)是IBM公司提出的量子汇编语言，与 :re
             prog << CZ(qubit[0], qubit[2]) << H(qubit[1]) << CNOT(qubit[1], qubit[2]) 
                  << RX(qubit[0],pi/2) << Measure(qubit[1],cbit[1]);
 
-            std::cout << qProgToQASM(prog) << std::endl;
+            std::cout << transformQProgToQASM(prog) << std::endl;
 
             finalize();
             return 0;
@@ -97,4 +95,4 @@ QASM(Quantum Assembly Language)是IBM公司提出的量子汇编语言，与 :re
 
  - 然后调用 ``CreateEmptyQProg()`` 构建量子程序
 
- - 最后调用接口 ``qProgToQASM(QProg &)`` 输出QASM指令集并用 ``finalize()`` 释放系统资源
+ - 最后调用接口 ``transformQProgToQASM(QProg &)`` 输出QASM指令集并用 ``finalize()`` 释放系统资源

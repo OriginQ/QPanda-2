@@ -1,249 +1,255 @@
+.. _QuantumMachine:
+
 量子虚拟机
 =================
 
-在真正的量子计算机没有成型之前，需要使用量子虚拟机承担量子算法、量子应用的验证的问题，QPanda-2的量子虚拟机是全振幅量子虚拟机，其模拟的量子比特数跟用户机器配置息息相关，所以用户可根据自己的机器配置申请量子比特数。用户可以C和C++两种接口方式使用量子虚拟机。QPanda-2计算方式支持CPU和GPU，可以在初始化时进行配置。
+在真正的量子计算机没有成型之前，需要使用量子虚拟机承担量子算法、量子应用的验证的问题，QPanda-2现在支持全振幅量子虚拟机、单振福量子虚拟机、部分振幅量子虚拟机
+以及含噪音的量子虚拟机。
 
 接口介绍
 --------------
 
-QuantumMachine_type
+量子虚拟机类型
 ````````````````````````
 .. code-block:: c
 
-    enum QuantumMachine_type {
-        CPU,
-        GPU,
-        CPU_SINGLE_THREAD
+    enum QMachineType {
+        CPU,  /**< Cpu quantum machine  */
+        GPU, /**< Gpu quantum machine  */
+        CPU_SINGLE_THREAD, /**< Cpu quantum machine with single thread */
+        NOISE  /**< Cpu quantum machine with  noise */
     };
 
-C 模式的接口类型
-```````````````````
+全振幅量子虚拟机
+````````````````````````
 
-.. cpp:function:: bool init(QuantumMachine_type type = CPU)
+全振幅量子虚拟机的计算方式支持CPU和GPU，可以在初始化时配置，使用方式是完全一样的。只是其计算效率不同。
+下面就以CPU的计算方式来介绍全振幅量子虚拟机。
 
-    **功能**
-        初始化虚拟机。
-    **参数**
-        - type 选择量子虚拟机的类型 QuantumMachine_type_ 。
-    **返回值**
-        是否初始化成功。
-
-.. _qAlloc:
-.. cpp:function:: Qubit* qAlloc()
-
-    **功能**
-        申请一个量子比特。
-    **参数**
-        - 无。
-    **返回值**
-        量子比特。
-
-
-.. cpp:function:: Qubit* qAlloc(size_t stQubitAddr)
-
-    **功能**
-        在指定位置申请一个量子比特。
-    **参数**
-        无。
-    **返回值**
-        量子比特。
-
-.. _qAllocMany:
-.. cpp:function:: QVec qAllocMany(size_t stQubitNumber)
-
-    **功能**
-        申请多个量子比特。
-    **参数**
-        - qubit_count 量子比特个数。
-    **返回值**
-        量子比特容器。
-
-.. _cAlloc:
-.. cpp:function:: ClassicalCondition cAlloc()
-
-    **功能**
-        申请一个量子表达式。
-    **参数**
-        无。
-    **返回值**
-        量子表达式。
-
-.. cpp:function:: ClassicalCondition cAlloc(size_t stCBitaddr)
-
-    **功能**
-        在指定位置申请一个量子表达式。
-    **参数**
-        无。
-    **返回值**
-        量子表达式。
-
-.. _cAllocMany:
-.. cpp:function:: std::vector<ClassicalCondition> cAllocMany(size_t stCBitNumber)
-
-    **功能**
-        申请多个量子表达式。
-    **参数**
-        - cbit_count 量子表达式个数。
-    **返回值**
-        量子表达式容器。
-
-.. cpp:function:: void load(QProg& q)
-
-    **功能**
-        加载量子程序。
-    **参数**
-        - prog 量子程序。
-    **返回值**
-        无。
-
-
-.. cpp:function:: void append(QProg& q)
-
-    **功能**
-        追加量子程序。
-    **参数**
-        - prog 量子程序。
-    **返回值**
-        无。
-
-.. cpp:function:: void run()
-
-    **功能**
-        运行量子程序。
-    **参数**
-        无。
-    **返回值**
-        无。
-
-.. cpp:function:: void finalize()
-
-    **功能**
-        释放资源，与 init_ 配对使用。
-    **参数**
-        无。
-    **返回值**
-        无。
-
-.. _getResultMap:
-.. cpp:function:: std::map<std::string, bool> getResultMap()
-
-    **功能**
-        获得量子程序运行结果。
-    **参数**
-        无。
-    **返回值**
-        经典寄存器地址及其存储的测量量子比特的结果。
-
-实例
->>>>>>>>>>>>>>>
+QPanda2中在构造量子虚拟机时有以下几种方式：
 
     .. code-block:: c
 
-        #include "QPanda.h"
-        USING_QPANDA
+        init(QMachineType::CPU);  // 使用init,不会返回qvm，会在代码中生成一个全局的qvm
+        auto qvm = initQuantumMachine(QMachineType::CPU); // 通过接口得到qvm指针
+        CPUQVM *qvm = new CPUQVM; // 直接new一个需要qvm类
 
-        int main(void)
+.. note:: ``init`` 和 ``initQuantumMachine`` 这两个函数不是线程安全的，不适用于多线程编程，而且其最大的量子比特个数和经典寄存器个数均为默认值25。
+
+设置量子虚拟机的配置(当前配置只有最大量子比特个数和最大经典寄存器个数):
+
+    .. code-block:: c
+
+        Configuration conf;
+        conf.maxQubit = 30;
+        conf.maxCMem = 30;
+        qvm->setConfig(conf);
+
+.. note:: 量子虚拟机默认的最大量子比特个数和经典寄存器个数均为25。
+
+设置好配置之后要初始化量子虚拟机：
+
+    .. code-block:: c
+
+        qvm->init();
+
+.. note:: 调用 ``init`` 和 ``initQuantumMachine`` 接口， 就不需要初始化了。
+
+下面我们就需要去申请量子比特和经典寄存器。
+
+例如我们申请4个量子比特：
+
+    .. code-block:: c
+
+        QVec qubits = qvm->allocateQubits(4);
+
+申请一个量子比特时也可以用这个接口：
+
+    .. code-block:: c
+
+        Qubit* qubit = qvm->allocateQubit();
+
+如果我们想在固定的量子比特虚拟地址上申请一个量子比特可以用下面的方法：
+
+    .. code-block:: c
+
+        Qubit* qubit = qvm->allocateQubitThroughVirAddress(0x01);
+
+申请经典寄存器也有类似于申请量子比特的接口，其使用方法和申请量子比特的方法一样，如申请4个经典寄存器的方法：
+
+    .. code-block:: c
+
+        std::vector<ClassicalCondition> cbits = qvm->allocateCBits(4);
+
+申请一个经典寄存器时也可以用这个接口：
+
+    .. code-block:: c
+
+        ClassicalCondition cbit = qvm->allocateCBit();
+
+固定的经典寄存器虚拟地址上申请一个量子比特可以用下面的方法：
+
+    .. code-block:: c
+
+        ClassicalCondition cbit = qvm->allocateCBit(0x01);
+
+在一个量子虚拟机中，申请了几次量子比特或经典寄存器，我们想知道一共申请了多少个量子比特或经典寄存器可以用下面的方法：
+
+    .. code-block:: c
+
+        size_t num_qubit = qvm->getAllocateQubit(); // 申请量子比特的个数
+        size_t num_cbit = qvm->getAllocateCMem(); // 申请经典寄存器的个数
+
+我门该如何使用量子虚拟机来执行量子程序呢？ 可以用下面的方法：
+
+    .. code-block:: c
+
+        QProg prog;
+        prog << H(qubits[0])
+            << CNOT(qubits[0], qubits[1])
+            << Measure(qubits[0], cbits[0]); // 构建一个量子程序
+        
+        map<string, bool> result = qvm->directlyRun(prog); // 执行量子程序
+
+如果想多次运行一个量子程序，并得到每次量子程序的结果，除了循环调用 ``directlyRun`` 方法外， 我们还提供了一个接口 ``runWithConfiguration`` 。
+为了以后的扩展， ``runWithConfiguration`` 配置参数是一个rapidjson::Document类型的参数， rapidjson::Document保存的是一个Json对象，由于现在只支持
+量子程序运行次数的配置， 其json数据结构为：
+
+    .. code-block:: json
+
         {
-            init(QuantumMachine_type::CPU);  // 初始化量子虚拟机
-            auto c = cAllocMany(2);          // 申请经典寄存器
-            auto q = qAllocMany(2);          // 申请量子比特
-
-            QProg prog;
-            prog << H(q[0])
-                << H(q[1])
-                << Measure(q[0],c[0])
-                << Measure(q[1],c[1]);
-
-            auto result = runWithConfiguration(prog,c,100);
-            for(auto & aiter : result)
-            {
-                std::cout << aiter.first << " : " << aiter.second << std::endl;
-            }
-
-            finalize();                     // 释放量子虚拟机
-            return 0;
+            "shots":1000              
         }
 
-C++ 模式的接口类型
-`````````````````````
+利用rapidjson库去得到rapidjson::Document对象， rapidjson的使用可以参照 `Rapidjson首页 <http://rapidjson.org/zh-cn/>`_ 。举个例子如下：
 
-.. cpp:class:: OriginQVM
+    .. code-block:: c
 
-    该类的功能是量子虚拟机的构建和使用。
+        int shots = 1000;
+        rapidjson::Document doc;
+        doc.Parse("{}");
+        doc.AddMember("shots",
+            shots,
+            doc.GetAllocator());
+        qvm->runWithConfiguration(prog, cbits, doc);
 
-    .. cpp:function:: bool init(QuantumMachine_type type = CPU)
+如果想得到量子程序运行之后各个量子态的振幅值，可以调用 ``getQState`` 函数获得：
 
-        初始化量子虚拟机， 参照 init_ 。
+    .. code-block:: c
 
-    .. cpp:function:: Qubit* Allocate_Qubit()
+        QStat stat = qvm->getQState();
 
-        申请一个量子比特， 参照 qAlloc_ 。
+量子虚拟机中测量和概率使用方法与 :ref:`Measure` 和 :ref:`PMeasure` 中介绍的相同，在这里就不多做赘述。
 
-    .. cpp:function:: Qubit* Allocate_Qubit(size_t qubit_num)
-
-        在指定位置申请一个量子比特， 参照 qAlloc_ 。
-
-    .. cpp:function:: QVec Allocate_Qubits(size_t qubit_count)
-
-        申请多个量子比特， 参照 qAllocMany_ 。
-
-    .. cpp:function:: ClassicalCondition Allocate_CBit()
-
-        申请一个量子表达式， 参照 cAlloc_ 。
-
-    .. cpp:function:: ClassicalCondition Allocate_CBit(size_t stCbitNum)
-
-        在指定位置申请一个量子表达式， 参照 cAlloc_ 。
-
-    .. cpp:function:: std::vector<ClassicalCondition> Allocate_CBits(size_t cbit_count)
-
-        申请多个量子表达式， 参照 cAllocMany_ 。
-
-    .. cpp:function:: void load(QProg &prog)
-
-        加载量子程序， 参照 load_ 。
-
-    .. cpp:function:: void append(QProg& prog)
-
-        追加量子程序， 参照 append_ 。
-
-    .. cpp:function:: void run()
-
-        运行量子程序， 参照 run_ 。
-
-    .. cpp:function:: void finalize()
-
-        释放资源， 参照 finalize_ 。
-
-    .. cpp:function:: std::map<std::string, bool> getResultMap()
-
-        获得量子程序运行结果， 参照 getResultMap_ 。
- 
 实例
 >>>>>>>>>>>>>>>>>>>>
 
-.. code-block:: c
+    .. code-block:: c
 
-        #include "QPanda.h"
+        #include <QPanda.h>
         USING_QPANDA
 
         int main(void)
         {
-            auto qvm = initQuantumMachine(QuantumMachine_type::CPU);  // 初始化量子虚拟机
-            auto cbits = qvm->Allocate_CBits(2); // 申请经典寄存器
-            auto qvec = qvm->Allocate_Qubits(2); // 申请量子比特
+            CPUQVM qvm;
+            qvm.init();
+            auto qubits = qvm.allocateQubits(4);
+            auto cbits = qvm.allocateCBits(4);
 
             QProg prog;
-            prog << H(qvec[0]) << H(qvec[1])
-                    << Measure(qvec[0],cbits[0])
-                    << Measure(qvec[1],cbits[1]);
+            prog << H(qubits[0])
+                << CNOT(qubits[0], qubits[1])
+                << CNOT(qubits[1], qubits[2])
+                << CNOT(qubits[2], qubits[3])
+                << Measure(qubits[0], cbits[0]);
 
-            auto result =qvm-> runWithConfiguration(prog, cbits, 100);
-            for(auto & aiter : result)
+            int shots = 1000;
+            rapidjson::Document doc;
+            doc.Parse("{}");
+            doc.AddMember("shots", shots, doc.GetAllocator());
+            auto result = qvm.runWithConfiguration(prog, cbits, doc);
+
+            for (auto &val : result)
             {
-                std::cout << aiter.first << " : " << aiter.second << std::endl;
+                std::cout << val.first << ", " << val.second << std::endl;
             }
 
-            qvm->finalize();
+            qvm.finalize();
             return 0;
         }
+
+运行结果：
+
+    .. code-block:: c
+
+        0000, 498
+        1000, 502
+
+.. note:: 这个量子程序的运行结果是不确定的，但其 ``0000`` 和 ``1000`` 对应的值都应该在500左右。
+
+函数对照表
+===================
+
+QPanda2中还提供了一些面向过程的接口，其使用方法和面向对象的方式相似，下面提供一份面向对象与面向过程的函数对照表：
+
+===================================  ========================= 
+        面向对象接口                          面向过程接口  
+===================================  =========================  
+      QVM::init                         init
+      QVM::allocateQubit                qAlloc
+      QVM::allocateCBit                 cAlloc
+      QVM::allocateQubits               qAllocMany
+      QVM::allocateCBits                cAllocMany
+      QVM::getAllocateQubit             getAllocateQubitNum
+      QVM::getAllocateCMem              getAllocateCMem
+      QVM::directlyRun                  directlyRun          
+      QVM::runWithConfiguration         runWithConfiguration
+    QVM::PMeasure                       PMeasure
+      QVM::PMeasure_no_index            PMeasure_no_index   
+      QVM::getProbTupleList             getProbTupleList
+      QVM::getProbList                  getProbList
+      QVM::getProbDict                  getProbDict
+      QVM::probRunTupleList             probRunTupleList
+      QVM::probRunList                  probRunList
+      QVM::probRunDict                  probRunDict
+      QVM::quickMeasure                 quickMeasure
+      QVM::getQStat                     getQState
+      QVM::finalize                     finalize
+===================================  ========================= 
+
+实例
+>>>>>>>>>>>>>>>>>>>>
+
+    .. code-block:: c
+
+        #include <QPanda.h>
+        USING_QPANDA
+
+        int main(void)
+        {
+            init();
+            auto qubits = qAllocMany(4);
+            auto cbits = cAllocMany(4);
+
+            QProg prog;
+            prog << H(qubits[0])
+                << CNOT(qubits[0], qubits[1])
+                << CNOT(qubits[1], qubits[2])
+                << CNOT(qubits[2], qubits[3])
+                << Measure(qubits[0], cbits[0]);
+
+            auto result = directlyRun(prog);
+            for (auto &val : result)
+            {
+                std::cout << val.first << ", " << val.second << std::endl;
+            }
+
+            finalize();
+            return 0;
+        }
+
+运行结果：
+
+    .. code-block:: c
+
+        c0, 1

@@ -7,118 +7,38 @@
 接口介绍
 --------------
 
-.. cpp:class:: AbstractOptimizer
+我们可以通过优化器工厂生成指定类型的优化器，例如我们指定它的类型为Nelder-Mead
 
-   .. cpp:function:: AbstractOptimizer()
+.. code-block:: cpp
 
-        **功能**
-            构造函数。
-        **参数**
-            无
+    using namespace QPanda; 
+    auto optimizer = OptimizerFactory::makeOptimizer(NELDER_MEAD);  
 
-   .. cpp:function:: void registerFunc(const QFunc &func, const vector_d &optimized_para)
-      
-        **功能**
-            注册优化函数（针对特定问题求解期望的函数）。
-        **参数**
-            - func 优化函数
-            - optimized_para 初始优化参数
-        **返回值**
-            无
 
-   .. cpp:function:: void setDisp(bool disp)
-      
-        **功能**
-            是否展示当前迭代最优结果。
-        **参数**
-            - disp 如果配置为true则展示，否则不展示
-        **返回值**
-            无
+我们需要向优化器注册一个计算损失值的函数和待优化参数。
 
-   .. cpp:function:: void setAdaptive(bool adaptive)
-      
-        **功能**
-            设置Nelder-Mead算法适应参数，使算法参数适应维度。
-        **参数**
-            - adaptive 如果配置为true则启用，否则不启用
-        **返回值**
-            无
+.. code-block:: cpp
 
-   .. cpp:function:: void setXatol(double xatol)
-      
-        **功能**
-            设置迭代之间优化参数(xopt)的绝对误差阈值，主要用于判断是否收敛。
-        **参数**
-            - xatol 误差阈值
-        **返回值**
-            无
+    vector_d init_para{0, 0}; 
+    optimizer->registerFunc(myFunc, init_para); 
+  
 
-   .. cpp:function:: void setFatol(double fatol)
-      
-        **功能**
-            设置迭代之间func(xopt)的绝对误差阈值，主要用于判断是否收敛。
-        **参数**
-            - xatol 误差阈值
-        **返回值**
-            无
+然后设置结束条件，我们可以设置变量及函数值的收敛阈值，函数最大可调用次数，和优化迭代次数。只要满足上述结束条件，则优化结束。
 
-   .. cpp:function:: void setMaxFCalls(size_t max_fcalls)
-      
-        **功能**
-                设置函数func(xopt)最大调用次数，当超过该阈值将停止迭代。
-        **参数**
-            - max_fcalls 最大调用次数
-        **返回值**
-            无
+.. code-block:: cpp
+    
+    optimizer->setXatol(1e-6); 
+    optimizer->setFatol(1e-6); 
+    optimizer->setMaxFCalls(200); 
+    optimizer->setMaxIter(200); 
 
-   .. cpp:function:: void setMaxIter(size_t max_iter)
-      
-        **功能**
-            设置最大迭代次数，当超过该阈值将停止迭代。
-        **参数**
-            - max_iter 最大迭代次数
-        **返回值**
-            无
 
-   .. cpp:function:: virtual void exec() = 0
-      
-        **功能**
-            执行优化算法。
-        **参数**
-            无
-        **返回值**
-            无
+然后通过exec接口执行优化，通过getResult接口获得优化后的结果。
 
-   .. cpp:function:: virtual QOptimizationResult getResult()
+.. code-block:: cpp
 
-        **功能**      
-            获取优化结果。
-        **参数**
-            无
-        **返回值**
-            优化结果。
-
-我们可以通过 ``OptimizerFactory`` 来生成指定的优化器。
-
-.. cpp:class:: OptimizerFactory
-
-   .. cpp:function:: static std::unique_ptr<AbstractOptimizer> makeOptimizer(const OptimizerType &optimizer)
-      
-        **功能**
-            通过指定类型来生成优化器。
-        **参数**
-            - optimizer 优化器类型
-        **返回值**
-            优化器。
-
-   .. cpp:function:: static std::unique_ptr<AbstractOptimizer> makeOptimizer(const std::string &optimizer)
-      
-        **功能**
-            通过指定类型来生成优化器。
-        **参数**
-            - optimizer 优化器类型
-        **返回值**
-            优化器。
+    optimizer->exec(); 
+    auto result = optimizer->getResult();
 
 实例
 --------------

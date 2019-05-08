@@ -16,20 +16,12 @@ QRunes的书写格式规范与例程可以参考量子程序转化QRunes模块�
     如 ``c0+c1||c2+c0&c3`` 等。
 
 接口介绍
->>>>>>>>>>>>>>>>>
+>>>>>>>>>>
 ----
 
-你可以通过调用 ``qRunesToQProg(string sQRunesPath,QProg& newQProg)`` 接口来调用该功能,该接口说明如下：
-  
-.. cpp:function:: qRunesToQProg(string sQRunesPath,QProg& newQProg)
+你可以通过调用 ``transformRunesToQProg(string sQRunesPath,QProg& newQProg)`` 接口来调用该功能,该接口说明如下：
 
-    **功能**
-        将QRunes转化为量子程序
-    **参数**
-        - QRunes文件路径
-        - 用于接收解析结果的QProg量子程序
-    **返回值**
-        无
+该接口接受两个参数
 
 实例
 >>>>>>>>>>>>>>
@@ -37,7 +29,7 @@ QRunes的书写格式规范与例程可以参考量子程序转化QRunes模块�
 
 在使用该功能之前，需要先书写QRunes量子程序，以 :ref:`QRunes介绍` 中的文件格式作为例子
 
-    :: 
+    ::
 
         QINIT 6
         CREG 2
@@ -82,7 +74,7 @@ QRunes的书写格式规范与例程可以参考量子程序转化QRunes模块�
 
  - 接着用 ``CreateEmptyQProg()`` 创建一个空的量子程序，用于接收返回值
 
- - 然后调用 ``qRunesToQProg(sQRunesPath, prog)`` 转化
+ - 然后调用 ``transformQRunesToQProg(sQRunesPath, prog)`` 转化
 
  - 最后用 ``finalize()`` 结束，并释放系统资源
 

@@ -11,22 +11,16 @@
 接口介绍
 --------------
 
-``QGateCompare`` 类是统计一个量子程序(量子线路、量子循环控制、量子条件控制)中量子逻辑门个数的工具类，我们先用QPanda2构建一个量子程序：
+我们先用pyqpanda构建一个量子程序：
 
-    .. code-block:: c
+    .. code-block:: python
           
-        auto qubits = qAllocMany(4);
-        auto cbits = cAllocMany(4);
+        prog = QProg()
+        prog.insert(X(qubits[0])).insert(Y(qubits[1]))\
+            .insert(H(qubits[0])).insert(RX(qubits[0], 3.14))\
+            .insert(Measure(qubits[0], cbits[0]))
 
-        QProg prog;
-        prog << X(qubits[0])
-                << Y(qubits[1])
-                << H(qubits[0])
-                << RX(qubits[0], 3.14)
-                << iSWAP(qubits[2], qubits[3]);
-                << Measure(qubits[1], cbits[0]);
-
-然后调用 ``QGateCompare`` 类统计不支持量子逻辑门的个数
+然后调用  类统计不支持量子逻辑门的个数
 
     .. code-block:: c
           

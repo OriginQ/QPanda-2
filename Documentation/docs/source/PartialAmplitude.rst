@@ -1,7 +1,7 @@
 .. _部分振幅量子虚拟机:
 
 部分振幅量子虚拟机
-===============
+=========================
 ----
 
 目前用经典计算机模拟量子虚拟机的主流解决方案有全振幅与单振幅两种。除此之外，还有部分振幅量子虚拟机，该方案能在更低的硬件条件下，实现更高的模拟效率。
@@ -18,181 +18,128 @@
 >>>>>>>>>>>>>>>>
 ----
 
-QPanda2中设计了 ``PartialAmplitudeQVM`` 类用于运行部分振幅模拟量子计算，同时提供了相关接口，它的使用很简单。
+其使用方式与前面介绍的量子虚拟机模块非常类似，首先通过 ``PartialAmpQVM`` 初始化一个部分振幅量子虚拟机对象用于管理后续一系列行为
 
-首先构建一个部分振幅量子虚拟机
+    .. code-block:: python
 
-    .. code-block:: c
+        machine = PartialAmpQVM()
 
-        auto machine = new PartialAmplitudeQVM();
+然后是量子程序的初始化、构建与装载过程，以QPanda2的 :ref:`部分振幅示例程序`来演示：
 
-然后必须使用 ``PartialAmplitudeQVM::init()`` 初始化量子虚拟机环境
+    .. code-block:: python
 
-    .. code-block:: c
+        machine.initQVM()
 
-        machine->init();
+        q = machine.qAlloc_many(10)
+        c = machine.cAlloc_many(10)
 
-接着进行量子程序的构建、装载工作
+        prog = QProg()
 
-    .. code-block:: c
+        prog.insert(Hadamard_Circuit(q))\
+            .insert(CZ(q[1], q[5]))\
+            .insert(CZ(q[3], q[7]))\
+            .insert(CZ(q[0], q[4]))\
+            .insert(RZ(q[7], PI / 4))\
+            .insert(RX(q[5], PI / 4))\
+            .insert(RX(q[4], PI / 4))\
+            .insert(RY(q[3], PI / 4))\
+            .insert(CZ(q[2], q[6]))\
+            .insert(RZ(q[3], PI / 4))\
+            .insert(RZ(q[8], PI / 4))\
+            .insert(CZ(q[9], q[5]))\
+            .insert(RY(q[2], PI / 4))\
+            .insert(RZ(q[9], PI / 4))\
+            .insert(CZ(q[2], q[3]))
 
-        auto prog = QProg();
-        auto qlist = machine->allocateQubits(10);
-        auto clist = machine->allocateCBits(10);
+        machine.run(prog)
 
-        for_each(qlist.begin(), qlist.end(), [&](Qubit *val) { prog << H(val); });
-        prog << CZ(qlist[1], qlist[5]) << CZ(qlist[3], qlist[5]) << CZ(qlist[2], qlist[4]);
-        ...
-        machine->run(prog);
+部分接口使用如下：
 
-最后调用计算接口，我们设计多种返回值的接口用于满足不同的计算需求，具体见示例所述：
+    - ``get_qstate()``
 
-示例
->>>>>>>>>>
-----
+        .. code-block:: python
 
-.. _部分振幅示例程序:
-以下示例展示了单振幅量子虚拟机接口的使用方式
+            result = machine.get_qstate()
+            print(result)
 
-    .. code-block:: c
+        运行结果如下:
 
-        #include "QPanda.h"
-        USING_QPANDA
+        .. code-block:: python
 
-        int main(void)
-        {
-            auto machine = new SingleAmplitudeQVM();
-            machine->init();
+            (-0.0064720869120793835,-0.0064720869120793185j)
+            (-3.5497357850862835e-17,-0.009152913087920036j)
+            (-0.0064720869120793835,-0.0064720869120793185j)
+            ...
 
-            auto prog = QProg();
-            auto qlist = machine->allocateQubits(10);
-            auto clist = machine->allocateCBits(10);
+    - ``pmeasure(size_t)`` ,使用示例
 
-            auto prog = QProg();
-            for_each(qlist.begin(), qlist.end(), [&](Qubit *val) { prog << H(val); });
-            prog << CZ(qlist[1], qlist[5])
-                 << CZ(qlist[3], qlist[7])
-                 << CZ(qlist[0], qlist[4])
-                 << RZ(qlist[7], PI / 4)
-                 << RX(qlist[5], PI / 4)
-                 << RX(qlist[4], PI / 4)
-                 << RY(qlist[3], PI / 4)
-                 << CZ(qlist[2], qlist[6])
-                 << RZ(qlist[3], PI / 4)
-                 << RZ(qlist[8], PI / 4)
-                 << CZ(qlist[9], qlist[5])
-                 << RY(qlist[2], PI / 4)
-                 << RZ(qlist[9], PI / 4)
-                 << CZ(qlist[2], qlist[3]);
-                
-            machine->run(prog);
-            auto res = machine->getQStat();
-            for (auto val : res)
-            {
-                std::cout << val<< std::endl;
-            }
+        .. code-block:: python
 
-上述程序的计算结果如下
+            result = machine.pmeasure(6)
+            print(result)
 
-    .. code-block:: c
+        运行结果如下:
 
-        (-0.00647209,-0.00647209)
-        (9.46438e-18,-0.00915291)
-        (-0.00647209,-0.00647209)
-        ...
+        .. code-block:: python
 
-若使用其它接口对上述量子程序进行操作：
+            [(0, 8.377581799501766e-05),
+             (1, 8.377581799501789e-05), 
+             (2, 8.377581799501766e-05), 
+             (3, 8.377581799501789e-05), 
+             (4, 0.00048828124999996357), 
+             (5, 0.0004882812499999648)]
 
-    - ``PMeasure(int)`` ,使用示例
+    - ``pmeasure(QVec,size_t)`` ,使用示例
 
-        .. code-block:: c
+        .. code-block:: python
 
-            auto res = machine->PMeasure(6);
-            for (auto val :res)
-            {
-                std::cout << val.first << " : " << val.second << std::endl;
-            }
+            result = machine.pmeasure(q,6)
+            print(result)
 
-        结果输出如下：
+        运行结果如下:
 
-        .. code-block:: c
+        .. code-block:: python
 
-            0 : 8.37758e-05
-            1 : 8.37758e-05
-            2 : 8.37758e-05
-            3 : 8.37758e-05
-            4 : 0.000488281
-            5 : 0.000488281
+            [8.377581799501766e-05, 
+             8.377581799501789e-05, 
+             8.377581799501766e-05, 
+             8.377581799501789e-05, 
+             0.0004882812499999635, 
+             0.0004882812499999648] 
 
-    - ``PMeasure(QVec,int)`` ,使用示例
+    - ``get_prob_dict(qvec,size_t)`` ,使用示例
 
-        .. code-block:: c
+        .. code-block:: python
 
-            QVec qvec;
-            for_each(qlist.begin(), qlist.end(), [&](Qubit *val) { qvec.emplace_back(val); });
+            result = machine.get_prob_dict(q,6)
+            print(result)
 
-            auto res = machine->PMeasure(qvec,6);
-            for (auto val :res)
-            {
-                std::cout << val.first << " : " << val.second << std::endl;
-            }
+        运行结果如下:
 
-        结果输出如下：
+        .. code-block:: python
 
-        .. code-block:: c
+            {'0000000000': 8.377581799501766e-05, 
+             '0000000001': 8.377581799501789e-05, 
+             '0000000010': 8.377581799501766e-05, 
+             '0000000011': 8.377581799501789e-05, 
+             '0000000100': 0.00048828124999996357, 
+             '0000000101': 0.0004882812499999648}
 
-            8.37758e-05
-            8.37758e-05
-            8.37758e-05
-            8.37758e-05
-            0.000488281
-            0.000488281
+    - ``get_prob_tuple_list(qvec,size_t)`` ,使用示例
 
-    - ``getProbDict(qvec,int)`` ,使用示例
+        .. code-block:: python
 
-        .. code-block:: c
+            result = machine.get_prob_tuple_list(q,6)
+            print(result)
 
-            QVec qvec;
-            for_each(qlist.begin(), qlist.end(), [&](Qubit *val) { qvec.emplace_back(val); });
+        运行结果如下:
 
-            auto res = machine->getProbDict(qvec,6);
-            for (auto val :res)
-            {
-                std::cout << val.first << " : " << val.second << endl;
-            }
+        .. code-block:: python
 
-        结果输出如下：
-
-        .. code-block:: c
-
-            0000000000 : 8.37758e-05
-            0000000001 : 8.37758e-05
-            0000000010 : 8.37758e-05
-            0000000011 : 8.37758e-05
-            0000000100 : 0.000488281
-            0000000101 : 0.000488281
-
-    - ``getProbTupleList(qvec,int)`` ,使用示例
-
-        .. code-block:: c
-
-            QVec qvec;
-            for_each(qlist.begin(), qlist.end(), [&](Qubit *val) { qvec.emplace_back(val); });
-
-            auto res = machine->getProbTupleList(qvec,6);
-            for (auto val :res)
-            {
-                std::cout << val.first << " : " << val.second << endl;
-            }
-
-        结果输出如下：
-
-        .. code-block:: c
-
-            0 : 8.37758e-05
-            1 : 8.37758e-05
-            2 : 8.37758e-05
-            3 : 8.37758e-05
-            4 : 0.000488281
-            5 : 0.000488281
+            [(0, 8.377581799501766e-05), 
+             (1, 8.377581799501789e-05), 
+             (2, 8.377581799501766e-05),
+             (3, 8.377581799501789e-05),
+             (4, 0.00048828124999996357), 
+             (5, 0.0004882812499999648)]  
 

@@ -72,102 +72,90 @@
 
 QPanda-2把所有的量子逻辑门封装为API向用户提供使用，并可获得QGate类型的返回值。比如，您想要使用Hadamard门，就可以通过如下方式获得：
 
-     .. code-block:: c
+     .. code-block:: python
           
-          QGate h = H(qubit);
+          h = H(qubit)
 
 可以看到，H函数只接收一个qubit，qubit如何申请会在 :ref:`量子虚拟机` 部分介绍。
 
 再比如，您想要使用RX门，可以通过如下方式获得：
 
-     .. code-block:: c
+     .. code-block:: python
           
-          QGate rx = RX(qubit，PI);
+          rx = RX(qubit，PI)
 
 如上所示，RX门接收两个参数，第一个是目标量子比特，第二个偏转角度。您也可以通过相同的方式使用RY，RZ门。
 
 两比特量子逻辑门的使用和单比特量子逻辑门的用法相似，只不过是输入的参数不同，举个使用CNOT的例子：
 
-     .. code-block:: c
+     .. code-block:: python
           
-          QGate cnot = CNOT(control_qubit，target_qubit);
+          cnot = CNOT(control_qubit，target_qubit)
 
 CNOT门接收两个参数，第一个是控制比特，第二个是目标比特。
 
+获得三量子逻辑门 ``Toffoli`` 的方式：
+
+     .. code-block:: python
+
+          toffoli = Toffoli(control1,control2,target)
+
+三比特量子逻辑门Toffoli实际上是CCNOT门，前两个参数是控制比特，最后一个参数是目标比特。
 
 接口介绍
 ----------------
 
-在本章的开头介绍过，所有的量子逻辑门都是酉矩阵，那么您也可以对量子逻辑门做转置共轭操作。QGate类型有两个成员函数可以做转置共轭操作：
-dagger、setDagger。
+在本章的开头介绍过，所有的量子逻辑门都是酉矩阵，那么您也可以对量子逻辑门做转置共轭操作，获得一个量子逻辑门 ``dagger`` 之后的量子逻辑门可以用下面的方法：
 
-setDagger的作用是根据输入参数更新当前量子逻辑门的dagger标记，在计算时计算后端会根据dagger判断当前量子逻辑门是否需要执行转置共轭操作。举个列子：
-
-     .. code-block:: c
+     .. code-block:: python
           
-          QGate h_dagger = H(qubit).setDagger(true);
-
-.. note:: setDagger有一个布尔类型参数，用来设置当前逻辑门是否需要转置共轭操作。
-
-dagger的作用是复制一份当前的量子逻辑门，并更新复制的量子逻辑门的dagger标记。举个例子：
-
-     .. code-block:: c
-          
-          QGate rx_dagger = RX(qubit,PI).dagger();
+          rx_dagger = RX(qubit,PI).dagger()
 
 除了转置共轭操作，您也可以为量子逻辑门添加控制比特，添加控制比特后，当前量子逻辑门是否执行需要根据控制比特的量子态决定，而控制比特有可能处于叠加态，
-所以当前量子逻辑门是否执行，不好说。QGate类型有两个成员函数帮助您添加控制比特：control、setControl。
+所以当前量子逻辑门是否执行，获得一个量子逻辑门 ``control`` 之后的量子逻辑门可以用下面的方法：
 
-setControl的作用是给当前的量子逻辑门添加控制比特，例如：
-
-     .. code-block:: c
+     .. code-block:: python
           
-          QGate rx_control = RX(qubit,PI).setControl(qvec);
+          qvec = [qubits[0], qubits[1]]
+          rx_control = RX(qubit,PI).control(qvec)
 
-
-
-control的作用是复制当前的量子逻辑门，并给复制的量子逻辑门添加控制比特，例如：
-
-     .. code-block:: c
-          
-          QGate rx_control = RX(qubit,PI).control(qvec);
-
-.. note:: setControl、control都需要接收一个参数，参数类型为QVec，QVec是qubit的vector。
 
 实例
 ----------------
 
 以下实例主要是向您展现QGate类型接口的使用方式.
 
-    .. code-block:: c
+    .. code-block:: python
 
-        #include "QPanda.h"
-        using namespace QPanda
+          from pyqpanda import *
 
-        int main(void)
-        {
-            init(QMachineType::CPU);
-            auto q = qAllocMany(3);
-            QVec qubits = {q[0],q[1]};
-            
-            auto prog = CreateEmptyQProg();
-            prog << H(q[0])
-                 << H(q[1]) 
-                 << H(q[0]).dagger()
-                 << X(q[2]).control(qubits);
-            auto result = probRunTupleList(prog, q);
-            for(auto & aiter : result)
-            {
-                std::cout << aiter.first << " : " << aiter.second << std::endl;
-            }
+          if __name__ == "__main__":
 
-            finalize();
-            return 0;
-        }
+               init(QMachineType.CPU)
+               qubits = qAlloc_many(3)
+               control_qubits = [qubits[0], qubits[1]]
+               prog = CreateEmptyQProg()
+
+               prog.insert(H(qubits[0])) \
+                   .insert(H(qubits[1])) \
+                   .insert(H(qubits[0]).dagger()) \
+                   .insert(X(qubits[2]).control(control_qubits))
+
+               result = prob_run_dict(prog, qubits, -1)
+               for key in result:
+                    print(key+":"+str(result[key]))
+               
+               finalize()
 
 计算结果如下：
 
-    .. code-block:: c
+    .. code-block:: python
         
-        000:0.5
-        010:0.5
+          000:0.4999999999999998
+          001:0.0
+          010:0.4999999999999998
+          011:0.0
+          100:0.0
+          101:0.0
+          110:0.0
+          111:0.0

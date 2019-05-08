@@ -24,28 +24,25 @@ $$"1 \\quad 1" = 0$$
 实例
 --------------
 
-.. code-block:: cpp
+.. code-block:: python
 
-    #include "Operator/FermionOperator.h"
+    from pyqpanda import *
+    
+    if __name__=="__main__":
 
-    int main()
-    {
-        QPanda::FermionOperator a("0 1+", 2);
-        QPanda::FermionOperator b("2+ 3", 3);
+        a = FermionOperator("0 1+", 2)
+        b = FermionOperator("2+ 3", 3)
 
-        auto plus = a + b;
-        auto minus = a - b;
-        auto muliply = a * b;
+        plus = a + b
+        minus = a - b
+        muliply = a * b
 
-        std::cout << "a + b = " << plus << std::endl << std::endl;
-        std::cout << "a - b = " << minus << std::endl << std::endl;
-        std::cout << "a * b = " << muliply << std::endl << std::endl;
+        print("a + b = ", plus)
+        print("a - b = ", minus)
+        print("a * b = ", muliply)
 
-        std::cout << "normal_ordered(a + b) = " << plus.normal_ordered() << std::endl << std::endl;
-        std::cout << "normal_ordered(a - b) = " << minus.normal_ordered() << std::endl << std::endl;
-        std::cout << "normal_ordered(a * b) = " << muliply.normal_ordered() << std::endl << std::endl;
-
-        return 0;
-    }
+        print("normal_ordered(a + b) = ", plus.normal_ordered())
+        print("normal_ordered(a - b) = ", minus.normal_ordered())
+        print("normal_ordered(a * b) = ", muliply.normal_ordered())
 
 .. image:: images/FermionOperatorTest.png   

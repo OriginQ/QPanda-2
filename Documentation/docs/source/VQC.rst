@@ -12,95 +12,61 @@
 
 量子程序 ``QProg`` 无法直接直接加载可变量子线路，但是我们可以通过调用可变量子线路的 ``feed`` 接口来生成一个普通量子线路。
 
-.. code-block:: cpp
+.. code-block:: python
 
-    MatrixXd m1(1, 1);
-    MatrixXd m2(1, 1);
-    m1(0, 0) = 1;
-    m2(0, 0) = 2;
+    x = var(1)
+    y = var(2)
 
-    var x(m1);
-    var y(m2);
+    vqc = VariationalQuantumCircuit()
+    vqc.insert(VariationalQuantumGate_H(q[0]))
+    vqc.insert(VariationalQuantumGate_RX(q[0], x))
+    vqc.insert(VariationalQuantumGate_RY(q[1], y))
 
-    VQC vqc;
-    vqc.insert(VQG_H(q[0]));
-    vqc.insert(VQG_RX(q[0], x));
-    vqc.insert(VQG_RY(q[1], y));
-
-    QCircuit circuit = vqc.feed();
-    QProg prog;
-    prog << circuit;
-
-我们可以调用 ``get_var_in_which_gate`` 接口来获取到指定变量在可变量子线路中对应的可变量子逻辑门。
-我们可以通过向feed接口传入变量对应的可变量子逻辑门，变量在可变量子逻辑门中的索引位置，以及偏移值，来改变指定可变量子逻辑门中变量参数的偏移值。
-
-.. code-block:: cpp
-
-    auto gates = vqc.get_var_in_which_gate(x);
-
-    int pos = shared_ptr<VariationalQuantumGate>(gates[0])->var_pos(x);
-
-    vector<tuple<weak_ptr<VariationalQuantumGate>, size_t, double>> plus;
-    plus.push_back(make_tuple(gates[0], pos, 3));
-
-    QCircuit circuit2 = vqc.feed(plus);
+    circuit = vqc.feed()
+    prog = QProg()
+    prog.insert(circuit)
 
 实例
 -------------
 
-.. code-block:: cpp
+.. code-block:: python
 
-    #include "QPanda.h"
-    #include "Variational/var.h"
+    from pyqpanda import *
+    
+    if __name__=="__main__":
+        machine = init_quantum_machine(QMachineType.CPU_SINGLE_THREAD)
+        q = machine.qAlloc_many(2)
 
-    int main()
-    {
-        using namespace std;
-        using namespace QPanda;
-        using namespace QPanda::Variational;
+        x = var(1)
+        y = var(2)
 
-        constexpr int qnum = 2;
 
-        QuantumMachine *machine = initQuantumMachine(QuantumMachine_type::CPU_SINGLE_THREAD);
-        std::vector<Qubit*> q;
-        for (int i = 0; i < qnum; ++i)
-        {
-            q.push_back(machine->Allocate_Qubit());
-        }
+        vqc = VariationalQuantumCircuit()
+        vqc.insert(VariationalQuantumGate_H(q[0]))
+        vqc.insert(VariationalQuantumGate_RX(q[0], x))
+        vqc.insert(VariationalQuantumGate_RY(q[1], y))
 
-        MatrixXd m1(1, 1);
-        MatrixXd m2(1, 1);
-        m1(0, 0) = 1;
-        m2(0, 0) = 2;
+        vqc.insert(RZ(q[0], 3))
+        
+        circ = QCircuit()
+        circ.insert(RX(q[0],3))
+        circ.insert(RY(q[1],4))
 
-        var x(m1);
-        var y(m2);
+        vqc.insert(circ)
 
-        VQC vqc;
-        vqc.insert(VQG_H(q[0]));
-        vqc.insert(VQG_RX(q[0], x));
-        vqc.insert(VQG_RY(q[1], y));
+        circuit1 = vqc.feed()
 
-        QCircuit circuit = vqc.feed();
-        QProg prog;
-        prog << circuit;
+        prog = QProg()
+        prog.insert(circuit1)
 
-        std::cout << qProgToQRunes(prog) << std::endl << std::endl;
+        print(to_QRunes(prog, machine))
 
-        auto gates = vqc.get_var_in_which_gate(x);
+        x.set_value([[3.]])
+        y.set_value([[4.]])
 
-        int pos = shared_ptr<VariationalQuantumGate>(gates[0])->var_pos(x);
-
-        vector<tuple<weak_ptr<VariationalQuantumGate>, size_t, double>> plus;
-        plus.push_back(make_tuple(gates[0], pos, 3));
-
-        QCircuit circuit2 = vqc.feed(plus);
-        QProg prog2;
-        prog2 << circuit2;
-
-        std::cout << qProgToQRunes(prog2) << std::endl;
-
-        return 0;
-    }
+        circuit2 = vqc.feed()
+        prog2 = QProg()
+        prog2.insert(circuit2)
+        print(to_QRunes(prog2, machine))
 
 .. image:: images/VQC_Example.png

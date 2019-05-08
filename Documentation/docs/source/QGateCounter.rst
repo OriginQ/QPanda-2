@@ -11,67 +11,49 @@
 接口介绍
 --------------
 
-``QGateCounter`` 类是统计一个量子程序(量子线路、量子循环控制、量子条件控制)中量子逻辑门个数的工具类，我们先用QPanda2构建一个量子程序：
+我们先用pyqpanda构建一个量子程序：
 
-    .. code-block:: c
+    .. code-block:: python
           
-        auto qubits = qAllocMany(4);
-        auto cbits = cAllocMany(4);
+        prog = QProg()
+        prog.insert(X(qubits[0])).insert(Y(qubits[1]))\
+            .insert(H(qubits[0])).insert(RX(qubits[0], 3.14))\
+            .insert(Measure(qubits[0], cbits[0]))
 
-        QProg prog;
-        prog << X(qubits[0])
-            << Y(qubits[1])
-            << H(qubits[0])
-            << RX(qubits[0], 3.14)
-            << Measure(qubits[1], cbits[0]);
+然后调用接口 ``count_gate`` 统计量子逻辑门的个数，
 
-然后调用 ``QGateCounter`` 类统计量子逻辑门的个数，
-
-    .. code-block:: c
+    .. code-block:: python
           
-        QGateCounter t;
-        t.traversal(prog);
-        size_t num = t.count(prog);;
-
-我们还可以使用QPanda2封装的一个接口：
-
-    .. code-block:: c
-          
-        size_t num = getQGateNumber(prog);
+        number = count_gate(prog)
 
 .. note::  统计 ``QCircuit`` 、 ``QWhileProg`` 、``QIfProg`` 中量子逻辑门的个数和 ``QProg`` 类似。
 
 实例
 -------------
 
-    .. code-block:: c
+    .. code-block:: python
     
-        #include <QPanda.h>
-        USING_QPANDA
+        from pyqpanda import *
 
-        int main(void)
-        {
-            init();
-            auto qubits = qAllocMany(4);
-            auto cbits = cAllocMany(4);
+        if __name__ == "__main__":
+            qvm = init_quantum_machine(QMachineType.CPU)
+            qubits = qvm.qAlloc_many(2)
+            cbits = qvm.cAlloc_many(2)
 
-            QProg prog;
-            prog << X(qubits[0])
-                << Y(qubits[1])
-                << H(qubits[0])
-                << RX(qubits[0], 3.14)
-                << Measure(qubits[1], cbits[0]);
+            prog = QProg()
+            prog.insert(X(qubits[0])).insert(Y(qubits[1])).\
+                insert(H(qubits[0])).insert(RX(qubits[0], 3.14))\
+                .insert(Measure(qubits[0], cbits[0]))
 
-            size_t num = getQGateNumber(prog);
-            std::cout << "QGate number: " << num << std::endl;
-            finalize();
+            number = count_gate(prog)
+            print("QGate number: " + str(number))
 
-            return;
-        }
+            qvm.finalize()
+
 
 运行结果：
 
-    .. code-block:: c
+    .. code-block:: python
 
         QGate number: 5
 

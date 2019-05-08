@@ -9,115 +9,84 @@
 接口介绍
 --------------
 
-在QPanda中，我们需要引入 ``QPanda::Variational`` 命名空间才能使用变量相关的类。我们可以通过传入一个浮点型的数据来构造一个标量变量，
-也可以通过 ``Eigen`` 库中的 ``MatrixXd`` 类型数据的构造一个矢量或矩阵变量。
+我们可以通过传入一个浮点型的数据来构造一个标量变量，也可以通过传入numpy库生成的多维数组来构造一个矢量或矩阵变量。
 
-.. code-block:: cpp
+.. code-block:: python
 
-    using namespace QPanda::Variational;
+    v1 = var(1)
 
-    var const_var(1);
-
-    MatrixXd m1(2, 2);
-    m1 << 1, 2, 3, 4;
-
-    MatrixXd m2(2, 2);
-    m2 << 5, 6, 7, 8;
-
-    var var1(m1);
-    var var2(m2);
+    a = np.array([[1.],[2.],[3.],[4.]])
+    v2 = var(a)
+    b = np.array([[1.,2.],[3.,4.]])
+    v3 = var(b)
 
 .. note:: 
 
     在定义变量的时候，可以定义变量的类型是否可以微分，默认情况下我们定义的变量的类型都是不可微分的，不可微分的变量相当于 ``placeholder``。
-    定义可微分的变量时，需要指定构造函数的第二个参数为true, 例如：var v1(1, true)。
+    定义可微分的变量时，需要指定构造函数的第二个参数为True, 例如：v1 = var(1, True)。
 
 我们可以先定义计算对应的表达式，表达式由变量之间进行加减乘除操作或其它操作组成，表达式也是一个变量。
 
-.. code-block:: cpp
+.. code-block:: python
    
-    var v1(10);
-    var v2(5);
+    v1 = var(10)
+    v2 = var(5)
   
-    var add = v1 + v2;
-    var minus = v1 - v2; //var minus(op_type::minus, {v1, v2});
-    var multiply = v1 * v2;
-    var divide = v1 / v2;
+    add = v1 + v2
+    minus = v1 - v2
+    multiply = v1 * v2
+    divide = v1 / v2
 
-我们可以在不改变表达式结构的情况下，通过改变某个变量的值，即可得到不同的计算结果。我们可以调用变量的 ``_eval`` 接口，来计算该变量当前的值。
+我们可以在不改变表达式结构的情况下，通过 ``set_value`` 接口改变某个变量的值，即可得到不同的计算结果。我们可以调用 ``eval`` 接口，来计算该变量当前的值。
 
-.. code-block:: cpp
+.. code-block:: python
    
-    var v1(1);
-    var v2(2);
+    v1 = var(1)
+    v2 = var(2)
     
-    var add = v1 + v2;
+    add = v1 + v2
+    print(eval(add)) # 输出为[[3.]]
 
-    std::cout << add._eval() << std::endl;// 输出为3
+    v1.set_value([[3.]])
+    print(eval(add)) # 输出为[[5.]]
 
-    MatrixXd m(1, 1);
-    m << 3;
-    v1.setValue(m);
+.. note:: 
 
-    std::cout << add._eval() << std::endl;// 输出为5
-
+    变量的 ``get_value`` 接口返回的是变量当前的值，不会根据变量的叶子节点来计算当前变量的值。如果变量是个表达式需要根据叶子节点来计算其值，需要调用 ``eval`` 接口进行前向求值。
 
 实例
 ---------------
 
 下面我们将以更多的示例来展示变量类相关接口的使用。
 
-.. code-block:: cpp
+.. code-block:: python
 
-    #include "Variational/var.h"
+    from pyqpanda import *
+    import numpy as np
 
-    int main()
-    {
-        using namespace QPanda::Variational;
+    if __name__=="__main__":
 
-        var const_var(1);
+        m1 = np.array([[1., 2.],[3., 4.]])
+        v1 = var(m1)
 
-        MatrixXd m1(2, 2);
-        m1 << 1, 2, 3, 4;
+        m2 = np.array([[5., 6.],[7., 8.]])
+        v2 = var(m2)
 
-        MatrixXd m2(2, 2);
-        m2 << 5, 6, 7, 8;
+        sum = v1 + v2
+        minus = v1 - v2
+        multiply = v1 * v2
 
-        var var1(m1);
-        var var2(m2);
+        print("v1: ", v1.get_value())
+        print("v2: ", v2.get_value())
+        print("sum: " , eval(sum))
+        print("minus: " , eval(minus))
+        print("multiply: " , eval(multiply))
 
-        var sum = var1 + var2;
-        var minus(op_type::minus, {var2, var1});
-        var multiply = var1 * var2;
+        m3 = np.array([[4., 3.],[2., 1.]])
+        v1.set_value(m3)
 
-        MatrixXd dx = MatrixXd::Ones(2, 2);
-
-        std::cout << "const_var: " << std::endl << const_var.getValue() << std::endl;
-        std::cout << "var1: " << std::endl << var1.getValue() << std::endl;
-        std::cout << "var2: " << std::endl << var2.getValue() << std::endl;
-        std::cout << "sum: "  << std::endl << sum._eval() << std::endl;
-        std::cout << "    op_type: " << int(sum.getOp()) << std::endl;
-        std::cout << "    NumOpArgs: " << int(sum.getNumOpArgs()) << std::endl;
-        std::cout << "minus: "  << std::endl << minus._eval() << std::endl;
-        std::cout << "    op_type: " << int(minus.getOp()) << std::endl;
-        std::cout << "    NumOpArgs: " << int(minus.getNumOpArgs()) << std::endl;
-        std::cout << "multiply: "  << std::endl << multiply._eval() << std::endl;
-        std::cout << "    op_type: " << int(multiply.getOp()) << std::endl;
-        std::cout << "    NumOpArgs: " << int(multiply.getNumOpArgs()) << std::endl;
-        std::cout << "Derivative multipy to var1:" <<std::endl<< multiply._back_single(dx, 0)<<std::endl;
-        std::cout << "Derivative multipy to var2:" <<std::endl<< multiply._back_single(dx, 1)<<std::endl;
-
-
-        MatrixXd m3(2, 2);
-        m3 << 4, 3, 2, 1;
-        var1.setValue(m3);
-
-        std::cout << "sum: "  << std::endl << sum._eval() << std::endl;
-        std::cout << "minus: "  << std::endl << minus._eval() << std::endl;
-        std::cout << "multiply: "  << std::endl << multiply._eval() << std::endl;
-        std::cout << "matrix_var1 UseCount: " << var1.getUseCount() << std::endl;
-
-        return 0;
-    }
+        print("sum: " , eval(sum))
+        print("minus: " , eval(minus))
+        print("multiply: " , eval(multiply))
 
 .. image:: images/VarExample.png

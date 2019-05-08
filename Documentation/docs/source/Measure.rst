@@ -17,104 +17,83 @@
 
 在量子程序中我门需要对某个量子做测量操作，并把测量结果存储到经典寄存器上，可以通过下面的方式获得一个测量对象：
 
-    .. code-block:: c
+    .. code-block:: python
 
-        auto measure = Measure(qubit, cbit); 
+        measure = Measure(qubit, cbit); 
 
 可以看到Measure接两个参数， 第一个是测量比特，第二个是经典寄存器。
 
 如果想测量所有的量子比特并将其存储到对应的经典寄存器上， 可以如下操作：
 
-    .. code-block:: c
+    .. code-block:: python
 
-        auto measure_all = MeasureAll(qubits， cbits);
+        measureprog = measure_all(qubits， cbits);
 
-其中qubits的类型是 ``QVec`` ， cbits的类型是 ``vector<ClassicalCondition>``。
+其中qubits的类型是 ``QVec`` ， cbits的类型是 ``ClassicalCondition list``。
 
-.. note:: ``MeasureAll``, 的返回值类型是 ``QProg``。
+.. note:: ``measure_all`` 的返回值类型是 ``QProg``。
 
-在得到含有量子测量的程序后，我们可以调用 ``directlyRun`` 或 ``runWithConfiguration`` 来得到量子程序的测量结果。
+在得到含有量子测量的程序后，我们可以调用 ``directly_run`` 或 ``run_with_configuration`` 来得到量子程序的测量结果。
 
-``directlyRun`` 的功能是运行量子程序并返回运行的结果， 使用方法如下：
+``directly_run`` 的功能是运行量子程序并返回运行的结果， 使用方法如下：
 
-    .. code-block:: c
+    .. code-block:: python
 
-        QProg prog;
-        prog << H(qubits[0])
-            << CNOT(qubits[0], qubits[1])
-            << CNOT(qubits[1], qubits[2])
-            << CNOT(qubits[2], qubits[3])
-            << Measure(qubits[0], cbits[0]);
+        prog = QProg()
+        prog.insert(H(qubits[0]))\
+            .insert(CNOT(qubits[0], qubits[1]))\
+            .insert(CNOT(qubits[1], qubits[2]))\
+            .insert(CNOT(qubits[2], qubits[3]))\
+            .insert(Measure(qubits[0], cbits[0]))
 
-        auto result = directlyRun(prog);
+        result = directly_run(prog)
 
-``runWithConfiguration`` 的功能是末态在目标量子比特序列在量子程序多次运行结果中出现的次数， 使用方法如下：
+``run_with_configuration`` 的功能是末态在目标量子比特序列在量子程序多次运行结果中出现的次数， 使用方法如下：
 
-    .. code-block:: c
+    .. code-block:: python
 
-        QProg prog;
-        prog   << H(qubits[0])
-                << H(qubits[1])
-                << H(qubits[2])
-                << H(qubits[3])
-                << MeasureAll(qubits, cbits); // 测量所有的量子比特
+        prog = QProg()
+        prog.insert(H(qubits[0]))\
+            .insert(H(qubits[0]))\
+            .insert(H(qubits[1]))\
+            .insert(H(qubits[2]))\
+            .insert(measure_all(qubits, cbits))
 
-        auto result = runWithConfiguration(prog, cbits, 1000);
+        result = run_with_configuration(prog, cbits, 1000)
 
-其中第一个参数是量子程序，第二个参数是经典寄存器， 第三个参数是运行的次数。
+其中第一个参数是量子程序，第二个参数是ClassicalCondition list， 第三个参数是运行的次数。
 
 实例
 ----------
 
-    .. code-block:: c
+    .. code-block:: python
 
-        #include <QPanda.h>
-        USING_QPANDA
+        from pyqpanda import *
 
-        int main(void)
-        {
-            auto qvm = initQuantumMachine();
-            auto qubits = qvm->allocateQubits(4);
-            auto cbits = qvm->allocateCBits(4);
-            QProg prog;
-            
-            prog   << H(qubits[0])
-                    << H(qubits[1])
-                    << H(qubits[2])
-                    << H(qubits[3])
-                    << MeasureAll(qubits, cbits);
+        if __name__ == "__main__":
+            init(QMachineType.CPU)
+            qubits = qAlloc_many(4)
+            cbits = cAlloc_many(4)
 
-            auto result = quickMeasure(prog, 1000);
-            for (auto &val: result)
-            {
-                std::cout << val.first << ", " << val.second << std::endl;
-            }
+            prog = QProg()
+            prog.insert(H(qubits[0]))\
+                .insert(H(qubits[1]))\
+                .insert(H(qubits[2]))\
+                .insert(H(qubits[3]))\
+                .insert(measure_all(qubits, cbits))
 
-            qvm->finalize();
-            delete qvm;
+            result = run_with_configuration(prog, cbits, 1000)
+            print(result)
+            finalize()
 
-            return 0;
-        }
 
 运行结果：
 
-    .. code-block:: c
+    .. code-block:: python
 
-        0000, 47
-        0001, 59
-        0010, 74
-        0011, 66
-        0100, 48
-        0101, 62
-        0110, 71
-        0111, 61
-        1000, 70
-        1001, 57
-        1010, 68
-        1011, 63
-        1100, 65
-        1101, 73
-        1110, 55
-        1111, 61
+        {'0000': 59, '0001': 69, '0010': 52, '0011': 62, 
+        '0100': 63, '0101': 67, '0110': 79, '0111': 47, 
+        '1000': 73, '1001': 59, '1010': 72, '1011': 60, 
+        '1100': 61, '1101': 71, '1110': 50, '1111': 56}
 
 

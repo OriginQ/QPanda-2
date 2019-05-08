@@ -2,7 +2,7 @@ QIf
 ==========
 ----
 
-QIf表示量子程序条件判断操作，输入参数为条件判断表达式，功能是执行条件判断
+QIf表示量子程序条件判断操作，输入参数为条件判断表达式，功能是执行条件判断。
 
 .. _api_introduction:
 
@@ -10,90 +10,56 @@ QIf表示量子程序条件判断操作，输入参数为条件判断表达式�
 >>>>>>>>>>>
 ----
 
-在QPanda2中，QIfProg类用于表示执行量子程序if条件判断操作，它也是QNode中的一种，初始化一个QIfProg对象有以下两种
+在QPanda2中，QIfProg类用于表示执行量子程序条件判断操作，它也是QNode中的一种，初始化一个QIfProg对象有以下两种：
 
-C++风格
+    .. code-block:: python
 
-    .. code-block:: c
+        qif = QIfProg(ClassicalCondition, QNode)
+        qif = QIfProg(ClassicalCondition, QNode, QNode)
 
-        QIfProg qif = QIfProg(ClassicalCondition&, QNode*);
-        QIfProg qif = QIfProg(ClassicalCondition&, QNode*, QNode*);
+或
 
-C语言风格
+    .. code-block:: python
 
-    .. code-block:: c
-
-        QIfProg qif = CreateIfProg(ClassicalCondition&, QNode*);
-        QIfProg qif = CreateIfProg(ClassicalCondition&, QNode*, QNode*);
+        qif = CreateIfProg(ClassicalCondition, QNode)
+        qif = CreateIfProg(ClassicalCondition, QNode, QNode)
 
 上述函数需要提供两种类型参数，即ClassicalCondition量子表达式与QNode节点，
-当传入1个QNode参数时，QNode表示正确分支节点，当传入2个QNode参数时，第一个表示正确分支节点，第二个表示错误分支节点
-
-同时，通过该类内置的函数可以轻松获取QIf操作正确分支节点与错误分支节点
-
-    .. code-block:: c
-
-        QIfProg qif = CreateIfProg(ClassicalCondition&, QNode*, QNode*);
-        QNode* true_branch_node  = qif.getTrueBranch();
-        QNode* false_branch_node = qif.getFalseBranch();
-
-也可以获取量子表达式
-
-    .. code-block:: c
-
-        QIfProg qif = CreateIfProg(ClassicalCondition&, QNode*, QNode*);
-        ClassicalCondition* expr = qif.getCExpr();
-
-具体的操作流程可以参考下方示例
+当传入1个QNode参数时，QNode表示正确分支节点，当传入2个QNode参数时，第一个表示正确分支节点，第二个表示错误分支节点。
 
 实例
 >>>>>>>>>
 ----
 
-    .. code-block:: c
+    .. code-block:: python
 
-        #include "QPanda.h"
-        USING_QPANDA
+        from pyqpanda import *
 
-        int main(void)
-        {
-            init();
-            QProg prog;
+        if __name__ == "__main__":
 
-            auto qvec = qAllocMany(3);
-            auto cvec = cAllocMany(3);
-            cvec[1].setValue(0);
-            cvec[0].setValue(0);
+        init(QMachineType.CPU)
+        qubits = qAlloc_many(3)
+        cbits = cAlloc_many(3)
+        cbits[0].setValue(0)
+        cbits[1].setValue(3)
 
-            QProg branch_true;
-            QProg branch_false;
-            branch_true << (cvec[1]=cvec[1]+1) << H(qvec[cvec[0]]) << (cvec[0]=cvec[0]+1);
-            branch_false << H(qvec[0]) << CNOT(qvec[0],qvec[1]) << CNOT(qvec[1],qvec[2]);
+        prog = QProg()
+        branch_true = QProg()
+        branch_false = QProg()
+        branch_true.insert(H(qubits[0])).insert(H(qubits[1])).insert(H(qubits[2]))
+        branch_false.insert(H(qubits[0])).insert(CNOT(qubits[0], qubits[1])).insert(CNOT(qubits[1], qubits[2]))
 
-            auto qif = CreateIfProg(cvec[1]>5,&branch_true, &branch_false);
-            prog << qif;
-            auto result = probRunTupleList(prog, qvec);
+        qif = CreateIfProg(cbits[0] > cbits[1], branch_true, branch_false)
+        prog.insert(qif)
+        result = prob_run_tuple_list(prog, qubits, -1)
+        print(result)
 
-            for (auto & val : result)
-            {
-                std::cout << val.first << ", " << val.second << std::endl;
-            }
+        finalize()
 
-            finalize();
-            return 0;
-        }
 
 运行结果：
 
-    .. code-block:: c
+    .. code-block:: python
 
-        0, 0.5
-        7, 0.5
-        1, 0
-        2, 0
-        3, 0
-        4, 0
-        5, 0
-        6, 0
-
+        [(0, 0.4999999999999999), (7, 0.4999999999999999), (1, 0.0), (2, 0.0), (3, 0.0), (4, 0.0), (5, 0.0), (6, 0.0)]
 

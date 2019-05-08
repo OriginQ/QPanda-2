@@ -15,153 +15,90 @@ QAOA
 
 .. image:: images/QAOA_7bit_Problem.png
 
-首先，我们输入 ``MAX-CUT`` 问题的图形信息，并构造相应的问题哈密顿量。 
+首先，我们输入 ``MAX-CUT`` 问题的图形信息，以用来构造相应的问题哈密顿量。 
 
-.. code-block:: cpp
+.. code-block:: python
 
-    PauliOperator getHamiltonian()
-    {
-        PauliOperator::PauliMap pauli_map{
-            {"Z0 Z4", 0.73},{"Z2 Z5", 0.88},
-            {"Z0 Z5", 0.33},{"Z2 Z6", 0.58},
-            {"Z0 Z6", 0.50},{"Z3 Z5", 0.67},
-            {"Z1 Z4", 0.69},{"Z3 Z6", 0.43},
-            {"Z1 Z5", 0.36}
-        };
+    problem = {'Z0 Z4':0.73,'Z0 Z5':0.33,'Z0 Z6':0.5,'Z1 Z4':0.69,'Z1 Z5':0.36,
+           'Z2 Z5':0.88,'Z2 Z6':0.58,'Z3 Z5':0.67,'Z3 Z6':0.43}
 
-        return PauliOperator(pauli_map);
-    }
-
-然后，使用哈密顿量和待优化的变量参数x，构建 ``QAOA`` 的vqc。 
-``QOP`` 的输入参数是问题哈密顿量、``VQC`` 、一组量子比特和量子运行环境。``QOP`` 的输出是问题哈密顿量的期望。 
+然后，使用哈密顿量和待优化的变量参数beta和gamma，构建 ``QAOA`` 的vqc。 
+``QOP`` 的输入参数是问题哈密顿量、``VQC`` 、 一组量子比特和量子运行环境。``QOP`` 的输出是问题哈密顿量的期望。 
 在这个问题中，损失函数是问题哈密顿量的期望，因此需要最小化 ``QOP`` 的输出。 
-可以通过反向传播获得成本函数的梯度，并使用优化器更新vqc的变量x。
+我们通过使用梯度下降优化器 ``MomentumOptimizer`` 来优化vqc中的变量beta和gamma。
 
-.. code-block:: cpp
+.. code-block:: python
 
-    #include "QPanda.h"
-    #include "Operator/PauliOperator.h"
-    #include "Variational/var.h"
-    #include "Variational/expression.h"
-    #include "Variational/utils.h"
-    #include "Variational/Optimizer.h"
-    #include <fstream>
+    from pyqpanda import *
 
-    using namespace std;
-    using namespace QPanda;
-    using namespace QPanda::Variational;
+    def oneCircuit(qlist, Hamiltonian, beta, gamma):
+        vqc=VariationalQuantumCircuit()
+        for i in range(len(Hamiltonian)):
+            tmp_vec=[]
+            item=Hamiltonian[i]
+            dict_p = item[0]
+            for iter in dict_p:
+                if 'Z'!= dict_p[iter]:
+                    pass
+                tmp_vec.append(qlist[iter])
+                
+            coef = item[1]
+            
+            if 2 != len(tmp_vec):
+                pass
+            
+            vqc.insert(VariationalQuantumGate_CNOT(tmp_vec[0], tmp_vec[1]))
+            vqc.insert(VariationalQuantumGate_RZ(tmp_vec[1], 2*gamma*coef))
+            vqc.insert(VariationalQuantumGate_CNOT(tmp_vec[0], tmp_vec[1]))
+                
+        for j in qlist:
+            vqc.insert(VariationalQuantumGate_RX(j,2.0*beta))
+        return vqc
 
-    VQC parity_check_circuit(std::vector<Qubit*> qubit_vec)
-    {
-        VQC circuit;
-        for (auto i = 0; i < qubit_vec.size() - 1; i++)
-        {
-            circuit.insert( VQG_CNOT(
-                qubit_vec[i],
-                qubit_vec[qubit_vec.size() - 1]));
-        }
 
-        return circuit;
-    }
+    if __name__=="__main__":    
 
-    VQC simulateZTerm(
-        const std::vector<Qubit*> &qubit_vec,
-        var coef,
-        var t)
-    {
-        VQC circuit;
-        if (0 == qubit_vec.size())
-        {
-            return circuit;
-        }
-        else if (1 == qubit_vec.size())
-        {
-            circuit.insert(VQG_RZ(qubit_vec[0], coef * t*-1));
-        }
-        else
-        {
-            circuit.insert(parity_check_circuit(qubit_vec));
-            circuit.insert(VQG_RZ(qubit_vec[qubit_vec.size() - 1], coef * t*-1));
-            circuit.insert(parity_check_circuit(qubit_vec));
-        }
+        Hp = PauliOperator(problem)
+        qubit_num = Hp.getMaxIndex()
 
-        return circuit;
-    }
+        machine=init_quantum_machine(QMachineType.CPU_SINGLE_THREAD)
+        qlist = machine.qAlloc_many(qubit_num)
 
-    VQC simulatePauliZHamiltonian(
-        const std::vector<Qubit*>& qubit_vec,
-        const QPanda::QHamiltonian & hamiltonian,
-        var t)
-    {
-        VQC circuit;
+        step = 4
 
-        for (auto j = 0; j < hamiltonian.size(); j++)
-        {
-            std::vector<Qubit*> tmp_vec;
-            auto item = hamiltonian[j];
-            auto map = item.first;
+        beta = var(np.ones((step,1),dtype = 'float64'), True)
+        gamma = var(np.ones((step,1),dtype = 'float64'), True)
 
-            for (auto iter = map.begin(); iter != map.end(); iter++)
-            {
-                if ('Z' != iter->second)
-                {
-                    QCERR("Bad pauliZ Hamiltonian");
-                    throw std::string("Bad pauliZ Hamiltonian.");
-                }
+        vqc=VariationalQuantumCircuit()
 
-                tmp_vec.push_back(qubit_vec[iter->first]);
-            }
+        for i in qlist:
+            vqc.insert(VariationalQuantumGate_H(i))
 
-            if (!tmp_vec.empty())
-            {
-                circuit.insert(simulateZTerm(tmp_vec, item.second, t));
-            }
-        }
+        for i in range(step):    
+            vqc.insert(oneCircuit(qlist,Hp.toHamiltonian(1),beta[i], gamma[i]))
 
-        return circuit;
-    }
 
-    int main()
-    {
-        PauliOperator op = getHamiltonian();
+        loss = qop(vqc, Hp, machine, qlist)  
+        optimizer = MomentumOptimizer.minimize(loss, 0.02, 0.9)
 
-        QuantumMachine *machine = initQuantumMachine(QuantumMachine_type::CPU_SINGLE_THREAD);
-        vector<Qubit*> q;
-        for (int i = 0; i < op.getMaxIndex(); ++i)
-            q.push_back(machine->Allocate_Qubit());
+        leaves = optimizer.get_variables()
 
-        VQC vqc;
-        for_each(q.begin(), q.end(), [&vqc](Qubit* qbit)
-        {
-            vqc.insert(VQG_H(qbit));
-        });
+        for i in range(100):
+            optimizer.run(leaves, 0)
+            loss_value = optimizer.get_loss()
+            print("i: ", i, " loss:",loss_value )
 
-        int qaoa_step = 2;
+        # 验证结果    
+        prog = QProg()
+        qcir = vqc.feed()
+        prog.insert(qcir)
+        directly_run(prog)
 
-        var x(MatrixXd::Random(2 * qaoa_step, 1), true);
-
-        for (auto i = 0u; i < 2*qaoa_step; i+=2)
-        {
-            vqc.insert(simulatePauliZHamiltonian(q, op.toHamiltonian(), x[i + 1]));
-            for (auto _q : q) {
-                vqc.insert(VQG_RX(_q, x[i]));
-            }
-        }
-
-        var loss = qop(vqc, op, machine, q);
-        auto optimizer = VanillaGradientDescentOptimizer::minimize(loss, 0.1, 1.e-6);
-
-        auto leaves = optimizer->get_variables();
-        constexpr size_t iterations = 50;
-        for (auto i = 0u; i < iterations; i++)
-        {
-            optimizer->run(leaves);
-            std::cout << "iter: " << i << " loss : " << optimizer->get_loss() << std::endl;
-        }
-
-        return 0;
-    }
+        result = quick_measure(qlist, 100)
+        print(result)
 
 .. image:: images/QAOA_7bit_Optimizer_Example.png
 
-.. image:: images/QAOA_7bit_Optimizer_Example_Plot.png
+我们将测量的结果绘制出柱状图，可以看到'0001111'和'1110000'这两个比特串测量得到的概率最大，也正是我们这个问题的解。
+
+.. image:: images/QAOA_result.png

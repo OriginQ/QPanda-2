@@ -11,8 +11,8 @@ QPanda2带来了含噪声量子虚拟机。含噪声量子虚拟机的模拟更�
 ------------
 
 含噪声量子虚拟机的接口和其他量子虚拟机的接口大部分是相同的，但含噪声量子虚拟机不能使用PMEASURE系列的概率测量接口。此外QPanda2给它重载了一个init成员函数，
-该成员函数可接收一个rapidjson::Document类型的参数，rapidjson::Document保存的是一个Json对象，我们可以在参数中定义含噪声量子虚拟机支持的量子逻辑门类型和
-噪声模型，Json的结构如下所示：
+该成员函数可接收一个dict类型的参数，我们可以在参数中定义含噪声量子虚拟机支持的量子逻辑门类型和
+噪声模型，dict的结构如下所示：
 
      .. code-block:: c
 
@@ -21,7 +21,7 @@ QPanda2带来了含噪声量子虚拟机。含噪声量子虚拟机的模拟更�
                   "noisemodel":{.....}}              
               }
 
-假设我们希望自定含噪声量子虚拟机支持的逻辑门是RX、RY、CNOT，并且希望设定RX,RY的噪声模型为DECOHERENCE_KRAUS_OPERATOR，那么我们把Json构造成以下形式：
+假设我们希望自定含噪声量子虚拟机支持的逻辑门是RX、RY、CNOT，并且希望设定RX,RY的噪声模型为DECOHERENCE_KRAUS_OPERATOR，那么我们把dict构造成以下形式：
 
      .. code-block:: c
 
@@ -31,30 +31,19 @@ QPanda2带来了含噪声量子虚拟机。含噪声量子虚拟机的模拟更�
                                 "RY":[DECOHERENCE_KRAUS_OPERATOR,10.0,2.0,0.03]}}              
               }
 
-rapidjson如何使用，我们可以到 `Rapidjson首页 <http://rapidjson.org/zh-cn/>`_ 学习，这里先举个集合QPanda2使用的例子：
+这里先举个pyQPanda使用的例子：
 
-     .. code-block:: c
+     .. code-block:: python
           
-          rapidjson::Document doc;
-          doc.Parse("{}");
-          
-          Value value(rapidjson::kObjectType);
-          Value value_rx(rapidjson::kArrayType);
-          value_rx.PushBack(DECOHERENCE_KRAUS_OPERATOR, doc.GetAllocator());
-          value_rx.PushBack(10.0, doc.GetAllocator());
-          value_rx.PushBack(2.0, doc.GetAllocator());
-          value_rx.PushBack(0.03, doc.GetAllocator());
-          value.AddMember("RX", value_rx, doc.GetAllocator());
+	            dict = {"gates":[["RX","RY"],["CNOT"]],
+                    "noisemodel":{"RX":[NoiseModel.DECOHERENCE_KRAUS_OPERATOR,10.0,2.0,0.03],
+                                  "RY":[NoiseModel.DECOHERENCE_KRAUS_OPERATOR,10.0,2.0,0.03]
+		    	    			 }
+		                }              
+	    
+                qvm = NoiseQVM() 
+                qvm.initQVM(dict)
 
-          Value value_ry(rapidjson::kArrayType);
-          value_ry.PushBack(DECOHERENCE_KRAUS_OPERATOR, doc1.GetAllocator());
-          value_ry.PushBack(10.0, doc1.GetAllocator());
-          value_ry.PushBack(2.0, doc1.GetAllocator());
-          value_ry.PushBack(0.03, doc1.GetAllocator());
-          value.AddMember("RY", value_ry, doc1.GetAllocator());
-          doc.AddMember("noisemodel", value, doc1.GetAllocator());
-          NoiseQVM qvm；
-          qvm.init(doc);
 
 
 噪声模型介绍

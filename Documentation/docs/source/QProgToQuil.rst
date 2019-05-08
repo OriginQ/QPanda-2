@@ -30,70 +30,53 @@
 接口介绍
 -----------------
 
-``QProgToQuil`` 类是QPanda2提供的一个将量子程序转换为Quil指令集的工具类，我们先用QPanda2构建一个量子程序：
+我们先用pyqpanda构建一个量子程序：
 
-    .. code-block:: c
+    .. code-block:: python
+                
+        prog = QProg()
+        prog.insert(X(qubits[0])).insert(Y(qubits[1]))\
+            .insert(H(qubits[2])).insert(RX(qubits[3], 3.14))\
+            .insert(Measure(qubits[0], cbits[0]))
+
+然后调用 ``to_Quil`` 接口实现转化
+
+    .. code-block:: python
           
-        QProg prog;
-        auto qubits = qvm->allocateQubits(4);
-        auto cbits = qvm->allocateCBits(4);
-
-        prog << X(qvec[0])
-             << Y(qvec[1])
-             << H(qvec[0])
-             << RX(qvec[0], 3.14)
-             << Measure(qvec[1], cvec[0]);
-然后调用 ``QProgToQuil`` 类实现转化
-
-    .. code-block:: c
-          
-        QProgToQuil t(qvm);
-        t.transform(prog);
-        std::string instructions = t.getInsturctions();
-
-我们还可以使用QPanda2封装的一个接口：
-
-    .. code-block:: c
-          
-        std::string instructions = transformQProgToQuil(prog, qvm);
+        quil = to_Quil(prog, qvm)
 
 实例
 ---------------
 
-    .. code-block:: c
+    .. code-block:: python
 
-        #include <QPanda.h>
-        USING_QPANDA
+        from pyqpanda import *
 
+        if __name__ == "__main__":
+            qvm = init_quantum_machine(QMachineType.CPU)
+            qubits = qvm.qAlloc_many(4)
+            cbits = qvm.cAlloc_many(4)
+            prog = QProg()
 
-        int main(void)
-        {
-            auto qvm = initQuantumMachine(QMachineType::CPU);
-            auto qubits = qvm->allocateQubits(4);
-            auto cbits = qvm->allocateCBits(4);
-            QProg prog;
-            prog << X(qubits[0])
-                 << Y(qubits[1])
-                 << H(qubits[2])
-                 << RX(qubits[3], 3.14)
-                 << Measure(qubits[0], cbits[0]);
+            prog.insert(X(qubits[0])).insert(Y(qubits[1]))\
+                .insert(H(qubits[2])).insert(RX(qubits[3], 3.14))\
+                .insert(Measure(qubits[0], cbits[0]))
 
-            std::string instructions = transformQProgToQuil(prog, qvm);
-            std::cout << instructions << std::endl;
-            qvm->finalize();
-            delete qvm;
-            return 0;
-        }
+            quil = to_Quil(prog, qvm)
+            print(quil)
+            qvm.finalize()
+
 
 运行结果：
 
-    .. code-block:: c
+    .. code-block:: python
 
         X 0
         Y 1
         H 2
         RX(3.140000) 3
         MEASURE 0 [0]
+
 
 
 

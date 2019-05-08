@@ -35,55 +35,45 @@
 
 ``QProgClockCycle`` 类是QPanda2提供的一个将量子程序转换为Quil指令集的工具类，我们先用QPanda2构建一个量子程序：
 
-    .. code-block:: c
+    .. code-block:: python
           
-        auto qubits = qvm->allocateQubits(4);
-        auto prog = CreateEmptyQProg();
-        prog << H(qubits[0]) << CNOT(qubits[0], qubits[1])
-                << iSWAP(qubits[1], qubits[2]) << RX(qubits[3], PI/4);
+        prog = QProg()
+        prog.insert(H(qubits[0])).insert(CNOT(qubits[0], qubits[1]))\
+            .insert(iSWAP(qubits[1], qubits[2])).insert(RX(qubits[3], PI / 4))
 
-然后调用 ``QProgClockCycle`` 类得到量子程序的时钟周期
+然后调用 ``get_clock_cycle`` 接口得到量子程序的时钟周期
 
-    .. code-block:: c
+    .. code-block:: python
           
-        QProgClockCycle t(qvm);
-        t.traversal(prog);
-        auto time = t.count();
-
-我们还可以使用QPanda2封装的一个接口：
-
-    .. code-block:: c
-          
-        auto time = getQProgClockCycle(qvm, prog);   
+        clock_cycle = get_clock_cycle(qvm, prog)
 
 实例
 --------------
 
-    .. code-block:: c
+    .. code-block:: python
     
-        #include <QPanda.h>
-        USING_QPANDA
+        from pyqpanda import *
 
-        int main(void)
-        {
-            auto qvm = initQuantumMachine();
-            auto qubits = qvm->allocateQubits(4);
-            auto prog = CreateEmptyQProg();
-            prog << H(qubits[0]) << CNOT(qubits[0], qubits[1])
-                    << iSWAP(qubits[1], qubits[2]) << RX(qubits[3], PI/4);
+        PI = 3.1415926
 
-            auto time = getQProgClockCycle(qvm, prog);
-            std::cout << "clockCycle : " << time << std::endl;
+        if __name__ == "__main__":
+            qvm = init_quantum_machine(QMachineType.CPU)
+            qubits = qvm.qAlloc_many(4)
+            cbits = qvm.cAlloc_many(4)
 
-            qvm->finalize();
-            delete qvm;
+            prog = QProg()
+            prog.insert(H(qubits[0])).insert(CNOT(qubits[0], qubits[1]))\
+                .insert(iSWAP(qubits[1], qubits[2])).insert(RX(qubits[3], PI / 4))
 
-            return 0;
-        }
+            clock_cycle = get_clock_cycle(qvm, prog)
+            print("clock_cycle: " + str(clock_cycle))
+            qvm.finalize()
+
 
 运行结果：
 
     .. code-block:: c
 
-        clockCycle : 14
+        clock_cycle: 14
+
     

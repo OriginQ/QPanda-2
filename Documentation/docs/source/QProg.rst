@@ -10,67 +10,25 @@
 >>>>>>>>>>>>>>>>
 ----
 
-在QPanda2中，QProg是量子编程的一个容器类，是一个量子程序的最高单位。它也是QNode中的一种，初始化一个QCircuit对象有以下两种
+在QPanda2中，QProg是量子编程的一个容器类，是一个量子程序的最高单位。它也是QNode中的一种，初始化一个QProg对象有以下两种
 
-C++风格
+    .. code-block:: python
 
-    .. code-block:: c
+        prog = QProg()
 
-        QProg prog = QProg();
+或
 
-C语言风格
+    .. code-block:: python
 
-    .. code-block:: c
-
-        QProg prog = CreateEmptyQProg();
+        prog = CreateEmptyQProg()
 
 你可以通过如下方式向QProg尾部填充节点
 
-    .. code-block:: c
+    .. code-block:: python
 
-        QProg << QNode;
-
-或者
-    
-    .. code-block:: c
-
-        QProg.pushBackNode(QNode);
+        prog.insert(node)
 
 QNode的类型有QGate，QPorg，QIf，Measure等等，QProg支持插入所有类型的QNode
-
-通常一个QProg类型内部结构复杂，需要对其进行拆分遍历等过程，QPanda2提供了相关接口
-
-获取QProg内部第一个节点与最后一个节点
-
-    .. code-block:: c
-
-        QProg prog = QProg();
-        NodeIter first_node = prog.getFirstNodeIter();
-        NodeIter last_node  = prog.getLastNodeIter();
-
-在QProg内部插入与删除节点操作
-
-    .. code-block:: c
-
-        QProg prog = QProg();
-        NodeIter insert_node_iter = prog.insertQNode(NodeIter&, QNode*);
-        NodeIter delete_node_iter = prog.deleteQNode(NodeIter&);
-
-    .. note:: 
-        - NodeIter是一个关于QNode的代理类，类似于STL容器的迭代器类型，支持自增与自减等操作
-        - QProg节点插入删除操作会返回指向原位置的NodeIter
-
-    __ ./QProg.html#api-introduction
-
-    __ ./QCircuit.html#api-introduction
-
-    __ ./QGate.html#api-introduction
-
-    __ ./Measure.html#api-introduction
-
-    __ ./QIf.html#api-introduction
-
-    __ ./QWhile.html#api-introduction
 
 实例
 >>>>>>>>>>
@@ -78,37 +36,30 @@ QNode的类型有QGate，QPorg，QIf，Measure等等，QProg支持插入所有�
 
     .. code-block:: c
 
-        #include <QPanda.h>
-        USING_QPANDA
+        from pyqpanda import *
 
-        int main(void)
-        {
-            init();
-            auto qvec = qAllocMany(4);
-            auto cvec = cAllocMany(4);
+        if __name__ == "__main__":
 
-            QProg prog;
-            prog << H(qvec[0]) << X(qvec[1])
-                << iSWAP(qvec[0], qvec[1])
-                << CNOT(qvec[1], qvec[2])
-                << H(qvec[3]) << MeasureAll(qvec ,cvec);
+            init(QMachineType.CPU)
+            qubits = qAlloc_many(4)
+            cbits = cAlloc_many(4)
+            prog = QProg()
 
-            auto result = runWithConfiguration(prog, cvec, 1000);
-            for (auto &val : result)
-            {
-                std::cout << val.first << ", " << val.second << std::endl;
-            }
+            prog.insert(H(qubits[0])) \
+                .insert(X(qubits[1])) \
+                .insert(iSWAP(qubits[0], qubits[1])) \
+                .insert(CNOT(qubits[1], qubits[2])) \
+                .insert(H(qubits[3])) \
+                .insert(measure_all(qubits, cbits))
 
-            finalize();
-            return 0;
-        }
+            result = run_with_configuration(prog, cbits, 1000)
+            print(result)
+            finalize()
+
 
 
 运行结果：
 
     .. code-block:: c
 
-        1000, 242
-        1001, 277
-        1110, 254
-        1111, 227
+        {'1000': 272, '1001': 261, '1110': 220, '1111': 247}

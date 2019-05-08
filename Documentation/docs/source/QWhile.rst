@@ -12,77 +12,50 @@ QWhile
 
 在QPanda2中，QWhileProg类用于表示执行量子程序while循环操作，它也是QNode中的一种，初始化一个QWhileProg对象有以下两种
 
-C++风格
+    .. code-block:: python
 
-    .. code-block:: c
+        qwile = QWhileProg(ClassicalCondition, QNode)
 
-        QWhileProg qwile = QWhileProg(ClassicalCondition&, QNode*);
+或
 
-C语言风格
+    .. code-block:: python
 
-    .. code-block:: c
-
-        QWhileProg qwile = CreateWhileProg(ClassicalCondition&, QNode*);
+        qwile = CreateWhileProg(ClassicalCondition, QNode)
 
 上述函数需要提供两个参数，即ClassicalCondition量子表达式与QNode节点
-
-同时，通过该类内置的函数可以轻松获取QWhile操作正确分支节点
-
-    .. code-block:: c
-
-        QWhileProg qwhile = CreateWhileProg(ClassicalCondition&, QNode*);
-        QNode* true_branch_node = qwhile.getTrueBranch();
-
-也可以获取量子表达式
-
-    .. code-block:: c
-
-        QWhileProg qwhile = CreateWhileProg(ClassicalCondition&, QNode*);
-        ClassicalCondition* expr = qwhile.getCExpr();
-
-具体的操作流程可以参考下方示例
 
 实例
 >>>>>>>>>>
 ----
 
-    .. code-block:: c
+    .. code-block:: python
 
-        #include "QPanda.h"
-        USING_QPANDA
+        from pyqpanda import *
 
-        int main(void)
-        {
-            init();
-            QProg prog;
-            auto qvec = qAllocMany(3);
-            auto cvec = cAllocMany(3);
-            cvec[0].setValue(0);
+        if __name__ == "__main__":
 
-            QProg prog_in;
-            prog_in<< cvec[0] << H(qvec[cvec[0]]) << (cvec[0] = cvec[0]+1);
-            auto qwhile = CreateWhileProg(cvec[0]<3,&prog_in);
-            prog << qwhile;
-            auto result = probRunTupleList(prog, qvec);
+            init(QMachineType.CPU)
+            qubits = qAlloc_many(3)
+            cbits = cAlloc_many(3)
+            cbits[0].setValue(0)
+            cbits[1].setValue(1)
 
-            for (auto & val : result)
-            {
-                std::cout << val.first << ", " << val.second << std::endl;
-            }
+            prog = QProg()
+            prog_while = QProg()
+            prog_while.insert(H(qubits[0])).insert(H(qubits[1])).insert(H(qubits[2]))\
+                    .insert(assign(cbits[0], cbits[0] + 1)).insert(Measure(qubits[1], cbits[1]))
+            qwhile = CreateWhileProg(cbits[1], prog_while)
+            prog.insert(qwhile)
 
-            finalize();
-            return 0;
-        }
+            result = directly_run(prog)
+            print(cbits[0].eval())
+            print(result)
+            finalize()
+
 
 运行结果：
 
-    .. code-block:: c
+    .. code-block:: python
 
-        0, 0.125
-        1, 0.125
-        2, 0.125
-        3, 0.125
-        4, 0.125
-        5, 0.125
-        6, 0.125
-        7, 0.125
+        2
+        {'c1': False}

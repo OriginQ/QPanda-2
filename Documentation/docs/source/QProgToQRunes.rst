@@ -52,22 +52,7 @@ QRunes语句中部分关键词作用如下：
 
 关于QRunes更多详细信息的介绍、使用与体验请参考 `本源量子计算云平台官网`_
 
-接口介绍
->>>>>>>>>>>>>>>>>
-----
-
-接口介绍
->>>>>>>>>>>>>>>>>
-----
-
-QPanda2提供了QRunes转换工具接口 ``transformQProgToQRunes(QProg &)`` 该接口使用非常简单。
-
-    .. code-block:: c
-
-        QProg prog = QProg();
-        std::string QRunes = transformQProgToQRunes(prog);
-
-仅需传入一个QProg类型即可转化为对应的QRunes指令集，输出为std::string类型。
+QPanda2提供了QRunes转换工具接口 ``to_QRunes`` 该接口使用非常简单，具体可参考下方示例程序。
 
 实例
 >>>>>>>>>>>>>>
@@ -75,37 +60,47 @@ QPanda2提供了QRunes转换工具接口 ``transformQProgToQRunes(QProg &)`` 该
 
 下面的例程通过简单的接口调用演示了量子程序转化QRunes指令集的过程
 
-    .. code-block:: c
+    .. code-block:: python
 
-        #include "QPanda.h"
-        USING_QPANDA
+        from pyqpanda import *
 
-        int main(void)
-        {
-            init(QuantumMachine_type::CPU);
+        if __name__ == "__main__":
+            qvm = init_quantum_machine(QMachineType.CPU)
+            qubits = qvm.qAlloc_many(4)
+            cbits = qvm.cAlloc_many(4)
+            prog = QProg()
 
-            auto qubit = qAllocMany(6);
-            auto cbit  = cAllocMany(2);     
-            auto prog = CreateEmptyQProg();
+            prog.insert(X(qubits[0])).insert(Y(qubits[1]))\
+                .insert(H(qubits[2])).insert(RX(qubits[3], 3.14))\
+                .insert(Measure(qubits[0], cbits[0]))
 
-            prog << CZ(qubit[0], qubit[2]) << H(qubit[1]) << CNOT(qubit[1], qubit[2]) 
-                 << RX(qubit[0],pi/2) << Measure(qubit[1],cbit[1]);
+            qrunes = to_QRunes(prog, qvm)
+            print(qrunes)
+            qvm.finalize()
 
-            std::cout << transformQProgToQRunes(prog) << std::endl;
-
-            finalize();
-            return 0;
-        }
 
 
 具体步骤如下:
 
- - 首先在主程序中用 ``init()`` 进行全局初始化
+ - 首先在主程序中用 ``init_quantum_machine`` 初始化一个量子虚拟机对象，用于管理后续一系列行为
 
- - 接着用 ``qAllocMany()`` 和 ``cAllocMany()`` 初始化量子比特与经典寄存器数目
+ - 接着用 ``qAlloc_many`` 和 ``cAlloc_many`` 初始化量子比特与经典寄存器数目
 
- - 然后调用 ``CreateEmptyQProg()`` 构建量子程序
+ - 然后调用 ``QProg`` 构建量子程序
 
- - 最后调用接口 ``transformQProgToQRunes(QProg &)`` 输出QRunes指令集并用 ``finalize()`` 释放系统资源
+ - 最后调用接口 ``to_QRunes`` 输出QRunes指令集并用 ``finalize`` 释放系统资源
+
+运行结果如下：
+
+    .. code-block:: python
+
+        QINIT 4
+        CREG 4
+        X 0
+        Y 1
+        H 2
+        RX 3,"3.140000"
+        MEASURE 0,$0
+
 
    .. note:: 对于暂不支持的操作类型，QRunes会显示UnSupported XXXNode，其中XXX为具体的节点类型。

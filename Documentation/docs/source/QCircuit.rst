@@ -26,114 +26,80 @@
 
 在QPanda2中，QCircuit类是一个仅装载量子逻辑门的容器类型，它也是QNode中的一种，初始化一个QCircuit对象有以下两种
 
-C++风格
+    .. code-block:: python
 
-    .. code-block:: c
+        cir = QCircuit()
 
-        QCircuit cir = QCircuit();
+或
 
-C语言风格
+    .. code-block:: python
 
-    .. code-block:: c
-
-        QCircuit cir = CreateEmptyCircuit();
+        cir = CreateEmptyCircuit()
 
 你可以通过如下方式向QCircuit尾部填充节点
 
-        .. code-block:: c
+    .. code-block:: python
 
-            QCircuit << QNode;
+        cir.insert(node)
 
-或者
+node的类型可以为QGate或QCircuit。所以QCircuit类是一个QGate对象和另一些QCircuit对象的集合。
+
+我们还可以获得QCircuit的转置共轭之后的量子线路，使用方式为：
+
+        .. code-block:: python
         
-        .. code-block:: c
+            cir_dagger = cir.dagger()
 
-            QCircuit.pushBackNode(QNode);
+如果想复制当前的量子线路，并给复制的量子线路添加控制比特，可以使用下面的方式：
 
-QNode的类型有QGate，QPorg，QIf，Measure等等，但是对于QCircuit而言，仅能插入QGate类型和QCircuit。所以QCircuit类是一个QGate对象和另一些QCircuit对象的集合。
-
-同时，你也可以对目标线路施加装置共轭和受控操作，QCircuit类型有两个成员函数可以做转置共轭操作：
-dagger、setDagger。
-
-setDagger的作用是根据输入参数更新当前量子线路的dagger标记，在计算时计算后端会根据dagger判断当前量子逻辑门是否需要执行转置共轭操作。举个例子：
-
-        .. code-block:: c
+        .. code-block:: python
             
-            QCircuit cir;
-            cir.setDagger(true);
-
-该函数需要一个布尔类型参数，用来设置当前逻辑门是否需要转置共轭操作。
-
-dagger的作用是复制一份当前的量子线路，并更新复制的量子线路的dagger标记。举个例子：
-
-        .. code-block:: c
-            
-            QCircuit cir;
-            QCircuit cir_dagger = cir.dagger();
-
-除了转置共轭操作，您也可以为量子线路添加控制比特.QCircuit类型有两个成员函数用于添加控制比特：control、setControl。
-
-setControl的作用是给当前的量子线路添加控制比特，例如：
-
-        .. code-block:: c
-            
-            QCircuit cir;
-            cir.setControl(qvec);
-
-control的作用是复制当前的量子线路，并给复制的量子线路添加控制比特，例如：
-
-        .. code-block:: c
-            
-                QCircuit cir;
-                QCircuit cir_control = cir.control(qvec);
-
-上述都需要接收一个参数，参数类型为QVec，QVec是qubit的vector容器类型。
+                qvec = [qubits[0], qubits[1]]
+                cir_control = cir.control(qvec)
 
     .. note:: 
         - 向QCircuit中插入QPorg，QIf，Measure中不会报错，但是运行过程中可能会产生预料之外的错误
         - 一个构建好的QCircuit不能直接参与量子计算与模拟，需要进一步构建成QProg类型
 
-        __ ./QCircuit.html#api-introduction
+为了简化量子线路的设计，pyqpanda中额外封装了一些构建量子逻辑线路的接口，如下：
 
-        __ ./QGate.html#api-introduction
+    .. code-block:: python
+
+        cir = single_gate_apply_to_all(gate, qubit_list) # 作用是对输入qubits合集中的每一个元素进行目标单比特门操作，返回这些量子逻辑门组成的量子线路
+        cir2 = Hadamard_Circuit(qubit_list) # 作用是对输入qubits合集中的每一个元素进行Hadamard门操作，返回Hadamard门组成的量子线路
 
 
 实例
 >>>>>>>>>>>
 ----
 
-    .. code-block:: c
+    .. code-block:: python
     
-        #include "QPanda.h"
-        USING_QPANDA
+        from pyqpanda import *
 
-        int main(void)
-        {
-            init();
-            auto qvec = qAllocMany(4);
-            auto cbits = cAllocMany(4);
-            auto circuit = CreateEmptyCircuit(); // 与 QCircuit circuit 功能相同
+        if __name__ == "__main__":
 
-            circuit << H(qvec[0]) << CNOT(qvec[0], qvec[1])
-                    << CNOT(qvec[1], qvec[2]) << CNOT(qvec[2], qvec[3]);
-            circuit.setDagger(true);
-            auto prog = CreateEmptyQProg();
-            prog << H(qvec[3]) << circuit << Measure(qvec[0], cbits[0]);
+            init(QMachineType.CPU)
+            qubits = qAlloc_many(4)
+            cbits = cAlloc_many(4)
+            prog = QProg()
+            circuit = CreateEmptyCircuit()
 
-            auto result = runWithConfiguration(prog, cbits, 1000);
-            for (auto &val : result)
-            {
-                std::cout << val.first << ", " << val.second << std::endl;
-            }
+            circuit.insert(H(qubits[0])) \
+                .insert(CNOT(qubits[0], qubits[1])) \
+                .insert(CNOT(qubits[1], qubits[2])) \
+                .insert(CNOT(qubits[2], qubits[3]))
 
-            finalize();
-            return 0;
-        }
+            prog.insert(circuit).insert(Measure(qubits[0], cbits[0]))
+            result = run_with_configuration(prog, cbits, 1000)
+            print(result)
+
+            finalize()
+
 
 运行结果：
 
-    .. code-block:: c
+    .. code-block:: python
 
-        0000, 510
-        1000, 490
+        {'0000': 508, '1000': 492}
 

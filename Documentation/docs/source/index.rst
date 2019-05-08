@@ -29,7 +29,6 @@ QPanda由本源量子软件团队开发和维护。自2018年起，QPanda依据A
     :maxdepth: 2
 
     GettingStarted
-    Tutorial
 
 .. toctree::
     :caption: 深入学习
@@ -41,8 +40,6 @@ QPanda由本源量子软件团队开发和维护。自2018年起，QPanda依据A
     QIf
     QProg
     QuantumMachine
-    SingleAmplitude
-    PartialAmplitude
     Measure
     PMeasure
 
@@ -50,12 +47,9 @@ QPanda由本源量子软件团队开发和维护。自2018年起，QPanda依据A
     :caption: 工具组件
     :maxdepth: 2
 
-    QGateValidity
     QGateCounter
     QProgClockCycle
     QProgStored
-    QProgDataParse
-    QRunesToQProg
 
 .. toctree::
     :caption: 量子程序转换
@@ -83,13 +77,3 @@ QPanda由本源量子软件团队开发和维护。自2018年起，QPanda依据A
     VQC
     GradientOptimizer
     VQNetExample
-
-.. toctree::
-    :caption: PYQPANDA
-    :maxdepth: 2
-    
-    pyQPanda-introduction
-    pyQPanda-Core
-    pyQPanda-ClassicalQuantumMachine
-    pyQPanda-OtherQuantumMachine
-    pyQPanda-Utilities

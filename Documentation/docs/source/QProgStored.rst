@@ -33,8 +33,6 @@
     
         from pyqpanda import *
 
-        PI = 3.1415926
-
         if __name__ == "__main__":
             qvm = init_quantum_machine(QMachineType.CPU)
             qubits = qvm.qAlloc_many(4)

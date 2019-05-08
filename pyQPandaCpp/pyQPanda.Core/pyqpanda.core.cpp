@@ -510,8 +510,83 @@ PYBIND11_MODULE(pyQPanda, m)
         .def("dagger", &QGate::dagger)
         .def("control", &QGate::control);
 
-    py::class_<QIfProg>(m, "QIfProg");
-    py::class_<QWhileProg>(m, "QWhileProg");
+
+#define BIND_QIF_INIT(QNODE)         \
+    .def(py::init<>([](ClassicalCondition & cc, QNODE & node1, QProg & node2) {\
+    return QIfProg(cc, static_cast<QNode *>(&node1), static_cast<QNode *>(&node2));\
+    }))\
+        .def(py::init<>([](ClassicalCondition & cc, QNODE & node1, QGate & node2) { \
+        return QIfProg(cc, static_cast<QNode *>(&node1), static_cast<QNode *>(&node2)); \
+    }))\
+        .def(py::init<>([](ClassicalCondition & cc, QNODE & node1, QCircuit & node2) { \
+        return QIfProg(cc, static_cast<QNode *>(&node1), static_cast<QNode *>(&node2)); \
+    }))\
+        .def(py::init<>([](ClassicalCondition & cc, QNODE & node1, QMeasure & node2) {\
+        return QIfProg(cc, static_cast<QNode *>(&node1), static_cast<QNode *>(&node2));\
+    }))\
+        .def(py::init<>([](ClassicalCondition & cc, QNODE & node1, QIfProg & node2) {\
+        return QIfProg(cc, static_cast<QNode *>(&node1), static_cast<QNode *>(&node2));\
+    }))\
+        .def(py::init<>([](ClassicalCondition & cc, QNODE & node1, QWhileProg & node2) {\
+        return QIfProg(cc, static_cast<QNode *>(&node1), static_cast<QNode *>(&node2));\
+    }))\
+        .def(py::init<>([](ClassicalCondition & cc, QNODE & node1, ClassicalProg & node2) {\
+        return QIfProg(cc, static_cast<QNode *>(&node1), static_cast<QNode *>(&node2));\
+    }))\
+
+    py::class_<QIfProg>(m, "QIfProg")
+        .def(py::init<>([](ClassicalCondition & cc, QProg & node) {
+        return QIfProg(cc, static_cast<QNode *>(&node));
+    }))
+        .def(py::init<>([](ClassicalCondition & cc, QGate & node) {
+        return QIfProg(cc, static_cast<QNode *>(&node));
+    }))
+        .def(py::init<>([](ClassicalCondition & cc, QCircuit & node) {
+        return QIfProg(cc, static_cast<QNode *>(&node));
+    }))
+        .def(py::init<>([](ClassicalCondition & cc, QMeasure & node) {
+        return QIfProg(cc, static_cast<QNode *>(&node));
+    }))
+        .def(py::init<>([](ClassicalCondition & cc, QIfProg & node) {
+        return QIfProg(cc, static_cast<QNode *>(&node));
+    }))
+        .def(py::init<>([](ClassicalCondition & cc, QWhileProg & node) {
+        return QIfProg(cc, static_cast<QNode *>(&node));
+    }))
+        .def(py::init<>([](ClassicalCondition & cc, ClassicalProg & node) {
+        return QIfProg(cc, static_cast<QNode *>(&node));
+    }))
+        BIND_QIF_INIT(QProg)
+        BIND_QIF_INIT(QGate)
+        BIND_QIF_INIT(QCircuit)
+        BIND_QIF_INIT(QMeasure)
+        BIND_QIF_INIT(QIfProg)
+        BIND_QIF_INIT(QWhileProg)
+        BIND_QIF_INIT(ClassicalProg);
+        
+
+    py::class_<QWhileProg>(m, "QWhileProg")
+        .def(py::init<>([](ClassicalCondition & cc, QProg & node) {
+        return QWhileProg(cc, static_cast<QNode *>(&node));
+    }))
+        .def(py::init<>([](ClassicalCondition & cc, QGate & node) {
+        return QWhileProg(cc, static_cast<QNode *>(&node));
+    }))
+        .def(py::init<>([](ClassicalCondition & cc, QCircuit & node) {
+        return QWhileProg(cc, static_cast<QNode *>(&node));
+    }))
+        .def(py::init<>([](ClassicalCondition & cc, QMeasure & node) {
+        return QWhileProg(cc, static_cast<QNode *>(&node));
+    }))
+        .def(py::init<>([](ClassicalCondition & cc, QIfProg & node) {
+        return QWhileProg(cc, static_cast<QNode *>(&node));
+    }))
+        .def(py::init<>([](ClassicalCondition & cc, QWhileProg & node) {
+        return QWhileProg(cc, static_cast<QNode *>(&node));
+    }))
+        .def(py::init<>([](ClassicalCondition & cc, ClassicalProg & node) {
+        return QWhileProg(cc, static_cast<QNode *>(&node));
+    }));
     py::class_<QMeasure>(m, "QMeasure");
 
     py::class_<Qubit>(m, "Qubit")

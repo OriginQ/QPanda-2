@@ -18,8 +18,8 @@ QPanda 2(**Q**uantum **P**rogramming **A**rchitecture for **N**ISQ **D**evice **
 
 ## 文档
 
-我们提供了QPanda 2的使用文档，位于 https://qpanda-2.readthedocs.io/zh_CN/latest/
-pyQPanda的使用文档，位于 https://qpanda-2.readthedocs.io/zh_CN/doucmentation-python/
+* QPanda 2的使用文档，位于 https://qpanda-2.readthedocs.io/zh_CN/latest/ 
+* pyQPanda的使用文档，位于 https://qpanda-2.readthedocs.io/zh_CN/doucmentation-python/
 
 
 ## 兼容性

@@ -69,7 +69,12 @@ _saved_default = JSONEncoder().default  # Save default method.
 def _new_default(self, obj):
     if isinstance(obj, pywrap.QMachineType):
         return int(obj)  # Could also be obj.value
+    elif isinstance(obj, pywrap.NoiseModel):
+        return int(obj)  # Could also be obj.value
     else:
         return _saved_default
 
 JSONEncoder.default = _new_default
+
+_saved_default = JSONEncoder().default  # Save default method.
+

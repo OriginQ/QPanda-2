@@ -19,6 +19,7 @@
 #include "Optimizer/OriginNelderMead.h"
 #include "Core/QuantumMachine/QCloudMachine.h"
 #include "Core/Utilities/Transform/QProgClockCycle.h"
+#include "QPandaConfig.h"
 
 USING_QPANDA
 using namespace std;
@@ -427,6 +428,12 @@ PYBIND11_MODULE(pyQPanda, m)
         py::return_value_policy::automatic_reference
     );
 
+#ifdef USE_CURL
+    m.def("get_bin_str", &QProgToBinary, "program"_a, "qvm"_a, "Get quantum program binary data string",
+        py::return_value_policy::automatic_reference
+    );
+#endif // USE_CURL
+
     m.def("bin_to_prog", &binaryQProgDataParse, "qvm"_a, "data"_a, "qlist"_a, "clist"_a, "program"_a,
         "Parse quantum program interface for  binary data vector",
         py::return_value_policy::automatic_reference
@@ -503,8 +510,83 @@ PYBIND11_MODULE(pyQPanda, m)
         .def("dagger", &QGate::dagger)
         .def("control", &QGate::control);
 
-    py::class_<QIfProg>(m, "QIfProg");
-    py::class_<QWhileProg>(m, "QWhileProg");
+
+#define BIND_QIF_INIT(QNODE)         \
+    .def(py::init<>([](ClassicalCondition & cc, QNODE & node1, QProg & node2) {\
+    return QIfProg(cc, static_cast<QNode *>(&node1), static_cast<QNode *>(&node2));\
+    }))\
+        .def(py::init<>([](ClassicalCondition & cc, QNODE & node1, QGate & node2) { \
+        return QIfProg(cc, static_cast<QNode *>(&node1), static_cast<QNode *>(&node2)); \
+    }))\
+        .def(py::init<>([](ClassicalCondition & cc, QNODE & node1, QCircuit & node2) { \
+        return QIfProg(cc, static_cast<QNode *>(&node1), static_cast<QNode *>(&node2)); \
+    }))\
+        .def(py::init<>([](ClassicalCondition & cc, QNODE & node1, QMeasure & node2) {\
+        return QIfProg(cc, static_cast<QNode *>(&node1), static_cast<QNode *>(&node2));\
+    }))\
+        .def(py::init<>([](ClassicalCondition & cc, QNODE & node1, QIfProg & node2) {\
+        return QIfProg(cc, static_cast<QNode *>(&node1), static_cast<QNode *>(&node2));\
+    }))\
+        .def(py::init<>([](ClassicalCondition & cc, QNODE & node1, QWhileProg & node2) {\
+        return QIfProg(cc, static_cast<QNode *>(&node1), static_cast<QNode *>(&node2));\
+    }))\
+        .def(py::init<>([](ClassicalCondition & cc, QNODE & node1, ClassicalProg & node2) {\
+        return QIfProg(cc, static_cast<QNode *>(&node1), static_cast<QNode *>(&node2));\
+    }))\
+
+    py::class_<QIfProg>(m, "QIfProg")
+        .def(py::init<>([](ClassicalCondition & cc, QProg & node) {
+        return QIfProg(cc, static_cast<QNode *>(&node));
+    }))
+        .def(py::init<>([](ClassicalCondition & cc, QGate & node) {
+        return QIfProg(cc, static_cast<QNode *>(&node));
+    }))
+        .def(py::init<>([](ClassicalCondition & cc, QCircuit & node) {
+        return QIfProg(cc, static_cast<QNode *>(&node));
+    }))
+        .def(py::init<>([](ClassicalCondition & cc, QMeasure & node) {
+        return QIfProg(cc, static_cast<QNode *>(&node));
+    }))
+        .def(py::init<>([](ClassicalCondition & cc, QIfProg & node) {
+        return QIfProg(cc, static_cast<QNode *>(&node));
+    }))
+        .def(py::init<>([](ClassicalCondition & cc, QWhileProg & node) {
+        return QIfProg(cc, static_cast<QNode *>(&node));
+    }))
+        .def(py::init<>([](ClassicalCondition & cc, ClassicalProg & node) {
+        return QIfProg(cc, static_cast<QNode *>(&node));
+    }))
+        BIND_QIF_INIT(QProg)
+        BIND_QIF_INIT(QGate)
+        BIND_QIF_INIT(QCircuit)
+        BIND_QIF_INIT(QMeasure)
+        BIND_QIF_INIT(QIfProg)
+        BIND_QIF_INIT(QWhileProg)
+        BIND_QIF_INIT(ClassicalProg);
+        
+
+    py::class_<QWhileProg>(m, "QWhileProg")
+        .def(py::init<>([](ClassicalCondition & cc, QProg & node) {
+        return QWhileProg(cc, static_cast<QNode *>(&node));
+    }))
+        .def(py::init<>([](ClassicalCondition & cc, QGate & node) {
+        return QWhileProg(cc, static_cast<QNode *>(&node));
+    }))
+        .def(py::init<>([](ClassicalCondition & cc, QCircuit & node) {
+        return QWhileProg(cc, static_cast<QNode *>(&node));
+    }))
+        .def(py::init<>([](ClassicalCondition & cc, QMeasure & node) {
+        return QWhileProg(cc, static_cast<QNode *>(&node));
+    }))
+        .def(py::init<>([](ClassicalCondition & cc, QIfProg & node) {
+        return QWhileProg(cc, static_cast<QNode *>(&node));
+    }))
+        .def(py::init<>([](ClassicalCondition & cc, QWhileProg & node) {
+        return QWhileProg(cc, static_cast<QNode *>(&node));
+    }))
+        .def(py::init<>([](ClassicalCondition & cc, ClassicalProg & node) {
+        return QWhileProg(cc, static_cast<QNode *>(&node));
+    }));
     py::class_<QMeasure>(m, "QMeasure");
 
     py::class_<Qubit>(m, "Qubit")
@@ -772,8 +854,7 @@ PYBIND11_MODULE(pyQPanda, m)
             py::object json = py::module::import("json");
             py::object dumps = json.attr("dumps");
             auto json_string = std::string(py::str(dumps(param)));
-            rapidjson::Document doc; 
-            auto & alloc = doc.GetAllocator(); 
+            rapidjson::Document doc(rapidjson::kObjectType); 
             doc.Parse(json_string.c_str()); 
             qvm.init(doc);
         }, "init quantum virtual machine")

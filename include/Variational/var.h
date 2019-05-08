@@ -679,14 +679,14 @@ namespace QPanda {
                 QuantumMachine*,
                 std::vector<Qubit*>,
                 std::vector<ClassicalCondition>,
-                int shots);
+                size_t shots);
 
             std::vector<double> _get_gradient(var _var);
             std::vector<double> _get_value();
             std::vector<double> _get_circuit_value(QCircuit);
 
         private:
-            int m_shots;
+            size_t m_shots;
             std::vector<Qubit*> m_measure_qubits;
             std::vector<ClassicalCondition> m_cbits;
             std::vector<size_t> m_components;

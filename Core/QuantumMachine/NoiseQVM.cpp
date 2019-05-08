@@ -89,35 +89,34 @@ void NoiseQVM::initGates(rapidjson::Document & doc)
     }
     m_gates_matrix.resize(0);
 
-    for (auto first_layer_iter = gates.MemberBegin();
-        first_layer_iter != gates.MemberEnd();
+    for (auto first_layer_iter = gates.Begin();
+        first_layer_iter != gates.End();
         first_layer_iter++)
     {
-        auto &second_layer = (*first_layer_iter).value;
+        auto &second_layer = first_layer_iter;
         vector<string> temp;
-        if (!(*first_layer_iter).value.IsArray())
+        if (!first_layer_iter->IsArray())
         {
-
-            if (!(*first_layer_iter).value.IsString())
+            if (!first_layer_iter->IsString())
             {
                 QCERR("first_layer_iter is not string or array");
                 throw invalid_argument("first_layer_iter is not  string or array");
             }
-            temp.push_back((*first_layer_iter).value.GetString());
+            temp.push_back(first_layer_iter->GetString());
         }
         else
         {
-            for (auto second_layer_iter = second_layer.MemberBegin();
-                second_layer_iter != second_layer.MemberEnd();
+            for (auto second_layer_iter = second_layer->Begin();
+                second_layer_iter != second_layer->End();
                 second_layer_iter++)
             {
-                if (!(*second_layer_iter).value.IsString())
+                if (!second_layer_iter->IsString())
                 {
-                    QCERR("second_layer_iter is not string");
-                    throw invalid_argument("second_layer_iter is not string");
+                    QCERR("first_layer_iter is not string or array");
+                    throw invalid_argument("first_layer_iter is not  string or array");
                 }
-                temp.push_back((*second_layer_iter).value.GetString());
-
+                std::string string_temp(second_layer_iter->GetString());
+                temp.push_back(string_temp);
             }
         }
         m_gates_matrix.push_back(temp);

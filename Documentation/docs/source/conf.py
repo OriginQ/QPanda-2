@@ -20,8 +20,8 @@
 # -- Project information -----------------------------------------------------
 
 project = 'QPanda-2'
-copyright = '2019, wangjing'
-author = 'wangjing'
+copyright = '2019, OriginQC'
+author = 'OriginQC'
 
 # The short X.Y version
 version = ''
@@ -102,7 +102,7 @@ html_static_path = ['.static']
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'QPanda2introductiondoc'
+htmlhelp_basename = 'pyQPandaintroductiondoc'
 
 
 # -- Options for LaTeX output ------------------------------------------------
@@ -129,8 +129,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'QPanda2introduction.tex', 'QPanda2 introduction Documentation',
-     'wangjing', 'manual'),
+    (master_doc, 'pyQPandaintroduction.tex', 'pyQPanda Introduction ',
+     'OriginQC', 'manual'),
 ]
 
 
@@ -139,7 +139,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'qpanda2introduction', 'QPanda2 introduction Documentation',
+    (master_doc, 'pyQPandaintroduction', 'pyQPanda Introduction',
      [author], 1)
 ]
 
@@ -150,8 +150,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'QPanda2introduction', 'QPanda2 introduction Documentation',
-     author, 'QPanda2introduction', 'One line description of project.',
+    (master_doc, 'pyQPandaintroduction', 'pyQPanda introduction',
+     author, 'pyQPandaintroduction', 'One line description of project.',
      'Miscellaneous'),
 ]
 

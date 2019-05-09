@@ -33,7 +33,7 @@
 接口介绍
 --------------
 
-``QProgClockCycle`` 类是QPanda2提供的一个将量子程序转换为Quil指令集的工具类，我们先用QPanda2构建一个量子程序：
+``QProgClockCycle`` 类是pyQPanda提供的一个将量子程序转换为Quil指令集的工具类，我们先用pyQPanda构建一个量子程序：
 
     .. code-block:: python
           

@@ -185,30 +185,30 @@ QPanda2中在构造量子虚拟机时有以下几种方式：
 
 QPanda2中还提供了一些面向过程的接口，其使用方法和面向对象的方式相似，下面提供一份面向对象与面向过程的函数对照表：
 
-===================================  ========================= 
+=========================================  ========================= 
         面向对象接口                          面向过程接口  
-===================================  =========================  
-      QVM::init                         init
-      QVM::allocateQubit                qAlloc
-      QVM::allocateCBit                 cAlloc
-      QVM::allocateQubits               qAllocMany
-      QVM::allocateCBits                cAllocMany
-      QVM::getAllocateQubit             getAllocateQubitNum
-      QVM::getAllocateCMem              getAllocateCMem
-      QVM::directlyRun                  directlyRun          
-      QVM::runWithConfiguration         runWithConfiguration
-    QVM::PMeasure                       PMeasure
-      QVM::PMeasure_no_index            PMeasure_no_index   
-      QVM::getProbTupleList             getProbTupleList
-      QVM::getProbList                  getProbList
-      QVM::getProbDict                  getProbDict
-      QVM::probRunTupleList             probRunTupleList
-      QVM::probRunList                  probRunList
-      QVM::probRunDict                  probRunDict
-      QVM::quickMeasure                 quickMeasure
-      QVM::getQStat                     getQState
-      QVM::finalize                     finalize
-===================================  ========================= 
+=========================================  =========================  
+     QVM::init                                init
+     QVM::allocateQubit                       qAlloc
+     QVM::allocateCBit                        cAlloc
+     QVM::allocateQubits                      qAllocMany
+     QVM::allocateCBits                       cAllocMany
+     QVM::getAllocateQubit                    getAllocateQubitNum
+     QVM::getAllocateCMem                     getAllocateCMem
+     QVM::directlyRun                         directlyRun    
+     QVM::runWithConfiguration                runWithConfiguration
+     QVM::PMeasure                            PMeasure
+     QVM::PMeasure_no_index                   PMeasure_no_index   
+     QVM::getProbTupleList                    getProbTupleList
+     QVM::getProbList                         getProbList
+     QVM::getProbDict                         getProbDict
+     QVM::probRunTupleList                    probRunTupleList
+     QVM::probRunList                         probRunList
+     QVM::probRunDict                         probRunDict
+     QVM::quickMeasure                        quickMeasure
+     QVM::getQStat                            getQState
+     QVM::finalize                            finalize
+=========================================  ========================= 
 
 实例2
 ------------------

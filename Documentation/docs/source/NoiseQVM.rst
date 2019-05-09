@@ -123,7 +123,7 @@ DECOHERENCE_KRAUS_OPERATOR是上述两种噪声模型的综合，他们的关系
 >>>>>>>>>>>>>>
 
 双门噪声模型同样也分为三种：DOUBLE_DAMPING_KRAUS_OPERATOR、DOUBLE_DEPHASING_KRAUS_OPERATOR、DOUBLE_DECOHERENCE_KRAUS_OPERATOR。
-它们的输入参数与单门噪声模型一致，双门噪声模型的kraus算符和表示与单门噪声模型存在着对应关系：假设单门噪声模型为：{𝐾1,𝐾2}，那么对应的双门噪声模型为
-{𝐾1⊗𝐾1,𝐾1⊗𝐾2,𝐾2⊗𝐾1,𝐾2⊗𝐾2}。
+它们的输入参数与单门噪声模型一致，双门噪声模型的kraus算符和表示与单门噪声模型存在着对应关系：假设单门噪声模型为： :math:`\{ K1, K2 \}` ，那么对应的双门噪声模型为
+:math:`\{K1\otimes K1, K1\otimes K2, K2\otimes K1, K2\otimes K2\}`。
 
 

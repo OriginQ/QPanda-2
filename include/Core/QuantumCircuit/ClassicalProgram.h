@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-/*! \file ClassicalProgam.h */
+/*! \file ClassicalProgram.h */
 #ifndef  _CLASSICAL_PROGAM_H
 #define  _CLASSICAL_PROGAM_H
 #include "Core/QuantumCircuit/QNode.h"

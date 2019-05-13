@@ -27,7 +27,7 @@ update comment
 #include "Core/QuantumCircuit/QGlobalVariable.h"
 #include "Core/QuantumCircuit/QProgram.h"
 #include <stack>
-#include "Core/QuantumCircuit/ClassicalProgam.h"
+#include "Core/QuantumCircuit/ClassicalProgram.h"
 #include "Core/QuantumMachine/OriginQuantumMachine.h"
 #include "Core/Utilities/Transform/QProgTransform.h"
 

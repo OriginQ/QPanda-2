@@ -18,7 +18,7 @@ limitations under the License.
 
 #include "QPanda.h"
 #include "Utilities/ConfigMap.h"
-#include "ClassicalProgam.h"
+#include "ClassicalProgram.h"
 using namespace QGATE_SPACE;
 using namespace std;
 USING_QPANDA

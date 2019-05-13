@@ -26,7 +26,7 @@ update comment
 #include "Core/QuantumCircuit/QGlobalVariable.h"
 #include "Core/QuantumCircuit/QProgram.h"
 #include "Core/QuantumCircuit/ControlFlow.h"
-#include "Core/QuantumCircuit/ClassicalProgam.h"
+#include "Core/QuantumCircuit/ClassicalProgram.h"
 
 /**
 * @namespace QPanda

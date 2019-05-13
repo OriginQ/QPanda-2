@@ -22,7 +22,7 @@ limitations under the License.
 #include "Core/QuantumCircuit/QProgram.h"
 #include "Core/QuantumCircuit/QCircuit.h"
 #include "Core/QuantumMachine/QuantumMachineInterface.h"
-#include "Core/QuantumCircuit/ClassicalProgam.h"
+#include "Core/QuantumCircuit/ClassicalProgram.h"
 #include "Core/QuantumMachine/QVec.h"
 #include "Core/Utilities/OriginCollection.h"
 #include "Core/QuantumMachine/OriginQuantumMachine.h"

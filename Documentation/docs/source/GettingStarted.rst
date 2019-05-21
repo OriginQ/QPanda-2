@@ -18,7 +18,7 @@ pyqpanda是以C++为宿主语言，其对系统的环境要求如下：
     * - software
       - version
     * - GCC
-      - >= 5.0 
+      - >= 5.4.0 
     * - Python
       - >= 3.6.0  
 

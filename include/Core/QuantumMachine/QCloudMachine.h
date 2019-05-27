@@ -4,6 +4,7 @@
 #include "QPandaConfig.h"
 #include "QPanda.h"
 
+
 #ifdef USE_CURL
 #include <curl/curl.h>
 
@@ -11,7 +12,9 @@
 #include "ThirdParty/rapidjson/writer.h"
 #include "ThirdParty/rapidjson/stringbuffer.h"
 #include "include/Core/QuantumMachine/Factory.h"
+
 QPANDA_BEGIN
+
 /**
 * @namespace QPanda
 */
@@ -100,8 +103,11 @@ private:
     std::string parserRecvJson(std::string recv_json, std::map<std::string, double>& recv_res);
 };
 
+QPANDA_END
+
 #endif // USE_CURL
 
+QPANDA_BEGIN
 /**
 * @brief  Quamtum program tramsform to binary data
 * @ingroup  Utilities
@@ -111,7 +117,6 @@ private:
 * @return     std::string  binary data
 */
 std::string QProgToBinary(QProg, QuantumMachine*);
-
-
 QPANDA_END
+
 #endif // ! QCLOUD_MACHINE_H

@@ -16,6 +16,7 @@ Classes for get the shortes path of graph
 #include "Core/QuantumCircuit/QCircuit.h"
 #include "Core/QuantumCircuit/QGate.h"
 #include "Core/QuantumCircuit/QuantumMeasure.h"
+#include "Core/QuantumCircuit/ClassicalProgram.h"
 QPANDA_BEGIN
 
 
@@ -76,6 +77,15 @@ public:
     * @note
     */
     virtual void execute(AbstractQuantumProgram * cur_node, QNode * parent_node);
+    /*!
+    * @brief  Execution traversal qprog
+    * @param[in|out]  AbstractQuantumCircuit*  quantum prog
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    * @exception invalid_argument
+    * @note
+    */
+    virtual void execute(AbstractClassicalProg * cur_node, QNode * parent_node) {};
 };
 
 /**

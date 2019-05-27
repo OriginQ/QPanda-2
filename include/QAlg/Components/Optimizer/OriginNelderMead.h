@@ -48,10 +48,10 @@ namespace QPanda
         void dispResult();
         void writeToFile();
     private:
-        double m_rho;       // | Ï <=> Î± | para of nelder-mead
-        double m_chi;       // | Ï‡ <=> Î³ | para of nelder-mead
-        double m_psi;       // | Ïˆ <=> Î² | para of nelder-mead
-        double m_sigma;     // | Ïƒ <=> Î´ | para of nelder-mead
+        double m_rho;       // | ¦Ñ <=> ¦Á | para of nelder-mead
+        double m_chi;       // | ¦Ö <=> ¦Ã | para of nelder-mead
+        double m_psi;       // | ¦× <=> ¦Â | para of nelder-mead
+        double m_sigma;     // | ¦Ò <=> ¦Ä | para of nelder-mead
 
         double m_nonzdelt;
         double m_zdelt;

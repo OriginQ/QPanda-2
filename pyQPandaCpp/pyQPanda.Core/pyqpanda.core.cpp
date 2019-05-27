@@ -19,6 +19,9 @@
 #include "Optimizer/OriginNelderMead.h"
 #include "Core/QuantumMachine/QCloudMachine.h"
 #include "Core/Utilities/Transform/QProgClockCycle.h"
+#include "Operator/FermionOperator.h"
+#include "include/Core/QuantumMachine/SingleAmplitudeQVM.h"
+#include "include/Core/QuantumMachine/PartialAmplitudeQVM.h"
 #include "QPandaConfig.h"
 
 USING_QPANDA
@@ -394,7 +397,28 @@ PYBIND11_MODULE(pyQPanda, m)
         py::return_value_policy::automatic
     );
 
-    m.def("to_QRunes", &transformQProgToQRunes,"program"_a, "qvm"_a, "QProg to QRunes",
+    m.def("to_QRunes", [](QProg & qn,QuantumMachine *qvm)
+    {return transformQProgToQRunes(qn,qvm); },
+        py::return_value_policy::automatic_reference
+    );
+    m.def("to_QRunes", [](QCircuit & qn, QuantumMachine *qvm)
+    {return transformQProgToQRunes(qn, qvm); },
+        py::return_value_policy::automatic_reference
+    );
+    m.def("to_QRunes", [](QGate & qn, QuantumMachine *qvm)
+    {return transformQProgToQRunes(qn, qvm); },
+        py::return_value_policy::automatic_reference
+    );
+    m.def("to_QRunes", [](QIfProg & qn, QuantumMachine *qvm)
+    {return transformQProgToQRunes(qn, qvm); },
+        py::return_value_policy::automatic_reference
+    );
+    m.def("to_QRunes", [](QWhileProg & qn, QuantumMachine *qvm)
+    {return transformQProgToQRunes(qn, qvm); },
+        py::return_value_policy::automatic_reference
+    );
+    m.def("to_QRunes", [](QMeasure & qn, QuantumMachine *qvm)
+    {return transformQProgToQRunes(qn, qvm); },
         py::return_value_policy::automatic_reference
     );
 
@@ -449,7 +473,7 @@ PYBIND11_MODULE(pyQPanda, m)
         "Get the probability distribution over qubits",
         py::return_value_policy::automatic
     );
-
+    
     m.def("accumulateProbability", &accumulateProbability,
         "Accumulate the probability from a prob list",
         py::return_value_policy::automatic
@@ -502,9 +526,8 @@ PYBIND11_MODULE(pyQPanda, m)
         .def("dagger", &QCircuit::dagger)
         .def("control", &QCircuit::control);
 
-    py::class_<HadamardQCircuit, QCircuit>(m, "Hadamard_Circuit")
+    py::class_<HadamardQCircuit, QCircuit>(m, "hadamard_circuit")
         .def(py::init<QVec&>());
-
 
     py::class_<QGate>(m, "QGate")
         .def("dagger", &QGate::dagger)
@@ -606,7 +629,13 @@ PYBIND11_MODULE(pyQPanda, m)
         BIND_CLASSICALCOND_OPERATOR_OVERLOAD(<)
         BIND_CLASSICALCOND_OPERATOR_OVERLOAD(<=)
         BIND_CLASSICALCOND_OPERATOR_OVERLOAD(>)
-        BIND_CLASSICALCOND_OPERATOR_OVERLOAD(>=);
+        BIND_CLASSICALCOND_OPERATOR_OVERLOAD(>=)
+        BIND_CLASSICALCOND_OPERATOR_OVERLOAD(+)
+        BIND_CLASSICALCOND_OPERATOR_OVERLOAD(-)
+        BIND_CLASSICALCOND_OPERATOR_OVERLOAD(*)
+        BIND_CLASSICALCOND_OPERATOR_OVERLOAD(/ )
+        BIND_CLASSICALCOND_OPERATOR_OVERLOAD(== )
+        ;
 
         
     m.def("add", [](ClassicalCondition a, ClassicalCondition b)
@@ -692,6 +721,7 @@ PYBIND11_MODULE(pyQPanda, m)
         ;
 
     Qubit*(QuantumMachine::*qalloc)() = &QuantumMachine::allocateQubit;
+    ClassicalCondition(QuantumMachine::*cAlloc)() = &QuantumMachine::allocateCBit;
     QVec (QuantumMachine::*qallocMany)(size_t) = &QuantumMachine::allocateQubits;
     vector<ClassicalCondition>(QuantumMachine::*callocMany)(size_t) = &QuantumMachine::allocateCBits;
     void (QuantumMachine::*free_qubit)(Qubit *) = &QuantumMachine::Free_Qubit;
@@ -762,7 +792,7 @@ PYBIND11_MODULE(pyQPanda, m)
         .def("qAlloc", qalloc, "Allocate a qubit", py::return_value_policy::reference)
         .def("qAlloc_many", qallocMany, "Allocate a list of qubits", "n_qubit"_a,
             py::return_value_policy::reference)
-        .def("cAlloc", calloc, "Allocate a cbit", py::return_value_policy::reference)
+        .def("cAlloc", cAlloc, "Allocate a cbit", py::return_value_policy::reference)
         .def("cAlloc_many", callocMany, "Allocate a list of cbits", "n_cbit"_a,
             py::return_value_policy::reference)
         .def("qFree", free_qubit, "Free a qubit")
@@ -799,7 +829,7 @@ PYBIND11_MODULE(pyQPanda, m)
         .def("qAlloc", qalloc, "Allocate a qubit", py::return_value_policy::reference)\
         .def("qAlloc_many", qallocMany, "Allocate a list of qubits", "n_qubit"_a,\
             py::return_value_policy::reference)\
-        .def("cAlloc", calloc, "Allocate a cbit", py::return_value_policy::reference)\
+        .def("cAlloc", cAlloc, "Allocate a cbit", py::return_value_policy::reference)\
         .def("cAlloc_many", callocMany, "Allocate a list of cbits", "n_cbit"_a,\
             py::return_value_policy::reference)\
         .def("qFree", free_qubit, "Free a qubit")\
@@ -846,7 +876,10 @@ PYBIND11_MODULE(pyQPanda, m)
 
     DEFINE_IDEAL_QVM(CPUQVM);
     DEFINE_IDEAL_QVM(CPUSingleThreadQVM);
+
+#ifdef USE_CUDA
     DEFINE_IDEAL_QVM(GPUQVM);
+#endif // USE_CUDA
 
     py::class_<NoiseQVM, QuantumMachine>(m, "NoiseQVM")
         .def(py::init<>())
@@ -1097,6 +1130,10 @@ PYBIND11_MODULE(pyQPanda, m)
         }
         return py_stack(axis, vars);
     });
+	m.def("sigmoid", Var::sigmoid);
+	m.def("softmax", Var::softmax);
+	m.def("crossEntropy", Var::crossEntropy);
+	m.def("dropout", Var::dropout);
     const Var::var(*qop_plain)(Var::VariationalQuantumCircuit&,
         QPanda::PauliOperator,
         QPanda::QuantumMachine*,
@@ -1231,6 +1268,127 @@ PYBIND11_MODULE(pyQPanda, m)
         .def_readwrite("key", &QPanda::QOptimizationResult::key)
         .def_readwrite("para", &QPanda::QOptimizationResult::para);
 
+	py::class_<FermionOperator>(m, "FermionOperator")
+		.def(py::init<>())
+		.def(py::init<>([](const complex_d &val)
+			{ return FermionOperator(val); }))
+		.def(py::init<>([](const std::string &key, const complex_d &val)
+			{ return FermionOperator(key, val); }))
+		.def(py::init<>([](const FermionOperator::FermionMap &map)
+			{ return FermionOperator(map); }))
+		.def("normal_ordered", &FermionOperator::normal_ordered)
+		.def("isEmpty", &FermionOperator::isEmpty)
+		.def("setAction", &FermionOperator::setAction)
+		.def("setErrorThreshold", &FermionOperator::setErrorThreshold)
+		.def("error_threshold", &FermionOperator::error_threshold)
+		.def("data", &FermionOperator::data)
+		.def(py::self + py::self)
+		.def(py::self - py::self)
+		.def(py::self * py::self)
+		.def(py::self += py::self)
+		.def(py::self -= py::self)
+		.def(py::self *= py::self)
+		.def(py::self + QPanda::complex_d())
+		.def(py::self * QPanda::complex_d())
+		.def(py::self - QPanda::complex_d())
+		.def(QPanda::complex_d() + py::self)
+		.def(QPanda::complex_d() * py::self)
+		.def(QPanda::complex_d() - py::self)
+		.def("toString", &FermionOperator::toString)
+		.def("__str__", &FermionOperator::toString);
+
+    py::class_<SingleAmplitudeQVM, QuantumMachine>(m, "SingleAmpQVM")
+        .def(py::init<>())
+        .def("initQVM", &SingleAmplitudeQVM::init, "init quantum virtual machine")
+        .def("finalize", &SingleAmplitudeQVM::finalize, "finalize")
+        .def("qAlloc", qalloc, "Allocate a qubit", py::return_value_policy::reference)
+        .def("qAlloc_many", qallocMany, "Allocate a list of qubits", "n_qubit"_a,
+            py::return_value_policy::reference)
+        .def("cAlloc", calloc, "Allocate a cbit", py::return_value_policy::reference)
+        .def("cAlloc_many", callocMany, "Allocate a list of cbits", "n_cbit"_a,
+            py::return_value_policy::reference)
+        .def("qFree", free_qubit, "Free a qubit")
+        .def("qFree_all", free_qubits, "qubit_list"_a,
+            "Free a list of qubits")
+        .def("cFree", free_cbit, "Free a cbit")
+        .def("cFree_all", free_cbits, "cbit_list"_a,
+            "Free a list of cbits")
+        .def("getAllocateQubitNum", get_allocate_qubit, "getAllocateQubitNum", py::return_value_policy::reference)
+        .def("getAllocateCMem", get_allocate_CMem, "getAllocateCMem", py::return_value_policy::reference)
+
+        .def("run", &SingleAmplitudeQVM::run, "program"_a, "load and parse the quantum program")
+
+        .def("get_qstate", &SingleAmplitudeQVM::getQStat, "Get the quantum state of quantum program",
+            py::return_value_policy::automatic_reference)
+
+        .def("pmeasure_index", &SingleAmplitudeQVM::PMeasure_index, "select_max"_a,
+            "PMeasure index",
+            py::return_value_policy::automatic_reference)
+        .def("pmeasure", [](SingleAmplitudeQVM &qvm, QVec qvec, size_t select_max)
+            {return qvm.PMeasure(qvec, select_max); })
+        .def("pmeasure", [](SingleAmplitudeQVM &qvm, size_t select_max)
+            {return qvm.PMeasure(select_max); })
+
+        .def("get_prob_list", [](SingleAmplitudeQVM &qvm, QVec qvec, size_t select_max)
+            {return qvm.getProbList(qvec, select_max); })
+        .def("prob_run_list", [](SingleAmplitudeQVM &qvm, QProg prog, QVec qvec, size_t select_max)
+            {return qvm.probRunList(prog, qvec, select_max); })
+
+        .def("get_prob_dict", [](SingleAmplitudeQVM &qvm, QVec qvec, size_t select_max)
+            {return qvm.getProbDict(qvec, select_max); })
+        .def("prob_run_dict", [](SingleAmplitudeQVM &qvm, QProg prog, QVec qvec, size_t select_max)
+            {return qvm.probRunDict(prog, qvec, select_max); })
+
+        .def("get_prob_tuple_list", [](SingleAmplitudeQVM &qvm, QVec qvec, size_t select_max)
+            {return qvm.getProbTupleList(qvec, select_max); })
+        .def("prob_run_tuple_list", [](SingleAmplitudeQVM &qvm, QProg prog, QVec qvec, size_t select_max)
+            {return qvm.probRunTupleList(prog, qvec, select_max); });
+
+
+    py::class_<PartialAmplitudeQVM, QuantumMachine>(m, "PartialAmpQVM")
+        .def(py::init<>())
+        .def("initQVM", &PartialAmplitudeQVM::init, "init quantum virtual machine")
+        .def("finalize", &PartialAmplitudeQVM::finalize, "finalize")
+        .def("qAlloc", qalloc, "Allocate a qubit", py::return_value_policy::reference)
+        .def("qAlloc_many", qallocMany, "Allocate a list of qubits", "n_qubit"_a,
+            py::return_value_policy::reference)
+        .def("cAlloc", calloc, "Allocate a cbit", py::return_value_policy::reference)
+        .def("cAlloc_many", callocMany, "Allocate a list of cbits", "n_cbit"_a,
+            py::return_value_policy::reference)
+        .def("qFree", free_qubit, "Free a qubit")
+        .def("qFree_all", free_qubits, "qubit_list"_a,
+            "Free a list of qubits")
+        .def("cFree", free_cbit, "Free a cbit")
+        .def("cFree_all", free_cbits, "cbit_list"_a,
+            "Free a list of cbits")
+        .def("getAllocateQubitNum", get_allocate_qubit, "getAllocateQubitNum", py::return_value_policy::reference)
+        .def("getAllocateCMem", get_allocate_CMem, "getAllocateCMem", py::return_value_policy::reference)
+
+        .def("run", &PartialAmplitudeQVM::run, "program"_a, "load and parse the quantum program")
+
+        .def("get_qstate", &PartialAmplitudeQVM::getQStat, "Get the quantum state of quantum program",
+            py::return_value_policy::automatic_reference)
+
+        .def("pmeasure", [](PartialAmplitudeQVM &qvm, QVec qvec, size_t select_max)
+            {return qvm.PMeasure(qvec, select_max); })
+        .def("pmeasure", [](PartialAmplitudeQVM &qvm, size_t select_max)
+            {return qvm.PMeasure(select_max); })
+
+        .def("get_prob_list", [](PartialAmplitudeQVM &qvm, QVec qvec, size_t select_max)
+            {return qvm.getProbList(qvec, select_max); })
+        .def("prob_run_list", [](PartialAmplitudeQVM &qvm, QProg prog, QVec qvec, size_t select_max)
+            {return qvm.probRunList(prog, qvec, select_max); })
+
+        .def("get_prob_dict", [](PartialAmplitudeQVM &qvm, QVec qvec, size_t select_max)
+            {return qvm.getProbDict(qvec, select_max); })
+        .def("prob_run_dict", [](PartialAmplitudeQVM &qvm, QProg prog, QVec qvec, size_t select_max)
+            {return qvm.probRunDict(prog, qvec, select_max); })
+
+        .def("get_prob_tuple_list", [](PartialAmplitudeQVM &qvm, QVec qvec, size_t select_max)
+            {return qvm.getProbTupleList(qvec, select_max); })
+        .def("prob_run_tuple_list", [](PartialAmplitudeQVM &qvm, QProg prog, QVec qvec, size_t select_max)
+            {return qvm.probRunTupleList(prog, qvec, select_max); });
+
 #ifdef USE_CURL
     py::class_<QCloudMachine, QuantumMachine>(m, "QCloud")
         .def(py::init<>())
@@ -1276,3 +1434,4 @@ PYBIND11_MODULE(pyQPanda, m)
         });
 #endif // USE_CURL
 }
+   

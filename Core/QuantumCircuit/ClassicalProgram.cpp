@@ -91,6 +91,17 @@ cbit_size_t ClassicalProg::eval()
     return m_node->eval();
 }
 
+std::shared_ptr<CExpr> ClassicalProg::getExpr()
+{
+    if (!m_node)
+    {
+        QCERR("Unknown internal error");
+        throw runtime_error("Unknown internal error");
+    }
+
+    return m_node->getExpr();
+}
+
 ClassicalProg::ClassicalProg(ClassicalCondition & classical_cond)
 {
     auto sClasNname = ConfigMap::getInstance()["ClassicalProg"];

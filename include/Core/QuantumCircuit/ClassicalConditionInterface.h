@@ -134,7 +134,7 @@ public:
  * @param class_cond  ClassicalCondition type right operand 
  * @return ClassicalCondition 
  */
-inline ClassicalCondition operator+(cbit_size_t value, ClassicalCondition & class_cond)
+inline ClassicalCondition operator+(cbit_size_t value, ClassicalCondition class_cond)
 {
     auto &fac = CExprFactory::GetFactoryInstance();
     auto expr = fac.GetCExprByValue(value);

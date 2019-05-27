@@ -253,7 +253,13 @@ PartialAmplitudeQVM::PMeasure(QVec qvec, size_t select_max)
     }
     else
     {
-        return result_vec;
+        vector<double> res;
+        for (size_t i = 0; i < select_max; ++i)
+        {
+            res.emplace_back(addResult_vector[i].real() * addResult_vector[i].real() +
+                addResult_vector[i].imag() * addResult_vector[i].imag());
+        }
+        return res;
     }
 
 }

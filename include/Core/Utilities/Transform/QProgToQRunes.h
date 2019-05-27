@@ -1,17 +1,4 @@
-/*
-Copyright (c) 2017-2018 Origin Quantum Computing. All Right Reserved.
-Licensed under the Apache License 2.0
-
-QProgToQRunes.h
-Author: Yulei
-Updated in 2019/04/09 14:37
-
-Classes for QProgToQRunes.
-
-*/
-
 /*! \file QProgToQRunes.h */
-
 #ifndef  _PROGTOQRUNES_H_
 #define  _PROGTOQRUNES_H_
 #include "Core/QuantumCircuit/QProgram.h"
@@ -36,7 +23,7 @@ class QProgToQRunes : public QProgTransform
 {
 public:
     QProgToQRunes(QuantumMachine * quantum_machine);
-   ~QProgToQRunes();
+    ~QProgToQRunes() {};
 
     /**
     * @brief  Transform quantum program
@@ -47,7 +34,17 @@ public:
     * @endcode
     * @note
     */
-    virtual void transform(QProg &prog);
+    virtual void transform(QProg &prog) {};
+
+    template<typename _Ty>
+    void traversal(_Ty &node)
+    {
+        static_assert(std::is_base_of<QNode, _Ty>::value, "bad node type");
+
+        m_QRunes.emplace_back("QINIT " + std::to_string(m_quantum_machine->getAllocateQubit()));
+        m_QRunes.emplace_back("CREG " + std::to_string(m_quantum_machine->getAllocateCMem()));
+        transformQNode(&node);
+    }
 
     /**
      * @brief  get QRunes insturction set
@@ -91,6 +88,20 @@ private:
 * @exception
 * @note
 */
-std::string transformQProgToQRunes(QProg &prog, QuantumMachine * quantum_machine);
+template<typename _Ty>
+std::string transformQProgToQRunes(_Ty &node,QuantumMachine *machine)
+{
+    static_assert(std::is_base_of<QNode, _Ty>::value, "bad node type");
+
+    if (nullptr == machine)
+    {
+        QCERR("Quantum machine is nullptr");
+        throw std::invalid_argument("Quantum machine is nullptr");
+    }
+
+    QProgToQRunes qRunesTraverse(machine);
+    qRunesTraverse.traversal(node);
+    return qRunesTraverse.getInsturctions();
+}
 QPANDA_END
 #endif

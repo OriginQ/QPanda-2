@@ -35,6 +35,7 @@ public:
      * @brief Get classical program value
      * @return cbit_size_t 
      */
+    virtual std::shared_ptr<CExpr> getExpr() = 0;
     virtual cbit_size_t eval() = 0;
 private:
 
@@ -77,6 +78,7 @@ public:
      */
     virtual cbit_size_t eval();
 
+    std::shared_ptr<CExpr> getExpr();
 
 private:
     std::shared_ptr<AbstractClassicalProg> m_node;

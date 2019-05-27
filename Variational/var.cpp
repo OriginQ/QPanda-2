@@ -564,6 +564,7 @@ static vector<size_t> is_gate_match(const std::vector<
 VariationalQuantumGate::VariationalQuantumGate(const VariationalQuantumGate &gate)
 {
     m_vars.assign(gate.m_vars.begin(), gate.m_vars.end());
+	m_constants.assign(gate.m_constants.begin(), gate.m_constants.end());
 }
 
 VariationalQuantumGate_H::VariationalQuantumGate_H(Qubit* q)

@@ -9,9 +9,7 @@ Created in 2019-4-16
 Classes for get the shortes path of graph
 
 */
-
 #include "Traversal.h"
-
 USING_QPANDA
 using namespace std;
 
@@ -60,7 +58,7 @@ void Traversal::traversal(AbstractQuantumCircuit * qcircuit_node,
 
     auto aiter = qcircuit_node->getFirstNodeIter();
 
-    if (aiter == qcircuit_node->getEndNodeIter())
+    if (aiter == qcircuit_node->getLastNodeIter())
         return;
 
     auto pNode = dynamic_cast<QNode *>(qcircuit_node);
@@ -89,7 +87,7 @@ void Traversal::traversal(AbstractQuantumCircuit * qcircuit_node,
     {
         auto aiter = qcircuit_node->getFirstNodeIter();
 
-        if (aiter == qcircuit_node->getEndNodeIter())
+        if (aiter == qcircuit_node->getLastNodeIter())
             return;
         while (aiter != qcircuit_node->getEndNodeIter())
         {
@@ -112,7 +110,7 @@ void Traversal::traversal(AbstractQuantumProgram *qprog_node,
 
     auto aiter = qprog_node->getFirstNodeIter();
 
-    if (aiter == qprog_node->getEndNodeIter())
+    if (aiter == qprog_node->getLastNodeIter())
         return;
     auto pNode = dynamic_cast<QNode *>(qprog_node);
 
@@ -201,6 +199,15 @@ void Traversal::traversalByType(QNode * node, QNode * parent_node, TraversalInte
     }
     else if (CLASS_COND_NODE == iNodeType)
     {
+        auto classical_node= dynamic_cast<AbstractClassicalProg *>(node);
+
+        if (nullptr == classical_node)
+        {
+            QCERR("Unknown internal error");
+            throw runtime_error("Unknown internal error");
+        }
+        tarversal_object->execute(classical_node, parent_node);
+
         return;
     }
     else

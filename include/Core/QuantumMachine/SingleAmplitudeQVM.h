@@ -32,14 +32,14 @@ public:
    void traversal(AbstractQGateNode*);
 
    /**
-   * @brief  Load the quanyum program
+   * @brief  Load the quantum program
    * @param[in]  QProg&  the reference to a quantum program 
    * @return     void  
    */
    void run(QProg&);
 
    /**
-   * @brief  Get the quantum state of QProg
+   * @brief  Get the quantum state of quantum program
    * @return     QStat   quantum state
    * @exception   run_fail   pQProg is null
    */

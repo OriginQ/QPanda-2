@@ -16,7 +16,7 @@ Object: json's {key: value} format.
 Array : json's [e1, e2, e3] format.
 Value : json's abstract data type, includes Object, Array, int, string
         and so on, is the base class of Object and Array.
-GetStr/GetInt : get the part string value of a json dataï¼Œreturned by the 1st
+GetStr/GetInt : get the part string value of a json data£¬returned by the 1st
         parameter, the last parameter is the parent node value, the middle
         parameters are used to locate the element's position(type is int) or
         assign the corresponding value of the key(type is const char*).

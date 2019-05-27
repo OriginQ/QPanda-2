@@ -18,7 +18,8 @@ QPanda 2(**Q**uantum **P**rogramming **A**rchitecture for **N**ISQ **D**evice **
 
 ## 文档
 
-我们提供了QPanda 2的使用文档，位于 https://qpanda-2.readthedocs.io/zh_CN/latest/
+* QPanda 2的使用文档，位于 https://qpanda-2.readthedocs.io/zh_CN/latest/ 
+* pyQPanda的使用文档，位于 https://qpanda-2.readthedocs.io/zh_CN/doucmentation-python/
 
 
 ## 兼容性
@@ -67,7 +68,7 @@ pyQPanda只需要通过pip就可安装使用。
 
 | software                | version         |
 |-------------------------|-----------------|
-| GCC                     | >= 5.0          |
+| GCC                     | >= 5.4.0        |
 | CMake                   | >= 3.1          |
 | Python                  | >= 3.6.0        |
 

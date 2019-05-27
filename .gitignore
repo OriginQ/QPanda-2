@@ -9,6 +9,7 @@ pyQPanda/pyqpanda.egg-info
 *.dylib
 .vscode/
 build/*
+Documentation/*
 config.h
 include/QPandaConfig.h
 include/QPandaVersion.h

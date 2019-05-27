@@ -3,34 +3,75 @@
 #include <algorithm>  
 #include "gtest/gtest.h"
 #include "Core/Utilities/Transform/TransformDecomposition.h"
+#include "include/Core/Utilities/QNodeDeepCopy.h"
 using namespace std;
 USING_QPANDA
 
+TEST(QNodeDeepCopy, deepCopy)
+{
+    auto machine = initQuantumMachine(QMachineType::CPU);
+    auto q = machine->allocateQubits(20);
+    auto c = machine->allocateCBits(20);
+
+    auto prog = QProg();
+    auto cir = QCircuit();
+    auto cir1 = QCircuit();
+
+
+    cir << Y(q[2]) << H(q[2])<<CNOT(q[0],q[1])<<cir1;
+
+
+    auto while_prog= CreateWhileProg(c[1], &cir);
+
+    auto cprpg = ClassicalProg(c[0]);
+
+    auto me = Measure(q[1], c[1]); 
+       
+    prog << cprpg << me << while_prog;
+
+    std::cout << transformQProgToQRunes(prog, machine) << endl;
+
+    auto temp = deepCopy(prog);
+    prog.clear();
+
+    std::cout << transformQProgToQRunes(temp, machine) << endl;
+    std::cout << transformQProgToQRunes(prog, machine) << endl;
+
+    machine->finalize();
+    getchar();
+}
+
+
 TEST(QProgTransform, QASM)
 {
-    auto qvm =initQuantumMachine();
+    exit(0);
+
+    auto qvm = initQuantumMachine();
 
     auto prog = CreateEmptyQProg();
     auto cir = CreateEmptyCircuit();
 
-    auto q0 = qvm->allocateQubit();
-    auto q1 = qvm->allocateQubit();
-    auto q2 = qvm->allocateQubit();
-    auto c0 = qvm->allocateCBit();
+    auto q = qvm->allocateQubits(6);
+    auto c = qvm->allocateCBits(6);
 
-    auto qlist = qvm->allocateQubits(2);
 
-    cir << Y(q2) << H(q2);
-    cir.setControl(qlist);
+    cir << Y(q[2]) << H(q[2]);
+    cir.setDagger(true);
 
-    auto h1 = H(q1);
+    auto h1 = H(q[1]);
     h1.setDagger(true);
 
-    prog << H(q1) << X(q2) << h1 << RX(q1, 2 / PI) << cir << CR(q1, q2, PI / 2);
+    prog << H(q[1])
+        << X(q[2])
+        << h1
+        << RX(q[1], 2 / PI)
+        << cir
+        << CR(q[1], q[2], PI / 2)
+        << MeasureAll(q, c);
 
-    cout << transformQProgToQASM(prog,qvm);
+    cout << transformQProgToQASM(prog, qvm);
 
-    destroyQuantumMachine(qvm);
+    qvm->finalize();
     getchar();
 }
 
@@ -39,9 +80,11 @@ TEST(QProgTransform, QRunesToQProg)
     auto qvm = initQuantumMachine();
     auto prog = CreateEmptyQProg();
 
-    qRunesToQProg("D:\\QRunes", prog);
+    transformQRunesToQProg("D:\\QRunes", prog, qvm);
 
-    cout << transformQProgToQASM(prog,qvm) << endl;
+    cout << transformQProgToQASM(prog, qvm) << endl;
+
+    qvm->finalize();
 
     destroyQuantumMachine(qvm);
 

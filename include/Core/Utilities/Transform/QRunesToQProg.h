@@ -54,10 +54,10 @@ public:
     * @return     void  
     * @exception  qprog_syntax_error   quantum program syntax error
     */
-    void qRunesParser(QProg&);
+    void qRunesParser(QProg&, QuantumMachine*);
 
 private:
-    void qRunesAllocation(std::vector<std::string>&, QProg&);
+    void qRunesAllocation(std::vector<std::string>&, QProg&, QuantumMachine*);
 
     int traversalQRunes(std::vector<std::string>::iterator, QNode*);
 
@@ -76,22 +76,22 @@ private:
     int handleControlCircuit(std::vector<std::string>::iterator, QNode*,
         std::vector<Qubit*>&, std::string &);
 
-    std::vector<std::string> m_QRunes;/**< QRunes instruction sets   */
-    std::vector<std::string> m_keyWords;/**< keywords instruction sets   */
+    std::vector<std::string> m_QRunes;
+    std::vector<std::string> m_keyWords;
 
-    QVec m_all_qubits;/**< Qubit vector   */
-    std::vector<ClassicalCondition > m_all_cregs;/**< ClassicalCondition vector   */
+    QVec m_all_qubits;
+    std::vector<ClassicalCondition > m_all_cregs;
 
     std::map<std::string, std::function<QGate(Qubit *)> > 
-        m_singleGateFunc;/**< Single quantumgate function map   */
+        m_singleGateFunc;
     std::map<std::string, std::function<QGate(Qubit *, Qubit*)> > 
-        m_doubleGateFunc;/**< Double quantumgate function map   */
+        m_doubleGateFunc;
     std::map<std::string, std::function<QGate(Qubit *,double)> > 
-        m_angleGateFunc;/**< Single angle quantumgate function map   */
+        m_angleGateFunc;
     std::map<std::string, std::function<QGate(Qubit *, Qubit*, double)> > 
-        m_doubleAngleGateFunc;/**< Double angle quantumgate function map   */
+        m_doubleAngleGateFunc;
 
-    std::string  m_sFilePath;/**< QRunes file path  */
+    std::string  m_sFilePath;
 };
 
 
@@ -113,7 +113,8 @@ private:
 * @exception    qprog_syntax_error   quantum program syntax error
 * @note
 */
-void qRunesToQProg(std::string, QProg&);
+
+void transformQRunesToQProg(std::string, QProg&,QuantumMachine *);
 QPANDA_END
 
 #endif

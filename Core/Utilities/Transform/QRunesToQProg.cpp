@@ -20,13 +20,11 @@ int operationType(char c)
     {
         return 0;
     }
-
 }
 
 vector<string> operationStack(string exper) 
 {
     vector<string> operation_vector;
-
     stack<char> operation;
     for (int i = 0; i < exper.length(); i++) 
     {
@@ -277,8 +275,6 @@ void checkAngleExper(string str)
                 QCERR("Formal Error");
                 throw invalid_argument("Formal Error");
             }
-            else
-            {}
         }
     }
 }
@@ -349,7 +345,6 @@ int isIntNum(string str)
 {
     stringstream sin(str);
     int int_number;
-
     char char_number;
 
     if (!(sin >> int_number))
@@ -362,7 +357,6 @@ int isIntNum(string str)
         QCERR("Formal Error");
         throw invalid_argument("Formal Error");
     }
-
     return stoi(str);
 }
 
@@ -379,7 +373,6 @@ void countKeywords(vector<string> &keyVec)
 {
     auto countFunc = [=](string keyWords) 
     { return (int)count(keyVec.begin(), keyVec.end(), keyWords); };
-
     if (countFunc("DAGGER")  != countFunc("ENDDAGGER")  ||
         countFunc("CONTROL") != countFunc("ENDCONTROL"))
         {
@@ -388,19 +381,16 @@ void countKeywords(vector<string> &keyVec)
         }
 }
 
-void QRunesToQProg::qRunesAllocation(vector<string> &m_QRunes, QProg& newQProg)
+void QRunesToQProg::qRunesAllocation(vector<string> &m_QRunes, QProg& newQProg, QuantumMachine* qvm)
 {
     string qubits_number = m_QRunes[0].substr(m_QRunes[0].find(" ") + 1, m_QRunes[0].length());
     string cregs_number  = m_QRunes[1].substr(m_QRunes[1].find(" ") + 1, m_QRunes[1].length());
-
-    m_all_qubits = qAllocMany(isIntNum(qubits_number));
-    m_all_cregs = cAllocMany(isIntNum(cregs_number));
-
+    m_all_qubits = qvm->allocateQubits(isIntNum(qubits_number));
+    m_all_cregs = qvm->allocateCBits(isIntNum(cregs_number));
     for (auto iter = m_QRunes.begin() + 2; iter != m_QRunes.end();)
     {
         iter += QRunesToQProg::traversalQRunes(iter, &newQProg);
     }
-
 }
 
 int  QRunesToQProg::handleDaggerCircuit(vector<string>::iterator iter, QNode *qNode)
@@ -838,8 +828,6 @@ int  QRunesToQProg::traversalQRunes(vector<string>::iterator iter, QNode *qNode)
             }
         }
 
-
-
         return handleControlCircuit(++iter, qNode, all_ctr_qubits, cExpr) + 2;
     }
     else if (keyWord == "")
@@ -853,7 +841,7 @@ int  QRunesToQProg::traversalQRunes(vector<string>::iterator iter, QNode *qNode)
     }
 }
 
-void QRunesToQProg::qRunesParser(QProg& newQProg)
+void QRunesToQProg::qRunesParser(QProg& newQProg, QuantumMachine*qvm)
 {
     ifstream fin(m_sFilePath);
     std::vector<std::string> firstCheck;
@@ -888,12 +876,11 @@ void QRunesToQProg::qRunesParser(QProg& newQProg)
     }
 
     countKeywords(firstCheck);
-    QRunesToQProg::qRunesAllocation(m_QRunes,newQProg);
+    QRunesToQProg::qRunesAllocation(m_QRunes,newQProg,qvm);
 }
 
-
-void QPanda::qRunesToQProg(std::string sFilePath, QProg& newQProg)
+void QPanda::transformQRunesToQProg(std::string sFilePath, QProg& newQProg,QuantumMachine* qvm)
 {
     QRunesToQProg qRunesTraverse(sFilePath);
-    qRunesTraverse.qRunesParser(newQProg);
+    qRunesTraverse.qRunesParser(newQProg,qvm);
 }

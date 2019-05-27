@@ -31,20 +31,12 @@ QProgToQRunes::QProgToQRunes(QuantumMachine * quantum_machine)
     m_gatetype.insert(pair<int, string>(CZ_GATE, "CZ"));
     m_gatetype.insert(pair<int, string>(CPHASE_GATE, "CR"));
     m_gatetype.insert(pair<int, string>(ISWAP_GATE, "ISWAP"));
+    m_gatetype.insert(pair<int, string>(SWAP_GATE, "SWAP"));
     m_gatetype.insert(pair<int, string>(SQISWAP_GATE, "SQISWAP"));
+    m_gatetype.insert(pair<int, string>(TWO_QUBIT_GATE, "QDoubleGate"));
     m_QRunes.clear();
 
     m_quantum_machine = quantum_machine;
-}
-
-QProgToQRunes::~QProgToQRunes()
-{}
-
-void QProgToQRunes::transform(QProg &prog)
-{
-    m_QRunes.emplace_back("QINIT " + to_string(m_quantum_machine->getAllocateQubit()));
-    m_QRunes.emplace_back("CREG "  + to_string(m_quantum_machine->getAllocateCMem()));
-    transformQProg(&prog);
 }
 
 void QProgToQRunes::transformQGate(AbstractQGateNode * pQGate)
@@ -103,6 +95,7 @@ void QProgToQRunes::transformQGate(AbstractQGateNode * pQGate)
     case HADAMARD_GATE:
     case T_GATE:
     case S_GATE: 
+    case U4_GATE:
         {
             m_QRunes.emplace_back(item + " " + first_qubit);
         }
@@ -123,6 +116,8 @@ void QProgToQRunes::transformQGate(AbstractQGateNode * pQGate)
     case CZ_GATE:
     case ISWAP_GATE:
     case SQISWAP_GATE:
+    case SWAP_GATE:
+    case TWO_QUBIT_GATE:
         {
             m_QRunes.emplace_back(item + " " + all_qubits);
         }
@@ -222,7 +217,7 @@ void QProgToQRunes::transformQNode(QNode * pNode)
         break;
 
     case NodeType::NODE_UNDEFINED:
-    default:m_QRunes.emplace_back("UnSupported ProgNode");
+    default:m_QRunes.emplace_back("UnSupported Node");
         break;
     }
 }
@@ -348,17 +343,4 @@ string QProgToQRunes::getInsturctions()
     instructions.erase(instructions.size() - 1);
 
     return instructions;
-}
-
-
-string QPanda::transformQProgToQRunes(QProg &prog,QuantumMachine * quantum_machine)
-{
-    if (nullptr == quantum_machine)
-    {
-        QCERR("Quantum machine is nullptr");
-        throw std::invalid_argument("Quantum machine is nullptr");
-    }
-    QProgToQRunes qRunesTraverse(quantum_machine);
-    qRunesTraverse.transform(prog);
-    return qRunesTraverse.getInsturctions();
 }

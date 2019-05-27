@@ -188,7 +188,7 @@ class AdamOptimizer : public Optimizer
 {
 public:
     /*
-     * Î²1, Î²2 âˆˆ [0, 1): Exponential decay rates for the moment estimates
+     * ¦Â1, ¦Â2 ¡Ê [0, 1): Exponential decay rates for the moment estimates
      * epsilon: Small value to avoid zero denominator.
      */
     AdamOptimizer(var lost,

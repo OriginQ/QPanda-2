@@ -7,13 +7,15 @@
 #include "include/Core/QuantumMachine/QCloudMachine.h"
 #ifdef USE_CURL
 
-#define DEFAULT_COMPUTEAPI    "http://10.10.10.53:4630/api/QCode/QRunes2/submitTask.json"
+#define DEFAULT_COMPUTEAPI    "http://10.10.12.53:4630/api/QCode/QRunes2/submitTask.json"
 #define DEFAULT_INQUREAPI     "http://10.10.12.53:4630/api/QCode/QRunes2/queryTask.json"
 #define DEFAULT_TOKEN         "3CD107AEF1364924B9325305BF046FF3"
 
 USING_QPANDA
 using namespace std;
 using namespace rapidjson;
+
+#ifdef USE_CURL
 
 QCloudMachine::QCloudMachine()
 {
@@ -64,17 +66,6 @@ size_t recvJsonData
     *((std::stringstream*)stream) << data << std::endl;
 
     return size * nmemb;
-}
-
-std::string QPanda::QProgToBinary
-(QProg prog,QuantumMachine* qm)
-{
-    auto avec = transformQProgToBinary(prog,qm);
-
-    auto res = Base64::encode(avec);
-
-    std::string bin_data(res.begin(), res.end());
-    return bin_data;
 }
 
 string QCloudMachine::runWithConfiguration
@@ -264,7 +255,6 @@ std::map<std::string, double> QCloudMachine::getResult(std::string taskid)
     std::string post_json = buffer.GetString();
     std::string recv_json = postHttpJson(m_inqure_url, post_json);
 
-
     std::map<std::string, double> recv_res;
     std::cout << parserRecvJson(recv_json, recv_res) << std::endl;
 
@@ -347,3 +337,16 @@ std::string QCloudMachine::parserRecvJson
 REGISTER_QUANTUM_MACHINE(QCloudMachine);
 #endif //USE_CURL
 
+#endif
+
+
+std::string QPanda::QProgToBinary
+(QProg prog, QuantumMachine* qm)
+{
+    auto avec = transformQProgToBinary(prog, qm);
+
+    auto res = Base64::encode(avec);
+
+    std::string bin_data(res.begin(), res.end());
+    return bin_data;
+}

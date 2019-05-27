@@ -1,3 +1,4 @@
+#ifdef USE_CURL
 #include "QPanda.h"
 #include "gtest/gtest.h"
 #include "QuantumMachine/QCloudMachine.h"
@@ -30,8 +31,6 @@ TEST(CloudHttpTest, Post)
         << RZ(qlist[9], PI / 4)
         << CZ(qlist[2], qlist[3]);
 
-
-
     /******Test PMeasure***********/
     rapidjson::Document doc;
     doc.SetObject();
@@ -41,27 +40,22 @@ TEST(CloudHttpTest, Post)
     doc.AddMember("token", "3CD107AEF1364924B9325305BF046FF3", allocator);
     std::cout << QCM->probRunDict(qprog, qlist, doc) << endl;;
 
-    ///******Test Measure***********/
-    //rapidjson::Document doc1;
-    //doc1.SetObject();
-    //rapidjson::Document::AllocatorType &allocator1 = doc1.GetAllocator();
+    /******Test Measure***********/
+    rapidjson::Document doc1;
+    doc1.SetObject();
+    rapidjson::Document::AllocatorType &allocator1 = doc1.GetAllocator();
 
-    //doc1.AddMember("BackendType", QMachineType::CPU, allocator1);
-    //doc1.AddMember("RepeatNum", 1000, allocator1);
-    //doc1.AddMember("token", "3CD107AEF1364924B9325305BF046FF3", allocator1);
-    //std::cout << QCM->runWithConfiguration(qprog, doc1) << endl;
+    doc1.AddMember("BackendType", QMachineType::CPU, allocator1);
+    doc1.AddMember("RepeatNum", 1000, allocator1);
+    doc1.AddMember("token", "3CD107AEF1364924B9325305BF046FF3", allocator1);
+    std::cout << QCM->runWithConfiguration(qprog, doc1) << endl;
 
-    QCM->getResult("1904261513203828");
-
-
-
+    //QCM->getResult("1904261513203828");
     QCM->finalize();
 
     getchar();
 }
 
-#endif
-
-
+#endif // USE_CURL
 
 

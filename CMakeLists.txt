@@ -3,7 +3,7 @@ project(QPANDA)
 
 set(QPANDA_MAJOR_VERSION 1)
 set(QPANDA_MINOR_VERSION 3)
-set(QPANDA_PATCH_VERSION 1)
+set(QPANDA_PATCH_VERSION 2)
 set(QPANDA_VERSION "${QPANDA_MAJOR_VERSION}.${QPANDA_MINOR_VERSION}.${QPANDA_PATCH_VERSION}")
 message(STATUS "QPANDA VERSION = " "[${QPANDA_VERSION}]")
 
@@ -161,15 +161,6 @@ if (MPI_FOUND)
 elseif(MPI_FOUND)
     option(USE_MPI "not find MPI" OFF)
 endif (MPI_FOUND)
-
-if (CURL_FOUND)
-    option(USE_CURL "find Curl" ON)
-    include_directories(${CURL_INCLUDE_DIR})
-    list(APPEND LIB_LIST
-        ${CURL_LIBRARY})
-else (CURL_FOUND)
-    option(USE_CURL "not find Curl" OFF)
-endif (CURL_FOUND)
 
 add_subdirectory(ThirdParty)
 add_subdirectory(Core)

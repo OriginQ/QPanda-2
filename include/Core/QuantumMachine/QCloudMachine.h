@@ -100,19 +100,18 @@ private:
     std::string parserRecvJson(std::string recv_json, std::map<std::string, double>& recv_res);
 };
 
+#endif // USE_CURL
 
 /**
 * @brief  Quamtum program tramsform to binary data
 * @ingroup  Utilities
 * @param[in]  size_t qubit num
-* @param[in]  size_t cbit num 
+* @param[in]  size_t cbit num
 * @param[in]  QProg the reference to a quantum program
 * @return     std::string  binary data
 */
-std::string QProgToBinary(QProg,QuantumMachine*);
+std::string QProgToBinary(QProg, QuantumMachine*);
 
 
 QPANDA_END
-
-#endif // USE_CURL
 #endif // ! QCLOUD_MACHINE_H

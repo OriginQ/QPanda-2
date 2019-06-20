@@ -37,7 +37,6 @@ struct QGateNode
     size_t tar_qubit;
     size_t ctr_qubit;
     double gate_parm;
-    //std::vector<size_t> ctr_list;
 };
 
 class MergeMap
@@ -64,7 +63,7 @@ public:
     void splitQlist(std::vector<QGateNode> &);
 
 private:
-    std::map<size_t, size_t> m_key_map;
+    std::map<unsigned short, unsigned short> m_key_map;
     std::map<unsigned short, std::function<void(QGateNode&, QPUImpl*)> > m_GateFunc;
 };
 

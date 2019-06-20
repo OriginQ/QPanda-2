@@ -1,9 +1,9 @@
-
 #include <fstream>
 #include <math.h>
 #include <algorithm>
 #include "ThirdParty/TinyXML/tinyxml.h"
 #include "include/Core/Utilities/base64.hpp"
+#include "include/Core/Utilities/Uinteger.h"
 #include "include/Core/QuantumMachine/QCloudMachine.h"
 #ifdef USE_CURL
 
@@ -13,6 +13,7 @@
 
 USING_QPANDA
 using namespace std;
+using namespace Base64;
 using namespace rapidjson;
 
 #ifdef USE_CURL
@@ -193,7 +194,24 @@ string QCloudMachine::probRunDict
     parm.AddMember("Qubits", qvec_elem, allocator);
 #endif
 
-    vector<size_t> qvec_elem;    for_each(qvec.begin(), qvec.end(), [&](Qubit *qubit)    {qvec_elem.emplace_back(qubit->getPhysicalQubitPtr()->getQubitAddr()); });    uint64_t qubit_array;    if (!qvec_elem.empty())    {        qubit_array = 1ull << qvec_elem[0];        for_each(qvec_elem.begin() + 1, qvec_elem.end(), [&](size_t qubit)        {qubit_array = qubit_array | (1ull << qubit); });    }    else    {        return "error";    }    parm.AddMember("Qubits", qubit_array, allocator);
+    vector<uint32_t> qvec_elem;
+    for_each(qvec.begin(), qvec.end(), [&](Qubit *qubit)
+    {qvec_elem.emplace_back((unsigned int)qubit->getPhysicalQubitPtr()->getQubitAddr()); });
+    uint256_t qubit_array;
+    if (!qvec_elem.empty())
+    {
+        qubit_array = (uint256_t)1 << qvec_elem[0];
+        for_each(qvec_elem.begin() + 1, qvec_elem.end(), 
+            [&qubit_array](size_t qubit) {qubit_array = qubit_array | ((uint256_t)1 << qubit); });
+    }
+    else
+    {
+        return "error";
+    }
+
+    auto qubits = integerToString(qubit_array);
+    prog_elem.SetString(qubits.c_str(), (SizeType)qubits.size(), allocator);
+    parm.AddMember("Qubits", prog_elem, allocator);
     parm.AddMember("typ", qubit_num <= 25 ? 0 : qubit_num > 31 ? 2 : 1, allocator);
 
     StringBuffer buffer;
@@ -239,7 +257,6 @@ std::map<std::string, double> QCloudMachine::getResult(std::string taskid)
     Document::AllocatorType &allocator = json_doc.GetAllocator();
     Value root(kObjectType);
     Value json_elem(kStringType);
-
 
     json_elem.SetString(m_token.c_str(), (SizeType)m_token.size(), allocator);
     root.AddMember("token", json_elem, allocator);

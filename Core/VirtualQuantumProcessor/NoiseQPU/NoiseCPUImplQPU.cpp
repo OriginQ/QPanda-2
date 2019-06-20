@@ -771,6 +771,12 @@ QError NoisyCPUImplQPU::T(
     return undefineError;
 }
 
+QError NoisyCPUImplQPU::U1_GATE(size_t qn, double theta,
+    bool isConjugate, double error_rate)
+{
+    return undefineError;
+}
+
 QError NoisyCPUImplQPU::RX_GATE(size_t qn, double theta,
     bool isConjugate, double error_rate)
 {

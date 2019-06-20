@@ -1,69 +1,109 @@
 /*! \file SingleAmplitudeQVM.h */
 #ifndef  _SINGLEAMPLITUDE_H_
 #define  _SINGLEAMPLITUDE_H_
-#include "include/Core/VirtualQuantumProcessor/PartialAmplitude/TraversalQProg.h"
+#include "include/Core/Utilities/Uinteger.h"
 #include "include/Core/VirtualQuantumProcessor/SingleAmplitude/QuantumGates.h"
+#include "include/Core/VirtualQuantumProcessor/PartialAmplitude/TraversalQProg.h"
 QPANDA_BEGIN
-
 /**
 * @namespace QPanda
-* @namespace QGATE_SPACE
 */
 
 
 /**
 * @class SingleAmplitudeQVM
+* @ingroup QuantumMachine
+* @see QuantumMachine
 * @brief Quantum machine for single amplitude simulation
 * @ingroup QuantumMachine
 */
-class SingleAmplitudeQVM : public QVM, public TraversalQProg
+
+class SingleAmplitudeQVM : public QVM,
+                           public TraversalQProg,
+                           public MultiPrecisionMachineInterface
 {
 public:
     SingleAmplitudeQVM();
     ~SingleAmplitudeQVM() {};
 
-   /**
-   * @brief  Init  the quantum  machine environment
-   * @return     void  
-   * @note   use  this at the begin
-   */
+    /**
+    * @brief  Init the quantum machine environment
+    * @return     void
+    * @note   use this at the begin
+    */
    void init();
-   void traversalAll(AbstractQuantumProgram*);
-   void traversal(AbstractQGateNode*);
-
    /**
-   * @brief  Load the quantum program
-   * @param[in]  QProg&  the reference to a quantum program 
-   * @return     void  
+   * @brief  Load and parser Quantum Program
+   * @param[in]  QProg &  Quantum Program
+   * @return     void
    */
    void run(QProg&);
 
    /**
-   * @brief  Get the quantum state of quantum program
-   * @return     QStat   quantum state
-   * @exception   run_fail   pQProg is null
+   * @brief  Load and parser Quantum Program by file
+   * @param[in]  std::string  Quantum Program QRunes file path
+   * @return     void
    */
-   QStat getQStat();
+   void run(std::string);
+
+   void traversal(AbstractQGateNode*);
+   void traversalAll(AbstractQuantumProgram*);
 
    /**
-   * @brief  PMeasure index
-   * @param[in]  size_t  Abstract Quantum program pointer
-   * @return     double  
-   * @exception    Abstract Quantum program pointer is a nullptr
-   * @note
+   * @brief  Get Quantum State
+   * @return   std::map<std::string, qcomplex_t>
+   * @note  output example: <0000000000:(-0.00647209,-0.00647209)>
    */
-   double PMeasure_index(size_t);
-   vector<double> PMeasure(QVec, size_t);
-   std::vector<std::pair<size_t, double>> PMeasure(size_t);
+   stat_map getQStat();
 
-   std::vector<double> getProbList(QVec, size_t);
-   std::vector<double> probRunList(QProg &, QVec, size_t);
+   /**
+   * @brief  PMeasure by binary index
+   * @param[in]  std::string  binary index
+   * @return     qstate_type double
+   * @note  example: PMeasure_bin_index("0000000000")
+   */
+   qstate_type PMeasure_bin_index(std::string);
 
-   std::map<std::string, double> getProbDict(QVec, size_t);
-   std::map<std::string, double> probRunDict(QProg &, QVec, size_t);
+   /**
+   * @brief  PMeasure by decimal  index
+   * @param[in]  std::string  decimal index
+   * @return     qstate_type double
+   * @note  example: PMeasure_dec_index("1")
+   */
+   qstate_type PMeasure_dec_index(std::string);
 
-   std::vector<std::pair<size_t, double>> getProbTupleList(QVec, size_t);
-   std::vector<std::pair<size_t, double>> probRunTupleList(QProg &, QVec, size_t);
+   /**
+   * @brief  PMeasure
+   * @param[in]  std::string  select max
+   * @return     prob_map  std::map<std::string, qstate_type>
+   */
+   prob_map PMeasure(std::string);
+
+   /**
+   * @brief  PMeasure
+   * @param[in]  QVec    qubits vec
+   * @param[in]  std::string    select max
+   * @return     prob_map   std::map<std::string, qstate_type>
+   */
+   prob_map PMeasure(QVec, std::string);
+
+   /**
+   * @brief  get quantum state Probability dict
+   * @param[in]  QVec  qubits vec
+   * @param[in]  std::string   select max
+   * @return     prob_map std::map<std::string, qstate_type>
+   * @note  output example: <0000000110:0.000167552>
+   */
+   prob_map getProbDict(QVec, std::string);
+
+   /**
+   * @brief  run and get quantum state Probability dict
+   * @param[in]  QVec  qubits vec
+   * @param[in]  std::string   select max
+   * @return     prob_map std::map<std::string, qstate_type>
+   * @note  output example: <0000000110:0.000167552>
+   */
+   prob_map probRunDict(QProg &, QVec, std::string);
 
 private:
     QProg m_prog;

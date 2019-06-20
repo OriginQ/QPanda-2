@@ -14,6 +14,7 @@ _SINGLE_GATE(P1);
 _SINGLE_ANGLE_GATE(RX_GATE);
 _SINGLE_ANGLE_GATE(RY_GATE);
 _SINGLE_ANGLE_GATE(RZ_GATE);
+_SINGLE_ANGLE_GATE(U1_GATE);
 
 _DOUBLE_GATE(CZ);
 _DOUBLE_GATE(CNOT);
@@ -38,6 +39,7 @@ MergeMap::MergeMap()
     m_GateFunc.insert(make_pair((unsigned short)GateType::RX_GATE, _RX_GATE));
     m_GateFunc.insert(make_pair((unsigned short)GateType::RY_GATE, _RY_GATE));
     m_GateFunc.insert(make_pair((unsigned short)GateType::RZ_GATE, _RZ_GATE));
+    m_GateFunc.insert(make_pair((unsigned short)GateType::U1_GATE, _U1_GATE));
 
     m_GateFunc.insert(make_pair((unsigned short)GateType::CZ_GATE, _CZ));
     m_GateFunc.insert(make_pair((unsigned short)GateType::CNOT_GATE, _CNOT));
@@ -48,6 +50,7 @@ MergeMap::MergeMap()
 
     m_key_map.insert(make_pair(GateType::CNOT_GATE, GateType::PAULI_X_GATE));
     m_key_map.insert(make_pair(GateType::CZ_GATE, GateType::PAULI_Z_GATE));
+    m_key_map.insert(make_pair(GateType::CPHASE_GATE, GateType::U1_GATE));
 }
 
 void MergeMap::traversalMap
@@ -77,26 +80,24 @@ void MergeMap::traversalQlist(std::vector<QGateNode> &QCir)
 {
     for (size_t i = 0; i < QCir.size(); ++i)
     {
-        if (QCir[i].gate_type == GateType::CZ_GATE ||
-            QCir[i].gate_type == GateType::CNOT_GATE)
+        auto iter = m_key_map.find(QCir[i].gate_type);
+        if (m_key_map.end() != iter)
         {
             if (isCorssNode(QCir[i].ctr_qubit, QCir[i].tar_qubit))
             {
                 vector<QGateNode> P0_Cir = QCir;
                 vector<QGateNode> P1_Cir = QCir;
 
-                QGateNode P0_Node;
-                P0_Node.gate_type = P0_GATE;
+                QGateNode P0_Node = { P0_GATE , QCir[i].isConjugate };
                 P0_Node.tar_qubit = QCir[i].ctr_qubit;
                 P0_Cir[i] = P0_Node;
 
-                QGateNode P1_Node1;
-                P1_Node1.gate_type = P1_GATE;
+                QGateNode P1_Node1 = { P1_GATE , QCir[i].isConjugate };
                 P1_Node1.tar_qubit = QCir[i].ctr_qubit;
 
-                QGateNode P1_Node2;
-                P1_Node2.gate_type = m_key_map.find(QCir[i].gate_type)->second;
+                QGateNode P1_Node2 = { iter->second ,QCir[i].isConjugate };
                 P1_Node2.tar_qubit = QCir[i].tar_qubit;
+                P1_Node2.gate_parm = QCir[i].gate_parm;
 
                 P1_Cir[i] = P1_Node2;
                 P1_Cir.emplace(P1_Cir.begin() + i, P1_Node1);
@@ -110,6 +111,7 @@ void MergeMap::traversalQlist(std::vector<QGateNode> &QCir)
             }
         }
     }
+
 }
 
 void MergeMap::splitQlist(std::vector<QGateNode> &QCir)
@@ -193,7 +195,7 @@ void MergeMap::splitQlist(std::vector<QGateNode> &QCir)
                 else
                 {
                     node.tar_qubit = val.tar_qubit - (m_qubit_num / 2),
-                        node.ctr_qubit = val.ctr_qubit - (m_qubit_num / 2);
+                    node.ctr_qubit = val.ctr_qubit - (m_qubit_num / 2);
                     Cir1.emplace_back(node);
                 }
             }
@@ -212,7 +214,7 @@ void MergeMap::splitQlist(std::vector<QGateNode> &QCir)
                 else
                 {
                     node.tar_qubit = val.tar_qubit - (m_qubit_num / 2),
-                        node.ctr_qubit = val.ctr_qubit - (m_qubit_num / 2);
+                    node.ctr_qubit = val.ctr_qubit - (m_qubit_num / 2);
                     node.gate_parm = val.gate_parm;
                     Cir1.emplace_back(node);
                 }
@@ -244,7 +246,7 @@ void MergeMap::splitQlist(std::vector<QGateNode> &QCir)
 bool MergeMap::isCorssNode(size_t ctr, size_t tar)
 {
     return ((ctr >= m_qubit_num / 2) && 
-            (tar < m_qubit_num / 2)) ||
-            ((tar >= m_qubit_num / 2) && 
-            (ctr < m_qubit_num / 2));
+           (tar < m_qubit_num / 2)) ||
+           ((tar >= m_qubit_num / 2) && 
+           (ctr < m_qubit_num / 2));
 }

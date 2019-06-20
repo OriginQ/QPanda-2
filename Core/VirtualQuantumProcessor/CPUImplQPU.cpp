@@ -31,16 +31,15 @@ using namespace std;
 REGISTER_GATE_MATRIX(X, 0, 1, 1, 0)
 REGISTER_GATE_MATRIX(Hadamard, SQ2, SQ2, SQ2, -SQ2)
 REGISTER_GATE_MATRIX(Y, 0, -iunit, iunit, 0)
-REGISTER_GATE_MATRIX(Z, 1, 0, 0, 1)
+REGISTER_GATE_MATRIX(Z, 1, 0, 0, -1)
 REGISTER_GATE_MATRIX(P0, 1, 0, 0, 0)
 REGISTER_GATE_MATRIX(P1, 0, 0, 0, 1)
-REGISTER_GATE_MATRIX(T, 1, 0, 0, SQ2 + iunit * SQ2)
+REGISTER_GATE_MATRIX(T, 1, 0, 0, (qstate_type)SQ2 + iunit * (qstate_type)SQ2)
 REGISTER_GATE_MATRIX(S, 1, 0, 0, iunit)
 REGISTER_ANGLE_GATE_MATRIX(RX_GATE, 1, 0, 0)
 REGISTER_ANGLE_GATE_MATRIX(RY_GATE, 0, 1, 0)
 REGISTER_ANGLE_GATE_MATRIX(RZ_GATE, 0, 0, 1)
 
-typedef vector<complex<double>> QStat;
 
 CPUImplQPU::CPUImplQPU()
 {
@@ -304,11 +303,11 @@ controlunitarySingleQubitGate(size_t qn,
             qcomplex_t temp;
             temp = matrix[1];
             matrix[1] = matrix[2];
-            matrix[2] = temp;  //转置
+            matrix[2] = temp;  //杞疆
             for (size_t i = 0; i < 4; i++)
             {
                 matrix[i] = qcomplex_t(matrix[i].real(), -matrix[i].imag());
-            }//共轭
+            }//鍏辫江
         }
 
         Qnum qvtemp;
@@ -580,8 +579,8 @@ QError CPUImplQPU::iSWAP(size_t qn_0, size_t qn_1, double theta, bool isConjugat
                     alpha = qgroup0.qstate[k];             //01
                     beta = qgroup0.qstate[k + sttemp];     //10
 
-                    qgroup0.qstate[k] = cos(theta)*alpha + compll * beta*sin(theta);           /* k:|01>                               */
-                    qgroup0.qstate[k + sttemp] = compll * sin(theta)* alpha + cos(theta)*beta;          /* k+sttemp:|10>                        */
+                    qgroup0.qstate[k] = (qstate_type)cos(theta)*alpha + compll * beta*(qstate_type)sin(theta);           /* k:|01>                               */
+                    qgroup0.qstate[k + sttemp] = compll * (qstate_type)sin(theta)* alpha + (qstate_type)cos(theta)*beta;          /* k+sttemp:|10>                        */
                 }
             }
         }
@@ -662,8 +661,8 @@ QError CPUImplQPU::iSWAP(size_t qn_0, size_t qn_1, Qnum & vControlBit, double th
             index = index + block - ststep0 - ststep1;                  /*control qubits are 1,target qubit are 0 */
             alpha = qgroup0.qstate[index + ststep1];             //01
             beta = qgroup0.qstate[index + ststep0];     //10
-            qgroup0.qstate[index + ststep1] = cos(theta)*alpha + compll * beta*sin(theta);
-            qgroup0.qstate[index + ststep0] = compll * sin(theta)* alpha + cos(theta)*beta;
+            qgroup0.qstate[index + ststep1] = (qstate_type)cos(theta)*alpha + compll * beta*(qstate_type)sin(theta);
+            qgroup0.qstate[index + ststep0] = compll * (qstate_type)sin(theta)* alpha + (qstate_type)cos(theta)*beta;
         }
     }
     return qErrorNone;
@@ -863,7 +862,7 @@ QError CPUImplQPU::DiagonalGate(Qnum & vQubit, QStat & matrix, bool isConjugate,
         for (size_t i = 0; i < matrix.size(); i++)
         {
             matrix[i] = qcomplex_t(matrix[i].real(), -matrix[i].imag());
-        }//共轭
+        }//鍏辫江
     }
     size_t  j, k;
 #pragma omp parallel for private(j,k,index)
@@ -902,7 +901,7 @@ QError CPUImplQPU::controlDiagonalGate(Qnum & vQubit, QStat & matrix, Qnum & vCo
         for (size_t i = 0; i < matrix.size(); i++)
         {
             matrix[i] = qcomplex_t(matrix[i].real(), -matrix[i].imag());
-        }//共轭
+        }//鍏辫江
     }
     size_t index = 0;
     size_t block = 0;

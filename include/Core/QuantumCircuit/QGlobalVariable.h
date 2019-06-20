@@ -16,7 +16,7 @@ limitations under the License.
 /*! \file QGlobalVariable.h */
 #ifndef _QGlobalVariable_H
 #define _QGlobalVariable_H
-
+#include "Utilities/QPandaNamespace.h"
 #include <complex>
 #include <vector>
 
@@ -115,9 +115,9 @@ enum MetadataGateType {
 
 
 /**< @brief Circumference ratio   */
-const double PI = 3.14159265358979;
+const qstate_type PI = 3.14159265358979323846;
 
 /**< @brief Square root of two   */
-constexpr double SQRT2 = 1.4142135623730950488016887242097;
+constexpr qstate_type SQRT2 = 1.4142135623730950488016887242097;
 
 #endif

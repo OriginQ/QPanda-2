@@ -16,44 +16,20 @@ Update@2018-8-30
 #include "Utilities/ConfigMap.h"
 USING_QPANDA
 using namespace std;
-QWhileProg  QPanda::CreateWhileProg(ClassicalCondition  classical_condition, QNode * true_node)
+QWhileProg  QPanda::CreateWhileProg(ClassicalCondition  classical_condition, QProg true_node)
 {
-    if (nullptr == true_node)
-    {
-        QCERR("CreateWhileProg parameter invalid");
-        throw invalid_argument("CreateWhileProg parameter invalid");
-    }
-
     QWhileProg qwhile(classical_condition, true_node);
     return qwhile;
 }
 
-QIfProg  QPanda::CreateIfProg(ClassicalCondition  classical_condition, QNode * true_node)
+QIfProg  QPanda::CreateIfProg(ClassicalCondition  classical_condition, QProg true_node)
 {
-    
-    if (nullptr == true_node)
-    {
-        QCERR("CreateIfProg parameter invalid");
-        throw invalid_argument("CreateIfProg parameter invalid");
-    }
-
     QIfProg qif(classical_condition, true_node);
     return qif;
 }
 
-QIfProg  QPanda::CreateIfProg(ClassicalCondition classical_condition, QNode * true_node, QNode * false_node)
+QIfProg  QPanda::CreateIfProg(ClassicalCondition classical_condition, QProg true_node, QProg false_node)
 {
-    if (nullptr == true_node)
-    {
-        QCERR("CreateIfProg parameter invalid");
-        throw invalid_argument("CreateIfProg parameter invalid");
-    }
-
-    if (nullptr == false_node)
-    {
-        QCERR("CreateIfProg parameter invalid");
-        throw invalid_argument("CreateIfProg parameter invalid");
-    }
     QIfProg qif(classical_condition, true_node, false_node);
     return qif;
 }
@@ -68,11 +44,11 @@ QWhileProg::QWhileProg(const QWhileProg &old_qwhile)
     m_control_flow = old_qwhile.m_control_flow;
 }
 
-QWhileProg::QWhileProg(ClassicalCondition & classical_condition, QNode * node)
+QWhileProg::QWhileProg(ClassicalCondition classical_condition, QProg node)
 {
     auto class_name = ConfigMap::getInstance()["QWhileProg"];
     auto qwhile = QWhileFactory::getInstance()
-                    .getQWhile(class_name, classical_condition, node);
+                    .getQWhile(class_name, classical_condition, &node);
 
     m_control_flow.reset(qwhile);
     
@@ -143,18 +119,18 @@ QIfProg::QIfProg(const QIfProg &old_qif)
     m_control_flow = old_qif.m_control_flow;
 }
 
-QIfProg::QIfProg(ClassicalCondition & classical_condition, QNode * true_node, QNode * false_node)
+QIfProg::QIfProg(ClassicalCondition classical_condition, QProg true_node, QProg false_node)
 {
     auto sClasNname = ConfigMap::getInstance()["QIfProg"];
     auto qif = QIfFactory::getInstance()
-               .getQIf(sClasNname, classical_condition, true_node, false_node);
+               .getQIf(sClasNname, classical_condition, &true_node, &false_node);
     m_control_flow.reset(qif);
 }
 
-QIfProg::QIfProg(ClassicalCondition & classical_condition, QNode * node)
+QIfProg::QIfProg(ClassicalCondition classical_condition, QProg node)
 {
     auto sClasNname = ConfigMap::getInstance()["QIfProg"];
-    auto qif = QIfFactory::getInstance().getQIf(sClasNname, classical_condition, node);
+    auto qif = QIfFactory::getInstance().getQIf(sClasNname, classical_condition, &node);
     m_control_flow.reset(qif);
 }
 
@@ -226,43 +202,27 @@ OriginQIf::~OriginQIf()
 
 }
 
-OriginQIf::OriginQIf(ClassicalCondition & classical_condition,
-                     QNode * true_node,
-                     QNode * false_node)
-                     :m_node_type(QIF_START_NODE),m_classical_condition(classical_condition)
+OriginQIf::OriginQIf(ClassicalCondition classical_condition,
+                     QProg true_node,
+                     QProg false_node)
+                     :m_classical_condition(classical_condition)
 {
 
-    if (nullptr != true_node)
-    {
-        auto true_shared_ptr = true_node->getImplementationPtr();
-        m_true_item = new OriginItem();
-        m_true_item->setNode(true_shared_ptr);
-    }
-    else
-        m_true_item = nullptr;
+    auto true_shared_ptr = true_node.getImplementationPtr();
+    m_true_item = new OriginItem();
+    m_true_item->setNode(true_shared_ptr);
 
-
-    if (nullptr != false_node)
-    {
-        auto false_shared_ptr = false_node->getImplementationPtr();
-        m_false_item = new OriginItem();
-        m_false_item->setNode(false_shared_ptr);
-    }
-    else
-        m_false_item = nullptr;
+    auto false_shared_ptr = false_node.getImplementationPtr();
+    m_false_item = new OriginItem();
+    m_false_item->setNode(false_shared_ptr);
 }
 
-OriginQIf::OriginQIf(ClassicalCondition & classical_condition, QNode * node)
-                    :m_node_type(QIF_START_NODE),m_classical_condition(classical_condition)
+OriginQIf::OriginQIf(ClassicalCondition classical_condition, QProg node)
+                    :m_classical_condition(classical_condition)
 {
-    if (nullptr != node)
-    {
-        auto node_shared_ptr = node->getImplementationPtr();
-        m_true_item = new OriginItem();
-        m_true_item->setNode(node_shared_ptr);
-    }
-    else m_true_item = nullptr;
-    m_false_item = nullptr;
+    auto node_shared_ptr = node.getImplementationPtr();
+    m_true_item = new OriginItem();
+    m_true_item->setNode(node_shared_ptr);
 }
 
 NodeType OriginQIf::getNodeType() const
@@ -285,34 +245,28 @@ QNode * OriginQIf::getFalseBranch() const
     return nullptr;
 }
 
-void OriginQIf::setTrueBranch(QNode * node)
+void OriginQIf::setTrueBranch(QProg node)
 {
-    if (nullptr == node)
-    {
-        QCERR("node is a nullptr");
-        throw invalid_argument("node is a nullptr");
-    }
-
     if (nullptr != m_true_item)
     {
         delete(m_true_item);
         m_true_item = nullptr;
         Item * temp = new OriginItem();
-        auto node_shared_ptr = node->getImplementationPtr();
+        auto node_shared_ptr = node.getImplementationPtr();
         temp->setNode(node_shared_ptr);
         m_true_item = temp;
     }
        
 }
 
-void OriginQIf::setFalseBranch(QNode * node)
+void OriginQIf::setFalseBranch(QProg node)
 {
     if (nullptr != m_false_item)
     {
         delete(m_false_item);
         m_false_item = nullptr;
         Item * temp = new OriginItem();
-        auto node_shared_ptr = node->getImplementationPtr();
+        auto node_shared_ptr = node.getImplementationPtr();
         temp->setNode(node_shared_ptr);
         m_false_item = temp;
     }
@@ -415,21 +369,13 @@ OriginQWhile::~OriginQWhile()
 
 }
 
-OriginQWhile::OriginQWhile(ClassicalCondition & classical_condition, QNode * node)
+OriginQWhile::OriginQWhile(ClassicalCondition classical_condition, QProg node)
                           : m_node_type(WHILE_START_NODE),
                             m_classical_condition(classical_condition)
 {
-    if (nullptr == node)
-    {
-        m_true_item = nullptr;
-    }
-    else
-    {
-        auto node_shared_ptr = node->getImplementationPtr();
-        m_true_item = new OriginItem();
-        m_true_item->setNode(node_shared_ptr);
-    }
-
+    auto node_shared_ptr = node.getImplementationPtr();
+    m_true_item = new OriginItem();
+    m_true_item->setNode(node_shared_ptr);
 }
 
 NodeType OriginQWhile::getNodeType() const
@@ -450,21 +396,15 @@ QNode * OriginQWhile::getFalseBranch() const
     throw runtime_error("error");
 }
 
-void OriginQWhile::setTrueBranch(QNode * node)
+void OriginQWhile::setTrueBranch(QProg node)
 {
-    if (nullptr == node)
-    {
-        QCERR("node is a nullptr");
-        throw invalid_argument("node is a nullptr");
-    }
-
     if (nullptr != m_true_item)
     {
         delete(m_true_item);
         m_true_item = nullptr;
 
         Item * temp = new OriginItem();
-        auto node_shared_ptr = node->getImplementationPtr();
+        auto node_shared_ptr = node.getImplementationPtr();
         temp->setNode(node_shared_ptr);
 
         m_true_item = temp;

@@ -147,129 +147,21 @@ PYBIND11_MODULE(pyQPanda, m)
     );
 
 
-    m.def("CreateWhileProg", [](ClassicalCondition& m, QProg & qn)
-    {QNode * node = (QNode *)&qn;
-    return CreateWhileProg(m, node); },
-        "Create a WhileProg",
-        py::return_value_policy::automatic
-        );
+    m.def("CreateWhileProg", CreateWhileProg,
+              "Classical_condition"_a, "true_node"_a,
+              "Create a WhileProg",
+              py::return_value_policy::automatic
+              );
 
-    m.def("CreateWhileProg", [](ClassicalCondition& m, QCircuit & qn)
-    {QNode * node = (QNode *)&qn;
-    return CreateWhileProg(m, node); },
-        "Create a WhileProg",
-        py::return_value_policy::automatic
-        );
-
-    m.def("CreateWhileProg", [](ClassicalCondition& m, QGate & qn)
-    {QNode * node = (QNode *)&qn;
-    return CreateWhileProg(m, node); },
-        "Classical_condition"_a, "Qnode"_a,
-        "Create a WhileProg",
-        py::return_value_policy::automatic
-        );
-
-    m.def("CreateIfProg", [](ClassicalCondition& m, QProg & qn)
-    {QNode * node = (QNode *)&qn;
-    return CreateIfProg(m, node); },
+    m.def("CreateIfProg", [](ClassicalCondition m, QProg &qn)
+    {return CreateIfProg(m, qn); },
         "Classical_condition"_a, "true_node"_a,
         "Create a IfProg",
         py::return_value_policy::automatic
         );
 
-    m.def("CreateIfProg", [](ClassicalCondition& m, QCircuit & qn)
-    {QNode * node = (QNode *)&qn;
-    return CreateIfProg(m, node); },
-        "Classical_condition"_a, "true_node"_a,
-        "Create a IfProg",
-        py::return_value_policy::automatic
-        );
-
-    m.def("CreateIfProg", [](ClassicalCondition& m, QGate & qn)
-    {QNode * node = (QNode *)&qn;
-    return CreateIfProg(m, node); },
-        "Classical_condition"_a, "true_node"_a,
-        "Create a IfProg",
-        py::return_value_policy::automatic
-        );
-
-    m.def("CreateIfProg", [](ClassicalCondition&m, QGate & qn1, QProg & qn2)
-    {QNode * node1 = (QNode *)&qn1;
-    QNode * node2 = (QNode *)&qn2;
-    return CreateIfProg(m, node1, node2); },
-        "Classical_condition"_a, "true_node"_a, "false_node"_a,
-        "Create a IfProg",
-        py::return_value_policy::automatic
-        );
-
-    m.def("CreateIfProg", [](ClassicalCondition&m, QGate & qn1, QCircuit & qn2)
-    {QNode * node1 = (QNode *)&qn1;
-    QNode * node2 = (QNode *)&qn2;
-    return CreateIfProg(m, node1, node2); },
-        "Classical_condition"_a, "true_node"_a, "false_node"_a,
-        "Create a IfProg",
-        py::return_value_policy::automatic
-        );
-
-    m.def("CreateIfProg", [](ClassicalCondition&m, QGate & qn1, QGate & qn2)
-    {QNode * node1 = (QNode *)&qn1;
-    QNode * node2 = (QNode *)&qn2;
-    return CreateIfProg(m, node1, node2); },
-        "Classical_condition"_a, "true_node"_a, "false_node"_a,
-        "Create a IfProg",
-        py::return_value_policy::automatic
-        );
-
-    m.def("CreateIfProg", [](ClassicalCondition&m, QCircuit & qn1, QGate & qn2)
-    {QNode * node1 = (QNode *)&qn1;
-    QNode * node2 = (QNode *)&qn2;
-    return CreateIfProg(m, node1, node2); },
-        "Classical_condition"_a, "true_node"_a, "false_node"_a,
-        "Create a IfProg",
-        py::return_value_policy::automatic
-        );
-
-    m.def("CreateIfProg", [](ClassicalCondition&m, QCircuit & qn1, QCircuit & qn2)
-    {QNode * node1 = (QNode *)&qn1;
-    QNode * node2 = (QNode *)&qn2;
-    return CreateIfProg(m, node1, node2); },
-        "Classical_condition"_a, "true_node"_a, "false_node"_a,
-        "Create a IfProg",
-        py::return_value_policy::automatic
-        );
-
-    m.def("CreateIfProg", [](ClassicalCondition&m, QCircuit & qn1, QProg & qn2)
-    {QNode * node1 = (QNode *)&qn1;
-    QNode * node2 = (QNode *)&qn2;
-    return CreateIfProg(m, node1, node2); },
-        "Classical_condition"_a, "true_node"_a, "false_node"_a,
-        "Create a IfProg",
-        py::return_value_policy::automatic
-        );
-
-    m.def("CreateIfProg", [](ClassicalCondition&m, QProg & qn1, QGate & qn2)
-    {QNode * node1 = (QNode *)&qn1;
-    QNode * node2 = (QNode *)&qn2;
-    return CreateIfProg(m, node1, node2); },
-        "Classical_condition"_a, "true_node"_a, "false_node"_a,
-        "Create a IfProg",
-        py::return_value_policy::automatic
-        );
-
-
-    m.def("CreateIfProg", [](ClassicalCondition&m, QProg & qn1, QCircuit & qn2)
-    {QNode * node1 = (QNode *)&qn1;
-    QNode * node2 = (QNode *)&qn2;
-    return CreateIfProg(m, node1, node2); },
-        "Classical_condition"_a, "true_node"_a, "false_node"_a,
-        "Create a IfProg",
-        py::return_value_policy::automatic
-        );
-
-    m.def("CreateIfProg", [](ClassicalCondition&m, QProg & qn1, QProg & qn2)
-    {QNode * node1 = (QNode *)&qn1;
-    QNode * node2 = (QNode *)&qn2;
-    return CreateIfProg(m, node1, node2); },
+    m.def("CreateIfProg", [](ClassicalCondition&m, QProg &qn1, QProg &qn2)
+    {return CreateIfProg(m, qn1, qn2); },
         "Classical_condition"_a, "true_node"_a, "false_node"_a,
         "Create a IfProg",
         py::return_value_policy::automatic
@@ -502,20 +394,21 @@ PYBIND11_MODULE(pyQPanda, m)
 
     py::class_<QProg>(m, "QProg")
         .def(py::init<>())
-        .def("insert", &QProg::operator<<<QGate>,
-            py::return_value_policy::reference)
+        .def(py::init<QCircuit &>())
+        .def(py::init<QIfProg &>())
+        .def(py::init<QWhileProg &>())
+        .def(py::init<QGate &>())
+        .def(py::init<QMeasure &>())
+        .def(py::init<ClassicalCondition &>())
         .def("insert", &QProg::operator<<<QProg>,
-            py::return_value_policy::reference)
-        .def("insert", &QProg::operator<<<QCircuit>,
-            py::return_value_policy::reference)
-        .def("insert", &QProg::operator<<<QMeasure>,
-            py::return_value_policy::reference)
-        .def("insert", &QProg::operator<<<QIfProg>,
-            py::return_value_policy::reference)
-        .def("insert", &QProg::operator<<<QWhileProg>,
-            py::return_value_policy::reference)
-        .def("insert", &QProg::operator<<<ClassicalProg>,
             py::return_value_policy::reference);
+
+        py::implicitly_convertible<QCircuit, QProg>();
+        py::implicitly_convertible<QIfProg, QProg>();
+        py::implicitly_convertible<QWhileProg, QProg>();
+        py::implicitly_convertible<QGate, QProg>();
+        py::implicitly_convertible<QMeasure, QProg>();
+        py::implicitly_convertible<ClassicalCondition, QProg>();
 
     py::class_<QCircuit>(m, "QCircuit")
         .def(py::init<>())
@@ -534,82 +427,13 @@ PYBIND11_MODULE(pyQPanda, m)
         .def("control", &QGate::control);
 
 
-#define BIND_QIF_INIT(QNODE)         \
-    .def(py::init<>([](ClassicalCondition & cc, QNODE & node1, QProg & node2) {\
-    return QIfProg(cc, static_cast<QNode *>(&node1), static_cast<QNode *>(&node2));\
-    }))\
-        .def(py::init<>([](ClassicalCondition & cc, QNODE & node1, QGate & node2) { \
-        return QIfProg(cc, static_cast<QNode *>(&node1), static_cast<QNode *>(&node2)); \
-    }))\
-        .def(py::init<>([](ClassicalCondition & cc, QNODE & node1, QCircuit & node2) { \
-        return QIfProg(cc, static_cast<QNode *>(&node1), static_cast<QNode *>(&node2)); \
-    }))\
-        .def(py::init<>([](ClassicalCondition & cc, QNODE & node1, QMeasure & node2) {\
-        return QIfProg(cc, static_cast<QNode *>(&node1), static_cast<QNode *>(&node2));\
-    }))\
-        .def(py::init<>([](ClassicalCondition & cc, QNODE & node1, QIfProg & node2) {\
-        return QIfProg(cc, static_cast<QNode *>(&node1), static_cast<QNode *>(&node2));\
-    }))\
-        .def(py::init<>([](ClassicalCondition & cc, QNODE & node1, QWhileProg & node2) {\
-        return QIfProg(cc, static_cast<QNode *>(&node1), static_cast<QNode *>(&node2));\
-    }))\
-        .def(py::init<>([](ClassicalCondition & cc, QNODE & node1, ClassicalProg & node2) {\
-        return QIfProg(cc, static_cast<QNode *>(&node1), static_cast<QNode *>(&node2));\
-    }))\
-
     py::class_<QIfProg>(m, "QIfProg")
-        .def(py::init<>([](ClassicalCondition & cc, QProg & node) {
-        return QIfProg(cc, static_cast<QNode *>(&node));
-    }))
-        .def(py::init<>([](ClassicalCondition & cc, QGate & node) {
-        return QIfProg(cc, static_cast<QNode *>(&node));
-    }))
-        .def(py::init<>([](ClassicalCondition & cc, QCircuit & node) {
-        return QIfProg(cc, static_cast<QNode *>(&node));
-    }))
-        .def(py::init<>([](ClassicalCondition & cc, QMeasure & node) {
-        return QIfProg(cc, static_cast<QNode *>(&node));
-    }))
-        .def(py::init<>([](ClassicalCondition & cc, QIfProg & node) {
-        return QIfProg(cc, static_cast<QNode *>(&node));
-    }))
-        .def(py::init<>([](ClassicalCondition & cc, QWhileProg & node) {
-        return QIfProg(cc, static_cast<QNode *>(&node));
-    }))
-        .def(py::init<>([](ClassicalCondition & cc, ClassicalProg & node) {
-        return QIfProg(cc, static_cast<QNode *>(&node));
-    }))
-        BIND_QIF_INIT(QProg)
-        BIND_QIF_INIT(QGate)
-        BIND_QIF_INIT(QCircuit)
-        BIND_QIF_INIT(QMeasure)
-        BIND_QIF_INIT(QIfProg)
-        BIND_QIF_INIT(QWhileProg)
-        BIND_QIF_INIT(ClassicalProg);
-        
+            .def(py::init<ClassicalCondition &, QProg>())
+            .def(py::init<ClassicalCondition &, QProg, QProg>());
 
     py::class_<QWhileProg>(m, "QWhileProg")
-        .def(py::init<>([](ClassicalCondition & cc, QProg & node) {
-        return QWhileProg(cc, static_cast<QNode *>(&node));
-    }))
-        .def(py::init<>([](ClassicalCondition & cc, QGate & node) {
-        return QWhileProg(cc, static_cast<QNode *>(&node));
-    }))
-        .def(py::init<>([](ClassicalCondition & cc, QCircuit & node) {
-        return QWhileProg(cc, static_cast<QNode *>(&node));
-    }))
-        .def(py::init<>([](ClassicalCondition & cc, QMeasure & node) {
-        return QWhileProg(cc, static_cast<QNode *>(&node));
-    }))
-        .def(py::init<>([](ClassicalCondition & cc, QIfProg & node) {
-        return QWhileProg(cc, static_cast<QNode *>(&node));
-    }))
-        .def(py::init<>([](ClassicalCondition & cc, QWhileProg & node) {
-        return QWhileProg(cc, static_cast<QNode *>(&node));
-    }))
-        .def(py::init<>([](ClassicalCondition & cc, ClassicalProg & node) {
-        return QWhileProg(cc, static_cast<QNode *>(&node));
-    }));
+            .def(py::init<ClassicalCondition , QProg>());
+
     py::class_<QMeasure>(m, "QMeasure");
 
     py::class_<Qubit>(m, "Qubit")
@@ -1316,34 +1140,28 @@ PYBIND11_MODULE(pyQPanda, m)
         .def("getAllocateQubitNum", get_allocate_qubit, "getAllocateQubitNum", py::return_value_policy::reference)
         .def("getAllocateCMem", get_allocate_CMem, "getAllocateCMem", py::return_value_policy::reference)
 
-        .def("run", &SingleAmplitudeQVM::run, "program"_a, "load and parse the quantum program")
+        .def("run", [](SingleAmplitudeQVM &qvm, QProg prog) {return qvm.run(prog); }, "load the quantum program")
+        .def("run", [](SingleAmplitudeQVM &qvm, std::string QRunes_file) {return qvm.run(QRunes_file); }, "load and parser the quantum program")
 
         .def("get_qstate", &SingleAmplitudeQVM::getQStat, "Get the quantum state of quantum program",
             py::return_value_policy::automatic_reference)
 
-        .def("pmeasure_index", &SingleAmplitudeQVM::PMeasure_index, "select_max"_a,
-            "PMeasure index",
-            py::return_value_policy::automatic_reference)
-        .def("pmeasure", [](SingleAmplitudeQVM &qvm, QVec qvec, size_t select_max)
+        .def("pmeasure_bin_index", &SingleAmplitudeQVM::PMeasure_bin_index, "bin_index"_a,
+            "PMeasure_bin_index",py::return_value_policy::automatic_reference)
+
+        .def("pmeasure_dec_index", &SingleAmplitudeQVM::PMeasure_dec_index, "dec_index"_a,
+            "PMeasure_dec_index", py::return_value_policy::automatic_reference)
+
+        .def("pmeasure", [](SingleAmplitudeQVM &qvm, QVec qvec, std::string select_max)
             {return qvm.PMeasure(qvec, select_max); })
-        .def("pmeasure", [](SingleAmplitudeQVM &qvm, size_t select_max)
+
+        .def("pmeasure", [](SingleAmplitudeQVM &qvm, std::string select_max)
             {return qvm.PMeasure(select_max); })
 
-        .def("get_prob_list", [](SingleAmplitudeQVM &qvm, QVec qvec, size_t select_max)
-            {return qvm.getProbList(qvec, select_max); })
-        .def("prob_run_list", [](SingleAmplitudeQVM &qvm, QProg prog, QVec qvec, size_t select_max)
-            {return qvm.probRunList(prog, qvec, select_max); })
-
-        .def("get_prob_dict", [](SingleAmplitudeQVM &qvm, QVec qvec, size_t select_max)
+        .def("get_prob_dict", [](SingleAmplitudeQVM &qvm, QVec qvec, std::string select_max)
             {return qvm.getProbDict(qvec, select_max); })
-        .def("prob_run_dict", [](SingleAmplitudeQVM &qvm, QProg prog, QVec qvec, size_t select_max)
-            {return qvm.probRunDict(prog, qvec, select_max); })
-
-        .def("get_prob_tuple_list", [](SingleAmplitudeQVM &qvm, QVec qvec, size_t select_max)
-            {return qvm.getProbTupleList(qvec, select_max); })
-        .def("prob_run_tuple_list", [](SingleAmplitudeQVM &qvm, QProg prog, QVec qvec, size_t select_max)
-            {return qvm.probRunTupleList(prog, qvec, select_max); });
-
+        .def("prob_run_dict", [](SingleAmplitudeQVM &qvm, QProg prog, QVec qvec, std::string select_max)
+            {return qvm.probRunDict(prog, qvec, select_max); });
 
     py::class_<PartialAmplitudeQVM, QuantumMachine>(m, "PartialAmpQVM")
         .def(py::init<>())
@@ -1364,30 +1182,27 @@ PYBIND11_MODULE(pyQPanda, m)
         .def("getAllocateQubitNum", get_allocate_qubit, "getAllocateQubitNum", py::return_value_policy::reference)
         .def("getAllocateCMem", get_allocate_CMem, "getAllocateCMem", py::return_value_policy::reference)
 
-        .def("run", &PartialAmplitudeQVM::run, "program"_a, "load and parse the quantum program")
+        .def("run", [](PartialAmplitudeQVM &qvm, QProg prog) {return qvm.run(prog); }, "load the quantum program")
+        .def("run", [](PartialAmplitudeQVM &qvm, std::string QRunes_file) {return qvm.run(QRunes_file); }, "load and parser the quantum program")
 
         .def("get_qstate", &PartialAmplitudeQVM::getQStat, "Get the quantum state of quantum program",
             py::return_value_policy::automatic_reference)
 
-        .def("pmeasure", [](PartialAmplitudeQVM &qvm, QVec qvec, size_t select_max)
+        .def("pmeasure", [](PartialAmplitudeQVM &qvm, QVec qvec, std::string select_max)
             {return qvm.PMeasure(qvec, select_max); })
-        .def("pmeasure", [](PartialAmplitudeQVM &qvm, size_t select_max)
+        .def("pmeasure", [](PartialAmplitudeQVM &qvm, std::string select_max)
             {return qvm.PMeasure(select_max); })
 
-        .def("get_prob_list", [](PartialAmplitudeQVM &qvm, QVec qvec, size_t select_max)
-            {return qvm.getProbList(qvec, select_max); })
-        .def("prob_run_list", [](PartialAmplitudeQVM &qvm, QProg prog, QVec qvec, size_t select_max)
-            {return qvm.probRunList(prog, qvec, select_max); })
+        .def("pmeasure_bin_index", &PartialAmplitudeQVM::PMeasure_bin_index, "bin_index"_a,
+            "PMeasure_bin_index", py::return_value_policy::automatic_reference)
 
-        .def("get_prob_dict", [](PartialAmplitudeQVM &qvm, QVec qvec, size_t select_max)
+        .def("pmeasure_dec_index", &PartialAmplitudeQVM::PMeasure_dec_index, "dec_index"_a,
+            "PMeasure_dec_index", py::return_value_policy::automatic_reference)
+
+        .def("get_prob_dict", [](PartialAmplitudeQVM &qvm, QVec qvec, std::string select_max)
             {return qvm.getProbDict(qvec, select_max); })
-        .def("prob_run_dict", [](PartialAmplitudeQVM &qvm, QProg prog, QVec qvec, size_t select_max)
-            {return qvm.probRunDict(prog, qvec, select_max); })
-
-        .def("get_prob_tuple_list", [](PartialAmplitudeQVM &qvm, QVec qvec, size_t select_max)
-            {return qvm.getProbTupleList(qvec, select_max); })
-        .def("prob_run_tuple_list", [](PartialAmplitudeQVM &qvm, QProg prog, QVec qvec, size_t select_max)
-            {return qvm.probRunTupleList(prog, qvec, select_max); });
+        .def("prob_run_dict", [](PartialAmplitudeQVM &qvm, QProg prog, QVec qvec, std::string select_max)
+            {return qvm.probRunDict(prog, qvec, select_max); });
 
 #ifdef USE_CURL
     py::class_<QCloudMachine, QuantumMachine>(m, "QCloud")
@@ -1434,4 +1249,3 @@ PYBIND11_MODULE(pyQPanda, m)
         });
 #endif // USE_CURL
 }
-   

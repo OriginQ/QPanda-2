@@ -41,6 +41,34 @@ QProg::QProg(const QProg &old_qprog)
     m_quantum_program = old_qprog.m_quantum_program;
 }
 
+QProg::QProg(QNode *pnode)
+    :QProg()
+{
+    if (nullptr == pnode)
+    {
+        throw std::runtime_error("node is null");
+    }
+    m_quantum_program->pushBackNode(pnode);
+}
+
+QProg::QProg(std::shared_ptr<QNode> pnode)
+    :QProg()
+{
+    if (!pnode)
+    {
+        throw std::runtime_error("node is null");
+    }
+    m_quantum_program->pushBackNode(pnode);
+}
+
+QProg::QProg(ClassicalCondition &node)
+    :QProg()
+{
+    ClassicalProg tmp(node);
+    m_quantum_program->pushBackNode(&tmp);
+}
+
+
 QProg::~QProg()
 {
     m_quantum_program.reset();
@@ -189,7 +217,7 @@ OriginProgram::~OriginProgram()
     m_end = nullptr;
 }
 
-OriginProgram::OriginProgram() : m_head(nullptr), m_end(nullptr), m_node_type(PROG_NODE)
+OriginProgram::OriginProgram()
 { }
 
 void OriginProgram::pushBackNode(QNode * node)

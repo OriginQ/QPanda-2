@@ -1,73 +1,121 @@
-/*
-* Copyright (c) 2019 Origin Quantum Computing. All Right Reserved.
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-* http://www.apache.org/licenses/LICENSE-2.0
-*/
 /*! \file PartialAmplitudeQVM.h */
 #ifndef  _PARTIALAMPLITUDE_H_
 #define  _PARTIALAMPLITUDE_H_
+#include "include/Core/Utilities/Uinteger.h"
 #include "include/Core/VirtualQuantumProcessor/CPUImplQPU.h"
 #include "include/Core/VirtualQuantumProcessor/PartialAmplitude/MergeMap.h"
+
 QPANDA_BEGIN
 /**
 * @namespace QPanda
 */
 
-
 /**
 * @class PartialAmplitudeQVM
+* @ingroup QuantumMachine
+* @see QuantumMachine
 * @brief Quantum machine for partial amplitude simulation
 * @ingroup QuantumMachine
 */
-class PartialAmplitudeQVM : public QVM,public TraversalQProg
+class PartialAmplitudeQVM : public QVM,
+                            public TraversalQProg,
+                            public MultiPrecisionMachineInterface
 {
 public:
     /**
-    * @brief  Init  the quantum  machine environment
+    * @brief  Init the quantum machine environment
     * @return     void
-    * @note   use  this at the begin
+    * @note   use this at the begin
     */
     void init();
-    PartialAmplitudeQVM();
-    ~PartialAmplitudeQVM();
+
 
     /**
-    * @brief  load the quantum program
-    * @param[in]  QProg&  the reference to a quantum program
+    * @brief  Load and parser Quantum Program
+    * @param[in]  QProg &  Quantum Program
     * @return     void
     */
     void run(QProg&);
 
     /**
-    * @brief  Get the quantum state of QProg
-    * @return     QStat   quantum state
-    * @exception   run_fail   pQProg is null
+    * @brief  Load and parser Quantum Program by file
+    * @param[in]  std::string  Quantum Program QRunes file path
+    * @return     void
     */
-    QStat getQStat();
+    void run(std::string);
 
-    std::vector<double> PMeasure(QVec, size_t);
-    std::vector<std::pair<size_t, double> > PMeasure(size_t);
 
-    std::vector<double> getProbList(QVec, size_t);
-    std::vector<double> probRunList(QProg &, QVec, size_t);
+    PartialAmplitudeQVM();
+    ~PartialAmplitudeQVM();
 
-    std::map<std::string, double> getProbDict(QVec, size_t);
-    std::map<std::string, double> probRunDict(QProg &, QVec, size_t);
 
-    std::vector<std::pair<size_t, double>> getProbTupleList(QVec, size_t);
-    std::vector<std::pair<size_t, double>> probRunTupleList(QProg &, QVec, size_t);
+    /**
+    * @brief  Get Quantum State 
+    * @return   std::map<std::string, qcomplex_t>
+    * @note  output example: <0000000000:(-0.00647209,-0.00647209)>
+    */
+    stat_map getQStat();
+
+
+    /**
+    * @brief  PMeasure by binary index
+    * @param[in]  std::string  binary index
+    * @return     qstate_type double
+    * @note  example: PMeasure_bin_index("0000000000")
+    */
+    qstate_type PMeasure_bin_index(std::string);
+
+    /**
+    * @brief  PMeasure by decimal  index
+    * @param[in]  std::string  decimal index
+    * @return     qstate_type double
+    * @note  example: PMeasure_dec_index("1")
+    */
+    qstate_type PMeasure_dec_index(std::string);
+
+
+    /**
+    * @brief  PMeasure
+    * @param[in]  std::string  select max
+    * @return     prob_map  std::map<std::string, qstate_type>
+    */
+    prob_map PMeasure(std::string);
+
+
+    /**
+    * @brief  PMeasure
+    * @param[in]  QVec    qubits vec
+    * @param[in]  std::string    select max
+    * @return     prob_map   std::map<std::string, qstate_type>
+    */
+    prob_map PMeasure(QVec, std::string);
+
+    /**
+    * @brief  Get quantum state Probability dict
+    * @param[in]  QVec  qubits vec
+    * @param[in]  std::string   select max
+    * @return     prob_map std::map<std::string, qstate_type>
+    * @note  output example: <0000000110:0.000167552>
+    */
+    prob_map getProbDict(QVec, std::string);
+
+    /**
+    * @brief  Run and get quantum state Probability dict
+    * @param[in]  QVec  qubits vec
+    * @param[in]  std::string   select max
+    * @return     prob_map std::map<std::string, qstate_type>
+    * @note  output example: <0000000110:0.000167552>
+    */
+    prob_map probRunDict(QProg &, QVec, std::string);
 
 private:
     MergeMap *m_prog_map;
-    long long low_pos, high_pos;
 
-    void getAvgBinary(long long, size_t);
     void traversal(AbstractQGateNode *);
     void traversalAll(AbstractQuantumProgram *);
+    void getSubGraphStat(vector<vector<QStat>> &);
 };
 
 QPANDA_END
 #endif
+

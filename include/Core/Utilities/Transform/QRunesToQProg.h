@@ -1,20 +1,10 @@
-/*
-Copyright (c) 2017-2018 Origin Quantum Computing. All Right Reserved.
-Licensed under the Apache License 2.0
-
-QRunesToQProg.h
-Author: Yulei
-Updated in 2019/04/09 14:47
-
-Classes for QRunesToQProg.
-
-*/
-
 /*! \file QRunesToQProg.h */
 #ifndef  _QRUNESTOQPROG_H_
 #define  _QRUNESTOQPROG_H_
 #include "Core/QPanda.h"
 #include <functional>
+#include "include/Core/QuantumCircuit/QGlobalVariable.h"
+
 QPANDA_BEGIN
 /**
 * @namespace QPanda
@@ -22,76 +12,43 @@ QPANDA_BEGIN
 */
 
 /**
-* @enum QRunesKeyWords
-* @brief Qrunes keywords type
-*/
-enum QRunesKeyWords {
-    DAGGER = 24,/**<  QRunes Dagger start  */
-    ENDAGGER,/**<  QRunes Dagger end  */
-    CONTROL,/**<  QRunes Dagger start  */
-    ENCONTROL,/**<  QRunes control end  */
-    QIF,/**<  QRunes QIf start  */
-    ELSE,/**<  QRunes else  */
-    ENDQIF,/**<  QRunes QIf end  */
-    QWHILE,/**<  QRunes QWhile start  */
-    ENDQWHILE,/**<  QRunes QWhile end  */
-    MEASURE,/**<  QRunes measure node  */
-};
-/**
 * @class QRunesToQProg
 * @ingroup Utilities
-* @brief QRunes instruction set To Quantum QProg
+* @brief Transform QRunes instruction set To Quantum program
 */
-class QRunesToQProg {
+class QRunesToQProg
+{
 public:
-    QRunesToQProg() = delete;
-    QRunesToQProg(std::string);
-    ~QRunesToQProg() {};
+    QRunesToQProg();
+    ~QRunesToQProg() = default;
 
-    /**
-    * @brief  QRunes Parser interpreter
-    * @param[in]  QProg&  Quantum program reference 
-    * @return     void  
-    * @exception  qprog_syntax_error   quantum program syntax error
-    */
-    void qRunesParser(QProg&, QuantumMachine*);
+    void qRunesParser(std::string, QProg&, QuantumMachine*);
 
+    QuantumMachine * qvm;
 private:
-    void qRunesAllocation(std::vector<std::string>&, QProg&, QuantumMachine*);
+    size_t traversalQRunes(size_t, QNode*);
 
-    int traversalQRunes(std::vector<std::string>::iterator, QNode*);
+    size_t handleSingleGate(QNode*);
 
-    int handleSingleGate(QNode*, const std::string&, int);
+    size_t handleDoubleGate(QNode*);
 
-    int handleDoubleGate(QNode*, const std::string&, int, int);
+    size_t handleAngleGate(QNode*);
 
-    int handleAngleGate(QNode*, const std::string&, int, double);
+    size_t handleDoubleAngleGate(QNode*);
 
-    int handleDoubleAngleGate(QNode*, const std::string&, int, int, double);
+    size_t handleMeasureGate(QNode*);
 
-    int handleMeasureGate(QNode*, const std::string&, int, int);
+    size_t handleDaggerCircuit(QNode*, size_t);
 
-    int handleDaggerCircuit(std::vector<std::string>::iterator, QNode*);
-
-    int handleControlCircuit(std::vector<std::string>::iterator, QNode*,
-        std::vector<Qubit*>&, std::string &);
+    size_t handleControlCircuit(QNode*, size_t);
 
     std::vector<std::string> m_QRunes;
-    std::vector<std::string> m_keyWords;
+    std::vector<std::string> m_QRunes_value;
 
-    QVec m_all_qubits;
-    std::vector<ClassicalCondition > m_all_cregs;
-
-    std::map<std::string, std::function<QGate(Qubit *)> > 
-        m_singleGateFunc;
-    std::map<std::string, std::function<QGate(Qubit *, Qubit*)> > 
-        m_doubleGateFunc;
-    std::map<std::string, std::function<QGate(Qubit *,double)> > 
-        m_angleGateFunc;
-    std::map<std::string, std::function<QGate(Qubit *, Qubit*, double)> > 
-        m_doubleAngleGateFunc;
-
-    std::string  m_sFilePath;
+    std::map<std::string, std::function<QGate(Qubit *)> > m_singleGateFunc;
+    std::map<std::string, std::function<QGate(Qubit *, Qubit*)> > m_doubleGateFunc;
+    std::map<std::string, std::function<QGate(Qubit *, double)> > m_angleGateFunc;
+    std::map<std::string, std::function<QGate(Qubit *, Qubit*, double)> > m_doubleAngleGateFunc;
 };
 
 
@@ -100,21 +57,9 @@ private:
 * @ingroup Utilities
 * @param[in]  QProg&   empty quantum program
 * @return    void
-* @see
-    @code
-        const string sQRunesPath("D:\\QRunes");
-        init(QuantumMachine_type::CPU);
-        auto prog = CreateEmptyQProg();
-
-        qRunesToQProg(sQRunesPath, prog);
-
-        finalize();
-    @endcode
 * @exception    qprog_syntax_error   quantum program syntax error
-* @note
 */
-
-void transformQRunesToQProg(std::string, QProg&,QuantumMachine *);
+void transformQRunesToQProg(std::string, QProg&, QuantumMachine *);
 QPANDA_END
 
 #endif

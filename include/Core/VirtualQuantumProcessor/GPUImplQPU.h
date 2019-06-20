@@ -76,6 +76,8 @@ public:
         bool isConjugate, double error_rate);
     QError SqiSWAP(size_t qn_0, size_t qn_1, Qnum& vControlBit,
         bool isConjugate, double error_rate);
+    QError U1_GATE(size_t qn, double theta,
+        bool isConjugate, double error_rate);
 
     QError Reset(size_t qn);
     bool qubitMeasure(size_t qn);

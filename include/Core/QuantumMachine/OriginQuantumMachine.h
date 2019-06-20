@@ -176,7 +176,7 @@ protected:
     std::string _ResultToBinaryString(std::vector<ClassicalCondition>& vCBit);
     virtual void _start();
     QVM() {
-        _Config.maxQubit = 25;
+        _Config.maxQubit = 29;
         _Config.maxCMem = 256;
     }
     void _ptrIsNull(void * ptr, std::string name);

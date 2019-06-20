@@ -17,6 +17,7 @@ limitations under the License.
 #ifndef QUANTUM_MACHINE_INTERFACE_H
 #define QUANTUM_MACHINE_INTERFACE_H
 #include <map>
+#include <complex>
 #include <vector>
 #include "Core/QuantumMachine/QResultFactory.h"
 #include "Core/QuantumMachine/QVec.h"
@@ -91,7 +92,24 @@ public:
     virtual QStat getQStat() = 0;
     virtual ~IdealMachineInterface() {}
 };
- 
+
+class MultiPrecisionMachineInterface
+{
+public:
+    virtual stat_map getQStat() = 0;
+
+    virtual qstate_type PMeasure_bin_index(std::string) = 0;
+    virtual qstate_type PMeasure_dec_index(std::string) = 0;
+     
+    virtual prob_map PMeasure(std::string) = 0;
+    virtual prob_map PMeasure(QVec, std::string) = 0;
+
+    virtual prob_map getProbDict(QVec, std::string) = 0;
+    virtual prob_map probRunDict(QProg &, QVec, std::string) = 0;
+
+    virtual ~MultiPrecisionMachineInterface() {}
+};
+
 /**
 * @class QuantumMachine
 * @brief Abstract quantum machine base classes

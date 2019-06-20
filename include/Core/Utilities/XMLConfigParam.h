@@ -27,7 +27,7 @@ QPANDA_BEGIN
 class XmlConfigParam
 {
 public:
-    XmlConfigParam();
+    XmlConfigParam() ;
     bool loadFile(const std::string &filename);
     bool getMetadataConfig(int &qubit_num, std::vector<std::vector<int>> &qubit_matrix);
     bool getClassNameConfig(std::map<std::string, std::string> &class_names);
@@ -35,8 +35,8 @@ public:
     bool getQuantumCloudConfig(std::map<std::string, std::string> &cloud_config);
     bool getQGateConfig(std::vector<std::string> &single_gates, std::vector<std::string> &double_gates);
     bool getQGateTimeConfig(std::map<GateType, size_t> &gate_time);
-
-    virtual ~XmlConfigParam();
+    bool getInstructionConfig(std::map<std::string, std::map<std::string, uint32_t>> &);
+    virtual ~XmlConfigParam() {};
 private:
     TiXmlDocument m_doc;
     TiXmlElement *m_root_element;

@@ -58,7 +58,7 @@ void Traversal::traversal(AbstractQuantumCircuit * qcircuit_node,
 
     auto aiter = qcircuit_node->getFirstNodeIter();
 
-    if (aiter == qcircuit_node->getLastNodeIter())
+    if (aiter == qcircuit_node->getEndNodeIter())
         return;
 
     auto pNode = dynamic_cast<QNode *>(qcircuit_node);

@@ -344,6 +344,11 @@ QError GPUImplQPU::SqiSWAP(
     return undefineError;
 }
 
+QError GPUImplQPU::U1_GATE(size_t qn, double theta, bool isConjugate, double error_rate)
+{
+    return undefineError;
+}
+
 QError GPUImplQPU::unitarySingleQubitGate(
     size_t qn,
     QStat & matrix,

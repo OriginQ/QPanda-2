@@ -180,6 +180,26 @@ public:
         return qErrorNone;
     }
 
+
+    QError U1_GATE(size_t qn, double theta,bool isConjugate,double error_rate)
+    {
+        QGateParam& qgroup = findgroup(qn);
+        size_t ststep = 1ull << find(qgroup.qVec.begin(), qgroup.qVec.end(), qn) - qgroup.qVec.begin();
+        qcomplex_t C00 = (1,0);
+        qcomplex_t C01 = (0,0);
+        qcomplex_t C10 = (0,0);
+        qcomplex_t C11 = isConjugate? (cos(-theta), sin(-theta)) :(cos(theta),sin(theta));
+        for (size_t i = 0; i < qgroup.qstate.size(); i += ststep * 2)
+        {
+            for (size_t j = i; j < i + ststep; ++j)
+            {
+                qgroup.qstate[j + ststep] = C11 * qgroup.qstate[j + ststep];
+            }
+        }
+        return qErrorNone;
+    }
+
+
     template<const double& Nx, const double& Ny, const double& Nz>
     QError single_angle_gate(size_t qn, double theta, bool isConjugate, double error_rate)
     {

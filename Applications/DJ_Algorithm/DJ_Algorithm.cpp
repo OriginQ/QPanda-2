@@ -23,44 +23,67 @@ limitations under the License.
 using namespace std;
 USING_QPANDA
 
-QProg  Two_Qubit_DJ_Algorithm_Circuit(
-    Qubit * qubit1,
-    Qubit * qubit2,
-    ClassicalCondition & cbit,
-    std::vector<bool> oracle_function)
+using QGEN = function<QCircuit(Qubit*, Qubit*)>;
 
-{
+QGEN The_Two_Qubit_Oracle(vector<bool> oracle_function) {
+    return [oracle_function](Qubit* qubit1, Qubit* qubit2) {
+        QCircuit prog;
+        if (oracle_function[0] == false &&
+            oracle_function[1] == true)
+        {
+            // f(x) = x;
+            prog << CNOT(qubit1, qubit2);
+        }
+        else if (oracle_function[0] == true &&
+            oracle_function[1] == false)
+        {
+            // f(x) = x + 1;
+            prog << X(qubit2)
+                << CNOT(qubit1, qubit2)
+                << X(qubit2);
+        }
+        else if (oracle_function[0] == true &&
+            oracle_function[1] == true)
+        {
+            // f(x) = 1
+            prog << X(qubit2);
+        }
+        else
+        {
+            // f(x) = 0, do nothing  
+        }
+        return prog;
+    };
+}
+
+
+QProg Two_Qubit_DJ_With_Oracle(Qubit* qubit1, Qubit* qubit2, ClassicalCondition & cbit, QCircuit(*oracle)(Qubit* qubit1, Qubit* qubit2)) {
+
     auto prog = CreateEmptyQProg();
     //Firstly, create a circuit container
 
     prog << H(qubit1) << H(qubit2);
     // Perform Hadamard gate on all qubits
 
+    prog << oracle(qubit1, qubit2);
 
-    if (oracle_function[0] == false &&
-        oracle_function[1] == true)
-    {
-        // f(x) = x;
-        prog << CNOT(qubit1, qubit2);
-    }
-    else if (oracle_function[0] == true &&
-        oracle_function[1] == false)
-    {
-        // f(x) = x + 1;
-        prog << X(qubit2)
-            << CNOT(qubit1, qubit2)
-            << X(qubit2);
-    }
-    else if (oracle_function[0] == true &&
-        oracle_function[1] == true)
-    {
-        // f(x) = 1
-        prog << X(qubit2);
-    }
-    else
-    {
-        // f(x) = 0, do nothing  
-    }
+    // Finally, Hadamard the first qubit and measure it
+    prog << H(qubit1) << Measure(qubit1, cbit);
+    return prog;
+}
+
+QProg  Two_Qubit_DJ_Algorithm_Circuit(
+    Qubit * qubit1,
+    Qubit * qubit2,
+    ClassicalCondition & cbit,
+    QGEN oracle)
+{
+    auto prog = CreateEmptyQProg();
+    //Firstly, create a circuit container
+
+    prog << H(qubit1) << H(qubit2);
+    // Perform Hadamard gate on all qubits
+    prog << oracle(qubit1, qubit2);
 
     // Finally, Hadamard the first qubit and measure it
     prog << H(qubit1) << Measure(qubit1, cbit);
@@ -89,7 +112,8 @@ QProg DJ_Algorithm(QVec & qvec, ClassicalCondition & c)
 
     auto temp = Reset_Qubit(qvec[0], false);
     temp << Reset_Qubit(qvec[1], true);
-    temp << Two_Qubit_DJ_Algorithm_Circuit(qvec[0], qvec[1], c, oracle_function);
+    auto oracle = The_Two_Qubit_Oracle(oracle_function);
+    temp << Two_Qubit_DJ_Algorithm_Circuit(qvec[0], qvec[1], c, oracle);
     return temp;
 }
 
@@ -104,10 +128,9 @@ int main()
     {
         cout << "Constant function!";
     }
-    else if(c.eval()== true)
+    else if (c.eval() == true)
     {
         cout << "Balanced function!";
     }
     finalize();
 }
-

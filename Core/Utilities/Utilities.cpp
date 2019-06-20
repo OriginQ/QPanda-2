@@ -154,12 +154,12 @@ void QPanda::insertQCircuit(AbstractQGateNode * pGateNode, QCircuit & qCircuit, 
         if (pGateNode ==
             dynamic_cast<AbstractQGateNode *>(pParentIf->getTrueBranch()))
         {
-            pParentIf->setTrueBranch(&qCircuit);
+            pParentIf->setTrueBranch(qCircuit);
         }
         else if (pGateNode ==
             dynamic_cast<AbstractQGateNode *>(pParentIf->getFalseBranch()))
         {
-            pParentIf->setFalseBranch(&qCircuit);
+            pParentIf->setFalseBranch(qCircuit);
         }
         else
         {
@@ -182,7 +182,7 @@ void QPanda::insertQCircuit(AbstractQGateNode * pGateNode, QCircuit & qCircuit, 
         if (pGateNode ==
             dynamic_cast<AbstractQGateNode *>(pParentIf->getTrueBranch()))
         {
-            pParentIf->setTrueBranch(&qCircuit);
+            pParentIf->setTrueBranch(qCircuit);
         }
         else
         {

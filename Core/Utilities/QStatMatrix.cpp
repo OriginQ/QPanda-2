@@ -33,7 +33,7 @@ QStat QPanda::operator+(const QStat &matrix_left, const QStat &matrix_right)
 }
 
 
-QStat QPanda::operator+(const QStat &matrix_left, const complex<double> value)
+QStat QPanda::operator+(const QStat &matrix_left, const qcomplex_t value)
 {
     if (!isPerfectSquare((int)matrix_left.size()))
     {
@@ -54,7 +54,7 @@ QStat QPanda::operator+(const QStat &matrix_left, const complex<double> value)
 
 
 
-QStat QPanda::operator+(const complex<double> value, const QStat &matrix_right)
+QStat QPanda::operator+(const qcomplex_t value, const QStat &matrix_right)
 {
     if (!isPerfectSquare((int)matrix_right.size()))
     {
@@ -96,7 +96,7 @@ QStat QPanda::operator-(const QStat &matrix_left, const QStat &matrix_right)
 
 
 
-QStat QPanda::operator-(const QStat &matrix_left, const complex<double> &value)
+QStat QPanda::operator-(const QStat &matrix_left, const qcomplex_t &value)
 {
     if (!isPerfectSquare((int)matrix_left.size()))
     {
@@ -117,7 +117,7 @@ QStat QPanda::operator-(const QStat &matrix_left, const complex<double> &value)
 
 
 
-QStat QPanda::operator-(const complex<double> &value, const QStat &matrix_right)
+QStat QPanda::operator-(const qcomplex_t &value, const QStat &matrix_right)
 {
     if (!isPerfectSquare((int)matrix_right.size()))
     {
@@ -155,7 +155,7 @@ QStat QPanda::operator*(const QStat &matrix_left, const QStat &matrix_right)
     {
         for (int j = 0; j < dimension; j++)
         {
-            complex<double> temp = 0;
+            qcomplex_t temp = 0;
             for (int k = 0; k < dimension; k++)
             {
                 temp += matrix_left[i*dimension + k] * matrix_right[k*dimension + j];
@@ -168,7 +168,7 @@ QStat QPanda::operator*(const QStat &matrix_left, const QStat &matrix_right)
 }
 
 
-QStat QPanda::operator*(const QStat &matrix_left, const complex<double> &value)
+QStat QPanda::operator*(const QStat &matrix_left, const qcomplex_t &value)
 {
     if (!isPerfectSquare((int)matrix_left.size()))
     {
@@ -188,7 +188,7 @@ QStat QPanda::operator*(const QStat &matrix_left, const complex<double> &value)
 }
 
 
-QStat QPanda::operator*(const complex<double> &value, const QStat &matrix_right)
+QStat QPanda::operator*(const qcomplex_t &value, const QStat &matrix_right)
 {
     if (!isPerfectSquare((int)matrix_right.size()))
     {

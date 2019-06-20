@@ -4,11 +4,48 @@
 #include "gtest/gtest.h"
 #include "Core/Utilities/Transform/TransformDecomposition.h"
 #include "include/Core/Utilities/QNodeDeepCopy.h"
+#include "Core/Utilities/Micro-architecture/instructions.h"
+#include "ThirdParty/uintwide/generic_template_uintwide_t.h"
 using namespace std;
 USING_QPANDA
 
+
+
+
+string integerToBinary(size_t number, int ret_len)
+{
+ 
+    stringstream ss;
+    for (int i = ret_len - 1; i > -1; i--)
+    {
+        ss << ((number >> i) & 1);
+    }
+    return ss.str();
+}
+
+
+
+
+
+TEST(Instructions, ENCODE)
+{
+    throw exception();
+
+    LOAD(31, 31, 0);
+    BNE(31, 31, 0);
+    BLT(31, 31, 0);
+    ADDI(31, 31, 0);
+
+    cout << integerToBinary(ADD(7, 7, 31), 32);
+    getchar();
+}
+
+
+
 TEST(QNodeDeepCopy, deepCopy)
 {
+    throw exception();
+
     auto machine = initQuantumMachine(QMachineType::CPU);
     auto q = machine->allocateQubits(20);
     auto c = machine->allocateCBits(20);
@@ -44,8 +81,7 @@ TEST(QNodeDeepCopy, deepCopy)
 
 TEST(QProgTransform, QASM)
 {
-    exit(0);
-
+    throw exception();
     auto qvm = initQuantumMachine();
 
     auto prog = CreateEmptyQProg();
@@ -80,9 +116,9 @@ TEST(QProgTransform, QRunesToQProg)
     auto qvm = initQuantumMachine();
     auto prog = CreateEmptyQProg();
 
-    transformQRunesToQProg("D:\\QRunes", prog, qvm);
+    transformQRunesToQProg("D:\\PartialQRunes", prog, qvm);
 
-    cout << transformQProgToQASM(prog, qvm) << endl;
+    cout <<qvm->getAllocateQubit() << endl;
 
     qvm->finalize();
 
@@ -93,6 +129,8 @@ TEST(QProgTransform, QRunesToQProg)
 
 TEST(QProgTransform, qprogDecomposition)
 {
+    throw exception();
+
     auto qvm = initQuantumMachine(QPanda::CPU_SINGLE_THREAD);
     auto qlist = qvm->allocateQubits(4);
     auto clist = qvm->allocateCBits(4);
@@ -115,7 +153,9 @@ TEST(QProgTransform, qprogDecomposition)
     destroyQuantumMachine(qvm);
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
+    testing::GTEST_FLAG(catch_exceptions) = 1;
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }

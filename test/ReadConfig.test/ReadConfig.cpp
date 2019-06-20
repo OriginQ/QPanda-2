@@ -6,6 +6,26 @@
 using namespace std;
 USING_QPANDA
 
+TEST(ReadConfig, Instructions)
+{
+    std::cout << "======================================" << std::endl;
+    XmlConfigParam config;
+    config.loadFile(CONFIG_PATH);
+
+    std::map<std::string, std::map<std::string, uint32_t>> ins_config;
+    bool is_success = config.getInstructionConfig(ins_config);
+
+    for (auto val : ins_config)
+    {
+        cout << val.first << "======"<<endl;
+        for (auto val1 : val.second)
+        {
+            cout << val1.first << " : " << val1.second << endl;
+        }
+    }
+}
+
+
 TEST(ReadConfig, ClassName)
 {
     std::cout << "======================================" << std::endl;
@@ -40,6 +60,8 @@ TEST(ReadConfig, Metadata)
         std::cout << std::endl;
     }
 }
+
+
 
 
 TEST(ReadConfig, QGateConfig)

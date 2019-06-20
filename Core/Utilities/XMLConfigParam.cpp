@@ -233,6 +233,31 @@ bool XmlConfigParam::getQGateTimeConfig(std::map<GateType, size_t>& gate_time)
     return true;
 }
 
-XmlConfigParam::~XmlConfigParam()
+bool XmlConfigParam::getInstructionConfig(std::map<std::string, std::map<std::string, uint32_t>>& ins_config)
 {
+    if (!m_root_element)
+    {
+        return false;
+    }
+
+    TiXmlElement *instruction_element = 
+        m_root_element->FirstChildElement("Micro-Architecture");
+    if (!instruction_element)
+    {
+        return false;
+    }
+
+    for (TiXmlElement *group_element = instruction_element->FirstChildElement(); 
+        group_element; group_element = group_element->NextSiblingElement())
+    {
+        map<string, uint32_t> group_config;
+        for (TiXmlElement *element = group_element->FirstChildElement();
+            element;element = element->NextSiblingElement())
+        {
+            group_config.insert(make_pair(element->Value(), stoul(element->GetText())));
+        }
+        ins_config.insert(make_pair(group_element->Value(), group_config));
+    }
+    return true;
 }
+

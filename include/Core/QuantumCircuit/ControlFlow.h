@@ -17,6 +17,7 @@ Update@2018-8-30
 #define  _CONTROL_FLOW_H
 #include "Core/QuantumCircuit/QNode.h"
 #include "Core/QuantumCircuit/ClassicalConditionInterface.h"
+#include "Core/QuantumCircuit/QProgram.h"
 
 QPANDA_BEGIN
 /**
@@ -47,13 +48,13 @@ public:
      * @brief Set the True branch 
      * @param Node True branch node
      */
-    virtual void setTrueBranch(QNode * node) = 0;
+    virtual void setTrueBranch(QProg node) = 0;
 
     /**
      * @brief Set the False Branch object
      * @param Node False branch node
      */
-    virtual void setFalseBranch(QNode * node) = 0;
+    virtual void setFalseBranch(QProg node) = 0;
 
     /**
      * @brief Get classical expr
@@ -87,14 +88,14 @@ public:
      * @param true_node true branch node
      * @param false_node false branch node
      */
-    QIfProg(ClassicalCondition& classical_condition, QNode *true_node, QNode *false_node);
+    QIfProg(ClassicalCondition classical_condition, QProg true_node, QProg false_node);
 
     /**
      * @brief Construct a new QIfProg object
      * @param classical_condition this QIfProg classical condition
      * @param node true branch node
      */   
-    QIfProg(ClassicalCondition &classical_condition, QNode * node);
+    QIfProg(ClassicalCondition classical_condition, QProg node);
     
     /**
      * @brief Get the current node type
@@ -123,8 +124,8 @@ public:
     std::shared_ptr<QNode> getImplementationPtr();
 
 private:
-    virtual void setTrueBranch(QNode*) {};
-    virtual void setFalseBranch(QNode*) {};
+    virtual void setTrueBranch(QProg ) {};
+    virtual void setFalseBranch(QProg ) {};
     virtual void execute(QPUImpl *, QuantumGateParam *) {};
 };
 
@@ -194,11 +195,11 @@ public:
 };
 
 #define QIF_REGISTER(className)                                             \
-AbstractControlFlowNode* QifSingleCreator##className(ClassicalCondition& classical_condition, QNode* true_node)       \
+AbstractControlFlowNode* QifSingleCreator##className(ClassicalCondition classical_condition, QProg true_node)       \
 {      \
     return new className(classical_condition, true_node);                    \
 }                                                                   \
-AbstractControlFlowNode* QifDoubleCreator##className(ClassicalCondition& classical_condition, QNode* true_node, QNode* false_node) \
+AbstractControlFlowNode* QifDoubleCreator##className(ClassicalCondition classical_condition, QProg true_node, QProg false_node) \
 {      \
     return new className(classical_condition, true_node, false_node);                    \
 }                                                                   \
@@ -213,9 +214,9 @@ class OriginQIf : public QNode, public AbstractControlFlowNode
 {
 private:
     ClassicalCondition  m_classical_condition;
-    Item * m_true_item;
-    Item * m_false_item;
-    NodeType m_node_type;
+    Item * m_true_item {nullptr};
+    Item * m_false_item {nullptr};
+    NodeType m_node_type {QIF_START_NODE};
     std::shared_ptr<QNode> getImplementationPtr()
     {
         QCERR("Can't use this function");
@@ -224,9 +225,9 @@ private:
 public:
     ~OriginQIf();
     
-    OriginQIf(ClassicalCondition & classical_condition, QNode *true_node, QNode *false_node);
+    OriginQIf(ClassicalCondition classical_condition, QProg true_node, QProg false_node);
 
-    OriginQIf(ClassicalCondition & classical_condition, QNode * node);
+    OriginQIf(ClassicalCondition classical_condition, QProg node);
 
     virtual NodeType getNodeType() const;
 
@@ -234,9 +235,9 @@ public:
 
     virtual QNode* getFalseBranch() const;
 
-    virtual void setTrueBranch(QNode * node);
+    virtual void setTrueBranch(QProg node);
 
-    virtual void setFalseBranch(QNode * node);
+    virtual void setFalseBranch(QProg node);
 
     virtual ClassicalCondition *getCExpr();
 
@@ -252,7 +253,7 @@ public:
 */
 QIfProg CreateIfProg(
     ClassicalCondition classical_condition,
-    QNode *true_node);
+    QProg true_node);
 
 /**
 * @brief  QPanda2 basic interface for creating a QIf program
@@ -264,8 +265,8 @@ QIfProg CreateIfProg(
 */
 QIfProg CreateIfProg(
     ClassicalCondition classical_condition,
-    QNode *true_node,
-    QNode *false_node);
+    QProg true_node,
+    QProg false_node);
 
 /**
 * @class QWhileProg
@@ -281,7 +282,7 @@ private:
 public:
     ~QWhileProg();
     QWhileProg(const QWhileProg &);
-    QWhileProg(ClassicalCondition &, QNode *);
+    QWhileProg(ClassicalCondition , QProg);
 
     std::shared_ptr<QNode> getImplementationPtr();
     /*
@@ -317,8 +318,8 @@ public:
     virtual ClassicalCondition *getCExpr();
 
 private:
-    virtual void setTrueBranch(QNode*) {};
-    virtual void setFalseBranch(QNode*) {};
+    virtual void setTrueBranch(QProg ) {};
+    virtual void setFalseBranch(QProg ) {};
     virtual void execute(QPUImpl *, QuantumGateParam *) {};
 };
 
@@ -326,9 +327,9 @@ private:
 class OriginQWhile :public QNode, public AbstractControlFlowNode
 {
 private:
-    NodeType m_node_type;
+    NodeType m_node_type {WHILE_START_NODE};
     ClassicalCondition  m_classical_condition;
-    Item * m_true_item;
+    Item * m_true_item {nullptr};
 
     OriginQWhile();
     std::shared_ptr<QNode> getImplementationPtr()
@@ -338,7 +339,7 @@ private:
     };
 public:
     ~OriginQWhile();
-    OriginQWhile(ClassicalCondition & ccCon, QNode * node);
+    OriginQWhile(ClassicalCondition ccCon, QProg node);
 
     virtual NodeType getNodeType() const;
 
@@ -346,9 +347,9 @@ public:
 
     virtual QNode* getFalseBranch() const;
 
-    virtual void setTrueBranch(QNode * node);
+    virtual void setTrueBranch(QProg node);
 
-    virtual void setFalseBranch(QNode * node) {};
+    virtual void setFalseBranch(QProg node) {};
 
     virtual ClassicalCondition *getCExpr();
 
@@ -382,7 +383,7 @@ public:
 };
 
 #define QWHILE_REGISTER(className)                                             \
-AbstractControlFlowNode* QWhileCreator##className(ClassicalCondition& classical_condition, QNode* true_node) \
+AbstractControlFlowNode* QWhileCreator##className(ClassicalCondition &classical_condition, QProg true_node) \
 {      \
     return new className(classical_condition, true_node);                    \
 }                                                                   \
@@ -399,6 +400,6 @@ QWhileRegisterAction _G_qwhile_creator_register##className(                     
 
 QWhileProg CreateWhileProg(
     ClassicalCondition ,
-    QNode* trueNode);
+    QProg trueNode);
 QPANDA_END
 #endif // ! _CONTROL_FLOW_H

@@ -40,6 +40,7 @@ QPANDA_BEGIN
 * @brief   Quantum program basic abstract class
 * @ingroup Core
 */
+
 class AbstractQuantumProgram
 {
 public:
@@ -68,6 +69,14 @@ private:
 public:
     QProg();
     QProg(const QProg&);
+
+    template<typename Ty>
+    QProg(Ty &node);
+
+    QProg(QNode *);
+    QProg(std::shared_ptr<QNode>);
+    QProg(ClassicalCondition &node);
+
     ~QProg();
     std::shared_ptr<QNode> getImplementationPtr();
     void pushBackNode(QNode *);
@@ -121,10 +130,10 @@ public:
 class OriginProgram :public QNode, public AbstractQuantumProgram
 {
 private:
-    Item *m_head;
-    Item *m_end;
+    Item *m_head {nullptr};
+    Item *m_end {nullptr};
     SharedMutex m_sm;
-    NodeType m_node_type;
+    NodeType m_node_type {PROG_NODE};
     OriginProgram(OriginProgram&);
     std::shared_ptr<QNode> getImplementationPtr()
     {
@@ -198,6 +207,18 @@ QProg & QProg::operator<<(T node)
 }
 template <>
 QProg & QProg::operator<<<ClassicalCondition >(ClassicalCondition  node);
+
+template<typename Ty>
+QProg::QProg(Ty &node)
+    :QProg()
+{
+    if (!this->m_quantum_program)
+    {
+        throw std::runtime_error("m_quantum_program is nullptr");
+    }
+    static_assert(std::is_base_of<QNode, Ty>::value, "bad node type");
+    m_quantum_program->pushBackNode(&node);
+}
 
 QPANDA_END
 #endif

@@ -90,10 +90,10 @@ void DecomposeUnitarySingleQGateIntoMetadataSingleQGate::rotateAxis(QStat & QMat
 
     dTheta = acos(OriginAxis.nz);
 
-    qcomplex_t cTemp1 = QMatrix[0] * cos(dTheta / 2) +
-        QMatrix[1] * sin(dTheta / 2)*qcomplex_t(cos(dAlpha), sin(dAlpha));
-    qcomplex_t cTemp2 = QMatrix[2] * cos(dTheta / 2) +
-        QMatrix[3] * sin(dTheta / 2)*qcomplex_t(cos(dAlpha), sin(dAlpha));
+    qcomplex_t cTemp1 = QMatrix[0] * (qstate_type)cos(dTheta / 2) +
+        QMatrix[1] * (qstate_type)sin(dTheta / 2)*qcomplex_t(cos(dAlpha), sin(dAlpha));
+    qcomplex_t cTemp2 = QMatrix[2] * (qstate_type)cos(dTheta / 2) +
+        QMatrix[3] * (qstate_type)sin(dTheta / 2)*qcomplex_t(cos(dAlpha), sin(dAlpha));
 
     if (abs(abs(cTemp1) - 1) < ZeroJudgement)
     {
@@ -204,11 +204,11 @@ void DecomposeDoubleQGate::execute(AbstractQGateNode * pNode,
                 dSum = sqrt(abs(vMatrix[5 * i])*abs(vMatrix[5 * i]) +
                     abs(vMatrix[SingleGateMatrixSize * j + i])*abs(vMatrix[SingleGateMatrixSize * j + i]));
 
-                vMatrix2[0] = qcomplex_t(vMatrix[5 * i].real(), -vMatrix[5 * i].imag()) / dSum;
+                vMatrix2[0] = qcomplex_t(vMatrix[5 * i].real(), -vMatrix[5 * i].imag()) /(qstate_type) dSum;
                 vMatrix2[1] = qcomplex_t(vMatrix[SingleGateMatrixSize * j + i].real(),
-                    -vMatrix[SingleGateMatrixSize * j + i].imag()) / dSum;
-                vMatrix2[2] = vMatrix[SingleGateMatrixSize * j + i] / dSum;
-                vMatrix2[3] = -vMatrix[5 * i] / dSum;
+                    -vMatrix[SingleGateMatrixSize * j + i].imag()) / (qstate_type)dSum;
+                vMatrix2[2] = vMatrix[SingleGateMatrixSize * j + i] / (qstate_type)dSum;
+                vMatrix2[3] = -vMatrix[5 * i] / (qstate_type)dSum;
 
                 generateMatrixOfTwoLevelSystem(vMatrix1, vMatrix2, i, j);
 
@@ -998,7 +998,7 @@ DecomposeUnitarySingleQGateIntoMetadataSingleQGate(
         }
         else if (valid_qgate_matrix[0][1] == "X1")
         {
-            QStat QMatrix = { cos(PI / 4),-iunit * sin(PI / 4),-iunit * sin(PI / 4) ,cos(PI / 4) };
+            QStat QMatrix = { cos(PI / 4),-iunit *(qstate_type) sin(PI / 4),-iunit * (qstate_type)sin(PI / 4) ,cos(PI / 4) };
             rotateAxis(QMatrix, base.n1, base.n2);
         }
         else if (valid_qgate_matrix[0][1] == "Z1")

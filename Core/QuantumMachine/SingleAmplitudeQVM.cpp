@@ -6,6 +6,9 @@ USING_QPANDA
 
 SingleAmplitudeQVM::SingleAmplitudeQVM()
 { 
+    _Config.maxQubit = 256;
+    _Config.maxCMem = 256;
+
     m_singleGateFunc.insert(make_pair(GateType::PAULI_X_GATE,      X_Gate));
     m_singleGateFunc.insert(make_pair(GateType::PAULI_Y_GATE,      Y_Gate));
     m_singleGateFunc.insert(make_pair(GateType::PAULI_Z_GATE,      Z_Gate));
@@ -79,7 +82,7 @@ void SingleAmplitudeQVM::traversal(AbstractQGateNode *pQGate)
         case U1_GATE:
         case RX_GATE:
         case RY_GATE:
-        case RZ_GATE: 
+        case RZ_GATE:
             {
                 auto tar_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
                 auto gate_parm = dynamic_cast<angleParameter *>(pQGate->getQGate())->getParameter();
@@ -123,37 +126,37 @@ void SingleAmplitudeQVM::run(QProg &prog)
         (prog.getImplementationPtr().get()));
 }
 
-QStat SingleAmplitudeQVM::getQStat()
+stat_map SingleAmplitudeQVM::getQStat()
 {
     run(m_prog);
     if (m_prog_map.isEmptyQProg())
     {
-        QCERR("pQProg is null");
-        throw run_fail("pQProg is null");
+        QCERR("prog is null");
+        throw run_fail("prog is null");
     }
 
     auto qubit_num = m_prog_map.getQubitNum();
-
-    vector<size_t> qubit_vec;
+    Qnum qubit_vec;
     for (size_t i = 0; i < qubit_num; ++i)
     {
         qubit_vec.emplace_back(i);
     }
 
-    vector<complex<double>> temp;
+    stat_map temp;
     auto vertice = m_prog_map.getVerticeMatrix();
-    qubit_vertice_t qubit_vertice_end, qubit_vertice_begen;
+    qubit_vertice_t qubit_vertice_end, qubit_vertice_begin;
 
     for (size_t i = 0; i < qubit_num; i++)
     {
         auto iter = vertice->getQubitMapIter(qubit_vec[i]);
         auto vertice_map_iter_b = (*iter).begin();
-        qubit_vertice_begen.m_qubit_id = i;
-        qubit_vertice_begen.m_num = (*vertice_map_iter_b).first;
-        TensorEngine::dimDecrementbyValue(m_prog_map, qubit_vertice_begen, 0);
+        qubit_vertice_begin.m_qubit_id = i;
+        qubit_vertice_begin.m_num = (*vertice_map_iter_b).first;
+        TensorEngine::dimDecrementbyValue(m_prog_map, qubit_vertice_begin, 0);
     }
 
-    for (size_t j = 0; j < 1ull << qubit_num; j++)
+    uint256_t res_size = ((uint256_t)1 << qubit_num);
+    for (uint256_t j = 0; j < res_size; ++j)
     {
         auto new_map = new QuantumProgMap(m_prog_map);
         bool is_operater = false;
@@ -162,13 +165,13 @@ QStat SingleAmplitudeQVM::getQStat()
             auto iter = new_map->getVerticeMatrix()->getQubitMapIter(qubit_vec[i]);
             auto vertice_map_iter = (*iter).end();
             vertice_map_iter--;
-            size_t value = j;
-            value = (value >> i) & 1;
+
+            size_t value = ((j >> i) & 1) == 0 ? 0 : 1;
             if ((*iter).size() == 0)
             {
                 if (value != 0)
                 {
-                    temp.emplace_back(0);
+                    temp.insert(make_pair(integerToBinary(j,qubit_num),0));
                     is_operater = true;
                 }
                 continue;
@@ -181,47 +184,55 @@ QStat SingleAmplitudeQVM::getQStat()
         {
             qcomplex_data_t a;
             split(new_map, nullptr, &a);
-            temp.emplace_back(a);
+            temp.insert(make_pair(integerToBinary(j, qubit_num), a));
         }
         delete new_map;
     }
+
+    m_prog_map.clear();
     return temp;
 }
 
-double SingleAmplitudeQVM::PMeasure_index(size_t index)
+qstate_type SingleAmplitudeQVM::PMeasure_bin_index(string index)
 {
     run(m_prog);
-    if (m_prog_map.isEmptyQProg())
-    {
-        QCERR("pQProg is null");
-        throw run_fail("pQProg is null");
-    }
-
-    if (index >=(1ull << m_prog_map.getQubitNum()))
+    if (m_prog_map.isEmptyQProg() || (index.size() > m_prog_map.getQubitNum()))
     {
         QCERR("PMeasure error");
         throw qprog_syntax_error("PMeasure");
     }
 
-    vector<pair<size_t, double>> temp;
     auto vertice = m_prog_map.getVerticeMatrix();
-    qubit_vertice_t qubit_vertice_end, qubit_vertice_begen;
+    qubit_vertice_t qubit_vertice_end, qubit_vertice_begin;
     auto size = vertice->getQubitCount();
     for (size_t i = 0; i < size; i++)
     {
         auto iter = vertice->getQubitMapIter(i);
         auto vertice_map_iter_b = (*iter).begin();
-        qubit_vertice_begen.m_qubit_id = i;
-        qubit_vertice_begen.m_num = (*vertice_map_iter_b).first;
-        TensorEngine::dimDecrementbyValue(m_prog_map, qubit_vertice_begen, 0);
+        qubit_vertice_begin.m_qubit_id = i;
+        qubit_vertice_begin.m_num = (*vertice_map_iter_b).first;
+        TensorEngine::dimDecrementbyValue(m_prog_map, qubit_vertice_begin, 0);
     }
+
+    auto check=[](char bin)
+    {
+        if ('1' != bin && '0' != bin)
+        {
+            QCERR("PMeasure parm error");
+            throw qprog_syntax_error("PMeasure parm");
+        }
+        else
+        {
+            return bin == '0' ? 0 : 1;
+        }
+    };
 
     for (size_t i = 0; i < size; i++)
     {
         auto iter = m_prog_map.getVerticeMatrix()->getQubitMapIter(i);
         auto vertice_map_iter = (*iter).end();
         vertice_map_iter--;
-        size_t value = (index >> i) & 1;
+        size_t value = check(index[size - i - 1]);
         qubit_vertice_end.m_qubit_id = i;
         qubit_vertice_end.m_num = (*vertice_map_iter).first;
         TensorEngine::dimDecrementbyValue(m_prog_map, qubit_vertice_end, value);
@@ -229,112 +240,102 @@ double SingleAmplitudeQVM::PMeasure_index(size_t index)
 
     qcomplex_data_t a;
     split(&m_prog_map, nullptr, &a);
-    auto result = a.real() * a.real() + a.imag() * a.imag();
-    return result;
+    return (a.real() * a.real() + a.imag() * a.imag());
 }
 
-vector<double> 
-SingleAmplitudeQVM::PMeasure(QVec qvec, size_t select_max)
+qstate_type SingleAmplitudeQVM::PMeasure_dec_index(string index)
+{
+    uint256_t dec_index(index.c_str());
+    return PMeasure_bin_index(integerToBinary(dec_index,m_prog_map.getQubitNum()));
+}
+
+prob_map SingleAmplitudeQVM::PMeasure(QVec qvec, string select_max)
 {
     run(m_prog);
     if (m_prog_map.isEmptyQProg())
     {
-        QCERR("pQProg is null");
-        throw run_fail("pQProg is null");
+        QCERR("prog is null");
+        throw run_fail("prog is null");
+    }
+    
+    Qnum  pvec;
+    for_each(qvec.begin(), qvec.end(), [&](Qubit *qubit) 
+        {pvec.emplace_back(qubit->getPhysicalQubitPtr()->getQubitAddr()); });
+    sort(pvec.begin(), pvec.end());
+    auto iter = adjacent_find(pvec.begin(), pvec.end());
+
+    uint256_t select_max_size(select_max.c_str());
+    auto qubit_num = m_prog_map.getQubitNum();
+    Qnum qubit_vec;
+    for (size_t i = 0; i < qubit_num; ++i)
+    {
+        qubit_vec.emplace_back(i);
     }
 
-    vector<size_t>  qubit_vec;
-    for_each(qvec.begin(), qvec.end(), [&](Qubit *qubit) 
-        {qubit_vec.emplace_back(qubit->getPhysicalQubitPtr()->getQubitAddr()); });
-
-    auto qubit_num = m_prog_map.getQubitNum();
-    sort(qubit_vec.begin(), qubit_vec.end());
-    auto iter = adjacent_find(qubit_vec.begin(), qubit_vec.end());
-
-    if ((qubit_vec.end() != iter) || 
-         select_max >= (1ull << qubit_vec.size()))
+    if ((pvec.end() != iter) ||
+        select_max_size > ((uint256_t)1 << pvec.size()))
     {
         QCERR("PMeasure error");
         throw qprog_syntax_error("PMeasure");
     }
 
-    vector<double> temp(1ull << qubit_vec.size());
-    auto vertice = m_prog_map.getVerticeMatrix();
-    qubit_vertice_t qubit_vertice_end, qubit_vertice_begen;
-
-    for (size_t i = 0; i < qubit_num; i++)
+    uint256_t value_size = (uint256_t)1 << (qubit_num - pvec.size());
+    prob_map res;
+    auto pmeasure_size = pvec.size();
+    if (pmeasure_size <= qubit_num)
     {
-        auto iter = vertice->getQubitMapIter(qubit_vec[i]);
-        auto vertice_map_iter_b = (*iter).begin();
-        qubit_vertice_begen.m_qubit_id = i;
-        qubit_vertice_begen.m_num = (*vertice_map_iter_b).first;
-        TensorEngine::dimDecrementbyValue(m_prog_map, qubit_vertice_begen, 0);
-    }
+        auto vertice = m_prog_map.getVerticeMatrix();
+        qubit_vertice_t qubit_vertice_end, qubit_vertice_begin;
 
-    for (size_t j = 0; j < (1ull << qubit_num); ++j)
-    {
-        auto new_map = new QuantumProgMap(m_prog_map);
-        bool is_operater = false;
-        for (size_t i = 0; i < qubit_num; i++)
+        for (size_t i = 0; i < qubit_num; ++i)
         {
-            auto iter = new_map->getVerticeMatrix()->getQubitMapIter(qubit_vec[i]);
-            auto vertice_map_iter = (*iter).end();
-            size_t value = j;
-            value = (value >> i) & 1;
-            if ((*iter).size() == 0)
+            auto iter = vertice->getQubitMapIter(i);
+            auto vertice_map_iter_b = (*iter).begin();
+            qubit_vertice_begin.m_qubit_id = i;
+            qubit_vertice_begin.m_num = (*vertice_map_iter_b).first;
+            TensorEngine::dimDecrementbyValue(m_prog_map, qubit_vertice_begin, 0);
+        }
+
+        for (uint256_t i = 0; i < select_max_size; ++i)
+        {
+            double temp_value = 0.0;
+            for (uint256_t j = 0; j < value_size; ++j)
             {
-                if (value != 0)
+                auto new_map = new QuantumProgMap(m_prog_map);
+                bool is_operater = false;
+                uint256_t index = getDecIndex(i, j, pvec, qubit_num);
+                for (size_t k = 0; k < qubit_num; ++k)
                 {
-                    temp[j] = 0;
-                    is_operater = true;
+                    auto iter = new_map->getVerticeMatrix()->getQubitMapIter(qubit_vec[k]);
+                    auto vertice_map_iter = (*iter).end();
+                    vertice_map_iter--;
+
+                    size_t value = (size_t)((index >> k) & 1);
+                    if ((*iter).size() == 0)
+                    {
+                        if (value != 0)
+                        {
+                            temp_value += 0;
+                            is_operater = true;
+                        }
+                        continue;
+                    }
+                    qubit_vertice_end.m_qubit_id = k;
+                    qubit_vertice_end.m_num = (*vertice_map_iter).first;
+                    TensorEngine::dimDecrementbyValue(*new_map, qubit_vertice_end, value);
                 }
-                continue;
+                if (!is_operater)
+                {
+                    qcomplex_data_t a;
+                    split(new_map, nullptr, &a);
+                    temp_value += (a.real() * a.real() + a.imag() * a.imag());
+                }
+                delete new_map;
             }
-            vertice_map_iter--;
-            qubit_vertice_end.m_qubit_id = i;
-            qubit_vertice_end.m_num = (*vertice_map_iter).first;
-            TensorEngine::dimDecrementbyValue(*new_map, qubit_vertice_end, value);
-        }
-        if (!is_operater)
-        {
-            qcomplex_data_t a;
-            split(new_map, nullptr, &a);
-            auto result = a.real() * a.real() + a.imag() * a.imag();
-            temp[j] = result;
-        }
-        delete new_map;
-    }
 
-    auto pmeasure_size = qubit_vec.size();
-    if (pmeasure_size < m_prog_map.getQubitNum())
-    {
-        size_t bit = 0;
-        vector<double> result_vec(1ull << pmeasure_size);
-        for (size_t i = 0; i < temp.size(); ++i)
-        {
-            size_t result_index{ 0 };
-            for (size_t j = 0; j < pmeasure_size; ++j)
-            {
-                bit = ((i & (1 << qubit_vec[j])) >> qubit_vec[j]);
-                result_index += bit ? (1ull << j) : 0;
-            }
-            result_vec[result_index] += temp[i];
+            res.insert(make_pair(integerToString(i),temp_value));
         }
 
-        vector<double> res;
-        for (size_t i = 0; i < select_max; ++i)
-        {
-            res.emplace_back(result_vec[i]);
-        }
-        return res;
-    }
-    else if (pmeasure_size == m_prog_map.getQubitNum())
-    {
-        vector<double> res;
-        for (size_t i = 0; i < select_max; ++i)
-        {
-            res.emplace_back(temp[i]);
-        }
         return res;
     }
     else
@@ -344,18 +345,18 @@ SingleAmplitudeQVM::PMeasure(QVec qvec, size_t select_max)
     }
 }
 
-vector<pair<size_t, double>> 
-SingleAmplitudeQVM::PMeasure(size_t select_max)
+prob_map SingleAmplitudeQVM::PMeasure(string select_max)
 {
     run(m_prog);
     if (m_prog_map.isEmptyQProg())
     {
-        QCERR("pQProg is null");
-        throw run_fail("pQProg is null");
+        QCERR("prog is null");
+        throw run_fail("prog is null");
     }
-    auto qubit_num = m_prog_map.getQubitNum();
 
-    if (select_max > (1ull << qubit_num))
+    auto qubit_num = m_prog_map.getQubitNum();
+    uint256_t select_max_size(select_max.c_str());
+    if (select_max_size > ((uint256_t)1 << qubit_num))
     {
         QCERR("PMeasure Error");
         throw qprog_syntax_error("PMeasure");
@@ -367,21 +368,20 @@ SingleAmplitudeQVM::PMeasure(size_t select_max)
         qubit_vec.emplace_back(i);
     }
 
-    vector<pair<qsize_t, double>> temp;
     auto vertice = m_prog_map.getVerticeMatrix();
-    qubit_vertice_t qubit_vertice_end;
-    qubit_vertice_t qubit_vertice_begen;
+    qubit_vertice_t qubit_vertice_end,qubit_vertice_begin;
 
     for (size_t i = 0; i < qubit_num; i++)
     {
         auto iter = vertice->getQubitMapIter(qubit_vec[i]);
         auto vertice_map_iter_b = (*iter).begin();
-        qubit_vertice_begen.m_qubit_id = i;
-        qubit_vertice_begen.m_num = (*vertice_map_iter_b).first;
-        TensorEngine::dimDecrementbyValue(m_prog_map, qubit_vertice_begen, 0);
+        qubit_vertice_begin.m_qubit_id = i;
+        qubit_vertice_begin.m_num = (*vertice_map_iter_b).first;
+        TensorEngine::dimDecrementbyValue(m_prog_map, qubit_vertice_begin, 0);
     }
 
-    for (size_t j = 0; j < select_max; j++)
+    prob_map temp;
+    for (uint256_t j = 0; j < select_max_size; ++j)
     {
         auto new_map = new QuantumProgMap(m_prog_map);
         bool is_operater = false;
@@ -389,18 +389,17 @@ SingleAmplitudeQVM::PMeasure(size_t select_max)
         {
             auto iter = new_map->getVerticeMatrix()->getQubitMapIter(qubit_vec[i]);
             auto vertice_map_iter = (*iter).end();
-            size_t value = j;
-            value = (value >> i) & 1;
+            vertice_map_iter--;
+            size_t value = ((j >> i) & 1) == 0 ? 0 : 1;
             if ((*iter).size() == 0)
             {
                 if (value != 0)
                 {
-                    temp.emplace_back(make_pair(j, 0));
+                    temp.insert(make_pair(integerToString(j),0));
                     is_operater = true;
                 }
                 continue;
             }
-            vertice_map_iter--;
             qubit_vertice_end.m_qubit_id = i;
             qubit_vertice_end.m_num = (*vertice_map_iter).first;
             TensorEngine::dimDecrementbyValue(*new_map, qubit_vertice_end, value);
@@ -410,75 +409,120 @@ SingleAmplitudeQVM::PMeasure(size_t select_max)
             qcomplex_data_t a;
             split(new_map, nullptr, &a);
             auto result = a.real() * a.real() + a.imag() * a.imag();
-            temp.emplace_back(make_pair(j, result));
+            temp.insert(make_pair(integerToString(j), result));
         }
         delete new_map;
     }
-
 
     m_prog_map.clear();
     return temp;
 }
 
-
-std::vector<double> 
-SingleAmplitudeQVM::getProbList(QVec qvec, size_t select_max)
+prob_map SingleAmplitudeQVM::getProbDict(QVec qvec, string select_max)
 {
-    return PMeasure(qvec, select_max);
-}
-
-std::vector<double> 
-SingleAmplitudeQVM::probRunList(QProg &prog, QVec qvec, size_t select_max)
-{
-    run(prog);
-    return PMeasure(qvec, select_max);
-}
-
-
-std::map<std::string, double> 
-SingleAmplitudeQVM::getProbDict(QVec qvec, size_t select_max)
-{
-    auto res = PMeasure(qvec, select_max);
-
-    std::map<std::string, double>  result_map;
-    size_t size = qvec.size();
-    for (size_t i = 0; i < select_max; ++i)
+    run(m_prog);
+    if (m_prog_map.isEmptyQProg())
     {
-        stringstream ss;
-        for (int j = size - 1; j > -1; j--)
-        {
-            ss << ((i >> j) & 1);
-        }
-        result_map.insert(make_pair(ss.str(), res[i]));
+        QCERR("prog is null");
+        throw run_fail("prog is null");
     }
-    return result_map;
+
+    Qnum  pvec;
+    for_each(qvec.begin(), qvec.end(), [&](Qubit *qubit)
+    {pvec.emplace_back(qubit->getPhysicalQubitPtr()->getQubitAddr()); });
+    sort(pvec.begin(), pvec.end());
+    auto iter = adjacent_find(pvec.begin(), pvec.end());
+
+    uint256_t select_max_size(select_max.c_str());
+    auto qubit_num = m_prog_map.getQubitNum();
+    Qnum qubit_vec;
+    for (size_t i = 0; i < qubit_num; ++i)
+    {
+        qubit_vec.emplace_back(i);
+    }
+
+    if ((pvec.end() != iter) ||
+        select_max_size > ((uint256_t)1 << pvec.size()))
+    {
+        QCERR("PMeasure error");
+        throw qprog_syntax_error("PMeasure");
+    }
+
+    uint256_t value_size = (uint256_t)1 << (qubit_num - pvec.size());
+    prob_map res;
+    auto pmeasure_size = pvec.size();
+    if (pmeasure_size <= m_prog_map.getQubitNum())
+    {
+        auto vertice = m_prog_map.getVerticeMatrix();
+        qubit_vertice_t qubit_vertice_end, qubit_vertice_begin;
+
+        for (size_t i = 0; i < qubit_num; ++i)
+        {
+            auto iter = vertice->getQubitMapIter(i);
+            auto vertice_map_iter_b = (*iter).begin();
+            qubit_vertice_begin.m_qubit_id = i;
+            qubit_vertice_begin.m_num = (*vertice_map_iter_b).first;
+            TensorEngine::dimDecrementbyValue(m_prog_map, qubit_vertice_begin, 0);
+        }
+
+        for (uint256_t i = 0; i < select_max_size; ++i)
+        {
+            double temp_value = 0.0;
+            for (uint256_t j = 0; j < value_size; ++j)
+            {
+                auto new_map = new QuantumProgMap(m_prog_map);
+                bool is_operater = false;
+                uint256_t index = getDecIndex(i, j, pvec, qubit_num);
+                for (size_t k = 0; k < qubit_num; ++k)
+                {
+                    auto iter = new_map->getVerticeMatrix()->getQubitMapIter(qubit_vec[k]);
+                    auto vertice_map_iter = (*iter).end();
+                    vertice_map_iter--;
+
+                    size_t value = (size_t)((index >> k) & 1);
+                    if ((*iter).size() == 0)
+                    {
+                        if (value != 0)
+                        {
+                            temp_value += 0;
+                            is_operater = true;
+                        }
+                        continue;
+                    }
+                    qubit_vertice_end.m_qubit_id = k;
+                    qubit_vertice_end.m_num = (*vertice_map_iter).first;
+                    TensorEngine::dimDecrementbyValue(*new_map, qubit_vertice_end, value);
+                }
+                if (!is_operater)
+                {
+                    qcomplex_data_t a;
+                    split(new_map, nullptr, &a);
+                    temp_value += (a.real() * a.real() + a.imag() * a.imag());
+                }
+                delete new_map;
+            }
+
+            res.insert(make_pair(integerToBinary(i, pmeasure_size), temp_value));
+        }
+
+        return res;
+    }
+    else
+    {
+        QCERR("PMeasure error");
+        throw qprog_syntax_error("PMeasure");
+    }
 }
 
-std::map<std::string, double> 
-SingleAmplitudeQVM::probRunDict(QProg &prog, QVec qvec, size_t select_max)    
+prob_map SingleAmplitudeQVM::probRunDict(QProg &prog, QVec qvec, string select_max)
 {
     run(prog);
     return getProbDict(qvec,select_max);
 }
 
-
-std::vector<std::pair<size_t, double>> 
-SingleAmplitudeQVM::getProbTupleList(QVec qvec, size_t select_max)
+void SingleAmplitudeQVM::run(string sFilePath)
 {
-    auto res = PMeasure(qvec, select_max);
-    std::vector<std::pair<size_t, double>> result_vec;
-    for (size_t i = 0; i < res.size(); ++i)
-    {
-        result_vec.emplace_back(make_pair(i,res[i]));
-    }
-    return result_vec;
-}
-
-std::vector<std::pair<size_t, double>> 
-SingleAmplitudeQVM::probRunTupleList(QProg &prog, QVec qvec, size_t select_max)
-{
+    auto prog = CreateEmptyQProg();
+    transformQRunesToQProg(sFilePath, prog, this);
     run(prog);
-    return getProbTupleList(qvec, select_max);
 }
-
-

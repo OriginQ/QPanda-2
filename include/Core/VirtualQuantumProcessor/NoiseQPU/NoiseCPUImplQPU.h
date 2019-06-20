@@ -132,6 +132,9 @@ public:
     virtual QError S(size_t qn, Qnum& vControlBit,
         bool isConjugate, double error_rate);
 
+    virtual QError U1_GATE(size_t qn, double theta,
+        bool isConjugate, double error_rate);
+
     virtual QError RX_GATE(size_t qn, double theta,
         bool isConjugate, double error_rate);
 

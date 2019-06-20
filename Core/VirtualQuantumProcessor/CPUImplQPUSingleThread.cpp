@@ -308,11 +308,11 @@ controlunitarySingleQubitGate(size_t qn,
             qcomplex_t temp;
             temp = matrix[1];
             matrix[1] = matrix[2];
-            matrix[2] = temp;  //转置
+            matrix[2] = temp;  //杞疆
             for (size_t i = 0; i < 4; i++)
             {
                 matrix[i] = qcomplex_t(matrix[i].real(), -matrix[i].imag());
-            }//共轭
+            }//鍏辫江
         }
 
         Qnum qvtemp;
@@ -638,6 +638,11 @@ QError CPUImplQPUSingleThread::T(
     return undefineError;
 }
 
+QError CPUImplQPUSingleThread::U1_GATE(size_t qn, double theta,
+    bool isConjugate, double error_rate)
+{
+    return undefineError;
+}
 
 QError CPUImplQPUSingleThread::RX_GATE(size_t qn, double theta,
     bool isConjugate, double error_rate)
@@ -796,7 +801,7 @@ QError CPUImplQPUSingleThread::DiagonalGate(Qnum & vQubit,QStat & matrix, bool i
         for (size_t i = 0; i < matrix.size(); i++)
         {
             matrix[i] = qcomplex_t(matrix[i].real(), -matrix[i].imag());
-        }//共轭
+        }//鍏辫江
     }
     for (size_t i = 0; i < qgroup0.qstate.size(); i++)
     {
@@ -833,7 +838,7 @@ QError CPUImplQPUSingleThread::controlDiagonalGate(Qnum & vQubit, QStat & matrix
         for (size_t i = 0; i < matrix.size(); i++)
         {
             matrix[i] = qcomplex_t(matrix[i].real(), -matrix[i].imag());
-        }//共轭
+        }//鍏辫江
     }
     size_t index = 0;
     size_t block = 0;

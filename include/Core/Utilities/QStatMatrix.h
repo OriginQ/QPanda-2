@@ -22,16 +22,16 @@ QPANDA_BEGIN
 
 bool isPerfectSquare(int number);
 QStat operator+(const QStat &matrix_left, const QStat &matrix_right);
-QStat operator+(const QStat &matrix_left, const std::complex<double> value);
-QStat operator+(const std::complex<double> value, const QStat &matrix_right);
+QStat operator+(const QStat &matrix_left, const qcomplex_t value);
+QStat operator+(const qcomplex_t value, const QStat &matrix_right);
 
 QStat operator-(const QStat &matrix_left, const QStat &matrix_right);
-QStat operator-(const QStat &matrix_left, const std::complex<double> &value);
-QStat operator-(const std::complex<double> &value, const QStat &matrix_right);
+QStat operator-(const QStat &matrix_left, const qcomplex_t &value);
+QStat operator-(const qcomplex_t &value, const QStat &matrix_right);
 
 QStat operator*(const QStat &matrix_left, const QStat &matrix_right);
-QStat operator*(const QStat &matrix_left, const std::complex<double> &value);
-QStat operator*(const std::complex<double> &value, const QStat &matrix_right);
+QStat operator*(const QStat &matrix_left, const qcomplex_t &value);
+QStat operator*(const qcomplex_t &value, const QStat &matrix_right);
 
 QPANDA_END
 #endif // QSTATMATRIX_H

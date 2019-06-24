@@ -101,6 +101,18 @@ QProg的构造函数还有以下几种：
         auto cbit = cAlloc();
         QProg prog(cbit);
 
+实现QProg的这么多构造函数主要是为了实现各种节点类型向QProg的隐式转换，如：
+
+     .. code-block:: c
+
+        auto qubit = qAlloc();
+        auto cbit = cAlloc();
+        cbit.setValue(1);
+        auto gate = H(qubit);
+        auto qif = QIfProg(cbit > 1, gate);
+
+构建QIf的第二个参数本来是要传入QProg的， 但由于QGate可以构造QProg， 在使用时传入参数QGate就会隐士转换为QProg，方便使用。
+
 你可以通过如下方式向QProg尾部填充节点
 
     .. code-block:: c
@@ -136,18 +148,6 @@ QNode的类型有QGate，QPorg，QIf，Measure等等，QProg支持插入所有�
     .. note:: 
         - NodeIter是一个关于QNode的代理类，类似于STL容器的迭代器类型，支持自增与自减等操作
         - QProg节点插入删除操作会返回指向原位置的NodeIter
-
-    __ ./QProg.html#api-introduction
-
-    __ ./QCircuit.html#api-introduction
-
-    __ ./QGate.html#api-introduction
-
-    __ ./Measure.html#api-introduction
-
-    __ ./QIf.html#api-introduction
-
-    __ ./QWhile.html#api-introduction
 
 实例
 >>>>>>>>>>

@@ -26,6 +26,9 @@ C语言风格
 
 上述函数需要提供两个参数，即ClassicalCondition(量子表达式)与QProg(量子程序)
 
+.. note:: 由于QNode*、 shared_ptr<QNode>、QCircuit、QIfProg、QWhileProg、QGate、QMeasure、ClassicalCondition可以隐式转换为QProg，
+    所以在构建QWhile时第二个参数也可以传入上述中的任意一种节点。
+
 同时，通过该类内置的函数可以轻松获取QWhile操作正确分支
 
     .. code-block:: c

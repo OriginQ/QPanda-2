@@ -29,6 +29,9 @@ C语言风格
 上述函数需要提供两种类型参数，即ClassicalCondition与QProg，
 当传入1个QProg参数时，QProg表示正确分支，当传入2个QProg参数时，第一个表示正确分支，第二个表示错误分支
 
+.. note:: 由于QNode*、 shared_ptr<QNode>、QCircuit、QIfProg、QWhileProg、QGate、QMeasure、ClassicalCondition可以隐式转换为QProg，
+    所以在构建QIf时第二个参数或第三个参数也可以传入上述中的任意一种节点。
+
 同时，通过该类内置的函数可以轻松获取QIf操作正确分支与错误分支
 
     .. code-block:: c

@@ -23,6 +23,7 @@ QWhile
         qwile = CreateWhileProg(ClassicalCondition, QNode)
 
 上述函数需要提供两个参数，即ClassicalCondition量子表达式与QNode节点
+可以传入的QNode类型有： QProg、QCircuit、QGate、QWhileProg、QIfProg、QMeasure。
 
 实例
 >>>>>>>>>>

@@ -22,6 +22,16 @@
 
         prog = CreateEmptyQProg()
 
+还可以由已有的QNode节点来构建量子程序，如：
+
+    .. code-block:: python
+
+        qubit = qAlloc()
+        gate = H(qubit)
+        prog = QProg(gate)
+
+可以用类似的方式构建量子程序的有QCircuit、QGate、QWhileProg、QIfProg、ClassicalCondition、QMeasure。
+
 你可以通过如下方式向QProg尾部填充节点
 
     .. code-block:: python
@@ -34,7 +44,7 @@ QNode的类型有QGate，QPorg，QIf，Measure等等，QProg支持插入所有�
 >>>>>>>>>>
 ----
 
-    .. code-block:: c
+    .. code-block:: python
 
         from pyqpanda import *
 

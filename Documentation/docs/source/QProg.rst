@@ -10,7 +10,7 @@
 >>>>>>>>>>>>>>>>
 ----
 
-在QPanda2中，QProg是量子编程的一个容器类，是一个量子程序的最高单位。它也是QNode中的一种，初始化一个QCircuit对象有以下两种
+在QPanda2中，QProg是量子编程的一个容器类，是一个量子程序的最高单位,初始化一个空的QProg对象有以下两种
 
 C++风格
 
@@ -24,6 +24,83 @@ C语言风格
 
         QProg prog = CreateEmptyQProg();
 
+QProg的构造函数还有以下几种：
+
+通过QNode*构造量子程序：
+
+    .. code-block:: c
+
+        auto qubit = qAlloc();
+        auto gate = H(qubit);
+        auto pnode = &gate;
+        QProg prog(pnode);
+
+通过shared_ptr<QNode>构造量子程序：
+
+    .. code-block:: c
+
+        auto qubit = qAlloc();
+        auto gate = H(qubit);
+        auto pnode = gate.getImplementationPtr();
+        QProg prog(pnode);
+
+通过量子线路构造量子程序：
+
+    .. code-block:: c
+
+        auto qubit = qAlloc();
+        QCircuit circuit;
+        circuit << H(qubit);
+        QProg prog(circuit);
+
+通过QIf构造量子程序：
+
+    .. code-block:: c
+
+        auto qubit = qAlloc();
+        auto cbit = cAlloc();
+        cbit.setValue(3);
+        QCircuit circuit;
+        circuit << H(qubit);
+        QIfProg qif(cbit > 3, circuit);
+        QProg prog(qif);
+
+通过QWhile构造量子程序：
+
+    .. code-block:: c
+
+        auto qubit = qAlloc();
+        auto cbit = cAlloc();
+        cbit.setValue(3);
+        QCircuit circuit;
+        circuit << H(qubit);
+        QWhileProg qwhile(cbit > 3, circuit);
+        QProg prog(qwhile);
+
+通过QGate构造量子程序：
+
+    .. code-block:: c
+
+        auto qubit = qAlloc();
+        auto gate = H(qubit);
+        QProg prog(gate);
+
+通过QMeasure构建量子程序：
+
+    .. code-block:: c
+
+        auto qubit = qAlloc();
+        auto cbit = cAlloc();
+        auto measure = Measure(qubit, cbit);
+        QProg prog(measure);
+
+通过ClassicalCondition构建量子程序：
+
+    .. code-block:: c
+
+        auto cbit = cAlloc();
+        QProg prog(cbit);
+
 你可以通过如下方式向QProg尾部填充节点
 
     .. code-block:: c
@@ -34,7 +111,7 @@ C语言风格
     
     .. code-block:: c
 
-        QProg.pushBackNode(QNode);
+        QProg.pushBackNode(QNode *);
 
 QNode的类型有QGate，QPorg，QIf，Measure等等，QProg支持插入所有类型的QNode
 

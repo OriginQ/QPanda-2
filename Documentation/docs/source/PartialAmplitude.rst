@@ -5,14 +5,7 @@
 ----
 
 目前用经典计算机模拟量子虚拟机的主流解决方案有全振幅与单振幅两种。除此之外，还有部分振幅量子虚拟机，该方案能在更低的硬件条件下，实现更高的模拟效率。
-然而该方案并不适用于所有的量子线路，使用情况如下所述。
-
-算法适用条件
->>>>>>>>>>>>>
-----
-
- - ``量子比特数目要求`` 。部分振幅算法要求量子线路的总量子比特数目必须为偶数，否则无法对量子线路进行有效拆分。
- - ``双比特量子逻辑门要求`` 。若量子线路中出现跨节点的双量子逻辑门，即以线路中量子比特数为总量子比特数的一半为界线，双量子逻辑门的控制位量子比特与目标位量子比特分别处于界线的两侧，称为跨节点。部分振幅模拟由于其算法特殊性，对于某些跨节点双量子逻辑门，如 ``CNOT`` 、 ``CZ`` 等，可以将其分解为 ``P0`` 、 ``P1`` 和基础单量子逻辑门的组合，而不支持如 ``CR`` 、``iSWAP`` 、 ``SqiSWAP`` 等。
+部分振幅算法的基本思想是将大比特的量子计算线路图拆分成若干个小比特线路图，具体数量视线路扶持情况而定。
 
 使用介绍
 >>>>>>>>>>>>>>>>
@@ -44,6 +37,12 @@ QPanda2中设计了 ``PartialAmplitudeQVM`` 类用于运行部分振幅模拟量
         prog << CZ(qlist[1], qlist[5]) << CZ(qlist[3], qlist[5]) << CZ(qlist[2], qlist[4]);
         ...
         machine->run(prog);
+
+构建还可以采用另一种方式，即读取QRunes文件形式，例如
+
+    .. code-block:: c
+
+        machine->run("D:\\QRunes");
 
 最后调用计算接口，我们设计多种返回值的接口用于满足不同的计算需求，具体见示例所述：
 
@@ -83,31 +82,27 @@ QPanda2中设计了 ``PartialAmplitudeQVM`` 类用于运行部分振幅模拟量
                  << CZ(qlist[9], qlist[5])
                  << RY(qlist[2], PI / 4)
                  << RZ(qlist[9], PI / 4)
-                 << CZ(qlist[2], qlist[3]);
+                 << CR(qlist[2], qlist[7], PI / 2);
                 
             machine->run(prog);
             auto res = machine->getQStat();
-            for (auto val : res)
-            {
-                std::cout << val<< std::endl;
-            }
+            cout << res["0000000000"] << endl;
+            cout << res["0000000001"] << endl;
 
 上述程序的计算结果如下
 
     .. code-block:: c
 
         (-0.00647209,-0.00647209)
-        (9.46438e-18,-0.00915291)
-        (-0.00647209,-0.00647209)
+        (8.5444e-18,-0.00915291)
         ...
 
-若使用其它接口对上述量子程序进行操作：
-
-    - ``PMeasure(int)`` ,使用示例
+若使用其他接口：
+    - ``PMeasure(std::string)`` ,使用示例
 
         .. code-block:: c
 
-            auto res = machine->PMeasure(6);
+            auto res = machine->PMeasure("6");
             for (auto val :res)
             {
                 std::cout << val.first << " : " << val.second << std::endl;
@@ -124,14 +119,13 @@ QPanda2中设计了 ``PartialAmplitudeQVM`` 类用于运行部分振幅模拟量
             4 : 0.000488281
             5 : 0.000488281
 
-    - ``PMeasure(QVec,int)`` ,使用示例
+    - ``PMeasure(QVec,std::string)`` ,使用示例
 
         .. code-block:: c
 
-            QVec qvec;
-            for_each(qlist.begin(), qlist.end(), [&](Qubit *val) { qvec.emplace_back(val); });
+            QVec qv = { qlist[1],qlist[2],qlist[3] ,qlist[4] ,qlist[5] ,qlist[6] ,qlist[7] ,qlist[8],qlist[9] };
+            auto res2 = machine->PMeasure(qv, "6");
 
-            auto res = machine->PMeasure(qvec,6);
             for (auto val :res)
             {
                 std::cout << val.first << " : " << val.second << std::endl;
@@ -141,14 +135,14 @@ QPanda2中设计了 ``PartialAmplitudeQVM`` 类用于运行部分振幅模拟量
 
         .. code-block:: c
 
-            8.37758e-05
-            8.37758e-05
-            8.37758e-05
-            8.37758e-05
-            0.000488281
-            0.000488281
+            0 : 0.000167552
+            1 : 0.000167552
+            2 : 0.000976562
+            3 : 0.000976562
+            4 : 0.000976562
+            5 : 0.000976562
 
-    - ``getProbDict(qvec,int)`` ,使用示例
+    - ``getProbDict(qvec,std::string)`` ,使用示例
 
         .. code-block:: c
 
@@ -172,27 +166,29 @@ QPanda2中设计了 ``PartialAmplitudeQVM`` 类用于运行部分振幅模拟量
             0000000100 : 0.000488281
             0000000101 : 0.000488281
 
-    - ``getProbTupleList(qvec,int)`` ,使用示例
+    - ``PMeasure_bin_index(std::string)`` ,使用示例
 
         .. code-block:: c
 
-            QVec qvec;
-            for_each(qlist.begin(), qlist.end(), [&](Qubit *val) { qvec.emplace_back(val); });
+            auto res = PMeasure_bin_index("0000000001");
+            std::cout << res << std::endl;
 
-            auto res = machine->getProbTupleList(qvec,6);
-            for (auto val :res)
-            {
-                std::cout << val.first << " : " << val.second << endl;
-            }
-
-        结果输出如下：
+        通过二进制形式下标测量指定振幅，结果输出如下：
 
         .. code-block:: c
 
-            0 : 8.37758e-05
-            1 : 8.37758e-05
-            2 : 8.37758e-05
-            3 : 8.37758e-05
-            4 : 0.000488281
-            5 : 0.000488281
+            8.37758e-05
+
+    - ``PMeasure_dec_index(std::string)`` ,使用示例
+
+        .. code-block:: c
+
+            auto res = PMeasure_bin_index("1");
+            std::cout << res << std::endl;
+
+        通过十进制形式下标测量指定振幅，结果输出如下：
+
+        .. code-block:: c
+
+            8.37758e-05
 

@@ -5,7 +5,7 @@
 
 量子测量是指通过外界对量子系统进行干扰来获取需要的信息，测量门使用的是蒙特卡洛方法的测量。在量子线路中用如下图标表示：
 
-.. image:: images/measure.svg
+.. image:: images/measure-01.png
     :width: 65
 
 .. _api_introduction:
@@ -15,7 +15,7 @@
 
 本章主要介绍获得量子测量对象、根据配置运行含有量子测量的量子程序、快速测量。
 
-在量子程序中我门需要对某个量子做测量操作，并把测量结果存储到经典寄存器上，可以通过下面的方式获得一个测量对象：
+在量子程序中我们需要对某个量子比特做测量操作，并把测量结果存储到经典寄存器上，可以通过下面的方式获得一个测量对象：
 
     .. code-block:: c
 
@@ -84,7 +84,7 @@
                     << H(qubits[3])
                     << MeasureAll(qubits, cbits);
 
-            auto result = runWithConfiguration(prog, cbits, 1000);
+            auto result = quickMeasure(prog, 1000);
             for (auto &val: result)
             {
                 std::cout << val.first << ", " << val.second << std::endl;

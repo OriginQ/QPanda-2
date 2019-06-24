@@ -20,8 +20,8 @@
 # -- Project information -----------------------------------------------------
 
 project = 'QPanda-2'
-copyright = '2019, wangjing'
-author = 'wangjing'
+copyright = '2019, OriginQC'
+author = 'OriginQC'
 
 # The short X.Y version
 version = ''
@@ -60,6 +60,13 @@ master_doc = 'index'
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
 language = 'Zh_cn'
+
+extensions = [
+    'sphinx.ext.autodoc',
+    'sphinx.ext.autosummary',
+    'sphinx.ext.todo',
+    'sphinx.ext.autosectionlabel',
+]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -106,7 +113,7 @@ htmlhelp_basename = 'QPanda2introductiondoc'
 
 
 # -- Options for LaTeX output ------------------------------------------------
-
+latex_engine = 'xelatex'
 latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
     #
@@ -116,9 +123,12 @@ latex_elements = {
     #
     # 'pointsize': '10pt',
 
+    'fncychap' : '',
+
     # Additional stuff for the LaTeX preamble.
     #
-    # 'preamble': '',
+    'preamble': r'''\usepackage{ctex}
+    ''',
 
     # Latex figure (float) alignment
     #
@@ -129,8 +139,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'QPanda2introduction.tex', 'QPanda2 introduction Documentation',
-     'wangjing', 'manual'),
+    (master_doc, 'QPanda2introduction.tex', 'QPanda2 Introduction',
+     'OriginQC', 'manual'),
 ]
 
 
@@ -139,7 +149,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'qpanda2introduction', 'QPanda2 introduction Documentation',
+    (master_doc, 'qpanda2introduction', 'QPanda2 Introduction',
      [author], 1)
 ]
 
@@ -150,7 +160,7 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'QPanda2introduction', 'QPanda2 introduction Documentation',
+    (master_doc, 'QPanda2introduction', 'QPanda2 Introduction',
      author, 'QPanda2introduction', 'One line description of project.',
      'Miscellaneous'),
 ]

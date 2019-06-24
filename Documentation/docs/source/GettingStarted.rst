@@ -1,15 +1,14 @@
-ÏµÍ³ÅäÖÃºÍÏÂÔØ
+ç³»ç»Ÿé…ç½®å’Œä¸‹è½½
 ==============
 
-.. _pyqpanda: https://qpanda-2.readthedocs.io/zh_CN/latest/
-ÎªÁË¼æÈÝ \ **¸ßÐ§**\Óë\ **±ã½Ý**\£¬QPanda2Ìá¹©ÁËC++ ºÍ Python(ºóÆÚ»á·¢²¼Python°æ±¾µÄÊ¹ÓÃÎÄµµ) Á½¸ö°æ±¾£¬±¾ÎÄÖÐÖ÷Òª½éÉÜC++°æ±¾µÄÊ¹ÓÃ¡£
+.. _pyqpanda: https://qpanda-2.readthedocs.io/zh_CN/doucmentation-python/
+ä¸ºäº†å…¼å®¹ \ **é«˜æ•ˆ**\ä¸Ž\ **ä¾¿æ·**\ï¼ŒQPanda2æä¾›äº†C++ å’Œ Pythonä¸¤ä¸ªç‰ˆæœ¬ï¼Œæœ¬æ–‡ä¸­ä¸»è¦ä»‹ç»C++ç‰ˆæœ¬çš„ä½¿ç”¨ã€‚
+å¦‚è¦äº†è§£å’Œå­¦ä¹ pythonç‰ˆæœ¬çš„ä½¿ç”¨è¯·ç§»æ­¥ pyqpanda_ã€‚
 
-.. ÈçÒªÁË½âºÍÑ§Ï°python°æ±¾µÄÊ¹ÓÃÇëÒÆ²½ pyqpanda_¡£
-
-±àÒë»·¾³
+ç¼–è¯‘çŽ¯å¢ƒ
 >>>>>>>>>
 
-QPanda-2ÊÇÒÔC++ÎªËÞÖ÷ÓïÑÔ£¬Æä¶ÔÏµÍ³µÄ»·¾³ÒªÇóÈçÏÂ£º
+QPanda-2æ˜¯ä»¥C++ä¸ºå®¿ä¸»è¯­è¨€ï¼Œå…¶å¯¹ç³»ç»Ÿçš„çŽ¯å¢ƒè¦æ±‚å¦‚ä¸‹ï¼š
 
 .. list-table::
 
@@ -18,39 +17,39 @@ QPanda-2ÊÇÒÔC++ÎªËÞÖ÷ÓïÑÔ£¬Æä¶ÔÏµÍ³µÄ»·¾³ÒªÇóÈçÏÂ£º
     * - CMake
       - >= 3.1
     * - GCC
-      - >= 5.0 
+      - >= 5.4.0 
     * - Python
       - >= 3.6.0  
 
 
-ÏÂÔØQPanda-2
+ä¸‹è½½QPanda-2
 >>>>>>>>>>>>>>>>>
 
-Èç¹ûÔÚÄúµÄÏµÍ³ÉÏÒÑ¾­°²×°ÁËgit£¬ Äã¿ÉÒÔÖ±½ÓÊäÈëÒÔÏÂÃüÁîÀ´»ñÈ¡QPanda2£º
+å¦‚æžœåœ¨æ‚¨çš„ç³»ç»Ÿä¸Šå·²ç»å®‰è£…äº†gitï¼Œ ä½ å¯ä»¥ç›´æŽ¥è¾“å…¥ä»¥ä¸‹å‘½ä»¤æ¥èŽ·å–QPanda2ï¼š
 
     .. code-block:: c
 
         $ git clone https://github.com/OriginQ/QPanda-2.git
 
 
-µ±È»ÁË£¬¶ÔÓÚÒ»Ð©Îª°²×°gitµÄ»ï°éÀ´Ëµ£¬Ò²¿ÉÒÔÖ±½ÓÍ¨¹ýä¯ÀÀÆ÷È¥ÏÂÔØQPanda-2£¬ ¾ßÌåµÄ²Ù×÷²½ÖèÈçÏÂ£º
+å½“ç„¶äº†ï¼Œå¯¹äºŽä¸€äº›ä¸ºå®‰è£…gitçš„ä¼™ä¼´æ¥è¯´ï¼Œä¹Ÿå¯ä»¥ç›´æŽ¥é€šè¿‡æµè§ˆå™¨åŽ»ä¸‹è½½QPanda-2ï¼Œ å…·ä½“çš„æ“ä½œæ­¥éª¤å¦‚ä¸‹ï¼š
 
-1. ÔÚä¯ÀÀÆ÷ÖÐÊäÈë https://github.com/OriginQ/QPanda-2 £¬ ½øÈëÍøÒ³»á¿´µ½£º
+1. åœ¨æµè§ˆå™¨ä¸­è¾“å…¥ https://github.com/OriginQ/QPanda-2 ï¼Œ è¿›å…¥ç½‘é¡µä¼šçœ‹åˆ°ï¼š
 
 .. image:: images/QPanda_github.png
     :align: center  
 
-2. µã»÷ ``Clone or Download`` ¿´µ½ÈçÏÂ½çÃæ£º
+2. ç‚¹å‡» ``Clone or download`` çœ‹åˆ°å¦‚ä¸‹ç•Œé¢ï¼š
 
 .. image:: images/Clone.png
     :align: center  
 
-3. È»ºóµã»÷ ``Download zip``£¬ ¾Í»áÍê³ÉQPanda2µÄÏÂÔØ¡£
+3. ç„¶åŽç‚¹å‡» ``Download ZIP``ï¼Œ å°±ä¼šå®ŒæˆQPanda2çš„ä¸‹è½½ã€‚
 
 .. image:: images/Download.png
     :align: center  
 
-4. ½âÑ¹ÏÂÔØµÄÎÄ¼þ£¬¾Í»á¿´µ½ÎÒÃÇµÄQPanda-2ÏîÄ¿¡£
+4. è§£åŽ‹ä¸‹è½½çš„æ–‡ä»¶ï¼Œå°±ä¼šçœ‹åˆ°æˆ‘ä»¬çš„QPanda-2é¡¹ç›®ã€‚
 
     .. code-block:: c
     
@@ -60,21 +59,21 @@ QPanda-2ÊÇÒÔC++ÎªËÞÖ÷ÓïÑÔ£¬Æä¶ÔÏµÍ³µÄ»·¾³ÒªÇóÈçÏÂ£º
         $ cmake -DCMAKE_INSTALL_PREFIX=/usr/local .. 
         $ make
     
-°²×°
+å®‰è£…
 >>>>>>>>
 
-±àÒëÍê³Éºó£¬°²×°¾Í¼òµ¥µÄ¶à£¬Ö»ÐèÒªÊäÈëÒÔÏÂÃüÁî£º
+ç¼–è¯‘å®ŒæˆåŽï¼Œå®‰è£…å°±ç®€å•çš„å¤šï¼Œåªéœ€è¦è¾“å…¥ä»¥ä¸‹å‘½ä»¤ï¼š
 
     .. code-block:: c
 
         $ make install
 
-¿ªÊ¼Á¿×Ó±à³Ì
+å¼€å§‹é‡å­ç¼–ç¨‹
 >>>>>>>>>>>>>>
 
-ÏÖÔÚÎÒÃÇÀ´µ½×îºóÒ»¹Ø£¬´´½¨ºÍ±àÒë×Ô¼ºµÄÁ¿×ÓÓ¦ÓÃ¡£
+çŽ°åœ¨æˆ‘ä»¬æ¥åˆ°æœ€åŽä¸€å…³ï¼Œåˆ›å»ºå’Œç¼–è¯‘è‡ªå·±çš„é‡å­åº”ç”¨ã€‚
 
-ÎÒÏàÐÅ¶ÔÓÚ¹ØÐÄÈçºÎÊ¹ÓÃQPanda 2µÄÅóÓÑÀ´Ëµ£¬ÈçºÎ´´½¨C++ÏîÄ¿£¬²»ÐèÒªÎÒ¶àËµ¡£²»¹ý£¬ÎÒ»¹ÊÇÐèÒªÌá¹©CMakelistµÄÊ¾Àý£¬·½±ã´ó¼Ò²Î¿¼¡£
+æˆ‘ç›¸ä¿¡å¯¹äºŽå…³å¿ƒå¦‚ä½•ä½¿ç”¨QPanda 2çš„æœ‹å‹æ¥è¯´ï¼Œå¦‚ä½•åˆ›å»ºC++é¡¹ç›®ï¼Œä¸éœ€è¦æˆ‘å¤šè¯´ã€‚ä¸è¿‡ï¼Œæˆ‘è¿˜æ˜¯éœ€è¦æä¾›CMakelistçš„ç¤ºä¾‹ï¼Œæ–¹ä¾¿å¤§å®¶å‚è€ƒã€‚
 
     .. code-block:: c
 
@@ -98,7 +97,7 @@ QPanda-2ÊÇÒÔC++ÎªËÞÖ÷ÓïÑÔ£¬Æä¶ÔÏµÍ³µÄ»·¾³ÒªÇóÈçÏÂ£º
         endif (QPANDA_FOUND)
 
 
-ÏÂÃæµÄÊ¾ÀýºÍPython°æ±¾Ìá¹©µÄÊ¾ÀýÊÇÒ»ÑùµÄ£¬ÔÚÕâÀïÎÒ¾Í²»¶àËµÁË¡£
+ä¸‹é¢çš„ç¤ºä¾‹å’ŒPythonç‰ˆæœ¬æä¾›çš„ç¤ºä¾‹æ˜¯ä¸€æ ·çš„ï¼Œåœ¨è¿™é‡Œæˆ‘å°±ä¸å¤šè¯´äº†ã€‚
 
     .. code-block:: c
 
@@ -121,7 +120,7 @@ QPanda-2ÊÇÒÔC++ÎªËÞÖ÷ÓïÑÔ£¬Æä¶ÔÏµÍ³µÄ»·¾³ÒªÇóÈçÏÂ£º
             finalize();
         }
 
-×îºó£¬±àÒë£¬Æë»î¡£
+æœ€åŽï¼Œç¼–è¯‘ï¼Œé½æ´»ã€‚
 
     .. code-block:: c
 
@@ -130,12 +129,10 @@ QPanda-2ÊÇÒÔC++ÎªËÞÖ÷ÓïÑÔ£¬Æä¶ÔÏµÍ³µÄ»·¾³ÒªÇóÈçÏÂ£º
         $ cmake .. 
         $ make
 
-ÔËÐÐ½á¹ûÈçÏÂ:
+è¿è¡Œç»“æžœå¦‚ä¸‹:
 
     .. code-block:: c
 
         00 : 512
         11 : 488 
-
-
 

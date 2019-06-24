@@ -10,38 +10,38 @@ QIf表示量子程序条件判断操作，输入参数为条件判断表达式�
 >>>>>>>>>>>
 ----
 
-在QPanda2中，QIfProg类用于表示执行量子程序条件判断操作，它也是QNode中的一种，初始化一个QIfProg对象有以下两种：
+在QPanda2中，QIfProg类用于表示执行量子程序条件判断操作，初始化一个QIfProg对象有以下两种方式：
 
 C++风格
 
     .. code-block:: c
 
-        QIfProg qif = QIfProg(ClassicalCondition&, QNode*);
-        QIfProg qif = QIfProg(ClassicalCondition&, QNode*, QNode*);
+        QIfProg qif = QIfProg(ClassicalCondition, QProg);
+        QIfProg qif = QIfProg(ClassicalCondition, QProg, QProg);
 
 C语言风格
 
     .. code-block:: c
 
-        QIfProg qif = CreateIfProg(ClassicalCondition&, QNode*);
-        QIfProg qif = CreateIfProg(ClassicalCondition&, QNode*, QNode*);
+        QIfProg qif = CreateIfProg(ClassicalCondition, QProg);
+        QIfProg qif = CreateIfProg(ClassicalCondition, QProg, QProg);
 
-上述函数需要提供两种类型参数，即ClassicalCondition量子表达式与QNode节点，
-当传入1个QNode参数时，QNode表示正确分支节点，当传入2个QNode参数时，第一个表示正确分支节点，第二个表示错误分支节点
+上述函数需要提供两种类型参数，即ClassicalCondition与QProg，
+当传入1个QProg参数时，QProg表示正确分支，当传入2个QProg参数时，第一个表示正确分支，第二个表示错误分支
 
-同时，通过该类内置的函数可以轻松获取QIf操作正确分支节点与错误分支节点
+同时，通过该类内置的函数可以轻松获取QIf操作正确分支与错误分支
 
     .. code-block:: c
 
-        QIfProg qif = CreateIfProg(ClassicalCondition&, QNode*, QNode*);
-        QNode* true_branch_node  = qif.getTrueBranch();
-        QNode* false_branch_node = qif.getFalseBranch();
+        QIfProg qif = CreateIfProg(ClassicalCondition, QProg, QProg);
+        QNOde* true_branch  = qif.getTrueBranch();
+        QNode* false_branch = qif.getFalseBranch();
 
 也可以获取量子表达式
 
     .. code-block:: c
 
-        QIfProg qif = CreateIfProg(ClassicalCondition&, QNode*, QNode*);
+        QIfProg qif = CreateIfProg(ClassicalCondition, QProg, QProg);
         ClassicalCondition* expr = qif.getCExpr();
 
 实例
@@ -68,7 +68,7 @@ C语言风格
             branch_true << (cvec[1]=cvec[1]+1) << H(qvec[cvec[0]]) << (cvec[0]=cvec[0]+1);
             branch_false << H(qvec[0]) << CNOT(qvec[0],qvec[1]) << CNOT(qvec[1],qvec[2]);
 
-            auto qif = CreateIfProg(cvec[1]>5,&branch_true, &branch_false);
+            auto qif = CreateIfProg(cvec[1]>5, branch_true, branch_false);
             prog << qif;
             auto result = probRunTupleList(prog, qvec);
 

@@ -5,17 +5,22 @@
 
 目前在QPanda::Variational中定义了如下可变量子逻辑门，它们都继承自 ``VQG`` 。
 
-===========================  ========== 
- VQG                           别名
-===========================  ==========  
-VariationalQuantumGate_H      VQG_H
-VariationalQuantumGate_RX     VQG_RX
-VariationalQuantumGate_RY     VQG_RY
-VariationalQuantumGate_RZ     VQG_RZ
-VariationalQuantumGate_CNOT   VQG_CNOT
-VariationalQuantumGate_CZ     VQG_CZ
-===========================  ========== 
+.. list-table::
 
+    * - VQG                                        
+      - 别名                              
+    * - VariationalQuantumGate_H
+      - VQG_H
+    * - VariationalQuantumGate_RX
+      - VQG_RX 
+    * - VariationalQuantumGate_RY
+      - VQG_RY  
+    * - VariationalQuantumGate_RZ
+      - VQG_RZ  
+	* - VariationalQuantumGate_CNOT
+      - VQG_CNOT  
+	* - VariationalQuantumGate_CZ
+      - VQG_CZ  
 
 接口介绍
 -----------------

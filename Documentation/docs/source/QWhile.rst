@@ -10,34 +10,34 @@ QWhile
 >>>>>>>>>>>>>
 ----
 
-在QPanda2中，QWhileProg类用于表示执行量子程序while循环操作，它也是QNode中的一种，初始化一个QWhileProg对象有以下两种
+在QPanda2中，QWhileProg类用于表示执行量子程序while循环操作，初始化一个QWhileProg对象有以下两种方式：
 
 C++风格
 
     .. code-block:: c
 
-        QWhileProg qwile = QWhileProg(ClassicalCondition&, QNode*);
+        QWhileProg qwile = QWhileProg(ClassicalCondition, QProg);
 
 C语言风格
 
     .. code-block:: c
 
-        QWhileProg qwile = CreateWhileProg(ClassicalCondition&, QNode*);
+        QWhileProg qwile = CreateWhileProg(ClassicalCondition, QProg);
 
-上述函数需要提供两个参数，即ClassicalCondition量子表达式与QNode节点
+上述函数需要提供两个参数，即ClassicalCondition(量子表达式)与QProg(量子程序)
 
-同时，通过该类内置的函数可以轻松获取QWhile操作正确分支节点
+同时，通过该类内置的函数可以轻松获取QWhile操作正确分支
 
     .. code-block:: c
 
-        QWhileProg qwhile = CreateWhileProg(ClassicalCondition&, QNode*);
-        QNode* true_branch_node = qwhile.getTrueBranch();
+        QWhileProg qwhile = CreateWhileProg(ClassicalCondition, QProg);
+        QNode* true_branch = qwhile.getTrueBranch();
 
 也可以获取量子表达式
 
     .. code-block:: c
 
-        QWhileProg qwhile = CreateWhileProg(ClassicalCondition&, QNode*);
+        QWhileProg qwhile = CreateWhileProg(ClassicalCondition, QProg);
         ClassicalCondition* expr = qwhile.getCExpr();
 
 具体的操作流程可以参考下方示例
@@ -61,7 +61,7 @@ C语言风格
 
             QProg prog_in;
             prog_in<< cvec[0] << H(qvec[cvec[0]]) << (cvec[0] = cvec[0]+1);
-            auto qwhile = CreateWhileProg(cvec[0]<3,&prog_in);
+            auto qwhile = CreateWhileProg(cvec[0]<3, prog_in);
             prog << qwhile;
             auto result = probRunTupleList(prog, qvec);
 

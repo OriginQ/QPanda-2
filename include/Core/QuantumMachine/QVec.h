@@ -17,9 +17,9 @@ class QVec : public std::vector<Qubit *>
 {
     typedef std::vector<Qubit *> BaseClass;
 public:
-    QVec(BaseClass::iterator  iter_begen, BaseClass::iterator  iter_end )
+    QVec(BaseClass::iterator iter_begin, BaseClass::iterator iter_end)
     {
-        for (auto aiter = iter_begen; aiter != iter_end; aiter++)
+        for (auto aiter = iter_begin; aiter != iter_end; aiter++)
         {
             push_back(*aiter);
         }
@@ -41,7 +41,7 @@ public:
             push_back(aiter);
         }
     }
-    QVec(BaseClass & vector)
+    QVec(BaseClass &vector)
     {
         for (auto aiter = vector.begin(); aiter != vector.end(); aiter++)
         {

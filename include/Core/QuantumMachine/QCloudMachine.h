@@ -116,7 +116,7 @@ QPANDA_BEGIN
 * @param[in]  QProg the reference to a quantum program
 * @return     std::string  binary data
 */
-std::string QProgToBinary(QProg, QuantumMachine*);
+std::string qProgToBinary(QProg, QuantumMachine*);
 QPANDA_END
 
 #endif // ! QCLOUD_MACHINE_H

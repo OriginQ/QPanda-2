@@ -74,7 +74,7 @@ string QCloudMachine::runWithConfiguration
 {
     auto qubit_num = getAllocateQubit();
     rapidjson::Document::AllocatorType &allocator = parm.GetAllocator();
-    auto prog_bin = QProgToBinary(prog,this);
+    auto prog_bin = qProgToBinary(prog,this);
 
     rapidjson::Value json_elem(kStringType);
     json_elem.SetString(prog_bin.c_str(), (rapidjson::SizeType)prog_bin.size(), allocator);
@@ -178,7 +178,7 @@ string QCloudMachine::probRunDict
 (QProg &prog, QVec qvec, rapidjson::Document &parm)
 {
     auto qubit_num = getAllocateQubit();
-    auto prog_bin = QProgToBinary(prog,this);
+    auto prog_bin = qProgToBinary(prog,this);
     rapidjson::Document::AllocatorType &allocator = parm.GetAllocator();
 
     rapidjson::Value prog_elem(kStringType);
@@ -357,8 +357,7 @@ REGISTER_QUANTUM_MACHINE(QCloudMachine);
 #endif
 
 
-std::string QPanda::QProgToBinary
-(QProg prog, QuantumMachine* qm)
+std::string QPanda::qProgToBinary(QProg prog, QuantumMachine* qm)
 {
     auto avec = transformQProgToBinary(prog, qm);
 

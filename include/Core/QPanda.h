@@ -313,7 +313,7 @@ void destroyQuantumMachine(QuantumMachine * qvm);
 * @param[in]  std::vector<ClassicalCondition>&  Cbits vector
 * @return    QPanda::QProg   Quantum program
 */
-QPanda::QProg MeasureAll(QVec&, std::vector<ClassicalCondition> &);
+QPanda::QProg MeasureAll(QVec, std::vector<ClassicalCondition>);
 
 QPANDA_END
 #endif // !_QPANDA_H

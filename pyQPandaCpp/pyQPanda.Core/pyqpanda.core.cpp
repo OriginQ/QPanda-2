@@ -314,11 +314,19 @@ PYBIND11_MODULE(pyQPanda, m)
         py::return_value_policy::automatic_reference
     );
 
-    m.def("to_QASM", &transformQProgToQASM, "program"_a, "qvm"_a, "QProg to QASM",
+	m.def("to_QASM", [](QProg prog) {
+		extern QuantumMachine* global_quantum_machine;
+		return transformQProgToQASM(prog, global_quantum_machine);
+		}
+		,"program"_a, "QProg to QASM",
         py::return_value_policy::automatic_reference
     );
 
-    m.def("to_Quil", &transformQProgToQuil, "program"_a, "qvm"_a, "QProg to Quil",
+    m.def("to_Quil", [](QProg prog) {
+		extern QuantumMachine* global_quantum_machine;
+		return transformQProgToQuil(prog, global_quantum_machine);
+		}
+		, "program"_a, "QProg to Quil",
         py::return_value_policy::automatic_reference
     );
 
@@ -336,26 +344,42 @@ PYBIND11_MODULE(pyQPanda, m)
         py::return_value_policy::automatic
         );
 
-    m.def("get_clock_cycle", &getQProgClockCycle, "qvm"_a,"program"_a, "Get Quantum Program Clock Cycle",
+    m.def("get_clock_cycle", [](QProg prog) {
+		extern QuantumMachine* global_quantum_machine;
+		return getQProgClockCycle(prog, global_quantum_machine);
+		}
+		, "program"_a, "Get Quantum Program Clock Cycle",
         py::return_value_policy::automatic_reference
     );
 
-    m.def("get_bin_data", &transformQProgToBinary, "program"_a ,"qvm"_a, "Get quantum program binary data",
+    m.def("get_bin_data", [](QProg prog) {
+		extern QuantumMachine* global_quantum_machine;
+		return transformQProgToBinary(prog, global_quantum_machine);
+		}
+		, "program"_a, "Get quantum program binary data",
         py::return_value_policy::automatic_reference
     );
 
 #ifdef USE_CURL
-    m.def("get_bin_str", &QProgToBinary, "program"_a, "qvm"_a, "Get quantum program binary data string",
-        py::return_value_policy::automatic_reference
-    );
+	m.def("get_bin_data", [](QProg prog) {
+		extern QuantumMachine* global_quantum_machine;
+		return qProgToBinary(prog, global_quantum_machine);
+	}
+		, "program"_a, "Get quantum program binary data",
+		py::return_value_policy::automatic_reference
+		);
 #endif // USE_CURL
 
-    m.def("bin_to_prog", &binaryQProgDataParse, "qvm"_a, "data"_a, "qlist"_a, "clist"_a, "program"_a,
+	m.def("bin_to_prog", [](const std::vector<uint8_t>& data, QVec & qubits,
+		std::vector<ClassicalCondition>& cbits, QProg & prog) {
+			extern QuantumMachine* global_quantum_machine;
+			return binaryQProgDataParse(global_quantum_machine, data, qubits, cbits, prog);
+		}
+		, "data"_a, "qlist"_a, "clist"_a, "program"_a,
         "Parse quantum program interface for  binary data vector",
         py::return_value_policy::automatic_reference
     );
-
-
+	
     m.def("PMeasure", &PMeasure,
         "Get the probability distribution over qubits",
         py::return_value_policy::automatic
@@ -460,7 +484,6 @@ PYBIND11_MODULE(pyQPanda, m)
         BIND_CLASSICALCOND_OPERATOR_OVERLOAD(/ )
         BIND_CLASSICALCOND_OPERATOR_OVERLOAD(== )
         ;
-
         
     m.def("add", [](ClassicalCondition a, ClassicalCondition b)
     {return a + b; });

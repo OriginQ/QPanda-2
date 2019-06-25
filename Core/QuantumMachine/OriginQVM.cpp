@@ -227,8 +227,8 @@ Qubit * QVM::allocateQubitThroughVirAddress(size_t qubit_num)
 {
     if (nullptr == _Qubit_Pool)
     {
-        QCERR("_Qubit_Pool is nullptr ,you must init qvm at first");
-        throw qvm_attributes_error("_Qubit_Pool is nullptr ,you must init qvm at first");
+        QCERR("_Qubit_Pool is nullptr ,you must init global_quantum_machine at first");
+        throw qvm_attributes_error("_Qubit_Pool is nullptr ,you must init global_quantum_machine at first");
     }
     return _Qubit_Pool->allocateQubitThroughVirAddress(qubit_num);
 }
@@ -330,8 +330,8 @@ size_t QVM::getVirtualQubitAddress(Qubit *qubit)const
 
     if (nullptr == _Qubit_Pool)
     {
-        QCERR("_Qubit_Pool is nullptr,you must init qvm");
-        throw qvm_attributes_error("_Qubit_Pool is nullptr,you must init qvm");
+        QCERR("_Qubit_Pool is nullptr,you must init global_quantum_machine");
+        throw qvm_attributes_error("_Qubit_Pool is nullptr,you must init global_quantum_machine");
     }
 
     return _Qubit_Pool->getVirtualQubitAddress(qubit);

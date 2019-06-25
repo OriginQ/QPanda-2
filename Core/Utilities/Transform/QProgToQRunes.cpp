@@ -70,8 +70,8 @@ void QProgToQRunes::transformQGate(AbstractQGateNode * pQGate)
     auto iter = m_gatetype.find(pQGate->getQGate()->getGateType());
     if (iter == m_gatetype.end())
     {
-        QCERR("unknow error");
-        throw runtime_error("unknow error");
+        QCERR("unknown error");
+        throw runtime_error("unknown error");
     }
 
     string first_qubit = to_string(qubits_vector.front()->getPhysicalQubitPtr()->getQubitAddr());
@@ -94,10 +94,18 @@ void QProgToQRunes::transformQGate(AbstractQGateNode * pQGate)
     case Z_HALF_PI:
     case HADAMARD_GATE:
     case T_GATE:
-    case S_GATE: 
-    case U4_GATE:
+    case S_GATE:
+		m_QRunes.emplace_back(item + " " + first_qubit);
+		break;
+    case U4_GATE:		
         {
-            m_QRunes.emplace_back(item + " " + first_qubit);
+		QGATE_SPACE::U4 *u4gate = dynamic_cast<QGATE_SPACE::U4*>(pQGate->getQGate());
+		m_QRunes.emplace_back(item
+			+ "(" + std::to_string(u4gate->getAlpha())
+			+ "," + std::to_string(u4gate->getBeta())
+			+ "," + std::to_string(u4gate->getGamma())
+			+ "," + std::to_string(u4gate->getDelta())
+			+ ") " + first_qubit);
         }
         break;
 
@@ -106,7 +114,7 @@ void QProgToQRunes::transformQGate(AbstractQGateNode * pQGate)
     case RY_GATE:
     case RZ_GATE:
         {
-            angleParameter * gate_parameter = dynamic_cast<angleParameter *>(pQGate->getQGate());
+            angleParameter * gate_parameter = dynamic_cast<angleParameter*>(pQGate->getQGate());
             string  gate_angle = to_string(gate_parameter->getParameter());
             m_QRunes.emplace_back(item + " " + first_qubit + ","+"\"" + gate_angle+"\"");
         }
@@ -142,15 +150,15 @@ void QProgToQRunes::transformQGate(AbstractQGateNode * pQGate)
        }
        break;
 
-    default:m_QRunes.emplace_back("UnSupported GateNode");
+    default:m_QRunes.emplace_back("Unsupported GateNode");
     }
     if (!ctr_qubits_vector.empty())
     {
-        m_QRunes.emplace_back("ENCONTROL " + all_ctr_qubits);
+        m_QRunes.emplace_back("ENDCONTROL " + all_ctr_qubits.substr(0, all_ctr_qubits.length() - 1));
     }
     if (pQGate->isDagger())
     {
-        m_QRunes.emplace_back("ENDAGGER");
+        m_QRunes.emplace_back("ENDDAGGER");
     }
 }
 

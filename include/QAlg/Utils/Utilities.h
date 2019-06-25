@@ -51,11 +51,7 @@ inline QCircuit apply_QGate(std::vector<Qubit*> qubits, std::function<QGate(Qubi
 }
 
 template<typename InputType, typename OutputType>
-class Oracle : public std::function<QCircuit(InputType, OutputType)> { 
-public:
-	Oracle(std::function<QCircuit(InputType, OutputType)> func):
-		std::function <QCircuit(InputType, OutputType)>(func) {}
-};
+using Oracle = std::function<QCircuit(InputType, OutputType)>;
 
 inline QGate Toffoli(Qubit* qc1, Qubit* qc2, Qubit* target) {
 	auto gate = X(target);

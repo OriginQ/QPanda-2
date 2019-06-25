@@ -20,7 +20,7 @@ limitations under the License.
 QPANDA_BEGIN
 QProg Reset_Qubit(Qubit* q, bool setVal);
 
-QProg  Reset_Qubit_Circuit(Qubit *q, ClassicalCondition& cbit, bool setVal);
+QProg Reset_Qubit_Circuit(Qubit *q, ClassicalCondition& cbit, bool setVal);
 
 QProg Reset_All(std::vector<Qubit*> qubit_vector, bool setVal);
 
@@ -28,11 +28,39 @@ QProg Reset_All(std::vector<Qubit*> qubit_vector, bool setVal);
 CNOT all qubits (except last) with the last qubit
 
 param:
-    qubit_vec: qubit vecotr
+    qubit_vec: qubit vector
 return:
     QCircuit
-
 */
 QCircuit parity_check_circuit(std::vector<Qubit*> qubit_vec);
+
+/*
+Apply Quantum Gate on a series of Qubit
+
+param:
+	qubits: qubit vector
+return:
+	QCircuit
+*/
+inline QCircuit apply_QGate(std::vector<Qubit*> qubits, std::function<QGate(Qubit*)> gate) {
+	QCircuit c;
+	for (auto qubit : qubits) {
+		c << gate(qubit);
+	}
+	return c;
+}
+
+template<typename InputType, typename OutputType>
+class Oracle : public std::function<QCircuit(InputType, OutputType)> { 
+public:
+	Oracle(std::function<QCircuit(InputType, OutputType)> func):
+		std::function <QCircuit(InputType, OutputType)>(func) {}
+};
+
+inline QGate Toffoli(Qubit* qc1, Qubit* qc2, Qubit* target) {
+	auto gate = X(target);
+	return gate.control({ qc1,qc2 });
+}
+
 QPANDA_END
 #endif

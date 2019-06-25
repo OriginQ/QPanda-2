@@ -25,6 +25,7 @@ void add_up_a_map(std::map<std::string, size_t> &meas_result, std::string key);
 void insertQCircuit(AbstractQGateNode * pGateNode,
     QCircuit & qCircuit,
     QNode * pParentNode);
+
 QPANDA_END
 
 #endif // !1

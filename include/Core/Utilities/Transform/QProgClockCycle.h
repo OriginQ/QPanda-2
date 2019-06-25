@@ -69,7 +69,7 @@ private:
 * @param[in]  QProg& quantum program
 * @return     Eigen::size_t   Clock cycle  result
 */
-size_t getQProgClockCycle(QuantumMachine *qm, QProg &prog);
+size_t getQProgClockCycle(QProg &prog, QuantumMachine *qm);
 QPANDA_END
 #endif // _QPROG_CLOCK_CYCLE_H
 

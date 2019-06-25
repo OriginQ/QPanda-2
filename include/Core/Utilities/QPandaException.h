@@ -237,7 +237,7 @@ class qvm_attributes_error : public QPandaException
 public:
     qvm_attributes_error()
         : QPandaException(
-            "qvm attributes is nullptr")
+            "global_quantum_machine attributes is nullptr")
     {}
     qvm_attributes_error(std::string err)
         : QPandaException(err)

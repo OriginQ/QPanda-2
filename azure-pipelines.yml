@@ -1,0 +1,33 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+language: cpp
+sudo: false
+matrix:
+  include:
+    # works on Precise and Trusty
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-7
+      env:
+        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+addons:
+  apt:
+    packages:
+      - cmake
+before_install:
+    - eval "${MATRIX_EVAL}"
+before_script:
+  - cmake --version
+  - mkdir build
+  - cd build
+  - cmake . ${TRAVIS_BUILD_DIR}
+  - make clean
+  - make
+script: ./bin/HHL_Algorithm

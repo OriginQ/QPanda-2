@@ -1,20 +1,26 @@
-# Universal Windows Platform  
-# Build a Universal Windows Platform project using Visual Studio.
-# Add steps that test and distribute an app, save build artifacts, and more:
-# https://aka.ms/yaml
-
 trigger:
 - master
 
-pool:
-  vmImage: 'vs2017-win2016'
+jobs:
+- job: Windows
+  pool:
+    vmImage: 'vs2017-win2016'
 
-steps:
-- script: |
-    mkdir build & cd build
-    cmake -A x64 ..
-    call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86_amd64
-    cmake --build . -- /p:Configuration=Release
+  steps:
+  - script: |
+     mkdir build & cd build
+     cmake -A x64 ..
+     call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86_amd64
+     cmake --build . -- /p:Configuration=Release
+  displayName: 'build QPanda on Windows vm'
 
-
-  displayName: 'build QPanda2'
+- job: Macos
+  pool:
+    vmImage: 'macOS-10.13'
+  steps:
+  - script: |
+     mkdir build 
+     cd build
+     cmake  ..
+     make 
+  displayName: 'make QPanda2 available on mac os vm'

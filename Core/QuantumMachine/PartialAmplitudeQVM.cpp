@@ -459,3 +459,64 @@ void PartialAmplitudeQVM::run(string sFilePath)
     transformQRunesToQProg(sFilePath, prog, this);
     run(prog);
 }
+
+prob_map PartialAmplitudeQVM::PMeasureSubSet(QProg &prog, std::vector<std::string> subset_vec)
+{
+    run(prog);
+    if (nullptr == m_prog_map || 0 == subset_vec.size())
+    {
+        QCERR("prog is null");
+        throw run_fail("prog is null");
+    }
+
+    for_each(subset_vec.begin(), subset_vec.end(), [&](std::string str)
+    {
+        if (str.length() != m_prog_map->m_qubit_num)
+        {
+            QCERR("parm error");
+            throw run_fail("parm error");
+        };
+    });
+
+    vector<vector<QStat>> graph_stat_map;
+    getSubGraphStat(graph_stat_map);
+
+    auto check = [](char bin)
+    {
+        if ('1' != bin && '0' != bin)
+        {
+            QCERR("PMeasure parm error");
+            throw qprog_syntax_error("PMeasure parm");
+        }
+        else
+        {
+            return bin == '0' ? 0 : 1;
+        }
+    };
+
+    prob_map result_map;
+    uint64_t low_pos, high_pos;
+    for (auto val : subset_vec)
+    {
+        qcomplex_t value(0, 0);
+        uint128_t u_index = 0;
+        size_t len = val.size();
+        for (size_t i = 0; i < len; ++i)
+        {
+            u_index += check(val[len - i - 1]) << i;
+        }
+
+        getAvgBinary(u_index, low_pos, high_pos, m_prog_map->m_qubit_num);
+        for (size_t j = 0; j < graph_stat_map.size(); ++j)
+        {
+            value = value + graph_stat_map[j][0][low_pos] * graph_stat_map[j][1][high_pos];
+        }
+
+        result_map.insert(make_pair(val,
+            (value.real()*value.real() + value.imag()*value.imag())));
+    }
+
+    return result_map;
+}
+
+

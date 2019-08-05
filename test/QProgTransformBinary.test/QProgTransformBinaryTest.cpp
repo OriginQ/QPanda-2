@@ -13,8 +13,9 @@ USING_QPANDA
 TEST(QProgTransformBinaryStore, QBinaryStore)
 {
     auto qvm = initQuantumMachine();
-    auto qubits = qAllocMany(4);
-    auto cbits = cAllocMany(4);
+    auto qubits = qvm->allocateQubits(4);
+    auto cbits = qvm->allocateCBits(4);
+
     cbits[0].setValue(0);
 
     QProg prog;

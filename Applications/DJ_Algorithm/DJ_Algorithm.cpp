@@ -57,19 +57,22 @@ DJ_Oracle generate_two_qubit_oracle(vector<bool> oracle_function) {
     };
 }
 
-QProg Deutsch_Jozsa_algorithm(vector<Qubit*> qubit1, Qubit* qubit2, vector<ClassicalCondition> cbit, DJ_Oracle oracle) {
+QProg Deutsch_Jozsa_algorithm(vector<Qubit*> qubit_vector,
+    Qubit* qubit2, 
+    vector<ClassicalCondition> cbit_vector,
+    DJ_Oracle oracle) {
 
     auto prog = CreateEmptyQProg();
     //Firstly, create a circuit container
 
 	prog << X(qubit2);
-    prog << apply_QGate(qubit1, H) << H(qubit2);
+    prog << apply_QGate(qubit_vector, H) << H(qubit2);
     // Perform Hadamard gate on all qubits
 
-    prog << oracle(qubit1, qubit2);
+    prog << oracle(qubit_vector, qubit2);
 
     // Finally, Hadamard the first qubit and measure it
-    prog << apply_QGate(qubit1, H) << MeasureAll(qubit1, cbit);
+    prog << apply_QGate(qubit_vector, H) << MeasureAll(qubit_vector, cbit_vector);
     return prog;
 }
 

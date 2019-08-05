@@ -6,12 +6,17 @@ Description  : Quantum program adaptation metadata instruction set
 *******************************************************************/
 #ifndef _TRAVERSAL_DECOMPOSITION_ALGORITHM_H
 #define _TRAVERSAL_DECOMPOSITION_ALGORITHM_H
-#include "Core/QuantumCircuit/QProgram.h"
-#include "Core/QPanda.h"
 #include <functional>
+#include "Core/QuantumCircuit/ClassicalProgram.h"
+#include "Core/Utilities/QPandaNamespace.h"
+#include "Core/QuantumCircuit/QProgram.h"
+#include "Core/QuantumCircuit/QCircuit.h"
+#include "Core/QuantumCircuit/QGate.h"
 #include "Core/Utilities/QStatMatrix.h"
 #include "Core/Utilities/GraphDijkstra.h"
 #include "Core/Utilities/Traversal.h"
+#include "Core/QuantumMachine/OriginQuantumMachine.h"
+
 QPANDA_BEGIN
 using QGATE_SPACE::angleParameter;
 

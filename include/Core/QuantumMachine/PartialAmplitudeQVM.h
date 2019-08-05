@@ -107,9 +107,15 @@ public:
     * @note  output example: <0000000110:0.000167552>
     */
     prob_map probRunDict(QProg &, QVec, std::string);
-    
-    prob_map PMeasureSubSet(QProg &, std::vector<std::string>);
 
+    /**
+    * @brief    PMeasureSubSet
+    * @param[in]  QProg  qubits vec
+    * @param[in]  std::vector<std::string>   
+    * @return     prob_map std::map<std::string, qstate_type>
+    * @note  output example: <0000000110:0.000167552>
+    */
+    prob_map PMeasureSubSet(QProg &prog, std::vector<std::string> subset_vec);
 private:
     MergeMap *m_prog_map;
 

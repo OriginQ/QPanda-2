@@ -59,7 +59,7 @@ public:
         return temp;
     }
 
-    inline Qubit * operator[](cbit_size_t  pos)
+    inline Qubit * operator[](size_t  pos)
     {
         if(pos > (cbit_size_t)size())
         {

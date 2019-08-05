@@ -59,6 +59,7 @@ QuantumMachine *QPanda::initQuantumMachine(const QMachineType class_type)
     }
     try
     {
+        global_quantum_machine = qm;
         qm->init();
         return qm;
     }
@@ -73,13 +74,21 @@ QuantumMachine *QPanda::initQuantumMachine(const QMachineType class_type)
 void QPanda::destroyQuantumMachine(QuantumMachine *qvm)
 {
     if (!qvm)
+    {
         qvm->finalize();
+        delete qvm;
+    }
 }
 
 bool QPanda::init(const QMachineType class_type)
 {
     global_quantum_machine = initQuantumMachine(class_type);
-    return global_quantum_machine;
+    if(nullptr == global_quantum_machine)
+    {
+        return false;
+    }
+
+    return true;
 }
 
 void QPanda::finalize()

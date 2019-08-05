@@ -6,9 +6,6 @@ USING_QPANDA
 
 SingleAmplitudeQVM::SingleAmplitudeQVM()
 { 
-    _Config.maxQubit = 256;
-    _Config.maxCMem = 256;
-
     m_singleGateFunc.insert(make_pair(GateType::PAULI_X_GATE,      X_Gate));
     m_singleGateFunc.insert(make_pair(GateType::PAULI_Y_GATE,      Y_Gate));
     m_singleGateFunc.insert(make_pair(GateType::PAULI_Z_GATE,      Z_Gate));
@@ -34,6 +31,8 @@ SingleAmplitudeQVM::SingleAmplitudeQVM()
 
 void SingleAmplitudeQVM::init()
 {
+    _Config.maxQubit = 256;
+    _Config.maxCMem = 256;
     _start();
 }
 

@@ -15,6 +15,7 @@ limitations under the License.
 */
 
 #include "QAlg/Utils/Utilities.h"
+#include "Core/QPanda.h"
 USING_QPANDA
 QProg  QPanda::Reset_Qubit_Circuit(Qubit *q, ClassicalCondition& cbit, bool setVal)
 {

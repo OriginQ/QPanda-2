@@ -16,7 +16,6 @@ limitations under the License.
 /*! \file QPanda.h */
 #ifndef _QPANDA_H
 #define _QPANDA_H
-
 #include "Core/QuantumCircuit/QuantumMeasure.h"
 #include "Core/QuantumCircuit/QGate.h"
 #include "Core/QuantumCircuit/QProgram.h"
@@ -35,10 +34,10 @@ limitations under the License.
 #include "Core/Utilities/Transform/QProgDataParse.h"
 #include "Core/Utilities/XMLConfigParam.h"
 #include "Core/Utilities/QPandaException.h"
-#include "Core/Utilities/QPandaException.h"
 #include "Core/Utilities/Transform/QGateCompare.h"
 #include "Core/Utilities/MetadataValidity.h"
 #include "Core/Utilities/Transform/QProgClockCycle.h"
+
 QPANDA_BEGIN
 /**
 * @brief  Init the environment

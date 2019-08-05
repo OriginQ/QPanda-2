@@ -16,7 +16,12 @@ limitations under the License.
 
 #ifndef UTILITIES_H
 #define UTILITIES_H
-#include "Core/QPanda.h"
+#include "Core/QuantumCircuit/ClassicalProgram.h"
+#include "Core/Utilities/QPandaNamespace.h"
+#include "Core/QuantumCircuit/QProgram.h"
+#include "Core/QuantumCircuit/QCircuit.h"
+#include "Core/QuantumCircuit/QGate.h"
+#include <functional>
 QPANDA_BEGIN
 QProg Reset_Qubit(Qubit* q, bool setVal);
 
@@ -42,7 +47,7 @@ param:
 return:
 	QCircuit
 */
-inline QCircuit apply_QGate(std::vector<Qubit*> qubits, std::function<QGate(Qubit*)> gate) {
+inline QCircuit apply_QGate(QVec qubits, std::function<QGate(Qubit*)> gate) {
 	QCircuit c;
 	for (auto qubit : qubits) {
 		c << gate(qubit);

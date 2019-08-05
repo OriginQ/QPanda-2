@@ -143,6 +143,8 @@ TEST(VariationalTest, QAOATest)
     {
         std::cout << i.first << " : " << i.second << std::endl;
     }
+
+	destroyQuantumMachine(machine);
 }
 
 TEST(VariationalTest, VQPTest)
@@ -348,7 +350,7 @@ TEST(VariationalTest, crossEntropyTest) {
 	/*
 	MatrixXd yy = y.getValue();
 	MatrixXd xx = x.getValue();
-	MatrixXd dz1_dx = MatrixXd::Zero(1,xx.size()); // dz1_dx Îªz1¹ØÓÚxµÄÆ«µ¼Êý
+	MatrixXd dz1_dx = MatrixXd::Zero(1,xx.size()); // dz1_dx Îªz1ï¿½ï¿½ï¿½ï¿½xï¿½ï¿½Æ«ï¿½ï¿½ï¿½ï¿½
 	for (auto i = 0; i < xx.size(); i++) {
 		dz1_dx(i) = -yy(i) / xx(i);
 	}

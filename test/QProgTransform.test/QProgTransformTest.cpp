@@ -74,7 +74,7 @@ TEST(QNodeDeepCopy, deepCopy)
     std::cout << transformQProgToQRunes(temp, machine) << endl;
     std::cout << transformQProgToQRunes(prog, machine) << endl;
 
-    machine->finalize();
+    destroyQuantumMachine(machine);
     getchar();
 }
 
@@ -107,7 +107,7 @@ TEST(QProgTransform, QASM)
 
     cout << transformQProgToQASM(prog, qvm);
 
-    qvm->finalize();
+    destroyQuantumMachine(qvm);
     getchar();
 }
 
@@ -119,8 +119,6 @@ TEST(QProgTransform, QRunesToQProg)
     transformQRunesToQProg("D:\\PartialQRunes", prog, qvm);
 
     cout <<qvm->getAllocateQubit() << endl;
-
-    qvm->finalize();
 
     destroyQuantumMachine(qvm);
 

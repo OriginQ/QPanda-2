@@ -229,16 +229,11 @@ void MergeMap::splitQlist(std::vector<QGateNode> &QCir)
                 break;
             }
         }
-
         map<bool, vector<QGateNode>> QlistMap;
-        if (!Cir0.empty())
-        {
-            QlistMap.insert(make_pair(false, Cir0));
-        }
-        if (!Cir1.empty())
-        {
-            QlistMap.insert(make_pair(true, Cir1));
-        }
+
+        QlistMap.insert(make_pair(false, Cir0));
+        QlistMap.insert(make_pair(true, Cir1));
+
         m_circuit_vec.emplace_back(QlistMap);
     }
 }

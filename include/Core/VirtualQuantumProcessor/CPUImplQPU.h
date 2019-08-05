@@ -28,7 +28,7 @@ limitations under the License.
 #endif
 
 #ifndef PI
-#define PI 3.14159265358979
+#define PI 3.14159265358979323846
 #endif
 
 #define DECL_GATE_MATRIX(NAME)\
@@ -188,7 +188,7 @@ public:
         qcomplex_t C00 = (1,0);
         qcomplex_t C01 = (0,0);
         qcomplex_t C10 = (0,0);
-        qcomplex_t C11 = isConjugate? (cos(-theta), sin(-theta)) :(cos(theta),sin(theta));
+        qcomplex_t C11 = isConjugate? qcomplex_t(cos(-theta), sin(-theta)) :qcomplex_t(cos(theta),sin(theta));
         for (size_t i = 0; i < qgroup.qstate.size(); i += ststep * 2)
         {
             for (size_t j = i; j < i + ststep; ++j)

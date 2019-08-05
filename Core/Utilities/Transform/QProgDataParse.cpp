@@ -1,5 +1,5 @@
 #include "Core/Utilities/Transform/QProgDataParse.h"
-#include "Core/QPanda.h"
+#include "include/Core/QuantumCircuit/ClassicalConditionInterface.h"
 
 using namespace std;
 USING_QPANDA
@@ -129,12 +129,15 @@ bool QProgDataParse::load(const std::string &filename)
     in.read((char *)&one_data_node, sizeof(one_data_node));
     uint32_t qubit_number = one_data_node.first;
     uint32_t cbit_number = one_data_node.second.qubit_data;
-    m_qubits = m_quantum_machine->allocateQubits(qubit_number);
-    m_cbits = m_quantum_machine->allocateCBits(cbit_number);
+    m_qubits_count = qubit_number;
+    m_cbits_count = cbit_number;
 
     m_data_vector.resize(m_node_counter);
     in.read((char *)m_data_vector.data(), m_node_counter * sizeof(one_data_node));
     in.close();
+    m_qubits_addr.clear();
+    m_cbits_addr.clear();
+
     return true;
 }
 
@@ -158,12 +161,14 @@ bool QProgDataParse::load(const std::vector<uint8_t>& data)
         sizeof(one_data_node));
     uint32_t qubit_number = one_data_node.first;
     uint32_t cbit_number = one_data_node.second.qubit_data;
+    m_qubits_count = qubit_number;
+    m_cbits_count = cbit_number;
 
-    m_qubits = m_quantum_machine->allocateQubits(qubit_number);
-    m_cbits = m_quantum_machine->allocateCBits(cbit_number);
     m_data_vector.resize(m_node_counter);
     memcpy(m_data_vector.data(), data.data() + 2 * sizeof(one_data_node),
         m_node_counter * sizeof(one_data_node));
+    m_qubits_addr.clear();
+    m_cbits_addr.clear();
 
     return true;
 }
@@ -187,14 +192,50 @@ bool QProgDataParse::parse(QProg &prog)
     return true;
 }
 
-QVec QProgDataParse::getQubits() const
+QVec QProgDataParse::getQubits()
 {
-    return m_qubits;
+    size_t left_qubit_count = m_qubits_count - m_qubits_addr.size();
+    auto left_qubits = m_quantum_machine->allocateQubits(left_qubit_count);
+    for (auto qubit : left_qubits)
+    {
+        size_t qubit_addr = qubit->getPhysicalQubitPtr()->getQubitAddr();
+        m_qubits_addr.push_back(qubit_addr);
+    }
+
+    std::stable_sort(m_qubits_addr.begin(), m_qubits_addr.end(),
+                     [](size_t a, size_t b){return a < b ;});
+    QVec qubits;
+    for (auto qubit_addr : m_qubits_addr)
+    {
+        auto qubit = m_quantum_machine->allocateQubitThroughVirAddress(qubit_addr);
+        qubits.push_back(qubit);
+    }
+
+    return qubits;
 }
 
-std::vector<ClassicalCondition> QProgDataParse::getCbits() const
+std::vector<ClassicalCondition> QProgDataParse::getCbits()
 {
-    return m_cbits;
+    size_t left_cbit_count = m_cbits_count - m_cbits_addr.size();
+    auto left_cbits = m_quantum_machine->allocateCBits(left_cbit_count);
+    for (auto cbit : left_cbits)
+    {
+        auto cbit_name = cbit.getExprPtr()->getCBit()->getName();
+        cbit_name.erase(cbit_name.begin(), cbit_name.begin() + 1);
+        auto cbit_addr = std::stoull(cbit_name);
+        m_cbits_addr.push_back(cbit_addr);
+    }
+
+    std::stable_sort(m_cbits_addr.begin(), m_cbits_addr.end(),
+                     [](size_t a, size_t b){return a < b ;});
+    std::vector<ClassicalCondition> cbits;
+    for (auto &cbit_addr : m_cbits_addr)
+    {
+        auto cbit = m_quantum_machine->allocateCBit(cbit_addr);
+        cbits.push_back(cbit);
+    }
+
+    return cbits;
 }
 
 
@@ -208,12 +249,12 @@ void QProgDataParse::parseQGateDataNode(QProg &prog, const uint32_t &type_and_nu
     qubit_array[0] = qubits_data & 0xffff;
     qubit_array[1] = qubits_data >> (kCountMoveBit);
 
-    if (qubit_array[0] > m_qubits.size())
+    auto qubit0 = m_quantum_machine->allocateQubitThroughVirAddress(qubit_array[0]);
+    auto iter = std::find(m_qubits_addr.begin(), m_qubits_addr.end(), qubit_array[0]);
+    if (m_qubits_addr.end() == iter)
     {
-        QCERR("parse qubits error!");
-        throw runtime_error("parse qubits error!");
+        m_qubits_addr.push_back(qubit_array[0]);
     }
-    auto qubit0 = m_qubits[qubit_array[0]];
 
     uint32_t tmp = 1u << type;
     if (kSingleGateValue & tmp)
@@ -253,13 +294,13 @@ void QProgDataParse::parseQGateDataNode(QProg &prog, const uint32_t &type_and_nu
             throw runtime_error("parse gate type error!");
         }
 
-        if (qubit_array[1] > m_qubits.size())
+        auto qubit1 = m_quantum_machine->allocateQubitThroughVirAddress(qubit_array[1]);
+        auto qubit1_iter = std::find(m_qubits_addr.begin(), m_qubits_addr.end(), qubit_array[1]);
+        if (m_qubits_addr.end() == qubit1_iter)
         {
-            QCERR("parse qubits error!");
-            throw runtime_error("parse qubits error!");
+            m_qubits_addr.push_back(qubit_array[1]);
         }
 
-        auto qubit1 = m_qubits[qubit_array[1]];
         auto gate = iter->second(qubit0, qubit1);
         gate.setDagger(is_dagger);
         prog << gate;
@@ -276,13 +317,13 @@ void QProgDataParse::parseQGateDataNode(QProg &prog, const uint32_t &type_and_nu
         m_iter++;
         float angle = getAngle(*m_iter);
 
-        if (qubit_array[1] > m_qubits.size())
+        auto qubit1 = m_quantum_machine->allocateQubitThroughVirAddress(qubit_array[1]);
+        auto iter1 = std::find(m_qubits_addr.begin(), m_qubits_addr.end(), qubit_array[1]);
+        if (m_qubits_addr.end() == iter1)
         {
-            QCERR("parse qubits error!");
-            throw runtime_error("parse qubits error!");
+            m_qubits_addr.push_back(qubit_array[1]);
         }
 
-        auto qubit1 = m_qubits[qubit_array[1]];
         auto gate = iter->second(qubit0, qubit1, angle);
         gate.setDagger(is_dagger);
         prog << gate;
@@ -341,6 +382,7 @@ int QProgDataParse::getCBitValue(const std::pair<uint32_t, DataNode> &data_node)
     return (int)data_node.second.qubit_data;
 }
 
+
 void QProgDataParse::parseQMeasureDataNode(QProg &prog, uint32_t qubits_data)
 {
     const int kQubitMax = 2;
@@ -348,7 +390,21 @@ void QProgDataParse::parseQMeasureDataNode(QProg &prog, uint32_t qubits_data)
     qubit_array[0] = qubits_data & 0xffff;
     qubit_array[1] = (qubits_data >> (kCountMoveBit));
 
-    auto measure = Measure(m_qubits[qubit_array[0]], m_cbits[qubit_array[1]]);
+    auto qubit = m_quantum_machine->allocateQubitThroughVirAddress(qubit_array[0]);
+    auto qubit_iter = std::find(m_qubits_addr.begin(), m_qubits_addr.end(), qubit_array[0]);
+    if (m_qubits_addr.end() == qubit_iter)
+    {
+        m_qubits_addr.push_back(qubit_array[0]);
+    }
+
+    auto cbit = m_quantum_machine->allocateCBit(qubit_array[1]);
+    auto cbit_iter = std::find(m_cbits_addr.begin(), m_cbits_addr.end(), qubit_array[1]);
+    if (m_cbits_addr.end() == cbit_iter)
+    {
+        m_cbits_addr.push_back(qubit_array[1]);
+    }
+
+    auto measure = Measure(qubit, cbit);
     prog << measure;
     return;
 }
@@ -357,8 +413,16 @@ void QProgDataParse::parseCExprCBitDataNode(const uint32_t &data)
 {
     m_iter++;
     auto value = getCBitValue(*m_iter);
-    m_cbits[data].setValue(value);
-    m_stack_cc.push(m_cbits[data]);
+
+    auto cbit = m_quantum_machine->allocateCBit(data);
+    auto cbit_iter = std::find(m_cbits_addr.begin(), m_cbits_addr.end(), data);
+    if (m_cbits_addr.end() == cbit_iter)
+    {
+        m_cbits_addr.push_back(data);
+    }
+
+    cbit.setValue(value);
+    m_stack_cc.push(cbit);
     return;
 }
 

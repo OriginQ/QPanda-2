@@ -10,7 +10,7 @@ static void getAvgBinary(uint128_t num,
     size_t half_qubit = qubit_num / 2;
     long long lower_mask = (1 << half_qubit) - 1;
     low_pos = (uint64_t)(num & lower_mask);
-    high_pos = (uint64_t)(num - low_pos) >> half_qubit;
+    high_pos = (uint64_t)(num - low_pos) >> (qubit_num - half_qubit);
 }
 
 PartialAmplitudeQVM::PartialAmplitudeQVM()
@@ -25,6 +25,8 @@ PartialAmplitudeQVM::~PartialAmplitudeQVM()
 
 void PartialAmplitudeQVM::init()
 {
+    _Config.maxQubit = 256;
+    _Config.maxCMem = 256;
     _start();
 }
 
@@ -46,7 +48,7 @@ void PartialAmplitudeQVM::run(QProg& prog)
 void PartialAmplitudeQVM::traversalAll(AbstractQuantumProgram *pQProg)
 {
     m_qubit_num = m_prog_map->m_qubit_num = getAllocateQubit();
-    if (nullptr == pQProg || m_qubit_num <= 0 || m_qubit_num % 2 != 0)
+    if (nullptr == pQProg || m_qubit_num <= 0)
     {
         QCERR("Error");
         throw invalid_argument("Error");
@@ -153,8 +155,8 @@ stat_map PartialAmplitudeQVM::getQStat()
         throw run_fail("prog is null");
     }
 
-    vector<vector<QStat>> calculateMap_vector;
-    getSubGraphStat(calculateMap_vector);
+    vector<vector<QStat>> graph_stat_map;
+    getSubGraphStat(graph_stat_map);
 
     stat_map result_map;
     uint128_t size = (uint128_t)1 << m_prog_map->m_qubit_num;
@@ -163,18 +165,9 @@ stat_map PartialAmplitudeQVM::getQStat()
     {
         qcomplex_t addResult(0, 0);
         getAvgBinary(i, low_pos, high_pos, m_prog_map->m_qubit_num);
-        for (size_t j = 0; j < calculateMap_vector.size(); ++j)
+        for (size_t j = 0; j < graph_stat_map.size(); ++j)
         {
-            complex<double> multiResult(1, 0);
-            if (calculateMap_vector[j].size() > 1)
-            {
-                multiResult = calculateMap_vector[j][0][low_pos] * calculateMap_vector[j][1][high_pos];
-            }
-            else
-            {
-                multiResult = calculateMap_vector[j][0][low_pos] * (high_pos == 0 ? 1.0 : 0.0);
-            }
-            addResult = addResult + multiResult;
+            addResult = addResult + graph_stat_map[j][0][low_pos] * graph_stat_map[j][1][high_pos];
         }
         result_map.insert(make_pair(integerToBinary(i, m_prog_map->m_qubit_num), addResult));
     }
@@ -182,7 +175,7 @@ stat_map PartialAmplitudeQVM::getQStat()
     return result_map;
 }
 
-void PartialAmplitudeQVM::getSubGraphStat(vector<vector<QStat>> &calculateMap_vector)
+void PartialAmplitudeQVM::getSubGraphStat(vector<vector<QStat>> &graph_stat_map)
 {
     for (uint64_t i = 0; i < m_prog_map->getMapVecSize(); ++i)
     {
@@ -190,7 +183,9 @@ void PartialAmplitudeQVM::getSubGraphStat(vector<vector<QStat>> &calculateMap_ve
         for (uint64_t j = 0; j < m_prog_map->m_circuit_vec[i].size(); ++j)
         {
             QuantumGateParam* pGateParam = new QuantumGateParam();
-            pGateParam->m_qubit_number = m_prog_map->m_qubit_num / 2;
+            pGateParam->m_qubit_number = (j == 0) ? 
+                (m_prog_map->m_qubit_num / 2) :
+               ((m_prog_map->m_qubit_num) - (m_prog_map->m_qubit_num / 2));
             QPUImpl *pQGate = new CPUImplQPU();
 
             try
@@ -208,7 +203,8 @@ void PartialAmplitudeQVM::getSubGraphStat(vector<vector<QStat>> &calculateMap_ve
             delete pGateParam;
             delete pQGate;
         }
-        calculateMap_vector.emplace_back(calculateMap);
+
+        graph_stat_map.emplace_back(calculateMap);
     }
 }
 
@@ -220,25 +216,16 @@ qstate_type PartialAmplitudeQVM::PMeasure_dec_index(string index)
         throw run_fail("prog is null");
     }
 
-    vector<vector<QStat>> calculateMap_vector;
-    getSubGraphStat(calculateMap_vector);
+    vector<vector<QStat>> graph_stat_map;
+    getSubGraphStat(graph_stat_map);
 
     complex<double> addResult(0, 0);
     uint128_t u_index(index.c_str());
     uint64_t low_pos, high_pos;
     getAvgBinary(u_index, low_pos, high_pos, m_prog_map->m_qubit_num);
-    for (size_t j = 0; j < calculateMap_vector.size(); ++j)
+    for (size_t j = 0; j < graph_stat_map.size(); ++j)
     {
-        complex<double> multiResult(1, 0);
-        if (calculateMap_vector[j].size() > 1)
-        {
-            multiResult = calculateMap_vector[j][0][low_pos] * calculateMap_vector[j][1][high_pos];
-        }
-        else
-        {
-            multiResult = calculateMap_vector[j][0][low_pos] * (high_pos == 0 ? 1.0 : 0.0);
-        }
-        addResult = addResult + multiResult;
+        addResult = addResult + graph_stat_map[j][0][low_pos] * graph_stat_map[j][1][high_pos];
     }
     return addResult.real()*addResult.real() + addResult.imag()*addResult.imag();
 }
@@ -291,8 +278,8 @@ prob_map PartialAmplitudeQVM::PMeasure(QVec qvec, string select_max)
     prob_map res;
     auto pmeasure_size = qubit_vec.size();
 
-    vector<vector<QStat>> calculateMap_vector;
-    getSubGraphStat(calculateMap_vector);
+    vector<vector<QStat>> graph_stat_map;
+    getSubGraphStat(graph_stat_map);
 
     if (pmeasure_size <= qubit_num)
     {
@@ -300,24 +287,14 @@ prob_map PartialAmplitudeQVM::PMeasure(QVec qvec, string select_max)
         for (uint128_t i = 0; i < select_max_size; ++i)
         {
             double temp_value = 0.0;
-
             for (uint128_t j = 0; j < value_size; ++j)
             {
                 complex<double> addResult(0, 0);
                 uint128_t index = getDecIndex(i, j, qubit_vec, qubit_num);
                 getAvgBinary(index, low_pos, high_pos, qubit_num);
-                for (size_t k = 0; k < calculateMap_vector.size(); ++k)
+                for (size_t k = 0; k < graph_stat_map.size(); ++k)
                 {
-                    complex<double> multiResult(1, 0);
-                    if (calculateMap_vector[k].size() > 1)
-                    {
-                        multiResult = calculateMap_vector[k][0][low_pos] * calculateMap_vector[k][1][high_pos];
-                    }
-                    else
-                    {
-                        multiResult = calculateMap_vector[k][0][low_pos] * (high_pos == 0 ? 1.0 : 0.0);
-                    }
-                    addResult = addResult + multiResult;
+                    addResult = addResult + graph_stat_map[k][0][low_pos] * graph_stat_map[k][1][high_pos];
                 }
                 temp_value += addResult.real()*addResult.real() + addResult.imag()*addResult.imag();
             }
@@ -350,8 +327,8 @@ prob_map PartialAmplitudeQVM::PMeasure(string select_max)
         throw qprog_syntax_error("PMeasure");
     }
 
-    vector<vector<QStat>> calculateMap_vector;
-    getSubGraphStat(calculateMap_vector);
+    vector<vector<QStat>> graph_stat_map;
+    getSubGraphStat(graph_stat_map);
 
     prob_map result_map;
     uint64_t low_pos, high_pos;
@@ -359,18 +336,9 @@ prob_map PartialAmplitudeQVM::PMeasure(string select_max)
     {
         qcomplex_t value(0, 0);
         getAvgBinary(i, low_pos, high_pos, m_prog_map->m_qubit_num);
-        for (size_t j = 0; j < calculateMap_vector.size(); ++j)
+        for (size_t j = 0; j < graph_stat_map.size(); ++j)
         {
-            complex<double> multiResult(1, 0);
-            if (calculateMap_vector[j].size() > 1)
-            {
-                multiResult = calculateMap_vector[j][0][low_pos] * calculateMap_vector[j][1][high_pos];
-            }
-            else
-            {
-                multiResult = calculateMap_vector[j][0][low_pos] * (high_pos == 0 ? 1.0 : 0.0);
-            }
-            value = value + multiResult;
+            value = value + graph_stat_map[j][0][low_pos] * graph_stat_map[j][1][high_pos];
         }
 
         string index = integerToString(i);
@@ -404,8 +372,8 @@ prob_map PartialAmplitudeQVM::getProbDict(QVec qvec, string select_max)
     prob_map res;
     auto pmeasure_size = qubit_vec.size();
 
-    vector<vector<QStat>> calculateMap_vector;
-    getSubGraphStat(calculateMap_vector);
+    vector<vector<QStat>> graph_stat_map;
+    getSubGraphStat(graph_stat_map);
 
     if (pmeasure_size <= qubit_num)
     {
@@ -419,18 +387,9 @@ prob_map PartialAmplitudeQVM::getProbDict(QVec qvec, string select_max)
                 complex<double> addResult(0, 0);
                 uint128_t index = getDecIndex(i, j, qubit_vec, qubit_num);
                 getAvgBinary(index, low_pos, high_pos, qubit_num);
-                for (size_t k = 0; k < calculateMap_vector.size(); ++k)
+                for (size_t k = 0; k < graph_stat_map.size(); ++k)
                 {
-                    complex<double> multiResult(1, 0);
-                    if (calculateMap_vector[k].size() > 1)
-                    {
-                        multiResult = calculateMap_vector[k][0][low_pos] * calculateMap_vector[k][1][high_pos];
-                    }
-                    else
-                    {
-                        multiResult = calculateMap_vector[k][0][low_pos] * (high_pos == 0 ? 1.0 : 0.0);
-                    }
-                    addResult = addResult + multiResult;
+                    addResult = addResult + graph_stat_map[k][0][low_pos] * graph_stat_map[k][1][high_pos];
                 }
                 temp_value += addResult.real()*addResult.real() + addResult.imag()*addResult.imag();
             }
@@ -458,7 +417,7 @@ void PartialAmplitudeQVM::run(string sFilePath)
     auto prog = CreateEmptyQProg();
     transformQRunesToQProg(sFilePath, prog, this);
     run(prog);
-}
+}    
 
 prob_map PartialAmplitudeQVM::PMeasureSubSet(QProg &prog, std::vector<std::string> subset_vec)
 {
@@ -518,5 +477,3 @@ prob_map PartialAmplitudeQVM::PMeasureSubSet(QProg &prog, std::vector<std::strin
 
     return result_map;
 }
-
-

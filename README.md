@@ -1,46 +1,32 @@
 ## QPanda 2
 
-[![Build Status](https://travis-ci.org/OriginQ/QPanda-2.svg?branch=master)](https://travis-ci.org/OriginQ/QPanda-2)
-[![Documentation Status](https://readthedocs.org/projects/qpanda-2/badge/?version=latest)](https://qpanda-2.readthedocs.io/zh_CN/latest/?badge=latest)
-
-
 ![图片: ](./Documentation/img/1.png)
 
-QPanda 2(**Q**uantum **P**rogramming **A**rchitecture for **N**ISQ **D**evice **A**pplications)是一个**高效**的量子计算开发工具库，可用于实现各种**量子算法**，QPanda 2基于C++实现，并可扩展到Python。 
+QPanda 2是由本源量子开发的开源量子计算框架，它可以用于构建、运行和优化量子算法.
 
+QPanda 2作为本源量子计算系列软件的基础库，为QRunes、Qurator、量子计算服务提供核心部件。
 
-## 优点
+## 持续化集成状态
+| Linux                | Windows         | MacOS|
+|-------------------------|-----------------|----|
+[![Build Status](https://travis-ci.org/OriginQ/QPanda-2.svg?branch=master)](https://travis-ci.org/OriginQ/QPanda-2)        |    Working        | Working |       
 
-* **QPanda 2快**，它利用OpenMP、MPI加速量子逻辑门模拟算法，计算性能逼近CPU/GPU的理论FLOPS；
-* **QPanda 2功能全面**，它提供本地的单振幅、部分振幅、全振幅、含噪声量子虚拟机，并可直接连接量子云服务器，运行量子程序；
-* **QPanda 2工具多**，它可根据真实量子计算机的数据参数，提供量子线路优化/转换工具，方便用户探索NISQ装置上有实用价值的量子算法；
-* **QPanda 2使用方便**，它根据不同的需求，向用户提供面向过程和面向对象两种风格的API，方便不熟悉编程的用户使用。
+| C++ 文档         | Python 文档 |
+|-------------------------|-----------------|
+ | [![Documentation Status](https://readthedocs.org/projects/qpanda-toturial/badge/?version=latest)](https://qpanda-toturial.readthedocs.io/zh/latest/?badge=latest)      | [![Documentation Status](https://readthedocs.org/projects/pyqpanda-toturial/badge/?version=latest)](https://pyqpanda-toturial.readthedocs.io/zh/latest/?badge=latest)    
 
-## 文档
-
-* QPanda 2的使用文档，位于 https://qpanda-2.readthedocs.io/zh_CN/latest/ 
-* pyQPanda的使用文档，位于 https://qpanda-2.readthedocs.io/zh_CN/doucmentation-python/
-
-
-## 兼容性
-
-QPanda 2是跨平台的。我们曾在以下平台/编译器组合下测试：
-
-* Visual Studio 2017 在 Windows (64-bit)
-* GCC 5.4.0 在 Ubuntu (64-bit)
-* AppleClang 10.0.0 在 Mac OS X (64-bit)
-
-## 如何使用
-
-为了兼容**高效**与**便捷**，我们为您提供了C++ 和 Python（pyQPanda）两个版本，pyQPanda封装了C++对外提供的接口。
-
-### Python 
-
-pyQPanda只需要通过pip就可安装使用。
+## 安装
+### Python 3.5-3.7
+通过pip进行安装：
 
     pip install pyqpanda
+    
+### Python 其他版本和C++
 
-我们接下来通过一个示例介绍pyQPanda的使用，此例子构造了一个量子叠加态。在量子程序中依次添加H门和CNOT门，最后对所有的量子比特进行测量操作。此时，将有50%的概率得到00或者11的测量结果。
+如果要使用Python 3的其他版本，或者直接通过C++ API进行量子编程，建议直接从源码进行编译。内容参见[使用文档](https://qpanda-toturial.readthedocs.io/zh/latest/)
+
+### 验证安装
+下面的例子可以在量子计算机中构建量子纠缠态(|00>+|11>)，对其进行测量，重复制备1000次。预期的结果是约有50%的概率使测量结果分别在00或11上。
 
     from pyqpanda import *
 
@@ -55,103 +41,26 @@ pyQPanda只需要通过pip就可安装使用。
     print(result)
     finalize()
 
-运行结果如下:
+观察到如下结果说明您已经成功安装QPanda！（安装失败请参阅[FAQ](https://pyqpanda-toturial.readthedocs.io/zh/latest/)，或在issue中提出）
     
     {'00': 493, '11': 507}
-
-### C++ 
-使用QPanda 2相对于pyQPanda会复杂一些，不过学会编译和使用QPanda 2，您会有更多的体验，更多详情可以阅读[使用文档](https://qpanda-2.readthedocs.io/zh_CN/latest/)。话不多说，我们先从介绍Linux下的编译环境开始。
-
-#### 编译环境
-
-在下载编译之前，我们需要：
-
-| software                | version         |
-|-------------------------|-----------------|
-| GCC                     | >= 5.4.0        |
-| CMake                   | >= 3.1          |
-| Python                  | >= 3.6.0        |
-
-#### 下载和编译
-
-我们需要在Linux终端下输入以下命令：
-
-    $ git clone https://github.com/OriginQ/QPanda-2.git
-    $ cd qpanda-2
-    $ mkdir build
-    $ cd build
-    $ cmake -DCMAKE_INSTALL_PREFIX=/usr/local .. 
-    $ make
     
-#### 安装
-编译完成后，安装就简单的多，只需要输入以下命令：
+更多的例子请参见[使用文档](https://qpanda-toturial.readthedocs.io/zh/latest/)。
 
-      $ make install
+## 相关资料
 
-#### 开始量子编程
+ - [本源量子官网](http://originqc.com.cn/)：
+ - [本源量子云平台](http://www.qubitonline.cn/)：
+ - [本源量子教育](https://learn-quantum.com/EDU/index.html)
+ - [ReadTheDocs文档(C++)](https://qpanda-toturial.readthedocs.io/zh/latest/)
+ - [ReadTheDocs文档(Python)](https://pyqpanda-toturial.readthedocs.io/zh/latest/)
+ - [QRunes量子语言](https://qrunes-tutorial.readthedocs.io/en/latest/)
+ - [Qurator-VSCode](https://qurator-vscode.readthedocs.io/zh_CN/latest/)
 
-现在我们来到最后一关，创建和编译自己的量子应用。
-
-我相信对于关心如何使用QPanda 2的朋友来说，如何创建C++项目，不需要我多说。不过，我还是需要提供CMakelist的示例，方便大家参考。
-
-    cmake_minimum_required(VERSION 3.1)
-    project(testQPanda)
-    SET(CMAKE_INSTALL_PREFIX "/usr/local")
-    SET(CMAKE_MODULE_PATH  ${CMAKE_MODULE_PATH} "${CMAKE_INSTALL_PREFIX} lib/cmake")
-
-    add_definitions("-std=c++14 -w -DGTEST_USE_OWN_TR1_TUPLE=1")
-    set(CMAKE_BUILD_TYPE "Release")
-    set(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -g -ggdb")
-    set(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3")
-    add_compile_options(-fPIC -fpermissive)
-    find_package(QPANDA REQUIRED)
-    if (QPANDA_FOUND)
-
-        include_directories(${QPANDA_INCLUDE_DIR}
-                        ${THIRD_INCLUDE_DIR})
-        add_executable(${PROJECT_NAME} test.cpp)
-        target_link_libraries(${PROJECT_NAME} ${QPANDA_LIBRARIES})
-    endif (QPANDA_FOUND)
-
-
-下面的示例和Python版本提供的示例是一样的，在这里我就不多说了。
-
-    #include "QPanda.h"
-    #include <stdio.h>
-    using namespace QPanda;
-    int main()
-    {
-        init(QMachineType::CPU);
-        QProg prog;
-        auto q = qAllocMany(2);
-        auto c = cAllocMany(2);
-        prog << H(q[0])
-             << CNOT(q[0],q[1])
-             << MeasureAll(q, c);
-        auto results = runWithConfiguration(prog, c, 1000);
-        for (auto result : results){
-            printf("%s : %d\n", result.first.c_str(), result.second);
-        }
-        finalize();
-    }
-
-最后，编译，齐活。
-    
-    $ mkdir build
-    $ cd build
-    $ cmake .. 
-    $ make
-
-运行结果如下:
-
-    00 : 512
-    11 : 488 
-
-一个示例不够？请移步到[Applications](./Applications)，这里有更多示例。
 
 ## 团队介绍
 
-很多朋友咨询过这样一个问题，我使用QPanda 2编写的量子应用，以后能直接应用到量子计算机上么？我们的回答是肯定的，因为我们的开发团队来自**合肥本源量子**，中国**第一家**做量子计算的公司。我们本源是集**量子计算软件**和**量子计算机硬件**于一身的公司。QPanda 2的设计之初充分考虑了**量子计算机体系架构**，从根本上保证了软硬件对接的问题。
+QPanda由本源量子开发，本源量子致力于量子计算机的研发与应用，已推出6-qubit超导量子芯片（KF C6-130）、2-qubit半导量子芯片（XW B2-100），团队的目标是在近年制造出更多量子比特的芯片，提供公开云服务，实现量子优势与量子应用。软件团队为硬件提供支撑，除QPanda外还开发了QRunes量子语言、Qurator量子软件开发插件、本源量子云计算云服务平台、本源量子教育云等产品。
 
  ## License
  Apache License 2.0

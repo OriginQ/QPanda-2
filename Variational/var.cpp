@@ -1,7 +1,6 @@
 #include "var.h"
 #include <map>
-#include "QPandaNamespace.h"
-
+#include "Core/QPanda.h"
 
 USING_QPANDA
 using namespace QPanda::Variational;

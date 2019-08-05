@@ -225,7 +225,7 @@ size_t QProgClockCycle::getDefalutQGateTime(GateType gate_type)
     return 0;
 }
 
-size_t QPanda::getQProgClockCycle(QuantumMachine *qm, QProg &prog)
+size_t QPanda::getQProgClockCycle(QProg &prog, QuantumMachine *qm)
 {
     QProgClockCycle counter(qm);
     counter.traversal(prog);

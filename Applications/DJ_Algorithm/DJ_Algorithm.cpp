@@ -23,23 +23,24 @@ limitations under the License.
 using namespace std;
 USING_QPANDA
 
-using QGEN = function<QCircuit(Qubit*, Qubit*)>;
+using DJ_Oracle = Oracle<QVec, Qubit*>;
 
-QGEN The_Two_Qubit_Oracle(vector<bool> oracle_function) {
-    return [oracle_function](Qubit* qubit1, Qubit* qubit2) {
+DJ_Oracle generate_two_qubit_oracle(vector<bool> oracle_function);
+
+DJ_Oracle generate_two_qubit_oracle(vector<bool> oracle_function) {
+    return [oracle_function](QVec qubit1, Qubit* qubit2) {
         QCircuit prog;
         if (oracle_function[0] == false &&
             oracle_function[1] == true)
         {
             // f(x) = x;
-            prog << CNOT(qubit1, qubit2);
+            prog << CNOT(qubit1[0], qubit2);
         }
         else if (oracle_function[0] == true &&
             oracle_function[1] == false)
         {
             // f(x) = x + 1;
-            prog << X(qubit2)
-                << CNOT(qubit1, qubit2)
+            prog << CNOT(qubit1[0], qubit2)
                 << X(qubit2);
         }
         else if (oracle_function[0] == true &&
@@ -56,81 +57,72 @@ QGEN The_Two_Qubit_Oracle(vector<bool> oracle_function) {
     };
 }
 
-
-QProg Two_Qubit_DJ_With_Oracle(Qubit* qubit1, Qubit* qubit2, ClassicalCondition & cbit, QCircuit(*oracle)(Qubit* qubit1, Qubit* qubit2)) {
+QProg Deutsch_Jozsa_algorithm(vector<Qubit*> qubit_vector,
+    Qubit* qubit2, 
+    vector<ClassicalCondition> cbit_vector,
+    DJ_Oracle oracle) {
 
     auto prog = CreateEmptyQProg();
     //Firstly, create a circuit container
 
-    prog << H(qubit1) << H(qubit2);
+	prog << X(qubit2);
+    prog << apply_QGate(qubit_vector, H) << H(qubit2);
     // Perform Hadamard gate on all qubits
 
-    prog << oracle(qubit1, qubit2);
+    prog << oracle(qubit_vector, qubit2);
 
     // Finally, Hadamard the first qubit and measure it
-    prog << H(qubit1) << Measure(qubit1, cbit);
+    prog << apply_QGate(qubit_vector, H) << MeasureAll(qubit_vector, cbit_vector);
     return prog;
 }
 
-QProg  Two_Qubit_DJ_Algorithm_Circuit(
-    Qubit * qubit1,
-    Qubit * qubit2,
-    ClassicalCondition & cbit,
-    QGEN oracle)
+void two_qubit_deutsch_jozsa_algorithm(vector<bool> boolean_function)
 {
-    auto prog = CreateEmptyQProg();
-    //Firstly, create a circuit container
-
-    prog << H(qubit1) << H(qubit2);
-    // Perform Hadamard gate on all qubits
-    prog << oracle(qubit1, qubit2);
-
-    // Finally, Hadamard the first qubit and measure it
-    prog << H(qubit1) << Measure(qubit1, cbit);
-    return prog;
-}
-
-
-QProg DJ_Algorithm(QVec & qvec, ClassicalCondition & c)
-{
+	init(QMachineType::CPU);
+	auto qvec = qAllocMany(2);
+	auto c = cAlloc();
     if (qvec.size() != 2)
     {
         QCERR("qvec size error£¬the size of qvec must be 2");
         throw invalid_argument("qvec size error£¬the size of qvec must be 2");
     }
 
-    bool fx0 = 0, fx1 = 0;
-    cout << "input the input function" << endl
-        << "The function has a boolean input" << endl
-        << "and has a boolean output" << endl
-        << "f(0)= (0/1)?";
-    cin >> fx0;
-    cout << "f(1)=(0/1)?";
-    cin >> fx1;
-    std::vector<bool> oracle_function({ fx0,fx1 });
-    cout << "Programming the circuit..." << endl;
+    auto oracle = generate_two_qubit_oracle(boolean_function);
+	QProg prog;
+	prog << Deutsch_Jozsa_algorithm({ qvec[0] }, qvec[1], { c }, oracle);
 
-    auto temp = Reset_Qubit(qvec[0], false);
-    temp << Reset_Qubit(qvec[1], true);
-    auto oracle = The_Two_Qubit_Oracle(oracle_function);
-    temp << Two_Qubit_DJ_Algorithm_Circuit(qvec[0], qvec[1], c, oracle);
-    return temp;
+	/* To Print The Circuit */
+	/*
+	extern QuantumMachine* global_quantum_machine;
+	cout << transformQProgToQRunes(prog, global_quantum_machine) << endl;
+	*/
+
+	directlyRun(prog);
+	if (c.eval() == false)
+	{
+		cout << "Constant function!" << endl;
+	}
+	else if (c.eval() == true)
+	{
+		cout << "Balanced function!" << endl;
+	}
+	finalize();
 }
 
 int main()
 {
-    init(QMachineType::CPU);
-    auto qvec = qAllocMany(2);
-    auto c = cAlloc();
-    auto prog = DJ_Algorithm(qvec, c);
-    directlyRun(prog);
-    if (c.eval() == false)
-    {
-        cout << "Constant function!";
-    }
-    else if (c.eval() == true)
-    {
-        cout << "Balanced function!";
-    }
-    finalize();
+	while (1) {
+		bool fx0 = 0, fx1 = 0;
+		cout << "input the input function" << endl
+			<< "The function has a boolean input" << endl
+			<< "and has a boolean output" << endl
+			<< "f(0)= (0/1)?";
+		cin >> fx0;
+		cout << "f(1)=(0/1)?";
+		cin >> fx1;
+		std::vector<bool> oracle_function({ fx0,fx1 });
+		cout << "Programming the circuit..." << endl;
+		two_qubit_deutsch_jozsa_algorithm(oracle_function);
+	}
+	return 0;
 }

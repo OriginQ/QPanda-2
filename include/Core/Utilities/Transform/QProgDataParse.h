@@ -90,8 +90,8 @@ public:
     * @exception  invalid_argument  parse error
     */
     bool parse(QProg &prog);
-    QVec getQubits() const;
-    std::vector<ClassicalCondition> getCbits() const;
+    QVec getQubits();
+    std::vector<ClassicalCondition> getCbits();
 
 private:
 
@@ -110,10 +110,13 @@ private:
     std::string m_filename;
     uint32_t m_node_counter;
     dataList_t m_data_vector;
-    QVec m_qubits;
-    std::vector<ClassicalCondition> m_cbits;
+    std::vector<size_t> m_qubits_addr;
 
+    std::vector<size_t> m_cbits_addr;
+    uint32_t m_qubits_count;
+    uint32_t m_cbits_count;
     std::vector<std::pair<uint32_t, DataNode>>::iterator m_iter;
+
     std::stack<ClassicalCondition> m_stack_cc;
     QuantumMachine *m_quantum_machine;
 };

@@ -18,9 +18,15 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <map>
-#include "Core/QPanda.h"
-#include "QAlg/Components/Operator/PauliOperator.h"
 #include <type_traits>
+#include "Core/QuantumCircuit/ClassicalProgram.h"
+#include "Core/Utilities/QPandaNamespace.h"
+#include "Core/QuantumCircuit/QProgram.h"
+#include "Core/QuantumCircuit/QCircuit.h"
+#include "Core/QuantumCircuit/QGate.h"
+#include "Core/QuantumMachine/OriginQuantumMachine.h"
+#include "QAlg/Components/Operator/PauliOperator.h"
+
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
 using Eigen::ArrayXd;

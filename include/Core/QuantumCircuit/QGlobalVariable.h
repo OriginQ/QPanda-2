@@ -118,6 +118,6 @@ enum MetadataGateType {
 const qstate_type PI = 3.14159265358979323846;
 
 /**< @brief Square root of two   */
-constexpr qstate_type SQRT2 = 1.4142135623730950488016887242097;
+constexpr qstate_type SQRT2 = 1.4142135623731;
 
 #endif

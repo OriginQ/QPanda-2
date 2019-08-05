@@ -19,8 +19,8 @@ USING_QPANDA
 TEST(QProgQGateCount, COUNT)
 {
     auto qvm = initQuantumMachine();
-    auto qubits = qAllocMany(4);
-    auto cbits = cAllocMany(4);
+    auto qubits = qvm->allocateQubits(4);
+    auto cbits = qvm->allocateCBits(4);
     QProg prog;
     QCircuit circuit;
 
@@ -40,8 +40,8 @@ TEST(QProgQGateCount, COUNT)
 TEST(QProgQGateCompare, COMPARE)
 {
     auto qvm = initQuantumMachine();
-    auto qubits = qAllocMany(4);
-    auto cbits = cAllocMany(4);
+    auto qubits = qvm->allocateQubits(4);
+    auto cbits = qvm->allocateCBits(4);
     QProg prog;
     QCircuit circuit;
 

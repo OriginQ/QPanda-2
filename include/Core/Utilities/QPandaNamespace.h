@@ -6,6 +6,7 @@
 #include <vector>
 #include <map>
 #include <complex>
+#include <unordered_map>
 
 /**
 * @def QCERR
@@ -31,8 +32,8 @@ typedef std::complex <qstate_type> qcomplex_t;
 typedef std::vector <qcomplex_t> QStat;
 typedef std::vector<size_t> Qnum;
 
-using prob_map = std::map<std::string, qstate_type>;
-using stat_map = std::map<std::string, qcomplex_t>;
+using prob_map = std::unordered_map<std::string, qstate_type>;
+using stat_map = std::unordered_map<std::string, qcomplex_t>;
 
 /**
 * @namespace QPanda

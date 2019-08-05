@@ -92,7 +92,7 @@ QCircuit QCircuit::dagger()
     return qCircuit;
 }
 
-QCircuit  QCircuit::control(QVec& qubit_vector)
+QCircuit  QCircuit::control(QVec qubit_vector)
 {
     QCircuit qcircuit;
     if (nullptr == m_pQuantumCircuit)

@@ -25,292 +25,294 @@ limitations under the License.
 #include "Core/QuantumMachine/Factory.h"
 #include "Core/Utilities/QPandaException.h"
 #include "Core/Utilities/Utilities.h"
+
 USING_QPANDA
 using namespace std;
-static QuantumMachine* qvm = nullptr;
+QuantumMachine* global_quantum_machine = nullptr;
 
 QuantumMachine *QPanda::initQuantumMachine(const QMachineType class_type)
 {
     auto class_name = QMachineTypeTarnfrom::getInstance()[class_type];
+	QuantumMachine* qm;
     switch (class_type)
     {
     case QMachineType::CPU:
-        qvm = new CPUQVM();
+        qm = new CPUQVM();
         break;
     case QMachineType::CPU_SINGLE_THREAD:
-        qvm = new CPUSingleThreadQVM();
+		qm = new CPUSingleThreadQVM();
         break;
     case QMachineType::GPU:
-        qvm = new GPUQVM();
+		qm = new GPUQVM();
         break;
     case QMachineType::NOISE:
-        qvm = new NoiseQVM();
+		qm = new NoiseQVM();
         break;
     default:
-        qvm = nullptr;
+		qm = nullptr;
         break;
     }
-    if (nullptr == qvm)
+    if (nullptr == qm)
     {
         QCERR("quantum machine alloc fail");
         throw bad_alloc();
     }
     try
     {
-        qvm->init();
-        return qvm;
+        global_quantum_machine = qm;
+        qm->init();
+        return qm;
     }
     catch (const init_fail&e)
     {
-        delete qvm;
-        qvm = nullptr;
+        delete qm;
+        qm = nullptr;
         return nullptr;
     }
-
 }
 
-void QPanda::destroyQuantumMachine(QuantumMachine * qvm)
+void QPanda::destroyQuantumMachine(QuantumMachine *qvm)
 {
-    if (nullptr == qvm)
-    {
-        return;
-    }
-    else
+    if (!qvm)
     {
         qvm->finalize();
+        delete qvm;
     }
 }
 
-bool QPanda::init(const QMachineType class_type )
+bool QPanda::init(const QMachineType class_type)
 {
-    qvm = initQuantumMachine(class_type);
+    global_quantum_machine = initQuantumMachine(class_type);
+    if(nullptr == global_quantum_machine)
+    {
+        return false;
+    }
+
     return true;
 }
 
 void QPanda::finalize()
 {
-    if (nullptr == qvm)
+    if (nullptr == global_quantum_machine)
     {
         return;
     }
-    qvm->finalize();
-    delete qvm;
-    qvm = nullptr;
+    global_quantum_machine->finalize();
+    delete global_quantum_machine;
+    global_quantum_machine = nullptr;
 }
 
 Qubit* QPanda::qAlloc()
 {
-    if (nullptr == qvm)
+    if (nullptr == global_quantum_machine)
     {
-        QCERR("qvm init fail");
-        throw init_fail("qvm init fail");
+        QCERR("global_quantum_machine init fail");
+        throw init_fail("global_quantum_machine init fail");
     }
-    return qvm->allocateQubit();
+    return global_quantum_machine->allocateQubit();
 }
 
 Qubit* QPanda::qAlloc(size_t stQubitAddr)
 {
-    if (nullptr == qvm)
+    if (nullptr == global_quantum_machine)
     {
-        QCERR("qvm init fail");
-        throw init_fail("qvm init fail");
+        QCERR("global_quantum_machine init fail");
+        throw init_fail("global_quantum_machine init fail");
     }
-    return qvm->allocateQubitThroughPhyAddress(stQubitAddr);
+    return global_quantum_machine->allocateQubitThroughPhyAddress(stQubitAddr);
 }
 
 QVec QPanda::qAllocMany(size_t stQubitNumber)
 {
-    if (nullptr == qvm)
+    if (nullptr == global_quantum_machine)
     {
-        QCERR("qvm init fail");
-        throw init_fail("qvm init fail");
+        QCERR("global_quantum_machine init fail");
+        throw init_fail("global_quantum_machine init fail");
     }
-    return qvm->allocateQubits(stQubitNumber);
+    return global_quantum_machine->allocateQubits(stQubitNumber);
 }
 
 size_t QPanda::getAllocateQubitNum()
 {
-    if (nullptr == qvm)
+    if (nullptr == global_quantum_machine)
     {
-        QCERR("qvm init fail");
-        throw init_fail("qvm init fail");
+        QCERR("global_quantum_machine init fail");
+        throw init_fail("global_quantum_machine init fail");
     }
-    return qvm->getAllocateQubit();
+    return global_quantum_machine->getAllocateQubit();
 }
 
 size_t QPanda::getAllocateCMem()
 {
-    if (nullptr == qvm)
+    if (nullptr == global_quantum_machine)
     {
-        QCERR("qvm init fail");
-        throw init_fail("qvm init fail");
+        QCERR("global_quantum_machine init fail");
+        throw init_fail("global_quantum_machine init fail");
     }
-    return qvm->getAllocateCMem();
+    return global_quantum_machine->getAllocateCMem();
 }
 
 
 ClassicalCondition QPanda::cAlloc()
 {
-    if (nullptr == qvm)
+    if (nullptr == global_quantum_machine)
     {
-        QCERR("qvm init fail");
-        throw init_fail("qvm init fail");
+        QCERR("global_quantum_machine init fail");
+        throw init_fail("global_quantum_machine init fail");
     }
-    return qvm->allocateCBit();
+    return global_quantum_machine->allocateCBit();
 }
 
 ClassicalCondition QPanda::cAlloc(size_t stCBitaddr)
 {
-    if (nullptr == qvm)
+    if (nullptr == global_quantum_machine)
     {
-        QCERR("qvm init fail");
-        throw init_fail("qvm init fail");
+        QCERR("global_quantum_machine init fail");
+        throw init_fail("global_quantum_machine init fail");
     }
-    return qvm->allocateCBit(stCBitaddr);
+    return global_quantum_machine->allocateCBit(stCBitaddr);
 }
 
 vector<ClassicalCondition> QPanda::cAllocMany(size_t stCBitNumber)
 {
-    if (nullptr == qvm)
+    if (nullptr == global_quantum_machine)
     {
-        QCERR("qvm init fail");
-        throw init_fail("qvm init fail");
+        QCERR("global_quantum_machine init fail");
+        throw init_fail("global_quantum_machine init fail");
     }
-    return qvm->allocateCBits(stCBitNumber);
+    return global_quantum_machine->allocateCBits(stCBitNumber);
 }
 
 void QPanda::cFree(ClassicalCondition& classical_cond)
 {
-    if (nullptr == qvm)
+    if (nullptr == global_quantum_machine)
     {
-        QCERR("qvm init fail");
-        throw init_fail("qvm init fail");
+        QCERR("global_quantum_machine init fail");
+        throw init_fail("global_quantum_machine init fail");
     }
-    qvm->Free_CBit(classical_cond);
+    global_quantum_machine->Free_CBit(classical_cond);
 }
 
 void cFreeAll(vector<ClassicalCondition> vCBit)
 {
-    if (nullptr == qvm)
+    if (nullptr == global_quantum_machine)
     {
-        QCERR("qvm init fail");
-        throw init_fail("qvm init fail");
+        QCERR("global_quantum_machine init fail");
+        throw init_fail("global_quantum_machine init fail");
     }
-    qvm->Free_CBits(vCBit);
+    global_quantum_machine->Free_CBits(vCBit);
 }
 
 QMachineStatus* QPanda::getstat()
 {
-    if (nullptr == qvm)
+    if (nullptr == global_quantum_machine)
     {
-        QCERR("qvm init fail");
-        throw init_fail("qvm init fail");
+        QCERR("global_quantum_machine init fail");
+        throw init_fail("global_quantum_machine init fail");
     }
-    return qvm->getStatus();
+    return global_quantum_machine->getStatus();
 }
 
 map<string, bool> QPanda::directlyRun(QProg & qProg)
 {
-    if (nullptr == qvm)
+    if (nullptr == global_quantum_machine)
     {
-        QCERR("qvm init fail");
-        throw init_fail("qvm init fail");
+        QCERR("global_quantum_machine init fail");
+        throw init_fail("global_quantum_machine init fail");
     }
-    return qvm->directlyRun(qProg);
+    return global_quantum_machine->directlyRun(qProg);
 }
 
 vector<pair<size_t, double>> QPanda::getProbTupleList(QVec & vQubit, int selectMax)
 {
-    if (nullptr == qvm)
+    if (nullptr == global_quantum_machine)
     {
-        QCERR("qvm init fail");
-        throw init_fail("qvm init fail");
+        QCERR("global_quantum_machine init fail");
+        throw init_fail("global_quantum_machine init fail");
     }
-    auto temp = dynamic_cast<IdealMachineInterface *>(qvm);
+    auto temp = dynamic_cast<IdealMachineInterface *>(global_quantum_machine);
     if (nullptr == temp)
     {
-        QCERR("qvm is not ideal machine");
-        throw runtime_error("qvm is not ideal machine");
+        QCERR("global_quantum_machine is not ideal machine");
+        throw runtime_error("global_quantum_machine is not ideal machine");
     }
     return temp->getProbTupleList(vQubit, selectMax);
 }
 
 vector<double> QPanda::getProbList(QVec & vQubit, int selectMax)
 {
-    if (nullptr == qvm)
+    if (nullptr == global_quantum_machine)
     {
-        QCERR("qvm init fail");
-        throw init_fail("qvm init fail");
+        QCERR("global_quantum_machine init fail");
+        throw init_fail("global_quantum_machine init fail");
     }
-    auto temp = dynamic_cast<IdealMachineInterface *>(qvm);
+    auto temp = dynamic_cast<IdealMachineInterface *>(global_quantum_machine);
     if (nullptr == temp)
     {
-        QCERR("qvm is not ideal machine");
-        throw runtime_error("qvm is not ideal machine");
+        QCERR("global_quantum_machine is not ideal machine");
+        throw runtime_error("global_quantum_machine is not ideal machine");
     }
     return temp->getProbList(vQubit, selectMax);
 }
 map<string, double> QPanda::getProbDict(QVec & vQubit, int selectMax)
 {
-    if (nullptr == qvm)
+    if (nullptr == global_quantum_machine)
     {
-        QCERR("qvm init fail");
-        throw init_fail("qvm init fail");
+        QCERR("global_quantum_machine init fail");
+        throw init_fail("global_quantum_machine init fail");
     }
-    auto temp = dynamic_cast<IdealMachineInterface *>(qvm);
+    auto temp = dynamic_cast<IdealMachineInterface *>(global_quantum_machine);
     if (nullptr == temp)
     {
-        QCERR("qvm is not ideal machine");
-        throw runtime_error("qvm is not ideal machine");
+        QCERR("global_quantum_machine is not ideal machine");
+        throw runtime_error("global_quantum_machine is not ideal machine");
     }
     return temp->getProbDict(vQubit, selectMax);
 }
 
 vector<pair<size_t, double>> QPanda::probRunTupleList(QProg & qProg,QVec & vQubit, int selectMax)
 {
-    if (nullptr == qvm)
+    if (nullptr == global_quantum_machine)
     {
-        QCERR("qvm init fail");
-        throw init_fail("qvm init fail");
+        QCERR("global_quantum_machine init fail");
+        throw init_fail("global_quantum_machine init fail");
     }
-    auto temp = dynamic_cast<IdealMachineInterface *>(qvm);
+    auto temp = dynamic_cast<IdealMachineInterface *>(global_quantum_machine);
     if (nullptr == temp)
     {
-        QCERR("qvm is not ideal machine");
-        throw runtime_error("qvm is not ideal machine");
+        QCERR("global_quantum_machine is not ideal machine");
+        throw runtime_error("global_quantum_machine is not ideal machine");
     }
     return temp->probRunTupleList(qProg, vQubit, selectMax);
 }
 
-
-
 vector<double> QPanda::probRunList(QProg & qProg, QVec & vQubit, int selectMax)
 {
-    if (nullptr == qvm)
+    if (nullptr == global_quantum_machine)
     {
-        QCERR("qvm init fail");
-        throw init_fail("qvm init fail");
+        QCERR("global_quantum_machine init fail");
+        throw init_fail("global_quantum_machine init fail");
     }
-    auto temp = dynamic_cast<IdealMachineInterface *>(qvm);
+    auto temp = dynamic_cast<IdealMachineInterface *>(global_quantum_machine);
     if (nullptr == temp)
     {
-        QCERR("qvm is not ideal machine");
-        throw runtime_error("qvm is not ideal machine");
+        QCERR("global_quantum_machine is not ideal machine");
+        throw runtime_error("global_quantum_machine is not ideal machine");
     }
     return temp->probRunList(qProg, vQubit, selectMax);
 }
 map<string, double> QPanda::probRunDict(QProg & qProg, QVec & vQubit, int selectMax)
 {
-    if (nullptr == qvm)
+    if (nullptr == global_quantum_machine)
     {
-        QCERR("qvm init fail");
-        throw init_fail("qvm init fail");
+        QCERR("global_quantum_machine init fail");
+        throw init_fail("global_quantum_machine init fail");
     }
-    auto temp = dynamic_cast<IdealMachineInterface *>(qvm);
+    auto temp = dynamic_cast<IdealMachineInterface *>(global_quantum_machine);
     if (nullptr == temp)
     {
-        QCERR("qvm is not ideal machine");
-        throw runtime_error("qvm is not ideal machine");
+        QCERR("global_quantum_machine is not ideal machine");
+        throw runtime_error("global_quantum_machine is not ideal machine");
     }
     return temp->probRunDict(qProg, vQubit, selectMax);
 }
@@ -318,37 +320,35 @@ map<string, double> QPanda::probRunDict(QProg & qProg, QVec & vQubit, int select
 vector<pair<size_t, double>> QPanda::PMeasure(QVec& qubit_vector,
     int select_max)
 {
-    if (nullptr == qvm)
+    if (nullptr == global_quantum_machine)
     {
-        QCERR("qvm init fail");
-        throw init_fail("qvm init fail");
+        QCERR("global_quantum_machine init fail");
+        throw init_fail("global_quantum_machine init fail");
     }
-    auto temp = dynamic_cast<IdealMachineInterface *>(qvm);
+    auto temp = dynamic_cast<IdealMachineInterface *>(global_quantum_machine);
     if (nullptr == temp)
     {
-        QCERR("qvm is not ideal machine");
-        throw runtime_error("qvm is not ideal machine");
+        QCERR("global_quantum_machine is not ideal machine");
+        throw runtime_error("global_quantum_machine is not ideal machine");
     }
     return temp->PMeasure(qubit_vector, select_max);
 }
 
 vector<double> QPanda::PMeasure_no_index(QVec& qubit_vector)
 {
-    if (nullptr == qvm)
+    if (nullptr == global_quantum_machine)
     {
-        QCERR("qvm init fail");
-        throw init_fail("qvm init fail");
+        QCERR("global_quantum_machine init fail");
+        throw init_fail("global_quantum_machine init fail");
     }
-    auto temp = dynamic_cast<IdealMachineInterface *>(qvm);
+    auto temp = dynamic_cast<IdealMachineInterface *>(global_quantum_machine);
     if (nullptr == temp)
     {
-        QCERR("qvm is not ideal machine");
-        throw runtime_error("qvm is not ideal machine");
+        QCERR("global_quantum_machine is not ideal machine");
+        throw runtime_error("global_quantum_machine is not ideal machine");
     }
     return temp->PMeasure_no_index(qubit_vector);
 }
-
-
 
 vector<double> QPanda::accumulateProbability(vector<double>& prob_list)
 {
@@ -375,10 +375,10 @@ static void add_up_a_map(map<string, size_t> &meas_result, string key)
 map<string, size_t> QPanda::quick_measure(QVec& qubit_vector, int shots,
     vector<double>& accumulate_probabilites)
 {
-    if (nullptr == qvm)
+    if (nullptr == global_quantum_machine)
     {
-        QCERR("qvm init fail");
-        throw init_fail("qvm init fail");
+        QCERR("global_quantum_machine init fail");
+        throw init_fail("global_quantum_machine init fail");
     }
     map<string, size_t> meas_result;
     for (int i = 0; i < shots; ++i)
@@ -404,31 +404,31 @@ map<string, size_t> QPanda::quick_measure(QVec& qubit_vector, int shots,
 
 map<string, size_t> QPanda::runWithConfiguration(QProg & qProg, vector<ClassicalCondition>& vCBit, int shots)
 {
-    if (nullptr == qvm)
+    if (nullptr == global_quantum_machine)
     {
-        QCERR("qvm init fail");
-        throw init_fail("qvm init fail");
+        QCERR("global_quantum_machine init fail");
+        throw init_fail("global_quantum_machine init fail");
     }
     rapidjson::Document doc;
     doc.Parse("{}");
     doc.AddMember("shots",
         shots,
         doc.GetAllocator());
-    return qvm->runWithConfiguration(qProg, vCBit, doc);
+    return global_quantum_machine->runWithConfiguration(qProg, vCBit, doc);
 }
 
 map<string, size_t> QPanda::quickMeasure(QVec& vQubit, int shots)
 {
-    auto temp = dynamic_cast<IdealMachineInterface *>(qvm);
+    auto temp = dynamic_cast<IdealMachineInterface *>(global_quantum_machine);
     if (nullptr == temp)
     {
-        QCERR("qvm is not ideal machine");
-        throw runtime_error("qvm is not ideal machine");
+        QCERR("global_quantum_machine is not ideal machine");
+        throw runtime_error("global_quantum_machine is not ideal machine");
     }
     return temp->quickMeasure(vQubit, shots);
 }
 
-QProg QPanda::MeasureAll(QVec& vQubit, vector<ClassicalCondition> &vCBit)
+QProg QPanda::MeasureAll(QVec vQubit, vector<ClassicalCondition> vCBit)
 {
     QProg qprog = CreateEmptyQProg();
     if (vQubit.size() != vCBit.size())
@@ -445,11 +445,11 @@ QProg QPanda::MeasureAll(QVec& vQubit, vector<ClassicalCondition> &vCBit)
 
 QStat QPanda::getQState()
 {
-    if (nullptr == qvm)
+    if (nullptr == global_quantum_machine)
     {
-        QCERR("qvm is nullptr");
-        throw invalid_argument("qvm is nullptr");
+        QCERR("global_quantum_machine is nullptr");
+        throw invalid_argument("global_quantum_machine is nullptr");
     }
-    return qvm->getQState();
+    return global_quantum_machine->getQState();
 }
 

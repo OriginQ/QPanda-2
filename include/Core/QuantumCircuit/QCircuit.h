@@ -85,7 +85,7 @@ public:
     * @return     QPanda::QCircuit  quantum circuit
     * @see QVec
     */
-    virtual QCircuit  control(QVec &);
+    virtual QCircuit  control(QVec );
 
     /**
     * @brief  Get current node type

@@ -1,7 +1,6 @@
 #include <regex>
 #include <fstream>
 #include <algorithm>
-#include "QPanda.h"
 #include "Core/Utilities/Transform/QRunesToQProg.h"
 USING_QPANDA
 using namespace std;
@@ -385,7 +384,7 @@ void QRunesToQProg::qRunesParser(std::string sFilePath, QProg& prog, QuantumMach
     {
         smatch result;
         regex dec("[0-9]+");
-        regex val("PI/[0-9]+", regex::icase);
+        regex val("PI/[0-9]+|PI", regex::icase);
 
         string sQRunes;
         while (!fin.eof())
@@ -398,6 +397,10 @@ void QRunesToQProg::qRunesParser(std::string sFilePath, QProg& prog, QuantumMach
                 {
                     string theta = to_string(PI / stod(result[0]));
                     sQRunes = regex_replace(sQRunes, val, theta);
+                }
+                else
+                {
+                    sQRunes = regex_replace(sQRunes, val, to_string(PI));
                 }
             }
 

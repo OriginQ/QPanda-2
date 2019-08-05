@@ -19,82 +19,118 @@ limitations under the License.
 USING_QPANDA
 using namespace std;
 
-QProg Grover(vector<Qubit*> qVec, vector<ClassicalCondition> cVec, int target)
-{
-    QProg  grover = CreateEmptyQProg();
-    QCircuit  init = CreateEmptyCircuit();
-    QCircuit  oracle = CreateEmptyCircuit();
-    QCircuit  reverse = CreateEmptyCircuit();
-    init << H(qVec[0]) << H(qVec[1]) << X(qVec[2]) << H(qVec[2]);
-    vector<Qubit *> controlVector;
-    controlVector.push_back(qVec[0]);
-    controlVector.push_back(qVec[1]);
-    //U4  sqrtH(0.5*PI, 0, 0.25*PI, PI);
-    QGate  toff = X(qVec[2]);
-    toff.setControl(controlVector);
-    switch (target)
-    {
-    case 0:
-        oracle << X(qVec[0]) << X(qVec[1]) << toff << X(qVec[0]) << X(qVec[1]);
-        break;
-    case 1:
-        oracle << X(qVec[0]) << toff << X(qVec[0]);
-        break;
-    case 2:
-        oracle << X(qVec[1]) << toff << X(qVec[1]);
-        break;
-    case 3:
-        oracle << toff;
-        break;
-    }
-    reverse << H(qVec[0]) << H(qVec[1]) << X(qVec[0]) << X(qVec[1])
-        << H(qVec[1]) << CNOT(qVec[0], qVec[1]);
-    reverse << H(qVec[1]) << X(qVec[0]) << X(qVec[1]) << H(qVec[0]) << H(qVec[1]) << X(qVec[2]);
-    grover << init << oracle << reverse << Measure(qVec[0], cVec[0]) << Measure(qVec[1], cVec[1]);
-    return grover;
+using grover_oracle = Oracle<QVec, Qubit*>;
+
+grover_oracle generate_3_qubit_oracle(int target) {
+	return [target](QVec qvec, Qubit* qubit) {
+		QCircuit oracle;
+		switch (target)
+		{
+		case 0:
+			oracle << X(qvec[0]) << X(qvec[1]) << Toffoli(qvec[0], qvec[1], qubit) << X(qvec[0]) << X(qvec[1]);
+			break;
+		case 1:
+			oracle << X(qvec[0]) << Toffoli(qvec[0], qvec[1], qubit) << X(qvec[0]);
+			break;
+		case 2:
+			oracle << X(qvec[1]) << Toffoli(qvec[0], qvec[1], qubit) << X(qvec[1]);
+			break;
+		case 3:
+			oracle << Toffoli(qvec[0], qvec[1], qubit);
+			break;
+		}
+		return oracle;
+	};
+}
+
+QCircuit diffusion_operator(vector<Qubit*> qvec) {
+	vector<Qubit*> controller(qvec.begin(), qvec.end() - 1);
+	QCircuit c;
+	c << apply_QGate(qvec, H);
+	c << apply_QGate(qvec, X);
+	c << Z(qvec.back()).control(controller);
+	c << apply_QGate(qvec, X);
+	c << apply_QGate(qvec, H);
+	
+	return c;
+}
+
+QProg Grover_algorithm(vector<Qubit*> working_qubit, Qubit* ancilla, vector<ClassicalCondition> cvec, grover_oracle oracle, uint64_t repeat = 0) {
+	QProg prog;
+	prog << X(ancilla);
+	prog << apply_QGate(working_qubit, H);
+	prog << H(ancilla);
+
+	// if repeat is not specified, choose a sufficient large repeat times.
+	// repeat = (default) 100*sqrt(N)
+	if (repeat == 0) {
+		uint64_t sqrtN = 1ull << (working_qubit.size() / 2);
+		repeat = 100 * sqrtN;
+	}
+	
+	for (auto i = 0ull; i < repeat; ++i) {
+		prog << oracle(working_qubit, ancilla);
+		prog << diffusion_operator(working_qubit);
+	}
+
+	prog << MeasureAll(working_qubit, cvec);
+	return prog;
 }
 
 int main()
 {
-    int target;
-    cout << "input the input function" << endl
-        << "The function has a boolean input" << endl
-        << "and has a boolean output" << endl
-        << "target=(0/1/2/3)?";
-    cin >> target;
-    cout << "Programming the circuit..." << endl;
-    init();
+	while (1) {
+		int target;
+		cout << "input the input function" << endl
+			<< "The function has a boolean input" << endl
+			<< "and has a boolean output" << endl
+			<< "target=(0/1/2/3)?";
+		cin >> target;
+		cout << "Programming the oracle..." << endl;
+		grover_oracle oracle = generate_3_qubit_oracle(target);
 
-    int qubit_number = 3;
-    vector<Qubit*> qv =  qAllocMany(qubit_number);
+		init(QMachineType::CPU_SINGLE_THREAD);
 
-    int cbitnum = 2;
-    vector<ClassicalCondition> cv =  cAllocMany(cbitnum);
+		int qubit_number = 3;
+		vector<Qubit*> working_qubit = qAllocMany(qubit_number - 1);
+		Qubit* ancilla = qAlloc();
 
-    auto groverprog = Grover(qv, cv, target);
-    auto resultMap = directlyRun(groverprog);
-    if (resultMap["c0"])
-    {
-        if (resultMap["c1"])
-        {
-            cout << "target number is 3 !";
-        }
-        else
-        {
-            cout << "target number is 2 !";
-        }
-    }
-    else
-    {
-        if (resultMap["c1"])
-        {
-            cout << "target number is 1 !";
-        }
-        else
-        {
-            cout << "target number is 0 !";
-        }
-    }
-    finalize();
+		int cbitnum = 2;
+		vector<ClassicalCondition> cvec = cAllocMany(cbitnum);
+
+		auto prog = Grover_algorithm(working_qubit, ancilla, cvec, oracle, 1);
+
+		/* To Print The Circuit */
+
+		extern QuantumMachine* global_quantum_machine;
+		cout << transformQProgToQRunes(prog, global_quantum_machine) << endl;
+
+
+		auto resultMap = directlyRun(prog);
+		if (resultMap["c0"])
+		{
+			if (resultMap["c1"])
+			{
+				cout << "target number is 3 !";
+			}
+			else
+			{
+				cout << "target number is 2 !";
+			}
+		}
+		else
+		{
+			if (resultMap["c1"])
+			{
+				cout << "target number is 1 !";
+			}
+			else
+			{
+				cout << "target number is 0 !";
+			}
+		}
+		finalize();
+	}
+	return 0;
 }
 

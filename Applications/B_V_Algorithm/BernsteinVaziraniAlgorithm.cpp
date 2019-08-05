@@ -15,12 +15,34 @@ limitations under the License.
 */
 #include "Core/QPanda.h"
 #include "Utilities/Utilities.h"
+#include "Utils/Utilities.h"
 #include <bitset>
 
 using namespace std;
 using namespace QPanda;
-QProg BV_QProg(vector<Qubit*> qVec, vector<ClassicalCondition> cVec, vector<bool>& a, bool b)
+
+using BV_Oracle = Oracle<QVec, Qubit *>;
+
+BV_Oracle generate_bv_oracle(vector<bool> oracle_function) {
+    return [oracle_function](QVec qVec, Qubit* qubit) {
+        QCircuit bv_qprog;
+        auto length = oracle_function.size();
+        for (auto i = 0; i < length; i++)
+        {
+            if (oracle_function[i])
+            {
+                bv_qprog << CNOT(qVec[i], qubit);
+            }
+        }
+        return bv_qprog;
+    };
+}
+
+
+QProg BV_QProg(QVec qVec, vector<ClassicalCondition> cVec, vector<bool>& a,
+    BV_Oracle & oracle)
 {
+
     if (qVec.size() != (a.size()+1))
     {
         QCERR("param error");
@@ -28,66 +50,58 @@ QProg BV_QProg(vector<Qubit*> qVec, vector<ClassicalCondition> cVec, vector<bool
     }
     size_t length = qVec.size();
     QProg  bv_qprog = CreateEmptyQProg();
-    bv_qprog << X(qVec[length - 1]);
-    for (auto iter = qVec.begin(); iter != qVec.end(); iter++)
-    {
-        bv_qprog << H(*iter);
-    }
-    for (auto i=0;i<length-1;i++)
-    {
-        if (a[i])
-        {
-            bv_qprog << CNOT(qVec[i], qVec[length - 1]);
-        }
-    }
-    for (auto i = 0; i < length - 1; i++)
-    {
-        bv_qprog << H(qVec[i]);
-    }
-    for (auto i = 0; i < length - 1; i++)
-    {
-        bv_qprog << Measure(qVec[i], cVec[i]);
-    }  
+    bv_qprog << X(qVec[length - 1])
+             << apply_QGate(qVec, H)
+             << oracle(qVec, qVec[length - 1]);
+             
+    qVec.pop_back();
+
+    bv_qprog << apply_QGate(qVec, H) << MeasureAll(qVec, cVec);
     return bv_qprog;
 }
 
 int main()
 {
-    cout << "Bernstein Vazirani Algorithm\n" << endl;
-    cout << "f(x)=a*x+b\n" << endl;
-    cout << "input a" << endl;
-    string stra;
-    cin >> stra;
-    vector<bool> a;
-    for (auto iter = stra.begin(); iter != stra.end(); iter++)
+    while (1)
     {
-        if (*iter == '0')
+        cout << "Bernstein Vazirani Algorithm\n" << endl;
+        cout << "f(x)=a*x+b\n" << endl;
+        cout << "input a" << endl;
+        string stra;
+        cin >> stra;
+        vector<bool> a;
+        for (auto iter = stra.begin(); iter != stra.end(); iter++)
         {
-            a.push_back(0);
+            if (*iter == '0')
+            {
+                a.push_back(0);
+            }
+            else
+            {
+                a.push_back(1);
+            }
         }
-        else
+        cout << "input b" << endl;
+        bool b;
+        cin >> b;
+        cout << "a=\t" << stra << endl;
+        cout << "b=\t" << b << endl;
+        cout << " Programming the circuit..." << endl;
+        size_t qubitnum = a.size();
+        init();
+        vector<Qubit*> qVec = qAllocMany(qubitnum + 1);
+        auto cVec = cAllocMany(qubitnum);
+        auto oracle = generate_bv_oracle(a);
+        auto bvAlgorithm = BV_QProg(qVec, cVec, a, oracle);
+        directlyRun(bvAlgorithm);
+        string measure;
+        cout << "a=\t";
+        for (auto iter = cVec.begin(); iter != cVec.end(); iter++)
         {
-            a.push_back(1);
+            cout << (*iter).eval();
         }
+        cout <<endl;
+        finalize();
     }
-    cout << "input b" << endl;
-    bool b;
-    cin >> b;
-    cout << "a=\t" << stra << endl;
-    cout << "b=\t" << b << endl;
-    cout << " Programming the circuit..." << endl;
-    size_t qubitnum = a.size();
-    init();
-    vector<Qubit*> qVec = qAllocMany(qubitnum+1) ;
-    auto cVec = cAllocMany(qubitnum);
-    auto bvAlgorithm = BV_QProg(qVec, cVec, a, b);
-    directlyRun(bvAlgorithm);
-    string measure;
-    cout << "a=\t";
-    for (auto iter = cVec.begin(); iter != cVec.end(); iter++)
-    {
-        cout << (*iter).eval();
-    }
-    cout << "\n" << "b=\t" << b << endl;
-    finalize();
+    
 }

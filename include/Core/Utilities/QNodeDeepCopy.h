@@ -1,9 +1,12 @@
 /*! \file QNodeDeepCopy.h */
 #ifndef  _QNODEDEEPCOPY_H_
 #define  _QNODEDEEPCOPY_H_
-#include "Core/QPanda.h"
-#include "Core/Utilities/Traversal.h"
 #include <memory>
+#include "Core/QuantumCircuit/QProgram.h"
+#include "Core/QuantumCircuit/QCircuit.h"
+#include "Core/QuantumCircuit/QGate.h"
+#include "Core/Utilities/Traversal.h"
+#include "Core/Utilities/QPandaNamespace.h"
 #include "Core/QuantumCircuit/ControlFlow.h"
 #include "Core/QuantumCircuit/ClassicalProgram.h"
 

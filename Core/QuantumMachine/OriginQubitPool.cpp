@@ -95,6 +95,7 @@ Qubit * OriginQubitPool::allocateQubitThroughVirAddress(size_t qubit_num)
         return nullptr;
     }
 
+	vecQubit[qubit_num]->setOccupancy(true);
     return  QubitFactory::GetFactoryInstance().
         GetInstance(vecQubit[qubit_num]);
 }

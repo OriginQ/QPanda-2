@@ -13,8 +13,10 @@ USING_QPANDA
 TEST(QProgTransformQuil, QUIL)
 {
     auto qvm = initQuantumMachine();
-    auto qubits = qAllocMany(4);
-    auto cbits = cAllocMany(4);
+    auto qubits = qvm->allocateQubits(4);
+    auto cbits = qvm->allocateCBits(4);
+
+    
     QProg prog;
     QCircuit circuit;
 

@@ -16,7 +16,7 @@ limitations under the License.
 /*! \file QGlobalVariable.h */
 #ifndef _QGlobalVariable_H
 #define _QGlobalVariable_H
-#include "Utilities/QPandaNamespace.h"
+#include "Core/Utilities/QPandaNamespace.h"
 #include <complex>
 #include <vector>
 

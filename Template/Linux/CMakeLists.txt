@@ -8,6 +8,7 @@ add_definitions("-w -DGTEST_USE_OWN_TR1_TUPLE=1")
 set(CMAKE_BUILD_TYPE "Release")
 set(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -g -ggdb")
 set(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3")
+set(CMAKE_CXX_STANDARD 11)
 add_compile_options(-fpermissive)
 
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)

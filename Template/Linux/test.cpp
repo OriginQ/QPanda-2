@@ -1,6 +1,7 @@
 #include "Core/QPanda.h"
 #include <stdio.h>
 using namespace QPanda;
+using namespace std;
 int main()
 {
     init(QMachineType::CPU);

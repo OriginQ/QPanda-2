@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.1)
 project(testQPanda)
-SET(CMAKE_INSTALL_PREFIX  "/usr/local") # QPanda2安装的路径,用户可根据自己设置的安装路径配置CMAKE_INSTALL_PREFIX
-SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_INSTALL_PREFIX}/lib/cmake")
+SET(QPANDA_INSTALL_DIR  "/usr/local") # QPanda2安装的路径,用户可根据自己设置的安装路径配置QPANDA_INSTALL_DIR
+SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${QPANDA_INSTALL_DIR}/lib/cmake")
 
 
 add_definitions("-w -DGTEST_USE_OWN_TR1_TUPLE=1")

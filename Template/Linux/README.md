@@ -1,5 +1,11 @@
 g++的编译命令为
 
 ````
-g++ -std=c++14  test.cpp  -I{安装目录}/include -I{安装目录}/include/ThirdParty/ -L{安装目录}/lib/  -lQPanda2 -lTinyXML -fopenmp -o test
+g++ test.cpp -std=c++14 -fopenmp -I{QPanda安装路径}/include/qpanda2/ -I{QPanda安装路径}/include/qpanda2/ThirdParty/ -L{QPanda安装路径}/lib/ -lQPanda2 -lTinyXML -lcurl -o test
+````
+
+使用MPI并行计算时的编译命令
+````
+
+mpic++ test.cpp -std=c++14 -fopenmp -I{QPanda安装路径}/include/qpanda2/ -I{QPanda安装路径}/include/qpanda2/ThirdParty/ -L{QPanda安装路径}/lib/ -lQPanda2 -lTinyXML -lcurl -o test
 ````

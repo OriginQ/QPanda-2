@@ -83,4 +83,4 @@ inline double _default_random_generator() {
 	return engine();
 }
 
-#endif RANDOM_ENGINE
+#endif //RANDOM_ENGINE

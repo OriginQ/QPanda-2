@@ -22,28 +22,28 @@
 # Look for the header file.
 find_path(QPANDA_INCLUDE_DIR NAMES qpanda2/Core/QPanda.h qpanda2/QPandaVersion.h 
           PATHS 
-          ${CMAKE_INSTALL_PREFIX}/include)
+          ${QPANDA_INSTALL_PREFIX}/include)
 set(QPANDA_INCLUDE_DIR "${QPANDA_INCLUDE_DIR}/qpanda2/")
 
 find_path(THIRD_INCLUDE_DIR NAMES qpanda2/ThirdParty/TinyXML/tinyxml.h 
           PATHS 
-          ${CMAKE_INSTALL_PREFIX}/include)
+          ${QPANDA_INSTALL_PREFIX}/include)
 include_directories(${THIRD_INCLUDE_DIR}/qpanda2/ThirdParty)
 mark_as_advanced(QPANDA_INCLUDE_DIR)
 
 # Look for the library (sorted from most current/relevant entry to least).
 find_library(QALG_LIBRARY NAMES QAlg 
              PATHS 
-             ${CMAKE_INSTALL_PREFIX}/lib)
+             ${QPANDA_INSTALL_PREFIX}/lib)
 find_library(QPANDA_LIBRARY NAMES QPanda2 
              PATHS 
-             ${CMAKE_INSTALL_PREFIX}/lib)
+             ${QPANDA_INSTALL_PREFIX}/lib)
 find_library(VAR_LIBRARY NAMES Variational 
              PATHS 
-             ${CMAKE_INSTALL_PREFIX}/lib)
+             ${QPANDA_INSTALL_PREFIX}/lib)
 find_library(TINY_LIBRARY NAMES TinyXML 
              PATHS 
-             ${CMAKE_INSTALL_PREFIX}/lib)
+             ${QPANDA_INSTALL_PREFIX}/lib)
 
 mark_as_advanced(QPANDA_LIBRARY)
 mark_as_advanced(QALG_LIBRARY)

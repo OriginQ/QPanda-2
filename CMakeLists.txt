@@ -117,7 +117,7 @@ elseif (UNIX)
 endif()
 add_definitions(${EXTRA_LDFLAGS})
 
-option(FIND_CUDA "find cuda" ON) 
+option(FIND_CUDA "find cuda" OFF) 
 if (FIND_CUDA)
     find_package(CUDA)
 endif(FIND_CUDA)

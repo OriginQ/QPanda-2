@@ -4,6 +4,7 @@ project(QPANDA)
 set(QPANDA_MAJOR_VERSION 1)
 set(QPANDA_MINOR_VERSION 3)
 set(QPANDA_PATCH_VERSION 5)
+
 set(QPANDA_VERSION "${QPANDA_MAJOR_VERSION}.${QPANDA_MINOR_VERSION}.${QPANDA_PATCH_VERSION}")
 message(STATUS "QPANDA VERSION = " "[${QPANDA_VERSION}]")
 
@@ -121,7 +122,8 @@ elseif (UNIX)
 endif()
 add_definitions(${EXTRA_LDFLAGS})
 
-option(FIND_CUDA "find cuda" ON)
+
+option(FIND_CUDA "find cuda" OFF)
 
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")
     find_package(PkgConfig REQUIRED)

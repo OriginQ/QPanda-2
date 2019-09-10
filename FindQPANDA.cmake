@@ -45,6 +45,7 @@ find_library(VAR_LIBRARY NAMES Variational
 find_library(TINY_LIBRARY NAMES TinyXML 
              PATHS 
              ${QPANDA_INSTALL_DIR}/lib)
+             
 find_library(ANTLR4_LIBRARY NAMES antlr4 
              PATHS 
              ${QPANDA_INSTALL_DIR}/lib)

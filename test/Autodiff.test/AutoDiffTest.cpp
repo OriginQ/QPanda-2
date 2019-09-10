@@ -9,6 +9,7 @@
 #include "QPanda.h"
 #include "Operator/PauliOperator.h"
 #include "Variational/VarPauliOperator.h"
+#include "Variational/VarFermionOperator.h"
 #include "Core/VirtualQuantumProcessor/NoiseQPU/NoiseModel.h"
 USING_QPANDA
 using namespace std;
@@ -24,7 +25,8 @@ TEST(AutoDiffTest, test_no_quantum)
     auto v1 = var(0, true);
     VarPauliOperator p1("X0", complex_var(v1, var(0, false)));
     auto p2 = p1.data();
-    auto tmp = p2[0].second.first;
+//    auto tmp = p2[0].second.first;
+    auto tmp = p2[0].second.real();
     vqc.insert(VariationalQuantumGate_RX(qlist[0], tmp));
 
     PauliOperator op("Z0", 1);
@@ -36,6 +38,8 @@ TEST(AutoDiffTest, test_no_quantum)
     v1.setValue(x);
 
     std::cout << eval(loss, true) << std::endl;
+
+	VarFermionOperator fp;
 
 }
 

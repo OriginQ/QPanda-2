@@ -103,7 +103,7 @@ int main()
 		/* To Print The Circuit */
 
 		extern QuantumMachine* global_quantum_machine;
-		cout << transformQProgToQRunes(prog, global_quantum_machine) << endl;
+		cout << transformQProgToOriginIR(prog, global_quantum_machine) << endl;
 
 
 		auto resultMap = directlyRun(prog);

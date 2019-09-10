@@ -19,7 +19,19 @@ Classes for QProgToQASM.
 #include "Core/QuantumCircuit/QGlobalVariable.h"
 #include "Core/QuantumCircuit/ControlFlow.h"
 #include "Core/QuantumMachine/QuantumMachineInterface.h"
+#include "Core/Utilities/Traversal.h"
+
 QPANDA_BEGIN
+
+//目前IBM提供的后端运行环境
+enum IBMQBackends
+{
+	IBMQ_QASM_SIMULATOR = 0,
+	IBMQ_16_MELBOURNE,
+	IBMQX2,
+	IBMQX4
+};
+
 /**
 * @namespace QPanda
 */
@@ -29,10 +41,10 @@ QPANDA_BEGIN
 * @ingroup Utilities
 * @brief Quantum Prog Transform To QASM instruction sets
 */
-class QProgToQASM 
+class QProgToQASM : public TraversalInterface<bool&>
 {
 public:
-    QProgToQASM(QuantumMachine * quantum_machine);
+    QProgToQASM(QuantumMachine * quantum_machine, IBMQBackends ibmBackend = IBMQ_QASM_SIMULATOR);
     ~QProgToQASM() {}
     /**
     * @brief  get QASM insturction set
@@ -51,20 +63,33 @@ public:
     */
     virtual void transform(QProg &);
 
-private:
-    virtual void transformQProg(AbstractQuantumProgram*);
-    virtual void transformQGate(AbstractQGateNode*);
-    virtual void transformQControlFlow(AbstractControlFlowNode*);
-    virtual void transformQCircuit(AbstractQuantumCircuit*);
-    virtual void transformQMeasure(AbstractQuantumMeasure*);
-    virtual void transformQNode(QNode*);
+	static std::string getIBMQBackendName(IBMQBackends typeNum);
+	
+	public:
+	virtual void execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node,bool & ) ;
+	virtual void execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, std::shared_ptr<QNode> parent_node, bool &) ;
+	virtual void execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node, bool &);
+	virtual void execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std::shared_ptr<QNode> parent_node, bool &) ;
+	virtual void execute(std::shared_ptr<AbstractQuantumProgram>  cur_node, std::shared_ptr<QNode> parent_node, bool &) ;
+	virtual void execute(std::shared_ptr<AbstractClassicalProg>  cur_node, std::shared_ptr<QNode> parent_node, bool &);
 
-    void handleDaggerNode(QNode*, int);
-    void handleDaggerCir(QNode*);
-    void handleIfWhileQNode(AbstractControlFlowNode*, std::string);
+private:
+	/*! add by zhaody
+	* @brief  Transform Quantum program by Traversal algorithm, refer to class Traversal
+	* @param[in]  QProg&  quantum program
+	* @return     void
+	* @exception
+	* @note
+	*/
+	virtual void transformQProgByTraversalAlg(QProg *prog);
+	virtual void transformQGate(AbstractQGateNode*, bool is_dagger);
+
+    virtual void transformQMeasure(AbstractQuantumMeasure*);
+
     std::map<int, std::string>  m_gatetype; /**< Quantum gatetype map   */
     std::vector<std::string> m_qasm; /**< QASM instructin vector   */
     QuantumMachine * m_quantum_machine;
+	IBMQBackends _ibmBackend;
 };
 
     /**
@@ -89,7 +114,7 @@ private:
     * @exception
     * @note
     */
-    std::string transformQProgToQASM(QProg &pQProg, QuantumMachine * quantum_machine);
+    std::string transformQProgToQASM(QProg &pQProg, QuantumMachine * quantum_machine, IBMQBackends ibmBackend = IBMQ_QASM_SIMULATOR);
 
 QPANDA_END
 #endif

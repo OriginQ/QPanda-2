@@ -21,7 +21,7 @@ Classes for matrix caculate
 #include <initializer_list>
 #include "Core/Utilities/ComplexVector.h"
 
-USING_QPANDA
+QPANDA_BEGIN
 template<size_t qubit_number, typename precision_t=double>
 class ComplexMatrix
 {
@@ -358,5 +358,5 @@ public:
 private:
     std::vector< std::vector<data_t> > m_data;
 };
-
+QPANDA_END
 #endif // COMPLEXMATRIX_H

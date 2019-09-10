@@ -157,6 +157,28 @@ public:
         return data;
     }
 
+    size_t getMaxIndex() const
+    {
+        int max_index = -1;
+
+        for (size_t i = 0; i < m_data.size(); i++)
+        {
+            auto orbital_act_vec = m_data[i].first.first;
+            for (auto& j : orbital_act_vec)
+            {
+                if (int(j.first) > max_index)
+                {
+                    max_index = j.first;
+                }
+            }
+        }
+
+        max_index++;
+
+        return max_index;
+    }
+
+
     bool isEmpty() { return m_data.empty(); }
     std::string toString() const
     {
@@ -168,7 +190,7 @@ public:
             auto pair = iter->first;
             auto value = iter->second;
 
-            str += "\"" + pair.second + "\" : ";
+            str += "" + pair.second + " : ";
             if (fabs(value.real()) < m_error_threshold)
             {
                 str += std::to_string(value.imag()) + "i";
@@ -201,13 +223,13 @@ public:
         return str;
     }
 
-    void setAction(char create, char annihilation)
-    {
-        if (create != annihilation)
-        {
-            m_action = std::make_pair(create, annihilation);
-        }
-    }
+    //void setAction(char create, char annihilation)
+    //{
+    //    if (create != annihilation)
+    //    {
+    //        m_action = std::make_pair(create, annihilation);
+    //    }
+    //}
 
     void setErrorThreshold(double threshold)
     {
@@ -216,7 +238,7 @@ public:
 
     double error_threshold() const { return m_error_threshold; }
 
-    FermionData data()  { return m_data; }
+    FermionData data() const  { return m_data; }
 
     FermionOp  operator + (const FermionOp &rhs) const
     {
@@ -291,19 +313,19 @@ public:
         return *this;
     }
 
-    friend FermionOp operator + (const complex_d &lhs,
+    friend FermionOp operator + (const T &lhs,
                                         const FermionOp &rhs)
     {
         return rhs + lhs;
     }
 
-    friend FermionOp operator - (const complex_d &lhs,
+    friend FermionOp operator - (const T &lhs,
                                         const FermionOp &rhs)
     {
         return rhs*-1.0 + lhs;
     }
 
-    friend FermionOp operator * (const complex_d &lhs,
+    friend FermionOp operator * (const T &lhs,
                                         const FermionOp &rhs)
     {
         return rhs * lhs;

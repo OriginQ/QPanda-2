@@ -15,7 +15,7 @@ Created in 2018-11-08
 
 #include <string>
 #include <vector>
-#include "QAlg/marco.h"
+#include "QAlg/macro.h"
 
 namespace QPanda
 {

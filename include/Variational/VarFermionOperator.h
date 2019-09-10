@@ -11,22 +11,22 @@ Created in 2019-01-24
 #define VARFERMIONOPERATOR_H
 
 #include "Variational/var.h"
+#include "Variational/complex_var.h"
 #include "Variational/utils.h"
 #include "QAlg/Components/Operator/FermionOperator.h"
 
 QPANDA_BEGIN
 
 using VarFermionOperator = FermionOp<complex_var>;
-
 template<>
-VarFermionOperator::FermionOp(double value)
+inline VarFermionOperator::FermionOp(double value)
 {
     Variational::var v(value);
     m_data.push_back(std::make_pair(FermionPair(), complex_var(v, 0)));
 }
 
 template<>
-std::string VarFermionOperator::toString() const
+inline std::string VarFermionOperator::toString() const
 {
     std::string str = "{";
     for (auto iter = m_data.begin(); iter != m_data.end(); iter++)
@@ -49,7 +49,7 @@ std::string VarFermionOperator::toString() const
 }
 
 template<>
-void VarFermionOperator::reduceDuplicates()
+inline void VarFermionOperator::reduceDuplicates()
 {
     std::map<std::string, complex_var> data_map;
     std::map<std::string, OrbitalActVec> term_map;
@@ -64,8 +64,10 @@ void VarFermionOperator::reduceDuplicates()
         auto result = data_map.find(str);
         if (result != data_map.end())
         {
-            result->second.first = result->second.first + value.first;
-            result->second.second = result->second.second + value.second;
+//            result->second.first = result->second.first + value.first;
+//            result->second.second = result->second.second + value.second;
+            result->second = complex_var(result->second.real() + value.real(),
+                                         result->second.imag() + value.imag());
         }
         else
         {
@@ -88,7 +90,7 @@ void VarFermionOperator::reduceDuplicates()
 }
 
 template<>
-VarFermionOperator VarFermionOperator::normal_ordered_ladder_term(
+inline VarFermionOperator VarFermionOperator::normal_ordered_ladder_term(
         OrbitalActVec &term,
         std::string &term_str,
         complex_var &coefficient)
@@ -107,7 +109,8 @@ VarFermionOperator VarFermionOperator::normal_ordered_ladder_term(
                 term[j - 1] = right_operator;
                 term[j] = left_operator;
                 term_str = OrbitalActVec2String(term);
-                coefficient = coefficient * -1.0;
+//                coefficient = coefficient * -1.0;
+                coefficient = complex_var(coefficient.real()*-1.0, coefficient.imag()*-1.0);
 
                 // Replace a a^\dagger with 1 + parity*a^\dagger a
                 // if indices are the same.
@@ -124,7 +127,8 @@ VarFermionOperator VarFermionOperator::normal_ordered_ladder_term(
 
                     a.insert(a.end(), b.begin(), b.end());
                     std::string a_str = OrbitalActVec2String(a);
-                    complex_var tmp_coef = coefficient*-1.0;
+//                    complex_var tmp_coef = coefficient*-1.0;
+                    complex_var tmp_coef(coefficient.real()*-1.0, coefficient.imag()*-1.0);
                     // Recursively add the processed new term.
                     op += normal_ordered_ladder_term(a, a_str, tmp_coef);
                 }
@@ -144,7 +148,8 @@ VarFermionOperator VarFermionOperator::normal_ordered_ladder_term(
                     term[j - 1] = right_operator;
                     term[j] = left_operator;
                     term_str = OrbitalActVec2String(term);
-                    coefficient = coefficient * -1;
+//                    coefficient = coefficient * -1;
+                    coefficient = complex_var(coefficient.real()*-1.0, coefficient.imag()*-1.0);
                 }
             }
         }

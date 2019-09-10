@@ -44,21 +44,18 @@ public:
     QError unitarySingleQubitGate(size_t qn,
         QStat& matrix,
         bool isConjugate,
-        double error_rate,
         GateType);
 
     QError controlunitarySingleQubitGate(size_t qn,
         Qnum& vControlBit,
         QStat& matrix, 
         bool isConjugate,
-        double error_rate,
         GateType);
     
     QError unitaryDoubleQubitGate(size_t qn_0,
         size_t qn_1, 
         QStat& matrix, 
         bool isConjugate, 
-        double error_rate,
         GateType);
    
     QError controlunitaryDoubleQubitGate(size_t qn_0,
@@ -66,7 +63,6 @@ public:
         Qnum& vControlBit,
         QStat& matrix,
         bool isConjugate,
-        double error_rate,
         GateType);
 
     virtual QError P0(size_t qn, bool isConjugate,
@@ -212,10 +208,9 @@ add multi-qubit gate which has diagonal matrix
     QStat getQState();
     QError Reset(size_t qn);
     bool qubitMeasure(size_t qn);
-    QError pMeasure(Qnum& qnum, std::vector<std::pair<size_t, double>> &mResult, int select_max=-1);
-    QError pMeasure(Qnum& qnum, std::vector<double> &mResult);
-    QError initState(QuantumGateParam *);
-    QError endGate(QuantumGateParam *pQuantumProParam, QPUImpl * pQGate);
+    QError pMeasure(Qnum& qnum, prob_tuple &mResult, int select_max=-1);
+    QError pMeasure(Qnum& qnum, prob_vec &mResult);
+    QError initState(size_t head_rank, size_t rank_size, size_t qubit_num);
 };
 
 #endif

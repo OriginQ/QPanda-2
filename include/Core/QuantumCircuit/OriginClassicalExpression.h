@@ -19,7 +19,7 @@ limitations under the License.
 #include "Core/QuantumMachine/CBitFactory.h"
 #include "Core/QuantumCircuit/CExprFactory.h"
 #include "Core/QuantumCircuit/QNode.h"
-USING_QPANDA
+QPANDA_BEGIN
 
 class OriginCExpr :public CExpr
 {
@@ -57,7 +57,14 @@ public:
     qmap_size_t getPosition() const;
     void setPosition(qmap_size_t);
     int getContentSpecifier() const;
+
+    /**
+    * @brief get all cbits name
+    *
+    * @return void
+    */
+    virtual void getCBitsName(std::vector<std::string> & names);
     ~OriginCExpr();
 };
-
+QPANDA_END
 #endif

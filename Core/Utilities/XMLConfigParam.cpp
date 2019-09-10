@@ -23,65 +23,115 @@ bool XmlConfigParam::loadFile(const std::string & filename)
 
 bool XmlConfigParam::getMetadataConfig(int &qubit_num, std::vector<std::vector<int>> &qubit_matrix)
 {
-    if (!m_root_element)
-    {
-        return false;
-    }
+	if (!m_root_element)
+	{
+		return false;
+	}
 
-    TiXmlElement *metadata_element = m_root_element->FirstChildElement("Metadata");
-    if (!metadata_element)
-    {
-        return false;
-    }
+	TiXmlElement *metadata_element = m_root_element->FirstChildElement("Metadata");
+	if (!metadata_element)
+	{
+		return false;
+	}
 
-    TiXmlElement *qubit_num_element = metadata_element->FirstChildElement("QubitCount");
-    qubit_num = std::stoi(qubit_num_element->GetText());
-    vector<int> arr(qubit_num, 0);
-    qubit_matrix.resize(qubit_num, arr);
+	return readAdjacentMatrix(metadata_element, qubit_num, qubit_matrix);
+}
 
-    TiXmlElement *matrix_element = metadata_element->FirstChildElement("QubitMatrix");
-    if (!matrix_element)
-    {
-        return false;
-    }
+//read topological from specified element of xml file
+bool XmlConfigParam::readAdjacentMatrix(TiXmlElement *AdjacentMatrixElement, int &qubit_num, std::vector<std::vector<int>> &qubit_matrix)
+{
+	if (!AdjacentMatrixElement)
+	{
+		return false;
+	}
 
-    for (TiXmlElement *qubit_element = matrix_element->FirstChildElement("Qubit");
-        qubit_element;
-        qubit_element = qubit_element->NextSiblingElement("Qubit"))
-    {
-        string attr = qubit_element->Attribute("QubitNum");
-        if (attr.empty())
-        {
-            return false;
-        }
+	TiXmlElement *qubit_num_element = AdjacentMatrixElement->FirstChildElement("QubitCount");
+	qubit_num = std::stoi(qubit_num_element->GetText());
 
-        int i  = std::stoi(attr);
-        if (!i || i > qubit_num)
-        {
-            return false;
-        }
+	TiXmlElement *matrix_element = AdjacentMatrixElement->FirstChildElement("QubitMatrix");
+	if (!matrix_element)
+	{
+		return false;
+	}
+	
+	if (nullptr == matrix_element->FirstChildElement("Qubit"))
+	{
+		return true;
+	}
+	else
+	{
+		vector<int> arr(qubit_num, 0);
+		qubit_matrix.resize(qubit_num, arr);
+	}
 
-        for (TiXmlElement *adjacent_qubit_element = qubit_element->FirstChildElement("AdjacentQubit");
-            adjacent_qubit_element;
-            adjacent_qubit_element = adjacent_qubit_element->NextSiblingElement("AdjacentQubit"))
-        {
-            string attr = adjacent_qubit_element->Attribute("QubitNum");
-            if (attr.empty())
-            {
-                return false;
-            }
+	for (TiXmlElement *qubit_element = matrix_element->FirstChildElement("Qubit");
+		qubit_element;
+		qubit_element = qubit_element->NextSiblingElement("Qubit"))
+	{
+		string attr = qubit_element->Attribute("QubitNum");
+		if (attr.empty())
+		{
+			return false;
+		}
 
-            int j = std::stoi(attr);
-            if (!j || j > qubit_num)
-            {
-                return false;
-            }
-            string item_text = adjacent_qubit_element->GetText();
-            qubit_matrix[i - 1][j - 1] = std::stoi(item_text);
-        }
-    }
+		int i = std::stoi(attr);
+		if (!i || i > qubit_num)
+		{
+			return false;
+		}
 
-    return true;
+		for (TiXmlElement *adjacent_qubit_element = qubit_element->FirstChildElement("AdjacentQubit");
+			adjacent_qubit_element;
+			adjacent_qubit_element = adjacent_qubit_element->NextSiblingElement("AdjacentQubit"))
+		{
+			string attr = adjacent_qubit_element->Attribute("QubitNum");
+			if (attr.empty())
+			{
+				return false;
+			}
+
+			int j = std::stoi(attr);
+			if (!j || j > qubit_num)
+			{
+				return false;
+			}
+			string item_text = adjacent_qubit_element->GetText();
+			qubit_matrix[i - 1][j - 1] = std::stoi(item_text);
+		}
+	}
+
+	return true;
+}
+
+//load the topologcal structure of quantum circuits
+bool XmlConfigParam::loadQuantumTopoStructure(const std::string &xmlStr, const std::string& dataElementStr, int &qubitsCnt,
+	std::vector< std::vector<int>> &vec, const std::string configFile/* = ""*/)
+{
+	TiXmlDocument doc;
+	if (configFile.empty())
+	{
+		doc.Parse(xmlStr.c_str());
+	}
+	else
+	{
+		doc.LoadFile(configFile.c_str());
+	}
+
+	TiXmlElement *root_element = doc.RootElement()->FirstChildElement("backends");
+	if (!root_element)
+	{
+		QCERR("Read IBMQ config file failed.");
+		throw std::invalid_argument("Read IBMQ config file failed.");
+		return false;
+	}
+
+	TiXmlElement *metadata_element = root_element->FirstChildElement(dataElementStr.c_str());
+	if (!metadata_element)
+	{
+		return false;
+	}
+
+	return XmlConfigParam::readAdjacentMatrix(metadata_element, qubitsCnt, vec);
 }
 
 bool XmlConfigParam::getClassNameConfig(map<string, string> &class_names)

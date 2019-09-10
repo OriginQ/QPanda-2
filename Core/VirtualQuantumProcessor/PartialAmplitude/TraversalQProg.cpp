@@ -1,4 +1,6 @@
 #include "Core/VirtualQuantumProcessor/PartialAmplitude/TraversalQProg.h"
+#include "Core/QuantumMachine/OriginQuantumMachine.h"
+#include "Core/Utilities/Transform/QRunesToQProg.h"
 using namespace std;
 USING_QPANDA
 
@@ -37,10 +39,13 @@ void TraversalQProg::traversal(QNode *pNode)
     case NodeType::PROG_NODE:
         TraversalQProg::traversal(dynamic_cast<AbstractQuantumProgram *>(pNode));
         break;
+        
+    case NodeType::MEASURE_GATE:
+        traversal(dynamic_cast<AbstractQuantumMeasure *>(pNode));
+        break;
 
     case NodeType::QIF_START_NODE:
     case NodeType::WHILE_START_NODE:
-    case NodeType::MEASURE_GATE:
     case NodeType::NODE_UNDEFINED:
     default:
         QCERR("UnSupported Node");
@@ -96,9 +101,9 @@ void TraversalQProg::handleDaggerCircuit(QNode *pNode)
         TraversalQProg::traversal(dynamic_cast<AbstractQuantumProgram *>(pNode));
         break;
 
+    case NodeType::MEASURE_GATE:
     case NodeType::QIF_START_NODE:
     case NodeType::WHILE_START_NODE:
-    case NodeType::MEASURE_GATE:
     case NodeType::NODE_UNDEFINED:
     default:
         QCERR("UnSupported Node");
@@ -130,4 +135,19 @@ void TraversalQProg::traversal(AbstractQuantumCircuit *pCircuit)
             traversal(pNode);
         }
     }
+}
+
+void TraversalQProg::traversalByFile(std::string file_path)
+{
+    auto prog = QProg();
+    auto qvm = new CPUQVM();
+    Configuration config;
+    config.maxCMem = config.maxQubit = 49;
+    qvm->setConfig(config);
+    qvm->init();
+    transformQRunesToQProg(file_path, prog, qvm);
+    traversal(dynamic_cast<AbstractQuantumProgram *>
+        (prog.getImplementationPtr().get()));
+    qvm->finalize();
+    delete qvm;
 }

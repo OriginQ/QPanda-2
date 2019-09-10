@@ -17,7 +17,7 @@ limitations under the License.
 #include "OriginQuantumMachine.h"
 #include <sstream>
 using namespace std;
-
+USING_QPANDA
 OriginCBit::OriginCBit(string name)
     :name(name),
     bOccupancy(false)

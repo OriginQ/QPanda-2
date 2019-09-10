@@ -1,6 +1,7 @@
 #include "QGate.h"
 #include "Utilities/ConfigMap.h"
 #include "QPandaException.h"
+#include <type_traits>
 using namespace QGATE_SPACE;
 using namespace std;
 USING_QPANDA
@@ -10,6 +11,18 @@ QGate::~QGate()
 {
     m_qgate_node.reset();
 }
+
+QGate::QGate(std::shared_ptr<AbstractQGateNode> node)
+{
+    if (!node)
+    {
+        QCERR("this shared_ptr is null");
+        throw invalid_argument("this shared_ptr is null");
+    }
+
+    m_qgate_node = node;
+}
+
 
 QGate::QGate(const QGate & old_Gate)
 {
@@ -625,7 +638,7 @@ void QGateParseSingleBit(QuantumGate * qgate,
     size_t bit = qubit->getPhysicalQubitPtr()->getQubitAddr();
     if (control_qubit_vector.size() == 0)
     {
-        qgates->unitarySingleQubitGate(bit, matrix, is_dagger, 0, type);
+        qgates->unitarySingleQubitGate(bit, matrix, is_dagger, type);
     }
     else
     {
@@ -637,7 +650,7 @@ void QGateParseSingleBit(QuantumGate * qgate,
             bit_num_vector.push_back(temp);
         }
         bit_num_vector.push_back(bit);
-        qgates->controlunitarySingleQubitGate(bit, bit_num_vector, matrix, is_dagger, 0, type);
+        qgates->controlunitarySingleQubitGate(bit, bit_num_vector, matrix, is_dagger, type);
     }
 
 }
@@ -660,7 +673,7 @@ void QGateParseDoubleBit(QuantumGate * qgate,
 
     if (control_qubit_vector.size() == 0)
     {
-        qgates->unitaryDoubleQubitGate(bit, bit2, matrix, is_dagger, 0, type);
+        qgates->unitaryDoubleQubitGate(bit, bit2, matrix, is_dagger, type);
     }
     else
     {
@@ -673,7 +686,7 @@ void QGateParseDoubleBit(QuantumGate * qgate,
         }
         bit_num_vector.push_back(bit2);
         bit_num_vector.push_back(bit);
-        qgates->controlunitaryDoubleQubitGate(bit, bit2, bit_num_vector, matrix, is_dagger, 0, type);
+        qgates->controlunitaryDoubleQubitGate(bit, bit2, bit_num_vector, matrix, is_dagger, type);
     }
 }
 

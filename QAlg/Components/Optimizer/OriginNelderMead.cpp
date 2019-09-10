@@ -1,6 +1,12 @@
 #include <iostream>
 #include <fstream>
+//#include <codecvt>
+//#include <sstream>
 #include "OriginNelderMead.h"
+#include "OriginCollection.h"
+#include "QString.h"
+
+const std::string NM_CACHE_HEADER = "NELDER_MEAD CACHE FILE";
 
 namespace QPanda
 {
@@ -133,9 +139,9 @@ namespace QPanda
             }
 
             sortData();
-
             m_iter++;
 
+            saveParaToCache();
             dispResult();
             writeToFile();
         }
@@ -177,20 +183,43 @@ namespace QPanda
 
     bool OriginNelderMead::init()
     {
-        m_fcalls = 0;
-        m_iter = 0;
-        m_n = m_optimized_para.size();
-        if (0 == m_n)
+#ifdef WIN32
+        using convert_typeX = std::codecvt_utf8<wchar_t>;
+        std::wstring_convert<convert_typeX, wchar_t> converterX;
+
+        auto w_file = converterX.from_bytes(m_cache_file);
+        if (m_restore_from_cache_file &&
+            (_waccess(w_file.c_str(), 0) != -1))
+#else
+        struct stat buffer;
+        if (m_restore_from_cache_file &&
+            (stat(m_cache_file.c_str(), &buffer) == 0))
+#endif // WIN32
         {
-            std::cout << "Optimized para is 0." << std::endl;
-            return false;
+            if (!restoreParaFromCache())
+            {
+                return false;
+            }
+
+            m_n = m_key.size() - 1;
+        }
+        else
+        {
+            m_fcalls = 0;
+            m_iter = 0;
+            m_n = m_optimized_para.size();
+            if (0 == m_n)
+            {
+                std::cout << "Optimized para is 0." << std::endl;
+                return false;
+            }
+
+            initialSimplex();
+            m_result.message = DEF_OPTI_STATUS_CALCULATING;
         }
 
         adaptFourPara();
         adaptTerminationPara();
-        initialSimplex();
-
-        m_result.message = DEF_OPTI_STATUS_CALCULATING;
 
         return true;
     }
@@ -392,4 +421,113 @@ namespace QPanda
         }
     }
 
+    void OriginNelderMead::saveParaToCache()
+    {
+        OriginCollection collection(m_cache_file, false);
+        collection = { "index", "tag",
+                       "key", "fsim","sim","iter", "fcalls" };
+
+        std::string tmp_key;
+        for (size_t i = 0; i < m_key.size(); i++)
+        {
+            if (i == 0)
+            {
+                tmp_key = m_key[i];
+            }
+            else
+            {
+                tmp_key += "," + m_key[i];
+            }
+        }
+
+        std::string tmp_fsim;
+        for (size_t i = 0; i < m_fsim.size(); i++)
+        {
+            if (i == 0)
+            {
+                tmp_fsim = std::to_string(m_fsim[i]);
+            }
+            else
+            {
+                tmp_fsim += "," + std::to_string(m_fsim[i]);
+            }
+        }
+
+        std::string tmp_sim;
+        for (size_t i = 0; i < m_n + 1; i++)
+        {
+            if (i != 0)
+            {
+                tmp_sim += ";";
+            }
+
+            for (size_t j = 0; j < m_n; j++)
+            {
+                if (j == 0)
+                {
+                    tmp_sim += std::to_string(m_sim.row(i)[j]);
+                }
+                else
+                {
+                    tmp_sim += "," + std::to_string(m_sim.row(i)[j]);
+                }
+            } 
+        }
+
+        collection.insertValue(0, NM_CACHE_HEADER, tmp_key,
+            tmp_fsim, tmp_sim, m_iter, m_fcalls);
+        collection.write();
+    }
+
+    bool OriginNelderMead::restoreParaFromCache()
+    {
+        OriginCollection cache_file;
+        if (!cache_file.open(m_cache_file))
+        {
+            std::cout << std::string("Open file failed! filename: ") + m_cache_file;
+            return false;
+        }
+
+
+        std::string tag = cache_file.getValue("tag")[0];
+        if (tag != NM_CACHE_HEADER)
+        {
+            std::cout << "It is not a Nelder-Mead cache file! Tag: " << tag
+                << std::endl;
+            return false;
+        }
+
+        QString tmp_key = cache_file.getValue("key")[0];
+        auto key_list = tmp_key.split(",");
+        m_key.resize(key_list.size());
+        for (auto i = 0u; i < key_list.size(); i++)
+        {
+            m_key[i] = key_list[i].data();
+        }
+
+        QString tmp_fsim = cache_file.getValue("fsim")[0];
+        auto fsim_list = tmp_fsim.split(",", QString::SkipEmptyParts);
+        m_fsim = Eigen::VectorXd::Zero(fsim_list.size());
+        for (auto i = 0u; i < fsim_list.size(); i++)
+        {
+            m_fsim[i] = fsim_list[i].toDouble();
+        }
+
+        QString tmp_sim = cache_file.getValue("sim")[0];
+        auto sim_list = tmp_sim.split(";", QString::SkipEmptyParts);
+        m_sim = Eigen::MatrixXd::Zero(sim_list.size(), sim_list.size()-1);
+        for (auto i = 0u; i < sim_list.size(); i++)
+        {
+            auto item_list = sim_list[i].split(",", QString::SkipEmptyParts);
+            for (auto j = 0u; j < item_list.size(); j++)
+            {
+                m_sim.row(i)[j] = item_list[j].toDouble();
+            }
+        }
+
+        m_iter = QString(cache_file.getValue("iter")[0]).toInt();
+        m_fcalls = QString(cache_file.getValue("fcalls")[0]).toInt();
+
+        return true;
+    }
 }

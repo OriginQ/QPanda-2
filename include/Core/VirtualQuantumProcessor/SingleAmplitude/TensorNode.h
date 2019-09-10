@@ -5,7 +5,8 @@
 #include <map>
 #include <exception>
 #include <stdlib.h>
-#include "QPanda.h"
+#include "Core/Utilities/QPandaNamespace.h"
+#include "Core/Utilities/QPandaException.h"
 
 using std::map;
 using std::complex;
@@ -55,7 +56,7 @@ public:
         if (nullptr == m_tensor)
         {
             QCERR("calloc_fail");
-            throw calloc_fail();
+            throw QPanda::calloc_fail();
         }
 #pragma omp parallel for
 		for (long long i = 0; i < size; i++)
@@ -72,7 +73,7 @@ public:
         if (nullptr == m_tensor)
         {
             QCERR("calloc_fail");
-            throw calloc_fail();
+            throw QPanda::calloc_fail();
         }
 #pragma omp parallel for 
 		for (long long i = 0; i < size; i++)
@@ -89,7 +90,7 @@ public:
         if (nullptr == m_tensor)
         {
             QCERR("calloc_fail");
-            throw calloc_fail();
+            throw QPanda::calloc_fail();
         }
 #pragma omp parallel for 
 		for (long long i = 0; i < size; i++)

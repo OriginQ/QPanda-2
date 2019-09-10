@@ -5,7 +5,8 @@ Licensed Under Apache Licence 2.0
 '''
 from .utils import *
 from .pyQPanda import *
-from .Hamiltonian.PauliOperator.pyQPandaPauliOperator import PauliOperator
+from .Operator.pyQPandaOperator import *
+from .ChemiQ.pyQPandaChemiQ import *
 from .Variational import back
 
 One=True

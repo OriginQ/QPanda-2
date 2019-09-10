@@ -50,6 +50,7 @@ private:
 public:
     QMeasure(const QMeasure &);
     QMeasure(Qubit *, CBit *);
+    QMeasure(std::shared_ptr<AbstractQuantumMeasure> node);
     std::shared_ptr<QNode> getImplementationPtr();
     ~QMeasure();
     Qubit * getQuBit() const;

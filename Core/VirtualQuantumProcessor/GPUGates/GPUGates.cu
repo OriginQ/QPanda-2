@@ -24,43 +24,44 @@ Date:2017-12-13
 Description: Definition of Cuda function of gates
 ************************************************************************/
 
-#include <vector>
-#include <algorithm>
-#include <time.h>
 #include <cuda_device_runtime_api.h>
 #include <device_launch_parameters.h>
 #include <cuda_runtime.h>
+#include <device_functions.h>
+#include <vector>
+#include <algorithm>
+#include <time.h>
 #include "GPUGates.h"
 using namespace std;
 
 namespace gpu {
     __global__ void
         unitarysingle(
-            STATE_T * psireal,
-            STATE_T * psiimag,
-            QSIZE Dim,
-            QSIZE Block,
-            STATE_T matrix_real00,
-            STATE_T matrix_real01,
-            STATE_T matrix_real10,
-            STATE_T matrix_real11,
-            STATE_T matrix_imag00,
-            STATE_T matrix_imag01,
-            STATE_T matrix_imag10,
-            STATE_T matrix_imag11)
+            gpu_qstate_t * psireal,
+            gpu_qstate_t * psiimag,
+            gpu_qsize_t Dim,
+            gpu_qsize_t Block,
+            gpu_qstate_t matrix_real00,
+            gpu_qstate_t matrix_real01,
+            gpu_qstate_t matrix_real10,
+            gpu_qstate_t matrix_real11,
+            gpu_qstate_t matrix_imag00,
+            gpu_qstate_t matrix_imag01,
+            gpu_qstate_t matrix_imag10,
+            gpu_qstate_t matrix_imag11)
     {
-        QSIZE idx = blockDim.x*blockIdx.x + threadIdx.x;           //thread number
-        QSIZE BlockNum = idx / Block;
-        QSIZE BlockInt = idx % Block;
-        QSIZE realIdx = BlockNum * 2 * Block + BlockInt;
-        QSIZE corIdx = realIdx + Block;
+        gpu_qsize_t idx = blockDim.x*blockIdx.x + threadIdx.x;           //thread number
+        gpu_qsize_t BlockNum = idx / Block;
+        gpu_qsize_t BlockInt = idx % Block;
+        gpu_qsize_t realIdx = BlockNum * 2 * Block + BlockInt;
+        gpu_qsize_t corIdx = realIdx + Block;
 
         if (corIdx < Dim)
         {
-            STATE_T X1 = psireal[realIdx];
-            STATE_T X2 = psireal[corIdx];
-            STATE_T Y1 = psiimag[realIdx];
-            STATE_T Y2 = psiimag[corIdx];
+            gpu_qstate_t X1 = psireal[realIdx];
+            gpu_qstate_t X2 = psireal[corIdx];
+            gpu_qstate_t Y1 = psiimag[realIdx];
+            gpu_qstate_t Y2 = psiimag[corIdx];
             psireal[realIdx] = matrix_real00 * X1 - matrix_imag00 * Y1 + matrix_real01 * X2 - matrix_imag01 * Y2;
             psireal[corIdx] = matrix_real10 * X1 - matrix_imag10 * Y1 + matrix_real11 * X2 - matrix_imag11 * Y2;
             psiimag[realIdx] = matrix_real00 * Y1 + matrix_imag00 * X1 + matrix_real01 * Y2 + matrix_imag01 * X2;
@@ -69,22 +70,22 @@ namespace gpu {
     }
 
     __global__ void controlunitarysingle(
-        STATE_T * psireal,
-        STATE_T * psiimag,
-        QSIZE Dim,
-        QSIZE target_qubit,
-        QSIZE controller_mask,
-        STATE_T matrix_real00,
-        STATE_T matrix_real01,
-        STATE_T matrix_real10,
-        STATE_T matrix_real11,
-        STATE_T matrix_imag00,
-        STATE_T matrix_imag01,
-        STATE_T matrix_imag10,
-        STATE_T matrix_imag11
+        gpu_qstate_t * psireal,
+        gpu_qstate_t * psiimag,
+        gpu_qsize_t Dim,
+        gpu_qsize_t target_qubit,
+        gpu_qsize_t controller_mask,
+        gpu_qstate_t matrix_real00,
+        gpu_qstate_t matrix_real01,
+        gpu_qstate_t matrix_real10,
+        gpu_qstate_t matrix_real11,
+        gpu_qstate_t matrix_imag00,
+        gpu_qstate_t matrix_imag01,
+        gpu_qstate_t matrix_imag10,
+        gpu_qstate_t matrix_imag11
     )
     {
-        QSIZE idx = blockDim.x*blockIdx.x + threadIdx.x;           //thread number
+        gpu_qsize_t idx = blockDim.x*blockIdx.x + threadIdx.x;           //thread number
 
         if (
             idx < Dim && 
@@ -92,12 +93,12 @@ namespace gpu {
             ((idx & target_qubit) == target_qubit)
            )
         {
-            QSIZE corIdx = idx;                                     //1
-            QSIZE realIdx = corIdx - target_qubit;                  //0
-            STATE_T X1 = psireal[realIdx];
-            STATE_T X2 = psireal[corIdx];
-            STATE_T Y1 = psiimag[realIdx];
-            STATE_T Y2 = psiimag[corIdx];
+            gpu_qsize_t corIdx = idx;                                     //1
+            gpu_qsize_t realIdx = corIdx - target_qubit;                  //0
+            gpu_qstate_t X1 = psireal[realIdx];
+            gpu_qstate_t X2 = psireal[corIdx];
+            gpu_qstate_t Y1 = psiimag[realIdx];
+            gpu_qstate_t Y2 = psiimag[corIdx];
             psireal[realIdx] = matrix_real00 * X1 - matrix_imag00 * Y1 + matrix_real01 * X2 - matrix_imag01 * Y2;
             psireal[corIdx] = matrix_real10 * X1 - matrix_imag10 * Y1 + matrix_real11 * X2 - matrix_imag11 * Y2;
             psiimag[realIdx] = matrix_real00 * Y1 + matrix_imag00 * X1 + matrix_real01 * Y2 + matrix_imag01 * X2;
@@ -107,46 +108,46 @@ namespace gpu {
 
     __global__ void
         unitarydouble(
-            STATE_T * psireal,
-            STATE_T * psiimag,
-            QSIZE Dim,
-            QSIZE Block1,
-            QSIZE Block2,
-            STATE_T real0000,
-            STATE_T real0001,
-            STATE_T real0010,
-            STATE_T real0011,
-            STATE_T real0100,
-            STATE_T real0101,
-            STATE_T real0110,
-            STATE_T real0111,
-            STATE_T real1000,
-            STATE_T real1001,
-            STATE_T real1010,
-            STATE_T real1011,
-            STATE_T real1100,
-            STATE_T real1101,
-            STATE_T real1110,
-            STATE_T real1111,
-            STATE_T imag0000,
-            STATE_T imag0001,
-            STATE_T imag0010,
-            STATE_T imag0011,
-            STATE_T imag0100,
-            STATE_T imag0101,
-            STATE_T imag0110,
-            STATE_T imag0111,
-            STATE_T imag1000,
-            STATE_T imag1001,
-            STATE_T imag1010,
-            STATE_T imag1011,
-            STATE_T imag1100,
-            STATE_T imag1101,
-            STATE_T imag1110,
-            STATE_T imag1111)
+            gpu_qstate_t * psireal,
+            gpu_qstate_t * psiimag,
+            gpu_qsize_t Dim,
+            gpu_qsize_t Block1,
+            gpu_qsize_t Block2,
+            gpu_qstate_t real0000,
+            gpu_qstate_t real0001,
+            gpu_qstate_t real0010,
+            gpu_qstate_t real0011,
+            gpu_qstate_t real0100,
+            gpu_qstate_t real0101,
+            gpu_qstate_t real0110,
+            gpu_qstate_t real0111,
+            gpu_qstate_t real1000,
+            gpu_qstate_t real1001,
+            gpu_qstate_t real1010,
+            gpu_qstate_t real1011,
+            gpu_qstate_t real1100,
+            gpu_qstate_t real1101,
+            gpu_qstate_t real1110,
+            gpu_qstate_t real1111,
+            gpu_qstate_t imag0000,
+            gpu_qstate_t imag0001,
+            gpu_qstate_t imag0010,
+            gpu_qstate_t imag0011,
+            gpu_qstate_t imag0100,
+            gpu_qstate_t imag0101,
+            gpu_qstate_t imag0110,
+            gpu_qstate_t imag0111,
+            gpu_qstate_t imag1000,
+            gpu_qstate_t imag1001,
+            gpu_qstate_t imag1010,
+            gpu_qstate_t imag1011,
+            gpu_qstate_t imag1100,
+            gpu_qstate_t imag1101,
+            gpu_qstate_t imag1110,
+            gpu_qstate_t imag1111)
     {
-        QSIZE idx = blockDim.x*blockIdx.x + threadIdx.x;
-        QSIZE Idx00, Idx01, Idx10, Idx11;
+        gpu_qsize_t idx = blockDim.x*blockIdx.x + threadIdx.x;
+        gpu_qsize_t Idx00, Idx01, Idx10, Idx11;
         if (Block1 > Block2)
         {
             Idx10 = (idx / (Block1 / 2)) * 2 * Block1 + Block1 + (idx % (Block1 / 2) / Block2) * 2 * Block2 + idx % Block2;
@@ -161,14 +162,14 @@ namespace gpu {
 
         if (Idx11 < Dim)
         {
-            STATE_T X00 = psireal[Idx00];
-            STATE_T X01 = psireal[Idx01];
-            STATE_T X10 = psireal[Idx10];
-            STATE_T X11 = psireal[Idx11];
-            STATE_T Y00 = psiimag[Idx00];
-            STATE_T Y01 = psiimag[Idx01];
-            STATE_T Y10 = psiimag[Idx10];
-            STATE_T Y11 = psiimag[Idx11];
+            gpu_qstate_t X00 = psireal[Idx00];
+            gpu_qstate_t X01 = psireal[Idx01];
+            gpu_qstate_t X10 = psireal[Idx10];
+            gpu_qstate_t X11 = psireal[Idx11];
+            gpu_qstate_t Y00 = psiimag[Idx00];
+            gpu_qstate_t Y01 = psiimag[Idx01];
+            gpu_qstate_t Y10 = psiimag[Idx10];
+            gpu_qstate_t Y11 = psiimag[Idx11];
             psireal[Idx00] = real0000 * X00 - imag0000 * Y00
                 + real0001 * X01 - imag0001 * Y01
                 + real0010 * X10 - imag0010 * Y10
@@ -207,46 +208,46 @@ namespace gpu {
     }
 
     __global__ void controlunitarydouble(
-        STATE_T * psireal,
-        STATE_T * psiimag,
-        QSIZE Dim,
-        QSIZE controller_mask,
-        QSIZE control_qubit,
-        QSIZE target_qubit,
-        STATE_T real0000,
-        STATE_T real0001,
-        STATE_T real0010,
-        STATE_T real0011,
-        STATE_T real0100,
-        STATE_T real0101,
-        STATE_T real0110,
-        STATE_T real0111,
-        STATE_T real1000,
-        STATE_T real1001,
-        STATE_T real1010,
-        STATE_T real1011,
-        STATE_T real1100,
-        STATE_T real1101,
-        STATE_T real1110,
-        STATE_T real1111,
-        STATE_T imag0000,
-        STATE_T imag0001,
-        STATE_T imag0010,
-        STATE_T imag0011,
-        STATE_T imag0100,
-        STATE_T imag0101,
-        STATE_T imag0110,
-        STATE_T imag0111,
-        STATE_T imag1000,
-        STATE_T imag1001,
-        STATE_T imag1010,
-        STATE_T imag1011,
-        STATE_T imag1100,
-        STATE_T imag1101,
-        STATE_T imag1110,
-        STATE_T imag1111)
+        gpu_qstate_t * psireal,
+        gpu_qstate_t * psiimag,
+        gpu_qsize_t Dim,
+        gpu_qsize_t controller_mask,
+        gpu_qsize_t control_qubit,
+        gpu_qsize_t target_qubit,
+        gpu_qstate_t real0000,
+        gpu_qstate_t real0001,
+        gpu_qstate_t real0010,
+        gpu_qstate_t real0011,
+        gpu_qstate_t real0100,
+        gpu_qstate_t real0101,
+        gpu_qstate_t real0110,
+        gpu_qstate_t real0111,
+        gpu_qstate_t real1000,
+        gpu_qstate_t real1001,
+        gpu_qstate_t real1010,
+        gpu_qstate_t real1011,
+        gpu_qstate_t real1100,
+        gpu_qstate_t real1101,
+        gpu_qstate_t real1110,
+        gpu_qstate_t real1111,
+        gpu_qstate_t imag0000,
+        gpu_qstate_t imag0001,
+        gpu_qstate_t imag0010,
+        gpu_qstate_t imag0011,
+        gpu_qstate_t imag0100,
+        gpu_qstate_t imag0101,
+        gpu_qstate_t imag0110,
+        gpu_qstate_t imag0111,
+        gpu_qstate_t imag1000,
+        gpu_qstate_t imag1001,
+        gpu_qstate_t imag1010,
+        gpu_qstate_t imag1011,
+        gpu_qstate_t imag1100,
+        gpu_qstate_t imag1101,
+        gpu_qstate_t imag1110,
+        gpu_qstate_t imag1111)
     {
-        QSIZE idx = blockDim.x*blockIdx.x + threadIdx.x;           //thread number
+        gpu_qsize_t idx = blockDim.x*blockIdx.x + threadIdx.x;           //thread number
         if (
             idx < Dim &&
             ((idx & controller_mask) == controller_mask) &&
@@ -254,18 +255,18 @@ namespace gpu {
             ((idx & target_qubit) == target_qubit)
             )
         {
-            QSIZE Idx00 = idx - control_qubit - target_qubit;
-            QSIZE Idx01 = Idx00 - control_qubit;
-            QSIZE Idx10 = Idx00 - target_qubit;
-            QSIZE Idx11 = idx;
-            STATE_T X00 = psireal[Idx00];
-            STATE_T X01 = psireal[Idx01];
-            STATE_T X10 = psireal[Idx10];
-            STATE_T X11 = psireal[Idx11];
-            STATE_T Y00 = psiimag[Idx00];
-            STATE_T Y01 = psiimag[Idx01];
-            STATE_T Y10 = psiimag[Idx10];
-            STATE_T Y11 = psiimag[Idx11];
+            gpu_qsize_t Idx00 = idx - control_qubit - target_qubit;
+            gpu_qsize_t Idx01 = Idx00 - control_qubit;
+            gpu_qsize_t Idx10 = Idx00 - target_qubit;
+            gpu_qsize_t Idx11 = idx;
+            gpu_qstate_t X00 = psireal[Idx00];
+            gpu_qstate_t X01 = psireal[Idx01];
+            gpu_qstate_t X10 = psireal[Idx10];
+            gpu_qstate_t X11 = psireal[Idx11];
+            gpu_qstate_t Y00 = psiimag[Idx00];
+            gpu_qstate_t Y01 = psiimag[Idx01];
+            gpu_qstate_t Y10 = psiimag[Idx10];
+            gpu_qstate_t Y11 = psiimag[Idx11];
             psireal[Idx00] = real0000 * X00 - imag0000 * Y00
                 + real0001 * X01 - imag0001 * Y01
                 + real0010 * X10 - imag0010 * Y10
@@ -303,9 +304,9 @@ namespace gpu {
         }
     }
 
-    __global__ void  initState(STATE_T * psireal, STATE_T * psiimag, QSIZE Dim)
+    __global__ void  initState(gpu_qstate_t * psireal, gpu_qstate_t * psiimag, gpu_qsize_t Dim)
     {
-        QSIZE idx = blockDim.x*blockIdx.x + threadIdx.x;           //thread number
+        gpu_qsize_t idx = blockDim.x*blockIdx.x + threadIdx.x;           //thread number
 
         if (idx < Dim && idx != 0)
         {
@@ -319,23 +320,24 @@ namespace gpu {
         }
     }
 
-    __global__ void qubitprob(STATE_T * psireal, STATE_T * psiimag, QSIZE Dim, QSIZE Block, STATE_T *pr)
+    __global__ void qubitprob(gpu_qstate_t * psireal, gpu_qstate_t * psiimag,
+                              gpu_qsize_t Dim, gpu_qsize_t Block, gpu_qstate_t *pr)
     {
-        QSIZE idx = blockDim.x*blockIdx.x + threadIdx.x;
-        QSIZE bid = blockIdx.x, tid = threadIdx.x;
-        QSIZE BlockNum = idx / Block;
-        QSIZE BlockInt = idx % Block;
-        QSIZE realIdx = BlockNum * 2 * Block + BlockInt;
-        QSIZE corIdx = realIdx + Block;
-        extern __shared__ STATE_T  dprob[];
+        gpu_qsize_t idx = blockDim.x*blockIdx.x + threadIdx.x;
+        gpu_qsize_t bid = blockIdx.x, tid = threadIdx.x;
+        gpu_qsize_t BlockNum = idx / Block;
+        gpu_qsize_t BlockInt = idx % Block;
+        gpu_qsize_t realIdx = BlockNum * 2 * Block + BlockInt;
+        gpu_qsize_t corIdx = realIdx + Block;
+        extern __shared__ gpu_qstate_t  dprob[];
         dprob[tid] = 0;
 
         if (corIdx < Dim)
         {
             dprob[tid] = psireal[realIdx] * psireal[realIdx] + psiimag[realIdx] * psiimag[realIdx];
             __syncthreads();
-            int offset = 1, mask = 1;
-            while (offset < THREADDIM)
+            gpu_qsize_t offset = 1, mask = 1;
+            while (offset < kThreadDim)
             {
                 if ((tid & mask) == 0)
                 {
@@ -352,18 +354,18 @@ namespace gpu {
         }
     }
 
-    __global__ void probsumnew1(STATE_T * psireal, STATE_T * psiimag, STATE_T *probtemp, size_t num1, size_t m, size_t Dim, size_t * block)
+    __global__ void probsumnew1(gpu_qstate_t * psireal, gpu_qstate_t * psiimag, gpu_qstate_t *probtemp, size_t num1, size_t m, size_t Dim, size_t * block)
     {
         size_t idx = blockDim.x*blockIdx.x + threadIdx.x;           //thread number
         size_t index1, index = 0, index2, k, s;
-        double temp = 0;
-        index1 = num1 + idx;                              //index1±íÊ¾idx¶ÔÓ¦µÄ²»¼ÓÈ¨µÄÌ¬ÐòºÅ
+        gpu_qstate_t temp = 0;
+        index1 = num1 + idx;                              //index1ï¿½ï¿½Ê¾idxï¿½ï¿½Ó¦ï¿½Ä²ï¿½ï¿½ï¿½È¨ï¿½ï¿½Ì¬ï¿½ï¿½ï¿½ï¿½
         if (index1 < (1u << m))
         {
             for (size_t j = 0; j < m; j++)
             {
                 index += block[j] * ((index1 >> j) % 2);
-            }//index ±íÊ¾idx¶ÔÓ¦µÄÌ¬µÄÐòºÅ
+            }//index ï¿½ï¿½Ê¾idxï¿½ï¿½Ó¦ï¿½ï¿½Ì¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
             for (size_t i = 0; i < Dim / (1u << m); i++)
             {
                 index2 = i;
@@ -380,12 +382,12 @@ namespace gpu {
         }
     }
 
-    __global__ void  probsum(STATE_T * pr, STATE_T * prob)
+    __global__ void  probsum(gpu_qstate_t *pr, gpu_qstate_t *prob)
     {
-        QSIZE idx = blockDim.x*blockIdx.x + threadIdx.x;           //thread number
+        gpu_qsize_t idx = blockDim.x*blockIdx.x + threadIdx.x;           //thread number
         if (0 == idx)
         {
-            STATE_T dprob = 0;
+            gpu_qstate_t dprob = 0;
             for (int i = 0; i < gridDim.x; i++)
             {
                 dprob += pr[i];
@@ -394,17 +396,17 @@ namespace gpu {
         }
     }//checked and can be optimized
 
-    __global__ void  qubitcollapse0(STATE_T * psireal, STATE_T * psiimag, QSIZE Dim, QSIZE Block, STATE_T coef)
+    __global__ void  qubitcollapse0(gpu_qstate_t * psireal, gpu_qstate_t * psiimag, gpu_qsize_t Dim, gpu_qsize_t Block, gpu_qstate_t coef)
     {
-        QSIZE idx = blockDim.x*blockIdx.x + threadIdx.x;           //thread number
-        QSIZE BlockNum = idx / Block;
-        QSIZE BlockInt = idx % Block;
-        QSIZE realIdx = BlockNum * 2 * Block + BlockInt;
-        QSIZE corIdx = realIdx + Block;
+        gpu_qsize_t idx = blockDim.x*blockIdx.x + threadIdx.x;           //thread number
+        gpu_qsize_t BlockNum = idx / Block;
+        gpu_qsize_t BlockInt = idx % Block;
+        gpu_qsize_t realIdx = BlockNum * 2 * Block + BlockInt;
+        gpu_qsize_t corIdx = realIdx + Block;
         if (corIdx < Dim)
         {
-            STATE_T X1 = psireal[realIdx];
-            STATE_T Y1 = psiimag[realIdx];
+            gpu_qstate_t X1 = psireal[realIdx];
+            gpu_qstate_t Y1 = psiimag[realIdx];
             psireal[realIdx] = X1 * coef;
             psireal[corIdx] = 0;
             psiimag[realIdx] = Y1 * coef;
@@ -412,17 +414,17 @@ namespace gpu {
         }
     }//checked
 
-    __global__ void  qubitcollapse1(STATE_T * psireal, STATE_T * psiimag, QSIZE Dim, QSIZE Block, STATE_T coef)
+    __global__ void  qubitcollapse1(gpu_qstate_t * psireal, gpu_qstate_t * psiimag, gpu_qsize_t Dim, gpu_qsize_t Block, gpu_qstate_t coef)
     {
-        QSIZE idx = blockDim.x*blockIdx.x + threadIdx.x;           //thread number
-        QSIZE BlockNum = idx / Block;
-        QSIZE BlockInt = idx % Block;
-        QSIZE realIdx = BlockNum * 2 * Block + BlockInt;
-        QSIZE corIdx = realIdx + Block;
+        gpu_qsize_t idx = blockDim.x*blockIdx.x + threadIdx.x;           //thread number
+        gpu_qsize_t BlockNum = idx / Block;
+        gpu_qsize_t BlockInt = idx % Block;
+        gpu_qsize_t realIdx = BlockNum * 2 * Block + BlockInt;
+        gpu_qsize_t corIdx = realIdx + Block;
         if (corIdx < Dim)
         {
-            STATE_T X2 = psireal[corIdx];
-            STATE_T Y2 = psiimag[corIdx];
+            gpu_qstate_t X2 = psireal[corIdx];
+            gpu_qstate_t Y2 = psiimag[corIdx];
             psireal[realIdx] = 0;
             psireal[corIdx] = X2 * coef;
             psiimag[realIdx] = 0;
@@ -438,36 +440,35 @@ namespace gpu {
     m:        target qubit number
     dec:      target qubit state
     ****************************************************************************************/
-    __global__ void  multiprob(
-        STATE_T *psireal,
-        STATE_T *psiimag,
-        QSIZE Dim,
-        STATE_T *pro, 
-        QSIZE *block, 
-        QSIZE m, 
-        QSIZE dec)
+    __global__ void  multiprob(gpu_qstate_t *psireal,
+        gpu_qstate_t *psiimag,
+        gpu_qsize_t Dim,
+        gpu_qstate_t *pro,
+        gpu_qsize_t *block,
+        gpu_qsize_t m,
+        gpu_qsize_t dec)
     {
-        QSIZE idx = blockDim.x*blockIdx.x + threadIdx.x;           //thread number
-        QSIZE bid = blockIdx.x, tid = threadIdx.x;
-        //QSIZE BlockNum = idx / Block;
-        //QSIZE BlockInt = idx% Block;    
-        extern __shared__ STATE_T dprob[];
+        gpu_qsize_t idx = blockDim.x*blockIdx.x + threadIdx.x;           //thread number
+        gpu_qsize_t bid = blockIdx.x, tid = threadIdx.x;
+        //gpu_qsize_t BlockNum = idx / Block;
+        //gpu_qsize_t BlockInt = idx% Block;
+        extern __shared__ gpu_qstate_t dprob[];
         dprob[tid] = 0;
-        QSIZE i, j, k;
+        gpu_qsize_t i, j, k;
         if (idx < Dim / (1 << m))
         {
-            QSIZE index = idx;
+            gpu_qsize_t index = idx;
             for (i = 0; i < m; i++)
             {
                 j = index / block[i];
                 k = index % block[i];
                 index = j * 2 * block[i] + k;
-            }                                                              //index Ä¿±ê±ÈÌØÈ«Îª0
-            QSIZE realIdx = index + dec;                                   //ÐèÒª¼ÓµÄÌ¬µÄ¸ÅÂÊ
+            }                                                              //index Ä¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È«Îª0
+            gpu_qsize_t realIdx = index + dec;                                   //ï¿½ï¿½Òªï¿½Óµï¿½Ì¬ï¿½Ä¸ï¿½ï¿½ï¿½
             dprob[tid] = psireal[realIdx] * psireal[realIdx] + psiimag[realIdx] * psiimag[realIdx];
-            __syncthreads();//Ê÷×´¼Ó·¨
+            __syncthreads();//ï¿½ï¿½×´ï¿½Ó·ï¿½
             int offset = 1, mask = 1;
-            while (offset < THREADDIM)
+            while (offset < kThreadDim)
             {
                 if ((tid & mask) == 0)
                 {
@@ -477,56 +478,55 @@ namespace gpu {
                 mask = offset + mask;
                 __syncthreads();
             }
-            //¼ÆËãÊ±¼ä,¼ÇÂ¼½á¹û,Ö»ÔÚ thread 0£¨¼´ threadIdx.x =
-            //dprob[0]ÇóºÍ¼´µÃµ½×îºóµÄ¸ÅÂÊ
+            //ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½,ï¿½ï¿½Â¼ï¿½ï¿½ï¿½ï¿½,Ö»ï¿½ï¿½ thread 0ï¿½ï¿½ï¿½ï¿½ threadIdx.x =
+            //dprob[0]ï¿½ï¿½ï¿½Í¼ï¿½ï¿½Ãµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¸ï¿½ï¿½ï¿½
             if (tid == 0)
             {
-                pro[bid] = dprob[0];                       //ÔÙ¼ÆËãproµÄºÍ¾ÍµÃµ½×îºóµÄ¸ÅÂÊ
+                pro[bid] = dprob[0];                       //ï¿½Ù¼ï¿½ï¿½ï¿½proï¿½ÄºÍ¾ÍµÃµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¸ï¿½ï¿½ï¿½
             }
         }
     }
 
-    __global__ void pmeasure_many_target(
-        STATE_T* psireal,
-        STATE_T* psiimag,
-        STATE_T* result,
-        QSIZE qnum_mask,
-        QSIZE result_size,
-        QSIZE Dim)
+    __global__ void pmeasure_many_target(gpu_qstate_t* psireal,
+        gpu_qstate_t* psiimag,
+        double *result,
+        gpu_qsize_t qnum_mask,
+        gpu_qsize_t result_size,
+        gpu_qsize_t Dim)
     {
-        QSIZE bid = blockIdx.x;
-        QSIZE tid = threadIdx.x;
-        QSIZE idx = blockDim.x*bid + tid;    
+        gpu_qsize_t bid = blockIdx.x;
+        gpu_qsize_t tid = threadIdx.x;
+        gpu_qsize_t idx = blockDim.x*bid + tid;
 
-        // ¶ÔÃ¿¸öresult²¢ÐÐ£¬²¢ÐÐ¸öÊýÎªresult_size¸ö
-        // ÊÊÓÃÓÚtarget¸öÊý¶àÓÚthreaddimµÄÇé¿ö£¬ÀýÈç¶Ô10¸öqubit½øÐÐpmeasure
+        // ï¿½ï¿½Ã¿ï¿½ï¿½resultï¿½ï¿½ï¿½Ð£ï¿½ï¿½ï¿½ï¿½Ð¸ï¿½ï¿½ï¿½Îªresult_sizeï¿½ï¿½
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½targetï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½threaddimï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½10ï¿½ï¿½qubitï¿½ï¿½ï¿½ï¿½pmeasure
         result[idx] = 0;
         if (idx < result_size)
         {
-            for (QSIZE i = 0; i < Dim / result_size; ++i)
+            for (gpu_qsize_t i = 0; i < Dim / result_size; ++i)
             {
-                QSIZE realIdx = 0;
-                QSIZE copy_i = i;        // Õâ¸öiÊÇÒª²»¶ÏÒÆÎ»µÄ£¬ËùÒÔ¸´ÖÆÒ»·Ý
-                QSIZE copy_idx = idx;    // Í¬Àí
+                gpu_qsize_t realIdx = 0;
+                gpu_qsize_t copy_i = i;        // ï¿½ï¿½ï¿½ï¿½iï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î»ï¿½Ä£ï¿½ï¿½ï¿½ï¿½Ô¸ï¿½ï¿½ï¿½Ò»ï¿½ï¿½
+                gpu_qsize_t copy_idx = idx;    // Í¬ï¿½ï¿½
 
-                // ÏÂÃæ¼ÆËãrealIdx
-                // ÀýÈç£º
+                // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½realIdx
+                // ï¿½ï¿½ï¿½ç£º
                 // qnum_mask : 00100100
                 // copy_i = abcdef
                 // copy_idx = xy
                 //
-                // realIdx Ó¦¸ÃÎª abxcdyef
-                // ÓÃ²»¶ÏÓÒÒÆµÄdigitÅÐ¶ÏmaskÉÏÊÇ0»¹ÊÇ1
-                // ÓÃflagÅÐ¶ÏÒ»¹²ÓÐ¶àÉÙÎ»£ºDim=100000000£¬¿ÉÒÔÏòÓÒÒÆ¶¯6´Î£¬Èç¹ûÊÇ1£¬ËµÃ÷½áÊø
-                // ÓÃset_digitËµÃ÷ÕýÔÚ²Ù×÷ÄÄÒ»Î»£¬Ã¿´Îset_digit×óÒÆÒ»Î»£¬realIdx = set_digit * (?) + realIdx
-                // Èç¹ûdigit & 1 == 0 ËµÃ÷ÊÇcopy_iµÄÐòºÅ£¬Í¨¹ý copy_i & 1 È¡µ½×îµÍÎ»ºó£¬ÒÆ¶¯Ò»Î»
-                // Èç¹ûdigit & 1 == 1 ËµÃ÷ÊÇcopy_idxµÄÐòºÅ£¬Í¬Àí
+                // realIdx Ó¦ï¿½ï¿½Îª abxcdyef
+                // ï¿½Ã²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æµï¿½digitï¿½Ð¶ï¿½maskï¿½ï¿½ï¿½ï¿½0ï¿½ï¿½ï¿½ï¿½1
+                // ï¿½ï¿½flagï¿½Ð¶ï¿½Ò»ï¿½ï¿½ï¿½Ð¶ï¿½ï¿½ï¿½Î»ï¿½ï¿½Dim=100000000ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ¶ï¿½6ï¿½Î£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½1ï¿½ï¿½Ëµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+                // ï¿½ï¿½set_digitËµï¿½ï¿½ï¿½ï¿½ï¿½Ú²ï¿½ï¿½ï¿½ï¿½ï¿½Ò»Î»ï¿½ï¿½Ã¿ï¿½ï¿½set_digitï¿½ï¿½ï¿½ï¿½Ò»Î»ï¿½ï¿½realIdx = set_digit * (?) + realIdx
+                // ï¿½ï¿½ï¿½ï¿½digit & 1 == 0 Ëµï¿½ï¿½ï¿½ï¿½copy_iï¿½ï¿½ï¿½ï¿½ï¿½Å£ï¿½Í¨ï¿½ï¿½ copy_i & 1 È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½ï¿½ï¿½ï¿½Æ¶ï¿½Ò»Î»
+                // ï¿½ï¿½ï¿½ï¿½digit & 1 == 1 Ëµï¿½ï¿½ï¿½ï¿½copy_idxï¿½ï¿½ï¿½ï¿½ï¿½Å£ï¿½Í¬ï¿½ï¿½
 
-                QSIZE set_digit = 1;
-                QSIZE qnum_mask_copy = qnum_mask;
+                gpu_qsize_t set_digit = 1;
+                gpu_qsize_t qnum_mask_copy = qnum_mask;
 
                 int loops = 0;
-                for (QSIZE flag = Dim;
+                for (gpu_qsize_t flag = Dim;
                     flag != 1;
                     flag >>= 1)
                 {    
@@ -544,51 +544,50 @@ namespace gpu {
                     set_digit <<= 1;
                     qnum_mask_copy >>= 1;
                 }
-                result[idx] += (
-                    psireal[realIdx] * psireal[realIdx] + 
-                    psiimag[realIdx] * psiimag[realIdx]
-                    );
+
+                result[idx] += psireal[realIdx] * psireal[realIdx] +
+                               psiimag[realIdx] * psiimag[realIdx];
             }
         }
     }
 
     __global__ void pmeasure_one_target(
-        STATE_T* psireal, 
-        STATE_T* psiimag, 
-        STATE_T* result,
-        QSIZE qnum_mask,
-        QSIZE result_idx,
-        size_t result_dim,
-        QSIZE Dim)
+        gpu_qstate_t* psireal,
+        gpu_qstate_t* psiimag,
+        double *result,
+        gpu_qsize_t qnum_mask,
+        size_t result_idx,
+        gpu_qsize_t result_dim,
+        gpu_qsize_t Dim)
     {
-        QSIZE idx = blockDim.x*blockIdx.x + threadIdx.x;           //thread number
-        QSIZE bid = blockIdx.x, tid = threadIdx.x;
+        gpu_qsize_t idx = blockDim.x*blockIdx.x + threadIdx.x;           //thread number
+        gpu_qsize_t bid = blockIdx.x, tid = threadIdx.x;
 
-        extern __shared__ STATE_T dprob[];
-        dprob[tid] = 0;
+        extern __shared__ double dprob_result[];
+        dprob_result[tid] = 0;
         
         if (idx < (Dim>>result_dim))
         {
-            QSIZE copy_idx = idx;
-            QSIZE copy_result_idx = result_idx;
-            // ÏÂÃæ¼ÆËãrealIdx
-            // ÀýÈç£º
+            gpu_qsize_t copy_idx = idx;
+            gpu_qsize_t copy_result_idx = result_idx;
+            // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½realIdx
+            // ï¿½ï¿½ï¿½ç£º
             // qnum_mask : 00100100
             // idx = abcdef
             // result_idx = xy
             //
-            // realIdx Ó¦¸ÃÎª abxcdyef
-            // ÓÃ²»¶ÏÓÒÒÆµÄdigitÅÐ¶ÏmaskÉÏÊÇ0»¹ÊÇ1
-            // ÓÃflagÅÐ¶ÏÒ»¹²ÓÐ¶àÉÙÎ»£ºDim=100000000£¬¿ÉÒÔÏòÓÒÒÆ¶¯6´Î£¬Èç¹ûÊÇ1£¬ËµÃ÷½áÊø
-            // ÓÃset_digitËµÃ÷ÕýÔÚ²Ù×÷ÄÄÒ»Î»£¬Ã¿´Îset_digit×óÒÆÒ»Î»£¬realIdx = set_digit * (?) + realIdx
-            // Èç¹ûdigit & 1 == 0 ËµÃ÷ÊÇcopy_idxµÄÐòºÅ£¬Í¨¹ý copy_idx & 1 È¡µ½×îµÍÎ»ºó£¬ÒÆ¶¯Ò»Î»
-            // Èç¹ûdigit & 1 == 1 ËµÃ÷ÊÇcopy_result_idxµÄÐòºÅ£¬Í¬Àí
-            QSIZE realIdx = 0;
-            QSIZE set_digit = 1;
-            QSIZE qnum_mask_copy = qnum_mask;
+            // realIdx Ó¦ï¿½ï¿½Îª abxcdyef
+            // ï¿½Ã²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æµï¿½digitï¿½Ð¶ï¿½maskï¿½ï¿½ï¿½ï¿½0ï¿½ï¿½ï¿½ï¿½1
+            // ï¿½ï¿½flagï¿½Ð¶ï¿½Ò»ï¿½ï¿½ï¿½Ð¶ï¿½ï¿½ï¿½Î»ï¿½ï¿½Dim=100000000ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ¶ï¿½6ï¿½Î£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½1ï¿½ï¿½Ëµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+            // ï¿½ï¿½set_digitËµï¿½ï¿½ï¿½ï¿½ï¿½Ú²ï¿½ï¿½ï¿½ï¿½ï¿½Ò»Î»ï¿½ï¿½Ã¿ï¿½ï¿½set_digitï¿½ï¿½ï¿½ï¿½Ò»Î»ï¿½ï¿½realIdx = set_digit * (?) + realIdx
+            // ï¿½ï¿½ï¿½ï¿½digit & 1 == 0 Ëµï¿½ï¿½ï¿½ï¿½copy_idxï¿½ï¿½ï¿½ï¿½ï¿½Å£ï¿½Í¨ï¿½ï¿½ copy_idx & 1 È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½ï¿½ï¿½ï¿½Æ¶ï¿½Ò»Î»
+            // ï¿½ï¿½ï¿½ï¿½digit & 1 == 1 Ëµï¿½ï¿½ï¿½ï¿½copy_result_idxï¿½ï¿½ï¿½ï¿½ï¿½Å£ï¿½Í¬ï¿½ï¿½
+            gpu_qsize_t realIdx = 0;
+            gpu_qsize_t set_digit = 1;
+            gpu_qsize_t qnum_mask_copy = qnum_mask;
 
             int loops = 0;
-            for (QSIZE flag = Dim;
+            for (gpu_qsize_t flag = Dim;
                 flag != 1;
                 flag >>= 1)
             {
@@ -606,24 +605,25 @@ namespace gpu {
                 set_digit <<= 1;
                 qnum_mask_copy >>= 1;
             }
-            dprob[tid] = psireal[realIdx] * psireal[realIdx] + psiimag[realIdx] * psiimag[realIdx];
+            dprob_result[tid] = psireal[realIdx] * psireal[realIdx] + psiimag[realIdx] * psiimag[realIdx];
                         
             __syncthreads();
 
-            int offset = 1, mask = 1;
-            while (offset < THREADDIM)
+            size_t offset = 1, mask = 1;
+            while (offset < kThreadDim)
             {
                 if ((tid & mask) == 0)
                 {
-                    dprob[tid] += dprob[tid + offset];
+                    dprob_result[tid] += dprob_result[tid + offset];
                 }
                 offset += offset;
                 mask = offset + mask;
                 __syncthreads();
             }
+
             if (tid == 0)
             {
-                result[bid] = dprob[0];
+                result[bid] = dprob_result[0];
             }
         }
     }

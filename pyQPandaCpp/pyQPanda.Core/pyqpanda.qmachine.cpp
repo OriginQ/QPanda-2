@@ -24,6 +24,13 @@ void init_quantum_machine(py::module &m)
         .value("NOISE", QMachineType::NOISE)
         .export_values();
 
+	py::enum_<IBMQBackends>(m, "IBMQBackends")
+		.value("IBMQ_QASM_SIMULATOR", IBMQBackends::IBMQ_QASM_SIMULATOR)
+		.value("IBMQ_16_MELBOURNE", IBMQBackends::IBMQ_16_MELBOURNE)
+		.value("IBMQX2", IBMQBackends::IBMQX2)
+		.value("IBMQX4", IBMQBackends::IBMQX4)
+		.export_values();
+
     py::enum_<NOISE_MODEL>(m, "NoiseModel")
         .value("DAMPING_KRAUS_OPERATOR", NOISE_MODEL::DAMPING_KRAUS_OPERATOR)
         .value("DECOHERENCE_KRAUS_OPERATOR", NOISE_MODEL::DECOHERENCE_KRAUS_OPERATOR)
@@ -51,7 +58,9 @@ void init_quantum_machine(py::module &m)
         .def("pop", [](QVec & self) {
         self.pop_back();
     });
+
     py::implicitly_convertible<std::vector<Qubit *>, QVec>();
+
     Qubit*(QuantumMachine::*qalloc)() = &QuantumMachine::allocateQubit;
     ClassicalCondition(QuantumMachine::*cAlloc)() = &QuantumMachine::allocateCBit;
     QVec(QuantumMachine::*qallocMany)(size_t) = &QuantumMachine::allocateQubits;

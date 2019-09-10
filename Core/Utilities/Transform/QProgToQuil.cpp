@@ -73,26 +73,23 @@ void QProgToQuil::transform(QProg &prog)
     DoubleGateTypeValidator::GateType(gate_matrix[METADATA_DOUBLE_GATE],
                                       valid_gate_matrix[METADATA_DOUBLE_GATE]);  /* double gate data MetadataValidity */
     TransformDecomposition traversal_vec(valid_gate_matrix,gate_matrix,adjacent_matrixes,m_quantum_machine);
-    auto p_prog = &prog;
+
     traversal_vec.TraversalOptimizationMerge(prog);
-    transformQProg(p_prog);
+
+	transformQProgByTraversalAlg(&prog);
 }
 
-void QProgToQuil::transformQProg(AbstractQuantumProgram * prog)
+void QProgToQuil::transformQProgByTraversalAlg(QProg *prog)
 {
-    if (nullptr == prog)
-    {
-        QCERR("p_prog is null");
-        throw runtime_error("p_prog is null");
-    }
+	if (nullptr == prog)
+	{
+		QCERR("p_prog is null");
+		throw runtime_error("p_prog is null");
+		return;
+	}
 
-    for (auto iter = prog->getFirstNodeIter(); iter != prog->getEndNodeIter(); iter++)
-    {
-        QNode * p_node = (*iter).get();
-        transformQNode(p_node);
-    }
-
-    return;
+	bool isDagger = false;
+	Traversal::traversalByType(prog->getImplementationPtr(), nullptr, *this, isDagger);
 }
 
 string QProgToQuil::getInsturctions()
@@ -107,8 +104,41 @@ string QProgToQuil::getInsturctions()
     return instructions;
 }
 
+void QProgToQuil::execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node, bool &is_dagger)
+{
+	transformQGate(cur_node.get(), is_dagger);
+}
 
-void QProgToQuil::transformQGate(AbstractQGateNode *gate)
+void QProgToQuil::execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, std::shared_ptr<QNode> parent_node, bool &is_dagger)
+{
+	transformQMeasure(cur_node.get());
+}
+
+void QProgToQuil::execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node, bool &)
+{
+	QCERR("Don't support QWhileProg or QIfProg");
+	throw invalid_argument("Don't support QWhileProg or QIfProg");
+}
+
+void QProgToQuil::execute(std::shared_ptr<AbstractQuantumProgram>  cur_node, std::shared_ptr<QNode> parent_node, bool &is_dagger)
+{
+	Traversal::traversal(cur_node, *this, is_dagger);
+}
+
+void QProgToQuil::execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std::shared_ptr<QNode> parent_node, bool &is_dagger)
+{
+	bool bDagger = cur_node->isDagger() ^ is_dagger;
+	Traversal::traversal(cur_node, true, *this, bDagger);
+}
+
+void QProgToQuil::execute(std::shared_ptr<AbstractClassicalProg>  cur_node, std::shared_ptr<QNode> parent_node, bool&)
+{
+	// error
+	QCERR("transform error, there shouldn't be classicalProg here.");
+	throw invalid_argument("transform error, there shouldn't be classicalProg here.");
+}
+
+void QProgToQuil::transformQGate(AbstractQGateNode *gate, bool is_dagger)
 {
     if (nullptr == gate)
     {
@@ -125,60 +155,6 @@ void QProgToQuil::transformQGate(AbstractQGateNode *gate)
 
     return;
 }
-
-
-void QProgToQuil::transformQCircuit(AbstractQuantumCircuit *circuit)
-{
-    if (nullptr == circuit)
-    {
-        QCERR("p_circuit is null");
-        throw runtime_error("p_circuit is null");
-    }
-
-    if (circuit->isDagger())
-    {
-        for (auto iter = circuit->getLastNodeIter(); iter != circuit->getHeadNodeIter(); iter--)
-        {
-            QNode *p_node = (*iter).get();
-            int type = p_node->getNodeType();
-
-            switch (type)
-            {
-            case NodeType::GATE_NODE:
-                {
-                    AbstractQGateNode *p_gate = dynamic_cast<AbstractQGateNode *>(p_node);
-                    p_gate->setDagger(true ^ p_gate->isDagger());
-                }
-                break;
-            case NodeType::CIRCUIT_NODE:
-                {
-                    AbstractQuantumCircuit *p_circuit = dynamic_cast<AbstractQuantumCircuit *>(p_node);
-                    p_circuit->setDagger(true ^ p_circuit->isDagger());
-                }
-                break;
-            case NodeType::MEASURE_GATE:
-                break;
-            default:
-                QCERR("Circuit is error");
-                throw runtime_error("Circuit is error");
-                break;
-            }
-
-            transformQNode(p_node);
-        }
-    }
-    else
-    {
-        for (auto iter = circuit->getFirstNodeIter(); iter != circuit->getEndNodeIter(); iter++)
-        {
-            QNode * p_node = (*iter).get();
-            transformQNode(p_node);
-        }
-    }
-
-    return;
-}
-
 
 void QProgToQuil::transformQMeasure(AbstractQuantumMeasure *measure)
 {
@@ -199,49 +175,6 @@ void QProgToQuil::transformQMeasure(AbstractQuantumMeasure *measure)
     string instruct = "MEASURE " + qubit_addr_str + " [" + cbit_number_str + "]";
 
     m_instructs.emplace_back(instruct);
-    return;
-}
-
-
-void QProgToQuil::transformQNode(QNode *node)
-{
-    if (nullptr == node)
-    {
-        QCERR("p_node is null");
-        throw runtime_error("p_node is null");
-    }
-
-    int type = node->getNodeType();
-
-    switch (type)
-    {
-    case NodeType::GATE_NODE:
-        transformQGate(dynamic_cast<AbstractQGateNode *>(node));
-        break;
-    case NodeType::CIRCUIT_NODE:
-        transformQCircuit(dynamic_cast<AbstractQuantumCircuit *>(node));
-        break;
-    case NodeType::PROG_NODE:
-        transformQProg(dynamic_cast<AbstractQuantumProgram *>(node));
-        break;
-    case NodeType::QIF_START_NODE:
-    case NodeType::WHILE_START_NODE:
-        QCERR("Don't support QWhileProg or QIfProg");
-        throw invalid_argument("Don't support QWhileProg or QIfProg");
-        break;
-    case NodeType::MEASURE_GATE:
-        transformQMeasure(dynamic_cast<AbstractQuantumMeasure *>(node));
-        break;
-    case NodeType::NODE_UNDEFINED:
-        QCERR("NodeType UNDEFINED");
-        throw invalid_argument("NodeType UNDEFINED");
-        break;
-    default:
-        QCERR("pNode is error");
-        throw invalid_argument("pNode is error");
-        break;
-    }
-
     return;
 }
 

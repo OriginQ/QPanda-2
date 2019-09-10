@@ -3,12 +3,12 @@ project(QPANDA)
 
 set(QPANDA_MAJOR_VERSION 1)
 set(QPANDA_MINOR_VERSION 3)
-set(QPANDA_PATCH_VERSION 3)
+set(QPANDA_PATCH_VERSION 4)
 set(QPANDA_VERSION "${QPANDA_MAJOR_VERSION}.${QPANDA_MINOR_VERSION}.${QPANDA_PATCH_VERSION}")
 message(STATUS "QPANDA VERSION = " "[${QPANDA_VERSION}]")
 
-include_directories(${PROJECT_SOURCE_DIR}/include/Applications
-                    ${PROJECT_SOURCE_DIR}/include
+include_directories(${PROJECT_SOURCE_DIR}/include
+                    ${PROJECT_SOURCE_DIR}/include/Applications
                     ${PROJECT_SOURCE_DIR}/include/QAlg
                     ${PROJECT_SOURCE_DIR}/include/QAlg/Components
                     ${PROJECT_SOURCE_DIR}/include/QAlg/Components/Optimizer
@@ -27,12 +27,14 @@ include_directories(${PROJECT_SOURCE_DIR}/include/Applications
                     ${PROJECT_SOURCE_DIR}/include/Core/QuantumCircuit
                     ${PROJECT_SOURCE_DIR}/include/Core/Utilities
                     ${PROJECT_SOURCE_DIR}/include/Core/Utilities/Transform
+                    ${PROJECT_SOURCE_DIR}/include/Core/Utilities/Transform/OriginIRCompiler
                     ${PROJECT_SOURCE_DIR}/include/Variational
                     ${PROJECT_SOURCE_DIR}/ThirdParty
                     ${PROJECT_SOURCE_DIR}/ThirdParty/gtest
                     ${PROJECT_SOURCE_DIR}/ThirdParty/gtest/include
                     ${PROJECT_SOURCE_DIR}/ThirdParty/bplus-tree
                     ${PROJECT_SOURCE_DIR}/ThirdParty/bplus-tree/include
+                    ${PROJECT_SOURCE_DIR}/ThirdParty/antlr4/runtime/src
                     ${PROJECT_SOURCE_DIR}
                     ${PYTHON_PATH_INCLUDE})
 
@@ -51,6 +53,8 @@ set(LIB_QPANDA QPanda2)
 set(LIB_GTEST gtest)
 set(LIB_BPLUSTREE BplusTree)
 set(LIB_XML TinyXML)
+set(LIB_CHEMIQ ChemiQ)
+set (LIB_ANTLR4 antlr4)
 
 set(LIB_VAR Variational)
 set(LIB_QALG QAlg)
@@ -58,8 +62,8 @@ set(LIB_PYQPANDA pyQPanda)
 set(LIB_PYQPANDA_PAUL pyQPandaPauliOperator)
 
 if(NOT CMAKE_BUILD_TYPE)
-    message(STATUS ":  No build type selected, default is Release")
-    set(CMAKE_BUILD_TYPE "Release")
+   message(STATUS ":  No build type selected, default is Release")
+   set(CMAKE_BUILD_TYPE "Release")
 endif()
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -117,7 +121,16 @@ elseif (UNIX)
 endif()
 add_definitions(${EXTRA_LDFLAGS})
 
-option(FIND_CUDA "find cuda" ON) 
+option(FIND_CUDA "find cuda" ON)
+
+if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(UUID REQUIRED uuid)
+endif()
+if(APPLE)
+    find_library(COREFOUNDATION_LIBRARY CoreFoundation)
+endif()
+
 if (FIND_CUDA)
     find_package(CUDA)
 endif(FIND_CUDA)
@@ -161,6 +174,12 @@ if (MPI_FOUND)
 elseif(MPI_FOUND)
     option(USE_MPI "not find MPI" OFF)
 endif (MPI_FOUND)
+
+option(USE_CHEMIQ "use ChemiQ" OFF)
+if(USE_CHEMIQ)
+	include_directories(${PROJECT_SOURCE_DIR}/include/ChemiQ)
+    add_subdirectory(ChemiQ)
+endif(USE_CHEMIQ)
 
 add_subdirectory(ThirdParty)
 add_subdirectory(Core)

@@ -184,8 +184,8 @@ void QProgStored::transformQControlFlow(AbstractControlFlowNode *p_controlflow)
         throw invalid_argument("pQControlFlow is null");
     }
 
-    ClassicalCondition *p_classcical_condition = p_controlflow->getCExpr();
-    auto expr = p_classcical_condition->getExprPtr().get();
+    ClassicalCondition p_classcical_condition = p_controlflow->getCExpr();
+    auto expr = p_classcical_condition.getExprPtr().get();
     transformCExpr(expr);
 
     QNode *p_node = dynamic_cast<QNode *>(p_controlflow);
@@ -220,10 +220,10 @@ void QProgStored::transformQIfProg(AbstractControlFlowNode *p_controlFlow)
     uint32_t true_and_false_node = 0;
     addDataNode(QPROG_QIF_NODE, true_and_false_node);
     auto iter_head_node = --m_data_vector.end();
-    transformQNode(p_controlFlow->getTrueBranch());
+    transformQNode(p_controlFlow->getTrueBranch().get());
 
     true_and_false_node |= (m_node_counter << kCountMoveBit);
-    transformQNode(p_controlFlow->getFalseBranch());
+    transformQNode(p_controlFlow->getFalseBranch().get());
     true_and_false_node |= m_node_counter;
     iter_head_node->second.qubit_data = true_and_false_node;
 
@@ -243,7 +243,7 @@ void QProgStored::transformQWhilePro(AbstractControlFlowNode *p_controlflow)
     std::cout << "true_and_false_node: " << true_and_false_node << std::endl;
     addDataNode(QPROG_QWHILE_NODE, true_and_false_node);
     auto iter_head_node = --m_data_vector.end();
-    transformQNode(p_controlflow->getTrueBranch());
+    transformQNode(p_controlflow->getTrueBranch().get());
 
     true_and_false_node |= (m_node_counter << kCountMoveBit);
     iter_head_node->second.qubit_data = true_and_false_node;

@@ -18,6 +18,7 @@ limitations under the License.
 #include <functional>
 #include "ClassicalConditionInterface.h"
 using namespace std;
+USING_QPANDA
 inline bool isBinary(int OperatorSpecifier)
 {
     return OperatorSpecifier <= OR;
@@ -322,6 +323,30 @@ void OriginCExpr::setPosition(qmap_size_t  postion)
 int OriginCExpr::getContentSpecifier() const
 {
     return contentSpecifier;
+}
+
+void OriginCExpr::getCBitsName(std::vector<std::string>& names)
+{
+    if (CBIT == contentSpecifier)
+    {
+        names.push_back(getName());
+    }
+    else if (OPERATOR == contentSpecifier)
+    {
+        if (leftExpr != nullptr)
+        {
+            leftExpr->getCBitsName(names);
+        }
+
+        if (rightExpr != nullptr)
+        {
+            rightExpr->getCBitsName(names);
+        }
+    }
+    else
+    {
+
+    }
 }
 
 OriginCExpr::~OriginCExpr()

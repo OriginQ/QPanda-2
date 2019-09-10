@@ -9,7 +9,7 @@ endif (CUDA_FOUND)
 
 file(GLOB_RECURSE QPandaCore_SRCS_CPP ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp )
 add_library(${LIB_QPANDA} STATIC ${QPandaCore_SRCS_CPP} )
-list(APPEND LIB_LIST ${LIB_XML})
+list(APPEND LIB_LIST ${LIB_XML} ${LIB_ANTLR4})
 target_link_libraries(${LIB_QPANDA} ${LIB_LIST})
 
 if (UNIX)

@@ -11,7 +11,8 @@ namespace QPanda
         m_fatol(1e-4),
         m_test_value(0.0),
         m_max_fcalls(0),
-        m_max_iter(0)
+        m_max_iter(0),
+        m_restore_from_cache_file(false)
     {
         m_result.message = "No exec.";
     }

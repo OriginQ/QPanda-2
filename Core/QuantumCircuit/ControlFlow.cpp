@@ -75,7 +75,7 @@ NodeType QWhileProg::getNodeType() const
     return dynamic_pointer_cast<QNode > (m_control_flow)->getNodeType();
 }
 
-QNode * QWhileProg::getTrueBranch() const
+shared_ptr<QNode> QWhileProg::getTrueBranch() const
 {
     if (!m_control_flow)
     {
@@ -86,7 +86,7 @@ QNode * QWhileProg::getTrueBranch() const
     return m_control_flow->getTrueBranch();
 }
 
-QNode * QWhileProg::getFalseBranch() const
+shared_ptr<QNode> QWhileProg::getFalseBranch() const
 {
     if (!m_control_flow)
     {
@@ -98,7 +98,7 @@ QNode * QWhileProg::getFalseBranch() const
 }
 
 
-ClassicalCondition * QWhileProg::getCExpr() 
+ClassicalCondition  QWhileProg::getCExpr() 
 {
     if (!m_control_flow)
     {
@@ -145,7 +145,7 @@ NodeType QIfProg::getNodeType() const
     return dynamic_pointer_cast<QNode >(m_control_flow)->getNodeType();
 }
 
-QNode * QIfProg::getTrueBranch() const
+shared_ptr<QNode>  QIfProg::getTrueBranch() const
 {
     if (!m_control_flow)
     {
@@ -156,7 +156,7 @@ QNode * QIfProg::getTrueBranch() const
     return m_control_flow->getTrueBranch();
 }
 
-QNode * QIfProg::getFalseBranch() const
+shared_ptr<QNode>  QIfProg::getFalseBranch() const
 {
     if (!m_control_flow)
     {
@@ -166,7 +166,7 @@ QNode * QIfProg::getFalseBranch() const
     return m_control_flow->getFalseBranch();
 }
 
-ClassicalCondition * QIfProg::getCExpr() 
+ClassicalCondition  QIfProg::getCExpr() 
 {
     if (!m_control_flow)
     {
@@ -230,18 +230,18 @@ NodeType OriginQIf::getNodeType() const
     return m_node_type;
 }
 
-QNode * OriginQIf::getTrueBranch() const
+shared_ptr<QNode> OriginQIf::getTrueBranch() const
 {
     if (nullptr != m_true_item)
-        return m_true_item->getNode().get();
+        return m_true_item->getNode();
     else
         return nullptr;
 }
 
-QNode * OriginQIf::getFalseBranch() const
+shared_ptr<QNode>  OriginQIf::getFalseBranch() const
 {
     if(nullptr != m_false_item)
-        return m_false_item->getNode().get();
+        return m_false_item->getNode();
     return nullptr;
 }
 
@@ -272,16 +272,16 @@ void OriginQIf::setFalseBranch(QProg node)
     }
 }
 
-ClassicalCondition * OriginQIf::getCExpr() 
+ClassicalCondition OriginQIf::getCExpr() 
 {
-    return &m_classical_condition;
+    return m_classical_condition;
 }
 
 void OriginQIf::execute(QPUImpl * quantum_gates, QuantumGateParam * param)
 {
     auto aCExpr = getCExpr();
-    QNode * node;
-    if (aCExpr->eval())
+    shared_ptr<QNode> node;
+    if (aCExpr.eval())
     {
         node = getTrueBranch();
         if (nullptr == node)
@@ -383,14 +383,14 @@ NodeType OriginQWhile::getNodeType() const
     return m_node_type;
 }
 
-QNode * OriginQWhile::getTrueBranch() const
+shared_ptr<QNode>  OriginQWhile::getTrueBranch() const
 {
     if (nullptr != m_true_item)
-        return m_true_item->getNode().get();
+        return m_true_item->getNode();
     return nullptr;
 }
 
-QNode * OriginQWhile::getFalseBranch() const
+shared_ptr<QNode> OriginQWhile::getFalseBranch() const
 {
     QCERR("error");
     throw runtime_error("error");
@@ -411,16 +411,16 @@ void OriginQWhile::setTrueBranch(QProg node)
     }
 }
 
-ClassicalCondition * OriginQWhile::getCExpr() 
+ClassicalCondition  OriginQWhile::getCExpr() 
 {
-    return &m_classical_condition;
+    return m_classical_condition;
 }
 
 void OriginQWhile::execute(QPUImpl * quantum_gates, QuantumGateParam * param)
 {
     auto aCExpr = getCExpr();
     
-    while (aCExpr->eval())
+    while (aCExpr.eval())
     {
         auto node = getTrueBranch();
         if (node == nullptr)

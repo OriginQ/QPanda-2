@@ -48,7 +48,7 @@ public:
     virtual NodeIter  getLastNodeIter() = 0;
     virtual NodeIter  getEndNodeIter() = 0;
     virtual NodeIter  getHeadNodeIter() = 0;
-    virtual NodeIter  insertQNode(NodeIter &, QNode *) = 0;
+    virtual NodeIter  insertQNode(const NodeIter &, QNode *) = 0;
     virtual NodeIter  deleteQNode(NodeIter &) =0;
 
     virtual void pushBackNode(QNode *) = 0;
@@ -68,15 +68,17 @@ private:
     std::shared_ptr<AbstractQuantumProgram> m_quantum_program;
 public:
     QProg();
-    QProg(const QProg&);
+	QProg(const QProg&);
 
     template<typename Ty>
     QProg(Ty &node);
 
     QProg(QNode *);
     QProg(std::shared_ptr<QNode>);
+    QProg(std::shared_ptr<AbstractQuantumProgram>);
     QProg(ClassicalCondition &node);
-
+	QProg(QProg& other);
+	
     ~QProg();
     std::shared_ptr<QNode> getImplementationPtr();
     void pushBackNode(QNode *);
@@ -87,7 +89,7 @@ public:
     NodeIter getLastNodeIter();
     NodeIter getEndNodeIter();
     NodeIter getHeadNodeIter();
-    NodeIter insertQNode(NodeIter & iter, QNode * pNode);
+    NodeIter insertQNode(const NodeIter & iter, QNode * pNode);
     NodeIter deleteQNode(NodeIter & iter);
     NodeType getNodeType() const;
     void clear();
@@ -135,12 +137,15 @@ private:
     SharedMutex m_sm;
     NodeType m_node_type {PROG_NODE};
     OriginProgram(OriginProgram&);
+
+public:
+
     std::shared_ptr<QNode> getImplementationPtr()
     {
         QCERR("Can't use this function");
         throw std::runtime_error("Can't use this function");
     }
-public:
+
     ~OriginProgram();
     OriginProgram();
     /**
@@ -155,7 +160,7 @@ public:
     NodeIter getLastNodeIter();
     NodeIter getEndNodeIter();
     NodeIter getHeadNodeIter();
-    NodeIter insertQNode(NodeIter &, QNode *);
+    NodeIter insertQNode(const NodeIter &, QNode *);
     NodeIter deleteQNode(NodeIter &);
     NodeType getNodeType() const;
 

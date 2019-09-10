@@ -63,6 +63,7 @@ public:
     QGate(const QGate&);
     QGate(Qubit*, QuantumGate*);
     QGate(Qubit*, Qubit*, QuantumGate*);
+    QGate(std::shared_ptr<AbstractQGateNode> node);
 
     /**
     * @brief  Get current node type
@@ -152,12 +153,14 @@ private:
     NodeType m_node_type;
     bool m_Is_dagger;
     std::vector<Qubit*> m_control_qubit_vector;
+public:
+
     std::shared_ptr<QNode> getImplementationPtr()
     {
         QCERR("Can't use this function");
         throw std::runtime_error("Can't use this function");
     };
-public:
+
     ~OriginQGate();
     OriginQGate(Qubit*, QuantumGate *);
     OriginQGate(Qubit*, Qubit *, QuantumGate *);

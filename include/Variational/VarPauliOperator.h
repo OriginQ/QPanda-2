@@ -13,33 +13,34 @@ Created in 2019-01-23
 #include "Variational/var.h"
 #include "Variational/utils.h"
 #include "QAlg/Components/Operator/PauliOperator.h"
+#include "Variational/complex_var.h"
 
 QPANDA_BEGIN
 
 using VarPauliOperator = PauliOp<complex_var>;
 
 template<>
-VarPauliOperator::PauliOp(double value)
+inline VarPauliOperator::PauliOp(double value)
 {
     Variational::var v(value);
     insertData("", complex_var(v, 0));
 }
 
 template<>
-VarPauliOperator VarPauliOperator::dagger() const
+inline VarPauliOperator VarPauliOperator::dagger() const
 {
     auto tmp_data = m_data;
     for (size_t i = 0; i < tmp_data.size(); i++)
     {
         auto &item = tmp_data[i];
-        item.second = std::make_pair(item.second.first, -1*item.second.second);
+        item.second = complex_var(item.second.real(), -1*item.second.imag());
     }
 
     return VarPauliOperator(tmp_data);
 }
 
 template<>
-std::string VarPauliOperator::toString() const
+inline std::string VarPauliOperator::toString() const
 {
     std::string str = "{";
     for (size_t i = 0; i < m_data.size(); i++)
@@ -63,7 +64,7 @@ std::string VarPauliOperator::toString() const
 }
 
 template<>
-VarPauliOperator::PauliItem VarPauliOperator::genPauliItem(const QTerm &map_i,
+inline VarPauliOperator::PauliItem VarPauliOperator::genPauliItem(const QTerm &map_i,
                             const QTerm &map_j,
                             const complex_var &value) const
 {
@@ -90,43 +91,49 @@ VarPauliOperator::PauliItem VarPauliOperator::genPauliItem(const QTerm &map_i,
             }
             else if ("XY" == tmp)
             {
-                result.first = -1*tmp_value.second;
-                result.second = tmp_value.first;
+                result = complex_var(-1*tmp_value.imag(), tmp_value.real());
+//                result.first = -1*tmp_value.second;
+//                result.second = tmp_value.first;
 //                result *= complex_d{0, 1};
                 iter_t->second = 'Z';
             }
             else if ("XZ" == tmp)
             {
-                result.first = tmp_value.second;
-                result.second = tmp_value.first*-1;
+                result = complex_var(tmp_value.imag(), -1*tmp_value.real());
+//                result.first = tmp_value.second;
+//                result.second = tmp_value.first*-1;
 //                result *= complex_d{0, -1};
                 iter_t->second = 'Y';
             }
             else if ("YX" == tmp)
             {
-                result.first = tmp_value.second;
-                result.second = tmp_value.first*-1;
+                result = complex_var(tmp_value.imag(), -1*tmp_value.real());
+//                result.first = tmp_value.second;
+//                result.second = tmp_value.first*-1;
 //                result *= complex_d{0, -1};
                 iter_t->second = 'Z';
             }
             else if ("YZ" == tmp)
             {
-                result.first = -1*tmp_value.second;
-                result.second = tmp_value.first;
+                result = complex_var(-1*tmp_value.imag(), tmp_value.real());
+//                result.first = -1*tmp_value.second;
+//                result.second = tmp_value.first;
 //                result *= complex_d{0, 1};
                 iter_t->second = 'X';
             }
             else if ("ZX" == tmp)
             {
-                result.first = -1*tmp_value.second;
-                result.second = tmp_value.first;
+                result = complex_var(-1*tmp_value.imag(), tmp_value.real());
+//                result.first = -1*tmp_value.second;
+//                result.second = tmp_value.first;
 //                result *= complex_d{0, 1};
                 iter_t->second = 'Y';
             }
             else if ("ZY" == tmp)
             {
-                result.first = tmp_value.second;
-                result.second = tmp_value.first*-1;
+                result = complex_var(tmp_value.imag(), -1*tmp_value.real());
+//                result.first = tmp_value.second;
+//                result.second = tmp_value.first*-1;
 //                result *= complex_d{0, -1};
                 iter_t->second = 'X';
             }
@@ -147,7 +154,7 @@ VarPauliOperator::PauliItem VarPauliOperator::genPauliItem(const QTerm &map_i,
 }
 
 template<>
-void VarPauliOperator::reduceDuplicates()
+inline void VarPauliOperator::reduceDuplicates()
 {
     std::map<std::string, complex_var> data_map;
     std::map<std::string, QTerm> term_map;
@@ -163,8 +170,10 @@ void VarPauliOperator::reduceDuplicates()
         auto result = data_map.find(str);
         if (result != data_map.end())
         {
-            result->second.first = result->second.first + value.first;
-            result->second.second = result->second.second + value.second;
+            result->second = complex_var(result->second.real() + value.real(),
+                                         result->second.imag() + value.imag());
+//            result->second.first = result->second.first + value.first;
+//            result->second.second = result->second.second + value.second;
         }
         else
         {
@@ -187,7 +196,7 @@ void VarPauliOperator::reduceDuplicates()
 }
 
 template<>
-QHamiltonian VarPauliOperator::toHamiltonian(bool *ok)
+inline QHamiltonian VarPauliOperator::toHamiltonian(bool *ok)
 {
     QHamiltonian hamiltonian;
 
@@ -197,8 +206,8 @@ QHamiltonian VarPauliOperator::toHamiltonian(bool *ok)
         auto pair = item.first;
         auto value = item.second;
 
-        auto real = Variational::eval(value.first, true)(0, 0);
-        auto imag = Variational::eval(value.second, true)(0, 0);
+        auto real = Variational::eval(value.real(), true)(0, 0);
+        auto imag = Variational::eval(value.imag(), true)(0, 0);
 
         if (fabs(imag) > fabs(m_error_threshold))
         {

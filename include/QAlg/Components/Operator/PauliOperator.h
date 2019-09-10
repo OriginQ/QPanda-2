@@ -143,25 +143,21 @@ public:
 
     size_t getMaxIndex()
     {
-        size_t max_index = 0;
-
+        int max_index = -1;
         for (size_t i = 0; i < m_data.size(); i++)
         {
             auto index_map = m_data[i].first.first;
             auto iter = index_map.rbegin();
             if (iter != index_map.rend())
             {
-                if (iter->first > max_index)
+                if (int(iter->first) > max_index)
                 {
                     max_index = iter->first;
                 }
             }
         }
 
-        if (max_index != 0)
-        {
-            max_index++;
-        }
+        max_index++;
 
         return max_index;
     }
@@ -205,7 +201,7 @@ public:
             auto pair = item.first;
             auto value = item.second;
 
-            str += "\"" + pair.second + "\" : ";
+            str += pair.second + " : ";
 
             if (fabs(value.real()) < m_error_threshold)
             {
@@ -239,7 +235,7 @@ public:
         return str;
     }
 
-    PauliData data()  { return m_data; }
+    PauliData data() const { return m_data; }
 
     QHamiltonian toHamiltonian(bool *ok = nullptr)
     {
@@ -291,7 +287,7 @@ public:
         PauliData tmp_data = rhs.m_data;
         for (auto i = 0u; i < tmp_data.size(); i++)
         {
-            tmp_data[i].second = tmp_data[i].second * -1.0;
+            tmp_data[i].second = tmp_data[i].second * T(-1.0,0);
         }
 
         PauliData pauli_data = m_data;
@@ -341,7 +337,7 @@ public:
         PauliData tmp_data = rhs.m_data;
         for (auto i = 0u; i < tmp_data.size(); i++)
         {
-            tmp_data[i].second = tmp_data[i].second * -1.0;
+            tmp_data[i].second = tmp_data[i].second * T(-1.0,0);
         }
 
         m_data.insert(m_data.end(), tmp_data.begin(), tmp_data.end());
@@ -389,7 +385,7 @@ public:
         PauliData tmp_data = rhs.m_data;
         for (auto i = 0u; i < tmp_data.size(); i++)
         {
-            tmp_data[i].second = tmp_data[i].second * -1.0;
+            tmp_data[i].second = tmp_data[i].second * T(-1.0,0);
         }
 
         PauliOp tmp(std::move(tmp_data));
@@ -415,7 +411,7 @@ public:
         PauliData tmp_data = rhs.m_data;
         for (auto i = 0u; i < tmp_data.size(); i++)
         {
-            tmp_data[i].second = tmp_data[i].second * -1.0;
+            tmp_data[i].second = tmp_data[i].second * T(-1.0,0);
         }
 
         PauliOp tmp(std::move(tmp_data));

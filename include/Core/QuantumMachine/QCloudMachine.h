@@ -11,7 +11,7 @@
 #include "ThirdParty/rapidjson/document.h"
 #include "ThirdParty/rapidjson/writer.h"
 #include "ThirdParty/rapidjson/stringbuffer.h"
-#include "include/Core/QuantumMachine/Factory.h"
+#include "Core/QuantumMachine/Factory.h"
 
 QPANDA_BEGIN
 

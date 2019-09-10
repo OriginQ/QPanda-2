@@ -94,7 +94,7 @@ void two_qubit_deutsch_jozsa_algorithm(vector<bool> boolean_function)
 	/* To Print The Circuit */
 	/*
 	extern QuantumMachine* global_quantum_machine;
-	cout << transformQProgToQRunes(prog, global_quantum_machine) << endl;
+	cout << transformQProgToOriginIR(prog, global_quantum_machine) << endl;
 	*/
 
 	directlyRun(prog);

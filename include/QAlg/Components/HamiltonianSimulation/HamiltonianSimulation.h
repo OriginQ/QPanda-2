@@ -34,9 +34,10 @@ namespace QPanda
         Z-Hamiltonian spreads over the qubit_vec
     */
     QCircuit simulateZTerm(
-        const std::vector<Qubit*> &qubit_vec, 
+        const std::vector<Qubit*> &qubit_vec,
         double coef,
         double t);
+
     /*
     Simulate a single term of Hamilonian like "X0 Y1 Z2" with
     coefficient and time. U=exp(-it*coef*H)

@@ -16,13 +16,14 @@ limitations under the License.
 
 #include "Core/QPanda.h"
 #include "Core/Utilities/ConfigMap.h"
-#include "Core/Utilities/Transform/QProgToQRunes.h"
+#include "Core/Utilities/Transform/QProgToOriginIR.h"
 #include "Core/Utilities/Transform/QProgToQuil.h"
 #include "Core/Utilities/Transform/QRunesToQProg.h"
 #include "Core/Utilities/TranformQGateTypeStringAndEnum.h"
 #include "Core/Utilities/Transform/QProgClockCycle.h"
 #include "Core/Utilities/OriginCollection.h"
 #include "Core/QuantumMachine/Factory.h"
+#include "Core/QuantumMachine/QuantumMachineFactory.h"
 #include "Core/Utilities/QPandaException.h"
 #include "Core/Utilities/Utilities.h"
 
@@ -32,26 +33,9 @@ QuantumMachine* global_quantum_machine = nullptr;
 
 QuantumMachine *QPanda::initQuantumMachine(const QMachineType class_type)
 {
-    auto class_name = QMachineTypeTarnfrom::getInstance()[class_type];
-	QuantumMachine* qm;
-    switch (class_type)
-    {
-    case QMachineType::CPU:
-        qm = new CPUQVM();
-        break;
-    case QMachineType::CPU_SINGLE_THREAD:
-		qm = new CPUSingleThreadQVM();
-        break;
-    case QMachineType::GPU:
-		qm = new GPUQVM();
-        break;
-    case QMachineType::NOISE:
-		qm = new NoiseQVM();
-        break;
-    default:
-		qm = nullptr;
-        break;
-    }
+    auto qm = QuantumMachineFactory::GetFactoryInstance()
+        .CreateByType(class_type);
+
     if (nullptr == qm)
     {
         QCERR("quantum machine alloc fail");
@@ -223,7 +207,7 @@ map<string, bool> QPanda::directlyRun(QProg & qProg)
     return global_quantum_machine->directlyRun(qProg);
 }
 
-vector<pair<size_t, double>> QPanda::getProbTupleList(QVec & vQubit, int selectMax)
+prob_tuple QPanda::getProbTupleList(QVec & vQubit, int selectMax)
 {
     if (nullptr == global_quantum_machine)
     {
@@ -239,7 +223,7 @@ vector<pair<size_t, double>> QPanda::getProbTupleList(QVec & vQubit, int selectM
     return temp->getProbTupleList(vQubit, selectMax);
 }
 
-vector<double> QPanda::getProbList(QVec & vQubit, int selectMax)
+prob_vec QPanda::getProbList(QVec & vQubit, int selectMax)
 {
     if (nullptr == global_quantum_machine)
     {
@@ -254,7 +238,7 @@ vector<double> QPanda::getProbList(QVec & vQubit, int selectMax)
     }
     return temp->getProbList(vQubit, selectMax);
 }
-map<string, double> QPanda::getProbDict(QVec & vQubit, int selectMax)
+prob_dict QPanda::getProbDict(QVec & vQubit, int selectMax)
 {
     if (nullptr == global_quantum_machine)
     {
@@ -270,7 +254,7 @@ map<string, double> QPanda::getProbDict(QVec & vQubit, int selectMax)
     return temp->getProbDict(vQubit, selectMax);
 }
 
-vector<pair<size_t, double>> QPanda::probRunTupleList(QProg & qProg,QVec & vQubit, int selectMax)
+prob_tuple QPanda::probRunTupleList(QProg & qProg,QVec & vQubit, int selectMax)
 {
     if (nullptr == global_quantum_machine)
     {
@@ -286,7 +270,7 @@ vector<pair<size_t, double>> QPanda::probRunTupleList(QProg & qProg,QVec & vQubi
     return temp->probRunTupleList(qProg, vQubit, selectMax);
 }
 
-vector<double> QPanda::probRunList(QProg & qProg, QVec & vQubit, int selectMax)
+prob_vec QPanda::probRunList(QProg & qProg, QVec & vQubit, int selectMax)
 {
     if (nullptr == global_quantum_machine)
     {
@@ -301,7 +285,7 @@ vector<double> QPanda::probRunList(QProg & qProg, QVec & vQubit, int selectMax)
     }
     return temp->probRunList(qProg, vQubit, selectMax);
 }
-map<string, double> QPanda::probRunDict(QProg & qProg, QVec & vQubit, int selectMax)
+prob_dict QPanda::probRunDict(QProg & qProg, QVec & vQubit, int selectMax)
 {
     if (nullptr == global_quantum_machine)
     {
@@ -317,7 +301,7 @@ map<string, double> QPanda::probRunDict(QProg & qProg, QVec & vQubit, int select
     return temp->probRunDict(qProg, vQubit, selectMax);
 }
 
-vector<pair<size_t, double>> QPanda::PMeasure(QVec& qubit_vector,
+prob_tuple QPanda::PMeasure(QVec& qubit_vector,
     int select_max)
 {
     if (nullptr == global_quantum_machine)
@@ -334,7 +318,7 @@ vector<pair<size_t, double>> QPanda::PMeasure(QVec& qubit_vector,
     return temp->PMeasure(qubit_vector, select_max);
 }
 
-vector<double> QPanda::PMeasure_no_index(QVec& qubit_vector)
+prob_vec QPanda::PMeasure_no_index(QVec& qubit_vector)
 {
     if (nullptr == global_quantum_machine)
     {
@@ -350,9 +334,9 @@ vector<double> QPanda::PMeasure_no_index(QVec& qubit_vector)
     return temp->PMeasure_no_index(qubit_vector);
 }
 
-vector<double> QPanda::accumulateProbability(vector<double>& prob_list)
+prob_vec QPanda::accumulateProbability(prob_vec & prob_list)
 {
-    vector<double> accumulate_prob(prob_list);
+    prob_vec accumulate_prob(prob_list);
     for (int i = 1; i<prob_list.size(); ++i)
     {
         accumulate_prob[i] = accumulate_prob[i - 1] + prob_list[i];
@@ -372,8 +356,9 @@ static void add_up_a_map(map<string, size_t> &meas_result, string key)
     }
 }
 
+
 map<string, size_t> QPanda::quick_measure(QVec& qubit_vector, int shots,
-    vector<double>& accumulate_probabilites)
+    prob_vec& accumulate_probabilites)
 {
     if (nullptr == global_quantum_machine)
     {

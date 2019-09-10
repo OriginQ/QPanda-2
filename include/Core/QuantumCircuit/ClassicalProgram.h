@@ -61,6 +61,7 @@ public:
      * @param old Target classical program
      */
     ClassicalProg(const ClassicalProg & old);
+    ClassicalProg(std::shared_ptr<AbstractClassicalProg>  node);
     ~ClassicalProg();
 
     /**
@@ -125,15 +126,17 @@ public:
         return m_expr;
     }
 
-private:
-    std::shared_ptr<CExpr> m_expr;  ///< classical expr share ptr
-    NodeType m_node_type;           ///< current QNode type
-
     std::shared_ptr<QNode> getImplementationPtr()
     {
         QCERR("Can't use this function");
         throw std::runtime_error("Can't use this function");
     };
+
+private:
+    std::shared_ptr<CExpr> m_expr;  ///< classical expr share ptr
+    NodeType m_node_type;           ///< current QNode type
+
+
 };
 
 typedef AbstractClassicalProg * (*CreateClassicalQProgram)(ClassicalCondition &);

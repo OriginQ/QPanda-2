@@ -21,7 +21,7 @@
         "msvc_x64_x64"
       ],
       "buildRoot": "${projectDir}\\build\\${name}",
-      "installRoot": "${env.USERPROFILE}\\CMakeBuilds\\install",
+      "installRoot": "C:\\install",
       "cmakeCommandArgs": "-DUSE_PYQPANDA=ON",
       "buildCommandArgs": "-v",
       "ctestCommandArgs": ""

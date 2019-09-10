@@ -8,11 +8,7 @@
 using namespace std;
 
 USING_QPANDA
-const size_t _G_qubit_count = 4;
-vector<vector<int>> _G_qubitMatrix = { {0,1,1,0},
-                                       {1,0,0,1},
-                                       {1,0,0,1},
-                                       {0,1,1,0} };
+
 
 QuantumMetadata::QuantumMetadata(const string &filename)
 {
@@ -32,8 +28,11 @@ bool QuantumMetadata::getMetadata(int &qubit_num, std::vector<std::vector<int> >
 {
     if (!m_is_config_exist)
     {
-        qubit_num = _G_qubit_count;
-        matrix = _G_qubitMatrix;
+        qubit_num = 4;
+        matrix = { {0,1,1,0},
+                    {1,0,0,1},
+                    {1,0,0,1},
+                    {0,1,1,0} };
     }
     else
     {
@@ -42,7 +41,7 @@ bool QuantumMetadata::getMetadata(int &qubit_num, std::vector<std::vector<int> >
     return true;
 }
 
-bool QuantumMetadata::getQGate(std::vector<string> &single_gates, std::vector<string> double_gates)
+bool QuantumMetadata::getQGate(std::vector<string> &single_gates, std::vector<string> &double_gates)
 {
     if (!m_is_config_exist)
     {

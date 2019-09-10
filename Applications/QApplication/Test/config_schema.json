@@ -342,7 +342,7 @@
                             ]
                         }
                     },
-                    "required": ["server_url", "basis", "multiplicity", "charge", "atoms_pos"],
+                    "required": ["psi4_path", "basis", "multiplicity", "charge", "atoms_pos"],
                     "additionalProperties": false
                 }
             ]

@@ -18,6 +18,7 @@ Classes for QGateCompare.
 #include "Core/QuantumCircuit/QCircuit.h"
 #include "Core/QuantumCircuit/QProgram.h"
 #include <map>
+#include <type_traits>
 #include "Core/QuantumCircuit/QGlobalVariable.h"
 #include "Core/Utilities/Transform/QGateCounter.h"
 
@@ -37,7 +38,7 @@ QPANDA_BEGIN
 * @ingroup Utilities
 * @brief Qunatum Gate Compare
 */
-class QGateCompare : public TraversalInterface
+class QGateCompare : public TraversalInterface<>
 {
 public:
     QGateCompare(const std::vector<std::vector<std::string>> &);
@@ -49,11 +50,19 @@ public:
     * @note
     */
     template <typename _Ty>
-    void traversal(_Ty &node)
+    void traversal(_Ty node)
     {
-        static_assert(std::is_base_of<QNode, _Ty>::value, "bad node type");
-        Traversal::traversalByType(&node, &node, this);
+		static_assert(std::is_base_of<QNode, _Ty>::value, "bad node type");
+		Traversal::traversalByType(node.getImplementationPtr(),nullptr, *this);
     }
+
+	template <typename _Ty>
+	void traversal(std::shared_ptr<_Ty> node)
+	{
+		
+		Traversal::traversalByType(std::dynamic_pointer_cast<QNode>(node), nullptr, *this);
+	}
+
 
     /**
     * @brief  get unsupported gate numner
@@ -61,8 +70,78 @@ public:
     * @note
     */
     size_t count();
+    /*!
+    * @brief  Execution traversal qgatenode
+    * @param[in|out]  AbstractQGateNode*  quantum gate
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    * @exception invalid_argument
+    * @note
+    */
+    virtual void execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node);
+
+/*!
+    * @brief  Execution traversal measure node
+    * @param[in|out]  AbstractQuantumMeasure*  measure node
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    * @exception invalid_argument
+    * @note
+    */
+    virtual void execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, std::shared_ptr<QNode> parent_node) 
+    {}
+
+    /*!
+    * @brief  Execution traversal control flow node
+    * @param[in|out]  AbstractControlFlowNode*  control flow node
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    * @exception invalid_argument
+    * @note
+    */
+    virtual void execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node) 
+    {
+        Traversal::traversal(cur_node,*this);
+    }
+
+
+    /*!
+    * @brief  Execution traversal qcircuit
+    * @param[in|out]  AbstractQuantumCircuit*  quantum circuit
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    * @exception invalid_argument
+    * @note
+    */
+    virtual void execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std::shared_ptr<QNode> parent_node)
+    {
+        Traversal::traversal(cur_node,false,*this);
+    }
+    /*!
+    * @brief  Execution traversal qprog
+    * @param[in|out]  AbstractQuantumProgram*  quantum prog
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    * @exception invalid_argument
+    * @note
+    */
+    virtual void execute(std::shared_ptr<AbstractQuantumProgram>  cur_node, std::shared_ptr<QNode> parent_node)
+    {
+        Traversal::traversal(cur_node,*this);
+    }
+    /*!
+    * @brief  Execution traversal qprog
+    * @param[in|out]  AbstractClassicalProg*  quantum prog
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    * @exception invalid_argument
+    * @note
+    */
+    virtual void execute(std::shared_ptr<AbstractClassicalProg>  cur_node,
+        std::shared_ptr<QNode> parent_node)
+        {}
 private:
-    virtual void execute(AbstractQGateNode * cur_node, QNode * parent_node);
+
     size_t m_count;
     std::vector<std::vector<std::string>> m_gates;
 };
@@ -75,9 +154,8 @@ private:
 * @note
 */
 template <typename _Ty>
-size_t getUnSupportQGateNumber(_Ty &node, const std::vector<std::vector<std::string>> &gates)
+size_t getUnSupportQGateNumber(_Ty node, const std::vector<std::vector<std::string>> &gates)
 {
-    static_assert(std::is_base_of<QNode, _Ty>::value, "bad node type");
     QGateCompare compare(gates);
     compare.traversal(node);
     return compare.count();

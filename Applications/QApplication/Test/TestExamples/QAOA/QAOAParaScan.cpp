@@ -2,8 +2,11 @@
 #include "Applications/QApplication/QAOA/QAOA.h"
 #include "QString.h"
 #include "RJson/RJson.h"
+#ifdef USE_MPI
 #include "mpi.h"
-#include "tag_marco.h"
+#endif // USE_MPI
+
+#include "tag_macro.h"
 
 namespace QPanda
 {
@@ -27,6 +30,7 @@ namespace QPanda
             p.keys = getKeys(m_para[STR_KEYS]);
         }
 
+#ifdef USE_MPI
         if (m_use_mpi)
         {
             MPI_Init(nullptr, nullptr);
@@ -52,13 +56,18 @@ namespace QPanda
             p.two_para.x_max = p.two_para.x_min + delta;
 
         }
+#endif // USE_MPI
 
         qaoa.scan2Para(p);
 
+#ifdef USE_MPI
         if (m_use_mpi)
         {
             MPI_Finalize();
         }
+#endif // USE_MPI
+
+        
 
         return true;
     }

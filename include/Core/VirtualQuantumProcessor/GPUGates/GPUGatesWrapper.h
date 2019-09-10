@@ -10,14 +10,6 @@
 
 namespace GATEGPU
 {
-    using std::pair;
-    using std::vector;
-
-    typedef pair<size_t, double> GPUPAIR;
-    typedef vector<GPUPAIR> vecprob;                          //pmeasure ∑µªÿ¿‡–Õ
-    typedef vector<size_t> Qnum;
-    typedef vector<size_t> vecuint;
-
     int devicecount();
     bool initstate(QState& psi, QState& psigpu, size_t);
     bool destroyState(QState& psi, QState& psigpu, size_t sQnum);
@@ -59,12 +51,11 @@ namespace GATEGPU
     bool controlunitarydouble(QState& psi, Qnum&, QState& matr, bool isConjugate, double error_rate = 0);
 
     bool qbReset(QState& psi, size_t, double error_rate = 0);
-    bool pMeasure(QState&, vecprob&, size_t *block, size_t m);
-    bool pMeasurenew(QState&, vector<pair<size_t, double>>&, Qnum&, int);
+    bool pMeasurenew(QState&, touple_prob&, Qnum&, int);
     bool getState(QState &psi, QState &psigpu, size_t qnum);
-    int  qubitmeasure(QState& psi, size_t Block, double* &resultgpu, double* &probgpu);
-    bool pMeasure_no_index(QState&, vector<double> &mResult, Qnum&);
-    void gpuFree(double* memory);
+    int  qubitmeasure(QState& psigpu, gpu_qsize_t Block, gpu_qstate_t *resultgpu, gpu_qstate_t *probgpu);
+    bool pMeasure_no_index(QState&, vec_prob &mResult, Qnum&);
+    void gpuFree(void* memory);
 }
 
 #endif // GPU_GATE_WRAPPER_H

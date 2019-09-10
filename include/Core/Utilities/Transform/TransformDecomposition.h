@@ -1,6 +1,6 @@
 /******************************************************************
 Filename     : TransformDecomposition.h
-Creator      : Menghan Dou¡¢cheng xue
+Creator      : Menghan Douï¿½ï¿½cheng xue
 Create time  : 2018-07-04
 Description  : Quantum program adaptation metadata instruction set
 *******************************************************************/
@@ -41,7 +41,7 @@ struct QGatesTransform
 * @ingroup Utilities
 * @brief Decomposing double gates in qprog
 */
-class DecomposeDoubleQGate : public TraversalInterface
+class DecomposeDoubleQGate : public TraversalInterface<>
 {
 public:
     /*!
@@ -52,7 +52,70 @@ public:
     * @exception invalid_argument
     * @note
     */
-    void execute(AbstractQGateNode * pNode, QNode * pParentNode);
+    virtual void execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node);
+    
+    /*!
+    * @brief  Execution traversal measure node
+    * @param[in|out]  AbstractQuantumMeasure*  measure node
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    * @exception invalid_argument
+    * @note
+    */
+    virtual void execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, std::shared_ptr<QNode> parent_node) 
+    {}
+
+    /*!
+    * @brief  Execution traversal control flow node
+    * @param[in|out]  AbstractControlFlowNode*  control flow node
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    * @exception invalid_argument
+    * @note
+    */
+    virtual void execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node) 
+    {
+        Traversal::traversal(cur_node,*this);
+    }
+
+
+    /*!
+    * @brief  Execution traversal qcircuit
+    * @param[in|out]  AbstractQuantumCircuit*  quantum circuit
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    * @exception invalid_argument
+    * @note
+    */
+    virtual void execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std::shared_ptr<QNode> parent_node)
+    {
+        Traversal::traversal(cur_node,false,*this);
+    }
+    /*!
+    * @brief  Execution traversal qprog
+    * @param[in|out]  AbstractQuantumProgram*  quantum prog
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    * @exception invalid_argument
+    * @note
+    */
+    virtual void execute(std::shared_ptr<AbstractQuantumProgram>  cur_node, std::shared_ptr<QNode> parent_node)
+    {
+        Traversal::traversal(cur_node,*this);
+    }
+    /*!
+    * @brief  Execution traversal qprog
+    * @param[in|out]  AbstractClassicalProg*  quantum prog
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    * @exception invalid_argument
+    * @note
+    */
+    virtual void execute(std::shared_ptr<AbstractClassicalProg>  cur_node,
+        std::shared_ptr<QNode> parent_node)
+        {}
+
+
 private:
     void generateMatrixOfTwoLevelSystem(QStat &NewMatrix, QStat &OldMatrix, size_t Row, size_t Column);
     void matrixMultiplicationOfDoubleQGate(QStat &LeftMatrix, QStat &RightMatrix);
@@ -63,7 +126,7 @@ private:
 * @ingroup Utilities
 * @brief Decomposing multiple control qgate in qprog
 */
-class DecomposeMultipleControlQGate : public TraversalInterface
+class DecomposeMultipleControlQGate : public TraversalInterface<>
 {
 public:
     /*!
@@ -74,7 +137,18 @@ public:
     * @exception invalid_argument
     * @note
     */
-    void execute(AbstractQGateNode * node, QNode * parent_node);
+    void execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node);
+
+       /*!
+    * @brief  Execution traversal measure node
+    * @param[in|out]  AbstractQuantumMeasure*  measure node
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    * @exception invalid_argument
+    * @note
+    */
+    virtual void execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, std::shared_ptr<QNode> parent_node) 
+    {}
 
     /*!
     * @brief  Execution traversal qcircuit
@@ -84,7 +158,46 @@ public:
     * @exception invalid_argument
     * @note
     */
-    void execute(AbstractQuantumCircuit * node, QNode * parent_node);
+    void execute(std::shared_ptr<AbstractQuantumCircuit>  cur_node, std::shared_ptr<QNode> parent_node);
+
+    /*!
+    * @brief  Execution traversal control flow node
+    * @param[in|out]  AbstractControlFlowNode*  control flow node
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    * @exception invalid_argument
+    * @note
+    */
+    virtual void execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node) 
+    {
+        Traversal::traversal(cur_node,*this);
+    }
+
+
+    /*!
+    * @brief  Execution traversal qprog
+    * @param[in|out]  AbstractQuantumProgram*  quantum prog
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    * @exception invalid_argument
+    * @note
+    */
+    virtual void execute(std::shared_ptr<AbstractQuantumProgram>  cur_node, std::shared_ptr<QNode> parent_node)
+    {
+        Traversal::traversal(cur_node,*this);
+    }
+    /*!
+    * @brief  Execution traversal qprog
+    * @param[in|out]  AbstractClassicalProg*  quantum prog
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    * @exception invalid_argument
+    * @note
+    */
+    virtual void execute(std::shared_ptr<AbstractClassicalProg>  cur_node,
+        std::shared_ptr<QNode> parent_node)
+        {}
+
 private:
     void QGateExponentArithmetic(AbstractQGateNode *pNode, double Exponent, QStat &QMatrix);
     void transformAxisToMatrix(axis &Axis, double Angle, QStat &QMatrix);
@@ -100,7 +213,7 @@ private:
 * @ingroup Utilities
 * @brief Decomposing control unitary single qgate in qprog
 */
-class DecomposeControlUnitarySingleQGate : public TraversalInterface
+class DecomposeControlUnitarySingleQGate : public TraversalInterface<>
 {
 public:
     /*!
@@ -111,7 +224,69 @@ public:
     * @exception invalid_argument
     * @note
     */
-    void execute(AbstractQGateNode * node, QNode * parent_node);
+    void execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node);
+
+
+       /*!
+    * @brief  Execution traversal measure node
+    * @param[in|out]  AbstractQuantumMeasure*  measure node
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    * @exception invalid_argument
+    * @note
+    */
+    virtual void execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, std::shared_ptr<QNode> parent_node) 
+    {}
+
+    /*!
+    * @brief  Execution traversal control flow node
+    * @param[in|out]  AbstractControlFlowNode*  control flow node
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    * @exception invalid_argument
+    * @note
+    */
+    virtual void execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node) 
+    {
+        Traversal::traversal(cur_node,*this);
+    }
+
+
+    /*!
+    * @brief  Execution traversal qcircuit
+    * @param[in|out]  AbstractQuantumCircuit*  quantum circuit
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    * @exception invalid_argument
+    * @note
+    */
+    virtual void execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std::shared_ptr<QNode> parent_node)
+    {
+        Traversal::traversal(cur_node,false,*this);
+    }
+    /*!
+    * @brief  Execution traversal qprog
+    * @param[in|out]  AbstractQuantumProgram*  quantum prog
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    * @exception invalid_argument
+    * @note
+    */
+    virtual void execute(std::shared_ptr<AbstractQuantumProgram>  cur_node, std::shared_ptr<QNode> parent_node)
+    {
+        Traversal::traversal(cur_node,*this);
+    }
+    /*!
+    * @brief  Execution traversal qprog
+    * @param[in|out]  AbstractClassicalProg*  quantum prog
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    * @exception invalid_argument
+    * @note
+    */
+    virtual void execute(std::shared_ptr<AbstractClassicalProg>  cur_node,
+        std::shared_ptr<QNode> parent_node)
+        {}
 };
 
 /**
@@ -119,7 +294,7 @@ public:
 * @ingroup Utilities
 * @brief Decomposing control unitary single qgate in qprog
 */
-class DecomposeControlSingleQGateIntoMetadataDoubleQGate : public TraversalInterface
+class DecomposeControlSingleQGateIntoMetadataDoubleQGate : public TraversalInterface<>
 {
 public:
     /*!
@@ -130,7 +305,70 @@ public:
     * @exception invalid_argument
     * @note
     */
-    void execute(AbstractQGateNode * node, QNode * parent_node);
+    void execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node);
+
+
+       /*!
+    * @brief  Execution traversal measure node
+    * @param[in|out]  AbstractQuantumMeasure*  measure node
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    * @exception invalid_argument
+    * @note
+    */
+    virtual void execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, std::shared_ptr<QNode> parent_node) 
+    {}
+
+    /*!
+    * @brief  Execution traversal control flow node
+    * @param[in|out]  AbstractControlFlowNode*  control flow node
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    * @exception invalid_argument
+    * @note
+    */
+    virtual void execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node) 
+    {
+        Traversal::traversal(cur_node,*this);
+    }
+
+
+    /*!
+    * @brief  Execution traversal qcircuit
+    * @param[in|out]  AbstractQuantumCircuit*  quantum circuit
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    * @exception invalid_argument
+    * @note
+    */
+    virtual void execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std::shared_ptr<QNode> parent_node)
+    {
+        Traversal::traversal(cur_node,false,*this);
+    }
+    /*!
+    * @brief  Execution traversal qprog
+    * @param[in|out]  AbstractQuantumProgram*  quantum prog
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    * @exception invalid_argument
+    * @note
+    */
+    virtual void execute(std::shared_ptr<AbstractQuantumProgram>  cur_node, std::shared_ptr<QNode> parent_node)
+    {
+        Traversal::traversal(cur_node,*this);
+    }
+    /*!
+    * @brief  Execution traversal qprog
+    * @param[in|out]  AbstractClassicalProg*  quantum prog
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    * @exception invalid_argument
+    * @note
+    */
+    virtual void execute(std::shared_ptr<AbstractClassicalProg>  cur_node,
+        std::shared_ptr<QNode> parent_node)
+        {}
+
 
     DecomposeControlSingleQGateIntoMetadataDoubleQGate(QuantumMachine * quantum_machine,
         std::vector<std::vector<std::string>> valid_qgate_matrix,
@@ -147,7 +385,7 @@ private:
     );
     DecomposeControlSingleQGateIntoMetadataDoubleQGate &operator = (
         const DecomposeControlSingleQGateIntoMetadataDoubleQGate &old
-        );
+        ) = delete;
     QCircuit swapQGate(std::vector<int> shortest_way, std::string metadata_qgate);
     std::vector<std::vector<std::string>> m_valid_qgate_matrix;
     std::vector<std::vector<int> > m_adjacent_matrix;
@@ -159,7 +397,7 @@ private:
 * @ingroup Utilities
 * @brief Decomposing unitary single qgate into metadata single qgate in qprog
 */
-class DecomposeUnitarySingleQGateIntoMetadataSingleQGate : public TraversalInterface
+class DecomposeUnitarySingleQGateIntoMetadataSingleQGate : public TraversalInterface<>
 {
 public:
     DecomposeUnitarySingleQGateIntoMetadataSingleQGate(std::vector<std::vector<std::string>> qgate_matrix,
@@ -173,7 +411,71 @@ public:
     * @exception invalid_argument
     * @note
     */
-    void execute(AbstractQGateNode * node, QNode * parent_node);
+    void execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node);
+
+
+       /*!
+    * @brief  Execution traversal measure node
+    * @param[in|out]  AbstractQuantumMeasure*  measure node
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    * @exception invalid_argument
+    * @note
+    */
+    virtual void execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, std::shared_ptr<QNode> parent_node) 
+    {}
+
+    /*!
+    * @brief  Execution traversal control flow node
+    * @param[in|out]  AbstractControlFlowNode*  control flow node
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    * @exception invalid_argument
+    * @note
+    */
+    virtual void execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node) 
+    {
+        Traversal::traversal(cur_node,*this);
+    }
+
+
+    /*!
+    * @brief  Execution traversal qcircuit
+    * @param[in|out]  AbstractQuantumCircuit*  quantum circuit
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    * @exception invalid_argument
+    * @note
+    */
+    virtual void execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std::shared_ptr<QNode> parent_node)
+    {
+        Traversal::traversal(cur_node,false,*this);
+    }
+    /*!
+    * @brief  Execution traversal qprog
+    * @param[in|out]  AbstractQuantumProgram*  quantum prog
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    * @exception invalid_argument
+    * @note
+    */
+    virtual void execute(std::shared_ptr<AbstractQuantumProgram>  cur_node, std::shared_ptr<QNode> parent_node)
+    {
+        Traversal::traversal(cur_node,*this);
+    }
+    /*!
+    * @brief  Execution traversal qprog
+    * @param[in|out]  AbstractClassicalProg*  quantum prog
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    * @exception invalid_argument
+    * @note
+    */
+    virtual void execute(std::shared_ptr<AbstractClassicalProg>  cur_node,
+        std::shared_ptr<QNode> parent_node)
+        {}
+
+
 private:
     DecomposeUnitarySingleQGateIntoMetadataSingleQGate();
     DecomposeUnitarySingleQGateIntoMetadataSingleQGate(
@@ -181,7 +483,7 @@ private:
     );
     DecomposeUnitarySingleQGateIntoMetadataSingleQGate &operator = (
         const DecomposeUnitarySingleQGateIntoMetadataSingleQGate &old
-        );
+        )=delete;
     std::vector<std::vector<std::string>> m_qgate_matrix;
     std::vector<std::vector<std::string>> m_valid_qgate_matrix;
     QGatesTransform base;
@@ -194,7 +496,7 @@ private:
 * @ingroup Utilities
 * @brief Decomposing unit qnode in qprog
 */
- class DeleteUnitQNode : public TraversalInterface
+ class DeleteUnitQNode : public TraversalInterface<>
  {
  public:
      /*!
@@ -205,7 +507,69 @@ private:
      * @exception invalid_argument
      * @note
      */
-     void execute(AbstractQGateNode * node, QNode * parent_node);
+     void execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node);
+
+     
+       /*!
+    * @brief  Execution traversal measure node
+    * @param[in|out]  AbstractQuantumMeasure*  measure node
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    * @exception invalid_argument
+    * @note
+    */
+    virtual void execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, std::shared_ptr<QNode> parent_node) 
+    {}
+
+    /*!
+    * @brief  Execution traversal control flow node
+    * @param[in|out]  AbstractControlFlowNode*  control flow node
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    * @exception invalid_argument
+    * @note
+    */
+    virtual void execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node) 
+    {
+        Traversal::traversal(cur_node,*this);
+    }
+
+
+    /*!
+    * @brief  Execution traversal qcircuit
+    * @param[in|out]  AbstractQuantumCircuit*  quantum circuit
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    * @exception invalid_argument
+    * @note
+    */
+    virtual void execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std::shared_ptr<QNode> parent_node)
+    {
+        Traversal::traversal(cur_node,false,*this);
+    }
+    /*!
+    * @brief  Execution traversal qprog
+    * @param[in|out]  AbstractQuantumProgram*  quantum prog
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    * @exception invalid_argument
+    * @note
+    */
+    virtual void execute(std::shared_ptr<AbstractQuantumProgram>  cur_node, std::shared_ptr<QNode> parent_node)
+    {
+        Traversal::traversal(cur_node,*this);
+    }
+    /*!
+    * @brief  Execution traversal qprog
+    * @param[in|out]  AbstractClassicalProg*  quantum prog
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    * @exception invalid_argument
+    * @note
+    */
+    virtual void execute(std::shared_ptr<AbstractClassicalProg>  cur_node,
+        std::shared_ptr<QNode> parent_node)
+        {}
  };
 
  /**
@@ -213,9 +577,20 @@ private:
  * @ingroup Utilities
  * @brief Cancel control qubit vector in qprog
  */
- class CancelControlQubitVector :public TraversalInterface
+ class CancelControlQubitVector : public TraversalInterface<>
  {
  public:
+     /*!
+     * @brief  Execution traversal qgatenode
+     * @param[in|out]  AbstractQGateNode*  quantum gate
+     * @param[in]  AbstractQGateNode*  quantum gate
+     * @return     void
+     * @exception invalid_argument
+     * @note
+     */
+     void execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node)
+     {}
+
      /*!
      * @brief  Execution traversal qcircuit
      * @param[in|out]  AbstractQuantumCircuit*  quantum circuit
@@ -224,17 +599,67 @@ private:
      * @exception invalid_argument
      * @note
      */
-     inline void execute(AbstractQuantumCircuit * node, QNode * parent_node)
+     inline void execute(std::shared_ptr<AbstractQuantumCircuit>  cur_node, std::shared_ptr<QNode> parent_node)
      {
-         if (nullptr == node)
+         if (nullptr == cur_node)
          {
              QCERR("node is nullptr");
              throw std::invalid_argument("node is nullptr");
          }
 
-         node->clearControl();
-         Traversal::traversal(node, this, false);
+         cur_node->clearControl();
+         Traversal::traversal(cur_node, false, *this);
      }
+
+       /*!
+    * @brief  Execution traversal measure node
+    * @param[in|out]  AbstractQuantumMeasure*  measure node
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    * @exception invalid_argument
+    * @note
+    */
+    virtual void execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, std::shared_ptr<QNode> parent_node) 
+    {}
+
+    /*!
+    * @brief  Execution traversal control flow node
+    * @param[in|out]  AbstractControlFlowNode*  control flow node
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    * @exception invalid_argument
+    * @note
+    */
+    virtual void execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node) 
+    {
+        Traversal::traversal(cur_node,*this);
+    }
+
+    /*!
+    * @brief  Execution traversal qprog
+    * @param[in|out]  AbstractQuantumProgram*  quantum prog
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    * @exception invalid_argument
+    * @note
+    */
+    virtual void execute(std::shared_ptr<AbstractQuantumProgram>  cur_node, std::shared_ptr<QNode> parent_node)
+    {
+        Traversal::traversal(cur_node,*this);
+    }
+    /*!
+    * @brief  Execution traversal qprog
+    * @param[in|out]  AbstractClassicalProg*  quantum prog
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    * @exception invalid_argument
+    * @note
+    */
+    virtual void execute(std::shared_ptr<AbstractClassicalProg>  cur_node,
+        std::shared_ptr<QNode> parent_node)
+        {}
+
+
  };
 
  /**
@@ -242,9 +667,45 @@ private:
  * @ingroup Utilities
  * @brief Merge single gate in qprog
  */
- class MergeSingleGate :public TraversalInterface
+ class MergeSingleGate : public TraversalInterface<>
  {
  public:
+
+      /*!
+     * @brief  Execution traversal qgatenode
+     * @param[in|out]  AbstractQGateNode*  quantum gate
+     * @param[in]  AbstractQGateNode*  quantum gate
+     * @return     void
+     * @exception invalid_argument
+     * @note
+     */
+     void execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node)
+     {}
+
+            /*!
+    * @brief  Execution traversal measure node
+    * @param[in|out]  AbstractQuantumMeasure*  measure node
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    * @exception invalid_argument
+    * @note
+    */
+    virtual void execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, std::shared_ptr<QNode> parent_node) 
+    {}
+
+    /*!
+    * @brief  Execution traversal control flow node
+    * @param[in|out]  AbstractControlFlowNode*  control flow node
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    * @exception invalid_argument
+    * @note
+    */
+    virtual void execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node) 
+    {
+        Traversal::traversal(cur_node,*this);
+    }
+
      /*!
      * @brief  Execution traversal qcircuit
      * @param[in|out]  AbstractQuantumCircuit*  quantum circuit
@@ -253,17 +714,29 @@ private:
      * @exception invalid_argument
      * @note
      */
-     void execute(AbstractQuantumCircuit * node, QNode * parent_node);
+     void execute(std::shared_ptr<AbstractQuantumCircuit>  cur_node, std::shared_ptr<QNode> parent_node);
 
      /*!
      * @brief  Execution traversal qprog
-     * @param[in|out]  AbstractQuantumCircuit*  quantum prog
+     * @param[in|out]  AbstractQuantumProgram*  quantum prog
      * @param[in]  AbstractQGateNode*  quantum gate
      * @return     void
      * @exception invalid_argument
      * @note
      */
-     void execute(AbstractQuantumProgram * node, QNode * parent_node);
+     void execute(std::shared_ptr<AbstractQuantumProgram>  cur_node, std::shared_ptr<QNode> parent_node);
+
+    /*!
+    * @brief  Execution traversal qprog
+    * @param[in|out]  AbstractClassicalProg*  quantum prog
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    * @exception invalid_argument
+    * @note
+    */
+    virtual void execute(std::shared_ptr<AbstractClassicalProg>  cur_node,
+        std::shared_ptr<QNode> parent_node)
+        {}
  };
 
  /**
@@ -296,10 +769,12 @@ private:
     DecomposeControlSingleQGateIntoMetadataDoubleQGate
         m_control_single_qgate_to_metadata_double_qgate;
     DecomposeUnitarySingleQGateIntoMetadataSingleQGate
-        m_unitary_single_qgate_to_metadata_double_qgate;
+        m_unitary_single_qgate_to_metadata_single_qgate;
     DeleteUnitQNode m_delete_unit_qnode;
     CancelControlQubitVector m_cancel_control_qubit_vector;
     MergeSingleGate m_merge_single_gate;
+
+	QuantumMachine * m_quantum_machine;
 };
 
 QPANDA_END

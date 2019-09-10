@@ -7,7 +7,7 @@ if (MSVC)
 else()
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11 -w -Xcompiler -fPIC")   
 endif()
-file(GLOB_RECURSE CURRENT_SOURCES "*.cu")
+file(GLOB_RECURSE CURRENT_SOURCES "*.cu" "*.cpp")
 cuda_add_library(${LIB_GPUGATES} STATIC ${CURRENT_HEADERS} ${CURRENT_SOURCES})
 set_target_properties(${LIB_GPUGATES} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 

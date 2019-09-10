@@ -14,6 +14,7 @@
 #   QALG_LIBRARY          - QAlg library
 #   VAR_LIBRARY           - Variational library
 #   TINY_LIBRARY          - TinyXML library
+#   ANTLR4_LIBRARY        - antlr4 library
 #   QPANDA_LIBRARY        - QPanda-2 library
 #   QPANDA_FOUND          - True if curl found.
 #   
@@ -22,37 +23,41 @@
 # Look for the header file.
 find_path(QPANDA_INCLUDE_DIR NAMES qpanda2/Core/QPanda.h qpanda2/QPandaVersion.h 
           PATHS 
-          ${CMAKE_INSTALL_PREFIX}/include)
+          ${QPANDA_INSTALL_DIR}/include)
 set(QPANDA_INCLUDE_DIR "${QPANDA_INCLUDE_DIR}/qpanda2/")
 
 find_path(THIRD_INCLUDE_DIR NAMES qpanda2/ThirdParty/TinyXML/tinyxml.h 
           PATHS 
-          ${CMAKE_INSTALL_PREFIX}/include)
+          ${QPANDA_INSTALL_DIR}/include)
 include_directories(${THIRD_INCLUDE_DIR}/qpanda2/ThirdParty)
 mark_as_advanced(QPANDA_INCLUDE_DIR)
 
 # Look for the library (sorted from most current/relevant entry to least).
 find_library(QALG_LIBRARY NAMES QAlg 
              PATHS 
-             ${CMAKE_INSTALL_PREFIX}/lib)
+             ${QPANDA_INSTALL_DIR}/lib)
 find_library(QPANDA_LIBRARY NAMES QPanda2 
              PATHS 
-             ${CMAKE_INSTALL_PREFIX}/lib)
+             ${QPANDA_INSTALL_DIR}/lib)
 find_library(VAR_LIBRARY NAMES Variational 
              PATHS 
-             ${CMAKE_INSTALL_PREFIX}/lib)
+             ${QPANDA_INSTALL_DIR}/lib)
 find_library(TINY_LIBRARY NAMES TinyXML 
              PATHS 
-             ${CMAKE_INSTALL_PREFIX}/lib)
+             ${QPANDA_INSTALL_DIR}/lib)
+find_library(ANTLR4_LIBRARY NAMES antlr4 
+             PATHS 
+             ${QPANDA_INSTALL_DIR}/lib)
 
 mark_as_advanced(QPANDA_LIBRARY)
 mark_as_advanced(QALG_LIBRARY)
 mark_as_advanced(VAR_LIBRARY)
 mark_as_advanced(TINY_LIBRARY)
+mark_as_advanced(ANTLR4_LIBRARY)
 
 if(QPANDA_INCLUDE_DIR AND QPANDA_LIBRARY)
     set(QPANDA_FOUND TRUE)
-    set(QPANDA_LIBRARIES ${QPANDA_LIBRARY} ${QALG_LIBRARY} ${VAR_LIBRARY} ${TINY_LIBRARY})
+    set(QPANDA_LIBRARIES ${QPANDA_LIBRARY} ${QALG_LIBRARY} ${VAR_LIBRARY} ${TINY_LIBRARY} ${ANTLR4_LIBRARY})
     mark_as_advanced(QPANDA_LIBRARIES)
     if(QPANDA_INCLUDE_DIR AND NOT QPANDA_VERSION_STRING)
         foreach(_qpanda_version_header QPandaVersion.h)

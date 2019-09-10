@@ -67,13 +67,13 @@ Argin:       stNumber  Quantum number
 Argout:      None
 return:      quantum error
 *****************************************************************************************************************/
-QError GPUImplQPU::initState(QuantumGateParam * pQuantumProParam)
+QError GPUImplQPU::initState(size_t head_rank, size_t rank_size, size_t qubit_num)
 {
-    miQbitNum     = pQuantumProParam->m_qubit_number;
-    if (!initstate(mvCPUQuantumStat, mvQuantumStat, pQuantumProParam->m_qubit_number))
+    if (!GATEGPU::initstate(mvCPUQuantumStat, mvQuantumStat, qubit_num))
     {
         return undefineError;
     }
+    miQbitNum = qubit_num;
     mbIsInitQState = true;
     return qErrorNone;
 }
@@ -93,10 +93,11 @@ QStat GPUImplQPU::getQState()
         return QStat();
 	}
 
-    getState(mvCPUQuantumStat, mvQuantumStat, miQbitNum);
+    GATEGPU::getState(mvCPUQuantumStat, mvQuantumStat, miQbitNum);
     size_t uiDim = 1ull << miQbitNum;
     stringstream ssTemp;
 	QStat temp;
+
     for (size_t i = 0; i < uiDim; i++)
     {
         qcomplex_t qstate = { mvCPUQuantumStat.real[i] ,mvCPUQuantumStat.imag[i] };
@@ -349,19 +350,17 @@ QError GPUImplQPU::U1_GATE(size_t qn, double theta, bool isConjugate, double err
     return undefineError;
 }
 
-QError GPUImplQPU::unitarySingleQubitGate(
-    size_t qn,
+QError GPUImplQPU::unitarySingleQubitGate(size_t qn,
     QStat & matrix,
     bool isConjugate,
-    double error_rate,
     GateType type)
 {
-    STATE_T matrix_real[4] = { matrix[0].real(),matrix[1].real(), matrix[2].real(), matrix[3].real()};
-    STATE_T matrix_imag[4] = { matrix[0].imag(),matrix[1].imag(), matrix[2].imag(), matrix[3].imag() };
+    gpu_qstate_t matrix_real[4] = { matrix[0].real(),matrix[1].real(), matrix[2].real(), matrix[3].real()};
+    gpu_qstate_t matrix_imag[4] = { matrix[0].imag(),matrix[1].imag(), matrix[2].imag(), matrix[3].imag() };
     GATEGPU::QState gpu_matrix;
     gpu_matrix.real = matrix_real;
     gpu_matrix.imag = matrix_imag;
-    if (!GATEGPU::unitarysingle(mvQuantumStat, qn, gpu_matrix, isConjugate, error_rate))
+    if (!GATEGPU::unitarysingle(mvQuantumStat, qn, gpu_matrix, isConjugate))
     {
         return undefineError;
     }
@@ -369,20 +368,18 @@ QError GPUImplQPU::unitarySingleQubitGate(
     return qErrorNone;
 }
 
-QError GPUImplQPU::controlunitarySingleQubitGate(
-    size_t qn,
+QError GPUImplQPU::controlunitarySingleQubitGate(size_t qn,
     Qnum& qnum,
     QStat& matrix,
     bool isConjugate,
-    double error_rate,
     GateType type)
 {
-    STATE_T matrix_real[4] = { matrix[0].real(),matrix[1].real(), matrix[2].real(), matrix[3].real() };
-    STATE_T matrix_imag[4] = { matrix[0].imag(),matrix[1].imag(), matrix[2].imag(), matrix[3].imag() };
+    gpu_qstate_t matrix_real[4] = { matrix[0].real(),matrix[1].real(), matrix[2].real(), matrix[3].real() };
+    gpu_qstate_t matrix_imag[4] = { matrix[0].imag(),matrix[1].imag(), matrix[2].imag(), matrix[3].imag() };
     GATEGPU::QState gpu_matrix;
     gpu_matrix.real = matrix_real;
     gpu_matrix.imag = matrix_imag;
-    if (!GATEGPU::controlunitarysingle(mvQuantumStat, qnum, gpu_matrix, isConjugate, error_rate))
+    if (!GATEGPU::controlunitarysingle(mvQuantumStat, qnum, gpu_matrix, isConjugate))
     {
         return undefineError;
     }
@@ -390,16 +387,14 @@ QError GPUImplQPU::controlunitarySingleQubitGate(
     return qErrorNone;
 }
 
-QError GPUImplQPU::unitaryDoubleQubitGate(
-    size_t qn_0,
+QError GPUImplQPU::unitaryDoubleQubitGate(size_t qn_0,
     size_t qn_1,
     QStat& matrix,
     bool isConjugate,
-    double error_rate,
     GateType type)
 {
-    STATE_T matrix_real[16];
-    STATE_T matrix_imag[16];
+    gpu_qstate_t matrix_real[16];
+    gpu_qstate_t matrix_imag[16];
     for (int i = 0; i < 16; i++)
     {
         matrix_real[i] = matrix[i].real();
@@ -408,7 +403,7 @@ QError GPUImplQPU::unitaryDoubleQubitGate(
     GATEGPU::QState gpu_matrix;
     gpu_matrix.real = matrix_real;
     gpu_matrix.imag = matrix_imag;
-    if (!GATEGPU::unitarydouble(mvQuantumStat, qn_0, qn_1, gpu_matrix, isConjugate, error_rate))
+    if (!GATEGPU::unitarydouble(mvQuantumStat, qn_0, qn_1, gpu_matrix, isConjugate))
     {
         return undefineError;
     }
@@ -416,17 +411,15 @@ QError GPUImplQPU::unitaryDoubleQubitGate(
     return qErrorNone;
 }
 
-QError GPUImplQPU::controlunitaryDoubleQubitGate(
-    size_t qn_0,
+QError GPUImplQPU::controlunitaryDoubleQubitGate(size_t qn_0,
     size_t qn_1,
     Qnum& qnum,
     QStat& matrix,
     bool isConjugate,
-    double error_rate,
     GateType type)
 {
-    STATE_T matrix_real[16];
-    STATE_T matrix_imag[16];
+    gpu_qstate_t matrix_real[16];
+    gpu_qstate_t matrix_imag[16];
     for (int i = 0; i < 16; i++)
     {
         matrix_real[i] = matrix[i].real();
@@ -435,7 +428,7 @@ QError GPUImplQPU::controlunitaryDoubleQubitGate(
     GATEGPU::QState gpu_matrix;
     gpu_matrix.real = matrix_real;
     gpu_matrix.imag = matrix_imag;
-    if (!GATEGPU::controlunitarydouble(mvQuantumStat, qnum, gpu_matrix, isConjugate, error_rate))
+    if (!GATEGPU::controlunitarydouble(mvQuantumStat, qnum, gpu_matrix, isConjugate))
     {
         return undefineError;
     }
@@ -446,8 +439,8 @@ QError GPUImplQPU::controlunitaryDoubleQubitGate(
 QError GPUImplQPU::DiagonalGate(Qnum & vQubit, QStat & matrix, bool isConjugate, double error_rate)
 {
    /* size_t sdimension = matrix.size();
-    STATE_T matrix_real;
-    STATE_T matrix_imag;
+    gpu_qstate_t matrix_real;
+    gpu_qstate_t matrix_imag;
     if (!GATEGPU::DiagonalGate(mvQuantumStat, vQubit, matrix, isConjugate, error_rate))
     {
         return undefineError;
@@ -455,7 +448,8 @@ QError GPUImplQPU::DiagonalGate(Qnum & vQubit, QStat & matrix, bool isConjugate,
     return qErrorNone;
 }
 
-QError GPUImplQPU::controlDiagonalGate(Qnum & vQubit, QStat & matrix, Qnum & vControlBit, bool isConjugate, double error_rate)
+QError GPUImplQPU::controlDiagonalGate(Qnum& vQubit, QStat & matrix, Qnum& vControlBit,
+                                       bool isConjugate, double error_rate)
 {
     /*if (!GATEGPU::controlDiagonalGate(mvQuantumStat, vQubit, matrix, vControlBit, isConjugate, error_rate))
     {
@@ -478,7 +472,7 @@ bool GPUImplQPU::qubitMeasure(size_t qn)
     return GATEGPU::qubitmeasure(mvQuantumStat, 1ull << qn, m_resultgpu, m_probgpu);
 }
 
-QError GPUImplQPU::pMeasure(Qnum& qnum, vector<pair<size_t, double>> &mResult,int select_max)
+QError GPUImplQPU::pMeasure(Qnum& qnum, prob_tuple &mResult,int select_max)
 {
     if (!GATEGPU::pMeasurenew(mvQuantumStat, mResult, qnum, select_max))
     {
@@ -487,7 +481,7 @@ QError GPUImplQPU::pMeasure(Qnum& qnum, vector<pair<size_t, double>> &mResult,in
     return qErrorNone;
 }
 
-QError GPUImplQPU::pMeasure(Qnum& qnum, vector<double> &mResult)
+QError GPUImplQPU::pMeasure(Qnum& qnum, prob_vec &mResult)
 {
     if (!GATEGPU::pMeasure_no_index(mvQuantumStat, mResult, qnum))
     {

@@ -37,6 +37,13 @@ public:
     bool getQGateTimeConfig(std::map<GateType, size_t> &gate_time);
     bool getInstructionConfig(std::map<std::string, std::map<std::string, uint32_t>> &);
     virtual ~XmlConfigParam() {};
+
+	//read topological structure from xml config file
+	static bool readAdjacentMatrix(TiXmlElement *AdjacentMatrixElement, int &qubit_num, std::vector<std::vector<int>> &qubit_matrix);
+
+	//load quantum circuit topological structure
+	static bool loadQuantumTopoStructure(const std::string &xmlStr, const std::string& dataElementStr, int &qubitsCnt, std::vector< std::vector<int>> &vec, const std::string configFile = "");
+
 private:
     TiXmlDocument m_doc;
     TiXmlElement *m_root_element;

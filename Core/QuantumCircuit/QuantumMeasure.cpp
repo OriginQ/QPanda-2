@@ -35,6 +35,16 @@ QMeasure::QMeasure(const QMeasure & old_measure)
     m_measure = old_measure.m_measure;
 }
 
+QMeasure::QMeasure(std::shared_ptr<AbstractQuantumMeasure> node)
+{
+    if (!node)
+    {
+        QCERR("this shared_ptr is null");
+        throw invalid_argument("this shared_ptr is null");
+    }
+    m_measure = node;
+}
+
 QMeasure::QMeasure(Qubit * qubit, CBit * cbit)
 {
     auto class_name = ConfigMap::getInstance()["QMeasure"];
@@ -128,7 +138,6 @@ void OriginMeasure::execute(QPUImpl * quantum_gates, QuantumGateParam * param)
     }
 
     cexpr->setValue(iResult);
-
     string name = cexpr->getName();
     auto aiter = param->m_return_value.find(name);
     if (aiter != param->m_return_value.end())

@@ -30,9 +30,8 @@
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
 using Eigen::ArrayXd;
-USING_QPANDA
 
-namespace QPanda {
+QPANDA_BEGIN
     namespace Variational {
 
         class var;
@@ -68,7 +67,7 @@ namespace QPanda {
 
         int numOpArgs(op_type op);
     }
-}
+QPANDA_END
 
 namespace std {
 
@@ -82,7 +81,7 @@ namespace std {
 }
 
 
-namespace QPanda {
+QPANDA_BEGIN
     namespace Variational {
 
         /**
@@ -207,7 +206,6 @@ namespace QPanda {
              *
              */
             var(std::shared_ptr<impl>);
-
             /**
              * @brief Construct a new var object by a double.
              *
@@ -561,10 +559,13 @@ namespace QPanda {
             template<typename VQG_Ty>
             VariationalQuantumCircuit& insert(VQG_Ty gate);
         private:
-            static std::shared_ptr<VariationalQuantumGate> _cast_qg_vqg(QGate gate);
-            static std::shared_ptr<VariationalQuantumGate> _cast_aqgn_vqg(AbstractQGateNode* gate);
-            static VariationalQuantumCircuit _cast_qc_vqc(QCircuit q);
-            static VariationalQuantumCircuit _cast_aqc_vqc(AbstractQuantumCircuit* q);
+            std::shared_ptr<VariationalQuantumGate> qg2vqg(AbstractQGateNode* gate) const;
+            VariationalQuantumCircuit qc2vqc(AbstractQuantumCircuit* q) const;
+
+            //static std::shared_ptr<VariationalQuantumGate> _cast_qg_vqg(QGate gate);
+            //static std::shared_ptr<VariationalQuantumGate> _cast_aqgn_vqg(AbstractQGateNode* gate);
+            //static VariationalQuantumCircuit _cast_qc_vqc(QCircuit q);
+            //static VariationalQuantumCircuit _cast_aqc_vqc(AbstractQuantumCircuit* q);
 
         };
 
@@ -916,29 +917,7 @@ namespace QPanda {
 
     } // namespace Variational
 
-    using complex_var = std::pair<Variational::var, Variational::var>;
+QPANDA_END
 
-    inline complex_var operator + (const complex_var &lhs, const complex_var &rhs)
-    {
-        return std::make_pair(lhs.first + rhs.first, lhs.second + rhs.second);
-    }
-
-    inline complex_var operator * (const complex_var &lhs, const complex_var &rhs)
-    {
-        return std::make_pair(lhs.first * rhs.first - lhs.second * rhs.second,
-            lhs.first * rhs.second + lhs.second * rhs.first);
-    }
-
-    inline complex_var operator * (const complex_var &lhs, const double &rhs)
-    {
-        return std::make_pair(lhs.first * rhs, lhs.second * rhs);
-    }
-
-    inline complex_var operator * (const double &lhs, const complex_var &rhs)
-    {
-        return std::make_pair(lhs * rhs.first, lhs * rhs.second);
-    }
-
-} // namespace QPanda
 
 #endif // ! VAR_H

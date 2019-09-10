@@ -2,7 +2,7 @@
 USING_QPANDA
 using namespace std;
 
-OriginItem::OriginItem(): m_pNext(nullptr), m_pPre(nullptr)
+OriginItem::OriginItem(): m_pNext(nullptr), m_pPre(nullptr),m_node(nullptr)
 { }
 
 OriginItem::~OriginItem()
@@ -22,11 +22,11 @@ Item * OriginItem::getPre() const
 
 shared_ptr<QNode>OriginItem::getNode() const
 {
-    if (!m_node)
-    {
+    /*if (!m_node)
+    {  It is not necessary to Throw exception here, modified by Zhaody
         QCERR("m_node is nullptr");
         throw runtime_error("m_node is nullptr");
-    }
+    }*/
     return m_node;
 }
 
@@ -69,7 +69,7 @@ NodeIter NodeIter::operator++(int)
     return temp;
 }
 
-shared_ptr<QNode> NodeIter::operator*()
+shared_ptr<QNode> NodeIter::operator*() const
 {
     if (m_pCur)
     {
@@ -116,12 +116,12 @@ NodeIter NodeIter::getNextIter()
     }
 }
 
-bool NodeIter::operator!=(NodeIter  iter)
+bool NodeIter::operator!=(NodeIter  iter) const
 {
     return this->m_pCur != iter.m_pCur;
 }
 
-bool NodeIter::operator==(NodeIter iter)
+bool NodeIter::operator==(NodeIter iter) const
 {
     return this->m_pCur == iter.m_pCur;
 }

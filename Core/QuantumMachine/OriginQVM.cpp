@@ -272,15 +272,13 @@ void QVM::Free_CBits(vector<ClassicalCondition> & vCBit)
 }
 
 void QVM::run(QProg & node)
-{    
+{
     try
     {
         auto _pParam = new QuantumGateParam();
         _ptrIsNull(_pParam, "_pParam");
 
-        _pParam->m_qubit_number = _Qubit_Pool->getMaxQubit() - _Qubit_Pool->getIdleQubit();
-
-        _pGates->initState(_pParam);
+        _pGates->initState(0, 1, _Qubit_Pool->getMaxQubit() - _Qubit_Pool->getIdleQubit());
 
         node.getImplementationPtr()->execute(_pGates, _pParam);
 
@@ -430,7 +428,7 @@ map<string, bool> QVM::getResultMap()
     return _QResult->getResultMap();
 }
 
-vector<pair<size_t, double>> IdealQVM::PMeasure(QVec qubit_vector, int select_max)
+prob_tuple IdealQVM::PMeasure(QVec qubit_vector, int select_max)
 {
     if (0 == qubit_vector.size())
     {
@@ -451,10 +449,27 @@ vector<pair<size_t, double>> IdealQVM::PMeasure(QVec qubit_vector, int select_ma
             vqubit.push_back((*aiter)->getPhysicalQubitPtr()->getQubitAddr());
         }
 
-        vector<pair<size_t, double>> pmeasure_vector;
-        _pGates->pMeasure(vqubit, pmeasure_vector, select_max);
+        prob_tuple result_vec;
 
-        return pmeasure_vector;
+        prob_vec pmeasure_vector;
+        _pGates->pMeasure(vqubit, pmeasure_vector);
+
+        for (auto i = 0; i < pmeasure_vector.size(); ++i)
+        {
+            result_vec.emplace_back(make_pair(i, pmeasure_vector[i]));
+        }
+        sort(result_vec.begin(), result_vec.end(),
+            [=](std::pair<size_t, double> a, std::pair<size_t, double> b) {return a.second > b.second; });
+
+        if ((select_max == -1) || (pmeasure_vector.size() <= select_max))
+        {
+            return result_vec;
+        }
+        else
+        {
+            result_vec.erase(result_vec.begin() + select_max, result_vec.end());
+            return result_vec;
+        }
     }
     catch (const std::exception&e)
     {
@@ -463,7 +478,7 @@ vector<pair<size_t, double>> IdealQVM::PMeasure(QVec qubit_vector, int select_ma
     }
 }
 
-vector<double> IdealQVM::PMeasure_no_index(QVec qubit_vector)
+prob_vec IdealQVM::PMeasure_no_index(QVec qubit_vector)
 {
     if (0 == qubit_vector.size())
     {
@@ -478,13 +493,13 @@ vector<double> IdealQVM::PMeasure_no_index(QVec qubit_vector)
     }
     try
     {
-
         Qnum vqubit;
         for (auto aiter = qubit_vector.begin(); aiter != qubit_vector.end(); ++aiter)
         {
             vqubit.push_back((*aiter)->getPhysicalQubitPtr()->getQubitAddr());
         }
-        vector<double> pmeasure_vector;
+
+        prob_vec pmeasure_vector;
         _pGates->pMeasure(vqubit, pmeasure_vector);
 
         return pmeasure_vector;
@@ -502,7 +517,7 @@ map<string, bool> QVM::directlyRun(QProg & qProg)
     return _QResult->getResultMap();
 }
 
-vector<pair<size_t, double>> IdealQVM::getProbTupleList(QVec vQubit,  int selectMax)
+prob_tuple IdealQVM::getProbTupleList(QVec vQubit,  int select_max)
 {
     if (0 == vQubit.size())
     {
@@ -518,14 +533,7 @@ vector<pair<size_t, double>> IdealQVM::getProbTupleList(QVec vQubit,  int select
 
     try
     {
-        vector<pair<size_t, double>> vResult;
-        Qnum vqubitAddr;
-        for (auto aiter = vQubit.begin(); aiter != vQubit.end(); ++aiter)
-        {
-            vqubitAddr.push_back((*aiter)->getPhysicalQubitPtr()->getQubitAddr());
-        }
-        _pGates->pMeasure(vqubitAddr, vResult, selectMax);
-        return vResult;
+        return PMeasure(vQubit, select_max);
     }
     catch (const std::exception&e)
     {
@@ -534,7 +542,7 @@ vector<pair<size_t, double>> IdealQVM::getProbTupleList(QVec vQubit,  int select
     }
 }
 
-vector<double> IdealQVM::getProbList(QVec vQubit, int selectMax)
+prob_vec IdealQVM::getProbList(QVec vQubit, int selectMax)
 {
     if (0 == vQubit.size())
     {
@@ -550,7 +558,7 @@ vector<double> IdealQVM::getProbList(QVec vQubit, int selectMax)
 
     try
     {
-        vector<double> vResult;
+        prob_vec vResult;
         Qnum vqubitAddr;
         for (auto aiter = vQubit.begin(); aiter != vQubit.end(); ++aiter)
         {
@@ -634,7 +642,7 @@ void QVM::_start()
     _ptrIsNull(_QMachineStatus, "_QMachineStatus");
 }
 
-map<string, double> IdealQVM::getProbDict(QVec vQubit, int selectMax)
+prob_dict IdealQVM::getProbDict(QVec vQubit, int selectMax)
 {
     if (0 == vQubit.size())
     {
@@ -642,7 +650,7 @@ map<string, double> IdealQVM::getProbDict(QVec vQubit, int selectMax)
         throw invalid_argument("the size of qubit_vector is zero");
     }
 
-    map<string, double> mResult;
+    prob_dict mResult;
     
     size_t stLength = vQubit.size();
     auto vTemp = PMeasure(vQubit, selectMax);
@@ -653,20 +661,20 @@ map<string, double> IdealQVM::getProbDict(QVec vQubit, int selectMax)
     return mResult;
 }
 
-vector<pair<size_t, double>> IdealQVM::
+prob_tuple IdealQVM::
 probRunTupleList(QProg & qProg, QVec vQubit, int selectMax)
 {
     run(qProg);
     return getProbTupleList(vQubit, selectMax);
 }
 
-vector<double> IdealQVM::
+prob_vec IdealQVM::
 probRunList(QProg & qProg, QVec vQubit,int selectMax)
 {
     run(qProg);
     return getProbList(vQubit, selectMax);
 }
-map<string, double> IdealQVM::
+prob_dict IdealQVM::
 probRunDict(QProg & qProg, QVec vQubit, int selectMax)
 {
     run(qProg);
@@ -710,7 +718,7 @@ runWithConfiguration(QProg & qProg, vector<ClassicalCondition>& vCBit, rapidjson
     return mResult;
 }
 
-static void accumulateProbability(vector<double>& probList, vector<double> & accumulateProb)
+static void accumulateProbability(prob_vec& probList, prob_vec & accumulateProb)
 {
     accumulateProb.clear();
     accumulateProb.push_back(probList[0]);
@@ -723,8 +731,8 @@ static void accumulateProbability(vector<double>& probList, vector<double> & acc
 map<string, size_t> IdealQVM::quickMeasure(QVec vQubit, size_t shots)
 {
     map<string, size_t>  meas_result;
-    vector<double> probList=getProbList(vQubit,-1);
-    vector<double> accumulate_probabilites;
+    prob_vec probList=getProbList(vQubit,-1);
+    prob_vec accumulate_probabilites;
     accumulateProbability(probList, accumulate_probabilites);
     for (int i = 0; i < shots; ++i)
     {

@@ -69,6 +69,16 @@ namespace QPanda
             m_max_iter = max_iter;
         }
 
+        void setRestoreFromCacheFile(bool restore)
+        {
+            m_restore_from_cache_file = restore;
+        }
+
+        void setCacheFile(const std::string& cache_file)
+        {
+            m_cache_file = cache_file;
+        }
+
         // only for test
         void setTestValueAndParaFile(double test_value, const std::string &filename)
         {
@@ -105,6 +115,9 @@ namespace QPanda
 
         size_t m_max_fcalls;// Maximum allowed number of function evaluations
         size_t m_max_iter;  // Maximum allowed number of iterations
+
+        bool m_restore_from_cache_file;
+        std::string m_cache_file;
 
         QOptimizationResult m_result;
     };

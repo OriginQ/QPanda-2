@@ -11,10 +11,25 @@
 #include "Variational/expression.h"
 #include "Variational/utils.h"
 #include "Variational/Optimizer.h"
+#include "Variational/VarFermionOperator.h"
+#include "Variational/VarPauliOperator.h"
 
 using namespace QPanda::Variational;
 using namespace QPanda;
 using namespace std;
+
+TEST(VariationalTest, VarOperatorTest)
+{
+    using namespace QPanda;
+    using namespace Variational;
+    var a(2, true);
+    var b(3, true);
+
+    VarFermionOperator fermion_op("1+ 0", a);
+    VarPauliOperator pauli_op("Z1 Z0", b);
+    std::cout << fermion_op << std::endl;
+    std::cout << pauli_op << std::endl;
+}
 
 VQC parity_check_circuit(std::vector<Qubit*> qubit_vec)
 {

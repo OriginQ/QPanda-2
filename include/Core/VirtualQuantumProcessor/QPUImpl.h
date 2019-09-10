@@ -36,134 +36,24 @@ public:
     QPUImpl();
     virtual ~QPUImpl() = 0;
 
-	virtual QError Hadamard(size_t qn, bool isConjugate, 
-                        double error_rate) = 0;
-    virtual QError Hadamard(size_t qn, Qnum& vControlBit, 
-                        bool isConjugate, double error_rate) = 0;
-    virtual QError X(size_t qn, bool isConjugate, 
-                        double error_rate) = 0;
-    virtual QError X(size_t qn, Qnum& vControlBit, 
-                        bool isConjugate, double error_rate) = 0;
-    virtual QError P0(size_t qn, bool isConjugate,
-                        double error_rate) = 0;
-    virtual QError P0(size_t qn, Qnum& vControlBit,
-                        bool isConjugate, double error_rate) = 0;
-    virtual QError P1(size_t qn, bool isConjugate,
-                        double error_rate) = 0;
-    virtual QError P1(size_t qn, Qnum& vControlBit,
-                        bool isConjugate, double error_rate) = 0;
-    virtual QError Y(size_t qn, bool isConjugate, 
-                        double error_rate) = 0;
-    virtual QError Y(size_t qn, Qnum& vControlBit, 
-                        bool isConjugate, double error_rate) = 0;
-    virtual QError Z(size_t qn, bool isConjugate, 
-                        double error_rate) = 0;
-    virtual QError Z(size_t qn, Qnum& vControlBit, 
-                        bool isConjugate, double error_rate) = 0;
-    virtual QError T(size_t qn, bool isConjugate, 
-                        double error_rate) = 0;
-    virtual QError T(size_t qn, Qnum& vControlBit, 
-                        bool isConjugate, double error_rate) = 0;
-    virtual QError S(size_t qn, bool isConjugate, 
-                        double error_rate) = 0;
-    virtual QError S(size_t qn, Qnum& vControlBit, 
-                        bool isConjugate, double error_rate) = 0;
-
-    virtual QError U1_GATE(size_t qn, double theta,
-        bool isConjugate, double error_rate) = 0;
-
-    virtual QError RX_GATE(size_t qn, double theta,
-                        bool isConjugate, double error_rate) = 0;
-    virtual QError RX_GATE(size_t qn, double theta,
-                        Qnum& vControlBit,
-                        bool isConjugate,
-                        double error_rate) = 0;
-    virtual QError RY_GATE(size_t qn, double theta, 
-                        bool isConjugate, double error_rate) = 0;
-    virtual QError RY_GATE(size_t qn, double theta,
-                        Qnum& vControlBit,
-                        bool isConjugate,
-                        double error_rate) = 0;
-    virtual QError RZ_GATE(size_t qn, double theta,
-                        bool isConjugate, double error_rate) = 0;
-    virtual QError RZ_GATE(size_t qn, double theta,
-                        Qnum& vControlBit,
-                        bool isConjugate,
-                        double error_rate) = 0;
-    virtual QError CNOT(size_t qn_0, size_t qn_1,
-                        bool isConjugate, double error_rate) = 0;
-    virtual QError CNOT(size_t qn_0, size_t qn_1,
-                        Qnum& vControlBit,
-                        bool isConjugate,
-                        double error_rate) = 0;
-    virtual QError CR(size_t qn_0, size_t qn_1, double theta, 
-                        bool isConjugate, double error_rate) = 0;
-    virtual QError CR(size_t qn_0, size_t qn_1,
-                        Qnum& vControlBit,
-                        double theta,
-                        bool isConjugate,
-                        double error_rate) = 0;
-
-    virtual QError CZ(size_t qn_0, size_t qn_1, 
-                        bool isConjugate, double error_rate) = 0;
-    virtual QError CZ(size_t qn_0, size_t qn_1,
-                        Qnum& vControlBit,
-                        bool isConjugate,
-                        double error_rate) = 0;
-
-    virtual QError iSWAP(size_t qn_0, size_t qn_1,
-                        double theta,
-                        bool isConjugate,
-                        double error_rate) = 0;
-    virtual QError iSWAP(size_t qn_0, size_t qn_1,
-                        Qnum& vControlBit,
-                        double theta,
-                        bool isConjugate,
-                        double error_rate) = 0;
-
-    virtual QError iSWAP(size_t qn_0, size_t qn_1,
-                        bool isConjugate,
-                        double error_rate) = 0;
-    virtual QError iSWAP(size_t qn_0, size_t qn_1,
-                        Qnum& vControlBit,
-                        bool isConjugate,
-                        double error_rate) = 0;
-
-    virtual QError SqiSWAP(size_t qn_0, size_t qn_1,
-                        bool isConjugate,
-                        double error_rate) = 0;
-    virtual QError SqiSWAP(size_t qn_0, size_t qn_1,
-                        Qnum& vControlBit,
-                        bool isConjugate,
-                        double error_rate) = 0;
-
-    virtual QError Reset(size_t qn) = 0;
     virtual bool qubitMeasure(size_t qn) = 0;
-    virtual QError pMeasure(Qnum& qnum, std::vector<std::pair<size_t, double>> &mResult, 
-                        int select_max=-1) = 0;
 
-    virtual QError pMeasure(Qnum& qnum, std::vector<double> &mResult) = 0;
+    virtual QError pMeasure(Qnum& qnum, prob_vec &mResult) = 0;
 
-    virtual QError initState(QuantumGateParam *) = 0;
-
-    virtual QError endGate(QuantumGateParam *pQuantumProParam, 
-                        QPUImpl * pQGate) = 0;
+    virtual QError initState(size_t head_rank, size_t rank_size, size_t qubit_num) = 0;
     
     virtual QError unitarySingleQubitGate(size_t qn, QStat& matrix, 
                         bool isConjugate, 
-                        double error_rate,
-                        GateType ) = 0;
+                        GateType) = 0;
 
     virtual QError controlunitarySingleQubitGate(size_t qn, Qnum& qnum,
                         QStat& matrix, 
-                        bool isConjugate,
-                        double error_rate,
+                        bool isConjugate, 
                         GateType) = 0;
     
     virtual QError unitaryDoubleQubitGate(size_t qn_0, size_t qn_1,
                         QStat& matrix,
-                        bool isConjugate,
-                        double error_rate,
+                        bool isConjugate, 
                         GateType) = 0;
 
     virtual QError controlunitaryDoubleQubitGate(size_t qn_0,
@@ -171,17 +61,8 @@ public:
                         Qnum& qnum,
                         QStat& matrix,
                         bool isConjugate,
-                        double error_rate,
                         GateType) = 0;
-    virtual QError DiagonalGate(Qnum& vQubit,
-                        QStat & matrix,
-                        bool isConjugate, 
-                        double error_rate)=0;
-    virtual QError controlDiagonalGate(Qnum& vQubit,
-                        QStat & matrix,
-                        Qnum& vControlBit,
-                        bool isConjugate,
-                        double error_rate)=0;
+
     virtual QStat getQState() = 0;
 
 	virtual inline void set_random_engine(RandomEngine* rng) {
@@ -196,4 +77,124 @@ public:
 
 };
 
+
+class AbstractQuantumGates
+{
+public:
+    virtual QError DiagonalGate(Qnum& vQubit,
+        QStat & matrix,
+        bool isConjugate,
+        double error_rate) = 0;
+    virtual QError controlDiagonalGate(Qnum& vQubit,
+        QStat & matrix,
+        Qnum& vControlBit,
+        bool isConjugate,
+        double error_rate) = 0;
+
+    virtual QError Reset(size_t qn) = 0;
+
+    virtual QError Hadamard(size_t qn, bool isConjugate,
+        double error_rate) = 0;
+    virtual QError Hadamard(size_t qn, Qnum& vControlBit,
+        bool isConjugate, double error_rate) = 0;
+    virtual QError X(size_t qn, bool isConjugate,
+        double error_rate) = 0;
+    virtual QError X(size_t qn, Qnum& vControlBit,
+        bool isConjugate, double error_rate) = 0;
+    virtual QError P0(size_t qn, bool isConjugate,
+        double error_rate) = 0;
+    virtual QError P0(size_t qn, Qnum& vControlBit,
+        bool isConjugate, double error_rate) = 0;
+    virtual QError P1(size_t qn, bool isConjugate,
+        double error_rate) = 0;
+    virtual QError P1(size_t qn, Qnum& vControlBit,
+        bool isConjugate, double error_rate) = 0;
+    virtual QError Y(size_t qn, bool isConjugate,
+        double error_rate) = 0;
+    virtual QError Y(size_t qn, Qnum& vControlBit,
+        bool isConjugate, double error_rate) = 0;
+    virtual QError Z(size_t qn, bool isConjugate,
+        double error_rate) = 0;
+    virtual QError Z(size_t qn, Qnum& vControlBit,
+        bool isConjugate, double error_rate) = 0;
+    virtual QError T(size_t qn, bool isConjugate,
+        double error_rate) = 0;
+    virtual QError T(size_t qn, Qnum& vControlBit,
+        bool isConjugate, double error_rate) = 0;
+    virtual QError S(size_t qn, bool isConjugate,
+        double error_rate) = 0;
+    virtual QError S(size_t qn, Qnum& vControlBit,
+        bool isConjugate, double error_rate) = 0;
+
+    virtual QError U1_GATE(size_t qn, double theta,
+        bool isConjugate, double error_rate) = 0;
+
+    virtual QError RX_GATE(size_t qn, double theta,
+        bool isConjugate, double error_rate) = 0;
+    virtual QError RX_GATE(size_t qn, double theta,
+        Qnum& vControlBit,
+        bool isConjugate,
+        double error_rate) = 0;
+    virtual QError RY_GATE(size_t qn, double theta,
+        bool isConjugate, double error_rate) = 0;
+    virtual QError RY_GATE(size_t qn, double theta,
+        Qnum& vControlBit,
+        bool isConjugate,
+        double error_rate) = 0;
+    virtual QError RZ_GATE(size_t qn, double theta,
+        bool isConjugate, double error_rate) = 0;
+    virtual QError RZ_GATE(size_t qn, double theta,
+        Qnum& vControlBit,
+        bool isConjugate,
+        double error_rate) = 0;
+    virtual QError CNOT(size_t qn_0, size_t qn_1,
+        bool isConjugate, double error_rate) = 0;
+    virtual QError CNOT(size_t qn_0, size_t qn_1,
+        Qnum& vControlBit,
+        bool isConjugate,
+        double error_rate) = 0;
+    virtual QError CR(size_t qn_0, size_t qn_1, double theta,
+        bool isConjugate, double error_rate) = 0;
+    virtual QError CR(size_t qn_0, size_t qn_1,
+        Qnum& vControlBit,
+        double theta,
+        bool isConjugate,
+        double error_rate) = 0;
+
+    virtual QError CZ(size_t qn_0, size_t qn_1,
+        bool isConjugate, double error_rate) = 0;
+    virtual QError CZ(size_t qn_0, size_t qn_1,
+        Qnum& vControlBit,
+        bool isConjugate,
+        double error_rate) = 0;
+
+    virtual QError iSWAP(size_t qn_0, size_t qn_1,
+        double theta,
+        bool isConjugate,
+        double error_rate) = 0;
+    virtual QError iSWAP(size_t qn_0, size_t qn_1,
+        Qnum& vControlBit,
+        double theta,
+        bool isConjugate,
+        double error_rate) = 0;
+
+    virtual QError iSWAP(size_t qn_0, size_t qn_1,
+        bool isConjugate,
+        double error_rate) = 0;
+    virtual QError iSWAP(size_t qn_0, size_t qn_1,
+        Qnum& vControlBit,
+        bool isConjugate,
+        double error_rate) = 0;
+
+    virtual QError SqiSWAP(size_t qn_0, size_t qn_1,
+        bool isConjugate,
+        double error_rate) = 0;
+    virtual QError SqiSWAP(size_t qn_0, size_t qn_1,
+        Qnum& vControlBit,
+        bool isConjugate,
+        double error_rate) = 0;
+};
+
+
 #endif
+

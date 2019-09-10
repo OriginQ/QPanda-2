@@ -19,6 +19,7 @@ Classes for QProgToQuil.
 #include "Core/QuantumCircuit/QGlobalVariable.h"
 #include "Core/QuantumMachine/QuantumMachineInterface.h"
 #include "Core/Utilities/Transform/QProgTransform.h"
+#include "Core/Utilities/Traversal.h"
 
 #include <map>
 #include <string>
@@ -33,7 +34,7 @@ QPANDA_BEGIN
 * @ingroup Utilities
 * @brief QuantumProg Transform To Quil instruction sets.
 */
-class QProgToQuil : public QProgTransform
+class QProgToQuil : public QProgTransform, public TraversalInterface<bool&>
 {
 public:
     QProgToQuil(QuantumMachine * quantum_machine);
@@ -54,12 +55,27 @@ public:
     * @note
     */
     virtual std::string getInsturctions();
+
+	/*! add by zhaody
+	* @brief  Transform Quantum program by Traversal algorithm, refer to class Traversal
+	* @param[in]  QProg&  quantum program
+	* @return     void
+	* @exception
+	* @note
+	*/
+	void transformQProgByTraversalAlg(QProg *prog);
+
+public:
+	virtual void execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node, bool &);
+	virtual void execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, std::shared_ptr<QNode> parent_node, bool &);
+	virtual void execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node, bool &);
+	virtual void execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std::shared_ptr<QNode> parent_node, bool &);
+	virtual void execute(std::shared_ptr<AbstractQuantumProgram>  cur_node, std::shared_ptr<QNode> parent_node, bool &);
+	virtual void execute(std::shared_ptr<AbstractClassicalProg>  cur_node, std::shared_ptr<QNode> parent_node, bool &);
+
 protected:
-    virtual void transformQProg(AbstractQuantumProgram *);
-    virtual void transformQGate(AbstractQGateNode*);
-    virtual void transformQCircuit(AbstractQuantumCircuit*);
+    virtual void transformQGate(AbstractQGateNode*, bool is_dagger);
     virtual void transformQMeasure(AbstractQuantumMeasure*);
-    virtual void transformQNode(QNode*);
     virtual void transformQControlFlow(AbstractControlFlowNode *);
 
     void dealWithQuilGate(AbstractQGateNode*);

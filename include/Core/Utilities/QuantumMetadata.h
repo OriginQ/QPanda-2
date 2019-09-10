@@ -36,7 +36,7 @@ public:
     QuantumMetadata & operator =(const QuantumMetadata &) = delete;
 
     bool getMetadata(int &qubit_num, std::vector<std::vector<int>> &matrix);
-    bool getQGate(std::vector<std::string> &single_gates, std::vector<std::string> double_gates);
+    bool getQGate(std::vector<std::string> &single_gates, std::vector<std::string> &double_gates);
     bool getGateTime(std::map<GateType, size_t> &gate_time_map);
 
     ~QuantumMetadata();

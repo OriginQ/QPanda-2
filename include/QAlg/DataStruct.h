@@ -16,8 +16,15 @@ Created in 2018-09-06
 #include <vector>
 #include <functional>
 #include <complex>
+#include "QPandaNamespace.h"
 
-namespace QPanda {
+#ifdef _MSC_VER
+#define DLLEXPORT __declspec(dllexport)
+#else
+#define DLLEXPORT
+#endif
+
+QPANDA_BEGIN
 
 #define DEF_WARING                    ("Warning: ")
 #define DEF_ITERATIONS                ("Iterations")
@@ -125,7 +132,21 @@ namespace QPanda {
     enum class OptimizerType
     {
         NELDER_MEAD,
-        POWELL
+        POWELL,
+        GRADIENT
+    };
+
+    enum class TransFormType
+    {
+        Jordan_Wigner,
+        Parity,
+        Bravyi_Ktaev
+    };
+
+    enum class UccType
+    {
+        UCCS,
+        UCCSD
     };
 
     struct QTwoPara
@@ -157,6 +178,6 @@ namespace QPanda {
     extern double operator + (const QResultPair &p1, const QResultPair &p2);
     extern double operator * (const double &coef, const QResultPair &p);
     extern double operator * (const QResultPair &p, const double &coef);
-}
+QPANDA_END
 
 #endif // DATASTRUCT_H

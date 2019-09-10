@@ -16,6 +16,6 @@ limitations under the License.
 
 #include "OriginQuantumMachine.h"
 #include "Factory.h"
-
+USING_QPANDA
 OriginQMachineStatus::OriginQMachineStatus()
 {}

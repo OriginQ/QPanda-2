@@ -80,15 +80,15 @@ public:
 class IdealMachineInterface
 {
 public:
-    virtual std::vector<double> PMeasure_no_index(QVec qubit_vector) = 0;
-    virtual std::vector<std::pair<size_t, double>> getProbTupleList(QVec, int) = 0;
-    virtual std::vector<double> getProbList(QVec, int) = 0;
-    virtual std::map<std::string, double>  getProbDict(QVec, int) = 0;
-    virtual std::vector<std::pair<size_t, double>> probRunTupleList(QProg &, QVec, int) = 0;
-    virtual std::vector<double> probRunList(QProg &, QVec, int) = 0;
-    virtual std::map<std::string, double> probRunDict(QProg &, QVec, int) = 0;
+    virtual prob_vec PMeasure_no_index(QVec qubit_vector) = 0;
+    virtual prob_tuple getProbTupleList(QVec, int) = 0;
+    virtual prob_vec getProbList(QVec, int) = 0;
+    virtual prob_dict  getProbDict(QVec, int) = 0;
+    virtual prob_tuple probRunTupleList(QProg &, QVec, int) = 0;
+    virtual prob_vec probRunList(QProg &, QVec, int) = 0;
+    virtual prob_dict probRunDict(QProg &, QVec, int) = 0;
     virtual std::map<std::string, size_t> quickMeasure(QVec, size_t) = 0;
-    virtual std::vector<std::pair<size_t, double>> PMeasure(QVec qubit_vector, int select_max) = 0;
+    virtual prob_tuple PMeasure(QVec qubit_vector, int select_max) = 0;
     virtual QStat getQStat() = 0;
     virtual ~IdealMachineInterface() {}
 };

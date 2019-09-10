@@ -65,6 +65,32 @@ QuantumMachine * QuantumMachineFactory::
         _Quantum_Machine_Constructor[_Name]();
 }
 
+QuantumMachine* QuantumMachineFactory::
+CreateByType(QMachineType type)
+{
+    QuantumMachine* qm;
+    switch (type)
+    {
+    case QMachineType::CPU:
+        qm = new CPUQVM();
+        break;
+    case QMachineType::CPU_SINGLE_THREAD:
+        qm = new CPUSingleThreadQVM();
+        break;
+    case QMachineType::GPU:
+        qm = new GPUQVM();
+        break;
+    case QMachineType::NOISE:
+        qm = new NoiseQVM();
+        break;
+    default:
+        qm = nullptr;
+        break;
+    }
+
+    return qm;
+}
+
 void QuantumMachineFactory::registerclass(std::string name, constructor_t constructor)
 {
     if (_Quantum_Machine_Constructor.find(name) != _Quantum_Machine_Constructor.end())

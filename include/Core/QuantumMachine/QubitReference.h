@@ -5,7 +5,7 @@
 #include "Core/QuantumCircuit/ClassicalConditionInterface.h"
 #include "Core/Utilities/QPandaNamespace.h"
 QPANDA_BEGIN
-class QubitReference :public Qubit
+class QubitReference :public Qubit, public QubitReferenceInterface
 {
 private:
     std::shared_ptr<CExpr> m_cepr;
@@ -42,7 +42,7 @@ public:
         }
     }
 
-
+	inline std::shared_ptr<CExpr>  getExprPtr() { return m_cepr; }
 
     ~QubitReference()
     {

@@ -1,15 +1,8 @@
 /*! \file QRunesToQProg.h */
 #ifndef  _QRUNESTOQPROG_H_
 #define  _QRUNESTOQPROG_H_
+#include "Core/QPanda.h"
 #include <functional>
-#include "Core/QuantumCircuit/QProgram.h"
-#include "Core/QuantumCircuit/QCircuit.h"
-#include "Core/QuantumCircuit/QGate.h"
-#include "Core/QuantumMachine/OriginQuantumMachine.h"
-#include "Core/Utilities/Traversal.h"
-#include "Core/Utilities/QPandaNamespace.h"
-#include "Core/QuantumCircuit/ControlFlow.h"
-#include "Core/QuantumCircuit/ClassicalProgram.h"
 #include "Core/QuantumCircuit/QGlobalVariable.h"
 
 QPANDA_BEGIN
@@ -32,6 +25,7 @@ public:
     void qRunesParser(std::string, QProg&, QuantumMachine*);
 
     QuantumMachine * qvm;
+    std::vector<ClassicalCondition> m_cbit_vec;
 private:
     size_t traversalQRunes(size_t, QNode*);
 
@@ -42,6 +36,8 @@ private:
     size_t handleAngleGate(QNode*);
 
     size_t handleDoubleAngleGate(QNode*);
+
+    size_t handleToffoliGate(QNode*);
 
     size_t handleMeasureGate(QNode*);
 
@@ -66,7 +62,7 @@ private:
 * @return    void
 * @exception    qprog_syntax_error   quantum program syntax error
 */
-void transformQRunesToQProg(std::string, QProg&, QuantumMachine *);
+std::vector<ClassicalCondition> transformQRunesToQProg(std::string, QProg&, QuantumMachine *);
 QPANDA_END
 
 #endif

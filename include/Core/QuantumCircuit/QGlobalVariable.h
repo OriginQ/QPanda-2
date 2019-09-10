@@ -34,7 +34,8 @@ enum NodeType
     MEASURE_GATE,/**< Quantum measure node */
     WHILE_START_NODE,/**< Quantum while controlflow start node */
     QIF_START_NODE,/**< Quantum if controlflow start node */
-    CLASS_COND_NODE/**< Quantum classical condition node */
+    CLASS_COND_NODE,/**< Quantum classical condition node */
+    QWAIT_NODE      /**< QWait node */
 };
 
 /*
@@ -43,6 +44,7 @@ enum NodeType
 *  @ingroup Core
 */
 enum GateType {
+	GATE_UNDEFINED = -1,
     P0_GATE,/**< Quantum p0 gate */
     P1_GATE,/**< Quantum p1 gate */
     PAULI_X_GATE,/**< Quantum pauli x  gate */

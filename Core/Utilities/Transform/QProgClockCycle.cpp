@@ -72,7 +72,7 @@ size_t QProgClockCycle::countQWhileClockCycle(AbstractControlFlowNode *qwhile)
     }
 
     size_t clock_cycle = 0;
-    QNode *true_branch_node = qwhile->getTrueBranch();
+    QNode *true_branch_node = qwhile->getTrueBranch().get();
 
     if (nullptr != true_branch_node)
     {
@@ -99,14 +99,14 @@ size_t QProgClockCycle::countQIfClockCycle(AbstractControlFlowNode *qif)
 
     size_t true_branch_clock_cycle = 0;
     size_t false_branch_clock_cycle = 0;
-    QNode *true_branch_node = qif->getTrueBranch();
+    QNode *true_branch_node = qif->getTrueBranch().get();
 
     if (nullptr != true_branch_node)
     {
         true_branch_clock_cycle += countQNodeClockCycle(true_branch_node);
     }
 
-    QNode *false_branch_node = qif->getFalseBranch();
+    QNode *false_branch_node = qif->getFalseBranch().get();
     if (nullptr != false_branch_node)
     {
         false_branch_clock_cycle += countQNodeClockCycle(false_branch_node);

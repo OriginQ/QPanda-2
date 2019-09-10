@@ -105,6 +105,14 @@ public:
      * @return CExpr* 
      */
     virtual CExpr* deepcopy() const = 0;
+
+
+    /**
+    * @brief get all cbits name
+    *
+    * @return void
+    */
+    virtual void getCBitsName(std::vector<std::string> &)= 0;
 };
 
 /**

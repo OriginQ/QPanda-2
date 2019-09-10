@@ -5,7 +5,7 @@
 #ifdef USE_OPENMP
 #include "omp.h"
 #endif
-
+USING_QPANDA
 int ComplexTensor::getRank() const
 {
     return m_rank;

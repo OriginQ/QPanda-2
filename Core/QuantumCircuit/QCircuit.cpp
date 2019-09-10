@@ -9,6 +9,16 @@ QCircuit  QPanda::CreateEmptyCircuit()
     return temp;
 }
 
+QCircuit::QCircuit(std::shared_ptr<AbstractQuantumCircuit> node)
+{
+    if (!node)
+    {
+        QCERR("node is null shared_ptr");
+        throw invalid_argument("node is null shared_ptr");
+    }
+
+    m_pQuantumCircuit = node;
+}
 
 QCircuit::QCircuit()
 {
@@ -246,19 +256,17 @@ void QCircuit::setControl(QVec control_qubit_vector)
 OriginCircuit::~OriginCircuit()
 {
     Item *temp;
-    if (m_head != nullptr)
+
+    while (m_head != m_end)
     {
-        while (m_head != m_end)
-        {
-            temp = m_head;
-            m_head = m_head->getNext();
-            m_head->setPre(nullptr);
-            delete temp;
-        }
-        delete m_head;
-        m_head = nullptr;
-        m_end = nullptr;
+        m_head->setPre(nullptr);
+        temp = m_head;
+        m_head = m_head->getNext();
+        delete temp;
     }
+    delete m_head;
+    m_head = nullptr;
+    m_end = nullptr;
 }
 
 void OriginCircuit::pushBackNode(QNode * node)
@@ -282,14 +290,14 @@ void OriginCircuit::pushBackNode(std::shared_ptr<QNode> node)
     WriteLock wl(m_sm);
     try
     {
-        if ((nullptr == m_head) && (nullptr == m_end))
+        if (m_end == m_head)
         {
-            Item *iter = new OriginItem();
-            iter->setNext(nullptr);
-            iter->setPre(nullptr);
-            iter->setNode(node);
-            m_head = iter;
-            m_end = iter;
+            Item *end_iter = new OriginItem();
+            m_head->setNode(node);
+            end_iter->setNext(nullptr);
+            end_iter->setPre(m_head);
+            m_head->setNext(end_iter);
+            m_end = end_iter;
         }
         else
         {
@@ -297,8 +305,8 @@ void OriginCircuit::pushBackNode(std::shared_ptr<QNode> node)
             iter->setNext(nullptr);
             iter->setPre(m_end);
             m_end->setNext(iter);
+            m_end->setNode(node);
             m_end = iter;
-            iter->setNode(node);
         }
     }
     catch (exception &memExp)
@@ -350,13 +358,13 @@ NodeIter OriginCircuit::getFirstNodeIter()
 NodeIter OriginCircuit::getLastNodeIter()
 {
     ReadLock rl(m_sm);
-    NodeIter temp(m_end);
+    NodeIter temp(m_end->getPre());
     return temp;
 }
 
 NodeIter OriginCircuit::getEndNodeIter()
 {
-    NodeIter temp(nullptr);
+    NodeIter temp(m_end);
     return temp;
 }
 
@@ -376,13 +384,13 @@ NodeIter OriginCircuit::insertQNode(NodeIter & perIter, QNode * node)
         throw runtime_error("Unknown internal error");
     }
 
-    auto aiter = this->getFirstNodeIter();
-
-    if (this->getHeadNodeIter() == aiter)
+    if (m_end == m_head)
     {
-        QCERR("Unknown internal error");
-        throw runtime_error("Unknown internal error");
+        QCERR("The perIter is not in the prog");
+        throw runtime_error("The perIter is not in the prog");
     }
+
+    auto aiter = this->getFirstNodeIter();
 
     for (; aiter != this->getEndNodeIter(); aiter++)
     {
@@ -393,37 +401,40 @@ NodeIter OriginCircuit::insertQNode(NodeIter & perIter, QNode * node)
     }
     if (aiter == this->getEndNodeIter())
     {
-        QCERR("Unknown internal error");
-        throw runtime_error("Unknown internal error");
+        QCERR("The perIter is not in the qprog");
+        throw runtime_error("The perIter is not in the qprog");
     }
-    delete rl;
 
+    delete rl;
     WriteLock wl(m_sm);
     Item *curItem = new OriginItem();
     auto ptemp = node->getImplementationPtr();
-    curItem->setNode(ptemp);
 
-    if (nullptr != perItem->getNext())
+    if (m_end != perItem->getNext())
     {
+        curItem->setNode(ptemp);
         perItem->getNext()->setPre(curItem);
         curItem->setNext(perItem->getNext());
         perItem->setNext(curItem);
         curItem->setPre(perItem);
+        NodeIter temp(curItem);
+        return temp;
     }
     else
     {
-        perItem->setNext(curItem);
-        curItem->setPre(perItem);
+        m_end->setNode(ptemp);
+        m_end->setNext(curItem);
+        curItem->setPre(m_end);
         curItem->setNext(nullptr);
+        NodeIter temp(m_end);
         m_end = curItem;
+        return temp;
     }
-    NodeIter temp(curItem);
-    return temp;
 }
 
 NodeIter OriginCircuit::deleteQNode(NodeIter & target_iter)
 {
-    ReadLock * rl = new ReadLock(m_sm);
+    ReadLock *rl = new ReadLock(m_sm);
     Item * target_item = target_iter.getPCur();
     if (nullptr == target_item)
     {
@@ -431,10 +442,11 @@ NodeIter OriginCircuit::deleteQNode(NodeIter & target_iter)
         throw runtime_error("Unknown internal error");
     }
 
-    if (nullptr == m_head)
+
+    if (m_end == m_head)
     {
-        QCERR("Unknown internal error");
-        throw runtime_error("Unknown internal error");
+        QCERR("The target_iter is not in the qprogget_iter");
+        throw runtime_error("The target_iter is not in the qprog");
     }
 
     auto aiter = this->getFirstNodeIter();
@@ -447,48 +459,22 @@ NodeIter OriginCircuit::deleteQNode(NodeIter & target_iter)
     }
     if (aiter == this->getEndNodeIter())
     {
-        QCERR("Unknown internal error");
-        throw runtime_error("Unknown internal error");
+        QCERR("The target_iter is not in the qprogget_iter");
+        throw runtime_error("The target_iter is not in the qprogget_iter");
     }
+
 
     delete rl;
-
     WriteLock wl(m_sm);
+
     if (m_head == target_item)
     {
-        if (m_head == m_end)
-        {
-            delete target_item;
-            target_iter.setPCur(nullptr);
-            m_head = nullptr;
-            m_end = nullptr;
-        }
-        else
-        {
-            m_head = target_item->getNext();
-            m_head->setPre(nullptr);
-            delete target_item;
-            target_iter.setPCur(nullptr);
-        }
 
-        NodeIter temp(m_head);
-        return temp;
-    }
-
-    if (m_end == target_item)
-    {
-        Item * perItem = target_item->getPre();
-        if (nullptr == perItem)
-        {
-            QCERR("Unknown internal error");
-            throw runtime_error("Unknown internal error");
-        }
-
-        perItem->setNext(nullptr);
-        delete(target_item);
+        m_head = target_item->getNext();
+        m_head->setPre(nullptr);
+        delete target_item;
         target_iter.setPCur(nullptr);
-        m_end = perItem;
-        NodeIter temp(perItem);
+        NodeIter temp(m_head);
         return temp;
     }
 
@@ -499,19 +485,16 @@ NodeIter OriginCircuit::deleteQNode(NodeIter & target_iter)
         throw runtime_error("Unknown internal error");
     }
 
-    perItem->setNext(nullptr);
     Item * nextItem = target_item->getNext();
-    if (nullptr == perItem)
+    if (nullptr == nextItem)
     {
         QCERR("Unknown internal error");
         throw runtime_error("Unknown internal error");
     }
-
     perItem->setNext(nextItem);
     nextItem->setPre(perItem);
     delete target_item;
     target_iter.setPCur(nullptr);
-
     NodeIter temp(perItem);
     return temp;
 }

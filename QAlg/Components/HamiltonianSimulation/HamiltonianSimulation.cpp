@@ -18,7 +18,7 @@ namespace QPanda
     }
 
     QCircuit simulateZTerm(
-        const std::vector<Qubit*> &qubit_vec,
+        std::vector<Qubit*> &qubit_vec,
         double coef,
         double t)
     {
@@ -30,13 +30,13 @@ namespace QPanda
         else if (1 == qubit_vec.size())
         {
             circuit << QGateNodeFactory::getInstance()->getGateNode(
-                "RZ", qubit_vec[0], -coef*t);
+                "RZ", qubit_vec[0], 2*coef*t);
         }
         else
         {
             circuit << parity_check_circuit(qubit_vec);
             circuit << QGateNodeFactory::getInstance()->getGateNode(
-                "RZ", qubit_vec[qubit_vec.size() - 1], -coef * t);
+                "RZ", qubit_vec[qubit_vec.size() - 1], 2*coef * t);
             circuit << parity_check_circuit(qubit_vec);
         }
 
@@ -238,4 +238,5 @@ namespace QPanda
 
         return circuit;
     }
+
 }

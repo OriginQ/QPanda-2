@@ -21,7 +21,7 @@ TEST(QProgTransformBinaryStore, QBinaryStore)
     QProg prog;
     prog << H(qubits[3]);
 
-    std::cout << transformQProgToQRunes(prog,qvm) << std::endl;;
+    std::cout << transformQProgToOriginIR(prog,qvm) << std::endl;;
 
     directlyRun(prog);
 
@@ -44,7 +44,7 @@ TEST(QProgTransformBinaryParse, QBinaryParse)
 
     binaryQProgFileParse(qvm, "QProg.dat", qubits, cbits, parseProg);
     std::cout << "Parse" << std::endl;
-    std::cout << transformQProgToQRunes(parseProg, qvm) << std::endl;
+    std::cout << transformQProgToOriginIR(parseProg, qvm) << std::endl;
     directlyRun(parseProg);
 
     auto result = getProbTupleList(qubits);

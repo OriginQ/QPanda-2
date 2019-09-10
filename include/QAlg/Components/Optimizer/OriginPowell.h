@@ -53,6 +53,8 @@ namespace QPanda
 
         void dispResult();
         void writeToFile();
+        void saveParaToCache();
+        bool restoreParaFromCache();
     private:
         double m_nonzdelt;
         double m_zdelt;

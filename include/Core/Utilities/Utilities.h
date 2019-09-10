@@ -12,7 +12,7 @@ Classes for get the shortes path of graph
 #ifndef _UTILITIES_H
 #define _UTILITIES_H
 
-#include"QPandaNamespace.h"
+#include"Core/Utilities/QPandaNamespace.h"
 #include "Core/QuantumCircuit/QGate.h"
 #include "Core/QuantumCircuit/QCircuit.h"
 #include <iostream>

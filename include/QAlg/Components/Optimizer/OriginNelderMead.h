@@ -47,6 +47,8 @@ namespace QPanda
         std::vector<size_t> sortVector(Eigen::VectorXd& vec);
         void dispResult();
         void writeToFile();
+        void saveParaToCache();
+        bool restoreParaFromCache();
     private:
         double m_rho;       // | ¦Ñ <=> ¦Á | para of nelder-mead
         double m_chi;       // | ¦Ö <=> ¦Ã | para of nelder-mead

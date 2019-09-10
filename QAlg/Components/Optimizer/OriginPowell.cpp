@@ -1,6 +1,10 @@
 #include <iostream>
 #include <fstream>
 #include "OriginPowell.h"
+#include "OriginCollection.h"
+#include "QString.h"
+
+const std::string POWELL_CACHE_HEADER = "POWELL CACHE FILE";
 
 namespace QPanda
 {
@@ -133,6 +137,8 @@ namespace QPanda
 
             dispResult();
             writeToFile();
+
+            saveParaToCache();
         }
     }
 
@@ -170,24 +176,46 @@ namespace QPanda
 
     bool OriginPowell::init()
     {
-        m_fcalls = 0;
-        m_iter = 0;
-        m_n = m_optimized_para.size();
-        if (0 == m_n)
+#ifdef WIN32
+        using convert_typeX = std::codecvt_utf8<wchar_t>;
+        std::wstring_convert<convert_typeX, wchar_t> converterX;
+
+        auto w_file = converterX.from_bytes(m_cache_file);
+        if (m_restore_from_cache_file &&
+            (_waccess(w_file.c_str(), 0) != -1))
+#else
+        struct stat buffer;
+        if (m_restore_from_cache_file &&
+            (stat(m_cache_file.c_str(), &buffer) == 0))
+#endif // WIN32
         {
-            std::cout << "optimized para size is 0." << std::endl;
+            if (!restoreParaFromCache())
+            {
+                return false;
+            }
+
+            m_n = m_x.size();
+        }
+        else
+        {
+            m_fcalls = 0;
+            m_iter = 0;
+            m_n = m_optimized_para.size();
+            if (0 == m_n)
+            {
+                std::cout << "optimized para size is 0." << std::endl;
+            }
+
+            m_x = Eigen::VectorXd(m_n);
+            memcpy(m_x.data(),
+                m_optimized_para.data(),
+                m_optimized_para.size() * sizeof(m_optimized_para[0]));
+
+            m_fval = callFunc(m_x);
+            m_direc = Eigen::MatrixXd::Identity(m_n, m_n);
         }
 
-        m_x = Eigen::VectorXd(m_n);
-        memcpy(m_x.data(),
-            m_optimized_para.data(),
-            m_optimized_para.size() * sizeof(m_optimized_para[0]));
-        
-        m_fval = callFunc(m_x);
-        m_direc = Eigen::MatrixXd::Identity(m_n, m_n);
-
         adaptTerminationPara();
-
         m_result.message = DEF_OPTI_STATUS_CALCULATING;
 
         return true;
@@ -286,6 +314,101 @@ namespace QPanda
                 exit(0);
             }
         }
+    }
+
+    void OriginPowell::saveParaToCache()
+    {
+        OriginCollection collection(m_cache_file, false);
+        collection = { "index", "tag",
+                       "fval", "x","direc","iter", "fcalls" };
+
+        std::string tmp_fval = std::to_string(m_fval.second);
+
+
+        std::string tmp_x;
+        for (size_t i = 0; i < m_x.size(); i++)
+        {
+            if (i == 0)
+            {
+                tmp_x = std::to_string(m_x[i]);
+            }
+            else
+            {
+                tmp_x += "," + std::to_string(m_x[i]);
+            }
+        }
+
+        std::string tmp_direc;
+        for (size_t i = 0; i < m_n; i++)
+        {
+            if (i != 0)
+            {
+                tmp_direc += ";";
+            }
+
+            for (size_t j = 0; j < m_n; j++)
+            {
+                if (j == 0)
+                {
+                    tmp_direc += std::to_string(m_direc.row(i)[j]);
+                }
+                else
+                {
+                    tmp_direc += "," + std::to_string(m_direc.row(i)[j]);
+                }
+            }
+        }
+
+        collection.insertValue(0, POWELL_CACHE_HEADER, tmp_fval,
+            tmp_x, tmp_direc, m_iter, m_fcalls);
+        collection.write();
+    }
+
+    bool OriginPowell::restoreParaFromCache()
+    {
+        OriginCollection cache_file;
+        if (!cache_file.open(m_cache_file))
+        {
+            std::cout << std::string("Open file failed! filename: ") + m_cache_file;
+            return false;
+        }
+
+
+        std::string tag = cache_file.getValue("tag")[0];
+        if (tag != POWELL_CACHE_HEADER)
+        {
+            std::cout << "It is not a POWELL cache file! Tag: " << tag
+                << std::endl;
+            return false;
+        }
+
+        m_fval.second = QString(cache_file.getValue("fval")[0]).toDouble();
+   
+
+        QString tmp_x = cache_file.getValue("x")[0];
+        auto x_list = tmp_x.split(",", QString::SkipEmptyParts);
+        m_x = Eigen::VectorXd::Zero(x_list.size());
+        for (auto i = 0u; i < x_list.size(); i++)
+        {
+            m_x[i] = x_list[i].toDouble();
+        }
+
+        QString tmp_direc = cache_file.getValue("direc")[0];
+        auto direc_list = tmp_direc.split(";", QString::SkipEmptyParts);
+        m_direc = Eigen::MatrixXd::Identity(direc_list.size(), direc_list.size());
+        for (auto i = 0u; i < direc_list.size(); i++)
+        {
+            auto item_list = direc_list[i].split(",", QString::SkipEmptyParts);
+            for (auto j = 0u; j < item_list.size(); j++)
+            {
+                m_direc.row(i)[j] = item_list[j].toDouble();
+            }
+        }
+
+        m_iter = QString(cache_file.getValue("iter")[0]).toInt();
+        m_fcalls = QString(cache_file.getValue("fcalls")[0]).toInt();
+
+        return true;
     }
 
     Brent::Brent(const Func &func, double tol, size_t maxiter) :
@@ -561,5 +684,4 @@ namespace QPanda
 
         return vec;
     }
-
 }

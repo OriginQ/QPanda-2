@@ -16,6 +16,7 @@ limitations under the License.
 
 #include "OriginQuantumMachine.h"
 using namespace std;
+USING_QPANDA
 OriginPhysicalQubit::OriginPhysicalQubit()
 {
     bIsOccupied = false;

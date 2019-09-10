@@ -6,6 +6,7 @@
 #include "pybind11/chrono.h"
 #include "Variational/utils.h"
 #include "Variational/Optimizer.h"
+#include "Variational/complex_var.h"
 #include "pybind11/eigen.h"
 #include "pybind11/operators.h"
 USING_QPANDA
@@ -346,4 +347,18 @@ void init_variational(py::module & m)
         .def("get_variables", &Var::AdamOptimizer::get_variables)
         .def("get_loss", &Var::AdamOptimizer::get_loss)
         .def("run", &Var::AdamOptimizer::run);
+
+    py::class_<complex_var>(m, "complex_var")
+        .def(py::init<>())
+        .def(py::init<Var::var>())
+        .def(py::init<Var::var, Var::var>())
+        .def("real", &complex_var::real)
+        .def("imag", &complex_var::imag)
+        .def(py::self + py::self)
+        .def(py::self - py::self)
+        .def(py::self * py::self)
+        .def(py::self / py::self);
+        
+    py::implicitly_convertible<Var::var, complex_var>();
+
 }

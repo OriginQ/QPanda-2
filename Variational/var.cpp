@@ -51,6 +51,8 @@ var::var(std::shared_ptr<impl> _pimpl) : pimpl(_pimpl) {};
 var::var(const MatrixXd& _val)
     : pimpl(new impl(_val)) {}
 
+//var::var()
+//    : pimpl(new impl(scalar(0))) {}
 var::var(double _val)
     : pimpl(new impl(scalar(_val))) {}
 
@@ -788,7 +790,7 @@ VariationalQuantumCircuit::VariationalQuantumCircuit(const VariationalQuantumCir
 }
 
 VariationalQuantumCircuit::VariationalQuantumCircuit(QCircuit c)
-    :VariationalQuantumCircuit(_cast_qc_vqc(c))
+    :VariationalQuantumCircuit(qc2vqc(&c))
 {
 }
 
@@ -976,6 +978,10 @@ static bool _parity_check(size_t number)
 double impl_vqp::_get_expectation_one_term(QCircuit c,
     QTerm term)
 {
+    if (term.empty())
+    {
+        return 1.0;
+    }
     double expectation = 0;
     auto qprog = CreateEmptyQProg();
     qprog << c;
@@ -1410,45 +1416,45 @@ VariationalQuantumCircuit& VariationalQuantumCircuit::insert<VariationalQuantumC
 template< >
 VariationalQuantumCircuit&  VariationalQuantumCircuit::insert<QGate &>(QGate  &gate)
 {
-    auto copy_gate = _cast_qg_vqg(gate);
-    _insert_copied_gate(copy_gate);
+    //auto copy_gate = _cast_qg_vqg(gate);
+    //_insert_copied_gate(copy_gate);
+    _insert_copied_gate(qg2vqg(&gate));
     return *this;
 }
 
 template< >
 VariationalQuantumCircuit&  VariationalQuantumCircuit::insert<QGate >(QGate  gate)
 {
-    auto copy_gate = _cast_qg_vqg(gate);
-    _insert_copied_gate(copy_gate);
+    //auto copy_gate = _cast_qg_vqg(gate);
+    //_insert_copied_gate(copy_gate);
+    _insert_copied_gate(qg2vqg(&gate));
     return *this;
 }
 
 template<>
 VariationalQuantumCircuit&  VariationalQuantumCircuit::insert<QCircuit>(QCircuit c)
 {
-    VariationalQuantumCircuit circuit = _cast_qc_vqc(c);
-    this->insert(circuit);
+    //VariationalQuantumCircuit circuit = _cast_qc_vqc(c);
+    //this->insert(circuit);
+    this->insert(qc2vqc(&c));
     return *this;
 }
 
-shared_ptr<VariationalQuantumGate> VariationalQuantumCircuit::_cast_qg_vqg(QGate gate)
+std::shared_ptr<VariationalQuantumGate> VariationalQuantumCircuit::qg2vqg(AbstractQGateNode* gate) const
 {
-    QuantumGate* qgate = gate.getQGate();
+    QuantumGate* qgate = gate->getQGate();
     int gate_type = qgate->getGateType();
     QVec op_qubit;
-    gate.getQuBitVector(op_qubit);
+    gate->getQuBitVector(op_qubit);
     QGATE_SPACE::RX* rx;
     QGATE_SPACE::RY* ry;
     QGATE_SPACE::RZ* rz;
-    QGATE_SPACE::H* h;
-    QGATE_SPACE::X* pauli_x;
+
     switch (gate_type)
     {
     case GateType::HADAMARD_GATE:
-        h = dynamic_cast<QGATE_SPACE::H*>(qgate);
         return std::make_shared<VariationalQuantumGate_H>(op_qubit[0]);
     case GateType::PAULI_X_GATE:
-        pauli_x = dynamic_cast<QGATE_SPACE::X*>(qgate);
         return std::make_shared<VariationalQuantumGate_X>(op_qubit[0]);
     case GateType::RX_GATE:
         rx = dynamic_cast<QGATE_SPACE::RX*>(qgate);
@@ -1468,61 +1474,7 @@ shared_ptr<VariationalQuantumGate> VariationalQuantumCircuit::_cast_qg_vqg(QGate
     }
 }
 
-shared_ptr<VariationalQuantumGate>  VariationalQuantumCircuit::_cast_aqgn_vqg(AbstractQGateNode* gate)
-{
-    QuantumGate* qgate = gate->getQGate();
-    int gate_type = qgate->getGateType();
-    QVec op_qubit;
-    gate->getQuBitVector(op_qubit);
-    QGATE_SPACE::RX* rx;
-    QGATE_SPACE::RY* ry;
-    QGATE_SPACE::RZ* rz;
-    QGATE_SPACE::H* h;
-    switch (gate_type)
-    {
-    case GateType::HADAMARD_GATE:
-        h = dynamic_cast<QGATE_SPACE::H*>(qgate);
-        return std::make_shared<VariationalQuantumGate_H>(op_qubit[0]);
-    case GateType::RX_GATE:
-        rx = dynamic_cast<QGATE_SPACE::RX*>(qgate);
-        return std::make_shared<VariationalQuantumGate_RX>(op_qubit[0], rx->theta);
-    case GateType::RY_GATE:
-        ry = dynamic_cast<QGATE_SPACE::RY*>(qgate);
-        return std::make_shared<VariationalQuantumGate_RY>(op_qubit[0], ry->theta);
-    case GateType::RZ_GATE:
-        rz = dynamic_cast<QGATE_SPACE::RZ*>(qgate);
-        return std::make_shared<VariationalQuantumGate_RZ>(op_qubit[0], rz->theta);
-    case GateType::CNOT_GATE:
-        return std::make_shared<VariationalQuantumGate_CNOT>(op_qubit[0], op_qubit[1]);
-    case GateType::CZ_GATE:
-        return std::make_shared<VariationalQuantumGate_CZ>(op_qubit[0], op_qubit[1]);
-    default:
-        throw runtime_error("Unsupported VQG type");
-    }
-}
-
-VariationalQuantumCircuit  VariationalQuantumCircuit::_cast_qc_vqc(QCircuit q)
-{
-    VariationalQuantumCircuit new_vqc;
-    for (auto iter = q.getFirstNodeIter(); iter != q.getEndNodeIter(); ++iter)
-    {
-        NodeType node_type = (*(iter))->getNodeType();
-        if (node_type == NodeType::CIRCUIT_NODE)
-        {
-            AbstractQuantumCircuit* qc = dynamic_pointer_cast<AbstractQuantumCircuit>(*iter).get();
-            new_vqc.insert(_cast_aqc_vqc(qc));
-        }
-        else if (node_type == NodeType::GATE_NODE)
-        {
-            AbstractQGateNode* qg = dynamic_pointer_cast<AbstractQGateNode>(*iter).get();
-            new_vqc.insert(_cast_aqgn_vqg(qg));
-        }
-        else throw runtime_error("Unsupported VQG type");
-    }
-    return new_vqc;
-}
-
-VariationalQuantumCircuit  VariationalQuantumCircuit::_cast_aqc_vqc(AbstractQuantumCircuit* q)
+VariationalQuantumCircuit VariationalQuantumCircuit::qc2vqc(AbstractQuantumCircuit* q) const
 {
     VariationalQuantumCircuit new_vqc;
     for (auto iter = q->getFirstNodeIter(); iter != q->getEndNodeIter(); ++iter)
@@ -1531,14 +1483,127 @@ VariationalQuantumCircuit  VariationalQuantumCircuit::_cast_aqc_vqc(AbstractQuan
         if (node_type == NodeType::CIRCUIT_NODE)
         {
             AbstractQuantumCircuit* qc = dynamic_pointer_cast<AbstractQuantumCircuit>(*iter).get();
-            new_vqc.insert(_cast_aqc_vqc(qc));
+            new_vqc.insert(qc2vqc(qc));
         }
         else if (node_type == NodeType::GATE_NODE)
         {
             AbstractQGateNode* qg = dynamic_pointer_cast<AbstractQGateNode>(*iter).get();
-            new_vqc.insert(_cast_aqgn_vqg(qg));
+            new_vqc.insert(qg2vqg(qg));
         }
         else throw runtime_error("Unsupported VQG type");
     }
     return new_vqc;
 }
+
+//shared_ptr<VariationalQuantumGate> VariationalQuantumCircuit::_cast_qg_vqg(QGate gate)
+//{
+//    QuantumGate* qgate = gate.getQGate();
+//    int gate_type = qgate->getGateType();
+//    QVec op_qubit;
+//    gate.getQuBitVector(op_qubit);
+//    QGATE_SPACE::RX* rx;
+//    QGATE_SPACE::RY* ry;
+//    QGATE_SPACE::RZ* rz;
+//    QGATE_SPACE::H* h;
+//    QGATE_SPACE::X* pauli_x;
+//    switch (gate_type)
+//    {
+//    case GateType::HADAMARD_GATE:
+//        h = dynamic_cast<QGATE_SPACE::H*>(qgate);
+//        return std::make_shared<VariationalQuantumGate_H>(op_qubit[0]);
+//    case GateType::PAULI_X_GATE:
+//        pauli_x = dynamic_cast<QGATE_SPACE::X*>(qgate);
+//        return std::make_shared<VariationalQuantumGate_X>(op_qubit[0]);
+//    case GateType::RX_GATE:
+//        rx = dynamic_cast<QGATE_SPACE::RX*>(qgate);
+//        return std::make_shared<VariationalQuantumGate_RX>(op_qubit[0], rx->theta);
+//    case GateType::RY_GATE:
+//        ry = dynamic_cast<QGATE_SPACE::RY*>(qgate);
+//        return std::make_shared<VariationalQuantumGate_RY>(op_qubit[0], ry->theta);
+//    case GateType::RZ_GATE:
+//        rz = dynamic_cast<QGATE_SPACE::RZ*>(qgate);
+//        return std::make_shared<VariationalQuantumGate_RZ>(op_qubit[0], rz->theta);
+//    case GateType::CNOT_GATE:
+//        return std::make_shared<VariationalQuantumGate_CNOT>(op_qubit[0], op_qubit[1]);
+//    case GateType::CZ_GATE:
+//        return std::make_shared<VariationalQuantumGate_CZ>(op_qubit[0], op_qubit[1]);
+//    default:
+//        throw runtime_error("Unsupported VQG type");
+//    }
+//}
+//
+//shared_ptr<VariationalQuantumGate>  VariationalQuantumCircuit::_cast_aqgn_vqg(AbstractQGateNode* gate)
+//{
+//    QuantumGate* qgate = gate->getQGate();
+//    int gate_type = qgate->getGateType();
+//    QVec op_qubit;
+//    gate->getQuBitVector(op_qubit);
+//    QGATE_SPACE::RX* rx;
+//    QGATE_SPACE::RY* ry;
+//    QGATE_SPACE::RZ* rz;
+//    QGATE_SPACE::H* h;
+//    switch (gate_type)
+//    {
+//    case GateType::HADAMARD_GATE:
+//        h = dynamic_cast<QGATE_SPACE::H*>(qgate);
+//        return std::make_shared<VariationalQuantumGate_H>(op_qubit[0]);
+//    case GateType::RX_GATE:
+//        rx = dynamic_cast<QGATE_SPACE::RX*>(qgate);
+//        return std::make_shared<VariationalQuantumGate_RX>(op_qubit[0], rx->theta);
+//    case GateType::RY_GATE:
+//        ry = dynamic_cast<QGATE_SPACE::RY*>(qgate);
+//        return std::make_shared<VariationalQuantumGate_RY>(op_qubit[0], ry->theta);
+//    case GateType::RZ_GATE:
+//        rz = dynamic_cast<QGATE_SPACE::RZ*>(qgate);
+//        return std::make_shared<VariationalQuantumGate_RZ>(op_qubit[0], rz->theta);
+//    case GateType::CNOT_GATE:
+//        return std::make_shared<VariationalQuantumGate_CNOT>(op_qubit[0], op_qubit[1]);
+//    case GateType::CZ_GATE:
+//        return std::make_shared<VariationalQuantumGate_CZ>(op_qubit[0], op_qubit[1]);
+//    default:
+//        throw runtime_error("Unsupported VQG type");
+//    }
+//}
+//
+//VariationalQuantumCircuit  VariationalQuantumCircuit::_cast_qc_vqc(QCircuit q)
+//{
+//    
+//    VariationalQuantumCircuit new_vqc;
+//    for (auto iter = q.getFirstNodeIter(); iter != q.getEndNodeIter(); ++iter)
+//    {
+//        NodeType node_type = (*(iter))->getNodeType();
+//        if (node_type == NodeType::CIRCUIT_NODE)
+//        {
+//            AbstractQuantumCircuit* qc = dynamic_pointer_cast<AbstractQuantumCircuit>(*iter).get();
+//            new_vqc.insert(_cast_aqc_vqc(qc));
+//        }
+//        else if (node_type == NodeType::GATE_NODE)
+//        {
+//            AbstractQGateNode* qg = dynamic_pointer_cast<AbstractQGateNode>(*iter).get();
+//            new_vqc.insert(_cast_aqgn_vqg(qg));
+//        }
+//        else throw runtime_error("Unsupported VQG type");
+//    }
+//    return new_vqc;
+//}
+//
+//VariationalQuantumCircuit  VariationalQuantumCircuit::_cast_aqc_vqc(AbstractQuantumCircuit* q)
+//{
+//    VariationalQuantumCircuit new_vqc;
+//    for (auto iter = q->getFirstNodeIter(); iter != q->getEndNodeIter(); ++iter)
+//    {
+//        NodeType node_type = (*(iter))->getNodeType();
+//        if (node_type == NodeType::CIRCUIT_NODE)
+//        {
+//            AbstractQuantumCircuit* qc = dynamic_pointer_cast<AbstractQuantumCircuit>(*iter).get();
+//            new_vqc.insert(_cast_aqc_vqc(qc));
+//        }
+//        else if (node_type == NodeType::GATE_NODE)
+//        {
+//            AbstractQGateNode* qg = dynamic_pointer_cast<AbstractQGateNode>(*iter).get();
+//            new_vqc.insert(_cast_aqgn_vqg(qg));
+//        }
+//        else throw runtime_error("Unsupported VQG type");
+//    }
+//    return new_vqc;
+//}

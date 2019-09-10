@@ -353,11 +353,11 @@ namespace QGATE_SPACE
         {
             if (num.imag() >= 0)
             {
-                return acos(num.real() / sqrt(num.real()*num.real() + num.imag()*num.imag()));
+                return acos((qstate_type)(num.real() / sqrt(num.real()*num.real() + num.imag()*num.imag())));
             }
             else
             {
-                return -acos(num.real() / sqrt(num.real()*num.real() + num.imag()*num.imag()));
+                return -acos((qstate_type)(num.real() / sqrt(num.real()*num.real() + num.imag()*num.imag())));
             }
 
         }

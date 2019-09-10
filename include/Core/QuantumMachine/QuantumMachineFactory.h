@@ -44,6 +44,7 @@ public:
 
     // create the quantum machine by its class name
     QuantumMachine* CreateByName(std::string);
+    QuantumMachine* CreateByType(QMachineType class_type);
 
     // a constructor std::map
     constructor_map_t _Quantum_Machine_Constructor;

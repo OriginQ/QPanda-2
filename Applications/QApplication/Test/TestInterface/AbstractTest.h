@@ -16,8 +16,8 @@ Created in 2018-11-08
 #include <string>
 #include "QAlg/DataStruct.h"
 #include "RJson/RJson.h"
-#include "QAlg/marco.h"
-#include "tag_marco.h"
+#include "QAlg/macro.h"
+#include "tag_macro.h"
 
 namespace QPanda
 {

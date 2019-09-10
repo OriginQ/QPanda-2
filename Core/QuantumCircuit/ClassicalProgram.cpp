@@ -111,6 +111,17 @@ ClassicalProg::ClassicalProg(ClassicalCondition & classical_cond)
     m_node.reset(aMeasure);
 }
 
+ClassicalProg::ClassicalProg(shared_ptr<AbstractClassicalProg>  node)
+{
+    if (!node)
+    {
+        QCERR("node is null shared_ptr");
+        throw invalid_argument("node is null shared_ptr");
+    }
+
+    m_node = node;
+}
+
 ClassicalProg::ClassicalProg(const ClassicalProg & old_prog)
 {
     m_node = old_prog.m_node;

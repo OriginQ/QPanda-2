@@ -49,7 +49,6 @@ public:
     QError unitarySingleQubitGate(size_t qn,
         QStat& matrix,
         bool isConjugate,
-        double error_rate,
         GateType type);
     QError noisyUnitarySingleQubitGate(size_t qn,
         QStat& matrix,
@@ -60,14 +59,12 @@ public:
         Qnum& vControlBit,
         QStat& matrix, 
         bool isConjugate,
-        double error_rate,
         GateType type);
     
     QError unitaryDoubleQubitGate(size_t qn_0,
         size_t qn_1, 
         QStat& matrix, 
         bool isConjugate, 
-        double error_rate,
         GateType type);
 
     QError noisyUnitaryDoubleQubitGate(size_t qn_0,
@@ -81,7 +78,6 @@ public:
         Qnum& vControlBit,
         QStat& matrix,
         bool isConjugate,
-        double error_rate,
         GateType type);
 
     virtual QError Hadamard(size_t qn, bool isConjugate,
@@ -225,17 +221,16 @@ public:
     QStat getQState();
     QError Reset(size_t qn);
     bool qubitMeasure(size_t qn);
-    QError pMeasure(Qnum& qnum, std::vector<std::pair<size_t, double>> &mResult, int select_max=-1);
-    QError pMeasure(Qnum& qnum, std::vector<double> &mResult);
-    QError initState(QuantumGateParam *);
-    QError endGate(QuantumGateParam *pQuantumProParam, QPUImpl * pQGate);
+    QError pMeasure(Qnum& qnum, prob_tuple &mResult, int select_max=-1);
+    QError pMeasure(Qnum& qnum, prob_vec &mResult);
+    QError initState(size_t head_rank, size_t rank_size, size_t qubit_num);
 
 private:
 	QError singleQubitGateNoise(size_t qn, NoiseOp &noise);
 	QError doubleQubitGateNoise(size_t qn_0, size_t qn_1, NoiseOp &noise);
-    QError _get_probabilities(std::vector<double> &probabilities, 
+    QError _get_probabilities(prob_vec &probabilities,
 		size_t qn, NoiseOp & noise);
-    QError _get_probabilities(std::vector<double> &probabilities, 
+    QError _get_probabilities(prob_vec &probabilities,
 		size_t qn_0, size_t qn_1, NoiseOp & noise);
 
     rapidjson::Document m_doc;

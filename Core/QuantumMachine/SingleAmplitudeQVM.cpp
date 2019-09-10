@@ -1,6 +1,6 @@
 #include "QPanda.h"
 #include <algorithm>
-#include "include/Core/QuantumMachine/SingleAmplitudeQVM.h"
+#include "Core/QuantumMachine/SingleAmplitudeQVM.h"
 using namespace std;
 USING_QPANDA
 
@@ -230,6 +230,10 @@ qstate_type SingleAmplitudeQVM::PMeasure_bin_index(string index)
     {
         auto iter = m_prog_map.getVerticeMatrix()->getQubitMapIter(i);
         auto vertice_map_iter = (*iter).end();
+        if ((*iter).empty())
+        {
+            continue;
+        }
         vertice_map_iter--;
         size_t value = check(index[size - i - 1]);
         qubit_vertice_end.m_qubit_id = i;

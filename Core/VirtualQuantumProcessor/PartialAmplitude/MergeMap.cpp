@@ -54,12 +54,19 @@ MergeMap::MergeMap()
 }
 
 void MergeMap::traversalMap
-(std::vector<QGateNode> &prog_map, QPUImpl *pQGate, QuantumGateParam* pGateParam)
+(std::vector<QGateNode> &prog_map, QPUImpl *pQGate)
 {
-    if (nullptr == pQGate || nullptr == pGateParam)
+    if (nullptr == pQGate)
     {
         QCERR("Error");
         throw invalid_argument("Error");
+    }
+
+    CPUImplQPU *pCPUGate = dynamic_cast<CPUImplQPU *>(pQGate);
+    if (nullptr == pCPUGate)
+    {
+        QCERR(" Error");
+        throw invalid_argument(" error");
     }
     for (auto val : prog_map)
     {
@@ -71,7 +78,7 @@ void MergeMap::traversalMap
         }
         else
         {
-            iter->second(val, pQGate);
+            iter->second(val, pCPUGate);
         }
     }
 }

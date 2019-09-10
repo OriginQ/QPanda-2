@@ -100,6 +100,12 @@ public:
      * @param cbit target cbit ptr
      */
     ClassicalCondition(CBit* cbit);
+    
+    /**
+    * @brief Construct a new Classical Condition object by  valie
+    * @param cbit target cbit ptr
+    */
+    ClassicalCondition( cbit_size_t value);
 
     /**
      * @brief Construct a new Classical Condition object by CExpr

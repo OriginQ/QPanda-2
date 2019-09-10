@@ -386,7 +386,7 @@ map<qsize_t, Vertice>::iterator TensorEngine::MergeQuantumProgMap(QuantumProgMap
         }
        return vertice->deleteVertice(qubit_vertice.m_qubit_id, qubit_vertice.m_num);
     }
-    catch (const calloc_fail&e)
+    catch (const QPanda::calloc_fail&e)
     {
         throw e;
     }

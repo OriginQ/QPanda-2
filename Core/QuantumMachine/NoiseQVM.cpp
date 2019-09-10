@@ -165,8 +165,7 @@ void NoiseQVM::run(QProg & prog)
         auto _pParam = new QuantumGateParam();
         _ptrIsNull(_pParam, "_pParam");
 
-        _pParam->m_qubit_number = _Qubit_Pool->getMaxQubit() - _Qubit_Pool->getIdleQubit();
-        _pGates->initState(_pParam);
+        _pGates->initState(0, 1, _Qubit_Pool->getMaxQubit() - _Qubit_Pool->getIdleQubit());
 
         prog.getImplementationPtr()->execute(_pGates, _pParam);
 

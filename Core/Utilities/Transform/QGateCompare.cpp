@@ -39,7 +39,7 @@ size_t QGateCompare::count()
     return m_count;
 }
 
-void QGateCompare::execute(AbstractQGateNode *cur_node, QNode *parent_node)
+void QGateCompare::execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node)
 {
     int gate_type = cur_node->getQGate()->getGateType();
     auto iter = s_gateTypeInt_map_gateTypeStr.find(gate_type);

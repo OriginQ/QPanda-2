@@ -56,6 +56,18 @@ ClassicalCondition::ClassicalCondition(CBit *cbit)
     }
 }
 
+ClassicalCondition::ClassicalCondition(cbit_size_t value)
+{
+    auto &fac = CExprFactory::GetFactoryInstance();
+    auto value_expr = fac.GetCExprByValue(value);
+    if (expr == nullptr)
+    {
+        QCERR("CExpr factory fails");
+        throw runtime_error("CExpr factory fails");
+    }
+}
+
+
 ClassicalCondition::ClassicalCondition(CExpr *_Expr)
 {
     expr = shared_ptr<CExpr>(_Expr);

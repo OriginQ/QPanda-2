@@ -11,8 +11,8 @@ class GPUImplQPU : public QPUImpl
 {
     size_t miQbitNum;
     bool mbIsInitQState;
-    double* m_probgpu;
-    double* m_resultgpu;
+    gpu_qstate_t* m_probgpu;
+    gpu_qstate_t* m_resultgpu;
 public:
 
     GPUImplQPU() :mbIsInitQState(false), m_probgpu(nullptr), m_resultgpu(nullptr) {}
@@ -81,21 +81,20 @@ public:
 
     QError Reset(size_t qn);
     bool qubitMeasure(size_t qn);
-    QError pMeasure(Qnum& qnum, std::vector<std::pair<size_t, double>> &mResult, 
-		int select_max = -1);
+    QError pMeasure(Qnum& qnum, prob_tuple &mResult, int select_max = -1);
 
-    QError pMeasure(Qnum& qnum, std::vector<double> &mResult);
-    QError initState(QuantumGateParam *);
+    QError pMeasure(Qnum& qnum, prob_vec &mResult);
+    QError initState(size_t head_rank, size_t rank_size, size_t qubit_num);
     QError endGate(QuantumGateParam *pQuantumProParam, QPUImpl *pQGate);
     QError unitarySingleQubitGate(size_t qn, QStat& matrix,
-        bool isConjugate, double error_rate, GateType type);
+        bool isConjugate, GateType type);
 
     QError controlunitarySingleQubitGate(size_t qn, Qnum& qnum, QStat& matrix,
-        bool isConjugate, double error_rate, GateType type);
+        bool isConjugate, GateType type);
     QError unitaryDoubleQubitGate(size_t qn_0, size_t qn_1, QStat& matrix,
-        bool isConjugate, double error_rate, GateType type);
+        bool isConjugate, GateType type);
     QError controlunitaryDoubleQubitGate(size_t qn_0, size_t qn_1, Qnum& qnum, QStat& matrix, 
-		bool isConjugate, double error_rate, GateType type);
+        bool isConjugate, GateType type);
 
     QError DiagonalGate(Qnum& vQubit, QStat & matrix,
         bool isConjugate, double error_rate);

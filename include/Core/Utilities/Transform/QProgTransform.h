@@ -65,11 +65,11 @@ public:
     virtual std::string getInsturctions() = 0;
 
 private:
-    virtual void transformQProg(AbstractQuantumProgram *) = 0;
-    virtual void transformQGate(AbstractQGateNode*) = 0;
-    virtual void transformQCircuit(AbstractQuantumCircuit*) = 0;
+    //virtual void transformQProg(AbstractQuantumProgram *) = 0;
+    virtual void transformQGate(AbstractQGateNode*, bool is_dagger) = 0;
+    //virtual void transformQCircuit(AbstractQuantumCircuit*) = 0;
     virtual void transformQMeasure(AbstractQuantumMeasure*) = 0;
-    virtual void transformQNode(QNode*) = 0;
+    //virtual void transformQNode(QNode*) = 0;
     virtual void transformQControlFlow(AbstractControlFlowNode *) = 0;
 };
 

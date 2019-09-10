@@ -17,6 +17,10 @@
 #include "rapidjson/ostreamwrapper.h"
 #include <type_traits>
 
+#include <codecvt>
+#include <string>
+#include <sys/stat.h>
+
 QPANDA_BEGIN
 
 using Value = rapidjson::Value;
@@ -846,7 +850,26 @@ public:
             QCERR("file name error");
             throw std::invalid_argument("file name error");
         }
+
         m_file_path = file_name;
+
+#ifdef WIN32
+        using convert_typeX = std::codecvt_utf8<wchar_t>;
+        std::wstring_convert<convert_typeX, wchar_t> converterX;
+
+        auto w_file_path = converterX.from_bytes(m_file_path);
+
+        std::wifstream ifs(w_file_path);
+        if (!ifs)
+        {
+            QCERR("file error");
+            throw std::invalid_argument("file error");
+        }
+
+        rapidjson::WIStreamWrapper isw(ifs);
+        m_doc.ParseStream(isw);
+        ifs.close();
+#else
         std::ifstream ifs(file_name);
         if (!ifs)
         {
@@ -857,6 +880,7 @@ public:
         rapidjson::IStreamWrapper isw(ifs);
         m_doc.ParseStream(isw);
         ifs.close();
+#endif  
         if (m_doc.HasParseError())
         {
             QCERR("Json pase error");
@@ -891,12 +915,27 @@ public:
             return false;
         }
 
+#ifdef WIN32
+        using convert_typeX = std::codecvt_utf8<wchar_t>;
+        std::wstring_convert<convert_typeX, wchar_t> converterX;
+
+        auto w_file_path = converterX.from_bytes(m_file_path);
+
+        std::wofstream out_file_stream;
+        out_file_stream.open(w_file_path, std::ios::ate);
+        rapidjson::WOStreamWrapper out_stream_wapper(out_file_stream);
+        rapidjson::Writer<rapidjson::WOStreamWrapper> write(out_stream_wapper);
+        m_doc.Accept(write);
+        out_file_stream.close();
+#else
         std::ofstream out_file_stream;
-        out_file_stream.open(m_file_path,std::ios::ate);
+        out_file_stream.open(m_file_path, std::ios::ate);
         rapidjson::OStreamWrapper out_stream_wapper(out_file_stream);
         rapidjson::Writer<rapidjson::OStreamWrapper> write(out_stream_wapper);
         m_doc.Accept(write);
         out_file_stream.close();
+#endif // WIN32
+        
         return true;
     }
 

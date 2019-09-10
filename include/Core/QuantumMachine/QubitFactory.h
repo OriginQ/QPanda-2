@@ -19,9 +19,11 @@ limitations under the License.
 
 
 #include "Core/QuantumMachine/PhysicalQubitFactory.h"
+#include "Core/QuantumCircuit/CExprFactory.h"
 #include <functional>
 #include <stack>
 #include <map>
+#include <memory>
 QPANDA_BEGIN
 
 class Qubit
@@ -32,6 +34,12 @@ public:
     virtual PhysicalQubit* getPhysicalQubitPtr() = 0;
     virtual bool getOccupancy() = 0;
     virtual ~Qubit() {}
+};
+
+class QubitReferenceInterface
+{
+public:
+	virtual std::shared_ptr<CExpr>  getExprPtr() = 0;
 };
 
 #define REGISTER_QUBIT(classname) \

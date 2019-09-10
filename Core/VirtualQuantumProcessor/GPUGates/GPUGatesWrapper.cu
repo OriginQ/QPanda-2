@@ -6,19 +6,23 @@ Date:2017-12-13
 Description: Definition of Encapsulation of GPU gates
 ************************************************************************/
 
+#include <cuda_device_runtime_api.h>
+#include <device_launch_parameters.h>
+#include <cuda_runtime.h>
+#include <device_functions.h>
 #include "GPUGatesWrapper.h"
 #include "GPUGates.h"
 
+
 using namespace std;
+#define SET_BLOCKDIM  BLOCKDIM = (1ull << (psigpu.qnum - 1)) / kThreadDim;
 
-#define SET_BLOCKDIM  BLOCKDIM = (1ull << (psigpu.qnum - 1)) / THREADDIM;
+static bool pMeasure_few_target(GATEGPU::QState&, vector<double>&result, Qnum&);
+static bool pMeasure_many_target(GATEGPU::QState&, vector<double>&result, Qnum&);
 
-static bool pMeasure_few_target(GATEGPU::QState&, vector<double>&, GATEGPU::Qnum&);
-static bool pMeasure_many_target(GATEGPU::QState&, vector<double>&, GATEGPU::Qnum&);
-
-static QSIZE getControllerMask(GATEGPU::Qnum& qnum, int target = 1)
+static gpu_qsize_t getControllerMask(Qnum& qnum, int target = 1)
 {
-    QSIZE qnum_mask = 0;
+    gpu_qsize_t qnum_mask = 0;
 
     // obtain the mask for controller qubit
     for (auto iter = qnum.begin(); iter != qnum.end() - target; ++iter)
@@ -102,15 +106,15 @@ bool GATEGPU::clearState(QState& psi, QState& psigpu, size_t stQnum)
 
     if (stQnum < 30)
     {
-        QSIZE BLOCKDIM;
-        BLOCKDIM = (1ull << psigpu.qnum) / THREADDIM;
-        gpu::initState << < (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)THREADDIM >> > (psigpu.real, psigpu.imag, 1ull << (psigpu.qnum));
+        gpu_qsize_t BLOCKDIM;
+        BLOCKDIM = (1ull << psigpu.qnum) / kThreadDim;
+        gpu::initState<<< (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)kThreadDim >>>(psigpu.real, psigpu.imag, 1ull << (psigpu.qnum));
     }
     else
     {
-        QSIZE BLOCKDIM;
-        BLOCKDIM = (1ull << psigpu.qnum) / THREADDIM;
-        gpu::initState << < (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)THREADDIM >> > (psigpu.real, psigpu.imag, 1ull << (psigpu.qnum));
+        gpu_qsize_t BLOCKDIM;
+        BLOCKDIM = (1ull << psigpu.qnum) / kThreadDim;
+        gpu::initState <<< (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)kThreadDim >>> (psigpu.real, psigpu.imag, 1ull << (psigpu.qnum));
     }
 
     return true;
@@ -122,7 +126,7 @@ bool GATEGPU::initstate(QState& psi, QState& psigpu, size_t qnum)
     {
         if (nullptr == psi.real)
         {
-            cudaError_t cuda_status = cudaHostAlloc(&psi.real, sizeof(double)*(1ll << qnum), cudaHostAllocMapped);
+            cudaError_t cuda_status = cudaHostAlloc(&psi.real, sizeof(gpu_qstate_t)*(1ll << qnum), cudaHostAllocMapped);
             if (cuda_status != cudaSuccess)
             {
                 printf("host alloc fail!\n");
@@ -133,7 +137,7 @@ bool GATEGPU::initstate(QState& psi, QState& psigpu, size_t qnum)
 
         if (nullptr == psi.imag)
         {
-            cudaError_t cuda_status1 = cudaHostAlloc(&psi.imag, sizeof(double)*(1ll << qnum), cudaHostAllocMapped);
+            cudaError_t cuda_status1 = cudaHostAlloc(&psi.imag, sizeof(gpu_qstate_t)*(1ll << qnum), cudaHostAllocMapped);
             if (cuda_status1 != cudaSuccess)
             {
                 printf("host alloc fail!\n");
@@ -145,28 +149,28 @@ bool GATEGPU::initstate(QState& psi, QState& psigpu, size_t qnum)
         
         psi.qnum = qnum;
         psigpu.qnum = qnum;
-        QSIZE BLOCKDIM;
-        BLOCKDIM = (1ull << psigpu.qnum) / THREADDIM;
-        gpu::initState << < (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)THREADDIM >> > (psigpu.real, psigpu.imag, 1ull << (psigpu.qnum));
+        gpu_qsize_t BLOCKDIM;
+        BLOCKDIM = (1ull << psigpu.qnum) / kThreadDim;
+        gpu::initState << < (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)kThreadDim >> > (psigpu.real, psigpu.imag, 1ull << (psigpu.qnum));
     }
     else
     {
-        QSIZE Dim = 1ull << qnum;
+        gpu_qsize_t Dim = 1ull << qnum;
         cudaError_t cuda_status;
 
         if (nullptr == psi.real)
         {
-            psi.real = (STATE_T*)malloc(sizeof(STATE_T)*Dim);
+            psi.real = (gpu_qstate_t*)malloc(sizeof(gpu_qstate_t)*Dim);
         }
 
         if (nullptr == psi.imag)
         {
-            psi.imag = (STATE_T*)malloc(sizeof(STATE_T)*Dim);
+            psi.imag = (gpu_qstate_t*)malloc(sizeof(gpu_qstate_t)*Dim);
         }
         
         if (nullptr == psigpu.real)
         {
-            cuda_status = cudaMalloc((void**)&psigpu.real, sizeof(STATE_T)*Dim);
+            cuda_status = cudaMalloc((void**)&psigpu.real, sizeof(gpu_qstate_t)*Dim);
             if (cudaSuccess != cuda_status)
             {
                 printf("psigpu.real alloc gpu memoery error!\n");
@@ -178,7 +182,7 @@ bool GATEGPU::initstate(QState& psi, QState& psigpu, size_t qnum)
 
         if (nullptr == psigpu.imag)
         {
-            cuda_status = cudaMalloc((void**)&psigpu.imag, sizeof(STATE_T)*Dim);
+            cuda_status = cudaMalloc((void**)&psigpu.imag, sizeof(gpu_qstate_t)*Dim);
             if (cudaSuccess != cuda_status)
             {
                 printf("psigpu.imag alloc gpu memoery error!\n");
@@ -190,9 +194,9 @@ bool GATEGPU::initstate(QState& psi, QState& psigpu, size_t qnum)
         }
         psigpu.qnum = qnum;
         psi.qnum = qnum;
-        QSIZE BLOCKDIM;
-        BLOCKDIM = (1ull << psigpu.qnum) / THREADDIM;
-        gpu::initState << < (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)THREADDIM >> > (psigpu.real, psigpu.imag, 1ull << (psigpu.qnum));
+        gpu_qsize_t BLOCKDIM;
+        BLOCKDIM = (1ull << psigpu.qnum) / kThreadDim;
+        gpu::initState << < (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)kThreadDim >> > (psigpu.real, psigpu.imag, 1ull << (psigpu.qnum));
 
     }
     return true;
@@ -210,7 +214,7 @@ bool GATEGPU::unitarysingle(
 
         if (isConjugate)
         {
-            STATE_T temp_real, temp_imag;
+            gpu_qstate_t temp_real, temp_imag;
             temp_real = matrix.real[1];
             temp_imag = matrix.imag[1];
             matrix.real[1] = matrix.real[2];
@@ -225,20 +229,20 @@ bool GATEGPU::unitarysingle(
             }//dagger
         }
 
-        double real00 = matrix.real[0];
-        double real01 = matrix.real[1];
-        double real10 = matrix.real[2];
-        double real11 = matrix.real[3];
-        double imag00 = matrix.imag[0];
-        double imag01 = matrix.imag[1];
-        double imag10 = matrix.imag[2];
-        double imag11 = matrix.imag[3];
+        gpu_qstate_t real00 = matrix.real[0];
+        gpu_qstate_t real01 = matrix.real[1];
+        gpu_qstate_t real10 = matrix.real[2];
+        gpu_qstate_t real11 = matrix.real[3];
+        gpu_qstate_t imag00 = matrix.imag[0];
+        gpu_qstate_t imag01 = matrix.imag[1];
+        gpu_qstate_t imag10 = matrix.imag[2];
+        gpu_qstate_t imag11 = matrix.imag[3];
 
         //test
 
-        QSIZE BLOCKDIM;
+        gpu_qsize_t BLOCKDIM;
         SET_BLOCKDIM
-            gpu::unitarysingle << < (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)THREADDIM >> >
+            gpu::unitarysingle << < (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)kThreadDim >> >
             (psigpu.real, psigpu.imag, 1ull << (psigpu.qnum), 1ull << qn, real00, real01, real10, real11, imag00, imag01, imag10, imag11);
 
         return true;
@@ -257,7 +261,7 @@ bool GATEGPU::controlunitarysingle(
     {
         if (isConjugate)
         {
-            STATE_T temp_real, temp_imag;
+            gpu_qstate_t temp_real, temp_imag;
             temp_real = matrix.real[1];
             temp_imag = matrix.imag[1];
             matrix.real[1] = matrix.real[2];
@@ -271,26 +275,26 @@ bool GATEGPU::controlunitarysingle(
                 //matrix[i] = qcomplex_t(matrix[i].real(), -matrix[i].imag());
             }//dagger
         }
-        QSIZE target_qubit = 1ull << qnum.back();
+        gpu_qsize_t target_qubit = 1ull << qnum.back();
 
         // 1 is for the control single gate
-        QSIZE mask = getControllerMask(qnum, 1);         
+        gpu_qsize_t mask = getControllerMask(qnum, 1);
 
-        double real00 = matrix.real[0];
-        double real01 = matrix.real[1];
-        double real10 = matrix.real[2];
-        double real11 = matrix.real[3];
-        double imag00 = matrix.imag[0];
-        double imag01 = matrix.imag[1];
-        double imag10 = matrix.imag[2];
-        double imag11 = matrix.imag[3];
+        gpu_qstate_t real00 = matrix.real[0];
+        gpu_qstate_t real01 = matrix.real[1];
+        gpu_qstate_t real10 = matrix.real[2];
+        gpu_qstate_t real11 = matrix.real[3];
+        gpu_qstate_t imag00 = matrix.imag[0];
+        gpu_qstate_t imag01 = matrix.imag[1];
+        gpu_qstate_t imag10 = matrix.imag[2];
+        gpu_qstate_t imag11 = matrix.imag[3];
 
-        QSIZE BLOCKDIM;
+        gpu_qsize_t BLOCKDIM;
         SET_BLOCKDIM;
 
-        BLOCKDIM = (1ull << (psigpu.qnum)) / THREADDIM;
+        BLOCKDIM = (1ull << (psigpu.qnum)) / kThreadDim;
 
-        gpu::controlunitarysingle << < (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)THREADDIM >> >
+        gpu::controlunitarysingle << < (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)kThreadDim >> >
             (
                 psigpu.real, 
                 psigpu.imag, 
@@ -320,7 +324,7 @@ bool GATEGPU::unitarydouble(
 
         if (isConjugate)
         {
-            STATE_T temp_real, temp_imag;
+            gpu_qstate_t temp_real, temp_imag;
             for (size_t i = 0; i < 4; i++)
             {
                 for (size_t j = i + 1; j < 4; j++)
@@ -342,9 +346,9 @@ bool GATEGPU::unitarydouble(
             }//dagger
         }
 
-        QSIZE BLOCKDIM;
+        gpu_qsize_t BLOCKDIM;
         SET_BLOCKDIM
-            gpu::unitarydouble << < (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)THREADDIM >> >
+            gpu::unitarydouble << < (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)kThreadDim >> >
             (psigpu.real, psigpu.imag, 1ull << (psigpu.qnum), 1ull << qn_0, 1ull << qn_1,
                 matrix.real[0], matrix.real[1], matrix.real[2], matrix.real[3],
                 matrix.real[4], matrix.real[5], matrix.real[6], matrix.real[7],
@@ -372,7 +376,7 @@ bool GATEGPU::controlunitarydouble(
     {
         if (isConjugate)
         {
-            STATE_T temp_real, temp_imag;
+            gpu_qstate_t temp_real, temp_imag;
             for (size_t i = 0; i < 4; i++)
             {
                 for (size_t j = i + 1; j < 4; j++)
@@ -392,14 +396,14 @@ bool GATEGPU::controlunitarydouble(
                 //matrix[i] = qcomplex_t(matrix[i].real(), -matrix[i].imag());
             }//dagger
         }
-        QSIZE m = qnum.size();
-        QSIZE control_qubit = qnum[m - 2];
-        QSIZE target_qubit = qnum.back();
+        gpu_qsize_t m = qnum.size();
+        gpu_qsize_t control_qubit = qnum[m - 2];
+        gpu_qsize_t target_qubit = qnum.back();
         //sort(qnum.begin(), qnum.end());
-        QSIZE mask = getControllerMask(qnum, 1);
-        QSIZE BLOCKDIM;
+        gpu_qsize_t mask = getControllerMask(qnum, 1);
+        gpu_qsize_t BLOCKDIM;
         SET_BLOCKDIM
-            gpu::controlunitarydouble << < (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)THREADDIM >> >
+            gpu::controlunitarydouble << < (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)kThreadDim >> >
             (psigpu.real, psigpu.imag, 1ull << (psigpu.qnum), mask, 1ull << control_qubit, 1ull << target_qubit,
                 matrix.real[0], matrix.real[1], matrix.real[2], matrix.real[3],
                 matrix.real[4], matrix.real[5], matrix.real[6], matrix.real[7],
@@ -431,11 +435,11 @@ bool GATEGPU::controlunitarydouble(
 //                matrix.image[i] = -matrix.imag[i];
 //            }
 //        }
-//        QSIZE m = qnum.size();
-//        QSIZE mask = getControllerMask(qnum, 1);
-//        QSIZE BLOCKDIM;
+//        gpu_qsize_t m = qnum.size();
+//        gpu_qsize_t mask = getControllerMask(qnum, 1);
+//        gpu_qsize_t BLOCKDIM;
 //        SET_BLOCKDIM
-//            gpu::DiagonalGate << < (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)THREADDIM >> >
+//            gpu::DiagonalGate << < (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)kThreadDim >> >
 //            (psigpu.real, psigpu.imag, 1ull << (psigpu.qnum), mask, matrix);
 //        return true;
 //    }
@@ -454,19 +458,19 @@ bool GATEGPU::qbReset(QState& psigpu, size_t qn, double error_rate)
     if (gpu::randGenerator() > error_rate)
     {
         cudaError_t cuda_status;
-        double * resultgpu;
-        // cudaHostAlloc((void **)&result, sizeof(STATE_T)*(psigpu.qnum-1))/THREADDIM, cudaHostAllocMapped);
+        gpu_qstate_t * resultgpu;
+        // cudaHostAlloc((void **)&result, sizeof(gpu_qstate_t)*(psigpu.qnum-1))/kThreadDim, cudaHostAllocMapped);
         //cudaHostGetDevicePointer(&resultgpu, result, 0);
 
-        cuda_status = cudaMalloc((void **)&resultgpu, sizeof(STATE_T)*(1ull << (psigpu.qnum - 1)) / THREADDIM);
+        cuda_status = cudaMalloc((void **)&resultgpu, sizeof(gpu_qstate_t)*(1ull << (psigpu.qnum - 1)) / kThreadDim);
         if (cudaSuccess != cuda_status)
         {
             fprintf(stderr, "cudaMalloc error\n");
             return false;
         }
 
-        double * probgpu, *prob;
-        cuda_status = cudaHostAlloc((void **)&prob, sizeof(STATE_T), cudaHostAllocMapped);
+        gpu_qstate_t * probgpu, *prob;
+        cuda_status = cudaHostAlloc((void **)&prob, sizeof(gpu_qstate_t), cudaHostAllocMapped);
         if (cudaSuccess != cuda_status)
         {
             fprintf(stderr, "cudaHostAlloc error\n");
@@ -474,15 +478,15 @@ bool GATEGPU::qbReset(QState& psigpu, size_t qn, double error_rate)
         }
         cudaHostGetDevicePointer(&probgpu, prob, 0);
 
-        QSIZE BLOCKDIM;
+        gpu_qsize_t BLOCKDIM;
         SET_BLOCKDIM
-            gpu::qubitprob << < (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)THREADDIM, THREADDIM * sizeof(STATE_T) >> >
+            gpu::qubitprob << < (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)kThreadDim, kThreadDim * sizeof(gpu_qstate_t) >> >
             (psigpu.real, psigpu.imag, 1ull << (psigpu.qnum), 1ull << qn, resultgpu);
         cuda_status = cudaDeviceSynchronize();
-        gpu::probsum << < (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)THREADDIM >> > (resultgpu, probgpu);
+        gpu::probsum << < (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)kThreadDim >> > (resultgpu, probgpu);
         cuda_status = cudaDeviceSynchronize();
         *prob = 1 / sqrt(*prob);
-        gpu::qubitcollapse0 << < (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)THREADDIM >> >
+        gpu::qubitcollapse0 << < (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)kThreadDim >> >
             (psigpu.real, psigpu.imag, 1ull << (psigpu.qnum), 1ull << qn, *prob);
         cuda_status = cudaDeviceSynchronize();
 
@@ -494,18 +498,18 @@ bool GATEGPU::qbReset(QState& psigpu, size_t qn, double error_rate)
     return true;
 }
 
-int GATEGPU::qubitmeasure(QState& psigpu, QSIZE Block, double* &resultgpu, double* &probgpu)
+int GATEGPU::qubitmeasure(QState& psigpu, gpu_qsize_t Block, gpu_qstate_t* resultgpu, gpu_qstate_t* probgpu)
 {
     //double * resultgpu;
-    QSIZE BLOCKDIM;
+    gpu_qsize_t BLOCKDIM;
     SET_BLOCKDIM
 
-    QSIZE count = (0 == BLOCKDIM) ? 1 : BLOCKDIM;
-    double prob;
+    gpu_qsize_t count = (0 == BLOCKDIM) ? 1 : BLOCKDIM;
+    gpu_qstate_t prob;
     cudaError_t cuda_status;
     if (nullptr == resultgpu)
     {
-        cuda_status = cudaMalloc(&resultgpu, sizeof(STATE_T)* count);
+        cuda_status = cudaMalloc(&resultgpu, sizeof(gpu_qstate_t) * count);
         if (cudaSuccess != cuda_status)
         {
             cout << "resultgpu  " << cudaGetErrorString(cuda_status) << endl;
@@ -515,7 +519,7 @@ int GATEGPU::qubitmeasure(QState& psigpu, QSIZE Block, double* &resultgpu, doubl
 
     if (nullptr == probgpu)
     {
-        cuda_status = cudaMalloc(&probgpu, sizeof(STATE_T));
+        cuda_status = cudaMalloc(&probgpu, sizeof(gpu_qstate_t));
         if (cudaSuccess != cuda_status)
         {
             cout << "probgpu  " << cudaGetErrorString(cuda_status) << endl;
@@ -525,7 +529,7 @@ int GATEGPU::qubitmeasure(QState& psigpu, QSIZE Block, double* &resultgpu, doubl
         }
     }
 
-    gpu::qubitprob << < (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)THREADDIM, THREADDIM * sizeof(STATE_T) >> >
+    gpu::qubitprob << < (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)kThreadDim, kThreadDim * sizeof(gpu_qstate_t) >> >
         (psigpu.real, psigpu.imag, 1ull << (psigpu.qnum), Block, resultgpu);
     cuda_status = cudaDeviceSynchronize(); 
     if (cudaSuccess != cuda_status)
@@ -534,7 +538,7 @@ int GATEGPU::qubitmeasure(QState& psigpu, QSIZE Block, double* &resultgpu, doubl
         return -1;
     }
 
-    gpu::probsum << < (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)THREADDIM >> > (resultgpu, probgpu); 
+    gpu::probsum << < (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)kThreadDim >> > (resultgpu, probgpu);
     cuda_status = cudaDeviceSynchronize();
     if (cudaSuccess != cuda_status)
     {
@@ -542,7 +546,7 @@ int GATEGPU::qubitmeasure(QState& psigpu, QSIZE Block, double* &resultgpu, doubl
         return -1;
     }
 
-    cuda_status = cudaMemcpy(&prob, probgpu, sizeof(STATE_T), cudaMemcpyDeviceToHost);
+    cuda_status = cudaMemcpy(&prob, probgpu, sizeof(gpu_qstate_t), cudaMemcpyDeviceToHost);
     if (cudaSuccess != cuda_status)
     {
         fprintf(stderr, "cudaMemcpy error\n");
@@ -564,14 +568,24 @@ int GATEGPU::qubitmeasure(QState& psigpu, QSIZE Block, double* &resultgpu, doubl
 
     if (0 == outcome)
     {
+        if (prob < 0.000001 && prob > -0.000001)
+        {
+            return outcome;
+        }
+
         prob = 1 / sqrt(prob);
-        gpu::qubitcollapse0 <<< (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)THREADDIM >>>
+        gpu::qubitcollapse0 <<< (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)kThreadDim >>>
             (psigpu.real, psigpu.imag, 1ull << (psigpu.qnum), Block, prob);
     }
     else
     {
+        if (1 - prob < 0.000001 && 1- prob > -0.000001)
+        {
+            return outcome;
+        }
+
         prob = 1 / sqrt(1 - prob);
-        gpu::qubitcollapse1 <<< (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)THREADDIM >>>
+        gpu::qubitcollapse1 <<< (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)kThreadDim >>>
             (psigpu.real, psigpu.imag, 1ull << (psigpu.qnum), Block, prob);
     }
     cuda_status = cudaDeviceSynchronize();
@@ -580,38 +594,42 @@ int GATEGPU::qubitmeasure(QState& psigpu, QSIZE Block, double* &resultgpu, doubl
     return outcome;
 }//checked
 
-bool probcompare(pair<size_t, double>& a, pair<size_t, double>& b)
+bool probcompare(pair<size_t, gpu_qstate_t>& a, pair<size_t, gpu_qstate_t>& b)
 {
     return a.second > b.second;
 }
 
-bool GATEGPU::pMeasurenew(
-    QState& psigpu,
-    vector<pair<size_t, double>>& vprob,
+bool GATEGPU::pMeasurenew(QState& psigpu,
+    touple_prob &vprob,
     Qnum& qnum,
     int select_max)
 {
 	// 10 可能是一个比较好的阈值，因为1024为线程单位，就更适合使用many_target
-	vector<double> mResult;
+    vec_prob result;
 	bool status = false;
+
 	if (qnum.size() < 10)
 	{
-		status = pMeasure_few_target(psigpu, mResult, qnum);
+        status = pMeasure_few_target(psigpu, result, qnum);
 	}
 	else
 	{
-		status = pMeasure_many_target(psigpu, mResult, qnum);
+        status = pMeasure_many_target(psigpu, result, qnum);
 	}
 
 	if (status)
 	{
 		size_t i = 0;
-		for (auto &aiter : mResult)
+        for (auto &aiter : result)
 		{
 			vprob.push_back(make_pair(i, aiter));
 			i++;
 		}
 	}
+    else
+    {
+        throw std::runtime_error("PMeasure error");
+    }
 
 	return status;
 	
@@ -619,27 +637,35 @@ bool GATEGPU::pMeasurenew(
 
 bool GATEGPU::pMeasure_no_index(
     QState& psigpu,
-    vector<double> &mResult,
+    vec_prob &mResult,
     Qnum& qnum)
 {
     // 10 可能是一个比较好的阈值，因为1024为线程单位，就更适合使用many_target
+
+    bool status = false;
     if (qnum.size() < 10)
     {
-        return pMeasure_few_target(psigpu, mResult, qnum);
+        status = pMeasure_few_target(psigpu, mResult, qnum);
     }
     else
     {
-        return pMeasure_many_target(psigpu, mResult, qnum);        
+        status = pMeasure_many_target(psigpu, mResult, qnum);
     }
+
+    if (!status)
+    {
+        throw std::runtime_error("pmeasure error");
+    }
+    return true;
 }
 
-static bool pMeasure_few_target(GATEGPU::QState& psigpu, vector<double>& mResult, GATEGPU::Qnum& qnum)
+static bool pMeasure_few_target(GATEGPU::QState& psigpu, vector<double> &result, Qnum& qnum)
 {
-    QSIZE result_size = 1ull << qnum.size();
-    mResult.resize(result_size);
+    gpu_qsize_t result_size = 1ull << qnum.size();
+    result.assign(result_size, 0);
 
-    QSIZE Dim = 1ull << psigpu.qnum; // 态矢总长度
-    QSIZE BLOCKDIM;
+    gpu_qsize_t Dim = 1ull << psigpu.qnum; // 态矢总长度
+    gpu_qsize_t BLOCKDIM;
     BLOCKDIM = Dim / result_size;
 
     cudaError_t cudaStatus;
@@ -647,22 +673,30 @@ static bool pMeasure_few_target(GATEGPU::QState& psigpu, vector<double>& mResult
     // 保险起见
     BLOCKDIM = (BLOCKDIM == 0 ? 1 : BLOCKDIM);
 
-    STATE_T* result_gpu;
-    cudaStatus = cudaMalloc(&result_gpu, sizeof(STATE_T)*BLOCKDIM);
+    double* result_gpu = nullptr;
+    cudaStatus = cudaMalloc(&result_gpu, sizeof(double)*BLOCKDIM);
+    if (cudaSuccess != cudaStatus)
+    {
+        return false;
+    }
 
-    STATE_T* result_cpu;
-    result_cpu = (STATE_T*)malloc(sizeof(STATE_T)*BLOCKDIM);
+    double *result_cpu = (double *)malloc(sizeof(double) * BLOCKDIM);
+    if (nullptr == result_cpu)
+    {
+        cudaFree(result_gpu);
+        return false;
+    }
 
-    QSIZE qnum_mask = 0;
+    gpu_qsize_t qnum_mask = 0;
     // obtain the mask for pMeasure qubit
     for (auto iter : qnum)
     {
         qnum_mask += (1ull << iter);
     }
-    QSIZE SHARED_SIZE = THREADDIM * sizeof(STATE_T);
-    for (int result_idx = 0; result_idx < result_size; ++result_idx)
+    gpu_qsize_t SHARED_SIZE = kThreadDim * sizeof(double);
+    for (size_t result_idx = 0; result_idx < result_size; ++result_idx)
     {
-        gpu::pmeasure_one_target << < (unsigned)BLOCKDIM, (unsigned)THREADDIM, (unsigned)SHARED_SIZE >> > (
+        gpu::pmeasure_one_target << < BLOCKDIM, kThreadDim, SHARED_SIZE >> > (
             psigpu.real,
             psigpu.imag,
             result_gpu,
@@ -671,24 +705,31 @@ static bool pMeasure_few_target(GATEGPU::QState& psigpu, vector<double>& mResult
             qnum.size(),
             Dim);
 
-        cudaStatus = cudaMemcpy(result_cpu, result_gpu, sizeof(STATE_T)*BLOCKDIM, cudaMemcpyDeviceToHost);
+        cudaStatus = cudaMemcpy(result_cpu, result_gpu, sizeof(double)*BLOCKDIM, cudaMemcpyDeviceToHost);
+        if (cudaSuccess != cudaStatus)
+        {
+            cudaFree(result_gpu);
+            free(result_cpu);
+            return false;
+        }
         
-        STATE_T result_sum = 0;
-        for (int i = 0; i < BLOCKDIM; ++i)
+        double result_sum = 0;
+        for (size_t i = 0; i < BLOCKDIM; ++i)
         {
             result_sum += result_cpu[i];
         }            
-        mResult[result_idx] = result_sum;
+        result[result_idx] = result_sum;
     }
+
     cudaFree(result_gpu);
     free(result_cpu);
 
     return true;
 }
 
-static bool pMeasure_many_target(GATEGPU::QState& psigpu, vector<double>& mResult, GATEGPU::Qnum& qnum)
+static bool pMeasure_many_target(GATEGPU::QState& psigpu, vector<double> &result, Qnum& qnum)
 {
-    QSIZE qnum_mask = 0;
+    gpu_qsize_t qnum_mask = 0;
 
     // obtain the mask for pMeasure qubit
     for (auto iter : qnum)
@@ -696,19 +737,23 @@ static bool pMeasure_many_target(GATEGPU::QState& psigpu, vector<double>& mResul
         qnum_mask += (1ull << iter);
     }
 
-    QSIZE result_size = 1ull << qnum.size();
-    mResult.resize(result_size);
+    gpu_qsize_t result_size = 1ull << qnum.size();
+    result.resize(result_size);
 
     // allocate the graphics memory for result
-    STATE_T* result_gpu;
+    double* result_gpu = nullptr;
     cudaError_t cudaStatus;
-    cudaStatus = cudaMalloc(&result_gpu, result_size * sizeof(STATE_T));
-    cudaStatus = cudaMemset(result_gpu, 0, result_size * sizeof(STATE_T));
+    cudaStatus = cudaMalloc(&result_gpu, result_size * sizeof(double));
+    if (cudaSuccess != cudaStatus)
+    {
+        return false;
+    }
+    cudaMemset(result_gpu, 0, result_size * sizeof(double));
 
-    QSIZE BLOCKDIM;
-    BLOCKDIM = result_size / THREADDIM;
+    gpu_qsize_t BLOCKDIM;
+    BLOCKDIM = result_size / kThreadDim;
 
-    gpu::pmeasure_many_target <<< (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)THREADDIM >>> (
+    gpu::pmeasure_many_target <<< (BLOCKDIM == 0 ? 1 : BLOCKDIM), kThreadDim >>> (
         psigpu.real,
         psigpu.imag,
         result_gpu,
@@ -716,11 +761,8 @@ static bool pMeasure_many_target(GATEGPU::QState& psigpu, vector<double>& mResul
         result_size,
         1ull << (psigpu.qnum));
 
-
-    cudaStatus = cudaMemcpy(&(mResult[0]), result_gpu, result_size * sizeof(STATE_T), cudaMemcpyDeviceToHost);
-
+    cudaMemcpy(result.data(), result_gpu, result_size * sizeof(double), cudaMemcpyDeviceToHost);
     cudaFree(result_gpu);
-
     return true;
 }
 
@@ -730,15 +772,15 @@ bool GATEGPU::getState(QState &psi, QState &psigpu, size_t qnum)
 
     if (qnum < 30)
     {
-        QSIZE Dim = 1ull << qnum;
-        cuda_status = cudaMemcpy(psi.real, psigpu.real, sizeof(STATE_T)*Dim, cudaMemcpyDeviceToHost);
+        gpu_qsize_t Dim = 1ull << qnum;
+        cuda_status = cudaMemcpy(psi.real, psigpu.real, sizeof(gpu_qstate_t)*Dim, cudaMemcpyDeviceToHost);
         if (cudaSuccess != cuda_status)
         {
             fprintf(stderr, "cudaMemcpy error\n");
             return false;
         }
 
-        cuda_status = cudaMemcpy(psi.imag, psigpu.imag, sizeof(STATE_T)*Dim, cudaMemcpyDeviceToHost);
+        cuda_status = cudaMemcpy(psi.imag, psigpu.imag, sizeof(gpu_qstate_t)*Dim, cudaMemcpyDeviceToHost);
         if (cudaSuccess != cuda_status)
         {
             fprintf(stderr, "cudaMemcpy error\n");
@@ -748,7 +790,7 @@ bool GATEGPU::getState(QState &psi, QState &psigpu, size_t qnum)
     return true;
 }
 
-void GATEGPU::gpuFree(double* memory)
+void GATEGPU::gpuFree(void* memory)
 {
     if (memory != nullptr)
     {

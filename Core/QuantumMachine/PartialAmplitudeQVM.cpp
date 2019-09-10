@@ -1,4 +1,5 @@
 #include "Core/QuantumMachine/PartialAmplitudeQVM.h"
+#include "Core/QuantumCircuit/QuantumGate.h"
 using namespace std;
 USING_QPANDA
 
@@ -15,6 +16,8 @@ static void getAvgBinary(uint128_t num,
 
 PartialAmplitudeQVM::PartialAmplitudeQVM()
 {
+    _Config.maxQubit = 64;
+    _Config.maxCMem = 64;
     m_prog_map = new MergeMap();
 }
 
@@ -99,7 +102,7 @@ void PartialAmplitudeQVM::traversal(AbstractQGateNode *pQGate)
     case GateType::RZ_GATE:
     {
         node.tar_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
-        node.gate_parm = dynamic_cast<angleParameter *>(pQGate->getQGate())->getParameter();
+        node.gate_parm = dynamic_cast<QGATE_SPACE::angleParameter *>(pQGate->getQGate())->getParameter();
     }
     break;
 
@@ -133,7 +136,7 @@ void PartialAmplitudeQVM::traversal(AbstractQGateNode *pQGate)
     {
         node.ctr_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
         node.tar_qubit = qubits_vector[1]->getPhysicalQubitPtr()->getQubitAddr();
-        node.gate_parm = dynamic_cast<angleParameter *>(pQGate->getQGate())->getParameter();
+        node.gate_parm = dynamic_cast<QGATE_SPACE::angleParameter *>(pQGate->getQGate())->getParameter();
     }
     break;
 
@@ -182,25 +185,15 @@ void PartialAmplitudeQVM::getSubGraphStat(vector<vector<QStat>> &graph_stat_map)
         vector<QStat> calculateMap;
         for (uint64_t j = 0; j < m_prog_map->m_circuit_vec[i].size(); ++j)
         {
-            QuantumGateParam* pGateParam = new QuantumGateParam();
-            pGateParam->m_qubit_number = (j == 0) ? 
+            auto m_qubit_number = (j == 0) ? 
                 (m_prog_map->m_qubit_num / 2) :
                ((m_prog_map->m_qubit_num) - (m_prog_map->m_qubit_num / 2));
             QPUImpl *pQGate = new CPUImplQPU();
 
-            try
-            {
-                pQGate->initState(pGateParam);
-                m_prog_map->traversalMap(m_prog_map->m_circuit_vec[i][j], pQGate, pGateParam);
-            }
-            catch (invalid_argument &e)
-            {
-                delete pGateParam;
-                delete pQGate;
-            }
+            pQGate->initState(0,1, m_qubit_number);
+            m_prog_map->traversalMap(m_prog_map->m_circuit_vec[i][j], pQGate);
 
             calculateMap.emplace_back(pQGate->getQState());
-            delete pGateParam;
             delete pQGate;
         }
 
@@ -219,7 +212,7 @@ qstate_type PartialAmplitudeQVM::PMeasure_dec_index(string index)
     vector<vector<QStat>> graph_stat_map;
     getSubGraphStat(graph_stat_map);
 
-    complex<double> addResult(0, 0);
+    qcomplex_t addResult(0, 0);
     uint128_t u_index(index.c_str());
     uint64_t low_pos, high_pos;
     getAvgBinary(u_index, low_pos, high_pos, m_prog_map->m_qubit_num);
@@ -289,7 +282,7 @@ prob_map PartialAmplitudeQVM::PMeasure(QVec qvec, string select_max)
             double temp_value = 0.0;
             for (uint128_t j = 0; j < value_size; ++j)
             {
-                complex<double> addResult(0, 0);
+                qcomplex_t addResult(0, 0);
                 uint128_t index = getDecIndex(i, j, qubit_vec, qubit_num);
                 getAvgBinary(index, low_pos, high_pos, qubit_num);
                 for (size_t k = 0; k < graph_stat_map.size(); ++k)
@@ -384,7 +377,7 @@ prob_map PartialAmplitudeQVM::getProbDict(QVec qvec, string select_max)
 
             for (uint128_t j = 0; j < value_size; ++j)
             {
-                complex<double> addResult(0, 0);
+                qcomplex_t addResult(0, 0);
                 uint128_t index = getDecIndex(i, j, qubit_vec, qubit_num);
                 getAvgBinary(index, low_pos, high_pos, qubit_num);
                 for (size_t k = 0; k < graph_stat_map.size(); ++k)

@@ -1,34 +1,40 @@
 #ifndef _GPU_STRUCT_H
 #define _GPU_STRUCT_H
 
-#define QSIZE   size_t
-#ifndef SQ2
-#define SQ2 (1 / 1.4142135623731)
-#endif
+#include "Core/QuantumCircuit/QGlobalVariable.h"
 
-#ifndef PI
-#define PI 3.14159265358979
-#endif
+typedef size_t gpu_qsize_t;
+typedef float gpu_qstate_t;
+typedef std::complex<gpu_qstate_t> gpu_qcomplex_t;
+typedef std::pair<size_t, double> gpu_pair;
+typedef std::vector<gpu_pair> touple_prob;
+typedef std::vector<double> vec_prob;
+typedef std::vector<gpu_qsize_t> Qnum;
 
-#define THREADDIM (1024)
-#define STATE_T double
+const gpu_qsize_t kThreadDim = 1024;
 
 namespace GATEGPU
 {
     struct probability
     {
-        STATE_T prob;
+        gpu_qstate_t prob;
         int state;
     };
 
     struct QState
     {
         QState() : real(nullptr), imag(nullptr) {}
-        STATE_T * real;
-        STATE_T * imag;
-        size_t qnum;
+        gpu_qstate_t * real;
+        gpu_qstate_t * imag;
+        gpu_qsize_t qnum;
     };
 }
+
+struct Complex
+{
+    gpu_qstate_t real;
+    gpu_qstate_t imag;
+};
 #endif // !_GPU_STRUCT_H
 
 

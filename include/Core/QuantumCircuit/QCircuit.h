@@ -53,6 +53,7 @@ protected:
 public:
     QCircuit();
     QCircuit(const QCircuit &);
+    QCircuit(std::shared_ptr<AbstractQuantumCircuit> node);
     ~QCircuit();
     std::shared_ptr<QNode> getImplementationPtr();
 
@@ -169,18 +170,23 @@ private:
     bool m_Is_dagger;
     QVec m_control_qubit_vector;
     OriginCircuit(const OriginCircuit &);
+
+public:
+
     std::shared_ptr<QNode> getImplementationPtr()
     {
         QCERR("Can't use this function");
         throw std::runtime_error("Can't use this function");
     }
-public:
+
     OriginCircuit():
         m_node_type(CIRCUIT_NODE),
-        m_head(nullptr),
-        m_end(nullptr),
         m_Is_dagger(false)
     {
+        m_head = new OriginItem();
+        m_head->setNext(nullptr);
+        m_head->setPre(nullptr);
+        m_end =m_head;
         m_control_qubit_vector.resize(0);
     }
     ~OriginCircuit();

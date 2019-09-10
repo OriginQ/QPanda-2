@@ -36,13 +36,13 @@ public:
      * @brief Get true branch
      * @return QNode* 
      */
-    virtual QNode * getTrueBranch() const = 0;
+    virtual std::shared_ptr<QNode> getTrueBranch() const = 0;
 
     /**
      * @brief Get false branch
      * @return QNode* 
      */
-    virtual QNode * getFalseBranch() const = 0;
+    virtual std::shared_ptr<QNode> getFalseBranch() const = 0;
 
     /**
      * @brief Set the True branch 
@@ -60,7 +60,7 @@ public:
      * @brief Get classical expr
      * @return ClassicalCondition ptr 
      */
-    virtual ClassicalCondition * getCExpr() = 0;
+    virtual ClassicalCondition  getCExpr() = 0;
     virtual ~AbstractControlFlowNode() {}
 };
 
@@ -81,6 +81,26 @@ public:
      * @param old Target QIfProg 
      */
     QIfProg(const QIfProg &old);
+    class OriginQIf;
+    QIfProg(std::shared_ptr<AbstractControlFlowNode > qif)
+    {
+        if (qif)
+        {
+            auto node = std::dynamic_pointer_cast<QNode>(qif);
+            if (node->getNodeType() == QWAIT_NODE)
+                m_control_flow = qif;
+            else
+            {
+                QCERR("node error");
+                throw std::runtime_error("node error");
+            }
+        }
+        else
+        {
+            QCERR("node null");
+            throw std::runtime_error("node null");
+        }
+    }
     
     /**
      * @brief Construct a new QIfProg 
@@ -107,19 +127,19 @@ public:
      * @brief Get the True Branch 
      * @return QNode ptr
      */
-    virtual QNode* getTrueBranch() const;
+    virtual std::shared_ptr<QNode> getTrueBranch() const;
 
     /**
      * @brief Get the False Branch
      * @return QNode ptr
      */
-    virtual QNode* getFalseBranch() const;
+    virtual std::shared_ptr<QNode> getFalseBranch() const;
 
     /**
      * @brief Get classical condition
      * @return classical condition ptr 
      */
-    virtual ClassicalCondition *getCExpr();
+    virtual ClassicalCondition getCExpr();
 
     std::shared_ptr<QNode> getImplementationPtr();
 
@@ -231,15 +251,15 @@ public:
 
     virtual NodeType getNodeType() const;
 
-    virtual QNode* getTrueBranch() const;
+    virtual std::shared_ptr<QNode> getTrueBranch() const;
 
-    virtual QNode* getFalseBranch() const;
+    virtual std::shared_ptr<QNode> getFalseBranch() const;
 
     virtual void setTrueBranch(QProg node);
 
     virtual void setFalseBranch(QProg node);
 
-    virtual ClassicalCondition *getCExpr();
+    virtual ClassicalCondition getCExpr();
 
     virtual void execute(QPUImpl *, QuantumGateParam *);
 };
@@ -282,6 +302,27 @@ private:
 public:
     ~QWhileProg();
     QWhileProg(const QWhileProg &);
+    QWhileProg(std::shared_ptr<AbstractControlFlowNode> qwhile)
+    {
+        if (qwhile)
+        {
+            auto node = std::dynamic_pointer_cast<QNode>(qwhile);
+            if (node->getNodeType() == QWAIT_NODE)
+                m_control_flow = qwhile;
+            else
+            {
+                QCERR("node error");
+                throw std::runtime_error("node error");
+            }
+        }
+        else
+        {
+            QCERR("node null");
+            throw std::runtime_error("node null");
+        }
+
+
+    }
     QWhileProg(ClassicalCondition , QProg);
 
     std::shared_ptr<QNode> getImplementationPtr();
@@ -299,7 +340,7 @@ public:
     return : branch node
     Note:
     */
-    virtual QNode* getTrueBranch() const;
+    virtual std::shared_ptr<QNode>  getTrueBranch() const;
 
     /*
     Get false branch
@@ -307,7 +348,7 @@ public:
     return : branch node
     Note:
     */
-    virtual QNode* getFalseBranch() const;
+    virtual std::shared_ptr<QNode> getFalseBranch() const;
 
     /*
     Get classical condition
@@ -315,7 +356,7 @@ public:
     return : classical condition
     Note:
     */
-    virtual ClassicalCondition *getCExpr();
+    virtual ClassicalCondition getCExpr();
 
 private:
     virtual void setTrueBranch(QProg ) {};
@@ -343,15 +384,15 @@ public:
 
     virtual NodeType getNodeType() const;
 
-    virtual QNode* getTrueBranch() const;
+    virtual std::shared_ptr<QNode>  getTrueBranch() const;
 
-    virtual QNode* getFalseBranch() const;
+    virtual std::shared_ptr<QNode>  getFalseBranch() const;
 
     virtual void setTrueBranch(QProg node);
 
     virtual void setFalseBranch(QProg node) {};
 
-    virtual ClassicalCondition *getCExpr();
+    virtual ClassicalCondition getCExpr();
 
     virtual void execute(QPUImpl *, QuantumGateParam *);
 };

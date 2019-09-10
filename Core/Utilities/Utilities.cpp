@@ -99,16 +99,14 @@ void QPanda::insertQCircuit(AbstractQGateNode * pGateNode, QCircuit & qCircuit, 
             }
         }
 
-        aiter = pParentCircuit->deleteQNode(aiter);
+        if (pParentCircuit->getEndNodeIter() == aiter)
+        {
+            QCERR("unknow error");
+            throw runtime_error("unknow error");
+        }
+        pParentCircuit->insertQNode(aiter, &qCircuit);
 
-        if (nullptr == aiter.getPCur())
-        {
-            pParentCircuit->pushBackNode(&qCircuit);
-        }
-        else
-        {
-            pParentCircuit->insertQNode(aiter, &qCircuit);
-        }
+        aiter = pParentCircuit->deleteQNode(aiter);
 
     }
     else if (PROG_NODE == iNodeType)
@@ -137,6 +135,11 @@ void QPanda::insertQCircuit(AbstractQGateNode * pGateNode, QCircuit & qCircuit, 
                 break;
             }
         }
+        if (pParentQProg->getEndNodeIter() == aiter)
+        {
+            QCERR("unknow error");
+            throw runtime_error("unknow error");
+        }
         pParentQProg->insertQNode(aiter, &qCircuit);
         aiter = pParentQProg->deleteQNode(aiter);
 
@@ -151,13 +154,12 @@ void QPanda::insertQCircuit(AbstractQGateNode * pGateNode, QCircuit & qCircuit, 
             throw runtime_error("Unknown internal error");
         }
 
-        if (pGateNode ==
-            dynamic_cast<AbstractQGateNode *>(pParentIf->getTrueBranch()))
+        if (pGateNode == dynamic_cast<AbstractQGateNode *>(pParentIf->getTrueBranch().get()))
         {
             pParentIf->setTrueBranch(qCircuit);
         }
         else if (pGateNode ==
-            dynamic_cast<AbstractQGateNode *>(pParentIf->getFalseBranch()))
+            dynamic_cast<AbstractQGateNode *>(pParentIf->getFalseBranch().get()))
         {
             pParentIf->setFalseBranch(qCircuit);
         }
@@ -180,7 +182,7 @@ void QPanda::insertQCircuit(AbstractQGateNode * pGateNode, QCircuit & qCircuit, 
 
 
         if (pGateNode ==
-            dynamic_cast<AbstractQGateNode *>(pParentIf->getTrueBranch()))
+            dynamic_cast<AbstractQGateNode *>(pParentIf->getTrueBranch().get()))
         {
             pParentIf->setTrueBranch(qCircuit);
         }

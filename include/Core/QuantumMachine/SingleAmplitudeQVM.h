@@ -1,9 +1,9 @@
 /*! \file SingleAmplitudeQVM.h */
 #ifndef  _SINGLEAMPLITUDE_H_
 #define  _SINGLEAMPLITUDE_H_
-#include "include/Core/Utilities/Uinteger.h"
-#include "include/Core/VirtualQuantumProcessor/SingleAmplitude/QuantumGates.h"
-#include "include/Core/VirtualQuantumProcessor/PartialAmplitude/TraversalQProg.h"
+#include "Core/Utilities/Uinteger.h"
+#include "Core/VirtualQuantumProcessor/SingleAmplitude/QuantumGates.h"
+#include "Core/VirtualQuantumProcessor/PartialAmplitude/TraversalQProg.h"
 QPANDA_BEGIN
 /**
 * @namespace QPanda

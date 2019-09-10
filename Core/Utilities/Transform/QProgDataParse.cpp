@@ -1,5 +1,5 @@
 #include "Core/Utilities/Transform/QProgDataParse.h"
-#include "include/Core/QuantumCircuit/ClassicalConditionInterface.h"
+#include "Core/QuantumCircuit/ClassicalConditionInterface.h"
 
 using namespace std;
 USING_QPANDA

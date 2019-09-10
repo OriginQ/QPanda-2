@@ -15,19 +15,24 @@
 QPANDA_BEGIN
 typedef int64_t qmap_size_t;
 
-/**
-* @class QNode
-* @brief   Quantum node basic abstract class
-* @ingroup Core
-*/
-class QNode
+class QObject
 {
-public:
     /**
     * @brief  Get current node type
     * @return     NodeType  current node type
     * @see  NodeType
     */
+    virtual NodeType getNodeType() const = 0;
+};
+
+/**
+* @class QNode
+* @brief   Quantum node basic abstract class
+* @ingroup Core
+*/
+class QNode : public QObject
+{
+public:
     virtual NodeType getNodeType() const = 0;
     virtual std::shared_ptr<QNode> getImplementationPtr() = 0;
     virtual void execute(QPUImpl *,QuantumGateParam *) = 0;
@@ -95,12 +100,12 @@ public:
 
     NodeIter & operator++();
     NodeIter operator++(int);
-    std::shared_ptr<QNode>operator*();
+    std::shared_ptr<QNode>operator*() const;
     NodeIter &operator--();
     NodeIter operator--(int);
     NodeIter getNextIter();
-    bool operator!=(NodeIter);
-    bool operator==(NodeIter);
+    bool operator!=(NodeIter) const;
+    bool operator==(NodeIter) const;
 };
 
 QPANDA_END

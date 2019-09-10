@@ -5,11 +5,23 @@
 USING_QPANDA
 using namespace std;
 
+QGate _iSWAP(Qubit * targitBit_fisrt, Qubit * targitBit_second)
+{
+    return iSWAP(targitBit_fisrt, targitBit_second);
+}
+
 static vector<string> extract_value(string sQRunes)
 {
+    if ('%' == sQRunes[0])
+    {
+        vector<string> val_vec;
+        return  val_vec;
+    }
+
     smatch result;
     vector<string> val_vec;
-    regex key("[A-Z]+|[0-9]+(?!\\.)|-?[0-9]+\\.[0-9]+");
+    //regex key("[A-Z]+|[0-9]+(?!\\.)|-?[0-9]+\\.[0-9]+");
+    regex key("^X1|^Y1|^Z1|^[A-Z]+|[0-9]+(?!\\.)|-?[0-9]+\\.[0-9]+");
 
     string::const_iterator start_iter = sQRunes.begin();
     string::const_iterator end_iter = sQRunes.end();
@@ -38,7 +50,7 @@ QRunesToQProg::QRunesToQProg()
 
     m_doubleGateFunc.insert(make_pair("CNOT", CNOT));
     m_doubleGateFunc.insert(make_pair("CZ", CZ));
-    //m_doubleGateFunc.insert(make_pair("ISWAP", iSWAP);
+    m_doubleGateFunc.insert(make_pair("ISWAP", _iSWAP));
     m_doubleGateFunc.insert(make_pair("SQISWAP", SqiSWAP));
 
     m_angleGateFunc.insert(make_pair("RX", RX));
@@ -51,12 +63,15 @@ QRunesToQProg::QRunesToQProg()
 
 size_t  QRunesToQProg::handleDaggerCircuit(QNode *qNode, size_t pos)
 {
+
+    cout << qNode << endl;
     size_t cir_size{ 0 }, increment{ 0 };
     auto qCircuit = CreateEmptyCircuit();
+    cout << qCircuit.getImplementationPtr().get() << endl;
 
-    for (; m_QRunes[pos] != "ENDAGGER" && pos < m_QRunes.size();)
+    for (; m_QRunes[pos] != "ENDDAGGER" && pos < m_QRunes.size();)
     {
-        increment += traversalQRunes(pos, &qCircuit);
+        increment = traversalQRunes(pos, &qCircuit);
         pos += increment;
         cir_size += increment;
     }
@@ -67,7 +82,7 @@ size_t  QRunesToQProg::handleDaggerCircuit(QNode *qNode, size_t pos)
         if (nullptr == qProg)
         {
             QCERR(" Error");
-            throw invalid_argument(" error");
+            throw invalid_argument("error");
         }
         (*qProg) << qCircuit.dagger();
     }
@@ -76,7 +91,7 @@ size_t  QRunesToQProg::handleDaggerCircuit(QNode *qNode, size_t pos)
         QCircuit *qCir = dynamic_cast<QCircuit*>(qNode);
         if (nullptr == qCir)
         {
-            QCERR(" Error");
+            QCERR("Error");
             throw invalid_argument(" error");
         }
         (*qCir) << qCircuit.dagger();
@@ -168,6 +183,7 @@ size_t  QRunesToQProg::handleSingleGate(QNode *qNode)
                 QCERR("QProgError");
                 throw invalid_argument("QProgError");
             }
+
             (*qProg) << iter->second(
                 qvm->allocateQubitThroughPhyAddress(stoi(m_QRunes_value[1])));
         }
@@ -304,17 +320,21 @@ size_t  QRunesToQProg::handleAngleGate(QNode *qNode)
 
 size_t  QRunesToQProg::handleMeasureGate(QNode *qNode)
 {
+    cout << qNode << endl;
+
     if (nullptr == qNode || PROG_NODE != qNode->getNodeType())
     {
+        cout << qNode->getNodeType() << endl;
         QCERR("NodeError");
         throw invalid_argument("NodeError");
     }
     else
     {
         QProg * qProg = dynamic_cast<QProg*>(qNode);
+        m_cbit_vec.emplace_back(qvm->allocateCBit(stoi(m_QRunes_value[2])));
         *qProg << Measure(
             qvm->allocateQubitThroughPhyAddress(stoi(m_QRunes_value[1])),
-            qvm->allocateCBit(stoi(m_QRunes_value[2])));
+            m_cbit_vec.back());
 
         return 1;
     }
@@ -334,7 +354,6 @@ size_t  QRunesToQProg::traversalQRunes(size_t pos, QNode *qNode)
         return 1;
     }
     string keyWord = m_QRunes_value[0];
-
     if (keyWord == "H" || keyWord == "T" || keyWord == "S" ||
         keyWord == "X" || keyWord == "Y" || keyWord == "Z" ||
         keyWord == "X1" || keyWord == "Y1" || keyWord == "Z1")
@@ -345,7 +364,8 @@ size_t  QRunesToQProg::traversalQRunes(size_t pos, QNode *qNode)
     {
         return handleAngleGate(qNode);
     }
-    else if (keyWord == "CNOT" || keyWord == "CZ" || keyWord == "SQISWAP")
+    else if (keyWord == "CNOT" || keyWord == "CZ" || 
+             keyWord == "SQISWAP" || keyWord == "ISWAP")
     {
         return handleDoubleGate(qNode);
     }
@@ -365,12 +385,61 @@ size_t  QRunesToQProg::traversalQRunes(size_t pos, QNode *qNode)
     {
         return handleControlCircuit(qNode, ++pos);
     }
+    else if (keyWord == "TOFFOLI")
+    {
+        return handleToffoliGate(qNode);
+    }
     else
     {
-        QCERR("Formal Error");
-        throw invalid_argument("Formal Error");
+        if (m_QRunes[pos].find('%'))
+        {
+            return 1;
+        }
+        else
+        {
+            QCERR("Formal Error");
+            throw invalid_argument("Formal Error");
+        }
     }
 }
+
+size_t QRunesToQProg::handleToffoliGate(QNode* qNode)
+{
+    if (CIRCUIT_NODE == qNode->getNodeType())
+    {
+        QCircuit * qCir = dynamic_cast<QCircuit*>(qNode);
+        if (nullptr == qCir)
+        {
+            QCERR("CircuitError");
+            throw invalid_argument("CircuitError");
+        }
+
+        (*qCir) << X(qvm->allocateQubitThroughPhyAddress(stoi(m_QRunes_value[3])))
+            .control({ qvm->allocateQubitThroughPhyAddress(stoi(m_QRunes_value[1])) ,
+                qvm->allocateQubitThroughPhyAddress(stoi(m_QRunes_value[2])) });
+    }
+    else if (PROG_NODE == qNode->getNodeType())
+    {
+        QProg * qProg = dynamic_cast<QProg*>(qNode);
+        if (nullptr == qProg)
+        {
+            QCERR("QProgError");
+            throw invalid_argument("QProgError");
+        }
+
+        (*qProg) << X(qvm->allocateQubitThroughPhyAddress(stoi(m_QRunes_value[3])))
+            .control({ qvm->allocateQubitThroughPhyAddress(stoi(m_QRunes_value[1])) ,
+                qvm->allocateQubitThroughPhyAddress(stoi(m_QRunes_value[2])) });
+    }
+    else
+    {
+        QCERR("NodeTypeError");
+        throw invalid_argument("NodeTypeError");
+    }
+
+    return 1;
+}
+
 
 void QRunesToQProg::qRunesParser(std::string sFilePath, QProg& prog, QuantumMachine*qvm)
 {
@@ -408,6 +477,24 @@ void QRunesToQProg::qRunesParser(std::string sFilePath, QProg& prog, QuantumMach
         }
         fin.close();
 
+        if (regex_search(m_QRunes[0], result, dec))
+        {
+            int qbit_num = stoi(result[0]);
+            for (int i = 0; i < qbit_num; ++i)
+            {
+                qvm->allocateQubitThroughPhyAddress(i);
+            }
+        }
+
+        if (regex_search(m_QRunes[1], result, dec))
+        {
+            int cbit_num = stoi(result[0]);
+            for (int i = 0; i < cbit_num; ++i)
+            {
+                qvm->allocateCBit(i);
+            }
+        }
+
         for (size_t pos = 2; pos < m_QRunes.size();)
         {
             pos += traversalQRunes(pos, &prog);
@@ -416,9 +503,11 @@ void QRunesToQProg::qRunesParser(std::string sFilePath, QProg& prog, QuantumMach
     }
 }
 
-void QPanda::transformQRunesToQProg(std::string sFilePath, QProg& prog, QuantumMachine* qvm)
+std::vector<ClassicalCondition> QPanda::transformQRunesToQProg(std::string sFilePath, QProg& prog, QuantumMachine* qvm)
 {
     QRunesToQProg qRunesTraverse;
     qRunesTraverse.qvm = qvm;
     qRunesTraverse.qRunesParser(sFilePath, prog, qvm);
+
+    return qRunesTraverse.m_cbit_vec;
 }

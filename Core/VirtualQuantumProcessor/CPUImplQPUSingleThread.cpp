@@ -77,7 +77,7 @@ static bool probcompare(pair<size_t, double> a, pair<size_t, double> b)
 }
 
 QError CPUImplQPUSingleThread::pMeasure
-(Qnum& qnum, vector<pair<size_t, double>> &mResult, int select_max)
+(Qnum& qnum, prob_tuple &mResult, int select_max)
 {
     mResult.resize(1ull << qnum.size());
     QGateParam& group0 = findgroup(qnum[0]);
@@ -130,7 +130,7 @@ QError CPUImplQPUSingleThread::pMeasure
 Note: Added by Agony5757, it is a simplified version of pMeasure and with
 more efficiency.
 **/
-QError CPUImplQPUSingleThread::pMeasure(Qnum& qnum, vector<double> &mResult)
+QError CPUImplQPUSingleThread::pMeasure(Qnum& qnum, prob_vec &mResult)
 {
     mResult.resize(1ull << qnum.size());
     QGateParam& group0 = findgroup(qnum[0]);
@@ -214,11 +214,11 @@ bool CPUImplQPUSingleThread::qubitMeasure(size_t qn)
     return ioutcome;
 }
 
-QError CPUImplQPUSingleThread::initState(QuantumGateParam * param)
+QError CPUImplQPUSingleThread::initState(size_t head_rank, size_t rank_size, size_t qubit_num)
 {
     qubit2stat.erase(qubit2stat.begin(),qubit2stat.end());
-    qubit2stat.resize(param->m_qubit_number);
-    for (auto i = 0; i<param->m_qubit_number; i++)
+    qubit2stat.resize(qubit_num);
+    for (auto i = 0; i < qubit_num; i++)
     {
         qubit2stat[i].qVec.push_back(i);
         qubit2stat[i].qstate.push_back(1);
@@ -237,15 +237,8 @@ QError CPUImplQPUSingleThread::initState(QuantumGateParam * param)
     return qErrorNone;
 }
 
-QError CPUImplQPUSingleThread::endGate
-(QuantumGateParam * pQuantumProParam, QPUImpl * pQGate)
-{
-    return qErrorNone;
-}
-
 QError  CPUImplQPUSingleThread::unitarySingleQubitGate
-(size_t qn, QStat& matrix, bool isConjugate, double error_rate,
-    GateType type)
+(size_t qn, QStat& matrix, bool isConjugate, GateType type)
 {
     qcomplex_t alpha;
     qcomplex_t beta;
@@ -282,78 +275,73 @@ controlunitarySingleQubitGate(size_t qn,
     Qnum& vControlBit,
     QStat & matrix,
     bool isConjugate,
-    double error_rate,
     GateType type)
 {
-
-    if (get_random_double() > error_rate)
+    QGateParam& qgroup0 = findgroup(qn);
+    for (auto iter = vControlBit.begin(); iter != vControlBit.end(); iter++)
     {
-        QGateParam& qgroup0 = findgroup(qn);
-        for (auto iter = vControlBit.begin(); iter != vControlBit.end(); iter++)
-        {
-            TensorProduct(qgroup0, findgroup(*iter));
-        }
-        size_t M = 1ull << (qgroup0.qVec.size() - vControlBit.size());
-        size_t x;
+        TensorProduct(qgroup0, findgroup(*iter));
+    }
+    size_t M = 1ull << (qgroup0.qVec.size() - vControlBit.size());
+    size_t x;
 
-        size_t n = qgroup0.qVec.size();
-        size_t ststep = 1ull << (find(qgroup0.qVec.begin(), qgroup0.qVec.end(), qn)
+    size_t n = qgroup0.qVec.size();
+    size_t ststep = 1ull << (find(qgroup0.qVec.begin(), qgroup0.qVec.end(), qn)
+        - qgroup0.qVec.begin());
+    size_t index = 0;
+    size_t block = 0;
+
+    qcomplex_t alpha, beta;
+    if (isConjugate)
+    {
+        qcomplex_t temp;
+        temp = matrix[1];
+        matrix[1] = matrix[2];
+        matrix[2] = temp;  //转置
+        for (size_t i = 0; i < 4; i++)
+        {
+            matrix[i] = qcomplex_t(matrix[i].real(), -matrix[i].imag());
+        }//共轭
+    }
+
+    Qnum qvtemp;
+    for (auto iter = vControlBit.begin(); iter != vControlBit.end(); iter++)
+    {
+        size_t stemp = (find(qgroup0.qVec.begin(), qgroup0.qVec.end(), *iter)
             - qgroup0.qVec.begin());
-        size_t index = 0;
-        size_t block = 0;
+        block += 1ull << stemp;
+        qvtemp.push_back(stemp);
+    }
+    sort(qvtemp.begin(), qvtemp.end());
+    Qnum::iterator qiter;
+    size_t j;
 
-        qcomplex_t alpha, beta;
-        if (isConjugate)
+    for (long long i = 0; i < (long long)M; i++)
+    {
+        index = 0;
+        x = i;
+        qiter = qvtemp.begin();
+
+        for (j = 0; j < n; j++)
         {
-            qcomplex_t temp;
-            temp = matrix[1];
-            matrix[1] = matrix[2];
-            matrix[2] = temp;  //转置
-            for (size_t i = 0; i < 4; i++)
+            while (qiter != qvtemp.end() && *qiter == j)
             {
-                matrix[i] = qcomplex_t(matrix[i].real(), -matrix[i].imag());
-            }//共轭
-        }
-
-        Qnum qvtemp;
-        for (auto iter = vControlBit.begin(); iter != vControlBit.end(); iter++)
-        {
-            size_t stemp = (find(qgroup0.qVec.begin(), qgroup0.qVec.end(), *iter)
-                - qgroup0.qVec.begin());
-            block += 1ull << stemp;
-            qvtemp.push_back(stemp);
-        }
-        sort(qvtemp.begin(), qvtemp.end());
-        Qnum::iterator qiter;
-        size_t j;
-
-        for (long long i = 0; i < (long long)M; i++)
-        {
-            index = 0;
-            x = i;
-            qiter = qvtemp.begin();
-
-            for (j = 0; j < n; j++)
-            {
-                while (qiter != qvtemp.end() && *qiter == j)
-                {
-                    qiter++;
-                    j++;
-                }
-                //index += ((x % 2)*(1ull << j));
-                index += ((x & 1) << j);
-                x >>= 1;
+                qiter++;
+                j++;
             }
-
-            /*
-            * control qubits are 1,target qubit is 0
-            */
-            index = index + block - ststep;
-            alpha = qgroup0.qstate[index];
-            beta = qgroup0.qstate[index + ststep];
-            qgroup0.qstate[index] = alpha * matrix[0] + beta * matrix[1];
-            qgroup0.qstate[index + ststep] = alpha * matrix[2] + beta * matrix[3];
+            //index += ((x % 2)*(1ull << j));
+            index += ((x & 1) << j);
+            x >>= 1;
         }
+
+        /*
+        * control qubits are 1,target qubit is 0
+        */
+        index = index + block - ststep;
+        alpha = qgroup0.qstate[index];
+        beta = qgroup0.qstate[index + ststep];
+        qgroup0.qstate[index] = alpha * matrix[0] + beta * matrix[1];
+        qgroup0.qstate[index + ststep] = alpha * matrix[2] + beta * matrix[3];
     }
     return qErrorNone;
 }
@@ -363,68 +351,63 @@ unitaryDoubleQubitGate(size_t qn_0,
     size_t qn_1,
     QStat& matrix,
     bool isConjugate,
-    double error_rate,
     GateType type)
 {
-    if (get_random_double() > error_rate)
+    QGateParam& qgroup0 = findgroup(qn_0);
+    QGateParam& qgroup1 = findgroup(qn_1);
+    if (qgroup0.qVec[0] != qgroup1.qVec[0])
     {
+        TensorProduct(qgroup0, qgroup1);
+    }
+    size_t ststep1 = 1ull << (find(qgroup0.qVec.begin(), qgroup0.qVec.end(), qn_0)
+        - qgroup0.qVec.begin());
+    size_t ststep2 = 1ull << (find(qgroup0.qVec.begin(), qgroup0.qVec.end(), qn_1)
+        - qgroup0.qVec.begin());
+    size_t stemp1 = (ststep1>ststep2) ? ststep1 : ststep2;
+    size_t stemp2 = (ststep1>ststep2) ? ststep2 : ststep1;
 
-        QGateParam& qgroup0 = findgroup(qn_0);
-        QGateParam& qgroup1 = findgroup(qn_1);
-        if (qgroup0.qVec[0] != qgroup1.qVec[0])
+    bool bmark = true;
+    qcomplex_t phi00, phi01, phi10, phi11;
+    auto stateSize = qgroup0.qstate.size();
+
+    if (isConjugate)
+    {
+        qcomplex_t temp;
+        for (size_t i = 0; i < 4; i++)
         {
-            TensorProduct(qgroup0, qgroup1);
-        }
-        size_t ststep1 = 1ull << (find(qgroup0.qVec.begin(), qgroup0.qVec.end(), qn_0)
-            - qgroup0.qVec.begin());
-        size_t ststep2 = 1ull << (find(qgroup0.qVec.begin(), qgroup0.qVec.end(), qn_1)
-            - qgroup0.qVec.begin());
-        size_t stemp1 = (ststep1>ststep2) ? ststep1 : ststep2;
-        size_t stemp2 = (ststep1>ststep2) ? ststep2 : ststep1;
-
-        bool bmark = true;
-        qcomplex_t phi00, phi01, phi10, phi11;
-        auto stateSize = qgroup0.qstate.size();
-
-        if (isConjugate)
-        {
-            qcomplex_t temp;
-            for (size_t i = 0; i < 4; i++)
+            for (size_t j = i + 1; j < 4; j++)
             {
-                for (size_t j = i + 1; j < 4; j++)
-                {
-                    temp = matrix[4 * i + j];
-                    matrix[4 * i + j] = matrix[4 * j + i];
-                    matrix[4 * j + i] = temp;
-                }
+                temp = matrix[4 * i + j];
+                matrix[4 * i + j] = matrix[4 * j + i];
+                matrix[4 * j + i] = temp;
             }
-            for (size_t i = 0; i < 16; i++)
-            {
-                matrix[i] = qcomplex_t(matrix[i].real(), -matrix[i].imag());
-            }//dagger
         }
-        long long j, k;
-
-        for (long long i = 0; i<(long long)stateSize; i = i + 2 * stemp1)
+        for (size_t i = 0; i < 16; i++)
         {
-            for (j = i; j <(long long)(i + stemp1); j = j + 2 * stemp2)
-            {
-                for (k = j; k < (long long)(j + stemp2); k++)
-                {
-                    phi00 = qgroup0.qstate[k];        //00
-                    phi01 = qgroup0.qstate[k + ststep2];  //01
-                    phi10 = qgroup0.qstate[k + ststep1];  //10
-                    phi11 = qgroup0.qstate[k + ststep1 + ststep2]; //11
+            matrix[i] = qcomplex_t(matrix[i].real(), -matrix[i].imag());
+        }//dagger
+    }
+    long long j, k;
 
-                    qgroup0.qstate[k] = matrix[0] * phi00 + matrix[1] * phi01
-                        + matrix[2] * phi10 + matrix[3] * phi11;
-                    qgroup0.qstate[k + ststep2] = matrix[4] * phi00 + matrix[5] * phi01
-                        + matrix[6] * phi10 + matrix[7] * phi11;
-                    qgroup0.qstate[k + ststep1] = matrix[8] * phi00 + matrix[9] * phi01
-                        + matrix[10] * phi10 + matrix[11] * phi11;
-                    qgroup0.qstate[k + ststep1 + ststep2] = matrix[12] * phi00 + matrix[13] * phi01
-                        + matrix[14] * phi10 + matrix[15] * phi11;
-                }
+    for (long long i = 0; i<(long long)stateSize; i = i + 2 * stemp1)
+    {
+        for (j = i; j <(long long)(i + stemp1); j = j + 2 * stemp2)
+        {
+            for (k = j; k < (long long)(j + stemp2); k++)
+            {
+                phi00 = qgroup0.qstate[k];        //00
+                phi01 = qgroup0.qstate[k + ststep2];  //01
+                phi10 = qgroup0.qstate[k + ststep1];  //10
+                phi11 = qgroup0.qstate[k + ststep1 + ststep2]; //11
+
+                qgroup0.qstate[k] = matrix[0] * phi00 + matrix[1] * phi01
+                    + matrix[2] * phi10 + matrix[3] * phi11;
+                qgroup0.qstate[k + ststep2] = matrix[4] * phi00 + matrix[5] * phi01
+                    + matrix[6] * phi10 + matrix[7] * phi11;
+                qgroup0.qstate[k + ststep1] = matrix[8] * phi00 + matrix[9] * phi01
+                    + matrix[10] * phi10 + matrix[11] * phi11;
+                qgroup0.qstate[k + ststep1 + ststep2] = matrix[12] * phi00 + matrix[13] * phi01
+                    + matrix[14] * phi10 + matrix[15] * phi11;
             }
         }
     }
@@ -437,92 +420,88 @@ controlunitaryDoubleQubitGate(size_t qn_0,
     Qnum& vControlBit,
     QStat& matrix,
     bool isConjugate,
-    double error_rate,
     GateType type)
 {
-    if (get_random_double() > error_rate)
+    QGateParam& qgroup0 = findgroup(qn_0);
+    QGateParam& qgroup1 = findgroup(qn_1);
+    TensorProduct(qgroup0, qgroup1);
+    for (auto iter = vControlBit.begin(); iter != vControlBit.end(); iter++)
     {
-        QGateParam& qgroup0 = findgroup(qn_0);
-        QGateParam& qgroup1 = findgroup(qn_1);
-        TensorProduct(qgroup0, qgroup1);
-        for (auto iter = vControlBit.begin(); iter != vControlBit.end(); iter++)
+        TensorProduct(qgroup0, findgroup(*iter));
+    }
+    qcomplex_t temp;
+    if (isConjugate)
+    {
+        for (size_t i = 0; i < 4; i++)
         {
-            TensorProduct(qgroup0, findgroup(*iter));
+            for (size_t j = i + 1; j < 4; j++)
+            {
+                temp = matrix[4 * i + j];
+                matrix[4 * i + j] = matrix[4 * j + i];
+                matrix[4 * j + i] = temp;
+            }
         }
-        qcomplex_t temp;
-        if (isConjugate)
+        for (size_t i = 0; i < 16; i++)
         {
-            for (size_t i = 0; i < 4; i++)
-            {
-                for (size_t j = i + 1; j < 4; j++)
-                {
-                    temp = matrix[4 * i + j];
-                    matrix[4 * i + j] = matrix[4 * j + i];
-                    matrix[4 * j + i] = temp;
-                }
-            }
-            for (size_t i = 0; i < 16; i++)
-            {
-                matrix[i] = qcomplex_t(matrix[i].real(), -matrix[i].imag());
-            }
-        }//dagger
+            matrix[i] = qcomplex_t(matrix[i].real(), -matrix[i].imag());
+        }
+    }//dagger
 
-         //combine all qubits;
-        size_t M = 1ull << (qgroup0.qVec.size() - vControlBit.size());
+        //combine all qubits;
+    size_t M = 1ull << (qgroup0.qVec.size() - vControlBit.size());
 
-        size_t ststep0 = 1ull << (find(qgroup0.qVec.begin(), qgroup0.qVec.end(), qn_0)
+    size_t ststep0 = 1ull << (find(qgroup0.qVec.begin(), qgroup0.qVec.end(), qn_0)
+        - qgroup0.qVec.begin());
+    size_t ststep1 = 1ull << (find(qgroup0.qVec.begin(), qgroup0.qVec.end(), qn_1)
+        - qgroup0.qVec.begin());
+    size_t block = 0;
+    qcomplex_t phi00, phi01, phi10, phi11;
+    Qnum qvtemp;
+    for (auto iter = vControlBit.begin(); iter != vControlBit.end(); iter++)
+    {
+        size_t stemp = (find(qgroup0.qVec.begin(), qgroup0.qVec.end(), *iter)
             - qgroup0.qVec.begin());
-        size_t ststep1 = 1ull << (find(qgroup0.qVec.begin(), qgroup0.qVec.end(), qn_1)
-            - qgroup0.qVec.begin());
-        size_t block = 0;
-        qcomplex_t phi00, phi01, phi10, phi11;
-        Qnum qvtemp;
-        for (auto iter = vControlBit.begin(); iter != vControlBit.end(); iter++)
-        {
-            size_t stemp = (find(qgroup0.qVec.begin(), qgroup0.qVec.end(), *iter)
-                - qgroup0.qVec.begin());
-            block += 1ull << stemp;
-            qvtemp.push_back(stemp);
-        }
-        //block: all related qubits are 1,others are 0
-        sort(qvtemp.begin(), qvtemp.end());
-        Qnum::iterator qiter;
-        size_t j;
-        size_t index = 0;
-        size_t x;
-        size_t n = qgroup0.qVec.size();        
+        block += 1ull << stemp;
+        qvtemp.push_back(stemp);
+    }
+    //block: all related qubits are 1,others are 0
+    sort(qvtemp.begin(), qvtemp.end());
+    Qnum::iterator qiter;
+    size_t j;
+    size_t index = 0;
+    size_t x;
+    size_t n = qgroup0.qVec.size();        
 
-        for (long long i = 0; i < (long long)M; i++)
-        {
-            index = 0;
-            x = i;
-            qiter = qvtemp.begin();
+    for (long long i = 0; i < (long long)M; i++)
+    {
+        index = 0;
+        x = i;
+        qiter = qvtemp.begin();
 
-            for (j = 0; j < n; j++)
+        for (j = 0; j < n; j++)
+        {
+            while (qiter != qvtemp.end() && *qiter == j)
             {
-                while (qiter != qvtemp.end() && *qiter == j)
-                {
-                    qiter++;
-                    j++;
-                }
-                //index += ((x % 2)*(1ull << j));
-                index += ((x & 1) << j);
-                x >>= 1;
+                qiter++;
+                j++;
             }
-            index = index + block - ststep0 - ststep1;                             /*control qubits are 1,target qubit are 0 */
-            phi00 = qgroup0.qstate[index];             //00
-            phi01 = qgroup0.qstate[index + ststep1];   //01
-            phi10 = qgroup0.qstate[index + ststep0];   //10
-            phi11 = qgroup0.qstate[index + ststep0 + ststep1];  //11
-            qgroup0.qstate[index] = matrix[0] * phi00 + matrix[1] * phi01
-                + matrix[2] * phi10 + matrix[3] * phi11;
-            qgroup0.qstate[index + ststep1] = matrix[4] * phi00 + matrix[5] * phi01
-                + matrix[6] * phi10 + matrix[7] * phi11;
-            qgroup0.qstate[index + ststep0] = matrix[8] * phi00 + matrix[9] * phi01
-                + matrix[10] * phi10 + matrix[11] * phi11;
-            qgroup0.qstate[index + ststep0 + ststep1] = matrix[12] * phi00 + matrix[13] * phi01
-                + matrix[14] * phi10 + matrix[15] * phi11;
+            //index += ((x % 2)*(1ull << j));
+            index += ((x & 1) << j);
+            x >>= 1;
         }
+        index = index + block - ststep0 - ststep1;                             /*control qubits are 1,target qubit are 0 */
+        phi00 = qgroup0.qstate[index];             //00
+        phi01 = qgroup0.qstate[index + ststep1];   //01
+        phi10 = qgroup0.qstate[index + ststep0];   //10
+        phi11 = qgroup0.qstate[index + ststep0 + ststep1];  //11
+        qgroup0.qstate[index] = matrix[0] * phi00 + matrix[1] * phi01
+            + matrix[2] * phi10 + matrix[3] * phi11;
+        qgroup0.qstate[index + ststep1] = matrix[4] * phi00 + matrix[5] * phi01
+            + matrix[6] * phi10 + matrix[7] * phi11;
+        qgroup0.qstate[index + ststep0] = matrix[8] * phi00 + matrix[9] * phi01
+            + matrix[10] * phi10 + matrix[11] * phi11;
+        qgroup0.qstate[index + ststep0 + ststep1] = matrix[12] * phi00 + matrix[13] * phi01
+            + matrix[14] * phi10 + matrix[15] * phi11;
     }
     return qErrorNone;
 }
@@ -593,11 +572,6 @@ QError CPUImplQPUSingleThread::P1(
 {
     return undefineError;
 }
-
-
-
-
-
 
 
 QError CPUImplQPUSingleThread::Z(size_t qn, bool isConjugate, double error_rate)
@@ -873,7 +847,6 @@ QError CPUImplQPUSingleThread::controlDiagonalGate(Qnum & vQubit, QStat & matrix
 
 QStat CPUImplQPUSingleThread::getQState()
 {
-
     size_t sEnable = 0;
     while (!qubit2stat[sEnable].enable)
     {

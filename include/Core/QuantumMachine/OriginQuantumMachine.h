@@ -22,7 +22,7 @@ limitations under the License.
 #include "Core/VirtualQuantumProcessor/QuantumGateParameter.h"
 #include "Core/Utilities/QPandaException.h"
 #include "Core/VirtualQuantumProcessor/RandomEngine/RandomEngine.h"
-USING_QPANDA
+QPANDA_BEGIN
 /**
 * @namespace QPanda
 */
@@ -214,14 +214,14 @@ public:
 class IdealQVM : public QVM, public IdealMachineInterface
 {
 public:
-    std::vector<std::pair<size_t, double>> PMeasure(QVec qubit_vector, int select_max);
-    std::vector<double> PMeasure_no_index(QVec qubit_vector);
-    std::vector<std::pair<size_t, double>> getProbTupleList(QVec , int);
-    std::vector<double> getProbList(QVec , int);
-    std::map<std::string, double> getProbDict(QVec , int);
-    std::vector<std::pair<size_t, double>> probRunTupleList(QProg &, QVec , int);
-    std::vector<double> probRunList(QProg &, QVec , int);
-    std::map<std::string, double> probRunDict(QProg &, QVec , int);
+    prob_tuple PMeasure(QVec qubit_vector, int select_max);
+    prob_vec PMeasure_no_index(QVec qubit_vector);
+    prob_tuple getProbTupleList(QVec , int);
+    prob_vec getProbList(QVec , int);
+    prob_dict getProbDict(QVec , int);
+    prob_tuple probRunTupleList(QProg &, QVec , int);
+    prob_vec probRunList(QProg &, QVec , int);
+    prob_dict probRunDict(QProg &, QVec , int);
     std::map<std::string, size_t> quickMeasure(QVec , size_t);
     QStat getQStat();
 };
@@ -259,5 +259,5 @@ public:
     void init();
     void init(rapidjson::Document &);
 };
-
+QPANDA_END
 #endif

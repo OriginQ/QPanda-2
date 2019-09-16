@@ -27,6 +27,7 @@ update comment
 #include "Core/QuantumCircuit/QProgram.h"
 #include "Core/QuantumCircuit/ControlFlow.h"
 #include "Core/QuantumCircuit/ClassicalProgram.h"
+#include "Core/Utilities/Traversal.h"
 
 /**
 * @namespace QPanda
@@ -40,7 +41,7 @@ QPANDA_BEGIN
 * @ingroup Utilities
 * @brief  Utilities class for quantum program stored to binary data
 */
-class QProgStored
+class QProgStored : public TraversalInterface<>
 {
     union DataNode
     {
@@ -78,17 +79,23 @@ public:
     * @return     std::vector<uint8_t>   quantum program binary data vector
     */
   std::vector<uint8_t> getInsturctions();
-  
+
+  virtual void execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node);
+  virtual void execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, std::shared_ptr<QNode> parent_node);
+  virtual void execute(std::shared_ptr<AbstractClassicalProg>  cur_node, std::shared_ptr<QNode> parent_node);
+  virtual void execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node);
+  virtual void execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std::shared_ptr<QNode> parent_node);
+  virtual void execute(std::shared_ptr<AbstractQuantumProgram>  cur_node, std::shared_ptr<QNode> parent_node);
+
 private:
-    void transformQProg(AbstractQuantumProgram *prog);
-    void transformQCircuit(AbstractQuantumCircuit *circuit);
+	void QProgStored::transformQProgByTraversalAlg(QProg *prog);
+
     void transformQControlFlow(AbstractControlFlowNode *controlflow);
-    void transformQGate(AbstractQGateNode *gate);
+	void transformQGate(AbstractQGateNode *gate);
     void transformQMeasure(AbstractQuantumMeasure *measure);
-    void transformQNode(QNode *node);
 
     void transformQIfProg(AbstractControlFlowNode *controlflow);
-    void transformQWhilePro(AbstractControlFlowNode *controlflow);
+    void transformQWhileProg(AbstractControlFlowNode *controlflow);
     void transformCExpr(CExpr *cexpr);
     void transformClassicalProg(AbstractClassicalProg *cc_pro);
     void handleQGateWithOneAngle(AbstractQGateNode *gate);

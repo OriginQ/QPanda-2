@@ -118,7 +118,7 @@ static size_t getLayerNumber(const TopologincalSequence &graph_seq,size_t vertic
     }
 }
 
-void QNodeMatch::updateQubits(LayerVector &layer, std::vector<size_t> &qvec)
+void GraphMatch::updateQubits(LayerVector &layer, std::vector<size_t> &qvec)
 {
     if (qvec.empty())
     {
@@ -166,7 +166,7 @@ void QNodeMatch::updateQubits(LayerVector &layer, std::vector<size_t> &qvec)
     }
 }
 
-bool QNodeMatch::qubitContain(SequenceNode &node, std::vector<size_t> &qvec)
+bool GraphMatch::qubitContain(SequenceNode &node, std::vector<size_t> &qvec)
 {
     if (qvec.empty())
     {
@@ -188,7 +188,7 @@ bool QNodeMatch::qubitContain(SequenceNode &node, std::vector<size_t> &qvec)
     }
 }
 
-size_t QNodeMatch::getTarQubit(SequenceNode &node, QProgDAG &dag)
+size_t GraphMatch::getTarQubit(SequenceNode &node, QProgDAG &dag)
 {
     auto _node = dag.getVertex(node.m_vertex_num);
     switch (node.m_node_type)
@@ -217,7 +217,7 @@ size_t QNodeMatch::getTarQubit(SequenceNode &node, QProgDAG &dag)
     }
 }
 
-size_t QNodeMatch::getCtrQubit(SequenceNode &node, QProgDAG &dag)
+size_t GraphMatch::getCtrQubit(SequenceNode &node, QProgDAG &dag)
 {
     auto _node = dag.getVertex(node.m_vertex_num);
     if (QNodeGateType::DOUBLE_GATE == nodeType(node.m_node_type))
@@ -235,7 +235,7 @@ size_t QNodeMatch::getCtrQubit(SequenceNode &node, QProgDAG &dag)
     }
 }
 
-bool QNodeMatch::qnodeContain(LayerVector &graph_node_vec, LayerVector &query_node_vec)
+bool GraphMatch::qnodeContain(LayerVector &graph_node_vec, LayerVector &query_node_vec)
 {
     vector<int> query, graph;
     for_each(graph_node_vec.begin(), graph_node_vec.end(),
@@ -258,7 +258,7 @@ bool QNodeMatch::qnodeContain(LayerVector &graph_node_vec, LayerVector &query_no
     return true;
 }
 
-bool QNodeMatch::graphQuery(TopologincalSequence &graph_seq, 
+bool GraphMatch::graphQuery(TopologincalSequence &graph_seq, 
                             TopologincalSequence &query_seq, 
                             MatchVector &match_result)
 {
@@ -298,7 +298,7 @@ bool QNodeMatch::graphQuery(TopologincalSequence &graph_seq,
 }
 
 
-bool QNodeMatch::compareCurLayer(SequenceLayer &graph_layer,
+bool GraphMatch::compareCurLayer(SequenceLayer &graph_layer,
                                  SequenceLayer &query_layer,
                                  MatchVector &match_result, 
                                  ResultVector &temp_result,
@@ -333,7 +333,7 @@ bool QNodeMatch::compareCurLayer(SequenceLayer &graph_layer,
     return true;
 }
 
-bool QNodeMatch::compareCurQNode(std::pair<SequenceNode, std::vector<SequenceNode>> &graph_node, 
+bool GraphMatch::compareCurQNode(std::pair<SequenceNode, std::vector<SequenceNode>> &graph_node, 
                                  std::pair<SequenceNode, std::vector<SequenceNode>> &query_node)
 {
     auto query_type = query_node.first.m_node_type;
@@ -455,7 +455,7 @@ bool QNodeMatch::compareCurQNode(std::pair<SequenceNode, std::vector<SequenceNod
 }
 
 
-void QNodeMatch::SequenceToQProg(TopologincalSequence &seq, QProg &prog, QProgDAG &dag)
+void GraphMatch::SequenceToQProg(TopologincalSequence &seq, QProg &prog, QProgDAG &dag)
 {
     for (auto layer: seq)
     {
@@ -464,7 +464,7 @@ void QNodeMatch::SequenceToQProg(TopologincalSequence &seq, QProg &prog, QProgDA
 }
 
 
-void QNodeMatch::SequenceToQProg(SequenceLayer &layer, QProg &prog, QProgDAG &dag)
+void GraphMatch::SequenceToQProg(SequenceLayer &layer, QProg &prog, QProgDAG &dag)
 {
     for (auto node : layer)
     {
@@ -536,7 +536,7 @@ void QubitsCompare::execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::s
     }
 }
 
-void QNodeMatch::insertQNodes(MatchVector &result, TopologincalSequence &replace_seq,
+void GraphMatch::insertQNodes(MatchVector &result, TopologincalSequence &replace_seq,
     TopologincalSequence &graph_seq, QuantumMachine* qvm)
 {
     QubitsCompare construct;
@@ -664,7 +664,7 @@ void QNodeMatch::insertQNodes(MatchVector &result, TopologincalSequence &replace
     }
 }
 
-SequenceNode QNodeMatch::contsructQNode(const std::map<size_t, size_t> &compare_map,
+SequenceNode GraphMatch::contsructQNode(const std::map<size_t, size_t> &compare_map,
     SequenceNode &node, QuantumMachine* qvm, QubitsCompare &construct)
 {
     size_t vertice_num{ 0 };
@@ -783,7 +783,7 @@ void QubitsCompare::execute(std::shared_ptr<AbstractClassicalProg>  cur_node, st
     throw std::runtime_error("Does not support ClassicalProg");
 }
 
-bool QNodeMatch::qubitsCompare(std::vector<size_t> query_qvec,
+bool GraphMatch::qubitsCompare(std::vector<size_t> query_qvec,
                                std::vector<size_t> replace_qvec)
 {
     m_compare_vec = replace_qvec;
@@ -828,7 +828,7 @@ QubitsCompare::QubitsCompare()
 }
 
 
-bool QNodeMatch::compareGateParm(SequenceNode &graph_node, QProgDAG &graph_dag,
+bool GraphMatch::compareGateParm(SequenceNode &graph_node, QProgDAG &graph_dag,
     SequenceNode &query_node, QProgDAG &query_dag)
 {
     auto g_node = graph_dag.getVertex(graph_node.m_vertex_num);

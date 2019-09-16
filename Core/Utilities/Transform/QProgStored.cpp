@@ -30,7 +30,8 @@ const std::map<int, QProgStoredNodeType> kGateTypeAndQProgTypeMap =
     {CPHASE_GATE,   QPROG_CPHASE_GATE},
     {ISWAP_THETA_GATE, QPROG_ISWAP_THETA_GATE},
     {ISWAP_GATE,    QPROG_ISWAP_GATE},
-    {SQISWAP_GATE,  QPROG_SQISWAP_GATE}
+	{SQISWAP_GATE,  QPROG_SQISWAP_GATE},
+	{SWAP_GATE,    QPROG_SWAP_GATE}
 };
 
 
@@ -62,14 +63,16 @@ void QProgStored::transform(QProg &prog)
 {
     m_qubit_number = m_quantum_machine->getAllocateQubit();
     m_cbit_number = m_quantum_machine->getAllocateCMem();
-    transformQProg(&prog);
+
+	transformQProgByTraversalAlg(&prog);
     return;
 }
 
 void QProgStored::store(const string &filename)
 {
     std::ofstream out;
-    out.open(filename);
+	out.open(filename, std::ios::out | std::ios::binary);
+
     if (!out)
     {
         QCERR("fwrite file failure");
@@ -105,77 +108,6 @@ std::vector<uint8_t> QProgStored::getInsturctions()
     return data;
 }
 
-
-void QProgStored::transformQProg(AbstractQuantumProgram *p_prog)
-{
-    if (nullptr == p_prog)
-    {
-        QCERR("pQProg is null");
-        throw invalid_argument("pQProg is null");
-    }
-
-    for (auto iter = p_prog->getFirstNodeIter(); iter != p_prog->getEndNodeIter(); iter++)
-    {
-        QNode * pNode = (*iter).get();
-        transformQNode(pNode);
-    }
-
-    return;
-}
-
-
-void QProgStored::transformQCircuit(AbstractQuantumCircuit *p_circuit)
-{
-    if (nullptr == p_circuit)
-    {
-        QCERR("p_circuit is null");
-        throw invalid_argument("p_circuit is null");
-    }
-
-    if (p_circuit->isDagger())
-    {
-        for (auto iter = p_circuit->getLastNodeIter(); iter != p_circuit->getHeadNodeIter(); iter--)
-        {
-            QNode *p_node = (*iter).get();
-            int type = p_node->getNodeType();
-
-            switch (type)
-            {
-            case NodeType::GATE_NODE:
-            {
-                AbstractQGateNode *p_gate = dynamic_cast<AbstractQGateNode *>(p_node);
-                p_gate->setDagger(true ^ p_gate->isDagger());
-            }
-            break;
-            case NodeType::CIRCUIT_NODE:
-            {
-                AbstractQuantumCircuit *p_circuit = dynamic_cast<AbstractQuantumCircuit *>(p_node);
-                p_circuit->setDagger(true ^ p_circuit->isDagger());
-            }
-            break;
-            case NodeType::MEASURE_GATE:
-                break;
-            default:
-                QCERR("Circuit is error");
-                throw invalid_argument("Circuit is error");
-                break;
-            }
-            transformQNode(p_node);
-        }
-    }
-    else
-    {
-        for (auto iter = p_circuit->getFirstNodeIter(); iter != p_circuit->getEndNodeIter(); iter++)
-        {
-            QNode * p_node = (*iter).get();
-            transformQNode(p_node);
-        }
-    }
-
-    return;
-}
-
-
 void QProgStored::transformQControlFlow(AbstractControlFlowNode *p_controlflow)
 {
     if (nullptr == p_controlflow)
@@ -197,7 +129,7 @@ void QProgStored::transformQControlFlow(AbstractControlFlowNode *p_controlflow)
         transformQIfProg(p_controlflow);
         break;
     case NodeType::WHILE_START_NODE:
-        transformQWhilePro(p_controlflow);
+        transformQWhileProg(p_controlflow);
         break;
     default:
         QCERR("NodeType is error");
@@ -219,19 +151,31 @@ void QProgStored::transformQIfProg(AbstractControlFlowNode *p_controlFlow)
 
     uint32_t true_and_false_node = 0;
     addDataNode(QPROG_QIF_NODE, true_and_false_node);
-    auto iter_head_node = --m_data_vector.end();
-    transformQNode(p_controlFlow->getTrueBranch().get());
+	auto if_node_index = m_data_vector.size() - 1;
+	
+	auto truth_branch_node = p_controlFlow->getTrueBranch();
+	if (nullptr != truth_branch_node)
+	{
+		Traversal::traversalByType(truth_branch_node, nullptr, *this);
+	}
+	true_and_false_node |= (m_node_counter << kCountMoveBit);
 
-    true_and_false_node |= (m_node_counter << kCountMoveBit);
-    transformQNode(p_controlFlow->getFalseBranch().get());
-    true_and_false_node |= m_node_counter;
-    iter_head_node->second.qubit_data = true_and_false_node;
+
+	auto false_branch_node = p_controlFlow->getFalseBranch();
+	if (nullptr != false_branch_node)
+	{
+		Traversal::traversalByType(false_branch_node, nullptr, *this);
+		true_and_false_node |= m_node_counter;
+	}
+
+	m_data_vector[if_node_index].second.qubit_data = true_and_false_node;
+
 
     return;
 }
 
 
-void QProgStored::transformQWhilePro(AbstractControlFlowNode *p_controlflow)
+void QProgStored::transformQWhileProg(AbstractControlFlowNode *p_controlflow)
 {
     if (nullptr == p_controlflow)
     {
@@ -240,13 +184,17 @@ void QProgStored::transformQWhilePro(AbstractControlFlowNode *p_controlflow)
     }
 
     uint32_t true_and_false_node = 0;
-    std::cout << "true_and_false_node: " << true_and_false_node << std::endl;
     addDataNode(QPROG_QWHILE_NODE, true_and_false_node);
-    auto iter_head_node = --m_data_vector.end();
-    transformQNode(p_controlflow->getTrueBranch().get());
+	auto while_node_index = m_data_vector.size() - 1;
+
+	auto truth_branch_node = p_controlflow->getTrueBranch();
+	if (nullptr != truth_branch_node)
+	{
+		Traversal::traversalByType(truth_branch_node, nullptr, *this);
+	}
 
     true_and_false_node |= (m_node_counter << kCountMoveBit);
-    iter_head_node->second.qubit_data = true_and_false_node;
+	m_data_vector[while_node_index].second.qubit_data = true_and_false_node;
 
     return;
 }
@@ -259,6 +207,33 @@ void QProgStored::transformQGate(AbstractQGateNode *p_gate)
         QCERR("pQGate is null");
         throw invalid_argument("pQGate is null");
     }
+
+	QVec ctrl_qubits_vector;
+	p_gate->getControlVector(ctrl_qubits_vector);
+	if (!ctrl_qubits_vector.empty())
+	{
+		for (int i = 0; i < ctrl_qubits_vector.size(); i += 2)
+		{
+			uint32_t qubit_data = 0;
+			size_t quibt_addr_1 = 0;
+			size_t quibt_addr_2 = 0;
+			quibt_addr_1 = ctrl_qubits_vector[i]->getPhysicalQubitPtr()->getQubitAddr();
+			if (i + 1 < ctrl_qubits_vector.size())
+			{
+				quibt_addr_2 = ctrl_qubits_vector[i + 1]->getPhysicalQubitPtr()->getQubitAddr();
+				if (0 == quibt_addr_2)
+				{
+					size_t addr_tmp = quibt_addr_1;
+					quibt_addr_1 = quibt_addr_2;
+					quibt_addr_2 = addr_tmp;
+				}
+			}
+	
+			qubit_data |= quibt_addr_1;
+			qubit_data |= (quibt_addr_2 << kCountMoveBit);
+			addDataNode(QPROG_CONTROL, qubit_data);
+		}
+	}
 
     auto quantum_gate = p_gate->getQGate();
     int gate_type = quantum_gate->getGateType();
@@ -293,7 +268,7 @@ void QProgStored::transformQGate(AbstractQGateNode *p_gate)
         QCERR("gate type error");
         throw invalid_argument("gate type error");
     }
-    addDataNode(iter_prog_type->second, qubit_data, p_gate->isDagger());
+	addDataNode(iter_prog_type->second, qubit_data, p_gate->isDagger());
 
     if (GateType::RX_GATE == gate_type || GateType::RY_GATE == gate_type
         || GateType::RZ_GATE == gate_type || GateType::U1_GATE == gate_type
@@ -301,7 +276,7 @@ void QProgStored::transformQGate(AbstractQGateNode *p_gate)
     {
         handleQGateWithOneAngle(p_gate);
     }
-    else if (GateType::U4_GATE == gate_type)
+    else if (GateType::U4_GATE == gate_type || GateType::CU_GATE == gate_type)
     {
         handleQGateWithFourAngle(p_gate);
     }
@@ -349,53 +324,6 @@ void QProgStored::transformQMeasure(AbstractQuantumMeasure *p_measure)
 
     return;
 }
-
-
-void QProgStored::transformQNode(QNode *p_node)
-{
-    if (nullptr == p_node)
-    {
-        QCERR("p_node is null");
-        throw invalid_argument("p_node is null");
-    }
-
-    int type = p_node->getNodeType();
-    switch (type)
-    {
-    case NodeType::GATE_NODE:
-        transformQGate(dynamic_cast<AbstractQGateNode *>(p_node));
-        break;
-    case NodeType::CIRCUIT_NODE:
-        transformQCircuit(dynamic_cast<AbstractQuantumCircuit *>(p_node));
-        break;
-    case NodeType::PROG_NODE:
-        transformQProg(dynamic_cast<AbstractQuantumProgram *>(p_node));
-        break;
-    case NodeType::QIF_START_NODE:
-    case NodeType::WHILE_START_NODE:
-        QCERR("don't support QIF and QWHILE");
-        throw invalid_argument("don't support QIF and QWHILE");
-        //traversalQControlFlow(dynamic_cast<AbstractControlFlowNode *>(p_node));
-        break;
-    case NodeType::MEASURE_GATE:
-        transformQMeasure(dynamic_cast<AbstractQuantumMeasure *>(p_node));
-        break;
-    case NodeType::CLASS_COND_NODE:
-        transformClassicalProg(dynamic_cast<AbstractClassicalProg *>(p_node));
-        break;
-    case NodeType::NODE_UNDEFINED:
-        QCERR("NodeType UNDEFINED");
-        throw invalid_argument("NodeType UNDEFINED");
-        break;
-    default:
-        QCERR("node type is error");
-        throw invalid_argument("node type is error");
-        break;
-    }
-
-    return;
-}
-
 
 void QProgStored::transformCExpr(CExpr *p_cexpr)
 {
@@ -456,6 +384,8 @@ void QProgStored::transformClassicalProg(AbstractClassicalProg *cc_pro)
 
     auto expr = dynamic_cast<OriginClassicalProg *>(cc_pro)->getExpr().get();
     transformCExpr(expr);
+	uint32_t classical_expr_node = 0;
+	addDataNode(QPROG_CEXPR_NODE, classical_expr_node);
 }
 
 void QProgStored::handleQGateWithOneAngle(AbstractQGateNode * gate)
@@ -527,6 +457,85 @@ void QProgStored::addDataNode(const QProgStoredNodeType &type, const DataNode & 
     return;
 }
 
+void QProgStored::transformQProgByTraversalAlg(QProg *prog)
+{
+	if (nullptr == prog)
+	{
+		QCERR("p_prog is null");
+		throw runtime_error("p_prog is null");
+		return;
+	} 
+
+	Traversal::traversalByType(prog->getImplementationPtr(), nullptr, *this);
+}
+
+void QProgStored::execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node)
+{
+	transformQGate(cur_node.get());
+}
+
+void QProgStored::execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, std::shared_ptr<QNode> parent_node)
+{
+	transformQMeasure(cur_node.get());
+}
+
+void QProgStored::execute(std::shared_ptr<AbstractClassicalProg>  cur_node, std::shared_ptr<QNode> parent_node)
+{
+	transformClassicalProg(cur_node.get());
+}
+
+void QProgStored::execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node)
+{
+	transformQControlFlow(cur_node.get());
+}
+
+void QProgStored::execute(std::shared_ptr<AbstractQuantumProgram>  cur_node, std::shared_ptr<QNode> parent_node)
+{
+	Traversal::traversal(cur_node, *this);
+}
+
+void QProgStored::execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std::shared_ptr<QNode> parent_node)
+{
+	QVec ctrl_qubits_vector;
+	cur_node->getControlVector(ctrl_qubits_vector);
+	if (!ctrl_qubits_vector.empty())
+	{
+		for (int i = 0; i < ctrl_qubits_vector.size(); i += 2)
+		{
+			uint32_t qubit_data = 0;
+			size_t quibt_addr_1 = 0;
+			size_t quibt_addr_2 = 0;
+			quibt_addr_1 = ctrl_qubits_vector[i]->getPhysicalQubitPtr()->getQubitAddr();
+			if (i + 1 < ctrl_qubits_vector.size())
+			{
+				quibt_addr_2 = ctrl_qubits_vector[i + 1]->getPhysicalQubitPtr()->getQubitAddr();
+				if (0 == quibt_addr_2 )  //确保有效0值存储在0~15位上
+				{
+					size_t addr_tmp = quibt_addr_1;
+					quibt_addr_1 = quibt_addr_2;
+					quibt_addr_2 = addr_tmp;
+				}
+			}
+
+			qubit_data |= quibt_addr_1;
+			qubit_data |= (quibt_addr_2 << kCountMoveBit);
+			addDataNode(QPROG_CONTROL, qubit_data);
+		}
+	}
+
+	bool bDagger = cur_node->isDagger();
+	uint32_t circuit_node = 0;
+	addDataNode(QPROG_CIRCUIT_NODE, circuit_node, bDagger);
+	auto circuit_node_index = m_data_vector.size() - 1;
+
+	Traversal::traversal(cur_node, false, *this);
+
+	circuit_node |= m_node_counter;
+	m_data_vector[circuit_node_index].second.qubit_data = circuit_node;
+}
+
+
+
 void QPanda::storeQProgInBinary(QProg &prog, QuantumMachine *qm, const string &filename)
 {
     QProgStored storeProg(qm);
@@ -540,3 +549,4 @@ std::vector<uint8_t> QPanda::transformQProgToBinary(QProg & prog, QuantumMachine
     storeProg.transform(prog);
     return storeProg.getInsturctions();
 }
+

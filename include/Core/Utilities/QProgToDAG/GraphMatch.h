@@ -1,4 +1,4 @@
-/*! \file QNodeMatch.h */
+/*! \file GraphMatch.h */
 #ifndef _QNODE_MATCH_H_
 #define _QNODE_MATCH_H_
 #include "Core/Utilities/QProgToDAG/QProgToDAG.h"
@@ -49,7 +49,7 @@ public:
     void execute(std::shared_ptr<AbstractControlFlowNode>, std::shared_ptr<QNode>);
 };
 
-class QNodeMatch
+class GraphMatch
 {
 public:
     template <typename _Ty>
@@ -104,6 +104,7 @@ public:
         QubitsCompare count;
         if (!qubitsCompare(count.traversal(query_node), count.traversal(replace_node)))
         {
+            std::cout << "Qubits does not compare" << std::endl;
             return false;
         }
         else

@@ -1,183 +1,50 @@
 #include "QProgClockCycle.h"
 #include "Utilities/TranformQGateTypeStringAndEnum.h"
+#include "Core/Utilities/QProgToDAG/GraphMatch.h"
+#include "Core/Utilities/QProgToDAG/QProgToDAG.h"
+#include "Core/Utilities/QProgToQCircuit.h"
+
 using namespace std;
 USING_QPANDA
-QProgClockCycle::QProgClockCycle(QuantumMachine *qm)
-    :m_count(0)
+
+using sequence_gate_t = std::pair<SequenceNode, std::vector<SequenceNode>>;
+
+QPanda::QProgClockCycle::QProgClockCycle(QPanda::QuantumMachine *qm)
 {
     m_gate_time = qm->getGateTimeMap();
 }
 
 QProgClockCycle::~QProgClockCycle()
-{ }
-
-void QProgClockCycle::traversal(QProg &prog)
 {
-    m_count = countQProgClockCycle(&prog);
 }
 
-size_t QProgClockCycle::count()
+size_t QProgClockCycle::count(QProg &prog)
 {
-    return m_count;
-}
-
-size_t QProgClockCycle::countQProgClockCycle(AbstractQuantumProgram *prog)
-{
-    if (nullptr == prog)
+    QCircuit circuit;
+    if (!cast_qprog_qcircuit(prog, circuit))
     {
-        throw invalid_argument("prog is a nullptr");
+        throw std::runtime_error("cast_qprog_qcircuit failure!");
     }
 
+    GraphMatch dag_match;
+    TopologincalSequence graph_seq;
+    dag_match.getMainGraphSequence(prog, graph_seq);
     size_t clock_cycle = 0;
-    for (auto iter = prog->getFirstNodeIter(); iter != prog->getEndNodeIter(); iter++)
+
+    for (auto &layer : graph_seq)
     {
-        QNode * node = (*iter).get();
-        clock_cycle += countQNodeClockCycle(node);
-    }
+        auto iter = std::max_element(layer.begin(), layer.end(),
+            [=](const sequence_gate_t &a, const sequence_gate_t &b)
+        {
+            GateType gate_type_a = static_cast<GateType>(a.first.m_node_type);
+            GateType gate_type_b = static_cast<GateType>(b.first.m_node_type);
+            auto time_a = getQGateTime(gate_type_a);
+            auto time_b = getQGateTime(gate_type_b);
+            return time_a < time_b;
+        });
 
-    return clock_cycle;
-}
-
-size_t QProgClockCycle::countQCircuitClockCycle(AbstractQuantumCircuit *circuit)
-{
-    if (nullptr == circuit)
-    {
-        QCERR("circuit is a nullptr");
-        throw invalid_argument("circuit is a nullptr");
-    }
-
-    size_t clock_cycle = 0;
-    for (auto iter = circuit->getFirstNodeIter(); iter != circuit->getEndNodeIter(); iter++)
-    {
-        QNode * node = (*iter).get();
-        clock_cycle += countQNodeClockCycle(node);
-    }
-
-    return clock_cycle;
-}
-
-size_t QProgClockCycle::countQWhileClockCycle(AbstractControlFlowNode *qwhile)
-{
-    if (nullptr == qwhile)
-    {
-        QCERR("qwhile is a nullptr");
-        throw invalid_argument("qwhile is a nullptr");
-    }
-
-    QNode *pNode = dynamic_cast<QNode *>(qwhile);
-    if (nullptr == pNode)
-    {
-        QCERR("node type error");
-        throw runtime_error("node type error");
-    }
-
-    size_t clock_cycle = 0;
-    QNode *true_branch_node = qwhile->getTrueBranch().get();
-
-    if (nullptr != true_branch_node)
-    {
-        clock_cycle += countQNodeClockCycle(true_branch_node);
-    }
-
-    return clock_cycle;
-}
-
-size_t QProgClockCycle::countQIfClockCycle(AbstractControlFlowNode *qif)
-{
-    if (nullptr == qif)
-    {
-        QCERR("qif is a nullptr");
-        throw invalid_argument("qif is a nullptr");
-    }
-
-    QNode *pNode = dynamic_cast<QNode *>(qif);
-    if (nullptr == pNode)
-    {
-        QCERR("node type error");
-        throw runtime_error("node type error");
-    }
-
-    size_t true_branch_clock_cycle = 0;
-    size_t false_branch_clock_cycle = 0;
-    QNode *true_branch_node = qif->getTrueBranch().get();
-
-    if (nullptr != true_branch_node)
-    {
-        true_branch_clock_cycle += countQNodeClockCycle(true_branch_node);
-    }
-
-    QNode *false_branch_node = qif->getFalseBranch().get();
-    if (nullptr != false_branch_node)
-    {
-        false_branch_clock_cycle += countQNodeClockCycle(false_branch_node);
-    }
-
-    size_t clock_cycle = (true_branch_clock_cycle > false_branch_clock_cycle)
-                         ? true_branch_clock_cycle : false_branch_clock_cycle;
-    return clock_cycle;
-}
-
-size_t QProgClockCycle::getQGateTime(AbstractQGateNode *gate)
-{
-    if (nullptr == gate)
-    {
-        QCERR("gate is a nullptr");
-        throw invalid_argument("gate is a nullptr");
-    }
-
-    GateType gate_type = static_cast<GateType>(gate->getQGate()->getGateType());
-    auto iter = m_gate_time.find(gate_type);
-    size_t gate_time_value = 0;
-
-    if (m_gate_time.end() == iter)
-    {
-        gate_time_value = getDefalutQGateTime(gate_type);
-        m_gate_time.insert({gate_type, gate_time_value});
-        std::cout << "warning: "
-                  << TransformQGateType::getInstance()[gate_type]
-                  + " gate is not Configured, will be set a default value "
-                  + std::to_string(gate_time_value) + "\n";
-    }
-    else
-    {
-        gate_time_value = iter->second;
-    }
-
-    return gate_time_value;
-}
-
-size_t QProgClockCycle::countQNodeClockCycle(QNode *node)
-{
-    if (nullptr == node)
-    {
-        QCERR("node is a nullptr");
-        throw invalid_argument("node is a nullptr");
-    }
-
-    size_t clock_cycle = 0;
-    int type = node->getNodeType();
-    switch (type)
-    {
-    case NodeType::GATE_NODE :
-        clock_cycle += getQGateTime(dynamic_cast<AbstractQGateNode *>(node));
-        break;
-    case NodeType::CIRCUIT_NODE:
-        clock_cycle += countQCircuitClockCycle(dynamic_cast<AbstractQuantumCircuit *>(node));
-        break;
-    case NodeType::PROG_NODE:
-        clock_cycle += countQProgClockCycle(dynamic_cast<AbstractQuantumProgram *>(node));
-        break;
-    case NodeType::QIF_START_NODE:
-        clock_cycle += countQIfClockCycle(dynamic_cast<AbstractControlFlowNode *>(node));
-        break;
-    case NodeType::WHILE_START_NODE:
-        clock_cycle += countQWhileClockCycle(dynamic_cast<AbstractControlFlowNode *>(node));
-        break;
-    case NodeType::MEASURE_GATE:
-        break;
-    default:
-        QCERR("Bad nodeType");
-        throw runtime_error("Bad nodeType");
+        auto gate_type = static_cast<GateType>(iter->first.m_node_type);
+        clock_cycle += getQGateTime(gate_type);
     }
 
     return clock_cycle;
@@ -207,7 +74,6 @@ size_t QProgClockCycle::getDefalutQGateTime(GateType gate_type)
     case U3_GATE:
     case U4_GATE:
         return kSingleGateDefaultTime;
-        break;
     case CU_GATE:
     case CNOT_GATE:
     case CZ_GATE:
@@ -219,15 +85,32 @@ size_t QProgClockCycle::getDefalutQGateTime(GateType gate_type)
         return kDoubleGateDefaultTime;
     default:
         QCERR("Bad nodeType");
-        throw runtime_error("Bad nodeType");
+        throw std::runtime_error("Bad nodeType");
     }
 
     return 0;
 }
 
+size_t QProgClockCycle::getQGateTime(GateType gate_type)
+{
+    auto iter = m_gate_time.find(gate_type);
+    size_t gate_time_value = 0;
+
+    if (m_gate_time.end() == iter)
+    {
+        gate_time_value = getDefalutQGateTime(gate_type);
+        m_gate_time.insert({ gate_type, gate_time_value });
+    }
+    else
+    {
+        gate_time_value = iter->second;
+    }
+
+    return gate_time_value;
+}
+
 size_t QPanda::getQProgClockCycle(QProg &prog, QuantumMachine *qm)
 {
     QProgClockCycle counter(qm);
-    counter.traversal(prog);
-    return counter.count();
+    return counter.count(prog);
 }

@@ -307,7 +307,7 @@ public:
 
 private:
 	QProg& m_prog;
-	QNodeMatch m_dag;
+	GraphMatch m_dag;
 	TopologincalSequence m_seq;
 	std::vector<int> m_qubits_in_use;
 	const QStat m_mat_I;

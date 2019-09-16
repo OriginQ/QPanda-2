@@ -216,10 +216,8 @@ def graph_match_fun():
     replace_cir = QCircuit()
     replace_cir.insert(Y(q[0]))
 
-    dag_match = QNodeMatch()
-
     update_prog = QProg()
-    dag_match.graph_query_replace(prog, query_cir, replace_cir, update_prog, machine)
+    graph_query_replace(prog, query_cir, replace_cir, update_prog, machine)
 
     print("after replace")
     print(to_originir(update_prog, machine))

@@ -1,6 +1,6 @@
 #include "Core/Utilities/Transform/QProgDataParse.h"
 #include "Core/QuantumCircuit/ClassicalConditionInterface.h"
-
+#include "Core/Utilities/QProgToQCircuit.h"
 using namespace std;
 USING_QPANDA
 
@@ -25,7 +25,7 @@ const std::map<int, function<ClassicalCondition(ClassicalCondition &, ClassicalC
     {ELT,[](ClassicalCondition& a,ClassicalCondition & b) {return a <= b; } },
     {AND,[](ClassicalCondition &a,ClassicalCondition &b) {return a && b; } },
     {OR,[](ClassicalCondition &a,ClassicalCondition &b) {return a || b; } },
-    {ASSIGN,[](ClassicalCondition &a,ClassicalCondition &b) { a = b; return a; } }
+	{ASSIGN,[](ClassicalCondition &a,ClassicalCondition &b) { return a = b; } }
 };
 
 const std::map<int, function<ClassicalCondition(ClassicalCondition)>> kUnaryOperationFun =
@@ -60,22 +60,30 @@ const std::map<int, function<QGate(Qubit *, double)>> kSingleGateAngelFun =
     {QPROG_RZ_GATE, RZ},
     {QPROG_U1_GATE, U1}
 };
+const uint32_t kCUValue = 1u << QPROG_CU_GATE;
+const std::map<int, function<QGate(Qubit*, Qubit*, double, double, double, double)>> kCUFun =
+{
+	{QPROG_CU_GATE, [](Qubit *q1, Qubit *q2, double alpha, double beta, double gamma, double delta)
+					 {return CU(alpha, beta, gamma, delta, q1, q2); }}
+};
 
 const uint32_t kU4Value = 1u << QPROG_U4_GATE;
 const std::map<int, function<QGate(Qubit*, double, double, double, double)>> kU4Fun =
 {
     { QPROG_U4_GATE, [](Qubit *q, double alpha, double beta, double gamma, double delta)
-                     {return U4(alpha, beta, gamma, delta, q); } }
+					 {return U4(alpha, beta, gamma, delta, q); } }
 };
 
 const uint32_t kDoubleGateValue =
 (1u << QPROG_CNOT_GATE) | (1u << QPROG_CZ_GATE) |
-(1u << QPROG_ISWAP_GATE) | (1u << QPROG_SQISWAP_GATE);
+(1u << QPROG_ISWAP_GATE) | (1u << QPROG_SQISWAP_GATE)| 
+(1u << QPROG_SWAP_GATE);
 const std::map<int, function<QGate(Qubit *, Qubit *)>> kDoubleGateFun =
 {
     {QPROG_CNOT_GATE, CNOT},
     {QPROG_CZ_GATE, CZ},
     {QPROG_ISWAP_GATE, [](Qubit *q1, Qubit *q2) {return iSWAP(q1, q2); }},
+	{QPROG_SWAP_GATE, [](Qubit *q1, Qubit *q2) {return SWAP(q1, q2); }},
     {QPROG_SQISWAP_GATE, SqiSWAP}
 };
 
@@ -194,14 +202,6 @@ bool QProgDataParse::parse(QProg &prog)
 
 QVec QProgDataParse::getQubits()
 {
-    size_t left_qubit_count = m_qubits_count - m_qubits_addr.size();
-    auto left_qubits = m_quantum_machine->allocateQubits(left_qubit_count);
-    for (auto qubit : left_qubits)
-    {
-        size_t qubit_addr = qubit->getPhysicalQubitPtr()->getQubitAddr();
-        m_qubits_addr.push_back(qubit_addr);
-    }
-
     std::stable_sort(m_qubits_addr.begin(), m_qubits_addr.end(),
                      [](size_t a, size_t b){return a < b ;});
     QVec qubits;
@@ -216,16 +216,6 @@ QVec QProgDataParse::getQubits()
 
 std::vector<ClassicalCondition> QProgDataParse::getCbits()
 {
-    size_t left_cbit_count = m_cbits_count - m_cbits_addr.size();
-    auto left_cbits = m_quantum_machine->allocateCBits(left_cbit_count);
-    for (auto cbit : left_cbits)
-    {
-        auto cbit_name = cbit.getExprPtr()->getCBit()->getName();
-        cbit_name.erase(cbit_name.begin(), cbit_name.begin() + 1);
-        auto cbit_addr = std::stoull(cbit_name);
-        m_cbits_addr.push_back(cbit_addr);
-    }
-
     std::stable_sort(m_cbits_addr.begin(), m_cbits_addr.end(),
                      [](size_t a, size_t b){return a < b ;});
     std::vector<ClassicalCondition> cbits;
@@ -241,6 +231,17 @@ std::vector<ClassicalCondition> QProgDataParse::getCbits()
 
 void QProgDataParse::parseQGateDataNode(QProg &prog, const uint32_t &type_and_number, const uint32_t &qubits_data)
 {
+	QVec ctrl_qubits_vector;
+	if (!m_control_qubits_addr.empty())
+	{
+		for (auto qubit_addr : m_control_qubits_addr)
+		{
+			auto qubit = m_quantum_machine->allocateQubitThroughVirAddress(qubit_addr);
+			ctrl_qubits_vector.push_back(qubit);
+		}
+		m_control_qubits_addr.clear();
+	}
+
     uint16_t type = (type_and_number & 0xffff) >> 1;
     bool is_dagger = (type_and_number & 0x01) ? true : false;
 
@@ -268,6 +269,7 @@ void QProgDataParse::parseQGateDataNode(QProg &prog, const uint32_t &type_and_nu
 
         auto gate = iter->second(qubit0);
         gate.setDagger(is_dagger);
+		gate.setControl(ctrl_qubits_vector);
         prog << gate;
     }
     else if (kSingleGateAngleValue & tmp)
@@ -283,6 +285,7 @@ void QProgDataParse::parseQGateDataNode(QProg &prog, const uint32_t &type_and_nu
         float angle = getAngle(*m_iter);
         auto gate = iter->second(qubit0, angle);
         gate.setDagger(is_dagger);
+		gate.setControl(ctrl_qubits_vector);
         prog << gate;
     }
     else if (kDoubleGateValue & tmp)
@@ -303,6 +306,7 @@ void QProgDataParse::parseQGateDataNode(QProg &prog, const uint32_t &type_and_nu
 
         auto gate = iter->second(qubit0, qubit1);
         gate.setDagger(is_dagger);
+		gate.setControl(ctrl_qubits_vector);
         prog << gate;
     }
     else if (kDoubleGateAngleValue & tmp)
@@ -326,6 +330,7 @@ void QProgDataParse::parseQGateDataNode(QProg &prog, const uint32_t &type_and_nu
 
         auto gate = iter->second(qubit0, qubit1, angle);
         gate.setDagger(is_dagger);
+		gate.setControl(ctrl_qubits_vector);
         prog << gate;
     }
     else if (kU4Value & tmp)
@@ -336,7 +341,6 @@ void QProgDataParse::parseQGateDataNode(QProg &prog, const uint32_t &type_and_nu
             QCERR("parse gate type error!");
             throw runtime_error("parse gate type error!");
         }
-
         m_iter++;
         float alpha = getAngle(*m_iter);
         m_iter++;
@@ -348,8 +352,37 @@ void QProgDataParse::parseQGateDataNode(QProg &prog, const uint32_t &type_and_nu
 
         auto gate = iter->second(qubit0, alpha, beta, gamma, delta);
         gate.setDagger(is_dagger);
+		gate.setControl(ctrl_qubits_vector);
         prog << gate;
     }
+	else if (kCUValue & tmp)
+	{
+		auto iter = kCUFun.find(type);
+		if (iter == kCUFun.end())
+		{
+			QCERR("parse gate type error!");
+			throw runtime_error("parse gate type error!");
+		}
+		auto qubit1 = m_quantum_machine->allocateQubitThroughVirAddress(qubit_array[1]);
+		auto qubit1_iter = std::find(m_qubits_addr.begin(), m_qubits_addr.end(), qubit_array[1]);
+		if (m_qubits_addr.end() == qubit1_iter)
+		{
+			m_qubits_addr.push_back(qubit_array[1]);
+		}
+		m_iter++;
+		float alpha = getAngle(*m_iter);
+		m_iter++;
+		float beta = getAngle(*m_iter);
+		m_iter++;
+		float gamma = getAngle(*m_iter);
+		m_iter++;
+		float delta = getAngle(*m_iter);
+
+		auto gate = iter->second(qubit0, qubit1, alpha, beta, gamma, delta);
+		gate.setDagger(is_dagger);
+		gate.setControl(ctrl_qubits_vector);
+		prog << gate;
+	}
     else
     {
         QCERR("Invaild QGate Type");
@@ -535,7 +568,57 @@ void QProgDataParse::parseQWhileDataNode(QProg &prog, uint32_t data)
 
     return;
 }
+void QProgDataParse::parseCircuitDataNode(QProg &prog, const uint32_t &type_and_number, const uint32_t &data)
+{
+	QVec ctrl_qubits_vector;
+	if (!m_control_qubits_addr.empty())
+	{
+		for (auto qubit_addr : m_control_qubits_addr)
+		{
+			auto qubit = m_quantum_machine->allocateQubitThroughVirAddress(qubit_addr);
+			ctrl_qubits_vector.push_back(qubit);
+		}
+		m_control_qubits_addr.clear();
+	}
 
+	bool is_dagger = (type_and_number & 0x01) ? true : false;
+	uint32_t tail_number_circuit = data & 0xffff/*>> kCountMoveBit*/;
+
+	QCircuit cir = CreateEmptyCircuit();
+	QProg porg_tmp = CreateEmptyQProg();
+	m_iter++;
+	parseDataNode(porg_tmp, tail_number_circuit);
+
+	cast_qprog_qcircuit(porg_tmp, cir);
+
+	cir.setDagger(is_dagger);
+	cir.setControl(ctrl_qubits_vector);
+	prog << cir;
+
+	return;
+}
+
+void QProgDataParse::parseClassicalExprDataNode(QProg &prog, uint32_t data)
+{
+	ClassicalCondition cc(m_stack_cc.top());
+	m_stack_cc.pop();
+	prog << cc;
+	return;
+}
+
+void QProgDataParse::parseControlNodeData(const uint32_t &data)
+{
+	size_t qubit_addr_1 = data & 0xffff;
+	m_control_qubits_addr.push_back(qubit_addr_1);
+
+	size_t qubit_addr_2 = (data >> (kCountMoveBit)); 
+	if (0 != qubit_addr_2 ) //存储时已将0保存在0~15位
+	{
+		m_control_qubits_addr.push_back(qubit_addr_2);
+	}
+
+	return;
+}
 
 void QProgDataParse::parseDataNode(QProg &prog, const uint32_t &tail_number)
 {
@@ -564,6 +647,7 @@ void QProgDataParse::parseDataNode(QProg &prog, const uint32_t &tail_number)
     case QPROG_ISWAP_GATE:
     case QPROG_ISWAP_THETA_GATE:
     case QPROG_SQISWAP_GATE:
+	case	QPROG_SWAP_GATE:
     case QPROG_RX_GATE:
     case QPROG_RY_GATE:
     case QPROG_RZ_GATE:
@@ -575,14 +659,10 @@ void QProgDataParse::parseDataNode(QProg &prog, const uint32_t &tail_number)
         parseQMeasureDataNode(prog, data);
         break;
     case QPROG_QIF_NODE:
-        QCERR("don't support QIF and QWHILE");
-        throw invalid_argument("don't support QIF and QWHILE");
-        //parseQIfDataNode(prog, data);
+        parseQIfDataNode(prog, data);
         break;
     case QPROG_QWHILE_NODE:
-        QCERR("don't support QIF and QWHILE");
-        throw invalid_argument("don't support QIF and QWHILE");
-        //parseQWhileDataNode(prog, data);
+        parseQWhileDataNode(prog, data);
         break;
     case QPROG_CEXPR_CBIT:
         parseCExprCBitDataNode(data);
@@ -593,7 +673,16 @@ void QProgDataParse::parseDataNode(QProg &prog, const uint32_t &tail_number)
     case QPROG_CEXPR_CONSTVALUE:
         parseCExprConstValueDataNode(data);
         break;
-    default:
+	case QPROG_CEXPR_NODE:
+		parseClassicalExprDataNode(prog, data);
+		break;
+	case QPROG_CONTROL:
+		parseControlNodeData(data);
+		break;
+	case QPROG_CIRCUIT_NODE:
+		parseCircuitDataNode(prog, m_iter->first, data);
+		break;
+	default:
         QCERR("invalid QProg node type");
         throw runtime_error("invalid QProg node type");
         break;

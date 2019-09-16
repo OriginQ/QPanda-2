@@ -16,11 +16,12 @@ Classes for QProgDAG.
 #include <vector>
 #include <memory>
 #include "Core/QuantumCircuit/QGate.h"
+#include "Core/QuantumCircuit/QCircuit.h"
+#include "Core/QuantumCircuit/QProgram.h"
 #include "Core/QuantumCircuit/QuantumMeasure.h"
 #include "Core/QuantumCircuit/QGlobalVariable.h"
 #include "ThirdParty/Eigen/Sparse"
 #include "ThirdParty/Eigen/Dense"
-#include "Core/QPanda.h"
 
 QPANDA_BEGIN
 

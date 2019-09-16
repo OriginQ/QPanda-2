@@ -46,6 +46,7 @@ TransformQGateType::TransformQGateType()
     m_qgate_type_map.insert({ "ISWAP_THETA", ISWAP_THETA_GATE });
     m_qgate_type_map.insert({ "ISWAP", ISWAP_GATE }); 
     m_qgate_type_map.insert({ "SQISWAP", SQISWAP_GATE });
+	m_qgate_type_map.insert({ "SWAP", SWAP_GATE });
     m_qgate_type_map.insert({ "TWO_QUBIT", TWO_QUBIT_GATE });
 }
 

@@ -651,7 +651,7 @@ int JudgeTwoNodeIterIsSwappable::judgeLayerInfo(bool &result)
 	sub_pickup_func();
 
     //get layer info
-    QNodeMatch dag;
+    GraphMatch dag;
     TopologincalSequence seq;
     dag.getMainGraphSequence(tmp_prog, seq);
 

@@ -84,7 +84,7 @@ TEST(MatrixXi, Eigen)
     //replace_cir << T(q[4]) << S(q[4]) << Z1(q[4]);
     replace_cir << RY(q[4],-PI/2) << CZ(q[3], q[4]) << RY(q[4], PI / 2);
 
-    QNodeMatch dag_match;
+    GraphMatch dag_match;
     TopologincalSequence graph_seq;
     dag_match.getMainGraphSequence(prog, graph_seq);
 

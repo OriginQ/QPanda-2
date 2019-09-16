@@ -183,7 +183,7 @@ namespace QPanda
 
     bool OriginNelderMead::init()
     {
-#ifdef WIN32
+#ifdef _MSC_VER
         using convert_typeX = std::codecvt_utf8<wchar_t>;
         std::wstring_convert<convert_typeX, wchar_t> converterX;
 

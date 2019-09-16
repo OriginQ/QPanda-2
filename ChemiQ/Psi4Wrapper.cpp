@@ -1,7 +1,7 @@
 
 #include "Psi4Wrapper.h"
 #include "QString.h"
-
+#include <math.h>
 #include <Python.h>
 #include <codecvt>
 
@@ -14,7 +14,7 @@ Psi4Wrapper::Psi4Wrapper()
 
 void Psi4Wrapper::initialize(const std::string &chemiq_dir)
 {
-#ifdef WIN32
+#ifdef _MSC_VER
     if (!chemiq_dir.empty())
     {
         using convert_typeX = std::codecvt_utf8<wchar_t>;

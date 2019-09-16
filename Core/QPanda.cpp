@@ -43,7 +43,6 @@ QuantumMachine *QPanda::initQuantumMachine(const QMachineType class_type)
     }
     try
     {
-        global_quantum_machine = qm;
         qm->init();
         return qm;
     }

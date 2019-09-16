@@ -71,7 +71,8 @@ enum GateType {
     ISWAP_GATE,/**< Quantum iswap gate */
     SQISWAP_GATE,/**< Quantum sqiswap gate */
     SWAP_GATE,/**< Quantum swap gate */
-    TWO_QUBIT_GATE/**< Quantum two-qubit gate */
+    TWO_QUBIT_GATE,/**< Quantum two-qubit gate */
+    TOFFOLI_GATE
 };
 
 /*

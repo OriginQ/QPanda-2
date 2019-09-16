@@ -1,1 +1,3 @@
 include pyqpanda/pyQPanda.pyd
+include pyqpanda/Operator/pyQPandaOperator.pyd
+include pyqpanda/ChemiQ/pyQPandaChemiQ.pyd

@@ -104,6 +104,11 @@ private:
     void parseCExprEvalDataNode(const int &data);
     void parseQIfDataNode(QProg &prog, const uint32_t &data);
     void parseQWhileDataNode(QProg &prog, uint32_t data);
+	void parseCircuitDataNode(QProg &prog, const uint32_t &type_and_number, const uint32_t &data);
+	void parseClassicalExprDataNode(QProg &prog, uint32_t data);
+	void parseControlNodeData(const uint32_t &data);
+
+
     float getAngle(const std::pair<uint32_t, DataNode> &data);
     int getCBitValue(const std::pair<uint32_t, DataNode> &data_node);
 
@@ -118,6 +123,7 @@ private:
     std::vector<std::pair<uint32_t, DataNode>>::iterator m_iter;
 
     std::stack<ClassicalCondition> m_stack_cc;
+	std::vector<size_t> m_control_qubits_addr;
     QuantumMachine *m_quantum_machine;
 };
 

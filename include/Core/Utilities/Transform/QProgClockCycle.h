@@ -20,6 +20,7 @@ update comment
 #include "Core/QuantumCircuit/ControlFlow.h"
 #include "Core/QuantumCircuit/QGate.h"
 #include "Core/QuantumMachine/OriginQuantumMachine.h"
+#include "Core/Utilities/Traversal.h"
 #include <map>
 QPANDA_BEGIN
 /**
@@ -43,32 +44,18 @@ QPANDA_BEGIN
             finalize();
       @endcode
 */
-class QProgClockCycle
-{
+class QProgClockCycle {
 public:
     QProgClockCycle(QuantumMachine *qm);
     ~QProgClockCycle();
-    void traversal(QProg &prog);
-    size_t count();
+    size_t count(QProg &prog);
 private:
-    size_t countQProgClockCycle(AbstractQuantumProgram *prog);
-    size_t countQCircuitClockCycle(AbstractQuantumCircuit *circuit);
-    size_t countQWhileClockCycle(AbstractControlFlowNode *qwhile);
-    size_t countQIfClockCycle(AbstractControlFlowNode *qif);
-
-    size_t getQGateTime(AbstractQGateNode *gate);
-    size_t countQNodeClockCycle(QNode * node);
     size_t getDefalutQGateTime(GateType gate_type);
+    size_t getQGateTime(GateType gate_type);
     std::map<GateType, size_t> m_gate_time;
-    size_t m_count;
 };
 
-/**
-* @brief  Get quantum program clock cycle
-* @ingroup QuantumMachine
-* @param[in]  QProg& quantum program
-* @return     Eigen::size_t   Clock cycle  result
-*/
+
 size_t getQProgClockCycle(QProg &prog, QuantumMachine *qm);
 QPANDA_END
 #endif // _QPROG_CLOCK_CYCLE_H

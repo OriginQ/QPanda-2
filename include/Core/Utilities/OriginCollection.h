@@ -853,7 +853,7 @@ public:
 
         m_file_path = file_name;
 
-#ifdef WIN32
+#ifdef _MSC_VER
         using convert_typeX = std::codecvt_utf8<wchar_t>;
         std::wstring_convert<convert_typeX, wchar_t> converterX;
 
@@ -915,7 +915,7 @@ public:
             return false;
         }
 
-#ifdef WIN32
+#ifdef _MSC_VER
         using convert_typeX = std::codecvt_utf8<wchar_t>;
         std::wstring_convert<convert_typeX, wchar_t> converterX;
 

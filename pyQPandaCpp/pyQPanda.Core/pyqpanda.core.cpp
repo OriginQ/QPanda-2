@@ -944,27 +944,25 @@ PYBIND11_MODULE(pyQPanda, m)
 
 
 #define QUERY_REPLACE(GRAPH_NODE,QUERY_NODE,REPLACE_NODE) \
-.def("graph_query_replace", [](QNodeMatch &qm, GRAPH_NODE &graph_node, QUERY_NODE &query_node,\
+m.def("graph_query_replace", [](GRAPH_NODE &graph_node, QUERY_NODE &query_node,\
                                    REPLACE_NODE &replace_node, QProg &prog, QuantumMachine *qvm)\
 {\
+    GraphMatch qm;\
     return qm.graphQueryReplace(graph_node, query_node, replace_node, prog, qvm);\
-})
+});
 
-    py::class_<QNodeMatch>(m, "QNodeMatch")
-        .def(py::init<>())
+    QUERY_REPLACE(QProg, QCircuit, QCircuit)
+    QUERY_REPLACE(QProg, QCircuit, QGate)
+    QUERY_REPLACE(QProg, QGate, QCircuit)
+    QUERY_REPLACE(QProg, QGate, QGate)
 
-        QUERY_REPLACE(QProg, QCircuit, QCircuit)
-        QUERY_REPLACE(QProg, QCircuit, QGate)
-        QUERY_REPLACE(QProg, QGate, QCircuit)
-        QUERY_REPLACE(QProg, QGate, QGate)
+    QUERY_REPLACE(QCircuit, QCircuit, QCircuit)
+    QUERY_REPLACE(QCircuit, QCircuit, QGate)
+    QUERY_REPLACE(QCircuit, QGate, QCircuit)
+    QUERY_REPLACE(QCircuit, QGate, QGate)
 
-        QUERY_REPLACE(QCircuit, QCircuit, QCircuit)
-        QUERY_REPLACE(QCircuit, QCircuit, QGate)
-        QUERY_REPLACE(QCircuit, QGate, QCircuit)
-        QUERY_REPLACE(QCircuit, QGate, QGate)
-
-        QUERY_REPLACE(QGate, QCircuit, QCircuit)
-        QUERY_REPLACE(QGate, QCircuit, QGate)
-        QUERY_REPLACE(QGate, QGate, QCircuit)
-        QUERY_REPLACE(QGate, QGate, QGate);
+    QUERY_REPLACE(QGate, QCircuit, QCircuit)
+    QUERY_REPLACE(QGate, QCircuit, QGate)
+    QUERY_REPLACE(QGate, QGate, QCircuit)
+    QUERY_REPLACE(QGate, QGate, QGate);
 }

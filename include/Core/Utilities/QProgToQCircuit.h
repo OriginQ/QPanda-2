@@ -103,7 +103,7 @@ public:
 
 };
 
-bool cast_qprog_qcircuit(QProg prog, QCircuit& circuit)
+static bool cast_qprog_qcircuit(QProg prog, QCircuit& circuit)
 {
     QProgToQCircuit traversal_class;
     bool result = true;

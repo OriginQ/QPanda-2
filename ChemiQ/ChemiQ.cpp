@@ -52,7 +52,7 @@ namespace QPanda {
 		writeProgress(0);
 		// check file exists
 		std::string base_file = m_save_data_dir + "/" + BASE_FILE;
-#ifdef WIN32
+#ifdef _MSC_VER
 		using convert_typeX = std::codecvt_utf8<wchar_t>;
 		std::wstring_convert<convert_typeX, wchar_t> converterX;
 
@@ -140,7 +140,7 @@ namespace QPanda {
 				std::string filename = m_save_data_dir + "/" + OPTIMIZED_FILE_PR
 					+ std::to_string(i + 1) + FILE_SUFFIX;
 
-#ifdef WIN32
+#ifdef _MSC_VER
 				using convert_typeX = std::codecvt_utf8<wchar_t>;
 				std::wstring_convert<convert_typeX, wchar_t> converterX;
 
@@ -269,7 +269,7 @@ namespace QPanda {
 		std::string filename = m_save_data_dir + "/" +
 			OPTIMIZER_CACHE_FILE_PR + std::to_string(m_process_i + 1) + FILE_SUFFIX;
 
-#ifdef WIN32
+#ifdef _MSC_VER
 		using convert_typeX = std::codecvt_utf8<wchar_t>;
 		std::wstring_convert<convert_typeX, wchar_t> converterX;
 

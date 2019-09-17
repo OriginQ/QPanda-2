@@ -509,7 +509,7 @@ void QProgStored::execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std:
 			if (i + 1 < ctrl_qubits_vector.size())
 			{
 				quibt_addr_2 = ctrl_qubits_vector[i + 1]->getPhysicalQubitPtr()->getQubitAddr();
-				if (0 == quibt_addr_2 )  //确保有效0值存储在0~15位上
+				if (0 == quibt_addr_2 ) 
 				{
 					size_t addr_tmp = quibt_addr_1;
 					quibt_addr_1 = quibt_addr_2;

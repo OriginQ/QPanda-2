@@ -73,9 +73,6 @@ void QProgDAG::getTopologincalSequence(TopologincalSequence &seq)
         flag_mat(0, i) = col_mat(0, i);
     }
 
-    //定义两行，第一行indegree第二行flag
-    //由该节点指向的节点入度减一
-
     //cout << flag_mat << endl << endl;
 
     while (!flag_mat.row(1).minCoeff())

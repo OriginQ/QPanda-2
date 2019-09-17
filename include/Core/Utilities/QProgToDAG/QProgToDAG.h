@@ -33,7 +33,7 @@ protected:
 
 
 private:
-    std::map<size_t,size_t> qubit_vertices_map; //每个量子比特当前对应的顶点编号
+    std::map<size_t,size_t> qubit_vertices_map;
 };
 
 QPANDA_END

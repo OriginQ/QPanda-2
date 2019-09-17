@@ -8,7 +8,7 @@
         "msvc_x64_x64"
       ],
       "buildRoot": "${projectDir}\\build\\${name}",
-      "installRoot": "${env.USERPROFILE}\\CMakeBuilds\\install",
+      "installRoot": "C:\\QPanda2",
       "cmakeCommandArgs": "-DUSE_PYQPANDA=ON",
       "buildCommandArgs": "-v",
       "ctestCommandArgs": ""
@@ -21,7 +21,7 @@
         "msvc_x64_x64"
       ],
       "buildRoot": "${projectDir}\\build\\${name}",
-      "installRoot": "C:\\install",
+      "installRoot": "C:\\QPanda2",
       "cmakeCommandArgs": "-DUSE_PYQPANDA=ON",
       "buildCommandArgs": "-v",
       "ctestCommandArgs": ""

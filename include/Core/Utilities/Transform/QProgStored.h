@@ -88,10 +88,10 @@ public:
   virtual void execute(std::shared_ptr<AbstractQuantumProgram>  cur_node, std::shared_ptr<QNode> parent_node);
 
 private:
-    void transformQProgByTraversalAlg(QProg *prog);
 
+    void transformQProgByTraversalAlg(QProg *prog);
     void transformQControlFlow(AbstractControlFlowNode *controlflow);
-	void transformQGate(AbstractQGateNode *gate);
+	  void transformQGate(AbstractQGateNode *gate);
     void transformQMeasure(AbstractQuantumMeasure *measure);
 
     void transformQIfProg(AbstractControlFlowNode *controlflow);

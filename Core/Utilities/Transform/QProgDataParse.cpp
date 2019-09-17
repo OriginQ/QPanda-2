@@ -612,7 +612,7 @@ void QProgDataParse::parseControlNodeData(const uint32_t &data)
 	m_control_qubits_addr.push_back(qubit_addr_1);
 
 	size_t qubit_addr_2 = (data >> (kCountMoveBit)); 
-	if (0 != qubit_addr_2 ) //存储时已将0保存在0~15位
+	if (0 != qubit_addr_2 ) 
 	{
 		m_control_qubits_addr.push_back(qubit_addr_2);
 	}

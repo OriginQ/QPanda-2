@@ -160,6 +160,13 @@ private:
 
 };
 
+template <typename _Ty1, typename _Ty2, typename _Ty3>
+void graphQueryReplace(_Ty1 &graph_node, _Ty2 &query_node,
+    _Ty3 &replace_node, QProg &prog, QuantumMachine *qvm)
+{
+    GraphMatch dag;
+    dag.graphQueryReplace(graph_node, query_node, replace_node, prog, qvm);
+}
 
 QPANDA_END
 #endif

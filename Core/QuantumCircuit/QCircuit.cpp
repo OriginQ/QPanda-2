@@ -28,10 +28,21 @@ QCircuit::QCircuit()
     m_pQuantumCircuit.reset(qcircuit);
 }
 
+
+QCircuit::QCircuit(QGate & gate)
+{
+    auto class_name = ConfigMap::getInstance()["QCircuit"];
+    auto qcircuit = QuantumCircuitFactory::getInstance().getQuantumCircuit(class_name);
+
+    m_pQuantumCircuit.reset(qcircuit);
+    m_pQuantumCircuit->pushBackNode(gate.getImplementationPtr());
+}
+
 QCircuit::QCircuit(const QCircuit & old_qcircuit)
 {
     m_pQuantumCircuit = old_qcircuit.m_pQuantumCircuit;
 }
+
 
 QCircuit::~QCircuit()
 {

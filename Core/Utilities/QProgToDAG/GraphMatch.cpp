@@ -258,32 +258,52 @@ bool GraphMatch::qnodeContain(LayerVector &graph_node_vec, LayerVector &query_no
     return true;
 }
 
-bool GraphMatch::graphQuery(TopologincalSequence &graph_seq, 
-                            TopologincalSequence &query_seq, 
-                            MatchVector &match_result)
+bool GraphMatch::graphQuery(TopologincalSequence &graph_seq,
+    TopologincalSequence &query_seq,
+    MatchVector &match_result)
 {
     bool graph_match{ true };
     while (graph_match)
     {
-        int index = 0;
-        ResultVector result;     //匹配多个结果的单次匹配结果
-        std::vector<size_t> qvec;
-        for (auto i = 0; i < query_seq.size(); ++i)    //查询图的所有层的匹配循环
+        Qnum qvec;
+        ResultVector result;
+        size_t graph_layer_index{ 0 };
+        size_t graph_query_index{ 0 };
+        for (auto i = 0; i < query_seq.size();)
         {
             bool layer_match{ false };
-            for (int j = index; j < graph_seq.size(); ++j)
+            for (int j = graph_layer_index; j < graph_seq.size();)
             {
                 if (compareCurLayer(graph_seq[j], query_seq[i], match_result, result, qvec))
                 {
+                    graph_layer_index = ++j;
                     layer_match = true;
-                    index = ++j;
                     break;
+                }
+                else
+                {
+                    ++j;
+                    if (i == 0)
+                    {
+                        graph_query_index = j;
+                    }
                 }
             }
 
-            if (!layer_match)
+            if (layer_match)
             {
-                break;
+                ++i;
+            }
+            else
+            {
+                i = 0;
+                qvec.clear();
+                result.clear();
+                graph_layer_index = ++graph_query_index;
+                if (graph_layer_index >= graph_seq.size())
+                {
+                    break;
+                }
             }
         }
 
@@ -296,7 +316,6 @@ bool GraphMatch::graphQuery(TopologincalSequence &graph_seq,
 
     return !match_result.empty();
 }
-
 
 bool GraphMatch::compareCurLayer(SequenceLayer &graph_layer,
                                  SequenceLayer &query_layer,

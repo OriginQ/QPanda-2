@@ -9,6 +9,7 @@
 #include <map>
 
 #include "Core/QuantumCircuit/QNode.h"
+#include "Core/QuantumCircuit/QGate.h"
 #include "Core/QuantumMachine/QVec.h"
 #include "Core/Utilities/ReadWriteLock.h"
 #include "Core/Utilities/QPandaException.h"
@@ -53,6 +54,7 @@ protected:
 public:
     QCircuit();
     QCircuit(const QCircuit &);
+    QCircuit(QGate & gate);
     QCircuit(std::shared_ptr<AbstractQuantumCircuit> node);
     ~QCircuit();
     std::shared_ptr<QNode> getImplementationPtr();

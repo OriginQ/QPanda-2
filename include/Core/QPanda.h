@@ -38,6 +38,7 @@ limitations under the License.
 #include "Core/Utilities/Transform/QGateCompare.h"
 #include "Core/Utilities/MetadataValidity.h"
 #include "Core/Utilities/Transform/QProgClockCycle.h"
+#include "Core/Utilities/QProgToDAG/GraphMatch.h"
 
 QPANDA_BEGIN
 /**

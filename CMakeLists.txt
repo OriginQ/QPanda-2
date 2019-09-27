@@ -121,8 +121,6 @@ elseif (UNIX)
 endif()
 add_definitions(${EXTRA_LDFLAGS})
 
-option(FIND_CUDA "find cuda" ON)
-
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(UUID REQUIRED uuid)
@@ -131,6 +129,7 @@ if(APPLE)
     find_library(COREFOUNDATION_LIBRARY CoreFoundation)
 endif()
 
+option(FIND_CUDA "find cuda" OFF)
 if (FIND_CUDA)
     find_package(CUDA)
 endif(FIND_CUDA)
@@ -192,7 +191,7 @@ add_subdirectory(QAlg)
 add_subdirectory(Applications)
 add_subdirectory(test)
 
-option(USE_PYQPANDA "use pyQpanda" ON)
+option(USE_PYQPANDA "use pyQpanda" OFF)
 if(USE_PYQPANDA)
     find_package(PythonInterp 3)
     find_package(PythonLibs 3)
@@ -209,15 +208,6 @@ configure_file("${PROJECT_SOURCE_DIR}/configVersion.h.in"
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}ConfigVersion.cmake.in
                ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
                @ONLY)
-
-
-message("\r\n")
-if (NOT CUDA_FOUND)
-    message(WARNING "CUDA is not found, GPUQVM is unuseable !!!")
-endif()
-if (NOT CURL_FOUND)
-    message(WARNING "Curl is not found, CloudHTTP is unuseable !!!")
-endif()
 
 #add extra search paths for libraries and includes
 set(INCLUDE_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/include" CACHE PATH "The directory the headers are installed in")

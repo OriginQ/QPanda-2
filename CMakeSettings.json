@@ -1,30 +1,30 @@
 {
   "configurations": [
     {
-      "name": "x64-Debug",
-      "generator": "Ninja",
-      "configurationType": "Debug",
-      "inheritEnvironments": [
-        "msvc_x64_x64"
-      ],
-      "buildRoot": "${projectDir}\\build\\${name}",
-      "installRoot": "C:\\QPanda2",
-      "cmakeCommandArgs": "-DUSE_PYQPANDA=ON",
-      "buildCommandArgs": "-v",
-      "ctestCommandArgs": ""
+        "name": "x64-Debug",
+        "generator": "Ninja",
+        "configurationType": "Debug",
+        "inheritEnvironments": [
+            "msvc_x64_x64"
+        ],
+        "buildRoot": "${projectDir}\\build\\${name}",
+        "installRoot": "C:\\QPanda2",
+        "cmakeCommandArgs": "-DUSE_PYQPANDA=OFF -DFIND_CUDA=OFF",
+        "buildCommandArgs": "-v",
+        "ctestCommandArgs": ""
     },
     {
-      "name": "x64-Release",
-      "generator": "Ninja",
-      "configurationType": "Release",
-      "inheritEnvironments": [
-        "msvc_x64_x64"
-      ],
-      "buildRoot": "${projectDir}\\build\\${name}",
-      "installRoot": "C:\\QPanda2",
-      "cmakeCommandArgs": "-DUSE_PYQPANDA=ON",
-      "buildCommandArgs": "-v",
-      "ctestCommandArgs": ""
+        "name": "x64-Release",
+        "generator": "Ninja",
+        "configurationType": "Release",
+        "inheritEnvironments": [
+            "msvc_x64_x64"
+        ],
+        "buildRoot": "${projectDir}\\build\\${name}",
+        "installRoot": "C:\\QPanda2",
+        "cmakeCommandArgs": "-DUSE_PYQPANDA=OFF -DFIND_CUDA=OFF",
+        "buildCommandArgs": "-v",
+        "ctestCommandArgs": ""
     }
   ]
 }

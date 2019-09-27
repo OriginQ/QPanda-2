@@ -3,7 +3,6 @@ project(testQPanda)
 SET(QPANDA_INSTALL_DIR  "/usr/local") # QPanda2安装的路径,用户可根据自己设置的安装路径配置QPANDA_INSTALL_DIR
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${QPANDA_INSTALL_DIR}/lib/cmake")
 
-
 add_definitions("-w -DGTEST_USE_OWN_TR1_TUPLE=1")
 set(CMAKE_BUILD_TYPE "Release")
 set(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -g -ggdb")

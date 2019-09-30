@@ -11,7 +11,7 @@ Updated in 2019/08/08 15:05
 #ifndef  IBMQ_H_
 #define  IBMQ_H_
 
-#include "XMLConfigParam.h"
+#include "Core/Utilities/XMLConfigParam.h"
 #include <iostream>
 #include <bitset>
 

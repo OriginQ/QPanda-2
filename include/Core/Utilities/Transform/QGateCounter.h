@@ -104,27 +104,7 @@ private:
     size_t m_count;
 };
 
-/**
-* @brief  Count quantum gate num under quantum program, quantum circuit, quantum while, quantum if
-* @param[in]  _Ty& quantum program, quantum circuit, quantum while or quantum if
-* @return     size_t  Quantum gate num
-* @exception  invalid_argument Abstract Quantum circuit pointer is a nullptr
-* @see
-    * @code
-            init();
-            auto qubits = qAllocMany(4);
-            auto cbits = cAllocMany(4);
-
-            auto circuit = CreateEmptyCircuit();
-            circuit << H(qubits[0]) << X(qubits[1]) << S(qubits[2])
-            << iSWAP(qubits[1], qubits[2]) << RX(qubits[3], PI/4);
-            auto count = getQGateNumber(&circuit);
-            std::cout << "QCircuit count: " << count << std::endl;
-
-            finalize();
-    * @endcode
-*/
-
+/*will delete*/
 template <typename _Ty>
 size_t getQGateNumber(_Ty &node)
 {
@@ -132,6 +112,37 @@ size_t getQGateNumber(_Ty &node)
     QGateCounter counter;
     counter.traversal(node);
     return counter.count();
+}
+
+/* new interface */
+
+/**
+* @brief  Count quantum gate num under quantum program, quantum circuit, quantum while, quantum if
+* @param[in]  _Ty& quantum program, quantum circuit, quantum while or quantum if
+* @return     size_t  Quantum gate num
+* @exception  invalid_argument Abstract Quantum circuit pointer is a nullptr
+* @see
+	* @code
+			init();
+			auto qubits = qAllocMany(4);
+			auto cbits = cAllocMany(4);
+
+			auto circuit = CreateEmptyCircuit();
+			circuit << H(qubits[0]) << X(qubits[1]) << S(qubits[2])
+			<< iSWAP(qubits[1], qubits[2]) << RX(qubits[3], PI/4);
+			auto count = getQGateNumber(&circuit);
+			std::cout << "QCircuit count: " << count << std::endl;
+
+			finalize();
+	* @endcode
+*/
+template <typename _Ty>
+size_t getQGateNum(_Ty &node)
+{
+	static_assert(std::is_base_of<QNode, _Ty>::value, "bad node type");
+	QGateCounter counter;
+	counter.traversal(node);
+	return counter.count();
 }
 
 QPANDA_END

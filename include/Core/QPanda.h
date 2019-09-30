@@ -153,13 +153,6 @@ QMachineStatus* getstat();
  */
  size_t getAllocateQubitNum();
 
- /**
- * @brief  Get allocate cbit nmu
- * @ingroup Core
- * @return    size_t Cbit num
- */
- size_t getAllocateCMem();
-
 /**
 * @brief  Get pmeasure result as tuple list
 * @ingroup QuantumMachine
@@ -244,25 +237,6 @@ std::map<std::string, size_t> runWithConfiguration(QProg &, std::vector<Classica
 std::map<std::string, size_t> quickMeasure(QVec &, int);
 
 
-
-/**
-* @brief  PMeasure
-* @ingroup QuantumMachine
-* @param[in]  QVec& qubit  vector
-* @param[in]  int  Selectmax:the returned value num
-* @return     std::vector<std::pair<size_t, double>>   result
-*/
-prob_tuple PMeasure(QVec& qubit_vector, int select_max);
-
-/**
-* @brief  PMeasure only return result  with no index
-* @ingroup QuantumMachine
-* @param[in]  QVec& qubit vector
-* @return     prob_vec  result
-*/
-prob_vec PMeasure_no_index(QVec& qubit_vector);
-
-
 /**
 * @brief  AccumulateProbability
 * @ingroup QuantumMachine
@@ -317,5 +291,37 @@ void destroyQuantumMachine(QuantumMachine * qvm);
 QPanda::QProg MeasureAll(QVec, std::vector<ClassicalCondition>);
 
 extern QProg transformOriginIRToQProg(std::string filePath, QuantumMachine* qm);
+
+/*will delete*/
+size_t getAllocateCMem();
+prob_tuple PMeasure(QVec& qubit_vector, int select_max);
+prob_vec PMeasure_no_index(QVec& qubit_vector);
+
+/* new interface */
+
+ /**
+ * @brief  Get allocate cbit number
+ * @ingroup Core
+ * @return    size_t Cbit number
+ */
+size_t getAllocateCMemNum();
+
+/**
+* @brief  pMeasure
+* @ingroup QuantumMachine
+* @param[in]  QVec& qubit  vector
+* @param[in]  int  Selectmax:the returned value num
+* @return     std::vector<std::pair<size_t, double>>   result
+*/
+prob_tuple pMeasure(QVec& qubit_vector, int select_max);
+
+/**
+* @brief  pMeasure only return result  with no index
+* @ingroup QuantumMachine
+* @param[in]  QVec& qubit vector
+* @return     prob_vec  result
+*/
+prob_vec pMeasureNoIndex(QVec& qubit_vector);
+
 QPANDA_END
 #endif // !_QPANDA_H

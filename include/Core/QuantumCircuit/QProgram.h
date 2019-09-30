@@ -172,12 +172,16 @@ public:
     void execute(QPUImpl *, QuantumGateParam *);
 };
 
+/* will delete */
+QProg CreateEmptyQProg();
+
+/* new interface */
 /**
 * @brief  QPanda2 basic interface for creating a empty quantum program
 * @ingroup  Core
 * @return     QPanda::QProg  quantum program
 */
-QProg CreateEmptyQProg();
+QProg createEmptyQProg();
 
 /**
 * @brief  Insert new Node at the end of current node

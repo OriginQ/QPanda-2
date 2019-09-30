@@ -473,7 +473,6 @@ bool GraphMatch::compareCurQNode(std::pair<SequenceNode, std::vector<SequenceNod
     }
 }
 
-
 void GraphMatch::SequenceToQProg(TopologincalSequence &seq, QProg &prog, QProgDAG &dag)
 {
     for (auto layer: seq)
@@ -481,7 +480,6 @@ void GraphMatch::SequenceToQProg(TopologincalSequence &seq, QProg &prog, QProgDA
         SequenceToQProg(layer, prog, dag);
     }
 }
-
 
 void GraphMatch::SequenceToQProg(SequenceLayer &layer, QProg &prog, QProgDAG &dag)
 {
@@ -873,10 +871,6 @@ bool GraphMatch::compareGateParm(SequenceNode &graph_node, QProgDAG &graph_dag,
         }
         break;
 
-        default:
-        {
-            return true;
-        }
-        break;
+        default: return true;
     }
 }

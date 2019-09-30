@@ -17,14 +17,14 @@ public:
     X1_GATE = 13, Y1_GATE = 14, Z1_GATE = 15, U4_GATE = 16, RX_GATE = 17, 
     RY_GATE = 18, RZ_GATE = 19, U1_GATE = 20, CNOT_GATE = 21, CZ_GATE = 22, 
     CU_GATE = 23, ISWAP_GATE = 24, SQISWAP_GATE = 25, SWAPZ1_GATE = 26, 
-    ISWAPTHETA_GATE = 27, CR_GATE = 28, DAGGER_KEY = 29, ENDDAGGER_KEY = 30, 
-    CONTROL_KEY = 31, ENDCONTROL_KEY = 32, QIF_KEY = 33, ELSE_KEY = 34, 
-    ENDIF_KEY = 35, QWHILE_KEY = 36, ENDQWHILE_KEY = 37, MEASURE_KEY = 38, 
-    ASSIGN = 39, GT = 40, LT = 41, NOT = 42, EQ = 43, LEQ = 44, GEQ = 45, 
-    NE = 46, AND = 47, OR = 48, PLUS = 49, MINUS = 50, MUL = 51, DIV = 52, 
-    COMMA = 53, LPAREN = 54, RPAREN = 55, LBRACK = 56, RBRACK = 57, NEWLINE = 58, 
-    Identifier = 59, Integer_Literal = 60, Double_Literal = 61, Digit_Sequence = 62, 
-    WhiteSpace = 63, SingleLineComment = 64
+    ISWAPTHETA_GATE = 27, CR_GATE = 28, TOFFOLI_GATE = 29, DAGGER_KEY = 30, 
+    ENDDAGGER_KEY = 31, CONTROL_KEY = 32, ENDCONTROL_KEY = 33, QIF_KEY = 34, 
+    ELSE_KEY = 35, ENDIF_KEY = 36, QWHILE_KEY = 37, ENDQWHILE_KEY = 38, 
+    MEASURE_KEY = 39, ASSIGN = 40, GT = 41, LT = 42, NOT = 43, EQ = 44, 
+    LEQ = 45, GEQ = 46, NE = 47, AND = 48, OR = 49, PLUS = 50, MINUS = 51, 
+    MUL = 52, DIV = 53, COMMA = 54, LPAREN = 55, RPAREN = 56, LBRACK = 57, 
+    RBRACK = 58, NEWLINE = 59, Identifier = 60, Integer_Literal = 61, Double_Literal = 62, 
+    Digit_Sequence = 63, WhiteSpace = 64, SingleLineComment = 65
   };
 
   enum {
@@ -33,17 +33,18 @@ public:
     RuleC_KEY_declaration = 6, RuleQ_KEY_declaration = 7, RuleSingle_gate_without_parameter_declaration = 8, 
     RuleSingle_gate_with_one_parameter_declaration = 9, RuleSingle_gate_with_four_parameter_declaration = 10, 
     RuleDouble_gate_without_parameter_declaration = 11, RuleDouble_gate_with_one_parameter_declaration = 12, 
-    RuleDouble_gate_with_four_parameter_declaration = 13, RuleSingle_gate_without_parameter_type = 14, 
-    RuleSingle_gate_with_one_parameter_type = 15, RuleSingle_gate_with_four_parameter_type = 16, 
-    RuleDouble_gate_without_parameter_type = 17, RuleDouble_gate_with_one_parameter_type = 18, 
-    RuleDouble_gate_with_four_parameter_type = 19, RulePrimary_expression = 20, 
-    RuleUnary_expression = 21, RuleMultiplicative_expression = 22, RuleAddtive_expression = 23, 
-    RuleRelational_expression = 24, RuleEquality_expression = 25, RuleLogical_and_expression = 26, 
-    RuleLogical_or_expression = 27, RuleAssignment_expression = 28, RuleExpression = 29, 
-    RuleControlbit_list = 30, RuleStatement = 31, RuleDagger_statement = 32, 
-    RuleControl_statement = 33, RuleQelse_statement_fragment = 34, RuleQif_statement = 35, 
-    RuleQwhile_statement = 36, RuleMeasure_statement = 37, RuleExpression_statement = 38, 
-    RuleConstant = 39
+    RuleDouble_gate_with_four_parameter_declaration = 13, RuleTriple_gate_without_parameter_declaration = 14, 
+    RuleSingle_gate_without_parameter_type = 15, RuleSingle_gate_with_one_parameter_type = 16, 
+    RuleSingle_gate_with_four_parameter_type = 17, RuleDouble_gate_without_parameter_type = 18, 
+    RuleDouble_gate_with_one_parameter_type = 19, RuleDouble_gate_with_four_parameter_type = 20, 
+    RuleTriple_gate_without_parameter_type = 21, RulePrimary_expression = 22, 
+    RuleUnary_expression = 23, RuleMultiplicative_expression = 24, RuleAddtive_expression = 25, 
+    RuleRelational_expression = 26, RuleEquality_expression = 27, RuleLogical_and_expression = 28, 
+    RuleLogical_or_expression = 29, RuleAssignment_expression = 30, RuleExpression = 31, 
+    RuleControlbit_list = 32, RuleStatement = 33, RuleDagger_statement = 34, 
+    RuleControl_statement = 35, RuleQelse_statement_fragment = 36, RuleQif_statement = 37, 
+    RuleQwhile_statement = 38, RuleMeasure_statement = 39, RuleExpression_statement = 40, 
+    RuleConstant = 41
   };
 
   originirParser(antlr4::TokenStream *input);
@@ -70,12 +71,14 @@ public:
   class Double_gate_without_parameter_declarationContext;
   class Double_gate_with_one_parameter_declarationContext;
   class Double_gate_with_four_parameter_declarationContext;
+  class Triple_gate_without_parameter_declarationContext;
   class Single_gate_without_parameter_typeContext;
   class Single_gate_with_one_parameter_typeContext;
   class Single_gate_with_four_parameter_typeContext;
   class Double_gate_without_parameter_typeContext;
   class Double_gate_with_one_parameter_typeContext;
   class Double_gate_with_four_parameter_typeContext;
+  class Triple_gate_without_parameter_typeContext;
   class Primary_expressionContext;
   class Unary_expressionContext;
   class Multiplicative_expressionContext;
@@ -174,6 +177,7 @@ public:
     Double_gate_without_parameter_declarationContext *double_gate_without_parameter_declaration();
     Double_gate_with_one_parameter_declarationContext *double_gate_with_one_parameter_declaration();
     Double_gate_with_four_parameter_declarationContext *double_gate_with_four_parameter_declaration();
+    Triple_gate_without_parameter_declarationContext *triple_gate_without_parameter_declaration();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -354,6 +358,25 @@ public:
 
   Double_gate_with_four_parameter_declarationContext* double_gate_with_four_parameter_declaration();
 
+  class  Triple_gate_without_parameter_declarationContext : public antlr4::ParserRuleContext {
+  public:
+    Triple_gate_without_parameter_declarationContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    Triple_gate_without_parameter_typeContext *triple_gate_without_parameter_type();
+    std::vector<Q_KEY_declarationContext *> q_KEY_declaration();
+    Q_KEY_declarationContext* q_KEY_declaration(size_t i);
+    std::vector<antlr4::tree::TerminalNode *> COMMA();
+    antlr4::tree::TerminalNode* COMMA(size_t i);
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
+  };
+
+  Triple_gate_without_parameter_declarationContext* triple_gate_without_parameter_declaration();
+
   class  Single_gate_without_parameter_typeContext : public antlr4::ParserRuleContext {
   public:
     Single_gate_without_parameter_typeContext(antlr4::ParserRuleContext *parent, size_t invokingState);
@@ -459,6 +482,21 @@ public:
   };
 
   Double_gate_with_four_parameter_typeContext* double_gate_with_four_parameter_type();
+
+  class  Triple_gate_without_parameter_typeContext : public antlr4::ParserRuleContext {
+  public:
+    Triple_gate_without_parameter_typeContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *TOFFOLI_GATE();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
+  };
+
+  Triple_gate_without_parameter_typeContext* triple_gate_without_parameter_type();
 
   class  Primary_expressionContext : public antlr4::ParserRuleContext {
   public:

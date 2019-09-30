@@ -509,7 +509,7 @@ void QProgStored::execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std:
 			if (i + 1 < ctrl_qubits_vector.size())
 			{
 				quibt_addr_2 = ctrl_qubits_vector[i + 1]->getPhysicalQubitPtr()->getQubitAddr();
-				if (0 == quibt_addr_2 ) 
+				if (0 == quibt_addr_2 )
 				{
 					size_t addr_tmp = quibt_addr_1;
 					quibt_addr_1 = quibt_addr_2;
@@ -535,12 +535,18 @@ void QProgStored::execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std:
 }
 
 
-
 void QPanda::storeQProgInBinary(QProg &prog, QuantumMachine *qm, const string &filename)
 {
     QProgStored storeProg(qm);
     storeProg.transform(prog);
     storeProg.store(filename);
+}
+
+void QPanda::transformQProgToBinary(QProg &prog, QuantumMachine *qm, const string &filename)
+{
+	QProgStored storeProg(qm);
+	storeProg.transform(prog);
+	storeProg.store(filename);
 }
 
 std::vector<uint8_t> QPanda::transformQProgToBinary(QProg & prog, QuantumMachine *qm)

@@ -136,6 +136,10 @@ size_t QPanda::getAllocateCMem()
     }
     return global_quantum_machine->getAllocateCMem();
 }
+size_t QPanda::getAllocateCMemNum()
+{
+	return getAllocateCMem();
+}
 
 
 ClassicalCondition QPanda::cAlloc()
@@ -178,7 +182,7 @@ void QPanda::cFree(ClassicalCondition& classical_cond)
     global_quantum_machine->Free_CBit(classical_cond);
 }
 
-void cFreeAll(vector<ClassicalCondition> vCBit)
+void QPanda::cFreeAll(vector<ClassicalCondition> vCBit)
 {
     if (nullptr == global_quantum_machine)
     {
@@ -319,6 +323,12 @@ prob_tuple QPanda::PMeasure(QVec& qubit_vector,
     return temp->PMeasure(qubit_vector, select_max);
 }
 
+prob_tuple QPanda::pMeasure(QVec& qubit_vector,
+	int select_max)
+{
+	return PMeasure(qubit_vector, select_max);
+}
+
 prob_vec QPanda::PMeasure_no_index(QVec& qubit_vector)
 {
     if (nullptr == global_quantum_machine)
@@ -333,6 +343,11 @@ prob_vec QPanda::PMeasure_no_index(QVec& qubit_vector)
         throw runtime_error("global_quantum_machine is not ideal machine");
     }
     return temp->PMeasure_no_index(qubit_vector);
+}
+
+prob_vec QPanda::pMeasureNoIndex(QVec& qubit_vector)
+{
+	return PMeasure_no_index(qubit_vector);
 }
 
 prob_vec QPanda::accumulateProbability(prob_vec & prob_list)

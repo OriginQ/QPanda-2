@@ -1,4 +1,3 @@
-#include "utils.h"
 #include <vector>
 #include <fstream>
 #include <memory>
@@ -7,7 +6,7 @@
 #include <limits>
 #include "gtest/gtest.h"
 #include "QPanda.h"
-#include "Operator/PauliOperator.h"
+#include "Components/Operator/PauliOperator.h"
 #include "Variational/VarPauliOperator.h"
 #include "Variational/VarFermionOperator.h"
 #include "Core/VirtualQuantumProcessor/NoiseQPU/NoiseModel.h"

@@ -183,24 +183,12 @@ protected:
     virtual ~QVM() {}
     virtual void init() {}
 public:
-    virtual void setConfig(const Configuration &config);
-    virtual Qubit* allocateQubit();
     virtual Qubit* allocateQubitThroughPhyAddress(size_t qubit_num);
     virtual Qubit* allocateQubitThroughVirAddress(size_t qubit_num); // allocate and return a qubit
-    virtual QVec allocateQubits(size_t qubit_count);
     virtual QMachineStatus* getStatus() const;
     virtual QResult* getResult();
     virtual std::map<std::string, bool> getResultMap();
     virtual void finalize();
-    virtual size_t getAllocateQubit();
-    virtual size_t getAllocateCMem();
-    virtual void Free_Qubit(Qubit*);
-    virtual void Free_Qubits(QVec&); //free a list of qubits
-    virtual void Free_CBit(ClassicalCondition &);
-    virtual void Free_CBits(std::vector<ClassicalCondition>&);
-    virtual ClassicalCondition allocateCBit();
-    virtual std::vector<ClassicalCondition> allocateCBits(size_t cbit_count);
-    virtual ClassicalCondition allocateCBit(size_t stCbitNum);
     virtual std::map<std::string, bool> directlyRun(QProg & qProg);
     virtual std::map<std::string, size_t> runWithConfiguration(QProg &, std::vector<ClassicalCondition> &, rapidjson::Document &);
     virtual std::map<GateType, size_t> getGateTimeMap() const;
@@ -208,14 +196,40 @@ public:
     virtual size_t getVirtualQubitAddress(Qubit *) const;
     virtual bool swapQubitPhysicalAddress(Qubit *, Qubit*);
 	virtual void set_random_engine(RandomEngine* rng);
+
+    /*will delete*/
+    virtual void setConfig(const Configuration &config);
+    virtual Qubit* allocateQubit();
+    virtual QVec allocateQubits(size_t qubit_count);
+    virtual ClassicalCondition allocateCBit();
+    virtual std::vector<ClassicalCondition> allocateCBits(size_t cbit_count);
+    virtual ClassicalCondition allocateCBit(size_t stCbitNum);
+    virtual size_t getAllocateQubit();
+    virtual size_t getAllocateCMem();
+    virtual void Free_Qubit(Qubit*);
+    virtual void Free_Qubits(QVec&); //free a list of qubits
+    virtual void Free_CBit(ClassicalCondition &);
+    virtual void Free_CBits(std::vector<ClassicalCondition>&);
+
+    /* new interface */
+    virtual void setConfigure(const Configuration &); //! To initialize the quantum machine
+    virtual Qubit* qAlloc(); //! Allocate and return a qubit
+    virtual QVec qAllocMany(size_t qubit_count);//! allocateQubits
+    virtual ClassicalCondition cAlloc(); //! Allocate and run a cbit
+    virtual ClassicalCondition cAlloc(size_t); //! Allocate and run a cbit
+    virtual std::vector<ClassicalCondition> cAllocMany(size_t); //! Allocate and return a list of cbits
+    virtual void qFree(Qubit*); //! Free a qubit
+    virtual void qFreeAll(QVec &); //!Gree a list of qubits
+    virtual void cFree(ClassicalCondition &); //! Gree a cbit
+    virtual void cFreeAll(std::vector<ClassicalCondition > &); //!Gree a list of CBits
+    virtual size_t getAllocateQubitNum();//! getAllocateQubit
+    virtual size_t getAllocateCMemNum();//! getAllocateCMem
 };
 
 
 class IdealQVM : public QVM, public IdealMachineInterface
 {
 public:
-    prob_tuple PMeasure(QVec qubit_vector, int select_max);
-    prob_vec PMeasure_no_index(QVec qubit_vector);
     prob_tuple getProbTupleList(QVec , int);
     prob_vec getProbList(QVec , int);
     prob_dict getProbDict(QVec , int);
@@ -223,7 +237,16 @@ public:
     prob_vec probRunList(QProg &, QVec , int);
     prob_dict probRunDict(QProg &, QVec , int);
     std::map<std::string, size_t> quickMeasure(QVec , size_t);
+
+    /*will delete*/
     QStat getQStat();
+    prob_tuple PMeasure(QVec qubit_vector, int select_max);
+    prob_vec PMeasure_no_index(QVec qubit_vector);
+
+    /* new interface */
+    QStat getQState();
+    prob_tuple pMeasure(QVec qubit_vector, int select_max);
+    prob_vec pMeasureNoIndex(QVec qubit_vector);
 };
 
 class CPUQVM : public IdealQVM {

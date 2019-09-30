@@ -158,6 +158,13 @@ size_t QProgBuilder::add_qgate_cc(
 		m_progid_set[progid] << CU(parameters[0], parameters[1],
 			parameters[2], parameters[3], qubits[0], qubits[1]);
 		break;
+	case GateType::TOFFOLI:
+	{
+		auto toffoli_gate = X(qubits[2]);
+		toffoli_gate.setControl({ qubits[0], qubits[1] });
+		m_progid_set[progid] << toffoli_gate;
+	}
+		break;
 	default:
 		throw runtime_error("Bad Argument.");
 	}
@@ -264,7 +271,10 @@ size_t QProgBuilder::cc_op_cc(size_t exprid1, size_t exprid2, int op_type)
 		m_exprid_set.insert({ cid, m_exprid_set.at(exprid1) || m_exprid_set.at(exprid2) });
 		break;
 	case OriginIRVisitor::ASSIGN:
+	{
 		m_exprid_set.insert({ cid, m_exprid_set.at(exprid1) = m_exprid_set.at(exprid2) });
+		m_exprid_set.at(cid).eval();
+	}
 		break;
 	default:
 		throw runtime_error("Bad Argument.");
@@ -312,7 +322,10 @@ size_t QProgBuilder::cc_op_literal(size_t exprid1, double literal2, int op_type)
 		m_exprid_set.insert({ cid, m_exprid_set.at(exprid1) || literal2 });
 		break;
 	case OriginIRVisitor::ASSIGN:
+	{
 		m_exprid_set.insert({ cid, m_exprid_set.at(exprid1) = literal2 });
+		m_exprid_set.at(cid).eval();
+	}
 		break;
 	default:
 		throw runtime_error("Bad Argument.");

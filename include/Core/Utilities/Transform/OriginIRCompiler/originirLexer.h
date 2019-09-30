@@ -17,14 +17,14 @@ public:
     X1_GATE = 13, Y1_GATE = 14, Z1_GATE = 15, U4_GATE = 16, RX_GATE = 17, 
     RY_GATE = 18, RZ_GATE = 19, U1_GATE = 20, CNOT_GATE = 21, CZ_GATE = 22, 
     CU_GATE = 23, ISWAP_GATE = 24, SQISWAP_GATE = 25, SWAPZ1_GATE = 26, 
-    ISWAPTHETA_GATE = 27, CR_GATE = 28, DAGGER_KEY = 29, ENDDAGGER_KEY = 30, 
-    CONTROL_KEY = 31, ENDCONTROL_KEY = 32, QIF_KEY = 33, ELSE_KEY = 34, 
-    ENDIF_KEY = 35, QWHILE_KEY = 36, ENDQWHILE_KEY = 37, MEASURE_KEY = 38, 
-    ASSIGN = 39, GT = 40, LT = 41, NOT = 42, EQ = 43, LEQ = 44, GEQ = 45, 
-    NE = 46, AND = 47, OR = 48, PLUS = 49, MINUS = 50, MUL = 51, DIV = 52, 
-    COMMA = 53, LPAREN = 54, RPAREN = 55, LBRACK = 56, RBRACK = 57, NEWLINE = 58, 
-    Identifier = 59, Integer_Literal = 60, Double_Literal = 61, Digit_Sequence = 62, 
-    WhiteSpace = 63, SingleLineComment = 64
+    ISWAPTHETA_GATE = 27, CR_GATE = 28, TOFFOLI_GATE = 29, DAGGER_KEY = 30, 
+    ENDDAGGER_KEY = 31, CONTROL_KEY = 32, ENDCONTROL_KEY = 33, QIF_KEY = 34, 
+    ELSE_KEY = 35, ENDIF_KEY = 36, QWHILE_KEY = 37, ENDQWHILE_KEY = 38, 
+    MEASURE_KEY = 39, ASSIGN = 40, GT = 41, LT = 42, NOT = 43, EQ = 44, 
+    LEQ = 45, GEQ = 46, NE = 47, AND = 48, OR = 49, PLUS = 50, MINUS = 51, 
+    MUL = 52, DIV = 53, COMMA = 54, LPAREN = 55, RPAREN = 56, LBRACK = 57, 
+    RBRACK = 58, NEWLINE = 59, Identifier = 60, Integer_Literal = 61, Double_Literal = 62, 
+    Digit_Sequence = 63, WhiteSpace = 64, SingleLineComment = 65
   };
 
   originirLexer(antlr4::CharStream *input);

@@ -146,6 +146,17 @@ private:
     std::vector<std::vector<std::string>> m_gates;
 };
 
+/*will delete*/
+template <typename _Ty>
+size_t getUnSupportQGateNumber(_Ty node, const std::vector<std::vector<std::string>> &gates)
+{
+    QGateCompare compare(gates);
+    compare.traversal(node);
+    return compare.count();
+}
+
+/* new interface */
+
 /**
 * @brief  Count quantum program unsupported gate numner
 * @param[in]  _Ty& quantum program, quantum circuit, quantum while or quantum if
@@ -154,12 +165,13 @@ private:
 * @note
 */
 template <typename _Ty>
-size_t getUnSupportQGateNumber(_Ty node, const std::vector<std::vector<std::string>> &gates)
+size_t getUnsupportQGateNum(_Ty node, const std::vector<std::vector<std::string>> &gates)
 {
-    QGateCompare compare(gates);
-    compare.traversal(node);
-    return compare.count();
+	QGateCompare compare(gates);
+	compare.traversal(node);
+	return compare.count();
 }
+
 
 QPANDA_END
 

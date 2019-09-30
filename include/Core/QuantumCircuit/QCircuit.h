@@ -146,20 +146,24 @@ private:
     HadamardQCircuit();
 };
 
+/* will delete */
+QCircuit CreateEmptyCircuit();
+HadamardQCircuit CreateHadamardQCircuit(QVec & pQubitVector);
 
+/* new interface */
 /**
 * @brief  QPanda2 basic interface for creating a empty circuit
 * @return     QPanda::QCircuit  
 * @ingroup Core
 */
-QCircuit CreateEmptyCircuit();
+QCircuit createEmptyCircuit();
 
 /**
 * @brief  Create a hadamard qcircuit
 * @param[in]  QVec&  qubit vector 
 * @return     QPanda::HadamardQCircuit  hadamard qcircuit 
 */
-HadamardQCircuit CreateHadamardQCircuit(QVec & pQubitVector);
+HadamardQCircuit createHadamardQCircuit(QVec & pQubitVector);
 
 
 class OriginCircuit : public QNode, public AbstractQuantumCircuit

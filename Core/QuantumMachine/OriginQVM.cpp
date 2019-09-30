@@ -775,6 +775,16 @@ QStat IdealQVM::getQStat()
     return _pGates->getQState();
 }
 
+QStat IdealQVM::getQState()
+{
+    if (nullptr == _pGates)
+    {
+        QCERR("_pGates is null");
+        throw qvm_attributes_error("_pGates is null");
+    }
+    return _pGates->getQState();
+}
+
 void CPUQVM::init()
 {
     try
@@ -827,4 +837,74 @@ void CPUSingleThreadQVM::init()
         throw init_fail(e.what());
     }
 
+}
+
+
+void QVM::setConfigure(const Configuration &config)
+{
+    return setConfig(config);
+}
+Qubit* QVM::qAlloc()
+{
+    return allocateQubit();
+}
+
+QVec QVM::qAllocMany(size_t qubit_count)
+{
+    return allocateQubits(qubit_count);
+}
+
+ClassicalCondition QVM::cAlloc()
+{
+    return allocateCBit();
+}
+
+ClassicalCondition QVM::cAlloc(size_t cbitNum)
+{
+    return allocateCBit(cbitNum);
+}
+
+std::vector<ClassicalCondition> QVM::cAllocMany(size_t count)
+{
+    return allocateCBits(count);
+}
+
+void QVM::qFree(Qubit* qubit)
+{
+    return Free_Qubit(qubit);
+}
+
+void QVM::qFreeAll(QVec & qubit_vec)
+{
+    return Free_Qubits(qubit_vec);
+}
+
+void QVM::cFree(ClassicalCondition &cbit)
+{
+    return Free_CBit(cbit);
+}
+void QVM::cFreeAll(std::vector<ClassicalCondition > &cbit_vec)
+{
+    return Free_CBits(cbit_vec);
+}
+
+size_t QVM::getAllocateQubitNum()
+{
+    return getAllocateQubit();
+}
+
+size_t QVM::getAllocateCMemNum()
+{
+    return getAllocateCMem();
+}
+
+
+prob_tuple IdealQVM::pMeasure(QVec qubit_vector, int select_max)
+{
+    return PMeasure(qubit_vector, select_max);
+}
+
+prob_vec IdealQVM::pMeasureNoIndex(QVec qubit_vector)
+{
+    return PMeasure_no_index(qubit_vector);
 }

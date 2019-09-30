@@ -63,6 +63,7 @@ void init_quantum_machine(py::module &m)
 
     Qubit*(QuantumMachine::*qalloc)() = &QuantumMachine::allocateQubit;
     ClassicalCondition(QuantumMachine::*cAlloc)() = &QuantumMachine::allocateCBit;
+    ClassicalCondition(QuantumMachine::*cAllocByAddress)(size_t) = &QuantumMachine::allocateCBit;
     QVec(QuantumMachine::*qallocMany)(size_t) = &QuantumMachine::allocateQubits;
     vector<ClassicalCondition>(QuantumMachine::*callocMany)(size_t) = &QuantumMachine::allocateCBits;
     void (QuantumMachine::*free_qubit)(Qubit *) = &QuantumMachine::Free_Qubit;
@@ -73,20 +74,26 @@ void init_quantum_machine(py::module &m)
     size_t(QuantumMachine::*get_allocate_qubit)() = &QuantumMachine::getAllocateQubit;
     size_t(QuantumMachine::*get_allocate_CMem)() = &QuantumMachine::getAllocateCMem;
     void (QuantumMachine::*_finalize)() = &QuantumMachine::finalize;
+    Qubit* (QuantumMachine::*allocate_qubit_through_phy_address)(size_t) = &QuantumMachine::allocateQubitThroughPhyAddress;
+    Qubit* (QuantumMachine::*allocate_qubit_through_vir_address)(size_t) = &QuantumMachine::allocateQubitThroughVirAddress;
+    std::map<GateType, size_t>(QuantumMachine::*get_gate_time_map)() const = &QuantumMachine::getGateTimeMap;
+    bool(QuantumMachine::*swap_qubit_physical_address)(Qubit*, Qubit*) = &QuantumMachine::swapQubitPhysicalAddress;
 
-
+    
     py::class_<QuantumMachine>(m, "QuantumMachine")
-		.def("set_configure", [](QuantumMachine &qvm, size_t max_qubit, size_t max_cbit) {
-		Configuration config = { max_qubit, max_cbit };
-		qvm.setConfig(config);
-	}, "set QVM max qubit and max cbit", "max_qubit"_a, "max_cbit"_a)
+		.def("set_configure", [](QuantumMachine &qvm, size_t max_qubit, size_t max_cbit) 
+            {
+		        Configuration config = { max_qubit, max_cbit };
+		        qvm.setConfig(config);
+	        }, "set QVM max qubit and max cbit", "max_qubit"_a, "max_cbit"_a)
         .def("finalize", &QuantumMachine::finalize, "finalize")
         .def("get_qstate", &QuantumMachine::getQState, "getState", py::return_value_policy::automatic)
         .def("qAlloc", qalloc, "Allocate a qubit", py::return_value_policy::reference)
-        .def("qAlloc_many", [](QuantumMachine & self,size_t num) {
-        vector<Qubit *> temp = self.allocateQubits(num);
-        return temp;
-    }, "Allocate a list of qubits", "n_qubit"_a,
+        .def("qAlloc_many", [](QuantumMachine & self,size_t num) 
+            {
+                vector<Qubit *> temp = self.allocateQubits(num);
+                return temp;
+            }, "Allocate a list of qubits", "n_qubit"_a,
             py::return_value_policy::reference)
         .def("cAlloc", cAlloc, "Allocate a cbit", py::return_value_policy::reference)
         .def("cAlloc_many", callocMany, "Allocate a list of cbits", "n_cbit"_a,
@@ -97,10 +104,23 @@ void init_quantum_machine(py::module &m)
         .def("cFree", free_cbit, "Free a cbit")
         .def("cFree_all", free_cbits, "cbit_list"_a,
             "Free a list of cbits")
-        .def("getStatus", get_status, "get the status(ptr) of the quantum machine",
-            py::return_value_policy::reference)
+
+        /*will delete*/
         .def("getAllocateQubitNum", get_allocate_qubit, "getAllocateQubitNum", py::return_value_policy::reference)
         .def("getAllocateCMem", get_allocate_CMem, "getAllocateCMem", py::return_value_policy::reference)
+        .def("getStatus", get_status, "get the status(ptr) of the quantum machine",
+            py::return_value_policy::reference)
+
+        /* new interface */
+        .def("cAlloc", cAllocByAddress, "Allocate a cbit", "cbit"_a, py::return_value_policy::reference)
+        .def("get_status", get_status, "get the status(ptr) of the quantum machine",py::return_value_policy::reference)
+        .def("get_allocate_qubit_num", get_allocate_qubit, "getAllocateQubitNum", py::return_value_policy::reference)\
+        .def("get_allocate_cmem_num", get_allocate_CMem, "getAllocateCMem", py::return_value_policy::reference)\
+        .def("allocate_qubit_through_phy_address", allocate_qubit_through_phy_address, "address"_a, py::return_value_policy::reference)
+        .def("allocate_qubit_through_vir_address", allocate_qubit_through_vir_address, "address"_a, py::return_value_policy::reference)
+        .def("get_gate_time_map", get_gate_time_map, py::return_value_policy::reference)
+        .def("swap_qubit_physical_address", swap_qubit_physical_address, "qubit"_a, "qubit"_a, py::return_value_policy::reference)
+
         .def("directly_run", &QuantumMachine::directlyRun, "program"_a,
             py::return_value_policy::reference)
         .def("run_with_configuration", [](QuantumMachine &qvm, QProg & prog, vector<ClassicalCondition> & cc_vector, py::dict param) {
@@ -123,7 +143,6 @@ void init_quantum_machine(py::module &m)
 	    qvm.setConfig(config); \
 	}, "set QVM max qubit and max cbit", "max_qubit"_a, "max_cbit"_a) \
         .def(py::init<>())\
-        .def("initQVM", &class_name::init, "init quantum virtual machine")\
         .def("finalize", &class_name::finalize, "finalize")\
         .def("get_qstate", &class_name::getQState, "getState",py::return_value_policy::automatic)\
         .def("qAlloc", qalloc, "Allocate a qubit", py::return_value_policy::reference)\
@@ -143,8 +162,14 @@ void init_quantum_machine(py::module &m)
             "Free a list of cbits")\
         .def("getStatus", get_status, "get the status(ptr) of the quantum machine",\
             py::return_value_policy::reference)\
+        /*will delete*/\
+        .def("initQVM", &class_name::init, "init quantum virtual machine")\
         .def("getAllocateQubitNum", get_allocate_qubit, "getAllocateQubitNum", py::return_value_policy::reference)\
         .def("getAllocateCMem", get_allocate_CMem, "getAllocateCMem", py::return_value_policy::reference)\
+         /* new interface */\
+        .def("init_qvm", &class_name::init, "init quantum virtual machine")\
+        .def("get_allocate_qubit_num", get_allocate_qubit, "getAllocateQubitNum", py::return_value_policy::reference)\
+        .def("get_allocate_cmem_num", get_allocate_CMem, "getAllocateCMem", py::return_value_policy::reference)\
         .def("directly_run", &class_name::directlyRun, "program"_a,\
             py::return_value_policy::reference)\
         .def("run_with_configuration", [](class_name &qvm, QProg &prog, vector<ClassicalCondition> & cc_vector, py::dict param){\
@@ -180,7 +205,6 @@ void init_quantum_machine(py::module &m)
     DEFINE_IDEAL_QVM(CPUQVM);
     DEFINE_IDEAL_QVM(CPUSingleThreadQVM);
 
-
 #ifdef USE_CUDA
     DEFINE_IDEAL_QVM(GPUQVM);
 #endif // USE_CUDA
@@ -191,14 +215,6 @@ void init_quantum_machine(py::module &m)
 		qvm.setConfig(config);
 	}, "set QVM max qubit and max cbit", "max_qubit"_a, "max_cbit"_a)
         .def(py::init<>())
-        .def("initQVM", [](NoiseQVM& qvm, py::dict param) {
-        py::object json = py::module::import("json");
-        py::object dumps = json.attr("dumps");
-        auto json_string = std::string(py::str(dumps(param)));
-        rapidjson::Document doc(rapidjson::kObjectType);
-        doc.Parse(json_string.c_str());
-        qvm.init(doc);
-    }, "init quantum virtual machine")
         .def("finalize", &NoiseQVM::finalize, "finalize")
         .def("get_qstate", &NoiseQVM::getQState, "getState", py::return_value_policy::automatic)
         .def("qAlloc", qalloc, "Allocate a qubit", py::return_value_policy::reference)
@@ -218,8 +234,31 @@ void init_quantum_machine(py::module &m)
             "Free a list of cbits")
         .def("getStatus", get_status, "get the status(ptr) of the quantum machine",
             py::return_value_policy::reference)
+
+        /*will delete*/
+        .def("initQVM", [](NoiseQVM& qvm, py::dict param) {
+        py::object json = py::module::import("json");
+        py::object dumps = json.attr("dumps");
+        auto json_string = std::string(py::str(dumps(param)));
+        rapidjson::Document doc(rapidjson::kObjectType);
+        doc.Parse(json_string.c_str());
+        qvm.init(doc);
+        }, "init quantum virtual machine")
         .def("getAllocateQubitNum", get_allocate_qubit, "getAllocateQubitNum", py::return_value_policy::reference)
         .def("getAllocateCMem", get_allocate_CMem, "getAllocateCMem", py::return_value_policy::reference)
+
+        /* new interface */
+            .def("init_qvm", [](NoiseQVM& qvm, py::dict param) {
+            py::object json = py::module::import("json");
+            py::object dumps = json.attr("dumps");
+            auto json_string = std::string(py::str(dumps(param)));
+            rapidjson::Document doc(rapidjson::kObjectType);
+            doc.Parse(json_string.c_str());
+            qvm.init(doc);
+        }, "init quantum virtual machine")
+        .def("get_allocate_qubit_num", get_allocate_qubit, "getAllocateQubitNum", py::return_value_policy::reference)
+        .def("get_allocate_cmem_num", get_allocate_CMem, "getAllocateCMem", py::return_value_policy::reference)
+
         .def("directly_run", &NoiseQVM::directlyRun, "program"_a,
             py::return_value_policy::reference)
         .def("run_with_configuration", [](NoiseQVM &qvm, QProg & prog, vector<ClassicalCondition> & cc_vector, py::dict param) {
@@ -234,13 +273,24 @@ void init_quantum_machine(py::module &m)
             "program"_a, "cbit_list"_a, "data"_a,
         py::return_value_policy::automatic);
 
+
+#define PMEASURE_BIN_INDEX(QVM_CLASS,NODE)\
+.def("pmeasure_bin_index", [](QVM_CLASS &qvm,NODE node,string bin_index)\
+{return qvm.PMeasure_bin_index(node, bin_index); })
+
+#define PMEASURE_DEC_INDEX(QVM_CLASS,NODE)\
+.def("pmeasure_dec_index", [](QVM_CLASS &qvm,NODE node,string bin_index)\
+{return qvm.PMeasure_dec_index(node, bin_index); })
+
+#define QVM_RUN(QVM_CLASS,NODE)\
+.def("run", [](QVM_CLASS &qvm, NODE prog) {return qvm.run(prog); }, "load the quantum program")
+
     py::class_<SingleAmplitudeQVM, QuantumMachine>(m, "SingleAmpQVM")
 		.def("set_configure", [](SingleAmplitudeQVM &qvm, size_t max_qubit, size_t max_cbit) {
 		Configuration config = { max_qubit, max_cbit };
 		qvm.setConfig(config);
 	}, "set QVM max qubit and max cbit", "max_qubit"_a, "max_cbit"_a)
         .def(py::init<>())
-        .def("initQVM", &SingleAmplitudeQVM::init, "init quantum virtual machine")
         .def("finalize", &SingleAmplitudeQVM::finalize, "finalize")
         .def("qAlloc", qalloc, "Allocate a qubit", py::return_value_policy::reference)
         .def("qAlloc_many", [](QuantumMachine & self, size_t num) {
@@ -257,39 +307,44 @@ void init_quantum_machine(py::module &m)
         .def("cFree", free_cbit, "Free a cbit")
         .def("cFree_all", free_cbits, "cbit_list"_a,
             "Free a list of cbits")
-        .def("getAllocateQubitNum", get_allocate_qubit, "getAllocateQubitNum", py::return_value_policy::reference)
-        .def("getAllocateCMem", get_allocate_CMem, "getAllocateCMem", py::return_value_policy::reference)
 
-        .def("run", [](SingleAmplitudeQVM &qvm, QProg prog) {return qvm.run(prog); }, "load the quantum program")
+        /*will delete*/
+        .def("initQVM", &SingleAmplitudeQVM::init, "init quantum virtual machine")
+
+        /* new interface */
+        .def("init_qvm", &SingleAmplitudeQVM::init, "init quantum virtual machine")
+
+        QVM_RUN(SingleAmplitudeQVM, QProg)
+        QVM_RUN(SingleAmplitudeQVM, QCircuit) 
+        QVM_RUN(SingleAmplitudeQVM, QGate)
         .def("run", [](SingleAmplitudeQVM &qvm, std::string QRunes_file) {return qvm.run(QRunes_file); }, "load and parser the quantum program")
 
-        .def("get_qstate", &SingleAmplitudeQVM::getQStat, "Get the quantum state of quantum program",
+        .def("get_qstate", &SingleAmplitudeQVM::getQState, "Get the quantum state of quantum program",
             py::return_value_policy::automatic_reference)
 
-        .def("pmeasure_bin_index", &SingleAmplitudeQVM::PMeasure_bin_index, "bin_index"_a,
-            "PMeasure_bin_index", py::return_value_policy::automatic_reference)
+        PMEASURE_BIN_INDEX(SingleAmplitudeQVM, QProg)
+        PMEASURE_BIN_INDEX(SingleAmplitudeQVM, QCircuit)
+        PMEASURE_BIN_INDEX(SingleAmplitudeQVM, QGate)
 
-        .def("pmeasure_dec_index", &SingleAmplitudeQVM::PMeasure_dec_index, "dec_index"_a,
-            "PMeasure_dec_index", py::return_value_policy::automatic_reference)
+        PMEASURE_DEC_INDEX(SingleAmplitudeQVM, QProg)
+        PMEASURE_DEC_INDEX(SingleAmplitudeQVM, QCircuit)
+        PMEASURE_DEC_INDEX(SingleAmplitudeQVM, QGate)
 
         .def("pmeasure", [](SingleAmplitudeQVM &qvm, QVec qvec, std::string select_max)
-    {return qvm.PMeasure(qvec, select_max); })
-
+            {return qvm.PMeasure(qvec, select_max); })
         .def("pmeasure", [](SingleAmplitudeQVM &qvm, std::string select_max)
-    {return qvm.PMeasure(select_max); })
-
+            {return qvm.PMeasure(select_max); })
         .def("get_prob_dict", [](SingleAmplitudeQVM &qvm, QVec qvec, std::string select_max)
-    {return qvm.getProbDict(qvec, select_max); })
+            {return qvm.getProbDict(qvec, select_max); })
         .def("prob_run_dict", [](SingleAmplitudeQVM &qvm, QProg prog, QVec qvec, std::string select_max)
-    {return qvm.probRunDict(prog, qvec, select_max); });
+            {return qvm.probRunDict(prog, qvec, select_max); });
 
-    py::class_<PartialAmplitudeQVM, QuantumMachine>(m, "PartialAmpQVM")
+py::class_<PartialAmplitudeQVM, QuantumMachine>(m, "PartialAmpQVM")
 		.def("set_configure", [](PartialAmplitudeQVM &qvm, size_t max_qubit, size_t max_cbit) {
 		Configuration config = { max_qubit, max_cbit };
 		qvm.setConfig(config);
 	}, "set QVM max qubit and max cbit", "max_qubit"_a, "max_cbit"_a)
         .def(py::init<>())
-        .def("initQVM", &PartialAmplitudeQVM::init, "init quantum virtual machine")
         .def("finalize", &PartialAmplitudeQVM::finalize, "finalize")
         .def("qAlloc", qalloc, "Allocate a qubit", py::return_value_policy::reference)
         .def("qAlloc_many", [](QuantumMachine & self, size_t num) {
@@ -306,13 +361,20 @@ void init_quantum_machine(py::module &m)
         .def("cFree", free_cbit, "Free a cbit")
         .def("cFree_all", free_cbits, "cbit_list"_a,
             "Free a list of cbits")
-        .def("getAllocateQubitNum", get_allocate_qubit, "getAllocateQubitNum", py::return_value_policy::reference)
-        .def("getAllocateCMem", get_allocate_CMem, "getAllocateCMem", py::return_value_policy::reference)
 
-        .def("run", [](PartialAmplitudeQVM &qvm, QProg prog) {return qvm.run(prog); }, "load the quantum program")
+        /*will delete*/
+        .def("initQVM", &PartialAmplitudeQVM::init, "init quantum virtual machine")
+
+        /* new interface */
+        .def("init_qvm", &PartialAmplitudeQVM::init, "init quantum virtual machine")
+
+        QVM_RUN(PartialAmplitudeQVM, QProg)
+        QVM_RUN(PartialAmplitudeQVM, QCircuit)
+        QVM_RUN(PartialAmplitudeQVM, QGate)
+
         .def("run", [](PartialAmplitudeQVM &qvm, std::string QRunes_file) {return qvm.run(QRunes_file); }, "load and parser the quantum program")
 
-        .def("get_qstate", &PartialAmplitudeQVM::getQStat, "Get the quantum state of quantum program",
+        .def("get_qstate", &PartialAmplitudeQVM::getQState, "Get the quantum state of quantum program",
             py::return_value_policy::automatic_reference)
 
         .def("pmeasure", [](PartialAmplitudeQVM &qvm, QVec qvec, std::string select_max)
@@ -322,25 +384,25 @@ void init_quantum_machine(py::module &m)
 
         .def("pmeasure_bin_index", &PartialAmplitudeQVM::PMeasure_bin_index, "bin_index"_a,
             "PMeasure_bin_index", py::return_value_policy::automatic_reference)
-
         .def("pmeasure_dec_index", &PartialAmplitudeQVM::PMeasure_dec_index, "dec_index"_a,
             "PMeasure_dec_index", py::return_value_policy::automatic_reference)
-
         .def("get_prob_dict", [](PartialAmplitudeQVM &qvm, QVec qvec, std::string select_max)
-    {return qvm.getProbDict(qvec, select_max); })
+            {return qvm.getProbDict(qvec, select_max); })
         .def("prob_run_dict", [](PartialAmplitudeQVM &qvm, QProg prog, QVec qvec, std::string select_max)
-    {return qvm.probRunDict(prog, qvec, select_max); });
+            {return qvm.probRunDict(prog, qvec, select_max); })
+        .def("pmeasure_subset", [](PartialAmplitudeQVM &qvm, QProg &prog, std::vector<std::string> index_vec)
+            {return qvm.pMeasureSubset(prog, index_vec); });
 
 #ifdef USE_CURL
     py::class_<QCloudMachine, QuantumMachine>(m, "QCloud")
         .def(py::init<>())
-        .def("initQVM", &QCloudMachine::init, "init quantum virtual machine")
         .def("finalize", &QCloudMachine::finalize, "finalize")
         .def("qAlloc", qalloc, "Allocate a qubit", py::return_value_policy::reference)
-        .def("qAlloc_many", [](QuantumMachine & self, size_t num) {
-        vector<Qubit *> temp = self.allocateQubits(num);
-        return temp;
-    }, "Allocate a list of qubits", "n_qubit"_a,
+        .def("qAlloc_many", [](QuantumMachine & self, size_t num) 
+            {
+                vector<Qubit *> temp = self.allocateQubits(num);
+                return temp;
+            }, "Allocate a list of qubits", "n_qubit"_a,
             py::return_value_policy::reference)
         .def("cAlloc", calloc, "Allocate a cbit", py::return_value_policy::reference)
         .def("cAlloc_many", callocMany, "Allocate a list of cbits", "n_cbit"_a,
@@ -351,32 +413,41 @@ void init_quantum_machine(py::module &m)
         .def("cFree", free_cbit, "Free a cbit")
         .def("cFree_all", free_cbits, "cbit_list"_a,
             "Free a list of cbits")
-        .def("getAllocateQubitNum", get_allocate_qubit, "getAllocateQubitNum", py::return_value_policy::reference)
-        .def("getAllocateCMem", get_allocate_CMem, "getAllocateCMem", py::return_value_policy::reference)
         .def("run_with_configuration", [](QCloudMachine &qcm, QProg & prog, py::dict param)
-    {
-        py::object json = py::module::import("json");
-        py::object dumps = json.attr("dumps");
-        auto json_string = std::string(py::str(dumps(param)));
-        rapidjson::Document doc;
-        auto &alloc = doc.GetAllocator();
-        doc.Parse(json_string.c_str());
-        return qcm.runWithConfiguration(prog, doc);
-    })
+            {
+                py::object json = py::module::import("json");
+                py::object dumps = json.attr("dumps");
+                auto json_string = std::string(py::str(dumps(param)));
+                rapidjson::Document doc;
+                auto &alloc = doc.GetAllocator();
+                doc.Parse(json_string.c_str());
+                return qcm.runWithConfiguration(prog, doc);
+             })
         .def("prob_run_dict", [](QCloudMachine &qcm, QProg & prog, QVec qvec, py::dict param)
-    {
-        py::object json = py::module::import("json");
-        py::object dumps = json.attr("dumps");
-        auto json_string = std::string(py::str(dumps(param)));
-        rapidjson::Document doc;
-        auto &alloc = doc.GetAllocator();
-        doc.Parse(json_string.c_str());
-        return qcm.probRunDict(prog, qvec, doc);
-    })
+             {
+                 py::object json = py::module::import("json");
+                 py::object dumps = json.attr("dumps");
+                 auto json_string = std::string(py::str(dumps(param)));
+                 rapidjson::Document doc;
+                 auto &alloc = doc.GetAllocator();
+                 doc.Parse(json_string.c_str());
+                 return qcm.probRunDict(prog, qvec, doc);
+             })
         .def("get_result", [](QCloudMachine &qcm, std::string tasdid)
-    {
-        return qcm.getResult(tasdid);
-    });
+             {
+                 return qcm.getResult(tasdid);
+             })
+        /*will delete*/
+        .def("initQVM", &QCloudMachine::init, "init quantum virtual machine")
+        /* new interface */
+        .def("init_qvm", &QCloudMachine::init, "init quantum virtual machine");
 #endif // USE_CURL
+
+		py::implicitly_convertible<CPUQVM, QuantumMachine>();
+		py::implicitly_convertible<GPUQVM, QuantumMachine>();
+		py::implicitly_convertible<CPUSingleThreadQVM, QuantumMachine>();
+		py::implicitly_convertible<NoiseQVM, QuantumMachine>();
+		py::implicitly_convertible<SingleAmplitudeQVM, QuantumMachine>();
+		py::implicitly_convertible<PartialAmplitudeQVM, QuantumMachine>();
 
 }

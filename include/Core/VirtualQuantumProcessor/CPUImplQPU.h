@@ -83,9 +83,6 @@ NAME(size_t qn, double theta,Qnum& vControlBit,bool isConjugate, double error_ra
     return  qErrorNone;                      \
 }
 
-#define REGISTER_DOUBLE_GATE_MATRIX(NAME,matrix) \
-extern const QStat NAME##_Matrix=matrix;
-
 #define const_single_qubit_gate(GATE_NAME,qn,isConjugate,error_rate) \
 single_gate<GATE_NAME##00,GATE_NAME##01,GATE_NAME##10,GATE_NAME##11>(qn,isConjugate,error_rate)
 
@@ -495,13 +492,17 @@ public:
 
     //define unitary single/double quantum gate
     QError unitarySingleQubitGate(size_t qn, 
-		QStat& matrix, bool isConjugate, GateType);
+        QStat& matrix, bool isConjugate,
+        GateType);
     QError controlunitarySingleQubitGate(size_t qn, Qnum& vControlBit, 
-		QStat& matrix, bool isConjugate, GateType);
+        QStat& matrix, bool isConjugate,
+        GateType);
     QError unitaryDoubleQubitGate(size_t qn_0, size_t qn_1, 
-		QStat& matrix, bool isConjugate, GateType);
+        QStat& matrix, bool isConjugate,
+        GateType);
     QError controlunitaryDoubleQubitGate(size_t qn_0, size_t qn_1, Qnum& vControlBit, 
-		QStat& matrix, bool isConjugate, GateType);
+        QStat& matrix, bool isConjugate,
+        GateType);
     QError DiagonalGate(Qnum& vQubit, QStat & matrix,
         bool isConjugate, double error_rate);
     QError controlDiagonalGate(Qnum& vQubit, QStat & matrix, Qnum& vControlBit,
@@ -513,6 +514,25 @@ public:
 		int select_max=-1);
     QError pMeasure(Qnum& qnum, prob_vec &mResult);
     QError initState(size_t head_rank, size_t rank_size, size_t qubit_num);
+
+
+    inline QError P00(size_t qn_0, size_t qn_1, bool isConjugate, double error_rate)
+    {
+        QStat P00_matrix = { 1,0,0,0,
+            0,1,0,0,
+            0,0,1,0,
+            0,0,0,0 };
+        return unitaryDoubleQubitGate(qn_0, qn_1, P00_matrix, isConjugate,GateType::P00_GATE);
+    }
+
+    inline QError P11(size_t qn_0, size_t qn_1, bool isConjugate, double error_rate)
+    {
+        QStat P11_matrix = { 0,0,0,0,
+            0,0,0,0,
+            0,0,0,0,
+            0,0,0,1 };
+        return unitaryDoubleQubitGate(qn_0, qn_1, P11_matrix, isConjugate,GateType::P11_GATE);
+    }
 };
 
 #endif

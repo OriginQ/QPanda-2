@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.1)
 project(pyQPandaChemiQ)
 
-set(LIB_PYQPANDA_CHEMIQ pyQPandaChemiQ)
 file(GLOB_RECURSE PYQPANDA_CHEMIQ_SRC *.cpp)
 add_library(${LIB_PYQPANDA_CHEMIQ} SHARED ${PYQPANDA_CHEMIQ_SRC})
 
@@ -17,7 +16,7 @@ elseif(WIN32)
     set_target_properties(${LIB_PYQPANDA_CHEMIQ} PROPERTIES SUFFIX ".pyd")
 endif(UNIX)
 
-target_link_libraries(${LIB_PYQPANDA_CHEMIQ} ${LIB_CHEMIQ})
+target_link_libraries(${LIB_PYQPANDA_CHEMIQ} ${LIB_QALG})
 
 set(PYCHEMIQ_OUT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../pyQPanda/pyqpanda/ChemiQ")
 if (UNIX)

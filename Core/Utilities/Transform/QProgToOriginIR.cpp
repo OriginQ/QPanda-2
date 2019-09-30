@@ -69,6 +69,9 @@ QProgToOriginIR::QProgToOriginIR(QuantumMachine * quantum_machine)
 	m_gatetype.insert(pair<int, string>(SWAP_GATE, "SWAP"));
 	m_gatetype.insert(pair<int, string>(SQISWAP_GATE, "SQISWAP"));
 	m_gatetype.insert(pair<int, string>(TWO_QUBIT_GATE, "QDoubleGate"));
+
+	m_gatetype.insert(pair<int, string>(TOFFOLI_GATE, "TOFFOLI"));
+
 	m_OriginIR.clear();
 
 	m_quantum_machine = quantum_machine;
@@ -84,10 +87,17 @@ void QProgToOriginIR::transformQGate(AbstractQGateNode * pQGate, bool is_dagger)
 
 	QVec qubits_vector;
 	QVec ctr_qubits_vector;
-
+	bool is_toffoli = false;
 	string all_ctr_qubits;
 	pQGate->getQuBitVector(qubits_vector);
 	pQGate->getControlVector(ctr_qubits_vector);
+
+
+	if (PAULI_X_GATE == pQGate->getQGate()->getGateType() 
+		&& 2 == ctr_qubits_vector.size())
+	{
+		is_toffoli = true;
+	}
 
 	if (pQGate->isDagger())
 	{
@@ -99,9 +109,11 @@ void QProgToOriginIR::transformQGate(AbstractQGateNode * pQGate, bool is_dagger)
 		{
 			all_ctr_qubits = all_ctr_qubits + transformQubitFormat(val) + ",";
 		}
-		m_OriginIR.emplace_back("CONTROL " + all_ctr_qubits.substr(0, all_ctr_qubits.length() - 1));
+		if(!is_toffoli)
+		{ 
+			m_OriginIR.emplace_back("CONTROL " + all_ctr_qubits.substr(0, all_ctr_qubits.length() - 1));
+		}
 	}
-
 	auto iter = m_gatetype.find(pQGate->getQGate()->getGateType());
 	if (iter == m_gatetype.end())
 	{
@@ -121,6 +133,18 @@ void QProgToOriginIR::transformQGate(AbstractQGateNode * pQGate, bool is_dagger)
 	switch (iter->first)
 	{
 	case PAULI_X_GATE:
+	{	
+		if (is_toffoli)
+		{
+			string str_toffoli = m_gatetype.find(TOFFOLI_GATE)->second;
+			m_OriginIR.emplace_back(str_toffoli + " " + all_ctr_qubits + first_qubit);
+		}
+		else
+		{
+			m_OriginIR.emplace_back(item + " " + first_qubit);
+		}
+	}
+	break;
 	case PAULI_Y_GATE:
 	case PAULI_Z_GATE:
 	case X_HALF_PI:
@@ -187,7 +211,8 @@ void QProgToOriginIR::transformQGate(AbstractQGateNode * pQGate, bool is_dagger)
 
 	default:m_OriginIR.emplace_back("Unsupported GateNode");
 	}
-	if (!ctr_qubits_vector.empty())
+
+	if (!ctr_qubits_vector.empty() && !is_toffoli)
 	{
 		m_OriginIR.emplace_back("ENDCONTROL");
 	}

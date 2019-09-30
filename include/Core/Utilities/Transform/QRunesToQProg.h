@@ -1,9 +1,14 @@
 /*! \file QRunesToQProg.h */
 #ifndef  _QRUNESTOQPROG_H_
 #define  _QRUNESTOQPROG_H_
-#include "Core/QPanda.h"
 #include <functional>
 #include "Core/QuantumCircuit/QGlobalVariable.h"
+#include "Core/QuantumCircuit/QProgram.h"
+#include "Core/QuantumCircuit/QGate.h"
+#include "Core/QuantumCircuit/QCircuit.h"
+#include "Core/QuantumCircuit/QuantumMeasure.h"
+#include "Core/QuantumMachine/QuantumMachineInterface.h"
+
 
 QPANDA_BEGIN
 /**

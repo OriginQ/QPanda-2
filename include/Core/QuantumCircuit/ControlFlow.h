@@ -135,14 +135,18 @@ public:
      */
     virtual std::shared_ptr<QNode> getFalseBranch() const;
 
-    /**
-     * @brief Get classical condition
-     * @return classical condition ptr 
-     */
-    virtual ClassicalCondition getCExpr();
-
     std::shared_ptr<QNode> getImplementationPtr();
 
+    /* will delete */
+    virtual ClassicalCondition getCExpr();
+
+    /* new interface */
+    /**
+    * @brief  QPanda2 basic interface for creating a QWhile program
+    * @ingroup  Core
+    * @return   QWhileProg  QWhile program
+    */
+    virtual ClassicalCondition getClassicalCondition();
 private:
     virtual void setTrueBranch(QProg ) {};
     virtual void setFalseBranch(QProg ) {};
@@ -264,29 +268,6 @@ public:
     virtual void execute(QPUImpl *, QuantumGateParam *);
 };
 
-/**
-* @brief  QPanda2 basic interface for creating a QIf program
-* @ingroup  Core
-* @param[in]  ClassicalCondition  Cbit
-* @param[in]  QNode* QIf true node
-* @return     QPanda::QIfProg  QIf program
-*/
-QIfProg CreateIfProg(
-    ClassicalCondition classical_condition,
-    QProg true_node);
-
-/**
-* @brief  QPanda2 basic interface for creating a QIf program
-* @ingroup  Core
-* @param[in]  ClassicalCondition  Cbit
-* @param[in]  QNode* QIf true node
-* @param[in]  QNode* QIf false node
-* @return     QPanda::QIfProg  QIf program
-*/
-QIfProg CreateIfProg(
-    ClassicalCondition classical_condition,
-    QProg true_node,
-    QProg false_node);
 
 /**
 * @class QWhileProg
@@ -350,13 +331,17 @@ public:
     */
     virtual std::shared_ptr<QNode> getFalseBranch() const;
 
-    /*
-    Get classical condition
-    param :
-    return : classical condition
-    Note:
-    */
+    /* will delete */
     virtual ClassicalCondition getCExpr();
+
+    /* new interface  */
+
+    /**
+    * @brief  QPanda2 basic interface for creating a QWhile program
+    * @ingroup  Core
+    * @return   QWhileProg  QWhile program
+    */
+    virtual ClassicalCondition getClassicalCondition();
 
 private:
     virtual void setTrueBranch(QProg ) {};
@@ -392,9 +377,9 @@ public:
 
     virtual void setFalseBranch(QProg node) {};
 
-    virtual ClassicalCondition getCExpr();
-
     virtual void execute(QPUImpl *, QuantumGateParam *);
+
+    virtual ClassicalCondition getCExpr();
 };
 
 typedef AbstractControlFlowNode * (*CreateQWhile_cb)(ClassicalCondition &, QNode *);
@@ -431,16 +416,56 @@ AbstractControlFlowNode* QWhileCreator##className(ClassicalCondition &classical_
 QWhileRegisterAction _G_qwhile_creator_register##className(                        \
     #className,(CreateQWhile_cb)QWhileCreator##className)
 
+
+/* will delete */
+QIfProg CreateIfProg(
+    ClassicalCondition classical_condition,
+    QProg true_node);
+QIfProg CreateIfProg(
+    ClassicalCondition classical_condition,
+    QProg true_node,
+    QProg false_node);
+QWhileProg CreateWhileProg(
+    ClassicalCondition ,
+    QProg trueNode);
+
+
+/* new interface */
+/**
+* @brief  QPanda2 basic interface for creating a QIf program
+* @ingroup  Core
+* @param[in]  ClassicalCondition  Cbit
+* @param[in]  QProg QIf true node
+* @return     QIfProg  QIf program
+*/
+QIfProg createIfProg(
+    ClassicalCondition cc,
+    QProg true_node);
+
+/**
+* @brief  QPanda2 basic interface for creating a QIf program
+* @ingroup  Core
+* @param[in]  ClassicalCondition  Cbit
+* @param[in]  QProg QIf true node
+* @param[in]  QProg QIf false node
+* @return     QIfProg  QIf program
+*/
+QIfProg createIfProg(
+    ClassicalCondition cc,
+    QProg true_node,
+    QProg false_node);
+
 /**
 * @brief  QPanda2 basic interface for creating a QWhile program
 * @ingroup  Core
 * @param[in]  ClassicalCondition  Cbit
-* @param[in]  QNode* QWhile true node
-* @return     QPanda::QWhileProg  QWhile program
+* @param[in]  QProg QWhile true node
+* @return     QWhileProg  QWhile program
 */
 
-QWhileProg CreateWhileProg(
-    ClassicalCondition ,
-    QProg trueNode);
+QWhileProg createWhileProg(
+    ClassicalCondition cc,
+    QProg true_node);
+
 QPANDA_END
 #endif // ! _CONTROL_FLOW_H

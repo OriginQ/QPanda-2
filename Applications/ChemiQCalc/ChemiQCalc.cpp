@@ -1,4 +1,4 @@
-#include "ChemiQ.h"
+#include "QAlg/ChemiQ/ChemiQ.h"
 #include <string.h>
 #include <iostream>
 

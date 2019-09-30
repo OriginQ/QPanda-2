@@ -2,11 +2,10 @@
 #include <limits>
 #include "gtest/gtest.h"
 #include "QPanda.h"
-#include "utils.h"
 #include "Transform/TransformDecomposition.h"
 #include <math.h>
 
-#include "Operator/PauliOperator.h"
+#include "Components/Operator/PauliOperator.h"
 #include "Variational/var.h"
 #include "Variational/expression.h"
 #include "Variational/utils.h"

@@ -1,6 +1,7 @@
 #include "Core/Utilities/Utilities.h"
 #include <time.h>
-#include "QProgram.h"
+
+#include "Core/QuantumCircuit/QuantumMeasure.h"
 #include "ControlFlow.h"
 
 #ifdef WIN32
@@ -198,4 +199,48 @@ void QPanda::insertQCircuit(AbstractQGateNode * pGateNode, QCircuit & qCircuit, 
         throw runtime_error("Unknown internal error");
     }
 
+}
+
+
+QProg  QPanda::Reset_Qubit_Circuit(Qubit *q, ClassicalCondition& cbit, bool setVal)
+{
+	auto prog = CreateEmptyQProg();
+	prog << Measure(q, cbit);
+	auto resetcircuit = CreateEmptyCircuit();
+	resetcircuit << X(q);
+	auto no_reset = CreateEmptyCircuit();
+	if (setVal == false)
+		prog << CreateIfProg(cbit, &resetcircuit, &no_reset);
+	else
+		prog << CreateIfProg(cbit, &no_reset, &resetcircuit);
+	return prog;
+}
+
+QProg QPanda::Reset_Qubit(Qubit* q, bool setVal, QuantumMachine * qvm)
+{
+	auto cbit = qvm->allocateCBit();
+	auto aTmep = Reset_Qubit_Circuit(q, cbit, setVal);
+	return aTmep;
+}
+
+QProg QPanda::Reset_All(std::vector<Qubit*> qubit_vector, bool setVal, QuantumMachine * qvm)
+{
+
+	QProg temp;
+
+	for_each(qubit_vector.begin(),
+		qubit_vector.end(),
+		[setVal, qvm,&temp](Qubit* q) {temp << Reset_Qubit(q, setVal, qvm); });
+
+	return temp;
+}
+
+QCircuit QPanda::parityCheckCircuit(std::vector<Qubit*> qubit_vec)
+{
+	QCircuit circuit;
+	for (auto i = 0; i < qubit_vec.size() - 1; i++)
+	{
+		circuit << CNOT(qubit_vec[i], qubit_vec[qubit_vec.size() - 1]);
+	}
+	return circuit;
 }

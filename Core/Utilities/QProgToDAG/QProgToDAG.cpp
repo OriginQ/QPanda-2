@@ -9,7 +9,7 @@ void QProgToDAG::construct(size_t tar_qubit, size_t vertice_num, QProgDAG &prog_
     if (iter != qubit_vertices_map.end())
     {
         size_t in_vertex_num = iter->second;
-        size_t edge_num = prog_dag.addEgde(in_vertex_num, vertice_num);
+        prog_dag.addEgde(in_vertex_num, vertice_num);
         qubit_vertices_map[iter->first] = vertice_num;
     }
     else
@@ -60,6 +60,7 @@ void QProgToDAG::transformQGate(shared_ptr<AbstractQGateNode> pQGate, QProgDAG &
         case GateType::ISWAP_GATE:
         case GateType::SQISWAP_GATE:
         case GateType::CPHASE_GATE:
+		case GateType::SWAP_GATE:
             {
                 construct(qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr(), vertice_num, prog_dag);
                 construct(qubits_vector[1]->getPhysicalQubitPtr()->getQubitAddr(), vertice_num, prog_dag);

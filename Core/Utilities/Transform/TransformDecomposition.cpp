@@ -758,13 +758,6 @@ void DecomposeControlSingleQGateIntoMetadataDoubleQGate ::
         throw runtime_error("the size of sGateName is error");
     }
 
-	//zhaody test
-	/*{
-		QuantumGate *gate = cur_node->getQGate();
-		int gateType = gate->getGateType();
-		std::cout << "gate type = " << gateType << std::endl;
-	}*/
-
     QVec vTargetQubit;
     if (cur_node->getQuBitVector(vTargetQubit) != 1)
     {

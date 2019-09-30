@@ -127,20 +127,18 @@ private:
     QuantumMachine *m_quantum_machine;
 };
 
-/**
-* @brief  Parse quantum program interface for  binary file
-* @ingroup Utilities
-* @param[in]  QuantumMachine* quantum machine pointer
-* @param[in]  std::string& filename
-* @param[out]  QVec& qubits  
-* @param[out]  std::vector<ClassicalCondition>& cbits
-* @param[out]  QProg& Quantum program
-* @retval 1   parse success
-* @retval 0   parse failed
-* @exception  runtime_error  parse file error
-*/
+
+
+/*will delete*/
+
 bool binaryQProgFileParse(QuantumMachine *qm, const std::string &filename, QVec &qubits,
                           std::vector<ClassicalCondition> &cbits, QProg &prog);
+
+bool binaryQProgDataParse(QuantumMachine *qm, const std::vector<uint8_t>& data, QVec & qubits, 
+                          std::vector<ClassicalCondition>& cbits, QProg & prog);
+
+
+/* new interface */
 
 /**
 * @brief  Parse quantum program interface for  binary data vector
@@ -150,12 +148,28 @@ bool binaryQProgFileParse(QuantumMachine *qm, const std::string &filename, QVec 
 * @param[out]  QVec& qubits
 * @param[out]  std::vector<ClassicalCondition>& cbits
 * @param[out]  QProg& Quantum program
+* @retval 1   parse success
+* @retval 0   parse failed
+* @exception  runtime_error  parse file error
+*/
+bool transformBinaryDataToQProg(QuantumMachine *qm, const std::vector<uint8_t>& data, QVec & qubits,
+	std::vector<ClassicalCondition>& cbits, QProg & prog);
+
+/**
+* @brief  Parse quantum program interface for  binary file
+* @ingroup Utilities
+* @param[in]  QuantumMachine* quantum machine pointer
+* @param[in]  std::string&  binary file name
+* @param[out]  QVec& qubits
+* @param[out]  std::vector<ClassicalCondition>& cbits
+* @param[out]  QProg& Quantum program
 * @retval 1  parse success
 * @retval 0  parse failed
 * @exception  runtime_error  parse file error
 */
-bool binaryQProgDataParse(QuantumMachine *qm, const std::vector<uint8_t>& data, QVec & qubits, 
-                          std::vector<ClassicalCondition>& cbits, QProg & prog);
+bool transformBinaryDataToQProg(QuantumMachine *qm, const std::string &filename, QVec &qubits,
+	std::vector<ClassicalCondition> &cbits, QProg &prog);
+
 
 QPANDA_END
 

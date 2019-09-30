@@ -27,23 +27,7 @@ QPANDA_BEGIN
 * @namespace QPanda
 */
 
-/**
-* @class QProgClockCycle
-* @brief  Count Quantum Program clock cycle
-* @ingroup Utilities
-* @see
-      @code
-            init();
-            auto qubits = qAllocMany(4);
-            auto prog = CreateEmptyQProg();
-            prog << H(qubits[0]) << CNOT(qubits[0], qubits[1])
-                    << iSWAP(qubits[1], qubits[2]) << RX(qubits[3], PI/4);
-            auto time = getQProgClockCycle(prog);
-            std::cout << "clockCycle : " << time << std::endl;
 
-            finalize();
-      @endcode
-*/
 class QProgClockCycle {
 public:
     QProgClockCycle(QuantumMachine *qm);
@@ -55,7 +39,26 @@ private:
     std::map<GateType, size_t> m_gate_time;
 };
 
+/**
+* @class QProgClockCycle
+* @brief  Count Quantum Program clock cycle
+* @param[in]  QProg &   quantum program
+* @param[in]	QuantumMachine *		quantum machine pointer
+* @ingroup Utilities
+* @see
+	  @code
+			init();
+			auto qubits = qAllocMany(4);
+			auto prog = CreateEmptyQProg();
+			prog << H(qubits[0]) << CNOT(qubits[0], qubits[1])
+					<< iSWAP(qubits[1], qubits[2]) << RX(qubits[3], PI/4);
+			extern QuantumMachine* global_quantum_machine;
+			auto time = getQProgClockCycle(prog,global_quantum_machine );
+			std::cout << "clockCycle : " << time << std::endl;
 
+			finalize();
+	  @endcode
+*/
 size_t getQProgClockCycle(QProg &prog, QuantumMachine *qm);
 QPANDA_END
 #endif // _QPROG_CLOCK_CYCLE_H

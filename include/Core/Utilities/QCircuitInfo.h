@@ -99,7 +99,7 @@ public:
 		:TraversalNodeIter(srcProg, *this), m_output_prog(outputProg),
 		m_start_iter(nodeItrStart),
 		m_end_iter(nodeItrEnd),
-		m_b_picking(false), m_b_pickup_end(false)
+		m_b_picking(false), m_b_pickup_end(false), m_b_pick_measure_node(false)
 	{}
 	~PickUpNodes() {}
 
@@ -111,7 +111,10 @@ public:
 	template<typename node_T>
 	void pickUp(node_T subPgogNode, std::shared_ptr<QNode> parent_node, bool &is_dagger);
 
+	void setPickUpMeasureNode(bool b) { m_b_pick_measure_node = b; }
+
 private:
+	bool m_b_pick_measure_node;
 	QProg &m_output_prog;
 	const NodeIter m_start_iter;
 	const NodeIter m_end_iter;
@@ -356,6 +359,7 @@ private:
 	* @see
 	*/
     QStat getMatrix(QProg srcProg, const NodeIter nodeItrStart = NodeIter(), const NodeIter nodeItrEnd = NodeIter());
+	QStat getMatrix(QCircuit srcProg, const NodeIter nodeItrStart = NodeIter(), const NodeIter nodeItrEnd = NodeIter());
 
 	/**
 	* @brief  output matrix information to consol
@@ -369,17 +373,32 @@ private:
 	*/
 	void printAllNodeType(QProg &prog);
 
-class QCircuitInfo
-{
-public:
-    QCircuitInfo(){}
-    ~QCircuitInfo(){}
+	/**
+	* @brief  pick up the nodes of srcProg between nodeItrStart and  nodeItrEnd to outPutProg
+	* @param[out] outPutProg  the output prog
+	* @param[in] srcProg The source prog
+	* @param[in] nodeItrStart The start pos of source prog
+	* @param[in] nodeItrEnd The end pos of source prog
+	* @ Note: If there are any Qif/Qwhile nodes between nodeItrStart and nodeItrEnd, 
+	          Or the nodeItrStart and the nodeItrEnd are in different sub-circuit, an exception will be throw.
+	*/
+	void pickUpNode(QProg &outPutProg, QProg &srcProg, const NodeIter nodeItrStart = NodeIter(), const NodeIter nodeItrEnd = NodeIter(), bool bPickMeasure = false);
 
+	/**
+	* @brief  Get all the used  quantum bits in the input prog
+	* @param[in] prog  the input prog
+	* @param[out] vecQuBitsInUse The vector of used quantum bits
+	* @ Note: All the Qif/Qwhile or other sub-circuit nodes in the input prog will be ignored.
+	*/
+	void getAllUsedQuBits(QProg &prog, std::vector<int> &vecQuBitsInUse);
 
-
-private:
-
-};
+	/**
+	* @brief  Get all the used  class bits in the input prog
+	* @param[in] prog  the input prog
+	* @param[out] vecClBitsInUse The vector of used class bits
+	* @ Note: All the Qif/Qwhile or other sub-circuit nodes in the input prog will be ignored.
+	*/
+	void getAllUsedClassBits(QProg &prog, std::vector<int> &vecClBitsInUse);
 
 QPANDA_END
 #endif

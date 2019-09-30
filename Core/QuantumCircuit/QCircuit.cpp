@@ -9,6 +9,12 @@ QCircuit  QPanda::CreateEmptyCircuit()
     return temp;
 }
 
+QCircuit  QPanda::createEmptyCircuit()
+{
+    QCircuit temp;
+    return temp;
+}
+
 QCircuit::QCircuit(std::shared_ptr<AbstractQuantumCircuit> node)
 {
     if (!node)
@@ -617,6 +623,12 @@ HadamardQCircuit::HadamardQCircuit(QVec& qubit_vector)
 }
 
 HadamardQCircuit QPanda::CreateHadamardQCircuit(QVec & qubit_vector)
+{
+    HadamardQCircuit temp(qubit_vector);
+    return temp;
+}
+
+HadamardQCircuit QPanda::createHadamardQCircuit(QVec & qubit_vector)
 {
     HadamardQCircuit temp(qubit_vector);
     return temp;

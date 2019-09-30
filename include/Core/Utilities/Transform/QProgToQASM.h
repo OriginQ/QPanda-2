@@ -96,6 +96,8 @@ private:
     * @brief  Quantum program transform to qasm instruction set
     * @ingroup Utilities
     * @param[in]  QProg&   Quantum Program 
+	* @param[in]   QuantumMachine *  quantum machine pointer
+	* @param[in]	 IBMQBackends	ibmBackend = IBMQ_QASM_SIMULATOR
     * @return     std::string    QASM instruction set
     * @see
         * @code
@@ -108,7 +110,8 @@ private:
                 prog << CZ(qubit[0], qubit[2]) << H(qubit[1]) << CNOT(qubit[1], qubit[2])
                 << RX(qubit[0],pi/2) << Measure(qubit[1],cbit[1]);
 
-                std::cout << transformQProgToQASM(prog) << std::endl;
+				extern QuantumMachine* global_quantum_machine;
+                std::cout << transformQProgToQASM(prog, global_quantum_machine) << std::endl;
                 finalize();
         * @endcode
     * @exception

@@ -17,7 +17,7 @@
 
 namespace Base64{
 
-    uint8_t uc_decode (uint8_t uc)
+   inline uint8_t uc_decode (uint8_t uc)
     {
         if ('A' <= uc && uc <= 'Z')
         {
@@ -43,7 +43,7 @@ namespace Base64{
         return 0 ;
     }
 
-    uint8_t uc_encode (uint8_t uc)
+   inline uint8_t uc_encode (uint8_t uc)
     {
         if (uc < 26)
         {
@@ -72,7 +72,7 @@ namespace Base64{
     /**
          * Encodes supplied bytes into base64 encoded octets.
          */
-    std::vector<uint8_t> encode(const void *input, size_t length)
+   inline std::vector<uint8_t> encode(const void *input, size_t length)
     {
         const uint8_t * bin = static_cast<const uint8_t *> (input) ;
         if (length == 0)
@@ -149,8 +149,8 @@ namespace Base64{
 
     /**
          * Decodes supplied base64 encoded octets into raw bytes.
-         */
-    std::vector<uint8_t> decode(const void *input, size_t length)
+    */
+    inline std::vector<uint8_t> decode(const void *input, size_t length)
     {
         const uint8_t * b64 = static_cast<const uint8_t *> (input) ;
         //uint8_t * b64 = (uint8_t *)input ;

@@ -612,7 +612,7 @@ void QProgDataParse::parseControlNodeData(const uint32_t &data)
 	m_control_qubits_addr.push_back(qubit_addr_1);
 
 	size_t qubit_addr_2 = (data >> (kCountMoveBit)); 
-	if (0 != qubit_addr_2 ) 
+	if (0 != qubit_addr_2 )
 	{
 		m_control_qubits_addr.push_back(qubit_addr_2);
 	}
@@ -741,6 +741,47 @@ bool QPanda::binaryQProgDataParse(QuantumMachine *qm, const std::vector<uint8_t>
     return true;
 }
 
+bool QPanda::transformBinaryDataToQProg(QuantumMachine *qm, const std::string &filename, QVec &qubits,
+	std::vector<ClassicalCondition> &cbits, QProg &prog)
+{
+	QProgDataParse dataParse(qm);
+	if (!dataParse.load(filename))
+	{
+		std::cout << "load file error" << std::endl;
+		throw runtime_error("Parse file error");
+	}
+
+	if (!dataParse.parse(prog))
+	{
+		throw runtime_error("Parse file error");
+	}
+
+	qubits = dataParse.getQubits();
+	cbits = dataParse.getCbits();
+
+	return true;
+}
+
+bool QPanda::transformBinaryDataToQProg(QuantumMachine *qm, const std::vector<uint8_t>& data, QVec & qubits,
+	std::vector<ClassicalCondition>& cbits, QProg & prog)
+{
+	QProgDataParse dataParse(qm);
+	if (!dataParse.load(data))
+	{
+		std::cout << "load binary data error" << std::endl;
+		throw runtime_error("load binary data error");
+	}
+
+	if (!dataParse.parse(prog))
+	{
+		throw runtime_error("Parse binary data error");
+	}
+
+	qubits = dataParse.getQubits();
+	cbits = dataParse.getCbits();
+
+	return true;
+}
 
 
 

@@ -90,6 +90,7 @@ private:
 * @brief  Quantum program transform to quil instruction set interface
 * @ingroup Utilities
 * @param[in]  QProg&   quantum program
+* @param[in]   QuantumMachine *  quantum machine pointer
 * @return     std::string   instruction set
 * @see
       @code
@@ -104,10 +105,8 @@ private:
           << RX(qvec[0], 3.14)
           << Measure(qvec[1], cvec[0])
           ;
-          load(prog);
-
-          auto quil = qProgToQuil(prog);
-          std::cout << quil << std::endl;
+		  extern QuantumMachine* global_quantum_machine;
+		  transformQProgToQuil(prog, global_quantum_machine)
           finalize();
       @endcode
 * @exception    qprog_syntax_error   quantum program syntax error

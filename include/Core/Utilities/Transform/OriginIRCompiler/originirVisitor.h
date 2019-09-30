@@ -47,6 +47,8 @@ public:
 
     virtual antlrcpp::Any visitDouble_gate_with_four_parameter_declaration(originirParser::Double_gate_with_four_parameter_declarationContext *context) = 0;
 
+    virtual antlrcpp::Any visitTriple_gate_without_parameter_declaration(originirParser::Triple_gate_without_parameter_declarationContext *context) = 0;
+
     virtual antlrcpp::Any visitSingle_gate_without_parameter_type(originirParser::Single_gate_without_parameter_typeContext *context) = 0;
 
     virtual antlrcpp::Any visitSingle_gate_with_one_parameter_type(originirParser::Single_gate_with_one_parameter_typeContext *context) = 0;
@@ -58,6 +60,8 @@ public:
     virtual antlrcpp::Any visitDouble_gate_with_one_parameter_type(originirParser::Double_gate_with_one_parameter_typeContext *context) = 0;
 
     virtual antlrcpp::Any visitDouble_gate_with_four_parameter_type(originirParser::Double_gate_with_four_parameter_typeContext *context) = 0;
+
+    virtual antlrcpp::Any visitTriple_gate_without_parameter_type(originirParser::Triple_gate_without_parameter_typeContext *context) = 0;
 
     virtual antlrcpp::Any visitPri_ckey(originirParser::Pri_ckeyContext *context) = 0;
 

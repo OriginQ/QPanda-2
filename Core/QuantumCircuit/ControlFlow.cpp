@@ -109,6 +109,11 @@ ClassicalCondition  QWhileProg::getCExpr()
     return m_control_flow->getCExpr();
 }
 
+ClassicalCondition QWhileProg::getClassicalCondition()
+{
+    return getCExpr();
+}
+
 QIfProg::~QIfProg()
 {
     m_control_flow.reset();
@@ -174,6 +179,11 @@ ClassicalCondition  QIfProg::getCExpr()
         throw runtime_error("Unknown internal error");
     }
     return m_control_flow->getCExpr();
+}
+
+ClassicalCondition QIfProg::getClassicalCondition()
+{
+    return getCExpr();
 }
 
 std::shared_ptr<QNode> QIfProg::getImplementationPtr()
@@ -474,4 +484,23 @@ AbstractControlFlowNode *QWhileFactory::getQWhile(std::string & class_name,
         QCERR("Unknown internal error");
         throw runtime_error("Unknown internal error");
     }
+}
+
+QIfProg QPanda::createIfProg(ClassicalCondition cc, QProg true_node)
+{
+    QIfProg qif(cc, true_node);
+    return qif;
+}
+
+
+QIfProg QPanda::createIfProg(ClassicalCondition cc, QProg true_node, QProg false_node)
+{
+    QIfProg qif(cc, true_node, false_node);
+    return qif;
+}
+
+QWhileProg QPanda::createWhileProg(ClassicalCondition cc, QProg true_node)
+{
+    QWhileProg qwhile(cc, true_node);
+    return qwhile;
 }

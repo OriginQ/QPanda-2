@@ -17,10 +17,16 @@ size_t QProgDAG::addVertex(const NodeIter& iter)
     return vertice_num;
 }
 
-size_t QProgDAG::addEgde(size_t in_num, size_t out_num)
+void QProgDAG::addEgde(size_t in_num, size_t out_num)
 {
+    for (auto val : m_edges_vector)
+    {
+        if (val.first == in_num && val.second == out_num)
+        {
+            return;
+        }
+    }
     m_edges_vector.emplace_back(make_pair(in_num, out_num));
-    return m_edges_vector.size();
 }
    
 void QProgDAG::constructAdjacencyMatrix(const vertices_map &dag_map, AdjacencyMatrix & matrix)
@@ -74,14 +80,11 @@ void QProgDAG::getTopologincalSequence(TopologincalSequence &seq)
     }
 
     //cout << flag_mat << endl << endl;
-
     while (!flag_mat.row(1).minCoeff())
     {
         SequenceLayer seq_layer;
         getCurLayerVertices(flag_mat, seq_layer);
-
         seq.emplace_back(seq_layer);
-
         //cout << flag_mat << endl << endl;
     }
 }
@@ -104,12 +107,10 @@ void QProgDAG::getCurLayerVertices(AdjacencyMatrix &matrix, SequenceLayer &seq_l
                 }
             }
             seq_layer.emplace_back(make_pair(node, connected_vec));
-
             matrix(1, i) = -1;
         }
 
     }
-
     for (auto i = 0; i < count; ++i)
     {
         if ((matrix(1, i) == -1) && (matrix(0, i) == 0))

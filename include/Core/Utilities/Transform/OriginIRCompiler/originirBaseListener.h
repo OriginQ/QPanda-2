@@ -58,6 +58,9 @@ public:
   virtual void enterDouble_gate_with_four_parameter_declaration(originirParser::Double_gate_with_four_parameter_declarationContext * /*ctx*/) override { }
   virtual void exitDouble_gate_with_four_parameter_declaration(originirParser::Double_gate_with_four_parameter_declarationContext * /*ctx*/) override { }
 
+  virtual void enterTriple_gate_without_parameter_declaration(originirParser::Triple_gate_without_parameter_declarationContext * /*ctx*/) override { }
+  virtual void exitTriple_gate_without_parameter_declaration(originirParser::Triple_gate_without_parameter_declarationContext * /*ctx*/) override { }
+
   virtual void enterSingle_gate_without_parameter_type(originirParser::Single_gate_without_parameter_typeContext * /*ctx*/) override { }
   virtual void exitSingle_gate_without_parameter_type(originirParser::Single_gate_without_parameter_typeContext * /*ctx*/) override { }
 
@@ -75,6 +78,9 @@ public:
 
   virtual void enterDouble_gate_with_four_parameter_type(originirParser::Double_gate_with_four_parameter_typeContext * /*ctx*/) override { }
   virtual void exitDouble_gate_with_four_parameter_type(originirParser::Double_gate_with_four_parameter_typeContext * /*ctx*/) override { }
+
+  virtual void enterTriple_gate_without_parameter_type(originirParser::Triple_gate_without_parameter_typeContext * /*ctx*/) override { }
+  virtual void exitTriple_gate_without_parameter_type(originirParser::Triple_gate_without_parameter_typeContext * /*ctx*/) override { }
 
   virtual void enterPri_ckey(originirParser::Pri_ckeyContext * /*ctx*/) override { }
   virtual void exitPri_ckey(originirParser::Pri_ckeyContext * /*ctx*/) override { }

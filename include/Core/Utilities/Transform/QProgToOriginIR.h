@@ -74,9 +74,9 @@ private:
 };
 
 /**
-* @brief  Quantum Program Transform To OriginIR  instruction set
+* @brief  Quantum Program Transform To OriginIR  
 * @ingroup Utilities
-* @param[in]  QProg&   quantum Program
+* @param[in]  _Ty& quantum program, quantum circuit, quantum while or quantum if
 * @return     std::string    QASM instruction set
 * @see
       @code
@@ -88,8 +88,8 @@ private:
 
           prog << CZ(qubit[0], qubit[2]) << H(qubit[1]) << CNOT(qubit[1], qubit[2])
           << RX(qubit[0],pi/2) << Measure(qubit[1],cbit[1]);
-
-          std::cout << transformQProgToOriginIR(prog) << std::endl;
+		  extern QuantumMachine* global_quantum_machine;
+          std::cout << transformQProgToOriginIR(prog, global_quantum_machine) << std::endl;
           finalize();
       @endcode
 * @exception

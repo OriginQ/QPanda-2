@@ -1,8 +1,5 @@
 cmake_minimum_required(VERSION 3.1)
 add_subdirectory(pyQPanda.Core)
 add_subdirectory(pyQPanda.Operator)
-
-if(USE_CHEMIQ)
-    add_subdirectory(pyQPanda.ChemiQ)
-endif(USE_CHEMIQ)
+add_subdirectory(pyQPanda.ChemiQ)
 

@@ -7,26 +7,28 @@
 #include "pybind11/functional.h"
 #include "pybind11/chrono.h"
 #include "Core/QPanda.h"
-#include "MaxCutProblemGenerator/MaxCutProblemGenerator.h"
+#include "Components/MaxCutProblemGenerator/MaxCutProblemGenerator.h"
 #include "pybind11/eigen.h"
 #include "pybind11/operators.h"
 #include <pybind11/stl_bind.h>
 #include "Core/Utilities/OriginCollection.h"
-#include "QAlg/DataStruct.h"
-#include "Optimizer/AbstractOptimizer.h"
-#include "Optimizer/OptimizerFactory.h"
-#include "Optimizer/OriginNelderMead.h"
+#include "Core/Utilities/Utilities.h"
+#include "Components/DataStruct.h"
+#include "Components/Optimizer/AbstractOptimizer.h"
+#include "Components/Optimizer/OptimizerFactory.h"
+#include "Components/Optimizer/OriginNelderMead.h"
 #include "Core/QuantumMachine/QCloudMachine.h"
 #include "Core/Utilities/Transform/QProgClockCycle.h"
-#include "Operator/FermionOperator.h"
+#include "Components/Operator/FermionOperator.h"
 #include "QPandaConfig.h"
-#include "QAlg/Utils/Utilities.h"
 #include "Core/Utilities/QCircuitInfo.h"
 #include "Core/Utilities/QProgToDAG/GraphMatch.h"
-
-
+#include "Core/Utilities/Visualization/QVisualization.h"
+#include "Core/QuantumMachine/SingleAmplitudeQVM.h"
+#include "Core/QuantumMachine/PartialAmplitudeQVM.h"
 #include "pybind11/eigen.h"
 #include "pybind11/operators.h"
+#include "Core/Utilities/base64.hpp"
 
 USING_QPANDA
 using namespace std;
@@ -85,7 +87,7 @@ PYBIND11_MODULE(pyQPanda, m)
     );
 
     m.def("qAlloc", [](size_t size) {return qAlloc(size); },
-        "Allocate several qubits",
+        "Allocate a qubits",
         py::return_value_policy::reference
     );
 
@@ -103,12 +105,20 @@ PYBIND11_MODULE(pyQPanda, m)
         py::return_value_policy::reference
     );
 
+    /* add */
+    m.def("cAlloc", [](size_t size) {return cAlloc(size); },
+        "Allocate a CBit",
+        py::return_value_policy::reference
+    );
+
     m.def("cAlloc_many", [](size_t size) {return cAllocMany(size); },
         "Allocate several CBits",
         py::return_value_policy::reference
     );
 
     m.def("cFree", &cFree, "Free a CBit");
+
+    m.def("cFree_all", &cFreeAll, "Free several CBit");
 
     m.def("apply_QGate", &apply_QGate,
         "Apply QGate to qubits",
@@ -118,14 +128,11 @@ PYBIND11_MODULE(pyQPanda, m)
     m.def("getstat", &getstat,
         "get the status(ptr) of the quantum machine");
 
+    /* will delete */
     m.def("getAllocateQubitNum", &getAllocateQubitNum,
         "getAllocateQubitNum");
 
     m.def("getAllocateCMem", &getAllocateCMem, "getAllocateCMem");
-
-    m.def("directly_run", &directlyRun, "directly run");
-
-    m.def("quick_measure", &quickMeasure, "qubit_list"_a, "shots"_a, "quick measure");
 
     m.def("CreateEmptyQProg", &CreateEmptyQProg,
         "Create an empty QProg Container",
@@ -157,7 +164,51 @@ PYBIND11_MODULE(pyQPanda, m)
         py::return_value_policy::automatic
     );
 
-    m.def("measure", &Measure, "qubit"_a, "cbit"_a,
+    /* new interface */
+    m.def("get_allocate_qubit_num", &getAllocateQubitNum,
+        "get allocate qubit num",
+         py::return_value_policy::automatic);
+    m.def("get_allocate_cmem_num", &getAllocateCMem,
+          "get allocate cmemnum",
+          py::return_value_policy::automatic);
+
+    m.def("create_empty_qprog", &createEmptyQProg,
+        "Create an empty QProg Container",
+        py::return_value_policy::automatic
+    );
+
+    m.def("create_while_prog", &createWhileProg,
+        "Classical_condition"_a, "true_branch"_a,
+        "Create a WhileProg",
+        py::return_value_policy::automatic
+    );
+
+    m.def("create_if_prog", [](ClassicalCondition m, QProg &true_branch)
+    {return createIfProg(m, true_branch); },
+        "Classical_condition"_a, "true_branch"_a,
+        "Create a IfProg",
+        py::return_value_policy::automatic
+    );
+
+    m.def("create_if_prog", [](ClassicalCondition&m, QProg &true_branch, QProg &false_branch)
+    {return createIfProg(m, true_branch, false_branch); },
+        "Classical_condition"_a, "true_branch"_a, "false_branch"_a,
+        "Create a IfProg",
+        py::return_value_policy::automatic
+    );
+
+    m.def("create_empty_circuit", &createEmptyCircuit,
+        "Create an empty QCircuit Container",
+        py::return_value_policy::automatic
+    );
+
+
+    m.def("directly_run", &directlyRun, "directly run");
+
+    m.def("quick_measure", &quickMeasure, "qubit_list"_a, "shots"_a, "quick measure");
+
+
+    m.def("Measure", &Measure, "qubit"_a, "cbit"_a,
         "Create a Measure operation",
         py::return_value_policy::automatic
     );
@@ -274,53 +325,6 @@ PYBIND11_MODULE(pyQPanda, m)
         py::return_value_policy::automatic
     );
 
-    m.def("to_originir", [](QProg & qn, QuantumMachine *qvm)
-    {return transformQProgToOriginIR(qn, qvm); },
-        py::return_value_policy::automatic_reference
-    );
-    m.def("to_originir", [](QCircuit & qn, QuantumMachine *qvm)
-    {return transformQProgToOriginIR(qn, qvm); },
-        py::return_value_policy::automatic_reference
-    );
-    m.def("to_originir", [](QGate & qn, QuantumMachine *qvm)
-    {return transformQProgToOriginIR(qn, qvm); },
-        py::return_value_policy::automatic_reference
-    );
-    m.def("to_originir", [](QIfProg & qn, QuantumMachine *qvm)
-    {return transformQProgToOriginIR(qn, qvm); },
-        py::return_value_policy::automatic_reference
-    );
-    m.def("to_originir", [](QWhileProg & qn, QuantumMachine *qvm)
-    {return transformQProgToOriginIR(qn, qvm); },
-        py::return_value_policy::automatic_reference
-    );
-    m.def("to_originir", [](QMeasure & qn, QuantumMachine *qvm)
-    {return transformQProgToOriginIR(qn, qvm); },
-        py::return_value_policy::automatic_reference
-    );
-
-    m.def("originir_to_qprog", [](string file_path, QuantumMachine *qvm)
-    {return transformOriginIRToQProg(file_path, qvm); },
-        py::return_value_policy::automatic_reference
-    );\
-
-    m.def("get_matrix", &getMatrix, "qprog"_a, "first_node_iter"_a,"last_node_iter"_a,
-        "get the target matrix between the input two Nodeiters",
-        py::return_value_policy::automatic
-    );
-
-    m.def("get_matrix", [](QProg & prog){
-        return getMatrix(prog);
-    }, "get the target prog  matrix",
-        py::return_value_policy::automatic
-    );
-
-    m.def("get_matrix", [](QCircuit & cir){
-        return getMatrix(cir);
-    },"get the target prog  matrix",
-        py::return_value_policy::automatic
-    );
-
 	m.def("print_mat", &printMat, "mat"_a,
 		"output matrix information to consol",
 		py::return_value_policy::automatic
@@ -349,48 +353,52 @@ PYBIND11_MODULE(pyQPanda, m)
         "judge if the target node is a supported QGate type",
         py::return_value_policy::automatic
     );
-    /**
-   * @brief  Transfer Qprog to QASM
-   * @return   py::list: [QASM_str, IBMQ_backend_name]
-   * @exception
-   * @note
-       Available Value of ibmBackend :{
-           0: IBMQ_QASM_SIMULATOR(32 Qubits, default),
-           1: IBMQ_16_MELBOURNE(14 Qubits),
-           2: IBMQX2(5 Qubits),
-           3: IBMQX4(5 Qubits)
-           }
-   */
-    m.def("to_QASM", [](QProg prog, IBMQBackends ibmBackend = IBMQ_QASM_SIMULATOR)->py::list {
-        extern QuantumMachine* global_quantum_machine;
+
+    /* will delete */
+
+	m.def("to_originir", [](QProg & qn, QuantumMachine *qvm)
+		{return transformQProgToOriginIR(qn, qvm); },
+		py::return_value_policy::automatic_reference
+	);
+	m.def("to_originir", [](QCircuit & qn, QuantumMachine *qvm)
+		{return transformQProgToOriginIR(qn, qvm); },
+		py::return_value_policy::automatic_reference
+	);
+	m.def("to_originir", [](QGate & qn, QuantumMachine *qvm)
+		{return transformQProgToOriginIR(qn, qvm); },
+		py::return_value_policy::automatic_reference
+	);
+	m.def("to_originir", [](QIfProg & qn, QuantumMachine *qvm)
+		{return transformQProgToOriginIR(qn, qvm); },
+		py::return_value_policy::automatic_reference
+	);
+	m.def("to_originir", [](QWhileProg & qn, QuantumMachine *qvm)
+		{return transformQProgToOriginIR(qn, qvm); },
+		py::return_value_policy::automatic_reference
+	);
+	m.def("to_originir", [](QMeasure & qn, QuantumMachine *qvm)
+		{return transformQProgToOriginIR(qn, qvm); },
+		py::return_value_policy::automatic_reference
+	);
+
+	m.def("originir_to_qprog", [](string file_path, QuantumMachine *qvm)
+		{return transformOriginIRToQProg(file_path, qvm); },
+		py::return_value_policy::automatic_reference
+	);
+
+    m.def("to_QASM", [](QProg prog,QuantumMachine *qvm, IBMQBackends ibmBackend) {
         py::list retData;
-        std::string qasmStr = transformQProgToQASM(prog, global_quantum_machine, (IBMQBackends)ibmBackend);
+        std::string qasmStr = transformQProgToQASM(prog, qvm, (IBMQBackends)ibmBackend);
         retData.append(qasmStr);
 
         std::string IBMBackendName = QProgToQASM::getIBMQBackendName((IBMQBackends)ibmBackend);
         retData.append(IBMBackendName);
 
         return retData;
-    }
-        , "program"_a, "IBMQBackends"_a,
-        "@brief  Transfer Qprog to QASM\n\
-            @input program: Qprog, IBMQBackends: IBMQBackends enum\n\
-			@return   py::list: [QASM_str, IBMQ_backend_name]\n\
-			@exception\n\
-			@note\n\
-			Available Value of ibmBackend : {\n\
-			0: IBMQ_QASM_SIMULATOR(32 Qubits, default),\n\
-			1 : IBMQ_16_MELBOURNE(14 Qubits),\n\
-			2 : IBMQX2(5 Qubits),\n\
-			3 : IBMQX4(5 Qubits)\n\
-		}", py::return_value_policy::automatic_reference
+    },"prog"_a,"quantum machine"_a,"IBMQBackends"_a= IBMQ_QASM_SIMULATOR,py::return_value_policy::automatic_reference
         );
 
-    m.def("to_Quil", [](QProg prog) {
-        extern QuantumMachine* global_quantum_machine;
-        return transformQProgToQuil(prog, global_quantum_machine);
-    }
-        , "program"_a, "QProg to Quil",
+    m.def("to_Quil",&transformQProgToQuil , "program"_a, "quantum machine"_a ,"QProg to Quil",
         py::return_value_policy::automatic_reference
         );
 
@@ -416,7 +424,10 @@ PYBIND11_MODULE(pyQPanda, m)
         py::return_value_policy::automatic_reference
         );
 
-    m.def("get_bin_data", [](QProg prog) {
+    m.def("get_bin_data", [](QProg prog) {    /* will delete */
+
+
+        /* new interface */
         extern QuantumMachine* global_quantum_machine;
         return transformQProgToBinary(prog, global_quantum_machine);
     }
@@ -443,7 +454,136 @@ PYBIND11_MODULE(pyQPanda, m)
         "Parse quantum program interface for  binary data vector",
         py::return_value_policy::automatic_reference
         );
+	m.def("get_bin_str", [](QProg prog, QuantumMachine *qvm) {
+		auto data = transformQProgToBinary(prog, qvm);
+		auto base64_data = Base64::encode(data.data(), data.size()); // 将得到的二进制数据以base64的方式编码
+		std::string data_str(base64_data.begin(), base64_data.end());
+		return data_str;
+		}, "prog"_a, "quantum machine"_a, py::return_value_policy::automatic);
 
+    /* new interface */
+
+	m.def("transform_qprog_to_qasm", [](QProg prog, QuantumMachine *qvm, IBMQBackends ibmBackend) {
+		py::list retData;
+		std::string qasmStr = transformQProgToQASM(prog, qvm, (IBMQBackends)ibmBackend);
+		retData.append(qasmStr);
+
+		std::string IBMBackendName = QProgToQASM::getIBMQBackendName((IBMQBackends)ibmBackend);
+		retData.append(IBMBackendName);
+
+		return retData;
+		}, "prog"_a, "quantum machine"_a, "IBMQBackends"_a = IBMQ_QASM_SIMULATOR, py::return_value_policy::automatic_reference
+	);
+
+
+    m.def("transform_qprog_to_quil", &transformQProgToQuil
+        , "program"_a,"quantum machine"_a, "QProg to Quil",
+        py::return_value_policy::automatic_reference
+        );
+
+    m.def("get_qgate_num", [](QProg & qn)
+    {return getQGateNumber(qn); },
+        "quantum_prog"_a,
+        "Count quantum gate num under quantum program, quantum circuit",
+        py::return_value_policy::automatic
+    );
+
+    m.def("get_qgate_num", [](QCircuit & qn)
+    {return getQGateNumber(qn); },
+        "quantum_circuit"_a,
+        "Count quantum gate num under quantum program, quantum circuit",
+        py::return_value_policy::automatic
+    );
+
+    m.def("get_qprog_clock_cycle", &getQProgClockCycle,
+		"program"_a,"quantum machine"_a "Get Quantum Program Clock Cycle",
+        py::return_value_policy::automatic_reference
+        );
+
+    m.def("transform_qprog_to_binary", [](QProg prog,QuantumMachine * qvm) {
+        return transformQProgToBinary(prog, qvm);
+    }
+        , "program"_a,"quantum machine"_a "Get quantum program binary data",
+        py::return_value_policy::automatic_reference
+        );
+
+	m.def("transform_qprog_to_binary", [](QProg prog, QuantumMachine * qvm,string file_path) {
+
+		return transformQProgToBinary(prog, qvm, file_path);
+		}
+		, "program"_a, "quantum machine"_a ,"file path"_a,"Get quantum program binary data",
+			py::return_value_policy::automatic_reference
+			);
+
+
+	m.def("transform_qprog_to_originir", [](QProg prog, QuantumMachine *qvm) {
+		return transformQProgToOriginIR(prog, qvm);
+		},
+		"program"_a,"quantum machine"_a, "QProg to originir",
+        py::return_value_policy::automatic_reference
+        );
+
+#ifdef USE_CURL
+    m.def("qprog_to_binary", [](QProg prog) {
+        extern QuantumMachine* global_quantum_machine;
+        return qProgToBinary(prog, global_quantum_machine);
+    }
+        , "program"_a, "Get quantum program binary data",
+        py::return_value_policy::automatic_reference
+        );
+#endif // USE_CURL
+
+    m.def("get_qprog_clock_cycle", &getQProgClockCycle, 
+		"program"_a, "QuantumMachine"_a, "Get Quantum Program Clock Cycle",
+        py::return_value_policy::automatic_reference
+        );
+
+    m.def("transform_binary_data_to_qprog", [](QuantumMachine *qm, const std::vector<uint8_t>& data, QVec & qubits,
+        std::vector<ClassicalCondition>& cbits, QProg & prog) {
+        return binaryQProgDataParse(qm, data, qubits, cbits, prog);
+    }
+        , "QuantumMachine"_a, "data"_a, "qlist"_a, "clist"_a, "program"_a,
+        "Parse quantum program interface for  binary data vector",
+        py::return_value_policy::automatic_reference
+        );
+
+    m.def("transform_qprog_to_originir", [](QProg prog, QuantumMachine *qm) {
+        return transformQProgToOriginIR(prog, qm);
+    }
+        , "program"_a, "QuantumMachine"_a, "QProg to originir",
+        py::return_value_policy::automatic_reference
+        );
+
+    m.def("transform_originir_to_qprog", &transformOriginIRToQProg,
+		"file_name"_a, "QuantumMachine"_a, "originir to QProg",
+        py::return_value_policy::automatic_reference
+        );
+
+    m.def("validate_single_qgate_type", &validateSingleQGateType,
+        "validate single QGate type",
+        py::return_value_policy::automatic
+    );
+
+    m.def("validate_double_qgate_type", &validateDoubleQGateType,
+        "validate double QGate type",
+        py::return_value_policy::automatic
+    );
+
+    m.def("get_unsupport_qgate_num", [](QProg prog, const vector<vector<string>> &gates) {
+        return getUnsupportQGateNum(prog, gates);
+    },
+        "get unsupport QGate_num",
+        py::return_value_policy::automatic
+    );
+
+    m.def("get_qgate_num", [](QProg prog) {
+        return getQGateNum(prog);
+    },
+        "get QGate_num",
+        py::return_value_policy::automatic
+        );
+
+    /* will delete */
     m.def("PMeasure", &PMeasure,
         "Get the probability distribution over qubits",
         py::return_value_policy::automatic
@@ -463,6 +603,24 @@ PYBIND11_MODULE(pyQPanda, m)
         py::return_value_policy::automatic
     );
 
+    /* new interface */
+
+    m.def("pmeasure", &pMeasure,
+        "Get the probability distribution over qubits",
+        py::return_value_policy::automatic
+    );
+
+    m.def("pmeasure_no_index", &pMeasureNoIndex,
+        "Get the probability distribution over qubits",
+        py::return_value_policy::automatic
+    );
+
+    m.def("accumulate_probability", &accumulateProbability, "probability_list"_a,
+        "Accumulate the probability from a prob list",
+        py::return_value_policy::automatic
+    );
+
+
     m.def("run_with_configuration", &runWithConfiguration, "program"_a,
         "cbit_list"_a,
         "shots"_a,
@@ -475,6 +633,14 @@ PYBIND11_MODULE(pyQPanda, m)
     m.def("prob_run_list", probRunList, "program"_a, "qubit_list"_a, "select_max"_a = -1,
         py::return_value_policy::reference);
     m.def("prob_run_dict", probRunDict, "program"_a, "qubit_list"_a, "select_max"_a = -1,
+        py::return_value_policy::reference);
+
+    /* add */
+    m.def("get_tuple_list", getProbTupleList, "qubit_list"_a, "select_max"_a = -1,
+        py::return_value_policy::reference);
+    m.def("get_prob_list", getProbList, "qubit_list"_a, "select_max"_a = -1,
+        py::return_value_policy::reference);
+    m.def("get_prob_dict", getProbDict, "qubit_list"_a, "select_max"_a = -1,
         py::return_value_policy::reference);
 
     py::class_<ClassicalProg>(m, "ClassicalProg")
@@ -539,6 +705,7 @@ PYBIND11_MODULE(pyQPanda, m)
     py::implicitly_convertible<QMeasure, QProg>();
     py::implicitly_convertible<ClassicalCondition, QProg>();
 
+
     py::class_<QCircuit>(m, "QCircuit")
         .def(py::init<>())
         .def(py::init([](NodeIter & iter) {
@@ -564,18 +731,23 @@ PYBIND11_MODULE(pyQPanda, m)
             py::return_value_policy::reference)
         .def("insert", &QCircuit::operator<< <QGate>,
             py::return_value_policy::reference)
-        .def("dagger", &QCircuit::dagger)
-        .def("control", &QCircuit::control)
+        .def("dagger", &QCircuit::dagger,
+            py::return_value_policy::automatic)
+        .def("control", &QCircuit::control,
+            py::return_value_policy::automatic)
+        .def("set_dagger", &QCircuit::setDagger)
+        .def("set_control", &QCircuit::setControl)
         .def("begin",&QCircuit::getFirstNodeIter, 
-        py::return_value_policy::reference)
+            py::return_value_policy::reference)
         .def("end",&QCircuit::getEndNodeIter, 
-        py::return_value_policy::reference)
+            py::return_value_policy::reference)
         .def("last",&QCircuit::getLastNodeIter, 
-        py::return_value_policy::reference)
+            py::return_value_policy::reference)
         .def("head",&QCircuit::getHeadNodeIter, 
-        py::return_value_policy::reference);
+            py::return_value_policy::reference);
 
 
+    /* hide */
     py::class_<HadamardQCircuit, QCircuit>(m, "hadamard_circuit")
         .def(py::init<QVec&>());
 
@@ -674,7 +846,10 @@ PYBIND11_MODULE(pyQPanda, m)
 
         return QProg(false_branch);
     },
-            py::return_value_policy::automatic);
+            py::return_value_policy::automatic)
+        .def("get_classical_condition", &QIfProg::getClassicalCondition,
+             py::return_value_policy::automatic);
+
 
     py::class_<QWhileProg>(m, "QWhileProg")
         .def(py::init([](NodeIter & iter) {
@@ -714,7 +889,9 @@ PYBIND11_MODULE(pyQPanda, m)
 
         return QProg(true_branch);
     },
-            py::return_value_policy::automatic);
+             py::return_value_policy::automatic)
+        .def("get_classical_condition", &QWhileProg::getClassicalCondition,
+             py::return_value_policy::automatic);;
 
     py::class_<QMeasure>(m, "QMeasure")
         .def(py::init([](NodeIter & iter) {
@@ -941,7 +1118,35 @@ PYBIND11_MODULE(pyQPanda, m)
     py::implicitly_convertible<cbit_size_t, ClassicalCondition>();
 
 
+	m.def("get_matrix", [](QProg & prog, const NodeIter nodeItrStart, const NodeIter nodeItrEnd) {
+		return getMatrix(prog, nodeItrStart, nodeItrEnd);
+	}, py::arg("prog"), py::arg("nodeItrStart") = NodeIter(), py::arg("nodeItrEnd") = NodeIter()
+		, "get the target prog  matrix",
+		py::return_value_policy::automatic
+		);
 
+	m.def("get_matrix", [](QCircuit & cir, const NodeIter nodeItrStart, const NodeIter nodeItrEnd) {
+		return getMatrix(cir, nodeItrStart, nodeItrEnd);
+	}, py::arg("circuit"), py::arg("nodeItrStart") = NodeIter(), py::arg("nodeItrEnd") = NodeIter()
+		, "get the target circuit  matrix",
+		py::return_value_policy::automatic
+		);
+
+	m.def("print_qprog", [](QProg &prg, const NodeIter nodeItrStart, const NodeIter nodeItrEnd) {
+		return printProg(prg, nodeItrStart, nodeItrEnd);
+	}, py::arg("prog"), py::arg("nodeItrStart") = NodeIter(), py::arg("nodeItrEnd") = NodeIter(),
+		"output a quantum prog/circuit to console by text-pic(UTF-8 code), \
+		and will save the text-pic in file named QCircuitTextPic.txt in the same time in current path",
+		py::return_value_policy::automatic
+		);
+
+	m.def("print_qprog", [](QCircuit &cir, const NodeIter nodeItrStart, const NodeIter nodeItrEnd) {
+		return printProg(cir, nodeItrStart, nodeItrEnd);
+	}, py::arg("circuit"), py::arg("nodeItrStart") = NodeIter(), py::arg("nodeItrEnd") = NodeIter(),
+		"output a quantum prog/circuit to console by text-pic(UTF-8 code), \
+		and will save the text-pic in file named QCircuitTextPic.txt in the same time in current path",
+		py::return_value_policy::automatic
+		);
 
 #define QUERY_REPLACE(GRAPH_NODE,QUERY_NODE,REPLACE_NODE) \
 m.def("graph_query_replace", [](GRAPH_NODE &graph_node, QUERY_NODE &query_node,\
@@ -966,3 +1171,4 @@ m.def("graph_query_replace", [](GRAPH_NODE &graph_node, QUERY_NODE &query_node,\
     QUERY_REPLACE(QGate, QGate, QCircuit)
     QUERY_REPLACE(QGate, QGate, QGate);
 }
+

@@ -20,7 +20,6 @@ static vector<string> extract_value(string sQRunes)
 
     smatch result;
     vector<string> val_vec;
-    //regex key("[A-Z]+|[0-9]+(?!\\.)|-?[0-9]+\\.[0-9]+");
     regex key("^X1|^Y1|^Z1|^[A-Z]+|[0-9]+(?!\\.)|-?[0-9]+\\.[0-9]+");
 
     string::const_iterator start_iter = sQRunes.begin();
@@ -63,17 +62,20 @@ QRunesToQProg::QRunesToQProg()
 
 size_t  QRunesToQProg::handleDaggerCircuit(QNode *qNode, size_t pos)
 {
-
-    cout << qNode << endl;
     size_t cir_size{ 0 }, increment{ 0 };
     auto qCircuit = CreateEmptyCircuit();
-    cout << qCircuit.getImplementationPtr().get() << endl;
 
-    for (; m_QRunes[pos] != "ENDDAGGER" && pos < m_QRunes.size();)
+    auto m_QRunes_value = extract_value(m_QRunes[pos]);
+    string end_sign = m_QRunes_value.empty() ? "" : m_QRunes_value[0];
+
+    for (; end_sign != "ENDDAGGER" && pos < m_QRunes.size();)
     {
         increment = traversalQRunes(pos, &qCircuit);
         pos += increment;
         cir_size += increment;
+
+        m_QRunes_value = extract_value(m_QRunes[pos]);
+        end_sign = m_QRunes_value.empty() ? "" : m_QRunes_value[0];
     }
 
     if (PROG_NODE == qNode->getNodeType())
@@ -84,7 +86,9 @@ size_t  QRunesToQProg::handleDaggerCircuit(QNode *qNode, size_t pos)
             QCERR(" Error");
             throw invalid_argument("error");
         }
-        (*qProg) << qCircuit.dagger();
+
+        qCircuit.setDagger(true);
+        (*qProg) << qCircuit;
     }
     else if (CIRCUIT_NODE == qNode->getNodeType())
     {
@@ -92,13 +96,15 @@ size_t  QRunesToQProg::handleDaggerCircuit(QNode *qNode, size_t pos)
         if (nullptr == qCir)
         {
             QCERR("Error");
-            throw invalid_argument(" error");
+            throw invalid_argument("error");
         }
-        (*qCir) << qCircuit.dagger();
+
+        qCircuit.setDagger(true);
+        (*qCir) << qCircuit;
     }
     else
     {
-        QCERR(" Error");
+        QCERR("Error");
         throw invalid_argument("Error");
     }
 
@@ -147,7 +153,7 @@ size_t  QRunesToQProg::handleControlCircuit(QNode *qNode, size_t pos)
     }
     else
     {
-        QCERR(" Error");
+        QCERR("Error");
         throw invalid_argument("Error");
     }
 
@@ -213,7 +219,7 @@ size_t  QRunesToQProg::handleDoubleGate(QNode *qNode)
             if (nullptr == qCir)
             {
                 QCERR("error");
-                throw invalid_argument(" error");
+                throw invalid_argument("error");
             }
 
             (*qCir) << iter->second(
@@ -226,7 +232,7 @@ size_t  QRunesToQProg::handleDoubleGate(QNode *qNode)
             if (nullptr == qProg)
             {
                 QCERR("error");
-                throw invalid_argument(" error");
+                throw invalid_argument("error");
             }
 
             (*qProg) << iter->second(
@@ -254,7 +260,7 @@ size_t  QRunesToQProg::handleDoubleAngleGate(QNode *qNode)
             if (nullptr == qCir)
             {
                 QCERR("error");
-                throw invalid_argument(" error");
+                throw invalid_argument("error");
             }
             (*qCir) << iter->second(
                 qvm->allocateQubitThroughPhyAddress(stoi(m_QRunes_value[1])),
@@ -294,7 +300,7 @@ size_t  QRunesToQProg::handleAngleGate(QNode *qNode)
             if (nullptr == qCir)
             {
                 QCERR("Error");
-                throw invalid_argument(" error");
+                throw invalid_argument("error");
             }
 
             (*qCir) << iter->second(
@@ -307,7 +313,7 @@ size_t  QRunesToQProg::handleAngleGate(QNode *qNode)
             if (nullptr == qProg)
             {
                 QCERR("Formal Error");
-                throw invalid_argument(" error");
+                throw invalid_argument("error");
             }
             (*qProg) << iter->second(
                 qvm->allocateQubitThroughPhyAddress(stoi(m_QRunes_value[1])),
@@ -320,11 +326,8 @@ size_t  QRunesToQProg::handleAngleGate(QNode *qNode)
 
 size_t  QRunesToQProg::handleMeasureGate(QNode *qNode)
 {
-    cout << qNode << endl;
-
     if (nullptr == qNode || PROG_NODE != qNode->getNodeType())
     {
-        cout << qNode->getNodeType() << endl;
         QCERR("NodeError");
         throw invalid_argument("NodeError");
     }
@@ -364,8 +367,7 @@ size_t  QRunesToQProg::traversalQRunes(size_t pos, QNode *qNode)
     {
         return handleAngleGate(qNode);
     }
-    else if (keyWord == "CNOT" || keyWord == "CZ" || 
-             keyWord == "SQISWAP" || keyWord == "ISWAP")
+    else if (keyWord == "CNOT" || keyWord == "CZ" || keyWord == "SQISWAP")
     {
         return handleDoubleGate(qNode);
     }
@@ -405,6 +407,10 @@ size_t  QRunesToQProg::traversalQRunes(size_t pos, QNode *qNode)
 
 size_t QRunesToQProg::handleToffoliGate(QNode* qNode)
 {
+    auto Toffoli = X(qvm->allocateQubitThroughPhyAddress(stoi(m_QRunes_value[3])));
+    Toffoli.setControl({ { qvm->allocateQubitThroughPhyAddress(stoi(m_QRunes_value[1])) ,
+        qvm->allocateQubitThroughPhyAddress(stoi(m_QRunes_value[2])) } });
+
     if (CIRCUIT_NODE == qNode->getNodeType())
     {
         QCircuit * qCir = dynamic_cast<QCircuit*>(qNode);
@@ -414,9 +420,7 @@ size_t QRunesToQProg::handleToffoliGate(QNode* qNode)
             throw invalid_argument("CircuitError");
         }
 
-        (*qCir) << X(qvm->allocateQubitThroughPhyAddress(stoi(m_QRunes_value[3])))
-            .control({ qvm->allocateQubitThroughPhyAddress(stoi(m_QRunes_value[1])) ,
-                qvm->allocateQubitThroughPhyAddress(stoi(m_QRunes_value[2])) });
+        (*qCir) << Toffoli;
     }
     else if (PROG_NODE == qNode->getNodeType())
     {
@@ -427,9 +431,7 @@ size_t QRunesToQProg::handleToffoliGate(QNode* qNode)
             throw invalid_argument("QProgError");
         }
 
-        (*qProg) << X(qvm->allocateQubitThroughPhyAddress(stoi(m_QRunes_value[3])))
-            .control({ qvm->allocateQubitThroughPhyAddress(stoi(m_QRunes_value[1])) ,
-                qvm->allocateQubitThroughPhyAddress(stoi(m_QRunes_value[2])) });
+        (*qProg) << Toffoli;
     }
     else
     {
@@ -472,7 +474,6 @@ void QRunesToQProg::qRunesParser(std::string sFilePath, QProg& prog, QuantumMach
                     sQRunes = regex_replace(sQRunes, val, to_string(PI));
                 }
             }
-
             m_QRunes.emplace_back(sQRunes);
         }
         fin.close();
@@ -499,7 +500,6 @@ void QRunesToQProg::qRunesParser(std::string sFilePath, QProg& prog, QuantumMach
         {
             pos += traversalQRunes(pos, &prog);
         }
-
     }
 }
 

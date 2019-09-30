@@ -198,3 +198,14 @@ DoubleGateTypeValidator::~DoubleGateTypeValidator()
 {
 
 }
+
+
+int QPanda::validateSingleQGateType(vector<string> &gates, vector<string> &valid_gates) 
+{
+	return SingleGateTypeValidator::GateType(gates, valid_gates);
+}
+
+int QPanda::validateDoubleQGateType(vector<string> &gates, vector<string> &valid_gates)
+{
+	return DoubleGateTypeValidator::GateType(gates, valid_gates);
+}

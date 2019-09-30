@@ -22,6 +22,7 @@ OriginCBit::OriginCBit(string name)
     :name(name),
     bOccupancy(false)
 {
+	setValue(atoll(name.c_str() + 1));
 }
 
 template<typename _Ty>

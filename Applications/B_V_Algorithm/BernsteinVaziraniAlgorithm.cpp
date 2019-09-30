@@ -15,7 +15,7 @@ limitations under the License.
 */
 #include "Core/QPanda.h"
 #include "Utilities/Utilities.h"
-#include "Utils/Utilities.h"
+#include "QAlg/B_V_Algorithm/BernsteinVaziraniAlgorithm.h"
 #include <bitset>
 
 using namespace std;
@@ -38,32 +38,12 @@ BV_Oracle generate_bv_oracle(vector<bool> oracle_function) {
     };
 }
 
-
-QProg BV_QProg(QVec qVec, vector<ClassicalCondition> cVec, vector<bool>& a,
-    BV_Oracle & oracle)
-{
-
-    if (qVec.size() != (a.size()+1))
-    {
-        QCERR("param error");
-        throw invalid_argument("param error");
-    }
-    size_t length = qVec.size();
-    QProg  bv_qprog = CreateEmptyQProg();
-    bv_qprog << X(qVec[length - 1])
-             << apply_QGate(qVec, H)
-             << oracle(qVec, qVec[length - 1]);
-             
-    qVec.pop_back();
-
-    bv_qprog << apply_QGate(qVec, H) << MeasureAll(qVec, cVec);
-    return bv_qprog;
-}
-
 int main()
 {
+
     while (1)
     {
+		auto qvm = initQuantumMachine();
         cout << "Bernstein Vazirani Algorithm\n" << endl;
         cout << "f(x)=a*x+b\n" << endl;
         cout << "input a" << endl;
@@ -88,20 +68,16 @@ int main()
         cout << "b=\t" << b << endl;
         cout << " Programming the circuit..." << endl;
         size_t qubitnum = a.size();
-        init();
-        vector<Qubit*> qVec = qAllocMany(qubitnum + 1);
-        auto cVec = cAllocMany(qubitnum);
+
         auto oracle = generate_bv_oracle(a);
-        auto bvAlgorithm = BV_QProg(qVec, cVec, a, oracle);
-        directlyRun(bvAlgorithm);
-        string measure;
-        cout << "a=\t";
-        for (auto iter = cVec.begin(); iter != cVec.end(); iter++)
-        {
-            cout << (*iter).eval();
-        }
-        cout <<endl;
-        finalize();
+        auto bvAlgorithm = bernsteinVaziraniAlgorithm(stra, b, qvm, oracle);
+		auto result = qvm->directlyRun(bvAlgorithm);
+		
+		for(auto  aiter : result)
+		{
+			std::cout << aiter.first<<" : "<<aiter.second << std::endl;
+		}
+		destroyQuantumMachine(qvm);
     }
-    
+
 }

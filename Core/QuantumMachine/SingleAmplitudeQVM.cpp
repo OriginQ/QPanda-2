@@ -36,31 +36,99 @@ void SingleAmplitudeQVM::init()
     _start();
 }
 
-void SingleAmplitudeQVM::traversalAll(AbstractQuantumProgram *pQProg)
+qstate_type SingleAmplitudeQVM::singleAmpBackEnd(string bin_index)
 {
-    if (nullptr==pQProg)
+    if (m_prog_map.isEmptyQProg() || (bin_index.size() > m_prog_map.getQubitNum()))
     {
-        QCERR("pQProg is null");
-        throw invalid_argument("pQProg is null");
+        QCERR("PMeasure error");
+        throw qprog_syntax_error("PMeasure");
     }
-    VerticeMatrix  *vertice_matrix = m_prog_map.getVerticeMatrix();
-    vertice_matrix->initVerticeMatrix(getAllocateQubit());
-    m_prog_map.setQubitNum(getAllocateQubit());
-    TraversalQProg::traversal(pQProg);
+
+    auto vertice = m_prog_map.getVerticeMatrix();
+    qubit_vertice_t qubit_vertice_end, qubit_vertice_begin;
+    auto size = vertice->getQubitCount();
+    for (size_t i = 0; i < size; i++)
+    {
+        auto iter = vertice->getQubitMapIter(i);
+        auto vertice_map_iter_b = (*iter).begin();
+        qubit_vertice_begin.m_qubit_id = i;
+        qubit_vertice_begin.m_num = (*vertice_map_iter_b).first;
+        TensorEngine::dimDecrementbyValue(m_prog_map, qubit_vertice_begin, 0);
+    }
+
+    auto check = [](char bin)
+    {
+        if ('1' != bin && '0' != bin)
+        {
+            QCERR("PMeasure parm error");
+            throw qprog_syntax_error("PMeasure parm");
+        }
+        else
+        {
+            return bin != '0';
+        }
+    };
+
+    for (size_t i = 0; i < size; i++)
+    {
+        auto iter = m_prog_map.getVerticeMatrix()->getQubitMapIter(i);
+        auto vertice_map_iter = (*iter).end();
+        if ((*iter).empty())
+        {
+            continue;
+        }
+        vertice_map_iter--;
+        size_t value = check(bin_index[size - i - 1]);
+        qubit_vertice_end.m_qubit_id = i;
+        qubit_vertice_end.m_num = (*vertice_map_iter).first;
+        TensorEngine::dimDecrementbyValue(m_prog_map, qubit_vertice_end, value);
+    }
+
+    qcomplex_data_t a;
+    split(&m_prog_map, nullptr, &a);
+    return (a.real() * a.real() + a.imag() * a.imag());
 }
 
-void SingleAmplitudeQVM::traversal(AbstractQGateNode *pQGate)
+void SingleAmplitudeQVM::execute(std::shared_ptr<AbstractQuantumMeasure>  cur_node, std::shared_ptr<QNode> parent_node)
 {
-    if (nullptr == pQGate || nullptr == pQGate->getQGate())
-    {
-        QCERR("pQGate is null");
-        throw invalid_argument("pQGate is null");
-    }
-    
-    QVec qubits_vector;
-    pQGate->getQuBitVector(qubits_vector);
+    QCERR("Does not support QuantumMeasure ");
+    throw std::runtime_error("Does not support QuantumMeasure");
+}
 
-    size_t gate_type = pQGate->getQGate()->getGateType();
+void SingleAmplitudeQVM::execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node)
+{
+    QCERR("Does not support ControlFlowNode ");
+    throw std::runtime_error("Does not support ControlFlowNode");
+}
+
+void SingleAmplitudeQVM::execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std::shared_ptr<QNode> parent_node)
+{
+    Traversal::traversal(cur_node, false, *this);
+}
+
+void SingleAmplitudeQVM::execute(std::shared_ptr<AbstractQuantumProgram>  cur_node, std::shared_ptr<QNode> parent_node)
+{
+    Traversal::traversal(cur_node, *this);
+}
+
+void SingleAmplitudeQVM::execute(std::shared_ptr<AbstractClassicalProg>  cur_node, std::shared_ptr<QNode> parent_node)
+{
+    QCERR("Does not support ClassicalProg ");
+    throw std::runtime_error("Does not support ClassicalProg");
+}
+
+void SingleAmplitudeQVM::execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node)
+{
+    if (nullptr == cur_node || nullptr == cur_node->getQGate())
+    {
+        QCERR("QGate is null");
+        throw invalid_argument("QGate is null");
+    }
+
+    QVec qubits_vector;
+    cur_node->getQuBitVector(qubits_vector);
+
+    size_t gate_type = cur_node->getQGate()->getGateType();
     switch (gate_type)
     {
         case PAULI_X_GATE:
@@ -72,62 +140,54 @@ void SingleAmplitudeQVM::traversal(AbstractQGateNode *pQGate)
         case HADAMARD_GATE:
         case T_GATE:
         case S_GATE:
-            {
-                auto tar_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
-                m_singleGateFunc.find(gate_type)->second(m_prog_map, tar_qubit, pQGate->isDagger());
-            }
-            break;
+        {
+            auto tar_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
+            m_singleGateFunc.find(gate_type)->second(m_prog_map, tar_qubit, cur_node->isDagger());
+        }
+        break;
 
         case U1_GATE:
         case RX_GATE:
         case RY_GATE:
         case RZ_GATE:
-            {
-                auto tar_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
-                auto gate_parm = dynamic_cast<angleParameter *>(pQGate->getQGate())->getParameter();
-                m_singleAngleGateFunc.find(gate_type)->second(m_prog_map, tar_qubit,gate_parm, pQGate->isDagger());
-            }
-            break;
+        {
+            auto tar_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
+            auto gate_parm = dynamic_cast<angleParameter *>(cur_node->getQGate())->getParameter();
+            m_singleAngleGateFunc.find(gate_type)->second(m_prog_map, tar_qubit, gate_parm, cur_node->isDagger());
+        }
+        break;
 
         case ISWAP_GATE:
         case SQISWAP_GATE:
         case CNOT_GATE:
         case CZ_GATE:
-            {
-                auto ctr_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
-                auto tar_qubit = qubits_vector[1]->getPhysicalQubitPtr()->getQubitAddr();
-                m_doubleGateFunc.find(gate_type)->second(m_prog_map, ctr_qubit, tar_qubit, pQGate->isDagger());
-            }
-            break;
+        {
+            auto ctr_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
+            auto tar_qubit = qubits_vector[1]->getPhysicalQubitPtr()->getQubitAddr();
+            m_doubleGateFunc.find(gate_type)->second(m_prog_map, ctr_qubit, tar_qubit, cur_node->isDagger());
+        }
+        break;
 
-        case CPHASE_GATE: 
-            {
-                auto ctr_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
-                auto tar_qubit = qubits_vector[1]->getPhysicalQubitPtr()->getQubitAddr();
-                auto gate_parm = dynamic_cast<angleParameter *>(pQGate->getQGate())->getParameter();
-                m_doubleAngleGateFunc.find(gate_type)->second(m_prog_map, ctr_qubit, tar_qubit, gate_parm, pQGate->isDagger());
-            }
-            break;
+        case CPHASE_GATE:
+        {
+            auto ctr_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
+            auto tar_qubit = qubits_vector[1]->getPhysicalQubitPtr()->getQubitAddr();
+            auto gate_parm = dynamic_cast<angleParameter *>(cur_node->getQGate())->getParameter();
+            m_doubleAngleGateFunc.find(gate_type)->second(m_prog_map, ctr_qubit, tar_qubit, gate_parm, cur_node->isDagger());
+        }
+        break;
         default:
-            {
-                QCERR("undefined error");
-                throw runtime_error("undefined error");
-            }
-            break;
+        {
+            QCERR("undefined error");
+            throw runtime_error("undefined error");
+        }
+        break;
     }
 }
 
-void SingleAmplitudeQVM::run(QProg &prog)
-{
-    m_prog = prog;
-    m_prog_map.clear();
-    traversalAll(dynamic_cast<AbstractQuantumProgram *>
-        (prog.getImplementationPtr().get()));
-}
 
-stat_map SingleAmplitudeQVM::getQStat()
+stat_map SingleAmplitudeQVM::getQState()
 {
-    run(m_prog);
     if (m_prog_map.isEmptyQProg())
     {
         QCERR("prog is null");
@@ -170,7 +230,8 @@ stat_map SingleAmplitudeQVM::getQStat()
             {
                 if (value != 0)
                 {
-                    temp.insert(make_pair(integerToBinary(j,qubit_num),0));
+                    string binary = integerToBinary(j, qubit_num);
+                    temp.insert({binary, qcomplex_t(0, 0)});
                     is_operater = true;
                 }
                 continue;
@@ -192,78 +253,17 @@ stat_map SingleAmplitudeQVM::getQStat()
     return temp;
 }
 
-qstate_type SingleAmplitudeQVM::PMeasure_bin_index(string index)
-{
-    run(m_prog);
-    if (m_prog_map.isEmptyQProg() || (index.size() > m_prog_map.getQubitNum()))
-    {
-        QCERR("PMeasure error");
-        throw qprog_syntax_error("PMeasure");
-    }
-
-    auto vertice = m_prog_map.getVerticeMatrix();
-    qubit_vertice_t qubit_vertice_end, qubit_vertice_begin;
-    auto size = vertice->getQubitCount();
-    for (size_t i = 0; i < size; i++)
-    {
-        auto iter = vertice->getQubitMapIter(i);
-        auto vertice_map_iter_b = (*iter).begin();
-        qubit_vertice_begin.m_qubit_id = i;
-        qubit_vertice_begin.m_num = (*vertice_map_iter_b).first;
-        TensorEngine::dimDecrementbyValue(m_prog_map, qubit_vertice_begin, 0);
-    }
-
-    auto check=[](char bin)
-    {
-        if ('1' != bin && '0' != bin)
-        {
-            QCERR("PMeasure parm error");
-            throw qprog_syntax_error("PMeasure parm");
-        }
-        else
-        {
-            return bin == '0' ? 0 : 1;
-        }
-    };
-
-    for (size_t i = 0; i < size; i++)
-    {
-        auto iter = m_prog_map.getVerticeMatrix()->getQubitMapIter(i);
-        auto vertice_map_iter = (*iter).end();
-        if ((*iter).empty())
-        {
-            continue;
-        }
-        vertice_map_iter--;
-        size_t value = check(index[size - i - 1]);
-        qubit_vertice_end.m_qubit_id = i;
-        qubit_vertice_end.m_num = (*vertice_map_iter).first;
-        TensorEngine::dimDecrementbyValue(m_prog_map, qubit_vertice_end, value);
-    }
-
-    qcomplex_data_t a;
-    split(&m_prog_map, nullptr, &a);
-    return (a.real() * a.real() + a.imag() * a.imag());
-}
-
-qstate_type SingleAmplitudeQVM::PMeasure_dec_index(string index)
-{
-    uint256_t dec_index(index.c_str());
-    return PMeasure_bin_index(integerToBinary(dec_index,m_prog_map.getQubitNum()));
-}
-
 prob_map SingleAmplitudeQVM::PMeasure(QVec qvec, string select_max)
 {
-    run(m_prog);
     if (m_prog_map.isEmptyQProg())
     {
         QCERR("prog is null");
         throw run_fail("prog is null");
     }
-    
+
     Qnum  pvec;
-    for_each(qvec.begin(), qvec.end(), [&](Qubit *qubit) 
-        {pvec.emplace_back(qubit->getPhysicalQubitPtr()->getQubitAddr()); });
+    for_each(qvec.begin(), qvec.end(), [&](Qubit *qubit)
+    {pvec.emplace_back(qubit->getPhysicalQubitPtr()->getQubitAddr()); });
     sort(pvec.begin(), pvec.end());
     auto iter = adjacent_find(pvec.begin(), pvec.end());
 
@@ -336,7 +336,7 @@ prob_map SingleAmplitudeQVM::PMeasure(QVec qvec, string select_max)
                 delete new_map;
             }
 
-            res.insert(make_pair(integerToString(i),temp_value));
+            res.insert(make_pair(integerToString(i), temp_value));
         }
 
         return res;
@@ -350,7 +350,6 @@ prob_map SingleAmplitudeQVM::PMeasure(QVec qvec, string select_max)
 
 prob_map SingleAmplitudeQVM::PMeasure(string select_max)
 {
-    run(m_prog);
     if (m_prog_map.isEmptyQProg())
     {
         QCERR("prog is null");
@@ -372,7 +371,7 @@ prob_map SingleAmplitudeQVM::PMeasure(string select_max)
     }
 
     auto vertice = m_prog_map.getVerticeMatrix();
-    qubit_vertice_t qubit_vertice_end,qubit_vertice_begin;
+    qubit_vertice_t qubit_vertice_end, qubit_vertice_begin;
 
     for (size_t i = 0; i < qubit_num; i++)
     {
@@ -398,7 +397,7 @@ prob_map SingleAmplitudeQVM::PMeasure(string select_max)
             {
                 if (value != 0)
                 {
-                    temp.insert(make_pair(integerToString(j),0));
+                    temp.insert(make_pair(integerToString(j), 0));
                     is_operater = true;
                 }
                 continue;
@@ -423,7 +422,6 @@ prob_map SingleAmplitudeQVM::PMeasure(string select_max)
 
 prob_map SingleAmplitudeQVM::getProbDict(QVec qvec, string select_max)
 {
-    run(m_prog);
     if (m_prog_map.isEmptyQProg())
     {
         QCERR("prog is null");
@@ -520,12 +518,6 @@ prob_map SingleAmplitudeQVM::getProbDict(QVec qvec, string select_max)
 prob_map SingleAmplitudeQVM::probRunDict(QProg &prog, QVec qvec, string select_max)
 {
     run(prog);
-    return getProbDict(qvec,select_max);
+    return getProbDict(qvec, select_max);
 }
 
-void SingleAmplitudeQVM::run(string sFilePath)
-{
-    auto prog = CreateEmptyQProg();
-    transformQRunesToQProg(sFilePath, prog, this);
-    run(prog);
-}

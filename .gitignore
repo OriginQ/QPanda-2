@@ -9,9 +9,10 @@ pyQPanda/pyqpanda.egg-info
 *.dylib
 .vscode/
 build/*
+doc/*
 config.h
 include/QPandaConfig.h
 include/QPandaVersion.h
 /pyQPanda/benchmark.py
 __pycache__/
-CMakeLists.txt.user
+CMakeSettings.json

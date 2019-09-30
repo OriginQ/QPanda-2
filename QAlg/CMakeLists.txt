@@ -3,12 +3,12 @@ project(QAlg)
 
 file(GLOB_RECURSE ALG_SRC_CPP ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 add_library(${LIB_QALG} STATIC ${ALG_SRC_CPP})
-target_link_libraries(${LIB_QALG} ${LIB_QPANDA})
+target_link_libraries(${LIB_QALG} ${LIB_QPANDA} ${LIB_COMPONENTS} ${PYTHON_LIBRARIES})
 
 if (UNIX)
     set(LIB_SHARED_QALG DLL_QALG)
     add_library(${LIB_SHARED_QALG} SHARED ${ALG_SRC_CPP})
-    target_link_libraries(${LIB_SHARED_QALG} ${LIB_QPANDA})
+    target_link_libraries(${LIB_SHARED_QALG} ${LIB_QPANDA} ${LIB_COMPONENTS} ${PYTHON_LIBRARIES})
     set_target_properties(${LIB_SHARED_QALG} PROPERTIES
                           VERSION ${QPANDA_VERSION} SOVERSION ${QPANDA_MAJOR_VERSION})
     set_target_properties(${LIB_SHARED_QALG} PROPERTIES OUTPUT_NAME "${LIB_QALG}")

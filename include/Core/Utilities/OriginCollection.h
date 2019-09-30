@@ -9,12 +9,12 @@
 #include <utility>
 #include "Core/Utilities/QPandaNamespace.h"
 #include "Core/Utilities/QPandaException.h"
-#include "rapidjson/stringbuffer.h"
-#include "rapidjson/document.h"
-#include "rapidjson/reader.h"
-#include "rapidjson/writer.h"
-#include "rapidjson/istreamwrapper.h"
-#include "rapidjson/ostreamwrapper.h"
+#include "ThirdParty/rapidjson/stringbuffer.h"
+#include "ThirdParty/rapidjson/document.h"
+#include "ThirdParty/rapidjson/reader.h"
+#include "ThirdParty/rapidjson/writer.h"
+#include "ThirdParty/rapidjson/istreamwrapper.h"
+#include "ThirdParty/rapidjson/ostreamwrapper.h"
 #include <type_traits>
 
 #include <codecvt>
@@ -23,6 +23,9 @@
 
 QPANDA_BEGIN
 
+#ifdef _WIN32
+#define localtime_r(_Time, _Tm) localtime_s(_Tm, _Time)
+#endif
 using Value = rapidjson::Value;
 
 /**
@@ -406,16 +409,17 @@ public:
         if (is_suffix)
         {
             time_t now = time(nullptr);
-            tm *ltm = localtime(&now);
-            auto year = 1900 + ltm->tm_year;
-            auto month = 1 + ltm->tm_mon;
-            auto day = ltm->tm_mday;
-            auto hour = ltm->tm_hour;
-            auto min = ltm->tm_min;
-            auto sec = ltm->tm_sec;
+            struct tm ltm;
+            localtime_r(&now, &ltm);
+            auto year = 1900 + ltm.tm_year;
+            auto month = 1 + ltm.tm_mon;
+            auto day = ltm.tm_mday;
+            auto hour = ltm.tm_hour;
+            auto min = ltm.tm_min;
+            auto sec = ltm.tm_sec;
 
             char tmp_str[50];
-            sprintf(tmp_str, "%04d%02d%02d_%02d%02d%02d", year, month, day,
+            snprintf(tmp_str, sizeof(tmp_str), "%04d%02d%02d_%02d%02d%02d", year, month, day,
                 hour, min, sec);
             m_file_path.append("_").append(tmp_str);
         }

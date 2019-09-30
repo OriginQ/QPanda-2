@@ -36,20 +36,19 @@ struct SequenceNode
 };
 
 using edges_vec = std::vector<std::pair<size_t, size_t>>; 
-//using vertices_map = std::map<size_t, std::shared_ptr<QNode>>; 
 using vertices_map = std::map<size_t, NodeIter>;
 
-using AdjacencyMatrix = Eigen::MatrixXi;   
-using SequenceLayer = std::vector<std::pair<SequenceNode,std::vector<SequenceNode>>>; 
-using TopologincalSequence = std::vector<SequenceLayer>;  
+using AdjacencyMatrix = Eigen::MatrixXi;
+using SequenceLayer = std::vector<std::pair<SequenceNode,std::vector<SequenceNode>>>;
+using TopologincalSequence = std::vector<SequenceLayer>;
 
 class QProgDAG
 {
 public:
     QProgDAG() {}
-    void getTopologincalSequence(TopologincalSequence &); 
-    size_t addVertex(const NodeIter& iter); 
-    size_t addEgde(size_t,size_t);
+    void getTopologincalSequence(TopologincalSequence &);
+    size_t addVertex(const NodeIter& iter);
+    void addEgde(size_t,size_t);
     
     void constructAdjacencyMatrix(const vertices_map &, AdjacencyMatrix &);
 

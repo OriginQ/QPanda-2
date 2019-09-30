@@ -1,11 +1,14 @@
 cmake_minimum_required(VERSION 3.1)
 project(QPANDA)
 
-set(QPANDA_MAJOR_VERSION 1)
-set(QPANDA_MINOR_VERSION 3)
-set(QPANDA_PATCH_VERSION 6)
+set(QPANDA_MAJOR_VERSION 2)
+set(QPANDA_MINOR_VERSION 0)
+set(QPANDA_PATCH_VERSION 0)
 set(QPANDA_VERSION "${QPANDA_MAJOR_VERSION}.${QPANDA_MINOR_VERSION}.${QPANDA_PATCH_VERSION}")
 message(STATUS "QPANDA VERSION = " "[${QPANDA_VERSION}]")
+
+find_package(PythonInterp 3 REQUIRED)
+find_package(PythonLibs 3 REQUIRED)
 
 include_directories(${PROJECT_SOURCE_DIR}/include
                     ${PROJECT_SOURCE_DIR}/include/Applications
@@ -36,7 +39,7 @@ include_directories(${PROJECT_SOURCE_DIR}/include
                     ${PROJECT_SOURCE_DIR}/ThirdParty/bplus-tree/include
                     ${PROJECT_SOURCE_DIR}/ThirdParty/antlr4/runtime/src
                     ${PROJECT_SOURCE_DIR}
-                    ${PYTHON_PATH_INCLUDE})
+                    ${PYTHON_INCLUDE_DIRS})
 
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
@@ -53,13 +56,13 @@ set(LIB_QPANDA QPanda2)
 set(LIB_GTEST gtest)
 set(LIB_BPLUSTREE BplusTree)
 set(LIB_XML TinyXML)
-set(LIB_CHEMIQ ChemiQ)
+set(LIB_COMPONENTS Components)
 set (LIB_ANTLR4 antlr4)
-
-set(LIB_VAR Variational)
 set(LIB_QALG QAlg)
+
 set(LIB_PYQPANDA pyQPanda)
 set(LIB_PYQPANDA_PAUL pyQPandaPauliOperator)
+set(LIB_PYQPANDA_CHEMIQ pyQPandaChemiQ)
 
 if(NOT CMAKE_BUILD_TYPE)
    message(STATUS ":  No build type selected, default is Release")
@@ -121,6 +124,10 @@ elseif (UNIX)
 endif()
 add_definitions(${EXTRA_LDFLAGS})
 
+
+
+option(FIND_CUDA "find cuda" OFF)
+
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(UUID REQUIRED uuid)
@@ -129,7 +136,6 @@ if(APPLE)
     find_library(COREFOUNDATION_LIBRARY CoreFoundation)
 endif()
 
-option(FIND_CUDA "find cuda" OFF)
 if (FIND_CUDA)
     find_package(CUDA)
 endif(FIND_CUDA)
@@ -174,29 +180,16 @@ elseif(MPI_FOUND)
     option(USE_MPI "not find MPI" OFF)
 endif (MPI_FOUND)
 
-option(USE_CHEMIQ "use ChemiQ" OFF)
-if(USE_CHEMIQ)
-	include_directories(${PROJECT_SOURCE_DIR}/include/ChemiQ)
-    add_subdirectory(ChemiQ)
-    if (UNIX)
-        list(APPEND LIB_LIST
-             util)
-    endif()
-endif(USE_CHEMIQ)
-
 add_subdirectory(ThirdParty)
 add_subdirectory(Core)
-add_subdirectory(Variational)
+add_subdirectory(Components)
 add_subdirectory(QAlg)
 add_subdirectory(Applications)
 add_subdirectory(test)
 
 option(USE_PYQPANDA "use pyQpanda" OFF)
 if(USE_PYQPANDA)
-    find_package(PythonInterp 3)
-    find_package(PythonLibs 3)
-    include_directories(${PYTHON_INCLUDE_DIRS}
-                        ${PROJECT_SOURCE_DIR}/pyQPandaCpp)
+    include_directories(${PROJECT_SOURCE_DIR}/pyQPandaCpp)
     add_subdirectory(pyQPandaCpp)
 endif(USE_PYQPANDA)
 
@@ -208,6 +201,15 @@ configure_file("${PROJECT_SOURCE_DIR}/configVersion.h.in"
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}ConfigVersion.cmake.in
                ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
                @ONLY)
+
+
+message("\r\n")
+if (NOT CUDA_FOUND)
+    message(WARNING "CUDA is not found, GPUQVM is unuseable !!!")
+endif()
+if (NOT CURL_FOUND)
+    message(WARNING "Curl is not found, CloudHTTP is unuseable !!!")
+endif()
 
 #add extra search paths for libraries and includes
 set(INCLUDE_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/include" CACHE PATH "The directory the headers are installed in")

@@ -928,16 +928,20 @@ int MatrixMathFunction::blockMultip(const QStat& leftMatrix, const blockedMatrix
 	return 0;
 }
 
+QStat QPanda::getMatrix(QCircuit srcCircuit, const NodeIter nodeItrStart/* = NodeIter()*/, const NodeIter nodeItrEnd /*= NodeIter()*/)
+{
+	//QProg tmp_prog;
+	const NodeIter itr_start = (nodeItrStart == NodeIter() ? srcCircuit.getFirstNodeIter() : nodeItrStart);
+	const NodeIter itr_end = (nodeItrEnd == NodeIter() ? srcCircuit.getLastNodeIter() : nodeItrEnd);
+	return getMatrix(QProg(srcCircuit), itr_start, itr_end);
+}
+
 QStat QPanda::getMatrix(QProg srcProg, const NodeIter nodeItrStart , const NodeIter nodeItrEnd)
 {
 	QProg tmp_prog;
 
-	//fill the prog through traversal 
-	PickUpNodes pick_handle(tmp_prog, srcProg,
-		nodeItrStart == NodeIter() ? srcProg.getFirstNodeIter() : nodeItrStart, 
+	pickUpNode(tmp_prog, srcProg, nodeItrStart == NodeIter() ? srcProg.getFirstNodeIter() : nodeItrStart,
 		nodeItrEnd == NodeIter() ? srcProg.getLastNodeIter() : nodeItrEnd);
-
-	pick_handle.traversalQProg();
 
 	QprogToMatrix calc_matrix(tmp_prog);
 
@@ -953,7 +957,7 @@ void PrintAllNodeType::printNodeType(node_T subPgogNode, std::shared_ptr<QNode> 
 	// if flowCtrl node, traversal flowCtrlNode
 	if ((cur_node_type == WHILE_START_NODE) || (cur_node_type == QIF_START_NODE))
 	{
-		PTrace("Enter flow control node\n ");
+		printf("Enter flow control node\n ");
 		Traversal::traversal(std::dynamic_pointer_cast<AbstractControlFlowNode>(subPgogNode), *this, is_dagger);
 	}
 	else if ((cur_node_type == CIRCUIT_NODE) || (cur_node_type == PROG_NODE))
@@ -983,7 +987,7 @@ void PrintAllNodeType::printNodeType(node_T subPgogNode, std::shared_ptr<QNode> 
 			{
 				if ((*tmp_itr)->getNodeType() == MEASURE_GATE)
 				{
-					PTrace(">>measureGate ");
+					printf(">>measureGate ");
 				}
 				else
 				{
@@ -998,7 +1002,7 @@ void PrintAllNodeType::printNodeType(node_T subPgogNode, std::shared_ptr<QNode> 
 						}
 					}
 
-					PTrace(">>gateType=%d ", gt);
+					printf(">>gateType=%d ", gt);
 				}
 			}
 			else
@@ -1011,7 +1015,7 @@ void PrintAllNodeType::printNodeType(node_T subPgogNode, std::shared_ptr<QNode> 
 	else
 	{
 		// error type
-		PTrace(">>OtherNodeType \n");
+		printf(">>OtherNodeType \n");
 		return;
 	}
 
@@ -1020,7 +1024,7 @@ void PrintAllNodeType::printNodeType(node_T subPgogNode, std::shared_ptr<QNode> 
 		auto parent_node_type = (parent_node)->getNodeType();
 		if (((WHILE_START_NODE == parent_node_type)) || ((QIF_START_NODE == parent_node_type)))
 		{
-			PTrace("Leave flow control node\n ");
+			printf("Leave flow control node\n ");
 		}
 	}
 }
@@ -1100,13 +1104,36 @@ void PickUpNodes::pickUp(node_T subPgogNode, std::shared_ptr<QNode> parent_node,
 			}
 			else
 			{
-				//if there are measure/Qif/Qwhile node, throw an exception 
-				if ((MEASURE_GATE == curT) || (WHILE_START_NODE == curT) || (QIF_START_NODE == curT))
+				if (m_b_picking)
 				{
-					m_b_pickup_end = true;
-					QCERR_AND_THROW_ERRSTR("Error: There are some illegal nodes, failed to calc the target matrix between the specialed nodeIters.");
-					m_output_prog.clear();
-					return;
+					//if there are measure/Qif/Qwhile node, throw an exception 
+					if ((WHILE_START_NODE == curT) || (QIF_START_NODE == curT))
+					{
+						m_b_pickup_end = true;
+						QCERR_AND_THROW_ERRSTR("Error: Illegal Qif/QWhile nodes.");
+						m_output_prog.clear();
+						return;
+					}
+					else if (MEASURE_GATE == curT)
+					{
+						if (m_b_pick_measure_node)
+						{
+							auto measure = QMeasure(std::dynamic_pointer_cast<AbstractQuantumMeasure>(*tmp_itr));
+							m_output_prog.pushBackNode(&measure);
+							if (tmp_itr == m_end_iter)
+							{
+								m_b_pickup_end = true;
+								return;
+							}
+						}
+						else
+						{
+							m_b_pickup_end = true;
+							QCERR_AND_THROW_ERRSTR("Error: Illegal Measure nodes.");
+							m_output_prog.clear();
+							return;
+						}
+					}
 				}
 
 				//continue to traversal
@@ -1121,28 +1148,7 @@ QStat QprogToMatrix::getMatrix()
 	QStat result_matrix;
 
 	//get quantumBits number
-	NodeIter itr = m_prog.getFirstNodeIter();
-	NodeIter itr_end = m_prog.getEndNodeIter();
-	QVec qubits_vector;
-	do
-	{
-		if (GATE_NODE != (*itr)->getNodeType())
-		{
-			QCERR_AND_THROW_ERRSTR("Error: Qprog node type error.");
-			return QStat();
-		}
-
-		std::shared_ptr<AbstractQGateNode> p_QGate = std::dynamic_pointer_cast<AbstractQGateNode>(*itr);
-		qubits_vector.clear();
-		p_QGate->getQuBitVector(qubits_vector);
-		for (auto _val : qubits_vector)
-		{
-			m_qubits_in_use.push_back(_val->getPhysicalQubitPtr()->getQubitAddr());
-		}
-
-	} while ((++itr) != itr_end);
-	sort(m_qubits_in_use.begin(), m_qubits_in_use.end());
-	m_qubits_in_use.erase(unique(m_qubits_in_use.begin(), m_qubits_in_use.end()), m_qubits_in_use.end());
+	getAllUsedQuBits(m_prog, m_qubits_in_use);
 
 	//layer
 	m_dag.getMainGraphSequence(m_prog, m_seq);
@@ -1490,6 +1496,8 @@ QStat QprogToMatrix::reverseCtrlGateMatrix(QStat& srcMat)
 	return result_mat;
 }
 
+#define COMPLEX_REAL_VAL_FORMAT ("%.03f") 
+#define COMPLEX_IMAG_VAL_FORMAT ("%.03fi") 
 void QPanda::printMat(const QStat& mat)
 {
 	int rows = 0;
@@ -1499,7 +1507,7 @@ void QPanda::printMat(const QStat& mat)
 	int index = 0;
 	float imag_val = 0.0;
 	float real_val = 0.0;
-    const int max_width = 12;
+    const int max_width = 16;
 	char outputBuf[32] = "";
 	string outputStr;
 	for (size_t i = 0; i < rows; i++)
@@ -1520,11 +1528,11 @@ void QPanda::printMat(const QStat& mat)
 				{
 					if (real_val < 0)
 					{
-						snprintf(outputBuf, sizeof(outputBuf), "%05.06f", (real_val));
+						snprintf(outputBuf, sizeof(outputBuf), COMPLEX_REAL_VAL_FORMAT, (real_val));
 					}
 					else
 					{
-						snprintf(outputBuf, sizeof(outputBuf), " %05.06f", abs(real_val));
+						snprintf(outputBuf, sizeof(outputBuf), (string(" ") + COMPLEX_REAL_VAL_FORMAT).c_str(), abs(real_val));
 					}
 				}
 				else
@@ -1532,11 +1540,11 @@ void QPanda::printMat(const QStat& mat)
 					//only imag_val
 					if (imag_val < 0)
 					{
-						snprintf(outputBuf, sizeof(outputBuf), "%05.06fi", (imag_val));
+						snprintf(outputBuf, sizeof(outputBuf), COMPLEX_IMAG_VAL_FORMAT, (imag_val));
 					}
 					else
 					{
-						snprintf(outputBuf, sizeof(outputBuf), " %05.06fi", abs(imag_val));
+						snprintf(outputBuf, sizeof(outputBuf), (string(" ") + COMPLEX_IMAG_VAL_FORMAT).c_str(), abs(imag_val));
 					}
 				}
 			}
@@ -1544,11 +1552,11 @@ void QPanda::printMat(const QStat& mat)
 			{
 				if (real_val < 0)
 				{
-					snprintf(outputBuf, sizeof(outputBuf), "%05.06f%05.06fi", real_val, imag_val);
+					snprintf(outputBuf, sizeof(outputBuf), (string(COMPLEX_REAL_VAL_FORMAT) + COMPLEX_IMAG_VAL_FORMAT).c_str(), real_val, imag_val);
 				}
 				else
 				{
-					snprintf(outputBuf, sizeof(outputBuf), " %05.06f%05.06fi", abs(real_val), imag_val);
+					snprintf(outputBuf, sizeof(outputBuf), (string(" ") + COMPLEX_REAL_VAL_FORMAT + COMPLEX_IMAG_VAL_FORMAT).c_str(), abs(real_val), imag_val);
 				}
 				
 			}
@@ -1556,11 +1564,13 @@ void QPanda::printMat(const QStat& mat)
 			{
 				if (real_val < 0)
 				{
-					snprintf(outputBuf, sizeof(outputBuf), "%05.06f+%05.06fi  ", real_val, imag_val);
+					//snprintf(outputBuf, sizeof(outputBuf), "%05.06f+%05.06fi", real_val, imag_val);
+					snprintf(outputBuf, sizeof(outputBuf), (string(COMPLEX_REAL_VAL_FORMAT) + "+" + COMPLEX_IMAG_VAL_FORMAT).c_str(), real_val, imag_val);
 				}
 				else
 				{
-					snprintf(outputBuf, sizeof(outputBuf), " %05.06f+%05.06fi  ", abs(real_val), imag_val);
+					//snprintf(outputBuf, sizeof(outputBuf), " %05.06f+%05.06fi", abs(real_val), imag_val);
+					snprintf(outputBuf, sizeof(outputBuf), (string(" ") + COMPLEX_REAL_VAL_FORMAT + "+" + COMPLEX_IMAG_VAL_FORMAT).c_str(), abs(real_val), imag_val);
 				}
 			}
 
@@ -1568,7 +1578,7 @@ void QPanda::printMat(const QStat& mat)
 			size_t valLen = outputStr.size();
 			outputBuf[valLen] = ' ';
 			outputStr = outputBuf;
-			outputStr = outputStr.substr(0, (max_width < valLen ? valLen :max_width) + 5);
+			outputStr = outputStr.substr(0, (max_width < valLen ? valLen :max_width) + 3);
 			printf(outputStr.c_str());
 		}
 		printf("\n");
@@ -1579,4 +1589,76 @@ void QPanda::printAllNodeType(QProg &prog)
 {
 	PrintAllNodeType print_node_type(prog);
 	print_node_type.traversalQProg();
+}
+
+void QPanda::pickUpNode(QProg &outPutProg, QProg &srcProg, const NodeIter nodeItrStart/* = NodeIter()*/, const NodeIter nodeItrEnd /*= NodeIter()*/, bool bPickMeasure/* = false*/)
+{
+	//fill the prog through traversal 
+	PickUpNodes pick_handle(outPutProg, srcProg,
+		nodeItrStart == NodeIter() ? srcProg.getFirstNodeIter() : nodeItrStart,
+		nodeItrEnd == NodeIter() ? srcProg.getLastNodeIter() : nodeItrEnd);
+
+	pick_handle.setPickUpMeasureNode(bPickMeasure);
+
+	pick_handle.traversalQProg();
+}
+
+void QPanda::getAllUsedQuBits(QProg &prog, std::vector<int> &vecQuBitsInUse)
+{
+	vecQuBitsInUse.clear();
+	NodeIter itr = prog.getFirstNodeIter();
+	NodeIter itr_end = prog.getEndNodeIter();
+	QVec qubits_vector;
+	NodeType type = NODE_UNDEFINED;
+	do
+	{
+		type = (*itr)->getNodeType();
+		if (GATE_NODE != type)
+		{
+			if (MEASURE_GATE == type)
+			{
+				std::shared_ptr<AbstractQuantumMeasure> p_QMeasure = std::dynamic_pointer_cast<AbstractQuantumMeasure>(*itr);
+				vecQuBitsInUse.push_back(p_QMeasure->getQuBit()->getPhysicalQubitPtr()->getQubitAddr());
+			}
+			else
+			{
+				QCERR("Error: Unsupport node type.");
+			}
+
+			continue;
+		}
+
+		std::shared_ptr<AbstractQGateNode> p_QGate = std::dynamic_pointer_cast<AbstractQGateNode>(*itr);
+		qubits_vector.clear();
+		p_QGate->getQuBitVector(qubits_vector);
+		for (auto _val : qubits_vector)
+		{
+			vecQuBitsInUse.push_back(_val->getPhysicalQubitPtr()->getQubitAddr());
+		}
+
+	} while ((++itr) != itr_end);
+	sort(vecQuBitsInUse.begin(), vecQuBitsInUse.end());
+	vecQuBitsInUse.erase(unique(vecQuBitsInUse.begin(), vecQuBitsInUse.end()), vecQuBitsInUse.end());
+}
+
+void QPanda::getAllUsedClassBits(QProg &prog, std::vector<int> &vecClBitsInUse)
+{
+	vecClBitsInUse.clear();
+	NodeIter itr = prog.getFirstNodeIter();
+	NodeIter itr_end = prog.getEndNodeIter();
+	QVec qubits_vector;
+	NodeType type = NODE_UNDEFINED;
+
+	do
+	{
+		type = (*itr)->getNodeType();
+		if (MEASURE_GATE == type)
+		{
+			std::shared_ptr<AbstractQuantumMeasure> p_QMeasure = std::dynamic_pointer_cast<AbstractQuantumMeasure>(*itr);
+			vecClBitsInUse.push_back(p_QMeasure->getCBit()->getValue());
+		}
+	} while ((++itr) != itr_end);
+
+	sort(vecClBitsInUse.begin(), vecClBitsInUse.end());
+	vecClBitsInUse.erase(unique(vecClBitsInUse.begin(), vecClBitsInUse.end()), vecClBitsInUse.end());
 }

@@ -149,5 +149,27 @@ private:
 
 };
 
+
+/* new interface */
+
+/**
+* @brief  Verify the validity of single quantum gates
+* @ingroup Utilities
+* @param[in]  std::vector<std::string> &   gates vertor
+* @param[out]  std::vector<std::string> &   output the valid gates
+* @return  int		single quantum gate type
+*/
+int validateSingleQGateType(std::vector<std::string> &gates, std::vector<std::string> &valid_gates);
+
+
+/**
+* @brief  Verify the validity of double quantum gates
+* @ingroup Utilitie
+* @param[in]  std::vector<std::string> &   the gates is judged
+* @param[out]  std::vector<std::string> &   output the valid gates
+* @return  int		double quantum gate type
+*/
+int validateDoubleQGateType(std::vector<std::string> &gates, std::vector<std::string> &valid_gates);
+
 QPANDA_END
 #endif // METADATAVALIDITYFUNCTIONVECTOR_H

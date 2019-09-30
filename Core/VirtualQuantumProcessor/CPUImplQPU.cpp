@@ -40,7 +40,6 @@ REGISTER_ANGLE_GATE_MATRIX(RX_GATE, 1, 0, 0)
 REGISTER_ANGLE_GATE_MATRIX(RY_GATE, 0, 1, 0)
 REGISTER_ANGLE_GATE_MATRIX(RZ_GATE, 0, 0, 1)
 
-
 CPUImplQPU::CPUImplQPU()
 {
 }
@@ -235,7 +234,7 @@ QError  CPUImplQPU::
 unitarySingleQubitGate(size_t qn,
     QStat& matrix,
     bool isConjugate,
-    GateType type)
+    GateType)
 {
     qcomplex_t alpha;
     qcomplex_t beta;
@@ -272,7 +271,7 @@ controlunitarySingleQubitGate(size_t qn,
     Qnum& vControlBit,
     QStat & matrix,
     bool isConjugate,
-    GateType type)
+    GateType)
 {
     QGateParam& qgroup0 = findgroup(qn);
     for (auto iter = vControlBit.begin(); iter != vControlBit.end(); iter++)
@@ -348,7 +347,7 @@ unitaryDoubleQubitGate(size_t qn_0,
     size_t qn_1,
     QStat& matrix,
     bool isConjugate,
-    GateType type)
+    GateType)
 {
     QGateParam& qgroup0 = findgroup(qn_0);
     QGateParam& qgroup1 = findgroup(qn_1);
@@ -418,7 +417,7 @@ controlunitaryDoubleQubitGate(size_t qn_0,
     Qnum& vControlBit,
     QStat& matrix,
     bool isConjugate,
-    GateType type)
+    GateType)
 {
     QGateParam& qgroup0 = findgroup(qn_0);
     QGateParam& qgroup1 = findgroup(qn_1);

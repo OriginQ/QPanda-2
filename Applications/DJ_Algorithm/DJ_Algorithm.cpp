@@ -15,17 +15,13 @@ limitations under the License.
 */
 
 #include "Utilities/Utilities.h"
-#include "Utils/Utilities.h"
+#include "QAlg/DJ_Algorithm/DJ_Algorithm.h"
 #include "QPandaNamespace.h"
 #include "Core/QPanda.h"
 #include <vector>
 
 using namespace std;
 USING_QPANDA
-
-using DJ_Oracle = Oracle<QVec, Qubit*>;
-
-DJ_Oracle generate_two_qubit_oracle(vector<bool> oracle_function);
 
 DJ_Oracle generate_two_qubit_oracle(vector<bool> oracle_function) {
     return [oracle_function](QVec qubit1, Qubit* qubit2) {
@@ -57,56 +53,22 @@ DJ_Oracle generate_two_qubit_oracle(vector<bool> oracle_function) {
     };
 }
 
-QProg Deutsch_Jozsa_algorithm(vector<Qubit*> qubit_vector,
-    Qubit* qubit2, 
-    vector<ClassicalCondition> cbit_vector,
-    DJ_Oracle oracle) {
-
-    auto prog = CreateEmptyQProg();
-    //Firstly, create a circuit container
-
-	prog << X(qubit2);
-    prog << apply_QGate(qubit_vector, H) << H(qubit2);
-    // Perform Hadamard gate on all qubits
-
-    prog << oracle(qubit_vector, qubit2);
-
-    // Finally, Hadamard the first qubit and measure it
-    prog << apply_QGate(qubit_vector, H) << MeasureAll(qubit_vector, cbit_vector);
-    return prog;
-}
-
 void two_qubit_deutsch_jozsa_algorithm(vector<bool> boolean_function)
 {
-	init(QMachineType::CPU);
-	auto qvec = qAllocMany(2);
-	auto c = cAlloc();
-    if (qvec.size() != 2)
-    {
-        QCERR("qvec size error£¬the size of qvec must be 2");
-        throw invalid_argument("qvec size error£¬the size of qvec must be 2");
-    }
-
+	auto qvm = initQuantumMachine(QMachineType::CPU);
     auto oracle = generate_two_qubit_oracle(boolean_function);
-	QProg prog;
-	prog << Deutsch_Jozsa_algorithm({ qvec[0] }, qvec[1], { c }, oracle);
-
-	/* To Print The Circuit */
-	/*
-	extern QuantumMachine* global_quantum_machine;
-	cout << transformQProgToOriginIR(prog, global_quantum_machine) << endl;
-	*/
-
-	directlyRun(prog);
-	if (c.eval() == false)
+	
+	auto prog = deutschJozsaAlgorithm(boolean_function, qvm, oracle);
+	auto result = qvm ->directlyRun(prog);
+	if (result["c0"] == false)
 	{
 		cout << "Constant function!" << endl;
 	}
-	else if (c.eval() == true)
+	else if (result["c0"] == true)
 	{
 		cout << "Balanced function!" << endl;
 	}
-	finalize();
+	destroyQuantumMachine(qvm);
 }
 
 int main()

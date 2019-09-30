@@ -28,6 +28,12 @@ QProg  QPanda::CreateEmptyQProg()
     return temp;
 }
 
+QProg QPanda::createEmptyQProg()
+{
+    QProg temp;
+    return temp;
+}
+
 QProg::QProg(std::shared_ptr<AbstractQuantumProgram> node)
 {
     if (!node)

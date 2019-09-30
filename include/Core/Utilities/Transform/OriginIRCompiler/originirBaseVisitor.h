@@ -71,6 +71,10 @@ public:
     return visitChildren(ctx);
   }
 
+  virtual antlrcpp::Any visitTriple_gate_without_parameter_declaration(originirParser::Triple_gate_without_parameter_declarationContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
   virtual antlrcpp::Any visitSingle_gate_without_parameter_type(originirParser::Single_gate_without_parameter_typeContext *ctx) override {
     return visitChildren(ctx);
   }
@@ -92,6 +96,10 @@ public:
   }
 
   virtual antlrcpp::Any visitDouble_gate_with_four_parameter_type(originirParser::Double_gate_with_four_parameter_typeContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual antlrcpp::Any visitTriple_gate_without_parameter_type(originirParser::Triple_gate_without_parameter_typeContext *ctx) override {
     return visitChildren(ctx);
   }
 

@@ -3,7 +3,6 @@
 #define  _SINGLEAMPLITUDE_H_
 #include "Core/Utilities/Uinteger.h"
 #include "Core/VirtualQuantumProcessor/SingleAmplitude/QuantumGates.h"
-#include "Core/VirtualQuantumProcessor/PartialAmplitude/TraversalQProg.h"
 QPANDA_BEGIN
 /**
 * @namespace QPanda
@@ -18,51 +17,46 @@ QPANDA_BEGIN
 * @ingroup QuantumMachine
 */
 
-class SingleAmplitudeQVM : public QVM,
-                           public TraversalQProg,
-                           public MultiPrecisionMachineInterface
+class SingleAmplitudeQVM : public QVM, public TraversalInterface<>
 {
 public:
     SingleAmplitudeQVM();
     ~SingleAmplitudeQVM() {};
 
-    /**
-    * @brief  Init the quantum machine environment
-    * @return     void
-    * @note   use this at the begin
-    */
    void init();
-   /**
-   * @brief  Load and parser Quantum Program
-   * @param[in]  QProg &  Quantum Program
-   * @return     void
-   */
-   void run(QProg&);
 
-   /**
-   * @brief  Load and parser Quantum Program by file
-   * @param[in]  std::string  Quantum Program QRunes file path
-   * @return     void
-   */
-   void run(std::string);
+   /*will delete*/
 
-   void traversal(AbstractQGateNode*);
-   void traversalAll(AbstractQuantumProgram*);
+   template <typename _Ty>
+   qstate_type PMeasure_bin_index(_Ty &node, std::string bin_index)
+   {
+       run(node);
+       return singleAmpBackEnd(bin_index);
+   }
 
-   /**
-   * @brief  Get Quantum State
-   * @return   std::map<std::string, qcomplex_t>
-   * @note  output example: <0000000000:(-0.00647209,-0.00647209)>
-   */
-   stat_map getQStat();
 
+   template <typename _Ty>
+   qstate_type PMeasure_dec_index(_Ty &node, std::string s_dec_index)
+   {
+       run(node);
+       uint256_t dec_index(s_dec_index.c_str());
+       return singleAmpBackEnd(integerToBinary(dec_index, getAllocateQubit()));
+   }
+
+   /* new interface */
    /**
    * @brief  PMeasure by binary index
    * @param[in]  std::string  binary index
    * @return     qstate_type double
    * @note  example: PMeasure_bin_index("0000000000")
    */
-   qstate_type PMeasure_bin_index(std::string);
+   template <typename _Ty>
+   qstate_type pMeasureBinindex(_Ty &node, std::string s_dec_index)
+   {
+       run(node);
+       uint256_t dec_index(s_dec_index.c_str());
+       return singleAmpBackEnd(integerToBinary(dec_index, getAllocateQubit()));
+   }
 
    /**
    * @brief  PMeasure by decimal  index
@@ -70,45 +64,57 @@ public:
    * @return     qstate_type double
    * @note  example: PMeasure_dec_index("1")
    */
-   qstate_type PMeasure_dec_index(std::string);
+   template <typename _Ty>
+   qstate_type pMeasureDecindex(_Ty &node, std::string bin_index)
+   {
+       run(node);
+       return singleAmpBackEnd(bin_index);
+   }
 
-   /**
-   * @brief  PMeasure
-   * @param[in]  std::string  select max
-   * @return     prob_map  std::map<std::string, qstate_type>
-   */
+   void execute(std::shared_ptr<AbstractQGateNode>, std::shared_ptr<QNode>);
+   void execute(std::shared_ptr<AbstractClassicalProg>, std::shared_ptr<QNode>);
+   void execute(std::shared_ptr<AbstractQuantumMeasure>, std::shared_ptr<QNode>);
+   void execute(std::shared_ptr<AbstractQuantumCircuit>, std::shared_ptr<QNode>);
+   void execute(std::shared_ptr<AbstractQuantumProgram>, std::shared_ptr<QNode>);
+   void execute(std::shared_ptr<AbstractControlFlowNode>, std::shared_ptr<QNode>);
+
+
+   /*will delete*/
+   stat_map getQState();
    prob_map PMeasure(std::string);
-
-   /**
-   * @brief  PMeasure
-   * @param[in]  QVec    qubits vec
-   * @param[in]  std::string    select max
-   * @return     prob_map   std::map<std::string, qstate_type>
-   */
    prob_map PMeasure(QVec, std::string);
-
-   /**
-   * @brief  get quantum state Probability dict
-   * @param[in]  QVec  qubits vec
-   * @param[in]  std::string   select max
-   * @return     prob_map std::map<std::string, qstate_type>
-   * @note  output example: <0000000110:0.000167552>
-   */
    prob_map getProbDict(QVec, std::string);
-
-   /**
-   * @brief  run and get quantum state Probability dict
-   * @param[in]  QVec  qubits vec
-   * @param[in]  std::string   select max
-   * @return     prob_map std::map<std::string, qstate_type>
-   * @note  output example: <0000000110:0.000167552>
-   */
    prob_map probRunDict(QProg &, QVec, std::string);
 
+   template <typename _Ty>
+   void run(_Ty &node)
+   {
+       static_assert(std::is_base_of<QNode, _Ty>::value, "node type is error");
+       m_prog_map.clear();
+       VerticeMatrix  *vertice_matrix = m_prog_map.getVerticeMatrix();
+       vertice_matrix->initVerticeMatrix(getAllocateQubit());
+       m_prog_map.setQubitNum(getAllocateQubit());
+       traversal(node);
+   }
+
+   void run(std::string sFilePath)
+   {
+       auto prog = CreateEmptyQProg();
+       transformQRunesToQProg(sFilePath, prog, this);
+       run(prog);
+   }
+
+   template <typename _Ty>
+   void traversal(_Ty &node)
+   {
+       static_assert(std::is_base_of<QNode, _Ty>::value, "node type is error");
+       Traversal::traversalByType(node.getImplementationPtr(), nullptr, *this);
+   }
+
 private:
-    QProg m_prog;
     QuantumProgMap m_prog_map;
 
+    qstate_type singleAmpBackEnd(string bin_index);
     std::map<size_t, std::function<void(QuantumProgMap &, size_t, bool)> > m_singleGateFunc;
     std::map<size_t, std::function<void(QuantumProgMap &, size_t, size_t, bool)>> m_doubleGateFunc;
     std::map<size_t, std::function<void(QuantumProgMap &, size_t, double, bool)>> m_singleAngleGateFunc;

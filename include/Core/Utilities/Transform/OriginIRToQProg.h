@@ -1,6 +1,6 @@
 #ifndef  _ORIGINIR_TO_QPROG_H
 #define  _ORIGINIR_TO_QPROG_H
-#include "antlr4/runtime/src/antlr4-runtime.h"
+#include "ThirdParty/antlr4/runtime/src/antlr4-runtime.h"
 #include "Core/Utilities/Transform/OriginIRCompiler/originirBaseVisitor.h"
 #include "Core/Utilities/Transform/OriginIRCompiler/originirLexer.h"
 #include "Core/Utilities/Transform/OriginIRCompiler/originirParser.h"
@@ -17,6 +17,14 @@
 
 QPANDA_BEGIN
 
+
+/**
+* @brief  OriginIR Transform To  Quantum Program 
+* @ingroup Utilities
+* @param[in]  std::string		OriginIR file path
+* @param[in]  QuantumMachine*	quantum machine pointer
+* @return     QProg    quantum program
+*/
 QProg transformOriginIRToQProg(std::string filePath, QuantumMachine* qm);
 
 class QProgBuilder {
@@ -41,7 +49,9 @@ public:
 
 		ISWAPTHETA, CR,
 
-		CU
+		CU,
+
+		TOFFOLI
 	};
 
 #define MACRO_GET_GATETYPE(name) if (gatename==#name){return GateType::name;}
@@ -68,6 +78,8 @@ public:
 		MACRO_GET_GATETYPE(ISWAPTHETA);
 		MACRO_GET_GATETYPE(CR);
 		MACRO_GET_GATETYPE(CU);
+		MACRO_GET_GATETYPE(TOFFOLI);
+
 	}
 	// add up a level on the prog stack.
 	
@@ -221,7 +233,7 @@ public:
 			return builder.add_qgate(gatetype, { (int)context.value }, {});
 		}
 		else {
-			return builder.add_qgate_cc(gatetype, { context.ccid }, {}, {});
+			return builder.add_qgate_cc(gatetype, { context.ccid }, {-1}, {});
 		}
 	}
 
@@ -235,7 +247,7 @@ public:
 			return builder.add_qgate(gatetype, { (int)context.value }, { angle.value });
 		}
 		else {
-			return builder.add_qgate_cc(gatetype, { context.ccid }, {}, { angle.value });
+			return builder.add_qgate_cc(gatetype, { context.ccid }, {-1}, { angle.value });
 		}
 	}
 
@@ -253,7 +265,7 @@ public:
 				{ angle1.value, angle2.value, angle3.value, angle4.value });
 		}
 		else {
-			return builder.add_qgate_cc(gatetype, { context.ccid }, {}, 
+			return builder.add_qgate_cc(gatetype, { context.ccid }, {-1}, 
 				{ angle1.value, angle2.value, angle3.value, angle4.value });
 		}
 	}
@@ -272,7 +284,7 @@ public:
 			return builder.add_qgate_cc(gatetype, { context2.ccid }, { (int)context1.value, -1 }, { });
 		}
 		else if (context2.isConstant) {
-			return builder.add_qgate_cc(gatetype, { context1.ccid }, { -1, (int)context1.value }, { });
+			return builder.add_qgate_cc(gatetype, { context1.ccid }, { -1, (int)context2.value }, { });
 		}
 		else {
 			return builder.add_qgate_cc(gatetype, { context1.ccid, context2.ccid }, { -1, -1 }, { });
@@ -293,7 +305,7 @@ public:
 			return builder.add_qgate_cc(gatetype, { context2.ccid }, { (int)context1.value, -1 }, { angle.value });
 		}
 		else if (context2.isConstant) {
-			return builder.add_qgate_cc(gatetype, { context1.ccid }, { -1, (int)context1.value }, { angle.value });
+			return builder.add_qgate_cc(gatetype, { context1.ccid }, { -1, (int)context2.value }, { angle.value });
 		}
 		else {
 			return builder.add_qgate_cc(gatetype, { context1.ccid, context2.ccid }, { -1, -1 }, { angle.value });
@@ -319,12 +331,45 @@ public:
 				{ angle1.value, angle2.value,angle3.value,angle4.value });
 		}
 		else if (context2.isConstant) {
-			return builder.add_qgate_cc(gatetype, { context1.ccid }, { -1, (int)context1.value }, 
+			return builder.add_qgate_cc(gatetype, { context1.ccid }, { -1, (int)context2.value }, 
 				{ angle1.value, angle2.value,angle3.value,angle4.value });
 		}
 		else {
 			return builder.add_qgate_cc(gatetype, { context1.ccid, context2.ccid }, { -1, -1 }, 
 				{ angle1.value, angle2.value,angle3.value,angle4.value });
+		}
+	}
+	antlrcpp::Any visitTriple_gate_without_parameter_declaration(
+		originirParser::Triple_gate_without_parameter_declarationContext *ctx){
+		QProgBuilder::GateType gatetype = visit(ctx->children[0]);
+		ExprContext context1 = visit(ctx->children[1]);
+		ExprContext context2 = visit(ctx->children[3]);
+		ExprContext context3 = visit(ctx->children[5]);
+
+		// insert gate
+		if (context1.isConstant && context2.isConstant && context3.isConstant){
+			return builder.add_qgate(gatetype, { (int)context1.value, (int)context2.value, (int)context3.value }, {});
+		}
+		else if (context1.isConstant&&context2.isConstant){
+			return builder.add_qgate_cc(gatetype, { context3.ccid } ,{ (int)context1.value, (int)context2.value, -1}, {});
+		}
+		else if (context1.isConstant&&context3.isConstant){
+			return builder.add_qgate_cc(gatetype, { context2.ccid }, { (int)context1.value, -1, (int)context3.value }, {});
+		}
+		else if (context2.isConstant&&context3.isConstant){
+			return builder.add_qgate_cc(gatetype, { context1.ccid }, { -1, (int)context2.value, (int)context3.value }, {});
+		}
+		else if (context1.isConstant) {
+			return builder.add_qgate_cc(gatetype, { context2.ccid, context3.ccid }, { (int)context1.value, -1, -1 }, { });
+		}
+		else if (context2.isConstant) {
+			return builder.add_qgate_cc(gatetype, { context1.ccid, context3.ccid }, { -1, (int)context2.value, -1 }, { });
+		}
+		else if (context3.isConstant) {
+			return builder.add_qgate_cc(gatetype, { context1.ccid, context2.ccid }, { -1, (int)context3.value, -1 }, { });
+		}
+		else{
+			return builder.add_qgate_cc(gatetype, { context1.ccid, context2.ccid, context3.ccid }, { -1, -1, -1 }, { });
 		}
 	}
 
@@ -360,6 +405,13 @@ public:
 
 	antlrcpp::Any visitDouble_gate_with_four_parameter_type(
 		originirParser::Double_gate_with_four_parameter_typeContext *ctx) {
+		std::string gatename = ctx->children[0]->getText();
+		return QProgBuilder::get_gatetype(gatename);
+	}
+
+	antlrcpp::Any visitTriple_gate_without_parameter_type(
+		originirParser::Triple_gate_without_parameter_typeContext *ctx)
+	{
 		std::string gatename = ctx->children[0]->getText();
 		return QProgBuilder::get_gatetype(gatename);
 	}

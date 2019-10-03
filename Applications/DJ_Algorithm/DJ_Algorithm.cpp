@@ -14,9 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include "Utilities/Utilities.h"
+#include "Core/Utilities/Utilities.h"
 #include "QAlg/DJ_Algorithm/DJ_Algorithm.h"
-#include "QPandaNamespace.h"
+#include "Core/Utilities/QPandaNamespace.h"
 #include "Core/QPanda.h"
 #include <vector>
 

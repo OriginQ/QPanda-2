@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 #include "Core/QPanda.h"
-#include "Utilities/Utilities.h"
+#include "Core/Utilities/Utilities.h"
 #include "QAlg/Grover_Algorithm/Grover_Algorithm.h"
 
 USING_QPANDA

@@ -45,7 +45,7 @@ QPanda 2作为本源量子计算系列软件的基础库，为QRunes、Qurator�
     
     {'00': 493, '11': 507}
     
-更多的例子请参见[使用文档](https://qpanda-toturial.readthedocs.io/zh/latest/)。
+更多的例子请参见[使用示例](https://github.com/OriginQ/QPanda-Example)。
 
 ## 相关资料
 

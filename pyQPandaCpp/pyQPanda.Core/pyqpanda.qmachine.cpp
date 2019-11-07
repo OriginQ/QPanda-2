@@ -4,7 +4,7 @@
 #include "pybind11/complex.h"
 #include "pybind11/functional.h"
 #include "pybind11/chrono.h"
-#include "Core/QPanda.h"
+#include "Core/Core.h"
 #include "Core/QuantumMachine/SingleAmplitudeQVM.h"
 #include "Core/QuantumMachine/PartialAmplitudeQVM.h"
 #include "Core/QuantumMachine/QCloudMachine.h"
@@ -36,9 +36,12 @@ void init_quantum_machine(py::module &m)
         .value("DECOHERENCE_KRAUS_OPERATOR", NOISE_MODEL::DECOHERENCE_KRAUS_OPERATOR)
         .value("DEPHASING_KRAUS_OPERATOR", NOISE_MODEL::DEPHASING_KRAUS_OPERATOR)
         .value("PAULI_KRAUS_MAP", NOISE_MODEL::PAULI_KRAUS_MAP)
-        .value("DOUBLE_DAMPING_KRAUS_OPERATOR", NOISE_MODEL::DOUBLE_DAMPING_KRAUS_OPERATOR)
-        .value("DOUBLE_DECOHERENCE_KRAUS_OPERATOR", NOISE_MODEL::DOUBLE_DECOHERENCE_KRAUS_OPERATOR)
-        .value("DOUBLE_DEPHASING_KRAUS_OPERATOR", NOISE_MODEL::DOUBLE_DEPHASING_KRAUS_OPERATOR);
+        .value("DECOHERENCE_KRAUS_OPERATOR_P1_P2", NOISE_MODEL::DECOHERENCE_KRAUS_OPERATOR_P1_P2)
+        .value("BITFLIP_KRAUS_OPERATOR", NOISE_MODEL::BITFLIP_KRAUS_OPERATOR)
+        .value("DEPOLARIZING_KRAUS_OPERATOR", NOISE_MODEL::DEPOLARIZING_KRAUS_OPERATOR)
+        .value("BIT_PHASE_FLIP_OPRATOR", NOISE_MODEL::BIT_PHASE_FLIP_OPRATOR)
+        .value("PHASE_DAMPING_OPRATOR", NOISE_MODEL::PHASE_DAMPING_OPRATOR)
+        ;
 
     Qubit*(QVec::*qvec_subscript_cbit_size_t)(size_t) = &QVec::operator[];
     Qubit*(QVec::*qvec_subscript_cc)(ClassicalCondition&) = &QVec::operator[];
@@ -63,7 +66,7 @@ void init_quantum_machine(py::module &m)
 
     Qubit*(QuantumMachine::*qalloc)() = &QuantumMachine::allocateQubit;
     ClassicalCondition(QuantumMachine::*cAlloc)() = &QuantumMachine::allocateCBit;
-    ClassicalCondition(QuantumMachine::*cAllocByAddress)(size_t) = &QuantumMachine::allocateCBit;
+    ClassicalCondition(QuantumMachine::*calloc_by_address)(size_t) = &QuantumMachine::allocateCBit;
     QVec(QuantumMachine::*qallocMany)(size_t) = &QuantumMachine::allocateQubits;
     vector<ClassicalCondition>(QuantumMachine::*callocMany)(size_t) = &QuantumMachine::allocateCBits;
     void (QuantumMachine::*free_qubit)(Qubit *) = &QuantumMachine::Free_Qubit;
@@ -112,7 +115,7 @@ void init_quantum_machine(py::module &m)
             py::return_value_policy::reference)
 
         /* new interface */
-        .def("cAlloc", cAllocByAddress, "Allocate a cbit", "cbit"_a, py::return_value_policy::reference)
+        .def("cAlloc", calloc_by_address, "Allocate a cbit", "cbit"_a, py::return_value_policy::reference)
         .def("get_status", get_status, "get the status(ptr) of the quantum machine",py::return_value_policy::reference)
         .def("get_allocate_qubit_num", get_allocate_qubit, "getAllocateQubitNum", py::return_value_policy::reference)\
         .def("get_allocate_cmem_num", get_allocate_CMem, "getAllocateCMem", py::return_value_policy::reference)\
@@ -219,13 +222,16 @@ void init_quantum_machine(py::module &m)
         .def("get_qstate", &NoiseQVM::getQState, "getState", py::return_value_policy::automatic)
         .def("qAlloc", qalloc, "Allocate a qubit", py::return_value_policy::reference)
         .def("qAlloc_many", [](QuantumMachine & self, size_t num) {
-        vector<Qubit *> temp = self.allocateQubits(num);
-        return temp;
-    }, "Allocate a list of qubits", "n_qubit"_a,
+                    vector<Qubit *> temp = self.allocateQubits(num);
+                    return temp;
+                }, "Allocate a list of qubits", "n_qubit"_a,
             py::return_value_policy::reference)
-        .def("cAlloc", calloc, "Allocate a cbit", py::return_value_policy::reference)
+        .def("cAlloc", cAlloc, "Allocate a cbit", py::return_value_policy::reference)
         .def("cAlloc_many", callocMany, "Allocate a list of cbits", "n_cbit"_a,
             py::return_value_policy::reference)
+        .def("cAlloc", calloc_by_address, "Allocate a cbit", "cbit"_a, py::return_value_policy::reference)
+        .def("allocate_qubit_through_phy_address", allocate_qubit_through_phy_address, "address"_a, py::return_value_policy::reference)
+        .def("allocate_qubit_through_vir_address", allocate_qubit_through_vir_address, "address"_a, py::return_value_policy::reference)
         .def("qFree", free_qubit, "Free a qubit")
         .def("qFree_all", free_qubits, "qubit_list"_a,
             "Free a list of qubits")
@@ -298,7 +304,7 @@ void init_quantum_machine(py::module &m)
         return temp;
     }, "Allocate a list of qubits", "n_qubit"_a,
             py::return_value_policy::reference)
-        .def("cAlloc", calloc, "Allocate a cbit", py::return_value_policy::reference)
+        .def("cAlloc", cAlloc, "Allocate a cbit", py::return_value_policy::reference)
         .def("cAlloc_many", callocMany, "Allocate a list of cbits", "n_cbit"_a,
             py::return_value_policy::reference)
         .def("qFree", free_qubit, "Free a qubit")
@@ -352,7 +358,7 @@ py::class_<PartialAmplitudeQVM, QuantumMachine>(m, "PartialAmpQVM")
         return temp;
     }, "Allocate a list of qubits", "n_qubit"_a,
             py::return_value_policy::reference)
-        .def("cAlloc", calloc, "Allocate a cbit", py::return_value_policy::reference)
+        .def("cAlloc", cAlloc, "Allocate a cbit", py::return_value_policy::reference)
         .def("cAlloc_many", callocMany, "Allocate a list of cbits", "n_cbit"_a,
             py::return_value_policy::reference)
         .def("qFree", free_qubit, "Free a qubit")
@@ -404,7 +410,7 @@ py::class_<PartialAmplitudeQVM, QuantumMachine>(m, "PartialAmpQVM")
                 return temp;
             }, "Allocate a list of qubits", "n_qubit"_a,
             py::return_value_policy::reference)
-        .def("cAlloc", calloc, "Allocate a cbit", py::return_value_policy::reference)
+        .def("cAlloc", cAlloc, "Allocate a cbit", py::return_value_policy::reference)
         .def("cAlloc_many", callocMany, "Allocate a list of cbits", "n_cbit"_a,
             py::return_value_policy::reference)
         .def("qFree", free_qubit, "Free a qubit")

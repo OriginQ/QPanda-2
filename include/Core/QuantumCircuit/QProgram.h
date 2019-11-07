@@ -24,10 +24,10 @@ limitations under the License.
 #include <map>
 
 #include "Core/QuantumCircuit/QNode.h"
-#include "Core/Utilities/ReadWriteLock.h"
+#include "Core/Utilities/Tools/ReadWriteLock.h"
 #include "Core/QuantumMachine/QubitFactory.h"
 #include "Core/QuantumMachine/QVec.h"
-#include "Core/Utilities/QPandaException.h"
+#include "Core/Utilities/Tools/QPandaException.h"
 QPANDA_BEGIN
 
 /**
@@ -48,10 +48,9 @@ public:
     virtual NodeIter  getLastNodeIter() = 0;
     virtual NodeIter  getEndNodeIter() = 0;
     virtual NodeIter  getHeadNodeIter() = 0;
-    virtual NodeIter  insertQNode(const NodeIter &, QNode *) = 0;
+    virtual NodeIter  insertQNode(const NodeIter &, std::shared_ptr<QNode>) = 0;
     virtual NodeIter  deleteQNode(NodeIter &) =0;
 
-    virtual void pushBackNode(QNode *) = 0;
     virtual void pushBackNode(std::shared_ptr<QNode>) = 0;
     virtual ~AbstractQuantumProgram() {};
     virtual void clear() = 0;
@@ -62,7 +61,7 @@ public:
 * @brief    Quantum program,can construct quantum circuit,data struct is linked list
 * @ingroup  Core
 */
-class QProg : public QNode,public AbstractQuantumProgram
+class QProg : public AbstractQuantumProgram
 {
 private:
     std::shared_ptr<AbstractQuantumProgram> m_quantum_program;
@@ -73,15 +72,13 @@ public:
     template<typename Ty>
     QProg(Ty &node);
 
-    QProg(QNode *);
     QProg(std::shared_ptr<QNode>);
     QProg(std::shared_ptr<AbstractQuantumProgram>);
     QProg(ClassicalCondition &node);
 	QProg(QProg& other);
 	
     ~QProg();
-    std::shared_ptr<QNode> getImplementationPtr();
-    void pushBackNode(QNode *);
+    std::shared_ptr<AbstractQuantumProgram> getImplementationPtr();
     void pushBackNode(std::shared_ptr<QNode>);
     template<typename T>
     QProg & operator <<(T);
@@ -89,12 +86,10 @@ public:
     NodeIter getLastNodeIter();
     NodeIter getEndNodeIter();
     NodeIter getHeadNodeIter();
-    NodeIter insertQNode(const NodeIter & iter, QNode * pNode);
+    NodeIter insertQNode(const NodeIter & iter, std::shared_ptr<QNode>);
     NodeIter deleteQNode(NodeIter & iter);
     NodeType getNodeType() const;
     void clear();
-private:
-    void execute(QPUImpl *, QuantumGateParam *) {};
 };
 
 typedef AbstractQuantumProgram * (*CreateQProgram)();
@@ -139,13 +134,6 @@ private:
     OriginProgram(OriginProgram&);
 
 public:
-
-    std::shared_ptr<QNode> getImplementationPtr()
-    {
-        QCERR("Can't use this function");
-        throw std::runtime_error("Can't use this function");
-    }
-
     ~OriginProgram();
     OriginProgram();
     /**
@@ -154,13 +142,12 @@ public:
     * @return     void
     * @see  QNode
     */
-    void pushBackNode(QNode *);
     void pushBackNode(std::shared_ptr<QNode>);
     NodeIter getFirstNodeIter();
     NodeIter getLastNodeIter();
     NodeIter getEndNodeIter();
     NodeIter getHeadNodeIter();
-    NodeIter insertQNode(const NodeIter &, QNode *);
+    NodeIter insertQNode(const NodeIter &,std::shared_ptr<QNode>);
     NodeIter deleteQNode(NodeIter &);
     NodeType getNodeType() const;
 
@@ -169,7 +156,6 @@ public:
     * @return     void
     */
     void clear();
-    void execute(QPUImpl *, QuantumGateParam *);
 };
 
 /* will delete */
@@ -202,20 +188,11 @@ QProg & QProg::operator<<(T node)
         throw std::runtime_error("m_quantum_program is nullptr");
     }
 
-    auto temp = dynamic_cast<QNode *>(&node);
-    if (nullptr != temp)
-    {
-        int iNodeType = temp->getNodeType();
-        m_quantum_program->pushBackNode(temp);
-        return *this;
-    }
-    else
-    {
-        throw qprog_construction_fail("bad node type");
-    }
+	m_quantum_program->pushBackNode(std::dynamic_pointer_cast<QNode>(node.getImplementationPtr()));
+	return *this;
 }
 template <>
-QProg & QProg::operator<<<ClassicalCondition >(ClassicalCondition  node);
+QProg & QProg::operator<<<ClassicalCondition >(ClassicalCondition node);
 
 template<typename Ty>
 QProg::QProg(Ty &node)
@@ -225,8 +202,7 @@ QProg::QProg(Ty &node)
     {
         throw std::runtime_error("m_quantum_program is nullptr");
     }
-    static_assert(std::is_base_of<QNode, Ty>::value, "bad node type");
-    m_quantum_program->pushBackNode(&node);
+    m_quantum_program->pushBackNode(std::dynamic_pointer_cast<QNode>(node.getImplementationPtr()));
 }
 
 QPANDA_END

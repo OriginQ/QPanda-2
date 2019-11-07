@@ -34,8 +34,6 @@ class QNode : public QObject
 {
 public:
     virtual NodeType getNodeType() const = 0;
-    virtual std::shared_ptr<QNode> getImplementationPtr() = 0;
-    virtual void execute(QPUImpl *,QuantumGateParam *) = 0;
     virtual ~QNode() {}
 };
 

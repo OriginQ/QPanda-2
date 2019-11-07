@@ -15,6 +15,12 @@
             <Gate time = "5">ISWAP</Gate>
         </DoubleGate>
     </QGate>
+    <QGateTimeSequence>
+	    <QMeasureTimeSequence>2</QMeasureTimeSequence>
+		<QSwapTimeSequence>2</QSwapTimeSequence>
+		<QGateControlTimeSequence>2</QGateControlTimeSequence>
+		<QGateSingleTimeSequence>1</QGateSingleTimeSequence>
+    </QGateTimeSequence>
     <ClassNameConfig>
         <QProg>OriginProgram</QProg>
         <QCircuit>OriginCircuit</QCircuit>        
@@ -22,7 +28,7 @@
         <QWhileProg>OriginQWhile</QWhileProg>
         <QMeasure>OriginMeasure</QMeasure>
         <QuantumMachine>OriginQVM</QuantumMachine>
-        <QubitPool>OriginQubitPool</QubitPool>
+        <QubitPool>OriginQubitPoolv2</QubitPool>
         <Qubit>OriginQubit</Qubit>
         <PhysicalQubit>OriginPhysicalQubit</PhysicalQubit>
         <CBit>OriginCBit</CBit>

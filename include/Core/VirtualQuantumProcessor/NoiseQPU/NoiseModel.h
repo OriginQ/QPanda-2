@@ -22,13 +22,15 @@ limitations under the License.
 
 enum NOISE_MODEL
 {
-    DAMPING_KRAUS_OPERATOR,
-    DEPHASING_KRAUS_OPERATOR,
-    DECOHERENCE_KRAUS_OPERATOR,
-    PAULI_KRAUS_MAP,
-    DOUBLE_DAMPING_KRAUS_OPERATOR,
-    DOUBLE_DEPHASING_KRAUS_OPERATOR,
-    DOUBLE_DECOHERENCE_KRAUS_OPERATOR
+	DAMPING_KRAUS_OPERATOR,
+	DEPHASING_KRAUS_OPERATOR,
+    DECOHERENCE_KRAUS_OPERATOR_P1_P2,
+    BITFLIP_KRAUS_OPERATOR,
+    DEPOLARIZING_KRAUS_OPERATOR,
+    BIT_PHASE_FLIP_OPRATOR,
+    PHASE_DAMPING_OPRATOR,
+	DECOHERENCE_KRAUS_OPERATOR,
+	PAULI_KRAUS_MAP,
 };
 
 #define NoiseOp std::vector<std::vector<qcomplex_t>>
@@ -40,17 +42,83 @@ bool double_damping_kraus_operator(rapidjson::Value &, NoiseOp & noise);
 bool double_decoherence_kraus_operator(rapidjson::Value &, NoiseOp & noise);
 bool pauli_kraus_map(rapidjson::Value &, NoiseOp & noise);
 
+bool decoherence_kraus_operator_p1_p2(rapidjson::Value &value, NoiseOp & noise);
+bool bitflip_kraus_operator(rapidjson::Value &value, NoiseOp & noise);
+bool depolarizing_kraus_operator(rapidjson::Value &value, NoiseOp & noise);
+
+/**
+* @brief  Get Noise model bit-phase flip matrix
+* @ingroup NoiseModel
+* @param[in]  rapidjson::Value  Noise model and probability
+* @param[out]  NoiseOp  Noise model matrix: E1 = sqrt(1-p){1,0,0,1}, E2 = sqrt(p) {0,-i,i,0}
+* @retval true   get matrix success
+* @retval false  get matrix failed
+* @note    Use this at the SingleGateNoiseModeMap constructor
+*/
+bool bit_phase_flip_operator(rapidjson::Value &value, NoiseOp & noise);
+
+/**
+* @brief  Get Noise model bit-phase flip matrix
+* @ingroup NoiseModel
+* @param[in]  rapidjson::Value  Noise model and probability
+* @param[out]  NoiseOp  Noise model matrix: E1 = {1,0,0,sqrt(1-p)} , E2 = {0,0,0,sqrt(p)}
+* @retval true   get matrix success
+* @retval false  get matrix failed
+* @note    Use this at the SingleGateNoiseModeMap constructor
+*/
+bool phase_damping_oprator(rapidjson::Value &value, NoiseOp &noise);
+
+bool double_decoherence_kraus_operator_p1_p2(rapidjson::Value &value, NoiseOp & noise);
+bool double_bitflip_kraus_operator(rapidjson::Value &value, NoiseOp & noise);
+bool double_depolarizing_kraus_operator(rapidjson::Value &value, NoiseOp & noise);
+
+/**
+* @brief  Get Noise model bit-phase flip matrix
+* @ingroup NoiseModel
+* @param[in]  rapidjson::Value  Noise model and probability
+* @param[out]  NoiseOp  Noise model matrix: E1 = sqrt(1-p){1,0,0,1}, E2 = sqrt(p) {0,-i,i,0}
+* @retval true   get matrix success
+* @retval false  get matrix failed
+* @note    Use this at the DoubleGateNoiseModeMap constructor
+*/
+bool double_bit_phase_flip_operator(rapidjson::Value &value, NoiseOp & noise);
+/**
+* @brief  Get Noise model bit-phase flip matrix
+* @ingroup NoiseModel
+* @param[in]  rapidjson::Value  Noise model and probability
+* @param[out]  NoiseOp  Noise model matrix: E1 = {1,0,0,sqrt(1-p)}, E2 = {0,0,0,sqrt(p)}
+* @retval true   get matrix success
+* @retval false  get matrix failed
+* @note    Use this at the DoubleGateNoiseModeMap constructor
+*/
+bool double_phase_damping_oprator(rapidjson::Value &value, NoiseOp &noise);
+
+
 typedef bool(*noise_mode_function)(rapidjson::Value &, NoiseOp &);
-class NoiseModeMap
+class SingleGateNoiseModeMap
 {
 public:
-    static NoiseModeMap &getInstance();
-    ~NoiseModeMap() {};
+    static SingleGateNoiseModeMap &getInstance();
+    ~SingleGateNoiseModeMap() {};
     noise_mode_function operator [](NOISE_MODEL);
 private:
     std::map<NOISE_MODEL, noise_mode_function> m_function_map;
-    NoiseModeMap &operator=(const NoiseModeMap &) = delete;
-    NoiseModeMap();
-    NoiseModeMap(const NoiseModeMap &) = delete;
+	SingleGateNoiseModeMap &operator=(const SingleGateNoiseModeMap &) = delete;
+	SingleGateNoiseModeMap();
+	SingleGateNoiseModeMap(const SingleGateNoiseModeMap &) = delete;
 };
+
+class DoubleGateNoiseModeMap
+{
+public:
+	static DoubleGateNoiseModeMap &getInstance();
+	~DoubleGateNoiseModeMap() {};
+	noise_mode_function operator [](NOISE_MODEL);
+private:
+	std::map<NOISE_MODEL, noise_mode_function> m_function_map;
+	DoubleGateNoiseModeMap &operator=(const DoubleGateNoiseModeMap &) = delete;
+	DoubleGateNoiseModeMap();
+	DoubleGateNoiseModeMap(const DoubleGateNoiseModeMap &) = delete;
+};
+
 #endif  // ! NOISE_MODEL_H

@@ -69,7 +69,7 @@ public:
 * @brief Proxy class of quantum if program
 * @ingroup Core
 */
-class QIfProg : public QNode, public AbstractControlFlowNode
+class QIfProg : public AbstractControlFlowNode
 {
 private:
     std::shared_ptr<AbstractControlFlowNode> m_control_flow;
@@ -135,7 +135,7 @@ public:
      */
     virtual std::shared_ptr<QNode> getFalseBranch() const;
 
-    std::shared_ptr<QNode> getImplementationPtr();
+    std::shared_ptr<AbstractControlFlowNode> getImplementationPtr();
 
     /* will delete */
     virtual ClassicalCondition getCExpr();
@@ -150,11 +150,10 @@ public:
 private:
     virtual void setTrueBranch(QProg ) {};
     virtual void setFalseBranch(QProg ) {};
-    virtual void execute(QPUImpl *, QuantumGateParam *) {};
 };
 
-typedef AbstractControlFlowNode * (*CreateQIfTrueFalse_cb)(ClassicalCondition &, QNode *, QNode *);
-typedef AbstractControlFlowNode * (*CreateQIfTrueOnly_cb)(ClassicalCondition &, QNode *);
+typedef AbstractControlFlowNode * (*CreateQIfTrueFalse_cb)(ClassicalCondition &, QProg, QProg );
+typedef AbstractControlFlowNode * (*CreateQIfTrueOnly_cb)(ClassicalCondition &, QProg );
 
 
 class QIfFactory
@@ -167,12 +166,12 @@ public:
 
     AbstractControlFlowNode* getQIf(std::string &class_name,
         ClassicalCondition &classical_condition,
-        QNode *true_node,
-        QNode *false_node);
+		QProg true_node,
+		QProg false_node);
 
     AbstractControlFlowNode * getQIf(std::string & name, 
                                      ClassicalCondition & classical_cond,
-                                     QNode * node);
+									QProg node);
 
     static QIfFactory & getInstance()
     {
@@ -241,11 +240,6 @@ private:
     Item * m_true_item {nullptr};
     Item * m_false_item {nullptr};
     NodeType m_node_type {QIF_START_NODE};
-    std::shared_ptr<QNode> getImplementationPtr()
-    {
-        QCERR("Can't use this function");
-        throw std::runtime_error("Can't use this function");
-    };
 public:
     ~OriginQIf();
     
@@ -264,8 +258,6 @@ public:
     virtual void setFalseBranch(QProg node);
 
     virtual ClassicalCondition getCExpr();
-
-    virtual void execute(QPUImpl *, QuantumGateParam *);
 };
 
 
@@ -274,7 +266,7 @@ public:
 * @brief Proxy class of quantum while program
 * @ingroup Core
 */
-class QWhileProg : public QNode, public AbstractControlFlowNode
+class QWhileProg : public AbstractControlFlowNode
 {
 private:
     std::shared_ptr<AbstractControlFlowNode> m_control_flow;
@@ -306,7 +298,7 @@ public:
     }
     QWhileProg(ClassicalCondition , QProg);
 
-    std::shared_ptr<QNode> getImplementationPtr();
+    std::shared_ptr<AbstractControlFlowNode> getImplementationPtr();
     /*
     Get the current node type
     param :
@@ -346,7 +338,6 @@ public:
 private:
     virtual void setTrueBranch(QProg ) {};
     virtual void setFalseBranch(QProg ) {};
-    virtual void execute(QPUImpl *, QuantumGateParam *) {};
 };
 
 
@@ -358,11 +349,7 @@ private:
     Item * m_true_item {nullptr};
 
     OriginQWhile();
-    std::shared_ptr<QNode> getImplementationPtr()
-    {
-        QCERR("Can't use this function");
-        throw std::runtime_error("Can't use this function");
-    };
+
 public:
     ~OriginQWhile();
     OriginQWhile(ClassicalCondition ccCon, QProg node);
@@ -377,18 +364,16 @@ public:
 
     virtual void setFalseBranch(QProg node) {};
 
-    virtual void execute(QPUImpl *, QuantumGateParam *);
-
     virtual ClassicalCondition getCExpr();
 };
 
-typedef AbstractControlFlowNode * (*CreateQWhile_cb)(ClassicalCondition &, QNode *);
+typedef AbstractControlFlowNode * (*CreateQWhile_cb)(ClassicalCondition &, QProg );
 
 class QWhileFactory
 {
 public:
     void registClass(std::string name, CreateQWhile_cb method);
-    AbstractControlFlowNode * getQWhile(std::string &, ClassicalCondition &, QNode *);
+    AbstractControlFlowNode * getQWhile(std::string &, ClassicalCondition &, QProg );
     static QWhileFactory & getInstance()
     {
         static QWhileFactory  instance;

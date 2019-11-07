@@ -12,7 +12,7 @@ Created in 2019-01-22
 
 #include <map>
 #include <vector>
-#include "Core/Utilities/QString.h"
+#include "Core/Utilities/Tools/QString.h"
 #include "Core/Utilities/QPandaNamespace.h"
 #include "Components/DataStruct.h"
 

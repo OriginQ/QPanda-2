@@ -13,7 +13,7 @@ Update@2018-8-30
 */
 
 #include "ControlFlow.h"
-#include "Utilities/ConfigMap.h"
+#include "Core/Utilities/QProgInfo/ConfigMap.h"
 USING_QPANDA
 using namespace std;
 QWhileProg  QPanda::CreateWhileProg(ClassicalCondition  classical_condition, QProg true_node)
@@ -48,20 +48,20 @@ QWhileProg::QWhileProg(ClassicalCondition classical_condition, QProg node)
 {
     auto class_name = ConfigMap::getInstance()["QWhileProg"];
     auto qwhile = QWhileFactory::getInstance()
-                    .getQWhile(class_name, classical_condition, &node);
+                    .getQWhile(class_name, classical_condition, node);
 
     m_control_flow.reset(qwhile);
     
 }
 
-std::shared_ptr<QNode> QWhileProg::getImplementationPtr()
+std::shared_ptr<AbstractControlFlowNode> QWhileProg::getImplementationPtr()
 {
     if (!m_control_flow)
     {
         QCERR("Unknown internal error");
         throw runtime_error("Unknown internal error");
     }
-    return dynamic_pointer_cast<QNode>(m_control_flow);
+    return m_control_flow;
 }
 
 NodeType QWhileProg::getNodeType() const
@@ -128,14 +128,14 @@ QIfProg::QIfProg(ClassicalCondition classical_condition, QProg true_node, QProg 
 {
     auto sClasNname = ConfigMap::getInstance()["QIfProg"];
     auto qif = QIfFactory::getInstance()
-               .getQIf(sClasNname, classical_condition, &true_node, &false_node);
+               .getQIf(sClasNname, classical_condition, true_node, false_node);
     m_control_flow.reset(qif);
 }
 
 QIfProg::QIfProg(ClassicalCondition classical_condition, QProg node)
 {
     auto sClasNname = ConfigMap::getInstance()["QIfProg"];
-    auto qif = QIfFactory::getInstance().getQIf(sClasNname, classical_condition, &node);
+    auto qif = QIfFactory::getInstance().getQIf(sClasNname, classical_condition, node);
     m_control_flow.reset(qif);
 }
 
@@ -186,14 +186,14 @@ ClassicalCondition QIfProg::getClassicalCondition()
     return getCExpr();
 }
 
-std::shared_ptr<QNode> QIfProg::getImplementationPtr()
+std::shared_ptr<AbstractControlFlowNode> QIfProg::getImplementationPtr()
 {
     if (!m_control_flow)
     {
         QCERR("Unknown internal error");
         throw runtime_error("Unknown internal error");
     }
-    return dynamic_pointer_cast<QNode>(m_control_flow);
+    return m_control_flow;
 }
 
 OriginQIf::~OriginQIf()
@@ -220,11 +220,11 @@ OriginQIf::OriginQIf(ClassicalCondition classical_condition,
 
     auto true_shared_ptr = true_node.getImplementationPtr();
     m_true_item = new OriginItem();
-    m_true_item->setNode(true_shared_ptr);
+    m_true_item->setNode(dynamic_pointer_cast<QNode>(true_shared_ptr));
 
     auto false_shared_ptr = false_node.getImplementationPtr();
     m_false_item = new OriginItem();
-    m_false_item->setNode(false_shared_ptr);
+    m_false_item->setNode(dynamic_pointer_cast<QNode>(false_shared_ptr));
 }
 
 OriginQIf::OriginQIf(ClassicalCondition classical_condition, QProg node)
@@ -232,7 +232,7 @@ OriginQIf::OriginQIf(ClassicalCondition classical_condition, QProg node)
 {
     auto node_shared_ptr = node.getImplementationPtr();
     m_true_item = new OriginItem();
-    m_true_item->setNode(node_shared_ptr);
+    m_true_item->setNode(dynamic_pointer_cast<QNode>(node_shared_ptr));
 }
 
 NodeType OriginQIf::getNodeType() const
@@ -263,7 +263,7 @@ void OriginQIf::setTrueBranch(QProg node)
         m_true_item = nullptr;
         Item * temp = new OriginItem();
         auto node_shared_ptr = node.getImplementationPtr();
-        temp->setNode(node_shared_ptr);
+        temp->setNode(dynamic_pointer_cast<QNode>(node_shared_ptr));
         m_true_item = temp;
     }
        
@@ -277,7 +277,7 @@ void OriginQIf::setFalseBranch(QProg node)
         m_false_item = nullptr;
         Item * temp = new OriginItem();
         auto node_shared_ptr = node.getImplementationPtr();
-        temp->setNode(node_shared_ptr);
+        temp->setNode(dynamic_pointer_cast<QNode>(node_shared_ptr));
         m_false_item = temp;
     }
 }
@@ -285,31 +285,6 @@ void OriginQIf::setFalseBranch(QProg node)
 ClassicalCondition OriginQIf::getCExpr() 
 {
     return m_classical_condition;
-}
-
-void OriginQIf::execute(QPUImpl * quantum_gates, QuantumGateParam * param)
-{
-    auto aCExpr = getCExpr();
-    shared_ptr<QNode> node;
-    if (aCExpr.eval())
-    {
-        node = getTrueBranch();
-        if (nullptr == node)
-        {
-            return ;
-        }
-    }
-    else
-    {
-        node = getFalseBranch();
-        if (nullptr == node)
-        {
-            return ;
-        }
-    }
-
-    node->execute(quantum_gates, param);
-
 }
 
 void QIfFactory::registClass(string name, CreateQIfTrueFalse_cb method)
@@ -335,9 +310,9 @@ void QIfFactory::registClass(string name, CreateQIfTrueOnly_cb method)
 }
 
 AbstractControlFlowNode * QIfFactory::getQIf(std::string & class_name, 
-                                             ClassicalCondition & classical_condition,
-                                             QNode * true_node,
-                                             QNode * false_node)
+	ClassicalCondition & classical_condition,
+	QProg true_node,
+	QProg false_node)
 {
     auto aiter = m_qif_true_false_map.find(class_name);
     if (aiter != m_qif_true_false_map.end())
@@ -353,7 +328,7 @@ AbstractControlFlowNode * QIfFactory::getQIf(std::string & class_name,
 
 AbstractControlFlowNode * QIfFactory::getQIf(std::string & class_name,
                                              ClassicalCondition & classical_condition,
-                                             QNode * true_node)
+                                             QProg true_node)
 {
     auto aiter = m_qif_true_only_map.find(class_name);
     if (aiter != m_qif_true_only_map.end())
@@ -385,7 +360,7 @@ OriginQWhile::OriginQWhile(ClassicalCondition classical_condition, QProg node)
 {
     auto node_shared_ptr = node.getImplementationPtr();
     m_true_item = new OriginItem();
-    m_true_item->setNode(node_shared_ptr);
+    m_true_item->setNode(dynamic_pointer_cast<QNode>(node_shared_ptr));
 }
 
 NodeType OriginQWhile::getNodeType() const
@@ -415,7 +390,7 @@ void OriginQWhile::setTrueBranch(QProg node)
 
         Item * temp = new OriginItem();
         auto node_shared_ptr = node.getImplementationPtr();
-        temp->setNode(node_shared_ptr);
+        temp->setNode(dynamic_pointer_cast<QNode>(node_shared_ptr));
 
         m_true_item = temp;
     }
@@ -424,22 +399,6 @@ void OriginQWhile::setTrueBranch(QProg node)
 ClassicalCondition  OriginQWhile::getCExpr() 
 {
     return m_classical_condition;
-}
-
-void OriginQWhile::execute(QPUImpl * quantum_gates, QuantumGateParam * param)
-{
-    auto aCExpr = getCExpr();
-    
-    while (aCExpr.eval())
-    {
-        auto node = getTrueBranch();
-        if (node == nullptr)
-        {
-            return ;
-        }
-        
-        node->execute(quantum_gates, param);
-    }
 }
 
 QWHILE_REGISTER(OriginQWhile);
@@ -462,18 +421,14 @@ void QWhileFactory::registClass(string name, CreateQWhile_cb method)
 
 AbstractControlFlowNode *QWhileFactory::getQWhile(std::string & class_name,
                                                    ClassicalCondition & classical_condition,
-                                                   QNode * true_node)
+                                                   QProg  true_node)
 {
     if (class_name.size() <= 0)
     {
         QCERR("class_name is empty string");
         throw invalid_argument("class_name is empty string");
     }
-    if (nullptr == true_node)
-    {
-        QCERR("true_node is a nullptr");
-        throw invalid_argument("true_node is a nullptr");
-    }
+
     auto aiter = m_qwhile_map.find(class_name);
     if (aiter != m_qwhile_map.end())
     {

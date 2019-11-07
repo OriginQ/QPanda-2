@@ -1,5 +1,5 @@
 #include "QAlg/ChemiQ/ChemiQIFC.h"
-#include "QString.h"
+#include "Core/Utilities/Tools/QString.h"
 
 DLLEXPORT ChemiQ* initialize(char* dir)
 {

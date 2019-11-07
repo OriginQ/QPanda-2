@@ -28,8 +28,6 @@ QPANDA_BEGIN
 
 class Qubit
 {
-    // User use this Class
-
 public:
     virtual PhysicalQubit* getPhysicalQubitPtr() = 0;
     virtual bool getOccupancy() = 0;

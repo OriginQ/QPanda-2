@@ -1,8 +1,8 @@
 
-#include "Utilities/Utilities.h"
+#include "Core/Utilities/Tools/Utils.h"
 #include "Core/Utilities/QPandaNamespace.h"
 #include "QAlg/DJ_Algorithm/DJ_Algorithm.h"
-#include "Core/QPanda.h"
+#include "Core/Core.h"
 #include <vector>
 #include<cmath>
 

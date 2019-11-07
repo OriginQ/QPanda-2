@@ -56,6 +56,7 @@ bool damping_kraus_operator(Value &value, NoiseOp & noise)
     double probability = value[1].GetDouble();
 
     noise.resize(2);
+    
     noise[0] = { 1,0,0,(qstate_type)sqrt(1 - probability) };
     noise[1] = { 0,(qstate_type)sqrt(probability),0,0 };
     return 1;
@@ -149,7 +150,7 @@ bool double_damping_kraus_operator(Value & value, NoiseOp & noise)
         QCERR("param error");
         throw std::invalid_argument("param error");
     }
-    if (NOISE_MODEL::DOUBLE_DAMPING_KRAUS_OPERATOR != (NOISE_MODEL)value[0].GetUint())
+    if (NOISE_MODEL::DAMPING_KRAUS_OPERATOR != (NOISE_MODEL)value[0].GetUint())
     {
         QCERR("param error");
         throw std::invalid_argument("param error");
@@ -184,7 +185,7 @@ bool double_dephasing_kraus_operator(Value & value, NoiseOp & noise)
         QCERR("param error");
         throw std::invalid_argument("param error");
     }
-    if (NOISE_MODEL::DOUBLE_DEPHASING_KRAUS_OPERATOR != (NOISE_MODEL)value[0].GetUint())
+    if (NOISE_MODEL::DEPHASING_KRAUS_OPERATOR != (NOISE_MODEL)value[0].GetUint())
     {
         QCERR("param error");
         throw std::invalid_argument("param error");
@@ -217,7 +218,7 @@ bool double_decoherence_kraus_operator(Value & value, NoiseOp & noise)
         QCERR("param error");
         throw std::invalid_argument("param error");
     }
-    if (NOISE_MODEL::DOUBLE_DECOHERENCE_KRAUS_OPERATOR != (NOISE_MODEL)value[0].GetUint())
+    if (NOISE_MODEL::DECOHERENCE_KRAUS_OPERATOR != (NOISE_MODEL)value[0].GetUint())
     {
         QCERR("param error");
         throw std::invalid_argument("param error");
@@ -272,11 +273,18 @@ bool double_decoherence_kraus_operator(Value & value, NoiseOp & noise)
 
 bool pauli_kraus_map(Value & value, NoiseOp & noise)
 {
-    if ((!value.IsArray()) || (value.Size() != 5))
+    if (!value.IsArray())
     {
         QCERR("param error");
         throw std::invalid_argument("param error");
     }
+
+	if ((value.Size() != 5) || (value.Size() != 17))
+	{
+		QCERR("param error");
+		throw std::invalid_argument("param error");
+	}
+
     if (NOISE_MODEL::PAULI_KRAUS_MAP != (NOISE_MODEL)value[0].GetUint())
     {
         QCERR("param error");
@@ -331,13 +339,13 @@ bool pauli_kraus_map(Value & value, NoiseOp & noise)
     return 1;
 }
 
-NoiseModeMap & NoiseModeMap::getInstance()
+SingleGateNoiseModeMap & SingleGateNoiseModeMap::getInstance()
 {
-    static NoiseModeMap map;
+    static SingleGateNoiseModeMap map;
     return map;
 }
 
-noise_mode_function NoiseModeMap::operator[](NOISE_MODEL type)
+noise_mode_function SingleGateNoiseModeMap::operator[](NOISE_MODEL type)
 {
     auto iter = m_function_map.find(type);
     if (iter == m_function_map.end())
@@ -349,13 +357,422 @@ noise_mode_function NoiseModeMap::operator[](NOISE_MODEL type)
     return iter->second;
 }
 
-NoiseModeMap::NoiseModeMap()
+SingleGateNoiseModeMap::SingleGateNoiseModeMap()
 {
     m_function_map.insert(make_pair(DAMPING_KRAUS_OPERATOR, damping_kraus_operator));
     m_function_map.insert(make_pair(DEPHASING_KRAUS_OPERATOR, dephasing_kraus_operator));
     m_function_map.insert(make_pair(DECOHERENCE_KRAUS_OPERATOR, decoherence_kraus_operator));
     m_function_map.insert(make_pair(PAULI_KRAUS_MAP, pauli_kraus_map));
-    m_function_map.insert(make_pair(DOUBLE_DAMPING_KRAUS_OPERATOR, double_damping_kraus_operator));
-    m_function_map.insert(make_pair(DOUBLE_DEPHASING_KRAUS_OPERATOR, double_dephasing_kraus_operator));
-    m_function_map.insert(make_pair(DOUBLE_DECOHERENCE_KRAUS_OPERATOR, double_decoherence_kraus_operator));
+
+    m_function_map.insert({DECOHERENCE_KRAUS_OPERATOR_P1_P2, decoherence_kraus_operator_p1_p2});
+    m_function_map.insert({BITFLIP_KRAUS_OPERATOR, bitflip_kraus_operator});
+    m_function_map.insert({DEPOLARIZING_KRAUS_OPERATOR, depolarizing_kraus_operator});
+    m_function_map.insert({BIT_PHASE_FLIP_OPRATOR, bit_phase_flip_operator});
+    m_function_map.insert({PHASE_DAMPING_OPRATOR, phase_damping_oprator});
+}
+
+DoubleGateNoiseModeMap & DoubleGateNoiseModeMap::getInstance()
+{
+	static DoubleGateNoiseModeMap map;
+	return map;
+}
+
+noise_mode_function DoubleGateNoiseModeMap::operator[](NOISE_MODEL type)
+{
+	auto iter = m_function_map.find(type);
+	if (iter == m_function_map.end())
+	{
+		QCERR("noise model type error");
+		throw invalid_argument("noise model type error");
+	}
+
+	return iter->second;
+}
+
+
+DoubleGateNoiseModeMap::DoubleGateNoiseModeMap()
+{
+	m_function_map.insert(make_pair(DAMPING_KRAUS_OPERATOR, double_damping_kraus_operator));
+	m_function_map.insert(make_pair(DEPHASING_KRAUS_OPERATOR, double_dephasing_kraus_operator));
+	m_function_map.insert(make_pair(DECOHERENCE_KRAUS_OPERATOR, double_decoherence_kraus_operator));
+	m_function_map.insert(make_pair(PAULI_KRAUS_MAP, pauli_kraus_map));
+
+    m_function_map.insert({DECOHERENCE_KRAUS_OPERATOR_P1_P2, double_decoherence_kraus_operator_p1_p2});
+    m_function_map.insert({BITFLIP_KRAUS_OPERATOR, double_bitflip_kraus_operator});
+    m_function_map.insert({DEPOLARIZING_KRAUS_OPERATOR, double_depolarizing_kraus_operator});
+    m_function_map.insert({BIT_PHASE_FLIP_OPRATOR, double_bit_phase_flip_operator});
+    m_function_map.insert({PHASE_DAMPING_OPRATOR, double_phase_damping_oprator});
+
+}
+bool decoherence_kraus_operator_p1_p2(Value &value, NoiseOp &noise)
+{
+    if ((!value.IsArray()) || (value.Size() != 3))
+    {
+        QCERR("param error");
+        throw std::invalid_argument("param error");
+    }
+    if (NOISE_MODEL::DECOHERENCE_KRAUS_OPERATOR_P1_P2 != (NOISE_MODEL)value[0].GetUint())
+    {
+        QCERR("param error");
+        throw std::invalid_argument("param error");
+    }
+
+    for (SizeType i = 1; i < value.Size(); i++)
+    {
+        if (!value[i].IsDouble())
+        {
+            QCERR("param error");
+            throw std::invalid_argument("param error");
+        }
+    }
+
+    double p1 = value[1].GetDouble();
+    double p2 = value[2].GetDouble();
+    Document document;
+    document.SetObject();
+    auto & alloc = document.GetAllocator();
+    NoiseOp damping, dephasing;
+    Value damping_value(kArrayType);
+    damping_value.PushBack(NOISE_MODEL::DAMPING_KRAUS_OPERATOR, alloc);
+    damping_value.PushBack(p1, alloc);
+    damping_kraus_operator(damping_value, damping);
+
+    Value dephasing_value(kArrayType);
+    dephasing_value.PushBack(NOISE_MODEL::DEPHASING_KRAUS_OPERATOR, alloc);
+    dephasing_value.PushBack(p2, alloc);
+    dephasing_kraus_operator(dephasing_value, dephasing);
+
+    for (auto iter : damping)
+    {
+        for (auto iter1 : dephasing)
+        {
+            noise.push_back(matrix_multiply(iter, iter1));
+        }
+    }
+
+    return true;
+}
+
+bool bitflip_kraus_operator(Value &value, NoiseOp &noise)
+{
+    if ((!value.IsArray()) || (value.Size() != 2))
+    {
+        QCERR("param error");
+        throw std::invalid_argument("param error");
+    }
+
+    if (NOISE_MODEL::BITFLIP_KRAUS_OPERATOR != (NOISE_MODEL)value[0].GetUint())
+    {
+        QCERR("param error");
+        throw std::invalid_argument("param error");
+    }
+
+    if (!value[1].IsDouble())
+    {
+        QCERR("param error");
+        throw std::invalid_argument("param error");
+    }
+
+    double probability = value[1].GetDouble();
+    noise.resize(2);
+    noise[0] = {static_cast<qstate_type>(sqrt(1 - probability)), 0, 0, static_cast<qstate_type>(sqrt(1 - probability))};
+    noise[1] = {0, static_cast<qstate_type>(sqrt(probability)), static_cast<qstate_type>(sqrt(probability)), 0};
+
+    return true;
+}
+
+bool depolarizing_kraus_operator(Value &value, NoiseOp &noise)
+{
+    if ((!value.IsArray()) || (value.Size() != 2))
+    {
+        QCERR("param error");
+        throw std::invalid_argument("param error");
+    }
+
+    if (NOISE_MODEL::DEPOLARIZING_KRAUS_OPERATOR != (NOISE_MODEL)value[0].GetUint())
+    {
+        QCERR("param error");
+        throw std::invalid_argument("param error");
+    }
+
+    if (!value[1].IsDouble())
+    {
+        QCERR("param error");
+        throw std::invalid_argument("param error");
+    }
+
+    double probability = value[1].GetDouble();
+    noise.resize(4);
+    noise[0] = {static_cast<qstate_type>(sqrt(1 - probability * 0.75)), 0, 0, static_cast<qstate_type>(sqrt(1 - probability * 0.75))};
+    noise[1] = {0, static_cast<qstate_type>(sqrt(probability)) / 2, static_cast<qstate_type>(sqrt(probability)) / 2, 0};
+    noise[2] = {0, static_cast<qstate_type>(sqrt(probability)) / 2 * qcomplex_t(0, -1),
+                static_cast<qstate_type>(sqrt(probability)) / 2 * qcomplex_t(0, 1), 0};
+    noise[3] = {static_cast<qstate_type>(sqrt(probability)) / 2, 0, 0, -static_cast<qstate_type>(sqrt(probability)) / 2};
+
+    return true;
+}
+
+bool bit_phase_flip_operator(Value &value, NoiseOp &noise)
+{
+    if ((!value.IsArray()) || (value.Size() != 2))
+    {
+        QCERR("param error");
+        throw std::invalid_argument("param error");
+    }
+
+    if (NOISE_MODEL::BIT_PHASE_FLIP_OPRATOR != (NOISE_MODEL)value[0].GetUint())
+    {
+        QCERR("param error");
+        throw std::invalid_argument("param error");
+    }
+
+    if (!value[1].IsDouble())
+    {
+        QCERR("param error");
+        throw std::invalid_argument("param error");
+    }
+
+    double probability = value[1].GetDouble();
+    noise.resize(2);
+    noise[0] = {static_cast<qstate_type>(sqrt(1 - probability)), 0, 0, static_cast<qstate_type>(sqrt(1 - probability))};
+    noise[1] = {0, qcomplex_t(0, -sqrt(probability)), qcomplex_t(0, sqrt(probability)), 0};
+
+    return true;
+}
+
+bool phase_damping_oprator(Value &value, NoiseOp &noise)
+{
+    if ((!value.IsArray()) || (value.Size() != 2))
+    {
+        QCERR("param error");
+        throw std::invalid_argument("param error");
+    }
+
+    if (NOISE_MODEL::PHASE_DAMPING_OPRATOR != (NOISE_MODEL)value[0].GetUint())
+    {
+        QCERR("param error");
+        throw std::invalid_argument("param error");
+    }
+
+    if (!value[1].IsDouble())
+    {
+        QCERR("param error");
+        throw std::invalid_argument("param error");
+    }
+
+    double probability = value[1].GetDouble();
+    noise.resize(2);
+    noise[0] = {1, 0, 0, static_cast<qstate_type>(sqrt(1 - probability))};
+    noise[1] = {0, 0, 0, static_cast<qstate_type>(sqrt(probability))};
+
+    return true;
+}
+
+bool double_decoherence_kraus_operator_p1_p2(Value &value, NoiseOp &noise)
+{
+    NoiseOp ntemp;
+    if ((!value.IsArray()) || (value.Size() != 3))
+    {
+        QCERR("param error");
+        throw std::invalid_argument("param error");
+    }
+
+    if (NOISE_MODEL::DECOHERENCE_KRAUS_OPERATOR_P1_P2 != (NOISE_MODEL)value[0].GetUint())
+    {
+        QCERR("param error");
+        throw std::invalid_argument("param error");
+    }
+
+    for (SizeType i = 1; i < value.Size(); i++)
+    {
+        if (!value[i].IsDouble())
+        {
+            QCERR("param error");
+            throw std::invalid_argument("param error");
+        }
+    }
+
+    double p1 = value[1].GetDouble();
+    double p2 = value[2].GetDouble();
+    Document document;
+    document.SetObject();
+    auto & alloc = document.GetAllocator();
+    NoiseOp damping, dephasing;
+    Value damping_value(kArrayType);
+    damping_value.PushBack(NOISE_MODEL::DAMPING_KRAUS_OPERATOR, alloc);
+    damping_value.PushBack(p1, alloc);
+    damping_kraus_operator(damping_value, damping);
+
+    Value dephasing_value(kArrayType);
+    dephasing_value.PushBack(NOISE_MODEL::DEPHASING_KRAUS_OPERATOR, alloc);
+    dephasing_value.PushBack(p2, alloc);
+    dephasing_kraus_operator(dephasing_value, dephasing);
+
+    for (auto iter : damping)
+    {
+        for (auto iter1 : dephasing)
+        {
+            ntemp.push_back(matrix_multiply(iter, iter1));
+        }
+    }
+
+    for (auto i = 0; i < ntemp.size(); i++)
+    {
+        for (auto j = 0; j < ntemp.size(); j++)
+        {
+            noise.push_back(matrix_tensor(ntemp[i], ntemp[j]));
+        }
+    }
+
+    return true;
+}
+
+bool double_bitflip_kraus_operator(Value &value, NoiseOp &noise)
+{
+    NoiseOp ntemp;
+    if ((!value.IsArray()) || (value.Size() != 2))
+    {
+        QCERR("param error");
+        throw std::invalid_argument("param error");
+    }
+
+    if (NOISE_MODEL::BITFLIP_KRAUS_OPERATOR != (NOISE_MODEL)value[0].GetUint())
+    {
+        QCERR("param error");
+        throw std::invalid_argument("param error");
+    }
+
+    if (!value[1].IsDouble())
+    {
+        QCERR("param error");
+        throw std::invalid_argument("param error");
+    }
+
+    double probability = value[1].GetDouble();
+
+    ntemp.resize(2);
+    ntemp[0] = {static_cast<qstate_type>(sqrt(1 - probability)), 0, 0, static_cast<qstate_type>(sqrt(1 - probability))};
+    ntemp[1] = {0, static_cast<qstate_type>(sqrt(probability)), static_cast<qstate_type>(sqrt(probability)), 0};
+    for (auto i = 0; i < ntemp.size(); i++)
+    {
+        for (auto j = 0; j < ntemp.size(); j++)
+        {
+            noise.push_back(matrix_tensor(ntemp[i], ntemp[j]));
+        }
+    }
+
+    return true;
+}
+
+bool double_depolarizing_kraus_operator(Value &value, NoiseOp &noise)
+{
+    NoiseOp ntemp;
+    if ((!value.IsArray()) || (value.Size() != 2))
+    {
+        QCERR("param error");
+        throw std::invalid_argument("param error");
+    }
+
+    if (NOISE_MODEL::DEPOLARIZING_KRAUS_OPERATOR != (NOISE_MODEL)value[0].GetUint())
+    {
+        QCERR("param error");
+        throw std::invalid_argument("param error");
+    }
+
+    if (!value[1].IsDouble())
+    {
+        QCERR("param error");
+        throw std::invalid_argument("param error");
+    }
+
+    double probability = value[1].GetDouble();
+
+    ntemp.resize(4);
+    ntemp[0] = {static_cast<qstate_type>(sqrt(1 - probability * 0.75)), 0, 0, static_cast<qstate_type>(sqrt(1 - probability * 0.75))};
+    ntemp[1] = {0, static_cast<qstate_type>(sqrt(probability)) / 2, static_cast<qstate_type>(sqrt(probability)) / 2, 0};
+    ntemp[2] = {0, static_cast<qstate_type>(sqrt(probability)) / 2 * qcomplex_t(0, -1),
+                static_cast<qstate_type>(sqrt(probability)) / 2 * qcomplex_t(0, 1), 0};
+    ntemp[3] = {static_cast<qstate_type>(sqrt(probability)) / 2, 0, 0, -static_cast<qstate_type>(sqrt(probability)) / 2};
+
+    for (auto i = 0; i < ntemp.size(); i++)
+    {
+        for (auto j = 0; j < ntemp.size(); j++)
+        {
+            noise.push_back(matrix_tensor(ntemp[i], ntemp[j]));
+        }
+    }
+
+    return true;
+}
+
+bool double_bit_phase_flip_operator(Value &value, NoiseOp &noise)
+{
+    if ((!value.IsArray()) || (value.Size() != 2))
+    {
+        QCERR("param error");
+        throw std::invalid_argument("param error");
+    }
+
+    if (NOISE_MODEL::BIT_PHASE_FLIP_OPRATOR != (NOISE_MODEL)value[0].GetUint())
+    {
+        QCERR("param error");
+        throw std::invalid_argument("param error");
+    }
+
+    if (!value[1].IsDouble())
+    {
+        QCERR("param error");
+        throw std::invalid_argument("param error");
+    }
+
+    NoiseOp temp(2);
+    double probability = value[1].GetDouble();
+    temp[0] = {static_cast<qstate_type>(sqrt(1 - probability)), 0, 0, static_cast<qstate_type>(sqrt(1 - probability))};
+    temp[1] = {0, qcomplex_t(0, -sqrt(probability)), qcomplex_t(0, sqrt(probability)), 0};
+
+    for (auto i = 0; i < temp.size(); i++)
+    {
+        for (auto j = 0; j < temp.size(); j++)
+        {
+            noise.push_back(matrix_tensor(temp[i], temp[j]));
+        }
+    }
+
+    return true;
+}
+
+bool double_phase_damping_oprator(Value &value, NoiseOp &noise)
+{
+    if ((!value.IsArray()) || (value.Size() != 2))
+    {
+        QCERR("param error");
+        throw std::invalid_argument("param error");
+    }
+
+    if (NOISE_MODEL::PHASE_DAMPING_OPRATOR != (NOISE_MODEL)value[0].GetUint())
+    {
+        QCERR("param error");
+        throw std::invalid_argument("param error");
+    }
+
+    if (!value[1].IsDouble())
+    {
+        QCERR("param error");
+        throw std::invalid_argument("param error");
+    }
+
+    NoiseOp temp(2);
+    double probability = value[1].GetDouble();
+    temp[0] = {1, 0, 0, static_cast<qstate_type>(sqrt(1 - probability))};
+    temp[1] = {0, 0, 0, static_cast<qstate_type>(sqrt(probability))};
+
+    for (auto i = 0; i < temp.size(); i++)
+    {
+        for (auto j = 0; j < temp.size(); j++)
+        {
+            noise.push_back(matrix_tensor(temp[i], temp[j]));
+        }
+    }
+
+    return true;
 }

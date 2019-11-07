@@ -20,8 +20,10 @@ limitations under the License.
 #include "Core/QuantumMachine/QuantumMachineInterface.h"
 #include "Core/VirtualQuantumProcessor/QPUImpl.h"
 #include "Core/VirtualQuantumProcessor/QuantumGateParameter.h"
-#include "Core/Utilities/QPandaException.h"
+#include "Core/Utilities/Tools/QPandaException.h"
 #include "Core/VirtualQuantumProcessor/RandomEngine/RandomEngine.h"
+#include "Core/VirtualQuantumProcessor/NoiseQPU/NoiseModel.h"  
+#include <map>
 QPANDA_BEGIN
 /**
 * @namespace QPanda
@@ -89,6 +91,28 @@ public:
     size_t getPhysicalQubitAddr(Qubit*);
     size_t getVirtualQubitAddress(Qubit*) const;
     ~OriginQubitPool();
+};
+
+class OriginQubitPoolv2 : public QubitPool
+{
+private:
+	std::vector<PhysicalQubit*> vecQubit;
+	std::map<Qubit*,size_t> allocated_qubit;
+
+public:
+	OriginQubitPoolv2(size_t maxQubit);
+
+	void clearAll();
+	size_t getMaxQubit() const;
+	size_t getIdleQubit() const;
+
+	Qubit* allocateQubit();
+	Qubit* allocateQubitThroughPhyAddress(size_t);
+	Qubit* allocateQubitThroughVirAddress(size_t qubit_num); // allocate and return a qubit
+	void Free_Qubit(Qubit*);
+	size_t getPhysicalQubitAddr(Qubit*);
+	size_t getVirtualQubitAddress(Qubit*) const;
+	~OriginQubitPoolv2();
 };
 
 class OriginCBit : public CBit
@@ -274,13 +298,38 @@ class NoiseQVM : public QVM
 private:
     std::vector<std::vector<std::string>> m_gates_matrix;
     std::vector<std::vector<std::string>> m_valid_gates_matrix;
+
+	std::vector<int > m_models_vec;
+	std::vector<std::string > m_gates_vec;
+
+	std::vector <std::vector <double>> m_params_vecs;
+
     void _getValidGatesMatrix();
+    rapidjson::Document m_doc;
     void run(QProg&);
     void initGates(rapidjson::Document &);
+    std::string _ResultToBinaryString(std::vector<ClassicalCondition>& vCBit, QResult* _QResult);
 public:
     NoiseQVM();
     void init();
     void init(rapidjson::Document &);
+    virtual std::map<std::string, size_t> runWithConfiguration(QProg &, std::vector<ClassicalCondition> &, rapidjson::Document &);
+
+	/**
+	* @brief  Set Noise Model
+	* @param[in]  NOISE_MODEL    noise model type
+	* @param[in]  GateType  quantum gate type 
+	* @param[in]  std::vector<double>   params vector,  the number of parameters is determined by model type
+	* @return    void
+	* @exception  runtime_error
+	* @note  	 
+	*		Model type                                         :   Number of parameters
+	*		DAMPING_KRAUS_OPERATOR			:    1 
+	*		DEPHASING_KRAUS_OPERATOR		:    1
+	*		DECOHERENCE_KRAUS_OPERATOR	:    3
+	*		PAULI_KRAUS_MAP							:    4  or 16
+	*/
+	void set_noise_model(NOISE_MODEL model, GateType type, std::vector<double> params_vec);
 };
 QPANDA_END
 #endif

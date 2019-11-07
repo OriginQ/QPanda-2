@@ -2,13 +2,10 @@ cmake_minimum_required(VERSION 3.1)
 project(QPANDA)
 
 set(QPANDA_MAJOR_VERSION 2)
-set(QPANDA_MINOR_VERSION 0)
+set(QPANDA_MINOR_VERSION 1)
 set(QPANDA_PATCH_VERSION 0)
 set(QPANDA_VERSION "${QPANDA_MAJOR_VERSION}.${QPANDA_MINOR_VERSION}.${QPANDA_PATCH_VERSION}")
 message(STATUS "QPANDA VERSION = " "[${QPANDA_VERSION}]")
-
-find_package(PythonInterp 3 REQUIRED)
-find_package(PythonLibs 3 REQUIRED)
 
 include_directories(${PROJECT_SOURCE_DIR}/include
                     ${PROJECT_SOURCE_DIR}/include/Applications
@@ -38,8 +35,7 @@ include_directories(${PROJECT_SOURCE_DIR}/include
                     ${PROJECT_SOURCE_DIR}/ThirdParty/bplus-tree
                     ${PROJECT_SOURCE_DIR}/ThirdParty/bplus-tree/include
                     ${PROJECT_SOURCE_DIR}/ThirdParty/antlr4/runtime/src
-                    ${PROJECT_SOURCE_DIR}
-                    ${PYTHON_INCLUDE_DIRS})
+                    ${PROJECT_SOURCE_DIR})
 
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
@@ -90,12 +86,14 @@ if (MSVC)
             CMAKE_CXX_FLAGS_MINSIZEREL
             CMAKE_CXX_FLAGS_RELWITHDEBINFO)
 
-            if (${flag} MATCHES "/MD")
-                string(REGEX REPLACE "/MD" "/MT" ${flag} "${${flag}}")
-            endif()
             if (${flag} MATCHES "/MDd")
                 string(REGEX REPLACE "/MDd" "/MTd" ${flag} "${${flag}}")
             endif()
+
+            if (${flag} MATCHES "/MD")
+                string(REGEX REPLACE "/MD" "/MT" ${flag} "${${flag}}")
+            endif()
+            
             if (${flag} MATCHES "/W3")
                 string(REGEX REPLACE "/W3" "/W0" ${flag} "${${flag}}")
             endif()
@@ -125,9 +123,6 @@ endif()
 add_definitions(${EXTRA_LDFLAGS})
 
 
-
-option(FIND_CUDA "find cuda" OFF)
-
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(UUID REQUIRED uuid)
@@ -136,6 +131,7 @@ if(APPLE)
     find_library(COREFOUNDATION_LIBRARY CoreFoundation)
 endif()
 
+option(FIND_CUDA "find cuda" OFF)
 if (FIND_CUDA)
     find_package(CUDA)
 endif(FIND_CUDA)
@@ -180,6 +176,8 @@ elseif(MPI_FOUND)
     option(USE_MPI "not find MPI" OFF)
 endif (MPI_FOUND)
 
+option(USE_CHEMIQ "use ChemiQ" OFF)
+
 add_subdirectory(ThirdParty)
 add_subdirectory(Core)
 add_subdirectory(Components)
@@ -202,14 +200,6 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}ConfigVersion.cmake.in
                ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
                @ONLY)
 
-
-message("\r\n")
-if (NOT CUDA_FOUND)
-    message(WARNING "CUDA is not found, GPUQVM is unuseable !!!")
-endif()
-if (NOT CURL_FOUND)
-    message(WARNING "Curl is not found, CloudHTTP is unuseable !!!")
-endif()
 
 #add extra search paths for libraries and includes
 set(INCLUDE_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/include" CACHE PATH "The directory the headers are installed in")

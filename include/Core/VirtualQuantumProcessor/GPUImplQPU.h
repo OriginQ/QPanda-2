@@ -6,6 +6,8 @@
 
 #include "Core/VirtualQuantumProcessor/QPUImpl.h"
 #include "Core/VirtualQuantumProcessor/GPUGates/GPUStruct.h"
+#include "Core/Utilities/Tools/Traversal.h"
+
 
 class GPUImplQPU : public QPUImpl
 {
@@ -27,6 +29,8 @@ public:
     QError P0(size_t qn, Qnum& vControlBit, bool isConjugate, double error_rate);
     QError P1(size_t qn, bool isConjugate, double error_rate);
     QError P1(size_t qn, Qnum& vControlBit, bool isConjugate, double error_rate);
+    QError I(size_t qn, bool isConjugate, double error_rate);
+    QError I(size_t qn, Qnum& vControlBit, bool isConjugate, double error_rate);
     QError Hadamard(size_t qn, bool isConjugate, double error_rate);
     QError Hadamard(size_t qn, Qnum& vControlBit, bool isConjugate, double error_rate);
     QError X(size_t qn, bool isConjugate, double error_rate);
@@ -78,6 +82,16 @@ public:
         bool isConjugate, double error_rate);
     QError U1_GATE(size_t qn, double theta,
         bool isConjugate, double error_rate);
+    QError U1_GATE(size_t qn, Qnum& vControlBit, double theta,
+        bool isConjugate, double error_rate);
+    QError U2_GATE(size_t qn, double phi, double lambda,
+        bool isConjugate, double error_rate);
+    QError U2_GATE(size_t qn, Qnum& vControlBit, double phi, double lambda,
+        bool isConjugate, double error_rate);
+    QError U3_GATE(size_t qn, double theta, double phi, double lambda,
+        bool isConjugate, double error_rate);
+    QError U3_GATE(size_t qn, Qnum& vControlBit, double theta, double phi, double lambda,
+        bool isConjugate, double error_rate);
 
     QError Reset(size_t qn);
     bool qubitMeasure(size_t qn);
@@ -85,7 +99,7 @@ public:
 
     QError pMeasure(Qnum& qnum, prob_vec &mResult);
     QError initState(size_t head_rank, size_t rank_size, size_t qubit_num);
-    QError endGate(QuantumGateParam *pQuantumProParam, QPUImpl *pQGate);
+    QError endGate(QPanda::TraversalConfig *pQuantumProParam, QPUImpl *pQGate);
     QError unitarySingleQubitGate(size_t qn, QStat& matrix,
         bool isConjugate, GateType type);
 
@@ -101,6 +115,7 @@ public:
     QError controlDiagonalGate(Qnum& vQubit, QStat & matrix, Qnum& vControlBit,
         bool isConjugate, double error_rate);
 };
+
 
 #endif // USE_CUDA
 #endif // ! _GPU_QUANTUM_GATE_H

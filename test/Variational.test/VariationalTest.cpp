@@ -2,7 +2,7 @@
 #include <limits>
 #include "gtest/gtest.h"
 #include "QPanda.h"
-#include "Transform/TransformDecomposition.h"
+#include "Core/Utilities/QProgTransform/TransformDecomposition.h"
 #include <math.h>
 
 #include "Components/Operator/PauliOperator.h"

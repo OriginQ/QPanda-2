@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include "Core/QPanda.h"
+#include "Core/Core.h"
 #include <bitset>
 using namespace std;
 using namespace QPanda;

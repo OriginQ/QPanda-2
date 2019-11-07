@@ -18,7 +18,7 @@ limitations under the License.
 #define CPU_QUANTUM_GATE_H
 
 #include "Core/VirtualQuantumProcessor/QPUImpl.h"
-#include "Core/Utilities/Utilities.h"
+#include "Core/Utilities/Tools/Utils.h"
 #include <stdio.h>
 #include <iostream>
 #include <vector>
@@ -533,6 +533,14 @@ public:
             0,0,0,1 };
         return unitaryDoubleQubitGate(qn_0, qn_1, P11_matrix, isConjugate,GateType::P11_GATE);
     }
+};
+
+class CPUImplQPUWithOracle : public CPUImplQPU {
+public:
+	QError controlOracularGate(std::vector<size_t> bits,
+		std::vector<size_t> controlbits,
+		bool is_dagger,
+		std::string name);
 };
 
 #endif

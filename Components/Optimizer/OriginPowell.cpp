@@ -1,8 +1,8 @@
 #include <iostream>
 #include <fstream>
 #include "Components/Optimizer/OriginPowell.h"
-#include "Core/Utilities/OriginCollection.h"
-#include "QString.h"
+#include "Core/Utilities/Tools/OriginCollection.h"
+#include "Core/Utilities/Tools/QString.h"
 
 const std::string POWELL_CACHE_HEADER = "POWELL CACHE FILE";
 

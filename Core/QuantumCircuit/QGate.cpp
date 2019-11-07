@@ -1,6 +1,6 @@
 #include "QGate.h"
-#include "Utilities/ConfigMap.h"
-#include "QPandaException.h"
+#include "Core/Utilities/QProgInfo/ConfigMap.h"
+#include "Core/Utilities/Tools/QPandaException.h"
 #include <type_traits>
 using namespace QGATE_SPACE;
 using namespace std;
@@ -29,42 +29,16 @@ QGate::QGate(const QGate & old_Gate)
     m_qgate_node = old_Gate.m_qgate_node;
 }
 
-QGate::QGate(Qubit * qubit, QuantumGate *QGate)
+
+QGate::QGate(QVec& qs, QuantumGate *QGate)
 {
-    if (nullptr == QGate)
-    {
-        QCERR("qgate param err");
-        throw invalid_argument("qgate param err");
-    }
-    if (nullptr == qubit)
-    {
-        QCERR("qubit param err");
-        throw invalid_argument("qubit param err");
-    }
-    m_qgate_node.reset(new OriginQGate(qubit, QGate));
+	if (nullptr == QGate)
+	{
+		QCERR("qgate param err");
+		throw invalid_argument("qgate param err");
+	}
+	m_qgate_node.reset(new OriginQGate(qs, QGate));
 }
-
-QGate::QGate(Qubit *  control_qubit, Qubit * target_qubit, QuantumGate *QGate)
-{
-    if (nullptr == QGate)
-    {
-        QCERR("qgate param err");
-        throw invalid_argument("qgate param err");
-    }
-    if (nullptr == target_qubit)
-    {
-        QCERR("target_qubit param err");
-        throw invalid_argument("target_qubit param err");
-    }
-    if (nullptr == control_qubit)
-    {
-        QCERR("control_qubit param err");
-        throw invalid_argument("control_qubit param err");
-    }
-
-    m_qgate_node.reset(new OriginQGate(control_qubit, target_qubit, QGate));
-}
-
 
 NodeType QGate::getNodeType() const
 {
@@ -140,9 +114,9 @@ bool QGate::setControl(QVec qubit_vector)
     return m_qgate_node->setControl(qubit_vector);
 }
 
-std::shared_ptr<QNode> QGate::getImplementationPtr()
+std::shared_ptr<AbstractQGateNode> QGate::getImplementationPtr()
 {
-    return dynamic_pointer_cast<QNode>( m_qgate_node);
+    return m_qgate_node;
 }
 
 /*****************************************************************
@@ -159,26 +133,12 @@ QGate QGate::dagger()
     QVec control_qubit_vector;
     this->getControlVector(control_qubit_vector);
 
-    QStat matrix;
-    auto pQgate = this->m_qgate_node->getQGate();
-    pQgate->getMatrix(matrix);
-
-    if (qubit_vector.size() == 1)
-    {
-        string name = "U4";
-        auto temp_gate = _gs_pGateNodeFactory->getGateNode(name, matrix, qubit_vector[0]);
-        temp_gate.setControl(control_qubit_vector);
-        temp_gate.setDagger(this->isDagger() ^ true);
-        return temp_gate;
-    }
-    else
-    {
-        string name = "QDoubleGate";
-        auto temp_gate = _gs_pGateNodeFactory->getGateNode(name, matrix, qubit_vector[0], qubit_vector[1]);
-        temp_gate.setControl(control_qubit_vector);
-        temp_gate.setDagger(this->isDagger() ^ true);
-        return temp_gate;
-    }
+    auto qgate = getQGate();
+	auto temp_gate = copy_qgate(std::move(qgate), qubit_vector);
+    temp_gate.setControl(control_qubit_vector);
+    temp_gate.setDagger(this->isDagger() ^ true);
+    return temp_gate;
+    
 }
 
 /*****************************************************************
@@ -194,32 +154,11 @@ QGate QGate::control(QVec control_qubit_vector)
     this->getQuBitVector(qubit_vector);
     this->getControlVector(control_qubit_vector);
 
-    QStat matrix;
-    auto pQgate = this->m_qgate_node->getQGate();
-
-    pQgate->getMatrix(matrix);
-
-    if (qubit_vector.size() == 1)
-    {
-        string name = "U4";
-        auto temp_gate = _gs_pGateNodeFactory->getGateNode(name, matrix, qubit_vector[0]);
-        temp_gate.setControl(control_qubit_vector);
-        temp_gate.setDagger(this->isDagger());
-        return temp_gate;
-    }
-    else if(qubit_vector.size() == 2)
-    {
-        string name = "QDoubleGate";
-        auto temp_gate = _gs_pGateNodeFactory->getGateNode(name, matrix, qubit_vector[0], qubit_vector[1]);
-        temp_gate.setControl(control_qubit_vector);
-        temp_gate.setDagger(this->isDagger());
-        return temp_gate;
-    }
-    else
-    {
-        QCERR("qubit_vector is too long");
-        throw runtime_error("qubit_vector is too long");
-    }
+    auto qgate = getQGate();
+	auto temp_gate = copy_qgate(std::move(qgate), qubit_vector);
+    temp_gate.setControl(control_qubit_vector);
+    temp_gate.setDagger(this->isDagger());
+    return temp_gate;
 }
 
 bool QGate::isDagger() const
@@ -254,46 +193,6 @@ OriginQGate::~OriginQGate()
     }
 }
 
-OriginQGate::OriginQGate(Qubit * qubit, QuantumGate *qgate) :m_Is_dagger(false)
-{
-    if (nullptr == qgate)
-    {
-        QCERR("qgate param err");
-        throw invalid_argument("qgate param err");
-    }
-    if (nullptr == qubit)
-    {
-        QCERR("qubit param is null");
-        throw invalid_argument("qubit param s null");
-    }
-    m_qgate = qgate;
-    m_qubit_vector.push_back(qubit);
-    m_node_type = GATE_NODE;
-}
-
-OriginQGate::OriginQGate(Qubit * control_qubit, Qubit * target_qubit, QuantumGate * qgate) :m_Is_dagger(false)
-{
-    if (nullptr == qgate)
-    {
-        QCERR("qgate param err");
-        throw invalid_argument("qgate param err");
-    }
-    if (nullptr == target_qubit)
-    {
-        QCERR("target_qubit param is null");
-        throw invalid_argument("target_qubit param s null");
-    }
-    if (nullptr == control_qubit)
-    {
-        QCERR("control_qubit param is null");
-        throw invalid_argument("control_qubit param s null");
-    }
-    m_qgate = qgate;
-    m_qubit_vector.push_back(control_qubit);
-    m_qubit_vector.push_back(target_qubit);
-    m_node_type = GATE_NODE;
-}
-
 OriginQGate::OriginQGate(QVec &qubit_vector, QuantumGate *qgate) :m_Is_dagger(false)
 {
     if (nullptr == qgate)
@@ -306,7 +205,7 @@ OriginQGate::OriginQGate(QVec &qubit_vector, QuantumGate *qgate) :m_Is_dagger(fa
         QCERR("qubit_vector err");
         throw invalid_argument("qubit_vector err");
     }
-        m_qgate = qgate;
+    m_qgate = qgate;
     for (auto aiter = qubit_vector.begin(); aiter != qubit_vector.end(); ++aiter)
     {
         m_qubit_vector.push_back(*aiter);
@@ -402,223 +301,6 @@ void OriginQGate::PushBackQuBit(Qubit * qubit)
 
 }
 
-static bool compareQubit(Qubit * a, Qubit * b)
-{
-    return a->getPhysicalQubitPtr()->getQubitAddr() <
-        b->getPhysicalQubitPtr()->getQubitAddr();
-}
-
-static bool Qubitequal(Qubit * a, Qubit * b)
-{
-    return a->getPhysicalQubitPtr()->getQubitAddr() == 
-        b->getPhysicalQubitPtr()->getQubitAddr();
-}
-
-
-void OriginQGate::execute(QPUImpl * quantum_gates, QuantumGateParam * param)
-{
-    bool dagger = m_Is_dagger ^ param->m_is_dagger;
-    if (m_qubit_vector.size() <= 0)
-    {
-        QCERR("Unknown internal error");
-        throw runtime_error("Unknown internal error");
-    }
-
-    QVec control_qubit_vector;
-    for (auto aiter : param->m_control_qubit_vector)
-    {
-        control_qubit_vector.push_back(aiter);
-    }
-
-    for (auto aiter : m_control_qubit_vector)
-    {
-        control_qubit_vector.push_back(aiter);
-    }
-    if (control_qubit_vector.size() > 0)
-    {
-        sort(control_qubit_vector.begin(), 
-            control_qubit_vector.end(),
-            compareQubit);
-
-        control_qubit_vector.erase(unique(control_qubit_vector.begin(),
-                                         control_qubit_vector.end(), Qubitequal),
-                                  control_qubit_vector.end());
-    }
-
-    for (auto aQIter : m_qubit_vector)
-    {
-        for (auto aCIter : control_qubit_vector)
-        {
-            if (Qubitequal(aQIter, aCIter))
-            {
-                QCERR("targitQubit == controlQubit");
-                throw invalid_argument("targitQubit == controlQubit");
-            }
-        }
-    }
-    auto aiter = QGateParseMap::getFunction(m_qgate->getOperationNum());
-    if (nullptr == aiter)
-    {
-        stringstream error;
-        error << "gate operation num error ";
-        QCERR(error.str());
-        throw run_fail(error.str());
-    }
-    aiter(m_qgate, m_qubit_vector, quantum_gates, dagger, control_qubit_vector, (GateType)m_qgate->getGateType());
-}
-
-
-QGate QGateNodeFactory::getGateNode(const string & name, Qubit * qubit)
-{
-    QuantumGate * pGate = m_pGateFact->getGateNode(name);
-
-    try
-    {
-        QGate  QGateNode(qubit, pGate);
-        return QGateNode;
-    }
-    catch (const std::exception& e)
-    {
-        QCERR(e.what());
-        throw gate_alloc_fail(e.what());
-    }
-
-}
-
-QGate QGateNodeFactory::getGateNode(const string & name, Qubit * qubit, double angle)
-{
-    QuantumGate * pGate = m_pGateFact->getGateNode(name, angle);
-
-    try
-    {
-        QGate  QGateNode(qubit, pGate);
-        return QGateNode;
-    }
-    catch (const std::exception& e)
-    {
-        QCERR(e.what());
-        throw gate_alloc_fail(e.what());
-    }
-
-
-}
-
-QGate QGateNodeFactory::getGateNode(const string & name, 
-    Qubit * control_qubit, 
-    Qubit * target_qubit)
-{
-    QuantumGate * pGate = m_pGateFact->getGateNode(name);
-
-    try
-    {
-        QGate  QGateNode(control_qubit, target_qubit, pGate);
-        return QGateNode;
-    }
-    catch (const std::exception& e)
-    {
-        QCERR(e.what());
-        throw gate_alloc_fail(e.what());
-    }
-}
-
-QGate QGateNodeFactory::getGateNode(const string & name,
-    Qubit * control_qubit,
-    Qubit * target_qubit, 
-    double theta)
-{
-    QuantumGate * pGate = m_pGateFact->getGateNode(name, theta);
-    try
-    {
-        QGate  QGateNode(control_qubit, target_qubit, pGate);
-        return QGateNode;
-    }
-    catch (const std::exception& e)
-    {
-        QCERR(e.what());
-        throw gate_alloc_fail(e.what());
-    }
-}
-
-QGate QGateNodeFactory::getGateNode(double alpha,
-    double beta, 
-    double gamma,
-    double delta,
-    Qubit * qubit)
-{
-    string name = "U4";
-    QuantumGate * pGate = m_pGateFact->getGateNode(name, alpha, beta, gamma, delta);
-
-    try
-    {
-        QGate  QGateNode(qubit, pGate);
-        return QGateNode;
-    }
-    catch (const std::exception& e)
-    {
-        QCERR(e.what());
-        throw gate_alloc_fail(e.what());
-    }
-}
-
-QGate QGateNodeFactory::getGateNode(double alpha,
-    double beta,
-    double gamma, 
-    double delta, 
-    Qubit * control_qubit, Qubit * target_qubit)
-{
-    string name = "CU";
-    QuantumGate * pGate = m_pGateFact->getGateNode(name, alpha, beta, gamma, delta);
-
-    try
-    {
-        QGate  QGateNode(control_qubit, target_qubit, pGate);
-        return QGateNode;
-    }
-    catch (const std::exception& e)
-    {
-        QCERR(e.what());
-        throw gate_alloc_fail(e.what());
-    }
-
-}
-
-QGate QGateNodeFactory::getGateNode(const string &name,
-    QStat matrix,
-    Qubit * control_qubit,
-    Qubit * target_qubit)
-{
-    QuantumGate * pGate = m_pGateFact->getGateNode(name, matrix);
-
-    try
-    {
-        QGate  QGateNode(control_qubit, target_qubit, pGate);
-        return QGateNode;
-    }
-    catch (const std::exception& e)
-    {
-        QCERR(e.what());
-        throw gate_alloc_fail(e.what());
-    }
-}
-
-QGate QGateNodeFactory::getGateNode(const string &name,
-    QStat matrix,
-    Qubit * target_qubit)
-{
-    QuantumGate * pGate = m_pGateFact->getGateNode(name, matrix);
-
-    try
-    {
-        QGate  QGateNode(target_qubit, pGate);
-        return QGateNode;
-    }
-    catch (const std::exception& e)
-    {
-        QCERR(e.what());
-        throw gate_alloc_fail(e.what());
-    }
-}
-
 void QGateParseSingleBit(QuantumGate * qgate, 
     QVec & qubit_vector, 
     QPUImpl* qgates,
@@ -704,141 +386,156 @@ insertQGateMapHelper_##FunctionName _G_insertQGateHelper##FunctionName(BitCount,
 REGISTER_QGATE_PARSE(1, QGateParseSingleBit);
 REGISTER_QGATE_PARSE(2, QGateParseDoubleBit);
 
+QGate QPanda::I(Qubit* qubit)
+{
+	string name = "I";
+	return _gs_pGateNodeFactory->getGateNode(name, { qubit });
+}
 
 QGate QPanda::X(Qubit * qubit)
 {
     string name = "X";
-    return _gs_pGateNodeFactory->getGateNode(name, qubit);
+	return _gs_pGateNodeFactory->getGateNode(name, { qubit });
 }
 
 QGate QPanda::X1(Qubit * qubit)
 {
     string name = "X1";
-    return _gs_pGateNodeFactory->getGateNode(name, qubit);
+	return _gs_pGateNodeFactory->getGateNode(name, { qubit });
 }
 
 QGate QPanda::RX(Qubit * qubit, double angle)
 {
     string name = "RX";
-    return _gs_pGateNodeFactory->getGateNode(name, qubit, angle);
+	return _gs_pGateNodeFactory->getGateNode(name, { qubit }, angle);
 }
 
 QGate QPanda::U1(Qubit * qubit, double angle)
 {
     string name = "U1";
-    return _gs_pGateNodeFactory->getGateNode(name, qubit, angle);
+	return _gs_pGateNodeFactory->getGateNode(name, { qubit }, angle);
+}
+
+QGate QPanda::U2(Qubit * qubit, double phi, double lambda)
+{
+    string name = "U2";
+    return _gs_pGateNodeFactory->getGateNode(name, { qubit }, phi, lambda);
+}
+
+QGate QPanda::U3(Qubit * qubit, double theta, double phi, double lambda)
+{
+    string name = "U3";
+    return _gs_pGateNodeFactory->getGateNode(name, { qubit }, theta, phi, lambda);
 }
 
 QGate QPanda::Y(Qubit * qubit)
 {
     string name = "Y";
-    return _gs_pGateNodeFactory->getGateNode(name, qubit);
+	return _gs_pGateNodeFactory->getGateNode(name, { qubit });
 }
 
 QGate QPanda::Y1(Qubit * qubit)
 {
     string name = "Y1";
-    return _gs_pGateNodeFactory->getGateNode(name, qubit);
+	return _gs_pGateNodeFactory->getGateNode(name, { qubit });
 }
 
 QGate QPanda::RY(Qubit * qubit, double angle)
 {
     string name = "RY";
-    return _gs_pGateNodeFactory->getGateNode(name, qubit, angle);
+	return _gs_pGateNodeFactory->getGateNode(name, { qubit }, angle);
 }
 QGate QPanda::Z(Qubit * qubit)
 {
     string name = "Z";
-    return _gs_pGateNodeFactory->getGateNode(name, qubit);
+	return _gs_pGateNodeFactory->getGateNode(name, { qubit });
 }
 QGate QPanda::Z1(Qubit * qubit)
 {
     string name = "Z1";
-    return _gs_pGateNodeFactory->getGateNode(name, qubit);
+	return _gs_pGateNodeFactory->getGateNode(name, { qubit });
 }
 
 QGate QPanda::RZ(Qubit * qubit, double angle)
 {
     string name = "RZ";
-    return _gs_pGateNodeFactory->getGateNode(name, qubit, angle);
+	return _gs_pGateNodeFactory->getGateNode(name, { qubit }, angle);
 }
 
 QGate QPanda::iSWAP(Qubit * targitBit_fisrt, Qubit * targitBit_second)
 {
     string name = "ISWAP";
-    return _gs_pGateNodeFactory->getGateNode(name, targitBit_fisrt, targitBit_second);
+	return _gs_pGateNodeFactory->getGateNode(name, { targitBit_fisrt, targitBit_second });
 }
 
 QGate QPanda::iSWAP(Qubit * targitBit_fisrt, Qubit * targitBit_second, double theta)
 {
     string name = "ISWAPTheta";
     return _gs_pGateNodeFactory->getGateNode(name,
-        targitBit_fisrt,
-        targitBit_second,
+		{ targitBit_fisrt,targitBit_second },
         theta);
 }
 
 QGate QPanda::CR(Qubit * control_qubit, Qubit * targit_qubit, double theta)
 {
-    string name = "CPhaseGate";
-    return _gs_pGateNodeFactory->getGateNode(name, control_qubit, targit_qubit, theta);
+    string name = "CPHASE";
+	return _gs_pGateNodeFactory->getGateNode(name, { control_qubit, targit_qubit }, theta);
 }
 
 QGate QPanda::SqiSWAP(Qubit * targitBit_fisrt, Qubit * targitBit_second)
 {
     string name = "SQISWAP";
     return _gs_pGateNodeFactory->getGateNode(name,
-        targitBit_fisrt,
-        targitBit_second);
+		{ targitBit_fisrt,targitBit_second });
 }
 
 QGate QPanda::SWAP(Qubit * targitBit_fisrt, Qubit * targitBit_second)
 {
     string name = "SWAP";
     return _gs_pGateNodeFactory->getGateNode(name,
-        targitBit_fisrt,
-        targitBit_second);
+		{ targitBit_fisrt,targitBit_second });
 }
 
 QGate QPanda::S(Qubit * qubit)
 {
     string name = "S";
-    return _gs_pGateNodeFactory->getGateNode(name, qubit);
+	return _gs_pGateNodeFactory->getGateNode(name, { qubit });
 }
 
 QGate QPanda::T(Qubit * qubit)
 {
     string name = "T";
-    return _gs_pGateNodeFactory->getGateNode(name, qubit);
+	return _gs_pGateNodeFactory->getGateNode(name, { qubit });
 }
 
 QGate  QPanda::H(Qubit * qubit)
 {
     string name = "H";
-    return _gs_pGateNodeFactory->getGateNode(name, qubit);
+	return _gs_pGateNodeFactory->getGateNode(name, { qubit });
 }
 
 QGate  QPanda::CNOT(Qubit * control_qubit, Qubit * target_qubit)
 {
     string name = "CNOT";
-    return _gs_pGateNodeFactory->getGateNode(name, control_qubit, target_qubit);
+	return _gs_pGateNodeFactory->getGateNode(name, { control_qubit, target_qubit });
 }
 
 QGate QPanda::CZ(Qubit * control_qubit, Qubit *target_qubit)
 {
     string name = "CZ";
-    return _gs_pGateNodeFactory->getGateNode(name, control_qubit, target_qubit);
+	return _gs_pGateNodeFactory->getGateNode(name, { control_qubit, target_qubit });
 }
 
 QGate QPanda::U4(double alpha, double beta, double gamma, double delta, Qubit * qubit)
 {
-    return _gs_pGateNodeFactory->getGateNode(alpha, beta, gamma, delta, qubit);
+	string name = "U4";
+    return _gs_pGateNodeFactory->getGateNode(name, {qubit}, alpha, beta, gamma, delta);
 }
 
 QGate QPanda::U4(QStat & matrix, Qubit *qubit)
 {
     string name = "U4";
-    return _gs_pGateNodeFactory->getGateNode(name, matrix, qubit);
+	return _gs_pGateNodeFactory->getGateNode(name, { qubit }, matrix);
 }
 
 QGate QPanda::CU(double alpha, 
@@ -848,17 +545,24 @@ QGate QPanda::CU(double alpha,
     Qubit * control_qubit, 
     Qubit * target_qubit)
 {
-    return _gs_pGateNodeFactory->getGateNode(alpha, beta, gamma, delta, control_qubit, target_qubit);
+	string name = "CU";
+	return _gs_pGateNodeFactory->getGateNode(name, { control_qubit, target_qubit }, alpha, beta, gamma, delta);
 }
 
 QGate QPanda::CU(QStat & matrix, Qubit * control_qubit, Qubit * target_qubit)
 {
     string name = "CU";
-    return _gs_pGateNodeFactory->getGateNode(name, matrix, control_qubit, target_qubit);
+	return _gs_pGateNodeFactory->getGateNode(name, { control_qubit, target_qubit }, matrix);
 }
 
-QGate QPanda::QDouble(QStat matrix, Qubit * qubit1, Qubit * qubit2)
+QGate QPanda::QDouble(QStat& matrix, Qubit * qubit1, Qubit * qubit2)
 {
-    string name = "QDoubleGate";
-    return _gs_pGateNodeFactory->getGateNode(name, matrix, qubit1, qubit2);
+    string name = ":QDoubleGate";
+	return _gs_pGateNodeFactory->getGateNode(name,{ qubit1, qubit2 }, matrix);
+}
+
+QGate QPanda::oracle(QVec qubits, std::string oracle_name)
+{
+	string name = "OracularGate";
+	return _gs_pGateNodeFactory->getGateNode(name, qubits, oracle_name);
 }

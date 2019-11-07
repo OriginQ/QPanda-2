@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.1)
 project(QPanda2.0)
 
 if(CUDA_FOUND)
-    set(LIB_GPUGATES QPanda-2.0.GPUQGates)
+    set(LIB_GPUGATES GPUQGates)
     add_subdirectory(VirtualQuantumProcessor/GPUGates)
     list(APPEND LIB_LIST ${LIB_GPUGATES})
 endif (CUDA_FOUND)

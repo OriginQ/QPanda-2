@@ -6,8 +6,8 @@
 #include <sstream>
 #include <string>
 #include <algorithm>
-#include "Core/Utilities/Transform/QGateCounter.h"
-#include "Core/Utilities/Transform/QGateCompare.h"
+#include "Core/Utilities/QProgInfo/QGateCounter.h"
+#include "Core/Utilities/QProgInfo/QGateCompare.h"
 #include <vector>
 
 

@@ -1,6 +1,6 @@
 #include <map>
 #include "QPanda.h"
-#include "Core/Utilities/XMLConfigParam.h"
+#include "Core/Utilities/Tools/XMLConfigParam.h"
 #include <algorithm>  
 #include "gtest/gtest.h"
 using namespace std;

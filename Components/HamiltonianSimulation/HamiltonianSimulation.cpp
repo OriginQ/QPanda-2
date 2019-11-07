@@ -1,6 +1,6 @@
 #include "Components/HamiltonianSimulation/HamiltonianSimulation.h"
 #include "Core/QuantumCircuit/QGate.h"
-#include "Core/Utilities/Utilities.h"
+#include "Core/Utilities/Tools/Utils.h"
 
 namespace QPanda
 {
@@ -17,14 +17,12 @@ namespace QPanda
         }
         else if (1 == qubit_vec.size())
         {
-            circuit << QGateNodeFactory::getInstance()->getGateNode(
-                "RZ", qubit_vec[0], 2*coef*t);
+            circuit << RZ(qubit_vec[0], 2 * coef*t);
         }
         else
         {
             circuit << parityCheckCircuit(qubit_vec);
-            circuit << QGateNodeFactory::getInstance()->getGateNode(
-                "RZ", qubit_vec[qubit_vec.size() - 1], 2*coef * t);
+            circuit << RZ(qubit_vec[qubit_vec.size() - 1], 2 * coef * t);
             circuit << parityCheckCircuit(qubit_vec);
         }
 
@@ -56,12 +54,10 @@ namespace QPanda
             switch (ch)
             {
             case 'X':
-                transform << QGateNodeFactory::getInstance()->getGateNode(
-                    "H", qubit_vec[key]);
+                transform << H(qubit_vec[key]);
                 break;
             case 'Y':
-                transform << QGateNodeFactory::getInstance()->getGateNode(
-                    "RX", qubit_vec[key], Q_PI_2);
+                transform << RX(qubit_vec[key], Q_PI_2);
                 break;
             case 'Z':
                 break;
@@ -151,7 +147,7 @@ namespace QPanda
         QCircuit circuit;
         for_each(qubit_vec.begin(), qubit_vec.end(), [&](Qubit* qubit)
         {
-            circuit << QGateNodeFactory::getInstance()->getGateNode(gate, qubit);
+			circuit << QGateNodeFactory::getInstance()->getGateNode(gate, { qubit });
         });
 
         return circuit;
@@ -164,7 +160,7 @@ namespace QPanda
     {
         for_each(qubit_vec.begin(), qubit_vec.end(), [&](Qubit* qubit)
         {
-            circuit << QGateNodeFactory::getInstance()->getGateNode(gate, qubit);
+				circuit << QGateNodeFactory::getInstance()->getGateNode(gate, { qubit });
         });
     }
 
@@ -180,21 +176,12 @@ namespace QPanda
             QCircuit qcirc = QCircuit();
             for_each(graph.begin(), graph.end(), [&](const QGraphItem &item)
             {
-                qcirc << QGateNodeFactory::getInstance()->getGateNode(
-                    "CNOT",
-                    qubit_vec[item.first],
-                    qubit_vec[item.second]
-                );
-                qcirc << QGateNodeFactory::getInstance()->getGateNode(
-                    "RZ",
-                    qubit_vec[item.second],
-                    2 * gamma[i] * item.weight
-                );
-                qcirc << QGateNodeFactory::getInstance()->getGateNode(
-                    "CNOT",
-                    qubit_vec[item.first],
-                    qubit_vec[item.second]
-                );
+                qcirc << CNOT(qubit_vec[item.first],
+					qubit_vec[item.second]);
+                qcirc << RZ(qubit_vec[item.second],
+					2 * gamma[i] * item.weight);
+				qcirc << CNOT(qubit_vec[item.first],
+					qubit_vec[item.second]);
             });
 
             circuit << qcirc;
@@ -212,13 +199,9 @@ namespace QPanda
         for (size_t i = 0; i < beta.size(); i++)
         {
             QCircuit qcirc = QCircuit();
-            for_each(qubit_vec.begin(), qubit_vec.end(), [&](Qubit* qubit)
-            {
-                qcirc << QGateNodeFactory::getInstance()->getGateNode(
-                    "RX",
-                    qubit,
-                    2 * beta[i]
-                );
+			for_each(qubit_vec.begin(), qubit_vec.end(), [&](Qubit* qubit)
+			{
+				qcirc << RX(qubit,2 * beta[i]);
 
                 circuit << qcirc;
             });

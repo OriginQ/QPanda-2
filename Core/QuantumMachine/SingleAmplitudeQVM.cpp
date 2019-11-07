@@ -1,7 +1,9 @@
-#include "QPanda.h"
+#include "Core/Core.h"
 #include <algorithm>
 #include "Core/QuantumMachine/SingleAmplitudeQVM.h"
 using namespace std;
+using namespace QGATE_SPACE;
+
 USING_QPANDA
 
 SingleAmplitudeQVM::SingleAmplitudeQVM()
@@ -152,7 +154,7 @@ void SingleAmplitudeQVM::execute(std::shared_ptr<AbstractQGateNode>  cur_node, s
         case RZ_GATE:
         {
             auto tar_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
-            auto gate_parm = dynamic_cast<angleParameter *>(cur_node->getQGate())->getParameter();
+            auto gate_parm = dynamic_cast<AbstractSingleAngleParameter *>(cur_node->getQGate())->getParameter();
             m_singleAngleGateFunc.find(gate_type)->second(m_prog_map, tar_qubit, gate_parm, cur_node->isDagger());
         }
         break;
@@ -172,7 +174,7 @@ void SingleAmplitudeQVM::execute(std::shared_ptr<AbstractQGateNode>  cur_node, s
         {
             auto ctr_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
             auto tar_qubit = qubits_vector[1]->getPhysicalQubitPtr()->getQubitAddr();
-            auto gate_parm = dynamic_cast<angleParameter *>(cur_node->getQGate())->getParameter();
+            auto gate_parm = dynamic_cast<AbstractSingleAngleParameter *>(cur_node->getQGate())->getParameter();
             m_doubleAngleGateFunc.find(gate_type)->second(m_prog_map, ctr_qubit, tar_qubit, gate_parm, cur_node->isDagger());
         }
         break;

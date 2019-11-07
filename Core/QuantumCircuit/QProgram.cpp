@@ -16,8 +16,8 @@ limitations under the License.
 
 //#include "QProgram.h"
 
-#include "QPanda.h"
-#include "Utilities/ConfigMap.h"
+#include "Core/Core.h"
+#include "Core/Utilities/QProgInfo/ConfigMap.h"
 #include "ClassicalProgram.h"
 using namespace QGATE_SPACE;
 using namespace std;
@@ -62,15 +62,6 @@ QProg::QProg(QProg &other)
 	m_quantum_program = other.m_quantum_program;
 }
 
-QProg::QProg(QNode *pnode)
-    :QProg()
-{
-    if (nullptr == pnode)
-    {
-        throw std::runtime_error("node is null");
-    }
-    m_quantum_program->pushBackNode(pnode);
-}
 
 QProg::QProg(std::shared_ptr<QNode> pnode)
     :QProg()
@@ -86,7 +77,7 @@ QProg::QProg(ClassicalCondition &node)
     :QProg()
 {
     ClassicalProg tmp(node);
-    m_quantum_program->pushBackNode(&tmp);
+    m_quantum_program->pushBackNode(dynamic_pointer_cast<QNode>(tmp.getImplementationPtr()));
 }
 
 
@@ -95,19 +86,9 @@ QProg::~QProg()
     m_quantum_program.reset();
 }
 
-std::shared_ptr<QNode> QProg::getImplementationPtr()
+std::shared_ptr<AbstractQuantumProgram> QProg::getImplementationPtr()
 {
-    return dynamic_pointer_cast<QNode>(m_quantum_program);
-}
-
-void QProg :: pushBackNode(QNode * node)
-{
-    if (!m_quantum_program)
-    {
-        QCERR("Unknown internal error");
-        throw runtime_error("Unknown internal error");
-    }
-    m_quantum_program->pushBackNode(node);
+    return m_quantum_program;
 }
 
 void QProg::pushBackNode(std::shared_ptr<QNode> node)
@@ -164,7 +145,7 @@ NodeIter QProg::getHeadNodeIter()
     return m_quantum_program->getHeadNodeIter();
 }
 
-NodeIter QProg::insertQNode(const NodeIter & iter, QNode * node)
+NodeIter QProg::insertQNode(const NodeIter & iter,shared_ptr<QNode> node)
 {
     if (nullptr == node)
     {
@@ -212,13 +193,7 @@ template <>
 QProg & QProg::operator<<<ClassicalCondition>(ClassicalCondition cc)
 {
     ClassicalProg temp(cc);
-    auto node = dynamic_cast<QNode *>(&temp);
-    if (nullptr == node)
-    {
-        QCERR("node is not base of ClassicalProg");
-        throw qprog_construction_fail("node is not base of ClassicalProg");
-    }
-    pushBackNode(node);
+    pushBackNode(dynamic_pointer_cast<QNode>(temp.getImplementationPtr()));
     return *this;
 }
 
@@ -245,17 +220,6 @@ OriginProgram::OriginProgram()
     m_head->setNext(nullptr);
     m_head->setPre(nullptr);
     m_end =m_head;
-}
-
-void OriginProgram::pushBackNode(QNode * node)
-{
-    if (nullptr == node)
-    {
-        QCERR("node is null");
-        throw runtime_error("node is null");
-    }
-    auto temp = node->getImplementationPtr();
-    pushBackNode(temp);
 }
 
 void OriginProgram::pushBackNode(std::shared_ptr<QNode> node)
@@ -331,28 +295,8 @@ void OriginProgram::clear()
     }
 }
 
-void OriginProgram::execute(QPUImpl * quantum_gates, QuantumGateParam * param)
-{
-    auto aiter = getFirstNodeIter();
-    if (nullptr == *aiter)
-    {
-        return ;
-    }
 
-    for (; aiter != getEndNodeIter(); ++aiter)
-    {
-        auto node = *aiter;
-        if (nullptr == node)
-        {
-            QCERR("node is null");
-            std::runtime_error("node is null");
-        }
-
-        node->execute(quantum_gates, param);
-    }
-}
-
-NodeIter OriginProgram::insertQNode(const NodeIter & perIter, QNode * node)
+NodeIter OriginProgram::insertQNode(const NodeIter & perIter, shared_ptr<QNode> node)
 {
     ReadLock * rl = new ReadLock(m_sm);
     Item * perItem = perIter.getPCur();
@@ -386,11 +330,10 @@ NodeIter OriginProgram::insertQNode(const NodeIter & perIter, QNode * node)
     delete rl;
     WriteLock wl(m_sm);
     Item *curItem = new OriginItem();
-    auto ptemp = node->getImplementationPtr();
 
     if (m_end != perItem->getNext())
     {
-        curItem->setNode(ptemp);
+        curItem->setNode(node);
         perItem->getNext()->setPre(curItem);
         curItem->setNext(perItem->getNext());
         perItem->setNext(curItem);
@@ -400,7 +343,7 @@ NodeIter OriginProgram::insertQNode(const NodeIter & perIter, QNode * node)
     }
     else
     {
-        m_end->setNode(ptemp);
+        m_end->setNode(node);
         m_end->setNext(curItem);
         curItem->setPre(m_end);
         curItem->setNext(nullptr);

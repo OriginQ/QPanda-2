@@ -182,48 +182,61 @@ def partialAmp_fun():
 def graph_match_fun():
     
     machine = init_quantum_machine(QMachineType.CPU)
+    q = machine.qAlloc_many(4)
+    c = machine.cAlloc_many(4)
 
-    q = machine.qAlloc_many(5)
-    c = machine.cAlloc_many(5)
+    #           ┌─┐┌────┐┌─┐
+    # q_0:  |0>─┤H├┤CNOT├┤H├───────────────
+    #           └─┘└──┬─┘└─┘
+    # q_1:  |0>───────■─────■──────────────
+    #           ┌─┐      ┌──┴─┐┌─┐
+    # q_2:  |0>─┤H├──────┤CNOT├┤H├───■─────
+    #           ├─┤      └────┘└─┘┌──┴─┐┌─┐
+    # q_3:  |0>─┤H├───────────────┤CNOT├┤H├
+    #           └─┘               └────┘└─┘
+
+    #           ┌──┐
+    # q_0:  |0>─┤CZ├────────
+    #           └─┬┘
+    # q_1:  |0>───■───■─────
+    #               ┌─┴┐
+    # q_2:  |0>─────┤CZ├──■─
+    #               └──┘┌─┴┐
+    # q_3:  |0>─────────┤CZ├
+    #                   └──┘
 
     prog = QProg()
     prog.insert(H(q[0]))\
-        .insert(H(q[1]))\
-        .insert(RY(q[2], PI / 2))\
-        .insert(H(q[4]))\
-        .insert(RX(q[0], PI / 2))\
-        .insert(X(q[1]))\
-        .insert(CNOT(q[4], q[3]))\
-        .insert(Z(q[0]))\
-        .insert(H(q[1]))\
-        .insert(CNOT(q[2], q[3]))\
-        .insert(H(q[4]))\
-        .insert(CNOT(q[1], q[0]))\
         .insert(H(q[2]))\
-        .insert(CNOT(q[3], q[4]))\
-        .insert(RZ(q[3], PI / 2))\
-        .insert(Y(q[4]))\
-        .insert(RX(q[4], PI / 2))
-
-    print("before replace")
-    print(to_originir(prog, machine))
+        .insert(H(q[3]))\
+        .insert(CNOT(q[1], q[0]))\
+        .insert(H(q[0]))\
+        .insert(CNOT(q[1], q[2]))\
+        .insert(H(q[2]))\
+        .insert(CNOT(q[2], q[3]))\
+        .insert(H(q[3]));
 
     query_cir = QCircuit()
-    query_cir.insert(H(q[0]))
+    query_cir.insert(H(q[0]))\
+             .insert(CNOT(q[1], q[0]))\
+             .insert(H(q[0]))
 
     replace_cir = QCircuit()
-    replace_cir.insert(Y(q[0]))
+    replace_cir.insert(CZ(q[0], q[1]))
 
-    update_prog = QProg()
-    graph_query_replace(prog, query_cir, replace_cir, update_prog, machine)
+    print("before replace")
+    print_qprog(prog)
+
+    update_prog = graph_query_replace(prog, query_cir, replace_cir, machine)
 
     print("after replace")
-    print(to_originir(update_prog, machine))
+    # print(to_originir(update_prog,machine))
+    print_qprog(update_prog)
 
 if __name__ == "__main__":
 
     # cpu_qvm_fun()
-    singleAmp_fun()
+    # singleAmp_fun()
     # partialAmp_fun()
     # QCloud_fun()
-    # graph_match_fun()
+    graph_match_fun()

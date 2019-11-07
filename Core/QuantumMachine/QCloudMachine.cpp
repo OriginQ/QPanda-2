@@ -2,8 +2,8 @@
 #include <math.h>
 #include <algorithm>
 #include "ThirdParty/TinyXML/tinyxml.h"
-#include "Core/Utilities/base64.hpp"
-#include "Core/Utilities/Uinteger.h"
+#include "Core/Utilities/Tools/base64.hpp"
+#include "Core/Utilities/Tools/Uinteger.h"
 #include "Core/QuantumMachine/QCloudMachine.h"
 #ifdef USE_CURL
 

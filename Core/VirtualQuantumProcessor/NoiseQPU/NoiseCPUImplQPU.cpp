@@ -15,14 +15,14 @@ limitations under the License.
 */
 #include "QPandaConfig.h"
 #include "NoiseCPUImplQPU.h"
-#include "Utilities/Utilities.h"
+#include "Core/Utilities/Tools/Utils.h"
 #include <algorithm>
 #include <thread>
 #include <map>
 #include <iostream>
 #include <sstream>
 #include "QPandaNamespace.h"
-#include "TranformQGateTypeStringAndEnum.h"
+#include "Core/Utilities/Tools/TranformQGateTypeStringAndEnum.h"
 using namespace std;
 USING_QPANDA
 
@@ -281,7 +281,7 @@ QStat matrix_multiply(const QStat &matrix_left, const QStat &matrix_right)
     {
         for (int j = 0; j < dimension; j++)
         {
-            complex<double> temp = 0;
+            qcomplex_t temp = 0;
             for (int k = 0; k < dimension; k++)
             {
                 temp += matrix_left[i*dimension + k] * matrix_right[k*dimension + j];
@@ -446,7 +446,7 @@ QError NoisyCPUImplQPU::unitarySingleQubitGate
     {
         auto &value = m_doc[gate_name.c_str()];
         NoiseOp noise;
-        auto status = NoiseModeMap::getInstance()[(NOISE_MODEL)value[0].
+        auto status = SingleGateNoiseModeMap::getInstance()[(NOISE_MODEL)value[0].
             GetInt()](value, noise);
         if (!status)
         {
@@ -517,7 +517,7 @@ unitaryDoubleQubitGate(size_t qn_0,
     {
         auto &value = m_doc[gate_name.c_str()];
         NoiseOp noise;
-        auto status = NoiseModeMap::getInstance()[(NOISE_MODEL)value[0].
+        auto status = DoubleGateNoiseModeMap::getInstance()[(NOISE_MODEL)value[0].
             GetInt()](value, noise);
         if (!status)
         {
@@ -653,9 +653,9 @@ noisyUnitaryDoubleQubitGate(size_t qn_0,
                 qgroup0.qstate[k + ststep1 + ststep2] = matrix_new[12] * phi00 + matrix_new[13] * phi01
                     + matrix_new[14] * phi10 + matrix_new[15] * phi11;
                 dsum += (abs(qgroup0.qstate[k])*abs(qgroup0.qstate[k]) 
-                    + abs(qgroup0.qstate[j + ststep1])*abs(qgroup0.qstate[j + ststep1])
-                    + abs(qgroup0.qstate[j + ststep2])*abs(qgroup0.qstate[j + ststep2])
-                    + abs(qgroup0.qstate[j + ststep1 + ststep2])*abs(qgroup0.qstate[j + ststep1 + ststep2]));
+                    + abs(qgroup0.qstate[k + ststep1])*abs(qgroup0.qstate[k + ststep1])
+                    + abs(qgroup0.qstate[k + ststep2])*abs(qgroup0.qstate[k + ststep2])
+                    + abs(qgroup0.qstate[k + ststep1 + ststep2])*abs(qgroup0.qstate[k + ststep1 + ststep2]));
             }
         }
     }

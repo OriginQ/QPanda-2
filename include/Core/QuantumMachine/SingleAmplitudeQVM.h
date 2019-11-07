@@ -1,8 +1,10 @@
 /*! \file SingleAmplitudeQVM.h */
 #ifndef  _SINGLEAMPLITUDE_H_
 #define  _SINGLEAMPLITUDE_H_
-#include "Core/Utilities/Uinteger.h"
+#include "Core/Utilities/Tools/Uinteger.h"
 #include "Core/VirtualQuantumProcessor/SingleAmplitude/QuantumGates.h"
+#include "Core/Utilities/Tools/Traversal.h"
+#include "Core/Utilities/Compiler/QRunesToQProg.h"
 QPANDA_BEGIN
 /**
 * @namespace QPanda
@@ -89,7 +91,6 @@ public:
    template <typename _Ty>
    void run(_Ty &node)
    {
-       static_assert(std::is_base_of<QNode, _Ty>::value, "node type is error");
        m_prog_map.clear();
        VerticeMatrix  *vertice_matrix = m_prog_map.getVerticeMatrix();
        vertice_matrix->initVerticeMatrix(getAllocateQubit());
@@ -107,8 +108,7 @@ public:
    template <typename _Ty>
    void traversal(_Ty &node)
    {
-       static_assert(std::is_base_of<QNode, _Ty>::value, "node type is error");
-       Traversal::traversalByType(node.getImplementationPtr(), nullptr, *this);
+       execute(node.getImplementationPtr(), nullptr);
    }
 
 private:

@@ -17,7 +17,7 @@ limitations under the License.
 #define _BERNSTEIN_VAZIRANI_ALGORITHM_H
 
 #include "Core/QuantumMachine/OriginQuantumMachine.h"
-#include "Core/Utilities/Utilities.h"
+#include "Core/Utilities/Tools/Utils.h"
 #include <vector>
 #include <bitset>
 

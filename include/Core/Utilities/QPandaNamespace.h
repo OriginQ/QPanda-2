@@ -17,6 +17,15 @@
                           <<(x)<<std::endl
 
 /**
+  output the error string to standard error and throw a standard exception.
+  A standard exception can be of the following types:
+  runtime_error, invalid_argument, range_error, etc
+*/
+#define QCERR_AND_THROW_ERRSTR(std_exception, x) {\
+    QCERR(x);\
+    throw std_exception(#x);}
+
+/**
 * @def qstate_type
 * @brief QPanda2 quantum state data type
 * @ingroup Core

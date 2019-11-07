@@ -14,7 +14,6 @@ double getStateProb(complex<double> val)
 
 TEST(QVM, TotalAmplitudeQVM)
 {
-    throw exception();
     auto machine = initQuantumMachine(CPU_SINGLE_THREAD);
     auto qlist = machine->allocateQubits(10);
     auto clist = machine->allocateCBits(10);
@@ -53,7 +52,6 @@ TEST(QVM, TotalAmplitudeQVM)
 
 TEST(QVM, PartialAmplitudeQVM)
 {
-    throw exception();
     auto machine = new PartialAmplitudeQVM();
     machine->init();
     auto qlist = machine->allocateQubits(40);

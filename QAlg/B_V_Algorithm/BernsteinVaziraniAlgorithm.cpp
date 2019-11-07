@@ -13,9 +13,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-#include "Utilities/Utilities.h"
+#include "Core/Utilities/Tools/Utils.h"
 #include "QAlg/B_V_Algorithm/BernsteinVaziraniAlgorithm.h"
-#include "Core/QPanda.h"
+#include "Core/Core.h"
 #include <bitset>
 
 

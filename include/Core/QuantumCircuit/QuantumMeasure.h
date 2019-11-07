@@ -43,7 +43,7 @@ public:
 * @brief Quantum Measure  basic  class
 * @ingroup Core
 */
-class QMeasure : public QNode, public AbstractQuantumMeasure
+class QMeasure : public AbstractQuantumMeasure
 {
 private:
     std::shared_ptr<AbstractQuantumMeasure> m_measure;
@@ -51,38 +51,37 @@ public:
     QMeasure(const QMeasure &);
     QMeasure(Qubit *, CBit *);
     QMeasure(std::shared_ptr<AbstractQuantumMeasure> node);
-    std::shared_ptr<QNode> getImplementationPtr();
+    std::shared_ptr<AbstractQuantumMeasure> getImplementationPtr();
     ~QMeasure();
     Qubit * getQuBit() const;
     CBit * getCBit()const;
     NodeType getNodeType() const;
 private:
-    virtual void execute(QPUImpl *, QuantumGateParam *) {};
     QMeasure();
 };
 
 typedef AbstractQuantumMeasure * (*CreateMeasure)(Qubit *, CBit *);
-class QuantunMeasureFactory
+class QuantumMeasureFactory
 {
 public:
     void registClass(std::string name, CreateMeasure method);
     AbstractQuantumMeasure * getQuantumMeasure(std::string &, Qubit *, CBit *);
 
-    static QuantunMeasureFactory & getInstance()
+    static QuantumMeasureFactory & getInstance()
     {
-        static QuantunMeasureFactory  s_Instance;
+        static QuantumMeasureFactory  s_Instance;
         return s_Instance;
     }
 private:
     std::map<std::string, CreateMeasure> m_measureMap;
-    QuantunMeasureFactory() {};
+    QuantumMeasureFactory() {};
 
 };
 
 class QuantumMeasureRegisterAction {
 public:
     QuantumMeasureRegisterAction(std::string className, CreateMeasure ptrCreateFn) {
-         QuantunMeasureFactory::getInstance().registClass(className, ptrCreateFn);
+         QuantumMeasureFactory::getInstance().registClass(className, ptrCreateFn);
     }
 
 };
@@ -120,15 +119,10 @@ public:
     * @see  NodeType
     */
     NodeType getNodeType() const;
-    virtual void execute(QPUImpl *, QuantumGateParam *) ;
 private:
     OriginMeasure();
     OriginMeasure(OriginMeasure &);
-    std::shared_ptr<QNode> getImplementationPtr()
-    {
-        QCERR("Can't use this function");
-        throw std::runtime_error("Can't use this function");
-    };
+
     NodeType m_node_type;
     Qubit * m_target_qubit;
     CBit * m_target_cbit;

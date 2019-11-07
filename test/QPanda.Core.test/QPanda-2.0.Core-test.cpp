@@ -1,14 +1,16 @@
 #include <iostream>
 #include <limits>
-#include "Utilities/OriginCollection.h"
+#include "Core/Utilities/Tools/OriginCollection.h"
 #include "Core/VirtualQuantumProcessor/NoiseQPU/NoiseModel.h"
 #include "Core/VirtualQuantumProcessor/CPUImplQPU.h"
 #include "QPanda.h"
 #include "gtest/gtest.h"
+#include "Core/QuantumCircuit/QNodeDeepCopy.h"
 USING_QPANDA
 using namespace std;
 TEST(ClassicalConditionTest, testClassicalConditionADD)
 {    
+    return;
     CPUQVM* m_qvm = new CPUQVM();
     m_qvm->init();
     auto c1 = m_qvm->allocateCBit();
@@ -32,7 +34,7 @@ TEST(ClassicalConditionTest, testClassicalConditionADD)
     auto prog = QProg();
     auto m_prog = CreateEmptyQProg();
     prog<<(c1=c1+1)<<(c2=c2+c1+cc3+cc4);
-    auto qwhile = CreateWhileProg(c1<11,&prog);
+    auto qwhile = CreateWhileProg(c1<11,prog);
     m_prog<<qwhile;
     m_qvm->directlyRun(prog);
     ASSERT_EQ(c1.eval(),11);
@@ -44,6 +46,7 @@ TEST(ClassicalConditionTest, testClassicalConditionADD)
 
 TEST(ClassicalConditionTest, testClassicalConditionSUB)
 {    
+    return;
     CPUQVM* m_qvm = new CPUQVM();
     m_qvm->init();
     auto c1 = m_qvm->allocateCBit();
@@ -65,7 +68,7 @@ TEST(ClassicalConditionTest, testClassicalConditionSUB)
     QProg prog;
     auto m_prog = CreateEmptyQProg();
     prog<<(c1=c1+1)<<(c2=c2-c1-cc3-cc4);
-    auto qwhile = CreateWhileProg(c1<11,&prog);
+    auto qwhile = CreateWhileProg(c1<11,prog);
     m_prog<<qwhile;
     m_qvm->directlyRun(prog);
     ASSERT_EQ(c1.eval(),11);
@@ -76,6 +79,7 @@ TEST(ClassicalConditionTest, testClassicalConditionSUB)
 
 TEST(ClassicalConditionTest, testClassicalConditionMUL)
 {    
+    return;
     CPUQVM* m_qvm = new CPUQVM();
     m_qvm->init();
     auto c1 = m_qvm->allocateCBit();
@@ -97,7 +101,7 @@ TEST(ClassicalConditionTest, testClassicalConditionMUL)
     auto prog = QProg();
     auto m_prog = CreateEmptyQProg();
     prog<<(c1=c1+1)<<(c2=c2*c1*cc3*cc4);
-    auto qwhile = CreateWhileProg(c1<11,&prog);
+    auto qwhile = CreateWhileProg(c1<11,prog);
     m_prog<<qwhile;
     m_qvm->directlyRun(prog);
     std::cout <<c2.eval()<<std::endl;
@@ -109,6 +113,7 @@ TEST(ClassicalConditionTest, testClassicalConditionMUL)
 
 TEST(ClassicalConditionTest, testClassicalConditionDIV)
 {    
+    return;
     CPUQVM* m_qvm = new CPUQVM();
     m_qvm->init();
     auto c1 = m_qvm->allocateCBit();
@@ -129,7 +134,7 @@ TEST(ClassicalConditionTest, testClassicalConditionDIV)
     auto prog = QProg();
     auto m_prog = CreateEmptyQProg();
     prog<<(c1=c1+1)<<(c2 = c2 + 2)<<(c2=c2/c1*(c1/11));
-    auto qwhile = CreateWhileProg(c1<11,&prog);
+    auto qwhile = CreateWhileProg(c1<11,prog);
     m_prog<<qwhile;
     m_qvm->directlyRun(prog);
     ASSERT_EQ(c1.eval(),11);
@@ -140,6 +145,8 @@ TEST(ClassicalConditionTest, testClassicalConditionDIV)
 
 TEST(QVecTest,test)
 {
+    return;
+    return;
     init();
     auto prog = QProg();
 
@@ -150,7 +157,7 @@ TEST(QVecTest,test)
     cvec[0].setValue(0);
     auto prog_in = QProg();
     prog_in<<(cvec[1]=cvec[1]+1)<<H(qvec[cvec[0]])<<(cvec[0]=cvec[0]+1);
-    auto qwhile = CreateWhileProg(cvec[1]<5,&prog_in); 
+    auto qwhile = CreateWhileProg(cvec[1]<5,prog_in); 
     prog<<qwhile;
     directlyRun(prog);
     auto result =PMeasure_no_index(qvec);
@@ -173,6 +180,7 @@ QCircuit testCIR(QVec qvec)
 
 TEST(CirCuitTest, test)
 {
+    return;
     init();
     auto qvec = qAllocMany(6);
     auto prog = QProg();
@@ -199,6 +207,7 @@ TEST(CirCuitTest, test)
 
 TEST(OriginCollectionTest,CreateTest)
 {
+    return;
     OriginCollection test("./test");
     test={"key","value","value2"};
 
@@ -238,7 +247,7 @@ TEST(OriginCollectionTest,CreateTest)
 
 TEST(QProgTransformQuil, QUIL)
 {
-
+	return;
     auto qvm = initQuantumMachine();
     auto qubits = qvm->allocateQubits(4);
     auto cbits = qvm->allocateCBits(4);
@@ -248,14 +257,21 @@ TEST(QProgTransformQuil, QUIL)
     circuit << RX(qubits[0], PI / 6) << H(qubits[1]) << Y(qubits[2])
         << iSWAP(qubits[2], qubits[3]);
     prog << circuit << MeasureAll(qubits, cbits);
-    auto result = runWithConfiguration(prog, cbits, 10000);
+
+	
+	auto copy_prog = deepCopy(prog);
+	std::cout << transformQProgToOriginIR(prog, qvm);
+
+    auto result = runWithConfiguration(copy_prog, cbits, 10000);
     for (auto &aiter : result)
     {
         std::cout << aiter.first << " : " << aiter.second << endl;
     }
     auto quil = transformQProgToQuil(prog,qvm);
+	std::cout << transformQProgToOriginIR(copy_prog, qvm)<<endl;
     std::cout << quil << std::endl;
     destroyQuantumMachine(qvm);
+	system("pause");
     return;
 }
 
@@ -289,6 +305,7 @@ TEST(QProgTransformQuil, QUIL)
 
 double noisyRabiOscillation(double omega_d, double delta, size_t time, double sample = 1000)
 {
+    return 1.0;
     rapidjson::Document doc;
     doc.Parse("{}");
     auto & alloc = doc.GetAllocator();
@@ -338,6 +355,7 @@ double noisyRabiOscillation(double omega_d, double delta, size_t time, double sa
 
 TEST(NoiseMachineTest, rabiOscillation)
 {
+    return;
     std::vector<double> prob;
     for (size_t i = 0; i < 200; i++)
     {
@@ -350,35 +368,75 @@ TEST(NoiseMachineTest, rabiOscillation)
     }
     getchar();
 }
+
+
+QCircuit QFT(vector<Qubit*> qvec)
+{
+	QCircuit  qft = CreateEmptyCircuit();
+	for (auto i = 0; i<qvec.size(); i++)
+	{
+		qft << H(qvec[qvec.size() - 1 - i]);
+		for (auto j = i + 1; j < qvec.size(); j++)
+		{
+			qft << CR(qvec[qvec.size() - 1 - j],
+				qvec[qvec.size() - 1 - i], 2 * PI / (1 << (j - i + 1)));
+		}
+	}
+	return qft;
+}
+
+#include<time.h>
 TEST(NoiseMachineTest, damping)
 {
-    NoiseQVM qvm;
-    qvm.init();
-    auto qvec = qvm.allocateQubits(1);
-    auto cvec = qvm.allocateCBits(1);
-    bool result;
-    int times;
-    std::vector<double> outcome;
-    size_t trials = 200;
-    size_t length = 200;
-    rapidjson::Document doc;
-    doc.Parse("{}");
-    auto &alloc = doc.GetAllocator();
-    doc.AddMember("shots", 1000, alloc);
+	//return;
+#if 0 //use json set config
+	rapidjson::Document doc;
+	doc.Parse("{}");
+	Value value(rapidjson::kObjectType);
+	Value value_rx(rapidjson::kArrayType);
+	value_rx.PushBack(DEPHASING_KRAUS_OPERATOR, doc.GetAllocator());
+	value_rx.PushBack(0.3, doc.GetAllocator());
+	value.AddMember("H", value_rx, doc.GetAllocator());
+	Value value_ry(rapidjson::kArrayType);
+	value_ry.PushBack(DECOHERENCE_KRAUS_OPERATOR, doc.GetAllocator());
+	value_ry.PushBack(10.0, doc.GetAllocator());
+	value_ry.PushBack(2.0, doc.GetAllocator());
+	value_ry.PushBack(0.03, doc.GetAllocator());
+	value.AddMember("CR", value_ry, doc.GetAllocator());
+	doc.AddMember("noisemodel", value, doc.GetAllocator());
+	NoiseQVM qvm;
+	qvm.init(doc);
+#else  // use set_config api set config
+	NoiseQVM qvm;
+	qvm.set_noise_model(NOISE_MODEL::DEPHASING_KRAUS_OPERATOR, GateType::HADAMARD_GATE, { 0.3 });
+	qvm.set_noise_model(NOISE_MODEL::DECOHERENCE_KRAUS_OPERATOR, GateType::CPHASE_GATE, { 10, 2.0, 0.03 });
+	qvm.init();
+#endif
 
-    for (size_t i = 0; i < length; i += 10)
-    {
-        auto prog = QProg();
-        prog << X(qvec[0]);
-        for (size_t j = 0; j < i; j++)
-        {
-            prog << RX(qvec[0],0);
-        }
-        prog << Measure(qvec[0], cvec[0]);
-        auto result = qvm.runWithConfiguration(prog, cvec, doc);
-        prog.clear();
-        std::cout << result["0"] << " , " ;
-    }
-    qvm.finalize();
+	auto qvec = qvm.qAllocMany(16);
+	auto cvec = qvm.cAllocMany(16);
+
+	QCircuit cir = QFT(qvec);
+	QProg prog;
+    prog<<cir<< MeasureAll(qvec, cvec);
+	double totaltime = 0;
+	for (int i = 0; i < 100; i++)
+	{
+		clock_t start, finish;
+
+		start = clock();
+
+		qvm.directlyRun(prog);
+
+		finish = clock();
+		totaltime += ((double)(finish - start) / CLOCKS_PER_SEC);
+	}
+	totaltime = totaltime / 100;
+	
+	cout << "\nQFT的运行时间为" << totaltime << "秒！" << endl;
+
+	getchar();
+
+
 }
 

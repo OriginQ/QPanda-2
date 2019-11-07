@@ -1,5 +1,6 @@
 #include "Components/ChemiQ/Psi4Wrapper.h"
-#include "QString.h"
+#include "Core/Utilities/Tools/QString.h"
+
 #include <math.h>
 
 #if defined(_DEBUG)

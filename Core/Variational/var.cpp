@@ -1459,13 +1459,13 @@ std::shared_ptr<VariationalQuantumGate> VariationalQuantumCircuit::qg2vqg(Abstra
         return std::make_shared<VariationalQuantumGate_X>(op_qubit[0]);
     case GateType::RX_GATE:
         rx = dynamic_cast<QGATE_SPACE::RX*>(qgate);
-        return std::make_shared<VariationalQuantumGate_RX>(op_qubit[0], rx->theta);
+        return std::make_shared<VariationalQuantumGate_RX>(op_qubit[0], rx->getParameter());
     case GateType::RY_GATE:
         ry = dynamic_cast<QGATE_SPACE::RY*>(qgate);
-        return std::make_shared<VariationalQuantumGate_RY>(op_qubit[0], ry->theta);
+        return std::make_shared<VariationalQuantumGate_RY>(op_qubit[0], ry->getParameter());
     case GateType::RZ_GATE:
         rz = dynamic_cast<QGATE_SPACE::RZ*>(qgate);
-        return std::make_shared<VariationalQuantumGate_RZ>(op_qubit[0], rz->theta);
+        return std::make_shared<VariationalQuantumGate_RZ>(op_qubit[0], rz->getParameter());
     case GateType::CNOT_GATE:
         return std::make_shared<VariationalQuantumGate_CNOT>(op_qubit[0], op_qubit[1]);
     case GateType::CZ_GATE:

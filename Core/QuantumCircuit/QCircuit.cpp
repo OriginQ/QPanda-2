@@ -1,5 +1,5 @@
 #include "QCircuit.h"
-#include "Utilities/ConfigMap.h"
+#include "Core/Utilities/QProgInfo/ConfigMap.h"
 #include "QGate.h"
 USING_QPANDA
 using namespace std;
@@ -41,7 +41,7 @@ QCircuit::QCircuit(QGate & gate)
     auto qcircuit = QuantumCircuitFactory::getInstance().getQuantumCircuit(class_name);
 
     m_pQuantumCircuit.reset(qcircuit);
-    m_pQuantumCircuit->pushBackNode(gate.getImplementationPtr());
+    m_pQuantumCircuit->pushBackNode(dynamic_pointer_cast<QNode>(gate.getImplementationPtr()));
 }
 
 QCircuit::QCircuit(const QCircuit & old_qcircuit)
@@ -58,31 +58,14 @@ QCircuit::~QCircuit()
     }
 }
 
-std::shared_ptr<QNode> QCircuit::getImplementationPtr()
+std::shared_ptr<AbstractQuantumCircuit> QCircuit::getImplementationPtr()
 {
     if (!m_pQuantumCircuit)
     {
         QCERR("Unknown internal error");
         throw runtime_error("Unknown internal error");
     }
-    return dynamic_pointer_cast<QNode>(m_pQuantumCircuit);
-}
-
-
-void QCircuit::pushBackNode(QNode * node)
-{
-    if (nullptr == node)
-    {
-        QCERR("node is nullptr");
-        throw runtime_error("node is nullptr");
-    }
-    if (!m_pQuantumCircuit)
-    {
-        QCERR("Unknown internal error");
-        throw runtime_error("Unknown internal error");
-    }
-
-    m_pQuantumCircuit->pushBackNode(node);
+    return m_pQuantumCircuit;
 }
 
 void QCircuit::pushBackNode(std::shared_ptr<QNode> node)
@@ -220,7 +203,7 @@ NodeIter QCircuit::getHeadNodeIter()
     return m_pQuantumCircuit->getHeadNodeIter();
 }
 
-NodeIter QCircuit::insertQNode(NodeIter & iter, QNode * node)
+NodeIter QCircuit::insertQNode(NodeIter & iter, shared_ptr<QNode> node)
 {
     if (nullptr == node)
     {
@@ -284,17 +267,6 @@ OriginCircuit::~OriginCircuit()
     delete m_head;
     m_head = nullptr;
     m_end = nullptr;
-}
-
-void OriginCircuit::pushBackNode(QNode * node)
-{
-    if (nullptr == node)
-    {
-        QCERR("node is null");
-        throw invalid_argument("node is null");
-    }
-    auto temp = node->getImplementationPtr();
-    pushBackNode(temp);
 }
 
 void OriginCircuit::pushBackNode(std::shared_ptr<QNode> node)
@@ -391,7 +363,7 @@ NodeIter OriginCircuit::getHeadNodeIter()
     return temp;
 }
 
-NodeIter OriginCircuit::insertQNode(NodeIter & perIter, QNode * node)
+NodeIter OriginCircuit::insertQNode(NodeIter & perIter, shared_ptr<QNode> node)
 {
     ReadLock * rl = new ReadLock(m_sm);
     Item * perItem = perIter.getPCur();
@@ -425,11 +397,10 @@ NodeIter OriginCircuit::insertQNode(NodeIter & perIter, QNode * node)
     delete rl;
     WriteLock wl(m_sm);
     Item *curItem = new OriginItem();
-    auto ptemp = node->getImplementationPtr();
 
     if (m_end != perItem->getNext())
     {
-        curItem->setNode(ptemp);
+        curItem->setNode(node);
         perItem->getNext()->setPre(curItem);
         curItem->setNext(perItem->getNext());
         perItem->setNext(curItem);
@@ -439,7 +410,7 @@ NodeIter OriginCircuit::insertQNode(NodeIter & perIter, QNode * node)
     }
     else
     {
-        m_end->setNode(ptemp);
+        m_end->setNode(node);
         m_end->setNext(curItem);
         curItem->setPre(m_end);
         curItem->setNext(nullptr);
@@ -522,66 +493,6 @@ void OriginCircuit::clearControl()
     m_control_qubit_vector.resize(0);
 }
 
-void OriginCircuit::execute(QPUImpl * quantum_gates, QuantumGateParam * param)
-{
-    bool save_dagger = param->m_is_dagger;
-    size_t control_qubit_count = 0;
-
-    param->m_is_dagger = isDagger() ^ param->m_is_dagger;
-
-    for (auto aiter : m_control_qubit_vector)
-    {
-        param->m_control_qubit_vector.push_back(aiter);
-        control_qubit_count++;
-    }
-
-    if (param->m_is_dagger)
-    {
-        auto aiter = getLastNodeIter();
-        if (nullptr == *aiter)
-        {
-            return ;
-        }
-        for (; aiter != getHeadNodeIter(); --aiter)
-        {
-            auto node = *aiter;
-            if (nullptr == node)
-            {
-                QCERR("node is null");
-                std::runtime_error("node is null");
-            }
-            
-            node->execute(quantum_gates, param);
-        }
-
-    }
-    else
-    {
-        auto aiter = getFirstNodeIter();
-        if (nullptr == *aiter)
-        {
-            return ;
-        }
-        for (; aiter != getEndNodeIter(); ++aiter)
-        {
-            auto node = *aiter;
-            if (nullptr == node)
-            {
-                QCERR("node is null");
-                std::runtime_error("node is null");
-            }
-
-            node->execute(quantum_gates, param);
-        }
-    }
-
-    param->m_is_dagger = save_dagger;
-
-    for (size_t i = 0; i < control_qubit_count; i++)
-    {
-        param->m_control_qubit_vector.pop_back();
-    }
-}
 
 void QuantumCircuitFactory::registClass(string name, CreateQCircuit method)
 {
@@ -618,7 +529,7 @@ HadamardQCircuit::HadamardQCircuit(QVec& qubit_vector)
     for (auto aiter : qubit_vector)
     {
         auto  temp = H(aiter);
-        m_pQuantumCircuit->pushBackNode((QNode *)&temp);
+        m_pQuantumCircuit->pushBackNode(std::dynamic_pointer_cast<QNode>(temp.getImplementationPtr()));
     }
 }
 

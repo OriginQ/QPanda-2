@@ -11,8 +11,8 @@
 #include "Core/QuantumCircuit/QNode.h"
 #include "Core/QuantumCircuit/QGate.h"
 #include "Core/QuantumMachine/QVec.h"
-#include "Core/Utilities/ReadWriteLock.h"
-#include "Core/Utilities/QPandaException.h"
+#include "Core/Utilities/Tools/ReadWriteLock.h"
+#include "Core/Utilities/Tools/QPandaException.h"
 QPANDA_BEGIN
 /**
 * @namespace QPanda
@@ -30,9 +30,8 @@ public:
     virtual NodeIter getLastNodeIter() = 0;
     virtual NodeIter getEndNodeIter() = 0;
     virtual NodeIter getHeadNodeIter() = 0;
-    virtual NodeIter insertQNode(NodeIter &, QNode *) = 0;
+    virtual NodeIter insertQNode(NodeIter &, std::shared_ptr<QNode>) = 0;
     virtual NodeIter deleteQNode(NodeIter &) = 0;
-    virtual void pushBackNode(QNode *) = 0;
     virtual void pushBackNode(std::shared_ptr<QNode> ) = 0;
     virtual bool isDagger() const = 0;
     virtual bool getControlVector(QVec &) = 0;
@@ -47,7 +46,7 @@ public:
 * @brief Quantum circuit basic abstract class
 * @ingroup Core
 */
-class QCircuit : public QNode, public AbstractQuantumCircuit
+class QCircuit : public AbstractQuantumCircuit
 {
 protected:
     std::shared_ptr<AbstractQuantumCircuit> m_pQuantumCircuit;
@@ -57,7 +56,7 @@ public:
     QCircuit(QGate & gate);
     QCircuit(std::shared_ptr<AbstractQuantumCircuit> node);
     ~QCircuit();
-    std::shared_ptr<QNode> getImplementationPtr();
+    std::shared_ptr<AbstractQuantumCircuit> getImplementationPtr();
 
     /**
     * @brief  Insert new Node at the end of current quantum circuit node
@@ -65,7 +64,6 @@ public:
     * @return     void
     * @see  QNode
     */
-    void pushBackNode(QNode *);
     void pushBackNode(std::shared_ptr<QNode>) ;
 
     /**
@@ -117,7 +115,7 @@ public:
     NodeIter getEndNodeIter();
     NodeIter getHeadNodeIter();
 
-    NodeIter insertQNode(NodeIter &iter, QNode *pNode);
+    NodeIter insertQNode(NodeIter &iter, std::shared_ptr<QNode> pNode);
     NodeIter deleteQNode(NodeIter &iter);
 
     /**
@@ -134,7 +132,6 @@ public:
     virtual void  setControl(QVec );
 private:
     void clearControl() {}
-    void execute(QPUImpl *, QuantumGateParam *) {}
 };
 
 class HadamardQCircuit :public QCircuit
@@ -179,12 +176,6 @@ private:
 
 public:
 
-    std::shared_ptr<QNode> getImplementationPtr()
-    {
-        QCERR("Can't use this function");
-        throw std::runtime_error("Can't use this function");
-    }
-
     OriginCircuit():
         m_node_type(CIRCUIT_NODE),
         m_Is_dagger(false)
@@ -196,7 +187,6 @@ public:
         m_control_qubit_vector.resize(0);
     }
     ~OriginCircuit();
-    void pushBackNode(QNode *);
     void pushBackNode(std::shared_ptr<QNode>);
     void setDagger(bool);
     void setControl(QVec );
@@ -207,10 +197,9 @@ public:
     NodeIter  getLastNodeIter();
     NodeIter  getEndNodeIter();
     NodeIter getHeadNodeIter();
-    NodeIter  insertQNode(NodeIter &, QNode *);
+    NodeIter  insertQNode(NodeIter &, std::shared_ptr<QNode>);
     NodeIter  deleteQNode(NodeIter &);
     void clearControl();
-    void execute(QPUImpl *, QuantumGateParam *);
 };
 
 typedef AbstractQuantumCircuit* (*CreateQCircuit)();
@@ -241,23 +230,18 @@ public:
 template<typename T>
 QCircuit & QCircuit::operator<<(T node)
 {
-    auto temp = dynamic_cast<QNode *>(&node);
-    if (nullptr == temp)
-    {
-        throw std::invalid_argument("param is not QNode");
-    }
     if (nullptr == this->m_pQuantumCircuit)
     {
         throw std::runtime_error("m_pQuantumCircuit is null");
     }
-    int iNodeType = temp->getNodeType();
+    int iNodeType = node.getNodeType();
 
     switch (iNodeType)
     {
     case GATE_NODE:
     case CIRCUIT_NODE:
     case CLASS_COND_NODE:
-        m_pQuantumCircuit->pushBackNode(dynamic_cast<QNode*>(&node));
+        m_pQuantumCircuit->pushBackNode(std::dynamic_pointer_cast<QNode>(node.getImplementationPtr()));
         break;
     default:
         throw qcircuit_construction_fail("bad node type");

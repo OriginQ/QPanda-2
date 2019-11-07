@@ -1,6 +1,6 @@
 #include "QAlg/ChemiQ/ChemiQ.h"
 #include "Components/ChemiQ/ChemiqUtil.h"
-#include "Core/Utilities/QString.h"
+#include "Core/Utilities/Tools/QString.h"
 #include "Core/QuantumMachine/QuantumMachineFactory.h"
 #include "Components/Optimizer/OptimizerFactory.h"
 #include "Components/Optimizer/AbstractOptimizer.h"

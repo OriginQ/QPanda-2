@@ -25,7 +25,7 @@ limitations under the License.
 #include "Core/QuantumCircuit/QProgram.h"
 #include "Core/Utilities/QPandaNamespace.h"
 #include "Core/QuantumMachine/QVec.h"
-#include "Core/Utilities/OriginCollection.h"
+#include "Core/Utilities/Tools/OriginCollection.h"
 QPANDA_BEGIN
 
 /*

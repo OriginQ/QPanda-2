@@ -16,7 +16,7 @@ limitations under the License.
 #include "QPandaConfig.h"
 #include "CPUImplQPU.h"
 #include "QPandaNamespace.h"
-#include "Utilities/Utilities.h"
+#include "Core/Utilities/Tools/Utils.h"
 #include <algorithm>
 #include <thread>
 #include <map>
@@ -913,4 +913,14 @@ QError CPUImplQPU::controlDiagonalGate(Qnum & vQubit, QStat & matrix, Qnum & vCo
         }
     }
     return QError();
+}
+
+QError CPUImplQPUWithOracle::controlOracularGate(std::vector<size_t> bits, std::vector<size_t> controlbits, bool is_dagger, std::string name)
+{
+	if (name == "oracle_test") {
+
+	}
+	else {
+		throw runtime_error("Not Implemented.");
+	}
 }

@@ -16,14 +16,15 @@ limitations under the License.
 
 #include "OriginQuantumMachine.h"
 #include "Factory.h"
-#include "Utilities/ConfigMap.h"
+#include "Core/Utilities/QProgInfo/ConfigMap.h"
 #include "QPandaConfig.h"
 #include "VirtualQuantumProcessor/GPUImplQPU.h"
 #include "VirtualQuantumProcessor/CPUImplQPU.h"
 #include "VirtualQuantumProcessor/CPUImplQPUSingleThread.h"
-#include "Core/Utilities/QPandaException.h"
-#include "Core/Utilities/Utilities.h"
-#include "Core/Utilities/QuantumMetadata.h"
+#include "Core/Utilities/Tools/QPandaException.h"
+#include "Core/Utilities/Tools/Utils.h"
+#include "Core/Utilities/QProgInfo/QuantumMetadata.h"
+#include "Core/QuantumMachine/QProgExecution.h"
 
 USING_QPANDA
 using namespace std;
@@ -44,8 +45,10 @@ REGISTER_QUANTUM_MACHINE(GPUQVM);
 
 void QVM::setConfig(const Configuration & config)
 {
+	finalize();
     _Config.maxQubit = config.maxQubit;
     _Config.maxCMem = config.maxCMem;
+	init();
 }
 
 Qubit * QVM::allocateQubit()
@@ -275,21 +278,21 @@ void QVM::run(QProg & node)
 {
     try
     {
-        auto _pParam = new QuantumGateParam();
-        _ptrIsNull(_pParam, "_pParam");
+        TraversalConfig config;
 
         _pGates->initState(0, 1, _Qubit_Pool->getMaxQubit() - _Qubit_Pool->getIdleQubit());
 
-        node.getImplementationPtr()->execute(_pGates, _pParam);
+		QProgExecution prog_exec;
+		prog_exec.execute(node.getImplementationPtr(), nullptr, config, _pGates);
 
-        /* aiter has been used in line 120 */
-        for (auto aiter : _pParam->m_return_value)
-        {
-            _QResult->append(aiter);
-        }
-        delete _pParam;
-        _pParam = nullptr;
-        return;
+		std::map<string, bool>result;
+		prog_exec.get_return_value(result);
+
+		/* aiter has been used in line 120 */
+		for (auto aiter : result)
+		{
+			_QResult->append(aiter);
+		}
     }
     catch (const std::exception&e)
     {

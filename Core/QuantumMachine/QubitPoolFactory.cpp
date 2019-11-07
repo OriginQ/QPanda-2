@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 #include "QubitPoolFactory.h"
-#include "Utilities/ConfigMap.h"
+#include "Core/Utilities/QProgInfo/ConfigMap.h"
 #include "OriginQuantumMachine.h"
 USING_QPANDA
 using namespace std;
@@ -72,3 +72,4 @@ QubitPoolFactoryHelper::QubitPoolFactoryHelper(string  sClassName,
 }
 
 REGISTER_QUBIT_POOL_SIZE_(OriginQubitPool);
+REGISTER_QUBIT_POOL_SIZE_(OriginQubitPoolv2);

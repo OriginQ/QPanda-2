@@ -1,5 +1,5 @@
 #include "Core/QuantumMachine/OriginQuantumMachine.h"
-#include "Core/Utilities/Utilities.h"
+#include "Core/Utilities/Tools/Utils.h"
 #include "Core/Utilities/QPandaNamespace.h"
 #include <vector>
 QPANDA_BEGIN

@@ -1,0 +1,173 @@
+/*! \file GraphMatch.h */
+#ifndef _QNODE_MATCH_H_
+#define _QNODE_MATCH_H_
+#include <algorithm>
+#include <functional>
+#include "Core/Utilities/Tools/Traversal.h"
+#include "Core/Utilities/QProgTransform/QProgToDAG/QProgToDAG.h"
+#include "Core/QuantumMachine/QuantumMachineInterface.h"
+
+QPANDA_BEGIN
+
+using LayerVector = std::vector<SequenceNode>;
+using ResultVector = std::vector<LayerVector>;
+
+enum GraphType
+{
+    MAIN_GRAPH = 0,
+    QUERY_GRAPH,
+    REPLACE_GRAPH
+};
+
+/**
+* @class GraphMatch
+* @ingroup Utilities
+* @brief Graph Match and Replace
+* @note
+*/
+class GraphMatch
+{
+public:
+    /**
+    * @brief  get topological sequence
+    * @ingroup Utilities
+    * @param[in]  _Ty & node
+    * @param[out]  TopologicalSequence & seq
+    * @param[in]  GraphType graph_type
+    * @return     void
+    */
+    template <typename _Ty>
+    void get_topological_sequence(_Ty &node, TopologicalSequence &seq, GraphType graph_type = MAIN_GRAPH)
+    {
+        QProgToDAG dag;
+        if (GraphType::MAIN_GRAPH == graph_type)
+        {
+            dag.traversal(node, m_graph_dag);
+            m_graph_dag.getTopologincalSequence(seq);
+        }
+        else if (GraphType::QUERY_GRAPH == graph_type)
+        {
+            dag.traversal(node, m_query_dag);
+            m_query_dag.getTopologincalSequence(seq);
+        }
+        else if (GraphType::REPLACE_GRAPH == graph_type)
+        {
+            dag.traversal(node, m_replace_dag);
+            m_replace_dag.getTopologincalSequence(seq);
+        }
+        else
+        {}
+    }  
+
+    template <typename _Ty1, typename _Ty2>
+    void replace(_Ty1 &query_node, _Ty2 &replace_node,
+        ResultVector &result, TopologicalSequence &graph_seq, QProg &prog, QuantumMachine*qvm)   
+    {
+        TopologicalSequence replace_seq;
+        get_topological_sequence(replace_node, replace_seq, GraphType::REPLACE_GRAPH);
+
+        if (!_compare_qnum(m_query_dag.m_qubit_vec, m_replace_dag.m_qubit_vec))
+        {
+            QCERR("qubits compare error");
+            return;
+        }
+        else
+        {
+            _convert_node(result, replace_seq, graph_seq, qvm);
+            _convert_prog(graph_seq, prog);
+        }
+    }
+    
+    bool query(TopologicalSequence &, TopologicalSequence &, ResultVector &);
+    const QProgDAG& getProgDAG() { return m_graph_dag; }
+    
+private:
+    QProgDAG m_graph_dag;
+    QProgDAG m_query_dag;
+    QProgDAG m_replace_dag;
+    std::vector<size_t> m_compare_vec;
+
+    bool _compare_qnum(Qnum, Qnum);
+    bool _compare_node(LayerNode &, LayerNode &);
+    bool _compare_edge(LayerVector &, LayerVector &);
+    bool _compare_parm(SequenceNode &, SequenceNode &);
+
+    void _replace_node(const ResultVector &, TopologicalSequence &);
+    void _get_pre_node(size_t, TopologicalSequence&, LayerVector&);
+
+    void _convert_prog(TopologicalSequence &, QProg &);
+    void _convert_gate(SequenceNode&, QuantumMachine*, std::map<size_t, size_t> &, SequenceNode&);
+    void _convert_node(ResultVector &, TopologicalSequence &,
+                       TopologicalSequence &, QuantumMachine*);
+
+    Qnum _get_qubit_vector(const SequenceNode &, QProgDAG &);
+};
+
+
+
+/**
+* @brief  graph query and replace
+* @ingroup Utilities
+* @param[in]  _Ty1 & graph_node
+* @param[in]  _Ty2 & query_node
+* @param[in]  _Ty3 & replace_node
+* @param[out]  QProg & prog
+* @param[in]  QuantumMachine * qvm
+* @return     void
+*/
+template <typename _Ty1, typename _Ty2, typename _Ty3>
+void graph_query_replace(_Ty1 &graph_node, _Ty2 &query_node, _Ty3 &replace_node,
+                         QProg &prog, QuantumMachine *qvm)
+{
+    GraphMatch match;
+    ResultVector query_result;
+
+    TopologicalSequence graph_seq;
+    match.get_topological_sequence(graph_node, graph_seq);
+
+    TopologicalSequence query_seq;
+    match.get_topological_sequence(query_node, query_seq, GraphType::QUERY_GRAPH);
+
+    if (match.query(graph_seq, query_seq, query_result))
+    {
+        match.replace(query_node, replace_node, query_result, graph_seq, prog, qvm);
+    }
+    else
+    {
+        std::cout << "Unable to find matching query graph" << std::endl;
+    }
+}
+
+
+/**
+* @brief  graph query
+* @ingroup Utilities
+* @param[in]  _Ty1 & graph_node
+* @param[in]  _Ty2 & query_node
+* @param[out]  ResultVector & query_result
+* @return     bool true or false
+*/
+template <typename _Ty1, typename _Ty2>
+bool graph_query(_Ty1 &graph_node, _Ty2 &query_node, ResultVector &query_result)
+{
+    GraphMatch match;
+
+    TopologicalSequence graph_seq;
+    match.get_topological_sequence(graph_node, graph_seq);
+
+    TopologicalSequence query_seq;
+    match.get_topological_sequence(query_node, query_seq, GraphType::QUERY_GRAPH);
+
+    if (match.query(graph_seq, query_seq, query_result))
+    {
+        return true;
+    }
+    else
+    {
+        std::cout << "Unable to find matching query graph" << std::endl;
+        return false;
+    }
+}
+
+QPANDA_END
+#endif

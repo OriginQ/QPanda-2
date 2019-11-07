@@ -4,7 +4,7 @@
 #include "Components/ChemiQ/Psi4Wrapper.h"
 #include "Components/ChemiQ/ChemiqUtil.h"
 #include "Core/QuantumMachine/QVec.h"
-#include "Core/Utilities/OriginCollection.h"
+#include "Core/Utilities/Tools/OriginCollection.h"
 
 namespace QPanda {
 

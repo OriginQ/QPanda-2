@@ -311,11 +311,7 @@ namespace QPanda
     {
         for (size_t i = 0; i < vec.size(); i++)
         {
-            prog << QGateNodeFactory::getInstance()->getGateNode(
-                "RX",
-                vec[i],
-                2 * beta
-            );
+            prog << RX(vec[i], 2 * beta);
         }
     }
 

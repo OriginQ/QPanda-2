@@ -1,9 +1,20 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.1)
 project(QAlg)
 
-file(GLOB_RECURSE ALG_SRC_CPP ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
-add_library(${LIB_QALG} STATIC ${ALG_SRC_CPP})
-target_link_libraries(${LIB_QALG} ${LIB_QPANDA} ${LIB_COMPONENTS} ${PYTHON_LIBRARIES})
+file(GLOB_RECURSE ALG_SRC_CPP ${CMAKE_CURRENT_SOURCE_DIR}/B_V_Algorithm/*.cpp
+                              ${CMAKE_CURRENT_SOURCE_DIR}/DJ_Algorithm/*.cpp
+                              ${CMAKE_CURRENT_SOURCE_DIR}/Grover_Algorithm/*.cpp
+                              ${CMAKE_CURRENT_SOURCE_DIR}/QAOA/*.cpp)
+
+file(GLOB_RECURSE ALG_CHEMIQ_SRC_CPP ${CMAKE_CURRENT_SOURCE_DIR}/ChemiQ/*.cpp)
+
+if (USE_CHEMIQ)
+    add_library(${LIB_QALG} STATIC ${ALG_SRC_CPP} ${ALG_CHEMIQ_SRC_CPP})
+    target_link_libraries(${LIB_QALG} ${LIB_QPANDA} ${LIB_COMPONENTS} ${PYTHON_LIBRARIES})
+else ()
+    add_library(${LIB_QALG} STATIC ${ALG_SRC_CPP})
+    target_link_libraries(${LIB_QALG} ${LIB_QPANDA} ${LIB_COMPONENTS})
+endif ()
 
 if (UNIX)
     set(LIB_SHARED_QALG DLL_QALG)

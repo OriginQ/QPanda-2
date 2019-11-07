@@ -74,7 +74,9 @@ enum GateType {
     TWO_QUBIT_GATE,/**< Quantum two-qubit gate */
     P00_GATE,
     P11_GATE,
-    TOFFOLI_GATE
+    TOFFOLI_GATE,
+	ORACLE_GATE,
+	I_GATE
 };
 
 /*

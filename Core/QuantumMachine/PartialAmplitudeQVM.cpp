@@ -443,7 +443,7 @@ void PartialAmplitudeQVM::execute(std::shared_ptr<AbstractQGateNode>  cur_node, 
     case GateType::RZ_GATE:
     {
         node.tar_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
-        node.gate_parm = dynamic_cast<QGATE_SPACE::angleParameter *>(cur_node->getQGate())->getParameter();
+        node.gate_parm = dynamic_cast<QGATE_SPACE::AbstractSingleAngleParameter *>(cur_node->getQGate())->getParameter();
     }
     break;
 
@@ -478,7 +478,7 @@ void PartialAmplitudeQVM::execute(std::shared_ptr<AbstractQGateNode>  cur_node, 
     {
         node.ctr_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
         node.tar_qubit = qubits_vector[1]->getPhysicalQubitPtr()->getQubitAddr();
-        node.gate_parm = dynamic_cast<QGATE_SPACE::angleParameter *>(cur_node->getQGate())->getParameter();
+        node.gate_parm = dynamic_cast<QGATE_SPACE::AbstractSingleAngleParameter *>(cur_node->getQGate())->getParameter();
         m_prog_map->m_spilt_num += (m_prog_map->isCorssNode(node.ctr_qubit, node.tar_qubit));
     }
     break;

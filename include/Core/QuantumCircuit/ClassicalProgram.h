@@ -47,7 +47,7 @@ private:
 * @ingroup Core
 * @note  The proxy class of the AbstractClassicalProg implementation class
 */
-class ClassicalProg :public QNode,public AbstractClassicalProg
+class ClassicalProg :public AbstractClassicalProg
 {
 public:
     /**
@@ -71,7 +71,7 @@ public:
     */
     NodeType getNodeType() const;
 
-    std::shared_ptr<QNode> getImplementationPtr();
+    std::shared_ptr<AbstractClassicalProg> getImplementationPtr();
 
     /**
      * @brief Get classical program value
@@ -83,7 +83,6 @@ public:
 
 private:
     std::shared_ptr<AbstractClassicalProg> m_node;
-    virtual void execute(QPUImpl *, QuantumGateParam *) {};
 };
 
 /**
@@ -119,19 +118,10 @@ public:
      */
     virtual cbit_size_t eval();
 
-    virtual void execute(QPUImpl *, QuantumGateParam *);
-
     inline std::shared_ptr<CExpr> getExpr()
     {
         return m_expr;
     }
-
-    std::shared_ptr<QNode> getImplementationPtr()
-    {
-        QCERR("Can't use this function");
-        throw std::runtime_error("Can't use this function");
-    };
-
 private:
     std::shared_ptr<CExpr> m_expr;  ///< classical expr share ptr
     NodeType m_node_type;           ///< current QNode type

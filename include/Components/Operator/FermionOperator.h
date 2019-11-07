@@ -15,7 +15,7 @@ Created in 2019-01-18
 #include <map>
 #include <unordered_map>
 #include "Core/Utilities/QPandaNamespace.h"
-#include "Core/Utilities/QString.h"
+#include "Core/Utilities/Tools/QString.h"
 #include "Components/DataStruct.h"
 
 QPANDA_BEGIN

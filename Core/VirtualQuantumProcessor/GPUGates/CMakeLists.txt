@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.1)
-project(QPanda-2.0.GPUQGates)
+project(GPUQGates)
 
 set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --expt-extended-lambda -gencode arch=compute_50,code=sm_50")
 if (MSVC)

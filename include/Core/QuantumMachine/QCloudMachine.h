@@ -2,7 +2,7 @@
 #ifndef QCLOUD_MACHINE_H
 #define QCLOUD_MACHINE_H
 #include "QPandaConfig.h"
-#include "QPanda.h"
+#include "Core/Core.h"
 
 
 #ifdef USE_CURL

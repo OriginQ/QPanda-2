@@ -26,23 +26,6 @@ limitations under the License.
 #include "Core/Utilities/QPandaNamespace.h"
 
 #define iunit qcomplex_t(0,1)
-/*****************************************************************************************************************
-QuantumGateParam:quantum gate param 
-*****************************************************************************************************************/
-class QuantumGateParam
-{
- public:
-    size_t m_qubit_number; /* quantum bit number */
-    std::map<std::string , bool> m_return_value; /* MonteCarlo result */
-    bool m_is_dagger;
-    std::vector<QPanda::Qubit *> m_control_qubit_vector;
-
-    QuantumGateParam()
-    {
-        m_qubit_number = 0;
-        m_is_dagger = false;
-    }
-};
 
 struct QGateParam
 {
@@ -55,6 +38,9 @@ struct QGateParam
         }
         qstate[0] = 1;
     }
+	QGateParam(int qn, Qnum num) :qVec(num), qstate(1ull << qn, 0), qubitnumber(qn) {
+		qstate[0] = 1;
+	}
     Qnum qVec;
     QStat qstate;
     int qubitnumber;

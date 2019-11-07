@@ -15,7 +15,7 @@ limitations under the License.
 */
 #include "ClassicalProgram.h"
 #include <type_traits>
-#include "Utilities/ConfigMap.h"
+#include "Core/Utilities/QProgInfo/ConfigMap.h"
 USING_QPANDA
 using namespace std;
 OriginClassicalProg::OriginClassicalProg(ClassicalCondition & classical_prog)
@@ -46,11 +46,6 @@ cbit_size_t OriginClassicalProg::eval()
     return m_expr->eval();
 }
 
-void OriginClassicalProg::execute(QPUImpl * quantum_gates, QuantumGateParam * param)
-{
-    eval();
-}
-
 
 NodeType ClassicalProg::getNodeType() const
 {
@@ -70,14 +65,14 @@ NodeType ClassicalProg::getNodeType() const
 }
 
 
-std::shared_ptr<QNode> ClassicalProg::getImplementationPtr()
+std::shared_ptr<AbstractClassicalProg> ClassicalProg::getImplementationPtr()
 {
     if (!m_node)
     {
         QCERR("Unknown internal error");
         throw runtime_error("Unknown internal error");
     }
-    return dynamic_pointer_cast<QNode>(m_node);
+    return m_node;
 }
 
 cbit_size_t ClassicalProg::eval()

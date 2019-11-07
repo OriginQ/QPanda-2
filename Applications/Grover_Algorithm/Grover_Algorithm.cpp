@@ -13,8 +13,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-#include "Core/QPanda.h"
-#include "Utilities/Utilities.h"
+#include "Core/Core.h"
+#include "Core/Utilities/Tools/Utils.h"
 #include "QAlg/Grover_Algorithm/Grover_Algorithm.h"
 
 USING_QPANDA

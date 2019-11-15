@@ -57,6 +57,11 @@ QPanda 2作为本源量子计算系列软件的基础库，为QRunes、Qurator�
  - [QRunes量子语言](https://qrunes-tutorial.readthedocs.io/en/latest/)
  - [Qurator-VSCode](https://qurator-vscode.readthedocs.io/zh_CN/latest/)
 
+ ## 贡献代码
+
+我们欢迎新的成员加入到QPanda的事业中，[CONTRIBUTING](https://github.com/OriginQ/QPanda-2/blob/master/CONTRIBUTING.md)会指导您如何加入到我们的Developer大家庭。
+
+[Github issue](https://github.com/OriginQ/QPanda-2/issues)专门用于处理请求和Bug，如果您想讨论更专业的技术问题请移步到我们QQ群：905550304，或者登陆我们的[量子社区](https://qcode.qubitonline.cn/qcode/forumtopic/community.html?belonged=1)。
 
 ## 团队介绍
 

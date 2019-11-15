@@ -49,8 +49,8 @@ QPanda 2作为本源量子计算系列软件的基础库，为QRunes、Qurator�
 
 ## 相关资料
 
- - [本源量子官网](http://originqc.com.cn/)：
- - [本源量子云平台](http://www.qubitonline.cn/)：
+ - [本源量子官网](http://originqc.com.cn/)
+ - [本源量子云平台](http://www.qubitonline.cn/)
  - [本源量子教育](https://learn-quantum.com/EDU/index.html)
  - [ReadTheDocs文档(C++)](https://qpanda-toturial.readthedocs.io/zh/latest/)
  - [ReadTheDocs文档(Python)](https://pyqpanda-toturial.readthedocs.io/zh/latest/)

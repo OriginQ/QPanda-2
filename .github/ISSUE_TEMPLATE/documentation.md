@@ -1,6 +1,6 @@
 ---
-name: Documentation
-about: '关于文档的issue'
+name: Documentation 
+about: '提交关于文档的issue'
 title: ''
 labels: documentation
 assignees: ''

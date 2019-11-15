@@ -1,5 +1,5 @@
 ---
-name: "Bug 报告"
+name: "Bug issue"
 about: "提交Bug"
 title: ''
 labels: bug

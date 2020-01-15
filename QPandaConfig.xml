@@ -20,6 +20,7 @@
 		<QSwapTimeSequence>2</QSwapTimeSequence>
 		<QGateControlTimeSequence>2</QGateControlTimeSequence>
 		<QGateSingleTimeSequence>1</QGateSingleTimeSequence>
+		<QResetNodeTimeSequence>1</QResetNodeTimeSequence>
     </QGateTimeSequence>
     <ClassNameConfig>
         <QProg>OriginProgram</QProg>
@@ -27,6 +28,7 @@
         <QIfProg>OriginQIf</QIfProg>
         <QWhileProg>OriginQWhile</QWhileProg>
         <QMeasure>OriginMeasure</QMeasure>
+        <QReset>OriginReset</QReset>
         <QuantumMachine>OriginQVM</QuantumMachine>
         <QubitPool>OriginQubitPoolv2</QubitPool>
         <Qubit>OriginQubit</Qubit>
@@ -42,6 +44,8 @@
         <ComputeAPI>http://10.10.12.53:4630/api/QCode/QRunes2/submitTask.json</ComputeAPI>
         <InqureAPI>http://10.10.12.53:4630/api/QCode/QRunes2/queryTask.json</InqureAPI>
         <TerminateAPI>https://qcode.qubitonline.cn/api/QCode/QRunes2/terminateTask.json</TerminateAPI>
+        <ClusterComputeAPI>http://10.10.12.176:8060/api/taskApi/submitTask.json</ClusterComputeAPI>
+        <ClusterInqureAPI>http://10.10.12.176:8060/api/taskApi/getResultDetail.json</ClusterInqureAPI>
         <MonteCarloRepeatNum>100</MonteCarloRepeatNum>
     </QuantumCloudConfig>
     <Metadata>

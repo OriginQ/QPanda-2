@@ -23,6 +23,10 @@ Classes for get the shortes path of graph
 
 QPANDA_BEGIN
 
+/**
+* @brief Xml  configuration parameter
+* @ingroup Utilities
+*/
 class XmlConfigParam
 {
 public:
@@ -37,10 +41,17 @@ public:
     bool getInstructionConfig(std::map<std::string, std::map<std::string, uint32_t>> &);
     virtual ~XmlConfigParam() {};
 
-	//read topological structure from xml config file
+	/**
+	* @brief  read topological structure from xml config file
+	* @ingroup Utilities
+	* @param[in]  TiXmlElement*  qubit vector
+	* @param[out]  int& qubit number
+	* @param[out]  std::vector<std::vector<int>>  qubit matrix
+	* @return     bool
+	*/
 	static bool readAdjacentMatrix(TiXmlElement *AdjacentMatrixElement, int &qubit_num, std::vector<std::vector<int>> &qubit_matrix);
 
-	//load quantum circuit topological structure
+	/** @brief load quantum circuit topological structure*/
 	static bool loadQuantumTopoStructure(const std::string &xmlStr, const std::string& dataElementStr, int &qubitsCnt, std::vector< std::vector<int>> &vec, const std::string configFile = "");
 
 	TiXmlElement* get_root_element() { return m_root_element; }
@@ -51,6 +62,10 @@ private:
     std::string m_filename;
 };
 
+/**
+* @brief Time Sequence Config
+* @ingroup Utilities
+*/
 class TimeSequenceConfig
 {
 #define Q_GATE_TIME_SEQUENCE_CONFIG ("QGateTimeSequence")
@@ -58,6 +73,7 @@ class TimeSequenceConfig
 #define Q_SWAP_TIME_SEQUENCE ("QSwapTimeSequence")
 #define Q_CONTROL_GATE_TIME_SEQUENCE ("QGateControlTimeSequence")
 #define Q_SINGLE_GATE_TIME_SEQUENCE ("QGateSingleTimeSequence")
+#define Q_RESET_TIME_SEQUENCE ("QResetNodeTimeSequence")
 
 public:
 	static TimeSequenceConfig& get_instance() {
@@ -70,6 +86,7 @@ public:
 	int get_ctrl_node_time_sequence();
 	int get_swap_gate_time_sequence();
 	int get_single_gate_time_sequence();
+	int get_reset_time_sequence();
 
 	template<typename config_type>
 	int read_config(config_type type_str, int val) {

@@ -25,13 +25,16 @@ Classes for QProgDAG.
 
 QPANDA_BEGIN
 
-/**
-* @namespace QPanda
-*/
+
+enum SequenceNodeType
+{
+	MEASURE = -1,
+	RESET = -2
+};
 
 struct SequenceNode
 {
-    int m_node_type; //Enum GateType ，if Measure Node ： -1
+    int m_node_type; // SequenceNodeType(on case of m_node_type < 0) and GateType
     size_t m_vertex_num;
 
     bool operator == (const SequenceNode &node) const { return (this->m_vertex_num == node.m_vertex_num); }
@@ -40,7 +43,6 @@ struct SequenceNode
 };
 
 using edges_vec = std::vector<std::pair<size_t, size_t>>; 
-using vertices_map = std::map<size_t, NodeIter>;
 using AdjacencyMatrix = Eigen::MatrixXi;
 using LayerNode = std::pair<SequenceNode, std::vector<SequenceNode>>;
 using SequenceLayer = std::vector<LayerNode>;
@@ -50,15 +52,27 @@ using TopologicalSequence = std::vector<SequenceLayer>;
 /**
 * @class QProgDAG
 * @ingroup Utilities
-* @brief transform QProg to DAG
+* @brief transform QProg to DAG(directed acyclic graph)
 * @note
 */
 class QProgDAG
 {
 public:
+	struct NodeInfo
+	{
+		NodeInfo(const NodeIter itr)
+			:m_itr(itr), m_dagger(false)
+		{}
+
+		NodeIter m_itr;
+		bool m_dagger;
+		QVec m_qubits_vec;
+		QVec m_control_vec;
+	};
+	using vertices_map = std::map<size_t, NodeInfo>;
     std::vector<size_t> m_qubit_vec;
 
-    QProgDAG() {}
+	QProgDAG() {}
 
     /**
     * @brief  get TopologincalSequence
@@ -67,12 +81,19 @@ public:
     */
     void getTopologincalSequence(TopologicalSequence &);
 
+	/**
+	* @brief  add vertex
+	* @param[in]  node  quantum node
+	* @return     size_t vertex num
+	*/
+	size_t add_vertex(std::shared_ptr<QNode> node);
+
     /**
     * @brief  add vertex
-    * @param[in]  const NodeIter & iter
+    * @param[in]  node_info 
     * @return     size_t vertex num
     */
-    size_t add_vertex(const NodeIter& iter);
+    size_t add_vertex(const NodeInfo& node_info);
 
     /**
     * @brief  add edge
@@ -84,8 +105,8 @@ public:
     
     /**
     * @brief  get adjacency_matrix
-    * @param[in]  const vertices_map &
-    * @param[out]  AdjacencyMatrix &
+    * @param[in]   vertices_map&
+    * @param[out]  AdjacencyMatrix&
     * @return     void
     */
     void get_adjacency_matrix(const vertices_map &, AdjacencyMatrix &);
@@ -110,13 +131,6 @@ public:
 	* @return     QPanda::NodeIter
 	*/
 	NodeIter get_vertex_nodeIter(size_t) const;
-
-    /**
-    * @brief  add vertex
-    * @param[in]  QNode * qnode
-    * @return     size_t vertex num
-    */
-    size_t add_vertex(std::shared_ptr<QNode> node);
 
     /**
     * @brief  add qubit map

@@ -60,7 +60,7 @@ QRunesToQProg::QRunesToQProg()
     m_doubleAngleGateFunc.insert(make_pair("CR", CR));
 }
 
-size_t  QRunesToQProg::handleDaggerCircuit(QNode *qNode, size_t pos)
+size_t  QRunesToQProg::handleDaggerCircuit(std::shared_ptr<QNode> qNode, size_t pos)
 {
     size_t cir_size{ 0 }, increment{ 0 };
     auto qCircuit = CreateEmptyCircuit();
@@ -70,7 +70,7 @@ size_t  QRunesToQProg::handleDaggerCircuit(QNode *qNode, size_t pos)
 
     for (; end_sign != "ENDDAGGER" && pos < m_QRunes.size();)
     {
-        increment = traversalQRunes(pos, dynamic_cast<QNode *>(qCircuit.getImplementationPtr().get()));
+        increment = traversalQRunes(pos, dynamic_pointer_cast<QNode>(qCircuit.getImplementationPtr()));
         pos += increment;
         cir_size += increment;
 
@@ -80,27 +80,29 @@ size_t  QRunesToQProg::handleDaggerCircuit(QNode *qNode, size_t pos)
 
     if (PROG_NODE == qNode->getNodeType())
     {
-        QProg *qProg = dynamic_cast<QProg*>(qNode);
-        if (nullptr == qProg)
+        auto abstract_prog = dynamic_pointer_cast<AbstractQuantumProgram>(qNode);
+        if (nullptr == abstract_prog)
         {
             QCERR(" Error");
             throw invalid_argument("error");
         }
 
         qCircuit.setDagger(true);
-        (*qProg) << qCircuit;
+        QProg prog = QProg(abstract_prog);
+        prog << qCircuit;
     }
     else if (CIRCUIT_NODE == qNode->getNodeType())
     {
-        QCircuit *qCir = dynamic_cast<QCircuit*>(qNode);
-        if (nullptr == qCir)
+        auto  abstract_cir = dynamic_pointer_cast<AbstractQuantumCircuit>(qNode);
+        if (nullptr == abstract_cir)
         {
             QCERR("Error");
             throw invalid_argument("error");
         }
 
         qCircuit.setDagger(true);
-        (*qCir) << qCircuit;
+        QCircuit cir = QCircuit(abstract_cir);
+        cir << qCircuit;
     }
     else
     {
@@ -111,7 +113,7 @@ size_t  QRunesToQProg::handleDaggerCircuit(QNode *qNode, size_t pos)
     return cir_size + 2;
 }
 
-size_t  QRunesToQProg::handleControlCircuit(QNode *qNode, size_t pos)
+size_t  QRunesToQProg::handleControlCircuit(std::shared_ptr<QNode> qNode, size_t pos)
 {
     QVec ctr_qbits;
     QCircuit qCircuit = QCircuit();
@@ -126,30 +128,32 @@ size_t  QRunesToQProg::handleControlCircuit(QNode *qNode, size_t pos)
     size_t cir_size{ 0 }, increment{ 0 };
     for (; m_QRunes[pos] != end_sign && pos < m_QRunes.size();)
     {
-        increment = traversalQRunes(pos, dynamic_cast<QNode *>(qCircuit.getImplementationPtr().get()));
+        increment = traversalQRunes(pos, dynamic_pointer_cast<QNode>(qCircuit.getImplementationPtr()));
         pos += increment;
         cir_size += increment;
     }
 
     if (PROG_NODE == qNode->getNodeType())
     {
-        QProg *qProg = dynamic_cast<QProg*>(qNode);
-        if (nullptr == qProg)
+        auto abstract_prog = dynamic_pointer_cast<AbstractQuantumProgram>(qNode);
+        if (nullptr == abstract_prog)
         {
             QCERR("Error");
             throw invalid_argument("error");
         }
-        (*qProg) << qCircuit.control(ctr_qbits);
+        QProg prog = QProg(abstract_prog);
+        prog << qCircuit.control(ctr_qbits);
     }
     else if (CIRCUIT_NODE == qNode->getNodeType())
     {
-        QCircuit *qCir = dynamic_cast<QCircuit*>(qNode);
-        if (nullptr == qCir)
+        auto  abstract_cir = dynamic_pointer_cast<AbstractQuantumCircuit>(qNode);
+        if (nullptr == abstract_cir)
         {
             QCERR("Error");
             throw invalid_argument("error");
         }
-        (*qCir) << qCircuit.control(ctr_qbits);
+        QCircuit cir = QCircuit(abstract_cir);
+        cir << qCircuit.control(ctr_qbits);
     }
     else
     {
@@ -160,7 +164,7 @@ size_t  QRunesToQProg::handleControlCircuit(QNode *qNode, size_t pos)
     return cir_size + 2;
 }
 
-size_t  QRunesToQProg::handleSingleGate(QNode *qNode)
+size_t  QRunesToQProg::handleSingleGate(std::shared_ptr<QNode> qNode)
 {
     auto iter = m_singleGateFunc.find(m_QRunes_value[0]);
     if (m_singleGateFunc.end() == iter)
@@ -172,25 +176,26 @@ size_t  QRunesToQProg::handleSingleGate(QNode *qNode)
     {
         if (CIRCUIT_NODE == qNode->getNodeType())
         {
-            QCircuit * qCir = dynamic_cast<QCircuit*>(qNode);
-            if (nullptr == qCir)
+            auto  abstract_cir = dynamic_pointer_cast<AbstractQuantumCircuit>(qNode);
+            if (nullptr == abstract_cir)
             {
                 QCERR("CircuitError");
                 throw invalid_argument("CircuitError");
             }
-            (*qCir) << iter->second(
+            QCircuit cir = QCircuit(abstract_cir);
+            cir << iter->second(
                 qvm->allocateQubitThroughPhyAddress(stoi(m_QRunes_value[1])));
         }
         else if (PROG_NODE == qNode->getNodeType())
         {
-            QProg * qProg = dynamic_cast<QProg*>(qNode);
-            if (nullptr == qProg)
+            auto abstract_prog = dynamic_pointer_cast<AbstractQuantumProgram>(qNode);
+            if (nullptr == abstract_prog)
             {
                 QCERR("QProgError");
                 throw invalid_argument("QProgError");
             }
-
-            (*qProg) << iter->second(
+            QProg prog = QProg(abstract_prog);
+            prog << iter->second(
                 qvm->allocateQubitThroughPhyAddress(stoi(m_QRunes_value[1])));
         }
         else
@@ -203,7 +208,7 @@ size_t  QRunesToQProg::handleSingleGate(QNode *qNode)
     }
 }
 
-size_t  QRunesToQProg::handleDoubleGate(QNode *qNode)
+size_t  QRunesToQProg::handleDoubleGate(std::shared_ptr<QNode> qNode)
 {
     auto iter = m_doubleGateFunc.find(m_QRunes_value[0]);
     if (m_doubleGateFunc.end() == iter)
@@ -215,27 +220,27 @@ size_t  QRunesToQProg::handleDoubleGate(QNode *qNode)
     {
         if (CIRCUIT_NODE == qNode->getNodeType())
         {
-            QCircuit * qCir = dynamic_cast<QCircuit*>(qNode);
-            if (nullptr == qCir)
+            auto  abstract_cir = dynamic_pointer_cast<AbstractQuantumCircuit>(qNode);
+            if (nullptr == abstract_cir)
             {
                 QCERR("error");
                 throw invalid_argument("error");
             }
-
-            (*qCir) << iter->second(
+            QCircuit cir = QCircuit(abstract_cir);
+            cir << iter->second(
                 qvm->allocateQubitThroughPhyAddress(stoi(m_QRunes_value[1])),
                 qvm->allocateQubitThroughPhyAddress(stoi(m_QRunes_value[2])));
         }
         else if (PROG_NODE == qNode->getNodeType())
         {
-            QProg * qProg = dynamic_cast<QProg*>(qNode);
-            if (nullptr == qProg)
+            auto abstract_prog = dynamic_pointer_cast<AbstractQuantumProgram>(qNode);
+            if (nullptr == abstract_prog)
             {
                 QCERR("error");
                 throw invalid_argument("error");
             }
-
-            (*qProg) << iter->second(
+            QProg prog = QProg(abstract_prog);
+            prog << iter->second(
                 qvm->allocateQubitThroughPhyAddress(stoi(m_QRunes_value[1])),
                 qvm->allocateQubitThroughPhyAddress(stoi(m_QRunes_value[2])));
         }
@@ -244,7 +249,7 @@ size_t  QRunesToQProg::handleDoubleGate(QNode *qNode)
     }
 }
 
-size_t  QRunesToQProg::handleDoubleAngleGate(QNode *qNode)
+size_t  QRunesToQProg::handleDoubleAngleGate(std::shared_ptr<QNode> qNode)
 {
     auto iter = m_doubleAngleGateFunc.find(m_QRunes_value[0]);
     if (m_doubleAngleGateFunc.end() == iter)
@@ -256,26 +261,28 @@ size_t  QRunesToQProg::handleDoubleAngleGate(QNode *qNode)
     {
         if (CIRCUIT_NODE == qNode->getNodeType())
         {
-            QCircuit * qCir = dynamic_cast<QCircuit*>(qNode);
-            if (nullptr == qCir)
+            auto  abstract_cir = dynamic_pointer_cast<AbstractQuantumCircuit>(qNode);
+            if (nullptr == abstract_cir)
             {
                 QCERR("error");
                 throw invalid_argument("error");
             }
-            (*qCir) << iter->second(
+            QCircuit cir = QCircuit(abstract_cir);
+            cir << iter->second(
                 qvm->allocateQubitThroughPhyAddress(stoi(m_QRunes_value[1])),
                 qvm->allocateQubitThroughPhyAddress(stoi(m_QRunes_value[2])),
                 stod(m_QRunes_value[3]));
         }
         else if (PROG_NODE == qNode->getNodeType())
         {
-            QProg * qProg = dynamic_cast<QProg*>(qNode);
-            if (nullptr == qProg)
+            auto abstract_prog = dynamic_pointer_cast<AbstractQuantumProgram>(qNode);
+            if (nullptr == abstract_prog)
             {
                 QCERR("error");
                 throw invalid_argument("error");
             }
-            (*qProg) << iter->second(
+            QProg prog = QProg(abstract_prog);
+            prog << iter->second(
                 qvm->allocateQubitThroughPhyAddress(stoi(m_QRunes_value[1])),
                 qvm->allocateQubitThroughPhyAddress(stoi(m_QRunes_value[2])),
                 stod(m_QRunes_value[3]));
@@ -284,7 +291,7 @@ size_t  QRunesToQProg::handleDoubleAngleGate(QNode *qNode)
     }
 }
 
-size_t  QRunesToQProg::handleAngleGate(QNode *qNode)
+size_t  QRunesToQProg::handleAngleGate(std::shared_ptr<QNode> qNode)
 {
     auto iter = m_angleGateFunc.find(m_QRunes_value[0]);
     if (m_angleGateFunc.end() == iter)
@@ -296,26 +303,27 @@ size_t  QRunesToQProg::handleAngleGate(QNode *qNode)
     {
         if (CIRCUIT_NODE == qNode->getNodeType())
         {
-            QCircuit * qCir = dynamic_cast<QCircuit*>(qNode);
-            if (nullptr == qCir)
+            auto  abstract_cir = dynamic_pointer_cast<AbstractQuantumCircuit>(qNode);
+            if (nullptr == abstract_cir)
             {
                 QCERR("Error");
                 throw invalid_argument("error");
             }
-
-            (*qCir) << iter->second(
+            QCircuit cir = QCircuit(abstract_cir);
+            cir << iter->second(
                 qvm->allocateQubitThroughPhyAddress(stoi(m_QRunes_value[1])),
                 stod(m_QRunes_value[2]));
         }
         else if (PROG_NODE == qNode->getNodeType())
         {
-            QProg * qProg = dynamic_cast<QProg*>(qNode);
-            if (nullptr == qProg)
+            auto abstract_prog = dynamic_pointer_cast<AbstractQuantumProgram>(qNode);
+            if (nullptr == abstract_prog)
             {
                 QCERR("Formal Error");
                 throw invalid_argument("error");
             }
-            (*qProg) << iter->second(
+            QProg prog = QProg(abstract_prog);
+            prog << iter->second(
                 qvm->allocateQubitThroughPhyAddress(stoi(m_QRunes_value[1])),
                 stod(m_QRunes_value[2]));
         }
@@ -324,7 +332,7 @@ size_t  QRunesToQProg::handleAngleGate(QNode *qNode)
     }
 }
 
-size_t  QRunesToQProg::handleMeasureGate(QNode *qNode)
+size_t  QRunesToQProg::handleMeasureGate(std::shared_ptr<QNode> qNode)
 {
     if (nullptr == qNode || PROG_NODE != qNode->getNodeType())
     {
@@ -333,9 +341,15 @@ size_t  QRunesToQProg::handleMeasureGate(QNode *qNode)
     }
     else
     {
-        QProg * qProg = dynamic_cast<QProg*>(qNode);
+        auto abstract_prog = dynamic_pointer_cast<AbstractQuantumProgram>(qNode);
+        if (nullptr == abstract_prog)
+        {
+            QCERR("Formal Error");
+            throw invalid_argument("error");
+        }
         m_cbit_vec.emplace_back(qvm->allocateCBit(stoi(m_QRunes_value[2])));
-        *qProg << Measure(
+        QProg prog = QProg(abstract_prog);
+        prog << Measure(
             qvm->allocateQubitThroughPhyAddress(stoi(m_QRunes_value[1])),
             m_cbit_vec.back());
 
@@ -343,7 +357,7 @@ size_t  QRunesToQProg::handleMeasureGate(QNode *qNode)
     }
 }
 
-size_t  QRunesToQProg::traversalQRunes(size_t pos, QNode *qNode)
+size_t  QRunesToQProg::traversalQRunes(size_t pos, std::shared_ptr<QNode> qNode)
 {
     if (nullptr == qNode)
     {
@@ -405,7 +419,7 @@ size_t  QRunesToQProg::traversalQRunes(size_t pos, QNode *qNode)
     }
 }
 
-size_t QRunesToQProg::handleToffoliGate(QNode* qNode)
+size_t QRunesToQProg::handleToffoliGate(std::shared_ptr<QNode> qNode)
 {
     auto Toffoli = X(qvm->allocateQubitThroughPhyAddress(stoi(m_QRunes_value[3])));
     Toffoli.setControl({ { qvm->allocateQubitThroughPhyAddress(stoi(m_QRunes_value[1])) ,
@@ -413,25 +427,25 @@ size_t QRunesToQProg::handleToffoliGate(QNode* qNode)
 
     if (CIRCUIT_NODE == qNode->getNodeType())
     {
-        QCircuit * qCir = dynamic_cast<QCircuit*>(qNode);
-        if (nullptr == qCir)
+        auto  abstract_cir = dynamic_pointer_cast<AbstractQuantumCircuit>(qNode);
+        if (nullptr == abstract_cir)
         {
             QCERR("CircuitError");
             throw invalid_argument("CircuitError");
         }
-
-        (*qCir) << Toffoli;
+        QCircuit cir = QCircuit(abstract_cir);
+        cir << Toffoli;
     }
     else if (PROG_NODE == qNode->getNodeType())
     {
-        QProg * qProg = dynamic_cast<QProg*>(qNode);
-        if (nullptr == qProg)
+        auto abstract_prog = dynamic_pointer_cast<AbstractQuantumProgram>(qNode);
+        if (nullptr == abstract_prog)
         {
             QCERR("QProgError");
             throw invalid_argument("QProgError");
         }
-
-        (*qProg) << Toffoli;
+        QProg prog = QProg(abstract_prog);
+        prog << Toffoli;
     }
     else
     {
@@ -498,7 +512,11 @@ void QRunesToQProg::qRunesParser(std::string sFilePath, QProg& prog, QuantumMach
 
         for (size_t pos = 2; pos < m_QRunes.size();)
         {
-            pos += traversalQRunes(pos, dynamic_cast<QNode *>(prog.getImplementationPtr().get()));
+            //auto qnode = dynamic_pointer_cast<QNode>(prog.getImplementationPtr());
+
+            //auto abs_prog = dynamic_pointer_cast<AbstractQuantumProgram>(qnode);
+            //QProg prog(abs_prog);
+            pos += traversalQRunes(pos, dynamic_pointer_cast<QNode>(prog.getImplementationPtr()));
         }
     }
 }

@@ -30,7 +30,6 @@ class GraphMatch
 public:
     /**
     * @brief  get topological sequence
-    * @ingroup Utilities
     * @param[in]  _Ty & node
     * @param[out]  TopologicalSequence & seq
     * @param[in]  GraphType graph_type

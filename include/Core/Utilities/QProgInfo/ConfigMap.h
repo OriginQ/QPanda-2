@@ -7,8 +7,12 @@
 
 QPANDA_BEGIN
 
-
 typedef std::pair<std::string, std::string> CONFIGPAIR;
+
+/**
+* @brief Configuration Map
+* @ingroup Utilities
+*/
 class ConfigMap
 {
 public:

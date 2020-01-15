@@ -128,10 +128,6 @@ QASMToQProg::QASMToQProg(QuantumMachine* qvm)
 
 QASMToQProg::~QASMToQProg()
 {
-	for (auto exp : m_need_delete_exp)
-	{
-		delete exp;
-	}
 }
 
 antlrcpp::Any QASMToQProg::visitMainprogram(qasmParser::MainprogramContext *ctx)
@@ -240,6 +236,19 @@ antlrcpp::Any QASMToQProg::visitIf_decl(qasmParser::If_declContext *ctx)
 	}
 	else if (qop_childen_size == 3) //reset
 	{
+		RegParamInfo q_reg_info = visit(ctx->qop()->argument(0));
+		QVec qv = find_qvec_map_value(q_reg_info.reg_name);
+		if (-1 == q_reg_info.reg_index)   // reset q
+		{
+			for (int i = 0; i < qv.size(); i++)
+			{
+				m_build_qprog << Reset(qv[i]);
+			}
+		}
+		else  // reset q[1]
+		{
+			m_build_qprog << Reset(qv[q_reg_info.reg_index]);
+		}
 	}
 	else  //uop
 	{
@@ -353,6 +362,19 @@ antlrcpp::Any QASMToQProg::visitQop(qasmParser::QopContext *ctx)
 	}
 	else if (3 == childen_size) //reset
 	{
+		RegParamInfo q_reg_info = visit(ctx->argument(0));
+		QVec qv = find_qvec_map_value(q_reg_info.reg_name);
+		if (-1 == q_reg_info.reg_index)   // reset q
+		{
+			for (int i = 0; i < qv.size(); i++)
+			{
+				m_build_qprog << Reset(qv[i]);
+			}
+		}
+		else  // reset q[1]
+		{
+			m_build_qprog << Reset(qv[q_reg_info.reg_index]);
+		}
 	}
 	else  //uop
 	{
@@ -381,7 +403,7 @@ antlrcpp::Any QASMToQProg::visitUop(qasmParser::UopContext *ctx)
 
 	if (ctx->explist())
 	{
-		std::vector<Exp *> angle_vec = visit(ctx->explist());
+		std::vector<std::shared_ptr<Exp>> angle_vec = visit(ctx->explist());
 		op_info.angles_vec = angle_vec;
 	}
 
@@ -464,12 +486,11 @@ antlrcpp::Any QASMToQProg::visitId_index(qasmParser::Id_indexContext *ctx)
 
 antlrcpp::Any QASMToQProg::visitExplist(qasmParser::ExplistContext *ctx)
 {
-	std::vector<Exp *>angel_params_vec;
+	std::vector<std::shared_ptr<Exp>>angel_params_vec;
 	for (auto exp_ctx : ctx->exp())
 	{
-		Exp *exp = visit(exp_ctx);
-		angel_params_vec.push_back(exp);
-		m_need_delete_exp.push_back(exp);
+		std::shared_ptr<Exp> exp_ptr = visit(exp_ctx);
+		angel_params_vec.push_back(exp_ptr);
 	}
 
 	return angel_params_vec;
@@ -478,31 +499,28 @@ antlrcpp::Any QASMToQProg::visitExplist(qasmParser::ExplistContext *ctx)
 
 antlrcpp::Any QASMToQProg::visitExp(qasmParser::ExpContext *ctx)
 {
+	std::shared_ptr<Exp> exp_ptr;
 	int children_size = ctx->children.size();
 	if (1 == children_size)
 	{
 		if (ctx->id())
 		{
 			string id = ctx->id()->getText();
-			Exp *exp = new Exp(id);
-			return exp;
+			exp_ptr = Exp(id).clone();
 		}
-		if (ctx->PI_KEY())
+		else if (ctx->PI_KEY())
 		{
-			Exp *exp = new Exp(double(PI));
-			return exp;
+			exp_ptr =  Exp(double(PI)).clone();
 		}
 		else if (ctx->decimal())
 		{
 			double val = visit(ctx->decimal());
-			Exp *exp = new Exp(val);
-			return exp;
+			exp_ptr =  Exp(val).clone();
 		}
 		else if (ctx->integer())
 		{
 			int val = visit(ctx->integer());
-			Exp *exp = new Exp((double)val);
-			return exp;
+			exp_ptr =  Exp((double)val).clone();
 		}
 		else
 		{
@@ -512,26 +530,31 @@ antlrcpp::Any QASMToQProg::visitExp(qasmParser::ExpContext *ctx)
 	}
 	else if (2 == children_size)  // -exp
 	{
-		Exp *left_exp = new Exp(double(0));
+		std::shared_ptr<Exp> left_exp_ptr  = Exp(double(0)).clone();
 		string op_type = ctx->children[0]->getText();
-		Exp *right_exp = visit(ctx->children[1]);
-		Exp *exp = new Exp(left_exp, right_exp, op_type);
-		return exp;
+		std::shared_ptr<Exp> right_exp_ptr = visit(ctx->children[1]);
+
+		exp_ptr =  Exp(left_exp_ptr, right_exp_ptr, op_type).clone();
 	}
 	else if (3 == children_size)  // exp + - * / exp   ¡¢   (  exp ) 
 	{
 		if (ctx->LPAREN() && ctx->RPAREN())
 		{
-			Exp *exp = visit(ctx->children[1]);
-			return exp;
+			return visit(ctx->children[1]);
 		}
-		Exp *left_exp = visit(ctx->children[0]);
+		std::shared_ptr<Exp> left_exp_ptr = visit(ctx->children[0]);
 		string op_type = ctx->children[1]->getText(); //    + - * /
-		Exp *right_exp = visit(ctx->children[2]);
+		std::shared_ptr<Exp> right_exp_ptr = visit(ctx->children[2]);
 
-		Exp *exp = new Exp(left_exp, right_exp, op_type);
-		return exp;
+		exp_ptr = Exp(left_exp_ptr, right_exp_ptr, op_type).clone();
 	}
+	else
+	{
+		QCERR("error!");
+		throw runtime_error("error!");
+	}
+
+	return exp_ptr;
 }
 
 antlrcpp::Any QASMToQProg::visitId(qasmParser::IdContext *ctx)

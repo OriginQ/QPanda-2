@@ -3,8 +3,9 @@
 
 USING_QPANDA
 
-QProgFlattening::QProgFlattening()
+QProgFlattening::QProgFlattening(bool is_full_faltten)
 {
+	m_full_flatten = is_full_faltten;
 }
 
 QProgFlattening::~QProgFlattening()
@@ -30,7 +31,14 @@ void QProgFlattening::execute(std::shared_ptr<AbstractQGateNode>  cur_node, std:
 		deep_copy_qgate.setControl(get_two_qvec_union(curnode_qv_ctrl, parent_qv_ctrl));
 		deep_copy_qgate.setDagger(is_dagger);
 
-		circuit.pushBackNode(std::dynamic_pointer_cast<QNode>(deep_copy_qgate.getImplementationPtr()));
+		if (m_full_flatten == true)
+		{
+			prog.pushBackNode(std::dynamic_pointer_cast<QNode>(deep_copy_qgate.getImplementationPtr()));
+		}
+		else
+		{
+			circuit.pushBackNode(std::dynamic_pointer_cast<QNode>(deep_copy_qgate.getImplementationPtr()));
+		}
 	}
 	else if (type == NodeType::PROG_NODE)
 	{
@@ -53,6 +61,18 @@ void QProgFlattening::execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, 
 	}
 	prog.pushBackNode(std::dynamic_pointer_cast<QNode>(cur_node));
 }
+
+void QProgFlattening::execute(std::shared_ptr<AbstractQuantumReset> cur_node, std::shared_ptr<QNode> parent_node, QProg &prog, QCircuit &circuit)
+{
+	auto type = parent_node->getNodeType();
+	if (type != NodeType::PROG_NODE)
+	{
+		QCERR("node error");
+		throw std::invalid_argument("node error");
+	}
+	prog.pushBackNode(std::dynamic_pointer_cast<QNode>(cur_node));
+}
+
 
 void QProgFlattening::execute(std::shared_ptr<AbstractClassicalProg>  cur_node, std::shared_ptr<QNode> parent_node, QProg &prog, QCircuit &circuit)
 {
@@ -149,30 +169,41 @@ void QProgFlattening::execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, 
 			parent_abstract_circuit->getControlVector(qv_ctrl);
 			is_dagger = cur_node->isDagger() ^ parent_abstract_circuit->isDagger();
 
-			cur_node->setControl(qv_ctrl);
-			cur_node->setDagger(is_dagger);
+			QCircuit cur_node_cir = QCircuit(cur_node);
+			QCircuit deep_copy_cir = deepCopy(cur_node_cir);
+			auto new_cir_node = deep_copy_cir.getImplementationPtr();
+			new_cir_node->setControl(qv_ctrl);
+			new_cir_node->setDagger(is_dagger);
 
-			Traversal::traversal(cur_node, is_dagger, *this, prog, circuit);
+			Traversal::traversal(new_cir_node, is_dagger, *this, prog, circuit);
 		}
 		else 	if (parent_node->getNodeType() == NodeType::PROG_NODE)
 		{
-			cur_node->getControlVector(qv_ctrl);
-			is_dagger = cur_node->isDagger();
+			if (m_full_flatten == true)
+			{
+				bool is_dagger = cur_node->isDagger() ^ identify_dagger;
+				Traversal::traversal(cur_node, is_dagger, *this, prog, circuit);
+			}
+			else
+			{
+				cur_node->getControlVector(qv_ctrl);
+				is_dagger = cur_node->isDagger();
 
-			//not flatten  first circuit 
-			QCircuit cur_node_cir = QCircuit(cur_node);
-			QCircuit deep_copy_cir = deepCopy(cur_node_cir);
-			auto new_abstract_circuit = deep_copy_cir.getImplementationPtr();
-			new_abstract_circuit->clearControl();
-			new_abstract_circuit->setDagger(false);
+				//not flatten  first circuit 
+				QCircuit cur_node_cir = QCircuit(cur_node);
+				QCircuit deep_copy_cir = deepCopy(cur_node_cir);
+				auto new_abstract_circuit = deep_copy_cir.getImplementationPtr();
+				new_abstract_circuit->clearControl();
+				new_abstract_circuit->setDagger(false);
 
-			QCircuit new_out_circuit;
-			Traversal::traversal(new_abstract_circuit, identify_dagger, *this, prog, new_out_circuit);
+				QCircuit new_out_circuit;
+				Traversal::traversal(new_abstract_circuit, identify_dagger, *this, prog, new_out_circuit);
 
-			new_out_circuit.setDagger(is_dagger);
-			new_out_circuit.setControl(qv_ctrl);
+				new_out_circuit.setDagger(is_dagger);
+				new_out_circuit.setControl(qv_ctrl);
 
-			prog.pushBackNode(std::dynamic_pointer_cast<QNode>(new_out_circuit.getImplementationPtr()));
+				prog.pushBackNode(std::dynamic_pointer_cast<QNode>(new_out_circuit.getImplementationPtr()));
+			}
 		}
 		else
 		{
@@ -255,6 +286,14 @@ void QPanda::flatten(QCircuit &circuit)
 	circuit = out_circuit;
 }
 
+void QPanda::full_flatten(QProg &prog)
+{
+	QCircuit out_circuit;
+	QProg out_prog;
+	QProgFlattening flatten_qprog(true);
+	flatten_qprog.flatten_by_type(std::dynamic_pointer_cast<QNode>(prog.getImplementationPtr()), out_prog, out_circuit);
+	prog = out_prog;
+}
 
 
 

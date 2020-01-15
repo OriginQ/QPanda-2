@@ -25,15 +25,11 @@ limitations under the License.
 #include "Core/VirtualQuantumProcessor/NoiseQPU/NoiseModel.h"  
 #include <map>
 QPANDA_BEGIN
-/**
-* @namespace QPanda
-*/
 
 /**
-* @defgroup QuantumMachine
-* @brief    QPanda2 quantum virtual machine
+* @brief Implementation  class of  PhysicalQubit
+* @ingroup QuantumMachine
 */
-
 class OriginPhysicalQubit : public PhysicalQubit
 {
 private:
@@ -47,6 +43,10 @@ public:
     void setOccupancy(bool);
 };
 
+/**
+* @brief Implementation  class of Qubit
+* @ingroup QuantumMachine
+*/
 class OriginQubit : public Qubit
 {
 private:
@@ -71,9 +71,12 @@ public:
     }
 };
 
+/**
+* @brief Implementation  class of QubitPool
+* @ingroup QuantumMachine
+*/
 class OriginQubitPool : public QubitPool
 {
-    // implementation of the QubitPool
 private:
     std::vector<PhysicalQubit*> vecQubit;
 
@@ -93,6 +96,10 @@ public:
     ~OriginQubitPool();
 };
 
+/**
+* @brief Implementation  class of QubitPool
+* @ingroup QuantumMachine
+*/
 class OriginQubitPoolv2 : public QubitPool
 {
 private:
@@ -115,6 +122,10 @@ public:
 	~OriginQubitPoolv2();
 };
 
+/**
+* @brief Implementation  class of CBit
+* @ingroup QuantumMachine
+*/
 class OriginCBit : public CBit
 {
     std::string name;
@@ -135,6 +146,10 @@ public:
     void setValue(const cbit_size_t value) noexcept { m_value = value; };
 };
 
+/**
+* @brief Implementation  class of CMem
+* @ingroup QuantumMachine
+*/
 class OriginCMem : public CMem
 {
     std::vector<CBit*> vecBit;
@@ -152,6 +167,10 @@ public:
     ~OriginCMem();
 };
 
+/**
+* @brief Implementation  class of QResult
+* @ingroup QuantumMachine
+*/
 class OriginQResult : public QResult
 {
 private:
@@ -168,6 +187,10 @@ public:
     ~OriginQResult() {}
 };
 
+/**
+* @brief Implementation  class of QMachineStatus
+* @ingroup QuantumMachine
+*/
 class OriginQMachineStatus : public QMachineStatus
 {
 private:
@@ -185,6 +208,7 @@ public:
         iStatus = miStatus;
     }
 };
+
 
 class QVM : public QuantumMachine
 {
@@ -321,7 +345,6 @@ public:
 	* @param[in]  GateType  quantum gate type 
 	* @param[in]  std::vector<double>   params vector,  the number of parameters is determined by model type
 	* @return    void
-	* @exception  runtime_error
 	* @note  	 
 	*		Model type                                         :   Number of parameters
 	*		DAMPING_KRAUS_OPERATOR			:    1 

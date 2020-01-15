@@ -20,10 +20,10 @@ Classes for tranform gate type enum and std::string
 
 QPANDA_BEGIN
 
-/*
-Classes for tranform gate type enum and std::string
+/**
+* @brief Classes for tranform gate type  and gate name
+* @ingroup Utilities
 */
-
 class TransformQGateType
 {
 public:

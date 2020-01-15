@@ -109,6 +109,11 @@ DECL_ANGLE_GATE_MATRIX(RX_GATE)
 DECL_ANGLE_GATE_MATRIX(RY_GATE)
 DECL_ANGLE_GATE_MATRIX(RZ_GATE)
 
+
+/**
+* @brief QPU implementation by  CPU model
+* @ingroup VirtualQuantumProcessor
+*/
 class CPUImplQPU : public QPUImpl
 {
 public:

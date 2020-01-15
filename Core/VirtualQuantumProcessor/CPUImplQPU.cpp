@@ -785,13 +785,22 @@ QError CPUImplQPU::Reset(size_t qn)
     size_t ststep = 1ull << (find(qgroup.qVec.begin(), qgroup.qVec.end(), qn)
         - qgroup.qVec.begin());
     //#pragma omp parallel for private(j,alpha,beta)
+	double dsum = 0;
     for (size_t i = 0; i < qgroup.qstate.size(); i += ststep * 2)
     {
         for (j = i; j<i + ststep; j++)
         {
             qgroup.qstate[j + ststep] = 0;                              /* in j+ststep,the goal qubit is in |1> */
+			dsum += (abs(qgroup.qstate[j])*abs(qgroup.qstate[j]) + abs(qgroup.qstate[j + ststep])*abs(qgroup.qstate[j + ststep]));
         }
     }
+
+	dsum = sqrt(dsum);
+	for (size_t i = 0; i < qgroup.qstate.size(); i++)
+	{
+		qgroup.qstate[i] /= dsum;
+	}
+
     return qErrorNone;
 }
 

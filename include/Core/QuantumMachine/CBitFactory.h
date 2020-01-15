@@ -25,13 +25,42 @@ limitations under the License.
 QPANDA_BEGIN
 
 typedef long long cbit_size_t;
+
+/**
+* @brief CBit abstract class
+* @ingroup QuantumMachine
+*/
 class CBit
 {
 public:
-    virtual bool getOccupancy() const = 0; // get the occupancy status of this bit
+	/**
+     * @brief get the occupancy status of this bit
+	 * @return bool ture: occupancy
+     */
+    virtual bool getOccupancy() const = 0; 
+	
+	/**
+     * @brief get the name of this bit
+	 * @return std::string
+     */
     virtual std::string getName() const = 0;
+
+	/**
+     * @brief set the occupancy status of this bit
+	 * @param[in] bool  occupancy status
+     */
     virtual void setOccupancy(bool) = 0;
+
+	/**
+	 * @brief get the value of this bit
+	 * @return cbit_size_t
+	 */
     virtual cbit_size_t getValue() const noexcept = 0;
+	
+	/**
+     * @brief set the value of this bit
+	 * @param[in] cbit_size_t  value
+     */
     virtual void setValue(const cbit_size_t) noexcept = 0;
     virtual ~CBit() {}
 };
@@ -46,11 +75,19 @@ static CBitFactoryHelper _CBit_Factory_Helper_##classname(\
     classname##_Constructor\
 )
 
-/* CBit Factory */
+
+/**
+ * @brief Factory for class CBit
+ * @ingroup QuantumMachine
+ */
 class CBitFactory
 {
     CBitFactory();
 public:
+	/**
+     * @brief Get the static instance of factory 
+	 * @return CBitFactory &
+     */
     static CBitFactory & GetFactoryInstance();
     typedef std::function<CBit*(std::string)> name_constructor_t;
     typedef std::map<std::string, name_constructor_t> name_constructor_stack_t;
@@ -59,6 +96,12 @@ public:
     CBit* CreateCBitFromName(std::string);
 };
 
+
+/**
+ * @brief CBit factory helper
+ * Provide CBitFactory class registration interface for the outside
+ * @ingroup QuantumMachine
+ */
 class CBitFactoryHelper
 {
     typedef CBitFactory::name_constructor_t

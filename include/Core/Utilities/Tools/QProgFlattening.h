@@ -27,9 +27,6 @@ limitations under the License.
 #include "Core/QuantumCircuit/QNodeDeepCopy.h"
 
 QPANDA_BEGIN
-/**
-* @namespace QPanda
-*/
 
 struct QubitPointerCmp
 {
@@ -44,17 +41,18 @@ struct QubitPointerCmp
 * @ingroup Utilities
 * @brief flatten quantum program and quantum circuit
 */
-
 class QProgFlattening : public TraversalInterface< QProg &, QCircuit & >
 {
 public:
 
-	QProgFlattening();
+	QProgFlattening(bool is_full_faltten = false);
 	~QProgFlattening();
 
 	virtual void execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node, QProg &prog, QCircuit &circuit);
 
 	virtual void execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, std::shared_ptr<QNode> parent_node, QProg &prog, QCircuit &circuit);
+
+	virtual void execute(std::shared_ptr<AbstractQuantumReset> cur_node, std::shared_ptr<QNode> parent_node, QProg &prog, QCircuit &circuit);
 
 	virtual void execute(std::shared_ptr<AbstractClassicalProg>  cur_node, std::shared_ptr<QNode> parent_node, QProg &prog, QCircuit &circuit);
 
@@ -63,19 +61,20 @@ public:
 	virtual void execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std::shared_ptr<QNode> parent_node, QProg &prog, QCircuit &circuit);
 
 	virtual void execute(std::shared_ptr<AbstractQuantumProgram>  cur_node, std::shared_ptr<QNode> parent_node, QProg &prog, QCircuit &circuit);
-
+	
 	void flatten_by_type(std::shared_ptr<QNode> node, QProg &out_prog, QCircuit &out_circuit);
 
 	QVec get_two_qvec_union(QVec qv_1, QVec qv_2);
+
+private:
+	bool m_full_flatten; 
 };
 
 /**
 * @brief Flatten Quantum Program
 * @ingroup Utilities
-* @param[in|out]  QProg&	  quantum program
+* @param[in,out]  QProg&	  quantum program
 * @return    void
-* @exception  invalid_argument
-* @note
 */
 void flatten(QProg &prog);
 
@@ -83,14 +82,18 @@ void flatten(QProg &prog);
 /**
 * @brief Flatten Quantum Circuit
 * @ingroup Utilities
-* @param[in|out]  QCircuit&	  circuit program 
+* @param[in,out]  QCircuit&	  circuit program 
 * @return     void
-* @exception  invalid_argument
-* @note
 */
 void flatten(QCircuit &circuit);
 
-
+/**
+* @brief Full Flatten Quantum Program
+* @ingroup Utilities
+* @param[in,out]  QProg&	  quantum program
+* @return     void
+*/
+void full_flatten(QProg &prog);
 
 QPANDA_END
 #endif // !_QPROGFLATTENING_H

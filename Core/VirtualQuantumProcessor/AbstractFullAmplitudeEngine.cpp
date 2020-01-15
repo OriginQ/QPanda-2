@@ -41,7 +41,16 @@ bool DistributedFullAmplitudeEngine::qubitMeasure(size_t qn)
     return QError::qErrorNone;
 }
 
-
+QError DistributedFullAmplitudeEngine::Reset(size_t qn)
+{
+	if (nullptr == _PQGates)
+	{
+		QCERR("_PQGates is null");
+		throw result_get_fail("_PQGates is null");
+	}
+	_PQGates->reset_qubit_operation(qn);
+	return QError::qErrorNone;
+}
 
 QError DistributedFullAmplitudeEngine::pMeasure(Qnum& qnum, prob_vec &mResult)
 {

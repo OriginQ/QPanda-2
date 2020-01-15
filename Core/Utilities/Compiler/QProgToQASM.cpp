@@ -72,13 +72,11 @@ void QProgToQASM::transform(QProg &prog)
     vector<vector<string>> ValidQGateMatrix(KMETADATA_GATE_TYPE_COUNT, vector<string>(0));
     vector<vector<string>> QGateMatrix(KMETADATA_GATE_TYPE_COUNT, vector<string>(0));
 
-	//���ݺ�����ͼ������˽ṹ
+	//load the topological of the computing backend
 	vector<vector<int>> vAdjacentMatrix;
 	int qubitsNum = 0;
 	string dataElementStr = getIBMQBackendName(_ibmBackend);
 	loadIBMQuantumTopology(string(IBMQ_BACKENDS_CONFIG), dataElementStr, qubitsNum, vAdjacentMatrix);
-
-	//�ж������Ƿ�Ϸ���Qubit��Ŀ�Ƿ�ƥ��
 	if (m_quantum_machine->getAllocateQubit() > qubitsNum)
 	{
 		QCERR("Quantum machine has too many qubits");
@@ -111,7 +109,6 @@ void QProgToQASM::transform(QProg &prog)
         ValidQGateMatrix[MetadataGateType::METADATA_DOUBLE_GATE]);  /* double gate data MetadataValidity */
     TransformDecomposition traversal_vector(ValidQGateMatrix, QGateMatrix, vAdjacentMatrix, m_quantum_machine);
 
-    
     traversal_vector.TraversalOptimizationMerge(prog);
 
 	transformQProgByTraversalAlg(&prog);
@@ -180,7 +177,7 @@ void QProgToQASM::transformQGate(AbstractQGateNode * pQGate,bool is_dagger)
         case PAULI_Z_GATE:
         case HADAMARD_GATE:
 		{
-			//ignore dagger��because dagger is equal to itself
+			//ignore dagger, because dagger is equal to itself
 			sTemp.append(" q[" + tarQubit + "];");
 		}
 		break;
@@ -252,7 +249,6 @@ void QProgToQASM::transformQGate(AbstractQGateNode * pQGate,bool is_dagger)
 
         case CPHASE_GATE: 
             {
-			    //U1(��)�ȼ���PHASE(��)
 				sTemp = "u1";
 				string  gate_angle = to_string((dynamic_cast<AbstractSingleAngleParameter *>(pQGate->getQGate()))->getParameter() * iLabel);
 				sTemp.append("(" + gate_angle + ")");
@@ -266,11 +262,6 @@ void QProgToQASM::transformQGate(AbstractQGateNode * pQGate,bool is_dagger)
 			    auto gate_parameter = dynamic_cast<AbstractAngleParameter *>(pQGate->getQGate());
 				if (dagger)
 				{
-					/*qCircuit << U1(target_qubits[0], -alpha) << RZ(target_qubits[0], -beta)
-						<< RY(target_qubits[0], -gamma / 2) << CNOT(target_qubits[0], target_qubits[1])
-						<< RY(target_qubits[0], gamma / 2) << RZ(target_qubits[0], (delta + beta) / 2)
-						<< CNOT(target_qubits[0], target_qubits[1]) << RZ(target_qubits[0], -(delta - beta) / 2);*/
-
 					snprintf(tmpStr, MAX_PATH, "u1(%f) q[%d];\n"
 						"rz(%f) q[%d];\n"
 						"ry(%f) q[%d];\n"
@@ -290,12 +281,6 @@ void QProgToQASM::transformQGate(AbstractQGateNode * pQGate,bool is_dagger)
 				}
 				else
 				{
-					//QASM_UNSUPPORT_EXCEPTIONAL(sTemp.c_str(), dagger);
-					/*qCircuit << RZ(target_qubits[0], (delta - beta) / 2) << CNOT(target_qubits[0], target_qubits[1])
-						<< RZ(target_qubits[0], -(delta + beta) / 2) << RY(target_qubits[0], -gamma / 2)
-						<< CNOT(target_qubits[0], target_qubits[1]) << RY(target_qubits[0], gamma / 2)
-						<< RZ(target_qubits[0], beta) << U1(target_qubits[0], alpha);*/
-
 					snprintf(tmpStr, MAX_PATH, "rz(%f) [%d];\n"
 						"cx q[%d], q[%d];\n"
 						"rz(%f) q[%d];\n"
@@ -347,6 +332,23 @@ void QProgToQASM::transformQMeasure(AbstractQuantumMeasure *pMeasure)
     m_qasm.emplace_back("measure q[" + tar_qubit + "]" +" -> "+ "c[" + creg_name + "];");
 }
 
+void QProgToQASM::transformQReset(AbstractQuantumReset* pReset)
+{
+	if (nullptr == pReset)
+	{
+		QCERR("pReset is null");
+		throw invalid_argument("pReset is null");
+	}
+	if (nullptr == pReset->getQuBit()->getPhysicalQubitPtr())
+	{
+		QCERR("PhysicalQubitPtr is null");
+		throw invalid_argument("PhysicalQubitPtr is null");
+	}
+
+	std::string tar_qubit = to_string(pReset->getQuBit()->getPhysicalQubitPtr()->getQubitAddr());
+	m_qasm.emplace_back("reset q[" + tar_qubit + "];");
+}
+
 void QProgToQASM::transformQProgByTraversalAlg(QProg *prog)
 {
 	if (nullptr == prog)
@@ -370,6 +372,11 @@ void QProgToQASM::execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, std:
 	transformQMeasure(cur_node.get());
 }
 
+void QProgToQASM::execute(std::shared_ptr<AbstractQuantumReset> cur_node, std::shared_ptr<QNode> parent_node, bool &)
+{
+	transformQReset(cur_node.get());
+}
+
 void QProgToQASM::execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node, bool &)
 {}
 
@@ -386,7 +393,6 @@ void QProgToQASM::execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std:
 
 void QProgToQASM::execute(std::shared_ptr<AbstractClassicalProg>  cur_node, std::shared_ptr<QNode> parent_node, bool&)
 {
-	//�׳��쳣
 	QCERR("transform error, there shouldn't be classicalProg here.");
 	throw invalid_argument("transform error, there shouldn't be classicalProg here.");
 }
@@ -407,7 +413,6 @@ string QProgToQASM::getInsturctions()
 
     for (auto &val : m_qasm)
     {
-		//����OPENQASM�����д
 		if (0 != val.compare(QASM_HEAD))
 		{
 			std::transform(val.begin(), val.end(), val.begin(), ::tolower);

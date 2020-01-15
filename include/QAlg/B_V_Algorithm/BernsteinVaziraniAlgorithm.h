@@ -26,13 +26,14 @@ QPANDA_BEGIN
 using BV_Oracle = Oracle<QVec, Qubit *>;
 
 /**
-* @brief  Deutsch Jozsa algorithm
-* @ingroup QAlg
-* @param[in]  f(x) in different cases
-* @param[in]  Quantum machine ptr
-* @param[in]  Deutsch Jozsa algorithm oracle
+* @brief  Bernstein Vazirani algorithm
+* @ingroup B_V_Algorithm
+* @param[in] std::string Hidden string, is equal of "a" in "f(x)=a*x+b"
+* @param[in] bool is equal of "b" in "f(x)=a*x+b"
+* @param[in] QuantumMachine* Quantum machine ptr
+* @param[in] BV_Oracle Deutsch Jozsa algorithm oracle
 * @return    QProg
-* @note    
+* @note
 */
 QProg bernsteinVaziraniAlgorithm(std::string stra, bool b, QuantumMachine * qvm, BV_Oracle oracle);
 QPANDA_END

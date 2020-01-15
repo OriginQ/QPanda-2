@@ -24,6 +24,7 @@ limitations under the License.
 #include "Core/Utilities/Compiler/QASMCompiler/qasmBaseVisitor.h"
 
 #include "Core/QuantumCircuit/QGate.h"
+#include "Core/QuantumCircuit/QReset.h"
 #include "Core/QuantumCircuit/QCircuit.h"
 #include "Core/QuantumCircuit/QProgram.h"
 #include "Core/QuantumCircuit/ControlFlow.h"
@@ -31,9 +32,6 @@ limitations under the License.
 #include "Core/QuantumMachine/OriginQuantumMachine.h"
 
 QPANDA_BEGIN
-/**
-* @namespace QPanda
-*/
 
 
 static std::map<std::string, std::function<double(double , double)>> _binary_operation =
@@ -45,8 +43,8 @@ static std::map<std::string, std::function<double(double , double)>> _binary_ope
 };
 
 /**
-* @class  Exp
-* @brief  Saves the expression containing the variable	
+* @brief  Saves the expression containing the variable
+* @ingroup Utilities
 */
 class Exp
 {
@@ -71,10 +69,10 @@ public:
 		m_content_type = VAR_NAME;
 	}
 
-	Exp(Exp *left_expr, Exp *right_expr, std::string op)
+	Exp(std::shared_ptr<Exp> left_exp_ptr, std::shared_ptr<Exp> right_exp_ptr, std::string op)
 	{
-		m_left_exp = left_expr;
-		m_right_exp = right_expr;
+		m_left_exp_ptr = left_exp_ptr;
+		m_right_exp_ptr = right_exp_ptr;
 		m_content.op_specifier = op;
 		m_content_type = OP_EXPR;
 	}
@@ -85,25 +83,21 @@ public:
 		m_content_type = CONST_VAL;
 	}
 
-	~Exp()
-	{
-		if (m_content_type == OP_EXPR)
-		{
-			if (m_right_exp != nullptr)
-				delete m_right_exp;
+	~Exp(){}
 
-			if (m_left_exp != nullptr)
-				delete m_left_exp;
-		}
-	}
+	/**
+	* @brief   clone Exp class
+	* @return  std::shared_ptr<Exp>   Exp  class shared ptr
+	*/
+	std::shared_ptr<Exp> clone() { return std::make_shared<Exp>(*this); }
 
 	void set_formal_actual_var_map(std::map <std::string, double> name_val_map)
 	{
 		m_formal_actual_var_map = name_val_map;
 		if (m_content_type == OP_EXPR)
 		{
-			m_left_exp->set_formal_actual_var_map(name_val_map);
-			m_right_exp->set_formal_actual_var_map(name_val_map);
+			m_left_exp_ptr->set_formal_actual_var_map(name_val_map);
+			m_right_exp_ptr->set_formal_actual_var_map(name_val_map);
 		}
 	}
 
@@ -126,8 +120,8 @@ public:
 		}
 		else if (m_content_type == OP_EXPR)
 		{
-			double left_val = m_left_exp->eval();
-			double right_val = m_right_exp->eval();
+			double left_val = m_left_exp_ptr->eval();
+			double right_val = m_right_exp_ptr->eval();
 
 			auto iter_func = _binary_operation.find(m_content.op_specifier);
 			if (iter_func == _binary_operation.end())
@@ -149,8 +143,8 @@ public:
 	}
 
 private:
-	Exp *m_left_exp;
-	Exp *m_right_exp;
+	std::shared_ptr<Exp> m_left_exp_ptr;
+	std::shared_ptr<Exp> m_right_exp_ptr;
 	int m_content_type;
 	Content m_content;
 	std::map<std::string, double> m_formal_actual_var_map;
@@ -166,7 +160,7 @@ struct GateOperationInfo
 {
 	std::string op_id;
 	std::vector<RegParamInfo> regs_vec;
-	std::vector<Exp *> angles_vec;
+	std::vector<std::shared_ptr<Exp>> angles_vec;
 };
 
 struct GataFuncInfo
@@ -177,6 +171,9 @@ struct GataFuncInfo
 	std::vector<GateOperationInfo> ops_vec;
 };
 
+/**
+* @brief QASM quantum gate type
+*/
 enum  QASMGateType
 {
 	ID_GATE=0,
@@ -262,17 +259,21 @@ public:
 	void build_three_param_double_circuit(QASMGateType type, GateOperationInfo op_info, QProg  &prog);
 
 	void build_qprog(GateOperationInfo op_info, QProg  &prog);
+	
+	/**
+	 * @brief  get converted quantum programs
+	 * @return QProg
+    */
 	QProg get_qprog();
 
 private:
-	QuantumMachine * m_qvm;
+	QuantumMachine * m_qvm;  /**< quantum  machine	pointer*/
 	bool m_support_qelib1;
 	QProg m_build_qprog;
 	std::map<std::string, QVec> m_alloc_qvec_map;
 	std::map<std::string, std::vector<ClassicalCondition> > m_alloc_cvec_map;
 	std::map<std::string, QASMGateType> m_qasm_gate_type;
 	std::map<std::string, GataFuncInfo> m_gate_func_map;
-	std::vector<Exp *> m_need_delete_exp;
 
 	std::map<int, std::function<QGate(Qubit *)> > m_zero_param_single_gate_func;
 	std::map<int, std::function<QGate(Qubit *, double)> > m_one_param_single_gate_func;
@@ -285,7 +286,6 @@ private:
 	std::map<int, std::function<QCircuit(Qubit *, Qubit*, double)> > m_one_param_double_circuit_func;
 	std::map<int, std::function<QCircuit(Qubit *, Qubit*, double, double, double)> > m_three_param_double_circuit_func;
 };
-
 
 
 /**

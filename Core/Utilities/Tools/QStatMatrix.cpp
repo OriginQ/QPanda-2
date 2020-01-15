@@ -459,3 +459,38 @@ string QPanda::matrix_to_string(const QStat& mat)
 
 	return matrix_str;
 }
+
+int QPanda::mat_compare(const QStat& mat1, const QStat& mat2, const double precision /*= 0.000001*/)
+{
+	if (mat1.size() != mat2.size())
+	{
+		return -1;
+	}
+
+	qcomplex_t ratio; // constant value
+	for (size_t i = 0; i < mat1.size(); ++i)
+	{
+		if ((abs(mat2.at(i).real() - 0.0) > precision) || (abs(mat2.at(i).imag() - 0.0) > precision))
+		{
+			ratio = mat1.at(i) / mat2.at(i);
+			if (precision < (sqrt(ratio.real()*ratio.real() + ratio.imag()*ratio.imag()) - 1.0))
+			{
+				return -1;
+			}
+			break;
+		}
+	}
+
+	qcomplex_t tmp_val;
+	for (size_t i = 0; i < mat1.size(); ++i)
+	{
+		tmp_val = ratio * mat2.at(i);
+		if ((abs(mat1.at(i).real() - tmp_val.real()) > precision) ||
+			(abs(mat1.at(i).imag() - tmp_val.imag()) > precision))
+		{
+			return -1;
+		}
+	}
+
+	return 0;
+}

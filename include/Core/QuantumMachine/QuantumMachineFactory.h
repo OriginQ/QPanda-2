@@ -25,19 +25,28 @@ limitations under the License.
 QPANDA_BEGIN
 
 
-/* 2. Quantum Machine Status Factory */
+/**
+* @brief Quantum Machine Status Factory
+* @ingroup QuantumMachine
+*/
 class QMachineStatusFactory
 {
 public:
     static QMachineStatus* GetQMachineStatus();
 };
 
-/* Quantum Machine Factory */
+/**
+* @brief  Factory for class QuantumMachine
+* @ingroup QuantumMachine
+*/
 class QuantumMachineFactory
 {
-    // Factory for class QuantumMachine
     QuantumMachineFactory();
 public:
+	/**
+     * @brief Get the static instance of factory 
+	 * @return QuantumMachineFactory &
+     */
     static QuantumMachineFactory & GetFactoryInstance();
     typedef std::function<QuantumMachine*()> constructor_t;
     typedef std::map<std::string, constructor_t> constructor_map_t;
@@ -53,6 +62,11 @@ public:
     void registerclass(std::string, constructor_t constructor);
 };
 
+/**
+ * @brief Quantum Machine Factory helper
+ * Provide QuantumMachineFactory class registration interface for the outside
+ * @ingroup QuantumMachine
+ */
 class QuantumMachineFactoryHelper
 {
     typedef QuantumMachineFactory::constructor_t constructor_t;

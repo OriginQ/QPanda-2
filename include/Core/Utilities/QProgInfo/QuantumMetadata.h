@@ -25,9 +25,9 @@ Classes for get the shortes path of graph
 
 QPANDA_BEGIN
 
-
-/*
-Parse xml config and get metadata
+/**
+* @brief  Parse xml config and get metadata
+* @ingroup Utilities
 */
 class QuantumMetadata
 {   

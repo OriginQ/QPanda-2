@@ -47,9 +47,12 @@ QPANDA_BEGIN
 #define DEF_UNINIT_FLOAT              (-1234567.0)
 #endif
 
-#define Q_PI       3.14159265358979323846   // pi
-#define Q_PI_2     1.57079632679489661923   // pi/2
+#define Q_PI       3.14159265358979323846   /**< pi */
+#define Q_PI_2     1.57079632679489661923   /**< pi/2 */
 
+    /**
+    * @brief Graph element structure
+    */
     struct QGraphItem
     {
         size_t first;
@@ -73,15 +76,18 @@ QPANDA_BEGIN
     using vector_d = std::vector<double>;
     using vector_s = std::vector<std::string>;
     using QGraph = std::vector<QGraphItem>;
-    //using OptimizationResult = std::map<std::string, std::string>;
+
+	/**
+	* @brief optimization result structure
+	*/
     struct QOptimizationResult
     {
         std::string message;
-        size_t iters;           // iteration count.
-        size_t fcalls;          // function call count.
-        std::string key;        // problem solution.
-        double fun_val;         // minimun value of the problem.
-        vector_d para;          // optimized para
+        size_t iters;           /**< iteration count. */
+        size_t fcalls;          /**< function call count. */
+        std::string key;        /**< problem solution. */
+        double fun_val;         /**< minimun value of the problem. */
+        vector_d para;          /**< optimized para */ 
     };
 
     using QResultPair = std::pair<std::string, double>;
@@ -89,8 +95,8 @@ QPANDA_BEGIN
     using QUserDefinedFunc = std::function<double(const std::string &)>;
     using QProbMap = std::map<std::string, double>;
 
-    /*
-    Note:
+    /**
+    * @note
         The QTerm value char only will be 'X','Y','Z'.
         If QTerm is empty it reperents 'I'.
     */
@@ -102,7 +108,9 @@ QPANDA_BEGIN
     using QPauliMap = std::map<std::string, complex_d>;
     using QIndexMap = std::map<size_t, size_t>;
 
-
+	/**
+	* @brief Position structure
+	*/
     struct QPosition
     {
         double x;
@@ -129,6 +137,9 @@ QPANDA_BEGIN
 
     };
 
+	/**
+	* @brief Optimizer Type
+	*/
     enum class OptimizerType
     {
         NELDER_MEAD,
@@ -136,6 +147,9 @@ QPANDA_BEGIN
         GRADIENT
     };
 
+	/**
+	* @brief TransForm Type
+	*/
     enum class TransFormType
     {
         Jordan_Wigner,
@@ -143,12 +157,18 @@ QPANDA_BEGIN
         Bravyi_Ktaev
     };
 
+	/**
+	* @brief Ucc Type
+	*/
     enum class UccType
     {
         UCCS,
         UCCSD
     };
 
+	/**
+	* @brief Two Para structure
+	*/
     struct QTwoPara
     {
         double x_min;
@@ -159,6 +179,9 @@ QPANDA_BEGIN
         double y_step;
     };
 
+	/**
+	* @brief Scan Para structure
+	*/
     struct QScanPara
     {
         QTwoPara two_para;

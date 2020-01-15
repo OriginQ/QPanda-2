@@ -5,14 +5,16 @@
 #include "Components/ChemiQ/ChemiqUtil.h"
 #include "Core/QuantumMachine/QVec.h"
 #include "Core/Utilities/Tools/OriginCollection.h"
+#include "Core/Variational/Optimizer.h"
 
-namespace QPanda {
-
-namespace Variational {
-    class Optimizer;
-}
+QPANDA_BEGIN
 
 class QuantumMachine;
+
+/**
+* @brief ChemiQ Algorithm class
+* @ingroup QAlgChemiQ
+*/
 class DLLEXPORT ChemiQ
 {
 public:
@@ -24,7 +26,7 @@ public:
 
     /**
     * @brief  Initialize the quantum chemistry calculation
-    * @para[in] std::string The dir of the psi4 chemistry calculation package 
+    * @param[in] std::string The dir of the psi4 chemistry calculation package 
     */
     void initialize(const std::string& dir);
 
@@ -187,7 +189,7 @@ public:
         m_quantum_machine_type = type;
     }
     /**
-    * @brief  Set random default optimizer para 
+    * @brief  Set random default optimizer paramter 
     * @param[in]  bool enable
     */
     void setRandomPara(bool enable)
@@ -195,9 +197,9 @@ public:
         m_random_para = enable;
     }
     /**
-    * @brief  Set the default optimizer para by the given para
-    * @param[in]  vecotr_d default para
-    * @see vecotr_d
+    * @brief  Set the default optimizer paramter by the given paramter
+    * @param[in]  vecotr_d default paramter
+	* @see vector_d
     */
     void setDefaultOptimizedPara(const vector_d &para)
     {
@@ -356,5 +358,5 @@ private:
 
 };
 
-}
+QPANDA_END
 #endif // CHEMIQ_H

@@ -121,7 +121,6 @@ public:
 
     /**
     * @brief  allocateQubitThroughPhyAddress
-    * @ingroup QuantumMachine
     * @param[in]  size_t address
     * @return     QPanda::Qubit* qubit
     */
@@ -129,7 +128,6 @@ public:
 
     /**
     * @brief  allocateQubitThroughVirAddress
-    * @ingroup QuantumMachine
     * @param[in]  size_t address
     * @return     QPanda::Qubit* qubit
     */
@@ -137,70 +135,61 @@ public:
 
     /**
     * @brief  init
-    * @ingroup QuantumMachine
     * @return     void
     */
     virtual void init() = 0;
 
     /**
     * @brief  getStatus
-    * @ingroup QuantumMachine
     * @return     QPanda::QMachineStatus*
     */
     virtual QMachineStatus* getStatus() const = 0;
 
     /**
     * @brief  directlyRun
-    * @ingroup QuantumMachine
-    * @param[in]  QProg & qProg
+    * @param[in]  QProg& quantum program
     * @return     std::map<std::string, bool>
     */
     virtual std::map<std::string, bool> directlyRun(QProg & qProg) = 0;
 
     /**
     * @brief  runWithConfiguration
-    * @ingroup QuantumMachine
-    * @param[in]  QProg &
-    * @param[in]  std::vector<ClassicalCondition> &
-    * @param[in]  rapidjson::Document &
+    * @param[in]  QProg& quantum program
+    * @param[in]  std::vector<ClassicalCondition>&
+    * @param[in]  rapidjson::Document&
     * @return     std::map<std::string, Eigen::size_t>
     */
     virtual std::map<std::string, size_t> runWithConfiguration(QProg &, std::vector<ClassicalCondition> &, rapidjson::Document&) = 0;
 
     /**
     * @brief  getGateTimeMap
-    * @ingroup QuantumMachine
     * @return     std::map<GateType, Eigen::size_t>
     */
     virtual std::map<GateType, size_t> getGateTimeMap() const = 0;
 
     /**
     * @brief  finalize
-    * @ingroup QuantumMachine
     * @return     void
     */
     virtual void finalize() = 0;
 
     /**
     * @brief  getQState
-    * @ingroup QuantumMachine
     * @return     QStat
     */
     virtual QStat getQState() const = 0;
 
     /**
     * @brief  getVirtualQubitAddress
-    * @ingroup QuantumMachine
-    * @param[in]  Qubit * qubit
+    * @param[in]  Qubit* qubit
     * @return     Eigen::size_t
     */
     virtual size_t getVirtualQubitAddress(Qubit *) const = 0;
 
     /**
     * @brief  swapQubitPhysicalAddress
-    * @ingroup QuantumMachine
-    * @param[in]  Qubit * qubit
-    * @param[in]  Qubit * qubit
+    * @param[in]  Qubit* qubit
+    * @param[in]  Qubit* qubit
     * @return     bool
     */
     virtual bool swapQubitPhysicalAddress(Qubit *, Qubit*) = 0;
@@ -222,22 +211,19 @@ public:
     /* new interface */
     /**
     * @brief  setConfigure
-    * @ingroup QuantumMachine
-    * @param[in]  const Configuration & config
+    * @param[in]  const Configuration& config
     * @return     void
     */
     virtual void setConfigure(const Configuration &) = 0;
 
     /**
     * @brief  qAlloc
-    * @ingroup QuantumMachine
     * @return     QPanda::Qubit* qubit
     */
     virtual Qubit* qAlloc() = 0;
 
     /**
     * @brief  qAllocMany
-    * @ingroup QuantumMachine
     * @param[in]  size_t qubit_count
     * @return     QPanda::QVec
     */
@@ -245,14 +231,12 @@ public:
 
     /**
     * @brief  cAlloc
-    * @ingroup QuantumMachine
     * @return     QPanda::ClassicalCondition
     */
     virtual ClassicalCondition cAlloc() = 0;
 
     /**
     * @brief  cAlloc
-    * @ingroup QuantumMachine
     * @param[in]  size_t
     * @return     QPanda::ClassicalCondition
     */
@@ -260,7 +244,6 @@ public:
 
     /**
     * @brief  cAllocMany
-    * @ingroup QuantumMachine
     * @param[in]  size_t count
     * @return     std::vector<QPanda::ClassicalCondition>  cbit_vec
     */
@@ -268,46 +251,40 @@ public:
 
     /**
     * @brief  qFree
-    * @ingroup QuantumMachine
-    * @param[in]  Qubit *
+    * @param[in]  Qubit*
     * @return     void
     */
     virtual void qFree(Qubit*) = 0;
 
     /**
     * @brief  qFreeAll
-    * @ingroup QuantumMachine
-    * @param[in]  QVec &
+    * @param[in]  QVec&
     * @return     void
     */
     virtual void qFreeAll(QVec &) = 0;
 
     /**
     * @brief  cFree
-    * @ingroup QuantumMachine
-    * @param[in]  ClassicalCondition & cbit
+    * @param[in]  ClassicalCondition& cbit
     * @return     void
     */
     virtual void cFree(ClassicalCondition &) = 0; 
 
     /**
     * @brief  cFreeAll
-    * @ingroup QuantumMachine
-    * @param[in]  std::vector<ClassicalCondition > & cbit_vec
+    * @param[in]  std::vector<ClassicalCondition >& cbit_vec
     * @return     void
     */
     virtual void cFreeAll(std::vector<ClassicalCondition > &) = 0;
 
     /**
     * @brief  getAllocateQubitNum
-    * @ingroup QuantumMachine
     * @return     Eigen::size_t count
     */
     virtual size_t getAllocateQubitNum() = 0;
 
     /**
     * @brief  getAllocateCMemNum
-    * @ingroup QuantumMachine
     * @return     Eigen::size_t count
     */
     virtual size_t getAllocateCMemNum() = 0;

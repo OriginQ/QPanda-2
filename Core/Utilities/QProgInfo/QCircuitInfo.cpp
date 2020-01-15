@@ -17,11 +17,12 @@ limitations under the License.
 #include "Core/Utilities/QProgInfo/QCircuitInfo.h"
 #include "Core/Utilities/QProgTransform/QProgToDAG/GraphMatch.h"
 #include "Core/Utilities/QProgInfo/QuantumMetadata.h"
-#include <algorithm>
-#include "Core/Core.h"
 #include "Core/Utilities/Tools/QStatMatrix.h"
 #include "Core/Utilities/QProgInfo/Visualization/QVisualization.h"
 #include "Core/QuantumCircuit/QNodeDeepCopy.h"
+#include "Core/Utilities/QProgInfo/JudgeTwoNodeIterIsSwappable.h"
+#include "Core/Utilities/QProgInfo/GetAdjacentNodes.h"
+#include "Core/Utilities/QProgInfo/QProgToMatrix.h"
 
 USING_QPANDA
 using namespace std;
@@ -204,6 +205,17 @@ void GetAllNodeType::execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, s
 	m_output_str.append(measure_buf);
 }
 
+void GetAllNodeType::execute(std::shared_ptr<AbstractQuantumReset> cur_node, std::shared_ptr<QNode> parent_node, QCircuitParam &cir_param, NodeIter& cur_node_iter)
+{
+	//handle measure node
+	sub_circuit_indent();
+
+	//std::string gateTypeStr;
+	char reset_buf[258] = "";
+	snprintf(reset_buf, 256, "<<Reset(q[%d])", cur_node->getQuBit()->getPhysicalQubitPtr()->getQubitAddr());
+	m_output_str.append(reset_buf);
+}
+
 void GetAllNodeType::execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node, QCircuitParam &cir_param, NodeIter& cur_node_iter)
 {
 	// handle flow control node
@@ -263,284 +275,6 @@ void GetAllNodeType::execute(std::shared_ptr<AbstractQuantumProgram>  cur_node, 
 }
 
 /*******************************************************************
-*                      class AdjacentQGates
-********************************************************************/
-void AdjacentQGates::HaveNotFoundTargetNode::handleQGate(std::shared_ptr<AbstractQGateNode> cur_node, std::shared_ptr<QNode> parent_node, QCircuitParam &cir_param, NodeIter& cur_node_iter)
-{
-	/* find target
-		   if found target, flage = 1; continue
-	*/
-	if (m_parent.m_target_node_itr == cur_node_iter)
-	{
-		m_parent.changeTraversalStatue(new AdjacentQGates::ToFindBackNode(m_parent, TO_FIND_BACK_NODE));
-	}
-	else
-	{
-		m_parent.updateFrontIter(cur_node_iter);
-
-		//test
-		GateType gt = m_parent.getItrNodeType(cur_node_iter);
-		PTrace(">>gatyT=%d ", gt);
-	}
-}
-
-void AdjacentQGates::HaveNotFoundTargetNode::handleQMeasure(std::shared_ptr<AbstractQuantumMeasure> cur_node, std::shared_ptr<QNode> parent_node, QCircuitParam &cir_param, NodeIter& cur_node_iter)
-{
-	/* find target
-		   if found target, flage = 1; continue
-		*/
-	if (m_parent.m_target_node_itr == cur_node_iter)
-	{
-		m_parent.changeTraversalStatue(new ToFindBackNode(m_parent, TO_FIND_BACK_NODE));
-	}
-	else
-	{
-		m_parent.updateFrontIter(cur_node_iter);
-
-		//test
-		PTrace(">>measureGate ");
-	}
-}
-
-void AdjacentQGates::traverse_qprog()
-{
-	m_traversal_statue = (new(std::nothrow) HaveNotFoundTargetNode(*this, HAVE_NOT_FOUND_TARGET_NODE));
-	if (nullptr == m_traversal_statue)
-	{
-		QCERR_AND_THROW_ERRSTR(runtime_error, "Memery error, failed to new traversal-statue obj.");
-	}
-	else
-	{
-		TraverseByNodeIter::traverse_qprog();
-	}
-}
-
-void AdjacentQGates::execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node, QCircuitParam &cir_param, NodeIter& cur_node_iter)
-{
-	if (nullptr == cur_node)
-	{
-		QCERR("control_flow_node is nullptr");
-		throw std::invalid_argument("control_flow_node is nullptr");
-	}
-
-	auto pNode = std::dynamic_pointer_cast<QNode>(cur_node);
-
-	if (nullptr == pNode)
-	{
-		QCERR("Unknown internal error");
-		throw std::runtime_error("Unknown internal error");
-	}
-	auto iNodeType = pNode->getNodeType();
-
-	if (WHILE_START_NODE == iNodeType)
-	{
-		m_traversal_statue->onEnterQWhile(cur_node, parent_node, cir_param, cur_node_iter);
-		auto true_branch_node = cur_node->getTrueBranch();
-		Traversal::traversalByType(true_branch_node, pNode, *this, cir_param, cur_node_iter);
-		m_traversal_statue->onLeaveQWhile(cur_node, parent_node, cir_param, cur_node_iter);
-	}
-	else if (QIF_START_NODE == iNodeType)
-	{
-		m_traversal_statue->onEnterQIf(cur_node, parent_node, cir_param, cur_node_iter);
-		auto true_branch_node = cur_node->getTrueBranch();
-		Traversal::traversalByType(true_branch_node, pNode, *this, cir_param, cur_node_iter);
-		auto false_branch_node = cur_node->getFalseBranch();
-
-		if (nullptr != false_branch_node)
-		{
-			Traversal::traversalByType(false_branch_node, pNode, *this, cir_param, cur_node_iter);
-		}
-		m_traversal_statue->onLeaveQIf(cur_node, parent_node, cir_param, cur_node_iter);
-	}
-}
-
-GateType AdjacentQGates::getItrNodeType(const NodeIter &ter)
-{
-	std::shared_ptr<QNode> tmp_node = *(ter);
-	if (nullptr != tmp_node)
-	{
-		if (GATE_NODE == tmp_node->getNodeType())
-		{
-			std::shared_ptr<OriginQGate> gate = std::dynamic_pointer_cast<OriginQGate>(tmp_node);
-			return (GateType)(gate->getQGate()->getGateType());
-		}
-	}
-
-	return GATE_UNDEFINED;
-}
-
-std::string AdjacentQGates::getItrNodeTypeStr(const NodeIter &ter)
-{
-	std::shared_ptr<QNode> tmp_node = *(ter);
-	if (nullptr != tmp_node.get())
-	{
-		const NodeType t = tmp_node->getNodeType();
-		if (t == GATE_NODE)
-		{
-			std::shared_ptr<OriginQGate> gate = std::dynamic_pointer_cast<OriginQGate>(tmp_node);
-			return TransformQGateType::getInstance()[(GateType)(gate->getQGate()->getGateType())];
-		}
-		else if (t == MEASURE_GATE)
-		{
-			return std::string("MEASURE_GATE");
-		}
-	}
-
-	return std::string("Null");
-}
-
-/*******************************************************************
-*                      class JudgeTwoNodeIterIsSwappable
-********************************************************************/
-void JudgeTwoNodeIterIsSwappable::execute(std::shared_ptr<AbstractQuantumCircuit> cur_node,
-	std::shared_ptr<QNode> parent_node, QCircuitParam &cir_param, NodeIter& cur_node_iter)
-{
-	auto pNode = std::dynamic_pointer_cast<QNode>(cur_node);
-	if (nullptr == pNode)
-	{
-		QCERR("Unknown internal error");
-		throw std::runtime_error("Unknown internal error");
-	}
-
-	m_judge_statue->onEnterCircuit(cur_node, cir_param);
-
-	TraverseByNodeIter::execute(cur_node, parent_node, cir_param, cur_node_iter);
-
-	m_judge_statue->onLeaveCircuit(cur_node, cir_param);
-}
-
-void JudgeTwoNodeIterIsSwappable::execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node, QCircuitParam &cir_param, NodeIter& cur_node_iter)
-{
-	if (nullptr == cur_node)
-	{
-		QCERR("control_flow_node is nullptr");
-		throw std::invalid_argument("control_flow_node is nullptr");
-	}
-
-	auto pNode = std::dynamic_pointer_cast<QNode>(cur_node);
-
-	if (nullptr == pNode)
-	{
-		QCERR("Unknown internal error");
-		throw std::runtime_error("Unknown internal error");
-	}
-	auto iNodeType = pNode->getNodeType();
-
-	if (WHILE_START_NODE == iNodeType)
-	{
-		m_judge_statue->onEnterFlowCtrlNode();
-		auto true_branch_node = cur_node->getTrueBranch();
-		Traversal::traversalByType(true_branch_node, pNode, *this, cir_param, cur_node_iter);
-		m_judge_statue->onLeaveFlowCtrlNode();
-	}
-	else if (QIF_START_NODE == iNodeType)
-	{
-		m_judge_statue->onEnterFlowCtrlNode();
-		auto true_branch_node = cur_node->getTrueBranch();
-		Traversal::traversalByType(true_branch_node, pNode, *this, cir_param, cur_node_iter);
-		m_judge_statue->onLeaveFlowCtrlNode();
-
-		auto false_branch_node = cur_node->getFalseBranch();
-
-		if (nullptr != false_branch_node)
-		{
-			m_judge_statue->onEnterFlowCtrlNode();
-			Traversal::traversalByType(false_branch_node, pNode, *this, cir_param, cur_node_iter);
-			m_judge_statue->onLeaveFlowCtrlNode();
-		}
-	}
-}
-
-bool JudgeTwoNodeIterIsSwappable::getResult()
-{
-	return (COULD_BE_EXCHANGED == m_result);
-}
-
-int JudgeTwoNodeIterIsSwappable::judgeLayerInfo()
-{
-#if PRINT_TRACE
-	cout << "test the pick result:" << endl;
-	printAllNodeType(m_pick_prog);
-#endif
-
-	//get layer info
-	GraphMatch grap_match;
-	TopologicalSequence seq;
-	grap_match.get_topological_sequence(m_pick_prog, seq);
-	const QProgDAG &tmp_dag = grap_match.getProgDAG();
-
-	int found_cnt = 0;
-	for (auto &seq_item : seq)
-	{
-		for (auto &seq_node_item : seq_item)
-		{
-			if (m_nodeItr1 == tmp_dag.get_vertex_nodeIter(seq_node_item.first.m_vertex_num))
-			{
-				++found_cnt;
-			}
-
-			if (m_nodeItr2 == tmp_dag.get_vertex_nodeIter(seq_node_item.first.m_vertex_num))
-			{
-				++found_cnt;
-			}
-		}
-
-		if (2 == found_cnt)
-		{
-			changeStatue(new CoubleBeExchange(*this, COULD_BE_EXCHANGED));
-			return 0;
-		}
-		else if (1 == found_cnt)
-		{
-			changeStatue(new CanNotBeExchange(*this, CAN_NOT_BE_EXCHANGED));
-			return 0;
-		}
-		else if (0 == found_cnt)
-		{
-			continue;
-		}
-		else
-		{
-			QCERR_AND_THROW_ERRSTR(runtime_error, "Error: unknow error.");
-			return -1;
-		}
-	}
-
-	QCERR_AND_THROW_ERRSTR(runtime_error, "Error: get layer error.");
-	return -1;
-}
-
-
-void JudgeTwoNodeIterIsSwappable::traverse_qprog()
-{
-	m_judge_statue = (new(std::nothrow) OnInitStatue(*this, INIT));
-	if (nullptr == m_judge_statue)
-	{
-		QCERR_AND_THROW_ERRSTR(runtime_error, "Memery error, failed to new traversal-statue obj.");
-	}
-	else
-	{
-		TraverseByNodeIter::traverse_qprog();
-		m_judge_statue->onTraversalEnd();
-	}
-}
-
-void JudgeTwoNodeIterIsSwappable::pickNode(const NodeIter iter)
-{
-	m_pick_prog.pushBackNode(*iter);
-	if (iter == m_nodeItr1)
-	{
-		m_b_found_first_iter = true;
-		m_nodeItr1 = m_pick_prog.getLastNodeIter();
-	}
-	else if (iter == m_nodeItr2)
-	{
-		m_b_found_second_iter = true;
-		m_nodeItr2 = m_pick_prog.getLastNodeIter();
-	}
-}
-
-/*******************************************************************
 *                      class PickUpNodes
 ********************************************************************/
 void PickUpNodes::execute(std::shared_ptr<AbstractQGateNode> cur_node, std::shared_ptr<QNode> parent_node, QCircuitParam &cir_param, NodeIter& cur_node_iter)
@@ -553,6 +287,12 @@ void PickUpNodes::execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, std:
 {
 	//handle measure node
 	pickUp(cur_node_iter, std::mem_fn(&PickUpNodes::pickQMeasureNode), this, cur_node_iter);
+}
+
+void PickUpNodes::execute(std::shared_ptr<AbstractQuantumReset> cur_node, std::shared_ptr<QNode> parent_node, QCircuitParam &cir_param, NodeIter& cur_node_iter)
+{
+	//handle reset node
+	pickUp(cur_node_iter, std::mem_fn(&PickUpNodes::pickQResetNode), this, cur_node_iter);
 }
 
 void PickUpNodes::execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node, QCircuitParam &cir_param, NodeIter& cur_node_iter)
@@ -623,6 +363,32 @@ void PickUpNodes::pickQGateNode(const NodeIter cur_node_iter, QCircuitParam &cir
 	gate.getControlVector(control_qubits);
 	QVec increased_control_qubits = QCircuitParam::get_real_append_qubits(cir_param.m_control_qubits, control_qubits);
 
+	//handle control gate
+	switch ((GateType)(gate.getQGate()->getGateType()))
+	{
+	case CU_GATE:
+	case CNOT_GATE:
+	case CZ_GATE:
+	case CPHASE_GATE:
+	{
+		QVec gate_qubits;
+		gate.getQuBitVector(gate_qubits);
+		const auto self_control_qubit = gate_qubits.front()->getPhysicalQubitPtr()->getQubitAddr();
+		for (auto itr = increased_control_qubits.begin(); itr != increased_control_qubits.end(); ++itr)
+		{
+			if (self_control_qubit == (*itr)->getPhysicalQubitPtr()->getQubitAddr())
+			{
+				increased_control_qubits.erase(itr);
+				break;
+			}
+		}
+	}
+	break;
+
+	default:
+		break;
+	}
+
 	tmp_gate.setControl(increased_control_qubits);
 
 	if (!check_control_qubits(tmp_gate))
@@ -659,22 +425,20 @@ bool PickUpNodes::check_control_qubits(QGate& gate)
 		control_qubits_val.push_back(itr->getPhysicalQubitPtr()->getQubitAddr());
 	}
 
+	for (auto &itr : gate_target_qubits)
+	{
+		target_qubits_val.push_back(itr->getPhysicalQubitPtr()->getQubitAddr());
+	}
+
 	switch ((GateType)(gate_type))
 	{
-	case ISWAP_THETA_GATE:
-	case ISWAP_GATE:
-	case SQISWAP_GATE:
-	case SWAP_GATE:
-		target_qubits_val.push_back(gate_target_qubits.front()->getPhysicalQubitPtr()->getQubitAddr());
-		target_qubits_val.push_back(gate_target_qubits.back()->getPhysicalQubitPtr()->getQubitAddr());
-		break;
-
 	case CU_GATE:
 	case CNOT_GATE:
 	case CZ_GATE:
 	case CPHASE_GATE:
 	{
-		target_qubits_val.push_back(gate_target_qubits.back()->getPhysicalQubitPtr()->getQubitAddr());
+		target_qubits_val.front() = target_qubits_val.back();
+		target_qubits_val.pop_back();
 	}
 	break;
 
@@ -682,9 +446,6 @@ bool PickUpNodes::check_control_qubits(QGate& gate)
 		break;
 	}
 
-	/*auto sort_func = [](Qubit* a, Qubit* b) {
-		return (a->getPhysicalQubitPtr()->getQubitAddr()) < (a->getPhysicalQubitPtr()->getQubitAddr());
-	};*/
 	std::sort(target_qubits_val.begin(), target_qubits_val.end());
 	std::sort(control_qubits_val.begin(), control_qubits_val.end());
 
@@ -695,7 +456,7 @@ bool PickUpNodes::check_control_qubits(QGate& gate)
 
 void PickUpNodes::pickQMeasureNode(const NodeIter cur_node_iter)
 {
-	if (m_b_pick_measure_node)
+	if (is_valid_pick_up_node_type(MEASURE_GATE))
 	{
 		auto measure = QMeasure(std::dynamic_pointer_cast<AbstractQuantumMeasure>(*cur_node_iter));
 		m_output_prog.pushBackNode(dynamic_pointer_cast<QNode>(deepCopy(measure).getImplementationPtr()));
@@ -710,6 +471,29 @@ void PickUpNodes::pickQMeasureNode(const NodeIter cur_node_iter)
 	{
 		m_b_pickup_end = true;
 		QCERR_AND_THROW_ERRSTR(runtime_error, "Error: Illegal Measure nodes.");
+		m_output_prog.clear();
+	}
+
+	return;
+}
+
+void PickUpNodes::pickQResetNode(const NodeIter cur_node_iter)
+{
+	if (is_valid_pick_up_node_type(RESET_NODE))
+	{
+		auto reset = QReset(std::dynamic_pointer_cast<AbstractQuantumReset>(*cur_node_iter));
+		m_output_prog.pushBackNode(dynamic_pointer_cast<QNode>(deepCopy(reset).getImplementationPtr()));
+		if (cur_node_iter == m_end_iter)
+		{
+			//On case for _startIter == _endIter
+			m_b_pickup_end = true;
+			return;
+		}
+	}
+	else
+	{
+		m_b_pickup_end = true;
+		QCERR_AND_THROW_ERRSTR(runtime_error, "Error: Illegal reset nodes.");
 		m_output_prog.clear();
 	}
 
@@ -734,721 +518,13 @@ void PickUpNodes::reverse_dagger_circuit()
 }
 
 /*******************************************************************
-*                      class QprogToMatrix
-********************************************************************/
-QprogToMatrix::MatrixOfOneLayer::MatrixOfOneLayer(SequenceLayer& layer, const QProgDAG& prog_dag, std::vector<int> &qubits_in_use)
-	:m_qubits_in_use(qubits_in_use), m_mat_I{1, 0, 0, 1}
-{
-	for (auto &layer_item : layer)
-	{
-		auto p_node = prog_dag.get_vertex(layer_item.first.m_vertex_num);
-		auto p_gate = std::dynamic_pointer_cast<AbstractQGateNode>(p_node);
-		QVec qubits_vector;
-		p_gate->getQuBitVector(qubits_vector);
-		QVec control_qubits_vector;
-		p_gate->getControlVector(control_qubits_vector);
-		if (control_qubits_vector.size() > 0)
-		{
-			qubits_vector.insert(qubits_vector.end(), control_qubits_vector.begin(), control_qubits_vector.end());
-			std::sort(qubits_vector.begin(), qubits_vector.end(), [](Qubit* a, Qubit* b) {
-				return a->getPhysicalQubitPtr()->getQubitAddr() < b->getPhysicalQubitPtr()->getQubitAddr(); 
-			});
-
-			std::vector<int> tmp_vec;
-			tmp_vec.push_back(qubits_vector.front()->getPhysicalQubitPtr()->getQubitAddr());
-			tmp_vec.push_back(qubits_vector.back()->getPhysicalQubitPtr()->getQubitAddr());
-
-			m_controled_gates.push_back(std::pair<std::shared_ptr<AbstractQGateNode>, std::vector<int>>(p_gate, tmp_vec));
-			continue;
-		}
-
-		if (qubits_vector.size() == 2)
-		{
-			std::vector<int> quBits;
-			for (auto _val : qubits_vector)
-			{
-				quBits.push_back(_val->getPhysicalQubitPtr()->getQubitAddr());
-			}
-
-			m_double_qubit_gates.push_back(std::pair<std::shared_ptr<AbstractQGateNode>, std::vector<int>>(p_gate, quBits));
-		}
-		else if (qubits_vector.size() == 1)
-		{
-			std::vector<int> quBits;
-			quBits.push_back(qubits_vector.front()->getPhysicalQubitPtr()->getQubitAddr());
-			m_single_qubit_gates.push_back(std::pair<std::shared_ptr<AbstractQGateNode>, std::vector<int>>(p_gate, quBits));
-		}
-		else
-		{
-			QCERR_AND_THROW_ERRSTR(runtime_error, "Error: QGate type error.");
-		}
-	}
-
-	//sort by qubit address spacing
-	auto sorfFun = [](gateAndQubitsItem_t &a, gateAndQubitsItem_t &b) { return (abs(a.second.front() - a.second.back())) < (abs(b.second.front() - b.second.back())); };
-	std::sort(m_controled_gates.begin(), m_controled_gates.end(), sorfFun);
-	std::sort(m_double_qubit_gates.begin(), m_double_qubit_gates.end(), sorfFun);
-	std::sort(m_single_qubit_gates.begin(), m_single_qubit_gates.end(), sorfFun);
-}
-
-QStat QprogToMatrix::MatrixOfOneLayer::reverseCtrlGateMatrixCX(QStat& src_mat)
-{
-	init(QMachineType::CPU);
-	auto q = qAllocMany(6);
-	QGate gate_H = H(q[0]);
-	QStat mat_H;
-	gate_H.getQGate()->getMatrix(mat_H);
-	finalize();
-
-	QStat result_mat;
-	QStat mat_of_zhang_multp_two_H = QPanda::tensor(mat_H, mat_H);
-
-	result_mat = (mat_of_zhang_multp_two_H * src_mat);
-	result_mat = (result_mat * mat_of_zhang_multp_two_H);
-
-	PTrace("reverseCtrlGateMatrixCX: ");
-	PTraceMat(result_mat);
-	return result_mat;
-}
-
-QStat QprogToMatrix::MatrixOfOneLayer::reverseCtrlGateMatrixCU(QStat& src_mat)
-{
-	init(QMachineType::CPU);
-	auto q = qAllocMany(6);
-	QGate gate_swap = SWAP(q[0], q[1]);
-	QStat mat_swap;
-	gate_swap.getQGate()->getMatrix(mat_swap);
-	finalize();
-
-	QStat result_mat;
-
-	result_mat = (mat_swap * src_mat);
-	result_mat = (result_mat * mat_swap);
-
-	PTrace("reverseCtrlGateMatrixCX: ");
-	PTraceMat(result_mat);
-	return result_mat;
-}
-
-void QprogToMatrix::MatrixOfOneLayer::merge_two_crossed_matrix(const calcUintItem_t& calc_unit_1, const calcUintItem_t& calc_unit_2, calcUintItem_t& result)
-{
-	int qubit_start = (calc_unit_1.second[0] < calc_unit_2.second[0]) ? calc_unit_1.second[0] : calc_unit_2.second[0];
-	int qubit_end = (calc_unit_1.second[1] > calc_unit_2.second[1]) ? calc_unit_1.second[1] : calc_unit_2.second[1];
-	QStat tensored_calc_unit_1;
-	QStat tensored_calc_unit_2;
-
-	auto tensor_func = [this](const size_t &qubit_index, const calcUintItem_t &calc_unit, QStat &tensor_result) {
-		if (qubit_index < calc_unit.second[0])
-		{
-			tensorByMatrix(tensor_result, m_mat_I);
-		}
-		else if (qubit_index == calc_unit.second[0])
-		{
-			tensorByMatrix(tensor_result, calc_unit.first);
-		}
-		else if (qubit_index > calc_unit.second[1])
-		{
-			tensorByMatrix(tensor_result, m_mat_I);
-		}
-	};
-
-	for (size_t i = qubit_start; i < qubit_end + 1; ++i)
-	{
-		tensor_func(i, calc_unit_1, tensored_calc_unit_1);
-		tensor_func(i, calc_unit_2, tensored_calc_unit_2);
-	}
-
-	result.first = tensored_calc_unit_1 * tensored_calc_unit_2;
-	result.second.push_back(qubit_start);
-	result.second.push_back(qubit_end);
-}
-
-//return true on cross, or else return false
-bool QprogToMatrix::MatrixOfOneLayer::check_cross_calc_unit(calcUnitVec_t& calc_unit_vec, calcUnitVec_t::iterator target_calc_unit_itr)
-{
-	const auto& target_calc_qubits = target_calc_unit_itr->second;
-	for (auto itr_calc_unit = calc_unit_vec.begin(); itr_calc_unit < calc_unit_vec.end(); ++itr_calc_unit)
-	{
-		if (((target_calc_qubits[0] > itr_calc_unit->second.front()) && (target_calc_qubits[0] < itr_calc_unit->second.back()))
-			||
-			((target_calc_qubits[1] > itr_calc_unit->second.front()) && (target_calc_qubits[1] < itr_calc_unit->second.back())))
-		{
-			//merge two crossed matrix
-			calcUintItem_t merge_result_calc_unit;
-			merge_two_crossed_matrix(*itr_calc_unit, *target_calc_unit_itr, merge_result_calc_unit);
-
-			itr_calc_unit->first.swap(merge_result_calc_unit.first);
-			itr_calc_unit->second.swap(merge_result_calc_unit.second);
-
-			return true;
-		}
-	}
-
-	return false;
-}
-
-void QprogToMatrix::MatrixOfOneLayer::tensorByQGate(QStat& src_mat, std::shared_ptr<AbstractQGateNode> &pGate)
-{
-	if (nullptr == pGate)
-	{
-		return;
-	}
-
-	if (src_mat.empty())
-	{
-		pGate->getQGate()->getMatrix(src_mat);
-		if (pGate->isDagger())
-		{
-			dagger(src_mat);
-		}
-	}
-	else
-	{
-		QStat single_gate_mat;
-		pGate->getQGate()->getMatrix(single_gate_mat);
-		if (pGate->isDagger())
-		{
-			dagger(single_gate_mat);
-		}
-		src_mat = QPanda::tensor(src_mat, single_gate_mat);
-	}
-}
-
-void QprogToMatrix::MatrixOfOneLayer::tensorByMatrix(QStat& src_mat, const QStat& tensor_mat)
-{
-	if (src_mat.empty())
-	{
-		src_mat = tensor_mat;
-	}
-	else
-	{
-		src_mat = QPanda::tensor(src_mat, tensor_mat);
-	}
-}
-
-void QprogToMatrix::MatrixOfOneLayer::getStrideOverQubits(const std::vector<int> &qgate_used_qubits, std::vector<int> &stride_over_qubits)
-{
-	stride_over_qubits.clear();
-
-	for (auto &qubit_val : m_qubits_in_use)
-	{
-		if ((qubit_val > qgate_used_qubits.front()) && (qubit_val < qgate_used_qubits.back()))
-		{
-			stride_over_qubits.push_back(qubit_val);
-		}
-	}
-}
-
-void QprogToMatrix::MatrixOfOneLayer::mergeToCalcUnit(std::vector<int>& qubits, QStat& gate_mat, calcUnitVec_t &calc_unit_vec, gateQubitInfo_t &single_qubit_gates)
-{
-	//auto &qubits = curGareItem.second;
-	std::sort(qubits.begin(), qubits.end(), [](int &a, int &b) {return a < b; });
-	std::vector<int> stride_over_qubits;
-	getStrideOverQubits(qubits, stride_over_qubits);
-	if (stride_over_qubits.empty())
-	{
-		//serial qubits
-		calc_unit_vec.insert(calc_unit_vec.begin(), std::pair<QStat, std::vector<int>>(gate_mat, qubits));
-	}
-	else
-	{
-		//get crossed CalcUnits;
-		calcUnitVec_t crossed_calc_units;
-		for (auto itr_calc_unit = calc_unit_vec.begin(); itr_calc_unit < calc_unit_vec.end();)
-		{
-			if ((qubits[0] < itr_calc_unit->second.front()) && (qubits[1] > itr_calc_unit->second.back()))
-			{
-				/*if the current double qubit gate has crossed the itr_calc_unit, 
-				  calc two crossed matrix, and replease the current itr_calc_unit
-				*/
-				check_cross_calc_unit(crossed_calc_units, itr_calc_unit);
-				crossed_calc_units.push_back(*itr_calc_unit);
-
-				itr_calc_unit = calc_unit_vec.erase(itr_calc_unit);
-				continue;
-
-			}
-
-			++itr_calc_unit;
-		}
-
-		//get crossed SingleQubitGates;
-		gateQubitInfo_t crossed_single_qubit_gates;
-		for (auto itr_single_gate = single_qubit_gates.begin(); itr_single_gate < single_qubit_gates.end();)
-		{
-			const int qubit_val = itr_single_gate->second.front();
-			if ((qubit_val > qubits[0]) && (qubit_val < qubits[1]))
-			{
-				crossed_single_qubit_gates.push_back(*itr_single_gate);
-
-				itr_single_gate = single_qubit_gates.erase(itr_single_gate);
-				continue;
-			}
-
-			++itr_single_gate;
-		}
-
-		//zhang multiply
-		QStat filled_matrix;
-		for (auto &in_used_qubit_val : m_qubits_in_use)
-		{
-			if (in_used_qubit_val > qubits[0])
-			{
-				if (in_used_qubit_val >= qubits[1])
-				{
-					break;
-				}
-
-				bool b_no_qGate_on_this_qubit = true;
-
-				//find current qubit_val in crossed_single_qubit_gates
-				std::shared_ptr<AbstractQGateNode> pGate;
-				for (auto itr_crossed_single_gate = crossed_single_qubit_gates.begin();
-					itr_crossed_single_gate != crossed_single_qubit_gates.end(); itr_crossed_single_gate++)
-				{
-					if (in_used_qubit_val == itr_crossed_single_gate->second.front())
-					{
-						b_no_qGate_on_this_qubit = false;
-
-						tensorByQGate(filled_matrix, itr_crossed_single_gate->first);
-						crossed_single_qubit_gates.erase(itr_crossed_single_gate);
-						break;
-					}
-				}
-
-				//find current qubit_val in crossed_calc_units
-				for (auto itr_crossed_calc_unit = crossed_calc_units.begin();
-					itr_crossed_calc_unit != crossed_calc_units.end(); itr_crossed_calc_unit++)
-				{
-					if ((in_used_qubit_val >= itr_crossed_calc_unit->second.front()) && (in_used_qubit_val <= itr_crossed_calc_unit->second.back()))
-					{
-						b_no_qGate_on_this_qubit = false;
-
-						if (in_used_qubit_val == itr_crossed_calc_unit->second.front())
-						{
-							tensorByMatrix(filled_matrix, itr_crossed_calc_unit->first);
-							//just break, CANN'T erase itr_crossed_calc_unit here
-							break;
-						}
-					}
-				}
-
-				//No handle on this qubit
-				if (b_no_qGate_on_this_qubit)
-				{
-					tensorByMatrix(filled_matrix, m_mat_I);
-				}
-			}
-		}
-
-		//blockMultip
-		QStat filled_double_gate_matrix;
-		blockedMatrix_t blocked_mat;
-		partition(gate_mat, 2, 2, blocked_mat);
-		blockMultip(filled_matrix, blocked_mat, filled_double_gate_matrix);
-
-		//insert into calc_unit_vec
-		calc_unit_vec.insert(calc_unit_vec.begin(), std::pair<QStat, std::vector<int>>(filled_double_gate_matrix, qubits));
-	}
-}
-
-void  QprogToMatrix::MatrixOfOneLayer::merge_double_gate()
-{
-	GateType gate_T = GATE_UNDEFINED;
-	for (auto &double_gate : m_double_qubit_gates)
-	{
-		QStat gate_mat;
-		gate_T = (GateType)(double_gate.first->getQGate()->getGateType());
-		if (2 == double_gate.second.size())
-		{
-			auto &qubits = double_gate.second;
-
-			double_gate.first->getQGate()->getMatrix(gate_mat);
-
-			if (qubits[0] > qubits[1])
-			{
-				if (CNOT_GATE == gate_T)
-				{
-					// transf base matrix
-					auto transformed_mat = reverseCtrlGateMatrixCX(gate_mat);
-					gate_mat.swap(transformed_mat);
-				}
-				else if (CU_GATE == gate_T)
-				{
-					auto transformed_mat = reverseCtrlGateMatrixCU(gate_mat);
-					gate_mat.swap(transformed_mat);
-				}
-			}
-
-			if (double_gate.first->isDagger())
-			{
-				dagger(gate_mat);
-			}
-		}
-		else
-		{
-			QCERR_AND_THROW_ERRSTR(runtime_error, "Error: Qubits number error.");
-		}
-
-		mergeToCalcUnit(double_gate.second, gate_mat, m_calc_unit_vec, m_single_qubit_gates);
-	}
-}
-
-void  QprogToMatrix::MatrixOfOneLayer::merge_calc_unit()
-{
-	for (auto &itr_calc_unit_vec : m_calc_unit_vec)
-	{
-		//calc all the qubits to get the final matrix
-		QStat final_mat_of_one_calc_unit;
-		for (auto &in_used_qubit_val : m_qubits_in_use)
-		{
-			bool b_no_gate_on_this_qubit = true;
-			for (auto itr_single_gate = m_single_qubit_gates.begin(); itr_single_gate < m_single_qubit_gates.end();)
-			{
-				const int qubit_val = itr_single_gate->second.front();
-				if (qubit_val == in_used_qubit_val)
-				{
-					b_no_gate_on_this_qubit = false;
-					tensorByQGate(final_mat_of_one_calc_unit, itr_single_gate->first);
-
-					itr_single_gate = m_single_qubit_gates.erase(itr_single_gate);
-					continue;
-				}
-
-				++itr_single_gate;
-			}
-
-			if (itr_calc_unit_vec.second.front() == in_used_qubit_val)
-			{
-				b_no_gate_on_this_qubit = false;
-				tensorByMatrix(final_mat_of_one_calc_unit, itr_calc_unit_vec.first);
-			}
-
-			if ((itr_calc_unit_vec.second.front() <= in_used_qubit_val) && (itr_calc_unit_vec.second.back() >= in_used_qubit_val))
-			{
-				continue;
-			}
-
-			if (b_no_gate_on_this_qubit)
-			{
-				tensorByMatrix(final_mat_of_one_calc_unit, m_mat_I);
-			}
-		}
-
-		//Multiply, NOT tensor
-		if (m_current_layer_mat.empty())
-		{
-			m_current_layer_mat = final_mat_of_one_calc_unit;
-		}
-		else
-		{
-			m_current_layer_mat = (m_current_layer_mat * final_mat_of_one_calc_unit);
-		}
-	}
-}
-
-void QprogToMatrix::MatrixOfOneLayer::reverse_ctrl_gate_matrix(QStat& src_mat, const GateType &gate_T)
-{
-	QStat result;
-	switch (gate_T)
-	{
-	case CNOT_GATE:
-		result = reverseCtrlGateMatrixCX(src_mat);
-		break;
-
-	case CU_GATE:
-		result = reverseCtrlGateMatrixCU(src_mat);
-		break;
-
-	default:
-		QCERR_AND_THROW_ERRSTR(runtime_error, "Error: reverse_ctrl_gate_matrix error, unsupport type.");
-		break;
-	}
-
-	src_mat.swap(result);
-}
-
-void  QprogToMatrix::MatrixOfOneLayer::merge_controled_gate()
-{
-	if (m_controled_gates.size() == 0)
-	{
-		return;
-	}
-
-	GateType gate_T = GATE_UNDEFINED;
-	for (auto& controled_gare : m_controled_gates)
-	{
-		gate_T = (GateType)(controled_gare.first->getQGate()->getGateType());
-		QVec gate_qubits;
-		controled_gare.first->getQuBitVector(gate_qubits);
-		QVec control_gate_qubits;
-		controled_gare.first->getControlVector(control_gate_qubits);
-		
-		//get base matrix
-		QStat base_gate_mat;
-		controled_gare.first->getQGate()->getMatrix(base_gate_mat);
-
-		//build standard controled gate matrix
-		std::vector<int> all_gate_qubits_vec;
-		for (auto& itr : gate_qubits)
-		{
-			all_gate_qubits_vec.push_back(itr->getPhysicalQubitPtr()->getQubitAddr());
-		}
-
-		for (auto& itr : control_gate_qubits)
-		{
-			all_gate_qubits_vec.push_back(itr->getPhysicalQubitPtr()->getQubitAddr());
-		}
-
-		sort(all_gate_qubits_vec.begin(), all_gate_qubits_vec.end(), [](const int &a, const int &b) {return a < b; });
-		all_gate_qubits_vec.erase(unique(all_gate_qubits_vec.begin(), all_gate_qubits_vec.end()), all_gate_qubits_vec.end());
-
-		int all_control_gate_qubits = all_gate_qubits_vec.size();
-		QStat standard_mat;
-		build_standard_control_gate_matrix(base_gate_mat, all_control_gate_qubits, standard_mat);
-
-		//tensor
-		//int all_used_qubits = controled_gare.second[1] - controled_gare.second[0] + 1;
-		int idle_qubits = m_qubits_in_use.size() - all_control_gate_qubits;
-		QStat tmp_idle_mat;
-		if (idle_qubits > 0)
-		{
-			for (size_t i = 0; i < idle_qubits; i++)
-			{
-				tensorByMatrix(tmp_idle_mat, m_mat_I);
-			}
-			standard_mat = tensor(tmp_idle_mat, standard_mat);
-		}
-
-#if PRINT_TRACE
-		cout << "tmp_idle_mat:" << endl;
-		cout << tmp_idle_mat << endl;
-
-		cout << "tensored standard matrix:" << endl;
-		cout << standard_mat << endl;
-#endif // PRINT_TRACE
-
-		//swap
-		auto used_qubit_iter = m_qubits_in_use.begin() + idle_qubits;
-		auto gate_qubit_item = all_gate_qubits_vec.begin();
-		for (; gate_qubit_item != all_gate_qubits_vec.end(); ++gate_qubit_item, ++used_qubit_iter)
-		{
-			const auto& gate_qubit_tmp = *gate_qubit_item;
-			const auto& maped_gate_qubit = *used_qubit_iter;
-			if (gate_qubit_tmp != maped_gate_qubit)
-			{
-				swap_two_qubit_on_matrix(standard_mat, controled_gare.second[0], controled_gare.second[1], gate_qubit_tmp, maped_gate_qubit);
-			}
-		}
-
-		//swap target qubit by gate type
-		if ((SWAP_GATE == gate_T) || (SQISWAP_GATE == gate_T)|| (ISWAP_GATE == gate_T)|| (ISWAP_THETA_GATE == gate_T))
-		{
-			swap_two_qubit_on_matrix(standard_mat, controled_gare.second[0], controled_gare.second[1], 
-				gate_qubits.front()->getPhysicalQubitPtr()->getQubitAddr(), all_gate_qubits_vec.back() -1);
-		}
-		
-		swap_two_qubit_on_matrix(standard_mat, controled_gare.second[0], controled_gare.second[1],
-			gate_qubits.back()->getPhysicalQubitPtr()->getQubitAddr(), all_gate_qubits_vec.back());
-
-		//merge to current layer matrix directly
-		if (m_current_layer_mat.empty())
-		{
-			m_current_layer_mat = standard_mat;
-		}
-		else
-		{
-			m_current_layer_mat = (m_current_layer_mat * standard_mat);
-		}
-	}
-}
-
-void QprogToMatrix::MatrixOfOneLayer::swap_two_qubit_on_matrix(QStat& src_mat, const int mat_qubit_start, const int mat_qubit_end, const int qubit_1, const int qubit_2)
-{
-	if (qubit_1 == qubit_2)
-	{
-		return;
-	}
-
-	auto machine = initQuantumMachine(QMachineType::CPU);
-	auto q = machine->allocateQubits(4);
-	auto c = machine->allocateCBits(4);
-	auto swap_gate = SWAP(q[0], q[1]);
-	QStat swap_gate_matrix;
-	swap_gate.getQGate()->getMatrix(swap_gate_matrix);
-	destroyQuantumMachine(machine);
-
-	QStat tmp_tensor_mat;
-	int tensor_start_qubit = qubit_1 < qubit_2 ? qubit_1 : qubit_2;
-	int tensor_end_qubit = qubit_1 < qubit_2 ? qubit_2 : qubit_1;
-
-	for (auto &used_qubit_item : m_qubits_in_use)
-	{
-		if ((used_qubit_item > tensor_start_qubit) && (used_qubit_item < tensor_end_qubit))
-		{
-			tensorByMatrix(tmp_tensor_mat, m_mat_I);
-		}
-	}
-
-#if PRINT_TRACE
-	cout << "tmp_tensor_mat:" << endl;
-	cout << tmp_tensor_mat << endl;
-#endif // PRINT_TRACE
-
-	//blockMultip
-	QStat tensored_swap_gate_matrix;
-	blockedMatrix_t blocked_mat;
-	partition(swap_gate_matrix, 2, 2, blocked_mat);
-	blockMultip(tmp_tensor_mat, blocked_mat, tensored_swap_gate_matrix);
-
-	QStat tmp_mat;
-	for (auto used_qubit_itr = m_qubits_in_use.begin(); used_qubit_itr != m_qubits_in_use.end(); ++used_qubit_itr)
-	{
-		const auto& qubit_tmp = *used_qubit_itr;
-		if ((qubit_tmp < qubit_1) || (qubit_tmp > qubit_2))
-		{
-			tensorByMatrix(tmp_mat, m_mat_I);
-		}
-		else if (qubit_1 == qubit_tmp)
-		{
-			tensorByMatrix(tmp_mat, tensored_swap_gate_matrix);
-		}
-	}
-
-	src_mat = src_mat * tmp_mat;
-}
-
-void QprogToMatrix::MatrixOfOneLayer::build_standard_control_gate_matrix(const QStat& src_mat, const int qubit_number, QStat& result_mat)
-{
-	size_t rows = 1; // rows of the standard matrix
-	size_t columns = 1;// columns of the standard matrix
-	for (size_t i = 0; i < qubit_number; i++)
-	{
-		rows *= 2;
-	}
-	columns = rows;
-
-	result_mat.resize(rows * columns);
-
-	size_t src_mat_colums = sqrt(src_mat.size());
-	size_t src_mat_rows = src_mat_colums;
-	size_t item_index = 0;
-	for (size_t i = 0; i < rows; ++i)
-	{
-		for (size_t j = 0; j < columns; ++j)
-		{
-			item_index = i * rows + j;
-			if (((rows - i) <= src_mat_rows) && ((columns - j) <= src_mat_colums))
-			{
-				result_mat[item_index] = src_mat[(src_mat_rows - (rows - i)) * src_mat_rows + src_mat_colums - (columns - j)];
-			}
-			else if (i == j)
-			{
-				result_mat[item_index] = 1;
-			}
-			else
-			{
-				result_mat[item_index] = 0;
-			}
-		}
-	}
-
-#if PRINT_TRACE
-	cout << result_mat << endl;
-#endif // PRINT_TRACE
-}
-
-void QprogToMatrix::MatrixOfOneLayer::merge_sing_gate()
-{
-	if (m_single_qubit_gates.size() > 0)
-	{
-		QStat all_single_gate_matrix;
-		for (auto &in_used_qubit_val : m_qubits_in_use)
-		{
-			bool b_no_gate_on_this_qubit = true;
-			for (auto itr_single_gate = m_single_qubit_gates.begin(); itr_single_gate != m_single_qubit_gates.end();)
-			{
-				const int qubit_val = itr_single_gate->second.front();
-				if (qubit_val == in_used_qubit_val)
-				{
-					b_no_gate_on_this_qubit = false;
-					tensorByQGate(all_single_gate_matrix, itr_single_gate->first);
-
-					itr_single_gate = m_single_qubit_gates.erase(itr_single_gate);
-					continue;
-				}
-
-				++itr_single_gate;
-			}
-
-			if (b_no_gate_on_this_qubit)
-			{
-				tensorByMatrix(all_single_gate_matrix, m_mat_I);
-			}
-		}
-
-		if (m_current_layer_mat.empty())
-		{
-			m_current_layer_mat = all_single_gate_matrix;
-		}
-		else
-		{
-			m_current_layer_mat = (m_current_layer_mat * all_single_gate_matrix);
-		}
-	}
-}
-
-QStat QprogToMatrix::getMatrix()
-{
-	QStat result_matrix;
-
-	//get quantumBits number
-	get_all_used_qubits(m_prog, m_qubits_in_use);
-
-	//layer
-	GraphMatch match;
-	TopologicalSequence seq;
-	match.get_topological_sequence(m_prog, seq);
-	const QProgDAG& prog_dag = match.getProgDAG();
-	for (auto &seqItem : seq)
-	{
-		//each layer
-		if (result_matrix.size() == 0)
-		{
-			result_matrix = getMatrixOfOneLayer(seqItem, prog_dag);
-		}
-		else
-		{
-			result_matrix = result_matrix * (getMatrixOfOneLayer(seqItem, prog_dag));
-		}
-	}
-
-	return result_matrix;
-}
-
-QStat QprogToMatrix::getMatrixOfOneLayer(SequenceLayer& layer, const QProgDAG& prog_dag)
-{
-	MatrixOfOneLayer get_one_layer_matrix(layer, prog_dag, m_qubits_in_use);
-
-	get_one_layer_matrix.merge_controled_gate();
-	
-	get_one_layer_matrix.merge_double_gate();	
-
-	get_one_layer_matrix.merge_calc_unit();
-
-	get_one_layer_matrix.merge_sing_gate();
-
-	return get_one_layer_matrix.m_current_layer_mat;
-}
-
-/*******************************************************************
 *                      public interface
 ********************************************************************/
 QStat QPanda::getCircuitMatrix(QProg srcProg, const NodeIter nodeItrStart, const NodeIter nodeItrEnd)
 {
 	QProg tmp_prog;
 
-	pickUpNode(tmp_prog, srcProg, nodeItrStart == NodeIter() ? srcProg.getFirstNodeIter() : nodeItrStart,
+	pickUpNode(tmp_prog, srcProg, {MEASURE_GATE, RESET_NODE}, nodeItrStart == NodeIter() ? srcProg.getFirstNodeIter() : nodeItrStart,
 		nodeItrEnd == NodeIter() ? srcProg.getEndNodeIter() : nodeItrEnd);
 
 #if PRINT_TRACE
@@ -1456,12 +532,12 @@ QStat QPanda::getCircuitMatrix(QProg srcProg, const NodeIter nodeItrStart, const
 	printAllNodeType(tmp_prog);
 #endif
 
-	QprogToMatrix calc_matrix(tmp_prog);
+	QProgToMatrix calc_matrix(tmp_prog);
 
-	return calc_matrix.getMatrix();
+	return calc_matrix.get_matrix();
 }
 
-std::string QPanda::getAdjacentQGateType(QProg &prog, NodeIter &nodeItr, std::vector<NodeIter>& frontAndBackIter)
+std::string QPanda::getAdjacentQGateType(QProg &prog, NodeIter &nodeItr, std::vector<NodeInfo>& adjacentNodes)
 {
 	std::shared_ptr<AdjacentQGates> p_adjacent_QGates = std::make_shared<AdjacentQGates>(prog, nodeItr);
 	if (nullptr == p_adjacent_QGates)
@@ -1471,7 +547,7 @@ std::string QPanda::getAdjacentQGateType(QProg &prog, NodeIter &nodeItr, std::ve
 	}
 
 	//Judging whether the target nodeItr is Qgate or no
-	if ((GATE_UNDEFINED == p_adjacent_QGates->getItrNodeType(nodeItr)))
+	if ((GATE_UNDEFINED == p_adjacent_QGates->get_node_ype(nodeItr)))
 	{
 		// target node type error
 		QCERR_AND_THROW_ERRSTR(runtime_error, "The target node is not a Qgate.");
@@ -1480,12 +556,12 @@ std::string QPanda::getAdjacentQGateType(QProg &prog, NodeIter &nodeItr, std::ve
 
 	p_adjacent_QGates->traverse_qprog();
 
-	frontAndBackIter.clear();
-	frontAndBackIter.push_back(p_adjacent_QGates->getFrontIter());
-	frontAndBackIter.push_back(p_adjacent_QGates->getBackIter());
+	adjacentNodes.clear();
+	adjacentNodes.push_back(p_adjacent_QGates->get_front_node());
+	adjacentNodes.push_back(p_adjacent_QGates->get_back_node());
 
-	std::string ret = std::string("frontNodeType = ") + p_adjacent_QGates->getFrontIterNodeTypeStr()
-		+ std::string(", backNodeType = ") + p_adjacent_QGates->getBackIterNodeTypeStr();
+	std::string ret = std::string("frontNodeType = ") + p_adjacent_QGates->get_front_node_type_str()
+		+ std::string(", backNodeType = ") + p_adjacent_QGates->get_back_node_type_str();
 
 	return ret;
 }
@@ -1505,9 +581,15 @@ bool QPanda::isSwappable(QProg &prog, NodeIter &nodeItr1, NodeIter &nodeItr2)
 		return false;
 	}
 
+	// judge node type
+	if (!p_judge_node_iters->judge_node_type())
+	{
+		return false;
+	}
+
 	p_judge_node_iters->traverse_qprog();
 
-	return p_judge_node_iters->getResult();
+	return p_judge_node_iters->get_result();
 }
 
 bool QPanda::isMatchTopology(const QGate& gate, const std::vector<std::vector<int>>& vecTopoSt)
@@ -1587,15 +669,15 @@ bool QPanda::isSupportedGateType(const NodeIter &nodeItr)
 	return false;
 }
 
-void QPanda::pickUpNode(QProg &outPutProg, QProg &srcProg, const NodeIter nodeItrStart/* = NodeIter()*/, const NodeIter nodeItrEnd /*= NodeIter()*/,
-	bool bPickMeasure/* = false*/, bool bDagger/* = false*/)
+void QPanda::pickUpNode(QProg &outPutProg, QProg &srcProg, const std::vector<NodeType> reject_node_types, 
+	const NodeIter nodeItrStart/* = NodeIter()*/, const NodeIter nodeItrEnd /*= NodeIter()*/,
+	bool bDagger/* = false*/)
 {
 	//fill the prog through traversal 
-	PickUpNodes pick_handle(outPutProg, srcProg,
+	PickUpNodes pick_handle(outPutProg, srcProg, reject_node_types,
 		nodeItrStart == NodeIter() ? srcProg.getFirstNodeIter() : nodeItrStart,
 		nodeItrEnd == NodeIter() ? srcProg.getEndNodeIter() : nodeItrEnd);
 
-	pick_handle.setPickUpMeasureNode(bPickMeasure);
 	pick_handle.setDaggerFlag(bDagger);
 
 	pick_handle.traverse_qprog();
@@ -1630,6 +712,12 @@ void QPanda::get_all_used_qubits(QProg &prog, QVec &vecQuBitsInUse)
 				std::shared_ptr<AbstractQuantumMeasure> p_QMeasure = std::dynamic_pointer_cast<AbstractQuantumMeasure>(*itr);
 				vecQuBitsInUse.push_back(p_QMeasure->getQuBit());
 			}
+			else if (RESET_NODE == type)
+			{
+				std::shared_ptr<AbstractQuantumReset> p_reset = std::dynamic_pointer_cast<AbstractQuantumReset>(*itr);
+				vecQuBitsInUse.push_back(p_reset->getQuBit());
+			}
+
 			continue;
 		}
 
@@ -1695,7 +783,7 @@ void QPanda::get_all_used_class_bits(QProg &prog, std::vector<int> &vecClBitsInU
 	vecClBitsInUse.erase(unique(vecClBitsInUse.begin(), vecClBitsInUse.end()), vecClBitsInUse.end());
 }
 
-string QPanda::printAllNodeType(QProg &prog)
+string QPanda::printAllNodeType(QProg prog)
 {
 	GetAllNodeType print_node_type(prog);
 	print_node_type.traverse_qprog();
@@ -1746,6 +834,27 @@ void QPanda::get_gate_parameter(std::shared_ptr<AbstractQGateNode> pGate, std::s
 		auto gate_parameter = dynamic_cast<QGATE_SPACE::AbstractSingleAngleParameter*>(pGate->getQGate());
 		string  gate_angle = to_string(gate_parameter->getParameter());
 		para_str.append(string("(") + gate_angle + ")");
+	}
+	break;
+
+	case U2_GATE:
+	{
+		QGATE_SPACE::U2 *u2_gate = dynamic_cast<QGATE_SPACE::U2*>(pGate->getQGate());
+		double phi = u2_gate->get_phi();
+		double lambda = u2_gate->get_lambda();
+		std::string  gate_angle = "(" + to_string(phi) + "," + to_string(lambda) + ")";
+		para_str.append(gate_angle);
+	}
+	break;
+
+	case U3_GATE:
+	{
+		QGATE_SPACE::U3 *u3_gate = dynamic_cast<QGATE_SPACE::U3*>(pGate->getQGate());
+		double theta = u3_gate->get_theta();
+		double phi = u3_gate->get_phi();
+		double lambda = u3_gate->get_lambda();
+		std::string  gate_angle = "(" + to_string(theta) + ","+ to_string(phi) + "," + to_string(lambda) + ")";
+		para_str.append(gate_angle);
 	}
 	break;
 

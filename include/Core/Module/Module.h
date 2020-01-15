@@ -26,12 +26,8 @@ limitations under the License.
 QPANDA_BEGIN
 
 /**
-* @namespace QPanda
-*/
-
-/**
-* @class ModuleContext
-* @brief 
+* @brief Module Context
+* @ingroup Module
 * @note
 */
 class ModuleContext {
@@ -49,8 +45,8 @@ public:
 };
 
 /**
-* @class qubit
 * @brief Apply for qubit
+* @ingroup Module
 * @note
 */
 class qubit {
@@ -86,8 +82,8 @@ public:
 };
 
 /**
-* @class qubit
 * @brief Apply for qubits
+* @ingroup Module
 * @note
 */
 template<size_t nqubit>
@@ -122,8 +118,8 @@ public:
 };
 
 /**
-* @class qubit
 * @brief Apply for qubit vector
+* @ingroup Module
 * @note
 */
 class qvec :public std::vector<qubit> {

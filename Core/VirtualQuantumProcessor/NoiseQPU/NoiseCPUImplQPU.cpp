@@ -188,7 +188,7 @@ QError NoisyCPUImplQPU::_get_probabilities(prob_vec& probabilities, size_t qn, N
                 beta = qstat[j + ststep];
                 qstat[j] = noise[k][0] * alpha + noise[k][1] * beta;
                 qstat[j + ststep] = noise[k][2] * alpha + noise[k][3] * beta;
-                probabilities[k] += (abs(qstat[j])*abs(qstat[j]) + abs(qstat[j+ststep])*abs(qstat[ststep]));
+                probabilities[k] += (abs(qstat[j])*abs(qstat[j]) + abs(qstat[j + ststep])*abs(qstat[j + ststep]));
             }
         }
     }
@@ -247,10 +247,11 @@ QError NoisyCPUImplQPU::_get_probabilities(prob_vec& probabilities, size_t qn_0,
                         + noise[k][10] * phi10 + noise[k][11] * phi11;
                     qstat[l + ststep1 + ststep2] = noise[k][12] * phi00 + noise[k][13] * phi01
                         + noise[k][14] * phi10 + noise[k][15] * phi11;
+
                     probabilities[k] += (abs(qstat[l])*abs(qstat[l])
-                        + abs(qstat[j + ststep1])*abs(qstat[ststep1])
-                        + abs(qstat[l + ststep2])*abs(qstat[j + ststep2]) 
-                        + abs(qstat[j + ststep1+ststep2])*abs(qstat[j + ststep1 + ststep2]));
+                        + abs(qstat[l + ststep1])*abs(qstat[l + ststep1])
+                        + abs(qstat[l + ststep2])*abs(qstat[l + ststep2])
+                        + abs(qstat[l + ststep1 + ststep2])*abs(qstat[l + ststep1 + ststep2]));
                 }
             }
         }
@@ -963,13 +964,22 @@ QError NoisyCPUImplQPU::Reset(size_t qn)
     size_t ststep = 1ull << (find(qgroup.qVec.begin(), qgroup.qVec.end(), qn)
         - qgroup.qVec.begin());
     //#pragma omp parallel for private(j,alpha,beta)
+	double dsum = 0;
     for (size_t i = 0; i < qgroup.qstate.size(); i += ststep * 2)
     {
         for (j = i; j<i + ststep; j++)
         {
             qgroup.qstate[j + ststep] = 0;                              /* in j+ststep,the goal qubit is in |1> */
+			dsum += (abs(qgroup.qstate[j])*abs(qgroup.qstate[j]) + abs(qgroup.qstate[j + ststep])*abs(qgroup.qstate[j + ststep]));
         }
     }
+
+	dsum = sqrt(dsum);
+	for (size_t i = 0; i < qgroup.qstate.size(); i++)
+	{
+		qgroup.qstate[i] /= dsum;
+	}
+
     return qErrorNone;
 }
 

@@ -36,6 +36,11 @@ limitations under the License.
 
 QStat matrix_multiply(const QStat &matrix_left, const QStat &matrix_right);
 
+
+/**
+* @brief QPU implementation by noisy CPU model
+* @ingroup VirtualQuantumProcessor
+*/
 class NoisyCPUImplQPU : public QPUImpl
 {
 public:

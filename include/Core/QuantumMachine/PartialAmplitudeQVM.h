@@ -8,16 +8,12 @@
 #include "Core/Utilities/Compiler/QRunesToQProg.h"
 #include "Core/Utilities/Tools/Traversal.h"
 QPANDA_BEGIN
-/**
-* @namespace QPanda
-*/
 
 /**
 * @class PartialAmplitudeQVM   
 * @ingroup QuantumMachine
 * @see QuantumMachine
 * @brief Quantum machine for partial amplitude simulation
-* @ingroup QuantumMachine
 */
 class PartialAmplitudeQVM : public QVM,
                             public TraversalInterface<>,
@@ -102,6 +98,7 @@ public:
     void execute(std::shared_ptr<AbstractQGateNode>, std::shared_ptr<QNode>);
     void execute(std::shared_ptr<AbstractClassicalProg>, std::shared_ptr<QNode>);
     void execute(std::shared_ptr<AbstractQuantumMeasure>, std::shared_ptr<QNode>);
+	void execute(std::shared_ptr<AbstractQuantumReset>, std::shared_ptr<QNode>);
     void execute(std::shared_ptr<AbstractQuantumCircuit>, std::shared_ptr<QNode>);
     void execute(std::shared_ptr<AbstractQuantumProgram>, std::shared_ptr<QNode>);
     void execute(std::shared_ptr<AbstractControlFlowNode>, std::shared_ptr<QNode>);

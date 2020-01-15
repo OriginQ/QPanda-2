@@ -22,27 +22,58 @@ limitations under the License.
 #include "Core/Utilities/QPandaNamespace.h"
 
 QPANDA_BEGIN
+
+/**
+* @brief Physical Qubit abstract class
+* @ingroup QuantumMachine
+*/
 class PhysicalQubit
 {
     // Interface for the PhysicalQubit
 
 public:
+	/**
+    * @brief    get qubit address
+    * @return   size_t 
+    */
     virtual size_t getQubitAddr() = 0;
+
+	/**
+    * @brief    set qubit address
+    * @param[in]   size_t   qubit address
+    */
     virtual void setQubitAddr(size_t) = 0;
     //virtual void setAdjacentQubit(const vector<PhysicalQubit*>&) = 0;
     //virtual vector<PhysicalQubit*> getAdjacentQubit() const = 0;
+
+	/**
+    * @brief    get the occupancy status of this qubit
+	* @return bool ture: occupancy
+    */
     virtual bool getOccupancy() const = 0;
+
+	/**
+	* @brief    set the occupancy status of this qubit
+	* @param[in] bool  occupancy status
+	*/
     virtual void setOccupancy(bool) = 0;
     virtual ~PhysicalQubit() {}
 };
 
-/*  Physical Qubit Factory*/
+
+/**
+* @brief Factory for class PhysicalQubit
+* @ingroup QuantumMachine
+*/
 class PhysicalQubitFactory
 {
     // Factory for class PhysicalQubit
     PhysicalQubitFactory();
 public:
-
+	/**
+     * @brief Get the static instance of factory 
+	 * @return PhysicalQubitFactory &
+     */
     static PhysicalQubitFactory & GetFactoryInstance();
 
     PhysicalQubit* GetInstance();
@@ -53,6 +84,12 @@ public:
     constructor_Map_t _Physical_Qubit_Constructor;
 };
 
+
+/**
+ * @brief Physical Qubit Factory helper
+ * Provide PhysicalQubitFactory class registration interface for the outside
+ * @ingroup QuantumMachine
+ */
 class PhysicalQubitFactoryHelper
 {
     typedef PhysicalQubitFactory::constructor_t constructor_t;

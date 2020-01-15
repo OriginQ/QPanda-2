@@ -6,7 +6,17 @@ using namespace std;
 size_t QProgDAG::add_vertex(std::shared_ptr<QNode> node)
 {
     m_dag_prog.pushBackNode(node);
-    return add_vertex(m_dag_prog.getLastNodeIter());
+	QProgDAG::NodeInfo node_info(m_dag_prog.getLastNodeIter());
+
+	if (GATE_NODE == node->getNodeType())
+	{
+		auto p_gate = std::dynamic_pointer_cast<AbstractQGateNode>(node);
+		node_info.m_dagger = p_gate->isDagger();
+		p_gate->getQuBitVector(node_info.m_qubits_vec);
+		p_gate->getControlVector(node_info.m_control_vec);
+	}
+	
+    return add_vertex(node_info);
 }
 
 void QProgDAG::add_qubit_map(size_t tar_qubit, size_t vertice_num)
@@ -32,10 +42,10 @@ void QProgDAG::add_qubit_map(size_t tar_qubit, size_t vertice_num)
 }
 
 
-size_t QProgDAG::add_vertex(const NodeIter& iter)
+size_t QProgDAG::add_vertex(const NodeInfo& node_info)
 {
     auto vertice_num = m_vertices_map.size();
-    m_vertices_map.insert(make_pair(vertice_num, iter));
+    m_vertices_map.insert(make_pair(vertice_num, node_info));
     return vertice_num;
 }
 
@@ -80,7 +90,7 @@ NodeIter QProgDAG::get_vertex_nodeIter(size_t vertice_num) const
 		QCERR("vertice_num error");
 		throw std::runtime_error("vertice_num error");
 	}
-	return m_vertices_map.find(vertice_num)->second;
+	return m_vertices_map.find(vertice_num)->second.m_itr;
 }
 
 void QProgDAG::getTopologincalSequence(TopologicalSequence &seq)
@@ -143,7 +153,7 @@ void QProgDAG::_get_cur_layer_vertices(AdjacencyMatrix &matrix, SequenceLayer &s
 SequenceNode QProgDAG::construct_sequence_node(size_t vertice)
 {
     SequenceNode node;
-    QNode * node_ptr = (*(m_vertices_map.find(vertice)->second)).get();
+    QNode * node_ptr = (*(m_vertices_map.find(vertice)->second.m_itr)).get();
     if (NodeType::GATE_NODE == node_ptr->getNodeType())
     {
         auto pQGate = dynamic_cast<AbstractQGateNode*>(node_ptr);
@@ -153,9 +163,15 @@ SequenceNode QProgDAG::construct_sequence_node(size_t vertice)
     else if (NodeType::MEASURE_GATE == node_ptr->getNodeType())
     {
         auto pMeasure = dynamic_cast<AbstractQuantumMeasure*>(node_ptr);
-        node.m_node_type = -1;
+        node.m_node_type = SequenceNodeType::MEASURE;
         node.m_vertex_num = vertice;
     }
+	else if (NodeType::RESET_NODE == node_ptr->getNodeType())
+	{
+		auto pMeasure = dynamic_cast<AbstractQuantumMeasure*>(node_ptr);
+		node.m_node_type = SequenceNodeType::RESET;
+		node.m_vertex_num = vertice;
+	}
     else
     {
         QCERR("node type error");

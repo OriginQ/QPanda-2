@@ -21,6 +21,7 @@
         <QIfProg>OriginQIf</QIfProg>
         <QWhileProg>OriginQWhile</QWhileProg>
         <QMeasure>OriginMeasure</QMeasure>
+        <QReset>OriginReset</QReset>
         <QuantumMachine>OriginQVM</QuantumMachine>
         <QubitPool>OriginQubitPool</QubitPool>
         <Qubit>OriginQubit</Qubit>

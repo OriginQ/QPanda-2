@@ -7,6 +7,10 @@ QPANDA_BEGIN
 
 using namespace Variational;
 
+/**
+* @brief complex number variate
+* @ingroup Variational
+*/
 class complex_var
 {
 public:

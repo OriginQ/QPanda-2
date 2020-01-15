@@ -115,6 +115,11 @@ void QProgToQuil::execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, std:
 	transformQMeasure(cur_node.get());
 }
 
+void QProgToQuil::execute(std::shared_ptr<AbstractQuantumReset> cur_node, std::shared_ptr<QNode> parent_node, bool &is_dagger)
+{
+	transformQReset(cur_node.get());
+}
+
 void QProgToQuil::execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node, bool &)
 {
 	QCERR("Don't support QWhileProg or QIfProg");
@@ -177,6 +182,25 @@ void QProgToQuil::transformQMeasure(AbstractQuantumMeasure *measure)
 
     m_instructs.emplace_back(instruct);
     return;
+}
+
+void QProgToQuil::transformQReset(AbstractQuantumReset *reset)
+{
+	if (nullptr == reset)
+	{
+		QCERR("reset node is null");
+		throw runtime_error("reset node is null");
+	}
+
+	Qubit *p_qubit = reset->getQuBit();
+	auto p_physical_qubit = p_qubit->getPhysicalQubitPtr();
+	size_t qubit_addr = p_physical_qubit->getQubitAddr();
+	string qubit_addr_str = to_string(qubit_addr);
+
+	string instruct = "RESET " + qubit_addr_str;
+
+	m_instructs.emplace_back(instruct);
+	return;
 }
 
 void QProgToQuil::transformQControlFlow(AbstractControlFlowNode *controlflow)

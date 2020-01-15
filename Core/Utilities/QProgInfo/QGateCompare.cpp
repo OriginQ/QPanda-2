@@ -25,7 +25,9 @@ static map<int, string>  s_gateTypeInt_map_gateTypeStr = {
     { ISWAP_THETA_GATE,   "ISWAP_THETA" },
     { ISWAP_GATE,         "ISWAP" },
     { SQISWAP_GATE,       "SQISWAP" },
-    { TWO_QUBIT_GATE,     "TWO_QUBIT" }
+    { TWO_QUBIT_GATE,     "TWO_QUBIT" },
+	{ I_GATE,     "I" }
+
 };
 
 QGateCompare::QGateCompare(const std::vector<std::vector<string> > &gates) :

@@ -31,7 +31,8 @@ const std::map<int, QProgStoredNodeType> kGateTypeAndQProgTypeMap =
     {ISWAP_THETA_GATE, QPROG_ISWAP_THETA_GATE},
     {ISWAP_GATE,    QPROG_ISWAP_GATE},
 	{SQISWAP_GATE,  QPROG_SQISWAP_GATE},
-	{SWAP_GATE,    QPROG_SWAP_GATE}
+	{SWAP_GATE,    QPROG_SWAP_GATE},
+	{I_GATE,        QPROG_I_GATE},
 };
 
 
@@ -276,6 +277,25 @@ void QProgStored::transformQGate(AbstractQGateNode *p_gate)
     {
         handleQGateWithOneAngle(p_gate);
     }
+	else if (GateType::U2_GATE == gate_type)
+	{
+		QGATE_SPACE::U2 *u2_gate = dynamic_cast<QGATE_SPACE::U2*>(p_gate->getQGate());
+		float phi = (float)u2_gate->get_phi();
+		float lambda = (float)u2_gate->get_lambda();
+
+		addDataNode(QPROG_GATE_ANGLE, phi);
+		addDataNode(QPROG_GATE_ANGLE, lambda);
+	}
+	else if (GateType::U3_GATE == gate_type)
+	{
+		QGATE_SPACE::U3 *u3_gate = dynamic_cast<QGATE_SPACE::U3*>(p_gate->getQGate());
+		float theta = (float)u3_gate->get_theta();
+		float phi = (float)u3_gate->get_phi();
+		float lambda = (float)u3_gate->get_lambda();
+		addDataNode(QPROG_GATE_ANGLE, theta);
+		addDataNode(QPROG_GATE_ANGLE, phi);
+		addDataNode(QPROG_GATE_ANGLE, lambda);
+	}
     else if (GateType::U4_GATE == gate_type || GateType::CU_GATE == gate_type)
     {
         handleQGateWithFourAngle(p_gate);
@@ -323,6 +343,35 @@ void QProgStored::transformQMeasure(AbstractQuantumMeasure *p_measure)
     addDataNode(QPROG_MEASURE_GATE, qubit_data);
 
     return;
+}
+
+void QProgStored::transformQReset(AbstractQuantumReset *p_reset)
+{
+	if (nullptr == p_reset)
+	{
+		QCERR("p_reset is null");
+		throw invalid_argument("p_reset is null");
+	}
+
+	Qubit *qubit = p_reset->getQuBit();
+	auto p_physical_qubit = qubit->getPhysicalQubitPtr();
+	size_t qubit_addr = p_physical_qubit->getQubitAddr();
+
+	const int kQubitNumberMax = 2;
+	uint16_t qubit_array[kQubitNumberMax] = { 0 };
+
+	if (qubit_addr > kUshortMax)
+	{
+		QCERR("QBit number is out of range");
+		throw invalid_argument("QBit number is out of range");
+	}
+	qubit_array[0] = (uint16_t)qubit_addr;
+
+	uint32_t qubit_data = 0;
+	qubit_data |= qubit_array[0];
+	addDataNode(QPROG_RESET_NODE, qubit_data);
+
+	return;
 }
 
 void QProgStored::transformCExpr(CExpr *p_cexpr)
@@ -483,6 +532,11 @@ void QProgStored::execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::sha
 void QProgStored::execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, std::shared_ptr<QNode> parent_node)
 {
 	transformQMeasure(cur_node.get());
+}
+
+void QProgStored::execute(std::shared_ptr<AbstractQuantumReset> cur_node, std::shared_ptr<QNode> parent_node)
+{
+	transformQReset(cur_node.get());
 }
 
 void QProgStored::execute(std::shared_ptr<AbstractClassicalProg>  cur_node, std::shared_ptr<QNode> parent_node)

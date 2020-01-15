@@ -66,6 +66,7 @@ size_t QProgClockCycle::getDefalutQGateTime(GateType gate_type)
     case HADAMARD_GATE:
     case T_GATE:
     case S_GATE:
+	case I_GATE:
     case RX_GATE:
     case RY_GATE:
     case RZ_GATE:

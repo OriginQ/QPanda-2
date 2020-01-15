@@ -20,9 +20,9 @@ public:
     SQISWAP_GATE = 28, SWAPZ1_GATE = 29, ISWAPTHETA_GATE = 30, CR_GATE = 31, 
     TOFFOLI_GATE = 32, DAGGER_KEY = 33, ENDDAGGER_KEY = 34, CONTROL_KEY = 35, 
     ENDCONTROL_KEY = 36, QIF_KEY = 37, ELSE_KEY = 38, ENDIF_KEY = 39, QWHILE_KEY = 40, 
-    ENDQWHILE_KEY = 41, MEASURE_KEY = 42, PMEASURE_KEY = 43, ASSIGN = 44, 
-    GT = 45, LT = 46, NOT = 47, EQ = 48, LEQ = 49, GEQ = 50, NE = 51, AND = 52, 
-    OR = 53, PLUS = 54, MINUS = 55, MUL = 56, DIV = 57, COMMA = 58, LPAREN = 59, 
+    ENDQWHILE_KEY = 41, MEASURE_KEY = 42, RESET_KEY = 43, ASSIGN = 44, GT = 45, 
+    LT = 46, NOT = 47, EQ = 48, LEQ = 49, GEQ = 50, NE = 51, AND = 52, OR = 53, 
+    PLUS = 54, MINUS = 55, MUL = 56, DIV = 57, COMMA = 58, LPAREN = 59, 
     RPAREN = 60, LBRACK = 61, RBRACK = 62, NEWLINE = 63, Identifier = 64, 
     Integer_Literal = 65, Double_Literal = 66, Digit_Sequence = 67, WhiteSpace = 68, 
     SingleLineComment = 69

@@ -19,6 +19,10 @@ Classes for get the shortes path of graph
 #include <functional>
 
 QPANDA_BEGIN
+
+/**
+ * @brief Single gate transfer type
+ */
 enum SingleGateTransferType
 {
     SINGLE_GATE_INVALID = -1,
@@ -28,81 +32,75 @@ enum SingleGateTransferType
     DOUBLE_DISCRETE
 };
 
+/**
+ * @brief  Double gate transfer type
+ */
 enum DoubleGateTransferType
 {
     DOUBLE_GATE_INVALID = -1,
     DOUBLE_BIT_GATE
 };
 
-/*
-Judge if the metadata's type is arbitrary rotation
-param:
-    gates: the gates is judged
-    valid_gates: output the valid gates  
-return:
-    Return the style of metadata validity
-
-Note:
+/**
+ * @brief Judge if the metadata's type is arbitrary rotation
+ * @ingroup Utilities
+ * @param std::vector<std::string>&  the gates is judged
+ * @param std::vector<std::string>&  output the valid gates  
+ * @return Return the style of metadata validity
 */
 int arbitraryRotationMetadataValidity(std::vector<std::string>&gates, 
                                       std::vector<std::string>&valid_gates);
 
-/*
-Judge if the metadata's type is double continuous
-param:
-    gates: the gates is judged
-    valid_gates: output the valid gates
-return:
-    Return the style of metadata validity
-
-Note:
+/**
+ * @brief Judge if the metadata's type is double continuous
+ * @ingroup Utilities
+ * @param std::vector<std::string>&  the gates is judged
+ * @param std::vector<std::string>&  output the valid gates
+ * @return Return the style of metadata validity
 */
 int doubleContinuousMetadataValidity(std::vector<std::string>&gates,
                                      std::vector<std::string>&valid_gates);
 
-/*
-Judge if the metadata's type is single continuous and discrete
-param:
-    gates: the gates is judged
-    valid_gates: output the valid gates
-return:
-    Return the style of metadata validity
-
-Note:
+/**
+ * @brief Judge if the metadata's type is single continuous and discrete
+ * @ingroup Utilities
+ * @param std::vector<std::string>&  the gates is judged
+ * @param std::vector<std::string>&  output the valid gates
+ * @return Return the style of metadata validity
 */
 int singleContinuousAndDiscreteMetadataValidity(std::vector<std::string>&gates, 
                                                 std::vector<std::string>&valid_gates);
 
-/*
-Judge if the metadata's type is double discrete
-param:
-    gates: the gates is judged
-    valid_gates: output the valid gates
-return:
-    Return the style of metadata validity
 
-Note:
+/**
+ * @brief Judge if the metadata's type is double discrete
+ * @ingroup Utilities
+ * @param std::vector<std::string>&  the gates is judged
+ * @param std::vector<std::string>&  output the valid gates
+ * @return Return the style of metadata validity
 */
 int doubleDiscreteMetadataValidity(std::vector<std::string>&gates,
                                    std::vector<std::string>&valid_gates);
 
-/*
-Judge double gate type
-param:
-    gates: the gates is judged
-    valid_gates: output the valid gates
-return:
-    Return the style of metadata validity
-
-Note:
+/**
+ * @brief Judge double gate type
+ * @ingroup Utilities
+ * @param std::vector<std::string>&  the gates is judged
+ * @param std::vector<std::string>&  output the valid gates
+ * @return Return the style of metadata validity
 */
 int doubleGateMetadataValidity(std::vector<std::string>&gates, 
                                std::vector<std::string>&valid_gates);
 
-/*
-add all functions of metadata validity
-*/
+/**
+ * @brief typedef MetadataValidity_cb that add all functions of metadata validity
+ */
 typedef  std::function<int(std::vector<std::string>&, std::vector<std::string>&)> MetadataValidity_cb;
+
+/**
+ * @brief Metadata Validity
+ * @ingroup Utilities
+ */
 class MetadataValidity
 {
 public:
@@ -116,10 +114,10 @@ private:
     std::vector<MetadataValidity_cb> m_metadata_validity_functions;
 };
 
-
-/*
-Get single gate metadata Validator type
-*/
+/**
+ * @brief Get single gate metadata Validator type
+ * @ingroup Utilities
+ */
 class SingleGateTypeValidator
 {
 public:
@@ -133,10 +131,10 @@ private:
 
 };
 
-
-/*
-Get double gate metadata Validator type
-*/
+/**
+ * @brief Get double gate metadata Validator type
+ * @ingroup Utilities
+ */
 class DoubleGateTypeValidator
 {
 public:
@@ -149,14 +147,13 @@ private:
 
 };
 
-
 /* new interface */
 
 /**
 * @brief  Verify the validity of single quantum gates
 * @ingroup Utilities
-* @param[in]  std::vector<std::string> &   gates vertor
-* @param[out]  std::vector<std::string> &   output the valid gates
+* @param[in]  std::vector<std::string>&   gates vertor
+* @param[out]  std::vector<std::string>&   output the valid gates
 * @return  int		single quantum gate type
 */
 int validateSingleQGateType(std::vector<std::string> &gates, std::vector<std::string> &valid_gates);
@@ -165,8 +162,8 @@ int validateSingleQGateType(std::vector<std::string> &gates, std::vector<std::st
 /**
 * @brief  Verify the validity of double quantum gates
 * @ingroup Utilitie
-* @param[in]  std::vector<std::string> &   the gates is judged
-* @param[out]  std::vector<std::string> &   output the valid gates
+* @param[in]  std::vector<std::string>&   the gates is judged
+* @param[out]  std::vector<std::string>&   output the valid gates
 * @return  int		double quantum gate type
 */
 int validateDoubleQGateType(std::vector<std::string> &gates, std::vector<std::string> &valid_gates);

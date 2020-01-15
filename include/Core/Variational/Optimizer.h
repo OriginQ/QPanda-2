@@ -9,6 +9,10 @@ namespace QPanda {
 namespace Variational
 {
 
+/**
+* @brief Optimizer base class
+* @ingroup Variational
+*/
 class Optimizer
 {
 public:

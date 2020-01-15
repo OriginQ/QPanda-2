@@ -23,11 +23,11 @@ update comment
 #include "Core/Utilities/Tools/Traversal.h"
 #include <map>
 QPANDA_BEGIN
+
 /**
-* @namespace QPanda
+* @brief  Count Quantum Program clock cycle
+* @ingroup Utilities
 */
-
-
 class QProgClockCycle {
 public:
     QProgClockCycle(QuantumMachine *qm);
@@ -40,10 +40,9 @@ private:
 };
 
 /**
-* @class QProgClockCycle
-* @brief  Count Quantum Program clock cycle
+* @brief  Get  quantum program clock cycle
 * @param[in]  QProg &   quantum program
-* @param[in]	QuantumMachine *		quantum machine pointer
+* @param[in]	QuantumMachine*		quantum machine pointer
 * @ingroup Utilities
 * @see
 	  @code

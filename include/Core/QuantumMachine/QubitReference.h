@@ -5,6 +5,11 @@
 #include "Core/QuantumCircuit/ClassicalConditionInterface.h"
 #include "Core/Utilities/QPandaNamespace.h"
 QPANDA_BEGIN
+
+/**
+ * @brief The position of the qubit is an expression
+ * @ingroup QuantumMachine
+ */
 class QubitReference :public Qubit, public QubitReferenceInterface
 {
 private:

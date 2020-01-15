@@ -6,6 +6,10 @@
 namespace QPanda {
 namespace Variational {
 
+/**
+* @brief Double variate
+* @ingroup Variational
+*/
 class Double
 {
     std::shared_ptr<double> m_d;

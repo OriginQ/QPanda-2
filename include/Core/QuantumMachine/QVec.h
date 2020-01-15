@@ -4,14 +4,11 @@
 #include <vector>
 #include "Core/QuantumMachine/QubitReference.h"
 QPANDA_BEGIN
-/**
-* @namespace QPanda
-*/
 
 /**
 * @class QVec
 * @brief Qubit vector  basic class
-* @ingroup Core
+* @ingroup QuantumMachine
 */
 class QVec : public std::vector<Qubit *>
 {

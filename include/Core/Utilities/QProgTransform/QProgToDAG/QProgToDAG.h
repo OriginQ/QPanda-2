@@ -22,9 +22,8 @@ public:
 
     /**
     * @brief  traversal QProg
-    * @ingroup Utilities
-    * @param[in]  _Ty & node
-    * @param[in]  QProgDAG & prog_dag
+    * @param[in]  _Ty& node
+    * @param[in]  QProgDAG& prog_dag
     * @return     void
     */
     template <typename _Ty>
@@ -38,6 +37,7 @@ public:
     void execute(std::shared_ptr<AbstractQGateNode>, std::shared_ptr<QNode>,QProgDAG &, QCircuitParam&, NodeIter&);
     void execute(std::shared_ptr<AbstractClassicalProg>, std::shared_ptr<QNode>, QProgDAG &, QCircuitParam&, NodeIter&);
     void execute(std::shared_ptr<AbstractQuantumMeasure>, std::shared_ptr<QNode>,QProgDAG &, QCircuitParam&, NodeIter&);
+	void execute(std::shared_ptr<AbstractQuantumReset>, std::shared_ptr<QNode>, QProgDAG &, QCircuitParam&, NodeIter&);
     void execute(std::shared_ptr<AbstractQuantumCircuit>, std::shared_ptr<QNode>, QProgDAG &, QCircuitParam&, NodeIter&);
     void execute(std::shared_ptr<AbstractQuantumProgram>, std::shared_ptr<QNode>, QProgDAG &, QCircuitParam&, NodeIter&);
     void execute(std::shared_ptr<AbstractControlFlowNode>, std::shared_ptr<QNode>, QProgDAG &, QCircuitParam&, NodeIter&);
@@ -45,7 +45,7 @@ public:
 protected:
     void transformQGate(std::shared_ptr<AbstractQGateNode>, QProgDAG &,const QCircuitParam&, NodeIter&);
     void transformQMeasure(std::shared_ptr<AbstractQuantumMeasure>, QProgDAG &, NodeIter&);
-
+	void transformQReset(std::shared_ptr<AbstractQuantumReset> cur_node, QProgDAG &prog_dag, NodeIter& cur_iter);
 };
 
 QPANDA_END

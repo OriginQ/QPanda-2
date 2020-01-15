@@ -262,6 +262,19 @@ void QProgToOriginIR::transformQMeasure(AbstractQuantumMeasure *pMeasure)
 	m_OriginIR.emplace_back("MEASURE " + tar_qubit + "," + creg_name);
 }
 
+void QProgToOriginIR::transformQReset(AbstractQuantumReset *pReset)
+{
+	if (nullptr == pReset || nullptr == pReset->getQuBit()->getPhysicalQubitPtr())
+	{
+		QCERR("pReset is null");
+		throw invalid_argument("pReset is null");
+	}
+
+	string tar_qubit = transformQubitFormat(pReset->getQuBit());
+
+	m_OriginIR.emplace_back("RESET " + tar_qubit);
+}
+
 void QProgToOriginIR::transformClassicalProg(AbstractClassicalProg *pClassicalProg)
 {
 	if (nullptr == pClassicalProg)
@@ -284,6 +297,11 @@ void QProgToOriginIR::execute(std::shared_ptr<AbstractQGateNode>  cur_node, std:
 void QProgToOriginIR::execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, std::shared_ptr<QNode> parent_node)
 {
 	transformQMeasure(cur_node.get());
+}
+
+void QProgToOriginIR::execute(std::shared_ptr<AbstractQuantumReset> cur_node, std::shared_ptr<QNode> parent_node)
+{
+	transformQReset(cur_node.get());
 }
 
 void QProgToOriginIR::execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node)

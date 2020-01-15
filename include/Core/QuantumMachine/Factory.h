@@ -24,6 +24,11 @@ limitations under the License.
 #include "Core/QuantumMachine/QResultFactory.h"
 #include "Core/QuantumMachine/QuantumMachineInterface.h"
 QPANDA_BEGIN
+
+/**
+ * @brief Quantum machine type and name transformation
+ * @ingroup QuantumMachine
+ */
 class QMachineTypeTarnfrom
 {
 public:

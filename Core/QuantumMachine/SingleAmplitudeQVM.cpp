@@ -97,6 +97,12 @@ void SingleAmplitudeQVM::execute(std::shared_ptr<AbstractQuantumMeasure>  cur_no
     throw std::runtime_error("Does not support QuantumMeasure");
 }
 
+void SingleAmplitudeQVM::execute(std::shared_ptr<AbstractQuantumReset>, std::shared_ptr<QNode>)
+{
+	QCERR("Does not support QuantumReset ");
+	throw std::runtime_error("Does not support QuantumReset");
+}
+
 void SingleAmplitudeQVM::execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node)
 {
     QCERR("Does not support ControlFlowNode ");

@@ -43,6 +43,41 @@ void init_quantum_machine(py::module &m)
         .value("PHASE_DAMPING_OPRATOR", NOISE_MODEL::PHASE_DAMPING_OPRATOR)
         ;
 
+	py::enum_<GateType>(m, "GateType")
+		.value("P0_GATE", GateType::P0_GATE)
+		.value("P1_GATE", GateType::P1_GATE)
+		.value("PAULI_X_GATE", GateType::PAULI_X_GATE)
+		.value("PAULI_Y_GATE", GateType::PAULI_Y_GATE)
+		.value("PAULI_Z_GATE", GateType::PAULI_Z_GATE)
+		.value("X_HALF_PI", GateType::X_HALF_PI)
+		.value("Y_HALF_PI", GateType::Y_HALF_PI)
+		.value("Z_HALF_PI", GateType::Z_HALF_PI)
+		.value("HADAMARD_GATE", GateType::HADAMARD_GATE)
+		.value("T_GATE", GateType::T_GATE)
+		.value("S_GATE", GateType::S_GATE)
+		.value("RX_GATE", GateType::RX_GATE)
+		.value("RY_GATE", GateType::RY_GATE)
+		.value("RZ_GATE", GateType::RZ_GATE)
+		.value("U1_GATE", GateType::U1_GATE)
+		.value("U2_GATE", GateType::U2_GATE)
+		.value("U3_GATE", GateType::U3_GATE)
+		.value("U4_GATE", GateType::U4_GATE)
+		.value("CU_GATE", GateType::CU_GATE)
+		.value("CNOT_GATE", GateType::CNOT_GATE)
+		.value("CZ_GATE", GateType::CZ_GATE)
+		.value("CPHASE_GATE", GateType::CPHASE_GATE)
+		.value("ISWAP_THETA_GATE", GateType::ISWAP_THETA_GATE)
+		.value("ISWAP_GATE", GateType::ISWAP_GATE)
+		.value("SQISWAP_GATE", GateType::SQISWAP_GATE)
+		.value("SWAP_GATE", GateType::SWAP_GATE)
+		.value("TWO_QUBIT_GATE", GateType::TWO_QUBIT_GATE)
+		.value("P00_GATE", GateType::P00_GATE)
+		.value("P11_GATE", GateType::P11_GATE)
+		.value("TOFFOLI_GATE", GateType::TOFFOLI_GATE)
+		.value("ORACLE_GATE", GateType::ORACLE_GATE)
+		.value("I_GATE", GateType::I_GATE)
+		;
+
     Qubit*(QVec::*qvec_subscript_cbit_size_t)(size_t) = &QVec::operator[];
     Qubit*(QVec::*qvec_subscript_cc)(ClassicalCondition&) = &QVec::operator[];
 
@@ -240,6 +275,15 @@ void init_quantum_machine(py::module &m)
             "Free a list of cbits")
         .def("getStatus", get_status, "get the status(ptr) of the quantum machine",
             py::return_value_policy::reference)
+		
+		.def("init_qvm", [](NoiseQVM &qvm) {
+			qvm.init();
+		}, "init quantum virtual machine")
+
+		.def("set_noise_model",  &NoiseQVM::set_noise_model, 
+			"noise model type"_a, "quantum gate type"_a, "params vector"_a,
+			"set noise model",
+			py::return_value_policy::reference)
 
         /*will delete*/
         .def("initQVM", [](NoiseQVM& qvm, py::dict param) {
@@ -400,6 +444,15 @@ py::class_<PartialAmplitudeQVM, QuantumMachine>(m, "PartialAmpQVM")
             {return qvm.pMeasureSubset(prog, index_vec); });
 
 #ifdef USE_CURL
+
+    py::enum_<CLOUD_QMACHINE_TYPE>(m, "ClusterMachineType")
+        .value("Full_AMPLITUDE", CLOUD_QMACHINE_TYPE::Full_AMPLITUDE)
+        .value("NOISE_QMACHINE", CLOUD_QMACHINE_TYPE::NOISE_QMACHINE)
+        .value("PARTIAL_AMPLITUDE", CLOUD_QMACHINE_TYPE::PARTIAL_AMPLITUDE)
+        .value("SINGLE_AMPLITUDE", CLOUD_QMACHINE_TYPE::SINGLE_AMPLITUDE)
+        .value("CHEMISTRY", CLOUD_QMACHINE_TYPE::CHEMISTRY)
+        .export_values();
+
     py::class_<QCloudMachine, QuantumMachine>(m, "QCloud")
         .def(py::init<>())
         .def("finalize", &QCloudMachine::finalize, "finalize")
@@ -443,6 +496,32 @@ py::class_<PartialAmplitudeQVM, QuantumMachine>(m, "PartialAmpQVM")
              {
                  return qcm.getResult(tasdid);
              })
+
+        .def("full_amplitude_measure", [](QCloudMachine &qcm, QProg &prog, int shot)
+             {
+                 return qcm.full_amplitude_measure(prog, shot);
+             })
+
+        .def("full_amplitude_pmeasure", [](QCloudMachine &qcm, QProg &prog, Qnum qvec)
+             {
+                 return qcm.full_amplitude_pmeasure(prog, qvec);
+             })
+
+        .def("partial_amplitude_pmeasure", [](QCloudMachine &qcm, QProg &prog, std::vector<std::string> amp_vec)
+             {
+                 return qcm.partial_amplitude_pmeasure(prog, amp_vec);
+             })
+
+        .def("single_amplitude_pmeasure", [](QCloudMachine &qcm, QProg &prog, std::string amp)
+             {
+                 return qcm.single_amplitude_pmeasure(prog, amp);
+             })
+
+        .def("get_cluster_result", [](QCloudMachine &qcm, CLOUD_QMACHINE_TYPE type, std::string taskid)
+             {
+                 return qcm.get_result(type,taskid);
+             })
+
         /*will delete*/
         .def("initQVM", &QCloudMachine::init, "init quantum virtual machine")
         /* new interface */

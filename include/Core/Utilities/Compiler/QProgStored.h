@@ -29,15 +29,14 @@ update comment
 #include "Core/QuantumCircuit/ClassicalProgram.h"
 #include "Core/Utilities/Tools/Traversal.h"
 
-/**
-* @namespace QPanda
-* @namespace QGATE_SPACE
-*/
 QPANDA_BEGIN
 
 const unsigned short kUshortMax = 65535;
 const int kCountMoveBit = 16;
 
+/**
+* @brief  Quantum Program Stored Node Type
+*/
 enum QProgStoredNodeType {
 	QPROG_PAULI_X_GATE = 1u,
 	QPROG_PAULI_Y_GATE,
@@ -74,6 +73,9 @@ enum QProgStoredNodeType {
 	QPROG_CEXPR_NODE,
 	QPROG_CONTROL,
 	QPROG_CIRCUIT_NODE,
+	QPROG_RESET_NODE,
+	QPROG_I_GATE,
+
 };
 
 /**
@@ -122,6 +124,7 @@ public:
 
   virtual void execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node);
   virtual void execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, std::shared_ptr<QNode> parent_node);
+  virtual void execute(std::shared_ptr<AbstractQuantumReset> cur_node, std::shared_ptr<QNode> parent_node);
   virtual void execute(std::shared_ptr<AbstractClassicalProg>  cur_node, std::shared_ptr<QNode> parent_node);
   virtual void execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node);
   virtual void execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std::shared_ptr<QNode> parent_node);
@@ -133,6 +136,7 @@ private:
     void transformQControlFlow(AbstractControlFlowNode *controlflow);
 	void transformQGate(AbstractQGateNode *gate);
     void transformQMeasure(AbstractQuantumMeasure *measure);
+	void transformQReset(AbstractQuantumReset *p_reset);
 
     void transformQIfProg(AbstractControlFlowNode *controlflow);
     void transformQWhileProg(AbstractControlFlowNode *controlflow);
@@ -172,9 +176,9 @@ void storeQProgInBinary(QProg &prog, QuantumMachine *qm, const std::string &file
 /**
 * @brief  Store quantum program in binary file
 * @ingroup Utilities
-* @param[in]  QProg & quantum program
-* @param[in]  QuantumMachine *  quantum machine
-* @param[in]  const std::string&	binary filename
+* @param[in]  QProg& quantum program
+* @param[in]  QuantumMachine*  quantum machine
+* @param[in]  std::string&	binary filename
 * @return     void
 */
 void transformQProgToBinary(QProg &prog, QuantumMachine *qm, const std::string &filename);
@@ -191,9 +195,9 @@ std::vector<uint8_t> convert_qprog_to_binary(QProg &prog, QuantumMachine *qm);
 /**
 * @brief  Store quantum program in binary file
 * @ingroup Utilities
-* @param[in]  QProg & quantum program
-* @param[in]  QuantumMachine *  quantum machine
-* @param[in]  const std::string&	binary filename
+* @param[in]  QProg& quantum program
+* @param[in]  QuantumMachine*  quantum machine
+* @param[in]  std::string&	binary filename
 * @return     void
 */
 void convert_qprog_to_binary(QProg &prog, QuantumMachine *qm, const std::string &filename);

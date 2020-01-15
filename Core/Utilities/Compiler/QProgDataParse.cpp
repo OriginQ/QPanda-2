@@ -2,6 +2,7 @@
 #include "Core/QuantumCircuit/ClassicalConditionInterface.h"
 #include "Core/Utilities/QProgTransform/QProgToQCircuit.h"
 #include "Core/Utilities/Compiler/QProgStored.h"
+#include "Core/QuantumCircuit/QReset.h"
 
 using namespace std;
 USING_QPANDA
@@ -49,7 +50,9 @@ const std::map<int, function<QGate(Qubit *)>> kSingleGateFun =
     {QPROG_Z_HALF_PI,    Z1},
     {QPROG_HADAMARD_GATE,H},
     {QPROG_T_GATE,       T},
-    {QPROG_S_GATE,       S}
+    {QPROG_S_GATE,       S},
+	{QPROG_I_GATE,        I}
+
 };
 
 const uint32_t kSingleGateAngleValue =
@@ -62,6 +65,21 @@ const std::map<int, function<QGate(Qubit *, double)>> kSingleGateAngelFun =
     {QPROG_RZ_GATE, RZ},
     {QPROG_U1_GATE, U1}
 };
+
+const uint32_t kU2Value = 1u << QPROG_U2_GATE;
+const std::map<int, function<QGate(Qubit*, double, double)>> kU2Fun =
+{
+	{QPROG_U2_GATE, [](Qubit *qubit, double phi, double lambda)
+					 {return U2(qubit, phi, lambda); }}
+};
+
+const uint32_t kU3Value = 1u << QPROG_U3_GATE;
+const std::map<int, function<QGate(Qubit*, double, double, double)>> kU3Fun =
+{
+	{QPROG_U3_GATE, [](Qubit *qubit, double theta, double phi, double lambda)
+					 {return U3(qubit, theta, phi, lambda); }}
+};
+
 const uint32_t kCUValue = 1u << QPROG_CU_GATE;
 const std::map<int, function<QGate(Qubit*, Qubit*, double, double, double, double)>> kCUFun =
 {
@@ -343,6 +361,44 @@ void QProgDataParse::parseQGateDataNode(QProg &prog, const uint32_t &type_and_nu
 		gate.setControl(ctrl_qubits_vector);
         prog << gate;
     }
+	else if (kU2Value & tmp)
+	{
+		auto iter = kU2Fun.find(type);
+		if (iter == kU2Fun.end())
+		{
+			QCERR("parse gate type error!");
+			throw runtime_error("parse gate type error!");
+		}
+		m_iter++;
+		float phi = getAngle(*m_iter);
+		m_iter++;
+		float lambda = getAngle(*m_iter);
+
+		auto gate = iter->second(qubit0, phi, lambda);
+		gate.setDagger(is_dagger);
+		gate.setControl(ctrl_qubits_vector);
+		prog << gate;
+	}
+	else if (kU3Value & tmp)
+	{
+		auto iter = kU3Fun.find(type);
+		if (iter == kU3Fun.end())
+		{
+			QCERR("parse gate type error!");
+			throw runtime_error("parse gate type error!");
+		}
+		m_iter++;
+		float theta = getAngle(*m_iter);
+		m_iter++;
+		float phi = getAngle(*m_iter);
+		m_iter++;
+		float lambda = getAngle(*m_iter);
+
+		auto gate = iter->second(qubit0, theta, phi, lambda);
+		gate.setDagger(is_dagger);
+		gate.setControl(ctrl_qubits_vector);
+		prog << gate;
+	}
     else if (kU4Value & tmp)
     {
         auto iter = kU4Fun.find(type);
@@ -450,6 +506,24 @@ void QProgDataParse::parseQMeasureDataNode(QProg &prog, uint32_t qubits_data)
     auto measure = Measure(qubit, cbit);
     prog << measure;
     return;
+}
+
+void QProgDataParse::parseQResetDataNode(QProg &prog, uint32_t qubits_data)
+{
+	const int kQubitMax = 2;
+	uint16_t qubit_array[kQubitMax] = { 0 };
+	qubit_array[0] = qubits_data & 0xffff;
+
+	auto qubit = m_quantum_machine->allocateQubitThroughVirAddress(qubit_array[0]);
+	auto qubit_iter = std::find(m_qubits_addr.begin(), m_qubits_addr.end(), qubit_array[0]);
+	if (m_qubits_addr.end() == qubit_iter)
+	{
+		m_qubits_addr.push_back(qubit_array[0]);
+	}
+
+	auto reset = Reset(qubit);
+	prog << reset;
+	return;
 }
 
 void QProgDataParse::parseCExprCBitDataNode(const uint32_t &data)
@@ -563,7 +637,6 @@ void QProgDataParse::parseQIfDataNode(QProg &prog, const uint32_t &data)
     return;
 }
 
-
 void QProgDataParse::parseQWhileDataNode(QProg &prog, uint32_t data)
 {
     ClassicalCondition cc(m_stack_cc.top());
@@ -578,6 +651,7 @@ void QProgDataParse::parseQWhileDataNode(QProg &prog, uint32_t data)
 
     return;
 }
+
 void QProgDataParse::parseCircuitDataNode(QProg &prog, const uint32_t &type_and_number, const uint32_t &data)
 {
 	QVec ctrl_qubits_vector;
@@ -650,6 +724,9 @@ void QProgDataParse::parseDataNode(QProg &prog, const uint32_t &tail_number)
     case QPROG_HADAMARD_GATE:
     case QPROG_T_GATE:
     case QPROG_S_GATE:
+	case QPROG_I_GATE:
+	case QPROG_U2_GATE:
+	case QPROG_U3_GATE:
     case QPROG_U4_GATE:
     case QPROG_CU_GATE:
     case QPROG_CNOT_GATE:
@@ -668,6 +745,9 @@ void QProgDataParse::parseDataNode(QProg &prog, const uint32_t &tail_number)
     case QPROG_MEASURE_GATE:
         parseQMeasureDataNode(prog, data);
         break;
+	case QPROG_RESET_NODE:
+		parseQResetDataNode(prog, data);
+		break;
     case QPROG_QIF_NODE:
         parseQIfDataNode(prog, data);
         break;

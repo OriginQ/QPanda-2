@@ -25,8 +25,8 @@ limitations under the License.
 QPANDA_BEGIN
 
 /**
- * @brief classical expr
- * 
+ * @brief classical expression  base class
+ * @ingroup QuantumCircuit
  */
 class CExpr 
 {
@@ -35,73 +35,66 @@ public:
 
     /**
      * @brief Get the Left Expr pointer
-     * 
      * @return CExpr* 
      */
     virtual CExpr* getLeftExpr() const = 0;
 
     /**
      * @brief Get the Right Expr pointer
-     * 
      * @return CExpr* 
      */
     virtual CExpr* getRightExpr() const = 0;
 
     /**
      * @brief Set the Left Expr pointer
-     * @param left_expr left expr
+     * @param[in] CExpr* left expr
      */
     virtual void setLeftExpr(CExpr* left_expr) = 0;
 
     /**
      * @brief Set the Right Expr pointer
-     * @param right_expr right expr
+     * @param[in] CExpr* right expr
      */
     virtual void setRightExpr(CExpr* right_expr) = 0;
 
     /**
      * @brief Get the Name object
-     * 
      * @return std::string 
      */
     virtual std::string getName() const = 0;
 
     /**
      * @brief get classical bit pointer
-     * 
      * @return CBit* 
      */
     virtual CBit* getCBit() const = 0;
 
     /**
      * @brief check validity
-     * 
      * @return true check validity ture
      * @return false  check validity false
      */
     virtual bool checkValidity() const = 0;
-    /**
+ 
+	/**
      * @brief Destroy the CExpr object
-     * 
      */
     virtual ~CExpr() {}
 
     /**
      * @brief get value
-     * 
      * @return cbit_size_t 
      */
     virtual cbit_size_t eval() const = 0;
-    /**
+ 
+	/**
     * @brief get specifier of this cexpr
-    *
     * @return int
     */
     virtual int getContentSpecifier() const = 0;
 
     /**
      * @brief deep copy this cexpr
-     * 
      * @return CExpr* 
      */
     virtual CExpr* deepcopy() const = 0;
@@ -109,27 +102,24 @@ public:
 
     /**
     * @brief get all cbits name
-    *
-    * @return void
+	* @param[out] std::vector<std::string> cibts name vector
     */
     virtual void getCBitsName(std::vector<std::string> &)= 0;
 };
 
 /**
  * @brief classical expr class factory
- * 
+ * @ingroup QuantumCircuit
  */
 class CExprFactory
 {
     /**
      * @brief Construct a new CExprFactory object
-     * 
      */
     CExprFactory();
 public:
     /**
      * @brief Get the Factory Instance object
-     * 
      * @return CExprFactory& 
      */
     static CExprFactory & GetFactoryInstance();
@@ -144,11 +134,11 @@ public:
      */
     typedef std::map<std::string, cbit_constructor_t> cbit_constructor_map_t;
 
-    cbit_constructor_map_t _CExpr_CBit_Constructor; ///<A collection of constructors that use cbit create cexpr 
+	cbit_constructor_map_t _CExpr_CBit_Constructor; ///<A collection of constructors that use cbit create cexpr 
 
     /**
      * @brief Get cexpr by cbit
-     * @param cbit target cbit
+     * @param[in] cbit target cbit
      * @return CExpr* 
      */
     CExpr* GetCExprByCBit(CBit* cbit);
@@ -156,8 +146,8 @@ public:
     /**
      * @brief Registration function
      *  This function can be used to register constructors that inherit subclasses of the CExpr class.
-     * @param name subclass name
-     * @param constructor subclass constructor
+     * @param[in] std::string  name subclass name
+     * @param[in] cbit_constructor_t constructor subclass constructor
      */
     void registerclass_CBit_(std::string & name, cbit_constructor_t constructor);
 
@@ -174,7 +164,7 @@ public:
     value_constructor_map_t _CExpr_Value_Constructor;  ///<A collection of constructors that use value create cexpr 
     /**
      * @brief Get cexpr by value
-     * @param value target value
+     * @param[in] cbit_size_t  target value
      * @return CExpr* 
      */
     CExpr* GetCExprByValue(cbit_size_t value);
@@ -182,8 +172,8 @@ public:
     /**
      * @brief Registration function
      *  This function can be used to register constructors that inherit subclasses of the CExpr class.
-     * @param name subclass name
-     * @param constructor subclass constructor
+     * @param[in] std::string subclass name
+     * @param[in] value_constructor_t subclass constructor
      */
     void registerclass_Value_(std::string &, value_constructor_t);
     /**
@@ -199,9 +189,9 @@ public:
    
     /**
      * @brief Get cexpr by Operation
-     * @param left_cexpr left CExpr
-     * @param right_cexpr right CExpr
-     * @param operat  target operator
+     * @param[in] CExpr* left CExpr
+     * @param[in] CExpr* right CExpr
+     * @param[in] int  target operator
      * @return CExpr* 
      */
     CExpr* GetCExprByOperation(CExpr* left_cexpr, CExpr* right_cexpr, int operat);
@@ -209,8 +199,8 @@ public:
     /**
      * @brief Registration function
      *  This function can be used to register constructors that inherit subclasses of the CExpr class.
-     * @param name subclass name
-     * @param constructor subclass constructor
+     * @param[in] std::string subclass name
+     * @param[in] operator_constructor_t subclass constructor
      */
     void registerclass_operator_(std::string &, operator_constructor_t);
 };
@@ -218,6 +208,7 @@ public:
 /**
  * @brief CExpr factory helper
  * Provide CExprFactory class registration interface for the outside
+ * @ingroup QuantumCircuit
  */
 class CExprFactoryHelper
 {
@@ -231,24 +222,24 @@ public:
     /**
      * @brief Construct a new CExprFactoryHelper object
      * Call the CExprFactory class registration interface for register the CExpr subclass
-     * @param CExpr subclass name 
-     * @param _Constructor cbit_constructor_t  function 
+     * @param[in] std::string subclass name 
+     * @param[in] cbit_constructor_t  function 
      */
     CExprFactoryHelper(std::string name, cbit_constructor_t _Constructor);
     
     /**
      * @brief Construct a new CExprFactoryHelper object
      * Call the CExprFactory class registration interface for register the CExpr subclass
-     * @param CExpr subclass name 
-     * @param _Constructor value_constructor_t  function 
+     * @param[in] std::string subclass name 
+     * @param[in]  value_constructor_t  function 
      */
     CExprFactoryHelper(std::string, value_constructor_t _Constructor);
 
     /**
      * @brief Construct a new CExprFactoryHelper object
      * Call the CExprFactory class registration interface for register the CExpr subclass
-     * @param CExpr subclass name 
-     * @param _Constructor operator_constructor_t  function 
+     * @param[in]  std::string subclass name 
+     * @param[in]  operator_constructor_t  function 
      */
     CExprFactoryHelper(std::string, operator_constructor_t _Constructor);
 

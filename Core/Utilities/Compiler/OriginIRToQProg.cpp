@@ -3,10 +3,33 @@
 using namespace std;
 USING_QPANDA
 
-QProg QPanda::convert_originir_to_qprog(std::string file_path, QuantumMachine * qm)
+QProg QPanda::convert_originir_to_qprog(std::string file_path, QuantumMachine *qm)
 {
 	return transformOriginIRToQProg(file_path, qm);
 }
+
+QProg QPanda::convert_originir_string_to_qprog(std::string str_originir, QuantumMachine *qm)
+{
+	try
+	{
+		antlr4::ANTLRInputStream input(str_originir);
+		originirLexer lexer(&input);
+		antlr4::CommonTokenStream tokens(&lexer);
+		originirParser parser(&tokens);
+
+		antlr4::tree::ParseTree *tree = parser.translationunit();
+		OriginIRVisitor visitor(qm);
+
+		size_t fullprog = visitor.visit(tree);
+		return visitor.get_qprog(fullprog);
+	}
+	catch (const std::exception&e)
+	{
+		QCERR(e.what());
+		throw e;
+	}
+}
+
 
 QProg QPanda::transformOriginIRToQProg(std::string filePath, QuantumMachine * qm)
 {
@@ -21,6 +44,7 @@ QProg QPanda::transformOriginIRToQProg(std::string filePath, QuantumMachine * qm
     try
     {
         antlr4::ANTLRInputStream input(stream);
+		stream.close();
         originirLexer lexer(&input);
         antlr4::CommonTokenStream tokens(&lexer);
         originirParser parser(&tokens);
@@ -197,6 +221,21 @@ size_t QProgBuilder::add_measure_cc(size_t exprid, size_t cidx)
 	m_progid_set[progid] << Measure(qs[m_exprid_set.at(exprid)], ccs[cidx]);
 	return progid;
 }
+
+size_t QProgBuilder::add_reset_literal(size_t qidx)
+{
+	size_t progid = add_prog();
+	m_progid_set[progid] << Reset(qs[qidx]);
+	return progid;
+}
+
+size_t QProgBuilder::add_reset_cc(size_t exprid)
+{
+	size_t progid = add_prog();
+	m_progid_set[progid] << Reset(qs[m_exprid_set.at(exprid)]);
+	return progid;
+}
+
 
 size_t QProgBuilder::add_expr_stat(size_t exprid)
 {

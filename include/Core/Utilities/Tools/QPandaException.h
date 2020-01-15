@@ -4,10 +4,9 @@
 #include "Core/Utilities/QPandaNamespace.h"
 #include <exception>
 #include <string>
+
 QPANDA_BEGIN
-/**
-* @namespace QPanda
-*/
+
 /*
 |-QPandaException
 |---qalloc_fail
@@ -43,7 +42,7 @@ QPANDA_BEGIN
 /**
 * @class QPandaException
 * @brief QPanda2 exception basic class
-* @ingroup Core
+* @ingroup Utilities
 */
 class QPandaException : public std::exception
 {
@@ -75,6 +74,7 @@ class QPandaException : public std::exception
 /**
 * @class qalloc_fail
 * @brief QPanda2 alloc qubit failed exception
+* @ingroup Utilities
 */
 class qalloc_fail : public QPandaException
 {
@@ -109,6 +109,7 @@ class calloc_fail : public QPandaException
 /**
 * @class init_fail
 * @brief QPanda2 init failed exception
+* @ingroup Utilities
 */
 class init_fail : public QPandaException
 {
@@ -126,6 +127,7 @@ class init_fail : public QPandaException
 /**
 * @class run_fail
 * @brief QPanda2 running time error exception
+* @ingroup Utilities
 */
 class run_fail : public QPandaException
 {
@@ -138,6 +140,7 @@ class run_fail : public QPandaException
 /**
 * @class result_get_fail
 * @brief QPanda2 get result failed  exception
+* @ingroup Utilities
 */
 class result_get_fail :public QPandaException
 {
@@ -151,6 +154,7 @@ class result_get_fail :public QPandaException
 /**
 * @class result_get_fail
 * @brief QPanda2 alloc quantum gate failed exception
+* @ingroup Utilities
 */
 class gate_alloc_fail : public QPandaException
 {
@@ -167,6 +171,7 @@ class gate_alloc_fail : public QPandaException
 /**
 * @class qcircuit_construction_fail
 * @brief QPanda2 qcircuit construction failed exception
+* @ingroup Utilities
 */
 class qcircuit_construction_fail : public QPandaException
 {
@@ -183,6 +188,7 @@ public:
 /**
 * @class qprog_construction_fail
 * @brief QPanda2 quantum program construction failed exception
+* @ingroup Utilities
 */
 class qprog_construction_fail : public QPandaException
 {
@@ -199,6 +205,7 @@ class qprog_construction_fail : public QPandaException
 /**
 * @class qprog_syntax_error
 * @brief QPanda2 quantum program syntax error exception
+* @ingroup Utilities
 */
 class qprog_syntax_error : public QPandaException
 {
@@ -215,6 +222,7 @@ public:
 /**
 * @class undefine_error
 * @brief QPanda2  undefined error exception
+* @ingroup Utilities
 */
 class undefine_error : public QPandaException
 {
@@ -231,6 +239,7 @@ public:
 /**
 * @class qvm_attributes_error
 * @brief QPanda2  quantum machine attributes error exception
+* @ingroup Utilities
 */
 class qvm_attributes_error : public QPandaException
 {

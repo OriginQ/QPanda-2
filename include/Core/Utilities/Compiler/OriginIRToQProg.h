@@ -25,7 +25,17 @@ QPANDA_BEGIN
 * @param[in]  QuantumMachine*	quantum machine pointer
 * @return     QProg    quantum program
 */
-QProg convert_originir_to_qprog(std::string file_path, QuantumMachine * qm);
+QProg convert_originir_to_qprog(std::string file_path, QuantumMachine *qm);
+
+
+/**
+* @brief  Convert OriginIR String To  Quantum Program
+* @ingroup Utilities
+* @param[in]  std::string		OriginIR String
+* @param[in]  QuantumMachine*	quantum machine pointer
+* @return     QProg    quantum program
+*/
+QProg convert_originir_string_to_qprog(std::string str_originir, QuantumMachine *qm);
 
 
 /**
@@ -37,6 +47,11 @@ QProg convert_originir_to_qprog(std::string file_path, QuantumMachine * qm);
 */
 QProg transformOriginIRToQProg(std::string filePath, QuantumMachine* qm);
 
+
+/**
+* @brief  Quantum Program Builder
+* @ingroup Utilities
+*/
 class QProgBuilder {
 	QuantumMachine* m_machine;
 	std::unordered_map<size_t, QProg> m_progid_set;
@@ -108,6 +123,8 @@ public:
 	size_t add_qgate_cc(GateType type, std::vector<size_t> exprid, std::vector<int> index, std::vector<double> parameters);
 	size_t add_measure_literal(size_t qidx, size_t cidx);
 	size_t add_measure_cc(size_t exprid, size_t cidx);
+	size_t add_reset_literal(size_t qidx);
+	size_t add_reset_cc(size_t exprid);
 	size_t add_expr_stat(size_t exprid);
 
 	size_t make_qif(size_t exprid, size_t progid);
@@ -145,6 +162,10 @@ public:
 	size_t make_control_cc_new(size_t progid, std::vector<size_t> expridx, std::vector<int> idx);
 };
 
+/**
+* @brief OriginIR  Visitor
+* @ingroup Utilities
+*/
 class OriginIRVisitor : public originirBaseVisitor {
 
 	QProgBuilder builder;
@@ -973,6 +994,15 @@ public:
 			return builder.add_measure_literal(qcontext.value, ccontext.value);
 		else
 			return builder.add_measure_cc(qcontext.ccid, ccontext.value);
+	}
+
+	antlrcpp::Any visitReset_statement(
+		originirParser::Reset_statementContext *ctx) override {
+		ExprContext qcontext = visit(ctx->children[1]);
+		if (qcontext.isConstant)
+			return builder.add_reset_literal(qcontext.value);
+		else
+			return builder.add_reset_cc(qcontext.ccid);
 	}
 
 	antlrcpp::Any visitExpression_statement(

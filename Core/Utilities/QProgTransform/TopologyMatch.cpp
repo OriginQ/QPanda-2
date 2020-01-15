@@ -1140,6 +1140,12 @@ void TopologyMatch::execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, st
 	throw invalid_argument("transform error, there shouldn't be quantum measure node here.");
 }
 
+void TopologyMatch::execute(std::shared_ptr<AbstractQuantumReset> cur_node, std::shared_ptr<QNode> parent_node, bool &is_dagger)
+{
+	QCERR("transform error, there shouldn't be quantum reset node here.");
+	throw invalid_argument("transform error, there shouldn't be quantum reset node here.");
+}
+
 void TopologyMatch::execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node, bool &is_dagger)
 {
 	QCERR("transform error, there shouldn't be control flow node here.");

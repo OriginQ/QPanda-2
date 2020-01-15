@@ -20,6 +20,11 @@ limitations under the License.
 #include <chrono>
 #include <vector>
 
+
+/**
+* @brief  Random Engine
+* @ingroup VirtualQuantumProcessor
+*/
 class RandomEngine {
 public:
 	virtual double operator()() = 0;
@@ -33,6 +38,10 @@ public:
 	}
 };
 
+/**
+* @brief  Default Random Engine
+* @ingroup VirtualQuantumProcessor
+*/
 class DefaultRandomEngine : public RandomEngine {
 private:
 	std::default_random_engine engine;
@@ -49,6 +58,10 @@ public:
 	}
 };
 
+/**
+* @brief  XC Random Engine
+* @ingroup VirtualQuantumProcessor
+*/
 class XC_RandomEngine16807 : public RandomEngine {
 	int irandseed = 0;
 	int ia = 16807;

@@ -105,6 +105,59 @@ void QProgExecution::execute(std::shared_ptr<AbstractQuantumMeasure> cur_node,
     }
 }
 
+void QProgExecution::execute(std::shared_ptr<AbstractQuantumReset> cur_node,
+	std::shared_ptr<QNode> parent_node,
+	TraversalConfig & param,
+	QPUImpl* qpu)
+{
+    qpu->Reset(cur_node->getQuBit()->getPhysicalQubitPtr()->getQubitAddr());
+}
+
+void QProgExecution::execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node, TraversalConfig &param, QPUImpl *qpu)
+{
+    if (nullptr == cur_node)
+    {
+        QCERR("control_flow_node is nullptr");
+        throw std::invalid_argument("control_flow_node is nullptr");
+    }
+
+    auto node = std::dynamic_pointer_cast<QNode>(cur_node);
+    if (nullptr == node)
+    {
+        QCERR("Unknown internal error");
+        throw std::runtime_error("Unknown internal error");
+    }
+    auto node_type = node->getNodeType();
+
+    auto cexpr = cur_node->getCExpr();
+    if (WHILE_START_NODE == node_type)
+    {
+        while(cexpr.eval())
+        {
+            auto true_branch_node = cur_node->getTrueBranch();
+            Traversal::traversalByType(true_branch_node, node, *this,param,qpu);
+        }
+    }
+    else if (QIF_START_NODE == node_type)
+    {
+        if (cexpr.eval())
+        {
+            auto true_branch_node = cur_node->getTrueBranch();
+            Traversal::traversalByType(true_branch_node, node, *this,param,qpu);
+        }
+        else
+        {
+            auto false_branch_node = cur_node->getFalseBranch();
+            if (nullptr != false_branch_node)
+            {
+                Traversal::traversalByType(false_branch_node, node, *this,param,qpu);
+            }
+        }
+    }
+
+    return ;
+}
+
 void QProgExecution::execute(std::shared_ptr<AbstractQuantumCircuit> cur_node,
     std::shared_ptr<QNode> parent_node,
     TraversalConfig & param,

@@ -23,7 +23,9 @@ Classes for QProgToQASM.
 
 QPANDA_BEGIN
 
-//目前IBM提供的后端运行环境
+/**
+* @brief IBM currently provides the back-end runtime environment
+*/
 enum IBMQBackends
 {
 	IBMQ_QASM_SIMULATOR = 0,
@@ -32,9 +34,6 @@ enum IBMQBackends
 	IBMQX4
 };
 
-/**
-* @namespace QPanda
-*/
 
 /**
 * @class QProgToQASM
@@ -49,8 +48,6 @@ public:
     /**
     * @brief  get QASM insturction set
     * @return     std::string  
-    * @exception
-    * @note
     */
     virtual std::string getInsturctions();
 
@@ -58,8 +55,6 @@ public:
     * @brief  Transform Quantum program
     * @param[in]  QProg&  quantum program
     * @return     void  
-    * @exception
-    * @note
     */
     virtual void transform(QProg &);
 
@@ -68,23 +63,23 @@ public:
 	public:
 	virtual void execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node,bool & ) ;
 	virtual void execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, std::shared_ptr<QNode> parent_node, bool &) ;
+	virtual void execute(std::shared_ptr<AbstractQuantumReset> cur_node, std::shared_ptr<QNode> parent_node, bool &);
 	virtual void execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node, bool &);
 	virtual void execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std::shared_ptr<QNode> parent_node, bool &) ;
 	virtual void execute(std::shared_ptr<AbstractQuantumProgram>  cur_node, std::shared_ptr<QNode> parent_node, bool &) ;
 	virtual void execute(std::shared_ptr<AbstractClassicalProg>  cur_node, std::shared_ptr<QNode> parent_node, bool &);
 
 private:
-	/*! add by zhaody
+	/**
 	* @brief  Transform Quantum program by Traversal algorithm, refer to class Traversal
 	* @param[in]  QProg&  quantum program
 	* @return     void
-	* @exception
-	* @note
 	*/
 	virtual void transformQProgByTraversalAlg(QProg *prog);
 	virtual void transformQGate(AbstractQGateNode*, bool is_dagger);
 
     virtual void transformQMeasure(AbstractQuantumMeasure*);
+	virtual void transformQReset(AbstractQuantumReset*);
 
     std::map<int, std::string>  m_gatetype; /**< Quantum gatetype map   */
     std::vector<std::string> m_qasm; /**< QASM instructin vector   */
@@ -96,7 +91,7 @@ private:
     * @brief  Quantum program transform to qasm instruction set
     * @ingroup Utilities
     * @param[in]  QProg&   Quantum Program 
-	* @param[in]   QuantumMachine *  quantum machine pointer
+	* @param[in]   QuantumMachine*  quantum machine pointer
 	* @param[in]	 IBMQBackends	ibmBackend = IBMQ_QASM_SIMULATOR
     * @return     std::string    QASM instruction set
     * @see
@@ -114,8 +109,6 @@ private:
                 std::cout << transformQProgToQASM(prog, global_quantum_machine) << std::endl;
                 finalize();
         * @endcode
-    * @exception
-    * @note
     */
     std::string transformQProgToQASM(QProg &pQProg, QuantumMachine * quantum_machine, IBMQBackends ibmBackend = IBMQ_QASM_SIMULATOR);
 
@@ -123,7 +116,7 @@ private:
 * @brief  Convert Quantum program  to QASM instruction set
 * @ingroup Utilities
 * @param[in]  QProg&   Quantum Program
-* @param[in]   QuantumMachine *  quantum machine pointer
+* @param[in]   QuantumMachine*  quantum machine pointer
 * @param[in]	 IBMQBackends	ibmBackend = IBMQ_QASM_SIMULATOR
 * @return     std::string    QASM instruction set
 */

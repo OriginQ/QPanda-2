@@ -21,6 +21,11 @@ limitations under the License.
 #include "Core/Utilities/Tools/Traversal.h"
 
 QPANDA_BEGIN
+
+/**
+* @brief cast QProg to QMeasure
+* @ingroup Utilities
+*/
 class QProgToQMeasure : public TraversalInterface<>
 {
 public:
@@ -32,11 +37,9 @@ public:
 
 	/*!
 	* @brief  Execution traversal qgatenode
-	* @param[in|out]  AbstractQGateNode*  quantum gate
+	* @param[in,out]  AbstractQGateNode*  quantum gate
 	* @param[in]  AbstractQGateNode*  quantum gate
 	* @return     void
-	* @exception invalid_argument
-	* @note
 	*/
 	virtual void execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node)
 	{
@@ -46,11 +49,9 @@ public:
 
 	/*!
 	* @brief  Execution traversal measure node
-	* @param[in|out]  AbstractQuantumMeasure*  measure node
+	* @param[in,out]  AbstractQuantumMeasure*  measure node
 	* @param[in]  AbstractQGateNode*  quantum gate
 	* @return     void
-	* @exception invalid_argument
-	* @note
 	*/
 	virtual void execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, std::shared_ptr<QNode> parent_node)
 	{
@@ -65,12 +66,22 @@ public:
 	}
 
 	/*!
-	* @brief  Execution traversal control flow node
-	* @param[in|out]  AbstractControlFlowNode*  control flow node
+	* @brief  Execution traversal reset node
+	* @param[in,out]  AbstractQuantumReset*  reset node
 	* @param[in]  AbstractQGateNode*  quantum gate
 	* @return     void
-	* @exception invalid_argument
-	* @note
+	*/
+	virtual void execute(std::shared_ptr<AbstractQuantumReset> cur_node, std::shared_ptr<QNode> parent_node)
+	{
+		QCERR("cast qprog to qmeasure fail!");
+		throw run_fail("cast qprog to qmeasure fail!");
+	}
+
+	/*!
+	* @brief  Execution traversal control flow node
+	* @param[in,out]  AbstractControlFlowNode*  control flow node
+	* @param[in]  AbstractQGateNode*  quantum gate
+	* @return     void
 	*/
 	virtual void execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node)
 	{
@@ -81,11 +92,9 @@ public:
 
 	/*!
 	* @brief  Execution traversal qcircuit
-	* @param[in|out]  AbstractQuantumCircuit*  quantum circuit
+	* @param[in,out]  AbstractQuantumCircuit*  quantum circuit
 	* @param[in]  AbstractQGateNode*  quantum gate
 	* @return     void
-	* @exception invalid_argument
-	* @note
 	*/
 	virtual void execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std::shared_ptr<QNode> parent_node)
 	{
@@ -93,11 +102,9 @@ public:
 	}
 	/*!
 	* @brief  Execution traversal qprog
-	* @param[in|out]  AbstractQuantumProgram*  quantum prog
+	* @param[in,out]  AbstractQuantumProgram*  quantum prog
 	* @param[in]  AbstractQGateNode*  quantum gate
 	* @return     void
-	* @exception invalid_argument
-	* @note
 	*/
 	virtual void execute(std::shared_ptr<AbstractQuantumProgram>  cur_node, std::shared_ptr<QNode> parent_node)
 	{
@@ -105,11 +112,9 @@ public:
 	}
 	/*!
 	* @brief  Execution traversal qprog
-	* @param[in|out]  AbstractClassicalProg*  quantum prog
+	* @param[in,out]  AbstractClassicalProg*  quantum prog
 	* @param[in]  AbstractQGateNode*  quantum gate
 	* @return     void
-	* @exception invalid_argument
-	* @note
 	*/
 	virtual void execute(std::shared_ptr<AbstractClassicalProg>  cur_node, std::shared_ptr<QNode> parent_node)
 	{
@@ -136,10 +141,8 @@ private:
 /**
 * @brief Cast Quantum Program To Quantum Measure
 * @ingroup Utilities
-* @param[int]  QProg	  quantum program
+* @param[in]  QProg	  quantum program
 * @return     QMeasure  quantum measure
-* @exception  run_fail
-* @note
 */
 static QMeasure cast_qprog_qmeasure(QProg prog)
 {

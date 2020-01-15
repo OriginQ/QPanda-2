@@ -69,21 +69,49 @@ Refer to: value_he@csdn.net
 namespace QPanda
 {
 
+/**
+* @brief a wrapper class of rapidjson.
+* @ingroup Utils
+*/
 class RJson
 {
 public:
+	/**
+	* @brief  No default Constructor of RJson
+	*/
     RJson() = delete ;
 
+	/**
+	* @brief get the val by the name of a key
+	* @param[out] rapidjson::Value** Pointer of a pointer, pointer to the storage Memory address. 
+	* @param[in] char* the name of key
+	* @param[in] rapidjson::Value* parent node pointer
+	* @return int 0: on success, -1: others
+	*/
     static int GetValue(
             const rapidjson::Value **value,
             const char *name,
             const rapidjson::Value *parent);
 
+	/**
+	* @brief get the val by index
+	* @param[out] rapidjson::Value** Pointer of a pointer, pointer to the storage Memory address. 
+	* @param[in] size_t the target index
+	* @param[in] rapidjson::Value* parent node pointer
+	* @return int 0: on success, -1: others
+	*/
     static int GetValue(
             const rapidjson::Value **value,
             const size_t idx,
             const rapidjson::Value *parent);
 
+	/**
+	* @brief get the object by tag
+	* @param[out] rapidjson::Value** Pointer of a pointer, pointer to the storage Memory address. 
+	* @param[in] T tag
+	* @param[in] rapidjson::Value* parent node pointer
+	* @return int 0: on success, -1: others
+	*/
     template<typename T>
     static int GetObject(
             const rapidjson::Value** value,
@@ -99,6 +127,13 @@ public:
         return -1;
     }
 
+	/**
+	* @brief get the array by tag
+	* @param[out] rapidjson::Value** Pointer of a pointer, pointer to the storage Memory address.
+	* @param[in] T tag
+	* @param[in] rapidjson::Value* parent node pointer
+	* @return int 0: on success, -1: others
+	*/
     template<typename T>
     static int GetArray(
             const rapidjson::Value** value,
@@ -114,6 +149,13 @@ public:
         return -1;
     }
 
+	/**
+	* @brief get the string of tag
+	* @param[out] std::string& the string of tag
+	* @param[in] T tag
+	* @param[in] rapidjson::Value* parent node pointer
+	* @return int 0: on success, -1: others
+	*/
     template<typename T>
     static int GetStr(
             std::string& str,
@@ -130,6 +172,13 @@ public:
         return -1;
     }
 
+	/**
+	* @brief get the bool val of tag
+	* @param[out] bool& the bool val
+	* @param[in] T tag
+	* @param[in] rapidjson::Value* parent node pointer
+	* @return int 0: on success, -1: others
+	*/
     template<typename T>
     static int GetBool(
             bool& n,
@@ -146,6 +195,13 @@ public:
         return -1;
     }
 
+	/**
+	* @brief get the int val of tag
+	* @param[out] int& the int val
+	* @param[in] T tag
+	* @param[in] rapidjson::Value* parent node pointer
+	* @return int 0: on success, -1: others
+	*/
     template<typename T>
     static int GetInt(
             int& n,
@@ -162,6 +218,13 @@ public:
         return -1;
     }
 
+	/**
+	* @brief get the double val of tag
+	* @param[out] double& the double val
+	* @param[in] T tag
+	* @param[in] rapidjson::Value* parent node pointer
+	* @return int 0: on success, -1: others
+	*/
     template<typename T>
     static int GetDouble(
             double& n,
@@ -178,6 +241,14 @@ public:
         return -1;
     }
 
+	/**
+	* @brief get the val of t1.t2
+	* @param[out]  rapidjson::Value** Pointer of a pointer, pointer to the storage Memory address.
+	* @param[in] T1 t1
+	* @param[in] T2 t2
+	* @param[in] rapidjson::Value* parent node pointer
+	* @return int 0: on success, -1: others
+	*/
     template<typename T1, typename T2>
     static int GetValue(
             const rapidjson::Value** value,
@@ -195,6 +266,14 @@ public:
         return -1;
     }
 
+	/**
+	* @brief get the object pointer of t1.t2
+	* @param[out]  rapidjson::Value** Pointer of a pointer, pointer to the storage Memory address.
+	* @param[in] T1 t1
+	* @param[in] T2 t2
+	* @param[in] rapidjson::Value* parent node pointer
+	* @return int 0: on success, -1: others
+	*/
     template<typename T1, typename T2>
     static int GetObject(
             const rapidjson::Value** value,
@@ -210,6 +289,14 @@ public:
         return -1;
     }
 
+	/**
+	* @brief get the Array pointer of t1.t2
+	* @param[out]  rapidjson::Value** Pointer of a pointer, pointer to the storage Memory address.
+	* @param[in] T1 t1
+	* @param[in] T2 t2
+	* @param[in] rapidjson::Value* parent node pointer
+	* @return int 0: on success, -1: others
+	*/
     template<typename T1, typename T2>
     static int GetArray(
             const rapidjson::Value** value,
@@ -225,6 +312,14 @@ public:
         return -1;
     }
 
+	/**
+	* @brief get the string of t1.t2
+	* @param[out]  std::string&  the target string
+	* @param[in] T1 t1
+	* @param[in] T2 t2
+	* @param[in] rapidjson::Value* parent node pointer
+	* @return int 0: on success, -1: others
+	*/
     template<typename T1, typename T2>
     static int GetStr(
             std::string& str,
@@ -242,6 +337,14 @@ public:
         return -1;
     }
 
+	/**
+	* @brief get the bool val of t1.t2
+	* @param[out] bool&  the target bool val
+	* @param[in] T1 t1
+	* @param[in] T2 t2
+	* @param[in] rapidjson::Value* parent node pointer
+	* @return int 0: on success, -1: others
+	*/
     template<typename T1, typename T2>
     static int GetBool(
             bool& n,
@@ -259,6 +362,14 @@ public:
         return -1;
     }
 
+	/**
+	* @brief get the int val of t1.t2
+	* @param[out] int&  the target int val
+	* @param[in] T1 t1
+	* @param[in] T2 t2
+	* @param[in] rapidjson::Value* parent node pointer
+	* @return int 0: on success, -1: others
+	*/
     template<typename T1, typename T2>
     static int GetInt(
             int& n,
@@ -276,6 +387,14 @@ public:
         return -1;
     }
 
+	/**
+	* @brief get the double val of t1.t2
+	* @param[out] double& the target double val
+	* @param[in] T1 t1
+	* @param[in] T2 t2
+	* @param[in] rapidjson::Value* parent node pointer
+	* @return int 0: on success, -1: others
+	*/
     template<typename T1, typename T2>
     static int GetDouble(
             double& n,
@@ -293,14 +412,38 @@ public:
         return -1;
     }
 
+	/**
+	* @brief node data to string
+	* @param[out] std::string& the string of node data
+	* @param[in] rapidjson::Value* the target node
+	* @return int 0: on success, -1: others
+	*/
     static int ToString(
             std::string& str,
             const rapidjson::Value* node);
 
+	/**
+	* @brief node data to string
+	* @param[in] rapidjson::Value* the target node
+	* @return std::string the string of node data. if any error occurred, the returned string is empty.
+	*/
     static std::string ToString(const rapidjson::Value* node);
 
+	/**
+	* @brief parse a faile
+	* @param[in] std::string& the target file name
+	* @param[in] rapidjson::Document& JSON file parser
+	* @return bool return true on success, or else false on any error occurred
+	*/
     static bool parse(const std::string &filename, rapidjson::Document &doc);
 
+	/**
+	* @brief judge the file whether valid or not.
+	* @param[in] std::string& the target file name
+	* @param[in] std::string& the config schema
+	* @param[in] rapidjson::Document& JSON file parser
+	* @return bool if file is valid return true, or else return false
+	*/
     static bool validate(
             const std::string &filename,
             const std::string &config_schema,

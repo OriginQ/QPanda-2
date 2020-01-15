@@ -13,38 +13,103 @@
 #include "Core/QuantumMachine/QVec.h"
 #include "Core/Utilities/Tools/ReadWriteLock.h"
 #include "Core/Utilities/Tools/QPandaException.h"
+#include "Core/QuantumCircuit/QNodeManager.h"
+
 QPANDA_BEGIN
-/**
-* @namespace QPanda
-*/
 
 /**
-* @class AbstractQuantumCircuit
 * @brief Quantum circuit basic abstract class
-* @ingroup Core
+* @ingroup QuantumCircuit
 */
 class AbstractQuantumCircuit
 {
 public:
+	/**
+    * @brief  Get the first NodeIter
+    * @return  NodeIter
+    */
     virtual NodeIter getFirstNodeIter() = 0;
+	
+	/**
+    * @brief  Get the last NodeIter
+    * @return  NodeIter
+    */
     virtual NodeIter getLastNodeIter() = 0;
+
+	/**
+    * @brief  Get the end NodeIter
+    * @return  NodeIter
+    */
     virtual NodeIter getEndNodeIter() = 0;
+	
+	/**
+    * @brief  Get the head NodeIter
+    * @return  NodeIter
+    */
     virtual NodeIter getHeadNodeIter() = 0;
+
+	/**
+    * @brief  Insert a new QNode at the location specified by NodeIter  
+	* @param[in] NodeIter&  specified  location
+	* @param[in] std::shared_ptr<QNode> Inserted QNode
+    * @return  NodeIter
+    */
     virtual NodeIter insertQNode(NodeIter &, std::shared_ptr<QNode>) = 0;
+
+	/**
+    * @brief  Delete a QNode at the location specified by NodeIter  
+	* @param[in] NodeIter&  specified  location
+    * @return  NodeIter  Deleted NodeIter
+    */
     virtual NodeIter deleteQNode(NodeIter &) = 0;
+
+	/**
+	* @brief  Insert a new Node at the end of current quantum circuit node
+	* @param[in]  QNode*  quantum node
+	* @return     void
+	* @see  QNode
+	*/
     virtual void pushBackNode(std::shared_ptr<QNode> ) = 0;
+	
+	/**
+    * @brief  Judge current quantum circuit is dagger
+    * @return  bool 
+    */
     virtual bool isDagger() const = 0;
+
+	/**
+    * @brief  Get control vector fron current quantum circuit node
+    * @param[in]  QVec& qubits  vector
+	* @return  bool
+    * @see QVec
+    */
     virtual bool getControlVector(QVec &) = 0;
+
+	/**
+    * @brief  Set dagger to current quantum circuit
+    * @param[in]  bool is dagger
+    */
     virtual void  setDagger(bool isDagger) = 0;
+
+	/**
+    * @brief  Set control qubits to current quantum circuit
+    * @param[in]  QVec  control qubits  vector
+    * @see QVec
+    */
     virtual void  setControl(QVec ) = 0;
+
+	/**
+    * @brief  Clear the control qubits for current quantum circuit
+    * @param[in]  QVec  control qubits  vector
+    * @see QVec
+    */
     virtual void clearControl() = 0;
     virtual ~AbstractQuantumCircuit() {};
 };
 
 /**
-* @class QCircuit
 * @brief Quantum circuit basic abstract class
-* @ingroup Core
+* @ingroup QuantumCircuit
 */
 class QCircuit : public AbstractQuantumCircuit
 {
@@ -68,7 +133,7 @@ public:
 
     /**
     * @brief  Insert new Node at the end of current node
-    * @param[in]  Node  QGate/QCircuit
+    * @param[in]  node  QGate/QCircuit
     * @return     QPanda::QCircuit&   quantum circuit
     * @see QNode
     */
@@ -97,16 +162,14 @@ public:
 
     /**
     * @brief  Judge current quantum circuit is dagger
-    * @retval   0  true
-    * @retval   1  false
+	* @return  bool
     */
     bool isDagger() const;
 
     /**
-    * @brief  Get control vector fron current quantum circuit node
+    * @brief  Get control vector from current quantum circuit node
     * @param[in]  QVec& qubits  vector
-    * @retval   0  true
-    * @retval   1  false
+	* @return  bool
     * @see QVec
     */
     bool getControlVector(QVec &);
@@ -134,6 +197,10 @@ private:
     void clearControl() {}
 };
 
+/**
+* @brief Hadamard quantum circuit program
+* @ingroup QuantumCircuit
+*/
 class HadamardQCircuit :public QCircuit
 {
 public:
@@ -150,24 +217,28 @@ HadamardQCircuit CreateHadamardQCircuit(QVec & pQubitVector);
 /* new interface */
 /**
 * @brief  QPanda2 basic interface for creating a empty circuit
+* @ingroup QuantumCircuit
 * @return     QPanda::QCircuit  
-* @ingroup Core
 */
 QCircuit createEmptyCircuit();
 
 /**
 * @brief  Create a hadamard qcircuit
+* @ingroup QuantumCircuit
 * @param[in]  QVec&  qubit vector 
 * @return     QPanda::HadamardQCircuit  hadamard qcircuit 
 */
 HadamardQCircuit createHadamardQCircuit(QVec & pQubitVector);
 
 
+/**
+* @brief Implementation  class of QCircuit 
+* @ingroup QuantumCircuit
+*/
 class OriginCircuit : public QNode, public AbstractQuantumCircuit
 {
 private:
-    Item * m_head;
-    Item * m_end;
+	QNodeManager m_node_manager{this};
     SharedMutex m_sm;
     NodeType m_node_type;
     bool m_Is_dagger;
@@ -175,34 +246,75 @@ private:
     OriginCircuit(const OriginCircuit &);
 
 public:
-
     OriginCircuit():
         m_node_type(CIRCUIT_NODE),
         m_Is_dagger(false)
     {
-        m_head = new OriginItem();
-        m_head->setNext(nullptr);
-        m_head->setPre(nullptr);
-        m_end =m_head;
         m_control_qubit_vector.resize(0);
     }
     ~OriginCircuit();
-    void pushBackNode(std::shared_ptr<QNode>);
+	void pushBackNode(std::shared_ptr<QNode> node) { 
+		if (check_insert_node_type(node))
+		{
+			m_node_manager.push_back_node(node);
+		}
+	}
     void setDagger(bool);
     void setControl(QVec );
     NodeType getNodeType() const;
     bool isDagger() const;
     bool getControlVector(QVec &);
-    NodeIter  getFirstNodeIter();
-    NodeIter  getLastNodeIter();
-    NodeIter  getEndNodeIter();
-    NodeIter getHeadNodeIter();
-    NodeIter  insertQNode(NodeIter &, std::shared_ptr<QNode>);
-    NodeIter  deleteQNode(NodeIter &);
+    NodeIter  getFirstNodeIter() { return m_node_manager.get_first_node_iter(); }
+    NodeIter  getLastNodeIter() { return m_node_manager.get_last_node_iter(); }
+    NodeIter  getEndNodeIter() { return m_node_manager.get_end_node_iter(); }
+    NodeIter getHeadNodeIter() { return m_node_manager.get_head_node_iter(); }
+    NodeIter  insertQNode(NodeIter &perIter, std::shared_ptr<QNode> node) { 
+		if (check_insert_node_type(node))
+		{
+			return m_node_manager.insert_QNode(perIter, node);
+		}
+
+		return NodeIter();
+	}
+    NodeIter  deleteQNode(NodeIter &target_iter) { return m_node_manager.delete_QNode(target_iter); }
+	/**
+	* @brief  Clear all node in current quantum program node
+	* @return     void
+	*/
+	void clear() { m_node_manager.clear(); }
+
     void clearControl();
+
+	bool check_insert_node_type(std::shared_ptr<QNode> node) {
+		if (nullptr == node.get())
+		{
+			QCERR("node is null");
+			throw std::runtime_error("node is null");
+		}
+
+		const NodeType t = node->getNodeType();
+		switch (t)
+		{
+		case GATE_NODE:
+		case CIRCUIT_NODE:
+		case CLASS_COND_NODE:
+			return true;
+			break;
+
+		default:
+			throw qcircuit_construction_fail("bad node type");
+		}
+
+		return false;
+	}
 };
 
 typedef AbstractQuantumCircuit* (*CreateQCircuit)();
+
+/**
+ * @brief Factory for class AbstractQuantumCircuit
+ * @ingroup QuantumCircuit
+ */
 class QuantumCircuitFactory
 {
 public:
@@ -210,6 +322,10 @@ public:
     void registClass(std::string name, CreateQCircuit method);
     AbstractQuantumCircuit * getQuantumCircuit(std::string &);
 
+	/**
+     * @brief Get the static instance of factory 
+	 * @return QuantumCircuitFactory &
+     */
     static QuantumCircuitFactory & getInstance()
     {
         static QuantumCircuitFactory  s_Instance;
@@ -220,6 +336,10 @@ private:
     QuantumCircuitFactory() {}
 };
 
+/**
+* @brief QCircuit program register action
+* @note Provide QuantumCircuitFactory class registration interface for the outside
+ */
 class QuantumCircuitRegisterAction {
 public:
     QuantumCircuitRegisterAction(std::string className, CreateQCircuit ptrCreateFn) {
@@ -234,18 +354,8 @@ QCircuit & QCircuit::operator<<(T node)
     {
         throw std::runtime_error("m_pQuantumCircuit is null");
     }
-    int iNodeType = node.getNodeType();
 
-    switch (iNodeType)
-    {
-    case GATE_NODE:
-    case CIRCUIT_NODE:
-    case CLASS_COND_NODE:
-        m_pQuantumCircuit->pushBackNode(std::dynamic_pointer_cast<QNode>(node.getImplementationPtr()));
-        break;
-    default:
-        throw qcircuit_construction_fail("bad node type");
-    }
+	m_pQuantumCircuit->pushBackNode(std::dynamic_pointer_cast<QNode>(node.getImplementationPtr()));
     return *this;
 }
 

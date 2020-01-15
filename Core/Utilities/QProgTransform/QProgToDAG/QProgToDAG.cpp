@@ -4,8 +4,6 @@
 USING_QPANDA
 using namespace std;
 
-#define USE_CONTROL
-
 void QProgToDAG::transformQGate(shared_ptr<AbstractQGateNode> gate_node, QProgDAG &prog_dag, const QCircuitParam& parm, NodeIter& cur_iter)
 {
     if (nullptr == gate_node || nullptr == gate_node->getQGate())
@@ -14,21 +12,14 @@ void QProgToDAG::transformQGate(shared_ptr<AbstractQGateNode> gate_node, QProgDA
         throw invalid_argument("gate_node is null");
     }
 
-#ifndef USE_CONTROL 
-
-    QNodeDeepCopy reproduction;
-    auto temp_gate = reproduction.copy_node(gate_node);
-
-    QVec qubits_vector;
-    temp_gate.getQuBitVector(qubits_vector);
-
-    QVec control_vector;
-    temp_gate.getControlVector(control_vector);
+	QProgDAG::NodeInfo node_info(cur_iter);
+	gate_node->getQuBitVector(node_info.m_qubits_vec);
+	gate_node->getControlVector(node_info.m_control_vec);
 
     for_each(parm.m_control_qubits.begin(), parm.m_control_qubits.end(), [&](Qubit* src_qubit)
     {
         bool find{ false };
-        for (auto const &dst_qubit : control_vector)
+        for (auto const &dst_qubit : node_info.m_control_vec)
         {
             if (src_qubit->getPhysicalQubitPtr()->getQubitAddr() ==
                 dst_qubit->getPhysicalQubitPtr()->getQubitAddr())
@@ -40,40 +31,50 @@ void QProgToDAG::transformQGate(shared_ptr<AbstractQGateNode> gate_node, QProgDA
 
         if (!find)
         {
-            control_vector.emplace_back(src_qubit);
+			node_info.m_control_vec.emplace_back(src_qubit);
         }
     });
 
-    temp_gate.setControl(control_vector);
-    temp_gate.setDagger(temp_gate.isDagger() ^ parm.m_is_dagger);
+	//check control qubits
+	std::vector<int> gate_used_qubits;
+	for (auto &itr : node_info.m_qubits_vec)
+	{
+		gate_used_qubits.push_back(itr->getPhysicalQubitPtr()->getQubitAddr());
+	}
+	for (auto &itr : node_info.m_control_vec)
+	{
+		gate_used_qubits.push_back(itr->getPhysicalQubitPtr()->getQubitAddr());
+	}
+	std::sort(gate_used_qubits.begin(), gate_used_qubits.end());
+	gate_used_qubits.erase(unique(gate_used_qubits.begin(), gate_used_qubits.end()), gate_used_qubits.end());
+	if (gate_used_qubits.size() != (node_info.m_qubits_vec.size() + node_info.m_control_vec.size()))
+	{
+		QCERR_AND_THROW_ERRSTR(runtime_error, "Control gate Error: Illegal control qubits.");
+	}
 
-    auto temp_gate_ptr = std::dynamic_pointer_cast<QNode>(temp_gate.getImplementationPtr());
-    auto vertice_num = prog_dag.add_vertex(temp_gate_ptr);
+	node_info.m_dagger = gate_node->isDagger() ^ parm.m_is_dagger;
 
-    for_each(qubits_vector.begin(), qubits_vector.end(), [&](Qubit* qubit)
+    auto vertice_num = prog_dag.add_vertex(node_info);
+
+    for_each(node_info.m_qubits_vec.begin(), node_info.m_qubits_vec.end(), [&](Qubit* qubit)
     {
         prog_dag.add_qubit_map(qubit->getPhysicalQubitPtr()->getQubitAddr(), vertice_num);
     });
 
-    for_each(control_vector.begin(), control_vector.end(), [&](Qubit* qubit)
+    for_each(node_info.m_control_vec.begin(), node_info.m_control_vec.end(), [&](Qubit* qubit)
     {
         prog_dag.add_qubit_map(qubit->getPhysicalQubitPtr()->getQubitAddr(), vertice_num);
     });
-#else
-    QVec qubits_vector;
-    gate_node->getQuBitVector(qubits_vector);
-
-    auto vertice_num = prog_dag.add_vertex(cur_iter);
-    for_each(qubits_vector.begin(), qubits_vector.end(), [&](Qubit* qubit)
-    {
-        prog_dag.add_qubit_map(qubit->getPhysicalQubitPtr()->getQubitAddr(), vertice_num);
-    });
-#endif
 }
 
 void QProgToDAG::execute(std::shared_ptr<AbstractQuantumMeasure>  cur_node, std::shared_ptr<QNode> parent_node, QProgDAG & prog_dag, QCircuitParam&, NodeIter& cur_iter)
 {
     transformQMeasure(cur_node, prog_dag, cur_iter);
+}
+
+void QProgToDAG::execute(std::shared_ptr<AbstractQuantumReset> cur_node, std::shared_ptr<QNode> parent_node, QProgDAG &prog_dag, QCircuitParam&, NodeIter& cur_iter)
+{
+	transformQReset(cur_node, prog_dag, cur_iter);
 }
 
 void QProgToDAG::execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node, QProgDAG & prog_dag, QCircuitParam& parm, NodeIter& cur_iter)
@@ -129,6 +130,19 @@ void QProgToDAG::transformQMeasure(std::shared_ptr<AbstractQuantumMeasure> cur_n
     size_t vertice_num = prog_dag.add_vertex(cur_iter);
     auto tar_qubit = cur_node->getQuBit()->getPhysicalQubitPtr()->getQubitAddr();
     prog_dag.add_qubit_map(tar_qubit, vertice_num);
+}
+
+void QProgToDAG::transformQReset(std::shared_ptr<AbstractQuantumReset> cur_node, QProgDAG &prog_dag, NodeIter& cur_iter)
+{
+	if (nullptr == cur_node)
+	{
+		QCERR("reset_node is null");
+		throw invalid_argument("reset_node is null");
+	}
+
+	size_t vertice_num = prog_dag.add_vertex(cur_iter);
+	auto tar_qubit = cur_node->getQuBit()->getPhysicalQubitPtr()->getQubitAddr();
+	prog_dag.add_qubit_map(tar_qubit, vertice_num);
 }
 
 void QProgToDAG::execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std::shared_ptr<QNode> parent_node, QProgDAG &prog_dag, QCircuitParam& cir_parm, NodeIter& cur_iter)

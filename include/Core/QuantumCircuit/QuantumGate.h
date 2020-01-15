@@ -31,8 +31,8 @@ Update by code specification
 namespace QGATE_SPACE 
 {
     /**
-    * @class angleParameter
     * @brief Quantum gate angle parameter  basic abstract class
+	* @ingroup QuantumCircuit
     */
     class AbstractAngleParameter
     {
@@ -52,6 +52,7 @@ namespace QGATE_SPACE
     /**
     * @class QuantumGate
     * @brief Quantum gate basic abstract class
+	* @ingroup QuantumCircuit
     */
     class QuantumGate
     {
@@ -72,6 +73,10 @@ namespace QGATE_SPACE
 		};
     };
 
+	/**
+    * @brief  Quantum Gate Factory
+	* @ingroup QuantumCircuit
+    */
 	template<typename ...Targs>
     class QGateFactory
     {

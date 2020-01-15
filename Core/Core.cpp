@@ -58,7 +58,7 @@ QuantumMachine *QPanda::initQuantumMachine(const QMachineType class_type)
 
 void QPanda::destroyQuantumMachine(QuantumMachine *qvm)
 {
-    if (!qvm)
+    if (qvm)
     {
         global_quantum_machine = nullptr;
         qvm->finalize();

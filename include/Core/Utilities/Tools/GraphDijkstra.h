@@ -16,10 +16,8 @@ Classes for get the shortes path of graph
 #include "Core/Utilities/QPandaNamespace.h"
 #include <iostream>
 #include <vector>
+
 QPANDA_BEGIN
-/**
-* @namespace QPanda
-*/
 
 /**
 * @brief   Int infinite 
@@ -33,7 +31,6 @@ const int kError = -1;
 
 
 /**
-* @class Dist
 * @brief Dijkstra graph node
 */
 struct Dist{

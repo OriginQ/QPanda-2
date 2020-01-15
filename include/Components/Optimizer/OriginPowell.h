@@ -18,17 +18,18 @@ Created in 2018-09-26
 
 namespace QPanda
 {
-
-    /*
-
-    Minimization of scalar function of one or more variables using the
-    Powell algorithm.
-
-    */
     class Brent;
+
+	/**
+	* @brief  Minimization of scalar function of one or more variables using the Powell algorithm.
+	* @ingroup Optimizer
+	*/
     class OriginPowell : public AbstractOptimizer
     {
     public:
+		/**
+		* @brief  Constructor of OriginPowell
+		*/
         OriginPowell();
         OriginPowell(const OriginPowell &) = delete;
         OriginPowell& operator = (const OriginPowell &) = delete;
@@ -68,27 +69,35 @@ namespace QPanda
         Eigen::MatrixXd m_direc;
     };
 
-    /*
-    
-    Given a function of one-variable, return the local minimum 
-    of the function isolated to a fractional precision of tol.
-
-    Notes:
-        Uses inverse parabolic interpolation when possible to speed up
-        convergence of golden section method.
-    */
+	/**
+	* @brief  Given a function of one-variable, return the local minimum 
+              of the function isolated to a fractional precision of tol.
+	* @ingroup Optimizer
+	* @note Uses inverse parabolic interpolation when possible to speed up
+            convergence of golden section method.
+	*/
     class Brent
     {
         using Func = std::function<QResultPair(double)>;
         using Vec3Pair = std::vector<std::pair<double, QResultPair>>;
 
     public:
+		/**
+		* @brief  Constructor of Brent
+		*/
         Brent(const Func &func, double tol = 1.48e-8, size_t maxiter = 500);
         Brent(const Brent &) = delete;
         Brent& operator = (const Brent &) = delete;
 
+		/**
+		* @brief  execute optimization
+		*/
         void optimize();
 
+		/**
+		* @brief get result
+		* @return std::pair<double, QResultPair> result
+		*/
         std::pair<double, QResultPair> getResult();
     private:
         /*

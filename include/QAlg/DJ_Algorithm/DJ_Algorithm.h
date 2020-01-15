@@ -23,10 +23,10 @@ using DJ_Oracle = Oracle<QVec, Qubit*>;
 
 /**
 * @brief  Deutsch Jozsa algorithm
-* @ingroup QAlg
-* @param[in]  f(x) in different cases
-* @param[in]  Quantum machine ptr
-* @param[in]  Deutsch Jozsa algorithm oracle
+* @ingroup DJ_Algorithm
+* @param[in] std::vector<bool> boolean_function{f(0)= (0/1)?, f(1)=(0/1)?}
+* @param[in] QuantumMachine* Quantum machine ptr
+* @param[in] DJ_Oracle Deutsch Jozsa algorithm oracle
 * @return    QProg
 * @note    In the Deutsch-Jozsa problem, we are given a black box quantum computer 
            known as an oracle that implements some function f:{0,1}^{n}->{0,1}.

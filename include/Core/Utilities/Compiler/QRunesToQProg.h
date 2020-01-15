@@ -11,10 +11,6 @@
 
 
 QPANDA_BEGIN
-/**
-* @namespace QPanda
-* @namespace QGATE_SPACE
-*/
 
 /**
 * @class QRunesToQProg
@@ -32,23 +28,23 @@ public:
     QuantumMachine * qvm;
     std::vector<ClassicalCondition> m_cbit_vec;
 private:
-    size_t traversalQRunes(size_t, QNode*);
+    size_t traversalQRunes(size_t, std::shared_ptr<QNode>);
 
-    size_t handleSingleGate(QNode*);
+    size_t handleSingleGate(std::shared_ptr<QNode>);
 
-    size_t handleDoubleGate(QNode*);
+    size_t handleDoubleGate(std::shared_ptr<QNode>);
 
-    size_t handleAngleGate(QNode*);
+    size_t handleAngleGate(std::shared_ptr<QNode>);
 
-    size_t handleDoubleAngleGate(QNode*);
+    size_t handleDoubleAngleGate(std::shared_ptr<QNode>);
 
-    size_t handleToffoliGate(QNode*);
+    size_t handleToffoliGate(std::shared_ptr<QNode>);
 
-    size_t handleMeasureGate(QNode*);
+    size_t handleMeasureGate(std::shared_ptr<QNode>);
 
-    size_t handleDaggerCircuit(QNode*, size_t);
+    size_t handleDaggerCircuit(std::shared_ptr<QNode>, size_t);
 
-    size_t handleControlCircuit(QNode*, size_t);
+    size_t handleControlCircuit(std::shared_ptr<QNode>, size_t);
 
     std::vector<std::string> m_QRunes;
     std::vector<std::string> m_QRunes_value;
@@ -65,7 +61,6 @@ private:
 * @ingroup Utilities
 * @param[in]  QProg&   empty quantum program
 * @return    void
-* @exception    qprog_syntax_error   quantum program syntax error
 */
 std::vector<ClassicalCondition> transformQRunesToQProg(std::string, QProg&, QuantumMachine *);
 QPANDA_END

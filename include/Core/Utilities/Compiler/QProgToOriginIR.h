@@ -11,9 +11,7 @@
 #include "Core/Utilities/Tools/Traversal.h"
 
 QPANDA_BEGIN
-/**
-* @namespace QPanda
-*/
+
 /**
 * @class QProgToOriginIR
 * @ingroup Utilities
@@ -29,10 +27,6 @@ public:
     * @brief  Transform quantum program
     * @param[in]  QProg&    quantum program
     * @return     void
-    * @exception  invalid_argument
-    * @code
-    * @endcode
-    * @note
     */
     virtual void transform(QProg &prog) {};
 
@@ -47,6 +41,7 @@ public:
 
 	virtual void execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node);
 	virtual void execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, std::shared_ptr<QNode> parent_node);
+	virtual void execute(std::shared_ptr<AbstractQuantumReset> cur_node, std::shared_ptr<QNode> parent_node);
 	virtual void execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node);
 	virtual void execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std::shared_ptr<QNode> parent_node);
 	virtual void execute(std::shared_ptr<AbstractQuantumProgram>  cur_node, std::shared_ptr<QNode> parent_node);
@@ -55,13 +50,12 @@ public:
     /**
      * @brief  get OriginIR insturction set
      * @return     std::string
-     * @exception
-     * @note
      */
     virtual std::string getInsturctions();
 private:
     virtual void transformQGate(AbstractQGateNode*, bool is_dagger = false);
     virtual void transformQMeasure(AbstractQuantumMeasure*);
+	virtual void transformQReset(AbstractQuantumReset *pReset);
 	virtual void transformClassicalProg(AbstractClassicalProg *);
 	virtual void transformQControlFlow(AbstractControlFlowNode *){}
     std::vector<std::string> m_OriginIR;/**< OriginIR insturction vector */
@@ -89,8 +83,6 @@ private:
           std::cout << transformQProgToOriginIR(prog, global_quantum_machine) << std::endl;
           finalize();
       @endcode
-* @exception
-* @note
 */
 template<typename _Ty>
 std::string transformQProgToOriginIR(_Ty &node,QuantumMachine *machine)
@@ -111,6 +103,7 @@ std::string transformQProgToOriginIR(_Ty &node,QuantumMachine *machine)
 * @brief  Convert Quantum Program  To OriginIR
 * @ingroup Utilities
 * @param[in]  _Ty& quantum program, quantum circuit, quantum while or quantum if
+* @param[in]  QuantumMachine* quantum machine
 * @return     std::string    QASM instruction set
 */
 template<typename _Ty>

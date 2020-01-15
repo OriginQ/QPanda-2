@@ -18,6 +18,11 @@ Created in 2018-09-18
 #include <ostream>
 #include "Core/Utilities/QPandaNamespace.h"
 QPANDA_BEGIN
+
+/**
+* @brief QString
+* @ingroup Utilities
+*/
 class QString
 {
 public:

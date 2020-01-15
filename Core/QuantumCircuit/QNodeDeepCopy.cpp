@@ -22,6 +22,12 @@ QMeasure QNodeDeepCopy::copy_node(shared_ptr<AbstractQuantumMeasure> cur_node)
     return measure_node;
 }
 
+QReset QNodeDeepCopy::copy_node(std::shared_ptr<AbstractQuantumReset> cur_node)
+{
+	auto reset_node = QReset(cur_node->getQuBit());
+	return reset_node;
+}
+
 QCircuit QNodeDeepCopy::copy_node(shared_ptr<AbstractQuantumCircuit> cur_node)
 {
     QVec control_vec;
@@ -267,6 +273,18 @@ void QNodeDeepCopy::execute(  shared_ptr<AbstractQuantumMeasure> cur_node, share
 
     auto pMeasure = copy_node(cur_node);
     insert(dynamic_pointer_cast<QNode>(pMeasure.getImplementationPtr()), parent_node);
+}
+
+void QNodeDeepCopy::execute(std::shared_ptr<AbstractQuantumReset> cur_node, std::shared_ptr<QNode> parent_node)
+{
+	if (nullptr == cur_node || nullptr == parent_node)
+	{
+		QCERR("node is nullptr");
+		throw invalid_argument("node is nullptr");
+	}
+
+	auto pReset = copy_node(cur_node);
+	insert(dynamic_pointer_cast<QNode>(pReset.getImplementationPtr()), parent_node);
 }
 
 void QNodeDeepCopy::execute( shared_ptr<AbstractQuantumCircuit> cur_node, shared_ptr<QNode> parent_node)

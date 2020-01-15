@@ -11,10 +11,9 @@ using namespace std;
 DrawQProg::DrawQProg(QProg &prg, const NodeIter node_itr_start, const NodeIter node_itr_end)
 	: m_p_text(nullptr)
 {
-	pickUpNode(m_prog, prg,
+	pickUpNode(m_prog, prg, {},
 		node_itr_start == NodeIter() ? prg.getFirstNodeIter() : node_itr_start,
-		node_itr_end == NodeIter() ? prg.getEndNodeIter() : node_itr_end,
-		true);
+		node_itr_end == NodeIter() ? prg.getEndNodeIter() : node_itr_end);
 
 #if PRINT_TRACE
 	cout << "got the target tmp-prog:" << endl;

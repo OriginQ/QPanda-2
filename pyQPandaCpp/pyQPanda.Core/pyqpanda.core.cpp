@@ -208,6 +208,10 @@ PYBIND11_MODULE(pyQPanda, m)
         py::return_value_policy::automatic
     );
 
+	m.def("Reset", &Reset, "Create a Reset node",
+		py::return_value_policy::automatic
+	);
+
     m.def("T", &T, "Create a T gate",
         py::return_value_policy::automatic
     );
@@ -342,12 +346,22 @@ PYBIND11_MODULE(pyQPanda, m)
         py::return_value_policy::automatic
     );
 
+	py::class_<NodeInfo>(m, "NodeInfo")
+		.def(py::init<>())
+		.def_readwrite("m_itr", &NodeInfo::m_itr)
+		.def_readwrite("m_node_type", &NodeInfo::m_node_type)
+		.def_readwrite("m_gate_type", &NodeInfo::m_gate_type)
+		.def_readwrite("m_is_dagger", &NodeInfo::m_is_dagger)
+		.def_readwrite("m_qubits", &NodeInfo::m_qubits)
+		.def_readwrite("m_control_qubits", &NodeInfo::m_control_qubits)
+		.def("clear", &NodeInfo::clear);
+
     m.def("get_adjacent_qgate_type", [](QProg &prog, NodeIter &node_iter)
     {
-        std::vector<NodeIter> front_and_back_iter;
-        getAdjacentQGateType(prog, node_iter, front_and_back_iter);
-        return front_and_back_iter;
-    }, "get the adjacent qgates's(the front one and the back one) type",
+        std::vector<NodeInfo> adjacent_nodes;
+        getAdjacentQGateType(prog, node_iter, adjacent_nodes);
+        return adjacent_nodes;
+    }, "get the adjacent(the front one and the back one) nodes.",
         py::return_value_policy::automatic
         );
 
@@ -563,15 +577,41 @@ PYBIND11_MODULE(pyQPanda, m)
         py::return_value_policy::automatic_reference
         );
 
-    m.def("validate_single_qgate_type", &validateSingleQGateType,
-        "validate single QGate type",
-        py::return_value_policy::automatic
-    );
+    py::enum_<SingleGateTransferType>(m, "SingleGateTransferType")
+        .value("SINGLE_GATE_INVALID", SINGLE_GATE_INVALID)
+        .value("ARBITRARY_ROTATION", ARBITRARY_ROTATION)
+        .value("DOUBLE_CONTINUOUS", DOUBLE_CONTINUOUS)
+        .value("SINGLE_CONTINUOUS_DISCRETE", SINGLE_CONTINUOUS_DISCRETE)
+        .value("DOUBLE_DISCRETE", DOUBLE_DISCRETE)
+        .export_values();
 
-    m.def("validate_double_qgate_type", &validateDoubleQGateType,
-        "validate double QGate type",
+    py::enum_<DoubleGateTransferType>(m, "DoubleGateTransferType")
+        .value("DOUBLE_GATE_INVALID", DOUBLE_GATE_INVALID)
+        .value("DOUBLE_BIT_GATE", DOUBLE_BIT_GATE)
+        .export_values();
+
+    m.def("validate_single_qgate_type", [](std::vector<string> single_gates) {
+        py::list ret_date;
+        std::vector<string> valid_gates;
+        auto type = validateSingleQGateType(single_gates, valid_gates);
+        ret_date.append(static_cast<SingleGateTransferType>(type));
+        ret_date.append(valid_gates);
+        return ret_date;
+    }
+        , "Single QGates"_a, "get valid QGates and valid single QGate type",
         py::return_value_policy::automatic
-    );
+        );
+
+    m.def("validate_double_qgate_type", [](std::vector<string> double_gates) {
+        py::list ret_data;
+        std::vector<string> valid_gates;
+        auto type = validateDoubleQGateType(double_gates, valid_gates);
+        ret_data.append(static_cast<DoubleGateTransferType>(type));
+        ret_data.append(valid_gates);
+        return ret_data;
+    }, "Double QGates"_a, "get valid QGates and valid double QGate type",
+        py::return_value_policy::automatic_reference
+        );
 
     m.def("get_unsupport_qgate_num", [](QProg prog, const vector<vector<string>> &gates) {
         return getUnsupportQGateNum(prog, gates);
@@ -751,6 +791,7 @@ PYBIND11_MODULE(pyQPanda, m)
         .def(py::init<QWhileProg &>())
         .def(py::init<QGate &>())
         .def(py::init<QMeasure &>())
+		.def(py::init<QReset &>())
         .def(py::init<ClassicalCondition &>())
         .def(py::init([](NodeIter & iter) {
         if (!(*iter))
@@ -783,6 +824,8 @@ PYBIND11_MODULE(pyQPanda, m)
             py::return_value_policy::reference)
         .def("insert", &QProg::operator<<<QMeasure>,
             py::return_value_policy::reference)
+		.def("insert", &QProg::operator<<<QReset>,
+			py::return_value_policy::reference)
         .def("insert", &QProg::operator<<<ClassicalCondition>,
             py::return_value_policy::reference)
         .def("begin",&QProg::getFirstNodeIter,
@@ -800,6 +843,7 @@ PYBIND11_MODULE(pyQPanda, m)
     py::implicitly_convertible<QIfProg, QProg>();
     py::implicitly_convertible<QWhileProg, QProg>();
     py::implicitly_convertible<QMeasure, QProg>();
+	py::implicitly_convertible<QReset, QProg>();
     py::implicitly_convertible<ClassicalCondition, QProg>();
 
 
@@ -1010,6 +1054,26 @@ PYBIND11_MODULE(pyQPanda, m)
         }
     }));
 
+	py::class_<QReset>(m, "QReset")
+		.def(py::init([](NodeIter & iter) {
+		if (!(*iter))
+		{
+			QCERR("iter is null");
+			throw runtime_error("iter is null");
+		}
+
+		if (RESET_NODE == (*iter)->getNodeType())
+		{
+			auto gate_node = std::dynamic_pointer_cast<AbstractQuantumReset>(*iter);
+			return QReset(gate_node);
+		}
+		else
+		{
+			QCERR("node type error");
+			throw runtime_error("node type error");
+		}
+	}));
+
     py::class_<Qubit>(m, "Qubit")
         .def("getPhysicalQubitPtr", &Qubit::getPhysicalQubitPtr, py::return_value_policy::reference)
         ;
@@ -1195,7 +1259,8 @@ PYBIND11_MODULE(pyQPanda, m)
         .value("MEASURE_GATE", NodeType::MEASURE_GATE)
         .value("WHILE_START_NODE", NodeType::WHILE_START_NODE)
         .value("QIF_START_NODE", NodeType::QIF_START_NODE)
-        .value("CLASS_COND_NODE", NodeType::CLASS_COND_NODE);
+        .value("CLASS_COND_NODE", NodeType::CLASS_COND_NODE)
+		.value("RESET_NODE", NodeType::RESET_NODE);
 
     py::class_<NodeIter>(m, "NodeIter")
         .def(py::init<>())

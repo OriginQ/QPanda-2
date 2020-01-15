@@ -17,6 +17,8 @@ limitations under the License.
 
 #include "Core/VirtualQuantumProcessor/NoiseQPU/NoiseModel.h"
 #include <complex>
+#include "Core/Utilities/Tools/QStatMatrix.h"
+
 USING_QPANDA
 using namespace rapidjson;
 using namespace std;
@@ -501,13 +503,17 @@ bool depolarizing_kraus_operator(Value &value, NoiseOp &noise)
         throw std::invalid_argument("param error");
     }
 
+    QStat matrix_i = {1, 0, 0, 1};
+    QStat matrix_x = {0, 1, 1, 0};
+    QStat matrix_y = {0, qcomplex_t(0, -1), qcomplex_t(0, -1), 0};
+    QStat matrix_z = {1, 0, 0, -1};
+
     double probability = value[1].GetDouble();
     noise.resize(4);
-    noise[0] = {static_cast<qstate_type>(sqrt(1 - probability * 0.75)), 0, 0, static_cast<qstate_type>(sqrt(1 - probability * 0.75))};
-    noise[1] = {0, static_cast<qstate_type>(sqrt(probability)) / 2, static_cast<qstate_type>(sqrt(probability)) / 2, 0};
-    noise[2] = {0, static_cast<qstate_type>(sqrt(probability)) / 2 * qcomplex_t(0, -1),
-                static_cast<qstate_type>(sqrt(probability)) / 2 * qcomplex_t(0, 1), 0};
-    noise[3] = {static_cast<qstate_type>(sqrt(probability)) / 2, 0, 0, -static_cast<qstate_type>(sqrt(probability)) / 2};
+    noise[0] = static_cast<qstate_type>(sqrt(1 - probability * 0.75)) * matrix_i;
+    noise[1] = static_cast<qstate_type>(sqrt(probability) / 2) * matrix_x;
+    noise[2] = static_cast<qstate_type>(sqrt(probability) / 2) * matrix_y;
+    noise[3] = static_cast<qstate_type>(sqrt(probability) / 2) * matrix_z;
 
     return true;
 }
@@ -685,14 +691,18 @@ bool double_depolarizing_kraus_operator(Value &value, NoiseOp &noise)
         throw std::invalid_argument("param error");
     }
 
-    double probability = value[1].GetDouble();
-
     ntemp.resize(4);
-    ntemp[0] = {static_cast<qstate_type>(sqrt(1 - probability * 0.75)), 0, 0, static_cast<qstate_type>(sqrt(1 - probability * 0.75))};
-    ntemp[1] = {0, static_cast<qstate_type>(sqrt(probability)) / 2, static_cast<qstate_type>(sqrt(probability)) / 2, 0};
-    ntemp[2] = {0, static_cast<qstate_type>(sqrt(probability)) / 2 * qcomplex_t(0, -1),
-                static_cast<qstate_type>(sqrt(probability)) / 2 * qcomplex_t(0, 1), 0};
-    ntemp[3] = {static_cast<qstate_type>(sqrt(probability)) / 2, 0, 0, -static_cast<qstate_type>(sqrt(probability)) / 2};
+    QStat matrix_i = {1, 0, 0, 1};
+    QStat matrix_x = {0, 1, 1, 0};
+    QStat matrix_y = {0, qcomplex_t(0, -1), qcomplex_t(0, -1), 0};
+    QStat matrix_z = {1, 0, 0, -1};
+
+    double probability = value[1].GetDouble();
+    noise.resize(4);
+    noise[0] = static_cast<qstate_type>(sqrt(1 - probability * 0.75)) * matrix_i;
+    noise[1] = static_cast<qstate_type>(sqrt(probability) / 2) * matrix_x;
+    noise[2] = static_cast<qstate_type>(sqrt(probability) / 2) * matrix_y;
+    noise[3] = static_cast<qstate_type>(sqrt(probability) / 2) * matrix_z;
 
     for (auto i = 0; i < ntemp.size(); i++)
     {

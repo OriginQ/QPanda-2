@@ -30,10 +30,6 @@ update comment
 #include "Core/QuantumCircuit/ClassicalProgram.h"
 #include "Core/QuantumMachine/OriginQuantumMachine.h"
 
-/**
-* @namespace QPanda
-* @namespace QGATE_SPACE
-*/
 QPANDA_BEGIN
 
 /**
@@ -68,25 +64,21 @@ public:
     /**
     * @brief  Load  qprog data from file
     * @param[in]  std::string& filename
-    * @retval 1    load  success
-    * @retval 0    load  failed
+	* @return  bool
     */
     bool load(const std::string &filename);
 
     /**
     * @brief  Load  qprog data from data vector
     * @param[in]  std::vector<uint8_t>& data
-    * @retval 1     load  success
-    * @retval 0     load  failed
+	* @return  bool
     */
     bool load(const std::vector<uint8_t> &data);
 
     /**
     * @brief   Parse binary file to QProg
     * @param[out]  QProg& prog
-    * @retval 1     parse success
-    * @retval 0     parse failed
-    * @exception  invalid_argument  parse error
+	* @return  bool
     */
     bool parse(QProg &prog);
     QVec getQubits();
@@ -97,6 +89,7 @@ private:
     void parseDataNode(QProg &prog, const uint32_t &tail_number);
     void parseQGateDataNode(QProg &prog, const uint32_t &type_and_number, const uint32_t &qubits_data);
     void parseQMeasureDataNode(QProg &prog, uint32_t qubits_data);
+	void parseQResetDataNode(QProg &prog, uint32_t qubits_data);
     void parseCExprCBitDataNode(const uint32_t &data);
 
     void parseCExprOperateDataNode(const uint32_t &data);
@@ -148,9 +141,7 @@ bool binaryQProgDataParse(QuantumMachine *qm, const std::vector<uint8_t>& data, 
 * @param[out]  QVec& qubits
 * @param[out]  std::vector<ClassicalCondition>& cbits
 * @param[out]  QProg& Quantum program
-* @retval 1   parse success
-* @retval 0   parse failed
-* @exception  runtime_error  parse file error
+* @return  bool
 */
 bool transformBinaryDataToQProg(QuantumMachine *qm, const std::vector<uint8_t>& data, QVec & qubits,
 	std::vector<ClassicalCondition>& cbits, QProg & prog);
@@ -163,9 +154,7 @@ bool transformBinaryDataToQProg(QuantumMachine *qm, const std::vector<uint8_t>& 
 * @param[out]  QVec& qubits
 * @param[out]  std::vector<ClassicalCondition>& cbits
 * @param[out]  QProg& Quantum program
-* @retval 1  parse success
-* @retval 0  parse failed
-* @exception  runtime_error  parse file error
+* @return  bool
 */
 bool transformBinaryDataToQProg(QuantumMachine *qm, const std::string &filename, QVec &qubits,
 	std::vector<ClassicalCondition> &cbits, QProg &prog);
@@ -179,9 +168,7 @@ bool transformBinaryDataToQProg(QuantumMachine *qm, const std::string &filename,
 * @param[out]  QVec& qubits
 * @param[out]  std::vector<ClassicalCondition>& cbits
 * @param[out]  QProg& Quantum program
-* @retval 1   parse success
-* @retval 0   parse failed
-* @exception  runtime_error  parse file error
+* @return  bool
 */
 bool convert_binary_data_to_qprog(QuantumMachine *qm, const std::vector<uint8_t>& data, QVec & qubits,
 	std::vector<ClassicalCondition>& cbits, QProg & prog);
@@ -194,9 +181,7 @@ bool convert_binary_data_to_qprog(QuantumMachine *qm, const std::vector<uint8_t>
 * @param[out]  QVec& qubits
 * @param[out]  std::vector<ClassicalCondition>& cbits
 * @param[out]  QProg& Quantum program
-* @retval 1  parse success
-* @retval 0  parse failed
-* @exception  runtime_error  parse file error
+* @return  bool
 */
 bool convert_binary_data_to_qprog(QuantumMachine *qm, const std::string &filename, QVec &qubits,
 	std::vector<ClassicalCondition> &cbits, QProg &prog);

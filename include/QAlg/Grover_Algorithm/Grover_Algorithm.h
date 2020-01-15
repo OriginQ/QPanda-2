@@ -7,12 +7,11 @@ using grover_oracle = Oracle<QVec, Qubit*>;
 
 /**
 * @brief  Grover Algorithm
-* @ingroup QAlg
-* @param[in]  target number
-* @param[in]  search range
-* @param[in]  Quantum machine ptr
-* @param[in]  Quantum machine ptr
-* @param[in]  Grover Algorithm oracle
+* @ingroup Grover_Algorithm
+* @param[in] size_t target number
+* @param[in] size_t search range
+* @param[in] QuantumMachine* Quantum machine ptr
+* @param[in] grover_oracle Grover Algorithm oracle
 * @return    QProg
 * @note  
 */

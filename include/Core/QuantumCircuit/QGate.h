@@ -15,32 +15,90 @@
 #include "Core/Utilities/Tools/TranformQGateTypeStringAndEnum.h"
 
 QPANDA_BEGIN
-/**
-* @namespace QPanda
-* @namespace QGATE_SPACE
-*/
+
 using QGATE_SPACE::QuantumGate;
 using QGATE_SPACE::QGateFactory;
 
 /**
-* @class  AbstractQGateNode
 * @brief   Quantum gate basic abstract class
-* @ingroup Core
+* @ingroup QuantumCircuit
 */
 class AbstractQGateNode
 {
 public:
+	/**
+	* @brief  Get qubit vector inside this quantum gate
+	* @param[in]  QVec&  qubit vector
+	* @return     size_t
+	* @see   GateType
+	*/
     virtual size_t getQuBitVector(QVec &) const = 0;
+
+	/**
+	* @brief  erase qubit vector element at end
+	* @return     Qubit*
+	*/
     virtual Qubit * popBackQuBit() = 0;
+
+	/**
+	* @brief  insert qubit vector element at end
+	* @param[in]  Qubit*  Qubit pointer
+	*/
     virtual void PushBackQuBit(Qubit *) = 0;
+	
+	/**
+    * @brief  Get target qubit num inside this quantum gate
+    * @return     size_t  qubit num
+    */
     virtual size_t getTargetQubitNum() const = 0;
+
+	/**
+    * @brief  Get control qubit num inside this quantum gate
+    * @return     size_t  qubit num
+    */
     virtual size_t getControlQubitNum() const = 0;
+
+	/**
+    * @brief  Get Quantum Gate
+    * @return     QuantumGate *
+    */
     virtual QuantumGate * getQGate() const = 0;
+	
+	/**
+    * @brief  Set Quantum Gate
+	* @param[in]  QuantumGate*  QuantumGate pointer
+    */
     virtual void setQGate(QuantumGate *) = 0;
+
+	/**
+    * @brief  Judge current quantum gate is dagger
+	* @return  bool
+    */
     virtual bool isDagger() const = 0;
+
+	/**
+    * @brief  Get control vector fron current quantum gate node
+    * @param[in]  QVec& qubits  vector
+    * @return     size_t  
+    * @see QVec
+    */
     virtual size_t getControlVector(QVec &) const = 0;
+	
+	/**
+    * @brief  Set dagger to current quantum gate
+    * @param[in]  bool is dagger
+	* @return  bool
+    */
     virtual bool setDagger(bool) = 0;
+
+	/**
+    * @brief  Set control qubits to current quantum gate
+    * @param[in]  QVec  control qubits  vector
+	* @return  bool
+    * @see QVec
+    */
     virtual bool setControl(QVec) = 0;
+
     virtual ~AbstractQGateNode() {}
 };
 
@@ -50,9 +108,8 @@ class QGateNodeFactory;
 
 
 /**
-* @class QGate
 * @brief    QPanda2 quantum gate  basic classs
-* @ingroup  Core
+* @ingroup  QuantumCircuit
 */
 class QGate : public AbstractQGateNode
 {
@@ -94,16 +151,14 @@ public:
     /**
     * @brief  Set dagger to current quantum gate
     * @param[in]  bool is dagger
-    * @retval   0  set failed
-    * @retval   1  set success
+	* @return  bool
     */
     bool setDagger(bool);
 
     /**
     * @brief  Set control qubits to current quantum gate
     * @param[in]  QVec  control qubits  vector
-    * @retval   0  set failed
-    * @retval   1  set success
+	* @return  bool
     * @see QVec
     */
     bool setControl(QVec);
@@ -126,8 +181,7 @@ public:
 
     /**
     * @brief  Judge current quantum gate is dagger
-    * @retval   0  true
-    * @retval   1  false
+	* @return  bool
     */
     bool isDagger() const;
 
@@ -144,6 +198,10 @@ private:
     void PushBackQuBit(Qubit *) {};
 };
 
+/**
+* @brief Implementation  class of QGate
+* @ingroup QuantumCircuit
+*/
 class OriginQGate : public QNode, public AbstractQGateNode
 {
 private:
@@ -169,9 +227,17 @@ public:
     void PushBackQuBit(Qubit *);
 };
 
+/**
+ * @brief Factory for class QGate
+ * @ingroup QuantumCircuit
+ */
 class QGateNodeFactory
 {
 public:
+	/**
+     * @brief Get the static instance of factory 
+	 * @return QGateNodeFactory *
+     */
     static QGateNodeFactory * getInstance()
     {
         static QGateNodeFactory s_gateNodeFactory;
@@ -233,7 +299,7 @@ public:
 * @brief  Construct a new I gate
 * @param[in]  Qubit* qubit target qubit
 * @return     QPanda::QGate  quantum gate
-* @ingroup Core
+* @ingroup QuantumCircuit
 */
 QGate I(Qubit* qubit);
 
@@ -241,14 +307,14 @@ QGate I(Qubit* qubit);
 * @brief  Construct a new quantum X gate
 * @param[in]  Qubit* qubit target qubit
 * @return     QPanda::QGate  quantum gate
-* @ingroup Core
+* @ingroup QuantumCircuit
 */
 QGate X(Qubit* qubit);
 /**
 * @brief  Construct a new quantum X1 gate
 * @param[in]  Qubit* qubit target qubit
 * @return     QPanda::QGate  quantum gate
-* @ingroup Core
+* @ingroup QuantumCircuit
 */
 QGate X1(Qubit* qubit);
 /**
@@ -256,7 +322,7 @@ QGate X1(Qubit* qubit);
 * @param[in]  Qubit* target qubit
 * @param[in]  double angle
 * @return     QPanda::QGate  quantum gate
-* @ingroup Core
+* @ingroup QuantumCircuit
 */
 QGate RX(Qubit*, double angle);
 /**
@@ -264,28 +330,28 @@ QGate RX(Qubit*, double angle);
 * @param[in]  Qubit* target qubit
 * @param[in]  double angle
 * @return     QPanda::QGate  quantum gate
-* @ingroup Core
+* @ingroup QuantumCircuit
 */
 QGate U1(Qubit*, double angle);
 
 /**
-* @brief  Construct a new quantum U1 gate
+* @brief  Construct a new quantum U2 gate
 * @param[in]  Qubit* target qubit
 * @param[in]  double phi
 * @param[in]  double lambda
 * @return     QPanda::QGate  quantum gate
-* @ingroup Core
+* @ingroup QuantumCircuit
 */
 QGate U2(Qubit * qubit, double phi, double lambda);
 
 /**
-* @brief  Construct a new quantum U1 gate
+* @brief  Construct a new quantum U3 gate
 * @param[in]  Qubit* target qubit
 * @param[in]  double theta
 * @param[in]  double phi
 * @param[in]  double lambda
 * @return     QPanda::QGate  quantum gate
-* @ingroup Core
+* @ingroup QuantumCircuit
 */
 QGate U3(Qubit * qubit, double theta, double phi, double lambda);
 
@@ -293,7 +359,7 @@ QGate U3(Qubit * qubit, double theta, double phi, double lambda);
 * @brief  Construct a new quantum Y gate
 * @param[in]  Qubit* qubit target qubit
 * @return     QPanda::QGate  quantum gate
-* @ingroup Core
+* @ingroup QuantumCircuit
 */
 
 QGate Y(Qubit* qubit);
@@ -301,7 +367,7 @@ QGate Y(Qubit* qubit);
 * @brief  Construct a new quantum Y1 gate
 * @param[in]  Qubit* qubit target qubit
 * @return     QPanda::QGate  quantum gate
-* @ingroup Core
+* @ingroup QuantumCircuit
 */
 QGate Y1(Qubit* qubit);
 /**
@@ -309,21 +375,21 @@ QGate Y1(Qubit* qubit);
 * @param[in]  Qubit* target qubit
 * @param[in]  double angle target qubit
 * @return     QPanda::QGate  quantum gate
-* @ingroup Core
+* @ingroup QuantumCircuit
 */
 QGate RY(Qubit*, double angle);
 /**
 * @brief  Construct a new quantum Z gate
 * @param[in]  Qubit* qubit target qubit
 * @return     QPanda::QGate  quantum gate
-* @ingroup Core
+* @ingroup QuantumCircuit
 */
 QGate Z(Qubit* qubit);
 /**
 * @brief  Construct a new quantum Z1 gate
 * @param[in]  Qubit* qubit target qubit
 * @return     QPanda::QGate  quantum gate
-* @ingroup Core
+* @ingroup QuantumCircuit
 */
 QGate Z1(Qubit* qubit);
 /**
@@ -331,28 +397,28 @@ QGate Z1(Qubit* qubit);
 * @param[in]  Qubit* target qubit
 * @param[in]  double angle
 * @return     QPanda::QGate  quantum gate
-* @ingroup Core
+* @ingroup QuantumCircuit
 */
 QGate RZ(Qubit*, double angle);
 /**
 * @brief  Construct a new quantum S gate
 * @param[in]  Qubit* qubit target qubit
 * @return     QPanda::QGate  quantum gate
-* @ingroup Core
+* @ingroup QuantumCircuit
 */
 QGate S(Qubit* qubit);
 /**
 * @brief  Construct a new quantum T gate
 * @param[in]  Qubit* target qubit
 * @return     QPanda::QGate  quantum gate
-* @ingroup Core
+* @ingroup QuantumCircuit
 */
 QGate T(Qubit*);
 /**
 * @brief  Construct a new quantum H gate
 * @param[in]  Qubit* qubit target qubit
 * @return     QPanda::QGate  quantum gate
-* @ingroup Core
+* @ingroup QuantumCircuit
 */
 QGate H(Qubit* qubit);
 
@@ -361,7 +427,7 @@ QGate H(Qubit* qubit);
 * @param[in]  Qubit* control qubit
 * @param[in]  Qubit* target qubit
 * @return     QPanda::QGate  quantum gate
-* @ingroup Core
+* @ingroup QuantumCircuit
 */
 QGate CNOT(Qubit* control_qubit, Qubit* target_qubit);
 /**
@@ -369,7 +435,7 @@ QGate CNOT(Qubit* control_qubit, Qubit* target_qubit);
 * @param[in]  Qubit* control qubit
 * @param[in]  Qubit* target qubit
 * @return     QPanda::QGate  quantum gate
-* @ingroup Core
+* @ingroup QuantumCircuit
 */
 QGate CZ(Qubit*  control_qubit, Qubit* target_qubit);
 /**
@@ -380,7 +446,7 @@ QGate CZ(Qubit*  control_qubit, Qubit* target_qubit);
 * @param[in]  double delta
 * @param[in]  Qubit* target qubit
 * @return     QPanda::QGate  quantum gate
-* @ingroup Core
+* @ingroup QuantumCircuit
 */
 QGate U4(double alpha, double beta, double gamma, double delta, Qubit*);
 /**
@@ -388,7 +454,7 @@ QGate U4(double alpha, double beta, double gamma, double delta, Qubit*);
 * @param[in]  QStat& matrix
 * @param[in]  Qubit* target qubit
 * @return     QPanda::QGate  quantum gate
-* @ingroup Core
+* @ingroup QuantumCircuit
 */
 QGate U4(QStat& matrix, Qubit*);
 /**
@@ -397,7 +463,7 @@ QGate U4(QStat& matrix, Qubit*);
 * @param[in]  Qubit* control qubit
 * @param[in]  Qubit* target qubit
 * @return     QPanda::QGate  quantum gate
-* @ingroup Core
+* @ingroup QuantumCircuit
 */
 QGate QDouble(QStat& matrix, Qubit * qubit1, Qubit * qubit2);
 /**
@@ -409,7 +475,7 @@ QGate QDouble(QStat& matrix, Qubit * qubit1, Qubit * qubit2);
 * @param[in]  Qubit*   control qubit
 * @param[in]  Qubit*   target qubit
 * @return     QPanda::QGate  quantum gate
-* @ingroup Core
+* @ingroup QuantumCircuit
 */
 QGate CU(double alpha, double beta, double gamma, double delta, Qubit *, Qubit *);
 /**
@@ -418,7 +484,7 @@ QGate CU(double alpha, double beta, double gamma, double delta, Qubit *, Qubit *
 * @param[in]  Qubit*  target qubit
 * @param[in]  Qubit*  control qubit
 * @return     QPanda::QGate  quantum gate
-* @ingroup Core
+* @ingroup QuantumCircuit
 */
 QGate CU(QStat& matrix, Qubit*, Qubit*);
 /**
@@ -426,7 +492,7 @@ QGate CU(QStat& matrix, Qubit*, Qubit*);
 * @param[in]  Qubit* control qubit
 * @param[in]  Qubit* target qubit
 * @return     QPanda::QGate  quantum gate
-* @ingroup Core
+* @ingroup CQuantumCircuitore
 */
 QGate iSWAP(Qubit * targitBit_fisrt, Qubit * targitBit_second);
 /**
@@ -435,7 +501,7 @@ QGate iSWAP(Qubit * targitBit_fisrt, Qubit * targitBit_second);
 * @param[in]  Qubit* target qubit
 * @param[in]  double theta
 * @return     QPanda::QGate  quantum gate
-* @ingroup Core
+* @ingroup QuantumCircuit
 */
 QGate iSWAP(Qubit * targitBit_fisrt, Qubit * targitBit_second, double theta);
 /**
@@ -444,7 +510,7 @@ QGate iSWAP(Qubit * targitBit_fisrt, Qubit * targitBit_second, double theta);
 * @param[in]  Qubit* targit qubit
 * @param[in]  double theta
 * @return     QPanda::QGate  quantum gate
-* @ingroup Core
+* @ingroup QuantumCircuit
 */
 QGate CR(Qubit * control_qubit, Qubit * targit_qubit, double theta);
 /**
@@ -452,7 +518,7 @@ QGate CR(Qubit * control_qubit, Qubit * targit_qubit, double theta);
 * @param[in]  Qubit* control qubit
 * @param[in]  Qubit* target qubit
 * @return     QPanda::QGate  quantum gate
-* @ingroup Core
+* @ingroup QuantumCircuit
 */
 QGate SqiSWAP(Qubit * targitBit_fisrt, Qubit * targitBit_second);
 /**
@@ -460,7 +526,7 @@ QGate SqiSWAP(Qubit * targitBit_fisrt, Qubit * targitBit_second);
 * @param[in]  Qubit* control qubit
 * @param[in]  Qubit* target qubit
 * @return     QPanda::QGate  quantum gate
-* @ingroup Core
+* @ingroup QuantumCircuit
 */
 QGate SWAP(Qubit * targitBit_fisrt, Qubit * targitBit_second);
 

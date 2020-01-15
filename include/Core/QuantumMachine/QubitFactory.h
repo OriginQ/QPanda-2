@@ -26,14 +26,31 @@ limitations under the License.
 #include <memory>
 QPANDA_BEGIN
 
+/**
+* @brief Qubit abstract class
+* @ingroup QuantumMachine
+*/
 class Qubit
 {
 public:
+	/**
+     * @brief Get physical qubit pointer
+	 * @return PhysicalQubit *
+     */
     virtual PhysicalQubit* getPhysicalQubitPtr() = 0;
+
+	/**
+	 * @brief get the occupancy status of this qubit
+	 * @return PhysicalQubit *
+     */
     virtual bool getOccupancy() = 0;
     virtual ~Qubit() {}
 };
 
+/**
+* @brief QubitReferenceInterface abstract class
+* @ingroup QuantumMachine
+*/
 class QubitReferenceInterface
 {
 public:
@@ -51,11 +68,19 @@ Qubit* classname##_Constructor(PhysicalQubit* physQ)\
 )
 
 
-/* 5. Qubit Factory */
+
+/**
+* @brief Factory for class Qubit
+* @ingroup QuantumMachine
+*/
 class QubitFactory
 {
     QubitFactory();
 public:
+	/**
+     * @brief Get the static instance of factory 
+	 * @return QubitFactory &
+     */
     static QubitFactory & GetFactoryInstance();
     Qubit* GetInstance(PhysicalQubit*);
     typedef std::function<Qubit*(PhysicalQubit*)> constructor_t;
@@ -65,6 +90,11 @@ public:
     constructor_Map_t _Qubit_Constructor;
 };
 
+/**
+ * @brief Qubit Factory helper
+ * Provide QubitFactory class registration interface for the outside
+ * @ingroup QuantumMachine
+ */
 class QubitFactoryHelper
 {
     typedef QubitFactory::constructor_t constructor_t;

@@ -28,6 +28,10 @@ limitations under the License.
 
 typedef std::vector<QGateParam> vQParam;
 
+/**
+* @brief QPU implementation  base class
+* @ingroup VirtualQuantumProcessor
+*/
 class QPUImpl
 {
 private:
@@ -42,27 +46,65 @@ public:
 
     virtual QError initState(size_t head_rank, size_t rank_size, size_t qubit_num) = 0;
     
+	/**
+	* @brief  unitary single qubit gate 
+	* @param[in]  size_t  qubit address
+	* @param[in]  QStat&  matrix
+	* @param[in]  bool   state of conjugate
+	* @param[in]  GateType    gate type
+	* @return    QError
+	*/
     virtual QError unitarySingleQubitGate(size_t qn, QStat& matrix, 
                         bool isConjugate, 
                         GateType) = 0;
 
+	/**
+	* @brief  controlunitary single qubit gate
+	* @param[in]  size_t  qubit address
+	* @param[in]  Qnum&  control qubit addresses 
+	* @param[in]  QStat &  matrix
+	* @param[in]  bool   state of conjugate
+	* @param[in]  GateType    gate type
+	* @return    QError
+	*/
     virtual QError controlunitarySingleQubitGate(size_t qn, Qnum& qnum,
                         QStat& matrix, 
                         bool isConjugate, 
                         GateType) = 0;
     
+	/**
+	* @brief unitary double qubit gate
+	* @param[in]  size_t  first qubit address
+	* @param[in]  size_t  second qubit address
+	* @param[in]  QStat&  matrix
+	* @param[in]  bool   state of conjugate
+	* @param[in]  GateType    gate type
+	* @return    QError
+	*/
     virtual QError unitaryDoubleQubitGate(size_t qn_0, size_t qn_1,
                         QStat& matrix,
                         bool isConjugate, 
                         GateType) = 0;
 
+	/**
+	* @brief  controlunitary double qubit gate
+	* @param[in]  size_t  first qubit address
+	* @param[in]  size_t  second qubit address
+	* @param[in]  Qnum&  control qubit addresses
+	* @param[in]  QStat&  quantum states
+	* @param[in]  bool   state of conjugate
+	* @param[in]  GateType    gate type
+	* @return    QError
+	*/
     virtual QError controlunitaryDoubleQubitGate(size_t qn_0,
                         size_t qn_1,
                         Qnum& qnum,
                         QStat& matrix,
                         bool isConjugate,
                         GateType) = 0;
-
+	/**
+	* @brief get quantum states
+	*/
     virtual QStat getQState() = 0;
 
 	virtual inline void set_random_engine(RandomEngine* rng) {
@@ -75,9 +117,18 @@ public:
 			return (*random_engine)();
 	}
 
+	/**
+	* @brief reset qubit
+	* @param[in]  size_t  qubit address
+	*/
+	virtual QError Reset(size_t qn) = 0;
+
 };
 
-
+/**
+* @brief Quantum Gates Abstract Class
+* @ingroup VirtualQuantumProcessor
+*/
 class AbstractQuantumGates
 {
 public:

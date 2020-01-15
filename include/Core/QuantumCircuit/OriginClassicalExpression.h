@@ -21,6 +21,10 @@ limitations under the License.
 #include "Core/QuantumCircuit/QNode.h"
 QPANDA_BEGIN
 
+/**
+* @brief Implementation  class  of  CExpr
+* @ingroup QuantumCircuit
+*/
 class OriginCExpr :public CExpr
 {
 public:
@@ -31,7 +35,7 @@ public:
         cbit_size_t const_value;
     };
 
-    NodeType m_node_type;
+    NodeType m_node_type;  /**< quantum node type*/
     qmap_size_t m_postion;
 private:
     CExpr* leftExpr = nullptr;
@@ -43,6 +47,7 @@ public:
     OriginCExpr(CBit* cbit);
     OriginCExpr(CExpr* leftExpr, CExpr* rightExpr, int);
     OriginCExpr(cbit_size_t);
+
     CExpr * getLeftExpr() const;
     CExpr *getRightExpr() const;
     std::string getName() const;
@@ -52,18 +57,22 @@ public:
     cbit_size_t eval() const;
     CExpr* deepcopy() const;
     bool checkValidity() const;
+	void getCBitsName(std::vector<std::string> & names);
 
+	/**
+     * @brief get quantum node type
+     * @return NodeType
+     */
     NodeType getNodeType() const;
     qmap_size_t getPosition() const;
     void setPosition(qmap_size_t);
+
+	/**
+	 * @brief get content specifier
+	 * @return NodeType
+	 */
     int getContentSpecifier() const;
 
-    /**
-    * @brief get all cbits name
-    *
-    * @return void
-    */
-    virtual void getCBitsName(std::vector<std::string> & names);
     ~OriginCExpr();
 };
 QPANDA_END

@@ -62,6 +62,10 @@ using OrbitalAct = std::pair<size_t, bool>;
 using OrbitalActVec = std::vector<OrbitalAct>;
 using FermionPair = std::pair<OrbitalActVec, std::string>;
 
+/**
+* @brief Fermion operator class
+* @ingroup Operator
+*/
 template<class T>
 class FermionOp
 {
@@ -71,6 +75,9 @@ public:
 
     using FermionMap = std::map<std::string, T>;
 public:
+	/**
+	* @brief  Constructor of FermionOp class
+	*/
     FermionOp(){}
     FermionOp(double value)
     {
@@ -131,16 +138,14 @@ public:
         return *this;
     }
 
-    /*
-     * Compute and return the normal ordered form of a FermionOperator
-     *
-     * In our convention, normal ordering implies terms are ordered
-     * from highest tensor factor (on left) to lowest (on right).In
-     * addition:
-     *
-     * a^\dagger comes before a
-     *
-     */
+	/**
+	* @brief Compute and return the normal ordered form of a FermionOperator
+	* @return FermionOp the normal ordered form of a FermionOperator
+	* @note In our convention, normal ordering implies terms are ordered
+            from highest tensor factor (on left) to lowest (on right).
+			In addition:
+                a^\dagger comes before a
+	*/
     FermionOp normal_ordered()
     {
         auto data = FermionOp();
@@ -157,6 +162,10 @@ public:
         return data;
     }
 
+	/**
+	* @brief get the max index
+	* @return size_t the max index
+	*/
     size_t getMaxIndex() const
     {
         int max_index = -1;
@@ -178,8 +187,16 @@ public:
         return max_index;
     }
 
-
+	/**
+	* @brief Judge whether it is empty
+	* @return bool if data is empty, return true, or else return false
+	*/
     bool isEmpty() { return m_data.empty(); }
+
+	/**
+	* @brief data to string 
+	* @return std::string convert data val to string
+	*/
     std::string toString() const
     {
         std::string str = "{";
@@ -231,15 +248,31 @@ public:
     //    }
     //}
 
+	/**
+	* @brief set error threshold
+	* @param[in] double threshold val
+	*/
     void setErrorThreshold(double threshold)
     {
         m_error_threshold = threshold;
     }
 
+	/**
+	* @brief get error threshold
+	* @return double return the error threshold val
+	*/
     double error_threshold() const { return m_error_threshold; }
 
+	/**
+	* @brief get data
+	* @return FermionData return fermion data
+	*/
     FermionData data() const  { return m_data; }
 
+	/**
+	* @brief overload +
+	* @return FermionOp return (FermionOp_1 + FermionOp_2)
+	*/
     FermionOp  operator + (const FermionOp &rhs) const
     {
         FermionData m1 = m_data;
@@ -250,6 +283,10 @@ public:
         return tmp;
     }
 
+	/**
+	* @brief overload -
+	* @return FermionOp return (FermionOp_1 - FermionOp_2)
+	*/
     FermionOp  operator - (const FermionOp &rhs) const
     {
         FermionOp tmp_fermion(rhs);
@@ -258,6 +295,10 @@ public:
         return *this + tmp_fermion;
     }
 
+	/**
+	* @brief overload *
+	* @return FermionOp return (FermionOp_1 * FermionOp_2)
+	*/
     FermionOp  operator * (const FermionOp &rhs) const
     {
         FermionData tmp_data;
@@ -283,6 +324,10 @@ public:
         return tmp_fermion;
     }
 
+	/**
+	* @brief overload +=
+	* @return FermionOp& return (FermionOp_1 += FermionOp_2)
+	*/
     FermionOp &operator +=(const FermionOp &rhs)
     {
         auto &cdata = rhs.m_data;
@@ -293,6 +338,10 @@ public:
         return *this;
     }
 
+	/**
+	* @brief overload -=
+	* @return FermionOp& return (FermionOp_1 -= FermionOp_2)
+	*/
     FermionOp &operator -=(const FermionOp &rhs)
     {
         FermionOp tmp(rhs);
@@ -302,6 +351,10 @@ public:
         return *this;
     }
 
+	/**
+	* @brief overload *=
+	* @return FermionOp& return (FermionOp_1 *= FermionOp_2)
+	*/
     FermionOp &operator *=(const FermionOp &rhs)
     {
         FermionOp tmp(std::move(m_data));
@@ -313,24 +366,40 @@ public:
         return *this;
     }
 
+	/**
+	* @brief overload +
+	* @return FermionOp return (FermionOp_1 + FermionOp_2)
+	*/
     friend FermionOp operator + (const T &lhs,
                                         const FermionOp &rhs)
     {
         return rhs + lhs;
     }
 
+	/**
+	* @brief overload -
+	* @return FermionOp return (FermionOp_1 - FermionOp_2)
+	*/
     friend FermionOp operator - (const T &lhs,
                                         const FermionOp &rhs)
     {
         return rhs*-1.0 + lhs;
     }
 
+	/**
+	* @brief overload *
+	* @return FermionOp return (FermionOp_1 * FermionOp_2)
+	*/
     friend FermionOp operator * (const T &lhs,
                                         const FermionOp &rhs)
     {
         return rhs * lhs;
     }
 
+	/**
+	* @brief overload std::cout, convert FermionOp to string and output to std::cout
+	* @return std::ostream&
+	*/
     friend std::ostream  &operator <<(std::ostream &out,
                                         const FermionOp &rhs)
     {

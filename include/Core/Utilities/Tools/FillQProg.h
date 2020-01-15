@@ -9,16 +9,23 @@
 
 QPANDA_BEGIN
 
+/**
+* @brief Fill quantum program by I quantum gate
+* @ingroup Utilities
+*/
 class FillQProg
 {
 public:
 	FillQProg(QProg &input_prog)
 	{
-		pickUpNode(m_input_prog, input_prog, input_prog.getFirstNodeIter(), input_prog.getEndNodeIter(), true);
+		pickUpNode(m_input_prog, input_prog, {}, input_prog.getFirstNodeIter(), input_prog.getEndNodeIter());
 
 		fill_by_I();
 	}
 
+	/**
+	* @brief  Fill the input QProg by I gate
+	*/
 	void fill_by_I() {
 		//layer
 		m_grapth_match.get_topological_sequence(m_input_prog, m_seq);
@@ -33,12 +40,19 @@ public:
 			for (auto &seq_node_item : seq_item)
 			{
 				SequenceNode n = seq_node_item.first;
-				if (-1 == n.m_node_type)
+				if (SequenceNodeType::MEASURE == n.m_node_type)
 				{
 					std::shared_ptr<AbstractQuantumMeasure> p_measure = std::dynamic_pointer_cast<AbstractQuantumMeasure>(prog_dag.get_vertex(n.m_vertex_num));
 					QMeasure tmp_measure_node(p_measure);
 					vec_qubits_used_in_layer.push_back(tmp_measure_node.getQuBit());
 					m_output_prog.pushBackNode(std::dynamic_pointer_cast<QNode>((deepCopy(tmp_measure_node)).getImplementationPtr()));
+				}
+				else if (SequenceNodeType::RESET == n.m_node_type)
+				{
+					std::shared_ptr<AbstractQuantumReset> p_reset = std::dynamic_pointer_cast<AbstractQuantumReset>(prog_dag.get_vertex(n.m_vertex_num));
+					QReset tmp_reset_node(p_reset);
+					vec_qubits_used_in_layer.push_back(tmp_reset_node.getQuBit());
+					m_output_prog.pushBackNode(std::dynamic_pointer_cast<QNode>((deepCopy(tmp_reset_node)).getImplementationPtr()));
 				}
 				else
 				{
@@ -46,11 +60,14 @@ public:
 					QGate tmp_gate_node(p_gate);
 					QVec gate_qubits;
 					tmp_gate_node.getQuBitVector(gate_qubits);
+					vec_qubits_used_in_layer.insert(vec_qubits_used_in_layer.end(), gate_qubits.begin(), gate_qubits.end());
+
+					//get control qubits
+					gate_qubits.clear();
+					tmp_gate_node.getControlVector(gate_qubits);
+					vec_qubits_used_in_layer.insert(vec_qubits_used_in_layer.end(), gate_qubits.begin(), gate_qubits.end());
+
 					m_output_prog.pushBackNode(std::dynamic_pointer_cast<QNode>((deepCopy(tmp_gate_node)).getImplementationPtr()));
-					for (auto &itr : gate_qubits)
-					{
-						vec_qubits_used_in_layer.push_back(itr);
-					}
 				}
 			}
 
@@ -83,6 +100,7 @@ private:
 
 /**
 * @brief  Fill the input QProg by I gate
+* @ingroup Utilities
 * @param[in] The input Qprog
 * @return the filled QProg
 * @see

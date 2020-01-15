@@ -48,6 +48,10 @@ struct QGateNode
     uint32_t tof_qubit;
 };
 
+/**
+* @brief  Partial Amplitude Graph
+* @ingroup VirtualQuantumProcessor
+*/
 class PartialAmplitudeGraph
 {
 public:

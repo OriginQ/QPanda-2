@@ -18,6 +18,10 @@ Created in 2019-01-22
 
 QPANDA_BEGIN
 
+/**
+* @brief Pauli operator class
+* @ingroup Operator
+*/
 template<class T>
 class PauliOp
 {
@@ -27,6 +31,9 @@ public:
     using PauliMap = std::map<std::string, T>;
 
 public:
+	/**
+	* @brief  Constructor of PauliOp class
+	*/
     PauliOp(){}
 
     PauliOp(const T &value)
@@ -88,6 +95,10 @@ public:
         return *this;
     }
 
+	/**
+	* @brief  get the Transposed conjugate matrix
+	* @return PauliOp return the Transposed conjugate matrix
+	*/
     PauliOp dagger() const
     {
         auto tmp_data = m_data;
@@ -100,6 +111,11 @@ public:
         return PauliOp(tmp_data);
     }
 
+	/**
+	* @brief  remap qubit index
+	* @param[in] std::map<size_t, size_t>& qubit index map
+	* @return PauliOp return remapped qubit index map
+	*/
     PauliOp remapQubitIndex(std::map<size_t, size_t> &index_map)
     {
         index_map.clear();
@@ -141,6 +157,10 @@ public:
         return PauliOp(pauli_data);
     }
 
+	/**
+	* @brief get the max index
+	* @return size_t the max index
+	*/
     size_t getMaxIndex()
     {
         int max_index = -1;
@@ -162,8 +182,16 @@ public:
         return max_index;
     }
 
+	/**
+	* @brief Judge whether it is empty
+	* @return bool if data is empty, return true, or else return false
+	*/
     bool isEmpty() { return m_data.empty(); }
 
+	/**
+	* @brief Judge whether all of data is "Z"
+	* @return bool if all data is "Z", return true, or else return false
+	*/
     bool isAllPauliZorI()
     {
         for (size_t i = 0; i < m_data.size(); i++)
@@ -183,13 +211,25 @@ public:
         return true;
     }
 
+	/**
+	* @brief set error threshold
+	* @param[in] double threshold val
+	*/
     void setErrorThreshold(double threshold)
     {
         m_error_threshold = threshold;
     }
 
+	/**
+	* @brief get error threshold
+	* @return double return the error threshold val
+	*/
     double error_threshold() const { return m_error_threshold; }
 
+	/**
+	* @brief data to string
+	* @return std::string convert data val to string
+	*/
     std::string  toString() const
     {
         std::string str = "{";
@@ -235,8 +275,17 @@ public:
         return str;
     }
 
+	/**
+	* @brief get data
+	* @return PauliData return Pauli data
+	*/
     PauliData data() const { return m_data; }
 
+	/**
+	* @brief convert data to Hamiltonian 
+	* @param[out] bool* save the convert result, default is nullptr
+	* @return QHamiltonian the convert result
+	*/
     QHamiltonian toHamiltonian(bool *ok = nullptr)
     {
         QHamiltonian hamiltonian;
@@ -270,6 +319,10 @@ public:
         return hamiltonian;
     }
 
+	/**
+	* @brief overload +
+	* @return PauliOp return (PauliOp_left + PauliOp_right)
+	*/
     PauliOp  operator + (const PauliOp &rhs) const
     {
         PauliData pauli_data = m_data;
@@ -282,6 +335,10 @@ public:
         return pauli_op;
     }
 
+	/**
+	* @brief overload -
+	* @return PauliOp return (PauliOp_left - PauliOp_right)
+	*/
     PauliOp  operator - (const PauliOp &rhs) const
     {
         PauliData tmp_data = rhs.m_data;
@@ -298,6 +355,10 @@ public:
         return pauli_op;
     }
 
+	/**
+	* @brief overload *
+	* @return PauliOp return (PauliOp_left * PauliOp_right)
+	*/
     PauliOp  operator * (const PauliOp &rhs) const
     {
         PauliData pauli_data;
@@ -324,6 +385,10 @@ public:
         return pauli;
     }
 
+	/**
+	* @brief overload +=
+	* @return PauliOp return (PauliOp_left += PauliOp_right)
+	*/
     PauliOp &operator +=(const PauliOp &rhs)
     {
         m_data.insert(m_data.end(), rhs.m_data.begin(), rhs.m_data.end());
@@ -332,6 +397,10 @@ public:
         return *this;
     }
 
+	/**
+	* @brief overload -=
+	* @return PauliOp return (PauliOp_left -= PauliOp_right)
+	*/
     PauliOp &operator -=(const PauliOp &rhs)
     {
         PauliData tmp_data = rhs.m_data;
@@ -346,6 +415,10 @@ public:
         return *this;
     }
 
+	/**
+	* @brief overload *=
+	* @return PauliOp return (PauliOp_left *= PauliOp_right)
+	*/
     PauliOp &operator *=(const PauliOp &rhs)
     {
         PauliData tmp_data;
@@ -373,12 +446,20 @@ public:
         return *this;
     }
 
+	/**
+	* @brief overload +
+	* @return PauliOp return (PauliOp_left + PauliOp_right)
+	*/
     friend PauliOp operator + (const T &lhs,
                                         const PauliOp &rhs)
     {
         return rhs + lhs;
     }
 
+	/**
+	* @brief overload -
+	* @return PauliOp return (PauliOp_left - PauliOp_right)
+	*/
     friend PauliOp operator - (const T &lhs,
                                         const PauliOp &rhs)
     {
@@ -393,18 +474,30 @@ public:
         return tmp + lhs;
     }
 
+	/**
+	* @brief overload *
+	* @return PauliOp return (PauliOp_left * PauliOp_right)
+	*/
     friend PauliOp operator * (const T &lhs,
                                         const PauliOp &rhs)
     {
         return rhs * lhs;
     }
 
+	/**
+	* @brief overload +
+	* @return PauliOp return (double + PauliOp_right)
+	*/
     friend PauliOp operator + (const double &lhs,
                                         const PauliOp &rhs)
     {
         return rhs + lhs;
     }
 
+	/**
+	* @brief overload -
+	* @return PauliOp return (double - PauliOp_right)
+	*/
     friend PauliOp operator - (const double &lhs,
                                         const PauliOp &rhs)
     {
@@ -419,12 +512,20 @@ public:
         return tmp + lhs;
     }
 
+	/**
+	* @brief overload *
+	* @return PauliOp return (PauliOp_left * PauliOp_right)
+	*/
     friend PauliOp operator * (const double &lhs,
                                         const PauliOp &rhs)
     {
         return rhs * lhs;
     }
 
+	/**
+	* @brief overload std::cout, convert PauliOp to string and output to std::cout
+	* @return std::ostream&
+	*/
     friend std::ostream  &operator <<(std::ostream &out,
                                         const PauliOp &rhs)
     {

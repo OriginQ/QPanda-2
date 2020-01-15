@@ -5,20 +5,15 @@
 #include "Core/VirtualQuantumProcessor/SingleAmplitude/QuantumGates.h"
 #include "Core/Utilities/Tools/Traversal.h"
 #include "Core/Utilities/Compiler/QRunesToQProg.h"
-QPANDA_BEGIN
-/**
-* @namespace QPanda
-*/
 
+QPANDA_BEGIN
 
 /**
 * @class SingleAmplitudeQVM
 * @ingroup QuantumMachine
 * @see QuantumMachine
 * @brief Quantum machine for single amplitude simulation
-* @ingroup QuantumMachine
 */
-
 class SingleAmplitudeQVM : public QVM, public TraversalInterface<>
 {
 public:
@@ -48,6 +43,7 @@ public:
    /* new interface */
    /**
    * @brief  PMeasure by binary index
+	* @param[in]  _Ty &  QProg 
    * @param[in]  std::string  binary index
    * @return     qstate_type double
    * @note  example: PMeasure_bin_index("0000000000")
@@ -76,6 +72,7 @@ public:
    void execute(std::shared_ptr<AbstractQGateNode>, std::shared_ptr<QNode>);
    void execute(std::shared_ptr<AbstractClassicalProg>, std::shared_ptr<QNode>);
    void execute(std::shared_ptr<AbstractQuantumMeasure>, std::shared_ptr<QNode>);
+   void execute(std::shared_ptr<AbstractQuantumReset>, std::shared_ptr<QNode>);
    void execute(std::shared_ptr<AbstractQuantumCircuit>, std::shared_ptr<QNode>);
    void execute(std::shared_ptr<AbstractQuantumProgram>, std::shared_ptr<QNode>);
    void execute(std::shared_ptr<AbstractControlFlowNode>, std::shared_ptr<QNode>);

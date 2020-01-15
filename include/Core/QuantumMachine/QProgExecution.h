@@ -22,6 +22,7 @@ limitations under the License.
 #include "Core/QuantumCircuit/ControlFlow.h"
 #include "Core/QuantumCircuit/QCircuit.h"
 #include "Core/QuantumCircuit/QProgram.h"
+#include "Core/QuantumCircuit/QReset.h"
 #include "Core/QuantumCircuit/QGlobalVariable.h"
 #include "Core/Utilities/Tools/Traversal.h"
 #include <map>
@@ -30,19 +31,10 @@ limitations under the License.
 
 QPANDA_BEGIN
 
-/**
-* @namespace QPanda
-*/
 
 /**
-* @defgroup Utilities
-* @brief QPanda2  base  Utilities  classes and  interface
-*/
-
-/**
-* @class QGateCompare
-* @ingroup Utilities
-* @brief Qunatum Gate Compare
+* @brief Qunatum Execution 
+* @ingroup QuantumMachine
 */
 class QProgExecution 
 {
@@ -50,13 +42,11 @@ public:
 
 	/*!
 	* @brief  Execution traversal qgatenode
-	* @param[in|out]  AbstractQGateNode*  quantum gate
+	* @param[in,out]  AbstractQGateNode*  quantum gate
 	* @param[in]  AbstractQGateNode*  quantum gate
 	* @param[in]  TraversalConfig  traversal config
 	* @param[in]  QPUImpl*  virtual quantum processor
 	* @return     void
-	* @exception invalid_argument
-	* @note
 	*/
 	virtual void execute(std::shared_ptr<AbstractQGateNode> cur_node, 
 		std::shared_ptr<QNode> parent_node,
@@ -65,12 +55,11 @@ public:
 
 	/*!
 	* @brief  Execution traversal measure node
-	* @param[in|out]  AbstractQuantumMeasure*  measure node
+	* @param[in,out]  AbstractQuantumMeasure*  measure node
 	* @param[in]  AbstractQGateNode*  quantum gate
 	* @param[in]  TraversalConfig   traversal config
 	* @param[in]  QPUImpl*  virtual quantum processor
 	* @return     void
-	* @exception invalid_argument
 	* @note
 	*/
 	virtual void execute(std::shared_ptr<AbstractQuantumMeasure> cur_node,
@@ -79,32 +68,41 @@ public:
 		QPUImpl* qpu);
 
 	/*!
+	* @brief  Execution traversal reset node
+	* @param[in,out]  AbstractQuantumReset*  reset node
+	* @param[in]  QNode*  parent node
+	* @param[in]  TraversalConfig   traversal config
+	* @param[in]  QPUImpl*  virtual quantum processor
+	* @return     void
+	* @note
+	*/
+	virtual void execute(std::shared_ptr<AbstractQuantumReset> cur_node,
+		std::shared_ptr<QNode> parent_node,
+		TraversalConfig & param,
+		QPUImpl* qpu);
+
+	/*!
 	* @brief  Execution traversal control flow node
-	* @param[in|out]  AbstractControlFlowNode*  control flow node
+	* @param[in,out]  AbstractControlFlowNode*  control flow node
 	* @param[in]  AbstractQGateNode*  quantum gate
 	* @param[in]  TraversalConfig  traversal config
 	* @param[in]  QPUImpl*  virtual quantum processor
 	* @return     void
-	* @exception invalid_argument
 	* @note
 	*/
 	virtual void execute(std::shared_ptr<AbstractControlFlowNode> cur_node,
 		std::shared_ptr<QNode> parent_node,
 		TraversalConfig & param,
-		QPUImpl* qpu)
-	{
-		Traversal::traversal(cur_node, *this, param, qpu);
-	}
+        QPUImpl* qpu);
 
 
 	/*!
 	* @brief  Execution traversal qcircuit
-	* @param[in|out]  AbstractQuantumCircuit*  quantum circuit
+	* @param[in,out]  AbstractQuantumCircuit*  quantum circuit
 	* @param[in]  AbstractQGateNode*  quantum gate
 	* @param[in]  TraversalConfig  traversal config
 	* @param[in]  QPUImpl*  virtual quantum processor
 	* @return     void
-	* @exception invalid_argument
 	* @note
 	*/
 	virtual void execute(std::shared_ptr<AbstractQuantumCircuit> cur_node,
@@ -113,13 +111,11 @@ public:
 		QPUImpl* qpu);
 	/*!
 	* @brief  Execution traversal qprog
-	* @param[in|out]  AbstractQuantumProgram*  quantum prog
+	* @param[in,out]  AbstractQuantumProgram*  quantum prog
 	* @param[in]  AbstractQGateNode*  quantum gate
 	* @param[in]  TraversalConfig  traversal config
 	* @param[in]  QPUImpl*  virtual quantum processor
 	* @return     void
-	* @exception invalid_argument
-	* @note
 	*/
 	virtual void execute(std::shared_ptr<AbstractQuantumProgram> cur_node,
 		std::shared_ptr<QNode> parent_node,
@@ -130,13 +126,11 @@ public:
 	}
 	/*!
 	* @brief  Execution traversal qprog
-	* @param[in|out]  AbstractClassicalProg*  quantum prog
+	* @param[in,out]  AbstractClassicalProg*  quantum prog
 	* @param[in]  AbstractQGateNode*  quantum gate
 	* @param[in]  TraversalConfig  traversal config
 	* @param[in]  QPUImpl*  virtual quantum processor
 	* @return     void
-	* @exception invalid_argument
-	* @note
 	*/
 	virtual void execute(std::shared_ptr<AbstractClassicalProg> cur_node,
 		std::shared_ptr<QNode> parent_node,
@@ -146,6 +140,10 @@ public:
 		cur_node->eval();
 	}
 
+	/**
+	* @brief  get result value
+	* @param[out] std::map<std::string, bool> &  result map
+	*/
 	void get_return_value(std::map<std::string, bool> & result)
 	{
 		for (auto aiter : m_result)
@@ -162,9 +160,11 @@ private:
 
 /**
 * @brief  execute qprog
-* @param[in]  prog quantum program,
-* @param[in]  const std::vector<std::vector<std::string>>&    support gates
-* @return     size_t     Unsupported QGate number
+* @ingroup QuantumMachine
+* @param[in] QProg quantum program
+* @param[in] QPUImpl*  
+* @param[in] TraversalConfig&  traversal configuration
+* @return     
 * @note
 */
 inline void execute_qprog(QProg prog,QPUImpl * qpu,TraversalConfig & param)

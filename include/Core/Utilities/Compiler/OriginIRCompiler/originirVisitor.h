@@ -113,7 +113,7 @@ public:
 
     virtual antlrcpp::Any visitMeasure_statement(originirParser::Measure_statementContext *context) = 0;
 
-    virtual antlrcpp::Any visitPmeasure_statement(originirParser::Pmeasure_statementContext *context) = 0;
+    virtual antlrcpp::Any visitReset_statement(originirParser::Reset_statementContext *context) = 0;
 
     virtual antlrcpp::Any visitExpression_statement(originirParser::Expression_statementContext *context) = 0;
 

@@ -1,5 +1,0 @@
-cmake_minimum_required(VERSION 3.1)
-project(Autodiff.test)
-file(GLOB_RECURSE VariationalTestSrc ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
-add_executable(${PROJECT_NAME} ${VariationalTestSrc})
-target_link_libraries(${PROJECT_NAME} ${LIB_QPANDA} ${LIB_QALG} ${LIB_VAR} ${LIB_GTEST})

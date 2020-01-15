@@ -20,9 +20,9 @@ public:
     SQISWAP_GATE = 28, SWAPZ1_GATE = 29, ISWAPTHETA_GATE = 30, CR_GATE = 31, 
     TOFFOLI_GATE = 32, DAGGER_KEY = 33, ENDDAGGER_KEY = 34, CONTROL_KEY = 35, 
     ENDCONTROL_KEY = 36, QIF_KEY = 37, ELSE_KEY = 38, ENDIF_KEY = 39, QWHILE_KEY = 40, 
-    ENDQWHILE_KEY = 41, MEASURE_KEY = 42, PMEASURE_KEY = 43, ASSIGN = 44, 
-    GT = 45, LT = 46, NOT = 47, EQ = 48, LEQ = 49, GEQ = 50, NE = 51, AND = 52, 
-    OR = 53, PLUS = 54, MINUS = 55, MUL = 56, DIV = 57, COMMA = 58, LPAREN = 59, 
+    ENDQWHILE_KEY = 41, MEASURE_KEY = 42, RESET_KEY = 43, ASSIGN = 44, GT = 45, 
+    LT = 46, NOT = 47, EQ = 48, LEQ = 49, GEQ = 50, NE = 51, AND = 52, OR = 53, 
+    PLUS = 54, MINUS = 55, MUL = 56, DIV = 57, COMMA = 58, LPAREN = 59, 
     RPAREN = 60, LBRACK = 61, RBRACK = 62, NEWLINE = 63, Identifier = 64, 
     Integer_Literal = 65, Double_Literal = 66, Digit_Sequence = 67, WhiteSpace = 68, 
     SingleLineComment = 69
@@ -46,7 +46,7 @@ public:
     RuleLogical_or_expression = 33, RuleAssignment_expression = 34, RuleExpression = 35, 
     RuleControlbit_list = 36, RuleStatement = 37, RuleDagger_statement = 38, 
     RuleControl_statement = 39, RuleQelse_statement_fragment = 40, RuleQif_statement = 41, 
-    RuleQwhile_statement = 42, RuleMeasure_statement = 43, RulePmeasure_statement = 44, 
+    RuleQwhile_statement = 42, RuleMeasure_statement = 43, RuleReset_statement = 44, 
     RuleExpression_statement = 45, RuleConstant = 46
   };
 
@@ -104,7 +104,7 @@ public:
   class Qif_statementContext;
   class Qwhile_statementContext;
   class Measure_statementContext;
-  class Pmeasure_statementContext;
+  class Reset_statementContext;
   class Expression_statementContext;
   class ConstantContext; 
 
@@ -820,7 +820,7 @@ public:
     Qwhile_statementContext *qwhile_statement();
     Dagger_statementContext *dagger_statement();
     Measure_statementContext *measure_statement();
-    Pmeasure_statementContext *pmeasure_statement();
+    Reset_statementContext *reset_statement();
     Expression_statementContext *expression_statement();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -980,15 +980,12 @@ public:
 
   Measure_statementContext* measure_statement();
 
-  class  Pmeasure_statementContext : public antlr4::ParserRuleContext {
+  class  Reset_statementContext : public antlr4::ParserRuleContext {
   public:
-    Pmeasure_statementContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    Reset_statementContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
-    antlr4::tree::TerminalNode *PMEASURE_KEY();
-    std::vector<Q_KEY_declarationContext *> q_KEY_declaration();
-    Q_KEY_declarationContext* q_KEY_declaration(size_t i);
-    std::vector<antlr4::tree::TerminalNode *> COMMA();
-    antlr4::tree::TerminalNode* COMMA(size_t i);
+    antlr4::tree::TerminalNode *RESET_KEY();
+    Q_KEY_declarationContext *q_KEY_declaration();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -997,7 +994,7 @@ public:
    
   };
 
-  Pmeasure_statementContext* pmeasure_statement();
+  Reset_statementContext* reset_statement();
 
   class  Expression_statementContext : public antlr4::ParserRuleContext {
   public:

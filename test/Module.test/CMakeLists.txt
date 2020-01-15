@@ -1,5 +1,0 @@
-cmake_minimum_required(VERSION 3.1)
-project(Module.test)
-file(GLOB_RECURSE Ancilla ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
-add_executable(${PROJECT_NAME} ${Ancilla})
-target_link_libraries(${PROJECT_NAME} ${LIB_QPANDA} ${LIB_GTEST})

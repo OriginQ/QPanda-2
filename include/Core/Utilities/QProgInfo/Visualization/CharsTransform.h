@@ -9,6 +9,11 @@
 
 QPANDA_BEGIN
 
+/**
+* @brief convert unicode string to UTF8 string
+* @param[in] std::wstring& the source wstring encoded by Unicode
+* @return string Converted String
+*/
 inline std::string UnicodeToUTF8(const std::wstring & wstr)
 {
 	std::string ret;
@@ -22,6 +27,11 @@ inline std::string UnicodeToUTF8(const std::wstring & wstr)
 	return ret;
 }
 
+/**
+* @brief convert UTF8 string to wide string
+* @param[in] std::string& the source string
+* @return wstring Converted wide String
+*/
 inline std::wstring utf8ToWstring(const std::string& str)
 {
 	std::wstring_convert<std::codecvt_utf8<wchar_t>> myconv;
@@ -29,7 +39,11 @@ inline std::wstring utf8ToWstring(const std::string& str)
 }
 
 #ifdef _MSC_VER
-// utf8 to gbk
+/**
+* @brief convert UTF8 string to gbk
+* @param[in] char* the source string
+* @return std::string Converted string
+*/
 inline std::string Utf8ToGbkOnWin32(const char *src_str)
 {
 	int len = MultiByteToWideChar(CP_UTF8, 0, src_str, -1, NULL, 0);
@@ -45,16 +59,13 @@ inline std::string Utf8ToGbkOnWin32(const char *src_str)
 	if (szGBK) delete[] szGBK;
 	return strTemp;
 }
-
-inline std::string utf8ToGbk(const std::string &str)
-{
-	std::wstring_convert<std::codecvt_utf8<wchar_t>> utf8_cvt; // utf8->unicode
-	std::wstring_convert<std::codecvt<wchar_t, char, std::mbstate_t>> gbk_cvt(new std::codecvt<wchar_t, char, mbstate_t>("chs")); // unicode-> gbk
-	std::wstring t = utf8_cvt.from_bytes(str);
-	return gbk_cvt.to_bytes(t);
-}
 #endif // _MSC_VER
 
+/**
+* @brief convert unsigned long to string
+* @param[in] "unsigned long" the source val
+* @return std::string Converted string
+*/
 inline std::string ulongToUtf8(unsigned long val) {
 	char utf8_buf[8] = "";
 	size_t val_size = sizeof(val) / sizeof(char);
@@ -72,13 +83,16 @@ inline std::string ulongToUtf8(unsigned long val) {
 	return utf8_buf;
 }
 
+/**
+* @brief set windows console to utf-8 encode
+*/
 inline void initConsole()
 {
 #ifdef _MSC_VER
-	system("CHCP 65001"); //utf-8 code
+	system("CHCP 65001"); /**< utf-8 code */
 	CONSOLE_FONT_INFOEX info = { 0 };
 	info.cbSize = sizeof(info);
-	info.dwFontSize.Y = 16; // leave X as zero
+	info.dwFontSize.Y = 16;
 	info.FontWeight = FW_NORMAL;
 	wcscpy(info.FaceName, L"Consolas");
 	SetCurrentConsoleFontEx(GetStdHandle(STD_OUTPUT_HANDLE), NULL, &info);

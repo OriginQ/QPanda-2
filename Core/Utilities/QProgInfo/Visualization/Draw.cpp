@@ -74,6 +74,22 @@ public:
 private:
 };
 
+class ResetQubitBox : public DrawBox
+{
+public:
+	ResetQubitBox()
+		:DrawBox(
+			std::string("   "),
+			std::string("|0>"),
+			std::string("   "))
+	{}
+	~ResetQubitBox() {}
+
+	int getLen() const { return 3; }
+
+private:
+};
+
 class SwapFrom : public DrawBox
 {
 public:
@@ -125,24 +141,24 @@ class ControlQuBit : public DrawBox
 public:
 	ControlQuBit()
 		:DrawBox(
-			std::string(" "),
-			ulongToUtf8(BLACK_SQUARE_CHAR),
-			std::string(" "))
+			std::string("  "),
+			ulongToUtf8(BLACK_SQUARE_CHAR) + ulongToUtf8(SINGLE_HORIZONTAL_LINE),
+			std::string("  "))
 	{}
 	~ControlQuBit() {}
 
-	int getLen() const { return 1; }
+	int getLen() const { return 2; }
 
 	void set_top_connected() override {
-		m_top_format = ulongToUtf8(SINGLE_VERTICAL_LINE);
+		m_top_format = ulongToUtf8(SINGLE_VERTICAL_LINE) + " ";
 	}
 
 	void set_bot_connected() override {
-		m_bot_format = ulongToUtf8(SINGLE_VERTICAL_LINE);
+		m_bot_format = ulongToUtf8(SINGLE_VERTICAL_LINE) + " ";
 	}
 
 	void set_to_circuit_control() {
-		m_mid_format = ulongToUtf8(BLACK_SQUARE_CHAR); //BLACK_PRISMATIC_CHAR
+		m_mid_format = ulongToUtf8(BLACK_SQUARE_CHAR) + ulongToUtf8(SINGLE_HORIZONTAL_LINE); //BLACK_PRISMATIC_CHAR
 	}
 
 private:
@@ -156,6 +172,22 @@ public:
 			ulongToUtf8(SINGLE_VERTICAL_LINE),
 			ulongToUtf8(CROSS_CHAR),
 			ulongToUtf8(SINGLE_VERTICAL_LINE))
+	{}
+
+	int getLen() const { return 1; }
+
+private:
+};
+
+class LayerLine : public DrawBox
+{
+#define TIME_SEQUENCE_SEPARATOR_CHAR (" ")
+public:
+	LayerLine()
+		:DrawBox(
+			string(TIME_SEQUENCE_SEPARATOR_CHAR),
+			string(TIME_SEQUENCE_SEPARATOR_CHAR),
+			string(TIME_SEQUENCE_SEPARATOR_CHAR))
 	{}
 
 	int getLen() const { return 1; }
@@ -378,6 +410,17 @@ void DrawPicture::appendMeasure(std::shared_ptr<AbstractQuantumMeasure> pMeasure
 	}
 }
 
+void DrawPicture::append_reset(std::shared_ptr<AbstractQuantumReset> pReset)
+{
+	int qubit_index = pReset->getQuBit()->getPhysicalQubitPtr()->getQubitAddr();
+	auto start_quBit = m_quantum_bit_wires.find(qubit_index);
+
+	ResetQubitBox box_reset;
+	start_quBit->second->append(box_reset, 0);
+
+	update_time_sequence(start_quBit->second, get_reset_time_sequence());
+}
+
 void DrawPicture::layer()
 {
 	if (nullptr != m_p_grapth_dag.get())
@@ -598,8 +641,6 @@ void DrawPicture::append_swap_gate(string gate_name, QVec &qubits_vector, QVec &
 	}
 }
 
-
-
 void DrawPicture::append_gate_param(string &gate_name, std::shared_ptr<AbstractQGateNode> p_gate, GateType type)
 {
 	string gateParamStr;
@@ -612,115 +653,218 @@ void DrawPicture::append_gate_param(string &gate_name, std::shared_ptr<AbstractQ
 	}
 }
 
+void DrawByLayer::handle_measure_node(std::shared_ptr<QNode>& p_node)
+{
+	std::shared_ptr<AbstractQuantumMeasure> p_measure = dynamic_pointer_cast<AbstractQuantumMeasure>(p_node);
+	m_parent.appendMeasure(p_measure);
+}
+
+void DrawByLayer::handle_reset_node(std::shared_ptr<QNode>& p_node)
+{
+	std::shared_ptr<AbstractQuantumReset> p_reset = dynamic_pointer_cast<AbstractQuantumReset>(p_node);
+	m_parent.append_reset(p_reset);
+}
+
+void DrawByLayer::handle_gate_node(std::shared_ptr<QNode>& p_node)
+{
+	QVec qubits_vector;
+	string gate_name;
+	std::shared_ptr<AbstractQGateNode> p_gate = dynamic_pointer_cast<AbstractQGateNode>(p_node);
+	p_gate->getQuBitVector(qubits_vector);
+
+	//get control info
+	QVec control_qubits_vec;
+	p_gate->getControlVector(control_qubits_vec);
+
+	//get gate parameter
+	GateType gate_type = (GateType)(p_gate->getQGate()->getGateType());
+	m_parent.append_gate_param(gate_name, p_gate, gate_type);
+
+	if (1 == qubits_vector.size())
+	{
+		// single gate
+		m_parent.append_single_gate(gate_name, qubits_vector, control_qubits_vec);
+	}
+	else if (2 == qubits_vector.size())
+	{
+		//double gate
+		switch (gate_type)
+		{
+		case ISWAP_THETA_GATE:
+		case ISWAP_GATE:
+		case SQISWAP_GATE:
+		case SWAP_GATE:
+			m_parent.append_swap_gate(gate_name, qubits_vector, control_qubits_vec);
+			break;
+
+		case CU_GATE:
+		case CNOT_GATE:
+		case CZ_GATE:
+		case CPHASE_GATE:
+		{
+			int target_qubit = qubits_vector.back()->getPhysicalQubitPtr()->getQubitAddr();
+			qubits_vector.pop_back();
+			m_parent.append_ctrl_gate(gate_name, target_qubit, qubits_vector, control_qubits_vec);
+		}
+		break;
+
+		default:
+			break;
+		}
+
+	}
+	else
+	{
+		//other gate type
+	}
+}
+
+NodeType DrawPicture::sequence_node_type_to_node_type(SequenceNodeType sequence_node_type)
+{
+	switch (sequence_node_type)
+	{
+	case SequenceNodeType::MEASURE:
+		return MEASURE_GATE;
+		break;
+
+	case SequenceNodeType::RESET:
+		return RESET_NODE;
+		break;
+
+	default:
+		break;
+	}
+
+	return GATE_NODE;
+}
+
 void DrawPicture::draw_by_layer()
 {
 	const QProgDAG &prog_dag = m_p_grapth_dag->getProgDAG();
+	DrawByLayer tmp_drawer(*this);
 	for (auto seq_item_itr = m_layer_info.begin(); seq_item_itr != m_layer_info.end(); ++seq_item_itr)
 	{
 		for (auto &seq_node_item : (*seq_item_itr))
 		{
 			SequenceNode n = seq_node_item.first;
-			if (-1 == n.m_node_type)
-			{
-				std::shared_ptr<AbstractQuantumMeasure> p_measure = dynamic_pointer_cast<AbstractQuantumMeasure>(prog_dag.get_vertex(n.m_vertex_num));
-				appendMeasure(p_measure);
-			}
-			else
-			{
-				QVec qubits_vector;
-				string gate_name;
-				std::shared_ptr<AbstractQGateNode> p_gate = dynamic_pointer_cast<AbstractQGateNode>(prog_dag.get_vertex(n.m_vertex_num));
-				p_gate->getQuBitVector(qubits_vector);
-
-				//get control info
-				QVec control_qubits_vec;
-				p_gate->getControlVector(control_qubits_vec);
-
-				//get gate parameter
-				append_gate_param(gate_name, p_gate, (GateType)(n.m_node_type));
-
-				if (1 == qubits_vector.size())
-				{
-					// single gate
-					append_single_gate(gate_name, qubits_vector, control_qubits_vec);
-				}
-				else if (2 == qubits_vector.size())
-				{
-					//double gate
-					switch ((GateType)(n.m_node_type))
-					{
-					case ISWAP_THETA_GATE:
-					case ISWAP_GATE:
-					case SQISWAP_GATE:
-					case SWAP_GATE:
-						append_swap_gate(gate_name, qubits_vector, control_qubits_vec);
-						break;
-
-					case CU_GATE:
-					case CNOT_GATE:
-					case CZ_GATE:
-					case CPHASE_GATE:
-					{
-						int target_qubit = qubits_vector.back()->getPhysicalQubitPtr()->getQubitAddr();
-						qubits_vector.pop_back();
-						append_ctrl_gate(gate_name, target_qubit, qubits_vector, control_qubits_vec);
-					}
-					break;
-
-					default:
-						break;
-					}
-
-				}
-				else
-				{
-					//other gate type
-				}
-			}
+			auto p_node = prog_dag.get_vertex(n.m_vertex_num);
+			tmp_drawer.handle_work(sequence_node_type_to_node_type((SequenceNodeType)(n.m_node_type)), p_node);
 		}
 
 		//update m_text_len
 		updateTextPicLen();
+
+		append_layer_line();
 	}
 
 	//merge line
 	mergeLine();
 }
 
+void DrawPicture::append_layer_line()
+{
+	LayerLine layer_line;
+	int append_pos = getMaxQuWireLength(m_quantum_bit_wires.begin(), m_quantum_bit_wires.end());
+	bool is_line_head = true;
+	for (auto itr = m_quantum_bit_wires.begin(); itr != m_quantum_bit_wires.end(); ++itr)
+	{
+		itr->second->append(layer_line, append_pos);
+	}
+}
+
+void GetUsedQubits::handle_measure_node(std::shared_ptr<QNode>& p_node)
+{
+	std::shared_ptr<AbstractQuantumMeasure> p_measure = std::dynamic_pointer_cast<AbstractQuantumMeasure>(p_node);
+	QMeasure tmp_measure_node(p_measure);
+	m_qubits_vec.push_back(tmp_measure_node.getQuBit());
+}
+
+void GetUsedQubits::handle_reset_node(std::shared_ptr<QNode>& p_node)
+{
+	std::shared_ptr<AbstractQuantumReset> p_reset = std::dynamic_pointer_cast<AbstractQuantumReset>(p_node);
+	QReset tmp_reset_node(p_reset);
+	m_qubits_vec.push_back(tmp_reset_node.getQuBit());
+}
+
+void GetUsedQubits::handle_gate_node(std::shared_ptr<QNode>& p_node)
+{
+	std::shared_ptr<AbstractQGateNode> p_gate = std::dynamic_pointer_cast<AbstractQGateNode>(p_node);
+	QGate tmp_gate_node(p_gate);
+	QVec gate_qubits;
+	tmp_gate_node.getQuBitVector(gate_qubits);
+	for (auto &itr : gate_qubits)
+	{
+		m_qubits_vec.push_back(itr);
+	}
+
+	//control qubits
+	gate_qubits.clear();
+	tmp_gate_node.getControlVector(gate_qubits);
+	for (auto &itr : gate_qubits)
+	{
+		m_qubits_vec.push_back(itr);
+	}
+}
+
 void DrawPicture::fill_layer(TopologicalSequence::iterator lay_iter)
 {
 	const QProgDAG &prog_dag = m_p_grapth_dag->getProgDAG();
 	QVec vec_qubits_used_in_layer;
+	GetUsedQubits used_qubits(*this, vec_qubits_used_in_layer);
 	for (auto &seq_node_item : (*lay_iter))
 	{
 		SequenceNode n = seq_node_item.first;
-		if (-1 == n.m_node_type)
-		{
-			std::shared_ptr<AbstractQuantumMeasure> p_measure = std::dynamic_pointer_cast<AbstractQuantumMeasure>(prog_dag.get_vertex(n.m_vertex_num));
-			QMeasure tmp_measure_node(p_measure);
-			vec_qubits_used_in_layer.push_back(tmp_measure_node.getQuBit());
-		}
-		else
-		{
-			std::shared_ptr<AbstractQGateNode> p_gate = std::dynamic_pointer_cast<AbstractQGateNode>(prog_dag.get_vertex(n.m_vertex_num));
-			QGate tmp_gate_node(p_gate);
-			QVec gate_qubits;
-			tmp_gate_node.getQuBitVector(gate_qubits);
-			for (auto &itr : gate_qubits)
-			{
-				vec_qubits_used_in_layer.push_back(itr);
-			}
-		}
+		auto p_node = prog_dag.get_vertex(n.m_vertex_num);
+		used_qubits.handle_work(sequence_node_type_to_node_type((SequenceNodeType)(n.m_node_type)), p_node);
 	}
 
-	std::sort(m_quantum_bits_in_use.begin(), m_quantum_bits_in_use.end());
-	std::sort(vec_qubits_used_in_layer.begin(), vec_qubits_used_in_layer.end());
-
-	QVec unused_qubits_vec;
-	set_difference(m_quantum_bits_in_use.begin(), m_quantum_bits_in_use.end(), vec_qubits_used_in_layer.begin(), vec_qubits_used_in_layer.end(), std::back_inserter(unused_qubits_vec));
+	QVec unused_qubits_vec = get_qvec_difference(m_quantum_bits_in_use, vec_qubits_used_in_layer);
 
 	auto next_iter = lay_iter + 1;
 	get_gate_from_next_layer(lay_iter, unused_qubits_vec, next_iter);
+}
+
+void FillLayerByNextLayerNodes::handle_measure_node(SequenceLayer::iterator& itr_on_next_layer)
+{
+	auto& seq_node_item = *itr_on_next_layer;
+	SequenceNode n = seq_node_item.first;
+	std::shared_ptr<AbstractQuantumMeasure> p_measure = std::dynamic_pointer_cast<AbstractQuantumMeasure>(m_prog_dag.get_vertex(n.m_vertex_num));
+	QMeasure tmp_measure_node(p_measure);
+	handle_single_qubit_node(tmp_measure_node, itr_on_next_layer);
+}
+
+void FillLayerByNextLayerNodes::handle_reset_node(SequenceLayer::iterator& itr_on_next_layer)
+{
+	auto& seq_node_item = *itr_on_next_layer;
+	SequenceNode n = seq_node_item.first;
+	std::shared_ptr<AbstractQuantumReset> p_reset = std::dynamic_pointer_cast<AbstractQuantumReset>(m_prog_dag.get_vertex(n.m_vertex_num));
+	QReset tmp_reset_node(p_reset);
+	handle_single_qubit_node(tmp_reset_node, itr_on_next_layer);
+}
+
+void FillLayerByNextLayerNodes::handle_gate_node(SequenceLayer::iterator& itr_on_next_layer)
+{
+	auto& seq_node_item = *itr_on_next_layer;
+	SequenceNode n = seq_node_item.first;
+	std::shared_ptr<AbstractQGateNode> p_gate = std::dynamic_pointer_cast<AbstractQGateNode>(m_prog_dag.get_vertex(n.m_vertex_num));
+	QGate tmp_gate_node(p_gate);
+	QVec gate_qubits;
+	tmp_gate_node.getQuBitVector(gate_qubits);
+	QVec ctrl_qubits;
+	tmp_gate_node.getControlVector(ctrl_qubits);
+
+	gate_qubits.insert(gate_qubits.end(), ctrl_qubits.begin(), ctrl_qubits.end());
+
+	QVec other_gate_qubits_vec = m_parent.get_qvec_difference(gate_qubits, m_unused_qubits_vec);
+	if (other_gate_qubits_vec.size() == 0)
+	{
+		auto node = seq_node_item;
+		m_target_layer.push_back(node);
+		itr_on_next_layer = m_next_layer.erase(itr_on_next_layer);
+		m_b_got_available_node = true;
+	}
+
+	m_unused_qubits_vec = m_parent.get_qvec_difference(m_unused_qubits_vec, gate_qubits);
 }
 
 void DrawPicture::get_gate_from_next_layer(TopologicalSequence::iterator to_fill_lay_iter, QVec &unused_qubits_vec, TopologicalSequence::iterator next_lay_iter)
@@ -730,65 +874,20 @@ void DrawPicture::get_gate_from_next_layer(TopologicalSequence::iterator to_fill
 		return;
 	}
 
-	const QProgDAG &prog_dag = m_p_grapth_dag->getProgDAG();
 	auto& target_lay = *to_fill_lay_iter;
 	auto& next_lay = *next_lay_iter;
 	for (auto seq_node_item_iter = next_lay.begin(); seq_node_item_iter != next_lay.end();)
 	{
-		bool b_erase_node = false;
 		auto& seq_node_item = *seq_node_item_iter;
 		SequenceNode n = seq_node_item.first;
-		if (-1 == n.m_node_type)
+		FillLayerByNextLayerNodes filler(*this, unused_qubits_vec, target_lay, next_lay);
+		filler.handle_work(sequence_node_type_to_node_type((SequenceNodeType)(n.m_node_type)), seq_node_item_iter);
+		if (unused_qubits_vec.size() == 0)
 		{
-			std::shared_ptr<AbstractQuantumMeasure> p_measure = std::dynamic_pointer_cast<AbstractQuantumMeasure>(prog_dag.get_vertex(n.m_vertex_num));
-			QMeasure tmp_measure_node(p_measure);
-			for (auto qubit_iter = unused_qubits_vec.begin(); qubit_iter != unused_qubits_vec.end(); ++qubit_iter)
-			{
-				auto& tmp_qubit = *qubit_iter;
-				if (tmp_measure_node.getQuBit() == tmp_qubit)
-				{
-					target_lay.push_back(seq_node_item);
-					unused_qubits_vec.erase(qubit_iter);
-					seq_node_item_iter = next_lay.erase(seq_node_item_iter);
-					b_erase_node = true;
-					break;
-				}
-			}
-		}
-		else
-		{
-			std::shared_ptr<AbstractQGateNode> p_gate = std::dynamic_pointer_cast<AbstractQGateNode>(prog_dag.get_vertex(n.m_vertex_num));
-			QGate tmp_gate_node(p_gate);
-			QVec gate_qubits;
-			tmp_gate_node.getQuBitVector(gate_qubits);
-			QVec ctrl_qubits;
-			tmp_gate_node.getControlVector(ctrl_qubits);
-
-			gate_qubits.insert(gate_qubits.end(), ctrl_qubits.begin(), ctrl_qubits.end());
-
-			std::sort(gate_qubits.begin(), gate_qubits.end());
-			std::sort(unused_qubits_vec.begin(), unused_qubits_vec.end());
-
-			QVec other_gate_qubits_vec;
-			set_difference(gate_qubits.begin(), gate_qubits.end(), unused_qubits_vec.begin(), unused_qubits_vec.end(), std::back_inserter(other_gate_qubits_vec));
-			if (other_gate_qubits_vec.size() == 0)
-			{
-				auto node = seq_node_item;
-				target_lay.push_back(node);
-				seq_node_item_iter = next_lay.erase(seq_node_item_iter);
-				b_erase_node = true;
-			}
-			
-			QVec tmp_unused_qubits_vec;
-			set_difference(unused_qubits_vec.begin(), unused_qubits_vec.end(), gate_qubits.begin(), gate_qubits.end(), std::back_inserter(tmp_unused_qubits_vec));
-			unused_qubits_vec.swap(tmp_unused_qubits_vec);
-			if (unused_qubits_vec.size() == 0)
-			{
-				break;
-			}
+			break;
 		}
 
-		if (b_erase_node)
+		if (filler.have_got_available_node())
 		{
 			continue;
 		}
@@ -802,9 +901,23 @@ void DrawPicture::get_gate_from_next_layer(TopologicalSequence::iterator to_fill
 	}
 }
 
+//return (vec1 - vec2)
+QVec DrawPicture::get_qvec_difference(QVec &vec1, QVec &vec2)
+{
+	auto sort_fun = [](Qubit*a, Qubit* b) {return a->getPhysicalQubitPtr()->getQubitAddr() < b->getPhysicalQubitPtr()->getQubitAddr(); };
+	std::sort(vec1.begin(), vec1.end(), sort_fun);
+	std::sort(vec2.begin(), vec2.end(), sort_fun);
+	
+	QVec result_vec;
+	set_difference(vec1.begin(), vec1.end(), vec2.begin(), vec2.end(), std::back_inserter(result_vec), sort_fun);
+	
+	return result_vec;
+}
+
 void DrawPicture::draw_by_time_sequence()
 {
 	const QProgDAG &prog_dag = m_p_grapth_dag->getProgDAG();
+	DrawByLayer tmp_drawer(*this);
 	for (auto seq_item_itr = m_layer_info.begin(); seq_item_itr != m_layer_info.end(); ++seq_item_itr)
 	{
 		if ((*seq_item_itr).size() == 0)
@@ -818,63 +931,8 @@ void DrawPicture::draw_by_time_sequence()
 		for (auto &seq_node_item : (*seq_item_itr))
 		{
 			SequenceNode n = seq_node_item.first;
-			if (-1 == n.m_node_type)
-			{
-				std::shared_ptr<AbstractQuantumMeasure> p_measure = dynamic_pointer_cast<AbstractQuantumMeasure>(prog_dag.get_vertex(n.m_vertex_num));
-				appendMeasure(p_measure);
-			}
-			else
-			{
-				QVec qubits_vector;
-				string gate_name;
-				std::shared_ptr<AbstractQGateNode> p_gate = dynamic_pointer_cast<AbstractQGateNode>(prog_dag.get_vertex(n.m_vertex_num));
-				p_gate->getQuBitVector(qubits_vector);
-
-				//get control info
-				QVec control_qubits_vec;
-				p_gate->getControlVector(control_qubits_vec);
-
-				//get gate parameter
-				append_gate_param(gate_name, p_gate, (GateType)(n.m_node_type));
-
-				if (1 == qubits_vector.size())
-				{
-					// single gate
-					append_single_gate(gate_name, qubits_vector, control_qubits_vec);
-				}
-				else if (2 == qubits_vector.size())
-				{
-					//double gate
-					switch ((GateType)(n.m_node_type))
-					{
-					case ISWAP_THETA_GATE:
-					case ISWAP_GATE:
-					case SQISWAP_GATE:
-					case SWAP_GATE:
-						append_swap_gate(gate_name, qubits_vector, control_qubits_vec);
-						break;
-
-					case CU_GATE:
-					case CNOT_GATE:
-					case CZ_GATE:
-					case CPHASE_GATE:
-					{
-						int target_qubit = qubits_vector.back()->getPhysicalQubitPtr()->getQubitAddr();
-						qubits_vector.pop_back();
-						append_ctrl_gate(gate_name, target_qubit, qubits_vector, control_qubits_vec);
-					}
-					break;
-
-					default:
-						break;
-					}
-
-				}
-				else
-				{
-					//other gate type
-				}
-			}
+			auto p_node = prog_dag.get_vertex(n.m_vertex_num);
+			tmp_drawer.handle_work(sequence_node_type_to_node_type((SequenceNodeType)(n.m_node_type)), p_node);
 		}
 
 		// check time sequence
@@ -924,6 +982,7 @@ void DrawPicture::check_time_sequence(std::vector<SequenceLayer>::iterator cur_l
 	for (auto itr = m_quantum_bit_wires.begin(); itr != m_quantum_bit_wires.end(); ++itr)
 	{
 		int cur_wire_time_sequence = itr->second->get_time_sequence();
+
 		//if any qubit-line's time sequence is less than others,  try complement by node from next layer
 		auto tmp_iter = next_layer_iter;
 		while (cur_wire_time_sequence < m_max_time_sequence)
@@ -935,16 +994,145 @@ void DrawPicture::check_time_sequence(std::vector<SequenceLayer>::iterator cur_l
 			}
 			else
 			{
+				itr->second->update_time_sequence(m_max_time_sequence - itr->second->get_time_sequence());
 				break;
 			}
 		}
 	}
 }
 
-bool DrawPicture::check_time_sequence_one_qubit(wireIter qu_wire_itr, std::vector<SequenceLayer>::iterator next_layer_iter)
+void TryToMergeTimeSequence::handle_measure_node(DrawPicture::wireIter& cur_qu_wire, SequenceLayer::iterator& itr_on_next_layer, bool &b_found_node_on_cur_qu_wire)
 {
-	/*const int cur_wire_time_sequence = qu_wire_itr->second->get_time_sequence();*/
+	const SequenceNode &node = itr_on_next_layer->first;
+	std::shared_ptr<AbstractQuantumMeasure> p_measure = dynamic_pointer_cast<AbstractQuantumMeasure>(m_prog_dag.get_vertex(node.m_vertex_num));
+	if (cur_qu_wire->first == p_measure->getQuBit()->getPhysicalQubitPtr()->getQubitAddr())
+	{
+		if ((m_parent.m_max_time_sequence - (cur_qu_wire->second->get_time_sequence())) < m_parent.get_measure_time_sequence())
+		{
+			m_b_continue_recurse = false;
+		}
+		else
+		{
+			m_parent.appendMeasure(p_measure);
+			m_next_layer.erase(itr_on_next_layer);
+			m_b_continue_recurse = true;
+		}
 
+		b_found_node_on_cur_qu_wire = true;
+	}
+}
+
+void TryToMergeTimeSequence::handle_reset_node(DrawPicture::wireIter& cur_qu_wire, SequenceLayer::iterator& itr_on_next_layer, bool &b_found_node_on_cur_qu_wire)
+{
+	const SequenceNode &node = itr_on_next_layer->first;
+	std::shared_ptr<AbstractQuantumReset> p_reset = dynamic_pointer_cast<AbstractQuantumReset>(m_prog_dag.get_vertex(node.m_vertex_num));
+	if (cur_qu_wire->first == p_reset->getQuBit()->getPhysicalQubitPtr()->getQubitAddr())
+	{
+		if ((m_parent.m_max_time_sequence - (cur_qu_wire->second->get_time_sequence())) < m_parent.get_reset_time_sequence())
+		{
+			m_b_continue_recurse = false;
+		}
+		else
+		{
+			m_parent.append_reset(p_reset);
+			m_next_layer.erase(itr_on_next_layer);
+			m_b_continue_recurse = true;
+		}
+
+		b_found_node_on_cur_qu_wire = true;
+	}
+}
+
+void TryToMergeTimeSequence::handle_gate_node(DrawPicture::wireIter& cur_qu_wire, SequenceLayer::iterator& itr_on_next_layer, bool &b_found_node_on_cur_qu_wire)
+{
+	QVec control_qubits_vec;
+	QVec qubits_vector;
+	const SequenceNode &node = itr_on_next_layer->first;
+	std::shared_ptr<AbstractQGateNode> p_gate = dynamic_pointer_cast<AbstractQGateNode>(m_prog_dag.get_vertex(node.m_vertex_num));
+	p_gate->getControlVector(control_qubits_vec);
+	p_gate->getQuBitVector(qubits_vector);
+	if ((qubits_vector.size() > 1) || (control_qubits_vec.size() > 0))
+	{
+		if ((m_parent.is_qubit_in_vec(cur_qu_wire->first, control_qubits_vec)) ||
+			(m_parent.is_qubit_in_vec(cur_qu_wire->first, qubits_vector)))
+		{
+			try_to_append_gate_to_cur_qu_wire(cur_qu_wire, itr_on_next_layer, m_next_layer);
+			b_found_node_on_cur_qu_wire = true;
+			return;
+		}
+	}
+	else
+	{
+		//single gate
+		if (cur_qu_wire->first == qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr())
+		{
+			try_to_append_gate_to_cur_qu_wire(cur_qu_wire, itr_on_next_layer, m_next_layer);
+			b_found_node_on_cur_qu_wire = true;
+			return;
+		}
+	}
+
+	m_b_continue_recurse = true;
+}
+
+void TryToMergeTimeSequence::try_to_append_gate_to_cur_qu_wire(DrawPicture::wireIter &qu_wire_itr, SequenceLayer::iterator& seq_iter, SequenceLayer& node_vec)
+{
+	QVec control_qubits_vec;
+	QVec qubits_vector;
+	const SequenceNode &seq_node = seq_iter->first;
+	std::shared_ptr<AbstractQGateNode> p_gate = dynamic_pointer_cast<AbstractQGateNode>(m_prog_dag.get_vertex(seq_node.m_vertex_num));
+	p_gate->getControlVector(control_qubits_vec);
+	p_gate->getQuBitVector(qubits_vector);
+
+	string gate_name;
+	m_parent.append_gate_param(gate_name, p_gate, (GateType)(seq_node.m_node_type));
+
+	if ((qubits_vector.size() > 1) || (control_qubits_vec.size() > 0))
+	{
+		if (((m_parent.m_max_time_sequence - (qu_wire_itr->second->get_time_sequence())) < m_parent.get_ctrl_node_time_sequence()) ||
+			(m_parent.check_ctrl_gate_time_sequence_conflicting(control_qubits_vec, qubits_vector)))
+		{
+			m_b_continue_recurse = false;
+			return;
+		}
+
+		//double gate
+		switch ((GateType)(seq_node.m_node_type))
+		{
+		case ISWAP_THETA_GATE:
+		case ISWAP_GATE:
+		case SQISWAP_GATE:
+		case SWAP_GATE:
+			m_parent.append_swap_gate(gate_name, qubits_vector, control_qubits_vec);
+			break;
+
+		case CU_GATE:
+		case CNOT_GATE:
+		case CZ_GATE:
+		case CPHASE_GATE:
+		{
+			int target_qubit = qubits_vector.back()->getPhysicalQubitPtr()->getQubitAddr();
+			qubits_vector.pop_back();
+			m_parent.append_ctrl_gate(gate_name, target_qubit, qubits_vector, control_qubits_vec);
+		}
+		break;
+
+		default:
+			break;
+		}
+	}
+	else
+	{
+		//single gate
+		m_parent.append_single_gate(gate_name, qubits_vector, control_qubits_vec);
+	}
+
+	m_next_layer.erase(seq_iter);
+	m_b_continue_recurse = true;
+}
+
+bool DrawPicture::check_time_sequence_one_qubit(wireIter qu_wire_itr, TopologicalSequence::iterator next_layer_iter)
+{
 	//if any qubit-line's time sequence is less than others,  try complement by node from next layer
 	//if (cur_wire_time_sequence < m_max_time_sequence)
 	if (next_layer_iter == m_layer_info.end())
@@ -952,125 +1140,22 @@ bool DrawPicture::check_time_sequence_one_qubit(wireIter qu_wire_itr, std::vecto
 		return false;
 	}
 
-	const QProgDAG &prog_dag = m_p_grapth_dag->getProgDAG();
-	bool b_could_continue_recurse = true;
-
 	//complement by node from next layer
-	auto &node_vec = (*next_layer_iter);
-	for (auto seq_node_item = node_vec.begin(); seq_node_item != node_vec.end(); ++seq_node_item)
+	auto &nodes_on_next_layer = (*next_layer_iter);
+	TryToMergeTimeSequence merge_time_sequence(*this, nodes_on_next_layer);
+	for (auto seq_node_item = nodes_on_next_layer.begin(); seq_node_item != nodes_on_next_layer.end(); ++seq_node_item)
 	{
 		const SequenceNode &node = seq_node_item->first;
+		bool b_found_node_on_cur_qu_wire = false;
 
-		if (-1 == node.m_node_type)
+		merge_time_sequence.handle_work(sequence_node_type_to_node_type((SequenceNodeType)(node.m_node_type)), qu_wire_itr, seq_node_item, b_found_node_on_cur_qu_wire);
+		if (b_found_node_on_cur_qu_wire)
 		{
-			std::shared_ptr<AbstractQuantumMeasure> p_measure = dynamic_pointer_cast<AbstractQuantumMeasure>(prog_dag.get_vertex(node.m_vertex_num));
-			if (qu_wire_itr->first == p_measure->getQuBit()->getPhysicalQubitPtr()->getQubitAddr())
-			{
-				b_could_continue_recurse = append_node_to_cur_time_sequence(qu_wire_itr, seq_node_item, node_vec);
-				break;
-			}
-		}
-		else
-		{
-			QVec control_qubits_vec;
-			QVec qubits_vector;
-			std::shared_ptr<AbstractQGateNode> p_gate = dynamic_pointer_cast<AbstractQGateNode>(prog_dag.get_vertex(node.m_vertex_num));
-			p_gate->getControlVector(control_qubits_vec);
-			p_gate->getQuBitVector(qubits_vector);
-			if ((qubits_vector.size() > 1) || (control_qubits_vec.size() > 0))
-			{
-				if ((is_qubit_in_vec(qu_wire_itr->first, control_qubits_vec)) ||
-					(is_qubit_in_vec(qu_wire_itr->first, qubits_vector)))
-				{
-					b_could_continue_recurse = append_node_to_cur_time_sequence(qu_wire_itr, seq_node_item, node_vec);
-					break;
-				}
-			}
-			else
-			{
-				//single gate
-				if (qu_wire_itr->first == qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr())
-				{
-					b_could_continue_recurse = append_node_to_cur_time_sequence(qu_wire_itr, seq_node_item, node_vec);
-					break;
-				}
-			}
-		}
-	}
-
-	return b_could_continue_recurse;
-}
-
-//if the target seq_node's qubit vector include the target qubit ,return true;
-bool DrawPicture::append_node_to_cur_time_sequence(wireIter qu_wire_itr, SequenceLayer::iterator seq_iter, SequenceLayer& node_vec)
-{
-	const QProgDAG &prog_dag = m_p_grapth_dag->getProgDAG();
-	int cur_node_time_sequence = 0;
-	const auto &seq_node = seq_iter->first;
-	if (-1 == seq_node.m_node_type)
-	{
-		std::shared_ptr<AbstractQuantumMeasure> p_measure = dynamic_pointer_cast<AbstractQuantumMeasure>(prog_dag.get_vertex(seq_node.m_vertex_num));
-		cur_node_time_sequence = get_measure_time_sequence();
-		if ((m_max_time_sequence - (qu_wire_itr->second->get_time_sequence())) < cur_node_time_sequence)
-		{
-			return false;
-		}
-
-		appendMeasure(p_measure);
-	}
-	else
-	{
-		QVec control_qubits_vec;
-		QVec qubits_vector;
-		std::shared_ptr<AbstractQGateNode> p_gate = dynamic_pointer_cast<AbstractQGateNode>(prog_dag.get_vertex(seq_node.m_vertex_num));
-		p_gate->getControlVector(control_qubits_vec);
-		p_gate->getQuBitVector(qubits_vector);
-
-		string gate_name;
-		append_gate_param(gate_name, p_gate, (GateType)(seq_node.m_node_type));
-
-		if ((qubits_vector.size() > 1) || (control_qubits_vec.size() > 0))
-		{
-			if (((m_max_time_sequence - (qu_wire_itr->second->get_time_sequence())) < get_ctrl_node_time_sequence()) ||
-				(check_ctrl_gate_time_sequence_conflicting(control_qubits_vec, qubits_vector)))
-			{
-				return false;
-			}
-
-			//double gate
-			switch ((GateType)(seq_node.m_node_type))
-			{
-			case ISWAP_THETA_GATE:
-			case ISWAP_GATE:
-			case SQISWAP_GATE:
-			case SWAP_GATE:
-				append_swap_gate(gate_name, qubits_vector, control_qubits_vec);
-				break;
-
-			case CU_GATE:
-			case CNOT_GATE:
-			case CZ_GATE:
-			case CPHASE_GATE:
-			{
-				int target_qubit = qubits_vector.back()->getPhysicalQubitPtr()->getQubitAddr();
-				qubits_vector.pop_back();
-				append_ctrl_gate(gate_name, target_qubit, qubits_vector, control_qubits_vec);
-			}
 			break;
-
-			default:
-				break;
-			}
-		}
-		else
-		{
-			//single gate
-			append_single_gate(gate_name, qubits_vector, control_qubits_vec);
 		}
 	}
 
-	node_vec.erase(seq_iter);
-	return true;
+	return merge_time_sequence.could_continue_merge();
 }
 
 //return true on time_sequence_conflicting, or else return false
@@ -1209,8 +1294,7 @@ string DrawPicture::present()
 	
 #ifdef _MSC_VER
 	fit_to_gbk(outputStr);
-	//outputStr = Utf8ToGbkOnWin32(outputStr.c_str());
-	outputStr = utf8ToGbk(outputStr);
+	outputStr = Utf8ToGbkOnWin32(outputStr.c_str()); 
 #endif
 
 	return outputStr;
@@ -1448,4 +1532,9 @@ int DrawPicture::get_swap_gate_time_sequence()
 int DrawPicture::get_single_gate_time_sequence()
 {
 	return m_time_sequence_conf.get_single_gate_time_sequence();
+}
+
+int DrawPicture::get_reset_time_sequence()
+{
+	return m_time_sequence_conf.get_reset_time_sequence();
 }

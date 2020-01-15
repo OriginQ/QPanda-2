@@ -20,6 +20,10 @@ limitations under the License.
 #include "Core/VirtualQuantumProcessor/NoiseQPU/NoiseCPUImplQPU.h"
 #include "ThirdParty/rapidjson/document.h"
 
+
+/**
+* @brief noise model type
+*/
 enum NOISE_MODEL
 {
 	DAMPING_KRAUS_OPERATOR,
@@ -48,22 +52,20 @@ bool depolarizing_kraus_operator(rapidjson::Value &value, NoiseOp & noise);
 
 /**
 * @brief  Get Noise model bit-phase flip matrix
-* @ingroup NoiseModel
+* @ingroup VirtualQuantumProcessor
 * @param[in]  rapidjson::Value  Noise model and probability
 * @param[out]  NoiseOp  Noise model matrix: E1 = sqrt(1-p){1,0,0,1}, E2 = sqrt(p) {0,-i,i,0}
-* @retval true   get matrix success
-* @retval false  get matrix failed
+* @return  bool true:get matrix success,  false:get matrix failed
 * @note    Use this at the SingleGateNoiseModeMap constructor
 */
 bool bit_phase_flip_operator(rapidjson::Value &value, NoiseOp & noise);
 
 /**
 * @brief  Get Noise model bit-phase flip matrix
-* @ingroup NoiseModel
+* @ingroup VirtualQuantumProcessor
 * @param[in]  rapidjson::Value  Noise model and probability
 * @param[out]  NoiseOp  Noise model matrix: E1 = {1,0,0,sqrt(1-p)} , E2 = {0,0,0,sqrt(p)}
-* @retval true   get matrix success
-* @retval false  get matrix failed
+* @return  bool true:get matrix success,  false:get matrix failed
 * @note    Use this at the SingleGateNoiseModeMap constructor
 */
 bool phase_damping_oprator(rapidjson::Value &value, NoiseOp &noise);
@@ -74,27 +76,30 @@ bool double_depolarizing_kraus_operator(rapidjson::Value &value, NoiseOp & noise
 
 /**
 * @brief  Get Noise model bit-phase flip matrix
-* @ingroup NoiseModel
+* @ingroup VirtualQuantumProcessor
 * @param[in]  rapidjson::Value  Noise model and probability
 * @param[out]  NoiseOp  Noise model matrix: E1 = sqrt(1-p){1,0,0,1}, E2 = sqrt(p) {0,-i,i,0}
-* @retval true   get matrix success
-* @retval false  get matrix failed
+* @return  bool true:get matrix success,  false:get matrix failed
 * @note    Use this at the DoubleGateNoiseModeMap constructor
 */
 bool double_bit_phase_flip_operator(rapidjson::Value &value, NoiseOp & noise);
 /**
 * @brief  Get Noise model bit-phase flip matrix
-* @ingroup NoiseModel
+* @ingroup VirtualQuantumProcessor
 * @param[in]  rapidjson::Value  Noise model and probability
 * @param[out]  NoiseOp  Noise model matrix: E1 = {1,0,0,sqrt(1-p)}, E2 = {0,0,0,sqrt(p)}
-* @retval true   get matrix success
-* @retval false  get matrix failed
+* @return  bool true:get matrix success,  false:get matrix failed
 * @note    Use this at the DoubleGateNoiseModeMap constructor
 */
 bool double_phase_damping_oprator(rapidjson::Value &value, NoiseOp &noise);
 
 
 typedef bool(*noise_mode_function)(rapidjson::Value &, NoiseOp &);
+
+/**
+* @brief  Single gate noise mode map
+* @ingroup VirtualQuantumProcessor
+*/
 class SingleGateNoiseModeMap
 {
 public:
@@ -108,6 +113,10 @@ private:
 	SingleGateNoiseModeMap(const SingleGateNoiseModeMap &) = delete;
 };
 
+/**
+* @brief  Double gate noise mode map
+* @ingroup VirtualQuantumProcessor
+*/
 class DoubleGateNoiseModeMap
 {
 public:

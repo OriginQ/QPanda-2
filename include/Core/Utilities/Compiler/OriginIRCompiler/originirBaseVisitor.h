@@ -203,7 +203,7 @@ public:
     return visitChildren(ctx);
   }
 
-  virtual antlrcpp::Any visitPmeasure_statement(originirParser::Pmeasure_statementContext *ctx) override {
+  virtual antlrcpp::Any visitReset_statement(originirParser::Reset_statementContext *ctx) override {
     return visitChildren(ctx);
   }
 

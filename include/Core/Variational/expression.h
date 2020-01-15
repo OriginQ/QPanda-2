@@ -11,7 +11,7 @@ namespace Variational {
 
 /**
  * @brief A proxy class for the Variational::var
- * 
+ * @ingroup Variational
  */
 class expression {
 public:

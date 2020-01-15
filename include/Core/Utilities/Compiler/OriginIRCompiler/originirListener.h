@@ -155,8 +155,8 @@ public:
   virtual void enterMeasure_statement(originirParser::Measure_statementContext *ctx) = 0;
   virtual void exitMeasure_statement(originirParser::Measure_statementContext *ctx) = 0;
 
-  virtual void enterPmeasure_statement(originirParser::Pmeasure_statementContext *ctx) = 0;
-  virtual void exitPmeasure_statement(originirParser::Pmeasure_statementContext *ctx) = 0;
+  virtual void enterReset_statement(originirParser::Reset_statementContext *ctx) = 0;
+  virtual void exitReset_statement(originirParser::Reset_statementContext *ctx) = 0;
 
   virtual void enterExpression_statement(originirParser::Expression_statementContext *ctx) = 0;
   virtual void exitExpression_statement(originirParser::Expression_statementContext *ctx) = 0;

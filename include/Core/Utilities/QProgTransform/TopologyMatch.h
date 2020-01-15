@@ -7,9 +7,6 @@
 #include "Core/Utilities/Tools/Traversal.h"
 
 QPANDA_BEGIN
-/**
-* @namespace QPanda
-*/
 
 struct edge
 {
@@ -99,6 +96,10 @@ enum ArchType
 	ORIGIN_VIRTUAL_ARCH,
 };
 
+/**
+* @brief swap qubit location algorithm abstract class 
+* @ingroup Utilities
+*/
 class TransformSwapAlg
 {
 public:
@@ -107,6 +108,10 @@ public:
 	virtual int getFlipCost() = 0;
 };
 
+/**
+* @brief swap qubit location by CNOT quantum gate
+* @ingroup Utilities
+*/
 class TransformByCNOT : public TransformSwapAlg
 {
 public:
@@ -125,6 +130,10 @@ public:
 	inline int getFlipCost() { return 4; }
 };
 
+/**
+* @brief swap qubit location by CZ quantum gate
+* @ingroup Utilities
+*/
 class TransformByCZ : public TransformSwapAlg
 {
 public:
@@ -146,6 +155,10 @@ public:
 	inline int getFlipCost() { return 0; }
 };
 
+/**
+* @brief swap qubit location by ISWAP quantum gate
+* @ingroup Utilities
+*/
 class TransformByISWAP : public TransformSwapAlg
 {
 public:
@@ -178,6 +191,10 @@ public:
 	inline int getFlipCost() { return 0; }
 };
 
+/**
+* @brief swap qubit location by SWAP quantum gate
+* @ingroup Utilities
+*/
 class TransformBySWAP : public TransformSwapAlg
 {
 public:
@@ -191,10 +208,9 @@ public:
 	int getFlipCost() { return 0; }
 };
 
-/**
-* @class TopologyMatch
+/** 
+* @brief swap qubit location algorithm factory
 * @ingroup Utilities
-* @brief QProg/QCircuit matches the topology of the physical qubits
 */
 class TransformSwapAlgFactory
 {
@@ -230,7 +246,6 @@ public:
 	}
 };
 
-
 /**
 * @class TopologyMatch
 * @ingroup Utilities
@@ -251,6 +266,7 @@ public:
 
 	virtual void execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node, bool &);
 	virtual void execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, std::shared_ptr<QNode> parent_node, bool &);
+	virtual void execute(std::shared_ptr<AbstractQuantumReset> cur_node, std::shared_ptr<QNode> parent_node, bool &);
 	virtual void execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node, bool &);
 	virtual void execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std::shared_ptr<QNode> parent_node, bool &);
 	virtual void execute(std::shared_ptr<AbstractQuantumProgram>  cur_node, std::shared_ptr<QNode> parent_node, bool &);
@@ -278,17 +294,17 @@ private:
 	void buildResultingQProg(const std::vector<gate> &resulting_gates, QProg &prog);
 private:
 
-	size_t m_positions;  // physical  qubits  number
-	size_t m_nqubits;    // quantum machine allocate qubits
+	size_t m_positions;  /**< physical  qubits  number   */
+	size_t m_nqubits;    /**< quantum machine allocate qubits */
 
 	size_t m_swap_cost;
 	size_t m_flip_cost;
 	int m_swap_qubits_method;
 
-	std::set<edge> m_graph;		 //topological graph
-	std::vector<std::vector<gate> > m_layers;    //qprog layered results
+	std::set<edge> m_graph;		  /**< topological graph */
+	std::vector<std::vector<gate> > m_layers;    /**< qprog layered results */
 	std::vector<int> m_last_layer;
-	std::priority_queue<node, std::vector<node>, node_cmp> m_nodes;    // priority_queue of searched nodes
+	std::priority_queue<node, std::vector<node>, node_cmp> m_nodes;     /**< priority_queue of searched nodes */
 	TransformSwapAlg *m_pTransformSwap;
 	QuantumMachine *m_qvm;
 	std::map<int, std::vector<std::vector<int> > > m_gate_dist_map;
@@ -302,13 +318,11 @@ private:
 /**
 * @brief  QProg/QCircuit matches the topology of the physical qubits
 * @ingroup Utilities
-* @param[in]  QProg&  quantum program
-* @param[in]  QuantumMachine *  quantum machine
-* @param[in]  SwapQubitsMethod   swap qubits by CNOT/CZ/SWAP/iSWAP gate 
-* @param[in]  ArchType    architectures type  
+* @param[in]  prog  quantum program
+* @param[in]  machine  quantum machine
+* @param[in]  method   swap qubits by CNOT/CZ/SWAP/iSWAP gate 
+* @param[in]  arch_type    architectures type  
 * @return    QProg   mapped  quantum program
-* @exception
-* @note
 */
 QProg  topology_match(QProg &prog, QuantumMachine *machine,
 	SwapQubitsMethod method = CNOT_GATE_METHOD, ArchType arch_type = IBM_QX5_ARCH);

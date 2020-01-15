@@ -58,6 +58,7 @@ std::ostream& operator<<(std::ostream &out, QStat &mat);
 
 /**
 * @brief  partition matrix by the input partitionRowNum and partitionColumnNum
+* @ingroup Utilities
 * @param[in] srcMatrix  the source matrix
 * @param[in] partitionRowNum Specify how many blocks to separated horizontally
 * @param[in] partitionColumnNum Specify how many blocks to separated in the vertical direction
@@ -68,6 +69,7 @@ int partition(const QStat& srcMatrix, int partitionRowNum, int partitionColumnNu
 
 /**
 * @brief  Block Multiplication of Matrix
+* @ingroup Utilities
 * @param[in] leftMatrix  the left input matrix
 * @param[in] blockedMat The matrix blocks
 * @param[out] resultMatrix The result of Block Multiplication
@@ -77,13 +79,15 @@ int blockMultip(const QStat& leftMatrix, const blockedMatrix_t& blockedMat, QSta
 
 /**
 * @brief Getting the Inverted Conjugate Matrix of the target Matrix
-* @param[in/out] srcMat  the target matrix
+* @ingroup Utilities
+* @param[in,out] srcMat  the target matrix
 * @return
 */
 void dagger(QStat &srcMat);
 
 /**
 * @brief Tensor Multiplication
+* @ingroup Utilities
 * @param[in] leftMatrix  the left input matrix
 * @param[in] rightMatrix the right input matrix
 * @return Tensor Product of input Left Matrix and Right Matrix.
@@ -92,10 +96,21 @@ QStat tensor(const QStat& leftMatrix, const QStat& rightMatrix);
 
 /**
 * @brief  output matrix information to consol
-* @param[in] the target matrix
+* @ingroup Utilities
+* @param[in] mat the target matrix
 * @return the matrix string
 */
 std::string matrix_to_string(const QStat& mat);
+
+/**
+* @brief Compare the two matrices to determine whether they are equal
+* @ingroup Utilities
+* @param[in] "const QStat&" the first matrix
+* @param[in] "const QStat&" the second matrix
+* @param[in] double Comparative accuracy
+* @return if the two input matrices are equal return 0, or else return others
+*/
+int mat_compare(const QStat& mat1, const QStat& mat2, const double precision = 0.000001);
 
 QPANDA_END
 #endif // QSTATMATRIX_H

@@ -15,6 +15,15 @@
 
 QPANDA_BEGIN
 
+enum CLOUD_QMACHINE_TYPE
+{
+    Full_AMPLITUDE,
+    NOISE_QMACHINE,
+    PARTIAL_AMPLITUDE,
+    SINGLE_AMPLITUDE,
+    CHEMISTRY
+};
+
 /**
 * @namespace QPanda
 */
@@ -78,18 +87,32 @@ public:
 
     std::map<std::string, double> getResult(std::string taskid);
 
+    std::string full_amplitude_measure(QProg &, int shot);
+  
+    std::string full_amplitude_pmeasure(QProg &prog, const Qnum &qubit_vec);
+    
+    std::string partial_amplitude_pmeasure(QProg &prog, std::vector<std::string> &amplitude_vec);
 
+    std::string single_amplitude_pmeasure(QProg &prog, std::string amplitude);
+
+    std::string get_result(CLOUD_QMACHINE_TYPE type, std::string taskid);
 
 private:
     std::string m_compute_url;
     std::string m_inqure_url;
     std::string m_token;
 
-    enum TASK_TYPE
+    enum CLOUD_TASK_TYPE
     {
-        MEASURE = 0,
-        PMEASURE
+        CLOUD_MEASURE = 0,
+        CLOUD_PMEASURE
     }; 
+
+    enum CLUSTER_TASK_TYPE
+    {
+        CLUSTER_MEASURE = 1,
+        CLUSTER_PMEASURE
+    };
 
     enum TASK_STATUS
     {
@@ -101,6 +124,11 @@ private:
 
     std::string postHttpJson(const std::string &, std::string &);
     std::string parserRecvJson(std::string recv_json, std::map<std::string, double>& recv_res);
+
+    std::string parser_cluster_result_json(std::string &recv_json);
+
+    void add_string_value(rapidjson::Document &, const string &, const int &);
+    void add_string_value(rapidjson::Document &, const string &, const std::string &);
 };
 
 QPANDA_END
@@ -110,7 +138,7 @@ QPANDA_END
 QPANDA_BEGIN
 /**
 * @brief  Quamtum program tramsform to binary data
-* @ingroup  Utilities
+* @ingroup  QuantumMachine
 * @param[in]  size_t qubit num
 * @param[in]  size_t cbit num
 * @param[in]  QProg the reference to a quantum program

@@ -22,22 +22,68 @@ limitations under the License.
 #include <stack>
 QPANDA_BEGIN
 
+/**
+* @brief QubitPool abstract class
+*   It is the container of the PhysicalQubit
+* @ingroup QuantumMachine
+*/
 class QubitPool
 {
-    // Interface for the QubitPool
-    // It is the container of the PhysicalQubit
-
     // Get the static information of the pool
 public:
+	/**
+     * @brief get size of the PhysicalQubit vector
+	 * @return size_t
+     */
     virtual size_t getMaxQubit() const = 0;
+	
+	/**
+     * @brief get size of the idle position
+	 * @return size_t
+     */
     virtual size_t getIdleQubit() const = 0;
+	
+	/**
+     * @brief allocate a Qubit 
+	 * @return Qubit*
+     */
     virtual Qubit* allocateQubit() = 0;
+
+	/**
+     * @brief allocate a Qubit  through physical address
+	 * @return Qubit*
+     */
     virtual Qubit* allocateQubitThroughPhyAddress(size_t) = 0;
-    virtual Qubit* allocateQubitThroughVirAddress(size_t qubit_num) = 0; // allocate and return a qubit
+	
+	/**
+     * @brief allocate a Qubit  through virtual address
+	 * @return Qubit*
+     */
+    virtual Qubit* allocateQubitThroughVirAddress(size_t qubit_num) = 0; 
+	
+	/**
+     * @brief free a Qubit  
+     */
     virtual void Free_Qubit(Qubit*) = 0;
+	
+	/**
+     * @brief  clear the PhysicalQubit vector
+     */
     virtual void clearAll() = 0;
     virtual ~QubitPool() {}
+	
+	/**
+     * @brief get physical qubit address
+	 * @param[in] Qubit*
+	 * @return size_t
+     */
     virtual size_t getPhysicalQubitAddr(Qubit*) = 0;
+
+	/**
+     * @brief get virtual qubit address
+	 * @param[in] Qubit*
+	 * @return size_t
+     */
     virtual size_t getVirtualQubitAddress(Qubit*) const = 0;
 };
 
@@ -52,11 +98,19 @@ static QubitPoolFactoryHelper _Qubit_Pool_Factory_Helper_##classname(\
     classname##_Constructor\
 )
 
-/* Qubit Pool Factory */
+
+/**
+* @brief Factory for class QubitPool
+* @ingroup QuantumMachine
+*/
 class QubitPoolFactory
 {
     QubitPoolFactory();
 public:
+	/**
+     * @brief Get the static instance of factory 
+	 * @return QubitPoolFactory &
+     */
     static QubitPoolFactory& GetFactoryInstance();
     typedef std::function<QubitPool*(size_t)> size_constructor_t;
     typedef std::map<std::string, size_constructor_t> size_constructor_stack_t;
@@ -65,6 +119,12 @@ public:
     void registerclass_size_(std::string &, size_constructor_t constructor);
 };
 
+
+/**
+ * @brief Qubit Pool  Factory helper
+ * Provide QubitPoolFactory class registration interface for the outside
+ * @ingroup QuantumMachine
+ */
 class QubitPoolFactoryHelper
 {
     typedef QubitPoolFactory::

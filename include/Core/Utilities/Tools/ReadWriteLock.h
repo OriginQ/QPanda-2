@@ -22,6 +22,10 @@ limitations under the License.
 #include <condition_variable>
 #include <functional>
 
+/**
+* @brief Shared Mutex
+* @ingroup Utilities
+*/
 class SharedMutex
 {
 private:
@@ -77,6 +81,10 @@ public:
     }
 };
 
+/**
+* @brief Read Lock
+* @ingroup Utilities
+*/
 class ReadLock
 {
 private:
@@ -93,6 +101,10 @@ public:
     }
 };
 
+/**
+* @brief Write Lock 
+* @ingroup Utilities
+*/
 class WriteLock
 {
 private:

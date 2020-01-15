@@ -21,6 +21,84 @@ limitations under the License.
 #include "Core/Core.h"
 #include "Components/Components.h"
 #include "QAlg/QAlg.h"
+/**
+* @defgroup Components
+* @brief QPanda2  Components  Group
+*
+* @defgroup ChemiQ
+* @ingroup Components
+*
+* @defgroup HamiltonianSimulation
+* @ingroup Components
+*
+* @defgroup MaxCutProblemGenerator
+* @ingroup Components
+*
+* @defgroup Operator
+* @ingroup Components
+*
+* @defgroup Optimizer
+* @ingroup Components
+*
+* @defgroup Utils
+* @ingroup Components
+*/
+
+
+/**
+* @defgroup Core
+* @brief QPanda2 Core Group
+*
+* @defgroup Module
+* @ingroup Core
+*
+* @defgroup QuantumCircuit
+* @brief QPanda2  quantum circuit and quantum program
+* @ingroup Core
+*
+* @defgroup QuantumMachine
+* @brief  QPanda2 quantum virtual machine
+* @ingroup Core
+*
+* @defgroup Utilities
+* @brief QPanda2  base  Utilities  classes and  interface
+* @ingroup Core
+*
+* @defgroup Variational
+* @brief QPanda2   variate
+* @ingroup Core
+*
+* @defgroup VirtualQuantumProcessor
+* @brief QPanda2  virtual quantum processor
+* @ingroup Core
+*/
+
+
+/**
+* @defgroup QAlg
+* @brief QPanda2 Algorithm Group
+*
+* @defgroup B_V_Algorithm
+* @brief  Bernstein-Vazirani algorithm
+* @ingroup QAlg
+*
+* @defgroup QAlgChemiQ
+* @brief ChemiQ
+* @ingroup QAlg
+*
+* @defgroup DJ_Algorithm
+* @brief Deutsch Jozsa algorithm
+* @ingroup QAlg
+*
+* @defgroup Grover_Algorithm
+* @brief Grover Algorithm
+* @ingroup QAlg
+*
+* @defgroup QAOA
+* @brief QAOA
+* @ingroup QAlg
+*
+*/
 
 
 #endif // !_QPANDA_H

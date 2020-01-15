@@ -364,3 +364,14 @@ int TimeSequenceConfig::get_single_gate_time_sequence()
 
 	return _single_gate_time_sequence;
 }
+
+int TimeSequenceConfig::get_reset_time_sequence()
+{
+	static int _reset_time_sequence = -1;
+	if (0 > _reset_time_sequence)
+	{
+		_reset_time_sequence = read_config(Q_RESET_TIME_SEQUENCE, 1);
+	}
+
+	return _reset_time_sequence;
+}

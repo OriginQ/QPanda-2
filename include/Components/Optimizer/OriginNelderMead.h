@@ -18,16 +18,17 @@ Created in 2018-09-06
 
 namespace QPanda
 {
-
-    /*
-
-    Minimization of scalar function of one or more variables using the
-    Nelder-Mead algorithm.
-
-    */
+	/**
+	* @brief  Minimization of scalar function of one or more variables using the
+              Nelder-Mead algorithm.
+    * @ingroup Optimizer
+	*/
     class OriginNelderMead : public AbstractOptimizer
     {
     public:
+		/**
+		* @brief  Constructor of OriginNelderMead
+		*/
         OriginNelderMead();
         OriginNelderMead(const OriginNelderMead &) = delete;
         OriginNelderMead& operator = (const OriginNelderMead &) = delete;
@@ -50,10 +51,10 @@ namespace QPanda
         void saveParaToCache();
         bool restoreParaFromCache();
     private:
-        double m_rho;       // | ¦Ñ <=> ¦Á | para of nelder-mead
-        double m_chi;       // | ¦Ö <=> ¦Ã | para of nelder-mead
-        double m_psi;       // | ¦× <=> ¦Â | para of nelder-mead
-        double m_sigma;     // | ¦Ò <=> ¦Ä | para of nelder-mead
+        double m_rho;       /**< | ¦Ñ <=> ¦Á | para of nelder-mead */
+        double m_chi;       /**< | ¦Ö <=> ¦Ã | para of nelder-mead */
+        double m_psi;       /**< | ¦× <=> ¦Â | para of nelder-mead */
+        double m_sigma;     /**< | ¦Ò <=> ¦Ä | para of nelder-mead */
 
         double m_nonzdelt;
         double m_zdelt;

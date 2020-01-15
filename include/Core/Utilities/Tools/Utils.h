@@ -41,23 +41,21 @@ QProg Reset_Qubit(Qubit* q, bool setVal, QuantumMachine * qvm);
 
 QProg Reset_All(std::vector<Qubit*> qubit_vector, bool setVal,QuantumMachine * qvm);
 
-/*
-CNOT all qubits (except last) with the last qubit
 
-param:
-qubit_vec: qubit vector
-return:
-QCircuit
+/**
+* @brief  CNOT all qubits (except last) with the last qubit
+* @ingroup Utilities
+* @param[in]  std::vector<Qubit*>  qubit vector
+* @return     QCircuit
 */
 QCircuit parityCheckCircuit(std::vector<Qubit*> qubit_vec);
 
-/*
-Apply Quantum Gate on a series of Qubit
-
-param:
-qubits: qubit vector
-return:
-QCircuit
+/**
+* @brief  Apply Quantum Gate on a series of Qubit
+* @ingroup Utilities
+* @param[in]  QVec  qubit vector
+* @param[in]  std::function<QGate(Qubit*)>  QGate function
+* @return     QCircuit
 */
 inline QCircuit apply_QGate(QVec qubits, std::function<QGate(Qubit*)> gate) {
 	QCircuit c;
@@ -78,12 +76,27 @@ inline QCircuit applyQGate(QVec qubits, std::function<QGate(Qubit*)> gate) {
 template<typename InputType, typename OutputType>
 using Oracle = std::function<QCircuit(InputType, OutputType)>;
 
+/**
+* @brief  Toffoli Quantum Gate 
+* @ingroup Utilities
+* @param[in]  Qubit*  first control qubit 
+* @param[in]  Qubit*  second control qubit 
+* @param[in]  Qubit*  target qubit
+* @return     QGate
+*/
 inline QGate Toffoli(Qubit* qc1, Qubit* qc2, Qubit* target) {
 	auto gate = X(target);
 	gate.setControl({ qc1,qc2 });
 	return gate;
 }
 
+/**
+* @brief  Splits the string by symbol
+* @ingroup Utilities
+* @param[in]  std::string&  string
+* @param[in]  std::string&  delim 
+* @return     std::vector<std::string>
+*/
 inline std::vector<std::string> split(const std::string& str, const std::string& delim) {
 	std::vector<std::string> res;
 	if ("" == str) return res;
@@ -103,6 +116,13 @@ inline std::vector<std::string> split(const std::string& str, const std::string&
 	return res;
 }
 
+/**
+* @brief  cast string to int
+* @ingroup Utilities
+* @param[in]  std::string&  string
+* @param[out]   long long&  number
+* @return     bool
+*/
 inline bool str2int(std::string s, long long& num) {
 	try {
 		num = atoll(s.c_str());
@@ -113,6 +133,13 @@ inline bool str2int(std::string s, long long& num) {
 	}
 }
 
+/**
+* @brief  cast string to double
+* @ingroup Utilities
+* @param[in]  std::string&  string
+* @param[out]  double&  number
+* @return     bool
+*/
 inline bool str2double(std::string s, double& num) {
 	try {
 		num = atof(s.c_str());
@@ -124,18 +151,36 @@ inline bool str2double(std::string s, double& num) {
 }
 
 
+/**
+* @brief  cast long long to string
+* @ingroup Utilities
+* @param[in]  long long  number
+* @return     std::string
+*/
 inline std::string ll2str(long long num) {
 	char p[100];
     snprintf(p, sizeof(p), "%lld", num);
 	return std::string(p);
 }
 
+/**
+* @brief  cast int to string
+* @ingroup Utilities
+* @param[in]  int  number
+* @return     std::string
+*/
 inline std::string int2str(int num) {
 	char p[100];
     snprintf(p, sizeof(p), "%d", num);
 	return std::string(p);
 }
 
+/**
+* @brief  cast double to string
+* @ingroup Utilities
+* @param[in]  double  number
+* @return     std::string
+*/
 inline std::string double2str(double num) {
 	char p[100];
     snprintf(p, sizeof(p), "%lf", num);

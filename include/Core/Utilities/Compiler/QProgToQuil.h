@@ -24,10 +24,7 @@ Classes for QProgToQuil.
 #include <string>
 
 QPANDA_BEGIN
-/**
-* @namespace QPanda
-* @namespace QGATE_SPACE
-*/
+
 /**
 * @class QProgToQuil
 * @ingroup Utilities
@@ -43,30 +40,26 @@ public:
     * @brief  transform quantum program
     * @param[in]  QProg&  quantum program
     * @return     void  
-    * @exception    qprog_syntax_error   quantum program syntax error
     */
     virtual void transform(QProg & prog);
 
     /**
     * @brief  get Quil insturction set
     * @return     std::string
-    * @exception
-    * @note
     */
     virtual std::string getInsturctions();
 
-	/*! add by zhaody
+	/**
 	* @brief  Transform Quantum program by Traversal algorithm, refer to class Traversal
 	* @param[in]  QProg&  quantum program
 	* @return     void
-	* @exception
-	* @note
 	*/
 	void transformQProgByTraversalAlg(QProg *prog);
 
 public:
 	virtual void execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node, bool &);
 	virtual void execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, std::shared_ptr<QNode> parent_node, bool &);
+	virtual void execute(std::shared_ptr<AbstractQuantumReset> cur_node, std::shared_ptr<QNode> parent_node, bool &);
 	virtual void execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node, bool &);
 	virtual void execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std::shared_ptr<QNode> parent_node, bool &);
 	virtual void execute(std::shared_ptr<AbstractQuantumProgram>  cur_node, std::shared_ptr<QNode> parent_node, bool &);
@@ -75,6 +68,7 @@ public:
 protected:
     virtual void transformQGate(AbstractQGateNode*, bool is_dagger);
     virtual void transformQMeasure(AbstractQuantumMeasure*);
+	virtual void transformQReset(AbstractQuantumReset *reset);
     virtual void transformQControlFlow(AbstractControlFlowNode *);
 
     void dealWithQuilGate(AbstractQGateNode*);
@@ -89,7 +83,7 @@ private:
 * @brief  Quantum program transform to quil instruction set interface
 * @ingroup Utilities
 * @param[in]  QProg&   quantum program
-* @param[in]   QuantumMachine *  quantum machine pointer
+* @param[in]   QuantumMachine*  quantum machine pointer
 * @return     std::string   instruction set
 * @see
       @code
@@ -108,7 +102,6 @@ private:
 		  transformQProgToQuil(prog, global_quantum_machine)
           finalize();
       @endcode
-* @exception    qprog_syntax_error   quantum program syntax error
 * @note
 */
 std::string transformQProgToQuil(QProg&, QuantumMachine * quantum_machine);
@@ -118,9 +111,8 @@ std::string transformQProgToQuil(QProg&, QuantumMachine * quantum_machine);
 * @brief  Quantum program transform to quil instruction set interface
 * @ingroup Utilities
 * @param[in]  QProg&   quantum program
-* @param[in]   QuantumMachine *  quantum machine pointer
+* @param[in]   QuantumMachine*  quantum machine pointer
 * @return     std::string   instruction set
-* @exception    qprog_syntax_error   quantum program syntax error
 */
 std::string convert_qprog_to_quil(QProg &prog, QuantumMachine *qm);
 

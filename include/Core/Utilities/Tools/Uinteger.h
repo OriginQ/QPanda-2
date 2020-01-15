@@ -11,14 +11,11 @@ using namespace std;
 using uint128_t = wide_integer::generic_template::uint128_t;
 using uint256_t = wide_integer::generic_template::uint256_t;
 using uint512_t = wide_integer::generic_template::uint512_t;
-/**
-* @namespace QPanda
-*/
 
 /**
 * @brief  Unsigned integer to binary string
 * @ingroup Utilities
-* @param[in]  const UnsignedIntegralType & number
+* @param[in]  UnsignedIntegralType& number
 * @param[in]  int binary string length
 * @return     std::string  unsigned integer string
 */
@@ -40,7 +37,7 @@ std::string integerToBinary(const UnsignedIntegralType &number, int ret_len)
 /**
 * @brief  Unsigned integer to binary string
 * @ingroup  Utilities
-* @param[in]  const UnsignedIntegralType & number
+* @param[in]  UnsignedIntegralType& number
 * @return     std::string   unsigned integer string
 */
 template <typename UnsignedIntegralType>
@@ -58,8 +55,9 @@ std::string integerToString(const UnsignedIntegralType &number)
 
 /**
 * @brief  Get quantum state dec index in pmeasure
-* @param[in]  const UnsignedIntegralType & num1
-* @param[in]  const UnsignedIntegralType & num2
+* @ingroup Utilities
+* @param[in]  UnsignedIntegralType& num1
+* @param[in]  UnsignedIntegralType& num2
 * @param[in]  std::vector<size_t> qvec
 * @param[in]  size_t binary string length
 * @return     Unsigned Integral Type

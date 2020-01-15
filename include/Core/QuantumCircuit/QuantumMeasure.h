@@ -20,20 +20,27 @@ limitations under the License.
 #include "Core/QuantumMachine/QubitFactory.h"
 #include "Core/QuantumCircuit/QNode.h"
 #include "Core/QuantumCircuit/ClassicalConditionInterface.h"
+
 QPANDA_BEGIN
-/**
-* @namespace QPanda
-*/
 
 /**
 * @class AbstractQuantumMeasure
 * @brief Quantum Measure basic abstract class
-* @ingroup Core
+* @ingroup QuantumCircuit
 */
 class AbstractQuantumMeasure
 {
 public:
+	/**
+     * @brief Get measure node qubit address
+	 * @return Qubit *
+     */
     virtual Qubit * getQuBit() const =0;
+	
+	/**
+     * @brief  Get measure node cbit address
+	 * @return CBit *
+     */
     virtual CBit * getCBit()const = 0;
     virtual ~AbstractQuantumMeasure() {}
 };
@@ -41,7 +48,7 @@ public:
 /**
 * @class QMeasure
 * @brief Quantum Measure  basic  class
-* @ingroup Core
+* @ingroup QuantumCircuit
 */
 class QMeasure : public AbstractQuantumMeasure
 {
@@ -61,12 +68,21 @@ private:
 };
 
 typedef AbstractQuantumMeasure * (*CreateMeasure)(Qubit *, CBit *);
+
+/**
+ * @brief Factory for class AbstractQuantumMeasure
+ * @ingroup QuantumCircuit
+ */
 class QuantumMeasureFactory
 {
 public:
     void registClass(std::string name, CreateMeasure method);
     AbstractQuantumMeasure * getQuantumMeasure(std::string &, Qubit *, CBit *);
 
+	/**
+     * @brief Get the static instance of factory 
+	 * @return QuantumMeasureFactory &
+     */
     static QuantumMeasureFactory & getInstance()
     {
         static QuantumMeasureFactory  s_Instance;
@@ -78,6 +94,10 @@ private:
 
 };
 
+/**
+* @brief QMeasure program register action
+* @note Provide QuantumMeasureFactory class registration interface for the outside
+ */
 class QuantumMeasureRegisterAction {
 public:
     QuantumMeasureRegisterAction(std::string className, CreateMeasure ptrCreateFn) {

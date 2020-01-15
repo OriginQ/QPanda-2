@@ -16,6 +16,7 @@ Classes for get the shortes path of graph
 #include "Core/QuantumCircuit/QCircuit.h"
 #include "Core/QuantumCircuit/QGate.h"
 #include "Core/QuantumCircuit/QuantumMeasure.h"
+#include "Core/QuantumCircuit/QReset.h"
 #include "Core/QuantumCircuit/ClassicalProgram.h"
 #include <memory>
 QPANDA_BEGIN
@@ -28,8 +29,8 @@ QPANDA_BEGIN
 class TraversalConfig
 {
 public:
-	size_t m_qubit_number; /* quantum bit number */
-	std::map<std::string, bool> m_return_value; /* MonteCarlo result */
+	size_t m_qubit_number; /**< quantum bit number */
+	std::map<std::string, bool> m_return_value; /**< MonteCarlo result */
 	bool m_is_dagger;
 	std::vector<QPanda::Qubit *> m_control_qubit_vector;
 
@@ -38,79 +39,6 @@ public:
 		m_qubit_number = 0;
 		m_is_dagger = false;
 	}
-};
-
-
-/**
-* @class TraversalInterface
-* @brief All objects that want to use the class Traversal need to integrate this class
-* @ingroup Utilities
-*/
-template<typename... Args >
-class TraversalInterface
-{
-public:
-    /*!
-    * @brief  Execution traversal qgatenode
-    * @param[in|out]  AbstractQGateNode*  quantum gate
-    * @param[in]  QNode*  parent Node
-    * @return     void
-    * @exception invalid_argument
-    * @note
-    */
-    virtual void execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node, Args&& ... func_args) = 0;
-    
-    /*!
-    * @brief  Execution traversal measure node
-    * @param[in|out]  AbstractQuantumMeasure*  measure node
-    * @param[in]  QNode*  parent Node
-    * @return     void
-    * @exception invalid_argument
-    * @note
-    */
-    virtual void execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, std::shared_ptr<QNode> parent_node, Args&& ... func_args) = 0;
-
-    /*!
-    * @brief  Execution traversal control flow node
-    * @param[in|out]  AbstractControlFlowNode*  control flow node
-    * @param[in]  QNode*  parent Node
-    * @return     void
-    * @exception invalid_argument
-    * @note
-    */
-    virtual void execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node, Args&& ... func_args) = 0;
-
-
-    /*!
-    * @brief  Execution traversal qcircuit
-    * @param[in|out]  AbstractQuantumCircuit*  quantum circuit
-    * @param[in]  QNode*  parent Node
-    * @return     void
-    * @exception invalid_argument
-    * @note
-    */
-    virtual void execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std::shared_ptr<QNode> parent_node, Args&& ... func_args) = 0;
-
-    /*!
-    * @brief  Execution traversal qprog
-    * @param[in|out]  AbstractQuantumProgram*  quantum prog
-    * @param[in]  QNode*  parent Node
-    * @return     void
-    * @exception invalid_argument
-    * @note
-    */
-    virtual void execute(std::shared_ptr<AbstractQuantumProgram>  cur_node, std::shared_ptr<QNode> parent_node, Args&& ... func_args)=0;
-    /*!
-    * @brief  Execution traversal qprog
-    * @param[in|out]  AbstractClassicalProg*  classical prog
-    * @param[in]  QNode*  parent Node
-    * @return     void
-    * @exception invalid_argument
-    * @note
-    */
-    virtual void execute(std::shared_ptr<AbstractClassicalProg>  cur_node,
-        std::shared_ptr<QNode> parent_node,
-        Args&& ... func_args) = 0;
 };
 
  
@@ -128,8 +56,6 @@ public:
     * @param[in]  AbstractControlFlowNode*  Control flow nodes that need to be traversed
     * @param[in]  TraversalInterface*  The method object needed for traversal
     * @return     void
-    * @exception  invalid_argument runtime_error
-    * @note
     */
     template<typename T,typename... Args>
     static void traversal(std::shared_ptr<AbstractControlFlowNode> control_flow_node, T & func_class, Args&& ... func_args)
@@ -174,8 +100,6 @@ public:
     * @param[in]  TraversalInterface*  The method object needed for traversal
     * @param[in]  bool  Whether the quantum circuit needs to be transposed
     * @return     void
-    * @exception  invalid_argument runtime_error
-    * @note
     */
    template<typename T,typename... Args>
     static void traversal(std::shared_ptr<AbstractQuantumCircuit> qcircuit_node, bool identify_dagger, T & func_class, Args&& ... func_args)
@@ -243,8 +167,6 @@ public:
     * @param[in]  AbstractQuantumProgram*  QProg nodes that need to be traversed
     * @param[in]  TraversalInterface*  The method object needed for traversal
     * @return     void
-    * @exception  invalid_argument runtime_error
-    * @note
     */
     template<typename T,typename... Args>
     static void traversal(std::shared_ptr<AbstractQuantumProgram> qprog_node,T & func_class, Args&& ... func_args)
@@ -283,8 +205,6 @@ public:
     * @param[in]  parent_node*  nodes that need to be traversed
     * @param[in]  TraversalInterface*  The method object needed for traversal
     * @return     void
-    * @exception  invalid_argument runtime_error
-    * @note
     */
     template<typename T,typename... Args>
     static void traversalByType(std::shared_ptr<QNode>  node, std::shared_ptr<QNode> parent_node, T & func_class, Args&& ... func_args)
@@ -356,6 +276,17 @@ public:
             }
             func_class.execute(measure_node, parent_node, std::forward<Args>(func_args)...);
         }
+		else if (RESET_NODE == iNodeType)
+		{
+			auto reset_node = std::dynamic_pointer_cast<AbstractQuantumReset>(node);
+
+			if (!reset_node)
+			{
+				QCERR("Unknown internal error");
+				throw std::runtime_error("Unknown internal error");
+			}
+			func_class.execute(reset_node, parent_node, std::forward<Args>(func_args)...);
+		}
         else if (CLASS_COND_NODE == iNodeType)
         {
             auto classical_node = std::dynamic_pointer_cast<AbstractClassicalProg>(node);
@@ -374,5 +305,87 @@ public:
         }
     }
 };
+
+
+
+
+/**
+* @class TraversalInterface
+* @brief All objects that want to use the class Traversal need to integrate this class
+* @ingroup Utilities
+*/
+template<typename... Args >
+class TraversalInterface
+{
+public:
+    /*!
+    * @brief  Execution traversal qgatenode
+    * @param[in,out]  AbstractQGateNode*  quantum gate
+    * @param[in]  QNode*  parent Node
+    * @return     void
+    */
+    virtual void execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node, Args&& ... func_args) {};
+    
+    /*!
+    * @brief  Execution traversal measure node
+    * @param[in,out]  AbstractQuantumMeasure*  measure node
+    * @param[in]  QNode*  parent Node
+    * @return     void
+    */
+    virtual void execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, std::shared_ptr<QNode> parent_node, Args&& ... func_args) {};
+
+	/*!
+	* @brief  Execution traversal reset node
+	* @param[in,out]  AbstractQuantumReset*  reset node
+	* @param[in]  QNode*  parent Node
+	* @return     void
+	*/
+	virtual void execute(std::shared_ptr<AbstractQuantumReset> cur_node, std::shared_ptr<QNode> parent_node, Args&& ... func_args) {};
+
+    /*!
+    * @brief  Execution traversal control flow node
+    * @param[in,out]  AbstractControlFlowNode*  control flow node
+    * @param[in]  QNode*  parent Node
+    * @return     void
+    */
+    virtual void execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node, Args&& ... func_args) 
+    {
+        Traversal::traversal(cur_node, *this, std::forward<Args>(func_args)...);
+    }
+
+
+    /*!
+    * @brief  Execution traversal qcircuit
+    * @param[in,out]  AbstractQuantumCircuit*  quantum circuit
+    * @param[in]  QNode*  parent Node
+    * @return     void
+    */
+    virtual void execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std::shared_ptr<QNode> parent_node, Args&& ... func_args)
+    {
+        Traversal::traversal(cur_node,false, *this, std::forward<Args>(func_args)...);
+    }
+
+    /*!
+    * @brief  Execution traversal qprog
+    * @param[in,out]  AbstractQuantumProgram*  quantum prog
+    * @param[in]  QNode*  parent Node
+    * @return     void
+    */
+    virtual void execute(std::shared_ptr<AbstractQuantumProgram>  cur_node, std::shared_ptr<QNode> parent_node, Args&& ... func_args)
+    {
+         Traversal::traversal(cur_node, *this, std::forward<Args>(func_args)...);
+    }
+    /*!
+    * @brief  Execution traversal qprog
+    * @param[in,out]  AbstractClassicalProg*  classical prog
+    * @param[in]  QNode*  parent Node
+    * @return     void
+    */
+    virtual void execute(std::shared_ptr<AbstractClassicalProg>  cur_node,
+        std::shared_ptr<QNode> parent_node,
+        Args&& ... func_args) {};
+};
+
+
 QPANDA_END
 #endif // !_TRAVERSAL_H

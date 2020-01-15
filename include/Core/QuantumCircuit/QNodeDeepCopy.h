@@ -8,13 +8,11 @@
 #include "Core/QuantumCircuit/ClassicalProgram.h"
 
 QPANDA_BEGIN
-/**
-* @namespace QPanda
-*/
 
 
 /**
 * @class QNodeDeepCopy
+* @ingroup QuantumCircuit
 * @brief Deep copy interface for classess based on QNode
 * @note
 */
@@ -27,7 +25,7 @@ public:
    
 	/**
 	* @brief Execute QNode Node
-	* @param[in]  QNode *
+	* @param[in]  QNode*
 	* @return     std::shared_ptr<QPanda::QNode> new Node
 	*/
 	std::shared_ptr<QNode> executeQNode(std::shared_ptr<QNode> node);
@@ -53,6 +51,12 @@ public:
     */
     QMeasure copy_node( std::shared_ptr<AbstractQuantumMeasure>);
 
+	/**
+	* @brief  Execute Quantum Reset Node
+	* @param[in]  AbstractQuantumReset* Quantum Reset Node
+	* @return     std::shared_ptr<QPanda::QNode> new Node
+	*/
+	QReset copy_node(std::shared_ptr<AbstractQuantumReset>);
 
     /**
     * @brief  Execute Quantum Circuit Node
@@ -80,6 +84,7 @@ public:
     void execute(std::shared_ptr<AbstractClassicalProg>, std::shared_ptr<QNode>);
     void execute(std::shared_ptr<AbstractQuantumCircuit>, std::shared_ptr<QNode>);
     void execute(std::shared_ptr<AbstractQuantumMeasure>, std::shared_ptr<QNode>);
+	void execute(std::shared_ptr<AbstractQuantumReset>, std::shared_ptr<QNode>);
     void execute(std::shared_ptr<AbstractControlFlowNode>, std::shared_ptr<QNode>);
     void execute(std::shared_ptr<AbstractQuantumProgram>, std::shared_ptr<QNode>);
 private:
@@ -89,7 +94,7 @@ private:
 
 /**
 * @brief  deep copy interface for classess base on QNode
-* @ingroup Utilities
+* @ingroup QuantumCircuit
 * @param[in]  _Ty & node
 * @return     _Ty
 */

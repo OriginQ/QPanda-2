@@ -7,16 +7,24 @@
 QPANDA_BEGIN
 
 /**
-* @class DrawQProg
-* @brief Do some preparation for draw text picture.
+* @brief draw Qprog by text
+* @ingroup Utilities
 */
-
 class DrawQProg
 {
 public:
+	/**
+	* @brief  Constructor of DrawQProg
+	*/
 	DrawQProg(QProg &prg, const NodeIter node_itr_start, const NodeIter node_itr_end);
 	~DrawQProg();
 
+	/**
+	* @brief Draw text-picture
+	* @param[in] TEXT_PIC_TYPE draw type
+	* @return std::string the text-picture
+	* @see TEXT_PIC_TYPE
+	*/
 	std::string textDraw(TEXT_PIC_TYPE t);
 
 private:

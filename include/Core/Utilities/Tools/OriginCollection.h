@@ -81,7 +81,7 @@ private:
     }
     /**
      * @brief Check if the input name are valid 
-     * @param name target name 
+     * @param[in] name target name 
      */
     inline std::vector<std::string>::iterator checkVaild(const std::string & name)
     {

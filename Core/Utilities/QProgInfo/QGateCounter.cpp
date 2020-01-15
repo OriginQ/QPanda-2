@@ -19,12 +19,6 @@ void QGateCounter::execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::sh
         m_count++;
 }
 
-void QGateCounter::execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, std::shared_ptr<QNode> parent_node)
-{
-    if(cur_node)
-        m_count++;
-}
-
 size_t QGateCounter::count()
 {
     return m_count;

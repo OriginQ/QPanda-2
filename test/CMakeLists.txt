@@ -1,13 +1,6 @@
 cmake_minimum_required(VERSION 3.1)
-add_subdirectory(QPanda.Core.test)
-add_subdirectory(Variational.test)
-add_subdirectory(Autodiff.test)
-add_subdirectory(QProgTransform.test)
-add_subdirectory(QProgTransformQuil.test)
-add_subdirectory(QProgTransformBinary.test)
-add_subdirectory(QVM.test)
-add_subdirectory(ReadConfig.test)
-add_subdirectory(QProgQGateCount.test)
-if (CURL_FOUND)
-    #add_subdirectory(CloudHttp.test)
-endif (CURL_FOUND)
+add_subdirectory(Core)
+add_subdirectory(QAlg)
+add_subdirectory(Components)
+
+

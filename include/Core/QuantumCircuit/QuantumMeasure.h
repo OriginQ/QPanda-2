@@ -20,20 +20,27 @@ limitations under the License.
 #include "Core/QuantumMachine/QubitFactory.h"
 #include "Core/QuantumCircuit/QNode.h"
 #include "Core/QuantumCircuit/ClassicalConditionInterface.h"
+
 QPANDA_BEGIN
-/**
-* @namespace QPanda
-*/
 
 /**
 * @class AbstractQuantumMeasure
 * @brief Quantum Measure basic abstract class
-* @ingroup Core
+* @ingroup QuantumCircuit
 */
 class AbstractQuantumMeasure
 {
 public:
+	/**
+     * @brief Get measure node qubit address
+	 * @return Qubit *
+     */
     virtual Qubit * getQuBit() const =0;
+	
+	/**
+     * @brief  Get measure node cbit address
+	 * @return CBit *
+     */
     virtual CBit * getCBit()const = 0;
     virtual ~AbstractQuantumMeasure() {}
 };
@@ -41,9 +48,9 @@ public:
 /**
 * @class QMeasure
 * @brief Quantum Measure  basic  class
-* @ingroup Core
+* @ingroup QuantumCircuit
 */
-class QMeasure : public QNode, public AbstractQuantumMeasure
+class QMeasure : public AbstractQuantumMeasure
 {
 private:
     std::shared_ptr<AbstractQuantumMeasure> m_measure;
@@ -51,38 +58,50 @@ public:
     QMeasure(const QMeasure &);
     QMeasure(Qubit *, CBit *);
     QMeasure(std::shared_ptr<AbstractQuantumMeasure> node);
-    std::shared_ptr<QNode> getImplementationPtr();
+    std::shared_ptr<AbstractQuantumMeasure> getImplementationPtr();
     ~QMeasure();
     Qubit * getQuBit() const;
     CBit * getCBit()const;
     NodeType getNodeType() const;
 private:
-    virtual void execute(QPUImpl *, QuantumGateParam *) {};
     QMeasure();
 };
 
 typedef AbstractQuantumMeasure * (*CreateMeasure)(Qubit *, CBit *);
-class QuantunMeasureFactory
+
+/**
+ * @brief Factory for class AbstractQuantumMeasure
+ * @ingroup QuantumCircuit
+ */
+class QuantumMeasureFactory
 {
 public:
     void registClass(std::string name, CreateMeasure method);
     AbstractQuantumMeasure * getQuantumMeasure(std::string &, Qubit *, CBit *);
 
-    static QuantunMeasureFactory & getInstance()
+	/**
+     * @brief Get the static instance of factory 
+	 * @return QuantumMeasureFactory &
+     */
+    static QuantumMeasureFactory & getInstance()
     {
-        static QuantunMeasureFactory  s_Instance;
+        static QuantumMeasureFactory  s_Instance;
         return s_Instance;
     }
 private:
     std::map<std::string, CreateMeasure> m_measureMap;
-    QuantunMeasureFactory() {};
+    QuantumMeasureFactory() {};
 
 };
 
+/**
+* @brief QMeasure program register action
+* @note Provide QuantumMeasureFactory class registration interface for the outside
+ */
 class QuantumMeasureRegisterAction {
 public:
     QuantumMeasureRegisterAction(std::string className, CreateMeasure ptrCreateFn) {
-         QuantunMeasureFactory::getInstance().registClass(className, ptrCreateFn);
+         QuantumMeasureFactory::getInstance().registClass(className, ptrCreateFn);
     }
 
 };
@@ -120,15 +139,10 @@ public:
     * @see  NodeType
     */
     NodeType getNodeType() const;
-    virtual void execute(QPUImpl *, QuantumGateParam *) ;
 private:
     OriginMeasure();
     OriginMeasure(OriginMeasure &);
-    std::shared_ptr<QNode> getImplementationPtr()
-    {
-        QCERR("Can't use this function");
-        throw std::runtime_error("Can't use this function");
-    };
+
     NodeType m_node_type;
     Qubit * m_target_qubit;
     CBit * m_target_cbit;

@@ -6,7 +6,7 @@
 #include <exception>
 #include <stdlib.h>
 #include "Core/Utilities/QPandaNamespace.h"
-#include "Core/Utilities/QPandaException.h"
+#include "Core/Utilities/Tools/QPandaException.h"
 
 using std::map;
 using std::complex;

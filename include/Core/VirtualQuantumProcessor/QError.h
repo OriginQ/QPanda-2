@@ -19,7 +19,6 @@ limitations under the License.
 /*
 *  @enum	QError
 *  @brief   quantum program error type
-*  @ingroup   QuantumMachine
 */
 enum QError
 {

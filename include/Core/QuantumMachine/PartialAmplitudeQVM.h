@@ -1,70 +1,42 @@
 /*! \file PartialAmplitudeQVM.h */
 #ifndef  _PARTIALAMPLITUDE_H_
 #define  _PARTIALAMPLITUDE_H_
-#include "Core/Utilities/Uinteger.h"
+#include "Core/Utilities/Tools/Uinteger.h"
 #include "Core/VirtualQuantumProcessor/CPUImplQPU.h"
-#include "Core/VirtualQuantumProcessor/PartialAmplitude/MergeMap.h"
+#include "Core/VirtualQuantumProcessor/PartialAmplitude/PartialAmplitudeGraph.h"
 #include "Core/QuantumMachine/OriginQuantumMachine.h"
-#include "Core/Utilities/Transform/QRunesToQProg.h"
+#include "Core/Utilities/Compiler/QRunesToQProg.h"
+#include "Core/Utilities/Tools/Traversal.h"
 QPANDA_BEGIN
-/**
-* @namespace QPanda
-*/
 
 /**
-* @class PartialAmplitudeQVM
+* @class PartialAmplitudeQVM   
 * @ingroup QuantumMachine
 * @see QuantumMachine
 * @brief Quantum machine for partial amplitude simulation
-* @ingroup QuantumMachine
 */
 class PartialAmplitudeQVM : public QVM,
-                            public TraversalQProg,
+                            public TraversalInterface<>,
                             public MultiPrecisionMachineInterface
 {
 public:
-    /**
-    * @brief  Init the quantum machine environment
-    * @return     void
-    * @note   use this at the begin
-    */
-    void init();
-
-
-    /**
-    * @brief  Load and parser Quantum Program
-    * @param[in]  QProg &  Quantum Program
-    * @return     void
-    */
-    void run(QProg&);
-
-    /**
-    * @brief  Load and parser Quantum Program by file
-    * @param[in]  std::string  Quantum Program QRunes file path
-    * @return     void
-    */
-    void run(std::string);
-
-
     PartialAmplitudeQVM();
     ~PartialAmplitudeQVM();
 
-
-    /**
-    * @brief  Get Quantum State 
-    * @return   std::map<std::string, qcomplex_t>
-    * @note  output example: <0000000000:(-0.00647209,-0.00647209)>
-    */
-    stat_map getQStat();
+    void init();
 
 
+    /* new interface */
     /**
     * @brief  PMeasure by binary index
     * @param[in]  std::string  binary index
     * @return     qstate_type double
     * @note  example: PMeasure_bin_index("0000000000")
     */
-    qstate_type PMeasure_bin_index(std::string);
+    qstate_type pMeasureBinIndex(std::string str)
+    {
+        return PMeasure_bin_index(str);
+    }
 
     /**
     * @brief  PMeasure by decimal  index
@@ -72,42 +44,41 @@ public:
     * @return     qstate_type double
     * @note  example: PMeasure_dec_index("1")
     */
+    qstate_type pMeasureDecIndex(std::string str)
+    {
+        return PMeasure_dec_index(str);
+    }
+
+    /*will delete*/
+    stat_map getQState();
+    qstate_type PMeasure_bin_index(std::string);
     qstate_type PMeasure_dec_index(std::string);
-
-
-    /**
-    * @brief  PMeasure
-    * @param[in]  std::string  select max
-    * @return     prob_map  std::map<std::string, qstate_type>
-    */
     prob_map PMeasure(std::string);
-
-
-    /**
-    * @brief  PMeasure
-    * @param[in]  QVec    qubits vec
-    * @param[in]  std::string    select max
-    * @return     prob_map   std::map<std::string, qstate_type>
-    */
     prob_map PMeasure(QVec, std::string);
-
-    /**
-    * @brief  Get quantum state Probability dict
-    * @param[in]  QVec  qubits vec
-    * @param[in]  std::string   select max
-    * @return     prob_map std::map<std::string, qstate_type>
-    * @note  output example: <0000000110:0.000167552>
-    */
     prob_map getProbDict(QVec, std::string);
-
-    /**
-    * @brief  Run and get quantum state Probability dict
-    * @param[in]  QVec  qubits vec
-    * @param[in]  std::string   select max
-    * @return     prob_map std::map<std::string, qstate_type>
-    * @note  output example: <0000000110:0.000167552>
-    */
     prob_map probRunDict(QProg &, QVec, std::string);
+    prob_map PMeasureSubSet(QProg &, std::vector<std::string>);
+
+
+    void run(std::string sFilePath)
+    {
+        auto prog = CreateEmptyQProg();
+        transformQRunesToQProg(sFilePath, prog, this);
+        run(prog);
+    }
+
+    template <typename _Ty>
+    void run(_Ty &node)
+    {
+        m_prog_map->init(getAllocateQubit());
+
+        traversal(node);
+        m_prog_map->traversalQlist(m_prog_map->m_circuit);
+        if (0 == m_prog_map->getMapVecSize())
+        {
+            m_prog_map->splitQlist(m_prog_map->m_circuit);
+        }
+    }
 
     /**
     * @brief    PMeasureSubSet
@@ -116,13 +87,24 @@ public:
     * @return     prob_map std::map<std::string, qstate_type>
     * @note  output example: <0000000110:0.000167552>
     */
-    prob_map PMeasureSubSet(QProg &, std::vector<std::string>);
+    prob_map pMeasureSubset(QProg &, std::vector<std::string>);
+
+    template <typename _Ty>
+    void traversal(_Ty &node)
+    {
+        execute(node.getImplementationPtr(), nullptr);
+    }
+
+    void execute(std::shared_ptr<AbstractQGateNode>, std::shared_ptr<QNode>);
+    void execute(std::shared_ptr<AbstractClassicalProg>, std::shared_ptr<QNode>);
+    void execute(std::shared_ptr<AbstractQuantumMeasure>, std::shared_ptr<QNode>);
+	void execute(std::shared_ptr<AbstractQuantumReset>, std::shared_ptr<QNode>);
+    void execute(std::shared_ptr<AbstractQuantumCircuit>, std::shared_ptr<QNode>);
+    void execute(std::shared_ptr<AbstractQuantumProgram>, std::shared_ptr<QNode>);
+    void execute(std::shared_ptr<AbstractControlFlowNode>, std::shared_ptr<QNode>);
 
 private:
-    MergeMap *m_prog_map;
-
-    void traversal(AbstractQGateNode *);
-    void traversalAll(AbstractQuantumProgram *);
+    PartialAmplitudeGraph *m_prog_map;
     void getSubGraphStat(vector<vector<QStat>> &);
 };
 

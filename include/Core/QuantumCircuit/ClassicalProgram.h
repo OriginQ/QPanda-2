@@ -25,40 +25,45 @@ QPANDA_BEGIN
 /**
 * @class AbstractClassicalProg
 * @brief Classical program abstract class
-* @ingroup Core
+* @ingroup QuantumCircuit
 */
 class AbstractClassicalProg
 {
 public:
     virtual ~AbstractClassicalProg() {};
-    /**
+
+	/**
+     * @brief Get classical expr shared ptr
+     * @return std::shared_ptr<CExpr>
+     */
+    virtual std::shared_ptr<CExpr> getExpr() = 0;
+	 
+	/**
      * @brief Get classical program value
      * @return cbit_size_t 
      */
-    virtual std::shared_ptr<CExpr> getExpr() = 0;
     virtual cbit_size_t eval() = 0;
 private:
 
 };
 
 /**
-* @class ClassicalProg
 * @brief Classical program class
-* @ingroup Core
+* @ingroup QuantumCircuit
 * @note  The proxy class of the AbstractClassicalProg implementation class
 */
-class ClassicalProg :public QNode,public AbstractClassicalProg
+class ClassicalProg :public AbstractClassicalProg
 {
 public:
     /**
      * @brief Construct a new Classical Prog object
-     * @param classical_cond Target classical condition
+     * @param[in] classical_cond Target classical condition
      */
     ClassicalProg(ClassicalCondition & classical_cond);
 
     /**
      * @brief Construct a new Classical Prog object
-     * @param old Target classical program
+     * @param[in] old Target classical program
      */
     ClassicalProg(const ClassicalProg & old);
     ClassicalProg(std::shared_ptr<AbstractClassicalProg>  node);
@@ -71,7 +76,7 @@ public:
     */
     NodeType getNodeType() const;
 
-    std::shared_ptr<QNode> getImplementationPtr();
+    std::shared_ptr<AbstractClassicalProg> getImplementationPtr();
 
     /**
      * @brief Get classical program value
@@ -83,13 +88,12 @@ public:
 
 private:
     std::shared_ptr<AbstractClassicalProg> m_node;
-    virtual void execute(QPUImpl *, QuantumGateParam *) {};
 };
 
 /**
-* @class OriginClassicalProg
  * @brief Origin classical program class
- * @note Implementation class of AbstractClassicalProg and QNode
+ * @ingroup QuantumCircuit
+ * @note Implementation class of ClassicalProg
  * This class type can hold classical expr and insert into QNodeMap
  */
 class OriginClassicalProg :public QNode, public AbstractClassicalProg
@@ -97,7 +101,7 @@ class OriginClassicalProg :public QNode, public AbstractClassicalProg
 public:
     /**
      * @brief Construct a new Origin Classical Prog object
-     * @param classical_cond Target classical condition
+     * @param[in] classical_cond Target classical condition
      */
     OriginClassicalProg(ClassicalCondition & );
     
@@ -119,19 +123,10 @@ public:
      */
     virtual cbit_size_t eval();
 
-    virtual void execute(QPUImpl *, QuantumGateParam *);
-
     inline std::shared_ptr<CExpr> getExpr()
     {
         return m_expr;
     }
-
-    std::shared_ptr<QNode> getImplementationPtr()
-    {
-        QCERR("Can't use this function");
-        throw std::runtime_error("Can't use this function");
-    };
-
 private:
     std::shared_ptr<CExpr> m_expr;  ///< classical expr share ptr
     NodeType m_node_type;           ///< current QNode type
@@ -141,7 +136,10 @@ private:
 
 typedef AbstractClassicalProg * (*CreateClassicalQProgram)(ClassicalCondition &);
 
-
+/**
+ * @brief Factory for class AbstractClassicalProg
+ * @ingroup QuantumCircuit
+ */
 class ClassicalProgFactory
 {
 public:
@@ -149,6 +147,10 @@ public:
 
     AbstractClassicalProg * getClassicalProgm(std::string & name,ClassicalCondition & classical_cond);
 
+	 /**
+     * @brief Get the static instance of factory 
+	 * @return ClassicalProgFactory &
+     */
     static ClassicalProgFactory & getInstance()
     {
         static ClassicalProgFactory  s_Instance;
@@ -159,6 +161,11 @@ private:
     ClassicalProgFactory() {};
 };
 
+/**
+ * @brief classical program register action
+ * Provide ClassicalProgFactory class registration interface for the outside
+ * @ingroup QuantumCircuit
+ */
 class ClassicalProgRegisterAction {
 public:
 

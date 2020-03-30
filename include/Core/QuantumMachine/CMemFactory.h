@@ -23,15 +23,47 @@ limitations under the License.
 #include <stack>
 
 QPANDA_BEGIN
+
+/**
+* @brief CMem abstract class, this class is considered as the container of the CBit
+* @ingroup QuantumMachine
+*/
 class CMem
 {
-    // this class is considered as the container of the CBit
 public:
+	/**
+     * @brief allocate a CBit
+	 * @return CBit*
+     */
     virtual CBit* Allocate_CBit() = 0;
+	
+	/**
+     * @brief allocate a CBit by bit address
+	 * @return CBit*
+     */
     virtual CBit* Allocate_CBit(size_t) = 0;
+
+	/**
+     * @brief get size of the CBit vector
+	 * @return size_t
+     */
     virtual size_t getMaxMem() const = 0;
+
+	/**
+     * @brief get size of the idle position
+	 * @return size_t
+     */
     virtual size_t getIdleMem() const = 0;
+
+	/**
+     * @brief  free a CBit
+	 * @param[in] CBit*
+     */
     virtual void Free_CBit(CBit*) = 0;
+	
+	/**
+     * @brief  clear the CBit vector
+     */
     virtual void clearAll() = 0;
     virtual ~CMem() {}
 };
@@ -45,7 +77,10 @@ static CMemFactoryHelper _CMem_Factory_Helper_##classname(\
     classname##_Constructor\
 )
 
-/* CMem Factory */
+/**
+ * @brief Factory for class CMem
+ * @ingroup QuantumMachine
+ */
 class CMemFactory
 {
     CMemFactory();
@@ -55,9 +90,19 @@ public:
     size_constructor_stack_t _CMem_Constructor;
     CMem* GetInstanceFromSize(size_t);
     void registerclass_size_(std::string &, size_constructor_t);
+	
+	/**
+     * @brief Get the static instance of factory 
+	 * @return CMemFactory &
+     */
     static CMemFactory& GetFactoryInstance();
 };
 
+/**
+ * @brief CMem factory helper
+ * Provide CMemFactory class registration interface for the outside
+ * @ingroup QuantumMachine
+ */
 class CMemFactoryHelper
 {
     typedef CMemFactory::size_constructor_t

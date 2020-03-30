@@ -3,7 +3,7 @@
 
 #include "private/writer.h"
 #include "private/pages.h"
-#include "Core/Utilities/ReadWriteLock.h"
+#include "Core/Utilities/Tools/ReadWriteLock.h"
 
 #define BP__HEAD_SIZE  sizeof(uint64_t) * 4
 

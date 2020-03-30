@@ -15,7 +15,7 @@ limitations under the License.
 */
 #include "CPUImplQPUSingleThread.h"
 #include "QPandaNamespace.h"
-#include "Utilities/Utilities.h"
+#include "Core/Utilities/Tools/Utils.h"
 #include <algorithm>
 #include <thread>
 #include <map>
@@ -880,14 +880,107 @@ QError CPUImplQPUSingleThread::Reset(size_t qn)
     size_t ststep = 1ull << (find(qgroup.qVec.begin(), qgroup.qVec.end(), qn)
         - qgroup.qVec.begin());
     //#pragma omp parallel for private(j,alpha,beta)
+	double dsum = 0;
     for (size_t i = 0; i < qgroup.qstate.size(); i += ststep * 2)
     {
         for (j = i; j<i + ststep; j++)
         {
             qgroup.qstate[j + ststep] = 0;                              /* in j+ststep,the goal qubit is in |1> */
+			dsum += (abs(qgroup.qstate[j])*abs(qgroup.qstate[j]) + abs(qgroup.qstate[j + ststep])*abs(qgroup.qstate[j + ststep]));
         }
     }
+
+	dsum = sqrt(dsum);
+	for (size_t i = 0; i < qgroup.qstate.size(); i++)
+	{
+		qgroup.qstate[i] /= dsum;
+	}
+
     return qErrorNone;
 }
 
-//#endif
+size_t extract_bit(size_t rawnumber, vector<size_t> bits) {
+	size_t extracted_number = 0;
+	for (int i = 0; i < bits.size(); ++i) {
+		int bit = bits[i];
+		int digit = (rawnumber >> bit) % 2;
+		extracted_number += (1ull << i)*digit;
+	}
+	return extracted_number;
+}
+
+size_t reconstruct_number(size_t extracted_number, vector<size_t> bits) {
+	size_t raw_number = 0;
+	for (int i = 0; i < bits.size(); ++i) {
+		int digit = (extracted_number >> i) % 2;
+		raw_number += (1ull << bits[i])*digit;
+	}
+	return raw_number;
+}
+
+QError CPUImplQPUSingleThreadWithOracle::controlOracularGate(
+	vector<size_t> bits,
+	vector<size_t> controlbits,
+	bool is_dagger,
+	string name) {
+
+	vector<size_t> name_qubits;
+	string oracle_name;
+	QPanda::parse_oracle_name(name, oracle_name, name_qubits);
+
+	QGateParam& qgroup0 = findgroup(bits[0]);
+	for (auto iter = bits.begin() + 1; iter != bits.end(); iter++)
+	{
+		TensorProduct(qgroup0, findgroup(*iter));
+	}
+	for (auto iter = controlbits.begin(); iter != controlbits.end(); iter++)
+	{
+		TensorProduct(qgroup0, findgroup(*iter));
+	}
+
+	size_t controller_mask = 0;
+	for (size_t i = 0; i < controlbits.size(); ++i) {
+		controller_mask += (1ull << controlbits[i]);
+	}
+	size_t remain_mask = controller_mask;
+	for (size_t i = 0; i < bits.size(); ++i) {
+		remain_mask += (1ull << bits[i]);
+	}
+	remain_mask = ~remain_mask;
+
+	if (oracle_name == "add") {
+		assert(name_qubits.size() == 2);
+		assert(name_qubits[0] == name_qubits[1]);
+		assert(name_qubits[0] + name_qubits[1] == bits.size());
+
+		size_t qubitnumber = qgroup0.qubitnumber;
+		Qnum qVec = qgroup0.qVec;
+		QGateParam newgroup(qubitnumber, qVec);
+		newgroup.qstate[0] = 0;
+		for (size_t i = 0; i < (1ull << qubitnumber); ++i) {
+			if (i & controller_mask == controller_mask) {
+				continue;
+			}
+			size_t remain_i = i & remain_mask;
+			size_t x = 0;
+			size_t y = 0;
+			Qnum qvecx = { bits.begin(), bits.begin() + name_qubits[0] };
+			Qnum qvecy = { bits.begin() + name_qubits[0], bits.end() };
+			x = extract_bit(i, qvecx);
+			y = extract_bit(i, qvecy);
+			size_t x_plus_y = (x + y) % (1ull << name_qubits[1]);
+			size_t new_i = 0;
+			new_i += remain_i;
+			new_i += reconstruct_number(x, qvecx);
+			new_i += reconstruct_number(x_plus_y, qvecy);
+
+			newgroup.qstate[new_i] += qgroup0.qstate[i];
+		}
+		qgroup0.qstate = newgroup.qstate;
+	}
+	else {
+		throw runtime_error("Not Implemented.");
+	}
+}
+
+

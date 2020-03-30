@@ -18,7 +18,7 @@ PartialAmplitudeQVM::PartialAmplitudeQVM()
 {
     _Config.maxQubit = 64;
     _Config.maxCMem = 64;
-    m_prog_map = new MergeMap();
+    m_prog_map = new PartialAmplitudeGraph();
 }
 
 PartialAmplitudeQVM::~PartialAmplitudeQVM()
@@ -33,124 +33,7 @@ void PartialAmplitudeQVM::init()
     _start();
 }
 
-void PartialAmplitudeQVM::run(QProg& prog)
-{
-    if (nullptr == m_prog_map)
-    {
-        QCERR("prog is null");
-        throw run_fail("prog is null");
-    }
-    else
-    {
-        m_prog_map->clear();
-        traversalAll(dynamic_cast<AbstractQuantumProgram *>
-            (prog.getImplementationPtr().get()));
-    }
-}
-
-void PartialAmplitudeQVM::traversalAll(AbstractQuantumProgram *pQProg)
-{
-    m_qubit_num = m_prog_map->m_qubit_num = getAllocateQubit();
-    if (nullptr == pQProg || m_qubit_num <= 0)
-    {
-        QCERR("Error");
-        throw invalid_argument("Error");
-    }
-
-    TraversalQProg::traversal(pQProg);
-    m_prog_map->traversalQlist(m_prog_map->m_circuit);
-    if (0 == m_prog_map->getMapVecSize())
-    {
-        m_prog_map->splitQlist(m_prog_map->m_circuit);
-    }
-}
-
-void PartialAmplitudeQVM::traversal(AbstractQGateNode *pQGate)
-{
-    if (nullptr == pQGate || nullptr == pQGate->getQGate())
-    {
-        QCERR("pQGate is null");
-        throw invalid_argument("pQGate is null");
-    }
-
-    QVec qubits_vector;
-    pQGate->getQuBitVector(qubits_vector);
-
-    auto gate_type = (unsigned short)pQGate->getQGate()->getGateType();
-    QGateNode node = { gate_type,pQGate->isDagger() };
-    switch (gate_type)
-    {
-    case GateType::P0_GATE:
-    case GateType::P1_GATE:
-    case GateType::PAULI_X_GATE:
-    case GateType::PAULI_Y_GATE:
-    case GateType::PAULI_Z_GATE:
-    case GateType::X_HALF_PI:
-    case GateType::Y_HALF_PI:
-    case GateType::Z_HALF_PI:
-    case GateType::HADAMARD_GATE:
-    case GateType::T_GATE:
-    case GateType::S_GATE:
-    {
-        node.tar_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
-    }
-    break;
-
-    case GateType::U1_GATE:
-    case GateType::RX_GATE:
-    case GateType::RY_GATE:
-    case GateType::RZ_GATE:
-    {
-        node.tar_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
-        node.gate_parm = dynamic_cast<QGATE_SPACE::angleParameter *>(pQGate->getQGate())->getParameter();
-    }
-    break;
-
-    case GateType::ISWAP_GATE:
-    case GateType::SQISWAP_GATE:
-    {
-        auto ctr_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
-        auto tar_qubit = qubits_vector[1]->getPhysicalQubitPtr()->getQubitAddr();
-        if (ctr_qubit == tar_qubit || m_prog_map->isCorssNode(ctr_qubit, tar_qubit))
-        {
-            QCERR("Error");
-            throw qprog_syntax_error();
-        }
-        else
-        {
-            node.ctr_qubit = ctr_qubit;
-            node.tar_qubit = tar_qubit;
-        }
-    }
-    break;
-
-    case GateType::CNOT_GATE:
-    case GateType::CZ_GATE:
-    {
-        node.ctr_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
-        node.tar_qubit = qubits_vector[1]->getPhysicalQubitPtr()->getQubitAddr();
-    }
-    break;
-
-    case GateType::CPHASE_GATE:
-    {
-        node.ctr_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
-        node.tar_qubit = qubits_vector[1]->getPhysicalQubitPtr()->getQubitAddr();
-        node.gate_parm = dynamic_cast<QGATE_SPACE::angleParameter *>(pQGate->getQGate())->getParameter();
-    }
-    break;
-
-    default:
-    {
-        QCERR("UnSupported QGate Node");
-        throw undefine_error("QGate");
-    }
-    break;
-    }
-    m_prog_map->m_circuit.emplace_back(node);
-}
-
-stat_map PartialAmplitudeQVM::getQStat()
+stat_map PartialAmplitudeQVM::getQState()
 {
     if (nullptr == m_prog_map)
     {
@@ -405,13 +288,6 @@ prob_map PartialAmplitudeQVM::probRunDict(QProg &prog, QVec qvec, string select_
     return getProbDict(qvec, select_max);
 }
 
-void PartialAmplitudeQVM::run(string sFilePath)
-{
-    auto prog = CreateEmptyQProg();
-    transformQRunesToQProg(sFilePath, prog, this);
-    run(prog);
-}    
-
 prob_map PartialAmplitudeQVM::PMeasureSubSet(QProg &prog, std::vector<std::string> subset_vec)
 {
     run(prog);
@@ -442,7 +318,7 @@ prob_map PartialAmplitudeQVM::PMeasureSubSet(QProg &prog, std::vector<std::strin
         }
         else
         {
-            return bin == '0' ? 0 : 1;
+            return bin != '0';
         }
     };
 
@@ -469,4 +345,157 @@ prob_map PartialAmplitudeQVM::PMeasureSubSet(QProg &prog, std::vector<std::strin
     }
 
     return result_map;
+}
+
+prob_map PartialAmplitudeQVM::pMeasureSubset(QProg &prog, std::vector<std::string> subset_vec)
+{
+    return PMeasureSubSet(prog, subset_vec);
+}
+
+
+
+void PartialAmplitudeQVM::execute(std::shared_ptr<AbstractQuantumMeasure>  cur_node, std::shared_ptr<QNode> parent_node)
+{
+    QCERR("Does not support QuantumMeasure ");
+    throw std::runtime_error("Does not support QuantumMeasure");
+}
+
+void PartialAmplitudeQVM::execute(std::shared_ptr<AbstractQuantumReset>, std::shared_ptr<QNode>)
+{
+	QCERR("Does not support QuantumReset ");
+	throw std::runtime_error("Does not support QuantumReset");
+}
+
+void PartialAmplitudeQVM::execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node)
+{
+    QCERR("Does not support ControlFlowNode ");
+    throw std::runtime_error("Does not support ControlFlowNode");
+}
+
+void PartialAmplitudeQVM::execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std::shared_ptr<QNode> parent_node)
+{
+    Traversal::traversal(cur_node, false, *this);
+}
+
+void PartialAmplitudeQVM::execute(std::shared_ptr<AbstractQuantumProgram>  cur_node, std::shared_ptr<QNode> parent_node)
+{
+    Traversal::traversal(cur_node, *this);
+}
+
+void PartialAmplitudeQVM::execute(std::shared_ptr<AbstractClassicalProg>  cur_node, std::shared_ptr<QNode> parent_node)
+{
+    QCERR("Does not support ClassicalProg ");
+    throw std::runtime_error("Does not support ClassicalProg");
+}
+
+void PartialAmplitudeQVM::execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node)
+{
+    if (nullptr == cur_node || nullptr == cur_node->getQGate())
+    {
+        QCERR("pQGate is null");
+        throw invalid_argument("pQGate is null");
+    }
+
+    QVec qubits_vector;
+    cur_node->getQuBitVector(qubits_vector);
+
+    auto gate_type = (unsigned short)cur_node->getQGate()->getGateType();
+    QGateNode node = { gate_type,cur_node->isDagger() };
+    switch (gate_type)
+    {
+    case GateType::P0_GATE:
+    case GateType::P1_GATE:
+    case GateType::PAULI_Y_GATE:
+    case GateType::PAULI_Z_GATE:
+    case GateType::Y_HALF_PI:
+    case GateType::Z_HALF_PI:
+    case GateType::X_HALF_PI:
+    case GateType::HADAMARD_GATE:
+    case GateType::T_GATE:
+    case GateType::S_GATE:
+    {
+        node.tar_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
+    }
+    break;
+
+    case GateType::PAULI_X_GATE:
+    {
+        QVec control_qvec;
+        cur_node->getControlVector(control_qvec);
+
+        if (control_qvec.empty())
+        {
+            node.tar_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
+        }
+        else
+        {
+            node.gate_type = TOFFOLI_GATE;
+
+            auto tar_qubit = node.tar_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
+
+            auto ctr_qubit = node.ctr_qubit = control_qvec[0]->getPhysicalQubitPtr()->getQubitAddr();
+            auto tof_qubit = node.tof_qubit = control_qvec[1]->getPhysicalQubitPtr()->getQubitAddr();
+
+            m_prog_map->m_spilt_num += (m_prog_map->isCorssNode(ctr_qubit, tar_qubit)) ||
+                (m_prog_map->isCorssNode(ctr_qubit, tof_qubit)) ||
+                (m_prog_map->isCorssNode(tar_qubit, tof_qubit)) ;
+        }
+    }
+    break;
+
+    case GateType::U1_GATE:
+    case GateType::RX_GATE:
+    case GateType::RY_GATE:
+    case GateType::RZ_GATE:
+    {
+        node.tar_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
+        node.gate_parm = dynamic_cast<QGATE_SPACE::AbstractSingleAngleParameter *>(cur_node->getQGate())->getParameter();
+    }
+    break;
+
+    case GateType::ISWAP_GATE:
+    case GateType::SQISWAP_GATE:
+    {
+        auto ctr_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
+        auto tar_qubit = qubits_vector[1]->getPhysicalQubitPtr()->getQubitAddr();
+        if (ctr_qubit == tar_qubit || m_prog_map->isCorssNode(ctr_qubit, tar_qubit))
+        {
+            QCERR("Error");
+            throw qprog_syntax_error();
+        }
+        else
+        {
+            node.ctr_qubit = ctr_qubit;
+            node.tar_qubit = tar_qubit;
+        }
+    }
+    break;
+
+    case GateType::CNOT_GATE:
+    case GateType::CZ_GATE:
+    {
+        node.ctr_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
+        node.tar_qubit = qubits_vector[1]->getPhysicalQubitPtr()->getQubitAddr();
+        m_prog_map->m_spilt_num += (m_prog_map->isCorssNode(node.ctr_qubit, node.tar_qubit));
+    }
+    break;
+
+    case GateType::CPHASE_GATE:
+    {
+        node.ctr_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
+        node.tar_qubit = qubits_vector[1]->getPhysicalQubitPtr()->getQubitAddr();
+        node.gate_parm = dynamic_cast<QGATE_SPACE::AbstractSingleAngleParameter *>(cur_node->getQGate())->getParameter();
+        m_prog_map->m_spilt_num += (m_prog_map->isCorssNode(node.ctr_qubit, node.tar_qubit));
+    }
+    break;
+
+    default:
+    {
+        QCERR("UnSupported QGate Node");
+        throw undefine_error("QGate");
+    }
+    break;
+    }
+
+    m_prog_map->m_circuit.emplace_back(node);
 }

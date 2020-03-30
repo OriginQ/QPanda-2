@@ -15,7 +15,7 @@ limitations under the License.
 */
 
 #include "Core/QuantumMachine/CBitFactory.h"
-#include "Core/Utilities/ConfigMap.h"
+#include "Core/Utilities/QProgInfo/ConfigMap.h"
 #include "Core/QuantumMachine/OriginQuantumMachine.h"
 USING_QPANDA
 using namespace std;

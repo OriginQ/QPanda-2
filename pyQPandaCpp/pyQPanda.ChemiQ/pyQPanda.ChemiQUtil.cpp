@@ -1,7 +1,7 @@
 #include <math.h>
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
-#include "ChemiQ/ChemiqUtil.h"
+#include "Components/ChemiQ/ChemiqUtil.h"
 
 USING_QPANDA
 namespace py = pybind11;
@@ -59,6 +59,7 @@ auto simulateHamiltonian_Var = [](
 
 void initChemiQUtil(py::module& m)
 {
+	/*will delete*/
     m.def("getElectronNum", 
         &getElectronNum,
         "get the electron number of the atom.");
@@ -102,4 +103,48 @@ void initChemiQUtil(py::module& m)
     m.def("parsePsi4DataToFermion",
         parsePsi4DataToFermion,
         "Parse psi4 data to fermion operator.");
+	/*new interface*/
+	m.def("get_electron_num",
+		&getElectronNum,
+		"get the electron number of the atom.");
+	m.def("jordan_wigner_transform",
+		JW_Normal,
+		"Jordan-Wigner transform from FermionOperator to PauliOperator.");
+	m.def("jordan_wigner_transform_var",
+		JW_Var,
+		"Jordan-Wigner transform from VarFermionOperator to VarPauliOperator.");
+	m.def("get_ccs_n_trem",
+		getCCS_N_Trem,
+		"get CCS term number.");
+	m.def("get_ccsd_n_trem",
+		getCCSD_N_Trem,
+		"get CCSD term number.");
+	m.def("get_ccs_normal",
+		getCCS_Normal,
+		"get Coupled cluster single model.");
+	m.def("get_ccs_var",
+		getCCS_Var,
+		"get Coupled cluster single model with variational parameters.");
+	m.def("get_ccsd_normal",
+		getCCSD_Normal,
+		"get Coupled cluster single and double model.");
+	m.def("get_ccsd_var",
+		getCCSD_Var,
+		"get Coupled cluster single and double model "
+		"with variational parameters.");
+	m.def("trans_cc_2_ucc_normal",
+		transCC2UCC_Normal,
+		"Generate Hamiltonian form of unitary coupled cluster based on coupled "
+		"cluster, H = 1j * (T-dagger(T)), then exp(-jHt) = exp(T-dagger(T)).");
+	m.def("trans_cc_2_ucc_var",
+		transCC2UCC_Var,
+		"Generate Hamiltonian form of unitary coupled cluster based on coupled "
+		"cluster, H = 1j * (T-dagger(T)), then exp(-jHt) = exp(T-dagger(T)).");
+	m.def("simulate_hamiltonian_var",
+		simulateHamiltonian_Var,
+		"Simulate a general case of hamiltonian by Trotter-Suzuki "
+		"approximation.U = exp(-iHt) = (exp(-iH1t/n) * exp(-iH2t/n))^n");
+	m.def("parse_psi4_data_to_fermion",
+		parsePsi4DataToFermion,
+		"Parse psi4 data to fermion operator.");
 }

@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include "Core/QPanda.h"
+#include "Core/Core.h"
 
 using namespace std;
 using namespace QPanda;
@@ -56,7 +56,7 @@ QProg hhl_no_measure(vector<Qubit*> qVec, vector<ClassicalCondition> cVec)
     QCircuit PSEcircuitdag = hhlPse(qVec);
     QProg PSEdagger = CreateEmptyQProg();
     PSEdagger << PSEcircuitdag.dagger();
-    QIfProg ifnode = CreateIfProg(cVec[0], &PSEdagger);
+    QIfProg ifnode = CreateIfProg(cVec[0], PSEdagger);
     QProg hhlProg = CreateEmptyQProg();
 
     hhlProg << PSEcircuit << CRot << Measure(qVec[0], cVec[0]) << ifnode;

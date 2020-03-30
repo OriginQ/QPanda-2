@@ -15,14 +15,14 @@ limitations under the License.
 */
 #include "QPandaConfig.h"
 #include "NoiseCPUImplQPU.h"
-#include "Utilities/Utilities.h"
+#include "Core/Utilities/Tools/Utils.h"
 #include <algorithm>
 #include <thread>
 #include <map>
 #include <iostream>
 #include <sstream>
 #include "QPandaNamespace.h"
-#include "TranformQGateTypeStringAndEnum.h"
+#include "Core/Utilities/Tools/TranformQGateTypeStringAndEnum.h"
 using namespace std;
 USING_QPANDA
 
@@ -188,7 +188,7 @@ QError NoisyCPUImplQPU::_get_probabilities(prob_vec& probabilities, size_t qn, N
                 beta = qstat[j + ststep];
                 qstat[j] = noise[k][0] * alpha + noise[k][1] * beta;
                 qstat[j + ststep] = noise[k][2] * alpha + noise[k][3] * beta;
-                probabilities[k] += (abs(qstat[j])*abs(qstat[j]) + abs(qstat[j+ststep])*abs(qstat[ststep]));
+                probabilities[k] += (abs(qstat[j])*abs(qstat[j]) + abs(qstat[j + ststep])*abs(qstat[j + ststep]));
             }
         }
     }
@@ -247,10 +247,11 @@ QError NoisyCPUImplQPU::_get_probabilities(prob_vec& probabilities, size_t qn_0,
                         + noise[k][10] * phi10 + noise[k][11] * phi11;
                     qstat[l + ststep1 + ststep2] = noise[k][12] * phi00 + noise[k][13] * phi01
                         + noise[k][14] * phi10 + noise[k][15] * phi11;
+
                     probabilities[k] += (abs(qstat[l])*abs(qstat[l])
-                        + abs(qstat[j + ststep1])*abs(qstat[ststep1])
-                        + abs(qstat[l + ststep2])*abs(qstat[j + ststep2]) 
-                        + abs(qstat[j + ststep1+ststep2])*abs(qstat[j + ststep1 + ststep2]));
+                        + abs(qstat[l + ststep1])*abs(qstat[l + ststep1])
+                        + abs(qstat[l + ststep2])*abs(qstat[l + ststep2])
+                        + abs(qstat[l + ststep1 + ststep2])*abs(qstat[l + ststep1 + ststep2]));
                 }
             }
         }
@@ -281,7 +282,7 @@ QStat matrix_multiply(const QStat &matrix_left, const QStat &matrix_right)
     {
         for (int j = 0; j < dimension; j++)
         {
-            complex<double> temp = 0;
+            qcomplex_t temp = 0;
             for (int k = 0; k < dimension; k++)
             {
                 temp += matrix_left[i*dimension + k] * matrix_right[k*dimension + j];
@@ -446,7 +447,7 @@ QError NoisyCPUImplQPU::unitarySingleQubitGate
     {
         auto &value = m_doc[gate_name.c_str()];
         NoiseOp noise;
-        auto status = NoiseModeMap::getInstance()[(NOISE_MODEL)value[0].
+        auto status = SingleGateNoiseModeMap::getInstance()[(NOISE_MODEL)value[0].
             GetInt()](value, noise);
         if (!status)
         {
@@ -517,7 +518,7 @@ unitaryDoubleQubitGate(size_t qn_0,
     {
         auto &value = m_doc[gate_name.c_str()];
         NoiseOp noise;
-        auto status = NoiseModeMap::getInstance()[(NOISE_MODEL)value[0].
+        auto status = DoubleGateNoiseModeMap::getInstance()[(NOISE_MODEL)value[0].
             GetInt()](value, noise);
         if (!status)
         {
@@ -653,9 +654,9 @@ noisyUnitaryDoubleQubitGate(size_t qn_0,
                 qgroup0.qstate[k + ststep1 + ststep2] = matrix_new[12] * phi00 + matrix_new[13] * phi01
                     + matrix_new[14] * phi10 + matrix_new[15] * phi11;
                 dsum += (abs(qgroup0.qstate[k])*abs(qgroup0.qstate[k]) 
-                    + abs(qgroup0.qstate[j + ststep1])*abs(qgroup0.qstate[j + ststep1])
-                    + abs(qgroup0.qstate[j + ststep2])*abs(qgroup0.qstate[j + ststep2])
-                    + abs(qgroup0.qstate[j + ststep1 + ststep2])*abs(qgroup0.qstate[j + ststep1 + ststep2]));
+                    + abs(qgroup0.qstate[k + ststep1])*abs(qgroup0.qstate[k + ststep1])
+                    + abs(qgroup0.qstate[k + ststep2])*abs(qgroup0.qstate[k + ststep2])
+                    + abs(qgroup0.qstate[k + ststep1 + ststep2])*abs(qgroup0.qstate[k + ststep1 + ststep2]));
             }
         }
     }
@@ -963,13 +964,22 @@ QError NoisyCPUImplQPU::Reset(size_t qn)
     size_t ststep = 1ull << (find(qgroup.qVec.begin(), qgroup.qVec.end(), qn)
         - qgroup.qVec.begin());
     //#pragma omp parallel for private(j,alpha,beta)
+	double dsum = 0;
     for (size_t i = 0; i < qgroup.qstate.size(); i += ststep * 2)
     {
         for (j = i; j<i + ststep; j++)
         {
             qgroup.qstate[j + ststep] = 0;                              /* in j+ststep,the goal qubit is in |1> */
+			dsum += (abs(qgroup.qstate[j])*abs(qgroup.qstate[j]) + abs(qgroup.qstate[j + ststep])*abs(qgroup.qstate[j + ststep]));
         }
     }
+
+	dsum = sqrt(dsum);
+	for (size_t i = 0; i < qgroup.qstate.size(); i++)
+	{
+		qgroup.qstate[i] /= dsum;
+	}
+
     return qErrorNone;
 }
 

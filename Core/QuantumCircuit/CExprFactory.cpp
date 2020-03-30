@@ -16,7 +16,7 @@ limitations under the License.
 
 #include "CExprFactory.h"
 #include "OriginClassicalExpression.h"
-#include "Utilities/ConfigMap.h"
+#include "Core/Utilities/QProgInfo/ConfigMap.h"
 #include "OriginQuantumMachine.h"
 
 USING_QPANDA

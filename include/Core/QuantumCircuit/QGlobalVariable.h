@@ -21,9 +21,7 @@ limitations under the License.
 #include <vector>
 
 /*
-*  @enum	NodeType
 *  @brief   QPanda2 node type
-*  @ingroup Core
 */
 enum NodeType
 {
@@ -35,13 +33,12 @@ enum NodeType
     WHILE_START_NODE,/**< Quantum while controlflow start node */
     QIF_START_NODE,/**< Quantum if controlflow start node */
     CLASS_COND_NODE,/**< Quantum classical condition node */
-    QWAIT_NODE      /**< QWait node */
+    QWAIT_NODE,     /**< QWait node */
+	RESET_NODE      /**< QReset node */
 };
 
 /*
-*  @enum	GateType
 *  @brief   QPanda2 quantum gate type
-*  @ingroup Core
 */
 enum GateType {
 	GATE_UNDEFINED = -1,
@@ -72,13 +69,15 @@ enum GateType {
     SQISWAP_GATE,/**< Quantum sqiswap gate */
     SWAP_GATE,/**< Quantum swap gate */
     TWO_QUBIT_GATE,/**< Quantum two-qubit gate */
-    TOFFOLI_GATE
+    P00_GATE,
+    P11_GATE,
+    TOFFOLI_GATE,
+	ORACLE_GATE,
+	I_GATE
 };
 
 /*
-*  @enum	Operatortype
 *  @brief   QPanda2 Operator type
-*  @ingroup Core
 */
 enum Operatortype
 {
@@ -98,7 +97,9 @@ enum Operatortype
 };
 
 
-
+/*
+*  @brief   QPanda2 Operator type
+*/
 enum OperatorType
 {
     TYPE_OPERATOR_NODE,
@@ -108,7 +109,6 @@ enum OperatorType
 
 
 /*
-*  @enum	MetadataGateType
 *  @brief   QPanda2 metadata gate type
 */
 enum MetadataGateType {

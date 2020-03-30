@@ -213,4 +213,12 @@ add multi-qubit gate which has diagonal matrix
     QError initState(size_t head_rank, size_t rank_size, size_t qubit_num);
 };
 
+class CPUImplQPUSingleThreadWithOracle : public CPUImplQPUSingleThread {
+public:
+	QError controlOracularGate(std::vector<size_t> bits,
+		std::vector<size_t> controlbits,
+		bool is_dagger,
+		std::string name);
+};
+
 #endif

@@ -23,9 +23,12 @@ limitations under the License.
 #include "Core/Utilities/QPandaNamespace.h"
 QPANDA_BEGIN
 
+/**
+* @brief QResult abstract class, this class contains the result of the quantum measurement
+* @ingroup QuantumMachine
+*/
 class QResult
 {
-    // this class contains the result of the quantum measurement
 public:
     virtual std::map<std::string, bool> getResultMap() const = 0;
     virtual void append(std::pair<std::string, bool>) = 0;
@@ -42,7 +45,11 @@ static QResultFactoryHelper _QRes_Factory_Helper_##classname(\
     classname##_Constructor\
 )
 
-/* QResult Factory */
+
+/**
+* @brief Factory for class QResult
+* @ingroup QuantumMachine
+*/
 class QResultFactory
 {
     QResultFactory();
@@ -52,9 +59,19 @@ public:
     constructor_Map_t _QResult_Constructor;
     QResult* GetEmptyQResult();
     void registerclass(std::string &, constructor_t);
+	
+	/**
+     * @brief Get the static instance of factory 
+	 * @return QResultFactory &
+     */
     static QResultFactory& GetFactoryInstance();
 };
 
+/**
+ * @brief QResult Factory helper
+ * Provide QResultFactory class registration interface for the outside
+ * @ingroup QuantumMachine
+ */
 class QResultFactoryHelper
 {
     typedef QResultFactory::constructor_t

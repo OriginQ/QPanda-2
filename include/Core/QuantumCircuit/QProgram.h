@@ -24,45 +24,81 @@ limitations under the License.
 #include <map>
 
 #include "Core/QuantumCircuit/QNode.h"
-#include "Core/Utilities/ReadWriteLock.h"
+#include "Core/Utilities/Tools/ReadWriteLock.h"
 #include "Core/QuantumMachine/QubitFactory.h"
 #include "Core/QuantumMachine/QVec.h"
-#include "Core/Utilities/QPandaException.h"
-QPANDA_BEGIN
+#include "Core/Utilities/Tools/QPandaException.h"
+#include "Core/QuantumCircuit/QNodeManager.h"
 
-/**
-* @defgroup Core
-* @brief QPanda2 core component
-*/
+QPANDA_BEGIN
 
 /**
 * @class  AbstractQuantumProgram
 * @brief   Quantum program basic abstract class
-* @ingroup Core
+* @ingroup QuantumCircuit
 */
-
 class AbstractQuantumProgram
 {
 public:
+	/**
+    * @brief  Get the first NodeIter
+    * @return  NodeIter
+    */
     virtual NodeIter  getFirstNodeIter() = 0;
+	
+	/**
+    * @brief  Get the last NodeIter
+    * @return  NodeIter
+    */
     virtual NodeIter  getLastNodeIter() = 0;
+	
+	/**
+    * @brief  Get the end NodeIter
+    * @return  NodeIter
+    */
     virtual NodeIter  getEndNodeIter() = 0;
+	
+	/**
+    * @brief  Get the head NodeIter
+    * @return  NodeIter
+    */
     virtual NodeIter  getHeadNodeIter() = 0;
-    virtual NodeIter  insertQNode(const NodeIter &, QNode *) = 0;
+	
+	/**
+    * @brief  Insert a new QNode at the location specified by NodeIter  
+	* @param[in] NodeIter&  specified  location
+	* @param[in] std::shared_ptr<QNode> Inserted QNode
+    * @return  NodeIter
+    */
+    virtual NodeIter  insertQNode(const NodeIter &, std::shared_ptr<QNode>) = 0;
+	
+	/**
+    * @brief  Delete a QNode at the location specified by NodeIter  
+	* @param[in] NodeIter&  specified  location
+    * @return  NodeIter  Deleted NodeIter
+    */
     virtual NodeIter  deleteQNode(NodeIter &) =0;
-
-    virtual void pushBackNode(QNode *) = 0;
+	
+	/**
+    * @brief  Insert a new node at the end of current quantum program node
+    * @param[in]  std::shared_ptr<QNode>  quantum node shared pointer
+    * @see  QNode
+    */
     virtual void pushBackNode(std::shared_ptr<QNode>) = 0;
     virtual ~AbstractQuantumProgram() {};
+	
+	/**
+    * @brief  Clear all node in current quantum program node
+    */
     virtual void clear() = 0;
 };
 
 /**
 * @class QProg
 * @brief    Quantum program,can construct quantum circuit,data struct is linked list
-* @ingroup  Core
+* @ingroup  QuantumCircuit
 */
-class QProg : public QNode,public AbstractQuantumProgram
+class QProg : public AbstractQuantumProgram
 {
 private:
     std::shared_ptr<AbstractQuantumProgram> m_quantum_program;
@@ -73,15 +109,13 @@ public:
     template<typename Ty>
     QProg(Ty &node);
 
-    QProg(QNode *);
     QProg(std::shared_ptr<QNode>);
     QProg(std::shared_ptr<AbstractQuantumProgram>);
     QProg(ClassicalCondition &node);
 	QProg(QProg& other);
 	
     ~QProg();
-    std::shared_ptr<QNode> getImplementationPtr();
-    void pushBackNode(QNode *);
+    std::shared_ptr<AbstractQuantumProgram> getImplementationPtr();
     void pushBackNode(std::shared_ptr<QNode>);
     template<typename T>
     QProg & operator <<(T);
@@ -89,15 +123,18 @@ public:
     NodeIter getLastNodeIter();
     NodeIter getEndNodeIter();
     NodeIter getHeadNodeIter();
-    NodeIter insertQNode(const NodeIter & iter, QNode * pNode);
+    NodeIter insertQNode(const NodeIter & iter, std::shared_ptr<QNode>);
     NodeIter deleteQNode(NodeIter & iter);
     NodeType getNodeType() const;
     void clear();
-private:
-    void execute(QPUImpl *, QuantumGateParam *) {};
 };
 
 typedef AbstractQuantumProgram * (*CreateQProgram)();
+
+/**
+* @brief   Factory for class AbstractQuantumProgram
+* @ingroup QuantumCircuit
+*/
 class QuantumProgramFactory
 {
 public:
@@ -105,6 +142,10 @@ public:
     void registClass(std::string name, CreateQProgram method);
     AbstractQuantumProgram * getQuantumQProg(std::string &);
 
+	/**
+     * @brief Get the static instance of factory 
+	 * @return QuantumProgramFactory &
+     */
     static QuantumProgramFactory & getInstance()
     {
         static QuantumProgramFactory  instance;
@@ -115,6 +156,10 @@ private:
     QuantumProgramFactory() {};
 };
 
+/**
+* @brief Quantum program register action
+* @note Provide QuantumProgramFactory class registration interface for the outside
+ */
 class QuantumProgramRegisterAction {
 public:
     QuantumProgramRegisterAction(std::string className, CreateQProgram ptrCreateFn) {
@@ -129,23 +174,20 @@ public:
     QuantumProgramRegisterAction g_qProgCreatorDoubleRegister##className(      \
         #className,(CreateQProgram)QProgCreator##className)
 
+
+/**
+* @brief Implementation  class of QProg
+* @ingroup QuantumCircuit
+*/
 class OriginProgram :public QNode, public AbstractQuantumProgram
 {
 private:
-    Item *m_head {nullptr};
-    Item *m_end {nullptr};
+	QNodeManager m_node_manager{this};
     SharedMutex m_sm;
     NodeType m_node_type {PROG_NODE};
     OriginProgram(OriginProgram&);
 
 public:
-
-    std::shared_ptr<QNode> getImplementationPtr()
-    {
-        QCERR("Can't use this function");
-        throw std::runtime_error("Can't use this function");
-    }
-
     ~OriginProgram();
     OriginProgram();
     /**
@@ -154,30 +196,32 @@ public:
     * @return     void
     * @see  QNode
     */
-    void pushBackNode(QNode *);
-    void pushBackNode(std::shared_ptr<QNode>);
-    NodeIter getFirstNodeIter();
-    NodeIter getLastNodeIter();
-    NodeIter getEndNodeIter();
-    NodeIter getHeadNodeIter();
-    NodeIter insertQNode(const NodeIter &, QNode *);
-    NodeIter deleteQNode(NodeIter &);
+	void pushBackNode(std::shared_ptr<QNode> node) { m_node_manager.push_back_node(node); }
+	NodeIter getFirstNodeIter() { return m_node_manager.get_first_node_iter(); }
+	NodeIter getLastNodeIter() { return m_node_manager.get_last_node_iter(); }
+	NodeIter getEndNodeIter() { return m_node_manager.get_end_node_iter(); }
+	NodeIter getHeadNodeIter() { return m_node_manager.get_head_node_iter(); }
+	NodeIter insertQNode(const NodeIter &perIter, std::shared_ptr<QNode> node) { return m_node_manager.insert_QNode(perIter, node); }
+	NodeIter deleteQNode(NodeIter &target_iter) { return m_node_manager.delete_QNode(target_iter); }
     NodeType getNodeType() const;
 
     /**
     * @brief  Clear all node in current quantum program node
     * @return     void
     */
-    void clear();
-    void execute(QPUImpl *, QuantumGateParam *);
+	void clear() { m_node_manager.clear(); }
 };
 
+/* will delete */
+QProg CreateEmptyQProg();
+
+/* new interface */
 /**
 * @brief  QPanda2 basic interface for creating a empty quantum program
-* @ingroup  Core
+* @ingroup  QuantumCircuit
 * @return     QPanda::QProg  quantum program
 */
-QProg CreateEmptyQProg();
+QProg createEmptyQProg();
 
 /**
 * @brief  Insert new Node at the end of current node
@@ -198,20 +242,11 @@ QProg & QProg::operator<<(T node)
         throw std::runtime_error("m_quantum_program is nullptr");
     }
 
-    auto temp = dynamic_cast<QNode *>(&node);
-    if (nullptr != temp)
-    {
-        int iNodeType = temp->getNodeType();
-        m_quantum_program->pushBackNode(temp);
-        return *this;
-    }
-    else
-    {
-        throw qprog_construction_fail("bad node type");
-    }
+	m_quantum_program->pushBackNode(std::dynamic_pointer_cast<QNode>(node.getImplementationPtr()));
+	return *this;
 }
 template <>
-QProg & QProg::operator<<<ClassicalCondition >(ClassicalCondition  node);
+QProg & QProg::operator<<<ClassicalCondition >(ClassicalCondition node);
 
 template<typename Ty>
 QProg::QProg(Ty &node)
@@ -221,8 +256,7 @@ QProg::QProg(Ty &node)
     {
         throw std::runtime_error("m_quantum_program is nullptr");
     }
-    static_assert(std::is_base_of<QNode, Ty>::value, "bad node type");
-    m_quantum_program->pushBackNode(&node);
+    m_quantum_program->pushBackNode(std::dynamic_pointer_cast<QNode>(node.getImplementationPtr()));
 }
 
 QPANDA_END

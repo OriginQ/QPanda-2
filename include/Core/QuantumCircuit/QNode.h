@@ -9,10 +9,9 @@
 #include <vector>
 #include <map>
 #include <memory>
-/**
-* @namespace QPanda
-*/
+
 QPANDA_BEGIN
+
 typedef int64_t qmap_size_t;
 
 class QObject
@@ -28,17 +27,19 @@ class QObject
 /**
 * @class QNode
 * @brief   Quantum node basic abstract class
-* @ingroup Core
+* @ingroup QuantumCircuit
 */
 class QNode : public QObject
 {
 public:
     virtual NodeType getNodeType() const = 0;
-    virtual std::shared_ptr<QNode> getImplementationPtr() = 0;
-    virtual void execute(QPUImpl *,QuantumGateParam *) = 0;
     virtual ~QNode() {}
 };
 
+/**
+* @brief Item basic abstract class
+* @ingroup QuantumCircuit
+*/
 class Item
 {
 public:
@@ -51,12 +52,16 @@ public:
     virtual ~Item() {}
 };
 
+/**
+* @brief Origin item implementation class
+* @ingroup QuantumCircuit
+*/
 class  OriginItem : public Item
 {
 private:
-    Item *m_pNext;
-    Item *m_pPre;
-    std::shared_ptr<QNode> m_node;
+    Item *m_pNext;			/**< next item pointer*/
+    Item *m_pPre;				/**< previous item pointer*/
+    std::shared_ptr<QNode> m_node;  /**< QNode shared pointer*/
 public:
     OriginItem();
     ~OriginItem();

@@ -13,8 +13,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-#include "Core/QPanda.h"
-#include "Utils/Utilities.h"
+#include "Core/Core.h"
+#include "Core/Utilities/Tools/Utils.h"
+#include "QAlg/Grover_Algorithm/Grover_Algorithm.h"
 
 USING_QPANDA
 using namespace std;
@@ -43,43 +44,11 @@ grover_oracle generate_3_qubit_oracle(int target) {
 	};
 }
 
-QCircuit diffusion_operator(vector<Qubit*> qvec) {
-	vector<Qubit*> controller(qvec.begin(), qvec.end() - 1);
-	QCircuit c;
-	c << apply_QGate(qvec, H);
-	c << apply_QGate(qvec, X);
-	c << Z(qvec.back()).control(controller);
-	c << apply_QGate(qvec, X);
-	c << apply_QGate(qvec, H);
-	
-	return c;
-}
-
-QProg Grover_algorithm(vector<Qubit*> working_qubit, Qubit* ancilla, vector<ClassicalCondition> cvec, grover_oracle oracle, uint64_t repeat = 0) {
-	QProg prog;
-	prog << X(ancilla);
-	prog << apply_QGate(working_qubit, H);
-	prog << H(ancilla);
-
-	// if repeat is not specified, choose a sufficient large repeat times.
-	// repeat = (default) 100*sqrt(N)
-	if (repeat == 0) {
-		uint64_t sqrtN = 1ull << (working_qubit.size() / 2);
-		repeat = 100 * sqrtN;
-	}
-	
-	for (auto i = 0ull; i < repeat; ++i) {
-		prog << oracle(working_qubit, ancilla);
-		prog << diffusion_operator(working_qubit);
-	}
-
-	prog << MeasureAll(working_qubit, cvec);
-	return prog;
-}
-
 int main()
 {
+
 	while (1) {
+		auto qvm = initQuantumMachine(QMachineType::CPU_SINGLE_THREAD);
 		int target;
 		cout << "input the input function" << endl
 			<< "The function has a boolean input" << endl
@@ -89,22 +58,8 @@ int main()
 		cout << "Programming the oracle..." << endl;
 		grover_oracle oracle = generate_3_qubit_oracle(target);
 
-		init(QMachineType::CPU_SINGLE_THREAD);
-
-		int qubit_number = 3;
-		vector<Qubit*> working_qubit = qAllocMany(qubit_number - 1);
-		Qubit* ancilla = qAlloc();
-
-		int cbitnum = 2;
-		vector<ClassicalCondition> cvec = cAllocMany(cbitnum);
-
-		auto prog = Grover_algorithm(working_qubit, ancilla, cvec, oracle, 1);
-
-		/* To Print The Circuit */
-
-		extern QuantumMachine* global_quantum_machine;
-		cout << transformQProgToOriginIR(prog, global_quantum_machine) << endl;
-
+		auto prog = groverAlgorithm(target,4, qvm, oracle);
+		cout << transformQProgToOriginIR(prog, qvm) << endl;
 
 		auto resultMap = directlyRun(prog);
 		if (resultMap["c0"])
@@ -129,8 +84,9 @@ int main()
 				cout << "target number is 0 !";
 			}
 		}
-		finalize();
+		destroyQuantumMachine(qvm);
 	}
+
 	return 0;
 }
 

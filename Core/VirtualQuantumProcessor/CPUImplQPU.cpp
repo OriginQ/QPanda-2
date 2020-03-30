@@ -16,7 +16,7 @@ limitations under the License.
 #include "QPandaConfig.h"
 #include "CPUImplQPU.h"
 #include "QPandaNamespace.h"
-#include "Utilities/Utilities.h"
+#include "Core/Utilities/Tools/Utils.h"
 #include <algorithm>
 #include <thread>
 #include <map>
@@ -39,7 +39,6 @@ REGISTER_GATE_MATRIX(S, 1, 0, 0, iunit)
 REGISTER_ANGLE_GATE_MATRIX(RX_GATE, 1, 0, 0)
 REGISTER_ANGLE_GATE_MATRIX(RY_GATE, 0, 1, 0)
 REGISTER_ANGLE_GATE_MATRIX(RZ_GATE, 0, 0, 1)
-
 
 CPUImplQPU::CPUImplQPU()
 {
@@ -235,7 +234,7 @@ QError  CPUImplQPU::
 unitarySingleQubitGate(size_t qn,
     QStat& matrix,
     bool isConjugate,
-    GateType type)
+    GateType)
 {
     qcomplex_t alpha;
     qcomplex_t beta;
@@ -272,7 +271,7 @@ controlunitarySingleQubitGate(size_t qn,
     Qnum& vControlBit,
     QStat & matrix,
     bool isConjugate,
-    GateType type)
+    GateType)
 {
     QGateParam& qgroup0 = findgroup(qn);
     for (auto iter = vControlBit.begin(); iter != vControlBit.end(); iter++)
@@ -348,7 +347,7 @@ unitaryDoubleQubitGate(size_t qn_0,
     size_t qn_1,
     QStat& matrix,
     bool isConjugate,
-    GateType type)
+    GateType)
 {
     QGateParam& qgroup0 = findgroup(qn_0);
     QGateParam& qgroup1 = findgroup(qn_1);
@@ -418,7 +417,7 @@ controlunitaryDoubleQubitGate(size_t qn_0,
     Qnum& vControlBit,
     QStat& matrix,
     bool isConjugate,
-    GateType type)
+    GateType)
 {
     QGateParam& qgroup0 = findgroup(qn_0);
     QGateParam& qgroup1 = findgroup(qn_1);
@@ -786,13 +785,22 @@ QError CPUImplQPU::Reset(size_t qn)
     size_t ststep = 1ull << (find(qgroup.qVec.begin(), qgroup.qVec.end(), qn)
         - qgroup.qVec.begin());
     //#pragma omp parallel for private(j,alpha,beta)
+	double dsum = 0;
     for (size_t i = 0; i < qgroup.qstate.size(); i += ststep * 2)
     {
         for (j = i; j<i + ststep; j++)
         {
             qgroup.qstate[j + ststep] = 0;                              /* in j+ststep,the goal qubit is in |1> */
+			dsum += (abs(qgroup.qstate[j])*abs(qgroup.qstate[j]) + abs(qgroup.qstate[j + ststep])*abs(qgroup.qstate[j + ststep]));
         }
     }
+
+	dsum = sqrt(dsum);
+	for (size_t i = 0; i < qgroup.qstate.size(); i++)
+	{
+		qgroup.qstate[i] /= dsum;
+	}
+
     return qErrorNone;
 }
 
@@ -914,4 +922,14 @@ QError CPUImplQPU::controlDiagonalGate(Qnum & vQubit, QStat & matrix, Qnum & vCo
         }
     }
     return QError();
+}
+
+QError CPUImplQPUWithOracle::controlOracularGate(std::vector<size_t> bits, std::vector<size_t> controlbits, bool is_dagger, std::string name)
+{
+	if (name == "oracle_test") {
+
+	}
+	else {
+		throw runtime_error("Not Implemented.");
+	}
 }

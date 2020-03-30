@@ -8,6 +8,11 @@
 #include "Core/QuantumCircuit/ControlFlow.h"
 #include "Core/QuantumMachine/QuantumMachineInterface.h"
 
+
+/** 
+* @brief Distributed full amplitude engine  abstract class
+* @ingroup VirtualQuantumProcessor
+*/
 class AbstractDistributedFullAmplitudeEngine
 {
 public:
@@ -20,12 +25,14 @@ public:
     virtual void controldoubleQubitOperation(const int &iQn1, const int &iQn2, Qnum& qnum, QStat U, bool isConjugate) = 0;
 
     virtual int  measureQubitOperation(const int &qn) = 0;
-    virtual void PMeasureQubitOperation(Qnum& qnum, prob_vec &mResult);
+    virtual void PMeasureQubitOperation(Qnum& qnum, prob_vec &mResult) = 0;
+
+	virtual void reset_qubit_operation(const int &qn) = 0;
 
 private:
-    virtual void distributeOneRank_doubleQubitOperation(const int &iQn1, const int &iQn2, QStat U) = 0;
-    virtual void distributeTwoRank_doubleQubitOperation(const int &iQn1, const int &iQn2, QStat U) = 0;
-    virtual void distributeFourRank_doubleQubitOperation(const int &iQn1, const int &iQn2, QStat U) = 0;
+    virtual void distributeOneRank_doubleQubitOperation(const int &iQn1, const int &iQn2, QStat U, bool isConjugate) = 0;
+    virtual void distributeTwoRank_doubleQubitOperation(const int &iQn1, const int &iQn2, QStat U, bool isConjugate) = 0;
+    virtual void distributeFourRank_doubleQubitOperation(const int &iQn1, const int &iQn2, QStat U, bool isConjugate) = 0;
 
     virtual qstate_type distributeAllRank_measureQubitOperation(const int &qn) = 0;
     virtual qstate_type distributeHalfRank_measureQubitOperation(const int &qn) = 0;
@@ -34,7 +41,10 @@ private:
     virtual void distributeHalfRank_handleMeasureState(const int &qn, int &result, const qstate_type &prob) = 0;
 };
 
-
+/**
+* @brief Distributed full amplitude engine 
+* @ingroup VirtualQuantumProcessor
+*/
 class DistributedFullAmplitudeEngine :public QPUImpl
 {
 public:
@@ -66,6 +76,8 @@ public:
         GateType);
 
     QStat getQState();
+
+	QError Reset(size_t qn);
 
 private:
     AbstractDistributedFullAmplitudeEngine * _PQGates = nullptr;

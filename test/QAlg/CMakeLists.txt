@@ -1,0 +1,10 @@
+cmake_minimum_required(VERSION 3.1)
+project(QAlg.test)
+file(GLOB_RECURSE QAlgTestSrc ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
+add_executable(${PROJECT_NAME} ${QAlgTestSrc})
+if (CURL_FOUND)
+    target_link_libraries(${PROJECT_NAME} ${LIB_QPANDA} ${LIB_GTEST} ${CURL_LIBRARY} ${LIB_COMPONENTS} ${LIB_QALG})
+else (CURL_FOUND)
+    target_link_libraries(${PROJECT_NAME} ${LIB_QPANDA} ${LIB_GTEST} ${LIB_COMPONENTS} ${LIB_QALG})
+endif (CURL_FOUND)
+

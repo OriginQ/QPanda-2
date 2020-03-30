@@ -33,6 +33,7 @@ using namespace std;
 #include <map>
 #include <iostream>
 #include <sstream>
+
 using std::stringstream;
 
 GPUImplQPU::~GPUImplQPU()
@@ -114,7 +115,7 @@ pQGate                 quantum gate
 Argout:      None
 return:      quantum error
 *****************************************************************************************************************/
-QError GPUImplQPU::endGate(QuantumGateParam *pQuantumProParam, QPUImpl * pQGate)
+QError GPUImplQPU::endGate(QPanda::TraversalConfig *pQuantumProParam, QPUImpl * pQGate)
 {
     return qErrorNone;
 }
@@ -350,6 +351,31 @@ QError GPUImplQPU::U1_GATE(size_t qn, double theta, bool isConjugate, double err
     return undefineError;
 }
 
+QError GPUImplQPU::U1_GATE(size_t qn, Qnum & vControlBit, double theta, bool isConjugate, double error_rate)
+{
+    return undefineError;
+}
+
+QError GPUImplQPU::U2_GATE(size_t qn, double phi, double lambda, bool isConjugate, double error_rate)
+{
+    return undefineError;
+}
+
+QError GPUImplQPU::U2_GATE(size_t qn, Qnum & vControlBit, double phi, double lambda, bool isConjugate, double error_rate)
+{
+    return undefineError;
+}
+
+QError GPUImplQPU::U3_GATE(size_t qn, double theta, double phi, double lambda, bool isConjugate, double error_rate)
+{
+    return undefineError;
+}
+
+QError GPUImplQPU::U3_GATE(size_t qn, Qnum & vControlBit, double theta, double phi, double lambda, bool isConjugate, double error_rate)
+{
+    return undefineError;
+}
+
 QError GPUImplQPU::unitarySingleQubitGate(size_t qn,
     QStat & matrix,
     bool isConjugate,
@@ -514,6 +540,16 @@ QError GPUImplQPU::P1(
     Qnum& vControlBit,
     bool isConjugate,
     double error_rate)
+{
+    return undefineError;
+}
+
+QError GPUImplQPU::I(size_t qn, bool isConjugate, double error_rate)
+{
+    return undefineError;
+}
+
+QError GPUImplQPU::I(size_t qn, Qnum & vControlBit, bool isConjugate, double error_rate)
 {
     return undefineError;
 }

@@ -589,13 +589,13 @@ void QProgToMatrix::MatrixOfOneLayer::swap_two_qubit_on_matrix(QStat& src_mat, c
 		return;
 	}
 
-	auto machine = initQuantumMachine(QMachineType::CPU);
-	auto q = machine->allocateQubits(4);
-	auto c = machine->allocateCBits(4);
+	CPUQVM qvm;
+	qvm.init();
+	auto q = qvm.allocateQubits(2);
 	auto swap_gate = SWAP(q[0], q[1]);
 	QStat swap_gate_matrix;
 	swap_gate.getQGate()->getMatrix(swap_gate_matrix);
-	destroyQuantumMachine(machine);
+	qvm.finalize();
 
 	QStat tmp_tensor_mat;
 	int tensor_start_qubit = qubit_1 < qubit_2 ? qubit_1 : qubit_2;

@@ -67,6 +67,12 @@ QPanda 2作为本源量子计算系列软件的基础库，为QRunes、Qurator�
 
 QPanda由本源量子开发，本源量子致力于量子计算机的研发与应用，已推出6-qubit超导量子芯片（KF C6-130）、2-qubit半导量子芯片（XW B2-100），团队的目标是在近年制造出更多量子比特的芯片，提供公开云服务，实现量子优势与量子应用。软件团队为硬件提供支撑，除QPanda外还开发了QRunes量子语言、Qurator量子软件开发插件、本源量子云计算云服务平台、本源量子教育云等产品。
 
+## 关于
+
+- `QCodar` 参考张昱研究组的论文 [CODAR: A Contextual Duration-Aware Qubit Mapping for Various NISQ Devices](https://arxiv.org/abs/2002.10915)以及开源项目[Q-CODAR ](https://github.com/S4Plus/Q-CODAR)
+- `VQNet`  参考Zhao-Yun Chen, Cheng Xue, Si-Ming Chen, Guo-Ping Guo的论文[VQNet: Library for a Quantum-Classical Hybrid Neural Network](https://arxiv.org/abs/1901.09133)
+- `PartialAmplitudeQVM` 参考Zhao-Yun Chen, Qi Zhou, Cheng Xue, Xia Yang, Guang-Can Guo, Guo-Ping Guo的论文[64-Qubit Quantum Circuit Simulation](https://arxiv.org/abs/1802.06952)
+
  ## License
  Apache License 2.0
 

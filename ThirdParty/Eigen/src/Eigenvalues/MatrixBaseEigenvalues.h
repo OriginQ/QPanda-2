@@ -66,7 +66,6 @@ template<typename Derived>
 inline typename MatrixBase<Derived>::EigenvaluesReturnType
 MatrixBase<Derived>::eigenvalues() const
 {
-  typedef typename internal::traits<Derived>::Scalar Scalar;
   return internal::eigenvalues_selector<Derived, NumTraits<Scalar>::IsComplex>::run(derived());
 }
 
@@ -88,7 +87,6 @@ template<typename MatrixType, unsigned int UpLo>
 inline typename SelfAdjointView<MatrixType, UpLo>::EigenvaluesReturnType
 SelfAdjointView<MatrixType, UpLo>::eigenvalues() const
 {
-  typedef typename SelfAdjointView<MatrixType, UpLo>::PlainObject PlainObject;
   PlainObject thisAsMatrix(*this);
   return SelfAdjointEigenSolver<PlainObject>(thisAsMatrix, false).eigenvalues();
 }
@@ -127,10 +125,10 @@ MatrixBase<Derived>::operatorNorm() const
   // then we don't need to compute a maxCoeff() here, comparing the 1st and last ones is enough.
   return sqrt((m_eval*m_eval.adjoint())
                  .eval()
-         .template selfadjointView<Lower>()
-         .eigenvalues()
-         .maxCoeff()
-         );
+		 .template selfadjointView<Lower>()
+		 .eigenvalues()
+		 .maxCoeff()
+		 );
 }
 
 /** \brief Computes the L2 operator norm

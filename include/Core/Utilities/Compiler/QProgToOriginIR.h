@@ -68,7 +68,7 @@ private:
 * @brief  Quantum Program Transform To OriginIR  
 * @ingroup Utilities
 * @param[in]  _Ty& quantum program, quantum circuit, quantum while or quantum if
-* @return     std::string    QASM instruction set
+* @return     std::string    OriginIR instruction set
 * @see
       @code
           init(QuantumMachine_type::CPU);
@@ -104,7 +104,7 @@ std::string transformQProgToOriginIR(_Ty &node,QuantumMachine *machine)
 * @ingroup Utilities
 * @param[in]  _Ty& quantum program, quantum circuit, quantum while or quantum if
 * @param[in]  QuantumMachine* quantum machine
-* @return     std::string    QASM instruction set
+* @return     std::string   OriginIR instruction set
 */
 template<typename _Ty>
 std::string convert_qprog_to_originir(_Ty &node, QuantumMachine *machine)

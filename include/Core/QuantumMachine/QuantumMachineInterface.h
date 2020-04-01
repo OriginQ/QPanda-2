@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2017-2018 Origin Quantum Computing. All Right Reserved.
+Copyright (c) 2017-2020 Origin Quantum Computing. All Right Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -161,6 +161,14 @@ public:
     */
     virtual std::map<std::string, size_t> runWithConfiguration(QProg &, std::vector<ClassicalCondition> &, rapidjson::Document&) = 0;
 
+	/**
+    * @brief  runWithConfiguration
+    * @param[in]  QProg& quantum program
+    * @param[in]  std::vector<ClassicalCondition>&
+    * @param[in]  int
+    * @return     std::map<std::string, Eigen::size_t>
+    */
+	virtual std::map<std::string, size_t> runWithConfiguration(QProg &, std::vector<ClassicalCondition> &, int) = 0;
     /**
     * @brief  getGateTimeMap
     * @return     std::map<GateType, Eigen::size_t>

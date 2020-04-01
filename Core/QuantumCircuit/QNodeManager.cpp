@@ -223,6 +223,7 @@ void QNodeManager::clear()
 	{
 		temp = m_head->getNext();
 		m_head->setNext(temp->getNext());
+        temp->getNext()->setPre(m_head);
 		delete temp;
 	}
 }

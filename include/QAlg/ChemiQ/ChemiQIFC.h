@@ -136,10 +136,24 @@ extern "C" {
 	*/
     DLLEXPORT void setSaveDataDir(ChemiQ* chemiq, char* dir);
 
+    /**
+    * @brief  get qubits num with the above config.
+    * @param[in]  ChemiQ* the target ChemiQ object ptr
+    * @return  int -1:means failed.
+    */
+    DLLEXPORT int getQubitsNum(ChemiQ* chemiq);
+
 	/**
 	* @brief exec molecule calculate.
 	* @param[in]  ChemiQ* the target ChemiQ object ptr
 	* @return  bool true:success; false:failed
 	*/
     DLLEXPORT bool exec(ChemiQ* chemiq);
+
+    /**
+    * @brief  get last error.
+    * @param[in]  ChemiQ* the target ChemiQ object ptr
+    * @return  char* last error
+    */
+    DLLEXPORT const char* getLastError(ChemiQ* chemiq);
 }

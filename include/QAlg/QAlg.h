@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2017-2018 Origin Quantum Computing. All Right Reserved.
+Copyright (c) 2017-2020 Origin Quantum Computing. All Right Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -24,5 +24,7 @@ limitations under the License.
 #include "QAlg/DJ_Algorithm/DJ_Algorithm.h"
 #include "QAlg/Grover_Algorithm/Grover_Algorithm.h"
 #include "QAlg/QAOA/QAOA.h"
+#include "QAlg/AmplitudeEncode.h"
+#include "QAlg/ArithmeticUnit/ArithmeticUnit.h"
 
 #endif // !_QALG_H

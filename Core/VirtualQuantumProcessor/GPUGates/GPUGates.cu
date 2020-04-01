@@ -1,5 +1,5 @@
 /******************************************************************************
-Copyright (c) 2017-2018 Origin Quantum Computing Co., Ltd.. All Rights Reserved.
+Copyright (c) 2017-2020 Origin Quantum Computing Co., Ltd.. All Rights Reserved.
 
 
 

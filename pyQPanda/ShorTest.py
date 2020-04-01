@@ -44,16 +44,16 @@ def MAJ(a, b, c):
 
     return circ
 	
-def Adder(a, b, c):
-    circuit = CreateEmptyCircuit()
-    nbit = len(a)
-    circuit.insert(MAJ(c, a[0], b[0]))
-    for i in range(1,nbit,1):
-        circuit.insert(MAJ(b[i - 1], a[i], b[i]))
-    for i in range(nbit-1,0, - 1):
-        circuit.insert(MAJ(b[i - 1], a[i], b[i]))
-    circuit.insert(UMA(c, a[0], b[0]))
-    return circuit
+# def Adder(a, b, c):
+#     circuit = CreateEmptyCircuit()
+#     nbit = len(a)
+#     circuit.insert(MAJ(c, a[0], b[0]))
+#     for i in range(1,nbit,1):
+#         circuit.insert(MAJ(b[i - 1], a[i], b[i]))
+#     for i in range(nbit-1,0, - 1):
+#         circuit.insert(MAJ(b[i - 1], a[i], b[i]))
+#     circuit.insert(UMA(c, a[0], b[0]))
+#     return circuit
     
 def UMA(a, b, c):
     circ = QCircuit()
@@ -73,7 +73,8 @@ def MAJ2(a, b, c):
         circ.insert(MAJ(b[i-1], a[i], b[i]))
     
     return circ
-    
+
+def Adder(a, b, c):
     if ((len(a) == 0) or (len(a) != (len(b)))):
         raise RuntimeError('a and b must be equal, but not equal to 0!')
 
@@ -90,7 +91,8 @@ def MAJ2(a, b, c):
     circ.insert(UMA(c, a[0], b[0]))
     
     return circ
-    
+
+def isCarry(a, b, c, carry):
     if ((len(a) == 0) or (len(a) != (len(b)))):
         raise RuntimeError('a and b must be equal, but not equal to 0!')
 
@@ -312,5 +314,5 @@ def shorAlg(base, M):
     
 if __name__=="__main__":
     base = 2
-    N = 21
+    N = 15
     shorAlg(base, N)

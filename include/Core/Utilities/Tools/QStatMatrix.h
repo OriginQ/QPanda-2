@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2017-2018 Origin Quantum Computing. All Right Reserved.
+Copyright (c) 2017-2020 Origin Quantum Computing. All Right Reserved.
 Licensed under the Apache License 2.0
 
 QstatMatrix.h
@@ -97,7 +97,7 @@ QStat tensor(const QStat& leftMatrix, const QStat& rightMatrix);
 /**
 * @brief  output matrix information to consol
 * @ingroup Utilities
-* @param[in] mat the target matrix
+* @param[in] the target matrix
 * @return the matrix string
 */
 std::string matrix_to_string(const QStat& mat);

@@ -293,6 +293,8 @@ bool GraphMatch::query(TopologicalSequence &graph_seq, TopologicalSequence &quer
             iter = iter->size() != match_num ? match_result.erase(iter) : ++iter;
         }
     }
+
+	return true;
 }
 
 bool GraphMatch::_compare_node(LayerNode &graph_node, LayerNode &query_node)

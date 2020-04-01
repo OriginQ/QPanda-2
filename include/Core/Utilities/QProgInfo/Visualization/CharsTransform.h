@@ -3,7 +3,7 @@
 #include <codecvt>
 #include <locale>
 
-#ifdef _MSC_VER
+#ifdef WIN32
 #include <windows.h>
 #endif
 
@@ -38,7 +38,7 @@ inline std::wstring utf8ToWstring(const std::string& str)
 	return myconv.from_bytes(str);
 }
 
-#ifdef _MSC_VER
+#ifdef WIN32
 /**
 * @brief convert UTF8 string to gbk
 * @param[in] char* the source string
@@ -59,7 +59,7 @@ inline std::string Utf8ToGbkOnWin32(const char *src_str)
 	if (szGBK) delete[] szGBK;
 	return strTemp;
 }
-#endif // _MSC_VER
+#endif
 
 /**
 * @brief convert unsigned long to string

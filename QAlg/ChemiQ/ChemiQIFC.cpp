@@ -110,7 +110,17 @@ DLLEXPORT void setSaveDataDir(ChemiQ* chemiq, char* dir)
     chemiq->setSaveDataDir(dir);
 }
 
+DLLEXPORT int getQubitsNum(ChemiQ* chemiq)
+{
+    return chemiq->getQubitsNum();
+}
+
 DLLEXPORT bool exec(ChemiQ* chemiq)
 {
     return chemiq->exec();
+}
+
+DLLEXPORT const char* getLastError(ChemiQ* chemiq)
+{
+    return chemiq->getLastError().c_str();
 }

@@ -15,6 +15,10 @@ using namespace pybind11::literals;
 using std::map;
 namespace py = pybind11;
 
+template<>
+struct py::detail::type_caster<QVec>
+    : py::detail::list_caster<QVec, Qubit*> { };
+
 void init_quantum_machine(py::module &m)
 {
     py::enum_<QMachineType>(m, "QMachineType")
@@ -23,6 +27,25 @@ void init_quantum_machine(py::module &m)
         .value("CPU_SINGLE_THREAD", QMachineType::CPU_SINGLE_THREAD)
         .value("NOISE", QMachineType::NOISE)
         .export_values();
+
+	py::enum_<SwapQubitsMethod>(m, "SwapQubitsMethod")
+		.value("ISWAP_GATE_METHOD", SwapQubitsMethod::ISWAP_GATE_METHOD)
+		.value("CZ_GATE_METHOD", SwapQubitsMethod::CZ_GATE_METHOD)
+		.value("CNOT_GATE_METHOD", SwapQubitsMethod::CNOT_GATE_METHOD)
+		.value("SWAP_GATE_METHOD", SwapQubitsMethod::SWAP_GATE_METHOD)
+		.export_values();
+
+	py::enum_<ArchType>(m, "ArchType")
+		.value("IBM_QX5_ARCH", ArchType::IBM_QX5_ARCH)
+		.value("ORIGIN_VIRTUAL_ARCH", ArchType::ORIGIN_VIRTUAL_ARCH)
+		.export_values();
+
+	py::enum_<QCodarGridDevice>(m, "QCodarGridDevice")
+		.value("SIMPLE_TYPE", QCodarGridDevice::IBM_Q20_TOKYO)
+		.value("IBM_Q53", QCodarGridDevice::IBM_Q53)
+		.value("GOOGLE_Q54", QCodarGridDevice::GOOGLE_Q54)
+		.value("SIMPLE_TYPE", QCodarGridDevice::SIMPLE_TYPE)
+		.export_values();
 
 	py::enum_<IBMQBackends>(m, "IBMQBackends")
 		.value("IBMQ_QASM_SIMULATOR", IBMQBackends::IBMQ_QASM_SIMULATOR)
@@ -169,9 +192,15 @@ void init_quantum_machine(py::module &m)
         auto & alloc = doc.GetAllocator();
         doc.Parse(json_string.c_str());
         return qvm.runWithConfiguration(prog, cc_vector, doc);
-    },
-            "program"_a, "cbit_list"_a, "data"_a,
-        py::return_value_policy::automatic);
+			},
+			"program"_a, "cbit_list"_a, "data"_a,
+				py::return_value_policy::automatic)
+
+		.def("run_with_configuration", [](QuantumMachine &qvm, QProg & prog, vector<ClassicalCondition> & cc_vector, int shots) {
+				return qvm.runWithConfiguration(prog, cc_vector, shots);
+			},
+					"program"_a, "cbit_list"_a, "data"_a,
+				py::return_value_policy::automatic);
 
 
 #define DEFINE_IDEAL_QVM(class_name)\
@@ -221,6 +250,11 @@ void init_quantum_machine(py::module &m)
         }, \
             "program"_a, "cbit_list"_a, "data"_a,\
             py::return_value_policy::automatic)\
+		.def("run_with_configuration", [](class_name &qvm, QProg & prog, vector<ClassicalCondition> & cc_vector, int shots) {\
+			return qvm.runWithConfiguration(prog, cc_vector, shots);\
+			},\
+			"program"_a, "cbit_list"_a, "data"_a,\
+			py::return_value_policy::automatic)\
         .def("pmeasure", &class_name::PMeasure, "qubit_list"_a, "select_max"_a = -1,\
             "Get the probability distribution over qubits", py::return_value_policy::reference)\
         .def("pmeasure_no_index", &class_name::PMeasure_no_index, "qubit_list"_a,\
@@ -319,9 +353,13 @@ void init_quantum_machine(py::module &m)
         auto & alloc = doc.GetAllocator();
         doc.Parse(json_string.c_str());
         return qvm.runWithConfiguration(prog, cc_vector, doc);
-    },
-            "program"_a, "cbit_list"_a, "data"_a,
-        py::return_value_policy::automatic);
+		},
+			"program"_a, "cbit_list"_a, "data"_a, py::return_value_policy::automatic)
+
+		.def("run_with_configuration", [](NoiseQVM &qvm, QProg & prog, vector<ClassicalCondition> & cc_vector, int shots) {
+			return qvm.runWithConfiguration(prog, cc_vector, shots);
+		},
+				"program"_a, "cbit_list"_a, "data"_a, py::return_value_policy::automatic);
 
 
 #define PMEASURE_BIN_INDEX(QVM_CLASS,NODE)\
@@ -461,71 +499,54 @@ py::class_<PartialAmplitudeQVM, QuantumMachine>(m, "PartialAmpQVM")
             {
                 vector<Qubit *> temp = self.allocateQubits(num);
                 return temp;
-            }, "Allocate a list of qubits", "n_qubit"_a,
-            py::return_value_policy::reference)
-        .def("cAlloc", cAlloc, "Allocate a cbit", py::return_value_policy::reference)
-        .def("cAlloc_many", callocMany, "Allocate a list of cbits", "n_cbit"_a,
-            py::return_value_policy::reference)
-        .def("qFree", free_qubit, "Free a qubit")
-        .def("qFree_all", free_qubits, "qubit_list"_a,
-            "Free a list of qubits")
-        .def("cFree", free_cbit, "Free a cbit")
-        .def("cFree_all", free_cbits, "cbit_list"_a,
-            "Free a list of cbits")
-        .def("run_with_configuration", [](QCloudMachine &qcm, QProg & prog, py::dict param)
-            {
-                py::object json = py::module::import("json");
-                py::object dumps = json.attr("dumps");
-                auto json_string = std::string(py::str(dumps(param)));
-                rapidjson::Document doc;
-                auto &alloc = doc.GetAllocator();
-                doc.Parse(json_string.c_str());
-                return qcm.runWithConfiguration(prog, doc);
-             })
-        .def("prob_run_dict", [](QCloudMachine &qcm, QProg & prog, QVec qvec, py::dict param)
-             {
-                 py::object json = py::module::import("json");
-                 py::object dumps = json.attr("dumps");
-                 auto json_string = std::string(py::str(dumps(param)));
-                 rapidjson::Document doc;
-                 auto &alloc = doc.GetAllocator();
-                 doc.Parse(json_string.c_str());
-                 return qcm.probRunDict(prog, qvec, doc);
-             })
-        .def("get_result", [](QCloudMachine &qcm, std::string tasdid)
-             {
-                 return qcm.getResult(tasdid);
-             })
+	}, "Allocate a list of qubits", "n_qubit"_a,
+			py::return_value_policy::reference)
+		.def("cAlloc", cAlloc, "Allocate a cbit", py::return_value_policy::reference)
+		.def("cAlloc_many", callocMany, "Allocate a list of cbits", "n_cbit"_a,
+			py::return_value_policy::reference)
+		.def("qFree", free_qubit, "Free a qubit")
+		.def("qFree_all", free_qubits, "qubit_list"_a, "Free a list of qubits")
+		.def("cFree", free_cbit, "Free a cbit")
+		.def("cFree_all", free_cbits, "cbit_list"_a, "Free a list of cbits")
 
-        .def("full_amplitude_measure", [](QCloudMachine &qcm, QProg &prog, int shot)
+		.def("full_amplitude_measure", [](QCloudMachine &qcm, QProg &prog, int shot)
              {
-                 return qcm.full_amplitude_measure(prog, shot);
+				 std::string taskid;
+                 qcm.full_amplitude_measure(prog, shot, taskid);
+				 return taskid;
              })
 
         .def("full_amplitude_pmeasure", [](QCloudMachine &qcm, QProg &prog, Qnum qvec)
              {
-                 return qcm.full_amplitude_pmeasure(prog, qvec);
+				 std::string taskid;
+                 qcm.full_amplitude_pmeasure(prog, qvec, taskid);
+				 return taskid;
              })
 
         .def("partial_amplitude_pmeasure", [](QCloudMachine &qcm, QProg &prog, std::vector<std::string> amp_vec)
              {
-                 return qcm.partial_amplitude_pmeasure(prog, amp_vec);
+				 std::string taskid;
+                 qcm.partial_amplitude_pmeasure(prog, amp_vec, taskid);
+				 return taskid;
              })
 
         .def("single_amplitude_pmeasure", [](QCloudMachine &qcm, QProg &prog, std::string amp)
              {
-                 return qcm.single_amplitude_pmeasure(prog, amp);
+				 std::string taskid;
+                 qcm.single_amplitude_pmeasure(prog, amp, taskid);
+				 return taskid;
              })
 
-        .def("get_cluster_result", [](QCloudMachine &qcm, CLOUD_QMACHINE_TYPE type, std::string taskid)
+        .def("get_result", [](QCloudMachine &qcm, std::string taskid, CLOUD_QMACHINE_TYPE type)
              {
-                 return qcm.get_result(type,taskid);
+				 return qcm.get_result(taskid, type);
              })
 
-        /*will delete*/
-        .def("initQVM", &QCloudMachine::init, "init quantum virtual machine")
-        /* new interface */
-        .def("init_qvm", &QCloudMachine::init, "init quantum virtual machine");
+		.def("init_qvm", [](QCloudMachine &qcm, std::string token)
+			 {
+				 return qcm.init(token);
+			 });
+
 #endif // USE_CURL
 
 		py::implicitly_convertible<CPUQVM, QuantumMachine>();

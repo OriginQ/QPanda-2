@@ -12,8 +12,9 @@ import warnings
 
 try:
     from .ChemiQ.pyQPandaChemiQ import *
-except ModuleNotFoundError as e:
+except ImportError as e:
     warnings.warn("No module named ChemiQ")
+
 
 One = True
 Zero = False

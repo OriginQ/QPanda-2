@@ -10,8 +10,49 @@
 > -   **Removed**: 删除的功能.
 > -   **Fixed**: Bug修复.
 
-[UNRELEASED](https://github.com/OriginQ/QPanda-2/compare/v2.1.1...HEAD)
+[UNRELEASED](https://github.com/OriginQ/QPanda-2/compare/v2.1.2...HEAD)
 ========================================================================
+
+
+[v2.1.1](https://github.com/OriginQ/QPanda-2/compare/v2.1.1...v2.1.2) - 2020-3-31
+==================================================================================
+
+QPanda
+--------
+
+Added
+*******
+
+- `QAdder` 量子加法器功能
+- `amplitude_encode` 实现经典数据的量子态振幅编码
+- `run_with_configuration` 添加测量次数的接口
+- `QCodar` 一种用于各种NISQ设备的上下文持续时间感知的Qubit映射
+
+Changed
+*********
+
+- 修改 `QCloudMachine` 接口
+- 修改 `SQISWAP` 、`U2` 、`U3` 门中的bug
+- 调整 `topology_match` 功能，使QVec完成物理比特映射
+
+pyQPanda
+----------
+
+Added
+*******
+
+- `QAdder` 量子加法器功能
+- `amplitude_encode` 实现经典数据的量子态振幅编码
+- `run_with_configuration` 添加测量次数的接口
+- `QCodar` 一种用于各种NISQ设备的上下文持续时间感知的Qubit映射
+
+Changed
+*********
+
+- 修复 `Shor` 算法测试代码的错误
+- 调整 `topology_match` 功能，使QVec完成物理比特映射
+- 修改虚拟机中调用 `pmeasure` 系列接口出错的问题
+
 
 [v2.1.1](https://github.com/OriginQ/QPanda-2/compare/v2.1.0...v2.1.1) - 2020-1-15
 ==================================================================================

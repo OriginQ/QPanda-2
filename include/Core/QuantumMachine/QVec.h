@@ -38,6 +38,12 @@ public:
             push_back(aiter);
         }
     }
+
+    QVec(Qubit * q)
+    {
+        push_back(q);
+    }
+
     QVec(BaseClass &vector)
     {
         for (auto aiter = vector.begin(); aiter != vector.end(); aiter++)
@@ -70,6 +76,54 @@ public:
     {
         return *this;
     }
+
+	QVec operator +(QVec vec)
+	{
+		QVec new_vec(*this);
+
+		for (auto aiter = vec.begin(); aiter != vec.end(); aiter++)
+		{
+			auto biter = begin();
+			for (; biter != end(); biter++)
+			{
+				if (*aiter == *biter)
+				{
+					break;
+				}
+			}
+
+			if (biter == end())
+			{
+				new_vec.push_back(*aiter);
+			}
+		}
+
+		return new_vec;
+	}
+
+	QVec operator -(QVec& vec)
+	{
+		QVec new_vec;
+
+		for (auto aiter = begin(); aiter != end(); aiter++)
+		{
+			auto biter = vec.begin();
+			for (; biter != vec.end(); biter++)
+			{
+				if (*aiter == *biter)
+				{
+					break;
+				}
+			}
+
+			if (biter == vec.end())
+			{
+				new_vec.push_back(*aiter);
+			}
+		}
+
+		return new_vec;
+	}
 };
 QPANDA_END
 

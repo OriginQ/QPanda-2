@@ -222,6 +222,11 @@ public:
         m_hamiltonian_gen_only = enable;
     }
     /**
+    * @brief  get qubits num with the above config.
+    * @return  int -1:means failed.
+    */
+    int getQubitsNum();
+    /**
     * @brief  exec molecule calculate.
     * @return  bool true:success; false:failed
     */

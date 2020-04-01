@@ -12,7 +12,7 @@ QPANDA_BEGIN
 * @param[in] itr_start The start pos, default is the first node of the prog
 * @param[in] itr_end The end pos, default is the end node of the prog
 * @return the output string
-* @note All the output characters are UTF-8 code.
+* @note All the output characters are GBK encoded on windows,  UTF-8 encoded on other OS.
 */
 std::string draw_qprog(QProg prog, const NodeIter itr_start = NodeIter(), const NodeIter itr_end = NodeIter());
 
@@ -24,7 +24,7 @@ std::string draw_qprog(QProg prog, const NodeIter itr_start = NodeIter(), const 
 * @param[in] itr_start The start pos, default is the first node of the prog
 * @param[in] itr_end The end pos, default is the end node of the prog
 * @return the output string
-* @note All the output characters are UTF-8 code.
+* @note All the output characters are GBK encoded on windows,  UTF-8 encoded on other OS.
 */
 std::string draw_qprog_with_clock(QProg prog, const NodeIter itr_start = NodeIter(), const NodeIter itr_end = NodeIter());
 

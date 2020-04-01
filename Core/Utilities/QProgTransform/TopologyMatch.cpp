@@ -8,7 +8,7 @@ using namespace QGATE_SPACE;
 
 #define DUMMY_SWAP_GATE  -2
 
-#define PRINTF_MAPPING_RESULT 0
+#define PRINTF_MAPPING_RESULT 0 
 
 static bool isContains(std::vector<int> v, int e)
 {
@@ -47,7 +47,7 @@ QGate iSWAPGateNotheta(Qubit * targitBit_fisrt, Qubit * targitBit_second)
 	return iSWAP(targitBit_fisrt, targitBit_second);
 }
 
-TopologyMatch::TopologyMatch(QuantumMachine * machine, SwapQubitsMethod method, ArchType arch_type)
+TopologyMatch::TopologyMatch(QuantumMachine * machine,  SwapQubitsMethod method, ArchType arch_type)
 {
 	m_nqubits = machine->getAllocateQubit();
 	m_qvm = machine;
@@ -631,7 +631,7 @@ node TopologyMatch::fixLayerByAStar(int layer, std::vector<int> &map, std::vecto
 	return result;
 }
 
-void TopologyMatch::mappingQProg(QProg prog, QProg &mapped_prog)
+void TopologyMatch::mappingQProg(QProg prog, QVec &qv, QProg &mapped_prog)
 {
 	traversalQProgToLayers(&prog);
 	vector<int> qubits(m_positions, -1);
@@ -781,13 +781,67 @@ void TopologyMatch::mappingQProg(QProg prog, QProg &mapped_prog)
 
 #endif
 
-	buildResultingQProg(all_gates, mapped_prog);
+	buildResultingQProg(all_gates, locations, qv, mapped_prog);
 }
 
-void TopologyMatch::buildResultingQProg(const std::vector<gate> &resulting_gates, QProg &prog)
+
+void TopologyMatch::buildResultingQProg(const std::vector<gate> &resulting_gates, std::vector<int> loc, QVec &qv, QProg &prog)
 {
 	vector<int> last_layer(m_positions, -1);
 	vector<vector<gate> > mapped_qporg;
+	std::map<int, int> mapping_result;  // ph => QVec id
+	std::vector<std::pair<int, int>>swap_vec;
+
+	for (auto g : resulting_gates)
+	{
+		if (DUMMY_SWAP_GATE == g.type)
+		{
+			swap_vec.push_back(std::pair<int, int>(g.target, g.control));
+		}
+	}
+
+	for (int i = 0; i < loc.size(); i++)
+	{
+		if (loc[i] != -1)
+		{
+			int index = mapping_result.size();
+			mapping_result.insert(std::pair<int, int>(loc[i], index));
+		}
+	}
+
+	for (auto swap : swap_vec)
+	{
+		auto iter_1 = mapping_result.find(swap.first);
+		if (iter_1 == mapping_result.end())
+		{
+			int index = mapping_result.size();
+			mapping_result.insert(std::pair<int, int>(swap.first, index));
+		}
+		auto iter_2 = mapping_result.find(swap.second);
+		if (iter_2 == mapping_result.end())
+		{
+			int index = mapping_result.size();
+			mapping_result.insert(std::pair<int, int>(swap.second, index));
+		}
+	}
+
+	for (auto swap : swap_vec)
+	{
+		std::swap(mapping_result[swap.first], mapping_result[swap.second]);
+	}
+
+	loc.resize(mapping_result.size());
+	for (auto map : mapping_result)
+	{
+		loc[map.second] = map.first;
+	}
+
+	QVec q;
+	for (int i = 0; i < loc.size(); i++)
+	{
+		q.push_back(m_qvm->allocateQubitThroughPhyAddress(loc[i]));
+	}
+	qv = q;
 
 	for (auto g : resulting_gates)
 	{
@@ -816,14 +870,30 @@ void TopologyMatch::buildResultingQProg(const std::vector<gate> &resulting_gates
 		}
 	}
 
-	m_qvm->finalize();
-	m_qvm->init();
-	auto c = m_qvm->allocateCBits(m_positions);
-	auto q = m_qvm->allocateQubits(m_positions);
 	for (auto layer_gates : mapped_qporg)
 	{
 		for (auto g : layer_gates)
 		{
+			if (g.control != -1)
+			{
+				auto iter_c = mapping_result.find(g.control);
+				if (iter_c == mapping_result.end())
+				{
+					QCERR("find mapping_result error!");
+					throw invalid_argument("find mapping_result error!");
+				}
+				g.control = iter_c->second;
+			}
+
+			auto iter_t = mapping_result.find(g.target);
+			if (iter_t == mapping_result.end())
+			{
+				QCERR("find mapping_result error!");
+				throw invalid_argument("find mapping_result error!");
+			}
+			g.target = iter_t->second;
+
+
 			switch (g.type)
 			{
 			case DUMMY_SWAP_GATE:
@@ -931,6 +1001,7 @@ void TopologyMatch::buildResultingQProg(const std::vector<gate> &resulting_gates
 					prog << cr_gate;
 				}
 			}
+			break;
 			case  GateType::CU_GATE:
 			{
 				QGate cu_gate = CU(g.param[0], g.param[1], g.param[2], g.param[3], q[g.control], q[g.target]);
@@ -945,6 +1016,20 @@ void TopologyMatch::buildResultingQProg(const std::vector<gate> &resulting_gates
 				{
 					prog << cu_gate;
 				}
+			}
+			break;
+			case  GateType::U2_GATE:
+			{
+				QGate u2_gate = U2(q[g.target], g.param[0], g.param[1]);
+				u2_gate.setDagger(g.is_dagger);
+				prog << u2_gate;
+			}
+			break;
+			case  GateType::U3_GATE:
+			{
+				QGate u3_gate = U3(q[g.target], g.param[0], g.param[1], g.param[2]);
+				u3_gate.setDagger(g.is_dagger);
+				prog << u3_gate;
 			}
 			break;
 			case  GateType::U4_GATE:
@@ -1061,6 +1146,37 @@ void TopologyMatch::execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::s
 		m_last_layer[g.target] = m_last_layer[g.control] = layer;
 	}
 	break;
+	case GateType::U2_GATE:
+	{
+		g.control = -1;
+		g.target = qv[0]->getPhysicalQubitPtr()->getQubitAddr();
+		QGATE_SPACE::U2 *u2_gate = dynamic_cast<QGATE_SPACE::U2*>(cur_node->getQGate());
+		double phi = u2_gate->get_phi();
+		double lam = u2_gate->get_lambda();
+
+		g.param.push_back(phi);
+		g.param.push_back(lam);
+
+		layer = m_last_layer[g.target] + 1;
+		m_last_layer[g.target] = layer;
+	}
+	break;
+	case GateType::U3_GATE:
+	{
+		g.control = -1;
+		g.target = qv[0]->getPhysicalQubitPtr()->getQubitAddr();
+		QGATE_SPACE::U3 *u3_gate = dynamic_cast<QGATE_SPACE::U3*>(cur_node->getQGate());
+		double phi = u3_gate->get_phi();
+		double lam = u3_gate->get_lambda();
+		double theta = u3_gate->get_theta();
+		g.param.push_back(phi);
+		g.param.push_back(lam);
+		g.param.push_back(theta);
+
+		layer = m_last_layer[g.target] + 1;
+		m_last_layer[g.target] = layer;
+	}
+	break;
 	case GateType::U4_GATE:
 	{
 		g.control = -1;
@@ -1159,7 +1275,7 @@ void TopologyMatch::execute(std::shared_ptr<AbstractClassicalProg>  cur_node, st
 }
 
 
-QProg QPanda::topology_match(QProg &prog, QuantumMachine * machine, SwapQubitsMethod method, ArchType arch_type)
+QProg QPanda::topology_match(QProg prog, QVec &qv, QuantumMachine * machine, SwapQubitsMethod method, ArchType arch_type)
 {
 	if (nullptr == machine)
 	{
@@ -1169,6 +1285,6 @@ QProg QPanda::topology_match(QProg &prog, QuantumMachine * machine, SwapQubitsMe
 
 	QProg outprog;
 	TopologyMatch match = TopologyMatch(machine, method, arch_type);
-	match.mappingQProg(prog, outprog);
+	match.mappingQProg(prog, qv, outprog);
 	return outprog;
 }

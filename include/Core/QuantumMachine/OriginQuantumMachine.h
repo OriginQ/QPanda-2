@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2017-2018 Origin Quantum Computing. All Right Reserved.
+Copyright (c) 2017-2020 Origin Quantum Computing. All Right Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -239,6 +239,8 @@ public:
     virtual void finalize();
     virtual std::map<std::string, bool> directlyRun(QProg & qProg);
     virtual std::map<std::string, size_t> runWithConfiguration(QProg &, std::vector<ClassicalCondition> &, rapidjson::Document &);
+	virtual std::map<std::string, size_t> runWithConfiguration(QProg &, std::vector<ClassicalCondition> &, int );
+
     virtual std::map<GateType, size_t> getGateTimeMap() const;
     virtual QStat getQState() const;
     virtual size_t getVirtualQubitAddress(Qubit *) const;
@@ -338,6 +340,7 @@ public:
     void init();
     void init(rapidjson::Document &);
     virtual std::map<std::string, size_t> runWithConfiguration(QProg &, std::vector<ClassicalCondition> &, rapidjson::Document &);
+	virtual std::map<std::string, size_t> runWithConfiguration(QProg &, std::vector<ClassicalCondition> &, int);
 
 	/**
 	* @brief  Set Noise Model

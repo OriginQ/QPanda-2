@@ -12,9 +12,7 @@
 #include "pybind11/eigen.h"
 #include "pybind11/operators.h"
 #include "QPandaConfig.h"
-
 #include "QPanda.h"
-#include "Core/Utilities/Tools/FillQProg.h"
 
 USING_QPANDA
 using namespace std;
@@ -28,6 +26,7 @@ struct py::detail::type_caster<QVec>
 
 void init_quantum_machine(py::module &);
 void init_variational(py::module &);
+void init_qalg(py::module &);
 
 #define BIND_CLASSICALCOND_OPERATOR_OVERLOAD(OP) .def(py::self OP py::self)\
                                                  .def(py::self OP cbit_size_t())\
@@ -37,6 +36,7 @@ PYBIND11_MODULE(pyQPanda, m)
 {
     init_quantum_machine(m);
     init_variational(m);
+    init_qalg(m);
 
     m.doc() = "";
     m.def("init",
@@ -79,10 +79,10 @@ PYBIND11_MODULE(pyQPanda, m)
     );
 
 
-    m.def("qAlloc_many", [](size_t size) {
-        std::vector<Qubit *> temp = qAllocMany(size);
-        return temp;
-    },
+	m.def("qAlloc_many", [](size_t size) {
+		std::vector<Qubit *> temp = qAllocMany(size);
+		return temp;
+	},
         "Allocate several qubits",
         py::return_value_policy::reference
         );
@@ -402,10 +402,13 @@ PYBIND11_MODULE(pyQPanda, m)
         py::return_value_policy::automatic_reference
     );
 
-    m.def("originir_to_qprog", [](string file_path, QuantumMachine *qvm)
-        {return transformOriginIRToQProg(file_path, qvm); },
-        py::return_value_policy::automatic_reference
-    );
+	m.def("originir_to_qprog", [](string file_path, QuantumMachine *qvm) {
+		QVec qv;
+		std::vector<ClassicalCondition> cv;
+		return transformOriginIRToQProg(file_path, qvm, qv, cv);
+	},
+		py::return_value_policy::automatic_reference
+		);
 
     m.def("to_QASM", [](QProg prog,QuantumMachine *qvm, IBMQBackends ibmBackend) {
         py::list retData;
@@ -455,16 +458,6 @@ PYBIND11_MODULE(pyQPanda, m)
         , "program"_a, "Get quantum program binary data",
         py::return_value_policy::automatic_reference
         );
-
-#ifdef USE_CURL
-    m.def("get_bin_data", [](QProg prog) {
-        extern QuantumMachine* global_quantum_machine;
-        return qProgToBinary(prog, global_quantum_machine);
-    }
-        , "program"_a, "Get quantum program binary data",
-        py::return_value_policy::automatic_reference
-        );
-#endif // USE_CURL
 
     m.def("bin_to_prog", [](const std::vector<uint8_t>& data, QVec & qubits,
         std::vector<ClassicalCondition>& cbits, QProg & prog) {
@@ -536,18 +529,6 @@ PYBIND11_MODULE(pyQPanda, m)
             py::return_value_policy::automatic_reference
             );
 
-
-
-#ifdef USE_CURL
-    m.def("qprog_to_binary", [](QProg prog) {
-        extern QuantumMachine* global_quantum_machine;
-        return qProgToBinary(prog, global_quantum_machine);
-    }
-        , "program"_a, "Get quantum program binary data",
-        py::return_value_policy::automatic_reference
-        );
-#endif // USE_CURL
-
     m.def("get_qprog_clock_cycle", &getQProgClockCycle,
         "program"_a, "QuantumMachine"_a, "Get Quantum Program Clock Cycle",
         py::return_value_policy::automatic_reference
@@ -572,10 +553,13 @@ PYBIND11_MODULE(pyQPanda, m)
         py::return_value_policy::automatic_reference
         );
 
-    m.def("transform_originir_to_qprog", &transformOriginIRToQProg,
-        "file_name"_a, "QuantumMachine"_a, "originir to QProg",
-        py::return_value_policy::automatic_reference
-        );
+	m.def("transform_originir_to_qprog", [](string file_path, QuantumMachine *qvm) {
+		QVec qv;
+		std::vector<ClassicalCondition> cv;
+		return transformOriginIRToQProg(file_path, qvm, qv, cv);
+	},
+		py::return_value_policy::automatic_reference
+		);
 
     py::enum_<SingleGateTransferType>(m, "SingleGateTransferType")
         .value("SINGLE_GATE_INVALID", SINGLE_GATE_INVALID)
@@ -667,10 +651,24 @@ PYBIND11_MODULE(pyQPanda, m)
 		py::return_value_policy::automatic_reference
 		);
 
-	m.def("convert_originir_to_qprog", &convert_originir_to_qprog,
+	m.def("convert_originir_to_qprog", [](std::string file_path, QuantumMachine* qvm) {
+		py::list ret_data;
+		QVec qv;
+		std::vector<ClassicalCondition> cv;
+		QProg prog = convert_originir_to_qprog(file_path, qvm, qv, cv);
+		py::list qubit_list;
+		for (auto q : qv)
+			qubit_list.append(q);
+
+		ret_data.append(prog);
+		ret_data.append(qubit_list);
+		ret_data.append(cv);
+
+		return ret_data;
+	},
 		"file_name"_a, "QuantumMachine"_a, "convert OriginIR to QProg",
 		py::return_value_policy::automatic_reference
-	);
+		);
 
 	m.def("convert_qprog_to_originir", [](QProg prog, QuantumMachine *qm) {
 		return convert_qprog_to_originir(prog, qm);
@@ -684,7 +682,21 @@ PYBIND11_MODULE(pyQPanda, m)
 		py::return_value_policy::automatic_reference
 	);
 
-	m.def("convert_qasm_to_qprog", &convert_qasm_to_qprog,
+
+	m.def("convert_qasm_to_qprog", [](std::string file_path, QuantumMachine* qvm) {
+		py::list ret_data;
+		QVec qv;
+		std::vector<ClassicalCondition> cv;
+		QProg prog = convert_qasm_to_qprog(file_path, qvm, qv, cv);
+		py::list qubit_list;
+		for (auto q : qv)
+			qubit_list.append(q);
+
+		ret_data.append(prog);
+		ret_data.append(qubit_list);
+		ret_data.append(cv);
+		return ret_data;
+	},
 		"file_name"_a, "quantum machine"_a, "convert QASM to QProg",
 		py::return_value_policy::automatic_reference
 		);
@@ -719,6 +731,40 @@ PYBIND11_MODULE(pyQPanda, m)
 		,"quantum program"_a, "cast QProg to QCircuit",
 		py::return_value_policy::automatic_reference
 		);
+
+	m.def("topology_match", [](QProg prog, QVec qv, QuantumMachine *qvm, SwapQubitsMethod method, ArchType arch_type) {
+		py::list ret_data;
+		QProg out_prog = topology_match(prog, qv, qvm, method, arch_type);
+		py::list qubit_list;
+		for (auto q : qv)
+			qubit_list.append(q);
+
+		ret_data.append(out_prog);
+		ret_data.append(qubit_list);
+		return ret_data;
+	},
+		"prog"_a, "qubits"_a, "quantum machine"_a, "SwapQubitsMethod"_a = CNOT_GATE_METHOD, "ArchType"_a = IBM_QX5_ARCH,
+		py::return_value_policy::automatic_reference
+		);
+
+	m.def("qcodar_match", [](QProg prog, QVec qv, QuantumMachine *qvm , QCodarGridDevice arch_type, size_t m, size_t n , size_t run_times ) {
+		py::list ret_data;
+
+		QProg out_prog = qcodar_match(prog, qv, qvm, arch_type, m, n, run_times);
+		py::list qubit_list;
+
+		for (auto q : qv)
+			qubit_list.append(q);
+
+		ret_data.append(out_prog);
+		ret_data.append(qubit_list);
+		return ret_data;
+	}, 
+		"prog"_a, "qubits"_a, "quantum machine"_a, "QCodarGridDevice"_a= SIMPLE_TYPE, "m"_a = 2, "n"_a=4, "run_times"_a=5,
+		py::return_value_policy::automatic_reference
+	);
+
+
 
     /* will delete */
     m.def("PMeasure", &PMeasure,

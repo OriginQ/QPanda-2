@@ -63,8 +63,8 @@ static QCircuit _qasm_cu3(Qubit *ctrl, Qubit *target, double theta, double phi, 
 	return cir;
 }
 
-QASMToQProg::QASMToQProg(QuantumMachine* qvm)
-	:m_qvm(qvm)
+QASMToQProg::QASMToQProg(QuantumMachine* qvm,  QVec &qv, std::vector<ClassicalCondition> &cv)
+	:m_qvm(qvm), m_qvec(qv), m_cvec(cv)
 {
 	m_qasm_gate_type.insert(make_pair("u3", QASMGateType::U3_GATE));
 	m_qasm_gate_type.insert(make_pair("u2", QASMGateType::U2_GATE));
@@ -182,13 +182,13 @@ antlrcpp::Any QASMToQProg::visitReg_decl(qasmParser::Reg_declContext *ctx)
 	int reg_size = visit(ctx->integer());
 	if (ctx->CREG_KEY())
 	{
-		auto c = m_qvm->allocateCBits(reg_size);
-		m_alloc_cvec_map.insert(make_pair(reg_id, c));
+		m_cvec = m_qvm->allocateCBits(reg_size);
+		m_alloc_cvec_map.insert(make_pair(reg_id, m_cvec));
 	}
 	else if (ctx->QREG_KEY())
 	{
-		auto q = m_qvm->allocateQubits(reg_size);
-		m_alloc_qvec_map.insert(make_pair(reg_id, q));
+		m_qvec = m_qvm->allocateQubits(reg_size);
+		m_alloc_qvec_map.insert(make_pair(reg_id, m_qvec));
 	}
 	else
 	{
@@ -1205,6 +1205,13 @@ QProg QASMToQProg::get_qprog()
 
 QProg QPanda::convert_qasm_to_qprog(std::string file_path, QuantumMachine* qvm)
 {
+	QVec qv;
+	std::vector<ClassicalCondition> cv;
+	return convert_qasm_to_qprog(file_path, qvm, qv, cv);
+}
+
+QProg QPanda::convert_qasm_to_qprog(std::string file_path, QuantumMachine* qvm, QVec &qv, std::vector<ClassicalCondition> &cv)
+{
 	std::ifstream stream;
 	stream.open(file_path);
 	if (!stream)
@@ -1219,7 +1226,7 @@ QProg QPanda::convert_qasm_to_qprog(std::string file_path, QuantumMachine* qvm)
 	qasmParser parser(&tokens);
 
 	antlr4::tree::ParseTree *tree = parser.mainprogram();
-	QASMToQProg visitor(qvm);
+	QASMToQProg visitor(qvm , qv, cv);
 	try
 	{
 		visitor.visit(tree);

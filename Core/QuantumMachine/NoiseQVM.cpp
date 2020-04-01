@@ -257,6 +257,15 @@ std::string NoiseQVM::_ResultToBinaryString(std::vector<ClassicalCondition>& vCB
     return sTemp;
 
 }
+map<string, size_t> NoiseQVM::
+runWithConfiguration(QProg & qProg, vector<ClassicalCondition>& vCBit, int shots)
+{
+	rapidjson::Document doc;
+	doc.Parse("{}");
+	auto &alloc = doc.GetAllocator();
+	doc.AddMember("shots", shots, alloc);
+	return runWithConfiguration(qProg, vCBit, doc);
+}
 
 map<string, size_t> NoiseQVM::
 runWithConfiguration(QProg & qProg, vector<ClassicalCondition>& vCBit, rapidjson::Document & param)

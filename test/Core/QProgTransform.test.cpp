@@ -2,62 +2,61 @@
 #include <cstdlib>
 #include <sstream>
 #include <string>
-#include <algorithm>  
-#include "gtest/gtest.h"
+#include <complex>
+#include <algorithm>
 #include "Core/Core.h"
+#include "gtest/gtest.h"
 #include "Core/QuantumCircuit/QNodeDeepCopy.h"
+#include "Core/Utilities/Tools/MatrixDecomposition.h"
 #include "Core/Utilities/QProgTransform/QProgToDAG/GraphMatch.h"
-#include "ThirdParty/Eigen/Dense"
-
 
 using namespace std;
 USING_QPANDA
 
-QCircuit _CZ(Qubit * q1, Qubit * q2)
-{
-    QCircuit cir;
-    cir << H(q1)
-        << CNOT(q2, q1)
-        << H(q1);
-    return  cir;
-}
-
-TEST(MatrixXi, EigenTest)
-{
-    Eigen::ArrayXXf a(2, 2);
-
-    AdjacencyMatrix temp= AdjacencyMatrix::Zero(2,4);
-    temp(0, 0) = 1;
-    cout << temp << endl;
-    cout << temp.row(0) << endl;
-    cout << temp.row(1) << endl;
-    cout << temp.rows() << endl;
-    cout << temp.row(0).minCoeff() << endl;
-    cout << temp.row(1).minCoeff() << endl;
-    cout << temp.cols() << endl;
-}
-
-TEST(MatrixXi, DAG)
-{
-    auto qvm = initQuantumMachine();
-    auto q = qvm->allocateQubits(6);
-
-    auto prog = QProg();
-    prog << H(q[0]) << H(q[2]) << H(q[3])
-        << CNOT(q[1], q[0]) << H(q[0]) << CNOT(q[1], q[2])
-        << H(q[2]) << CNOT(q[2], q[3]) << H(q[3]);
-
-
-    GraphMatch match;
-    TopologicalSequence seq;
-    match.get_topological_sequence(prog, seq);
-
-}
-
-
 TEST(MatrixXi, Eigen)
 {
-    //throw exception();
+    Eigen::scomplex R0(0, 0);
+    Eigen::scomplex R1(1, 0);
+    Eigen::scomplex I1(0, 1);
+    Eigen::scomplex BSQ2(SQ2, 0);
+    Eigen::scomplex BISQ2(0, SQ2);
+
+
+    /* Un·Un-1···U1·U = I  */
+
+    /*1-qubit case*/
+    QMatrix X = { R0,R1,R1,R0 };
+    X.decompose();
+
+    QMatrix Y = { R0,-I1,I1,R0 };
+    Y.decompose();
+
+    /*2-qubit case*/
+    QMatrix SWAP = { R1, R0, R0, R0 ,
+                     R0, R0, R1, R0,
+                     R0, R1, R0, R0,
+                     R0, R0, R0, R1};
+    SWAP.decompose();
+
+    QMatrix ISWAP = { R1, R0, R0, R0 ,
+                      R0, R0,-I1, R0,
+                      R0,-I1, R0, R0,
+                      R0, R0, R0, R1 };
+    ISWAP.decompose();
+
+    QMatrix SQISWAP = { R1,   R0,     R0, R0 ,
+                        R0,  BSQ2,-BISQ2, R0,
+                        R0,-BISQ2,  BSQ2, R0,
+                        R0,    R0,    R0, R1 };
+    SQISWAP.decompose();
+
+    getchar();
+}
+
+
+TEST(GraphMatch, Query)
+{
+    return;
     auto qvm = initQuantumMachine();
     auto q = qvm->allocateQubits(4);
 
@@ -147,3 +146,4 @@ TEST(MatrixXi, Eigen)
 
     cout << transformQProgToOriginIR(update_prog, qvm);
 }
+  

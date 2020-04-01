@@ -44,6 +44,66 @@ namespace QPanda {
 		m_psi4_wapper.finalize();
 	}
 
+    int ChemiQ::getQubitsNum()
+    {
+        if (m_molecules.empty())
+        {
+            return 0;
+        }
+
+        m_psi4_wapper.setMolecule(m_molecules[0]);
+        size_t cnt = 0;
+        FermionOperator fermion_data;
+        while (true)
+        {
+            /*get the second quantized Hamiltonian*/
+            if (!m_psi4_wapper.run())
+            {
+                m_last_err = m_psi4_wapper.getLastError();
+                return -1;
+            }
+
+            fermion_data = parsePsi4DataToFermion(m_psi4_wapper.getData());
+            /*On the first run, some machines require
+            multiple computations to get the full result*/
+            if ((fermion_data.data().size()) == 1 &&
+                (fermion_data.data().front().first.second == ""))
+            {
+                if (cnt < 10)
+                {
+                    cnt++;
+                    continue;
+                }
+                else
+                {
+                    m_last_err = "Multiple runs failed to yield results!"
+                        "Please try recalculating!";
+                    return -1;
+                }
+            }
+
+            break;
+        }
+
+        PauliOperator pauli;
+        /*Transform second quantized Hamiltonian to Pauli Hamiltonian */
+        if (m_transform_type == TransFormType::Jordan_Wigner)
+        {
+            pauli = JordanWignerTransform(fermion_data);
+        }
+        else if (m_transform_type == TransFormType::Parity)
+        {
+            pauli = ParityTransform(fermion_data);
+        }
+        else if (m_transform_type == TransFormType::Bravyi_Ktaev)
+        {
+            size_t m_q = fermion_data.getMaxIndex();
+            pauli = BravyiKitaevTransform(fermion_data, BKMatrix(m_q));
+        }
+
+        return pauli.getMaxIndex();
+    }
+
 	bool ChemiQ::exec()
 	{
 		m_machine.reset(QuantumMachineFactory::GetFactoryInstance()
@@ -555,7 +615,7 @@ namespace QPanda {
 		auto temp = dynamic_cast<IdealMachineInterface *>(m_machine.get());
 		if (nullptr == temp)
 		{
-			QCERR("qvm is notm_machine ideal machine");
+			QCERR("m_machine is not ideal machine");
 			throw std::runtime_error("m_machine is not ideal machine");
 		}
 		auto result = temp->PMeasure(m_qubit_vec, -1);
@@ -564,11 +624,11 @@ namespace QPanda {
 		{
 			if (ParityCheck(result[i].first, component.first))
 			{
-				expectation -= std::norm(result[i].second);
+				expectation -= result[i].second;
 			}
 			else
 			{
-				expectation += std::norm(result[i].second);
+				expectation += result[i].second;
 			}
 		}
 

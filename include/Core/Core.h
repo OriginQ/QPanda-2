@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2017-2018 Origin Quantum Computing. All Right Reserved.
+Copyright (c) 2017-2020 Origin Quantum Computing. All Right Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -54,6 +54,7 @@ limitations under the License.
 #include "Core/Utilities/QProgTransform/QProgToQGate.h"
 #include "Core/Utilities/QProgTransform/QProgToQMeasure.h"
 #include "Core/Utilities/QProgTransform/TopologyMatch.h"
+#include "Core/Utilities/QProgTransform/QCodarMatch.h"
 
 #include "Core/Utilities/Tools/OriginCollection.h"  
 #include "Core/Utilities/Tools/QPandaException.h"  
@@ -316,18 +317,22 @@ void destroyQuantumMachine(QuantumMachine * qvm);
 /**
 * @brief  Measure All  ClassicalCondition
 * @ingroup Core
-* @param[in]  QVec&  qubits vector
-* @param[in]  std::vector<ClassicalCondition>&  Cbits vector
+* @param[in]  QVec  qubits vector
+* @param[in]  std::vector<ClassicalCondition>  Cbits vector
 * @return    QPanda::QProg   Quantum program
 */
 QPanda::QProg MeasureAll(QVec, std::vector<ClassicalCondition>);
 
-extern QProg transformOriginIRToQProg(std::string filePath, QuantumMachine* qm);
+extern QProg transformOriginIRToQProg(std::string filePath, QuantumMachine* qm, QVec &qv, std::vector<ClassicalCondition> &cv);
 
-extern QProg convert_originir_to_qprog(std::string file_path, QuantumMachine * qm);
+extern QProg convert_originir_to_qprog(std::string file_path, QuantumMachine *qm);
+extern QProg convert_originir_to_qprog(std::string file_path, QuantumMachine * qm, QVec &qv, std::vector<ClassicalCondition> &cv);
+
 extern QProg convert_originir_string_to_qprog(std::string str_originir, QuantumMachine *qm);
+extern QProg convert_originir_string_to_qprog(std::string str_originir, QuantumMachine *qm, QVec &qv, std::vector<ClassicalCondition> &cv);
 
 extern QProg convert_qasm_to_qprog(std::string file_path, QuantumMachine* qvm);
+extern QProg convert_qasm_to_qprog(std::string file_path, QuantumMachine* qvm, QVec &qv, std::vector<ClassicalCondition> &cv);
 
 /*will delete*/
 size_t getAllocateCMem();

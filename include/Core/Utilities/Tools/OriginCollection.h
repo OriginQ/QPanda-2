@@ -73,6 +73,10 @@ private:
         {
             value_json.PushBack((bool)value, m_doc.GetAllocator());
         }
+        else if (std::is_same<typename std::decay<T>::type, size_t>::value)
+        {
+            value_json.PushBack((rapidjson::SizeType)value, m_doc.GetAllocator());
+        }
         else 
         {
             QCERR("param error");

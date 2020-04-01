@@ -23,7 +23,7 @@ QPanda 2作为本源量子计算系列软件的基础库，为QRunes、Qurator�
     
 ### Python 其他版本和C++
 
-如果要使用Python 3的其他版本，或者直接通过C++ API进行量子编程，建议直接从源码进行编译。内容参见[使用文档](https://qpanda-toturial.readthedocs.io/zh/latest/)
+如果要使用Python 3的其他版本，或者直接通过C++ API进行量子编程，可直接从源码进行编译,内容参见[使用文档](https://qpanda-toturial.readthedocs.io/zh/latest/)。使用C++进行量子编程也可从[Release](https://github.com/OriginQ/QPanda-2/releases)中获取对应操作系统环境的QPanda库文件压缩包，请参见[QPanda库使用示例](https://github.com/OriginQ/QPanda-Example)。
 
 ### 验证安装
 下面的例子可以在量子计算机中构建量子纠缠态(|00>+|11>)，对其进行测量，重复制备1000次。预期的结果是约有50%的概率使测量结果分别在00或11上。
@@ -49,14 +49,19 @@ QPanda 2作为本源量子计算系列软件的基础库，为QRunes、Qurator�
 
 ## 相关资料
 
- - [本源量子官网](http://originqc.com.cn/)：
- - [本源量子云平台](http://www.qubitonline.cn/)：
+ - [本源量子官网](http://originqc.com.cn/)
+ - [本源量子云平台](http://www.qubitonline.cn/)
  - [本源量子教育](https://learn-quantum.com/EDU/index.html)
  - [ReadTheDocs文档(C++)](https://qpanda-toturial.readthedocs.io/zh/latest/)
  - [ReadTheDocs文档(Python)](https://pyqpanda-toturial.readthedocs.io/zh/latest/)
  - [QRunes量子语言](https://qrunes-tutorial.readthedocs.io/en/latest/)
  - [Qurator-VSCode](https://qurator-vscode.readthedocs.io/zh_CN/latest/)
 
+ ## 贡献代码
+
+我们欢迎新的成员加入到QPanda的事业中，[CONTRIBUTING](https://github.com/OriginQ/QPanda-2/blob/master/CONTRIBUTING.md)会指导您如何加入到我们的Developer大家庭。
+
+[Github issue](https://github.com/OriginQ/QPanda-2/issues)专门用于处理请求和Bug，如果您想讨论更专业的技术问题请移步到我们QQ群：905550304，或者登陆我们的[量子社区](https://qcode.qubitonline.cn/qcode/forumtopic/community.html?belonged=1)。
 
 ## 团队介绍
 

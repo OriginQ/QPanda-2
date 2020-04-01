@@ -1292,7 +1292,7 @@ string DrawPicture::present()
 	}
 	outfile.close();
 	
-#ifdef _MSC_VER
+#ifdef WIN32
 	fit_to_gbk(outputStr);
 	outputStr = Utf8ToGbkOnWin32(outputStr.c_str()); 
 #endif

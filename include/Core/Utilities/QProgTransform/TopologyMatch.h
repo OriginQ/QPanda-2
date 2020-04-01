@@ -166,26 +166,26 @@ public:
 
 	void transform(Qubit *control_qubit, Qubit *target_qubit, QProg &prog)
 	{
-		QGate z_gate = Z(control_qubit);
+		QGate z_gate = Z1(control_qubit);
 		z_gate.setDagger(true);
 		prog << z_gate
-			<< X(target_qubit)
-			<< Z(target_qubit)
+			<< X1(target_qubit)
+			<< Z1(target_qubit)
 			<< iSWAP(control_qubit, target_qubit)
-			<< X(target_qubit)
+			<< X1(control_qubit)
 			<< iSWAP(control_qubit, target_qubit)
-			<< X(control_qubit)
-			<< Z(control_qubit)
+			<< X1(control_qubit)
+			<< Z1(control_qubit)
 			<< iSWAP(control_qubit, target_qubit)
-			<< X(target_qubit)
+			<< X1(target_qubit)
 			<< iSWAP(control_qubit, target_qubit)
-			<< X(target_qubit)
-			<< Z(target_qubit)
+			<< X1(target_qubit)
+			<< Z1(target_qubit)
 			<< iSWAP(control_qubit, target_qubit)
-			<< X(target_qubit)
+			<< X1(control_qubit)
 			<< iSWAP(control_qubit, target_qubit)
-			<< Z(target_qubit);
-			
+			<< Z1(target_qubit);
+
 	}
 	inline int getSwapCost() { return 17; }
 	inline int getFlipCost() { return 0; }
@@ -254,7 +254,7 @@ public:
 class TopologyMatch :public TraversalInterface<bool&>
 {
 public:
-	TopologyMatch(QuantumMachine * machine, SwapQubitsMethod method = CNOT_GATE_METHOD, ArchType arch_type = IBM_QX5_ARCH);
+	TopologyMatch(QuantumMachine * machine,  SwapQubitsMethod method = CNOT_GATE_METHOD, ArchType arch_type = IBM_QX5_ARCH);
 	~TopologyMatch();
 	/**
 	* @brief  Mapping qubits in a quantum program
@@ -262,7 +262,7 @@ public:
 	* @param[out]  Qprog&  the mapped quantum program
 	* @return   void
 	**/
-	void mappingQProg(QProg prog, QProg &mapped_prog);
+	void mappingQProg(QProg prog, QVec &qv, QProg &mapped_prog);
 
 	virtual void execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node, bool &);
 	virtual void execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, std::shared_ptr<QNode> parent_node, bool &);
@@ -290,8 +290,7 @@ private:
 	int getNextLayer(int layer);
 
 	node fixLayerByAStar(int layer, std::vector<int> &map, std::vector<int> &loc);
-
-	void buildResultingQProg(const std::vector<gate> &resulting_gates, QProg &prog);
+	void buildResultingQProg(const std::vector<gate> &resulting_gates, std::vector<int> loc, QVec &qv, QProg &prog);
 private:
 
 	size_t m_positions;  /**< physical  qubits  number   */
@@ -318,13 +317,16 @@ private:
 /**
 * @brief  QProg/QCircuit matches the topology of the physical qubits
 * @ingroup Utilities
-* @param[in]  prog  quantum program
-* @param[in]  machine  quantum machine
-* @param[in]  method   swap qubits by CNOT/CZ/SWAP/iSWAP gate 
-* @param[in]  arch_type    architectures type  
+* @param[in]  QProg  quantum program
+* @param[in]  QVec  qubit  vector
+* @param[in]  QuantumMachine *  quantum machine
+* @param[in]  SwapQubitsMethod   swap qubits by CNOT/CZ/SWAP/iSWAP gate
+* @param[in]  ArchType    architectures type
 * @return    QProg   mapped  quantum program
+* @exception
+* @note
 */
-QProg  topology_match(QProg &prog, QuantumMachine *machine,
+QProg  topology_match(QProg prog, QVec &qv, QuantumMachine *machine,
 	SwapQubitsMethod method = CNOT_GATE_METHOD, ArchType arch_type = IBM_QX5_ARCH);
 
 

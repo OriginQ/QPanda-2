@@ -104,7 +104,7 @@ void curl_test()
 TEST(CloudHttp, Cluster)
 {
     QCloudMachine QCM;;
-    QCM.init();
+    QCM.init("4B7AFE1E196A4197B7C6845C4E73EF2E");
     auto qlist = QCM.allocateQubits(10);
     auto clist = QCM.allocateCBits(10);
     auto prog = QProg();
@@ -120,64 +120,23 @@ TEST(CloudHttp, Cluster)
     std::vector<std::string> amplitude_vector = { "0","1" };
     Qnum qvec = { 0,1 };
     
-    //std::string task_id = QCM.full_amplitude_measure(prog, 100);
+
+	std::string task_id;
+	if(QCM.full_amplitude_measure(prog, 100, task_id));
+	{
+		QCM.get_result(task_id, CLOUD_QMACHINE_TYPE::Full_AMPLITUDE);
+	}
+
+	QCM.get_result(task_id, CLOUD_QMACHINE_TYPE::Full_AMPLITUDE);
+
+	
     //std::cout << QCM.full_amplitude_pmeasure(prog, qvec) << endl;
     //std::cout << QCM.partial_amplitude_pmeasure(prog, amplitude_vector) << endl;
     //std::cout << QCM.single_amplitude_pmeasure(prog, "0") << endl;
     
-    std::cout << QCM.get_result(CLOUD_QMACHINE_TYPE::Full_AMPLITUDE, "2001061726139435101012920") << endl;
 
 
     QCM.finalize();
-}
-
-
-TEST(CloudHttp, Post)
-{
-    auto QCM = new QCloudMachine();
-    QCM->init();
-    auto qlist = QCM->allocateQubits(10);
-    auto clist = QCM->allocateCBits(10);
-    auto qprog = QProg();
-    auto qprog1 = QProg();
-
-    for_each(qlist.begin(), qlist.end(), [&](Qubit *val) { qprog << H(val); });
-    qprog << CZ(qlist[1], qlist[5])
-        << CZ(qlist[3], qlist[7])
-        << CZ(qlist[0], qlist[4])
-        << RZ(qlist[7], PI / 4)
-        << RX(qlist[5], PI / 4)
-        << RX(qlist[4], PI / 4)
-        << RY(qlist[3], PI / 4)
-        << CZ(qlist[2], qlist[6])
-        << RZ(qlist[3], PI / 4)
-        << RZ(qlist[8], PI / 4)
-        << CZ(qlist[9], qlist[5])
-        << RY(qlist[2], PI / 4)
-        << RZ(qlist[9], PI / 4)
-        << CZ(qlist[2], qlist[3]);
-
-    /******Test PMeasure***********/
-    rapidjson::Document doc;
-    doc.SetObject();
-    rapidjson::Document::AllocatorType &allocator = doc.GetAllocator();
-
-    doc.AddMember("BackendType", QMachineType::CPU, allocator);
-    doc.AddMember("token", "3CD107AEF1364924B9325305BF046FF3", allocator);
-    std::cout << QCM->probRunDict(qprog, qlist, doc) << endl;
-
-    /******Test Measure***********/
-    rapidjson::Document doc1;
-    doc1.SetObject();
-    rapidjson::Document::AllocatorType &allocator1 = doc1.GetAllocator();
-
-    doc1.AddMember("BackendType", QMachineType::CPU, allocator1);
-    doc1.AddMember("RepeatNum", 1000, allocator1);
-    doc1.AddMember("token", "3CD107AEF1364924B9325305BF046FF3", allocator1);
-    std::cout << QCM->runWithConfiguration(qprog, doc1) << endl;
-
-    QCM->getResult("1904261513203828");
-    QCM->finalize();
 }
 
 #endif // USE_CURL

@@ -31,8 +31,8 @@ TEST(TopologyMatch, test)
 		<< CNOT(q[10], q[15])
 		<< CNOT(q[10], q[12])
 		<< cu_gate;
-
-	auto outprog = topology_match(srcprog, qvm);
+	
+	auto outprog = topology_match(srcprog, q, qvm);
 
 	std::cout << transformQProgToOriginIR(outprog, qvm) << std::endl;
 

@@ -100,7 +100,6 @@ public:
 
 	/**
     * @brief  Clear the control qubits for current quantum circuit
-    * @param[in]  QVec  control qubits  vector
     * @see QVec
     */
     virtual void clearControl() = 0;

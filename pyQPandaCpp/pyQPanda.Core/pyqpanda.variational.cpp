@@ -59,7 +59,7 @@ void init_variational(py::module & m)
         BIND_VAR_OPERATOR_OVERLOAD(+)
         BIND_VAR_OPERATOR_OVERLOAD(-)
         BIND_VAR_OPERATOR_OVERLOAD(*)
-        BIND_VAR_OPERATOR_OVERLOAD(/ )
+        BIND_VAR_OPERATOR_OVERLOAD(/)
         .def("__getitem__", [](Var::var& v, int idx) {return v[idx]; }, py::is_operator())
         .def(py::self == py::self);
 

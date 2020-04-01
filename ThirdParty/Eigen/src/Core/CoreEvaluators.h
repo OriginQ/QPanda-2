@@ -210,7 +210,7 @@ struct evaluator<PlainObjectBase<Derived> >
   {
     if (IsRowMajor)
       return pstoret<Scalar, PacketType, StoreMode>
-                (const_cast<Scalar*>(m_data) + row * m_outerStride.value() + col, x);
+	            (const_cast<Scalar*>(m_data) + row * m_outerStride.value() + col, x);
     else
       return pstoret<Scalar, PacketType, StoreMode>
                     (const_cast<Scalar*>(m_data) + row + col * m_outerStride.value(), x);

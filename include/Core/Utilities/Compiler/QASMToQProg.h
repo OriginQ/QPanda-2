@@ -211,8 +211,8 @@ enum  QASMGateType
 class QASMToQProg : public qasmBaseVisitor
 {
 public:
-	QASMToQProg(QuantumMachine* qvm);
-
+	QASMToQProg(QuantumMachine* qvm, QVec &qv, std::vector<ClassicalCondition> &cv);
+	
 	~QASMToQProg();
 
 	/**
@@ -268,6 +268,9 @@ public:
 
 private:
 	QuantumMachine * m_qvm;  /**< quantum  machine	pointer*/
+	QVec &m_qvec;     /**< qubit  vector*/
+	std::vector<ClassicalCondition> &m_cvec;   /**< classical register  vector*/
+
 	bool m_support_qelib1;
 	QProg m_build_qprog;
 	std::map<std::string, QVec> m_alloc_qvec_map;
@@ -286,6 +289,18 @@ private:
 	std::map<int, std::function<QCircuit(Qubit *, Qubit*, double)> > m_one_param_double_circuit_func;
 	std::map<int, std::function<QCircuit(Qubit *, Qubit*, double, double, double)> > m_three_param_double_circuit_func;
 };
+
+
+/**
+* @brief  QASM Transform To  Quantum Program
+* @ingroup Utilities
+* @param[in]  std::string		QASM file path
+* @param[in]  QuantumMachine*	quantum machine pointer
+* @param[out]  QVec	qubit  pointer vector
+* @param[out]  std::vector<ClassicalCondition>	classical register  vector
+* @return     QProg    quantum program
+*/
+QProg convert_qasm_to_qprog(std::string file_path, QuantumMachine* qvm, QVec &qv, std::vector<ClassicalCondition> &cv);
 
 
 /**

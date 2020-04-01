@@ -3,7 +3,7 @@ project(QPANDA)
 
 set(QPANDA_MAJOR_VERSION 2)
 set(QPANDA_MINOR_VERSION 1)
-set(QPANDA_PATCH_VERSION 1)
+set(QPANDA_PATCH_VERSION 2)
 set(QPANDA_VERSION "${QPANDA_MAJOR_VERSION}.${QPANDA_MINOR_VERSION}.${QPANDA_PATCH_VERSION}")
 message(STATUS "QPANDA VERSION = " "[${QPANDA_VERSION}]")
 
@@ -113,9 +113,12 @@ elseif (UNIX)
         -DGTEST_USE_OWN_TR1_TUPLE=1
         -fPIC
         -fpermissive)
-    list(APPEND LIB_LIST
-        dl
-        pthread)
+
+    if (NOT APPLE)
+        list(APPEND LIB_LIST
+            dl
+            pthread)
+    endif ()
 
     set(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -g -ggdb")
     set(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -DNDEBUG")

@@ -5,10 +5,48 @@ USING_QPANDA
 
 QProg QPanda::convert_originir_to_qprog(std::string file_path, QuantumMachine *qm)
 {
-	return transformOriginIRToQProg(file_path, qm);
+	QVec qv; 
+	std::vector<ClassicalCondition> cv;
+	return convert_originir_to_qprog(file_path, qm, qv, cv);
+}
+
+QProg QPanda::convert_originir_to_qprog(std::string file_path, QuantumMachine *qm, QVec &qv,  std::vector<ClassicalCondition> &cv)
+{
+	std::ifstream stream;
+	stream.open(file_path);
+	if (!stream)
+	{
+		QCERR("File opening fail");
+		throw invalid_argument("File opening fail");
+	}
+	try
+	{
+		antlr4::ANTLRInputStream input(stream);
+		stream.close();
+		originirLexer lexer(&input);
+		antlr4::CommonTokenStream tokens(&lexer);
+		originirParser parser(&tokens);
+
+		antlr4::tree::ParseTree *tree = parser.translationunit();
+		OriginIRVisitor visitor(qm, qv, cv);
+		size_t fullprog = visitor.visit(tree);
+		return visitor.get_qprog(fullprog);
+	}
+	catch (const std::exception&e)
+	{
+		QCERR(e.what());
+		throw e;
+	}
 }
 
 QProg QPanda::convert_originir_string_to_qprog(std::string str_originir, QuantumMachine *qm)
+{
+	QVec qv;
+	std::vector<ClassicalCondition> cv;
+	return convert_originir_string_to_qprog(str_originir, qm, qv, cv);
+}
+
+QProg QPanda::convert_originir_string_to_qprog(std::string str_originir, QuantumMachine *qm, QVec &qv, std::vector<ClassicalCondition> &cv)
 {
 	try
 	{
@@ -18,7 +56,7 @@ QProg QPanda::convert_originir_string_to_qprog(std::string str_originir, Quantum
 		originirParser parser(&tokens);
 
 		antlr4::tree::ParseTree *tree = parser.translationunit();
-		OriginIRVisitor visitor(qm);
+		OriginIRVisitor visitor(qm, qv, cv);
 
 		size_t fullprog = visitor.visit(tree);
 		return visitor.get_qprog(fullprog);
@@ -31,7 +69,7 @@ QProg QPanda::convert_originir_string_to_qprog(std::string str_originir, Quantum
 }
 
 
-QProg QPanda::transformOriginIRToQProg(std::string filePath, QuantumMachine * qm)
+QProg QPanda::transformOriginIRToQProg(std::string filePath, QuantumMachine * qm, QVec &qv, std::vector<ClassicalCondition> &cv)
 {
 	std::ifstream stream;
 	stream.open(filePath);
@@ -50,7 +88,7 @@ QProg QPanda::transformOriginIRToQProg(std::string filePath, QuantumMachine * qm
         originirParser parser(&tokens);
 
         antlr4::tree::ParseTree *tree = parser.translationunit();
-        OriginIRVisitor visitor(qm);
+        OriginIRVisitor visitor(qm, qv, cv);
 
         size_t fullprog = visitor.visit(tree);
         return visitor.get_qprog(fullprog);
@@ -62,8 +100,8 @@ QProg QPanda::transformOriginIRToQProg(std::string filePath, QuantumMachine * qm
     }
 }
 
-QProgBuilder::QProgBuilder(QuantumMachine * qm)
-	:m_machine(qm)
+QProgBuilder::QProgBuilder(QuantumMachine * qm, QVec &qv, std::vector<ClassicalCondition> &cv)
+	:m_machine(qm), qs(qv), ccs(cv)
 { }
 
 QProg QProgBuilder::get_qprog()

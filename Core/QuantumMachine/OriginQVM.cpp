@@ -1,5 +1,5 @@
  /*
-Copyright (c) 2017-2018 Origin Quantum Computing. All Right Reserved.
+Copyright (c) 2017-2020 Origin Quantum Computing. All Right Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -280,7 +280,7 @@ void QVM::run(QProg & node)
     {
         TraversalConfig config;
 
-        _pGates->initState(0, 1, _Qubit_Pool->getMaxQubit() - _Qubit_Pool->getIdleQubit());
+		_pGates->initState(0, 1, _Qubit_Pool->getMaxQubit() - _Qubit_Pool->getIdleQubit());
 
 		QProgExecution prog_exec;
 		prog_exec.execute(node.getImplementationPtr(), nullptr, config, _pGates);
@@ -683,6 +683,18 @@ probRunDict(QProg & qProg, QVec vQubit, int selectMax)
     run(qProg);
     return getProbDict(vQubit,  selectMax);
 }
+
+
+map<string, size_t> QVM::
+runWithConfiguration(QProg & qProg, vector<ClassicalCondition>& vCBit, int shots)
+{
+	rapidjson::Document doc;
+	doc.Parse("{}");
+	auto &alloc = doc.GetAllocator();
+	doc.AddMember("shots", shots, alloc);
+	return runWithConfiguration(qProg, vCBit, doc);
+}
+
 
 map<string, size_t> QVM::
 runWithConfiguration(QProg & qProg, vector<ClassicalCondition>& vCBit, rapidjson::Document & param)

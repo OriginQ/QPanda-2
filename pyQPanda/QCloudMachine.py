@@ -84,17 +84,17 @@ def singleAmp_fun():
         .insert(RZ(q[3], PI / 4))\
         .insert(CR(q[7], q[8], PI))
 
-    # machine.run(prog)
+    machine.run(prog)
+
 
     # result1 = machine.pmeasure("6")
-    result2 = machine.pmeasure_bin_index(prog, "0000000000")
-    result3 = machine.pmeasure_dec_index(prog, "1")
+    # result2 = machine.pmeasure_bin_index(prog, "0000000000")
+    # result3 = machine.pmeasure_dec_index(prog, "1")
+    # result = machine.pmeasure("6")
+    # print(result3)
 
-    # qlist = [q[1], q[2], q[3], q[4], q[5], q[6], q[7], q[8], q[9]]
-    # result4 = machine.get_prob_dict(qlist, "3")
-
-    print(result2, result3)
-
+    qlist = [q[1], q[2], q[3], q[4], q[5], q[6], q[7], q[8], q[9]]
+    result4 = machine.get_prob_dict(qlist, "3")
 
 def partialAmp_fun():
 
@@ -194,10 +194,10 @@ def graph_match_fun():
 def QCloud_fun():
 
     QCM = QCloud()
-    QCM.initQVM()
+    QCM.init_qvm("4B7AFE1E196A4197B7C6845C4E73EF2E")
 
     qlist = QCM.qAlloc_many(10)
-    clist = QCM.qAlloc_many(10)
+    clist = QCM.cAlloc_many(10)
     prog = QProg()
     for i in qlist:
         prog.insert(H(i))
@@ -215,18 +215,16 @@ def QCloud_fun():
         .insert(CZ(qlist[9], qlist[5]))\
         .insert(RY(qlist[2], PI / 4))\
         .insert(RZ(qlist[9], PI / 4))\
-        .insert(CZ(qlist[2], qlist[3]))
+        .insert(CZ(qlist[2], qlist[3]))\
+        .insert(Measure(qlist[0], clist[0]))\
+        .insert(Measure(qlist[1], clist[1]))\
+        .insert(Measure(qlist[2], clist[2]))
 
-    param1 = {"RepeatNum": 1000, "token": "3CD107AEF1364924B9325305BF046FF3",
-              "BackendType": QMachineType.CPU}
-    param2 = {"token": "3CD107AEF1364924B9325305BF046FF3",
-              "BackendType": QMachineType.CPU}
-
-    task = QCM.run_with_configuration(prog, param1)
+    task = QCM.full_amplitude_measure(prog, 100)
     print(task)
 
-    time.sleep(3)
-    result = QCM.get_result("1904301115021866")
+    time.sleep(10)
+    QCM.get_result("13401010129203cba29c3ee344694926307d1ba4c8fcb",ClusterMachineType.Full_AMPLITUDE)
 
     # print(result)
     # print(QCM.prob_run_dict(prog,qlist,param2))
@@ -260,8 +258,9 @@ def Cluster_Cloud():
 
 if __name__ == "__main__":
 
+    QCloud_fun()
     # cpu_qvm_fun()
     # singleAmp_fun()
     # partialAmp_fun()
-    Cluster_Cloud()
+    # Cluster_Cloud()
     # graph_match_fun()

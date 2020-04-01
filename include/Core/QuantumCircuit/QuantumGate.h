@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2017-2018 Origin Quantum Computing. All Right Reserved.
+Copyright (c) 2017-2020 Origin Quantum Computing. All Right Reserved.
 Licensed under the Apache License 2.0
 
 QGate.h
@@ -515,6 +515,8 @@ namespace QGATE_SPACE
                 throw std::invalid_argument("Parameter qgate_old error");
             }
             gate_type = gate_old->getGateType();
+			m_phi = dynamic_cast<QGATE_SPACE::U2*>(gate_old)->m_phi;
+			m_lambda = dynamic_cast<QGATE_SPACE::U2*>(gate_old)->m_lambda;
         };
         U2(double, double);
 
@@ -562,6 +564,9 @@ namespace QGATE_SPACE
                 throw std::invalid_argument("Parameter qgate_old error");
             }
             gate_type = gate_old->getGateType();
+			m_theta = dynamic_cast<QGATE_SPACE::U3*>(gate_old)->m_theta;
+			m_phi = dynamic_cast<QGATE_SPACE::U3*>(gate_old)->m_phi;
+			m_lambda = dynamic_cast<QGATE_SPACE::U3*>(gate_old)->m_lambda;
         };
         U3(double, double, double);
 
@@ -762,21 +767,24 @@ namespace QGATE_SPACE
         ISWAP();
     };
 
-    class SQISWAP : public ISWAPTheta,
+	class SQISWAP : public QDoubleGate,
 		public DynamicCreator<SQISWAP>,
 		public DynamicCreator<SQISWAP, QuantumGate *>
-    {
-    public:
-		SQISWAP(QuantumGate  * gate_old) :ISWAPTheta(gate_old)
+	{
+	public:
+		SQISWAP(QuantumGate  * gate_old) : QDoubleGate(gate_old)
 		{
 			if (gate_old->getGateType() != GateType::SQISWAP_GATE)
 			{
 				QCERR("Parameter qgate_old error");
 				throw std::invalid_argument("Parameter qgate_old error");
 			}
+
 			gate_type = gate_old->getGateType();
+			theta = PI / 4;
 		}
-        SQISWAP();
+		SQISWAP();
+		double theta;
     };
 
     class SWAP : public QDoubleGate,

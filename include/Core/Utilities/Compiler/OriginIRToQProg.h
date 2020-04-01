@@ -23,10 +23,32 @@ QPANDA_BEGIN
 * @ingroup Utilities
 * @param[in]  std::string		OriginIR file path
 * @param[in]  QuantumMachine*	quantum machine pointer
+* @param[out]  QVec	qubit  pointer vector
+* @param[out]  std::vector<ClassicalCondition>	classical register  vector
+* @return     QProg    quantum program
+*/
+QProg convert_originir_to_qprog(std::string file_path, QuantumMachine *qm, QVec &qv, std::vector<ClassicalCondition> &cv);
+
+/**
+* @brief  Convert OriginIR  To  Quantum Program
+* @ingroup Utilities
+* @param[in]  std::string		OriginIR file path
+* @param[in]  QuantumMachine*	quantum machine pointer
 * @return     QProg    quantum program
 */
 QProg convert_originir_to_qprog(std::string file_path, QuantumMachine *qm);
 
+
+/**
+* @brief  Convert OriginIR String To  Quantum Program
+* @ingroup Utilities
+* @param[in]  std::string		OriginIR String
+* @param[in]  QuantumMachine*	quantum machine pointer
+* @param[out]  QVec	qubit  pointer
+* @param[out]  std::vector<ClassicalCondition>	classical register  vector
+* @return     QProg    quantum program
+*/
+QProg convert_originir_string_to_qprog(std::string str_originir, QuantumMachine *qm, QVec &qv, std::vector<ClassicalCondition> &cv);
 
 /**
 * @brief  Convert OriginIR String To  Quantum Program
@@ -43,9 +65,11 @@ QProg convert_originir_string_to_qprog(std::string str_originir, QuantumMachine 
 * @ingroup Utilities
 * @param[in]  std::string		OriginIR file path
 * @param[in]  QuantumMachine*	quantum machine pointer
+* @param[out]  QVec	qubit  pointer
+* @param[out]  std::vector<ClassicalCondition>	classical register  vector
 * @return     QProg    quantum program
 */
-QProg transformOriginIRToQProg(std::string filePath, QuantumMachine* qm);
+QProg transformOriginIRToQProg(std::string filePath, QuantumMachine* qm, QVec &qv, std::vector<ClassicalCondition> &cv);
 
 
 /**
@@ -59,11 +83,11 @@ class QProgBuilder {
 	std::unordered_map<size_t, ClassicalCondition> m_exprid_set;
 	size_t cid = 0;
 
-	QVec qs;
-	std::vector<ClassicalCondition> ccs;
+	QVec &qs;
+	std::vector<ClassicalCondition> &ccs;
 
 public:
-	QProgBuilder(QuantumMachine *qm);
+	QProgBuilder(QuantumMachine *qm, QVec &qv, std::vector<ClassicalCondition> &cv);
 	QProg get_qprog();
 	
 	enum class GateType {
@@ -194,8 +218,8 @@ class OriginIRVisitor : public originirBaseVisitor {
 	};
 
 public:
-	OriginIRVisitor(QuantumMachine* qm)
-		:builder(qm) { }
+	OriginIRVisitor(QuantumMachine* qm, QVec &qv, std::vector<ClassicalCondition> &cv)
+		:builder(qm, qv, cv) { }
 
 	enum OpType {
 		UnaryPlus,

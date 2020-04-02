@@ -1,3 +1,4 @@
+
 trigger:
 - master
 
@@ -18,7 +19,11 @@ jobs:
   pool:
     vmImage: 'macOS-10.13'
   steps:
-  - script: |
+  - script: 
+     pwd
+     gcc -v
+     cmake -version
+     python -V
      mkdir build 
      cd build
      cmake  ..

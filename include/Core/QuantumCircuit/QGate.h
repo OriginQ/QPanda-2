@@ -99,6 +99,12 @@ public:
     */
     virtual bool setControl(QVec) = 0;
 
+	/**
+	* @brief  remap qubit
+	* @return 
+	*/
+	virtual void remap(QVec) = 0;
+
     virtual ~AbstractQGateNode() {}
 };
 
@@ -178,6 +184,11 @@ public:
     */
     QGate control(QVec);
 
+	/**
+	* @brief  remap qubit
+	* @return
+	*/
+	void remap(QVec) override;
 
     /**
     * @brief  Judge current quantum gate is dagger
@@ -225,6 +236,7 @@ public:
     bool isDagger() const;
     size_t getControlVector(QVec &) const;
     void PushBackQuBit(Qubit *);
+	void remap(QVec) override;
 };
 
 /**

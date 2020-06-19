@@ -34,6 +34,7 @@ enum QCodarGridDevice
 	IBM_Q53,
 	GOOGLE_Q54,
 	SIMPLE_TYPE,
+	ORIGIN_VIRTUAL
 };
 
 /**

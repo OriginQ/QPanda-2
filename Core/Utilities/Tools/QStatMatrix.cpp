@@ -218,7 +218,7 @@ QStat QPanda::operator*(const qcomplex_t &value, const QStat &matrix_right)
     return matrix_result;
 }
 
-std::ostream& QPanda::operator<<(std::ostream &out, QStat &mat) 
+std::ostream& QPanda::operator<<(std::ostream &out, QStat mat) 
 {
 	out << matrix_to_string(mat) << endl;
 	return out;
@@ -250,7 +250,7 @@ QStat QPanda::tensor(const QStat& leftMatrix, const QStat& rightMatrix)
 		}
 	}
 
-	PTrace("ZhangMultip result: ");
+	PTrace("tensor result: ");
 	PTraceMat(result_matrix);
 	return result_matrix;
 }
@@ -344,11 +344,11 @@ int QPanda::blockMultip(const QStat& leftMatrix, const blockedMatrix_t& blockedM
 	return 0;
 }
 
-void QPanda::dagger(QStat &srcMat)
+void QPanda::dagger(QStat &src_mat)
 {
-	//get  the rows and columns of the srcMat
-	size_t mat_size = srcMat.size();
-	int src_mat_rows = sqrt(mat_size); // same to the Columns of the srcMatrix
+	//get  the rows and columns of the src_mat
+	size_t mat_size = src_mat.size();
+	int src_mat_rows = sqrt(mat_size); // same to the Columns of the src-Matrix
 	int src_mat_columns = src_mat_rows;
 	qcomplex_t tmp_val;
 	for (size_t i = 0; i < src_mat_rows; ++i)
@@ -357,22 +357,28 @@ void QPanda::dagger(QStat &srcMat)
 		{
 			if (i == j)
 			{
-				srcMat[i*src_mat_columns + j].imag(-1 * (srcMat[i*src_mat_columns + j].imag()));
+				src_mat[i*src_mat_columns + j].imag(-1 * (src_mat[i*src_mat_columns + j].imag()));
 				continue;
 			}
 
-			tmp_val = srcMat[i*src_mat_columns + j];
-			srcMat[i*src_mat_columns + j].real(srcMat[j*src_mat_columns + i].real());
-			srcMat[i*src_mat_columns + j].imag(-1 * (srcMat[j*src_mat_columns + i].imag()));
+			tmp_val = src_mat[i*src_mat_columns + j];
+			src_mat[i*src_mat_columns + j].real(src_mat[j*src_mat_columns + i].real());
+			src_mat[i*src_mat_columns + j].imag(-1 * (src_mat[j*src_mat_columns + i].imag()));
 
-			srcMat[j*src_mat_columns + i].real(tmp_val.real());
-			srcMat[j*src_mat_columns + i].imag(-1 * (tmp_val.imag()));
+			src_mat[j*src_mat_columns + i].real(tmp_val.real());
+			src_mat[j*src_mat_columns + i].imag(-1 * (tmp_val.imag()));
 		}
 	}
 }
 
-#define COMPLEX_REAL_VAL_FORMAT ("%.03f") 
-#define COMPLEX_IMAG_VAL_FORMAT ("%.03fi") 
+QStat QPanda::dagger_c(const QStat &src_mat)
+{
+	auto tmp_mat = src_mat;
+	dagger(tmp_mat);
+
+	return tmp_mat;
+}
+
 string QPanda::matrix_to_string(const QStat& mat)
 {
 	int rows = 0;
@@ -382,76 +388,41 @@ string QPanda::matrix_to_string(const QStat& mat)
 	int index = 0;
 	float imag_val = 0.0;
 	float real_val = 0.0;
-	const int max_width = 13;
 	char output_buf[64] = "";
-	std::string output_str;
+
+	//get max_width for every columns
+	std::vector<size_t> columns_width_vec;
+	for (size_t j = 0; j < columns; j++)
+	{
+		size_t tmp_max_width = 0;
+		for (size_t i = 0; i < rows; i++)
+		{
+			index = i * columns + j;
+			snprintf(output_buf, sizeof(output_buf), "(%-g, %-g)", mat[index].real(), mat[index].imag());
+			const auto tmp_len = strlen(output_buf);
+			if (tmp_len > tmp_max_width)
+			{
+				tmp_max_width = tmp_len;
+			}
+		}
+		columns_width_vec.push_back(tmp_max_width);
+	}
+
 	for (size_t i = 0; i < rows; i++)
 	{
 		for (size_t j = 0; j < columns; j++)
 		{
-			memset(output_buf, ' ', sizeof(output_buf));
+			std::string output_str;
+			memset(output_buf, 0, sizeof(output_buf));
 			index = i * columns + j;
-			imag_val = mat[index].imag();
-			real_val = mat[index].real();
-			if ((abs(real_val) < 0.000000001) || (abs(imag_val) < 0.000000001))
+			snprintf(output_buf, sizeof(output_buf), "(%g, %g)", mat[index].real(), mat[index].imag());
+			size_t valLen = strlen(output_buf);
+			for (size_t m = 0; m < (columns_width_vec[j] - valLen + 2); ++m)
 			{
-				if ((abs(real_val) < 0.000000001) && (abs(imag_val) < 0.000000001))
-				{
-					snprintf(output_buf, sizeof(output_buf), " 0");
-				}
-				else if (abs(imag_val) < 0.000000001)
-				{
-					if (real_val < 0)
-					{
-						snprintf(output_buf, sizeof(output_buf), COMPLEX_REAL_VAL_FORMAT, (real_val));
-					}
-					else
-					{
-						snprintf(output_buf, sizeof(output_buf), (std::string(" ") + COMPLEX_REAL_VAL_FORMAT).c_str(), abs(real_val));
-					}
-				}
-				else
-				{
-					//only imag_val
-					if (imag_val < 0)
-					{
-						snprintf(output_buf, sizeof(output_buf), COMPLEX_IMAG_VAL_FORMAT, (imag_val));
-					}
-					else
-					{
-						snprintf(output_buf, sizeof(output_buf), (std::string(" ") + COMPLEX_IMAG_VAL_FORMAT).c_str(), abs(imag_val));
-					}
-				}
-			}
-			else if (imag_val < 0)
-			{
-				if (real_val < 0)
-				{
-					snprintf(output_buf, sizeof(output_buf), (std::string(COMPLEX_REAL_VAL_FORMAT) + COMPLEX_IMAG_VAL_FORMAT).c_str(), real_val, imag_val);
-				}
-				else
-				{
-					snprintf(output_buf, sizeof(output_buf), (std::string(" ") + COMPLEX_REAL_VAL_FORMAT + COMPLEX_IMAG_VAL_FORMAT).c_str(), abs(real_val), imag_val);
-				}
-
-			}
-			else
-			{
-				if (real_val < 0)
-				{
-					snprintf(output_buf, sizeof(output_buf), (std::string(COMPLEX_REAL_VAL_FORMAT) + "+" + COMPLEX_IMAG_VAL_FORMAT).c_str(), real_val, imag_val);
-				}
-				else
-				{
-					snprintf(output_buf, sizeof(output_buf), (std::string(" ") + COMPLEX_REAL_VAL_FORMAT + "+" + COMPLEX_IMAG_VAL_FORMAT).c_str(), abs(real_val), imag_val);
-				}
+				output_str += " ";
 			}
 
-			output_str = output_buf;
-			size_t valLen = output_str.size();
-			output_buf[valLen] = ' ';
-			output_str = output_buf;
-			output_str = output_str.substr(0, (max_width < valLen ? valLen : max_width) + 2);
+			output_str += output_buf;
 			matrix_str.append(output_str);
 		}
 		matrix_str.append("\n");
@@ -493,4 +464,66 @@ int QPanda::mat_compare(const QStat& mat1, const QStat& mat2, const double preci
 	}
 
 	return 0;
+}
+
+bool QPanda::operator==(const QStat &matrix_left, const QStat &matrix_right)
+{
+	return (0 == mat_compare(matrix_left, matrix_right, 0.000001));
+}
+
+bool QPanda::operator!=(const QStat &matrix_left, const QStat &matrix_right)
+{
+	return (0 != mat_compare(matrix_left, matrix_right, 0.000001));
+}
+
+EigenMatrixXc QPanda::QStat_to_Eigen(const QStat& src_mat)
+{
+	auto n = std::sqrt(src_mat.size());
+
+	EigenMatrixXc eigen_matrix = EigenMatrixXc::Zero(n, n);
+	for (auto rdx = 0; rdx < n; ++rdx)
+	{
+		for (auto cdx = 0; cdx < n; ++cdx)
+		{
+			eigen_matrix(rdx, cdx) = src_mat[rdx*n + cdx];
+		}
+	}
+
+	return eigen_matrix;
+}
+
+QStat QPanda::Eigen_to_QStat(const EigenMatrixXc& eigen_mat)
+{
+	QStat q_mat;
+	size_t rows = eigen_mat.rows();
+	size_t cols = eigen_mat.cols();
+	for (size_t i = 0; i < rows; ++i)
+	{
+		for (size_t j = 0; j < cols; ++j)
+		{
+			q_mat.push_back((qcomplex_t)(eigen_mat(i, j)));
+		}
+	}
+	
+	return q_mat;
+}
+
+bool QPanda::is_unitary_matrix(const QStat &circuit_matrix, const double precision /*= 0.000001*/)
+{
+	double difference = 0.0;
+	size_t matrix_dimension = sqrt(circuit_matrix.size());
+	QStat tmp_matrix_dagger = dagger_c(circuit_matrix);
+
+	double trace = 0.0;
+	for (size_t i = 0; i < matrix_dimension; i++)
+	{
+		for (size_t j = 0; j < matrix_dimension; j++)
+		{
+			trace += (tmp_matrix_dagger[i*matrix_dimension + j] * circuit_matrix[j*matrix_dimension + i]).real();
+		}
+	}
+
+	difference = abs(1 - pow(trace / ((double)matrix_dimension), 2));
+
+	return (difference < precision);
 }

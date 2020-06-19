@@ -61,7 +61,7 @@ public:
      * @brief set the value of this bit
 	 * @param[in] cbit_size_t  value
      */
-    virtual void setValue(const cbit_size_t) noexcept = 0;
+    virtual void set_val(const cbit_size_t) noexcept = 0;
     virtual ~CBit() {}
 };
 

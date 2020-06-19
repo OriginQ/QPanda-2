@@ -42,7 +42,7 @@ typedef __vector unsigned long long  Packet2ul;
 typedef __vector long long           Packet2l;
 
 typedef struct {
-    Packet2d  v4f[2];
+	Packet2d  v4f[2];
 } Packet4f;
 
 typedef union {
@@ -98,9 +98,9 @@ static Packet16uc p16uc_PSET64_HI = { 0,1,2,3, 4,5,6,7, 0,1,2,3, 4,5,6,7 };
 static Packet16uc p16uc_DUPLICATE32_HI = { 0,1,2,3, 0,1,2,3, 4,5,6,7, 4,5,6,7 };
 
 // Mask alignment
-#define _EIGEN_MASK_ALIGNMENT    0xfffffffffffffff0
+#define _EIGEN_MASK_ALIGNMENT	0xfffffffffffffff0
 
-#define _EIGEN_ALIGNED_PTR(x)    ((std::ptrdiff_t)(x) & _EIGEN_MASK_ALIGNMENT)
+#define _EIGEN_ALIGNED_PTR(x)	((std::ptrdiff_t)(x) & _EIGEN_MASK_ALIGNMENT)
 
 // Handle endianness properly while loading constants
 // Define global static constants:

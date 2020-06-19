@@ -42,7 +42,7 @@ public:
      * @brief Get classical program value
      * @return cbit_size_t 
      */
-    virtual cbit_size_t eval() = 0;
+    virtual cbit_size_t get_val() = 0;
 private:
 
 };
@@ -82,7 +82,7 @@ public:
      * @brief Get classical program value
      * @return cbit_size_t 
      */
-    virtual cbit_size_t eval();
+    virtual cbit_size_t get_val();
 
     std::shared_ptr<CExpr> getExpr();
 
@@ -121,7 +121,7 @@ public:
      * @brief Get classical program value
      * @return cbit_size_t 
      */
-    virtual cbit_size_t eval();
+    virtual cbit_size_t get_val();
 
     inline std::shared_ptr<CExpr> getExpr()
     {

@@ -138,7 +138,7 @@ class AdjacentQGates : public TraverseByNodeIter
 	};
 
 public:
-	AdjacentQGates(QProg &prog, NodeIter &nodeItr)
+	AdjacentQGates(QProg prog, NodeIter &nodeItr)
 		:TraverseByNodeIter(prog)
 		, m_target_node_itr(nodeItr)
 		, m_prog(prog), m_traversal_statue(nullptr)

@@ -240,6 +240,7 @@ public:
 	antlrcpp::Any visitExp(qasmParser::ExpContext *ctx);
 	antlrcpp::Any visitId(qasmParser::IdContext *ctx);
 	antlrcpp::Any visitInteger(qasmParser::IntegerContext *ctx);
+	antlrcpp::Any visitReal(qasmParser::RealContext *ctx);
 	antlrcpp::Any visitDecimal(qasmParser::DecimalContext *ctx);
 	antlrcpp::Any visitFilename(qasmParser::FilenameContext *ctx);
 

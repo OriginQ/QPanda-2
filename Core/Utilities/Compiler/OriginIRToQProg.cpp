@@ -363,7 +363,7 @@ size_t QProgBuilder::cc_op_cc(size_t exprid1, size_t exprid2, int op_type)
 	case OriginIRVisitor::ASSIGN:
 	{
 		m_exprid_set.insert({ cid, m_exprid_set.at(exprid1) = m_exprid_set.at(exprid2) });
-		m_exprid_set.at(cid).eval();
+		m_exprid_set.at(cid).get_val();
 	}
 		break;
 	default:
@@ -414,7 +414,7 @@ size_t QProgBuilder::cc_op_literal(size_t exprid1, double literal2, int op_type)
 	case OriginIRVisitor::ASSIGN:
 	{
 		m_exprid_set.insert({ cid, m_exprid_set.at(exprid1) = literal2 });
-		m_exprid_set.at(cid).eval();
+		m_exprid_set.at(cid).get_val();
 	}
 		break;
 	default:

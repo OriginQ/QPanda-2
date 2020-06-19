@@ -45,7 +45,7 @@ int CoinFlip_Prog(QProg & prog, vector<Qubit*> qVec, vector<ClassicalCondition> 
     auto temp = CoinFlip_Algorithm(qVec, cVec, fx);
     prog << temp;
     directlyRun(prog);
-    return ((1 << cVec[1].eval()) + (int)cVec[0].eval());
+    return ((1 << cVec[1].get_val()) + (int)cVec[0].get_val());
 }
 
 int main()

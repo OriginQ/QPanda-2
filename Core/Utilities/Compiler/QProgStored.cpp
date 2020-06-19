@@ -393,7 +393,7 @@ void QProgStored::transformCExpr(CExpr *p_cexpr)
         string cexpr_number_str = cexpr_name.substr(1);
         uint32_t name_num = std::stoul(cexpr_number_str);
         addDataNode(QPROG_CEXPR_CBIT, name_num);
-        addDataNode(QPROG_CEXPR_EVAL, (uint32_t)p_cexpr->eval());
+        addDataNode(QPROG_CEXPR_EVAL, (uint32_t)p_cexpr->get_val());
     }
     break;
     case OPERATOR:
@@ -410,7 +410,7 @@ void QProgStored::transformCExpr(CExpr *p_cexpr)
     break;
     case CONSTVALUE:
     {
-        addDataNode(QPROG_CEXPR_CONSTVALUE, (uint32_t)p_cexpr->eval());
+        addDataNode(QPROG_CEXPR_CONSTVALUE, (uint32_t)p_cexpr->get_val());
     }
     break;
     default:

@@ -463,6 +463,10 @@ void  QProgToMatrix::MatrixOfOneLayer::merge_controled_gate()
 		//get base matrix
 		QStat base_gate_mat;
 		controled_gate.first->getQGate()->getMatrix(base_gate_mat);
+		if (controled_gate.first->isDagger())
+		{
+			dagger(base_gate_mat);
+		}
 
 		//build standard controled gate matrix
 		std::vector<int> all_gate_qubits_vec;

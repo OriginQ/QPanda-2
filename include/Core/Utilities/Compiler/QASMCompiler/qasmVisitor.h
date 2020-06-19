@@ -61,6 +61,8 @@ public:
 
     virtual antlrcpp::Any visitId(qasmParser::IdContext *context) = 0;
 
+    virtual antlrcpp::Any visitReal(qasmParser::RealContext *context) = 0;
+
     virtual antlrcpp::Any visitInteger(qasmParser::IntegerContext *context) = 0;
 
     virtual antlrcpp::Any visitDecimal(qasmParser::DecimalContext *context) = 0;

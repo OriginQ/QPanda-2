@@ -1,501 +1,299 @@
 #include "Core/QuantumMachine/PartialAmplitudeQVM.h"
-#include "Core/QuantumCircuit/QuantumGate.h"
+using angleParameter = QGATE_SPACE::AbstractSingleAngleParameter;
 using namespace std;
 USING_QPANDA
 
-static void getAvgBinary(uint128_t num, 
-                         uint64_t& low_pos, 
-                         uint64_t& high_pos, 
-                         size_t qubit_num)
+static void get_dec_index(std::vector<string> &bin_index, std::vector<uint128_t> &dec_index)
 {
-    size_t half_qubit = qubit_num / 2;
-    long long lower_mask = (1 << half_qubit) - 1;
-    low_pos = (uint64_t)(num & lower_mask);
-    high_pos = (uint64_t)(num - low_pos) >> (qubit_num - half_qubit);
+	for (auto val : bin_index)
+	{
+		uint128_t dec_value = 0;
+		size_t len = val.size();
+
+		for (size_t i = 0; i < len; ++i)
+		{
+			bool bin = (val[len - i - 1] != '0');
+			uint128_t temp = static_cast<uint128_t>(bin) << i;
+			dec_value |= temp;
+		}
+
+		dec_index.emplace_back(dec_value);
+	}
 }
 
-PartialAmplitudeQVM::PartialAmplitudeQVM()
-{
-    _Config.maxQubit = 64;
-    _Config.maxCMem = 64;
-    m_prog_map = new PartialAmplitudeGraph();
-}
 
-PartialAmplitudeQVM::~PartialAmplitudeQVM()
+static void get_couple_state_index(uint128_t num, uint64_t& under_index, uint64_t& upper_index, uint32_t qubit_num)
 {
-    delete  m_prog_map;
+	uint32_t half_qubit = qubit_num / 2;
+	long long lower_mask = (1ull << half_qubit) - 1;
+	under_index = (uint64_t)(num & lower_mask);
+	upper_index = (uint64_t)(num - under_index) >> (qubit_num - half_qubit);
 }
 
 void PartialAmplitudeQVM::init()
 {
-    _Config.maxQubit = 256;
-    _Config.maxCMem = 256;
-    _start();
+	_Config.maxQubit = 80;
+	_Config.maxCMem = 80;
+	_start();
 }
 
-stat_map PartialAmplitudeQVM::getQState()
+void PartialAmplitudeQVM::computing_graph(int qubit_num,const cir_type& circuit, QStat& state)
 {
-    if (nullptr == m_prog_map)
-    {
-        QCERR("prog is null");
-        throw run_fail("prog is null");
-    }
+	state.resize(1ull << qubit_num);
+	QPUImpl *pQGate = new CPUImplQPU();
 
-    vector<vector<QStat>> graph_stat_map;
-    getSubGraphStat(graph_stat_map);
+	try
+	{
+		pQGate->initState(0, 1, qubit_num);
+		m_graph_backend.computing_graph(circuit, pQGate);
 
-    stat_map result_map;
-    uint128_t size = (uint128_t)1 << m_prog_map->m_qubit_num;
-    uint64_t low_pos, high_pos;
-    for (uint128_t i = 0; i < size; i++)
-    {
-        qcomplex_t addResult(0, 0);
-        getAvgBinary(i, low_pos, high_pos, m_prog_map->m_qubit_num);
-        for (size_t j = 0; j < graph_stat_map.size(); ++j)
-        {
-            addResult = addResult + graph_stat_map[j][0][low_pos] * graph_stat_map[j][1][high_pos];
-        }
-        result_map.insert(make_pair(integerToBinary(i, m_prog_map->m_qubit_num), addResult));
-    }
-     
-    return result_map;
+		auto graph_state = pQGate->getQState();
+
+		state.assign(graph_state.begin(), graph_state.end());
+		delete pQGate;
+	}
+	catch (std::exception e)
+	{
+		delete pQGate;
+	}
 }
 
-void PartialAmplitudeQVM::getSubGraphStat(vector<vector<QStat>> &graph_stat_map)
+
+qcomplex_t PartialAmplitudeQVM::PMeasure_bin_index(std::string amplitude)
 {
-    for (uint64_t i = 0; i < m_prog_map->getMapVecSize(); ++i)
-    {
-        vector<QStat> calculateMap;
-        for (uint64_t j = 0; j < m_prog_map->m_circuit_vec[i].size(); ++j)
-        {
-            auto m_qubit_number = (j == 0) ? 
-                (m_prog_map->m_qubit_num / 2) :
-               ((m_prog_map->m_qubit_num) - (m_prog_map->m_qubit_num / 2));
-            QPUImpl *pQGate = new CPUImplQPU();
+	uint128_t index = 0;
+	size_t len = amplitude.size();
+	for (size_t i = 0; i < len; ++i)
+	{
+		index += (amplitude[len - i - 1] != '0') << i ;
+	}
 
-            pQGate->initState(0,1, m_qubit_number);
-            m_prog_map->traversalMap(m_prog_map->m_circuit_vec[i][j], pQGate);
-
-            calculateMap.emplace_back(pQGate->getQState());
-            delete pQGate;
-        }
-
-        graph_stat_map.emplace_back(calculateMap);
-    }
+	return PMeasure_dec_index(integerToString(index));
 }
 
-qstate_type PartialAmplitudeQVM::PMeasure_dec_index(string index)
+qcomplex_t PartialAmplitudeQVM::PMeasure_dec_index(std::string amplitude)
 {
-    if (nullptr == m_prog_map)
-    {
-        QCERR("prog is null");
-        throw run_fail("prog is null");
-    }
+	uint128_t dec_amplitude(amplitude.c_str());
 
-    vector<vector<QStat>> graph_stat_map;
-    getSubGraphStat(graph_stat_map);
+	auto qubit_num = m_graph_backend.m_qubit_num;
+	auto graph_num = m_graph_backend.m_sub_graph.size();
 
-    qcomplex_t addResult(0, 0);
-    uint128_t u_index(index.c_str());
-    uint64_t low_pos, high_pos;
-    getAvgBinary(u_index, low_pos, high_pos, m_prog_map->m_qubit_num);
-    for (size_t j = 0; j < graph_stat_map.size(); ++j)
-    {
-        addResult = addResult + graph_stat_map[j][0][low_pos] * graph_stat_map[j][1][high_pos];
-    }
-    return addResult.real()*addResult.real() + addResult.imag()*addResult.imag();
+	qcomplex_t result;
+	for (auto graph_index = 0; graph_index < graph_num; ++graph_index)
+	{
+		QStat under_graph_state;
+		computing_graph(qubit_num / 2, m_graph_backend.m_sub_graph[graph_index][0], under_graph_state);
+		auto under_size = under_graph_state.size();
+
+		QStat upper_graph_state;
+		computing_graph(qubit_num - (qubit_num / 2), m_graph_backend.m_sub_graph[graph_index][1], upper_graph_state);
+		auto upper_size = upper_graph_state.size();
+
+		uint64_t under_index, upper_index;
+		get_couple_state_index(dec_amplitude, under_index, upper_index, m_graph_backend.m_qubit_num);
+
+		result += under_graph_state[under_index] * upper_graph_state[upper_index];
+	}
+
+	return result;
 }
 
-qstate_type PartialAmplitudeQVM::PMeasure_bin_index(string index)
+
+stat_map PartialAmplitudeQVM::PMeasure_subset(const std::vector<std::string>& amplitude)
 {
-    auto check = [](char bin)
-    {
-        if ('1' != bin && '0' != bin)
-        {
-            QCERR("PMeasure parm error");
-            throw qprog_syntax_error("PMeasure parm");
-        }
-        else
-        {
-            return bin == '0' ? 0 : 1;
-        }
-    };
+	std::vector<uint128_t> dec_state;
+	for (auto state : amplitude)
+	{
+		uint128_t val(state.c_str());
+		dec_state.emplace_back(val);
+	}
 
-    uint128_t u_index = 0;
-    size_t len = index.size();
-    for (size_t i = 0; i < len; ++i)
-    {
-        u_index += check(index[len - i - 1]) << i;
-    }
+	auto qubit_num = m_graph_backend.m_qubit_num;
+	auto graph_num = m_graph_backend.m_sub_graph.size();
 
-    return PMeasure_dec_index(integerToString(u_index));
+	QStat result(dec_state.size());
+	for (auto graph_index = 0; graph_index < graph_num; ++graph_index)
+	{
+		QStat under_graph_state;
+		computing_graph(qubit_num / 2, m_graph_backend.m_sub_graph[graph_index][0], under_graph_state);
+		auto under_size = under_graph_state.size();
+
+		QStat upper_graph_state;
+		computing_graph(qubit_num - (qubit_num / 2), m_graph_backend.m_sub_graph[graph_index][1], upper_graph_state);
+		auto upper_size = upper_graph_state.size();
+
+		for (auto idx = 0; idx < dec_state.size(); ++idx)
+		{
+			uint64_t under_index, upper_index;
+			get_couple_state_index(dec_state[idx], under_index, upper_index, m_graph_backend.m_qubit_num);
+
+			result[idx] += under_graph_state[under_index] * upper_graph_state[upper_index];
+		}
+	}
+
+	stat_map state_result;
+	for (auto idx = 0; idx < amplitude.size(); ++idx)
+	{
+		auto pair = std::make_pair(amplitude[idx], result[idx]);
+
+		state_result.insert(pair);
+	}
+	return state_result;
 }
-
-prob_map PartialAmplitudeQVM::PMeasure(QVec qvec, string select_max)
-{
-    Qnum  qubit_vec;
-    for_each(qvec.begin(), qvec.end(), [&](Qubit *qubit)
-    {qubit_vec.emplace_back(qubit->getPhysicalQubitPtr()->getQubitAddr()); });
-    sort(qubit_vec.begin(), qubit_vec.end());
-    auto iter = adjacent_find(qubit_vec.begin(), qubit_vec.end());
-
-    uint128_t select_max_size(select_max.c_str());
-    uint128_t max_size = (uint128_t)1 << qubit_vec.size();
-    if ((qubit_vec.end() != iter) || 
-        select_max_size > (max_size))
-    {
-        QCERR("PMeasure error");
-        throw qprog_syntax_error("PMeasure");
-    }
-
-    size_t qubit_num = m_prog_map->m_qubit_num;
-
-    uint128_t value_size = (uint128_t)1 << (qubit_num - qubit_vec.size());
-    prob_map res;
-    auto pmeasure_size = qubit_vec.size();
-
-    vector<vector<QStat>> graph_stat_map;
-    getSubGraphStat(graph_stat_map);
-
-    if (pmeasure_size <= qubit_num)
-    {
-        uint64_t low_pos, high_pos;
-        for (uint128_t i = 0; i < select_max_size; ++i)
-        {
-            double temp_value = 0.0;
-            for (uint128_t j = 0; j < value_size; ++j)
-            {
-                qcomplex_t addResult(0, 0);
-                uint128_t index = getDecIndex(i, j, qubit_vec, qubit_num);
-                getAvgBinary(index, low_pos, high_pos, qubit_num);
-                for (size_t k = 0; k < graph_stat_map.size(); ++k)
-                {
-                    addResult = addResult + graph_stat_map[k][0][low_pos] * graph_stat_map[k][1][high_pos];
-                }
-                temp_value += addResult.real()*addResult.real() + addResult.imag()*addResult.imag();
-            }
-
-            res.insert(make_pair(integerToString(i), temp_value));
-        }
-
-        return res;
-    }
-    else
-    {
-        QCERR("PMeasure error");
-        throw qprog_syntax_error("PMeasure");
-    }
-}
-
-prob_map PartialAmplitudeQVM::PMeasure(string select_max)
-{
-    if (nullptr == m_prog_map)
-    {
-        QCERR("prog is null");
-        throw run_fail("prog is null");
-    }
-
-    uint128_t select_max_size(select_max.c_str());
-    uint128_t max_size = (uint128_t)1 << m_prog_map->m_qubit_num;
-    if (select_max_size > max_size)
-    {
-        QCERR("PMeasure error");
-        throw qprog_syntax_error("PMeasure");
-    }
-
-    vector<vector<QStat>> graph_stat_map;
-    getSubGraphStat(graph_stat_map);
-
-    prob_map result_map;
-    uint64_t low_pos, high_pos;
-    for (uint128_t i = 0; i < select_max_size; i++)
-    {
-        qcomplex_t value(0, 0);
-        getAvgBinary(i, low_pos, high_pos, m_prog_map->m_qubit_num);
-        for (size_t j = 0; j < graph_stat_map.size(); ++j)
-        {
-            value = value + graph_stat_map[j][0][low_pos] * graph_stat_map[j][1][high_pos];
-        }
-
-        string index = integerToString(i);
-        result_map.insert(make_pair(index, 
-            (value.real()*value.real()+value.imag()*value.imag())));
-    }
-
-    return result_map;
-}
-
-prob_map PartialAmplitudeQVM::getProbDict(QVec qvec, string select_max)
-{
-    Qnum  qubit_vec;
-    for_each(qvec.begin(), qvec.end(), [&](Qubit *qubit)
-    {qubit_vec.emplace_back(qubit->getPhysicalQubitPtr()->getQubitAddr()); });
-    sort(qubit_vec.begin(), qubit_vec.end());
-    auto iter = adjacent_find(qubit_vec.begin(), qubit_vec.end());
-
-    uint128_t select_max_size(select_max.c_str());
-    uint128_t max_size = (uint128_t)1 << qubit_vec.size();
-    if ((qubit_vec.end() != iter) ||
-        select_max_size > (max_size))
-    {
-        QCERR("PMeasure error");
-        throw qprog_syntax_error("PMeasure");
-    }
-
-    size_t qubit_num = m_prog_map->m_qubit_num;
-
-    uint128_t value_size = (uint128_t)1 << (qubit_num - qubit_vec.size());
-    prob_map res;
-    auto pmeasure_size = qubit_vec.size();
-
-    vector<vector<QStat>> graph_stat_map;
-    getSubGraphStat(graph_stat_map);
-
-    if (pmeasure_size <= qubit_num)
-    {
-        uint64_t low_pos, high_pos;
-        for (uint128_t i = 0; i < select_max_size; ++i)
-        {
-            double temp_value = 0.0;
-
-            for (uint128_t j = 0; j < value_size; ++j)
-            {
-                qcomplex_t addResult(0, 0);
-                uint128_t index = getDecIndex(i, j, qubit_vec, qubit_num);
-                getAvgBinary(index, low_pos, high_pos, qubit_num);
-                for (size_t k = 0; k < graph_stat_map.size(); ++k)
-                {
-                    addResult = addResult + graph_stat_map[k][0][low_pos] * graph_stat_map[k][1][high_pos];
-                }
-                temp_value += addResult.real()*addResult.real() + addResult.imag()*addResult.imag();
-            }
-
-            res.insert(make_pair(integerToBinary(i, pmeasure_size), temp_value));
-        }
-
-        return res;
-    }
-    else
-    {
-        QCERR("PMeasure error");
-        throw qprog_syntax_error("PMeasure");
-    }
-}
-
-prob_map PartialAmplitudeQVM::probRunDict(QProg &prog, QVec qvec, string select_max)
-{
-    run(prog);
-    return getProbDict(qvec, select_max);
-}
-
-prob_map PartialAmplitudeQVM::PMeasureSubSet(QProg &prog, std::vector<std::string> subset_vec)
-{
-    run(prog);
-    if (nullptr == m_prog_map || 0 == subset_vec.size())
-    {
-        QCERR("prog is null");
-        throw run_fail("prog is null");
-    }
-
-    for_each(subset_vec.begin(), subset_vec.end(), [&](std::string str)
-    {
-        if (str.length() != m_prog_map->m_qubit_num)
-        {
-            QCERR("parm error");
-            throw run_fail("parm error");
-        };
-    });
-
-    vector<vector<QStat>> graph_stat_map;
-    getSubGraphStat(graph_stat_map);
-
-    auto check = [](char bin)
-    {
-        if ('1' != bin && '0' != bin)
-        {
-            QCERR("PMeasure parm error");
-            throw qprog_syntax_error("PMeasure parm");
-        }
-        else
-        {
-            return bin != '0';
-        }
-    };
-
-    prob_map result_map;
-    uint64_t low_pos, high_pos;
-    for (auto val : subset_vec)
-    {
-        qcomplex_t value(0, 0);
-        uint128_t u_index = 0;
-        size_t len = val.size();
-        for (size_t i = 0; i < len; ++i)
-        {
-            u_index += check(val[len - i - 1]) << i;
-        }
-
-        getAvgBinary(u_index, low_pos, high_pos, m_prog_map->m_qubit_num);
-        for (size_t j = 0; j < graph_stat_map.size(); ++j)
-        {
-            value = value + graph_stat_map[j][0][low_pos] * graph_stat_map[j][1][high_pos];
-        }
-
-        result_map.insert(make_pair(val,
-            (value.real()*value.real() + value.imag()*value.imag())));
-    }
-
-    return result_map;
-}
-
-prob_map PartialAmplitudeQVM::pMeasureSubset(QProg &prog, std::vector<std::string> subset_vec)
-{
-    return PMeasureSubSet(prog, subset_vec);
-}
-
 
 
 void PartialAmplitudeQVM::execute(std::shared_ptr<AbstractQuantumMeasure>  cur_node, std::shared_ptr<QNode> parent_node)
 {
-    QCERR("Does not support QuantumMeasure ");
-    throw std::runtime_error("Does not support QuantumMeasure");
-}
-
-void PartialAmplitudeQVM::execute(std::shared_ptr<AbstractQuantumReset>, std::shared_ptr<QNode>)
-{
-	QCERR("Does not support QuantumReset ");
-	throw std::runtime_error("Does not support QuantumReset");
+	QCERR("ignore measure");
 }
 
 void PartialAmplitudeQVM::execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node)
 {
-    QCERR("Does not support ControlFlowNode ");
-    throw std::runtime_error("Does not support ControlFlowNode");
+	QCERR("ignore controlflow");
 }
 
 void PartialAmplitudeQVM::execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std::shared_ptr<QNode> parent_node)
 {
-    Traversal::traversal(cur_node, false, *this);
+	Traversal::traversal(cur_node, true, *this);
 }
 
 void PartialAmplitudeQVM::execute(std::shared_ptr<AbstractQuantumProgram>  cur_node, std::shared_ptr<QNode> parent_node)
 {
-    Traversal::traversal(cur_node, *this);
+	Traversal::traversal(cur_node, *this);
 }
 
 void PartialAmplitudeQVM::execute(std::shared_ptr<AbstractClassicalProg>  cur_node, std::shared_ptr<QNode> parent_node)
 {
-    QCERR("Does not support ClassicalProg ");
-    throw std::runtime_error("Does not support ClassicalProg");
+	QCERR("ignore classical prog");
+}
+
+void PartialAmplitudeQVM::execute(std::shared_ptr<AbstractQuantumReset>  cur_node, std::shared_ptr<QNode> parent_node)
+{
+	QCERR("ignore reset");
 }
 
 void PartialAmplitudeQVM::execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node)
 {
-    if (nullptr == cur_node || nullptr == cur_node->getQGate())
-    {
-        QCERR("pQGate is null");
-        throw invalid_argument("pQGate is null");
-    }
+	if (nullptr == cur_node || nullptr == cur_node->getQGate())
+	{
+		QCERR("pQGate is null");
+		throw invalid_argument("pQGate is null");
+	}
 
-    QVec qubits_vector;
-    cur_node->getQuBitVector(qubits_vector);
+	QVec qubits_vector;
+	cur_node->getQuBitVector(qubits_vector);
 
-    auto gate_type = (unsigned short)cur_node->getQGate()->getGateType();
-    QGateNode node = { gate_type,cur_node->isDagger() };
-    switch (gate_type)
-    {
-    case GateType::P0_GATE:
-    case GateType::P1_GATE:
-    case GateType::PAULI_Y_GATE:
-    case GateType::PAULI_Z_GATE:
-    case GateType::Y_HALF_PI:
-    case GateType::Z_HALF_PI:
-    case GateType::X_HALF_PI:
-    case GateType::HADAMARD_GATE:
-    case GateType::T_GATE:
-    case GateType::S_GATE:
-    {
-        node.tar_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
-    }
-    break;
+	auto gate_type = (unsigned short)cur_node->getQGate()->getGateType();
+	QGateNode node = { gate_type,cur_node->isDagger() };
+	switch (gate_type)
+	{
+	case GateType::P0_GATE:
+	case GateType::P1_GATE:
+	case GateType::PAULI_Y_GATE:
+	case GateType::PAULI_Z_GATE:
+	case GateType::X_HALF_PI:
+	case GateType::Y_HALF_PI:
+	case GateType::Z_HALF_PI:
+	case GateType::HADAMARD_GATE:
+	case GateType::T_GATE:
+	case GateType::S_GATE:
+	{
+		node.tar_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
+	}
+	break;
 
-    case GateType::PAULI_X_GATE:
-    {
-        QVec control_qvec;
-        cur_node->getControlVector(control_qvec);
+	case GateType::PAULI_X_GATE:
+	{
+		QVec control_qvec;
+		cur_node->getControlVector(control_qvec);
 
-        if (control_qvec.empty())
-        {
-            node.tar_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
-        }
-        else
-        {
-            node.gate_type = TOFFOLI_GATE;
+		if (control_qvec.empty())
+		{
+			node.tar_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
+		}
+		else
+		{
+			node.gate_type = TOFFOLI_GATE;
 
-            auto tar_qubit = node.tar_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
+			auto tar_qubit = node.tar_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
 
-            auto ctr_qubit = node.ctr_qubit = control_qvec[0]->getPhysicalQubitPtr()->getQubitAddr();
-            auto tof_qubit = node.tof_qubit = control_qvec[1]->getPhysicalQubitPtr()->getQubitAddr();
+			auto ctr_qubit = node.ctr_qubit = control_qvec[0]->getPhysicalQubitPtr()->getQubitAddr();
+			auto tof_qubit = node.tof_qubit = control_qvec[1]->getPhysicalQubitPtr()->getQubitAddr();
 
-            m_prog_map->m_spilt_num += (m_prog_map->isCorssNode(ctr_qubit, tar_qubit)) ||
-                (m_prog_map->isCorssNode(ctr_qubit, tof_qubit)) ||
-                (m_prog_map->isCorssNode(tar_qubit, tof_qubit)) ;
-        }
-    }
-    break;
+			m_graph_backend.m_spilt_num += (m_graph_backend.is_corss_node(ctr_qubit, tar_qubit)) ||
+				(m_graph_backend.is_corss_node(ctr_qubit, tof_qubit)) ||
+				(m_graph_backend.is_corss_node(tar_qubit, tof_qubit));
+		}
+	}
+	break;
 
-    case GateType::U1_GATE:
-    case GateType::RX_GATE:
-    case GateType::RY_GATE:
-    case GateType::RZ_GATE:
-    {
-        node.tar_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
-        node.gate_parm = dynamic_cast<QGATE_SPACE::AbstractSingleAngleParameter *>(cur_node->getQGate())->getParameter();
-    }
-    break;
+	case GateType::U1_GATE:
+	case GateType::RX_GATE:
+	case GateType::RY_GATE:
+	case GateType::RZ_GATE:
+	{
+		node.tar_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
+		node.gate_parm = dynamic_cast<angleParameter *>(cur_node->getQGate())->getParameter();
+	}
+	break;
 
-    case GateType::ISWAP_GATE:
-    case GateType::SQISWAP_GATE:
-    {
-        auto ctr_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
-        auto tar_qubit = qubits_vector[1]->getPhysicalQubitPtr()->getQubitAddr();
-        if (ctr_qubit == tar_qubit || m_prog_map->isCorssNode(ctr_qubit, tar_qubit))
-        {
-            QCERR("Error");
-            throw qprog_syntax_error();
-        }
-        else
-        {
-            node.ctr_qubit = ctr_qubit;
-            node.tar_qubit = tar_qubit;
-        }
-    }
-    break;
+	case GateType::ISWAP_GATE:
+	case GateType::SWAP_GATE:
+	case GateType::SQISWAP_GATE:
+	{
+		auto ctr_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
+		auto tar_qubit = qubits_vector[1]->getPhysicalQubitPtr()->getQubitAddr();
+		if (m_graph_backend.is_corss_node(ctr_qubit, tar_qubit))
+		{
+			QCERR("Error");
+			throw qprog_syntax_error();
+		}
+		else
+		{
+			node.ctr_qubit = ctr_qubit;
+			node.tar_qubit = tar_qubit;
+		}
+	}
+	break;
 
-    case GateType::CNOT_GATE:
-    case GateType::CZ_GATE:
-    {
-        node.ctr_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
-        node.tar_qubit = qubits_vector[1]->getPhysicalQubitPtr()->getQubitAddr();
-        m_prog_map->m_spilt_num += (m_prog_map->isCorssNode(node.ctr_qubit, node.tar_qubit));
-    }
-    break;
+	case GateType::CNOT_GATE:
+	case GateType::CZ_GATE:
+	{
+		auto ctr_qubit = node.ctr_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
+		auto tar_qubit = node.tar_qubit = qubits_vector[1]->getPhysicalQubitPtr()->getQubitAddr();
+		m_graph_backend.m_spilt_num += m_graph_backend.is_corss_node(ctr_qubit, tar_qubit);
+	}
+	break;
 
-    case GateType::CPHASE_GATE:
-    {
-        node.ctr_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
-        node.tar_qubit = qubits_vector[1]->getPhysicalQubitPtr()->getQubitAddr();
-        node.gate_parm = dynamic_cast<QGATE_SPACE::AbstractSingleAngleParameter *>(cur_node->getQGate())->getParameter();
-        m_prog_map->m_spilt_num += (m_prog_map->isCorssNode(node.ctr_qubit, node.tar_qubit));
-    }
-    break;
+	case GateType::CPHASE_GATE:
+	{
+		auto ctr_qubit = node.ctr_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
+		auto tar_qubit = node.tar_qubit = qubits_vector[1]->getPhysicalQubitPtr()->getQubitAddr();
+		node.gate_parm = dynamic_cast<QGATE_SPACE::AbstractSingleAngleParameter *>(cur_node->getQGate())->getParameter();
+		m_graph_backend.m_spilt_num += m_graph_backend.is_corss_node(ctr_qubit, tar_qubit);
+	}
+	break;
 
-    default:
-    {
-        QCERR("UnSupported QGate Node");
-        throw undefine_error("QGate");
-    }
-    break;
-    }
+	default:
+	{
+		QCERR("UnSupported QGate Node");
+		throw undefine_error("QGate");
+	}
+	break;
+	}
 
-    m_prog_map->m_circuit.emplace_back(node);
+	m_graph_backend.m_circuit.emplace_back(node);
+}
+
+void PartialAmplitudeQVM::construct_graph()
+{
+	auto qubit_num = getAllocateQubit();
+	if (!m_graph_backend.m_spilt_num)
+	{
+		m_graph_backend.split_circuit(m_graph_backend.m_circuit);
+	}
+	else
+	{
+		m_graph_backend.traversal(m_graph_backend.m_circuit);
+	}
 }

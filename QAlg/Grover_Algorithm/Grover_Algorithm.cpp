@@ -68,7 +68,7 @@ QProg QPanda::groverAlgorithm(size_t target,
 		QCERR("search_range equal 0");
 		throw invalid_argument("search_range equal 0");
 	}
-	size_t qubit_number = (size_t)(log(search_range)/log(2));
+	size_t qubit_number = (size_t)(::log(search_range)/::log(2));
 	if (target > target)
 	{
 		QCERR("target > search_range");

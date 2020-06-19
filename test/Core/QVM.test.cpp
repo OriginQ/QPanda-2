@@ -144,7 +144,6 @@ TEST(QVM, PartialAmplitudeQVM)
     machine->init();
     auto qlist = machine->allocateQubits(40);
     auto clist = machine->allocateCBits(40);
-
     auto Toffoli = X(qlist[20]);
     Toffoli.setControl({ qlist[18], qlist[19] });
 
@@ -152,6 +151,8 @@ TEST(QVM, PartialAmplitudeQVM)
     prog << H(qlist[18])
          << X(qlist[19])
          << Toffoli;
+
+	machine->run(prog);
 
     std::vector<string> subSet = { "0000000000000000000001000000000000000000" ,
                                    "0000000000000000000010000000000000000000" ,
@@ -161,7 +162,7 @@ TEST(QVM, PartialAmplitudeQVM)
                                    "0000000000000000000110000000000000000000" ,
                                    "0000000000000000000111000000000000000000" ,
                                    "1000000000000000000000000000000000000000" };
-    auto result = machine->pMeasureSubset(prog, subSet);
+    auto result = machine->PMeasure_subset(subSet);
 
     for (auto val : result)
     {

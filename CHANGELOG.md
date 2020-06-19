@@ -10,11 +10,71 @@
 > -   **Removed**: 删除的功能.
 > -   **Fixed**: Bug修复.
 
-[UNRELEASED](https://github.com/OriginQ/QPanda-2/compare/v2.1.2...HEAD)
+[UNRELEASED](https://github.com/OriginQ/QPanda-2/compare/v2.1.3...HEAD)
 ========================================================================
 
+[v2.1.3](https://github.com/OriginQ/QPanda-2/compare/v2.1.2...v2.1.3) - 2020-6-19
+==================================================================================
 
-[v2.1.1](https://github.com/OriginQ/QPanda-2/compare/v2.1.1...v2.1.2) - 2020-3-31
+QPanda
+--------
+
+Added
+*******
+
+- 添加 `SU4` 线路映射功能
+- 添加含噪声虚拟机中添加角度旋转误差接口 `set_rotation_angle_error`
+- 添加通过泡利矩阵设置噪声模型的方法 `set_noise_kraus_matrix`
+- 添加通酉矩阵和概率设置噪声的方法 `set_noise_unitary_matrix`
+- 添加生成随机线路的功能 `RandomCircuit`
+- 添加 `Base_QCircuit` 文件夹存放基础量子线路，`QFT`，`QPE` 等
+- 添加 `HHL` 算法
+- 添加 `QARM` 算法
+- 添加 `QSVM` 算法
+- 添加 `QITE `算法
+
+Changed
+*********
+
+- `convert_qasm_to_qprog` 支持科学记数表达式：如 `1.0e-10`
+- 修改 `runwithconfiguration` 返回结果的显示方式
+- 修复 `free qubit` 内存泄漏
+- 修复 `U4 gamma` 值为nan的问题
+- 更新线路优化算法
+- 去掉噪声虚拟机的默认噪声参数的设置
+- 修复 `Psi4Wrapper` 中成员变量未赋初值的bug
+- 添加 `QGate::remap` 接口，映射逻辑门量子bit到不同的量子bit
+
+pyQPanda
+----------
+
+Added
+*******
+
+- 添加 `SU4` 线路映射功能
+- 添加含噪声虚拟机中添加角度旋转误差接口 `set_rotation_angle_error`
+- 添加通过泡利矩阵设置噪声模型的方法 `set_noise_kraus_matrix`
+- 添加通酉矩阵和概率设置噪声的方法 `set_noise_unitary_matrix`
+- 添加生成随机线路的功能 `RandomCircuit`
+- 添加 `Base_QCircuit` 文件夹存放基础量子线路，`QFT`，`QPE` 等
+- 添加 `HHL` 算法
+- 添加 `QARM` 算法
+- 添加 `QSVM` 算法
+- 添加 `QITE `算法
+
+Changed
+*********
+
+- `convert_qasm_to_qprog` 支持科学记数表达式：如 `1.0e-10`
+- 修改 `runwithconfiguration` 返回结果的显示方式
+- 修复 `free qubit` 内存泄漏
+- 修复 `U4 gamma` 值为nan的问题
+- 更新线路优化算法
+- 去掉噪声虚拟机的默认噪声参数的设置
+- 修复 `Psi4Wrapper` 中成员变量未赋初值的bug
+- 添加 `QGate::remap` 接口，映射逻辑门量子bit到不同的量子bit
+
+[v2.1.2](https://github.com/OriginQ/QPanda-2/compare/v2.1.1...v2.1.2) - 2020-3-31
 ==================================================================================
 
 QPanda

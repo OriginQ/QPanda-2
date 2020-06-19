@@ -426,3 +426,52 @@ TEST(JudgeTwoNodeIterIsSwappable, doubleGateTest)
 
 	ASSERT_TRUE(bCouldBeExchanged);
 }
+
+TEST(JudgeTwoNodeIterIsSwappable, doubleGateTest2)
+{
+	QVM_INITIALIZE(8, 8);
+
+	QProg prog;
+	QProg prog3;
+	QCircuit circuit3;
+
+	circuit3 << X(q[2]) << S(q[1]) << H(q[2]) << S(q[2]) << Z(q[0]);
+	circuit3.setDagger(true);
+
+	QProg branch_true;
+	QProg branch_false;
+	branch_true << H(q[2]) << CNOT(q[2], q[5]) << S(q[4]) << (c[1] = c[1] + 1) << H(q[5]) << Y(q[2]);
+	branch_false << H(q[4]) << CNOT(q[5], q[4]);
+
+	auto qif = CreateIfProg(c[1] > 5, branch_true, branch_false);
+
+	QProg prog_in;
+	prog_in << CNOT(q[4], q[5]) << c[0] << H(q[4]);
+	auto qwhile = CreateWhileProg(c[0] < 3, prog_in);
+
+	QVec control_vec;
+	control_vec.push_back(q[1]);
+
+	auto gate2 = CNOT(q[0], q[3]).dagger();
+	gate2.setControl(control_vec);
+	prog << CNOT(q[0], q[3]) << I(q[0]) << RZ(q[1], PI / 2) << qwhile << qif << H(q[1]) << S(q[1])
+		<< circuit3 << Z(q[0]) << H(q[1]).dagger() << RZ(q[1], PI / 2).dagger() << gate2
+		<< MeasureAll(q, c);
+
+	NodeIter itr1 = prog.getFirstNodeIter();
+
+	NodeIter itr2 = prog.getLastNodeIter();
+	--itr2;
+
+	bool bCouldBeExchanged = isSwappable(prog, itr1, itr2);
+	if (bCouldBeExchanged)
+	{
+		std::cout << "could be exchanged." << std::endl;
+	}
+	else
+	{
+		std::cout << "could NOT be exchanged." << std::endl;
+	}
+
+	ASSERT_TRUE(bCouldBeExchanged);
+}

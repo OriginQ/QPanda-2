@@ -187,8 +187,8 @@ template<typename _MatrixType> class Tridiagonalization
 
     /** \brief Returns the internal representation of the decomposition
       *
-      *    \returns a const reference to a matrix with the internal representation
-      *             of the decomposition.
+      *	\returns a const reference to a matrix with the internal representation
+      *	         of the decomposition.
       *
       * \pre Either the constructor Tridiagonalization(const MatrixType&) or
       * the member function compute(const MatrixType&) has been called before

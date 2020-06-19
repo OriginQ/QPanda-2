@@ -11,7 +11,8 @@ USING_QPANDA
 
 TEST(TopologyMatch, test)
 {
-	auto qvm = initQuantumMachine();
+	auto qvm = new CPUQVM();
+	qvm->init();
 	auto q = qvm->allocateQubits(16);
 	auto c = qvm->allocateCBits(16);
 	auto srcprog = QProg();
@@ -31,8 +32,14 @@ TEST(TopologyMatch, test)
 		<< CNOT(q[10], q[15])
 		<< CNOT(q[10], q[12])
 		<< cu_gate;
-	
+
+	qvm->directlyRun(srcprog);
+	auto r1 = qvm->PMeasure_no_index(q);
+
 	auto outprog = topology_match(srcprog, q, qvm);
+
+	qvm->directlyRun(outprog);
+	auto r2 = qvm->PMeasure_no_index(q);
 
 	std::cout << transformQProgToOriginIR(outprog, qvm) << std::endl;
 

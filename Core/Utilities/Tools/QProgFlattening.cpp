@@ -12,7 +12,7 @@ QProgFlattening::~QProgFlattening()
 {
 }
 
-void QProgFlattening::execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node, QProg &prog, QCircuit &circuit)
+void QProgFlattening::execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node, QProg &prog)
 {
 	auto type = parent_node->getNodeType();
 	if (type == NodeType::CIRCUIT_NODE)
@@ -28,17 +28,18 @@ void QProgFlattening::execute(std::shared_ptr<AbstractQGateNode>  cur_node, std:
 
 		QGate cur_node_qgate = QGate(cur_node);
 		QGate deep_copy_qgate = deepCopy(cur_node_qgate);
-		deep_copy_qgate.setControl(get_two_qvec_union(curnode_qv_ctrl, parent_qv_ctrl));
+
+		// parent_qv_ctrl - curnode_qv_ctrl
+		auto sort_fun = [](Qubit*a, Qubit* b) {return a->getPhysicalQubitPtr()->getQubitAddr() < b->getPhysicalQubitPtr()->getQubitAddr(); };
+		std::sort(parent_qv_ctrl.begin(), parent_qv_ctrl.end(), sort_fun);
+		std::sort(curnode_qv_ctrl.begin(), curnode_qv_ctrl.end(), sort_fun);
+		QVec result_vec;
+		set_difference(parent_qv_ctrl.begin(), parent_qv_ctrl.end(), curnode_qv_ctrl.begin(), curnode_qv_ctrl.end(), std::back_inserter(result_vec), sort_fun);
+		
+		deep_copy_qgate.setControl(result_vec);
 		deep_copy_qgate.setDagger(is_dagger);
 
-		if (m_full_flatten == true)
-		{
-			prog.pushBackNode(std::dynamic_pointer_cast<QNode>(deep_copy_qgate.getImplementationPtr()));
-		}
-		else
-		{
-			circuit.pushBackNode(std::dynamic_pointer_cast<QNode>(deep_copy_qgate.getImplementationPtr()));
-		}
+		prog.pushBackNode(std::dynamic_pointer_cast<QNode>(deep_copy_qgate.getImplementationPtr()));
 	}
 	else if (type == NodeType::PROG_NODE)
 	{
@@ -51,7 +52,7 @@ void QProgFlattening::execute(std::shared_ptr<AbstractQGateNode>  cur_node, std:
 	}
 }
 
-void QProgFlattening::execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, std::shared_ptr<QNode> parent_node, QProg &prog, QCircuit &circuit)
+void QProgFlattening::execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, std::shared_ptr<QNode> parent_node, QProg &prog)
 {
 	auto type = parent_node->getNodeType();
 	if (type != NodeType::PROG_NODE)
@@ -62,7 +63,7 @@ void QProgFlattening::execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, 
 	prog.pushBackNode(std::dynamic_pointer_cast<QNode>(cur_node));
 }
 
-void QProgFlattening::execute(std::shared_ptr<AbstractQuantumReset> cur_node, std::shared_ptr<QNode> parent_node, QProg &prog, QCircuit &circuit)
+void QProgFlattening::execute(std::shared_ptr<AbstractQuantumReset> cur_node, std::shared_ptr<QNode> parent_node, QProg &prog)
 {
 	auto type = parent_node->getNodeType();
 	if (type != NodeType::PROG_NODE)
@@ -74,25 +75,12 @@ void QProgFlattening::execute(std::shared_ptr<AbstractQuantumReset> cur_node, st
 }
 
 
-void QProgFlattening::execute(std::shared_ptr<AbstractClassicalProg>  cur_node, std::shared_ptr<QNode> parent_node, QProg &prog, QCircuit &circuit)
+void QProgFlattening::execute(std::shared_ptr<AbstractClassicalProg>  cur_node, std::shared_ptr<QNode> parent_node, QProg &prog)
 {
-	auto type = parent_node->getNodeType();
-	if (type == NodeType::CIRCUIT_NODE)
-	{
-		circuit.pushBackNode(std::dynamic_pointer_cast<QNode>(cur_node));
-	}
-	else if (type == NodeType::PROG_NODE)
-	{
-		prog.pushBackNode(std::dynamic_pointer_cast<QNode>(cur_node));
-	}
-	else
-	{
-		QCERR("node error");
-		throw std::invalid_argument("node error");
-	}
+	prog.pushBackNode(std::dynamic_pointer_cast<QNode>(cur_node));
 }
 
-void QProgFlattening::execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node, QProg &prog, QCircuit &circuit)
+void QProgFlattening::execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node, QProg &prog)
 {
 	auto type = parent_node->getNodeType();
 	if (type != NodeType::PROG_NODE)
@@ -113,7 +101,7 @@ void QProgFlattening::execute(std::shared_ptr<AbstractControlFlowNode> cur_node,
 			throw std::invalid_argument("while_branch_node error");
 		}
 		QProg while_true_branch_prog;
-		Traversal::traversalByType(while_true_branch, nullptr, *this, while_true_branch_prog, circuit);
+		Traversal::traversalByType(while_true_branch, nullptr, *this, while_true_branch_prog);
 
 		auto qwhile = createWhileProg(cur_node->getCExpr(), while_true_branch_prog);
 		prog.pushBackNode(std::dynamic_pointer_cast<QNode>(qwhile.getImplementationPtr()));
@@ -132,12 +120,12 @@ void QProgFlattening::execute(std::shared_ptr<AbstractControlFlowNode> cur_node,
 			throw std::invalid_argument("if_true_branch error");
 		}
 
-		Traversal::traversalByType(if_true_branch, nullptr, *this, if_true_branch_prog, circuit);
+		Traversal::traversalByType(if_true_branch, nullptr, *this, if_true_branch_prog);
 
 		auto if_false_branch = cur_node->getFalseBranch();
 		if (nullptr != if_false_branch)
 		{
-			Traversal::traversalByType(if_false_branch, nullptr, *this, if_false_branch_prog, circuit);
+			Traversal::traversalByType(if_false_branch, nullptr, *this, if_false_branch_prog);
 			auto qif = createIfProg(cur_node->getCExpr(), if_true_branch_prog, if_false_branch_prog);
 			prog.pushBackNode(std::dynamic_pointer_cast<QNode>(qif.getImplementationPtr()));
 		}
@@ -154,7 +142,7 @@ void QProgFlattening::execute(std::shared_ptr<AbstractControlFlowNode> cur_node,
 	}
 }
 
-void QProgFlattening::execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std::shared_ptr<QNode> parent_node, QProg &prog, QCircuit &circuit)
+void QProgFlattening::execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std::shared_ptr<QNode> parent_node, QProg &prog)
 {
     QVec qv_ctrl;
 	bool identify_dagger = false;
@@ -175,14 +163,14 @@ void QProgFlattening::execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, 
 			new_cir_node->setControl(qv_ctrl);
 			new_cir_node->setDagger(is_dagger);
 
-			Traversal::traversal(new_cir_node, is_dagger, *this, prog, circuit);
+			Traversal::traversal(new_cir_node, is_dagger, *this, prog);
 		}
 		else 	if (parent_node->getNodeType() == NodeType::PROG_NODE)
 		{
 			if (m_full_flatten == true)
 			{
 				bool is_dagger = cur_node->isDagger() ^ identify_dagger;
-				Traversal::traversal(cur_node, is_dagger, *this, prog, circuit);
+				Traversal::traversal(cur_node, is_dagger, *this, prog);
 			}
 			else
 			{
@@ -196,9 +184,10 @@ void QProgFlattening::execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, 
 				new_abstract_circuit->clearControl();
 				new_abstract_circuit->setDagger(false);
 
-				QCircuit new_out_circuit;
-				Traversal::traversal(new_abstract_circuit, identify_dagger, *this, prog, new_out_circuit);
+				QProg new_out_prog;
+				Traversal::traversal(new_abstract_circuit, identify_dagger, *this, new_out_prog);
 
+				QCircuit new_out_circuit = prog_to_cir(new_out_prog);
 				new_out_circuit.setDagger(is_dagger);
 				new_out_circuit.setControl(qv_ctrl);
 
@@ -213,8 +202,8 @@ void QProgFlattening::execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, 
 	}
 	else
 	{
-		cur_node->getControlVector(qv_ctrl);
-		is_dagger = cur_node->isDagger();
+		cur_node->getControlVector(m_global_ctrl_qubits);
+		m_global_dagger = cur_node->isDagger();
 
 		//not flatten  first circuit 
 		QCircuit cur_node_cir = QCircuit(cur_node);
@@ -223,28 +212,15 @@ void QProgFlattening::execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, 
 		new_cir_node->clearControl();
 		new_cir_node->setDagger(false);
 
-		Traversal::traversal(new_cir_node, identify_dagger, *this, prog, circuit);
-
-		circuit.setControl(qv_ctrl);
-		circuit.setDagger(is_dagger);
+		Traversal::traversal(new_cir_node, identify_dagger, *this, prog);
 	}
 }
 
-void QProgFlattening::execute(std::shared_ptr<AbstractQuantumProgram>  cur_node, std::shared_ptr<QNode> parent_node, QProg &prog, QCircuit &circuit)
+void QProgFlattening::execute(std::shared_ptr<AbstractQuantumProgram>  cur_node, std::shared_ptr<QNode> parent_node, QProg &prog)
 {
-	Traversal::traversal(cur_node, *this, prog, circuit);
+	Traversal::traversal(cur_node, *this, prog);
 }
 
-void QProgFlattening::flatten_by_type(std::shared_ptr<QNode> node, QProg &out_prog, QCircuit &out_circuit)
-{
-	if (node == nullptr)
-	{
-		QCERR("node error");
-		throw std::invalid_argument("node error");
-	}
-	
-	Traversal::traversalByType(node, nullptr, *this, out_prog, out_circuit);
-}
 
 QVec QProgFlattening::get_two_qvec_union(QVec qv_1, QVec qv_2)
 {
@@ -267,34 +243,58 @@ QVec QProgFlattening::get_two_qvec_union(QVec qv_1, QVec qv_2)
 	return out_qv;
 }
 
-void QPanda::flatten(QProg &prog)
+void QProgFlattening::flatten_by_type(std::shared_ptr<QNode> node, QProg& flattened_prog)
 {
-	QCircuit out_circuit;
-	QProg out_prog;
-	QProgFlattening flatten_qprog;
-	flatten_qprog.flatten_by_type(std::dynamic_pointer_cast<QNode>(prog.getImplementationPtr()), out_prog, out_circuit);
-	prog = out_prog;
+	if (node == nullptr)
+	{
+		QCERR("node error");
+		throw std::invalid_argument("node error");
+	}
+
+	Traversal::traversalByType(node, nullptr, *this, flattened_prog);
 }
 
-void QPanda::flatten(QCircuit &circuit)
+QCircuit QProgFlattening::prog_to_cir(QProg &prog)
 {
-	QProg out_prog;
-	QCircuit out_circuit;
-	QProgFlattening flatten_qprog;
-	flatten_qprog.flatten_by_type(std::dynamic_pointer_cast<QNode>(circuit.getImplementationPtr()), out_prog, out_circuit);
+	QCircuit ret_cir;
+	for (auto gate_itr = prog.getFirstNodeIter(); gate_itr != prog.getEndNodeIter(); ++gate_itr)
+	{
+		if (GATE_NODE != (*gate_itr)->getNodeType())
+		{
+			QCERR_AND_THROW_ERRSTR(run_fail, "Error: can't transfer current prog to circuit.");
+		}
+		ret_cir.pushBackNode(*gate_itr);
+	}
 
-	circuit = out_circuit;
+	return ret_cir;
 }
 
-void QPanda::full_flatten(QProg &prog)
+void QProgFlattening::flatten_circuit(QCircuit &src_cir)
 {
-	QCircuit out_circuit;
 	QProg out_prog;
-	QProgFlattening flatten_qprog(true);
-	flatten_qprog.flatten_by_type(std::dynamic_pointer_cast<QNode>(prog.getImplementationPtr()), out_prog, out_circuit);
-	prog = out_prog;
+	flatten_by_type(std::dynamic_pointer_cast<QNode>(src_cir.getImplementationPtr()), out_prog);
+	QCircuit tmp_cir = prog_to_cir(out_prog);
+	tmp_cir.setControl(m_global_ctrl_qubits);
+	tmp_cir.setDagger(m_global_dagger);
+	src_cir = tmp_cir;
 }
 
+void QProgFlattening::flatten_prog(QProg &src_prog)
+{
+	QProg out_prog;
+	flatten_by_type(std::dynamic_pointer_cast<QNode>(src_prog.getImplementationPtr()), out_prog);
+	src_prog = out_prog;
+}
 
+void QPanda::flatten(QCircuit& src_cir)
+{
+	QProgFlattening flattener;
+	flattener.flatten_circuit(src_cir);
+}
 
+void QPanda::flatten(QProg& src_prog, bool b_full_flatten /*= false*/)
+{
+	QProgFlattening flattener(b_full_flatten);
+	flattener.flatten_prog(src_prog);
+}
 

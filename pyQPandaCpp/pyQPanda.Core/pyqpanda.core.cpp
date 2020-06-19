@@ -20,9 +20,9 @@ using namespace pybind11::literals;
 using std::map;
 namespace py = pybind11;
 
-template<>
-struct py::detail::type_caster<QVec>
-    : py::detail::list_caster<QVec, Qubit*> { };
+//template<>
+//struct py::detail::type_caster<QVec>
+//    : py::detail::list_caster<QVec, Qubit*> { };
 
 void init_quantum_machine(py::module &);
 void init_variational(py::module &);
@@ -1132,8 +1132,8 @@ PYBIND11_MODULE(pyQPanda, m)
         .def("getName", &CBit::getName);
 
     py::class_<ClassicalCondition>(m, "ClassicalCondition")
-        .def("eval", &ClassicalCondition::eval,"get value")
-        .def("setValue",&ClassicalCondition::setValue,"set value")
+        .def("get_val", &ClassicalCondition::get_val,"get value")
+        .def("set_val",&ClassicalCondition::set_val,"set value")
         BIND_CLASSICALCOND_OPERATOR_OVERLOAD(<)
         BIND_CLASSICALCOND_OPERATOR_OVERLOAD(<=)
         BIND_CLASSICALCOND_OPERATOR_OVERLOAD(>)
@@ -1357,6 +1357,13 @@ PYBIND11_MODULE(pyQPanda, m)
 		return fill_qprog_by_I(prg);
 	}, py::arg("prog"),
 		"Fill the input QProg by I gate, get a new quantum program",
+		py::return_value_policy::automatic
+		);
+
+	m.def("matrix_decompose", [](QVec& qubits, QStat& src_mat) {
+		return matrix_decompose(qubits, src_mat);
+	}, "qubits"_a, "matrix"_a,
+		"Decomposition of quantum gates by Chi Kwong Li and Diane Christine Pelejo",
 		py::return_value_policy::automatic
 		);
 

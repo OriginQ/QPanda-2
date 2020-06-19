@@ -86,7 +86,6 @@ def singleAmp_fun():
 
     machine.run(prog)
 
-
     # result1 = machine.pmeasure("6")
     # result2 = machine.pmeasure_bin_index(prog, "0000000000")
     # result3 = machine.pmeasure_dec_index(prog, "1")
@@ -95,6 +94,7 @@ def singleAmp_fun():
 
     qlist = [q[1], q[2], q[3], q[4], q[5], q[6], q[7], q[8], q[9]]
     result4 = machine.get_prob_dict(qlist, "3")
+
 
 def partialAmp_fun():
 
@@ -123,17 +123,17 @@ def partialAmp_fun():
         .insert(RZ(q[9], PI / 4))\
         .insert(CZ(q[2], q[3]))
 
-    machine.run(prog)
+    print(to_originir(prog, machine))
 
-    result1 = machine.pmeasure("6")
+    machine.run(prog)
 
     result2 = machine.pmeasure_bin_index("0000000000")
     result3 = machine.pmeasure_dec_index("1")
 
-    qlist = [q[1], q[2], q[3], q[4], q[5], q[6], q[7], q[8], q[9]]
-    result4 = machine.get_prob_dict(qlist, "3")
+    qlist = ["0", "1", "2"]
+    result4 = machine.pmeasure_subset(qlist)
 
-    print(result1, result2, result3, result4)
+    print(result2, result3, result4)
 
 
 def graph_match_fun():
@@ -224,7 +224,8 @@ def QCloud_fun():
     print(task)
 
     time.sleep(10)
-    QCM.get_result("13401010129203cba29c3ee344694926307d1ba4c8fcb",ClusterMachineType.Full_AMPLITUDE)
+    QCM.get_result("13401010129203cba29c3ee344694926307d1ba4c8fcb",
+                   ClusterMachineType.Full_AMPLITUDE)
 
     # print(result)
     # print(QCM.prob_run_dict(prog,qlist,param2))
@@ -250,7 +251,8 @@ def Cluster_Cloud():
     # print(task)
 
     # time.sleep(3)
-    result = QCM.get_cluster_result(ClusterMachineType.Full_AMPLITUDE, "2001061726139435101012920")
+    result = QCM.get_cluster_result(
+        ClusterMachineType.Full_AMPLITUDE, "2001061726139435101012920")
     # result = QCM.get_cluster_result(0, "2001061726139435101012920")
 
     QCM.finalize()
@@ -258,9 +260,9 @@ def Cluster_Cloud():
 
 if __name__ == "__main__":
 
-    QCloud_fun()
+    # QCloud_fun()
     # cpu_qvm_fun()
     # singleAmp_fun()
-    # partialAmp_fun()
+    partialAmp_fun()
     # Cluster_Cloud()
     # graph_match_fun()

@@ -191,6 +191,41 @@ QPANDA_BEGIN
         std::string filename;
     };
 
+    /**
+    * @brief Ansatz gate type
+    */
+    enum class AnsatzGateType
+    {
+        AGT_NOT,
+        AGT_H,
+        AGT_RX,
+        AGT_RY,
+        AGT_RZ
+    };
+
+    /**
+    * @brief Ansatz gate structure
+    */
+    struct AnsatzGate
+    {
+        AnsatzGateType type;
+        int target;
+        double theta{ -1 };
+        int control;
+
+        AnsatzGate(
+            AnsatzGateType type_,
+            int target_,
+            double theta_ = -1,
+            int control_ = -1) :
+            type(type_),
+            target(target_),
+            theta(theta_),
+            control(control_)
+        {
+        }
+    };
+
     extern bool operator < (const QResultPair &p1, const QResultPair &p2);
     extern bool operator < (const QResultPair &p1, const double &coef);
     extern bool operator <= (const QResultPair &p1, const QResultPair &p2);

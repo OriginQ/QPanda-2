@@ -162,7 +162,7 @@ void OriginCExpr::setRightExpr(CExpr* rightexpr)
     rightExpr = rightexpr;
 }
 
-cbit_size_t OriginCExpr::eval() const
+cbit_size_t OriginCExpr::get_val() const
 {
     if (contentSpecifier == CBIT)
     {
@@ -173,26 +173,26 @@ cbit_size_t OriginCExpr::eval() const
     {
         if (isBinary(this->content.iOperatorSpecifier))
         {
-            auto left = this->leftExpr->eval();
-            auto right = this->rightExpr->eval();
+            auto left = this->leftExpr->get_val();
+            auto right = this->rightExpr->get_val();
             return _Binary_Operation[
                 this->content.iOperatorSpecifier
             ](left, right);
         }
         else if (isEqual(this->content.iOperatorSpecifier))
         {
-            auto left = this->leftExpr->eval();
-            auto right = this->rightExpr->eval();
+            auto left = this->leftExpr->get_val();
+            auto right = this->rightExpr->get_val();
             _Binary_Operation[this->content.iOperatorSpecifier](left, right);
             auto left_cbit = this->leftExpr->getCBit();
-            left_cbit->setValue(left);
+            left_cbit->set_val(left);
             return left;
         }
         else if (isUnary(this->content.iOperatorSpecifier))
         {
             return _Unary_Operation[
                 this->content.iOperatorSpecifier
-            ](this->leftExpr->eval());
+            ](this->leftExpr->get_val());
         }
 
         else

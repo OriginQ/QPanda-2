@@ -68,13 +68,6 @@ private:
 */
 class TimeSequenceConfig
 {
-#define Q_GATE_TIME_SEQUENCE_CONFIG ("QGateTimeSequence")
-#define Q_MEASURE_TIME_SEQUENCE ("QMeasureTimeSequence")
-#define Q_SWAP_TIME_SEQUENCE ("QSwapTimeSequence")
-#define Q_CONTROL_GATE_TIME_SEQUENCE ("QGateControlTimeSequence")
-#define Q_SINGLE_GATE_TIME_SEQUENCE ("QGateSingleTimeSequence")
-#define Q_RESET_TIME_SEQUENCE ("QResetNodeTimeSequence")
-
 public:
 	static TimeSequenceConfig& get_instance() {
 		static TimeSequenceConfig _instance;

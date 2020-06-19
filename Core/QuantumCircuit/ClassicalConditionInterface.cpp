@@ -18,18 +18,18 @@ limitations under the License.
 #include "Factory.h"
 USING_QPANDA
 using namespace std;
-cbit_size_t ClassicalCondition::eval()
+cbit_size_t ClassicalCondition::get_val()
 {
     if(nullptr == expr)
     {
         QCERR("expr is null");
         throw invalid_argument("expr is null");
     }
-    auto temp  = expr->eval();
+    auto temp  = expr->get_val();
     return temp;
 }
 
-void ClassicalCondition::setValue(cbit_size_t value)
+void ClassicalCondition::set_val(cbit_size_t value)
 {
     auto cbit = expr->getCBit();
     if (nullptr == cbit)
@@ -37,7 +37,7 @@ void ClassicalCondition::setValue(cbit_size_t value)
         QCERR("cbit is null");
         throw runtime_error("cbit is null");
     }
-    cbit->setValue(value);
+    cbit->set_val(value);
 }
 
 bool ClassicalCondition::checkValidity() const

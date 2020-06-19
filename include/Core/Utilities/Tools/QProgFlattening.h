@@ -41,43 +41,42 @@ struct QubitPointerCmp
 * @ingroup Utilities
 * @brief flatten quantum program and quantum circuit
 */
-class QProgFlattening : public TraversalInterface< QProg &, QCircuit & >
+class QProgFlattening : public TraversalInterface<QProg&>
 {
 public:
 
 	QProgFlattening(bool is_full_faltten = false);
 	~QProgFlattening();
 
-	virtual void execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node, QProg &prog, QCircuit &circuit);
+	void flatten_circuit(QCircuit &src_cir);
+	void flatten_prog(QProg &src_prog);
 
-	virtual void execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, std::shared_ptr<QNode> parent_node, QProg &prog, QCircuit &circuit);
+	virtual void execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node, QProg &prog)override;
+	virtual void execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, std::shared_ptr<QNode> parent_node, QProg &prog)override;
+	virtual void execute(std::shared_ptr<AbstractQuantumReset> cur_node, std::shared_ptr<QNode> parent_node, QProg &prog)override;
+	virtual void execute(std::shared_ptr<AbstractClassicalProg>  cur_node, std::shared_ptr<QNode> parent_node, QProg &prog)override;
+	virtual void execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node, QProg &prog)override;
+	virtual void execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std::shared_ptr<QNode> parent_node, QProg &prog)override;
+	virtual void execute(std::shared_ptr<AbstractQuantumProgram>  cur_node, std::shared_ptr<QNode> parent_node, QProg &prog)override;
 
-	virtual void execute(std::shared_ptr<AbstractQuantumReset> cur_node, std::shared_ptr<QNode> parent_node, QProg &prog, QCircuit &circuit);
+	/**
+	* @brief Convert QProg to QCircuit
+	* @ingroup Utilities
+	* @param[in]  QProg &  the target QProg
+	* @return Converted circuit 
+	* @Note: The input QProg must be no-nesting, and only QGate type is supported. 
+	*/
+	static QCircuit prog_to_cir(QProg &prog);
 
-	virtual void execute(std::shared_ptr<AbstractClassicalProg>  cur_node, std::shared_ptr<QNode> parent_node, QProg &prog, QCircuit &circuit);
-
-	virtual void execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node, QProg &prog, QCircuit &circuit);
-
-	virtual void execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std::shared_ptr<QNode> parent_node, QProg &prog, QCircuit &circuit);
-
-	virtual void execute(std::shared_ptr<AbstractQuantumProgram>  cur_node, std::shared_ptr<QNode> parent_node, QProg &prog, QCircuit &circuit);
-	
-	void flatten_by_type(std::shared_ptr<QNode> node, QProg &out_prog, QCircuit &out_circuit);
-
+protected:
+	void flatten_by_type(std::shared_ptr<QNode> node, QProg& flattened_prog);
 	QVec get_two_qvec_union(QVec qv_1, QVec qv_2);
 
 private:
-	bool m_full_flatten; 
+	bool m_full_flatten;
+	QVec m_global_ctrl_qubits;
+	bool m_global_dagger;
 };
-
-/**
-* @brief Flatten Quantum Program
-* @ingroup Utilities
-* @param[in,out]  QProg&	  quantum program
-* @return    void
-*/
-void flatten(QProg &prog);
-
 
 /**
 * @brief Flatten Quantum Circuit
@@ -85,7 +84,7 @@ void flatten(QProg &prog);
 * @param[in,out]  QCircuit&	  circuit program 
 * @return     void
 */
-void flatten(QCircuit &circuit);
+void flatten(QCircuit& src_cir);
 
 /**
 * @brief Full Flatten Quantum Program
@@ -93,7 +92,7 @@ void flatten(QCircuit &circuit);
 * @param[in,out]  QProg&	  quantum program
 * @return     void
 */
-void full_flatten(QProg &prog);
+void flatten(QProg& src_prog, bool b_full_flatten = false);
 
 QPANDA_END
 #endif // !_QPROGFLATTENING_H

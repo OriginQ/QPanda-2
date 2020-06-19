@@ -15,44 +15,33 @@ USING_QPANDA
 
 TEST(MatrixXi, Eigen)
 {
-    Eigen::scomplex R0(0, 0);
-    Eigen::scomplex R1(1, 0);
-    Eigen::scomplex I1(0, 1);
-    Eigen::scomplex BSQ2(SQ2, 0);
-    Eigen::scomplex BISQ2(0, SQ2);
+	auto qvm =new CPUQVM();
+	qvm->init();
+	auto q = qvm->qAllocMany(6);
+	auto c = qvm->cAllocMany(6 );
 
+	QCircuit in;
 
-    /* Un·Un-1···U1·U = I  */
+	QStat test_matrix = {
+		qcomplex_t(0.15774658, -0.52244755), qcomplex_t(-0.65774658, 0.02244755), qcomplex_t(-0.30419319, 0.16889416), qcomplex_t(0.19580681, -0.33110584),
+		qcomplex_t(-0.65774658, 0.02244755), qcomplex_t(0.15774658, -0.52244755), qcomplex_t(-0.19580681, 0.33110584), qcomplex_t(0.30419319, -0.16889416),
+		qcomplex_t(-0.30419319, 0.16889416), qcomplex_t(-0.19580681, 0.33110584), qcomplex_t(0.15774658, -0.52244755), qcomplex_t(0.65774658, -0.02244755),
+		qcomplex_t(0.19580681, -0.33110584), qcomplex_t(0.30419319, -0.16889416), qcomplex_t(0.65774658, -0.02244755), qcomplex_t(0.15774658, -0.52244755)
+	};
 
-    /*1-qubit case*/
-    QMatrix X = { R0,R1,R1,R0 };
-    X.decompose();
+	QVec used_qubits = { q[0], q[1] };
+	QCircuit out = matrix_decompose(used_qubits, test_matrix);
 
-    QMatrix Y = { R0,-I1,I1,R0 };
-    Y.decompose();
+	auto b = getCircuitMatrix(out);
+	cout << b << endl;
 
-    /*2-qubit case*/
-    QMatrix SWAP = { R1, R0, R0, R0 ,
-                     R0, R0, R1, R0,
-                     R0, R1, R0, R0,
-                     R0, R0, R0, R1};
-    SWAP.decompose();
-
-    QMatrix ISWAP = { R1, R0, R0, R0 ,
-                      R0, R0,-I1, R0,
-                      R0,-I1, R0, R0,
-                      R0, R0, R0, R1 };
-    ISWAP.decompose();
-
-    QMatrix SQISWAP = { R1,   R0,     R0, R0 ,
-                        R0,  BSQ2,-BISQ2, R0,
-                        R0,-BISQ2,  BSQ2, R0,
-                        R0,    R0,    R0, R1 };
-    SQISWAP.decompose();
+	if (test_matrix == b)
+	{
+		cout << "test ok" << endl;
+	}
 
     getchar();
 }
-
 
 TEST(GraphMatch, Query)
 {
@@ -146,4 +135,3 @@ TEST(GraphMatch, Query)
 
     cout << transformQProgToOriginIR(update_prog, qvm);
 }
-  

@@ -15,9 +15,9 @@ using namespace pybind11::literals;
 using std::map;
 namespace py = pybind11;
 
-template<>
-struct py::detail::type_caster<QVec>
-    : py::detail::list_caster<QVec, Qubit*> { };
+//template<>
+//struct py::detail::type_caster<QVec>
+//    : py::detail::list_caster<QVec, Qubit*> { };
 
 void init_quantum_machine(py::module &m)
 {
@@ -108,6 +108,7 @@ void init_quantum_machine(py::module &m)
         .def(py::init<>())
         .def(py::init<std::vector<Qubit *> &>())
         .def(py::init<const QVec &>())
+        .def(py::init<Qubit *>())
         .def("__getitem__", [](QVec & self,int num) {
         return self[num];
     }, py::return_value_policy::reference)
@@ -121,6 +122,7 @@ void init_quantum_machine(py::module &m)
     });
 
     py::implicitly_convertible<std::vector<Qubit *>, QVec>();
+    py::implicitly_convertible<Qubit *, QVec>();
 
     Qubit*(QuantumMachine::*qalloc)() = &QuantumMachine::allocateQubit;
     ClassicalCondition(QuantumMachine::*cAlloc)() = &QuantumMachine::allocateCBit;
@@ -288,6 +290,7 @@ void init_quantum_machine(py::module &m)
 	}, "set QVM max qubit and max cbit", "max_qubit"_a, "max_cbit"_a)
         .def(py::init<>())
         .def("finalize", &NoiseQVM::finalize, "finalize")
+        .def("set_rotation_angle_error", &NoiseQVM::set_rotation_angle_error, "set_rotation_angle_error")
         .def("get_qstate", &NoiseQVM::getQState, "getState", py::return_value_policy::automatic)
         .def("qAlloc", qalloc, "Allocate a qubit", py::return_value_policy::reference)
         .def("qAlloc_many", [](QuantumMachine & self, size_t num) {
@@ -314,8 +317,24 @@ void init_quantum_machine(py::module &m)
 			qvm.init();
 		}, "init quantum virtual machine")
 
-		.def("set_noise_model",  &NoiseQVM::set_noise_model, 
+		.def("set_noise_model", [](NoiseQVM &qvm, NOISE_MODEL model, GateType type, std::vector<double> params_vec) {
+			qvm.set_noise_model(model, type, params_vec);
+		},
 			"noise model type"_a, "quantum gate type"_a, "params vector"_a,
+			"set noise model",
+			py::return_value_policy::reference)
+
+		.def("set_noise_kraus_matrix", [](NoiseQVM &qvm, GateType type, std::vector<QStat> kraus_matrix_vec) {
+			qvm.set_noise_kraus_matrix(type, kraus_matrix_vec);
+		},
+			"quantum gate type"_a, "kraus matrix vector"_a,
+			"set noise model",
+			py::return_value_policy::reference)
+
+		.def("set_noise_unitary_matrix", [](NoiseQVM &qvm, GateType type, std::vector<QStat> unitary_matrix_vec, std::vector<double> probs_vec) {
+			qvm.set_noise_unitary_matrix(type, unitary_matrix_vec, probs_vec);
+		},
+			"quantum gate type"_a, "unitary matrix vector"_a, "probs vector"_a,
 			"set noise model",
 			py::return_value_policy::reference)
 
@@ -460,26 +479,12 @@ py::class_<PartialAmplitudeQVM, QuantumMachine>(m, "PartialAmpQVM")
         QVM_RUN(PartialAmplitudeQVM, QCircuit)
         QVM_RUN(PartialAmplitudeQVM, QGate)
 
-        .def("run", [](PartialAmplitudeQVM &qvm, std::string QRunes_file) {return qvm.run(QRunes_file); }, "load and parser the quantum program")
-
-        .def("get_qstate", &PartialAmplitudeQVM::getQState, "Get the quantum state of quantum program",
-            py::return_value_policy::automatic_reference)
-
-        .def("pmeasure", [](PartialAmplitudeQVM &qvm, QVec qvec, std::string select_max)
-    {return qvm.PMeasure(qvec, select_max); })
-        .def("pmeasure", [](PartialAmplitudeQVM &qvm, std::string select_max)
-    {return qvm.PMeasure(select_max); })
-
         .def("pmeasure_bin_index", &PartialAmplitudeQVM::PMeasure_bin_index, "bin_index"_a,
             "PMeasure_bin_index", py::return_value_policy::automatic_reference)
         .def("pmeasure_dec_index", &PartialAmplitudeQVM::PMeasure_dec_index, "dec_index"_a,
             "PMeasure_dec_index", py::return_value_policy::automatic_reference)
-        .def("get_prob_dict", [](PartialAmplitudeQVM &qvm, QVec qvec, std::string select_max)
-            {return qvm.getProbDict(qvec, select_max); })
-        .def("prob_run_dict", [](PartialAmplitudeQVM &qvm, QProg prog, QVec qvec, std::string select_max)
-            {return qvm.probRunDict(prog, qvec, select_max); })
-        .def("pmeasure_subset", [](PartialAmplitudeQVM &qvm, QProg &prog, std::vector<std::string> index_vec)
-            {return qvm.pMeasureSubset(prog, index_vec); });
+        .def("pmeasure_subset", [](PartialAmplitudeQVM &qvm, std::vector<std::string> index_vec)
+            {return qvm.PMeasure_subset(index_vec); });
 
 #ifdef USE_CURL
 

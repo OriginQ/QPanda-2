@@ -538,7 +538,7 @@ void QProgDataParse::parseCExprCBitDataNode(const uint32_t &data)
         m_cbits_addr.push_back(data);
     }
 
-    cbit.setValue(value);
+    cbit.set_val(value);
     m_stack_cc.push(cbit);
     return;
 }
@@ -604,7 +604,7 @@ void QProgDataParse::parseCExprConstValueDataNode(const int & data)
 
 void QProgDataParse::parseCExprEvalDataNode(const int &data)
 {
-    m_stack_cc.top().setValue(data);
+    m_stack_cc.top().set_val(data);
     return;
 }
 

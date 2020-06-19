@@ -36,6 +36,10 @@ DrawQProg::~DrawQProg()
 string DrawQProg::textDraw(const TEXT_PIC_TYPE t)
 {
 	/*Do some preparations*/
+	if (m_quantum_bits_in_use.size() == 0)
+	{
+		return "Null";
+	}
 
 	//draw
 	if (nullptr != m_p_text)

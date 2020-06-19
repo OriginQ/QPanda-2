@@ -66,8 +66,8 @@ public:
 	/**
 	* @brief  Constructor of JudgeTwoNodeIterIsSwappable
 	*/
-	JudgeTwoNodeIterIsSwappable(QProg &prog, NodeIter &nodeItr_1, NodeIter &nodeItr_2)
-		: TraverseByNodeIter(prog), m_nodeItr1(nodeItr_1), m_nodeItr2(nodeItr_2), m_judge_statue(nullptr), m_last_statue(nullptr),
+	JudgeTwoNodeIterIsSwappable(QProg prog, NodeIter &nodeItr_1, NodeIter &nodeItr_2)
+		:TraverseByNodeIter(prog), m_nodeItr1(nodeItr_1), m_nodeItr2(nodeItr_2), m_judge_statue(nullptr), m_last_statue(nullptr),
 		m_result(INIT), m_b_found_first_iter(false), m_b_found_second_iter(false), m_b_dagger_circuit(false)
 	{
 	}

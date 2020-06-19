@@ -18,12 +18,15 @@ double transformMatrixToAxis(QStat &QMatrix, axis &Axis)
 
     double dRotateAngle;
 
-    double a0 = abs((QMatrix[0] + QMatrix[3])) / 2.0;
-    double a1 = abs((QMatrix[1] + QMatrix[2])) / 2.0;
-    double a2 = abs((QMatrix[1] - QMatrix[2])*qcomplex_t(0, 1)) / 2.0;
-    double a3 = abs((QMatrix[0] - QMatrix[3])) / 2.0;
+	qcomplex_t a0 = (QMatrix[0] + QMatrix[3]) / qcomplex_t(2.0,0);
+	qcomplex_t a1 = (QMatrix[1] + QMatrix[2]) / qcomplex_t(2.0, 0);
+	qcomplex_t a2 =(QMatrix[1] - QMatrix[2])/ qcomplex_t(2.0, 0);
+	qcomplex_t a3 = (QMatrix[0] - QMatrix[3]) / qcomplex_t(2.0, 0);
 
-    dRotateAngle = acos(abs(a0));
+    
+	double gphase = argc(a0);
+	qcomplex_t gtemp = qcomplex_t(cos(gphase), sin(gphase));
+	dRotateAngle = acos((a0/gtemp).real());
 
     /*
     if QMatrix is unit matrix,set axis is Z axis,rotate angle is 0
@@ -37,9 +40,9 @@ double transformMatrixToAxis(QStat &QMatrix, axis &Axis)
     else
     {
 
-        Axis.nx = a1;
-        Axis.ny = a2;
-        Axis.nz = a3;
+        Axis.nx = -(a1/gtemp).imag()/sin(dRotateAngle);
+        Axis.ny = -(a2 / gtemp).real() / sin(dRotateAngle);
+        Axis.nz = -(a3 / gtemp).imag() / sin(dRotateAngle);
 
         double dSum = Axis.nx*Axis.nx + Axis.ny*Axis.ny + Axis.nz*Axis.nz;
         dSum = sqrt(dSum);
@@ -72,6 +75,10 @@ void DecomposeUnitarySingleQGateIntoMetadataSingleQGate::rotateAxis(QStat & QMat
         {
             dAlpha = -acos((qstate_type)(OriginAxis.nx / sqrt(OriginAxis.nx*OriginAxis.nx + OriginAxis.ny * OriginAxis.ny)));
         }
+        else if(OriginAxis.nx == 0 && OriginAxis.ny == 0)
+        {
+            dAlpha = acos(0);
+        }
         else
         {
             dAlpha = acos((qstate_type)(OriginAxis.nx / sqrt(OriginAxis.nx*OriginAxis.nx + OriginAxis.ny * OriginAxis.ny)));
@@ -84,26 +91,32 @@ void DecomposeUnitarySingleQGateIntoMetadataSingleQGate::rotateAxis(QStat & QMat
         QMatrix[1] * (qstate_type)sin(dTheta / 2)*qcomplex_t(cos(dAlpha), sin(dAlpha));
     qcomplex_t cTemp2 = QMatrix[2] * (qstate_type)cos(dTheta / 2) +
         QMatrix[3] * (qstate_type)sin(dTheta / 2)*qcomplex_t(cos(dAlpha), sin(dAlpha));
+	double dTheta1 = 0;
+	double dAlpha1 = 0;
 
     if (abs(abs(cTemp1) - 1) < ZeroJudgement)
     {
-        dTheta = 0;
-        dAlpha = 0;
+        dTheta1 = 0;
+        dAlpha1 = 0;
     }
     else if (abs(abs(cTemp2) - 1) < ZeroJudgement)
     {
-        dTheta = PI;
-        dAlpha = 0;
+        dTheta1 = PI;
+        dAlpha1 = 0;
     }
     else
     {
-        dTheta = 2 * acos(abs(cTemp1));
-        dAlpha = argc(cTemp2) - argc(cTemp1);
+		double gphase = argc(cTemp1);
+		qcomplex_t qtemp = qcomplex_t(cos(gphase), sin(gphase));
+		double temp1 = (cTemp1 / qtemp).real();
+		double temp2 = argc(cTemp2 / qtemp);
+        dTheta1 = 2 * acos((cTemp1/ qtemp).real());
+        dAlpha1 = argc(cTemp2) - argc(cTemp1);
     }
 
-    NewAxis.nx = sin(dTheta)*cos(dAlpha);
-    NewAxis.ny = sin(dTheta)*sin(dAlpha);
-    NewAxis.nz = cos(dTheta);
+    NewAxis.nx = sin(dTheta1)*cos(dAlpha1);
+    NewAxis.ny = sin(dTheta1)*sin(dAlpha1);
+    NewAxis.nz = cos(dTheta1);
 
     return;
 }
@@ -150,6 +163,7 @@ void DecomposeDoubleQGate::generateMatrixOfTwoLevelSystem(QStat & NewMatrix, QSt
         }
     }
 }
+#include "Core/Utilities/QProgInfo/QGateCounter.h"
 
 void DecomposeDoubleQGate::execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node)
 {
@@ -158,6 +172,7 @@ void DecomposeDoubleQGate::execute(std::shared_ptr<AbstractQGateNode>  cur_node,
         QCERR("pnode is null");
         throw invalid_argument("pnode is null");
     }
+    
     QuantumGate* qGate;
     qGate = cur_node->getQGate();
 
@@ -247,8 +262,12 @@ void DecomposeDoubleQGate::execute(std::shared_ptr<AbstractQGateNode>  cur_node,
     vMatrix2[3] = qcomplex_t(vMatrix[15].real(), -vMatrix[15].imag());
     qCircuit << CU(vMatrix2, vQubit[0], vQubit[1]);
     auto qCircuitDagger = qCircuit.dagger();
-
-    insertQCircuit(cur_node.get(), qCircuitDagger, parent_node.get());
+    auto count3 = getQGateNumber(qCircuit);
+    if(cur_node->isDagger())
+    {
+        qCircuitDagger.setDagger(qCircuit.isDagger()^true);
+    }
+    replace_qcircuit(cur_node.get(), qCircuitDagger, parent_node.get());
 }
 
 
@@ -640,7 +659,11 @@ void DecomposeMultipleControlQGate::execute(std::shared_ptr<AbstractQGateNode>  
             << qGate0 << qCircuit2 << qCircuit3;
     }
 
-    insertQCircuit(cur_node.get(), qCircuit, parent_node.get());
+    if(cur_node->isDagger())
+    {
+        qCircuit.setDagger(qCircuit.isDagger()^true);
+    }
+    replace_qcircuit(cur_node.get(), qCircuit, parent_node.get());
 }
 
 void DecomposeMultipleControlQGate::execute(std::shared_ptr<AbstractQuantumCircuit>  cur_node, std::shared_ptr<QNode> parent_node)
@@ -672,11 +695,12 @@ void DecomposeMultipleControlQGate::execute(std::shared_ptr<AbstractQuantumCircu
 Name        : decomposeControlUnitarySingleQGate
 Description : CU conversion to single gate
 argin       : pNode              Target gate pointer
-pParentNode        Target gate's parent node
+              pParentNode        Target gate's parent node
 traversalAlgorithm traversalAlgorithm pointer
 argout      :
 Return      :
 ******************************************************************/
+int UnitarySingleQGate_count = 0;
 void DecomposeControlUnitarySingleQGate::execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node)
 {
     if (cur_node->getTargetQubitNum() == 1)
@@ -709,8 +733,6 @@ void DecomposeControlUnitarySingleQGate::execute(std::shared_ptr<AbstractQGateNo
         throw runtime_error("the size of qubit vector is error");
     }
 
-    auto targetQubit = qubitVector[0];
-
     string class_name = "U4";
     auto angle = dynamic_cast<AbstractAngleParameter *>(qgate);
     auto alpha = angle->getAlpha();
@@ -723,6 +745,7 @@ void DecomposeControlUnitarySingleQGate::execute(std::shared_ptr<AbstractQGateNo
         beta,
         gamma,
         delta);
+
     delete(qgate);
     cur_node->setQGate(new_gate);
 }
@@ -732,7 +755,7 @@ Name        : decomposeControlSingleQGateIntoMetadataDoubleQGate
 Description : Control single gate conversion to metadata double
 quantum gate
 argin       : pNode              Target gate pointer
-pParentNode        Target gate's parent node
+              pParentNode        Target gate's parent node
 traversalAlgorithm traversalAlgorithm pointer
 argout      :
 Return      :
@@ -850,7 +873,11 @@ void DecomposeControlSingleQGateIntoMetadataDoubleQGate ::
         throw runtime_error("unknow error");
     }
 
-    insertQCircuit(cur_node.get(), qCircuit, parent_node.get());
+    if(cur_node->isDagger())
+    {
+        qCircuit.setDagger(qCircuit.isDagger()^true);
+    }
+    replace_qcircuit(cur_node.get(), qCircuit, parent_node.get());
 }
 
 
@@ -938,6 +965,7 @@ DecomposeUnitarySingleQGateIntoMetadataSingleQGate(
 {
     m_qgate_matrix = qgate_matrix;
     m_valid_qgate_matrix = valid_qgate_matrix;
+    base.n2 = { 0,0,0 };
     /*
     * Initialize member variable
     */
@@ -1084,6 +1112,10 @@ void DecomposeUnitarySingleQGateIntoMetadataSingleQGate::
         {
             dAlpha = -acos((qstate_type)(base.n1.nx / sqrt(base.n1.nx*base.n1.nx + base.n1.ny * base.n1.ny)));
         }
+        else if(base.n1.nx == 0 && base.n1.ny == 0)
+        {
+            dAlpha = acos(0);
+        }
         else
         {
             dAlpha = acos((qstate_type)(base.n1.nx / sqrt(base.n1.nx*base.n1.nx + base.n1.ny * base.n1.ny)));
@@ -1092,17 +1124,46 @@ void DecomposeUnitarySingleQGateIntoMetadataSingleQGate::
 
     dTheta = acos(base.n1.nz);
 
-    QStat UnitaryMatrix;
-    UnitaryMatrix.resize(SingleGateMatrixSize);
+    //QStat UnitaryMatrix;
+   // UnitaryMatrix.resize(SingleGateMatrixSize);
 
+    QStat RY_theta ={0,0,0,0};// ={ cos(-dTheta / 2),-sin(-dTheta / 2),sin(-dTheta / 2),cos(-dTheta / 2)};
+
+    RY_theta[0] = cos(-dTheta / 2);
+    RY_theta[1] = -sin(-dTheta / 2);
+    RY_theta[2] = sin(-dTheta / 2);
+    RY_theta[3] = cos(-dTheta / 2);
+
+    QStat RZ_dalpha={0,0,0,0};
+    RZ_dalpha[0].real(cos(-dAlpha / 2));
+    RZ_dalpha[0].imag(-1 * sin(-dAlpha / 2));
+    RZ_dalpha[3].real(cos(-dAlpha / 2));
+    RZ_dalpha[3].imag(1 * sin(-dAlpha / 2));
+
+    auto UnitaryMatrix = RY_theta*RZ_dalpha;
+    /*
     UnitaryMatrix[0] = qcomplex_t(cos(-dTheta / 2), 0);
     UnitaryMatrix[1] = qcomplex_t(sin(dTheta / 2)*cos(dAlpha), -sin(dTheta / 2)*sin(dAlpha));
     UnitaryMatrix[2] = qcomplex_t(-sin(dTheta / 2)*cos(dAlpha), -sin(dTheta / 2)*sin(dAlpha));
     UnitaryMatrix[3] = qcomplex_t(cos(-dTheta / 2), 0);
-
+*/
     axis TargetAxis;
 
     double dBeta = transformMatrixToAxis(qmatrix, TargetAxis);
+	QStat NewMatrixx(SingleGateMatrixSize);
+
+	NewMatrixx[0] = qcomplex_t(cos(dBeta / 2), -sin(dBeta / 2)*TargetAxis.nz);
+	NewMatrixx[1] = qcomplex_t(-sin(dBeta / 2)*TargetAxis.ny, -sin(dBeta / 2)*TargetAxis.nx);
+	NewMatrixx[2] = qcomplex_t(sin(dBeta / 2)*TargetAxis.ny, -sin(dBeta / 2)*TargetAxis.nx);
+	NewMatrixx[3] = qcomplex_t(cos(dBeta / 2), sin(dBeta / 2)*TargetAxis.nz);
+
+	QStat q1;
+	for (auto i = 0; i < 4; i++)
+	{
+		q1.push_back(qmatrix[i] / NewMatrixx[i]);
+	}
+
+	//dBeta, TargetAxis正确
     double dBeta1;
     double dBeta2;
     double dBeta3;
@@ -1112,6 +1173,7 @@ void DecomposeUnitarySingleQGateIntoMetadataSingleQGate::
 
     rotateAxis(UnitaryMatrix, base.n2, NewBaseAxis);
     rotateAxis(UnitaryMatrix, TargetAxis, NewTargetAxis);
+	//NewTargetAxis正确
 
     QStat NewMatrix(SingleGateMatrixSize);
 
@@ -1120,12 +1182,37 @@ void DecomposeUnitarySingleQGateIntoMetadataSingleQGate::
     NewMatrix[2] = qcomplex_t(sin(dBeta / 2)*NewTargetAxis.ny, -sin(dBeta / 2)*NewTargetAxis.nx);
     NewMatrix[3] = qcomplex_t(cos(dBeta / 2), sin(dBeta / 2)*NewTargetAxis.nz);
 
+	/*QStat NewMatrix2(UnitaryMatrix);
+	dagger(NewMatrix2);
+
+	QStat NewMatrix1= NewMatrix2 *qmatrix*UnitaryMatrix;
+	QStat NewMatrix3 = UnitaryMatrix * qmatrix* NewMatrix2;*/
+
+	//NewMatrix正确
+	
+
+	/*QStat mat22;
+	for (auto i = 0; i < 4; i++)
+	{
+		mat22.push_back(NewMatrix[i] / NewMatrix1[i]);
+	}*/
+
     qcomplex_t cTemp = NewMatrix[0] * NewMatrix[3];
 
     double dTemp = (1 - cTemp.real()) / (1 - NewBaseAxis.nz*NewBaseAxis.nz);
 
-    dBeta2 = 2 * asin(sqrt(dTemp));
-
+	if (abs(dTemp - 1) < ZeroJudgement)
+	{
+		dBeta2 = PI;
+	}
+	else if (abs(dTemp + 1) < ZeroJudgement)
+	{
+		dBeta2 = -PI;
+	}
+	else
+	{
+		dBeta2 = acos(1-2*dTemp);
+	}
     qcomplex_t cTemp1(cos(dBeta2 / 2), -sin(dBeta2 / 2)*NewBaseAxis.nz);
     qcomplex_t cTemp2(-sin(dBeta2 / 2)*NewBaseAxis.ny, -sin(dBeta2 / 2)*NewBaseAxis.nx);
 
@@ -1342,8 +1429,14 @@ void DecomposeUnitarySingleQGateIntoMetadataSingleQGate::execute(std::shared_ptr
         QCERR("Unknown internal error");
         throw runtime_error("Unknown internal error");
     }
-
-    insertQCircuit(cur_node.get(), qcircuit, parent_node.get());
+    
+    if(cur_node->isDagger())
+    {
+        qcircuit.setDagger(qcircuit.isDagger()^true);
+    }
+   // qcircuit<<Global_Phase(vTargetQubit[0],0.1);
+    //qcircuit.setDagger(qcircuit.isDagger()^cur_node->isDagger());
+    replace_qcircuit(cur_node.get(), qcircuit, parent_node.get());
 }
 
 void DeleteUnitQNode::execute(std::shared_ptr<AbstractQGateNode>  cur_node, 
@@ -1401,28 +1494,22 @@ argin       : pNode    Target Node pointer
 argout      : pNode    Target Node pointer
 Return      :
 ******************************************************************/
+#include "Core/Utilities/QProgInfo/QCircuitInfo.h"
+#include "Core/Utilities/Compiler/QProgToOriginIR.h"
+#include "Core/Utilities/Tools/QProgFlattening.h"
 void TransformDecomposition::TraversalOptimizationMerge(QProg & prog)
 {
+
     Traversal::traversal(prog.getImplementationPtr(), m_decompose_double_gate);
-
     Traversal::traversal(prog.getImplementationPtr(), m_decompose_control_unitary_single_qgate);
-
     Traversal::traversal(prog.getImplementationPtr(), m_decompose_multiple_control_qgate);
-
     Traversal::traversal(prog.getImplementationPtr(), m_decompose_control_unitary_single_qgate);
-
     Traversal::traversal(prog.getImplementationPtr(), m_control_single_qgate_to_metadata_double_qgate);
-   /* Traversal::traversal(dynamic_pointer_cast<AbstractQuantumProgram>(prog.getImplementationPtr()), m_merge_single_gate);
-    std::cout << "after merge_single_gate prog" << std::endl;
-    std::cout << transformQProgToOriginIR(prog, m_quantum_machine) << std::endl << std::endl;
-    std::cout << "============================================================" << std::endl;
-    */
-
     Traversal::traversal(prog.getImplementationPtr(), m_unitary_single_qgate_to_metadata_single_qgate);
-
     Traversal::traversal(prog.getImplementationPtr(), m_cancel_control_qubit_vector);
 
     Traversal::traversal(prog.getImplementationPtr(), m_delete_unit_qnode);
+
 }
 
 /*****************************************************************

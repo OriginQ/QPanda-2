@@ -21,6 +21,7 @@ limitations under the License.
 #include "Components/ChemiQ/Psi4Wrapper.h"
 #include "Components/HamiltonianSimulation/HamiltonianSimulation.h"
 #include "Components/MaxCutProblemGenerator/MaxCutProblemGenerator.h"
+#include "Components/NodeSortProblemGenerator/NodeSortProblemGenerator.h"
 #include "Components/Operator/FermionOperator.h"
 #include "Components/Operator/PauliOperator.h"
 #include "Components/Optimizer/AbstractOptimizer.h"

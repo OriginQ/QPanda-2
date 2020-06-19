@@ -172,6 +172,17 @@ bool QGate::isDagger() const
     return m_qgate_node->isDagger();
 }
 
+void QGate::remap(QVec qubit_vector)
+{
+	if (!m_qgate_node)
+	{
+		QCERR("Unknown internal error");
+		throw runtime_error("Unknown internal error");
+	}
+
+	return m_qgate_node->remap(qubit_vector);
+}
+
 size_t QGate::getControlVector(QVec& qubit_vector) const
 {
     if (!m_qgate_node)
@@ -299,6 +310,15 @@ void OriginQGate::PushBackQuBit(Qubit * qubit)
 
     m_qubit_vector.push_back(qubit);
 
+}
+
+void OriginQGate::remap(QVec qubit_vector)
+{
+	if (m_qubit_vector.size() != qubit_vector.size())
+	{
+		QCERR_AND_THROW_ERRSTR(run_fail, "Error: failed to remap qubit, the size of new qubit_vec is error.");
+	}
+	m_qubit_vector.swap(qubit_vector);
 }
 
 void QGateParseSingleBit(QuantumGate * qgate, 

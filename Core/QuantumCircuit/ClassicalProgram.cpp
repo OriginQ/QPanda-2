@@ -35,7 +35,7 @@ NodeType OriginClassicalProg::getNodeType() const
 }
 
 
-cbit_size_t OriginClassicalProg::eval()
+cbit_size_t OriginClassicalProg::get_val()
 {
     if (nullptr == m_expr)
     {
@@ -43,7 +43,7 @@ cbit_size_t OriginClassicalProg::eval()
         throw runtime_error("m_expr nullptr");
     }
 
-    return m_expr->eval();
+    return m_expr->get_val();
 }
 
 
@@ -75,7 +75,7 @@ std::shared_ptr<AbstractClassicalProg> ClassicalProg::getImplementationPtr()
     return m_node;
 }
 
-cbit_size_t ClassicalProg::eval()
+cbit_size_t ClassicalProg::get_val()
 {
     if (!m_node)
     {
@@ -83,7 +83,7 @@ cbit_size_t ClassicalProg::eval()
         throw runtime_error("Unknown internal error");
     }
 
-    return m_node->eval();
+    return m_node->get_val();
 }
 
 std::shared_ptr<CExpr> ClassicalProg::getExpr()

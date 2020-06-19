@@ -76,12 +76,12 @@ public:
      * @brief Get the value of the current object
      * @return cbit_size_t 
      */
-    cbit_size_t eval();
+    cbit_size_t get_val();
 
     /**
      * @brief Set the Value of the current object
      */
-    void setValue(cbit_size_t);
+    void set_val(cbit_size_t);
 
     /**
      * @brief Check validity

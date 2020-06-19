@@ -99,6 +99,10 @@ public:
     return visitChildren(ctx);
   }
 
+  virtual antlrcpp::Any visitReal(qasmParser::RealContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
   virtual antlrcpp::Any visitInteger(qasmParser::IntegerContext *ctx) override {
     return visitChildren(ctx);
   }

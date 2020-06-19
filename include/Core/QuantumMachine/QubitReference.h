@@ -18,7 +18,7 @@ private:
 public:
     inline PhysicalQubit* getPhysicalQubitPtr() 
     {
-        auto temp = m_cepr->eval();
+        auto temp = m_cepr->get_val();
         return m_qvec[temp]->getPhysicalQubitPtr();
     }
 

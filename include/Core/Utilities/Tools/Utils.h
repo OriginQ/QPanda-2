@@ -25,13 +25,17 @@ Classes for get the shortes path of graph
 
 QPANDA_BEGIN
 
+#ifndef MAX_PRECISION
+#define MAX_PRECISION 0.000001
+#endif // !MAX_PRECISION
+
 std::string dec2bin(unsigned n, size_t size);
 
 double RandomNumberGenerator();
 
 void add_up_a_map(std::map<std::string, size_t> &meas_result, std::string key);
 
-void insertQCircuit(AbstractQGateNode * pGateNode,
+void replace_qcircuit(AbstractQGateNode * pGateNode,
     QCircuit & qCircuit,
     QNode * pParentNode);
 
@@ -211,7 +215,11 @@ inline std::string generate_oracle_name(std::string oraclename,
 
 inline double argc(qcomplex_t num)
 {
-    if (num.imag() >0)
+	if ((abs(num.imag()) < MAX_PRECISION) && (abs(num.real()) < MAX_PRECISION))
+	{
+		return acos(1);
+	}
+    else if (num.imag() >0)
     {
         return acos((qstate_type)(num.real() / sqrt(num.real()*num.real() + num.imag()*num.imag())));
     }

@@ -85,7 +85,7 @@ public:
      * @brief get value
      * @return cbit_size_t 
      */
-    virtual cbit_size_t eval() const = 0;
+    virtual cbit_size_t get_val() const = 0;
  
 	/**
     * @brief get specifier of this cexpr

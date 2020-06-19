@@ -737,7 +737,7 @@ namespace QGATE_SPACE
     class ISWAPTheta : public QDoubleGate, 
 		public AbstractSingleAngleParameter,
 		public DynamicCreator<ISWAPTheta,double&>,
-		public DynamicCreator<CZ, QuantumGate*>
+		public DynamicCreator<ISWAPTheta, QuantumGate*>
     {
     protected:
 		ISWAPTheta() {};

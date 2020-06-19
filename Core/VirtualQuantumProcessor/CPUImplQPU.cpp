@@ -40,6 +40,37 @@ REGISTER_ANGLE_GATE_MATRIX(RX_GATE, 1, 0, 0)
 REGISTER_ANGLE_GATE_MATRIX(RY_GATE, 0, 1, 0)
 REGISTER_ANGLE_GATE_MATRIX(RZ_GATE, 0, 0, 1)
 
+static uint64_t insert(int value, int n1, int n2)
+{
+    if (n1 > n2)
+    {
+        std::swap(n1, n2);
+    }
+
+    uint64_t mask1 = (1ll << n1) - 1;
+    uint64_t mask2 = (1ll << (n2 - 1)) - 1;
+    uint64_t z = value & mask1;
+    uint64_t y = ~mask1 & value & mask2;
+    uint64_t x = ~mask2 & value;
+
+    return ((x << 2) | (y << 1) | z);
+}
+
+static uint64_t insert(int value, int n)
+{
+    uint64_t number = 1ll << n;
+    if (value < number)
+    {
+        return value;
+    }
+
+    uint64_t mask = number - 1;
+    uint64_t x = mask & value;
+    uint64_t y = ~mask & value;
+    return ((y << 1) | x);
+}
+
+
 CPUImplQPU::CPUImplQPU()
 {
 }
@@ -239,8 +270,10 @@ unitarySingleQubitGate(size_t qn,
     qcomplex_t alpha;
     qcomplex_t beta;
     QGateParam& qgroup = findgroup(qn);
-    size_t j;
-    size_t ststep = 1ull << find(qgroup.qVec.begin(), qgroup.qVec.end(), qn) - qgroup.qVec.begin();
+
+    size_t n = find(qgroup.qVec.begin(), qgroup.qVec.end(), qn) - qgroup.qVec.begin();
+    size_t ststep = 1ull << n;
+    
     if (isConjugate)
     {
         qcomplex_t temp;
@@ -252,17 +285,19 @@ unitarySingleQubitGate(size_t qn,
             matrix[i] = qcomplex_t(matrix[i].real(), -matrix[i].imag());
         }//dagger
     }
-#pragma omp parallel for private(j,alpha,beta)
-    for (long long i = 0; i < (long long)qgroup.qstate.size(); i += ststep * 2)
+
+#pragma omp parallel for private(alpha, beta)
+    for (int64_t i = 0; i < (qgroup.qstate.size() >> 1); i++)
     {
-        for (j = i; j<i + ststep; j++)
-        {
-            alpha = qgroup.qstate[j];
-            beta = qgroup.qstate[j + ststep];
-            qgroup.qstate[j] = matrix[0] * alpha + matrix[1] * beta;         /* in j,the goal qubit is in |0>        */
-            qgroup.qstate[j + ststep] = matrix[2] * alpha + matrix[3] * beta;         /* in j+ststep,the goal qubit is in |1> */
-        }
+        int64_t real00_idx = insert(i, n);
+        int64_t real01_idx = real00_idx + ststep;
+
+        alpha = qgroup.qstate[real00_idx];
+        beta = qgroup.qstate[real01_idx];
+        qgroup.qstate[real00_idx] = matrix[0] * alpha + matrix[1] * beta;
+        qgroup.qstate[real01_idx] = matrix[2] * alpha + matrix[3] * beta;
     }
+
     return qErrorNone;
 }
 
@@ -355,17 +390,19 @@ unitaryDoubleQubitGate(size_t qn_0,
     {
         TensorProduct(qgroup0, qgroup1);
     }
-    size_t ststep1 = 1ull << (find(qgroup0.qVec.begin(), qgroup0.qVec.end(), qn_0)
-        - qgroup0.qVec.begin());
-    size_t ststep2 = 1ull << (find(qgroup0.qVec.begin(), qgroup0.qVec.end(), qn_1)
-        - qgroup0.qVec.begin());
-    size_t stemp1 = (ststep1>ststep2) ? ststep1 : ststep2;
-    size_t stemp2 = (ststep1>ststep2) ? ststep2 : ststep1;
 
-    bool bmark = true;
+    size_t n1 = find(qgroup0.qVec.begin(), qgroup0.qVec.end(), qn_0) - qgroup0.qVec.begin();
+    size_t n2 = find(qgroup0.qVec.begin(), qgroup0.qVec.end(), qn_1) - qgroup0.qVec.begin();
+    size_t ststep1 = 1ull << n1;
+    size_t ststep2 = 1ull << n2;
+
+    if (n1 < n2)
+    {
+        std::swap(n1, n2);
+    }
+
     qcomplex_t phi00, phi01, phi10, phi11;
     auto stateSize = qgroup0.qstate.size();
-
     if (isConjugate)
     {
         qcomplex_t temp;
@@ -380,34 +417,29 @@ unitaryDoubleQubitGate(size_t qn_0,
         }
         for (size_t i = 0; i < 16; i++)
         {
-            //matrix[i].imag = -matrix[i].imag;
             matrix[i] = qcomplex_t(matrix[i].real(), -matrix[i].imag());
         }//dagger
     }
-    long long j, k;
-#pragma omp parallel for private(j,k,phi00,phi01,phi10,phi11)
-    for (long long i = 0; i<(long long)stateSize; i = i + 2 * stemp1)
-    {
-        for (j = i; j <(long long)(i + stemp1); j = j + 2 * stemp2)
-        {
-            for (k = j; k < (long long)(j + stemp2); k++)
-            {
-                phi00 = qgroup0.qstate[k];        //00
-                phi01 = qgroup0.qstate[k + ststep2];  //01
-                phi10 = qgroup0.qstate[k + ststep1];  //10
-                phi11 = qgroup0.qstate[k + ststep1 + ststep2]; //11
 
-                qgroup0.qstate[k] = matrix[0] * phi00 + matrix[1] * phi01
-                    + matrix[2] * phi10 + matrix[3] * phi11;
-                qgroup0.qstate[k + ststep2] = matrix[4] * phi00 + matrix[5] * phi01
-                    + matrix[6] * phi10 + matrix[7] * phi11;
-                qgroup0.qstate[k + ststep1] = matrix[8] * phi00 + matrix[9] * phi01
-                    + matrix[10] * phi10 + matrix[11] * phi11;
-                qgroup0.qstate[k + ststep1 + ststep2] = matrix[12] * phi00 + matrix[13] * phi01
-                    + matrix[14] * phi10 + matrix[15] * phi11;
-            }
-        }
+#pragma omp parallel for private(phi00, phi01, phi10, phi11)
+    for (int64_t i = 0; i < (stateSize >> 2); i++)
+    {
+        int64_t real00_idx = insert(i, n2, n1);
+        phi00 = qgroup0.qstate[real00_idx];
+        phi01 = qgroup0.qstate[real00_idx + ststep2];
+        phi10 = qgroup0.qstate[real00_idx + ststep1];
+        phi11 = qgroup0.qstate[real00_idx + ststep1 + ststep2];
+
+        qgroup0.qstate[real00_idx] = matrix[0] * phi00 + matrix[1] * phi01
+            + matrix[2] * phi10 + matrix[3] * phi11;
+        qgroup0.qstate[real00_idx + ststep2] = matrix[4] * phi00 + matrix[5] * phi01
+            + matrix[6] * phi10 + matrix[7] * phi11;
+        qgroup0.qstate[real00_idx + ststep1] = matrix[8] * phi00 + matrix[9] * phi01
+            + matrix[10] * phi10 + matrix[11] * phi11;
+        qgroup0.qstate[real00_idx + ststep1 + ststep2] = matrix[12] * phi00 + matrix[13] * phi01
+            + matrix[14] * phi10 + matrix[15] * phi11;
     }
+
     return qErrorNone;
 }
 

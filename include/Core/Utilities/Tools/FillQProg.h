@@ -82,8 +82,9 @@ public:
 	QProg& get_output_prog() { return m_output_prog; }
 
 	QVec get_unused_qubits_in_layer(QVec &all_qubits, QVec &inuse_qubits) {
-		std::sort(all_qubits.begin(), all_qubits.end());
-		std::sort(inuse_qubits.begin(), inuse_qubits.end());
+		auto sort_fun = [](Qubit*a, Qubit* b) {return a->getPhysicalQubitPtr()->getQubitAddr() < b->getPhysicalQubitPtr()->getQubitAddr(); };
+		std::sort(all_qubits.begin(), all_qubits.end(), sort_fun);
+		std::sort(inuse_qubits.begin(), inuse_qubits.end(), sort_fun);
 
 		QVec unused_qubits_vec;
 		set_difference(all_qubits.begin(), all_qubits.end(), inuse_qubits.begin(), inuse_qubits.end(), std::back_inserter(unused_qubits_vec));

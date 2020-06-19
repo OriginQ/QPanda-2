@@ -140,7 +140,7 @@ int main()
     for (auto i = 0; i < 20; i++)
     {
         directlyRun(simonAlgorithm);
-        result[i] = cVec[0].eval() * 2 + cVec[1].eval();
+        result[i] = cVec[0].get_val() * 2 + cVec[1].get_val();
     }
     if (find(result.begin(), result.end(), 3) != result.end())
     {

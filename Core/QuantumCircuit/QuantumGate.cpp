@@ -75,8 +75,16 @@ U4::U4(QStat & matrix)
     gate_matrix[1] = matrix[1];
     gate_matrix[2] = matrix[2];
     gate_matrix[3] = matrix[3];
-    gamma = 2 * acos(abs(gate_matrix[0]));
-    if (abs(gate_matrix[0] * gate_matrix[1]) > 1e-20)
+	if (abs(gate_matrix[0]) >= 1.0)
+	{
+		gamma = 0.0;
+	}
+	else
+	{
+		gamma = 2 * acos(abs(gate_matrix[0]));
+	}
+    
+    if (abs(gate_matrix[0] * gate_matrix[1]) > 1e-10)
     {
         beta = argc(gate_matrix[2] / gate_matrix[0]);
         delta = argc(gate_matrix[3] / gate_matrix[2]);

@@ -18,7 +18,7 @@ public:
     PLUS = 16, MINUS = 17, MUL = 18, DIV = 19, COMMA = 20, SEMI = 21, LPAREN = 22, 
     RPAREN = 23, LBRACKET = 24, RBRACKET = 25, LBRACE = 26, RBRACE = 27, 
     DQM = 28, IDENTIFIER = 29, INTEGER = 30, DECIMAL = 31, FILENAME = 32, 
-    NL = 33, WS = 34, LC = 35
+    REALEXP = 33, NL = 34, WS = 35, LC = 36
   };
 
   enum {
@@ -26,8 +26,8 @@ public:
     RuleStatement = 4, RuleReg_decl = 5, RuleOpaque_decl = 6, RuleIf_decl = 7, 
     RuleBarrier_decl = 8, RuleGate_decl = 9, RuleGoplist = 10, RuleBop = 11, 
     RuleQop = 12, RuleUop = 13, RuleAnylist = 14, RuleIdlist = 15, RuleId_index = 16, 
-    RuleArgument = 17, RuleExplist = 18, RuleExp = 19, RuleId = 20, RuleInteger = 21, 
-    RuleDecimal = 22, RuleFilename = 23
+    RuleArgument = 17, RuleExplist = 18, RuleExp = 19, RuleId = 20, RuleReal = 21, 
+    RuleInteger = 22, RuleDecimal = 23, RuleFilename = 24
   };
 
   qasmParser(antlr4::TokenStream *input);
@@ -61,6 +61,7 @@ public:
   class ExplistContext;
   class ExpContext;
   class IdContext;
+  class RealContext;
   class IntegerContext;
   class DecimalContext;
   class FilenameContext; 
@@ -435,6 +436,7 @@ public:
     ExpContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     IdContext *id();
+    RealContext *real();
     DecimalContext *decimal();
     IntegerContext *integer();
     antlr4::tree::TerminalNode *PI_KEY();
@@ -470,6 +472,21 @@ public:
   };
 
   IdContext* id();
+
+  class  RealContext : public antlr4::ParserRuleContext {
+  public:
+    RealContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *REALEXP();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
+  };
+
+  RealContext* real();
 
   class  IntegerContext : public antlr4::ParserRuleContext {
   public:

@@ -35,6 +35,9 @@ enum NOISE_MODEL
     PHASE_DAMPING_OPRATOR,
 	DECOHERENCE_KRAUS_OPERATOR,
 	PAULI_KRAUS_MAP,
+
+	KRAUS_MATRIX_OPRATOR,
+	MIXED_UNITARY_OPRATOR,
 };
 
 #define NoiseOp std::vector<std::vector<qcomplex_t>>
@@ -93,6 +96,7 @@ bool double_bit_phase_flip_operator(rapidjson::Value &value, NoiseOp & noise);
 */
 bool double_phase_damping_oprator(rapidjson::Value &value, NoiseOp &noise);
 
+bool kraus_matrix_oprator(rapidjson::Value &value, NoiseOp &noise);
 
 typedef bool(*noise_mode_function)(rapidjson::Value &, NoiseOp &);
 

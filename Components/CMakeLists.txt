@@ -3,6 +3,7 @@ project(Components)
 
 file(GLOB_RECURSE COMPONENTS_SRC_CPP ${CMAKE_CURRENT_SOURCE_DIR}/HamiltonianSimulation/*.cpp
                                      ${CMAKE_CURRENT_SOURCE_DIR}/MaxCutProblemGenerator/*.cpp
+                                     ${CMAKE_CURRENT_SOURCE_DIR}/NodeSortProblemGenerator/*.cpp
                                      ${CMAKE_CURRENT_SOURCE_DIR}/Optimizer/*.cpp
                                      ${CMAKE_CURRENT_SOURCE_DIR}/Utils/*.cpp)
 

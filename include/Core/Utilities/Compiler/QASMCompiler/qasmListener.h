@@ -77,6 +77,9 @@ public:
   virtual void enterId(qasmParser::IdContext *ctx) = 0;
   virtual void exitId(qasmParser::IdContext *ctx) = 0;
 
+  virtual void enterReal(qasmParser::RealContext *ctx) = 0;
+  virtual void exitReal(qasmParser::RealContext *ctx) = 0;
+
   virtual void enterInteger(qasmParser::IntegerContext *ctx) = 0;
   virtual void exitInteger(qasmParser::IntegerContext *ctx) = 0;
 

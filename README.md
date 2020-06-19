@@ -41,7 +41,7 @@ QPanda 2作为本源量子计算系列软件的基础库，为QRunes、Qurator�
     print(result)
     finalize()
 
-观察到如下结果说明您已经成功安装QPanda！（安装失败请参阅[FAQ](https://pyqpanda-toturial.readthedocs.io/zh/latest/)，或在issue中提出）
+观察到如下结果说明您已经成功安装QPanda（安装失败请参阅[FAQ](https://pyqpanda-toturial.readthedocs.io/zh/latest/)，或在issue中提出）。
     
     {'00': 493, '11': 507}
     

@@ -18,7 +18,7 @@ public:
     PLUS = 16, MINUS = 17, MUL = 18, DIV = 19, COMMA = 20, SEMI = 21, LPAREN = 22, 
     RPAREN = 23, LBRACKET = 24, RBRACKET = 25, LBRACE = 26, RBRACE = 27, 
     DQM = 28, IDENTIFIER = 29, INTEGER = 30, DECIMAL = 31, FILENAME = 32, 
-    NL = 33, WS = 34, LC = 35
+    REALEXP = 33, NL = 34, WS = 35, LC = 36
   };
 
   qasmLexer(antlr4::CharStream *input);

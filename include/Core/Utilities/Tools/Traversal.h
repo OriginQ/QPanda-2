@@ -29,16 +29,18 @@ QPANDA_BEGIN
 class TraversalConfig
 {
 public:
-	size_t m_qubit_number; /**< quantum bit number */
-	std::map<std::string, bool> m_return_value; /**< MonteCarlo result */
-	bool m_is_dagger;
-	std::vector<QPanda::Qubit *> m_control_qubit_vector;
+    size_t m_qubit_number; /**< quantum bit number */
+    std::map<std::string, bool> m_return_value; /**< MonteCarlo result */
+    bool m_is_dagger;
+    std::vector<QPanda::Qubit *> m_control_qubit_vector;
+    double m_rotation_angle_error{ 0 };
 
-	TraversalConfig()
-	{
-		m_qubit_number = 0;
-		m_is_dagger = false;
-	}
+    TraversalConfig(double rotation_angle_error = 0)
+        : m_qubit_number(0), m_is_dagger(false)
+        
+    {
+        m_rotation_angle_error = rotation_angle_error / 2;
+    }
 };
 
  

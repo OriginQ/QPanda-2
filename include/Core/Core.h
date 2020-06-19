@@ -54,6 +54,7 @@ limitations under the License.
 #include "Core/Utilities/QProgTransform/QProgToQGate.h"
 #include "Core/Utilities/QProgTransform/QProgToQMeasure.h"
 #include "Core/Utilities/QProgTransform/TopologyMatch.h"
+#include "Core/Utilities/QProgTransform/SU4TopologyMatch.h"
 #include "Core/Utilities/QProgTransform/QCodarMatch.h"
 
 #include "Core/Utilities/Tools/OriginCollection.h"  
@@ -65,6 +66,8 @@ limitations under the License.
 #include "Core/Utilities/Tools/Utils.h"  
 #include "Core/Utilities/Tools/XMLConfigParam.h"  
 #include "Core/Utilities/Tools/FillQProg.h"
+#include "Core/Utilities/Tools/MatrixDecomposition.h"
+#include "Core/Utilities/Tools/RandomCircuit.h"
 
 #include "Core/Variational/var.h"
 #include "Core/Variational/Optimizer.h"  
@@ -189,66 +192,66 @@ QMachineStatus* getstat();
 /**
 * @brief  Get pmeasure result as tuple list
 * @ingroup Core
-* @param[in]  QVec&  pmeasure qubits vector
+* @param[in]  QVec  pmeasure qubits vector
 * @param[in]  int Selectmax:the returned value num
 * @return     std::vector<std::pair<size_t, double>>  result
 * @note   selectMax  can not exceed (1ull << the size of qubits vector)
 */
- prob_tuple getProbTupleList(QVec &,int selectMax=-1);
+ prob_tuple getProbTupleList(QVec ,int selectMax=-1);
 
 /**
 * @brief  Get pmeasure result as list
 * @ingroup Core
-* @param[in]  QVec&  pmeasure qubits vector
+* @param[in]  QVec  pmeasure qubits vector
 * @param[in]  int Selectmax:the returned value num
 * @return     prob_vec  result
 * @note   SelectMax  can not exceed (1ull << the size of qubits vector)
 */
-prob_vec getProbList(QVec &, int selectMax = -1);
+prob_vec getProbList(QVec , int selectMax = -1);
 
 /**
 * @brief  Get pmeasure result as dict
 * @ingroup Core
-* @param[in]  QVec&  pmeasure qubits vector
+* @param[in]  QVec  pmeasure qubits vector
 * @param[in]  int Selectmax:the returned value num
 * @return     std::map<std::string, double>  result
 * @note   SelectMax  can not exceed (1ull << the size of qubits vector)
 */
-prob_dict  getProbDict(QVec &, int selectMax = -1);
+prob_dict  getProbDict(QVec , int selectMax = -1);
 
 /**
 * @brief  Get pmeasure result as dict
 * @ingroup Core
 * @param[in]  QProg&  Quantum program
-* @param[in]  QVec&  pmeasure qubits vector
+* @param[in]  QVec  pmeasure qubits vector
 * @param[in]  int Selectmax:the returned value num
 * @return     std::vector<std::pair<size_t, double>>  result
 * @note   SelectMax  can not exceed (1ull << the size of qubits vector)
 */
-prob_tuple probRunTupleList(QProg &,QVec &, int selectMax = -1);
+prob_tuple probRunTupleList(QProg &,QVec , int selectMax = -1);
 
 /**
 * @brief  Get pmeasure result as list
 * @ingroup Core
 * @param[in]  QProg&  Quantum program
-* @param[in]  QVec&  Pmeasure qubits vector
+* @param[in]  QVec  Pmeasure qubits vector
 * @param[in]  int selectmax:the returned value num
 * @return     prob_vec  result
 * @note   SelectMax  can not exceed (1ull << the size of qubits vector)
 */
-prob_vec probRunList(QProg &,QVec&, int selectMax = -1);
+prob_vec probRunList(QProg &, QVec , int selectMax = -1);
 
 
 /**
 * @brief  Get pmeasure result as dict
 * @ingroup Core
 * @param[in]  QProg&  Quantum program
-* @param[in]  QVec&  pmeasure qubits vector
+* @param[in]  QVec  pmeasure qubits vector
 * @param[in]  int Selectmax:the returned value num
 * @return     std::map<std::string, double>  result
 * @note   SelectMax  can not exceed (1ull << the size of qubits vector)
 */
-prob_dict  probRunDict(QProg &,QVec &, int selectMax = -1);
+prob_dict  probRunDict(QProg &, QVec , int selectMax = -1);
 
 /**
 * @brief  Measure run with configuration
@@ -263,11 +266,11 @@ std::map<std::string, size_t> runWithConfiguration(QProg &, std::vector<Classica
 /**
 * @brief  Quick measure operate
 * @ingroup Core
-* @param[in]  QVec&  qubits vector
+* @param[in]  QVec  qubits vector
 * @param[in]  int Shots:the repeat num  of measure operate
 * @return     std::map<std::string,size_t>  result
 */
-std::map<std::string, size_t> quickMeasure(QVec &, int);
+std::map<std::string, size_t> quickMeasure(QVec , int);
 
 
 /**
@@ -282,12 +285,12 @@ prob_vec accumulateProbability(prob_vec &prob_list);
 /**
 * @brief  Quick measure
 * @ingroup Core
-* @param[in]  QVec&  qubits vector
+* @param[in]  QVec  qubits vector
 * @param[in]  int Shots:the repeat num  of measure operate
 * @param[in]  prob_vec& accumulate  Probabilites 
 * @return     std::map<std::string,size_t>  Results
 */
-std::map<std::string, size_t> quick_measure(QVec& qubit_vector, int shots,
+std::map<std::string, size_t> quick_measure(QVec qubit_vector, int shots,
     prob_vec& accumulate_probabilites);
 
 /**
@@ -317,7 +320,7 @@ void destroyQuantumMachine(QuantumMachine * qvm);
 /**
 * @brief  Measure All  ClassicalCondition
 * @ingroup Core
-* @param[in]  QVec  qubits vector
+* @param[in]  QVec&  qubits vector
 * @param[in]  std::vector<ClassicalCondition>  Cbits vector
 * @return    QPanda::QProg   Quantum program
 */
@@ -336,8 +339,8 @@ extern QProg convert_qasm_to_qprog(std::string file_path, QuantumMachine* qvm, Q
 
 /*will delete*/
 size_t getAllocateCMem();
-prob_tuple PMeasure(QVec& qubit_vector, int select_max);
-prob_vec PMeasure_no_index(QVec& qubit_vector);
+prob_tuple PMeasure(QVec qubit_vector, int select_max);
+prob_vec PMeasure_no_index(QVec qubit_vector);
 
 /* new interface */
 
@@ -351,19 +354,19 @@ size_t getAllocateCMemNum();
 /**
 * @brief  pMeasure
 * @ingroup Core
-* @param[in]  QVec& qubit  vector
+* @param[in]  QVec qubit  vector
 * @param[in]  int  Selectmax:the returned value num
 * @return     std::vector<std::pair<size_t, double>>   result
 */
-prob_tuple pMeasure(QVec& qubit_vector, int select_max);
+prob_tuple pMeasure(QVec qubit_vector, int select_max);
 
 /**
 * @brief  pMeasure only return result  with no index
 * @ingroup Core
-* @param[in]  QVec& qubit vector
+* @param[in]  QVec qubit vector
 * @return     prob_vec  result
 */
-prob_vec pMeasureNoIndex(QVec& qubit_vector);
+prob_vec pMeasureNoIndex(QVec qubit_vector);
 
 QPANDA_END
 #endif // !_CORE_H

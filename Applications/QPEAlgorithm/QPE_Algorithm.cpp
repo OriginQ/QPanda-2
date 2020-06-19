@@ -105,8 +105,8 @@ int main()
     qpeProg << QPE(cqv, tqv, unitary);
     qpeProg << Measure(cqv[0], cv[0]) << Measure(cqv[1], cv[1]);
     directlyRun(qpeProg);
-    cout << "c0: " << cv[0].eval()<< endl;
-    cout << "c1: " << cv[1].eval() << endl;
+    cout << "c0: " << cv[0].get_val()<< endl;
+    cout << "c1: " << cv[1].get_val() << endl;
     finalize();
 }
 

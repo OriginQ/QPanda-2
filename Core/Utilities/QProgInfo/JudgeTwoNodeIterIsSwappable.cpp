@@ -21,7 +21,7 @@ using namespace std;
 class JudgeProgOperateQubts : public TraverseByNodeIter
 {
 public:
-	JudgeProgOperateQubts(QProg &prog, const std::vector<int>& qubits)
+	JudgeProgOperateQubts(QProg prog, const std::vector<int>& qubits)
 		:TraverseByNodeIter(prog), m_qubits(qubits), m_is_related_to_qubits(false)
 	{}
 

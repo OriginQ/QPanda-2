@@ -1,5 +1,5 @@
-#ifndef _CIRCUIT_TRANS_H_
-#define _CIRCUIT_TRANS_H_
+#ifndef _TOPOLOGY_MATCH_H_
+#define _TOPOLOGY_MATCH_H_
 #include <set>
 #include <queue>
 #include <vector>
@@ -8,79 +8,6 @@
 
 QPANDA_BEGIN
 
-struct edge
-{
-	int v1;
-	int v2;
-
-	bool operator<(const struct edge& right)const {
-
-		if (this->v1 != right.v1) 
-		{
-			return this->v1 < right.v1;
-		}
-		return this->v2 < right.v2;
-	}
-};
-
-struct gate
-{
-	int target;
-	int control;
-	int type;
-	bool is_dagger;
-	bool is_flip;
-	std::vector<double> param;
-};
-
-struct node 
-{
-	int cost_fixed;
-	int cost_heur;
-	int cost_heur2;
-	int depth;
-	std::vector<int> qubits;// get qubit of location -> -1 indicates that there is "no" qubit at a certain location
-	std::vector<int> locations;// get location of qubits -> -1 indicates that a qubit does not have a location -> shall only occur for i > nqubits
-	int nswaps;
-	int done;
-	std::vector<std::vector<edge> > swaps;
-};
-
-struct node_cmp 
-{
-	bool operator()(node &x, node &y) const 
-	{
-		if ((x.cost_fixed + x.cost_heur + x.cost_heur2) != (y.cost_fixed + y.cost_heur + y.cost_heur2))
-		{
-			return (x.cost_fixed + x.cost_heur + x.cost_heur2) > (y.cost_fixed + y.cost_heur + y.cost_heur2);
-		}
-
-		if (x.done == 1)
-		{
-			return false;
-		}
-		if (y.done == 1)
-		{
-			return true;
-		}
-		if (x.cost_heur + x.cost_heur2 != y.cost_heur + y.cost_heur2)
-		{
-			return x.cost_heur + x.cost_heur2 > y.cost_heur + y.cost_heur2;
-		}
-		else
-		{
-			for (int i = 0; i < x.qubits.size(); i++) 
-			{
-				if (x.qubits[i] != y.qubits[i])
-				{
-					return x.qubits[i] < y.qubits[i];
-				}
-			}
-			return false;
-		}
-		//return x.cost_heur + x.cost_heur2 > y.cost_heur + y.cost_heur2;
-	}
-};
 
 enum SwapQubitsMethod
 {
@@ -253,45 +180,78 @@ public:
 */
 class TopologyMatch :public TraversalInterface<bool&>
 {
-public:
-	TopologyMatch(QuantumMachine * machine,  SwapQubitsMethod method = CNOT_GATE_METHOD, ArchType arch_type = IBM_QX5_ARCH);
-	~TopologyMatch();
-	/**
-	* @brief  Mapping qubits in a quantum program
-	* @param[in]  Qprog  quantum program
-	* @param[out]  Qprog&  the mapped quantum program
-	* @return   void
-	**/
-	void mappingQProg(QProg prog, QVec &qv, QProg &mapped_prog);
-
-	virtual void execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node, bool &);
-	virtual void execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, std::shared_ptr<QNode> parent_node, bool &);
-	virtual void execute(std::shared_ptr<AbstractQuantumReset> cur_node, std::shared_ptr<QNode> parent_node, bool &);
-	virtual void execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node, bool &);
-	virtual void execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std::shared_ptr<QNode> parent_node, bool &);
-	virtual void execute(std::shared_ptr<AbstractQuantumProgram>  cur_node, std::shared_ptr<QNode> parent_node, bool &);
-	virtual void execute(std::shared_ptr<AbstractClassicalProg>  cur_node, std::shared_ptr<QNode> parent_node, bool &);
-
 private:
-	void traversalQProgToLayers(QProg *prog);
+	struct edge
+	{
+		int v1;
+		int v2;
+		bool operator<(const struct edge& right)const 
+		{
+			if (this->v1 != right.v1)
+			{
+				return this->v1 < right.v1;
+			}
+			return this->v2 < right.v2;
+		}
+	};
 
-	void buildGraph(ArchType type, std::set<edge> &graph, size_t &positions);
+	struct gate
+	{
+		int target;
+		int control;
+		int type;
+		bool is_dagger;
+		bool is_flip;
+		std::vector<double> param;
+	};
 
-	int breadthFirstSearch(int start, int goal, const std::set<edge>& graph, size_t swap_cost, size_t flip_cost);
+	struct node
+	{
+		int cost_fixed;
+		int cost_heur;
+		int cost_heur2;
+		int depth;
+		std::vector<int> qubits;// get qubit of location -> -1 indicates that there is "no" qubit at a certain location
+		std::vector<int> locations;// get location of qubits -> -1 indicates that a qubit does not have a location -> shall only occur for i > nqubits
+		int nswaps;
+		int done;
+		std::vector<std::vector<edge> > swaps;
+	};
 
-	std::vector<std::vector<int> > buildDistTable(int positions, const std::set<edge> &graph, size_t swap_cost, size_t flip_cost);
-	std::vector<std::vector<int> > getGateDistTable(int gate_type);
+	struct node_cmp
+	{
+		bool operator()(node &x, node &y) const
+		{
+			if ((x.cost_fixed + x.cost_heur + x.cost_heur2) != (y.cost_fixed + y.cost_heur + y.cost_heur2))
+			{
+				return (x.cost_fixed + x.cost_heur + x.cost_heur2) > (y.cost_fixed + y.cost_heur + y.cost_heur2);
+			}
 
-	void createNodeFromBase(node base_node, std::vector<edge> &swaps, int nswaps, node &new_node);
-	void calculateHeurCostForNextLayer(int next_layer, node &new_node);
-	void expandNode(const std::vector<int> &qubits, int qubit, std::vector<edge> &swaps, int nswaps,
-		std::vector<int> &used, node base_node, const std::vector<gate> &layer_gates, int next_layer);
-
-	int getNextLayer(int layer);
-
-	node fixLayerByAStar(int layer, std::vector<int> &map, std::vector<int> &loc);
-	void buildResultingQProg(const std::vector<gate> &resulting_gates, std::vector<int> loc, QVec &qv, QProg &prog);
-private:
+			if (x.done == 1)
+			{
+				return false;
+			}
+			if (y.done == 1)
+			{
+				return true;
+			}
+			if (x.cost_heur + x.cost_heur2 != y.cost_heur + y.cost_heur2)
+			{
+				return x.cost_heur + x.cost_heur2 > y.cost_heur + y.cost_heur2;
+			}
+			else
+			{
+				for (int i = 0; i < x.qubits.size(); i++)
+				{
+					if (x.qubits[i] != y.qubits[i])
+					{
+						return x.qubits[i] < y.qubits[i];
+					}
+				}
+				return false;
+			}
+		}
+	};
 
 	size_t m_positions;  /**< physical  qubits  number   */
 	size_t m_nqubits;    /**< quantum machine allocate qubits */
@@ -312,6 +272,58 @@ private:
 	std::map<int, std::function<QGate(Qubit *, double)> > m_singleAngleGateFunc;
 	std::map<int, std::function<QGate(Qubit *, Qubit*)> > m_doubleGateFunc;
 	std::map<int, std::function<QGate(Qubit *, Qubit*, double)> > m_doubleAngleGateFunc;
+
+
+public:
+	TopologyMatch(QuantumMachine * machine,  SwapQubitsMethod method = CNOT_GATE_METHOD, ArchType arch_type = IBM_QX5_ARCH);
+
+	~TopologyMatch();
+	/**
+	* @brief  Mapping qubits in a quantum program
+	* @param[in]  Qprog  quantum program
+	* @param[out]  Qprog&  the mapped quantum program
+	* @return   void
+	**/
+	void mappingQProg(QProg prog, QVec &qv, QProg &mapped_prog);
+
+
+	virtual void execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node, bool &);
+	virtual void execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, std::shared_ptr<QNode> parent_node, bool &);
+	virtual void execute(std::shared_ptr<AbstractQuantumReset> cur_node, std::shared_ptr<QNode> parent_node, bool &);
+	virtual void execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node, bool &);
+	virtual void execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std::shared_ptr<QNode> parent_node, bool &);
+	virtual void execute(std::shared_ptr<AbstractQuantumProgram>  cur_node, std::shared_ptr<QNode> parent_node, bool &);
+	virtual void execute(std::shared_ptr<AbstractClassicalProg>  cur_node, std::shared_ptr<QNode> parent_node, bool &);
+
+private:
+
+	void traversalQProgToLayers(QProg *prog);
+
+	void buildGraph(ArchType type, std::set<edge> &graph, size_t &positions);
+
+	int breadthFirstSearch(int start, int goal, const std::set<edge>& graph, size_t swap_cost, size_t flip_cost);
+
+	std::vector<std::vector<int> > buildDistTable(int positions, const std::set<edge> &graph, size_t swap_cost, size_t flip_cost);
+
+	std::vector<std::vector<int> > getGateDistTable(int gate_type);
+
+	void createNodeFromBase(node base_node, std::vector<edge> &swaps, int nswaps, node &new_node);
+
+	void calculateHeurCostForNextLayer(int next_layer, node &new_node);
+
+	void expandNode(const std::vector<int> &qubits, int qubit, std::vector<edge> &swaps, int nswaps,
+		std::vector<int> &used, node base_node, const std::vector<gate> &layer_gates, int next_layer);
+
+	int getNextLayer(int layer);
+
+	node fixLayerByAStar(int layer, std::vector<int> &map, std::vector<int> &loc);
+
+	void buildResultingQProg(const std::vector<gate> &resulting_gates, std::vector<int> loc, QVec &qv, QProg &prog);
+
+	bool isContains(std::vector<int> v, int e);
+
+	bool isReversed(std::set<edge> graph, edge det_edge);
+
 };
 
 /**
@@ -333,4 +345,4 @@ QProg  topology_match(QProg prog, QVec &qv, QuantumMachine *machine,
 QPANDA_END
 
 
-#endif // ! _CIRCUIT_TRANS_H_
+#endif // ! _TOPOLOGY_MATCH_H_

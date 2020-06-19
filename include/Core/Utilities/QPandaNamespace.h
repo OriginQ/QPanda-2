@@ -39,7 +39,7 @@ typedef std::vector <qcomplex_t> QStat;
 typedef std::vector<size_t> Qnum;
 
 using prob_vec = std::vector<double>;
-using prob_map = std::unordered_map<std::string, double>;
+using prob_map = std::unordered_map<std::string, qstate_type>;
 using stat_map = std::unordered_map<std::string, qcomplex_t>;
 using prob_dict = std::map<std::string, double>;
 using prob_tuple = std::vector<std::pair<size_t, double>>;

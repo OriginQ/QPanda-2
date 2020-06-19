@@ -252,7 +252,7 @@ stat_map SingleAmplitudeQVM::getQState()
         {
             qcomplex_data_t a;
             split(new_map, nullptr, &a);
-            temp.insert(make_pair(integerToBinary(j, qubit_num), a));
+            temp.insert({ integerToBinary(j, qubit_num), a });
         }
         delete new_map;
     }
@@ -344,7 +344,7 @@ prob_map SingleAmplitudeQVM::PMeasure(QVec qvec, string select_max)
                 delete new_map;
             }
 
-            res.insert(make_pair(integerToString(i), temp_value));
+            res.insert({ integerToString(i), temp_value });
         }
 
         return res;
@@ -405,7 +405,7 @@ prob_map SingleAmplitudeQVM::PMeasure(string select_max)
             {
                 if (value != 0)
                 {
-                    temp.insert(make_pair(integerToString(j), 0));
+                    temp.insert({ integerToString(j), 0 });
                     is_operater = true;
                 }
                 continue;
@@ -419,7 +419,7 @@ prob_map SingleAmplitudeQVM::PMeasure(string select_max)
             qcomplex_data_t a;
             split(new_map, nullptr, &a);
             auto result = a.real() * a.real() + a.imag() * a.imag();
-            temp.insert(make_pair(integerToString(j), result));
+            temp.insert({ integerToString(j), result });
         }
         delete new_map;
     }
@@ -511,7 +511,7 @@ prob_map SingleAmplitudeQVM::getProbDict(QVec qvec, string select_max)
                 delete new_map;
             }
 
-            res.insert(make_pair(integerToBinary(i, pmeasure_size), temp_value));
+            res.insert({ integerToBinary(i, pmeasure_size), temp_value });
         }
 
         return res;

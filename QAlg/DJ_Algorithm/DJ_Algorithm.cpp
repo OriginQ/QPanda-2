@@ -35,7 +35,7 @@ QProg QPanda::deutschJozsaAlgorithm(vector<bool> boolean_function,QuantumMachine
 		QCERR("param error");
 		throw invalid_argument("param error");
 	}
-	auto size = (size_t)(log(boolean_function.size())/log(2));
+	auto size = (size_t)(::log(boolean_function.size())/::log(2));
 	if (size == 0)
 	{
 		QCERR("param error");

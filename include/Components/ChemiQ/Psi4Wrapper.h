@@ -147,10 +147,10 @@ public:
 
 private:
     std::string m_molecule;
-    int m_multiplicity;
-    int m_charge;
+    int m_multiplicity{ 1 };
+    int m_charge{ 0 };
     std::string m_basis;
-    double m_eq_tolerance;
+    double m_eq_tolerance{ 1e-8 };
 
     std::string m_last_error;
     std::string m_data;

@@ -37,7 +37,6 @@ void _##NAME(QGateNode &node, CPUImplQPU *pQGate)\
     pQGate->X(node.tar_qubit,ctr_qubits,node.isConjugate, 0);\
 }\
 
-
 struct QGateNode
 {
     unsigned short gate_type;
@@ -48,6 +47,9 @@ struct QGateNode
     uint32_t tof_qubit;
 };
 
+using cir_type = std::vector<QGateNode>;
+
+
 /**
 * @brief  Partial Amplitude Graph
 * @ingroup VirtualQuantumProcessor
@@ -55,31 +57,29 @@ struct QGateNode
 class PartialAmplitudeGraph
 {
 public:
-    uint32_t m_qubit_num, m_spilt_num;
+	uint32_t m_spilt_num;
+	uint32_t m_qubit_num;
+
     std::vector<QGateNode> m_circuit;
-    std::vector<std::map<bool, std::vector<QGateNode>>> m_circuit_vec;
+	std::vector<std::vector<cir_type>> m_sub_graph;
+
     PartialAmplitudeGraph();
 
-    inline size_t getMapVecSize() noexcept
-    {
-        return m_circuit_vec.size();
-    }
+	inline void reset(size_t qubit_num) noexcept
+	{
+		m_qubit_num = qubit_num;
+		m_circuit.clear();
+		m_sub_graph.clear();
+	}
 
-    void init(uint32_t qubit_num) noexcept
-    {
-        m_circuit.clear();
-        m_circuit_vec.clear();
-        m_qubit_num = qubit_num;
-    }
-
-    void traversalMap(std::vector<QGateNode> &, QPUImpl *);
-    bool isCorssNode(size_t, size_t);
-    void traversalQlist(std::vector<QGateNode> &);
-    void splitQlist(std::vector<QGateNode> &);
+    void computing_graph(const cir_type &, QPUImpl *);
+    bool is_corss_node(size_t, size_t);
+    void traversal(std::vector<QGateNode> &);
+    void split_circuit(std::vector<QGateNode> &);
 
 private:
-    std::map<unsigned short, unsigned short> m_key_map;
-    std::map<unsigned short, std::function<void(QGateNode&, CPUImplQPU*)> > m_GateFunc;
+	std::unordered_map<unsigned short, unsigned short> m_key_map;
+	std::unordered_map<unsigned short, std::function<void(QGateNode&, CPUImplQPU*)> > m_GateFunc;
 };
 
 QPANDA_END

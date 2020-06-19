@@ -54,7 +54,7 @@ public:
     CBit* getCBit() const;
     void setLeftExpr(CExpr*);
     void setRightExpr(CExpr*);
-    cbit_size_t eval() const;
+    cbit_size_t get_val() const;
     CExpr* deepcopy() const;
     bool checkValidity() const;
 	void getCBitsName(std::vector<std::string> & names);

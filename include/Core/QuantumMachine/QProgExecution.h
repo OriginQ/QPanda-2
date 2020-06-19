@@ -40,6 +40,7 @@ class QProgExecution
 {
 public:
 
+    QProgExecution();
 	/*!
 	* @brief  Execution traversal qgatenode
 	* @param[in,out]  AbstractQGateNode*  quantum gate
@@ -137,7 +138,7 @@ public:
 		TraversalConfig & param,
 		QPUImpl* qpu)
 	{
-		cur_node->eval();
+		cur_node->get_val();
 	}
 
 	/**
@@ -151,9 +152,22 @@ public:
 			result.insert(aiter);
 		}
 	}
+
+protected:
+
+    inline double random_generator(double begin, double end)
+    {
+        return std::uniform_real_distribution<double>(begin, end)(m_rng);
+    }
+
+    void qgate_set_rotation_angle_error(std::shared_ptr<AbstractQGateNode> gate,
+                                        QuantumGate **new_quantum_gate,
+                                        double rotation_angle_error);
+    
 private:
 
 	std::map<std::string, bool> m_result;
+    std::mt19937_64 m_rng;
 };
 
 /* new interface */

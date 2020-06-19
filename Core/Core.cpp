@@ -213,7 +213,7 @@ map<string, bool> QPanda::directlyRun(QProg & qProg)
     return global_quantum_machine->directlyRun(qProg);
 }
 
-prob_tuple QPanda::getProbTupleList(QVec & vQubit, int selectMax)
+prob_tuple QPanda::getProbTupleList(QVec vQubit, int selectMax)
 {
     if (nullptr == global_quantum_machine)
     {
@@ -229,7 +229,7 @@ prob_tuple QPanda::getProbTupleList(QVec & vQubit, int selectMax)
     return temp->getProbTupleList(vQubit, selectMax);
 }
 
-prob_vec QPanda::getProbList(QVec & vQubit, int selectMax)
+prob_vec QPanda::getProbList(QVec vQubit, int selectMax)
 {
     if (nullptr == global_quantum_machine)
     {
@@ -244,7 +244,7 @@ prob_vec QPanda::getProbList(QVec & vQubit, int selectMax)
     }
     return temp->getProbList(vQubit, selectMax);
 }
-prob_dict QPanda::getProbDict(QVec & vQubit, int selectMax)
+prob_dict QPanda::getProbDict(QVec vQubit, int selectMax)
 {
     if (nullptr == global_quantum_machine)
     {
@@ -260,7 +260,7 @@ prob_dict QPanda::getProbDict(QVec & vQubit, int selectMax)
     return temp->getProbDict(vQubit, selectMax);
 }
 
-prob_tuple QPanda::probRunTupleList(QProg & qProg,QVec & vQubit, int selectMax)
+prob_tuple QPanda::probRunTupleList(QProg & qProg,QVec vQubit, int selectMax)
 {
     if (nullptr == global_quantum_machine)
     {
@@ -276,7 +276,7 @@ prob_tuple QPanda::probRunTupleList(QProg & qProg,QVec & vQubit, int selectMax)
     return temp->probRunTupleList(qProg, vQubit, selectMax);
 }
 
-prob_vec QPanda::probRunList(QProg & qProg, QVec & vQubit, int selectMax)
+prob_vec QPanda::probRunList(QProg & qProg, QVec vQubit, int selectMax)
 {
     if (nullptr == global_quantum_machine)
     {
@@ -291,7 +291,7 @@ prob_vec QPanda::probRunList(QProg & qProg, QVec & vQubit, int selectMax)
     }
     return temp->probRunList(qProg, vQubit, selectMax);
 }
-prob_dict QPanda::probRunDict(QProg & qProg, QVec & vQubit, int selectMax)
+prob_dict QPanda::probRunDict(QProg & qProg, QVec vQubit, int selectMax)
 {
     if (nullptr == global_quantum_machine)
     {
@@ -307,7 +307,7 @@ prob_dict QPanda::probRunDict(QProg & qProg, QVec & vQubit, int selectMax)
     return temp->probRunDict(qProg, vQubit, selectMax);
 }
 
-prob_tuple QPanda::PMeasure(QVec& qubit_vector,
+prob_tuple QPanda::PMeasure(QVec qubit_vector,
     int select_max)
 {
     if (nullptr == global_quantum_machine)
@@ -324,13 +324,13 @@ prob_tuple QPanda::PMeasure(QVec& qubit_vector,
     return temp->PMeasure(qubit_vector, select_max);
 }
 
-prob_tuple QPanda::pMeasure(QVec& qubit_vector,
+prob_tuple QPanda::pMeasure(QVec qubit_vector,
 	int select_max)
 {
 	return PMeasure(qubit_vector, select_max);
 }
 
-prob_vec QPanda::PMeasure_no_index(QVec& qubit_vector)
+prob_vec QPanda::PMeasure_no_index(QVec qubit_vector)
 {
     if (nullptr == global_quantum_machine)
     {
@@ -346,7 +346,7 @@ prob_vec QPanda::PMeasure_no_index(QVec& qubit_vector)
     return temp->PMeasure_no_index(qubit_vector);
 }
 
-prob_vec QPanda::pMeasureNoIndex(QVec& qubit_vector)
+prob_vec QPanda::pMeasureNoIndex(QVec qubit_vector)
 {
 	return PMeasure_no_index(qubit_vector);
 }
@@ -374,7 +374,7 @@ static void add_up_a_map(map<string, size_t> &meas_result, string key)
 }
 
 
-map<string, size_t> QPanda::quick_measure(QVec& qubit_vector, int shots,
+map<string, size_t> QPanda::quick_measure(QVec qubit_vector, int shots,
     prob_vec& accumulate_probabilites)
 {
     if (nullptr == global_quantum_machine)
@@ -419,7 +419,7 @@ map<string, size_t> QPanda::runWithConfiguration(QProg & qProg, vector<Classical
     return global_quantum_machine->runWithConfiguration(qProg, vCBit, doc);
 }
 
-map<string, size_t> QPanda::quickMeasure(QVec& vQubit, int shots)
+map<string, size_t> QPanda::quickMeasure(QVec vQubit, int shots)
 {
     auto temp = dynamic_cast<IdealMachineInterface *>(global_quantum_machine);
     if (nullptr == temp)

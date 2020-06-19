@@ -49,7 +49,7 @@ QProgToOriginIR::QProgToOriginIR(QuantumMachine * quantum_machine)
 	m_gatetype.insert(pair<int, string>(Y_HALF_PI, "Y1"));
 	m_gatetype.insert(pair<int, string>(Z_HALF_PI, "Z1"));
 	m_gatetype.insert(pair<int, string>(I_GATE, "I"));
-    m_gatetype.insert(pair<int, string>(HADAMARD_GATE, "H"));
+	m_gatetype.insert(pair<int, string>(HADAMARD_GATE, "H"));
 	m_gatetype.insert(pair<int, string>(T_GATE, "T"));
 	m_gatetype.insert(pair<int, string>(S_GATE, "S"));
 
@@ -79,6 +79,15 @@ QProgToOriginIR::QProgToOriginIR(QuantumMachine * quantum_machine)
 	m_quantum_machine = quantum_machine;
 }
 
+static std::string double_tostring(const double val)
+{
+	std::ostringstream out;
+	unsigned int precision = 8;
+	out.precision(precision);
+	out << val;
+	return out.str();
+}
+
 void QProgToOriginIR::transformQGate(AbstractQGateNode * pQGate, bool is_dagger)
 {
 	if (nullptr == pQGate || nullptr == pQGate->getQGate())
@@ -94,7 +103,7 @@ void QProgToOriginIR::transformQGate(AbstractQGateNode * pQGate, bool is_dagger)
 	pQGate->getQuBitVector(qubits_vector);
 	pQGate->getControlVector(ctr_qubits_vector);
 
-	if (PAULI_X_GATE == pQGate->getQGate()->getGateType() 
+	if (PAULI_X_GATE == pQGate->getQGate()->getGateType()
 		&& 2 == ctr_qubits_vector.size())
 	{
 		is_toffoli = true;
@@ -110,8 +119,8 @@ void QProgToOriginIR::transformQGate(AbstractQGateNode * pQGate, bool is_dagger)
 		{
 			all_ctr_qubits = all_ctr_qubits + transformQubitFormat(val) + ",";
 		}
-		if(!is_toffoli)
-		{ 
+		if (!is_toffoli)
+		{
 			m_OriginIR.emplace_back("CONTROL " + all_ctr_qubits.substr(0, all_ctr_qubits.length() - 1));
 		}
 	}
@@ -132,15 +141,15 @@ void QProgToOriginIR::transformQGate(AbstractQGateNode * pQGate, bool is_dagger)
 
 	string item = iter->second;
 	switch (iter->first)
-	{		
-	case ORACLE_GATE: 
+	{
+	case ORACLE_GATE:
 	{
 		QGATE_SPACE::OracularGate *oracle_gate = dynamic_cast<QGATE_SPACE::OracularGate*>(pQGate->getQGate());
 		m_OriginIR.emplace_back(oracle_gate->get_name() + " " + all_qubits);
 	}
-		break;
+	break;
 	case PAULI_X_GATE:
-	{	
+	{
 		if (is_toffoli)
 		{
 			string str_toffoli = m_gatetype.find(TOFFOLI_GATE)->second;
@@ -168,10 +177,10 @@ void QProgToOriginIR::transformQGate(AbstractQGateNode * pQGate, bool is_dagger)
 		auto u4gate = dynamic_cast<AbstractAngleParameter *>(pQGate->getQGate());
 		m_OriginIR.emplace_back(item
 			+ " " + first_qubit + ","
-			+ "(" + to_string(u4gate->getAlpha())
-			+ "," + to_string(u4gate->getBeta())
-			+ "," + to_string(u4gate->getGamma())
-			+ "," + to_string(u4gate->getDelta())
+			+ "(" + double_tostring(u4gate->getAlpha())
+			+ "," + double_tostring(u4gate->getBeta())
+			+ "," + double_tostring(u4gate->getGamma())
+			+ "," + double_tostring(u4gate->getDelta())
 			+ ") ");
 	}
 	break;
@@ -182,7 +191,7 @@ void QProgToOriginIR::transformQGate(AbstractQGateNode * pQGate, bool is_dagger)
 	case RZ_GATE:
 	{
 		auto gate_parameter = dynamic_cast<AbstractSingleAngleParameter*>(pQGate->getQGate());
-		string  gate_angle = to_string(gate_parameter->getParameter());
+		string  gate_angle = double_tostring(gate_parameter->getParameter());
 		m_OriginIR.emplace_back(item + " " + first_qubit + "," + "(" + gate_angle + ")");
 	}
 	break;
@@ -190,14 +199,14 @@ void QProgToOriginIR::transformQGate(AbstractQGateNode * pQGate, bool is_dagger)
 	case U2_GATE:
 	{
 		QGATE_SPACE::U2 *u2_gate = dynamic_cast<QGATE_SPACE::U2*>(pQGate->getQGate());
-		string gate_two_angle = to_string(u2_gate->get_phi()) + ',' + to_string(u2_gate->get_lambda());
+		string gate_two_angle = double_tostring(u2_gate->get_phi()) + ',' + double_tostring(u2_gate->get_lambda());
 		m_OriginIR.emplace_back(item + " " + all_qubits + "," + "(" + gate_two_angle + ")");
 	}
 	break;
 	case U3_GATE:
 	{
 		QGATE_SPACE::U3 *u3_gate = dynamic_cast<QGATE_SPACE::U3*>(pQGate->getQGate());
-		string gate_three_angle = to_string(u3_gate->get_theta()) + ',' +to_string(u3_gate->get_phi()) + ',' + to_string(u3_gate->get_lambda());
+		string gate_three_angle = double_tostring(u3_gate->get_theta()) + ',' +double_tostring(u3_gate->get_phi()) + ',' + double_tostring(u3_gate->get_lambda());
 		m_OriginIR.emplace_back(item + " " + all_qubits + "," + "(" + gate_three_angle + ")");
 	}
 	break;
@@ -216,7 +225,7 @@ void QProgToOriginIR::transformQGate(AbstractQGateNode * pQGate, bool is_dagger)
 	case CPHASE_GATE:
 	{
 		auto gate_parameter = dynamic_cast<AbstractSingleAngleParameter *>(pQGate->getQGate());
-		string  gate_theta = to_string(gate_parameter->getParameter());
+		string  gate_theta = double_tostring(gate_parameter->getParameter());
 		m_OriginIR.emplace_back(item + " " + all_qubits + "," + "(" + gate_theta + ")");
 	}
 	break;
@@ -224,10 +233,10 @@ void QProgToOriginIR::transformQGate(AbstractQGateNode * pQGate, bool is_dagger)
 	case CU_GATE:
 	{
 		auto gate_parameter = dynamic_cast<AbstractAngleParameter *>(pQGate->getQGate());
-		string gate_four_theta = to_string(gate_parameter->getAlpha()) + ',' +
-			to_string(gate_parameter->getBeta()) + ',' +
-			to_string(gate_parameter->getGamma()) + ',' +
-			to_string(gate_parameter->getDelta());
+		string gate_four_theta = double_tostring(gate_parameter->getAlpha()) + ',' +
+			double_tostring(gate_parameter->getBeta()) + ',' +
+			double_tostring(gate_parameter->getGamma()) + ',' +
+			double_tostring(gate_parameter->getDelta());
 		m_OriginIR.emplace_back(item + " " + all_qubits + "," + "(" + gate_four_theta + ")");
 	}
 	break;

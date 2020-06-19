@@ -237,6 +237,7 @@ void QCodarMatch::initGridDevice(QCodarGridDevice arch_type, int &m, int &n)
 		};
 
 		m_device = new UncompletedGridDevice(m, n, available_qubits);
+
 	}
 	break;
 	case QCodarGridDevice::SIMPLE_TYPE:
@@ -247,6 +248,26 @@ void QCodarMatch::initGridDevice(QCodarGridDevice arch_type, int &m, int &n)
 			throw runtime_error("m or n error");
 		}
 		m_device = new SimpleGridDevice(m, n);
+	}
+	break;
+	case QCodarGridDevice::ORIGIN_VIRTUAL:
+	{
+		std::vector<std::vector<int>> qubit_matrix;
+		int qubit_num = 0;
+		XmlConfigParam xml_config;
+		xml_config.loadFile("QPandaConfig.xml");
+		xml_config.getMetadataConfig(qubit_num, qubit_matrix);
+		m = 1;
+		n = qubit_num;
+		for (int i = 0; i < qubit_matrix.size(); i++)
+		{
+			for (int j = 0; j < qubit_matrix[i].size(); j++)
+			{
+				if (qubit_matrix[i][j] == 1)
+					QPAIR(i, j);
+			}
+		}
+		m_device = new ExGridDevice(m, n, lines);
 	}
 	break;
 	default:

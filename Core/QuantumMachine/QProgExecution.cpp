@@ -1,7 +1,10 @@
 #include "Core/QuantumMachine/QProgExecution.h"
+#include <float.h>
+#include <random>
 
 USING_QPANDA
 using namespace std;
+
 static bool compareQubit(Qubit * a, Qubit * b)
 {
     return a->getPhysicalQubitPtr()->getQubitAddr() <
@@ -13,6 +16,7 @@ static bool Qubitequal(Qubit * a, Qubit * b)
     return a->getPhysicalQubitPtr()->getQubitAddr() == 
         b->getPhysicalQubitPtr()->getQubitAddr();
 }
+
 
 void QProgExecution::execute(std::shared_ptr<AbstractQGateNode> cur_node,
     std::shared_ptr<QNode> parent_node,
@@ -60,9 +64,9 @@ void QProgExecution::execute(std::shared_ptr<AbstractQGateNode> cur_node,
         }
     }
 
-	auto qgate = cur_node->getQGate();
-
+    auto qgate = cur_node->getQGate();
     auto aiter = QGateParseMap::getFunction(qgate->getOperationNum());
+
     if (nullptr == aiter)
     {
         stringstream error;
@@ -70,7 +74,23 @@ void QProgExecution::execute(std::shared_ptr<AbstractQGateNode> cur_node,
         QCERR(error.str());
         throw run_fail(error.str());
     }
-    aiter(qgate, target_qubit, qpu, dagger, control_qubit_vector, (GateType)qgate->getGateType());
+
+    QuantumGate *new_quantum_gate = nullptr;
+    if (param.m_rotation_angle_error > DBL_EPSILON ||
+        param.m_rotation_angle_error < -DBL_EPSILON)
+    {
+        qgate_set_rotation_angle_error(cur_node, &new_quantum_gate, param.m_rotation_angle_error);
+    }
+
+    if (nullptr == new_quantum_gate)
+    {
+        aiter(qgate, target_qubit, qpu, dagger, control_qubit_vector, (GateType)qgate->getGateType());
+    }
+    else
+    {
+        aiter(new_quantum_gate, target_qubit, qpu, dagger, control_qubit_vector, (GateType)qgate->getGateType());
+        delete new_quantum_gate;
+    }
 }
 
 
@@ -92,7 +112,7 @@ void QProgExecution::execute(std::shared_ptr<AbstractQuantumMeasure> cur_node,
         throw runtime_error("unknow error");
     }
 
-    cexpr->setValue(iResult);
+    cexpr->set_val(iResult);
     string name = cexpr->getName();
     auto aiter = m_result.find(name);
     if (aiter != m_result.end())
@@ -132,7 +152,7 @@ void QProgExecution::execute(std::shared_ptr<AbstractControlFlowNode> cur_node, 
     auto cexpr = cur_node->getCExpr();
     if (WHILE_START_NODE == node_type)
     {
-        while(cexpr.eval())
+        while(cexpr.get_val())
         {
             auto true_branch_node = cur_node->getTrueBranch();
             Traversal::traversalByType(true_branch_node, node, *this,param,qpu);
@@ -140,7 +160,7 @@ void QProgExecution::execute(std::shared_ptr<AbstractControlFlowNode> cur_node, 
     }
     else if (QIF_START_NODE == node_type)
     {
-        if (cexpr.eval())
+        if (cexpr.get_val())
         {
             auto true_branch_node = cur_node->getTrueBranch();
             Traversal::traversalByType(true_branch_node, node, *this,param,qpu);
@@ -224,4 +244,81 @@ void QProgExecution::execute(std::shared_ptr<AbstractQuantumCircuit> cur_node,
         param.m_control_qubit_vector.pop_back();
     }
 
+}
+
+
+QProgExecution::QProgExecution()
+{
+    m_rng.seed(std::random_device()());
+}
+
+
+void QProgExecution::qgate_set_rotation_angle_error(shared_ptr<AbstractQGateNode> gate,
+                                                    QuantumGate **new_quantum_gate,
+                                                    double rotation_angle_error)
+{
+    QuantumGate *quantum_gate = gate->getQGate();
+    auto gate_type = static_cast<GateType>(quantum_gate->getGateType());
+    auto gate_name = TransformQGateType::getInstance()[gate_type];
+
+    switch (gate_type)
+    {
+    case GateType::RX_GATE:
+    case GateType::RY_GATE:
+    case GateType::RZ_GATE:
+    case GateType::U1_GATE:
+    case GateType::CPHASE_GATE:
+    case GateType::ISWAP_THETA_GATE:
+    {
+        auto angle_param = dynamic_cast<QGATE_SPACE::AbstractSingleAngleParameter *>(quantum_gate);
+        auto angle = angle_param->getParameter();
+        angle = random_generator(angle - rotation_angle_error, angle + rotation_angle_error);
+        *new_quantum_gate = QGATE_SPACE::create_quantum_gate(gate_name, angle);
+    }
+    break;
+    case GateType::U2_GATE:
+    {
+        QGATE_SPACE::U2 *u2_gate = dynamic_cast<QGATE_SPACE::U2*>(quantum_gate);
+        auto phi = u2_gate->get_phi();
+        auto lambda = u2_gate->get_lambda();
+
+        phi = random_generator(phi - rotation_angle_error, phi + rotation_angle_error);
+        lambda = random_generator(lambda - rotation_angle_error, lambda + rotation_angle_error);
+        *new_quantum_gate = QGATE_SPACE::create_quantum_gate(gate_name, phi, lambda);
+    }
+    break;
+    case GateType::U3_GATE:
+    {
+        QGATE_SPACE::U3 *u3_gate = dynamic_cast<QGATE_SPACE::U3*>(quantum_gate);
+        auto theta = u3_gate->get_theta();
+        auto phi = u3_gate->get_phi();
+        auto lambda = u3_gate->get_lambda();
+
+        theta = random_generator(theta - rotation_angle_error, theta + rotation_angle_error);
+        phi = random_generator(phi - rotation_angle_error, phi + rotation_angle_error);
+        lambda = random_generator(lambda - rotation_angle_error, lambda + rotation_angle_error);
+        *new_quantum_gate = QGATE_SPACE::create_quantum_gate(gate_name, theta, phi, lambda);
+    }
+    break;
+    case GateType::U4_GATE:
+    {
+        auto angle_param = dynamic_cast<QGATE_SPACE::AbstractAngleParameter *>(quantum_gate);
+        auto alpha = angle_param->getAlpha();
+        auto beta = angle_param->getBeta();
+        auto gamma = angle_param->getGamma();
+        auto delta = angle_param->getDelta();
+
+        alpha = random_generator(alpha - rotation_angle_error, alpha + rotation_angle_error);
+        beta = random_generator(beta - rotation_angle_error, beta + rotation_angle_error);
+        gamma = random_generator(gamma - rotation_angle_error, gamma + rotation_angle_error);
+        delta = random_generator(delta - rotation_angle_error, delta + rotation_angle_error);
+        *new_quantum_gate = QGATE_SPACE::create_quantum_gate(gate_name, alpha, beta, gamma, delta);
+    }
+    break;
+    default:
+        *new_quantum_gate = nullptr;
+        break;
+    }
+
+    return;
 }

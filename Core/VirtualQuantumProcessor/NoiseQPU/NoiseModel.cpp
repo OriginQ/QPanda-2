@@ -281,7 +281,7 @@ bool pauli_kraus_map(Value & value, NoiseOp & noise)
         throw std::invalid_argument("param error");
     }
 
-	if ((value.Size() != 5) || (value.Size() != 17))
+	if ((value.Size() != 5) && (value.Size() != 17))
 	{
 		QCERR("param error");
 		throw std::invalid_argument("param error");
@@ -302,40 +302,40 @@ bool pauli_kraus_map(Value & value, NoiseOp & noise)
         }
         else
         {
-            probability.push_back(value.GetDouble());
+            probability.push_back(value[i].GetDouble());
         }
     }
     QStat PAULI_I = { 1,0,0,1 };
-    QStat PAULI_X = { 0,1,1,0 };
-    QStat PAULI_Y = {0,qcomplex_t(0,-1),qcomplex_t(0,-1),0 };
+    QStat PAULI_X = { 0,1,1,0 }; 
+    QStat PAULI_Y = {0,qcomplex_t(0,-1),qcomplex_t(0,1),0 };
     QStat PAULI_Z = { 1,0,0,-1 };
     if (probability.size() == 4)
     {
         noise.resize(4);
         noise[0] = { (qstate_type)sqrt(probability[0]),0,0,(qstate_type)sqrt(probability[0]) };
         noise[1] = { 0,(qstate_type)sqrt(probability[1]),(qstate_type)sqrt(probability[1]),0 };
-        noise[2] = { 0,(qstate_type)sqrt(probability[2])*qcomplex_t(0,-1),(qstate_type)sqrt(probability[2])*qcomplex_t(0,-1),0 };
-        noise[3] = { 1,0,0,-(qstate_type)sqrt(probability[3]) };
+        noise[2] = { 0,(qstate_type)sqrt(probability[2])*qcomplex_t(0,-1),(qstate_type)sqrt(probability[2])*qcomplex_t(0,1),0 };
+        noise[3] = { (qstate_type)sqrt(probability[3]),0,0,-(qstate_type)sqrt(probability[3]) };
     }
     else if (probability.size() == 16)
     {
         noise.resize(16);
         noise[0] = matrix_tensor({ (qstate_type)sqrt(probability[0]),0,0,(qstate_type)sqrt(probability[0]) }, { 1,0,0,1 });
         noise[1] = matrix_tensor({ (qstate_type)sqrt(probability[1]),0,0,(qstate_type)sqrt(probability[1]) }, { 0,1,1,0 });
-        noise[2] = matrix_tensor({ (qstate_type)sqrt(probability[2]),0,0,(qstate_type)sqrt(probability[2]) }, { 0,qcomplex_t(0,-1),qcomplex_t(0,-1),0 });
+        noise[2] = matrix_tensor({ (qstate_type)sqrt(probability[2]),0,0,(qstate_type)sqrt(probability[2]) }, { 0,qcomplex_t(0,-1),qcomplex_t(0,1),0 });
         noise[3] = matrix_tensor({ (qstate_type)sqrt(probability[3]),0,0,(qstate_type)sqrt(probability[3]) }, { 1,0,0,-1 });
         noise[4] = matrix_tensor({ 0, (qstate_type)sqrt(probability[4]),(qstate_type)sqrt(probability[4]),0 }, { 1,0,0,1 });
         noise[5] = matrix_tensor({ 0, (qstate_type)sqrt(probability[5]),(qstate_type)sqrt(probability[5]),0 }, { 0,1,1,0 });
-        noise[6] = matrix_tensor({ 0, (qstate_type)sqrt(probability[6]),(qstate_type)sqrt(probability[6]),0 }, { 0,qcomplex_t(0,-1),qcomplex_t(0,-1),0 });
+        noise[6] = matrix_tensor({ 0, (qstate_type)sqrt(probability[6]),(qstate_type)sqrt(probability[6]),0 }, { 0,qcomplex_t(0,-1),qcomplex_t(0,1),0 });
         noise[7] = matrix_tensor({ 0, (qstate_type)sqrt(probability[7]),(qstate_type)sqrt(probability[7]),0 }, { 1,0,0,-1 });
-        noise[8] = matrix_tensor({ 0,(qstate_type)sqrt(probability[8])*qcomplex_t(0,-1),(qstate_type)sqrt(probability[8])*qcomplex_t(0,-1),0 }, { 1,0,0,1 });
-        noise[9] = matrix_tensor({ 0,(qstate_type)sqrt(probability[9])*qcomplex_t(0,-1),(qstate_type)sqrt(probability[9])*qcomplex_t(0,-1),0 }, { 0,1,1,0 });
-        noise[10] = matrix_tensor({ 0,(qstate_type)sqrt(probability[10])*qcomplex_t(0,-1),(qstate_type)sqrt(probability[10])*qcomplex_t(0,-1),0 },
-            { 0,qcomplex_t(0,-1),qcomplex_t(0,-1),0 });
-        noise[11] = matrix_tensor({ 0,(qstate_type)sqrt(probability[11])*qcomplex_t(0,-1),(qstate_type)sqrt(probability[11])*qcomplex_t(0,-1),0 }, { 1,0,0,-1 });
+        noise[8] = matrix_tensor({ 0,(qstate_type)sqrt(probability[8])*qcomplex_t(0,-1),(qstate_type)sqrt(probability[8])*qcomplex_t(0,1),0 }, { 1,0,0,1 });
+        noise[9] = matrix_tensor({ 0,(qstate_type)sqrt(probability[9])*qcomplex_t(0,-1),(qstate_type)sqrt(probability[9])*qcomplex_t(0,1),0 }, { 0,1,1,0 });
+        noise[10] = matrix_tensor({ 0,(qstate_type)sqrt(probability[10])*qcomplex_t(0,-1),(qstate_type)sqrt(probability[10])*qcomplex_t(0,1),0 },
+            { 0,qcomplex_t(0,-1),qcomplex_t(0,1),0 });
+        noise[11] = matrix_tensor({ 0,(qstate_type)sqrt(probability[11])*qcomplex_t(0,-1),(qstate_type)sqrt(probability[11])*qcomplex_t(0,1),0 }, { 1,0,0,-1 });
         noise[12] = matrix_tensor({ (qstate_type)sqrt(probability[12]),0,0,-(qstate_type)sqrt(probability[12]) }, { 1,0,0,1 });
         noise[13] = matrix_tensor({ (qstate_type)sqrt(probability[13]),0,0,-(qstate_type)sqrt(probability[13]) }, { 0,1,1,0 });
-        noise[14] = matrix_tensor({ (qstate_type)sqrt(probability[14]),0,0,-(qstate_type)sqrt(probability[14]) }, { 0,qcomplex_t(0,-1),qcomplex_t(0,-1),0 });
+        noise[14] = matrix_tensor({ (qstate_type)sqrt(probability[14]),0,0,-(qstate_type)sqrt(probability[14]) }, { 0,qcomplex_t(0,-1),qcomplex_t(0,1),0 });
         noise[15] = matrix_tensor({ (qstate_type)sqrt(probability[15]),0,0,-(qstate_type)sqrt(probability[15]) }, { 1,0,0,-1 });
     }
     return 1;
@@ -365,6 +365,8 @@ SingleGateNoiseModeMap::SingleGateNoiseModeMap()
     m_function_map.insert(make_pair(DEPHASING_KRAUS_OPERATOR, dephasing_kraus_operator));
     m_function_map.insert(make_pair(DECOHERENCE_KRAUS_OPERATOR, decoherence_kraus_operator));
     m_function_map.insert(make_pair(PAULI_KRAUS_MAP, pauli_kraus_map));
+
+	m_function_map.insert(make_pair(KRAUS_MATRIX_OPRATOR, kraus_matrix_oprator));
 
     m_function_map.insert({DECOHERENCE_KRAUS_OPERATOR_P1_P2, decoherence_kraus_operator_p1_p2});
     m_function_map.insert({BITFLIP_KRAUS_OPERATOR, bitflip_kraus_operator});
@@ -398,6 +400,8 @@ DoubleGateNoiseModeMap::DoubleGateNoiseModeMap()
 	m_function_map.insert(make_pair(DEPHASING_KRAUS_OPERATOR, double_dephasing_kraus_operator));
 	m_function_map.insert(make_pair(DECOHERENCE_KRAUS_OPERATOR, double_decoherence_kraus_operator));
 	m_function_map.insert(make_pair(PAULI_KRAUS_MAP, pauli_kraus_map));
+
+	m_function_map.insert(make_pair(KRAUS_MATRIX_OPRATOR, kraus_matrix_oprator));
 
     m_function_map.insert({DECOHERENCE_KRAUS_OPERATOR_P1_P2, double_decoherence_kraus_operator_p1_p2});
     m_function_map.insert({BITFLIP_KRAUS_OPERATOR, double_bitflip_kraus_operator});
@@ -505,7 +509,7 @@ bool depolarizing_kraus_operator(Value &value, NoiseOp &noise)
 
     QStat matrix_i = {1, 0, 0, 1};
     QStat matrix_x = {0, 1, 1, 0};
-    QStat matrix_y = {0, qcomplex_t(0, -1), qcomplex_t(0, -1), 0};
+    QStat matrix_y = {0, qcomplex_t(0, -1), qcomplex_t(0, 1), 0};
     QStat matrix_z = {1, 0, 0, -1};
 
     double probability = value[1].GetDouble();
@@ -694,7 +698,7 @@ bool double_depolarizing_kraus_operator(Value &value, NoiseOp &noise)
     ntemp.resize(4);
     QStat matrix_i = {1, 0, 0, 1};
     QStat matrix_x = {0, 1, 1, 0};
-    QStat matrix_y = {0, qcomplex_t(0, -1), qcomplex_t(0, -1), 0};
+    QStat matrix_y = {0, qcomplex_t(0, -1), qcomplex_t(0, 1), 0};
     QStat matrix_z = {1, 0, 0, -1};
 
     double probability = value[1].GetDouble();
@@ -786,3 +790,39 @@ bool double_phase_damping_oprator(Value &value, NoiseOp &noise)
 
     return true;
 }
+
+bool kraus_matrix_oprator(rapidjson::Value &value, NoiseOp &noise)
+{
+	if ((!value.IsArray()) || (value.Size() == 1))
+	{
+		QCERR("param error");
+		throw std::invalid_argument("param error");
+	}
+
+	if (NOISE_MODEL::KRAUS_MATRIX_OPRATOR != (NOISE_MODEL)value[0].GetUint())
+	{
+		QCERR("param error");
+		throw std::invalid_argument("param error");
+	}
+
+	for (int i = 1; i < value.Size(); i++)
+	{
+		if (!value[i].IsArray() || 8 != value[i].Size())
+		{
+			QCERR("param error");
+			throw std::invalid_argument("param error");
+		}
+
+		std::vector<qcomplex_t> temp;
+		for (int j = 0; j < value[i].Size(); j += 2)
+		{
+			qcomplex_t val(value[i][j].GetDouble(), value[i][j + 1].GetDouble());
+			temp.push_back(val);
+		}
+
+		noise.push_back(temp);
+	}
+
+	return true;
+}
+

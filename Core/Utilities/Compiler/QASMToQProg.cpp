@@ -522,6 +522,11 @@ antlrcpp::Any QASMToQProg::visitExp(qasmParser::ExpContext *ctx)
 			int val = visit(ctx->integer());
 			exp_ptr =  Exp((double)val).clone();
 		}
+		else if (ctx->real())
+		{
+			double val = visit(ctx->real());
+			exp_ptr = Exp(val).clone();
+		}
 		else
 		{
 			QCERR("error!");
@@ -566,6 +571,12 @@ antlrcpp::Any QASMToQProg::visitInteger(qasmParser::IntegerContext *ctx)
 {
 	string str_integer = ctx->children[0]->getText();
 	return atoi(str_integer.c_str());
+}
+
+antlrcpp::Any QASMToQProg::visitReal(qasmParser::RealContext *ctx)
+{
+	string str_real = ctx->children[0]->getText();
+	return atof(str_real.c_str());
 }
 
 antlrcpp::Any QASMToQProg::visitDecimal(qasmParser::DecimalContext *ctx)

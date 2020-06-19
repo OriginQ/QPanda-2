@@ -44,31 +44,31 @@ QPANDA_BEGIN
 * @brief QPanda2 exception basic class
 * @ingroup Utilities
 */
-class QPandaException : public std::exception
+class QPandaException : public std::runtime_error
 {
     std::string errmsg;
     bool isFree;
     public:
     QPandaException()
-    : exception()
+    : runtime_error("Unknown error")
     {
         errmsg = "Unknown error";
         isFree = false;
     }
     QPandaException(const char* str)
-    : exception() {
+    : runtime_error(str) {
         errmsg = str;
     }
 
     QPandaException(std::string str)
-    : exception() {
+    : runtime_error(str.c_str()) {
         errmsg = str;
     }
 
     virtual const char* what()
     {
         return errmsg.c_str();
-    }	
+    }
 };
 
 /**
@@ -79,14 +79,10 @@ class QPandaException : public std::exception
 class qalloc_fail : public QPandaException
 {
     public:
-    qalloc_fail() : QPandaException(
-        "qalloc fail"
-        ) {}
+    qalloc_fail()
+        : QPandaException("qalloc fail") {}
     qalloc_fail(std::string errmsg)
-        : QPandaException(
-            errmsg
-        )
-    {}
+        : QPandaException(errmsg){}
 };
 
 /**
@@ -96,14 +92,10 @@ class qalloc_fail : public QPandaException
 class calloc_fail : public QPandaException
 {
     public:
-    calloc_fail() : QPandaException(
-        "calloc fail"
-        ) {}
+    calloc_fail()
+        : QPandaException("calloc fail") {}
     calloc_fail(std::string errmsg)
-        : QPandaException(
-            errmsg
-        )
-    {}
+        : QPandaException(errmsg) {}
 };
 
 /**
@@ -114,14 +106,10 @@ class calloc_fail : public QPandaException
 class init_fail : public QPandaException
 {
     public:
-        init_fail() : QPandaException(
-        "init_fail"
-        ){}
+        init_fail()
+            : QPandaException("init_fail"){}
         init_fail(std::string errmsg)
-    : QPandaException(
-        errmsg
-        )
-    {}
+            : QPandaException(errmsg){}
 };
 
 /**
@@ -133,7 +121,7 @@ class run_fail : public QPandaException
 {
     public:
         run_fail(std::string cls) : QPandaException(
-        cls+" initialization error"
+        cls+" run error"
         ) {}
 };
 

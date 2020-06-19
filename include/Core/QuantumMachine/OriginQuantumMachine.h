@@ -143,7 +143,7 @@ public:
     }
     inline std::string getName() const {return name;}
     cbit_size_t getValue() const noexcept { return m_value; };
-    void setValue(const cbit_size_t value) noexcept { m_value = value; };
+    void set_val(const cbit_size_t value) noexcept { m_value = value; };
 };
 
 /**
@@ -329,6 +329,11 @@ private:
 	std::vector<std::string > m_gates_vec;
 
 	std::vector <std::vector <double>> m_params_vecs;
+    double m_rotation_angle_error{0};
+
+	std::vector<std::vector <QStat> >  m_kraus_mats_vec;
+	std::vector<std::string > m_kraus_gates_vec;
+
 
     void _getValidGatesMatrix();
     rapidjson::Document m_doc;
@@ -356,6 +361,37 @@ public:
 	*		PAULI_KRAUS_MAP							:    4  or 16
 	*/
 	void set_noise_model(NOISE_MODEL model, GateType type, std::vector<double> params_vec);
+
+
+	/**
+	* @brief  Set noise model by kraus matrix
+	* @param[in]  GateType  quantum gate type 
+	* @param[in]  std::vector<QStat>   kraus matrix  vector
+	* @return    void
+	* @note  	 kraus_matrix_vec must be 2 x 2 matrix, just kraus_matrix_vec length must be 4
+	*/
+	void set_noise_kraus_matrix(GateType type, std::vector<QStat> kraus_matrix_vec);
+
+
+	/**
+	* @brief  Set noise model by unitary matrix and  the probability of each unitary matrix
+	* @param[in]  GateType  quantum gate type 
+	* @param[in]	std::vector<QStat>   unitary matrix  vector
+	* @param[in]	std::vector<double>   the probability vector of each unitary matrix
+	* @return    void
+	* @note  	 
+	*		unitary matrix  vector  length has to be equal to probability vector
+	*/
+	void set_noise_unitary_matrix(GateType type, std::vector<QStat> unitary_matrix_vec, std::vector<double> probs_vec);
+
+
+    /**
+    * @brief  set QGate rotation angle errors
+    * @param[in]  double rotation angle errors
+    * @return     void
+    * @see  QNode
+    */
+    void set_rotation_angle_error(double error);
 };
 QPANDA_END
 #endif

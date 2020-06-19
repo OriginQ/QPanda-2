@@ -238,14 +238,24 @@ Qubit * QVM::allocateQubitThroughVirAddress(size_t qubit_num)
 
 void QVM::Free_Qubit(Qubit *qubit)
 {
+    if (qubit == nullptr)
+    {
+        return;
+    }
     this->_Qubit_Pool->Free_Qubit(qubit);
+    delete qubit;
 }
 
 void QVM::Free_Qubits(QVec &vQubit)
 {
     for (auto iter : vQubit)
     {
+        if (iter == nullptr)
+        {
+            break;
+        }
         this->_Qubit_Pool->Free_Qubit(iter);
+        delete iter;
     }
 }
 
@@ -720,6 +730,8 @@ runWithConfiguration(QProg & qProg, vector<ClassicalCondition>& vCBit, rapidjson
     {
         run(qProg);
         string sResult = _ResultToBinaryString(vCBit);
+
+        std::reverse(sResult.begin(), sResult.end());
         if (mResult.find(sResult) == mResult.end())
         {
             mResult[sResult] = 1;

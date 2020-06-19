@@ -23,6 +23,7 @@ limitations under the License.
 #include "Core/Utilities/QProgInfo/JudgeTwoNodeIterIsSwappable.h"
 #include "Core/Utilities/QProgInfo/GetAdjacentNodes.h"
 #include "Core/Utilities/QProgInfo/QProgToMatrix.h"
+#include "Core/Utilities/QProgInfo/GetAllUsedQubitAndCBit.h"
 
 USING_QPANDA
 using namespace std;
@@ -207,7 +208,7 @@ void GetAllNodeType::execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, s
 
 void GetAllNodeType::execute(std::shared_ptr<AbstractQuantumReset> cur_node, std::shared_ptr<QNode> parent_node, QCircuitParam &cir_param, NodeIter& cur_node_iter)
 {
-	//handle measure node
+	//handle reset node
 	sub_circuit_indent();
 
 	//std::string gateTypeStr;
@@ -537,7 +538,7 @@ QStat QPanda::getCircuitMatrix(QProg srcProg, const NodeIter nodeItrStart, const
 	return calc_matrix.get_matrix();
 }
 
-std::string QPanda::getAdjacentQGateType(QProg &prog, NodeIter &nodeItr, std::vector<NodeInfo>& adjacentNodes)
+std::string QPanda::getAdjacentQGateType(QProg prog, NodeIter &nodeItr, std::vector<NodeInfo>& adjacentNodes)
 {
 	std::shared_ptr<AdjacentQGates> p_adjacent_QGates = std::make_shared<AdjacentQGates>(prog, nodeItr);
 	if (nullptr == p_adjacent_QGates)
@@ -566,7 +567,7 @@ std::string QPanda::getAdjacentQGateType(QProg &prog, NodeIter &nodeItr, std::ve
 	return ret;
 }
 
-bool QPanda::isSwappable(QProg &prog, NodeIter &nodeItr1, NodeIter &nodeItr2)
+bool QPanda::isSwappable(QProg prog, NodeIter &nodeItr1, NodeIter &nodeItr2)
 {
 	if (nodeItr1 == nodeItr2)
 	{
@@ -669,7 +670,7 @@ bool QPanda::isSupportedGateType(const NodeIter &nodeItr)
 	return false;
 }
 
-void QPanda::pickUpNode(QProg &outPutProg, QProg &srcProg, const std::vector<NodeType> reject_node_types, 
+void QPanda::pickUpNode(QProg &outPutProg, QProg srcProg, const std::vector<NodeType> reject_node_types, 
 	const NodeIter nodeItrStart/* = NodeIter()*/, const NodeIter nodeItrEnd /*= NodeIter()*/,
 	bool bDagger/* = false*/)
 {
@@ -689,60 +690,25 @@ void QPanda::pickUpNode(QProg &outPutProg, QProg &srcProg, const std::vector<Nod
 	}
 }
 
-void QPanda::get_all_used_qubits(QProg &prog, QVec &vecQuBitsInUse)
+void QPanda::get_all_used_qubits(QProg prog, QVec &vecQuBitsInUse)
 {
 	vecQuBitsInUse.clear();
-	NodeIter itr = prog.getFirstNodeIter();
-	NodeIter itr_end = prog.getEndNodeIter();
-	if (itr == itr_end)
+
+	GetAllUsedQubitAndCBit get_qubit_object;
+	get_qubit_object.traversal(prog);
+
+	auto qubit_vec = get_qubit_object.get_used_qubits();
+	for (auto &i : qubit_vec)
 	{
-		return;
+		vecQuBitsInUse.push_back(i);
 	}
 
-	QVec qubits_vector;
-	QVec vec_control_qubits;
-	NodeType type = NODE_UNDEFINED;
-	do
-	{
-		type = (*itr)->getNodeType();
-		if (GATE_NODE != type)
-		{
-			if (MEASURE_GATE == type)
-			{
-				std::shared_ptr<AbstractQuantumMeasure> p_QMeasure = std::dynamic_pointer_cast<AbstractQuantumMeasure>(*itr);
-				vecQuBitsInUse.push_back(p_QMeasure->getQuBit());
-			}
-			else if (RESET_NODE == type)
-			{
-				std::shared_ptr<AbstractQuantumReset> p_reset = std::dynamic_pointer_cast<AbstractQuantumReset>(*itr);
-				vecQuBitsInUse.push_back(p_reset->getQuBit());
-			}
-
-			continue;
-		}
-
-		std::shared_ptr<AbstractQGateNode> p_QGate = std::dynamic_pointer_cast<AbstractQGateNode>(*itr);
-		qubits_vector.clear();
-		p_QGate->getQuBitVector(qubits_vector);
-
-		vec_control_qubits.clear();
-		p_QGate->getControlVector(vec_control_qubits);
-		for (auto _val : qubits_vector)
-		{
-			vecQuBitsInUse.push_back(_val);
-		}
-
-		for (auto _val : vec_control_qubits)
-		{
-			vecQuBitsInUse.push_back(_val);
-		}
-
-	} while ((++itr) != itr_end);
-	sort(vecQuBitsInUse.begin(), vecQuBitsInUse.end());
+	sort(vecQuBitsInUse.begin(), vecQuBitsInUse.end(), [](Qubit* a, Qubit* b) { 
+		return a->getPhysicalQubitPtr()->getQubitAddr() < b->getPhysicalQubitPtr()->getQubitAddr(); });
 	vecQuBitsInUse.erase(unique(vecQuBitsInUse.begin(), vecQuBitsInUse.end()), vecQuBitsInUse.end());
 }
 
-void QPanda::get_all_used_qubits(QProg &prog, std::vector<int> &vecQuBitsInUse)
+void QPanda::get_all_used_qubits(QProg prog, std::vector<int> &vecQuBitsInUse)
 {
 	vecQuBitsInUse.clear();
 	QVec vec_all_qubits;
@@ -751,35 +717,22 @@ void QPanda::get_all_used_qubits(QProg &prog, std::vector<int> &vecQuBitsInUse)
 	{
 		vecQuBitsInUse.push_back(itr->getPhysicalQubitPtr()->getQubitAddr());
 	}
-
-	sort(vecQuBitsInUse.begin(), vecQuBitsInUse.end(), [](const int &a, const int& b) {return a < b; });
-	vecQuBitsInUse.erase(unique(vecQuBitsInUse.begin(), vecQuBitsInUse.end()), vecQuBitsInUse.end());
 }
 
-void QPanda::get_all_used_class_bits(QProg &prog, std::vector<int> &vecClBitsInUse)
+void QPanda::get_all_used_class_bits(QProg prog, std::vector<int> &vecClBitsInUse)
 {
 	vecClBitsInUse.clear();
-	NodeIter itr = prog.getFirstNodeIter();
-	NodeIter itr_end = prog.getEndNodeIter();
-	if (itr == itr_end)
+
+	GetAllUsedQubitAndCBit get_cbit_object;
+	get_cbit_object.traversal(prog);
+
+	auto cbit_vec = get_cbit_object.get_used_cbits();
+	for (auto i : cbit_vec)
 	{
-		return;
+		vecClBitsInUse.push_back(i);
 	}
 
-	QVec qubits_vector;
-	NodeType type = NODE_UNDEFINED;
-
-	do
-	{
-		type = (*itr)->getNodeType();
-		if (MEASURE_GATE == type)
-		{
-			std::shared_ptr<AbstractQuantumMeasure> p_QMeasure = std::dynamic_pointer_cast<AbstractQuantumMeasure>(*itr);
-			vecClBitsInUse.push_back(p_QMeasure->getCBit()->getValue());
-		}
-	} while ((++itr) != itr_end);
-
-	sort(vecClBitsInUse.begin(), vecClBitsInUse.end());
+	sort(vecClBitsInUse.begin(), vecClBitsInUse.end(), [](const int& a, const int& b) { return a < b; });
 	vecClBitsInUse.erase(unique(vecClBitsInUse.begin(), vecClBitsInUse.end()), vecClBitsInUse.end());
 }
 

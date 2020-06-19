@@ -530,6 +530,15 @@ public:
         return unitaryDoubleQubitGate(qn_0, qn_1, P00_matrix, isConjugate,GateType::P00_GATE);
     }
 
+	inline QError SWAP(size_t qn_0, size_t qn_1, bool isConjugate, double error_rate)
+	{
+		QStat P00_matrix = { 1,0,0,0,
+			0,0,1,0,
+			0,1,0,0,
+			0,0,0,1 };
+		return unitaryDoubleQubitGate(qn_0, qn_1, P00_matrix, isConjugate, GateType::SWAP_GATE);
+	}
+
     inline QError P11(size_t qn_0, size_t qn_1, bool isConjugate, double error_rate)
     {
         QStat P11_matrix = { 0,0,0,0,

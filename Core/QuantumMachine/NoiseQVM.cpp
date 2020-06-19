@@ -55,17 +55,79 @@ void NoiseQVM::set_noise_model(NOISE_MODEL model, GateType type, std::vector<dou
 	auto gate_name = TransformQGateType::getInstance()[type];
 	m_gates_vec.push_back(gate_name);
 
-	m_params_vecs.push_back(params_vec);
+    m_params_vecs.push_back(params_vec);
+}
+
+void NoiseQVM::set_noise_kraus_matrix(GateType type, std::vector<QStat> kraus_matrix_vec)
+{
+	if (kraus_matrix_vec.empty())
+	{
+		QCERR("kraus_mat_vec is empty");
+		throw invalid_argument("kraus_mat_vec is empty");
+	}
+
+	for (auto iter : kraus_matrix_vec)
+	{
+		if (iter.size() != 4)
+		{
+			QCERR("kraus mat size  error");
+			throw invalid_argument("kraus mat size  error");
+		}
+	}
+
+	auto gate_name = TransformQGateType::getInstance()[type];
+	m_kraus_mats_vec.push_back(kraus_matrix_vec);
+	m_kraus_gates_vec.push_back(gate_name);
+}
+
+
+void NoiseQVM::set_noise_unitary_matrix(GateType type, std::vector<QStat> unitary_matrix_vec, std::vector<double> probs_vec)
+{
+	if (unitary_matrix_vec.empty()
+		|| unitary_matrix_vec.size() != probs_vec.size())
+	{
+		QCERR("unitary_matrix_vec size error");
+		throw invalid_argument("unitary_matrix_vec size error");
+	}
+
+	for (auto iter : unitary_matrix_vec)
+	{
+		if (iter.size() != 4)
+		{
+			QCERR("unitary matrix size  error");
+			throw invalid_argument("unitary matrix size  error");
+		}
+	}
+
+	// unitary_matrix , probs_vec to  kraus_matrix
+	std::vector<QStat> kraus_matrix_vec;
+	for (int i = 0; i < unitary_matrix_vec.size(); i++)
+	{
+		QStat unitary_mat = unitary_matrix_vec[i];
+		auto kraus_matrix = unitary_mat*sqrt(probs_vec[i]);
+		kraus_matrix_vec.push_back(kraus_matrix);
+	}
+
+	m_kraus_mats_vec.push_back(kraus_matrix_vec);
+
+	auto gate_name = TransformQGateType::getInstance()[type];
+	m_kraus_gates_vec.push_back(gate_name);
+}
+
+void NoiseQVM::set_rotation_angle_error(double error)
+{
+    m_rotation_angle_error = error;
 }
 
 void NoiseQVM::init()
 {
-	if (  !m_models_vec.empty() 
+	m_doc.Parse("{}");
+	Value value_object(rapidjson::kObjectType);
+
+	if (!m_models_vec.empty()
 		&& m_models_vec.size() == m_params_vecs.size()
-		&& m_params_vecs.size() == m_gates_vec.size() )
+		&& m_params_vecs.size() == m_gates_vec.size())
 	{
-		m_doc.Parse("{}");
-		Value value_object(rapidjson::kObjectType);
 		for (int i = 0; i < m_models_vec.size(); i++)
 		{
 			Value value_array(rapidjson::kArrayType);
@@ -80,30 +142,48 @@ void NoiseQVM::init()
 
 			value_object.AddMember(gate_name, value_array, m_doc.GetAllocator());
 		}
-		m_doc.AddMember("noisemodel", value_object, m_doc.GetAllocator());
 	}
-	else
-	{  
-		//default config
-		m_doc.Parse("{}");
-		auto & alloc = m_doc.GetAllocator();
-		Value noise_model_value(rapidjson::kObjectType);
-		for (auto a : m_gates_matrix[MetadataGateType::METADATA_SINGLE_GATE])
-		{
-			Value value(rapidjson::kArrayType);
-			value.PushBack(NOISE_MODEL::DAMPING_KRAUS_OPERATOR, alloc);
-			value.PushBack(0.5, alloc);
-			noise_model_value.AddMember(Value().SetString(a.c_str(), alloc).Move(), value, alloc);
-		}
 
-		m_doc.AddMember("noisemodel", noise_model_value, alloc);
+	if (m_kraus_mats_vec.empty() == false
+		&& m_kraus_mats_vec.size() == m_kraus_gates_vec.size())
+	{
+		for (int i = 0; i < m_kraus_mats_vec.size(); i++)
+		{
+			Value value_array(rapidjson::kArrayType);
+			const int model_type = NOISE_MODEL::KRAUS_MATRIX_OPRATOR;
+			value_array.PushBack(model_type, m_doc.GetAllocator());
+			for (auto kraus_mat : m_kraus_mats_vec[i])
+			{
+				Value kraus_mat_array(rapidjson::kArrayType);
+				for (auto iter : kraus_mat)
+				{
+					kraus_mat_array.PushBack(iter.real(), m_doc.GetAllocator());
+					kraus_mat_array.PushBack(iter.imag(), m_doc.GetAllocator());
+				}
+				value_array.PushBack(kraus_mat_array, m_doc.GetAllocator());
+			}
+			std::string str_gate = m_kraus_gates_vec[i];
+			Value gate_name(rapidjson::kStringType);
+			gate_name.SetString(str_gate.c_str(), (rapidjson::SizeType)str_gate.size(), m_doc.GetAllocator());
+			value_object.AddMember(gate_name, value_array, m_doc.GetAllocator());
+		}
 	}
 
     try
     {
 		_start();
 		_getValidGatesMatrix();
-		_pGates = new NoisyCPUImplQPU(m_doc);
+
+		if (!value_object.ObjectEmpty())
+		{
+			m_doc.AddMember("noisemodel", value_object, m_doc.GetAllocator());
+			_pGates = new NoisyCPUImplQPU(m_doc);
+		}
+		else
+		{
+			_pGates = new NoisyCPUImplQPU();
+		}
+
         _ptrIsNull(_pGates, "NoisyCPUImplQPU");
     }
     catch (const std::exception&e)
@@ -207,7 +287,7 @@ void NoiseQVM::run(QProg & prog)
         _pGates->initState(0, 1, _Qubit_Pool->getMaxQubit() - _Qubit_Pool->getIdleQubit());
 
         QProgExecution prog_exec;
-        TraversalConfig config;
+        TraversalConfig config(m_rotation_angle_error);
 
         prog_exec.execute(prog.getImplementationPtr(), nullptr, config, _pGates);
 
@@ -292,6 +372,8 @@ runWithConfiguration(QProg & qProg, vector<ClassicalCondition>& vCBit, rapidjson
     {
         run(qProg);
         string sResult = _ResultToBinaryString(vCBit, _QResult);
+
+        std::reverse(sResult.begin(), sResult.end());
         if (mResult.find(sResult) == mResult.end())
         {
             mResult[sResult] = 1;
@@ -326,6 +408,7 @@ runWithConfiguration(QProg & qProg, vector<ClassicalCondition>& vCBit, rapidjson
             }
         }
 
+        std::reverse(sResult.begin(), sResult.end());
         int index = 0;
         for (size_t i = 0; i < sResult.size(); ++i)
         {

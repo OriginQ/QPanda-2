@@ -77,6 +77,8 @@ public:
 		m_is_dagger = false;
 	}
 
+	virtual ~QCircuitParam() {}
+
 	/**
 	* @brief copy constructor
 	*/
@@ -88,7 +90,7 @@ public:
 	/**
 	* @brief clone
 	*/
-	std::shared_ptr<QCircuitParam> clone() {
+	virtual std::shared_ptr<QCircuitParam> clone() {
 		return std::make_shared<QCircuitParam>(*this);
 	}
 
@@ -112,8 +114,14 @@ public:
 			return append_qubits;
 		}
 
-		std::sort(append_qubits.begin(), append_qubits.end());
-		std::sort(target_qubits.begin(), target_qubits.end());
+		if (0 == append_qubits.size())
+		{
+			return QVec();
+		}
+
+		auto sort_fun = [](Qubit*a, Qubit* b) {return a->getPhysicalQubitPtr()->getQubitAddr() < b->getPhysicalQubitPtr()->getQubitAddr(); };
+		std::sort(append_qubits.begin(), append_qubits.end(), sort_fun);
+		std::sort(target_qubits.begin(), target_qubits.end(), sort_fun);
 
 		QVec result_vec;
 		set_difference(append_qubits.begin(), append_qubits.end(), target_qubits.begin(), target_qubits.end(), std::back_inserter(result_vec));
@@ -134,7 +142,7 @@ public:
 	/**
 	* @brief Constructor of TraverseByNodeIter
 	*/
-	TraverseByNodeIter(QProg &prog)
+	TraverseByNodeIter(QProg prog)
 		:m_prog(prog)
 	{}
 	~TraverseByNodeIter() {}
@@ -170,7 +178,7 @@ public:
 	virtual void traverse_qprog();
 
 protected:
-	QProg &m_prog; /**< the target QProg will be traversed */
+	QProg m_prog; /**< the target QProg will be traversed */
 };
 
 /**
@@ -183,7 +191,7 @@ public:
 	/**
 	* @brief Constructor of GetAllNodeType
 	*/
-	GetAllNodeType(QProg &src_prog)
+	GetAllNodeType(QProg src_prog)
 		:TraverseByNodeIter(src_prog), m_indent_cnt(0)
 	{
 	}
@@ -248,7 +256,7 @@ public:
 	/**
 	* @brief Constructor of PickUpNodes
 	*/
-	PickUpNodes(QProg &output_prog, QProg &src_prog, const std::vector<NodeType> &reject_node_types, const NodeIter &node_itr_start, const NodeIter &node_itr_end)
+	PickUpNodes(QProg &output_prog, QProg src_prog, const std::vector<NodeType> &reject_node_types, const NodeIter &node_itr_start, const NodeIter &node_itr_end)
 		:TraverseByNodeIter(src_prog), m_output_prog(output_prog), m_reject_node_type(reject_node_types),
 		m_start_iter(node_itr_start),
 		m_end_iter(node_itr_end),
@@ -392,7 +400,7 @@ bool isMatchTopology(const QGate& gate, const std::vector<std::vector<int>>& vec
 * @return result string.
 * @see
 */
-std::string getAdjacentQGateType(QProg &prog, NodeIter &nodeItr, std::vector<NodeInfo>& adjacentNodes);
+std::string getAdjacentQGateType(QProg prog, NodeIter &nodeItr, std::vector<NodeInfo>& adjacentNodes);
 
 /**
 * @brief  judge the specialed two NodeIters whether can be exchanged
@@ -402,7 +410,7 @@ std::string getAdjacentQGateType(QProg &prog, NodeIter &nodeItr, std::vector<Nod
 * @return if the two NodeIters can be exchanged, return true, otherwise retuen false.
 * @note If the two input nodeIters are in different sub-prog, they are unswappable.
 */
-bool isSwappable(QProg &prog, NodeIter &nodeItr1, NodeIter &nodeItr2);
+bool isSwappable(QProg prog, NodeIter &nodeItr1, NodeIter &nodeItr2);
 
 /**
 * @brief  judge if the target node is a base QGate type
@@ -435,26 +443,24 @@ QStat getCircuitMatrix(QProg srcProg, const NodeIter nodeItrStart = NodeIter(), 
 * @ Note: If there are any Qif/Qwhile nodes between nodeItrStart and nodeItrEnd,
 		  Or the nodeItrStart and the nodeItrEnd are in different sub-circuit, an exception will be throw.
 */
-void pickUpNode(QProg &outPutProg, QProg &srcProg, const std::vector<NodeType> reject_node_types, const NodeIter nodeItrStart = NodeIter(), const NodeIter nodeItrEnd = NodeIter(), bool bDagger = false);
+void pickUpNode(QProg &outPutProg, QProg srcProg, const std::vector<NodeType> reject_node_types, const NodeIter nodeItrStart = NodeIter(), const NodeIter nodeItrEnd = NodeIter(), bool bDagger = false);
 
 /**
 * @brief  Get all the used  quantum bits in the input prog
 * @ingroup Utilities
 * @param[in] prog  the input prog
-* @param[out] vecQuBitsInUse The vector of used quantum bits
-* @ Note: All the Qif/Qwhile or other sub-circuit nodes in the input prog will be ignored.
+* @param[out] vecQuBitsInUse The vector of used quantum bits, sorted from small to large;
 */
-void get_all_used_qubits(QProg &prog, std::vector<int> &vecQuBitsInUse);
-void get_all_used_qubits(QProg &prog, QVec &vecQuBitsInUse);
+void get_all_used_qubits(QProg prog, std::vector<int> &vecQuBitsInUse);
+void get_all_used_qubits(QProg prog, QVec &vecQuBitsInUse);
 
 /**
 * @brief  Get all the used  class bits in the input prog
 * @ingroup Utilities
 * @param[in] prog  the input prog
-* @param[out] vecClBitsInUse The vector of used class bits
-* @ Note: All the Qif/Qwhile or other sub-circuit nodes in the input prog will be ignored.
+* @param[out] vecClBitsInUse The vector of used class bits, sorted from small to large;
 */
-void get_all_used_class_bits(QProg &prog, std::vector<int> &vecClBitsInUse);
+void get_all_used_class_bits(QProg prog, std::vector<int> &vecClBitsInUse);
 
 /**
 * @brief  output all the node type of the target prog

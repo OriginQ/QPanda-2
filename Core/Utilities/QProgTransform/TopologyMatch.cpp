@@ -10,7 +10,14 @@ using namespace QGATE_SPACE;
 
 #define PRINTF_MAPPING_RESULT 0 
 
-static bool isContains(std::vector<int> v, int e)
+
+static QGate iSWAPGateNotheta(Qubit * targitBit_fisrt, Qubit * targitBit_second)
+{
+	return iSWAP(targitBit_fisrt, targitBit_second);
+}
+
+
+bool TopologyMatch::isContains(std::vector<int> v, int e)
 {
 	for (std::vector<int>::iterator it = v.begin(); it != v.end(); it++)
 	{
@@ -22,7 +29,7 @@ static bool isContains(std::vector<int> v, int e)
 	return false;
 }
 
-static bool isReversed(set<edge> graph, edge det_edge)
+bool TopologyMatch::isReversed(std::set<edge> graph, edge det_edge)
 {
 	if (graph.find(det_edge) != graph.end())
 	{
@@ -40,11 +47,6 @@ static bool isReversed(set<edge> graph, edge det_edge)
 		}
 		return true;
 	}
-}
-
-QGate iSWAPGateNotheta(Qubit * targitBit_fisrt, Qubit * targitBit_second)
-{
-	return iSWAP(targitBit_fisrt, targitBit_second);
 }
 
 TopologyMatch::TopologyMatch(QuantumMachine * machine,  SwapQubitsMethod method, ArchType arch_type)
@@ -519,7 +521,7 @@ int TopologyMatch::getNextLayer(int layer)
 	return -1;
 }
 
-node TopologyMatch::fixLayerByAStar(int layer, std::vector<int> &map, std::vector<int> &loc)
+TopologyMatch::node TopologyMatch::fixLayerByAStar(int layer, std::vector<int> &map, std::vector<int> &loc)
 {
 	int next_layer = getNextLayer(layer);
 
@@ -1166,12 +1168,12 @@ void TopologyMatch::execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::s
 		g.control = -1;
 		g.target = qv[0]->getPhysicalQubitPtr()->getQubitAddr();
 		QGATE_SPACE::U3 *u3_gate = dynamic_cast<QGATE_SPACE::U3*>(cur_node->getQGate());
+		double theta = u3_gate->get_theta();
 		double phi = u3_gate->get_phi();
 		double lam = u3_gate->get_lambda();
-		double theta = u3_gate->get_theta();
+		g.param.push_back(theta);
 		g.param.push_back(phi);
 		g.param.push_back(lam);
-		g.param.push_back(theta);
 
 		layer = m_last_layer[g.target] + 1;
 		m_last_layer[g.target] = layer;

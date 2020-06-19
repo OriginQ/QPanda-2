@@ -19,9 +19,9 @@ using namespace std;
 using namespace pybind11::literals;
 namespace py = pybind11;
 
-template<>
-struct py::detail::type_caster<QVec>
-    : py::detail::list_caster<QVec, Qubit*> { };
+//template<>
+//struct py::detail::type_caster<QVec>
+//    : py::detail::list_caster<QVec, Qubit*> { };
 
 void init_qalg(py::module & m)
 {
@@ -35,4 +35,24 @@ void init_qalg(py::module & m)
     m.def("amplitude_encode", &amplitude_encode, "Encode the input data to the amplitude of qubits", "qlist"_a, "data"_a,
         py::return_value_policy::automatic
         );
+
+	m.def("QFT", &QFT, "Build QFT quantum circuit", "qlist"_a,
+		py::return_value_policy::automatic
+	);
+
+	m.def("QPE", [](const QVec control_qubits, const QVec target_qubits, QStat matrix, bool b_estimate_eigenvalue = false) {
+		return build_QPE_circuit(control_qubits, target_qubits, matrix, b_estimate_eigenvalue);
+	}
+		, "qlist"_a, "qlist"_a, "matrix"_a, "bool"_a = false,
+		"Build QPE quantum circuit",
+		py::return_value_policy::automatic_reference
+		);
+
+	m.def("HHL", &build_HHL_circuit, "Build HHL quantum circuit", "matrix"_a, "data"_a, "QuantumMachine"_a,
+		py::return_value_policy::automatic
+	);
+
+	m.def("HHL_solve_linear_equations", &HHL_solve_linear_equations, "use HHL to solve linear equations", "matrix"_a, "data"_a,
+		py::return_value_policy::automatic
+	);
 }

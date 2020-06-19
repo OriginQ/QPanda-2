@@ -17,20 +17,20 @@ TEST(ClassicalCondition, testClassicalConditionADD)
     auto c1 = m_qvm->allocateCBit();
     auto c2 = m_qvm->allocateCBit();
 
-    c1.setValue(10);
-    c2.setValue(20);
-    ASSERT_EQ(c1.eval(),10);
-    ASSERT_EQ(c2.eval(),20);
+    c1.set_val(10);
+    c2.set_val(20);
+    ASSERT_EQ(c1.get_val(),10);
+    ASSERT_EQ(c2.get_val(),20);
     // cc3 is classicalCondition
     auto cc3 = c1+c2;
-    ASSERT_EQ(cc3.eval(), c1.eval()+ c2.eval());
+    ASSERT_EQ(cc3.get_val(), c1.get_val()+ c2.get_val());
     // cc4 is classicalCondition
     auto cc4 = c1+10;
-    ASSERT_EQ(cc4.eval(), c1.eval()+10);
+    ASSERT_EQ(cc4.get_val(), c1.get_val()+10);
 
     // cc5 is classicalCondition
     auto cc5 = 10+c2;
-    ASSERT_EQ(cc5.eval(), c2.eval()+10);
+    ASSERT_EQ(cc5.get_val(), c2.get_val()+10);
 
     auto prog = QProg();
     auto m_prog = CreateEmptyQProg();
@@ -38,8 +38,8 @@ TEST(ClassicalCondition, testClassicalConditionADD)
     auto qwhile = CreateWhileProg(c1<11,prog);
     m_prog<<qwhile;
     m_qvm->directlyRun(prog);
-    ASSERT_EQ(c1.eval(),11);
-    ASSERT_EQ(c2.eval(),83);
+    ASSERT_EQ(c1.get_val(),11);
+    ASSERT_EQ(c2.get_val(),83);
     
     m_qvm->finalize();
     delete m_qvm;
@@ -53,18 +53,18 @@ TEST(ClassicalCondition, testClassicalConditionSUB)
     auto c1 = m_qvm->allocateCBit();
     auto c2 = m_qvm->allocateCBit();
 
-    c1.setValue(10);
-    c2.setValue(20);
+    c1.set_val(10);
+    c2.set_val(20);
 
     // cc3 is classicalCondition
     auto cc3 = c2-c1;
-    ASSERT_EQ(cc3.eval(),10);
+    ASSERT_EQ(cc3.get_val(),10);
     // cc4 is classicalCondition
     auto cc4 = c1-10;
-    ASSERT_EQ(cc4.eval(),0);
+    ASSERT_EQ(cc4.get_val(),0);
     // cc5 is classicalCondition
     auto cc5 = 20-c2;
-    ASSERT_EQ(cc5.eval(),0);
+    ASSERT_EQ(cc5.get_val(),0);
 
     QProg prog;
     auto m_prog = CreateEmptyQProg();
@@ -72,8 +72,8 @@ TEST(ClassicalCondition, testClassicalConditionSUB)
     auto qwhile = CreateWhileProg(c1<11,prog);
     m_prog<<qwhile;
     m_qvm->directlyRun(prog);
-    ASSERT_EQ(c1.eval(),11);
-    ASSERT_EQ(c2.eval(),-1);
+    ASSERT_EQ(c1.get_val(),11);
+    ASSERT_EQ(c2.get_val(),-1);
     m_qvm->finalize();
     delete m_qvm;
 }
@@ -86,18 +86,18 @@ TEST(ClassicalCondition, testClassicalConditionMUL)
     auto c1 = m_qvm->allocateCBit();
     auto c2 = m_qvm->allocateCBit();
 
-    c1.setValue(10);
-    c2.setValue(20);
+    c1.set_val(10);
+    c2.set_val(20);
 
     // cc3 is classicalCondition
     auto cc3 = c2*c1;
-    ASSERT_EQ(cc3.eval(),200);
+    ASSERT_EQ(cc3.get_val(),200);
     // cc4 is classicalCondition
     auto cc4 = c1*10;
-    ASSERT_EQ(cc4.eval(),100);
+    ASSERT_EQ(cc4.get_val(),100);
     // cc5 is classicalCondition
     auto cc5 = 20*c2;
-    ASSERT_EQ(cc5.eval(),400);
+    ASSERT_EQ(cc5.get_val(),400);
 
     auto prog = QProg();
     auto m_prog = CreateEmptyQProg();
@@ -105,9 +105,9 @@ TEST(ClassicalCondition, testClassicalConditionMUL)
     auto qwhile = CreateWhileProg(c1<11,prog);
     m_prog<<qwhile;
     m_qvm->directlyRun(prog);
-    std::cout <<c2.eval()<<std::endl;
-    ASSERT_EQ(c1.eval(),11);
-    ASSERT_EQ(c2.eval(),5324000);
+    std::cout <<c2.get_val()<<std::endl;
+    ASSERT_EQ(c1.get_val(),11);
+    ASSERT_EQ(c2.get_val(),5324000);
     m_qvm->finalize();
     delete m_qvm;
 }
@@ -120,17 +120,17 @@ TEST(ClassicalCondition, testClassicalConditionDIV)
     auto c1 = m_qvm->allocateCBit();
     auto c2 = m_qvm->allocateCBit();
 
-    c1.setValue(10);
-    c2.setValue(20);
+    c1.set_val(10);
+    c2.set_val(20);
 
     // cc3 is classicalCondition
     auto cc3 = c2/c1;
-    ASSERT_EQ(cc3.eval(),2);
+    ASSERT_EQ(cc3.get_val(),2);
     // cc4 is classicalCondition
     //ASSERT_THROW(auto cc4 = c1/0,std::invalid_argument);
     // cc5 is classicalCondition
     auto cc5 = 20/c2;
-    ASSERT_EQ(cc5.eval(),1);
+    ASSERT_EQ(cc5.get_val(),1);
 
     auto prog = QProg();
     auto m_prog = CreateEmptyQProg();
@@ -138,8 +138,8 @@ TEST(ClassicalCondition, testClassicalConditionDIV)
     auto qwhile = CreateWhileProg(c1<11,prog);
     m_prog<<qwhile;
     m_qvm->directlyRun(prog);
-    ASSERT_EQ(c1.eval(),11);
-    ASSERT_EQ(c2.eval(),2);
+    ASSERT_EQ(c1.get_val(),11);
+    ASSERT_EQ(c2.get_val(),2);
     m_qvm->finalize();
     delete m_qvm;
 }

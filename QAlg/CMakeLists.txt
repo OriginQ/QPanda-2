@@ -6,10 +6,10 @@ file(GLOB_RECURSE ALG_SRC_CPP ${CMAKE_CURRENT_SOURCE_DIR}/B_V_Algorithm/*.cpp
                               ${CMAKE_CURRENT_SOURCE_DIR}/Grover_Algorithm/*.cpp
                               ${CMAKE_CURRENT_SOURCE_DIR}/QAOA/*.cpp
                               ${CMAKE_CURRENT_SOURCE_DIR}/QITE/*.cpp
-							  ${CMAKE_CURRENT_SOURCE_DIR}/HHL/*.cpp
-							  ${CMAKE_CURRENT_SOURCE_DIR}/ArithmeticUnit/*.cpp
-							  ${CMAKE_CURRENT_SOURCE_DIR}/QARM/*.cpp
-							  ${CMAKE_CURRENT_SOURCE_DIR}/QSVM/*.cpp)
+                              ${CMAKE_CURRENT_SOURCE_DIR}/HHL/*.cpp
+                              ${CMAKE_CURRENT_SOURCE_DIR}/ArithmeticUnit/*.cpp
+                              ${CMAKE_CURRENT_SOURCE_DIR}/QARM/*.cpp
+                              ${CMAKE_CURRENT_SOURCE_DIR}/QSVM/*.cpp)
 
 file(GLOB_RECURSE ALG_CHEMIQ_SRC_CPP ${CMAKE_CURRENT_SOURCE_DIR}/ChemiQ/*.cpp)
 

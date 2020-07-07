@@ -695,18 +695,18 @@ bool double_depolarizing_kraus_operator(Value &value, NoiseOp &noise)
         throw std::invalid_argument("param error");
     }
 
-    ntemp.resize(4);
+    
     QStat matrix_i = {1, 0, 0, 1};
     QStat matrix_x = {0, 1, 1, 0};
     QStat matrix_y = {0, qcomplex_t(0, -1), qcomplex_t(0, 1), 0};
     QStat matrix_z = {1, 0, 0, -1};
-
     double probability = value[1].GetDouble();
-    noise.resize(4);
-    noise[0] = static_cast<qstate_type>(sqrt(1 - probability * 0.75)) * matrix_i;
-    noise[1] = static_cast<qstate_type>(sqrt(probability) / 2) * matrix_x;
-    noise[2] = static_cast<qstate_type>(sqrt(probability) / 2) * matrix_y;
-    noise[3] = static_cast<qstate_type>(sqrt(probability) / 2) * matrix_z;
+
+    ntemp.resize(4);
+    ntemp[0] = static_cast<qstate_type>(sqrt(1 - probability * 0.75)) * matrix_i;
+    ntemp[1] = static_cast<qstate_type>(sqrt(probability) / 2) * matrix_x;
+    ntemp[2] = static_cast<qstate_type>(sqrt(probability) / 2) * matrix_y;
+    ntemp[3] = static_cast<qstate_type>(sqrt(probability) / 2) * matrix_z;
 
     for (auto i = 0; i < ntemp.size(); i++)
     {

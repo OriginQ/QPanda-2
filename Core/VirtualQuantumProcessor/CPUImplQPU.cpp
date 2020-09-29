@@ -25,8 +25,13 @@ limitations under the License.
 #ifdef USE_OPENMP
 #include <omp.h>
 #endif
+#include "ThirdParty/Eigen/Eigen"
 
 using namespace std;
+using namespace Eigen;
+
+using qmatrix2cf_t = Eigen::Matrix<qcomplex_t, 2, 2, Eigen::RowMajor>;
+using qmatrix4cf_t = Eigen::Matrix<qcomplex_t, 4, 4, Eigen::RowMajor>;
 
 REGISTER_GATE_MATRIX(X, 0, 1, 1, 0)
 REGISTER_GATE_MATRIX(Hadamard, SQ2, SQ2, SQ2, -SQ2)
@@ -261,6 +266,7 @@ QError CPUImplQPU::initState(size_t head_rank, size_t rank_size, size_t qubit_nu
     return qErrorNone;
 }
 
+#ifdef _MSC_VER   
 QError  CPUImplQPU::
 unitarySingleQubitGate(size_t qn,
     QStat& matrix,
@@ -535,6 +541,259 @@ controlunitaryDoubleQubitGate(size_t qn_0,
     }
     return qErrorNone;
 }
+
+#else
+QError  CPUImplQPU::
+unitarySingleQubitGate(size_t qn,
+	QStat& matrix,
+	bool isConjugate,
+	GateType)
+{
+	qcomplex_t alpha;
+	qcomplex_t beta;
+	QGateParam& qgroup = findgroup(qn);
+
+	size_t n = find(qgroup.qVec.begin(), qgroup.qVec.end(), qn) - qgroup.qVec.begin();
+	size_t ststep = 1ull << n;
+
+	qmatrix2cf_t mat = qmatrix2cf_t::Map(&matrix[0]);
+	if (isConjugate)
+	{
+		mat.adjointInPlace();
+	}
+
+#pragma omp parallel for private(alpha, beta)
+	for (int64_t i = 0; i < (qgroup.qstate.size() >> 1); i++)
+	{
+		int64_t real00_idx = insert(i, n);
+		int64_t real01_idx = real00_idx + ststep;
+
+		alpha = qgroup.qstate[real00_idx];
+		beta = qgroup.qstate[real01_idx];
+
+		Matrix<qcomplex_t, 2, 1> state_vec;
+		state_vec << alpha, beta;
+		state_vec = mat * state_vec;
+		qgroup.qstate[real00_idx] = state_vec[0];
+		qgroup.qstate[real01_idx] = state_vec[1];
+	}
+
+	return qErrorNone;
+}
+
+QError  CPUImplQPU::
+controlunitarySingleQubitGate(size_t qn,
+	Qnum& vControlBit,
+	QStat & matrix,
+	bool isConjugate,
+	GateType)
+{
+	QGateParam& qgroup0 = findgroup(qn);
+	for (auto iter = vControlBit.begin(); iter != vControlBit.end(); iter++)
+	{
+		TensorProduct(qgroup0, findgroup(*iter));
+	}
+	size_t M = 1ull << (qgroup0.qVec.size() - vControlBit.size());
+	size_t x;
+
+	size_t n = qgroup0.qVec.size();
+	size_t ststep = 1ull << (find(qgroup0.qVec.begin(), qgroup0.qVec.end(), qn)
+		- qgroup0.qVec.begin());
+	size_t index = 0;
+	size_t block = 0;
+
+	qcomplex_t alpha, beta;
+	qmatrix2cf_t mat = qmatrix2cf_t::Map(&matrix[0]);
+	if (isConjugate)
+	{
+		mat.adjointInPlace();
+	}
+
+	Qnum qvtemp;
+	for (auto iter = vControlBit.begin(); iter != vControlBit.end(); iter++)
+	{
+		size_t stemp = (find(qgroup0.qVec.begin(), qgroup0.qVec.end(), *iter)
+			- qgroup0.qVec.begin());
+		block += 1ull << stemp;
+		qvtemp.push_back(stemp);
+	}
+	sort(qvtemp.begin(), qvtemp.end());
+	Qnum::iterator qiter;
+	size_t j;
+#pragma omp parallel for private(j,index,x,qiter,alpha,beta)
+	for (long long i = 0; i < (long long)M; i++)
+	{
+		index = 0;
+		x = i;
+		qiter = qvtemp.begin();
+
+		for (j = 0; j < n; j++)
+		{
+			while (qiter != qvtemp.end() && *qiter == j)
+			{
+				qiter++;
+				j++;
+			}
+			//index += ((x % 2)*(1ull << j));
+			index += ((x & 1) << j);
+			x >>= 1;
+		}
+
+		/*
+		* control qubits are 1,target qubit is 0
+		*/
+		index = index + block - ststep;
+		alpha = qgroup0.qstate[index];
+		beta = qgroup0.qstate[index + ststep];
+	
+		Matrix<qcomplex_t, 2, 1> state_vec;
+		state_vec << alpha, beta;
+		state_vec = mat * state_vec;
+		qgroup0.qstate[index] = state_vec[0];
+		qgroup0.qstate[index + ststep] = state_vec[1];
+	}
+	return qErrorNone;
+}
+
+QError CPUImplQPU::
+unitaryDoubleQubitGate(size_t qn_0,
+	size_t qn_1,
+	QStat& matrix,
+	bool isConjugate,
+	GateType)
+{
+	QGateParam& qgroup0 = findgroup(qn_0);
+	QGateParam& qgroup1 = findgroup(qn_1);
+	if (qgroup0.qVec[0] != qgroup1.qVec[0])
+	{
+		TensorProduct(qgroup0, qgroup1);
+	}
+
+	size_t n1 = find(qgroup0.qVec.begin(), qgroup0.qVec.end(), qn_0) - qgroup0.qVec.begin();
+	size_t n2 = find(qgroup0.qVec.begin(), qgroup0.qVec.end(), qn_1) - qgroup0.qVec.begin();
+	size_t ststep1 = 1ull << n1;
+	size_t ststep2 = 1ull << n2;
+
+	if (n1 < n2)
+	{
+		std::swap(n1, n2);
+	}
+
+	qcomplex_t phi00, phi01, phi10, phi11;
+	auto stateSize = qgroup0.qstate.size();
+
+	qmatrix4cf_t mat = qmatrix4cf_t::Map(&matrix[0]);
+	if (isConjugate)
+	{
+		mat.adjointInPlace();
+	}
+
+#pragma omp parallel for private(phi00, phi01, phi10, phi11)
+	for (int64_t i = 0; i < (stateSize >> 2); i++)
+	{
+		int64_t real00_idx = insert(i, n2, n1);
+		phi00 = qgroup0.qstate[real00_idx];
+		phi01 = qgroup0.qstate[real00_idx + ststep2];
+		phi10 = qgroup0.qstate[real00_idx + ststep1];
+		phi11 = qgroup0.qstate[real00_idx + ststep1 + ststep2];
+
+		Matrix<qcomplex_t, 4, 1>  state_vec;
+		state_vec << phi00, phi01, phi10, phi11;
+		state_vec = mat * state_vec;
+
+		qgroup0.qstate[real00_idx] = state_vec[0];
+		qgroup0.qstate[real00_idx + ststep2] = state_vec[1];
+		qgroup0.qstate[real00_idx + ststep1] = state_vec[2];
+		qgroup0.qstate[real00_idx + ststep1 + ststep2] = state_vec[3];
+	}
+
+	return qErrorNone;
+}
+
+QError  CPUImplQPU::
+controlunitaryDoubleQubitGate(size_t qn_0,
+	size_t qn_1,
+	Qnum& vControlBit,
+	QStat& matrix,
+	bool isConjugate,
+	GateType)
+{
+	QGateParam& qgroup0 = findgroup(qn_0);
+	QGateParam& qgroup1 = findgroup(qn_1);
+	TensorProduct(qgroup0, qgroup1);
+	for (auto iter = vControlBit.begin(); iter != vControlBit.end(); iter++)
+	{
+		TensorProduct(qgroup0, findgroup(*iter));
+	}
+
+	qmatrix4cf_t mat = qmatrix4cf_t::Map(&matrix[0]);
+	if (isConjugate)
+	{
+		mat.adjointInPlace();
+	}//dagger
+
+		//combine all qubits;
+	size_t M = 1ull << (qgroup0.qVec.size() - vControlBit.size());
+
+	size_t ststep0 = 1ull << (find(qgroup0.qVec.begin(), qgroup0.qVec.end(), qn_0)
+		- qgroup0.qVec.begin());
+	size_t ststep1 = 1ull << (find(qgroup0.qVec.begin(), qgroup0.qVec.end(), qn_1)
+		- qgroup0.qVec.begin());
+	size_t block = 0;
+	qcomplex_t phi00, phi01, phi10, phi11;
+	Qnum qvtemp;
+	for (auto iter = vControlBit.begin(); iter != vControlBit.end(); iter++)
+	{
+		size_t stemp = (find(qgroup0.qVec.begin(), qgroup0.qVec.end(), *iter)
+			- qgroup0.qVec.begin());
+		block += 1ull << stemp;
+		qvtemp.push_back(stemp);
+	}
+	//block: all related qubits are 1,others are 0
+	sort(qvtemp.begin(), qvtemp.end());
+	Qnum::iterator qiter;
+	size_t j;
+	size_t index = 0;
+	size_t x;
+	size_t n = qgroup0.qVec.size();
+
+#pragma omp parallel for private(j,index,x,qiter,phi00,phi01,phi10,phi11)
+	for (long long i = 0; i < (long long)M; i++)
+	{
+		index = 0;
+		x = i;
+		qiter = qvtemp.begin();
+
+		for (j = 0; j < n; j++)
+		{
+			while (qiter != qvtemp.end() && *qiter == j)
+			{
+				qiter++;
+				j++;
+			}
+			//index += ((x % 2)*(1ull << j));
+			index += ((x & 1) << j);
+			x >>= 1;
+		}
+		index = index + block - ststep0 - ststep1;                             /*control qubits are 1,target qubit are 0 */
+		phi00 = qgroup0.qstate[index];             //00
+		phi01 = qgroup0.qstate[index + ststep1];   //01
+		phi10 = qgroup0.qstate[index + ststep0];   //10
+		phi11 = qgroup0.qstate[index + ststep0 + ststep1];  //11
+
+		Matrix<qcomplex_t, 4, 1> state_vec;
+		state_vec << phi00, phi01, phi10, phi11;
+		state_vec = mat * state_vec;
+
+		qgroup0.qstate[index] = state_vec[0];
+		qgroup0.qstate[index + ststep1] = state_vec[1];
+		qgroup0.qstate[index + ststep0] = state_vec[2];
+		qgroup0.qstate[index + ststep0 + ststep1] = state_vec[3];
+	}
+	return qErrorNone;
+}
+#endif
+
 
 QError CPUImplQPU::iSWAP(size_t qn_0, size_t qn_1, double theta, bool isConjugate, double error_rate)
 {

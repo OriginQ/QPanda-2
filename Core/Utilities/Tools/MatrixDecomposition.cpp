@@ -29,6 +29,8 @@ static void upper_partition(int order, MatrixOperator &entries)
 			entries[cdx + order].emplace_back(entry);
 		}
 	}
+
+    return;
 }
 
 
@@ -134,41 +136,8 @@ static void under_partition(int order, MatrixOperator& entries)
 			entries[cdx].back().second = refer_opt;
 		}
 	}
-}
 
-static void voluation(EigenMatrixXc& matrix, MatrixOperator& entries)
-{
-	auto qubits = (int)std::log2(matrix.rows());
-
-	MatrixSequence Cns(qubits, MatrixUnit::SINGLE_I2);
-	Cns.back() = MatrixUnit::SINGLE_V2;
-	entries.front().emplace_back(make_pair(1, Cns));
-
-	ColumnOperator& column = entries.front();
-	for (auto idx = 1; idx < qubits; ++idx)
-	{
-		size_t path = 1ull << idx;
-		for (auto opt = 0; opt < (1 << idx) - 1; ++opt)
-		{
-			auto entry = column[opt].first;
-			auto units = column[opt].second;
-
-			// 1 : none of cn−1, . . . , c1 equals 1
-			// * : otherwise
-			auto iter = std::find(units.end() - idx, units.end(), MatrixUnit::SINGLE_P1);
-
-			units[units.size() - 1 - idx] = (units.end() == iter) ?
-				MatrixUnit::SINGLE_P1 : MatrixUnit::SINGLE_I2;
-
-
-			column.emplace_back(make_pair(entry + path, units));
-		}
-
-		MatrixSequence Lns(qubits, MatrixUnit::SINGLE_I2);
-		Lns[qubits - idx - 1] = MatrixUnit::SINGLE_V2;
-
-		column.emplace_back(make_pair((1ull << idx), Lns));
-	}
+    return;
 }
 
 static void controller(MatrixSequence &sequence, const EigenMatrix2c U2, EigenMatrixXc &matrix)
@@ -203,9 +172,30 @@ static void controller(MatrixSequence &sequence, const EigenMatrix2c U2, EigenMa
 	}
 
 	matrix = In + Un;
+    return;
 }
 
-static void operation(EigenMatrixXc& matrix, MatrixOperator& entries, std::vector<SingleGateUnit>& cir_units)
+static void recursive_partition(const EigenMatrixXc& sub_matrix, MatrixOperator &entries)
+{
+    Eigen::Index order = sub_matrix.rows();
+    if (1 == order)
+    {
+        return;
+    }
+    else
+    {
+        EigenMatrixXc corner = sub_matrix.topLeftCorner(order / 2, order / 2);
+
+        recursive_partition(corner, entries);
+
+        upper_partition(order / 2, entries);
+        under_partition(order / 2, entries);
+    }
+
+    return;
+}
+
+static void decomposition(EigenMatrixXc& matrix, MatrixOperator& entries, std::vector<SingleGateUnit>& cir_units)
 {
 	for (auto cdx = 0; cdx < entries.size(); ++cdx)
 	{
@@ -283,22 +273,40 @@ static void operation(EigenMatrixXc& matrix, MatrixOperator& entries, std::vecto
 	}
 }
 
-static void partition(const EigenMatrixXc& sub_matrix, MatrixOperator &entries)
+static void initialize(EigenMatrixXc& matrix, MatrixOperator& entries)
 {
-	Eigen::Index order = sub_matrix.rows();
-	if (1 == order)
-	{
-		return;
-	}
-	else
-	{
-		EigenMatrixXc corner = sub_matrix.topLeftCorner(order / 2, order / 2);
+    auto qubits = (int)std::log2(matrix.rows());
 
-		partition(corner, entries);
+    MatrixSequence Cns(qubits, MatrixUnit::SINGLE_I2);
+    Cns.back() = MatrixUnit::SINGLE_V2;
+    entries.front().emplace_back(make_pair(1, Cns));
 
-		upper_partition(order / 2, entries);
-		under_partition(order / 2, entries);
-	}
+    ColumnOperator& column = entries.front();
+    for (auto idx = 1; idx < qubits; ++idx)
+    {
+        size_t path = 1ull << idx;
+        for (auto opt = 0; opt < (1 << idx) - 1; ++opt)
+        {
+            auto entry = column[opt].first;
+            auto units = column[opt].second;
+
+            // 1 : none of cn−1, . . . , c1 equals 1
+            // * : otherwise
+            auto iter = std::find(units.end() - idx, units.end(), MatrixUnit::SINGLE_P1);
+
+            units[units.size() - 1 - idx] = (units.end() == iter) ?
+                MatrixUnit::SINGLE_P1 : MatrixUnit::SINGLE_I2;
+
+            column.emplace_back(make_pair(entry + path, units));
+        }
+
+        MatrixSequence Lns(qubits, MatrixUnit::SINGLE_I2);
+        Lns[qubits - idx - 1] = MatrixUnit::SINGLE_V2;
+
+        column.emplace_back(make_pair((1ull << idx), Lns));
+    }
+
+    return;
 }
 
 static void general_scheme(EigenMatrixXc& matrix, std::vector<SingleGateUnit>& cir_units)
@@ -310,9 +318,11 @@ static void general_scheme(EigenMatrixXc& matrix, std::vector<SingleGateUnit>& c
 		entries.emplace_back(Co);
 	}
 
-	voluation(matrix, entries);
- 	partition(matrix, entries);
-	operation(matrix, entries, cir_units);
+	initialize(matrix, entries);
+ 	recursive_partition(matrix, entries);
+	decomposition(matrix, entries, cir_units);
+
+    return;
 }
 
 static void circuit_insert(QVec& qubits, std::vector<SingleGateUnit>& cir_units, QCircuit &circuit)

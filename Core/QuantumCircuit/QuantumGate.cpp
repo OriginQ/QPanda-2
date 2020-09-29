@@ -263,6 +263,34 @@ H::H()
 	gate_type = GateType::HADAMARD_GATE;
 }
 
+ECHO::ECHO()
+{
+	operation_num = 1;
+	alpha = 0;
+	beta = 0;
+	gamma = 0;
+	delta = 0;
+	gate_matrix[0] = 1;
+	gate_matrix[1] = 0;
+	gate_matrix[2] = 0;
+	gate_matrix[3] = 1;
+	gate_type = GateType::ECHO_GATE;
+}
+
+BARRIER::BARRIER()
+{
+    operation_num = 1;
+    alpha = 0;
+    beta = 0;
+    gamma = 0;
+    delta = 0;
+    gate_matrix[0] = 1;
+    gate_matrix[1] = 0;
+    gate_matrix[2] = 0;
+    gate_matrix[3] = 1;
+    gate_type = GateType::BARRIER_GATE;
+}
+
 //S
 S::S()
 {
@@ -328,6 +356,21 @@ RZ::RZ(double angle)
     gate_matrix[3].real(cos(angle / 2));
     gate_matrix[3].imag(1 * sin(angle / 2));
 	gate_type = GateType::RZ_GATE;
+}
+
+RPhi::RPhi(double angle, double phi)
+{
+	operation_num = 1;
+	m_phi = phi;
+	alpha = 0;
+	beta = angle;
+	gamma = 0;
+	delta = 0;
+	gate_matrix[0] = (cos(angle / 2));
+	gate_matrix[1] = qcomplex_t(0, -1) * qcomplex_t(sin(angle / 2), 0) * (qcomplex_t(cos(phi), 0) - qcomplex_t(0, sin(phi)));
+	gate_matrix[2] = qcomplex_t(0, -1) * qcomplex_t(sin(angle / 2), 0) * (qcomplex_t(cos(phi), 0) + qcomplex_t(0, sin(phi)));
+	gate_matrix[3] = (cos(angle / 2));
+	gate_type = GateType::RPHI_GATE;
 }
 
 //U1_GATE=[1 0;0 exp(i*angle)]

@@ -8,11 +8,13 @@
 #include "Core/Core.h"
 #include "Core/QuantumCircuit/QuantumMeasure.h"
 #include "Core/QuantumCircuit/QGate.h"
-#include "Core/Utilities/Tools/XMLConfigParam.h"
+#include "Core/Utilities/Tools/JsonConfigParam.h"
+#include <chrono>
 
 USING_QPANDA
 using namespace std;
 using namespace QGATE_SPACE;
+using namespace DRAW_TEXT_PIC;
 
 #define WIRE_HEAD_LEN 6
 #define OUTPUT_TMP_FILE ("QCircuitTextPic.txt")
@@ -371,8 +373,12 @@ public:
 private:
 };
 
-DrawPicture::DrawPicture(QProg &prog)
-	:m_prog(prog), m_text_len(0), m_max_time_sequence(0), m_time_sequence_conf(TimeSequenceConfig::get_instance())
+DrawPicture::DrawPicture(QProg prog, TopologSequence<pOptimizerNodeInfo>& layer_info)
+	: m_prog(prog)
+	, m_layer_info(layer_info)
+	, m_text_len(0)
+	, m_max_time_sequence(0)
+	, m_time_sequence_conf(TimeSequenceConfig::get_instance())
 {}
 
 void DrawPicture::appendMeasure(std::shared_ptr<AbstractQuantumMeasure> pMeasure)
@@ -419,21 +425,6 @@ void DrawPicture::append_reset(std::shared_ptr<AbstractQuantumReset> pReset)
 	start_quBit->second->append(box_reset, 0);
 
 	update_time_sequence(start_quBit->second, get_reset_time_sequence());
-}
-
-void DrawPicture::layer()
-{
-	if (nullptr != m_p_grapth_dag.get())
-	{
-		m_p_grapth_dag.reset((std::make_shared<GraphMatch>()).get());
-	}
-	else
-	{
-		m_p_grapth_dag = std::make_shared<GraphMatch>();
-	}
-
-	m_layer_info.clear();
-	m_p_grapth_dag->get_topological_sequence(m_prog, m_layer_info);
 }
 
 void DrawPicture::append_ctrl_gate(std::string gate_name, const int terget_qubit, QVec &self_control_qubits_vec, QVec &circuit_control_qubits_vec)
@@ -516,7 +507,7 @@ void DrawPicture::append_single_gate(std::string gate_name, QVec &qubits_vector,
 	BoxOnQuWire quBox(gate_name);
 	for (auto itr = all_qubits.begin(); itr != all_qubits.end(); ++itr)
 	{
-		if ((*itr) == qubit_index)
+		if (((*itr) == qubit_index) && (gate_name.compare("BARRIER") != 0))
 		{
 			//append target qubit
 			set_connect_direction(*itr, all_qubits, quBox);
@@ -725,14 +716,9 @@ NodeType DrawPicture::sequence_node_type_to_node_type(SequenceNodeType sequence_
 	{
 	case SequenceNodeType::MEASURE:
 		return MEASURE_GATE;
-		break;
 
 	case SequenceNodeType::RESET:
 		return RESET_NODE;
-		break;
-
-	default:
-		break;
 	}
 
 	return GATE_NODE;
@@ -740,15 +726,16 @@ NodeType DrawPicture::sequence_node_type_to_node_type(SequenceNodeType sequence_
 
 void DrawPicture::draw_by_layer()
 {
-	const QProgDAG &prog_dag = m_p_grapth_dag->getProgDAG();
+	const auto& layer_info = m_layer_info;
 	DrawByLayer tmp_drawer(*this);
-	for (auto seq_item_itr = m_layer_info.begin(); seq_item_itr != m_layer_info.end(); ++seq_item_itr)
+
+	for (auto seq_item_itr = layer_info.begin(); seq_item_itr != layer_info.end(); ++seq_item_itr)
 	{
 		for (auto &seq_node_item : (*seq_item_itr))
 		{
-			SequenceNode n = seq_node_item.first;
-			auto p_node = prog_dag.get_vertex(n.m_vertex_num);
-			tmp_drawer.handle_work(sequence_node_type_to_node_type((SequenceNodeType)(n.m_node_type)), p_node);
+			auto n = seq_node_item.first;
+			auto p_node = *(n->m_iter);
+			tmp_drawer.handle_work(sequence_node_type_to_node_type((SequenceNodeType)(n->m_type)), p_node);
 		}
 
 		//update m_text_len
@@ -806,16 +793,15 @@ void GetUsedQubits::handle_gate_node(std::shared_ptr<QNode>& p_node)
 	}
 }
 
-void DrawPicture::fill_layer(TopologicalSequence::iterator lay_iter)
+void DrawPicture::fill_layer(TopoSeqIter lay_iter)
 {
-	const QProgDAG &prog_dag = m_p_grapth_dag->getProgDAG();
 	QVec vec_qubits_used_in_layer;
 	GetUsedQubits used_qubits(*this, vec_qubits_used_in_layer);
 	for (auto &seq_node_item : (*lay_iter))
 	{
-		SequenceNode n = seq_node_item.first;
-		auto p_node = prog_dag.get_vertex(n.m_vertex_num);
-		used_qubits.handle_work(sequence_node_type_to_node_type((SequenceNodeType)(n.m_node_type)), p_node);
+		auto n = seq_node_item.first;
+		auto p_node = *(n->m_iter);
+		used_qubits.handle_work(sequence_node_type_to_node_type((SequenceNodeType)(n->m_type)), p_node);
 	}
 
 	QVec unused_qubits_vec = get_qvec_difference(m_quantum_bits_in_use, vec_qubits_used_in_layer);
@@ -824,29 +810,29 @@ void DrawPicture::fill_layer(TopologicalSequence::iterator lay_iter)
 	get_gate_from_next_layer(lay_iter, unused_qubits_vec, next_iter);
 }
 
-void FillLayerByNextLayerNodes::handle_measure_node(SequenceLayer::iterator& itr_on_next_layer)
+void FillLayerByNextLayerNodes::handle_measure_node(TopoSeqLayerIter& itr_on_next_layer)
 {
 	auto& seq_node_item = *itr_on_next_layer;
-	SequenceNode n = seq_node_item.first;
-	std::shared_ptr<AbstractQuantumMeasure> p_measure = std::dynamic_pointer_cast<AbstractQuantumMeasure>(m_prog_dag.get_vertex(n.m_vertex_num));
+	auto n = seq_node_item.first;
+	auto p_measure = std::dynamic_pointer_cast<AbstractQuantumMeasure>(*(n->m_iter));
 	QMeasure tmp_measure_node(p_measure);
 	handle_single_qubit_node(tmp_measure_node, itr_on_next_layer);
 }
 
-void FillLayerByNextLayerNodes::handle_reset_node(SequenceLayer::iterator& itr_on_next_layer)
+void FillLayerByNextLayerNodes::handle_reset_node(TopoSeqLayerIter& itr_on_next_layer)
 {
 	auto& seq_node_item = *itr_on_next_layer;
-	SequenceNode n = seq_node_item.first;
-	std::shared_ptr<AbstractQuantumReset> p_reset = std::dynamic_pointer_cast<AbstractQuantumReset>(m_prog_dag.get_vertex(n.m_vertex_num));
+	auto n = seq_node_item.first;
+	auto p_reset = std::dynamic_pointer_cast<AbstractQuantumReset>(*(n->m_iter));
 	QReset tmp_reset_node(p_reset);
 	handle_single_qubit_node(tmp_reset_node, itr_on_next_layer);
 }
 
-void FillLayerByNextLayerNodes::handle_gate_node(SequenceLayer::iterator& itr_on_next_layer)
+void FillLayerByNextLayerNodes::handle_gate_node(TopoSeqLayerIter& itr_on_next_layer)
 {
 	auto& seq_node_item = *itr_on_next_layer;
-	SequenceNode n = seq_node_item.first;
-	std::shared_ptr<AbstractQGateNode> p_gate = std::dynamic_pointer_cast<AbstractQGateNode>(m_prog_dag.get_vertex(n.m_vertex_num));
+	auto n = seq_node_item.first;
+	auto p_gate = std::dynamic_pointer_cast<AbstractQGateNode>(*(n->m_iter));
 	QGate tmp_gate_node(p_gate);
 	QVec gate_qubits;
 	tmp_gate_node.getQuBitVector(gate_qubits);
@@ -867,9 +853,10 @@ void FillLayerByNextLayerNodes::handle_gate_node(SequenceLayer::iterator& itr_on
 	m_unused_qubits_vec = m_parent.get_qvec_difference(m_unused_qubits_vec, gate_qubits);
 }
 
-void DrawPicture::get_gate_from_next_layer(TopologicalSequence::iterator to_fill_lay_iter, QVec &unused_qubits_vec, TopologicalSequence::iterator next_lay_iter)
+void DrawPicture::get_gate_from_next_layer(TopoSeqIter to_fill_lay_iter, QVec &unused_qubits_vec, TopoSeqIter next_lay_iter)
 {
-	if ((unused_qubits_vec.size() == 0) || (m_layer_info.end() == next_lay_iter))
+	const auto& layer_info = m_layer_info;
+	if ((unused_qubits_vec.size() == 0) || (layer_info.end() == next_lay_iter))
 	{
 		return;
 	}
@@ -879,9 +866,9 @@ void DrawPicture::get_gate_from_next_layer(TopologicalSequence::iterator to_fill
 	for (auto seq_node_item_iter = next_lay.begin(); seq_node_item_iter != next_lay.end();)
 	{
 		auto& seq_node_item = *seq_node_item_iter;
-		SequenceNode n = seq_node_item.first;
+		auto n = seq_node_item.first;
 		FillLayerByNextLayerNodes filler(*this, unused_qubits_vec, target_lay, next_lay);
-		filler.handle_work(sequence_node_type_to_node_type((SequenceNodeType)(n.m_node_type)), seq_node_item_iter);
+		filler.handle_work(sequence_node_type_to_node_type((SequenceNodeType)(n->m_type)), seq_node_item_iter);
 		if (unused_qubits_vec.size() == 0)
 		{
 			break;
@@ -916,9 +903,9 @@ QVec DrawPicture::get_qvec_difference(QVec &vec1, QVec &vec2)
 
 void DrawPicture::draw_by_time_sequence()
 {
-	const QProgDAG &prog_dag = m_p_grapth_dag->getProgDAG();
 	DrawByLayer tmp_drawer(*this);
-	for (auto seq_item_itr = m_layer_info.begin(); seq_item_itr != m_layer_info.end(); ++seq_item_itr)
+	auto& layer_info = m_layer_info;
+	for (auto seq_item_itr = layer_info.begin(); seq_item_itr != layer_info.end(); ++seq_item_itr)
 	{
 		if ((*seq_item_itr).size() == 0)
 		{
@@ -930,9 +917,9 @@ void DrawPicture::draw_by_time_sequence()
 
 		for (auto &seq_node_item : (*seq_item_itr))
 		{
-			SequenceNode n = seq_node_item.first;
-			auto p_node = prog_dag.get_vertex(n.m_vertex_num);
-			tmp_drawer.handle_work(sequence_node_type_to_node_type((SequenceNodeType)(n.m_node_type)), p_node);
+			auto n = seq_node_item.first;
+			auto p_node = *(n->m_iter);
+			tmp_drawer.handle_work(sequence_node_type_to_node_type((SequenceNodeType)(n->m_type)), p_node);
 		}
 
 		// check time sequence
@@ -970,10 +957,11 @@ void DrawPicture::append_time_sequence_line()
 	}
 }
 
-void DrawPicture::check_time_sequence(std::vector<SequenceLayer>::iterator cur_layer_iter)
+void DrawPicture::check_time_sequence(TopoSeqIter cur_layer_iter)
 {
 	auto next_layer_iter = ++cur_layer_iter;
-	if (next_layer_iter == m_layer_info.end())
+	const auto& layer_info = m_layer_info;
+	if (next_layer_iter == layer_info.end())
 	{
 		return;
 	}
@@ -1001,10 +989,10 @@ void DrawPicture::check_time_sequence(std::vector<SequenceLayer>::iterator cur_l
 	}
 }
 
-void TryToMergeTimeSequence::handle_measure_node(DrawPicture::wireIter& cur_qu_wire, SequenceLayer::iterator& itr_on_next_layer, bool &b_found_node_on_cur_qu_wire)
+void TryToMergeTimeSequence::handle_measure_node(DrawPicture::WireIter& cur_qu_wire, TopoSeqLayerIter& itr_on_next_layer, bool &b_found_node_on_cur_qu_wire)
 {
-	const SequenceNode &node = itr_on_next_layer->first;
-	std::shared_ptr<AbstractQuantumMeasure> p_measure = dynamic_pointer_cast<AbstractQuantumMeasure>(m_prog_dag.get_vertex(node.m_vertex_num));
+	const auto &node = itr_on_next_layer->first;
+	std::shared_ptr<AbstractQuantumMeasure> p_measure = dynamic_pointer_cast<AbstractQuantumMeasure>(*(node->m_iter));
 	if (cur_qu_wire->first == p_measure->getQuBit()->getPhysicalQubitPtr()->getQubitAddr())
 	{
 		if ((m_parent.m_max_time_sequence - (cur_qu_wire->second->get_time_sequence())) < m_parent.get_measure_time_sequence())
@@ -1022,10 +1010,10 @@ void TryToMergeTimeSequence::handle_measure_node(DrawPicture::wireIter& cur_qu_w
 	}
 }
 
-void TryToMergeTimeSequence::handle_reset_node(DrawPicture::wireIter& cur_qu_wire, SequenceLayer::iterator& itr_on_next_layer, bool &b_found_node_on_cur_qu_wire)
+void TryToMergeTimeSequence::handle_reset_node(DrawPicture::WireIter& cur_qu_wire, TopoSeqLayerIter& itr_on_next_layer, bool &b_found_node_on_cur_qu_wire)
 {
-	const SequenceNode &node = itr_on_next_layer->first;
-	std::shared_ptr<AbstractQuantumReset> p_reset = dynamic_pointer_cast<AbstractQuantumReset>(m_prog_dag.get_vertex(node.m_vertex_num));
+	const auto &node = itr_on_next_layer->first;
+	std::shared_ptr<AbstractQuantumReset> p_reset = dynamic_pointer_cast<AbstractQuantumReset>(*(node->m_iter));
 	if (cur_qu_wire->first == p_reset->getQuBit()->getPhysicalQubitPtr()->getQubitAddr())
 	{
 		if ((m_parent.m_max_time_sequence - (cur_qu_wire->second->get_time_sequence())) < m_parent.get_reset_time_sequence())
@@ -1043,12 +1031,12 @@ void TryToMergeTimeSequence::handle_reset_node(DrawPicture::wireIter& cur_qu_wir
 	}
 }
 
-void TryToMergeTimeSequence::handle_gate_node(DrawPicture::wireIter& cur_qu_wire, SequenceLayer::iterator& itr_on_next_layer, bool &b_found_node_on_cur_qu_wire)
+void TryToMergeTimeSequence::handle_gate_node(DrawPicture::WireIter& cur_qu_wire, TopoSeqLayerIter& itr_on_next_layer, bool &b_found_node_on_cur_qu_wire)
 {
 	QVec control_qubits_vec;
 	QVec qubits_vector;
-	const SequenceNode &node = itr_on_next_layer->first;
-	std::shared_ptr<AbstractQGateNode> p_gate = dynamic_pointer_cast<AbstractQGateNode>(m_prog_dag.get_vertex(node.m_vertex_num));
+	const auto &node = itr_on_next_layer->first;
+	std::shared_ptr<AbstractQGateNode> p_gate = dynamic_pointer_cast<AbstractQGateNode>(*(node->m_iter));
 	p_gate->getControlVector(control_qubits_vec);
 	p_gate->getQuBitVector(qubits_vector);
 	if ((qubits_vector.size() > 1) || (control_qubits_vec.size() > 0))
@@ -1075,17 +1063,17 @@ void TryToMergeTimeSequence::handle_gate_node(DrawPicture::wireIter& cur_qu_wire
 	m_b_continue_recurse = true;
 }
 
-void TryToMergeTimeSequence::try_to_append_gate_to_cur_qu_wire(DrawPicture::wireIter &qu_wire_itr, SequenceLayer::iterator& seq_iter, SequenceLayer& node_vec)
+void TryToMergeTimeSequence::try_to_append_gate_to_cur_qu_wire(DrawPicture::WireIter &qu_wire_itr, TopoSeqLayerIter& seq_iter, TopoSeqLayer& node_vec)
 {
 	QVec control_qubits_vec;
 	QVec qubits_vector;
-	const SequenceNode &seq_node = seq_iter->first;
-	std::shared_ptr<AbstractQGateNode> p_gate = dynamic_pointer_cast<AbstractQGateNode>(m_prog_dag.get_vertex(seq_node.m_vertex_num));
+	const auto &seq_node = seq_iter->first;
+	std::shared_ptr<AbstractQGateNode> p_gate = dynamic_pointer_cast<AbstractQGateNode>(*(seq_node->m_iter));
 	p_gate->getControlVector(control_qubits_vec);
 	p_gate->getQuBitVector(qubits_vector);
 
 	string gate_name;
-	m_parent.append_gate_param(gate_name, p_gate, (GateType)(seq_node.m_node_type));
+	m_parent.append_gate_param(gate_name, p_gate, (GateType)(seq_node->m_type));
 
 	if ((qubits_vector.size() > 1) || (control_qubits_vec.size() > 0))
 	{
@@ -1097,7 +1085,7 @@ void TryToMergeTimeSequence::try_to_append_gate_to_cur_qu_wire(DrawPicture::wire
 		}
 
 		//double gate
-		switch ((GateType)(seq_node.m_node_type))
+		switch ((GateType)(seq_node->m_type))
 		{
 		case ISWAP_THETA_GATE:
 		case ISWAP_GATE:
@@ -1131,11 +1119,11 @@ void TryToMergeTimeSequence::try_to_append_gate_to_cur_qu_wire(DrawPicture::wire
 	m_b_continue_recurse = true;
 }
 
-bool DrawPicture::check_time_sequence_one_qubit(wireIter qu_wire_itr, TopologicalSequence::iterator next_layer_iter)
+bool DrawPicture::check_time_sequence_one_qubit(WireIter qu_wire_itr, TopoSeqIter next_layer_iter)
 {
 	//if any qubit-line's time sequence is less than others,  try complement by node from next layer
-	//if (cur_wire_time_sequence < m_max_time_sequence)
-	if (next_layer_iter == m_layer_info.end())
+	const auto& layer_info = m_layer_info;
+	if (next_layer_iter == layer_info.end())
 	{
 		return false;
 	}
@@ -1145,10 +1133,10 @@ bool DrawPicture::check_time_sequence_one_qubit(wireIter qu_wire_itr, Topologica
 	TryToMergeTimeSequence merge_time_sequence(*this, nodes_on_next_layer);
 	for (auto seq_node_item = nodes_on_next_layer.begin(); seq_node_item != nodes_on_next_layer.end(); ++seq_node_item)
 	{
-		const SequenceNode &node = seq_node_item->first;
+		const auto &node = seq_node_item->first;
 		bool b_found_node_on_cur_qu_wire = false;
 
-		merge_time_sequence.handle_work(sequence_node_type_to_node_type((SequenceNodeType)(node.m_node_type)), qu_wire_itr, seq_node_item, b_found_node_on_cur_qu_wire);
+		merge_time_sequence.handle_work(sequence_node_type_to_node_type((SequenceNodeType)(node->m_type)), qu_wire_itr, seq_node_item, b_found_node_on_cur_qu_wire);
 		if (b_found_node_on_cur_qu_wire)
 		{
 			break;
@@ -1212,7 +1200,7 @@ bool DrawPicture::is_qubit_in_vec(const int qubit, const QVec& vec)
 	return false;
 }
 
-int DrawPicture::getMaxQuWireLength(wireIter start_quBit_wire, wireIter end_quBit_wire)
+int DrawPicture::getMaxQuWireLength(WireIter start_quBit_wire, WireIter end_quBit_wire)
 {
 	int max_length = -1;
 	int tmp_length = 0;
@@ -1239,38 +1227,6 @@ void DrawPicture::updateTextPicLen()
 	m_text_len = max_len;
 }
 
-int DrawPicture::get_wide_char_pos(const std::string &str, int start_pos)
-{
-	for (size_t i = start_pos; i < str.length(); i++)
-	{
-		if (((str.at(i) == (char)(0xE2)) && (str.at(i + 1) == (char)(0x96)) && (str.at(i + 2) == (char)(0xA0))) ||
-			((str.at(i) == (char)(0xE2)) && (str.at(i + 1) == (char)(0x97)) && (str.at(i + 2) == (char)(0x86))))
-		{
-			return i;
-		}
-	}
-
-	return -1;
-}
-
-void DrawPicture::fit_to_gbk(std::string &utf8_str)
-{
-	int pos = 0;
-	while (true)
-	{
-		pos = get_wide_char_pos(utf8_str, pos);
-		if (0 > pos)
-		{
-			break;
-		}
-
-		utf8_str.erase(pos + 3, 1);
-		utf8_str.erase(pos + 3, 1);
-		utf8_str.erase(pos + 3, 1);
-		pos += 3;
-	}
-}
-
 string DrawPicture::present()
 {
 	/* write to file */
@@ -1291,11 +1247,6 @@ string DrawPicture::present()
 		outputStr.append(itr.second->draw(outfile, 0));
 	}
 	outfile.close();
-	
-#ifdef WIN32
-	fit_to_gbk(outputStr);
-	outputStr = Utf8ToGbkOnWin32(outputStr.c_str()); 
-#endif
 
 	return outputStr;
 }
@@ -1337,9 +1288,6 @@ void DrawPicture::init(std::vector<int>& quBits, std::vector<int>& clBits)
 	m_text_len = m_quantum_bit_wires.begin()->second->getWireLength();
 
 	get_all_used_qubits(m_prog, m_quantum_bits_in_use);
-
-	//layer
-	layer();
 }
 
 void DrawPicture::mergeLine()

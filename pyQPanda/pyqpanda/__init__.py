@@ -9,7 +9,7 @@ from .pyQPanda import *
 from .Variational import back
 import warnings
 
-#  classes 
+#  classes
 
 # pyQPanda
 from .pyQPanda import AbstractOptimizer
@@ -19,7 +19,6 @@ from .pyQPanda import ArchType
 from .pyQPanda import CBit
 from .pyQPanda import ClassicalCondition
 from .pyQPanda import ClassicalProg
-from .pyQPanda import ClusterMachineType
 from .pyQPanda import QuantumMachine
 from .pyQPanda import CPUQVM
 from .pyQPanda import CPUSingleThreadQVM
@@ -27,7 +26,6 @@ from .pyQPanda import DoubleGateTransferType
 from .pyQPanda import GateType
 from .pyQPanda import QCircuit
 from .pyQPanda import hadamard_circuit
-from .pyQPanda import IBMQBackends
 from .pyQPanda import NodeInfo
 from .pyQPanda import NodeIter
 from .pyQPanda import NodeType
@@ -36,7 +34,6 @@ from .pyQPanda import NoiseQVM
 from .pyQPanda import OriginCollection
 from .pyQPanda import PartialAmpQVM
 from .pyQPanda import PhysicalQubit
-from .pyQPanda import QCloud
 from .pyQPanda import QCodarGridDevice
 from .pyQPanda import QError
 from .pyQPanda import QGate
@@ -85,7 +82,7 @@ from .Operator.pyQPandaOperator import VarFermionOperator
 from .Operator.pyQPandaOperator import VarPauliOperator
 
 
-#funtions
+# funtions
 
 from .pyQPanda import accumulateProbability
 from .pyQPanda import accumulate_probabilities
@@ -108,7 +105,7 @@ from .pyQPanda import convert_binary_data_to_qprog
 from .pyQPanda import convert_originir_to_qprog
 from .pyQPanda import convert_qasm_to_qprog
 from .pyQPanda import convert_qprog_to_binary
-from .pyQPanda import convert_qprog_to_originir 
+from .pyQPanda import convert_qprog_to_originir
 from .pyQPanda import convert_qprog_to_qasm
 from .pyQPanda import convert_qprog_to_quil
 from .pyQPanda import count_gate
@@ -130,6 +127,11 @@ from .pyQPanda import div
 from .pyQPanda import dot
 from .pyQPanda import draw_qprog
 from .pyQPanda import draw_qprog_with_clock
+from .pyQPanda import fit_to_gbk
+from .pyQPanda import quantum_chip_adapter
+from .pyQPanda import get_all_used_qubits
+from .pyQPanda import get_all_used_qubits_to_int
+from .pyQPanda import decompose_multiple_control_qgate
 from .pyQPanda import dropout
 from .pyQPanda import equal
 from .pyQPanda import eval
@@ -155,6 +157,8 @@ from .pyQPanda import get_qstate
 from .pyQPanda import get_tuple_list
 from .pyQPanda import get_unsupport_qgate_num
 from .pyQPanda import graph_query_replace
+from .pyQPanda import Grover
+from .pyQPanda import Grover_search
 from .pyQPanda import H
 from .pyQPanda import HHL
 from .pyQPanda import HHL_solve_linear_equations
@@ -199,7 +203,7 @@ from .pyQPanda import run_with_configuration
 from .pyQPanda import RX
 from .pyQPanda import RY
 from .pyQPanda import RZ
-from .pyQPanda import S 
+from .pyQPanda import S
 from .pyQPanda import sigmoid
 from .pyQPanda import softmax
 from .pyQPanda import stack
@@ -215,7 +219,6 @@ from .pyQPanda import transform_binary_data_to_qprog
 from .pyQPanda import transform_originir_to_qprog
 from .pyQPanda import transform_qprog_to_binary
 from .pyQPanda import transform_qprog_to_originir
-from .pyQPanda import transform_qprog_to_qasm
 from .pyQPanda import transform_qprog_to_quil
 from .pyQPanda import transpose
 from .pyQPanda import U1
@@ -233,19 +236,23 @@ from .pyQPanda import Y1
 from .pyQPanda import Z
 from .pyQPanda import Z1
 from .pyQPanda import _back
-    
-#pyQPandaOperator
 
-
+# pyQPandaOperator
 
 try:
-    #classes
+    from .pyQPanda import QCloud
+    from .pyQPanda import ClusterMachineType
+except ImportError as e:
+    warnings.warn("No module named QCloud")
+
+try:
+    # classes
 
     from .ChemiQ.pyQPandaChemiQ import ChemiQ
     from .ChemiQ.pyQPandaChemiQ import TransFormType
     from .ChemiQ.pyQPandaChemiQ import UccType
 
-    #funtions
+    # funtions
 
     from .ChemiQ.pyQPandaChemiQ import getCCSD_N_Trem
     from .ChemiQ.pyQPandaChemiQ import getCCSD_Var

@@ -54,6 +54,13 @@ extern "C" {
     DLLEXPORT void setBasis(ChemiQ* chemiq, char* basis);
 
 	/**
+	* @brief Set Eq Tolerance
+	* @param[in]  ChemiQ* the target ChemiQ object ptr
+	* @param[in] double EqTolerance value
+	*/
+	DLLEXPORT void setEqTolerance(ChemiQ* chemiq, double val);
+
+	/**
 	* @brief Set the transform type from Fermion operator to Pauli operator
 	* @param[in]  ChemiQ* the target ChemiQ object ptr
 	* @param[in] int transform type

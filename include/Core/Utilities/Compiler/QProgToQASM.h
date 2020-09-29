@@ -19,31 +19,19 @@ Classes for QProgToQASM.
 #include "Core/QuantumCircuit/QGlobalVariable.h"
 #include "Core/QuantumCircuit/ControlFlow.h"
 #include "Core/QuantumMachine/QuantumMachineInterface.h"
-#include "Core/Utilities/Tools/Traversal.h"
+#include "Core/Utilities/QProgInfo/QCircuitInfo.h"
 
 QPANDA_BEGIN
-
-/**
-* @brief IBM currently provides the back-end runtime environment
-*/
-enum IBMQBackends
-{
-	IBMQ_QASM_SIMULATOR = 0,
-	IBMQ_16_MELBOURNE,
-	IBMQX2,
-	IBMQX4
-};
-
 
 /**
 * @class QProgToQASM
 * @ingroup Utilities
 * @brief Quantum Prog Transform To QASM instruction sets
 */
-class QProgToQASM : public TraversalInterface<bool&>
+class QProgToQASM : public TraverseByNodeIter
 {
 public:
-    QProgToQASM(QuantumMachine * quantum_machine, IBMQBackends ibmBackend = IBMQ_QASM_SIMULATOR);
+    QProgToQASM(QProg src_prog, QuantumMachine * quantum_machine);
     ~QProgToQASM() {}
     /**
     * @brief  get QASM insturction set
@@ -56,71 +44,48 @@ public:
     * @param[in]  QProg&  quantum program
     * @return     void  
     */
-    virtual void transform(QProg &);
-
-	static std::string getIBMQBackendName(IBMQBackends typeNum);
+    virtual void transform();
 	
 	public:
-	virtual void execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node,bool & ) ;
-	virtual void execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, std::shared_ptr<QNode> parent_node, bool &) ;
-	virtual void execute(std::shared_ptr<AbstractQuantumReset> cur_node, std::shared_ptr<QNode> parent_node, bool &);
-	virtual void execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node, bool &);
-	virtual void execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std::shared_ptr<QNode> parent_node, bool &) ;
-	virtual void execute(std::shared_ptr<AbstractQuantumProgram>  cur_node, std::shared_ptr<QNode> parent_node, bool &) ;
-	virtual void execute(std::shared_ptr<AbstractClassicalProg>  cur_node, std::shared_ptr<QNode> parent_node, bool &);
+	virtual void execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node, QCircuitParam &cir_param, NodeIter& cur_node_iter) ;
+	virtual void execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, std::shared_ptr<QNode> parent_node, QCircuitParam &cir_param, NodeIter& cur_node_iter) ;
+	virtual void execute(std::shared_ptr<AbstractQuantumReset> cur_node, std::shared_ptr<QNode> parent_node, QCircuitParam &cir_param, NodeIter& cur_node_iter);
+	virtual void execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node, QCircuitParam &cir_param, NodeIter& cur_node_iter);
+	virtual void execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std::shared_ptr<QNode> parent_node, QCircuitParam &cir_param, NodeIter& cur_node_iter) ;
+	virtual void execute(std::shared_ptr<AbstractQuantumProgram>  cur_node, std::shared_ptr<QNode> parent_node, QCircuitParam &cir_param, NodeIter& cur_node_iter) ;
+	virtual void execute(std::shared_ptr<AbstractClassicalProg>  cur_node, std::shared_ptr<QNode> parent_node, QCircuitParam &cir_param, NodeIter& cur_node_iter);
 
 private:
-	/**
-	* @brief  Transform Quantum program by Traversal algorithm, refer to class Traversal
-	* @param[in]  QProg&  quantum program
-	* @return     void
-	*/
-	virtual void transformQProgByTraversalAlg(QProg *prog);
 	virtual void transformQGate(AbstractQGateNode*, bool is_dagger);
 
     virtual void transformQMeasure(AbstractQuantumMeasure*);
 	virtual void transformQReset(AbstractQuantumReset*);
 
+	QProg m_src_prog;
     std::map<int, std::string>  m_gatetype; /**< Quantum gatetype map   */
     std::vector<std::string> m_qasm; /**< QASM instructin vector   */
     QuantumMachine * m_quantum_machine;
-	IBMQBackends _ibmBackend;
 };
-
-    /**
-    * @brief  Quantum program transform to qasm instruction set
-    * @ingroup Utilities
-    * @param[in]  QProg&   Quantum Program 
-	* @param[in]   QuantumMachine*  quantum machine pointer
-	* @param[in]	 IBMQBackends	ibmBackend = IBMQ_QASM_SIMULATOR
-    * @return     std::string    QASM instruction set
-    * @see
-        * @code
-                init(QuantumMachine_type::CPU);
-
-                auto qubit = qAllocMany(6);
-                auto cbit  = cAllocMany(2);
-                auto prog = CreateEmptyQProg();
-
-                prog << CZ(qubit[0], qubit[2]) << H(qubit[1]) << CNOT(qubit[1], qubit[2])
-                << RX(qubit[0],pi/2) << Measure(qubit[1],cbit[1]);
-
-				extern QuantumMachine* global_quantum_machine;
-                std::cout << transformQProgToQASM(prog, global_quantum_machine) << std::endl;
-                finalize();
-        * @endcode
-    */
-    std::string transformQProgToQASM(QProg &pQProg, QuantumMachine * quantum_machine, IBMQBackends ibmBackend = IBMQ_QASM_SIMULATOR);
 
 /**
 * @brief  Convert Quantum program  to QASM instruction set
 * @ingroup Utilities
 * @param[in]  QProg&   Quantum Program
-* @param[in]   QuantumMachine*  quantum machine pointer
-* @param[in]	 IBMQBackends	ibmBackend = IBMQ_QASM_SIMULATOR
+* @param[in]  QuantumMachine*  quantum machine pointer
+* @param[in] IBMQBackends	ibmBackend = IBMQ_QASM_SIMULATOR
 * @return     std::string    QASM instruction set
 */
-std::string convert_qprog_to_qasm(QProg &prog, QuantumMachine* qm, IBMQBackends ibmBackend = IBMQ_QASM_SIMULATOR);
+std::string convert_qprog_to_qasm(QProg &prog, QuantumMachine* qm);
+
+/**
+* @brief  write prog to qasm file
+* @ingroup Utilities
+* @param[in] QProg&   Quantum Program
+* @param[in] QuantumMachine*  quantum machine pointer
+* @param[in] const std::string	qasm file name
+* @return
+*/
+void write_to_qasm_file(QProg prog, QuantumMachine * qvm, const std::string file_name);
 	
 QPANDA_END
 #endif

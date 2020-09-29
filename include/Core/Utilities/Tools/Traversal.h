@@ -33,11 +33,15 @@ public:
     std::map<std::string, bool> m_return_value; /**< MonteCarlo result */
     bool m_is_dagger;
     std::vector<QPanda::Qubit *> m_control_qubit_vector;
+
     double m_rotation_angle_error{ 0 };
+    bool m_can_optimize_measure = true;
+    std::vector<size_t> m_measure_qubits;
+    std::vector<CBit *> m_measure_cc;
 
     TraversalConfig(double rotation_angle_error = 0)
         : m_qubit_number(0), m_is_dagger(false)
-        
+
     {
         m_rotation_angle_error = rotation_angle_error / 2;
     }

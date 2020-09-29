@@ -1,5 +1,8 @@
 #ifdef USE_CURL
 #include "QPanda.h"
+#include <chrono>
+#include <thread>
+#include <curl/curl.h>
 #include "gtest/gtest.h"
 #include "QuantumMachine/QCloudMachine.h"
 using namespace std;
@@ -24,31 +27,33 @@ void curl_test()
     rapidjson::Document::AllocatorType &allocator = doc.GetAllocator();
 
     std::string prog_str = "QINIT 10\nCREG 10\nH q[0]\n";
+    //std::string prog_str = "QINIT 10 CREG 10 H q[0] MEASURE q[0],c[0]";
     rapidjson::Value code_str(rapidjson::kStringType);
     code_str.SetString(prog_str.c_str(), prog_str.size());
 
     doc.AddMember("code", code_str, allocator);
-    doc.AddMember("apiKey", "AB3FE594418E49F6B5BD0ABD0FF7EEAD", allocator);
-    doc.AddMember("QMachineType", (int)CLOUD_QMACHINE_TYPE::Full_AMPLITUDE, allocator);
-    doc.AddMember("codeLen", (int)prog_str.size(), allocator);
-    doc.AddMember("qubitNum", 10, allocator);
-    doc.AddMember("measureType", 1, allocator);
-    doc.AddMember("classicalbitNum", 10, allocator);
-    doc.AddMember("shot", 100, allocator);
+    doc.AddMember("apiKey", "3B1AC640AAC248C6A7EE4E8D8537370D", allocator);
+    doc.AddMember("QMachineType", "0", allocator);
+    doc.AddMember("codeLen", "100", allocator);
+    doc.AddMember("qubitNum", "10", allocator);
+    doc.AddMember("measureType", "1", allocator);
+    doc.AddMember("classicalbitNum", "1", allocator);
+    doc.AddMember("shot", "100", allocator);
 
     StringBuffer buffer;
     Writer<StringBuffer> writer(buffer);
     doc.Accept(writer);
 
     std::string post_json = buffer.GetString();
-    cout << post_json << endl;
-    std::string url = "http://10.10.12.176:8060/api/taskApi/submitTask.json";
+    std::string url = "https://qcloud.qubitonline.cn/api/taskApi/submitTask.json";
 
     std::stringstream out;
+    curl_global_init(CURL_GLOBAL_ALL);
+
     auto pCurl = curl_easy_init();
 
     struct curl_slist* headers = NULL;
-    headers = curl_slist_append(headers, "Content-Type:application/json;charset=UTF-8");
+    headers = curl_slist_append(headers, "Content-Type: application/json;charset=UTF-8");
     headers = curl_slist_append(headers, "Connection: keep-alive");
     headers = curl_slist_append(headers, "Server: nginx/1.16.1");
     headers = curl_slist_append(headers, "Transfer-Encoding: chunked");
@@ -78,7 +83,7 @@ void curl_test()
 
     curl_easy_setopt(pCurl, CURLOPT_WRITEFUNCTION, recv_json_data);
 
-    curl_easy_setopt(pCurl, CURLOPT_VERBOSE, 1);
+    //curl_easy_setopt(pCurl, CURLOPT_VERBOSE, 1);
 
     curl_easy_setopt(pCurl, CURLOPT_WRITEDATA, &out);
 
@@ -87,54 +92,78 @@ void curl_test()
     {
         stringstream errMsg;
         errMsg << "post failed : " << curl_easy_strerror(res) << std::endl;
-        cout << errMsg.str() << endl;
+        cout << errMsg.str() <<endl;
     }
 
     curl_slist_free_all(headers);
     curl_easy_cleanup(pCurl);
 
-    cout << out.str().substr(out.str().find("{")) << endl;
+    curl_global_cleanup();
 
-    Sleep(1);
+    cout << out.str() << endl;
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(3000));
 }
-
-
-
 
 TEST(CloudHttp, Cluster)
 {
+    //curl_test();
+
     QCloudMachine QCM;;
-    QCM.init("4B7AFE1E196A4197B7C6845C4E73EF2E");
-    auto qlist = QCM.allocateQubits(10);
-    auto clist = QCM.allocateCBits(10);
-    auto prog = QProg();
+    QCM.init("3B1AC640AAC248C6A7EE4E8D8537370D");
+    auto qlist = QCM.allocateQubits(6);
+    auto clist = QCM.allocateCBits(6);
 
-    for_each(qlist.begin(), qlist.end(), [&](Qubit *val) { prog << H(val); });
-    prog << CZ(qlist[1], qlist[5])
-        << CZ(qlist[3], qlist[7])
+    auto measure_prog = QProg();
+    measure_prog << HadamardQCircuit(qlist)
+        << CZ(qlist[1], qlist[5])
         << CZ(qlist[0], qlist[4])
-        << RZ(qlist[7], PI / 4)
-        << RX(qlist[5], PI / 4)
-        << RX(qlist[4], PI / 4);
+        << RX(qlist[2], PI / 4)
+        << RX(qlist[1], PI / 4)
+        << CZ(qlist[2], qlist[3])
+        << Measure(qlist[0], clist[0])
+        << Measure(qlist[1], clist[1])
+        << Measure(qlist[2], clist[2]);
 
-    std::vector<std::string> amplitude_vector = { "0","1" };
-    Qnum qvec = { 0,1 };
-    
+    auto pmeasure_prog = QProg();
+    pmeasure_prog << HadamardQCircuit(qlist)
+        << CZ(qlist[1], qlist[5])
+        << RX(qlist[2], PI / 4)
+        << RX(qlist[1], PI / 4);
 
-	std::string task_id;
-	if(QCM.full_amplitude_measure(prog, 100, task_id));
-	{
-		QCM.get_result(task_id, CLOUD_QMACHINE_TYPE::Full_AMPLITUDE);
-	}
+    auto result0 = QCM.full_amplitude_measure(measure_prog, 100);
+    for (auto val : result0)
+    {
+        cout << val.first << " : " << val.second << endl;
+    }
 
-	QCM.get_result(task_id, CLOUD_QMACHINE_TYPE::Full_AMPLITUDE);
+    auto result1 = QCM.full_amplitude_pmeasure(pmeasure_prog, { 0, 1, 2 });
+    for (auto val : result1)
+    {
+        cout << val.first << " : " << val.second << endl;
+    }
 
-	
-    //std::cout << QCM.full_amplitude_pmeasure(prog, qvec) << endl;
-    //std::cout << QCM.partial_amplitude_pmeasure(prog, amplitude_vector) << endl;
-    //std::cout << QCM.single_amplitude_pmeasure(prog, "0") << endl;
-    
+    auto result2 = QCM.partial_amplitude_pmeasure(pmeasure_prog, { "0", "1", "2" });
+    for (auto val : result2)
+    {
+        cout << val.first << " : " << val.second << endl;
+    }
 
+    auto result3 = QCM.single_amplitude_pmeasure(pmeasure_prog, "0");
+    cout << "0" << " : " << result3 << endl;
+
+    QCM.set_noise_model(NOISE_MODEL::BIT_PHASE_FLIP_OPRATOR, { 0.01 }, { 0.02 });
+    auto result4 = QCM.noise_measure(measure_prog, 100);
+    for (auto val : result4)
+    {
+        cout << val.first << " : " << val.second << endl;
+    }
+
+    auto result5 = QCM.real_chip_measure(measure_prog, 1000);
+    for (auto val : result5)
+    {
+        cout << val.first << " : " << val.second << endl;
+    }
 
     QCM.finalize();
 }

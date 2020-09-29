@@ -1,5 +1,5 @@
 #include "Core/Utilities/QProgTransform/SU4TopologyMatch.h"
-#include "Core/Utilities/Tools/XMLConfigParam.h"
+#include "Core/Utilities/Tools/JsonConfigParam.h"
 
 USING_QPANDA
 using namespace std;
@@ -53,17 +53,17 @@ void  SU4TopologyMatch::build_coupling_map(ArchType type)
 	case ArchType::ORIGIN_VIRTUAL_ARCH:
 	{
 		m_coupling_map.clear();
-		std::vector<std::vector<int>> qubit_matrix;
+		std::vector<std::vector<double>> qubit_matrix;
 		int qubit_num = 0;
-		XmlConfigParam xml_config;
-		xml_config.loadFile("QPandaConfig.xml");
-		xml_config.getMetadataConfig(qubit_num, qubit_matrix);
+		JsonConfigParam config;
+		config.load_config(CONFIG_PATH);
+		config.getMetadataConfig(qubit_num, qubit_matrix);
 		m_nqubits = qubit_num;
 		for (int i = 0; i < m_nqubits; i++)
 		{
 			for (int j = 0; j < m_nqubits; j++)
 			{
-				if (qubit_matrix[i][j])
+				if (qubit_matrix[i][j] > 1e-6)
 				{
 					m_coupling_map.insert({ i, j });
 				}
@@ -79,10 +79,12 @@ void  SU4TopologyMatch::build_coupling_map(ArchType type)
 void SU4TopologyMatch::transform_qprog(QProg prog, std::vector<gate> &circuit)
 {
 	QProgToDAG qprog_to_dag;
-	QProgDAG qprog_dag;
+	QProgDAG<GateNodeInfo> qprog_dag;
 	qprog_to_dag.traversal(prog, qprog_dag);
-	TopologicalSequence tp_seq;
-	qprog_dag.getTopologincalSequence(tp_seq);
+	TopologSequence<SequenceNode> tp_seq;
+	DAGToTopologSequence<SequenceNode>(tp_seq, qprog_dag, 
+		static_cast<DAGToTopologSequence<SequenceNode>::tranf_fun<GateNodeInfo>>(SequenceNode::construct_sequence_node));
+
 	std::set<int > used_qubits;
 	std::vector<int> tp_sort;
 	for (auto layer_seq : tp_seq)
@@ -94,7 +96,7 @@ void SU4TopologyMatch::transform_qprog(QProg prog, std::vector<gate> &circuit)
 	}
 	for (auto vertex : tp_sort)
 	{
-		std::shared_ptr<QNode> qnode = qprog_dag.get_vertex(vertex);
+		std::shared_ptr<QNode> qnode = *(qprog_dag.get_vertex_node(vertex).m_itr);
 		if (qnode->getNodeType() != NodeType::GATE_NODE)
 		{
 			QCERR("node type not support!");

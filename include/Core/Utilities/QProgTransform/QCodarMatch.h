@@ -22,6 +22,7 @@ limitations under the License.
 #include "Core/Utilities/QProgTransform/QCodar/QScheduler.h"
 #include "Core/Utilities/QProgTransform/QCodar/GridDevice.h"
 #include "Core/QuantumCircuit/QuantumGate.h"
+#include "Core/Utilities/Tools/JsonConfigParam.h"
 
 QPANDA_BEGIN
 
@@ -45,7 +46,7 @@ enum QCodarGridDevice
 class QCodarMatch : public TraversalInterface<bool&>
 {
 public:
-	QCodarMatch(QuantumMachine * machine, QCodarGridDevice arch_type , int m,  int n);
+	QCodarMatch(QuantumMachine * machine, QProg prog, QCodarGridDevice arch_type , int m,  int n, const std::string config_data = CONFIG_PATH);
 	~QCodarMatch();
 	
 	void initScheduler(QCodarGridDevice arch_type, size_t qubits);
@@ -54,13 +55,12 @@ public:
 
 	/**
 	* @brief  Mapping qubits in a quantum program
-	* @param[in]  Qprog  quantum program
 	* @param[in]  size_t   run_times  : the number of times  run the remapping
 	* @param[in,out]  QVec  qubits vector
 	* @param[out]  Qprog&  the mapped quantum program
 	* @return   void
 	**/
-	void mappingQProg(QProg prog, size_t run_times, QVec &qv, QProg &mapped_prog);
+	void mappingQProg(size_t run_times, QVec &qv, QProg &mapped_prog);
 
 	/**
 	* @brief  build QProg by the mapping results
@@ -89,6 +89,7 @@ public:
 private:
 
 	QuantumMachine * m_qvm;
+	QCodarGridDevice m_arch_type;
 
 	QScheduler  *m_scheduler;
 	BasicGridDevice *m_device;
@@ -101,7 +102,17 @@ private:
 	std::map<int, std::function<QGate(Qubit *, Qubit*)> > m_double_gate_func;
 	std::map<int, std::function<QGate(Qubit *, Qubit*, double)> > m_double_angle_gate_func;
 
-private:
+	std::vector<int> m_logic_qubits_apply;
+
+	std::map<int, int >m_double_gate_apply;
+
+	std::vector<double> m_physics_qubit_fidelity;
+	std::vector< std::vector<double>> m_qubit_error;
+
+	const std::string m_config_data;
+	int m_transform_barrier_id = 0;
+
+	int m_handle_barrier_id = -1;
 };
 
 /**
@@ -110,9 +121,8 @@ private:
 * @param[in]  QProg  quantum program
 * @param[in,out]  QVec  qubit  vector
 * @param[in]  QuantumMachine*  quantum machine
-* @param[in]  QCodarGridDevice   grid device type
-* @param[in]  size_t   m : the length of the topology,  if SIMPLE_TYPE  you need to set the size
-* @param[in]  size_t   n  : the  width of the topology,   if SIMPLE_TYPE  you need to set the size
+* @param[in]  size_t   m : the length of the topology
+* @param[in]  size_t   n  : the  width of the topology
 * @param[in]  size_t   run_times  : the number of times  run the remapping, better parameters get better results
 * @return    QProg   mapped  quantum program
 * @note	 QCodarGridDevice : SIMPLE_TYPE  It's a simple undirected  topology graph, build a topology based on the values of m and n
@@ -121,9 +131,36 @@ private:
 *													4 = 5 = 6 = 7
 *											   
 */
-QProg qcodar_match(QProg prog, QVec &qv, QuantumMachine * machine, 
-	QCodarGridDevice arch_type = SIMPLE_TYPE, size_t m = 2, size_t n = 4, size_t run_times = 5);
+QProg qcodar_match_by_simple_type(QProg prog, QVec &qv, QuantumMachine * machine, 
+	size_t m = 2, size_t n = 4, size_t run_times = 5);
 
+/**
+* @brief   A Contextual Duration-Aware Qubit Mapping for V arious NISQ Devices
+* @ingroup Utilities
+* @param[in]  QProg  quantum program
+* @param[in,out]  QVec  qubit  vector
+* @param[in]  QuantumMachine*  quantum machine
+* @param[in]  const std::string : the  config data, @see JsonConfigParam::load_config
+* @param[in]  size_t   run_times  : the number of times  run the remapping, better parameters get better results
+* @return    QProg   mapped  quantum program
+*
+*/
+QProg qcodar_match_by_config(QProg prog, QVec &qv, QuantumMachine * machine, const std::string config_data = CONFIG_PATH, 
+	size_t run_times = 5);
+
+/**
+* @brief   A Contextual Duration-Aware Qubit Mapping for V arious NISQ Devices
+* @ingroup Utilities
+* @param[in]  QProg  quantum program
+* @param[in,out]  QVec  qubit  vector
+* @param[in]  QuantumMachine*  quantum machine
+* @param[in]  QCodarGridDevice Real physical chip
+* @param[in]  size_t   run_times  : the number of times  run the remapping, better parameters get better results
+* @return    QProg   mapped  quantum program
+*
+*/
+QProg qcodar_match_by_target_meachine(QProg prog, QVec &qv, QuantumMachine * machine,
+	QCodarGridDevice arch_type, size_t run_times = 5);
 
 QPANDA_END
 

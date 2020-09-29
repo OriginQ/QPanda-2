@@ -482,6 +482,12 @@ QGate QPanda::RZ(Qubit * qubit, double angle)
 	return _gs_pGateNodeFactory->getGateNode(name, { qubit }, angle);
 }
 
+QGate QPanda::RPhi(Qubit * qubit, double angle, double phi)
+{
+	string name = "RPhi";
+	return _gs_pGateNodeFactory->getGateNode(name, { qubit }, angle, phi);
+}
+
 QGate QPanda::iSWAP(Qubit * targitBit_fisrt, Qubit * targitBit_second)
 {
     string name = "ISWAP";
@@ -532,6 +538,36 @@ QGate  QPanda::H(Qubit * qubit)
 {
     string name = "H";
 	return _gs_pGateNodeFactory->getGateNode(name, { qubit });
+}
+
+QGate  QPanda::ECHO(Qubit * qubit)
+{
+	string name = "ECHO";
+	return _gs_pGateNodeFactory->getGateNode(name, { qubit });
+}
+
+QGate  QPanda::BARRIER(Qubit * qubit)
+{
+    string name = "BARRIER";
+    return _gs_pGateNodeFactory->getGateNode(name, { qubit });
+}
+
+QGate  QPanda::BARRIER(QVec qubits)
+{
+    if (qubits.size() < 1)
+    {
+        throw std::runtime_error("Error: BARRIER Create");
+    }
+
+    string name = "BARRIER";
+    auto gate = _gs_pGateNodeFactory->getGateNode(name, qubits[0]);
+
+    if (qubits.size() > 1)
+    {
+        gate.setControl(QVec(qubits.begin() + 1, qubits.end()));
+    }
+
+    return gate;
 }
 
 QGate  QPanda::CNOT(Qubit * control_qubit, Qubit * target_qubit)
@@ -585,4 +621,39 @@ QGate QPanda::oracle(QVec qubits, std::string oracle_name)
 {
 	string name = "OracularGate";
 	return _gs_pGateNodeFactory->getGateNode(name, qubits, oracle_name);
+}
+
+
+/* new interface */
+QGate QPanda::U4(Qubit *qubit, QStat & matrix)
+{
+    string name = "U4";
+    return _gs_pGateNodeFactory->getGateNode(name, { qubit }, matrix);
+}
+
+QGate QPanda::U4(Qubit * qubit, double alpha, double beta, double gamma, double delta)
+{
+    string name = "U4";
+    return _gs_pGateNodeFactory->getGateNode(name, {qubit}, alpha, beta, gamma, delta);
+}
+
+QGate QPanda::QDouble(Qubit * qubit1, Qubit * qubit2, QStat& matrix)
+{
+    string name = ":QDoubleGate";
+    return _gs_pGateNodeFactory->getGateNode(name,{ qubit1, qubit2 }, matrix);
+}
+
+QGate QPanda::CU(Qubit * control_qubit,
+                 Qubit * target_qubit,
+                 double alpha,double beta,
+                 double gamma, double delta)
+{
+    string name = "CU";
+    return _gs_pGateNodeFactory->getGateNode(name, { control_qubit, target_qubit }, alpha, beta, gamma, delta);
+}
+
+QGate QPanda::CU(Qubit * control_qubit, Qubit * target_qubit, QStat & matrix)
+{
+    string name = "CU";
+    return _gs_pGateNodeFactory->getGateNode(name, { control_qubit, target_qubit }, matrix);
 }

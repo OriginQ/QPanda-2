@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <string>
 #include "Core/Utilities/Tools/TranformQGateTypeStringAndEnum.h"
-#include "Core/Utilities/Tools/XMLConfigParam.h"
+#include "Core/Utilities/Tools/JsonConfigParam.h"
 
 using namespace std;
 
@@ -11,8 +11,7 @@ USING_QPANDA
 
 QuantumMetadata::QuantumMetadata(const string &filename)
 {
-
-    if (m_config.loadFile(filename.c_str()))
+    if (m_config.load_config(filename.c_str()))
     {
         m_is_config_exist = true;
     }
@@ -22,8 +21,7 @@ QuantumMetadata::QuantumMetadata(const string &filename)
     }
 }
 
-
-bool QuantumMetadata::getMetadata(int &qubit_num, std::vector<std::vector<int> > &matrix)
+bool QuantumMetadata::getMetadata(int &qubit_num, std::vector<std::vector<double> > &matrix)
 {
     if (!m_is_config_exist)
     {

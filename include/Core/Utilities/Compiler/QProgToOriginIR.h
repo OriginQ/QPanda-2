@@ -112,5 +112,15 @@ std::string convert_qprog_to_originir(_Ty &node, QuantumMachine *machine)
 	return transformQProgToOriginIR(node, machine);
 }
 
+/**
+* @brief  write prog to originir file
+* @ingroup Utilities
+* @param[in] QProg&   Quantum Program
+* @param[in] QuantumMachine*  quantum machine pointer
+* @param[in] const std::string	originir file name
+* @return
+*/
+void write_to_originir_file(QProg prog, QuantumMachine * qvm, const std::string file_name);
+
 QPANDA_END
 #endif

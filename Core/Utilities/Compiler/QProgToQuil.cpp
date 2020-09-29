@@ -48,7 +48,6 @@ void QProgToQuil::transform(QProg &prog)
     const int kMetadata_gate_type_count = 2;
     vector<vector<string>> valid_gate_matrix(kMetadata_gate_type_count, vector<string>(0));
     vector<vector<string>> gate_matrix(kMetadata_gate_type_count, vector<string>(0));
-    vector<vector<int>> adjacent_matrixes;
 
     gate_matrix[METADATA_SINGLE_GATE].emplace_back(m_gate_type_map[PAULI_X_GATE]);
     gate_matrix[METADATA_SINGLE_GATE].emplace_back(m_gate_type_map[PAULI_Y_GATE]);
@@ -73,7 +72,7 @@ void QProgToQuil::transform(QProg &prog)
                                       valid_gate_matrix[METADATA_SINGLE_GATE]);  /* single gate data MetadataValidity */
     DoubleGateTypeValidator::GateType(gate_matrix[METADATA_DOUBLE_GATE],
                                       valid_gate_matrix[METADATA_DOUBLE_GATE]);  /* double gate data MetadataValidity */
-    TransformDecomposition traversal_vec(valid_gate_matrix,gate_matrix,adjacent_matrixes,m_quantum_machine);
+    TransformDecomposition traversal_vec(valid_gate_matrix,gate_matrix,m_quantum_machine);
 
     traversal_vec.TraversalOptimizationMerge(prog);
 

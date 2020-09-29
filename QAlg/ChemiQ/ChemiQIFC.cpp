@@ -55,6 +55,11 @@ DLLEXPORT void setBasis(ChemiQ* chemiq, char* basis)
     chemiq->setBasis(basis);
 }
 
+DLLEXPORT void setEqTolerance(ChemiQ* chemiq, double val)
+{
+    chemiq->setEqTolerance(val);
+}
+
 DLLEXPORT void setTransformType(ChemiQ* chemiq, int type)
 {
     chemiq->setTransformType(TransFormType(type));

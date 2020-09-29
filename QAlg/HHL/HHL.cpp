@@ -6,6 +6,8 @@
 #include <functional>
 #include "QAlg/Base_QCircuit/QPE.h"
 #include <sstream>
+#include "Core/Utilities/Tools/QCircuitOptimize.h"
+#include "Core/Utilities/Tools/QProgFlattening.h"
 
 USING_QPANDA
 using namespace std;
@@ -108,7 +110,7 @@ EigenMatrixX HHLAlg::to_real_matrix(const EigenMatrixXc& c_mat)
 	return real_matrix;
 }
 
-double HHLAlg::get_max_eigen_val(const QStat& A)
+std::vector<double> HHLAlg::get_max_eigen_val(const QStat& A)
 {
 	auto e_mat_A = QStat_to_Eigen(A);
 	EigenMatrixX real_eigen_A = to_real_matrix(e_mat_A);
@@ -116,7 +118,9 @@ double HHLAlg::get_max_eigen_val(const QStat& A)
 	Eigen::EigenSolver<EigenMatrixX> eigen_solver(real_eigen_A);
 	auto eigen_vals = eigen_solver.eigenvalues();
 
+	std::vector<double> eigen_vec(2);
 	double max_eigen_val = 0.0;
+	double min_eigen_val = 0XEFFFFFFF;
 	for (size_t i = 0; i < eigen_vals.rows(); ++i)
 	{
 		for (size_t j = 0; j < eigen_vals.cols(); ++j)
@@ -126,10 +130,17 @@ double HHLAlg::get_max_eigen_val(const QStat& A)
 			{
 				max_eigen_val = m;
 			}
+
+			if ((m < min_eigen_val) && (m > 0.0001))
+			{
+				min_eigen_val = m;
+			}
 		}
 	}
 
-	return max_eigen_val;
+	eigen_vec[0] = max_eigen_val;
+	eigen_vec[1] = min_eigen_val;
+	return eigen_vec;
 }
 
 QCircuit HHLAlg::build_cir_b(QVec qubits, const std::vector<double>& b)
@@ -142,7 +153,13 @@ QCircuit HHLAlg::build_cir_b(QVec qubits, const std::vector<double>& b)
 	}
 	if (abs(1.0 - tmp_sum) > MAX_PRECISION)
 	{
-		QCERR_AND_THROW_ERRSTR(run_fail, "Error: The input vector B must satisfy the normalization condition.");
+		if (abs(tmp_sum - 0.0) < MAX_PRECISION)
+		{
+			QCERR("Error: The input vector b is zero.");
+			return QCircuit();
+		}
+
+		QCERR_AND_THROW_ERRSTR(run_fail, "Error: The input vector b must satisfy the normalization condition.");
 	}
 
 	QCircuit cir_b;
@@ -175,17 +192,25 @@ string HHLAlg::check_QPE_result()
 
 void HHLAlg::init_qubits()
 {
-	double max_eigen_val = get_max_eigen_val(m_A);
-	size_t ex_qubits = ceil(log2(max_eigen_val)) + 1;
+	const std::vector<double> max_and_min_eigen_val = get_max_eigen_val(m_A);
+	PTrace("The max-eigen-val = %f, min-eigen-val = %f\n", max_and_min_eigen_val[0], max_and_min_eigen_val[1]);
+	size_t ex_qubits = ceil(log2(max_and_min_eigen_val[0])) + 1;
 
 	size_t b_cir_used_qubits_cnt = ceil(log2(m_b.size()));
 	m_qubits_for_b = m_qvm.allocateQubits(b_cir_used_qubits_cnt);
 
-	m_mini_qft_qubits = ceil(log2(sqrt(m_A.size()))) + 3; //For eigenvalue amplification
+	//m_mini_qft_qubits = ceil(log2(sqrt(m_A.size()))) + 3; //For eigenvalue amplification
+	m_mini_qft_qubits = 1;
+	if (abs(max_and_min_eigen_val[1]) < 1)
+	{
+		auto f = 1.0 / max_and_min_eigen_val[1];
+		m_mini_qft_qubits += ceil(log2(f));
+	}
+
 	m_qft_cir_used_qubits_cnt = (m_mini_qft_qubits + ex_qubits);
 	m_qubits_for_qft = m_qvm.allocateQubits(m_qft_cir_used_qubits_cnt);
-	PTrace("Total need qubits number: %d, mini_qft_qubits=%d, ex_qubits=%d\n", 
-		m_qft_cir_used_qubits_cnt, m_mini_qft_qubits, ex_qubits);
+	PTrace("Total need qubits number: %d, qft_qubits=%d=%d+%d\n", 
+		(m_qft_cir_used_qubits_cnt + b_cir_used_qubits_cnt + 1), m_qft_cir_used_qubits_cnt, ex_qubits, m_mini_qft_qubits);
 
 	m_ancillary_qubit = m_qvm.allocateQubit();
 }
@@ -194,6 +219,18 @@ bool HHLAlg::is_hermitian_matrix()
 {
 	const auto tmp_A = dagger_c(m_A);
 	return (tmp_A == m_A);
+}
+
+void HHLAlg::transform_hermitian_to_unitary_mat(QStat& src_mat)
+{
+	for (auto& item : src_mat)
+	{
+		item *= qcomplex_t(0, PI * 2.0 / (1 << m_qft_cir_used_qubits_cnt));
+	}
+
+	EigenMatrixXc eigen_mat = QStat_to_Eigen(src_mat);
+	auto exp_matrix = eigen_mat.exp().eval();
+	src_mat = Eigen_to_QStat(exp_matrix);
 }
 
 QCircuit HHLAlg::get_hhl_circuit()
@@ -212,6 +249,9 @@ QCircuit HHLAlg::get_hhl_circuit()
 
 	m_cir_b = build_cir_b(m_qubits_for_b, m_b);
 
+	//transfer to unitary matrix
+	transform_hermitian_to_unitary_mat(tmp_A);
+
 	//QPE
 	m_cir_qpe = build_QPE_circuit(m_qubits_for_qft, m_qubits_for_b, tmp_A, true);
 	PTrace("qpe_gate_cnt: %d\n", getQGateNum(m_cir_qpe));
@@ -219,10 +259,43 @@ QCircuit HHLAlg::get_hhl_circuit()
 	m_cir_cr = build_CR_cir(m_qubits_for_qft, m_ancillary_qubit, m_qft_cir_used_qubits_cnt);
 	PTrace("cr_cir_gate_cnt: %d\n", getQGateNum(m_cir_cr));
 
+	std::vector<std::pair<QCircuit, QCircuit>> optimizer_cir_vec;
+	sub_cir_optimizer(m_cir_cr, optimizer_cir_vec);
+	PTrace("after optimizer cr_cir_gate_cnt: %d\n", getQGateNum(m_cir_cr));
 	m_hhl_cir << m_cir_b << m_cir_qpe << m_cir_cr << m_cir_qpe.dagger();
 	PTrace("hhl_cir_gate_cnt: %d\n", getQGateNum(m_hhl_cir));
 
 	return m_hhl_cir;
+}
+
+void HHLAlg::expand_linear_equations(QStat& A, std::vector<double>& b)
+{
+	size_t dimension = sqrt(A.size());
+	double e = ceil(log2(dimension));
+	const double expand_dimension = pow(2, e) - (double)dimension;
+	if ((expand_dimension - 0.0) < 0.000001)
+	{
+		return;
+	}
+
+	for (size_t i = 0; i < expand_dimension; ++i)
+	{
+		b.push_back(0);
+	}
+
+	size_t new_dimension = dimension + expand_dimension;
+	QStat new_A;
+	new_A.resize(pow(new_dimension, 2), 0);
+	const auto src_size = A.size() - 1;
+	for (size_t i = 0; i < dimension; ++i)
+	{
+		for (size_t j = 0; j < dimension; ++j)
+		{
+			new_A[i*new_dimension + j] = A[i*dimension + j];
+		}
+	}
+
+	A.swap(new_A);
 }
 
 QCircuit QPanda::build_HHL_circuit(const QStat& A, const std::vector<double>& b, QuantumMachine *qvm)
@@ -240,6 +313,13 @@ QStat QPanda::HHL_solve_linear_equations(const QStat& A, const std::vector<doubl
 	{
 		norm_coffe += (item*item);
 	}
+	if (abs(norm_coffe - 0.0) < MAX_PRECISION)
+	{
+		QStat r;
+		r.resize(b.size(), 0);
+		return r;
+	}
+
 	norm_coffe = sqrt(norm_coffe);
 	for (auto& item : tmp_b)
 	{
@@ -248,6 +328,7 @@ QStat QPanda::HHL_solve_linear_equations(const QStat& A, const std::vector<doubl
 
 	//build HHL quantum program
 	auto machine = initQuantumMachine(CPU);
+	machine->setConfigure({ 64,64 });
 	auto prog = QProg();
 	QCircuit hhl_cir = build_HHL_circuit(A, tmp_b, machine);
 	prog << hhl_cir;

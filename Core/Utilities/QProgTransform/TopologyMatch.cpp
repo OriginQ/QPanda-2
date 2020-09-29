@@ -1,6 +1,7 @@
 #include "Core/Utilities/QProgTransform/TopologyMatch.h"
-#include "Core/Utilities/Tools/XMLConfigParam.h"
+#include "Core/Utilities/Tools/JsonConfigParam.h"
 #include "Core/Utilities/QProgInfo/QuantumMetadata.h"
+#include "Core/Utilities/QProgInfo/QCircuitInfo.h"
 
 USING_QPANDA
 using namespace std;
@@ -49,7 +50,8 @@ bool TopologyMatch::isReversed(std::set<edge> graph, edge det_edge)
 	}
 }
 
-TopologyMatch::TopologyMatch(QuantumMachine * machine,  SwapQubitsMethod method, ArchType arch_type)
+TopologyMatch::TopologyMatch(QuantumMachine * machine, QProg prog, SwapQubitsMethod method, ArchType arch_type)
+	:m_prog(prog)
 {
 	m_nqubits = machine->getAllocateQubit();
 	m_qvm = machine;
@@ -61,7 +63,7 @@ TopologyMatch::TopologyMatch(QuantumMachine * machine,  SwapQubitsMethod method,
 		throw runtime_error("ERROR before mapping: more logical qubits than physical ones!");
 	}
 
-	QuantumMetadata metaData("QPandaConfig.xml");
+	QuantumMetadata metaData(CONFIG_PATH);
 	std::vector<std::string> single_gates_vec, double_gates_vec;
 	metaData.getQGate(single_gates_vec, double_gates_vec);
 	bool b_suppert_swap = false;
@@ -221,18 +223,18 @@ void  TopologyMatch::buildGraph(ArchType type, std::set<edge> &graph, size_t &po
 	case ArchType::ORIGIN_VIRTUAL_ARCH:
 	{
 		graph.clear();
-		std::vector<std::vector<int>> qubit_matrix;
+		std::vector<std::vector<double>> qubit_matrix;
 		int qubit_num = 0;
-		XmlConfigParam xml_config;
-		xml_config.loadFile("QPandaConfig.xml");
-		xml_config.getMetadataConfig(qubit_num, qubit_matrix);
+		JsonConfigParam config;
+		config.load_config(CONFIG_PATH);
+		config.getMetadataConfig(qubit_num, qubit_matrix);
 		positions = qubit_num;
 		edge e;
 		for (int i = 0; i < positions; i++)
 		{
 			for (int j = 0; j < positions; j++)
 			{
-				if (qubit_matrix[i][j])
+				if (qubit_matrix[i][j] > 1e-6)
 				{
 					e.v1 = i;
 					e.v2 = j;
@@ -633,9 +635,9 @@ TopologyMatch::node TopologyMatch::fixLayerByAStar(int layer, std::vector<int> &
 	return result;
 }
 
-void TopologyMatch::mappingQProg(QProg prog, QVec &qv, QProg &mapped_prog)
+void TopologyMatch::mappingQProg(QVec &qv, QProg &mapped_prog)
 {
-	traversalQProgToLayers(&prog);
+	traversalQProgToLayers(&m_prog);
 	vector<int> qubits(m_positions, -1);
 	vector<int> locations(m_nqubits, -1);
 
@@ -1248,8 +1250,40 @@ void TopologyMatch::execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, st
 		throw invalid_argument("control qubits in circuit are not supported!");
 	}
 
+	auto pNode = std::dynamic_pointer_cast<QNode>(cur_node);
+	if (nullptr == pNode)
+	{
+		QCERR("Unknown internal error");
+		throw std::runtime_error("Unknown internal error");
+	}
+
 	bool bDagger = cur_node->isDagger() ^ is_dagger;
-	Traversal::traversal(cur_node, true, *this, bDagger);
+
+	if (bDagger)
+	{
+		auto aiter = cur_node->getLastNodeIter();
+		if (nullptr == *aiter)
+			return;
+
+		while (aiter != cur_node->getHeadNodeIter())
+		{
+			if (aiter == nullptr)
+				break;
+
+			Traversal::traversalByType(*aiter, pNode, *this, bDagger);
+			--aiter;
+		}
+	}
+	else
+	{
+		auto aiter = cur_node->getFirstNodeIter();
+		while (aiter != cur_node->getEndNodeIter())
+		{
+			auto next = aiter.getNextIter();
+			Traversal::traversalByType(*aiter, pNode, *this, bDagger);
+			aiter = next;
+		}
+	}
 }
 
 void TopologyMatch::execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, std::shared_ptr<QNode> parent_node, bool &is_dagger)
@@ -1286,7 +1320,7 @@ QProg QPanda::topology_match(QProg prog, QVec &qv, QuantumMachine * machine, Swa
 	}
 
 	QProg outprog;
-	TopologyMatch match = TopologyMatch(machine, method, arch_type);
-	match.mappingQProg(prog, qv, outprog);
+	TopologyMatch match = TopologyMatch(machine, prog, method, arch_type);
+	match.mappingQProg(qv, outprog);
 	return outprog;
 }

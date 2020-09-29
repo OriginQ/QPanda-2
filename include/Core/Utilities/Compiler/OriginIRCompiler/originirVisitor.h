@@ -115,6 +115,8 @@ public:
 
     virtual antlrcpp::Any visitReset_statement(originirParser::Reset_statementContext *context) = 0;
 
+    virtual antlrcpp::Any visitBarrier_statement(originirParser::Barrier_statementContext *context) = 0;
+
     virtual antlrcpp::Any visitExpression_statement(originirParser::Expression_statementContext *context) = 0;
 
     virtual antlrcpp::Any visitConstant(originirParser::ConstantContext *context) = 0;

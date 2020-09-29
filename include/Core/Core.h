@@ -40,6 +40,7 @@ limitations under the License.
 #include "Core/Utilities/Compiler/QProgToQASM.h"
 #include "Core/Utilities/Compiler/QProgToQuil.h"
 #include "Core/Utilities/Compiler/QRunesToQProg.h"
+#include "Core/Utilities/Compiler/QuantumChipAdapter.h"
 
 #include "Core/Utilities/QProgInfo/MetadataValidity.h"
 #include "Core/Utilities/QProgInfo/QCircuitInfo.h"
@@ -47,6 +48,7 @@ limitations under the License.
 #include "Core/Utilities/QProgInfo/QGateCounter.h"
 #include "Core/Utilities/QProgInfo/QProgClockCycle.h"
 #include "Core/Utilities/QProgInfo/Visualization/QVisualization.h"
+#include "Core/Utilities/QProgInfo/QuantumMetadata.h"
 
 #include "Core/Utilities/QProgTransform/QProgToDAG/GraphMatch.h"
 #include "Core/Utilities/QProgTransform/QProgToDAG/QProgToDAG.h"
@@ -64,10 +66,11 @@ limitations under the License.
 #include "Core/Utilities/Tools/base64.hpp"
 #include "Core/Utilities/Tools/QString.h" 
 #include "Core/Utilities/Tools/Utils.h"  
-#include "Core/Utilities/Tools/XMLConfigParam.h"  
+#include "Core/Utilities/Tools/JsonConfigParam.h"  
 #include "Core/Utilities/Tools/FillQProg.h"
 #include "Core/Utilities/Tools/MatrixDecomposition.h"
 #include "Core/Utilities/Tools/RandomCircuit.h"
+#include "Core/Utilities/Tools/QCircuitOptimize.h"
 
 #include "Core/Variational/var.h"
 #include "Core/Variational/Optimizer.h"  
@@ -76,6 +79,7 @@ limitations under the License.
 #include "Core/Variational/Optimizer.h"
 
 #include "Core/VirtualQuantumProcessor/NoiseQPU/NoiseModel.h"  
+#include "Core/VirtualQuantumProcessor/MPSQVM/MPSImplQPU.h"
 
 QPANDA_BEGIN
 /**

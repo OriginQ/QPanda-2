@@ -46,6 +46,21 @@ size_t OriginQubitPool::getMaxQubit() const
     return vecQubit.size();
 }
 
+size_t OriginQubitPool::get_max_usedqubit_addr() const
+{
+	size_t max_addr = 0;
+	for (auto iter = vecQubit.begin(); iter != vecQubit.end(); ++iter)
+	{
+		if ((*iter)->getOccupancy())
+		{
+			int addr = (*iter)->getQubitAddr();
+			if (max_addr < addr)
+				max_addr = addr;
+		}
+	}
+	return max_addr;
+}
+
 size_t OriginQubitPool::getIdleQubit() const
 {
     size_t retIdle = 0;
@@ -190,6 +205,21 @@ size_t OriginQubitPoolv2::getMaxQubit() const
 	return vecQubit.size();
 }
 
+size_t OriginQubitPoolv2::get_max_usedqubit_addr() const
+{
+	size_t max_addr = 0;
+	for (auto iter = vecQubit.begin(); iter != vecQubit.end(); ++iter)
+	{
+		if ((*iter)->getOccupancy())
+		{
+			int addr = (*iter)->getQubitAddr();
+			if (max_addr < addr)
+				max_addr = addr;
+		}
+	}
+	return max_addr;
+}
+
 size_t OriginQubitPoolv2::getIdleQubit() const
 {
 	return vecQubit.size() - allocated_qubit.size();
@@ -308,6 +338,7 @@ void OriginQubitPoolv2::Free_Qubit(Qubit *_Qubit)
 			else
 			{
 				(*iter)->setOccupancy(false);
+                allocated_qubit.erase(allocated_iter);
 			}
 		}
 	}
@@ -316,7 +347,6 @@ void OriginQubitPoolv2::Free_Qubit(Qubit *_Qubit)
 		QCERR("QubitPool duplicate free");
 		throw runtime_error("QubitPool duplicate free");
 	}
-
 }
 
 size_t OriginQubitPoolv2::getPhysicalQubitAddr(Qubit *q)

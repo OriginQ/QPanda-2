@@ -16,12 +16,11 @@ Classes for get the shortes path of graph
 #include "Core/Utilities/QPandaNamespace.h"
 #include "Core/QuantumCircuit/QGlobalVariable.h"
 #include "Core/Utilities/Tools/TranformQGateTypeStringAndEnum.h"
-#include "ThirdParty/TinyXML/tinyxml.h"
 #include <iostream>
 #include <vector>
 #include <map>
 #include <string>
-#include "Core/Utilities/Tools/XMLConfigParam.h"
+#include "Core/Utilities/Tools/JsonConfigParam.h"
 
 QPANDA_BEGIN
 
@@ -35,7 +34,7 @@ public:
     QuantumMetadata(const std::string & filename = CONFIG_PATH);
     QuantumMetadata & operator =(const QuantumMetadata &) = delete;
 
-    bool getMetadata(int &qubit_num, std::vector<std::vector<int>> &matrix);
+    bool getMetadata(int &qubit_num, std::vector<std::vector<double>> &matrix);
     bool getQGate(std::vector<std::string> &single_gates, std::vector<std::string> &double_gates);
     bool getGateTime(std::map<GateType, size_t> &gate_time_map);
 
@@ -43,7 +42,7 @@ public:
 private:
     void insertGateTimeMap(const std::pair<std::string, size_t> &gate_time,
                            std::map<GateType, size_t> &gate_time_map);
-    XmlConfigParam m_config;
+	JsonConfigParam m_config;
     bool m_is_config_exist;
 };
 

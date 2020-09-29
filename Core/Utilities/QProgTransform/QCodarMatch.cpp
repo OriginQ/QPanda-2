@@ -1,6 +1,7 @@
 #include "Core/Utilities/QProgTransform/QCodarMatch.h"
 #include "Core/Utilities/QProgInfo/QuantumMetadata.h"
 #include "Core/QuantumCircuit/QuantumGate.h"
+#include "Core/Utilities/QProgInfo/QCircuitInfo.h"
 
 USING_QPANDA
 using namespace std;
@@ -11,25 +12,15 @@ static QGate iSWAPGateNotheta(Qubit * targitBit_fisrt, Qubit * targitBit_second)
 	return iSWAP(targitBit_fisrt, targitBit_second);
 }
 
-QCodarMatch::QCodarMatch(QuantumMachine * machine, QCodarGridDevice arch_type, int m, int n)
-	:m_qvm(machine)
+QCodarMatch::QCodarMatch(QuantumMachine * machine, QProg prog, QCodarGridDevice arch_type, int m, int n, const std::string config_data/* = CONFIG_PATH*/)
+	:m_qvm(machine), m_arch_type(arch_type), m_config_data(config_data)
 {
 	size_t qubits = machine->getAllocateQubit();
-	if (qubits <= 1)
+
+	if (qubits < 1)
 	{
 		QCERR("ERROR, Too few qubits to be mapped!");
 		throw runtime_error("ERROR, Too few qubits to be mapped!");
-	}
-
-	initGridDevice(arch_type, m, n);
-
-	initScheduler(arch_type, qubits);
-
-
-	if (qubits > m*n)
-	{
-		QCERR("ERROR before mapping: more logical qubits than physical ones!");
-		throw runtime_error("ERROR before mapping: more logical qubits than physical ones!");
 	}
 
 	m_gatetype.insert(pair<int, string>(GateType::PAULI_X_GATE, "X"));
@@ -43,6 +34,7 @@ QCodarMatch::QCodarMatch(QuantumMachine * machine, QCodarGridDevice arch_type, i
 	m_gatetype.insert(pair<int, string>(GateType::HADAMARD_GATE, "H"));
 	m_gatetype.insert(pair<int, string>(GateType::T_GATE, "T"));
 	m_gatetype.insert(pair<int, string>(GateType::S_GATE, "S"));
+	m_gatetype.insert(pair<int, string>(GateType::BARRIER_GATE, "BARRIER"));
 
 	m_gatetype.insert(pair<int, string>(GateType::RX_GATE, "RX"));
 	m_gatetype.insert(pair<int, string>(GateType::RY_GATE, "RY"));
@@ -60,6 +52,7 @@ QCodarMatch::QCodarMatch(QuantumMachine * machine, QCodarGridDevice arch_type, i
 	m_gatetype.insert(pair<int, string>(GateType::ISWAP_GATE, "ISWAP"));
 	m_gatetype.insert(pair<int, string>(GateType::SWAP_GATE, "SWAP"));
 	m_gatetype.insert(pair<int, string>(GateType::SQISWAP_GATE, "SQISWAP"));
+	m_gatetype.insert(pair<int, string>(GateType::ISWAP_THETA_GATE, "SQISWAP"));
 
 
 	m_single_gate_func.insert(make_pair(GateType::PAULI_X_GATE, X));
@@ -86,6 +79,20 @@ QCodarMatch::QCodarMatch(QuantumMachine * machine, QCodarGridDevice arch_type, i
 	m_double_gate_func.insert(make_pair(GateType::SQISWAP_GATE, SqiSWAP));
 	m_double_angle_gate_func.insert(make_pair(GateType::CPHASE_GATE, CR));
 
+
+	m_logic_qubits_apply.resize(qubits, 0);
+
+	traversalQProgParsingInfo(&prog);
+
+
+	initGridDevice(arch_type, m, n);
+	if (qubits > m*n)
+	{
+		QCERR("ERROR before mapping: more logical qubits than physical ones!");
+		throw runtime_error("ERROR before mapping: more logical qubits than physical ones!");
+	}
+
+	initScheduler(arch_type, qubits);
 }
 
 QCodarMatch::~QCodarMatch()
@@ -140,7 +147,37 @@ void QCodarMatch::initScheduler(QCodarGridDevice arch_type, size_t qubits)
 	}
 	else
 	{
-		m_scheduler->addLogicalQubits(qubits);
+		bool is_order = true;
+		if (arch_type == ORIGIN_VIRTUAL)
+		{
+			int logic_qubits_use_count = 0;
+			for (auto val : m_logic_qubits_apply)
+			{
+				if (val != 0)
+					logic_qubits_use_count++;
+			}
+			int valid_physics_qubits = 0;
+			for (auto val : m_physics_qubit_fidelity)
+			{
+				if (val > 1e-15)
+				{
+					valid_physics_qubits++;
+				}
+			}
+
+			if (valid_physics_qubits != m_physics_qubit_fidelity.size())
+				is_order = false;
+
+
+			if (logic_qubits_use_count > valid_physics_qubits)
+			{
+				QCERR("ERROR before mapping: more logical qubits than effective physical ones!");
+				throw runtime_error("ERROR before mapping: more logical qubits than effective physical ones!");
+			}
+
+			m_scheduler->setQubitFidelity(m_double_gate_apply, m_physics_qubit_fidelity, m_qubit_error);
+		}
+		m_scheduler->addLogicalQubits(qubits, is_order);
 	}
 }
 
@@ -237,7 +274,6 @@ void QCodarMatch::initGridDevice(QCodarGridDevice arch_type, int &m, int &n)
 		};
 
 		m_device = new UncompletedGridDevice(m, n, available_qubits);
-
 	}
 	break;
 	case QCodarGridDevice::SIMPLE_TYPE:
@@ -252,19 +288,31 @@ void QCodarMatch::initGridDevice(QCodarGridDevice arch_type, int &m, int &n)
 	break;
 	case QCodarGridDevice::ORIGIN_VIRTUAL:
 	{
-		std::vector<std::vector<int>> qubit_matrix;
+		if (m_config_data.empty())
+		{
+			QCERR_AND_THROW_ERRSTR(runtime_error, "Error: failed to initGridDevice, the config data is empty.");
+		}
+
+		std::vector<std::vector<double>> qubit_matrix;
 		int qubit_num = 0;
-		XmlConfigParam xml_config;
-		xml_config.loadFile("QPandaConfig.xml");
-		xml_config.getMetadataConfig(qubit_num, qubit_matrix);
+		JsonConfigParam config;
+		config.load_config(m_config_data);
+		config.getMetadataConfig(qubit_num, qubit_matrix);
 		m = 1;
 		n = qubit_num;
+		m_physics_qubit_fidelity.resize(qubit_num, 0);
+		m_qubit_error.resize(qubit_matrix.size());
 		for (int i = 0; i < qubit_matrix.size(); i++)
 		{
+			m_qubit_error[i].resize(qubit_matrix[i].size());
 			for (int j = 0; j < qubit_matrix[i].size(); j++)
 			{
-				if (qubit_matrix[i][j] == 1)
+				if (qubit_matrix[i][j] > 1e-6)
+				{
 					QPAIR(i, j);
+					m_physics_qubit_fidelity[i] += qubit_matrix[i][j];
+				}
+				m_qubit_error[i][j] = (1 - qubit_matrix[i][j]);
 			}
 		}
 		m_device = new ExGridDevice(m, n, lines);
@@ -296,7 +344,8 @@ void QCodarMatch::execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::sha
 {
 	QVec qgate_ctrl_qubits;
 	cur_node->getControlVector(qgate_ctrl_qubits);
-	if (!qgate_ctrl_qubits.empty())
+	auto type = cur_node->getQGate()->getGateType();
+	if (type != GateType::BARRIER_GATE && !qgate_ctrl_qubits.empty())
 	{
 		QCERR("control qubits in qgate are not supported!");
 		throw invalid_argument("control qubits in qgate are not supported!");
@@ -305,7 +354,6 @@ void QCodarMatch::execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::sha
 	GateInfo g;
 	QVec qv;
 	cur_node->getQuBitVector(qv);
-	auto type = cur_node->getQGate()->getGateType();
 
 	g.type = type;
 	g.is_dagger = cur_node->isDagger() ^ is_dagger;
@@ -316,7 +364,7 @@ void QCodarMatch::execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::sha
 		throw invalid_argument("invalid gate type.");
 	}
 	g.gate_name = iter->second;
-
+	g.barrier_id = -1;
 	switch (type)
 	{
 	case GateType::PAULI_X_GATE:
@@ -331,6 +379,20 @@ void QCodarMatch::execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::sha
 	{
 		g.control = -1;
 		g.target = qv[0]->getPhysicalQubitPtr()->getQubitAddr();
+	}
+	break;
+	case GateType::BARRIER_GATE:
+	{
+		g.control = -1;
+		g.target = qv[0]->getPhysicalQubitPtr()->getQubitAddr();
+		g.barrier_id = m_transform_barrier_id;
+		for (auto iter : qgate_ctrl_qubits)
+		{
+			auto temp_g = g;
+			temp_g.target = iter->get_phy_addr();
+			m_original_gates.push_back(temp_g);
+		}
+		m_transform_barrier_id++;
 	}
 	break;
 	case GateType::RX_GATE:
@@ -351,9 +413,19 @@ void QCodarMatch::execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::sha
 	case GateType::CZ_GATE:
 	case GateType::ISWAP_GATE:
 	case GateType::SWAP_GATE:
+	case GateType::SQISWAP_GATE:
 	{
 		g.control = qv[0]->getPhysicalQubitPtr()->getQubitAddr();
 		g.target = qv[1]->getPhysicalQubitPtr()->getQubitAddr();
+	}
+	break;
+	case  GateType::ISWAP_THETA_GATE:
+	{
+		g.control = qv[0]->getPhysicalQubitPtr()->getQubitAddr();
+		g.target = qv[1]->getPhysicalQubitPtr()->getQubitAddr();
+		auto gate_parameter = dynamic_cast<AbstractSingleAngleParameter*>(cur_node->getQGate());
+		double theta = gate_parameter->getParameter();
+		g.param.push_back(theta);
 	}
 	break;
 	case GateType::CPHASE_GATE:
@@ -433,7 +505,15 @@ void QCodarMatch::execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::sha
 	}
 	break;
 	}
+	m_logic_qubits_apply[g.target] += 1;
+	m_double_gate_apply[g.target] += 0;
 
+	if (g.control != -1)
+	{
+		m_logic_qubits_apply[g.control] += 1;
+		m_double_gate_apply[g.control] += 1;
+		m_double_gate_apply[g.target] += 1;
+	}
 	m_original_gates.push_back(g);
 }
 
@@ -451,9 +531,40 @@ void QCodarMatch::execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std:
 		QCERR("control qubits in circuit are not supported!");
 		throw invalid_argument("control qubits in circuit are not supported!");
 	}
-
 	bool bDagger = cur_node->isDagger() ^ is_dagger;
-	Traversal::traversal(cur_node, true, *this, bDagger);
+
+	auto pNode = std::dynamic_pointer_cast<QNode>(cur_node);
+	if (nullptr == pNode)
+	{
+		QCERR("Unknown internal error");
+		throw std::runtime_error("Unknown internal error");
+	}
+
+	if (bDagger)
+	{
+		auto aiter = cur_node->getLastNodeIter();
+		if (nullptr == *aiter)
+			return;
+
+		while (aiter != cur_node->getHeadNodeIter())
+		{
+			if (aiter == nullptr)
+				break;
+
+			Traversal::traversalByType(*aiter, pNode, *this, bDagger);
+			--aiter;
+		}
+	}
+	else
+	{
+		auto aiter = cur_node->getFirstNodeIter();
+		while (aiter != cur_node->getEndNodeIter())
+		{
+			auto next = aiter.getNextIter();
+			Traversal::traversalByType(*aiter, pNode, *this, bDagger);
+			aiter = next;
+		}
+	}
 }
 
 void QCodarMatch::execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, std::shared_ptr<QNode> parent_node, bool &is_dagger)
@@ -480,10 +591,8 @@ void QCodarMatch::execute(std::shared_ptr<AbstractClassicalProg>  cur_node, std:
 	throw invalid_argument("transform error, there shouldn't be classicalProg here.");
 }
 
-void QCodarMatch::mappingQProg(QProg prog, size_t run_times, QVec &qv, QProg &mapped_prog)
+void QCodarMatch::mappingQProg(size_t run_times, QVec &qv, QProg &mapped_prog)
 {
-	traversalQProgParsingInfo(&prog);
-
 	if (m_original_gates.size() == 0)
 	{
 		QCERR("parsing qprog info error! qprog valid info is null.");
@@ -494,7 +603,7 @@ void QCodarMatch::mappingQProg(QProg prog, size_t run_times, QVec &qv, QProg &ma
 	{
 		if (g.control == -1)
 		{
-			m_scheduler->addSingleQubitGate(g.gate_name, g.type, g.target, g.param, g.is_dagger);
+			m_scheduler->addSingleQubitGate(g.gate_name, g.type, g.target, g.param, g.barrier_id, g.is_dagger);
 		}
 		else
 		{
@@ -502,31 +611,59 @@ void QCodarMatch::mappingQProg(QProg prog, size_t run_times, QVec &qv, QProg &ma
 		}
 	}
 	int best_max_time = INT_MAX;
+	double best_error_rate = INT_MAX;
 	int gate_count = 0;
-	int which_best = -1;
 	int sum_min_route_len = 0, sum_cnot_route_len = 0, sum_rx_route_len = 0, max_route_len = 0;
 	auto best_map_list = m_scheduler->map_list;
 	auto save_gate_list = m_scheduler->logical_gate_list;
 	std::vector<GateInfo> best_output;
-	for (int i = 0; i < run_times; i++)
+	int random_cout = 15;
+	for (int ridx = 0; ridx < random_cout; ridx++)
 	{
-		m_scheduler->start();
-
-		int max_time = m_device->maxTime();
-
-		if (max_time <= best_max_time &&
-			(max_time < best_max_time || m_scheduler->gate_count < gate_count))
+		for (int i = 0; i < run_times; i++)
 		{
-			which_best = i;
-			best_max_time = max_time;
-			gate_count = m_scheduler->gate_count;
-			best_output = m_scheduler->mapped_result_gates;
-			best_map_list = m_scheduler->map_list;
-		}
-		m_device->clear();
-		m_scheduler->logical_gate_list = save_gate_list;
-	}
+			m_scheduler->start();
+			int max_time = m_device->maxTime();
+			double error_rate = m_scheduler->double_gate_error_rate;
 
+			if (m_arch_type != ORIGIN_VIRTUAL)
+			{
+				if (max_time <= best_max_time &&
+					(max_time < best_max_time || m_scheduler->gate_count < gate_count))
+				{
+					best_max_time = max_time;
+					gate_count = m_scheduler->gate_count;
+					best_output = m_scheduler->mapped_result_gates;
+					best_map_list = m_scheduler->map_list;
+				}
+			}
+			else
+			{
+				if (error_rate < best_error_rate ||
+					((error_rate - best_error_rate) < 1e-6 && max_time < best_max_time))
+				{
+					best_error_rate = error_rate;
+					best_max_time = max_time;
+					gate_count = m_scheduler->gate_count;
+					best_output = m_scheduler->mapped_result_gates;
+					best_map_list = m_scheduler->map_list;
+				}
+			}
+
+			if (ridx == 0 && m_scheduler->swap_gate_count == 0)
+				break;
+
+			m_device->clear();
+			m_scheduler->double_gate_error_rate = 0;
+			m_scheduler->logical_gate_list = save_gate_list;
+		}
+
+		if (ridx == 0 && m_scheduler->swap_gate_count == 0)
+			break;
+		int map_num = m_scheduler->map_list.size();
+		m_scheduler->map_list.clear();
+		m_scheduler->addLogicalQubits(map_num);
+	}
 	buildResultingQProg(best_output, best_map_list, qv, mapped_prog);
 }
 
@@ -545,12 +682,16 @@ void QCodarMatch::buildResultingQProg(const std::vector<GateInfo> resulting_gate
 		q.push_back(qubit);
 		mapping_result.insert(pair<int, int>(map_vec[i], i));
 	}
-	
+	out_qv = q;
+
+	std::map<int, QCircuit> slice_cirs;
+	std::map<int, QVec> barrier_qvec;
+
 	for (auto g : resulting_gates)
 	{
 		if (g.control != -1)
 		{
-			auto iter = mapping_result.find(g.control);  
+			auto iter = mapping_result.find(g.control);
 			if (iter == mapping_result.end())
 			{
 				auto qubit = m_qvm->allocateQubitThroughPhyAddress(g.control);
@@ -570,7 +711,7 @@ void QCodarMatch::buildResultingQProg(const std::vector<GateInfo> resulting_gate
 		{
 			auto qubit = m_qvm->allocateQubitThroughPhyAddress(g.target);
 			q.push_back(qubit);
-			int index = mapping_result.size() ;
+			int index = mapping_result.size();
 			mapping_result.insert(pair<int, int>(g.target, index));
 			g.target = index;
 		}
@@ -579,6 +720,14 @@ void QCodarMatch::buildResultingQProg(const std::vector<GateInfo> resulting_gate
 			g.target = iter_t->second;
 		}
 
+		if (g.type == GateType::BARRIER_GATE)
+		{
+			barrier_qvec[g.barrier_id].push_back(q[g.target]);
+			m_handle_barrier_id = g.barrier_id;
+			continue;
+		}
+
+		QCircuit cir = slice_cirs[m_handle_barrier_id];
 		switch (g.type)
 		{
 		case GateType::PAULI_X_GATE:
@@ -600,7 +749,7 @@ void QCodarMatch::buildResultingQProg(const std::vector<GateInfo> resulting_gate
 
 			QGate single_gate = iter->second(q[g.target]);
 			single_gate.setDagger(g.is_dagger);
-			prog << single_gate;
+			cir << single_gate;
 		}
 		break;
 
@@ -618,7 +767,7 @@ void QCodarMatch::buildResultingQProg(const std::vector<GateInfo> resulting_gate
 			double angle = g.param[0];
 			QGate single_angle_gate = iter->second(q[g.target], angle);
 			single_angle_gate.setDagger(g.is_dagger);
-			prog << single_angle_gate;
+			cir << single_angle_gate;
 		}
 		break;
 
@@ -636,9 +785,18 @@ void QCodarMatch::buildResultingQProg(const std::vector<GateInfo> resulting_gate
 			}
 			QGate double_gate = iter->second(q[g.control], q[g.target]);
 			double_gate.setDagger(g.is_dagger);
-			prog << double_gate;
+			cir << double_gate;
 		}
 		break;
+		case  GateType::ISWAP_THETA_GATE:
+		{
+			double theta = g.param[0];
+			QGate iswap_theta = iSWAP(q[g.control], q[g.target], theta);
+			iswap_theta.setDagger(g.is_dagger);
+			cir << iswap_theta;
+		}
+		break;
+
 		case GateType::CPHASE_GATE:
 		{
 			auto iter = m_double_angle_gate_func.find(g.type);
@@ -650,7 +808,7 @@ void QCodarMatch::buildResultingQProg(const std::vector<GateInfo> resulting_gate
 			double angle = g.param[0];
 			QGate cr_gate = iter->second(q[g.control], q[g.target], angle);
 			cr_gate.setDagger(g.is_dagger);
-			prog << cr_gate;
+			cir << cr_gate;
 		}
 		break;
 		case  GateType::CU_GATE:
@@ -658,28 +816,28 @@ void QCodarMatch::buildResultingQProg(const std::vector<GateInfo> resulting_gate
 			QGate cu_gate = CU(g.param[0], g.param[1], g.param[2], g.param[3], q[g.control], q[g.target]);
 			cu_gate.setDagger(g.is_dagger);
 
-			prog << cu_gate;
+			cir << cu_gate;
 		}
 		break;
 		case  GateType::U2_GATE:
 		{
 			QGate u2_gate = U2(q[g.target], g.param[0], g.param[1]);
 			u2_gate.setDagger(g.is_dagger);
-			prog << u2_gate;
+			cir << u2_gate;
 		}
 		break;
 		case  GateType::U3_GATE:
 		{
 			QGate u3_gate = U3(q[g.target], g.param[0], g.param[1], g.param[2]);
 			u3_gate.setDagger(g.is_dagger);
-			prog << u3_gate;
+			cir << u3_gate;
 		}
 		break;
 		case  GateType::U4_GATE:
 		{
 			QGate u4_gate = U4(g.param[0], g.param[1], g.param[2], g.param[3], q[g.target]);
 			u4_gate.setDagger(g.is_dagger);
-			prog << u4_gate;
+			cir << u4_gate;
 		}
 		break;
 		default:
@@ -691,11 +849,29 @@ void QCodarMatch::buildResultingQProg(const std::vector<GateInfo> resulting_gate
 		}
 	}
 
-	out_qv = q ;
+	for (auto val : slice_cirs)
+	{
+		prog << val.second;
+		int barr_idx = val.first + 1;
+		if (barrier_qvec.find(barr_idx) != barrier_qvec.end())
+		{
+			QVec barrier_qv = barrier_qvec[barr_idx];
+			if (barrier_qv.size() == 1)
+			{
+				prog << BARRIER(barrier_qv[0]);
+			}
+			else
+			{
+				QVec ctrl_qv = QVec(barrier_qv.begin() + 1, barrier_qv.end());
+				prog << BARRIER(barrier_qv[0]).control(ctrl_qv);
+			}
+		}
+	}
+
 }
 
-
-QProg QPanda::qcodar_match(QProg prog, QVec &qv, QuantumMachine * machine, QCodarGridDevice arch_type, size_t m, size_t n, size_t run_times)
+QProg QPanda::qcodar_match_by_simple_type(QProg prog, QVec &qv, QuantumMachine * machine,
+	size_t m /*= 2*/, size_t n /*= 4*/, size_t run_times /*= 5*/)
 {
 	if (nullptr == machine)
 	{
@@ -704,7 +880,37 @@ QProg QPanda::qcodar_match(QProg prog, QVec &qv, QuantumMachine * machine, QCoda
 	}
 
 	QProg outprog;
-	QCodarMatch match = QCodarMatch(machine, arch_type, m, n);
-	match.mappingQProg(prog, run_times, qv, outprog);
+	QCodarMatch match = QCodarMatch(machine, prog, SIMPLE_TYPE, m, n);
+	match.mappingQProg(run_times, qv, outprog);
+	return outprog;
+}
+
+QProg QPanda::qcodar_match_by_config(QProg prog, QVec &qv, QuantumMachine * machine,
+	const std::string config_data/* = CONFIG_PATH*/, size_t run_times/*= 5*/)
+{
+	if (nullptr == machine)
+	{
+		QCERR("Quantum machine is nullptr");
+		throw std::invalid_argument("Quantum machine is nullptr");
+	}
+
+	QProg outprog;
+	QCodarMatch match = QCodarMatch(machine, prog, ORIGIN_VIRTUAL, 0, 0, config_data);
+	match.mappingQProg(run_times, qv, outprog);
+	return outprog;
+}
+
+QProg QPanda::qcodar_match_by_target_meachine(QProg prog, QVec &qv, QuantumMachine * machine,
+	QCodarGridDevice arch_type, size_t run_times /*= 5*/)
+{
+	if (nullptr == machine)
+	{
+		QCERR("Quantum machine is nullptr");
+		throw std::invalid_argument("Quantum machine is nullptr");
+	}
+
+	QProg outprog;
+	QCodarMatch match = QCodarMatch(machine, prog, arch_type, 0, 0);
+	match.mappingQProg(run_times, qv, outprog);
 	return outprog;
 }

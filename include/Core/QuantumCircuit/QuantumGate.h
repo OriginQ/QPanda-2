@@ -382,6 +382,43 @@ namespace QGATE_SPACE
         H();
 
     };
+
+	class ECHO :public U4,
+		public DynamicCreator<ECHO>,
+		public DynamicCreator<ECHO, QuantumGate*>
+	{
+	public:
+		ECHO(QuantumGate  * gate_old) :U4(gate_old)
+		{
+			if (gate_old->getGateType() != GateType::ECHO_GATE)
+			{
+				QCERR("Parameter qgate_old error");
+				throw std::invalid_argument("Parameter qgate_old error");
+			}
+			gate_type = gate_old->getGateType();
+		};
+		ECHO();
+
+	};
+
+    class BARRIER :public U4,
+        public DynamicCreator<BARRIER>,
+        public DynamicCreator<BARRIER, QuantumGate*>
+    {
+    public:
+        BARRIER(QuantumGate  * gate_old) :U4(gate_old)
+        {
+            if (gate_old->getGateType() != GateType::BARRIER_GATE)
+            {
+                QCERR("Parameter qgate_old error");
+                throw std::invalid_argument("Parameter qgate_old error");
+            }
+            gate_type = gate_old->getGateType();
+        };
+        BARRIER();
+
+    };
+
     class T :public U4,
         public DynamicCreator<T>,
 		public DynamicCreator<T, QuantumGate*>
@@ -479,6 +516,50 @@ namespace QGATE_SPACE
             return this->beta;
         }
     };
+
+	class RPhi :public U4,
+		public DynamicCreator<RPhi, double&, double&>,
+		public DynamicCreator<RPhi, QuantumGate*>
+	{
+	public:
+		RPhi(QuantumGate  * gate_old) :U4(gate_old)
+		{
+			if (gate_old->getGateType() != GateType::RPHI_GATE)
+			{
+				QCERR("Parameter qgate_old error");
+				throw std::invalid_argument("Parameter qgate_old error");
+			}
+			gate_type = gate_old->getGateType();
+			m_phi = dynamic_cast<QGATE_SPACE::RPhi*>(gate_old)->m_phi;
+		};
+		RPhi(double, double);
+		inline double getAlpha()const
+		{
+			return this->alpha;
+		}
+		inline double getBeta() const
+		{
+			return this->beta;
+		}
+		inline double getGamma() const
+		{
+			return this->gamma;
+		}
+		inline double getDelta() const
+		{
+			return this->delta;
+		}
+		inline double get_phi() const
+		{
+			return this->m_phi;
+		}
+		inline double get_theta() const
+		{
+			return this->beta;
+		}
+	private:
+		double m_phi;
+	};
 
     class U1 :public U4,
         public AbstractSingleAngleParameter,

@@ -157,6 +157,9 @@ size_t QProgBuilder::add_qgate_cc(
 	case GateType::H:
 		m_progid_set[progid] << H(qubits[0]);
 		break;
+	case GateType::ECHO:
+		m_progid_set[progid] << ECHO(qubits[0]);
+        break;
 	case GateType::T:
 		m_progid_set[progid] << T(qubits[0]);
 		break;
@@ -199,6 +202,10 @@ size_t QProgBuilder::add_qgate_cc(
 	case GateType::U2:
 		m_progid_set[progid] << U2(qubits[0], parameters[0], parameters[1]);
 		break;
+	case GateType::RPhi:
+		m_progid_set[progid] << RPhi(qubits[0], parameters[0], parameters[1]);
+		break;
+
 	case GateType::U3:
 		m_progid_set[progid] << U3(qubits[0], parameters[0], parameters[1], parameters[2]);
 		break;
@@ -249,6 +256,9 @@ size_t QProgBuilder::add_qgate_cc(
 size_t QProgBuilder::add_measure_literal(size_t qidx, size_t cidx)
 {
 	size_t progid = add_prog();
+	if (ccs.size()  <  cidx+1)
+		throw runtime_error("add_measure_literal too little cbits is allocated");
+
 	m_progid_set[progid] << Measure(qs[qidx], ccs[cidx]);
 	return progid;
 }
@@ -256,6 +266,10 @@ size_t QProgBuilder::add_measure_literal(size_t qidx, size_t cidx)
 size_t QProgBuilder::add_measure_cc(size_t exprid, size_t cidx)
 {
 	size_t progid = add_prog();
+
+	if (ccs.size() < cidx + 1)
+		throw runtime_error("add_measure_cc too little cbits is allocated");
+
 	m_progid_set[progid] << Measure(qs[m_exprid_set.at(exprid)], ccs[cidx]);
 	return progid;
 }
@@ -274,6 +288,19 @@ size_t QProgBuilder::add_reset_cc(size_t exprid)
 	return progid;
 }
 
+size_t QProgBuilder::add_barrier_literal(size_t qidx, QVec qv)
+{
+	size_t progid = add_prog();
+	m_progid_set[progid] << BARRIER(qs[qidx]).control(qv);
+	return progid;
+}
+
+size_t QProgBuilder::add_barrier_cc(size_t exprid, QVec qv)
+{
+	size_t progid = add_prog();
+	m_progid_set[progid] << BARRIER(qs[m_exprid_set.at(exprid)]).control(qv);
+	return progid;
+}
 
 size_t QProgBuilder::add_expr_stat(size_t exprid)
 {
@@ -311,6 +338,9 @@ void QProgBuilder::delete_prog(size_t progid)
 
 size_t QProgBuilder::cc_init_id(size_t cidx)
 {
+	if (ccs.size() < cidx + 1)
+		throw runtime_error("cc_init_id too little cbits is allocated");
+
 	m_exprid_set.insert({ cid, ccs[cidx] });
 	return cid++;
 }
@@ -510,6 +540,22 @@ size_t QProgBuilder::make_dagger_new(size_t progid)
 		throw runtime_error("Non-Circuit Components when daggering.");
 	}
 }
+
+QVec QProgBuilder::make_qvec( std::vector<size_t> expridx, std::vector<int> idx)
+{
+	QVec q;
+	int counter = 0;
+	for (int i = 0; i < idx.size(); ++i) 
+	{
+		if (idx[i] != -1)
+			q.push_back(qs[idx[i]]);
+		else {
+			q.push_back(qs[m_exprid_set.at(expridx[counter++])]);
+		}
+	}
+	return q;
+}
+
 
 void QProgBuilder::make_control(size_t progid, std::vector<int> idx)
 {

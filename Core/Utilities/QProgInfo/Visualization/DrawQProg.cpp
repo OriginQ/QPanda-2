@@ -5,6 +5,7 @@
 
 USING_QPANDA
 using namespace std;
+using namespace DRAW_TEXT_PIC;
 
 #define PRINT_TRACE 0
 
@@ -48,7 +49,9 @@ string DrawQProg::textDraw(const TEXT_PIC_TYPE t)
 		m_p_text = nullptr;
 	}
 
-	m_p_text = new(std::nothrow) DrawPicture(m_prog);
+	m_layer_info = prog_layer(m_prog);
+
+	m_p_text = new(std::nothrow) DrawPicture(m_prog, m_layer_info);
 	if (nullptr == m_p_text)
 	{
 		QCERR_AND_THROW_ERRSTR(runtime_error, "Memory error, failed to create DrawPicture obj.");

@@ -80,7 +80,12 @@ public:
 	QVec operator +(QVec vec)
 	{
 		QVec new_vec(*this);
+		new_vec += vec;
+		return new_vec;
+	}
 
+	QVec& operator +=(QVec vec)
+	{
 		for (auto aiter = vec.begin(); aiter != vec.end(); aiter++)
 		{
 			auto biter = begin();
@@ -94,18 +99,24 @@ public:
 
 			if (biter == end())
 			{
-				new_vec.push_back(*aiter);
+				(*this).push_back(*aiter);
 			}
 		}
 
+		return *this;
+	}
+
+	QVec operator -(QVec vec)
+	{
+		QVec new_vec(*this);
+		new_vec -= vec;
+		
 		return new_vec;
 	}
 
-	QVec operator -(QVec& vec)
+	QVec& operator -=(QVec vec)
 	{
-		QVec new_vec;
-
-		for (auto aiter = begin(); aiter != end(); aiter++)
+		for (auto aiter = begin(); aiter != end(); )
 		{
 			auto biter = vec.begin();
 			for (; biter != vec.end(); biter++)
@@ -116,13 +127,15 @@ public:
 				}
 			}
 
-			if (biter == vec.end())
+			if (biter != vec.end())
 			{
-				new_vec.push_back(*aiter);
+				aiter = (*this).erase(aiter);
+				continue;
 			}
-		}
 
-		return new_vec;
+			++aiter;
+		}
+		return *this;
 	}
 };
 QPANDA_END

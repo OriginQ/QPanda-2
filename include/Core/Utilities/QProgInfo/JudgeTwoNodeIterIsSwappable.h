@@ -67,7 +67,7 @@ public:
 	* @brief  Constructor of JudgeTwoNodeIterIsSwappable
 	*/
 	JudgeTwoNodeIterIsSwappable(QProg prog, NodeIter &nodeItr_1, NodeIter &nodeItr_2)
-		:TraverseByNodeIter(prog), m_nodeItr1(nodeItr_1), m_nodeItr2(nodeItr_2), m_judge_statue(nullptr), m_last_statue(nullptr),
+		:m_prog(prog), m_nodeItr1(nodeItr_1), m_nodeItr2(nodeItr_2), m_judge_statue(nullptr), m_last_statue(nullptr),
 		m_result(INIT), m_b_found_first_iter(false), m_b_found_second_iter(false), m_b_dagger_circuit(false)
 	{
 	}
@@ -108,7 +108,7 @@ public:
 	/**
 	* @brief start traverse a quantum prog
 	*/
-	void traverse_qprog() override;
+	virtual void traverse_qprog();
 
 	/**
 	* @brief judge the input two node type
@@ -124,6 +124,7 @@ private:
 	void _check_picked_prog_matrix();
 
 private:
+	QProg m_prog;
 	ResultStatue m_result;
 	NodeIter m_nodeItr1;
 	NodeIter m_nodeItr2;

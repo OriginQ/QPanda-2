@@ -33,7 +33,7 @@ int QPanda::arbitraryRotationMetadataValidity(vector<string> &gates, vector<stri
     valid_gates.clear();
     for (auto &val : gates)
     {
-        if ("U3" == val || "U2" == val)
+        if ("U3" == val || "U2" == val || "U4" == val)
         {
             valid_gates.emplace_back(val);
             return SingleGateTransferType::ARBITRARY_ROTATION;
@@ -129,9 +129,10 @@ int QPanda::doubleGateMetadataValidity(vector<string> &gates, vector<string> &va
 
     for (auto &val : gates)
     {
-        if ("CNOT" == val || "ISWAP" == val)
+        //if ("CNOT" == val || "ISWAP" == val||"CZ" == val)
         {
-            valid_gates.emplace_back(val);
+            //valid_gates.emplace_back(val);
+			valid_gates = gates;
             return DoubleGateTransferType::DOUBLE_BIT_GATE;
         }
     }

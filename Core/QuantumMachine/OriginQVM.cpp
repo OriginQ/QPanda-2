@@ -25,6 +25,8 @@ limitations under the License.
 #include "Core/Utilities/Tools/Utils.h"
 #include "Core/Utilities/QProgInfo/QuantumMetadata.h"
 #include "Core/QuantumMachine/QProgExecution.h"
+#include "Core/Utilities/Tools/Uinteger.h"
+#include "Core/QuantumMachine/QProgCheck.h"
 
 USING_QPANDA
 using namespace std;
@@ -51,6 +53,109 @@ void QVM::setConfig(const Configuration & config)
 	init();
 }
 
+std::map<string, size_t> QVM::run_with_optimizing(QProg &prog, std::vector<ClassicalCondition> &cbits, int shots, TraversalConfig &traver_param)
+{
+    if (0 == traver_param.m_measure_qubits.size())
+    {
+        return map<string, size_t>();
+    }
+
+    map<string, size_t> result_map;
+    _pGates->initState(0, 1, _Qubit_Pool->get_max_usedqubit_addr() + 1);
+    QProgExecution prog_exec;
+    prog_exec.execute(prog.getImplementationPtr(), nullptr, traver_param, _pGates);
+    map<size_t, size_t> result;
+
+    vector<double> random_nums(shots, 0);
+    for (size_t i = 0; i < shots; i++)
+    {
+        random_nums[i] = random_generator19937();
+    }
+
+    std::sort(random_nums.begin(), random_nums.end(), [](double &a, double b) { return a > b; });
+    prob_vec probs;
+
+    Qnum qubits_nums = traver_param.m_measure_qubits;
+    _pGates->pMeasure(qubits_nums, probs);
+    std::unordered_multimap<size_t, CBit *> qubit_cbit_map;
+    for (size_t i = 0; i < traver_param.m_measure_cc.size(); i++)
+    {
+        qubit_cbit_map.insert({ traver_param.m_measure_qubits[i], traver_param.m_measure_cc[i]});
+    }
+
+    double p_sum = 0;
+    for (size_t i = 0; i < probs.size(); i++)
+    {
+        if (probs[i] < DBL_EPSILON && probs[i] > -DBL_EPSILON)
+        {
+            continue;
+        }
+
+        p_sum += probs[i];
+        auto iter = random_nums.rbegin();
+        while (iter != random_nums.rend() && *iter < p_sum)
+        {
+            size_t measure_num = traver_param.m_measure_cc.size();
+            auto bin_str_index = integerToBinary(i, measure_num);
+            for (size_t j = 0; j < measure_num; j++)
+            {
+                auto qubit_idx = qubits_nums[j];
+                auto mulit_iter = qubit_cbit_map.equal_range(qubit_idx);
+                while (mulit_iter.first != mulit_iter.second)
+                {
+                    auto cbit = mulit_iter.first->second;
+                    cbit->set_val(bin_str_index[measure_num - j - 1] - 0x30);
+                    _QResult->append({ cbit->getName(), cbit->getValue() });
+                    ++mulit_iter.first;
+                }
+            }
+
+            random_nums.pop_back();
+            iter = random_nums.rbegin();
+
+            string result_bin_str = _ResultToBinaryString(cbits);
+            std::reverse(result_bin_str.begin(), result_bin_str.end());
+            if (result_map.find(result_bin_str) == result_map.end())
+            {
+                result_map[result_bin_str] = 1;
+            }
+            else
+            {
+                result_map[result_bin_str] += 1;
+            }
+        }
+
+        if (0 == random_nums.size())
+        {
+            break;
+        }
+    }
+
+    return result_map;
+}
+
+std::map<string, size_t> QVM::run_with_normal(QProg &prog, std::vector<ClassicalCondition> &cbits, int shots)
+{
+    map<string, size_t> mResult;
+    for (size_t i = 0; i < shots; i++)
+    {
+        run(prog);
+        string sResult = _ResultToBinaryString(cbits);
+
+        std::reverse(sResult.begin(), sResult.end());
+        if (mResult.find(sResult) == mResult.end())
+        {
+            mResult[sResult] = 1;
+        }
+        else
+        {
+            mResult[sResult] += 1;
+        }
+
+    }
+    return mResult;
+}
+
 Qubit * QVM::allocateQubit()
 {
     if (_Qubit_Pool == nullptr)
@@ -65,7 +170,13 @@ Qubit * QVM::allocateQubit()
     {
         try
         {
-            return _Qubit_Pool->allocateQubit();
+            auto qubit = _Qubit_Pool->allocateQubit();
+            if (nullptr == qubit)
+            {
+                throw qalloc_fail("allocateQubit error");
+            }
+
+            return qubit;
         }
         catch (const std::exception&e)
         {
@@ -86,7 +197,7 @@ QVec QVM::allocateQubits(size_t qubitNumber)
         throw(qvm_attributes_error("Must initialize the system first"));
     }
 
-    if (qubitNumber > _Config.maxQubit)
+    if (qubitNumber + getAllocateQubitNum() > _Config.maxQubit)
     {
         QCERR("qubitNumber > maxQubit");
         throw(qalloc_fail("qubitNumber > maxQubit"));
@@ -124,6 +235,11 @@ ClassicalCondition QVM::allocateCBit()
         try
         {
             auto cbit = _CMem->Allocate_CBit();
+            if (nullptr == cbit)
+            {
+                throw calloc_fail("cbitNumber > maxCMem");
+            }
+
             ClassicalCondition temp(cbit);
             return temp;
         }
@@ -148,7 +264,7 @@ vector<ClassicalCondition> QVM::allocateCBits(size_t cbitNumber)
     }
     else
     {
-        if (cbitNumber > _Config.maxCMem)
+        if (cbitNumber + getAllocateCMemNum() > _Config.maxCMem)
         {
             QCERR("cbitNumber > maxCMem");
             throw(calloc_fail("cbitNumber > maxCMem"));
@@ -216,7 +332,13 @@ Qubit * QVM::allocateQubitThroughPhyAddress(size_t stQubitNum)
     {
         try
         {
-            return _Qubit_Pool->allocateQubitThroughPhyAddress(stQubitNum);
+            auto qubit = _Qubit_Pool->allocateQubitThroughPhyAddress(stQubitNum);
+            if (nullptr == qubit)
+            {
+                throw qalloc_fail("qubits addr > _Config.maxQubit");
+            }
+
+            return qubit;
         }
         catch (const std::exception&e)
         {
@@ -256,6 +378,7 @@ void QVM::Free_Qubits(QVec &vQubit)
         }
         this->_Qubit_Pool->Free_Qubit(iter);
         delete iter;
+        iter = nullptr;
     }
 }
 
@@ -289,8 +412,8 @@ void QVM::run(QProg & node)
     try
     {
         TraversalConfig config;
-
-		_pGates->initState(0, 1, _Qubit_Pool->getMaxQubit() - _Qubit_Pool->getIdleQubit());
+        config.m_can_optimize_measure = false;
+		_pGates->initState(0, 1, _Qubit_Pool->get_max_usedqubit_addr()+1);
 
 		QProgExecution prog_exec;
 		prog_exec.execute(node.getImplementationPtr(), nullptr, config, _pGates);
@@ -709,16 +832,16 @@ runWithConfiguration(QProg & qProg, vector<ClassicalCondition>& vCBit, int shots
 map<string, size_t> QVM::
 runWithConfiguration(QProg & qProg, vector<ClassicalCondition>& vCBit, rapidjson::Document & param)
 {
-    map<string, size_t> mResult;
     if (!param.HasMember("shots"))
     {
         QCERR("OriginCollection don't  have shots");
         throw run_fail("runWithConfiguration param don't  have shots");
     }
-    size_t shots = 0;
-    if (param["shots"].IsUint64())
+    int shots = 0;
+
+    if (param["shots"].IsInt())
     {
-        shots = param["shots"].GetUint64();
+        shots = param["shots"].GetInt();
     }
     else
     {
@@ -726,23 +849,24 @@ runWithConfiguration(QProg & qProg, vector<ClassicalCondition>& vCBit, rapidjson
         throw run_fail("shots data type error");
     }
 
-    for (size_t i = 0; i < shots; i++)
+    if (shots < 1)
     {
-        run(qProg);
-        string sResult = _ResultToBinaryString(vCBit);
-
-        std::reverse(sResult.begin(), sResult.end());
-        if (mResult.find(sResult) == mResult.end())
-        {
-            mResult[sResult] = 1;
-        }
-        else
-        {
-            mResult[sResult] += 1;
-        }
-
+        QCERR("shots data error");
+        throw run_fail("shots data error");
     }
-    return mResult;
+
+    TraversalConfig traver_param;
+    QProgCheck prog_check;
+    prog_check.execute(qProg.getImplementationPtr(), nullptr, traver_param);
+
+    if (traver_param.m_can_optimize_measure  && shots > 1)
+    {
+        return run_with_optimizing(qProg, vCBit, shots, traver_param);
+    }
+    else
+    {
+        return run_with_normal(qProg, vCBit, shots);
+    }
 }
 
 static void accumulateProbability(prob_vec& probList, prob_vec & accumulateProb)

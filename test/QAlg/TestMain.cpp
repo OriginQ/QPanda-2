@@ -1,7 +1,9 @@
 #include "gtest/gtest.h"
 using namespace std;
 
+
 int main(int argc, char **argv) {
+	::testing::GTEST_FLAG(filter) = "Shor.test1";
     ::testing::InitGoogleTest(&argc, argv);
 	auto ret = RUN_ALL_TESTS();
 

@@ -1,4 +1,6 @@
-#pragma once
+#ifndef FILL_QPROG_H
+#define FILL_QPROG_H
+
 #include "Core/QuantumCircuit/QProgram.h"
 #include "Core/Utilities/QProgTransform/QProgToDAG/GraphMatch.h"
 #include "Core/QuantumCircuit/QuantumMeasure.h"
@@ -28,35 +30,34 @@ public:
 	*/
 	void fill_by_I() {
 		//layer
-		m_grapth_match.get_topological_sequence(m_input_prog, m_seq);
-
+		m_layer_info = prog_layer(m_input_prog);
+		auto& seq = m_layer_info;
 		get_all_used_qubits(m_input_prog, m_vec_qubits_in_use);
 
 		// rebuild the output prog
-		const QProgDAG& prog_dag = m_grapth_match.getProgDAG();
-		for (auto &seq_item : m_seq)
+		for (auto &seq_item : seq)
 		{
 			QVec vec_qubits_used_in_layer;
 			for (auto &seq_node_item : seq_item)
 			{
-				SequenceNode n = seq_node_item.first;
-				if (SequenceNodeType::MEASURE == n.m_node_type)
+				auto& n = seq_node_item.first;
+				if (SequenceNodeType::MEASURE == n->m_type)
 				{
-					std::shared_ptr<AbstractQuantumMeasure> p_measure = std::dynamic_pointer_cast<AbstractQuantumMeasure>(prog_dag.get_vertex(n.m_vertex_num));
+					std::shared_ptr<AbstractQuantumMeasure> p_measure = std::dynamic_pointer_cast<AbstractQuantumMeasure>(*(n->m_iter));
 					QMeasure tmp_measure_node(p_measure);
 					vec_qubits_used_in_layer.push_back(tmp_measure_node.getQuBit());
 					m_output_prog.pushBackNode(std::dynamic_pointer_cast<QNode>((deepCopy(tmp_measure_node)).getImplementationPtr()));
 				}
-				else if (SequenceNodeType::RESET == n.m_node_type)
+				else if (SequenceNodeType::RESET == n->m_type)
 				{
-					std::shared_ptr<AbstractQuantumReset> p_reset = std::dynamic_pointer_cast<AbstractQuantumReset>(prog_dag.get_vertex(n.m_vertex_num));
+					std::shared_ptr<AbstractQuantumReset> p_reset = std::dynamic_pointer_cast<AbstractQuantumReset>(*(n->m_iter));
 					QReset tmp_reset_node(p_reset);
 					vec_qubits_used_in_layer.push_back(tmp_reset_node.getQuBit());
 					m_output_prog.pushBackNode(std::dynamic_pointer_cast<QNode>((deepCopy(tmp_reset_node)).getImplementationPtr()));
 				}
 				else
 				{
-					std::shared_ptr<AbstractQGateNode> p_gate = std::dynamic_pointer_cast<AbstractQGateNode>(prog_dag.get_vertex(n.m_vertex_num));
+					std::shared_ptr<AbstractQGateNode> p_gate = std::dynamic_pointer_cast<AbstractQGateNode>(*(n->m_iter));
 					QGate tmp_gate_node(p_gate);
 					QVec gate_qubits;
 					tmp_gate_node.getQuBitVector(gate_qubits);
@@ -82,20 +83,14 @@ public:
 	QProg& get_output_prog() { return m_output_prog; }
 
 	QVec get_unused_qubits_in_layer(QVec &all_qubits, QVec &inuse_qubits) {
-		auto sort_fun = [](Qubit*a, Qubit* b) {return a->getPhysicalQubitPtr()->getQubitAddr() < b->getPhysicalQubitPtr()->getQubitAddr(); };
-		std::sort(all_qubits.begin(), all_qubits.end(), sort_fun);
-		std::sort(inuse_qubits.begin(), inuse_qubits.end(), sort_fun);
-
-		QVec unused_qubits_vec;
-		set_difference(all_qubits.begin(), all_qubits.end(), inuse_qubits.begin(), inuse_qubits.end(), std::back_inserter(unused_qubits_vec));
+		QVec unused_qubits_vec = all_qubits - inuse_qubits;
 		return unused_qubits_vec;
 	}
 
 private:
 	QProg m_input_prog;
 	QProg m_output_prog;
-	GraphMatch m_grapth_match;
-	TopologicalSequence m_seq;
+	TopologSequence<pOptimizerNodeInfo> m_layer_info;
 	QVec m_vec_qubits_in_use;
 };
 
@@ -112,3 +107,5 @@ inline QProg fill_qprog_by_I(QProg &input_prog) {
 }
 
 QPANDA_END
+
+#endif // FILL_QPROG_H

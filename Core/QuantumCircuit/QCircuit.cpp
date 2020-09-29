@@ -102,7 +102,7 @@ QCircuit QCircuit::dagger()
     return qCircuit;
 }
 
-QCircuit  QCircuit::control(QVec qubit_vector)
+QCircuit  QCircuit::control(const QVec qubit_vector)
 {
     QCircuit qcircuit;
     if (nullptr == m_pQuantumCircuit)
@@ -242,7 +242,7 @@ void QCircuit::setDagger(bool is_dagger)
     m_pQuantumCircuit->setDagger(is_dagger);
 }
 
-void QCircuit::setControl(QVec control_qubit_vector)
+void QCircuit::setControl(const QVec control_qubit_vector)
 {
     if (!m_pQuantumCircuit)
     {
@@ -262,7 +262,7 @@ void OriginCircuit::setDagger(bool is_dagger)
     m_Is_dagger = is_dagger;
 }
 
-void OriginCircuit::setControl(QVec qubit_vector)
+void OriginCircuit::setControl(const QVec qubit_vector)
 {
     for (auto aiter : qubit_vector)
     {

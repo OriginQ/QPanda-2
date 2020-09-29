@@ -150,7 +150,7 @@ public:
     * @return     QPanda::QCircuit  quantum circuit
     * @see QVec
     */
-    virtual QCircuit  control(QVec );
+    virtual QCircuit  control(const QVec );
 
     /**
     * @brief  Get current node type
@@ -179,6 +179,7 @@ public:
 
     NodeIter insertQNode(NodeIter &iter, std::shared_ptr<QNode> pNode);
     NodeIter deleteQNode(NodeIter &iter);
+	bool is_empty() { return getFirstNodeIter() == getEndNodeIter(); }
 
     /**
     * @brief  Set dagger to current quantum circuit
@@ -191,7 +192,7 @@ public:
     * @param[in]  QVec  control qubits  vector
     * @see QVec
     */
-    virtual void  setControl(QVec );
+    virtual void  setControl(const QVec );
 private:
     void clearControl() {}
 };

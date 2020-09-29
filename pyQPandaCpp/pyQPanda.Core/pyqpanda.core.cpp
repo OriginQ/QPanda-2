@@ -332,6 +332,43 @@ PYBIND11_MODULE(pyQPanda, m)
         py::return_value_policy::automatic
     );
 
+    /* new interface */
+    m.def("U4", [](Qubit *qubit, QStat & matrix)
+    {return U4(qubit, matrix); }, "matrix"_a, "qubit"_a,
+        "Create a U4 gate",
+        py::return_value_policy::automatic
+    );
+
+    m.def("U4", [](Qubit * qubit, double alpha, double beta, double gamma, double delta)
+    {return U4(qubit, alpha, beta, gamma, delta); }, "alpha"_a, "beta"_a, "delta"_a, "gamma"_a, "qubit"_a,
+        "Create a U4 gate",
+        py::return_value_policy::automatic
+    );
+
+    m.def("CU", [](Qubit * controlQBit, Qubit * targetQBit,
+                double alpha, double beta, double gamma, double delta)
+    {return CU(controlQBit, targetQBit, alpha, beta, gamma, delta); },
+        "alpha"_a, "beta"_a, "delta"_a, "gamma"_a, "control_qubit"_a, "target_qubit"_a,
+        "Create a CU gate",
+        py::return_value_policy::automatic
+    );
+
+    m.def("CU", [](Qubit * controlQBit, Qubit * targetQBit, QStat & matrix)
+    {return CU(controlQBit, targetQBit, matrix); },
+        "matrix"_a, "control_qubit"_a, "target_qubit"_a,
+        "Create a CU gate",
+        py::return_value_policy::automatic
+    );
+
+    m.def("QDouble", [](Qubit * controlQBit, Qubit * targetQBit, QStat & matrix)
+    {return QDouble(controlQBit, targetQBit, matrix); },
+        "matrix"_a, "control_qubit"_a, "target_qubit"_a,
+        "Create a CU gate",
+        py::return_value_policy::automatic
+    );
+
+
+
 	m.def("print_matrix", [](QStat& mat) {
 		auto mat_str = matrix_to_string(mat);
 		std::cout << mat_str << endl;
@@ -410,16 +447,13 @@ PYBIND11_MODULE(pyQPanda, m)
 		py::return_value_policy::automatic_reference
 		);
 
-    m.def("to_QASM", [](QProg prog,QuantumMachine *qvm, IBMQBackends ibmBackend) {
+    m.def("to_QASM", [](QProg prog,QuantumMachine *qvm) {
         py::list retData;
-        std::string qasmStr = transformQProgToQASM(prog, qvm, (IBMQBackends)ibmBackend);
+        std::string qasmStr = convert_qprog_to_qasm(prog, qvm);
         retData.append(qasmStr);
 
-        std::string IBMBackendName = QProgToQASM::getIBMQBackendName((IBMQBackends)ibmBackend);
-        retData.append(IBMBackendName);
-
         return retData;
-    },"prog"_a,"quantum machine"_a,"IBMQBackends"_a= IBMQ_QASM_SIMULATOR,py::return_value_policy::automatic_reference
+    },"prog"_a,"quantum machine"_a,py::return_value_policy::automatic_reference
         );
 
     m.def("to_Quil",&transformQProgToQuil , "program"_a, "quantum machine"_a ,"QProg to Quil",
@@ -476,19 +510,6 @@ PYBIND11_MODULE(pyQPanda, m)
         }, "prog"_a, "quantum machine"_a, py::return_value_policy::automatic);
 
     /* new interface */
-
-    m.def("transform_qprog_to_qasm", [](QProg prog, QuantumMachine *qvm, IBMQBackends ibmBackend) {
-        py::list retData;
-        std::string qasmStr = transformQProgToQASM(prog, qvm, (IBMQBackends)ibmBackend);
-        retData.append(qasmStr);
-
-        std::string IBMBackendName = QProgToQASM::getIBMQBackendName((IBMQBackends)ibmBackend);
-        retData.append(IBMBackendName);
-
-        return retData;
-        }, "prog"_a, "quantum machine"_a, "IBMQBackends"_a = IBMQ_QASM_SIMULATOR, py::return_value_policy::automatic_reference
-    );
-
 
     m.def("transform_qprog_to_quil", &transformQProgToQuil
         , "program"_a,"quantum machine"_a, "QProg to Quil",
@@ -701,16 +722,13 @@ PYBIND11_MODULE(pyQPanda, m)
 		py::return_value_policy::automatic_reference
 		);
 
-	m.def("convert_qprog_to_qasm", [](QProg prog, QuantumMachine *qvm, IBMQBackends ibmBackend) {
+	m.def("convert_qprog_to_qasm", [](QProg prog, QuantumMachine *qvm) {
 		py::list retData;
-		std::string qasmStr = convert_qprog_to_qasm(prog, qvm, (IBMQBackends)ibmBackend);
+		std::string qasmStr = convert_qprog_to_qasm(prog, qvm);
 		retData.append(qasmStr);
 
-		std::string IBMBackendName = QProgToQASM::getIBMQBackendName((IBMQBackends)ibmBackend);
-		retData.append(IBMBackendName);
-
 		return retData;
-	}, "prog"_a, "quantum machine"_a, "IBMQBackends"_a = IBMQ_QASM_SIMULATOR, py::return_value_policy::automatic_reference
+	}, "prog"_a, "quantum machine"_a, py::return_value_policy::automatic_reference
 	);
 
 	m.def("cast_qprog_qgate", &cast_qprog_qgate,
@@ -747,10 +765,32 @@ PYBIND11_MODULE(pyQPanda, m)
 		py::return_value_policy::automatic_reference
 		);
 
-	m.def("qcodar_match", [](QProg prog, QVec qv, QuantumMachine *qvm , QCodarGridDevice arch_type, size_t m, size_t n , size_t run_times ) {
+	m.def("qcodar_match", [](QProg prog, QVec qv, QuantumMachine *qvm , QCodarGridDevice arch_type, 
+		size_t m, size_t n , size_t run_times, const std::string config_data) {
 		py::list ret_data;
 
-		QProg out_prog = qcodar_match(prog, qv, qvm, arch_type, m, n, run_times);
+		QProg out_prog;
+		switch (arch_type)
+		{
+		case IBM_Q20_TOKYO:
+		case IBM_Q53:
+		case GOOGLE_Q54:
+			out_prog = qcodar_match_by_target_meachine(prog, qv, qvm, arch_type, run_times);
+			break;
+
+		case SIMPLE_TYPE:
+			out_prog = qcodar_match_by_simple_type(prog, qv, qvm, m, n, run_times);
+			break;
+
+		case ORIGIN_VIRTUAL:
+			out_prog = qcodar_match_by_config(prog, qv, qvm, config_data, run_times);
+			break;
+
+		default:
+			QCERR_AND_THROW_ERRSTR(runtime_error, "Error: QCodarGridDevice error on qcodar match.");
+			break;
+		}
+
 		py::list qubit_list;
 
 		for (auto q : qv)
@@ -760,7 +800,25 @@ PYBIND11_MODULE(pyQPanda, m)
 		ret_data.append(qubit_list);
 		return ret_data;
 	}, 
-		"prog"_a, "qubits"_a, "quantum machine"_a, "QCodarGridDevice"_a= SIMPLE_TYPE, "m"_a = 2, "n"_a=4, "run_times"_a=5,
+		"prog"_a, "qubits"_a, "quantum machine"_a, "QCodarGridDevice"_a= SIMPLE_TYPE, "m"_a = 2, "n"_a=4, "run_times"_a=5, "config_data"_a = CONFIG_PATH,
+		"/**\
+		* @brief   A Contextual Duration - Aware Qubit Mapping for V arious NISQ Devices\
+		* @ingroup Utilities\
+		* @param[in]  QProg  quantum program\
+		* @param[in, out]  QVec  qubit  vector\
+		* @param[in]  QuantumMachine*  quantum machine\
+        * @param[in]  QCodarGridDevice Device type, currently supported models include: \
+		              IBM_Q20_TOKYO: IBM real phisical quantum chip\
+	                  IBM_Q53: IBM real phisical quantum chip\
+				      GOOGLE_Q54£ºGoogle real phisical quantum chip\
+				      SIMPLE_TYPE£ºSimulator quantum chip\
+					  ORIGIN_VIRTUAL£ºby config\
+		* @param[in]  size_t   m : the length of the topology\
+		* @param[in]  size_t   n : the  width of the topology\
+		* @param[in]  size_t   run_times : the number of times  run the remapping, better parameters get better results\
+		* @return    QProg   mapped  quantum program\
+		* @note	 QCodarGridDevice : SIMPLE_TYPE  It's a simple undirected  topology graph, build a topology based on the values of m(rows) and n(cloumns)\
+		* / ",
 		py::return_value_policy::automatic_reference
 	);
 
@@ -880,6 +938,8 @@ PYBIND11_MODULE(pyQPanda, m)
         py::return_value_policy::reference)
         .def("last",&QProg::getLastNodeIter,
         py::return_value_policy::reference)
+		.def("__repr__", [](const QProg& p) {return draw_qprog(p); },
+		py::return_value_policy::reference)
         .def("head",&QProg::getHeadNodeIter,
         py::return_value_policy::reference);
 
@@ -931,7 +991,9 @@ PYBIND11_MODULE(pyQPanda, m)
         .def("last",&QCircuit::getLastNodeIter,
             py::return_value_policy::reference)
         .def("head",&QCircuit::getHeadNodeIter,
-            py::return_value_policy::reference);
+            py::return_value_policy::reference)
+		.def("__repr__", [](const QCircuit& p) {return draw_qprog(p); },
+			py::return_value_policy::reference);
 
 
     /* hide */
@@ -1343,6 +1405,11 @@ PYBIND11_MODULE(pyQPanda, m)
         py::return_value_policy::automatic
         );
 
+	m.def("fit_to_gbk", &fit_to_gbk, py::arg("utf8_str"),
+		"Adapting utf8 characters to GBK",
+		py::return_value_policy::automatic
+		);
+
 	m.def("draw_qprog_with_clock", [](QProg prg, const NodeIter itr_start, const NodeIter itr_end) {
 		auto text_pic_str = draw_qprog_with_clock(prg, itr_start, itr_end);
 		std::cout << text_pic_str << endl;
@@ -1376,6 +1443,70 @@ PYBIND11_MODULE(pyQPanda, m)
         return prog;\
     },py::return_value_policy::automatic);
 
+	m.def("quantum_chip_adapter", [](QProg prog, QuantumMachine *quantum_machine, bool b_mapping = true, 
+		const std::string config_data = CONFIG_PATH) {
+		py::list ret_data;
+
+		QVec new_qvec;
+		quantum_chip_adapter(prog, quantum_machine, new_qvec, b_mapping, config_data);
+		if (!b_mapping)
+		{
+			get_all_used_qubits(prog, new_qvec);
+		}
+
+		ret_data.append(prog);
+		ret_data.append(new_qvec);
+		return ret_data;
+	}, "prog"_a, "quantum machine"_a, "b_mapping"_a=true, "config data"_a = CONFIG_PATH,
+		"/**\
+		* @brief  Quantum chip adaptive conversion\
+		* @ingroup Utilities\
+		* @param[in]  QProg Quantum Program\
+		* @param[in]  QuantumMachine*  quantum machine pointer\
+        * @param[out] QVec& Quantum bits after mapping.\
+                      Note: if b_mapping is false, the input QVec will be misoperated.\
+		* @param[in]  bool whether or not perform the mapping operation.\
+		* @param[in] const std::string It can be configuration file or configuration data, which can be distinguished by file suffix,\
+		            so the configuration file must be end with \".json\", default is CONFIG_PATH\
+		* @return The new quantum program and the mapped qubit vector\
+		* / ",
+		py::return_value_policy::automatic
+		);
+
+	m.def("decompose_multiple_control_qgate", [](QProg prog, QuantumMachine *quantum_machine,
+		const std::string config_data = CONFIG_PATH) {
+		decompose_multiple_control_qgate(prog, quantum_machine, config_data);
+		return prog;
+	}, "prog"_a, "quantum machine"_a, "config data"_a = CONFIG_PATH,
+		"/**\
+		* @brief Decompose multiple control QGate\
+		* @ingroup Utilities\
+		* @param[in]  QProg&   Quantum Program\
+		* @param[in]  QuantumMachine*  quantum machine pointer\
+		* @param[in] const std::string It can be configuration file or configuration data, which can be distinguished by file suffix,\
+		             so the configuration file must be end with \".json\", default is CONFIG_PATH\
+		* @return new Qprog\
+		* / ",
+		py::return_value_policy::automatic
+		);
+
+	m.def("get_all_used_qubits", [](QProg prog) {
+		QVec vec_qubits_in_use;
+		get_all_used_qubits(prog, vec_qubits_in_use);
+		return vec_qubits_in_use;
+	}, "qprog"_a,
+		"Get all the used  quantum bits in the input prog",
+		py::return_value_policy::automatic
+		);
+
+	m.def("get_all_used_qubits_to_int", [](QProg prog) {
+		std::vector<int> vec_qubits_in_use;
+		get_all_used_qubits(prog, vec_qubits_in_use);
+		return vec_qubits_in_use;
+	}, "qprog"_a,
+		"Get all the used  quantum bits in the input prog, return all the index of qubits",
+		py::return_value_policy::automatic
+		);
     QUERY_REPLACE(QProg, QCircuit, QCircuit)
     QUERY_REPLACE(QProg, QCircuit, QGate)
     QUERY_REPLACE(QProg, QGate, QCircuit)

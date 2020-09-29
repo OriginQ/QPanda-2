@@ -412,6 +412,17 @@ QGate Z1(Qubit* qubit);
 * @ingroup QuantumCircuit
 */
 QGate RZ(Qubit*, double angle);
+
+/**
+* @brief  Construct a new quantum RZPhi gate
+* @param[in]  Qubit* target qubit
+* @param[in]  double angle
+* @param[in]  double phi
+* @return     QPanda::QGate  quantum gate
+* @ingroup QuantumCircuit
+*/
+QGate RPhi(Qubit * qubit, double angle, double phi);
+
 /**
 * @brief  Construct a new quantum S gate
 * @param[in]  Qubit* qubit target qubit
@@ -433,6 +444,33 @@ QGate T(Qubit*);
 * @ingroup QuantumCircuit
 */
 QGate H(Qubit* qubit);
+
+
+
+/**
+* @brief  Construct a new quantum ECHO gate; Only for 6 qubits online projects !
+* @param[in]  Qubit* qubit target qubit
+* @return     QPanda::QGate  quantum gate
+* @ingroup QuantumCircuit
+*/
+QGate ECHO(Qubit* qubit);
+
+/**
+* @brief  Construct a new quantum BARRIER gate; Only for 6 qubits online projects !
+* @param[in]  Qubit* qubit target qubit
+* @return     QPanda::QGate  quantum gate
+* @ingroup QuantumCircuit
+*/
+QGate BARRIER(Qubit* qubit);
+
+/**
+* @brief  Construct a new quantum BARRIER gate; Only for 6 qubits online projects !
+* @param[in]  Qubit* qubit target qubit
+* @return     QPanda::QGate  quantum gate
+* @ingroup QuantumCircuit
+*/
+QGate BARRIER(QVec qubits);
+
 
 /**
 * @brief  Construct a new quantum CNOT gate
@@ -461,6 +499,8 @@ QGate CZ(Qubit*  control_qubit, Qubit* target_qubit);
 * @ingroup QuantumCircuit
 */
 QGate U4(double alpha, double beta, double gamma, double delta, Qubit*);
+
+
 /**
 * @brief  Construct a new quantum U4 gate
 * @param[in]  QStat& matrix
@@ -469,6 +509,7 @@ QGate U4(double alpha, double beta, double gamma, double delta, Qubit*);
 * @ingroup QuantumCircuit
 */
 QGate U4(QStat& matrix, Qubit*);
+
 /**
 * @brief  Construct a new quantum QDouble gate
 * @param[in]  QStat matrix
@@ -478,6 +519,7 @@ QGate U4(QStat& matrix, Qubit*);
 * @ingroup QuantumCircuit
 */
 QGate QDouble(QStat& matrix, Qubit * qubit1, Qubit * qubit2);
+
 /**
 * @brief  Construct a new quantum CU gate
 * @param[in]  double alpha
@@ -568,5 +610,61 @@ inline QGate copy_qgate(QGate *qgate,QVec qubit_vector)
 	return copy_qgate(qgate->getQGate(), qubit_vector);
 }
 
+
+/* new interface */
+
+/**
+* @brief  Construct a new quantum U4 gate
+* @param[in]  Qubit* target qubit
+* @param[in]  double alpha
+* @param[in]  double beta
+* @param[in]  double gamma
+* @param[in]  double delta
+* @return     QPanda::QGate  quantum gate
+* @ingroup QuantumCircuit
+*/
+QGate U4(Qubit*, double alpha, double beta, double gamma, double delta);
+
+/**
+* @brief  Construct a new quantum U4 gate
+* @param[in]  Qubit* target qubit
+* @param[in]  QStat& matrix
+* @return     QPanda::QGate  quantum gate
+* @ingroup QuantumCircuit
+*/
+QGate U4(Qubit*, QStat& matrix);
+
+/**
+* @brief  Construct a new quantum QDouble gate
+* @param[in]  Qubit* control qubit
+* @param[in]  Qubit* target qubit
+* @param[in]  QStat matrix
+* @return     QPanda::QGate  quantum gate
+* @ingroup QuantumCircuit
+*/
+QGate QDouble(Qubit * qubit1, Qubit * qubit2, QStat& matrix);
+
+/**
+* @brief  Construct a new quantum CU gate
+* @param[in]  Qubit*   control qubit
+* @param[in]  Qubit*   target qubit
+* @param[in]  double alpha
+* @param[in]  double beta
+* @param[in]  double gamma
+* @param[in]  double delta
+* @return     QPanda::QGate  quantum gate
+* @ingroup QuantumCircuit
+*/
+QGate CU(Qubit *, Qubit *, double alpha, double beta, double gamma, double delta);
+
+/**
+* @brief  Construct a new quantum CU gate
+* @param[in]  Qubit*  target qubit
+* @param[in]  Qubit*  control qubit
+* @param[in]  QStat & matrix
+* @return     QPanda::QGate  quantum gate
+* @ingroup QuantumCircuit
+*/
+QGate CU(Qubit*, Qubit*, QStat& matrix);
 QPANDA_END
 #endif // !_QGATE_H

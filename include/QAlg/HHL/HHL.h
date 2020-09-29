@@ -19,14 +19,25 @@ public:
 
 	std::string check_QPE_result();
 
+	/**
+    * @brief  Extending linear equations to N dimension, N=2^n
+    * @ingroup QAlg
+    * @param[in] QStat& the source matrix, which will be extend to N*N, N=2^n
+    * @param[in] std::vector<double>& the source vector b, which will be extend to 2^n
+    * @return 
+    * @note
+    */
+	static void expand_linear_equations(QStat& A, std::vector<double>& b);
+
 protected:
 	QCircuit build_CR_cir(std::vector<Qubit*>& controlqvec, Qubit* target_qubit, double r = 6.0);
-	double get_max_eigen_val(const QStat& A);
+	std::vector<double> get_max_eigen_val(const QStat& A);
 	QCircuit index_to_circuit(size_t index, std::vector<Qubit*> &controlqvec);
 	EigenMatrixX to_real_matrix(const EigenMatrixXc& c_mat);
 	QCircuit build_cir_b(QVec qubits, const std::vector<double>& b);
 	void init_qubits();
 	bool is_hermitian_matrix();
+	void transform_hermitian_to_unitary_mat(QStat& src_mat);
 
 private:
 	const QStat& m_A;

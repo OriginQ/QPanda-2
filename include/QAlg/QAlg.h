@@ -22,7 +22,8 @@ limitations under the License.
 #include "QAlg/ChemiQ/ChemiQ.h"
 #include "QAlg/ChemiQ/ChemiQIFC.h"
 #include "QAlg/DJ_Algorithm/DJ_Algorithm.h"
-#include "QAlg/Grover_Algorithm/Grover_Algorithm.h"
+#include "QAlg/Grover/GroverAlgorithm.h"
+#include "QAlg/Grover/QuantumWalkGroverAlg.h"
 #include "QAlg/QAOA/QAOA.h"
 #include "QAlg/QITE/QITE.h"
 #include "QAlg/ArithmeticUnit/ArithmeticUnit.h"
@@ -32,5 +33,6 @@ limitations under the License.
 #include "QAlg/Base_QCircuit/AmplitudeEncode.h"
 #include "QAlg/QARM/QARMAlgorithm.h"
 #include "QAlg/QSVM/QSVMAlgorithm.h"
+#include "QAlg/Shor/Shor.h"
 
 #endif // !_QALG_H

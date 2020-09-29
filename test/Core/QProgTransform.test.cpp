@@ -8,40 +8,70 @@
 #include "gtest/gtest.h"
 #include "Core/QuantumCircuit/QNodeDeepCopy.h"
 #include "Core/Utilities/Tools/MatrixDecomposition.h"
+#include "Core/VirtualQuantumProcessor/MPSQVM/MPSQVM.h"
 #include "Core/Utilities/QProgTransform/QProgToDAG/GraphMatch.h"
 
 using namespace std;
 USING_QPANDA
 
+//TEST(MatrixXi, Eigen)
+//{
+//    MPSQVM qvm;
+//
+//    Configuration config = { 64,64 };
+//    qvm.setConfig(config);
+//
+//    qvm.init();
+//
+//#if 1
+//    auto q = qvm.qAllocMany(10);
+//    auto c = qvm.cAllocMany(10);
+//
+//
+//    auto prog = QProg();
+//    for_each(q.begin(), q.end(), [&](Qubit *val) { prog << H(val); });
+//    prog << CZ(q[1], q[5])
+//        << CZ(q[3], q[7])
+//        << CZ(q[0], q[4])
+//        << RZ(q[7], PI / 4)
+//        << RX(q[5], PI / 4)
+//        << RX(q[4], PI / 4)
+//        << RY(q[3], PI / 4)
+//        << CZ(q[2], q[6])
+//        << RZ(q[3], PI / 4)
+//        << RZ(q[8], PI / 4)
+//        << CZ(q[9], q[5])
+//        << RY(q[2], PI / 4)
+//        << RZ(q[9], PI / 4) 
+//        << CR(q[2], q[7], PI / 2)
+//
+//        << MeasureAll(q, c);
+//#else
+//    auto q = qvm.qAllocMany(10);
+//    auto c = qvm.cAllocMany(10);
+//    QProg prog;
+//    prog << H(q[0])
+//         << CNOT(q[0], q[1])
+//         //<< CNOT(q[0], q[2])
+//         << MeasureAll(q, c);
+//#endif
+//     
+//    qvm.set_noise_model(NOISE_MODEL::DAMPING_KRAUS_OPERATOR, { 0.1 });
+//
+//    auto result = qvm.runWithConfiguration(prog, c, 100);
+//    for (auto val : result)
+//    {
+//        cout << val.first << " : " << val.second << endl;
+//    }
+//
+//    getchar(); 
+//}
+
 TEST(MatrixXi, Eigen)
 {
-	auto qvm =new CPUQVM();
-	qvm->init();
-	auto q = qvm->qAllocMany(6);
-	auto c = qvm->cAllocMany(6 );
-
-	QCircuit in;
-
-	QStat test_matrix = {
-		qcomplex_t(0.15774658, -0.52244755), qcomplex_t(-0.65774658, 0.02244755), qcomplex_t(-0.30419319, 0.16889416), qcomplex_t(0.19580681, -0.33110584),
-		qcomplex_t(-0.65774658, 0.02244755), qcomplex_t(0.15774658, -0.52244755), qcomplex_t(-0.19580681, 0.33110584), qcomplex_t(0.30419319, -0.16889416),
-		qcomplex_t(-0.30419319, 0.16889416), qcomplex_t(-0.19580681, 0.33110584), qcomplex_t(0.15774658, -0.52244755), qcomplex_t(0.65774658, -0.02244755),
-		qcomplex_t(0.19580681, -0.33110584), qcomplex_t(0.30419319, -0.16889416), qcomplex_t(0.65774658, -0.02244755), qcomplex_t(0.15774658, -0.52244755)
-	};
-
-	QVec used_qubits = { q[0], q[1] };
-	QCircuit out = matrix_decompose(used_qubits, test_matrix);
-
-	auto b = getCircuitMatrix(out);
-	cout << b << endl;
-
-	if (test_matrix == b)
-	{
-		cout << "test ok" << endl;
-	}
-
-    getchar();
+    return;
 }
+
 
 TEST(GraphMatch, Query)
 {
@@ -134,4 +164,4 @@ TEST(GraphMatch, Query)
     graph_query_replace(prog, query_cir, replace_cir, update_prog, qvm);
 
     cout << transformQProgToOriginIR(update_prog, qvm);
-}
+} 

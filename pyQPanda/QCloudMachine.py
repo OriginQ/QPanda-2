@@ -1,3 +1,4 @@
+from numpy import pi
 from pyqpanda import *
 import time
 PI = 3.1415926535898
@@ -28,22 +29,15 @@ def utilities_fun():
 
 def cpu_qvm_fun():
 
-    machine = init_quantum_machine(QMachineType.CPU)
+    machine = CPUQVM()
     machine.initQVM()
 
-    q = machine.qAlloc_many(10)
-    c = machine.cAlloc_many(10)
+    prog_trans, qv, cv = convert_qasm_to_qprog("D:\\123.txt", machine)
+    # print(result1)
+    # print(result2)
 
-    prog = QProg()
-    prog.insert(Hadamard_Circuit(q))\
-        .insert(T(q[0]).dagger())\
-        .insert(Y(q[1]))\
-        .insert(RX(q[3], PI / 3))\
-        .insert(RY(q[2], PI / 3))\
-        .insert(CNOT(q[1], q[5]))
-    # .insert(measure_all(q,c))
+    print(convert_qprog_to_originir(prog_trans, machine))
 
-    print(to_QRunes(prog, machine))
     machine.finalize()
 
 
@@ -100,7 +94,7 @@ def partialAmp_fun():
 
     machine = PartialAmpQVM()
 
-    machine.initQVM()
+    machine.init_qvm()
 
     q = machine.qAlloc_many(10)
     c = machine.cAlloc_many(10)
@@ -194,44 +188,53 @@ def graph_match_fun():
 def QCloud_fun():
 
     QCM = QCloud()
-    QCM.init_qvm("4B7AFE1E196A4197B7C6845C4E73EF2E")
+    QCM.init_qvm("3B1AC640AAC248C6A7EE4E8D8537370D")
 
-    qlist = QCM.qAlloc_many(10)
-    clist = QCM.cAlloc_many(10)
-    prog = QProg()
-    for i in qlist:
-        prog.insert(H(i))
+    qlist = QCM.qAlloc_many(6)
+    clist = QCM.cAlloc_many(6)
 
-    prog.insert(CZ(qlist[1], qlist[5]))\
-        .insert(CZ(qlist[3], qlist[7]))\
-        .insert(CZ(qlist[0], qlist[4]))\
-        .insert(RZ(qlist[7], PI / 4))\
-        .insert(RX(qlist[5], PI / 4))\
-        .insert(RX(qlist[4], PI / 4))\
-        .insert(RY(qlist[3], PI / 4))\
-        .insert(CZ(qlist[2], qlist[6]))\
-        .insert(RZ(qlist[3], PI / 4))\
-        .insert(RZ(qlist[8], PI / 4))\
-        .insert(CZ(qlist[9], qlist[5]))\
-        .insert(RY(qlist[2], PI / 4))\
-        .insert(RZ(qlist[9], PI / 4))\
-        .insert(CZ(qlist[2], qlist[3]))\
-        .insert(Measure(qlist[0], clist[0]))\
-        .insert(Measure(qlist[1], clist[1]))\
-        .insert(Measure(qlist[2], clist[2]))
+    measure_prog = QProg()
+    measure_prog.insert(hadamard_circuit(qlist))\
+                .insert(CZ(qlist[1], qlist[5]))\
+                .insert(CZ(qlist[0], qlist[4]))\
+                .insert(RX(qlist[2], PI / 4))\
+                .insert(RX(qlist[1], PI / 4))\
+                .insert(CZ(qlist[2], qlist[3]))\
+                .insert(Measure(qlist[0], clist[0]))\
+                .insert(Measure(qlist[1], clist[1]))\
+                .insert(Measure(qlist[2], clist[2]))
 
-    task = QCM.full_amplitude_measure(prog, 100)
-    print(task)
+    pmeasure_prog = QProg()
+    pmeasure_prog.insert(hadamard_circuit(qlist))\
+                 .insert(CZ(qlist[1], qlist[5]))\
+                 .insert(RX(qlist[2], PI / 4))\
+                 .insert(RX(qlist[1], PI / 4))\
 
-    time.sleep(10)
-    QCM.get_result("13401010129203cba29c3ee344694926307d1ba4c8fcb",
-                   ClusterMachineType.Full_AMPLITUDE)
+    result0 = QCM.full_amplitude_measure(measure_prog, 100)
+    print(result0)
+    print("full_amplitude_measure pass !")
 
-    # print(result)
-    # print(QCM.prob_run_dict(prog,qlist,param2))
+    result1 = QCM.full_amplitude_pmeasure(pmeasure_prog, [0, 1, 2])
+    print(result1)
+    print("full_amplitude_pmeasure pass !")
 
-    # res = QCM.get_result("1904261648207832")
-    # print(res)
+    result2 = QCM.partial_amplitude_pmeasure(pmeasure_prog, ["0", "1", "2"])
+    print(result2)
+    print("partial_amplitude_pmeasure pass !")
+
+    result3 = QCM.single_amplitude_pmeasure(pmeasure_prog, "0")
+    print(result3)
+    print("single_amplitude_pmeasure pass !")
+
+    QCM.set_noise_model(NoiseModel.BIT_PHASE_FLIP_OPRATOR, [0.01], [0.02])
+    result4 = QCM.noise_measure(measure_prog, 100)
+    print(result4)
+    print("noise_measure pass !")
+
+    result5 = QCM.real_chip_measure(measure_prog, 100)
+    print(result5)
+    print("real_chip_measure pass !")
+
     QCM.finalize()
 
 
@@ -258,11 +261,77 @@ def Cluster_Cloud():
     QCM.finalize()
 
 
+def noise_fun():
+    qvm = NoiseQVM()
+    qvm.set_configure(20, 20)
+
+    # default argc
+    qubits_num = 10
+    shot = 100
+
+    # 设置噪声模型参数
+    noise_rate = 0.001
+    qvm.set_noise_model(NoiseModel.DEPHASING_KRAUS_OPERATOR,
+                        GateType.HADAMARD_GATE, [noise_rate])
+    qvm.set_noise_model(NoiseModel.DEPHASING_KRAUS_OPERATOR,
+                        GateType.CPHASE_GATE, [2 * noise_rate])
+
+    qvm.init_qvm()
+
+    q = qvm.qAlloc_many(qubits_num)
+    c = qvm.cAlloc_many(qubits_num)
+
+    prog = QProg()
+    for i in range(0, qubits_num):
+        target = q[qubits_num - 1 - i]
+        prog.insert(H(target))
+        for j in range(i + 1, qubits_num):
+            control = q[qubits_num - 1 - j]
+            prog.insert(CR(control, target, 2 * pi / (1 << (j - i + 1))))
+
+    prog.insert(measure_all(q, c))
+
+    start = time.time()
+    result = qvm.run_with_configuration(prog, c, shot)
+    end = time.time()
+    print(qvm.get_allocate_cmem_num())
+    print(qvm.get_allocate_qubit_num())
+    print(qvm.getAllocateCMem())
+    print(qvm.getAllocateQubitNum())
+    print("noise :", "qubit =", qubits_num,
+          " shots =", shot, " times =", end - start)
+    # print(result)
+    qvm.finalize()
+
+
+def jkuqvm_fun():
+
+    machine = JKUQVM()
+    machine.set_configure(50, 50)
+    machine.init_qvm()
+
+    q = machine.qAlloc_many(1)
+    c = machine.cAlloc_many(1)
+
+    prog = QProg()
+    prog.insert(X1(q[0]))\
+        .insert(Z1(q[0]))\
+        .insert(Y1(q[0]))\
+        .insert(Measure(q[0], c[0]))
+
+    result = machine.run_with_configuration(prog, c, 100)
+    print(result)
+
+    machine.finalize()
+
+
 if __name__ == "__main__":
 
-    # QCloud_fun()
+    QCloud_fun()
     # cpu_qvm_fun()
     # singleAmp_fun()
-    partialAmp_fun()
+    # partialAmp_fun()
     # Cluster_Cloud()
     # graph_match_fun()
+    # noise_fun()
+    # jkuqvm_fun()

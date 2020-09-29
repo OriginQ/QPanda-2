@@ -19,7 +19,13 @@ enum CLOUD_QMACHINE_TYPE
     NOISE_QMACHINE,
     PARTIAL_AMPLITUDE,
     SINGLE_AMPLITUDE,
-    CHEMISTRY
+    CHEMISTRY,
+    REAL_CHIP
+};
+
+enum class REAL_CHIP_TYPE
+{
+    ORIGIN_WUYUAN
 };
 
 /**
@@ -33,6 +39,20 @@ enum CLOUD_QMACHINE_TYPE
 * @see QuantumMachine
 * @note  QCloudMachine also provides  python interface
 */
+
+struct NoiseParams 
+{
+    string noise_model;
+    double single_gate_param;
+    double double_gate_param;
+
+    double single_p2; 
+    double double_p2;
+
+    double single_pgate; 
+    double double_pgate;
+};
+
 class QCloudMachine:public QVM
 {
 public:
@@ -46,56 +66,80 @@ public:
     */
 	void init();
 	void init(string token);
+    void set_noise_model(NOISE_MODEL model, const std::vector<double> single_params, const std::vector<double> double_params);
+
+    /**
+    * @brief  run a measure quantum program
+    * @param[in]  QProg& the reference to a quantum program
+    * @param[in]  int&   shot
+    * @param[out] std::map<std::string, double>
+    * @return     measure result
+    */
+    std::map<std::string, double> noise_measure(QProg &, int shot, string task_name = "Qurator Experiment");
 
 	/**
 	* @brief  run a measure quantum program
 	* @param[in]  QProg& the reference to a quantum program
 	* @param[in]  int&   shot
-	* @param[out] std::string& empty taskid
-	* @return     success or failure
+	* @param[out] std::map<std::string, double>
+	* @return     measure result
 	*/
-    bool full_amplitude_measure(QProg &, int shot, std::string&);
+    std::map<std::string, double> full_amplitude_measure(QProg &, int shot, string task_name = "Qurator Experiment");
   
 	/**
 	* @brief  run a pmeasure quantum program
 	* @param[in]  QProg& the reference to a quantum program
 	* @param[in]  Qnum & qubit address vector
-	* @param[out] std::string& empty taskid
-	* @return     success or failure
+    * @param[out] std::map<std::string, double>
+    * @return     pmeasure result
 	*/
-	bool full_amplitude_pmeasure(QProg &prog, const Qnum &qubit_vec, std::string&);
+    std::map<std::string, double> full_amplitude_pmeasure(QProg &prog, Qnum qubit_vec, string task_name = "Qurator Experiment");
     
 	/**
 	* @brief  run a pmeasure quantum program with partial amplitude backend
 	* @param[in]  QProg& the reference to a quantum program
 	* @param[in]  std::vector<std::string> & amplitude subset
-	* @param[out] std::string& empty taskid
-	* @return     success or failure
+    * @param[out] std::map<std::string, qcomplex_t>
+    * @return     pmeasure result
 	*/
-	bool partial_amplitude_pmeasure(QProg &prog, std::vector<std::string> &amplitude_vec, std::string&);
+    std::map<std::string, qcomplex_t> partial_amplitude_pmeasure(QProg &prog, std::vector<std::string> amplitude_vec, string task_name = "Qurator Experiment");
 
 	/**
 	* @brief  run a pmeasure quantum program with single amplitude backend
 	* @param[in]  QProg& the reference to a quantum program
 	* @param[in]  std::string amplitude
-	* @param[out] std::string& empty taskid
-	* @return     success or failure
+    * @param[out] qcomplex_t
+    * @return     pmeasure result
 	*/
-	bool single_amplitude_pmeasure(QProg &prog, std::string amplitude, std::string&);
+    qcomplex_t single_amplitude_pmeasure(QProg &prog, std::string amplitude, string task_name = "Qurator Experiment");
+
+    /**
+    * @brief  run a measure quantum program
+    * @param[in]  QProg& the reference to a quantum program
+    * @param[in]  int&   shot
+    * @param[out] std::map<std::string, double>
+    * @return     measure result
+    */
+    std::map<std::string, double> real_chip_measure(QProg &, int shot, string task_name = "Qurator Experiment", REAL_CHIP_TYPE type = REAL_CHIP_TYPE::ORIGIN_WUYUAN);
 
 	/**
 	* @brief  get task result
 	* @param[in]  std::string taskid
 	* @param[in]  CLOUD_QMACHINE_TYPE type
 	* @param[out] std::string& empty taskid
-	* @return     success or failure
+	* @return     string
 	*/
-	bool get_result(std::string taskid, CLOUD_QMACHINE_TYPE type);
+	std::string get_result_json(std::string taskid, CLOUD_QMACHINE_TYPE type);
 
 private:
 	std::string m_token;
 	std::string m_inqure_url;
     std::string m_compute_url;
+
+    std::map<std::string, double> m_measure_result;
+    std::map<std::string, qcomplex_t> m_pmeasure_result;
+    qcomplex_t m_single_result;
+    NoiseParams m_noise_params;
 
     enum CLUSTER_TASK_TYPE
     {
@@ -103,21 +147,30 @@ private:
         CLUSTER_PMEASURE
     };
 
-    enum TASK_STATUS
+    enum class TASK_STATUS
     {
         WAITING = 1,
         COMPUTING,
         FINISHED,
         FAILED,
-		QUEUING
+		QUEUING,
+
+        //The next status only appear in real chip backend
+        SENT_TO_BUILD_SYSTEM,
+        BUILD_SYSTEM_ERROR,   
+        SEQUENCE_TOO_LONG,
+        BUILD_SYSTEM_RUN
     };
 
     std::string post_json(const std::string &, std::string &);
 
-	bool parser_cluster_result_json(std::string &recv_json, std::string&);
+    void inqure_result(std::string, CLOUD_QMACHINE_TYPE);
+
+    bool parser_cluster_result_json(std::string &recv_json, std::string&);
 	bool parser_cluster_submit_json(std::string &recv_json, std::string&);
 
-    void add_string_value(rapidjson::Document &, const string &, const int &);
+    void add_string_value(rapidjson::Document &, const string &, const size_t);
+    void add_string_value(rapidjson::Document &, const string &, const double);
     void add_string_value(rapidjson::Document &, const string &, const std::string &);
 };
 

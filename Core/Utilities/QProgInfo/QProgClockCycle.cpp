@@ -26,9 +26,9 @@ size_t QProgClockCycle::count(QProg &prog)
         throw std::runtime_error("cast_qprog_qcircuit failure!");
     }
 
-    GraphMatch dag_match;
-    TopologicalSequence graph_seq;
-    dag_match.get_topological_sequence(prog, graph_seq);
+	QProgTopologSeq<GateNodeInfo, SequenceNode> m_prog_topo_seq;
+	m_prog_topo_seq.prog_to_topolog_seq(prog, SequenceNode::construct_sequence_node);
+	TopologSequence<SequenceNode>& graph_seq = m_prog_topo_seq.get_seq();
     size_t clock_cycle = 0;
 
     for (auto &layer : graph_seq)
@@ -111,6 +111,12 @@ size_t QProgClockCycle::getQGateTime(GateType gate_type)
 }
 
 size_t QPanda::getQProgClockCycle(QProg &prog, QuantumMachine *qm)
+{
+    QProgClockCycle counter(qm);
+    return counter.count(prog);
+}
+
+size_t QPanda::get_pqrog_clock_cycle(QProg & prog, QuantumMachine * qm)
 {
     QProgClockCycle counter(qm);
     return counter.count(prog);

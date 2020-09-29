@@ -1,4 +1,6 @@
 #include "Core/Utilities/Compiler/QProgToOriginIR.h"
+#include <iostream>
+#include <fstream>
 
 using namespace std;
 using namespace QGATE_SPACE;
@@ -53,6 +55,9 @@ QProgToOriginIR::QProgToOriginIR(QuantumMachine * quantum_machine)
 	m_gatetype.insert(pair<int, string>(T_GATE, "T"));
 	m_gatetype.insert(pair<int, string>(S_GATE, "S"));
 
+	m_gatetype.insert(pair<int, string>(ECHO_GATE, "ECHO"));
+    m_gatetype.insert(pair<int, string>(BARRIER_GATE, "BARRIER"));
+
 	m_gatetype.insert(pair<int, string>(RX_GATE, "RX"));
 	m_gatetype.insert(pair<int, string>(RY_GATE, "RY"));
 	m_gatetype.insert(pair<int, string>(RZ_GATE, "RZ"));
@@ -62,10 +67,13 @@ QProgToOriginIR::QProgToOriginIR(QuantumMachine * quantum_machine)
 	m_gatetype.insert(pair<int, string>(U3_GATE, "U3"));
 	m_gatetype.insert(pair<int, string>(U4_GATE, "U4"));
 
+	m_gatetype.insert(pair<int, string>(RPHI_GATE, "RPhi"));
+
 	m_gatetype.insert(pair<int, string>(CU_GATE, "CU"));
 	m_gatetype.insert(pair<int, string>(CNOT_GATE, "CNOT"));
 	m_gatetype.insert(pair<int, string>(CZ_GATE, "CZ"));
 	m_gatetype.insert(pair<int, string>(CPHASE_GATE, "CR"));
+	m_gatetype.insert(pair<int, string>(ISWAP_THETA_GATE, "ISWAPTHETA"));
 	m_gatetype.insert(pair<int, string>(ISWAP_GATE, "ISWAP"));
 	m_gatetype.insert(pair<int, string>(SWAP_GATE, "SWAP"));
 	m_gatetype.insert(pair<int, string>(SQISWAP_GATE, "SQISWAP"));
@@ -99,6 +107,7 @@ void QProgToOriginIR::transformQGate(AbstractQGateNode * pQGate, bool is_dagger)
 	QVec qubits_vector;
 	QVec ctr_qubits_vector;
 	bool is_toffoli = false;
+	bool is_barrier = false;
 	string all_ctr_qubits;
 	pQGate->getQuBitVector(qubits_vector);
 	pQGate->getControlVector(ctr_qubits_vector);
@@ -107,6 +116,10 @@ void QProgToOriginIR::transformQGate(AbstractQGateNode * pQGate, bool is_dagger)
 		&& 2 == ctr_qubits_vector.size())
 	{
 		is_toffoli = true;
+	}
+	if (BARRIER_GATE == pQGate->getQGate()->getGateType())
+	{
+		is_barrier = true;
 	}
 
 	if (pQGate->isDagger())
@@ -119,7 +132,7 @@ void QProgToOriginIR::transformQGate(AbstractQGateNode * pQGate, bool is_dagger)
 		{
 			all_ctr_qubits = all_ctr_qubits + transformQubitFormat(val) + ",";
 		}
-		if (!is_toffoli)
+		if (!is_toffoli  && !is_barrier)
 		{
 			m_OriginIR.emplace_back("CONTROL " + all_ctr_qubits.substr(0, all_ctr_qubits.length() - 1));
 		}
@@ -161,12 +174,25 @@ void QProgToOriginIR::transformQGate(AbstractQGateNode * pQGate, bool is_dagger)
 		}
 	}
 	break;
+	case BARRIER_GATE: 
+	{
+		if (!all_ctr_qubits.empty())
+		{
+			all_ctr_qubits = all_ctr_qubits.substr(0, all_ctr_qubits.length() - 1);
+			all_ctr_qubits = "," + all_ctr_qubits;
+		}
+
+		m_OriginIR.emplace_back(item + " " + first_qubit + all_ctr_qubits);
+	}
+	break;
+
 	case PAULI_Y_GATE:
 	case PAULI_Z_GATE:
 	case X_HALF_PI:
 	case Y_HALF_PI:
 	case Z_HALF_PI:
 	case HADAMARD_GATE:
+	case ECHO_GATE:
 	case T_GATE:
 	case S_GATE:
 	case I_GATE:
@@ -203,6 +229,15 @@ void QProgToOriginIR::transformQGate(AbstractQGateNode * pQGate, bool is_dagger)
 		m_OriginIR.emplace_back(item + " " + all_qubits + "," + "(" + gate_two_angle + ")");
 	}
 	break;
+
+	case RPHI_GATE:
+	{
+		QGATE_SPACE::RPhi * rphi_gate = dynamic_cast<QGATE_SPACE::RPhi*>(pQGate->getQGate());
+		string gate_two_angle = double_tostring(rphi_gate->getBeta()) + ',' + double_tostring(rphi_gate->get_phi());
+		m_OriginIR.emplace_back(item + " " + all_qubits + "," + "(" + gate_two_angle + ")");
+	}
+
+	break;
 	case U3_GATE:
 	{
 		QGATE_SPACE::U3 *u3_gate = dynamic_cast<QGATE_SPACE::U3*>(pQGate->getQGate());
@@ -222,6 +257,7 @@ void QProgToOriginIR::transformQGate(AbstractQGateNode * pQGate, bool is_dagger)
 	}
 	break;
 
+	case ISWAP_THETA_GATE:
 	case CPHASE_GATE:
 	{
 		auto gate_parameter = dynamic_cast<AbstractSingleAngleParameter *>(pQGate->getQGate());
@@ -244,7 +280,7 @@ void QProgToOriginIR::transformQGate(AbstractQGateNode * pQGate, bool is_dagger)
 	default:m_OriginIR.emplace_back("Unsupported GateNode");
 	}
 
-	if (!ctr_qubits_vector.empty() && !is_toffoli)
+	if (!ctr_qubits_vector.empty() && !is_toffoli && !is_barrier )
 	{
 		m_OriginIR.emplace_back("ENDCONTROL");
 	}
@@ -425,6 +461,18 @@ string QProgToOriginIR::getInsturctions()
 	return instructions;
 }
 
+void QPanda::write_to_originir_file(QProg prog, QuantumMachine * qvm, const string file_name)
+{
+	std::ofstream out_file;
+	auto originir_str = convert_qprog_to_originir(prog, qvm);
+	out_file.open(file_name, ios::out);
+	if (!out_file.is_open())
+	{
+		QCERR_AND_THROW_ERRSTR(run_fail, "Error: failed to open originir file.");
+	}
+	out_file << originir_str;
+	out_file.close();
+}
 
 
 

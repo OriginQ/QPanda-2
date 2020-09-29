@@ -11,8 +11,8 @@ USING_QPANDA
 ConfigMap::ConfigMap(const string &filename)
 {
 
-    XmlConfigParam config_file;
-    if (config_file.loadFile(filename))
+	JsonConfigParam config_file;
+    if (config_file.load_config(filename))
     {
         if (config_file.getClassNameConfig(m_configMap))
         {

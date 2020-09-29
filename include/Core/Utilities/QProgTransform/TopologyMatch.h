@@ -272,10 +272,10 @@ private:
 	std::map<int, std::function<QGate(Qubit *, double)> > m_singleAngleGateFunc;
 	std::map<int, std::function<QGate(Qubit *, Qubit*)> > m_doubleGateFunc;
 	std::map<int, std::function<QGate(Qubit *, Qubit*, double)> > m_doubleAngleGateFunc;
-
+	QProg m_prog;
 
 public:
-	TopologyMatch(QuantumMachine * machine,  SwapQubitsMethod method = CNOT_GATE_METHOD, ArchType arch_type = IBM_QX5_ARCH);
+	TopologyMatch(QuantumMachine * machine, QProg prog, SwapQubitsMethod method = CNOT_GATE_METHOD, ArchType arch_type = IBM_QX5_ARCH);
 
 	~TopologyMatch();
 	/**
@@ -284,7 +284,7 @@ public:
 	* @param[out]  Qprog&  the mapped quantum program
 	* @return   void
 	**/
-	void mappingQProg(QProg prog, QVec &qv, QProg &mapped_prog);
+	void mappingQProg(QVec &qv, QProg &mapped_prog);
 
 
 	virtual void execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node, bool &);

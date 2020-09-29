@@ -26,9 +26,10 @@ find_path(QPANDA_INCLUDE_DIR NAMES qpanda2/QPanda.h qpanda2/QPandaVersion.h
           ${QPANDA_INSTALL_DIR}/include)
 set(QPANDA_INCLUDE_DIR "${QPANDA_INCLUDE_DIR}/qpanda2/")
 
-find_path(THIRD_INCLUDE_DIR NAMES qpanda2/ThirdParty/TinyXML/tinyxml.h 
+find_path(THIRD_INCLUDE_DIR NAMES qpanda2/ThirdParty/rapidjson/rapidjson.h 
           PATHS 
           ${QPANDA_INSTALL_DIR}/include)
+
 include_directories(${THIRD_INCLUDE_DIR}/qpanda2/ThirdParty)
 mark_as_advanced(QPANDA_INCLUDE_DIR)
 
@@ -42,9 +43,11 @@ find_library(QPANDA_LIBRARY NAMES QPanda2
 find_library(COMPONENTS_LIBRARY NAMES Components 
              PATHS 
              ${QPANDA_INSTALL_DIR}/lib)
-find_library(TINY_LIBRARY NAMES TinyXML 
-             PATHS 
-             ${QPANDA_INSTALL_DIR}/lib)
+
+#find_library(TINY_LIBRARY NAMES TinyXML 
+#             PATHS 
+#             ${QPANDA_INSTALL_DIR}/lib)
+
 find_library(ANTLR4_LIBRARY NAMES antlr4 
              PATHS 
              ${QPANDA_INSTALL_DIR}/lib)
@@ -56,7 +59,7 @@ find_library(GPUBACKEND_LIBRARY NAMES GPUQGates
 mark_as_advanced(QPANDA_LIBRARY)
 mark_as_advanced(QALG_LIBRARY)
 mark_as_advanced(COMPONENTS_LIBRARY)
-mark_as_advanced(TINY_LIBRARY)
+#mark_as_advanced(TINY_LIBRARY)
 mark_as_advanced(ANTLR4_LIBRARY)
 
 set(QPANDA_LIBRARIES)
@@ -64,7 +67,7 @@ list(APPEND QPANDA_LIBRARIES
             ${QPANDA_LIBRARY}
             ${QALG_LIBRARY}
             ${COMPONENTS_LIBRARY}
-            ${TINY_LIBRARY}
+            #${TINY_LIBRARY}
             ${ANTLR4_LIBRARY})
 
 if (GPUBACKEND_LIBRARY)

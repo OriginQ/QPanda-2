@@ -1,0 +1,232 @@
+{
+"QGate": {
+    "SingleGate":{
+	  "U3":{"time":2}
+	},
+	"DoubleGate":{
+	  "CNOT":{"time":5},
+	  "CZ":{"time":5}
+	}
+  },
+  "QGateTimeSequence":{
+    "QMeasureTimeSequence":2,
+    "QSwapTimeSequence":2,
+	"QGateControlTimeSequence":2,
+	"QGateSingleTimeSequence":1,
+	"QResetNodeTimeSequence":1
+  },
+  "ClassNameConfig":{
+    "QProg":"OriginProgram",
+	"QCircuit":"OriginCircuit",
+	"QIfProg":"OriginQIf",
+	"QWhileProg":"OriginQWhile",
+	"QMeasure":"OriginMeasure",
+	"QReset":"OriginReset",
+	"QuantumMachine":"OriginQVM",
+	"QubitPool":"OriginQubitPoolv2",
+	"Qubit":"OriginQubit",
+	"PhysicalQubit":"OriginPhysicalQubit",
+	"CBit":"OriginCBit",
+	"CMem":"OriginCMem",
+	"QResult":"OriginQResult",
+	"CExpr":"OriginCExpr",
+	"ClassicalProg":"OriginClassicalProg"
+  },
+  "QuantumCloudConfig":{
+    "ComputeAPI":"http://10.10.12.176:8060/api/taskApi/submitTask.json",
+	  "InqureAPI":"http://10.10.12.176:8060/api/taskApi/getResultDetail.json",
+	"MonteCarloRepeatNum":100
+  },
+  "Metadata": {
+    "QubitCount": 6,
+    "HighFrequencyQubit": [ 0, 2, 4 ],
+    "CompensateAngle": {
+      "CZ(0,1)": [ -3.59064208, -0.12094442, 0 ],
+      "CZ(2,1)": [ -0.30938149, -0.22914852, 0 ],
+      "CZ(2,3)":[ -5.71829, -0.083 , 0],
+      "CZ(4,3)": [ 4.5868, -6.614 , 0],
+      "CZ(4,5)": [ 5.94575, -4.7209, 2.52 ]
+    },
+    "DoubleGateClock": 3,
+    "SingleGateClock": 1,
+    "QubitAdjacentMatrix": [
+        [ 0, 0.9653, 0, 0, 0, 0 ],
+        [ 0.9653, 0, 0.9843, 0, 0, 0 ],
+        [ 0, 0.9843, 0, 0.9807, 0, 0 ],
+        [ 0, 0, 0.9807, 0, 0.9942, 0 ],
+        [ 0, 0, 0, 0.9942, 0, 0.9900 ],
+        [ 0, 0, 0, 0, 0.9900, 0 ]
+    ]
+  },
+  "Micro_Architecture":{
+    "load":{
+	  "opcode_4_3":0,
+	  "opcode_2_1":0
+	},
+	"store":{
+	  "opcode_4_3":1,
+	  "opcode_2_1":0
+	},
+	"branch":{
+	  "opcode_4_3":3,
+	  "opcode_2_1":0,
+	  "BEQ_fun_3":0,
+	  "BNE_fun_3":1,
+	  "BLT_fun_3":2,
+	  "BGT_fun_3":3
+	},
+	"op_imm":{
+	  "opcode_4_3":0,
+	  "opcode_2_1":1,
+	  "ADDI_fun_3":0,
+	  "XORI_fun_3":1,
+	  "ORI_fun_3":2,
+	  "ANDI_fun_3":3
+	},
+	"op":{
+	  "opcode_4_3":1,
+	  "opcode_2_1":1,
+	  "ADD_fun_3":0,
+	  "XOR_fun_3":1,
+	  "OR_fun_3":2,
+	  "AND_fun_3":3
+	},
+	"qwait":{
+	  "opcode_4_3":2,
+	  "opcode_2_1":1
+	},
+	"fmr":{
+	  "opcode_4_3":3,
+	  "opcode_2_1":1,
+	  "FMR_fun_3":2,
+	  "FMR_imm_9":0
+	},
+	"smist":{
+	  "opcode_4_3":0,
+	  "opcode_2_1":3
+	}
+  },
+  "QCircuitOptimizer":{
+    "replace": [
+      {
+        "qubits": 2,
+        "src": {
+          "SWAP": [ 0, 1 ]
+        },
+        "dst": {
+          "CNOT": [ 1, 0 ],
+          "CNOT": [ 0, 1 ],
+          "CNOT": [ 1, 0 ]
+        }
+      },
+      {
+        "qubits": 2,
+        "dst": {
+          "H": [ 0 ],
+          "CZ": [ 0, 1 ],
+          "H": [ 0 ]
+        },
+        "src": {
+          "CNOT": [ 1, 0 ]
+        }
+      },
+      {
+        "qubits": 2,
+        "src": {
+          "RZ": [ 1, "PI/2" ],
+          "CZ": [ 1, 0 ],
+          "RX": [ 1, "PI/2" ],
+          "RZ": [ 1, "theta_1" ],
+          "RX": [ 1, "-PI/2" ],
+          "CZ": [ 1, 0 ],
+          "RZ": [ 1, "-PI/2" ]
+        },
+        "dst": {
+          "CZ": [ 1, 0 ],
+          "H": [ 1 ],
+          "RZ": [ 1, "theta_1" ],
+          "H": [ 1 ],
+          "CZ": [ 1, 0 ]
+        }
+      }
+    ]
+  },
+  "U3Optimizer":{
+    "replace": [
+      {
+        "qubits": 1,
+        "H": "",
+        "src": {
+          "U3": [ 0, 1.5707963267949, 0, 3.1415926535898 ]
+        },
+        "dst": {
+          "RZ": [ 0, 3.1415926535898 ],
+          "RPhi": [ 0, 1.5707963267949, 1.5707963267949 ]
+        }
+      },
+      {
+        "qubits": 1,
+        "RY": "-pi/2.0",
+        "src": {
+          "U3": [ 0, 1.5707963267949, 3.1415926535898, 3.1415926535898 ]
+        },
+        "dst": {
+          "RPhi": [ 0, -1.5707963267949, 1.5707963267949 ]
+        }
+      },
+      {
+        "qubits": 1,
+        "RX": "pi/2.0",
+        "src": {
+          "U3": [ 0, 1.5707963267949, -1.5707963267949, 1.5707963267949 ]
+        },
+        "dst": {
+          "RPhi": [ 0, 1.5707963267949, 0 ]
+        }
+      },
+      {
+        "qubits": 1,
+        "X": "",
+        "src": {
+          "U3": [ 0, 3.1415926535898, 3.1415926535898, 0 ]
+        },
+        "dst": {
+          "RPhi": [ 0, 1.5707963267949, 0 ],
+          "RPhi": [ 0, 1.5707963267949, 0 ]
+        }
+      },
+      {
+
+        "qubits": 1,
+        "RY": "pi/2.0",
+        "src": {
+          "U3": [ 0, 1.5707963267949, 0, 0 ]
+        },
+        "dst": {
+          "RPhi": [ 0, 1.5707963267949, 1.5707963267949 ]
+        }
+      },
+      {
+
+        "qubits": 1,
+        "src": {
+          "U3": [ 0, 0, "theta_1", 0 ]
+        },
+        "dst": {
+          "RZ": [ 0, "theta_1" ]
+        }
+      },
+      {
+        "qubits": 1,
+        "Y": "",
+        "src": {
+          "U3": [ 0, 3.1415926535898, 6.2831853071796, 0 ]
+        },
+        "dst": {
+          "RPhi": [ 0, 1.5707963267949, 1.5707963267949 ],
+          "RPhi": [ 0, 1.5707963267949, 1.5707963267949 ]
+        }
+      }
+    ]
+  }
+}

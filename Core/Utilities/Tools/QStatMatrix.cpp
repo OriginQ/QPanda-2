@@ -1,6 +1,8 @@
-#include "Core/Utilities/Tools/QStatMatrix.h"
 #include <cmath>
 #include <string.h>
+#include "ThirdParty/EigenUnsupported/Eigen/KroneckerProduct"
+#include "Core/Utilities/Tools/QStatMatrix.h"
+
 using namespace std;
 USING_QPANDA
 
@@ -255,7 +257,8 @@ QStat QPanda::tensor(const QStat& leftMatrix, const QStat& rightMatrix)
 	return result_matrix;
 }
 
-int QPanda::partition(const QStat& srcMatrix, int partitionRowNum, int partitionColumnNum, blockedMatrix_t& blockedMat)
+
+int QPanda::partition(qmatrix_t& srcMatrix, int partitionRowNum, int partitionColumnNum, blockedMatrix_t& blockedMat)
 {
 	blockedMat.m_vec_block.clear();
 
@@ -284,14 +287,14 @@ int QPanda::partition(const QStat& srcMatrix, int partitionRowNum, int partition
 			matrixBlock_t& block = blockedMat.m_vec_block[block_row*partitionColumnNum + block_col];
 			block.m_row_index = block_row;
 			block.m_column_index = block_col;
-
+			block.m_mat.resize(partitionRowNum, partitionRowNum);
 			for (size_t row_in_block = 0; row_in_block < row_cnt_in_block; row_in_block++)
 			{
 				for (size_t col_in_block = 0; col_in_block < col_cnt_in_block; col_in_block++)
 				{
 					int row_in_src_mat = block_row * row_cnt_in_block + row_in_block;
 					int col_in_src_mat = block_col * col_cnt_in_block + col_in_block;
-					block.m_mat.push_back(srcMatrix[row_in_src_mat*src_mat_rows + col_in_src_mat]);
+					block.m_mat(row_in_block, col_in_block)  =  srcMatrix(row_in_src_mat, col_in_src_mat);
 				}
 			}
 		}
@@ -300,7 +303,7 @@ int QPanda::partition(const QStat& srcMatrix, int partitionRowNum, int partition
 	return 0;
 }
 
-int QPanda::blockMultip(const QStat& leftMatrix, const blockedMatrix_t& blockedMat, QStat& resultMatrix)
+int QPanda::blockMultip(qmatrix_t& leftMatrix, const blockedMatrix_t& blockedMat, qmatrix_t& resultMatrix)
 {
 	if ((0 == leftMatrix.size()) || (blockedMat.m_vec_block.size() == 0))
 	{
@@ -310,18 +313,19 @@ int QPanda::blockMultip(const QStat& leftMatrix, const blockedMatrix_t& blockedM
 
 	std::vector<matrixBlock_t> tmp_Block_Vec;
 	tmp_Block_Vec.resize(blockedMat.m_vec_block.size());
-	for (auto &itr : blockedMat.m_vec_block)
+	for (auto &itr : blockedMat.m_vec_block)	
 	{
 		matrixBlock_t &tmp_block = tmp_Block_Vec[itr.m_row_index*(blockedMat.m_block_columns) + itr.m_column_index];
 		tmp_block.m_row_index = itr.m_row_index;
 		tmp_block.m_column_index = itr.m_column_index;
-		tmp_block.m_mat = (QPanda::tensor(leftMatrix, itr.m_mat));
+		tmp_block.m_mat = kroneckerProduct(leftMatrix, itr.m_mat);
 	}
 
 	int row_cnt_in_block = sqrt(tmp_Block_Vec[0].m_mat.size());
 	int col_cnt_in_block = row_cnt_in_block; //square matrix
 	size_t block_index = 0;
 	size_t item_in_block_index = 0;
+	resultMatrix.resize(blockedMat.m_block_rows*row_cnt_in_block, blockedMat.m_block_columns*col_cnt_in_block);
 	for (size_t block_row = 0; block_row < blockedMat.m_block_rows; block_row++)
 	{
 		for (size_t row_in_block = 0; row_in_block < row_cnt_in_block; row_in_block++)
@@ -332,7 +336,7 @@ int QPanda::blockMultip(const QStat& leftMatrix, const blockedMatrix_t& blockedM
 				{
 					block_index = block_row * blockedMat.m_block_columns + block_col;
 					item_in_block_index = row_in_block * col_cnt_in_block + col_in_block;
-					resultMatrix.push_back(tmp_Block_Vec[block_index].m_mat[item_in_block_index]);
+					resultMatrix(block_row*row_cnt_in_block + row_in_block, block_col*col_cnt_in_block + col_in_block) =  tmp_Block_Vec[block_index].m_mat(row_in_block, col_in_block);
 				}
 			}
 		}
@@ -468,12 +472,12 @@ int QPanda::mat_compare(const QStat& mat1, const QStat& mat2, const double preci
 
 bool QPanda::operator==(const QStat &matrix_left, const QStat &matrix_right)
 {
-	return (0 == mat_compare(matrix_left, matrix_right, 0.000001));
+	return (0 == mat_compare(matrix_left, matrix_right, MAX_COMPARE_PRECISION));
 }
 
 bool QPanda::operator!=(const QStat &matrix_left, const QStat &matrix_right)
 {
-	return (0 != mat_compare(matrix_left, matrix_right, 0.000001));
+	return (0 != mat_compare(matrix_left, matrix_right, MAX_COMPARE_PRECISION));
 }
 
 EigenMatrixXc QPanda::QStat_to_Eigen(const QStat& src_mat)

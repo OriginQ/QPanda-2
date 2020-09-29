@@ -52,38 +52,16 @@ namespace QPanda {
         }
 
         m_psi4_wapper.setMolecule(m_molecules[0]);
-        size_t cnt = 0;
-        FermionOperator fermion_data;
-        while (true)
-        {
-            /*get the second quantized Hamiltonian*/
-            if (!m_psi4_wapper.run())
-            {
-                m_last_err = m_psi4_wapper.getLastError();
-                return -1;
-            }
 
-            fermion_data = parsePsi4DataToFermion(m_psi4_wapper.getData());
-            /*On the first run, some machines require
-            multiple computations to get the full result*/
-            if ((fermion_data.data().size()) == 1 &&
-                (fermion_data.data().front().first.second == ""))
-            {
-                if (cnt < 10)
-                {
-                    cnt++;
-                    continue;
-                }
-                else
-                {
-                    m_last_err = "Multiple runs failed to yield results!"
-                        "Please try recalculating!";
-                    return -1;
-                }
-            }
+		/*get the second quantized Hamiltonian*/
+		if (!m_psi4_wapper.run())
+		{
+			m_last_err = m_psi4_wapper.getLastError();
+			writeExecLog(false);
+			return -1;
+		}
 
-            break;
-        }
+		auto fermion_data = parsePsi4DataToFermion(m_psi4_wapper.getData());
 
         PauliOperator pauli;
         /*Transform second quantized Hamiltonian to Pauli Hamiltonian */
@@ -879,38 +857,17 @@ namespace QPanda {
 		m_psi4_wapper.setMolecule(m_molecules[index]);
 		size_t cnt = 0;
 		FermionOperator fermion_data;
-		while (true)
+		/*get the second quantized Hamiltonian*/
+		if (!m_psi4_wapper.run())
 		{
-			/*get the second quantized Hamiltonian*/
-			if (!m_psi4_wapper.run())
-			{
-				m_last_err = m_psi4_wapper.getLastError();
-				return false;
-			}
-
-			fermion_data = parsePsi4DataToFermion(m_psi4_wapper.getData());
-			/*On the first run, some machines require
-			multiple computations to get the full result*/
-			if ((fermion_data.data().size()) == 1 &&
-				(fermion_data.data().front().first.second == ""))
-			{
-				if (cnt < 10)
-				{
-					cnt++;
-					continue;
-				}
-				else
-				{
-					m_last_err = "Multiple runs failed to yield results!"
-						"Please try recalculating!";
-					return false;
-				}
-			}
-
-			break;
+			m_last_err = m_psi4_wapper.getLastError();
+			return false;
 		}
-		/*Transform second quantized Hamiltonian to Pauli Hamiltonian */
 
+		fermion_data = parsePsi4DataToFermion(m_psi4_wapper.getData());
+		std::cout << fermion_data << std::endl;
+
+		/*Transform second quantized Hamiltonian to Pauli Hamiltonian */
 		if (m_transform_type == TransFormType::Jordan_Wigner)
 		{
 			m_pauli = JordanWignerTransform(fermion_data);
@@ -924,6 +881,8 @@ namespace QPanda {
 			size_t m_q = fermion_data.getMaxIndex();
 			m_pauli = BravyiKitaevTransform(fermion_data, BKMatrix(m_q));
 		}
+
+		std::cout << m_pauli << std::endl;
 
 		return true;
 	}

@@ -99,29 +99,32 @@ void QProgExecution::execute(std::shared_ptr<AbstractQuantumMeasure> cur_node,
 	TraversalConfig & param,
 	QPUImpl* qpu)
 {
-	 int iResult = qpu->qubitMeasure(cur_node->getQuBit()->getPhysicalQubitPtr()->getQubitAddr());
-    if (iResult < 0)
+    if (!param.m_can_optimize_measure)
     {
-        QCERR("result error");
-        throw runtime_error("result error");
-    }
-    CBit * cexpr = cur_node->getCBit();
-    if (nullptr == cexpr)
-    {
-        QCERR("unknow error");
-        throw runtime_error("unknow error");
-    }
+        int iResult = qpu->qubitMeasure(cur_node->getQuBit()->getPhysicalQubitPtr()->getQubitAddr());
+        if (iResult < 0)
+        {
+            QCERR("result error");
+            throw runtime_error("result error");
+        }
+        CBit * cexpr = cur_node->getCBit();
+        if (nullptr == cexpr)
+        {
+            QCERR("unknow error");
+            throw runtime_error("unknow error");
+        }
 
-    cexpr->set_val(iResult);
-    string name = cexpr->getName();
-    auto aiter = m_result.find(name);
-    if (aiter != m_result.end())
-    {
-        aiter->second = (bool)iResult;
-    }
-    else
-    {
-		m_result.insert(pair<string, bool>(name, (bool)iResult));
+        cexpr->set_val(iResult);
+        string name = cexpr->getName();
+        auto aiter = m_result.find(name);
+        if (aiter != m_result.end())
+        {
+            aiter->second = (bool)iResult;
+        }
+        else
+        {
+            m_result.insert(pair<string, bool>(name, (bool)iResult));
+        }
     }
 }
 

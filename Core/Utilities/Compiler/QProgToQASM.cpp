@@ -1,7 +1,6 @@
 #include "Core/Utilities/QProgInfo/MetadataValidity.h"
 #include "Core/Utilities/Compiler/QProgToQASM.h"
 #include "Core/Utilities/QProgTransform/TransformDecomposition.h"
-#include "Core/Utilities/Compiler/backends/IBMQ.h"
 #include "Core/Core.h"
 
 using namespace std;
@@ -9,7 +8,6 @@ using namespace QGATE_SPACE;
 
 USING_QPANDA
 
-#define ENUM_TO_STR(x) #x
 #ifndef MAX_PATH
 #define MAX_PATH 260
 #endif
@@ -18,15 +16,15 @@ USING_QPANDA
 #define QASM_UNSUPPORT_EXCEPTIONAL(gate, dg) {\
     std::string excepStr;\
     if (dg){\
-        excepStr = string("Error: Qasm unsport: ") + gate + "dg";\
-    }else{excepStr = string("Error: Qasm unsport: ") + gate;}\
+        excepStr = string("Error: Qasm unsupport: ") + gate + "dg";\
+    }else{excepStr = string("Error: Qasm unsupport: ") + gate;}\
 	QCERR(excepStr.c_str());\
 	throw std::invalid_argument(excepStr.c_str());\
 }
 
-QProgToQASM::QProgToQASM(QuantumMachine * quantum_machine, IBMQBackends ibmBackend/* = IBMQ_QASM_SIMULATOR*/)
+QProgToQASM::QProgToQASM(QProg src_prog, QuantumMachine * quantum_machine)
+	:m_src_prog(src_prog)
 {
-	_ibmBackend = ibmBackend;
     m_gatetype.insert(pair<int, string>(PAULI_X_GATE, "X"));
     m_gatetype.insert(pair<int, string>(PAULI_Y_GATE, "Y"));
     m_gatetype.insert(pair<int, string>(PAULI_Z_GATE, "Z"));
@@ -43,11 +41,12 @@ QProgToQASM::QProgToQASM(QuantumMachine * quantum_machine, IBMQBackends ibmBacke
     m_gatetype.insert(pair<int, string>(RY_GATE, "RY"));
     m_gatetype.insert(pair<int, string>(RZ_GATE, "RZ"));
     m_gatetype.insert(pair<int, string>(U1_GATE, "U1"));
+	m_gatetype.insert(pair<int, string>(U3_GATE, "U3"));
 
     m_gatetype.insert(pair<int, string>(CU_GATE, "CU"));
     m_gatetype.insert(pair<int, string>(CNOT_GATE, "CNOT"));
     m_gatetype.insert(pair<int, string>(CZ_GATE, "CZ"));
-    m_gatetype.insert(pair<int, string>(CPHASE_GATE, "CR"));
+    m_gatetype.insert(pair<int, string>(CPHASE_GATE, "CPHASE"));
 	m_gatetype.insert(pair<int, string>(SWAP_GATE, "SWAP"));
     m_gatetype.insert(pair<int, string>(ISWAP_GATE, "ISWAP"));
     m_gatetype.insert(pair<int, string>(SQISWAP_GATE, "SQISWAP"));
@@ -56,104 +55,65 @@ QProgToQASM::QProgToQASM(QuantumMachine * quantum_machine, IBMQBackends ibmBacke
     m_quantum_machine = quantum_machine;
 }
 
-void QProgToQASM::transform(QProg &prog)
+void QProgToQASM::transform()
 {
+	if (nullptr == m_quantum_machine)
+	{
+		QCERR_AND_THROW_ERRSTR(run_fail, "Error on transformQProgToQASM: Quantum machine is nullptr.");
+	}
+
     m_qasm.emplace_back(QASM_HEAD);
 	m_qasm.emplace_back("include \"qelib1.inc\";");
     m_qasm.emplace_back("qreg q[" + to_string(m_quantum_machine->getAllocateQubit()) + "];");
     m_qasm.emplace_back("creg c[" + to_string(m_quantum_machine->getAllocateCMem()) + "];");
-    if (nullptr == m_quantum_machine)
-    {
-        QCERR("Quantum machine is nullptr");
-        throw std::invalid_argument("Quantum machine is nullptr");
-    }
 
-    const int KMETADATA_GATE_TYPE_COUNT = 2;
     vector<vector<string>> ValidQGateMatrix(KMETADATA_GATE_TYPE_COUNT, vector<string>(0));
     vector<vector<string>> QGateMatrix(KMETADATA_GATE_TYPE_COUNT, vector<string>(0));
-
-	//load the topological of the computing backend
-	vector<vector<int>> vAdjacentMatrix;
-	int qubitsNum = 0;
-	string dataElementStr = getIBMQBackendName(_ibmBackend);
-	loadIBMQuantumTopology(string(IBMQ_BACKENDS_CONFIG), dataElementStr, qubitsNum, vAdjacentMatrix);
-	if (m_quantum_machine->getAllocateQubit() > qubitsNum)
-	{
-		QCERR("Quantum machine has too many qubits");
-		throw std::invalid_argument("Quantum machine has too many qubits");
-		return;
-	}
 
     QGateMatrix[MetadataGateType::METADATA_SINGLE_GATE].emplace_back(m_gatetype[PAULI_X_GATE]);
     QGateMatrix[MetadataGateType::METADATA_SINGLE_GATE].emplace_back(m_gatetype[PAULI_Y_GATE]);
     QGateMatrix[MetadataGateType::METADATA_SINGLE_GATE].emplace_back(m_gatetype[PAULI_Z_GATE]);
-
     QGateMatrix[MetadataGateType::METADATA_SINGLE_GATE].emplace_back(m_gatetype[HADAMARD_GATE]);
     QGateMatrix[MetadataGateType::METADATA_SINGLE_GATE].emplace_back(m_gatetype[T_GATE]);
     QGateMatrix[MetadataGateType::METADATA_SINGLE_GATE].emplace_back(m_gatetype[S_GATE]);
     QGateMatrix[MetadataGateType::METADATA_SINGLE_GATE].emplace_back(m_gatetype[RX_GATE]);
     QGateMatrix[MetadataGateType::METADATA_SINGLE_GATE].emplace_back(m_gatetype[RY_GATE]);
-
     QGateMatrix[MetadataGateType::METADATA_SINGLE_GATE].emplace_back(m_gatetype[RZ_GATE]);
     QGateMatrix[MetadataGateType::METADATA_SINGLE_GATE].emplace_back(m_gatetype[U1_GATE]);
-    QGateMatrix[MetadataGateType::METADATA_DOUBLE_GATE].emplace_back(m_gatetype[CU_GATE]);
-    QGateMatrix[MetadataGateType::METADATA_DOUBLE_GATE].emplace_back(m_gatetype[CNOT_GATE]);
+	QGateMatrix[MetadataGateType::METADATA_SINGLE_GATE].emplace_back(m_gatetype[U3_GATE]);
 
+    QGateMatrix[MetadataGateType::METADATA_DOUBLE_GATE].emplace_back(m_gatetype[CNOT_GATE]);
     QGateMatrix[MetadataGateType::METADATA_DOUBLE_GATE].emplace_back(m_gatetype[CZ_GATE]);
     QGateMatrix[MetadataGateType::METADATA_DOUBLE_GATE].emplace_back(m_gatetype[CPHASE_GATE]);
-    QGateMatrix[MetadataGateType::METADATA_DOUBLE_GATE].emplace_back(m_gatetype[ISWAP_GATE]);
+    QGateMatrix[MetadataGateType::METADATA_DOUBLE_GATE].emplace_back(m_gatetype[SWAP_GATE]);
 
     SingleGateTypeValidator::GateType(QGateMatrix[MetadataGateType::METADATA_SINGLE_GATE],
         ValidQGateMatrix[MetadataGateType::METADATA_SINGLE_GATE]);  /* single gate data MetadataValidity */
     DoubleGateTypeValidator::GateType(QGateMatrix[MetadataGateType::METADATA_DOUBLE_GATE],
         ValidQGateMatrix[MetadataGateType::METADATA_DOUBLE_GATE]);  /* double gate data MetadataValidity */
-    TransformDecomposition traversal_vector(ValidQGateMatrix, QGateMatrix, vAdjacentMatrix, m_quantum_machine);
+    TransformDecomposition traversal_vector(ValidQGateMatrix, QGateMatrix, m_quantum_machine);
 
-    traversal_vector.TraversalOptimizationMerge(prog);
+    traversal_vector.TraversalOptimizationMerge(m_src_prog);
 
-	transformQProgByTraversalAlg(&prog);
-}
-
-std::string QProgToQASM::getIBMQBackendName(IBMQBackends typeNum)
-{
-	std::string backendName;
-	switch (typeNum)
-	{
-	case IBMQ_QASM_SIMULATOR:
-		backendName = ENUM_TO_STR(IBMQ_QASM_SIMULATOR);
-		break;
-		
-	case IBMQ_16_MELBOURNE:
-		backendName = ENUM_TO_STR(IBMQ_16_MELBOURNE);
-		break;
-
-	case IBMQX2:
-		backendName = ENUM_TO_STR(IBMQX2);
-		break;
-
-	case IBMQX4:
-		backendName = ENUM_TO_STR(IBMQX4);
-		break;
-
-	default:
-		//error
-		break;
-	}
-
-	std::transform(backendName.begin(), backendName.end(), backendName.begin(), ::tolower);
-	return backendName;
+	traverse_qprog(m_src_prog);
 }
 
 void QProgToQASM::transformQGate(AbstractQGateNode * pQGate,bool is_dagger)
 {
     if (nullptr == pQGate || nullptr == pQGate->getQGate())
     {
-        QCERR("pQGate is null");
-        throw invalid_argument("pQGate is null");
+		QCERR_AND_THROW_ERRSTR(run_fail, "Error on transformQProgToQASM: QGate is null.");
     }
 
     QVec qubits_vector;
     pQGate->getQuBitVector(qubits_vector);
+	if (qubits_vector.size() == 2)
+	{
+		if (qubits_vector.front()->get_phy_addr() == qubits_vector.back()->get_phy_addr())
+		{
+			QCERR_AND_THROW_ERRSTR(run_fail, "Error: the control qubit and the target qubit are the same qubit.");
+		}
+	}
     auto iter = m_gatetype.find(pQGate->getQGate()->getGateType());
 	if (iter == m_gatetype.end())
 	{
@@ -220,6 +180,28 @@ void QProgToQASM::transformQGate(AbstractQGateNode * pQGate,bool is_dagger)
 		{
 			string  gate_angle = to_string((dynamic_cast<AbstractSingleAngleParameter *>(pQGate->getQGate()))->getParameter() * iLabel);
 			sTemp.append("(" + gate_angle + ")");
+			sTemp.append(" q[" + tarQubit + "];");
+		}
+			break;
+
+		case U3_GATE:
+		{
+			auto u3_gate = dynamic_cast<QGATE_SPACE::U3*>(pQGate->getQGate());
+			string theta = to_string(u3_gate->get_theta() * iLabel);
+			string lambda;
+			string phi;
+			if (dagger)
+			{
+				lambda = to_string(u3_gate->get_phi() * iLabel);
+				phi = to_string(u3_gate->get_lambda() * iLabel);
+			}
+			else
+			{
+				phi = to_string(u3_gate->get_phi());
+				lambda = to_string(u3_gate->get_lambda());
+			}
+
+			sTemp.append("(" + theta + "," + phi + ","+ lambda + ")");
 			sTemp.append(" q[" + tarQubit + "];");
 		}
 			break;
@@ -308,7 +290,8 @@ void QProgToQASM::transformQGate(AbstractQGateNode * pQGate,bool is_dagger)
 			sTemp.append(" " + all_qubits + ";");
 			break;
 
-        default:sTemp = "UnSupportedQuantumGate;";
+        default:
+			QASM_UNSUPPORT_EXCEPTIONAL(iter->second, dagger);
             break;
     }
     m_qasm.emplace_back(sTemp);
@@ -316,15 +299,9 @@ void QProgToQASM::transformQGate(AbstractQGateNode * pQGate,bool is_dagger)
 
 void QProgToQASM::transformQMeasure(AbstractQuantumMeasure *pMeasure)
 {
-    if (nullptr == pMeasure)
-    {
-        QCERR("pMeasure is null");
-        throw invalid_argument("pMeasure is null");
-    }
     if (nullptr == pMeasure->getQuBit()->getPhysicalQubitPtr())
     {
-        QCERR("PhysicalQubitPtr is null");
-        throw invalid_argument("PhysicalQubitPtr is null");
+		QCERR_AND_THROW_ERRSTR(run_fail, "Error on transformQProgToQASM: measure node is null.");
     }
 
     std::string tar_qubit = to_string(pMeasure->getQuBit()->getPhysicalQubitPtr()->getQubitAddr());
@@ -336,65 +313,50 @@ void QProgToQASM::transformQReset(AbstractQuantumReset* pReset)
 {
 	if (nullptr == pReset)
 	{
-		QCERR("pReset is null");
-		throw invalid_argument("pReset is null");
+		QCERR_AND_THROW_ERRSTR(run_fail, "Error on transformQProgToQASM: reset node is null.");
 	}
 	if (nullptr == pReset->getQuBit()->getPhysicalQubitPtr())
 	{
-		QCERR("PhysicalQubitPtr is null");
-		throw invalid_argument("PhysicalQubitPtr is null");
+		QCERR_AND_THROW_ERRSTR(run_fail, "Error on transformQProgToQASM: PhysicalQubitPtr is null.");
 	}
 
 	std::string tar_qubit = to_string(pReset->getQuBit()->getPhysicalQubitPtr()->getQubitAddr());
 	m_qasm.emplace_back("reset q[" + tar_qubit + "];");
 }
 
-void QProgToQASM::transformQProgByTraversalAlg(QProg *prog)
+void QProgToQASM::execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node, QCircuitParam &cir_param, NodeIter& cur_node_iter)
 {
-	if (nullptr == prog)
-	{
-		QCERR("p_prog is null");
-		throw runtime_error("p_prog is null");
-		return;
-	}
-
-	bool isDagger = false;
-	execute(prog->getImplementationPtr(),nullptr, isDagger);
+	transformQGate(cur_node.get(), cir_param.m_is_dagger);
 }
 
-void QProgToQASM::execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node, bool &is_dagger)
-{
-	transformQGate(cur_node.get(),is_dagger);
-}
-
-void QProgToQASM::execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, std::shared_ptr<QNode> parent_node, bool &is_dagger)
+void QProgToQASM::execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, std::shared_ptr<QNode> parent_node, QCircuitParam &cir_param, NodeIter& cur_node_iter)
 {
 	transformQMeasure(cur_node.get());
 }
 
-void QProgToQASM::execute(std::shared_ptr<AbstractQuantumReset> cur_node, std::shared_ptr<QNode> parent_node, bool &)
+void QProgToQASM::execute(std::shared_ptr<AbstractQuantumReset> cur_node, std::shared_ptr<QNode> parent_node, QCircuitParam &cir_param, NodeIter& cur_node_iter)
 {
 	transformQReset(cur_node.get());
 }
 
-void QProgToQASM::execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node, bool &)
-{}
-
-void QProgToQASM::execute(std::shared_ptr<AbstractQuantumProgram>  cur_node, std::shared_ptr<QNode> parent_node, bool &is_dagger)
+void QProgToQASM::execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node, QCircuitParam &cir_param, NodeIter& cur_node_iter)
 {
-	Traversal::traversal(cur_node, *this, is_dagger);
+	QCERR_AND_THROW_ERRSTR(run_fail, "Error on transformQProgToQASM: unsupport control-flow-node here.");
 }
 
-void QProgToQASM::execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std::shared_ptr<QNode> parent_node, bool &is_dagger)
+void QProgToQASM::execute(std::shared_ptr<AbstractQuantumProgram>  cur_node, std::shared_ptr<QNode> parent_node, QCircuitParam &cir_param, NodeIter& cur_node_iter)
 {
-	bool bDagger = cur_node->isDagger() ^ is_dagger;
-	Traversal::traversal(cur_node, true, *this, bDagger);
+	TraverseByNodeIter::execute(cur_node, parent_node, cir_param, cur_node_iter);
 }
 
-void QProgToQASM::execute(std::shared_ptr<AbstractClassicalProg>  cur_node, std::shared_ptr<QNode> parent_node, bool&)
+void QProgToQASM::execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std::shared_ptr<QNode> parent_node, QCircuitParam &cir_param, NodeIter& cur_node_iter)
 {
-	QCERR("transform error, there shouldn't be classicalProg here.");
-	throw invalid_argument("transform error, there shouldn't be classicalProg here.");
+	TraverseByNodeIter::execute(cur_node, parent_node, cir_param, cur_node_iter);
+}
+
+void QProgToQASM::execute(std::shared_ptr<AbstractClassicalProg>  cur_node, std::shared_ptr<QNode> parent_node, QCircuitParam &cir_param, NodeIter& cur_node_iter)
+{
+	QCERR_AND_THROW_ERRSTR(run_fail, "Error on transformQProgToQASM: unsupport classicalProg here.");
 }
 
 static void traversalInOrderPCtr(const CExpr* pCtrFlow, string &ctr_statement)
@@ -423,20 +385,27 @@ string QProgToQASM::getInsturctions()
     return instructions;
 }
 
-string QPanda::transformQProgToQASM(QProg &prog, QuantumMachine* quantum_machine, IBMQBackends ibmBackend /*= IBMQ_QASM_SIMULATOR*/)
+string QPanda::convert_qprog_to_qasm(QProg &prog, QuantumMachine* qm)
 {
-    if (nullptr == quantum_machine)
-    {
-        QCERR("Quantum machine is nullptr");
-        throw std::invalid_argument("Quantum machine is nullptr");
-    }
-    QProgToQASM pQASMTraverse(quantum_machine, ibmBackend);
-    pQASMTraverse.transform(prog);
-    return pQASMTraverse.getInsturctions();
+	if (nullptr == qm)
+	{
+		QCERR_AND_THROW_ERRSTR(run_fail, "Error on transformQProgToQASM: Quantum machine is nullptr.");
+	}
+	QProgToQASM pQASMTraverse(prog, qm);
+	pQASMTraverse.transform();
+	return pQASMTraverse.getInsturctions();
 }
 
-
-string QPanda::convert_qprog_to_qasm(QProg &prog, QuantumMachine* qm, IBMQBackends ibmBackend)
+void QPanda::write_to_qasm_file(QProg prog, QuantumMachine * qvm, const string file_name)
 {
-	return transformQProgToQASM(prog, qm, ibmBackend);
+	std::ofstream out_file;
+	auto qasm_str = convert_qprog_to_qasm(prog, qvm);
+	out_file.open(file_name, ios::out);
+	if (!out_file.is_open())
+	{
+		QCERR_AND_THROW_ERRSTR(run_fail, "Error: failed to open file.");
+	}
+
+	out_file << qasm_str;
+	out_file.close();
 }

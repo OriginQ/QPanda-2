@@ -38,6 +38,12 @@ public:
     virtual size_t getMaxQubit() const = 0;
 	
 	/**
+     * @brief Gets the largest address in the used physical qubit 
+	 * @return size_t
+     */
+	virtual size_t get_max_usedqubit_addr() const = 0;
+
+	/**
      * @brief get size of the idle position
 	 * @return size_t
      */

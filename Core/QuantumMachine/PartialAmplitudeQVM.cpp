@@ -19,6 +19,8 @@ static void get_dec_index(std::vector<string> &bin_index, std::vector<uint128_t>
 
 		dec_index.emplace_back(dec_value);
 	}
+
+    return;
 }
 
 
@@ -28,6 +30,7 @@ static void get_couple_state_index(uint128_t num, uint64_t& under_index, uint64_
 	long long lower_mask = (1ull << half_qubit) - 1;
 	under_index = (uint64_t)(num & lower_mask);
 	upper_index = (uint64_t)(num - under_index) >> (qubit_num - half_qubit);
+    return;
 }
 
 void PartialAmplitudeQVM::init()
@@ -52,20 +55,22 @@ void PartialAmplitudeQVM::computing_graph(int qubit_num,const cir_type& circuit,
 		state.assign(graph_state.begin(), graph_state.end());
 		delete pQGate;
 	}
-	catch (std::exception e)
+	catch (const std::exception& e)
 	{
 		delete pQGate;
 	}
+
+    return;
 }
 
 
 qcomplex_t PartialAmplitudeQVM::PMeasure_bin_index(std::string amplitude)
 {
 	uint128_t index = 0;
-	size_t len = amplitude.size();
-	for (size_t i = 0; i < len; ++i)
+	size_t qubit_num = amplitude.size();
+	for (size_t i = 0; i < qubit_num; ++i)
 	{
-		index += (amplitude[len - i - 1] != '0') << i ;
+		index += (amplitude[qubit_num - i - 1] != '0') << i ;
 	}
 
 	return PMeasure_dec_index(integerToString(index));
@@ -83,11 +88,9 @@ qcomplex_t PartialAmplitudeQVM::PMeasure_dec_index(std::string amplitude)
 	{
 		QStat under_graph_state;
 		computing_graph(qubit_num / 2, m_graph_backend.m_sub_graph[graph_index][0], under_graph_state);
-		auto under_size = under_graph_state.size();
 
 		QStat upper_graph_state;
 		computing_graph(qubit_num - (qubit_num / 2), m_graph_backend.m_sub_graph[graph_index][1], upper_graph_state);
-		auto upper_size = upper_graph_state.size();
 
 		uint64_t under_index, upper_index;
 		get_couple_state_index(dec_amplitude, under_index, upper_index, m_graph_backend.m_qubit_num);
@@ -116,11 +119,9 @@ stat_map PartialAmplitudeQVM::PMeasure_subset(const std::vector<std::string>& am
 	{
 		QStat under_graph_state;
 		computing_graph(qubit_num / 2, m_graph_backend.m_sub_graph[graph_index][0], under_graph_state);
-		auto under_size = under_graph_state.size();
 
 		QStat upper_graph_state;
 		computing_graph(qubit_num - (qubit_num / 2), m_graph_backend.m_sub_graph[graph_index][1], upper_graph_state);
-		auto upper_size = upper_graph_state.size();
 
 		for (auto idx = 0; idx < dec_state.size(); ++idx)
 		{

@@ -95,6 +95,25 @@ public:
         return m_linear_solver_result;
     }
 
+    /**
+    * @brief  Get the coefficient matrix
+    * @return  Eigen::MatrixXd parameters of Matirx
+    * @see AnsatzGate
+    */
+    Eigen::MatrixXd getMatrixA() const
+    {
+        return m_A;
+    }
+
+    /**
+    * @brief  Get the constent term
+    * @return  Eigen::VectorXd constent term
+    * @see AnsatzGate
+    */
+    Eigen::VectorXd getVectorB() const
+    {
+        return m_b;
+    }
 private:
     void calcGraphPara(
         const std::vector<std::vector<double>>& graph,
@@ -116,7 +135,9 @@ private:
         double lambda_u,
         double lambda_d,
         const std::vector<double>& U_hat_vec,
-        const std::vector<double>& D_hat_vec) const;
+        const std::vector<double>& D_hat_vec,
+        Eigen::MatrixXd & A,
+        Eigen::VectorXd & b) const;
     Eigen::MatrixXd pseudoinverse(Eigen::MatrixXd matrix) const;
 private:
     std::vector<std::vector<double>> m_graph;
@@ -128,6 +149,8 @@ private:
 
     PauliOperator m_pauli;
     std::vector<AnsatzGate> m_ansatz;
+    Eigen::MatrixXd m_A;
+    Eigen::VectorXd m_b;
     Eigen::VectorXd m_linear_solver_result;
 };
 

@@ -2,7 +2,7 @@
 #define  _INSTRUCTIONS_H_
 #include <map>
 #include <iostream>
-#include"Core/Utilities/Tools/XMLConfigParam.h"
+#include"Core/Utilities/Tools/JsonConfigParam.h"
 
 using config_map = std::map<std::string, std::map<std::string, uint32_t>> ;
 
@@ -28,8 +28,8 @@ uint32_t QWAITI(uint32_t imm);
 uint32_t FMR(uint32_t rs1, uint32_t rd);
 uint32_t SMIS(uint32_t rd, uint32_t imm);
 
-uint32_t QI(uint32_t rs1, uint32_t rs2, uint32_t PI, uint32_t opcode1, uint32_t opcode2);
-uint32_t MEASURE(uint32_t rs1, uint32_t PI);
+uint32_t QI(uint32_t rs1, uint32_t rs2, uint32_t pi, uint32_t opcode1, uint32_t opcode2);
+uint32_t MEASURE(uint32_t rs1, uint32_t pi);
 
 
 class Instructions 

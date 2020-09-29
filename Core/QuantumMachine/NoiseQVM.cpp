@@ -284,11 +284,11 @@ void NoiseQVM::run(QProg & prog)
         /*vector<vector<int>> adjacent_matrixes;
         TransformDecomposition traversal_vec(m_valid_gates_matrix, m_gates_matrix, adjacent_matrixes);
         traversal_vec.TraversalOptimizationMerge(dynamic_cast<QNode *>(&prog));*/
-        _pGates->initState(0, 1, _Qubit_Pool->getMaxQubit() - _Qubit_Pool->getIdleQubit());
+		_pGates->initState(0, 1, _Qubit_Pool->get_max_usedqubit_addr() + 1);
 
         QProgExecution prog_exec;
         TraversalConfig config(m_rotation_angle_error);
-
+        config.m_can_optimize_measure = false;
         prog_exec.execute(prog.getImplementationPtr(), nullptr, config, _pGates);
 
         std::map<string, bool>result;

@@ -35,13 +35,40 @@ public:
     */
     void finalize();
     /**
-    * @brief  Set the molecular model to calculate 
+    * @brief  Set the molecular model to calculate
+    *         separated by commas('\n') between atoms
     * @param[in]  std::string  molecule model
     */
-    void setMolecule(const std::string &molecule)
+    void setMolecule(const std::string& molecule)
     {
         m_molecules.clear();
         m_molecules.push_back(molecule);
+    }
+    /**
+    * @brief  Setup molecular models, separated by semicolons(';') 
+    *         and separated by commas(',') between atoms
+    * @param[in]  std::string  molecule model
+    */
+    void setMoleculesStr(const std::string &molecule)
+    {
+        m_molecules.clear();
+        auto str = QString(molecule);
+        auto vec = str.split(";", QString::SkipEmptyParts);
+        for (auto& i : vec)
+        {
+            auto atoms = QString(i).split(",", QString::SkipEmptyParts);
+            std::string molecule;
+            for (int i = 0; i < atoms.size(); i++)
+            {
+                if (i != 0)
+                {
+                    molecule += "\n";
+                }
+
+                molecule += atoms[i].data();
+            }
+            m_molecules.push_back(molecule);
+        }
     }
     /**
     * @brief  Set the molecular model to calculate
@@ -75,6 +102,14 @@ public:
     void setBasis(const std::string &basis)
     {
         m_psi4_wapper.setBasis(basis);
+    }
+    /**
+    * @brief set Eq Tolerance
+    * @param[in] double the val of Tolerance
+    */
+    void setEqTolerance(const double val)
+    {
+        m_psi4_wapper.setEqTolerance(val);
     }
     /**
     * @brief  Set the transform type from Fermion operator to Pauli operator

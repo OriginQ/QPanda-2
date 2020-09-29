@@ -23,7 +23,7 @@
 
 QPANDA_BEGIN
 
-#ifdef _WIN32
+#if defined(WIN32) || defined(_WIN32)
 #define localtime_r(_Time, _Tm) localtime_s(_Tm, _Time)
 #endif
 using Value = rapidjson::Value;

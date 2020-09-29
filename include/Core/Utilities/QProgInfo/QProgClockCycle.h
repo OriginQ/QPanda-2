@@ -59,6 +59,18 @@ private:
 	  @endcode
 */
 size_t getQProgClockCycle(QProg &prog, QuantumMachine *qm);
+
+/*new interface*/
+
+/**
+* @brief  Get  quantum program clock cycle
+* @param[in]  QProg &   quantum program
+* @param[in]	QuantumMachine*		quantum machine pointer
+* @ingroup Utilities
+*/
+size_t get_pqrog_clock_cycle(QProg &prog, QuantumMachine *qm);
+
+
 QPANDA_END
 #endif // _QPROG_CLOCK_CYCLE_H
 

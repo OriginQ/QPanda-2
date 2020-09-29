@@ -158,6 +158,9 @@ public:
   virtual void enterReset_statement(originirParser::Reset_statementContext *ctx) = 0;
   virtual void exitReset_statement(originirParser::Reset_statementContext *ctx) = 0;
 
+  virtual void enterBarrier_statement(originirParser::Barrier_statementContext *ctx) = 0;
+  virtual void exitBarrier_statement(originirParser::Barrier_statementContext *ctx) = 0;
+
   virtual void enterExpression_statement(originirParser::Expression_statementContext *ctx) = 0;
   virtual void exitExpression_statement(originirParser::Expression_statementContext *ctx) = 0;
 

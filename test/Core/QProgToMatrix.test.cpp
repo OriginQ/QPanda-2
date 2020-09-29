@@ -530,3 +530,61 @@ TEST(QProgToMatrix, swapTest)
 
 	ASSERT_TRUE(result);
 }
+
+bool test_getProgMatrix1()
+{
+	auto qvm = initQuantumMachine(QMachineType::CPU);
+	auto q = qvm->allocateQubits(8);
+	auto c = qvm->allocateCBits(8);
+
+	QProg prog1;
+	QProg prog2;
+
+	/*prog1 << (CNOT(q[0], q[3])).control(q[1]) << I(q[2]);
+	prog2 << (CNOT(q[0], q[3])).control(q[2]) << I(q[1]);*/
+
+	/*prog1 << RX(q[0], PI/6.0) << RX(q[0], PI / 7.0) << RX(q[0], PI / 3.0);
+	prog2 << RX(q[0], (27.0 * PI) / 42.0);*/
+
+	/*prog1 << RY(q[0], PI / 6.0) << RY(q[0], PI / 7.0) << RY(q[0], PI / 3.0);
+	prog2 << RY(q[0], (27.0 * PI) / 42.0);*/
+
+	prog1 << RZ(q[0], PI / 6.0) << RZ(q[0], PI / 7.0) << RZ(q[0], PI / 3.0);
+	prog2 << RZ(q[0], (27.0 * PI) / 42.0);
+
+	QStat result_mat1 = getCircuitMatrix(prog1);
+	QStat result_mat2 = getCircuitMatrix(prog2);
+
+	cout << "result_mat1" << result_mat1 << endl;
+	cout << "result_mat2" << result_mat2 << endl;
+	if (result_mat1 != result_mat2)
+	{
+		cout << "test failed." << endl;
+	}
+
+	destroyQuantumMachine(qvm);
+	return true;
+}
+
+
+TEST(QProgToMatrix, test2)
+{
+	bool test_val = false;
+	try
+	{
+		test_val = test_getProgMatrix1();
+	}
+	catch (const std::exception& e)
+	{
+		cout << "Got a exception: " << e.what() << endl;
+	}
+	catch (...)
+	{
+		cout << "Got an unknow exception: " << endl;
+	}
+
+	cout << "QProgToMatrix test over, press Enter to continue." << endl;
+	getchar();
+
+	ASSERT_TRUE(test_val);
+}

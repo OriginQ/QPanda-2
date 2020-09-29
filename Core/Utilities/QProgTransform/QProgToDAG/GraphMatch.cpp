@@ -6,7 +6,7 @@
 USING_QPANDA
 using namespace std;
 
-void GraphMatch::_replace_node(const ResultVector &match_vector, TopologicalSequence &seq)
+void GraphMatch::_replace_node(const ResultVector &match_vector, TopologSequence<SequenceNode> &seq)
 {
     for (const auto &result : match_vector)
     {
@@ -24,7 +24,7 @@ void GraphMatch::_replace_node(const ResultVector &match_vector, TopologicalSequ
     }
 }
 
-static LayerNode get_layer_node(const SequenceNode &node, const TopologicalSequence &seq)
+static LayerNode get_layer_node(const SequenceNode &node, const TopologSequence<SequenceNode> &seq)
 {
     for (const auto &layer : seq)
     {
@@ -38,7 +38,7 @@ static LayerNode get_layer_node(const SequenceNode &node, const TopologicalSeque
     }
 }
 
-static size_t get_layer_num(const TopologicalSequence &graph_seq,size_t vertice_num)
+static size_t get_layer_num(const TopologSequence<SequenceNode> &graph_seq,size_t vertice_num)
 {
     for (auto i = 0; i != graph_seq.size(); ++i)
     {
@@ -52,30 +52,40 @@ static size_t get_layer_num(const TopologicalSequence &graph_seq,size_t vertice_
     }
 }
 
-Qnum GraphMatch::_get_qubit_vector(const SequenceNode &node, QProgDAG &dag)
+Qnum GraphMatch::_get_qubit_vector(const SequenceNode &node, QProgDAG<GateNodeInfo> &dag)
 {
-    auto _node = dag.get_vertex(node.m_vertex_num);
+    auto vertex_node = dag.get_vertex_node(node.m_vertex_num);
+	std::shared_ptr<QNode> p_QNode = *(vertex_node.m_itr);
     switch (node.m_node_type)
     {
-        case -1:
-        {
-            auto measure_ptr = std::dynamic_pointer_cast<QMeasure>(_node);
-            return { measure_ptr->getQuBit()->getPhysicalQubitPtr()->getQubitAddr() };
-        }
+	case SequenceNodeType::MEASURE:
+	{
+		auto measure_ptr = std::dynamic_pointer_cast<QMeasure>(p_QNode);
+		return { measure_ptr->getQuBit()->getPhysicalQubitPtr()->getQubitAddr() };
+	}
+	case SequenceNodeType::RESET:
+	{
+		auto reset_ptr = std::dynamic_pointer_cast<QReset>(p_QNode);
+		return { reset_ptr->getQuBit()->getPhysicalQubitPtr()->getQubitAddr() };
+	}
+    default:
+	{
+		auto gate_ptr = std::dynamic_pointer_cast<AbstractQGateNode>(p_QNode);
+		if (gate_ptr == nullptr)
+		{
+			QCERR_AND_THROW_ERRSTR(init_fail, "Error: failed to transfer to QGate node.");
+		}
 
-        default:
-        {
-            auto gate_ptr = std::dynamic_pointer_cast<AbstractQGateNode>(_node);
-            QVec qvec;
-            gate_ptr->getQuBitVector(qvec);
+		QVec qvec;
+		gate_ptr->getQuBitVector(qvec);
 
-            Qnum qubit_addr_vec;
-            for_each(qvec.begin(),qvec.end(),[&](Qubit* qubit)
-            {
-                qubit_addr_vec.emplace_back(qubit->getPhysicalQubitPtr()->getQubitAddr());
-            });
-            return qubit_addr_vec;
-        }
+		Qnum qubit_addr_vec;
+		for_each(qvec.begin(), qvec.end(), [&](Qubit* qubit)
+		{
+			qubit_addr_vec.emplace_back(qubit->getPhysicalQubitPtr()->getQubitAddr());
+		});
+		return qubit_addr_vec;
+	}
     }
 }
 
@@ -102,7 +112,7 @@ bool GraphMatch::_compare_edge(LayerVector &graph_node_vec, LayerVector &query_n
     return true;
 }
 
-bool GraphMatch::query(TopologicalSequence &graph_seq, TopologicalSequence &query_seq,
+bool GraphMatch::query(TopologSequence<SequenceNode> &graph_seq, TopologSequence<SequenceNode> &query_seq,
                        ResultVector &match_result)
 {
     if (m_query_dag.is_connected_graph())
@@ -401,19 +411,20 @@ bool GraphMatch::_compare_node(LayerNode &graph_node, LayerNode &query_node)
     }
 }
 
-void GraphMatch::_convert_prog(TopologicalSequence &seq, QProg &prog)
+void GraphMatch::_convert_prog(TopologSequence<SequenceNode> &seq, QProg &prog)
 {
     for (auto &layer: seq)
     {
         for (auto &node : layer)
         {
-            prog.pushBackNode(m_graph_dag.get_vertex(node.first.m_vertex_num));
+			const auto& vertex_node = m_graph_dag.get_vertex_node(node.first.m_vertex_num);
+            prog.pushBackNode(*(vertex_node.m_itr));
         }
     }
 }
 
-void GraphMatch::_convert_node(ResultVector &match_vector, TopologicalSequence &replace_seq,
-                                   TopologicalSequence &graph_seq, QuantumMachine* qvm)
+void GraphMatch::_convert_node(ResultVector &match_vector, TopologSequence<SequenceNode> &replace_seq,
+	TopologSequence<SequenceNode> &graph_seq, QuantumMachine* qvm)
 {
     if (m_replace_dag.is_connected_graph())
     {
@@ -490,8 +501,8 @@ bool GraphMatch::_compare_qnum(Qnum query_qvec, Qnum replace_qvec)
 
 bool GraphMatch::_compare_parm(SequenceNode &graph_node, SequenceNode &query_node)
 {
-    auto g_node = m_graph_dag.get_vertex(graph_node.m_vertex_num);
-    auto q_node = m_query_dag.get_vertex(query_node.m_vertex_num);
+    auto g_node = *(m_graph_dag.get_vertex_node(graph_node.m_vertex_num).m_itr);
+    auto q_node = *(m_query_dag.get_vertex_node(graph_node.m_vertex_num).m_itr);
     switch (graph_node.m_node_type)
     {
         case GateType::RX_GATE:
@@ -517,7 +528,7 @@ bool GraphMatch::_compare_parm(SequenceNode &graph_node, SequenceNode &query_nod
     }
 }
 
-void GraphMatch::_get_pre_node(size_t node_num, TopologicalSequence &query_seq, LayerVector &result)
+void GraphMatch::_get_pre_node(size_t node_num, TopologSequence<SequenceNode> &query_seq, LayerVector &result)
 {
     for (const auto &query_layer : query_seq)
     {
@@ -545,13 +556,15 @@ void GraphMatch::_convert_gate(SequenceNode& old_node, QuantumMachine* qvm, std:
             qvec.emplace_back(qvm->allocateQubitThroughPhyAddress(compare_map.find(qubit_addr)->second));
         });
 
-        auto _node = m_replace_dag.get_vertex(old_node.m_vertex_num);
+        auto _node = *(m_replace_dag.get_vertex_node(old_node.m_vertex_num).m_itr);
         if (NodeType::GATE_NODE == _node->getNodeType())
         {
             auto gate_ptr = std::dynamic_pointer_cast<AbstractQGateNode>(_node);
             auto temp_gate =  copy_qgate(gate_ptr->getQGate(), qvec);
             new_node.m_node_type = old_node.m_node_type;
-            new_node.m_vertex_num = m_graph_dag.add_vertex(dynamic_pointer_cast<QNode>(temp_gate.getImplementationPtr()));
+			NodeIter tmp_iter = m_graph_dag.add_gate(dynamic_pointer_cast<QNode>(temp_gate.getImplementationPtr()));
+			GateNodeInfo tmp_node(tmp_iter);
+            new_node.m_vertex_num = m_graph_dag.add_vertex(tmp_node);
         }
         else
         {

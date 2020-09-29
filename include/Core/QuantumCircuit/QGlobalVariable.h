@@ -19,6 +19,7 @@ limitations under the License.
 #include "Core/Utilities/QPandaNamespace.h"
 #include <complex>
 #include <vector>
+#include <float.h>
 
 /*
 *  @brief   QPanda2 node type
@@ -41,7 +42,7 @@ enum NodeType
 *  @brief   QPanda2 quantum gate type
 */
 enum GateType {
-	GATE_UNDEFINED = -1,
+    GATE_UNDEFINED = -1,
     P0_GATE,/**< Quantum p0 gate */
     P1_GATE,/**< Quantum p1 gate */
     PAULI_X_GATE,/**< Quantum pauli x  gate */
@@ -56,6 +57,7 @@ enum GateType {
     RX_GATE,/**< Quantum rotation x gate */
     RY_GATE,/**< Quantum rotation y gate */
     RZ_GATE,/**< Quantum rotation z gate */
+    RPHI_GATE,
     U1_GATE,/**< Quantum u1 gate */
     U2_GATE,/**< Quantum u2 gate */
     U3_GATE,/**< Quantum u3 gate */
@@ -73,7 +75,10 @@ enum GateType {
     P11_GATE,
     TOFFOLI_GATE,
 	ORACLE_GATE,
-	I_GATE
+	I_GATE,
+
+    ECHO_GATE,  /**< Only for 6 qubit online projects */
+    BARRIER_GATE  /**< Only for 6 qubit online projects */
 };
 
 /*

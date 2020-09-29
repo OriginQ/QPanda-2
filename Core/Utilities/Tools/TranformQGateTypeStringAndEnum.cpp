@@ -31,6 +31,7 @@ TransformQGateType::TransformQGateType()
     m_qgate_type_map.insert({ "RX", RX_GATE });
     m_qgate_type_map.insert({ "RY", RY_GATE });
     m_qgate_type_map.insert({ "RZ", RZ_GATE });
+	m_qgate_type_map.insert({ "RPhi", RPHI_GATE });
 
     m_qgate_type_map.insert({ "U1", U1_GATE });
     m_qgate_type_map.insert({ "U2", U2_GATE });
@@ -49,6 +50,8 @@ TransformQGateType::TransformQGateType()
     m_qgate_type_map.insert({ "QDoubleGate", TWO_QUBIT_GATE });
 
 	m_qgate_type_map.insert({ "I", I_GATE });
+    m_qgate_type_map.insert({ "ECHO", ECHO_GATE });
+    m_qgate_type_map.insert({ "BARRIER", BARRIER_GATE });
 }
 
 TransformQGateType & TransformQGateType::getInstance()

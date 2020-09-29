@@ -22,8 +22,11 @@ class JudgeProgOperateQubts : public TraverseByNodeIter
 {
 public:
 	JudgeProgOperateQubts(QProg prog, const std::vector<int>& qubits)
-		:TraverseByNodeIter(prog), m_qubits(qubits), m_is_related_to_qubits(false)
+		:m_prog(prog), m_qubits(qubits), m_is_related_to_qubits(false)
 	{}
+	virtual void traverse_qprog() {
+		TraverseByNodeIter::traverse_qprog(m_prog);
+	}
 
 	void execute(std::shared_ptr<AbstractQGateNode> cur_node, std::shared_ptr<QNode> parent_node, QCircuitParam &cir_param, NodeIter& cur_node_iter) override {
 		//handle QGate node
@@ -78,6 +81,7 @@ public:
 	bool prog_is_related_to_qubits() { return m_is_related_to_qubits; }
 
 private:
+	QProg m_prog;
 	const std::vector<int>& m_qubits;
 	bool m_is_related_to_qubits;
 };
@@ -237,7 +241,7 @@ void JudgeTwoNodeIterIsSwappable::traverse_qprog()
 	}
 	else
 	{
-		TraverseByNodeIter::traverse_qprog();
+		TraverseByNodeIter::traverse_qprog(m_prog);
 		m_judge_statue->on_traversal_end();
 	}
 }

@@ -10,8 +10,8 @@ Classes for QProgDAG.
 
 */
 /*! \file QProgDAG.h */
-#ifndef  QPROGDAG_H_
-#define  QPROGDAG_H_
+#ifndef  QPROGDAG_H
+#define  QPROGDAG_H
 
 #include <vector>
 #include <memory>
@@ -32,6 +32,18 @@ enum SequenceNodeType
 	RESET = -2
 };
 
+struct GateNodeInfo
+{
+	GateNodeInfo(const NodeIter itr)
+		:m_itr(itr), m_dagger(false)
+	{}
+
+	NodeIter m_itr;
+	bool m_dagger;
+	QVec m_qubits_vec;
+	QVec m_control_vec;
+};
+
 struct SequenceNode
 {
     int m_node_type; // SequenceNodeType(on case of m_node_type < 0) and GateType
@@ -40,14 +52,45 @@ struct SequenceNode
     bool operator == (const SequenceNode &node) const { return (this->m_vertex_num == node.m_vertex_num); }
     bool operator <  (const SequenceNode &node) const { return (this->m_vertex_num  < node.m_vertex_num); }
     bool operator >  (const SequenceNode &node) const { return (this->m_vertex_num  > node.m_vertex_num); }
+
+	/**
+   * @brief  construct sequence node
+   * @param[in]  size_t vertex num
+   * @return     QPanda::SequenceNode
+   */
+	static SequenceNode construct_sequence_node(GateNodeInfo& gate_node, void* user_data) {
+		SequenceNode node;
+		size_t vertice_num = (size_t)user_data;
+		auto node_ptr = (*(gate_node.m_itr));
+		if (NodeType::GATE_NODE == node_ptr->getNodeType())
+		{
+			auto pQGate = std::dynamic_pointer_cast<AbstractQGateNode>(node_ptr);
+			node.m_node_type = pQGate->getQGate()->getGateType();
+			node.m_vertex_num = vertice_num;
+		}
+		else if (NodeType::MEASURE_GATE == node_ptr->getNodeType())
+		{
+			node.m_node_type = SequenceNodeType::MEASURE;
+			node.m_vertex_num = vertice_num;
+		}
+		else if (NodeType::RESET_NODE == node_ptr->getNodeType())
+		{
+			node.m_node_type = SequenceNodeType::RESET;
+			node.m_vertex_num = vertice_num;
+		}
+		else
+		{
+			QCERR("node type error");
+			throw std::runtime_error("node type error");
+		}
+		return node;
+	}
 };
 
 using edges_vec = std::vector<std::pair<size_t, size_t>>; 
 using AdjacencyMatrix = Eigen::MatrixXi;
 using LayerNode = std::pair<SequenceNode, std::vector<SequenceNode>>;
 using SequenceLayer = std::vector<LayerNode>;
-using TopologicalSequence = std::vector<SequenceLayer>;
-
 
 /**
 * @class QProgDAG
@@ -55,45 +98,28 @@ using TopologicalSequence = std::vector<SequenceLayer>;
 * @brief transform QProg to DAG(directed acyclic graph)
 * @note
 */
+template <class T>
 class QProgDAG
 {
+	template <class seq_node_T>
+	friend class DAGToTopologSequence;
+
 public:
-	struct NodeInfo
-	{
-		NodeInfo(const NodeIter itr)
-			:m_itr(itr), m_dagger(false)
-		{}
+	using vertices_map = std::map<size_t, T>;
 
-		NodeIter m_itr;
-		bool m_dagger;
-		QVec m_qubits_vec;
-		QVec m_control_vec;
-	};
-	using vertices_map = std::map<size_t, NodeInfo>;
-    std::vector<size_t> m_qubit_vec;
-
+public:
 	QProgDAG() {}
-
-    /**
-    * @brief  get TopologincalSequence
-    * @param[out]  TopologicalSequence 
-    * @return     void
-    */
-    void getTopologincalSequence(TopologicalSequence &);
-
-	/**
-	* @brief  add vertex
-	* @param[in]  node  quantum node
-	* @return     size_t vertex num
-	*/
-	size_t add_vertex(std::shared_ptr<QNode> node);
 
     /**
     * @brief  add vertex
     * @param[in]  node_info 
     * @return     size_t vertex num
     */
-    size_t add_vertex(const NodeInfo& node_info);
+    size_t add_vertex(const T& node) {
+		auto vertice_num = m_vertices_map.size();
+		m_vertices_map.insert(std::make_pair(vertice_num, node));
+		return vertice_num;
+	}
 
     /**
     * @brief  add edge
@@ -101,7 +127,16 @@ public:
     * @param[in]  size_t vertex num
     * @return     void
     */
-    void add_edge(size_t,size_t);
+    void add_edge(size_t in_num, size_t out_num) {
+		for (auto val : m_edges_vector)
+		{
+			if (val.first == in_num && val.second == out_num)
+			{
+				return;
+			}
+		}
+		m_edges_vector.emplace_back(std::make_pair(in_num, out_num));
+	}
     
     /**
     * @brief  get adjacency_matrix
@@ -109,28 +144,33 @@ public:
     * @param[out]  AdjacencyMatrix&
     * @return     void
     */
-    void get_adjacency_matrix(const vertices_map &, AdjacencyMatrix &);
+    void get_adjacency_matrix(AdjacencyMatrix & matrix) {
+		matrix = AdjacencyMatrix::Zero(m_vertices_map.size(), m_vertices_map.size());
 
-    /**
-    * @brief  construct sequence node
-    * @param[in]  size_t vertex num
-    * @return     QPanda::SequenceNode
-    */
-    SequenceNode construct_sequence_node(size_t);
+		for (const auto &vertice : m_vertices_map)
+		{
+			for (const auto &edge : m_edges_vector)
+			{
+				if (edge.first == vertice.first)
+				{
+					matrix(edge.first, edge.second) = 1;
+				}
+			}
+		}
+	}
 
     /**
     * @brief  get vertex by vertex num
     * @param[in]  size_t vertex num
     * @return     std::shared_ptr<QPanda::QNode> qnode
     */
-    std::shared_ptr<QNode> get_vertex(size_t) const;
-
-	/**
-	* @brief  get vertex nodeIter by vertex num
-	* @param[in]  size_t vertex num
-	* @return     QPanda::NodeIter
-	*/
-	NodeIter get_vertex_nodeIter(size_t) const;
+	const T& get_vertex_node(const size_t vertice_num) const {
+		if (m_vertices_map.size() <= vertice_num)
+		{
+			QCERR_AND_THROW_ERRSTR(run_fail, "Error: vertice_num error.");
+		}
+		return m_vertices_map.find(vertice_num)->second;
+	}
 
     /**
     * @brief  add qubit map
@@ -138,17 +178,74 @@ public:
     * @param[in]  size_t vertex num
     * @return     void
     */
-    void add_qubit_map(size_t, size_t);
+    void add_qubit_map(size_t tar_qubit, size_t vertice_num) {
+		auto tar_iter = find(m_qubit_vec.begin(), m_qubit_vec.end(), tar_qubit);
+		if (m_qubit_vec.end() == tar_iter)
+		{
+			m_qubit_vec.emplace_back(tar_qubit);
+		}
 
-    bool is_connected_graph();
+		auto iter = qubit_vertices_map.find(tar_qubit);
+		if (iter != qubit_vertices_map.end())
+		{
+			size_t in_vertex_num = iter->second.back();
+			add_edge(in_vertex_num, vertice_num);
+			qubit_vertices_map[iter->first].emplace_back(vertice_num);
+		}
+		else
+		{
+			std::vector<size_t> vertice_vec = { vertice_num };
+			qubit_vertices_map.insert(std::make_pair(tar_qubit, vertice_vec));
+		}
+	}
+
+    bool is_connected_graph() {
+		AdjacencyMatrix matrix;
+		get_adjacency_matrix(matrix);
+
+		for (int i = 0; i < matrix.rows(); i++)
+		{
+			for (int j = 0; j < matrix.rows(); j++)
+			{
+				if (matrix(i, j))
+				{
+					for (int k = 0; k < matrix.rows(); k++)
+					{
+						if (matrix(k, i))
+						{
+							matrix(k, j) = 1;
+						}
+					}
+				}
+			}
+		}
+		for (int i = 0; i < matrix.rows(); i++)
+		{
+			for (int j = 0; j < matrix.rows(); j++)
+			{
+				if (!matrix(i, j))
+				{
+					return false;
+				}
+			}
+		}
+
+		return true;
+	}
+
+	NodeIter add_gate(std::shared_ptr<QNode> node) {
+		m_dag_prog.pushBackNode(node);
+		return m_dag_prog.getLastNodeIter();
+	}
+
+public:
+	std::vector<size_t> m_qubit_vec;
 
 private:
     QProg m_dag_prog;
     edges_vec m_edges_vector;
     vertices_map m_vertices_map;
     std::map<size_t, std::vector<size_t>> qubit_vertices_map;
-
-    void _get_cur_layer_vertices(AdjacencyMatrix &,SequenceLayer &);
 };
 
 QPANDA_END

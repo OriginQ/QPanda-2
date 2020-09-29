@@ -139,9 +139,9 @@ class AdjacentQGates : public TraverseByNodeIter
 
 public:
 	AdjacentQGates(QProg prog, NodeIter &nodeItr)
-		:TraverseByNodeIter(prog)
+		:m_prog(prog)
 		, m_target_node_itr(nodeItr)
-		, m_prog(prog), m_traversal_statue(nullptr)
+		, m_traversal_statue(nullptr)
 	{}
 	~AdjacentQGates() {
 		if (nullptr != m_traversal_statue)
@@ -175,7 +175,7 @@ public:
 		TraverseByNodeIter::execute(cur_node, parent_node, cir_param, cur_node_iter);
 	}
 
-	void traverse_qprog() override;
+	virtual void traverse_qprog();
 
 	void update_front_iter(const NodeIter &itr, const QCircuitParam &cir_param) { 
 		_update_node_info(m_front_node, itr, cir_param);

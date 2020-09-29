@@ -28,7 +28,7 @@
 * @def qstate_type
 * @brief QPanda2 quantum state data type
 */
-typedef float qstate_type;
+typedef double qstate_type;
 
 /**
 * @def qcomplex_t

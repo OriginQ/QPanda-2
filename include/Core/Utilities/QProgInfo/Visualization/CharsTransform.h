@@ -1,9 +1,11 @@
-﻿#pragma once
+﻿#ifndef CHARS_TRANSFORM_H
+#define CHARS_TRANSFORM_H
+
 #include "string"
 #include <codecvt>
 #include <locale>
 
-#ifdef WIN32
+#if defined(WIN32) || defined(_WIN32)
 #include <windows.h>
 #endif
 
@@ -38,7 +40,7 @@ inline std::wstring utf8ToWstring(const std::string& str)
 	return myconv.from_bytes(str);
 }
 
-#ifdef WIN32
+#if defined(WIN32) || defined(_WIN32)
 /**
 * @brief convert UTF8 string to gbk
 * @param[in] char* the source string
@@ -101,4 +103,48 @@ inline void initConsole()
 
 }
 
+inline int get_wide_char_pos(const std::string &str, int start_pos)
+{
+	for (size_t i = start_pos; i < str.length(); i++)
+	{
+		if (((str.at(i) == (char)(0xE2)) && (str.at(i + 1) == (char)(0x96)) && (str.at(i + 2) == (char)(0xA0))) ||
+			((str.at(i) == (char)(0xE2)) && (str.at(i + 1) == (char)(0x97)) && (str.at(i + 2) == (char)(0x86))))
+		{
+			return i;
+		}
+	}
+
+	return -1;
+}
+
+inline void utf8_fit_to_gbk(std::string &utf8_str)
+{
+	int pos = 0;
+	while (true)
+	{
+		pos = get_wide_char_pos(utf8_str, pos);
+		if (0 > pos)
+		{
+			break;
+		}
+
+		utf8_str.erase(pos + 3, 1);
+		utf8_str.erase(pos + 3, 1);
+		utf8_str.erase(pos + 3, 1);
+		pos += 3;
+	}
+}
+
+inline std::string fit_to_gbk(std::string& utf8_str)
+{
+	utf8_fit_to_gbk(utf8_str);
+#if defined(WIN32) || defined(_WIN32)
+	//utf8_str = Utf8ToGbkOnWin32(utf8_str.c_str());
+#endif
+
+	return utf8_str;
+}
+
 QPANDA_END
+
+#endif 

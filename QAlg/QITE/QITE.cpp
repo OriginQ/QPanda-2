@@ -589,4 +589,36 @@ Eigen::MatrixXd QITE::pseudoinverse(Eigen::MatrixXd matrix)
     return pinvmat;
 }
 
+prob_tuple qite(
+    const PauliOperator& h, 
+    const std::vector<AnsatzGate>& ansatz_gate, 
+    size_t iter_num, 
+    std::string log_file,
+    QITE::UpdateMode mode, 
+    size_t up_throw_num, 
+    double delta_tau, 
+    double convergence_factor_Q, 
+    double arbitary_cofficient, 
+    QMachineType type)
+{
+    QITE alg;
+    alg.setHamiltonian(h);
+    alg.setAnsatzGate(ansatz_gate);
+    alg.setIterNum(iter_num);
+    alg.setLogFile(log_file);
+    alg.setParaUpdateMode(mode);
+    alg.setUpthrowNum(up_throw_num);
+    alg.setDeltaTau(delta_tau);
+    alg.setConvergenceFactorQ(convergence_factor_Q);
+    alg.setArbitaryCofficient(arbitary_cofficient);
+    alg.setQuantumMachineType(type);
+
+    if (alg.exec() != 0)
+    {
+        return prob_tuple();
+    }
+
+    return alg.getResult();
+}
+
 QPANDA_END

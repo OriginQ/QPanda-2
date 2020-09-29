@@ -125,24 +125,29 @@ public:
 
     inline bool TensorProduct(QGateParam& qgroup0, QGateParam& qgroup1)
     {
-        if (qgroup0.qVec[0] == qgroup1.qVec[0])
-        {
-            return false;
-        }
-        size_t length = qgroup0.qstate.size();
-        size_t slabel = qgroup0.qVec[0];
-        for (auto iter0 = qgroup1.qstate.begin(); iter0 != qgroup1.qstate.end(); iter0++)
-        {
-            for (auto i = 0; i < length; i++)
-            {
-                //*iter1 *= *iter;
-                qgroup0.qstate.push_back(qgroup0.qstate[i] * (*iter0));
-            }
-        }
-        qgroup0.qstate.erase(qgroup0.qstate.begin(), qgroup0.qstate.begin() + length);
-        qgroup0.qVec.insert(qgroup0.qVec.end(), qgroup1.qVec.begin(), qgroup1.qVec.end());
-        qgroup1.enable = false;
-        return true;
+		if (qgroup0.qVec[0] == qgroup1.qVec[0])
+		{
+			return false;
+		}
+		size_t length_0 = qgroup0.qstate.size();
+		size_t length_1 = qgroup1.qstate.size();
+
+		int index = 0;
+		QStat new_state;
+		new_state.resize(length_0 * length_1);
+#pragma omp parallel for  private(index)
+		for (int i = 0; i < length_1; i++)
+		{
+			for (int j = 0; j < length_0; j++)
+			{
+				index = i * length_0 + j;
+				new_state[index] = qgroup0.qstate[j] * qgroup1.qstate[i];
+			}
+		}
+		qgroup0.qstate = new_state;
+		qgroup0.qVec.insert(qgroup0.qVec.end(), qgroup1.qVec.begin(), qgroup1.qVec.end());
+		qgroup1.enable = false;
+		return true;
     }
 
     template<const qcomplex_t& U00, const qcomplex_t& U01, const qcomplex_t& U10, const qcomplex_t& U11>

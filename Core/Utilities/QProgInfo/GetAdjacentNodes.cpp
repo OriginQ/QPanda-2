@@ -74,7 +74,7 @@ void AdjacentQGates::traverse_qprog()
 	}
 	else
 	{
-		TraverseByNodeIter::traverse_qprog();
+		TraverseByNodeIter::traverse_qprog(m_prog);
 	}
 }
 

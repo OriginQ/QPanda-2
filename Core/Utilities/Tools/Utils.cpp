@@ -4,7 +4,7 @@
 #include "Core/QuantumCircuit/QuantumMeasure.h"
 #include "ControlFlow.h"
 
-#ifdef WIN32
+#if defined(WIN32) || defined(_WIN32)
 #define localtime_r(_Time, _Tm) localtime_s(_Tm, _Time)
 #endif
 

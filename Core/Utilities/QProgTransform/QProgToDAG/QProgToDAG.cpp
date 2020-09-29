@@ -4,7 +4,7 @@
 USING_QPANDA
 using namespace std;
 
-void QProgToDAG::transformQGate(shared_ptr<AbstractQGateNode> gate_node, QProgDAG &prog_dag, const QCircuitParam& parm, NodeIter& cur_iter)
+void QProgToDAG::transformQGate(shared_ptr<AbstractQGateNode> gate_node, QProgDAG<GateNodeInfo> &prog_dag, const QCircuitParam& parm, NodeIter& cur_iter)
 {
     if (nullptr == gate_node || nullptr == gate_node->getQGate())
     {
@@ -12,7 +12,7 @@ void QProgToDAG::transformQGate(shared_ptr<AbstractQGateNode> gate_node, QProgDA
         throw invalid_argument("gate_node is null");
     }
 
-	QProgDAG::NodeInfo node_info(cur_iter);
+	GateNodeInfo node_info(cur_iter);
 	gate_node->getQuBitVector(node_info.m_qubits_vec);
 	gate_node->getControlVector(node_info.m_control_vec);
 
@@ -67,32 +67,32 @@ void QProgToDAG::transformQGate(shared_ptr<AbstractQGateNode> gate_node, QProgDA
     });
 }
 
-void QProgToDAG::execute(std::shared_ptr<AbstractQuantumMeasure>  cur_node, std::shared_ptr<QNode> parent_node, QProgDAG & prog_dag, QCircuitParam&, NodeIter& cur_iter)
+void QProgToDAG::execute(std::shared_ptr<AbstractQuantumMeasure>  cur_node, std::shared_ptr<QNode> parent_node, QProgDAG<GateNodeInfo> & prog_dag, QCircuitParam&, NodeIter& cur_iter)
 {
     transformQMeasure(cur_node, prog_dag, cur_iter);
 }
 
-void QProgToDAG::execute(std::shared_ptr<AbstractQuantumReset> cur_node, std::shared_ptr<QNode> parent_node, QProgDAG &prog_dag, QCircuitParam&, NodeIter& cur_iter)
+void QProgToDAG::execute(std::shared_ptr<AbstractQuantumReset> cur_node, std::shared_ptr<QNode> parent_node, QProgDAG<GateNodeInfo> &prog_dag, QCircuitParam&, NodeIter& cur_iter)
 {
 	transformQReset(cur_node, prog_dag, cur_iter);
 }
 
-void QProgToDAG::execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node, QProgDAG & prog_dag, QCircuitParam& parm, NodeIter& cur_iter)
+void QProgToDAG::execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node, QProgDAG<GateNodeInfo> & prog_dag, QCircuitParam& parm, NodeIter& cur_iter)
 {
     transformQGate(cur_node, prog_dag, parm, cur_iter);
 }
 
-void QProgToDAG::execute(std::shared_ptr<AbstractClassicalProg>  cur_node, std::shared_ptr<QNode> parent_node, QProgDAG &prog_dag, QCircuitParam&, NodeIter& cur_iter)
+void QProgToDAG::execute(std::shared_ptr<AbstractClassicalProg>  cur_node, std::shared_ptr<QNode> parent_node, QProgDAG<GateNodeInfo> &prog_dag, QCircuitParam&, NodeIter& cur_iter)
 {
     QCERR("ignore classical prog node");
 }
 
-void QProgToDAG::execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node, QProgDAG &prog_dag, QCircuitParam&, NodeIter& cur_iter)
+void QProgToDAG::execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node, QProgDAG<GateNodeInfo> &prog_dag, QCircuitParam&, NodeIter& cur_iter)
 {
     QCERR("ignore controlflow node");
 }
 
-void QProgToDAG::execute(std::shared_ptr<AbstractQuantumProgram>  cur_node, std::shared_ptr<QNode> parent_node, QProgDAG &prog_dag, QCircuitParam& parm, NodeIter& cur_iter)
+void QProgToDAG::execute(std::shared_ptr<AbstractQuantumProgram>  cur_node, std::shared_ptr<QNode> parent_node, QProgDAG<GateNodeInfo> &prog_dag, QCircuitParam& parm, NodeIter& cur_iter)
 {
     if (nullptr == cur_node)
     {
@@ -119,7 +119,7 @@ void QProgToDAG::execute(std::shared_ptr<AbstractQuantumProgram>  cur_node, std:
     }
 }
 
-void QProgToDAG::transformQMeasure(std::shared_ptr<AbstractQuantumMeasure> cur_node, QProgDAG &prog_dag, NodeIter& cur_iter)
+void QProgToDAG::transformQMeasure(std::shared_ptr<AbstractQuantumMeasure> cur_node, QProgDAG<GateNodeInfo> &prog_dag, NodeIter& cur_iter)
 {
     if (nullptr == cur_node)
     {
@@ -132,7 +132,7 @@ void QProgToDAG::transformQMeasure(std::shared_ptr<AbstractQuantumMeasure> cur_n
     prog_dag.add_qubit_map(tar_qubit, vertice_num);
 }
 
-void QProgToDAG::transformQReset(std::shared_ptr<AbstractQuantumReset> cur_node, QProgDAG &prog_dag, NodeIter& cur_iter)
+void QProgToDAG::transformQReset(std::shared_ptr<AbstractQuantumReset> cur_node, QProgDAG<GateNodeInfo> &prog_dag, NodeIter& cur_iter)
 {
 	if (nullptr == cur_node)
 	{
@@ -145,7 +145,7 @@ void QProgToDAG::transformQReset(std::shared_ptr<AbstractQuantumReset> cur_node,
 	prog_dag.add_qubit_map(tar_qubit, vertice_num);
 }
 
-void QProgToDAG::execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std::shared_ptr<QNode> parent_node, QProgDAG &prog_dag, QCircuitParam& cir_parm, NodeIter& cur_iter)
+void QProgToDAG::execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std::shared_ptr<QNode> parent_node, QProgDAG<GateNodeInfo> &prog_dag, QCircuitParam& cir_parm, NodeIter& cur_iter)
 {
     if (nullptr == cur_node)
     {

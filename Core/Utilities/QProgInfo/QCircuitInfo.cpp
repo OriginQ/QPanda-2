@@ -130,11 +130,11 @@ void TraverseByNodeIter::execute(std::shared_ptr<AbstractQuantumProgram>  cur_no
 	}
 }
 
-void TraverseByNodeIter::traverse_qprog()
+void TraverseByNodeIter::traverse_qprog(QProg prog)
 {
 	NodeIter itr = NodeIter();
 	auto param = std::make_shared<QCircuitParam>();
-	execute(m_prog.getImplementationPtr(), nullptr, *param, itr);
+	execute(prog.getImplementationPtr(), nullptr, *param, itr);
 }
 
 /*******************************************************************
@@ -313,7 +313,6 @@ void PickUpNodes::execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std
 
 void PickUpNodes::no_dagger_gate(QGate& gate)
 {
-#if 0
 	const GateType type = (GateType)(gate.getQGate()->getGateType());
 	switch (type)
 	{
@@ -344,13 +343,12 @@ void PickUpNodes::no_dagger_gate(QGate& gate)
 	case TWO_QUBIT_GATE:
 	case CPHASE_GATE:
 	case CU_GATE:
-	break;
+	    break;
 
 	default:
-		QCERR("Unsupported GateNode");
+		//QCERR("Unsupported GateNode");
 		break;
 	}
-#endif
 }
 
 void PickUpNodes::pickQGateNode(const NodeIter cur_node_iter, QCircuitParam &cir_param)
@@ -593,7 +591,7 @@ bool QPanda::isSwappable(QProg prog, NodeIter &nodeItr1, NodeIter &nodeItr2)
 	return p_judge_node_iters->get_result();
 }
 
-bool QPanda::isMatchTopology(const QGate& gate, const std::vector<std::vector<int>>& vecTopoSt)
+bool QPanda::isMatchTopology(const QGate& gate, const std::vector<std::vector<double>>& vecTopoSt)
 {
 	if (0 == vecTopoSt.size())
 	{
@@ -609,7 +607,7 @@ bool QPanda::isMatchTopology(const QGate& gate, const std::vector<std::vector<in
 	}
 
 	int pos_in_topology = first_qubit_pos; //the index of qubits in topological structure is start from 1.
-	std::vector<int> vec_topology = vecTopoSt[pos_in_topology];
+	std::vector<double> vec_topology = vecTopoSt[pos_in_topology];
 	for (auto iter = ++(vec_qubits.begin()); iter != vec_qubits.end(); ++iter)
 	{
 		auto target_qubit = (*iter)->getPhysicalQubitPtr()->getQubitAddr();
@@ -690,7 +688,7 @@ void QPanda::pickUpNode(QProg &outPutProg, QProg srcProg, const std::vector<Node
 	}
 }
 
-void QPanda::get_all_used_qubits(QProg prog, QVec &vecQuBitsInUse)
+size_t QPanda::get_all_used_qubits(QProg prog, QVec &vecQuBitsInUse)
 {
 	vecQuBitsInUse.clear();
 
@@ -706,9 +704,11 @@ void QPanda::get_all_used_qubits(QProg prog, QVec &vecQuBitsInUse)
 	sort(vecQuBitsInUse.begin(), vecQuBitsInUse.end(), [](Qubit* a, Qubit* b) { 
 		return a->getPhysicalQubitPtr()->getQubitAddr() < b->getPhysicalQubitPtr()->getQubitAddr(); });
 	vecQuBitsInUse.erase(unique(vecQuBitsInUse.begin(), vecQuBitsInUse.end()), vecQuBitsInUse.end());
+
+	return vecQuBitsInUse.size();
 }
 
-void QPanda::get_all_used_qubits(QProg prog, std::vector<int> &vecQuBitsInUse)
+size_t QPanda::get_all_used_qubits(QProg prog, std::vector<int> &vecQuBitsInUse)
 {
 	vecQuBitsInUse.clear();
 	QVec vec_all_qubits;
@@ -717,9 +717,11 @@ void QPanda::get_all_used_qubits(QProg prog, std::vector<int> &vecQuBitsInUse)
 	{
 		vecQuBitsInUse.push_back(itr->getPhysicalQubitPtr()->getQubitAddr());
 	}
+
+	return vecQuBitsInUse.size();
 }
 
-void QPanda::get_all_used_class_bits(QProg prog, std::vector<int> &vecClBitsInUse)
+size_t QPanda::get_all_used_class_bits(QProg prog, std::vector<int> &vecClBitsInUse)
 {
 	vecClBitsInUse.clear();
 
@@ -734,12 +736,14 @@ void QPanda::get_all_used_class_bits(QProg prog, std::vector<int> &vecClBitsInUs
 
 	sort(vecClBitsInUse.begin(), vecClBitsInUse.end(), [](const int& a, const int& b) { return a < b; });
 	vecClBitsInUse.erase(unique(vecClBitsInUse.begin(), vecClBitsInUse.end()), vecClBitsInUse.end());
+
+	return vecClBitsInUse.size();
 }
 
 string QPanda::printAllNodeType(QProg prog)
 {
-	GetAllNodeType print_node_type(prog);
-	print_node_type.traverse_qprog();
+	GetAllNodeType print_node_type;
+	print_node_type.traverse_qprog(prog);
 	return print_node_type.printNodesType();
 }
 
@@ -759,6 +763,8 @@ void QPanda::get_gate_parameter(std::shared_ptr<AbstractQGateNode> pGate, std::s
 	case T_GATE:
 	case S_GATE:
 	case I_GATE:
+	case ECHO_GATE:
+    case BARRIER_GATE:
 	case CNOT_GATE:
 	case CZ_GATE:
 	case ISWAP_GATE:
@@ -777,6 +783,15 @@ void QPanda::get_gate_parameter(std::shared_ptr<AbstractQGateNode> pGate, std::s
 			+ ")");
 	}
 	break;
+
+	case RPHI_GATE:
+	{
+		QGATE_SPACE::RPhi *rphi_gate = dynamic_cast<QGATE_SPACE::RPhi*>(pGate->getQGate());
+		para_str.append(string("(") + to_string(rphi_gate->getBeta())
+			+ "," + to_string(rphi_gate->get_phi())
+			+ ")");
+	}
+		break;
 
 	case U1_GATE:
 	case RX_GATE:

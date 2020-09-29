@@ -1,6 +1,7 @@
 #pragma once
 #include "DrawQProg.h"
 #include "Core/Utilities/QPandaNamespace.h"
+#include "Core/Utilities/QProgInfo/Visualization/CharsTransform.h"
 
 QPANDA_BEGIN
 
@@ -15,6 +16,7 @@ QPANDA_BEGIN
 * @note All the output characters are GBK encoded on windows,  UTF-8 encoded on other OS.
 */
 std::string draw_qprog(QProg prog, const NodeIter itr_start = NodeIter(), const NodeIter itr_end = NodeIter());
+std::string draw_qprog(QProg prog, TopologSequence<pOptimizerNodeInfo>& m_layer_info);
 
 /**
 * @brief output a quantum prog/circuit by time sequence to console by text-pic(UTF-8 code),
@@ -36,7 +38,13 @@ std::string draw_qprog_with_clock(QProg prog, const NodeIter itr_start = NodeIte
  * @return std::ostream 
  */
 inline std::ostream  &operator<<(std::ostream &out, QProg prog) {
-	std::cout << draw_qprog(prog);
+	auto text_pic_str = draw_qprog(prog);
+#if defined(WIN32) || defined(_WIN32)
+	text_pic_str = fit_to_gbk(text_pic_str);
+	text_pic_str = Utf8ToGbkOnWin32(text_pic_str.c_str());
+#endif
+	
+	std::cout << text_pic_str << std::endl;
 	return std::cout;
 }
 

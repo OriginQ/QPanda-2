@@ -127,6 +127,7 @@ public:
     NodeIter deleteQNode(NodeIter & iter);
     NodeType getNodeType() const;
     void clear();
+	bool is_empty() { return getFirstNodeIter() == getEndNodeIter(); }
 };
 
 typedef AbstractQuantumProgram * (*CreateQProgram)();

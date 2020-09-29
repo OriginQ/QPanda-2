@@ -81,8 +81,8 @@ public:
     }
 
     /**
-    * @brief  Set upthrow number
-    * @param[in]  size_t upthrow number
+    * @brief  Set convergence factor Q
+    * @param[in]  size_t convergence factor Q
     */
     void setConvergenceFactorQ(double value)
     {
@@ -176,4 +176,32 @@ private:
     std::string m_log_file;
     std::fstream m_log_writer;
 };
+
+/*
+* @brief Quantum imagine time evolution algorithem interface
+* @param[in]  const PauliOperator& problem hamiltoinan
+* @param[in]  const std::vector<AnsatzGate>& ansatz gate vector
+* @param[in]  size_t iteration number
+* @param[in]  const std::string& log file name
+* @param[in]  QITE::UpdateMode parameters update mode
+* @param[in]  size_t upthrow number
+* @param[in]  double delta tau value
+* @param[in]  size_t convergence factor Q
+* @param[in]  double arbitary cofficient
+* @param[in]  QMachineType quantum machine type
+* @return  prob_tuple  calculation result
+*/
+prob_tuple qite(
+    const PauliOperator& h,
+    const std::vector<AnsatzGate>& ansatz_gate,
+    size_t iter_num = 100,
+    std::string log_file = "",
+    QITE::UpdateMode mode = QITE::UpdateMode::GD_DIRECTION,
+    size_t up_throw_num = 3,
+    double delta_tau = 0.1,
+    double convergence_factor_Q = 0.95,
+    double arbitary_cofficient = 1e-6,
+    QMachineType type = QMachineType::CPU_SINGLE_THREAD
+    );
+
 QPANDA_END

@@ -16,6 +16,7 @@ Description  : Quantum program adaptation metadata instruction set
 #include "Core/Utilities/Tools/GraphDijkstra.h"
 #include "Core/Utilities/Tools/Traversal.h"
 #include "Core/QuantumMachine/OriginQuantumMachine.h"
+#include "Core/Utilities/Tools/JsonConfigParam.h"
 
 QPANDA_BEGIN
 using QGATE_SPACE::AbstractAngleParameter;
@@ -23,6 +24,7 @@ using QGATE_SPACE::AbstractAngleParameter;
 #define SingleGateMatrixSize 4
 #define DoubleGateMatrixSize 16
 #define ZeroJudgement 1e-10
+#define KMETADATA_GATE_TYPE_COUNT 2
 
 struct axis
 {
@@ -112,10 +114,12 @@ public:
         std::shared_ptr<QNode> parent_node)
         {}
 
-
+	DecomposeDoubleQGate(std::vector<std::vector<std::string>> valid_qgate_matrix) :m_valid_qgate_matrix(valid_qgate_matrix)
+	{}
 private:
     void generateMatrixOfTwoLevelSystem(QStat &NewMatrix, QStat &OldMatrix, size_t Row, size_t Column);
     void matrixMultiplicationOfDoubleQGate(QStat &LeftMatrix, QStat &RightMatrix);
+	std::vector<std::vector<std::string>> m_valid_qgate_matrix;
 };
 
 /**
@@ -200,6 +204,7 @@ private:
     QCircuit firstStepOfMultipleControlQGateDecomposition(AbstractQGateNode *pNode, Qubit *AncillaQubit);
     QCircuit secondStepOfMultipleControlQGateDecomposition(AbstractQGateNode *pNode, std::vector<Qubit*> AncillaQubitVector);
     QCircuit tempStepOfMultipleControlQGateDecomposition(std::vector<Qubit*> ControlQubits, std::vector<Qubit*> AncillaQubits);
+	QCircuit decompose_multiple_control_qgate(AbstractQGateNode* cur_node);
 };
 
 /**
@@ -278,6 +283,11 @@ public:
     virtual void execute(std::shared_ptr<AbstractClassicalProg>  cur_node,
         std::shared_ptr<QNode> parent_node)
         {}
+
+	DecomposeControlUnitarySingleQGate(std::vector<std::vector<std::string>> valid_qgate_matrix)
+		:m_valid_qgate_matrix(valid_qgate_matrix) {}
+private:
+	std::vector<std::vector<std::string>> m_valid_qgate_matrix;
 };
 
 /**
@@ -359,12 +369,10 @@ public:
 
 
     DecomposeControlSingleQGateIntoMetadataDoubleQGate(QuantumMachine * quantum_machine,
-        std::vector<std::vector<std::string>> valid_qgate_matrix,
-        std::vector<std::vector<int> > adjacent_matrix)
+        std::vector<std::vector<std::string>> valid_qgate_matrix)
     {
         m_quantum_machine = quantum_machine;
         m_valid_qgate_matrix = valid_qgate_matrix;
-        m_adjacent_matrix = adjacent_matrix;
     }
 private:
     DecomposeControlSingleQGateIntoMetadataDoubleQGate();
@@ -376,7 +384,6 @@ private:
         ) = delete;
     QCircuit swapQGate(std::vector<int> shortest_way, std::string metadata_qgate);
     std::vector<std::vector<std::string>> m_valid_qgate_matrix;
-    std::vector<std::vector<int> > m_adjacent_matrix;
     QuantumMachine * m_quantum_machine;
 };
 
@@ -522,12 +529,11 @@ private:
         Traversal::traversal(cur_node,*this);
     }
 
-
     /*!
     * @brief  Execution traversal qcircuit
     * @param[in,out]  AbstractQuantumCircuit*  quantum circuit
-    * @param[in]  AbstractQGateNode*  quantum gate
-    * @return     void
+    * @param[in]      AbstractQGateNode*  quantum gate
+    * @return         void
     */
     virtual void execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std::shared_ptr<QNode> parent_node)
     {
@@ -725,11 +731,23 @@ class TransformDecomposition
 public:
     TransformDecomposition(std::vector<std::vector<std::string>> &ValidQGateMatrix,
         std::vector<std::vector<std::string>> &QGateMatrix,
-        std::vector<std::vector<int> > &vAdjacentMatrix,
         QuantumMachine * quantum_machine);
     ~TransformDecomposition();
 
     void TraversalOptimizationMerge(QProg & prog);
+
+	/**
+	* @brief merge continue single gate to u3 gate
+	* @ingroup Utilities
+	* @param[in,out]  QProg& the source prog
+	* @return
+	* @note
+	*/
+	void merge_continue_single_gate_to_u3(QProg& prog);
+
+	void decompose_double_qgate(QProg & prog, bool b_decompose_multiple_gate = true);
+	void meta_gate_transform(QProg& prog);
+
 private:
     TransformDecomposition();
     TransformDecomposition(
@@ -751,7 +769,20 @@ private:
     MergeSingleGate m_merge_single_gate;
 
 	QuantumMachine * m_quantum_machine;
+	std::vector<std::vector<std::string>>& m_valid_qgate_matrix;
 };
+
+/**
+* @brief Decompose multiple control QGate
+* @ingroup Utilities
+* @param[in]  QProg&   Quantum Program
+* @param[in]  QuantumMachine*  quantum machine pointer
+* @param[in] const std::string& It can be configuration file or configuration data, which can be distinguished by file suffix,
+			 so the configuration file must be end with ".json", default is CONFIG_PATH
+* @return
+*/
+void decompose_multiple_control_qgate(QProg& prog, QuantumMachine *quantum_machine, const std::string& config_data = CONFIG_PATH);
+void decompose_multiple_control_qgate(QCircuit& cir, QuantumMachine *quantum_machine, const std::string& config_data = CONFIG_PATH);
 
 QPANDA_END
 #endif // 

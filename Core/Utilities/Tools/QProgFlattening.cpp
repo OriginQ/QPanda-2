@@ -187,7 +187,7 @@ void QProgFlattening::execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, 
 				QProg new_out_prog;
 				Traversal::traversal(new_abstract_circuit, identify_dagger, *this, new_out_prog);
 
-				QCircuit new_out_circuit = prog_to_cir(new_out_prog);
+				QCircuit new_out_circuit = prog_flatten_to_cir(new_out_prog);
 				new_out_circuit.setDagger(is_dagger);
 				new_out_circuit.setControl(qv_ctrl);
 
@@ -254,7 +254,7 @@ void QProgFlattening::flatten_by_type(std::shared_ptr<QNode> node, QProg& flatte
 	Traversal::traversalByType(node, nullptr, *this, flattened_prog);
 }
 
-QCircuit QProgFlattening::prog_to_cir(QProg &prog)
+QCircuit QProgFlattening::prog_flatten_to_cir(QProg& prog)
 {
 	QCircuit ret_cir;
 	for (auto gate_itr = prog.getFirstNodeIter(); gate_itr != prog.getEndNodeIter(); ++gate_itr)
@@ -273,7 +273,7 @@ void QProgFlattening::flatten_circuit(QCircuit &src_cir)
 {
 	QProg out_prog;
 	flatten_by_type(std::dynamic_pointer_cast<QNode>(src_cir.getImplementationPtr()), out_prog);
-	QCircuit tmp_cir = prog_to_cir(out_prog);
+	QCircuit tmp_cir = prog_flatten_to_cir(out_prog);
 	tmp_cir.setControl(m_global_ctrl_qubits);
 	tmp_cir.setDagger(m_global_dagger);
 	src_cir = tmp_cir;

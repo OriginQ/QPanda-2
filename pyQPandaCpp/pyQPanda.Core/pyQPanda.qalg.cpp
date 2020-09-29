@@ -55,4 +55,25 @@ void init_qalg(py::module & m)
 	m.def("HHL_solve_linear_equations", &HHL_solve_linear_equations, "use HHL to solve linear equations", "matrix"_a, "data"_a,
 		py::return_value_policy::automatic
 	);
+
+	m.def("Grover", [](const std::vector<int>& data, ClassicalCondition condition, 
+		QuantumMachine *qvm, QVec& measure_qubits, size_t repeat) {
+		return build_grover_prog(data, condition, qvm, measure_qubits, repeat);
+	}, "Build Grover quantum circuit", 
+		"data"_a, "Classical_condition"_a, "QuantumMachine"_a, "qlist"_a, "data"_a = 0,
+		py::return_value_policy::automatic
+	);
+
+	m.def("Grover_search", [](const std::vector<int>& data, ClassicalCondition condition, QuantumMachine *qvm, size_t repeat) {
+		std::vector<SearchDataByUInt> target_data_vec(data.begin(), data.end());
+		std::vector<size_t> search_result;
+		auto prog = grover_alg_search_from_vector(target_data_vec, condition, search_result, qvm, repeat);
+		py::list ret_data;
+		ret_data.append(prog);
+		ret_data.append(search_result);
+		return ret_data;
+	}, "use Grover algorithm to search target data", 
+		"list"_a, "Classical_condition"_a, "QuantumMachine"_a, "data"_a = 0,
+		py::return_value_policy::automatic
+	);
 }

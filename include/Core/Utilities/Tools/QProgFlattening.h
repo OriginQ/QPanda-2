@@ -60,13 +60,13 @@ public:
 	virtual void execute(std::shared_ptr<AbstractQuantumProgram>  cur_node, std::shared_ptr<QNode> parent_node, QProg &prog)override;
 
 	/**
-	* @brief Convert QProg to QCircuit
+	* @brief Flatten QProg to QCircuit
 	* @ingroup Utilities
-	* @param[in]  QProg &  the target QProg
+	* @param[in]  QProg& the target QProg
 	* @return Converted circuit 
 	* @Note: The input QProg must be no-nesting, and only QGate type is supported. 
 	*/
-	static QCircuit prog_to_cir(QProg &prog);
+	static QCircuit prog_flatten_to_cir(QProg& prog);
 
 protected:
 	void flatten_by_type(std::shared_ptr<QNode> node, QProg& flattened_prog);

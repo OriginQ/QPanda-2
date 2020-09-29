@@ -27,25 +27,25 @@ public:
     * @return     void
     */
     template <typename _Ty>
-    void traversal(_Ty &node,QProgDAG & prog_dag)
+    void traversal(_Ty &node,QProgDAG<GateNodeInfo> & prog_dag)
     {
 		NodeIter NullItr;
         QCircuitParam parm;
         execute(node.getImplementationPtr(), nullptr, prog_dag, parm, NullItr);
     }
 
-    void execute(std::shared_ptr<AbstractQGateNode>, std::shared_ptr<QNode>,QProgDAG &, QCircuitParam&, NodeIter&);
-    void execute(std::shared_ptr<AbstractClassicalProg>, std::shared_ptr<QNode>, QProgDAG &, QCircuitParam&, NodeIter&);
-    void execute(std::shared_ptr<AbstractQuantumMeasure>, std::shared_ptr<QNode>,QProgDAG &, QCircuitParam&, NodeIter&);
-	void execute(std::shared_ptr<AbstractQuantumReset>, std::shared_ptr<QNode>, QProgDAG &, QCircuitParam&, NodeIter&);
-    void execute(std::shared_ptr<AbstractQuantumCircuit>, std::shared_ptr<QNode>, QProgDAG &, QCircuitParam&, NodeIter&);
-    void execute(std::shared_ptr<AbstractQuantumProgram>, std::shared_ptr<QNode>, QProgDAG &, QCircuitParam&, NodeIter&);
-    void execute(std::shared_ptr<AbstractControlFlowNode>, std::shared_ptr<QNode>, QProgDAG &, QCircuitParam&, NodeIter&);
+    void execute(std::shared_ptr<AbstractQGateNode>, std::shared_ptr<QNode>,QProgDAG<GateNodeInfo> &, QCircuitParam&, NodeIter&);
+    void execute(std::shared_ptr<AbstractClassicalProg>, std::shared_ptr<QNode>, QProgDAG<GateNodeInfo> &, QCircuitParam&, NodeIter&);
+    void execute(std::shared_ptr<AbstractQuantumMeasure>, std::shared_ptr<QNode>,QProgDAG<GateNodeInfo> &, QCircuitParam&, NodeIter&);
+	void execute(std::shared_ptr<AbstractQuantumReset>, std::shared_ptr<QNode>, QProgDAG<GateNodeInfo> &, QCircuitParam&, NodeIter&);
+    void execute(std::shared_ptr<AbstractQuantumCircuit>, std::shared_ptr<QNode>, QProgDAG<GateNodeInfo> &, QCircuitParam&, NodeIter&);
+    void execute(std::shared_ptr<AbstractQuantumProgram>, std::shared_ptr<QNode>, QProgDAG<GateNodeInfo> &, QCircuitParam&, NodeIter&);
+    void execute(std::shared_ptr<AbstractControlFlowNode>, std::shared_ptr<QNode>, QProgDAG<GateNodeInfo> &, QCircuitParam&, NodeIter&);
 
 protected:
-    void transformQGate(std::shared_ptr<AbstractQGateNode>, QProgDAG &,const QCircuitParam&, NodeIter&);
-    void transformQMeasure(std::shared_ptr<AbstractQuantumMeasure>, QProgDAG &, NodeIter&);
-	void transformQReset(std::shared_ptr<AbstractQuantumReset> cur_node, QProgDAG &prog_dag, NodeIter& cur_iter);
+    void transformQGate(std::shared_ptr<AbstractQGateNode>, QProgDAG<GateNodeInfo> &,const QCircuitParam&, NodeIter&);
+    void transformQMeasure(std::shared_ptr<AbstractQuantumMeasure>, QProgDAG<GateNodeInfo> &, NodeIter&);
+	void transformQReset(std::shared_ptr<AbstractQuantumReset> cur_node, QProgDAG<GateNodeInfo> &prog_dag, NodeIter& cur_iter);
 };
 
 QPANDA_END

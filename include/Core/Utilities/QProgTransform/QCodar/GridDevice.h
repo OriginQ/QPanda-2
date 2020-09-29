@@ -40,7 +40,7 @@ QPANDA_BEGIN
 #define SINGLE_GATE_TIME     1
 #endif
 
-#define  TESTING 
+//#define  TESTING 
 
 /**
 * @class BasicGridDevice

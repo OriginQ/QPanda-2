@@ -37,6 +37,7 @@ struct GateInfo
 	bool is_dagger;
 	std::vector<double> param;
 	std::string gate_name;
+	int barrier_id;
 };
 
 /**
@@ -59,11 +60,11 @@ public:
 		int t;						/**< index of the target qubit*/
 		int c;						/**< index of the control qubit, c = -1 for single qubit gate */ 
 		std::string gate;   	/**< type of the gate */
-
-		int gate_type;
+		 
+		int gate_type;    /**< these parameters can be encapsulated*/
 		bool is_dagger;
 		std::vector<double> param;
-
+		int barrier_id;
 #ifdef TESTING
 		int min_route_len = 0;		/**< min route length, the distance of qubits when it inserted into candidate gate list*/
 		int route_len = 0;				/**<the actual route length*/
@@ -76,8 +77,8 @@ public:
 		/**
 		 * @brief   create a gate
 		 */
-		inline LogicalGate(std::string gate, int gate_type,  int c, int t, std::vector <double> param, bool is_dagger)
-			:gate(gate), gate_type(gate_type), c(c), t(t), param(param), is_dagger(is_dagger) { }
+		inline LogicalGate(std::string gate, int gate_type,  int c, int t, std::vector <double> param, int barrier_id,  bool is_dagger)
+			:gate(gate), gate_type(gate_type), c(c), t(t), param(param), barrier_id(barrier_id),is_dagger(is_dagger) { }
 	};
 
 	/**
@@ -92,7 +93,7 @@ public:
 		bool is_apply_swap;
 		int i1, j1;     /**< (i1, j1) is the position for the first qubit parament of the gate */
 		int i2, j2;     /**< (i2, j2) is the position for the first qubit parament of the two-qubit gate */
-	
+		int barrier_id;
 		inline bool isSwapGate() 
 		{
 			return is_apply_swap == true;
@@ -127,14 +128,14 @@ public:
 	 * @return bool true if success
 	 * @note MUST ENSURE YOU HAVEN"T MAPPED ANY QUBIT BEFORE CALLING
 	 */
-	bool addLogicalQubits(int count);
+	bool addLogicalQubits(int count, bool is_order = false);
 
 	/**
 	 * @brief add a (logical) single qubit gate
 	 */
-	inline void addSingleQubitGate(std::string gate, int gate_type, int t, std::vector <double> param , bool is_dagger = false)
+	inline void addSingleQubitGate(std::string gate, int gate_type, int t, std::vector <double> param ,int barrier_id =-1,  bool is_dagger = false)
 	{
-		logical_gate_list.emplace_back(gate, gate_type, -1, t, param, is_dagger);
+		logical_gate_list.emplace_back(gate, gate_type, -1, t, param, barrier_id,  is_dagger);
 	}
 
 	/**
@@ -142,7 +143,7 @@ public:
 	*/
 	inline void addDoubleQubitGate(std::string gate, int gate_type, int c, int t, std::vector <double> param , bool is_dagger = false)
 	{
-		logical_gate_list.emplace_back(gate, gate_type, c, t, param, is_dagger);
+		logical_gate_list.emplace_back(gate, gate_type, c, t, param, -1,  is_dagger);
 	}
 
 	/**
@@ -150,6 +151,13 @@ public:
 	 */
 	void start();
 
+
+	inline void setQubitFidelity(std::map<int, int > degree, std::vector<double> fidelity, std::vector< std::vector<double > > error_rate)
+	{
+		logical_qubit_apply_degree = degree;
+		physics_gate_fidelity = fidelity;
+		physics_qubit_error = error_rate;
+	}
 private:
 	/**
 	 * @brief create the candidate gate set
@@ -235,7 +243,6 @@ private:
 	inline void getPhysicsGate(LogicalGate &logical_gate, PhysicsGate &physics_gate) 
 	{
 		int it, jt, ic, jc;
-		physics_gate.type = logical_gate.gate;
 		getMappedPosition(logical_gate.t, it, jt);
 		if (logical_gate.isSingleQubitGate())
 		{
@@ -252,9 +259,12 @@ private:
 			physics_gate.i2 = it;
 			physics_gate.j2 = jt;
 		}
+		physics_gate.is_apply_swap = false;
+		physics_gate.type = logical_gate.gate;
 		physics_gate.is_dagger = logical_gate.is_dagger;
 		physics_gate.param = logical_gate.param;
 		physics_gate.gate_type = logical_gate.gate_type;
+		physics_gate.barrier_id = logical_gate.barrier_id;
 	}
 
 	/**
@@ -268,7 +278,7 @@ private:
 		return std::abs(std::abs(i1 - i2) - std::abs(j1 - j2));
 	}
 
-	inline void addPriorityForSwap(int i1, int j1, int i2, int j2, int main, int fine)
+	inline void addPriorityForSwap(int i1, int j1, int i2, int j2, int main, double fine)
 	{
 		int q1 = i1 * device->getN() + j1;
 		int q2 = i2 * device->getN() + j2;
@@ -279,7 +289,7 @@ private:
 		auto swp = std::pair<int, int>(q1, q2);
 		if (candidate_swaps.count(swp) == 0) 
 		{
-			candidate_swaps[swp] = std::pair<int, int>(main, fine);
+			candidate_swaps[swp] = std::pair<int, double>(main, fine);
 		}
 		else
 		{
@@ -287,7 +297,7 @@ private:
 			candidate_swaps[swp].second += fine;
 		}
 	}
-
+	
 public:
 	std::vector<int> map_list;							/**< the mapping table from logical qubits to physical qubits, see getMappedPosition */
 	BasicGridDevice *device;							/**<  the device */
@@ -296,9 +306,16 @@ public:
 	std::list<LogicalGate> candidate_gates;    /**< the set of Commutative Forward gates */
 	int gate_count = 0;										/**< count of gates launched */
 
+	int swap_gate_count = 0; 
+
 	// q1, q2: physical qubits to SWAP
 	// candidate_swaps[std::pair(q1, q2)] = std::pair(H_main, H_fine)
-	std::map<std::pair<int, int>, std::pair<int, int>>  candidate_swaps;   /**< maps from candidate swaps to their heuristic costs */
+	std::map<std::pair<int, int>, std::pair<int, double>>  candidate_swaps;   /**< maps from candidate swaps to their heuristic costs */
+
+	std::map<int, int >  logical_qubit_apply_degree;
+	std::vector<double> physics_gate_fidelity;
+	std::vector< std::vector<double > > physics_qubit_error;
+	double double_gate_error_rate = 0;
 #ifdef TESTING
 	int sum_min_route_len = 0;
 	int sum_rx_route_len = 0;

@@ -25,7 +25,9 @@ void NodeSortProblemGenerator::exec()
         m_lambda2,
         m_lambda3,
         U_hat_vec,
-        D_hat_vec);
+        D_hat_vec,
+        m_A,
+        m_b);
 }
 
 void NodeSortProblemGenerator::calcGraphPara(
@@ -231,9 +233,9 @@ void NodeSortProblemGenerator::calcGraphPara(
     for (int i = 0; i < node_num; i++)
     {
         U_hat_vec[i] = uzero_flag ? 1 :
-            1 + (Uv_vec[i] - Uv_min) / (Uv_max - Uv_min);
+            1 + (Uv_vec[i] - Uv_min)*12 / (Uv_max - Uv_min);
         D_hat_vec[i] = dzero_flag ? 1 :
-            1 + (Dv_vec[i] - Dv_min) / (Dv_max - Dv_min);
+            1 + (Dv_vec[i] - Dv_min)*12 / (Dv_max - Dv_min);
     }
 }
 
@@ -398,7 +400,9 @@ Eigen::VectorXd NodeSortProblemGenerator::genLinearSolverResult(
     double lambda_u, 
     double lambda_d, 
     const std::vector<double>& U_hat_vec, 
-    const std::vector<double>& D_hat_vec) const
+    const std::vector<double>& D_hat_vec,
+    Eigen::MatrixXd& A,
+    Eigen::VectorXd& b) const
 {
     if (graph.empty() || U_hat_vec.empty() || D_hat_vec.empty())
     {
@@ -406,7 +410,7 @@ Eigen::VectorXd NodeSortProblemGenerator::genLinearSolverResult(
     }
 
     int node_num = graph.size();
-    Eigen::MatrixXd Am(node_num, node_num);
+    A = Eigen::MatrixXd(node_num, node_num);
     for (int i = 0; i < node_num; i++) {
         for (int j = 0; j < node_num; j++) {
             if (i == j) {
@@ -415,28 +419,28 @@ Eigen::VectorXd NodeSortProblemGenerator::genLinearSolverResult(
                     tem = tem + graph[k][j] + graph[j][k];
                 }
                 tem = tem - (graph[i][j] + graph[j][i]);
-                Am.row(i)[j] = tem;
+                A.row(i)[j] = tem;
             }
             else if (i > j) {
-                Am.row(i)[j] = -(graph[i][j] + graph[j][i]);
-                Am.row(j)[i] = -(graph[i][j] + graph[j][i]);
+                A.row(i)[j] = -(graph[i][j] + graph[j][i]);
+                A.row(j)[i] = -(graph[i][j] + graph[j][i]);
             }
         }
     }
 
-    Eigen::VectorXd bm(node_num);
+    b = Eigen::VectorXd(node_num);
     for (int j = 0; j < node_num; j++) {
-        bm[j] = 0.0;
+        b[j] = 0.0;
         for (int i = 0; i < node_num; i++) {
             auto M_ij = lambda_u * (U_hat_vec[i] - U_hat_vec[j]) +
                 lambda_d * (D_hat_vec[i] - D_hat_vec[j]);
             auto M_ji = -1.0 * M_ij;
-            bm[j] = bm[j] + graph[i][j] * M_ji - graph[j][i] * M_ij;
+            b[j] = b[j] + graph[i][j] * M_ji - graph[j][i] * M_ij;
         }
     }
 
-    Eigen::MatrixXd A_1 = pseudoinverse(Am);
-    Eigen::VectorXd sm = A_1 * bm;
+    Eigen::MatrixXd A_1 = pseudoinverse(A);
+    Eigen::VectorXd sm = A_1 * b;
 
     return sm;
 }

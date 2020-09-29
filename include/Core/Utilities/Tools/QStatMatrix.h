@@ -16,9 +16,11 @@ Classes for get the shortes path of graph
 #include <iostream>
 #include <complex>
 #include <vector>
-#include <EigenUnsupported/Eigen/KroneckerProduct>
+#include "ThirdParty/Eigen/Eigen"
 
 QPANDA_BEGIN
+
+#define MAX_COMPARE_PRECISION 0.000001
 
 typedef double EigneDataType;
 typedef std::complex <EigneDataType> EigenComplexT;
@@ -26,6 +28,11 @@ typedef Eigen::Matrix<EigenComplexT, -1, -1> EigenMatrixXc;
 typedef Eigen::Matrix<EigenComplexT, 2, 2> EigenMatrix2c;
 typedef Eigen::Matrix<EigneDataType, -1, -1> EigenMatrixX;
 typedef Eigen::Matrix<EigneDataType, 2, 2> EigenMatrix2;
+
+
+/** \defgroup OriginQ matrixtypedefs Global matrix typedefs
+*/
+using  qmatrix_t = Eigen::Matrix<qcomplex_t, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
 
 typedef struct _matrix_block
 {
@@ -35,7 +42,7 @@ typedef struct _matrix_block
 
 	int m_row_index;
 	int m_column_index;
-	QStat m_mat;
+	qmatrix_t m_mat;
 }matrixBlock_t;
 
 typedef struct _blocked_matrix
@@ -72,7 +79,7 @@ std::ostream& operator<<(std::ostream &out, QStat mat);
 * @param[out] blockedMat The separated matrix
 * @return Execution successfully returns 0, otherwise returns to other.
 */
-int partition(const QStat& srcMatrix, int partitionRowNum, int partitionColumnNum, blockedMatrix_t& blockedMat);
+int partition(qmatrix_t& srcMatrix, int partitionRowNum, int partitionColumnNum, blockedMatrix_t& blockedMat);
 
 /**
 * @brief  Block Multiplication of Matrix
@@ -82,7 +89,7 @@ int partition(const QStat& srcMatrix, int partitionRowNum, int partitionColumnNu
 * @param[out] resultMatrix The result of Block Multiplication
 * @return Execution successfully returns 0, otherwise returns to other.
 */
-int blockMultip(const QStat& leftMatrix, const blockedMatrix_t& blockedMat, QStat& resultMatrix);
+int blockMultip(qmatrix_t& leftMatrix, const blockedMatrix_t& blockedMat, qmatrix_t& resultMatrix);
 
 /**
 * @brief Getting the Inverted Conjugate Matrix of the target Matrix
@@ -118,7 +125,7 @@ std::string matrix_to_string(const QStat& mat);
 * @param[in] double Comparative accuracy
 * @return if the two input matrices are equal return 0, or else return others
 */
-int mat_compare(const QStat& mat1, const QStat& mat2, const double precision = 0.000001);
+int mat_compare(const QStat& mat1, const QStat& mat2, const double precision = MAX_COMPARE_PRECISION);
 bool operator==(const QStat &matrix_left, const QStat &matrix_right);
 bool operator!=(const QStat &matrix_left, const QStat &matrix_right);
 

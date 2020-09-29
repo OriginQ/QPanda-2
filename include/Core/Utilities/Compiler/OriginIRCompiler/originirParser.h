@@ -12,20 +12,21 @@
 class  originirParser : public antlr4::Parser {
 public:
   enum {
-    PI = 1, QINIT_KEY = 2, CREG_KEY = 3, Q_KEY = 4, C_KEY = 5, H_GATE = 6, 
-    X_GATE = 7, NOT_GATE = 8, T_GATE = 9, S_GATE = 10, Y_GATE = 11, Z_GATE = 12, 
-    X1_GATE = 13, Y1_GATE = 14, Z1_GATE = 15, I_GATE = 16, U2_GATE = 17, 
-    U3_GATE = 18, U4_GATE = 19, RX_GATE = 20, RY_GATE = 21, RZ_GATE = 22, 
-    U1_GATE = 23, CNOT_GATE = 24, CZ_GATE = 25, CU_GATE = 26, ISWAP_GATE = 27, 
-    SQISWAP_GATE = 28, SWAPZ1_GATE = 29, ISWAPTHETA_GATE = 30, CR_GATE = 31, 
-    TOFFOLI_GATE = 32, DAGGER_KEY = 33, ENDDAGGER_KEY = 34, CONTROL_KEY = 35, 
-    ENDCONTROL_KEY = 36, QIF_KEY = 37, ELSE_KEY = 38, ENDIF_KEY = 39, QWHILE_KEY = 40, 
-    ENDQWHILE_KEY = 41, MEASURE_KEY = 42, RESET_KEY = 43, ASSIGN = 44, GT = 45, 
-    LT = 46, NOT = 47, EQ = 48, LEQ = 49, GEQ = 50, NE = 51, AND = 52, OR = 53, 
-    PLUS = 54, MINUS = 55, MUL = 56, DIV = 57, COMMA = 58, LPAREN = 59, 
-    RPAREN = 60, LBRACK = 61, RBRACK = 62, NEWLINE = 63, Identifier = 64, 
-    Integer_Literal = 65, Double_Literal = 66, Digit_Sequence = 67, WhiteSpace = 68, 
-    SingleLineComment = 69
+    PI = 1, QINIT_KEY = 2, CREG_KEY = 3, Q_KEY = 4, C_KEY = 5, BARRIER_KEY = 6, 
+    ECHO_GATE = 7, H_GATE = 8, X_GATE = 9, NOT_GATE = 10, T_GATE = 11, S_GATE = 12, 
+    Y_GATE = 13, Z_GATE = 14, X1_GATE = 15, Y1_GATE = 16, Z1_GATE = 17, 
+    I_GATE = 18, U2_GATE = 19, RPHI_GATE = 20, U3_GATE = 21, U4_GATE = 22, 
+    RX_GATE = 23, RY_GATE = 24, RZ_GATE = 25, U1_GATE = 26, CNOT_GATE = 27, 
+    CZ_GATE = 28, CU_GATE = 29, ISWAP_GATE = 30, SQISWAP_GATE = 31, SWAPZ1_GATE = 32, 
+    ISWAPTHETA_GATE = 33, CR_GATE = 34, TOFFOLI_GATE = 35, DAGGER_KEY = 36, 
+    ENDDAGGER_KEY = 37, CONTROL_KEY = 38, ENDCONTROL_KEY = 39, QIF_KEY = 40, 
+    ELSE_KEY = 41, ENDIF_KEY = 42, QWHILE_KEY = 43, ENDQWHILE_KEY = 44, 
+    MEASURE_KEY = 45, RESET_KEY = 46, ASSIGN = 47, GT = 48, LT = 49, NOT = 50, 
+    EQ = 51, LEQ = 52, GEQ = 53, NE = 54, AND = 55, OR = 56, PLUS = 57, 
+    MINUS = 58, MUL = 59, DIV = 60, COMMA = 61, LPAREN = 62, RPAREN = 63, 
+    LBRACK = 64, RBRACK = 65, NEWLINE = 66, Identifier = 67, Integer_Literal = 68, 
+    Double_Literal = 69, Digit_Sequence = 70, REALEXP = 71, WhiteSpace = 72, 
+    SingleLineComment = 73
   };
 
   enum {
@@ -47,7 +48,7 @@ public:
     RuleControlbit_list = 36, RuleStatement = 37, RuleDagger_statement = 38, 
     RuleControl_statement = 39, RuleQelse_statement_fragment = 40, RuleQif_statement = 41, 
     RuleQwhile_statement = 42, RuleMeasure_statement = 43, RuleReset_statement = 44, 
-    RuleExpression_statement = 45, RuleConstant = 46
+    RuleBarrier_statement = 45, RuleExpression_statement = 46, RuleConstant = 47
   };
 
   originirParser(antlr4::TokenStream *input);
@@ -105,6 +106,7 @@ public:
   class Qwhile_statementContext;
   class Measure_statementContext;
   class Reset_statementContext;
+  class Barrier_statementContext;
   class Expression_statementContext;
   class ConstantContext; 
 
@@ -445,6 +447,7 @@ public:
     antlr4::tree::TerminalNode *Y1_GATE();
     antlr4::tree::TerminalNode *Z1_GATE();
     antlr4::tree::TerminalNode *I_GATE();
+    antlr4::tree::TerminalNode *ECHO_GATE();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -478,6 +481,7 @@ public:
     Single_gate_with_two_parameter_typeContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     antlr4::tree::TerminalNode *U2_GATE();
+    antlr4::tree::TerminalNode *RPHI_GATE();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -822,6 +826,7 @@ public:
     Measure_statementContext *measure_statement();
     Reset_statementContext *reset_statement();
     Expression_statementContext *expression_statement();
+    Barrier_statementContext *barrier_statement();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -996,6 +1001,22 @@ public:
 
   Reset_statementContext* reset_statement();
 
+  class  Barrier_statementContext : public antlr4::ParserRuleContext {
+  public:
+    Barrier_statementContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *BARRIER_KEY();
+    Controlbit_listContext *controlbit_list();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
+  };
+
+  Barrier_statementContext* barrier_statement();
+
   class  Expression_statementContext : public antlr4::ParserRuleContext {
   public:
     Expression_statementContext(antlr4::ParserRuleContext *parent, size_t invokingState);
@@ -1017,6 +1038,7 @@ public:
     virtual size_t getRuleIndex() const override;
     antlr4::tree::TerminalNode *Integer_Literal();
     antlr4::tree::TerminalNode *Double_Literal();
+    antlr4::tree::TerminalNode *PI();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;

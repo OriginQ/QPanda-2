@@ -23,6 +23,7 @@ limitations under the License.
 #include "Core/Utilities/Tools/QPandaException.h"
 #include "Core/VirtualQuantumProcessor/RandomEngine/RandomEngine.h"
 #include "Core/VirtualQuantumProcessor/NoiseQPU/NoiseModel.h"  
+#include "Core/QuantumMachine/QProgCheck.h"
 #include <map>
 QPANDA_BEGIN
 
@@ -86,6 +87,7 @@ public:
     void clearAll();
     size_t getMaxQubit() const;
     size_t getIdleQubit() const;
+	size_t get_max_usedqubit_addr() const;
 
     Qubit* allocateQubit();
     Qubit* allocateQubitThroughPhyAddress(size_t);
@@ -112,7 +114,7 @@ public:
 	void clearAll();
 	size_t getMaxQubit() const;
 	size_t getIdleQubit() const;
-
+	size_t get_max_usedqubit_addr() const;
 	Qubit* allocateQubit();
 	Qubit* allocateQubitThroughPhyAddress(size_t);
 	Qubit* allocateQubitThroughVirAddress(size_t qubit_num); // allocate and return a qubit
@@ -230,6 +232,9 @@ protected:
     void _ptrIsNull(void * ptr, std::string name);
     virtual ~QVM() {}
     virtual void init() {}
+    virtual std::map<std::string, size_t> run_with_optimizing(QProg &prog, std::vector<ClassicalCondition> &cbits,
+        int shots, TraversalConfig &traver_param);
+    virtual std::map<std::string, size_t> run_with_normal(QProg &prog, std::vector<ClassicalCondition> &cbits, int shots);
 public:
     virtual Qubit* allocateQubitThroughPhyAddress(size_t qubit_num);
     virtual Qubit* allocateQubitThroughVirAddress(size_t qubit_num); // allocate and return a qubit

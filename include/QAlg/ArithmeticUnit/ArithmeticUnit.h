@@ -6,7 +6,8 @@ ArithmeticUnit.h
 
 Author: LiYe
 Created in 2020-03-24
-
+Author: LiuYan
+Modified in 2020-08-07
 
 */
 
@@ -109,6 +110,77 @@ QCircuit QAdderIgnoreCarry(
     QVec &adder1,
     QVec &adder2,
     Qubit* c);
+
+
+/**
+* @brief Quantum bind data
+* @ingroup ArithmeticUnit
+* @param[in] qvec  store qubits
+* @param[in] cvec  classical data
+* @return QCircuit
+* @note qvec is supposed to be zero state at the beginning, and end with the Quantum data, cvec is not changed
+*/
+QCircuit BindData(
+    QVec &qvec,
+    int cvec);
+
+/**
+* @brief Quantum modular adder
+* @ingroup ArithmeticUnit
+* @param[in] qvec  adder qubit and result qubit
+* @param[in] base  adder integer
+* @param[in] module_Num  modular  integer
+* @param[in] qvec1  auxiliary qubit
+* @param[in] qvec2  input carry qubit and is_carry qubit
+* @note qvec is both the input and output qubit
+*/
+QCircuit constModAdd(
+    QVec &qvec,
+    int base,
+    int module_Num,
+    QVec &qvec1,
+    QVec &qvec2);
+
+/**
+* @brief Quantum modular multiplier
+* @ingroup ArithmeticUnit
+* @param[in] qvec  multi qubit
+* @param[in] base  multi integer
+* @param[in] module_Num  modular  integer
+* @param[in] qvec1  multi auxiliary qubit
+* @param[in] qvec2  adder auxiliary qubit
+* @param[in] qvec3  input carry qubit and is_carry qubit
+* @note qvec is both the input and output qubit
+*/
+QCircuit constModMul(
+    QVec &qvec,
+    int base,
+    int module_Num,
+    QVec &qvec1,
+    QVec &qvec2,
+    QVec &qvec3);
+
+/**
+* @brief Quantum modular exponents
+* @ingroup ArithmeticUnit
+* @param[in] qvec  exponents qubit
+* @param[in] result  result qubit
+* @param[in] base  base integer
+* @param[in] module_Num  modular  integer
+* @param[in] qvec1  multi auxiliary qubit
+* @param[in] qvec2  adder auxiliary qubit
+* @param[in] qvec3  input carry qubit and is_carry qubit
+* @note qvec can be divided into binary, rlt should be one state at the beginning
+* @note multi exponent is equal to exponent multi
+*/
+QCircuit constModExp(
+    QVec &qvec,
+    QVec &result,
+    int base,
+    int module_Num,
+    QVec &qvec1,
+    QVec &qvec2,
+    QVec &qvec3);
 
 QPANDA_END
 

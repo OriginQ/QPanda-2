@@ -122,7 +122,44 @@ int test4GraphOfQITE()
     return 0;
 }
 
+void testQiteInterface()
+{
+    std::vector<std::vector<double>> graph{
+        // A  B  C  D  E  F  G
+          {0, 1 ,0 ,0, 0, 0, 0},
+          {1, 0 ,1 ,0, 0, 0, 0},
+          {0, 1 ,0 ,1, 1, 1, 0},
+          {0, 0 ,1 ,0, 1, 0, 1},
+          {0, 0 ,1 ,1, 0, 1, 1},
+          {0, 0 ,1 ,0, 1, 0, 1},
+          {0, 0 ,0 ,1, 1, 1, 0}
+    };
+
+    NodeSortProblemGenerator problem;
+    problem.setProblemGraph(graph);
+    problem.exec();
+    auto hamiltonina = problem.getHamiltonian();
+    auto ansatz_vec = problem.getAnsatz();
+
+    size_t cnt_num = 1;
+    size_t iter_num = 100;
+    size_t upthrow_num = 3;
+    double delta_tau = 2.6;
+    QITE::UpdateMode update_mode = QITE::UpdateMode::GD_DIRECTION;
+
+    auto result = qite(hamiltonina, ansatz_vec, iter_num, "", update_mode, upthrow_num, delta_tau);
+
+    for (auto& i : result)
+    {
+        if (i.second > 1e-3)
+        {
+            std::cout << i.first << "\t" << i.second << std::endl;
+        }
+    }
+}
+
 TEST(QITE, test1)
 {
-    EXPECT_EQ(test4GraphOfQITE(), 0);
+    //EXPECT_EQ(test4GraphOfQITE(), 0);
+    testQiteInterface();
 }

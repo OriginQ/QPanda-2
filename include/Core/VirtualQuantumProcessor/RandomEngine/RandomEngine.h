@@ -96,4 +96,11 @@ inline double _default_random_generator() {
 	return engine();
 }
 
+inline double random_generator19937(double begine = 0, double end = 1)
+{
+    static std::mt19937_64 engine;
+    engine.seed(std::random_device()());
+    return std::uniform_real_distribution<double>(begine, end)(engine);
+}
+
 #endif RANDOM_ENGINE

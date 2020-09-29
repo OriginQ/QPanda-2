@@ -142,9 +142,7 @@ public:
 	/**
 	* @brief Constructor of TraverseByNodeIter
 	*/
-	TraverseByNodeIter(QProg prog)
-		:m_prog(prog)
-	{}
+	TraverseByNodeIter() {}
 	~TraverseByNodeIter() {}
 
 public:
@@ -175,10 +173,9 @@ public:
 	/**
 	* @brief start traverse a quantum prog
 	*/
-	virtual void traverse_qprog();
+	virtual void traverse_qprog(QProg prog);
 
 protected:
-	QProg m_prog; /**< the target QProg will be traversed */
 };
 
 /**
@@ -191,8 +188,8 @@ public:
 	/**
 	* @brief Constructor of GetAllNodeType
 	*/
-	GetAllNodeType(QProg src_prog)
-		:TraverseByNodeIter(src_prog), m_indent_cnt(0)
+	GetAllNodeType()
+		:m_indent_cnt(0)
 	{
 	}
 	~GetAllNodeType() {}
@@ -257,13 +254,16 @@ public:
 	* @brief Constructor of PickUpNodes
 	*/
 	PickUpNodes(QProg &output_prog, QProg src_prog, const std::vector<NodeType> &reject_node_types, const NodeIter &node_itr_start, const NodeIter &node_itr_end)
-		:TraverseByNodeIter(src_prog), m_output_prog(output_prog), m_reject_node_type(reject_node_types),
+		:m_src_prog(src_prog), m_output_prog(output_prog), m_reject_node_type(reject_node_types),
 		m_start_iter(node_itr_start),
 		m_end_iter(node_itr_end),
 		m_b_picking(false), m_b_pickup_end(false), m_b_need_dagger(false)
 	{}
 	~PickUpNodes() {}
 
+	virtual void traverse_qprog() {
+		TraverseByNodeIter::traverse_qprog(m_src_prog);
+	}
 	void execute(std::shared_ptr<AbstractQGateNode> cur_node, std::shared_ptr<QNode> parent_node, QCircuitParam &cir_param, NodeIter& cur_node_iter);
 	void execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, std::shared_ptr<QNode> parent_node, QCircuitParam &cir_param, NodeIter& cur_node_iter);
 	void execute(std::shared_ptr<AbstractQuantumReset> cur_node, std::shared_ptr<QNode> parent_node, QCircuitParam &cir_param, NodeIter& cur_node_iter);
@@ -374,6 +374,7 @@ private:
 	}
 
 private:
+	QProg m_src_prog;
 	const std::vector<NodeType> &m_reject_node_type;
 	QProg &m_output_prog;
 	NodeIter m_start_iter;
@@ -386,11 +387,11 @@ private:
 /**
 * @brief  judge the Qgate if match the target topologic structure of quantum circuit
 * @ingroup Utilities
-* @param[in]  vector<vector<int>>& the target topologic structure of quantum circuit
+* @param[in]  vector<vector<double>>& the target topologic structure of quantum circuit
 * @return     if the Qgate match the target topologic structure return true, or else return false
-* @see XmlConfigParam::readAdjacentMatrix(TiXmlElement *, int&, std::vector<std::vector<int>>&)
+* @see JsonConfigParam::readAdjacentMatrix(TiXmlElement *, int&, std::vector<std::vector<int>>&)
 */
-bool isMatchTopology(const QGate& gate, const std::vector<std::vector<int>>& vecTopoSt);
+bool isMatchTopology(const QGate& gate, const std::vector<std::vector<double>>& vecTopoSt);
 
 /**
 * @brief  get the adjacent quantum gates's(the front one and the back one) type
@@ -450,17 +451,19 @@ void pickUpNode(QProg &outPutProg, QProg srcProg, const std::vector<NodeType> re
 * @ingroup Utilities
 * @param[in] prog  the input prog
 * @param[out] vecQuBitsInUse The vector of used quantum bits, sorted from small to large;
+* @return return the size of used qubits
 */
-void get_all_used_qubits(QProg prog, std::vector<int> &vecQuBitsInUse);
-void get_all_used_qubits(QProg prog, QVec &vecQuBitsInUse);
+size_t get_all_used_qubits(QProg prog, std::vector<int> &vecQuBitsInUse);
+size_t get_all_used_qubits(QProg prog, QVec &vecQuBitsInUse);
 
 /**
 * @brief  Get all the used  class bits in the input prog
 * @ingroup Utilities
 * @param[in] prog  the input prog
 * @param[out] vecClBitsInUse The vector of used class bits, sorted from small to large;
+* @return return the size of used class bits
 */
-void get_all_used_class_bits(QProg prog, std::vector<int> &vecClBitsInUse);
+size_t get_all_used_class_bits(QProg prog, std::vector<int> &vecClBitsInUse);
 
 /**
 * @brief  output all the node type of the target prog

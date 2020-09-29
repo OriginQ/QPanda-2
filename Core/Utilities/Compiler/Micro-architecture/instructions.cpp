@@ -201,10 +201,10 @@ uint32_t SMIS(uint32_t rd, uint32_t imm)
              | ins_config["smist"]["opcode_2_1"] << 1;
 }
 
-uint32_t QI(uint32_t rs1, uint32_t rs2, uint32_t PI, 
+uint32_t QI(uint32_t rs1, uint32_t rs2, uint32_t pi,
             uint32_t opcode1, uint32_t opcode2)
 {
-    return 0 | PI << 29
+    return 0 | pi << 29
              | rs2 << 24
              | opcode2 << 15
              | rs1 << 10
@@ -212,9 +212,9 @@ uint32_t QI(uint32_t rs1, uint32_t rs2, uint32_t PI,
              | 1 << 0;
 }
 
-uint32_t MEASURE(uint32_t rs1, uint32_t PI)
+uint32_t MEASURE(uint32_t rs1, uint32_t pi)
 {
-    return 0 | PI << 29
+    return 0 | pi << 29
              | 0 << 15
              | rs1 << 10
              | 1023 << 1;
@@ -222,8 +222,8 @@ uint32_t MEASURE(uint32_t rs1, uint32_t PI)
 
 void Instructions::instructionConfig()
 {
-    XmlConfigParam config;
-    if (!config.loadFile(CONFIG_PATH))
+	JsonConfigParam config;
+    if (!config.load_config(CONFIG_PATH))
     {
         throw run_fail("config");
     }

@@ -15,75 +15,98 @@ limitations under the License.
 */
 
 #include "Core/Core.h"
+#include "QAlg/QAlg.h"
 
 using namespace std;
 using namespace QPanda;
 
-QCircuit CRotate(vector<Qubit*> qVec)
+/**
+* This is a example from <<Quantum Circuit Design for Solving Linear Systems of Equations>>(2012; by Yudong Cao, Anmer Daskin...)
+*/
+static bool HHL_test_fun()
 {
-    QCircuit CRot = CreateEmptyCircuit();
-    vector<Qubit*> controlVector;
-    controlVector.push_back(qVec[1]);
-    controlVector.push_back(qVec[2]);
-    QGate gat4 = RY(qVec[0], PI);
-    gat4.setControl(controlVector);
-    QGate gat5 = RY(qVec[0], PI / 3);
-    gat5.setControl(controlVector);
-    QGate gat6 = RY(qVec[0], 0.679673818908); // arcsin(1/3)
-    gat6.setControl(controlVector);
-    CRot << X(qVec[1]) << gat4 << X(qVec[1]) << X(qVec[2]) << gat5 << X(qVec[2]) << gat6;
-    return CRot;
-}
+	auto machine = initQuantumMachine(CPU);
 
-QCircuit hhlPse(vector<Qubit*> qVec)
-{
-    QCircuit PSEcircuit = CreateEmptyCircuit();
-    PSEcircuit << H(qVec[1]) << H(qVec[2]) << RZ(qVec[2], 0.75 * PI);
-    QGate gat1 = CU(PI, 1.5 * PI, -0.5 * PI, PI / 2, qVec[2], qVec[3]);
-    QGate gat2 = CU(PI, 1.5 * PI, -PI, PI / 2, qVec[1], qVec[3]);
-    PSEcircuit << gat1 << RZ(qVec[1], 1.5 * PI) << gat2;
-    PSEcircuit << CNOT(qVec[1], qVec[2]) << CNOT(qVec[2], qVec[1]) << CNOT(qVec[1], qVec[2]);
-    QGate gat3 = CU(-0.25 * PI, -0.5 * PI, 0, 0, qVec[2], qVec[1]);
-    PSEcircuit << H(qVec[2]) << gat3 << H(qVec[1]); // PSE over
-    return PSEcircuit;
-}
+	QStat A = {
+	qcomplex_t(15.0 / 4.0, 0), qcomplex_t(9.0 / 4.0, 0), qcomplex_t(5.0 / 4.0, 0), qcomplex_t(-3.0 / 4.0, 0),
+	qcomplex_t(9.0 / 4.0, 0), qcomplex_t(15.0 / 4.0, 0), qcomplex_t(3.0 / 4.0, 0), qcomplex_t(-5.0 / 4.0, 0),
+	qcomplex_t(5.0 / 4.0, 0), qcomplex_t(3.0 / 4.0, 0), qcomplex_t(15.0 / 4.0, 0), qcomplex_t(-9.0 / 4.0, 0),
+	qcomplex_t(-3.0 / 4.0, 0), qcomplex_t(-5.0 / 4.0, 0), qcomplex_t(-9.0 / 4.0, 0), qcomplex_t(15.0 / 4.0, 0)
+	};
 
-QProg hhl_no_measure(vector<Qubit*> qVec, vector<ClassicalCondition> cVec)
-{
-    QCircuit PSEcircuit = hhlPse(qVec); // PSE
-    QCircuit CRot = CRotate(qVec); // control-lambda
+	std::vector<double> b = { 0.5, 0.5, 0.5, 0.5 };
 
-    QCircuit PSEcircuitdag = hhlPse(qVec);
-    QProg PSEdagger = CreateEmptyQProg();
-    PSEdagger << PSEcircuitdag.dagger();
-    QIfProg ifnode = CreateIfProg(cVec[0], PSEdagger);
-    QProg hhlProg = CreateEmptyQProg();
+	auto prog = QProg();
+	QCircuit hhl_cir = build_HHL_circuit(A, b, machine);
+	prog << hhl_cir;
 
-    hhlProg << PSEcircuit << CRot << Measure(qVec[0], cVec[0]) << ifnode;
-    return hhlProg;
+	PTrace("HHL quantum circuit is running ...\n");
+	directlyRun(prog);
+	auto stat = machine->getQState();
+	machine->finalize();
+	stat.erase(stat.begin(), stat.begin() + (stat.size() / 2));
+
+	// normalise
+	double norm = 0.0;
+	for (auto &val : stat)
+	{
+		norm += ((val.real() * val.real()) + (val.imag() * val.imag()));
+	}
+	norm = sqrt(norm);
+
+	QStat stat_normed;
+	for (auto &val : stat)
+	{
+		stat_normed.push_back(val / qcomplex_t(norm, 0));
+	}
+
+	for (auto &val : stat_normed)
+	{
+		qcomplex_t tmp_val((abs(val.real()) < MAX_PRECISION ? 0.0 : val.real()), (abs(val.imag()) < MAX_PRECISION ? 0.0 : val.imag()));
+		val = tmp_val;
+	}
+
+	//get solution
+	QStat result;
+	for (size_t i = 0; i < b.size(); ++i)
+	{
+		result.push_back(stat_normed.at(i));
+	}
+
+	int w = 0;
+	double coffe = sqrt(340);
+	for (auto &val : result)
+	{
+		val *= coffe;
+		std::cout << val << " ";
+		if (++w == 2)
+		{
+			w = 0;
+			std::cout << std::endl;
+		}
+	}
+	std::cout << std::endl;
+
+	return true;
 }
 
 int main()
 {
-    map<string, bool> temp;
-    int x0 = 0;
-    int x1 = 0;
+	try
+	{
+	   HHL_test_fun();
+	}
+	catch (const std::exception& e)
+	{
+		cerr << "HHL running error: got a exception: " << e.what() << endl;
+	}
+	catch (...)
+	{
+		cerr << "HHL running error: unknow exception." << endl;
+	}
 
-    init(QMachineType::CPU);
-    int qubit_number = 4;
-    vector<Qubit*> qv = qAllocMany(qubit_number);
-    int cbitnum = 2;
-    vector<ClassicalCondition> cv = cAllocMany(2);
+	cout << "\n HHL test over, press Enter to continue..." << endl;
+	getchar();
 
-    auto hhlprog = CreateEmptyQProg();
-    hhlprog << RY(qv[3], PI / 2); //  change vecotr b in equation Ax=b
-    hhlprog << hhl_no_measure(qv, cv);
-    directlyRun(hhlprog);
-    QVec pmeas_q;
-    pmeas_q.push_back(qv[3]);
-    vector<double> s = PMeasure_no_index(pmeas_q);
-
-    cout << "prob0:" << s[0] << endl;
-    cout << "prob1:" << s[1] << endl;
-    finalize();
+	return 0;
 }

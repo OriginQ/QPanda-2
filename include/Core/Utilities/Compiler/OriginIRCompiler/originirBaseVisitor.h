@@ -207,6 +207,10 @@ public:
     return visitChildren(ctx);
   }
 
+  virtual antlrcpp::Any visitBarrier_statement(originirParser::Barrier_statementContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
   virtual antlrcpp::Any visitExpression_statement(originirParser::Expression_statementContext *ctx) override {
     return visitChildren(ctx);
   }

@@ -91,9 +91,9 @@ public:
 	QProg get_qprog();
 	
 	enum class GateType {
-		H, T, S, X, Y, Z, X1, Y1, Z1, I,
+        H, T, S, X, Y, Z, X1, Y1, Z1, I,ECHO, 
 		RX, RY, RZ, U1,
-		U2,
+		U2, RPhi,
 		U3,
 		U4,
 		CNOT, CZ, ISWAP, SQISWAP, SWAP,
@@ -108,6 +108,7 @@ public:
 #define MACRO_GET_GATETYPE(name) if (gatename==#name){return GateType::name;}
 	static GateType get_gatetype(std::string gatename) {
 		MACRO_GET_GATETYPE(H);
+		MACRO_GET_GATETYPE(ECHO);
 		MACRO_GET_GATETYPE(T);
 		MACRO_GET_GATETYPE(S);
 		MACRO_GET_GATETYPE(X);
@@ -122,6 +123,7 @@ public:
 		MACRO_GET_GATETYPE(RZ);
 		MACRO_GET_GATETYPE(U1);
 		MACRO_GET_GATETYPE(U2);
+		MACRO_GET_GATETYPE(RPhi);
 		MACRO_GET_GATETYPE(U3);
 		MACRO_GET_GATETYPE(U4);
 		MACRO_GET_GATETYPE(CNOT);
@@ -149,6 +151,8 @@ public:
 	size_t add_measure_cc(size_t exprid, size_t cidx);
 	size_t add_reset_literal(size_t qidx);
 	size_t add_reset_cc(size_t exprid);
+	size_t add_barrier_literal(size_t exprid, QVec qv);
+	size_t add_barrier_cc(size_t exprid, QVec qv);
 	size_t add_expr_stat(size_t exprid);
 
 	size_t make_qif(size_t exprid, size_t progid);
@@ -176,6 +180,9 @@ public:
 	// make the prog controlled
 	void make_control(size_t progid, std::vector<int> idx);
 	size_t make_control_new(size_t progid, std::vector<int> idx);
+
+
+	QVec make_qvec(std::vector<size_t> expridx, std::vector<int> idx);
 
 	// make the stack top controlled by ccidx
 	// like CONTROL q[c[1]], q[c[2]], q[3]
@@ -527,7 +534,10 @@ public:
 	antlrcpp::Any visitPri_cst(originirParser::Pri_cstContext *ctx) {
 		ExprContext context;
 		context.isConstant = true;
-		context.value = atof(ctx->children[0]->getText().c_str());
+		if (ctx->children[0]->getText() == "PI")
+			context.value = PI;
+		else
+			context.value = atof(ctx->children[0]->getText().c_str());
 		return context;
 	}
 
@@ -1028,6 +1038,38 @@ public:
 		else
 			return builder.add_reset_cc(qcontext.ccid);
 	}
+
+	antlrcpp::Any visitBarrier_statement(originirParser::Barrier_statementContext *ctx) override 
+	{
+		size_t progid ;
+		std::vector<ExprContext> all_qkeys = visit(ctx->children[1]);
+
+		ExprContext qcontext = all_qkeys[0];
+		QVec q;
+
+		std::vector<ExprContext> qkeys = all_qkeys;
+		qkeys.erase(qkeys.begin());
+		if (!qkeys.empty())
+		{
+			std::vector<int> indices;
+			std::vector<size_t> exprindices;
+			for (auto qkey : qkeys) {
+				if (qkey.isConstant)
+					indices.push_back((int)qkey.value);
+				else {
+					indices.push_back(-1);
+					exprindices.push_back(qkey.ccid);
+				}
+			}
+			q = builder.make_qvec(exprindices, indices);
+		}
+
+		if (qcontext.isConstant)
+			return builder.add_barrier_literal(qcontext.value, q);
+		else
+			return builder.add_barrier_cc(qcontext.ccid, q);
+	}
+
 
 	antlrcpp::Any visitExpression_statement(
 		originirParser::Expression_statementContext *ctx) {

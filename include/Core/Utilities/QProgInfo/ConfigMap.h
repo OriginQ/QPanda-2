@@ -3,7 +3,7 @@
 #include <map>
 #include <string>
 #include "Core/Utilities/QPandaNamespace.h"
-#include "Core/Utilities/Tools/XMLConfigParam.h"
+#include "Core/Utilities/Tools/JsonConfigParam.h"
 
 QPANDA_BEGIN
 

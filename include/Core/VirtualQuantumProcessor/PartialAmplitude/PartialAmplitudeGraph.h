@@ -67,6 +67,7 @@ public:
 
 	inline void reset(size_t qubit_num) noexcept
 	{
+        m_spilt_num = 0;
 		m_qubit_num = qubit_num;
 		m_circuit.clear();
 		m_sub_graph.clear();

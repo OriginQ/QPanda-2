@@ -188,7 +188,18 @@ def graph_match_fun():
 def QCloud_fun():
 
     QCM = QCloud()
-    QCM.init_qvm("3B1AC640AAC248C6A7EE4E8D8537370D")
+    # QCM.init_qvm("C40A08F3D461481D829559EE7CCAA359")
+    QCM.init_qvm("EE3DE52BFF2245908EA9F47EFC8D50A3")
+
+    # QCM.set_compute_api(
+    #     "10.10.12.140:8060/api/taskApi/submitTask.json")
+    # QCM.set_inqure_api(
+    #     "10.10.12.140:8060/api/taskApi/getTaskDetail.json")
+
+    QCM.set_compute_api(
+        "https://qcloud.qubitonline.cn/api/taskApi/submitTask.json")
+    QCM.set_inqure_api(
+        "https://qcloud.qubitonline.cn/api/taskApi/getTaskDetail.json")
 
     qlist = QCM.qAlloc_many(6)
     clist = QCM.cAlloc_many(6)
@@ -196,13 +207,8 @@ def QCloud_fun():
     measure_prog = QProg()
     measure_prog.insert(hadamard_circuit(qlist))\
                 .insert(CZ(qlist[1], qlist[5]))\
-                .insert(CZ(qlist[0], qlist[4]))\
-                .insert(RX(qlist[2], PI / 4))\
-                .insert(RX(qlist[1], PI / 4))\
-                .insert(CZ(qlist[2], qlist[3]))\
                 .insert(Measure(qlist[0], clist[0]))\
-                .insert(Measure(qlist[1], clist[1]))\
-                .insert(Measure(qlist[2], clist[2]))
+                .insert(Measure(qlist[1], clist[1]))
 
     pmeasure_prog = QProg()
     pmeasure_prog.insert(hadamard_circuit(qlist))\
@@ -210,30 +216,34 @@ def QCloud_fun():
                  .insert(RX(qlist[2], PI / 4))\
                  .insert(RX(qlist[1], PI / 4))\
 
-    result0 = QCM.full_amplitude_measure(measure_prog, 100)
-    print(result0)
-    print("full_amplitude_measure pass !")
+    # result0 = QCM.full_amplitude_measure(measure_prog, 100)
+    # print(result0)
+    # print("full_amplitude_measure pass !")
 
-    result1 = QCM.full_amplitude_pmeasure(pmeasure_prog, [0, 1, 2])
-    print(result1)
-    print("full_amplitude_pmeasure pass !")
+    # result1 = QCM.full_amplitude_pmeasure(pmeasure_prog, [0, 1, 2])
+    # print(result1)
+    # print("full_amplitude_pmeasure pass !")
 
-    result2 = QCM.partial_amplitude_pmeasure(pmeasure_prog, ["0", "1", "2"])
-    print(result2)
-    print("partial_amplitude_pmeasure pass !")
+    # result2 = QCM.partial_amplitude_pmeasure(pmeasure_prog, ["0", "1", "2"])
+    # print(result2)
+    # print("partial_amplitude_pmeasure pass !")
 
-    result3 = QCM.single_amplitude_pmeasure(pmeasure_prog, "0")
-    print(result3)
-    print("single_amplitude_pmeasure pass !")
+    # result3 = QCM.single_amplitude_pmeasure(pmeasure_prog, "0")
+    # print(result3)
+    # print("single_amplitude_pmeasure pass !")
 
-    QCM.set_noise_model(NoiseModel.BIT_PHASE_FLIP_OPRATOR, [0.01], [0.02])
-    result4 = QCM.noise_measure(measure_prog, 100)
-    print(result4)
-    print("noise_measure pass !")
+    # QCM.set_noise_model(NoiseModel.BIT_PHASE_FLIP_OPRATOR, [0.01], [0.02])
+    # result4 = QCM.noise_measure(measure_prog, 100)
+    # print(result4)
+    # print("noise_measure pass !")
 
     result5 = QCM.real_chip_measure(measure_prog, 100)
     print(result5)
     print("real_chip_measure pass !")
+
+    # result6 = QCM.get_state_tomography_density(measure_prog, 100)
+    # print(result6)
+    # print("get_state_tomography_density !")
 
     QCM.finalize()
 

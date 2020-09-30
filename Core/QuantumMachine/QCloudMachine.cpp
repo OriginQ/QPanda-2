@@ -225,7 +225,7 @@ void QCloudMachine::inqure_result(std::string recv_json_str, CLOUD_QMACHINE_TYPE
     std::string taskid;
     if (parser_cluster_submit_json(recv_json_str, taskid))
     {
-        bool retry_inquire;
+        bool retry_inquire = false;
 
         do
         {
@@ -241,15 +241,73 @@ void QCloudMachine::inqure_result(std::string recv_json_str, CLOUD_QMACHINE_TYPE
     return;
 }
 
+
+std::vector<QStat> QCloudMachine::get_state_tomography_density(QProg &prog, int shots)
+{
+    auto qubit_num = getAllocateQubit();
+    auto cbit_num = getAllocateCMem();
+
+    if (qubit_num > 6 || cbit_num > 6)
+    {
+        std::cout << "Failed! real chip qubit num or cbit num are not less or equal to 6" << std::endl;
+        throw run_fail("real chip qubit num or cbit num are not less or equal to 6");
+    }
+
+    TraversalConfig traver_param;
+    QProgCheck prog_check;
+    prog_check.execute(prog.getImplementationPtr(), nullptr, traver_param);
+
+    if (!traver_param.m_can_optimize_measure)
+    {
+        throw run_fail("measure must be last");
+    }
+
+    //convert prog to originir 
+    auto prog_str = convert_qprog_to_originir(prog, this);
+
+    //construct json
+    rapidjson::Document doc;
+    doc.SetObject();
+
+    add_string_value(doc, "code", prog_str);
+    add_string_value(doc, "apiKey", m_token);
+    add_string_value(doc, "QMachineType", "6");
+    add_string_value(doc, "codeLen", prog_str.size());
+    add_string_value(doc, "qubitNum", "6");
+    add_string_value(doc, "measureType", (size_t)CLUSTER_TASK_TYPE::CLUSTER_MEASURE);
+    add_string_value(doc, "classicalbitNum", getAllocateCMem());
+    add_string_value(doc, "shot", (size_t)shots);
+    
+    StringBuffer buffer;
+    Writer<StringBuffer> writer(buffer);
+    doc.Accept(writer);
+
+    std::string post_json_str = buffer.GetString();
+    std::string recv_json_str = post_json(m_compute_url, post_json_str);
+    
+    inqure_result(recv_json_str, static_cast<CLOUD_QMACHINE_TYPE>(6));
+
+    return m_qst_result;
+}
+
 std::map<std::string, double> QCloudMachine::real_chip_measure(QProg &prog, int shots, string task_name, REAL_CHIP_TYPE type)
 {
     auto qubit_num = getAllocateQubit();
     auto cbit_num = getAllocateCMem();
 
-    if (qubit_num != 6 || cbit_num != 6)
+    if (qubit_num > 6 || cbit_num > 6)
     {
-        std::cout << "Failed! real chip qubit num or cbit num are not equal to 6" << std::endl;
-        return std::map<std::string, double>();
+        std::cout << "Failed! real chip qubit num or cbit num are not less or equal to 6" << std::endl;
+        throw run_fail("real chip qubit num or cbit num are not less or equal to 6");
+    }
+
+    TraversalConfig traver_param;
+    QProgCheck prog_check;
+    prog_check.execute(prog.getImplementationPtr(), nullptr, traver_param);
+
+    if (!traver_param.m_can_optimize_measure)
+    {
+        throw run_fail("measure must be last");
     }
 
     //convert prog to originir 
@@ -448,16 +506,26 @@ bool QCloudMachine::parser_cluster_submit_json(std::string &recv_json, std::stri
     if (recv_doc.Parse(recv_json.c_str()).HasParseError()
         || !recv_doc.HasMember("obj") || !recv_doc.HasMember("success"))
     {
-        QCERR("recv json error");
-        return false;
+        QCERR("server connection failed");
+        throw run_fail("server connection failed");
     }
     else
     {
         const rapidjson::Value &success = recv_doc["success"];
         if (!success.GetBool())
         {
-            QCERR("recv json error");
-            return false;
+            const rapidjson::Value &Obj = recv_doc["obj"];
+            
+            if (Obj.IsNull())
+            {
+                QCERR("api key error");
+                throw run_fail("api key error");
+            }
+            else
+            {
+                QCERR("un-activate products or lack of computing power");
+                throw run_fail("recv json error");
+            }
         }
         else
         {
@@ -466,8 +534,8 @@ bool QCloudMachine::parser_cluster_submit_json(std::string &recv_json, std::stri
                 !Obj.HasMember("taskId") ||
                 !Obj.HasMember("id"))
             {
-				std::cout << "json object error" << std::endl;
-				return false;
+                QCERR("json object error");
+                throw run_fail("json object error");
             }
             else
             {
@@ -487,7 +555,7 @@ bool QCloudMachine::parser_cluster_result_json(std::string &recv_json, std::stri
         !recv_doc.HasMember("success"))
 	{
         QCERR("result json error");
-        QCERR(recv_json.c_str());
+        throw run_fail("result json error");
 	}
 	else
 	{
@@ -569,7 +637,37 @@ bool QCloudMachine::parser_cluster_result_json(std::string &recv_json, std::stri
                             break;
                         }
 
-						default: std::cout << "QMachine type error" << std::endl; break;
+                        case static_cast<CLOUD_QMACHINE_TYPE>(6):
+                        {
+                            const rapidjson::Value &qst_result = List[0]["qstresult"];
+
+                            Document qst_result_doc;
+                            qst_result_doc.Parse(qst_result.GetString());
+
+                            m_qst_result.clear();
+                            int rank = (int)std::sqrt(qst_result_doc.Size());
+
+
+                            for (auto i = 0; i < rank; ++i)
+                            {
+                                QStat row_value;
+                                for (auto j = 0; j < rank; ++j)
+                                {
+                                    auto real_val = qst_result_doc[i*rank + j]["r"].GetDouble();
+                                    auto imag_val = qst_result_doc[i*rank + j]["i"].GetDouble();
+
+                                    row_value.emplace_back(qcomplex_t(real_val, imag_val));
+                                }
+
+                                m_qst_result.emplace_back(row_value);
+                            }
+
+                            break;
+                        }
+
+						default: std::cout << "Failed! QMachine type error" << std::endl;
+                        throw run_fail("task failed");
+                        break;
 					}
 
                     return false;
@@ -584,13 +682,13 @@ bool QCloudMachine::parser_cluster_result_json(std::string &recv_json, std::stri
 
                         Value &value = result_doc["Value"];
                         std::cout << "Failed! " << value.GetString() << std::endl; break;
+                        throw run_fail(value.GetString());
                     }
                     else
                     {
                         std::cout << "Failed! Task " << taskid << " Failed " << std::endl;
+                        throw run_fail("task failed");
                     }
-
-                    return false;
                 }
 
 				case TASK_STATUS::WAITING:
@@ -602,18 +700,22 @@ bool QCloudMachine::parser_cluster_result_json(std::string &recv_json, std::stri
                 case TASK_STATUS::BUILD_SYSTEM_RUN: return true;
 
                 case TASK_STATUS::BUILD_SYSTEM_ERROR:
-                    std::cout << "Failed! build system error, task status code = 7" << std::endl; return false;
-                case TASK_STATUS::SEQUENCE_TOO_LONG:
-                    std::cout << "Failed! exceeding maximum timing sequence, task status code = 8" << std::endl; return false;
-                default:
-                    std::cout << "Failed! unknown error, task status code = " << static_cast<int>(status) << std::endl; return false;
-			}
+                    std::cout << "Failed! build system error, task status code = 7" << std::endl;
+                    throw run_fail("build system error");
 
+                case TASK_STATUS::SEQUENCE_TOO_LONG:
+                    std::cout << "Failed! exceeding maximum timing sequence, task status code = 8" << std::endl;
+                    throw run_fail("exceeding maximum timing sequence");
+
+                default:
+                    std::cout << "Failed! unknown error, task status code = " << static_cast<int>(status) << std::endl;
+                    throw run_fail("unknown error");
+			}
 		}
 		catch (const std::exception&e)
 		{
 			std::cout << "Failed! parse result exception : " << e.what() << std::endl;
-            return false;
+            throw run_fail("parse result exception error");
 		}
 	}
 
@@ -625,7 +727,7 @@ std::string QCloudMachine::get_result_json(std::string taskid, CLOUD_QMACHINE_TY
     rapidjson::Document doc;
     doc.SetObject();
 
-    add_string_value(doc, "taskId", taskid);
+    add_string_value(doc, "taskId",   taskid);
     add_string_value(doc, "apiKey", m_token);
     add_string_value(doc, "QMachineType", (size_t)type);
 
@@ -635,7 +737,6 @@ std::string QCloudMachine::get_result_json(std::string taskid, CLOUD_QMACHINE_TY
 
     std::string post_json_str = buffer.GetString();
     std::string recv_json_str = post_json(m_inqure_url, post_json_str);
-
 	return recv_json_str;
 }
 

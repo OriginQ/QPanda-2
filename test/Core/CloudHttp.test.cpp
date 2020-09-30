@@ -8,6 +8,9 @@ using namespace std;
 using namespace rapidjson;
 USING_QPANDA
 
+#ifdef USE_CURL
+
+
 static size_t recv_json_data
 (void *ptr, size_t size, size_t nmemb, void *stream)
 {
@@ -170,5 +173,5 @@ TEST(CloudHttp, Cluster)
     QCM.finalize();
 }
 
-
+#endif // USE_CURL
 

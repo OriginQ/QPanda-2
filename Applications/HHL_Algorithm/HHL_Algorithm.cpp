@@ -105,8 +105,6 @@ int main()
 		cerr << "HHL running error: unknow exception." << endl;
 	}
 
-	cout << "\n HHL test over, press Enter to continue..." << endl;
-	getchar();
 
 	return 0;
 }

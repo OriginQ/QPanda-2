@@ -13,7 +13,7 @@
 
 QPANDA_BEGIN
 
-enum CLOUD_QMACHINE_TYPE
+enum class CLOUD_QMACHINE_TYPE
 {
     Full_AMPLITUDE,
     NOISE_QMACHINE,
@@ -66,6 +66,10 @@ public:
     */
 	void init();
 	void init(string token);
+
+    void set_compute_api(std::string url) { m_compute_url = url; }
+    void set_inqure_api(std::string url) { m_inqure_url = url; }
+
     void set_noise_model(NOISE_MODEL model, const std::vector<double> single_params, const std::vector<double> double_params);
 
     /**
@@ -122,6 +126,15 @@ public:
     */
     std::map<std::string, double> real_chip_measure(QProg &, int shot, string task_name = "Qurator Experiment", REAL_CHIP_TYPE type = REAL_CHIP_TYPE::ORIGIN_WUYUAN);
 
+    /**
+    * @brief  get real chip qst matrix
+    * @param[in]  QProg& the reference to a quantum program
+    * @param[in]  int&   shot 
+    * @param[out] QStat matrix
+    * @return     matrix
+    */
+    std::vector<QStat> get_state_tomography_density(QProg &, int shot);
+
 	/**
 	* @brief  get task result
 	* @param[in]  std::string taskid
@@ -138,6 +151,7 @@ private:
 
     std::map<std::string, double> m_measure_result;
     std::map<std::string, qcomplex_t> m_pmeasure_result;
+    std::vector<QStat> m_qst_result;
     qcomplex_t m_single_result;
     NoiseParams m_noise_params;
 
@@ -149,7 +163,7 @@ private:
 
     enum class TASK_STATUS
     {
-        WAITING = 1,
+        WAITING = 1, 
         COMPUTING,
         FINISHED,
         FAILED,

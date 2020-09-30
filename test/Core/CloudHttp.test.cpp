@@ -1,4 +1,3 @@
-#ifdef USE_CURL
 #include "QPanda.h"
 #include <chrono>
 #include <thread>
@@ -116,14 +115,8 @@ TEST(CloudHttp, Cluster)
 
     auto measure_prog = QProg();
     measure_prog << HadamardQCircuit(qlist)
-        << CZ(qlist[1], qlist[5])
-        << CZ(qlist[0], qlist[4])
-        << RX(qlist[2], PI / 4)
-        << RX(qlist[1], PI / 4)
         << CZ(qlist[2], qlist[3])
-        << Measure(qlist[0], clist[0])
-        << Measure(qlist[1], clist[1])
-        << Measure(qlist[2], clist[2]);
+        << Measure(qlist[0], clist[0]);
 
     auto pmeasure_prog = QProg();
     pmeasure_prog << HadamardQCircuit(qlist)
@@ -131,43 +124,51 @@ TEST(CloudHttp, Cluster)
         << RX(qlist[2], PI / 4)
         << RX(qlist[1], PI / 4);
 
-    auto result0 = QCM.full_amplitude_measure(measure_prog, 100);
-    for (auto val : result0)
-    {
-        cout << val.first << " : " << val.second << endl;
-    }
+    //auto result0 = QCM.full_amplitude_measure(measure_prog, 100);
+    //for (auto val : result0)
+    //{
+    //    cout << val.first << " : " << val.second << endl;
+    //}
 
-    auto result1 = QCM.full_amplitude_pmeasure(pmeasure_prog, { 0, 1, 2 });
-    for (auto val : result1)
-    {
-        cout << val.first << " : " << val.second << endl;
-    }
+    //auto result1 = QCM.full_amplitude_pmeasure(pmeasure_prog, { 0, 1, 2 });
+    //for (auto val : result1)
+    //{
+    //    cout << val.first << " : " << val.second << endl;
+    //}
 
-    auto result2 = QCM.partial_amplitude_pmeasure(pmeasure_prog, { "0", "1", "2" });
-    for (auto val : result2)
-    {
-        cout << val.first << " : " << val.second << endl;
-    }
+    //auto result2 = QCM.partial_amplitude_pmeasure(pmeasure_prog, { "0", "1", "2" });
+    //for (auto val : result2)
+    //{
+    //    cout << val.first << " : " << val.second << endl;
+    //}
 
-    auto result3 = QCM.single_amplitude_pmeasure(pmeasure_prog, "0");
-    cout << "0" << " : " << result3 << endl;
+    //auto result3 = QCM.single_amplitude_pmeasure(pmeasure_prog, "0");
+    //cout << "0" << " : " << result3 << endl;
 
-    QCM.set_noise_model(NOISE_MODEL::BIT_PHASE_FLIP_OPRATOR, { 0.01 }, { 0.02 });
-    auto result4 = QCM.noise_measure(measure_prog, 100);
+    //QCM.set_noise_model(NOISE_MODEL::BIT_PHASE_FLIP_OPRATOR, { 0.01 }, { 0.02 });
+    //auto result4 = QCM.noise_measure(measure_prog, 100);
+    //for (auto val : result4)
+    //{
+    //    cout << val.first << " : " << val.second << endl;
+    //}
+
+    auto result4 = QCM.real_chip_measure(measure_prog, 1000);
     for (auto val : result4)
     {
         cout << val.first << " : " << val.second << endl;
     }
 
-    auto result5 = QCM.real_chip_measure(measure_prog, 1000);
-    for (auto val : result5)
-    {
-        cout << val.first << " : " << val.second << endl;
-    }
+    //auto result5 = QCM.get_state_tomography_density(measure_prog, 1000);
+    //for (auto val : result5)
+    //{
+    //    for (auto val1 : val)
+    //    {
+    //        cout << val1 << endl;
+    //    }
+    //}
 
     QCM.finalize();
 }
 
-#endif // USE_CURL
 
 

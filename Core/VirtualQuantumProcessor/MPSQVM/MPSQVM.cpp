@@ -579,3 +579,14 @@ void MPSQVM::set_noise_model(NOISE_MODEL model, std::vector<double> params_vec)
     return m_noise_manager.set_noise_model(model, params_vec);
 }
 
+//The next 2 set_noise_model functions is only appear in DECOHERENCE_KRAUS_OPERATOR
+void MPSQVM::set_noise_model(NOISE_MODEL model, std::vector<double> T_params_vec, std::vector<double> time_params_vec)
+{
+    return m_noise_manager.set_noise_model(model, T_params_vec, time_params_vec);
+}
+
+void MPSQVM::set_noise_model(NOISE_MODEL model, std::string gate, Qnum qubits_vec, std::vector<double> T_params_vec, std::vector<double> time_params_vec)
+{
+    return m_noise_manager.set_noise_model(model, gate, qubits_vec, T_params_vec, time_params_vec);
+}
+

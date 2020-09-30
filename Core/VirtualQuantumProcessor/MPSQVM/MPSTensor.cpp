@@ -117,15 +117,6 @@ void MPS_Tensor::decompose(MPS_Tensor &temp, MPS_Tensor &left_gamma,
 
 	if (/*!is_valid_svd ||*/ !valid_size || U.hasNaN() || V.hasNaN() || S.hasNaN() )
 	{
-        std::cout << "A :" << std::endl;
-        std::cout << A << std::endl;
-        std::cout << "V :" << std::endl;
-        std::cout << V << std::endl;
-        std::cout << "U :" << std::endl;
-        std::cout << U << std::endl;
-        std::cout << "S :" << std::endl;
-        std::cout << S << std::endl;
-
 		QCERR("svd  error");
 		throw std::runtime_error("svd  error");
 	}

@@ -938,7 +938,7 @@ PYBIND11_MODULE(pyQPanda, m)
         py::return_value_policy::reference)
         .def("last",&QProg::getLastNodeIter,
         py::return_value_policy::reference)
-		.def("__repr__", [](const QProg& p) {return draw_qprog(p); },
+		.def("__repr__", [](QProg& p) {return draw_qprog(p); },
 		py::return_value_policy::reference)
         .def("head",&QProg::getHeadNodeIter,
         py::return_value_policy::reference);
@@ -992,7 +992,7 @@ PYBIND11_MODULE(pyQPanda, m)
             py::return_value_policy::reference)
         .def("head",&QCircuit::getHeadNodeIter,
             py::return_value_policy::reference)
-		.def("__repr__", [](const QCircuit& p) {return draw_qprog(p); },
+		.def("__repr__", [](QCircuit& p) {return draw_qprog(p); },
 			py::return_value_policy::reference);
 
 

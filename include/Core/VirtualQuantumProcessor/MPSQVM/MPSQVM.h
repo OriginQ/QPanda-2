@@ -40,6 +40,10 @@ public:
     void set_noise_model(NOISE_MODEL model, std::string gate, Qnum qubits_vec, std::vector<double> params_vec);
     void set_noise_model(NOISE_MODEL model, std::vector<double> params_vec);
 
+    //The next 2 set_noise_model functions is only appear in DECOHERENCE_KRAUS_OPERATOR
+    void set_noise_model(NOISE_MODEL model, std::vector<double> T_params_vec, std::vector<double> time_params_vec);
+    void set_noise_model(NOISE_MODEL model, std::string gate, Qnum qubits_vec, std::vector<double> T_params_vec, std::vector<double> time_params_vec);
+
 protected:
     void handle_one_target(std::shared_ptr<AbstractQGateNode> gate, const QCircuitConfig &config);
     void handle_two_targets(std::shared_ptr<AbstractQGateNode> gate, const QCircuitConfig &config);

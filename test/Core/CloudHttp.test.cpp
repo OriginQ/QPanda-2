@@ -1,4 +1,6 @@
 #include "QPanda.h"
+
+#ifdef USE_CURL
 #include <chrono>
 #include <thread>
 #include <curl/curl.h>
@@ -8,7 +10,6 @@ using namespace std;
 using namespace rapidjson;
 USING_QPANDA
 
-#ifdef USE_CURL
 
 
 static size_t recv_json_data

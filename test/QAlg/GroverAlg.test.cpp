@@ -7,9 +7,6 @@
 USING_QPANDA
 using namespace std;
 
-#pragma comment(lib, "lib\\QAlg.lib")
-#pragma comment(lib, "lib\\Components.lib")
-
 bool gorver_test_fun1();
 bool gorver_test_fun2();
 

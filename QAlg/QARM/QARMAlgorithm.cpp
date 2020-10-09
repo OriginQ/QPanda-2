@@ -59,13 +59,12 @@ QARM::~QARM()
 
 }
 
-// 根据项数或者交易数获取量子比特数量
+// gets the number of qubits based on the number of items or transactions
 int QARM::get_qubit_number(int number)
 {
 	return (int)floor(log2(number) + 1);
 }
 
-// 获取候选1项集，data_set为转化后的数字交易信息，不包含0数字。返回一个list，每个元素都是tuple元组
 std::vector<int> QARM::create_c1(std::vector <std::vector <int > > data)
 {
 	std::vector<int> c1;
@@ -84,7 +83,7 @@ std::vector<int> QARM::create_c1(std::vector <std::vector <int > > data)
 }
 
 
-// 根据当前number绘制子线路
+// Draws a circuit based on the current number
 QCircuit QARM::get_number_circuit(QVec qlist, int position, int number, int qubit_number)
 {
 	auto cir = QCircuit();
@@ -103,12 +102,12 @@ QCircuit QARM::get_number_circuit(QVec qlist, int position, int number, int qubi
 	return cir;
 }
 
-// Oracle中的 U 线路编码
+// circuit U code in Oracle
 QCircuit QARM::encode_circuit(QVec qlist, int position, int index_qubit_number, int items_length, int transaction_number)
 {
 	auto cir = QCircuit();
 
-	// 控制子线路的量子比特，对应索引空间的比特数
+	// the quantum bits of the control subline corresponding to the number of bits in the index space
 	QVec control_qubit;
 
 	for (int i = 0; i < index_qubit_number; i++)
@@ -120,7 +119,7 @@ QCircuit QARM::encode_circuit(QVec qlist, int position, int index_qubit_number, 
 
 	for (int n = 0; n < transaction_number; n++)
 	{
-		// 对交易行索引量子线路进行 X 门编码
+		// X gate coding for the transaction line index quantum circuit
 		auto t_x_cir = get_number_circuit(qlist, position + items_qubit_number, (int)pow(2, transaction_qubit_number) - 1 - n, transaction_qubit_number);
 
 		for (int m = 0; m < items_length; m++)
@@ -138,7 +137,7 @@ QCircuit QARM::encode_circuit(QVec qlist, int position, int index_qubit_number, 
 	return cir;
 }
 
-// 定义Oracle中的查找线路
+// define the lookup circuit in Oracle
 QCircuit QARM::query_circuit(QVec qlist, int position, int target_number)
 {
 	auto cir = QCircuit();
@@ -157,7 +156,7 @@ QCircuit QARM::query_circuit(QVec qlist, int position, int target_number)
 }
 
 
-// 定义Oracle中的相位转移线路
+// define the phase circuit in Oracle
 QCircuit QARM::transfer_to_phase(QVec qlist, int position)
 {
 	auto cir = QCircuit();
@@ -166,16 +165,16 @@ QCircuit QARM::transfer_to_phase(QVec qlist, int position)
 }
 
 
-// 定义oracle线路
+// defining  Oracle circuit
 QCircuit QARM::oracle_cir(QVec qlist, int position, int locating_number)
 {
-	// U线路
+	// U circuit
 	auto u_cir = encode_circuit(qlist, position, index_qubit_number, items_length, transaction_number);
 
-	// S线路
+	// S circuit
 	auto  s_cir = query_circuit(qlist, position + index_qubit_number, locating_number);
 
-	// 相位转移线路
+	// phase circuit
 	auto transfer_cir = transfer_to_phase(qlist, position + index_qubit_number + digit_qubit_number);
 
 	auto cir = QCircuit();
@@ -189,7 +188,7 @@ QCircuit QARM::oracle_cir(QVec qlist, int position, int locating_number)
 }
 
 
-// 定义coin线路
+//define  coin circuit
 QCircuit QARM::coin_cir(QVec qlist, int position)
 {
 	int u1_position = position + 1 + 2 * index_qubit_number + digit_qubit_number;
@@ -201,9 +200,7 @@ QCircuit QARM::coin_cir(QVec qlist, int position)
 	for (int i = 0; i < index_qubit_number; i++)
 	{
 		cir << H(qlist[coin_position + i]);
-		// 变成0控
 		cir << X(qlist[coin_position + i]);
-		// 控制比特
 		control_qubit.push_back(qlist[coin_position + i]);
 	}
 
@@ -219,7 +216,7 @@ QCircuit QARM::coin_cir(QVec qlist, int position)
 	return cir;
 }
 
-// 定义G（k）线路
+// define G（k）circuit
 QCircuit QARM::gk_cir(QVec qlist, int position, int locating_number)
 {
 	auto cir = QCircuit();
@@ -231,7 +228,7 @@ QCircuit QARM::gk_cir(QVec qlist, int position, int locating_number)
 }
 
 
-// 定义循环迭代线路
+//define loop iteration circuit
 prob_dict QARM::iter_cir(QVec qlist, std::vector<ClassicalCondition> clist, int position, int locating_number, int iter_number)
 {
 	auto prog = QProg();
@@ -258,7 +255,7 @@ prob_dict QARM::iter_cir(QVec qlist, std::vector<ClassicalCondition> clist, int 
 	return result;
 }
 
-// 迭代次数计算
+// iteration count
 int QARM::iter_number()
 {
 	int count;
@@ -274,7 +271,7 @@ int QARM::iter_number()
 	return count;
 }
 
-// 结果处理
+// result reduction
 std::vector<std::vector<int>> QARM::get_result(QVec qlist, std::vector<ClassicalCondition> clist, int position, int locating_number, int iter_number)
 {
 	prob_dict ret = iter_cir(qlist, clist, position, locating_number, iter_number);
@@ -311,7 +308,7 @@ static int bin2dec(std::string str_bin)
 	return i;
 }
 
-// 处理总查询结果索引
+// process the total query result index
 std::vector<std::vector<int>> QARM::get_index(std::vector<int> index)
 {
 	std::vector<std::vector<int>> result;
@@ -327,7 +324,7 @@ std::vector<std::vector<int>> QARM::get_index(std::vector<int> index)
 	return result;
 }
 
-// 根据候选1项集找频繁1项集， 候选项是列表套元组形式 [(1,), (2,), (3,), (4,)]
+// find f1 [(1,), (2,), (3,), (4,)]
 void QARM::find_f1(QVec qlist, std::vector<ClassicalCondition> clist, int position, std::vector<int> c1, double min_support,
 	std::vector<std::vector<int > > &f1, std::map<std::vector<int>, std::pair<std::vector<int>, double> > &f1_dict)
 {
@@ -360,7 +357,7 @@ void QARM::find_f1(QVec qlist, std::vector<ClassicalCondition> clist, int positi
 	}
 }
 
-// 根据频繁k项集，去查找后面的频繁k+1项集
+// find fk
 void QARM::find_fk(int k, std::vector<std::vector<int > > &fk, std::map<std::vector<int>, std::pair<std::vector<int>, double> > &fk_dict, double min_support)
 {
 	std::vector<std::vector<int > > fn;
@@ -404,7 +401,7 @@ void QARM::find_fk(int k, std::vector<std::vector<int > > &fk, std::map<std::vec
 	fk_dict = fn_dict;
 }
 
-// 频繁项集统计
+// frequent item set statistics
 void QARM::fk_result(QVec qlist, std::vector<ClassicalCondition> clist, int position, double min_support,
 	std::vector<std::vector<std::vector<int > > > &fn, std::map<std::vector<int>, std::pair<std::vector<int>, double> > &fn_dict)
 {
@@ -429,7 +426,7 @@ void QARM::fk_result(QVec qlist, std::vector<ClassicalCondition> clist, int posi
 	}
 }
 
-// 置信度计算
+// confidence calculation
 double QARM::conf_x_y(double supp_xy, double supp_x)
 {
 	return supp_xy / supp_x;
@@ -468,7 +465,7 @@ static bool issubset(std::vector<int> v1, std::vector<int> v2)
 		return true;
 }
 
-// 统计置信度
+// statistical confidence
 std::map<std::string, double> QARM::get_all_conf(QVec qlist, std::vector<ClassicalCondition> clist, int position, double min_conf)
 {
 	std::map<std::string, double> conf_dict;
@@ -510,7 +507,7 @@ std::map<std::string, double> QARM::get_all_conf(QVec qlist, std::vector<Classic
 }
 
 
-// 根据数字转换为字符串，作为置信度的键
+// converts to a string based on a number
 std::string QARM::get_conf_key(std::vector<int> cause, std::vector<int> effect)
 {
 	std::string cause_str, effect_str;

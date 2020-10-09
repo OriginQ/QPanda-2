@@ -81,7 +81,7 @@ void QCloudMachine::init()
 
 void QCloudMachine::init(string token)
 {
-	JsonConfigParam config;
+    JsonConfigParam config;
     try
     {
         if (!config.load_config(CONFIG_PATH))
@@ -120,8 +120,17 @@ void QCloudMachine::init(string token)
         m_inqure_url = DEFAULT_CLUSTER_INQUREAPI;
     }
 
-	m_token = token;
-    _start();
+    try
+    {
+        m_token = token;
+        _start();
+    }
+    catch (std::exception &e)
+    {
+        finalize();
+        QCERR(e.what());
+        throw init_fail(e.what());
+    }
 }
 
 size_t recvJsonData
@@ -240,7 +249,6 @@ void QCloudMachine::inqure_result(std::string recv_json_str, CLOUD_QMACHINE_TYPE
 
     return;
 }
-
 
 std::vector<QStat> QCloudMachine::get_state_tomography_density(QProg &prog, int shots)
 {
@@ -524,7 +532,7 @@ bool QCloudMachine::parser_cluster_submit_json(std::string &recv_json, std::stri
             else
             {
                 QCERR("un-activate products or lack of computing power");
-                throw run_fail("recv json error");
+                throw run_fail("un-activate products or lack of computing power");
             }
         }
         else

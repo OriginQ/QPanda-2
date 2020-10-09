@@ -3,11 +3,11 @@
 
 static bool test_func_1()
 {
-	std::vector<std::string>  T0 = { "Ãæ°ü", "ÄÌÀÒ", "Å£ÄÌ" };
-	std::vector<std::string>  T1 = { "Ãæ°ü", "»ÆÓÍ" };
-	std::vector<std::string>  T2 = { "ÄÌÀÒ", "Å£ÄÌ", "Ãæ°ü" };
-	std::vector<std::string>  T3 = { "Ãæ°ü", "ÄÌÀÒ", "Å£ÄÌ" };
-	std::vector<std::string>  T4 = { "ÄÌÀÒ", "»ÆÓÍ", "Å£ÄÌ" };
+	std::vector<std::string>  T0 = { "bread", "cheese", "milk" };
+	std::vector<std::string>  T1 = { "bread", "butter" };
+	std::vector<std::string>  T2 = { "cheese", "milk", "bread" };
+	std::vector<std::string>  T3 = { "bread", "cheese", "milk" };
+	std::vector<std::string>  T4 = { "cheese", "butter", "milk" };
 	std::vector<std::vector<std::string > > data;
 	data.push_back(T0);
 	data.push_back(T1);

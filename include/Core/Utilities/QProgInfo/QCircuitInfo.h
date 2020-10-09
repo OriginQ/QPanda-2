@@ -129,7 +129,7 @@ public:
 	}
 
 	bool m_is_dagger;  /**< dagger information */
-	std::vector<QPanda::Qubit*> m_control_qubits;/**< control Quantum bits */
+	QVec m_control_qubits;/**< control Quantum bits */
 };
 
 /**
@@ -481,6 +481,15 @@ std::string printAllNodeType(QProg prog);
 * @return
 */
 void get_gate_parameter(std::shared_ptr<AbstractQGateNode> pGate, std::string& para_str);
+std::vector<double> get_gate_parameter(std::shared_ptr<AbstractQGateNode> pGate);
+
+/**
+* @brief  Check if it is a valid dagger
+* @ingroup Utilities
+* @param[in] bool 
+* @return bool true for valid dagger
+*/
+bool check_dagger(std::shared_ptr<AbstractQGateNode> p_gate, const bool& b_dagger);
 
 QPANDA_END
 #endif

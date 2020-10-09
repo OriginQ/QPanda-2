@@ -15,9 +15,9 @@ static bool test_func_1()
 	std::stringstream str_result;
 	str_result << " { " << query_x[0] << "," << query_x[1] << " } :";
 	if (ret)
-		str_result << "属于第1类";
+		str_result << "belongs to class 1";
 	else
-		str_result << "属于第2类";
+		str_result << "belongs to class 2";
 
 	std::cout << str_result.str() << std::endl;
 

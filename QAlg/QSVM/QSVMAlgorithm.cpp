@@ -42,37 +42,37 @@ QSVM::QSVM(std::vector<std::vector<double > > data)
 		}
 	}
 
-	// 数据的数量
+	// data size
 	int m = m_x.size();
 
-	// 向量的长度
+	// length of vector
 	int n = m_x[0].size();
 
-	// 输入线路数据的数量
+	// the number of input line data
 	int M = m + 1;
 
-	// 输入数据单个向量的量子比特数
+	// the number of qubits in a single vector of input data
 	int vector_qubits = (int)ceil(log2(n));
 
-	// training data oracle 系数部分比特数
+	// training data oracle the number of qubits in the coefficient
 	int number = (int)ceil(log2(M));
 
-	// x向量前面增加一个单位向量1
+	// add a unit vector to the x vector
 	std::vector<std::vector<double > > x_vector = get_x_vector(m_x);
 
-	// training data oracle 的 x向量系数
+	// training data oracle  coefficient of the x vector
 	std::vector<double> coefficient = get_coefficient(x_vector);
 
-	// training data oracle 量子比特数
+	// training data oracle qubit number
 	m_oracle_qubits = number + vector_qubits * M + 1;
 
-	// swap-test 量子比特数
+	// swap-test qubit number
 	m_swap_qubits = 2 * m_oracle_qubits + 1;
 
-	// b, a求解的结果
+	// b, a solution result
 	std::vector<double > b_a = solve(m_x, m_y);
 
-	// u的系数
+	// the coefficient of u
 	if (coefficient.size() != b_a.size())
 	{
 		QCERR("coefficient  error!");
@@ -82,16 +82,16 @@ QSVM::QSVM(std::vector<std::vector<double > > data)
 	for (int i = 0; i < coefficient.size(); i++)
 		m_u_coefficient.push_back(coefficient[i] * b_a[i]);
 
-	// u的向量
+	// u vector
 	m_u_vector = x_vector;
 
-	// psi线路起始位置
+	// psi circuit starting position
 	m_psi_position = 2;
 
-	// phi线路起始位置
+	// phi circuit starting position
 	m_phi_position = 1;
 
-	// swap线路起始位置
+	// swap circuit starting position
 	m_swap_position = 0;
 }
 
@@ -134,7 +134,7 @@ std::vector<double > QSVM::solve(std::vector<std::vector<double > > x, std::vect
 		norm_x.push_back(norm_row_x);
 	}
 
-	// 获取F矩阵
+	//get the F matrix
 	std::vector<std::vector<double > > F_matrix;
 	std::vector<double> tmp(norm_x.size() + 1, 1);
 	F_matrix.push_back(tmp);
@@ -163,7 +163,7 @@ std::vector<double > QSVM::solve(std::vector<std::vector<double > > x, std::vect
 		throw run_fail("F_matrix param error!");
 	}
 
-	// 矩阵的归一化
+	// normalization of matrices
 	double trace = 0;
 	for (int i = 0; i < F_matrix.size(); i++)
 	{
@@ -214,7 +214,7 @@ std::vector<double > QSVM::solve(std::vector<std::vector<double > > x, std::vect
 	return b_a_result;
 }
 
-// 构造量子线路SWAP-test
+// Constructing quantum circuits SWAP-test
 double QSVM::construct_qcircuit(QVec qv, std::vector<ClassicalCondition> cv, std::vector<double> a, std::vector<double> b)
 {
 	auto prog = QProg();
@@ -231,7 +231,7 @@ double QSVM::construct_qcircuit(QVec qv, std::vector<ClassicalCondition> cv, std
 	return p0;
 }
 
-// x矩阵首位插入一个1向量
+
 std::vector<std::vector<double > > QSVM::get_x_vector(std::vector<std::vector<double > > matrix)
 {
 	int len = matrix[0].size();
@@ -242,10 +242,10 @@ std::vector<std::vector<double > > QSVM::get_x_vector(std::vector<std::vector<do
 	return x_vector;
 }
 
-// 获得向量的系数
+// get the coefficients on the vector
 std::vector<double> QSVM::get_coefficient(std::vector<std::vector<double > > matrix)
 {
-	// 每行范数
+	// each row of norm
 	std::vector < double > coefficient;
 	for (int i = 0; i < matrix.size(); i++)
 	{
@@ -260,12 +260,10 @@ std::vector<double> QSVM::get_coefficient(std::vector<std::vector<double > > mat
 	return coefficient;
 }
 
-// 根据当前number绘制子线路
 QCircuit QSVM::get_number_circuit(QVec qlist, int position, int number, int qubit_number)
 {
 	auto cir = QCircuit();
 
-	// 把当前item的数字变成二进制数字符串, 对于不足量子比特数的前面用0进行补齐，并逆排序
 	std::string str_bin = dec2bin(number, qubit_number);
 	reverse(str_bin.begin(), str_bin.end());
 
@@ -277,7 +275,7 @@ QCircuit QSVM::get_number_circuit(QVec qlist, int position, int number, int qubi
 	return cir;
 }
 
-// 对矩阵进行振幅编码
+// encode the amplitude of the matrix
 std::vector<std::vector<double > > QSVM::encode_matrix(std::vector<double >  flat_matrix)
 {
 	int len = flat_matrix.size();
@@ -339,13 +337,12 @@ std::vector<std::vector<double > > QSVM::encode_matrix(std::vector<double >  fla
 	return  theata_list;
 }
 
-// 振幅编码
+// amplitude encoding
 QCircuit QSVM::prepare_state(QVec qlist, int position, std::vector<double> values)
 {
-	// 准备RY旋转角度矩阵
+	// prepare RY's rotation angle matrix
 	std::vector<std::vector<double>> theata_list = encode_matrix(values);
 
-	// 构建线路
 	auto cir = QCircuit();
 	QVec control_position;
 	for (int i = 0; i < theata_list.size(); i++)
@@ -360,11 +357,10 @@ QCircuit QSVM::prepare_state(QVec qlist, int position, std::vector<double> value
 			else
 			{
 				QGate  gate = RY(qlist[position + i], theata);
-				// 对当前的索引进行编码
+			
 				QCircuit temp_cir = get_number_circuit(qlist, position, j, i);
 				cir << temp_cir;
 				cir << gate.control(control_position);
-				// 还原
 				cir << temp_cir;
 			}
 		}
@@ -374,7 +370,7 @@ QCircuit QSVM::prepare_state(QVec qlist, int position, std::vector<double> value
 	return cir;
 }
 
-// 构建training data oracle
+// build training data oracle
 QCircuit QSVM::training_data_oracle(QVec qlist, int position, std::vector<double> coe_vector, std::vector<std::vector<double > > x_vector)
 {
 	int M = m_x.size() + 1;
@@ -382,16 +378,15 @@ QCircuit QSVM::training_data_oracle(QVec qlist, int position, std::vector<double
 	int number = (int)ceil(log2(M));
 	int vector_qubits = (int)ceil(log2(n));
 
-	// 系数的编码起始位
 	int coe_position = position + 1;
 
-	// 向量编码的起始位
+	// the starting bit of vector encoding
 	int vector_position = coe_position + number;
 
-	// 系数的振幅编码
+	// the amplitude coding of the coefficients
 	QCircuit coe_cir = prepare_state(qlist, coe_position, coe_vector);
 
-	// 受控的系数X门编码
+	// controlled coefficient X gate coding
 	QCircuit control_cir = QCircuit();
 	QVec control_qubits;
 	for (int i = 0; i < number; i++)
@@ -408,18 +403,18 @@ QCircuit QSVM::training_data_oracle(QVec qlist, int position, std::vector<double
 	}
 
 	auto cir = QCircuit();
-	// 插入系数编码线路
+	// insert coefficient code lines
 	cir << coe_cir;
 
-	// 插入零控的X门线路
+	// insert a zero-controlled X-gate circuit
 	cir << control_cir;
 	cir << X(qlist[position]).control(control_qubits);
 	cir << control_cir;
-	// 插入振幅编码线路
+	// insert amplitude coded circuit
 	cir << X(qlist[position]);
 	cir << x_cir.control({ qlist[position] });
 	cir << X(qlist[position]);
-	// 插入零控的x门线路
+	// insert a zero-controlled X-gate circuit
 	cir << control_cir;
 	cir << X(qlist[position]).control(control_qubits);
 	cir << control_cir;
@@ -427,41 +422,40 @@ QCircuit QSVM::training_data_oracle(QVec qlist, int position, std::vector<double
 	return cir;
 }
 
-// 构建线路实现  ψ = 1/sqrt(2)(|0>|u> + |1>|x>)
+// Construction circuits ψ = 1/sqrt(2)(|0>|u> + |1>|x>)
 QCircuit QSVM::construct_state_psi(QVec qlist, int position, std::vector<double> u_coefficient, std::vector<std::vector<double > >u_vector,
 	std::vector<double > x_coefficient, std::vector<std::vector<double > >x_vector, int oracle_qubits)
 {
-	// u线路
+	// u circuit
 	int u_cir_position = position + 1;
 	auto u_cir = training_data_oracle(qlist, u_cir_position, u_coefficient, u_vector);
 
-	// x线路
+	// x circuit
 	int x_cir_position = position + 1 + oracle_qubits;
 	auto x_cir = training_data_oracle(qlist, x_cir_position, x_coefficient, x_vector);
 
-	// 受控CNOT门
+	// CNOT gate 
 	auto cir_copy = QCircuit();
 	for (int i = 0; i < oracle_qubits; i++)
 		cir_copy << CNOT(qlist[u_cir_position + i], qlist[x_cir_position + i]);
 
-	// 插入受控 CNOT门
+	// insert CNOT gate 
 	auto cir = QCircuit();
-	//  在辅助比特上插入H门, X门
+	// insert H and X gate on the auxiliary qubit 
 	cir << H(qlist[position]);
 	cir << X(qlist[position]);
-	//  插入u线路
+	//  insert u circuit
 	cir << u_cir;
-	//  插入受控CNOT门
+	//  insert CNOT gate
 	cir << cir_copy.control({ qlist[position] });
-	//  控制下路x门还原
 	cir << X(qlist[position]);
-	//  插入x线路
+	//  insert x circuit
 	cir << x_cir;
 
 	return cir;
 }
 
-// 构建线路实现  φ = 1 / sqrt(2)(| 0 > -| 1 > )
+// Construction circuits  φ = 1 / sqrt(2)(| 0 > -| 1 > )
 QCircuit QSVM::construct_state_phi(QVec qlist, int position)
 {
 	auto cir = QCircuit();
@@ -470,7 +464,7 @@ QCircuit QSVM::construct_state_phi(QVec qlist, int position)
 	return cir;
 }
 
-// 通过测量辅助比特0态的概率去反推|<ψ|φ>|^2的概率,即 P(|0>) = 1/2 + 1/2(|<ψ|φ>|^2)
+// By measuring the auxiliary bit 0 state probability to backstepping |<ψ|φ>|^ ,  P(|0>) = 1/2 + 1/2(|<ψ|φ>|^2)
 QCircuit QSVM::swap_test_p(QVec qlist, int position, int swap_qubits)
 {
 	auto cir = QCircuit();
@@ -478,31 +472,29 @@ QCircuit QSVM::swap_test_p(QVec qlist, int position, int swap_qubits)
 	int phi_position = position + 1;
 	int psi_position = phi_position + 1;
 
-	// 交换线路
 	auto swap_cir = QCircuit();
 	for (int i = 0; i < swap_qubits; i++)
 		swap_cir << SWAP(qlist[phi_position], qlist[psi_position + i]);
 
-	// 交换线路受控于辅助比特
 	cir << swap_cir.control({ qlist[position] });
 	cir << H(qlist[position]);
 
 	return cir;
 }
 
-// 构建总线路
+// construction master circuit
 QCircuit QSVM::construct_circuit(QVec qlist, std::vector<double> x_coefficient, std::vector<std::vector<double>> x_vector)
 {
-	// psi 线路
+	// psi circuit
 	auto psi_cir = construct_state_psi(qlist, m_psi_position, m_u_coefficient, m_u_vector, x_coefficient, x_vector, m_oracle_qubits);
 
-	// phi 线路
+	// phi circuit
 	auto phi_cir = construct_state_phi(qlist, m_phi_position);
 
-	// swap-test 线路
+	// swap-test circuit
 	auto swap_cir = swap_test_p(qlist, m_swap_position, m_swap_qubits);
 
-	// 构建线路
+	// construction circuit
 	auto cir = QCircuit();
 	cir << phi_cir;
 	cir << psi_cir;
@@ -511,7 +503,6 @@ QCircuit QSVM::construct_circuit(QVec qlist, std::vector<double> x_coefficient, 
 	return cir;
 }
 
-// 处理输入 x作为training data oracle的输入
 void QSVM::preprocess_input_x(std::vector<double> query_x, std::vector<std::vector<double>> & extend_x, std::vector<double> &extend_x_coefficient)
 {
 	extend_x.push_back(query_x);
@@ -521,15 +512,13 @@ void QSVM::preprocess_input_x(std::vector<double> query_x, std::vector<std::vect
 	extend_x_coefficient = get_coefficient(extend_x);
 }
 
-// 分类
+// predict
 double QSVM::predict(QVec qlist, std::vector<ClassicalCondition> clist, std::vector<double>  query_x)
 {
-	// 查询 向量x的预处理
 	std::vector<std::vector<double>> x_vector;
 	std::vector<double> 	x_coefficient;
 	preprocess_input_x(query_x, x_vector, x_coefficient);
 
-	// 线路构建
 	auto prog = QProg();
 	auto	cir = construct_circuit(qlist, x_coefficient, x_vector);
 	prog << cir;

@@ -1184,6 +1184,7 @@ PYBIND11_MODULE(pyQPanda, m)
 
     py::class_<Qubit>(m, "Qubit")
         .def("getPhysicalQubitPtr", &Qubit::getPhysicalQubitPtr, py::return_value_policy::reference)
+		.def("get_phy_addr", &Qubit::get_phy_addr, py::return_value_policy::reference)
         ;
 
     py::class_<PhysicalQubit>(m, "PhysicalQubit")
@@ -1394,6 +1395,57 @@ PYBIND11_MODULE(pyQPanda, m)
         , "get the target prog  matrix",
         py::return_value_policy::automatic
         );
+
+	py::class_<LayerNodeInfo>(m, "LayerNodeInfo")
+		.def(py::init<>([](const NodeIter iter, QVec target_qubits, QVec control_qubits,
+			GateType type, const bool dagger){
+		return LayerNodeInfo(iter, target_qubits, control_qubits, type, dagger);}))
+		.def_readwrite("m_iter", &LayerNodeInfo::m_iter)
+		.def_readwrite("m_target_qubits", &LayerNodeInfo::m_target_qubits)
+		.def_readwrite("m_ctrl_qubits", &LayerNodeInfo::m_ctrl_qubits)
+		.def_readwrite("m_cbits", &LayerNodeInfo::m_cbits)
+		.def_readwrite("m_params", &LayerNodeInfo::m_params)
+		.def_readwrite("m_name", &LayerNodeInfo::m_name)
+		.def_readwrite("m_type", &LayerNodeInfo::m_type)
+		.def_readwrite("m_dagger", &LayerNodeInfo::m_dagger);
+
+	m.def("circuit_layer", [](QProg prg) {
+		py::list ret_data;
+		auto layer_info = prog_layer(prg);
+		std::vector<std::vector<LayerNodeInfo>> tmp_layer(layer_info.size());
+		size_t layer_index = 0;
+		for (auto& cur_layer : layer_info)
+		{
+			for (auto& node_item : cur_layer)
+			{
+				//single gate first
+				if ((node_item.first->m_ctrl_qubits.size() == 0) && (node_item.first->m_target_qubits.size() == 1))
+				{
+					tmp_layer[layer_index].insert(tmp_layer[layer_index].begin(), LayerNodeInfo(node_item.first));
+				}
+				else
+				{
+					tmp_layer[layer_index].push_back(LayerNodeInfo(node_item.first));
+				}
+			}
+
+			++layer_index;
+		}
+		ret_data.append(tmp_layer);
+
+		std::vector<int> vec_qubits_in_use;
+		get_all_used_qubits(prg, vec_qubits_in_use);
+		ret_data.append(vec_qubits_in_use);
+
+		std::vector<int> vec_cbits_in_use;
+		get_all_used_class_bits(prg, vec_cbits_in_use);
+		ret_data.append(vec_cbits_in_use);
+
+		return ret_data;
+	}, py::arg("prog"),
+		"quantum circuit layering",
+		py::return_value_policy::automatic
+		);
 
     m.def("draw_qprog", [](QProg prg, const NodeIter itr_start, const NodeIter itr_end) {
 		auto text_pic_str = draw_qprog(prg, itr_start, itr_end);

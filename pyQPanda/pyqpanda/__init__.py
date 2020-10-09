@@ -7,6 +7,7 @@ Licensed Under Apache Licence 2.0
 from .utils import *
 from .pyQPanda import *
 from .Variational import back
+from .Visualization.circuit_draw import *
 import warnings
 
 #  classes
@@ -26,6 +27,7 @@ from .pyQPanda import DoubleGateTransferType
 from .pyQPanda import GateType
 from .pyQPanda import QCircuit
 from .pyQPanda import hadamard_circuit
+from .pyQPanda import LayerNodeInfo
 from .pyQPanda import NodeInfo
 from .pyQPanda import NodeIter
 from .pyQPanda import NodeType
@@ -81,7 +83,6 @@ from .Operator.pyQPandaOperator import PauliOperator
 from .Operator.pyQPandaOperator import VarFermionOperator
 from .Operator.pyQPandaOperator import VarPauliOperator
 
-
 # funtions
 
 from .pyQPanda import accumulateProbability
@@ -125,6 +126,7 @@ from .pyQPanda import destroy_quantum_machine
 from .pyQPanda import directly_run
 from .pyQPanda import div
 from .pyQPanda import dot
+from .pyQPanda import circuit_layer
 from .pyQPanda import draw_qprog
 from .pyQPanda import draw_qprog_with_clock
 from .pyQPanda import fit_to_gbk

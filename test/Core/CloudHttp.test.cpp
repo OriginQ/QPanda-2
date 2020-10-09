@@ -1,6 +1,6 @@
-#include "QPanda.h"
-
 #ifdef USE_CURL
+
+#include "QPanda.h"
 #include <chrono>
 #include <thread>
 #include <curl/curl.h>
@@ -9,8 +9,6 @@
 using namespace std;
 using namespace rapidjson;
 USING_QPANDA
-
-
 
 static size_t recv_json_data
 (void *ptr, size_t size, size_t nmemb, void *stream)
@@ -95,7 +93,7 @@ void curl_test()
     {
         stringstream errMsg;
         errMsg << "post failed : " << curl_easy_strerror(res) << std::endl;
-        cout << errMsg.str() <<endl;
+        cout << errMsg.str() << endl;
     }
 
     curl_slist_free_all(headers);
@@ -174,5 +172,9 @@ TEST(CloudHttp, Cluster)
     QCM.finalize();
 }
 
+
 #endif // USE_CURL
+
+
+
 

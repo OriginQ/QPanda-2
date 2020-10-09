@@ -350,7 +350,7 @@ namespace DRAW_TEXT_PIC
 		void append_ctrl_line(int line_start, int line_end, int pos);
 		bool check_time_sequence_one_qubit(WireIter qu_wire_itr, TopoSeqIter cur_layer_iter);
 		bool is_qubit_in_vec(const int qubit, const QVec& vec);
-		void append_gate_param(std::string &gate_name, std::shared_ptr<AbstractQGateNode> p_gate, GateType type);
+		void append_gate_param(std::string &gate_name, pOptimizerNodeInfo node_info);
 		bool check_ctrl_gate_time_sequence_conflicting(const QVec &control_qubits_vec, const QVec &qubits_vector);
 		void fill_layer(TopoSeqIter lay_iter);
 		void get_gate_from_next_layer(TopoSeqIter to_fill_lay_iter, QVec &unused_qubits_vec, TopoSeqIter next_lay_iter);
@@ -425,7 +425,7 @@ namespace DRAW_TEXT_PIC
 	* @brief draw layer nodes
 	* @ingroup QProgInfo
 	*/
-	class DrawByLayer : public AbstractHandleNodes<std::shared_ptr<QNode>&>
+	class DrawByLayer : public AbstractHandleNodes<std::shared_ptr<QNode>&, pOptimizerNodeInfo&>
 	{
 	public:
 		DrawByLayer(DrawPicture& parent)
@@ -433,9 +433,9 @@ namespace DRAW_TEXT_PIC
 		{}
 		~DrawByLayer() {}
 
-		void handle_measure_node(std::shared_ptr<QNode> &p_node) override;
-		void handle_reset_node(std::shared_ptr<QNode> &p_node) override;
-		void handle_gate_node(std::shared_ptr<QNode> &p_node) override;
+		void handle_measure_node(std::shared_ptr<QNode>& p_node, pOptimizerNodeInfo& p_node_info) override;
+		void handle_reset_node(std::shared_ptr<QNode>& p_node, pOptimizerNodeInfo& p_node_info) override;
+		void handle_gate_node(std::shared_ptr<QNode>& p_node, pOptimizerNodeInfo& p_node_info) override;
 
 	private:
 		DrawPicture& m_parent;

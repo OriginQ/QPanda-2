@@ -632,44 +632,43 @@ void DrawPicture::append_swap_gate(string gate_name, QVec &qubits_vector, QVec &
 	}
 }
 
-void DrawPicture::append_gate_param(string &gate_name, std::shared_ptr<AbstractQGateNode> p_gate, GateType type)
+void DrawPicture::append_gate_param(string &gate_name, pOptimizerNodeInfo node_info)
 {
 	string gateParamStr;
+	std::shared_ptr<AbstractQGateNode> p_gate = dynamic_pointer_cast<AbstractQGateNode>(*(node_info->m_iter));
 	get_gate_parameter(p_gate, gateParamStr);
-	gate_name = TransformQGateType::getInstance()[type];
+	gate_name = TransformQGateType::getInstance()[node_info->m_type];
 	gate_name.append(gateParamStr);
-	if (p_gate->isDagger())
+	if (check_dagger(p_gate, node_info->m_dagger))
 	{
 		gate_name.append(".dag");
 	}
 }
 
-void DrawByLayer::handle_measure_node(std::shared_ptr<QNode>& p_node)
+void DrawByLayer::handle_measure_node(std::shared_ptr<QNode>& p_node, pOptimizerNodeInfo& p_node_info)
 {
 	std::shared_ptr<AbstractQuantumMeasure> p_measure = dynamic_pointer_cast<AbstractQuantumMeasure>(p_node);
 	m_parent.appendMeasure(p_measure);
 }
 
-void DrawByLayer::handle_reset_node(std::shared_ptr<QNode>& p_node)
+void DrawByLayer::handle_reset_node(std::shared_ptr<QNode>& p_node, pOptimizerNodeInfo& p_node_info)
 {
 	std::shared_ptr<AbstractQuantumReset> p_reset = dynamic_pointer_cast<AbstractQuantumReset>(p_node);
 	m_parent.append_reset(p_reset);
 }
 
-void DrawByLayer::handle_gate_node(std::shared_ptr<QNode>& p_node)
+void DrawByLayer::handle_gate_node(std::shared_ptr<QNode>& p_node, pOptimizerNodeInfo& p_node_info)
 {
 	QVec qubits_vector;
 	string gate_name;
-	std::shared_ptr<AbstractQGateNode> p_gate = dynamic_pointer_cast<AbstractQGateNode>(p_node);
-	p_gate->getQuBitVector(qubits_vector);
+	qubits_vector = p_node_info->m_target_qubits;
 
 	//get control info
-	QVec control_qubits_vec;
-	p_gate->getControlVector(control_qubits_vec);
+	QVec control_qubits_vec = p_node_info->m_ctrl_qubits;
 
 	//get gate parameter
-	GateType gate_type = (GateType)(p_gate->getQGate()->getGateType());
-	m_parent.append_gate_param(gate_name, p_gate, gate_type);
+	GateType gate_type = p_node_info->m_type;
+	m_parent.append_gate_param(gate_name, p_node_info);
 
 	if (1 == qubits_vector.size())
 	{
@@ -735,7 +734,7 @@ void DrawPicture::draw_by_layer()
 		{
 			auto n = seq_node_item.first;
 			auto p_node = *(n->m_iter);
-			tmp_drawer.handle_work(sequence_node_type_to_node_type((SequenceNodeType)(n->m_type)), p_node);
+			tmp_drawer.handle_work(sequence_node_type_to_node_type((SequenceNodeType)(n->m_type)), p_node, n);
 		}
 
 		//update m_text_len
@@ -919,7 +918,7 @@ void DrawPicture::draw_by_time_sequence()
 		{
 			auto n = seq_node_item.first;
 			auto p_node = *(n->m_iter);
-			tmp_drawer.handle_work(sequence_node_type_to_node_type((SequenceNodeType)(n->m_type)), p_node);
+			tmp_drawer.handle_work(sequence_node_type_to_node_type((SequenceNodeType)(n->m_type)), p_node, n);
 		}
 
 		// check time sequence
@@ -1065,15 +1064,11 @@ void TryToMergeTimeSequence::handle_gate_node(DrawPicture::WireIter& cur_qu_wire
 
 void TryToMergeTimeSequence::try_to_append_gate_to_cur_qu_wire(DrawPicture::WireIter &qu_wire_itr, TopoSeqLayerIter& seq_iter, TopoSeqLayer& node_vec)
 {
-	QVec control_qubits_vec;
-	QVec qubits_vector;
 	const auto &seq_node = seq_iter->first;
-	std::shared_ptr<AbstractQGateNode> p_gate = dynamic_pointer_cast<AbstractQGateNode>(*(seq_node->m_iter));
-	p_gate->getControlVector(control_qubits_vec);
-	p_gate->getQuBitVector(qubits_vector);
-
+	QVec control_qubits_vec = seq_node->m_ctrl_qubits;
+	QVec qubits_vector = seq_node->m_target_qubits;
 	string gate_name;
-	m_parent.append_gate_param(gate_name, p_gate, (GateType)(seq_node->m_type));
+	m_parent.append_gate_param(gate_name, seq_node);
 
 	if ((qubits_vector.size() > 1) || (control_qubits_vec.size() > 0))
 	{

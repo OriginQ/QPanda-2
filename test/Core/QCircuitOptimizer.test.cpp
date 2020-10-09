@@ -41,7 +41,8 @@ bool test_cir_optimize_fun1()
 	std::vector<std::pair<QCircuit, QCircuit>> optimitzer_cir;
 	/*optimitzer_cir.push_back(std::pair<QCircuit, QCircuit>(cir3, cir4));
 	optimitzer_cir.push_back(std::pair<QCircuit, QCircuit>(cir5, cir6));*/
-	QCircuitOptimizerConfig().get_replace_cir(optimitzer_cir);
+	QCircuitOptimizerConfig config_reader;
+	config_reader.get_replace_cir(optimitzer_cir);
 	for (auto cir_item : optimitzer_cir)
 	{
 		cout << "target cir:" << endl << cir_item.first << endl;
@@ -49,6 +50,9 @@ bool test_cir_optimize_fun1()
 	}
 
 	prog << cir << cir2 << Reset(q[1]) << cir3 << cir5 << MeasureAll(q, c);
+	cout << "befort optimizered QProg:" << endl;
+	cout << prog << endl;
+
 	sub_cir_optimizer(prog, optimitzer_cir);
 
 	//prog << cir << cir2 << Reset(q[1]) << cir4 << cir6 << MeasureAll(q, c);

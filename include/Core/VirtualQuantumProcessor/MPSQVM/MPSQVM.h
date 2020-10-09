@@ -1,6 +1,8 @@
 #ifndef MPSQVM_H 
 #define MPSQVM_H
 
+#include <map>
+#include <string>
 #include "Core/VirtualQuantumProcessor/MPSQVM/MPSImplQPU.h"
 #include "Core/VirtualQuantumProcessor/MPSQVM/NoiseSimulator.h"
 
@@ -15,12 +17,17 @@ class MPSQVM : public QVM, TraversalInterface<QCircuitConfig&>
 public:
     virtual void init();
     virtual std::map<std::string, bool> directlyRun(QProg &prog);
+    std::map<std::string, size_t> quickMeasure(QVec vQubit, size_t shots);
+
     virtual std::map<std::string, size_t> runWithConfiguration(QProg &prog,
         std::vector<ClassicalCondition> &cbits, int shots);
     virtual std::map<std::string, size_t> runWithConfiguration(QProg &prog,
         std::vector<ClassicalCondition> &cbits, rapidjson::Document &doc);
     virtual QStat getQState();
     virtual prob_tuple pMeasure(QVec qubits, int select_max = -1);
+    virtual prob_tuple PMeasure(QVec qubits, int select_max = -1);
+
+    prob_vec PMeasure_no_index(QVec qubits);
 
     prob_tuple getProbTupleList(QVec, int);
     prob_vec getProbList(QVec, int  selectMax = -1);

@@ -27,18 +27,57 @@ def utilities_fun():
     machine.finalize()
 
 
+def MPS_fun():
+
+    qvm = MPSQVM()
+    qvm.set_configure(64, 64)
+    qvm.initQVM()
+
+    q = qvm.qAlloc_many(10)
+    c = qvm.cAlloc_many(10)
+
+    # 构建量子程序
+    prog = QProg()
+    prog.insert(hadamard_circuit(q))\
+        .insert(CZ(q[2], q[4]))\
+        .insert(CZ(q[3], q[7]))\
+        .insert(CNOT(q[0], q[1]))\
+        .insert(Measure(q[0], c[0]))\
+        .insert(Measure(q[1], c[1]))\
+        .insert(Measure(q[2], c[2]))\
+        .insert(Measure(q[3], c[3]))
+
+    # 量子程序运行1000次，并返回测量结果
+    result0 = qvm.run_with_configuration(prog, c, 100)
+
+    result1 = qvm.prob_run_dict(prog, [q[0], q[1], q[2]], -1)
+
+    # 打印量子态在量子程序多次运行结果中出现的次数
+    print(result0)
+    print(result1)
+
+    qvm.finalize()
+
+
 def cpu_qvm_fun():
 
-    machine = CPUQVM()
-    machine.initQVM()
+    qvm = CPUQVM()
+    qvm.initQVM()
+    qubits = qvm.qAlloc_many(4)
+    cbits = qvm.cAlloc_many(4)
 
-    prog_trans, qv, cv = convert_qasm_to_qprog("D:\\123.txt", machine)
-    # print(result1)
-    # print(result2)
+    # 构建量子程序
+    prog = QProg()
+    prog.insert(H(qubits[0])).insert(
+        CNOT(qubits[0], qubits[1])).insert(Measure(qubits[0], cbits[0]))
 
-    print(convert_qprog_to_originir(prog_trans, machine))
+    # 量子程序运行1000次，并返回测量结果
+    result = qvm.run_with_configuration(prog, cbits, 1000)
 
-    machine.finalize()
+    # 打印量子态在量子程序多次运行结果中出现的次数
+    print(result)
+
+    qvm.finalize()
 
 
 def singleAmp_fun():
@@ -92,15 +131,15 @@ def singleAmp_fun():
 
 def partialAmp_fun():
 
+    PI = 3.141593
     machine = PartialAmpQVM()
-
     machine.init_qvm()
 
     q = machine.qAlloc_many(10)
     c = machine.cAlloc_many(10)
 
+    # 构建量子程序
     prog = QProg()
-
     prog.insert(hadamard_circuit(q))\
         .insert(CZ(q[1], q[5]))\
         .insert(CZ(q[3], q[7]))\
@@ -116,8 +155,6 @@ def partialAmp_fun():
         .insert(RY(q[2], PI / 4))\
         .insert(RZ(q[9], PI / 4))\
         .insert(CZ(q[2], q[3]))
-
-    print(to_originir(prog, machine))
 
     machine.run(prog)
 
@@ -196,10 +233,10 @@ def QCloud_fun():
     # QCM.set_inqure_api(
     #     "10.10.12.140:8060/api/taskApi/getTaskDetail.json")
 
-    QCM.set_compute_api(
-        "https://qcloud.qubitonline.cn/api/taskApi/submitTask.json")
-    QCM.set_inqure_api(
-        "https://qcloud.qubitonline.cn/api/taskApi/getTaskDetail.json")
+    # QCM.set_compute_api(
+    #     "https://qcloud.qubitonline.cn/api/taskApi/submitTask.json")
+    # QCM.set_inqure_api(
+    #     "https://qcloud.qubitonline.cn/api/taskApi/getTaskDetail.json")
 
     qlist = QCM.qAlloc_many(6)
     clist = QCM.cAlloc_many(6)
@@ -210,11 +247,11 @@ def QCloud_fun():
                 .insert(Measure(qlist[0], clist[0]))\
                 .insert(Measure(qlist[1], clist[1]))
 
-    pmeasure_prog = QProg()
-    pmeasure_prog.insert(hadamard_circuit(qlist))\
-                 .insert(CZ(qlist[1], qlist[5]))\
-                 .insert(RX(qlist[2], PI / 4))\
-                 .insert(RX(qlist[1], PI / 4))\
+    # pmeasure_prog = QProg()
+    # pmeasure_prog.insert(hadamard_circuit(qlist))\
+    #              .insert(CZ(qlist[1], qlist[5]))\
+    #              .insert(RX(qlist[2], PI / 4))\
+    #              .insert(RX(qlist[1], PI / 4))\
 
     # result0 = QCM.full_amplitude_measure(measure_prog, 100)
     # print(result0)
@@ -237,8 +274,8 @@ def QCloud_fun():
     # print(result4)
     # print("noise_measure pass !")
 
-    result5 = QCM.real_chip_measure(measure_prog, 100)
-    print(result5)
+    # result5 = QCM.real_chip_measure(measure_prog, 100)
+    # print(result5)
     print("real_chip_measure pass !")
 
     # result6 = QCM.get_state_tomography_density(measure_prog, 100)
@@ -337,7 +374,8 @@ def jkuqvm_fun():
 
 if __name__ == "__main__":
 
-    QCloud_fun()
+    # QCloud_fun()
+    MPS_fun()
     # cpu_qvm_fun()
     # singleAmp_fun()
     # partialAmp_fun()
@@ -345,3 +383,46 @@ if __name__ == "__main__":
     # graph_match_fun()
     # noise_fun()
     # jkuqvm_fun()
+
+    # 通过QCloud()创建量子云虚拟机
+    # QCM = QCloud()
+
+    # # 通过传入当前用户的token来初始化
+    # QCM.init_qvm("EE3DE52BFF2245908EA9F47EFC8D50A3")
+
+    # qlist = QCM.qAlloc_many(6)
+    # clist = QCM.cAlloc_many(6)
+
+    # # 构建量子程序，可以手动输入，也可以来自OriginIR或QASM语法文件等
+    # measure_prog = QProg()
+    # measure_prog.insert(hadamard_circuit(qlist))\
+    #             .insert(CZ(qlist[1], qlist[5]))\
+    #             .insert(Measure(qlist[0], clist[0]))\
+    #             .insert(Measure(qlist[1], clist[1]))
+
+    # pmeasure_prog = QProg()
+    # pmeasure_prog.insert(hadamard_circuit(qlist))\
+    #     .insert(CZ(qlist[1], qlist[5]))\
+    #     .insert(RX(qlist[2], PI / 4))\
+    #     .insert(RX(qlist[1], PI / 4))\
+
+    # 调用真实芯片计算接口，需要量子程序和测量次数两个参数
+    # result = QCM.real_chip_measure(measure_prog, 100)
+    # print(result)
+
+    # result0 = QCM.full_amplitude_measure(measure_prog, 100)
+    # print(result0)
+    # result1 = QCM.full_amplitude_pmeasure(pmeasure_prog, [0, 1, 2])
+    # print(result1)
+
+    # result2 = QCM.partial_amplitude_pmeasure(pmeasure_prog, ["0", "1", "2"])
+    # print(result2)
+
+    # result3 = QCM.single_amplitude_pmeasure(pmeasure_prog, "0")
+    # print(result3)
+
+    # QCM.set_noise_model(NoiseModel.BIT_PHASE_FLIP_OPRATOR, [0.01], [0.02])
+    # result4 = QCM.noise_measure(measure_prog, 100)
+    # print(result4)
+
+    # QCM.finalize()

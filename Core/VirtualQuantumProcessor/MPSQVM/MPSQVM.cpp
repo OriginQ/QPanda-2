@@ -1,4 +1,6 @@
 #include "Core/VirtualQuantumProcessor/MPSQVM/MPSQVM.h"
+USING_QPANDA
+using namespace std;
 
 static void merge_qvec(QVec &v1, const QVec &v2)
 {
@@ -232,6 +234,23 @@ QStat MPSQVM::getQState()
         throw run_fail("m_simulator error, need run the prog");
     }
     return m_simulator->getQState();
+}
+
+std::map<std::string, size_t> MPSQVM::quickMeasure(QVec vQubit, size_t shots)
+{
+    QCERR("quickMeasure");
+    throw run_fail("quickMeasure");
+}
+
+
+prob_vec MPSQVM::PMeasure_no_index(QVec qubits)
+{
+    return getProbList(qubits, -1);
+}
+
+prob_tuple MPSQVM::PMeasure(QVec qubits, int select_max)
+{
+    return pMeasure(qubits, select_max);
 }
 
 prob_tuple MPSQVM::pMeasure(QVec qubits, int select_max)

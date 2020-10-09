@@ -225,6 +225,7 @@ void init_quantum_machine(py::module &m)
         .def("quick_measure", &class_name::quickMeasure, "qubit_list"_a, "shots"_a,py::return_value_policy::reference)\
 
     DEFINE_IDEAL_QVM(CPUQVM);
+    DEFINE_IDEAL_QVM(MPSQVM);
     DEFINE_IDEAL_QVM(CPUSingleThreadQVM);
 
 #ifdef USE_CUDA

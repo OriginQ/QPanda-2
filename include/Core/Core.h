@@ -79,7 +79,7 @@ limitations under the License.
 #include "Core/Variational/Optimizer.h"
 
 #include "Core/VirtualQuantumProcessor/NoiseQPU/NoiseModel.h"  
-#include "Core/VirtualQuantumProcessor/MPSQVM/MPSImplQPU.h"
+#include "Core/VirtualQuantumProcessor/MPSQVM/MPSQVM.h"
 
 QPANDA_BEGIN
 /**

@@ -531,8 +531,8 @@ bool QCloudMachine::parser_cluster_submit_json(std::string &recv_json, std::stri
             }
             else
             {
-                QCERR("un-activate products or lack of computing power");
-                throw run_fail("un-activate products or lack of computing power");
+                QCERR("un-activate products or lack of computing power or Feature is offline");
+                throw run_fail("un-activate products or lack of computing power or Feature is offline");
             }
         }
         else

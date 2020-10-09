@@ -874,7 +874,6 @@ void DecomposeControlUnitarySingleQGate::execute(std::shared_ptr<AbstractQGateNo
     auto new_gate =QGATE_SPACE::create_quantum_gate(class_name, 
 		target_matrix);
 
-    delete(qgate);
     cur_node->setQGate(new_gate);
 }
 

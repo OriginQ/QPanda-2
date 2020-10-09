@@ -25,7 +25,6 @@ limitations under the License.
 #include "ThirdParty/Eigen/Eigen"
 #include <iomanip>
 
-
 using rvector_t = Eigen::Matrix<qstate_type, Eigen::Dynamic, 1>;
 using cvector_t = Eigen::Matrix<qcomplex_t, Eigen::Dynamic, 1>;
 using cmatrix_t = Eigen::Matrix< qcomplex_t, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;

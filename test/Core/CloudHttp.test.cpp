@@ -1,5 +1,6 @@
 #ifdef USE_CURL
 
+
 #include "QPanda.h"
 #include <chrono>
 #include <thread>
@@ -106,8 +107,47 @@ void curl_test()
     std::this_thread::sleep_for(std::chrono::milliseconds(3000));
 }
 
+void ttt()
+{
+    //通过QCloudMachine创建量子云虚拟机
+    QCloudMachine QCM;;
+
+    //通过传入当前用户的token来初始化
+    QCM.init("592AA472AF7B40749FE9075BC7C97FAE");
+    auto qlist = QCM.allocateQubits(6);
+    auto clist = QCM.allocateCBits(6);
+
+    //构建量子程序
+    auto measure_prog = QProg();
+    measure_prog << HadamardQCircuit(qlist)
+        << CZ(qlist[1], qlist[5])
+        << CZ(qlist[0], qlist[4])
+        << RX(qlist[2], PI / 4)
+        << RX(qlist[1], PI / 4)
+        << CZ(qlist[2], qlist[3])
+        << Measure(qlist[0], clist[0])
+        << Measure(qlist[1], clist[1])
+        << Measure(qlist[2], clist[2]);
+
+    auto pmeasure_prog = QProg();
+    pmeasure_prog << HadamardQCircuit(qlist)
+        << CZ(qlist[1], qlist[5])
+        << RX(qlist[2], PI / 4)
+        << RX(qlist[1], PI / 4);
+
+    //调用真实芯片计算接口，需要量子程序和测量次数两个参数
+    auto result = QCM.real_chip_measure(measure_prog, 100);
+    for (auto val : result)
+    {
+        cout << val.first << " : " << val.second << endl;
+    }
+
+    QCM.finalize();
+}
+
 TEST(CloudHttp, Cluster)
 {
+    ttt();
     //curl_test();
 
     QCloudMachine QCM;;
@@ -173,8 +213,6 @@ TEST(CloudHttp, Cluster)
 }
 
 
+
 #endif // USE_CURL
-
-
-
 

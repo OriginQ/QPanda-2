@@ -339,7 +339,6 @@ private:
 	std::vector<std::vector <QStat> >  m_kraus_mats_vec;
 	std::vector<std::string > m_kraus_gates_vec;
 
-
     void _getValidGatesMatrix();
     rapidjson::Document m_doc;
     void run(QProg&);

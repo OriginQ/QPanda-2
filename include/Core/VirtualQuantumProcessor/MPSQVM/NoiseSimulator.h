@@ -1,9 +1,10 @@
 #ifndef NOISE_SIMULATOR_H
 #define NOISE_SIMULATOR_H
 
-#include "QPanda.h"
 #include "Core/VirtualQuantumProcessor/MPSQVM/MPSImplQPU.h"
 #include "Core/VirtualQuantumProcessor/RandomEngine/RandomEngine.h"
+
+QPANDA_BEGIN
 
 using DoubleQubits = std::pair<size_t, size_t>;
 
@@ -79,4 +80,7 @@ private:
     void handle_depolarizing_noise_model(const std::vector<double>&, QVec);
     void handle_noise_gate(const std::vector<double>& params, QVec targets);
 };
+
+QPANDA_END
+
 #endif  //!NOISE_SIMULATOR_H

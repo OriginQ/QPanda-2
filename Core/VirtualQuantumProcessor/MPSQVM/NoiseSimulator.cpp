@@ -1,10 +1,13 @@
+#include <set>
 #include "Core/VirtualQuantumProcessor/MPSQVM/NoiseSimulator.h"
 
+USING_QPANDA
+using namespace std;
 using SINGLE_GATE_FUNC = std::function<QGate(Qubit*)>;
 
 static void vector_unique(Qnum &qubits)
 {
-    std::set<int> qubits_set(qubits.begin(), qubits.end());
+    set<int> qubits_set(qubits.begin(), qubits.end());
     qubits.assign(qubits_set.begin(), qubits_set.end());
     return;
 }

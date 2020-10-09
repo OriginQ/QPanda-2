@@ -8,6 +8,7 @@
 #include "Core/Utilities/QProgTransform/QProgToDAG/TopologSequence.h"
 #include <memory>
 #include "Core/Utilities/QProgInfo/QGateCounter.h"
+#include "Core/Utilities//Tools/JsonConfigParam.h"
 
 QPANDA_BEGIN
 
@@ -84,6 +85,70 @@ using pOptimizerNodeInfo = std::shared_ptr<OptimizerNodeInfo>;
 using GatesBufferType = std::pair<size_t, std::list<pOptimizerNodeInfo>>;
 using OptimizerSink = std::map<size_t, std::list<pOptimizerNodeInfo>>;
 
+struct LayerNodeInfo
+{
+	NodeIter m_iter;
+	std::vector<Qubit*> m_target_qubits;
+	std::vector<Qubit*> m_ctrl_qubits;
+	std::vector<int> m_cbits;
+	std::vector<double> m_params;
+	std::string m_name;
+	int m_type;
+	bool m_dagger;
+	LayerNodeInfo(){}
+	LayerNodeInfo(const pOptimizerNodeInfo node)
+		:m_iter(node->m_iter)
+		, m_type(node->m_type)
+		, m_dagger(node->m_dagger)
+	{
+		init(node->m_target_qubits, node->m_ctrl_qubits);
+	}
+
+	LayerNodeInfo(const NodeIter iter, QVec target_qubits, QVec control_qubits,
+		GateType type, const bool dagger)
+		:m_iter(iter)
+		, m_type(type)
+		, m_dagger(dagger)
+	{
+		init(target_qubits, control_qubits);
+	}
+
+	void init(QVec& target_qubits, QVec& ctrl_qubits) {
+		for (const auto & item : target_qubits)
+		{
+			m_target_qubits.push_back(item);
+		}
+
+		for (const auto & item : ctrl_qubits)
+		{
+			m_ctrl_qubits.push_back(item);
+		}
+
+		if (-1 == m_type)
+		{
+			auto p_measure = std::dynamic_pointer_cast<AbstractQuantumMeasure>(*m_iter);
+			m_cbits.push_back(p_measure->getCBit()->getValue());
+		}
+
+		if (0 < m_type)
+		{
+			m_name = TransformQGateType::getInstance()[(GateType)m_type];
+			if (m_dagger)
+			{
+				m_name += ".dg";
+			}
+			m_params = get_gate_parameter(std::dynamic_pointer_cast<AbstractQGateNode>(*m_iter));
+		}
+	}
+
+	bool operator== (const LayerNodeInfo& other) const {
+		return ((other.m_iter == m_iter)
+			&& (other.m_target_qubits == m_target_qubits)
+			&& (other.m_ctrl_qubits == m_ctrl_qubits)
+			&& (other.m_type == m_type));
+	}
+};
+
 class ProcessOnTraversing : protected TraverseByNodeIter
 {
 public:
@@ -137,7 +202,8 @@ protected:
 	virtual void add_gate_to_buffer(NodeIter iter, QCircuitParam &cir_param, std::shared_ptr<QNode> parent_node, OptimizerSink& gates_buffer);
 	virtual void add_non_gate_to_buffer(NodeIter iter, NodeType node_type, QVec gate_qubits, QCircuitParam &cir_param,
 		OptimizerSink& gates_buffer, std::shared_ptr<QNode> parent_node = nullptr);
-	virtual size_t get_node_layer(QVec gate_qubits, OptimizerSink& gate_buffer);
+	size_t get_node_layer(QVec gate_qubits, OptimizerSink& gate_buffer);
+	size_t get_node_layer(const std::vector<int>& gate_qubits, OptimizerSink& gate_buffer);
 	virtual size_t get_min_include_layers();
 	void init_gate_buf() {
 		for (const auto& item : m_qubits)
@@ -152,30 +218,15 @@ protected:
 	size_t m_min_layer;
 };
 
-class QProgLayer : protected ProcessOnTraversing
-{
-public:
-	QProgLayer(){}
-	~QProgLayer() {}
-
-	void layer(QProg src_prog) { run_traversal(src_prog); }
-	void process(const bool on_travel_end = false) override;
-	void append_topolog_seq(TopologSequence<pOptimizerNodeInfo>& tmp_seq);
-
-	const TopologSequence<pOptimizerNodeInfo>& get_topo_seq() { return m_topolog_sequence; }
-
-private:
-	TopologSequence<pOptimizerNodeInfo> m_topolog_sequence;
-};
-
 /**
 * @brief Program layering.
 * @ingroup Utilities
 * @param[in] prog  the source prog
-* @param[in] bool Whether to start single gate exclusive layer, default is false
+* @param[in] bool Whether to enable low-frequency qubit compensation, default is false
+* @param[in] const std::string config data, @See JsonConfigParam::load_config()
 * @return the TopologSequence
 */
-const TopologSequence<pOptimizerNodeInfo> prog_layer(QProg src_prog, const bool b_double_gate_one_layer = false);
+TopologSequence<pOptimizerNodeInfo> prog_layer(QProg src_prog, const bool b_enable_qubit_compensation = false, const std::string config_data = CONFIG_PATH);
 
 QPANDA_END
 #endif // PROCESS_ON_TRAVERSING_H

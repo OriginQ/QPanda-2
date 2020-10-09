@@ -267,6 +267,10 @@ QuantumGate * OriginQGate::getQGate() const
 
 void OriginQGate::setQGate(QuantumGate * qgate)
 {
+	if ((nullptr != m_qgate) && (qgate != m_qgate))
+	{
+		delete m_qgate;
+	}
     m_qgate = qgate;
 }
 

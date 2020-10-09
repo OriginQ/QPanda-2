@@ -747,10 +747,10 @@ string QPanda::printAllNodeType(QProg prog)
 	return print_node_type.printNodesType();
 }
 
-void QPanda::get_gate_parameter(std::shared_ptr<AbstractQGateNode> pGate, std::string& para_str)
+std::vector<double> QPanda::get_gate_parameter(std::shared_ptr<AbstractQGateNode> pGate)
 {
 	GateType tmpType = (GateType)(pGate->getQGate()->getGateType());
-
+	std::vector<double> params;
 	switch (tmpType)
 	{
 	case PAULI_X_GATE:
@@ -764,11 +764,12 @@ void QPanda::get_gate_parameter(std::shared_ptr<AbstractQGateNode> pGate, std::s
 	case S_GATE:
 	case I_GATE:
 	case ECHO_GATE:
-    case BARRIER_GATE:
+	case BARRIER_GATE:
 	case CNOT_GATE:
 	case CZ_GATE:
 	case ISWAP_GATE:
 	case SQISWAP_GATE:
+	case ISWAP_THETA_GATE:
 	case SWAP_GATE:
 	case TWO_QUBIT_GATE:
 		break;
@@ -776,22 +777,20 @@ void QPanda::get_gate_parameter(std::shared_ptr<AbstractQGateNode> pGate, std::s
 	case U4_GATE:
 	{
 		QGATE_SPACE::U4 *u4gate = dynamic_cast<QGATE_SPACE::U4*>(pGate->getQGate());
-		para_str.append(string("(") + to_string(u4gate->getAlpha())
-			+ "," + to_string(u4gate->getBeta())
-			+ "," + to_string(u4gate->getGamma())
-			+ "," + to_string(u4gate->getDelta())
-			+ ")");
+		params.push_back(u4gate->getAlpha());
+		params.push_back(u4gate->getBeta());
+		params.push_back(u4gate->getGamma());
+		params.push_back(u4gate->getDelta());
 	}
 	break;
 
 	case RPHI_GATE:
 	{
 		QGATE_SPACE::RPhi *rphi_gate = dynamic_cast<QGATE_SPACE::RPhi*>(pGate->getQGate());
-		para_str.append(string("(") + to_string(rphi_gate->getBeta())
-			+ "," + to_string(rphi_gate->get_phi())
-			+ ")");
+		params.push_back(rphi_gate->getBeta());
+		params.push_back(rphi_gate->get_phi());
 	}
-		break;
+	break;
 
 	case U1_GATE:
 	case RX_GATE:
@@ -799,30 +798,25 @@ void QPanda::get_gate_parameter(std::shared_ptr<AbstractQGateNode> pGate, std::s
 	case RZ_GATE:
 	case CPHASE_GATE:
 	{
-		auto gate_parameter = dynamic_cast<QGATE_SPACE::AbstractSingleAngleParameter*>(pGate->getQGate());
-		string  gate_angle = to_string(gate_parameter->getParameter());
-		para_str.append(string("(") + gate_angle + ")");
+		auto single_angle_gate = dynamic_cast<QGATE_SPACE::AbstractSingleAngleParameter*>(pGate->getQGate());
+		params.push_back(single_angle_gate->getParameter());
 	}
 	break;
 
 	case U2_GATE:
 	{
 		QGATE_SPACE::U2 *u2_gate = dynamic_cast<QGATE_SPACE::U2*>(pGate->getQGate());
-		double phi = u2_gate->get_phi();
-		double lambda = u2_gate->get_lambda();
-		std::string  gate_angle = "(" + to_string(phi) + "," + to_string(lambda) + ")";
-		para_str.append(gate_angle);
+		params.push_back(u2_gate->get_phi());
+		params.push_back(u2_gate->get_lambda());
 	}
 	break;
 
 	case U3_GATE:
 	{
 		QGATE_SPACE::U3 *u3_gate = dynamic_cast<QGATE_SPACE::U3*>(pGate->getQGate());
-		double theta = u3_gate->get_theta();
-		double phi = u3_gate->get_phi();
-		double lambda = u3_gate->get_lambda();
-		std::string  gate_angle = "(" + to_string(theta) + ","+ to_string(phi) + "," + to_string(lambda) + ")";
-		para_str.append(gate_angle);
+		params.push_back(u3_gate->get_theta());
+		params.push_back(u3_gate->get_phi());
+		params.push_back(u3_gate->get_lambda());
 	}
 	break;
 
@@ -830,16 +824,61 @@ void QPanda::get_gate_parameter(std::shared_ptr<AbstractQGateNode> pGate, std::s
 	{
 		QuantumGate * gate_parameter = dynamic_cast<QuantumGate *>(pGate->getQGate());
 		auto angle = dynamic_cast<QGATE_SPACE::AbstractAngleParameter *>(gate_parameter);
-		string gate_four_theta = to_string(angle->getAlpha()) + ',' +
-			to_string(angle->getBeta()) + ',' +
-			to_string(angle->getGamma()) + ',' +
-			to_string(angle->getDelta());
-		para_str.append(string("(") + gate_four_theta + ")");
+		params.push_back(angle->getAlpha());
+		params.push_back(angle->getBeta());
+		params.push_back(angle->getGamma());
+		params.push_back(angle->getDelta());
 	}
 	break;
 
 	default:
 		QCERR("Unsupported GateNode");
+		std::cerr << "unsupport gate node : " << tmpType << std::endl;
 		break;
 	}
+
+	return params;
+}
+
+void QPanda::get_gate_parameter(std::shared_ptr<AbstractQGateNode> pGate, std::string& para_str)
+{
+	std::vector<double> param_vec = get_gate_parameter(pGate);
+	if (param_vec.size() == 0)
+	{
+		return;
+	}
+
+	for (size_t i = 0; i < param_vec.size(); ++i)
+	{
+		if (0 == i)
+		{
+			para_str.append(string("(") + to_string(param_vec[i]));
+		}
+		else
+		{
+			para_str.append("," + to_string(param_vec[i]));
+		}
+	}
+	para_str += ")";
+}
+
+bool QPanda::check_dagger(std::shared_ptr<AbstractQGateNode> p_gate, const bool& b_dagger)
+{
+	switch (p_gate->getQGate()->getGateType())
+	{
+	case PAULI_X_GATE:
+	case PAULI_Y_GATE:
+	case PAULI_Z_GATE:
+	case HADAMARD_GATE:
+	case CNOT_GATE:
+	case CZ_GATE:
+	case SWAP_GATE:
+		return false;
+		break;
+
+	default:
+		break;
+	}
+
+	return b_dagger;
 }

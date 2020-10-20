@@ -64,9 +64,9 @@ mark_as_advanced(ANTLR4_LIBRARY)
 
 set(QPANDA_LIBRARIES)
 list(APPEND QPANDA_LIBRARIES 
-            ${QPANDA_LIBRARY}
             ${QALG_LIBRARY}
             ${COMPONENTS_LIBRARY}
+            ${QPANDA_LIBRARY}
             #${TINY_LIBRARY}
             ${ANTLR4_LIBRARY})
 

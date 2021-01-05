@@ -49,7 +49,7 @@ void QProgToDAG::transformQGate(shared_ptr<AbstractQGateNode> gate_node, QProgDA
 	gate_used_qubits.erase(unique(gate_used_qubits.begin(), gate_used_qubits.end()), gate_used_qubits.end());
 	if (gate_used_qubits.size() != (node_info.m_qubits_vec.size() + node_info.m_control_vec.size()))
 	{
-		QCERR_AND_THROW_ERRSTR(runtime_error, "Control gate Error: Illegal control qubits.");
+		QCERR_AND_THROW(runtime_error, "Control gate Error: Illegal control qubits.");
 	}
 
 	node_info.m_dagger = gate_node->isDagger() ^ parm.m_is_dagger;

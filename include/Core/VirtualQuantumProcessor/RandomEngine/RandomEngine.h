@@ -96,11 +96,42 @@ inline double _default_random_generator() {
 	return engine();
 }
 
+class RandomEngine19937
+{
+public:
+    RandomEngine19937()
+    {
+        set_random_seed();
+    }
+
+    void set_random_seed()
+    {
+        m_mt.seed(std::chrono::system_clock::now().time_since_epoch().count());
+    }
+
+    void set_random_seed(size_t seed)
+    {
+        m_mt.seed(seed);
+    }
+
+    inline double random_double(double a = 0., double b = 1.)
+    {
+        return std::uniform_real_distribution<double>(a, b)(m_mt);
+    }
+
+    template<typename Float = double>
+    inline int random_discrete(const std::vector<Float> &probs)
+    {
+        return std::discrete_distribution<size_t>(probs.begin(), probs.end())(m_mt);
+    }
+private:
+    std::mt19937_64 m_mt;
+};
+
 inline double random_generator19937(double begine = 0, double end = 1)
 {
-    static std::mt19937_64 engine;
-    engine.seed(std::random_device()());
-    return std::uniform_real_distribution<double>(begine, end)(engine);
+    static RandomEngine19937 rng;
+    return rng.random_double(begine, end);
 }
 
-#endif RANDOM_ENGINE
+#endif // RANDOM_ENGINE_H

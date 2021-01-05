@@ -23,6 +23,8 @@ void QProgExecution::execute(std::shared_ptr<AbstractQGateNode> cur_node,
     TraversalConfig & param,
 	QPUImpl* qpu)
 {
+    QPANDA_OP(GateType::BARRIER_GATE == cur_node->getQGate()->getGateType(), return);
+
 	bool dagger = cur_node->isDagger() ^ param.m_is_dagger;
     if (cur_node->getTargetQubitNum() <= 0)
     {
@@ -275,7 +277,7 @@ void QProgExecution::qgate_set_rotation_angle_error(shared_ptr<AbstractQGateNode
     {
         auto angle_param = dynamic_cast<QGATE_SPACE::AbstractSingleAngleParameter *>(quantum_gate);
         auto angle = angle_param->getParameter();
-        angle = random_generator(angle - rotation_angle_error, angle + rotation_angle_error);
+        angle = random_generator19937(angle - rotation_angle_error, angle + rotation_angle_error);
         *new_quantum_gate = QGATE_SPACE::create_quantum_gate(gate_name, angle);
     }
     break;

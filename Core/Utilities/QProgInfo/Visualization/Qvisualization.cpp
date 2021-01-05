@@ -11,7 +11,7 @@ string QPanda::draw_qprog(QProg prog, const NodeIter itr_start/* = NodeIter()*/,
 	return test_text_pic.textDraw(LAYER);
 }
 
-std::string QPanda::draw_qprog(QProg prog, TopologSequence<pOptimizerNodeInfo>& m_layer_info)
+std::string QPanda::draw_qprog(QProg prog, LayeredTopoSeq& m_layer_info)
 {
 	std::vector<int> quantum_bits_in_use;
 	std::vector<int> class_bits_in_use;
@@ -30,16 +30,12 @@ std::string QPanda::draw_qprog(QProg prog, TopologSequence<pOptimizerNodeInfo>& 
 
 	auto text_pic_str = text_drawer.present();
 
-#if defined(WIN32) || defined(_WIN32)
-	text_pic_str = fit_to_gbk(text_pic_str);
-	text_pic_str = Utf8ToGbkOnWin32(text_pic_str.c_str());
-#endif
-
 	return text_pic_str;
 }
 
-std::string QPanda::draw_qprog_with_clock(QProg prog, const NodeIter itr_start/* = NodeIter()*/, const NodeIter itr_end /*= NodeIter()*/)
+std::string QPanda::draw_qprog_with_clock(QProg prog, const std::string config_data /*= CONFIG_PATH*/, 
+	const NodeIter itr_start/* = NodeIter()*/, const NodeIter itr_end /*= NodeIter()*/)
 {
 	DrawQProg test_text_pic(prog, itr_start, itr_end);
-	return test_text_pic.textDraw(TIME_SEQUENCE);
+	return test_text_pic.textDraw(TIME_SEQUENCE, config_data);
 }

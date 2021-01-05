@@ -214,26 +214,68 @@ bool CPUImplQPUSingleThread::qubitMeasure(size_t qn)
     return ioutcome;
 }
 
-QError CPUImplQPUSingleThread::initState(size_t head_rank, size_t rank_size, size_t qubit_num)
+QError CPUImplQPUSingleThread::initState(size_t qubit_num, const QStat &state)
 {
-    qubit2stat.erase(qubit2stat.begin(),qubit2stat.end());
-    qubit2stat.resize(qubit_num);
-    for (auto i = 0; i < qubit_num; i++)
+    init_qubit2stat.clear();
+
+    if (!state.empty())
     {
-        qubit2stat[i].qVec.push_back(i);
-        qubit2stat[i].qstate.push_back(1);
-        qubit2stat[i].qstate.push_back(0);
-        qubit2stat[i].qubitnumber = 1;
+        double probs = .0;
+        for (auto amplitude : state)
+        {
+            probs += std::norm(amplitude);
+        }
+
+        if (qubit_num != (size_t)std::log2(state.size()) || std::abs(probs - 1.) > 1e-6)
+        {
+            QCERR("state error");
+            throw std::runtime_error("state error");
+        }
+
+        init_qubit2stat.resize(qubit_num);
+        for (auto i = 0; i < qubit_num; i++)
+        {
+            init_qubit2stat[0].qVec.push_back(i);
+        }
+
+        init_qubit2stat[0].qstate = state;
+        init_qubit2stat[0].qubitnumber = 1;
+        init_qubit2stat[0].enable = true;
+
+        for (auto i = 1; i < qubit_num; i++)
+        {
+            init_qubit2stat[i].qVec.push_back(i);
+            init_qubit2stat[i].qstate.push_back(1);
+            init_qubit2stat[i].qstate.push_back(0);
+            init_qubit2stat[i].qubitnumber = 1;
+            init_qubit2stat[i].enable = false;
+        }
+
     }
 
-    for (auto iter = qubit2stat.begin(); iter != qubit2stat.end(); iter++)
+    return qErrorNone;
+}
+
+
+QError CPUImplQPUSingleThread::initState(size_t head_rank, size_t rank_size, size_t qubit_num)
+{
+    if (init_qubit2stat.empty())
     {
-        for (auto iter1 = (*iter).qstate.begin(); iter1 != (*iter).qstate.end(); iter1++)
+        qubit2stat.erase(qubit2stat.begin(), qubit2stat.end());
+        qubit2stat.resize(qubit_num);
+        for (auto i = 0; i < qubit_num; i++)
         {
-            *iter1 = 0;
+            qubit2stat[i].qVec.push_back(i);
+            qubit2stat[i].qstate.push_back(1);
+            qubit2stat[i].qstate.push_back(0);
+            qubit2stat[i].qubitnumber = 1;
         }
-        (*iter).qstate[0] = 1;
     }
+    else
+    {
+        qubit2stat.assign(init_qubit2stat.begin(), init_qubit2stat.end());
+    }
+
     return qErrorNone;
 }
 
@@ -797,7 +839,6 @@ QError CPUImplQPUSingleThread::DiagonalGate(Qnum & vQubit,QStat & matrix, bool i
 
 QError CPUImplQPUSingleThread::controlDiagonalGate(Qnum & vQubit, QStat & matrix, Qnum & vControlBit, bool isConjugate, double error_rate)
 {
-
     QGateParam& qgroup0 = findgroup(vQubit[0]);
     for (auto iter = vQubit.begin() + 1; iter != vQubit.end(); iter++)
     {

@@ -23,6 +23,40 @@ bool test_cir_optimize_fun1()
 		<< CR(q[2], q[3], PI / 2) << CU(1, 2, 3, 4, q[1], q[0]) << (H(q[1])) << X(q[2]) << RZ(q[1], PI / 2) << Y(q[2]);
 	cir2 << H(q[1]) << X(q[2]) << X(q[2]) << H(q[1]) << X(q[3]) << X(q[3]);
 
+
+	//{
+	//	cir2.setControl({ q[4] ,q[5]});
+	//	auto layer_info = prog_layer(cir2);
+	//	std::vector<std::vector<NodeInfo>> tmp_layer(layer_info.size());
+	//	size_t layer_index = 0;
+	//	for (auto& cur_layer : layer_info)
+	//	{
+	//		for (auto& node_item : cur_layer)
+	//		{
+	//			const pOptimizerNodeInfo& n = node_item.first;
+	//			//single gate first
+	//			if ((node_item.first->m_control_qubits.size() == 0) && (node_item.first->m_target_qubits.size() == 1))
+	//			{
+	//				tmp_layer[layer_index].insert(tmp_layer[layer_index].begin(),
+	//					NodeInfo(n->m_iter, n->m_target_qubits,
+	//						n->m_control_qubits, n->m_type,
+	//						n->m_is_dagger));
+	//			}
+	//			else
+	//			{
+	//				tmp_layer[layer_index].push_back(NodeInfo(n->m_iter, n->m_target_qubits,
+	//					n->m_control_qubits, n->m_type,
+	//					n->m_is_dagger));
+	//			}
+	//		}
+
+	//		++layer_index;
+	//	}
+	//	cout << endl;
+	//}
+	
+
+
 	QCircuit cir3;
 	QCircuit cir4;
 	cir3 << H(q[1]) << H(q[2]) << CNOT(q[2], q[1]) << H(q[1]) << H(q[2]);
@@ -94,7 +128,7 @@ bool test_cir_optimize_fun2()
 	cout << "src_mat:" << endl << src_mat << endl;
 
 	std::vector<std::pair<QCircuit, QCircuit>> optimitzer_cir;
-	sub_cir_optimizer(prog, optimitzer_cir, QCircuitOPtimizer::Merge_U3);
+	sub_cir_optimizer(prog, optimitzer_cir, QCircuitOPtimizerMode::Merge_U3);
 
 	const auto result_mat = getCircuitMatrix(prog);
 	cout << "result_mat:" << endl << result_mat << endl;
@@ -120,8 +154,8 @@ TEST(QCircuitOptimizer, test1)
 	bool test_val = false;
 	try
 	{
-		//test_val = test_cir_optimize_fun1();
-		test_val = test_cir_optimize_fun2();
+		test_val = test_cir_optimize_fun1();
+		//test_val = test_cir_optimize_fun2();
 	}
 	catch (const std::exception& e)
 	{

@@ -286,7 +286,7 @@ public:
 	* @param[out] bool* save the convert result, default is nullptr
 	* @return QHamiltonian the convert result
 	*/
-    QHamiltonian toHamiltonian(bool *ok = nullptr)
+    QHamiltonian toHamiltonian(bool *ok = nullptr) const
     {
         QHamiltonian hamiltonian;
 
@@ -744,6 +744,61 @@ private:
 };
 
 using PauliOperator = PauliOp<complex_d>;
+
+/*
+* @brief Transfrom vector to pauli operator
+* @param[in]  data_vec a vector
+* @return  PauliOperator
+*/
+template<class T>
+PauliOperator transVecToPauliOperator(const std::vector<T>& data_vec)
+{
+    size_t size = data_vec.size();
+    size_t qnum = std::ceil(std::log2(size));
+    if (qnum == 0)
+    {
+        return PauliOperator();
+    }
+
+    using PauliPair = std::vector<PauliOperator>;
+    std::vector<PauliPair> q_pauli_vec;
+    for (size_t i = 0; i < qnum; i++)
+    {
+        PauliPair pauli_pair;
+        std::string pauli_z = "Z" + std::to_string(i);
+        PauliOperator p0 = 0.5 + PauliOperator(pauli_z, 0.5);
+        PauliOperator p1 = 0.5 + PauliOperator(pauli_z, -0.5);
+
+        pauli_pair.push_back(p0);
+        pauli_pair.push_back(p1);
+        q_pauli_vec.push_back(pauli_pair);
+    }
+
+    PauliOperator result;
+    for (size_t i = 0; i < size; i++)
+    {
+        PauliOperator item(1);
+        for (int j = qnum - 1; j >= 0; j--)
+        {
+            int bit_j = i & (1 << j);
+            bit_j = bit_j >> j;
+            item *= q_pauli_vec[j][bit_j];
+        }
+
+        item *= data_vec[i];
+        result += item;
+    }
+
+    return result;
+}
+
+/*
+* @brief Transfrom Pauli operator to vector
+* @param[in]  pauli Pauli operator
+* @return  a vector with double value
+* @note The subterms of the Pauli operator must be I and Z
+*/
+std::vector<double> transPauliOperatorToVec(PauliOperator pauli);
 
 QPANDA_END
 #endif // PAULIROPERATOR_H

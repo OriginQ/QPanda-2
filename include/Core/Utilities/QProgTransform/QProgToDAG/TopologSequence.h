@@ -15,6 +15,13 @@ QPANDA_BEGIN
 * store the sequence node and the next sequence node, 
 * for double qubits gate, control qubit first, and then target qubit
 */
+//template <class T>
+//struct SeqNode
+//{
+//	T m_cur_node;
+//	std::vector<T> m_successor_nodes;
+//};
+
 template <class T>
 using SeqNode = std::pair<T, std::vector<T>>;
 
@@ -53,7 +60,7 @@ protected:
 	void build_topo_sequence(QProgDAG<dag_data_T>& dag, tranf_fun<dag_data_T> tranf_fun) {
 		if (dag.m_qubit_vec.size() == 0)
 		{
-			QCERR_AND_THROW_ERRSTR(run_fail, "Error: Failed to get QProg_DAG, the prog is empty.");
+			QCERR_AND_THROW(run_fail, "Error: Failed to get QProg_DAG, the prog is empty.");
 		}
 
 		AdjacencyMatrix matrix;
@@ -148,6 +155,9 @@ private:
 	QProgDAG<dag_node_T> m_dag;
 	TopologSequence<seq_node_T> m_seq;
 };
+
+using TopoNode = SeqNode<SequenceNode>;
+using TopoLayer = SeqLayer<SequenceNode>;
 
 QPANDA_END
 

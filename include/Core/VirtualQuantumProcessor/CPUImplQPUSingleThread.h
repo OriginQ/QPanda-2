@@ -34,6 +34,7 @@ class CPUImplQPUSingleThread : public QPUImpl
 {
 public:
     vQParam qubit2stat;
+    vQParam init_qubit2stat;
     QGateParam &findgroup(size_t qn);
     CPUImplQPUSingleThread();
     CPUImplQPUSingleThread(size_t);
@@ -211,6 +212,7 @@ add multi-qubit gate which has diagonal matrix
     QError pMeasure(Qnum& qnum, prob_tuple &mResult, int select_max=-1);
     QError pMeasure(Qnum& qnum, prob_vec &mResult);
     QError initState(size_t head_rank, size_t rank_size, size_t qubit_num);
+    QError initState(size_t qubit_num, const QStat &state = {});
 };
 
 class CPUImplQPUSingleThreadWithOracle : public CPUImplQPUSingleThread {

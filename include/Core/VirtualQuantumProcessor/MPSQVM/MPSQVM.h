@@ -16,6 +16,7 @@ class MPSQVM : public QVM, TraversalInterface<QCircuitConfig&>
 {
 public:
     virtual void init();
+    void initState(const QStat &state = {});
     virtual std::map<std::string, bool> directlyRun(QProg &prog);
     std::map<std::string, size_t> quickMeasure(QVec vQubit, size_t shots);
 
@@ -28,6 +29,8 @@ public:
     virtual prob_tuple PMeasure(QVec qubits, int select_max = -1);
 
     prob_vec PMeasure_no_index(QVec qubits);
+    qcomplex_t pmeasure_bin_index(QProg prog, std::string str);
+    qcomplex_t pmeasure_dec_index(QProg prog, std::string str);
 
     prob_tuple getProbTupleList(QVec, int);
     prob_vec getProbList(QVec, int  selectMax = -1);
@@ -44,12 +47,44 @@ public:
     void execute(std::shared_ptr<AbstractQuantumProgram>, std::shared_ptr<QNode>, QCircuitConfig &config);
     void execute(std::shared_ptr<AbstractControlFlowNode>, std::shared_ptr<QNode>, QCircuitConfig &config);
 
-    void set_noise_model(NOISE_MODEL model, std::string gate, Qnum qubits_vec, std::vector<double> params_vec);
-    void set_noise_model(NOISE_MODEL model, std::vector<double> params_vec);
+    //The all next functions are only for noise simulation
 
-    //The next 2 set_noise_model functions is only appear in DECOHERENCE_KRAUS_OPERATOR
-    void set_noise_model(NOISE_MODEL model, std::vector<double> T_params_vec, std::vector<double> time_params_vec);
-    void set_noise_model(NOISE_MODEL model, std::string gate, Qnum qubits_vec, std::vector<double> T_params_vec, std::vector<double> time_params_vec);
+    /*combine error*/
+    /*use KarusError.tensor(KarusError),KarusError.expand(KarusError),KarusError.compose(KarusError)*/
+    //void set_error(GateType gate_type, const KarusError& karus_error);
+    //void set_error(GateType gate_type, const KarusError& karus_error, const std::vector<QVec>& qubits_vecs);
+
+    /*mixed unitary error*/
+    void set_mixed_unitary_error(GateType gate_type, const std::vector<QStat>&);
+    void set_mixed_unitary_error(GateType gate_type, const std::vector<QStat>&, const std::vector<double>&);
+
+    void set_mixed_unitary_error(GateType gate_type, const std::vector<QStat>&, const std::vector<QVec>&);
+    void set_mixed_unitary_error(GateType gate_type, const std::vector<QStat>&, const std::vector<double>& , const std::vector<QVec>& );
+
+    /* bit-flip,phase-flip,bit-phase-flip,phase-damping,amplitude-damping,depolarizing*/
+    void set_noise_model(NOISE_MODEL model, GateType gate_type, double param);
+    void set_noise_model(NOISE_MODEL model, GateType gate_type, double param, const QVec& qubits_vec);
+    void set_noise_model(NOISE_MODEL model, GateType gate_type, double param, const std::vector<QVec>& qubits_vecs);
+
+    /*decoherence error*/
+    void set_noise_model(NOISE_MODEL model, GateType gate_type, double T1, double T2, double time_param);
+    void set_noise_model(NOISE_MODEL model, GateType gate_type, double T1, double T2, double time_param, const QVec& qubits_vec);
+    void set_noise_model(NOISE_MODEL model, GateType gate_type, double T1, double T2, double time_param, const std::vector<QVec>& qubits_vecs);
+
+    /*readout error*/
+    void set_readout_error(const std::vector<std::vector<double>>& readout_params, const QVec& qubits);
+
+    /*measurement error*/
+    void set_measure_error(NOISE_MODEL model, double param);
+    void set_measure_error(NOISE_MODEL model, double param, const QVec& qubits_vec);
+    void set_measure_error(NOISE_MODEL model, double T1, double T2, double time_param);
+    void set_measure_error(NOISE_MODEL model, double T1, double T2, double time_param, const QVec& qubits_vec);
+
+    /*rotation error*/
+    void set_rotation_error(double param);
+
+    /*reset error*/
+    void set_reset_error(double reset_0_param, double reset_1_param);
 
 protected:
     void handle_one_target(std::shared_ptr<AbstractQGateNode> gate, const QCircuitConfig &config);
@@ -58,18 +93,17 @@ protected:
     void run_cannot_optimize_measure(QProg &prog);
 
     std::map<std::string, size_t> run_configuration_with_noise(QProg &prog, std::vector<ClassicalCondition> &cbits, int shots);
+    
+    //The all next functions are only for noise simulator
     std::map<std::string, size_t> run_configuration_without_noise(QProg &prog, std::vector<ClassicalCondition> &cbits, int shots);
-
     void run_cannot_optimize_measure_with_noise(QProg &prog);
 
 private:
-    TensorNoiseGenerator m_noise_manager;
+    NoiseSimulator m_noise_simulator;
     std::shared_ptr<MPSImplQPU> m_simulator = nullptr;
     std::vector<std::pair<size_t, CBit * > > m_measure_obj;
     unsigned short m_qubit_num = 0;
 };
-
-
 
 QPANDA_END
 

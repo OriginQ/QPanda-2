@@ -1643,7 +1643,7 @@ void TransformDecomposition::merge_continue_single_gate_to_u3(QProg& prog)
 {
 	if (m_valid_qgate_matrix[0][0] == "U3")
 	{
-		sub_cir_optimizer(prog, {}, QCircuitOPtimizer::Merge_U3);
+		sub_cir_optimizer(prog, {}, QCircuitOPtimizerMode::Merge_U3);
 	}
 }
 
@@ -1915,6 +1915,7 @@ void QPanda::decompose_multiple_control_qgate(QProg& prog, QuantumMachine *quant
 {
 	if (!(CheckMultipleControlQGate().exist_multiple_gate(prog)))
 	{
+		transform_to_base_qgate(prog, quantum_machine, config_data);
 		return;
 	}
 
@@ -1946,6 +1947,46 @@ void QPanda::decompose_multiple_control_qgate(QCircuit& cir, QuantumMachine *qua
 {
 	QProg tmp_prog(cir);
 	decompose_multiple_control_qgate(tmp_prog, quantum_machine, config_data);
+
+	cir = QProgFlattening::prog_flatten_to_cir(tmp_prog);
+}
+
+void QPanda::transform_to_base_qgate(QProg& prog, QuantumMachine *quantum_machine, const std::string& config_data/* = CONFIG_PATH*/)
+{
+	if ((CheckMultipleControlQGate().exist_multiple_gate(prog)))
+	{
+		QCERR_AND_THROW_ERRSTR(run_fail, "Error: The target quantum circuit or program cannot contain multiple-control gates.");
+	}
+
+	QuantumMetadata meta_data(config_data);
+	std::vector<string> vec_single_gates;
+	std::vector<string> vec_double_gates;
+	meta_data.getQGate(vec_single_gates, vec_double_gates);
+
+	std::vector<std::vector<std::string>> gates(KMETADATA_GATE_TYPE_COUNT, vector<string>(0));
+	std::vector<std::vector<std::string>> valid_gate(KMETADATA_GATE_TYPE_COUNT, vector<string>(0));
+	for (auto& item : vec_single_gates)
+	{
+		gates[MetadataGateType::METADATA_SINGLE_GATE].emplace_back(item);
+	}
+	for (auto& item : vec_double_gates)
+	{
+		gates[MetadataGateType::METADATA_DOUBLE_GATE].emplace_back(item);
+	}
+	SingleGateTypeValidator::GateType(gates[MetadataGateType::METADATA_SINGLE_GATE],
+		valid_gate[MetadataGateType::METADATA_SINGLE_GATE]);  /* single gate data MetadataValidity */
+	DoubleGateTypeValidator::GateType(gates[MetadataGateType::METADATA_DOUBLE_GATE],
+		valid_gate[MetadataGateType::METADATA_DOUBLE_GATE]);  /* double gate data MetadataValidity */
+
+	auto p_transf_decompos = std::make_shared<TransformDecomposition>(valid_gate, gates, quantum_machine);
+	p_transf_decompos->decompose_double_qgate(prog, false);
+	p_transf_decompos->meta_gate_transform(prog);
+}
+
+void QPanda::transform_to_base_qgate(QCircuit& cir, QuantumMachine *quantum_machine, const std::string& config_data/* = CONFIG_PATH*/)
+{
+	QProg tmp_prog(cir);
+	transform_to_base_qgate(tmp_prog, quantum_machine, config_data);
 
 	cir = QProgFlattening::prog_flatten_to_cir(tmp_prog);
 }

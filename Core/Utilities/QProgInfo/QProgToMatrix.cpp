@@ -16,7 +16,7 @@ using namespace Eigen;
 #define PTraceMat(mat)
 #endif
 
-QProgToMatrix::MatrixOfOneLayer::MatrixOfOneLayer(QProgToMatrix& parent, SequenceLayer& layer, const QProgDAG<GateNodeInfo>& prog_dag, std::vector<int> &qubits_in_use)
+QProgToMatrix::MatrixOfOneLayer::MatrixOfOneLayer(QProgToMatrix& parent, SeqLayer<SequenceNode>& layer, const QProgDAG<GateNodeInfo>& prog_dag, std::vector<int> &qubits_in_use)
 	:m_parent(parent), m_qubits_in_use(qubits_in_use)
 {
 	m_mat_I = qmatrix_t::Identity(2, 2);
@@ -61,7 +61,7 @@ QProgToMatrix::MatrixOfOneLayer::MatrixOfOneLayer(QProgToMatrix& parent, Sequenc
 		}
 		else
 		{
-			QCERR_AND_THROW_ERRSTR(runtime_error, "Error: QGate type error.");
+			QCERR_AND_THROW(runtime_error, "Error: QGate type error.");
 		}
 	}
 
@@ -378,7 +378,7 @@ void  QProgToMatrix::MatrixOfOneLayer::merge_double_gate()
 		}
 		else
 		{
-			QCERR_AND_THROW_ERRSTR(runtime_error, "Error: Qubits number error.");
+			QCERR_AND_THROW(runtime_error, "Error: Qubits number error.");
 		}
 
 		merge_to_calc_unit(double_gate.second, gate_mat, m_calc_unit_vec, m_single_qubit_gates);
@@ -452,7 +452,7 @@ void QProgToMatrix::MatrixOfOneLayer::reverse_ctrl_gate_matrix(qmatrix_t& src_ma
 		break;
 
 	default:
-		QCERR_AND_THROW_ERRSTR(runtime_error, "Error: reverse_ctrl_gate_matrix error, unsupport type.");
+		QCERR_AND_THROW(runtime_error, "Error: reverse_ctrl_gate_matrix error, unsupport type.");
 		break;
 	}
 
@@ -502,7 +502,7 @@ void  QProgToMatrix::MatrixOfOneLayer::merge_controled_gate()
 		tmp_vec.erase(unique(tmp_vec.begin(), tmp_vec.end()), tmp_vec.end());
 		if (tmp_vec.size() != all_gate_qubits_vec.size())
 		{
-			QCERR_AND_THROW_ERRSTR(runtime_error, "Error: Conflict between control qubits and target qubits.");
+			QCERR_AND_THROW(runtime_error, "Error: Conflict between control qubits and target qubits.");
 		}
 
 		int all_control_gate_qubits = all_gate_qubits_vec.size();
@@ -750,11 +750,28 @@ QStat QProgToMatrix::get_matrix()
 	qmatrix_t result_matrix;
 	
 	//get quantumBits number
-	get_all_used_qubits(m_prog, m_qubits_in_use);
+	QVec all_used_qubits;
+	auto qubit_num = get_all_used_qubits(m_prog, all_used_qubits);
+	for (auto q : all_used_qubits)
+	{
+		m_qubits_in_use.push_back(q->get_phy_addr());
+	}
+
+	//for Bid Endian(positive sequence)
+	QCircuit cir_swap_qubits;
+	if (m_b_bid_endian)
+	{
+		for (size_t i = 0; (i * 2) < (all_used_qubits.size() - 1); ++i)
+		{
+			cir_swap_qubits << SWAP(all_used_qubits[i], all_used_qubits[all_used_qubits.size() - 1 - i]);
+		}
+	}
 
 	//layer
+	QProg tmp_prog;
+	tmp_prog << cir_swap_qubits << m_prog << cir_swap_qubits;
 	QProgTopologSeq<GateNodeInfo, SequenceNode> prog_topo_seq;
-	prog_topo_seq.prog_to_topolog_seq(m_prog, SequenceNode::construct_sequence_node);
+	prog_topo_seq.prog_to_topolog_seq(tmp_prog, SequenceNode::construct_sequence_node);
 	TopologSequence<SequenceNode>& seq = prog_topo_seq.get_seq();
 	const QProgDAG<GateNodeInfo>& prog_dag = prog_topo_seq.get_dag();
 	for (auto &seqItem : seq)
@@ -774,7 +791,7 @@ QStat QProgToMatrix::get_matrix()
 	return result_qstat;
 }
 
-qmatrix_t QProgToMatrix::get_matrix_of_one_layer(SequenceLayer& layer, const QProgDAG<GateNodeInfo>& prog_dag)
+qmatrix_t QProgToMatrix::get_matrix_of_one_layer(SeqLayer<SequenceNode>& layer, const QProgDAG<GateNodeInfo>& prog_dag)
 {
 	MatrixOfOneLayer get_one_layer_matrix(*this, layer, prog_dag, m_qubits_in_use);
 

@@ -114,6 +114,11 @@ bool QGate::setControl(QVec qubit_vector)
     return m_qgate_node->setControl(qubit_vector);
 }
 
+void QGate::clear_control()
+{
+	return m_qgate_node->clear_control();
+}
+
 std::shared_ptr<AbstractQGateNode> QGate::getImplementationPtr()
 {
     return m_qgate_node;
@@ -320,7 +325,7 @@ void OriginQGate::remap(QVec qubit_vector)
 {
 	if (m_qubit_vector.size() != qubit_vector.size())
 	{
-		QCERR_AND_THROW_ERRSTR(run_fail, "Error: failed to remap qubit, the size of new qubit_vec is error.");
+		QCERR_AND_THROW(run_fail, "Error: failed to remap qubit, the size of new qubit_vec is error.");
 	}
 	m_qubit_vector.swap(qubit_vector);
 }

@@ -37,6 +37,10 @@ private:
 
 };
 
+inline QCircuit build_diffusion_circuit(const QVec &qvec, AbstractDiffusionOperator &op) {
+	return op.build_diffusion_circuit(qvec);
+}
+
 QPANDA_END
 
 #endif

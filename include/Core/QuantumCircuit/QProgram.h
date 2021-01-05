@@ -37,54 +37,9 @@ QPANDA_BEGIN
 * @brief   Quantum program basic abstract class
 * @ingroup QuantumCircuit
 */
-class AbstractQuantumProgram
+class AbstractQuantumProgram : public AbstractNodeManager
 {
 public:
-	/**
-    * @brief  Get the first NodeIter
-    * @return  NodeIter
-    */
-    virtual NodeIter  getFirstNodeIter() = 0;
-	
-	/**
-    * @brief  Get the last NodeIter
-    * @return  NodeIter
-    */
-    virtual NodeIter  getLastNodeIter() = 0;
-	
-	/**
-    * @brief  Get the end NodeIter
-    * @return  NodeIter
-    */
-    virtual NodeIter  getEndNodeIter() = 0;
-	
-	/**
-    * @brief  Get the head NodeIter
-    * @return  NodeIter
-    */
-    virtual NodeIter  getHeadNodeIter() = 0;
-	
-	/**
-    * @brief  Insert a new QNode at the location specified by NodeIter  
-	* @param[in] NodeIter&  specified  location
-	* @param[in] std::shared_ptr<QNode> Inserted QNode
-    * @return  NodeIter
-    */
-    virtual NodeIter  insertQNode(const NodeIter &, std::shared_ptr<QNode>) = 0;
-	
-	/**
-    * @brief  Delete a QNode at the location specified by NodeIter  
-	* @param[in] NodeIter&  specified  location
-    * @return  NodeIter  Deleted NodeIter
-    */
-    virtual NodeIter  deleteQNode(NodeIter &) =0;
-	
-	/**
-    * @brief  Insert a new node at the end of current quantum program node
-    * @param[in]  std::shared_ptr<QNode>  quantum node shared pointer
-    * @see  QNode
-    */
-    virtual void pushBackNode(std::shared_ptr<QNode>) = 0;
     virtual ~AbstractQuantumProgram() {};
 	
 	/**

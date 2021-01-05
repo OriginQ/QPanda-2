@@ -95,27 +95,20 @@ void QCloudMachine::init(string token)
             bool is_success = config.getQuantumCloudConfig(QCloudConfig);
             if (!is_success)
             {
-                QCERR("config error : use default config");
+                QCERR("config error: use default config");
                 m_compute_url = DEFAULT_CLUSTER_COMPUTEAPI;
                 m_inqure_url = DEFAULT_CLUSTER_INQUREAPI;
             }
             else
             {
-                if (!QCloudConfig["ComputeAPI"].size() || QCloudConfig["InqureAPI"].size())
-                {
-                    m_compute_url = DEFAULT_CLUSTER_COMPUTEAPI;
-                    m_inqure_url = DEFAULT_CLUSTER_INQUREAPI;
-                }
-                else
-                {
-                    m_compute_url = QCloudConfig["ComputeAPI"];
-                    m_inqure_url = QCloudConfig["InqureAPI"];
-                }
+                m_compute_url = QCloudConfig["ComputeAPI"];
+                m_inqure_url = QCloudConfig["InqureAPI"];
             }
         }
     }
     catch (std::exception &e)
     {
+        QCERR("config error: use default config");
         m_compute_url = DEFAULT_CLUSTER_COMPUTEAPI;
         m_inqure_url = DEFAULT_CLUSTER_INQUREAPI;
     }
@@ -187,9 +180,9 @@ std::string QCloudMachine::post_json(const std::string &sUrl, std::string & sJso
     headers = curl_slist_append(headers,"Transfer-Encoding: chunked"); 
     curl_easy_setopt(pCurl, CURLOPT_HTTPHEADER, headers);
 
-    curl_easy_setopt(pCurl, CURLOPT_TIMEOUT, 3);
+    curl_easy_setopt(pCurl, CURLOPT_TIMEOUT, 10);
 
-    curl_easy_setopt(pCurl, CURLOPT_CONNECTTIMEOUT, 3);
+    curl_easy_setopt(pCurl, CURLOPT_CONNECTTIMEOUT, 0);
 
     curl_easy_setopt(pCurl, CURLOPT_URL, sUrl.c_str());
 
@@ -226,7 +219,24 @@ std::string QCloudMachine::post_json(const std::string &sUrl, std::string & sJso
     curl_slist_free_all(headers);
     curl_easy_cleanup(pCurl);
 
-    return out.str().substr(out.str().find("{"));
+    try
+    {
+        std::string result =  out.str().substr(out.str().find("{"));;
+        m_retry_num = 0;
+        return result;
+    }
+    catch (...)
+    {
+        if ( ++m_retry_num < 3)
+        {
+            return post_json(sUrl, sJson);
+        }
+        else
+        {
+            QCERR("json error");
+            throw run_fail("json error");
+        }
+    }
 }
 
 void QCloudMachine::inqure_result(std::string recv_json_str, CLOUD_QMACHINE_TYPE type)
@@ -238,7 +248,7 @@ void QCloudMachine::inqure_result(std::string recv_json_str, CLOUD_QMACHINE_TYPE
 
         do
         {
-            std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
             auto result_json = get_result_json(taskid, type);
 
@@ -257,8 +267,14 @@ std::vector<QStat> QCloudMachine::get_state_tomography_density(QProg &prog, int 
 
     if (qubit_num > 6 || cbit_num > 6)
     {
-        std::cout << "Failed! real chip qubit num or cbit num are not less or equal to 6" << std::endl;
-        throw run_fail("real chip qubit num or cbit num are not less or equal to 6");
+        QCERR("real chip qubit num or cbit num error");
+        throw run_fail("real chip qubit num or cbit num error");
+    }
+
+    if (shots > 10000 || shots < 1000)
+    {
+        QCERR("real chip shots must be in range [1000,10000]");
+        throw run_fail("real chip shots must be in range [1000,10000]");
     }
 
     TraversalConfig traver_param;
@@ -267,6 +283,7 @@ std::vector<QStat> QCloudMachine::get_state_tomography_density(QProg &prog, int 
 
     if (!traver_param.m_can_optimize_measure)
     {
+        QCERR("measure must be last");
         throw run_fail("measure must be last");
     }
 
@@ -281,7 +298,7 @@ std::vector<QStat> QCloudMachine::get_state_tomography_density(QProg &prog, int 
     add_string_value(doc, "apiKey", m_token);
     add_string_value(doc, "QMachineType", "6");
     add_string_value(doc, "codeLen", prog_str.size());
-    add_string_value(doc, "qubitNum", "6");
+    add_string_value(doc, "qubitNum", getAllocateQubitNum());
     add_string_value(doc, "measureType", (size_t)CLUSTER_TASK_TYPE::CLUSTER_MEASURE);
     add_string_value(doc, "classicalbitNum", getAllocateCMem());
     add_string_value(doc, "shot", (size_t)shots);
@@ -309,12 +326,19 @@ std::map<std::string, double> QCloudMachine::real_chip_measure(QProg &prog, int 
         throw run_fail("real chip qubit num or cbit num are not less or equal to 6");
     }
 
+    if (shots > 10000 || shots < 1000)
+    {
+        QCERR("real chip shots must be in range [1000,10000]");
+        throw run_fail("real chip shots must be in range [1000,10000]");
+    }
+
     TraversalConfig traver_param;
     QProgCheck prog_check;
     prog_check.execute(prog.getImplementationPtr(), nullptr, traver_param);
 
     if (!traver_param.m_can_optimize_measure)
     {
+        QCERR("measure must be last");
         throw run_fail("measure must be last");
     }
 
@@ -329,7 +353,7 @@ std::map<std::string, double> QCloudMachine::real_chip_measure(QProg &prog, int 
     add_string_value(doc, "apiKey", m_token);
     add_string_value(doc, "QMachineType", (size_t)CLOUD_QMACHINE_TYPE::REAL_CHIP);
     add_string_value(doc, "codeLen", prog_str.size());
-    add_string_value(doc, "qubitNum", "6");
+    add_string_value(doc, "qubitNum", getAllocateQubitNum());
     add_string_value(doc, "measureType", (size_t)CLUSTER_TASK_TYPE::CLUSTER_MEASURE);
     add_string_value(doc, "classicalbitNum", getAllocateCMem());
     add_string_value(doc, "shot", (size_t)shots);
@@ -348,7 +372,7 @@ std::map<std::string, double> QCloudMachine::real_chip_measure(QProg &prog, int 
 
 std::map<std::string, double> QCloudMachine::noise_measure(QProg &prog, int shot, string task_name)
 {
-    //convert prog to originir 
+    //convert prog to originir
     auto prog_str = convert_qprog_to_originir(prog, this);
 
     //construct json
@@ -511,8 +535,7 @@ qcomplex_t QCloudMachine::single_amplitude_pmeasure(QProg &prog, std::string amp
 bool QCloudMachine::parser_cluster_submit_json(std::string &recv_json, std::string& taskid)
 {
     Document recv_doc;
-    if (recv_doc.Parse(recv_json.c_str()).HasParseError()
-        || !recv_doc.HasMember("obj") || !recv_doc.HasMember("success"))
+    if (recv_doc.Parse(recv_json.c_str()).HasParseError() || !recv_doc.HasMember("success"))
     {
         QCERR("server connection failed");
         throw run_fail("server connection failed");
@@ -522,18 +545,11 @@ bool QCloudMachine::parser_cluster_submit_json(std::string &recv_json, std::stri
         const rapidjson::Value &success = recv_doc["success"];
         if (!success.GetBool())
         {
-            const rapidjson::Value &Obj = recv_doc["obj"];
-            
-            if (Obj.IsNull())
-            {
-                QCERR("api key error");
-                throw run_fail("api key error");
-            }
-            else
-            {
-                QCERR("un-activate products or lack of computing power or Feature is offline");
-                throw run_fail("un-activate products or lack of computing power or Feature is offline");
-            }
+            const rapidjson::Value &message = recv_doc["enMessage"];
+            std::string error_msg = message.GetString();
+
+            QCERR(error_msg.c_str());
+            throw run_fail(error_msg);
         }
         else
         {
@@ -557,174 +573,191 @@ bool QCloudMachine::parser_cluster_submit_json(std::string &recv_json, std::stri
 
 bool QCloudMachine::parser_cluster_result_json(std::string &recv_json, std::string& taskid)
 {
+    //delete "\r\n" from recv json, Transfer-Encoding: chunked
+    int pos = 0;
+    while ((pos = recv_json.find("\n")) != -1)
+    {
+        recv_json.erase(pos, 1);
+    }
+
+    if (recv_json.empty())
+    {
+        QCERR(recv_json.c_str());
+        throw run_fail("result json is empty");
+    }
+
     Document recv_doc;
-	if (recv_doc.Parse(recv_json.c_str()).HasParseError() || 
-        !recv_doc.HasMember("obj") || 
-        !recv_doc.HasMember("success"))
+	if (recv_doc.Parse(recv_json.c_str()).HasParseError() || !recv_doc.HasMember("success"))
 	{
-        QCERR("result json error");
-        throw run_fail("result json error");
+        QCERR(recv_json.c_str());
+        throw run_fail("result json parse error or has no member 'success' ");
 	}
-	else
+
+    const rapidjson::Value &success = recv_doc["success"];
+    if (!success.GetBool())
+    {
+        const rapidjson::Value &message = recv_doc["enMessage"];
+        std::string error_msg = message.GetString();
+
+        QCERR(error_msg.c_str());
+        throw run_fail(error_msg);
+    }
+
+	try
 	{
-		try
+		const rapidjson::Value &Obj = recv_doc["obj"];
+		const rapidjson::Value &Val = Obj["qcodeTaskNewVo"];
+		const rapidjson::Value &List = Val["taskResultList"];
+		const rapidjson::Value &result = List[0]["taskResult"];
+
+		std::string state = List[0]["taskState"].GetString();
+		std::string qtype = List[0]["rQMachineType"].GetString();
+
+        auto status = static_cast<TASK_STATUS>(atoi(state.c_str()));
+        auto backend_type = static_cast<CLOUD_QMACHINE_TYPE>(atoi(qtype.c_str()));
+		switch (status)
 		{
-			const rapidjson::Value &Obj = recv_doc["obj"];
-			const rapidjson::Value &Val = Obj["qcodeTaskNewVo"];
-			const rapidjson::Value &List = Val["taskResultList"];
-			const rapidjson::Value &result = List[0]["taskResult"];
-
-			std::string state = List[0]["taskState"].GetString();
-			std::string qtype = List[0]["rQMachineType"].GetString();
-
-            auto status = static_cast<TASK_STATUS>(atoi(state.c_str()));
-            auto backend_type = static_cast<CLOUD_QMACHINE_TYPE>(atoi(qtype.c_str()));
-			switch (status)
+			case TASK_STATUS::FINISHED:
 			{
-				case TASK_STATUS::FINISHED:
+				Document result_doc;
+				result_doc.Parse(result.GetString());
+
+				switch (backend_type)
 				{
-					Document result_doc;
-					result_doc.Parse(result.GetString());
+                    case CLOUD_QMACHINE_TYPE::REAL_CHIP:
+                    {
+                        Value &key = result_doc["key"];
+                        Value &value = result_doc["value"];
 
-					switch (backend_type)
+                        m_measure_result.clear();
+                        for (SizeType i = 0; i < key.Size(); ++i)
+                        {
+                            std::string bin_amplitude = key[i].GetString();
+                            m_measure_result.insert(make_pair(bin_amplitude, value[i].GetDouble()));
+                        }
+
+                        break;
+                    }
+
+                    case CLOUD_QMACHINE_TYPE::NOISE_QMACHINE:
+                    case CLOUD_QMACHINE_TYPE::Full_AMPLITUDE:
 					{
-                        case CLOUD_QMACHINE_TYPE::REAL_CHIP:
-                        {
-                            Value &key = result_doc["key"];
-                            Value &value = result_doc["value"];
+                        Value &key = result_doc["Key"];
+						Value &value = result_doc["Value"];
 
-                            m_measure_result.clear();
-                            for (SizeType i = 0; i < key.Size(); ++i)
-                            {
-                                std::string bin_amplitude = key[i].GetString();
-                                m_measure_result.insert(make_pair(bin_amplitude, value[i].GetDouble()));
-                            }
-
-                            break;
-                        }
-
-                        case CLOUD_QMACHINE_TYPE::NOISE_QMACHINE:
-                        case CLOUD_QMACHINE_TYPE::Full_AMPLITUDE:
+                        m_measure_result.clear();
+						for (SizeType i = 0; i < key.Size(); ++i)
 						{
-                            Value &key = result_doc["Key"];
-							Value &value = result_doc["Value"];
-
-                            m_measure_result.clear();
-							for (SizeType i = 0; i < key.Size(); ++i)
-							{
-                                std::string bin_amplitude = key[i].GetString();
-                                m_measure_result.insert(make_pair(bin_amplitude, value[i].GetDouble()));
-							}
-
-                            break;
+                            std::string bin_amplitude = key[i].GetString();
+                            m_measure_result.insert(make_pair(bin_amplitude, value[i].GetDouble()));
 						}
 
-						case CLOUD_QMACHINE_TYPE::PARTIAL_AMPLITUDE:
-						{
-                            Value &key = result_doc["Key"];
-							Value &value_real = result_doc["ValueReal"];
-							Value &value_imag = result_doc["ValueImag"];
-
-                            m_pmeasure_result.clear();
-							for (SizeType i = 0; i < key.Size(); ++i)
-							{
-                                std::string bin_amplitude = key[i].GetString();
-                                auto amplitude = qcomplex_t(value_real[i].GetDouble(), value_imag[i].GetDouble());
-                                m_pmeasure_result.insert(make_pair(bin_amplitude, amplitude));
-							}
-
-                            break;
-						}
-
-                        case CLOUD_QMACHINE_TYPE::SINGLE_AMPLITUDE:
-                        {
-                            Value &value_real = result_doc["ValueReal"];
-                            Value &value_imag = result_doc["ValueImag"];
-
-                            m_single_result = qcomplex_t(value_real[0].GetDouble(), value_imag[0].GetDouble());
-                            break;
-                        }
-
-                        case static_cast<CLOUD_QMACHINE_TYPE>(6):
-                        {
-                            const rapidjson::Value &qst_result = List[0]["qstresult"];
-
-                            Document qst_result_doc;
-                            qst_result_doc.Parse(qst_result.GetString());
-
-                            m_qst_result.clear();
-                            int rank = (int)std::sqrt(qst_result_doc.Size());
-
-
-                            for (auto i = 0; i < rank; ++i)
-                            {
-                                QStat row_value;
-                                for (auto j = 0; j < rank; ++j)
-                                {
-                                    auto real_val = qst_result_doc[i*rank + j]["r"].GetDouble();
-                                    auto imag_val = qst_result_doc[i*rank + j]["i"].GetDouble();
-
-                                    row_value.emplace_back(qcomplex_t(real_val, imag_val));
-                                }
-
-                                m_qst_result.emplace_back(row_value);
-                            }
-
-                            break;
-                        }
-
-						default: std::cout << "Failed! QMachine type error" << std::endl;
-                        throw run_fail("task failed");
                         break;
 					}
 
-                    return false;
-                }
+					case CLOUD_QMACHINE_TYPE::PARTIAL_AMPLITUDE:
+					{
+                        Value &key = result_doc["Key"];
+						Value &value_real = result_doc["ValueReal"];
+						Value &value_imag = result_doc["ValueImag"];
 
-				case TASK_STATUS::FAILED:
+                        m_pmeasure_result.clear();
+						for (SizeType i = 0; i < key.Size(); ++i)
+						{
+                            std::string bin_amplitude = key[i].GetString();
+                            auto amplitude = qcomplex_t(value_real[i].GetDouble(), value_imag[i].GetDouble());
+                            m_pmeasure_result.insert(make_pair(bin_amplitude, amplitude));
+						}
+
+                        break;
+					}
+
+                    case CLOUD_QMACHINE_TYPE::SINGLE_AMPLITUDE:
+                    {
+                        Value &value_real = result_doc["ValueReal"];
+                        Value &value_imag = result_doc["ValueImag"];
+
+                        m_single_result = qcomplex_t(value_real[0].GetDouble(), value_imag[0].GetDouble());
+                        break;
+                    }
+
+                    case static_cast<CLOUD_QMACHINE_TYPE>(6):
+                    {
+                        const rapidjson::Value &qst_result = List[0]["qstresult"];
+
+                        Document qst_result_doc;
+                        qst_result_doc.Parse(qst_result.GetString());
+
+                        m_qst_result.clear();
+                        int rank = (int)std::sqrt(qst_result_doc.Size());
+
+                        for (auto i = 0; i < rank; ++i)
+                        {
+                            QStat row_value;
+                            for (auto j = 0; j < rank; ++j)
+                            {
+                                auto real_val = qst_result_doc[i*rank + j]["r"].GetDouble();
+                                auto imag_val = qst_result_doc[i*rank + j]["i"].GetDouble();
+
+                                row_value.emplace_back(qcomplex_t(real_val, imag_val));
+                            }
+
+                            m_qst_result.emplace_back(row_value);
+                        }
+
+                        break;
+                    }
+
+                    default: QCERR("quantum machine type error"); throw run_fail("quantum machine type error"); break;
+				}
+
+                return false;
+            }
+
+			case TASK_STATUS::FAILED:
+            {
+                if (CLOUD_QMACHINE_TYPE::REAL_CHIP == backend_type)
                 {
-                    if (CLOUD_QMACHINE_TYPE::REAL_CHIP == backend_type)
-                    {
-                        Document result_doc;
-                        result_doc.Parse(result.GetString());
+                    Document result_doc;
+                    result_doc.Parse(result.GetString());
 
-                        Value &value = result_doc["Value"];
-                        std::cout << "Failed! " << value.GetString() << std::endl; break;
-                        throw run_fail(value.GetString());
-                    }
-                    else
-                    {
-                        std::cout << "Failed! Task " << taskid << " Failed " << std::endl;
-                        throw run_fail("task failed");
-                    }
+                    Value &value = result_doc["Value"];
+
+                    QCERR(value.GetString());
+                    throw run_fail(value.GetString());
                 }
+                else
+                {
+                    QCERR("Task status failed");
+                    throw run_fail("Task status failed");
+                }
+            }
 
-				case TASK_STATUS::WAITING:
-                case TASK_STATUS::COMPUTING:
-                case TASK_STATUS::QUEUING:
+			case TASK_STATUS::WAITING:
+            case TASK_STATUS::COMPUTING:
+            case TASK_STATUS::QUEUING:
 
-                //The next status only appear in real chip backend
-                case TASK_STATUS::SENT_TO_BUILD_SYSTEM:
-                case TASK_STATUS::BUILD_SYSTEM_RUN: return true;
+            //The next status only appear in real chip backend
+            case TASK_STATUS::SENT_TO_BUILD_SYSTEM:
+            case TASK_STATUS::BUILD_SYSTEM_RUN: return true;
 
-                case TASK_STATUS::BUILD_SYSTEM_ERROR:
-                    std::cout << "Failed! build system error, task status code = 7" << std::endl;
-                    throw run_fail("build system error");
+            case TASK_STATUS::BUILD_SYSTEM_ERROR:
+                QCERR("build system error");
+                throw run_fail("build system error");
 
-                case TASK_STATUS::SEQUENCE_TOO_LONG:
-                    std::cout << "Failed! exceeding maximum timing sequence, task status code = 8" << std::endl;
-                    throw run_fail("exceeding maximum timing sequence");
+            case TASK_STATUS::SEQUENCE_TOO_LONG:
+                QCERR("exceeding maximum timing sequence");
+                throw run_fail("exceeding maximum timing sequence");
 
-                default:
-                    std::cout << "Failed! unknown error, task status code = " << static_cast<int>(status) << std::endl;
-                    throw run_fail("unknown error");
-			}
+            default:
+                QCERR("unknown error");
+                throw run_fail("unknown error");
 		}
-		catch (const std::exception&e)
-		{
-			std::cout << "Failed! parse result exception : " << e.what() << std::endl;
-            throw run_fail("parse result exception error");
-		}
+	}
+	catch (const std::exception&e)
+	{
+        QCERR("parse result exception error");
+        throw run_fail("parse result exception error");
 	}
 
     return false;

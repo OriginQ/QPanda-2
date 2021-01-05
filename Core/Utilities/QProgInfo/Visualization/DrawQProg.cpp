@@ -34,7 +34,7 @@ DrawQProg::~DrawQProg()
 	}
 }
 
-string DrawQProg::textDraw(const TEXT_PIC_TYPE t)
+string DrawQProg::textDraw(const TEXT_PIC_TYPE t, const std::string config_data /*= CONFIG_PATH*/)
 {
 	/*Do some preparations*/
 	if (m_quantum_bits_in_use.size() == 0)
@@ -54,7 +54,7 @@ string DrawQProg::textDraw(const TEXT_PIC_TYPE t)
 	m_p_text = new(std::nothrow) DrawPicture(m_prog, m_layer_info);
 	if (nullptr == m_p_text)
 	{
-		QCERR_AND_THROW_ERRSTR(runtime_error, "Memory error, failed to create DrawPicture obj.");
+		QCERR_AND_THROW(runtime_error, "Memory error, failed to create DrawPicture obj.");
 	}
 
 	m_p_text->init(m_quantum_bits_in_use, m_class_bits_in_use);
@@ -65,7 +65,7 @@ string DrawQProg::textDraw(const TEXT_PIC_TYPE t)
 	}
 	else if (t == TIME_SEQUENCE)
 	{
-		m_p_text->draw_by_time_sequence();
+		m_p_text->draw_by_time_sequence(config_data);
 	}
 	else
 	{

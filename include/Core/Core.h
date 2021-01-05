@@ -58,6 +58,7 @@ limitations under the License.
 #include "Core/Utilities/QProgTransform/TopologyMatch.h"
 #include "Core/Utilities/QProgTransform/SU4TopologyMatch.h"
 #include "Core/Utilities/QProgTransform/QCodarMatch.h"
+#include "Core/Utilities/QProgTransform/BMT/BMT.h"
 
 #include "Core/Utilities/Tools/OriginCollection.h"  
 #include "Core/Utilities/Tools/QPandaException.h"  
@@ -71,6 +72,8 @@ limitations under the License.
 #include "Core/Utilities/Tools/MatrixDecomposition.h"
 #include "Core/Utilities/Tools/RandomCircuit.h"
 #include "Core/Utilities/Tools/QCircuitOptimize.h"
+#include "Core/Utilities/Tools/Fidelity.h"
+#include "Core/Utilities/Tools/GetQubitTopology.h"
 
 #include "Core/Variational/var.h"
 #include "Core/Variational/Optimizer.h"  
@@ -341,6 +344,9 @@ extern QProg convert_originir_string_to_qprog(std::string str_originir, QuantumM
 extern QProg convert_qasm_to_qprog(std::string file_path, QuantumMachine* qvm);
 extern QProg convert_qasm_to_qprog(std::string file_path, QuantumMachine* qvm, QVec &qv, std::vector<ClassicalCondition> &cv);
 
+extern QProg convert_qasm_string_to_qprog(std::string qasm_str, QuantumMachine* qvm);
+extern QProg convert_qasm_string_to_qprog(std::string qasm_str, QuantumMachine* qvm, QVec &qv, std::vector<ClassicalCondition> &cv);
+
 /*will delete*/
 size_t getAllocateCMem();
 prob_tuple PMeasure(QVec qubit_vector, int select_max);
@@ -371,6 +377,7 @@ prob_tuple pMeasure(QVec qubit_vector, int select_max);
 * @return     prob_vec  result
 */
 prob_vec pMeasureNoIndex(QVec qubit_vector);
+
 
 QPANDA_END
 #endif // !_CORE_H

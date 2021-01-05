@@ -15,16 +15,24 @@ enum class MatrixUnit
 	SINGLE_V2
 };
 
+enum DecompositionMode
+{
+	QR = 0,
+	HOUSEHOLDER_QR
+};
+
 /**
-* @brief  Decomposition of quantum gates by Chi Kwong Li and Diane Christine Pelejo
+* @brief  matrix decomposition
 * @ingroup Utilities
 * @param[in]  QVec& the used qubits
 * @param[in]  QStat& The target matrix
+* @param[in]  DecompositionMode decomposition mode, default is HOUSEHOLDER_QR
 * @return    QCircuit The quantum circuit for target matrix
-* @see   Un·Un-1···U1·U = I
+* @see
 */
-QCircuit matrix_decompose(QVec qubits, const QStat& src_mat);
-QCircuit matrix_decompose(QVec qubits, EigenMatrixXc& src_mat);
+QCircuit matrix_decompose(QVec qubits, const QStat& src_mat, DecompositionMode de_mode = HOUSEHOLDER_QR);
+QCircuit matrix_decompose(QVec qubits, EigenMatrixXc& src_mat, DecompositionMode de_mode = HOUSEHOLDER_QR);
+QCircuit diagonal_matrix_decompose(const QVec& qubits, const QStat& src_mat);
 
 QPANDA_END
 #endif // MATRIX_DECOMPOSITION_H

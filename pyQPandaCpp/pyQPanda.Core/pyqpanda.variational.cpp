@@ -17,12 +17,12 @@ namespace py = pybind11;
 namespace Var = QPanda::Variational;
 
 #define GET_FEED_PTR_NO_OFFSET(ptr_name, classname) \
-    QPanda::QGate(classname::*ptr_name)() const \
+    QPanda::QGate(classname::*ptr_name)() \
     = &classname::feed
 
 #define GET_FEED_PTR_WITH_OFFSET(ptr_name, classname) \
     QPanda::QGate(classname::*ptr_name)( \
-        std::map<size_t, double>) const \
+        std::map<size_t, double>) \
     = &classname::feed
 
 #define BIND_VAR_OPERATOR_OVERLOAD(OP) .def(py::self OP py::self)\
@@ -65,21 +65,30 @@ void init_variational(py::module & m)
 
     py::class_<Var::VariationalQuantumGate>
         (m, "VariationalQuantumGate")
-        .def("get_constants", &Var::VariationalQuantumGate::get_constants, py::return_value_policy::reference);
-
+        .def("get_vars", &Var::VariationalQuantumGate::get_vars, py::return_value_policy::reference)
+		.def("get_constants", &Var::VariationalQuantumGate::get_constants, py::return_value_policy::reference)
+		.def("set_dagger",&Var::VariationalQuantumGate::set_dagger,py::return_value_policy::automatic)
+		.def("set_control", &Var::VariationalQuantumGate::set_control, py::return_value_policy::automatic)
+		.def("is_dagger", &Var::VariationalQuantumGate::is_dagger, py::return_value_policy::automatic)
+		.def("get_control_qubit", &Var::VariationalQuantumGate::get_control_qubit, py::return_value_policy::automatic);
 
     GET_FEED_PTR_NO_OFFSET(feed_vqg_h_no_ptr, Var::VariationalQuantumGate_H);
 
     py::class_<Var::VariationalQuantumGate_H, Var::VariationalQuantumGate>
         (m, "VariationalQuantumGate_H")
         .def(py::init<QPanda::Qubit*>())
-        .def("feed", feed_vqg_h_no_ptr);
+        .def("feed", feed_vqg_h_no_ptr)
+		.def("dagger", &Var::VariationalQuantumGate_H::dagger, py::return_value_policy::automatic)
+		.def("control", &Var::VariationalQuantumGate_H::control, py::return_value_policy::automatic);
+
     GET_FEED_PTR_NO_OFFSET(feed_vqg_x_no_ptr, Var::VariationalQuantumGate_X);
 
     py::class_<Var::VariationalQuantumGate_X, Var::VariationalQuantumGate>
         (m, "VariationalQuantumGate_X")
         .def(py::init<QPanda::Qubit*>())
-        .def("feed", feed_vqg_x_no_ptr);
+        .def("feed", feed_vqg_x_no_ptr)
+		.def("dagger", &Var::VariationalQuantumGate_X::dagger, py::return_value_policy::automatic)
+		.def("control", &Var::VariationalQuantumGate_X::control, py::return_value_policy::automatic);
 
     GET_FEED_PTR_NO_OFFSET(feed_vqg_rx_no_ptr, Var::VariationalQuantumGate_RX);
     GET_FEED_PTR_WITH_OFFSET(feed_vqg_rx_with_ptr, Var::VariationalQuantumGate_RX);
@@ -89,7 +98,9 @@ void init_variational(py::module & m)
         .def(py::init<QPanda::Qubit*, Var::var>())
         .def(py::init<QPanda::Qubit*, double>())
         .def("feed", feed_vqg_rx_no_ptr)
-        .def("feed", feed_vqg_rx_with_ptr);
+        .def("feed", feed_vqg_rx_with_ptr)
+		.def("dagger", &Var::VariationalQuantumGate_RX::dagger, py::return_value_policy::automatic)
+		.def("control", &Var::VariationalQuantumGate_RX::control, py::return_value_policy::automatic);
 
     GET_FEED_PTR_NO_OFFSET(feed_vqg_ry_no_ptr, Var::VariationalQuantumGate_RY);
     GET_FEED_PTR_WITH_OFFSET(feed_vqg_ry_with_ptr, Var::VariationalQuantumGate_RY);
@@ -99,7 +110,9 @@ void init_variational(py::module & m)
         .def(py::init<QPanda::Qubit*, Var::var>())
         .def(py::init<QPanda::Qubit*, double>())
         .def("feed", feed_vqg_ry_no_ptr)
-        .def("feed", feed_vqg_ry_with_ptr);
+        .def("feed", feed_vqg_ry_with_ptr)
+		.def("dagger", &Var::VariationalQuantumGate_RY::dagger, py::return_value_policy::automatic)
+		.def("control", &Var::VariationalQuantumGate_RY::control, py::return_value_policy::automatic);
 
     GET_FEED_PTR_NO_OFFSET(feed_vqg_rz_no_ptr, Var::VariationalQuantumGate_RZ);
     GET_FEED_PTR_WITH_OFFSET(feed_vqg_rz_with_ptr, Var::VariationalQuantumGate_RZ);
@@ -109,54 +122,73 @@ void init_variational(py::module & m)
         .def(py::init<QPanda::Qubit*, Var::var>())
         .def(py::init<QPanda::Qubit*, double>())
         .def("feed", feed_vqg_rz_no_ptr)
-        .def("feed", feed_vqg_rz_with_ptr);
+        .def("feed", feed_vqg_rz_with_ptr)
+		.def("dagger", &Var::VariationalQuantumGate_RZ::dagger, py::return_value_policy::automatic)
+		.def("control", &Var::VariationalQuantumGate_RZ::control, py::return_value_policy::automatic);
 
     GET_FEED_PTR_NO_OFFSET(feed_vqg_crx_no_ptr, Var::VariationalQuantumGate_CRX);
-
+	GET_FEED_PTR_WITH_OFFSET(feed_vqg_crx_with_ptr, Var::VariationalQuantumGate_CRX);
     py::class_<Var::VariationalQuantumGate_CRX, Var::VariationalQuantumGate>
         (m, "VariationalQuantumGate_CRX")
         .def(py::init<QPanda::Qubit*, QVec &, double>())
+		.def(py::init<QPanda::Qubit*, QVec &, Var::var>())
         .def(py::init<Var::VariationalQuantumGate_CRX &>())
-        .def("feed", feed_vqg_crx_no_ptr);
+        .def("feed", feed_vqg_crx_no_ptr)
+		.def("feed", feed_vqg_crx_with_ptr)
+		.def("dagger", &Var::VariationalQuantumGate_CRX::dagger, py::return_value_policy::automatic)
+		.def("control", &Var::VariationalQuantumGate_CRX::control, py::return_value_policy::automatic);
+
 
     GET_FEED_PTR_NO_OFFSET(feed_vqg_cry_no_ptr, Var::VariationalQuantumGate_CRY);
-
+	GET_FEED_PTR_WITH_OFFSET(feed_vqg_cry_with_ptr, Var::VariationalQuantumGate_CRY);
     py::class_<Var::VariationalQuantumGate_CRY, Var::VariationalQuantumGate>
         (m, "VariationalQuantumGate_CRY")
         .def(py::init<QPanda::Qubit*, QVec &, double>())
+		.def(py::init<QPanda::Qubit*, QVec &, Var::var>())
         .def(py::init<Var::VariationalQuantumGate_CRY &>())
-        .def("feed", feed_vqg_cry_no_ptr);
+        .def("feed", feed_vqg_cry_no_ptr)
+		.def("feed", feed_vqg_cry_with_ptr)
+		.def("dagger", &Var::VariationalQuantumGate_CRY::dagger, py::return_value_policy::automatic)
+		.def("control", &Var::VariationalQuantumGate_CRY::control, py::return_value_policy::automatic);
 
     GET_FEED_PTR_NO_OFFSET(feed_vqg_crz_no_ptr, Var::VariationalQuantumGate_CRZ);
-
+	GET_FEED_PTR_WITH_OFFSET(feed_vqg_crz_with_ptr, Var::VariationalQuantumGate_CRZ);
     py::class_<Var::VariationalQuantumGate_CRZ, Var::VariationalQuantumGate>
         (m, "VariationalQuantumGate_CRZ")
         .def(py::init<QPanda::Qubit*, QVec &, double>())
+		.def(py::init<QPanda::Qubit*, QVec &, Var::var>())
         .def(py::init<Var::VariationalQuantumGate_CRZ &>())
-        .def("feed", feed_vqg_crz_no_ptr);
+        .def("feed", feed_vqg_crz_no_ptr)
+		.def("feed", feed_vqg_crz_with_ptr)
+		.def("dagger", &Var::VariationalQuantumGate_CRZ::dagger, py::return_value_policy::automatic)
+		.def("control", &Var::VariationalQuantumGate_CRZ::control, py::return_value_policy::automatic);
 
 
 
     GET_FEED_PTR_NO_OFFSET(feed_vqg_cnot_no_ptr, Var::VariationalQuantumGate_CNOT);
 
-    py::class_<Var::VariationalQuantumGate_CNOT, Var::VariationalQuantumGate>
-        (m, "VariationalQuantumGate_CNOT")
-        .def(py::init<QPanda::Qubit*, QPanda::Qubit*>())
-        .def("feed", feed_vqg_cnot_no_ptr);
+	py::class_<Var::VariationalQuantumGate_CNOT, Var::VariationalQuantumGate>
+		(m, "VariationalQuantumGate_CNOT")
+		.def(py::init<QPanda::Qubit*, QPanda::Qubit*>())
+		.def("feed", feed_vqg_cnot_no_ptr)
+		.def("dagger", &Var::VariationalQuantumGate_CNOT::dagger, py::return_value_policy::automatic)
+		.def("control", &Var::VariationalQuantumGate_CNOT::control, py::return_value_policy::automatic);
 
     GET_FEED_PTR_NO_OFFSET(feed_vqg_cz_no_ptr, Var::VariationalQuantumGate_CZ);
 
-    py::class_<Var::VariationalQuantumGate_CZ, Var::VariationalQuantumGate>
-        (m, "VariationalQuantumGate_CZ")
-        .def(py::init<QPanda::Qubit*, QPanda::Qubit*>())
-        .def("feed", feed_vqg_cz_no_ptr);
+	py::class_<Var::VariationalQuantumGate_CZ, Var::VariationalQuantumGate>
+		(m, "VariationalQuantumGate_CZ")
+		.def(py::init<QPanda::Qubit*, QPanda::Qubit*>())
+		.def("feed", feed_vqg_cz_no_ptr)
+		.def("dagger", &Var::VariationalQuantumGate_CZ::dagger, py::return_value_policy::automatic)
+		.def("control", &Var::VariationalQuantumGate_CZ::control, py::return_value_policy::automatic);
 
     QCircuit(Var::VariationalQuantumCircuit::*feed_vqc_with_ptr)
         (const std::vector<std::tuple<weak_ptr<Var::VariationalQuantumGate>,
             size_t, double>>) const
         = &Var::VariationalQuantumCircuit::feed;
 
-    QCircuit(Var::VariationalQuantumCircuit::*feed_vqc_no_ptr)() const
+    QCircuit(Var::VariationalQuantumCircuit::*feed_vqc_no_ptr)() 
         = &Var::VariationalQuantumCircuit::feed;
 
     Var::VariationalQuantumCircuit& (Var::VariationalQuantumCircuit::*insert_vqc_vqc)
@@ -189,7 +221,13 @@ void init_variational(py::module & m)
         .def("insert", insert_vqc_qc, py::return_value_policy::reference)
         .def("insert", insert_vqc_qg, py::return_value_policy::reference)
         .def("feed", feed_vqc_no_ptr)
-        .def("feed", feed_vqc_with_ptr);
+        .def("feed", feed_vqc_with_ptr)
+		.def("dagger", &Var::VariationalQuantumCircuit::dagger, py::return_value_policy::automatic)
+		.def("control", &Var::VariationalQuantumCircuit::control, py::return_value_policy::automatic)
+		.def("set_dagger", &Var::VariationalQuantumCircuit::set_dagger, py::return_value_policy::automatic)
+		.def("set_control", &Var::VariationalQuantumCircuit::set_control, py::return_value_policy::automatic)
+		.def("is_dagger", &Var::VariationalQuantumCircuit::is_dagger, py::return_value_policy::automatic)
+		.def("get_control_qubit", &Var::VariationalQuantumCircuit::get_control_qubit, py::return_value_policy::automatic);
 
     py::class_<Var::expression>(m, "expression")
         .def(py::init<Var::var>())

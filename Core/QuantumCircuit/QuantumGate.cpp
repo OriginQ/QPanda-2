@@ -18,6 +18,8 @@ Update by code specification
 #include "Core/Utilities/Tools/QPandaException.h"
 #include "Core/Utilities/Tools/Utils.h"
 #include "Core/Utilities/Tools/QStatMatrix.h"
+#include <float.h>
+
 using namespace QGATE_SPACE;
 using namespace std;
 USING_QPANDA
@@ -84,13 +86,14 @@ U4::U4(QStat & matrix)
 		gamma = 2 * acos(abs(gate_matrix[0]));
 	}
     
-    if (abs(gate_matrix[0] * gate_matrix[1]) > 1e-10)
+    if ((abs(gate_matrix[0]) > DBL_EPSILON) && (abs(gate_matrix[2])> DBL_EPSILON))
     {
         beta = argc(gate_matrix[2] / gate_matrix[0]);
+		
         delta = argc(gate_matrix[3] / gate_matrix[2]);
         alpha = beta / 2 + delta / 2 + argc(gate_matrix[0]);
     }
-    else if (abs(gate_matrix[0]) > 1e-10)
+    else if (abs(gate_matrix[0]) > DBL_EPSILON)
     {
         beta = argc(gate_matrix[3] / gate_matrix[0]);
         delta = 0;
@@ -504,7 +507,6 @@ CU::CU(double _alpha, double _beta,
 CU::CU(QStat & matrix)
 {
     operation_num = 2;
-    //QStat matrix;
     gate_matrix.resize(16);
     gate_matrix[0] = 1;
     gate_matrix[5] = 1;
@@ -512,14 +514,23 @@ CU::CU(QStat & matrix)
     gate_matrix[11] = matrix[1];
     gate_matrix[14] = matrix[2];
     gate_matrix[15] = matrix[3];
-    gamma = 2 * acos(abs(gate_matrix[10]));
-    if (abs(gate_matrix[10] * gate_matrix[11]) > 1e-20)
+
+	if (abs(gate_matrix[10]) >= 1.0)
+	{
+		gamma = 0.0;
+	}
+	else
+	{
+		gamma = 2 * acos(abs(gate_matrix[10]));
+	}
+	if ((abs(gate_matrix[10]) > DBL_EPSILON) && (abs(gate_matrix[14]) > DBL_EPSILON))
+    /*if (abs(gate_matrix[10] * gate_matrix[11]) > 1e-13)*/
     {
         beta = argc(gate_matrix[14] / gate_matrix[10]);
         delta = argc(gate_matrix[15] / gate_matrix[14]);
         alpha = beta / 2 + delta / 2 + argc(gate_matrix[10]);
     }
-    else if (abs(gate_matrix[10]) > 1e-10)
+    else if (abs(gate_matrix[10]) > DBL_EPSILON)
     {
         beta = argc(gate_matrix[15] / gate_matrix[10]);
         delta = 0;
@@ -700,13 +711,14 @@ U3::U3(double theta, double phi, double lambda)
     gate_matrix[3] = exp(qcomplex_t(0, phi + lambda)) * tmp_value1;
 
     gamma = 2 * acos(abs(gate_matrix[0]));
-    if (abs(gate_matrix[0] * gate_matrix[1]) > 1e-20)
+	if ((abs(gate_matrix[0]) > DBL_EPSILON) && (abs(gate_matrix[2]) > DBL_EPSILON))
+    /*if (abs(gate_matrix[0] * gate_matrix[1]) > 1e-20)*/
     {
         beta = argc(gate_matrix[2] / gate_matrix[0]);
         delta = argc(gate_matrix[3] / gate_matrix[2]);
         alpha = beta / 2 + delta / 2 + argc(gate_matrix[0]);
     }
-    else if (abs(gate_matrix[0]) > 1e-10)
+    else if (abs(gate_matrix[0]) > DBL_EPSILON)
     {
         beta = argc(gate_matrix[3] / gate_matrix[0]);
         delta = 0;

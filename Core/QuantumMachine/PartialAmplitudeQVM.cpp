@@ -275,6 +275,7 @@ void PartialAmplitudeQVM::execute(std::shared_ptr<AbstractQGateNode>  cur_node, 
 	}
 	break;
 
+    case GateType::BARRIER_GATE:break;
 	default:
 	{
 		QCERR("UnSupported QGate Node");

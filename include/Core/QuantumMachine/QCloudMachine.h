@@ -40,7 +40,7 @@ enum class REAL_CHIP_TYPE
 * @note  QCloudMachine also provides  python interface
 */
 
-struct NoiseParams 
+struct NoiseConfigs
 {
     string noise_model;
     double single_gate_param;
@@ -145,15 +145,17 @@ public:
 	std::string get_result_json(std::string taskid, CLOUD_QMACHINE_TYPE type);
 
 private:
-	std::string m_token;
-	std::string m_inqure_url;
-    std::string m_compute_url;
+    size_t m_retry_num = 0;
 
+	std::string m_token;
+	std::string m_inqure_url;  
+    std::string m_compute_url;
+     
     std::map<std::string, double> m_measure_result;
     std::map<std::string, qcomplex_t> m_pmeasure_result;
     std::vector<QStat> m_qst_result;
     qcomplex_t m_single_result;
-    NoiseParams m_noise_params;
+    NoiseConfigs m_noise_params;
 
     enum CLUSTER_TASK_TYPE
     {

@@ -42,11 +42,40 @@ static void unique_qvec(QVec &qv)
         qv.end());
 }
 
+static std::vector<Qnum> get_qubits_addr(const std::vector<QVec>& qvs)
+{
+    std::vector<Qnum> qubits_addrs;
+    for (const auto& qvec : qvs)
+    {
+        Qnum qubits_addr;
+        for_each(qvec.begin(), qvec.end(), [&](Qubit* qubit)
+        {
+            qubits_addr.emplace_back(qubit->get_phy_addr()); 
+        });
+
+        qubits_addrs.emplace_back(qubits_addr);
+    }
+
+    return qubits_addrs;
+}
+
+static Qnum get_qubits_addr(const QVec &qvs)
+{
+    Qnum qubits_addrs;
+    for (const auto& qubit : qvs)
+    {
+        qubits_addrs.emplace_back(qubit->get_phy_addr());
+    }
+
+    return qubits_addrs;
+}
+
 void MPSQVM::init()
 {
     try
     {
         _start();
+        m_simulator = make_unique<MPSImplQPU>();
     }
     catch (const std::exception &e)
     {
@@ -145,7 +174,7 @@ std::map<std::string, size_t> MPSQVM::run_configuration_without_noise(QProg &pro
         return  result_map;
     }
 
-    // all Measure operation is at the end of the quantum program
+    // all Measure operations are at the end of the quantum program
 
     run(prog);
 
@@ -175,15 +204,17 @@ std::map<std::string, size_t> MPSQVM::run_configuration_without_noise(QProg &pro
     return  result_map;
 }
 
+
 std::map<std::string, size_t> MPSQVM::run_configuration_with_noise(QProg &prog, std::vector<ClassicalCondition> &cbits, int shots)
 {
     map<string, size_t> result_map;
 
     for (int i = 0; i < shots; i++)
-    {
+    { 
         run_cannot_optimize_measure_with_noise(prog);
         std::string result_bin_str = _ResultToBinaryString(cbits);
         std::reverse(result_bin_str.begin(), result_bin_str.end());
+
         if (result_map.find(result_bin_str) == result_map.end())
             result_map[result_bin_str] = 1;
         else
@@ -191,17 +222,17 @@ std::map<std::string, size_t> MPSQVM::run_configuration_with_noise(QProg &prog, 
     }
 
     return  result_map;
-}
+}   
 
 std::map<string, size_t> MPSQVM::runWithConfiguration(QProg &prog, std::vector<ClassicalCondition> &cbits, int shots)
 {
-    if (NoiseConfigMethod::NO_CONFIG == m_noise_manager.get_noise_method())
+    if (m_noise_simulator.has_quantum_error())
     {
-        return run_configuration_without_noise(prog, cbits, shots);
+        return run_configuration_with_noise(prog, cbits, shots);
     }
     else
     {
-        return run_configuration_with_noise(prog, cbits, shots);
+        return run_configuration_without_noise(prog, cbits, shots);
     }
 }
 
@@ -284,6 +315,13 @@ prob_tuple MPSQVM::pMeasure(QVec qubits, int select_max)
         return result_tuple;
     }
 }
+
+void MPSQVM::initState(const QStat &state)
+{
+    m_simulator->initState(getAllocateQubitNum(), state);
+    return;
+}
+
 
 prob_tuple MPSQVM::getProbTupleList(QVec vQubit, int select_max)
 {
@@ -400,7 +438,6 @@ void MPSQVM::handle_two_targets(std::shared_ptr<AbstractQGateNode> gate, const Q
 void MPSQVM::run_cannot_optimize_measure_with_noise(QProg &prog)
 {
     m_qubit_num = getAllocateQubitNum();
-    m_simulator = make_shared<MPSImplQPU>();
     m_simulator->initState(0, 1, m_qubit_num);
 
     QCircuitConfig config;
@@ -408,14 +445,13 @@ void MPSQVM::run_cannot_optimize_measure_with_noise(QProg &prog)
     config._contorls.clear();
     config._can_optimize_measure = false;
 
-    m_noise_manager.set_mps_qpu_and_result(m_simulator, getResult());
-    m_noise_manager.execute(prog.getImplementationPtr(), nullptr, config);
+    m_noise_simulator.set_mps_qpu_and_result(m_simulator, getResult());
+    m_noise_simulator.execute(prog.getImplementationPtr(), nullptr, config);
 }
 
 void MPSQVM::run(QProg &prog)
 {
     m_qubit_num = getAllocateQubitNum();
-    m_simulator = make_unique<MPSImplQPU>();
     m_simulator->initState(0, 1, m_qubit_num);
 
     QCircuitConfig config;
@@ -428,7 +464,6 @@ void MPSQVM::run(QProg &prog)
 void MPSQVM::run_cannot_optimize_measure(QProg &prog)
 {
     m_qubit_num = getAllocateQubitNum();
-    m_simulator = make_unique<MPSImplQPU>();
     m_simulator->initState(0, 1, m_qubit_num);
 
     QCircuitConfig config;
@@ -588,24 +623,129 @@ void MPSQVM::execute(std::shared_ptr<AbstractQGateNode>  cur_node,
     }
 }
 
-void MPSQVM::set_noise_model(NOISE_MODEL model, std::string gate, Qnum qubits_vec, std::vector<double> params_vec)
+qcomplex_t MPSQVM::pmeasure_bin_index(QProg prog, std::string str)
 {
-    return m_noise_manager.set_noise_model(model, gate, qubits_vec, params_vec);
+    run(prog);
+    return m_simulator->pmeasure_bin_index(str);
 }
 
-void MPSQVM::set_noise_model(NOISE_MODEL model, std::vector<double> params_vec)
+qcomplex_t MPSQVM::pmeasure_dec_index(QProg prog, std::string str)
 {
-    return m_noise_manager.set_noise_model(model, params_vec);
+    run(prog);
+    return m_simulator->pmeasure_dec_index(str);
 }
 
-//The next 2 set_noise_model functions is only appear in DECOHERENCE_KRAUS_OPERATOR
-void MPSQVM::set_noise_model(NOISE_MODEL model, std::vector<double> T_params_vec, std::vector<double> time_params_vec)
+//The all next functions are only for noise simulation
+ 
+void MPSQVM::set_reset_error(double reset_0_param, double reset_1_param) 
+{ 
+    return m_noise_simulator.set_reset_error(reset_0_param, reset_1_param); 
+} 
+
+void MPSQVM::set_rotation_error(double param) 
 {
-    return m_noise_manager.set_noise_model(model, T_params_vec, time_params_vec);
+    return m_noise_simulator.set_rotation_error(param); 
 }
 
-void MPSQVM::set_noise_model(NOISE_MODEL model, std::string gate, Qnum qubits_vec, std::vector<double> T_params_vec, std::vector<double> time_params_vec)
+void MPSQVM::set_measure_error(NOISE_MODEL model, double param)
 {
-    return m_noise_manager.set_noise_model(model, gate, qubits_vec, T_params_vec, time_params_vec);
+    return m_noise_simulator.set_measure_error(model, param);
 }
 
+void MPSQVM::set_measure_error(NOISE_MODEL model, double T1, double T2, double time_param)
+{
+    m_noise_simulator.set_measure_error(model, T1, T2, time_param);
+    return;
+}
+
+void MPSQVM::set_measure_error(NOISE_MODEL model, double param, const QVec& qubits_vec)
+{
+    return m_noise_simulator.set_measure_error(model, param, get_qubits_addr(qubits_vec));
+}
+
+void MPSQVM::set_measure_error(NOISE_MODEL model, double T1, double T2, double time_param, const QVec& qubits_vec)
+{
+    m_noise_simulator.set_measure_error(model, T1, T2, time_param, get_qubits_addr(qubits_vec));
+    return;
+}
+
+void MPSQVM::set_noise_model(NOISE_MODEL model, GateType gate_type, double param)
+{
+    m_noise_simulator.set_noise_model(model, gate_type, param);
+    return;
+}
+
+void MPSQVM::set_noise_model(NOISE_MODEL model, GateType gate_type, double param, const std::vector<QVec>& qubits_vecs)
+{
+    m_noise_simulator.set_noise_model(model, gate_type, param, get_qubits_addr(qubits_vecs));
+    return;
+}
+
+void MPSQVM::set_noise_model(NOISE_MODEL model, GateType gate_type, double param, const QVec& qubits_vec)
+{
+    m_noise_simulator.set_noise_model(model, gate_type, param, get_qubits_addr(qubits_vec));
+    return;
+}
+
+
+void MPSQVM::set_noise_model(NOISE_MODEL model, GateType gate_type, double T1, double T2, double time_param)
+{
+    m_noise_simulator.set_noise_model(model, gate_type, T1, T2, time_param);
+    return;
+}
+
+void MPSQVM::set_noise_model(NOISE_MODEL model, GateType gate_type, double T1, double T2, double time_param, const std::vector<QVec>& qubits_vecs)
+{
+    m_noise_simulator.set_noise_model(model, gate_type, T1, T2, time_param, get_qubits_addr(qubits_vecs));
+    return;
+}
+
+
+void MPSQVM::set_noise_model(NOISE_MODEL model, GateType gate_type, double T1, double T2, double time_param, const QVec& qubits_vec)
+{
+    m_noise_simulator.set_noise_model(model, gate_type, T1, T2, time_param, get_qubits_addr(qubits_vec));
+    return;
+}
+void MPSQVM::set_mixed_unitary_error(GateType gate_type, const std::vector<QStat>& unitary_matrices, const std::vector<double>& probs_vec)
+{
+    m_noise_simulator.set_mixed_unitary_error(gate_type, unitary_matrices, probs_vec);
+    return;
+}
+
+void MPSQVM::set_mixed_unitary_error(GateType gate_type, const std::vector<QStat>& karus_matrices)
+{
+    m_noise_simulator.set_mixed_unitary_error(gate_type, karus_matrices);
+    return;
+}
+
+void MPSQVM::set_mixed_unitary_error(GateType gate_type, const std::vector<QStat>& unitary_matrices, const std::vector<double>& probs_vec, const std::vector<QVec>& qubits_vecs)
+{
+    return m_noise_simulator.set_mixed_unitary_error(gate_type, unitary_matrices, probs_vec, get_qubits_addr(qubits_vecs));
+    return;
+}
+
+void MPSQVM::set_mixed_unitary_error(GateType gate_type, const std::vector<QStat>& karus_matrices, const std::vector<QVec>& qubits_vecs)
+{
+    m_noise_simulator.set_mixed_unitary_error(gate_type, karus_matrices, get_qubits_addr(qubits_vecs));
+    return;
+}
+
+void MPSQVM::set_readout_error(const std::vector<std::vector<double>>& readout_params, const QVec& qubits)
+{
+    m_noise_simulator.set_readout_error(readout_params, get_qubits_addr(qubits));
+    return;
+}
+
+#if 0
+void MPSQVM::set_error(GateType gate_type, const KarusError& karus_error)
+{
+    m_noise_simulator.set_combining_error(gate_type, karus_error, {});
+    return;
+}
+
+void MPSQVM::set_error(GateType gate_type, const KarusError& karus_error, const std::vector<QVec>& qubits_vecs)
+{
+    m_noise_simulator.set_combining_error(gate_type, karus_error, get_qubits_addr(qubits_vecs));
+    return;
+}
+#endif

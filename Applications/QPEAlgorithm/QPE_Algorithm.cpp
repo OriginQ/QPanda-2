@@ -82,7 +82,7 @@ QCircuit QPE(vector<Qubit*> controlqvec, vector<Qubit *> targetqvec, QGEN qc)
     {
         circuit << H(controlqvec[i]);
     }
-    vector<Qubit*> controlqubit;
+
     for (auto i=0;i<controlqvec.size();i++)
     {
         circuit << 

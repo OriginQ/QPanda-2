@@ -13,177 +13,18 @@
 USING_QPANDA
 using namespace std;
 
+
 NoiseQVM::NoiseQVM()
 {
-    m_gates_matrix = { { "X","Y","Z",
-        "T","S","H",
-        "RX","RY","RZ",
-        "U1" },
-    { "CNOT" } };
-    m_valid_gates_matrix.resize(m_gates_matrix.size());
-}
 
-
-void NoiseQVM::_getValidGatesMatrix()
-{
-    if (SingleGateTransferType::SINGLE_GATE_INVALID ==
-        SingleGateTypeValidator::GateType(m_gates_matrix[MetadataGateType::METADATA_SINGLE_GATE],
-            m_valid_gates_matrix[MetadataGateType::METADATA_SINGLE_GATE]))   /* single gate data MetadataValidity */
-    {
-        finalize();
-        QCERR("gates valid error");
-        throw runtime_error("gates valid error");
-    }
-    if (m_gates_matrix.size() >= 2)
-    {
-        if (DoubleGateTransferType::DOUBLE_GATE_INVALID ==
-            DoubleGateTypeValidator::GateType(m_gates_matrix[MetadataGateType::METADATA_DOUBLE_GATE],
-                m_valid_gates_matrix[MetadataGateType::METADATA_DOUBLE_GATE]))   /* double gate data MetadataValidity */
-        {
-            finalize();
-            QCERR("gates valid error");
-            throw runtime_error("gates valid error");
-        }
-    }
-
-}
-
-void NoiseQVM::set_noise_model(NOISE_MODEL model, GateType type, std::vector<double> params_vec)
-{
-	m_models_vec.push_back(model);
-
-	auto gate_name = TransformQGateType::getInstance()[type];
-	m_gates_vec.push_back(gate_name);
-
-    m_params_vecs.push_back(params_vec);
-}
-
-void NoiseQVM::set_noise_kraus_matrix(GateType type, std::vector<QStat> kraus_matrix_vec)
-{
-	if (kraus_matrix_vec.empty())
-	{
-		QCERR("kraus_mat_vec is empty");
-		throw invalid_argument("kraus_mat_vec is empty");
-	}
-
-	for (auto iter : kraus_matrix_vec)
-	{
-		if (iter.size() != 4)
-		{
-			QCERR("kraus mat size  error");
-			throw invalid_argument("kraus mat size  error");
-		}
-	}
-
-	auto gate_name = TransformQGateType::getInstance()[type];
-	m_kraus_mats_vec.push_back(kraus_matrix_vec);
-	m_kraus_gates_vec.push_back(gate_name);
-}
-
-
-void NoiseQVM::set_noise_unitary_matrix(GateType type, std::vector<QStat> unitary_matrix_vec, std::vector<double> probs_vec)
-{
-	if (unitary_matrix_vec.empty()
-		|| unitary_matrix_vec.size() != probs_vec.size())
-	{
-		QCERR("unitary_matrix_vec size error");
-		throw invalid_argument("unitary_matrix_vec size error");
-	}
-
-	for (auto iter : unitary_matrix_vec)
-	{
-		if (iter.size() != 4)
-		{
-			QCERR("unitary matrix size  error");
-			throw invalid_argument("unitary matrix size  error");
-		}
-	}
-
-	// unitary_matrix , probs_vec to  kraus_matrix
-	std::vector<QStat> kraus_matrix_vec;
-	for (int i = 0; i < unitary_matrix_vec.size(); i++)
-	{
-		QStat unitary_mat = unitary_matrix_vec[i];
-		auto kraus_matrix = unitary_mat*sqrt(probs_vec[i]);
-		kraus_matrix_vec.push_back(kraus_matrix);
-	}
-
-	m_kraus_mats_vec.push_back(kraus_matrix_vec);
-
-	auto gate_name = TransformQGateType::getInstance()[type];
-	m_kraus_gates_vec.push_back(gate_name);
-}
-
-void NoiseQVM::set_rotation_angle_error(double error)
-{
-    m_rotation_angle_error = error;
 }
 
 void NoiseQVM::init()
 {
-	m_doc.Parse("{}");
-	Value value_object(rapidjson::kObjectType);
-
-	if (!m_models_vec.empty()
-		&& m_models_vec.size() == m_params_vecs.size()
-		&& m_params_vecs.size() == m_gates_vec.size())
-	{
-		for (int i = 0; i < m_models_vec.size(); i++)
-		{
-			Value value_array(rapidjson::kArrayType);
-			value_array.PushBack(m_models_vec[i], m_doc.GetAllocator());
-			for (auto iter : m_params_vecs[i])
-			{
-				value_array.PushBack(iter, m_doc.GetAllocator());
-			}
-			std::string str_gate = m_gates_vec[i];
-			Value gate_name(rapidjson::kStringType);
-			gate_name.SetString(str_gate.c_str(), (rapidjson::SizeType)str_gate.size(), m_doc.GetAllocator());
-
-			value_object.AddMember(gate_name, value_array, m_doc.GetAllocator());
-		}
-	}
-
-	if (m_kraus_mats_vec.empty() == false
-		&& m_kraus_mats_vec.size() == m_kraus_gates_vec.size())
-	{
-		for (int i = 0; i < m_kraus_mats_vec.size(); i++)
-		{
-			Value value_array(rapidjson::kArrayType);
-			const int model_type = NOISE_MODEL::KRAUS_MATRIX_OPRATOR;
-			value_array.PushBack(model_type, m_doc.GetAllocator());
-			for (auto kraus_mat : m_kraus_mats_vec[i])
-			{
-				Value kraus_mat_array(rapidjson::kArrayType);
-				for (auto iter : kraus_mat)
-				{
-					kraus_mat_array.PushBack(iter.real(), m_doc.GetAllocator());
-					kraus_mat_array.PushBack(iter.imag(), m_doc.GetAllocator());
-				}
-				value_array.PushBack(kraus_mat_array, m_doc.GetAllocator());
-			}
-			std::string str_gate = m_kraus_gates_vec[i];
-			Value gate_name(rapidjson::kStringType);
-			gate_name.SetString(str_gate.c_str(), (rapidjson::SizeType)str_gate.size(), m_doc.GetAllocator());
-			value_object.AddMember(gate_name, value_array, m_doc.GetAllocator());
-		}
-	}
-
     try
     {
-		_start();
-		_getValidGatesMatrix();
-
-		if (!value_object.ObjectEmpty())
-		{
-			m_doc.AddMember("noisemodel", value_object, m_doc.GetAllocator());
-			_pGates = new NoisyCPUImplQPU(m_doc);
-		}
-		else
-		{
-			_pGates = new NoisyCPUImplQPU();
-		}
-
+        _start();
+        _pGates = new NoisyCPUImplQPU(m_quantum_noise);
         _ptrIsNull(_pGates, "NoisyCPUImplQPU");
     }
     catch (const std::exception&e)
@@ -194,101 +35,71 @@ void NoiseQVM::init()
     }
 }
 
-void NoiseQVM::initGates(rapidjson::Document & doc)
+void NoiseQVM::initState(const QStat &state)
 {
-    if (!doc.HasMember("gates"))
-    {
+    _pGates->initState(getAllocateQubitNum(), state);
+    return;
+}
 
-        QCERR("doc do not include gates");
-        throw invalid_argument("doc do not include gates");
-    }
+void NoiseQVM::init(rapidjson::Document &)
+{
+    return ;
+}
 
-    auto doc_iter = doc.FindMember("gates");
-    auto & gates = (*doc_iter).value;
-    if (!gates.IsArray())
-    {
-        QCERR("gates is not array");
-        throw invalid_argument("gates is not array");
-    }
-    m_gates_matrix.resize(0);
+std::map<string, size_t> NoiseQVM::runWithConfiguration(QProg &prog, std::vector<ClassicalCondition> &cbits,
+                                                          rapidjson::Document &doc)
+{
+    QPANDA_ASSERT(doc.HasParseError() || !doc.HasMember("shots") || !doc["shots"].IsUint64(),
+                  "runWithConfiguration param don't  have shots");
+    size_t shots = doc["shots"].GetUint64();
+    return runWithConfiguration(prog, cbits, shots);
+}
 
-    for (auto first_layer_iter = gates.Begin();
-        first_layer_iter != gates.End();
-        first_layer_iter++)
+std::map<string, size_t> NoiseQVM::runWithConfiguration(QProg &prog, std::vector<ClassicalCondition> &cbits, int shots)
+{
+    auto qpu = dynamic_cast<NoisyCPUImplQPU *>(_pGates);
+    QPANDA_ASSERT(nullptr == qpu, "Error: NoisyCPUImplQPU.");
+    qpu->set_quantum_noise(m_quantum_noise);
+
+    map<string, size_t> mResult;
+    for (size_t i = 0; i < shots; i++)
     {
-        auto &second_layer = first_layer_iter;
-        vector<string> temp;
-        if (!first_layer_iter->IsArray())
+        run(prog);
+        string sResult = _ResultToBinaryString(cbits);
+
+        std::reverse(sResult.begin(), sResult.end());
+        if (mResult.find(sResult) == mResult.end())
         {
-            if (!first_layer_iter->IsString())
-            {
-                QCERR("first_layer_iter is not string or array");
-                throw invalid_argument("first_layer_iter is not  string or array");
-            }
-            temp.push_back(first_layer_iter->GetString());
+            mResult[sResult] = 1;
         }
         else
         {
-            for (auto second_layer_iter = second_layer->Begin();
-                second_layer_iter != second_layer->End();
-                second_layer_iter++)
-            {
-                if (!second_layer_iter->IsString())
-                {
-                    QCERR("first_layer_iter is not string or array");
-                    throw invalid_argument("first_layer_iter is not  string or array");
-                }
-                std::string string_temp(second_layer_iter->GetString());
-                temp.push_back(string_temp);
-            }
+            mResult[sResult] += 1;
         }
-        m_gates_matrix.push_back(temp);
     }
-    m_valid_gates_matrix.reserve(m_gates_matrix.size());
+
+    return mResult;
 }
 
-void NoiseQVM::init(rapidjson::Document & doc)
+std::map<std::string, bool> NoiseQVM::directlyRun(QProg &prog)
 {
-    if (!doc.HasMember("noisemodel") && (!doc.HasMember("gates")))
-    {
-        init();
-    }
-    else
-    {
-        try
-        {
-            if (doc.HasMember("gates"))
-            {
-                initGates(doc);
-            }
-            m_doc.CopyFrom(doc, m_doc.GetAllocator());
-            _start();
-            _getValidGatesMatrix();
-            _pGates = new NoisyCPUImplQPU(doc);
-            _ptrIsNull(_pGates, "NoisyCPUImplQPU");
-        }
-        catch (const std::exception&e)
-        {
-            finalize();
-            QCERR(e.what());
-            throw init_fail(e.what());
-        }
-    }
+    auto qpu = dynamic_cast<NoisyCPUImplQPU *>(_pGates);
+    QPANDA_ASSERT(nullptr == qpu, "Error: NoisyCPUImplQPU.");
+    qpu->set_quantum_noise(m_quantum_noise);
 
+    run(prog);
+    return _QResult->getResultMap();
 }
 
 void NoiseQVM::run(QProg & prog)
 {
     try
     {
-        /*vector<vector<int>> adjacent_matrixes;
-        TransformDecomposition traversal_vec(m_valid_gates_matrix, m_gates_matrix, adjacent_matrixes);
-        traversal_vec.TraversalOptimizationMerge(dynamic_cast<QNode *>(&prog));*/
-		_pGates->initState(0, 1, _Qubit_Pool->get_max_usedqubit_addr() + 1);
-
-        QProgExecution prog_exec;
         TraversalConfig config(m_rotation_angle_error);
         config.m_can_optimize_measure = false;
+        _pGates->initState(0, 1, _Qubit_Pool->get_max_usedqubit_addr() + 1);
+
+        QProgExecution prog_exec;
         prog_exec.execute(prog.getImplementationPtr(), nullptr, config, _pGates);
 
         std::map<string, bool>result;
@@ -306,156 +117,236 @@ void NoiseQVM::run(QProg & prog)
         throw run_fail(e.what());
     }
 
+    return;
 }
 
-std::string NoiseQVM::_ResultToBinaryString(std::vector<ClassicalCondition>& vCBit, QResult* qresult)
+void NoiseQVM::set_noise_model(const NOISE_MODEL &model, const GateType &type, double prob)
 {
-    string sTemp;
-    if (nullptr == qresult)
-    {
-        QCERR("_QResult is null");
-        throw qvm_attributes_error("_QResult is null");
-    }
-    auto resmap = qresult->getResultMap();
-    for (auto c : vCBit)
-    {
-        auto cbit = c.getExprPtr()->getCBit();
-        if (nullptr == cbit)
-        {
-            QCERR("vcbit is error");
-            throw runtime_error("vcbit is error");
-        }
-        if (resmap[cbit->getName()])
-        {
-            sTemp.push_back('1');
-        }
-        else
-        {
-            sTemp.push_back('0');
-        }
-    }
-    return sTemp;
-
-}
-map<string, size_t> NoiseQVM::
-runWithConfiguration(QProg & qProg, vector<ClassicalCondition>& vCBit, int shots)
-{
-	rapidjson::Document doc;
-	doc.Parse("{}");
-	auto &alloc = doc.GetAllocator();
-	doc.AddMember("shots", shots, alloc);
-	return runWithConfiguration(qProg, vCBit, doc);
+    set_noise_model(model, type, prob, vector<QVec>());
+    return ;
 }
 
-map<string, size_t> NoiseQVM::
-runWithConfiguration(QProg & qProg, vector<ClassicalCondition>& vCBit, rapidjson::Document & param)
+void NoiseQVM::set_noise_model(const NOISE_MODEL &model, const GateType &type, double prob, const std::vector<QVec> &qubits)
 {
-    map<string, size_t> mResult;
-    if (!param.HasMember("shots"))
+    size_t type_qubit_num = 0;
+    if ((type >= GateType::P0_GATE && type <= U4_GATE)
+        || GateType::I_GATE == type
+        || GATE_TYPE_MEASURE == type
+        || GATE_TYPE_RESET == type)
     {
-        QCERR("OriginCollection don't  have shots");
-        throw run_fail("runWithConfiguration param don't  have shots");
+        type_qubit_num = 1;
     }
-    size_t shots = 0;
-    if (param["shots"].IsUint64())
+    else if (type >= CU_GATE && type <= P11_GATE)
     {
-        shots = param["shots"].GetUint64();
+        type_qubit_num = 2;
     }
     else
     {
-        QCERR("shots data type error");
-        throw run_fail("shots data type error");
+        throw std::runtime_error("Error: noise qubit");
     }
 
-#ifndef USE_MPI
-    for (size_t i = 0; i < shots; i++)
-    {
-        run(qProg);
-        string sResult = _ResultToBinaryString(vCBit, _QResult);
+    QuantumError quantum_error;
+    quantum_error.set_noise(model, prob, type_qubit_num);
 
-        std::reverse(sResult.begin(), sResult.end());
-        if (mResult.find(sResult) == mResult.end())
+    vector<vector<size_t>> noise_qubits(qubits.size());
+    for (size_t i = 0; i < qubits.size(); i++)
+    {
+        vector<size_t> addrs(qubits[i].size());
+        for (size_t j = 0; j < qubits[i].size(); j++)
         {
-            mResult[sResult] = 1;
+            addrs[j] = qubits[i].at(j)->get_phy_addr();
         }
-        else
-        {  
-            mResult[sResult] += 1;
-        }
+        noise_qubits[i] = addrs;
     }
-#else
-    int rank, size;
-    MPI_Init(nullptr, nullptr);
-    MPI_Comm_size(MPI_COMM_WORLD, &size);
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-    vector<int> result(1 << vCBit.size(), 0);
-    auto _run=[&]()
+    m_quantum_noise.add_quamtum_error(type, quantum_error, noise_qubits);
+    return ;
+}
+
+void NoiseQVM::set_noise_model(const NOISE_MODEL &model, const GateType &type, double prob, const QVec &qubits)
+{
+    vector<QVec> noise_qubits;
+    noise_qubits.reserve(qubits.size());
+    for (auto &val : qubits)
     {
-        run(qProg);
-        string sResult;
-        auto str_result = _QResult->getResultMap();
+        noise_qubits.push_back({val});
+    }
+    set_noise_model(model, type, prob, noise_qubits);
+}
 
-        for(auto a :str_result)
-        {
-            if(a.second)
-            {
-                sResult.push_back('1');
-            }
-            else
-            {
-                sResult.push_back('0');
-            }
-        }
 
-        std::reverse(sResult.begin(), sResult.end());
-        int index = 0;
-        for (size_t i = 0; i < sResult.size(); ++i)
-        {
-            index += (sResult[sResult.size() - i - 1] != '0') << i;
-        }
-        result[index] += 1;
-    };
+void NoiseQVM::set_noise_model(const NOISE_MODEL &model, const GateType &type,
+                                 double T1, double T2, double t_gate)
+{
+    set_noise_model(model, type, T1, T2, t_gate, vector<QVec>());
+    return ;
+}
 
-    if (size < shots)
+void NoiseQVM::set_noise_model(const NOISE_MODEL &model, const GateType &type, double T1, double T2, double t_gate, const QVec &qubits)
+{
+    vector<QVec> noise_qubits;
+    noise_qubits.reserve(qubits.size());
+    for (auto &val : qubits)
     {
-        int val = shots / size;
+        noise_qubits.push_back({val});
+    }
 
-        for (int i = 0; i < val; i++)
-        {
-            _run();
-        }
+    set_noise_model(model, type, T1, T2, t_gate, noise_qubits);
+    return ;
+}
 
-        if (rank < shots%size)
-        {
-            _run();
-        }
+void NoiseQVM::set_noise_model(const NOISE_MODEL &model, const GateType &type, double T1, double T2, double t_gate,
+                                 const std::vector<QVec> &qubits)
+{
+    size_t type_qubit_num = 0;
+    if ((type >= GateType::P0_GATE && type <= U4_GATE)
+        || GateType::I_GATE == type
+        || GATE_TYPE_MEASURE == type
+        || GATE_TYPE_RESET == type)
+    {
+        type_qubit_num = 1;
+    }
+    else if (type >= CU_GATE && type <= P11_GATE)
+    {
+        type_qubit_num = 2;
     }
     else
     {
-        if (rank < shots)  
-        {
-            _run();
-        }
+        throw std::runtime_error("Error: noise qubit");
     }
 
-    vector<int> res(1 << vCBit.size(), 0);
-    MPI_Reduce(&result[0], &res[0], 1 << vCBit.size(), MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
-    MPI_Bcast(&res[0], 1 << vCBit.size(), MPI_INT, 0, MPI_COMM_WORLD);
+    QuantumError quantum_error;
+    quantum_error.set_noise(model, T1, T2, t_gate, type_qubit_num);
 
-    for (size_t i = 0; i < res.size(); ++i)
+    vector<vector<size_t>> noise_qubits(qubits.size());
+    for (size_t i = 0; i < qubits.size(); i++)
     {
-        if (res[i])
+        vector<size_t> addrs(qubits[i].size());
+        for (size_t j = 0; j < qubits[i].size(); j++)
         {
-            mResult.insert(make_pair(integerToBinary(i, vCBit.size()), res[i]));
+            addrs[j] = qubits[i].at(j)->get_phy_addr();
         }
+        noise_qubits[i] = addrs;
     }
-    MPI_Finalize();
 
-#endif
-    return mResult;
+    m_quantum_noise.add_quamtum_error(type, quantum_error, noise_qubits);
+    return ;
 }
 
+
+void NoiseQVM::set_measure_error(const NOISE_MODEL &model, double prob, const QVec &qubits)
+{
+    set_noise_model(model, GATE_TYPE_MEASURE, prob, qubits);
+    return ;
+}
+
+void NoiseQVM::set_measure_error(const NOISE_MODEL &model, double T1, double T2, double t_gate, const QVec &qubits)
+{
+    set_noise_model(model, GATE_TYPE_MEASURE, T1, T2, t_gate, qubits);
+    return ;
+}
+
+void NoiseQVM::set_mixed_unitary_error(const GateType &type, const std::vector<QStat> &unitary_matrices, const std::vector<double> &probs)
+{
+    set_mixed_unitary_error(type, unitary_matrices, probs, vector<QVec>());
+    return ;
+}
+
+void NoiseQVM::set_mixed_unitary_error(const GateType &type, const std::vector<QStat> &unitary_matrices, const std::vector<double> &probs, const QVec &qubits)
+{
+    vector<QVec> noise_qubits;
+    noise_qubits.reserve(qubits.size());
+    for (auto &val : qubits)
+    {
+        noise_qubits.push_back({val});
+    }
+
+    set_mixed_unitary_error(type, unitary_matrices, probs, noise_qubits);
+    return ;
+}
+
+void NoiseQVM::set_mixed_unitary_error(const GateType &type, const std::vector<QStat> &unitary_matrices,
+                                         const std::vector<double> &probs, const std::vector<QVec> &qubits)
+{
+    size_t type_qubit_num = 0;
+    if ((type >= GateType::P0_GATE && type <= U4_GATE)
+        || GateType::I_GATE == type
+        || GATE_TYPE_MEASURE == type
+        || GATE_TYPE_RESET == type)
+    {
+        type_qubit_num = 1;
+    }
+    else if (type >= CU_GATE && type <= P11_GATE)
+    {
+        type_qubit_num = 2;
+    }
+    else
+    {
+        throw std::runtime_error("Error: noise qubit");
+    }
+
+    QuantumError quantum_error;
+    quantum_error.set_noise(MIXED_UNITARY_OPRATOR, unitary_matrices, probs, type_qubit_num);
+
+    vector<vector<size_t>> noise_qubits(qubits.size());
+    for (size_t i = 0; i < qubits.size(); i++)
+    {
+        vector<size_t> addrs(qubits[i].size());
+        for (size_t j = 0; j < qubits[i].size(); j++)
+        {
+            addrs[j] = qubits[i].at(j)->get_phy_addr();
+        }
+        noise_qubits[i] = addrs;
+    }
+
+    m_quantum_noise.add_quamtum_error(type, quantum_error, noise_qubits);
+    return ;
+}
+
+
+void NoiseQVM::set_reset_error(double p0, double p1, const QVec &qubits)
+{
+    QuantumError quantum_error;
+    quantum_error.set_reset_error(p0, p1);
+
+    vector<vector<size_t>> noise_qubits(qubits.size());
+    for (size_t i = 0; i < qubits.size(); i++)
+    {
+        auto addr = qubits.at(i)->get_phy_addr();
+        noise_qubits[i] = {addr};
+    }
+
+    m_quantum_noise.add_quamtum_error(GATE_TYPE_RESET, quantum_error, noise_qubits);
+    return ;
+}
+
+void NoiseQVM::set_readout_error(const std::vector<std::vector<double> > &probs_list, const QVec &qubits)
+{
+    QPANDA_ASSERT(0 == qubits.size() && 2 != probs_list.size(), "Error: readout paramters.");
+    if (0 == qubits.size())
+    {
+        QuantumError quantum_error;
+        quantum_error.set_readout_error(probs_list, 1);
+        m_quantum_noise.add_quamtum_error(GATE_TYPE_READOUT, quantum_error, vector<vector<size_t>>());
+        return ;
+    }
+
+    for (size_t i = 0; i < qubits.size(); i++)
+    {
+        auto addr = qubits.at(i)->get_phy_addr();
+        QuantumError quantum_error;
+        auto iter = probs_list.begin() + 2 * i;
+        quantum_error.set_readout_error({iter, iter + 2}, 1);
+        m_quantum_noise.add_quamtum_error(GATE_TYPE_READOUT, quantum_error, {{addr}});
+    }
+
+    return ;
+}
+
+void NoiseQVM::set_rotation_error(double error)
+{
+    m_rotation_angle_error = error;
+}
 
 
 REGISTER_QUANTUM_MACHINE(NoiseQVM);

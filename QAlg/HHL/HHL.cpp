@@ -8,6 +8,7 @@
 #include <sstream>
 #include "Core/Utilities/Tools/QCircuitOptimize.h"
 #include "Core/Utilities/Tools/QProgFlattening.h"
+#include <chrono>
 
 USING_QPANDA
 using namespace std;
@@ -26,9 +27,8 @@ using namespace std;
 #endif
 
 #define T0  2*PI
-#ifndef MAX_PRECISION
-#define MAX_PRECISION 0.000001
-#endif // !MAX_PRECISION
+#define MAX_PRECISION 1e-10
+
 
 HHLAlg::HHLAlg(const QStat& A, const std::vector<double>& b, QuantumMachine *qvm)
 	:m_A(A), m_b(b), m_qvm(*qvm), m_qft_cir_used_qubits_cnt(0), m_mini_qft_qubits(0)
@@ -47,24 +47,7 @@ HHLAlg::HHLAlg(const QStat& A, const std::vector<double>& b, QuantumMachine *qvm
 HHLAlg::~HHLAlg()
 {}
 
-QCircuit HHLAlg::index_to_circuit(size_t index, vector<Qubit*> &controlqvec)
-{
-	QCircuit ret_cir;
-	size_t data_qubits_cnt = controlqvec.size();
-	for (size_t i = 0; i < data_qubits_cnt; ++i)
-	{
-		if (0 == index % 2)
-		{
-			ret_cir << X(controlqvec[i]);
-		}
-
-		index /= 2;
-	}
-
-	return ret_cir;
-}
-
-QCircuit HHLAlg::build_CR_cir(vector<Qubit*>& controlqvec, Qubit* target_qubit, double/* r = 6.0*/)
+QCircuit HHLAlg::build_CR_cir(QVec& controlqvec, Qubit* target_qubit, double/* r = 6.0*/)
 {
 	QCircuit  circuit = CreateEmptyCircuit();
 	size_t ctrl_qubits_cnt = controlqvec.size();
@@ -86,8 +69,19 @@ QCircuit HHLAlg::build_CR_cir(vector<Qubit*>& controlqvec, Qubit* target_qubit, 
 		}
 
 		auto gate = RY(target_qubit, thet).control(controlqvec);
-		auto index_cir = index_to_circuit(i, controlqvec);
-		circuit << index_cir << gate << index_cir;
+
+		if (1 == i)
+		{
+			QCircuit first_index_cir = index_to_circuit(i, controlqvec);
+			circuit << first_index_cir;
+		}
+		else
+		{
+			QCircuit index_cir = index_to_circuit(i, controlqvec, i - 1, true);
+			circuit << index_cir;
+		}
+
+		circuit << gate;
 	}
 
 	return circuit;
@@ -151,9 +145,10 @@ QCircuit HHLAlg::build_cir_b(QVec qubits, const std::vector<double>& b)
 	{
 		tmp_sum += (i*i);
 	}
+
 	if (abs(1.0 - tmp_sum) > MAX_PRECISION)
 	{
-		if (abs(tmp_sum - 0.0) < MAX_PRECISION)
+		if (abs(tmp_sum) < MAX_PRECISION)
 		{
 			QCERR("Error: The input vector b is zero.");
 			return QCircuit();
@@ -209,7 +204,7 @@ void HHLAlg::init_qubits()
 
 	m_qft_cir_used_qubits_cnt = (m_mini_qft_qubits + ex_qubits);
 	m_qubits_for_qft = m_qvm.allocateQubits(m_qft_cir_used_qubits_cnt);
-	PTrace("Total need qubits number: %d, qft_qubits=%d=%d+%d\n", 
+	printf("Total need qubits number: %d, qft_qubits=%d=%d+%d\n", 
 		(m_qft_cir_used_qubits_cnt + b_cir_used_qubits_cnt + 1), m_qft_cir_used_qubits_cnt, ex_qubits, m_mini_qft_qubits);
 
 	m_ancillary_qubit = m_qvm.allocateQubit();
@@ -250,20 +245,15 @@ QCircuit HHLAlg::get_hhl_circuit()
 	m_cir_b = build_cir_b(m_qubits_for_b, m_b);
 
 	//transfer to unitary matrix
-	transform_hermitian_to_unitary_mat(tmp_A);
+	//transform_hermitian_to_unitary_mat(tmp_A);
 
 	//QPE
 	m_cir_qpe = build_QPE_circuit(m_qubits_for_qft, m_qubits_for_b, tmp_A, true);
-	PTrace("qpe_gate_cnt: %d\n", getQGateNum(m_cir_qpe));
+	PTrace("qpe_gate_cnt: %llu\n", getQGateNum(m_cir_qpe));
 
 	m_cir_cr = build_CR_cir(m_qubits_for_qft, m_ancillary_qubit, m_qft_cir_used_qubits_cnt);
-	PTrace("cr_cir_gate_cnt: %d\n", getQGateNum(m_cir_cr));
-
-	std::vector<std::pair<QCircuit, QCircuit>> optimizer_cir_vec;
-	sub_cir_optimizer(m_cir_cr, optimizer_cir_vec);
-	PTrace("after optimizer cr_cir_gate_cnt: %d\n", getQGateNum(m_cir_cr));
 	m_hhl_cir << m_cir_b << m_cir_qpe << m_cir_cr << m_cir_qpe.dagger();
-	PTrace("hhl_cir_gate_cnt: %d\n", getQGateNum(m_hhl_cir));
+	printf("^^^^^^^^^^^^^^^^^whole hhl_cir_gate_cnt: %llu ^^^^^^^^^^^^^^^^^^^^\n", getQGateNum(m_hhl_cir));
 
 	return m_hhl_cir;
 }
@@ -313,7 +303,8 @@ QStat QPanda::HHL_solve_linear_equations(const QStat& A, const std::vector<doubl
 	{
 		norm_coffe += (item*item);
 	}
-	if (abs(norm_coffe - 0.0) < MAX_PRECISION)
+
+	if (abs(norm_coffe) < MAX_PRECISION)
 	{
 		QStat r;
 		r.resize(b.size(), 0);
@@ -334,9 +325,16 @@ QStat QPanda::HHL_solve_linear_equations(const QStat& A, const std::vector<doubl
 	prog << hhl_cir;
 	//PTraceCircuit(prog);
 
-	PTrace("HHL quantum circuit is running ...\n");
+	printf("HHL quantum circuit is running ...\n");
+        auto start = chrono::system_clock::now();
 	directlyRun(prog);
 	auto stat = machine->getQState();
+        auto end = chrono::system_clock::now();
+        auto duration = chrono::duration_cast<chrono::microseconds>(end - start);
+        cout << "run HHL used: "
+             << double(duration.count()) * chrono::microseconds::period::num / chrono::microseconds::period::den
+             << " s" << endl;
+
 	machine->finalize();
 	stat.erase(stat.begin(), stat.begin() + (stat.size() / 2));
 

@@ -7,7 +7,7 @@ Licensed Under Apache Licence 2.0
 from .utils import *
 from .pyQPanda import *
 from .Variational import back
-from .Visualization.circuit_draw import *
+from .Visualization import *
 import warnings
 
 #  classes
@@ -22,12 +22,12 @@ from .pyQPanda import ClassicalCondition
 from .pyQPanda import ClassicalProg
 from .pyQPanda import QuantumMachine
 from .pyQPanda import CPUQVM
+from .pyQPanda import MPSQVM
 from .pyQPanda import CPUSingleThreadQVM
 from .pyQPanda import DoubleGateTransferType
 from .pyQPanda import GateType
 from .pyQPanda import QCircuit
 from .pyQPanda import hadamard_circuit
-from .pyQPanda import LayerNodeInfo
 from .pyQPanda import NodeInfo
 from .pyQPanda import NodeIter
 from .pyQPanda import NodeType
@@ -60,6 +60,7 @@ from .pyQPanda import OptimizerFactory
 from .pyQPanda import OptimizerMode
 from .pyQPanda import OptimizerType
 from .pyQPanda import QOptimizationResult
+from .pyQPanda import NodeSortProblemGenerator
 from .pyQPanda import RMSPropOptimizer
 from .pyQPanda import VanillaGradientDescentOptimizer
 from .pyQPanda import var
@@ -77,11 +78,14 @@ from .pyQPanda import VariationalQuantumGate_RZ
 from .pyQPanda import VariationalQuantumGate_X
 
 from .Operator.pyQPandaOperator import *
-# pyQPandaOperator
+# pyQPandaOperator class
 from .Operator.pyQPandaOperator import FermionOperator
 from .Operator.pyQPandaOperator import PauliOperator
 from .Operator.pyQPandaOperator import VarFermionOperator
 from .Operator.pyQPandaOperator import VarPauliOperator
+# pyQPandaOperator function
+from .Operator.pyQPandaOperator import trans_vec_to_Pauli_operator
+from .Operator.pyQPandaOperator import trans_Pauli_operator_to_vec
 
 # funtions
 
@@ -101,10 +105,14 @@ from .pyQPanda import cast_qprog_qgate
 from .pyQPanda import cast_qprog_qmeasure
 from .pyQPanda import cFree
 from .pyQPanda import cFree_all
+from .pyQPanda import circuit_optimizer
+from .pyQPanda import circuit_optimizer_by_config
 from .pyQPanda import CNOT
 from .pyQPanda import convert_binary_data_to_qprog
 from .pyQPanda import convert_originir_to_qprog
+from .pyQPanda import convert_originir_str_to_qprog
 from .pyQPanda import convert_qasm_to_qprog
+from .pyQPanda import convert_qasm_string_to_qprog
 from .pyQPanda import convert_qprog_to_binary
 from .pyQPanda import convert_qprog_to_originir
 from .pyQPanda import convert_qprog_to_qasm
@@ -127,8 +135,8 @@ from .pyQPanda import directly_run
 from .pyQPanda import div
 from .pyQPanda import dot
 from .pyQPanda import circuit_layer
-from .pyQPanda import draw_qprog
-from .pyQPanda import draw_qprog_with_clock
+from .pyQPanda import draw_qprog_text
+from .pyQPanda import draw_qprog_text_with_clock
 from .pyQPanda import fit_to_gbk
 from .pyQPanda import quantum_chip_adapter
 from .pyQPanda import get_all_used_qubits
@@ -161,6 +169,8 @@ from .pyQPanda import get_unsupport_qgate_num
 from .pyQPanda import graph_query_replace
 from .pyQPanda import Grover
 from .pyQPanda import Grover_search
+from .pyQPanda import quantum_walk_alg
+from .pyQPanda import quantum_walk_search
 from .pyQPanda import H
 from .pyQPanda import HHL
 from .pyQPanda import HHL_solve_linear_equations
@@ -215,13 +225,13 @@ from .pyQPanda import SWAP
 from .pyQPanda import T
 from .pyQPanda import topology_match
 from .pyQPanda import to_originir
-from .pyQPanda import to_QASM
 from .pyQPanda import to_Quil
 from .pyQPanda import transform_binary_data_to_qprog
 from .pyQPanda import transform_originir_to_qprog
 from .pyQPanda import transform_qprog_to_binary
 from .pyQPanda import transform_qprog_to_originir
 from .pyQPanda import transform_qprog_to_quil
+from .pyQPanda import transform_to_base_qgate
 from .pyQPanda import transpose
 from .pyQPanda import U1
 from .pyQPanda import U2
@@ -237,7 +247,21 @@ from .pyQPanda import Y
 from .pyQPanda import Y1
 from .pyQPanda import Z
 from .pyQPanda import Z1
+from .pyQPanda import BARRIER
 from .pyQPanda import _back
+from .pyQPanda import state_fidelity
+
+from .pyQPanda import AnsatzGateType
+from .pyQPanda import AnsatzGate
+from .pyQPanda import UpdateMode
+from .pyQPanda import QITE
+
+from .pyQPanda import Shor_factorization
+
+from .pyQPanda import get_circuit_optimal_topology
+from .pyQPanda import planarity_testing
+
+from .utils import Toffoli
 
 # pyQPandaOperator
 

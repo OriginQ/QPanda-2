@@ -26,7 +26,7 @@ int calcSIR(
 
 int main(int argc, char* argv[])
 {
-    string grid;
+    string grid = "1-2";
     float lambda = 0.2;
     float lambda1 = 0.5;
     float lambda2 = 0.5;
@@ -266,7 +266,19 @@ int calcNodeSort(
     gen.exec();
 
     std::cout << "Classical Liner result: " << std::endl;
-    std::cout << gen.getLinearSolverResult();
+    auto c_result = gen.getLinearSolverResult();
+    std::vector<double> tmp_result;
+    for (auto i = 0; i < c_result.size(); i++)
+    {
+        tmp_result.push_back(c_result[i]);
+    }
+    auto c_sort_result = quickSort(tmp_result);
+    for (int i = 0; i < c_sort_result.size(); i++)
+    {
+        cout << c_sort_result[i].first << ", " << c_sort_result[i].second << endl;
+    }
+
+    //std::cout << gen.getLinearSolverResult();
     std::cout << std::endl;
 
     auto oA = gen.getMatrixA();

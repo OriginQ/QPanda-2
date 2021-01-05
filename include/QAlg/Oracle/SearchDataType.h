@@ -25,7 +25,7 @@ public:
 	virtual bool operator == (const AbstractSearchData &&other) const = 0;
 	virtual AbstractSearchData& operator - (const AbstractSearchData &other) = 0;
 	virtual QCircuit build_to_circuit(QVec &used_qubits, size_t use_qubit_cnt, const AbstractSearchData &mini_data) const = 0;
-	virtual QCircuit build_to_condition_circuit(QVec &used_qubits, Qubit* ancilla_qubit, const AbstractSearchData &mini_data) = 0;
+	virtual QCircuit build_to_condition_circuit(QVec &used_qubits, QCircuit cir_mark, const AbstractSearchData &mini_data) = 0;
 	virtual size_t check_max_need_qubits() = 0;
 	virtual AbstractSearchData& set_val(const char* p_val) = 0;
 };
@@ -69,7 +69,8 @@ public:
 
 	size_t check_max_need_qubits() override {
 		size_t cnt = 1;
-		for (;0 != (m_data /= 2); ++cnt){}
+		unsigned int temp_data = m_data + 1;
+		for (;0 != (temp_data /= 2); ++cnt){}
 
 		return cnt;
 	}
@@ -80,8 +81,7 @@ public:
 	}
 
 	QCircuit build_to_circuit(QVec &oracle_qubits, size_t use_qubit_cnt, const AbstractSearchData &mini_data) const override {
-		unsigned int weight_data = m_data - (dynamic_cast<const SearchDataByUInt&>(mini_data)).m_data;
-		//unsigned int weight_data = m_data;
+		unsigned int weight_data = m_data - (dynamic_cast<const SearchDataByUInt&>(mini_data)).m_data + 1;
 		QCircuit ret_cir;
 		for (size_t i = 0; i < use_qubit_cnt; ++i)
 		{
@@ -96,11 +96,17 @@ public:
 		return ret_cir;
 	}
 
-	QCircuit build_to_condition_circuit(QVec &oracle_qubits, Qubit* ancilla_qubit, const AbstractSearchData &mini_data) override {
-		unsigned int weight_data = m_data - (dynamic_cast<const SearchDataByUInt&>(mini_data)).m_data;
+	QCircuit build_to_condition_circuit(QVec &oracle_qubits, QCircuit cir_mark, const AbstractSearchData &mini_data) override {
+		int weight_data = m_data - (dynamic_cast<const SearchDataByUInt&>(mini_data)).m_data + 1;
+		
 		QCircuit ret_cir;
-		auto ancilla_gate = X(ancilla_qubit);
-		ancilla_gate.setControl(oracle_qubits);
+		if ((weight_data < 1) || (weight_data >= pow(2, oracle_qubits.size())))
+		{
+			return ret_cir;
+		}
+		
+		//auto ancilla_gate = X(ancilla_qubit);
+		cir_mark.setControl(oracle_qubits);
 
 		QCircuit search_cir;
 		for (size_t i = 0; i < oracle_qubits.size(); ++i)
@@ -113,7 +119,7 @@ public:
 			weight_data /= 2;
 		}
 
-		ret_cir << search_cir << ancilla_gate << search_cir;
+		ret_cir << search_cir << cir_mark << search_cir;
 		//PTraceQCircuit("ret_cir", ret_cir);
 		return ret_cir;
 	}

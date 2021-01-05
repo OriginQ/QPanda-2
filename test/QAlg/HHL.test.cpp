@@ -7,6 +7,8 @@
 USING_QPANDA
 using namespace std;
 
+#define MAX_PRECISION 1e-10
+
 /**
 * This is a example from <<Quantum Circuit Design for Solving Linear Systems of Equations>>(2012; by Yudong Cao£¬Anmer Daskin...)
 */
@@ -418,7 +420,7 @@ TEST(HHL, test1)
 	bool test_val = false;
 	try
 	{
-		//test_val = test_fun1();
+		test_val = test_fun1();
 		//test_val = test_fun2();
 		//test_val = test_fun3();
 		//test_val = test_fun4();
@@ -426,7 +428,7 @@ TEST(HHL, test1)
 		//test_val = test_fun6();
 		//test_val = test_fun7();
 		//test_val = test_fun8();
-		test_val = test_fun9();
+		//test_val = test_fun9();
 	}
 	catch (const std::exception& e)
 	{

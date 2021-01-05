@@ -300,7 +300,7 @@ Qubit * OriginQubitPoolv2::allocateQubitThroughVirAddress(size_t qubit_num)
 
 }
 
-void OriginQubitPoolv2::Free_Qubit(Qubit *_Qubit)
+void OriginQubitPoolv2::Free_Qubit(Qubit * _Qubit)
 {
 	if (nullptr == _Qubit)
 	{
@@ -339,6 +339,7 @@ void OriginQubitPoolv2::Free_Qubit(Qubit *_Qubit)
 			{
 				(*iter)->setOccupancy(false);
                 allocated_qubit.erase(allocated_iter);
+                delete _Qubit;
 			}
 		}
 	}

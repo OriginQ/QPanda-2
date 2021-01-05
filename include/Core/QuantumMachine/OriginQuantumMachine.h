@@ -307,7 +307,8 @@ public:
 class CPUQVM : public IdealQVM {
 public:
 	CPUQVM() {}
-	void init();
+    void init();
+    void initState(const QStat &state = {}) { _pGates->initState(getAllocateQubitNum(), state); return; }
 };
 
 class GPUQVM : public IdealQVM
@@ -315,6 +316,7 @@ class GPUQVM : public IdealQVM
 public:
     GPUQVM() {}
     void init();
+    void initState(const QStat &state = {}) { _pGates->initState(getAllocateQubitNum(), state);  return; }
 };
 
 class CPUSingleThreadQVM : public IdealQVM
@@ -322,6 +324,7 @@ class CPUSingleThreadQVM : public IdealQVM
 public:
     CPUSingleThreadQVM() { }
     void init();
+    void initState(const QStat &state = {}) { _pGates->initState(getAllocateQubitNum(), state);  return; }
 };
 
 class NoiseQVM : public QVM
@@ -330,63 +333,50 @@ private:
     std::vector<std::vector<std::string>> m_gates_matrix;
     std::vector<std::vector<std::string>> m_valid_gates_matrix;
 
-	std::vector<int > m_models_vec;
-	std::vector<std::string > m_gates_vec;
+    std::vector<int > m_models_vec;
+    std::vector<std::string > m_gates_vec;
 
-	std::vector <std::vector <double>> m_params_vecs;
+    std::vector <std::vector <double>> m_params_vecs;
     double m_rotation_angle_error{0};
 
-	std::vector<std::vector <QStat> >  m_kraus_mats_vec;
-	std::vector<std::string > m_kraus_gates_vec;
-
-    void _getValidGatesMatrix();
-    rapidjson::Document m_doc;
-    void run(QProg&);
-    void initGates(rapidjson::Document &);
-    std::string _ResultToBinaryString(std::vector<ClassicalCondition>& vCBit, QResult* _QResult);
+    std::vector<std::vector <QStat> >  m_kraus_mats_vec;
+    std::vector<std::string > m_kraus_gates_vec;
+    NoisyQuantum m_quantum_noise;
 public:
     NoiseQVM();
     void init();
+    void initState(const QStat &state = {});
     void init(rapidjson::Document &);
     virtual std::map<std::string, size_t> runWithConfiguration(QProg &, std::vector<ClassicalCondition> &, rapidjson::Document &);
-	virtual std::map<std::string, size_t> runWithConfiguration(QProg &, std::vector<ClassicalCondition> &, int);
-
-	/**
-	* @brief  Set Noise Model
-	* @param[in]  NOISE_MODEL    noise model type
-	* @param[in]  GateType  quantum gate type 
-	* @param[in]  std::vector<double>   params vector,  the number of parameters is determined by model type
-	* @return    void
-	* @note  	 
-	*		Model type                                         :   Number of parameters
-	*		DAMPING_KRAUS_OPERATOR			:    1 
-	*		DEPHASING_KRAUS_OPERATOR		:    1
-	*		DECOHERENCE_KRAUS_OPERATOR	:    3
-	*		PAULI_KRAUS_MAP							:    4  or 16
-	*/
-	void set_noise_model(NOISE_MODEL model, GateType type, std::vector<double> params_vec);
+    virtual std::map<std::string, size_t> runWithConfiguration(QProg &, std::vector<ClassicalCondition> &, int);
+    std::map<std::string, bool> directlyRun(QProg &prog);
+    void run(QProg &prog);
 
 
-	/**
-	* @brief  Set noise model by kraus matrix
-	* @param[in]  GateType  quantum gate type 
-	* @param[in]  std::vector<QStat>   kraus matrix  vector
-	* @return    void
-	* @note  	 kraus_matrix_vec must be 2 x 2 matrix, just kraus_matrix_vec length must be 4
-	*/
-	void set_noise_kraus_matrix(GateType type, std::vector<QStat> kraus_matrix_vec);
+    //void set_single_gate_noise_model(const NOISE_MODEL &model, const GateType &type, double prob, const std::vector<size_t> &qubits);
+    //void set_noise_model(const NOISE_MODEL &model, const GateType &type, double prob, const std::vector<std::vector<size_t>> &qubits);
+    void set_noise_model(const NOISE_MODEL &model, const GateType &type, double prob);
+    void set_noise_model(const NOISE_MODEL &model, const GateType &type, double prob, const QVec &qubits);
+    void set_noise_model(const NOISE_MODEL &model, const GateType &type, double prob, const std::vector<QVec> &qubits);
 
+    void set_noise_model(const NOISE_MODEL &model, const GateType &type, double T1, double T2, double t_gate);
+    void set_noise_model(const NOISE_MODEL &model, const GateType &type, double T1, double T2, double t_gate,
+                         const QVec &qubits);
+    void set_noise_model(const NOISE_MODEL &model, const GateType &type, double T1, double T2, double t_gate,
+                         const std::vector<QVec> &qubits);
 
-	/**
-	* @brief  Set noise model by unitary matrix and  the probability of each unitary matrix
-	* @param[in]  GateType  quantum gate type 
-	* @param[in]	std::vector<QStat>   unitary matrix  vector
-	* @param[in]	std::vector<double>   the probability vector of each unitary matrix
-	* @return    void
-	* @note  	 
-	*		unitary matrix  vector  length has to be equal to probability vector
-	*/
-	void set_noise_unitary_matrix(GateType type, std::vector<QStat> unitary_matrix_vec, std::vector<double> probs_vec);
+    void set_measure_error(const NOISE_MODEL &model, double prob, const QVec &qubits = {});
+    void set_measure_error(const NOISE_MODEL &model, double T1, double T2, double t_gate,
+                           const QVec &qubits = {});
+
+    void set_mixed_unitary_error(const GateType &type, const std::vector<QStat> &unitary_matrices,
+                                 const std::vector<double> &probs);
+    void set_mixed_unitary_error(const GateType &type, const std::vector<QStat> &unitary_matrices,
+                                 const std::vector<double> &probs, const QVec &qubits);
+    void set_mixed_unitary_error(const GateType &type, const std::vector<QStat> &unitary_matrices,
+                                 const std::vector<double> &probs, const std::vector<QVec> &qubits);
+    void set_reset_error(double p0, double p1, const QVec &qubits = {});
+    void set_readout_error(const std::vector<std::vector<double>> &probs_list, const QVec &qubits = {});
 
 
     /**
@@ -395,7 +385,7 @@ public:
     * @return     void
     * @see  QNode
     */
-    void set_rotation_angle_error(double error);
+    void set_rotation_error(double error);
 };
 QPANDA_END
 #endif

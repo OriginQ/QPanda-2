@@ -45,6 +45,8 @@ public:
     virtual QError pMeasure(Qnum& qnum, prob_vec &mResult) = 0;
 
     virtual QError initState(size_t head_rank, size_t rank_size, size_t qubit_num) = 0;
+
+    virtual QError initState(size_t qubit_num, const QStat &state = {}) = 0;
     
 	/**
 	* @brief  unitary single qubit gate 

@@ -3,11 +3,15 @@
 #include "Core/Utilities/QProgTransform/QProgToDAG/GraphMatch.h"
 #include "Core/Utilities/QProgTransform/QProgToDAG/QProgToDAG.h"
 #include "Core/Utilities/QProgTransform/QProgToQCircuit.h"
+#include "Core/Utilities/QProgTransform/TransformDecomposition.h"
+#include "Core/Utilities/Tools/QCircuitOptimize.h"
+#include "Core/Utilities/QProgInfo/Visualization/QVisualization.h"
+
 
 using namespace std;
 USING_QPANDA
 
-using sequence_gate_t = std::pair<SequenceNode, std::vector<SequenceNode>>;
+using sequence_gate_t = SeqNode<SequenceNode>;
 
 QPanda::QProgClockCycle::QProgClockCycle(QPanda::QuantumMachine *qm)
 {
@@ -18,12 +22,14 @@ QProgClockCycle::~QProgClockCycle()
 {
 }
 
-size_t QProgClockCycle::count(QProg &prog)
+size_t QProgClockCycle::count(QProg &prog, bool optimize /* = false */)
 {
-    QCircuit circuit;
-    if (!cast_qprog_qcircuit(prog, circuit))
+    if (optimize)
     {
-        throw std::runtime_error("cast_qprog_qcircuit failure!");
+        std::ifstream reader(CONFIG_PATH);
+        QPANDA_ASSERT(!reader.is_open(), "No config file.");
+        decompose_multiple_control_qgate(prog, m_machine);
+        cir_optimizer_by_config(prog, CONFIG_PATH, QCircuitOPtimizerMode::Merge_U3);
     }
 
 	QProgTopologSeq<GateNodeInfo, SequenceNode> m_prog_topo_seq;
@@ -43,6 +49,7 @@ size_t QProgClockCycle::count(QProg &prog)
             return time_a < time_b;
         });
 
+        auto node_type = iter->first.m_node_type;
         auto gate_type = static_cast<GateType>(iter->first.m_node_type);
         clock_cycle += getQGateTime(gate_type);
     }
@@ -52,8 +59,8 @@ size_t QProgClockCycle::count(QProg &prog)
 
 size_t QProgClockCycle::getDefalutQGateTime(GateType gate_type)
 {
-    const size_t kSingleGateDefaultTime = 2;
-    const size_t kDoubleGateDefaultTime = 5;
+    const size_t kSingleGateDefaultTime = 1;
+    const size_t kDoubleGateDefaultTime = 2;
 
     switch (gate_type)
     {
@@ -94,6 +101,9 @@ size_t QProgClockCycle::getDefalutQGateTime(GateType gate_type)
 
 size_t QProgClockCycle::getQGateTime(GateType gate_type)
 {
+    // -1 means measure, -2 means reset
+    QPANDA_RETURN(-1 == gate_type || -2 == gate_type, 0);
+
     auto iter = m_gate_time.find(gate_type);
     size_t gate_time_value = 0;
 
@@ -110,14 +120,14 @@ size_t QProgClockCycle::getQGateTime(GateType gate_type)
     return gate_time_value;
 }
 
-size_t QPanda::getQProgClockCycle(QProg &prog, QuantumMachine *qm)
+size_t QPanda::getQProgClockCycle(QProg &prog, QuantumMachine *qm, bool optimize /* = false */)
 {
     QProgClockCycle counter(qm);
-    return counter.count(prog);
+    return counter.count(prog, optimize);
 }
 
-size_t QPanda::get_pqrog_clock_cycle(QProg & prog, QuantumMachine * qm)
+size_t QPanda::get_qprog_clock_cycle(QProg & prog, QuantumMachine * qm, bool optimize /* = false */)
 {
     QProgClockCycle counter(qm);
-    return counter.count(prog);
+    return counter.count(prog, optimize);
 }

@@ -90,9 +90,10 @@ void flatten(QCircuit& src_cir);
 * @brief Full Flatten Quantum Program
 * @ingroup Utilities
 * @param[in,out]  QProg&	  quantum program
+* @param[in] bool whether to expand the target prog completely
 * @return     void
 */
-void flatten(QProg& src_prog, bool b_full_flatten = false);
+void flatten(QProg& src_prog, bool b_full_flatten = true);
 
 QPANDA_END
 #endif // !_QPROGFLATTENING_H

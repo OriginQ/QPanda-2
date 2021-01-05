@@ -27,10 +27,11 @@ static bool test_QProgToQASM_fun_1()
 	size_t second_register_qubits_cnt = 1;
 	QVec second_register = machine->allocateQubits(second_register_qubits_cnt);
 
-	QCircuit cir_qpe = build_QPE_circuit(first_register, second_register, build_U_fun);
+	//QCircuit cir_qpe = build_QPE_circuit(first_register, second_register, build_U_fun);
 	//cout << cir_qpe << endl;
 	QProg qpe_prog;
-	qpe_prog << X(second_register[0]) << cir_qpe;
+	//qpe_prog << X(second_register[0]) << cir_qpe;
+	qpe_prog << CU(1.2345, 3, 4, 5, first_register[0], first_register[1]);
 
 	PTrace("after transfer_to_rotating_gate.\n");
 	PTrace("cr_cir_gate_cnt: %d\n", getQGateNum(qpe_prog));
@@ -72,12 +73,51 @@ static bool test_QProgToQASM_fun_1()
 	return true;
 }
 
+bool test_prog_to_qasm_2()
+{
+	std::string filename = "testfile.txt"; 
+	std::ofstream os(filename);
+	os << R"(
+        // test QASM file 
+        OPENQASM 2.0; 
+        include "qelib1.inc"; 
+        qreg q[3];
+        creg c[3];
+        x q[0];
+        x q[1];
+        z q[2];
+        h q[0];
+        tdg q[1];
+        )";
+
+	os.close();
+	auto machine = initQuantumMachine(QMachineType::CPU);  
+	QProg prog = convert_qasm_to_qprog(filename, machine);
+	cout << "src prog:" << prog << endl;
+	auto mat1 = getCircuitMatrix(prog);
+	sub_cir_optimizer(prog, {}, QCircuitOPtimizerMode::Merge_U3);
+	cout << "U3 prog:" << prog << endl;
+	auto mat2 = getCircuitMatrix(prog);
+	if (mat1 == mat2)
+	{
+		cout << "okkkkkk" << endl;
+	}
+	
+	cout << "prog_to_originir:" << endl << convert_qprog_to_originir(prog, machine) << endl; 
+	cout << "prog:" << prog << endl;
+	std::cout << convert_qprog_to_qasm(prog, machine) << std::endl;  
+	destroyQuantumMachine(machine); 
+
+	return true;
+}
+
 TEST(QProgToQASM, test1)
 {
 	bool test_val = false;
 	try
 	{
-		test_val = test_QProgToQASM_fun_1();
+		//test_val = test_QProgToQASM_fun_1();
+		test_val = test_prog_to_qasm_2();
 	}
 	catch (const std::exception& e)
 	{

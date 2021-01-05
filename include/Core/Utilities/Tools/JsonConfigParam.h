@@ -92,12 +92,12 @@ private:
 class TimeSequenceConfig
 {
 public:
-	static TimeSequenceConfig& get_instance() {
-		static TimeSequenceConfig _instance;
-		return _instance;
-	}
+	TimeSequenceConfig() 
+		:m_load_config(false)
+	{}
 	~TimeSequenceConfig() {}
 
+	void load_config(const std::string config_data = CONFIG_PATH);
 	int get_measure_time_sequence();
 	int get_ctrl_node_time_sequence();
 	int get_swap_gate_time_sequence();
@@ -107,10 +107,8 @@ public:
 	int read_config(const char* config_type_str, int val);
 
 private:
-	TimeSequenceConfig();
-
-private:
 	JsonConfigParam m_config_file;
+	bool m_load_config;
 };
 
 class QCircuitOptimizerConfig

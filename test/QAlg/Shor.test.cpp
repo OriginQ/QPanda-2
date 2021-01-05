@@ -3,9 +3,9 @@
 
 bool test_Shor()
 {
-	int N = 15;
-	auto p = ShorAlg(N);
-	return true;
+	int N = 15, factor_1, factor_2;
+	bool p = Shor_factorization(N).first;
+	return p;
 }
 
 TEST(Shor, test1)

@@ -377,8 +377,8 @@ void QVM::Free_Qubits(QVec &vQubit)
             break;
         }
         this->_Qubit_Pool->Free_Qubit(iter);
-        delete iter;
-        iter = nullptr;
+        //delete iter;
+        //iter = nullptr;
     }
 }
 
@@ -949,7 +949,6 @@ void CPUQVM::init()
         QCERR(e.what());
         throw init_fail(e.what());
     }
-
 }
 
 void GPUQVM::init()

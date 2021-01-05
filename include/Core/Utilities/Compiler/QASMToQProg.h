@@ -313,5 +313,25 @@ QProg convert_qasm_to_qprog(std::string file_path, QuantumMachine* qvm, QVec &qv
 */
 QProg convert_qasm_to_qprog(std::string file_path, QuantumMachine* qvm);
 
+/**
+* @brief  QASM Transform To  Quantum Program
+* @ingroup Utilities
+* @param[in]  std::string		QASM string 
+* @param[in]  QuantumMachine*	quantum machine pointer
+* @return     QProg    quantum program
+*/
+QProg convert_qasm_string_to_qprog(std::string qasm_str, QuantumMachine* qvm);
+
+/**
+* @brief  QASM Transform To  Quantum Program
+* @ingroup Utilities
+* @param[in]  std::string		QASM string
+* @param[in]  QuantumMachine*	quantum machine pointer
+* @param[out]  QVec	qubit  pointer vector
+* @param[out]  std::vector<ClassicalCondition>	classical register  vector
+* @retur
+*/
+QProg convert_qasm_string_to_qprog(std::string qasm_str, QuantumMachine* qvm, QVec &qv, std::vector<ClassicalCondition> &cv);
+
 QPANDA_END
 #endif //!_QASMTOQPORG_H

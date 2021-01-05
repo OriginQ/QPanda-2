@@ -383,6 +383,7 @@ namespace QGATE_SPACE
 
     };
 
+    #undef ECHO
 	class ECHO :public U4,
 		public DynamicCreator<ECHO>,
 		public DynamicCreator<ECHO, QuantumGate*>

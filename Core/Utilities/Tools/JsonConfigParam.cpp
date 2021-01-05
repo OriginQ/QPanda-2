@@ -3,6 +3,7 @@
 #include "Core/Utilities/Tools/TranformQGateTypeStringAndEnum.h"
 #include "Core/Utilities/Tools/PraseExpressionStr.h"
 #include <string.h>
+#include "Core/Utilities/Tools/ArchGraph.h"
 
 using namespace std;
 USING_QPANDA
@@ -60,7 +61,7 @@ bool JsonConfigParam::load_config(const std::string config_data/* = CONFIG_PATH*
 	
 	if (m_doc.Parse(m_json_content.c_str()).HasParseError())
 	{
-		QCERR_AND_THROW_ERRSTR(run_fail, "Error: failed to parse the config file.");
+		QCERR_AND_THROW(run_fail, "Error: failed to parse the config file.");
 	}
 
 	return true;
@@ -68,12 +69,11 @@ bool JsonConfigParam::load_config(const std::string config_data/* = CONFIG_PATH*
 
 bool JsonConfigParam::getMetadataConfig(int &qubit_num, std::vector<std::vector<double>> &qubit_matrix) 
 {
-	if (m_doc.HasMember(META_DATA))
-	{
-		return readAdjacentMatrix(m_doc[META_DATA], qubit_num, qubit_matrix);
-	}
+	std::unique_ptr<ArchGraph> p_arch_graph = JsonBackendParser<ArchGraph>::Parse(m_doc);
+	qubit_num = p_arch_graph->get_vertex_count();
+	qubit_matrix = p_arch_graph->get_adj_weight_matrix();
 
-	return false;
+	return true;
 }
 
 bool JsonConfigParam::getClassNameConfig(std::map<std::string, std::string> &class_names)
@@ -158,7 +158,7 @@ bool JsonConfigParam::loadQuantumTopoStructure(const std::string &xmlStr, const 
 		std::ifstream reader(configFile);
 		if (!reader.is_open())
 		{
-			QCERR_AND_THROW_ERRSTR(run_fail, "Error: failed to open the config file.");
+			QCERR_AND_THROW(run_fail, "Error: failed to open the config file.");
 		}
 
 		std::string json_content = std::string((std::istreambuf_iterator<char>(reader)), std::istreambuf_iterator<char>());
@@ -166,7 +166,7 @@ bool JsonConfigParam::loadQuantumTopoStructure(const std::string &xmlStr, const 
 
 		if (doc.Parse(json_content.c_str()).HasParseError())
 		{
-			QCERR_AND_THROW_ERRSTR(run_fail, "Error: failed to parse the config file.");
+			QCERR_AND_THROW(run_fail, "Error: failed to parse the config file.");
 		}
 	}
 
@@ -314,16 +314,19 @@ bool JsonConfigParam::getInstructionConfig(std::map<std::string, std::map<std::s
 /*******************************************************************
 *                 class TimeSequenceConfig
 ********************************************************************/
-TimeSequenceConfig::TimeSequenceConfig()
+void TimeSequenceConfig::load_config(const std::string config_data /*= CONFIG_PATH*/)
 {
-	m_config_file.load_config(CONFIG_PATH);
+	m_load_config = m_config_file.load_config(config_data);
 }
 
 int TimeSequenceConfig::read_config(const char* config_type_str, int val)
 {
+	if (!m_load_config)
+	{
+		return val;
+	}
+
 	auto& config_elem = (m_config_file.get_root_element())[Q_GATE_TIME_SEQUENCE_CONFIG];
-
-
 	int ret = val; //default val
 	if (config_elem.HasMember(config_type_str) && config_elem[config_type_str].IsInt())
 	{
@@ -335,57 +338,27 @@ int TimeSequenceConfig::read_config(const char* config_type_str, int val)
 
 int TimeSequenceConfig::get_measure_time_sequence()
 {
-	static int _measure_time_sequence = -1;
-	if (0 > _measure_time_sequence)
-	{
-		_measure_time_sequence = read_config(Q_MEASURE_TIME_SEQUENCE, 2);
-	}
-
-	return _measure_time_sequence;
+	return read_config(Q_MEASURE_TIME_SEQUENCE, 2);
 }
 
 int TimeSequenceConfig::get_ctrl_node_time_sequence()
 {
-	static int _control_gate_time_sequence = -1;
-	if (0 > _control_gate_time_sequence)
-	{
-		_control_gate_time_sequence = read_config(Q_CONTROL_GATE_TIME_SEQUENCE, 2);
-	}
-
-	return _control_gate_time_sequence;
+	return read_config(Q_CONTROL_GATE_TIME_SEQUENCE, 2);
 }
 
 int TimeSequenceConfig::get_swap_gate_time_sequence()
 {
-	static int _swap_time_sequence = -1;
-	if (0 > _swap_time_sequence)
-	{
-		_swap_time_sequence = read_config(Q_SWAP_TIME_SEQUENCE, 2);
-	}
-
-	return _swap_time_sequence;
+	return read_config(Q_SWAP_TIME_SEQUENCE, 2);
 }
 
 int TimeSequenceConfig::get_single_gate_time_sequence()
 {
-	static int _single_gate_time_sequence = -1;
-	if (0 > _single_gate_time_sequence)
-	{
-		_single_gate_time_sequence = read_config(Q_SINGLE_GATE_TIME_SEQUENCE, 1);
-	}
-
-	return _single_gate_time_sequence;
+	return read_config(Q_SINGLE_GATE_TIME_SEQUENCE, 1);
 }
 
 int TimeSequenceConfig::get_reset_time_sequence()
 {
-	static int _reset_time_sequence = -1;
-	if (0 > _reset_time_sequence)
-	{
-		_reset_time_sequence = read_config(Q_RESET_TIME_SEQUENCE, 1);
-	}
-
-	return _reset_time_sequence;
+	return read_config(Q_RESET_TIME_SEQUENCE, 1);
 }
 
 /*******************************************************************
@@ -483,7 +456,7 @@ QCircuit QCircuitOptimizerConfig::read_cir(const rapidjson::Value& gates)
 			}
 			else
 			{
-				QCERR_AND_THROW_ERRSTR(run_fail, "Error: angle config error.");
+				QCERR_AND_THROW(run_fail, "Error: angle config error.");
 			}
 			
 			ret_cir << build_sing_ratation_gate(gate_name, m_qubits[gate_para[0].GetInt()], angle);
@@ -543,7 +516,7 @@ QCircuit QCircuitOptimizerConfig::read_cir(const rapidjson::Value& gates)
 		}
 		else
 		{
-			QCERR_AND_THROW_ERRSTR(run_fail, "Error: unknow error on read_cir form config file.");
+			QCERR_AND_THROW(run_fail, "Error: unknow error on read_cir form config file.");
 		}
 	}
 
@@ -603,44 +576,10 @@ inline QGate QCircuitOptimizerConfig::build_double_ratation_gate(std::string gat
 ********************************************************************/
 bool QuantumChipConfig::read_adjacent_matrix(size_t &qubit_num, std::vector<std::vector<int>> &qubit_matrix)
 {
-	auto& virtual_z_config = get_virtual_z_config();
-	if (!(virtual_z_config.HasMember(QUBIT_ADJACENT_MATRIX)))
-	{
-		return false;
-	}
-
-	const auto& AdjacentMatrixElement = virtual_z_config[QUBIT_ADJACENT_MATRIX];
-
-	qubit_matrix.clear();
-	if (AdjacentMatrixElement.IsArray())
-	{
-		const rapidjson::Value& arr_row = AdjacentMatrixElement;
-		qubit_num = arr_row.Size();
-		for (int i = 0; i < qubit_num; ++i)
-		{
-			std::vector<int> tmp_vec;
-			const rapidjson::Value& arr_col = arr_row[i];
-			for (int j = 0; j < arr_col.Size(); ++j)
-			{
-				if (arr_col[j].IsDouble())
-				{
-					if (arr_col[j].GetDouble() > 0.0000001)
-					{
-						tmp_vec.push_back(1);
-					}
-				}
-				else
-				{
-					tmp_vec.push_back(arr_col[j].GetInt());
-				}
-			}
-			qubit_matrix.push_back(tmp_vec);
-		}
-
-		return true;
-	}
-
-	return false;
+	std::unique_ptr<ArchGraph> p_arch_graph = JsonBackendParser<ArchGraph>::Parse(m_config_reader.get_root_element());
+	qubit_num = p_arch_graph->get_vertex_count();
+	qubit_matrix = p_arch_graph->get_adjacent_matrix();
+	return true;
 }
 
 std::vector<int> QuantumChipConfig::read_high_frequency_qubit() 
@@ -740,7 +679,7 @@ void QuantumChipConfig::read_compensate_angle(std::map<std::pair<int, int>, std:
 			}
 			else
 			{
-				QCERR_AND_THROW_ERRSTR(run_fail, "Error: compensate_angle_conf error.");
+				QCERR_AND_THROW(run_fail, "Error: compensate_angle_conf error.");
 			}
 		}
 
@@ -755,7 +694,7 @@ const rapidjson::Value& QuantumChipConfig::get_virtual_z_config()
 	auto& doc = m_config_reader.get_root_element();
 	if (!(doc.HasMember(VIRTUAL_Z_CONFIG)))
 	{
-		QCERR_AND_THROW_ERRSTR(init_fail, "Error: virtual_Z_config error.");
+		QCERR_AND_THROW(init_fail, "Error: virtual_Z_config error.");
 	}
 
 	return doc[VIRTUAL_Z_CONFIG];

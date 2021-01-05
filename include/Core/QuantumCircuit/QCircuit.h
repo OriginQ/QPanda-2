@@ -21,56 +21,9 @@ QPANDA_BEGIN
 * @brief Quantum circuit basic abstract class
 * @ingroup QuantumCircuit
 */
-class AbstractQuantumCircuit
+class AbstractQuantumCircuit : public AbstractNodeManager
 {
 public:
-	/**
-    * @brief  Get the first NodeIter
-    * @return  NodeIter
-    */
-    virtual NodeIter getFirstNodeIter() = 0;
-	
-	/**
-    * @brief  Get the last NodeIter
-    * @return  NodeIter
-    */
-    virtual NodeIter getLastNodeIter() = 0;
-
-	/**
-    * @brief  Get the end NodeIter
-    * @return  NodeIter
-    */
-    virtual NodeIter getEndNodeIter() = 0;
-	
-	/**
-    * @brief  Get the head NodeIter
-    * @return  NodeIter
-    */
-    virtual NodeIter getHeadNodeIter() = 0;
-
-	/**
-    * @brief  Insert a new QNode at the location specified by NodeIter  
-	* @param[in] NodeIter&  specified  location
-	* @param[in] std::shared_ptr<QNode> Inserted QNode
-    * @return  NodeIter
-    */
-    virtual NodeIter insertQNode(NodeIter &, std::shared_ptr<QNode>) = 0;
-
-	/**
-    * @brief  Delete a QNode at the location specified by NodeIter  
-	* @param[in] NodeIter&  specified  location
-    * @return  NodeIter  Deleted NodeIter
-    */
-    virtual NodeIter deleteQNode(NodeIter &) = 0;
-
-	/**
-	* @brief  Insert a new Node at the end of current quantum circuit node
-	* @param[in]  QNode*  quantum node
-	* @return     void
-	* @see  QNode
-	*/
-    virtual void pushBackNode(std::shared_ptr<QNode> ) = 0;
-	
 	/**
     * @brief  Judge current quantum circuit is dagger
     * @return  bool 
@@ -177,7 +130,7 @@ public:
     NodeIter getEndNodeIter();
     NodeIter getHeadNodeIter();
 
-    NodeIter insertQNode(NodeIter &iter, std::shared_ptr<QNode> pNode);
+    NodeIter insertQNode(const NodeIter &iter, std::shared_ptr<QNode> pNode);
     NodeIter deleteQNode(NodeIter &iter);
 	bool is_empty() { return getFirstNodeIter() == getEndNodeIter(); }
 
@@ -268,7 +221,7 @@ public:
     NodeIter  getLastNodeIter() { return m_node_manager.get_last_node_iter(); }
     NodeIter  getEndNodeIter() { return m_node_manager.get_end_node_iter(); }
     NodeIter getHeadNodeIter() { return m_node_manager.get_head_node_iter(); }
-    NodeIter  insertQNode(NodeIter &perIter, std::shared_ptr<QNode> node) { 
+    NodeIter  insertQNode(const NodeIter &perIter, std::shared_ptr<QNode> node) {
 		if (check_insert_node_type(node))
 		{
 			return m_node_manager.insert_QNode(perIter, node);

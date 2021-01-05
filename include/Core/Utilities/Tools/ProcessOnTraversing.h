@@ -14,22 +14,17 @@ QPANDA_BEGIN
 
 #define MAX_LAYER 0xEFFFFFFFFFFFFFFF
 
-struct OptimizerNodeInfo
+struct OptimizerNodeInfo : public NodeInfo
 {
-	NodeIter m_iter;
 	size_t m_layer;
-	QVec m_target_qubits;
-	QVec m_ctrl_qubits;
-	GateType m_type;
+	int m_type;
 	std::shared_ptr<QNode> m_parent_node;
 	int m_sub_graph_index;
-	bool m_dagger;
 
 	OptimizerNodeInfo(const NodeIter iter, size_t layer, QVec target_qubits, QVec control_qubits, 
-		GateType type, std::shared_ptr<QNode> parent_node, const bool dagger)
-		:m_iter(iter), m_layer(layer), m_target_qubits(target_qubits) 
-		, m_ctrl_qubits(control_qubits), m_type(type), m_parent_node(parent_node)
-		, m_sub_graph_index(-1), m_dagger(dagger)
+		int type, std::shared_ptr<QNode> parent_node, const bool dagger)
+		:NodeInfo(iter, target_qubits, control_qubits, type, dagger), m_layer(layer)
+		, m_parent_node(parent_node), m_sub_graph_index(-1), m_type(type)
 	{}
 
 	void reset() {
@@ -46,10 +41,11 @@ struct OptimizerNodeInfo
 			break;
 
 		default:
-			QCERR_AND_THROW_ERRSTR(run_fail, "Error: failed to delete target QNode, Node type error.");
+			QCERR_AND_THROW(run_fail, "Error: failed to delete target QNode, Node type error.");
 			break;
 		}
-		m_type = GATE_UNDEFINED;
+		
+		NodeInfo::reset();
 	}
 
 	void insert_QNode(std::shared_ptr<QNode> node) {
@@ -66,7 +62,7 @@ struct OptimizerNodeInfo
 			break;
 
 		default:
-			QCERR_AND_THROW_ERRSTR(run_fail, "Error: failed to delete target QNode, Node type error.");
+			QCERR_AND_THROW(run_fail, "Error: failed to delete target QNode, Node type error.");
 			break;
 		}
 	}
@@ -75,79 +71,20 @@ struct OptimizerNodeInfo
 		return ((other.m_iter == m_iter)
 			&& (other.m_layer == m_layer)
 			&& (other.m_target_qubits == m_target_qubits)
-			&& (other.m_ctrl_qubits == m_ctrl_qubits)
-			&& (other.m_type == m_type)
+			&& (other.m_control_qubits == m_control_qubits)
+			&& (other.m_gate_type == m_gate_type)
+			&& (other.m_node_type == m_node_type)
 			&& (other.m_parent_node == m_parent_node));
 	}
+
+	bool is_empty() const { return nullptr == m_iter.getPCur(); }
 };
 
 using pOptimizerNodeInfo = std::shared_ptr<OptimizerNodeInfo>;
-using GatesBufferType = std::pair<size_t, std::list<pOptimizerNodeInfo>>;
-using OptimizerSink = std::map<size_t, std::list<pOptimizerNodeInfo>>;
-
-struct LayerNodeInfo
-{
-	NodeIter m_iter;
-	std::vector<Qubit*> m_target_qubits;
-	std::vector<Qubit*> m_ctrl_qubits;
-	std::vector<int> m_cbits;
-	std::vector<double> m_params;
-	std::string m_name;
-	int m_type;
-	bool m_dagger;
-	LayerNodeInfo(){}
-	LayerNodeInfo(const pOptimizerNodeInfo node)
-		:m_iter(node->m_iter)
-		, m_type(node->m_type)
-		, m_dagger(node->m_dagger)
-	{
-		init(node->m_target_qubits, node->m_ctrl_qubits);
-	}
-
-	LayerNodeInfo(const NodeIter iter, QVec target_qubits, QVec control_qubits,
-		GateType type, const bool dagger)
-		:m_iter(iter)
-		, m_type(type)
-		, m_dagger(dagger)
-	{
-		init(target_qubits, control_qubits);
-	}
-
-	void init(QVec& target_qubits, QVec& ctrl_qubits) {
-		for (const auto & item : target_qubits)
-		{
-			m_target_qubits.push_back(item);
-		}
-
-		for (const auto & item : ctrl_qubits)
-		{
-			m_ctrl_qubits.push_back(item);
-		}
-
-		if (-1 == m_type)
-		{
-			auto p_measure = std::dynamic_pointer_cast<AbstractQuantumMeasure>(*m_iter);
-			m_cbits.push_back(p_measure->getCBit()->getValue());
-		}
-
-		if (0 < m_type)
-		{
-			m_name = TransformQGateType::getInstance()[(GateType)m_type];
-			if (m_dagger)
-			{
-				m_name += ".dg";
-			}
-			m_params = get_gate_parameter(std::dynamic_pointer_cast<AbstractQGateNode>(*m_iter));
-		}
-	}
-
-	bool operator== (const LayerNodeInfo& other) const {
-		return ((other.m_iter == m_iter)
-			&& (other.m_target_qubits == m_target_qubits)
-			&& (other.m_ctrl_qubits == m_ctrl_qubits)
-			&& (other.m_type == m_type));
-	}
-};
+using GatesBufferType = std::pair<size_t, std::vector<pOptimizerNodeInfo>>;
+using OptimizerSink = std::map<size_t, std::vector<pOptimizerNodeInfo>>;
+using SinkPos = std::map<size_t, size_t>;
+using LayeredTopoSeq = TopologSequence<pOptimizerNodeInfo>;
 
 class ProcessOnTraversing : protected TraverseByNodeIter
 {
@@ -180,7 +117,7 @@ public:
 	void execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std::shared_ptr<QNode> parent_node, QCircuitParam &cir_param, NodeIter& cur_node_iter) override;
 	void execute(std::shared_ptr<AbstractQuantumProgram>  cur_node, std::shared_ptr<QNode> parent_node, QCircuitParam &cir_param, NodeIter& cur_node_iter) override;
 
-	virtual void gates_sink_to_topolog_sequence(OptimizerSink& gate_buf, TopologSequence<pOptimizerNodeInfo>& seq, const size_t max_output_layer = MAX_LAYER);
+	virtual void gates_sink_to_topolog_sequence(OptimizerSink& gate_buf, LayeredTopoSeq& seq, const size_t max_output_layer = MAX_LAYER);
 
 	/**
 	* @brief pop gate buf to circuit
@@ -205,18 +142,29 @@ protected:
 	size_t get_node_layer(QVec gate_qubits, OptimizerSink& gate_buffer);
 	size_t get_node_layer(const std::vector<int>& gate_qubits, OptimizerSink& gate_buffer);
 	virtual size_t get_min_include_layers();
-	void init_gate_buf() {
-		for (const auto& item : m_qubits)
-		{
-			m_cur_gates_buffer.insert(GatesBufferType(item->getPhysicalQubitPtr()->getQubitAddr(), std::list<pOptimizerNodeInfo>()));
-		}
-	}
+	void init_gate_buf();
+	virtual void append_data_to_gate_buf(std::vector<pOptimizerNodeInfo>& gate_buf,
+		pOptimizerNodeInfo p_node, const size_t qubit_i);
 
 protected:
 	QVec m_qubits;
 	OptimizerSink m_cur_gates_buffer;
+	SinkPos m_cur_buffer_pos;
 	size_t m_min_layer;
 };
+
+struct PressedCirNode
+{
+	pOptimizerNodeInfo m_cur_node;
+	std::vector<pOptimizerNodeInfo> m_relation_pre_nodes;
+	std::vector<pOptimizerNodeInfo> m_relation_successor_nodes;
+};
+
+using PressedTopoSeq = TopologSequence<PressedCirNode>;
+using PressedLayer = SeqLayer<PressedCirNode>;
+using PressedNode = SeqNode<PressedCirNode>;
+
+PressedTopoSeq get_pressed_layer(QProg src_prog);
 
 /**
 * @brief Program layering.
@@ -226,7 +174,7 @@ protected:
 * @param[in] const std::string config data, @See JsonConfigParam::load_config()
 * @return the TopologSequence
 */
-TopologSequence<pOptimizerNodeInfo> prog_layer(QProg src_prog, const bool b_enable_qubit_compensation = false, const std::string config_data = CONFIG_PATH);
+LayeredTopoSeq prog_layer(QProg src_prog, const bool b_enable_qubit_compensation = false, const std::string config_data = CONFIG_PATH);
 
 QPANDA_END
 #endif // PROCESS_ON_TRAVERSING_H

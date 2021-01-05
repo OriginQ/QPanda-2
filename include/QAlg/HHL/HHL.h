@@ -30,9 +30,8 @@ public:
 	static void expand_linear_equations(QStat& A, std::vector<double>& b);
 
 protected:
-	QCircuit build_CR_cir(std::vector<Qubit*>& controlqvec, Qubit* target_qubit, double r = 6.0);
+	QCircuit build_CR_cir(QVec& controlqvec, Qubit* target_qubit, double r = 6.0);
 	std::vector<double> get_max_eigen_val(const QStat& A);
-	QCircuit index_to_circuit(size_t index, std::vector<Qubit*> &controlqvec);
 	EigenMatrixX to_real_matrix(const EigenMatrixXc& c_mat);
 	QCircuit build_cir_b(QVec qubits, const std::vector<double>& b);
 	void init_qubits();

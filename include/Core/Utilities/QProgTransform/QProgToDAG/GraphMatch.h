@@ -89,8 +89,8 @@ private:
     std::vector<size_t> m_compare_vec;
 
     bool _compare_qnum(Qnum, Qnum);
-    bool _compare_node(LayerNode &, LayerNode &);
-    bool _compare_edge(LayerVector &, LayerVector &);
+    bool _compare_node(SeqNode<SequenceNode> &, SeqNode<SequenceNode> &);
+    bool _compare_edge(const LayerVector &, const LayerVector &);
     bool _compare_parm(SequenceNode &, SequenceNode &);
 
     void _replace_node(const ResultVector &, TopologSequence<SequenceNode> &);

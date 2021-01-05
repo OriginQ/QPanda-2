@@ -290,7 +290,7 @@ void QCodarMatch::initGridDevice(QCodarGridDevice arch_type, int &m, int &n)
 	{
 		if (m_config_data.empty())
 		{
-			QCERR_AND_THROW_ERRSTR(runtime_error, "Error: failed to initGridDevice, the config data is empty.");
+			QCERR_AND_THROW(runtime_error, "Error: failed to initGridDevice, the config data is empty.");
 		}
 
 		std::vector<std::vector<double>> qubit_matrix;

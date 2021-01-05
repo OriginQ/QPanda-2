@@ -210,7 +210,7 @@ QPANDA_BEGIN
     {
         AnsatzGateType type;
         int target;
-        double theta{ -1 };
+        double theta;
         int control;
 
         AnsatzGate(

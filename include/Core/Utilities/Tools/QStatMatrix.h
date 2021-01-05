@@ -20,11 +20,11 @@ Classes for get the shortes path of graph
 
 QPANDA_BEGIN
 
-#define MAX_COMPARE_PRECISION 0.000001
+#define MAX_COMPARE_PRECISION 1e-10
 
 typedef double EigneDataType;
 typedef std::complex <EigneDataType> EigenComplexT;
-typedef Eigen::Matrix<EigenComplexT, -1, -1> EigenMatrixXc;
+typedef Eigen::Matrix<EigenComplexT, -1, -1, Eigen::RowMajor> EigenMatrixXc;
 typedef Eigen::Matrix<EigenComplexT, 2, 2> EigenMatrix2c;
 typedef Eigen::Matrix<EigneDataType, -1, -1> EigenMatrixX;
 typedef Eigen::Matrix<EigneDataType, 2, 2> EigenMatrix2;
@@ -113,9 +113,10 @@ QStat tensor(const QStat& leftMatrix, const QStat& rightMatrix);
 * @brief  transform matrix to string
 * @ingroup Utilities
 * @param[in] the target matrix
+* @param[in] const int: precision
 * @return the matrix string
 */
-std::string matrix_to_string(const QStat& mat);
+std::string matrix_to_string(const QStat& mat, const int precision = 8);
 
 /**
 * @brief Compare the two matrices to determine whether they are equal
@@ -152,7 +153,7 @@ QStat Eigen_to_QStat(const EigenMatrixXc& mat);
 * @param[in] const double the max precision, default 0.000001
 * @return if the input matrix is unitary matrix return true, or else return false
 */
-bool is_unitary_matrix(const QStat &circuit_matrix, const double precision = 0.000001);
+bool is_unitary_matrix(const QStat &circuit_matrix, const double precision = MAX_COMPARE_PRECISION);
 
 QPANDA_END
 #endif // QSTATMATRIX_H

@@ -5,6 +5,7 @@ file(GLOB_RECURSE COMPONENTS_SRC_CPP ${CMAKE_CURRENT_SOURCE_DIR}/HamiltonianSimu
                                      ${CMAKE_CURRENT_SOURCE_DIR}/MaxCutProblemGenerator/*.cpp
                                      ${CMAKE_CURRENT_SOURCE_DIR}/NodeSortProblemGenerator/*.cpp
                                      ${CMAKE_CURRENT_SOURCE_DIR}/Optimizer/*.cpp
+                                     ${CMAKE_CURRENT_SOURCE_DIR}/Operator/*.cpp
                                      ${CMAKE_CURRENT_SOURCE_DIR}/Utils/*.cpp)
 
 file(GLOB_RECURSE COMPONENTS_CHEMIQ_SRC_CPP ${CMAKE_CURRENT_SOURCE_DIR}/ChemiQ/*.cpp)

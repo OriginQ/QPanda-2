@@ -784,6 +784,19 @@ private:
 void decompose_multiple_control_qgate(QProg& prog, QuantumMachine *quantum_machine, const std::string& config_data = CONFIG_PATH);
 void decompose_multiple_control_qgate(QCircuit& cir, QuantumMachine *quantum_machine, const std::string& config_data = CONFIG_PATH);
 
+/**
+* @brief Basic quantum-gate conversion
+* @ingroup Utilities
+* @param[in]  QProg&   Quantum Program
+* @param[in]  QuantumMachine*  quantum machine pointer
+* @param[in] const std::string& It can be configuration file or configuration data, which can be distinguished by file suffix,
+			 so the configuration file must be end with ".json", default is CONFIG_PATH
+* @return
+* @note Quantum circuits or programs cannot contain multiple-control gates
+*/
+void transform_to_base_qgate(QProg& prog, QuantumMachine *quantum_machine, const std::string& config_data = CONFIG_PATH);
+void transform_to_base_qgate(QCircuit& cir, QuantumMachine *quantum_machine, const std::string& config_data = CONFIG_PATH);
+
 QPANDA_END
 #endif // 
 

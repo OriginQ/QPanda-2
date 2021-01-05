@@ -46,7 +46,7 @@ public:
     */
     virtual void transform();
 	
-	public:
+public:
 	virtual void execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node, QCircuitParam &cir_param, NodeIter& cur_node_iter) ;
 	virtual void execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, std::shared_ptr<QNode> parent_node, QCircuitParam &cir_param, NodeIter& cur_node_iter) ;
 	virtual void execute(std::shared_ptr<AbstractQuantumReset> cur_node, std::shared_ptr<QNode> parent_node, QCircuitParam &cir_param, NodeIter& cur_node_iter);
@@ -60,6 +60,7 @@ private:
 
     virtual void transformQMeasure(AbstractQuantumMeasure*);
 	virtual void transformQReset(AbstractQuantumReset*);
+	std::string double_to_string(const double d, const int precision = 17);
 
 	QProg m_src_prog;
     std::map<int, std::string>  m_gatetype; /**< Quantum gatetype map   */

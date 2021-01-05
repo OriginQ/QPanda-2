@@ -89,8 +89,6 @@ struct SequenceNode
 
 using edges_vec = std::vector<std::pair<size_t, size_t>>; 
 using AdjacencyMatrix = Eigen::MatrixXi;
-using LayerNode = std::pair<SequenceNode, std::vector<SequenceNode>>;
-using SequenceLayer = std::vector<LayerNode>;
 
 /**
 * @class QProgDAG
@@ -167,7 +165,7 @@ public:
 	const T& get_vertex_node(const size_t vertice_num) const {
 		if (m_vertices_map.size() <= vertice_num)
 		{
-			QCERR_AND_THROW_ERRSTR(run_fail, "Error: vertice_num error.");
+			QCERR_AND_THROW(run_fail, "Error: vertice_num error.");
 		}
 		return m_vertices_map.find(vertice_num)->second;
 	}

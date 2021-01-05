@@ -24,6 +24,7 @@ limitations under the License.
 #include <iostream>
 #include <vector>
 
+
 #ifndef SQ2
 #define SQ2 (1 / 1.4142135623731)
 #endif
@@ -32,7 +33,7 @@ limitations under the License.
 #define PI 3.14159265358979
 #endif
 
-#define NoiseOp std::vector<std::vector<qcomplex_t>>
+//#define NoiseOp std::vector<std::vector<qcomplex_t>>
 
 QStat matrix_multiply(const QStat &matrix_left, const QStat &matrix_right);
 
@@ -45,9 +46,12 @@ class NoisyCPUImplQPU : public QPUImpl
 {
 public:
     vQParam qubit2stat;
+    vQParam init_qubit2stat;
     QGateParam &findgroup(size_t qn);
     NoisyCPUImplQPU();
     NoisyCPUImplQPU(rapidjson::Document &);
+    NoisyCPUImplQPU(NoisyQuantum &quantum_noise);
+    void set_quantum_noise(const NoisyQuantum &quantum_noise);
     ~NoisyCPUImplQPU();
 
     bool TensorProduct(QGateParam& qgroup0, QGateParam& qgroup1);
@@ -62,14 +66,14 @@ public:
 
     QError controlunitarySingleQubitGate(size_t qn,
         Qnum& vControlBit,
-        QStat& matrix, 
+        QStat& matrix,
         bool isConjugate,
         GateType type);
-    
+
     QError unitaryDoubleQubitGate(size_t qn_0,
-        size_t qn_1, 
-        QStat& matrix, 
-        bool isConjugate, 
+        size_t qn_1,
+        QStat& matrix,
+        bool isConjugate,
         GateType type);
 
     QError noisyUnitaryDoubleQubitGate(size_t qn_0,
@@ -77,7 +81,7 @@ public:
         QStat& matrix,
         bool isConjugate,
         NoiseOp & noise);
-   
+
     QError controlunitaryDoubleQubitGate(size_t qn_0,
         size_t qn_1,
         Qnum& vControlBit,
@@ -229,16 +233,36 @@ public:
     QError pMeasure(Qnum& qnum, prob_tuple &mResult, int select_max=-1);
     QError pMeasure(Qnum& qnum, prob_vec &mResult);
     QError initState(size_t head_rank, size_t rank_size, size_t qubit_num);
+    QError initState(size_t qubit_num, const QStat &state = {});
 
+    // new noise modle
+    QError unitary_noise_qubit_gate(const Qnum &qns, const QStat& matrix,
+                                    bool is_conjugate, GateType type);
+    QError unitary_noise_qubit_kraus(const Qnum & qns, const NoiseOp & ops, QStat & standard_matrix);
+
+    QError unitary_qubit_gate_standard(size_t qn, QStat& matrix,
+                                       bool is_conjugate);
+    QError unitary_qubit_gate_standard(size_t qn0 ,size_t qn1, QStat& matrix,
+                                       bool is_conjugate);
+    QError reset_standard(size_t qn);
+    bool measure_standard(size_t qn);
+    bool readout(bool measure, size_t qn);
+
+    void normlize(QStat &matrix, double p);
+    double unitary_kraus(const Qnum &qns, const QStat &op);
 private:
-	QError singleQubitGateNoise(size_t qn, NoiseOp &noise);
-	QError doubleQubitGateNoise(size_t qn_0, size_t qn_1, NoiseOp &noise);
+    QError singleQubitGateNoise(size_t qn, NoiseOp &noise);
+    QError doubleQubitGateNoise(size_t qn_0, size_t qn_1, NoiseOp &noise);
     QError _get_probabilities(prob_vec &probabilities,
-		size_t qn, NoiseOp & noise);
+        size_t qn, NoiseOp & noise);
     QError _get_probabilities(prob_vec &probabilities,
-		size_t qn_0, size_t qn_1, NoiseOp & noise);
+        size_t qn_0, size_t qn_1, NoiseOp & noise);
 
     rapidjson::Document m_doc;
+
+    // new noise model
+    NoisyQuantum m_quantum_noise;
+    RandomEngine19937 m_rng;
 };
 
 #endif // ! NOISY_CPU_QUANTUM_GATE_SINGLE_THREAD_H

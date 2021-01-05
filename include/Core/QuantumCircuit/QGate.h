@@ -83,6 +83,12 @@ public:
     * @see QVec
     */
     virtual size_t getControlVector(QVec &) const = 0;
+
+	/**
+	* @brief  Clear the control qubits for current quantum gate
+	* @see QVec
+	*/
+	virtual void clear_control() = 0;
 	
 	/**
     * @brief  Set dagger to current quantum gate
@@ -185,6 +191,12 @@ public:
     QGate control(QVec);
 
 	/**
+	* @brief  Clear the control qubits for current quantum gate
+	* @return 
+	*/
+	void clear_control();
+
+	/**
 	* @brief  remap qubit
 	* @return
 	*/
@@ -237,6 +249,7 @@ public:
     size_t getControlVector(QVec &) const;
     void PushBackQuBit(Qubit *);
 	void remap(QVec) override;
+	void clear_control() { m_control_qubit_vector.clear(); }
 };
 
 /**

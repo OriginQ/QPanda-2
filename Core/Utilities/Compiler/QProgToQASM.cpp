@@ -144,7 +144,7 @@ void QProgToQASM::transformQGate(AbstractQGateNode * pQGate,bool is_dagger)
 
 		case X_HALF_PI:
 		{
-			string  gate_angle = to_string((dynamic_cast<AbstractSingleAngleParameter *>(pQGate->getQGate()))->getParameter() * iLabel);
+			string  gate_angle = double_to_string((dynamic_cast<AbstractSingleAngleParameter *>(pQGate->getQGate()))->getParameter() * iLabel);
 			sTemp = ("rx(" + gate_angle + ")");
 			sTemp.append(" q[" + tarQubit + "];");
 		}
@@ -152,7 +152,7 @@ void QProgToQASM::transformQGate(AbstractQGateNode * pQGate,bool is_dagger)
 
 		case Y_HALF_PI:
 		{
-			string  gate_angle = to_string((dynamic_cast<AbstractSingleAngleParameter *>(pQGate->getQGate()))->getParameter() * iLabel);
+			string  gate_angle = double_to_string((dynamic_cast<AbstractSingleAngleParameter *>(pQGate->getQGate()))->getParameter() * iLabel);
 			sTemp = ("ry(" + gate_angle + ")");
 			sTemp.append(" q[" + tarQubit + "];");
 		}
@@ -160,7 +160,7 @@ void QProgToQASM::transformQGate(AbstractQGateNode * pQGate,bool is_dagger)
 
 		case Z_HALF_PI:
 		{
-			string  gate_angle = to_string((dynamic_cast<AbstractSingleAngleParameter *>(pQGate->getQGate()))->getParameter() * iLabel);
+			string  gate_angle = double_to_string((dynamic_cast<AbstractSingleAngleParameter *>(pQGate->getQGate()))->getParameter() * iLabel);
 			sTemp = ("rz(" + gate_angle + ")");
 			sTemp.append(" q[" + tarQubit + "];");
 		}
@@ -178,7 +178,7 @@ void QProgToQASM::transformQGate(AbstractQGateNode * pQGate,bool is_dagger)
 		case RY_GATE:
 		case RZ_GATE:
 		{
-			string  gate_angle = to_string((dynamic_cast<AbstractSingleAngleParameter *>(pQGate->getQGate()))->getParameter() * iLabel);
+			string  gate_angle = double_to_string((dynamic_cast<AbstractSingleAngleParameter *>(pQGate->getQGate()))->getParameter() * iLabel);
 			sTemp.append("(" + gate_angle + ")");
 			sTemp.append(" q[" + tarQubit + "];");
 		}
@@ -187,18 +187,18 @@ void QProgToQASM::transformQGate(AbstractQGateNode * pQGate,bool is_dagger)
 		case U3_GATE:
 		{
 			auto u3_gate = dynamic_cast<QGATE_SPACE::U3*>(pQGate->getQGate());
-			string theta = to_string(u3_gate->get_theta() * iLabel);
+			string theta = double_to_string(u3_gate->get_theta() * iLabel);
 			string lambda;
 			string phi;
 			if (dagger)
 			{
-				lambda = to_string(u3_gate->get_phi() * iLabel);
-				phi = to_string(u3_gate->get_lambda() * iLabel);
+				lambda = double_to_string(u3_gate->get_phi() * iLabel);
+				phi = double_to_string(u3_gate->get_lambda() * iLabel);
 			}
 			else
 			{
-				phi = to_string(u3_gate->get_phi());
-				lambda = to_string(u3_gate->get_lambda());
+				phi = double_to_string(u3_gate->get_phi());
+				lambda = double_to_string(u3_gate->get_lambda());
 			}
 
 			sTemp.append("(" + theta + "," + phi + ","+ lambda + ")");
@@ -232,7 +232,7 @@ void QProgToQASM::transformQGate(AbstractQGateNode * pQGate,bool is_dagger)
         case CPHASE_GATE: 
             {
 				sTemp = "u1";
-				string  gate_angle = to_string((dynamic_cast<AbstractSingleAngleParameter *>(pQGate->getQGate()))->getParameter() * iLabel);
+				string  gate_angle = double_to_string((dynamic_cast<AbstractSingleAngleParameter *>(pQGate->getQGate()))->getParameter() * iLabel);
 				sTemp.append("(" + gate_angle + ")");
 				sTemp.append(" q[" + tarQubit + "];");
 
@@ -322,6 +322,14 @@ void QProgToQASM::transformQReset(AbstractQuantumReset* pReset)
 
 	std::string tar_qubit = to_string(pReset->getQuBit()->getPhysicalQubitPtr()->getQubitAddr());
 	m_qasm.emplace_back("reset q[" + tar_qubit + "];");
+}
+
+std::string QProgToQASM::double_to_string(const double d, const int precision /*= 17*/)
+{
+	std::ostringstream stream;
+	stream.precision(precision);
+	stream << d;
+	return stream.str();
 }
 
 void QProgToQASM::execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node, QCircuitParam &cir_param, NodeIter& cur_node_iter)

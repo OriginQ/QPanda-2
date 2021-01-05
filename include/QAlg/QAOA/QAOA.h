@@ -20,6 +20,7 @@ Created in 2018-09-06
 #include "Core/QuantumCircuit/QCircuit.h"
 #include "Core/QuantumCircuit/QGate.h"
 #include "Core/QuantumMachine/OriginQuantumMachine.h"
+#include "Components/Operator/PauliOperator.h"
 #include "Components/DataStruct.h"
 
 namespace QPanda
@@ -46,9 +47,9 @@ namespace QPanda
 	    * @brief set Hamiltonian
 	    * @param[in] QPauliMap& pauli map
 	    */
-        void setHamiltonian(const QPauliMap &pauli_map)
+        void setHamiltonian(const PauliOperator &pauli)
         {
-            m_pauli_map = pauli_map;
+            m_pauli = pauli;
         }
 
 		/**
@@ -173,7 +174,7 @@ namespace QPanda
             const vector_d &para, 
             const vector_i &key_vec);
     private:
-        QPauliMap m_pauli_map;
+        PauliOperator m_pauli;
 		QuantumMachine * m_qvm;
         double m_delta_t{0.01};
 

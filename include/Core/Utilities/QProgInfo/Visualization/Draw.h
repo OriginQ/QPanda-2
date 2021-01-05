@@ -10,12 +10,10 @@
 
 QPANDA_BEGIN
 
-class TimeSequenceConfig;
-
 namespace DRAW_TEXT_PIC
 {
-	using TopoSeq = TopologSequence<pOptimizerNodeInfo>;
-	using TopoSeqIter = TopologSequence<pOptimizerNodeInfo>::iterator;
+	using TopoSeq = LayeredTopoSeq;
+	using TopoSeqIter = LayeredTopoSeq::iterator;
 	using TopoSeqLayer = SeqLayer<pOptimizerNodeInfo>;
 	using TopoSeqLayerIter = SeqLayer<pOptimizerNodeInfo>::iterator;
 
@@ -149,17 +147,17 @@ namespace DRAW_TEXT_PIC
 		* @brief conver current wire to string and save to file
 		* @return std::string
 		*/
-		virtual std::string draw(std::ofstream& fd, int srartRow) {
+		virtual std::string draw() {
 			std::string outputStr;
-			fd << (m_top_line.append("\n"));
+			m_top_line.append("\n");
 			outputStr.append(m_top_line);
 
-			fd << (m_mid_line.append("\n"));
+			m_mid_line.append("\n");
 			outputStr.append(m_mid_line);
 
 			if (!m_b_merged_bot_line)
 			{
-				fd << (m_bot_line.append("\n"));
+				m_bot_line.append("\n");
 				outputStr.append(m_bot_line);
 			}
 
@@ -252,8 +250,7 @@ namespace DRAW_TEXT_PIC
 		/**
 		* @brief  Constructor of DrawPicture
 		*/
-		//DrawPicture(QProg prog);
-		DrawPicture(QProg prog, TopologSequence<pOptimizerNodeInfo>& layer_info);
+		DrawPicture(QProg prog, LayeredTopoSeq& layer_info);
 		~DrawPicture() {}
 
 		/**
@@ -330,8 +327,10 @@ namespace DRAW_TEXT_PIC
 
 		/**
 		* @brief draw text-picture by time sequence
+		* @param[in] const std::string It can be configuration file or configuration data, which can be distinguished by file suffix,
+			 so the configuration file must be end with ".json", default is CONFIG_PATH
 		*/
-		void draw_by_time_sequence();
+		void draw_by_time_sequence(const std::string config_data = CONFIG_PATH);
 
 		/**
 		* @brief get the difference of two QVecs
@@ -343,6 +342,7 @@ namespace DRAW_TEXT_PIC
 		void appendMeasure(std::shared_ptr<AbstractQuantumMeasure> pMeasure);
 		void append_reset(std::shared_ptr<AbstractQuantumReset> pReset);
 		void append_ctrl_gate(std::string gate_name, const int terget_qubit, QVec &self_control_qubits_vec, QVec &circuit_control_qubits_vec);
+		void append_barrier_line(int line_start, int line_end, int pos);
 		void append_swap_gate(std::string gate_name, QVec &qubits_vector, QVec &circuit_control_qubits_vec);
 		void append_single_gate(std::string gate_name, QVec &qubits_vector, QVec &circuit_control_qubits_vec);
 		void merge(const std::string& up_wire, std::string& down_wire);
@@ -365,13 +365,13 @@ namespace DRAW_TEXT_PIC
 	private:
 		std::map<int, std::shared_ptr<Wire>> m_quantum_bit_wires;
 		std::map<int, std::shared_ptr<Wire>> m_class_bit_wires;
-		TopologSequence<pOptimizerNodeInfo>& m_layer_info;
+		LayeredTopoSeq& m_layer_info;
 		int m_text_len;
 		int m_max_time_sequence;
 		QProg m_prog;
 		QProg m_tmp_remain_prog;
 		QVec m_quantum_bits_in_use;
-		TimeSequenceConfig& m_time_sequence_conf;
+		TimeSequenceConfig m_time_sequence_conf;
 	};
 
 	/**

@@ -6,6 +6,7 @@ ArithmeticUnit.h
 
 Author: LiYe
 Created in 2020-03-24
+Modified in 2020-10-10
 Author: LiuYan
 Modified in 2020-08-07
 
@@ -18,6 +19,7 @@ Modified in 2020-08-07
 
 #include "Core/Utilities/QPandaNamespace.h"
 #include "Core/QuantumCircuit/QCircuit.h"
+#include "Core/QuantumCircuit/QProgram.h"
 
 QPANDA_BEGIN
 
@@ -89,7 +91,7 @@ QCircuit isCarry(
 * @param[in] is_carry  auxiliary qubit for determine adder1+adder2 if
                        there is a carry
 * @return QCircuit
-* @note the result of QAdder is saved in is_carry and adder1,adder2 is not changed
+* @note Only supports positive addition. The result of QAdder is saved in is_carry and adder1,adder2 is not changed
 */
 QCircuit QAdder(
     QVec &adder1,
@@ -104,25 +106,197 @@ QCircuit QAdder(
 * @param[in] adder2  adder qubits
 * @param[in] c  input carry qubit
 * @return QCircuit
-* @note the result of QAdderIgnoreCarry is saved in adder1, carry is ignored, adder2 is not changed
+* @note The result of QAdder is saved in adder1, carry is ignored, adder2 is not changed
 */
-QCircuit QAdderIgnoreCarry(
+QCircuit QAdder(
     QVec &adder1,
     QVec &adder2,
     Qubit* c);
 
+/**
+* @brief Quantum adder that supports signed operations, but ignore carry
+* @ingroup ArithmeticUnit
+* @param[in] a  adder qubits
+* @param[in] b  adder qubits
+* @param[in] k  auxiliary qubits
+* @return QCircuit
+* @note The size of k is a.size()+2.
+*       The highest position of a and b is sign bit.
+*       The result of QAdd is saved in a, carry is ignored, b and k is not changed.
+*/
+QCircuit QAdd(
+    QVec& a,
+    QVec& b,
+    QVec& k);
+
+/**
+* @brief Convert quantum state to binary complement representation
+* @ingroup ArithmeticUnit
+* @param[in] a  adder qubits
+* @param[in] k  auxiliary qubits
+* @return QCircuit
+* @note The size of k is a.size()+2.
+*       The result of complement is saved in a, k is not changed.
+*       And the initial value of k are all |0>.
+*/
+QCircuit QComplement(
+    QVec& a,
+    QVec& k);
+
+/**
+* @brief Quantum subtraction
+* @ingroup ArithmeticUnit
+* @param[in] a  minuend qubits
+* @param[in] b  subtrahend qubits
+* @param[in] k  auxiliary qubit
+* @return QCircuit
+* @note The highest position of a and b is sign bit.
+*       The size of k is a.size()+2.
+*       The result of QSub is saved in a, b and k is not changed.
+*/
+QCircuit QSub(
+    QVec& a,
+    QVec& b,
+    QVec& k);
+/**
+* @brief Quantum multiplication
+* @ingroup ArithmeticUnit
+* @param[in] a  mul qubits
+* @param[in] b  mul qubits
+* @param[in] k  auxiliary qubit
+* @param[in] d  ans qubits
+* @return QCircuit
+* @note Only supports positive multiplication.
+*       The size of k is a.size()+1, the size of d is 2*a.size().
+*       The result of QMul is saved in d, a and b and k is not changed.
+*/
+QCircuit QMultiplier(
+    QVec& a,
+    QVec& b,
+    QVec& k,
+    QVec& d);
+
+/**
+* @brief Quantum multiplication
+* @ingroup ArithmeticUnit
+* @param[in] a  mul qubits
+* @param[in] b  mul qubits
+* @param[in] k  auxiliary qubits
+* @param[in] d  ans qubits
+* @return QCircuit
+* @note The size of k is a.size(), the size of d is 2*a.size()-1.
+*       The highest position of a and b and d is sign bit.
+*       The result of QMul is saved in d, a and b and k is not changed.
+*/
+QCircuit QMul(
+    QVec& a,
+    QVec& b,
+    QVec& k,
+    QVec& d);
+
+/**
+* @brief Quantum division
+* @ingroup ArithmeticUnit
+* @param[in] a  div qubits
+* @param[in] b  div qubits
+* @param[in] c  ans qubits
+* @param[in] k  auxiliary qubits
+* @param[in] t  control cbit
+* @return QProg
+* @note The highest position of a and b and c is sign bit, but a and b must be positive number.
+*       The size of k is 2*a.size()+2.
+*       The result of QDiv is saved in c, a saved the remainder, b and k is not changed.
+*/
+QProg QDivider(
+    QVec& a,
+    QVec& b,
+    QVec& c,
+    QVec& k,
+    ClassicalCondition& t);
+
+/**
+* @brief Quantum division
+* @ingroup ArithmeticUnit
+* @param[in] a  div qubits
+* @param[in] b  div qubits
+* @param[in] c  ans qubits
+* @param[in] k  auxiliary qubits
+* @param[in] t  control cbit
+* @return QProg
+* @note The highest position of a and b and c is sign bit.
+*       The size of k is 2*a.size()+4.
+*       The result of QDiv is saved in c, a saved the remainder,b and k is not changed.
+*/
+QProg QDiv(
+    QVec& a,
+    QVec& b,
+    QVec& c,
+    QVec& k,
+    ClassicalCondition& t);
+
+/**
+* @brief Quantum division
+* @ingroup ArithmeticUnit
+* @param[in] a  div qubits
+* @param[in] b  div qubits
+* @param[in] c  ans qubits
+* @param[in] k  auxiliary qubits
+* @param[in] f  accuracy qubits
+* @param[in] s  control cbits
+* @return QProg
+* @note The highest position of a and b and c is sign bit ,but a and b must be positive number.
+*       The size of k is 3*a.size()+5, s is f.size()+2.
+*       The result of QDiv is saved in c, accuracy is saved in f, a and b and k is not changed.
+*/
+QProg QDivider(QVec& a,
+    QVec& b,
+    QVec& c,
+    QVec& k,
+    QVec& f,
+    std::vector<ClassicalCondition>& s);
+
+/**
+* @brief Quantum division
+* @ingroup ArithmeticUnit
+* @param[in] a  div qubits
+* @param[in] b  div qubits
+* @param[in] c  ans qubits
+* @param[in] k  auxiliary qubits
+* @param[in] f  accuracy qubits
+* @param[in] s  control cbits
+* @return QProg
+* @note The highest position of a and b and c is sign bit.
+*       The size of k is 3*a.size()+7, s is f.size()+2.
+*       The result of QDiv is saved in c, accuracy is saved in f, a and b and k is not changed.
+*/
+QProg QDiv(
+    QVec& a,
+    QVec& b,
+    QVec& c,
+    QVec& k,
+    QVec& f,
+    std::vector<ClassicalCondition>& s);
 
 /**
 * @brief Quantum bind data
 * @ingroup ArithmeticUnit
-* @param[in] qvec  store qubits
-* @param[in] cvec  classical data
+* @param[in] value classical data
+* @param[in] qvec  qubits
 * @return QCircuit
-* @note qvec is supposed to be zero state at the beginning, and end with the Quantum data, cvec is not changed
+* @note The highest position of qvec is sign bit,
+*       and the initial value of qvec are all |0>
 */
-QCircuit BindData(
-    QVec &qvec,
-    int cvec);
+QCircuit bind_data(int value, QVec &qvec);
+
+/**
+* @brief Quantum bind nonnegative integer
+* @ingroup ArithmeticUnit
+* @param[in] value classical data
+* @param[in] qvec  qubits
+* @return QCircuit
+* @note The initial value of qvec are all |0>, and it does't consider the sign bit.
+*/
+QCircuit bind_nonnegative_data(size_t value, QVec& qvec);
 
 /**
 * @brief Quantum modular adder

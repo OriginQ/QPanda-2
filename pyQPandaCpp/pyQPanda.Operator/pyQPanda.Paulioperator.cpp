@@ -52,4 +52,8 @@ void initPauliOperator(py::module& m)
 		.def("set_error_threshold", &PauliOperator::setErrorThreshold)
 		.def("remap_qubit_index", &PauliOperator::remapQubitIndex)
 		.def("to_string", &PauliOperator::toString);
+
+	m.def("trans_vec_to_Pauli_operator", &transVecToPauliOperator<double>, "Transfrom vector to pauli operator", py::return_value_policy::reference);
+	m.def("trans_Pauli_operator_to_vec", &transPauliOperatorToVec, "Transfrom Pauli operator to vector", py::return_value_policy::reference);
+
 }

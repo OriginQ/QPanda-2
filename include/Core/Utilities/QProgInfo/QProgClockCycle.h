@@ -32,11 +32,12 @@ class QProgClockCycle {
 public:
     QProgClockCycle(QuantumMachine *qm);
     ~QProgClockCycle();
-    size_t count(QProg &prog);
+    size_t count(QProg &prog, bool optimize = false);
 private:
     size_t getDefalutQGateTime(GateType gate_type);
     size_t getQGateTime(GateType gate_type);
     std::map<GateType, size_t> m_gate_time;
+    QuantumMachine *m_machine{nullptr};
 };
 
 /**
@@ -58,7 +59,7 @@ private:
 			finalize();
 	  @endcode
 */
-size_t getQProgClockCycle(QProg &prog, QuantumMachine *qm);
+size_t getQProgClockCycle(QProg &prog, QuantumMachine *qm, bool optimize = false);
 
 /*new interface*/
 
@@ -68,7 +69,7 @@ size_t getQProgClockCycle(QProg &prog, QuantumMachine *qm);
 * @param[in]	QuantumMachine*		quantum machine pointer
 * @ingroup Utilities
 */
-size_t get_pqrog_clock_cycle(QProg &prog, QuantumMachine *qm);
+size_t get_qprog_clock_cycle(QProg &prog, QuantumMachine *qm, bool optimize = false);
 
 
 QPANDA_END

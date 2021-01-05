@@ -92,9 +92,43 @@ void grover_test1()
 	getchar();
 }
 
+void gorver_test2()
+{
+	auto machine = initQuantumMachine(CPU);
+	auto q = machine->allocateQubits(2);
+	auto x = machine->allocateCBit();
+	std::vector<int> search_sapce = { 3, 6, 6, 9, 10, 15, 11, 5 };
+
+	cout << "Grover will search through " << search_sapce.size() << " data." << endl;
+
+	cout << "Start grover search algorithm:" << endl;
+	QVec measure_qubits;
+	QProg grover_Qprog = build_grover_prog(search_sapce, x == 6, machine, measure_qubits, 1);
+
+	cout << "grover_Qprog" << grover_Qprog << endl;
+
+	//for test
+	//write_to_originir_file(grover_Qprog, machine, "grover_prog_0.txt");
+
+	//measure
+	printf("Strat pmeasure.\n");
+	auto result = probRunDict(grover_Qprog, measure_qubits);
+
+	//get result
+	auto result_index_vec = search_target_from_measure_result(result, search_sapce.size());
+	cout << "The result's index:" << endl;
+	for (const auto &result_item : result_index_vec)
+	{
+		cout << result_item << " ";
+	}
+
+	destroyQuantumMachine(machine);
+}
+
 int main()
 {
-	grover_test1();
+	//grover_test1();
+	gorver_test2();
 
 	return 0;
 }

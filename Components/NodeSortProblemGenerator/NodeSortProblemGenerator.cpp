@@ -115,7 +115,8 @@ void NodeSortProblemGenerator::calcGraphPara(
                 output.erase(f_iter);
             }
 
-            R_hat += output.size();
+            //R_hat += output.size();
+            R_hat = input.size() * o_iter->second.size();
 
             auto ci_iter = output_map.find(ci);
             if (ci_iter != output_map.end())
@@ -233,9 +234,13 @@ void NodeSortProblemGenerator::calcGraphPara(
     for (int i = 0; i < node_num; i++)
     {
         U_hat_vec[i] = uzero_flag ? 1 :
-            1 + (Uv_vec[i] - Uv_min)*12 / (Uv_max - Uv_min);
+            1 + (Uv_vec[i] - Uv_min)* (node_num -1)/ (Uv_max - Uv_min);
         D_hat_vec[i] = dzero_flag ? 1 :
-            1 + (Dv_vec[i] - Dv_min)*12 / (Dv_max - Dv_min);
+            1 + (Dv_vec[i] - Dv_min)* (node_num - 1) / (Dv_max - Dv_min);
+        //U_hat_vec[i] = uzero_flag ? 1 :
+        //    1 + (Uv_vec[i] - Uv_min) * (3 - 1) / (Uv_max - Uv_min);
+        //D_hat_vec[i] = dzero_flag ? 1 :
+        //    1 + (Dv_vec[i] - Dv_min) * (3 - 1) / (Dv_max - Dv_min);
     }
 }
 

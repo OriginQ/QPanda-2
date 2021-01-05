@@ -90,7 +90,7 @@ public:
 private:
 	QProg m_input_prog;
 	QProg m_output_prog;
-	TopologSequence<pOptimizerNodeInfo> m_layer_info;
+	LayeredTopoSeq m_layer_info;
 	QVec m_vec_qubits_in_use;
 };
 

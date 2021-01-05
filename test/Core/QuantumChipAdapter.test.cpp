@@ -7,6 +7,7 @@ USING_QPANDA
 using namespace std;
 
 #define PTrace printf
+#define MAX_PRECISION 1e-10
 
 bool QuantumChipAdapter_test_1()
 {

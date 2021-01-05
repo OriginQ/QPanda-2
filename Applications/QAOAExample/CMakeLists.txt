@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.1)
+project(QAOAExample)
+file(GLOB_RECURSE QAOA_EXAMPLE_CPP ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp )
+add_executable(${PROJECT_NAME} ${QAOA_EXAMPLE_CPP})
+target_link_libraries(${PROJECT_NAME} ${LIB_QALG})

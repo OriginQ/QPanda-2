@@ -6,7 +6,7 @@
 #include "Components/Optimizer/AbstractOptimizer.h"
 #include "Components/Operator/PauliOperator.h"
 #include "Components/HamiltonianSimulation/HamiltonianSimulation.h"
-
+#include "Core/Utilities/Compiler/QProgToOriginIR.h"
 using namespace std;
 namespace QPanda
 {
@@ -49,7 +49,7 @@ namespace QPanda
             }
             else
             {
-                optimized_para.resize(m_step * 2, 0);
+                optimized_para.resize(m_step * 2, 0.5);
             }
 
             m_optimizer->registerFunc(std::bind(&QAOA::callQAOA,
@@ -143,18 +143,16 @@ namespace QPanda
                 break;
             }
 
-            PauliOperator op(m_pauli_map);
-
             bool ok = false;
-            m_hamiltonia = op.toHamiltonian(&ok);
+            m_hamiltonia = m_pauli.toHamiltonian(&ok);
             if (!ok)
             {
                 err_msg = "It is not a hamiltonian.";
                 break;
             }
 
-            m_qn = op.getMaxIndex();
-            m_simple_construct = op.isAllPauliZorI();
+            m_qn = m_pauli.getMaxIndex();
+            m_simple_construct = m_pauli.isAllPauliZorI();
 
             return true;
         } while (0);
@@ -169,7 +167,7 @@ namespace QPanda
     {
         do
         {
-            if (m_pauli_map.empty())
+            if (m_pauli.isEmpty())
             {
                 err_msg = "Pauli map is empty.";
                 break;
@@ -266,6 +264,7 @@ namespace QPanda
             insertPaulixModel(m_prog, m_qubit_vec, beta_vec[i]);
         }
 
+        //std::cout << convert_qprog_to_originir(m_prog, m_qvm) << std::endl;
         m_qvm->directlyRun(m_prog);
 
 		auto ideal_qvm = dynamic_cast<IdealQVM *>(m_qvm);
@@ -388,7 +387,8 @@ namespace QPanda
         }
         else
         {
-            para.resize(m_step*2, 0);
+            std::cout << "00000000000000000000000" << std::endl;
+            para.resize(m_step*2, 0.5);
         }
 
         return para;

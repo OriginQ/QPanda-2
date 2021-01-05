@@ -1,5 +1,7 @@
 #include "Core/Utilities/Compiler/OriginIRToQProg.h"
 #include "Core/Utilities/QProgTransform/QProgToQCircuit.h"
+#include "Core/Utilities/Tools/QPandaException.h"
+
 using namespace std;
 USING_QPANDA
 
@@ -16,8 +18,7 @@ QProg QPanda::convert_originir_to_qprog(std::string file_path, QuantumMachine *q
 	stream.open(file_path);
 	if (!stream)
 	{
-		QCERR("File opening fail");
-		throw invalid_argument("File opening fail");
+		QCERR_AND_THROW(run_fail, "Error: Filed to open originir file.");
 	}
 	try
 	{
@@ -34,8 +35,7 @@ QProg QPanda::convert_originir_to_qprog(std::string file_path, QuantumMachine *q
 	}
 	catch (const std::exception&e)
 	{
-		QCERR(e.what());
-		throw e;
+		QCERR_AND_THROW(run_fail, "Error: catch a exception: " << e.what());
 	}
 }
 
@@ -150,6 +150,9 @@ size_t QProgBuilder::add_qgate_cc(
 			counter++;
 		}
 		else {
+			if (index[i]+1 > qs.size())
+				throw runtime_error("too little qubits is allocated");
+
 			qubits.push_back(qs[index[i]]);
 		}
 	}

@@ -27,7 +27,7 @@ limitations under the License.
 
 using rvector_t = Eigen::Matrix<qstate_type, Eigen::Dynamic, 1>;
 using cvector_t = Eigen::Matrix<qcomplex_t, Eigen::Dynamic, 1>;
-using cmatrix_t = Eigen::Matrix< qcomplex_t, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
+using cmatrix_t = Eigen::Matrix<qcomplex_t, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
 
 using namespace Eigen;
 

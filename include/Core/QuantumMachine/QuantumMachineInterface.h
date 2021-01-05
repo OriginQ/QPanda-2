@@ -297,6 +297,12 @@ public:
     */
     virtual size_t getAllocateCMemNum() = 0;
 
+    virtual void initState(const QStat &state = {})
+    {
+        QCERR("initState error");
+        throw run_fail("initState error");
+    }
+
     virtual ~QuantumMachine() {} //! Destructor
 };
 QPANDA_END

@@ -566,12 +566,26 @@ static vector<size_t> is_gate_match(const std::vector<
 VariationalQuantumGate::VariationalQuantumGate(const VariationalQuantumGate &gate)
 {
     m_vars.assign(gate.m_vars.begin(), gate.m_vars.end());
-	m_constants.assign(gate.m_constants.begin(), gate.m_constants.end());
+    m_constants.assign(gate.m_constants.begin(), gate.m_constants.end());
+    m_is_dagger = gate.m_is_dagger;
+    m_control_qubit.assign(gate.m_control_qubit.begin(), gate.m_control_qubit.end());
 }
 
 VariationalQuantumGate_H::VariationalQuantumGate_H(Qubit* q)
 {
     m_q = q;
+}
+
+VariationalQuantumGate_H::VariationalQuantumGate_H(Qubit* q, bool is_dagger)
+{
+    m_q = q;
+    m_is_dagger = is_dagger;
+}
+VariationalQuantumGate_H::VariationalQuantumGate_H(Qubit* q, bool is_dagger, QVec control_qubit)
+{
+    m_q = q;
+    m_is_dagger = is_dagger;
+    m_control_qubit.assign(control_qubit.begin(), control_qubit.end());
 }
 VariationalQuantumGate_X::VariationalQuantumGate_X(Qubit* q)
 {
@@ -590,20 +604,30 @@ VariationalQuantumGate_RX::VariationalQuantumGate_RX(Qubit *q, double _var)
     m_constants.push_back(_var);
 }
 
-QGate VariationalQuantumGate_RX::feed() const
+QGate VariationalQuantumGate_RX::feed()
 {
     if (m_vars.size() == 1)
-        return RX(m_q, _sval(m_vars[0]));
+    {
+        auto rx = RX(m_q, _sval(m_vars[0]));
+        copy_dagger_and_control_qubit(rx);
+        return rx;
+    }
     else if (m_constants.size() == 1)
-        return RX(m_q, m_constants[0]);
+    {
+        auto rx = RX(m_q, m_constants[0]);
+        copy_dagger_and_control_qubit(rx);
+        return rx;
+    }
     else throw exception();
 }
 
-QGate VariationalQuantumGate_RX::feed(map<size_t, double> offset) const
+QGate VariationalQuantumGate_RX::feed(map<size_t, double> offset)
 {
     if (offset.find(0) == offset.end())
         throw exception();
-    return RX(m_q, _sval(m_vars[0]) + offset[0]);
+    auto rx = RX(m_q, _sval(m_vars[0]) + offset[0]);
+    copy_dagger_and_control_qubit(rx);
+    return rx;
 }
 
 VariationalQuantumGate_RY::VariationalQuantumGate_RY(Qubit *q, var _var)
@@ -618,20 +642,32 @@ VariationalQuantumGate_RY::VariationalQuantumGate_RY(Qubit *q, double _var)
     m_constants.push_back(_var);
 }
 
-QGate VariationalQuantumGate_RY::feed() const
+QGate VariationalQuantumGate_RY::feed()
 {
     if (m_vars.size() == 1)
-        return RY(m_q, _sval(m_vars[0]));
+    {
+        auto ry = RY(m_q, _sval(m_vars[0]));
+        copy_dagger_and_control_qubit(ry);
+        return ry;
+    }
+
     else if (m_constants.size() == 1)
-        return RY(m_q, m_constants[0]);
+    {
+        auto ry = RY(m_q, m_constants[0]);
+        copy_dagger_and_control_qubit(ry);
+        return ry;
+    }
+
     else throw exception();
 }
 
-QGate VariationalQuantumGate_RY::feed(map<size_t, double> offset) const
+QGate VariationalQuantumGate_RY::feed(map<size_t, double> offset)
 {
     if (offset.find(0) == offset.end())
         throw exception();
-    return RY(m_q, _sval(m_vars[0]) + offset[0]);
+    auto ry = RY(m_q, _sval(m_vars[0]) + offset[0]);
+    copy_dagger_and_control_qubit(ry);
+    return ry;
 }
 
 VariationalQuantumGate_RZ::VariationalQuantumGate_RZ(Qubit *q, var _var)
@@ -646,88 +682,189 @@ VariationalQuantumGate_RZ::VariationalQuantumGate_RZ(Qubit *q, double _var)
     m_constants.push_back(_var);
 }
 
-QGate VariationalQuantumGate_RZ::feed() const
+QGate VariationalQuantumGate_RZ::feed()
 {
     if (m_vars.size() == 1)
-        return RZ(m_q, _sval(m_vars[0]));
+    {
+        auto rz = RZ(m_q, _sval(m_vars[0]));
+        copy_dagger_and_control_qubit(rz);
+        return rz;
+    }
+
     else if (m_constants.size() == 1)
-        return RZ(m_q, m_constants[0]);
+    {
+        auto rz = RZ(m_q, m_constants[0]);
+        copy_dagger_and_control_qubit(rz);
+        return rz;
+    }
     else throw exception();
 }
 
-QGate VariationalQuantumGate_RZ::feed(map<size_t, double> offset) const
+QGate VariationalQuantumGate_RZ::feed(map<size_t, double> offset)
 {
     if (offset.find(0) == offset.end())
         throw exception();
-    return RZ(m_q, _sval(m_vars[0]) + offset[0]);
+    auto rz = RZ(m_q, _sval(m_vars[0]) + offset[0]);
+    copy_dagger_and_control_qubit(rz);
+    return rz;
 }
 
-VariationalQuantumGate_CRX::VariationalQuantumGate_CRX(Qubit* q_target, QVec & q_control, double angle)
+VariationalQuantumGate_CRX::VariationalQuantumGate_CRX(Qubit* q_target, QVec q_control, var _var)
 {
     m_target = q_target;
-    m_control.clear();
+    m_control_qubit.clear();
     for (auto iter : q_control)
     {
-        m_control.push_back(iter);
+        m_control_qubit.push_back(iter);
+    }
+    m_vars.push_back(_var);
+}
+VariationalQuantumGate_CRX::VariationalQuantumGate_CRX(Qubit* q_target, QVec q_control, double angle)
+{
+    m_target = q_target;
+    m_control_qubit.clear();
+    for (auto iter : q_control)
+    {
+        m_control_qubit.push_back(iter);
     }
     m_constants.push_back(angle);
 }
-VariationalQuantumGate_CRX::VariationalQuantumGate_CRX(VariationalQuantumGate_CRX & old)
+VariationalQuantumGate_CRX::VariationalQuantumGate_CRX(const VariationalQuantumGate_CRX &old)
 {
     m_target = old.m_target;
-    m_control = old.m_control;
+    m_is_dagger = old.m_is_dagger;
+    m_control_qubit = old.m_control_qubit;
     m_constants = old.m_constants;
+    m_vars = old.m_vars;
 }
 
-QGate VariationalQuantumGate_CRX::feed() const
+QGate VariationalQuantumGate_CRX::feed()
 {
-    return RX(m_target, m_constants[0]).control(m_control);
+    if (m_vars.size() == 0)
+    {
+        auto crx = RX(m_target, m_constants[0]);
+        copy_dagger_and_control_qubit(crx);
+        return crx;
+    }
+    else
+    {
+        auto crx = RX(m_target, _sval(m_vars[0]));
+        copy_dagger_and_control_qubit(crx);
+        return crx;
+    }
+
 }
 
-VariationalQuantumGate_CRY::VariationalQuantumGate_CRY(Qubit* q_target, QVec & q_control, double angle)
+QGate VariationalQuantumGate_CRX::feed(map<size_t, double> offset)
+{
+    if (offset.find(0) == offset.end())
+        throw exception();
+    auto rx = RX(m_target, _sval(m_vars[0]) + offset[0]);
+    copy_dagger_and_control_qubit(rx);
+    return rx;
+}
+VariationalQuantumGate_CRY::VariationalQuantumGate_CRY(Qubit* q_target, QVec q_control, var _var)
 {
     m_target = q_target;
-    m_control.clear();
-    m_constants.resize(1);
+    m_control_qubit.clear();
     for (auto iter : q_control)
     {
-        m_control.push_back(iter);
+        m_control_qubit.push_back(iter);
     }
+    m_vars.push_back(_var);
+}
+VariationalQuantumGate_CRY::VariationalQuantumGate_CRY(Qubit* q_target, QVec q_control, double angle)
+{
+    m_target = q_target;
+    m_control_qubit.clear();
+    m_control_qubit.assign(q_control.begin(), q_control.end());
     m_constants[0] = angle;
 }
 
-VariationalQuantumGate_CRY::VariationalQuantumGate_CRY(VariationalQuantumGate_CRY & old)
+VariationalQuantumGate_CRY::VariationalQuantumGate_CRY(const VariationalQuantumGate_CRY &old)
 {
     m_target = old.m_target;
-    m_control = old.m_control;
+    m_is_dagger = old.m_is_dagger;
+    m_control_qubit = old.m_control_qubit;
     m_constants = old.m_constants;
+    m_vars = old.m_vars;
 }
 
-QGate VariationalQuantumGate_CRY::feed() const
+QGate VariationalQuantumGate_CRY::feed()
 {
-    return RY(m_target, m_constants[0]).control(m_control);
+    if (m_vars.size() == 0)
+    {
+        auto cry = RY(m_target, m_constants[0]);
+        copy_dagger_and_control_qubit(cry);
+        return cry;
+    }
+    else
+    {
+        auto cry = RY(m_target, _sval(m_vars[0]));
+        copy_dagger_and_control_qubit(cry);
+        return cry;
+    }
 }
 
-VariationalQuantumGate_CRZ::VariationalQuantumGate_CRZ(Qubit* q_target, QVec & q_control, double angle)
+QGate VariationalQuantumGate_CRY::feed(map<size_t, double> offset)
+{
+    if (offset.find(0) == offset.end())
+        throw exception();
+    auto ry = RY(m_target, _sval(m_vars[0]) + offset[0]);
+    copy_dagger_and_control_qubit(ry);
+    return ry;
+}
+VariationalQuantumGate_CRZ::VariationalQuantumGate_CRZ(Qubit* q_target, QVec q_control, var _var)
 {
     m_target = q_target;
-    m_control.clear();
+    m_control_qubit.clear();
     for (auto iter : q_control)
     {
-        m_control.push_back(iter);
+        m_control_qubit.push_back(iter);
+    }
+    m_vars.push_back(_var);
+}
+VariationalQuantumGate_CRZ::VariationalQuantumGate_CRZ(Qubit* q_target, QVec q_control, double angle)
+{
+    m_target = q_target;
+    m_control_qubit.clear();
+    for (auto iter : q_control)
+    {
+        m_control_qubit.push_back(iter);
     }
     m_constants.push_back(angle);
 }
-VariationalQuantumGate_CRZ::VariationalQuantumGate_CRZ(VariationalQuantumGate_CRZ & old)
+VariationalQuantumGate_CRZ::VariationalQuantumGate_CRZ(const VariationalQuantumGate_CRZ & old)
 {
     m_target = old.m_target;
-    m_control = old.m_control;
+    m_is_dagger = old.m_is_dagger;
+    m_control_qubit = old.m_control_qubit;
     m_constants = old.m_constants;
+    m_vars = old.m_vars;
 }
 
-QGate VariationalQuantumGate_CRZ::feed() const
+QGate VariationalQuantumGate_CRZ::feed()
 {
-    return RZ(m_target, m_constants[0]).control(m_control);
+    if (m_vars.size() == 0)
+    {
+        auto crz = RZ(m_target, m_constants[0]);
+        copy_dagger_and_control_qubit(crz);
+        return crz;
+    }
+    else
+    {
+        auto crz = RZ(m_target, _sval(m_vars[0]));
+        copy_dagger_and_control_qubit(crz);
+        return crz;
+    }
+}
+QGate VariationalQuantumGate_CRZ::feed(map<size_t, double> offset)
+{
+    if (offset.find(0) == offset.end())
+        throw exception();
+    auto rz = RZ(m_target, _sval(m_vars[0]) + offset[0]);
+    copy_dagger_and_control_qubit(rz);
+    return rz;
 }
 
 VariationalQuantumGate_CZ::VariationalQuantumGate_CZ(Qubit* q1, Qubit* q2)
@@ -759,13 +896,21 @@ void VariationalQuantumCircuit::_insert_copied_gate(std::shared_ptr<VariationalQ
     }
 }
 
+void VariationalQuantumCircuit::_insert_copied_gate(VariationalQuantumGate & gate)
+{
+    _insert_copied_gate(gate.copy());
+}
+
 VariationalQuantumCircuit::VariationalQuantumCircuit()
 {
+    m_is_dagger = false;
 }
 
 VariationalQuantumCircuit::VariationalQuantumCircuit(const VariationalQuantumCircuit &circuit)
 {
     auto gates = circuit.m_gates;
+    m_is_dagger = circuit.m_is_dagger;
+    m_control_qubit.assign(circuit.m_control_qubit.begin(), circuit.m_control_qubit.end());
     for (auto gate : gates)
     {
         auto copy_gate = gate->copy();
@@ -793,6 +938,10 @@ VariationalQuantumCircuit::VariationalQuantumCircuit(const VariationalQuantumCir
 VariationalQuantumCircuit::VariationalQuantumCircuit(QCircuit c)
     :VariationalQuantumCircuit(qc2vqc(&c))
 {
+    m_is_dagger = c.isDagger();
+    QVec control_qubit;
+    c.getControlVector(control_qubit);
+    m_control_qubit.assign(control_qubit.begin(), control_qubit.end());
 }
 
 QCircuit VariationalQuantumCircuit::feed
@@ -819,10 +968,12 @@ QCircuit VariationalQuantumCircuit::feed
             c << gate->feed(gate_offset);
         }
     }
+    c.setDagger(m_is_dagger);
+    c.setControl(m_control_qubit);
     return c;
 }
 
-QCircuit VariationalQuantumCircuit::feed() const
+QCircuit VariationalQuantumCircuit::feed()
 {
     vector<tuple<weak_ptr<VariationalQuantumGate>, size_t, double>> empty_offset;
     return this->feed(empty_offset);
@@ -1408,17 +1559,31 @@ VariationalQuantumCircuit&  VariationalQuantumCircuit::insert<std::shared_ptr<Va
 template <>
 VariationalQuantumCircuit& VariationalQuantumCircuit::insert<VariationalQuantumCircuit>(VariationalQuantumCircuit circuit)
 {
-    for (auto gate : circuit.m_gates)
+    if (circuit.m_is_dagger)
     {
-        _insert_copied_gate(gate->copy());
+        for (auto temp = circuit.m_gates.rbegin(); temp != circuit.m_gates.rend(); temp++)
+        {
+            auto gate = (*temp)->copy();
+            gate->set_dagger(circuit.m_is_dagger^gate->is_dagger());
+            gate->set_control(circuit.m_control_qubit);
+            _insert_copied_gate(gate);
+        }
+    }
+    else
+    {
+        for (auto gate : circuit.m_gates)
+        {
+            gate->set_dagger(circuit.m_is_dagger^gate->is_dagger());
+            gate->set_control(circuit.m_control_qubit);
+            _insert_copied_gate(gate->copy());
+        }
+
     }
     return *this;
 }
 template< >
 VariationalQuantumCircuit&  VariationalQuantumCircuit::insert<QGate &>(QGate  &gate)
 {
-    //auto copy_gate = _cast_qg_vqg(gate);
-    //_insert_copied_gate(copy_gate);
     _insert_copied_gate(qg2vqg(&gate));
     return *this;
 }
@@ -1426,8 +1591,6 @@ VariationalQuantumCircuit&  VariationalQuantumCircuit::insert<QGate &>(QGate  &g
 template< >
 VariationalQuantumCircuit&  VariationalQuantumCircuit::insert<QGate >(QGate  gate)
 {
-    //auto copy_gate = _cast_qg_vqg(gate);
-    //_insert_copied_gate(copy_gate);
     _insert_copied_gate(qg2vqg(&gate));
     return *this;
 }
@@ -1435,8 +1598,6 @@ VariationalQuantumCircuit&  VariationalQuantumCircuit::insert<QGate >(QGate  gat
 template<>
 VariationalQuantumCircuit&  VariationalQuantumCircuit::insert<QCircuit>(QCircuit c)
 {
-    //VariationalQuantumCircuit circuit = _cast_qc_vqc(c);
-    //this->insert(circuit);
     this->insert(qc2vqc(&c));
     return *this;
 }
@@ -1450,26 +1611,78 @@ std::shared_ptr<VariationalQuantumGate> VariationalQuantumCircuit::qg2vqg(Abstra
     QGATE_SPACE::RX* rx;
     QGATE_SPACE::RY* ry;
     QGATE_SPACE::RZ* rz;
+    bool is_dagger = gate->isDagger();
+    QVec control_qubit;
 
     switch (gate_type)
     {
     case GateType::HADAMARD_GATE:
-        return std::make_shared<VariationalQuantumGate_H>(op_qubit[0]);
+    {
+        auto vgate = std::make_shared<VariationalQuantumGate_H>(op_qubit[0]);
+        vgate->set_dagger(gate->isDagger());
+        QVec control_qubit;
+        gate->getControlVector(control_qubit);
+        vgate->set_control(control_qubit);
+        return vgate;
+    }
+
     case GateType::PAULI_X_GATE:
-        return std::make_shared<VariationalQuantumGate_X>(op_qubit[0]);
+    {
+        auto vgate = std::make_shared<VariationalQuantumGate_X>(op_qubit[0]);
+        vgate->set_dagger(gate->isDagger());
+        QVec control_qubit;
+        gate->getControlVector(control_qubit);
+        vgate->set_control(control_qubit);
+        return vgate;
+    }
     case GateType::RX_GATE:
+    {
         rx = dynamic_cast<QGATE_SPACE::RX*>(qgate);
-        return std::make_shared<VariationalQuantumGate_RX>(op_qubit[0], rx->getParameter());
+        auto vgate = std::make_shared<VariationalQuantumGate_RX>(op_qubit[0], rx->getParameter());
+        vgate->set_dagger(gate->isDagger());
+        QVec control_qubit;
+        gate->getControlVector(control_qubit);
+        vgate->set_control(control_qubit);
+        return vgate;
+    }
     case GateType::RY_GATE:
+    {
         ry = dynamic_cast<QGATE_SPACE::RY*>(qgate);
-        return std::make_shared<VariationalQuantumGate_RY>(op_qubit[0], ry->getParameter());
+        auto vgate = std::make_shared<VariationalQuantumGate_RY>(op_qubit[0], ry->getParameter());
+        vgate->set_dagger(gate->isDagger());
+        QVec control_qubit;
+        gate->getControlVector(control_qubit);
+        vgate->set_control(control_qubit);
+        return vgate;
+    }
     case GateType::RZ_GATE:
+    {
         rz = dynamic_cast<QGATE_SPACE::RZ*>(qgate);
-        return std::make_shared<VariationalQuantumGate_RZ>(op_qubit[0], rz->getParameter());
+        auto vgate = std::make_shared<VariationalQuantumGate_RZ>(op_qubit[0], rz->getParameter());
+        vgate->set_dagger(gate->isDagger());
+        QVec control_qubit;
+        gate->getControlVector(control_qubit);
+        vgate->set_control(control_qubit);
+        return vgate;
+    }
     case GateType::CNOT_GATE:
-        return std::make_shared<VariationalQuantumGate_CNOT>(op_qubit[0], op_qubit[1]);
+    {
+        auto vgate = std::make_shared<VariationalQuantumGate_CNOT>(op_qubit[0], op_qubit[1]);
+        vgate->set_dagger(gate->isDagger());
+        QVec control_qubit;
+        gate->getControlVector(control_qubit);
+        vgate->set_control(control_qubit);
+        return vgate;
+    }
     case GateType::CZ_GATE:
-        return std::make_shared<VariationalQuantumGate_CZ>(op_qubit[0], op_qubit[1]);
+    {
+        auto vgate = std::make_shared<VariationalQuantumGate_CZ>(op_qubit[0], op_qubit[1]);
+        vgate->set_dagger(gate->isDagger());
+        QVec control_qubit;
+        gate->getControlVector(control_qubit);
+        vgate->set_control(control_qubit);
+        return vgate;
+    }
     default:
         throw runtime_error("Unsupported VQG type");
     }
@@ -1493,6 +1706,10 @@ VariationalQuantumCircuit VariationalQuantumCircuit::qc2vqc(AbstractQuantumCircu
         }
         else throw runtime_error("Unsupported VQG type");
     }
+    new_vqc.m_is_dagger = q->isDagger();
+    QVec control_qubit;
+    q->getControlVector(control_qubit);
+    new_vqc.m_control_qubit.assign(control_qubit.begin(), control_qubit.end());
     return new_vqc;
 }
 

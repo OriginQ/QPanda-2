@@ -18,6 +18,7 @@ limitations under the License.
 #include "QPandaNamespace.h"
 #include "Core/Utilities/Tools/Utils.h"
 #include <algorithm>
+#include <Core/Utilities/Tools/Uinteger.h>
 #include <thread>
 #include <map>
 #include <iostream>
@@ -254,28 +255,47 @@ QError MPSImplQPU::pMeasure(Qnum& qnum, prob_vec &mResult)
 
 QError MPSImplQPU::initState(size_t head_rank, size_t rank_size, size_t qubit_num)
 {
-	m_qubits_num = qubit_num;
+    if (m_init_state.empty())
+    {
+        m_qubits_num = qubit_num;
 
-	cmatrix_t data0(1, 1), data1(1, 1);
-	data0(0, 0) = 1.0;
-	data1(0, 0) = 0.0;
-	rvector_t initial_val(1);
-	initial_val[0] = 1.0;
+        cmatrix_t data0(1, 1), data1(1, 1);
+        data0(0, 0) = 1.0;
+        data1(0, 0) = 0.0;
+        rvector_t initial_val(1);
+        initial_val[0] = 1.0;
 
-	m_qubits_tensor.clear();
-	m_lambdas.clear();
-	for (size_t i = 0; i < m_qubits_num - 1; i++)
-	{
-		m_qubits_tensor.push_back(MPS_Tensor(data0, data1));
-		m_lambdas.push_back(initial_val);
-	}
-	m_qubits_tensor.push_back(MPS_Tensor(data0, data1));
+        m_qubits_tensor.clear();
+        m_lambdas.clear();
+        for (size_t i = 0; i < m_qubits_num - 1; i++)
+        {
+            m_qubits_tensor.push_back(MPS_Tensor(data0, data1));
+            m_lambdas.push_back(initial_val);
+        }
+        m_qubits_tensor.push_back(MPS_Tensor(data0, data1));
 
-	m_qubits_order.resize(qubit_num, 0);
-	std::iota(m_qubits_order.begin(), m_qubits_order.end(), 0);
+        m_qubits_order.resize(qubit_num, 0);
+        std::iota(m_qubits_order.begin(), m_qubits_order.end(), 0);
 
-	m_qubits_location.resize(qubit_num, 0);
-	std::iota(m_qubits_location.begin(), m_qubits_location.end(), 0);
+        m_qubits_location.resize(qubit_num, 0);
+        std::iota(m_qubits_location.begin(), m_qubits_location.end(), 0);
+    }
+    else
+    {
+        cmatrix_t statevector_as_matrix(1, m_init_state.size());
+
+        for (auto i = 0; i < m_init_state.size(); i++)
+        {
+            statevector_as_matrix(0, i) = m_init_state[i];
+        }
+
+        //cmatrix_t mat = Map<cmatrix_t>(m_init_state.data(), 1, m_init_state.size());
+        initState_from_matrix(qubit_num, statevector_as_matrix);
+
+        std::reverse(m_qubits_order.begin(), m_qubits_order.end());
+        std::reverse(m_qubits_location.begin(), m_qubits_location.end());
+    }
+	
 
 	return qErrorNone;
 }
@@ -292,7 +312,33 @@ void MPSImplQPU::initState(const MPSImplQPU &other)
 	}
 }
 
-void MPSImplQPU::initState_from_matrix(size_t num_qubits, const cmatrix_t mat)
+QError MPSImplQPU::initState(size_t qubit_num,const QStat &state)
+{
+    m_init_state.clear();
+    if (!state.empty())
+    {
+        double probs = .0;
+
+        for (auto amplitude : state)
+        {
+            probs += std::norm(amplitude);
+        }
+
+        if (std::abs(probs - 1.) > 1e-6)
+        {
+            QCERR("state error");
+            throw std::runtime_error("state error");
+        }
+
+        m_init_state.clear();
+        m_init_state.resize(state.size());
+        m_init_state.assign(state.begin(), state.end());
+    }
+
+    return qErrorNone;
+}
+
+void MPSImplQPU::initState_from_matrix(size_t num_qubits, const cmatrix_t &mat)
 {
 	m_qubits_tensor.clear();
 	m_lambdas.clear();
@@ -366,7 +412,7 @@ void MPSImplQPU::initState_from_matrix(size_t num_qubits, const cmatrix_t mat)
 	}
 
 	// create the rightmost gamma and update m_qubits_tensor
-	std::vector<cmatrix_t> right_data(2);
+	std::vector<cmatrix_t> right_data(2); 
 	cmatrix_t reduce_dagger_V = reduce_V.adjoint();
 	right_data[0] = reduce_dagger_V.leftCols(reduce_dagger_V.cols() / 2);
 	right_data[1] = reduce_dagger_V.rightCols(reduce_dagger_V.cols() / 2);
@@ -1188,4 +1234,55 @@ double MPSImplQPU::expectation_value(const Qnum& qubits, const cmatrix_t& matrix
         QCERR("param error");
         throw run_fail("param error");
     }
+}
+
+qcomplex_t MPSImplQPU::pmeasure_bin_index(std::string str)
+{
+    Qnum qubits = m_qubits_location;
+
+    auto char_to_bin = [](const char& val)
+    {
+        QPANDA_ASSERT(val != '0' && val != '1', "pmeasure_bin_index str error");
+        return val != '0';
+    };
+
+    std::vector<MPS_Tensor> qubits_tensor = m_qubits_tensor;
+    QPANDA_ASSERT(qubits_tensor.size() != str.size(), "pmeasure_bin_index str size error");
+
+    rvector_t initial_val(1); 
+    initial_val[0] = 1.0;
+    m_qubits_tensor.front().mul_gamma_by_left_lambda(initial_val);
+    m_qubits_tensor.back().mul_gamma_by_right_lambda(initial_val);
+
+    if (1 == qubits_tensor.size())
+    {
+        return qubits_tensor[0].m_physical_index[char_to_bin(str[0])](0, 0);
+    }
+
+    for (size_t i = 0; i < qubits_tensor.size() - 1 ; i++)
+    {
+        qubits_tensor[i].mul_gamma_by_right_lambda(m_lambdas[i]);
+    }
+
+    cmatrix_t result = cmatrix_t::Identity(1, 1);
+
+    std::reverse(str.begin(), str.end());
+    for (auto i = 0; i < str.size(); ++i)
+    { 
+        int val = char_to_bin(str[m_qubits_location[i]]);
+
+        result *= qubits_tensor[i].m_physical_index[val];
+    }
+
+    return result(0, 0);
+}
+
+
+qcomplex_t MPSImplQPU::pmeasure_dec_index(std::string str)
+{
+    uint128_t index(str.c_str());
+
+    std::string bin_str = integerToBinary(index, m_qubits_num);
+
+    return pmeasure_bin_index(bin_str);
 }

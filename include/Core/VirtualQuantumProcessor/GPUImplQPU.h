@@ -99,6 +99,8 @@ public:
 
     QError pMeasure(Qnum& qnum, prob_vec &mResult);
     QError initState(size_t head_rank, size_t rank_size, size_t qubit_num);
+    QError initState(size_t qubit_num, const QStat &stat = {});
+
     QError endGate(QPanda::TraversalConfig *pQuantumProParam, QPUImpl *pQGate);
     QError unitarySingleQubitGate(size_t qn, QStat& matrix,
         bool isConjugate, GateType type);

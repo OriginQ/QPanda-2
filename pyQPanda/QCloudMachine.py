@@ -59,6 +59,108 @@ def MPS_fun():
     qvm.finalize()
 
 
+def test_state():
+
+    QCM = CPUQVM()
+
+    QCM.initQVM()
+
+    q = QCM.qAlloc_many(6)
+    c = QCM.cAlloc_many(6)
+
+    prog = QProg()
+
+    prog.insert(hadamard_circuit(q))\
+        .insert(CZ(q[2], q[4]))\
+        .insert(CZ(q[3], q[1]))\
+        .insert(CZ(q[0], q[4]))\
+        .insert(RZ(q[3], PI / 4))\
+        .insert(RX(q[5], PI / 4))\
+        .insert(RX(q[4], PI / 4))\
+        .insert(RY(q[3], PI / 4))\
+        .insert(CZ(q[2], q[4]))\
+        .insert(RZ(q[3], PI / 4))\
+        .insert(RZ(q[2], PI / 4))\
+        .insert(CNOT(q[0], q[1]))\
+        .insert(measure_all(q, c))
+
+    result = QCM.run_with_configuration(prog, c, 1000)
+
+    stat = QCM.get_qstate()
+    return stat
+
+
+def test_cpu_state():
+
+    QCM = CPUQVM()
+
+    QCM.initQVM()
+
+    q = QCM.qAlloc_many(6)
+    c = QCM.cAlloc_many(6)
+
+    prog = QProg()
+
+    prog.insert(hadamard_circuit(q))\
+        .insert(CZ(q[2], q[4]))\
+        .insert(CZ(q[3], q[1]))\
+        .insert(CZ(q[0], q[4]))\
+        .insert(RZ(q[3], PI / 4))\
+        .insert(RX(q[5], PI / 4))\
+        .insert(RX(q[4], PI / 4))\
+        .insert(RY(q[3], PI / 4))\
+        .insert(CZ(q[2], q[4]))\
+        .insert(RZ(q[3], PI / 4))\
+        .insert(RZ(q[2], PI / 4))\
+        .insert(CNOT(q[0], q[1]))\
+        .insert(RX(q[4], PI / 2))\
+        .insert(RX(q[5], PI / 2))\
+        .insert(CR(q[0], q[1], PI))\
+        .insert(RY(q[1], PI / 2))\
+        .insert(RY(q[2], PI / 2))\
+        .insert(RZ(q[3], PI / 4))\
+        .insert(CR(q[2], q[1], PI))\
+        .insert(measure_all(q, c))
+
+    result = QCM.run_with_configuration(prog, c, 1000)
+    stat = QCM.get_qstate()
+    return stat
+
+
+def test_init_state():
+
+    ss = test_state()
+
+    QCM = CPUSingleThreadQVM()
+
+    QCM.initQVM()
+
+    q = QCM.qAlloc_many(6)
+    c = QCM.cAlloc_many(6)
+
+    QCM.init_state(ss)
+
+    prog = QProg()
+
+    prog.insert(RX(q[4], PI / 2))\
+        .insert(RX(q[5], PI / 2))\
+        .insert(CR(q[0], q[1], PI))\
+        .insert(RY(q[1], PI / 2))\
+        .insert(RY(q[2], PI / 2))\
+        .insert(RZ(q[3], PI / 4))\
+        .insert(CR(q[2], q[1], PI))\
+        .insert(measure_all(q, c))
+
+    result = QCM.run_with_configuration(prog, c, 1000)
+    stat = QCM.get_qstate()
+    stat1 = test_cpu_state()
+    for i in range(0, len(stat)):
+        print(stat[i])
+        print(" : ")
+        print(stat1[i])
+        print("\n")
+
+
 def cpu_qvm_fun():
 
     qvm = CPUQVM()
@@ -226,36 +328,36 @@ def QCloud_fun():
 
     QCM = QCloud()
     # QCM.init_qvm("C40A08F3D461481D829559EE7CCAA359")
-    QCM.init_qvm("EE3DE52BFF2245908EA9F47EFC8D50A3")
+    QCM.init_qvm("3B9379860FA349C5904C32EFAC39435D")
 
-    # QCM.set_compute_api(
-    #     "10.10.12.140:8060/api/taskApi/submitTask.json")
-    # QCM.set_inqure_api(
-    #     "10.10.12.140:8060/api/taskApi/getTaskDetail.json")
+    # QCM.init_qvm("3B9379860FA349C5904C32EFAC39435D")
 
     # QCM.set_compute_api(
     #     "https://qcloud.qubitonline.cn/api/taskApi/submitTask.json")
     # QCM.set_inqure_api(
     #     "https://qcloud.qubitonline.cn/api/taskApi/getTaskDetail.json")
 
+    # QCM.set_compute_api(
+    #     "10.10.10.197:8060/api/taskApi/submitTask.json")
+    # QCM.set_inqure_api(
+    #     "10.10.10.197:8060/api/taskApi/getTaskDetail.json")
+
     qlist = QCM.qAlloc_many(6)
     clist = QCM.cAlloc_many(6)
 
     measure_prog = QProg()
     measure_prog.insert(hadamard_circuit(qlist))\
-                .insert(CZ(qlist[1], qlist[5]))\
-                .insert(Measure(qlist[0], clist[0]))\
-                .insert(Measure(qlist[1], clist[1]))
+                .insert(Measure(qlist[0], clist[0]))
 
-    # pmeasure_prog = QProg()
-    # pmeasure_prog.insert(hadamard_circuit(qlist))\
-    #              .insert(CZ(qlist[1], qlist[5]))\
-    #              .insert(RX(qlist[2], PI / 4))\
-    #              .insert(RX(qlist[1], PI / 4))\
+    pmeasure_prog = QProg()
+    pmeasure_prog.insert(hadamard_circuit(qlist))\
+                 .insert(CZ(qlist[1], qlist[5]))\
+                 .insert(RX(qlist[2], PI / 4))\
+                 .insert(RX(qlist[1], PI / 4))
 
-    # result0 = QCM.full_amplitude_measure(measure_prog, 100)
-    # print(result0)
-    # print("full_amplitude_measure pass !")
+    result0 = QCM.full_amplitude_measure(measure_prog, 100)
+    print(result0)
+    print("full_amplitude_measure pass !")
 
     # result1 = QCM.full_amplitude_pmeasure(pmeasure_prog, [0, 1, 2])
     # print(result1)
@@ -276,7 +378,7 @@ def QCloud_fun():
 
     # result5 = QCM.real_chip_measure(measure_prog, 100)
     # print(result5)
-    print("real_chip_measure pass !")
+    # print("real_chip_measure pass !")
 
     # result6 = QCM.get_state_tomography_density(measure_prog, 100)
     # print(result6)
@@ -372,10 +474,128 @@ def jkuqvm_fun():
     machine.finalize()
 
 
+def mps_noise():
+
+    mps = MPSQVM()
+    mps.set_configure(50, 50)
+    mps.init_qvm()
+
+    q = mps.qAlloc_many(6)
+    c = mps.cAlloc_many(6)
+
+    prog = QProg()
+    prog.insert(X(q[0]))\
+        .insert(X(q[1]))\
+        .insert(Measure(q[0], c[0]))\
+        .insert(Measure(q[1], c[1]))
+
+    mps.set_measure_error(NoiseModel.BITFLIP_KRAUS_OPERATOR, 0.2)
+    result = mps.run_with_configuration(prog, c, 1000)
+    print(result)
+
+    mps.finalize()
+
+
+def plot_state():
+
+    machine = CPUQVM()
+    machine.set_configure(50, 50)
+    machine.init_qvm()
+
+    q = machine.qAlloc_many(4)
+    c = machine.cAlloc_many(4)
+
+    prog = QProg()
+    prog.insert(X(q[1]))\
+        .insert(H(q[0]))\
+        .insert(RX(q[1], pi/2))\
+        .insert(RZ(q[0], pi/4))
+
+    machine.directly_run(prog)
+    result = machine.get_qstate()
+
+    plot_state_city(result)
+    machine.finalize()
+
+
+def plot_density():
+
+    machine = CPUQVM()
+    machine.set_configure(50, 50)
+    machine.init_qvm()
+
+    q = machine.qAlloc_many(4)
+    c = machine.cAlloc_many(4)
+
+    prog = QProg()
+    prog.insert(X(q[1]))\
+        .insert(H(q[0]))\
+        .insert(H(q[1]))\
+        .insert(H(q[2]))\
+        .insert(RX(q[1], pi/2))\
+        .insert(RZ(q[3], pi))
+
+    machine.directly_run(prog)
+    result = machine.get_qstate()
+
+    rho = state_to_density_matrix(result)
+    plot_density_matrix(rho)
+    machine.finalize()
+
+
+def plot_bloch_cir():
+
+    machine = CPUQVM()
+    machine.set_configure(50, 50)
+    machine.init_qvm()
+
+    q = machine.qAlloc_many(1)
+    c = machine.cAlloc_many(1)
+
+    cir = QCircuit()
+    cir.insert(RX(q[0], pi/2))\
+       .insert(RZ(q[0], pi/2))\
+       .insert(RX(q[0], pi / 2))\
+       .insert(RX(q[0], pi/2))\
+       .insert(RZ(q[0], pi/4))\
+       .insert(RZ(q[0], pi/4))
+
+    plot_bloch_circuit(cir)
+    machine.finalize()
+
+
+def plot_bloch_vectors():
+
+    machine = CPUQVM()
+    machine.set_configure(50, 50)
+    machine.init_qvm()
+
+    q = machine.qAlloc_many(2)
+    c = machine.cAlloc_many(2)
+
+    prog = QProg()
+    prog.insert(X(q[1]))\
+        .insert(H(q[0]))\
+        .insert(T(q[0]))\
+        .insert(Z(q[0]))\
+        .insert(RX(q[1], pi/2))\
+        .insert(RZ(q[1], pi/2))\
+        .insert(RX(q[1], pi/2))\
+        .insert(RY(q[0], pi/4))\
+        .insert(RX(q[0], pi/3))
+
+    machine.directly_run(prog)
+    result = machine.get_qstate()
+
+    # plot_bloch_vector([0, 1, 0])
+    plot_bloch_multivector(result)
+    machine.finalize()
+
+
 if __name__ == "__main__":
 
-    # QCloud_fun()
-    MPS_fun()
+    QCloud_fun()
+    # MPS_fun()
     # cpu_qvm_fun()
     # singleAmp_fun()
     # partialAmp_fun()
@@ -383,46 +603,9 @@ if __name__ == "__main__":
     # graph_match_fun()
     # noise_fun()
     # jkuqvm_fun()
-
-    # 通过QCloud()创建量子云虚拟机
-    # QCM = QCloud()
-
-    # # 通过传入当前用户的token来初始化
-    # QCM.init_qvm("EE3DE52BFF2245908EA9F47EFC8D50A3")
-
-    # qlist = QCM.qAlloc_many(6)
-    # clist = QCM.cAlloc_many(6)
-
-    # # 构建量子程序，可以手动输入，也可以来自OriginIR或QASM语法文件等
-    # measure_prog = QProg()
-    # measure_prog.insert(hadamard_circuit(qlist))\
-    #             .insert(CZ(qlist[1], qlist[5]))\
-    #             .insert(Measure(qlist[0], clist[0]))\
-    #             .insert(Measure(qlist[1], clist[1]))
-
-    # pmeasure_prog = QProg()
-    # pmeasure_prog.insert(hadamard_circuit(qlist))\
-    #     .insert(CZ(qlist[1], qlist[5]))\
-    #     .insert(RX(qlist[2], PI / 4))\
-    #     .insert(RX(qlist[1], PI / 4))\
-
-    # 调用真实芯片计算接口，需要量子程序和测量次数两个参数
-    # result = QCM.real_chip_measure(measure_prog, 100)
-    # print(result)
-
-    # result0 = QCM.full_amplitude_measure(measure_prog, 100)
-    # print(result0)
-    # result1 = QCM.full_amplitude_pmeasure(pmeasure_prog, [0, 1, 2])
-    # print(result1)
-
-    # result2 = QCM.partial_amplitude_pmeasure(pmeasure_prog, ["0", "1", "2"])
-    # print(result2)
-
-    # result3 = QCM.single_amplitude_pmeasure(pmeasure_prog, "0")
-    # print(result3)
-
-    # QCM.set_noise_model(NoiseModel.BIT_PHASE_FLIP_OPRATOR, [0.01], [0.02])
-    # result4 = QCM.noise_measure(measure_prog, 100)
-    # print(result4)
-
-    # QCM.finalize()
+    # plot_state()
+    # plot_density()
+    # plot_bloch_vectors()
+    # mps_noise()
+    # plot_bloch_cir()
+    # plot_density()

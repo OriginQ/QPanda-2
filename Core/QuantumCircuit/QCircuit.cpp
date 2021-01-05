@@ -203,7 +203,7 @@ NodeIter QCircuit::getHeadNodeIter()
     return m_pQuantumCircuit->getHeadNodeIter();
 }
 
-NodeIter QCircuit::insertQNode(NodeIter & iter, shared_ptr<QNode> node)
+NodeIter QCircuit::insertQNode(const NodeIter & iter, shared_ptr<QNode> node)
 {
     if (nullptr == node)
     {

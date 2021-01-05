@@ -54,8 +54,8 @@ public:
 		QCircuit circuit_oracle;
 
 		//build search circuit
-		auto oracle_qubits = m_search_space.get_oracle_qubits();
-		m_cir_search = m_search_condition.build_to_circuit(oracle_qubits, m_ancilla_qubits, m_search_space.get_mini_data(), cir_mark);
+		auto data_qubits = m_search_space.get_data_qubits();
+		m_cir_search = m_search_condition.build_to_circuit(data_qubits, m_ancilla_qubits, m_search_space.get_mini_data(), cir_mark);
 
 		//build oracle
 		circuit_oracle << m_cir_u << m_cir_search << m_cir_u.dagger();
@@ -76,7 +76,7 @@ public:
 	}
 
 protected:
-	void create_ancilla_qubits(size_t qubit_number = 2) {
+	void create_ancilla_qubits(size_t qubit_number = 1) {
 		m_ancilla_qubits = m_qvm.allocateQubits(qubit_number);
 	}
 

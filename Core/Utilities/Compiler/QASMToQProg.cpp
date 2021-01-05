@@ -1251,6 +1251,34 @@ QProg QPanda::convert_qasm_to_qprog(std::string file_path, QuantumMachine* qvm, 
 	return visitor.get_qprog();
 }
 
+QProg QPanda::convert_qasm_string_to_qprog(std::string qasm_str, QuantumMachine* qvm)
+{
+	QVec qv;
+	std::vector<ClassicalCondition> cv;
+	return convert_qasm_string_to_qprog(qasm_str, qvm, qv, cv);
+}
+
+QProg QPanda::convert_qasm_string_to_qprog(std::string qasm_str, QuantumMachine* qvm, QVec &qv, std::vector<ClassicalCondition> &cv)
+{
+	antlr4::ANTLRInputStream input(qasm_str);
+	qasmLexer lexer(&input);
+	antlr4::CommonTokenStream tokens(&lexer);
+	qasmParser parser(&tokens);
+
+	antlr4::tree::ParseTree *tree = parser.mainprogram();
+	QASMToQProg visitor(qvm, qv, cv);
+	try
+	{
+		visitor.visit(tree);
+	}
+	catch (const std::exception&e)
+	{
+		QCERR(e.what());
+		throw e;
+	}
+
+	return visitor.get_qprog();
+}
 
 
 

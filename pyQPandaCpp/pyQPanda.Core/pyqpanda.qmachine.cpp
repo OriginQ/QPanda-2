@@ -93,7 +93,7 @@ void init_quantum_machine(py::module &m)
         .value("I_GATE", GateType::I_GATE)
         ;
 
-    Qubit*(QVec::*qvec_subscript_cbit_size_t)(size_t) = &QVec::operator[];
+    Qubit*(QVec::*qvec_subscript_cbit_size_t)(size_t) const = &QVec::operator[];
     Qubit*(QVec::*qvec_subscript_cc)(ClassicalCondition&) = &QVec::operator[];
 
     py::class_<QVec>(m, "QVec")
@@ -104,6 +104,14 @@ void init_quantum_machine(py::module &m)
         .def("__getitem__", [](QVec & self, int num) {return self[num]; }, py::return_value_policy::reference)
         .def("__getitem__", qvec_subscript_cc, py::return_value_policy::reference)
         .def("__len__", &QVec::size)
+		.def("to_list", [](QVec &self) {
+			std::vector<Qubit*> q_list;
+			for (const auto& item : self)
+			{
+				q_list.push_back(item);
+			}
+			return q_list;
+		}, py::return_value_policy::reference)
         .def("append", [](QVec & self, Qubit * qubit) {self.push_back(qubit); })
         .def("pop", [](QVec & self) {self.pop_back(); });
 
@@ -199,6 +207,7 @@ void init_quantum_machine(py::module &m)
         .def("getAllocateCMem", get_allocate_CMem, "getAllocateCMem", py::return_value_policy::reference)\
          /* new interface */\
         .def("init_qvm", &class_name::init, "init quantum virtual machine")\
+        .def("init_state", &class_name::initState, "state"_a,py::return_value_policy::reference)\
         .def("get_allocate_qubit_num", get_allocate_qubit, "getAllocateQubitNum", py::return_value_policy::reference)\
         .def("get_allocate_cmem_num", get_allocate_CMem, "getAllocateCMem", py::return_value_policy::reference)\
         .def("directly_run", &class_name::directlyRun, "program"_a,py::return_value_policy::reference)\
@@ -225,7 +234,6 @@ void init_quantum_machine(py::module &m)
         .def("quick_measure", &class_name::quickMeasure, "qubit_list"_a, "shots"_a,py::return_value_policy::reference)\
 
     DEFINE_IDEAL_QVM(CPUQVM);
-    DEFINE_IDEAL_QVM(MPSQVM);
     DEFINE_IDEAL_QVM(CPUSingleThreadQVM);
 
 #ifdef USE_CUDA
@@ -234,23 +242,67 @@ void init_quantum_machine(py::module &m)
 
     py::class_<NoiseQVM, QuantumMachine>(m, "NoiseQVM")
         .def(py::init<>())
-        .def("set_rotation_angle_error", &NoiseQVM::set_rotation_angle_error, "set_rotation_angle_error")
         .def("get_qstate", &NoiseQVM::getQState, "getState", py::return_value_policy::automatic)
+        .def("init_qvm", [](NoiseQVM &self) {self.init(); }, "init quantum virtual machine")
 
-        .def("init_qvm", [](NoiseQVM &qvm) {qvm.init(); }, "init quantum virtual machine")
+        .def("set_noise_model", [](NoiseQVM& self, const NOISE_MODEL &model, const GateType &type, double prob){
+                self.set_noise_model(model, type, prob);})
+        .def("set_noise_model", [](NoiseQVM& self, const NOISE_MODEL &model, const GateType &type, double prob, const QVec &qubits){
+                self.set_noise_model(model, type, prob, qubits);
+             })
+        .def("set_noise_model", [](NoiseQVM& self, const NOISE_MODEL &model, const GateType &type, double prob, const std::vector<QVec> &qubits){
+                self.set_noise_model(model, type, prob, qubits);
+             })
 
-        .def("set_noise_model", [](NoiseQVM &qvm, NOISE_MODEL model, GateType type, std::vector<double> params_vec)
-            {qvm.set_noise_model(model, type, params_vec); }, "noise model type"_a, "quantum gate type"_a, "params vector"_a, "set noise model",py::return_value_policy::reference)
+        .def("set_noise_model", [](NoiseQVM& self, const NOISE_MODEL &model, const GateType &type, double T1, double T2, double t_gate){
+                self.set_noise_model(model, type, T1, T2, t_gate);
+             })
+        .def("set_noise_model", [](NoiseQVM& self, const NOISE_MODEL &model, const GateType &type, double T1, double T2, double t_gate,
+                                   const QVec &qubits){
+                self.set_noise_model(model, type, T1, T2, t_gate, qubits);
+             })
+        .def("set_noise_model", [](NoiseQVM& self, const NOISE_MODEL &model, const GateType &type, double T1, double T2, double t_gate,
+                                   const std::vector<QVec> &qubits){
+                self.set_noise_model(model, type, T1, T2, t_gate, qubits);
+             })
 
-        .def("set_noise_kraus_matrix", [](NoiseQVM &qvm, GateType type, std::vector<QStat> kraus_matrix_vec) 
-            {
-                qvm.set_noise_kraus_matrix(type, kraus_matrix_vec);
-            },"quantum gate type"_a, "kraus matrix vector"_a,"set noise model",py::return_value_policy::reference)
+        .def("set_measure_error", [](NoiseQVM& self, const NOISE_MODEL &model, double prob, const QVec &qubits){
+                self.set_measure_error(model, prob, qubits);
+            },
+            py::arg("model"), py::arg("prob"), py::arg("qubits") = QVec())
+        .def("set_measure_error", [](NoiseQVM &self, const NOISE_MODEL &model, double T1, double T2, double t_gate,
+             const QVec &qubits){
+                self.set_measure_error(model, T1, T2, t_gate, qubits);
+            },
+            py::arg("model"), py::arg("T1"), py::arg("T2"), py::arg("t_gate"), py::arg("qubits") = QVec())
 
-        .def("set_noise_unitary_matrix", [](NoiseQVM &qvm, GateType type, std::vector<QStat> unitary_matrix_vec, std::vector<double> probs_vec) 
-            {
-                qvm.set_noise_unitary_matrix(type, unitary_matrix_vec, probs_vec);
-            },"quantum gate type"_a, "unitary matrix vector"_a, "probs vector"_a,"set noise model",py::return_value_policy::reference)
+
+        .def("set_mixed_unitary_error", [](NoiseQVM &self, const GateType &type, const std::vector<QStat> &unitary_matrices,
+             const std::vector<double> &probs){
+                self.set_mixed_unitary_error(type, unitary_matrices, probs);
+            })
+        .def("set_mixed_unitary_error", [](NoiseQVM &self, const GateType &type, const std::vector<QStat> &unitary_matrices,
+             const std::vector<double> &probs, const QVec &qubits){
+                self.set_mixed_unitary_error(type, unitary_matrices, probs, qubits);
+            })
+        .def("set_mixed_unitary_error", [](NoiseQVM &self, const GateType &type, const std::vector<QStat> &unitary_matrices,
+             const std::vector<double> &probs, const std::vector<QVec> &qubits){
+                self.set_mixed_unitary_error(type, unitary_matrices, probs, qubits);
+            })
+
+        .def("set_reset_error", [](NoiseQVM &self, double p0, double p1, const QVec &qubits = {}){
+                self.set_reset_error(p0, p1, qubits);
+            },
+            py::arg("p0"), py::arg("p1"), py::arg("qubits") = QVec())
+
+        .def("set_readout_error", [](NoiseQVM &self, const std::vector<std::vector<double>> &probs_list, const QVec &qubits){
+                self.set_readout_error(probs_list, qubits);
+            },
+            py::arg("probs_list"), py::arg("qubits") = QVec())
+
+        .def("set_rotation_error", [](NoiseQVM &self, double error){
+                self.set_rotation_error(error);
+            })
 
         /*will delete*/
         .def("initQVM", [](NoiseQVM& qvm, py::dict param)
@@ -274,6 +326,7 @@ void init_quantum_machine(py::module &m)
                 qvm.init(doc);
             }, "init quantum virtual machine")
         .def("directly_run", &NoiseQVM::directlyRun, "program"_a, py::return_value_policy::reference)
+        .def("init_state", &NoiseQVM::initState, "state"_a, py::return_value_policy::reference)
         .def("run_with_configuration", [](NoiseQVM &qvm, QProg & prog, vector<ClassicalCondition> & cc_vector, py::dict param)
             {
                 py::object json = py::module::import("json");
@@ -320,6 +373,90 @@ void init_quantum_machine(py::module &m)
             .def("pmeasure_dec_index", &PartialAmplitudeQVM::PMeasure_dec_index, "dec_index"_a, "PMeasure_dec_index", py::return_value_policy::automatic_reference)
             .def("pmeasure_subset", &PartialAmplitudeQVM::PMeasure_subset, "index_list"_a, "pmeasure_subset", py::return_value_policy::automatic_reference);
 
+        py::class_<MPSQVM, QuantumMachine>(m, "MPSQVM")
+            .def(py::init<>())
+
+            .def("get_qstate", &MPSQVM::getQState, "getState", py::return_value_policy::automatic)
+            .def("init_qvm", &MPSQVM::init, "init quantum virtual machine")
+
+            .def("init_state", &MPSQVM::initState, "state"_a, py::return_value_policy::reference)
+            .def("get_allocate_qubit_num", get_allocate_qubit, "getAllocateQubitNum", py::return_value_policy::reference)
+            .def("get_allocate_cmem_num", get_allocate_CMem, "getAllocateCMem", py::return_value_policy::reference)
+            .def("directly_run", &MPSQVM::directlyRun, "program"_a, py::return_value_policy::reference)
+            .def("run_with_configuration", [](MPSQVM &qvm, QProg &prog, std::vector<ClassicalCondition> & cc_vector, py::dict param)
+                {
+                    py::object json = py::module::import("json"); 
+                    py::object dumps = json.attr("dumps"); 
+                    auto json_string = std::string(py::str(dumps(param))); 
+                    rapidjson::Document doc; 
+                    auto & alloc = doc.GetAllocator(); 
+                    doc.Parse(json_string.c_str()); 
+                    return qvm.runWithConfiguration(prog, cc_vector, doc); 
+        }, "program"_a, "cbit_list"_a, "data"_a, py::return_value_policy::automatic)
+            .def("run_with_configuration", [](MPSQVM &qvm, QProg & prog, std::vector<ClassicalCondition> & cc_vector, int shots)
+        { return qvm.runWithConfiguration(prog, cc_vector, shots); }, "program"_a, "cbit_list"_a, "data"_a, py::return_value_policy::automatic)
+            .def("pmeasure", &MPSQVM::PMeasure, "qubit_list"_a, "select_max"_a = -1, "Get the probability distribution over qubits", py::return_value_policy::reference)
+            .def("pmeasure_no_index", &MPSQVM::PMeasure_no_index, "qubit_list"_a, "Get the probability distribution over qubits", py::return_value_policy::reference)
+            .def("get_prob_tuple_list", &MPSQVM::getProbTupleList, "qubit_list"_a, "select_max"_a = -1, py::return_value_policy::reference)
+            .def("get_prob_list", &MPSQVM::getProbList, "qubit_list"_a, "select_max"_a = -1, py::return_value_policy::reference)
+            .def("get_prob_dict", &MPSQVM::getProbDict, "qubit_list"_a, "select_max"_a = -1, py::return_value_policy::reference)
+            .def("prob_run_tuple_list", &MPSQVM::probRunTupleList, "program"_a, "qubit_list"_a, "select_max"_a = -1, py::return_value_policy::reference)
+            .def("prob_run_list", &MPSQVM::probRunList, "program"_a, "qubit_list"_a, "select_max"_a = -1, py::return_value_policy::reference)
+            .def("prob_run_dict", &MPSQVM::probRunDict, "program"_a, "qubit_list"_a, "select_max"_a = -1, py::return_value_policy::reference)
+            .def("quick_measure", &MPSQVM::quickMeasure, "qubit_list"_a, "shots"_a, py::return_value_policy::reference)
+
+            //The all next MPSQVM functions are only for noise simulation
+
+            /* bit-flip,phase-flip,bit-phase-flip,phase-damping,amplitude-damping,depolarizing*/
+            .def("set_noise_model", [](MPSQVM &qvm, NOISE_MODEL model, GateType gate_type, double param)
+                {return qvm.set_noise_model(model, gate_type, param); })
+            .def("set_noise_model", [](MPSQVM &qvm, NOISE_MODEL model, GateType gate_type, double param, const std::vector<QVec>& qvecs)
+                {return qvm.set_noise_model(model, gate_type, param, qvecs); })
+
+            /*decoherence error*/
+            .def("set_noise_model", [](MPSQVM &qvm, NOISE_MODEL model, GateType gate_type, double T1, double T2, double time_param)
+                {return qvm.set_noise_model(model, gate_type, T1, T2, time_param); })
+            .def("set_noise_model", [](MPSQVM &qvm, NOISE_MODEL model, GateType gate_type, double T1, double T2, double time_param, const std::vector<QVec>& qvecs)
+                {return qvm.set_noise_model(model, gate_type, T1, T2, time_param, qvecs); })
+
+            /*mixed unitary error*/
+            .def("set_mixed_unitary_error", [](MPSQVM &qvm, GateType gate_type, const std::vector<QStat>& karus_matrices, const std::vector<QVec>& qubits_vecs)
+                {return qvm.set_mixed_unitary_error(gate_type, karus_matrices, qubits_vecs); })
+            .def("set_mixed_unitary_error", [](MPSQVM &qvm, GateType gate_type, const std::vector<QStat>& unitary_matrices, prob_vec probs_vec, const std::vector<QVec>& qubits_vecs)
+                {return qvm.set_mixed_unitary_error(gate_type, unitary_matrices, probs_vec, qubits_vecs); })
+            .def("set_mixed_unitary_error", [](MPSQVM &qvm, GateType gate_type, const std::vector<QStat>& karus_matrices)
+                {return qvm.set_mixed_unitary_error(gate_type, karus_matrices); })
+            .def("set_mixed_unitary_error", [](MPSQVM &qvm, GateType gate_type, const std::vector<QStat>& unitary_matrices, prob_vec probs_vec)
+                {return qvm.set_mixed_unitary_error(gate_type, unitary_matrices, probs_vec); })
+
+            /*readout error*/
+            .def("set_readout_error", &MPSQVM::set_readout_error, "readout_params"_a, "qubits"_a, py::return_value_policy::reference)
+
+            /*measurement error*/
+            .def("set_measure_error", [](MPSQVM &qvm, NOISE_MODEL model, double param) {return qvm.set_measure_error(model, param); })
+            .def("set_measure_error", [](MPSQVM &qvm, NOISE_MODEL model, double T1, double T2, double time_param) {return qvm.set_measure_error(model, T1, T2, time_param); })
+
+            /*rotation error*/
+            .def("set_rotation_error", &MPSQVM::set_rotation_error, "param"_a, py::return_value_policy::reference)
+
+            /*reset error*/
+            .def("set_reset_error", &MPSQVM::set_reset_error, "reset_0_param"_a, "reset_1_param"_a, py::return_value_policy::reference);
+
+            /*combine error*/
+            //.def("set_combining_error", [](MPSQVM &qvm,KarusError )
+            //    {return qvm.set_combining_compose_error(gate_type, qubits_vecs, model_a, model_b, params_a, params_b); })
+            //.def("set_combining_tensor_error", [](MPSQVM &qvm, GateType gate_type, const std::vector<QVec>& qubits_vecs, NOISE_MODEL model_a, NOISE_MODEL model_b, std::vector<double> params_a, std::vector<double> params_b)
+            //    {return qvm.set_combining_tensor_error(gate_type, qubits_vecs, model_a, model_b, params_a, params_b); })
+            //.def("set_combining_expand_error", [](MPSQVM &qvm, GateType gate_type, const std::vector<QVec>& qubits_vecs, NOISE_MODEL model_a, NOISE_MODEL model_b, std::vector<double> params_a, std::vector<double> params_b)
+            //    {return qvm.set_combining_expand_error(gate_type, qubits_vecs, model_a, model_b, params_a, params_b); })
+
+            //.def("set_combining_compose_error", [](MPSQVM &qvm, GateType gate_type, const std::vector<QVec>& qubits_vecs, std::vector<QStat> model_a_karus_matrices, std::vector<QStat> model_b_karus_matrices)
+            //    {return qvm.set_combining_compose_error(gate_type, qubits_vecs, model_a_karus_matrices, model_b_karus_matrices); })
+            //.def("set_combining_tensor_error", [](MPSQVM &qvm, GateType gate_type, const std::vector<QVec>& qubits_vecs, std::vector<QStat> model_a_karus_matrices, std::vector<QStat> model_b_karus_matrices)
+            //    {return qvm.set_combining_tensor_error(gate_type, qubits_vecs, model_a_karus_matrices, model_b_karus_matrices); })
+            //.def("set_combining_expand_error", [](MPSQVM &qvm, GateType gate_type, const std::vector<QVec>& qubits_vecs, std::vector<QStat> model_a_karus_matrices, std::vector<QStat> model_b_karus_matrices)
+            //    {return qvm.set_combining_expand_error(gate_type, qubits_vecs, model_a_karus_matrices, model_b_karus_matrices); });
+               
 #ifdef USE_CURL
 
         py::enum_<CLOUD_QMACHINE_TYPE>(m, "ClusterMachineType")

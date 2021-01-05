@@ -42,7 +42,54 @@ using namespace DRAW_TEXT_PIC;
 #define DOUBLE_LINE_UP_CONNECT_CHAR         0XE295A9     /* UNICODE CHAR:    ╩    */
 #define SINGLE_LINE_ACROSS_DOUBLE_LINE      0XE295AB     /* UNICODE CHAR:    ╫    */
 #define DOUBLE_LINE_ACROSS_SINGLE_LINE      0XE295AA     /* UNICODE CHAR:    ╪    */
-#define TIME_SEQUENCE_DIVIDER_LINE          0XE29486     /* UNICODE CHAR:    ╏     */
+#define DIVIDER_LINE            ("!") 
+#define TIME_SEQUENCE_SEPARATOR_CHAR (":")
+#define LAYER_SEPARATOR_CHAR (" ")
+
+class WriteQCircuitTextFile
+{
+public:
+	static WriteQCircuitTextFile& get_instance() {
+		static WriteQCircuitTextFile _instance;
+		return _instance;
+	}
+
+	~WriteQCircuitTextFile() { 
+		if (!m_outfile.is_open()) { m_outfile.close(); } 
+	}
+
+	void write(const string& outputStr) {
+		if (!m_outfile.is_open())
+		{
+			QCERR("Can NOT open the output file: QCircuitTextPic.txt");
+			return;
+		}
+
+		if (0 < m_cir_index)
+		{
+			insert_divider_line();
+		}
+
+		m_outfile << outputStr << endl;
+		++m_cir_index;
+	}
+
+protected:
+	WriteQCircuitTextFile()
+		:m_outfile(ofstream(OUTPUT_TMP_FILE, ios::out | ios::binary))
+		, m_cir_index(0)
+	{}
+
+	void insert_divider_line() { 
+		m_outfile << "\n\n\n"; 
+		m_outfile << "//-----------------------  QCircuit_" << m_cir_index << "-----------------------";
+		m_outfile << "\n\n\n";
+	}
+
+private:
+	ofstream m_outfile;
+	uint32_t m_cir_index;
+};
 
 class MeasureTo : public DrawBox
 {
@@ -181,15 +228,14 @@ public:
 private:
 };
 
-class LayerLine : public DrawBox
+class BarrierBridgeLine : public DrawBox
 {
-#define TIME_SEQUENCE_SEPARATOR_CHAR (" ")
 public:
-	LayerLine()
+	BarrierBridgeLine()
 		:DrawBox(
-			string(TIME_SEQUENCE_SEPARATOR_CHAR),
-			string(TIME_SEQUENCE_SEPARATOR_CHAR),
-			string(TIME_SEQUENCE_SEPARATOR_CHAR))
+			std::string(" "),
+			std::string(" "),
+			std::string(" "))
 	{}
 
 	int getLen() const { return 1; }
@@ -197,9 +243,51 @@ public:
 private:
 };
 
+class LayerLine : public DrawBox
+{
+public:
+	LayerLine()
+		:DrawBox(
+			string(LAYER_SEPARATOR_CHAR),
+			string(LAYER_SEPARATOR_CHAR),
+			string(LAYER_SEPARATOR_CHAR))
+	{}
+
+	int getLen() const { return 1; }
+
+private:
+};
+
+class BarrierLine : public DrawBox
+{
+public:
+	BarrierLine()
+		:DrawBox(
+			std::string(DIVIDER_LINE),
+			std::string(DIVIDER_LINE),
+			std::string(DIVIDER_LINE))
+	{}
+	~BarrierLine() {}
+
+	int getLen() const { return 1; }
+
+	void set_top_connected() override {
+		m_top_format = (DIVIDER_LINE);
+	}
+
+	void set_bot_connected() override {
+		m_bot_format = (DIVIDER_LINE);
+	}
+
+	void set_to_circuit_control() {
+		m_mid_format = (DIVIDER_LINE);
+	}
+
+private:
+};
+
 class TimeSequenceLine : public DrawBox
 {
-#define TIME_SEQUENCE_SEPARATOR_CHAR (":")
 public:
 	TimeSequenceLine()
 		:DrawBox(
@@ -373,12 +461,11 @@ public:
 private:
 };
 
-DrawPicture::DrawPicture(QProg prog, TopologSequence<pOptimizerNodeInfo>& layer_info)
+DrawPicture::DrawPicture(QProg prog, LayeredTopoSeq& layer_info)
 	: m_prog(prog)
 	, m_layer_info(layer_info)
 	, m_text_len(0)
 	, m_max_time_sequence(0)
-	, m_time_sequence_conf(TimeSequenceConfig::get_instance())
 {}
 
 void DrawPicture::appendMeasure(std::shared_ptr<AbstractQuantumMeasure> pMeasure)
@@ -515,11 +602,21 @@ void DrawPicture::append_single_gate(std::string gate_name, QVec &qubits_vector,
 		}
 		else
 		{
-			//append control qubit
-			ControlQuBit quControlBox;
-			quControlBox.set_to_circuit_control();
-			set_connect_direction(*itr, all_qubits, quControlBox);
-			m_quantum_bit_wires[*itr]->append(quControlBox, append_pos + (quBox.getLen() / 2));
+			if (gate_name.compare("BARRIER") == 0)
+			{
+				BarrierLine quControlBox;
+				quControlBox.set_to_circuit_control();
+				set_connect_direction(*itr, all_qubits, quControlBox);
+				m_quantum_bit_wires[*itr]->append(quControlBox, append_pos + (quBox.getLen() / 2));
+			}
+			else
+			{
+				//append control qubit
+				ControlQuBit quControlBox;
+				quControlBox.set_to_circuit_control();
+				set_connect_direction(*itr, all_qubits, quControlBox);
+				m_quantum_bit_wires[*itr]->append(quControlBox, append_pos + (quBox.getLen() / 2));
+			}
 		}
 
 		update_time_sequence(m_quantum_bit_wires[*itr], time_sequence);
@@ -527,7 +624,14 @@ void DrawPicture::append_single_gate(std::string gate_name, QVec &qubits_vector,
 		if (itr != all_qubits.begin())
 		{
 			auto pre_itr = itr - 1;
-			append_ctrl_line((*pre_itr) + 1, *itr, append_pos + (quBox.getLen() / 2));
+			if (gate_name.compare("BARRIER") == 0)
+			{
+				append_barrier_line((*pre_itr) + 1, *itr, append_pos + (quBox.getLen() / 2));
+			}
+			else
+			{
+				append_ctrl_line((*pre_itr) + 1, *itr, append_pos + (quBox.getLen() / 2));
+			}
 		}
 	}
 }
@@ -544,6 +648,18 @@ void DrawPicture::update_time_sequence(std::shared_ptr<Wire> p_wire, int increas
 void DrawPicture::append_ctrl_line(int line_start, int line_end, int pos)
 {
 	ControlLine ctr_line;
+	for (size_t i = line_start; i < line_end; ++i)
+	{
+		if (m_quantum_bit_wires.find(i) != m_quantum_bit_wires.end())
+		{
+			m_quantum_bit_wires[i]->append(ctr_line, pos);
+		}
+	}
+}
+
+void DrawPicture::append_barrier_line(int line_start, int line_end, int pos)
+{
+	BarrierBridgeLine ctr_line;
 	for (size_t i = line_start; i < line_end; ++i)
 	{
 		if (m_quantum_bit_wires.find(i) != m_quantum_bit_wires.end())
@@ -637,9 +753,11 @@ void DrawPicture::append_gate_param(string &gate_name, pOptimizerNodeInfo node_i
 	string gateParamStr;
 	std::shared_ptr<AbstractQGateNode> p_gate = dynamic_pointer_cast<AbstractQGateNode>(*(node_info->m_iter));
 	get_gate_parameter(p_gate, gateParamStr);
-	gate_name = TransformQGateType::getInstance()[node_info->m_type];
+	gate_name = TransformQGateType::getInstance()[(GateType)(node_info->m_type)];
+	if (0 == gate_name.compare("CPHASE")) { gate_name = "CR"; }
+
 	gate_name.append(gateParamStr);
-	if (check_dagger(p_gate, node_info->m_dagger))
+	if (check_dagger(p_gate, node_info->m_is_dagger))
 	{
 		gate_name.append(".dag");
 	}
@@ -664,10 +782,10 @@ void DrawByLayer::handle_gate_node(std::shared_ptr<QNode>& p_node, pOptimizerNod
 	qubits_vector = p_node_info->m_target_qubits;
 
 	//get control info
-	QVec control_qubits_vec = p_node_info->m_ctrl_qubits;
+	QVec control_qubits_vec = p_node_info->m_control_qubits;
 
 	//get gate parameter
-	GateType gate_type = p_node_info->m_type;
+	GateType gate_type = (GateType)(p_node_info->m_type);
 	m_parent.append_gate_param(gate_name, p_node_info);
 
 	if (1 == qubits_vector.size())
@@ -805,7 +923,8 @@ void DrawPicture::fill_layer(TopoSeqIter lay_iter)
 
 	QVec unused_qubits_vec = get_qvec_difference(m_quantum_bits_in_use, vec_qubits_used_in_layer);
 
-	auto next_iter = lay_iter + 1;
+	auto next_iter = lay_iter;
+	++next_iter;
 	get_gate_from_next_layer(lay_iter, unused_qubits_vec, next_iter);
 }
 
@@ -900,8 +1019,10 @@ QVec DrawPicture::get_qvec_difference(QVec &vec1, QVec &vec2)
 	return result_vec;
 }
 
-void DrawPicture::draw_by_time_sequence()
+void DrawPicture::draw_by_time_sequence(const std::string config_data /*= CONFIG_PATH*/)
 {
+	m_time_sequence_conf.load_config(config_data);
+
 	DrawByLayer tmp_drawer(*this);
 	auto& layer_info = m_layer_info;
 	for (auto seq_item_itr = layer_info.begin(); seq_item_itr != layer_info.end(); ++seq_item_itr)
@@ -1065,7 +1186,7 @@ void TryToMergeTimeSequence::handle_gate_node(DrawPicture::WireIter& cur_qu_wire
 void TryToMergeTimeSequence::try_to_append_gate_to_cur_qu_wire(DrawPicture::WireIter &qu_wire_itr, TopoSeqLayerIter& seq_iter, TopoSeqLayer& node_vec)
 {
 	const auto &seq_node = seq_iter->first;
-	QVec control_qubits_vec = seq_node->m_ctrl_qubits;
+	QVec control_qubits_vec = seq_node->m_control_qubits;
 	QVec qubits_vector = seq_node->m_target_qubits;
 	string gate_name;
 	m_parent.append_gate_param(gate_name, seq_node);
@@ -1224,24 +1345,19 @@ void DrawPicture::updateTextPicLen()
 
 string DrawPicture::present()
 {
-	/* write to file */
-	ofstream outfile(OUTPUT_TMP_FILE, ios::out | ios::binary);
-	if (!outfile.is_open())
-	{
-		throw runtime_error("Can NOT open the output file");
-	}
-
 	std::string outputStr = "\n";
 	for (auto &itr : m_quantum_bit_wires)
 	{
-		outputStr.append(itr.second->draw(outfile, 0));
+		outputStr.append(itr.second->draw());
 	}
 
 	for (auto &itr : m_class_bit_wires)
 	{
-		outputStr.append(itr.second->draw(outfile, 0));
+		outputStr.append(itr.second->draw());
 	}
-	outfile.close();
+
+	/* write to file */
+	WriteQCircuitTextFile::get_instance().write(outputStr);
 
 	return outputStr;
 }
@@ -1331,7 +1447,18 @@ void DrawPicture::merge(const std::string& up_wire, std::string& down_wire)
 		{
 			tmp_str.append(TIME_SEQUENCE_SEPARATOR_CHAR);
 		}
-		else if (p_upside_str[upside_char_index] == ' ')
+		else if (('!' == p_upside_str[upside_char_index]) && ('!' == p_downside_str[downside_char_index]))
+		{
+			tmp_str.append(DIVIDER_LINE);
+			continue;
+		}
+		else if (((' ' == p_upside_str[upside_char_index]) && ('!' == p_downside_str[downside_char_index]))
+			||((' ' == p_downside_str[downside_char_index]) && ('!' == p_upside_str[upside_char_index])))
+		{
+			tmp_str.append(LAYER_SEPARATOR_CHAR);
+			continue;
+		}
+		else if ((' ' == p_upside_str[upside_char_index]))
 		{
 			wide_char_buf[0] = p_downside_str[downside_char_index];
 			wide_char_buf[1] = p_downside_str[++downside_char_index];
@@ -1339,7 +1466,7 @@ void DrawPicture::merge(const std::string& up_wire, std::string& down_wire)
 			tmp_str.append(wide_char_buf);
 			continue;
 		}
-		else if (' ' == p_downside_str[downside_char_index])
+		else if ((' ' == p_downside_str[downside_char_index]))
 		{
 			wide_char_buf[0] = p_upside_str[upside_char_index];
 			wide_char_buf[1] = p_upside_str[++upside_char_index];

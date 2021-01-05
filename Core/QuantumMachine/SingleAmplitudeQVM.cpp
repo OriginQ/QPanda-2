@@ -184,6 +184,8 @@ void SingleAmplitudeQVM::execute(std::shared_ptr<AbstractQGateNode>  cur_node, s
             m_doubleAngleGateFunc.find(gate_type)->second(m_prog_map, ctr_qubit, tar_qubit, gate_parm, cur_node->isDagger());
         }
         break;
+
+        case GateType::BARRIER_GATE:break;
         default:
         {
             QCERR("undefined error");

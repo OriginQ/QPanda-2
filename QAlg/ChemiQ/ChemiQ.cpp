@@ -8,6 +8,7 @@
 #include "Variational/Optimizer.h"
 #include <sys/stat.h>
 #include <cstdlib>
+#include <chrono>
 
 
 const std::string ERR_LOG = "error.log";
@@ -84,6 +85,7 @@ namespace QPanda {
 
 	bool ChemiQ::exec()
 	{
+		std::chrono::steady_clock::time_point time_start = std::chrono::steady_clock::now();
 		m_machine.reset(QuantumMachineFactory::GetFactoryInstance()
             .CreateByType(m_quantum_machine_type));
         m_machine->init();
@@ -231,6 +233,11 @@ namespace QPanda {
 
 		saveResult();
 		writeExecLog(true);
+
+		std::chrono::steady_clock::time_point time_end = std::chrono::steady_clock::now();
+		std::chrono::duration<double> time_used = std::chrono::duration_cast<std::chrono::duration<double>>(time_end - time_start);
+		std::cout << "time use:" << time_used.count() << "s" << std::endl;
+
 		return true;
 
 	}

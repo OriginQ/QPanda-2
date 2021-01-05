@@ -1,6 +1,6 @@
 ﻿#include "QAlg/Shor/Shor.h"
 
-using namespace QPanda;
+QPANDA_BEGIN
 
 int ShorAlg::_gcd(int a, int b)
 {
@@ -66,7 +66,7 @@ int ShorAlg::_measure_result_parse(int target, vector<int> max_result)
 }
 
 
-int ShorAlg::_perid_finding(int base, int target)
+int ShorAlg::_period_finding(int base, int target)
 {
     int q = ceil(log(target) / log(2)), p = 2 * q, max_prob;
     vector<int> max_result(5), prob(5);
@@ -109,33 +109,43 @@ int ShorAlg::_perid_finding(int base, int target)
     return _measure_result_parse(target, max_result);
 }
 
-void ShorAlg::get_Shor_result(int target, int &p, int &q)
+bool ShorAlg::exec()
 {
-    for (int i = 2; i < target; i++)
+    for (int i = starter; i < m_target_Num; i++)
     {
-        if (_gcd(i, target) > 1)
+        if (_gcd(i, m_target_Num) > 1)
         {
-            p = i;
-            q = target / p;
-            return;
+            m_factor_1 = i;
+            m_factor_2 = m_target_Num / m_factor_1;
+            return true;
         }
         else
         {
-            q = _perid_finding(i, target);
-            p = (int)pow(i, q / 2);
+            m_factor_2 = _period_finding(i, m_target_Num);
+            m_factor_1 = (int)pow(i, m_factor_2 / 2);
             // give up if cannot find a proper result
-            if (q >= target || 0 != q % 2 || 0 == (p + 1) % target)
+            if (m_factor_2 >= m_target_Num || 0 != m_factor_2 % 2 || 0 == (m_factor_1 + 1) % m_target_Num)
             {
                 continue;
             }
-            q = _gcd(p + 1, target);
-            p = _gcd(p - 1, target);
-            return;
+            m_factor_2 = _gcd(m_factor_1 + 1, m_target_Num);
+            m_factor_1 = _gcd(m_factor_1 - 1, m_target_Num);
+            return true;
         }
     }
-    QCERR("prime factorization cannot be done!");
+
     throw ("check the input number, its prime factorization cannot be done!");
-    return;
+    return false;
+}
+
+std::pair<int,int> ShorAlg::get_results()
+{
+    return std::make_pair(m_factor_1, m_factor_2);
+}
+
+void ShorAlg::set_decomposition_starter(int smallest_base)
+{
+    starter = smallest_base;
 }
 
 ShorAlg::ShorAlg(int target)
@@ -146,5 +156,16 @@ ShorAlg::ShorAlg(int target)
         throw ("check the input number, it is smaller than 2!");
     }
     m_target_Num = target;
-    get_Shor_result(m_target_Num, m_s1, m_s2);
 }
+
+
+
+std::pair<bool, std::pair<int,int>> Shor_factorization(int target)
+{
+    ShorAlg sample = ShorAlg(target);
+    bool sucess = sample.exec();
+    auto factors = sample.get_results();
+    return std::make_pair(sucess,factors);
+}
+
+QPANDA_END

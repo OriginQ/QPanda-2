@@ -3,9 +3,9 @@
 #include "Core/Utilities/Tools/Utils.h"
 
 
-USING_QPANDA
+QPANDA_BEGIN
 
-QCircuit QPanda::MAJ(Qubit* a, Qubit* b, Qubit* c)
+QCircuit MAJ(Qubit* a, Qubit* b, Qubit* c)
 {
     QCircuit circuit;
     circuit << CNOT(c, b) << CNOT(c, a) << X(c).control({ a, b });
@@ -13,7 +13,7 @@ QCircuit QPanda::MAJ(Qubit* a, Qubit* b, Qubit* c)
     return circuit;
 }
 
-QCircuit QPanda::UMA(Qubit* a, Qubit* b, Qubit* c)
+QCircuit UMA(Qubit* a, Qubit* b, Qubit* c)
 {
     QCircuit circuit;
     circuit << X(c).control({ a, b }) << CNOT(c, a) << CNOT(a, b);
@@ -21,7 +21,7 @@ QCircuit QPanda::UMA(Qubit* a, Qubit* b, Qubit* c)
     return circuit;
 }
 
-QCircuit QPanda::MAJ2(QVec &adder1, QVec &adder2, Qubit* c)
+QCircuit MAJ2(QVec &adder1, QVec &adder2, Qubit* c)
 {
     if ((adder1.size() == 0) || (adder1.size() != adder2.size()))
     {
@@ -43,7 +43,7 @@ QCircuit QPanda::MAJ2(QVec &adder1, QVec &adder2, Qubit* c)
 
 }
 
-QCircuit QPanda::isCarry(
+QCircuit isCarry(
     QVec &adder1,
     QVec &adder2,
     Qubit* c,
@@ -61,7 +61,7 @@ QCircuit QPanda::isCarry(
     return circuit;
 }
 
-QCircuit QPanda::QAdder(
+QCircuit QAdder(
     QVec &adder1,
     QVec &adder2,
     Qubit* c,
@@ -96,7 +96,7 @@ QCircuit QPanda::QAdder(
 
 }
 
-QCircuit QPanda::QAdderIgnoreCarry(
+QCircuit QAdder(
     QVec &adder1,
     QVec &adder2,
     Qubit* c)
@@ -125,42 +125,343 @@ QCircuit QPanda::QAdderIgnoreCarry(
     return circuit;
 }
 
-QCircuit QPanda::BindData(QVec &qvec, int cvec)
+QCircuit QAdd(QVec& a, QVec& b, QVec& k)
 {
-    QCircuit circuit;
-    if (1 << qvec.size() < cvec)
+    auto len = a.size();
+    QCircuit circ;
+    circ << X(b[len - 1]);
+    circ << QSub(a, b, k);
+    circ << X(b[len - 1]);
+    return circ;
+}
+
+QCircuit QComplement(QVec& a, QVec& k)
+{
+    if (k.size() < a.size() + 2)
     {
-        QCERR("bind data with larger qubit!");
-        throw run_fail("qubit register is not big enough to store data!");
+        QCERR_AND_THROW_ERRSTR(
+            run_fail,
+            "Auxiliary qubits is not big enough!");
     }
 
-    int flag = 0;
-    for (int i = 0; i < qvec.size() &&cvec >= 1; i++)
+    int len = a.size();
+    auto t = k[len];
+    auto q1 = k[len + 1];
+
+    QCircuit circ, circ1;
+    for (int i = 0; i < len - 1; i++)
+        circ1 << X(a[i]);
+    QVec b(k.begin(), k.begin() + len);
+    circ1 << X(b[0]);
+    circ1 << QAdder(a, b, t);
+    circ1 << X(b[0]);
+
+    circ << CNOT(a[len - 1], q1);
+    circ << circ1.control(q1);
+    circ << CNOT(a[len - 1], q1);
+
+    return circ;
+}
+
+QCircuit QSub(QVec& a, QVec& b, QVec& k)
+{
+    auto len = a.size();
+    QVec anc(k.begin(), k.begin() + len + 2);
+    auto t = k[len];
+    //auto q1 = k[len + 1];
+    QCircuit circ, circ1, circ2;
+
+    circ << X(b[len - 1])
+        << QComplement(a, anc)
+        << QComplement(b, anc)
+        << QAdder(a, b, t)
+        << QComplement(a, anc)
+        << QComplement(b, anc)
+        << X(b[len - 1]);
+
+    return circ;
+}
+
+/**
+* @brief Shift the quantum state one bit to the left
+* @ingroup ArithmeticUnit
+* @param[in] a  qubits
+* @return QCircuit
+* @note The result of shift is saved in a.
+*/
+QCircuit shift(QVec& a)
+{
+    QCircuit circ;
+    auto len = a.size();
+    for (auto i = len - 1; i > 0; i--)
     {
-        if (cvec % 2 == 1)
-        {
-            circuit << X(qvec[i]);
-        }
-        cvec = cvec >> 1;
+        circ << SWAP(a[i], a[i - 1]);
     }
+    return circ;
+}
+
+QCircuit QMultiplier(QVec& a, QVec& b, QVec& k, QVec& d)
+{
+    auto len = a.size();
+    QVec c(a);
+    QVec tem(k.begin(), k.begin() + len);
+    c += tem;
+    auto t = k[len];
+    QCircuit fcirc;
+
+    QCircuit circ;
+    circ << QAdder(d, c, t);
+    fcirc << circ.control(b[0]);
+
+    for (auto i = 1; i < len; i++)
+    {
+        QCircuit circ1;
+        fcirc << shift(c);
+        circ1 << QAdder(d, c, t);
+        fcirc << circ1.control(b[i]);
+    }
+    for (auto i = 1; i < len; i++)
+    {
+        fcirc << shift(c).dagger();
+    }
+    return fcirc;
+}
+
+QCircuit QMul(QVec& a, QVec& b, QVec& k, QVec& d)
+{
+    QVec aa(a.begin(), a.end() - 1);
+    QVec bb(b.begin(), b.end() - 1);
+    QVec dd(d.begin(), d.end() - 1);
+    auto len = a.size();
+    QCircuit circ, circ1;
+    circ1 << X(d[len * 2 - 2]);
+    circ << CNOT(a[len - 1], b[len - 1]);
+    circ << circ1.control(b[len - 1]);
+    circ << CNOT(a[len - 1], b[len - 1]);
+    circ << QMultiplier(aa, bb, k, dd);
+    return circ;
+}
+
+QProg QDivider(QVec& a, QVec& b, QVec& c, QVec& k, ClassicalCondition& t)
+{
+    auto len = a.size();
+    QVec d(k.begin(), k.begin() + len);
+    QVec e(k.begin() + len, k.begin() + len * 2 + 2);
+    QProg prog;
+    prog << X(c[0]) << X(c[len - 1]) << X(d[0]) << X(d[len - 1]);
+    QProg prog_in;
+    prog_in << QSub(a, b, e) << QSub(c, d, e) << Measure(a[len - 1], t);
+    auto qwhile = createWhileProg(t < 1, prog_in);
+    prog << qwhile 
+        << X(b[len - 1]) 
+        << QSub(a, b, e) 
+        << X(b[len - 1]) 
+        << X(d[0]) 
+        << X(d[len - 1]);
+    return prog;
+}
+
+QProg QDiv(QVec& a, QVec& b, QVec& c, QVec& k, ClassicalCondition& t)
+{
+    auto len = a.size();
+    QProg prog;
+    prog << CNOT(a[len - 1], k[len * 2 + 2])
+        << CNOT(b[len - 1], k[len * 2 + 3]);
+    prog << CNOT(k[len * 2 + 2], a[len - 1])
+        << CNOT(k[len * 2 + 3], b[len - 1]);
+    prog << QDivider(a, b, c, k, t);
+    QCircuit circ;
+    circ << X(c[len - 1]);
+    prog << CNOT(k[len * 2 + 2], k[len * 2 + 3]);
+    prog << circ.control(k[len * 2 + 3]);
+    prog << CNOT(k[len * 2 + 2], k[len * 2 + 3]);
+    prog << CNOT(k[len * 2 + 2], a[len - 1])
+        << CNOT(k[len * 2 + 3], b[len - 1]);
+    prog << CNOT(a[len - 1], k[len * 2 + 2])
+        << CNOT(b[len - 1], k[len * 2 + 3]);
+    return prog;
+}
+
+QProg QDivider(
+    QVec& a, 
+    QVec& b, 
+    QVec& c, 
+    QVec& k, 
+    QVec& f, 
+    std::vector<ClassicalCondition>& s)
+{
+    auto len = a.size(); auto cnt = f.size();
+    QVec d(k.begin(), k.begin() + len);
+    QVec cc(k.begin() + len, k.begin() + len * 2);
+    QVec e(k.begin() + len * 2, k.begin() + len * 3 + 2);
+    QVec ee(k.begin() + len * 2, k.begin() + len * 3 + 3);
+    QVec aa(a);
+    QVec bb(b);
+    aa.push_back(k[len * 3 + 3]);
+    bb.push_back(k[len * 3 + 4]);
+    QProg prog;
+    prog << X(c[0]) << X(c[len - 1]) << X(d[0]) << X(d[len - 1]);
+    auto& t = s[cnt];
+    auto& sum = s[cnt + 1];
+    t.set_val(0);
+    sum.set_val(0);
+    QProg prog_in;
+    prog_in << QSub(aa, bb, ee) 
+        << QSub(c, d, e) 
+        << (sum = sum + 1) 
+        << Measure(aa[len], t);
+    auto qwhile = createWhileProg(t < 1, prog_in);
+    prog << qwhile;
+
+    for (auto i = 0; i < cnt; i++)
+    {
+        s[i].set_val(0);
+        prog << X(bb[len]) << X(cc[0]) << X(cc[len - 1]) << (t = 0);
+        prog << QSub(aa, bb, ee);
+        prog << X(bb[len]);
+        prog << shift(aa);
+        QProg prog_t;
+        prog_t << QSub(aa, bb, ee) 
+            << QSub(cc, d, e) 
+            << (s[i] = s[i] + 1) 
+            << Measure(aa[len], t);
+        auto qwhile_t = createWhileProg(t < 1, prog_t);
+        prog << qwhile_t;
+        prog << SWAP(cc[0], f[cnt - i - 1]);
+    }
+    for (auto i = 0; i < cnt; i++)
+    {
+        prog << X(bb[len]);
+        QProg prog_ttt;
+        prog_ttt << QSub(aa, bb, ee) << (s[cnt - i - 1] = s[cnt - i - 1] - 1);
+        auto qwhile_ttt = createWhileProg(s[cnt - i - 1] > 0, prog_ttt);
+        prog << qwhile_ttt;
+        prog << shift(aa).dagger();
+        prog << X(bb[len]);
+        prog << QSub(aa, bb, ee);
+
+    }
+    prog << X(bb[len]);
+    QProg prog_tt;
+    prog_tt << QSub(aa, bb, ee) << (sum = sum - 1);
+    auto qwhile_tt = createWhileProg(sum > 0, prog_tt);
+    prog << qwhile_tt;
+    prog << X(bb[len]);
+    prog << X(d[0]) << X(d[len - 1]) << (t = 0);
+    return prog;
+}
+
+QProg QDiv(
+    QVec& a, 
+    QVec& b, 
+    QVec& c, 
+    QVec& k, 
+    QVec& f, 
+    std::vector<ClassicalCondition>& s)
+{
+    auto len = a.size();
+    QProg prog;
+    prog << CNOT(a[len - 1], k[len * 3 + 5])
+        << CNOT(b[len - 1], k[len * 3 + 6]);
+    prog << CNOT(k[len * 3 + 5], a[len - 1])
+        << CNOT(k[len * 3 + 6], b[len - 1]);
+    prog << QDivider(a, b, c, k, f, s);
+    QCircuit circ;
+    circ << X(c[len - 1]);
+    prog << CNOT(k[len * 3 + 5], k[len * 3 + 6]);
+    prog << circ.control(k[len * 3 + 6]);
+    prog << CNOT(k[len * 3 + 5], k[len * 3 + 6]);
+    prog << CNOT(k[len * 3 + 5], a[len - 1])
+        << CNOT(k[len * 3 + 6], b[len - 1]);
+    prog << CNOT(a[len - 1], k[len * 3 + 5])
+        << CNOT(b[len - 1], k[len * 3 + 6]);
+    return prog;
+}
+
+QCircuit bind_data(int value, QVec& qvec)
+{
+    bool sign_flag = value < 0 ? true,value=-value : false;
+    size_t qnum = std::floor(std::log(value) / std::log(2)+1);
+    if (qvec.size() < qnum+1)
+    {
+        QCERR_AND_THROW_ERRSTR(
+            run_fail,
+            "Qubit register is not big enough to store data!");
+    }
+
+    QCircuit circuit;
+    int cnt = 0;
+    while (value)
+    {
+        auto v = value % 2;
+        if (v == 1)
+        {
+            circuit << X(qvec[cnt]);
+        }
+
+        value = value / 2;
+        cnt++;
+    }
+
+    if (sign_flag)
+    {
+        circuit << X(qvec[qvec.size() - 1]);
+    }
+
     return circuit;
 }
 
-QCircuit QPanda::constModAdd(QVec &qvec, int base, int module_Num, QVec &qvec1, QVec &qvec2)
+QCircuit bind_nonnegative_data(size_t value, QVec& qvec)
+{
+    size_t qnum = std::floor(std::log(value) / std::log(2) + 1);
+    if (qvec.size() < qnum)
+    {
+        QCERR_AND_THROW_ERRSTR(
+            run_fail,
+            "Qubit register is not big enough to store data!");
+    }
+
+    QCircuit circuit;
+    int cnt = 0;
+    while (value)
+    {
+        auto v = value % 2;
+        if (v == 1)
+        {
+            circuit << X(qvec[cnt]);
+        }
+
+        value = value / 2;
+        cnt++;
+    }
+
+    return circuit;
+}
+
+QCircuit constModAdd(QVec &qvec, int base, int module_Num, QVec &qvec1, QVec &qvec2)
 {
     base = base % module_Num;
     QCircuit circuit, tmpcir, tmpcir1;
     int tmpvalue = (1 << qvec.size()) + base - module_Num;
-    circuit << BindData(qvec1, tmpvalue) << isCarry(qvec, qvec1, qvec2[1], qvec2[0]) << BindData(qvec1, tmpvalue);
+    circuit << bind_nonnegative_data(tmpvalue, qvec1) 
+        << isCarry(qvec, qvec1, qvec2[1], qvec2[0]) 
+        << bind_nonnegative_data(tmpvalue, qvec1);
 
-    tmpcir << BindData(qvec1, tmpvalue) << QAdderIgnoreCarry(qvec, qvec1, qvec2[1]) << BindData(qvec1, tmpvalue);
+    tmpcir << bind_nonnegative_data(tmpvalue, qvec1) 
+        << QAdder(qvec, qvec1, qvec2[1]) 
+        << bind_nonnegative_data(tmpvalue, qvec1);
     circuit << tmpcir.control(qvec2[0]) << X(qvec2[0]);
 
-    tmpcir1 << BindData(qvec1, base) << QAdderIgnoreCarry(qvec, qvec1, qvec2[1]) << BindData(qvec1, base);
+    tmpcir1 << bind_nonnegative_data(base, qvec1) 
+        << QAdder(qvec, qvec1, qvec2[1])
+        << bind_nonnegative_data(base, qvec1);
     circuit << tmpcir1.control(qvec2[0]) << X(qvec2[0]);
 
     tmpvalue = (1 << qvec.size()) - base;
-    circuit << BindData(qvec1, tmpvalue) << isCarry(qvec, qvec1, qvec2[1], qvec2[0]) << BindData(qvec1, tmpvalue) << X(qvec2[0]);
+    circuit << bind_nonnegative_data(tmpvalue, qvec1)
+        << isCarry(qvec, qvec1, qvec2[1], qvec2[0]) 
+        << bind_nonnegative_data(tmpvalue, qvec1)
+        << X(qvec2[0]);
 
     return circuit;
 }
@@ -209,7 +510,7 @@ int modReverse(int a, int b)
     }
 }
 
-QCircuit QPanda::constModMul(QVec &qvec, int base, int module_Num, QVec &qvec1, QVec &qvec2, QVec &qvec3)
+QCircuit constModMul(QVec &qvec, int base, int module_Num, QVec &qvec1, QVec &qvec2, QVec &qvec3)
 {
     QCircuit  circuit, tmpcir, tmpcir1;
     int tmpvalue, qsize = qvec.size();
@@ -238,7 +539,7 @@ QCircuit QPanda::constModMul(QVec &qvec, int base, int module_Num, QVec &qvec1, 
     return circuit;
 }
 
-QCircuit QPanda::constModExp(QVec &qvec, QVec &result, int base, int module_Num, QVec &qvec1, QVec &qvec2, QVec &qvec3)
+QCircuit constModExp(QVec &qvec, QVec &result, int base, int module_Num, QVec &qvec1, QVec &qvec2, QVec &qvec3)
 {
     QCircuit  circuit, tmpcir;
     int tmp = base;
@@ -249,3 +550,5 @@ QCircuit QPanda::constModExp(QVec &qvec, QVec &result, int base, int module_Num,
     }
     return circuit;
 }
+
+QPANDA_END

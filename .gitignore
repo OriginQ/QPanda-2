@@ -16,3 +16,5 @@ include/QPandaVersion.h
 /pyQPanda/benchmark.py
 __pycache__/
 CMakeSettings.json
+*.dat
+/mingw-build

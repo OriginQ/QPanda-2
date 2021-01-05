@@ -25,10 +25,6 @@ Classes for get the shortes path of graph
 
 QPANDA_BEGIN
 
-#ifndef MAX_PRECISION
-#define MAX_PRECISION 0.000001
-#endif // !MAX_PRECISION
-
 std::string dec2bin(unsigned n, size_t size);
 
 double RandomNumberGenerator();
@@ -215,22 +211,28 @@ inline std::string generate_oracle_name(std::string oraclename,
 
 inline double argc(qcomplex_t num)
 {
-	if ((abs(num.imag()) < MAX_PRECISION) && (abs(num.real()) < MAX_PRECISION))
+	double ret = 0;
+	const double max_precision = 1e-7;
+	const double imag_val = num.imag();
+	const double real_val = num.real();
+	if ((std::abs(imag_val) < max_precision) && (std::abs(real_val) < max_precision))
 	{
-		return acos(1);
+		ret = acos(1);
 	}
-    else if (num.imag() >0)
+    else if (imag_val >0)
     {
-        return acos((qstate_type)(num.real() / sqrt(num.real()*num.real() + num.imag()*num.imag())));
+		ret = acos((qstate_type)(real_val / sqrt(real_val*real_val + imag_val * imag_val)));
     }
-    else if(num.imag() <0)
+    else if(imag_val <0)
     {
-        return -acos((qstate_type)(num.real() / sqrt(num.real()*num.real() + num.imag()*num.imag())));
+		ret = -acos((qstate_type)(real_val / sqrt(real_val*real_val + imag_val * imag_val)));
     }
     else
     {
-        return acos((qstate_type)(num.real() / sqrt(num.real()*num.real() + num.imag()*num.imag())));
+		ret = acos((qstate_type)(real_val / sqrt(real_val*real_val + imag_val * imag_val)));
     }
+
+	return ret;
 }
 
 QPANDA_END

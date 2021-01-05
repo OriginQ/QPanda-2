@@ -554,4 +554,10 @@ QError GPUImplQPU::I(size_t qn, Qnum & vControlBit, bool isConjugate, double err
     return undefineError;
 }
 
+QError GPUImplQPU::initState(size_t qubit_num, const QStat &state)
+{
+    return undefineError;
+}
+
+
 #endif

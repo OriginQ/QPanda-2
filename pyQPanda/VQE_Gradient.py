@@ -47,17 +47,18 @@ def get_ccsd_var(qn, en, para):
             
     return var_fermion_op
     
-    for i in range(en):
-        for j in range(i+1, en):
-            for ex1 in range(en, qn):
-                for ex2 in range(ex1+1, qn):
-                    fermion_op += VarFermionOperator(
-                        str(ex2)+"+ "+str(ex1)+"+ "+str(j)+" "+str(i),
-                        para[cnt]
-                    )
-                    cnt += 1
+    #for i in range(en):
+    #    for j in range(i+1, en):
+    #        for ex1 in range(en, qn):
+    #            for ex2 in range(ex1+1, qn):
+    #                fermion_op += VarFermionOperator(
+    #                    str(ex2)+"+ "+str(ex1)+"+ "+str(j)+" "+str(i),
+    #                    para[cnt]
+    #                )
+    #                cnt += 1
                     
-    return fermion_op
+    #return fermion_op
+
 #JordanWigner变换，将费米子哈密顿量子项转换成泡利哈密顿量
 def get_fermion_jordan_wigner(fermion_item):
     pauli = PauliOperator("", 1)

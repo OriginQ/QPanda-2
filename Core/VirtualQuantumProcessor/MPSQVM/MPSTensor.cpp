@@ -43,6 +43,8 @@ MPS_Tensor MPS_Tensor::contract(const MPS_Tensor &left_gamma,
     return result;
 }
 
+
+
 void MPS_Tensor::contract_2_dimensions(const MPS_Tensor &left_gamma, 
 	const MPS_Tensor &right_gamma, cmatrix_t &result)
 {
@@ -121,10 +123,7 @@ void MPS_Tensor::decompose(MPS_Tensor &temp, MPS_Tensor &left_gamma,
 		throw std::runtime_error("svd  error");
 	}
 
-
-    
-
-	cmatrix_t reduce_U = U.leftCols(valid_size);
+    cmatrix_t reduce_U = U.leftCols(valid_size);
 	rvector_t reduce_S = S.head(valid_size);
 	cmatrix_t reduce_V = V.leftCols(valid_size);
 

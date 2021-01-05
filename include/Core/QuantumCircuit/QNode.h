@@ -113,6 +113,64 @@ public:
     bool operator==(NodeIter) const;
 };
 
+/**
+* @class AbstractNodeManager
+* @brief   Quantum node manager basic abstract class
+* @ingroup QuantumCircuit
+*/
+class AbstractNodeManager
+{
+public:
+	virtual ~AbstractNodeManager() {}
+
+	/**
+	* @brief  Get the first NodeIter
+	* @return  NodeIter
+	*/
+	virtual NodeIter getFirstNodeIter() = 0;
+
+	/**
+	* @brief  Get the last NodeIter
+	* @return  NodeIter
+	*/
+	virtual NodeIter getLastNodeIter() = 0;
+
+	/**
+	* @brief  Get the end NodeIter
+	* @return  NodeIter
+	*/
+	virtual NodeIter getEndNodeIter() = 0;
+
+	/**
+	* @brief  Get the head NodeIter
+	* @return  NodeIter
+	*/
+	virtual NodeIter getHeadNodeIter() = 0;
+
+	/**
+	* @brief  Insert a new QNode at the location specified by NodeIter
+	* @param[in] NodeIter&  specified  location
+	* @param[in] std::shared_ptr<QNode> Inserted QNode
+	* @return  NodeIter
+	*/
+	virtual NodeIter insertQNode(const NodeIter &, std::shared_ptr<QNode>) = 0;
+
+	/**
+	* @brief  Delete a QNode at the location specified by NodeIter
+	* @param[in] NodeIter&  specified  location
+	* @return  NodeIter  Deleted NodeIter
+	*/
+	virtual NodeIter deleteQNode(NodeIter &) = 0;
+
+	/**
+	* @brief  Insert a new Node at the end of current quantum circuit
+	* @param[in]  QNode*  quantum node
+	* @return     void
+	* @see  QNode
+	*/
+	virtual void pushBackNode(std::shared_ptr<QNode>) = 0;
+};
+
 QPANDA_END
 
 #endif // !_QNODE_H

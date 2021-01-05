@@ -65,16 +65,17 @@ bool QuantumMetadata::getGateTime(std::map<GateType, size_t> &gate_time_map)
 {
     if (!m_is_config_exist)
     {
-        insertGateTimeMap({"RX", 2}, gate_time_map);
-        insertGateTimeMap({"RY", 2}, gate_time_map);
-        insertGateTimeMap({"RZ", 2}, gate_time_map);
-        insertGateTimeMap({"X1", 2}, gate_time_map);
-        insertGateTimeMap({"H", 2}, gate_time_map);
-        insertGateTimeMap({"S", 2}, gate_time_map);
+        insertGateTimeMap({"RX", 1}, gate_time_map);
+        insertGateTimeMap({"RY", 1}, gate_time_map);
+        insertGateTimeMap({"RZ", 1}, gate_time_map);
+        insertGateTimeMap({"X1", 1}, gate_time_map);
+        insertGateTimeMap({"H", 1}, gate_time_map);
+        insertGateTimeMap({"S", 1 }, gate_time_map);
+        insertGateTimeMap({"U3", 1}, gate_time_map);
 
-        insertGateTimeMap({"CNOT", 5}, gate_time_map);
-        insertGateTimeMap({"CZ", 5}, gate_time_map);
-        insertGateTimeMap({"ISWAP", 5}, gate_time_map);
+        insertGateTimeMap({"CNOT", 2}, gate_time_map);
+        insertGateTimeMap({"CZ", 2}, gate_time_map);
+        insertGateTimeMap({"ISWAP", 2}, gate_time_map);
     }
     else
     {

@@ -11,13 +11,25 @@ Quanatum Phase estimation
 
 #include "EigenUnsupported/Eigen/MatrixFunctions"
 #include "Core/Core.h"
-#include "QAlg/Base_QCircuit/QFT.h"
+#include "QAlg/Base_QCircuit/base_circuit.h"
 #include "Core/Utilities//Tools/ThreadPool.h"
 #include <atomic>
+#include <chrono>
 
 QPANDA_BEGIN
 
-#define PTrace /*printf*/
+#define PRINT_TRACE 0
+#if PRINT_TRACE
+#define PTrace printf
+#define PTraceCircuit(cir) (std::cout << cir << endl)
+#define PTraceCircuitMat(cir) { auto m = getCircuitMatrix(cir); std::cout << m << endl; }
+#define PTraceMat(mat) (std::cout << (mat) << endl)
+#else
+#define PTrace
+#define PTraceCircuit(cir)
+#define PTraceCircuitMat(cir)
+#define PTraceMat(mat)
+#endif
 
 class QPEAlg
 {
@@ -31,7 +43,19 @@ public:
 		if (is_unitary_matrix(matrix))
 		{
 			m_unitary_mat = matrix;
-			m_unitary_mat_cir = matrix_decompose(target_qubits, matrix);
+#if PRINT_TRACE
+			auto start = chrono::system_clock::now();
+#endif
+			m_unitary_mat_cir = matrix_decompose(target_qubits, matrix); 
+			//m_unitary_mat_cir = Householder_qr_matrix_decompose(target_qubits, matrix);
+#if PRINT_TRACE
+			auto end = chrono::system_clock::now();
+			auto duration = chrono::duration_cast<chrono::microseconds>(end - start);
+			cout << "The matrix decomposition takes "
+				<< double(duration.count()) * chrono::microseconds::period::num / chrono::microseconds::period::den
+				<< "seconds" << endl;
+			cout << "There are " << getQGateNum(m_unitary_mat_cir) << " gates in the decomposed-circuit." << endl;
+#endif
 		}
 		else if (matrix == dagger_c(matrix))
 		{
@@ -148,9 +172,10 @@ protected:
 			EigenMatrixXc eigen_mat = QStat_to_Eigen(tmp_A);
 			auto exp_matrix = eigen_mat.exp().eval();
 
-			PTrace("On matrix decompose: %lld.\n", min);
+			PTrace("On matrix decompose: %llu.\n", min);
 			QCircuit decomposed_cir = matrix_decompose(m_target_qubits, exp_matrix);
-			PTrace("Finished matrix decompose: %lld.\n", min);
+			//QCircuit decomposed_cir = Householder_qr_matrix_decompose(m_target_qubits, exp_matrix);
+			PTrace("Finished matrix decompose: %llu.\n", min);
 			cir_u << cir_swap_qubits_b << decomposed_cir << cir_swap_qubits_b;
 		}
 		else
@@ -162,7 +187,7 @@ protected:
 	}
 
 	QCircuit control_unitary_power(Qubit *ControlQubit, const size_t min, const int index){
-		PTrace("Start control unitary power on: %lld.\n", index);
+		PTrace("Start control unitary power on: %llu.\n", index);
 		QCircuit qCircuit = unitary_power(min);
 		qCircuit.setControl({ ControlQubit });
 
@@ -170,7 +195,7 @@ protected:
 		m_control_unitary_circuit_vec.push_back(std::make_pair(index, qCircuit));
 		m_queue_mutex.unlock();
 		++m_job_cnt;
-		PTrace("Finished control_unitary_power on: %lld.\n", index);
+		PTrace("Finished control_unitary_power on: %llu.\n", index);
 		return qCircuit;
 	}
 

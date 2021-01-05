@@ -196,7 +196,7 @@ inline void VarPauliOperator::reduceDuplicates()
 }
 
 template<>
-inline QHamiltonian VarPauliOperator::toHamiltonian(bool *ok)
+inline QHamiltonian VarPauliOperator::toHamiltonian(bool *ok) const
 {
     QHamiltonian hamiltonian;
 

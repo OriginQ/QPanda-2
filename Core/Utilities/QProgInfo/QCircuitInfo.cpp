@@ -40,6 +40,57 @@ using namespace std;
 #endif
 
 /*******************************************************************
+*                      class NodeInfo
+********************************************************************/
+void NodeInfo::init(const int type, const QVec& target_qubits, const QVec& control_qubits)
+{
+	if (type < 0)
+	{
+		switch (type)
+		{
+		case -1:
+		{
+			auto p_measure = std::dynamic_pointer_cast<AbstractQuantumMeasure>(*m_iter);
+			m_cbits.push_back(p_measure->getCBit()->getValue());
+			m_node_type = MEASURE_GATE;
+		}
+		break;
+
+		case -2:
+			m_node_type = RESET_NODE;
+			break;
+
+		default:
+			std::cerr << "Node-tpye:" << type << std::endl;
+			QCERR_AND_THROW_ERRSTR(init_fail, "Error: Node-type error.");
+			break;
+		}
+	}
+	else
+	{
+		m_gate_type = (GateType)type;
+		m_name = TransformQGateType::getInstance()[m_gate_type];
+		if (m_is_dagger)
+		{
+			m_name += ".dag";
+		}
+		m_params = get_gate_parameter(std::dynamic_pointer_cast<AbstractQGateNode>(*m_iter));
+	}
+}
+
+void NodeInfo::reset() 
+{
+	m_iter = NodeIter();
+	m_node_type = NODE_UNDEFINED;
+	m_gate_type = GATE_UNDEFINED;
+	m_is_dagger = false;
+	m_target_qubits.clear();
+	m_control_qubits.clear();
+	m_params.clear();
+	m_name = "";
+}
+
+/*******************************************************************
 *                      class TraversalNodeIter
 ********************************************************************/
 void TraverseByNodeIter::execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std::shared_ptr<QNode> parent_node, QCircuitParam &cir_param, NodeIter& cur_node_iter)
@@ -104,8 +155,7 @@ void TraverseByNodeIter::execute(std::shared_ptr<AbstractQuantumProgram>  cur_no
 {
 	if (nullptr == cur_node)
 	{
-		QCERR("param error");
-		throw std::invalid_argument("param error");
+		QCERR_AND_THROW_ERRSTR(init_fail, "Current prog-node is empty.");
 	}
 
 	auto aiter = cur_node->getFirstNodeIter();
@@ -519,7 +569,7 @@ void PickUpNodes::reverse_dagger_circuit()
 /*******************************************************************
 *                      public interface
 ********************************************************************/
-QStat QPanda::getCircuitMatrix(QProg srcProg, const NodeIter nodeItrStart, const NodeIter nodeItrEnd)
+QStat QPanda::getCircuitMatrix(QProg srcProg, const bool b_bid_endian /*= false*/, const NodeIter nodeItrStart, const NodeIter nodeItrEnd)
 {
 	QProg tmp_prog;
 
@@ -531,7 +581,7 @@ QStat QPanda::getCircuitMatrix(QProg srcProg, const NodeIter nodeItrStart, const
 	printAllNodeType(tmp_prog);
 #endif
 
-	QProgToMatrix calc_matrix(tmp_prog);
+	QProgToMatrix calc_matrix(tmp_prog, b_bid_endian);
 
 	return calc_matrix.get_matrix();
 }
@@ -767,11 +817,17 @@ std::vector<double> QPanda::get_gate_parameter(std::shared_ptr<AbstractQGateNode
 	case BARRIER_GATE:
 	case CNOT_GATE:
 	case CZ_GATE:
-	case ISWAP_GATE:
-	case SQISWAP_GATE:
-	case ISWAP_THETA_GATE:
 	case SWAP_GATE:
 	case TWO_QUBIT_GATE:
+	case ISWAP_GATE:
+	case SQISWAP_GATE:
+		break;
+
+	case ISWAP_THETA_GATE:
+	{
+		auto single_angle_gate = dynamic_cast<QGATE_SPACE::AbstractSingleAngleParameter*>(pGate->getQGate());
+		params.push_back(single_angle_gate->getParameter());
+	}
 		break;
 
 	case U4_GATE:
@@ -873,6 +929,7 @@ bool QPanda::check_dagger(std::shared_ptr<AbstractQGateNode> p_gate, const bool&
 	case CNOT_GATE:
 	case CZ_GATE:
 	case SWAP_GATE:
+	case I_GATE:
 		return false;
 		break;
 

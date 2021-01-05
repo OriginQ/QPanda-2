@@ -42,9 +42,6 @@ public:
 		std::string left_str = m_condition.getExprPtr()->getLeftExpr()->getName();
 		std::string operator_str = m_condition.getExprPtr()->getName();
 		std::string right_str = m_condition.getExprPtr()->getRightExpr()->getName();
-		
-		QVec tmp_control = { ancilla_qubits.front() };
-		cir_mark.setControl(tmp_control);
 
 		QCircuit condition_cir;
 
@@ -52,7 +49,7 @@ public:
 		{
 			T search_data;
 			search_data.set_val(right_str.c_str());
-			condition_cir = search_data.build_to_condition_circuit(oracle_qubits, ancilla_qubits.front(), mini_data);
+			condition_cir = search_data.build_to_condition_circuit(oracle_qubits, cir_mark, mini_data);
 		}
 		else
 		{
@@ -60,7 +57,7 @@ public:
 			QCERR_AND_THROW_ERRSTR(runtime_error, "Error: unsupport operator.");
 		}
 
-		ret_cir << condition_cir << cir_mark << condition_cir.dagger();
+		ret_cir << condition_cir;
 		return ret_cir;
 	}
 

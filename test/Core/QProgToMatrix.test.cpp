@@ -566,13 +566,31 @@ bool test_getProgMatrix1()
 	return true;
 }
 
+bool test_getProgMatrix_2()
+{
+	auto qvm = initQuantumMachine(QMachineType::CPU);
+	auto q = qvm->allocateQubits(8);
+	auto c = qvm->allocateCBits(8);
 
-TEST(QProgToMatrix, test2)
+	QProg prog1;
+
+	prog1 << H(q[0]) << I(q[1]);
+
+	QStat result_mat1 = getCircuitMatrix(prog1/*, true*/);
+
+	cout << "result_mat1" << result_mat1 << endl;
+
+	destroyQuantumMachine(qvm);
+	return true;
+}
+
+TEST(QProgToMatrix, test1)
 {
 	bool test_val = false;
 	try
 	{
-		test_val = test_getProgMatrix1();
+		//test_val = test_getProgMatrix1();
+		test_val = test_getProgMatrix_2();
 	}
 	catch (const std::exception& e)
 	{

@@ -24,7 +24,7 @@ void GraphMatch::_replace_node(const ResultVector &match_vector, TopologSequence
     }
 }
 
-static LayerNode get_layer_node(const SequenceNode &node, const TopologSequence<SequenceNode> &seq)
+static TopoNode get_layer_node(const SequenceNode &node, const TopologSequence<SequenceNode> &seq)
 {
     for (const auto &layer : seq)
     {
@@ -40,16 +40,19 @@ static LayerNode get_layer_node(const SequenceNode &node, const TopologSequence<
 
 static size_t get_layer_num(const TopologSequence<SequenceNode> &graph_seq,size_t vertice_num)
 {
-    for (auto i = 0; i != graph_seq.size(); ++i)
+	size_t i = 0;
+    for (auto layer_itr = graph_seq.begin(); layer_itr != graph_seq.end(); ++layer_itr, ++i)
     {
-        for (auto j = 0; j != graph_seq[i].size(); ++j)  
+        for (auto node_iter = layer_itr->begin(); node_iter != layer_itr->end(); ++node_iter)
         {
-            if (vertice_num == graph_seq[i][j].first.m_vertex_num)
+            if (vertice_num == node_iter->first.m_vertex_num)
             {
                 return i;
             }
         }
     }
+
+	QCERR_AND_THROW(run_fail, "Error: failed to get_layer_num.");
 }
 
 Qnum GraphMatch::_get_qubit_vector(const SequenceNode &node, QProgDAG<GateNodeInfo> &dag)
@@ -73,7 +76,7 @@ Qnum GraphMatch::_get_qubit_vector(const SequenceNode &node, QProgDAG<GateNodeIn
 		auto gate_ptr = std::dynamic_pointer_cast<AbstractQGateNode>(p_QNode);
 		if (gate_ptr == nullptr)
 		{
-			QCERR_AND_THROW_ERRSTR(init_fail, "Error: failed to transfer to QGate node.");
+			QCERR_AND_THROW(init_fail, "Error: failed to transfer to QGate node.");
 		}
 
 		QVec qvec;
@@ -89,13 +92,13 @@ Qnum GraphMatch::_get_qubit_vector(const SequenceNode &node, QProgDAG<GateNodeIn
     }
 }
 
-bool GraphMatch::_compare_edge(LayerVector &graph_node_vec, LayerVector &query_node_vec)
+bool GraphMatch::_compare_edge(const LayerVector &graph_node_vec, const LayerVector &query_node_vec)
 {
     std::vector<int> query, graph;
     for_each(graph_node_vec.begin(), graph_node_vec.end(),
-        [&](SequenceNode &val) {graph.emplace_back(val.m_node_type); });
+        [&](const SequenceNode &val) {graph.emplace_back(val.m_node_type); });
     for_each(query_node_vec.begin(), query_node_vec.end(),
-        [&](SequenceNode &val) {query.emplace_back(val.m_node_type); });
+        [&](const SequenceNode &val) {query.emplace_back(val.m_node_type); });
 
     for (const auto &val : query)
     {
@@ -121,7 +124,7 @@ bool GraphMatch::query(TopologSequence<SequenceNode> &graph_seq, TopologSequence
         return false;
     }
 
-    SequenceLayer  node_match_vector;
+	TopoLayer  node_match_vector;
     for (auto &query_layer : query_seq)
     {
         for (auto &query_node : query_layer)
@@ -129,7 +132,7 @@ bool GraphMatch::query(TopologSequence<SequenceNode> &graph_seq, TopologSequence
             std::vector<SequenceNode> node_vector;
             for (auto &graph_layer : graph_seq)
             {
-                for (auto &graph_node : graph_layer)
+				for (auto &graph_node : graph_layer)
                 {
                     if (_compare_node(graph_node, query_node))
                     {
@@ -166,7 +169,8 @@ bool GraphMatch::query(TopologSequence<SequenceNode> &graph_seq, TopologSequence
 
     ResultVector result_vector;
     auto match_num = node_match_vector.size();
-    for (auto iter = query_seq.begin() + 1; iter != query_seq.end(); ++iter)
+	auto iter = ++(query_seq.begin());
+    for (; iter != query_seq.end(); ++iter)
     {
         for (auto &node : (*iter))
         {
@@ -307,7 +311,7 @@ bool GraphMatch::query(TopologSequence<SequenceNode> &graph_seq, TopologSequence
 	return true;
 }
 
-bool GraphMatch::_compare_node(LayerNode &graph_node, LayerNode &query_node)
+bool GraphMatch::_compare_node(TopoNode &graph_node, TopoNode &query_node)
 {
     if ((query_node.first.m_node_type != graph_node.first.m_node_type) ||
         !_compare_edge(graph_node.second, query_node.second) ||
@@ -328,7 +332,7 @@ bool GraphMatch::_compare_node(LayerNode &graph_node, LayerNode &query_node)
         {
             if (1 == query_qvec.size())
             {
-                auto query_connected_qvec = _get_qubit_vector(query_node.second[0], m_query_dag);
+                auto query_connected_qvec = _get_qubit_vector(query_node.second.front(), m_query_dag);
 
                 if (2 == query_connected_qvec.size())
                 {
@@ -338,7 +342,7 @@ bool GraphMatch::_compare_node(LayerNode &graph_node, LayerNode &query_node)
                     }
                     else
                     {
-                        auto graph_connected_qvec = _get_qubit_vector(graph_node.second[0], m_graph_dag);
+                        auto graph_connected_qvec = _get_qubit_vector(graph_node.second.front(), m_graph_dag);
                         return (((query_qvec[0] == query_connected_qvec[1]) &&
                                  (graph_qvec[0] == graph_connected_qvec[1])) ||
                                 ((query_qvec[0] == query_connected_qvec[0]) &&
@@ -474,14 +478,14 @@ void GraphMatch::_convert_node(ResultVector &match_vector, TopologSequence<Seque
             }
         }
 
-        LayerVector connect_vector;      //always empty
+		std::vector<SequenceNode> connect_vector;      //always empty
         for (auto &layer : replace_seq)
         {
             for (auto &node : layer)
             {
                 SequenceNode gate_node;
                 _convert_gate(node.first, qvm, compare_map, gate_node);
-                graph_seq[insert_layer_num].emplace_back(make_pair(gate_node, connect_vector));
+				graph_seq.at(insert_layer_num).emplace_back(make_pair(gate_node, connect_vector));
             }
         }
     }

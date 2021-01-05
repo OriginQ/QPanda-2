@@ -60,9 +60,10 @@ static bool HHL_test_fun()
 		stat_normed.push_back(val / qcomplex_t(norm, 0));
 	}
 
+	const double max_precision = 1e-10;
 	for (auto &val : stat_normed)
 	{
-		qcomplex_t tmp_val((abs(val.real()) < MAX_PRECISION ? 0.0 : val.real()), (abs(val.imag()) < MAX_PRECISION ? 0.0 : val.imag()));
+		qcomplex_t tmp_val((abs(val.real()) < max_precision ? 0.0 : val.real()), (abs(val.imag()) < max_precision ? 0.0 : val.imag()));
 		val = tmp_val;
 	}
 

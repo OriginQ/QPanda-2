@@ -4,6 +4,7 @@
 #include "Core/Utilities/QProgInfo/QCircuitInfo.h"
 #include "Core/Utilities/Tools/QStatMatrix.h"
 #include "Core/QuantumMachine/OriginQuantumMachine.h"
+#include "Core/Utilities/QProgTransform/QProgToDAG/TopologSequence.h"
 
 QPANDA_BEGIN
 /**
@@ -20,7 +21,8 @@ class QProgToMatrix
 	class MatrixOfOneLayer
 	{
 	public:
-		MatrixOfOneLayer(QProgToMatrix& parent, SequenceLayer& layer, const QProgDAG<GateNodeInfo>& prog_dag, std::vector<int> &qubits_in_use);
+		MatrixOfOneLayer(QProgToMatrix& parent, SeqLayer<SequenceNode>& layer,
+			const QProgDAG<GateNodeInfo>& prog_dag, std::vector<int> &qubits_in_use);
 		void merge_double_gate();
 		void merge_calc_unit();
 		void merge_controled_gate();
@@ -54,8 +56,8 @@ class QProgToMatrix
 	friend class MatrixOfOneLayer;
 
 public:
-	QProgToMatrix(QProg& p)
-		:m_prog(p)
+	QProgToMatrix(QProg& p, const bool b_bid_endian = false)
+		:m_prog(p), m_b_bid_endian(b_bid_endian)
 	{
 		m_qvm.init();
 	}
@@ -71,17 +73,18 @@ public:
 
 	/**
 	* @brief calc the matrix of nodes in one layer
-	* @param[in] SequenceLayer&  layer nodes
+	* @param[in] SeqLayer<SequenceNode>&  layer nodes
 	* @param[in] QProgDAG&  DAG algorithm object
 	* @return qmatrix_t the matrix of the layer
 	*/
-	qmatrix_t get_matrix_of_one_layer(SequenceLayer& layer, const QProgDAG<GateNodeInfo>& prog_dag);
+	qmatrix_t get_matrix_of_one_layer(SeqLayer<SequenceNode>& layer, const QProgDAG<GateNodeInfo>& prog_dag);
 
 protected:
 	QVec& allocate_qubits(const size_t cnt);
 
 private:
 	QProg& m_prog;
+	const bool m_b_bid_endian;
 	std::vector<int> m_qubits_in_use;
 	CPUQVM m_qvm; 
 	QVec m_allocate_qubits;

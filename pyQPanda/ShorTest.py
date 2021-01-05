@@ -42,8 +42,7 @@ def MAJ(a, b, c):
     circ.insert(CNOT(c,a))
     circ.insert(Toffoli(a, b, c))
 
-    return circ
-	
+    return circ	
 # def Adder(a, b, c):
 #     circuit = CreateEmptyCircuit()
 #     nbit = len(a)

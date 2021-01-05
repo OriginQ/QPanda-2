@@ -30,12 +30,14 @@ struct QCircuitConfig
 };
 
 /**
-* @brief QPU implementation by  MPS model
+* @brief QPU implementation by MPS model
 * @ingroup VirtualQuantumProcessor
 */
 class MPSImplQPU : public QPUImpl
 {
 public:
+
+    size_t get_qubit_num() { return m_qubits_num; }
 
 	bool qubitMeasure(size_t qn);
 
@@ -43,14 +45,16 @@ public:
 
 	QError initState(size_t head_rank, size_t rank_size, size_t qubit_num);
 
-	void initState(const MPSImplQPU &other);
+    void initState(const MPSImplQPU &other);
+
+    QError initState(size_t qubit_num, const QStat &state = {});
 
 	/**
 	* @brief  init state from matrix
-	* @param[in]  size_t  number of qubits
+	* @param[in]  size_t number of qubits
 	* @param[in]  cmatrix_t  matrix
 	*/
-	void initState_from_matrix(size_t num_qubits, const cmatrix_t mat);
+    void initState_from_matrix(size_t num_qubits, const cmatrix_t &mat);
 
 	/**
 	* @brief  unitary single qubit gate
@@ -240,13 +244,21 @@ public:
 
     void unitaryQubitGate(Qnum qubits, QStat matrix, bool isConjugate);
 
+    qcomplex_t pmeasure_bin_index(std::string str);
+
+    qcomplex_t pmeasure_dec_index(std::string str);
+
 private:
+    
+    QStat m_init_state;
 
 	Qnum m_qubits_order;  /**< sstores the current ordering of the qubitsr.   */
 	
 	Qnum m_qubits_location; /**< stores the location of each qubit in the vector.   */
 
 	size_t m_qubits_num;   /**< number of qubits.   */
+
+public:
 
 	std::vector<MPS_Tensor> m_qubits_tensor;  /**< the tensor of qubits.   */
 

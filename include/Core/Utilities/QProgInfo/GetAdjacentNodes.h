@@ -194,7 +194,7 @@ public:
 		{
 			return std::string("Null");
 		}
-		return get_node_type_str(m_back_node.m_itr); 
+		return get_node_type_str(m_back_node.m_iter); 
 	}
 
 	std::string get_front_node_type_str() {
@@ -202,7 +202,7 @@ public:
 		{
 			return std::string("Null");
 		}
-		return get_node_type_str(m_front_node.m_itr);
+		return get_node_type_str(m_front_node.m_iter);
 	}
 
 	static bool is_sub_prog_node(const std::shared_ptr<QNode> &node) {
@@ -232,11 +232,11 @@ protected:
 	void _update_node_info(NodeInfo& node_info, const NodeIter &itr, const QCircuitParam &cir_param) {
 		if (nullptr == itr.getPCur())
 		{
-			node_info.clear();
+			node_info.reset();
 			return;
 		}
 
-		node_info.m_itr = itr;
+		node_info.m_iter = itr;
 		std::shared_ptr<QNode> p_node = *itr;
 		node_info.m_node_type = p_node->getNodeType();
 		if (GATE_NODE == node_info.m_node_type)
@@ -244,7 +244,7 @@ protected:
 			auto p_gate = std::dynamic_pointer_cast<AbstractQGateNode>(p_node);
 			node_info.m_gate_type = (GateType)(p_gate->getQGate()->getGateType());
 			node_info.m_is_dagger = p_gate->isDagger() ^ (cir_param.m_is_dagger);
-			p_gate->getQuBitVector(node_info.m_qubits);
+			p_gate->getQuBitVector(node_info.m_target_qubits);
 			p_gate->getControlVector(node_info.m_control_qubits);
 		}
 		else if (CIRCUIT_NODE == node_info.m_node_type)
@@ -256,17 +256,17 @@ protected:
 		else if (MEASURE_GATE == node_info.m_node_type)
 		{
 			auto p_measure = std::dynamic_pointer_cast<AbstractQuantumMeasure>(p_node);
-			node_info.m_qubits.push_back(p_measure->getQuBit());
+			node_info.m_target_qubits.push_back(p_measure->getQuBit());
 		}
 		else if (RESET_NODE == node_info.m_node_type)
 		{
 			auto p_reset = std::dynamic_pointer_cast<AbstractQuantumReset>(p_node);
-			node_info.m_qubits.push_back(p_reset->getQuBit());
+			node_info.m_target_qubits.push_back(p_reset->getQuBit());
 		}
 	}
 
 private:
-	QProg &m_prog;
+	QProg m_prog;
 	const NodeIter m_target_node_itr;
 	NodeInfo m_front_node;
 	NodeIter m_cur_iter;

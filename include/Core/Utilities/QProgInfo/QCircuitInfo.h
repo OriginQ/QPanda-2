@@ -34,6 +34,7 @@ QPANDA_BEGIN
 class NodeInfo
 {
 public:
+
 	/**
 	* @brief Constructor of NodeInfo
 	*/
@@ -43,24 +44,35 @@ public:
 		, m_is_dagger(false)
 	{}
 
-	/**
-	* @brief clear the node information
-	*/
-	void clear() {
-		m_itr = NodeIter();
-		m_node_type = NODE_UNDEFINED;
-		m_gate_type = GATE_UNDEFINED;
-		m_is_dagger = false;
-		m_qubits.clear();
-		m_control_qubits.clear();
+	NodeInfo(const NodeIter iter, QVec target_qubits, QVec control_qubits,
+		int type, const bool dagger)
+		:m_iter(iter), m_target_qubits(target_qubits), m_control_qubits(control_qubits)
+		, m_is_dagger(dagger), m_node_type(NODE_UNDEFINED), m_gate_type(GATE_UNDEFINED)
+	{
+		if (nullptr != iter.getPCur())
+		{
+			init(type, target_qubits, control_qubits);
+		}
 	}
 
-	NodeIter m_itr;       /**< the NodeIter of the node */
-	NodeType m_node_type; /**< the node type */
-	GateType m_gate_type; /**< the gate type (if the node type is gate_node) */
-	bool m_is_dagger;     /**< dagger information */
-	QVec m_qubits;        /**< Quantum bits of current node */
-	QVec m_control_qubits;/**< control Quantum bits */
+	/**
+	* @brief reset the node information
+	*/
+	virtual void reset();
+
+private:
+	virtual void init(const int type, const QVec& target_qubits, const QVec& control_qubits);
+
+public:
+	NodeIter m_iter;                 /**< the NodeIter of the node */
+	NodeType m_node_type;            /**< the node type */
+	GateType m_gate_type;            /**< the gate type (if the node type is gate_node) */
+	bool m_is_dagger;                /**< dagger information */
+	QVec m_target_qubits;            /**< Quantum bits of current node. */
+	QVec m_control_qubits;           /**< control Quantum bits. */
+	std::vector<int> m_cbits;
+	std::vector<double> m_params;
+	std::string m_name;
 };
 
 /**
@@ -119,12 +131,7 @@ public:
 			return QVec();
 		}
 
-		auto sort_fun = [](Qubit*a, Qubit* b) {return a->getPhysicalQubitPtr()->getQubitAddr() < b->getPhysicalQubitPtr()->getQubitAddr(); };
-		std::sort(append_qubits.begin(), append_qubits.end(), sort_fun);
-		std::sort(target_qubits.begin(), target_qubits.end(), sort_fun);
-
-		QVec result_vec;
-		set_difference(append_qubits.begin(), append_qubits.end(), target_qubits.begin(), target_qubits.end(), std::back_inserter(result_vec));
+		QVec result_vec = append_qubits - target_qubits;
 		return result_vec;
 	}
 
@@ -425,12 +432,14 @@ bool isSupportedGateType(const NodeIter &nodeItr);
 /**
 * @brief  get the target matrix between the input two Nodeiters
 * @ingroup Utilities
+* @param[in] const bool Qubit order mark of output matrix, 
+             true for positive sequence(Bid Endian), false for inverted order(Little Endian), default is false
 * @param[in] nodeItrStart the start NodeIter
 * @param[in] nodeItrEnd the end NodeIter
 * @return the target matrix include all the QGate's matrix (multiply).
 * @see
 */
-QStat getCircuitMatrix(QProg srcProg, const NodeIter nodeItrStart = NodeIter(), const NodeIter nodeItrEnd = NodeIter());
+QStat getCircuitMatrix(QProg srcProg, const bool b_bid_endian = false, const NodeIter nodeItrStart = NodeIter(), const NodeIter nodeItrEnd = NodeIter());
 
 /**
 * @brief  pick up the nodes of srcProg between nodeItrStart and  nodeItrEnd to outPutProg
@@ -451,7 +460,7 @@ void pickUpNode(QProg &outPutProg, QProg srcProg, const std::vector<NodeType> re
 * @ingroup Utilities
 * @param[in] prog  the input prog
 * @param[out] vecQuBitsInUse The vector of used quantum bits, sorted from small to large;
-* @return return the size of used qubits
+* @return return the size of used qubits,sorted by physical address, in descending order
 */
 size_t get_all_used_qubits(QProg prog, std::vector<int> &vecQuBitsInUse);
 size_t get_all_used_qubits(QProg prog, QVec &vecQuBitsInUse);

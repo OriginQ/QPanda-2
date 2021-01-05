@@ -29,7 +29,7 @@ limitations under the License.
 #include "QAlg/ArithmeticUnit/ArithmeticUnit.h"
 #include "QAlg/HHL/HHL.h"
 #include "QAlg/Base_QCircuit/QPE.h"
-#include "QAlg/Base_QCircuit/QFT.h"
+#include "QAlg/Base_QCircuit/base_circuit.h"
 #include "QAlg/Base_QCircuit/AmplitudeEncode.h"
 #include "QAlg/QARM/QARMAlgorithm.h"
 #include "QAlg/QSVM/QSVMAlgorithm.h"

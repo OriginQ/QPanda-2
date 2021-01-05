@@ -10,16 +10,9 @@ QCircuit QPanda::build_coin_circuit(QVec &coin_qubits, QVec &index_qubits, QCirc
 	QCircuit coin_cir = QCircuit();
 	auto coin_h_cir = apply_QGate(coin_qubits, H);
 
-	/*cir_mark.setControl(coin_qubits);
+	cir_mark.setControl(coin_qubits);
 	QCircuit mark_cir;
-	mark_cir << apply_QGate(coin_qubits, X) << cir_mark << apply_QGate(coin_qubits, X);*/
-
-	QCircuit test_cir_mark;
-	test_cir_mark << U1(coin_qubits.back(), PI / 2.0);
-	QVec conttt(coin_qubits.begin(), coin_qubits.end() - 1);
-	test_cir_mark.setControl(conttt);
-	QCircuit mark_cir;
-	mark_cir << apply_QGate(coin_qubits, X) << test_cir_mark << apply_QGate(coin_qubits, X);
+	mark_cir << apply_QGate(coin_qubits, X) << cir_mark << apply_QGate(coin_qubits, X);
 
 	const size_t coin_qubits_size = coin_qubits.size();
 	if (coin_qubits_size != index_qubits.size())
@@ -51,7 +44,8 @@ QProg QPanda::quantum_walk_alg(QCircuit cir_oracle,
 	quantum_walk_prog << circuit_prepare;
 
 	//anclilla qubits
-	quantum_walk_prog << X(ancilla_qubits.front()) << H(ancilla_qubits.front()) << X(ancilla_qubits.back());
+	//quantum_walk_prog << X(ancilla_qubits.front()) << H(ancilla_qubits.front()) << X(ancilla_qubits.back());
+	quantum_walk_prog << X(ancilla_qubits.back()) << H(ancilla_qubits.back());
 
 	//repeat oracle
 	for (size_t i = 0; i < repeat; ++i)

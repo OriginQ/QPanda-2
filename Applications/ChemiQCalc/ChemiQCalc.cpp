@@ -7,22 +7,22 @@ USING_QPANDA
 
 int main(int argc, char* argv[])
 {
-    std::string molecules = "H 0 0 0,H 0 0 0.74";
+    std::string molecules = "H 0 0 0,H 0 0 0.7";
     int charge = 0;
     int multiplicity = 1;
-    UccType ucctype = UccType::UCCS;
+    UccType ucctype = UccType::UCCSD;
     TransFormType transform_type = TransFormType::Jordan_Wigner;
     char* basis = "sto-3g";
     double eq_tolerance = 1e-8;
     char* datadir = "./data/";
-    char* psi4dir = "";
+    char* psi4dir = "D:/ChemiQ/ChemiQ/";
     OptimizerType optimizer_type = OptimizerType::NELDER_MEAD;
     int iters = 1000;
     int fcalls = 0;
     double xatol = 1e-4;
     double fatol = 1e-4;
     double evolution_time = 1.0;
-    int slices = 3;
+    int slices = 1;
     double learning_rate = 0.2;
     bool get_qubits = false;
 
@@ -192,6 +192,8 @@ int main(int argc, char* argv[])
     chemiq.setLearningRate(learning_rate);
     chemiq.setSaveDataDir(datadir);
     chemiq.setQuantumMachineType(machine_type);
+    //chemiq.setToGetHamiltonianFromFile(true);
+    //chemiq.setHamiltonianGenerationOnly(true);
 
     if (get_qubits)
     {
@@ -210,6 +212,12 @@ int main(int argc, char* argv[])
         if (!chemiq.exec())
         {
             std::cout << chemiq.getLastError() << std::endl;
+        }
+
+        auto energies = chemiq.getEnergies();
+        for (auto& i : energies)
+        {
+            printf("%0.18lf\n", i);
         }
 
         chemiq.finalize();

@@ -383,7 +383,15 @@ QStat QPanda::dagger_c(const QStat &src_mat)
 	return tmp_mat;
 }
 
-string QPanda::matrix_to_string(const QStat& mat)
+static std::string double_to_string(const double d, const int precision = 8)
+{
+	std::ostringstream stream;
+	stream.precision(precision);
+	stream << d;
+	return stream.str();
+}
+
+string QPanda::matrix_to_string(const QStat& mat, const int precision /*= 8*/)
 {
 	int rows = 0;
 	int columns = 0;
@@ -402,7 +410,7 @@ string QPanda::matrix_to_string(const QStat& mat)
 		for (size_t i = 0; i < rows; i++)
 		{
 			index = i * columns + j;
-			snprintf(output_buf, sizeof(output_buf), "(%-g, %-g)", mat[index].real(), mat[index].imag());
+			snprintf(output_buf, sizeof(output_buf), "(%-s, %-s)", double_to_string(mat[index].real(), precision).c_str(), double_to_string(mat[index].imag(), precision).c_str());
 			const auto tmp_len = strlen(output_buf);
 			if (tmp_len > tmp_max_width)
 			{
@@ -419,7 +427,7 @@ string QPanda::matrix_to_string(const QStat& mat)
 			std::string output_str;
 			memset(output_buf, 0, sizeof(output_buf));
 			index = i * columns + j;
-			snprintf(output_buf, sizeof(output_buf), "(%g, %g)", mat[index].real(), mat[index].imag());
+			snprintf(output_buf, sizeof(output_buf), "(%s, %s)", double_to_string(mat[index].real(), precision).c_str(), double_to_string(mat[index].imag(), precision).c_str());
 			size_t valLen = strlen(output_buf);
 			for (size_t m = 0; m < (columns_width_vec[j] - valLen + 2); ++m)
 			{
@@ -514,14 +522,28 @@ QStat QPanda::Eigen_to_QStat(const EigenMatrixXc& eigen_mat)
 
 bool QPanda::is_unitary_matrix(const QStat &circuit_matrix, const double precision /*= 0.000001*/)
 {
-	double difference = 0.0;
+	//double difference = 0.0;
 	size_t matrix_dimension = sqrt(circuit_matrix.size());
 	QStat tmp_matrix_dagger = dagger_c(circuit_matrix);
-
-	double trace = 0.0;
-	for (size_t i = 0; i < matrix_dimension; i++)
+	const auto tmp_mat = tmp_matrix_dagger * circuit_matrix;
+	//cout << "tmp_mat = " << tmp_mat << endl;
+	QStat mat_I(circuit_matrix.size(), 0);
+	for (size_t i = 0; i < matrix_dimension; ++i)
 	{
-		for (size_t j = 0; j < matrix_dimension; j++)
+		mat_I[i*matrix_dimension + i] = 1;
+	}
+
+	if (tmp_mat == mat_I)
+	{
+		return true;
+	}
+
+	return false;
+
+	/*double trace = 0.0;
+	for (size_t i = 0; i < matrix_dimension; ++i)
+	{
+		for (size_t j = 0; j < matrix_dimension; ++j)
 		{
 			trace += (tmp_matrix_dagger[i*matrix_dimension + j] * circuit_matrix[j*matrix_dimension + i]).real();
 		}
@@ -529,5 +551,5 @@ bool QPanda::is_unitary_matrix(const QStat &circuit_matrix, const double precisi
 
 	difference = abs(1 - pow(trace / ((double)matrix_dimension), 2));
 
-	return (difference < precision);
+	return (difference < precision);*/
 }

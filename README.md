@@ -13,7 +13,7 @@ QPanda 2作为本源量子计算系列软件的基础库，为QRunes、Qurator�
 
 | C++ 文档         | Python 文档 |
 |-------------------------|-----------------|
- | [![Documentation Status](https://readthedocs.org/projects/qpanda-toturial/badge/?version=latest)](https://qpanda-toturial.readthedocs.io/zh/latest/?badge=latest)      | [![Documentation Status](https://readthedocs.org/projects/pyqpanda-toturial/badge/?version=latest)](https://pyqpanda-toturial.readthedocs.io/zh/latest/?badge=latest)    
+ | [![Documentation Status](https://readthedocs.org/projects/qpanda-tutorial/badge/?version=latest)](https://qpanda-toturial.readthedocs.io/zh/latest/?badge=latest)      | [![Documentation Status](https://readthedocs.org/projects/pyqpanda-toturial/badge/?version=latest)](https://pyqpanda-toturial.readthedocs.io/zh/latest/?badge=latest)    
 
 ## 安装
 ### Python 3.5-3.7

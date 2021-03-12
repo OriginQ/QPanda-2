@@ -65,4 +65,4 @@ QPanda由本源量子开发，本源量子致力于量子计算机的研发与�
  ## License
  Apache License 2.0
 
- Copyright (c) 2017-2019 By Origin Quantum Computing. All Right Reserved.
+ Copyright (c) 2017-2021 By Origin Quantum Computing. All Right Reserved.

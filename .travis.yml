@@ -25,4 +25,3 @@ before_script:
   - cmake . ${TRAVIS_BUILD_DIR}
   - make clean
   - make
-script: ./bin/HHL_Algorithm

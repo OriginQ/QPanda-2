@@ -56,7 +56,7 @@ The design of **QPanda 2** is forward-looking, considering that quantum computin
 
 ## Installation and configuration
 
--   **[See Documentation！](https://qpanda-2.readthedocs.io/zh_CN/latest/Tutorial.html)**
+-   **[See Documentation！](https://qpanda-tutorial.readthedocs.io/zh/latest/)**
 
  ## License
  Apache License 2.0

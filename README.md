@@ -23,7 +23,7 @@ QPanda 2作为本源量子计算系列软件的基础库，为QRunes、Qurator�
     
 ### Python 其他版本和C++
 
-如果要使用Python 3的其他版本，或者直接通过C++ API进行量子编程，建议直接从源码进行编译。内容参见[使用文档](https://qpanda-toturial.readthedocs.io/zh/latest/)
+如果要使用Python 3的其他版本，或者直接通过C++ API进行量子编程，建议直接从源码进行编译。内容参见[使用文档](https://qpanda-tutorial.readthedocs.io/zh/latest/)
 
 ### 验证安装
 下面的例子可以在量子计算机中构建量子纠缠态(|00>+|11>)，对其进行测量，重复制备1000次。预期的结果是约有50%的概率使测量结果分别在00或11上。

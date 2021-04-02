@@ -13,17 +13,17 @@ QPanda 2作为本源量子计算系列软件的基础库，为QRunes、Qurator�
 
 | C++ 文档         | Python 文档 |
 |-------------------------|-----------------|
- | [![Documentation Status](https://readthedocs.org/projects/qpanda-toturial/badge/?version=latest)](https://qpanda-toturial.readthedocs.io/zh/latest/?badge=latest)      | [![Documentation Status](https://readthedocs.org/projects/pyqpanda-toturial/badge/?version=latest)](https://pyqpanda-toturial.readthedocs.io/zh/latest/?badge=latest)    
+ | [![Documentation Status](https://readthedocs.org/projects/qpanda-tutorial/badge/?version=latest)](https://qpanda-toturial.readthedocs.io/zh/latest/?badge=latest)      | [![Documentation Status](https://readthedocs.org/projects/pyqpanda-toturial/badge/?version=latest)](https://pyqpanda-toturial.readthedocs.io/zh/latest/?badge=latest)    
 
 ## 安装
-### Python 3.5-3.7
+### Python 3.6-3.8
 通过pip进行安装：
 
     pip install pyqpanda
     
 ### Python 其他版本和C++
 
-如果要使用Python 3的其他版本，或者直接通过C++ API进行量子编程，建议直接从源码进行编译。内容参见[使用文档](https://qpanda-toturial.readthedocs.io/zh/latest/)
+如果要使用Python 3的其他版本，或者直接通过C++ API进行量子编程，建议直接从源码进行编译。内容参见[使用文档](https://qpanda-tutorial.readthedocs.io/zh/latest/)
 
 ### 验证安装
 下面的例子可以在量子计算机中构建量子纠缠态(|00>+|11>)，对其进行测量，重复制备1000次。预期的结果是约有50%的概率使测量结果分别在00或11上。

@@ -7,7 +7,7 @@
 QPanda (**Q**uantum **P**rogramming **A**rchitecture for **N**ISQ **D**evice **A**pplications) is a library for quantum computing which can be applied for realizing various quantum algorithms. QPanda is mainly written in C++, and can be extended to Python.
 
 ## Documentation
-Documentation is hosted at https://qpanda-2.readthedocs.io/zh_CN/latest/
+Documentation is hosted at https://qpanda-tutorial.readthedocs.io/zh/latest/
 
 ## Build your first quantum program with QPanda
 
@@ -56,7 +56,7 @@ The design of **QPanda 2** is forward-looking, considering that quantum computin
 
 ## Installation and configuration
 
--   **[See Documentation！](https://qpanda-2.readthedocs.io/zh_CN/latest/Tutorial.html)**
+-   **[See Documentation！](https://qpanda-tutorial.readthedocs.io/zh/latest/)**
 
  ## License
  Apache License 2.0

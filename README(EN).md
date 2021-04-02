@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/OriginQ/QPanda-2.svg?branch=master)](https://travis-ci.org/OriginQ/QPanda-2)
-[![Documentation Status](https://readthedocs.org/projects/qpanda-2/badge/?version=latest)](https://qpanda-2.readthedocs.io/zh_CN/latest/?badge=latest)
+[![Documentation Status](https://readthedocs.org/projects/qpanda-2/badge/?version=latest)](https://qpanda-tutorial.readthedocs.io/zh/latest/)
 
 ## QPanda 2
 

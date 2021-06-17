@@ -33,8 +33,8 @@ QPANDA_BEGIN
 
 #define CONFIG_PATH  "QPandaConfig.json"
 #define QCIRCUIT_OPTIMIZER ("QCircuitOptimizer")
-#define VIRTUAL_Z_CONFIG ("Metadata")
-#define QUBIT_ADJACENT_MATRIX ("QubitAdjacentMatrix")
+#define VIRTUAL_Z_CONFIG ("QuantumChipArch")
+#define QUBIT_ADJACENT_MATRIX ("adj")
 #define HIGH_FREQUENCY_QUBIT ("HighFrequencyQubit")
 #define COMPENSATE_ANGLE ("CompensateAngle")
 
@@ -131,6 +131,7 @@ private:
 	QGate build_double_gate(std::string gate_name, QVec qubits);
 	QGate build_double_ratation_gate(std::string gate_name, QVec qubits, double angle);
 	double angle_str_to_double(const std::string angle_str);
+	double get_angle(const rapidjson::Value& jv);
 
 private:
 	JsonConfigParam m_config_file;
@@ -168,6 +169,16 @@ protected:
 private:
 	JsonConfigParam m_config_reader;
 	std::string m_json_content;
+};
+
+class QCircuitGenerator;
+struct QCircuitConfigReader {
+	QCircuitConfigReader(const rapidjson::Value& circuit_config, QCircuitGenerator& cir_generator);
+	
+	void read_cir();
+
+	const rapidjson::Value& m_circuit_config;
+	QCircuitGenerator& m_cir_generator;
 };
 
 QPANDA_END

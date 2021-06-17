@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 #include "QPanda.h"
-
+using namespace std;
 static bool test_func_1()
 {
 	std::vector<double> row1 = { 7.55151, 0.58003, 1 };

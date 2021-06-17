@@ -9,8 +9,8 @@ using namespace DRAW_TEXT_PIC;
 
 #define PRINT_TRACE 0
 
-DrawQProg::DrawQProg(QProg &prg, const NodeIter node_itr_start, const NodeIter node_itr_end)
-	: m_p_text(nullptr)
+DrawQProg::DrawQProg(QProg &prg, const NodeIter node_itr_start, const NodeIter node_itr_end, bool b_out_put_to_file /*= false*/)
+	: m_p_text(nullptr), m_b_out_put_to_file(b_out_put_to_file)
 {
 	pickUpNode(m_prog, prg, {},
 		node_itr_start == NodeIter() ? prg.getFirstNodeIter() : node_itr_start,
@@ -34,7 +34,7 @@ DrawQProg::~DrawQProg()
 	}
 }
 
-string DrawQProg::textDraw(const TEXT_PIC_TYPE t, const std::string config_data /*= CONFIG_PATH*/)
+string DrawQProg::textDraw(const TEXT_PIC_TYPE t, uint32_t length /*= 100*/, const std::string config_data /*= CONFIG_PATH*/)
 {
 	/*Do some preparations*/
 	if (m_quantum_bits_in_use.size() == 0)
@@ -49,9 +49,16 @@ string DrawQProg::textDraw(const TEXT_PIC_TYPE t, const std::string config_data 
 		m_p_text = nullptr;
 	}
 
-	m_layer_info = prog_layer(m_prog);
+	if (t == LAYER)
+	{
+		m_layer_info = prog_layer(m_prog);
+	}
+	else if (t == TIME_SEQUENCE)
+	{
+		m_layer_info = get_clock_layer(m_prog, config_data);
+	}
 
-	m_p_text = new(std::nothrow) DrawPicture(m_prog, m_layer_info);
+	m_p_text = new(std::nothrow) DrawPicture(m_prog, m_layer_info, length);
 	if (nullptr == m_p_text)
 	{
 		QCERR_AND_THROW(runtime_error, "Memory error, failed to create DrawPicture obj.");
@@ -72,7 +79,7 @@ string DrawQProg::textDraw(const TEXT_PIC_TYPE t, const std::string config_data 
 		throw runtime_error("Unknow text-pic type, failed to draw Text-Pic.");
 	}
 	
-	string outputStr = m_p_text->present();
+	string outputStr = m_p_text->present(m_b_out_put_to_file);
 
 	delete m_p_text;
 	m_p_text = nullptr;

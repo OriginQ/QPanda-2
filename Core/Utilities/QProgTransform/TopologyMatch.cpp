@@ -1,5 +1,4 @@
 #include "Core/Utilities/QProgTransform/TopologyMatch.h"
-#include "Core/Utilities/Tools/JsonConfigParam.h"
 #include "Core/Utilities/QProgInfo/QuantumMetadata.h"
 #include "Core/Utilities/QProgInfo/QCircuitInfo.h"
 
@@ -10,12 +9,6 @@ using namespace QGATE_SPACE;
 #define DUMMY_SWAP_GATE  -2
 
 #define PRINTF_MAPPING_RESULT 0 
-
-
-static QGate iSWAPGateNotheta(Qubit * targitBit_fisrt, Qubit * targitBit_second)
-{
-	return iSWAP(targitBit_fisrt, targitBit_second);
-}
 
 
 bool TopologyMatch::isContains(std::vector<int> v, int e)
@@ -50,7 +43,8 @@ bool TopologyMatch::isReversed(std::set<edge> graph, edge det_edge)
 	}
 }
 
-TopologyMatch::TopologyMatch(QuantumMachine * machine, QProg prog, SwapQubitsMethod method, ArchType arch_type)
+TopologyMatch::TopologyMatch(QuantumMachine * machine, QProg prog, SwapQubitsMethod method, 
+	ArchType arch_type, const std::string conf /*= CONFIG_PATH*/)
 	:m_prog(prog)
 {
 	m_nqubits = machine->getAllocateQubit();
@@ -63,7 +57,7 @@ TopologyMatch::TopologyMatch(QuantumMachine * machine, QProg prog, SwapQubitsMet
 		throw runtime_error("ERROR before mapping: more logical qubits than physical ones!");
 	}
 
-	QuantumMetadata metaData(CONFIG_PATH);
+	QuantumMetadata metaData(conf);
 	std::vector<std::string> single_gates_vec, double_gates_vec;
 	metaData.getQGate(single_gates_vec, double_gates_vec);
 	bool b_suppert_swap = false;
@@ -111,27 +105,31 @@ TopologyMatch::TopologyMatch(QuantumMachine * machine, QProg prog, SwapQubitsMet
 	m_gate_dist_map.insert(make_pair(GateType::CPHASE_GATE, dist));
 	m_gate_dist_map.insert(make_pair(GateType::CU_GATE, dist));
 
-	m_singleGateFunc.insert(make_pair(GateType::PAULI_X_GATE, X));
-	m_singleGateFunc.insert(make_pair(GateType::PAULI_Y_GATE, Y));
-	m_singleGateFunc.insert(make_pair(GateType::PAULI_Z_GATE, Z));
-	m_singleGateFunc.insert(make_pair(GateType::X_HALF_PI, X1));
-	m_singleGateFunc.insert(make_pair(GateType::Y_HALF_PI, Y1));
-	m_singleGateFunc.insert(make_pair(GateType::Z_HALF_PI, Z1));
-	m_singleGateFunc.insert(make_pair(GateType::HADAMARD_GATE, H));
-	m_singleGateFunc.insert(make_pair(GateType::T_GATE, T));
-	m_singleGateFunc.insert(make_pair(GateType::S_GATE, S));
+	typedef QGate(*gate_f1)(Qubit*);
+	m_singleGateFunc.insert(make_pair(GateType::PAULI_X_GATE, (gate_f1)X));
+	m_singleGateFunc.insert(make_pair(GateType::PAULI_Y_GATE, (gate_f1)Y));
+	m_singleGateFunc.insert(make_pair(GateType::PAULI_Z_GATE, (gate_f1)Z));
+	m_singleGateFunc.insert(make_pair(GateType::X_HALF_PI, (gate_f1)X1));
+	m_singleGateFunc.insert(make_pair(GateType::Y_HALF_PI, (gate_f1)Y1));
+	m_singleGateFunc.insert(make_pair(GateType::Z_HALF_PI, (gate_f1)Z1));
+	m_singleGateFunc.insert(make_pair(GateType::HADAMARD_GATE, (gate_f1)H));
+	m_singleGateFunc.insert(make_pair(GateType::T_GATE, (gate_f1)T));
+	m_singleGateFunc.insert(make_pair(GateType::S_GATE, (gate_f1)S));
 
-	m_singleAngleGateFunc.insert(make_pair(GateType::RX_GATE, RX));
-	m_singleAngleGateFunc.insert(make_pair(GateType::RY_GATE, RY));
-	m_singleAngleGateFunc.insert(make_pair(GateType::RZ_GATE, RZ));
-	m_singleAngleGateFunc.insert(make_pair(GateType::U1_GATE, U1));
+	typedef QGate(*gate_f2)(Qubit*, double);
+	m_singleAngleGateFunc.insert(make_pair(GateType::RX_GATE, (gate_f2)RX));
+	m_singleAngleGateFunc.insert(make_pair(GateType::RY_GATE, (gate_f2)RY));
+	m_singleAngleGateFunc.insert(make_pair(GateType::RZ_GATE, (gate_f2)RZ));
+	m_singleAngleGateFunc.insert(make_pair(GateType::U1_GATE, (gate_f2)U1));
 
-	m_doubleGateFunc.insert(make_pair(GateType::CNOT_GATE, CNOT));
-	m_doubleGateFunc.insert(make_pair(GateType::CZ_GATE, CZ));
-	m_doubleGateFunc.insert(make_pair(GateType::ISWAP_GATE, iSWAPGateNotheta));
-	m_doubleGateFunc.insert(make_pair(GateType::SQISWAP_GATE, SqiSWAP));
+	typedef QGate(*gate_f3)(Qubit*, Qubit*);
+	m_doubleGateFunc.insert(make_pair(GateType::CNOT_GATE, (gate_f3)CNOT));
+	m_doubleGateFunc.insert(make_pair(GateType::CZ_GATE, (gate_f3)CZ));
+	m_doubleGateFunc.insert(make_pair(GateType::ISWAP_GATE, (gate_f3)iSWAP));
+	m_doubleGateFunc.insert(make_pair(GateType::SQISWAP_GATE, (gate_f3)SqiSWAP));
 
-	m_doubleAngleGateFunc.insert(make_pair(GateType::CPHASE_GATE, CR));
+	typedef QGate(*gate_f4)(Qubit*, Qubit*, double);
+	m_doubleAngleGateFunc.insert(make_pair(GateType::CPHASE_GATE, (gate_f4)CR));
 }
 
 TopologyMatch::~TopologyMatch()
@@ -1311,7 +1309,8 @@ void TopologyMatch::execute(std::shared_ptr<AbstractClassicalProg>  cur_node, st
 }
 
 
-QProg QPanda::topology_match(QProg prog, QVec &qv, QuantumMachine * machine, SwapQubitsMethod method, ArchType arch_type)
+QProg QPanda::topology_match(QProg prog, QVec &qv, QuantumMachine * machine, SwapQubitsMethod method, 
+	ArchType arch_type, const std::string& conf /*= CONFIG_PATH*/)
 {
 	if (nullptr == machine)
 	{
@@ -1320,7 +1319,7 @@ QProg QPanda::topology_match(QProg prog, QVec &qv, QuantumMachine * machine, Swa
 	}
 
 	QProg outprog;
-	TopologyMatch match = TopologyMatch(machine, prog, method, arch_type);
+	TopologyMatch match = TopologyMatch(machine, prog, method, arch_type, conf);
 	match.mappingQProg(qv, outprog);
 	return outprog;
 }

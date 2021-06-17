@@ -40,7 +40,7 @@ INSTALL(TARGETS ${LIB_QALG}
 
 target_include_directories(${LIB_QALG} INTERFACE
                            $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-                           $<INSTALL_INTERFACE:include/qpanda-2>)
+                           $<INSTALL_INTERFACE:include/qpanda2>)
         
 export(TARGETS ${LIB_QALG}
        APPEND FILE ${PROJECT_BINARY_DIR}/qalg-target.cmake

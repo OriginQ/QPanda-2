@@ -24,7 +24,8 @@ static bool test_fun1()
 	qcomplex_t(-3.0 / 4.0, 0), qcomplex_t(-5.0 / 4.0, 0), qcomplex_t(-9.0 / 4.0, 0), qcomplex_t(15.0 / 4.0, 0)
 	};
 
-	std::vector<double> b = { 0.5, 0.5, 0.5, 0.5 };
+	//std::vector<double> b = { 0.5, 0.5, 0.5, 0.5 };
+	std::vector<double> b = { 1, 1, 1, 1 };
 
 	QStat result = HHL_solve_linear_equations(A, b);
 	int w = 0;
@@ -44,6 +45,10 @@ static bool test_fun1()
 	return true;
 }
 
+/**
+* @The HHL result:
+   [(0.867722,0), (0.433861,0), (0.21693,0), (0.108465,0)]
+*/
 static bool test_fun2()
 {
 	auto machine = initQuantumMachine(CPU);
@@ -52,10 +57,10 @@ static bool test_fun2()
 	auto prog = QProg();
 
 	QStat A = {
-	qcomplex_t(3.0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0),
-	qcomplex_t(0, 0), qcomplex_t(7.0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0),
+	qcomplex_t(1.0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0),
+	qcomplex_t(0, 0), qcomplex_t(2.0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0),
 	qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(4.0, 0), qcomplex_t(0, 0),
-	qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(2.0, 0)
+	qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(8.0, 0)
 	};
 
 	std::vector<double> b = { 0.5, 0.5, 0.5, 0.5 };
@@ -81,8 +86,6 @@ static bool test_fun2()
 static bool test_fun3()
 {
 	auto machine = initQuantumMachine(CPU);
-
-
 	auto prog = QProg();
 
 	QStat A = {
@@ -94,7 +97,7 @@ static bool test_fun3()
 
 	std::vector<double> b = { 0.5, 0.5, 0.5, 0.5 };
 
-	QStat result = HHL_solve_linear_equations(A, b);
+	QStat result = HHL_solve_linear_equations(A, b, 1);
 	int w = 0;
 	double coffe = sqrt(1);
 	for (auto &val : result)
@@ -353,19 +356,6 @@ static bool test_fun9()
 	auto prog = QProg();
 	QCircuit hhl_cir = build_HHL_circuit(A, tmp_b, machine);
 	prog << hhl_cir;
-	
-	QVec qv;
-	get_all_used_qubits(prog, qv);
-	cout << "befort mapp: " << qv.size() << endl;
-	quantum_chip_adapter(prog, machine, qv);
-	cout << "after mapp: " << qv.size() << endl;
-
-	size_t gate_num = getQGateNum(prog);
-	cout << "gate_num: " << gate_num << endl;
-	getchar();
-	auto seq = prog_layer(prog);
-	size_t layer_cnt = seq.size();
-	cout << "layer_cnt: " << layer_cnt << endl;
 
 	PTrace("HHL quantum circuit is running ...\n");
 	directlyRun(prog);
@@ -415,12 +405,47 @@ static bool test_fun9()
 	return true;
 }
 
+static bool test_fun10()
+{
+	auto machine = initQuantumMachine(CPU);
+	auto prog = QProg();
+
+	QStat A = {
+	  10,  -4,   1,   0,  -4,   0,   0,   0,
+      -4,  11,  -4,   1,   0,  -4,   0,   0,
+       1,  -4,  11,  -4,   0,   0,  -4,   0,
+       0,   1,  -4,  10,   0,   0,   0,  -4,
+      -4,   0,   0,   0,  10,  -4,   1,   0,
+       0,  -4,   0,   0,  -4,  11,  -4,   1,
+       0,   0,  -4,   0,   1,  -4,  11,  -4,
+       0,   0,   0,  -4,   0,   1,  -4,  14
+	};
+
+	std::vector<double> b = { 6587.2570531667, 89.6725401793, -47.1589126840, 6898.3749015014,
+	6406.4504474986, -13.1713639276, -88.1442430419, 15853.8611183183};
+
+	QStat result = HHL_solve_linear_equations(A, b, 2);
+	int w = 0;
+	for (auto &val : result)
+	{
+		std::cout << val << " ";
+		if (++w == 2)
+		{
+			w = 0;
+			std::cout << std::endl;
+		}
+	}
+	std::cout << std::endl;
+
+	return true;
+}
+
 TEST(HHL, test1)
 {
 	bool test_val = false;
 	try
 	{
-		test_val = test_fun1();
+		//test_val = test_fun1();
 		//test_val = test_fun2();
 		//test_val = test_fun3();
 		//test_val = test_fun4();
@@ -429,6 +454,7 @@ TEST(HHL, test1)
 		//test_val = test_fun7();
 		//test_val = test_fun8();
 		//test_val = test_fun9();
+		test_val = test_fun10();
 	}
 	catch (const std::exception& e)
 	{

@@ -385,7 +385,7 @@ namespace Variational {
 
         virtual bool set_control(QVec control_qubit)
         {
-            m_control_qubit.assign(control_qubit.begin(), control_qubit.end());
+            m_control_qubit.insert(m_control_qubit.end(),control_qubit.begin(), control_qubit.end());
             return true;
         }
 
@@ -454,7 +454,7 @@ namespace Variational {
         inline VariationalQuantumGate_H control(QVec qv)
         {
             auto temp = VariationalQuantumGate_H(*this);
-            temp.m_control_qubit.assign(qv.begin(), qv.end());
+            temp.m_control_qubit.insert(m_control_qubit.end(),qv.begin(), qv.end());
             return temp;
         }
     };
@@ -464,7 +464,11 @@ namespace Variational {
     private:
         Qubit* m_q;
     public:
-        explicit VariationalQuantumGate_X(Qubit* q);
+        explicit VariationalQuantumGate_X(Qubit* q)
+		{
+			m_q = q;
+		}
+
         VariationalQuantumGate_X(const VariationalQuantumGate_X & gate) :
             m_q(gate.m_q)
         {
@@ -473,12 +477,14 @@ namespace Variational {
             m_control_qubit = gate.m_control_qubit;
             m_is_dagger = gate.m_is_dagger;
         }
+
         inline QGate feed()
         {
             QGate x = X(m_q);
             copy_dagger_and_control_qubit(x);
             return x;
         }
+
         inline std::shared_ptr<VariationalQuantumGate> copy()
         {
             auto shared_ptr_x = std::make_shared<VariationalQuantumGate_X>(m_q);
@@ -496,10 +502,590 @@ namespace Variational {
         inline VariationalQuantumGate_X control(QVec qv)
         {
             auto temp = VariationalQuantumGate_X(*this);
-            temp.m_control_qubit.assign(qv.begin(), qv.end());
+            temp.m_control_qubit.insert(m_control_qubit.end(),qv.begin(), qv.end());
             return temp;
         }
     };
+
+	class VariationalQuantumGate_X1 : public VariationalQuantumGate
+	{
+	private:
+		Qubit* m_q;
+	public:
+		explicit VariationalQuantumGate_X1(Qubit* q)
+		{
+			m_q = q;
+		}
+
+		VariationalQuantumGate_X1(const VariationalQuantumGate_X1& gate) :
+			m_q(gate.m_q)
+		{
+			m_vars = gate.m_vars;
+			m_constants = gate.m_constants;
+			m_control_qubit = gate.m_control_qubit;
+			m_is_dagger = gate.m_is_dagger;
+		}
+
+		inline QGate feed()
+		{
+			QGate x1 = X1(m_q);
+			copy_dagger_and_control_qubit(x1);
+			return x1;
+		}
+
+		inline std::shared_ptr<VariationalQuantumGate> copy()
+		{
+			auto shared_ptr_x1 = std::make_shared<VariationalQuantumGate_X1>(m_q);
+			copy_dagger_and_control_qubit(shared_ptr_x1);
+			return shared_ptr_x1;
+		}
+
+		inline VariationalQuantumGate_X1 dagger()
+		{
+			auto temp = VariationalQuantumGate_X1(*this);
+			temp.m_is_dagger = temp.m_is_dagger ^ true;
+			return temp;
+		}
+
+		inline VariationalQuantumGate_X1 control(QVec qv)
+		{
+			auto temp = VariationalQuantumGate_X1(*this);
+			temp.m_control_qubit.insert(m_control_qubit.end(), qv.begin(), qv.end());
+			return temp;
+		}
+	};
+
+	class VariationalQuantumGate_Y : public VariationalQuantumGate
+	{
+	private:
+		Qubit* m_q;
+	public:
+		explicit VariationalQuantumGate_Y(Qubit* q)
+		{
+			m_q = q;
+		}
+
+        VariationalQuantumGate_Y(const VariationalQuantumGate_Y& gate) :
+			m_q(gate.m_q)
+		{
+			m_vars = gate.m_vars;
+			m_constants = gate.m_constants;
+			m_control_qubit = gate.m_control_qubit;
+			m_is_dagger = gate.m_is_dagger;
+		}
+
+		inline QGate feed()
+		{
+			QGate y = Y(m_q);
+			copy_dagger_and_control_qubit(y);
+			return y;
+		}
+
+		inline std::shared_ptr<VariationalQuantumGate> copy()
+		{
+			auto shared_ptr_y = std::make_shared<VariationalQuantumGate_Y>(m_q);
+			copy_dagger_and_control_qubit(shared_ptr_y);
+			return shared_ptr_y;
+		}
+
+		inline VariationalQuantumGate_Y dagger()
+		{
+			auto temp = VariationalQuantumGate_Y(*this);
+			temp.m_is_dagger = temp.m_is_dagger ^ true;
+			return temp;
+		}
+
+		inline VariationalQuantumGate_Y control(QVec qv)
+		{
+			auto temp = VariationalQuantumGate_Y(*this);
+			temp.m_control_qubit.insert(m_control_qubit.end(), qv.begin(), qv.end());
+			return temp;
+		}
+	};
+
+	class VariationalQuantumGate_Y1 : public VariationalQuantumGate
+	{
+	private:
+		Qubit* m_q;
+	public:
+		explicit VariationalQuantumGate_Y1(Qubit* q)
+		{
+			m_q = q;
+		}
+
+        VariationalQuantumGate_Y1(const VariationalQuantumGate_Y1& gate) :
+			m_q(gate.m_q)
+		{
+			m_vars = gate.m_vars;
+			m_constants = gate.m_constants;
+			m_control_qubit = gate.m_control_qubit;
+			m_is_dagger = gate.m_is_dagger;
+		}
+
+		inline QGate feed()
+		{
+			QGate gate = Y1(m_q);
+			copy_dagger_and_control_qubit(gate);
+			return gate;
+		}
+
+		inline std::shared_ptr<VariationalQuantumGate> copy()
+		{
+			auto shared_ptr_y1 = std::make_shared<VariationalQuantumGate_Y1>(m_q);
+			copy_dagger_and_control_qubit(shared_ptr_y1);
+			return shared_ptr_y1;
+		}
+
+		inline VariationalQuantumGate_Y1 dagger()
+		{
+			auto temp = VariationalQuantumGate_Y1(*this);
+			temp.m_is_dagger = temp.m_is_dagger ^ true;
+			return temp;
+		}
+
+		inline VariationalQuantumGate_Y1 control(QVec qv)
+		{
+			auto temp = VariationalQuantumGate_Y1(*this);
+			temp.m_control_qubit.insert(m_control_qubit.end(), qv.begin(), qv.end());
+			return temp;
+		}
+	};
+
+	class VariationalQuantumGate_Z : public VariationalQuantumGate
+	{
+	private:
+		Qubit* m_q;
+	public:
+		explicit VariationalQuantumGate_Z(Qubit* q)
+		{
+			m_q = q;
+		}
+
+        VariationalQuantumGate_Z(const VariationalQuantumGate_Z& gate) :
+			m_q(gate.m_q)
+		{
+			m_vars = gate.m_vars;
+			m_constants = gate.m_constants;
+			m_control_qubit = gate.m_control_qubit;
+			m_is_dagger = gate.m_is_dagger;
+		}
+
+		inline QGate feed()
+		{
+			QGate gate = Z(m_q);
+			copy_dagger_and_control_qubit(gate);
+			return gate;
+		}
+
+		inline std::shared_ptr<VariationalQuantumGate> copy()
+		{
+			auto shared_ptr_z = std::make_shared<VariationalQuantumGate_Z>(m_q);
+			copy_dagger_and_control_qubit(shared_ptr_z);
+			return shared_ptr_z;
+		}
+
+		inline VariationalQuantumGate_Z dagger()
+		{
+			auto temp = VariationalQuantumGate_Z(*this);
+			temp.m_is_dagger = temp.m_is_dagger ^ true;
+			return temp;
+		}
+
+		inline VariationalQuantumGate_Z control(QVec qv)
+		{
+			auto temp = VariationalQuantumGate_Z(*this);
+			temp.m_control_qubit.insert(m_control_qubit.end(), qv.begin(), qv.end());
+			return temp;
+		}
+	};
+
+	class VariationalQuantumGate_Z1 : public VariationalQuantumGate
+	{
+	private:
+		Qubit* m_q;
+	public:
+		explicit VariationalQuantumGate_Z1(Qubit* q)
+		{
+			m_q = q;
+		}
+
+        VariationalQuantumGate_Z1(const VariationalQuantumGate_Z1& gate) :
+			m_q(gate.m_q)
+		{
+			m_vars = gate.m_vars;
+			m_constants = gate.m_constants;
+			m_control_qubit = gate.m_control_qubit;
+			m_is_dagger = gate.m_is_dagger;
+		}
+
+		inline QGate feed()
+		{
+			QGate gate = Z1(m_q);
+			copy_dagger_and_control_qubit(gate);
+			return gate;
+		}
+
+		inline std::shared_ptr<VariationalQuantumGate> copy()
+		{
+			auto shared_ptr_z1 = std::make_shared<VariationalQuantumGate_Z1>(m_q);
+			copy_dagger_and_control_qubit(shared_ptr_z1);
+			return shared_ptr_z1;
+		}
+
+		inline VariationalQuantumGate_Z1 dagger()
+		{
+			auto temp = VariationalQuantumGate_Z1(*this);
+			temp.m_is_dagger = temp.m_is_dagger ^ true;
+			return temp;
+		}
+
+		inline VariationalQuantumGate_Z1 control(QVec qv)
+		{
+			auto temp = VariationalQuantumGate_Z1(*this);
+			temp.m_control_qubit.insert(m_control_qubit.end(), qv.begin(), qv.end());
+			return temp;
+		}
+	};
+
+	class VariationalQuantumGate_S : public VariationalQuantumGate
+	{
+	private:
+		Qubit* m_q;
+	public:
+		explicit VariationalQuantumGate_S(Qubit* q)
+		{
+			m_q = q;
+		}
+
+        VariationalQuantumGate_S(const VariationalQuantumGate_S& gate) :
+			m_q(gate.m_q)
+		{
+			m_vars = gate.m_vars;
+			m_constants = gate.m_constants;
+			m_control_qubit = gate.m_control_qubit;
+			m_is_dagger = gate.m_is_dagger;
+		}
+
+		inline QGate feed()
+		{
+			QGate gate = S(m_q);
+			copy_dagger_and_control_qubit(gate);
+			return gate;
+		}
+
+		inline std::shared_ptr<VariationalQuantumGate> copy()
+		{
+			auto shared_ptr_s = std::make_shared<VariationalQuantumGate_S>(m_q);
+			copy_dagger_and_control_qubit(shared_ptr_s);
+			return shared_ptr_s;
+		}
+
+		inline VariationalQuantumGate_S dagger()
+		{
+			auto temp = VariationalQuantumGate_S(*this);
+			temp.m_is_dagger = temp.m_is_dagger ^ true;
+			return temp;
+		}
+
+		inline VariationalQuantumGate_S control(QVec qv)
+		{
+			auto temp = VariationalQuantumGate_S(*this);
+			temp.m_control_qubit.insert(m_control_qubit.end(), qv.begin(), qv.end());
+			return temp;
+		}
+	};
+
+	class VariationalQuantumGate_T : public VariationalQuantumGate
+	{
+	private:
+		Qubit* m_q;
+	public:
+		explicit VariationalQuantumGate_T(Qubit* q)
+		{
+			m_q = q;
+		}
+
+        VariationalQuantumGate_T(const VariationalQuantumGate_T& gate) :
+			m_q(gate.m_q)
+		{
+			m_vars = gate.m_vars;
+			m_constants = gate.m_constants;
+			m_control_qubit = gate.m_control_qubit;
+			m_is_dagger = gate.m_is_dagger;
+		}
+
+		inline QGate feed()
+		{
+			QGate gate = T(m_q);
+			copy_dagger_and_control_qubit(gate);
+			return gate;
+		}
+
+		inline std::shared_ptr<VariationalQuantumGate> copy()
+		{
+			auto shared_ptr_t = std::make_shared<VariationalQuantumGate_T>(m_q);
+			copy_dagger_and_control_qubit(shared_ptr_t);
+			return shared_ptr_t;
+		}
+
+		inline VariationalQuantumGate_T dagger()
+		{
+			auto temp = VariationalQuantumGate_T(*this);
+			temp.m_is_dagger = temp.m_is_dagger ^ true;
+			return temp;
+		}
+
+		inline VariationalQuantumGate_T control(QVec qv)
+		{
+			auto temp = VariationalQuantumGate_T(*this);
+			temp.m_control_qubit.insert(m_control_qubit.end(), qv.begin(), qv.end());
+			return temp;
+		}
+	};
+
+	class VariationalQuantumGate_U1 : public VariationalQuantumGate
+	{
+	private:
+		Qubit* m_q;
+	public:
+		explicit VariationalQuantumGate_U1(Qubit*, var);
+		explicit VariationalQuantumGate_U1(Qubit*, double angle);
+        VariationalQuantumGate_U1(const VariationalQuantumGate_U1& gate) :
+			m_q(gate.m_q)
+		{
+			m_vars = gate.m_vars;
+			m_constants = gate.m_constants;
+			m_control_qubit = gate.m_control_qubit;
+			m_is_dagger = gate.m_is_dagger;
+		}
+		QGate feed();
+		QGate feed(std::map<size_t, double>);
+		inline std::shared_ptr<VariationalQuantumGate> copy()
+		{
+			if (m_vars.size() == 0)
+			{
+				auto shared_ptr_u1 = std::make_shared<VariationalQuantumGate_U1>(m_q, m_constants[0]);
+				copy_dagger_and_control_qubit(shared_ptr_u1);
+				return shared_ptr_u1;
+			}
+			else
+			{
+				auto shared_ptr_u1 = std::make_shared<VariationalQuantumGate_U1>(m_q, m_vars[0]);
+				copy_dagger_and_control_qubit(shared_ptr_u1);
+				return shared_ptr_u1;
+			}
+		}
+
+		inline VariationalQuantumGate_U1 dagger()
+		{
+			auto temp = VariationalQuantumGate_U1(*this);
+			temp.m_is_dagger = temp.m_is_dagger ^ true;
+			return temp;
+		}
+
+		inline VariationalQuantumGate_U1 control(QVec qv)
+		{
+			auto temp = VariationalQuantumGate_U1(*this);
+			temp.m_control_qubit.insert(m_control_qubit.end(), qv.begin(), qv.end());
+			return temp;
+		}
+	};
+
+	class VariationalQuantumGate_U2 : public VariationalQuantumGate
+	{
+	private:
+		Qubit* m_q;
+	public:
+		explicit VariationalQuantumGate_U2(Qubit*, var, var);
+		explicit VariationalQuantumGate_U2(Qubit*, double, double);
+        VariationalQuantumGate_U2(const VariationalQuantumGate_U2& gate) :
+			m_q(gate.m_q)
+		{
+			m_vars = gate.m_vars;
+			m_constants = gate.m_constants;
+			m_control_qubit = gate.m_control_qubit;
+			m_is_dagger = gate.m_is_dagger;
+		}
+		QGate feed();
+		QGate feed(std::map<size_t, double>);
+		inline std::shared_ptr<VariationalQuantumGate> copy()
+		{
+			if (m_vars.size() == 0)
+			{
+				auto shared_ptr_u2 = std::make_shared<VariationalQuantumGate_U2>(m_q, m_constants[0], m_constants[1]);
+				copy_dagger_and_control_qubit(shared_ptr_u2);
+				return shared_ptr_u2;
+			}
+			else
+			{
+				auto shared_ptr_u2 = std::make_shared<VariationalQuantumGate_U2>(m_q, m_vars[0], m_vars[1]);
+				copy_dagger_and_control_qubit(shared_ptr_u2);
+				return shared_ptr_u2;
+			}
+		}
+
+		inline VariationalQuantumGate_U2 dagger()
+		{
+			auto temp = VariationalQuantumGate_U2(*this);
+			temp.m_is_dagger = temp.m_is_dagger ^ true;
+			return temp;
+		}
+
+		inline VariationalQuantumGate_U2 control(QVec qv)
+		{
+			auto temp = VariationalQuantumGate_U2(*this);
+			temp.m_control_qubit.insert(m_control_qubit.end(), qv.begin(), qv.end());
+			return temp;
+		}
+	};
+
+	class VariationalQuantumGate_RPhi : public VariationalQuantumGate
+	{
+	private:
+		Qubit* m_q;
+	public:
+		explicit VariationalQuantumGate_RPhi(Qubit*, var, var);
+		explicit VariationalQuantumGate_RPhi(Qubit*, double, double);
+        VariationalQuantumGate_RPhi(const VariationalQuantumGate_RPhi& gate) :
+			m_q(gate.m_q)
+		{
+			m_vars = gate.m_vars;
+			m_constants = gate.m_constants;
+			m_control_qubit = gate.m_control_qubit;
+			m_is_dagger = gate.m_is_dagger;
+		}
+		QGate feed();
+		QGate feed(std::map<size_t, double>);
+		inline std::shared_ptr<VariationalQuantumGate> copy()
+		{
+			if (m_vars.size() == 0)
+			{
+				auto shared_ptr_u2 = std::make_shared<VariationalQuantumGate_RPhi>(m_q, m_constants[0], m_constants[1]);
+				copy_dagger_and_control_qubit(shared_ptr_u2);
+				return shared_ptr_u2;
+			}
+			else
+			{
+				auto shared_ptr_u2 = std::make_shared<VariationalQuantumGate_RPhi>(m_q, m_vars[0], m_vars[1]);
+				copy_dagger_and_control_qubit(shared_ptr_u2);
+				return shared_ptr_u2;
+			}
+		}
+
+		inline VariationalQuantumGate_RPhi dagger()
+		{
+			auto temp = VariationalQuantumGate_RPhi(*this);
+			temp.m_is_dagger = temp.m_is_dagger ^ true;
+			return temp;
+		}
+
+		inline VariationalQuantumGate_RPhi control(QVec qv)
+		{
+			auto temp = VariationalQuantumGate_RPhi(*this);
+			temp.m_control_qubit.insert(m_control_qubit.end(), qv.begin(), qv.end());
+			return temp;
+		}
+	};
+
+	class VariationalQuantumGate_U3 : public VariationalQuantumGate
+	{
+	private:
+		Qubit* m_q;
+	public:
+		explicit VariationalQuantumGate_U3(Qubit*, var, var, var);
+        explicit VariationalQuantumGate_U3(Qubit*, double, double, double);
+        VariationalQuantumGate_U3(const VariationalQuantumGate_U3& gate) :
+			m_q(gate.m_q)
+		{
+			m_vars = gate.m_vars;
+			m_constants = gate.m_constants;
+			m_control_qubit = gate.m_control_qubit;
+			m_is_dagger = gate.m_is_dagger;
+		}
+		QGate feed();
+		QGate feed(std::map<size_t, double>);
+		inline std::shared_ptr<VariationalQuantumGate> copy()
+		{
+			if (m_vars.size() == 0)
+			{
+				auto shared_ptr_u3 = std::make_shared<VariationalQuantumGate_U3>\
+                    (m_q, m_constants[0], m_constants[1], m_constants[2]);
+				copy_dagger_and_control_qubit(shared_ptr_u3);
+				return shared_ptr_u3;
+			}
+			else
+			{
+				auto shared_ptr_u3 = std::make_shared<VariationalQuantumGate_U3>\
+                    (m_q, m_vars[0], m_vars[1], m_vars[2]);
+				copy_dagger_and_control_qubit(shared_ptr_u3);
+				return shared_ptr_u3;
+			}
+		}
+
+		inline VariationalQuantumGate_U3 dagger()
+		{
+			auto temp = VariationalQuantumGate_U3(*this);
+			temp.m_is_dagger = temp.m_is_dagger ^ true;
+			return temp;
+		}
+
+		inline VariationalQuantumGate_U3 control(QVec qv)
+		{
+			auto temp = VariationalQuantumGate_U3(*this);
+			temp.m_control_qubit.insert(m_control_qubit.end(), qv.begin(), qv.end());
+			return temp;
+		}
+	};
+	
+    class VariationalQuantumGate_U4 : public VariationalQuantumGate
+	{
+	private:
+		Qubit* m_q;
+	public:
+		explicit VariationalQuantumGate_U4(Qubit*, var, var, var, var);
+		explicit VariationalQuantumGate_U4(Qubit*, double, double, double, double);
+        VariationalQuantumGate_U4(const VariationalQuantumGate_U4& gate) :
+			m_q(gate.m_q)
+		{
+			m_vars = gate.m_vars;
+			m_constants = gate.m_constants;
+			m_control_qubit = gate.m_control_qubit;
+			m_is_dagger = gate.m_is_dagger;
+		}
+		QGate feed();
+		QGate feed(std::map<size_t, double>);
+		inline std::shared_ptr<VariationalQuantumGate> copy()
+		{
+			if (m_vars.size() == 0)
+			{
+				auto shared_ptr_u4 = std::make_shared<VariationalQuantumGate_U4>\
+                    (m_q, m_constants[0], m_constants[1], m_constants[2], m_constants[3]);
+				copy_dagger_and_control_qubit(shared_ptr_u4);
+				return shared_ptr_u4;
+			}
+			else
+			{
+				auto shared_ptr_u4 = std::make_shared<VariationalQuantumGate_U4>\
+                    (m_q, m_vars[0], m_vars[1], m_vars[2], m_vars[3]);
+				copy_dagger_and_control_qubit(shared_ptr_u4);
+				return shared_ptr_u4;
+			}
+		}
+
+		inline VariationalQuantumGate_U4 dagger()
+		{
+			auto temp = VariationalQuantumGate_U4(*this);
+			temp.m_is_dagger = temp.m_is_dagger ^ true;
+			return temp;
+		}
+
+		inline VariationalQuantumGate_U4 control(QVec qv)
+		{
+			auto temp = VariationalQuantumGate_U4(*this);
+			temp.m_control_qubit.insert(m_control_qubit.end(), qv.begin(), qv.end());
+			return temp;
+		}
+	};
 
     class VariationalQuantumGate_RX : public VariationalQuantumGate
     {
@@ -544,7 +1130,7 @@ namespace Variational {
         inline VariationalQuantumGate_RX control(QVec qv)
         {
             auto temp = VariationalQuantumGate_RX(*this);
-            temp.m_control_qubit.assign(qv.begin(), qv.end());
+			temp.m_control_qubit.insert(m_control_qubit.end(), qv.begin(), qv.end());
             return temp;
         }
     };
@@ -592,7 +1178,7 @@ namespace Variational {
         inline VariationalQuantumGate_RY control(QVec qv)
         {
             auto temp = VariationalQuantumGate_RY(*this);
-            temp.m_control_qubit.assign(qv.begin(), qv.end());
+			temp.m_control_qubit.insert(m_control_qubit.end(), qv.begin(), qv.end());
             return temp;
         }
     };
@@ -640,10 +1226,11 @@ namespace Variational {
         inline VariationalQuantumGate_RZ control(QVec qv)
         {
             auto temp = VariationalQuantumGate_RZ(*this);
-            temp.m_control_qubit.assign(qv.begin(), qv.end());
+			temp.m_control_qubit.insert(m_control_qubit.end(), qv.begin(), qv.end());
             return temp;
         }
     };
+   
     class VariationalQuantumGate_CRX : public VariationalQuantumGate
     {
     private:
@@ -682,10 +1269,11 @@ namespace Variational {
         inline VariationalQuantumGate_CRX control(QVec qv)
         {
             auto temp = VariationalQuantumGate_CRX(*this);
-            temp.m_control_qubit.assign(qv.begin(), qv.end());
+			temp.m_control_qubit.insert(m_control_qubit.end(), qv.begin(), qv.end());
             return temp;
         }
     };
+    
     class VariationalQuantumGate_CRY : public VariationalQuantumGate
     {
     private:
@@ -722,10 +1310,11 @@ namespace Variational {
         inline VariationalQuantumGate_CRY control(QVec qv)
         {
             auto temp = VariationalQuantumGate_CRY(*this);
-            temp.m_control_qubit.assign(qv.begin(), qv.end());
+			temp.m_control_qubit.insert(m_control_qubit.end(), qv.begin(), qv.end());
             return temp;
         }
     };
+    
     class VariationalQuantumGate_CRZ : public VariationalQuantumGate
     {
     private:
@@ -763,10 +1352,11 @@ namespace Variational {
         inline VariationalQuantumGate_CRZ control(QVec qv)
         {
             auto temp = VariationalQuantumGate_CRZ(*this);
-            temp.m_control_qubit.assign(qv.begin(), qv.end());
+			temp.m_control_qubit.insert(m_control_qubit.end(), qv.begin(), qv.end());
             return temp;
         }
     };
+    
     class VariationalQuantumGate_CZ : public VariationalQuantumGate
     {
     private:
@@ -810,48 +1400,289 @@ namespace Variational {
         }
     };
 
-    class VariationalQuantumGate_CNOT : public VariationalQuantumGate
-    {
-    private:
-        Qubit* m_q1;
-        Qubit* m_q2;
-    public:
-        explicit VariationalQuantumGate_CNOT(Qubit*, Qubit*);
-        VariationalQuantumGate_CNOT(const VariationalQuantumGate_CNOT & gate) :
-            m_q1(gate.m_q1), m_q2(gate.m_q2)
-        {
-            m_vars = gate.m_vars;
-            m_constants = gate.m_constants;
-            m_control_qubit = gate.m_control_qubit;
-            m_is_dagger = gate.m_is_dagger;
-        }
-        inline QGate feed()
-        {
-            auto cnot = CNOT(m_q1, m_q2);
-            copy_dagger_and_control_qubit(cnot);
-            return cnot;
-        }
-        inline std::shared_ptr<VariationalQuantumGate> copy()
-        {
-            auto shared_ptr_cnot = std::make_shared<VariationalQuantumGate_CNOT>(m_q1, m_q2);
-            copy_dagger_and_control_qubit(shared_ptr_cnot);
-            return shared_ptr_cnot;
-        }
+	class VariationalQuantumGate_CNOT : public VariationalQuantumGate
+	{
+	private:
+		Qubit* m_q1;
+		Qubit* m_q2;
+	public:
+		explicit VariationalQuantumGate_CNOT(Qubit*, Qubit*);
+		VariationalQuantumGate_CNOT(const VariationalQuantumGate_CNOT& gate) :
+			m_q1(gate.m_q1), m_q2(gate.m_q2)
+		{
+			m_vars = gate.m_vars;
+			m_constants = gate.m_constants;
+			m_control_qubit = gate.m_control_qubit;
+			m_is_dagger = gate.m_is_dagger;
+		}
+		inline QGate feed()
+		{
+			auto cnot = CNOT(m_q1, m_q2);
+			copy_dagger_and_control_qubit(cnot);
+			return cnot;
+		}
+		inline std::shared_ptr<VariationalQuantumGate> copy()
+		{
+			auto shared_ptr_cnot = std::make_shared<VariationalQuantumGate_CNOT>(m_q1, m_q2);
+			copy_dagger_and_control_qubit(shared_ptr_cnot);
+			return shared_ptr_cnot;
+		}
 
-        inline VariationalQuantumGate_CNOT dagger()
-        {
-            auto temp = VariationalQuantumGate_CNOT(*this);
-            temp.m_is_dagger = temp.m_is_dagger ^ true;
-            return temp;
-        }
+		inline VariationalQuantumGate_CNOT dagger()
+		{
+			auto temp = VariationalQuantumGate_CNOT(*this);
+			temp.m_is_dagger = temp.m_is_dagger ^ true;
+			return temp;
+		}
 
-        inline VariationalQuantumGate_CNOT control(QVec qv)
-        {
-            auto temp = VariationalQuantumGate_CNOT(*this);
-            temp.m_control_qubit.assign(qv.begin(), qv.end());
-            return temp;
-        }
-    };
+		inline VariationalQuantumGate_CNOT control(QVec qv)
+		{
+			auto temp = VariationalQuantumGate_CNOT(*this);
+			temp.m_control_qubit.assign(qv.begin(), qv.end());
+			return temp;
+		}
+	};
+
+	class VariationalQuantumGate_SWAP : public VariationalQuantumGate
+	{
+	private:
+		Qubit* m_q1;
+		Qubit* m_q2;
+	public:
+		explicit VariationalQuantumGate_SWAP(Qubit* q1, Qubit* q2)
+			:m_q1(q1), m_q2(q2)
+		{}
+
+        VariationalQuantumGate_SWAP(const VariationalQuantumGate_SWAP& gate) :
+			m_q1(gate.m_q1), m_q2(gate.m_q2)
+		{
+			m_vars = gate.m_vars;
+			m_constants = gate.m_constants;
+			m_control_qubit = gate.m_control_qubit;
+			m_is_dagger = gate.m_is_dagger;
+		}
+		inline QGate feed()
+		{
+			auto gate = SWAP(m_q1, m_q2);
+			copy_dagger_and_control_qubit(gate);
+			return gate;
+		}
+		inline std::shared_ptr<VariationalQuantumGate> copy()
+		{
+			auto shared_ptr_swap = std::make_shared<VariationalQuantumGate_SWAP>(m_q1, m_q2);
+			copy_dagger_and_control_qubit(shared_ptr_swap);
+			return shared_ptr_swap;
+		}
+
+		inline VariationalQuantumGate_SWAP dagger()
+		{
+			auto temp = VariationalQuantumGate_SWAP(*this);
+			temp.m_is_dagger = temp.m_is_dagger ^ true;
+			return temp;
+		}
+
+		inline VariationalQuantumGate_SWAP control(QVec qv)
+		{
+			auto temp = VariationalQuantumGate_SWAP(*this);
+			temp.m_control_qubit.assign(qv.begin(), qv.end());
+			return temp;
+		}
+	};
+
+	class VariationalQuantumGate_iSWAP : public VariationalQuantumGate
+	{
+	private:
+		Qubit* m_q1;
+		Qubit* m_q2;
+	public:
+		explicit VariationalQuantumGate_iSWAP(Qubit* q1, Qubit* q2)
+			:m_q1(q1), m_q2(q2)
+		{}
+
+        VariationalQuantumGate_iSWAP(const VariationalQuantumGate_iSWAP& gate) :
+			m_q1(gate.m_q1), m_q2(gate.m_q2)
+		{
+			m_vars = gate.m_vars;
+			m_constants = gate.m_constants;
+			m_control_qubit = gate.m_control_qubit;
+			m_is_dagger = gate.m_is_dagger;
+		}
+		inline QGate feed()
+		{
+			auto gate = iSWAP(m_q1, m_q2);
+			copy_dagger_and_control_qubit(gate);
+			return gate;
+		}
+		inline std::shared_ptr<VariationalQuantumGate> copy()
+		{
+			auto shared_ptr_iswap = std::make_shared<VariationalQuantumGate_iSWAP>(m_q1, m_q2);
+			copy_dagger_and_control_qubit(shared_ptr_iswap);
+			return shared_ptr_iswap;
+		}
+
+		inline VariationalQuantumGate_iSWAP dagger()
+		{
+			auto temp = VariationalQuantumGate_iSWAP(*this);
+			temp.m_is_dagger = temp.m_is_dagger ^ true;
+			return temp;
+		}
+
+		inline VariationalQuantumGate_iSWAP control(QVec qv)
+		{
+			auto temp = VariationalQuantumGate_iSWAP(*this);
+			temp.m_control_qubit.assign(qv.begin(), qv.end());
+			return temp;
+		}
+	};
+
+	class VariationalQuantumGate_SqiSWAP : public VariationalQuantumGate
+	{
+	private:
+		Qubit* m_q1;
+		Qubit* m_q2;
+	public:
+		explicit VariationalQuantumGate_SqiSWAP(Qubit* q1, Qubit* q2)
+			:m_q1(q1), m_q2(q2)
+		{}
+
+        VariationalQuantumGate_SqiSWAP(const VariationalQuantumGate_SqiSWAP& gate) :
+			m_q1(gate.m_q1), m_q2(gate.m_q2)
+		{
+			m_vars = gate.m_vars;
+			m_constants = gate.m_constants;
+			m_control_qubit = gate.m_control_qubit;
+			m_is_dagger = gate.m_is_dagger;
+		}
+		inline QGate feed()
+		{
+			auto gate = SqiSWAP(m_q1, m_q2);
+			copy_dagger_and_control_qubit(gate);
+			return gate;
+		}
+		inline std::shared_ptr<VariationalQuantumGate> copy()
+		{
+			auto shared_ptr_iswap = std::make_shared<VariationalQuantumGate_SqiSWAP>(m_q1, m_q2);
+			copy_dagger_and_control_qubit(shared_ptr_iswap);
+			return shared_ptr_iswap;
+		}
+
+		inline VariationalQuantumGate_SqiSWAP dagger()
+		{
+			auto temp = VariationalQuantumGate_SqiSWAP(*this);
+			temp.m_is_dagger = temp.m_is_dagger ^ true;
+			return temp;
+		}
+
+		inline VariationalQuantumGate_SqiSWAP control(QVec qv)
+		{
+			auto temp = VariationalQuantumGate_SqiSWAP(*this);
+			temp.m_control_qubit.assign(qv.begin(), qv.end());
+			return temp;
+		}
+	};
+
+	class VariationalQuantumGate_CR : public VariationalQuantumGate
+	{
+	private:
+		Qubit* m_q1;
+		Qubit* m_q2;
+	public:
+        explicit VariationalQuantumGate_CR(Qubit*, Qubit*, var);
+        explicit VariationalQuantumGate_CR(Qubit*, Qubit*, double);
+
+        VariationalQuantumGate_CR(const VariationalQuantumGate_CR& gate) :
+			m_q1(gate.m_q1), m_q2(gate.m_q2)
+		{
+			m_vars = gate.m_vars;
+			m_constants = gate.m_constants;
+			m_control_qubit = gate.m_control_qubit;
+			m_is_dagger = gate.m_is_dagger;
+		}
+		inline QGate feed();
+		QGate feed(std::map<size_t, double>);
+
+		inline std::shared_ptr<VariationalQuantumGate> copy()
+		{
+			if (m_vars.size() == 0)
+			{
+				auto shared_ptr_cr= std::make_shared<VariationalQuantumGate_CR>(m_q1, m_q2, m_constants[0]);
+				copy_dagger_and_control_qubit(shared_ptr_cr);
+				return shared_ptr_cr;
+			}
+			else
+			{
+				auto shared_ptr_cr = std::make_shared<VariationalQuantumGate_CRX>(m_q1, m_q2, m_vars[0]);
+				copy_dagger_and_control_qubit(shared_ptr_cr);
+				return shared_ptr_cr;
+			}
+		}
+
+		inline VariationalQuantumGate_CR dagger()
+		{
+			auto temp = VariationalQuantumGate_CR(*this);
+			temp.m_is_dagger = temp.m_is_dagger ^ true;
+			return temp;
+		}
+
+		inline VariationalQuantumGate_CR control(QVec qv)
+		{
+			auto temp = VariationalQuantumGate_CR(*this);
+			temp.m_control_qubit.assign(qv.begin(), qv.end());
+			return temp;
+		}
+	};
+
+	class VariationalQuantumGate_CU : public VariationalQuantumGate
+	{
+	private:
+		Qubit* m_q1;
+		Qubit* m_q2;
+	public:
+		explicit VariationalQuantumGate_CU(Qubit*, Qubit*, var, var, var, var);
+		explicit VariationalQuantumGate_CU(Qubit*, Qubit*, double, double, double, double);
+
+		VariationalQuantumGate_CU(const VariationalQuantumGate_CU& gate) :
+			m_q1(gate.m_q1), m_q2(gate.m_q2)
+		{
+			m_vars = gate.m_vars;
+			m_constants = gate.m_constants;
+			m_control_qubit = gate.m_control_qubit;
+			m_is_dagger = gate.m_is_dagger;
+		}
+		QGate feed();
+		QGate feed(std::map<size_t, double>);
+		inline std::shared_ptr<VariationalQuantumGate> copy()
+		{
+			if (m_vars.size() == 0)
+			{
+				auto shared_ptr_cu = std::make_shared<VariationalQuantumGate_CU>\
+					(m_q1, m_q2, m_constants[0], m_constants[1], m_constants[2], m_constants[3]);
+				copy_dagger_and_control_qubit(shared_ptr_cu);
+				return shared_ptr_cu;
+			}
+			else
+			{
+				auto shared_ptr_cu = std::make_shared<VariationalQuantumGate_CU>\
+					(m_q1, m_q2, m_vars[0], m_vars[1], m_vars[2], m_vars[3]);
+				copy_dagger_and_control_qubit(shared_ptr_cu);
+				return shared_ptr_cu;
+			}
+		}
+
+		inline VariationalQuantumGate_CU dagger()
+		{
+			auto temp = VariationalQuantumGate_CU(*this);
+			temp.m_is_dagger = temp.m_is_dagger ^ true;
+			return temp;
+		}
+
+		inline VariationalQuantumGate_CU control(QVec qv)
+		{
+			auto temp = VariationalQuantumGate_CU(*this);
+			temp.m_control_qubit.assign(qv.begin(), qv.end());
+			return temp;
+		}
+	};
 
     class VariationalQuantumCircuit
     {
@@ -918,7 +1749,7 @@ namespace Variational {
         inline VariationalQuantumCircuit control(QVec qv)
         {
             auto temp = VariationalQuantumCircuit(*this);
-            temp.m_control_qubit.assign(qv.begin(), qv.end());
+			temp.m_control_qubit.insert(m_control_qubit.end(), qv.begin(), qv.end());
             return temp;
         }
     private:
@@ -955,15 +1786,35 @@ namespace Variational {
 
     typedef VariationalQuantumGate_H VQG_H;
     typedef VariationalQuantumGate_X VQG_X;
+	typedef VariationalQuantumGate_X1 VQG_X1;
+	typedef VariationalQuantumGate_Y VQG_Y;
+	typedef VariationalQuantumGate_Y1 VQG_Y1;
+	typedef VariationalQuantumGate_Z VQG_Z;
+	typedef VariationalQuantumGate_Z1 VQG_Z1;
+	typedef VariationalQuantumGate_S VQG_S;
+	typedef VariationalQuantumGate_T VQG_T;
+	typedef VariationalQuantumGate_U1 VQG_U1;
     typedef VariationalQuantumGate_RX VQG_RX;
     typedef VariationalQuantumGate_RY VQG_RY;
     typedef VariationalQuantumGate_RZ VQG_RZ;
+
+	typedef VariationalQuantumGate_U2 VQG_U2;
+	typedef VariationalQuantumGate_RPhi VQG_RPhi;
+	typedef VariationalQuantumGate_U3 VQG_U3;
+	typedef VariationalQuantumGate_U4 VQG_U4;
+
     typedef VariationalQuantumGate_CNOT VQG_CNOT;
     typedef VariationalQuantumGate_CZ VQG_CZ;
+	typedef VariationalQuantumGate_SWAP VQG_SWAP;
+	typedef VariationalQuantumGate_iSWAP VQG_iSWAP;
+	typedef VariationalQuantumGate_SqiSWAP VQG_SqiSWAP;
+    
+	typedef VariationalQuantumGate_CR VQG_CR;
+	typedef VariationalQuantumGate_CU VQG_CU;
+
     typedef VariationalQuantumGate_CRX VQG_CRX;
     typedef VariationalQuantumGate_CRY VQG_CRY;
     typedef VariationalQuantumGate_CRZ VQG_CRZ;
-
 
     typedef VariationalQuantumGate VQG;
     typedef VariationalQuantumCircuit VQC;

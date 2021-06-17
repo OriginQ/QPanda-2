@@ -53,6 +53,10 @@ public:
 	}
 
 	bool append(Task task) {
+		if (!m_init_ok){
+			QCERR_AND_THROW(run_fail, "Error: Failed to append task, please initialize the threadPool first.");
+		}
+
 		m_queue_mutex.lock();
 		m_tasks_queue.push(task);
 		m_queue_mutex.unlock();

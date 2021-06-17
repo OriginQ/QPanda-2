@@ -23,6 +23,7 @@ limitations under the License.
 #include <iostream>
 #include <vector>
 
+
 #ifndef SQ2
 #define SQ2 (1 / 1.4142135623731)
 #endif
@@ -117,131 +118,39 @@ DECL_ANGLE_GATE_MATRIX(RZ_GATE)
 class CPUImplQPU : public QPUImpl
 {
 public:
-    vQParam qubit2stat;
-    vQParam init_qubit2stat;
-    QGateParam & findgroup(size_t qn);
     CPUImplQPU();
-    CPUImplQPU(size_t);
+    CPUImplQPU(size_t qubit_num);
     ~CPUImplQPU();
 
-    inline bool TensorProduct(QGateParam& qgroup0, QGateParam& qgroup1)
-    {
-        if (qgroup0.qVec[0] == qgroup1.qVec[0])
-        {
-            return false;
-        }
-        size_t length_0 = qgroup0.qstate.size();
-        size_t length_1 = qgroup1.qstate.size();
-
-        int index = 0;
-        QStat new_state;
-        new_state.resize(length_0 * length_1);
-#pragma omp parallel for  private(index)
-        for (int i = 0; i < length_1; i++)
-        {
-            for (int j = 0; j < length_0; j++)
-            {
-                index = i * length_0 + j;
-                new_state[index] = qgroup0.qstate[j] * qgroup1.qstate[i];
-            }
-        }
-        qgroup0.qstate = new_state;
-        qgroup0.qVec.insert(qgroup0.qVec.end(), qgroup1.qVec.begin(), qgroup1.qVec.end());
-        qgroup1.enable = false;
-        return true;
-    }
-
     template<const qcomplex_t& U00, const qcomplex_t& U01, const qcomplex_t& U10, const qcomplex_t& U11>
-    QError single_gate(size_t qn, bool isConjugate, double error_rate)
+    QError single_gate(size_t qn, bool is_dagger, double error_rate)
     {
-        qcomplex_t alpha;
-        qcomplex_t beta;
-        QGateParam& qgroup = findgroup(qn);
-        size_t j;
-        size_t ststep = 1ull << find(qgroup.qVec.begin(), qgroup.qVec.end(), qn) - qgroup.qVec.begin();
-        qcomplex_t C00 = U00;
-        qcomplex_t C01 = U01;
-        qcomplex_t C10 = U10;
-        qcomplex_t C11 = U11;
-        if (isConjugate)
-        {
-            qcomplex_t temp;
-            C00 = qcomplex_t(C00.real(), -C00.imag());
-            C01 = qcomplex_t(C01.real(), -C01.imag());
-            C10 = qcomplex_t(C10.real(), -C10.imag());
-            C11 = qcomplex_t(C11.real(), -C11.imag());
-            temp = C01;;
-            C01 = U10;
-            C10 = temp;
-        }
-        //#pragma omp parallel for private(j,alpha,beta)
-        for (size_t i = 0; i < qgroup.qstate.size(); i += ststep * 2)
-        {
-            for (j = i; j < i + ststep; j++)
-            {
-                alpha = qgroup.qstate[j];
-                beta = qgroup.qstate[j + ststep];
-                qgroup.qstate[j] = C00 * alpha + C01 * beta;         /* in j,the goal qubit is in |0>        */
-                qgroup.qstate[j + ststep] = C10 * alpha + C11 * beta;         /* in j+ststep,the goal qubit is in |1> */
-            }
-        }
+        QStat matrix = { U00, U01, U10, U11 };
+        _single_qubit_normal_unitary(qn, matrix, is_dagger);
+
         return qErrorNone;
     }
 
 
-    QError U1_GATE(size_t qn, double theta, bool isConjugate, double error_rate)
+    QError U1_GATE(size_t qn, double theta, bool is_dagger, double error_rate)
     {
-        QGateParam& qgroup = findgroup(qn);
-        size_t ststep = 1ull << find(qgroup.qVec.begin(), qgroup.qVec.end(), qn) - qgroup.qVec.begin();
-        qcomplex_t C00 = (1, 0);
-        qcomplex_t C01 = (0, 0);
-        qcomplex_t C10 = (0, 0);
-        qcomplex_t C11 = isConjugate ? qcomplex_t(cos(-theta), sin(-theta)) : qcomplex_t(cos(theta), sin(theta));
-        for (size_t i = 0; i < qgroup.qstate.size(); i += ststep * 2)
-        {
-            for (size_t j = i; j < i + ststep; ++j)
-            {
-                qgroup.qstate[j + ststep] = C11 * qgroup.qstate[j + ststep];
-            }
-        }
+        QStat matrix = { 1, 0, 0, qcomplex_t(cos(theta),sin(theta)) };
+        _U1(qn, matrix, is_dagger);
         return qErrorNone;
     }
 
 
     template<const double& Nx, const double& Ny, const double& Nz>
-    QError single_angle_gate(size_t qn, double theta, bool isConjugate, double error_rate)
+    QError single_angle_gate(size_t qn, double theta, bool is_dagger, double error_rate)
     {
-        qcomplex_t alpha;
-        qcomplex_t beta;
         qcomplex_t U00(cos(theta / 2), -sin(theta / 2)*Nz);
         qcomplex_t U01(-sin(theta / 2)*Ny, -sin(theta / 2)*Nx);
         qcomplex_t U10(sin(theta / 2)*Ny, -sin(theta / 2)*Nx);
         qcomplex_t U11(cos(theta / 2), sin(theta / 2)*Nz);
-        if (isConjugate)
-        {
-            qcomplex_t temp;
-            U00 = qcomplex_t(U00.real(), -U00.imag());
-            U01 = qcomplex_t(U01.real(), -U01.imag());
-            U10 = qcomplex_t(U10.real(), -U10.imag());
-            U11 = qcomplex_t(U11.real(), -U11.imag());
-            temp = U01;
-            U01 = U10;
-            U10 = temp;
-        }
-        QGateParam& qgroup = findgroup(qn);
-        size_t j;
-        size_t ststep = 1ull << find(qgroup.qVec.begin(), qgroup.qVec.end(), qn) - qgroup.qVec.begin();
-        //#pragma omp parallel for private(j,alpha,beta)
-        for (size_t i = 0; i < qgroup.qstate.size(); i += ststep * 2)
-        {
-            for (j = i; j < i + ststep; j++)
-            {
-                alpha = qgroup.qstate[j];
-                beta = qgroup.qstate[j + ststep];
-                qgroup.qstate[j] = U00 * alpha + U01 * beta;         /* in j,the goal qubit is in |0>        */
-                qgroup.qstate[j + ststep] = U10 * alpha + U11 * beta;         /* in j+ststep,the goal qubit is in |1> */
-            }
-        }
+
+        QStat matrix = { U00, U01, U10, U11 };
+        _single_qubit_normal_unitary(qn, matrix, is_dagger);
+
         return qErrorNone;
     }
 
@@ -249,81 +158,16 @@ public:
     QError control_single_angle_gate(size_t qn,
         double theta,
         Qnum vControlBit,
-        bool isConjugate,
+        bool is_dagger,
         double error_rate)
     {
-        if (QPanda::RandomNumberGenerator() > error_rate)
-        {
-            QGateParam& qgroup0 = findgroup(qn);
-            for (auto iter = vControlBit.begin(); iter != vControlBit.end(); iter++)
-            {
-                TensorProduct(qgroup0, findgroup(*iter));
-            }
-            size_t M = 1ull << (qgroup0.qVec.size() - vControlBit.size());
-            size_t x;
+        qcomplex_t U00(cos(theta / 2), -sin(theta / 2)*Nz);
+        qcomplex_t U01(-sin(theta / 2)*Ny, -sin(theta / 2)*Nx);
+        qcomplex_t U10(sin(theta / 2)*Ny, -sin(theta / 2)*Nx);
+        qcomplex_t U11(cos(theta / 2), sin(theta / 2)*Nz);
 
-            size_t n = qgroup0.qVec.size();
-            size_t ststep = 1ull << (find(qgroup0.qVec.begin(), qgroup0.qVec.end(), qn)
-                - qgroup0.qVec.begin());
-            size_t index = 0;
-            size_t block = 0;
-
-            qcomplex_t alpha, beta;
-            qcomplex_t U00(cos(theta / 2), -sin(theta / 2)*Nz);
-            qcomplex_t U01(-sin(theta / 2)*Ny, -sin(theta / 2)*Nx);
-            qcomplex_t U10(sin(theta / 2)*Ny, -sin(theta / 2)*Nx);
-            qcomplex_t U11(cos(theta / 2), sin(theta / 2)*Nz);
-            if (isConjugate)
-            {
-                qcomplex_t temp;
-                U00 = qcomplex_t(U00.real(), -U00.imag());
-                U01 = qcomplex_t(U01.real(), -U01.imag());
-                U10 = qcomplex_t(U10.real(), -U10.imag());
-                U11 = qcomplex_t(U11.real(), -U11.imag());
-                temp = U01;
-                U01 = U10;
-                U10 = temp;
-            }
-            Qnum qvtemp;
-            for (auto iter = vControlBit.begin(); iter != vControlBit.end(); iter++)
-            {
-                size_t stemp = (find(qgroup0.qVec.begin(), qgroup0.qVec.end(), *iter)
-                    - qgroup0.qVec.begin());
-                block += 1ull << stemp;
-                qvtemp.push_back(stemp);
-            }
-            sort(qvtemp.begin(), qvtemp.end());
-            Qnum::iterator qiter;
-            size_t j;
-            //#pragma omp parallel for private(j,alpha,beta,index,x,qiter)
-            for (size_t i = 0; i < M; i++)
-            {
-                index = 0;
-                x = i;
-                qiter = qvtemp.begin();
-
-                for (j = 0; j < n; j++)
-                {
-                    while (qiter != qvtemp.end() && *qiter == j)
-                    {
-                        qiter++;
-                        j++;
-                    }
-                    //index += ((x % 2)*(1ull << j));
-                    index += ((x & 1) << j);
-                    x >>= 1;
-                }
-
-                /*
-                * control qubits are 1,target qubit is 0
-                */
-                index = index + block - ststep;
-                alpha = qgroup0.qstate[index];
-                beta = qgroup0.qstate[index + ststep];
-                qgroup0.qstate[index] = alpha * U00 + beta * U01;
-                qgroup0.qstate[index + ststep] = alpha * U10 + beta * U11;
-            }
-        }
+        QStat matrix = { U00, U01, U10, U11 };
+        _single_qubit_normal_unitary(qn, vControlBit, matrix, is_dagger);
         return qErrorNone;
     }
 
@@ -334,82 +178,11 @@ public:
         QError control_single_gate(
             size_t qn,
             Qnum  vControlBit,
-            bool isConjugate,
+            bool is_dagger,
             double error_rate)
     {
-        if (QPanda::RandomNumberGenerator() > error_rate)
-        {
-            QGateParam& qgroup0 = findgroup(qn);
-            for (auto iter = vControlBit.begin(); iter != vControlBit.end(); iter++)
-            {
-                TensorProduct(qgroup0, findgroup(*iter));
-            }
-            size_t M = 1ull << (qgroup0.qVec.size() - vControlBit.size());
-            size_t x;
-
-            size_t n = qgroup0.qVec.size();
-            size_t ststep = 1ull << (find(qgroup0.qVec.begin(), qgroup0.qVec.end(), qn)
-                - qgroup0.qVec.begin());
-            size_t index = 0;
-            size_t block = 0;
-
-            qcomplex_t alpha, beta;
-
-            qcomplex_t C00 = U00;
-            qcomplex_t C01 = U01;
-            qcomplex_t C10 = U10;
-            qcomplex_t C11 = U11;
-            if (isConjugate)
-            {
-                qcomplex_t temp;
-                C00 = qcomplex_t(C00.real(), -C00.imag());
-                C01 = qcomplex_t(C01.real(), -C01.imag());
-                C10 = qcomplex_t(C10.real(), -C10.imag());
-                C11 = qcomplex_t(C11.real(), -C11.imag());
-                temp = C01;
-                C01 = U10;
-                C10 = temp;
-            }
-            Qnum qvtemp;
-            for (auto iter = vControlBit.begin(); iter != vControlBit.end(); iter++)
-            {
-                size_t stemp = (find(qgroup0.qVec.begin(), qgroup0.qVec.end(), *iter)
-                    - qgroup0.qVec.begin());
-                block += 1ull << stemp;
-                qvtemp.push_back(stemp);
-            }
-            sort(qvtemp.begin(), qvtemp.end());
-            Qnum::iterator qiter;
-            size_t j;
-            //#pragma omp parallel for private(j,alpha,beta,index,x,qiter)
-            for (size_t i = 0; i < M; i++)
-            {
-                index = 0;
-                x = i;
-                qiter = qvtemp.begin();
-
-                for (j = 0; j < n; j++)
-                {
-                    while (qiter != qvtemp.end() && *qiter == j)
-                    {
-                        qiter++;
-                        j++;
-                    }
-                    //index += ((x % 2)*(1ull << j));
-                    index += ((x & 1) << j);
-                    x >>= 1;
-                }
-
-                /*
-                * control qubits are 1,target qubit is 0
-                */
-                index = index + block - ststep;
-                alpha = qgroup0.qstate[index];
-                beta = qgroup0.qstate[index + ststep];
-                qgroup0.qstate[index] = alpha * C00 + beta * C01;
-                qgroup0.qstate[index + ststep] = alpha * C10 + beta * C11;
-            }
-        }
+        QStat matrix = { U00, U01, U10, U11 };
+        _single_qubit_normal_unitary(qn, vControlBit, matrix, is_dagger);
         return qErrorNone;
     }
 
@@ -441,23 +214,39 @@ public:
     inline QError CNOT(size_t qn_0, size_t qn_1,
         bool isConjugate, double error_rate)
     {
-        Qnum qvtemp;
-        qvtemp.push_back(qn_0);
-        qvtemp.push_back(qn_1);
-        X(qn_1, qvtemp, isConjugate, error_rate);           //qn_1 is target
-        return qErrorNone;
-    }
-    inline QError CNOT(size_t qn_0, size_t qn_1, Qnum& vControlBit,
-        bool isConjugate, double error_rate)
-    {
-        X(qn_1, vControlBit, isConjugate, error_rate);      //qn_1 is target
+        _CNOT(qn_0, qn_1);
         return qErrorNone;
     }
 
-    QError iSWAP(size_t qn_0, size_t qn_1, double theta,
-        bool isConjugate, double);
-    QError iSWAP(size_t qn_0, size_t qn_1, Qnum& vControlBit,
-        double theta, bool isConjugate, double);
+    inline QError CNOT(size_t qn_0, size_t qn_1, Qnum& vControlBit,
+        bool isConjugate, double error_rate)
+    {
+        _CNOT(qn_0, qn_1, vControlBit);
+        return qErrorNone;
+    }
+
+    inline QError iSWAP(size_t qn_0, size_t qn_1, double theta,
+        bool isConjugate, double)
+    {
+        QStat matrix = { 1, 0, 0, 0,
+                        0, std::cos(theta), qcomplex_t(0,-std::sin(theta)), 0,
+                        0, qcomplex_t(0,-std::sin(theta)), std::cos(theta), 0,
+                        0, 0, 0, 1 };
+        _iSWAP_theta(qn_0, qn_1, matrix, isConjugate);
+        return qErrorNone;
+    }
+
+
+    inline QError iSWAP(size_t qn_0, size_t qn_1, Qnum& vControlBit,
+        double theta, bool isConjugate, double)
+    {
+        QStat matrix = { 1, 0, 0, 0,
+                        0, std::cos(theta), qcomplex_t(0,-std::sin(theta)), 0,
+                        0, qcomplex_t(0,-std::sin(theta)), std::cos(theta), 0,
+                        0, 0, 0, 1 };
+        _iSWAP_theta(qn_0, qn_1, matrix, isConjugate, vControlBit);
+        return qErrorNone;
+    }
 
     inline QError iSWAP(size_t qn_0, size_t qn_1,
         bool isConjugate, double error_rate)
@@ -485,10 +274,27 @@ public:
         return qErrorNone;
     }
 
-    QError CR(size_t qn_0, size_t qn_1,
-        double theta, bool isConjugate, double error_rate);
-    QError CR(size_t qn_0, size_t qn_1, Qnum& vControlBit,
-        double theta, bool isConjugate, double error_rate);
+    inline QError CR(size_t qn_0, size_t qn_1,
+        double theta, bool isConjugate, double error_rate)
+    {
+        QStat matrix = { 1, 0, 0, 0,
+                        0, 1, 0, 0,
+                        0, 0, 1, 0,
+                        0, 0, 0, qcomplex_t(std::cos(theta), std::sin(theta)) };
+        _CR(qn_0, qn_1, matrix, isConjugate);
+        return qErrorNone;
+    }
+
+    inline QError CR(size_t qn_0, size_t qn_1, Qnum& vControlBit,
+        double theta, bool isConjugate, double error_rate)
+    {
+        QStat matrix = { 1, 0, 0, 0,
+                        0, 1, 0, 0,
+                        0, 0, 1, 0,
+                        0, 0, 0, qcomplex_t(std::cos(theta), std::sin(theta)) };
+        _CR(qn_0, qn_1, matrix, isConjugate, vControlBit);
+        return qErrorNone;
+    }
 
     inline QError CZ(size_t qn_0, size_t qn_1, bool isConjugate, double error_rate)
     {
@@ -503,16 +309,16 @@ public:
 
     //define unitary single/double quantum gate
     QError unitarySingleQubitGate(size_t qn,
-        QStat& matrix, bool isConjugate,
+        QStat& matrix, bool is_dagger,
         GateType);
-    QError controlunitarySingleQubitGate(size_t qn, Qnum& vControlBit,
-        QStat& matrix, bool isConjugate,
-        GateType);
+    QError controlunitarySingleQubitGate(size_t qn, Qnum& controls,
+        QStat& matrix, bool is_dagger,
+        GateType type);
     QError unitaryDoubleQubitGate(size_t qn_0, size_t qn_1,
-        QStat& matrix, bool isConjugate,
+        QStat& matrix, bool is_dagger,
         GateType);
-    QError controlunitaryDoubleQubitGate(size_t qn_0, size_t qn_1, Qnum& vControlBit,
-        QStat& matrix, bool isConjugate,
+    QError controlunitaryDoubleQubitGate(size_t qn_0, size_t qn_1, Qnum& controls,
+        QStat& matrix, bool is_dagger,
         GateType);
     QError DiagonalGate(Qnum& vQubit, QStat & matrix,
         bool isConjugate, double error_rate);
@@ -521,9 +327,9 @@ public:
     QStat getQState();
     QError Reset(size_t qn);
     bool qubitMeasure(size_t qn);
-    QError pMeasure(Qnum& qnum, prob_tuple &mResult,
+    QError pMeasure(Qnum& qnum, prob_tuple &probs,
         int select_max = -1);
-    QError pMeasure(Qnum& qnum, prob_vec &mResult);
+    QError pMeasure(Qnum& qnum, prob_vec &probs);
     QError initState(size_t head_rank, size_t rank_size, size_t qubit_num);
     QError initState(size_t qubit_num, const QStat &state = {});
 
@@ -533,17 +339,17 @@ public:
             0,1,0,0,
             0,0,1,0,
             0,0,0,0 };
-        return unitaryDoubleQubitGate(qn_0, qn_1, P00_matrix, isConjugate,GateType::P00_GATE);
+        return unitaryDoubleQubitGate(qn_0, qn_1, P00_matrix, isConjugate, GateType::P00_GATE);
     }
 
-	inline QError SWAP(size_t qn_0, size_t qn_1, bool isConjugate, double error_rate)
-	{
-		QStat P00_matrix = { 1,0,0,0,
-			0,0,1,0,
-			0,1,0,0,
-			0,0,0,1 };
-		return unitaryDoubleQubitGate(qn_0, qn_1, P00_matrix, isConjugate, GateType::SWAP_GATE);
-	}
+    inline QError SWAP(size_t qn_0, size_t qn_1, bool isConjugate, double error_rate)
+    {
+        QStat P00_matrix = { 1,0,0,0,
+            0,0,1,0,
+            0,1,0,0,
+            0,0,0,1 };
+        return unitaryDoubleQubitGate(qn_0, qn_1, P00_matrix, isConjugate, GateType::SWAP_GATE);
+    }
 
     inline QError P11(size_t qn_0, size_t qn_1, bool isConjugate, double error_rate)
     {
@@ -551,16 +357,90 @@ public:
             0,0,0,0,
             0,0,0,0,
             0,0,0,1 };
-        return unitaryDoubleQubitGate(qn_0, qn_1, P11_matrix, isConjugate,GateType::P11_GATE);
+        return unitaryDoubleQubitGate(qn_0, qn_1, P11_matrix, isConjugate, GateType::P11_GATE);
     }
+
+protected:
+    QError _single_qubit_normal_unitary(size_t qn, QStat& matrix, bool is_dagger);
+    QError _single_qubit_normal_unitary(size_t qn, Qnum& controls, QStat& matrix, bool is_dagger);
+
+    QError _double_qubit_normal_unitary(size_t qn_0, size_t qn_1, QStat& matrix, bool is_dagger);
+    QError _double_qubit_normal_unitary(size_t qn_0, size_t qn_1, Qnum& controls, QStat& matrix, bool is_dagger);
+
+    QError _X(size_t qn);
+    QError _Y(size_t qn);
+    QError _Z(size_t qn);
+    QError _S(size_t qn, bool is_dagger);
+    QError _U1(size_t qn, QStat &matrix, bool is_dagger);
+    QError _RZ(size_t qn, QStat &matrix, bool is_dagger);
+    QError _H(size_t qn, QStat &matrix);
+
+    QError _CNOT(size_t qn_0, size_t qn_1);
+    QError _CZ(size_t qn_0, size_t qn_1);
+    QError _CR(size_t qn_0, size_t qn_1, QStat &matrix, bool is_dagger);
+    QError _SWAP(size_t qn_0, size_t qn_1);
+    QError _iSWAP(size_t qn_0, size_t qn_1, QStat &matrix, bool is_dagger);
+    QError _iSWAP_theta(size_t qn_0, size_t qn_1, QStat &matrix, bool is_dagger);
+    QError _CU(size_t qn_0, size_t qn_1, QStat &matrix, bool is_dagger);
+
+    QError _X(size_t qn, Qnum &controls);
+    QError _Y(size_t qn, Qnum &controls);
+    QError _Z(size_t qn, Qnum &controls);
+    QError _S(size_t qn, bool is_dagger, Qnum &controls);
+    QError _U1(size_t qn, QStat &matrix, bool is_dagger, Qnum &controls);
+    QError _RZ(size_t qn, QStat &matrix, bool is_dagger, Qnum &controls);
+    QError _H(size_t qn, QStat &matrix, Qnum &controls);
+
+    QError _CNOT(size_t qn_0, size_t qn_1, Qnum &controls);
+    QError _CZ(size_t qn_0, size_t qn_1, Qnum &controls);
+    QError _CR(size_t qn_0, size_t qn_1, QStat &matrix, bool is_dagger, Qnum &controls);
+    QError _SWAP(size_t qn_0, size_t qn_1, Qnum &controls);
+    QError _iSWAP(size_t qn_0, size_t qn_1, QStat &matrix, bool is_dagger, Qnum &controls);
+    QError _iSWAP_theta(size_t qn_0, size_t qn_1, QStat &matrix, bool is_dagger, Qnum &controls);
+    QError _CU(size_t qn_0, size_t qn_1, QStat &matrix, bool is_dagger, Qnum &controls);
+
+    inline int64_t _insert(int64_t value, size_t n1, size_t n2)
+    {
+        if (n1 > n2)
+        {
+            std::swap(n1, n2);
+        }
+
+        int64_t mask1 = (1ll << n1) - 1;
+        int64_t mask2 = (1ll << (n2 - 1)) - 1;
+        int64_t z = value & mask1;
+        int64_t y = ~mask1 & value & mask2;
+        int64_t x = ~mask2 & value;
+
+        return ((x << 2) | (y << 1) | z);
+    }
+
+    inline int64_t _insert(int64_t value, size_t n)
+    {
+        int64_t number = 1ll << n;
+        if (value < number)
+        {
+            return value;
+        }
+
+        int64_t mask = number - 1;
+        int64_t x = mask & value;
+        int64_t y = ~mask & value;
+        return ((y << 1) | x);
+    }
+
+private:
+    QStat m_state;
+    size_t m_qubit_num;
+    const int64_t m_threshold = 1ll << 9;
 };
 
 class CPUImplQPUWithOracle : public CPUImplQPU {
 public:
-	QError controlOracularGate(std::vector<size_t> bits,
-		std::vector<size_t> controlbits,
-		bool is_dagger,
-		std::string name);
+    QError controlOracularGate(std::vector<size_t> bits,
+        std::vector<size_t> controlbits,
+        bool is_dagger,
+        std::string name);
 };
 
 #endif

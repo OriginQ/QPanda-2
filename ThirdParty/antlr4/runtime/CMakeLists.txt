@@ -36,7 +36,7 @@ INSTALL(TARGETS ${LIB_ANTLR4}
 
 target_include_directories(${LIB_ANTLR4} INTERFACE
                            $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include/ThirdParty>
-                           $<INSTALL_INTERFACE:include/qpanda-2/ThirdParty>)
+                           $<INSTALL_INTERFACE:include/qpanda2/ThirdParty>)
 
 export(TARGETS ${LIB_ANTLR4}
        APPEND FILE ${PROJECT_BINARY_DIR}/antlr4-target.cmake

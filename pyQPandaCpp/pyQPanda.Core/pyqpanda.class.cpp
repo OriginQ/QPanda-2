@@ -215,12 +215,7 @@ void init_core_class(py::module & m)
             .def("last",&QProg::getLastNodeIter,
                  py::return_value_policy::reference)
 					 .def("__str__", [](QProg& p) {
-					 auto text_pic_str = draw_qprog(p);
-#if defined(WIN32) || defined(_WIN32)
-					 text_pic_str = fit_to_gbk(text_pic_str);
-					 //text_pic_str = Utf8ToGbkOnWin32(text_pic_str.c_str());
-#endif
-					 return  text_pic_str; },
+					 return  draw_qprog(p); },
     py::return_value_policy::reference)
             .def("head",&QProg::getHeadNodeIter,
                  py::return_value_policy::reference);
@@ -283,12 +278,7 @@ void init_core_class(py::module & m)
             .def("head",&QCircuit::getHeadNodeIter,
                  py::return_value_policy::reference)
 					 .def("__str__", [](QCircuit& p) {
-					 auto text_pic_str = draw_qprog(p);
-#if defined(WIN32) || defined(_WIN32)
-					 text_pic_str = fit_to_gbk(text_pic_str);
-					 //text_pic_str = Utf8ToGbkOnWin32(text_pic_str.c_str());
-#endif
-					 return  text_pic_str; },
+					 return draw_qprog(p); },
                  py::return_value_policy::reference);
 
     /* hide */
@@ -489,6 +479,46 @@ void init_core_class(py::module & m)
         .value("RESET_NODE", NodeType::RESET_NODE);
 
 
+    py::class_<OriginQubitPool, std::unique_ptr<OriginQubitPool, py::nodelete>>(m, "OriginQubitPool")
+        .def(py::init([]() { return std::unique_ptr<OriginQubitPool, py::nodelete>(OriginQubitPool::get_instance()); }))
+        .def("get_capacity", &OriginQubitPool::get_capacity)
+        .def("set_capacity", &OriginQubitPool::set_capacity)
+        .def("get_qubit_by_addr", &OriginQubitPool::get_qubit_by_addr)
+        .def("clearAll", &OriginQubitPool::clearAll)
+        .def("getMaxQubit", &OriginQubitPool::getMaxQubit)
+        .def("getIdleQubit", &OriginQubitPool::getIdleQubit)
+        .def("get_max_usedqubit_addr", &OriginQubitPool::get_max_usedqubit_addr)
+        .def("allocateQubit", &OriginQubitPool::allocateQubit)
+        .def("allocateQubitThroughPhyAddress", &OriginQubitPool::allocateQubitThroughPhyAddress)
+        .def("allocateQubitThroughVirAddress", &OriginQubitPool::allocateQubitThroughVirAddress)
+        .def("Free_Qubit", &OriginQubitPool::Free_Qubit)
+        .def("getPhysicalQubitAddr", &OriginQubitPool::getPhysicalQubitAddr)
+        .def("getVirtualQubitAddress", &OriginQubitPool::getVirtualQubitAddress)
+        .def("get_allocate_qubits", &OriginQubitPool::get_allocate_qubits)
+        .def("qAlloc", &OriginQubitPool::qAlloc)
+        .def("qAlloc_many", &OriginQubitPool::qAllocMany)
+        .def("qFree", &OriginQubitPool::qFree)
+        .def("qFree_all", &OriginQubitPool::qFreeAll);
+
+
+	py::class_<OriginCMem, std::unique_ptr<OriginCMem, py::nodelete>>(m, "OriginCMem")
+        .def(py::init([]() { return std::unique_ptr<OriginCMem, py::nodelete>(OriginCMem::get_instance()); }))
+		.def("get_capacity", &OriginCMem::get_capacity)
+		.def("set_capacity", &OriginCMem::set_capacity)
+		.def("get_cbit_by_addr", &OriginCMem::get_cbit_by_addr)
+		.def("Allocate_CBit", py::overload_cast<>(&OriginCMem::Allocate_CBit))
+		.def("Allocate_CBit", py::overload_cast<size_t>(&OriginCMem::Allocate_CBit))
+		.def("getMaxMem", &OriginCMem::getMaxMem)
+		.def("getIdleMem", &OriginCMem::getIdleMem)
+		.def("Free_CBit", &OriginCMem::Free_CBit)
+		.def("clearAll", &OriginCMem::clearAll)
+		.def("get_allocate_cbits", &OriginCMem::get_allocate_cbits)
+		.def("cAlloc", py::overload_cast<>(&OriginCMem::cAlloc))
+		.def("cAlloc", py::overload_cast<size_t>(&OriginCMem::cAlloc))
+		.def("cAlloc_many", &OriginCMem::cAllocMany)
+		.def("cFree", &OriginCMem::cFree)
+		.def("cFree_all", &OriginCMem::cFreeAll);
+
     py::class_<NodeIter>(m, "NodeIter")
         .def(py::init<>())
         .def(py::self == py::self)
@@ -519,6 +549,52 @@ void init_core_class(py::module & m)
 	py::enum_<DecompositionMode>(m, "DecompositionMode")
 		.value("QR", DecompositionMode::QR)
 		.value("HOUSEHOLDER_QR", DecompositionMode::HOUSEHOLDER_QR);
+
+	/*******************************************************************
+	*                           QProgDAG
+	*/
+	py::class_<QProgDAGEdge>(m, "QProgDAGEdge")
+		.def(py::init<uint32_t, uint32_t, uint32_t>())
+		.def_readwrite("m_from", &QProgDAGEdge::m_from)
+		.def_readwrite("m_to", &QProgDAGEdge::m_to)
+		.def_readwrite("m_qubit", &QProgDAGEdge::m_qubit);
+
+	py::class_<QProgDAGVertex>(m, "QProgDAGVertex")
+		.def(py::init<>())
+		.def_readwrite("m_id", &QProgDAGVertex::m_id)
+		.def_readwrite("m_type", &QProgDAGVertex::m_type)
+		.def_readwrite("m_layer", &QProgDAGVertex::m_layer)
+		.def_readwrite("m_pre_node", &QProgDAGVertex::m_pre_node)
+		.def_readwrite("m_succ_node", &QProgDAGVertex::m_succ_node)
+		.def("is_dagger", [](QProgDAGVertex& self) {
+		return self.m_node->m_dagger;
+	}, py::return_value_policy::reference)
+		.def("get_iter", [](QProgDAGVertex& self) {
+		return self.m_node->m_itr;
+	}, py::return_value_policy::reference)
+		.def("get_qubits_vec", [](QProgDAGVertex& self) {
+		return self.m_node->m_qubits_vec;
+	}, py::return_value_policy::reference)
+		.def("get_control_vec", [](QProgDAGVertex& self) {
+		return self.m_node->m_control_vec;
+	}, py::return_value_policy::reference);
+
+	py::class_<QProgDAG>(m, "QProgDAG")
+		.def(py::init<>())
+		.def("get_vertex_set", [](QProgDAG& self) {
+		    return self.get_vertex();},
+			py::return_value_policy::reference)
+		.def("get_target_vertex", [](QProgDAG& self, const size_t vertice_id) {
+		    return self.get_vertex(vertice_id);}, 
+			py::return_value_policy::reference)
+		.def("get_edges", [](QProgDAG& self) {
+				auto edges_set = self.get_edges();
+				std::vector<QProgDAGEdge> edges_vec;
+				for (const auto& _e : edges_set){
+					edges_vec.emplace_back(_e);
+				}
+				return edges_vec; },
+			py::return_value_policy::automatic);
 
     return ;
 }

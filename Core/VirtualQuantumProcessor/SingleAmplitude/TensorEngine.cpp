@@ -1,73 +1,29 @@
-#include "Core/VirtualQuantumProcessor/SingleAmplitude/TensorEngine.h"
-#include <algorithm>
-#include "QPandaConfig.h"
-#ifdef USE_OPENMP
-#include <omp.h>
-#endif
+#include "TensorEngine.h"
+using namespace std;
 
-int log_2(int iNumber)
+void sort(edge_map_t* edge_map, vector<qsize_t>& vector)
 {
-    if (iNumber <= 0)
-    {
-        abort();
-    }
+	int max_rank = 0;
+	auto size = vector.size();
+	if (size <= 1)
+		return;
 
-    for (int i = 0; i < 32; ++i)
-    {
-        if (0 == (iNumber >> i))
-        {
-            return i - 1;
-        }
-    }
+	for (size_t i = 0; i < size - 1; i++)
+	{
+		for (size_t j = 0; j < size - i - 1; j++)
+		{
+			auto first_edge = edge_map->find(vector[j]);
+			auto second_edge = edge_map->find(vector[j + 1]);
 
-    return -1;
+			if ((*first_edge).second.getRank() > (*second_edge).second.getRank())
+			{
+				std::swap(vector[j], vector[j + 1]);
+			}
+		}
+	}
 }
 
-static void mergeVerticeAndEdge(QuantumProgMap * prog_map,qsize_t qubit)
-{
-    auto vertice = prog_map->getVerticeMatrix();
-    auto vertice_map_iter = vertice->getQubitMapIter(qubit);
-    auto i = vertice->getQubitMapIterBegin(qubit);
-    while (i != vertice->getQubitMapIterEnd(qubit))
-    {
-        auto contect_edge = vertice->getContectEdge(qubit, (*i).first);
-        auto contect_count = contect_edge.size();
-        auto edge_map = prog_map->getEdgeMap();
-
-        if (2 == contect_count)
-        {
-            auto edge_iter_second = edge_map->find(contect_edge[1]);
-            auto edge_second = (*edge_iter_second).second;
-            auto edge_iter = edge_map->find(contect_edge[0]);
-            auto edge_first = (*edge_iter).second;
-
-            if ((edge_second.getRank() != 2) ||
-                (edge_first.getRank() != 2))
-            {
-                ++i;
-                continue;
-            }
-            if(((*edge_iter).second.getQubitCount() != 1) ||
-                ((*edge_iter_second).second.getQubitCount() != 1))
-            {
-                ++i;
-                continue;
-            }
-            (*edge_iter).second.premultiplication((*edge_iter_second).second);
-
-            edge_map->erase(edge_iter_second);
-            i = (*vertice_map_iter).erase(i);
-            vertice->subVerticeCount();
-            (*i).second.setContectEdgebyID(0, (*edge_iter).first);
-        }
-        else
-        {
-            ++i;
-        }
-    }
-}
-
-void getNoValueMaxRankVertice(QuantumProgMap * prog_map,
+void getNoValueMaxRankVertice(QProgMap * prog_map,
                               qubit_vertice_t * qubit_vertice)
 {
     if (nullptr == prog_map)
@@ -77,28 +33,28 @@ void getNoValueMaxRankVertice(QuantumProgMap * prog_map,
     auto vertice = prog_map->getVerticeMatrix();
     auto vertice_matrix_iter = 
                         vertice ->getQubitMapIter(qubit_vertice->m_qubit_id);
-    auto edge = prog_map->getEdgeMap();
+
     size_t max = 0;
-    size_t num = 0;
     qsize_t target_id = 0;
     for (auto aiter = (*vertice_matrix_iter).begin();
 		aiter != (*vertice_matrix_iter).end();++aiter)
     {
         size_t temp = (*aiter).second.getContectEdge().size();
-        bool is_true = true;
         if (max < temp)
+        {
             if ((*aiter).second.getValue() < 0)
             {
-				max = temp;
-				target_id = (*aiter).first;
+                max = temp;
+                target_id = (*aiter).first;
             }
+        }
     }
 
     qubit_vertice->m_num = target_id;
     qubit_vertice->m_max = max;
 }
 
-qubit_vertice_t TensorEngine::getNoValueVertice(QuantumProgMap & prog_map,size_t find_edge)
+qubit_vertice_t TensorEngine::getNoValueVertice(QProgMap & prog_map,size_t find_edge)
 {
     qubit_vertice_t qubit_vertice;
     qubit_vertice.m_max = 0;
@@ -106,59 +62,6 @@ qubit_vertice_t TensorEngine::getNoValueVertice(QuantumProgMap & prog_map,size_t
     qubit_vertice.m_qubit_id = 0;
     auto vertice = prog_map.getVerticeMatrix();
     int i = 0;
-#if 0
-    if (0 == find_edge)
-    {
-        for (auto iter = vertice->begin(); iter != vertice->end(); iter++)
-        {
-            for (auto map_iter = (*iter).begin(); map_iter != (*iter).end(); ++map_iter)
-            {
-                if (-1 == (*map_iter).second.getValue())
-                {
-                    qubit_vertice.m_num = (*map_iter).first;
-                    qubit_vertice.m_qubit_id = i;
-                    qubit_vertice.m_max = (*map_iter).second.getContectEdge().size();
-                    return qubit_vertice;
-                }
-            }
-            i++;
-        }
-    }
-    else
-    {
-        auto edge_map = prog_map.getEdgeMap();
-        auto edge = edge_map->find(find_edge);
-
-        auto contect_vertice = (*edge).second.getContectVertice();
-
-
-        for (auto aiter : contect_vertice)
-        {
-            auto contect_edge_vector = vertice->getContectEdge(aiter.first, aiter.second);
-            auto contect_edge_size = contect_edge_vector.size();
-
-            int max_rank = 0;
-            for (size_t i = 0; i < contect_edge_size; i++)
-            {
-                if (contect_edge_vector[i] != find_edge)
-                {
-                    auto rank = (*edge_map->find(contect_edge_vector[i])).second.getRank();
-                    if (max_rank < rank)
-                        max_rank = rank;
-                }
-            }
-            auto min_num = contect_edge_size;//max_rank > contect_edge_size ? max_rank : contect_edge_size;
-            if (qubit_vertice.m_max > min_num)
-            {
-                qubit_vertice.m_max = min_num;
-                qubit_vertice.m_qubit_id = aiter.first;
-                qubit_vertice.m_num = aiter.second;
-            }
-        }
-
-    }
-#endif // 0
-#if 1
 
     for (auto iter = vertice->begin(); iter != vertice->end(); iter++)
     {
@@ -171,21 +74,18 @@ qubit_vertice_t TensorEngine::getNoValueVertice(QuantumProgMap & prog_map,size_t
         }
         i++;
     }
-#endif // 0
 
     return qubit_vertice;
 }
 
 qubit_vertice_t TensorEngine::getNoValueAndContectEdgeMaxVertice
-                                (QuantumProgMap & prog_map)
+                                (QProgMap & prog_map)
 {
     auto vertice = prog_map.getVerticeMatrix();
-
     vector<qubit_vertice_t> qubit_vertice;
     qubit_vertice.resize(vertice->getQubitCount());
-
-    qsize_t i = 0;
     auto size = vertice->getQubitCount();
+
 #pragma omp parallel for
     for (long long i = 0; i < size; i++)
     {
@@ -195,11 +95,10 @@ qubit_vertice_t TensorEngine::getNoValueAndContectEdgeMaxVertice
 
     qubit_vertice_t temp;
     temp.m_qubit_id = 0;
-    temp.m_max = 0;
     temp.m_num = 0;
+
     for (auto aiter = qubit_vertice.begin();
-         aiter != qubit_vertice.end();
-         ++aiter)
+         aiter != qubit_vertice.end(); ++aiter)
     {
         if ((*aiter).m_max > temp.m_max)
         {
@@ -211,95 +110,72 @@ qubit_vertice_t TensorEngine::getNoValueAndContectEdgeMaxVertice
     return temp;
 } 
 
-#include <iostream>
-void split(QuantumProgMap * prog_map,
-                             qubit_vertice_t * qubit_vertice,
-                             qcomplex_data_t * result)
+
+void TensorEngine::split(QProgMap &prog_map, qubit_vertice_t &qubit_vertice)
 {
     qubit_vertice_t  temp;
-    if ((nullptr == prog_map) || (nullptr == result))
-    {
-        throw exception();
-    }
-    if (nullptr == qubit_vertice)
-    {
+	if (prog_map.m_count < 0)
+	{
+		if (SIZE_MAX == qubit_vertice.m_qubit_id || SIZE_MAX == qubit_vertice.m_num)
+		{
+            return;
+		}
 
-        temp = TensorEngine::getNoValueAndContectEdgeMaxVertice(*prog_map);
-        temp.m_count = 0;
-        split(prog_map, &temp, result);
-    }
-    else
+        TensorEngine::dimDecrementbyValue(prog_map, qubit_vertice, 0);
+		prog_map.m_count++;
+		auto max_rank = TensorEngine::getMaxRank(prog_map);
+		if (max_rank < 25)
+		{
+            return;
+		}
+		temp = TensorEngine::getMaxQubitVertice(prog_map);
+        TensorEngine::split(prog_map, temp);
+	}
+	else
+	{
+		throw std::runtime_error("both memory and computer node is not enough!");
+	}
+}
+
+qcomplex_data_t TensorEngine::Merge(QProgMap &prog_map,
+                                     const qprog_sequence_t &sequence)
+{
+    for (auto iter = sequence.begin(); iter != sequence.end(); ++iter)
     {
-        if (qubit_vertice->m_max < 9)
+        auto vertice = prog_map.getVerticeMatrix()->getVerticeByNum(iter->first);
+
+        if (vertice.m_qubit_id == SIZE_MAX || vertice.m_num == SIZE_MAX)
+            continue;
+
+        bool is_success = false;
+        if (iter->second)
         {
-            (*result) = TensorEngine::Merge(*prog_map, nullptr);
+            auto qubit_vertice_max = TensorEngine::getMaxQubitVertice(prog_map);
+            if (qubit_vertice_max.m_qubit_id == SIZE_MAX ||
+                qubit_vertice_max.m_num == SIZE_MAX)
+            {
+                continue;
+            }
+
+            TensorEngine::split(prog_map, qubit_vertice_max);
         }
         else
         {
-
-            QuantumProgMap *new_map = new QuantumProgMap(*prog_map);
-
-            TensorEngine::dimDecrementbyValue(*prog_map, *qubit_vertice, 0);
-            temp = TensorEngine::getNoValueAndContectEdgeMaxVertice(*prog_map);
-            temp.m_count = ++qubit_vertice->m_count;
-            qcomplex_data_t result_zero(0);
-            if (temp.m_count > 0)
+            TensorEngine::MergeQuantumProgMap(prog_map, vertice, is_success);
+            if (!is_success)
             {
-                split(prog_map, &temp, &result_zero);
-
-                TensorEngine::dimDecrementbyValue(*new_map, *qubit_vertice, 1);
-                qcomplex_data_t result_one(0);
-                split(new_map, &temp, &result_one);
-                delete new_map;
-                *result = result_one + result_zero;
-            }
-            else
-            {
-                std::thread thread = std::thread(split, prog_map, &temp, &result_zero);
-
-                TensorEngine::dimDecrementbyValue(*new_map, *qubit_vertice, 1);
-                qcomplex_data_t result_one(0);
-                split(new_map, &temp, &result_one);
-                thread.join();
-                delete new_map;
-                *result = result_one + result_zero;
+                throw std::runtime_error("Real MergeQuantumProgMap error");
             }
         }
     }
+    return TensorEngine::computing(prog_map);
 }
 
-qcomplex_data_t TensorEngine:: Merge(QuantumProgMap & prog_map,
-                                    qubit_vertice_t *qubit_vertice)
-{
-    auto vertice = prog_map.getVerticeMatrix();
-    size_t i = 0;
-    for (auto iter = vertice->begin(); iter != vertice->end(); iter++)
-    {
-        for (auto map_iter = (*iter).begin(); map_iter != (*iter).end();)
-        {
-            qubit_vertice_t qubit_vertice_1;
-            qubit_vertice_1.m_qubit_id = i;
-            qubit_vertice_1.m_num = (*map_iter).first;
-            map_iter = MergeQuantumProgMap(prog_map,
-            qubit_vertice_1);
-            if (map_iter == (*iter).end())
-            {
-                break;
-            }
-        }
-        i++;
-    }
 
-    qcomplex_data_t result(0);
-    result = TensorEngine::computing(prog_map);
-    return result;
-}
-
-qcomplex_data_t TensorEngine::computing(QuantumProgMap & prog_map)
+qcomplex_data_t TensorEngine::computing(QProgMap & prog_map)
 {
     auto edge_map = prog_map.getEdgeMap();
     qcomplex_data_t result = 1;
-
     for (auto iter = edge_map->begin(); iter != edge_map->end(); ++iter)
     {
         result *= (*iter).second.getElem(*prog_map.getVerticeMatrix());
@@ -307,36 +183,9 @@ qcomplex_data_t TensorEngine::computing(QuantumProgMap & prog_map)
     return result;
 } 
 
-#include <iostream>
 
-void sort(EdgeMap * edge_map,vector<qsize_t> & vector)
-{
-    int max_rank = 0;
-    auto size = vector.size();
-    if (size <= 1)
-    {
-        return;
-    }
-    
-    for (size_t i = 0; i < size - 1; i++)
-    {
-        for (size_t j = 0; j < size - i -1; j++)
-        {
-            auto first_edge = edge_map->find(vector[j]);
-            auto second_edge = edge_map->find(vector[j+1]);
-
-            if ((*first_edge).second.getRank() > (*second_edge).second.getRank())
-            {
-                std::swap(vector[j], vector[j + 1]);
-            }
-        }
-    }
-
-    return;
-}
-
-map<qsize_t, Vertice>::iterator TensorEngine::MergeQuantumProgMap(QuantumProgMap & prog_map,
-                                          qubit_vertice_t & qubit_vertice)
+std::map<qsize_t, Vertice>::iterator TensorEngine::MergeQuantumProgMap(QProgMap & prog_map,
+                                          qubit_vertice_t & qubit_vertice, bool &is_success)
 {
     auto vertice = prog_map.getVerticeMatrix();
     auto edge_map = prog_map.getEdgeMap();
@@ -345,56 +194,193 @@ map<qsize_t, Vertice>::iterator TensorEngine::MergeQuantumProgMap(QuantumProgMap
                                                 qubit_vertice.m_num);
     sort(edge_map, contect_edge);
     auto first_edge = edge_map->find(contect_edge[0]);
-    try
+
+    qsize_t i = 0;
+    auto edge_iter = edge_map->find((*contect_edge.begin()));
+    vector<pair<qsize_t, qsize_t>> vertice_vector;
+
+    for (size_t i = 1; i < contect_edge.size(); i++)
     {
-        qsize_t i = 0;
-        auto edge_iter = edge_map->find((*contect_edge.begin()));
-        vector<pair<qsize_t, qsize_t>> vertice_vector;
-        
-        
-        for (size_t i = 1; i < contect_edge.size(); i++)
-        {
-            auto edge = edge_map->find(contect_edge[i]);
-            (*first_edge).second.mergeEdge((*edge).second);
-        }
-        (*first_edge).second.dimDecrement(qubit_vertice.m_qubit_id,
-                                          qubit_vertice.m_num);
+        auto edge = edge_map->find(contect_edge[i]);
+        if(edge!= edge_map->end())
+            (*first_edge).second.mergeEdge(edge->second);
+    }
 
-        for (auto contect_edge_iter : contect_edge)
-        {
-            auto iter = edge_map->find(contect_edge_iter);
-            auto contect_vertice = (*iter).second.getContectVertice();
+    size_t memory_use = 0;
+    int test_count = 0;
+    for (auto i = edge_map->begin(); i != edge_map->end(); ++i)
+    {
+        test_count++;
+        int rank = i->second.getRank()+3;
+        memory_use+= 1ull << rank;
+    }
 
-            for (auto contect_vertice_iter : contect_vertice)
-            {
-                if ((contect_vertice_iter.first != qubit_vertice.m_qubit_id) ||
+    if(memory_use >= (1ull<<(prog_map.getMaxRank()+3)))
+    {
+        is_success = false;
+        return map<qsize_t, Vertice>::iterator();
+    }
+
+    (*first_edge).second.dimDecrement(qubit_vertice.m_qubit_id,
+                                      qubit_vertice.m_num);
+
+    for (auto contect_edge_iter : contect_edge)
+    {
+        auto iter = edge_map->find(contect_edge_iter);
+        vector<pair<qsize_t, qsize_t>> contect_vertice;
+        (*iter).second.getContectVertice(contect_vertice);
+
+        for (auto contect_vertice_iter : contect_vertice)
+        {
+            if ((contect_vertice_iter.first != qubit_vertice.m_qubit_id) ||
                     (contect_vertice_iter.second != qubit_vertice.m_num))
-                {
-                    vertice->deleteContectEdge(contect_vertice_iter.first,
-                        contect_vertice_iter.second,
-                        contect_edge_iter);
-                    vertice->addContectEdge(contect_vertice_iter.first,
-                        contect_vertice_iter.second,
-                        (*edge_iter).first);
-                }
-            }
-            if (0 != i)
             {
-                edge_map->erase(iter);
+                vertice->deleteContectEdge(contect_vertice_iter.first,
+                                           contect_vertice_iter.second,
+                                           contect_edge_iter);
+                vertice->addContectEdge(contect_vertice_iter.first,
+                                        contect_vertice_iter.second,
+                                        (*edge_iter).first);
             }
-            i++;
         }
-       return vertice->deleteVertice(qubit_vertice.m_qubit_id, qubit_vertice.m_num);
+        if (0 != i)
+        {
+            edge_map->erase(iter);
+        }
+        i++;
     }
-    catch (const QPanda::calloc_fail&e)
-    {
-        throw e;
-    }
-    auto contect_vertice = (*first_edge).second.getContectVertice();
-    
+    is_success = true;
+    return vertice->deleteVertice(qubit_vertice.m_qubit_id, qubit_vertice.m_num);
 }
 
-void TensorEngine::dimDecrementbyValue(QuantumProgMap & prog_map,
+
+void TensorEngine::MergeByVerticeVector(QProgMap & prog_map ,
+                                        qprog_sequence_t &sequence)
+{
+    for (auto iter = sequence.begin(); iter != sequence.end(); ++iter)
+    {
+        auto vertice = prog_map.getVerticeMatrix()->getVerticeByNum(iter->first);
+
+        if (vertice.m_qubit_id == SIZE_MAX || vertice.m_num == SIZE_MAX)
+            continue;
+
+        bool is_success = false;
+        if (iter->second)
+        {
+            auto qubit_vertice_max = TensorEngine::getMaxQubitVertice(prog_map);
+            if (qubit_vertice_max.m_qubit_id == SIZE_MAX || qubit_vertice_max.m_num == SIZE_MAX)
+            {
+                continue;
+            }
+
+            TensorEngine::split(prog_map, qubit_vertice_max);
+        }
+        else
+        {
+            TensorEngine::MergeQuantumProgMap(prog_map, vertice, is_success);
+            if (!is_success)
+            {
+                throw std::runtime_error("Real MergeQuantumProgMap error");
+            }
+        }
+    }
+}
+
+
+void TensorEngine::seq_merge_by_vertices(QProgMap& prog_map,
+	std::vector<size_t> vertice_vector,
+	qprog_sequence_t& sequence)
+{
+	QProgMap* bak_map = nullptr;
+	for (auto iter = vertice_vector.begin(); iter != vertice_vector.end(); ++iter)
+	{
+		auto vertice = prog_map.getVerticeMatrix()->getVerticeByNum(*iter);
+		if (vertice.m_qubit_id == SIZE_MAX || vertice.m_num == SIZE_MAX)
+			continue;
+
+		bool is_success = false;
+		bak_map = new QProgMap(prog_map);
+		TensorEngine::MergeQuantumProgMap(prog_map, vertice, is_success);
+
+		if (is_success)
+		{
+			delete bak_map;
+			bak_map = nullptr;
+			sequence.push_back({ *iter, false });
+		}
+		else
+		{
+			prog_map = *bak_map;
+			auto qubit_vertice_max = TensorEngine::getMaxQubitVertice(prog_map);
+
+			if (qubit_vertice_max.m_qubit_id == SIZE_MAX || qubit_vertice_max.m_num == SIZE_MAX)
+			{
+				continue;
+			}
+
+			sequence.push_back({ *iter, true });
+            TensorEngine::split(prog_map, qubit_vertice_max);
+			--iter;
+		}
+	}
+
+	return;
+}
+
+void TensorEngine::seq_merge(QProgMap& prog_map, qprog_sequence_t& vertice_vector)
+{
+	auto vertice = prog_map.getVerticeMatrix();
+	QProgMap* bak_map = nullptr;
+	QubitVertice qubit_vertice;
+
+	size_t i = 0;
+	bool flag = false;
+	auto iter_row = vertice->begin();
+
+	while (iter_row != vertice->end())
+	{
+		auto iter_col = (*iter_row).begin();
+		while (iter_col != (*iter_row).end())
+		{
+			qubit_vertice.m_qubit_id = i;
+			qubit_vertice.m_num = (*iter_col).first;
+			size_t vertice_num = iter_col->second.getNum();
+			bak_map = new QProgMap(prog_map);
+
+			bool is_success = false;
+			auto tmp_map_iter = TensorEngine::MergeQuantumProgMap(prog_map, qubit_vertice, is_success);
+			if (is_success)
+			{
+				delete bak_map;
+				bak_map = nullptr;
+				vertice_vector.push_back({ vertice_num, false });
+				iter_col = tmp_map_iter;
+			}
+			else
+			{
+				prog_map = *bak_map;
+				auto qubit_vertice_max = TensorEngine::getMaxQubitVertice(prog_map);
+				vertice_vector.push_back({ vertice_num, true });
+
+				TensorEngine::split(prog_map, qubit_vertice_max);
+				vertice = prog_map.getVerticeMatrix();
+				iter_row = vertice->begin();
+				flag = true;
+				i = 0;
+				break;
+			}
+		}
+		if (flag)
+		{
+			flag = false;
+			continue;
+		}
+		i++;
+		iter_row++;
+	}
+}
+
+void TensorEngine::dimDecrementbyValue(QProgMap & prog_map,
     qubit_vertice_t & qubit_vertice,int value)
 {
     auto vertice = prog_map.getVerticeMatrix();
@@ -416,6 +402,121 @@ void TensorEngine::dimDecrementbyValue(QuantumProgMap & prog_map,
                            qubit_vertice.m_num);
 }
 
+void TensorEngine::dimDecrementbyValueAndNum(QProgMap & prog_map,
+    qubit_vertice_t & qubit_vertice,int value)
+{
+    auto vertice = prog_map.getVerticeMatrix();
+    auto edge_map = prog_map.getEdgeMap();
+    auto contect_edge = vertice->getContectEdgebynum(qubit_vertice.m_qubit_id,qubit_vertice.m_num);
 
+    for (auto iter : contect_edge)
+    {
+        auto find_iter =edge_map->find(iter);
+        if (find_iter != edge_map->end())
+        {
+            (*find_iter).second.dimDecrementbyValue(qubit_vertice.m_qubit_id,
+                                                    qubit_vertice.m_num,
+                                                    value);
+        }
+    }
 
+    vertice->deleteVertice(qubit_vertice.m_qubit_id,
+                           qubit_vertice.m_num);
+}
+
+size_t TensorEngine::getMaxRank(QProgMap &prog_map)
+{
+    auto edge_map = prog_map.getEdgeMap();
+    size_t max_rank = 0;
+
+    for (auto &edge : (*edge_map))
+    {
+        size_t tmp_rank = edge.second.getRank();
+        if (tmp_rank > max_rank)
+        {
+            max_rank = tmp_rank;
+        }
+    }
+
+    return max_rank;
+}
+
+qubit_vertice_t TensorEngine::getMaxQubitVertice(QProgMap &prog_map)
+{
+    auto vertice = prog_map.getVerticeMatrix();
+    auto edge_map = prog_map.getEdgeMap();
+
+    auto max_rank = 0;
+
+    auto max_rank_edge_num = 0;
+    for (auto &edge : (*edge_map))
+    {
+        auto rank = edge.second.getRank();
+        if (rank > max_rank)
+        {
+            max_rank = rank;
+
+            max_rank_edge_num = edge.first;
+
+        }
+    }
+
+    qubit_vector_t max_edge_connect;
+
+    auto iter = edge_map->find(max_rank_edge_num);
+    if(iter == edge_map->end())
+    {
+        QCERR("error");
+        throw runtime_error("error");
+    }
+    iter->second.getContectVertice(max_edge_connect);
+    qsize_t vertice_num = 0;
+    qubit_vertice_t qubit_vertice_max;
+    for (auto &val : max_edge_connect)
+    {
+        auto qubit_vertice =vertice->getVertice(val.first,val.second);
+        auto connect_edge_count = qubit_vertice->second.getContectEdge().size();
+        if(vertice_num <= connect_edge_count)
+        {
+            vertice_num = connect_edge_count;
+            qubit_vertice_max.m_qubit_id = val.first;
+            qubit_vertice_max.m_num = val.second;
+        }
+    }
+
+    return qubit_vertice_max;
+}
+
+void TensorEngine::getVerticeMap(QProgMap & prog_map, vector<pair<size_t, size_t>> & map_vector)
+{
+    auto vertice_matrix = prog_map.getVerticeMatrix();
+    auto qubit_count = prog_map.getQubitNum();
+    auto edge_map = prog_map.getEdgeMap();
+    for (size_t i = 0; i < qubit_count; i++)
+    {
+        for (auto iter = vertice_matrix->getQubitMapIterBegin(i);
+            iter != vertice_matrix->getQubitMapIterEnd(i); ++iter)
+        {
+            auto connect_edge = iter->second.getContectEdge();
+            for (size_t j = 0; j < connect_edge.size(); j++)
+            {
+                auto edge = edge_map->find(connect_edge[j]);
+                qubit_vector_t edge_connect_vertice_vector;
+                edge->second.getContectVertice(edge_connect_vertice_vector);
+                for (size_t k = 0; k < edge_connect_vertice_vector.size(); k++)
+                {
+                    pair<size_t, size_t> temp;
+                    temp.first = iter->second.getNum();
+                    auto edge_connect_vertice = vertice_matrix->getVertice(edge_connect_vertice_vector[k].first,
+                        edge_connect_vertice_vector[k].second);
+                    temp.second = edge_connect_vertice->second.getNum();
+
+                    if (temp.first == temp.second)
+                        continue;
+                    map_vector.push_back(temp);
+                }
+            }
+        }
+    }
+}
 

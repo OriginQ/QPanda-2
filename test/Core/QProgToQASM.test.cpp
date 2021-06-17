@@ -33,8 +33,6 @@ static bool test_QProgToQASM_fun_1()
 	//qpe_prog << X(second_register[0]) << cir_qpe;
 	qpe_prog << CU(1.2345, 3, 4, 5, first_register[0], first_register[1]);
 
-	PTrace("after transfer_to_rotating_gate.\n");
-	PTrace("cr_cir_gate_cnt: %d\n", getQGateNum(qpe_prog));
 	cout << (qpe_prog) << endl;
 	auto mat_src = getCircuitMatrix(qpe_prog);
 	cout << "mat_src: " << endl << mat_src << endl;
@@ -95,7 +93,7 @@ bool test_prog_to_qasm_2()
 	QProg prog = convert_qasm_to_qprog(filename, machine);
 	cout << "src prog:" << prog << endl;
 	auto mat1 = getCircuitMatrix(prog);
-	sub_cir_optimizer(prog, {}, QCircuitOPtimizerMode::Merge_U3);
+	single_gate_optimizer(prog, QCircuitOPtimizerMode::Merge_U3);
 	cout << "U3 prog:" << prog << endl;
 	auto mat2 = getCircuitMatrix(prog);
 	if (mat1 == mat2)

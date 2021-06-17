@@ -41,14 +41,14 @@ public:
 			for (auto &seq_node_item : seq_item)
 			{
 				auto& n = seq_node_item.first;
-				if (SequenceNodeType::MEASURE == n->m_type)
+				if (DAGNodeType::MEASURE == n->m_type)
 				{
 					std::shared_ptr<AbstractQuantumMeasure> p_measure = std::dynamic_pointer_cast<AbstractQuantumMeasure>(*(n->m_iter));
 					QMeasure tmp_measure_node(p_measure);
 					vec_qubits_used_in_layer.push_back(tmp_measure_node.getQuBit());
 					m_output_prog.pushBackNode(std::dynamic_pointer_cast<QNode>((deepCopy(tmp_measure_node)).getImplementationPtr()));
 				}
-				else if (SequenceNodeType::RESET == n->m_type)
+				else if (DAGNodeType::RESET == n->m_type)
 				{
 					std::shared_ptr<AbstractQuantumReset> p_reset = std::dynamic_pointer_cast<AbstractQuantumReset>(*(n->m_iter));
 					QReset tmp_reset_node(p_reset);

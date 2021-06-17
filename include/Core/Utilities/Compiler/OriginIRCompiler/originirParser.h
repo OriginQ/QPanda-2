@@ -13,20 +13,20 @@ class  originirParser : public antlr4::Parser {
 public:
   enum {
     PI = 1, QINIT_KEY = 2, CREG_KEY = 3, Q_KEY = 4, C_KEY = 5, BARRIER_KEY = 6, 
-    ECHO_GATE = 7, H_GATE = 8, X_GATE = 9, NOT_GATE = 10, T_GATE = 11, S_GATE = 12, 
-    Y_GATE = 13, Z_GATE = 14, X1_GATE = 15, Y1_GATE = 16, Z1_GATE = 17, 
-    I_GATE = 18, U2_GATE = 19, RPHI_GATE = 20, U3_GATE = 21, U4_GATE = 22, 
-    RX_GATE = 23, RY_GATE = 24, RZ_GATE = 25, U1_GATE = 26, CNOT_GATE = 27, 
-    CZ_GATE = 28, CU_GATE = 29, ISWAP_GATE = 30, SQISWAP_GATE = 31, SWAPZ1_GATE = 32, 
-    ISWAPTHETA_GATE = 33, CR_GATE = 34, TOFFOLI_GATE = 35, DAGGER_KEY = 36, 
-    ENDDAGGER_KEY = 37, CONTROL_KEY = 38, ENDCONTROL_KEY = 39, QIF_KEY = 40, 
-    ELSE_KEY = 41, ENDIF_KEY = 42, QWHILE_KEY = 43, ENDQWHILE_KEY = 44, 
-    MEASURE_KEY = 45, RESET_KEY = 46, ASSIGN = 47, GT = 48, LT = 49, NOT = 50, 
-    EQ = 51, LEQ = 52, GEQ = 53, NE = 54, AND = 55, OR = 56, PLUS = 57, 
-    MINUS = 58, MUL = 59, DIV = 60, COMMA = 61, LPAREN = 62, RPAREN = 63, 
-    LBRACK = 64, RBRACK = 65, NEWLINE = 66, Identifier = 67, Integer_Literal = 68, 
-    Double_Literal = 69, Digit_Sequence = 70, REALEXP = 71, WhiteSpace = 72, 
-    SingleLineComment = 73
+    QGATE_KEY = 7, ENDQGATE_KEY = 8, ECHO_GATE = 9, H_GATE = 10, X_GATE = 11, 
+    NOT_GATE = 12, T_GATE = 13, S_GATE = 14, Y_GATE = 15, Z_GATE = 16, X1_GATE = 17, 
+    Y1_GATE = 18, Z1_GATE = 19, I_GATE = 20, U2_GATE = 21, RPHI_GATE = 22, 
+    U3_GATE = 23, U4_GATE = 24, RX_GATE = 25, RY_GATE = 26, RZ_GATE = 27, 
+    U1_GATE = 28, CNOT_GATE = 29, CZ_GATE = 30, CU_GATE = 31, ISWAP_GATE = 32, 
+    SQISWAP_GATE = 33, SWAPZ1_GATE = 34, ISWAPTHETA_GATE = 35, CR_GATE = 36, 
+    TOFFOLI_GATE = 37, DAGGER_KEY = 38, ENDDAGGER_KEY = 39, CONTROL_KEY = 40, 
+    ENDCONTROL_KEY = 41, QIF_KEY = 42, ELSE_KEY = 43, ENDIF_KEY = 44, QWHILE_KEY = 45, 
+    ENDQWHILE_KEY = 46, MEASURE_KEY = 47, RESET_KEY = 48, ASSIGN = 49, GT = 50, 
+    LT = 51, NOT = 52, EQ = 53, LEQ = 54, GEQ = 55, NE = 56, AND = 57, OR = 58, 
+    PLUS = 59, MINUS = 60, MUL = 61, DIV = 62, COMMA = 63, LPAREN = 64, 
+    RPAREN = 65, LBRACK = 66, RBRACK = 67, NEWLINE = 68, Identifier = 69, 
+    Integer_Literal = 70, Double_Literal = 71, Digit_Sequence = 72, REALEXP = 73, 
+    WhiteSpace = 74, SingleLineComment = 75
   };
 
   enum {
@@ -37,18 +37,20 @@ public:
     RuleSingle_gate_with_three_parameter_declaration = 11, RuleSingle_gate_with_four_parameter_declaration = 12, 
     RuleDouble_gate_without_parameter_declaration = 13, RuleDouble_gate_with_one_parameter_declaration = 14, 
     RuleDouble_gate_with_four_parameter_declaration = 15, RuleTriple_gate_without_parameter_declaration = 16, 
-    RuleSingle_gate_without_parameter_type = 17, RuleSingle_gate_with_one_parameter_type = 18, 
-    RuleSingle_gate_with_two_parameter_type = 19, RuleSingle_gate_with_three_parameter_type = 20, 
-    RuleSingle_gate_with_four_parameter_type = 21, RuleDouble_gate_without_parameter_type = 22, 
-    RuleDouble_gate_with_one_parameter_type = 23, RuleDouble_gate_with_four_parameter_type = 24, 
-    RuleTriple_gate_without_parameter_type = 25, RulePrimary_expression = 26, 
-    RuleUnary_expression = 27, RuleMultiplicative_expression = 28, RuleAddtive_expression = 29, 
-    RuleRelational_expression = 30, RuleEquality_expression = 31, RuleLogical_and_expression = 32, 
-    RuleLogical_or_expression = 33, RuleAssignment_expression = 34, RuleExpression = 35, 
-    RuleControlbit_list = 36, RuleStatement = 37, RuleDagger_statement = 38, 
-    RuleControl_statement = 39, RuleQelse_statement_fragment = 40, RuleQif_statement = 41, 
-    RuleQwhile_statement = 42, RuleMeasure_statement = 43, RuleReset_statement = 44, 
-    RuleBarrier_statement = 45, RuleExpression_statement = 46, RuleConstant = 47
+    RuleDefine_gate_declaration = 17, RuleSingle_gate_without_parameter_type = 18, 
+    RuleSingle_gate_with_one_parameter_type = 19, RuleSingle_gate_with_two_parameter_type = 20, 
+    RuleSingle_gate_with_three_parameter_type = 21, RuleSingle_gate_with_four_parameter_type = 22, 
+    RuleDouble_gate_without_parameter_type = 23, RuleDouble_gate_with_one_parameter_type = 24, 
+    RuleDouble_gate_with_four_parameter_type = 25, RuleTriple_gate_without_parameter_type = 26, 
+    RulePrimary_expression = 27, RuleUnary_expression = 28, RuleMultiplicative_expression = 29, 
+    RuleAddtive_expression = 30, RuleRelational_expression = 31, RuleEquality_expression = 32, 
+    RuleLogical_and_expression = 33, RuleLogical_or_expression = 34, RuleAssignment_expression = 35, 
+    RuleExpression = 36, RuleControlbit_list = 37, RuleStatement = 38, RuleDagger_statement = 39, 
+    RuleControl_statement = 40, RuleQelse_statement_fragment = 41, RuleQif_statement = 42, 
+    RuleQwhile_statement = 43, RuleMeasure_statement = 44, RuleReset_statement = 45, 
+    RuleBarrier_statement = 46, RuleExpression_statement = 47, RuleDefine_gate_statement = 48, 
+    RuleExplist = 49, RuleExp = 50, RuleGate_func_statement = 51, RuleId = 52, 
+    RuleId_list = 53, RuleGate_name = 54, RuleConstant = 55
   };
 
   originirParser(antlr4::TokenStream *input);
@@ -78,6 +80,7 @@ public:
   class Double_gate_with_one_parameter_declarationContext;
   class Double_gate_with_four_parameter_declarationContext;
   class Triple_gate_without_parameter_declarationContext;
+  class Define_gate_declarationContext;
   class Single_gate_without_parameter_typeContext;
   class Single_gate_with_one_parameter_typeContext;
   class Single_gate_with_two_parameter_typeContext;
@@ -108,6 +111,13 @@ public:
   class Reset_statementContext;
   class Barrier_statementContext;
   class Expression_statementContext;
+  class Define_gate_statementContext;
+  class ExplistContext;
+  class ExpContext;
+  class Gate_func_statementContext;
+  class IdContext;
+  class Id_listContext;
+  class Gate_nameContext;
   class ConstantContext; 
 
   class  TranslationunitContext : public antlr4::ParserRuleContext {
@@ -190,6 +200,7 @@ public:
     Double_gate_with_one_parameter_declarationContext *double_gate_with_one_parameter_declaration();
     Double_gate_with_four_parameter_declarationContext *double_gate_with_four_parameter_declaration();
     Triple_gate_without_parameter_declarationContext *triple_gate_without_parameter_declaration();
+    Define_gate_declarationContext *define_gate_declaration();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -255,6 +266,7 @@ public:
     virtual size_t getRuleIndex() const override;
     Single_gate_without_parameter_typeContext *single_gate_without_parameter_type();
     Q_KEY_declarationContext *q_KEY_declaration();
+    antlr4::tree::TerminalNode *Q_KEY();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -275,6 +287,7 @@ public:
     antlr4::tree::TerminalNode *LPAREN();
     ExpressionContext *expression();
     antlr4::tree::TerminalNode *RPAREN();
+    antlr4::tree::TerminalNode *Q_KEY();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -297,6 +310,7 @@ public:
     std::vector<ExpressionContext *> expression();
     ExpressionContext* expression(size_t i);
     antlr4::tree::TerminalNode *RPAREN();
+    antlr4::tree::TerminalNode *Q_KEY();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -319,6 +333,7 @@ public:
     std::vector<ExpressionContext *> expression();
     ExpressionContext* expression(size_t i);
     antlr4::tree::TerminalNode *RPAREN();
+    antlr4::tree::TerminalNode *Q_KEY();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -341,6 +356,7 @@ public:
     std::vector<ExpressionContext *> expression();
     ExpressionContext* expression(size_t i);
     antlr4::tree::TerminalNode *RPAREN();
+    antlr4::tree::TerminalNode *Q_KEY();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -432,6 +448,29 @@ public:
   };
 
   Triple_gate_without_parameter_declarationContext* triple_gate_without_parameter_declaration();
+
+  class  Define_gate_declarationContext : public antlr4::ParserRuleContext {
+  public:
+    Define_gate_declarationContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    IdContext *id();
+    std::vector<Q_KEY_declarationContext *> q_KEY_declaration();
+    Q_KEY_declarationContext* q_KEY_declaration(size_t i);
+    std::vector<antlr4::tree::TerminalNode *> COMMA();
+    antlr4::tree::TerminalNode* COMMA(size_t i);
+    antlr4::tree::TerminalNode *LPAREN();
+    std::vector<ExpressionContext *> expression();
+    ExpressionContext* expression(size_t i);
+    antlr4::tree::TerminalNode *RPAREN();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
+  };
+
+  Define_gate_declarationContext* define_gate_declaration();
 
   class  Single_gate_without_parameter_typeContext : public antlr4::ParserRuleContext {
   public:
@@ -827,6 +866,7 @@ public:
     Reset_statementContext *reset_statement();
     Expression_statementContext *expression_statement();
     Barrier_statementContext *barrier_statement();
+    Gate_func_statementContext *gate_func_statement();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -975,6 +1015,9 @@ public:
     Q_KEY_declarationContext *q_KEY_declaration();
     antlr4::tree::TerminalNode *COMMA();
     C_KEY_declarationContext *c_KEY_declaration();
+    antlr4::tree::TerminalNode *NEWLINE();
+    antlr4::tree::TerminalNode *Q_KEY();
+    antlr4::tree::TerminalNode *C_KEY();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -991,6 +1034,8 @@ public:
     virtual size_t getRuleIndex() const override;
     antlr4::tree::TerminalNode *RESET_KEY();
     Q_KEY_declarationContext *q_KEY_declaration();
+    antlr4::tree::TerminalNode *NEWLINE();
+    antlr4::tree::TerminalNode *Q_KEY();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -1007,6 +1052,8 @@ public:
     virtual size_t getRuleIndex() const override;
     antlr4::tree::TerminalNode *BARRIER_KEY();
     Controlbit_listContext *controlbit_list();
+    antlr4::tree::TerminalNode *NEWLINE();
+    antlr4::tree::TerminalNode *Q_KEY();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -1022,6 +1069,7 @@ public:
     Expression_statementContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     ExpressionContext *expression();
+    antlr4::tree::TerminalNode *NEWLINE();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -1031,6 +1079,154 @@ public:
   };
 
   Expression_statementContext* expression_statement();
+
+  class  Define_gate_statementContext : public antlr4::ParserRuleContext {
+  public:
+    Define_gate_statementContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    Gate_nameContext *gate_name();
+    Id_listContext *id_list();
+    antlr4::tree::TerminalNode *NEWLINE();
+    antlr4::tree::TerminalNode *COMMA();
+    antlr4::tree::TerminalNode *LPAREN();
+    ExplistContext *explist();
+    antlr4::tree::TerminalNode *RPAREN();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
+  };
+
+  Define_gate_statementContext* define_gate_statement();
+
+  class  ExplistContext : public antlr4::ParserRuleContext {
+  public:
+    ExplistContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    std::vector<ExpContext *> exp();
+    ExpContext* exp(size_t i);
+    std::vector<antlr4::tree::TerminalNode *> COMMA();
+    antlr4::tree::TerminalNode* COMMA(size_t i);
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
+  };
+
+  ExplistContext* explist();
+
+  class  ExpContext : public antlr4::ParserRuleContext {
+  public:
+    ExpContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    IdContext *id();
+    antlr4::tree::TerminalNode *Integer_Literal();
+    antlr4::tree::TerminalNode *Double_Literal();
+    antlr4::tree::TerminalNode *PI();
+    antlr4::tree::TerminalNode *LPAREN();
+    std::vector<ExpContext *> exp();
+    ExpContext* exp(size_t i);
+    antlr4::tree::TerminalNode *RPAREN();
+    antlr4::tree::TerminalNode *MINUS();
+    antlr4::tree::TerminalNode *MUL();
+    antlr4::tree::TerminalNode *DIV();
+    antlr4::tree::TerminalNode *PLUS();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
+  };
+
+  ExpContext* exp();
+  ExpContext* exp(int precedence);
+  class  Gate_func_statementContext : public antlr4::ParserRuleContext {
+  public:
+    Gate_func_statementContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *QGATE_KEY();
+    IdContext *id();
+    std::vector<Id_listContext *> id_list();
+    Id_listContext* id_list(size_t i);
+    std::vector<antlr4::tree::TerminalNode *> NEWLINE();
+    antlr4::tree::TerminalNode* NEWLINE(size_t i);
+    antlr4::tree::TerminalNode *ENDQGATE_KEY();
+    std::vector<Define_gate_statementContext *> define_gate_statement();
+    Define_gate_statementContext* define_gate_statement(size_t i);
+    antlr4::tree::TerminalNode *COMMA();
+    antlr4::tree::TerminalNode *LPAREN();
+    antlr4::tree::TerminalNode *RPAREN();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
+  };
+
+  Gate_func_statementContext* gate_func_statement();
+
+  class  IdContext : public antlr4::ParserRuleContext {
+  public:
+    IdContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *Identifier();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
+  };
+
+  IdContext* id();
+
+  class  Id_listContext : public antlr4::ParserRuleContext {
+  public:
+    Id_listContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    std::vector<IdContext *> id();
+    IdContext* id(size_t i);
+    std::vector<antlr4::tree::TerminalNode *> COMMA();
+    antlr4::tree::TerminalNode* COMMA(size_t i);
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
+  };
+
+  Id_listContext* id_list();
+
+  class  Gate_nameContext : public antlr4::ParserRuleContext {
+  public:
+    Gate_nameContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    Single_gate_without_parameter_typeContext *single_gate_without_parameter_type();
+    Single_gate_with_one_parameter_typeContext *single_gate_with_one_parameter_type();
+    Single_gate_with_two_parameter_typeContext *single_gate_with_two_parameter_type();
+    Single_gate_with_three_parameter_typeContext *single_gate_with_three_parameter_type();
+    Single_gate_with_four_parameter_typeContext *single_gate_with_four_parameter_type();
+    Double_gate_without_parameter_typeContext *double_gate_without_parameter_type();
+    Double_gate_with_one_parameter_typeContext *double_gate_with_one_parameter_type();
+    Double_gate_with_four_parameter_typeContext *double_gate_with_four_parameter_type();
+    Triple_gate_without_parameter_typeContext *triple_gate_without_parameter_type();
+    IdContext *id();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
+  };
+
+  Gate_nameContext* gate_name();
 
   class  ConstantContext : public antlr4::ParserRuleContext {
   public:
@@ -1057,6 +1253,7 @@ public:
   bool equality_expressionSempred(Equality_expressionContext *_localctx, size_t predicateIndex);
   bool logical_and_expressionSempred(Logical_and_expressionContext *_localctx, size_t predicateIndex);
   bool logical_or_expressionSempred(Logical_or_expressionContext *_localctx, size_t predicateIndex);
+  bool expSempred(ExpContext *_localctx, size_t predicateIndex);
 
 private:
   static std::vector<antlr4::dfa::DFA> _decisionToDFA;

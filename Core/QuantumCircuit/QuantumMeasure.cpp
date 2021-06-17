@@ -30,6 +30,20 @@ QMeasure  QPanda::Measure(Qubit * target_qubit,ClassicalCondition  classical_con
     return measure;
 }
 
+QMeasure QPanda::Measure(int qaddr, int  classical_addr)
+{
+    auto target_cbit = OriginCMem::get_instance()->get_cbit_by_addr(classical_addr);
+    auto target_qubit = OriginQubitPool::get_instance()->get_qubit_by_addr(qaddr);
+	if (nullptr == target_cbit
+        || nullptr ==  target_qubit)
+	{
+		QCERR("param error");
+		throw invalid_argument("param error");
+	}
+	QMeasure measure(target_qubit, target_cbit);
+	return measure;
+}
+
 QMeasure::QMeasure(const QMeasure & old_measure)
 {
     m_measure = old_measure.m_measure;

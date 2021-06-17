@@ -15,7 +15,7 @@ Created in 2018-09-06
 
 #include <vector>
 #include <functional>
-#include "Components/DataStruct.h"
+#include "Core/Module/DataStruct.h"
 
 namespace QPanda
 {
@@ -39,7 +39,7 @@ namespace QPanda
 	    * @param[in] QFunc& user defined function
 		* @param[in] vector_d& Optimizer parameters
 	    */
-        void registerFunc(const QFunc &func, const vector_d &optimized_para)
+        virtual void registerFunc(const QOptFunc&func, const vector_d &optimized_para)
         {
             m_func = func;
             m_optimized_para = optimized_para;
@@ -49,7 +49,7 @@ namespace QPanda
 		* @brief whether or not display the log info
 		* @param[in] bool
 		*/
-        void setDisp(bool disp)
+        virtual void setDisp(bool disp)
         {
             m_disp = disp;
         }
@@ -58,7 +58,7 @@ namespace QPanda
 		* @brief whether or not use Para of Nelder-Mead
 		* @param[in] bool
 		*/
-        void setAdaptive(bool adaptive)
+        virtual void setAdaptive(bool adaptive)
         {
             m_adaptive = adaptive;
         }
@@ -67,7 +67,7 @@ namespace QPanda
 		* @brief set absolute error in xopt between iterations that is acceptable for convergence
 		* @param[in] double
 		*/
-        void setXatol(double xatol)
+        virtual void setXatol(double xatol)
         {
             m_xatol = xatol;
         }
@@ -76,7 +76,7 @@ namespace QPanda
 		* @brief set Absolute error in func(xopt) between iterations that is acceptable for convergence
 		* @param[in] double
 		*/
-        void setFatol(double fatol)
+        virtual void setFatol(double fatol)
         {
             m_fatol = fatol;
         }
@@ -85,7 +85,7 @@ namespace QPanda
 		* @brief set the max call times
 		* @param[in] size_t
 		*/
-        void setMaxFCalls(size_t max_fcalls)
+        virtual void setMaxFCalls(size_t max_fcalls)
         {
             m_max_fcalls = max_fcalls;
         }
@@ -94,7 +94,7 @@ namespace QPanda
 		* @brief set the max iter times
 		* @param[in] size_t
 		*/
-        void setMaxIter(size_t max_iter)
+        virtual void setMaxIter(size_t max_iter)
         {
             m_max_iter = max_iter;
         }
@@ -103,7 +103,7 @@ namespace QPanda
 		* @brief set whether or not restore from cache file
 		* @param[in] bool
 		*/
-        void setRestoreFromCacheFile(bool restore)
+        virtual void setRestoreFromCacheFile(bool restore)
         {
             m_restore_from_cache_file = restore;
         }
@@ -112,7 +112,7 @@ namespace QPanda
 		* @brief set cache file
 		* @param[in] std::string& cache file name
 		*/
-        void setCacheFile(const std::string& cache_file)
+        virtual void setCacheFile(const std::string& cache_file)
         {
             m_cache_file = cache_file;
         }
@@ -122,7 +122,7 @@ namespace QPanda
 		* @param[in] double test value
 		* @param[in] std::string& file name
 		*/
-        void setTestValueAndParaFile(double test_value, const std::string &filename)
+        virtual void setTestValueAndParaFile(double test_value, const std::string &filename)
         {
             m_test_value = test_value;
             m_para_file = filename;
@@ -143,7 +143,7 @@ namespace QPanda
         }
 
     protected:
-        QFunc m_func; /**< user defined function */
+        QOptFunc m_func; /**< user defined function */
 
         vector_d m_optimized_para; /**< optimized parameter */
 

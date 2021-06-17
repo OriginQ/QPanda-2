@@ -54,7 +54,7 @@ public:
 		else
 		{
 			//throw error
-			QCERR_AND_THROW_ERRSTR(runtime_error, "Error: unsupport operator.");
+			QCERR_AND_THROW_ERRSTR(std::runtime_error, "Error: unsupport operator.");
 		}
 
 		ret_cir << condition_cir;

@@ -128,12 +128,12 @@ static size_t reverse_qubits(size_t num, size_t len)
 
 static bool is_ordered(const Qnum &qubits)
 {
-	bool ordered = true;
 	if (qubits.size() == 1)
 	{
-		return ordered;
+		return true;
 	}
 
+    bool ordered = true;
 	for (int index = 0; index < qubits.size() - 1; index++)
 	{
 		if (qubits[index] + 1 != qubits[index + 1])
@@ -1234,6 +1234,78 @@ double MPSImplQPU::expectation_value(const Qnum& qubits, const cmatrix_t& matrix
         QCERR("param error");
         throw run_fail("param error");
     }
+}
+
+QStat MPSImplQPU::pmeasure_bin_subset(const std::vector<std::string>& bin_strs)
+{
+    QStat results;
+
+    Qnum qubits = m_qubits_location;
+
+    auto char_to_bin = [](const char& val)
+    {
+        QPANDA_ASSERT(val != '0' && val != '1', "pmeasure_bin_index str error");
+        return val != '0';
+    };
+
+    std::vector<MPS_Tensor> qubits_tensor = m_qubits_tensor;
+
+    for (auto str : bin_strs)
+    {
+        QPANDA_ASSERT(qubits_tensor.size() != str.size(), "pmeasure_bin_index str size error");
+    }
+
+    rvector_t initial_val(1);
+    initial_val[0] = 1.0;
+    m_qubits_tensor.front().mul_gamma_by_left_lambda(initial_val);
+    m_qubits_tensor.back().mul_gamma_by_right_lambda(initial_val);
+
+    if (1 == qubits_tensor.size())
+    {
+        for (auto str : bin_strs)
+        {
+            auto result = qubits_tensor[0].m_physical_index[char_to_bin(str[0])](0, 0);
+            results.emplace_back(result);
+        }
+
+        return results;
+    }
+
+    for (size_t i = 0; i < qubits_tensor.size() - 1; i++)
+    {
+        qubits_tensor[i].mul_gamma_by_right_lambda(m_lambdas[i]);
+    }
+
+    for (auto i = 0; i < bin_strs.size(); ++i)
+    {
+        auto str = bin_strs[i];
+
+        cmatrix_t result = cmatrix_t::Identity(1, 1);
+
+        std::reverse(str.begin(), str.end());
+        for (auto i = 0; i < str.size(); ++i)
+        {
+            int val = char_to_bin(str[m_qubits_location[i]]);
+
+            result *= qubits_tensor[i].m_physical_index[val];
+        }
+
+        results.emplace_back(result(0, 0));
+    }
+
+    return results;
+}
+
+QStat MPSImplQPU::pmeasure_dec_subset(const std::vector<std::string>& dec_strs)
+{
+    std::vector<std::string> bin_strs;
+    for (auto val : dec_strs)
+    {
+        uint128_t index(val.c_str());
+        bin_strs.emplace_back(integerToBinary(index, m_qubits_num));
+    }
+
+    return pmeasure_bin_subset(bin_strs);
 }
 
 qcomplex_t MPSImplQPU::pmeasure_bin_index(std::string str)

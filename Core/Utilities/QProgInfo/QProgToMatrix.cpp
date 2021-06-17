@@ -16,13 +16,13 @@ using namespace Eigen;
 #define PTraceMat(mat)
 #endif
 
-QProgToMatrix::MatrixOfOneLayer::MatrixOfOneLayer(QProgToMatrix& parent, SeqLayer<SequenceNode>& layer, const QProgDAG<GateNodeInfo>& prog_dag, std::vector<int> &qubits_in_use)
+QProgToMatrix::MatrixOfOneLayer::MatrixOfOneLayer(QProgToMatrix& parent, SeqLayer<pOptimizerNodeInfo>& layer, std::vector<int> &qubits_in_use)
 	:m_parent(parent), m_qubits_in_use(qubits_in_use)
 {
 	m_mat_I = qmatrix_t::Identity(2, 2);
-	for (auto &layer_item : layer)
+	for (auto &node_item : layer)
 	{
-		auto p_node = *(prog_dag.get_vertex_node(layer_item.first.m_vertex_num).m_itr);
+		auto p_node = *(node_item.first->m_iter);
 		auto p_gate = std::dynamic_pointer_cast<AbstractQGateNode>(p_node);
 		QVec qubits_vector;
 		p_gate->getQuBitVector(qubits_vector);
@@ -752,9 +752,15 @@ QStat QProgToMatrix::get_matrix()
 	//get quantumBits number
 	QVec all_used_qubits;
 	auto qubit_num = get_all_used_qubits(m_prog, all_used_qubits);
+	Qubit* last_q = nullptr;
 	for (auto q : all_used_qubits)
 	{
+		if ((nullptr != last_q) && (last_q->get_phy_addr() == q->get_phy_addr())){
+			QCERR_AND_THROW(run_fail, "Error: qubit error.");
+		}
+
 		m_qubits_in_use.push_back(q->get_phy_addr());
+		last_q = q;
 	}
 
 	//for Bid Endian(positive sequence)
@@ -770,20 +776,17 @@ QStat QProgToMatrix::get_matrix()
 	//layer
 	QProg tmp_prog;
 	tmp_prog << cir_swap_qubits << m_prog << cir_swap_qubits;
-	QProgTopologSeq<GateNodeInfo, SequenceNode> prog_topo_seq;
-	prog_topo_seq.prog_to_topolog_seq(tmp_prog, SequenceNode::construct_sequence_node);
-	TopologSequence<SequenceNode>& seq = prog_topo_seq.get_seq();
-	const QProgDAG<GateNodeInfo>& prog_dag = prog_topo_seq.get_dag();
+	LayeredTopoSeq seq = prog_layer(tmp_prog);
 	for (auto &seqItem : seq)
 	{
 		//each layer
 		if (result_matrix.size() == 0)
 		{
-			result_matrix = get_matrix_of_one_layer(seqItem, prog_dag);
+			result_matrix = get_matrix_of_one_layer(seqItem);
 		}
 		else
 		{
-			result_matrix = (get_matrix_of_one_layer(seqItem, prog_dag)) * result_matrix;
+			result_matrix = (get_matrix_of_one_layer(seqItem)) * result_matrix;
 		}
 	}
 	
@@ -791,9 +794,9 @@ QStat QProgToMatrix::get_matrix()
 	return result_qstat;
 }
 
-qmatrix_t QProgToMatrix::get_matrix_of_one_layer(SeqLayer<SequenceNode>& layer, const QProgDAG<GateNodeInfo>& prog_dag)
+qmatrix_t QProgToMatrix::get_matrix_of_one_layer(SeqLayer<pOptimizerNodeInfo>& layer)
 {
-	MatrixOfOneLayer get_one_layer_matrix(*this, layer, prog_dag, m_qubits_in_use);
+	MatrixOfOneLayer get_one_layer_matrix(*this, layer, m_qubits_in_use);
 
 	get_one_layer_matrix.merge_controled_gate();
 

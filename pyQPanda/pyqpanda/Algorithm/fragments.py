@@ -39,19 +39,19 @@ def two_qubit_database(data_pos,addr,data):
     if data_pos==3:
         return toffoli_gate
     if data_pos==1:
-        return QCircuit().insert(NOT(addr[0]))\
+        return QCircuit().insert(X(addr[0]))\
                          .insert(toffoli_gate)\
-                         .insert(NOT(addr[0]))
+                         .insert(X(addr[0]))
     if data_pos==2:
-        return QCircuit().insert(NOT(addr[1]))\
+        return QCircuit().insert(X(addr[1]))\
                          .insert(toffoli_gate)\
-                         .insert(NOT(addr[1]))
+                         .insert(X(addr[1]))
     if data_pos==0:
-        return QCircuit().insert(NOT(addr[0]))\
-                         .insert(NOT(addr[1]))\
+        return QCircuit().insert(X(addr[0]))\
+                         .insert(X(addr[1]))\
                          .insert(toffoli_gate)\
-                         .insert(NOT(addr[0]))\
-                         .insert(NOT(addr[1]))       
+                         .insert(X(addr[0]))\
+                         .insert(X(addr[1]))       
 
 def diffusion_operator(qubits):
     '''

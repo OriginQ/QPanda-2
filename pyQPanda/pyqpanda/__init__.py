@@ -166,13 +166,12 @@ from .pyQPanda import get_qprog_clock_cycle
 from .pyQPanda import get_qstate
 from .pyQPanda import get_tuple_list
 from .pyQPanda import get_unsupport_qgate_num
-from .pyQPanda import graph_query_replace
 from .pyQPanda import Grover
 from .pyQPanda import Grover_search
 from .pyQPanda import quantum_walk_alg
 from .pyQPanda import quantum_walk_search
 from .pyQPanda import H
-from .pyQPanda import HHL
+from .pyQPanda import build_HHL_circuit
 from .pyQPanda import HHL_solve_linear_equations
 from .pyQPanda import I
 from .pyQPanda import init
@@ -191,6 +190,7 @@ from .pyQPanda import Measure
 from .pyQPanda import measure_all
 from .pyQPanda import mul
 from .pyQPanda import originir_to_qprog
+from .pyQPanda import OBMT_mapping
 from .pyQPanda import PMeasure
 from .pyQPanda import pmeasure
 from .pyQPanda import PMeasure_no_index
@@ -248,6 +248,7 @@ from .pyQPanda import Y1
 from .pyQPanda import Z
 from .pyQPanda import Z1
 from .pyQPanda import BARRIER
+from .pyQPanda import Toffoli
 from .pyQPanda import _back
 from .pyQPanda import state_fidelity
 
@@ -257,11 +258,26 @@ from .pyQPanda import UpdateMode
 from .pyQPanda import QITE
 
 from .pyQPanda import Shor_factorization
+from .pyQPanda import constModAdd
+from .pyQPanda import constModMul
+from .pyQPanda import constModExp
 
 from .pyQPanda import get_circuit_optimal_topology
 from .pyQPanda import planarity_testing
 
-from .utils import Toffoli
+from .pyQPanda import bind_data
+from .pyQPanda import bind_nonnegative_data
+from .pyQPanda import QSub
+from .pyQPanda import QMultiplier
+from .pyQPanda import QMul
+from .pyQPanda import QDivider
+from .pyQPanda import QDiv
+from .pyQPanda import calculate_quantum_volume
+from .pyQPanda import single_qubit_rb
+from .pyQPanda import double_qubit_rb
+from .pyQPanda import double_gate_xeb
+from .pyQPanda import OriginQubitPool
+from .pyQPanda import OriginCMem
 
 # pyQPandaOperator
 
@@ -270,44 +286,43 @@ try:
     from .pyQPanda import ClusterMachineType
 except ImportError as e:
     warnings.warn("No module named QCloud")
-
+    
 try:
-    # classes
+	# classes
+	from .ChemiQ.pyQPandaChemiQ import ChemiQ
+	from .ChemiQ.pyQPandaChemiQ import TransFormType
+	from .ChemiQ.pyQPandaChemiQ import UccType
 
-    from .ChemiQ.pyQPandaChemiQ import ChemiQ
-    from .ChemiQ.pyQPandaChemiQ import TransFormType
-    from .ChemiQ.pyQPandaChemiQ import UccType
+	# funtions
 
-    # funtions
-
-    from .ChemiQ.pyQPandaChemiQ import getCCSD_N_Trem
-    from .ChemiQ.pyQPandaChemiQ import getCCSD_Var
-    from .ChemiQ.pyQPandaChemiQ import getCCS_Normal
-    from .ChemiQ.pyQPandaChemiQ import getCCS_N_Trem
-    from .ChemiQ.pyQPandaChemiQ import getCCS_Var
-    from .ChemiQ.pyQPandaChemiQ import getElectronNum
-    from .ChemiQ.pyQPandaChemiQ import get_ccsd_normal
-    from .ChemiQ.pyQPandaChemiQ import get_ccsd_n_trem
-    from .ChemiQ.pyQPandaChemiQ import get_ccsd_var
-    from .ChemiQ.pyQPandaChemiQ import get_ccs_normal
-    from .ChemiQ.pyQPandaChemiQ import get_ccs_n_trem
-    from .ChemiQ.pyQPandaChemiQ import get_ccs_var
-    from .ChemiQ.pyQPandaChemiQ import get_electron_num
-    from .ChemiQ.pyQPandaChemiQ import JordanWignerTransform
-    from .ChemiQ.pyQPandaChemiQ import JordanWignerTransformVar
-    from .ChemiQ.pyQPandaChemiQ import jordan_wigner_transform
-    from .ChemiQ.pyQPandaChemiQ import jordan_wigner_transform_var
-    from .ChemiQ.pyQPandaChemiQ import parsePsi4DataToFermion
-    from .ChemiQ.pyQPandaChemiQ import parse_psi4_data_to_fermion
-    from .ChemiQ.pyQPandaChemiQ import simulateHamiltonian_Var
-    from .ChemiQ.pyQPandaChemiQ import simulate_hamiltonian_var
-    from .ChemiQ.pyQPandaChemiQ import transCC2UCC_Normal
-    from .ChemiQ.pyQPandaChemiQ import transCC2UCC_Var
-    from .ChemiQ.pyQPandaChemiQ import trans_cc_2_ucc_normal
-    from .ChemiQ.pyQPandaChemiQ import trans_cc_2_ucc_var
+	from .ChemiQ.pyQPandaChemiQ import getCCSD_N_Trem
+	from .ChemiQ.pyQPandaChemiQ import getCCSD_Var
+	from .ChemiQ.pyQPandaChemiQ import getCCS_Normal
+	from .ChemiQ.pyQPandaChemiQ import getCCS_N_Trem
+	from .ChemiQ.pyQPandaChemiQ import getCCS_Var
+	from .ChemiQ.pyQPandaChemiQ import getElectronNum
+	from .ChemiQ.pyQPandaChemiQ import get_ccsd_normal
+	from .ChemiQ.pyQPandaChemiQ import get_ccsd_n_trem
+	from .ChemiQ.pyQPandaChemiQ import get_ccsd_var
+	from .ChemiQ.pyQPandaChemiQ import get_ccs_normal
+	from .ChemiQ.pyQPandaChemiQ import get_ccs_n_trem
+	from .ChemiQ.pyQPandaChemiQ import get_ccs_var
+	from .ChemiQ.pyQPandaChemiQ import get_electron_num
+	from .ChemiQ.pyQPandaChemiQ import JordanWignerTransform
+	from .ChemiQ.pyQPandaChemiQ import JordanWignerTransformVar
+	from .ChemiQ.pyQPandaChemiQ import jordan_wigner_transform
+	from .ChemiQ.pyQPandaChemiQ import jordan_wigner_transform_var
+	from .ChemiQ.pyQPandaChemiQ import parsePsi4DataToFermion
+	from .ChemiQ.pyQPandaChemiQ import parse_psi4_data_to_fermion
+	from .ChemiQ.pyQPandaChemiQ import simulateHamiltonian_Var
+	from .ChemiQ.pyQPandaChemiQ import simulate_hamiltonian_var
+	from .ChemiQ.pyQPandaChemiQ import transCC2UCC_Normal
+	from .ChemiQ.pyQPandaChemiQ import transCC2UCC_Var
+	from .ChemiQ.pyQPandaChemiQ import trans_cc_2_ucc_normal
+	from .ChemiQ.pyQPandaChemiQ import trans_cc_2_ucc_var
 
 except ImportError as e:
-    warnings.warn("No module named ChemiQ")
+	warnings.warn("No module named ChemiQ")
 
 
 One = True

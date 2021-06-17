@@ -49,7 +49,7 @@ QProg build_quantum_walk_alg_prog(const std::vector<T> &data_vec,
 	//oracle
 	OracleBuilder<T> oracle_builder(data_vec, condition, qvm);
 	const QVec &ancilla_qubits = oracle_builder.get_ancilla_qubits();
-	QCircuit mark_cir = get_mark_circuit(U1, ancilla_qubits.back(), PI/2.0);
+	QCircuit mark_cir = get_mark_circuit(static_cast<QGate(*)(Qubit*, double)>(&U1), ancilla_qubits.back(), PI/2.0);
 	QCircuit cir_oracle = oracle_builder.build_oracle_circuit(deepCopy(mark_cir));
 
 	//build coin circuit
@@ -69,13 +69,12 @@ QProg build_quantum_walk_alg_prog(const std::vector<T> &data_vec,
 
 	//quantum walk
 	quantum_walk_prog = quantum_walk_alg(cir_oracle, cir_coin, oracle_builder.get_index_qubits(), oracle_builder.get_ancilla_qubits(), repeat);
-	sub_cir_optimizer(quantum_walk_prog);
 	measure_qubits = index_qubits;
 
 	return quantum_walk_prog;
 }
 
-inline QProg build_quantum_walk_prog(const std::vector<int> &data_vec,
+inline QProg build_quantum_walk_search_prog(const std::vector<uint32_t> &data_vec,
 	ClassicalCondition condition,
 	QuantumMachine * qvm,
 	QVec& measure_qubits,
@@ -110,7 +109,7 @@ QProg quantum_walk_alg_search_from_vector(const std::vector<T> &data_vec,
 	auto result = probRunDict(quantum_walk_prog, measure_qubits);
 
 	//get result
-	result_index_vec = search_target_from_measure_result(result, data_vec.size());
+	result_index_vec = search_target_from_measure_result(result);
 
 	return quantum_walk_prog;
 }

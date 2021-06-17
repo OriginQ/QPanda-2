@@ -11,7 +11,7 @@
 using namespace std;
 USING_QPANDA
 
-using sequence_gate_t = SeqNode<SequenceNode>;
+using sequence_gate_t = SeqNode<DAGSeqNode>;
 
 QPanda::QProgClockCycle::QProgClockCycle(QPanda::QuantumMachine *qm)
 {
@@ -32,9 +32,11 @@ size_t QProgClockCycle::count(QProg &prog, bool optimize /* = false */)
         cir_optimizer_by_config(prog, CONFIG_PATH, QCircuitOPtimizerMode::Merge_U3);
     }
 
-	QProgTopologSeq<GateNodeInfo, SequenceNode> m_prog_topo_seq;
+	/*QProgTopologSeq<GateNodeInfo, SequenceNode> m_prog_topo_seq;
 	m_prog_topo_seq.prog_to_topolog_seq(prog, SequenceNode::construct_sequence_node);
-	TopologSequence<SequenceNode>& graph_seq = m_prog_topo_seq.get_seq();
+	TopologSequence<SequenceNode>& graph_seq = m_prog_topo_seq.get_seq();*/
+	std::shared_ptr<QProgDAG> dag = qprog_to_DAG(prog);
+	TopologSequence<DAGSeqNode> graph_seq = dag->build_topo_sequence();
     size_t clock_cycle = 0;
 
     for (auto &layer : graph_seq)

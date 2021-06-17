@@ -195,8 +195,16 @@ PYBIND11_MODULE(pyQPanda, m)
 
     m.def("quick_measure", &quickMeasure, "qubit_list"_a, "shots"_a, "quick measure");
 
+    m.def("Measure", [](Qubit* qbit, ClassicalCondition cbit)
+    {return Measure(qbit, cbit); },
+        "qubit"_a, "cbit"_a,
+        "Create a Measure operation",
+        py::return_value_policy::automatic
+    );
 
-    m.def("Measure", &Measure, "qubit"_a, "cbit"_a,
+    m.def("Measure", [](int qbit_addr, int cbit_addr)
+    { return Measure(qbit_addr, cbit_addr); },
+        "qubit addr"_a, "cbit addr"_a,
         "Create a Measure operation",
         py::return_value_policy::automatic
     );
@@ -205,25 +213,67 @@ PYBIND11_MODULE(pyQPanda, m)
         "Create a Measure operation",
         py::return_value_policy::automatic
     );
-    m.def("H", &H, "Create a H gate",
+
+    m.def("H", [](Qubit* qbit){ return H(qbit); },
+        "qubit"_a,
+        "Create a H gate",
         py::return_value_policy::automatic
     );
 
-    m.def("Reset", &Reset, "Create a Reset node",
-        py::return_value_policy::automatic
-    );
+	m.def("H", [](int qbit_addr) { return H(qbit_addr); },
+        "qubit phy addr"_a,
+		"Create a H gate",
+		py::return_value_policy::automatic
+	);
 
-    m.def("T", &T, "Create a T gate",
-        py::return_value_policy::automatic
-    );
+	m.def("Reset", [](Qubit* qbit) { return Reset(qbit); },
+		"qubit"_a,
+		"Create a Reset node",
+		py::return_value_policy::automatic
+	);
 
-    m.def("S", &S, "qubit"_a, "Create a S gate",
-        py::return_value_policy::automatic
-    );
+	m.def("Reset", [](int qbit_addr) { return Reset(qbit_addr); },
+		"qubit phy addr"_a,
+		"Create a Reset node",
+		py::return_value_policy::automatic
+	);
 
-    m.def("I", &I, "qubit"_a, "Create an I gate",
-        py::return_value_policy::automatic
-    );
+	m.def("T", [](Qubit* qbit) { return T(qbit); },
+		"qubit"_a,
+		"Create a T gate",
+		py::return_value_policy::automatic
+	);
+
+	m.def("T", [](int qbit_addr) { return T(qbit_addr); },
+		"qubit phy addr"_a,
+		"Create a T gate",
+		py::return_value_policy::automatic
+	);
+
+	m.def("S", [](Qubit* qbit) { return T(qbit); },
+		"qubit"_a,
+		"Create a S gate",
+		py::return_value_policy::automatic
+	);
+
+	m.def("S", [](int qbit_addr) { return T(qbit_addr); },
+		"qubit phy addr"_a,
+		"Create a S gate",
+		py::return_value_policy::automatic
+	);
+
+	m.def("I", [](Qubit* qbit) { return I(qbit); },
+		"qubit"_a,
+        "Create an I gate",
+		py::return_value_policy::automatic
+	);
+
+	m.def("I", [](int qbit_addr) { return I(qbit_addr); },
+		"qubit phy addr"_a,
+        "Create an I gate",
+		py::return_value_policy::automatic
+	);
+
 
     m.def("BARRIER", [](Qubit* qubit)
     {return BARRIER(qubit); },
@@ -232,6 +282,12 @@ PYBIND11_MODULE(pyQPanda, m)
         py::return_value_policy::automatic
     );
 
+	m.def("BARRIER", [](int qbit_addr) { return BARRIER(qbit_addr); },
+		"qubit phy addr"_a,
+        "Create an BARRIER gate",
+		py::return_value_policy::automatic
+	);
+
     m.def("BARRIER", [](QVec qubits)
     {return BARRIER(qubits); },
         "qubit list"_a,
@@ -239,65 +295,199 @@ PYBIND11_MODULE(pyQPanda, m)
         py::return_value_policy::automatic
     );
 
-    m.def("X", &X, "qubit"_a, "Create an X gate",
-        py::return_value_policy::automatic
-    );
+	m.def("BARRIER", [](std::vector<int> qbit_addrs) { return BARRIER(qbit_addrs); },
+		"qubit phy addr list"_a,
+		"Create an BARRIER gate",
+		py::return_value_policy::automatic
+	);
 
-    m.def("Y", &Y, "qubit"_a, "Create a Y gate",
-        py::return_value_policy::automatic
-    );
+	m.def("X", [](Qubit* qbit) { return X(qbit); },
+		"qubit"_a,
+        "Create an X gate",
+		py::return_value_policy::automatic
+	);
 
-    m.def("Z", &Z, "qubit"_a, "Create a Z gate",
-        py::return_value_policy::automatic
-    );
+	m.def("X", [](int qbit_addr) { return X(qbit_addr); },
+		"qubit phy addr"_a,
+        "Create an X gate",
+		py::return_value_policy::automatic
+	);
 
-    m.def("X1", &X1, "qubit"_a, "Create an X1 gate",
-        py::return_value_policy::automatic
-    );
+	m.def("Y", [](Qubit* qbit) { return Y(qbit); },
+		"qubit"_a,
+        "Create a Y gate",
+		py::return_value_policy::automatic
+	);
 
-    m.def("Y1", &Y1, "qubit"_a, "Create a Y1 gate",
-        py::return_value_policy::automatic
-    );
+	m.def("Y", [](int qbit_addr) { return Y(qbit_addr); },
+		"qubit phy addr"_a,
+        "Create a Y gate",
+		py::return_value_policy::automatic
+	);
 
-    m.def("Z1", &Z1, "qubit"_a, "Create a Z1 gate",
-        py::return_value_policy::automatic
-    );
+	m.def("Z", [](Qubit* qbit) { return Z(qbit); },
+		"qubit"_a,
+		"Create a Z gate",
+		py::return_value_policy::automatic
+	);
 
-    m.def("RX", &RX, "qubit"_a, "angle"_a, "Create a RX gate",
-        py::return_value_policy::automatic
-    );
+	m.def("Z", [](int qbit_addr) { return Z(qbit_addr); },
+		"qubit phy addr"_a,
+		"Create a Z gate",
+		py::return_value_policy::automatic
+	);
 
-    m.def("RY", &RY, "qubit"_a, "angle"_a, "Create a RY gate",
-        py::return_value_policy::automatic
-    );
+	m.def("X1", [](Qubit* qbit) { return X1(qbit); },
+		"qubit"_a,
+		"Create a X1 gate",
+		py::return_value_policy::automatic
+	);
 
-    m.def("RZ", &RZ, "qubit"_a, "angle"_a, "Create a RZ gate",
-        py::return_value_policy::automatic
-    );
+	m.def("X1", [](int qbit_addr) { return X1(qbit_addr); },
+		"qubit phy addr"_a,
+		"Create a X1 gate",
+		py::return_value_policy::automatic
+	);
 
-    m.def("U1", &U1, "qubit"_a, "angle"_a, "Create a U1 gate",
-        py::return_value_policy::automatic
-    );
+	m.def("Y1", [](Qubit* qbit) { return Y1(qbit); },
+		"qubit"_a,
+		"Create a Y1 gate",
+		py::return_value_policy::automatic
+	);
 
-    m.def("U2", &U2, "qubit"_a, "phi"_a, "lambda"_a, "Create a U2 gate",
-        py::return_value_policy::automatic
-    );
+	m.def("Y1", [](int qbit_addr) { return Y1(qbit_addr); },
+		"qubit phy addr"_a,
+		"Create a Y1 gate",
+		py::return_value_policy::automatic
+	);
 
-    m.def("U3", &U3, "qubit"_a, "theta"_a, "phi"_a, "lambda"_a, "Create a U3 gate",
-        py::return_value_policy::automatic
-    );
+	m.def("Z1", [](Qubit* qbit) { return Z1(qbit); },
+		"qubit"_a,
+		"Create a Z1 gate",
+		py::return_value_policy::automatic
+	);
 
-    m.def("CNOT", &CNOT, "control_qubit"_a, "target_qubit"_a, "Create a CNOT gate",
-        py::return_value_policy::automatic
-    );
+	m.def("Z1", [](int qbit_addr) { return Z1(qbit_addr); },
+		"qubit phy addr"_a,
+		"Create a Y1 gate",
+		py::return_value_policy::automatic
+	);
 
-    m.def("CZ", &CZ, "control_qubit"_a, "target_qubit"_a, "Create a CZ gate",
-        py::return_value_policy::automatic
-    );
+	m.def("RX", [](Qubit* qbit, double angle) { return RX(qbit, angle); },
+		"qubit"_a,
+        "angle"_a,
+		"Create a RX gate",
+		py::return_value_policy::automatic
+	);
 
-    m.def("SWAP", &SWAP, "control_qubit"_a, "target_qubit"_a, "Create a SWAP gate",
-        py::return_value_policy::automatic
-    );
+	m.def("RX", [](int qbit_addr, double angle) { return RX(qbit_addr, angle); },
+		"qubit phy addr"_a,
+		"angle"_a,
+		"Create a RX gate",
+		py::return_value_policy::automatic
+	);
+
+	m.def("RY", [](Qubit* qbit, double angle) { return RY(qbit, angle); },
+		"qubit"_a,
+		"angle"_a,
+		"Create a RY gate",
+		py::return_value_policy::automatic
+	);
+
+	m.def("RY", [](int qbit_addr, double angle) { return RY(qbit_addr, angle); },
+		"qubit phy addr"_a,
+		"angle"_a,
+		"Create a RY gate",
+		py::return_value_policy::automatic
+	);
+
+	m.def("RZ", [](Qubit* qbit, double angle) { return RZ(qbit, angle); },
+		"qubit"_a,
+		"angle"_a,
+		"Create a RZ gate",
+		py::return_value_policy::automatic
+	);
+
+	m.def("RZ", [](int qbit_addr, double angle) { return RZ(qbit_addr, angle); },
+		"qubit phy addr"_a,
+		"angle"_a,
+		"Create a RZ gate",
+		py::return_value_policy::automatic
+	);
+
+	m.def("U1", [](Qubit* qbit, double angle) { return U1(qbit, angle); },
+		"qubit"_a,
+		"angle"_a,
+		"Create a U1 gate",
+		py::return_value_policy::automatic
+	);
+
+	m.def("U1", [](int qbit_addr, double angle) { return U1(qbit_addr, angle); },
+		"qubit phy addr"_a,
+		"angle"_a,
+		"Create a U1 gate",
+		py::return_value_policy::automatic
+	);
+
+	m.def("U2", [](Qubit* qbit, double phi, double lambda) { return U2(qbit, phi, lambda); },
+		"qubit"_a,
+        "phi"_a, "lambda"_a, "Create a U2 gate",
+		py::return_value_policy::automatic
+	);
+
+	m.def("U2", [](int qbit_addr, double phi, double lambda) { return U2(qbit_addr, phi, lambda); },
+		"qubit phy addr"_a,
+        "phi"_a, "lambda"_a, "Create a U2 gate",
+		py::return_value_policy::automatic
+	);
+
+	m.def("U3", [](Qubit* qbit, double theta, double phi, double lambda) { return U3(qbit, theta, phi, lambda); },
+		"qubit"_a,
+        "theta"_a, "phi"_a, "lambda"_a, "Create a U3 gate",
+		py::return_value_policy::automatic
+	);
+
+	m.def("U3", [](int qbit_addr, double theta, double phi, double lambda) { return U3(qbit_addr, theta, phi, lambda); },
+		"qubit phy addr"_a,
+        "theta"_a, "phi"_a, "lambda"_a, "Create a U3 gate",
+		py::return_value_policy::automatic
+	);
+
+	m.def("CNOT", [](Qubit* control_qubit, Qubit* target_qubit) { return CNOT(control_qubit, target_qubit); },
+        "control_qubit"_a, "target_qubit"_a, 
+        "Create a CNOT gate",
+		py::return_value_policy::automatic
+	);
+
+	m.def("CNOT", [](int control_qaddr, int target_qaddr) { return CNOT(control_qaddr, target_qaddr); },
+		"control qubit addr"_a, "target qubit addr"_a,
+		"Create a CNOT gate",
+		py::return_value_policy::automatic
+	);
+
+	m.def("CZ", [](Qubit* control_qubit, Qubit* target_qubit) { return CZ(control_qubit, target_qubit); },
+		"control_qubit"_a, "target_qubit"_a,
+		"Create a CZ gate",
+		py::return_value_policy::automatic
+	);
+
+	m.def("CZ", [](int control_qaddr, int target_qaddr) { return CZ(control_qaddr, target_qaddr); },
+		"control qubit addr"_a, "target qubit addr"_a,
+		"Create a CZ gate",
+		py::return_value_policy::automatic
+	);
+
+	m.def("SWAP", [](Qubit* control_qubit, Qubit* target_qubit) { return SWAP(control_qubit, target_qubit); },
+		"control_qubit"_a, "target_qubit"_a,
+		"Create a SWAP gate",
+		py::return_value_policy::automatic
+	);
+
+	m.def("SWAP", [](int control_qaddr, int target_qaddr) { return SWAP(control_qaddr, target_qaddr); },
+		"control qubit addr"_a, "target qubit addr"_a,
+		"Create a SWAP gate",
+		py::return_value_policy::automatic
+	);
 
     m.def("U4", [](QStat & matrix, Qubit *qubit)
     {return U4(matrix, qubit); }, "matrix"_a, "qubit"_a,
@@ -335,6 +525,13 @@ PYBIND11_MODULE(pyQPanda, m)
         py::return_value_policy::automatic
     );
 
+	m.def("iSWAP", [](int first_qaddr, int second_qaddr)
+	{return iSWAP(first_qaddr, second_qaddr); },
+		"qubit addr"_a, "qubit addr"_a,
+		"Create a iSWAP gate",
+		py::return_value_policy::automatic
+	);
+
     m.def("iSWAP",
         [](Qubit* first_qubit, Qubit* second_qubit, double theta)
     {return iSWAP(first_qubit, second_qubit, theta); },
@@ -342,6 +539,13 @@ PYBIND11_MODULE(pyQPanda, m)
         "Create a iSWAP gate",
         py::return_value_policy::automatic
     );
+
+	m.def("iSWAP", [](int first_qaddr, int second_qaddr, double theta)
+	{return iSWAP(first_qaddr, second_qaddr, theta); },
+		"qubit addr"_a, "qubit addr"_a, "angle"_a,
+		"Create a iSWAP gate",
+		py::return_value_policy::automatic
+	);
 
     m.def("SqiSWAP",
         [](Qubit* first_qubit, Qubit* second_qubit)
@@ -351,9 +555,26 @@ PYBIND11_MODULE(pyQPanda, m)
         py::return_value_policy::automatic
     );
 
-    m.def("CR", &CR, "control_qubit"_a, "target_qubit"_a, "angle"_a, "Create a CR gate",
-        py::return_value_policy::automatic
-    );
+	m.def("SqiSWAP", [](int first_qaddr, int second_qaddr)
+	{return SqiSWAP(first_qaddr, second_qaddr); },
+		"qubit addr"_a, "qubit addr"_a,
+		"Create a SqiSWAP gate",
+		py::return_value_policy::automatic
+	);
+
+	m.def("CR", [](Qubit* control_qubit, Qubit* target_qubit, double theta)
+    { return CR(control_qubit, target_qubit, theta); },
+		"control_qubit"_a, "target_qubit"_a, "angle"_a,
+		"Create a CR gate",
+		py::return_value_policy::automatic
+	);
+
+	m.def("CR", [](int control_qaddr, int target_qaddr, double theta)
+    { return CR(control_qaddr, target_qaddr, theta); },
+		"control qubit addr"_a, "target qubit addr"_a, "angle"_a,
+		"Create a CR gate",
+		py::return_value_policy::automatic
+	);
 
     /* new interface */
     m.def("U4", [](Qubit *qubit, QStat & matrix)
@@ -362,34 +583,82 @@ PYBIND11_MODULE(pyQPanda, m)
         py::return_value_policy::automatic
     );
 
+	m.def("U4", [](int  qaddr, QStat& matrix){return U4(qaddr, matrix); }, 
+        "matrix"_a, "qubit addr"_a,
+		"Create a U4 gate",
+		py::return_value_policy::automatic
+	);
+
     m.def("U4", [](Qubit * qubit, double alpha, double beta, double gamma, double delta)
     {return U4(qubit, alpha, beta, gamma, delta); }, "alpha"_a, "beta"_a, "delta"_a, "gamma"_a, "qubit"_a,
         "Create a U4 gate",
         py::return_value_policy::automatic
     );
 
+	m.def("U4", [](int  qaddr, double alpha, double beta, double gamma, double delta) 
+    {return U4(qaddr, alpha, beta, gamma, delta); },
+        "alpha"_a, "beta"_a, "delta"_a, "gamma"_a, "qubit"_a,
+		"Create a U4 gate",
+		py::return_value_policy::automatic
+	);
+
     m.def("CU", [](Qubit * controlQBit, Qubit * targetQBit,
         double alpha, double beta, double gamma, double delta)
     {return CU(controlQBit, targetQBit, alpha, beta, gamma, delta); },
-        "alpha"_a, "beta"_a, "delta"_a, "gamma"_a, "control_qubit"_a, "target_qubit"_a,
+        "control_qubit"_a, "target_qubit"_a, "alpha"_a, "beta"_a, "delta"_a, "gamma"_a,
         "Create a CU gate",
         py::return_value_policy::automatic
     );
 
+	m.def("CU", [](int control_qaddr, int target_qaddr, 
+        double alpha, double beta, double gamma, double delta)
+	{ return CU(control_qaddr, target_qaddr, alpha, beta, gamma, delta); },
+		"control qubit addr"_a, "target qubit addr"_a, "alpha"_a, "beta"_a, "delta"_a, "gamma"_a,
+		"Create a CU gate",
+		py::return_value_policy::automatic
+	);
+
     m.def("CU", [](Qubit * controlQBit, Qubit * targetQBit, QStat & matrix)
     {return CU(controlQBit, targetQBit, matrix); },
-        "matrix"_a, "control_qubit"_a, "target_qubit"_a,
+        "control_qubit"_a, "target_qubit"_a, "matrix"_a,
         "Create a CU gate",
+        py::return_value_policy::automatic
+    );
+
+	m.def("CU", [](int control_qaddr, int target_qaddr, QStat& matrix)
+	{ return CU(control_qaddr, target_qaddr, matrix); },
+		"control qubit addr"_a, "target qubit addr"_a, "matrix"_a,
+		"Create a CU gate",
+		py::return_value_policy::automatic
+	);
+
+    m.def("Toffoli", [](Qubit *control_first, Qubit * target_second, Qubit * target)
+    { return Toffoli(control_first, target_second, target); },
+        "control first qubit"_a, "control second qubit"_a, "target qubit"_a,
+        "Create a Toffoli gate",
+        py::return_value_policy::automatic
+    );
+
+    m.def("Toffoli", [](int control_first, int target_second, int target)
+    { return Toffoli(control_first, target_second, target); },
+        "control first qubit addr"_a, "control second qubit addr"_a, "target qubit addr"_a,
+        "Create a Toffoli gate",
         py::return_value_policy::automatic
     );
 
     m.def("QDouble", [](Qubit * controlQBit, Qubit * targetQBit, QStat & matrix)
     {return QDouble(controlQBit, targetQBit, matrix); },
-        "matrix"_a, "control_qubit"_a, "target_qubit"_a,
-        "Create a CU gate",
+        "control_qubit"_a, "target_qubit"_a, "matrix"_a,
+        "Create a QDouble gate",
         py::return_value_policy::automatic
     );
 
+	m.def("QDouble", [](int control_qaddr, int target_qaddr, QStat& matrix)
+	{ return QDouble(control_qaddr, target_qaddr, matrix); },
+		"control qubit addr"_a, "target qubit addr"_a, "matrix"_a,
+		"Create a QDouble gate",
+		py::return_value_policy::automatic
+	);
 
 
     m.def("print_matrix", [](QStat& mat, const int precision) {
@@ -774,9 +1043,10 @@ PYBIND11_MODULE(pyQPanda, m)
         py::return_value_policy::automatic_reference
         );
 
-    m.def("topology_match", [](QProg prog, QVec qv, QuantumMachine *qvm, SwapQubitsMethod method, ArchType arch_type) {
+    m.def("topology_match", [](QProg prog, QVec qv, QuantumMachine *qvm, SwapQubitsMethod method, 
+		ArchType arch_type, const std::string conf) {
         py::list ret_data;
-        QProg out_prog = topology_match(prog, qv, qvm, method, arch_type);
+        QProg out_prog = topology_match(prog, qv, qvm, method, arch_type, conf);
         py::list qubit_list;
         for (auto q : qv)
             qubit_list.append(q);
@@ -785,7 +1055,8 @@ PYBIND11_MODULE(pyQPanda, m)
         ret_data.append(qubit_list);
         return ret_data;
     },
-        "prog"_a, "qubits"_a, "quantum machine"_a, "SwapQubitsMethod"_a = CNOT_GATE_METHOD, "ArchType"_a = IBM_QX5_ARCH,
+        "prog"_a, "qubits"_a, "quantum machine"_a, "SwapQubitsMethod"_a = CNOT_GATE_METHOD,
+		"ArchType"_a = IBM_QX5_ARCH, "conf"_a = CONFIG_PATH,
         py::return_value_policy::automatic_reference
         );
 
@@ -1027,9 +1298,9 @@ PYBIND11_MODULE(pyQPanda, m)
         py::return_value_policy::automatic
         );
 
-    m.def("draw_qprog_text", [](QProg prg, const NodeIter itr_start, const NodeIter itr_end) {
-        return draw_qprog(prg, itr_start, itr_end);
-    }, py::arg("prog"), py::arg("itr_start") = NodeIter(), py::arg("itr_end") = NodeIter(),
+    m.def("draw_qprog_text", [](QProg prg, uint32_t auto_wrap_len, bool b_out_put_to_file, const NodeIter itr_start, const NodeIter itr_end) {
+        return draw_qprog(prg, auto_wrap_len, b_out_put_to_file, itr_start, itr_end);
+    }, py::arg("prog"), py::arg("auto_wrap_len") = 100, py::arg("b_out_put_to_file") = false, py::arg("itr_start") = NodeIter(), py::arg("itr_end") = NodeIter(),
         "Convert a quantum prog/circuit to text-pic(UTF-8 code), \
         and will save the text-pic in file named QCircuitTextPic.txt in the same time in current path",
         py::return_value_policy::automatic
@@ -1040,9 +1311,12 @@ PYBIND11_MODULE(pyQPanda, m)
         py::return_value_policy::automatic
     );
 
-    m.def("draw_qprog_text_with_clock", [](QProg prog, const std::string config_data, const NodeIter itr_start, const NodeIter itr_end) {
-        return draw_qprog_with_clock(prog, config_data, itr_start, itr_end);
-    }, py::arg("prog"), "config_data"_a = CONFIG_PATH, py::arg("itr_start") = NodeIter(), py::arg("itr_end") = NodeIter(),
+    m.def("draw_qprog_text_with_clock", [](QProg prog, const std::string config_data, uint32_t auto_wrap_len, 
+		bool b_out_put_to_file, const NodeIter itr_start, const NodeIter itr_end) {
+        return draw_qprog_with_clock(prog, config_data, auto_wrap_len, b_out_put_to_file, itr_start, itr_end);
+    }, py::arg("prog"), py::arg("config_data") = CONFIG_PATH, py::arg("auto_wrap_len") = 100, 
+		py::arg("b_out_put_to_file") = false,
+		py::arg("itr_start") = NodeIter(), py::arg("itr_end") = NodeIter(),
         "Convert a quantum prog/circuit to text-pic(UTF-8 code) with time sequence, \
         and will save the text-pic in file named QCircuitTextPic.txt in the same time in current path",
         py::return_value_policy::automatic
@@ -1070,14 +1344,14 @@ PYBIND11_MODULE(pyQPanda, m)
         py::return_value_policy::automatic
         );
 
-#define QUERY_REPLACE(GRAPH_NODE,QUERY_NODE,REPLACE_NODE) \
-    m.def("graph_query_replace", [](GRAPH_NODE &graph_node, QUERY_NODE &query_node,\
-                                       REPLACE_NODE &replace_node, QuantumMachine *qvm)\
-    {\
-        QProg prog;\
-        graph_query_replace(graph_node, query_node, replace_node, prog, qvm); \
-        return prog;\
-    },py::return_value_policy::automatic);
+//#define QUERY_REPLACE(GRAPH_NODE,QUERY_NODE,REPLACE_NODE) \
+//    m.def("graph_query_replace", [](GRAPH_NODE &graph_node, QUERY_NODE &query_node,\
+//                                       REPLACE_NODE &replace_node, QuantumMachine *qvm)\
+//    {\
+//        QProg prog;\
+//        graph_query_replace(graph_node, query_node, replace_node, prog, qvm); \
+//        return prog;\
+//    },py::return_value_policy::automatic);
 
     m.def("quantum_chip_adapter", [](QProg prog, QuantumMachine *quantum_machine, bool b_mapping = true,
         const std::string config_data = CONFIG_PATH) {
@@ -1148,7 +1422,7 @@ PYBIND11_MODULE(pyQPanda, m)
 		for (const auto& m : mode_list){
 			mode |= m;
 		}
-        sub_cir_optimizer(prog, optimizer_cir_vec, mode);
+        cir_optimizer(prog, optimizer_cir_vec, mode);
         return prog;
     }, "prog"_a, "optimizer_cir_vec"_a = std::vector<std::pair<QCircuit, QCircuit>>(), "mode_list"_a = std::vector<QCircuitOPtimizerMode>(0),
         "/**\
@@ -1359,9 +1633,127 @@ PYBIND11_MODULE(pyQPanda, m)
 		* / ",
         py::return_value_policy::automatic
         );
+
+    m.def("single_qubit_rb", [](NoiseQVM* qvm, Qubit* qbit, const std::vector<int>& clifford_range, \
+        int num_circuits, int shots, const std::vector<QGate>& interleaved_gates) {
+        return single_qubit_rb(qvm, qbit, clifford_range, num_circuits, shots, interleaved_gates);
+    }, 
+        py::arg("qvm"), py::arg("qbit"), py::arg("clifford_range"), 
+        py::arg("num_circuits"), py::arg("shots"), py::arg("interleaved_gates") = std::vector<QGate>(),
+		"single qubit rb with noise quantum virtual machine",
+		py::return_value_policy::automatic
+		);
+
+    m.def("double_qubit_rb", [](NoiseQVM* qvm, Qubit* qbit0, Qubit* qbit1, const std::vector<int>& clifford_range, \
+        int num_circuits, int shots, const std::vector<QGate>& interleaved_gates) {
+        return double_qubit_rb(qvm, qbit0, qbit1, clifford_range, num_circuits, shots, interleaved_gates); 
+    }, 
+        py::arg("qvm"), py::arg("qbit0"), py::arg("qbit1"), py::arg("clifford_range"), 
+        py::arg("num_circuits"), py::arg("shots"), py::arg("interleaved_gates") = std::vector<QGate>(),
+		"double qubit rb with noise quantum virtual machine",
+		py::return_value_policy::automatic
+	);
+
+
+	m.def("single_qubit_rb", [](QCloudMachine* qvm, Qubit* qbit, const std::vector<int>& clifford_range, \
+		int num_circuits, int shots, const std::vector<QGate>& interleaved_gates ) {
+		return single_qubit_rb(qvm, qbit, clifford_range, num_circuits, shots, interleaved_gates);
+    },
+		py::arg("qvm"), py::arg("qbit"), py::arg("clifford_range"),
+		py::arg("num_circuits"), py::arg("shots"), py::arg("interleaved_gates") = std::vector<QGate>(),
+		"single qubit rb with WU YUAN chip",
+		py::return_value_policy::automatic
+	);
+
+	m.def("double_qubit_rb", [](QCloudMachine* qvm, Qubit* qbit0, Qubit* qbit1, const std::vector<int>& clifford_range, \
+        int num_circuits, int shots, const std::vector<QGate>& interleaved_gates) {
+		return double_qubit_rb(qvm, qbit0, qbit1, clifford_range, num_circuits, shots, interleaved_gates);
+    },
+		py::arg("qvm"), py::arg("qbit0"), py::arg("qbit1"), py::arg("clifford_range"),
+		py::arg("num_circuits"), py::arg("shots"), py::arg("interleaved_gates") = std::vector<QGate>(),
+		"double qubit rb with WU YUAN chip",
+		py::return_value_policy::automatic
+	);
+
+
+	m.def("double_gate_xeb", [](QCloudMachine* qvm,  Qubit* qbit0, Qubit* qbit1, const std::vector<int>& clifford_range, \
+		int num_circuits, int shots, GateType gt = GateType::CZ_GATE) {
+		return double_gate_xeb(qvm, qbit0, qbit1, clifford_range, num_circuits, shots, gt);
+	}, "cloud_qvm"_a,
+		"qubit0"_a,
+		"qubit1"_a,
+		"clifford_range"_a,
+		"num_circuits"_a,
+		"shots"_a,
+		"gate_type"_a,
+		"double gate xeb with WU YUAN chip",
+		py::return_value_policy::automatic
+		);
+
+	m.def("double_gate_xeb", [](NoiseQVM* qvm, Qubit* qbit0, Qubit* qbit1, const std::vector<int>& clifford_range, \
+		int num_circuits, int shots, GateType gt = GateType::CZ_GATE) {
+		return double_gate_xeb(qvm, qbit0, qbit1, clifford_range, num_circuits, shots, gt);
+	}, "noise_qvm"_a,
+		"qubit0"_a,
+		"qubit1"_a,
+		"clifford_range"_a,
+		"num_circuits"_a,
+		"shots"_a,
+		"gate_type"_a,
+		"double gate xeb with WU YUAN chip",
+		py::return_value_policy::automatic
+		);
+
+	m.def("calculate_quantum_volume", [](NoiseQVM* qvm, std::vector <std::vector<int> >qubit_lists, \
+        int ntrials, int shots = 1000) {
+		return calculate_quantum_volume(qvm, qubit_lists, ntrials, shots);
+	}, "noise_qvm"_a,
+		"qubit lists"_a,
+		"ntrials"_a,
+		"shots"_a,
+		"calculate quantum volume",
+		py::return_value_policy::automatic
+		);
+
+	m.def("calculate_quantum_volume", [](QCloudMachine* qvm, std::vector <std::vector<int> >qubit_lists, \
+		int ntrials, int shots = 1000) {
+		return calculate_quantum_volume(qvm, qubit_lists, ntrials, shots);
+	}, "cloud_qvm"_a,
+		"qubit lists"_a,
+		"ntrials"_a,
+		"shots"_a,
+		"calculate quantum volume",
+		py::return_value_policy::automatic
+		);
+
+	m.def("OBMT_mapping", [](QPanda::QProg prog, QPanda::QuantumMachine *quantum_machine,
+		bool optimization = false,
+		uint32_t max_partial = (std::numeric_limits<uint32_t>::max)(),
+		uint32_t max_children = (std::numeric_limits<uint32_t>::max)(),
+		const std::string& config_data = CONFIG_PATH) {
+		QVec qv;
+		auto ret_prog = OBMT_mapping(prog, quantum_machine, qv, optimization, max_partial, max_children, config_data);
+		return ret_prog;
+	}, "prog"_a, "quantum_machine"_a, "b_optimization"_a=false, 
+		"max_partial"_a= (std::numeric_limits<uint32_t>::max)(),
+		"max_children"_a = (std::numeric_limits<uint32_t>::max)(),
+		"config_data"_a = CONFIG_PATH,
+		"/**\
+		* @brief OPT_BMT mapping\
+		* @ingroup Utilities\
+		* @param[in] prog  the target prog\
+		* @param[in] QuantumMachine *  quantum machine\
+		* @param[in] uint32_t  Limits the max number of partial solutions per step, There is no limit by default\
+		* @param[in] uint32_t  Limits the max number of candidate - solutions per double gate, There is no limit by default\
+		* @param[in] const std::string config data, @See JsonConfigParam::load_config()\
+		* @return QProg   mapped  quantum program\
+		* / ",
+		py::return_value_policy::automatic
+		);
+
     /* =============================test end =============================*/
 
-    QUERY_REPLACE(QProg, QCircuit, QCircuit)
+    /*QUERY_REPLACE(QProg, QCircuit, QCircuit)
         QUERY_REPLACE(QProg, QCircuit, QGate)
         QUERY_REPLACE(QProg, QGate, QCircuit)
         QUERY_REPLACE(QProg, QGate, QGate)
@@ -1374,6 +1766,6 @@ PYBIND11_MODULE(pyQPanda, m)
         QUERY_REPLACE(QGate, QCircuit, QCircuit)
         QUERY_REPLACE(QGate, QCircuit, QGate)
         QUERY_REPLACE(QGate, QGate, QCircuit)
-        QUERY_REPLACE(QGate, QGate, QGate);
+        QUERY_REPLACE(QGate, QGate, QGate);*/
 }
 

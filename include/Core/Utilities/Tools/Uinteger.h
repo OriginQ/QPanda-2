@@ -7,7 +7,6 @@
 #include <algorithm>
 #include "ThirdParty/uintwide/generic_template_uintwide_t.h"
 
-using namespace std;
 using uint128_t = wide_integer::generic_template::uint128_t;
 using uint256_t = wide_integer::generic_template::uint256_t;
 using uint512_t = wide_integer::generic_template::uint512_t;

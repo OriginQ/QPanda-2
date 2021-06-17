@@ -20,12 +20,15 @@ QPANDA_BEGIN
 
 #define PRINT_TRACE 0
 #if PRINT_TRACE
-#define PTrace printf
+#define PTrace(_msg) {\
+    std::ostringstream ss;\
+    ss << _msg;\
+    std::cout<<__FILENAME__<<"," <<__LINE__<<","<<__FUNCTION__<<":"<<ss.str()<<std::endl;}
 #define PTraceCircuit(cir) (std::cout << cir << endl)
 #define PTraceCircuitMat(cir) { auto m = getCircuitMatrix(cir); std::cout << m << endl; }
 #define PTraceMat(mat) (std::cout << (mat) << endl)
 #else
-#define PTrace
+#define PTrace(_msg)
 #define PTraceCircuit(cir)
 #define PTraceCircuitMat(cir)
 #define PTraceMat(mat)
@@ -47,14 +50,13 @@ public:
 			auto start = chrono::system_clock::now();
 #endif
 			m_unitary_mat_cir = matrix_decompose(target_qubits, matrix); 
-			//m_unitary_mat_cir = Householder_qr_matrix_decompose(target_qubits, matrix);
 #if PRINT_TRACE
 			auto end = chrono::system_clock::now();
 			auto duration = chrono::duration_cast<chrono::microseconds>(end - start);
-			cout << "The matrix decomposition takes "
+			std::cout << "The matrix decomposition takes "
 				<< double(duration.count()) * chrono::microseconds::period::num / chrono::microseconds::period::den
-				<< "seconds" << endl;
-			cout << "There are " << getQGateNum(m_unitary_mat_cir) << " gates in the decomposed-circuit." << endl;
+				<< "seconds" << std::endl;
+			std::cout << "There are " << getQGateNum(m_unitary_mat_cir) << " gates in the decomposed-circuit." << std::endl;
 #endif
 		}
 		else if (matrix == dagger_c(matrix))
@@ -63,15 +65,22 @@ public:
 		}
 		else
 		{
-			QCERR_AND_THROW_ERRSTR(invalid_argument, "Error: The input matrix for QPE must be a unitary matrix or Hermitian N*N matrix with N=2^n.");
+			QCERR_AND_THROW_ERRSTR(std::invalid_argument, "Error: The input matrix for QPE must be a unitary matrix or Hermitian N*N matrix with N=2^n.");
 		}
 
-		m_thread_pool.init_thread_pool(2);
+		const uint32_t thread_cnt = 2;
+		m_thread_pool.init_thread_pool(thread_cnt);
+
+#if PRINT_TRACE
+		std::cout << "on run QPEAlg in thread_pool: " << thread_cnt << std::endl;
+#endif
 	}
 
 	QPEAlg(const QVec& control_qubits, const QVec& target_qubits, generate_cir_U cir_fun)
 		:m_control_qubits(control_qubits), m_target_qubits(target_qubits), m_cir_fun(cir_fun)
-	{}
+	{
+		m_thread_pool.init_thread_pool(4);
+	}
 
 	~QPEAlg() {}
 
@@ -100,7 +109,7 @@ public:
 	}
 
 	QCircuit quantum_eigenvalue_estimation() {
-		PTrace("On quantum_eigenvalue_estimation.\n");
+		PTrace("On quantum_eigenvalue_estimation.");
 		m_qpe_cir << apply_QGate(m_control_qubits, H);
 		const size_t control_qubit_cnt = m_control_qubits.size();
 		m_job_cnt = 0;
@@ -109,12 +118,12 @@ public:
 			//m_qpe_cir << control_unitary_power(m_control_qubits[control_qubit_cnt - 1 - i], 1 << (control_qubit_cnt - i), i);
 			m_thread_pool.append(std::bind(&QPEAlg::control_unitary_power, this,
 				m_control_qubits[control_qubit_cnt - 1 - i], 1 << (control_qubit_cnt - i), i));
-			std::this_thread::sleep_for(std::chrono::milliseconds(100));
-			PTrace("append task %d.\n", i);
+			//std::this_thread::sleep_for(std::chrono::milliseconds(100));
+			PTrace("append task " << i);
 		}
-		PTrace("wait for threads to complete the task.\n");
+		PTrace("wait for threads to complete the task.");
 		//Wait for all threads to complete the task
-		while (m_job_cnt != control_qubit_cnt) { std::this_thread::sleep_for(std::chrono::milliseconds(100)); }
+		while (m_job_cnt != control_qubit_cnt) { std::this_thread::sleep_for(std::chrono::milliseconds(500)); }
 
 		sort(m_control_unitary_circuit_vec.begin(), m_control_unitary_circuit_vec.end(),
 			[](const std::pair<int, QCircuit>& a, const std::pair<int, QCircuit>& b) {return a.first < b.first; });
@@ -135,7 +144,7 @@ public:
 protected:
 	QCircuit unitary_power(size_t min){
 		QCircuit cir_u  = CreateEmptyCircuit();
-		PTrace("on unitary power.\n");
+		PTrace("on unitary power.");
 
 		QCircuit cir_swap_qubits_b;
 		for (size_t i = 0; (i * 2) < (m_target_qubits.size() - 1); ++i)
@@ -162,7 +171,7 @@ protected:
 		}
 		else if (m_hermitian_mat.size() != 0)
 		{
-			PTrace("Deal with hermitian mat.\n"); 
+			PTrace("Deal with hermitian mat."); 
 			auto tmp_A = m_hermitian_mat;
 			for (auto& item : tmp_A)
 			{
@@ -172,10 +181,10 @@ protected:
 			EigenMatrixXc eigen_mat = QStat_to_Eigen(tmp_A);
 			auto exp_matrix = eigen_mat.exp().eval();
 
-			PTrace("On matrix decompose: %llu.\n", min);
+			PTrace("On matrix decompose: " << min);
 			QCircuit decomposed_cir = matrix_decompose(m_target_qubits, exp_matrix);
 			//QCircuit decomposed_cir = Householder_qr_matrix_decompose(m_target_qubits, exp_matrix);
-			PTrace("Finished matrix decompose: %llu.\n", min);
+			PTrace("Finished matrix decompose: " << min);
 			cir_u << cir_swap_qubits_b << decomposed_cir << cir_swap_qubits_b;
 		}
 		else
@@ -187,7 +196,7 @@ protected:
 	}
 
 	QCircuit control_unitary_power(Qubit *ControlQubit, const size_t min, const int index){
-		PTrace("Start control unitary power on: %llu.\n", index);
+		PTrace("Start control unitary power on: " << index);
 		QCircuit qCircuit = unitary_power(min);
 		qCircuit.setControl({ ControlQubit });
 
@@ -195,12 +204,27 @@ protected:
 		m_control_unitary_circuit_vec.push_back(std::make_pair(index, qCircuit));
 		m_queue_mutex.unlock();
 		++m_job_cnt;
-		PTrace("Finished control_unitary_power on: %llu.\n", index);
+		PTrace("Finished control_unitary_power on: " << index);
 		return qCircuit;
 	}
 
+	QCircuit QFT_builder(QVec qvec)
+	{
+		QCircuit  qft = CreateEmptyCircuit();
+		for (auto i = 0; i < qvec.size(); i++)
+		{
+			qft << H(qvec[qvec.size() - 1 - i]);
+			for (auto j = i + 1; j < qvec.size(); j++)
+			{
+				qft << CR(qvec[qvec.size() - 1 - j],
+					qvec[qvec.size() - 1 - i], 2 * PI / (1 << (j - i + 1)));
+			}
+		}
+		return qft;
+	}
+
 	QCircuit QFT_dagger(QVec qvec){
-		QCircuit qft = QFT(qvec);
+		QCircuit qft = QFT_builder(qvec);
 		return qft.dagger();
 	}
 

@@ -88,6 +88,9 @@ namespace DRAW_TEXT_PIC
 	class Wire
 	{
 	public:
+		using sRef = std::shared_ptr<Wire>;
+
+	public:
 		/**
 		* @brief  Constructor of DrawBox
 		*/
@@ -237,8 +240,8 @@ namespace DRAW_TEXT_PIC
 	*/
 	class DrawPicture
 	{
-		using wireElement = std::pair<int, std::shared_ptr<Wire>>;
-		using WireIter = std::map<int, std::shared_ptr<Wire>>::iterator;
+		using wireElement = std::pair<int, std::vector<Wire::sRef>>;
+		using WireIter = std::map<int, std::vector<Wire::sRef>>::iterator;
 		
 		friend class DrawByLayer;
 		friend class GetUsedQubits;
@@ -250,7 +253,7 @@ namespace DRAW_TEXT_PIC
 		/**
 		* @brief  Constructor of DrawPicture
 		*/
-		DrawPicture(QProg prog, LayeredTopoSeq& layer_info);
+		DrawPicture(QProg prog, LayeredTopoSeq& layer_info, uint32_t length);
 		~DrawPicture() {}
 
 		/**
@@ -264,7 +267,7 @@ namespace DRAW_TEXT_PIC
 		* @brief display and return the target string
 		* @return std::string
 		*/
-		std::string present();
+		std::string present(bool b_out_put_to_file = false);
 
 		/**
 		* @brief merge wire line
@@ -308,7 +311,7 @@ namespace DRAW_TEXT_PIC
 		* @param[in] std::shared_ptr<Wire> the target wire
 		* @param[in] int increased time sequence
 		*/
-		void update_time_sequence(std::shared_ptr<Wire> p_wire, int increased_time_sequence);
+		void update_time_sequence(Wire::sRef& p_wire, int increased_time_sequence);
 
 		/**
 		* @brief append time sequence line to text-picture
@@ -337,7 +340,7 @@ namespace DRAW_TEXT_PIC
 		* @return QVec vec1 - vec2
 		*/
 		QVec get_qvec_difference(QVec &vec1, QVec &vec2);
-
+		
 	private:
 		void appendMeasure(std::shared_ptr<AbstractQuantumMeasure> pMeasure);
 		void append_reset(std::shared_ptr<AbstractQuantumReset> pReset);
@@ -348,13 +351,13 @@ namespace DRAW_TEXT_PIC
 		void merge(const std::string& up_wire, std::string& down_wire);
 		void set_connect_direction(const int& qubit, const std::vector<int>& vec_qubits, DrawBox& box);
 		void append_ctrl_line(int line_start, int line_end, int pos);
-		bool check_time_sequence_one_qubit(WireIter qu_wire_itr, TopoSeqIter cur_layer_iter);
 		bool is_qubit_in_vec(const int qubit, const QVec& vec);
 		void append_gate_param(std::string &gate_name, pOptimizerNodeInfo node_info);
-		bool check_ctrl_gate_time_sequence_conflicting(const QVec &control_qubits_vec, const QVec &qubits_vector);
 		void fill_layer(TopoSeqIter lay_iter);
 		void get_gate_from_next_layer(TopoSeqIter to_fill_lay_iter, QVec &unused_qubits_vec, TopoSeqIter next_lay_iter);
-		NodeType sequence_node_type_to_node_type(SequenceNodeType sequence_node_type);
+		NodeType sequence_node_type_to_node_type(DAGNodeType sequence_node_type);
+		void auto_wrap();
+		void append_wrap_line();
 
 		int get_measure_time_sequence();
 		int get_ctrl_node_time_sequence();
@@ -363,8 +366,8 @@ namespace DRAW_TEXT_PIC
 		int get_reset_time_sequence();
 
 	private:
-		std::map<int, std::shared_ptr<Wire>> m_quantum_bit_wires;
-		std::map<int, std::shared_ptr<Wire>> m_class_bit_wires;
+		std::map<int, std::vector<Wire::sRef>> m_quantum_bit_wires;
+		std::map<int, std::vector<Wire::sRef>> m_class_bit_wires;
 		LayeredTopoSeq& m_layer_info;
 		int m_text_len;
 		int m_max_time_sequence;
@@ -372,6 +375,7 @@ namespace DRAW_TEXT_PIC
 		QProg m_tmp_remain_prog;
 		QVec m_quantum_bits_in_use;
 		TimeSequenceConfig m_time_sequence_conf;
+		uint32_t m_wire_length;
 	};
 
 	/**
@@ -516,38 +520,6 @@ namespace DRAW_TEXT_PIC
 		TopoSeqLayer &m_target_layer;
 		TopoSeqLayer &m_next_layer;
 		bool m_b_got_available_node;
-	};
-
-	/**
-	* @brief Try to merge time sequence
-	* @ingroup QProgInfo
-	*/
-	class TryToMergeTimeSequence : public AbstractHandleNodes<DrawPicture::WireIter&, TopoSeqLayerIter&, bool&>
-	{
-	public:
-		TryToMergeTimeSequence(DrawPicture& parent, TopoSeqLayer &next_layer)
-			:m_parent(parent), m_next_layer(next_layer)
-			, m_b_continue_recurse(true)
-		{}
-		~TryToMergeTimeSequence() {}
-
-		void handle_measure_node(DrawPicture::WireIter& cur_qu_wire, TopoSeqLayerIter& itr_on_next_layer, bool &b_found_node_on_cur_qu_wire) override;
-		void handle_reset_node(DrawPicture::WireIter& cur_qu_wire, TopoSeqLayerIter& itr_on_next_layer, bool &b_found_node_on_cur_qu_wire) override;
-		void handle_gate_node(DrawPicture::WireIter& cur_qu_wire, TopoSeqLayerIter& itr_on_next_layer, bool &b_found_node_on_cur_qu_wire) override;
-
-		/**
-		* @brief judge whether to continue recurse
-		* @return bool if could to continue recurse, return true, or else return false
-		*/
-		bool could_continue_merge() { return m_b_continue_recurse; }
-
-	private:
-		void try_to_append_gate_to_cur_qu_wire(DrawPicture::WireIter &qu_wire_itr, TopoSeqLayerIter& seq_iter, TopoSeqLayer& node_vec);
-
-	private:
-		DrawPicture& m_parent;
-		TopoSeqLayer &m_next_layer;
-		bool m_b_continue_recurse;
 	};
 }
 QPANDA_END

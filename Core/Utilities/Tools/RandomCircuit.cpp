@@ -696,3 +696,181 @@ std::string QPanda::random_originir(int qubitRow, int qubitCol, int depth, Quant
 	return random_cir.get_random_originir();
 }
 
+/*******************************************************************
+*                 class CustomQGateRandomCircuit
+********************************************************************/
+class CustomQGateRandomCircuit
+{
+	class Rnd
+	{
+	public:
+		static Rnd& get_instance() {
+			static Rnd _instance;
+			return _instance;
+		}
+
+		int operator()(int i){
+			std::uniform_int_distribution<int> distribution(0, i-1);
+			return distribution(m_generator);
+		}
+
+	protected:
+		Rnd()
+			:m_generator(std::chrono::system_clock::now().time_since_epoch().count())
+		{}
+		std::default_random_engine m_generator;
+	};
+
+public:
+	CustomQGateRandomCircuit(const QVec& qv, const std::vector<std::string>& gate_type)
+		:m_max_depth(0)
+	{
+		const auto qubit_cnt = qv.size();
+		std::vector<uint32_t> rnd_seq(qubit_cnt);
+		
+		for (uint32_t i = 0; i < qubit_cnt; ++i) {
+			rnd_seq[i] = i;
+			m_depth_map.insert(std::make_pair(i, 0));
+		}
+
+		//std::random_shuffle(rnd_seq.begin(), rnd_seq.end(), std::bind(&CustomQGateRandomCircuit::rnd, this, std::placeholders::_1));
+		std::random_shuffle(rnd_seq.begin(), rnd_seq.end(), Rnd::get_instance());
+
+		for (uint32_t i = 0; i < qubit_cnt; ++i){
+			m_qv.push_back(qv[rnd_seq[i]]);
+		}
+
+		for (const auto& _gate_type_str : gate_type)
+		{
+			if ((0 == _gate_type_str.compare(GATE_X)) ||
+				(0 == _gate_type_str.compare(GATE_Y)) ||
+				(0 == _gate_type_str.compare(GATE_Z)) ||
+				(0 == _gate_type_str.compare(GATE_H)) ||
+				(0 == _gate_type_str.compare(GATE_S)) ||
+				(0 == _gate_type_str.compare(GATE_T)) ||
+				(0 == _gate_type_str.compare(GATE_RX)) || 
+				(0 == _gate_type_str.compare(GATE_RY)) ||
+				(0 == _gate_type_str.compare(GATE_RZ)))
+			{
+				m_gate_type.insert(m_gate_type.begin(), _gate_type_str);
+			}
+			else if ((0 == _gate_type_str.compare(GATE_CNOT)) ||
+				(0 == _gate_type_str.compare(GATE_CZ)))
+			{
+				m_gate_type.push_back(_gate_type_str);
+			}
+			else
+			{
+				QCERR_AND_THROW(init_fail, "Error: unknow gate-type-str: " << _gate_type_str);
+			}
+		}
+
+		if (m_gate_type.size() == 0)
+		{
+			m_gate_type = { GATE_X, GATE_Y, GATE_Z, GATE_RX, GATE_RY, GATE_RZ, GATE_H, GATE_S, GATE_T, 
+				GATE_CNOT, GATE_CZ };
+		}
+	}
+	~CustomQGateRandomCircuit() {}
+
+	QCircuit get_random_circuit(int depth) {
+		const uint32_t gate_type_cnt = m_gate_type.size();
+		const auto ex_gate_type_size = gate_type_cnt * 2; // to enlarge the double-gate selection probability 
+		const auto qv_size = m_qv.size();
+		uint32_t gate_type_index = 0;
+		uint32_t qubit_type_index = 0;
+		std::string select_gate_str;
+		QCircuit prog;
+		while (m_max_depth < depth)
+		{
+			gate_type_index = rnd(ex_gate_type_size);
+			qubit_type_index = rnd(qv_size);
+			if (gate_type_cnt <= gate_type_index)
+			{
+				select_gate_str = m_gate_type.back();
+			}
+			else
+			{
+				select_gate_str = m_gate_type[gate_type_index];
+			}
+
+			prog << build_gate(select_gate_str, qubit_type_index);
+		}
+
+		return prog;
+	}
+
+protected:
+	uint32_t rnd(uint32_t i) {
+		return Rnd::get_instance()(i);
+	}
+
+	QGate build_gate(const string& gate_type, const uint32_t& qubit_index) {
+		if ((0 == gate_type.compare(GATE_X)) ||
+			(0 == gate_type.compare(GATE_Y)) ||
+			(0 == gate_type.compare(GATE_Z)) ||
+			(0 == gate_type.compare(GATE_S)) ||
+			(0 == gate_type.compare(GATE_T)) ||
+			(0 == gate_type.compare(GATE_H)))
+		{
+			update_depth({ qubit_index });
+			return QGateNodeFactory::getInstance()->getGateNode(gate_type, { m_qv[qubit_index] });
+		}
+		else if ((0 == gate_type.compare(GATE_RX)) ||
+			(0 == gate_type.compare(GATE_RY)) ||
+			(0 == gate_type.compare(GATE_RZ)))
+		{
+			update_depth({ qubit_index });
+			auto _angle = generate_random_angle();
+			return QGateNodeFactory::getInstance()->getGateNode(gate_type, { m_qv[qubit_index] }, _angle);
+		}
+		else if ((0 == gate_type.compare(GATE_CNOT)) ||
+			(0 == gate_type.compare(GATE_CZ)))
+		{
+			if ((m_qv.size() - 1) == qubit_index)
+			{
+				update_depth({ qubit_index, 0 });
+				return QGateNodeFactory::getInstance()->getGateNode(gate_type, { m_qv[qubit_index], m_qv[0] });
+			}
+
+			update_depth({ qubit_index, qubit_index + 1 });
+			return QGateNodeFactory::getInstance()->getGateNode(gate_type, { m_qv[qubit_index], m_qv[qubit_index + 1] });
+		}
+	}
+
+	double generate_random_angle() {
+		return 2 * PI * (double)(rnd(4096)) / ((double)4095);
+	}
+
+	void update_depth(const std::vector<uint32_t>& qubit_index) {
+		if (qubit_index.size() == 1)
+		{
+			m_depth_map.at(qubit_index[0]) += 1;
+		}
+		else
+		{
+			auto bigger_layer = m_depth_map.at(qubit_index[0]) > m_depth_map.at(qubit_index[1]) ?
+				m_depth_map.at(qubit_index[0]) : m_depth_map.at(qubit_index[1]);
+			m_depth_map.at(qubit_index[0]) = bigger_layer + 1;
+			m_depth_map.at(qubit_index[1]) = m_depth_map.at(qubit_index[0]);
+		}
+		
+		if (m_depth_map.at(qubit_index[0]) > m_max_depth)
+		{
+			m_max_depth = m_depth_map.at(qubit_index[0]);
+		}
+	}
+
+private:
+	QVec m_qv;
+	std::vector<std::string> m_gate_type;
+	std::map<uint32_t, uint32_t> m_depth_map;
+	uint32_t m_max_depth;
+};
+
+QCircuit QPanda::random_qcircuit(const QVec& qv, int depth /*= 100*/, const std::vector<std::string>& gate_type /*= {}*/)
+{
+	CustomQGateRandomCircuit rnd_cir_builder(qv, gate_type);
+	return rnd_cir_builder.get_random_circuit(depth);
+}
+

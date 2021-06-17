@@ -18,7 +18,7 @@ namespace DRAW_TEXT_PIC
 		/**
 		* @brief  Constructor of DrawQProg
 		*/
-		DrawQProg(QProg &prg, const NodeIter node_itr_start, const NodeIter node_itr_end);
+		DrawQProg(QProg &prg, const NodeIter node_itr_start, const NodeIter node_itr_end, bool b_out_put_to_file = false);
 		~DrawQProg();
 
 		/**
@@ -29,7 +29,7 @@ namespace DRAW_TEXT_PIC
 		* @return std::string the text-picture
 		* @see TEXT_PIC_TYPE
 		*/
-		std::string textDraw(TEXT_PIC_TYPE t, const std::string config_data = CONFIG_PATH);
+		std::string textDraw(TEXT_PIC_TYPE t, uint32_t length = 100, const std::string config_data = CONFIG_PATH);
 
 	private:
 		QProg m_prog;
@@ -37,6 +37,7 @@ namespace DRAW_TEXT_PIC
 		std::vector<int> m_quantum_bits_in_use;
 		std::vector<int> m_class_bits_in_use;
 		LayeredTopoSeq m_layer_info;
+		bool m_b_out_put_to_file;
 	};
 }
 

@@ -292,7 +292,7 @@ void QPanda::flatten(QCircuit& src_cir)
 	flattener.flatten_circuit(src_cir);
 }
 
-void QPanda::flatten(QProg& src_prog, bool b_full_flatten /*= false*/)
+void QPanda::flatten(QProg& src_prog, bool b_full_flatten /*= true*/)
 {
 	QProgFlattening flattener(b_full_flatten);
 	flattener.flatten_prog(src_prog);

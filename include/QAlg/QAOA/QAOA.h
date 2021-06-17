@@ -21,7 +21,7 @@ Created in 2018-09-06
 #include "Core/QuantumCircuit/QGate.h"
 #include "Core/QuantumMachine/OriginQuantumMachine.h"
 #include "Components/Operator/PauliOperator.h"
-#include "Components/DataStruct.h"
+#include "Core/Module/DataStruct.h"
 
 namespace QPanda
 {
@@ -151,7 +151,7 @@ namespace QPanda
         bool initQAOA(QOptimizationResult &result);
         bool checkPara(std::string &err_msg);
         bool initLog(std::string &err_msg);
-        QResultPair callQAOA(const vector_d &para);
+        QResultPair callQAOA(const vector_d& para, vector_d para1);
         void insertSampleCircuit(
             QProg &prog,
             const std::vector<Qubit*> &vec,

@@ -1,4 +1,6 @@
 #include "Core/VirtualQuantumProcessor/MPSQVM/MPSQVM.h"
+#include <set>
+
 USING_QPANDA
 using namespace std;
 
@@ -82,6 +84,46 @@ void MPSQVM::init()
         QCERR(e.what());
         throw init_fail(e.what());
     }
+}
+
+void MPSQVM::initState(const QStat &state, const QVec &qlist)
+{
+    if (0 == qlist.size())
+    {
+        m_simulator->initState(getAllocateQubitNum(), state);
+    }
+    else
+    {
+        auto qubit_alloc_size = getAllocateQubitNum();
+        QPANDA_ASSERT(qlist.size() > qubit_alloc_size || (1ull << qlist.size()) != state.size(),
+                      "Error: initState state and qlist size.");
+        set<size_t> qubit_set;
+        for_each(qlist.begin(), qlist.end(), [&](Qubit *q){
+            qubit_set.insert(q->get_phy_addr());
+        });
+        QPANDA_ASSERT(qlist.size() != qubit_set.size(), "Error: initState state qlist.");
+
+        QStat init_state(1ull << qubit_alloc_size, 0);
+        for (int64_t i = 0; i < state.size(); i++)
+        {
+            int64_t index = i;
+            int64_t init_state_index = 0;
+            int64_t j = 0;
+
+            do
+            {
+                auto base = index % 2;
+                init_state_index += base * (1ll << qlist[j]->get_phy_addr());
+                index >>= 1;
+                j++;
+            }while(index != 0);
+
+            init_state[init_state_index] = state[i];
+        }
+         m_simulator->initState(qubit_alloc_size, init_state);
+    }
+
+    return;
 }
 
 static void get_gate_paramter(std::shared_ptr<AbstractQGateNode> gate, const QCircuitConfig &config, unsigned short &target, std::vector<size_t>& controls)
@@ -279,6 +321,11 @@ prob_vec MPSQVM::PMeasure_no_index(QVec qubits)
     return getProbList(qubits, -1);
 }
 
+prob_vec MPSQVM::pMeasureNoIndex(QVec qubit_vector)
+{
+	return PMeasure_no_index(qubit_vector);
+}
+
 prob_tuple MPSQVM::PMeasure(QVec qubits, int select_max)
 {
     return pMeasure(qubits, select_max);
@@ -314,12 +361,6 @@ prob_tuple MPSQVM::pMeasure(QVec qubits, int select_max)
         result_tuple.erase(result_tuple.begin() + select_max, result_tuple.end());
         return result_tuple;
     }
-}
-
-void MPSQVM::initState(const QStat &state)
-{
-    m_simulator->initState(getAllocateQubitNum(), state);
-    return;
 }
 
 
@@ -617,6 +658,8 @@ void MPSQVM::execute(std::shared_ptr<AbstractQGateNode>  cur_node,
     case TWO_QUBIT_GATE:
         handle_two_targets(cur_node, config);
         break;
+    case BARRIER_GATE:
+        break;
     default:
         QCERR("QGate type error");
         throw run_fail("QGate type error");
@@ -633,6 +676,18 @@ qcomplex_t MPSQVM::pmeasure_dec_index(QProg prog, std::string str)
 {
     run(prog);
     return m_simulator->pmeasure_dec_index(str);
+}
+
+QStat MPSQVM::pmeasure_bin_subset(QProg prog,const std::vector<std::string>& bin_strs)
+{
+    run(prog);
+    return m_simulator->pmeasure_bin_subset(bin_strs);
+}
+
+QStat MPSQVM::pmeasure_dec_subset(QProg prog, const std::vector<std::string>& dec_strs)
+{
+    run(prog);
+    return m_simulator->pmeasure_dec_subset(dec_strs);
 }
 
 //The all next functions are only for noise simulation

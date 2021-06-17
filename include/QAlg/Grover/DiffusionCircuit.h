@@ -22,7 +22,7 @@ public:
 	~DiffusionCirBuilder() {}
 
 	QCircuit build_diffusion_circuit(const QVec &qvec) override {
-		vector<Qubit*> controller(qvec.begin(), --(qvec.end()));
+		std::vector<Qubit*> controller(qvec.begin(), --(qvec.end()));
 		QCircuit c;
 		c << apply_QGate(qvec, H);
 		c << apply_QGate(qvec, X);

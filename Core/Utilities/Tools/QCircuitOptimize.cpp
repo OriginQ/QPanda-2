@@ -7,6 +7,7 @@
 #include "Core/QuantumCircuit/QuantumGate.h"
 #include "Core/Utilities/Tools/JsonConfigParam.h"
 #include "Core/Utilities//Tools/ThreadPool.h"
+#include "Core/Utilities/Tools/QStatMatrix.h"
 #include <atomic>
 #include <ctime>
 #include <vector>
@@ -26,8 +27,8 @@ USING_QPANDA
 #define PTraceCircuit(cir)
 #endif
 
-#define MAX_SIZE 0xEFFFFFFFFFFFFFFF
-#define MAX_COMPARE_PRECISION 0.000001
+#define MAX_SIZE (std::numeric_limits<size_t>::max)()
+#define ANGLE_COMPARE_PRECISION 1e-12
 
 class DelQNodeByIter : protected TraverseByNodeIter
 {
@@ -311,37 +312,40 @@ public:
 
 	void do_optimize(QProg src_prog, OptimizerSink &gates_sink, SinkPos& sink_size, std::vector<QCircuit>& replace_to_cir_vec) override {
 		m_sub_cir_cnt = 0;
-		m_job_cnt = 0;
+		m_finished_job_cnt = 0;
 		for (auto &item : gates_sink)
 		{
 			//create thread process
 			m_thread_pool.append(std::bind(&MergeU3Gate::process_single_gate,
-				this, src_prog, std::ref(item.second), sink_size.at(item.first)));
+				this, src_prog, std::ref(item.second), std::ref(sink_size.at(item.first))));
 		}
 
-		while (m_job_cnt != gates_sink.size()) { std::this_thread::sleep_for(std::chrono::milliseconds(100)); }
-		for (auto& item : m_replace_cir_vec)
-		{
-			replace_to_cir_vec.push_back(item.second);
-		}
-		m_replace_cir_vec.clear();
+		while (m_finished_job_cnt != gates_sink.size()) { std::this_thread::sleep_for(std::chrono::milliseconds(100)); }
 	}
 
-	void process_single_gate(QProg &src_prog, std::vector<pOptimizerNodeInfo> &node_vec, const uint32_t valid_size) {
-		std::map<size_t, QCircuit> tmp_replace_cir;
+	void process_single_gate(QProg &src_prog, std::vector<pOptimizerNodeInfo> &node_vec, size_t& valid_size) {
 		std::vector<std::vector<pOptimizerNodeInfo>::iterator> continues_itr_vec;
+		std::vector<pOptimizerNodeInfo> new_node_vec;
 		auto itr = node_vec.begin();
-		for (uint32_t i = 0; i < valid_size; ++i, ++itr)
-		{
-			check_continuous_single_gate(node_vec, itr, continues_itr_vec, tmp_replace_cir);
+		for (uint32_t i = 0; i < valid_size; ++i, ++itr){
+			check_continuous_single_gate(node_vec, itr, continues_itr_vec, new_node_vec);
 		}
 
-		handle_continue_single_gate(node_vec, continues_itr_vec, tmp_replace_cir);
+		handle_continue_single_gate(node_vec, continues_itr_vec, new_node_vec);
 
-		m_queue_mutex.lock();
-		m_replace_cir_vec.insert(tmp_replace_cir.begin(), tmp_replace_cir.end());
-		m_queue_mutex.unlock();
-		++m_job_cnt;
+		const auto new_node_vec_size = new_node_vec.size();
+		for (uint32_t i = 0; i < valid_size; ++i)
+		{
+			if (new_node_vec_size > i){
+				node_vec[i] = new_node_vec[i];
+			}
+			else{
+				node_vec[i] = nullptr;
+			}
+		}
+		valid_size = new_node_vec_size;
+
+		++m_finished_job_cnt;
 	}
 
 	QGate build_u3_gate(Qubit* target_qubit, QStat &mat) {
@@ -350,6 +354,7 @@ public:
 			QCERR_AND_THROW(run_fail, "Error: Failed to build U3 gate, the size of input matrix is error.");
 		}
 
+#if 0
 		QGate tmp_u4 = U4(mat, target_qubit);
 		auto p_gate = dynamic_cast<QGATE_SPACE::AbstractAngleParameter*>(tmp_u4.getQGate());
 		double alpha = p_gate->getAlpha();
@@ -361,29 +366,31 @@ public:
 		double u3_phi = beta;
 		double u3_lambda = delta;
 		return U3(target_qubit, u3_theta, u3_phi, u3_lambda);
+#else
+		return U3(target_qubit, mat);
+#endif
 	}
 
 protected:
-	void check_continuous_single_gate(std::vector<pOptimizerNodeInfo> &node_vec, std::vector<pOptimizerNodeInfo>::iterator cur_iter,
-		std::vector<std::vector<pOptimizerNodeInfo>::iterator>& continues_itr_vec, std::map<size_t, QCircuit>& replace_to_cir_vec) {
+	void check_continuous_single_gate(std::vector<pOptimizerNodeInfo> &node_vec, std::vector<pOptimizerNodeInfo>::iterator& cur_iter,
+		std::vector<std::vector<pOptimizerNodeInfo>::iterator>& continues_itr_vec, std::vector<pOptimizerNodeInfo>& new_node_vec) {
 		GateType gt_type = (GateType)((*cur_iter)->m_type);
 		const bool cur_gate_is_single_gate = is_single_gate(gt_type);
 
-		if (cur_gate_is_single_gate && (is_same_controled(node_vec, continues_itr_vec, cur_iter)))
-		{
+		if (cur_gate_is_single_gate && (is_same_controled(node_vec, continues_itr_vec, cur_iter))){
 			//push to index vector
 			continues_itr_vec.push_back(cur_iter);
 		}
 		else
 		{
-			handle_continue_single_gate(node_vec, continues_itr_vec, replace_to_cir_vec);
+			handle_continue_single_gate(node_vec, continues_itr_vec, new_node_vec);
+			new_node_vec.emplace_back(*cur_iter);
 		}
 	}
 
 	void handle_continue_single_gate(std::vector<pOptimizerNodeInfo> &node_vec, std::vector<std::vector<pOptimizerNodeInfo>::iterator>& continues_itr_vec,
-		std::map<size_t, QCircuit>& replace_to_cir_vec) {
-		if (continues_itr_vec.size() == 0)
-		{
+		std::vector<pOptimizerNodeInfo>& new_node_vec) {
+		if (continues_itr_vec.size() == 0){
 			return;
 		}
 
@@ -391,49 +398,50 @@ protected:
 		QStat mat = get_matrix_of_index_vec(continues_itr_vec, node_vec);
 
 		//build U3 gate
-		size_t cur_sub_graph_index = (m_sub_cir_cnt++);
-		for (const auto i : continues_itr_vec)
-		{
-			(*i)->m_sub_graph_index = cur_sub_graph_index;
-		}
-		QGate new_u3 = build_u3_gate((*(continues_itr_vec.back()))->m_target_qubits.at(0), mat);
+		const auto target_qubit = (*(continues_itr_vec.back()))->m_target_qubits.at(0);
+		QGate new_u3 = build_u3_gate(target_qubit, mat);
 
-		QCircuit cir(new_u3);
+		auto _parent_node = std::dynamic_pointer_cast<AbstractNodeManager>((*continues_itr_vec.front())->m_parent_node);
+		auto new_gate_itr = _parent_node->insertQNode((*continues_itr_vec.front())->m_iter,
+			std::dynamic_pointer_cast<QNode>(new_u3.getImplementationPtr()));
+
+		pOptimizerNodeInfo tmp_node = std::make_shared<OptimizerNodeInfo>(new_gate_itr, (*continues_itr_vec.front())->m_layer,
+			QVec({ target_qubit }), QVec(), U3_GATE, (*continues_itr_vec.front())->m_parent_node, false);
+		new_node_vec.emplace_back(tmp_node);
+		
 		for (const auto& i : continues_itr_vec)
 		{
 			auto p_node = *((*i)->m_iter);
 			auto p_gate = std::dynamic_pointer_cast<AbstractQGateNode>(p_node);
-			if (ECHO_GATE == p_gate->getQGate()->getGateType())
-			{
-				QVec q;
-				p_gate->getQuBitVector(q);
-				cir << ECHO(q[0]);
+			if (ECHO_GATE != p_gate->getQGate()->getGateType()){
+				std::dynamic_pointer_cast<AbstractNodeManager>((*i)->m_parent_node)->deleteQNode((*i)->m_iter);
 			}
 		}
-
-		replace_to_cir_vec.insert(std::make_pair(cur_sub_graph_index, cir));
 
 		continues_itr_vec.clear();
 	}
 
 	QStat get_matrix_of_index_vec(const std::vector<std::vector<pOptimizerNodeInfo>::iterator>& continues_itr_vec,
 		const std::vector<pOptimizerNodeInfo> &node_vec) {
-		QCircuit cir;
+		QStat _src_gate_mat;
+		qmatrix_t total_mat = qmatrix_t::Identity(2, 2);
 		for (const auto& i : continues_itr_vec)
 		{
 			auto p_node = *((*i)->m_iter);
 			auto p_gate = std::dynamic_pointer_cast<AbstractQGateNode>(p_node);
+			p_gate->getQGate()->getMatrix(_src_gate_mat);
+			qmatrix_t _eigen_mat = qmatrix_t::Map(&_src_gate_mat[0], 2, 2);
+
 			if (((*i)->m_is_dagger) ^ (p_gate->isDagger()))
 			{
-				cir << QGate(p_gate).dagger();
+				_eigen_mat.adjointInPlace();
 			}
-			else
-			{
-				cir << QGate(p_gate);
-			}
+
+			total_mat = _eigen_mat * total_mat;
 		}
 
-		return getCircuitMatrix(cir);
+		QStat result_qstat(total_mat.data(), total_mat.data() + total_mat.size());
+		return result_qstat;
 	}
 
 	bool is_same_controled(std::vector<pOptimizerNodeInfo> &node_vec,
@@ -493,7 +501,7 @@ private:
 	std::map<size_t, QCircuit> m_replace_cir_vec;
 	std::atomic<size_t> m_sub_cir_cnt;
 	std::mutex m_queue_mutex;
-	std::atomic<size_t> m_job_cnt;
+	std::atomic<size_t> m_finished_job_cnt;
 };
 
 /*******************************************************************
@@ -754,8 +762,12 @@ void FindSubCircuit::match_layer(SeqLayer<pOptimizerNodeInfo>& sub_seq_layer,
 						for (auto& last_layer_node : last_layer_node_vec)
 						{
 							/* Multiple tail nodes may exist in multiple qubit gates */
-							for (auto& tail_node : last_layer_node.second)
+							for (const auto& tail_node : last_layer_node.second)
 							{
+								if (tail_node == nullptr){
+									continue;
+								}
+
 								if (match_gate_iter == tail_node->m_iter)
 								{
 									bool b_repeated_exist = false;
@@ -798,7 +810,7 @@ bool FindSubCircuit::check_angle(const pOptimizerNodeInfo node_1, const pOptimiz
 	}
 
 	auto angle_check_fun = [](const double target_angle, const double matched_angle) {
-		if ((target_angle < ANGLE_VAR_BASE) && (abs(target_angle - matched_angle) > MAX_COMPARE_PRECISION))
+		if ((target_angle < ANGLE_VAR_BASE) && (abs(target_angle - matched_angle) > ANGLE_COMPARE_PRECISION))
 		{
 			return false;
 		}
@@ -865,6 +877,101 @@ bool FindSubCircuit::check_angle(const pOptimizerNodeInfo node_1, const pOptimiz
 	return true;
 }
 
+bool FindSubCircuit::check_next_layer(const SeqNode<pOptimizerNodeInfo>& target_seq_node, 
+	const SeqNode<pOptimizerNodeInfo>& graph_node)
+{
+	const auto& target_node_qubits = target_seq_node.first->m_target_qubits;
+	const auto& graph_node_qubits = graph_node.first->m_target_qubits;
+
+	auto get_qubit_gate_fun = [](const SeqNode<pOptimizerNodeInfo>& node, const QVec& node_qv
+		, std::vector<std::vector<int>>& node_next_layer_qubits,
+		std::map<uint32_t, pOptimizerNodeInfo>& node_qubit_gate_map) {
+		if (node.second.size() == 0){
+			return;
+		}
+
+		auto tail_nodes = node.second;
+		if (node.first->m_target_qubits.size() > 1)
+		{
+			const auto& _qv = node.first->m_target_qubits;
+			if (_qv.size() > 2)
+			{
+				QCERR_AND_THROW(run_fail, "Error: Illegal multi-control gate on FindSubCircuit.");
+			}
+
+			if (_qv[0]->get_phy_addr() > _qv[1]->get_phy_addr())
+			{
+				tail_nodes.insert(tail_nodes.begin(), tail_nodes.back());
+				tail_nodes.pop_back();
+			}
+		}
+
+		for (auto i = 0; i < node_qv.size(); ++i)
+		{
+			//const auto& _target_node_q : node_qv
+			const auto& _next_layer_node = tail_nodes[i];
+			if (_next_layer_node == nullptr)
+			{
+				node_next_layer_qubits.push_back({ -1 });
+				continue;
+			}
+
+			std::vector<int> _next_node_qv;
+			for (const auto _q : _next_layer_node->m_target_qubits)
+			{
+				_next_node_qv.push_back(_q->get_phy_addr());
+			}
+			node_next_layer_qubits.push_back(_next_node_qv);
+
+			for (const auto& _q : _next_layer_node->m_target_qubits)
+			{
+				node_qubit_gate_map.insert(std::make_pair(_q->get_phy_addr(), _next_layer_node));
+			}
+		}
+	};
+
+	std::vector<std::vector<int>> target_node_next_layer_qubits;
+	std::map<uint32_t, pOptimizerNodeInfo> target_node_qubit_gate_map;
+	get_qubit_gate_fun(target_seq_node, target_node_qubits, target_node_next_layer_qubits, target_node_qubit_gate_map);
+
+	std::vector<std::vector<int>> graph_node_next_layer_qubits;
+	std::map<uint32_t, pOptimizerNodeInfo> graph_node_qubit_gate_map;
+	get_qubit_gate_fun(graph_node, graph_node_qubits, graph_node_next_layer_qubits, graph_node_qubit_gate_map);
+
+	for (size_t i = 0; i < target_node_qubits.size(); ++i)
+	{
+		for (size_t j = 0; j < target_node_next_layer_qubits.size(); ++j)
+		{
+			if (graph_node_next_layer_qubits.size() <= j)
+			{
+				return false;
+			}
+
+			const auto& _target_node_next_qubit = target_node_next_layer_qubits[j];
+			const auto& _graph_node_next_qubit = graph_node_next_layer_qubits[j];
+			for (size_t h = 0; h < _target_node_next_qubit.size(); ++h)
+			{
+				if (target_node_qubits[i]->get_phy_addr() == _target_node_next_qubit[h])
+				{
+					if (graph_node_qubits[i]->get_phy_addr() != _graph_node_next_qubit[h])
+					{
+						return false;
+					}
+
+					if (target_node_qubit_gate_map.at(_target_node_next_qubit[h])->m_gate_type
+						!= graph_node_qubit_gate_map.at(_graph_node_next_qubit[h])->m_gate_type)
+					{
+						return false;
+					}
+				}
+			}
+			
+		}
+	}
+
+	return true;
+}
+
 bool FindSubCircuit::node_match(const SeqNode<pOptimizerNodeInfo>& target_seq_node, const SeqNode<pOptimizerNodeInfo>& graph_node)
 {
 	if ((target_seq_node.first->m_type != graph_node.first->m_type)
@@ -885,34 +992,85 @@ bool FindSubCircuit::node_match(const SeqNode<pOptimizerNodeInfo>& target_seq_no
 	}
 
 	//check next layer 
-	auto p_gate = std::dynamic_pointer_cast<AbstractQGateNode>(*(target_seq_node.first->m_iter));
-	//for (size_t i = 0; i < target_seq_node.second.size(); ++i)
-	for (auto itr_target_seq_node = target_seq_node.second.begin(), itr_graph_node = graph_node.second.begin(); 
-		itr_target_seq_node != target_seq_node.second.end(); ++itr_target_seq_node, ++itr_graph_node)
-	{
-		if (*itr_target_seq_node == nullptr)
-		{
-			continue;
-		}
+	return check_next_layer(target_seq_node, graph_node);
+}
 
-		if (*itr_graph_node == nullptr)
+/*******************************************************************
+*                      class SingleGateOptimizer
+********************************************************************/
+void SingleGateOptimizer::do_optimizer()
+{
+	if (m_cur_gates_buffer.size() == 0)
+	{
+		return;
+	}
+
+	for (const auto &optimizer_item : m_optimizers)
+	{
+		std::vector<QCircuit> replace_to_cir_vec;
+		optimizer_item->do_optimize(m_src_prog, m_cur_gates_buffer, m_cur_gates_buffer.get_sink_pos(), replace_to_cir_vec);
+	}
+}
+
+void SingleGateOptimizer::register_single_gate_optimizer(const int mode)
+{
+	if (mode & Merge_H_X){
+		m_optimizers.push_back(std::make_shared<OptimizerSingleGate>());
+	}
+
+	if (mode & Merge_U3){
+		m_optimizers.push_back(std::make_shared<MergeU3Gate>());
+	}
+
+	if (mode & Merge_RX){
+		m_optimizers.push_back(std::make_shared<OptimizerRotationSingleGate>(RX_GATE));
+	}
+
+	if (mode & Merge_RY){
+		m_optimizers.push_back(std::make_shared<OptimizerRotationSingleGate>(RY_GATE));
+	}
+
+	if (mode & Merge_RZ){
+		m_optimizers.push_back(std::make_shared<OptimizerRotationSingleGate>(RZ_GATE));
+	}
+}
+
+void SingleGateOptimizer::clean_gate_buf_to_cir(bool b_clean_all_buf/* = false*/){
+	size_t drop_max_layer = 0;
+	const uint32_t max_reserved_overlap_gates = 10; /**< 预留重叠区域大小 */
+	for (auto &item : m_cur_gates_buffer)
+	{
+		auto &vec = item.second;
+		auto& _pos = m_cur_gates_buffer.get_target_qubit_sink_size(item.first);
+
+		uint32_t drop_nodes_cnt = 0;
+		if (b_clean_all_buf)
 		{
-			return false;
-		}
-		else if ((*itr_target_seq_node)->m_type != ((*itr_graph_node)->m_type))
-		{
-			return false;
+			drop_nodes_cnt = _pos;
 		}
 		else
 		{
-			if (!(check_angle(*itr_target_seq_node, *itr_graph_node)))
+			if (max_reserved_overlap_gates < _pos)
 			{
-				return false;
+				drop_nodes_cnt = _pos - max_reserved_overlap_gates;
 			}
 		}
-	}
 
-	return true;
+		size_t i = 0;
+		for (; i < drop_nodes_cnt; ++i){
+			vec[i].reset();
+		}
+
+		if (0 != drop_nodes_cnt)
+		{
+			size_t j = 0;
+			for (; i < _pos; ++j, ++i) {
+				vec[j] = vec[i];
+			}
+
+			_pos = j;
+		}
+	}
 }
 
 /*******************************************************************
@@ -920,12 +1078,10 @@ bool FindSubCircuit::node_match(const SeqNode<pOptimizerNodeInfo>& target_seq_no
 ********************************************************************/
 QCircuitOPtimizer::QCircuitOPtimizer()
 	:m_cur_optimizer_sub_cir_index(0), m_b_enable_I(false), m_sub_cir_finder(m_topolog_sequence)
-{
-}
+{}
 
 QCircuitOPtimizer::~QCircuitOPtimizer()
-{
-}
+{}
 
 void QCircuitOPtimizer::process(const bool on_travel_end /*= false*/)
 {
@@ -935,34 +1091,6 @@ void QCircuitOPtimizer::process(const bool on_travel_end /*= false*/)
 	//pop some layers to new circuit
 	clean_gate_buf_to_cir(m_new_prog, on_travel_end);
 	PTrace("process end.\n");
-}
-
-void QCircuitOPtimizer::register_single_gate_optimizer(const int mode)
-{
-	if (mode & Merge_H_X)
-	{
-		m_optimizers.push_back(std::make_shared<OptimizerSingleGate>());
-	}
-
-	if (mode & Merge_U3)
-	{
-		m_optimizers.push_back(std::make_shared<MergeU3Gate>());
-	}
-
-	if (mode & Merge_RX)
-	{
-		m_optimizers.push_back(std::make_shared<OptimizerRotationSingleGate>(RX_GATE));
-	}
-
-	if (mode & Merge_RY)
-	{
-		m_optimizers.push_back(std::make_shared<OptimizerRotationSingleGate>(RY_GATE));
-	}
-
-	if (mode & Merge_RZ)
-	{
-		m_optimizers.push_back(std::make_shared<OptimizerRotationSingleGate>(RZ_GATE));
-	}
 }
 
 void QCircuitOPtimizer::run_optimize(QProg src_prog, const QVec qubits /*= {}*/, bool b_enable_I /*= false*/)
@@ -1001,23 +1129,11 @@ void QCircuitOPtimizer::do_optimizer()
 		sub_cir_optimizer(m_cur_optimizer_sub_cir_index);
 	}
 
-	for (const auto &optimizer_item : m_optimizers)
-	{
-		std::vector<QCircuit> replace_to_cir_vec;
-		optimizer_item->do_optimize(m_src_prog, m_cur_gates_buffer, m_cur_buffer_pos, replace_to_cir_vec);
-		if (replace_to_cir_vec.size() == 0) { continue; }
-		
-		//gate buf to cir
-		QProg tmp_cir = gate_sink_to_cir(replace_to_cir_vec);
-
-		//cir to gate buf
-		cir_to_gate_buffer(tmp_cir);
-	}
 }
 
 void QCircuitOPtimizer::cir_to_gate_buffer(QProg& src_node)
 {
-	for (auto& pos_item : m_cur_buffer_pos)
+	for (auto& pos_item : m_cur_gates_buffer.get_sink_pos())
 	{
 		for (uint32_t i = 0; i < pos_item.second; ++i)
 		{
@@ -1121,7 +1237,7 @@ void QCircuitOPtimizer::check_bit_map(LayeredTopoSeq& target_sub_graph_seq)
 
 bool QCircuitOPtimizer::check_same_gate_type(SeqLayer<pOptimizerNodeInfo>& layer)
 {
-	for (auto i = layer.begin(); i != --(layer.end()); ++i)
+	for (auto i = layer.begin(); i != (layer.end()); ++i)
 	{
 		auto j = i;
 		for (++j; j != layer.end(); ++j)
@@ -1337,7 +1453,8 @@ QProg QCircuitOPtimizer::replase_sub_cir(std::function<QCircuit(const size_t)> g
 		{
 			const size_t qubit_index = item.first;
 			auto j = cur_pos_map.at(qubit_index);
-			for (; j < m_cur_buffer_pos.at(qubit_index); ++j)
+			const auto& gate_vec_size = m_cur_gates_buffer.get_target_qubit_sink_size(qubit_index);
+			for (; j < gate_vec_size; ++j)
 			{
 				b_finished = false;
 				//PTrace("On qubit %lld, %lld gate.\n", qubit_index, j);
@@ -1385,7 +1502,7 @@ QProg QCircuitOPtimizer::replase_sub_cir(std::function<QCircuit(const size_t)> g
 			for (auto& _qubit : sub_cir_used_qubits)
 			{
 				const auto& gate_vec_on_target_qubit = m_cur_gates_buffer.at(_qubit);
-				if (m_cur_buffer_pos.at(_qubit) != cur_pos_map.at(_qubit))
+				if (m_cur_gates_buffer.get_target_qubit_sink_size(_qubit) != cur_pos_map.at(_qubit))
 				{
 					const auto& tmp_qubit_layer = (gate_vec_on_target_qubit.at(cur_pos_map.at(_qubit)))->m_layer;
 					if (tmp_qubit_layer > max_output_layer)
@@ -1420,7 +1537,7 @@ QProg QCircuitOPtimizer::replase_sub_cir(std::function<QCircuit(const size_t)> g
 		//skip sub_graph matched gate node
 		for (auto& target_qubit : sub_cir_used_qubits)
 		{
-			for (auto m = cur_pos_map.at(target_qubit); m != m_cur_buffer_pos.at(target_qubit); ++m, ++(cur_pos_map.at(target_qubit)))
+			for (auto m = cur_pos_map.at(target_qubit); m != m_cur_gates_buffer.get_target_qubit_sink_size(target_qubit); ++m, ++(cur_pos_map.at(target_qubit)))
 			{
 				const auto& gate_node = m_cur_gates_buffer.at(target_qubit).at(m);
 				if (gate_node->m_sub_graph_index != target_graph_index)
@@ -1457,6 +1574,11 @@ void QCircuitOPtimizer::sub_cir_optimizer(const size_t optimizer_sub_cir_index)
 {
 	//transfer gate sink to topolog sequence
 	gates_sink_to_topolog_sequence(m_cur_gates_buffer, m_topolog_sequence);
+	/*{
+		cout << "on sub_cir_query:" << optimizer_sub_cir_index  << endl;
+		cout << "src cir: "<< m_optimizer_cir_vec.at(optimizer_sub_cir_index).target_sub_cir << endl;
+		cout << "dst cir: " << m_optimizer_cir_vec.at(optimizer_sub_cir_index).replace_to_sub_cir << endl;
+	}*/
 
 	//query sub circuit
 	LayeredTopoSeq sub_cir_sequence = prog_layer(m_optimizer_cir_vec.at(optimizer_sub_cir_index).target_sub_cir);
@@ -1497,8 +1619,32 @@ void QCircuitOPtimizer::register_optimize_sub_cir(QCircuit sub_cir, QCircuit rep
 /*******************************************************************
 *                      public interface
 ********************************************************************/
-void QPanda::sub_cir_optimizer(QCircuit& src_cir, std::vector<std::pair<QCircuit, QCircuit>> optimizer_cir_vec /*= {}*/,
-	const int mode/* = Merge_H_X*/)
+void QPanda::single_gate_optimizer(QProg& src_prog, const int& mode)
+{
+	if (src_prog.is_empty()){
+		return;
+	}
+
+	flatten(src_prog, true);
+	SingleGateOptimizer _optimizer;
+	_optimizer.register_single_gate_optimizer(mode);
+	_optimizer.run_optimize(src_prog);
+}
+
+void QPanda::single_gate_optimizer(QCircuit& src_cir, const int& mode)
+{
+	if (src_cir.is_empty()){
+		return;
+	}
+
+	QProg _prog(src_cir);
+	single_gate_optimizer(_prog, mode);
+
+	flatten(_prog, true);
+	src_cir = QProgFlattening::prog_flatten_to_cir(_prog);
+}
+
+void QPanda::sub_cir_replace(QCircuit& src_cir, const std::vector<std::pair<QCircuit, QCircuit>>& replace_cir_vec /*= {}*/)
 {
 	if (src_cir.is_empty())
 	{
@@ -1508,19 +1654,18 @@ void QPanda::sub_cir_optimizer(QCircuit& src_cir, std::vector<std::pair<QCircuit
 	flatten(src_cir);
 
 	QCircuitOPtimizer tmp_optimizer;
-	for (auto& optimizer_cir_pair : optimizer_cir_vec)
+	for (auto& optimizer_cir_pair : replace_cir_vec)
 	{
 		tmp_optimizer.register_optimize_sub_cir(optimizer_cir_pair.first, optimizer_cir_pair.second);
 	}
-	tmp_optimizer.register_single_gate_optimizer(mode);
-	tmp_optimizer.run_optimize(src_cir/*, used_qubits*/);
+	
+	tmp_optimizer.run_optimize(src_cir);
 
 	flatten(tmp_optimizer.m_new_prog, true);
 	src_cir = QProgFlattening::prog_flatten_to_cir(tmp_optimizer.m_new_prog);
 }
 
-void QPanda::sub_cir_optimizer(QProg& src_prog, std::vector<std::pair<QCircuit, QCircuit>> optimizer_cir_vec /*= {}*/, 
-	const int mode/*= Merge_H_X*/)
+void QPanda::sub_cir_replace(QProg& src_prog, const std::vector<std::pair<QCircuit, QCircuit>>& optimizer_cir_vec /*= {}*/)
 {
 	if (src_prog.is_empty())
 	{
@@ -1534,8 +1679,33 @@ void QPanda::sub_cir_optimizer(QProg& src_prog, std::vector<std::pair<QCircuit, 
 	{
 		tmp_optimizer.register_optimize_sub_cir(optimizer_cir_pair.first, optimizer_cir_pair.second);
 	}
-	tmp_optimizer.register_single_gate_optimizer(mode);
-	tmp_optimizer.run_optimize(src_prog/*, used_qubits*/);
+
+	tmp_optimizer.run_optimize(src_prog);
 
 	src_prog = tmp_optimizer.m_new_prog;
+}
+
+void QPanda::cir_optimizer(QProg& src_prog, const std::vector<std::pair<QCircuit, QCircuit>>& replace_cir_vec /*= {}*/,
+	const int& mode /*= QCircuitOPtimizerMode::Merge_H_X*/)
+{
+	if (src_prog.is_empty()) {
+		return;
+	}
+
+	sub_cir_replace(src_prog, replace_cir_vec);
+	single_gate_optimizer(src_prog, mode);
+}
+
+void QPanda::cir_optimizer(QCircuit& src_cir, const std::vector<std::pair<QCircuit, QCircuit>>& replace_cir_vec /*= {}*/,
+	const int& mode /*= QCircuitOPtimizerMode::Merge_H_X*/)
+{
+	if (src_cir.is_empty()){
+		return;
+	}
+
+	QProg _prog(src_cir);
+	cir_optimizer(_prog, replace_cir_vec, mode);
+
+	flatten(_prog, true);
+	src_cir = QProgFlattening::prog_flatten_to_cir(_prog);
 }

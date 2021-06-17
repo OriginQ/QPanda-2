@@ -18,3 +18,4 @@ __pycache__/
 CMakeSettings.json
 *.dat
 /mingw-build
+/CMakeLists.txt.user

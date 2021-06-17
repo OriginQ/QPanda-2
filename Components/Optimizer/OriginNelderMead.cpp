@@ -8,7 +8,6 @@ const std::string NM_CACHE_HEADER = "NELDER_MEAD CACHE FILE";
 
 namespace QPanda
 {
-
     OriginNelderMead::OriginNelderMead() :
         m_rho(1),
         m_chi(2),
@@ -291,7 +290,8 @@ namespace QPanda
         m_fcalls++;
 
         vector_d optimized_para(para.data(), para.data() + para.size());
-        return m_func(optimized_para);
+        vector_d blank;
+        return m_func(optimized_para, blank, m_iter, m_fcalls);
     }
 
     bool OriginNelderMead::testTermination()
@@ -443,11 +443,11 @@ namespace QPanda
         {
             if (i == 0)
             {
-                tmp_fsim = std::to_string(m_fsim[i]);
+                tmp_fsim = QString(m_fsim[i]).data();
             }
             else
             {
-                tmp_fsim += "," + std::to_string(m_fsim[i]);
+                tmp_fsim += "," + QString(m_fsim[i]).data();
             }
         }
 
@@ -463,11 +463,11 @@ namespace QPanda
             {
                 if (j == 0)
                 {
-                    tmp_sim += std::to_string(m_sim.row(i)[j]);
+                    tmp_sim += QString(m_sim.row(i)[j]).data();
                 }
                 else
                 {
-                    tmp_sim += "," + std::to_string(m_sim.row(i)[j]);
+                    tmp_sim += "," + QString(m_sim.row(i)[j]).data();
                 }
             } 
         }
@@ -525,6 +525,8 @@ namespace QPanda
 
         m_iter = QString(cache_file.getValue("iter")[0]).toInt();
         m_fcalls = QString(cache_file.getValue("fcalls")[0]).toInt();
+
+        std::cout << "NM-catch-fcalls: " << m_fcalls << std::endl;
 
         return true;
     }

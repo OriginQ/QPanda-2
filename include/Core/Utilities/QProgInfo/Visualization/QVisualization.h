@@ -15,8 +15,8 @@ QPANDA_BEGIN
 * @return the output string
 * @note All the output characters are UTF-8 encoded.
 */
-std::string draw_qprog(QProg prog, const NodeIter itr_start = NodeIter(), const NodeIter itr_end = NodeIter());
-std::string draw_qprog(QProg prog, LayeredTopoSeq& m_layer_info);
+std::string draw_qprog(QProg prog, uint32_t length = 100, bool b_out_put_to_file = false, const NodeIter itr_start = NodeIter(), const NodeIter itr_end = NodeIter());
+std::string draw_qprog(QProg prog, LayeredTopoSeq& m_layer_info, uint32_t length = 100, bool b_out_put_to_file = false);
 
 /**
 * @brief output a quantum prog/circuit by time sequence to console by text-pic(UTF-8 code),
@@ -30,7 +30,7 @@ std::string draw_qprog(QProg prog, LayeredTopoSeq& m_layer_info);
 * @return the output string
 * @note All the output characters are GBK encoded on windows,  UTF-8 encoded on other OS.
 */
-std::string draw_qprog_with_clock(QProg prog, const std::string config_data = CONFIG_PATH, const NodeIter itr_start = NodeIter(), const NodeIter itr_end = NodeIter());
+std::string draw_qprog_with_clock(QProg prog, const std::string config_data = CONFIG_PATH, uint32_t length = 100, bool b_out_put_to_file = false, const NodeIter itr_start = NodeIter(), const NodeIter itr_end = NodeIter());
 
 /**
  * @brief Overload operator <<
@@ -41,13 +41,16 @@ std::string draw_qprog_with_clock(QProg prog, const std::string config_data = CO
  */
 inline std::ostream  &operator<<(std::ostream &out, QProg prog) {
 	auto text_pic_str = draw_qprog(prog);
+
+	if (&out == &std::cout){
 #if defined(WIN32) || defined(_WIN32)
-	text_pic_str = fit_to_gbk(text_pic_str);
-	text_pic_str = Utf8ToGbkOnWin32(text_pic_str.c_str());
+		text_pic_str = fit_to_gbk(text_pic_str);
+		text_pic_str = Utf8ToGbkOnWin32(text_pic_str.c_str());
 #endif
+	}
 	
-	std::cout << text_pic_str << std::endl;
-	return std::cout;
+	out << text_pic_str << std::endl;
+	return out;
 }
 
 QPANDA_END

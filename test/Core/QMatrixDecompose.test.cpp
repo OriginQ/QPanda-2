@@ -6,7 +6,7 @@
 #include <memory>
 
 USING_QPANDA
-
+using namespace std;
 bool test_matrix_decompose_1()
 {
 	auto qvm = initQuantumMachine(QMachineType::CPU);

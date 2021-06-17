@@ -456,7 +456,7 @@ int QPanda::mat_compare(const QStat& mat1, const QStat& mat2, const double preci
 		if ((abs(mat2.at(i).real() - 0.0) > precision) || (abs(mat2.at(i).imag() - 0.0) > precision))
 		{
 			ratio = mat1.at(i) / mat2.at(i);
-			if (precision < (sqrt(ratio.real()*ratio.real() + ratio.imag()*ratio.imag()) - 1.0))
+			if (precision < abs(sqrt(ratio.real()*ratio.real() + ratio.imag()*ratio.imag()) - 1.0))
 			{
 				return -1;
 			}
@@ -522,11 +522,9 @@ QStat QPanda::Eigen_to_QStat(const EigenMatrixXc& eigen_mat)
 
 bool QPanda::is_unitary_matrix(const QStat &circuit_matrix, const double precision /*= 0.000001*/)
 {
-	//double difference = 0.0;
 	size_t matrix_dimension = sqrt(circuit_matrix.size());
 	QStat tmp_matrix_dagger = dagger_c(circuit_matrix);
 	const auto tmp_mat = tmp_matrix_dagger * circuit_matrix;
-	//cout << "tmp_mat = " << tmp_mat << endl;
 	QStat mat_I(circuit_matrix.size(), 0);
 	for (size_t i = 0; i < matrix_dimension; ++i)
 	{
@@ -539,17 +537,4 @@ bool QPanda::is_unitary_matrix(const QStat &circuit_matrix, const double precisi
 	}
 
 	return false;
-
-	/*double trace = 0.0;
-	for (size_t i = 0; i < matrix_dimension; ++i)
-	{
-		for (size_t j = 0; j < matrix_dimension; ++j)
-		{
-			trace += (tmp_matrix_dagger[i*matrix_dimension + j] * circuit_matrix[j*matrix_dimension + i]).real();
-		}
-	}
-
-	difference = abs(1 - pow(trace / ((double)matrix_dimension), 2));
-
-	return (difference < precision);*/
 }

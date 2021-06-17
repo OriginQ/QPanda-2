@@ -64,7 +64,7 @@ public:
 
     inline Qubit * operator[](size_t  pos) const
     {
-        if(pos > (cbit_size_t)size())
+        if(pos >= (cbit_size_t)size())
         {
             QCERR("pos overflow");
             throw std::invalid_argument("pos overflow");
@@ -72,12 +72,22 @@ public:
         return BaseClass::operator[](pos);
     }
 
+	reference operator[](size_type _Pos)
+	{
+		if (_Pos >= size())
+		{
+			QCERR("pos overflow");
+			throw std::invalid_argument("pos overflow");
+		}
+		return (*(begin() + _Pos));
+	}
+
     inline QVec &operator<<(int)
     {
         return *this;
     }
 
-	QVec operator +(QVec vec)
+	QVec operator +(QVec vec) const
 	{
 		QVec new_vec(*this);
 		new_vec += vec;
@@ -91,7 +101,7 @@ public:
 			auto biter = begin();
 			for (; biter != end(); biter++)
 			{
-				if (*aiter == *biter)
+				if ((*aiter)->get_phy_addr() == (*biter)->get_phy_addr())
 				{
 					break;
 				}
@@ -106,7 +116,7 @@ public:
 		return *this;
 	}
 
-	QVec operator -(QVec vec)
+	QVec operator -(QVec vec) const
 	{
 		QVec new_vec(*this);
 		new_vec -= vec;
@@ -121,7 +131,7 @@ public:
 			auto biter = vec.begin();
 			for (; biter != vec.end(); biter++)
 			{
-				if (*aiter == *biter)
+				if ((*aiter)->get_phy_addr() == (*biter)->get_phy_addr())
 				{
 					break;
 				}

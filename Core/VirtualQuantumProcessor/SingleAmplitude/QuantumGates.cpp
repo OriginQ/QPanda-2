@@ -1,128 +1,24 @@
 #include "Core/VirtualQuantumProcessor/SingleAmplitude/QuantumGates.h"
-
-#define SQRT2 1.4142135623731
-#define PI  3.141592654
-static qsize_t edge_count = 0;
-
-static void addSingleGateNonDiagonalVerticeAndEdge(QuantumProgMap & prog_map,
-                                                   qstate_t &gate_tensor,
-                                                   qsize_t qubit)
+#include "Core/QuantumCircuit/QGlobalVariable.h"
+void H_Gate(qstate_t& gate_tensor, bool isDagger)
 {
-    EdgeMap * edge_map = prog_map.getEdgeMap();
-    ComplexTensor temp(2, gate_tensor);
-
-    VerticeMatrix * vertice_matrix = prog_map.getVerticeMatrix();
-    auto vertice_id = vertice_matrix->getQubitVerticeLastID(qubit);
-    auto vertice_id2 = vertice_matrix->addVertice(qubit);
-
-    vector<pair<qsize_t, qsize_t>> contect_vertice = 
-                       { { qubit,vertice_id2 },
-                         { qubit,vertice_id } };
-    edge_count++;
-    Edge edge(1, temp, contect_vertice);
-    edge_map->insert(pair<qsize_t,Edge>(edge_count, edge));
-    vertice_matrix->addContectEdge(qubit, vertice_id, edge_count);
-    vertice_matrix->addContectEdge(qubit, vertice_id2, edge_count);
+	gate_tensor.assign(4, 0);
+	gate_tensor[0] = 1 / SQRT2;
+	gate_tensor[1] = 1 / SQRT2;
+	gate_tensor[2] = 1 / SQRT2;
+	gate_tensor[3] = -1 / SQRT2;
 }
 
-static void addSingleGateDiagonalVerticeAndEdge(QuantumProgMap & prog_map,
-    qstate_t &gate_tensor,
-    qsize_t qubit)
+void X_Gate(qstate_t& gate_tensor, bool isDagger)
 {
-    EdgeMap * edge_map = prog_map.getEdgeMap();
-    ComplexTensor temp(1, gate_tensor);
-
-    VerticeMatrix * vertice_matrix = prog_map.getVerticeMatrix();
-    auto vertice_id = vertice_matrix->getQubitVerticeLastID(qubit);
-
-    vector<pair<qsize_t, qsize_t>> contect_vertice =
-    { { qubit,vertice_id } };
-    edge_count++;
-    Edge edge(1, temp, contect_vertice);
-    edge_map->insert(pair<qsize_t, Edge>(edge_count, edge));
-    vertice_matrix->addContectEdge(qubit, vertice_id, edge_count);
+	gate_tensor.assign(4, 0);
+	gate_tensor[1] = 1;
+	gate_tensor[2] = 1;
 }
 
-
-
-
-static void addDoubleDiagonalGateVerticeAndEdge(QuantumProgMap & prog_map,
-                                                qstate_t &gate_tensor,
-                                                qsize_t qubit1,
-                                                qsize_t qubit2)
+void RX_Gate(qstate_t& gate_tensor, double angle, bool isDagger)
 {
-    EdgeMap * edge_map = prog_map.getEdgeMap();
-    ComplexTensor temp(2, gate_tensor);
-    VerticeMatrix * vertice_matrix = prog_map.getVerticeMatrix();
-    auto vertice_qubit1_id = vertice_matrix->getQubitVerticeLastID(qubit1);
-
-    auto vertice_qubit2_id = vertice_matrix->getQubitVerticeLastID(qubit2);
-
-    
-    vector<pair<qsize_t, qsize_t>> contect_vertice =
-                { { qubit1,vertice_qubit1_id },
-                  { qubit2,vertice_qubit2_id } };
-
-    edge_count++;
-    Edge edge(2, temp, contect_vertice);
-    edge_map->insert(pair<qsize_t, Edge>(edge_count, edge));
-    vertice_matrix->addContectEdge(qubit1, vertice_qubit1_id, edge_count);
-    vertice_matrix->addContectEdge(qubit2, vertice_qubit2_id, edge_count);
-}
-
-
-
-static void addDoubleNonDiagonalGateVerticeAndEdge(QuantumProgMap & prog_map,
-                                                   qstate_t &gate_tensor,
-                                                   qsize_t qubit1,
-                                                   qsize_t qubit2)
-{
-    EdgeMap * edge_map = prog_map.getEdgeMap();
-    ComplexTensor temp(4, gate_tensor);
-    VerticeMatrix * vertice_matrix = prog_map.getVerticeMatrix();
-    auto vertice_qubit1_id = vertice_matrix->getQubitVerticeLastID(qubit1);
-    auto vertice_qubit1_id2 = vertice_matrix->addVertice(qubit1);
-
-    auto vertice_qubit2_id = vertice_matrix->getQubitVerticeLastID(qubit2);
-    auto vertice_qubit2_id2 = vertice_matrix->addVertice(qubit2);
-
-    vector<pair<qsize_t, qsize_t>> contect_vertice 
-        = { { qubit1,vertice_qubit1_id },
-            { qubit2,vertice_qubit2_id },
-            { qubit1,vertice_qubit1_id2 },
-            { qubit2,vertice_qubit2_id2 } };
-    edge_count++;
-    Edge edge(2, temp, contect_vertice);
-    edge_map->insert(pair<qsize_t, Edge>(edge_count, edge));
-    vertice_matrix->addContectEdge(qubit1, vertice_qubit1_id, edge_count);
-    vertice_matrix->addContectEdge(qubit1, vertice_qubit1_id2, edge_count);
-
-    vertice_matrix->addContectEdge(qubit2, vertice_qubit2_id, edge_count);
-    vertice_matrix->addContectEdge(qubit2, vertice_qubit2_id2, edge_count);
-}
-
-
-void H_Gate(QuantumProgMap & prog_map,qsize_t qubit, bool isDagger)
-{
-    qstate_t gate_tensor(4, 0);
-    gate_tensor[0] =  1 / SQRT2;
-    gate_tensor[1] =  1 / SQRT2;
-    gate_tensor[2] =  1 / SQRT2;
-    gate_tensor[3] = -1 / SQRT2;
-    addSingleGateNonDiagonalVerticeAndEdge(prog_map, gate_tensor, qubit);
-}
-
-void X_Gate(QuantumProgMap & prog_map, qsize_t qubit, bool isDagger)
-{
-    qstate_t gate_tensor(4, 0);
-    gate_tensor[1] = 1;
-    gate_tensor[2] = 1;
-    addSingleGateNonDiagonalVerticeAndEdge(prog_map, gate_tensor, qubit);
-}
-
-void RX_Gate(QuantumProgMap & prog_map, qsize_t qubit,double angle, bool isDagger)
-{
-	qstate_t gate_tensor(4, 0);
+	gate_tensor.assign(4, 0);
 	gate_tensor[0] = cos(angle / 2);
 	if (isDagger)
 	{
@@ -135,20 +31,18 @@ void RX_Gate(QuantumProgMap & prog_map, qsize_t qubit,double angle, bool isDagge
 		gate_tensor[2].imag(-1 * sin(angle / 2));
 	}
 	gate_tensor[3] = cos(angle / 2);
-	addSingleGateNonDiagonalVerticeAndEdge(prog_map, gate_tensor, qubit);
 }
 
-void Y_Gate(QuantumProgMap & prog_map, qsize_t qubit, bool isDagger)
+void Y_Gate(qstate_t& gate_tensor, bool isDagger)
 {
-    qstate_t gate_tensor(4, 0);
-    gate_tensor[1].imag(-1) ;
-    gate_tensor[2].imag(1);
-    addSingleGateNonDiagonalVerticeAndEdge(prog_map, gate_tensor, qubit);
+	gate_tensor.assign(4, 0);
+	gate_tensor[1].imag(-1);
+	gate_tensor[2].imag(1);
 }
 
-void RY_Gate(QuantumProgMap & prog_map, qsize_t qubit, double angle, bool isDagger)
+void RY_Gate(qstate_t& gate_tensor, double angle, bool isDagger)
 {
-	qstate_t gate_tensor(4, 0);
+	gate_tensor.assign(4, 0);
 	gate_tensor[0] = cos(angle / 2);
 	if (isDagger)
 	{
@@ -161,12 +55,11 @@ void RY_Gate(QuantumProgMap & prog_map, qsize_t qubit, double angle, bool isDagg
 		gate_tensor[2] = sin(angle / 2);
 	}
 	gate_tensor[3] = cos(angle / 2);
-	addSingleGateNonDiagonalVerticeAndEdge(prog_map, gate_tensor, qubit);
 }
 
-void X1_Gate(QuantumProgMap & prog_map, qsize_t qubit, bool isDagger)
+void X1_Gate(qstate_t& gate_tensor, bool isDagger)
 {
-	qstate_t gate_tensor(4, 0);
+	gate_tensor.assign(4, 0);
 	gate_tensor[0] = 1 / SQRT2;
 	if (isDagger)
 	{
@@ -179,40 +72,35 @@ void X1_Gate(QuantumProgMap & prog_map, qsize_t qubit, bool isDagger)
 		gate_tensor[2] = qcomplex_data_t(0, -1 / SQRT2);
 	}
 	gate_tensor[3] = 1 / SQRT2;
-	addSingleGateNonDiagonalVerticeAndEdge(prog_map, gate_tensor, qubit);
 }
 
-void Y1_Gate(QuantumProgMap & prog_map, qsize_t qubit, bool isDagger)
+void Y1_Gate(qstate_t& gate_tensor, bool isDagger)
 {
-	qstate_t gate_tensor(4, 0);
+	gate_tensor.assign(4, 0);
 	gate_tensor[0] = 1 / SQRT2;
 	if (isDagger)
 	{
-		gate_tensor[1] =  1 / SQRT2;
+		gate_tensor[1] = 1 / SQRT2;
 		gate_tensor[2] = -1 / SQRT2;
 	}
 	else
 	{
 		gate_tensor[1] = -1 / SQRT2;
-		gate_tensor[2] =  1 / SQRT2;
+		gate_tensor[2] = 1 / SQRT2;
 	}
 	gate_tensor[3] = 1 / SQRT2;
-	addSingleGateNonDiagonalVerticeAndEdge(prog_map, gate_tensor, qubit);
 }
 
-
-
-void Z_Gate(QuantumProgMap & prog_map, qsize_t qubit, bool isDagger)
+void Z_Gate(qstate_t& gate_tensor, bool isDagger)
 {
-    qstate_t gate_tensor(2, 0);
-    gate_tensor[0] = 1;
-    gate_tensor[1] = -1;
-    addSingleGateDiagonalVerticeAndEdge(prog_map, gate_tensor, qubit);
+	gate_tensor.assign(2, 0);
+	gate_tensor[0] = 1;
+	gate_tensor[1] = -1;
 }
 
-void RZ_Gate(QuantumProgMap & prog_map, qsize_t qubit, double angle, bool isDagger)
+void RZ_Gate(qstate_t& gate_tensor, double angle, bool isDagger)
 {
-	qstate_t gate_tensor(2, 0);
+	gate_tensor.assign(2, 0);
 	gate_tensor[0].real(cos(angle / 2));
 	gate_tensor[1].real(cos(angle / 2));
 	if (isDagger)
@@ -225,118 +113,173 @@ void RZ_Gate(QuantumProgMap & prog_map, qsize_t qubit, double angle, bool isDagg
 		gate_tensor[0].imag(-1 * sin(angle / 2));
 		gate_tensor[1].imag(1 * sin(angle / 2));
 	}
-
-	addSingleGateDiagonalVerticeAndEdge(prog_map, gate_tensor, qubit);
 }
 
-void U1_Gate(QuantumProgMap & prog_map, qsize_t qubit, double angle, bool isDagger)
+void U1_Gate(qstate_t& gate_tensor, double angle, bool isDagger)
 {
-    qstate_t gate_tensor(2, 0);
-    gate_tensor[0] = 1;
-    if (isDagger)
-    {
-        gate_tensor[1].real(cos(angle));
-        gate_tensor[1].imag(sin(angle));
-    }
-    else
-    {
-        gate_tensor[1].real(cos(-angle));
-        gate_tensor[1].imag(sin(-angle));
-    }
-
-    addSingleGateDiagonalVerticeAndEdge(prog_map, gate_tensor, qubit);
-}
-
-void Z1_Gate(QuantumProgMap & prog_map, qsize_t qubit, bool isDagger)
-{
-	qstate_t gate_tensor(2, 0);
+	gate_tensor.assign(2, 0);
+	gate_tensor[0] = 1;
 	if (isDagger)
 	{
-		gate_tensor[0] = qcomplex_data_t(1 / SQRT2,  1 / SQRT2);
+		gate_tensor[1].real(cos(angle));
+		gate_tensor[1].imag(sin(angle));
+	}
+	else
+	{
+		gate_tensor[1].real(cos(-angle));
+		gate_tensor[1].imag(sin(-angle));
+	}
+}
+
+void U2_Gate(qstate_t& gate_tensor, double phi, double lambda, bool isDagger)
+{
+	gate_tensor.assign(4, 0);
+
+	auto coefficient = SQRT2 / 2;
+	gate_tensor[0] = 1 * coefficient;
+	gate_tensor[1].real(-cos(lambda) * coefficient);
+	gate_tensor[1].imag(-sin(lambda) * coefficient);
+
+	gate_tensor[2].real(cos(phi) * coefficient);
+	gate_tensor[2].imag(sin(phi) * coefficient);
+	gate_tensor[3].real(cos(phi + lambda) * coefficient);
+	gate_tensor[3].imag(sin(phi + lambda) * coefficient);
+
+	if (isDagger)
+	{
+		qcomplex_data_t temp;
+		temp = gate_tensor[1];
+		gate_tensor[1] = gate_tensor[2];
+		gate_tensor[2] = temp; 
+		for (size_t i = 0; i < 4; i++)
+			gate_tensor[i] = qcomplex_data_t(gate_tensor[i].real(), -gate_tensor[i].imag());
+	}
+}
+
+void U3_Gate(qstate_t& gate_tensor, double theta, double phi, double lambda, bool isDagger)
+{
+	gate_tensor.assign(4, 0);
+	gate_tensor[0] = std::cos(theta / 2);
+	gate_tensor[1] = -std::exp(qcomplex_t(0, lambda)) * std::sin(theta / 2);
+	gate_tensor[2] = std::exp(qcomplex_t(0, phi)) * std::sin(theta / 2);
+	gate_tensor[3] = std::exp(qcomplex_t(0, phi + lambda)) * std::cos(theta / 2);
+
+	if (isDagger)
+	{
+		qcomplex_data_t temp;
+		temp = gate_tensor[1];
+		gate_tensor[1] = gate_tensor[2];
+		gate_tensor[2] = temp;
+		for (size_t i = 0; i < 4; i++)
+			gate_tensor[i] = qcomplex_data_t(gate_tensor[i].real(), -gate_tensor[i].imag());
+	}
+}
+
+
+void U4_Gate(qstate_t& gate_tensor, double alpha, double beta, double gamma, double delta, bool isDagger)
+{
+	gate_tensor.assign(4, 0);
+	gate_tensor[0] = qcomplex_t(cos(alpha - beta / 2 - delta / 2) * cos(gamma / 2),
+		sin(alpha - beta / 2 - delta / 2) * cos(gamma / 2));
+	gate_tensor[1] = qcomplex_t(-cos(alpha - beta / 2 + delta / 2) * sin(gamma / 2),
+		-sin(alpha - beta / 2 + delta / 2) * sin(gamma / 2));
+	gate_tensor[2] = qcomplex_t(cos(alpha + beta / 2 - delta / 2) * sin(gamma / 2),
+		sin(alpha + beta / 2 - delta / 2) * sin(gamma / 2));
+	gate_tensor[3] = qcomplex_t(cos(alpha + beta / 2 + delta / 2) * cos(gamma / 2),
+		sin(alpha + beta / 2 + delta / 2) * cos(gamma / 2));
+
+	if (isDagger)
+	{
+		qcomplex_data_t temp;
+		temp = gate_tensor[1];
+		gate_tensor[1] = gate_tensor[2];
+		gate_tensor[2] = temp;
+		for (size_t i = 0; i < 4; i++)
+			gate_tensor[i] = qcomplex_data_t(gate_tensor[i].real(), -gate_tensor[i].imag());
+	}
+}
+
+void Z1_Gate(qstate_t& gate_tensor, bool isDagger)
+{
+	gate_tensor.assign(2, 0);
+	if (isDagger)
+	{
+		gate_tensor[0] = qcomplex_data_t(1 / SQRT2, 1 / SQRT2);
 		gate_tensor[1] = qcomplex_data_t(1 / SQRT2, -1 / SQRT2);
 	}
 	else
 	{
 		gate_tensor[0] = qcomplex_data_t(1 / SQRT2, -1 / SQRT2);
-		gate_tensor[1] = qcomplex_data_t(1 / SQRT2,  1 / SQRT2);
+		gate_tensor[1] = qcomplex_data_t(1 / SQRT2, 1 / SQRT2);
 	}
-	addSingleGateDiagonalVerticeAndEdge(prog_map, gate_tensor, qubit);
 }
 
-void CZ_Gate(QuantumProgMap & prog_map,qsize_t qubit1,qsize_t qubit2, bool isDagger)
+void CZ_Gate(qstate_t& gate_tensor, bool isDagger)
 {
-    qstate_t gate_tensor(4, 1);
-    gate_tensor[0] =  1 ;
-    gate_tensor[1] =  1;
-    gate_tensor[2] =  1;
-    gate_tensor[3] = -1;
-    addDoubleDiagonalGateVerticeAndEdge(prog_map,
-                                        gate_tensor,
-                                        qubit1,
-                                        qubit2);
+	gate_tensor.assign(4, 1);
+	gate_tensor[0] = 1;
+	gate_tensor[1] = 1;
+	gate_tensor[2] = 1;
+	gate_tensor[3] = -1;
 }
 
-void CNOT_Gate(QuantumProgMap &prog_map,qsize_t qubit1,qsize_t qubit2, bool isDagger)
+void CNOT_Gate(qstate_t& gate_tensor, bool isDagger)
 {
-    qstate_t gate_tensor(16, 0);
-    gate_tensor[0] =  1;
-    gate_tensor[5] =  1;
-    gate_tensor[11] = 1;
-    gate_tensor[14] = 1;
-    addDoubleNonDiagonalGateVerticeAndEdge(prog_map,
-                                           gate_tensor,
-                                           qubit1,
-                                           qubit2);
+	gate_tensor.assign(16, 0);
+	gate_tensor[0] = 1;
+	gate_tensor[5] = 1;
+	gate_tensor[11] = 1;
+	gate_tensor[14] = 1;
 }
 
-void ISWAP_Gate(QuantumProgMap &prog_map, qsize_t qubit1, qsize_t qubit2, bool isDagger)
+void SWAP_Gate(qstate_t& gate_tensor, bool isDagger)
 {
-    qstate_t gate_tensor(16, 0);
-    gate_tensor[0] = 1;
-    gate_tensor[15] = 1;
-    if (isDagger)
-    {
-        gate_tensor[6].imag(1);
-        gate_tensor[9].imag(1);
-    } 
-    else
-    {
-        gate_tensor[6].imag(-1);
-        gate_tensor[9].imag(-1);
-    }
-    addDoubleNonDiagonalGateVerticeAndEdge(prog_map,
-        gate_tensor,
-        qubit1,
-        qubit2);
+	gate_tensor.assign(16, 0);
+	gate_tensor[0] = 1;
+	gate_tensor[6] = 1;
+	gate_tensor[9] = 1;
+	gate_tensor[15] = 1;
 }
 
-
-void SQISWAP_Gate(QuantumProgMap &prog_map, qsize_t qubit1, qsize_t qubit2, bool isDagger)
+void ISWAP_Gate(qstate_t& gate_tensor, bool isDagger)
 {
-    qstate_t gate_tensor(16, 0);
-    gate_tensor[0] = 1;
-    gate_tensor[5] = 1 / SQRT2;
-    gate_tensor[10] = 1 / SQRT2;
-    gate_tensor[15] = 1;
-    if (isDagger)
-    {
-        gate_tensor[6].imag(-1 / SQRT2);
-        gate_tensor[9].imag(-1 / SQRT2);
-    }
-    else
-    {
-        gate_tensor[6].imag(1 / SQRT2);
-        gate_tensor[9].imag(1 / SQRT2);
-    }
-    addDoubleNonDiagonalGateVerticeAndEdge(prog_map,
-        gate_tensor,
-        qubit1,
-        qubit2);
+	gate_tensor.assign(16, 0);
+	gate_tensor[0] = 1;
+	gate_tensor[15] = 1;
+	if (isDagger)
+	{
+		gate_tensor[6].imag(1);
+		gate_tensor[9].imag(1);
+	}
+	else
+	{
+		gate_tensor[6].imag(-1);
+		gate_tensor[9].imag(-1);
+	}
 }
 
-void CR_Gate(QuantumProgMap & prog_map,qsize_t qubit1,qsize_t qubit2, double angle, bool isDagger)
+void SQISWAP_Gate(qstate_t& gate_tensor, bool isDagger)
 {
-	qstate_t gate_tensor(4, 1);
+	gate_tensor.assign(16, 0);
+	gate_tensor[0] = 1;
+	gate_tensor[5] = 1 / SQRT2;
+	gate_tensor[10] = 1 / SQRT2;
+	gate_tensor[15] = 1;
+	if (isDagger)
+	{
+		gate_tensor[6].imag(-1 / SQRT2);
+		gate_tensor[9].imag(-1 / SQRT2);
+	}
+	else
+	{
+		gate_tensor[6].imag(1 / SQRT2);
+		gate_tensor[9].imag(1 / SQRT2);
+	}
+}
+
+void CR_Gate(qstate_t& gate_tensor, double angle, bool isDagger)
+{
+	gate_tensor.assign(4, 1);
 	gate_tensor[0] = 1;
 	gate_tensor[1] = 1;
 	gate_tensor[2] = 1;
@@ -350,15 +293,11 @@ void CR_Gate(QuantumProgMap & prog_map,qsize_t qubit1,qsize_t qubit2, double ang
 		gate_tensor[3].real(cos(angle));
 		gate_tensor[3].imag(1 * sin(angle));
 	}
-	addDoubleDiagonalGateVerticeAndEdge(prog_map,
-		gate_tensor,
-		qubit1,
-		qubit2);
 }
 
-void T_Gate(QuantumProgMap & prog_map, qsize_t qubit, bool isDagger)
+void T_Gate(qstate_t& gate_tensor, bool isDagger)
 {
-	qstate_t gate_tensor(2, 0);
+	gate_tensor.assign(2, 0);
 	gate_tensor[0] = 1;
 	if (isDagger)
 	{
@@ -370,12 +309,11 @@ void T_Gate(QuantumProgMap & prog_map, qsize_t qubit, bool isDagger)
 		gate_tensor[1].real(cos(PI / 4));
 		gate_tensor[1].imag(sin(PI / 4));
 	}
-	addSingleGateDiagonalVerticeAndEdge(prog_map, gate_tensor, qubit);
 }
 
-void S_Gate(QuantumProgMap & prog_map, qsize_t qubit, bool isDagger)
+void S_Gate(qstate_t& gate_tensor, bool isDagger)
 {
-	qstate_t gate_tensor(2, 0);
+	gate_tensor.assign(2, 0);
 	if (isDagger)
 	{
 		gate_tensor[0] = 1;
@@ -386,20 +324,19 @@ void S_Gate(QuantumProgMap & prog_map, qsize_t qubit, bool isDagger)
 		gate_tensor[0] = 1;
 		gate_tensor[1].imag(1);
 	}
-	addSingleGateDiagonalVerticeAndEdge(prog_map, gate_tensor, qubit);
 }
-#include <sstream>
-using std::stringstream;
-bool integerToBinary(size_t  number, stringstream & ssRet, int ret_len)
+
+void TOFFOLI_Gate(qstate_t& gate_tensor, bool isDagger)
 {
-	unsigned int index;
-
-	for (int i = ret_len -1; i > -1; i--)
-	{
-		ssRet << ((number >> i) & 1);
-	}
-	return true;
+	gate_tensor.assign(64, 0);
+	gate_tensor[0] = 1;
+	gate_tensor[9] = 1;
+	gate_tensor[18] = 1;
+	gate_tensor[27] = 1;
+	gate_tensor[36] = 1;
+	gate_tensor[45] = 1;
+	gate_tensor[55] = 1;
+	gate_tensor[62] = 1;
 }
-
 
 

@@ -201,11 +201,6 @@ bool gorver_test_fun2()
 	QVec measure_qubits;
 	QProg grover_Qprog = build_grover_alg_prog(search_sapce, x == 6, machine, measure_qubits, 1);
 
-	/*QProg test_prog;
-	test_prog << H(q[0]) << H(q[1]) << X(q[0]) << X(q[0]) << X(q[1]) << H(q[1]) << H(q[0]) << X(q[0]) << X(q[0]) << H(q[0]);*/
-	//std::vector<std::pair<QCircuit, QCircuit>> optimizer_cir_vec;
-	sub_cir_optimizer(grover_Qprog/*, optimizer_cir_vec*/);
-
 	cout << "grover_Qprog" << grover_Qprog << endl;
 
 	//for test
@@ -222,7 +217,7 @@ bool gorver_test_fun2()
 	auto result = probRunDict(grover_Qprog, measure_qubits);
 
 	//get result
-	auto result_index_vec = search_target_from_measure_result(result, search_sapce.size());
+	auto result_index_vec = search_target_from_measure_result(result);
 	cout << "The result's index:" << endl;
 	for (const auto &result_item : result_index_vec)
 	{
@@ -238,8 +233,8 @@ bool gorver_test_fun22()
 	auto machine = initQuantumMachine(CPU);
 	auto q = machine->allocateQubits(2);
 	auto x = machine->allocateCBit();
-	//std::vector<int> search_sapce = {3, 6, 6, 9, 10, 15, 11, 5};
-	std::vector<int> search_sapce = { 7, 14, 14, 20, 26 };
+	//std::vector<uint32_t> search_sapce = {3, 6, 6, 9, 10, 15, 11, 5};
+	std::vector<uint32_t> search_sapce = { 7, 14, 14, 20, 26 };
 
 	cout << "Grover will search through " << search_sapce.size() << " data." << endl;
 
@@ -265,7 +260,7 @@ bool gorver_test_fun22()
 	auto result = probRunDict(grover_Qprog, measure_qubits);
 
 	//get result
-	auto result_index_vec = search_target_from_measure_result(result, search_sapce.size());
+	auto result_index_vec = search_target_from_measure_result(result);
 
 	cout << "The result's index:" << endl;
 	for (const auto &result_item : result_index_vec)

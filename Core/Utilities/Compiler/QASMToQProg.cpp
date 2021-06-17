@@ -92,32 +92,37 @@ QASMToQProg::QASMToQProg(QuantumMachine* qvm,  QVec &qv, std::vector<ClassicalCo
 	m_qasm_gate_type.insert(make_pair("U", QASMGateType::U_BASE_GATE));
 	m_qasm_gate_type.insert(make_pair("CX", QASMGateType::CX_BASE_GATE));
 
+	typedef QGate(*gate_f1)(Qubit*);
+	m_zero_param_single_gate_func.insert(make_pair(QASMGateType::ID_GATE, (gate_f1)I));
+	m_zero_param_single_gate_func.insert(make_pair(QASMGateType::X_GATE, (gate_f1)X));
+	m_zero_param_single_gate_func.insert(make_pair(QASMGateType::Y_GATE, (gate_f1)Y));
+	m_zero_param_single_gate_func.insert(make_pair(QASMGateType::Z_GATE, (gate_f1)Z));
+	m_zero_param_single_gate_func.insert(make_pair(QASMGateType::H_GATE, (gate_f1)H));
+	m_zero_param_single_gate_func.insert(make_pair(QASMGateType::S_GATE, (gate_f1)S));
+	m_zero_param_single_gate_func.insert(make_pair(QASMGateType::SDG_GATE, (gate_f1)S));
+	m_zero_param_single_gate_func.insert(make_pair(QASMGateType::T_GATE, (gate_f1)T));
+	m_zero_param_single_gate_func.insert(make_pair(QASMGateType::TDG_GATE, (gate_f1)T));
 
-	m_zero_param_single_gate_func.insert(make_pair(QASMGateType::ID_GATE, I));
-	m_zero_param_single_gate_func.insert(make_pair(QASMGateType::X_GATE, X));
-	m_zero_param_single_gate_func.insert(make_pair(QASMGateType::Y_GATE, Y));
-	m_zero_param_single_gate_func.insert(make_pair(QASMGateType::Z_GATE, Z));
-	m_zero_param_single_gate_func.insert(make_pair(QASMGateType::H_GATE, H));
-	m_zero_param_single_gate_func.insert(make_pair(QASMGateType::S_GATE, S));
-	m_zero_param_single_gate_func.insert(make_pair(QASMGateType::SDG_GATE, S));
-	m_zero_param_single_gate_func.insert(make_pair(QASMGateType::T_GATE, T));
-	m_zero_param_single_gate_func.insert(make_pair(QASMGateType::TDG_GATE, T));
+	typedef QGate(*gate_f2)(Qubit*, double);
+	m_one_param_single_gate_func.insert(make_pair(QASMGateType::U1_GATE, (gate_f2)U1));
+	m_one_param_single_gate_func.insert(make_pair(QASMGateType::RX_GATE, (gate_f2)RX));
+	m_one_param_single_gate_func.insert(make_pair(QASMGateType::RY_GATE, (gate_f2)RY));
+	m_one_param_single_gate_func.insert(make_pair(QASMGateType::RZ_GATE, (gate_f2)U1));
 
-	m_one_param_single_gate_func.insert(make_pair(QASMGateType::U1_GATE, U1));
-	m_one_param_single_gate_func.insert(make_pair(QASMGateType::RX_GATE, RX));
-	m_one_param_single_gate_func.insert(make_pair(QASMGateType::RY_GATE, RY));
-	m_one_param_single_gate_func.insert(make_pair(QASMGateType::RZ_GATE, U1));
+	typedef QGate(*gate_f3)(Qubit*, double, double);
+	m_two_param_single_gate_func.insert(make_pair(QASMGateType::U2_GATE, (gate_f3)U2));
 
-	m_two_param_single_gate_func.insert(make_pair(QASMGateType::U2_GATE, U2));
+	typedef QGate(*gate_f4)(Qubit*, double, double, double);
+	m_three_param_single_gate_func.insert(make_pair(QASMGateType::U_BASE_GATE, (gate_f4)U3));
+	m_three_param_single_gate_func.insert(make_pair(QASMGateType::U3_GATE, (gate_f4)U3));
 
-	m_three_param_single_gate_func.insert(make_pair(QASMGateType::U_BASE_GATE, U3));
-	m_three_param_single_gate_func.insert(make_pair(QASMGateType::U3_GATE, U3));
+	typedef QGate(*gate_f5)(Qubit*, Qubit*);
+	m_zero_param_double_gate_func.insert(make_pair(QASMGateType::CX_BASE_GATE, (gate_f5)CNOT));
+	m_zero_param_double_gate_func.insert(make_pair(QASMGateType::CX_GATE, (gate_f5)CNOT));
+	m_zero_param_double_gate_func.insert(make_pair(QASMGateType::CZ_GATE, (gate_f5)CZ));
 
-	m_zero_param_double_gate_func.insert(make_pair(QASMGateType::CX_BASE_GATE, CNOT));
-	m_zero_param_double_gate_func.insert(make_pair(QASMGateType::CX_GATE, CNOT));
-	m_zero_param_double_gate_func.insert(make_pair(QASMGateType::CZ_GATE, CZ));
-
-	m_zero_param_triple_gate_func.insert(make_pair(QASMGateType::CCX_GATE, Toffoli));
+	typedef QGate(*gate_f6)(Qubit*, Qubit*, Qubit*);
+	m_zero_param_triple_gate_func.insert(make_pair(QASMGateType::CCX_GATE, (gate_f6)Toffoli));
 
 	m_zero_param_double_circuit_func.insert(make_pair(QASMGateType::CY_GATE, _qasm_cy));
 	m_zero_param_double_circuit_func.insert(make_pair(QASMGateType::CH_GATE, _qasm_ch));

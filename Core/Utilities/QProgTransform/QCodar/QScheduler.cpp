@@ -460,7 +460,7 @@ void QScheduler::launch(QScheduler::PhysicsGate &gate)
 
 bool QScheduler::addLogicalQubits(int count, bool is_order)
 {
-	std::vector<int >random_map(count, 0);
+	std::vector<int> random_map(count, 0);
 	int m = device->getM();
 	int n = device->getN();
 	if (is_order == true)

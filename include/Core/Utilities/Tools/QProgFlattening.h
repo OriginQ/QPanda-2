@@ -45,7 +45,7 @@ class QProgFlattening : public TraversalInterface<QProg&>
 {
 public:
 
-	QProgFlattening(bool is_full_faltten = false);
+	QProgFlattening(bool is_full_faltten = true);
 	~QProgFlattening();
 
 	void flatten_circuit(QCircuit &src_cir);

@@ -98,7 +98,7 @@ QProg build_grover_alg_prog(const std::vector<T> &data_vec,
 	//oracle
 	OracleBuilder<T> oracle_builder(data_vec, condition, qvm);
 	const QVec &ancilla_qubits = oracle_builder.get_ancilla_qubits();
-	QCircuit mark_cir = get_mark_circuit(X, ancilla_qubits.back());
+	QCircuit mark_cir = get_mark_circuit(static_cast<QGate(*)(Qubit *)>(&X), ancilla_qubits.back());
 	QCircuit cir_oracle = oracle_builder.build_oracle_circuit(mark_cir);
 
 	//diffusion
@@ -121,7 +121,7 @@ QProg build_grover_alg_prog(const std::vector<T> &data_vec,
 	return grover_prog;
 }
 
-inline QProg build_grover_prog(const std::vector<int> &data_vec,
+inline QProg build_grover_prog(const std::vector<uint32_t> &data_vec,
 	ClassicalCondition condition,
 	QuantumMachine * qvm,
 	QVec& measure_qubits,
@@ -131,38 +131,7 @@ inline QProg build_grover_prog(const std::vector<int> &data_vec,
 	return build_grover_alg_prog(target_data_vec, condition, qvm, measure_qubits, repeat);
 }
 
-inline std::vector<size_t> search_target_from_measure_result(const prob_dict& measure_result,
-	const size_t data_cnt) {
-	std::vector<size_t> target_index;
-	double total_val = 0.0;
-	size_t i = 0;
-	for (auto& var : measure_result)
-	{
-		total_val += var.second;
-		if (++i >= data_cnt)
-		{
-			break;
-		}
-	}
-	const double average_probability = total_val / data_cnt;
-	size_t search_result_index = 0;
-	//printf("pmeasure result:\n");
-	for (auto aiter : measure_result)
-	{
-		//printf("%s:%5f\n", aiter.first.c_str(), aiter.second);
-		if ((aiter.second - average_probability) > 1e-10)
-		{
-			target_index.push_back(search_result_index);
-		}
-
-		if (++search_result_index >= data_cnt)
-		{
-			break;
-		}
-	}
-
-	return target_index;
-}
+std::vector<size_t> search_target_from_measure_result(const prob_dict& measure_result);
 
 /**
 * @brief  Grover search Algorithm example
@@ -190,7 +159,7 @@ QProg grover_alg_search_from_vector(const std::vector<T> &data_vec,
 	auto result = probRunDict(grover_prog, data_qubits);
 
 	//get result
-	result_index_vec = search_target_from_measure_result(result, data_vec.size());
+	result_index_vec = search_target_from_measure_result(result);
 
 	return grover_prog;
 }

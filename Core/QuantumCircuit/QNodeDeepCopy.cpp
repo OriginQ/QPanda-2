@@ -384,3 +384,58 @@ void QNodeDeepCopy::execute(shared_ptr<AbstractClassicalProg> cur_node, shared_p
     auto pControlProg = copy_node(cur_node);
     insert(dynamic_pointer_cast<QNode>(pControlProg.getImplementationPtr()), parent_node);
 }
+
+/*******************************************************************
+*                      public interface
+********************************************************************/
+std::shared_ptr<QNode> QPanda::deepCopyQNode(std::shared_ptr<QNode> src_node)
+{
+	QNodeDeepCopy reproduction;
+	switch (src_node->getNodeType())
+	{
+	case GATE_NODE:
+	{
+		auto gate = reproduction.copy_node(std::dynamic_pointer_cast<AbstractQGateNode>(src_node));
+		return std::dynamic_pointer_cast<QNode>(gate.getImplementationPtr());
+	}
+	break;
+
+	case CIRCUIT_NODE:
+	{
+		auto cir_node = reproduction.copy_node(std::dynamic_pointer_cast<AbstractQuantumCircuit>(src_node));
+		return std::dynamic_pointer_cast<QNode>(cir_node.getImplementationPtr());
+	}
+	break;
+
+	case PROG_NODE:
+	{
+		auto prog_node = reproduction.copy_node(std::dynamic_pointer_cast<AbstractQuantumProgram>(src_node));
+		return std::dynamic_pointer_cast<QNode>(prog_node.getImplementationPtr());
+	}
+	break;
+
+	case MEASURE_GATE:
+	{
+		auto meas_node = reproduction.copy_node(std::dynamic_pointer_cast<AbstractQuantumMeasure>(src_node));
+		return std::dynamic_pointer_cast<QNode>(meas_node.getImplementationPtr());
+	}
+	break;
+
+	case QIF_START_NODE:
+	case WHILE_START_NODE:
+	{
+		auto control_flow_node = reproduction.copy_node(std::dynamic_pointer_cast<AbstractControlFlowNode>(src_node));
+		return std::dynamic_pointer_cast<QNode>(control_flow_node);
+	}
+	break;
+
+	case RESET_NODE:
+	{
+		auto reset_node = reproduction.copy_node(std::dynamic_pointer_cast<AbstractQuantumReset>(src_node));
+		return std::dynamic_pointer_cast<QNode>(reset_node.getImplementationPtr());
+	}
+	break;
+	}
+
+	QCERR_AND_THROW(run_fail, "Error: unsupport copy-node type.");
+}

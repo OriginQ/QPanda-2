@@ -1,11 +1,12 @@
 #include "gtest/gtest.h"
 #include "QPanda.h"
-
+using namespace std;
 bool test_Shor()
 {
-	int N = 15, factor_1, factor_2;
-	bool p = Shor_factorization(N).first;
-	return p;
+	int N = 6;
+	auto p = Shor_factorization(N);
+	cout << p.second.first << "X" << p.second.second << endl;
+	return p.first;
 }
 
 TEST(Shor, test1)

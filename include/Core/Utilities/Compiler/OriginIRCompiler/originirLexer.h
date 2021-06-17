@@ -13,20 +13,20 @@ class  originirLexer : public antlr4::Lexer {
 public:
   enum {
     PI = 1, QINIT_KEY = 2, CREG_KEY = 3, Q_KEY = 4, C_KEY = 5, BARRIER_KEY = 6, 
-    ECHO_GATE = 7, H_GATE = 8, X_GATE = 9, NOT_GATE = 10, T_GATE = 11, S_GATE = 12, 
-    Y_GATE = 13, Z_GATE = 14, X1_GATE = 15, Y1_GATE = 16, Z1_GATE = 17, 
-    I_GATE = 18, U2_GATE = 19, RPHI_GATE = 20, U3_GATE = 21, U4_GATE = 22, 
-    RX_GATE = 23, RY_GATE = 24, RZ_GATE = 25, U1_GATE = 26, CNOT_GATE = 27, 
-    CZ_GATE = 28, CU_GATE = 29, ISWAP_GATE = 30, SQISWAP_GATE = 31, SWAPZ1_GATE = 32, 
-    ISWAPTHETA_GATE = 33, CR_GATE = 34, TOFFOLI_GATE = 35, DAGGER_KEY = 36, 
-    ENDDAGGER_KEY = 37, CONTROL_KEY = 38, ENDCONTROL_KEY = 39, QIF_KEY = 40, 
-    ELSE_KEY = 41, ENDIF_KEY = 42, QWHILE_KEY = 43, ENDQWHILE_KEY = 44, 
-    MEASURE_KEY = 45, RESET_KEY = 46, ASSIGN = 47, GT = 48, LT = 49, NOT = 50, 
-    EQ = 51, LEQ = 52, GEQ = 53, NE = 54, AND = 55, OR = 56, PLUS = 57, 
-    MINUS = 58, MUL = 59, DIV = 60, COMMA = 61, LPAREN = 62, RPAREN = 63, 
-    LBRACK = 64, RBRACK = 65, NEWLINE = 66, Identifier = 67, Integer_Literal = 68, 
-    Double_Literal = 69, Digit_Sequence = 70, REALEXP = 71, WhiteSpace = 72, 
-    SingleLineComment = 73
+    QGATE_KEY = 7, ENDQGATE_KEY = 8, ECHO_GATE = 9, H_GATE = 10, X_GATE = 11, 
+    NOT_GATE = 12, T_GATE = 13, S_GATE = 14, Y_GATE = 15, Z_GATE = 16, X1_GATE = 17, 
+    Y1_GATE = 18, Z1_GATE = 19, I_GATE = 20, U2_GATE = 21, RPHI_GATE = 22, 
+    U3_GATE = 23, U4_GATE = 24, RX_GATE = 25, RY_GATE = 26, RZ_GATE = 27, 
+    U1_GATE = 28, CNOT_GATE = 29, CZ_GATE = 30, CU_GATE = 31, ISWAP_GATE = 32, 
+    SQISWAP_GATE = 33, SWAPZ1_GATE = 34, ISWAPTHETA_GATE = 35, CR_GATE = 36, 
+    TOFFOLI_GATE = 37, DAGGER_KEY = 38, ENDDAGGER_KEY = 39, CONTROL_KEY = 40, 
+    ENDCONTROL_KEY = 41, QIF_KEY = 42, ELSE_KEY = 43, ENDIF_KEY = 44, QWHILE_KEY = 45, 
+    ENDQWHILE_KEY = 46, MEASURE_KEY = 47, RESET_KEY = 48, ASSIGN = 49, GT = 50, 
+    LT = 51, NOT = 52, EQ = 53, LEQ = 54, GEQ = 55, NE = 56, AND = 57, OR = 58, 
+    PLUS = 59, MINUS = 60, MUL = 61, DIV = 62, COMMA = 63, LPAREN = 64, 
+    RPAREN = 65, LBRACK = 66, RBRACK = 67, NEWLINE = 68, Identifier = 69, 
+    Integer_Literal = 70, Double_Literal = 71, Digit_Sequence = 72, REALEXP = 73, 
+    WhiteSpace = 74, SingleLineComment = 75
   };
 
   originirLexer(antlr4::CharStream *input);

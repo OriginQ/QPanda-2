@@ -106,3 +106,43 @@ QProg QPanda::groverAlgorithm(size_t target,
 	
 }
 
+std::vector<size_t> QPanda::search_target_from_measure_result(const prob_dict& measure_result)
+{
+	std::vector<size_t> target_index;
+	double total_val = 0.0;
+	size_t data_cnt = 0;
+	for (const auto& var : measure_result) {
+		total_val += var.second;
+		++data_cnt;
+	}
+
+	double average_probability = total_val / data_cnt;
+	size_t possible_solutions_cnt = 0;
+	double possible_solutions_sum = 0.0;
+	printf("measure result:\n");
+	for (const auto aiter : measure_result)
+	{
+		printf("%s:%5f\n", aiter.first.c_str(), aiter.second);
+		if (aiter.second > average_probability)
+		{
+			++possible_solutions_cnt;
+			possible_solutions_sum += aiter.second;
+		}
+	}
+
+	printf("first average_probability: %f\n", average_probability);
+	average_probability = ((0.15 * possible_solutions_sum) / possible_solutions_cnt) + (0.85 * average_probability); /**< Weighted Sum */
+	printf("second average_probability: %f\n", average_probability);
+	size_t search_result_index = 0;
+	for (const auto aiter : measure_result)
+	{
+		if (aiter.second > average_probability) {
+			target_index.push_back(search_result_index);
+		}
+
+		++search_result_index;
+	}
+
+	return target_index;
+}
+

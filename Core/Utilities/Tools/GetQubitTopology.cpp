@@ -1962,10 +1962,17 @@ std::map<size_t, size_t> QPanda::map_to_continues_qubits(QProg prog, QuantumMach
 	const auto qubit_cnt = get_all_used_qubits(prog, used_qv);
 	std::map<size_t, size_t> qubit_map;
 	std::map<size_t, Qubit*> addr_qv_map;
-	for (size_t i = 0; i < qubit_cnt; ++i)
-	{
+	bool b_continue = true;
+	for (size_t i = 0; i < qubit_cnt; ++i){
+		if (used_qv[i] != i){
+			b_continue = false;
+		}
 		qubit_map.insert(std::make_pair(used_qv[i], i));
 		addr_qv_map.insert(std::make_pair(i, quantum_machine->allocateQubitThroughPhyAddress(i)));
+	}
+
+	if (b_continue){
+		return qubit_map;
 	}
 
 	LayeredTopoSeq layer_info = prog_layer(prog);

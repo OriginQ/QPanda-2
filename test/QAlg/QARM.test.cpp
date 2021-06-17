@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 #include "QPanda.h"
-
+using namespace std;
 static bool test_func_1()
 {
 	std::vector<std::string>  T0 = { "bread", "cheese", "milk" };

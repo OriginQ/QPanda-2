@@ -951,27 +951,36 @@ void NoisyQuantum::add_quamtum_error(GateType type, const QuantumError &quantum_
 {
     auto push_error = [&](GateType type, const QuantumError &quantum_error, const Qnum &effect_qubits)->void
     {
-        m_quamtum_error.push_back(quantum_error);
         auto qubits_str = qubits_to_string(effect_qubits);
         qubit_quantum_error_map_t qubit_quantum_error_map;
 
         auto noise_type_iter = m_noisy.find(type);
         if (noise_type_iter == m_noisy.end())
         {
+            m_quamtum_error.push_back(quantum_error);
             qubit_quantum_error_map_t new_qubit_quantum_error;
-            new_qubit_quantum_error.insert({qubits_str, m_quamtum_error.size() - 1});
-            m_noisy.insert({type, new_qubit_quantum_error});
+            new_qubit_quantum_error.insert({ qubits_str, m_quamtum_error.size() - 1 });
+            m_noisy.insert({ type, new_qubit_quantum_error });
         }
         else
         {
-            noise_type_iter->second.insert({qubits_str, m_quamtum_error.size() - 1});
+            auto quantum_error_iter = noise_type_iter->second.find(qubits_str);
+            if (noise_type_iter->second.end() == quantum_error_iter)
+            {
+                m_quamtum_error.push_back(quantum_error);
+                noise_type_iter->second.insert({ qubits_str, m_quamtum_error.size() - 1 });
+            }
+            else
+            {
+                m_quamtum_error[quantum_error_iter->second] = quantum_error;
+            }
         }
     };
 
     if (0 == noise_qubits.size())
     {
         push_error(type, quantum_error, {});
-        return ;
+        return;
     }
 
     size_t type_qubit_num = quantum_error.get_qubit_num();
@@ -984,7 +993,7 @@ void NoisyQuantum::add_quamtum_error(GateType type, const QuantumError &quantum_
         push_error(type, quantum_error, effect_qubits);
     }
 
-    return ;
+    return;
 }
 
 

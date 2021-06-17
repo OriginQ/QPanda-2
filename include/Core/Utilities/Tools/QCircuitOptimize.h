@@ -134,10 +134,43 @@ public:
 		m_sub_graph_vec.clear();
 	}
 
+protected:
+	bool check_next_layer(const SeqNode<pOptimizerNodeInfo>& target_seq_node, const SeqNode<pOptimizerNodeInfo>& graph_node);
+
 private:
 	LayeredTopoSeq& m_topolog_sequence;
 	std::vector<LayeredTopoSeq> m_sub_graph_vec; /* Multiple possible matching subgraphs, each of which is stored in the form of topological sequence */
 	MatchNodeTable m_node_match_vector;
+};
+
+class SingleGateOptimizer : public ProcessOnTraversing
+{
+public:
+	SingleGateOptimizer() {}
+	~SingleGateOptimizer() {}
+
+	void run_optimize(QProg src_prog, const QVec qubits = {}){
+		m_src_prog = src_prog;
+		run_traversal(src_prog, qubits);
+	}
+
+	void process(const bool on_travel_end = false){
+		do_optimizer();
+
+		//pop some layers to new circuit
+		clean_gate_buf_to_cir(on_travel_end);
+	}
+
+	void register_single_gate_optimizer(const int mode);
+
+	void do_optimizer();
+
+protected:
+	void clean_gate_buf_to_cir(bool b_clean_all_buf = false);
+
+private:
+	QProg m_src_prog;
+	std::vector<std::shared_ptr<AbstractCirOptimizer>> m_optimizers;
 };
 
 class QCircuitOPtimizer : public ProcessOnTraversing
@@ -147,7 +180,7 @@ public:
 	~QCircuitOPtimizer();
 
 	void process(const bool on_travel_end = false) override;
-	void register_single_gate_optimizer(const int mode);
+	
 	void register_optimize_sub_cir(QCircuit sub_cir, QCircuit replase_to_cir);
 	void run_optimize(QProg src_prog, const QVec qubits = {}, bool b_enable_I = false);
 
@@ -189,7 +222,6 @@ public:
 
 private:
 	QProg m_src_prog;
-	std::vector<std::shared_ptr<AbstractCirOptimizer>> m_optimizers;
 	std::vector<OptimizerSubCir> m_optimizer_cir_vec;
 	LayeredTopoSeq m_topolog_sequence;
 	FindSubCircuit m_sub_cir_finder;
@@ -204,28 +236,53 @@ private:
 * @brief QCircuit optimizer
 * @ingroup Utilities
 * @param[in,out]  QProg&(or	QCircuit&) the source prog(or circuit)
-* @param[in] std::vector<std::pair<QCircuit, QCircuit>> 
-* @param[in] const int Optimise mode(see QCircuitOPtimizerMode), Support several models: 
-                  Merge_H_X: Optimizing continuous H or X gate
+* @param[in] std::vector<std::pair<QCircuit, QCircuit>> replace_cir_vec
+* @return     void
+*/
+void sub_cir_replace(QCircuit& src_cir, const std::vector<std::pair<QCircuit, QCircuit>>& replace_cir_vec);
+void sub_cir_replace(QProg& src_prog, const std::vector<std::pair<QCircuit, QCircuit>>& replace_cir_vec);
+
+/**
+* @brief Single gate optimizer
+* @ingroup Utilities
+* @param[in,out]  QProg&(or	QCircuit&) the source prog(or circuit)
+* @param[in] const int Optimise mode(see QCircuitOPtimizerMode), Support several models:
+				  Merge_H_X: Optimizing continuous H or X gate
 				  Merge_U3: merge continues single gates to a U3 gate
 				  Merge_RX: merge continues RX gates
 				  Merge_RY: merge continues RY gates
 				  Merge_RZ: merge continues RZ gates
 * @return     void
 */
-void sub_cir_optimizer(QCircuit& src_cir, std::vector<std::pair<QCircuit, QCircuit>> optimizer_cir_vec = {}, 
-	const int mode = QCircuitOPtimizerMode::Merge_H_X);
-void sub_cir_optimizer(QProg& src_prog, std::vector<std::pair<QCircuit, QCircuit>> optimizer_cir_vec = {},
-	const int mode = QCircuitOPtimizerMode::Merge_H_X);
+void single_gate_optimizer(QProg& src_cir, const int& mode);
+void single_gate_optimizer(QCircuit& src_cir, const int& mode);
+
+/**
+* @brief QCircuit optimizer
+* @ingroup Utilities
+* @param[in,out]  QProg&(or	QCircuit&) the source prog(or circuit)
+* @param[in] std::vector<std::pair<QCircuit, QCircuit>> replace_cir_vec
+* @param[in] const int Optimise mode(see QCircuitOPtimizerMode), Support several models:
+				  Merge_H_X: Optimizing continuous H or X gate
+				  Merge_U3: merge continues single gates to a U3 gate
+				  Merge_RX: merge continues RX gates
+				  Merge_RY: merge continues RY gates
+				  Merge_RZ: merge continues RZ gates
+* @return     void
+*/
+void cir_optimizer(QProg& src_prog, const std::vector<std::pair<QCircuit, QCircuit>>& replace_cir_vec = {},
+	const int& mode = QCircuitOPtimizerMode::Merge_H_X);
+void cir_optimizer(QCircuit& src_cir, const std::vector<std::pair<QCircuit, QCircuit>>& replace_cir_vec = {},
+	const int& mode = QCircuitOPtimizerMode::Merge_H_X);
 
 template <typename T>
-void cir_optimizer_by_config(T &src_cir, const std::string config_data = CONFIG_PATH, 
-	const int mode = QCircuitOPtimizerMode::Merge_H_X) {
-	std::vector<std::pair<QCircuit, QCircuit>> optimitzer_cir;
+void cir_optimizer_by_config(T &src_cir, const std::string& config_data = CONFIG_PATH, 
+	const int& mode = QCircuitOPtimizerMode::Merge_H_X) {
+	std::vector<std::pair<QCircuit, QCircuit>> replace_cir;
 	QCircuitOptimizerConfig tmp_config_reader(config_data);
-	tmp_config_reader.get_replace_cir(optimitzer_cir);
+	tmp_config_reader.get_replace_cir(replace_cir);
 
-	sub_cir_optimizer(src_cir, optimitzer_cir, mode);
+	cir_optimizer(src_cir, replace_cir, mode);
 }
 
 QPANDA_END

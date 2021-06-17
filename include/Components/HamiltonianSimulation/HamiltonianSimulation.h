@@ -15,7 +15,7 @@ Created in 2018-09-19
 
 #include "Core/QuantumCircuit/QProgram.h"
 #include "Core/QuantumCircuit/QCircuit.h"
-#include "Components/DataStruct.h"
+#include "Core/Module/DataStruct.h"
 
 namespace QPanda
 {

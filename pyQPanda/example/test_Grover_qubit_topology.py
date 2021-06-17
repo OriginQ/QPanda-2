@@ -46,7 +46,8 @@ def test_grover_cir_qubit_topology():
     grover_cir = pq.Grover(data, x==6, machine, measure_qubits, 1)
     # print(grover_cir)
 
-    topo_matrix = pq.get_double_gate_block_topology(grover_cir, machine)
+    grover_cir = pq.decompose_multiple_control_qgate(grover_cir, machine)
+    topo_matrix = pq.get_double_gate_block_topology(grover_cir)
     print(topo_matrix)
     print('----------------------------')
     draw_graph(topo_matrix)

@@ -12,11 +12,11 @@ QPANDA_BEGIN
 * @brief MPS quantum virtual machine
 * @ingroup VirtualQuantumProcessor
 */
-class MPSQVM : public QVM, TraversalInterface<QCircuitConfig&>
+class MPSQVM : public IdealQVM, TraversalInterface<QCircuitConfig&>
 {
 public:
     virtual void init();
-    void initState(const QStat &state = {});
+    virtual void initState(const QStat &state = {}, const QVec &qlist = {});
     virtual std::map<std::string, bool> directlyRun(QProg &prog);
     std::map<std::string, size_t> quickMeasure(QVec vQubit, size_t shots);
 
@@ -29,15 +29,20 @@ public:
     virtual prob_tuple PMeasure(QVec qubits, int select_max = -1);
 
     prob_vec PMeasure_no_index(QVec qubits);
+    prob_vec pMeasureNoIndex(QVec qubit_vector);
+
+
     qcomplex_t pmeasure_bin_index(QProg prog, std::string str);
     qcomplex_t pmeasure_dec_index(QProg prog, std::string str);
+    QStat pmeasure_bin_subset(QProg prog, const std::vector<std::string>& bin_strs);
+    QStat pmeasure_dec_subset(QProg prog, const std::vector<std::string>& dec_strs);
 
-    prob_tuple getProbTupleList(QVec, int);
+    prob_tuple getProbTupleList(QVec, int selectMax = -1);
     prob_vec getProbList(QVec, int  selectMax = -1);
-    prob_dict getProbDict(QVec, int);
-    prob_tuple probRunTupleList(QProg &, QVec, int);
-    prob_vec probRunList(QProg &, QVec, int);
-    prob_dict probRunDict(QProg &, QVec, int);
+    prob_dict getProbDict(QVec, int selectMax = -1);
+    prob_tuple probRunTupleList(QProg &, QVec, int selectMax = -1);
+    prob_vec probRunList(QProg &, QVec, int selectMax = -1);
+    prob_dict probRunDict(QProg &, QVec, int selectMax = -1);
 
     void execute(std::shared_ptr<AbstractQGateNode>, std::shared_ptr<QNode>, QCircuitConfig &config);
     void execute(std::shared_ptr<AbstractClassicalProg>, std::shared_ptr<QNode>, QCircuitConfig &config);

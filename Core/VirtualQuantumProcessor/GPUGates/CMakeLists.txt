@@ -19,10 +19,10 @@ INSTALL(TARGETS ${LIB_GPUGATES}
 
 target_include_directories(${LIB_GPUGATES} INTERFACE
                            $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-                           $<INSTALL_INTERFACE:include/qpanda-2>)
+                           $<INSTALL_INTERFACE:include/qpanda2>)
         
 export(TARGETS ${LIB_GPUGATES} 
-       APPEND FILE ${PROJECT_BINARY_DIR}/qpanda-2.0.gpugates-target.cmake
+       APPEND FILE ${PROJECT_BINARY_DIR}/qpanda2.0.gpugates-target.cmake
        NAMESPACE QPANDA::
        )
 

@@ -10,7 +10,7 @@
 #define PRINT_TRACE 0
 
 USING_QPANDA
-
+using namespace std;
 class QVMInit
 {
 public:
@@ -573,12 +573,27 @@ bool test_getProgMatrix_2()
 	auto c = qvm->allocateCBits(8);
 
 	QProg prog1;
+	prog1 << RZ(q[2], 5).control({/*q[0],*/ q[1] });
+	const QStat result_mat1 = getCircuitMatrix(prog1/*, true*/);
 
-	prog1 << H(q[0]) << I(q[1]);
+	QProg prog2;
+	//prog2 << RX(q[2], 2.5) << CNOT(q[1], q[2])/*.control(q[0])*/ << RX(q[2], -2.5) << CNOT(q[1], q[2])/*.control(q[0])*/;
+	prog2 << RZ(q[2], 2.5) /*<< X(q[2]).control(q[1])*/ << RZ(q[2], -2.5) << I(q[1]) /*<< X(q[2]).control(q[1])*/;
+	const QStat result_mat2 = getCircuitMatrix(prog2/*, true*/);
 
-	QStat result_mat1 = getCircuitMatrix(prog1/*, true*/);
-
+	cout << prog1 << endl;
 	cout << "result_mat1" << result_mat1 << endl;
+
+	cout << prog2 << endl;
+	cout << "result_mat2" << result_mat2 << endl;
+	if (result_mat1 == result_mat2)
+	{
+		cout << "==============" << endl;
+	}
+	else
+	{
+		cout << "!!!!!!!!!!!!" << endl;
+	}
 
 	destroyQuantumMachine(qvm);
 	return true;

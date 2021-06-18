@@ -5,6 +5,7 @@
 #include "Core/QuantumCircuit/QCircuit.h"
 #include "Core/Utilities/Tools/Traversal.h"
 #include "Core/Utilities/QProgInfo/QCircuitInfo.h"
+#include <set>
 
 QPANDA_BEGIN
 
@@ -26,9 +27,37 @@ public:
 		TraverseByNodeIter::traverse_qprog(node);
 	}
 	
-	const QVec& get_used_qubits() { return m_used_qubits; }
-	const std::vector<int>& get_used_cbits() { return m_used_cbits; }
+	QVec get_used_qubits() { 
+		QVec qv;
+		for (const auto& _q : m_used_qubits){
+			qv.emplace_back(_q);
+		}
+		sort(qv.begin(), qv.end(), [](const Qubit* a, const Qubit* b) {
+			return a->get_phy_addr() < b->get_phy_addr(); });
 
+		return qv;
+	}
+
+	std::vector<int> get_used_cbits() { 
+		std::vector<int> cv;
+		for (const auto& _m : m_measure_nodes) {
+			cv.emplace_back(_m->getCBit()->get_addr());
+		}
+		sort(cv.begin(), cv.end(), [](const int& a, const int& b) { return a < b; });
+
+		return cv;
+	}
+
+	std::vector<std::pair<uint32_t, uint32_t>> get_measure_info() {
+		std::vector<std::pair<uint32_t, uint32_t>> measure_info;
+		for (const auto& _m : m_measure_nodes) {
+			measure_info.emplace_back(std::make_pair(_m->getQuBit()->get_phy_addr(), _m->getCBit()->get_addr()));
+		}
+
+		return measure_info;
+	}
+
+protected:
 	/*!
 	* @brief  Execution traversal qgatenode
 	* @param[in,out]  AbstractQGateNode*  quantum gate
@@ -36,9 +65,13 @@ public:
 	* @return     void
 	*/
 	void execute(std::shared_ptr<AbstractQGateNode> cur_node, std::shared_ptr<QNode> parent_node, QCircuitParam &cir_param, NodeIter& cur_node_iter) override {
-		cur_node->getQuBitVector(m_used_qubits);
-		cur_node->getControlVector(m_used_qubits);
-		m_used_qubits.insert(m_used_qubits.end(), cir_param.m_control_qubits.begin(), cir_param.m_control_qubits.end());
+		QVec qv;
+		cur_node->getQuBitVector(qv);
+		cur_node->getControlVector(qv);
+		qv.insert(qv.end(), cir_param.m_control_qubits.begin(), cir_param.m_control_qubits.end());
+		for (const auto& _q : qv) {
+			m_used_qubits.emplace(_q);
+		}
 	}
 
 	/*!
@@ -48,10 +81,8 @@ public:
 	* @return     void
 	*/
 	void execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, std::shared_ptr<QNode> parent_node, QCircuitParam &cir_param, NodeIter& cur_node_iter) override {
-		m_used_qubits.push_back(cur_node->getQuBit());
-		m_used_qubits.insert(m_used_qubits.end(), cir_param.m_control_qubits.begin(), cir_param.m_control_qubits.end());
-
-		m_used_cbits.push_back(cur_node->getCBit()->getValue());
+		m_used_qubits.emplace(cur_node->getQuBit());
+		m_measure_nodes.emplace(cur_node);
 	}
 
 	/*!
@@ -61,13 +92,15 @@ public:
    * @return     void
    */
 	void execute(std::shared_ptr<AbstractQuantumReset> cur_node, std::shared_ptr<QNode> parent_node, QCircuitParam &cir_param, NodeIter& cur_node_iter)override {
-		m_used_qubits.push_back(cur_node->getQuBit());
-		m_used_qubits.insert(m_used_qubits.end(), cir_param.m_control_qubits.begin(), cir_param.m_control_qubits.end());
+		if (cir_param.m_control_qubits.size() > 0) {
+			QCERR_AND_THROW(run_fail, "Error: illegal control-qubits on reset node.");
+		}
+		m_used_qubits.emplace(cur_node->getQuBit());
 	}
 	
 private:
-	QVec m_used_qubits;
-	std::vector<int> m_used_cbits;
+	std::set<Qubit *> m_used_qubits;
+	std::set<std::shared_ptr<AbstractQuantumMeasure>> m_measure_nodes;
 };
 
 

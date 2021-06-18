@@ -68,7 +68,7 @@ public:
 	}
 
 	const QVec& get_oracle_qubits() {
-		return m_search_space.get_oracle_qubits();
+		return m_search_space.get_data_qubits();
 	}
 
 	const QVec& get_ancilla_qubits() {

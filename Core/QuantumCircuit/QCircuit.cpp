@@ -1,6 +1,8 @@
 #include "QCircuit.h"
 #include "Core/Utilities/QProgInfo/ConfigMap.h"
+#include "Core/QuantumCircuit/QNodeDeepCopy.h"
 #include "QGate.h"
+
 USING_QPANDA
 using namespace std;
 QCircuit  QPanda::CreateEmptyCircuit()
@@ -80,48 +82,33 @@ void QCircuit::pushBackNode(std::shared_ptr<QNode> node)
 
 QCircuit QCircuit::dagger()
 {
-    QCircuit qCircuit;
     if (nullptr == m_pQuantumCircuit)
     {
         QCERR("Unknown internal error");
         throw runtime_error("Unknown internal error");
     }
 
-    auto aiter = m_pQuantumCircuit->getFirstNodeIter();
-    if (aiter == m_pQuantumCircuit->getEndNodeIter())
-    {
-        return qCircuit;
-    }
-
-    for (; aiter != m_pQuantumCircuit->getEndNodeIter(); ++aiter)
-    {
-        qCircuit.pushBackNode(*aiter);
-    }
+	QCircuit qCircuit = deepCopy(*this);
 
     qCircuit.setDagger(true ^ this->isDagger());
+    QVec control_qubits;
+    m_pQuantumCircuit->getControlVector(control_qubits);
+    QPANDA_OP(control_qubits.size() > 0, qCircuit.setControl(control_qubits));
     return qCircuit;
 }
 
 QCircuit  QCircuit::control(const QVec qubit_vector)
 {
-    QCircuit qcircuit;
     if (nullptr == m_pQuantumCircuit)
     {
         QCERR("Unknown internal error");
         throw runtime_error("Unknown internal error");
     }
 
-    auto aiter = m_pQuantumCircuit->getFirstNodeIter();
-    if (aiter == m_pQuantumCircuit->getEndNodeIter())
-    {
-        return qcircuit;
-    }
-    for (; aiter != m_pQuantumCircuit->getEndNodeIter(); ++aiter)
-    {
-        qcircuit.pushBackNode(*aiter);
-    }
+	QCircuit qcircuit = deepCopy(*this);
 
     qcircuit.setControl(qubit_vector);
+    qcircuit.setDagger(m_pQuantumCircuit->isDagger());
     return qcircuit;
 }
 
@@ -157,6 +144,26 @@ bool QCircuit::getControlVector(QVec& qubit_vector)
     }
 
     return m_pQuantumCircuit->getControlVector(qubit_vector);
+}
+
+size_t QCircuit::get_used_qubits(QVec& qubit_vector) const
+{
+	if (!m_pQuantumCircuit)
+	{
+		QCERR("Unknown internal error");
+		throw runtime_error("Unknown internal error");
+	}
+    return m_pQuantumCircuit->get_used_qubits(qubit_vector);
+}
+
+size_t QCircuit::get_qgate_num()
+{
+	if (!m_pQuantumCircuit)
+	{
+		QCERR("Unknown internal error");
+		throw runtime_error("Unknown internal error");
+	}
+	return m_pQuantumCircuit->get_qgate_num();
 }
 
 NodeIter  QCircuit::getFirstNodeIter()
@@ -293,6 +300,15 @@ void OriginCircuit::clearControl()
 {
     m_control_qubit_vector.clear();
     m_control_qubit_vector.resize(0);
+}
+
+size_t OriginCircuit::get_used_qubits(QVec& qubit_vector) const
+{
+	for (auto aiter : m_used_qubit_vector)
+	{
+		qubit_vector.push_back(aiter);
+	}
+	return m_used_qubit_vector.size();
 }
 
 

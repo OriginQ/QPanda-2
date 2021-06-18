@@ -23,7 +23,7 @@ QPANDA_BEGIN
 * @return the encoded circuit
 * @note The coding data must meet normalization conditions.
 */
-inline QCircuit amplitude_encode(QVec q, vector<double> data, const bool b_need_check_normalization = true)
+inline QCircuit amplitude_encode(QVec q, std::vector<double> data, const bool b_need_check_normalization = true)
 {
 	if (b_need_check_normalization)
 	{
@@ -115,13 +115,13 @@ inline QCircuit amplitude_encode(QVec q, vector<double> data, const bool b_need_
 		if (sum_0 > 1e-20)
 		{
 			QVec temp({ q[high_bit] });
-			vector<double> vtemp(data.begin(), data.begin() + (data.size() >> 1));
+			std::vector<double> vtemp(data.begin(), data.begin() + (data.size() >> 1));
 			qcir << X(q[high_bit]) << amplitude_encode(q - temp, vtemp, false).control({ q[high_bit] }) << X(q[high_bit]);
 		}
 		if (sum_1 > 1e-20)
 		{
 			QVec temp({ q[high_bit] });
-			vector<double> vtemp(data.begin() + (data.size() >> 1), data.end());
+			std::vector<double> vtemp(data.begin() + (data.size() >> 1), data.end());
 			qcir << amplitude_encode(q - temp, vtemp, false).control({ q[high_bit] });
 		}
 	}

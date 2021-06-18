@@ -9,7 +9,7 @@
 #define PRINT_TRACE 0
 
 USING_QPANDA
-
+using namespace std;
 class QVMInit
 {
 public:

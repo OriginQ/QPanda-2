@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "Components/DataStruct.h"
+#include "Core/Module/DataStruct.h"
 #include "Components/Operator/FermionOperator.h"
 
 namespace QPanda {

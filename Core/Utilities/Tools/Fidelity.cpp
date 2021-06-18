@@ -76,9 +76,8 @@ double QPanda::state_fidelity(const std::vector<QStat> &matrix1, const std::vect
         qmatrix_t v = svd.matrixV().transpose().conjugate();
         qvector_t s = svd.singularValues();
 
-        qmatrix_t diag = s.asDiagonal();
-        auto diag_sqrt = diag.sqrt();
-
+        s = s.array().sqrt();
+        qmatrix_t diag_sqrt = s.asDiagonal();
         return u * diag_sqrt * v;
     };
 
@@ -100,8 +99,8 @@ double QPanda::state_fidelity(const std::vector<QStat> &matrix1, const std::vect
         QPANDA_ASSERT(!validity(m1) || !validity(m2), "Error: density matrix is invalid");
     }
 
-    auto sq1 = m1.sqrt();
-    auto sq2 = m2.sqrt();
+    qmatrix_t sq1 = sqrt_matrix(m1);
+    qmatrix_t sq2 = sqrt_matrix(m2);
     auto sq1_sq2 = sq1 * sq2;
 
     // Nuclear Norm

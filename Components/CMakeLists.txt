@@ -15,10 +15,10 @@ if (USE_CHEMIQ)
     find_package(PythonLibs 3 REQUIRED)
     include_directories(${PYTHON_INCLUDE_DIRS})
     add_library(${LIB_COMPONENTS} STATIC ${COMPONENTS_SRC_CPP} ${COMPONENTS_CHEMIQ_SRC_CPP})
-    target_link_libraries(${LIB_COMPONENTS} ${LIB_QPANDA} ${PYTHON_LIBRARIES})  
+    target_link_libraries(${LIB_COMPONENTS} ${LIB_QPANDA} ${LIB_NLOPT} ${PYTHON_LIBRARIES})  
 else ()
     add_library(${LIB_COMPONENTS} STATIC ${COMPONENTS_SRC_CPP})
-    target_link_libraries(${LIB_COMPONENTS} ${LIB_QPANDA} ${PYTHON_LIBRARIES}) 
+    target_link_libraries(${LIB_COMPONENTS} ${LIB_QPANDA} ${LIB_NLOPT} ${PYTHON_LIBRARIES}) 
 endif()
 
 
@@ -26,7 +26,7 @@ endif()
 if (UNIX)
     set(LIB_SHARED_COMPONENTS DLL_COMPONENTS)
     add_library(${LIB_SHARED_COMPONENTS} SHARED ${COMPONENTS_SRC_CPP})
-    target_link_libraries(${LIB_SHARED_COMPONENTS} ${LIB_QPANDA} ${PYTHON_LIBRARIES}) 
+    target_link_libraries(${LIB_SHARED_COMPONENTS} ${LIB_QPANDA} ${LIB_NLOPT} ${PYTHON_LIBRARIES}) 
     set_target_properties(${LIB_SHARED_COMPONENTS} PROPERTIES
                           VERSION ${QPANDA_VERSION} SOVERSION ${QPANDA_MAJOR_VERSION})
     set_target_properties(${LIB_SHARED_COMPONENTS} PROPERTIES OUTPUT_NAME "${LIB_COMPONENTS}")
@@ -43,7 +43,7 @@ INSTALL(TARGETS ${LIB_COMPONENTS}
 
 target_include_directories(${LIB_COMPONENTS} INTERFACE
                            $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-                           $<INSTALL_INTERFACE:include/qpanda-2>)
+                           $<INSTALL_INTERFACE:include/qpanda2>)
         
 export(TARGETS ${LIB_COMPONENTS}
        APPEND FILE ${PROJECT_BINARY_DIR}/qalg-target.cmake

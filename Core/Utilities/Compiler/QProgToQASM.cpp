@@ -28,28 +28,13 @@ QProgToQASM::QProgToQASM(QProg src_prog, QuantumMachine * quantum_machine)
     m_gatetype.insert(pair<int, string>(PAULI_X_GATE, "X"));
     m_gatetype.insert(pair<int, string>(PAULI_Y_GATE, "Y"));
     m_gatetype.insert(pair<int, string>(PAULI_Z_GATE, "Z"));
-
-    m_gatetype.insert(pair<int, string>(X_HALF_PI, "X1"));
-    m_gatetype.insert(pair<int, string>(Y_HALF_PI, "Y1"));
-    m_gatetype.insert(pair<int, string>(Z_HALF_PI, "Z1"));
-
     m_gatetype.insert(pair<int, string>(HADAMARD_GATE, "H"));
     m_gatetype.insert(pair<int, string>(T_GATE, "T"));
     m_gatetype.insert(pair<int, string>(S_GATE, "S"));
-
-    m_gatetype.insert(pair<int, string>(RX_GATE, "RX"));
-    m_gatetype.insert(pair<int, string>(RY_GATE, "RY"));
-    m_gatetype.insert(pair<int, string>(RZ_GATE, "RZ"));
-    m_gatetype.insert(pair<int, string>(U1_GATE, "U1"));
 	m_gatetype.insert(pair<int, string>(U3_GATE, "U3"));
 
-    m_gatetype.insert(pair<int, string>(CU_GATE, "CU"));
     m_gatetype.insert(pair<int, string>(CNOT_GATE, "CNOT"));
     m_gatetype.insert(pair<int, string>(CZ_GATE, "CZ"));
-    m_gatetype.insert(pair<int, string>(CPHASE_GATE, "CPHASE"));
-	m_gatetype.insert(pair<int, string>(SWAP_GATE, "SWAP"));
-    m_gatetype.insert(pair<int, string>(ISWAP_GATE, "ISWAP"));
-    m_gatetype.insert(pair<int, string>(SQISWAP_GATE, "SQISWAP"));
 
     m_qasm.clear();
     m_quantum_machine = quantum_machine;
@@ -76,16 +61,10 @@ void QProgToQASM::transform()
     QGateMatrix[MetadataGateType::METADATA_SINGLE_GATE].emplace_back(m_gatetype[HADAMARD_GATE]);
     QGateMatrix[MetadataGateType::METADATA_SINGLE_GATE].emplace_back(m_gatetype[T_GATE]);
     QGateMatrix[MetadataGateType::METADATA_SINGLE_GATE].emplace_back(m_gatetype[S_GATE]);
-    QGateMatrix[MetadataGateType::METADATA_SINGLE_GATE].emplace_back(m_gatetype[RX_GATE]);
-    QGateMatrix[MetadataGateType::METADATA_SINGLE_GATE].emplace_back(m_gatetype[RY_GATE]);
-    QGateMatrix[MetadataGateType::METADATA_SINGLE_GATE].emplace_back(m_gatetype[RZ_GATE]);
-    QGateMatrix[MetadataGateType::METADATA_SINGLE_GATE].emplace_back(m_gatetype[U1_GATE]);
 	QGateMatrix[MetadataGateType::METADATA_SINGLE_GATE].emplace_back(m_gatetype[U3_GATE]);
 
     QGateMatrix[MetadataGateType::METADATA_DOUBLE_GATE].emplace_back(m_gatetype[CNOT_GATE]);
     QGateMatrix[MetadataGateType::METADATA_DOUBLE_GATE].emplace_back(m_gatetype[CZ_GATE]);
-    QGateMatrix[MetadataGateType::METADATA_DOUBLE_GATE].emplace_back(m_gatetype[CPHASE_GATE]);
-    QGateMatrix[MetadataGateType::METADATA_DOUBLE_GATE].emplace_back(m_gatetype[SWAP_GATE]);
 
     SingleGateTypeValidator::GateType(QGateMatrix[MetadataGateType::METADATA_SINGLE_GATE],
         ValidQGateMatrix[MetadataGateType::METADATA_SINGLE_GATE]);  /* single gate data MetadataValidity */
@@ -142,45 +121,10 @@ void QProgToQASM::transformQGate(AbstractQGateNode * pQGate,bool is_dagger)
 		}
 		break;
 
-		case X_HALF_PI:
-		{
-			string  gate_angle = double_to_string((dynamic_cast<AbstractSingleAngleParameter *>(pQGate->getQGate()))->getParameter() * iLabel);
-			sTemp = ("rx(" + gate_angle + ")");
-			sTemp.append(" q[" + tarQubit + "];");
-		}
-			break;
-
-		case Y_HALF_PI:
-		{
-			string  gate_angle = double_to_string((dynamic_cast<AbstractSingleAngleParameter *>(pQGate->getQGate()))->getParameter() * iLabel);
-			sTemp = ("ry(" + gate_angle + ")");
-			sTemp.append(" q[" + tarQubit + "];");
-		}
-			break;
-
-		case Z_HALF_PI:
-		{
-			string  gate_angle = double_to_string((dynamic_cast<AbstractSingleAngleParameter *>(pQGate->getQGate()))->getParameter() * iLabel);
-			sTemp = ("rz(" + gate_angle + ")");
-			sTemp.append(" q[" + tarQubit + "];");
-		}
-			break;
-
 		case T_GATE:
 		case S_GATE:
 		{
 			sTemp.append(dagger ? "dg q[" + tarQubit + "];" : " q[" + tarQubit + "];");
-		}
-			break;
-
-        case U1_GATE:
-		case RX_GATE:
-		case RY_GATE:
-		case RZ_GATE:
-		{
-			string  gate_angle = double_to_string((dynamic_cast<AbstractSingleAngleParameter *>(pQGate->getQGate()))->getParameter() * iLabel);
-			sTemp.append("(" + gate_angle + ")");
-			sTemp.append(" q[" + tarQubit + "];");
 		}
 			break;
 
@@ -219,75 +163,6 @@ void QProgToQASM::transformQGate(AbstractQGateNode * pQGate,bool is_dagger)
 			//dagger is equal to itself
 			sTemp.append(" " + all_qubits + ";");
 		}
-			break;
-
-        case ISWAP_GATE:
-		case SQISWAP_GATE:
-            {
-			    QASM_UNSUPPORT_EXCEPTIONAL(sTemp.c_str(), dagger);
-                sTemp.append(dagger ? "dg " + all_qubits + ";" : " " + all_qubits + ";");
-            }
-            break;
-
-        case CPHASE_GATE: 
-            {
-				sTemp = "u1";
-				string  gate_angle = double_to_string((dynamic_cast<AbstractSingleAngleParameter *>(pQGate->getQGate()))->getParameter() * iLabel);
-				sTemp.append("(" + gate_angle + ")");
-				sTemp.append(" q[" + tarQubit + "];");
-
-            }
-            break;
-
-        case CU_GATE: 
-            {
-			    auto gate_parameter = dynamic_cast<AbstractAngleParameter *>(pQGate->getQGate());
-				if (dagger)
-				{
-					snprintf(tmpStr, MAX_PATH, "u1(%f) q[%d];\n"
-						"rz(%f) q[%d];\n"
-						"ry(%f) q[%d];\n"
-						"cx q[%d], q[%d];\n"
-						"ry(%f) q[%d];\n"
-						"rz(%f) q[%d];\n"
-						"cx q[%d], q[%d];\n"
-						"rz(%f) q[%d];\n", 
-						(-1)*(gate_parameter->getAlpha()), qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr(),
-						(-1)*(gate_parameter->getBeta()), qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr(),
-						(-1)*(gate_parameter->getGamma())/2.0, qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr(),
-						qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr(), qubits_vector[1]->getPhysicalQubitPtr()->getQubitAddr(),
-						(gate_parameter->getGamma()) / 2.0, qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr(),
-						(gate_parameter->getDelta() + gate_parameter->getBeta())/2.0, qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr(),
-						qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr(), qubits_vector[1]->getPhysicalQubitPtr()->getQubitAddr(),
-						(-1)*(gate_parameter->getDelta() - gate_parameter->getBeta())/2, qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr());
-				}
-				else
-				{
-					snprintf(tmpStr, MAX_PATH, "rz(%f) [%d];\n"
-						"cx q[%d], q[%d];\n"
-						"rz(%f) q[%d];\n"
-						"ry(%f) q[%d];\n"
-						"cx q[%d], q[%d];\n"
-						"ry(%f) q[%d];\n"
-						"rz(%f) q[%d];\n"
-						"u1(%f) q[%d];\n",
-						(gate_parameter->getDelta() - gate_parameter->getBeta())/2, qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr(),
-						qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr(), qubits_vector[1]->getPhysicalQubitPtr()->getQubitAddr(),
-						(-1)*(gate_parameter->getDelta() + gate_parameter->getBeta()) / 2.0, qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr(),
-						(-1)*(gate_parameter->getGamma()) / 2.0, qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr(),
-						qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr(), qubits_vector[1]->getPhysicalQubitPtr()->getQubitAddr(),
-						(gate_parameter->getGamma()) / 2.0, qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr(),
-						(gate_parameter->getBeta()), qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr(),
-						(gate_parameter->getAlpha()), qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr());
-				}
-
-				sTemp = tmpStr;
-            }
-            break;
-
-		case SWAP_GATE:
-			//dagger is equal to itself
-			sTemp.append(" " + all_qubits + ";");
 			break;
 
         default:

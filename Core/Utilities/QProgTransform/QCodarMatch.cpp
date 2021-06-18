@@ -7,11 +7,6 @@ USING_QPANDA
 using namespace std;
 using namespace QGATE_SPACE;
 
-static QGate iSWAPGateNotheta(Qubit * targitBit_fisrt, Qubit * targitBit_second)
-{
-	return iSWAP(targitBit_fisrt, targitBit_second);
-}
-
 QCodarMatch::QCodarMatch(QuantumMachine * machine, QProg prog, QCodarGridDevice arch_type, int m, int n, const std::string config_data/* = CONFIG_PATH*/)
 	:m_qvm(machine), m_arch_type(arch_type), m_config_data(config_data)
 {
@@ -54,30 +49,33 @@ QCodarMatch::QCodarMatch(QuantumMachine * machine, QProg prog, QCodarGridDevice 
 	m_gatetype.insert(pair<int, string>(GateType::SQISWAP_GATE, "SQISWAP"));
 	m_gatetype.insert(pair<int, string>(GateType::ISWAP_THETA_GATE, "SQISWAP"));
 
+	typedef QGate(*gate_f1)(Qubit*);
+	m_single_gate_func.insert(make_pair(GateType::PAULI_X_GATE, (gate_f1)X));
+	m_single_gate_func.insert(make_pair(GateType::PAULI_Y_GATE, (gate_f1)Y));
+	m_single_gate_func.insert(make_pair(GateType::PAULI_Z_GATE, (gate_f1)Z));
+	m_single_gate_func.insert(make_pair(GateType::X_HALF_PI, (gate_f1)X1));
+	m_single_gate_func.insert(make_pair(GateType::Y_HALF_PI, (gate_f1)Y1));
+	m_single_gate_func.insert(make_pair(GateType::Z_HALF_PI, (gate_f1)Z1));
+	m_single_gate_func.insert(make_pair(GateType::I_GATE, (gate_f1)I));
+	m_single_gate_func.insert(make_pair(GateType::HADAMARD_GATE, (gate_f1)H));
+	m_single_gate_func.insert(make_pair(GateType::T_GATE, (gate_f1)T));
+	m_single_gate_func.insert(make_pair(GateType::S_GATE, (gate_f1)S));
 
-	m_single_gate_func.insert(make_pair(GateType::PAULI_X_GATE, X));
-	m_single_gate_func.insert(make_pair(GateType::PAULI_Y_GATE, Y));
-	m_single_gate_func.insert(make_pair(GateType::PAULI_Z_GATE, Z));
-	m_single_gate_func.insert(make_pair(GateType::X_HALF_PI, X1));
-	m_single_gate_func.insert(make_pair(GateType::Y_HALF_PI, Y1));
-	m_single_gate_func.insert(make_pair(GateType::Z_HALF_PI, Z1));
-	m_single_gate_func.insert(make_pair(GateType::I_GATE, I));
+	typedef QGate(*gate_f2)(Qubit*, double);
+	m_single_angle_gate_func.insert(make_pair(GateType::RX_GATE, (gate_f2)RX));
+	m_single_angle_gate_func.insert(make_pair(GateType::RY_GATE, (gate_f2)RY));
+	m_single_angle_gate_func.insert(make_pair(GateType::RZ_GATE, (gate_f2)RZ));
+	m_single_angle_gate_func.insert(make_pair(GateType::U1_GATE, (gate_f2)U1));
 
-	m_single_gate_func.insert(make_pair(GateType::HADAMARD_GATE, H));
-	m_single_gate_func.insert(make_pair(GateType::T_GATE, T));
-	m_single_gate_func.insert(make_pair(GateType::S_GATE, S));
+	typedef QGate(*gate_f3)(Qubit*, Qubit*);
+	m_double_gate_func.insert(make_pair(GateType::SWAP_GATE, (gate_f3)SWAP));
+	m_double_gate_func.insert(make_pair(GateType::CNOT_GATE, (gate_f3)CNOT));
+	m_double_gate_func.insert(make_pair(GateType::CZ_GATE, (gate_f3)CZ));
+	m_double_gate_func.insert(make_pair(GateType::ISWAP_GATE, (gate_f3)iSWAP));
+	m_double_gate_func.insert(make_pair(GateType::SQISWAP_GATE, (gate_f3)SqiSWAP));
 
-	m_single_angle_gate_func.insert(make_pair(GateType::RX_GATE, RX));
-	m_single_angle_gate_func.insert(make_pair(GateType::RY_GATE, RY));
-	m_single_angle_gate_func.insert(make_pair(GateType::RZ_GATE, RZ));
-	m_single_angle_gate_func.insert(make_pair(GateType::U1_GATE, U1));
-
-	m_double_gate_func.insert(make_pair(GateType::SWAP_GATE, SWAP));
-	m_double_gate_func.insert(make_pair(GateType::CNOT_GATE, CNOT));
-	m_double_gate_func.insert(make_pair(GateType::CZ_GATE, CZ));
-	m_double_gate_func.insert(make_pair(GateType::ISWAP_GATE, iSWAPGateNotheta));
-	m_double_gate_func.insert(make_pair(GateType::SQISWAP_GATE, SqiSWAP));
-	m_double_angle_gate_func.insert(make_pair(GateType::CPHASE_GATE, CR));
+	typedef QGate(*gate_f4)(Qubit*, Qubit*, double);
+	m_double_angle_gate_func.insert(make_pair(GateType::CPHASE_GATE, (gate_f4)CR));
 
 
 	m_logic_qubits_apply.resize(qubits, 0);
@@ -177,7 +175,7 @@ void QCodarMatch::initScheduler(QCodarGridDevice arch_type, size_t qubits)
 
 			m_scheduler->setQubitFidelity(m_double_gate_apply, m_physics_qubit_fidelity, m_qubit_error);
 		}
-		m_scheduler->addLogicalQubits(qubits, is_order);
+		m_scheduler->addLogicalQubits(qubits/*, is_order*/);
 	}
 }
 
@@ -618,9 +616,9 @@ void QCodarMatch::mappingQProg(size_t run_times, QVec &qv, QProg &mapped_prog)
 	auto save_gate_list = m_scheduler->logical_gate_list;
 	std::vector<GateInfo> best_output;
 	int random_cout = 15;
-	for (int ridx = 0; ridx < random_cout; ridx++)
+	for (int ridx = 0; ridx < run_times; ridx++)
 	{
-		for (int i = 0; i < run_times; i++)
+		for (int i = 0; i < random_cout; i++)
 		{
 			m_scheduler->start();
 			int max_time = m_device->maxTime();
@@ -880,7 +878,7 @@ QProg QPanda::qcodar_match_by_simple_type(QProg prog, QVec &qv, QuantumMachine *
 	}
 
 	QProg outprog;
-	QCodarMatch match = QCodarMatch(machine, prog, SIMPLE_TYPE, m, n);
+	QCodarMatch match(machine, prog, SIMPLE_TYPE, m, n);
 	match.mappingQProg(run_times, qv, outprog);
 	return outprog;
 }
@@ -895,7 +893,7 @@ QProg QPanda::qcodar_match_by_config(QProg prog, QVec &qv, QuantumMachine * mach
 	}
 
 	QProg outprog;
-	QCodarMatch match = QCodarMatch(machine, prog, ORIGIN_VIRTUAL, 0, 0, config_data);
+	QCodarMatch match(machine, prog, ORIGIN_VIRTUAL, 0, 0, config_data);
 	match.mappingQProg(run_times, qv, outprog);
 	return outprog;
 }
@@ -910,7 +908,7 @@ QProg QPanda::qcodar_match_by_target_meachine(QProg prog, QVec &qv, QuantumMachi
 	}
 
 	QProg outprog;
-	QCodarMatch match = QCodarMatch(machine, prog, arch_type, 0, 0);
+	QCodarMatch match(machine, prog, arch_type, 0, 0);
 	match.mappingQProg(run_times, qv, outprog);
 	return outprog;
 }

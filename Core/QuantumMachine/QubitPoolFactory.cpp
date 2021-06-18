@@ -71,5 +71,5 @@ QubitPoolFactoryHelper::QubitPoolFactoryHelper(string  sClassName,
     fac.registerclass_size_(sClassName, constructor);
 }
 
-REGISTER_QUBIT_POOL_SIZE_(OriginQubitPool);
+REGISTER_QUBIT_POOL_SIZE_(OriginQubitPoolv1);
 REGISTER_QUBIT_POOL_SIZE_(OriginQubitPoolv2);

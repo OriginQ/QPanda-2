@@ -470,7 +470,7 @@ MatrixXd var::_back_single(const MatrixXd & dx, size_t op_idx)
         }
     }
     case op_type::cross_entropy: {
-        // Cross Entropy: H(p,q) 
+        // Cross Entropy: H(p,q)
         // dHdp = dH/dp; dHdq = dH/dq
         MatrixXd dHdp = _mval(operands[1]).array().log();
         MatrixXd dHdq = _mval(operands[0]).array() / _mval(operands[1]).array();
@@ -587,10 +587,352 @@ VariationalQuantumGate_H::VariationalQuantumGate_H(Qubit* q, bool is_dagger, QVe
     m_is_dagger = is_dagger;
     m_control_qubit.assign(control_qubit.begin(), control_qubit.end());
 }
-VariationalQuantumGate_X::VariationalQuantumGate_X(Qubit* q)
+
+VariationalQuantumGate_U1::VariationalQuantumGate_U1(Qubit* q, var _var)
 {
-    m_q = q;
+	m_q = q;
+	m_vars.push_back(_var);
 }
+
+VariationalQuantumGate_U1::VariationalQuantumGate_U1(Qubit* q, double _var)
+{
+	m_q = q;
+	m_constants.push_back(_var);
+}
+
+QGate VariationalQuantumGate_U1::feed()
+{
+	if (m_vars.size() == 1)
+	{
+		auto gate = U1(m_q, _sval(m_vars[0]));
+		copy_dagger_and_control_qubit(gate);
+		return gate;
+	}
+	else if (m_constants.size() == 1)
+	{
+		auto gate = U1(m_q, m_constants[0]);
+		copy_dagger_and_control_qubit(gate);
+		return gate;
+	}
+	else throw exception();
+}
+
+QGate VariationalQuantumGate_U1::feed(map<size_t, double> offset)
+{
+	if (offset.find(0) == offset.end())
+		throw exception();
+	auto gate = U1(m_q, _sval(m_vars[0]) + offset[0]);
+	copy_dagger_and_control_qubit(gate);
+	return gate;
+}
+
+VariationalQuantumGate_U2::VariationalQuantumGate_U2(Qubit* q, var _var1, var _var2)
+{
+	m_q = q;
+	m_vars.push_back(_var1);
+	m_vars.push_back(_var2);
+}
+
+VariationalQuantumGate_U2::VariationalQuantumGate_U2(Qubit* q, double phi, double lambda)
+{
+	m_q = q;
+	m_constants.push_back(phi);
+	m_constants.push_back(lambda);
+}
+
+QGate VariationalQuantumGate_U2::feed()
+{
+	if (m_vars.size() == 2)
+	{
+		auto gate = U2(m_q, _sval(m_vars[0]), _sval(m_vars[1]));
+		copy_dagger_and_control_qubit(gate);
+		return gate;
+	}
+	else if (m_constants.size() == 2)
+	{
+		auto gate = U2(m_q, m_constants[0], m_constants[1]);
+		copy_dagger_and_control_qubit(gate);
+		return gate;
+	}
+	else throw exception();
+}
+
+QGate VariationalQuantumGate_U2::feed(map<size_t, double> offset)
+{
+    double phi = _sval(m_vars[0]);
+    double lambda = _sval(m_vars[1]);
+	if (offset.find(0) != offset.end())
+	{
+        phi += offset[0];
+	}
+	else if (offset.find(1) != offset.end())
+	{
+        lambda += offset[1];
+	}
+	else
+	{
+		throw exception();
+	}
+	auto gate = U2(m_q, phi, lambda);
+	copy_dagger_and_control_qubit(gate);
+	return gate;
+}
+
+VariationalQuantumGate_RPhi::VariationalQuantumGate_RPhi(Qubit* q, var _var1, var _var2)
+{
+	m_q = q;
+	m_vars.push_back(_var1);
+	m_vars.push_back(_var2);
+}
+
+VariationalQuantumGate_RPhi::VariationalQuantumGate_RPhi(Qubit* q, double phi, double lambda)
+{
+	m_q = q;
+	m_constants.push_back(phi);
+	m_constants.push_back(lambda);
+}
+
+QGate VariationalQuantumGate_RPhi::feed()
+{
+	if (m_vars.size() == 2)
+	{
+		auto gate = RPhi(m_q, _sval(m_vars[0]), _sval(m_vars[1]));
+		copy_dagger_and_control_qubit(gate);
+		return gate;
+	}
+	else if (m_constants.size() == 2)
+	{
+		auto gate = RPhi(m_q, m_constants[0], m_constants[1]);
+		copy_dagger_and_control_qubit(gate);
+		return gate;
+	}
+	else throw exception();
+}
+
+QGate VariationalQuantumGate_RPhi::feed(map<size_t, double> offset)
+{
+	double phi = _sval(m_vars[0]);
+	double lambda = _sval(m_vars[1]);
+	if (offset.find(0) != offset.end())
+	{
+		phi += offset[0];
+	}
+	else if (offset.find(1) != offset.end())
+	{
+		lambda += offset[1];
+	}
+	else
+	{
+		throw exception();
+	}
+	auto gate = U2(m_q, phi, lambda);
+	copy_dagger_and_control_qubit(gate);
+	return gate;
+}
+
+
+VariationalQuantumGate_U3::VariationalQuantumGate_U3(Qubit* q, 
+    var _var1, var _var2, var _var3)
+{
+	m_q = q;
+	m_vars.push_back(_var1);
+	m_vars.push_back(_var2);
+	m_vars.push_back(_var3);
+}
+
+VariationalQuantumGate_U3::VariationalQuantumGate_U3(Qubit* q, 
+    double theta, double phi, double lambda)
+{
+	m_q = q;
+	m_constants.push_back(theta);
+	m_constants.push_back(phi);
+	m_constants.push_back(lambda);
+}
+
+QGate VariationalQuantumGate_U3::feed()
+{
+	if (m_vars.size() == 3)
+	{
+		auto gate = U3(m_q, _sval(m_vars[0]), _sval(m_vars[1]), _sval(m_vars[2]));
+		copy_dagger_and_control_qubit(gate);
+		return gate;
+	}
+	else if (m_constants.size() == 3)
+	{
+		auto gate = U3(m_q, m_constants[0], m_constants[1], m_constants[2]);
+		copy_dagger_and_control_qubit(gate);
+		return gate;
+	}
+	else throw exception();
+}
+
+QGate VariationalQuantumGate_U3::feed(map<size_t, double> offset)
+{
+	double theta = _sval(m_vars[0]);
+	double phi = _sval(m_vars[1]);
+	double lambda = _sval(m_vars[2]);
+	if (offset.find(0) != offset.end())
+	{
+        theta += offset[0];
+	}
+	else if (offset.find(1) != offset.end())
+	{
+        phi += offset[1];
+	}
+	else if (offset.find(2) != offset.end())
+	{
+        lambda += offset[2];
+	}
+	else
+	{
+		throw exception();
+	}
+	auto gate = U3(m_q, theta, phi, lambda);
+	copy_dagger_and_control_qubit(gate);
+	return gate;
+}
+
+VariationalQuantumGate_U4::VariationalQuantumGate_U4(Qubit* q, 
+    var _var1, var _var2, var _var3, var _var4)
+{
+	m_q = q;
+	m_vars.push_back(_var1);
+	m_vars.push_back(_var2);
+	m_vars.push_back(_var3);
+	m_vars.push_back(_var4);
+}
+
+VariationalQuantumGate_U4::VariationalQuantumGate_U4(Qubit* q,
+    double alpha,  double beta, double gamma, double delta)
+{
+	m_q = q;
+	m_constants.push_back(alpha);
+	m_constants.push_back(beta);
+	m_constants.push_back(gamma);
+	m_constants.push_back(delta);
+}
+
+QGate VariationalQuantumGate_U4::feed()
+{
+	if (m_vars.size() == 4)
+	{
+		auto gate = U4(m_q, _sval(m_vars[0]), _sval(m_vars[1]), _sval(m_vars[2]), _sval(m_vars[3]));
+		copy_dagger_and_control_qubit(gate);
+		return gate;
+	}
+	else if (m_constants.size() == 4)
+	{
+		auto gate = U4(m_q, m_constants[0], m_constants[1], m_constants[2], m_constants[3]);
+		copy_dagger_and_control_qubit(gate);
+		return gate;
+	}
+	else throw exception();
+}
+
+QGate VariationalQuantumGate_U4::feed(map<size_t, double> offset)
+{
+    double alpha = _sval(m_vars[0]); 
+    double beta = _sval(m_vars[1]); 
+    double gamma = _sval(m_vars[2]);
+    double delta = _sval(m_vars[3]);
+
+	if (offset.find(0) != offset.end())
+	{
+        alpha += offset[0];
+	}
+	else if (offset.find(1) != offset.end())
+	{
+        beta += offset[1];
+	}
+	else if (offset.find(2) != offset.end())
+	{
+        gamma += offset[2];
+	}
+	else if (offset.find(3) != offset.end())
+	{
+        delta += offset[3];
+	}
+	else
+	{
+		throw exception();
+	}
+	auto gate = U4(m_q, alpha, beta, gamma, delta);
+	copy_dagger_and_control_qubit(gate);
+	return gate;
+}
+
+
+VariationalQuantumGate_CU::VariationalQuantumGate_CU(Qubit* q1, Qubit* q2, 
+    var _var1, var _var2, var _var3, var _var4)
+{
+	m_q1 = q1;
+	m_q2 = q2;
+	m_vars.push_back(_var1);
+	m_vars.push_back(_var2);
+	m_vars.push_back(_var3);
+	m_vars.push_back(_var4);
+}
+
+VariationalQuantumGate_CU::VariationalQuantumGate_CU(Qubit* q1, Qubit* q2, 
+    double alpha, double beta, double gamma, double delta)
+{
+	m_q1 = q1;
+	m_q2 = q2;
+	m_constants.push_back(alpha);
+	m_constants.push_back(beta);
+	m_constants.push_back(gamma);
+	m_constants.push_back(delta);
+}
+
+QGate VariationalQuantumGate_CU::feed()
+{
+	if (m_vars.size() == 4)
+	{
+		auto gate = CU(m_q1, m_q2, _sval(m_vars[0]), _sval(m_vars[1]), _sval(m_vars[2]), _sval(m_vars[3]));
+		copy_dagger_and_control_qubit(gate);
+		return gate;
+	}
+	else if (m_constants.size() == 4)
+	{
+		auto gate = CU(m_q1, m_q2, m_constants[0], m_constants[1], m_constants[2], m_constants[3]);
+		copy_dagger_and_control_qubit(gate);
+		return gate;
+	}
+	else throw exception();
+}
+
+QGate VariationalQuantumGate_CU::feed(map<size_t, double> offset)
+{
+	double alpha = _sval(m_vars[0]);
+	double beta = _sval(m_vars[1]);
+	double gamma = _sval(m_vars[2]);
+	double delta = _sval(m_vars[3]);
+
+	if (offset.find(0) != offset.end())
+	{
+		alpha += offset[0];
+	}
+	else if (offset.find(1) != offset.end())
+	{
+		beta += offset[1];
+	}
+	else if (offset.find(2) != offset.end())
+	{
+		gamma += offset[2];
+	}
+	else if (offset.find(3) != offset.end())
+	{
+		delta += offset[3];
+	}
+	else
+	{
+		throw exception();
+	}
+	auto gate = CU(m_q1, m_q2, alpha, beta, gamma, delta);
+	copy_dagger_and_control_qubit(gate);
+	return gate;
+}
+
 
 VariationalQuantumGate_RX::VariationalQuantumGate_RX(Qubit *q, var _var)
 {
@@ -708,6 +1050,45 @@ QGate VariationalQuantumGate_RZ::feed(map<size_t, double> offset)
     copy_dagger_and_control_qubit(rz);
     return rz;
 }
+
+VariationalQuantumGate_CR::VariationalQuantumGate_CR(Qubit* q1, Qubit* q2, var _var)
+	:m_q1(q1), m_q2(q2)
+{
+	m_vars.push_back(_var);
+}
+
+VariationalQuantumGate_CR::VariationalQuantumGate_CR(Qubit* q1, Qubit* q2, double angle)
+	:m_q1(q1), m_q2(q2)
+{
+	m_constants.push_back(angle);
+}
+
+QGate VariationalQuantumGate_CR::feed()
+{
+	if (m_vars.size() == 1)
+	{
+		auto cr = CR(m_q1, m_q2, _sval(m_vars[0]));
+		copy_dagger_and_control_qubit(cr);
+		return cr;
+	}
+	else if (m_constants.size() == 1)
+	{
+		auto cr = CR(m_q1, m_q2, m_constants[0]);
+		copy_dagger_and_control_qubit(cr);
+		return cr;
+	}
+	else throw exception();
+}
+
+QGate VariationalQuantumGate_CR::feed(std::map<size_t, double> offset)
+{
+	if (offset.find(0) == offset.end())
+		throw exception();
+	auto cr = CR(m_q1, m_q2, _sval(m_vars[0]) + offset[0]);
+	copy_dagger_and_control_qubit(cr);
+	return cr;
+}
+
 
 VariationalQuantumGate_CRX::VariationalQuantumGate_CRX(Qubit* q_target, QVec q_control, var _var)
 {
@@ -1047,39 +1428,41 @@ impl_vqp::impl_vqp(VariationalQuantumCircuit circuit,
 double impl_vqp::_get_gradient(var _var)
 {
 
-    double grad = 0;
-    auto hamiltonian = m_op.data();
-    for (auto term : hamiltonian)
+    QVec vec;
+    for (auto& i : m_measure_qubits)
     {
-        auto coefficient = term.second;
-        double coefficient_real = 0;
-        if (coefficient.imag() < m_op.error_threshold()
-            &&
-            coefficient.imag() > -m_op.error_threshold()
-            )
-        {
-            coefficient_real = coefficient.real();
-        }
-        else
-            throw(invalid_argument("Hamiltonian has imagine parts"));
+        vec.push_back(i.second);
+    }
 
-        grad += (coefficient_real*
-            _get_gradient_one_term(_var, term.first.first));
+    auto hamiltonian = m_op.data();
+    auto gates = m_circuit.get_var_in_which_gate(_var);
+    double grad = 0;
+
+    for (auto gate : gates)
+    {
+        int pos = shared_ptr<VariationalQuantumGate>(gate)
+            ->var_pos(_var);
+        if (pos < 0) throw(invalid_argument("Error VQG"));
+
+        vector<tuple<
+            weak_ptr<VariationalQuantumGate>, size_t, double>> plus;
+        plus.push_back(make_tuple(gate, pos, PI / 2));
+        auto cir = m_circuit.feed(plus);
+        auto plus_expectation = m_machine->get_expectation(
+                    cir, m_op.toHamiltonian(),vec);
+
+        vector<tuple<
+            weak_ptr<VariationalQuantumGate>, size_t, double>> minus;
+        minus.push_back(make_tuple(gate, pos, -PI / 2));
+        cir = m_circuit.feed(minus);
+        auto minus_expectation = m_machine->get_expectation(
+                    cir,m_op.toHamiltonian(),vec);
+
+        grad += ((plus_expectation - minus_expectation) / 2);
     }
     return grad;
 }
 
-//double impl_vqp::_get_gradient_perturbation(var _var)
-//{
-//
-//    double grad = 0;
-//    auto value = _var.getValue();
-//    _var.setValue(value+ MatrixXd(1e-5));
-//    double expectation_add_delta = _get_expectation();
-//    _var.setValue(value - MatrixXd(1e-5));
-//    double expectation_minus_delta = _get_expectation();
-//    return (expectation_add_delta- expectation_minus_delta)/2e-5;
-//}
 
 double impl_vqp::_get_gradient_one_term(var _var, QTerm hamiltonian_term)
 {
@@ -1140,7 +1523,7 @@ double impl_vqp::_get_expectation_one_term(QCircuit c,
     vector<Qubit *> vqubit;
     for (auto iter : term)
     {
-        vqubit.push_back(m_machine->allocateQubitThroughPhyAddress(iter.first));
+        vqubit.push_back(m_measure_qubits[iter.first]);
         if (iter.second == 'X')
         {
             qprog << H(m_measure_qubits[iter.first]);
@@ -1176,26 +1559,14 @@ double impl_vqp::_get_expectation_one_term(QCircuit c,
 double impl_vqp::_get_expectation()
 {
     auto c = m_circuit.feed();
-    double expectation = 0;
     auto terms = m_op.data();
-    for (auto term : terms)
-    {
-        auto coefficient = term.second;
-        double coefficient_real = 0;
-        if (coefficient.imag() < m_op.error_threshold()
-            &&
-            coefficient.imag() > -m_op.error_threshold()
-            )
-        {
-            coefficient_real = coefficient.real();
-        }
-        else
-            throw(invalid_argument("Hamiltonian has imagine parts"));
 
-        expectation += (coefficient_real *
-            _get_expectation_one_term(c, term.first.first));
+    QVec qv;
+    for (auto& i : m_measure_qubits)
+    {
+        qv.push_back(i.second);
     }
-    return expectation;
+    return m_machine->get_expectation(c, m_op.toHamiltonian(), qv);
 }
 
 impl_qop_pmeasure::impl_qop_pmeasure(
@@ -1263,17 +1634,6 @@ std::vector<double> impl_qop_pmeasure::_get_gradient(var _var)
     }
     return grad;
 }
-
-
-
-
-
-
-
-
-
-
-
 
 
 impl_vqp_real_chip::impl_vqp_real_chip(VariationalQuantumCircuit circuit,
@@ -1713,115 +2073,3 @@ VariationalQuantumCircuit VariationalQuantumCircuit::qc2vqc(AbstractQuantumCircu
     return new_vqc;
 }
 
-//shared_ptr<VariationalQuantumGate> VariationalQuantumCircuit::_cast_qg_vqg(QGate gate)
-//{
-//    QuantumGate* qgate = gate.getQGate();
-//    int gate_type = qgate->getGateType();
-//    QVec op_qubit;
-//    gate.getQuBitVector(op_qubit);
-//    QGATE_SPACE::RX* rx;
-//    QGATE_SPACE::RY* ry;
-//    QGATE_SPACE::RZ* rz;
-//    QGATE_SPACE::H* h;
-//    QGATE_SPACE::X* pauli_x;
-//    switch (gate_type)
-//    {
-//    case GateType::HADAMARD_GATE:
-//        h = dynamic_cast<QGATE_SPACE::H*>(qgate);
-//        return std::make_shared<VariationalQuantumGate_H>(op_qubit[0]);
-//    case GateType::PAULI_X_GATE:
-//        pauli_x = dynamic_cast<QGATE_SPACE::X*>(qgate);
-//        return std::make_shared<VariationalQuantumGate_X>(op_qubit[0]);
-//    case GateType::RX_GATE:
-//        rx = dynamic_cast<QGATE_SPACE::RX*>(qgate);
-//        return std::make_shared<VariationalQuantumGate_RX>(op_qubit[0], rx->theta);
-//    case GateType::RY_GATE:
-//        ry = dynamic_cast<QGATE_SPACE::RY*>(qgate);
-//        return std::make_shared<VariationalQuantumGate_RY>(op_qubit[0], ry->theta);
-//    case GateType::RZ_GATE:
-//        rz = dynamic_cast<QGATE_SPACE::RZ*>(qgate);
-//        return std::make_shared<VariationalQuantumGate_RZ>(op_qubit[0], rz->theta);
-//    case GateType::CNOT_GATE:
-//        return std::make_shared<VariationalQuantumGate_CNOT>(op_qubit[0], op_qubit[1]);
-//    case GateType::CZ_GATE:
-//        return std::make_shared<VariationalQuantumGate_CZ>(op_qubit[0], op_qubit[1]);
-//    default:
-//        throw runtime_error("Unsupported VQG type");
-//    }
-//}
-//
-//shared_ptr<VariationalQuantumGate>  VariationalQuantumCircuit::_cast_aqgn_vqg(AbstractQGateNode* gate)
-//{
-//    QuantumGate* qgate = gate->getQGate();
-//    int gate_type = qgate->getGateType();
-//    QVec op_qubit;
-//    gate->getQuBitVector(op_qubit);
-//    QGATE_SPACE::RX* rx;
-//    QGATE_SPACE::RY* ry;
-//    QGATE_SPACE::RZ* rz;
-//    QGATE_SPACE::H* h;
-//    switch (gate_type)
-//    {
-//    case GateType::HADAMARD_GATE:
-//        h = dynamic_cast<QGATE_SPACE::H*>(qgate);
-//        return std::make_shared<VariationalQuantumGate_H>(op_qubit[0]);
-//    case GateType::RX_GATE:
-//        rx = dynamic_cast<QGATE_SPACE::RX*>(qgate);
-//        return std::make_shared<VariationalQuantumGate_RX>(op_qubit[0], rx->theta);
-//    case GateType::RY_GATE:
-//        ry = dynamic_cast<QGATE_SPACE::RY*>(qgate);
-//        return std::make_shared<VariationalQuantumGate_RY>(op_qubit[0], ry->theta);
-//    case GateType::RZ_GATE:
-//        rz = dynamic_cast<QGATE_SPACE::RZ*>(qgate);
-//        return std::make_shared<VariationalQuantumGate_RZ>(op_qubit[0], rz->theta);
-//    case GateType::CNOT_GATE:
-//        return std::make_shared<VariationalQuantumGate_CNOT>(op_qubit[0], op_qubit[1]);
-//    case GateType::CZ_GATE:
-//        return std::make_shared<VariationalQuantumGate_CZ>(op_qubit[0], op_qubit[1]);
-//    default:
-//        throw runtime_error("Unsupported VQG type");
-//    }
-//}
-//
-//VariationalQuantumCircuit  VariationalQuantumCircuit::_cast_qc_vqc(QCircuit q)
-//{
-//    
-//    VariationalQuantumCircuit new_vqc;
-//    for (auto iter = q.getFirstNodeIter(); iter != q.getEndNodeIter(); ++iter)
-//    {
-//        NodeType node_type = (*(iter))->getNodeType();
-//        if (node_type == NodeType::CIRCUIT_NODE)
-//        {
-//            AbstractQuantumCircuit* qc = dynamic_pointer_cast<AbstractQuantumCircuit>(*iter).get();
-//            new_vqc.insert(_cast_aqc_vqc(qc));
-//        }
-//        else if (node_type == NodeType::GATE_NODE)
-//        {
-//            AbstractQGateNode* qg = dynamic_pointer_cast<AbstractQGateNode>(*iter).get();
-//            new_vqc.insert(_cast_aqgn_vqg(qg));
-//        }
-//        else throw runtime_error("Unsupported VQG type");
-//    }
-//    return new_vqc;
-//}
-//
-//VariationalQuantumCircuit  VariationalQuantumCircuit::_cast_aqc_vqc(AbstractQuantumCircuit* q)
-//{
-//    VariationalQuantumCircuit new_vqc;
-//    for (auto iter = q->getFirstNodeIter(); iter != q->getEndNodeIter(); ++iter)
-//    {
-//        NodeType node_type = (*(iter))->getNodeType();
-//        if (node_type == NodeType::CIRCUIT_NODE)
-//        {
-//            AbstractQuantumCircuit* qc = dynamic_pointer_cast<AbstractQuantumCircuit>(*iter).get();
-//            new_vqc.insert(_cast_aqc_vqc(qc));
-//        }
-//        else if (node_type == NodeType::GATE_NODE)
-//        {
-//            AbstractQGateNode* qg = dynamic_pointer_cast<AbstractQGateNode>(*iter).get();
-//            new_vqc.insert(_cast_aqgn_vqg(qg));
-//        }
-//        else throw runtime_error("Unsupported VQG type");
-//    }
-//    return new_vqc;
-//}

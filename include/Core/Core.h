@@ -49,6 +49,9 @@ limitations under the License.
 #include "Core/Utilities/QProgInfo/QProgClockCycle.h"
 #include "Core/Utilities/QProgInfo/Visualization/QVisualization.h"
 #include "Core/Utilities/QProgInfo/QuantumMetadata.h"
+#include "Core/Utilities/QProgInfo/CrossEntropyBenchmarking.h"
+#include "Core/Utilities/QProgInfo/RandomizedBenchmarking.h"
+#include "Core/Utilities/QProgInfo/QuantumVolume.h"
 
 #include "Core/Utilities/QProgTransform/QProgToDAG/GraphMatch.h"
 #include "Core/Utilities/QProgTransform/QProgToDAG/QProgToDAG.h"
@@ -58,7 +61,9 @@ limitations under the License.
 #include "Core/Utilities/QProgTransform/TopologyMatch.h"
 #include "Core/Utilities/QProgTransform/SU4TopologyMatch.h"
 #include "Core/Utilities/QProgTransform/QCodarMatch.h"
-#include "Core/Utilities/QProgTransform/BMT/BMT.h"
+#include "Core/Utilities/QProgTransform/QMapping/SabreQMapping.h"
+#include "Core/Utilities/QProgTransform/QMapping/OBMTQMapping.h"
+#include "Core/Utilities/QProgTransform/QCircuitRewrite.h"
 
 #include "Core/Utilities/Tools/OriginCollection.h"  
 #include "Core/Utilities/Tools/QPandaException.h"  
@@ -74,6 +79,8 @@ limitations under the License.
 #include "Core/Utilities/Tools/QCircuitOptimize.h"
 #include "Core/Utilities/Tools/Fidelity.h"
 #include "Core/Utilities/Tools/GetQubitTopology.h"
+#include "Core/Utilities/Tools/RemapQProg.h"
+#include "Core/Utilities/Tools/CutQC.h"
 
 #include "Core/Variational/var.h"
 #include "Core/Variational/Optimizer.h"  

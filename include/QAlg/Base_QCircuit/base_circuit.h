@@ -22,15 +22,19 @@ QPANDA_BEGIN
 inline QCircuit QFT(QVec qvec)
 {
 	QCircuit  qft = CreateEmptyCircuit();
-	for (auto i = 0; i < qvec.size(); i++)
-	{
+	for (auto i = 0; i < qvec.size(); i++) {
 		qft << H(qvec[qvec.size() - 1 - i]);
-		for (auto j = i + 1; j < qvec.size(); j++)
-		{
+		for (auto j = i + 1; j < qvec.size(); j++) {
 			qft << CR(qvec[qvec.size() - 1 - j],
 				qvec[qvec.size() - 1 - i], 2 * PI / (1 << (j - i + 1)));
 		}
 	}
+
+	// change the order to finish QFT
+	for (auto i = 0; i < floor(qvec.size() / 2); i++) {
+		qft << SWAP(qvec[i], qvec[qvec.size() - 1 - i]);
+	}
+
 	return qft;
 }
 

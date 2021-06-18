@@ -65,6 +65,14 @@ public:
      * @brief  clear the CBit vector
      */
     virtual void clearAll() = 0;
+
+    /**
+    * @brief  get allocate cbits
+    * @param[out] std::vector<CBit *>&
+    * @return size_t  allocate cbits size
+    */
+    virtual size_t get_allocate_cbits(std::vector<CBit *>&) = 0;
+
     virtual ~CMem() {}
 };
 #define REGISTER_CMEM_SIZE_(classname) \

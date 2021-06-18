@@ -5,6 +5,7 @@
 #include <vector>
 #include "Core/QuantumMachine/QuantumMachineInterface.h"
 #include "Core/Utilities/Tools/Traversal.h"
+#include "Core/Utilities/Tools/JsonConfigParam.h"
 
 QPANDA_BEGIN
 
@@ -275,7 +276,8 @@ private:
 	QProg m_prog;
 
 public:
-	TopologyMatch(QuantumMachine * machine, QProg prog, SwapQubitsMethod method = CNOT_GATE_METHOD, ArchType arch_type = IBM_QX5_ARCH);
+	TopologyMatch(QuantumMachine * machine, QProg prog, SwapQubitsMethod method = CNOT_GATE_METHOD, 
+		ArchType arch_type = IBM_QX5_ARCH, const std::string conf = CONFIG_PATH);
 
 	~TopologyMatch();
 	/**
@@ -330,16 +332,17 @@ private:
 * @brief  QProg/QCircuit matches the topology of the physical qubits
 * @ingroup Utilities
 * @param[in]  QProg  quantum program
-* @param[in]  QVec  qubit  vector
+* @param[out]  QVec& Mapped bit sequence
 * @param[in]  QuantumMachine *  quantum machine
 * @param[in]  SwapQubitsMethod   swap qubits by CNOT/CZ/SWAP/iSWAP gate
 * @param[in]  ArchType    architectures type
+* @param[in]  const std::string : the  config data, @see JsonConfigParam::load_config
 * @return    QProg   mapped  quantum program
 * @exception
 * @note
 */
-QProg  topology_match(QProg prog, QVec &qv, QuantumMachine *machine,
-	SwapQubitsMethod method = CNOT_GATE_METHOD, ArchType arch_type = IBM_QX5_ARCH);
+QProg  topology_match(QProg prog, QVec &qv, QuantumMachine *machine, SwapQubitsMethod method = CNOT_GATE_METHOD, 
+	ArchType arch_type = IBM_QX5_ARCH, const std::string& conf = CONFIG_PATH);
 
 
 QPANDA_END

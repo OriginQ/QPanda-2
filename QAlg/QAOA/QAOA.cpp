@@ -54,7 +54,7 @@ namespace QPanda
 
             m_optimizer->registerFunc(std::bind(&QAOA::callQAOA,
                 this,
-                std::placeholders::_1),
+                std::placeholders::_1, optimized_para),
                 optimized_para);
 
             QInit();
@@ -107,7 +107,7 @@ namespace QPanda
 
                 if (data.keys.empty())
                 {
-                    auto ret = callQAOA(para);
+                    auto ret = callQAOA(para,vector_d());
                     std::cout << ret.first << "\t" << ret.second
                               << "\t" << i << "\t" <<j << std::endl;
                     f << i << "\t" << j << "\t" << ret.second << std::endl;
@@ -235,7 +235,7 @@ namespace QPanda
         return true;
     }
 
-    QResultPair QAOA::callQAOA(const vector_d &para)
+    QResultPair QAOA::callQAOA(const vector_d &para,vector_d para1)
     {
         saveParaToLogFile(para);
 

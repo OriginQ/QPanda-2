@@ -83,6 +83,10 @@ public:
     return visitChildren(ctx);
   }
 
+  virtual antlrcpp::Any visitDefine_gate_declaration(originirParser::Define_gate_declarationContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
   virtual antlrcpp::Any visitSingle_gate_without_parameter_type(originirParser::Single_gate_without_parameter_typeContext *ctx) override {
     return visitChildren(ctx);
   }
@@ -212,6 +216,34 @@ public:
   }
 
   virtual antlrcpp::Any visitExpression_statement(originirParser::Expression_statementContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual antlrcpp::Any visitDefine_gate_statement(originirParser::Define_gate_statementContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual antlrcpp::Any visitExplist(originirParser::ExplistContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual antlrcpp::Any visitExp(originirParser::ExpContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual antlrcpp::Any visitGate_func_statement(originirParser::Gate_func_statementContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual antlrcpp::Any visitId(originirParser::IdContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual antlrcpp::Any visitId_list(originirParser::Id_listContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual antlrcpp::Any visitGate_name(originirParser::Gate_nameContext *ctx) override {
     return visitChildren(ctx);
   }
 

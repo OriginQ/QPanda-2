@@ -14,95 +14,62 @@
 using namespace std;
 USING_QPANDA
 
-TEST(GraphMatch, Query)
+static bool test_prog_to_dag_1()
 {
-    return;
-    auto qvm = initQuantumMachine();
-    auto q = qvm->allocateQubits(4);
+	auto qvm = initQuantumMachine();
+	auto q = qvm->allocateQubits(4);
 
-#if 0
-/*
-              ┌─┐┌────────────┐┌──┐
-    q_0:  |0>─┤H├┤RX(3.141593)├┤CZ├
-              ├─┤├────────────┤└─┬┘
-    q_1:  |0>─┤H├┤RX(3.141593)├──■─
-              ├─┤├────────────┤┌──┐
-    q_2:  |0>─┤H├┤RX(3.141593)├┤CZ├
-              ├─┤├────────────┤└─┬┘
-    q_3:  |0>─┤H├┤RX(3.141593)├──■─
-              └─┘└────────────┘
+	QProg prog;
+	prog << H(q[0]) << H(q[2]) << H(q[3])
+		<< CNOT(q[1], q[0]) << CNOT(q[0], q[1]) << H(q[0]) << CNOT(q[1], q[2])
+		<< H(q[2]) << CNOT(q[2], q[3]) << H(q[3]);
+	cout << "src prog:" << prog << endl;
+	auto dag = qprog_to_DAG(prog);
+	const std::set<QProgDAGEdge>& edges = dag->get_edges();
+	const std::vector<QProgDAGVertex>& vertex_vec = dag->get_vertex();
+	cout << "vertex_vec:" << endl;
+	for (const auto& _v : vertex_vec)
+	{
+		cout << _v.m_id << " layer:" << _v.m_layer << " " 
+			<< TransformQGateType::getInstance()[(GateType)(_v.m_type)] << " qubit(";
+		for (const auto& _q : _v.m_node->m_control_vec)
+		{
+			cout << _q->get_phy_addr() << ", ";
+		}
+		for (const auto& _q : _v.m_node->m_qubits_vec)
+		{
+			cout << _q->get_phy_addr() << ", ";
+		}
 
-              ┌──┐
-    q_0:  |0>─┤CZ├
-              └─┬┘
-    q_1:  |0>───■─
-              ┌──┐
-    q_2:  |0>─┤CZ├
-              └─┬┘
-    q_3:  |0>───■─
+		cout << ")" << endl;
+	}
 
-*/
-    auto prog = QProg();
-    prog << H(q[0]) << H(q[1]) << H(q[2]) << H(q[3]) 
-         << RX(q[0],PI)<< RX(q[1], PI)<< RX(q[2], PI)<< RX(q[3], PI)
-         << CZ(q[1], q[0]) << CZ(q[3], q[2]);
+	auto seq = dag->build_topo_sequence();
+	cout << "seq size = " << seq.size() << endl;
 
-    auto query_cir = QCircuit();
-    query_cir << H(q[0]) << H(q[1])
-              << RX(q[0], PI) << RX(q[1], PI)
-              << CZ(q[1], q[0]);
+	destroyQuantumMachine(qvm);
+	cout << "---------" << endl;
+	return true;
+}
 
-    auto replace_cir = QCircuit();
-    replace_cir << CZ(q[0],q[1]);
-#else
-/*
-              ┌─┐┌────┐┌─┐
-    q_0:  |0>─┤H├┤CNOT├┤H├───────────────
-              └─┘└──┬─┘└─┘
-    q_1:  |0>───────■─────■──────────────
-              ┌─┐      ┌──┴─┐┌─┐
-    q_2:  |0>─┤H├──────┤CNOT├┤H├───■─────
-              ├─┤      └────┘└─┘┌──┴─┐┌─┐
-    q_3:  |0>─┤H├───────────────┤CNOT├┤H├
-              └─┘               └────┘└─┘
+TEST(QProgToDAG, test1)
+{
+	bool test_val = false;
+	try
+	{
+		test_val = test_prog_to_dag_1();
+	}
+	catch (const std::exception& e)
+	{
+		cout << "Got a exception: " << e.what() << endl;
+	}
+	catch (...)
+	{
+		cout << "Got an unknow exception: " << endl;
+	}
 
-              ┌──┐
-    q_0:  |0>─┤CZ├────────
-              └─┬┘
-    q_1:  |0>───■───■─────
-                  ┌─┴┐
-    q_2:  |0>─────┤CZ├──■─
-                  └──┘┌─┴┐
-    q_3:  |0>─────────┤CZ├
-                      └──┘
-*/
+	cout << "QProgToDAG test over, press Enter to continue." << endl;
+	getchar();
 
-    auto prog = QProg();
-    prog << H(q[0]) << H(q[2]) << H(q[3])
-        << CNOT(q[1], q[0]) << H(q[0]) << CNOT(q[1], q[2])
-        << H(q[2]) << CNOT(q[2], q[3]) << H(q[3]);
-
-    auto query_cir = QCircuit();
-    query_cir << H(q[0]) << CNOT(q[1], q[0]) << H(q[0]);
-
-    auto replace_cir = QCircuit();
-    replace_cir << CZ(q[0], q[1]);
-#endif
-
-    ResultVector result;
-    graph_query(prog, query_cir, result);
-
-    for (auto val : result)
-    {
-        for (auto i = 0; i < val.size(); ++i)
-        {
-            cout << val[i].m_node_type << "(" << val[i].m_vertex_num << ")";
-        }
-        cout << endl;
-    }
-
-    QProg update_prog;
-    graph_query_replace(prog, query_cir, replace_cir, update_prog, qvm);
-
-    cout << transformQProgToOriginIR(update_prog, qvm);
+	ASSERT_TRUE(test_val);
 } 

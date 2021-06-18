@@ -31,7 +31,7 @@ def MPS_fun():
 
     qvm = MPSQVM()
     qvm.set_configure(64, 64)
-    qvm.initQVM()
+    qvm.init_qvm()
 
     q = qvm.qAlloc_many(10)
     c = qvm.cAlloc_many(10)
@@ -41,20 +41,13 @@ def MPS_fun():
     prog.insert(hadamard_circuit(q))\
         .insert(CZ(q[2], q[4]))\
         .insert(CZ(q[3], q[7]))\
-        .insert(CNOT(q[0], q[1]))\
-        .insert(Measure(q[0], c[0]))\
-        .insert(Measure(q[1], c[1]))\
-        .insert(Measure(q[2], c[2]))\
-        .insert(Measure(q[3], c[3]))
+        .insert(CNOT(q[0], q[1]))
 
     # 量子程序运行1000次，并返回测量结果
-    result0 = qvm.run_with_configuration(prog, c, 100)
-
-    result1 = qvm.prob_run_dict(prog, [q[0], q[1], q[2]], -1)
+    result = qvm.pmeasure_bin_subset(prog, ["0000000001"])
 
     # 打印量子态在量子程序多次运行结果中出现的次数
-    print(result0)
-    print(result1)
+    print(result)
 
     qvm.finalize()
 
@@ -328,7 +321,7 @@ def QCloud_fun():
 
     QCM = QCloud()
     # QCM.init_qvm("C40A08F3D461481D829559EE7CCAA359")
-    QCM.init_qvm("3B9379860FA349C5904C32EFAC39435D")
+    QCM.init_qvm("3B1AC640AAC248C6A7EE4E8D8537370D")
 
     # QCM.init_qvm("3B9379860FA349C5904C32EFAC39435D")
 
@@ -355,9 +348,9 @@ def QCloud_fun():
                  .insert(RX(qlist[2], PI / 4))\
                  .insert(RX(qlist[1], PI / 4))
 
-    result0 = QCM.full_amplitude_measure(measure_prog, 100)
-    print(result0)
-    print("full_amplitude_measure pass !")
+    # result0 = QCM.full_amplitude_measure(measure_prog, 100)
+    # print(result0)
+    # print("full_amplitude_measure pass !")
 
     # result1 = QCM.full_amplitude_pmeasure(pmeasure_prog, [0, 1, 2])
     # print(result1)
@@ -376,9 +369,9 @@ def QCloud_fun():
     # print(result4)
     # print("noise_measure pass !")
 
-    # result5 = QCM.real_chip_measure(measure_prog, 100)
-    # print(result5)
-    # print("real_chip_measure pass !")
+    result5 = QCM.real_chip_measure(measure_prog, 1000)
+    print(result5)
+    print("real_chip_measure pass !")
 
     # result6 = QCM.get_state_tomography_density(measure_prog, 100)
     # print(result6)
@@ -553,15 +546,29 @@ def plot_bloch_cir():
     c = machine.cAlloc_many(1)
 
     cir = QCircuit()
-    cir.insert(RX(q[0], pi/2))\
-       .insert(RZ(q[0], pi/2))\
-       .insert(RX(q[0], pi / 2))\
-       .insert(RX(q[0], pi/2))\
-       .insert(RZ(q[0], pi/4))\
-       .insert(RZ(q[0], pi/4))
+    # cir.insert(RX(q[0], pi/2))\
+    #    .insert(RZ(q[0], pi/2))\
+    #    .insert(RX(q[0], pi / 2))\
+    #    .insert(RX(q[0], pi/2))\
+    #    .insert(RZ(q[0], pi/4))\
+    #    .insert(RZ(q[0], pi/4))
+
+    # cir << X(q[0])
+    cir << RY(q[0], pi / 3)
+    # cir << RY(q[0], pi / 6)
+    # cir << H(q[0])
+    # cir << RX(q[0], -pi / 2)
+
+    prog = QProg()
+    prog << cir
+
+    # machine.directly_run(prog)
+    # result = machine.get_qstate()
+    # print(result)
 
     plot_bloch_circuit(cir)
-    machine.finalize()
+    plt.show()
+    # machine.finalize()
 
 
 def plot_bloch_vectors():
@@ -594,7 +601,7 @@ def plot_bloch_vectors():
 
 if __name__ == "__main__":
 
-    QCloud_fun()
+    # QCloud_fun()
     # MPS_fun()
     # cpu_qvm_fun()
     # singleAmp_fun()
@@ -607,5 +614,5 @@ if __name__ == "__main__":
     # plot_density()
     # plot_bloch_vectors()
     # mps_noise()
-    # plot_bloch_cir()
+    plot_bloch_cir()
     # plot_density()

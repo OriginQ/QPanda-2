@@ -12,9 +12,9 @@
 #   THIRD_INCLUDE_DIR     - ThirdParty include
 #   QPANDA_LIBRARIES      - List of libraries when using QPanda.
 #   QALG_LIBRARY          - QAlg library
-#   COMPONENTS_LIBRARY           - Variational library
-#   TINY_LIBRARY          - TinyXML library
+#   COMPONENTS_LIBRARY    - Variational library
 #   ANTLR4_LIBRARY        - antlr4 library
+#   NLOPT_LIBRARY        - antlr4 library
 #   QPANDA_LIBRARY        - QPanda-2 library
 #   QPANDA_FOUND          - True if curl found.
 #   
@@ -52,6 +52,10 @@ find_library(ANTLR4_LIBRARY NAMES antlr4
              PATHS 
              ${QPANDA_INSTALL_DIR}/lib)
 
+find_library(NLOPT_LIBRARY NAMES nlopt 
+             PATHS 
+             ${QPANDA_INSTALL_DIR}/lib)
+
 find_library(GPUBACKEND_LIBRARY NAMES GPUQGates 
              PATHS 
              ${QPANDA_INSTALL_DIR}/lib)
@@ -61,6 +65,7 @@ mark_as_advanced(QALG_LIBRARY)
 mark_as_advanced(COMPONENTS_LIBRARY)
 #mark_as_advanced(TINY_LIBRARY)
 mark_as_advanced(ANTLR4_LIBRARY)
+mark_as_advanced(NLOPT_LIBRARY)
 
 set(QPANDA_LIBRARIES)
 list(APPEND QPANDA_LIBRARIES 
@@ -68,7 +73,8 @@ list(APPEND QPANDA_LIBRARIES
             ${COMPONENTS_LIBRARY}
             ${QPANDA_LIBRARY}
             #${TINY_LIBRARY}
-            ${ANTLR4_LIBRARY})
+            ${ANTLR4_LIBRARY}
+            ${NLOPT_LIBRARY})
 
 if (GPUBACKEND_LIBRARY)
     find_package(CUDA)

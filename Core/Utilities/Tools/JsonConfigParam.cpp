@@ -4,6 +4,7 @@
 #include "Core/Utilities/Tools/PraseExpressionStr.h"
 #include <string.h>
 #include "Core/Utilities/Tools/ArchGraph.h"
+#include "Core/Utilities/Tools/QCircuitGenerator.h"
 
 using namespace std;
 USING_QPANDA
@@ -428,6 +429,9 @@ QCircuit QCircuitOptimizerConfig::read_cir(const rapidjson::Value& gates)
 			(0 == strcmp(gate_name.c_str(), "Y")) ||
 			(0 == strcmp(gate_name.c_str(), "Z")) ||
 			(0 == strcmp(gate_name.c_str(), "T")) ||
+			(0 == strcmp(gate_name.c_str(), "X1")) ||
+			(0 == strcmp(gate_name.c_str(), "Y1")) ||
+			(0 == strcmp(gate_name.c_str(), "Z1")) ||
 			(0 == strcmp(gate_name.c_str(), "S")))
 		{
 			ret_cir << build_sing_gate(gate_name, { m_qubits[gate_para[0].GetInt()] });
@@ -444,83 +448,60 @@ QCircuit QCircuitOptimizerConfig::read_cir(const rapidjson::Value& gates)
 			(0 == strcmp(gate_name.c_str(), "RZ")) ||
 			(0 == strcmp(gate_name.c_str(), "U1")))
 		{
-			double angle = 0;
-			if(gate_para[1].IsDouble())
-			{
-				angle = gate_para[1].GetDouble();
-			}
-			else if (gate_para[1].IsString())
-			{
-				string angle_str =  gate_para[1].GetString();
-				angle = angle_str_to_double(angle_str);
-			}
-			else
-			{
-				QCERR_AND_THROW(run_fail, "Error: angle config error.");
-			}
-			
+			double angle = get_angle(gate_para[1]);
 			ret_cir << build_sing_ratation_gate(gate_name, m_qubits[gate_para[0].GetInt()], angle);
 		}
 		else if(0 == strcmp(gate_name.c_str(), "RPhi") ||
 				0 == strcmp(gate_name.c_str(), "RPHI"))
 		{
-			double angle = gate_para[1].GetDouble();
-			double phi =gate_para[2].GetDouble();
+			double angle = get_angle(gate_para[1]);
+			double phi = get_angle(gate_para[2]);
 
-			ret_cir << build_double_ratation_gate("RPhi", m_qubits[gate_para[0].GetInt()], angle,phi);
+			ret_cir << build_double_ratation_gate("RPhi", m_qubits[gate_para[0].GetInt()], angle, phi);
 		}
 		else if(0 == strcmp(gate_name.c_str(), "U3"))
 		{
-			double theta = 0;
-			if (gate_para[1].IsString())
-			{
-				string theta_str =  gate_para[1].GetString();
-				theta = angle_str_to_double(theta_str);
-			}
-			else
-			{
-				theta = gate_para[1].GetDouble();
-			}
-
-			double phi=0;
-			if(gate_para[2].IsString())
-			{
-				string phi_str =  gate_para[2].GetString();
-				phi = angle_str_to_double(phi_str);
-			}
-			else 
-			{
-				phi = gate_para[2].GetDouble();
-			}
-
-			double lamda=0;
-			if (gate_para[3].IsString())
-			{
-				string lamda_str =  gate_para[3].GetString();
-				lamda = angle_str_to_double(lamda_str);
-			}
-			else
-			{
-				lamda = gate_para[3].GetDouble();
-			}
+			double theta = get_angle(gate_para[1]);
+			double phi = get_angle(gate_para[2]);
+			double lamda = get_angle(gate_para[3]);
 			
 			ret_cir << build_three_ratation_gate(gate_name, m_qubits[gate_para[0].GetInt()], theta,phi,lamda);
 		}
 		else if ((0 == strcmp(gate_name.c_str(), "ISWAP")) ||
 			(0 == strcmp(gate_name.c_str(), "CR")))
 		{
-			string angle_str = gate_para[1].GetString();
-			//string to double 
-			double angle = angle_str_to_double(angle_str);
+			double angle = get_angle(gate_para[1]);
 			ret_cir << build_double_ratation_gate(gate_name, { m_qubits[gate_para[0].GetInt()], m_qubits[gate_para[1].GetInt()] }, angle);
 		}
 		else
 		{
-			QCERR_AND_THROW(run_fail, "Error: unknow error on read_cir form config file.");
+			QCERR_AND_THROW_ERRSTR(run_fail, "Error: unknow error on read_cir form config file.");
 		}
 	}
 
 	return ret_cir;
+}
+
+double QCircuitOptimizerConfig::get_angle(const rapidjson::Value& jv)
+{
+	if (jv.IsString())
+	{
+		return angle_str_to_double(jv.GetString());
+	}
+	else if (jv.IsDouble())
+	{
+		return jv.GetDouble();
+	}
+	else if (jv.IsInt())
+	{
+		return jv.GetInt();
+	}
+	else
+	{
+		QCERR_AND_THROW_ERRSTR(run_fail, "Error: angle-type error in target json config file.");
+	}
+	
+	return 0;
 }
 
 double QCircuitOptimizerConfig::angle_str_to_double(const string angle_str)
@@ -699,3 +680,79 @@ const rapidjson::Value& QuantumChipConfig::get_virtual_z_config()
 
 	return doc[VIRTUAL_Z_CONFIG];
 }
+
+/*******************************************************************
+*                 class QCircuitConfigReader
+********************************************************************/
+QCircuitConfigReader::QCircuitConfigReader(const rapidjson::Value& circuit_config, QCircuitGenerator& cir_generator)
+	:m_circuit_config(circuit_config), m_cir_generator(cir_generator)
+{
+	read_cir();
+}
+
+void QCircuitConfigReader::read_cir()
+{
+	for (rapidjson::Value::ConstMemberIterator gate_iter = m_circuit_config.MemberBegin();
+		gate_iter != m_circuit_config.MemberEnd(); ++gate_iter)
+	{
+		std::string gate_name = gate_iter->name.GetString();
+		transform(gate_name.begin(), gate_name.end(), gate_name.begin(), ::toupper);
+		auto& gate_para = gate_iter->value;
+		if ((0 == strcmp(gate_name.c_str(), "H")) ||
+			(0 == strcmp(gate_name.c_str(), "X")) ||
+			(0 == strcmp(gate_name.c_str(), "Y")) ||
+			(0 == strcmp(gate_name.c_str(), "Z")) ||
+			(0 == strcmp(gate_name.c_str(), "T")) ||
+			(0 == strcmp(gate_name.c_str(), "X1")) ||
+			(0 == strcmp(gate_name.c_str(), "Y1")) ||
+			(0 == strcmp(gate_name.c_str(), "Z1")) ||
+			(0 == strcmp(gate_name.c_str(), "S")))
+		{
+			m_cir_generator.append_cir_node(gate_name, { gate_para[0].GetUint() });
+		}
+		else if ((0 == strcmp(gate_name.c_str(), "CNOT")) ||
+			(0 == strcmp(gate_name.c_str(), "CZ")) ||
+			(0 == strcmp(gate_name.c_str(), "SWAP")) ||
+			(0 == strcmp(gate_name.c_str(), "SQISWAP")))
+		{
+			m_cir_generator.append_cir_node(gate_name, { gate_para[0].GetUint(), gate_para[1].GetUint()});
+		}
+		else if ((0 == strcmp(gate_name.c_str(), "RX")) ||
+			(0 == strcmp(gate_name.c_str(), "RY")) ||
+			(0 == strcmp(gate_name.c_str(), "RZ")) ||
+			(0 == strcmp(gate_name.c_str(), "U1")))
+		{
+			m_cir_generator.append_cir_node(gate_name, { gate_para[0].GetUint() }, { gate_para[1].GetString() });
+		}
+		else if (0 == strcmp(gate_name.c_str(), "RPhi") ||
+			0 == strcmp(gate_name.c_str(), "RPHI"))
+		{
+			/*double angle = get_angle(gate_para[1]);
+			double phi = get_angle(gate_para[2]);*/
+
+			m_cir_generator.append_cir_node(gate_name, { gate_para[0].GetUint() }, { gate_para[1].GetString(), gate_para[2].GetString() });
+		}
+		else if (0 == strcmp(gate_name.c_str(), "U3"))
+		{
+			/*double theta = get_angle(gate_para[1]);
+			double phi = get_angle(gate_para[2]);
+			double lamda = get_angle(gate_para[3]);*/
+
+			m_cir_generator.append_cir_node(gate_name, { gate_para[0].GetUint() },
+				{ gate_para[1].GetString(), gate_para[2].GetString(), gate_para[3].GetString() });
+		}
+		else if ((0 == strcmp(gate_name.c_str(), "ISWAP")) 
+			|| (0 == strcmp(gate_name.c_str(), "CR"))
+			|| (0 == strcmp(gate_name.c_str(), "CRX"))
+			|| (0 == strcmp(gate_name.c_str(), "CRY")))
+		{
+			m_cir_generator.append_cir_node(gate_name, { gate_para[0].GetUint(), gate_para[1].GetUint() }, { gate_para[2].GetString() });
+		}
+		else
+		{
+			QCERR_AND_THROW_ERRSTR(run_fail, "Error: unknow error on read_cir form config file.");
+		}
+	}
+}
+
+

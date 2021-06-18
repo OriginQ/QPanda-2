@@ -77,7 +77,7 @@ U4::U4(QStat & matrix)
     gate_matrix[1] = matrix[1];
     gate_matrix[2] = matrix[2];
     gate_matrix[3] = matrix[3];
-	if (abs(gate_matrix[0]) >= 1.0)
+	if (abs(gate_matrix[0]) > (1.0 - DBL_EPSILON))
 	{
 		gamma = 0.0;
 	}
@@ -141,11 +141,7 @@ void U4::getMatrix(QStat & matrix) const
         QCERR("the size of gate_matrix is error");
         throw invalid_argument("the size of gate_matrix is error");
     }
-
-    for (auto aIter : gate_matrix)
-    {
-        matrix.push_back(aIter);
-    }
+	matrix = gate_matrix;
 }
 
 //I gate
@@ -515,7 +511,7 @@ CU::CU(QStat & matrix)
     gate_matrix[14] = matrix[2];
     gate_matrix[15] = matrix[3];
 
-	if (abs(gate_matrix[10]) >= 1.0)
+	if (abs(gate_matrix[10]) > (1.0 - DBL_EPSILON))
 	{
 		gamma = 0.0;
 	}
@@ -650,6 +646,7 @@ SWAP::SWAP()
     gate_matrix[6] = 1;
     gate_matrix[9] = 1;
     gate_matrix[10] = 0;
+
 	gate_type = GateType::SWAP_GATE;
 }
 
@@ -702,23 +699,31 @@ U3::U3(double theta, double phi, double lambda)
     :m_theta(theta), m_phi(phi), m_lambda(lambda)
 {
     gate_type = GateType::U3_GATE;
-    auto tmp_value1 = qcomplex_t(0.5, 0) * (qcomplex_t(1, 0) + exp(qcomplex_t(0, theta)));
-    auto tmp_value2 = qcomplex_t(0.5, 0) * (qcomplex_t(1, 0) - exp(qcomplex_t(0, theta)));
+	const auto _v1 = (qstate_type)(std::cos(m_theta / 2.0));
+	const auto _v2 = (qstate_type)(std::sin(m_theta / 2.0));
+    gate_matrix[0] = _v1;
+    gate_matrix[1] = -std::exp(qcomplex_t(0, m_lambda)) * _v2;
+    gate_matrix[2] = std::exp(qcomplex_t(0, m_phi)) * _v2;
+    gate_matrix[3] = std::exp(qcomplex_t(0, m_phi + m_lambda)) * _v1;
 
-    gate_matrix[0] = tmp_value1;
-    gate_matrix[1] = qcomplex_t(0, -1) * exp(qcomplex_t(0, lambda)) * tmp_value2;
-    gate_matrix[2] = qcomplex_t(0, 1) * exp(qcomplex_t(0, phi)) * tmp_value2;
-    gate_matrix[3] = exp(qcomplex_t(0, phi + lambda)) * tmp_value1;
+    //gamma = 2 * acos(abs(gate_matrix[0]));
+	if (std::abs(gate_matrix[0]) > (1.0 - DBL_EPSILON))
+	{
+		gamma = 0.0;
+	}
+	else
+	{
+		gamma = 2 * std::acos(std::abs(gate_matrix[0]));
+	}
 
-    gamma = 2 * acos(abs(gate_matrix[0]));
-	if ((abs(gate_matrix[0]) > DBL_EPSILON) && (abs(gate_matrix[2]) > DBL_EPSILON))
+	if ((std::abs(gate_matrix[0]) > DBL_EPSILON) && (std::abs(gate_matrix[2]) > DBL_EPSILON))
     /*if (abs(gate_matrix[0] * gate_matrix[1]) > 1e-20)*/
     {
         beta = argc(gate_matrix[2] / gate_matrix[0]);
         delta = argc(gate_matrix[3] / gate_matrix[2]);
         alpha = beta / 2 + delta / 2 + argc(gate_matrix[0]);
     }
-    else if (abs(gate_matrix[0]) > DBL_EPSILON)
+    else if (std::abs(gate_matrix[0]) > DBL_EPSILON)
     {
         beta = argc(gate_matrix[3] / gate_matrix[0]);
         delta = 0;
@@ -730,4 +735,46 @@ U3::U3(double theta, double phi, double lambda)
         delta = 0;
         alpha = argc(gate_matrix[1]) + beta / 2 - PI;
     }
+}
+
+U3::U3(QStat& matrix) 
+{
+	operation_num = 1;
+	gate_matrix.resize(4);
+
+	const auto r1 = abs(matrix[0]); // cos(theat/2)
+	qcomplex_t _coeff; /**< 全局系数 */
+
+	auto get_u3_matrix_func = [&]() {
+		gate_matrix[0] = matrix[0] / _coeff;
+		gate_matrix[1] = matrix[1] / _coeff;
+		gate_matrix[2] = matrix[2] / _coeff;
+		gate_matrix[3] = matrix[3] / _coeff;
+	};
+
+	if (r1 > (1.0 - DBL_EPSILON))
+	{
+		m_theta = 0.0;
+		m_lambda = 0.0;
+		_coeff = matrix[0] / r1;
+		get_u3_matrix_func();
+		m_phi = argc(gate_matrix[3]);
+	}
+	else
+	{
+		if (r1 > DBL_EPSILON) {
+			m_theta = 2 * acos(r1);
+			_coeff = matrix[0] / r1;
+		}
+		else{
+			m_theta = PI;
+			_coeff = matrix[2] / std::exp(qcomplex_t(0, m_phi));
+		}
+
+		get_u3_matrix_func();
+		m_lambda = argc(qcomplex_t(-1,0) * gate_matrix[1]);
+		m_phi = argc(gate_matrix[2]);
+	}
+
+	gate_type = GateType::U3_GATE;
 }

@@ -28,8 +28,10 @@ limitations under the License.
 #include "Components/Optimizer/OptimizerFactory.h"
 #include "Components/Optimizer/OriginNelderMead.h"
 #include "Components/Optimizer/OriginPowell.h"
+#include "Components/Optimizer/OriginCOBYLA.h"
+#include "Components/Optimizer/OriginLBFGSB.h"
+#include "Components/Optimizer/OriginSLSQP.h"
 #include "Components/Utils/RJson/RJson.h"
-#include "Components/DataStruct.h"
 #include "Components/macro.h"
 
 

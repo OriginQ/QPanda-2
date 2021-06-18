@@ -248,6 +248,10 @@ public:
 
     qcomplex_t pmeasure_dec_index(std::string str);
 
+    QStat pmeasure_bin_subset(const std::vector<std::string>& bin_strs);
+
+    QStat pmeasure_dec_subset(const std::vector<std::string>& dec_strs);
+
 private:
     
     QStat m_init_state;

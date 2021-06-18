@@ -57,7 +57,8 @@ QCircuit parityCheckCircuit(std::vector<Qubit*> qubit_vec);
 * @param[in]  std::function<QGate(Qubit*)>  QGate function
 * @return     QCircuit
 */
-inline QCircuit apply_QGate(QVec qubits, std::function<QGate(Qubit*)> gate) {
+typedef QGate(*QGateFunc)(Qubit*);
+inline QCircuit apply_QGate(QVec qubits, QGateFunc gate) {
 	QCircuit c;
 	for (auto qubit : qubits) {
 		c << gate(qubit);
@@ -65,7 +66,7 @@ inline QCircuit apply_QGate(QVec qubits, std::function<QGate(Qubit*)> gate) {
 	return c;
 }
 
-inline QCircuit applyQGate(QVec qubits, std::function<QGate(Qubit*)> gate) {
+inline QCircuit applyQGate(QVec qubits, QGateFunc gate) {
 	QCircuit c;
 	for (auto qubit : qubits) {
 		c << gate(qubit);
@@ -76,19 +77,6 @@ inline QCircuit applyQGate(QVec qubits, std::function<QGate(Qubit*)> gate) {
 template<typename InputType, typename OutputType>
 using Oracle = std::function<QCircuit(InputType, OutputType)>;
 
-/**
-* @brief  Toffoli Quantum Gate 
-* @ingroup Utilities
-* @param[in]  Qubit*  first control qubit 
-* @param[in]  Qubit*  second control qubit 
-* @param[in]  Qubit*  target qubit
-* @return     QGate
-*/
-inline QGate Toffoli(Qubit* qc1, Qubit* qc2, Qubit* target) {
-	auto gate = X(target);
-	gate.setControl({ qc1,qc2 });
-	return gate;
-}
 
 /**
 * @brief  Splits the string by symbol
@@ -212,24 +200,23 @@ inline std::string generate_oracle_name(std::string oraclename,
 inline double argc(qcomplex_t num)
 {
 	double ret = 0;
-	const double max_precision = 1e-7;
 	const double imag_val = num.imag();
 	const double real_val = num.real();
-	if ((std::abs(imag_val) < max_precision) && (std::abs(real_val) < max_precision))
+	if ((std::abs(imag_val) < DBL_EPSILON) && (std::abs(real_val) < DBL_EPSILON))
 	{
-		ret = acos(1);
+		ret = std::acos(1);
 	}
     else if (imag_val >0)
     {
-		ret = acos((qstate_type)(real_val / sqrt(real_val*real_val + imag_val * imag_val)));
+		ret = std::acos((qstate_type)(real_val / std::sqrt(real_val*real_val + imag_val * imag_val)));
     }
     else if(imag_val <0)
     {
-		ret = -acos((qstate_type)(real_val / sqrt(real_val*real_val + imag_val * imag_val)));
+		ret = -std::acos((qstate_type)(real_val / std::sqrt(real_val*real_val + imag_val * imag_val)));
     }
     else
     {
-		ret = acos((qstate_type)(real_val / sqrt(real_val*real_val + imag_val * imag_val)));
+		ret = std::acos((qstate_type)(real_val / std::sqrt(real_val*real_val + imag_val * imag_val)));
     }
 
 	return ret;

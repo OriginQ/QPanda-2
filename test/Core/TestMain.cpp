@@ -2,7 +2,7 @@
 using namespace std;
 
 int main(int argc, char **argv) {
-    ::testing::GTEST_FLAG(filter) = "QVM.MPSQVM";
+    ::testing::GTEST_FLAG(filter) = "VF2.test1";
     ::testing::InitGoogleTest(&argc, argv);
 	auto ret = RUN_ALL_TESTS();
 

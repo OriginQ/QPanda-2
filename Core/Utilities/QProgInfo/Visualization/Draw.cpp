@@ -45,6 +45,7 @@ using namespace DRAW_TEXT_PIC;
 #define DIVIDER_LINE            ("!") 
 #define TIME_SEQUENCE_SEPARATOR_CHAR (":")
 #define LAYER_SEPARATOR_CHAR (" ")
+#define WRAP_CHAR (">")
 
 class WriteQCircuitTextFile
 {
@@ -82,7 +83,7 @@ protected:
 
 	void insert_divider_line() { 
 		m_outfile << "\n\n\n"; 
-		m_outfile << "//-----------------------  QCircuit_" << m_cir_index << "-----------------------";
+		m_outfile << "//-----------------------  QCircuit_" << m_cir_index - 1 << " END -----------------------";
 		m_outfile << "\n\n\n";
 	}
 
@@ -251,6 +252,21 @@ public:
 			string(LAYER_SEPARATOR_CHAR),
 			string(LAYER_SEPARATOR_CHAR),
 			string(LAYER_SEPARATOR_CHAR))
+	{}
+
+	int getLen() const { return 1; }
+
+private:
+};
+
+class WrapLine : public DrawBox
+{
+public:
+	WrapLine()
+		:DrawBox(
+			string(WRAP_CHAR),
+			string(WRAP_CHAR),
+			string(WRAP_CHAR))
 	{}
 
 	int getLen() const { return 1; }
@@ -461,35 +477,36 @@ public:
 private:
 };
 
-DrawPicture::DrawPicture(QProg prog, LayeredTopoSeq& layer_info)
+DrawPicture::DrawPicture(QProg prog, LayeredTopoSeq& layer_info, uint32_t length)
 	: m_prog(prog)
 	, m_layer_info(layer_info)
 	, m_text_len(0)
 	, m_max_time_sequence(0)
+	, m_wire_length(length)
 {}
 
 void DrawPicture::appendMeasure(std::shared_ptr<AbstractQuantumMeasure> pMeasure)
 {
 	int qubit_index = pMeasure->getQuBit()->getPhysicalQubitPtr()->getQubitAddr();
-	int c_bit_index = pMeasure->getCBit()->getValue();
+	int c_bit_index = pMeasure->getCBit()->get_addr();
 
 	auto start_quBit = m_quantum_bit_wires.find(qubit_index);
 	auto end_quBit = m_quantum_bit_wires.end();
 	int append_pos = getMaxQuWireLength(start_quBit, end_quBit);
 
 	MeasureFrom box_measure_from;
-	append_pos = start_quBit->second->append(box_measure_from, append_pos);
+	append_pos = start_quBit->second.back()->append(box_measure_from, append_pos);
 
-	update_time_sequence(start_quBit->second, get_measure_time_sequence());
+	update_time_sequence(start_quBit->second.back(), get_measure_time_sequence());
 
 	MeasureTo box_measure_to;
-	m_class_bit_wires[c_bit_index]->append(box_measure_to, (append_pos - (box_measure_to.getLen())));
+	m_class_bit_wires[c_bit_index].back()->append(box_measure_to, (append_pos - (box_measure_to.getLen())));
 
 	MeasureLine measure_line_on_qu_wire(MeasureLine::getMeasureLineCrossQuWire());
 	int offset = (box_measure_from.getLen() - measure_line_on_qu_wire.getLen()) / 2 + measure_line_on_qu_wire.getLen();
 	for (auto itr = ++start_quBit; itr != m_quantum_bit_wires.end(); itr++)
 	{
-		itr->second->append(measure_line_on_qu_wire, (append_pos - offset));
+		itr->second.back()->append(measure_line_on_qu_wire, (append_pos - offset));
 	}
 
 	MeasureLine measure_line_on_cl_wire(MeasureLine::getMeasureLineCrossClWire());
@@ -498,7 +515,7 @@ void DrawPicture::appendMeasure(std::shared_ptr<AbstractQuantumMeasure> pMeasure
 	{
 		if (m_class_bit_wires.find(i) != m_class_bit_wires.end())
 		{
-			m_class_bit_wires[i]->append(measure_line_on_cl_wire, (append_pos - (offset)));
+			m_class_bit_wires[i].back()->append(measure_line_on_cl_wire, (append_pos - (offset)));
 		}
 	}
 }
@@ -509,9 +526,9 @@ void DrawPicture::append_reset(std::shared_ptr<AbstractQuantumReset> pReset)
 	auto start_quBit = m_quantum_bit_wires.find(qubit_index);
 
 	ResetQubitBox box_reset;
-	start_quBit->second->append(box_reset, 0);
+	start_quBit->second.back()->append(box_reset, 0);
 
-	update_time_sequence(start_quBit->second, get_reset_time_sequence());
+	update_time_sequence(start_quBit->second.back(), get_reset_time_sequence());
 }
 
 void DrawPicture::append_ctrl_gate(std::string gate_name, const int terget_qubit, QVec &self_control_qubits_vec, QVec &circuit_control_qubits_vec)
@@ -542,7 +559,7 @@ void DrawPicture::append_ctrl_gate(std::string gate_name, const int terget_qubit
 		{
 			//append target qubit
 			set_connect_direction(*itr, all_qubits, quBox);
-			m_quantum_bit_wires[terget_qubit]->append(quBox, append_pos);
+			m_quantum_bit_wires[terget_qubit].back()->append(quBox, append_pos);
 		}
 		else
 		{
@@ -557,11 +574,11 @@ void DrawPicture::append_ctrl_gate(std::string gate_name, const int terget_qubit
 			}
 			
 			set_connect_direction(*itr, all_qubits, quControlBox);
-			m_quantum_bit_wires[*itr]->append(quControlBox, append_pos + (quBox.getLen() / 2));
+			m_quantum_bit_wires[*itr].back()->append(quControlBox, append_pos + (quBox.getLen() / 2));
 		}
 
 		// add time sequence
-		update_time_sequence(m_quantum_bit_wires[*itr], get_ctrl_node_time_sequence() * (circuit_control_qubits_vec.size() + 1));
+		update_time_sequence(m_quantum_bit_wires[*itr].back(), get_ctrl_node_time_sequence() * (circuit_control_qubits_vec.size() + 1));
 
 		if (itr != all_qubits.begin())
 		{
@@ -598,7 +615,7 @@ void DrawPicture::append_single_gate(std::string gate_name, QVec &qubits_vector,
 		{
 			//append target qubit
 			set_connect_direction(*itr, all_qubits, quBox);
-			m_quantum_bit_wires[qubit_index]->append(quBox, append_pos);
+			m_quantum_bit_wires[qubit_index].back()->append(quBox, append_pos);
 		}
 		else
 		{
@@ -607,7 +624,7 @@ void DrawPicture::append_single_gate(std::string gate_name, QVec &qubits_vector,
 				BarrierLine quControlBox;
 				quControlBox.set_to_circuit_control();
 				set_connect_direction(*itr, all_qubits, quControlBox);
-				m_quantum_bit_wires[*itr]->append(quControlBox, append_pos + (quBox.getLen() / 2));
+				m_quantum_bit_wires[*itr].back()->append(quControlBox, append_pos + (quBox.getLen() / 2));
 			}
 			else
 			{
@@ -615,11 +632,11 @@ void DrawPicture::append_single_gate(std::string gate_name, QVec &qubits_vector,
 				ControlQuBit quControlBox;
 				quControlBox.set_to_circuit_control();
 				set_connect_direction(*itr, all_qubits, quControlBox);
-				m_quantum_bit_wires[*itr]->append(quControlBox, append_pos + (quBox.getLen() / 2));
+				m_quantum_bit_wires[*itr].back()->append(quControlBox, append_pos + (quBox.getLen() / 2));
 			}
 		}
 
-		update_time_sequence(m_quantum_bit_wires[*itr], time_sequence);
+		update_time_sequence(m_quantum_bit_wires[*itr].back(), time_sequence);
 
 		if (itr != all_qubits.begin())
 		{
@@ -636,7 +653,7 @@ void DrawPicture::append_single_gate(std::string gate_name, QVec &qubits_vector,
 	}
 }
 
-void DrawPicture::update_time_sequence(std::shared_ptr<Wire> p_wire, int increased_time_sequence)
+void DrawPicture::update_time_sequence(Wire::sRef& p_wire, int increased_time_sequence)
 {
 	int cur_wire_time_sequence = p_wire->update_time_sequence(increased_time_sequence);
 	if (cur_wire_time_sequence > m_max_time_sequence)
@@ -652,7 +669,7 @@ void DrawPicture::append_ctrl_line(int line_start, int line_end, int pos)
 	{
 		if (m_quantum_bit_wires.find(i) != m_quantum_bit_wires.end())
 		{
-			m_quantum_bit_wires[i]->append(ctr_line, pos);
+			m_quantum_bit_wires[i].back()->append(ctr_line, pos);
 		}
 	}
 }
@@ -664,7 +681,7 @@ void DrawPicture::append_barrier_line(int line_start, int line_end, int pos)
 	{
 		if (m_quantum_bit_wires.find(i) != m_quantum_bit_wires.end())
 		{
-			m_quantum_bit_wires[i]->append(ctr_line, pos);
+			m_quantum_bit_wires[i].back()->append(ctr_line, pos);
 		}
 	}
 }
@@ -718,13 +735,13 @@ void DrawPicture::append_swap_gate(string gate_name, QVec &qubits_vector, QVec &
 			{
 				SwapTo swap_to;
 				set_connect_direction(*itr, all_qubits, swap_to);
-				m_quantum_bit_wires[(*itr) == swap_from_qubit_index ? swap_from_qubit_index : swap_to_qubit_index]->append(swap_to, append_pos);
+				m_quantum_bit_wires[(*itr) == swap_from_qubit_index ? swap_from_qubit_index : swap_to_qubit_index].back()->append(swap_to, append_pos);
 			}
 			else
 			{
 				SwapFrom swap_from;
 				set_connect_direction(*itr, all_qubits, swap_from);
-				m_quantum_bit_wires[(*itr) == swap_from_qubit_index? swap_from_qubit_index: swap_to_qubit_index]->append(swap_from, append_pos);
+				m_quantum_bit_wires[(*itr) == swap_from_qubit_index? swap_from_qubit_index: swap_to_qubit_index].back()->append(swap_from, append_pos);
 				already_append_swap_from_box = true;
 			}
 		}
@@ -734,11 +751,11 @@ void DrawPicture::append_swap_gate(string gate_name, QVec &qubits_vector, QVec &
 			ControlQuBit quControlBox;
 			quControlBox.set_to_circuit_control();
 			set_connect_direction(*itr, all_qubits, quControlBox);
-			m_quantum_bit_wires[*itr]->append(quControlBox, append_pos);
+			m_quantum_bit_wires[*itr].back()->append(quControlBox, append_pos);
 		}
 
 		// add time sequence
-		update_time_sequence(m_quantum_bit_wires[*itr], get_swap_gate_time_sequence() * (circuit_control_qubits_vec.size() + 1));
+		update_time_sequence(m_quantum_bit_wires[*itr].back(), get_swap_gate_time_sequence() * (circuit_control_qubits_vec.size() + 1));
 
 		if (itr != all_qubits.begin())
 		{
@@ -827,14 +844,14 @@ void DrawByLayer::handle_gate_node(std::shared_ptr<QNode>& p_node, pOptimizerNod
 	}
 }
 
-NodeType DrawPicture::sequence_node_type_to_node_type(SequenceNodeType sequence_node_type)
+NodeType DrawPicture::sequence_node_type_to_node_type(DAGNodeType sequence_node_type)
 {
 	switch (sequence_node_type)
 	{
-	case SequenceNodeType::MEASURE:
+	case DAGNodeType::MEASURE:
 		return MEASURE_GATE;
 
-	case SequenceNodeType::RESET:
+	case DAGNodeType::RESET:
 		return RESET_NODE;
 	}
 
@@ -846,23 +863,61 @@ void DrawPicture::draw_by_layer()
 	const auto& layer_info = m_layer_info;
 	DrawByLayer tmp_drawer(*this);
 
-	for (auto seq_item_itr = layer_info.begin(); seq_item_itr != layer_info.end(); ++seq_item_itr)
+	uint32_t _remain_layer_size = layer_info.size();
+	for (auto seq_item_itr = layer_info.begin(); seq_item_itr != layer_info.end(); ++seq_item_itr, --_remain_layer_size)
 	{
 		for (auto &seq_node_item : (*seq_item_itr))
 		{
 			auto n = seq_node_item.first;
 			auto p_node = *(n->m_iter);
-			tmp_drawer.handle_work(sequence_node_type_to_node_type((SequenceNodeType)(n->m_type)), p_node, n);
+			tmp_drawer.handle_work(sequence_node_type_to_node_type((DAGNodeType)(n->m_type)), p_node, n);
 		}
 
 		//update m_text_len
 		updateTextPicLen();
 
 		append_layer_line();
+
+		if (3 < _remain_layer_size)
+		{
+			auto_wrap();
+		}
 	}
 
 	//merge line
 	mergeLine();
+}
+
+void DrawPicture::auto_wrap()
+{
+	if (0 == m_wire_length){
+		return;
+	}
+
+	if (m_quantum_bit_wires.begin()->second.back()->getWireLength() > m_wire_length)
+	{
+		append_wrap_line();
+
+		uint32_t i = 0;
+		for (auto itr = m_quantum_bit_wires.begin(); itr != m_quantum_bit_wires.end(); ++itr, ++i)
+		{
+			const auto cur_time_sequence = itr->second.back()->get_time_sequence();
+			itr->second.emplace_back(std::make_shared<QuantumWire>());
+			const auto& p = itr->second.back();
+			string name = itr->second.front()->getMidLine().substr(0, WIRE_HEAD_LEN + 3);
+			p->setName(name, name.size()); //because the size of utf8-char is 3 Bytes
+			p->update_time_sequence(cur_time_sequence);
+		}
+
+		i = 0;
+		for (auto itr = m_class_bit_wires.begin(); itr != m_class_bit_wires.end(); ++itr, ++i)
+		{
+			itr->second.emplace_back(std::make_shared<ClassWire>());
+			const auto& p = itr->second.back();
+			string name = itr->second.front()->getMidLine().substr(0, WIRE_HEAD_LEN + 3);
+			p->setName(name, name.size()); //because the size of utf8-char is 3 Bytes
+		}
+	}
 }
 
 void DrawPicture::append_layer_line()
@@ -872,7 +927,23 @@ void DrawPicture::append_layer_line()
 	bool is_line_head = true;
 	for (auto itr = m_quantum_bit_wires.begin(); itr != m_quantum_bit_wires.end(); ++itr)
 	{
-		itr->second->append(layer_line, append_pos);
+		itr->second.back()->append(layer_line, append_pos);
+	}
+}
+
+void DrawPicture::append_wrap_line()
+{
+	WrapLine wrap_line;
+	int append_pos = getMaxQuWireLength(m_quantum_bit_wires.begin(), m_quantum_bit_wires.end());
+	//bool is_line_head = true;
+	for (auto itr = m_quantum_bit_wires.begin(); itr != m_quantum_bit_wires.end(); ++itr)
+	{
+		itr->second.back()->append(wrap_line, append_pos);
+	}
+
+	for (auto itr = m_class_bit_wires.begin(); itr != m_class_bit_wires.end(); ++itr)
+	{
+		itr->second.back()->append(wrap_line, append_pos);
 	}
 }
 
@@ -918,7 +989,7 @@ void DrawPicture::fill_layer(TopoSeqIter lay_iter)
 	{
 		auto n = seq_node_item.first;
 		auto p_node = *(n->m_iter);
-		used_qubits.handle_work(sequence_node_type_to_node_type((SequenceNodeType)(n->m_type)), p_node);
+		used_qubits.handle_work(sequence_node_type_to_node_type((DAGNodeType)(n->m_type)), p_node);
 	}
 
 	QVec unused_qubits_vec = get_qvec_difference(m_quantum_bits_in_use, vec_qubits_used_in_layer);
@@ -986,7 +1057,7 @@ void DrawPicture::get_gate_from_next_layer(TopoSeqIter to_fill_lay_iter, QVec &u
 		auto& seq_node_item = *seq_node_item_iter;
 		auto n = seq_node_item.first;
 		FillLayerByNextLayerNodes filler(*this, unused_qubits_vec, target_lay, next_lay);
-		filler.handle_work(sequence_node_type_to_node_type((SequenceNodeType)(n->m_type)), seq_node_item_iter);
+		filler.handle_work(sequence_node_type_to_node_type((DAGNodeType)(n->m_type)), seq_node_item_iter);
 		if (unused_qubits_vec.size() == 0)
 		{
 			break;
@@ -1025,21 +1096,19 @@ void DrawPicture::draw_by_time_sequence(const std::string config_data /*= CONFIG
 
 	DrawByLayer tmp_drawer(*this);
 	auto& layer_info = m_layer_info;
-	for (auto seq_item_itr = layer_info.begin(); seq_item_itr != layer_info.end(); ++seq_item_itr)
+	uint32_t _remain_layer_size = layer_info.size();
+	for (auto seq_item_itr = layer_info.begin(); seq_item_itr != layer_info.end(); ++seq_item_itr, --_remain_layer_size)
 	{
 		if ((*seq_item_itr).size() == 0)
 		{
 			continue;
 		}
 
-		//fill current layer
-		fill_layer(seq_item_itr);
-
 		for (auto &seq_node_item : (*seq_item_itr))
 		{
 			auto n = seq_node_item.first;
 			auto p_node = *(n->m_iter);
-			tmp_drawer.handle_work(sequence_node_type_to_node_type((SequenceNodeType)(n->m_type)), p_node, n);
+			tmp_drawer.handle_work(sequence_node_type_to_node_type((DAGNodeType)(n->m_type)), p_node, n);
 		}
 
 		// check time sequence
@@ -1050,6 +1119,11 @@ void DrawPicture::draw_by_time_sequence(const std::string config_data /*= CONFIG
 
 		//append time sequence line
 		append_time_sequence_line();
+
+		if (3 < _remain_layer_size)
+		{
+			auto_wrap();
+		}
 	}
 
 	//merge line
@@ -1063,244 +1137,28 @@ void DrawPicture::append_time_sequence_line()
 	bool is_line_head = true;
 	for (auto itr = m_quantum_bit_wires.begin(); itr != m_quantum_bit_wires.end(); ++itr)
 	{
-		itr->second->update_time_sequence(m_max_time_sequence - itr->second->get_time_sequence());
+		itr->second.back()->update_time_sequence(m_max_time_sequence - itr->second.back()->get_time_sequence());
 
 		if (is_line_head)
 		{
 			time_sequence_line.set_time_sequence(m_max_time_sequence);
-			itr->second->append(time_sequence_line, append_pos);
+			itr->second.back()->append(time_sequence_line, append_pos);
 			time_sequence_line.reset();
 			is_line_head = false;
 			continue;
 		}
-		itr->second->append(time_sequence_line, append_pos);
+		itr->second.back()->append(time_sequence_line, append_pos);
 	}
 }
 
 void DrawPicture::check_time_sequence(TopoSeqIter cur_layer_iter)
 {
-	auto next_layer_iter = ++cur_layer_iter;
 	const auto& layer_info = m_layer_info;
-	if (next_layer_iter == layer_info.end())
-	{
-		return;
-	}
 
 	//get the time sequence of each qubit line
-	for (auto itr = m_quantum_bit_wires.begin(); itr != m_quantum_bit_wires.end(); ++itr)
-	{
-		int cur_wire_time_sequence = itr->second->get_time_sequence();
-
-		//if any qubit-line's time sequence is less than others,  try complement by node from next layer
-		auto tmp_iter = next_layer_iter;
-		while (cur_wire_time_sequence < m_max_time_sequence)
-		{
-			if (check_time_sequence_one_qubit(itr, tmp_iter))
-			{
-				++tmp_iter;
-				cur_wire_time_sequence = itr->second->get_time_sequence();
-			}
-			else
-			{
-				itr->second->update_time_sequence(m_max_time_sequence - itr->second->get_time_sequence());
-				break;
-			}
-		}
+	for (auto itr = m_quantum_bit_wires.begin(); itr != m_quantum_bit_wires.end(); ++itr){
+		itr->second.back()->update_time_sequence(m_max_time_sequence - itr->second.back()->get_time_sequence());
 	}
-}
-
-void TryToMergeTimeSequence::handle_measure_node(DrawPicture::WireIter& cur_qu_wire, TopoSeqLayerIter& itr_on_next_layer, bool &b_found_node_on_cur_qu_wire)
-{
-	const auto &node = itr_on_next_layer->first;
-	std::shared_ptr<AbstractQuantumMeasure> p_measure = dynamic_pointer_cast<AbstractQuantumMeasure>(*(node->m_iter));
-	if (cur_qu_wire->first == p_measure->getQuBit()->getPhysicalQubitPtr()->getQubitAddr())
-	{
-		if ((m_parent.m_max_time_sequence - (cur_qu_wire->second->get_time_sequence())) < m_parent.get_measure_time_sequence())
-		{
-			m_b_continue_recurse = false;
-		}
-		else
-		{
-			m_parent.appendMeasure(p_measure);
-			m_next_layer.erase(itr_on_next_layer);
-			m_b_continue_recurse = true;
-		}
-
-		b_found_node_on_cur_qu_wire = true;
-	}
-}
-
-void TryToMergeTimeSequence::handle_reset_node(DrawPicture::WireIter& cur_qu_wire, TopoSeqLayerIter& itr_on_next_layer, bool &b_found_node_on_cur_qu_wire)
-{
-	const auto &node = itr_on_next_layer->first;
-	std::shared_ptr<AbstractQuantumReset> p_reset = dynamic_pointer_cast<AbstractQuantumReset>(*(node->m_iter));
-	if (cur_qu_wire->first == p_reset->getQuBit()->getPhysicalQubitPtr()->getQubitAddr())
-	{
-		if ((m_parent.m_max_time_sequence - (cur_qu_wire->second->get_time_sequence())) < m_parent.get_reset_time_sequence())
-		{
-			m_b_continue_recurse = false;
-		}
-		else
-		{
-			m_parent.append_reset(p_reset);
-			m_next_layer.erase(itr_on_next_layer);
-			m_b_continue_recurse = true;
-		}
-
-		b_found_node_on_cur_qu_wire = true;
-	}
-}
-
-void TryToMergeTimeSequence::handle_gate_node(DrawPicture::WireIter& cur_qu_wire, TopoSeqLayerIter& itr_on_next_layer, bool &b_found_node_on_cur_qu_wire)
-{
-	QVec control_qubits_vec;
-	QVec qubits_vector;
-	const auto &node = itr_on_next_layer->first;
-	std::shared_ptr<AbstractQGateNode> p_gate = dynamic_pointer_cast<AbstractQGateNode>(*(node->m_iter));
-	p_gate->getControlVector(control_qubits_vec);
-	p_gate->getQuBitVector(qubits_vector);
-	if ((qubits_vector.size() > 1) || (control_qubits_vec.size() > 0))
-	{
-		if ((m_parent.is_qubit_in_vec(cur_qu_wire->first, control_qubits_vec)) ||
-			(m_parent.is_qubit_in_vec(cur_qu_wire->first, qubits_vector)))
-		{
-			try_to_append_gate_to_cur_qu_wire(cur_qu_wire, itr_on_next_layer, m_next_layer);
-			b_found_node_on_cur_qu_wire = true;
-			return;
-		}
-	}
-	else
-	{
-		//single gate
-		if (cur_qu_wire->first == qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr())
-		{
-			try_to_append_gate_to_cur_qu_wire(cur_qu_wire, itr_on_next_layer, m_next_layer);
-			b_found_node_on_cur_qu_wire = true;
-			return;
-		}
-	}
-
-	m_b_continue_recurse = true;
-}
-
-void TryToMergeTimeSequence::try_to_append_gate_to_cur_qu_wire(DrawPicture::WireIter &qu_wire_itr, TopoSeqLayerIter& seq_iter, TopoSeqLayer& node_vec)
-{
-	const auto &seq_node = seq_iter->first;
-	QVec control_qubits_vec = seq_node->m_control_qubits;
-	QVec qubits_vector = seq_node->m_target_qubits;
-	string gate_name;
-	m_parent.append_gate_param(gate_name, seq_node);
-
-	if ((qubits_vector.size() > 1) || (control_qubits_vec.size() > 0))
-	{
-		if (((m_parent.m_max_time_sequence - (qu_wire_itr->second->get_time_sequence())) < m_parent.get_ctrl_node_time_sequence()) ||
-			(m_parent.check_ctrl_gate_time_sequence_conflicting(control_qubits_vec, qubits_vector)))
-		{
-			m_b_continue_recurse = false;
-			return;
-		}
-
-		//double gate
-		switch ((GateType)(seq_node->m_type))
-		{
-		case ISWAP_THETA_GATE:
-		case ISWAP_GATE:
-		case SQISWAP_GATE:
-		case SWAP_GATE:
-			m_parent.append_swap_gate(gate_name, qubits_vector, control_qubits_vec);
-			break;
-
-		case CU_GATE:
-		case CNOT_GATE:
-		case CZ_GATE:
-		case CPHASE_GATE:
-		{
-			int target_qubit = qubits_vector.back()->getPhysicalQubitPtr()->getQubitAddr();
-			qubits_vector.pop_back();
-			m_parent.append_ctrl_gate(gate_name, target_qubit, qubits_vector, control_qubits_vec);
-		}
-		break;
-
-		default:
-			break;
-		}
-	}
-	else
-	{
-		//single gate
-		m_parent.append_single_gate(gate_name, qubits_vector, control_qubits_vec);
-	}
-
-	m_next_layer.erase(seq_iter);
-	m_b_continue_recurse = true;
-}
-
-bool DrawPicture::check_time_sequence_one_qubit(WireIter qu_wire_itr, TopoSeqIter next_layer_iter)
-{
-	//if any qubit-line's time sequence is less than others,  try complement by node from next layer
-	const auto& layer_info = m_layer_info;
-	if (next_layer_iter == layer_info.end())
-	{
-		return false;
-	}
-
-	//complement by node from next layer
-	auto &nodes_on_next_layer = (*next_layer_iter);
-	TryToMergeTimeSequence merge_time_sequence(*this, nodes_on_next_layer);
-	for (auto seq_node_item = nodes_on_next_layer.begin(); seq_node_item != nodes_on_next_layer.end(); ++seq_node_item)
-	{
-		const auto &node = seq_node_item->first;
-		bool b_found_node_on_cur_qu_wire = false;
-
-		merge_time_sequence.handle_work(sequence_node_type_to_node_type((SequenceNodeType)(node->m_type)), qu_wire_itr, seq_node_item, b_found_node_on_cur_qu_wire);
-		if (b_found_node_on_cur_qu_wire)
-		{
-			break;
-		}
-	}
-
-	return merge_time_sequence.could_continue_merge();
-}
-
-//return true on time_sequence_conflicting, or else return false
-bool DrawPicture::check_ctrl_gate_time_sequence_conflicting(const QVec &control_qubits_vec, const QVec &qubits_vector)
-{
-	const int ctrl_gate_time_sequence = get_ctrl_node_time_sequence();
-
-	auto check_func = [&ctrl_gate_time_sequence, this](Qubit *tmp_qubit_itr){
-		int qubit_num = tmp_qubit_itr->getPhysicalQubitPtr()->getQubitAddr();
-		auto qu_wire_itr = m_quantum_bit_wires.find(qubit_num);
-		if (qu_wire_itr == m_quantum_bit_wires.end())
-		{
-			QCERR("qubit number is error.");
-			throw runtime_error("qubit number is error.");
-		}
-
-		if ((m_max_time_sequence - (qu_wire_itr->second->get_time_sequence())) < ctrl_gate_time_sequence)
-		{
-			return true;
-		}
-
-		return false;
-	};
-
-	for (const auto& qubit_itr : control_qubits_vec)
-	{
-		if (check_func(qubit_itr))
-		{
-			return true;
-		}
-	}
-
-	for (const auto& qubit_itr : qubits_vector)
-	{
-		if (check_func(qubit_itr))
-		{
-			return true;
-		}
-	}
-
-	return false;
 }
 
 bool DrawPicture::is_qubit_in_vec(const int qubit, const QVec& vec)
@@ -1322,7 +1180,7 @@ int DrawPicture::getMaxQuWireLength(WireIter start_quBit_wire, WireIter end_quBi
 	int tmp_length = 0;
 	for (auto itr = start_quBit_wire; itr != end_quBit_wire; ++itr)
 	{
-		tmp_length = itr->second->getWireLength();
+		tmp_length = itr->second.back()->getWireLength();
 		if (tmp_length > max_length)
 		{
 			max_length = tmp_length;
@@ -1337,27 +1195,34 @@ void DrawPicture::updateTextPicLen()
 	auto max_len = getMaxQuWireLength(m_quantum_bit_wires.begin(), m_quantum_bit_wires.end());
 	for (auto &itr : m_quantum_bit_wires)
 	{
-		itr.second->updateWireLen(max_len);
+		itr.second.back()->updateWireLen(max_len);
 	}
 
 	m_text_len = max_len;
 }
 
-string DrawPicture::present()
+string DrawPicture::present(bool b_out_put_to_file /*= false*/)
 {
 	std::string outputStr = "\n";
-	for (auto &itr : m_quantum_bit_wires)
-	{
-		outputStr.append(itr.second->draw());
-	}
+	const auto rows = m_quantum_bit_wires.begin()->second.size();
+	for (uint32_t i = 0; i < rows; ++i) {
+		for (auto &itr : m_quantum_bit_wires)
+		{
+			outputStr.append(itr.second.at(i)->draw());
+		}
 
-	for (auto &itr : m_class_bit_wires)
-	{
-		outputStr.append(itr.second->draw());
-	}
+		for (auto &itr : m_class_bit_wires)
+		{
+			outputStr.append(itr.second.at(i)->draw());
+		}
 
+		outputStr.append("\n");
+	}
+	
 	/* write to file */
-	WriteQCircuitTextFile::get_instance().write(outputStr);
+	if (b_out_put_to_file){
+		WriteQCircuitTextFile::get_instance().write(outputStr);
+	}
 
 	return outputStr;
 }
@@ -1369,22 +1234,25 @@ void DrawPicture::init(std::vector<int>& quBits, std::vector<int>& clBits)
 	char head_buf[WIRE_HEAD_LEN + 2] = "";
 	for (auto i : quBits)
 	{
-		auto p = std::make_shared<QuantumWire>();
+		std::vector<Wire::sRef> wire_vec;
+		wire_vec.emplace_back(std::make_shared<QuantumWire>());
+		const auto& p = wire_vec.front();
 		sprintf(head_buf, "q_%d:", i);
-		for (size_t j = strlen(head_buf); j < WIRE_HEAD_LEN; j++)
-		{
+		for (size_t j = strlen(head_buf); j < WIRE_HEAD_LEN; j++){
 			head_buf[j] = ' ';
 		}
 
 		string name = string(head_buf) + quantum_wire_pad;
 		p->setName(name, name.size() - 2); //because the size of utf8-char is 3 Bytes
-		m_quantum_bit_wires.insert(wireElement(i, p));
+		m_quantum_bit_wires.insert(wireElement(i, wire_vec));
 	}
 
 	memset(head_buf, 0, sizeof(head_buf));
 	for (auto i : clBits)
 	{
-		auto p = std::make_shared<ClassWire>();
+		std::vector<Wire::sRef> wire_vec;
+		wire_vec.emplace_back(std::make_shared<ClassWire>());
+		const auto& p = wire_vec.front();
 		sprintf(head_buf, " c_%d:", i);
 		for (size_t j = strlen(head_buf); j < WIRE_HEAD_LEN; j++)
 		{
@@ -1393,30 +1261,36 @@ void DrawPicture::init(std::vector<int>& quBits, std::vector<int>& clBits)
 
 		string name = string(head_buf) + class_wire_pad;
 		p->setName(name, name.size() - 2);//because the size of utf8-char is 3 Bytes
-		m_class_bit_wires.insert(wireElement(i, p));
+		m_class_bit_wires.insert(wireElement(i, wire_vec));
 	}
 
-	m_text_len = m_quantum_bit_wires.begin()->second->getWireLength();
+	m_text_len = m_quantum_bit_wires.begin()->second.front()->getWireLength();
 
 	get_all_used_qubits(m_prog, m_quantum_bits_in_use);
 }
 
 void DrawPicture::mergeLine()
 {
-	std::shared_ptr<Wire> upside_wire = m_quantum_bit_wires.begin()->second;
-	for (auto downside_wire = ++(m_quantum_bit_wires.begin()); downside_wire != m_quantum_bit_wires.end(); ++downside_wire)
+	const auto rows = m_quantum_bit_wires.begin()->second.size();
+	for (uint32_t i = 0; i < rows; ++i)
 	{
-		merge(upside_wire->getBotLine(), const_cast<std::string&>((downside_wire->second)->getTopLine()));
-		upside_wire->setMergedFlag(true);
-		upside_wire = (downside_wire->second);
-	}
+		auto upside_wire = m_quantum_bit_wires.begin()->second.at(i);
+		for (auto downside_wire = ++(m_quantum_bit_wires.begin()); downside_wire != m_quantum_bit_wires.end(); ++downside_wire)
+		{
+			merge(upside_wire->getBotLine(), const_cast<std::string&>((downside_wire->second.at(i))->getTopLine()));
+			upside_wire->setMergedFlag(true);
+			upside_wire = downside_wire->second.at(i);
+		}
 
-	for (auto downside_wire = m_class_bit_wires.begin(); downside_wire != m_class_bit_wires.end(); ++downside_wire)
-	{
-		merge(upside_wire->getBotLine(), const_cast<std::string&>((downside_wire->second)->getTopLine()));
-		upside_wire->setMergedFlag(true);
-		upside_wire = (downside_wire->second);
+		for (auto downside_wire = m_class_bit_wires.begin(); downside_wire != m_class_bit_wires.end(); ++downside_wire)
+		{
+			merge(upside_wire->getBotLine(), const_cast<std::string&>((downside_wire->second.at(i))->getTopLine()));
+			upside_wire->setMergedFlag(true);
+			upside_wire = downside_wire->second.at(i);
+		}
+
 	}
+	
 }
 
 void DrawPicture::merge(const std::string& up_wire, std::string& down_wire)
@@ -1452,6 +1326,11 @@ void DrawPicture::merge(const std::string& up_wire, std::string& down_wire)
 			tmp_str.append(DIVIDER_LINE);
 			continue;
 		}
+		else if (('>' == p_upside_str[upside_char_index]) && ('>' == p_downside_str[downside_char_index]))
+		{
+			tmp_str.append(WRAP_CHAR);
+			continue;
+		}
 		else if (((' ' == p_upside_str[upside_char_index]) && ('!' == p_downside_str[downside_char_index]))
 			||((' ' == p_downside_str[downside_char_index]) && ('!' == p_upside_str[upside_char_index])))
 		{
@@ -1478,6 +1357,13 @@ void DrawPicture::merge(const std::string& up_wire, std::string& down_wire)
 		{
 			upside_wide_char = getWideCharVal((unsigned char*)p_upside_str + upside_char_index);
 			downside_wide_char = getWideCharVal((unsigned char*)p_downside_str + downside_char_index);
+
+			if (('!' == p_upside_str[upside_char_index]) && (SINGLE_HORIZONTAL_LINE == downside_wide_char))
+			{
+				tmp_str.append(ulongToUtf8(SINGLE_HORIZONTAL_LINE));
+				downside_char_index += 2;
+				continue;
+			}
 
 			if (upside_wide_char == downside_wide_char)
 			{
@@ -1549,6 +1435,11 @@ void DrawPicture::merge(const std::string& up_wire, std::string& down_wire)
 				if ((BOX_RIGHT_TOP_CHAR == downside_wide_char) || (BOX_LEFT_TOP_CHAR == downside_wide_char))
 				{
 					tmp_str.append(ulongToUtf8(BOX_DOWN_CONNECT_CHAR));
+				}
+				else if ('!' == p_downside_str[downside_char_index])
+				{
+					tmp_str.append(ulongToUtf8(SINGLE_HORIZONTAL_LINE));
+					downside_char_index -= 2;
 				}
 			}
 			break;

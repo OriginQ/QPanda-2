@@ -118,7 +118,7 @@ def test_layer1():
     
     print(prog)
     draw_qprog(prog, 'text')
-    draw_qprog(prog, 'pic', filename='D:/test_cir_draw.jpg', verbose=True)
+    draw_qprog(prog, 'pic', filename='D:/test_cir_draw.jpg')
 
 if __name__=="__main__":
     test_layer1()

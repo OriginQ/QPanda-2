@@ -1,7 +1,7 @@
 #ifndef CHEMIQUTIL_H
 #define CHEMIQUTIL_H
 
-#include "Components/DataStruct.h"
+#include "Core/Module/DataStruct.h"
 #include "Components/Operator/PauliOperator.h"
 #include "Components/Operator/FermionOperator.h"
 #include "Core/Variational/VarPauliOperator.h"

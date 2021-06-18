@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 #include "Core/Core.h"
+#include "QPanda.h"
 #include "Utilities/Tools/Utils.h"
 #include "QAlg/B_V_Algorithm/BernsteinVaziraniAlgorithm.h"
 #include <bitset>
@@ -40,10 +41,9 @@ BV_Oracle generate_bv_oracle(vector<bool> oracle_function) {
 
 int main()
 {
-
     while (1)
     {
-		auto qvm = initQuantumMachine();
+        auto qvm = initQuantumMachine();
         cout << "Bernstein Vazirani Algorithm\n" << endl;
         cout << "f(x)=a*x+b\n" << endl;
         cout << "input a" << endl;
@@ -61,6 +61,7 @@ int main()
                 a.push_back(1);
             }
         }
+
         cout << "input b" << endl;
         bool b;
         cin >> b;
@@ -71,13 +72,14 @@ int main()
 
         auto oracle = generate_bv_oracle(a);
         auto bvAlgorithm = bernsteinVaziraniAlgorithm(stra, b, qvm, oracle);
-		auto result = qvm->directlyRun(bvAlgorithm);
-		
-		for(auto  aiter : result)
-		{
-			std::cout << aiter.first<<" : "<<aiter.second << std::endl;
-		}
-		destroyQuantumMachine(qvm);
+        auto result = qvm->directlyRun(bvAlgorithm);
+
+        for (auto aiter : result)
+        {
+            std::cout << aiter.first << " : " << aiter.second << std::endl;
+        }
+        destroyQuantumMachine(qvm);
     }
 
+    return 0;
 }

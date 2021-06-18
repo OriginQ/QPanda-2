@@ -17,6 +17,8 @@ limitations under the License.
 #include "Core/Core.h"
 #include "QAlg/HHL/HHL.h"
 #include <time.h>
+#include <fstream>
+#include <iostream>
 
 using namespace std;
 using namespace QPanda;
@@ -235,7 +237,7 @@ static vector<unsigned int> quantum_spring_rank(AdjacentMatrix &mat)
 	getchar();*/
 #endif
 
-	QStat result = HHL_solve_linear_equations(A, b);
+	QStat result = HHL_solve_linear_equations(A, b, 2);
 
 #if 1
 	std::cout << "HHL result:" << endl;
@@ -255,7 +257,8 @@ static vector<unsigned int> quantum_spring_rank(AdjacentMatrix &mat)
 	return get_rank(result, rank_element_cnt);
 }
 #if 1
-/** The target rank: 22, 19, 17, 23, 1, 21, 20, 25, 18, 14, 29, 0, 12, 16, 3, 4, 10, 27, 28, 15, 13, 2, 5, 24, 9, 30, 6, 26, 7, 8, 11
+/** The target rank: 
+19, 22, 17, 18, 25, 23, 21, 29, 20, 14, 16, 1, 12, 27, 0, 15, 3, 4, 10, 28, 13, 30, 24, 5, 2, 9, 26, 7, 6, 8, 11,
 */
 bool SpringRank_test1()
 {
@@ -272,7 +275,7 @@ bool SpringRank_test1()
 	adjacent_mat[17][18] = 1;
 	adjacent_mat[17][16] = 2;
 	adjacent_mat[29][16] = 4;
-	adjacent_mat[0][16] = 3;
+	adjacent_mat[16][0] = 3;
 	adjacent_mat[16][27] = 3;
 	adjacent_mat[27][30] = 1;
 	adjacent_mat[27][15] = 2;
@@ -392,22 +395,141 @@ bool SpringRank_test5(const size_t cnt = 31)
 	return true;
 }
 
+AdjacentMatrix get_matrix_from_file(const std::string data_file)
+{
+	ifstream data_file_reader(data_file);
+	if (!data_file_reader.is_open())
+	{
+		QCERR_AND_THROW(run_fail, "can not open this file: " << data_file);
+	}
+
+	auto trim = [](string& str) {
+		size_t _pos = 0;
+		const char* _s = " ";
+		_pos = str.find(_s, _pos);
+		while (string::npos != _pos) {
+			str.replace(_pos, 1, "");
+			_pos = str.find(_s, _pos);
+		}
+	};
+
+	auto get_line_data_fun = [&trim](const string& line_str, std::vector<AdjacentDataT>& data_vec) {
+		uint32_t offset = 0;
+		size_t _pos_1 = 0;
+		size_t _pos_2 = 0;
+		size_t interval_pos = 0;/**< 复数实部虚部的分割位置 */
+		data_vec.clear();
+		while (true)
+		{
+			_pos_1 = line_str.find_first_of('(', offset);
+			if (string::npos == _pos_1) {
+				break;
+			}
+
+			_pos_2 = line_str.find_first_of(')', _pos_1);
+			if (string::npos == _pos_2) {
+				QCERR_AND_THROW(run_fail, "Error, filed to parse line_data: " << line_str << " on start pos:" << _pos_1);
+			}
+
+			auto complex_data_str = line_str.substr(_pos_1 + 1, _pos_2 - _pos_1 - 1);
+			//trim(complex_data_str);
+			offset = _pos_2;
+
+			interval_pos = complex_data_str.find_first_of(',');
+			if (string::npos == interval_pos) {
+				QCERR_AND_THROW(run_fail, "Error, filed to parse complex_data_str: " << complex_data_str);
+			}
+
+			double _real = atof(complex_data_str.substr(0, interval_pos).c_str());
+			double _imag = atof(complex_data_str.substr(interval_pos + 1).c_str());
+			data_vec.push_back(_real);
+		}
+	};
+
+	size_t rank_element_cnt = 0;
+	AdjacentMatrix matrix;
+	string line_data;
+	uint32_t line_index = 0;
+	while (getline(data_file_reader, line_data))
+	{
+		if (0 == line_index)
+		{
+			std::vector<AdjacentDataT> data_vec;
+			get_line_data_fun(line_data, data_vec);
+			rank_element_cnt = data_vec.size();
+			matrix.resize(rank_element_cnt);
+			matrix[0].swap(data_vec);
+		}
+		else
+		{
+			get_line_data_fun(line_data, matrix[line_index]);
+			if (matrix[line_index].size() != rank_element_cnt){
+				QCERR_AND_THROW(run_fail, "Error: read matrix-date file error on line:" << line_index);
+			}
+		}
+
+		++line_index;
+	}
+
+	return matrix;
+}
+
+bool SpringRank_test6(const std::string data_file)
+{
+	auto matrix = get_matrix_from_file(data_file);
+	auto rank = quantum_spring_rank(matrix);
+	cout << "Got ranks:" << endl;
+	for (auto &val : rank)
+	{
+		std::cout << val << ", ";
+	}
+	std::cout << std::endl;
+
+	return true;
+}
+
 int main(int argc, char* argv[])
 {
 	bool test_val = false;
-	unsigned d = 16;
+	uint32_t d = 0;
+	std::string data_file = "data.txt";
 	if (argc > 1)
 	{
-		d = atoi(argv[1]);
+		if (nullptr != strstr(argv[1], ".txt"))
+		{
+			data_file = argv[1];
+			cout << "got param, data file: " << data_file << endl;
+		}
+		else
+		{
+			d = atoi(argv[1]);
+			cout << "got param: " << d << endl;
+		}
+		
 	}
-	cout << "got network-node-cnt: " << d << endl;
+	else
+	{
+		cout << "default param: " << data_file << endl;
+	}
+	
 
 	try
 	{
+		//data_file = ;
+		////test_val = SpringRank_test6(data_file);
 		//test_val = SpringRank_test1();
-		test_val = SpringRank_test3();
-		//test_val = SpringRank_test4();
-		//test_val = SpringRank_test5(d);
+
+		if (0 < d)
+		{
+			//test_val = SpringRank_test1();
+			//test_val = SpringRank_test3();
+			//test_val = SpringRank_test4();
+			test_val = SpringRank_test5(d);
+		}
+		else
+		{
+			test_val = SpringRank_test6(data_file);
+		}
 	}
 	catch (const std::exception& e)
 	{

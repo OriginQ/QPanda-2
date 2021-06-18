@@ -223,10 +223,8 @@ static void decomposition(EigenMatrixXc& matrix, MatrixOperator& entries, std::v
 			auto rdx = entries[cdx][idx].first;
 			auto opt = entries[cdx][idx].second;
 
-			if ((((abs(matrix(rdx, cdx).real()) < MAX_MATRIX_PRECISION) && (abs(matrix(rdx, cdx).imag()) < MAX_MATRIX_PRECISION)) && (idx != opts - 1)) ||
-				(((abs(matrix(cdx + 1, cdx).real() - 1.0) < MAX_MATRIX_PRECISION) && (abs(matrix(cdx + 1, cdx).imag()) < MAX_MATRIX_PRECISION)) && (idx == opts - 1)))
-			/*if ((EigenComplexT(0, 0) == matrix(rdx, cdx) && (idx != opts - 1)) ||
-				(EigenComplexT(1, 0) == matrix(cdx + 1, cdx) && (idx == opts - 1)))*/
+			if ((EigenComplexT(0, 0) == matrix(rdx, cdx) && (idx != opts - 1)) ||
+				(EigenComplexT(1, 0) == matrix(cdx + 1, cdx) && (idx == opts - 1)))
 			{
 				continue;
 			}
@@ -283,8 +281,7 @@ static void decomposition(EigenMatrixXc& matrix, MatrixOperator& entries, std::v
 	}
 
 	EigenMatrix2c V2 = matrix.bottomRightCorner(2, 2);
-	if(!V2.isApprox(EigenMatrixXc::Identity(2, 2), MAX_MATRIX_PRECISION))
-	//if (EigenMatrixXc::Identity(2, 2) != V2)
+	if (EigenMatrixXc::Identity(2, 2) != V2)
 	{
 		QStat M2 = { (qcomplex_t)((EigenComplexT)1.0 / V2(0,0)), (qcomplex_t)(V2(0,1)),
 					 (qcomplex_t)(V2(1,0)) , (qcomplex_t)((EigenComplexT)1.0 / V2(1,1))};
@@ -423,22 +420,6 @@ public:
 		long pre_index = -1;
 		for (size_t i = 0; i < tmp_base_unitary_cnt; ++i)
 		{
-			tmp_mat22.clear();
-			const size_t tmp_row = (2 * i * mat_dimension) + (2 * i);
-			tmp_mat22.push_back(src_mat[tmp_row]);
-			tmp_mat22.push_back(src_mat[tmp_row + 1]);
-			tmp_mat22.push_back(src_mat[tmp_row + mat_dimension]);
-			tmp_mat22.push_back(src_mat[tmp_row + mat_dimension + 1]);
-			QGate tmp_u4 = U4(tmp_mat22, qubits.back()).control(controlqvec);
-			QGATE_SPACE::U4* p_gate = dynamic_cast<QGATE_SPACE::U4*>(tmp_u4.getQGate());
-			if ((abs(p_gate->getAlpha()) < MAX_MATRIX_PRECISION)
-				&& (abs(p_gate->getBeta()) < MAX_MATRIX_PRECISION)
-				&& (abs(p_gate->getGamma()) < MAX_MATRIX_PRECISION)
-				&& (abs(p_gate->getDelta()) < MAX_MATRIX_PRECISION))
-			{
-				continue;
-			}
-
 			if (0 == i)
 			{
 				QCircuit index_cir_zero = index_to_circuit(0, controlqvec);
@@ -450,7 +431,22 @@ public:
 				decompose_result_cir << index_cir;
 			}
 
-			decompose_result_cir << tmp_u4;
+			tmp_mat22.clear();
+			const size_t tmp_row = (2 * i * mat_dimension) + (2 * i);
+			tmp_mat22.push_back(src_mat[tmp_row]);
+			tmp_mat22.push_back(src_mat[tmp_row + 1]);
+			tmp_mat22.push_back(src_mat[tmp_row + mat_dimension]);
+			tmp_mat22.push_back(src_mat[tmp_row + mat_dimension + 1]);
+			QGate tmp_u4 = U4(tmp_mat22, qubits.back()).control(controlqvec);
+			QGATE_SPACE::U4* p_gate = dynamic_cast<QGATE_SPACE::U4*>(tmp_u4.getQGate());
+			if ((abs(p_gate->getAlpha()) > MAX_MATRIX_PRECISION)
+				|| (abs(p_gate->getBeta()) > MAX_MATRIX_PRECISION)
+				|| (abs(p_gate->getGamma()) > MAX_MATRIX_PRECISION)
+				|| (abs(p_gate->getDelta()) > MAX_MATRIX_PRECISION))
+			{
+				decompose_result_cir << tmp_u4;
+			}
+
 			pre_index = i;
 		}
 
@@ -794,7 +790,7 @@ QCircuit QPanda::matrix_decompose(QVec qubits, EigenMatrixXc& src_mat, Decomposi
 
 	if (qubits.size() != log2(src_mat.cols()))
 	{
-		QCERR_AND_THROW_ERRSTR(invalid_argument, "The qubits number is error.");
+		QCERR_AND_THROW_ERRSTR(invalid_argument, "The qubits number is error or the input matrix is not a 2^n-dimensional matrix.");
 	}
 
 	QCircuit output_circuit;

@@ -16,7 +16,6 @@ Update by code specification
 #define _QUANTUM_GATE_H
 #include <map>
 #include <string>
-#include  <string.h>
 #include <functional>
 #include "Core/QuantumCircuit/QGlobalVariable.h"
 #include "Core/Utilities/QPandaNamespace.h"
@@ -635,6 +634,7 @@ namespace QGATE_SPACE
 
     class U3 :public U4,
         public DynamicCreator<U3, double&, double&, double&>,
+		public DynamicCreator<U3, QStat&>,
         public DynamicCreator<U3, QuantumGate*>
     {
     public:
@@ -651,6 +651,7 @@ namespace QGATE_SPACE
 			m_lambda = dynamic_cast<QGATE_SPACE::U3*>(gate_old)->m_lambda;
         };
         U3(double, double, double);
+		U3(QStat& matrix);
 
         inline double getAlpha()const
         {

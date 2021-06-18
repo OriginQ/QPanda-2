@@ -1,5 +1,6 @@
 #include "Core/Utilities/QProgTransform/SU4TopologyMatch.h"
 #include "Core/Utilities/Tools/JsonConfigParam.h"
+#include "Core/Utilities/Tools/ProcessOnTraversing.h"
 
 USING_QPANDA
 using namespace std;
@@ -78,12 +79,8 @@ void  SU4TopologyMatch::build_coupling_map(ArchType type)
 
 void SU4TopologyMatch::transform_qprog(QProg prog, std::vector<gate> &circuit)
 {
-	QProgToDAG qprog_to_dag;
-	QProgDAG<GateNodeInfo> qprog_dag;
-	qprog_to_dag.traversal(prog, qprog_dag);
-	TopologSequence<SequenceNode> tp_seq;
-	DAGToTopologSequence<SequenceNode>(tp_seq, qprog_dag, 
-		static_cast<DAGToTopologSequence<SequenceNode>::tranf_fun<GateNodeInfo>>(SequenceNode::construct_sequence_node));
+	std::shared_ptr<QProgDAG> dag = qprog_to_DAG(prog);
+	TopologSequence<DAGSeqNode> tp_seq = dag->build_topo_sequence();
 
 	std::set<int > used_qubits;
 	std::vector<int> tp_sort;
@@ -96,7 +93,7 @@ void SU4TopologyMatch::transform_qprog(QProg prog, std::vector<gate> &circuit)
 	}
 	for (auto vertex : tp_sort)
 	{
-		std::shared_ptr<QNode> qnode = *(qprog_dag.get_vertex_node(vertex).m_itr);
+		std::shared_ptr<QNode> qnode = *(dag->get_vertex(vertex).m_node->m_itr);
 		if (qnode->getNodeType() != NodeType::GATE_NODE)
 		{
 			QCERR("node type not support!");

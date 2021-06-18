@@ -16,7 +16,7 @@ private:
     std::shared_ptr<CExpr> m_cepr;
     std::vector<Qubit *> m_qvec;
 public:
-    inline PhysicalQubit* getPhysicalQubitPtr() 
+    inline PhysicalQubit* getPhysicalQubitPtr()  const
     {
         auto temp = m_cepr->get_val();
         return m_qvec[temp]->getPhysicalQubitPtr();

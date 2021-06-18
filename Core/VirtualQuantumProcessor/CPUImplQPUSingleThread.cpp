@@ -33,7 +33,7 @@ CPUImplQPUSingleThread::~CPUImplQPUSingleThread()
     qubit2stat.clear();
 }
 
-CPUImplQPUSingleThread::CPUImplQPUSingleThread(size_t qubitSumNumber) 
+CPUImplQPUSingleThread::CPUImplQPUSingleThread(size_t qubitSumNumber)
     :qubit2stat(qubitSumNumber)
 {
 }
@@ -45,8 +45,8 @@ QGateParam& CPUImplQPUSingleThread::findgroup(size_t qn)
         if (iter->enable == false) continue;
         if (find(iter->qVec.begin(), iter->qVec.end(), qn) != iter->qVec.end()) return *iter;
     }
-    QCERR("unknow error");
-    throw runtime_error("unknow error");
+
+    throw std::runtime_error("error");
 }
 
 bool CPUImplQPUSingleThread::TensorProduct(QGateParam& qgroup0, QGateParam& qgroup1)
@@ -112,7 +112,7 @@ QError CPUImplQPUSingleThread::pMeasure
         sort(mResult.begin(), mResult.end(), probcompare);
         return qErrorNone;
     }
-    else if(mResult.size() <= select_max)
+    else if (mResult.size() <= select_max)
     {
         sort(mResult.begin(), mResult.end(), probcompare);
         return qErrorNone;
@@ -136,15 +136,21 @@ QError CPUImplQPUSingleThread::pMeasure(Qnum& qnum, prob_vec &mResult)
     QGateParam& group0 = findgroup(qnum[0]);
     for (auto iter = qnum.begin(); iter != qnum.end(); iter++)
     {
-        TensorProduct(group0, findgroup(*iter));
+        try {
+            TensorProduct(group0, findgroup(*iter));
+        }
+        catch (...) {
+
+        }
+
     }
-        
+
     Qnum qvtemp;
     for (auto iter = qnum.begin(); iter != qnum.end(); iter++)
     {
         qvtemp.push_back(find(group0.qVec.begin(), group0.qVec.end(), *iter) - group0.qVec.begin());
     }
-    
+
     for (size_t i = 0; i < group0.qstate.size(); i++)
     {
         size_t idx = 0;
@@ -165,17 +171,17 @@ bool CPUImplQPUSingleThread::qubitMeasure(size_t qn)
     size_t ststep = 1ull << find(qgroup.qVec.begin(), qgroup.qVec.end(), qn) - qgroup.qVec.begin();
     double dprob(0);
 
-    for (size_t i = 0; i< qgroup.qstate.size(); i += ststep * 2)
+    for (size_t i = 0; i < qgroup.qstate.size(); i += ststep * 2)
     {
-        for (size_t j = i; j<i + ststep; j++)
+        for (size_t j = i; j < i + ststep; j++)
         {
             dprob += abs(qgroup.qstate[j])*abs(qgroup.qstate[j]);
         }
     }
     int ioutcome(0);
-	float fi = get_random_double();
+    float fi = get_random_double();
 
-    if (fi> dprob)
+    if (fi > dprob)
     {
         ioutcome = 1;
     }
@@ -205,7 +211,7 @@ bool CPUImplQPUSingleThread::qubitMeasure(size_t qn)
         //#pragma omp parallel for private(j)
         for (size_t i = 0; i < qgroup.qstate.size(); i = i + 2 * ststep)
         {
-            for (j = i; j<i + ststep; j++) {
+            for (j = i; j < i + ststep; j++) {
                 qgroup.qstate[j] = 0;
                 qgroup.qstate[j + ststep] *= dprob;
             }
@@ -301,7 +307,7 @@ QError  CPUImplQPUSingleThread::unitarySingleQubitGate
 
     for (long long i = 0; i < (long long)qgroup.qstate.size(); i += ststep * 2)
     {
-        for (j = i; j<i + ststep; j++)
+        for (j = i; j < i + ststep; j++)
         {
             alpha = qgroup.qstate[j];
             beta = qgroup.qstate[j + ststep];
@@ -405,8 +411,8 @@ unitaryDoubleQubitGate(size_t qn_0,
         - qgroup0.qVec.begin());
     size_t ststep2 = 1ull << (find(qgroup0.qVec.begin(), qgroup0.qVec.end(), qn_1)
         - qgroup0.qVec.begin());
-    size_t stemp1 = (ststep1>ststep2) ? ststep1 : ststep2;
-    size_t stemp2 = (ststep1>ststep2) ? ststep2 : ststep1;
+    size_t stemp1 = (ststep1 > ststep2) ? ststep1 : ststep2;
+    size_t stemp2 = (ststep1 > ststep2) ? ststep2 : ststep1;
 
     bool bmark = true;
     qcomplex_t phi00, phi01, phi10, phi11;
@@ -431,9 +437,9 @@ unitaryDoubleQubitGate(size_t qn_0,
     }
     long long j, k;
 
-    for (long long i = 0; i<(long long)stateSize; i = i + 2 * stemp1)
+    for (long long i = 0; i < (long long)stateSize; i = i + 2 * stemp1)
     {
-        for (j = i; j <(long long)(i + stemp1); j = j + 2 * stemp2)
+        for (j = i; j < (long long)(i + stemp1); j = j + 2 * stemp2)
         {
             for (k = j; k < (long long)(j + stemp2); k++)
             {
@@ -512,7 +518,7 @@ controlunitaryDoubleQubitGate(size_t qn_0,
     size_t j;
     size_t index = 0;
     size_t x;
-    size_t n = qgroup0.qVec.size();        
+    size_t n = qgroup0.qVec.size();
 
     for (long long i = 0; i < (long long)M; i++)
     {
@@ -803,11 +809,11 @@ QError CPUImplQPUSingleThread::SqiSWAP(
     return undefineError;
 }
 
-QError CPUImplQPUSingleThread::DiagonalGate(Qnum & vQubit,QStat & matrix, bool isConjugate, double error_rate)
+QError CPUImplQPUSingleThread::DiagonalGate(Qnum & vQubit, QStat & matrix, bool isConjugate, double error_rate)
 {
 
     QGateParam& qgroup0 = findgroup(vQubit[0]);
-    for (auto iter = vQubit.begin()+1; iter != vQubit.end(); iter++)
+    for (auto iter = vQubit.begin() + 1; iter != vQubit.end(); iter++)
     {
         TensorProduct(qgroup0, findgroup(*iter));
     }
@@ -921,107 +927,107 @@ QError CPUImplQPUSingleThread::Reset(size_t qn)
     size_t ststep = 1ull << (find(qgroup.qVec.begin(), qgroup.qVec.end(), qn)
         - qgroup.qVec.begin());
     //#pragma omp parallel for private(j,alpha,beta)
-	double dsum = 0;
+    double dsum = 0;
     for (size_t i = 0; i < qgroup.qstate.size(); i += ststep * 2)
     {
-        for (j = i; j<i + ststep; j++)
+        for (j = i; j < i + ststep; j++)
         {
             qgroup.qstate[j + ststep] = 0;                              /* in j+ststep,the goal qubit is in |1> */
-			dsum += (abs(qgroup.qstate[j])*abs(qgroup.qstate[j]) + abs(qgroup.qstate[j + ststep])*abs(qgroup.qstate[j + ststep]));
+            dsum += (abs(qgroup.qstate[j])*abs(qgroup.qstate[j]) + abs(qgroup.qstate[j + ststep])*abs(qgroup.qstate[j + ststep]));
         }
     }
 
-	dsum = sqrt(dsum);
-	for (size_t i = 0; i < qgroup.qstate.size(); i++)
-	{
-		qgroup.qstate[i] /= dsum;
-	}
+    dsum = sqrt(dsum);
+    for (size_t i = 0; i < qgroup.qstate.size(); i++)
+    {
+        qgroup.qstate[i] /= dsum;
+    }
 
     return qErrorNone;
 }
 
 size_t extract_bit(size_t rawnumber, vector<size_t> bits) {
-	size_t extracted_number = 0;
-	for (int i = 0; i < bits.size(); ++i) {
-		int bit = bits[i];
-		int digit = (rawnumber >> bit) % 2;
-		extracted_number += (1ull << i)*digit;
-	}
-	return extracted_number;
+    size_t extracted_number = 0;
+    for (int i = 0; i < bits.size(); ++i) {
+        int bit = bits[i];
+        int digit = (rawnumber >> bit) % 2;
+        extracted_number += (1ull << i)*digit;
+    }
+    return extracted_number;
 }
 
 size_t reconstruct_number(size_t extracted_number, vector<size_t> bits) {
-	size_t raw_number = 0;
-	for (int i = 0; i < bits.size(); ++i) {
-		int digit = (extracted_number >> i) % 2;
-		raw_number += (1ull << bits[i])*digit;
-	}
-	return raw_number;
+    size_t raw_number = 0;
+    for (int i = 0; i < bits.size(); ++i) {
+        int digit = (extracted_number >> i) % 2;
+        raw_number += (1ull << bits[i])*digit;
+    }
+    return raw_number;
 }
 
 QError CPUImplQPUSingleThreadWithOracle::controlOracularGate(
-	vector<size_t> bits,
-	vector<size_t> controlbits,
-	bool is_dagger,
-	string name) {
+    vector<size_t> bits,
+    vector<size_t> controlbits,
+    bool is_dagger,
+    string name) {
 
-	vector<size_t> name_qubits;
-	string oracle_name;
-	QPanda::parse_oracle_name(name, oracle_name, name_qubits);
+    vector<size_t> name_qubits;
+    string oracle_name;
+    QPanda::parse_oracle_name(name, oracle_name, name_qubits);
 
-	QGateParam& qgroup0 = findgroup(bits[0]);
-	for (auto iter = bits.begin() + 1; iter != bits.end(); iter++)
-	{
-		TensorProduct(qgroup0, findgroup(*iter));
-	}
-	for (auto iter = controlbits.begin(); iter != controlbits.end(); iter++)
-	{
-		TensorProduct(qgroup0, findgroup(*iter));
-	}
+    QGateParam& qgroup0 = findgroup(bits[0]);
+    for (auto iter = bits.begin() + 1; iter != bits.end(); iter++)
+    {
+        TensorProduct(qgroup0, findgroup(*iter));
+    }
+    for (auto iter = controlbits.begin(); iter != controlbits.end(); iter++)
+    {
+        TensorProduct(qgroup0, findgroup(*iter));
+    }
 
-	size_t controller_mask = 0;
-	for (size_t i = 0; i < controlbits.size(); ++i) {
-		controller_mask += (1ull << controlbits[i]);
-	}
-	size_t remain_mask = controller_mask;
-	for (size_t i = 0; i < bits.size(); ++i) {
-		remain_mask += (1ull << bits[i]);
-	}
-	remain_mask = ~remain_mask;
+    size_t controller_mask = 0;
+    for (size_t i = 0; i < controlbits.size(); ++i) {
+        controller_mask += (1ull << controlbits[i]);
+    }
+    size_t remain_mask = controller_mask;
+    for (size_t i = 0; i < bits.size(); ++i) {
+        remain_mask += (1ull << bits[i]);
+    }
+    remain_mask = ~remain_mask;
 
-	if (oracle_name == "add") {
-		assert(name_qubits.size() == 2);
-		assert(name_qubits[0] == name_qubits[1]);
-		assert(name_qubits[0] + name_qubits[1] == bits.size());
+    if (oracle_name == "add") {
+        assert(name_qubits.size() == 2);
+        assert(name_qubits[0] == name_qubits[1]);
+        assert(name_qubits[0] + name_qubits[1] == bits.size());
 
-		size_t qubitnumber = qgroup0.qubitnumber;
-		Qnum qVec = qgroup0.qVec;
-		QGateParam newgroup(qubitnumber, qVec);
-		newgroup.qstate[0] = 0;
-		for (size_t i = 0; i < (1ull << qubitnumber); ++i) {
-			if (i & controller_mask == controller_mask) {
-				continue;
-			}
-			size_t remain_i = i & remain_mask;
-			size_t x = 0;
-			size_t y = 0;
-			Qnum qvecx = { bits.begin(), bits.begin() + name_qubits[0] };
-			Qnum qvecy = { bits.begin() + name_qubits[0], bits.end() };
-			x = extract_bit(i, qvecx);
-			y = extract_bit(i, qvecy);
-			size_t x_plus_y = (x + y) % (1ull << name_qubits[1]);
-			size_t new_i = 0;
-			new_i += remain_i;
-			new_i += reconstruct_number(x, qvecx);
-			new_i += reconstruct_number(x_plus_y, qvecy);
+        size_t qubitnumber = qgroup0.qubitnumber;
+        Qnum qVec = qgroup0.qVec;
+        QGateParam newgroup(qubitnumber, qVec);
+        newgroup.qstate[0] = 0;
+        for (size_t i = 0; i < (1ull << qubitnumber); ++i) {
+            if ((i & controller_mask) == controller_mask) {
+                continue;
+            }
+            size_t remain_i = i & remain_mask;
+            size_t x = 0;
+            size_t y = 0;
+            Qnum qvecx = { bits.begin(), bits.begin() + name_qubits[0] };
+            Qnum qvecy = { bits.begin() + name_qubits[0], bits.end() };
+            x = extract_bit(i, qvecx);
+            y = extract_bit(i, qvecy);
+            size_t x_plus_y = (x + y) % (1ull << name_qubits[1]);
+            size_t new_i = 0;
+            new_i += remain_i;
+            new_i += reconstruct_number(x, qvecx);
+            new_i += reconstruct_number(x_plus_y, qvecy);
 
-			newgroup.qstate[new_i] += qgroup0.qstate[i];
-		}
-		qgroup0.qstate = newgroup.qstate;
-	}
-	else {
-		throw runtime_error("Not Implemented.");
-	}
+            newgroup.qstate[new_i] += qgroup0.qstate[i];
+        }
+        qgroup0.qstate = newgroup.qstate;
+    }
+    else {
+        throw runtime_error("Not Implemented.");
+    }
 }
 
 

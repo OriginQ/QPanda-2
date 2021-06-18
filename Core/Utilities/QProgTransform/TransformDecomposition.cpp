@@ -15,8 +15,11 @@ Description  : Quantum program adaptation metadata instruction set
 #include "Core/Utilities/QProgInfo/QuantumMetadata.h"
 #include "Core/Utilities/QProgInfo/QCircuitInfo.h"
 #include "Core/Utilities/Tools/QProgFlattening.h"
+#include "Core/Utilities/Compiler/QProgToOriginIR.h"
 
 #define iunit qcomplex_t(0,1)
+#define ANGLE_COMPARE_PRECISION 1e-15 /* DBL_EPSILON * 10*/
+
 USING_QPANDA
 using namespace std;
 
@@ -279,6 +282,19 @@ void DecomposeDoubleQGate::execute(std::shared_ptr<AbstractQGateNode>  cur_node,
         throw runtime_error("the num of qubit vector error");
     }
 
+	QCircuit qCircuit = CreateEmptyCircuit();
+
+	if (qGate->getGateType() == SWAP_GATE)
+	{
+		qCircuit << CNOT(vQubit[0], vQubit[1]) << CNOT(vQubit[1], vQubit[0]) << CNOT(vQubit[0], vQubit[1]);
+		if (ctrl_qubits.size() > 0){
+			qCircuit.setControl(ctrl_qubits);
+		}
+
+		replace_qcircuit(cur_node.get(), qCircuit, parent_node.get());
+		return;
+	}
+
     QStat vMatrix;
     qGate->getMatrix(vMatrix);
 
@@ -287,9 +303,6 @@ void DecomposeDoubleQGate::execute(std::shared_ptr<AbstractQGateNode>  cur_node,
     QStat vMatrix3(SingleGateMatrixSize, 0);
 
     double dSum;
-
-    QCircuit qCircuit = CreateEmptyCircuit();
-
     for (size_t i = 0; i < 3; i++)
     {
         for (size_t j = i + 1; j < SingleGateMatrixSize; j++)
@@ -887,6 +900,8 @@ traversalAlgorithm traversalAlgorithm pointer
 argout      :
 Return      :
 ******************************************************************/
+const std::string DecomposeControlSingleQGateIntoMetadataDoubleQGate::key_name = "ControlGateOptimizer";
+const std::string DecomposeControlSingleQGateIntoMetadataDoubleQGate::circuit_replace = "replace";
 void DecomposeControlSingleQGateIntoMetadataDoubleQGate ::
      execute(std::shared_ptr<AbstractQGateNode>  cur_node,
          std::shared_ptr<QNode> parent_node)
@@ -920,8 +935,6 @@ void DecomposeControlSingleQGateIntoMetadataDoubleQGate ::
         return;
     }
 
-
-
     if (CIRCUIT_NODE == parent_node->getNodeType())
     {
         AbstractQuantumCircuit *pQcir = dynamic_cast<AbstractQuantumCircuit*>(parent_node.get());
@@ -935,8 +948,26 @@ void DecomposeControlSingleQGateIntoMetadataDoubleQGate ::
     double dBeta = angle->getBeta();
     double dDelta = angle->getDelta();
     double dGamma = angle->getGamma();
+	if ((abs(dAlpha) < DBL_EPSILON) 
+		&& (abs(dBeta) < DBL_EPSILON)
+		&& (abs(dDelta) < DBL_EPSILON)
+		&& (abs(dGamma) < DBL_EPSILON))
+	{
+		auto _cir = QCircuit();
+		replace_qcircuit(cur_node.get(), _cir, parent_node.get());
+		return;
+	}
 
-    auto qCircuit = CreateEmptyCircuit();
+    QCircuit qCircuit = single_angle_gate_replace(vTargetQubit[0], vControlQubit[0], dAlpha, dBeta, dDelta, dGamma);
+	if (!qCircuit.is_empty())
+	{
+		if (cur_node->isDagger()){
+			qCircuit.setDagger(qCircuit.isDagger() ^ true);
+		}
+		replace_qcircuit(cur_node.get(), qCircuit, parent_node.get());
+
+		return;
+	}
 
     QStat QMatrix(SingleGateMatrixSize, 0);
 
@@ -999,6 +1030,171 @@ void DecomposeControlSingleQGateIntoMetadataDoubleQGate ::
     replace_qcircuit(cur_node.get(), qCircuit, parent_node.get());
 }
 
+QCircuit DecomposeControlSingleQGateIntoMetadataDoubleQGate::single_angle_gate_replace(
+	Qubit* target_qubit, Qubit* control_qubit, double dAlpha, double dBeta, double dDelta, double dGamma)
+{
+	QCircuit equ_cir;
+	for (const auto& replace_cir_pair : m_special_gate_replace_vec)
+	{
+		auto angle_vec = replace_cir_pair.first.parse_angle(dAlpha, dBeta, dDelta, dGamma);
+		if (angle_vec.size() > 0){
+			replace_cir_pair.second->set_param({ control_qubit, target_qubit }, angle_vec);
+			return replace_cir_pair.second->get_cir();
+		}
+	}
+
+	return equ_cir;
+}
+
+std::vector<double> DecomposeControlSingleQGateIntoMetadataDoubleQGate::SpecialSingGate::
+parse_angle(double alpha, double beta, double delta, double gamma) const {
+	auto is_equ = [](const double& _a, double _b, const double precision = ANGLE_COMPARE_PRECISION) ->bool {
+		if (abs(_b) < DBL_EPSILON) {
+			_b = PI;
+		}
+		auto _c = _a / _b;
+		return abs(_c - int(_c)) <= precision;
+	};
+
+	if (abs(m_gamma - UNDEF_DOUBLE) < DBL_EPSILON)
+	{
+		if (is_equ(alpha, m_alpha)
+			&& is_equ(abs(beta), m_beta)
+			&& is_equ(abs(delta), m_delta))
+		{
+			if ((abs(m_beta - m_delta) < ANGLE_COMPARE_PRECISION) 
+				&& (abs(beta - delta) < ANGLE_COMPARE_PRECISION))
+			{
+				//CRY
+				if (abs(alpha - PI) < ANGLE_COMPARE_PRECISION)
+				{
+					if (abs(beta + delta) < ANGLE_COMPARE_PRECISION){
+						gamma += (PI * 2);
+					}
+					else{
+						gamma = (PI * 4) - gamma;
+					}
+					
+				}
+				else if (abs(abs(alpha) - (PI * 2)) < ANGLE_COMPARE_PRECISION){
+					gamma = (PI * 2) - gamma;
+				}
+
+				return { gamma };
+			}
+			else if ((abs(m_beta + m_delta) < ANGLE_COMPARE_PRECISION) 
+				&& ((abs(beta + delta) < ANGLE_COMPARE_PRECISION))
+				&& (abs(abs(beta) - PI) < ANGLE_COMPARE_PRECISION)
+				&& (abs(abs(delta) - PI) < ANGLE_COMPARE_PRECISION))
+			{
+				//CRX
+				if (abs(abs(alpha) - PI) < ANGLE_COMPARE_PRECISION) {
+					if ((0 > beta) && (0 < delta))
+					{
+						gamma += (PI * 2);
+					}
+					if ((0 < beta) && (0 > delta))
+					{
+						gamma = (PI * 2) - gamma;
+					}
+				}
+				else if (abs(alpha) < ANGLE_COMPARE_PRECISION) {
+					if ((0 < beta) && (0 > delta))
+					{
+						gamma = (PI * 4) - gamma;
+					}
+				}
+
+				return { gamma };
+			}
+
+			/* unsupport gate-type */
+
+		}
+	}
+	else if ((abs(m_beta - UNDEF_DOUBLE) < DBL_EPSILON)
+		&& is_equ(alpha, m_alpha)
+		&& is_equ(delta, m_delta)
+		&& is_equ(gamma, m_gamma))
+	{
+		//CR
+		if (abs(abs(alpha) - PI) < ANGLE_COMPARE_PRECISION) {
+			beta += (PI * 2);
+		}
+
+		return { beta };
+	}
+
+	return std::vector<double>();
+}
+
+void DecomposeControlSingleQGateIntoMetadataDoubleQGate::read_special_ctrl_single_gate(
+	const std::string& config_data)
+{
+	JsonConfigParam config_file;
+	if (!config_file.load_config(config_data)) {
+		/*QCERR_AND_THROW(run_fail, "Error: failed to load the config file.");*/
+		return;
+	}
+
+	auto& doc = config_file.get_root_element();
+	if (!(doc.HasMember(key_name.c_str()))){
+		//QCERR_AND_THROW(run_fail, "Error: special_ctrl_single_gate config error, no key-string.");
+		return;
+	}
+
+	auto& optimizer_config = doc[key_name.c_str()];
+	if (!(optimizer_config.HasMember(circuit_replace.c_str())) || (!(optimizer_config[circuit_replace.c_str()].IsArray())))
+	{
+		//QCERR_AND_THROW(run_fail, "Error: special_ctrl_single_gate config error.");
+		return;
+	}
+
+	std::vector<std::pair<QCircuitGenerator::Ref, QCircuitGenerator::Ref>> replace_cir_vec;
+	auto& replace_cir_config = optimizer_config[circuit_replace.c_str()];
+	for (size_t i = 0; i < replace_cir_config.Size(); ++i)
+	{
+		auto& replace_item = replace_cir_config[i];
+		{
+			auto src_cir = std::make_shared<QCircuitGenerator>();
+			QCircuitConfigReader(replace_item["src"], *src_cir);
+
+			auto dst_cir = std::make_shared<QCircuitGenerator>();
+			QCircuitConfigReader(replace_item["dst"], *dst_cir);
+			replace_cir_vec.push_back(std::make_pair(src_cir, dst_cir));
+		}
+	}
+
+	for (const auto& cir_pair : replace_cir_vec){
+		SpecialSingGate special_gate_para;
+		const auto& special_gate = cir_pair.first->get_cir_node_vec()[0];
+		if (0 == special_gate->m_op.compare("CRX"))
+		{
+			special_gate_para.m_alpha = 0;
+			special_gate_para.m_beta = PI / 2;
+			special_gate_para.m_delta = -special_gate_para.m_beta;
+			
+		}
+		else if (0 == special_gate->m_op.compare("CRY"))
+		{
+			special_gate_para.m_alpha = 0;
+			special_gate_para.m_beta = PI / 2;
+			special_gate_para.m_delta = special_gate_para.m_beta;
+		}
+		else if (0 == special_gate->m_op.compare("CR"))
+		{
+			special_gate_para.m_alpha = 0;
+			special_gate_para.m_delta = 0;
+			special_gate_para.m_gamma = 0;
+		}
+		else
+		{
+			//QCERR_AND_THROW(run_fail, "Error: unknow special_ctrl_single_gate type.");
+			continue;
+		}
+		m_special_gate_replace_vec.emplace_back(std::make_pair(special_gate_para, cir_pair.second));
+	}
+}
 
 QCircuit DecomposeControlSingleQGateIntoMetadataDoubleQGate::
          swapQGate(vector<int> shortest_way, string metadata_qgate)
@@ -1643,7 +1839,7 @@ void TransformDecomposition::merge_continue_single_gate_to_u3(QProg& prog)
 {
 	if (m_valid_qgate_matrix[0][0] == "U3")
 	{
-		sub_cir_optimizer(prog, {}, QCircuitOPtimizerMode::Merge_U3);
+		single_gate_optimizer(prog, QCircuitOPtimizerMode::Merge_U3);
 	}
 }
 
@@ -1658,9 +1854,10 @@ Return      :
 TransformDecomposition::
 TransformDecomposition(vector<vector<string>> &valid_qgate_matrix,
 	vector<vector<string>> &qgate_matrix,
-	QuantumMachine *quantum_machine) :
+	QuantumMachine *quantum_machine,
+	const std::string& config_data /*= CONFIG_PATH*/) :
 	m_control_single_qgate_to_metadata_double_qgate(quantum_machine,
-		valid_qgate_matrix),
+		valid_qgate_matrix, config_data),
 	m_unitary_single_qgate_to_metadata_single_qgate(qgate_matrix, valid_qgate_matrix),
 	m_decompose_control_unitary_single_qgate(valid_qgate_matrix),
 	m_decompose_double_gate(valid_qgate_matrix),
@@ -1939,7 +2136,7 @@ void QPanda::decompose_multiple_control_qgate(QProg& prog, QuantumMachine *quant
 	DoubleGateTypeValidator::GateType(gates[MetadataGateType::METADATA_DOUBLE_GATE],
 		valid_gate[MetadataGateType::METADATA_DOUBLE_GATE]);  /* double gate data MetadataValidity */
 
-	auto p_transf_decompos = std::make_shared<TransformDecomposition>(valid_gate, gates, quantum_machine);
+	auto p_transf_decompos = std::make_shared<TransformDecomposition>(valid_gate, gates, quantum_machine, config_data);
 	p_transf_decompos->TraversalOptimizationMerge(prog);
 }
 
@@ -1978,7 +2175,7 @@ void QPanda::transform_to_base_qgate(QProg& prog, QuantumMachine *quantum_machin
 	DoubleGateTypeValidator::GateType(gates[MetadataGateType::METADATA_DOUBLE_GATE],
 		valid_gate[MetadataGateType::METADATA_DOUBLE_GATE]);  /* double gate data MetadataValidity */
 
-	auto p_transf_decompos = std::make_shared<TransformDecomposition>(valid_gate, gates, quantum_machine);
+	auto p_transf_decompos = std::make_shared<TransformDecomposition>(valid_gate, gates, quantum_machine, config_data);
 	p_transf_decompos->decompose_double_qgate(prog, false);
 	p_transf_decompos->meta_gate_transform(prog);
 }

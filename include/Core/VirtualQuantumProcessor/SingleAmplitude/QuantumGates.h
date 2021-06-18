@@ -1,29 +1,33 @@
 #ifndef QUANTUMGATES_H
 #define QUANTUMGATES_H
 #include "Core/VirtualQuantumProcessor/SingleAmplitude/TensorEngine.h"
-#include <complex>
-using std::complex;
 
-void H_Gate(QuantumProgMap &prog_map, qsize_t qubit, bool isDagger);
-void T_Gate(QuantumProgMap & prog_map, qsize_t qubit, bool isDagger);
-void S_Gate(QuantumProgMap & prog_map, qsize_t qubit, bool isDagger);
-void X_Gate(QuantumProgMap & prog_map, qsize_t qubit, bool isDagger);
-void Y_Gate(QuantumProgMap & prog_map, qsize_t qubit, bool isDagger);
-void Z_Gate(QuantumProgMap & prog_map, qsize_t qubit, bool isDagger);
-void X1_Gate(QuantumProgMap & prog_map, qsize_t qubit, bool isDagger);
-void Y1_Gate(QuantumProgMap & prog_map, qsize_t qubit, bool isDagger);
-void Z1_Gate(QuantumProgMap &prog_map, qsize_t qubit, bool isDagger);
+void H_Gate(qstate_t& gate_tensor, bool isDagger);
+void T_Gate(qstate_t& gate_tensor, bool isDagger);
+void S_Gate(qstate_t& gate_tensor, bool isDagger);
+void X_Gate(qstate_t& gate_tensor, bool isDagger);
+void Y_Gate(qstate_t& gate_tensor, bool isDagger);
+void Z_Gate(qstate_t& gate_tensor, bool isDagger);
+void X1_Gate(qstate_t& gate_tensor, bool isDagger);
+void Y1_Gate(qstate_t& gate_tensor, bool isDagger);
+void Z1_Gate(qstate_t& gate_tensor, bool isDagger);
 
-void RX_Gate(QuantumProgMap & prog_map, qsize_t qubit, double angle, bool isDagger);
-void RY_Gate(QuantumProgMap & prog_map, qsize_t qubit, double angle, bool isDagger);
-void RZ_Gate(QuantumProgMap & prog_map, qsize_t qubit, double angle, bool isDagger);
-void U1_Gate(QuantumProgMap & prog_map, qsize_t qubit, double angle, bool isDagger);
+void RX_Gate(qstate_t& gate_tensor, double angle, bool isDagger);
+void RY_Gate(qstate_t& gate_tensor, double angle, bool isDagger);
+void RZ_Gate(qstate_t& gate_tensor, double angle, bool isDagger);
+void U1_Gate(qstate_t& gate_tensor, double angle, bool isDagger);
 
-void CZ_Gate(QuantumProgMap &prog_map,qsize_t qubit1,qsize_t qubit2,bool isDagger);
-void CNOT_Gate(QuantumProgMap &prog_map, qsize_t qubit1, qsize_t qubit2, bool isDagger);
-void ISWAP_Gate(QuantumProgMap &prog_map, qsize_t qubit1, qsize_t qubit2, bool isDagger);
-void SQISWAP_Gate(QuantumProgMap &prog_map, qsize_t qubit1, qsize_t qubit2, bool isDagger);
+void U2_Gate(qstate_t& gate_tensor, double phi, double lambda, bool isDagger);
+void U3_Gate(qstate_t& gate_tensor, double theta, double phi, double lambda, bool isDagger);
+void U4_Gate(qstate_t& gate_tensor, double alpha, double beta, double gamma, double delta, bool isDagger);
 
-void CR_Gate(QuantumProgMap &prog_map,qsize_t qubit1,qsize_t qubit2,double angle, bool isDagger);
+void CZ_Gate(qstate_t& gate_tensor, bool isDagger);
+void CNOT_Gate(qstate_t& gate_tensor, bool isDagger);
+void ISWAP_Gate(qstate_t& gate_tensor, bool isDagger);
+void SQISWAP_Gate(qstate_t& gate_tensor, bool isDagger);
+void SWAP_Gate(qstate_t& gate_tensor, bool isDagger);
+
+void CR_Gate(qstate_t& gate_tensor, double angle, bool isDagger);
+void TOFFOLI_Gate(qstate_t& gate_tensor, bool isDagger);
 
 #endif // !QUANTUMGATES_H

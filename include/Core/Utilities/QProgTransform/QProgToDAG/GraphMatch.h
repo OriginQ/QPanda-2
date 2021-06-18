@@ -10,6 +10,7 @@
 
 QPANDA_BEGIN
 
+#if 0
 using LayerVector = std::vector<SequenceNode>;
 using ResultVector = std::vector<LayerVector>;
 
@@ -80,12 +81,12 @@ public:
     }
     
     bool query(TopologSequence<SequenceNode> &, TopologSequence<SequenceNode> &, ResultVector &);
-    const QProgDAG<GateNodeInfo>& getProgDAG() { return m_graph_dag; }
+    const QProgDAG& getProgDAG() { return m_graph_dag; }
     
 private:
-    QProgDAG<GateNodeInfo> m_graph_dag;
-    QProgDAG<GateNodeInfo> m_query_dag;
-    QProgDAG<GateNodeInfo> m_replace_dag;
+    QProgDAG m_graph_dag;
+    QProgDAG m_query_dag;
+    QProgDAG m_replace_dag;
     std::vector<size_t> m_compare_vec;
 
     bool _compare_qnum(Qnum, Qnum);
@@ -101,7 +102,7 @@ private:
     void _convert_node(ResultVector &, TopologSequence<SequenceNode> &,
 		TopologSequence<SequenceNode> &, QuantumMachine*);
 
-    Qnum _get_qubit_vector(const SequenceNode &, QProgDAG<GateNodeInfo> &);
+    Qnum _get_qubit_vector(const SequenceNode &, QProgDAG &);
 };
 
 
@@ -169,6 +170,6 @@ bool graph_query(_Ty1 &graph_node, _Ty2 &query_node, ResultVector &query_result)
         return false;
     }
 }
-
+#endif
 QPANDA_END
 #endif

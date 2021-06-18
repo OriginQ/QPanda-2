@@ -14,7 +14,7 @@ Created in 2019-01-22
 #include <vector>
 #include "Core/Utilities/Tools/QString.h"
 #include "Core/Utilities/QPandaNamespace.h"
-#include "Components/DataStruct.h"
+#include "Core/Module/DataStruct.h"
 
 QPANDA_BEGIN
 

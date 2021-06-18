@@ -1,360 +1,11 @@
 #include "Core/VirtualQuantumProcessor/SingleAmplitude/TensorNode.h"
 #include <algorithm>
-#include <iostream>
-#include "QPandaConfig.h"
-#ifdef USE_OPENMP
-#include "omp.h"
-#endif
+using namespace std;
 USING_QPANDA
-int ComplexTensor::getRank() const
-{
-    return m_rank;
-}
-
-qcomplex_data_t *ComplexTensor::get_tensor()
-{
-    return m_tensor;
-}
-
-
-qcomplex_data_t ComplexTensor::getElem(size_t num)
-{
-    try
-    {
-        return m_tensor[num];
-    }
-    catch (const std::exception&e)
-    {
-        throw e;
-    }
-}
-
-void ComplexTensor::mulElem(size_t num, qcomplex_data_t elem)
-{
-    if (num > 1 << m_rank)
-        throw exception();
-    m_tensor[num] *= elem;
-}
-
-
-static bool isPerfectSquare(int number)
-{
-    for (int i = 1; number > 0; i += 2)
-    {
-        number -= i;
-    }
-    return  0 == number;
-}
-
-
-ComplexTensor matrixMultiplication(const ComplexTensor & tensor_left, 
-                                const ComplexTensor & tensor_right)
-{
-
-    auto matrix_left = tensor_left.m_tensor;
-    auto matrix_right = tensor_right.m_tensor;
-	auto size = 1ull << tensor_left.m_rank;
-	auto right_size = 1ull << tensor_right.m_rank;
-
-    if ((size != right_size)  // insure dimension of the two matrixes is same
-        || (!isPerfectSquare((int)size)))
-    {
-        throw exception();
-    }
-
-
-	auto matrix_result = (qcomplex_data_t *)calloc(size, sizeof(qcomplex_data_t));
-    if (nullptr == matrix_result)
-    {
-        QCERR("calloc_fail");
-        throw calloc_fail();
-    }
-	//memset(matrix_result, 0, sizeof(qcomplex_data_t)* size);
-    int dimension = (int)sqrt(size);
-
-    for (int i = 0; i < dimension; i++)
-    {
-        for (int j = 0; j < dimension; j++)
-        {
-            complex<double> temp = 0;
-            for (int k = 0; k < dimension; k++)
-            {
-                temp += matrix_left[i*dimension + k] * matrix_right[k*dimension + j];
-            }
-            matrix_result[i*dimension + j] = temp;
-        }
-    }
-
-    ComplexTensor temp(dimension, matrix_result);
-	free(matrix_result);
-    return temp;
-}
-
-
-void ComplexTensor::dimIncrement(size_t increment_size)
-{
-    auto size = 1ull << m_rank;
-    m_rank = m_rank + increment_size;
-    auto new_size = 1ull << m_rank;
-    auto new_tensor = (qcomplex_data_t *)calloc(new_size, sizeof(qcomplex_data_t));
-
-    if (nullptr == new_tensor)
-    {
-        QCERR("calloc_fail");
-        throw calloc_fail();
-    }
-
-    int j;
-#pragma omp parallel for private(j)
-    for (long long i = 0; i < size; i++)
-    {
-        for (j = 0; j < 1 << increment_size; j++)
-        {
-            new_tensor[(i << increment_size) + j] = m_tensor[i];
-        }
-    }
-
-    auto tem = m_tensor;
-    m_tensor = new_tensor;
-    free(tem);
-    tem = nullptr;
-}
-
-void ComplexTensor::getSubTensor(size_t num, int value)
-{
-    if (num > m_rank)
-    {
-        throw exception();
-    }
-
-	auto size = 1ull <<m_rank;
-    auto sub = m_rank - num;
-    qsize_t step = 1ull << sub;
-	
-	m_rank = this->m_rank - 1;
-	auto new_size = 1ull << m_rank;
-    auto new_tensor = (qcomplex_data_t *)calloc(new_size, sizeof(qcomplex_data_t));
-    if (nullptr == new_tensor)
-    {
-        QCERR("calloc_fail");
-        throw calloc_fail();
-    }
-	size_t j;
-	size_t k = 0;
-#pragma omp parallel for private(j,k)
-    for (long long i = 0; i < size; i += step * 2)
-    {
-        k = i / (2 * step);
-        for ( j = i; j < i + step; j++)
-        {
-            if (0 == value)
-            {
-				new_tensor[j- k * step] = m_tensor[j];
-            }
-            else if (1 == value)
-            {
-				new_tensor[j - k * step] = m_tensor[j+step];
-            }
-            else
-            {
-                throw exception();
-            }
-        }
-    }
-
-    auto tem = m_tensor;
-    m_tensor = new_tensor;
-    free(tem);
-    tem = nullptr;
-}
-
-
-void ComplexTensor::dimDecrement(size_t num)
-{
-    if ((num > m_rank)||(m_rank == 0))
-    {
-        throw exception();
-    }
-	auto size = 1ull << m_rank;
-    auto sub = m_rank - num;
-    qsize_t step = 1ull << sub;
-	m_rank = this->m_rank - 1;
-	auto new_size = 1ull << m_rank;
-	auto new_tensor = (qcomplex_data_t *)calloc(new_size, sizeof(qcomplex_data_t));
-    if (nullptr == new_tensor)
-    {
-        QCERR("calloc_fail");
-        throw calloc_fail();
-    }
-    
-	//memset(new_tensor, 0, sizeof(qcomplex_data_t)* new_size);
-	size_t k = 0;
-    size_t step_num = size / step;
-
-    if (step_num <= 4)
-        {
-            for (long long i = 0; i < size; i += step * 2)
-            {
-                k = i / (2 * step);
-#pragma omp parallel for
-                for (long long j = i; j < i + step; j++)
-                {
-                    new_tensor[j - k * step] = (m_tensor[j] + m_tensor[j + step]);
-                }
-            }
-        }
-    else
-    {
-#pragma omp parallel for private(k)
-        for (long long i = 0; i < size; i += step * 2)
-            {
-                k = i / (2 * step);
-                for (long long j = i; j < i + step; j++)
-                {
-                    new_tensor[j - k * step] = (m_tensor[j] + m_tensor[j + step]);
-                }
-            }
-    }
-
-    auto tem = m_tensor;
-    m_tensor = new_tensor;
-    free(tem);
-    tem = nullptr;
-}
-
-void ComplexTensor::swap(qsize_t src, qsize_t des)
-{
-    if ((src > m_rank) || (des > m_rank ))
-    {
-        throw exception();
-    }
-
-    auto size = 1ull <<m_rank;
-    qsize_t step_src = 1ull << (m_rank - src);
-    qsize_t step_des = 1ull << (m_rank - des);
-    qsize_t step_temp = 0;
-
-    if (step_src < step_des)
-    {
-        step_temp = step_src;
-        step_src = step_des;
-        step_des = step_temp;
-    }
-
-    step_temp = step_src - step_des;
-
-    qcomplex_data_t a;
-	size_t j, k;
-#pragma omp parallel for private(j,k,a)
-    for (long long i = 0; i < size; i = i + 2 * step_src)
-    {
-        for (j = i + step_des; j < i + step_src; j = j + 2 * step_des)
-        {
-            for (k = j; k < j + step_des; k++)
-            {
-                a = m_tensor[k];
-                m_tensor[k] = m_tensor[k + step_temp];
-                m_tensor[k + step_temp] = a;
-            }
-        }
-    }
-    
-}
-
-ComplexTensor & ComplexTensor::operator*(ComplexTensor & old)
-{
-    if (this->m_rank != old.m_rank)
-    {
-        throw exception();
-    }
-	//qcomplex_data_t complex_temp;
-	auto size = 1ull << m_rank;
-#pragma omp parallel for
-    for (long long i = 0; i < size; i++)
-    {
-         m_tensor[i] *=old.m_tensor[i];
-    }
-
-	return *this;
-}
-
-/*
-ComplexTensor ComplexTensor::operator+(ComplexTensor & old)
-{
-    if (this->m_rank != old.m_rank)
-    {
-        throw exception();
-    }
-
-    ComplexTensor temp;
-    for (size_t i = 0; i < this->m_tensor.size(); i++)
-    {
-        auto complex_temp = this->m_tensor[i] + old.m_tensor[i];
-        temp.m_tensor.push_back(complex_temp);
-    }
-    temp.m_rank = old.m_rank;
-
-    return temp;
-}
-*/
-ComplexTensor & ComplexTensor::operator=(const ComplexTensor & old)
-{
-    m_rank = old.m_rank;
-	auto size = 1ull << old.m_rank;
-	auto new_tensor = (qcomplex_data_t *)calloc(size,sizeof( qcomplex_data_t));
-    if (nullptr == new_tensor)
-    {
-        QCERR("calloc_fail");
-        throw calloc_fail();
-    }
-	//memset(new_tensor, 0, sizeof(qcomplex_data_t)* size);
-#pragma omp parallel for
-	for (long long i = 0; i < size; i++)
-	{
-		new_tensor[i] = old.m_tensor[i];
-	}
-
-	auto tem = m_tensor;
-	m_tensor = new_tensor;
-	free(tem);
-	tem = nullptr;
-    return *this;
-}
 
 qsize_t Edge::getQubitCount() const noexcept
 {
     return m_qubit_count;
-}
-
-void Edge::premultiplication(Edge & src_edge)
-{
-    ComplexTensor left = src_edge.getComplexTensor();
-    ComplexTensor right = this->m_tensor;
-    try
-    {
-        m_tensor = matrixMultiplication(left, right);
-
-        auto size = m_contect_vertice.size();
-        for (auto iter : src_edge.m_contect_vertice)
-        {
-            auto find_result = std::find(m_contect_vertice.begin(),
-                m_contect_vertice.end(), iter);
-            if (find_result == m_contect_vertice.end())
-            {
-                m_contect_vertice.push_back(iter);
-            }
-            else
-            {
-                m_contect_vertice.erase(find_result);
-            }
-        }
-    }
-    catch (calloc_fail&e)
-    {
-        throw e;
-    }
-
-
 }
 
 bool Edge::mergeEdge(Edge & edge)
@@ -396,14 +47,20 @@ void Edge::dimDecrementbyValue(qsize_t qubit,qsize_t num, int value)
             i++;
         }
     }
-    catch (calloc_fail&e)
+    catch (const std::exception&e)
     {
         throw e;
     }
-
-
 }
 
+
+Edge::Edge(qsize_t qubit_count, ComplexTensor &tensor,
+           vector<pair<qsize_t, qsize_t> > &contect_vertice)
+     : m_qubit_count(qubit_count), m_tensor(tensor),
+       m_contect_vertice(contect_vertice)
+{
+
+}
 
 void Edge::earseContectVertice(qsize_t qubit, size_t num)
 {
@@ -439,7 +96,7 @@ void Edge::dimDecrement(qsize_t qubit, qsize_t num)
             i++;
         }
     }
-    catch (calloc_fail&e)
+    catch (const std::exception&e)
     {
         throw e;
     }
@@ -452,17 +109,17 @@ void Edge::dimIncrementByEdge(Edge & edge)
     
     for (auto iter : edge.m_contect_vertice)
     {
-        bool isTrue = false;
+        bool is_true = false;
         for (auto this_iter : m_contect_vertice)
         {
             if ((iter.first == this_iter.first) &&
                 (iter.second == this_iter.second))
             {
-                isTrue = true;
+                is_true = true;
                 break;
             }
         }
-        if (!isTrue)
+        if (!is_true)
         {
             m_contect_vertice.push_back(iter);
             i++;
@@ -473,7 +130,7 @@ void Edge::dimIncrementByEdge(Edge & edge)
     {
         m_tensor.dimIncrement(i);
     }
-    catch (calloc_fail&e)
+    catch (const std::exception&e)
     {
         throw e;
     }
@@ -484,95 +141,44 @@ void Edge::getEdgeMap(Edge &edge,
     size_t i;
     size_t j = 0;
     vector<size_t> insert_vertice;
-    for (auto iter : m_contect_vertice)
+    for (auto &val : m_contect_vertice)
     {
         i = 0;
-        bool isTrue = false;
-        for (auto this_iter : edge.m_contect_vertice)
+        bool is_true = false;
+        for (auto &this_val : edge.m_contect_vertice)
         {
-            if ((iter.first == this_iter.first) &&
-                (iter.second == this_iter.second))
+            if ((val.first == this_val.first) &&
+                (val.second == this_val.second))
             {
-                isTrue = true;
+                is_true = true;
                 break;
             }
             i++;
         }
 
-        if (isTrue)
+        if (is_true)
         {
-            //vertice_map.insert(std::make_pair(i, iter));
             mask[j] = i;
         }
         j++;
     }
 }
-size_t getNum(long long src, size_t *mask_array, size_t size,size_t der_size)
-{
-    size_t der = 0;
-    for (size_t i = 0; i < der_size; i++)
-    {
-        bool value = (src >> (size - mask_array[i] - 1)) & 1;
-        der += value << (der_size - i -1);
-    }
-    
-    return der;
-}
-
 
 void Edge:: mul(Edge &edge,size_t * mask_array)
 {
-    long long size = 1 << m_tensor.getRank();
-
-
-#pragma omp parallel for 
-    for (long long i = 0; i < size; i++)
-    {
-        auto num = getNum(i, mask_array, m_tensor.getRank(),edge.getRank());
-        m_tensor.mulElem(i, edge.m_tensor.getElem(num));
-    }
+    m_tensor.mul(edge.m_tensor, mask_array);
 }
 
-#include <iostream>
-void Edge::swapByEdge(Edge & edge)
-{
-    int i = 0;
-    auto size = m_contect_vertice.size();
-    for (auto iter : edge.m_contect_vertice)
-    {
-        if ((iter.first != m_contect_vertice[i].first) ||
-            (iter.second != m_contect_vertice[i].second))
-        {
-            for (size_t j = i+1; j < size; j++)
-            {
-                if ((iter.first == m_contect_vertice[j].first) &&
-                    (iter.second == m_contect_vertice[j].second))
-                {
-                    m_tensor.swap(i+1,j+1);
-                    auto temp = m_contect_vertice[i];
-                    m_contect_vertice[i] = m_contect_vertice[j];
-                    m_contect_vertice[j] = temp;
-                    break;
-                }
-            }
-        }
-        i++;
-    }
-}
 
 int Edge::getRank() const noexcept
 {
     return m_tensor.getRank();
 }
 
-ComplexTensor Edge::getComplexTensor() const noexcept
-{
-    return m_tensor;
-}
-
 qcomplex_data_t Edge::getElem(VerticeMatrix &vertice)
 {
-    auto vertice_vector = getContectVertice();
+    qubit_vector_t vertice_vector;
+    getContectVertice(vertice_vector);
     auto size = vertice_vector.size();
 	if (m_tensor.getRank() == 0)
 	{
@@ -594,18 +200,18 @@ void Edge::setComplexTensor( ComplexTensor &tensor) noexcept
     m_tensor = tensor;
 }
 
-vector<pair<qsize_t, qsize_t>> Edge::getContectVertice() const noexcept
+void Edge::getContectVertice(vector<pair<qsize_t, qsize_t>> & connect_vertice) const noexcept
 {
-    return m_contect_vertice;
+    connect_vertice.assign(m_contect_vertice.begin(),m_contect_vertice.end());
 }
 
 void Edge::setContectVerticeVector
            (const qubit_vector_t & contect_vertice) noexcept
 {
     m_contect_vertice.resize(0);
-    for (auto aiter : contect_vertice)
+    for (auto val : contect_vertice)
     {
-        m_contect_vertice.push_back(aiter);
+        m_contect_vertice.push_back(val);
     }
 }
 
@@ -628,6 +234,22 @@ void Edge::setContectVertice(qsize_t qubit, qsize_t src_num, qsize_t des_num)
     }
 }
 
+
+Vertice::Vertice()
+{
+
+}
+
+Vertice::Vertice(int value, vector<qsize_t> &contect_edge)
+    :m_contect_edge(contect_edge), m_value(value), m_num(0)
+{
+
+}
+
+Vertice::~Vertice()
+{
+
+}
 
 vector<qsize_t> & Vertice::getContectEdge() noexcept
 {
@@ -694,39 +316,20 @@ void Vertice::setValue(int value)noexcept
     m_value = value;
 }
 
-VerticeMatrix::VerticeMatrix():m_qubit_count(0), m_vertice_count(0)
-{}
-
-VerticeMatrix::VerticeMatrix(const VerticeMatrix & old)
+void Vertice::setNum(size_t num)
 {
-    for (auto vector_iter : old.m_vertice_matrix)
-    {
-        vertice_map_t temp;
-        for (auto map_iter : vector_iter)
-        {
-            temp.insert(map_iter);
-        }
-        m_vertice_matrix.push_back(temp);
-    }
-
-    m_qubit_count = old.m_qubit_count;
-    m_vertice_count = old.m_vertice_count;
+    m_num = num;
 }
 
-VerticeMatrix VerticeMatrix::operator=(const VerticeMatrix &old)
+size_t Vertice::getNum()
 {
-    for (auto vector_iter : old.m_vertice_matrix)
-    {
-        vertice_map_t temp;
-        for (auto map_iter : vector_iter)
-        {
-            temp.insert(map_iter);
-        }
-        m_vertice_matrix.push_back(temp);
-    }
-    m_qubit_count = old.m_qubit_count;
-    m_vertice_count = old.m_vertice_count;
-    return *this;
+    return m_num;
+}
+
+VerticeMatrix::VerticeMatrix()
+    :m_qubit_count(0), m_vertice_count(0)
+{
+
 }
 
 qsize_t VerticeMatrix::getQubitCount() const
@@ -755,11 +358,11 @@ void VerticeMatrix::initVerticeMatrix(qsize_t qubit_num)
     {
         Vertice temp;
         temp.setValue(0);
+        temp.setNum(i);
         map<qsize_t, Vertice> vertice_vector;
         vertice_vector.insert(pair<qsize_t, Vertice>(0, temp));
         m_vertice_matrix.push_back(vertice_vector);
     }
-    //m_vertice_matrix[0][0].setValue(1);
 }
 
 map<qsize_t,Vertice>::iterator VerticeMatrix::deleteVertice(qsize_t qubit, 
@@ -768,13 +371,14 @@ map<qsize_t,Vertice>::iterator VerticeMatrix::deleteVertice(qsize_t qubit,
     try
     {
         auto aiter = m_vertice_matrix[qubit].find(num);
+        m_vertice_count--;
         return m_vertice_matrix[qubit].erase(aiter);
     }
     catch (const std::exception& e)
     {
         throw e;
     }
-    m_vertice_count--;
+
 }
 
 
@@ -784,6 +388,7 @@ qsize_t VerticeMatrix::addVertice(qsize_t qubit)
     {
         Vertice temp;
         qsize_t size = m_vertice_matrix[qubit].size();
+        temp.setNum(m_vertice_count);
         m_vertice_matrix[qubit].insert(pair<qsize_t,Vertice>(size,temp));
         m_vertice_count++;
         return size;
@@ -814,6 +419,7 @@ qsize_t VerticeMatrix::addVertice(qsize_t qubit, qsize_t num,Vertice & vertice)
         }
         else
         {
+            vertice.setNum(m_vertice_count);
             m_vertice_count++;
         }
 
@@ -836,6 +442,27 @@ int VerticeMatrix::getVerticeValue(qsize_t qubit, qsize_t num)
     {
         throw e;
     }
+}
+
+qubit_vertice_t VerticeMatrix::getVerticeByNum(size_t num)
+{
+    qubit_vertice_t temp;
+    qsize_t qubit_num = 0;
+    for (auto & i : m_vertice_matrix)
+    {
+        for (auto & j : i)
+        {
+            if (j.second.getNum() == num)
+            {
+                temp.m_qubit_id = qubit_num;
+                temp.m_num = j.first;
+                return temp;
+            }
+        }
+        qubit_num++;
+    }
+
+    return temp;
 }
 
 qsize_t VerticeMatrix::getEmptyVertice()
@@ -886,12 +513,45 @@ qsize_t VerticeMatrix::getQubitVerticeLastID(qsize_t qubit)
     }
 }
 
+vector<qsize_t> & VerticeMatrix::getContectEdgebynum(qsize_t qubit,
+                                               qsize_t num)
+{
+    try
+    {
+        if((qubit >= m_vertice_matrix.size()) ||(num > m_vertice_matrix[qubit].size()) )
+        {
+            QCERR("param error");
+            throw run_fail("param error");
+        }
+
+        auto qubit_vertic_map = m_vertice_matrix[qubit];
+        qsize_t i = 0;
+        for (auto iter = qubit_vertic_map.begin() ;iter!= qubit_vertic_map.end();++iter) {
+            if(i == num )
+            {
+                return (*iter).second.getContectEdge();
+            }
+            i++;
+        }
+    }
+    catch (const std::exception&e)
+    {
+        throw e;
+    }
+
+}
+
 vector<qsize_t> & VerticeMatrix::getContectEdge(qsize_t qubit, 
                                                qsize_t num) 
 {
     try
     {
         auto iter = m_vertice_matrix[qubit].find(num);
+        if(iter == m_vertice_matrix[qubit].end())
+        {
+            QCERR("iter is end");
+            throw run_fail("iter is end");
+        }
         return (*iter).second.getContectEdge();
     }
     catch (const std::exception&e)
@@ -912,7 +572,7 @@ vertice_matrix_t::iterator VerticeMatrix::end()noexcept
 
 vertice_matrix_t::iterator VerticeMatrix::getQubitMapIter(qsize_t qubit) noexcept
 {
-    return m_vertice_matrix.begin()+qubit;
+    return m_vertice_matrix.begin() + qubit;
 }
 
 vertice_map_t::iterator VerticeMatrix::getQubitMapIterBegin(qsize_t qubit)
@@ -1029,7 +689,130 @@ bool VerticeMatrix::isEmpty() noexcept
 VerticeMatrix::~VerticeMatrix()
 {}
 
-qsize_t QuantumProgMap::getVerticeCount() const
+QProgMap::QProgMap()
+{
+    m_vertice_matrix = new VerticeMatrix();
+    m_edge_map = new edge_map_t;
+    m_max_tensor_rank = 30;
+}
+
+QProgMap::~QProgMap()
+{
+    deleteMap();
+}
+
+size_t QProgMap::getMaxRank()
+{
+    return m_max_tensor_rank;
+}
+
+size_t QProgMap::setMaxRank(size_t rank)
+{
+    m_max_tensor_rank = rank;
+    return 0;
+}
+
+void QProgMap::deleteMap()
+{
+    if (nullptr != m_vertice_matrix)
+    {
+        delete m_vertice_matrix;
+        m_vertice_matrix = nullptr;
+    }
+
+    if (nullptr != m_edge_map)
+    {
+        delete m_edge_map;
+        m_edge_map = nullptr;
+    }
+}
+
+QProgMap::QProgMap(const QProgMap &old)
+{
+    m_vertice_matrix = new VerticeMatrix(*(old.m_vertice_matrix));
+    m_edge_map = new edge_map_t(*(old.m_edge_map));
+    m_qubit_num = old.m_qubit_num;
+    m_count = old.m_count;
+    m_max_tensor_rank = old.m_max_tensor_rank;
+}
+
+QProgMap &QProgMap::operator =(const QProgMap &old)
+{
+    if (this == &old)
+    {
+        return *this;
+    }
+
+    if (nullptr == m_vertice_matrix)
+    {
+        delete  m_vertice_matrix;
+    }
+
+    if (nullptr == m_edge_map)
+    {
+        delete m_edge_map;
+    }
+
+    m_vertice_matrix = new VerticeMatrix(*(old.m_vertice_matrix));
+    m_edge_map = new edge_map_t(*(old.m_edge_map));
+    m_qubit_num = old.m_qubit_num;
+    m_count = old.m_count;
+    m_max_tensor_rank = old.m_max_tensor_rank;
+
+    return *this;
+}
+
+VerticeMatrix *QProgMap::getVerticeMatrix()
+{
+    return m_vertice_matrix;
+}
+
+size_t QProgMap::getQubitVerticeCount(qsize_t qubit_num)
+{
+    if(m_vertice_matrix->getQubitCount()< qubit_num)
+    {
+        QCERR("qubit_num err");
+        throw  std::invalid_argument("qubit_num err");
+    }
+
+    return m_vertice_matrix->getQubitMapIter(qubit_num)->size();
+}
+
+void QProgMap::setQubitNum(size_t num)
+{
+    m_qubit_num = num;
+}
+
+bool QProgMap::isEmptyQProg()
+{
+    return ((m_vertice_matrix->isEmpty()) ||
+            (m_edge_map->empty()) ||
+            (m_qubit_num == 0));
+}
+
+size_t QProgMap::getQubitNum()
+{
+    return m_qubit_num;
+}
+
+edge_map_t *QProgMap::getEdgeMap()
+{
+    return m_edge_map;
+}
+
+void QProgMap::clearVerticeValue()
+{
+    m_vertice_matrix->clearVertice();
+}
+
+void QProgMap::clear()
+{
+    m_vertice_matrix->clear();
+    m_edge_map->clear();
+    m_qubit_num = 0;
+}
+
+qsize_t QProgMap::getVerticeCount() const
 {
     return m_vertice_matrix->getVerticeCount();
 }

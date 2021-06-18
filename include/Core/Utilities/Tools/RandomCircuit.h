@@ -21,6 +21,7 @@ limitations under the License.
 #include <functional>
 #include "Core/Utilities/QPandaNamespace.h"
 #include "Core/QuantumMachine/QuantumMachineInterface.h"
+#include "Core/QuantumCircuit/QCircuit.h"
 QPANDA_BEGIN
 
 
@@ -115,6 +116,17 @@ std::string random_originir(int qubitRow, int qubitCol, int depth, QuantumMachin
 */
 QProg random_qprog(int qubitRow, int qubitCol, int depth, QuantumMachine *qvm, QVec &qv);
 
+/**
+* @brief  Generate random quantum circuit
+* @ingroup Utilities
+* @param[in]  const QVec& target qubit-vector
+* @param[in]  const std::vector<std::string>& Custom logic gate type, The support types include: 
+              "X", "Y", "Z", "RX", "RY", "RZ", "S", "T", "H", "CNOT", "CZ"
+			  Note: All types are used by default
+* @param[in]  int depth, default 100
+* @return QCircuit	random quantum circuit
+*/
+QCircuit random_qcircuit(const QVec& qv, int depth = 100, const std::vector<std::string>& gate_type = {});
 
 
 QPANDA_END

@@ -44,11 +44,11 @@ using namespace std;
 ********************************************************************/
 void NodeInfo::init(const int type, const QVec& target_qubits, const QVec& control_qubits)
 {
-	if (type < 0)
+	if (type > MAX_GATE_TYPE)
 	{
 		switch (type)
 		{
-		case -1:
+		case MEASURE:
 		{
 			auto p_measure = std::dynamic_pointer_cast<AbstractQuantumMeasure>(*m_iter);
 			m_cbits.push_back(p_measure->getCBit()->getValue());
@@ -56,7 +56,7 @@ void NodeInfo::init(const int type, const QVec& target_qubits, const QVec& contr
 		}
 		break;
 
-		case -2:
+		case RESET:
 			m_node_type = RESET_NODE;
 			break;
 
@@ -740,32 +740,19 @@ void QPanda::pickUpNode(QProg &outPutProg, QProg srcProg, const std::vector<Node
 
 size_t QPanda::get_all_used_qubits(QProg prog, QVec &vecQuBitsInUse)
 {
-	vecQuBitsInUse.clear();
-
 	GetAllUsedQubitAndCBit get_qubit_object;
 	get_qubit_object.traversal(prog);
-
-	auto qubit_vec = get_qubit_object.get_used_qubits();
-	for (auto &i : qubit_vec)
-	{
-		vecQuBitsInUse.push_back(i);
-	}
-
-	sort(vecQuBitsInUse.begin(), vecQuBitsInUse.end(), [](Qubit* a, Qubit* b) { 
-		return a->getPhysicalQubitPtr()->getQubitAddr() < b->getPhysicalQubitPtr()->getQubitAddr(); });
-	vecQuBitsInUse.erase(unique(vecQuBitsInUse.begin(), vecQuBitsInUse.end()), vecQuBitsInUse.end());
+	vecQuBitsInUse = get_qubit_object.get_used_qubits();
 
 	return vecQuBitsInUse.size();
 }
 
 size_t QPanda::get_all_used_qubits(QProg prog, std::vector<int> &vecQuBitsInUse)
 {
-	vecQuBitsInUse.clear();
 	QVec vec_all_qubits;
 	get_all_used_qubits(prog, vec_all_qubits);
-	for (auto &itr : vec_all_qubits)
-	{
-		vecQuBitsInUse.push_back(itr->getPhysicalQubitPtr()->getQubitAddr());
+	for (auto &itr : vec_all_qubits){
+		vecQuBitsInUse.push_back(itr->get_phy_addr());
 	}
 
 	return vecQuBitsInUse.size();
@@ -773,21 +760,20 @@ size_t QPanda::get_all_used_qubits(QProg prog, std::vector<int> &vecQuBitsInUse)
 
 size_t QPanda::get_all_used_class_bits(QProg prog, std::vector<int> &vecClBitsInUse)
 {
-	vecClBitsInUse.clear();
-
 	GetAllUsedQubitAndCBit get_cbit_object;
 	get_cbit_object.traversal(prog);
-
-	auto cbit_vec = get_cbit_object.get_used_cbits();
-	for (auto i : cbit_vec)
-	{
-		vecClBitsInUse.push_back(i);
-	}
-
-	sort(vecClBitsInUse.begin(), vecClBitsInUse.end(), [](const int& a, const int& b) { return a < b; });
-	vecClBitsInUse.erase(unique(vecClBitsInUse.begin(), vecClBitsInUse.end()), vecClBitsInUse.end());
+	vecClBitsInUse = get_cbit_object.get_used_cbits();
 
 	return vecClBitsInUse.size();
+}
+
+size_t QPanda::get_measure_info(QProg prog, std::vector<std::pair<uint32_t, uint32_t>> &measure_info)
+{
+	GetAllUsedQubitAndCBit get_cbit_object;
+	get_cbit_object.traversal(prog);
+	measure_info = get_cbit_object.get_measure_info();
+
+	return measure_info.size();
 }
 
 string QPanda::printAllNodeType(QProg prog)

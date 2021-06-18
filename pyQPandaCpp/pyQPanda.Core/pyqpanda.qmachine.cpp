@@ -39,7 +39,7 @@ void init_quantum_machine(py::module &m)
         .export_values();
 
     py::enum_<QCodarGridDevice>(m, "QCodarGridDevice")
-        .value("SIMPLE_TYPE", QCodarGridDevice::IBM_Q20_TOKYO)
+        .value("IBM_Q20_TOKYO", QCodarGridDevice::IBM_Q20_TOKYO)
         .value("IBM_Q53", QCodarGridDevice::IBM_Q53)
         .value("GOOGLE_Q54", QCodarGridDevice::GOOGLE_Q54)
         .value("SIMPLE_TYPE", QCodarGridDevice::SIMPLE_TYPE)
@@ -132,6 +132,10 @@ void init_quantum_machine(py::module &m)
     Qubit* (QuantumMachine::*allocate_qubit_through_vir_address)(size_t) = &QuantumMachine::allocateQubitThroughVirAddress;
     std::map<GateType, size_t>(QuantumMachine::*get_gate_time_map)() const = &QuantumMachine::getGateTimeMap;
     bool(QuantumMachine::*swap_qubit_physical_address)(Qubit*, Qubit*) = &QuantumMachine::swapQubitPhysicalAddress;
+	size_t(QuantumMachine::* get_allocate_qubits)(QVec&) = &QuantumMachine::get_allocate_qubits;
+	size_t(QuantumMachine::* get_allocate_cbits)(std::vector<ClassicalCondition>&) = &QuantumMachine::get_allocate_cbits;
+	double(QuantumMachine::* get_expectation_shots)(QProg, const QHamiltonian&, const QVec&, int) = &QuantumMachine::get_expectation;
+	double(QuantumMachine::* get_expectation)(QProg, const QHamiltonian&, const QVec&) = &QuantumMachine::get_expectation;
 
     py::class_<QuantumMachine>(m, "QuantumMachine")
         .def("set_configure", [](QuantumMachine &qvm, size_t max_qubit, size_t max_cbit)
@@ -164,8 +168,10 @@ void init_quantum_machine(py::module &m)
         .def("allocate_qubit_through_phy_address", allocate_qubit_through_phy_address, "address"_a, py::return_value_policy::reference)
         .def("allocate_qubit_through_vir_address", allocate_qubit_through_vir_address, "address"_a, py::return_value_policy::reference)
         .def("get_gate_time_map", get_gate_time_map, py::return_value_policy::reference)
-        .def("swap_qubit_physical_address", swap_qubit_physical_address, "qubit"_a, "qubit"_a, py::return_value_policy::reference)
-
+        .def("get_allocate_qubits", get_allocate_qubits, "qubit vector"_a,  py::return_value_policy::reference)
+		.def("get_allocate_cbits", get_allocate_cbits, "cbit vector"_a,  py::return_value_policy::reference)
+		.def("get_expectation", get_expectation, "quantum prog"_a, "hamiltonian"_a, "qubit vector"_a, py::return_value_policy::reference)
+		.def("get_expectation", get_expectation_shots, "quantum prog"_a, "hamiltonian"_a, "qubit vector"_a, "shots"_a, py::return_value_policy::reference)
         .def("directly_run", &QuantumMachine::directlyRun, "program"_a, py::return_value_policy::reference)
         .def("run_with_configuration", [](QuantumMachine &qvm, QProg & prog, vector<ClassicalCondition> & cc_vector, py::dict param)
             {
@@ -179,7 +185,9 @@ void init_quantum_machine(py::module &m)
             }, "program"_a, "cbit_list"_a, "data"_a, py::return_value_policy::automatic)
 
         .def("run_with_configuration", [](QuantumMachine &qvm, QProg & prog, vector<ClassicalCondition> & cc_vector, int shots)
-            {return qvm.runWithConfiguration(prog, cc_vector, shots); }, "program"_a, "cbit_list"_a, "data"_a, py::return_value_policy::automatic);
+            {return qvm.runWithConfiguration(prog, cc_vector, shots); }, "program"_a, "cbit_list"_a, "data"_a, py::return_value_policy::automatic)
+		.def("run_with_configuration", [](QuantumMachine& qvm, QProg& prog, vector<int>& cbit_addrs, int shots)
+			{return qvm.runWithConfiguration(prog, cbit_addrs, shots); }, "program"_a, "cbit_addr_list"_a, "data"_a, py::return_value_policy::automatic);
 
 
 #define DEFINE_IDEAL_QVM(class_name)\
@@ -207,7 +215,10 @@ void init_quantum_machine(py::module &m)
         .def("getAllocateCMem", get_allocate_CMem, "getAllocateCMem", py::return_value_policy::reference)\
          /* new interface */\
         .def("init_qvm", &class_name::init, "init quantum virtual machine")\
-        .def("init_state", &class_name::initState, "state"_a,py::return_value_policy::reference)\
+        .def("init_state", [](class_name& self, const QStat & state, const QVec &qlist){ \
+            self.initState(state, qlist); \
+        },py::arg("state") = QStat(), py::arg("qlist") = QVec() \
+        ,py::return_value_policy::reference)\
         .def("get_allocate_qubit_num", get_allocate_qubit, "getAllocateQubitNum", py::return_value_policy::reference)\
         .def("get_allocate_cmem_num", get_allocate_CMem, "getAllocateCMem", py::return_value_policy::reference)\
         .def("directly_run", &class_name::directlyRun, "program"_a,py::return_value_policy::reference)\
@@ -223,14 +234,25 @@ void init_quantum_machine(py::module &m)
 			},"program"_a, "cbit_list"_a, "data"_a,py::return_value_policy::automatic)\
 		.def("run_with_configuration", [](class_name &qvm, QProg & prog, vector<ClassicalCondition> & cc_vector, int shots) \
 			{ return qvm.runWithConfiguration(prog, cc_vector, shots);},"program"_a, "cbit_list"_a, "data"_a,py::return_value_policy::automatic)\
+        .def("run_with_configuration", [](class_name& qvm, QProg& prog, vector<int>& cbit_addrs, int shots)\
+			{return qvm.runWithConfiguration(prog, cbit_addrs, shots); }, "program"_a, "cbit_addr_list"_a, "data"_a, py::return_value_policy::automatic)\
         .def("pmeasure", &class_name::PMeasure, "qubit_list"_a, "select_max"_a = -1, "Get the probability distribution over qubits", py::return_value_policy::reference)\
         .def("pmeasure_no_index", &class_name::PMeasure_no_index, "qubit_list"_a,"Get the probability distribution over qubits", py::return_value_policy::reference)\
         .def("get_prob_tuple_list", &class_name::getProbTupleList, "qubit_list"_a, "select_max"_a = -1,py::return_value_policy::reference)\
         .def("get_prob_list", &class_name::getProbList, "qubit_list"_a, "select_max"_a = -1,py::return_value_policy::reference)\
         .def("get_prob_dict", &class_name::getProbDict, "qubit_list"_a, "select_max"_a = -1,py::return_value_policy::reference)\
-        .def("prob_run_tuple_list", &class_name::probRunTupleList, "program"_a, "qubit_list"_a, "select_max"_a = -1,py::return_value_policy::reference)\
-        .def("prob_run_list", &class_name::probRunList, "program"_a, "qubit_list"_a, "select_max"_a = -1,py::return_value_policy::reference)\
-        .def("prob_run_dict", &class_name::probRunDict, "program"_a, "qubit_list"_a, "select_max"_a = -1,py::return_value_policy::reference)\
+        .def("prob_run_tuple_list", [](class_name &qvm, QProg prog, QVec qubit_vect, int select_max= -1)\
+            {return qvm.probRunTupleList(prog, qubit_vect, select_max);},"program"_a, "qubit_list"_a, "select_max"_a = -1,py::return_value_policy::automatic)\
+		.def("prob_run_tuple_list", [](class_name& qvm, QProg prog, std::vector<int> qubit_addr_vect, int select_max = -1)\
+			{return qvm.probRunTupleList(prog, qubit_addr_vect, select_max); }, "program"_a, "qubit addr list"_a, "select_max"_a = -1, py::return_value_policy::automatic)\
+        .def("prob_run_list", [](class_name &qvm, QProg prog, QVec qubit_vect, int select_max= -1)\
+            {return qvm.probRunList(prog, qubit_vect, select_max);},"program"_a, "qubit_list"_a, "select_max"_a = -1,py::return_value_policy::automatic)\
+		.def("prob_run_list", [](class_name& qvm, QProg prog, std::vector<int> qubit_addr_vect, int select_max = -1)\
+			{return qvm.probRunList(prog, qubit_addr_vect, select_max); }, "program"_a, "qubit addr list"_a, "select_max"_a = -1, py::return_value_policy::automatic)\
+        .def("prob_run_dict", [](class_name &qvm, QProg prog, QVec qubit_vect, int select_max= -1)\
+            {return qvm.probRunDict(prog, qubit_vect, select_max);},"program"_a, "qubit_list"_a, "select_max"_a = -1,py::return_value_policy::automatic)\
+		.def("prob_run_dict", [](class_name& qvm, QProg prog, std::vector<int> qubit_addr_vect, int select_max = -1)\
+			{return qvm.probRunDict(prog, qubit_addr_vect, select_max); }, "program"_a, "qubit addr list"_a, "select_max"_a = -1, py::return_value_policy::automatic)\
         .def("quick_measure", &class_name::quickMeasure, "qubit_list"_a, "shots"_a,py::return_value_policy::reference)\
 
     DEFINE_IDEAL_QVM(CPUQVM);
@@ -326,7 +348,11 @@ void init_quantum_machine(py::module &m)
                 qvm.init(doc);
             }, "init quantum virtual machine")
         .def("directly_run", &NoiseQVM::directlyRun, "program"_a, py::return_value_policy::reference)
-        .def("init_state", &NoiseQVM::initState, "state"_a, py::return_value_policy::reference)
+        .def("init_state", [](NoiseQVM& self, const QStat & state, const QVec &qlist){
+                self.initState(state, qlist);
+            }, py::arg("state") = QStat(), py::arg("qlist") = QVec()
+            ,py::return_value_policy::reference)
+
         .def("run_with_configuration", [](NoiseQVM &qvm, QProg & prog, vector<ClassicalCondition> & cc_vector, py::dict param)
             {
                 py::object json = py::module::import("json");
@@ -338,29 +364,29 @@ void init_quantum_machine(py::module &m)
                 return qvm.runWithConfiguration(prog, cc_vector, doc);
             }, "program"_a, "cbit_list"_a, "data"_a, py::return_value_policy::automatic)
         .def("run_with_configuration", [](NoiseQVM &qvm, QProg & prog, vector<ClassicalCondition> & cc_vector, int shots)
-            {return qvm.runWithConfiguration(prog, cc_vector, shots); }, "program"_a, "cbit_list"_a, "data"_a, py::return_value_policy::automatic);
-
+            {return qvm.runWithConfiguration(prog, cc_vector, shots); }, "program"_a, "cbit_list"_a, "data"_a, py::return_value_policy::automatic)
+        .def("run_with_configuration", [](QuantumMachine& qvm, QProg& prog, vector<int>& cbit_addrs, int shots)
+            {return qvm.runWithConfiguration(prog, cbit_addrs, shots); }, "program"_a, "cbit_addr_list"_a, "data"_a, py::return_value_policy::automatic);
+        
         py::class_<SingleAmplitudeQVM, QuantumMachine>(m, "SingleAmpQVM")
             .def(py::init<>())
 
             .def("init_qvm", &SingleAmplitudeQVM::init, "init quantum virtual machine")
-            .def("run", [](SingleAmplitudeQVM &qvm, QProg prog) {return qvm.run(prog); }, "load the quantum program")
-            .def("run", [](SingleAmplitudeQVM &qvm, QCircuit cir) {return qvm.run(cir); }, "load the quantum program")
-            .def("run", [](SingleAmplitudeQVM &qvm, string originir) {return qvm.run(originir); }, "load and parser the quantum program")
+            .def("run", [](SingleAmplitudeQVM &qvm, QProg &prog, QVec &qv, size_t max_rank, size_t alloted_time ){
+                    return qvm.run(prog, qv, max_rank, alloted_time);
+            }, py::arg("prog"), py::arg("qv"), py::arg("max_rank")= 30, py::arg("alloted_time") = 5, "run the quantum program", py::return_value_policy::automatic_reference)
+			.def("run", [](SingleAmplitudeQVM& qvm, QProg &prog, QVec& qv, size_t max_rank, const std::vector<qprog_sequence_t>& sequences) {return qvm.run(prog, qv, max_rank, sequences); }, "run the quantum program")
+			.def("get_sequence", &SingleAmplitudeQVM::getSequence, "get prog sequence", py::return_value_policy::automatic_reference)
+			.def("get_quick_map_vertice", &SingleAmplitudeQVM::getQuickMapVertice, "get quick map vertice", py::return_value_policy::automatic_reference)
 
-            .def("get_qstate", &SingleAmplitudeQVM::getQState, "Get the quantum state of quantum program", py::return_value_policy::automatic_reference)
+			.def("pmeasure_bin_index", &SingleAmplitudeQVM::pMeasureBinindex, "PMeasure by binary index", py::return_value_policy::automatic_reference)
+			.def("pmeasure_dec_index", &SingleAmplitudeQVM::pMeasureDecindex, "PMeasure by decimal  index", py::return_value_policy::automatic_reference)
 
-            .def("pmeasure", [](SingleAmplitudeQVM &qvm, string select_max) {return qvm.PMeasure(select_max); })
-            .def("pmeasure", [](SingleAmplitudeQVM &qvm, QVec qvec, string select_max) {return qvm.PMeasure(qvec, select_max); })
+            .def("get_prob_dict", [](SingleAmplitudeQVM& self, QVec &qvec) {return self.getProbDict(qvec); })
+            .def("prob_run_dict", [](SingleAmplitudeQVM& self, QProg prog, QVec &qvec) {return self.probRunDict(prog, qvec); })
+            .def("get_prob_dict", [](SingleAmplitudeQVM& self, const std::vector<int>& qaddrs_vect) {return self.getProbDict(qaddrs_vect); })
+			.def("prob_run_dict", [](SingleAmplitudeQVM& self, QProg prog, const std::vector<int>& qaddrs_vect) {return self.probRunDict(prog, qaddrs_vect); });
 
-            .def("pmeasure_bin_index", [](SingleAmplitudeQVM &qvm, QProg node, string bin_index) {return qvm.PMeasure_bin_index(node, bin_index); })
-            .def("pmeasure_bin_index", [](SingleAmplitudeQVM &qvm, QCircuit node, string bin_index) {return qvm.PMeasure_bin_index(node, bin_index); })
-
-            .def("pmeasure_dec_index", [](SingleAmplitudeQVM &qvm, QProg node, string dec_index) {return qvm.PMeasure_dec_index(node, dec_index); })
-            .def("pmeasure_dec_index", [](SingleAmplitudeQVM &qvm, QCircuit node, string dec_index) {return qvm.PMeasure_dec_index(node, dec_index); })
-
-            .def("get_prob_dict", [](SingleAmplitudeQVM &qvm, QVec qvec, string select_max) {return qvm.getProbDict(qvec, select_max); })
-            .def("prob_run_dict", [](SingleAmplitudeQVM &qvm, QProg prog, QVec qvec, string select_max) {return qvm.probRunDict(prog, qvec, select_max); });
 
         py::class_<PartialAmplitudeQVM, QuantumMachine>(m, "PartialAmpQVM")
             .def(py::init<>())
@@ -371,7 +397,11 @@ void init_quantum_machine(py::module &m)
 
             .def("pmeasure_bin_index", &PartialAmplitudeQVM::PMeasure_bin_index, "bin_index"_a, "PMeasure_bin_index", py::return_value_policy::automatic_reference)
             .def("pmeasure_dec_index", &PartialAmplitudeQVM::PMeasure_dec_index, "dec_index"_a, "PMeasure_dec_index", py::return_value_policy::automatic_reference)
-            .def("pmeasure_subset", &PartialAmplitudeQVM::PMeasure_subset, "index_list"_a, "pmeasure_subset", py::return_value_policy::automatic_reference);
+            .def("pmeasure_subset", &PartialAmplitudeQVM::PMeasure_subset, "index_list"_a, "pmeasure_subset", py::return_value_policy::automatic_reference)
+            .def("get_prob_dict", [](PartialAmplitudeQVM &self, const QVec &qvec) {
+                return self.getProbDict(qvec); })
+            .def("prob_run_dict", [](PartialAmplitudeQVM &self, QProg prog, const QVec &qvec) {
+                return self.probRunDict(prog, qvec); });
 
         py::class_<MPSQVM, QuantumMachine>(m, "MPSQVM")
             .def(py::init<>())
@@ -379,7 +409,11 @@ void init_quantum_machine(py::module &m)
             .def("get_qstate", &MPSQVM::getQState, "getState", py::return_value_policy::automatic)
             .def("init_qvm", &MPSQVM::init, "init quantum virtual machine")
 
-            .def("init_state", &MPSQVM::initState, "state"_a, py::return_value_policy::reference)
+            .def("init_state", [](MPSQVM& self, const QStat & state, const QVec &qlist){
+                    self.initState(state, qlist);
+                }, py::arg("state") = QStat(), py::arg("qlist") = QVec()
+                ,py::return_value_policy::reference)
+
             .def("get_allocate_qubit_num", get_allocate_qubit, "getAllocateQubitNum", py::return_value_policy::reference)
             .def("get_allocate_cmem_num", get_allocate_CMem, "getAllocateCMem", py::return_value_policy::reference)
             .def("directly_run", &MPSQVM::directlyRun, "program"_a, py::return_value_policy::reference)
@@ -404,6 +438,11 @@ void init_quantum_machine(py::module &m)
             .def("prob_run_list", &MPSQVM::probRunList, "program"_a, "qubit_list"_a, "select_max"_a = -1, py::return_value_policy::reference)
             .def("prob_run_dict", &MPSQVM::probRunDict, "program"_a, "qubit_list"_a, "select_max"_a = -1, py::return_value_policy::reference)
             .def("quick_measure", &MPSQVM::quickMeasure, "qubit_list"_a, "shots"_a, py::return_value_policy::reference)
+
+            .def("pmeasure_bin_index", &MPSQVM::pmeasure_bin_index, "program"_a, "string"_a, py::return_value_policy::reference)
+            .def("pmeasure_dec_index", &MPSQVM::pmeasure_dec_index, "program"_a, "string"_a, py::return_value_policy::reference)
+            .def("pmeasure_bin_subset", &MPSQVM::pmeasure_bin_subset, "program"_a, "string_list"_a, py::return_value_policy::reference)
+            .def("pmeasure_dec_subset", &MPSQVM::pmeasure_dec_subset, "program"_a, "string_list"_a, py::return_value_policy::reference)
 
             //The all next MPSQVM functions are only for noise simulation
 
@@ -443,19 +482,6 @@ void init_quantum_machine(py::module &m)
             .def("set_reset_error", &MPSQVM::set_reset_error, "reset_0_param"_a, "reset_1_param"_a, py::return_value_policy::reference);
 
             /*combine error*/
-            //.def("set_combining_error", [](MPSQVM &qvm,KarusError )
-            //    {return qvm.set_combining_compose_error(gate_type, qubits_vecs, model_a, model_b, params_a, params_b); })
-            //.def("set_combining_tensor_error", [](MPSQVM &qvm, GateType gate_type, const std::vector<QVec>& qubits_vecs, NOISE_MODEL model_a, NOISE_MODEL model_b, std::vector<double> params_a, std::vector<double> params_b)
-            //    {return qvm.set_combining_tensor_error(gate_type, qubits_vecs, model_a, model_b, params_a, params_b); })
-            //.def("set_combining_expand_error", [](MPSQVM &qvm, GateType gate_type, const std::vector<QVec>& qubits_vecs, NOISE_MODEL model_a, NOISE_MODEL model_b, std::vector<double> params_a, std::vector<double> params_b)
-            //    {return qvm.set_combining_expand_error(gate_type, qubits_vecs, model_a, model_b, params_a, params_b); })
-
-            //.def("set_combining_compose_error", [](MPSQVM &qvm, GateType gate_type, const std::vector<QVec>& qubits_vecs, std::vector<QStat> model_a_karus_matrices, std::vector<QStat> model_b_karus_matrices)
-            //    {return qvm.set_combining_compose_error(gate_type, qubits_vecs, model_a_karus_matrices, model_b_karus_matrices); })
-            //.def("set_combining_tensor_error", [](MPSQVM &qvm, GateType gate_type, const std::vector<QVec>& qubits_vecs, std::vector<QStat> model_a_karus_matrices, std::vector<QStat> model_b_karus_matrices)
-            //    {return qvm.set_combining_tensor_error(gate_type, qubits_vecs, model_a_karus_matrices, model_b_karus_matrices); })
-            //.def("set_combining_expand_error", [](MPSQVM &qvm, GateType gate_type, const std::vector<QVec>& qubits_vecs, std::vector<QStat> model_a_karus_matrices, std::vector<QStat> model_b_karus_matrices)
-            //    {return qvm.set_combining_expand_error(gate_type, qubits_vecs, model_a_karus_matrices, model_b_karus_matrices); });
                
 #ifdef USE_CURL
 
@@ -484,7 +510,9 @@ void init_quantum_machine(py::module &m)
             .def("get_state_tomography_density", [](QCloudMachine &qcm, QProg &prog, int shot) {return qcm.get_state_tomography_density(prog, shot); })
             .def("full_amplitude_pmeasure", [](QCloudMachine &qcm, QProg &prog, Qnum qvec) {return qcm.full_amplitude_pmeasure(prog, qvec); })
             .def("partial_amplitude_pmeasure", [](QCloudMachine &qcm, QProg &prog, std::vector<std::string> amp_vec) {return qcm.partial_amplitude_pmeasure(prog, amp_vec); })
-            .def("single_amplitude_pmeasure", [](QCloudMachine &qcm, QProg &prog, std::string amp) {return qcm.single_amplitude_pmeasure(prog, amp); });
+            .def("single_amplitude_pmeasure", [](QCloudMachine &qcm, QProg &prog, std::string amp) {return qcm.single_amplitude_pmeasure(prog, amp); })
+            .def("real_chip_task", [](QCloudMachine &qcm, QProg &prog, int shot, size_t chipid) {return qcm.real_chip_task(prog, shot, true, true, true, chipid); },
+                py::arg("prog"), py::arg("shot"), py::arg("chipid") = 0);
 
 #endif // USE_CURL
 

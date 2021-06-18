@@ -239,7 +239,8 @@ namespace QPanda
         m_fcalls++;
 
         vector_d optimized_para(para.data(), para.data() + para.size());
-        return m_func(optimized_para);
+        vector_d blank;
+        return m_func(optimized_para, blank, m_iter, m_fcalls);
     }
 
     QResultPair OriginPowell::linesearch(
@@ -330,11 +331,11 @@ namespace QPanda
         {
             if (i == 0)
             {
-                tmp_x = std::to_string(m_x[i]);
+                tmp_x = QString(m_x[i]).data();
             }
             else
             {
-                tmp_x += "," + std::to_string(m_x[i]);
+                tmp_x += "," + QString(m_x[i]).data();
             }
         }
 
@@ -350,11 +351,11 @@ namespace QPanda
             {
                 if (j == 0)
                 {
-                    tmp_direc += std::to_string(m_direc.row(i)[j]);
+                    tmp_direc += QString(m_direc.row(i)[j]).data();
                 }
                 else
                 {
-                    tmp_direc += "," + std::to_string(m_direc.row(i)[j]);
+                    tmp_direc += "," + QString(m_direc.row(i)[j]).data();
                 }
             }
         }

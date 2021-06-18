@@ -15,12 +15,15 @@ using namespace std;
 
 #define PRINT_TRACE 0
 #if PRINT_TRACE
-#define PTrace printf
+#define PTrace(_msg) {\
+    std::ostringstream ss;\
+    ss << _msg;\
+    std::cout<<__FILENAME__<<"," <<__LINE__<<","<<__FUNCTION__<<":"<<ss.str()<<std::endl;}
 #define PTraceCircuit(cir) (std::cout << cir << endl)
 #define PTraceCircuitMat(cir) { auto m = getCircuitMatrix(cir); std::cout << m << endl; }
 #define PTraceMat(mat) (std::cout << (mat) << endl)
 #else
-#define PTrace
+#define PTrace(_msg)
 #define PTraceCircuit(cir)
 #define PTraceCircuitMat(cir)
 #define PTraceMat(mat)
@@ -31,7 +34,8 @@ using namespace std;
 
 
 HHLAlg::HHLAlg(const QStat& A, const std::vector<double>& b, QuantumMachine *qvm)
-	:m_A(A), m_b(b), m_qvm(*qvm), m_qft_cir_used_qubits_cnt(0), m_mini_qft_qubits(0)
+	:m_A(A), m_b(b), m_qvm(*qvm), m_qft_cir_used_qubits_cnt(0)
+	, m_amplification_factor(0)
 {
 	if (b.size() < 2)
 	{
@@ -185,29 +189,31 @@ string HHLAlg::check_QPE_result()
 	return ss.str();
 }
 
-void HHLAlg::init_qubits()
+void HHLAlg::init_qubits(uint32_t precision_cnt /*= 0*/)
 {
 	const std::vector<double> max_and_min_eigen_val = get_max_eigen_val(m_A);
-	PTrace("The max-eigen-val = %f, min-eigen-val = %f\n", max_and_min_eigen_val[0], max_and_min_eigen_val[1]);
-	size_t ex_qubits = ceil(log2(max_and_min_eigen_val[0])) + 1;
+	PTrace("The max-eigen-val = " << max_and_min_eigen_val[0] <<", min-eigen-val = " << max_and_min_eigen_val[1]);
+	size_t ex_qubits = ceil(log2(max_and_min_eigen_val[0]))+1; /**< 需要一个qubit表示符号位 */
 
 	size_t b_cir_used_qubits_cnt = ceil(log2(m_b.size()));
 	m_qubits_for_b = m_qvm.allocateQubits(b_cir_used_qubits_cnt);
-
-	//m_mini_qft_qubits = ceil(log2(sqrt(m_A.size()))) + 3; //For eigenvalue amplification
-	m_mini_qft_qubits = 1;
+	
+	size_t eigen_val_amplification_qubits = ceil(log2(pow(10, precision_cnt)));
 	if (abs(max_and_min_eigen_val[1]) < 1)
 	{
-		auto f = 1.0 / max_and_min_eigen_val[1];
-		m_mini_qft_qubits += ceil(log2(f));
+		const auto f = 1.0 / max_and_min_eigen_val[1];
+		eigen_val_amplification_qubits += ceil(log2(f));
 	}
 
-	m_qft_cir_used_qubits_cnt = (m_mini_qft_qubits + ex_qubits);
+	m_qft_cir_used_qubits_cnt = (eigen_val_amplification_qubits + ex_qubits);
 	m_qubits_for_qft = m_qvm.allocateQubits(m_qft_cir_used_qubits_cnt);
-	printf("Total need qubits number: %d, qft_qubits=%d=%d+%d\n", 
-		(m_qft_cir_used_qubits_cnt + b_cir_used_qubits_cnt + 1), m_qft_cir_used_qubits_cnt, ex_qubits, m_mini_qft_qubits);
+	PTrace("Total need qubits number: " << (m_qft_cir_used_qubits_cnt + b_cir_used_qubits_cnt + 1)
+		<< ", qft_qubits: " << m_qft_cir_used_qubits_cnt
+		<< "=" << ex_qubits << "+" << eigen_val_amplification_qubits);
 
 	m_ancillary_qubit = m_qvm.allocateQubit();
+
+	m_amplification_factor = 1 << eigen_val_amplification_qubits;
 }
 
 bool HHLAlg::is_hermitian_matrix()
@@ -228,17 +234,14 @@ void HHLAlg::transform_hermitian_to_unitary_mat(QStat& src_mat)
 	src_mat = Eigen_to_QStat(exp_matrix);
 }
 
-QCircuit HHLAlg::get_hhl_circuit()
+QCircuit HHLAlg::get_hhl_circuit(uint32_t precision_cnt /*= 0*/)
 {
-	init_qubits();
+	init_qubits(precision_cnt);
 
 	auto tmp_A = m_A;
-	if (is_hermitian_matrix())
-	{
-		const size_t cc = 1 << ((size_t)(m_mini_qft_qubits));
-		for (auto& i : tmp_A)
-		{
-			i *= cc;
+	if (is_hermitian_matrix()){
+		for (auto& i : tmp_A){
+			i *= m_amplification_factor;
 		}
 	}
 
@@ -249,11 +252,11 @@ QCircuit HHLAlg::get_hhl_circuit()
 
 	//QPE
 	m_cir_qpe = build_QPE_circuit(m_qubits_for_qft, m_qubits_for_b, tmp_A, true);
-	PTrace("qpe_gate_cnt: %llu\n", getQGateNum(m_cir_qpe));
-
+	PTrace("qpe_gate_cnt: " << getQGateNum(m_cir_qpe));
+	
 	m_cir_cr = build_CR_cir(m_qubits_for_qft, m_ancillary_qubit, m_qft_cir_used_qubits_cnt);
 	m_hhl_cir << m_cir_b << m_cir_qpe << m_cir_cr << m_cir_qpe.dagger();
-	printf("^^^^^^^^^^^^^^^^^whole hhl_cir_gate_cnt: %llu ^^^^^^^^^^^^^^^^^^^^\n", getQGateNum(m_hhl_cir));
+	PTrace("^^^^^^^^^^^^^^^^^whole hhl_cir_gate_cnt: " << getQGateNum(m_hhl_cir) << " ^^^^^^^^^^^^^^^^^^^^");
 
 	return m_hhl_cir;
 }
@@ -288,68 +291,61 @@ void HHLAlg::expand_linear_equations(QStat& A, std::vector<double>& b)
 	A.swap(new_A);
 }
 
-QCircuit QPanda::build_HHL_circuit(const QStat& A, const std::vector<double>& b, QuantumMachine *qvm)
+QCircuit QPanda::build_HHL_circuit(const QStat& A, const std::vector<double>& b, QuantumMachine *qvm, uint32_t precision_cnt /*= 0*/)
 {
 	HHLAlg hhl_alg(A, b, qvm);
 
-	return hhl_alg.get_hhl_circuit();
+	return hhl_alg.get_hhl_circuit(precision_cnt);
 }
 
-QStat QPanda::HHL_solve_linear_equations(const QStat& A, const std::vector<double>& b)
+QStat QPanda::HHL_solve_linear_equations(const QStat& A, const std::vector<double>& b, uint32_t precision_cnt/* = 0*/)
 {
 	std::vector<double> tmp_b = b;
-	double norm_coffe = 0.0;
+	double norm_coffe_b = 0.0;
 	for (const auto& item : tmp_b)
 	{
-		norm_coffe += (item*item);
+		norm_coffe_b += (item*item);
 	}
 
-	if (abs(norm_coffe) < MAX_PRECISION)
+	if (abs(norm_coffe_b) < MAX_PRECISION)
 	{
 		QStat r;
 		r.resize(b.size(), 0);
 		return r;
-	}
+	} 
 
-	norm_coffe = sqrt(norm_coffe);
+	norm_coffe_b = sqrt(norm_coffe_b);
 	for (auto& item : tmp_b)
 	{
-		item = item / norm_coffe;
+		item = item / norm_coffe_b;
 	}
 
 	//build HHL quantum program
 	auto machine = initQuantumMachine(CPU);
 	machine->setConfigure({ 64,64 });
 	auto prog = QProg();
-	QCircuit hhl_cir = build_HHL_circuit(A, tmp_b, machine);
+	HHLAlg hhl_alg(A, tmp_b, machine);
+	QCircuit hhl_cir = hhl_alg.get_hhl_circuit(precision_cnt);
 	prog << hhl_cir;
 	//PTraceCircuit(prog);
 
-	printf("HHL quantum circuit is running ...\n");
-        auto start = chrono::system_clock::now();
+	PTrace("HHL quantum circuit is running ...");
+    auto start = chrono::system_clock::now();
 	directlyRun(prog);
 	auto stat = machine->getQState();
-        auto end = chrono::system_clock::now();
-        auto duration = chrono::duration_cast<chrono::microseconds>(end - start);
-        cout << "run HHL used: "
-             << double(duration.count()) * chrono::microseconds::period::num / chrono::microseconds::period::den
-             << " s" << endl;
+	auto end = chrono::system_clock::now();
+	auto duration = chrono::duration_cast<chrono::microseconds>(end - start);
+	PTrace("run HHL used: "
+		<< double(duration.count()) * chrono::microseconds::period::num / chrono::microseconds::period::den
+		<< " s");
 
 	machine->finalize();
 	stat.erase(stat.begin(), stat.begin() + (stat.size() / 2));
 
-	// normalise
-	double norm = 0.0;
-	for (auto &val : stat)
-	{
-		norm += ((val.real() * val.real()) + (val.imag() * val.imag()));
-	}
-	norm = sqrt(norm);
-
 	QStat stat_normed;
 	for (auto &val : stat)
 	{
-		stat_normed.push_back(val / qcomplex_t(norm, 0));
+		stat_normed.push_back(val * norm_coffe_b * hhl_alg.get_amplification_factor());
 	}
 
 	for (auto &val : stat_normed)

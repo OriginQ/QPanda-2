@@ -157,6 +157,16 @@ private:
 * @ingroup Core
 */
 QMeasure Measure(Qubit * , ClassicalCondition );
+
+/**
+* @brief  QPanda2 basic interface for creating a quantum measure node
+* @param[in]  int   qubit address
+* @param[in]  int  cbit address
+* @return     QPanda::QMeasure  quantum measure node
+* @ingroup Core
+*/
+QMeasure Measure(int, int);
+
 QPANDA_END
 
 #endif // !_QUANTUM_MEASURE_H

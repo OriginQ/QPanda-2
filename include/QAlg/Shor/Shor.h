@@ -78,7 +78,7 @@ private:
     /**
     *@return CFE for the max results and get the lowest common multiple(LCM) for them.
     */
-    int _measure_result_parse(int target, vector<int> max_result);
+    int _measure_result_parse(int target, std::vector<int> max_result);
 };
 
 /**

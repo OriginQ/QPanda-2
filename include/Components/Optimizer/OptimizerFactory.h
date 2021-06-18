@@ -14,7 +14,7 @@ Created in 2018-09-06
 #define OPTIMIZERFACTOR_H
 
 #include <memory>
-#include "Components/DataStruct.h"
+#include "Core/Module/DataStruct.h"
 
 namespace QPanda
 {

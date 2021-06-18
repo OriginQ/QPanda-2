@@ -461,7 +461,7 @@ void NoiseSimulator::set_rotation_error(double param)
 
 void NoiseSimulator::set_reset_error(double p0_param, double p1_param)
 {
-    QPANDA_ASSERT(p0_param < 0. || p0_param < 0. || (p0_param + p1_param) > 1., "reset param error");
+    QPANDA_ASSERT(p0_param < 0. || p1_param < 0. || (p0_param + p1_param) > 1., "reset param error");
     m_non_karus_error.set_reset_error(p0_param, p1_param);
     return;
 }

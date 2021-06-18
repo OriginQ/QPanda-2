@@ -29,6 +29,7 @@ limitations under the License.
 #include "Core/QuantumMachine/QVec.h"
 #include "Core/Utilities/Tools/QPandaException.h"
 #include "Core/QuantumCircuit/QNodeManager.h"
+#include "Core/QuantumCircuit/ClassicalConditionInterface.h"
 
 QPANDA_BEGIN
 
@@ -46,6 +47,51 @@ public:
     * @brief  Clear all node in current quantum program node
     */
     virtual void clear() = 0;
+
+
+    /**
+    * @brief  Gets the maximum physical address of used qubits 
+    * @return size_t maximum physical address
+    */
+    virtual size_t get_max_qubit_addr() = 0;
+
+    /**
+    * @brief  Get the used qubits for current quantum program
+    * @param[out]  QVec  used qubits  vector
+    * @return  size_t
+    */
+    virtual size_t get_used_qubits(QVec&) = 0;
+
+    /**
+    * @brief  Get the used  classical bits for current quantum program
+    * @param[out]  QVec  used qubits  vector
+    * @return  size_t
+    */
+    virtual size_t get_used_cbits(std::vector<ClassicalCondition>&) = 0;
+
+    /**
+    * @brief  Get current quantum program qgate number
+    * @return  size_t
+    */
+    virtual size_t get_qgate_num() = 0;
+
+    /**
+    * @brief  Measure  operation  in the last position of the program
+    * @return  bool
+    */
+    virtual bool  is_measure_last_pos()= 0;
+
+    /**
+    * @brief  Get Measure operation  position of the program
+    * @return   std::map<Qubit*, bool>
+    */
+    virtual std::map<Qubit*, bool> get_measure_pos() = 0;
+
+    /**
+    * @brief  Get Measure operation qubits and cbits vector
+    * @return   std::vector<std::pair<Qubit*, ClassicalCondition>> 
+    */
+    virtual std::vector<std::pair<Qubit*, ClassicalCondition>> get_measure_qubits_cbits() = 0;
 };
 
 /**
@@ -83,6 +129,13 @@ public:
     NodeType getNodeType() const;
     void clear();
 	bool is_empty() { return getFirstNodeIter() == getEndNodeIter(); }
+    virtual size_t get_max_qubit_addr();
+    virtual size_t get_used_qubits(QVec&);
+    virtual size_t get_used_cbits(std::vector<ClassicalCondition>&);
+    virtual size_t get_qgate_num();
+    virtual bool  is_measure_last_pos();
+    virtual std::map<Qubit*, bool> get_measure_pos();
+    virtual std::vector<std::pair<Qubit*, ClassicalCondition>> get_measure_qubits_cbits();
 };
 
 typedef AbstractQuantumProgram * (*CreateQProgram)();
@@ -138,11 +191,15 @@ public:
 class OriginProgram :public QNode, public AbstractQuantumProgram
 {
 private:
-	QNodeManager m_node_manager{this};
+    QNodeManager m_node_manager{ this };
     SharedMutex m_sm;
-    NodeType m_node_type {PROG_NODE};
+    NodeType m_node_type{ PROG_NODE };
     OriginProgram(OriginProgram&);
-
+    QVec m_used_qubit_vector;
+    size_t m_qgate_num{ 0 };
+    std::vector<ClassicalCondition> m_used_cbit_vector;
+    std::map<Qubit*, bool> m_last_measure;
+    std::vector<std::pair<Qubit*, ClassicalCondition>>  m_mea_qubits_cbits;
 public:
     ~OriginProgram();
     OriginProgram();
@@ -152,20 +209,40 @@ public:
     * @return     void
     * @see  QNode
     */
-	void pushBackNode(std::shared_ptr<QNode> node) { m_node_manager.push_back_node(node); }
-	NodeIter getFirstNodeIter() { return m_node_manager.get_first_node_iter(); }
-	NodeIter getLastNodeIter() { return m_node_manager.get_last_node_iter(); }
-	NodeIter getEndNodeIter() { return m_node_manager.get_end_node_iter(); }
-	NodeIter getHeadNodeIter() { return m_node_manager.get_head_node_iter(); }
-	NodeIter insertQNode(const NodeIter &perIter, std::shared_ptr<QNode> node) { return m_node_manager.insert_QNode(perIter, node); }
-	NodeIter deleteQNode(NodeIter &target_iter) { return m_node_manager.delete_QNode(target_iter); }
+    void pushBackNode(std::shared_ptr<QNode> node) {
+        check_insert_node_type(node);
+        m_node_manager.push_back_node(node);
+    }
+    NodeIter getFirstNodeIter() { return m_node_manager.get_first_node_iter(); }
+    NodeIter getLastNodeIter() { return m_node_manager.get_last_node_iter(); }
+    NodeIter getEndNodeIter() { return m_node_manager.get_end_node_iter(); }
+    NodeIter getHeadNodeIter() { return m_node_manager.get_head_node_iter(); }
+    NodeIter insertQNode(const NodeIter& perIter, std::shared_ptr<QNode> node) { return m_node_manager.insert_QNode(perIter, node); }
+    NodeIter deleteQNode(NodeIter& target_iter) { return m_node_manager.delete_QNode(target_iter); }
     NodeType getNodeType() const;
 
     /**
     * @brief  Clear all node in current quantum program node
     * @return     void
     */
-	void clear() { m_node_manager.clear(); }
+    void clear() { m_node_manager.clear(); }
+
+    bool check_insert_node_type(std::shared_ptr<QNode> node);
+
+    size_t get_max_qubit_addr();
+
+    size_t get_used_qubits(QVec& qubit_vector);
+
+    size_t get_used_cbits(std::vector<ClassicalCondition>&);
+
+    size_t get_qgate_num();
+
+    std::map<Qubit*, bool> get_measure_pos() { return m_last_measure; }
+
+    bool is_measure_last_pos();
+
+    std::vector<std::pair<Qubit*, ClassicalCondition>> get_measure_qubits_cbits() { return m_mea_qubits_cbits; }
+
 };
 
 /* will delete */

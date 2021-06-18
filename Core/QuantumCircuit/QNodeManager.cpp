@@ -1,4 +1,5 @@
 #include "QNodeManager.h"
+#include "Core/QuantumCircuit/QNodeDeepCopy.h"
 #include <stdexcept>
 
 USING_QPANDA
@@ -40,13 +41,15 @@ void QNodeManager::push_back_node(std::shared_ptr<QNode> node)
 		throw std::runtime_error("Error: Cann't inserte to node-self.");
 	}
 
+	auto copy_node = deepCopyQNode(node);
+
 	WriteLock wl(m_sm);
 
 	{
 		auto last_node = m_end->getPre();
 
 		Item *iter = new OriginItem();
-		iter->setNode(node);
+		iter->setNode(copy_node);
 		iter->setNext(m_end);
 		iter->setPre(last_node);
 
@@ -90,12 +93,14 @@ NodeIter QNodeManager::insert_QNode(const NodeIter &perIter, std::shared_ptr<QNo
 		throw std::runtime_error("Error: Cann't inserte to node-self.");
 	}
 
+	auto copy_node = deepCopyQNode(node);
+
 	if (perIter == m_head)
 	{
 		delete rl;
 		WriteLock wl(m_sm);
 		Item *new_iter = new OriginItem();
-		new_iter->setNode(node);
+		new_iter->setNode(copy_node);
 
 		auto first_node = m_head->getNext();
 		new_iter->setNext(first_node);
@@ -133,7 +138,7 @@ NodeIter QNodeManager::insert_QNode(const NodeIter &perIter, std::shared_ptr<QNo
 	delete rl;
 	WriteLock wl(m_sm);
 	Item *curItem = new OriginItem();
-	curItem->setNode(node);
+	curItem->setNode(copy_node);
 	if (m_end != perItem->getNext())
 	{
 		perItem->getNext()->setPre(curItem);

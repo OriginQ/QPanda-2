@@ -7,8 +7,8 @@ def draw_circuit_pic(prog, pic_name, verbose=False):
     qcd = MatplotlibDrawer(qregs = layer_info[1], cregs = layer_info[2], ops = layer_info[0], scale=0.7)
     qcd.draw(pic_name, verbose)
 
-def draw_qprog(prog, output=None, scale=0.7, filename=None, line_length=None, NodeIter_first=None, \
-    NodeIter_second=None, console_encode_type = 'utf8'):
+def draw_qprog(prog, output=None, scale=0.7, filename=None, line_length=100, NodeIter_first=None, \
+    NodeIter_second=None, console_encode_type = 'utf8', text_to_file = False):
     """Draw a quantum circuit to different formats (set by output parameter):
 
     **text**: ASCII art TextDrawing that can be printed in the console.
@@ -20,7 +20,7 @@ def draw_qprog(prog, output=None, scale=0.7, filename=None, line_length=None, No
         scale (float): scale of image to draw (shrink if < 1). Only used by the ``pic`` outputs.
         filename (str): file path to save image to
         NodeIter_first: circuit printing start position.
-        NodeIter_first: circuit printing end position.
+        NodeIter_second: circuit printing end position.
         console_encode_type(str): Target console encoding type. 
             Mismatching of encoding types may result in character confusion, 'utf8' and 'gbk' are supported.
             Only used by the ``pic`` outputs.
@@ -40,11 +40,11 @@ def draw_qprog(prog, output=None, scale=0.7, filename=None, line_length=None, No
         draw_circuit_pic(prog, filename)
     elif output == 'text':
         if NodeIter_first is None and  NodeIter_second is None:
-            text_pic = pq.draw_qprog_text(prog)
+            text_pic = pq.draw_qprog_text(prog, line_length, text_to_file)
         elif NodeIter_first is None:
-            text_pic = pq.draw_qprog_text(prog, prog.begin(), NodeIter_second)
+            text_pic = pq.draw_qprog_text(prog, line_length, text_to_file, prog.begin(), NodeIter_second)
         elif NodeIter_second is None:
-            text_pic = pq.draw_qprog_text(prog, NodeIter_first, prog.end())
+            text_pic = pq.draw_qprog_text(prog, line_length, text_to_file, NodeIter_first, prog.end())
         
         if console_encode_type == 'gbk':
             text_pic = pq.fit_to_gbk(text_pic)

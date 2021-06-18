@@ -48,7 +48,7 @@ public:
 
 		auto result = probRunDict(qu_count_prog, m_work_qubits);
 
-		cout << "the result" << endl;
+		std::cout << "the result" << std::endl;
 		size_t target_result_index = 0;
 		double max_val = 0.0;
 		size_t i = 0;
@@ -62,13 +62,13 @@ public:
 			++i;
 			std::cout << aiter.first << " : " << aiter.second << std::endl;
 		}
-		cout << "result end" << endl;
+		std::cout << "result end" << std::endl;
 
 		double v = pow(2, m_index_qubit_size);
 		double theta = ((double)target_result_index / v)*PI * 2;
 		double M = v * (pow(sin(theta / 2), 2));
 		double rs = v - M;
-		cout << "counting result: " << rs << endl;
+		std::cout << "counting result: " << rs << std::endl;
 
 		return floor(rs);
 	}
@@ -112,7 +112,7 @@ public:
 		return prog;
 	}
 
-	QCircuit QFT(vector<Qubit*> qvec){
+	QCircuit QFT(std::vector<Qubit*> qvec){
 		QCircuit  qft = CreateEmptyCircuit();
 		for (auto i = 0; i < qvec.size(); i++)
 		{
@@ -126,7 +126,7 @@ public:
 		return qft;
 	}
 
-	QCircuit QFTdagger(vector<Qubit*> qvec){
+	QCircuit QFTdagger(std::vector<Qubit*> qvec){
 		QCircuit  qft = QFT(qvec);
 		qft.setDagger(true);
 		return qft;

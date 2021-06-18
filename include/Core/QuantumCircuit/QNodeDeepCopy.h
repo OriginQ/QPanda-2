@@ -101,10 +101,12 @@ private:
 template <typename _Ty>
 _Ty deepCopy(_Ty &node)
 {
-    QNodeDeepCopy reproduction;
+	QNodeDeepCopy reproduction;
     auto  pNode = reproduction.copy_node(node.getImplementationPtr());
     return pNode;
 }
+
+std::shared_ptr<QNode> deepCopyQNode(std::shared_ptr<QNode> src_node);
 
 QPANDA_END
 

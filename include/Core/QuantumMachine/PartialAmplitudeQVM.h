@@ -5,6 +5,13 @@
 #include "Core/Utilities/Tools/Traversal.h"
 #include "Core/QuantumMachine/OriginQuantumMachine.h"
 #include "Core/VirtualQuantumProcessor/PartialAmplitude/PartialAmplitudeGraph.h"
+#include "Core/Utilities/QProgTransform/TransformDecomposition.h"
+#include "Core/Utilities/Tools/Utils.h"
+#include "Core/Utilities/QProgInfo/Visualization/QVisualization.h"
+#include <iostream>
+#include <Core/Utilities/Compiler/QProgToOriginIR.h>
+
+
 QPANDA_BEGIN
 
 /**
@@ -20,9 +27,16 @@ public:
 
 	void init();
 
+    std::map<std::string, bool> directlyRun(QProg &prog)
+    {
+        run(prog);
+        return std::map<std::string, bool>();
+    }
+
 	template <typename _Ty>
 	void run(_Ty &node)
 	{
+        decompose_multiple_control_qgate(node, this, "");
 		auto qubit_num = getAllocateQubitNum();
 		m_graph_backend.reset(qubit_num);
 		execute(node.getImplementationPtr(), nullptr);
@@ -54,6 +68,10 @@ public:
     * @note  output example: <0000000110:0.000167552>
     */
 	stat_map PMeasure_subset(const std::vector<std::string>&);
+    prob_dict getProbDict(const QVec&);
+    prob_dict probRunDict(QProg &prog, const QVec&);
+    virtual prob_vec getProbList(const QVec&);
+    prob_vec probRunList(QProg &, const QVec&);
 
     void execute(std::shared_ptr<AbstractQGateNode>, std::shared_ptr<QNode>);
     void execute(std::shared_ptr<AbstractClassicalProg>, std::shared_ptr<QNode>);
@@ -66,6 +84,7 @@ public:
 private:
 	void construct_graph();
 	void computing_graph(int qubit_num, const cir_type& circuit, QStat& state);
+    void caculate_qstate(QStat &state);
 };
 
 QPANDA_END

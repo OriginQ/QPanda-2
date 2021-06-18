@@ -17,6 +17,7 @@ Description  : Quantum program adaptation metadata instruction set
 #include "Core/Utilities/Tools/Traversal.h"
 #include "Core/QuantumMachine/OriginQuantumMachine.h"
 #include "Core/Utilities/Tools/JsonConfigParam.h"
+#include "Core/Utilities/Tools/QCircuitGenerator.h"
 
 QPANDA_BEGIN
 using QGATE_SPACE::AbstractAngleParameter;
@@ -37,6 +38,8 @@ struct QGatesTransform
     axis n1;
     axis n2;
 };
+
+#define UNDEF_DOUBLE  (std::numeric_limits<double>::max)()
 
 /**
 * @class DecomposeDoubleQGate
@@ -297,6 +300,22 @@ private:
 */
 class DecomposeControlSingleQGateIntoMetadataDoubleQGate : public TraversalInterface<>
 {
+	struct SpecialSingGate
+	{
+		double m_alpha;
+		double m_beta;
+		double m_delta;
+		double m_gamma;
+
+		SpecialSingGate() 
+			:m_alpha(UNDEF_DOUBLE), m_beta(UNDEF_DOUBLE), m_delta(UNDEF_DOUBLE), m_gamma(UNDEF_DOUBLE){}
+
+		std::vector<double> parse_angle(double alpha, double beta, double delta, double gamma) const;
+	};
+
+	static const std::string key_name;
+	static const std::string circuit_replace;
+
 public:
     /*!
     * @brief  Execution traversal qgatenode
@@ -369,11 +388,20 @@ public:
 
 
     DecomposeControlSingleQGateIntoMetadataDoubleQGate(QuantumMachine * quantum_machine,
-        std::vector<std::vector<std::string>> valid_qgate_matrix)
+        std::vector<std::vector<std::string>> valid_qgate_matrix, const std::string& config_data = CONFIG_PATH)
     {
         m_quantum_machine = quantum_machine;
         m_valid_qgate_matrix = valid_qgate_matrix;
+
+		read_special_ctrl_single_gate(config_data);
     }
+
+protected:
+	QCircuit single_angle_gate_replace(Qubit* target_qubit, Qubit* control_qubit, 
+		double dAlpha, double dBeta, double dDelta, double dGamma);
+
+	void read_special_ctrl_single_gate(const std::string& config_data);
+
 private:
     DecomposeControlSingleQGateIntoMetadataDoubleQGate();
     DecomposeControlSingleQGateIntoMetadataDoubleQGate(
@@ -385,6 +413,7 @@ private:
     QCircuit swapQGate(std::vector<int> shortest_way, std::string metadata_qgate);
     std::vector<std::vector<std::string>> m_valid_qgate_matrix;
     QuantumMachine * m_quantum_machine;
+	std::vector<std::pair<SpecialSingGate, QCircuitGenerator::Ref>> m_special_gate_replace_vec;
 };
 
 /**
@@ -731,7 +760,8 @@ class TransformDecomposition
 public:
     TransformDecomposition(std::vector<std::vector<std::string>> &ValidQGateMatrix,
         std::vector<std::vector<std::string>> &QGateMatrix,
-        QuantumMachine * quantum_machine);
+        QuantumMachine * quantum_machine,
+		const std::string& config_data = CONFIG_PATH);
     ~TransformDecomposition();
 
     void TraversalOptimizationMerge(QProg & prog);

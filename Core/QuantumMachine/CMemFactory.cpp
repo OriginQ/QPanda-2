@@ -63,4 +63,4 @@ CMemFactory::GetFactoryInstance()
     static CMemFactory fac;
     return fac;
 }
-REGISTER_CMEM_SIZE_(OriginCMem);
+REGISTER_CMEM_SIZE_(OriginCMemv2);

@@ -2,9 +2,8 @@
 #ifndef QCLOUD_MACHINE_H
 #define QCLOUD_MACHINE_H
 #include "QPandaConfig.h"
-#include "Core/Core.h"
-
-#ifdef USE_CURL
+#include "Core/QuantumMachine/OriginQuantumMachine.h"
+#include "Core/Utilities/Tools/JsonConfigParam.h"
 
 #include "ThirdParty/rapidjson/document.h"
 #include "ThirdParty/rapidjson/writer.h"
@@ -20,11 +19,14 @@ enum class CLOUD_QMACHINE_TYPE
     PARTIAL_AMPLITUDE,
     SINGLE_AMPLITUDE,
     CHEMISTRY,
-    REAL_CHIP
+    REAL_CHIP,
+    QST,
+    FIDELITY
 };
 
 enum class REAL_CHIP_TYPE
 {
+    UDEFINED,
     ORIGIN_WUYUAN
 };
 
@@ -42,7 +44,7 @@ enum class REAL_CHIP_TYPE
 
 struct NoiseConfigs
 {
-    string noise_model;
+    std::string noise_model;
     double single_gate_param;
     double double_gate_param;
 
@@ -64,8 +66,7 @@ public:
     * @return     void
     * @note   use this at the begin
     */
-	void init();
-	void init(string token);
+	void init(std::string token);
 
     void set_compute_api(std::string url) { m_compute_url = url; }
     void set_inqure_api(std::string url) { m_inqure_url = url; }
@@ -79,7 +80,7 @@ public:
     * @param[out] std::map<std::string, double>
     * @return     measure result
     */
-    std::map<std::string, double> noise_measure(QProg &, int shot, string task_name = "Qurator Experiment");
+    std::map<std::string, double> noise_measure(QProg &, int shot, std::string task_name = "Qurator Experiment");
 
 	/**
 	* @brief  run a measure quantum program
@@ -88,7 +89,7 @@ public:
 	* @param[out] std::map<std::string, double>
 	* @return     measure result
 	*/
-    std::map<std::string, double> full_amplitude_measure(QProg &, int shot, string task_name = "Qurator Experiment");
+    std::map<std::string, double> full_amplitude_measure(QProg &, int shot, std::string task_name = "Qurator Experiment");
   
 	/**
 	* @brief  run a pmeasure quantum program
@@ -97,7 +98,7 @@ public:
     * @param[out] std::map<std::string, double>
     * @return     pmeasure result
 	*/
-    std::map<std::string, double> full_amplitude_pmeasure(QProg &prog, Qnum qubit_vec, string task_name = "Qurator Experiment");
+    std::map<std::string, double> full_amplitude_pmeasure(QProg &prog, Qnum qubit_vec, std::string task_name = "Qurator Experiment");
     
 	/**
 	* @brief  run a pmeasure quantum program with partial amplitude backend
@@ -106,7 +107,7 @@ public:
     * @param[out] std::map<std::string, qcomplex_t>
     * @return     pmeasure result
 	*/
-    std::map<std::string, qcomplex_t> partial_amplitude_pmeasure(QProg &prog, std::vector<std::string> amplitude_vec, string task_name = "Qurator Experiment");
+    std::map<std::string, qcomplex_t> partial_amplitude_pmeasure(QProg &prog, std::vector<std::string> amplitude_vec, std::string task_name = "Qurator Experiment");
 
 	/**
 	* @brief  run a pmeasure quantum program with single amplitude backend
@@ -115,7 +116,7 @@ public:
     * @param[out] qcomplex_t
     * @return     pmeasure result
 	*/
-    qcomplex_t single_amplitude_pmeasure(QProg &prog, std::string amplitude, string task_name = "Qurator Experiment");
+    qcomplex_t single_amplitude_pmeasure(QProg &prog, std::string amplitude, std::string task_name = "Qurator Experiment");
 
     /**
     * @brief  run a measure quantum program
@@ -124,7 +125,17 @@ public:
     * @param[out] std::map<std::string, double>
     * @return     measure result
     */
-    std::map<std::string, double> real_chip_measure(QProg &, int shot, string task_name = "Qurator Experiment", REAL_CHIP_TYPE type = REAL_CHIP_TYPE::ORIGIN_WUYUAN);
+    std::map<std::string, double> real_chip_measure(QProg &, int shot, size_t chipid = 0, std::string task_name = "Qurator Experiment");
+
+    /**
+    * @brief  run a measure quantum program
+    * @param[in]  QProg& the reference to a quantum program
+    * @param[in]  int&   shot
+    * @param[out] std::map<std::string, double>
+    * @return     measure result
+    */
+    std::map<std::string, double> real_chip_task(QProg &, int shot, 
+        bool mapping_flag, bool circuit_optimization, bool is_vip, size_t chipid = 0);
 
     /**
     * @brief  get real chip qst matrix
@@ -133,7 +144,7 @@ public:
     * @param[out] QStat matrix
     * @return     matrix
     */
-    std::vector<QStat> get_state_tomography_density(QProg &, int shot);
+    std::vector<QStat> get_state_tomography_density(QProg &, int shot, size_t chipid = 0);
 
 	/**
 	* @brief  get task result
@@ -150,6 +161,9 @@ private:
 	std::string m_token;
 	std::string m_inqure_url;  
     std::string m_compute_url;
+
+    std::string m_real_chip_task_inqure_url;
+    std::string m_real_chip_task_compute_url;
      
     std::map<std::string, double> m_measure_result;
     std::map<std::string, qcomplex_t> m_pmeasure_result;
@@ -180,19 +194,22 @@ private:
 
     std::string post_json(const std::string &, std::string &);
 
+    //next 3 funtions only for real chip task
+    void inqure_real_chip_result(std::string recv_json_str);
+    bool parser_real_chip_submit_json(std::string &recv_json, std::string& taskid);
+    bool parser_real_chip_result_json(std::string &recv_json, std::string& taskid);
+
     void inqure_result(std::string, CLOUD_QMACHINE_TYPE);
 
     bool parser_cluster_result_json(std::string &recv_json, std::string&);
 	bool parser_cluster_submit_json(std::string &recv_json, std::string&);
 
-    void add_string_value(rapidjson::Document &, const string &, const size_t);
-    void add_string_value(rapidjson::Document &, const string &, const double);
-    void add_string_value(rapidjson::Document &, const string &, const std::string &);
+    void add_string_value(rapidjson::Document &, const std::string &, const size_t);
+    void add_string_value(rapidjson::Document &, const std::string &, const double);
+    void add_string_value(rapidjson::Document &, const std::string &, const std::string &);
 };
 
 QPANDA_END
-
-#endif // ! USE_CURL
 
 
 #endif // ! QCLOUD_MACHINE_H

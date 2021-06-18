@@ -40,30 +40,32 @@ const uint32_t kSingleGateValue =
 (1u << QPROG_PAULI_X_GATE) | (1u << QPROG_PAULI_Y_GATE) | (1u << QPROG_PAULI_Z_GATE) |
 (1u << QPROG_X_HALF_PI) | (1u << QPROG_Y_HALF_PI) | (1u << QPROG_Z_HALF_PI) |
 (1u << QPROG_HADAMARD_GATE) | (1u << QPROG_T_GATE) | (1u << QPROG_S_GATE);
-const std::map<int, function<QGate(Qubit *)>> kSingleGateFun =
+typedef QGate(*gate_f1)(Qubit*);
+const std::map<int, function<QGate(Qubit*)>> kSingleGateFun =
 {
-    {QPROG_PAULI_X_GATE, X},
-    {QPROG_PAULI_Y_GATE, Y},
-    {QPROG_PAULI_Z_GATE, Z},
-    {QPROG_X_HALF_PI,    X1},
-    {QPROG_Y_HALF_PI,    Y1},
-    {QPROG_Z_HALF_PI,    Z1},
-    {QPROG_HADAMARD_GATE,H},
-    {QPROG_T_GATE,       T},
-    {QPROG_S_GATE,       S},
-	{QPROG_I_GATE,        I}
+    {QPROG_PAULI_X_GATE, (gate_f1)X},
+    {QPROG_PAULI_Y_GATE, (gate_f1)Y},
+    {QPROG_PAULI_Z_GATE, (gate_f1)Z},
+    {QPROG_X_HALF_PI,    (gate_f1)X1},
+    {QPROG_Y_HALF_PI,    (gate_f1)Y1},
+    {QPROG_Z_HALF_PI,    (gate_f1)Z1},
+    {QPROG_HADAMARD_GATE,(gate_f1)H},
+    {QPROG_T_GATE,       (gate_f1)T},
+    {QPROG_S_GATE,       (gate_f1)S},
+	{QPROG_I_GATE,        (gate_f1)I}
 
 };
 
 const uint32_t kSingleGateAngleValue =
 (1u << QPROG_RX_GATE) | (1u << QPROG_RY_GATE) | (1u << QPROG_RZ_GATE) |
 (1u << QPROG_U1_GATE);
+typedef QGate(*gate_f2)(Qubit*, double);
 const std::map<int, function<QGate(Qubit *, double)>> kSingleGateAngelFun =
 {
-    {QPROG_RX_GATE, RX},
-    {QPROG_RY_GATE, RY},
-    {QPROG_RZ_GATE, RZ},
-    {QPROG_U1_GATE, U1}
+    {QPROG_RX_GATE, (gate_f2)RX},
+    {QPROG_RY_GATE, (gate_f2)RY},
+    {QPROG_RZ_GATE, (gate_f2)RZ},
+    {QPROG_U1_GATE, (gate_f2)U1}
 };
 
 const uint32_t kU2Value = 1u << QPROG_U2_GATE;
@@ -98,13 +100,14 @@ const uint32_t kDoubleGateValue =
 (1u << QPROG_CNOT_GATE) | (1u << QPROG_CZ_GATE) |
 (1u << QPROG_ISWAP_GATE) | (1u << QPROG_SQISWAP_GATE)| 
 (1u << QPROG_SWAP_GATE);
+typedef QGate(*gate_f3)(Qubit*, Qubit*);
 const std::map<int, function<QGate(Qubit *, Qubit *)>> kDoubleGateFun =
 {
-    {QPROG_CNOT_GATE, CNOT},
-    {QPROG_CZ_GATE, CZ},
+    {QPROG_CNOT_GATE, (gate_f3)CNOT},
+    {QPROG_CZ_GATE, (gate_f3)CZ},
     {QPROG_ISWAP_GATE, [](Qubit *q1, Qubit *q2) {return iSWAP(q1, q2); }},
 	{QPROG_SWAP_GATE, [](Qubit *q1, Qubit *q2) {return SWAP(q1, q2); }},
-    {QPROG_SQISWAP_GATE, SqiSWAP}
+    {QPROG_SQISWAP_GATE, (gate_f3)SqiSWAP}
 };
 
 const uint32_t kDoubleGateAngleValue =
@@ -112,7 +115,7 @@ const uint32_t kDoubleGateAngleValue =
 const std::map<int, function<QGate(Qubit *, Qubit *, double)>> kDoubleGateAngleFun =
 {
     {QPROG_ISWAP_THETA_GATE, [](Qubit *q1, Qubit *q2, double a) {return iSWAP(q1, q2, a); }},
-    {QPROG_CPHASE_GATE, CR}
+    {QPROG_CPHASE_GATE,[](Qubit* q1, Qubit* q2, double theta) {return CR(q1,q2,theta); }}
 };
 
 

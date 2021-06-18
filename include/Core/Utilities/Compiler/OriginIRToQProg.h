@@ -14,7 +14,7 @@
 #include "Core/QuantumCircuit/ControlFlow.h"
 #include "Core/QuantumCircuit/ClassicalProgram.h"
 #include "Core/QuantumCircuit/QGlobalVariable.h"
-
+#include "Core/Utilities/Compiler/QASMToQProg.h"
 QPANDA_BEGIN
 
 
@@ -27,7 +27,7 @@ QPANDA_BEGIN
 * @param[out]  std::vector<ClassicalCondition>	classical register  vector
 * @return     QProg    quantum program
 */
-QProg convert_originir_to_qprog(std::string file_path, QuantumMachine *qm, QVec &qv, std::vector<ClassicalCondition> &cv);
+QProg convert_originir_to_qprog(std::string file_path, QuantumMachine* qm, QVec& qv, std::vector<ClassicalCondition>& cv);
 
 /**
 * @brief  Convert OriginIR  To  Quantum Program
@@ -36,7 +36,7 @@ QProg convert_originir_to_qprog(std::string file_path, QuantumMachine *qm, QVec 
 * @param[in]  QuantumMachine*	quantum machine pointer
 * @return     QProg    quantum program
 */
-QProg convert_originir_to_qprog(std::string file_path, QuantumMachine *qm);
+QProg convert_originir_to_qprog(std::string file_path, QuantumMachine* qm);
 
 
 /**
@@ -48,7 +48,7 @@ QProg convert_originir_to_qprog(std::string file_path, QuantumMachine *qm);
 * @param[out]  std::vector<ClassicalCondition>	classical register  vector
 * @return     QProg    quantum program
 */
-QProg convert_originir_string_to_qprog(std::string str_originir, QuantumMachine *qm, QVec &qv, std::vector<ClassicalCondition> &cv);
+QProg convert_originir_string_to_qprog(std::string str_originir, QuantumMachine* qm, QVec& qv, std::vector<ClassicalCondition>& cv);
 
 /**
 * @brief  Convert OriginIR String To  Quantum Program
@@ -57,11 +57,11 @@ QProg convert_originir_string_to_qprog(std::string str_originir, QuantumMachine 
 * @param[in]  QuantumMachine*	quantum machine pointer
 * @return     QProg    quantum program
 */
-QProg convert_originir_string_to_qprog(std::string str_originir, QuantumMachine *qm);
+QProg convert_originir_string_to_qprog(std::string str_originir, QuantumMachine* qm);
 
 
 /**
-* @brief  OriginIR Transform To  Quantum Program 
+* @brief  OriginIR Transform To  Quantum Program
 * @ingroup Utilities
 * @param[in]  std::string		OriginIR file path
 * @param[in]  QuantumMachine*	quantum machine pointer
@@ -69,7 +69,28 @@ QProg convert_originir_string_to_qprog(std::string str_originir, QuantumMachine 
 * @param[out]  std::vector<ClassicalCondition>	classical register  vector
 * @return     QProg    quantum program
 */
-QProg transformOriginIRToQProg(std::string filePath, QuantumMachine* qm, QVec &qv, std::vector<ClassicalCondition> &cv);
+QProg transformOriginIRToQProg(std::string filePath, QuantumMachine* qm, QVec& qv, std::vector<ClassicalCondition>& cv);
+
+
+
+/**
+* @brief  define QGate function info
+* @ingroup Utilities
+*/
+struct CallGateInfo
+{
+	std::string gate_name;
+	std::vector<std::string> qubits;
+	std::vector<std::shared_ptr<Exp>> angles;
+};
+
+struct DefineQGateContent
+{
+	std::string define_name;
+	std::vector<std::string> formal_qubits;
+	std::vector<std::string> formal_angles;
+	std::vector<CallGateInfo> gate_bodys;
+};
 
 
 /**
@@ -83,15 +104,18 @@ class QProgBuilder {
 	std::unordered_map<size_t, ClassicalCondition> m_exprid_set;
 	size_t cid = 0;
 
-	QVec &qs;
-	std::vector<ClassicalCondition> &ccs;
+	QVec& qs;
+	std::vector<ClassicalCondition>& ccs;
+	std::map<std::string, DefineQGateContent> define_gates_map;
 
 public:
-	QProgBuilder(QuantumMachine *qm, QVec &qv, std::vector<ClassicalCondition> &cv);
+	QProgBuilder(QuantumMachine* qm, QVec& qv, std::vector<ClassicalCondition>& cv);
 	QProg get_qprog();
-	
+	size_t get_qubits_size() { return qs.size(); }
+	size_t get_cbits_size() { return ccs.size(); }
+
 	enum class GateType {
-        H, T, S, X, Y, Z, X1, Y1, Z1, I,ECHO, 
+		H, T, S, X, Y, Z, X1, Y1, Z1, I, ECHO,
 		RX, RY, RZ, U1,
 		U2, RPhi,
 		U3,
@@ -102,7 +126,8 @@ public:
 
 		CU,
 
-		TOFFOLI
+		TOFFOLI,
+		DEFINE_QAGE,
 	};
 
 #define MACRO_GET_GATETYPE(name) if (gatename==#name){return GateType::name;}
@@ -135,10 +160,28 @@ public:
 		MACRO_GET_GATETYPE(CR);
 		MACRO_GET_GATETYPE(CU);
 		MACRO_GET_GATETYPE(TOFFOLI);
-
+		return GateType::DEFINE_QAGE;
 	}
 	// add up a level on the prog stack.
-	
+
+	void set_define_qgate_function(const DefineQGateContent& define_qgate)
+	{
+		if (define_gates_map.find(define_qgate.define_name) != define_gates_map.end())
+		{
+			QCERR_AND_THROW(run_fail, "Define qgate functions cannot be overloaded");
+		}
+		define_gates_map[define_qgate.define_name] = define_qgate;
+	}
+
+	DefineQGateContent get_define_qgate_function(const std::string& gate_name)
+	{
+		if (define_gates_map.find(gate_name) == define_gates_map.end())
+		{
+			QCERR_AND_THROW(run_fail, "Define qgate functions cannot be overloaded");
+		}
+		return define_gates_map[gate_name];
+	}
+
 	void alloc_qubit(int num);
 	void alloc_cbit(int num);
 
@@ -224,8 +267,9 @@ class OriginIRVisitor : public originirBaseVisitor {
 		QProgBuilder::GateType gatetype;
 	};
 
+
 public:
-	OriginIRVisitor(QuantumMachine* qm, QVec &qv, std::vector<ClassicalCondition> &cv)
+	OriginIRVisitor(QuantumMachine* qm, QVec& qv, std::vector<ClassicalCondition>& cv)
 		:builder(qm, qv, cv) { }
 
 	enum OpType {
@@ -255,7 +299,7 @@ public:
 		return builder.get_qprog();
 	}
 
-	antlrcpp::Any visitTranslationunit(originirParser::TranslationunitContext *ctx) {
+	antlrcpp::Any visitTranslationunit(originirParser::TranslationunitContext* ctx) {
 		visit(ctx->children[0]);
 		builder.alloc_qubit(qinit);
 		builder.alloc_cbit(cinit);
@@ -267,64 +311,95 @@ public:
 		return fullprog;
 	}
 
-	antlrcpp::Any visitQinit_declaration(originirParser::Qinit_declarationContext *ctx) {
+	antlrcpp::Any visitQinit_declaration(originirParser::Qinit_declarationContext* ctx) {
 		std::string s = ctx->children[1]->getText();
 		int num = atoi(s.c_str());
 		qinit = num;
 		return 0;
 	}
 
-	antlrcpp::Any visitCinit_declaration(originirParser::Cinit_declarationContext *ctx) {
+	antlrcpp::Any visitCinit_declaration(originirParser::Cinit_declarationContext* ctx) {
 		std::string s = ctx->children[1]->getText();
 		int num = atoi(s.c_str());
 		cinit = num;
 		return 0;
 	}
 
-	antlrcpp::Any visitIndex(originirParser::IndexContext *ctx) {
+	antlrcpp::Any visitIndex(originirParser::IndexContext* ctx) {
 		return visit(ctx->children[1]);
 	}
 
-	antlrcpp::Any visitC_KEY_declaration(originirParser::C_KEY_declarationContext *ctx) {
-		ExprContext retcontext= visit(ctx->children[1]);
+	antlrcpp::Any visitC_KEY_declaration(originirParser::C_KEY_declarationContext* ctx) {
+		ExprContext retcontext = visit(ctx->children[1]);
 		retcontext.ccid = builder.cc_init_id((size_t)retcontext.value);
 		retcontext.isConstant = false;
 		return retcontext;
 	}
 
 	antlrcpp::Any visitSingle_gate_without_parameter_declaration(
-		originirParser::Single_gate_without_parameter_declarationContext *ctx) {
+		originirParser::Single_gate_without_parameter_declarationContext* ctx) {
 		QProgBuilder::GateType gatetype = visit(ctx->children[0]);
+		if (ctx->Q_KEY()) {
+			size_t qb_size = builder.get_qubits_size();
+			size_t prog_id = builder.add_prog();
+
+			for (int i = 0; i < qb_size; i++) {
+				size_t sub_id = builder.add_qgate(gatetype, { i }, {});
+				builder.insert_subprog(prog_id, sub_id);
+			}
+			return prog_id;
+		}
+
 		ExprContext context = visit(ctx->children[1]);
 		if (context.isConstant) {
 			return builder.add_qgate(gatetype, { (int)context.value }, {});
 		}
 		else {
-			return builder.add_qgate_cc(gatetype, { context.ccid }, {-1}, {});
+			return builder.add_qgate_cc(gatetype, { context.ccid }, { -1 }, {});
 		}
 	}
 
 	antlrcpp::Any visitSingle_gate_with_one_parameter_declaration(
-		originirParser::Single_gate_with_one_parameter_declarationContext *ctx) {
+		originirParser::Single_gate_with_one_parameter_declarationContext* ctx) {
 		QProgBuilder::GateType gatetype = visit(ctx->children[0]);
-		ExprContext context = visit(ctx->children[1]);
 		ExprContext angle = visit(ctx->children[4]);
+		if (ctx->Q_KEY()) {
+			size_t qb_size = builder.get_qubits_size();
+			size_t prog_id = builder.add_prog();
 
+			for (int i = 0; i < qb_size; i++) {
+				size_t sub_id = builder.add_qgate(gatetype, { i }, { angle.value });
+				builder.insert_subprog(prog_id, sub_id);
+			}
+			return prog_id;
+		}
+
+		ExprContext context = visit(ctx->children[1]);
 		if (context.isConstant) {
 			return builder.add_qgate(gatetype, { (int)context.value }, { angle.value });
 		}
 		else {
-			return builder.add_qgate_cc(gatetype, { context.ccid }, {-1}, { angle.value });
+			return builder.add_qgate_cc(gatetype, { context.ccid }, { -1 }, { angle.value });
 		}
 	}
 
 	antlrcpp::Any visitSingle_gate_with_two_parameter_declaration(
-		originirParser::Single_gate_with_two_parameter_declarationContext *ctx) {
+		originirParser::Single_gate_with_two_parameter_declarationContext* ctx) {
 		QProgBuilder::GateType gatetype = visit(ctx->children[0]);
-		ExprContext context = visit(ctx->children[1]);
 		ExprContext angle1 = visit(ctx->children[4]);
 		ExprContext angle2 = visit(ctx->children[6]);
+		if (ctx->Q_KEY()) {
+			size_t qb_size = builder.get_qubits_size();
+			size_t prog_id = builder.add_prog();
 
+			for (int i = 0; i < qb_size; i++) {
+				size_t sub_id = builder.add_qgate(gatetype, { i }, { angle1.value, angle2.value });
+				builder.insert_subprog(prog_id, sub_id);
+			}
+			return prog_id;
+		}
+
+		ExprContext context = visit(ctx->children[1]);
 		if (context.isConstant) {
 			return builder.add_qgate(gatetype, { (int)context.value }, { angle1.value, angle2.value });
 		}
@@ -334,13 +409,23 @@ public:
 	}
 
 	antlrcpp::Any visitSingle_gate_with_three_parameter_declaration(
-		originirParser::Single_gate_with_three_parameter_declarationContext *ctx) {
+		originirParser::Single_gate_with_three_parameter_declarationContext* ctx) {
 		QProgBuilder::GateType gatetype = visit(ctx->children[0]);
-		ExprContext context = visit(ctx->children[1]);
 		ExprContext angle1 = visit(ctx->children[4]);
 		ExprContext angle2 = visit(ctx->children[6]);
 		ExprContext angle3 = visit(ctx->children[8]);
+		if (ctx->Q_KEY()) {
+			size_t qb_size = builder.get_qubits_size();
+			size_t prog_id = builder.add_prog();
 
+			for (int i = 0; i < qb_size; i++) {
+				size_t sub_id = builder.add_qgate(gatetype, { i }, { angle1.value, angle2.value, angle3.value });
+				builder.insert_subprog(prog_id, sub_id);
+			}
+			return prog_id;
+		}
+
+		ExprContext context = visit(ctx->children[1]);
 		if (context.isConstant) {
 			return builder.add_qgate(gatetype, { (int)context.value }, { angle1.value, angle2.value, angle3.value });
 		}
@@ -350,32 +435,43 @@ public:
 	}
 
 	antlrcpp::Any visitSingle_gate_with_four_parameter_declaration(
-		originirParser::Single_gate_with_four_parameter_declarationContext *ctx) {
+		originirParser::Single_gate_with_four_parameter_declarationContext* ctx) {
 		QProgBuilder::GateType gatetype = visit(ctx->children[0]);
-		ExprContext context = visit(ctx->children[1]);
 		ExprContext angle1 = visit(ctx->children[4]);
 		ExprContext angle2 = visit(ctx->children[6]);
 		ExprContext angle3 = visit(ctx->children[8]);
 		ExprContext angle4 = visit(ctx->children[10]);
 
+		if (ctx->Q_KEY()) {
+			size_t qb_size = builder.get_qubits_size();
+			size_t prog_id = builder.add_prog();
+
+			for (int i = 0; i < qb_size; i++) {
+				size_t sub_id = builder.add_qgate(gatetype, { i }, { angle1.value, angle2.value, angle3.value, angle4.value });
+				builder.insert_subprog(prog_id, sub_id);
+			}
+			return prog_id;
+		}
+
+		ExprContext context = visit(ctx->children[1]);
 		if (context.isConstant) {
-			return builder.add_qgate(gatetype, { (int)context.value }, 
+			return builder.add_qgate(gatetype, { (int)context.value },
 				{ angle1.value, angle2.value, angle3.value, angle4.value });
 		}
 		else {
-			return builder.add_qgate_cc(gatetype, { context.ccid }, {-1}, 
+			return builder.add_qgate_cc(gatetype, { context.ccid }, { -1 },
 				{ angle1.value, angle2.value, angle3.value, angle4.value });
 		}
 	}
 
 	antlrcpp::Any visitDouble_gate_without_parameter_declaration(
-		originirParser::Double_gate_without_parameter_declarationContext *ctx) {
+		originirParser::Double_gate_without_parameter_declarationContext* ctx) {
 		QProgBuilder::GateType gatetype = visit(ctx->children[0]);
 		ExprContext context1 = visit(ctx->children[1]);
 		ExprContext context2 = visit(ctx->children[3]);
 
 		// insert gate
-		if (context1.isConstant&&context2.isConstant) {
+		if (context1.isConstant && context2.isConstant) {
 			return builder.add_qgate(gatetype, { (int)context1.value, (int)context2.value }, {});
 		}
 		else if (context1.isConstant) {
@@ -390,13 +486,13 @@ public:
 	}
 
 	antlrcpp::Any visitDouble_gate_with_one_parameter_declaration(
-		originirParser::Double_gate_with_one_parameter_declarationContext *ctx) {
+		originirParser::Double_gate_with_one_parameter_declarationContext* ctx) {
 		QProgBuilder::GateType gatetype = visit(ctx->children[0]);
 		ExprContext context1 = visit(ctx->children[1]);
 		ExprContext context2 = visit(ctx->children[3]);
 		ExprContext angle = visit(ctx->children[6]);
 
-		if (context1.isConstant&&context2.isConstant) {
+		if (context1.isConstant && context2.isConstant) {
 			return builder.add_qgate(gatetype, { (int)context1.value, (int)context2.value }, { angle.value });
 		}
 		else if (context1.isConstant) {
@@ -411,7 +507,7 @@ public:
 	}
 
 	antlrcpp::Any visitDouble_gate_with_four_parameter_declaration(
-		originirParser::Double_gate_with_four_parameter_declarationContext *ctx) {
+		originirParser::Double_gate_with_four_parameter_declarationContext* ctx) {
 		QProgBuilder::GateType gatetype = visit(ctx->children[0]);
 		ExprContext context1 = visit(ctx->children[1]);
 		ExprContext context2 = visit(ctx->children[3]);
@@ -420,41 +516,41 @@ public:
 		ExprContext angle3 = visit(ctx->children[10]);
 		ExprContext angle4 = visit(ctx->children[12]);
 
-		if (context1.isConstant&&context2.isConstant) {
-			return builder.add_qgate(gatetype, { (int)context1.value, (int)context2.value }, 
+		if (context1.isConstant && context2.isConstant) {
+			return builder.add_qgate(gatetype, { (int)context1.value, (int)context2.value },
 				{ angle1.value, angle2.value,angle3.value,angle4.value });
 		}
 		else if (context1.isConstant) {
-			return builder.add_qgate_cc(gatetype, { context2.ccid }, { (int)context1.value, -1 }, 
+			return builder.add_qgate_cc(gatetype, { context2.ccid }, { (int)context1.value, -1 },
 				{ angle1.value, angle2.value,angle3.value,angle4.value });
 		}
 		else if (context2.isConstant) {
-			return builder.add_qgate_cc(gatetype, { context1.ccid }, { -1, (int)context2.value }, 
+			return builder.add_qgate_cc(gatetype, { context1.ccid }, { -1, (int)context2.value },
 				{ angle1.value, angle2.value,angle3.value,angle4.value });
 		}
 		else {
-			return builder.add_qgate_cc(gatetype, { context1.ccid, context2.ccid }, { -1, -1 }, 
+			return builder.add_qgate_cc(gatetype, { context1.ccid, context2.ccid }, { -1, -1 },
 				{ angle1.value, angle2.value,angle3.value,angle4.value });
 		}
 	}
 	antlrcpp::Any visitTriple_gate_without_parameter_declaration(
-		originirParser::Triple_gate_without_parameter_declarationContext *ctx){
+		originirParser::Triple_gate_without_parameter_declarationContext* ctx) {
 		QProgBuilder::GateType gatetype = visit(ctx->children[0]);
 		ExprContext context1 = visit(ctx->children[1]);
 		ExprContext context2 = visit(ctx->children[3]);
 		ExprContext context3 = visit(ctx->children[5]);
 
 		// insert gate
-		if (context1.isConstant && context2.isConstant && context3.isConstant){
+		if (context1.isConstant && context2.isConstant && context3.isConstant) {
 			return builder.add_qgate(gatetype, { (int)context1.value, (int)context2.value, (int)context3.value }, {});
 		}
-		else if (context1.isConstant&&context2.isConstant){
-			return builder.add_qgate_cc(gatetype, { context3.ccid } ,{ (int)context1.value, (int)context2.value, -1}, {});
+		else if (context1.isConstant && context2.isConstant) {
+			return builder.add_qgate_cc(gatetype, { context3.ccid }, { (int)context1.value, (int)context2.value, -1 }, {});
 		}
-		else if (context1.isConstant&&context3.isConstant){
+		else if (context1.isConstant && context3.isConstant) {
 			return builder.add_qgate_cc(gatetype, { context2.ccid }, { (int)context1.value, -1, (int)context3.value }, {});
 		}
-		else if (context2.isConstant&&context3.isConstant){
+		else if (context2.isConstant && context3.isConstant) {
 			return builder.add_qgate_cc(gatetype, { context1.ccid }, { -1, (int)context2.value, (int)context3.value }, {});
 		}
 		else if (context1.isConstant) {
@@ -466,72 +562,169 @@ public:
 		else if (context3.isConstant) {
 			return builder.add_qgate_cc(gatetype, { context1.ccid, context2.ccid }, { -1, (int)context3.value, -1 }, { });
 		}
-		else{
+		else {
 			return builder.add_qgate_cc(gatetype, { context1.ccid, context2.ccid, context3.ccid }, { -1, -1, -1 }, { });
 		}
 	}
 
 	antlrcpp::Any visitSingle_gate_without_parameter_type(
-		originirParser::Single_gate_without_parameter_typeContext *ctx) {
+		originirParser::Single_gate_without_parameter_typeContext* ctx) {
 		std::string gatename = ctx->children[0]->getText();
 		return QProgBuilder::get_gatetype(gatename);
 	}
 
 	antlrcpp::Any visitSingle_gate_with_one_parameter_type(
-		originirParser::Single_gate_with_one_parameter_typeContext *ctx) {
+		originirParser::Single_gate_with_one_parameter_typeContext* ctx) {
 		std::string gatename = ctx->children[0]->getText();
 		return QProgBuilder::get_gatetype(gatename);
 	}
 
 	antlrcpp::Any visitSingle_gate_with_two_parameter_type(
-		originirParser::Single_gate_with_two_parameter_typeContext *ctx)  {
+		originirParser::Single_gate_with_two_parameter_typeContext* ctx) {
 		std::string gatename = ctx->children[0]->getText();
 		return QProgBuilder::get_gatetype(gatename);
 	}
 
 	antlrcpp::Any visitSingle_gate_with_three_parameter_type(
-		originirParser::Single_gate_with_three_parameter_typeContext *ctx) override {
+		originirParser::Single_gate_with_three_parameter_typeContext* ctx) override {
 		std::string gatename = ctx->children[0]->getText();
 		return QProgBuilder::get_gatetype(gatename);
 	}
 
 	antlrcpp::Any visitSingle_gate_with_four_parameter_type(
-		originirParser::Single_gate_with_four_parameter_typeContext *ctx) {
+		originirParser::Single_gate_with_four_parameter_typeContext* ctx) {
 		std::string gatename = ctx->children[0]->getText();
 		return QProgBuilder::get_gatetype(gatename);
 	}
 
 	antlrcpp::Any visitDouble_gate_without_parameter_type(
-		originirParser::Double_gate_without_parameter_typeContext *ctx) {
+		originirParser::Double_gate_without_parameter_typeContext* ctx) {
 		std::string gatename = ctx->children[0]->getText();
 		return QProgBuilder::get_gatetype(gatename);
 	}
 
 	antlrcpp::Any visitDouble_gate_with_one_parameter_type(
-		originirParser::Double_gate_with_one_parameter_typeContext *ctx) {
+		originirParser::Double_gate_with_one_parameter_typeContext* ctx) {
 		std::string gatename = ctx->children[0]->getText();
 		return QProgBuilder::get_gatetype(gatename);
 	}
 
 	antlrcpp::Any visitDouble_gate_with_four_parameter_type(
-		originirParser::Double_gate_with_four_parameter_typeContext *ctx) {
+		originirParser::Double_gate_with_four_parameter_typeContext* ctx) {
 		std::string gatename = ctx->children[0]->getText();
 		return QProgBuilder::get_gatetype(gatename);
 	}
 
 	antlrcpp::Any visitTriple_gate_without_parameter_type(
-		originirParser::Triple_gate_without_parameter_typeContext *ctx)
+		originirParser::Triple_gate_without_parameter_typeContext* ctx)
 	{
 		std::string gatename = ctx->children[0]->getText();
 		return QProgBuilder::get_gatetype(gatename);
 	}
 
-	antlrcpp::Any visitPri_ckey(originirParser::Pri_ckeyContext *ctx) {
+	void call_define_gatefunc(size_t prog_id, const std::string& func_name,
+		const std::vector< ExprContext>& actual_qubits,
+		const std::vector<double>& actual_angles)
+	{
+		DefineQGateContent define_qgate = builder.get_define_qgate_function(func_name);
+
+		if (0 == define_qgate.gate_bodys.size())
+		{
+			return;
+		}
+
+		if (define_qgate.formal_qubits.size() != actual_qubits.size()
+			|| define_qgate.formal_angles.size() != actual_angles.size())
+		{
+			QCERR_AND_THROW(run_fail, "Execution function parameters donot match");
+		}
+		std::map<std::string, ExprContext> actual_formal_qubits;
+		std::map<std::string, double> actual_formal_angles;
+
+		for (int i = 0; i < actual_qubits.size(); i++)
+		{
+			actual_formal_qubits[define_qgate.formal_qubits[i]] = actual_qubits[i];
+		}
+		for (int i = 0; i < actual_angles.size(); i++)
+		{
+			actual_formal_angles[define_qgate.formal_angles[i]] = actual_angles[i];
+		}
+
+		for (auto iter : define_qgate.gate_bodys)
+		{
+			QProgBuilder::GateType gatetype = QProgBuilder::get_gatetype(iter.gate_name);
+			std::vector<size_t> exprid;
+			std::vector<int> index;
+			std::vector<double> params;
+			std::vector<ExprContext> ctx_qubits;
+
+			for (auto qubit : iter.qubits)
+			{
+				if (actual_formal_qubits.find(qubit) == actual_formal_qubits.end())
+					QCERR_AND_THROW(run_fail, "Arguments donot match");
+				ExprContext context = actual_formal_qubits[qubit];
+				ctx_qubits.push_back(context);
+				if (context.isConstant)
+				{
+					index.push_back(context.value);
+				}
+				else
+				{
+					exprid.push_back(context.ccid);
+					index.push_back(-1);
+				}
+			}
+
+			for (auto angle : iter.angles)
+			{
+				angle->set_formal_actual_var_map(actual_formal_angles);
+				double angle_val = angle->eval();
+				params.push_back(angle_val);
+			}
+
+			if (QProgBuilder::GateType::DEFINE_QAGE != gatetype)
+			{
+				size_t id = builder.add_qgate_cc(gatetype, exprid, index, params);
+				builder.insert_subprog(prog_id, id);
+			}
+			else
+			{
+				call_define_gatefunc(prog_id, iter.gate_name, ctx_qubits, params);
+			}
+		}
+	}
+
+	antlrcpp::Any visitDefine_gate_declaration(originirParser::Define_gate_declarationContext* ctx) {
+
+		auto prog_id = builder.add_prog();
+
+		std::string func_name = ctx->id()->getText();
+
+		std::vector<ExprContext> actual_qubits;
+		std::vector<double> actual_angles;
+
+		for (int i = 0; i < ctx->q_KEY_declaration().size(); i++)
+		{
+			ExprContext context = visit(ctx->q_KEY_declaration(i));
+			actual_qubits.push_back(context);
+		}
+
+		for (int i = 0; i < ctx->expression().size(); i++)
+		{
+			ExprContext angle = visit(ctx->expression(i));
+			actual_angles.push_back(angle.value);
+		}
+		call_define_gatefunc(prog_id, func_name, actual_qubits, actual_angles);
+
+		return prog_id;
+	}
+
+	antlrcpp::Any visitPri_ckey(originirParser::Pri_ckeyContext* ctx) {
 		ExprContext retcontext = visit(ctx->children[0]);
 		return retcontext;
 	}
 
-	antlrcpp::Any visitPri_cst(originirParser::Pri_cstContext *ctx) {
+	antlrcpp::Any visitPri_cst(originirParser::Pri_cstContext* ctx) {
 		ExprContext context;
 		context.isConstant = true;
 		if (ctx->children[0]->getText() == "PI")
@@ -541,13 +734,13 @@ public:
 		return context;
 	}
 
-	antlrcpp::Any visitPri_expr(originirParser::Pri_exprContext *ctx) {
+	antlrcpp::Any visitPri_expr(originirParser::Pri_exprContext* ctx) {
 		// expect an object of ExprContext type.
 		return visit(ctx->children[0]);
 	}
 
 	antlrcpp::Any visitUnary_expression(
-		originirParser::Unary_expressionContext *ctx) {
+		originirParser::Unary_expressionContext* ctx) {
 		if (ctx->children.size() == 1) {
 			return visit(ctx->children[0]);
 		}
@@ -581,7 +774,7 @@ public:
 	}
 
 	antlrcpp::Any visitMultiplicative_expression(
-		originirParser::Multiplicative_expressionContext *ctx) {
+		originirParser::Multiplicative_expressionContext* ctx) {
 		if (ctx->children.size() == 1) {
 			return visit(ctx->children[0]);
 		}
@@ -629,7 +822,7 @@ public:
 	}
 
 	antlrcpp::Any visitAddtive_expression(
-		originirParser::Addtive_expressionContext *ctx) {
+		originirParser::Addtive_expressionContext* ctx) {
 
 		if (ctx->children.size() == 1) {
 			return visit(ctx->children[0]);
@@ -678,7 +871,7 @@ public:
 	}
 
 	antlrcpp::Any visitRelational_expression(
-		originirParser::Relational_expressionContext *ctx) {
+		originirParser::Relational_expressionContext* ctx) {
 		if (ctx->children.size() == 1) {
 			return visit(ctx->children[0]);
 		}
@@ -748,7 +941,7 @@ public:
 	}
 
 	antlrcpp::Any visitEquality_expression(
-		originirParser::Equality_expressionContext *ctx) {
+		originirParser::Equality_expressionContext* ctx) {
 
 		if (ctx->children.size() == 1) {
 			return visit(ctx->children[0]);
@@ -797,7 +990,7 @@ public:
 	}
 
 	antlrcpp::Any visitLogical_and_expression(
-		originirParser::Logical_and_expressionContext *ctx) {
+		originirParser::Logical_and_expressionContext* ctx) {
 		if (ctx->children.size() == 1) {
 			return visit(ctx->children[0]);
 		}
@@ -834,7 +1027,7 @@ public:
 	}
 
 	antlrcpp::Any visitLogical_or_expression(
-		originirParser::Logical_or_expressionContext *ctx) {
+		originirParser::Logical_or_expressionContext* ctx) {
 		if (ctx->children.size() == 1) {
 			return visit(ctx->children[0]);
 		}
@@ -871,7 +1064,7 @@ public:
 	}
 
 	antlrcpp::Any visitAssignment_expression(
-		originirParser::Assignment_expressionContext *ctx) {
+		originirParser::Assignment_expressionContext* ctx) {
 		if (ctx->children.size() == 1) {
 			return visit(ctx->children[0]);
 		}
@@ -907,7 +1100,7 @@ public:
 		}
 	}
 
-	antlrcpp::Any visitControlbit_list(originirParser::Controlbit_listContext *ctx) {
+	antlrcpp::Any visitControlbit_list(originirParser::Controlbit_listContext* ctx) {
 		int n_children = ctx->children.size();
 		std::vector<ExprContext> qkeys;
 		for (int i = 0; i < n_children; i += 2) {
@@ -916,11 +1109,11 @@ public:
 		return qkeys;
 	}
 
-	antlrcpp::Any visitStatement(originirParser::StatementContext *ctx) {
+	antlrcpp::Any visitStatement(originirParser::StatementContext* ctx) {
 		return visit(ctx->children[0]);
 	}
 
-	antlrcpp::Any visitDagger_statement(originirParser::Dagger_statementContext *ctx) {
+	antlrcpp::Any visitDagger_statement(originirParser::Dagger_statementContext* ctx) {
 		size_t progid = builder.add_prog();
 
 		for (int i = 2; i < ctx->children.size() - 2; ++i) {
@@ -933,7 +1126,7 @@ public:
 		return progid;
 	}
 
-	antlrcpp::Any visitControl_statement(originirParser::Control_statementContext *ctx) {
+	antlrcpp::Any visitControl_statement(originirParser::Control_statementContext* ctx) {
 		size_t progid = builder.add_prog();
 		std::vector<ExprContext> qkeys = visit(ctx->children[1]);
 
@@ -963,7 +1156,7 @@ public:
 	}
 
 	antlrcpp::Any visitQelse_statement_fragment(
-		originirParser::Qelse_statement_fragmentContext *ctx) {
+		originirParser::Qelse_statement_fragmentContext* ctx) {
 		size_t progid = builder.add_prog();
 		for (int i = 2; i < ctx->children.size(); ++i) {
 			size_t prog = visit(ctx->children[i]);
@@ -973,7 +1166,7 @@ public:
 		return progid;
 	}
 
-	antlrcpp::Any visitQif_if(originirParser::Qif_ifContext *ctx) {
+	antlrcpp::Any visitQif_if(originirParser::Qif_ifContext* ctx) {
 		ExprContext context = visit(ctx->children[1]);
 		size_t ccid = context.ccid;
 		if (context.isConstant) {
@@ -989,7 +1182,7 @@ public:
 		return builder.make_qifelse(ccid, progid, falseprogid);
 	}
 
-	antlrcpp::Any visitQif_ifelse(originirParser::Qif_ifelseContext *ctx) {
+	antlrcpp::Any visitQif_ifelse(originirParser::Qif_ifelseContext* ctx) {
 		ExprContext context = visit(ctx->children[1]);
 		size_t ccid = context.ccid;
 		if (context.isConstant) {
@@ -1005,7 +1198,7 @@ public:
 	}
 
 	antlrcpp::Any visitQwhile_statement(
-		originirParser::Qwhile_statementContext *ctx) {
+		originirParser::Qwhile_statementContext* ctx) {
 		ExprContext context = visit(ctx->children[1]);
 		size_t ccid = context.ccid;
 		if (context.isConstant) {
@@ -1021,7 +1214,23 @@ public:
 	}
 
 	antlrcpp::Any visitMeasure_statement(
-		originirParser::Measure_statementContext *ctx) {
+		originirParser::Measure_statementContext* ctx) {
+		if (ctx->C_KEY() && ctx->Q_KEY())
+		{
+			size_t qb_size = builder.get_qubits_size();
+			size_t cb_size = builder.get_cbits_size();
+
+			size_t prog_id = builder.add_prog();
+			if (qb_size != cb_size)
+				QCERR_AND_THROW(run_fail, " qubit/cbit size  error!");
+
+			for (int i = 0; i < qb_size; i++) {
+				size_t sub_id = builder.add_measure_literal(i, i);
+				builder.insert_subprog(prog_id, sub_id);
+			}
+			return prog_id;
+		}
+
 		ExprContext qcontext = visit(ctx->children[1]);
 		ExprContext ccontext = visit(ctx->children[3]);
 		if (qcontext.isConstant)
@@ -1031,7 +1240,17 @@ public:
 	}
 
 	antlrcpp::Any visitReset_statement(
-		originirParser::Reset_statementContext *ctx) override {
+		originirParser::Reset_statementContext* ctx) override {
+		if (ctx->Q_KEY()) {
+			size_t qb_size = builder.get_qubits_size();
+			size_t prog_id = builder.add_prog();
+
+			for (int i = 0; i < qb_size; i++) {
+				size_t sub_id = builder.add_reset_literal(i);
+				builder.insert_subprog(prog_id, sub_id);
+			}
+			return prog_id;
+		}
 		ExprContext qcontext = visit(ctx->children[1]);
 		if (qcontext.isConstant)
 			return builder.add_reset_literal(qcontext.value);
@@ -1039,9 +1258,20 @@ public:
 			return builder.add_reset_cc(qcontext.ccid);
 	}
 
-	antlrcpp::Any visitBarrier_statement(originirParser::Barrier_statementContext *ctx) override 
+	antlrcpp::Any visitBarrier_statement(originirParser::Barrier_statementContext* ctx) override
 	{
-		size_t progid ;
+		if (ctx->Q_KEY()) {
+			size_t qb_size = builder.get_qubits_size();
+			QVec qv;
+			std::vector<int> indices;
+			std::vector<size_t> exprindices;
+			for (int i = 1; i < qb_size; i++) {
+				indices.push_back(i);
+			}
+			qv = builder.make_qvec(exprindices, indices);
+			return builder.add_barrier_literal(0, qv);
+		}
+
 		std::vector<ExprContext> all_qkeys = visit(ctx->children[1]);
 
 		ExprContext qcontext = all_qkeys[0];
@@ -1072,11 +1302,124 @@ public:
 
 
 	antlrcpp::Any visitExpression_statement(
-		originirParser::Expression_statementContext *ctx) {
+		originirParser::Expression_statementContext* ctx) {
 		ExprContext retcontext = visit(ctx->children[0]);
 		return builder.add_expr_stat(retcontext.ccid);
 	}
 
+	antlrcpp::Any visitDefine_gate_statement(originirParser::Define_gate_statementContext* ctx) {
+		CallGateInfo call_gate;
+		call_gate.gate_name = ctx->gate_name()->getText();
+		std::vector<std::string> qubits = visit(ctx->id_list());
+		call_gate.qubits = qubits;
+		if (ctx->explist())
+		{
+			std::vector<std::shared_ptr<Exp>> angles = visit(ctx->explist());
+			call_gate.angles = angles;
+		}
+		return call_gate;
+	}
+
+
+	antlrcpp::Any visitExplist(originirParser::ExplistContext* ctx) {
+		std::vector<std::shared_ptr<Exp>>angel_params_vec;
+		for (auto exp_ctx : ctx->exp())
+		{
+			std::shared_ptr<Exp> exp_ptr = visit(exp_ctx);
+			angel_params_vec.push_back(exp_ptr);
+		}
+		return angel_params_vec;
+	}
+
+	antlrcpp::Any visitExp(originirParser::ExpContext* ctx) {
+		std::shared_ptr<Exp> exp_ptr;
+		int children_size = ctx->children.size();
+		if (1 == children_size)
+		{
+			if (ctx->id())
+			{
+				std::string id = ctx->id()->getText();
+				exp_ptr = Exp(id).clone();
+			}
+			else if (ctx->PI())
+			{
+				exp_ptr = Exp(double(PI)).clone();
+			}
+			else if (ctx->Integer_Literal())
+			{
+				std::string str_temp = ctx->Integer_Literal()->getText();
+				double val = atoi(str_temp.c_str());
+				exp_ptr = Exp(val).clone();
+			}
+			else if (ctx->Double_Literal())
+			{
+				std::string str_temp = ctx->Double_Literal()->getText();
+				double val = atof(str_temp.c_str());
+				exp_ptr = Exp(val).clone();
+			}
+			else
+			{
+				QCERR_AND_THROW(run_fail, "error!");
+			}
+		}
+		else if (2 == children_size)  // -exp
+		{
+			std::shared_ptr<Exp> left_exp_ptr = Exp(double(0)).clone();
+			std::string op_type = ctx->children[0]->getText();
+			std::shared_ptr<Exp> right_exp_ptr = visit(ctx->children[1]);
+
+			exp_ptr = Exp(left_exp_ptr, right_exp_ptr, op_type).clone();
+		}
+		else if (3 == children_size)  // exp + - * / exp   ¡¢   (  exp ) 
+		{
+			if (ctx->LPAREN() && ctx->RPAREN())
+			{
+				return visit(ctx->children[1]);
+			}
+			std::shared_ptr<Exp> left_exp_ptr = visit(ctx->children[0]);
+			std::string op_type = ctx->children[1]->getText(); //    + - * /
+			std::shared_ptr<Exp> right_exp_ptr = visit(ctx->children[2]);
+
+			exp_ptr = Exp(left_exp_ptr, right_exp_ptr, op_type).clone();
+		}
+		else
+		{
+			QCERR_AND_THROW(run_fail, "error!");
+		}
+
+		return exp_ptr;
+	}
+
+	antlrcpp::Any visitGate_func_statement(originirParser::Gate_func_statementContext* ctx) {
+		DefineQGateContent define_qgates;
+		std::vector<CallGateInfo>  call_gates;
+
+		define_qgates.define_name = ctx->id()->getText();
+		std::vector<std::string> formal_qubits = visit(ctx->id_list(0));
+		define_qgates.formal_qubits = formal_qubits;
+		if (ctx->id_list().size() == 2)
+		{
+			std::vector<std::string> formal_angles = visit(ctx->id_list(1));
+			define_qgates.formal_angles = formal_angles;
+		}
+		size_t body_size = ctx->define_gate_statement().size();
+		for (int i = 0; i < body_size; i++)
+		{
+			call_gates.push_back(visit(ctx->define_gate_statement(i)));
+		}
+		define_qgates.gate_bodys = call_gates;
+		builder.set_define_qgate_function(define_qgates);
+		return builder.add_prog();
+	}
+
+	antlrcpp::Any visitId_list(originirParser::Id_listContext* ctx) {
+		std::vector<std::string> id_list;
+		for (int i = 0; i < ctx->id().size(); i++)
+		{
+			id_list.push_back(ctx->id(i)->getText());
+		}
+		return id_list;
+	}
 };
 
 QPANDA_END

@@ -153,4 +153,13 @@ private:
 */
 QReset Reset(Qubit *);
 
+
+/**
+* @brief  QPanda2 basic interface for creating a quantum Reset node
+* @param[in]  int qubit phy addr
+* @return QPanda::QReset quantum reset node
+* @ingroup QuantumCircuit
+*/
+QReset Reset(int qaddr);
+
 QPANDA_END

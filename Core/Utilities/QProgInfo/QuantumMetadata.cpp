@@ -42,16 +42,19 @@ bool QuantumMetadata::getQGate(std::vector<string> &single_gates, std::vector<st
 {
     if (!m_is_config_exist)
     {
+        single_gates.push_back("H");
+        single_gates.push_back("X");
+        single_gates.push_back("Y");
+        single_gates.push_back("Z");
+        single_gates.push_back("X1");
+        single_gates.push_back("Y1");
+        single_gates.push_back("Z1");
         single_gates.push_back("RX");
         single_gates.push_back("RY");
         single_gates.push_back("RZ");
-        single_gates.push_back("X1");
-        single_gates.push_back("H");
-        single_gates.push_back("S");
 
         double_gates.push_back("CNOT");
         double_gates.push_back("CZ");
-        double_gates.push_back("ISWAP");
     }
     else
     {

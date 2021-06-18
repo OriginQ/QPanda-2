@@ -26,6 +26,8 @@ limitations under the License.
 #include "Core/Utilities/QPandaNamespace.h"
 #include "Core/QuantumMachine/QVec.h"
 #include "Core/Utilities/Tools/OriginCollection.h"
+#include "Core/Module/DataStruct.h"
+
 QPANDA_BEGIN
 
 /*
@@ -169,6 +171,16 @@ public:
     * @return     std::map<std::string, Eigen::size_t>
     */
 	virtual std::map<std::string, size_t> runWithConfiguration(QProg &, std::vector<ClassicalCondition> &, int) = 0;
+   
+    /**
+* @brief  runWithConfiguration
+* @param[in]  QProg& quantum program
+* @param[in]  std::vector<int>& cbit addrs
+* @param[in]  int
+* @return     std::map<std::string, Eigen::size_t>
+*/
+    virtual std::map<std::string, size_t> runWithConfiguration(QProg&, std::vector<int>&, int) = 0;
+    
     /**
     * @brief  getGateTimeMap
     * @return     std::map<GateType, Eigen::size_t>
@@ -297,12 +309,39 @@ public:
     */
     virtual size_t getAllocateCMemNum() = 0;
 
-    virtual void initState(const QStat &state = {})
-    {
-        QCERR("initState error");
-        throw run_fail("initState error");
-    }
+    virtual void initState(const QStat &state = {}, const QVec &qlist = {}) = 0;
+    /**
+    * @brief  get allocate qubits
+    * @param[out] QVec& 
+    * @return size_t  allocate qubits size
+    */
+    virtual size_t get_allocate_qubits(QVec&) = 0;
 
+    /**
+    * @brief  get allocate cbits
+    * @param[out] std::vector<ClassicalCondition>& 
+    * @return size_t  allocate cbits size
+    */
+    virtual size_t get_allocate_cbits(std::vector<ClassicalCondition>&) = 0;
+
+    /**
+    * @brief  gets the expected value of the Hamiltonian of the circuit
+    * @param[in] QProg quantum program 
+    * @param[in] QHamiltonian hamiltonian
+    * @param[in] QVec qubits 
+    * @return double  expectation
+    */
+	virtual double get_expectation(QProg, const QHamiltonian&, const QVec&) = 0;
+
+    /**
+    * @brief  gets the expected value of the Hamiltonian of the circuit
+    * @param[in] QProg quantum program 
+    * @param[in] QHamiltonian hamiltonian
+    * @param[in] QVec qubits 
+    * @param[in] int  run shots 
+    * @return double  expectation
+    */
+    virtual double get_expectation(QProg, const QHamiltonian&, const QVec&, int) = 0;
     virtual ~QuantumMachine() {} //! Destructor
 };
 QPANDA_END

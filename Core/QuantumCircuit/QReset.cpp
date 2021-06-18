@@ -10,6 +10,13 @@ QReset  QPanda::Reset(Qubit * target_qubit)
 	return reset;
 }
 
+QReset QPanda::Reset(int qaddr)
+{
+	auto target_qubit = OriginQubitPool::get_instance()->get_qubit_by_addr(qaddr);
+	QReset reset(target_qubit);
+	return reset;
+}
+
 QReset::QReset(const QReset & old_reset)
 {
 	m_reset = old_reset.m_reset;

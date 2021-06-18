@@ -56,6 +56,20 @@ public:
     * @see QVec
     */
     virtual void clearControl() = 0;
+
+    /**
+    * @brief  Get the used qubits for current quantum circuit
+    * @param[out]  QVec  used qubits  vector
+    * @return  size_t
+    */
+    virtual size_t get_used_qubits(QVec &) const = 0 ;
+
+    /**
+    * @brief  Get current quantum circuit qgate number
+    * @return  size_t
+    */
+    virtual size_t get_qgate_num() = 0;
+
     virtual ~AbstractQuantumCircuit() {};
 };
 
@@ -146,6 +160,11 @@ public:
     * @see QVec
     */
     virtual void  setControl(const QVec );
+
+    virtual size_t get_used_qubits(QVec&) const;
+
+    virtual size_t get_qgate_num();
+
 private:
     void clearControl() {}
 };
@@ -196,6 +215,8 @@ private:
     NodeType m_node_type;
     bool m_Is_dagger;
     QVec m_control_qubit_vector;
+    QVec m_used_qubit_vector;
+    size_t m_qgate_num;
     OriginCircuit(const OriginCircuit &);
 
 public:
@@ -204,6 +225,8 @@ public:
         m_Is_dagger(false)
     {
         m_control_qubit_vector.resize(0);
+        m_used_qubit_vector.resize(0);
+        m_qgate_num = 0;
     }
     ~OriginCircuit();
 	void pushBackNode(std::shared_ptr<QNode> node) { 
@@ -238,6 +261,10 @@ public:
 
     void clearControl();
 
+    size_t get_used_qubits(QVec& qubit_vector) const;
+
+    size_t get_qgate_num() { return m_qgate_num; }
+
 	bool check_insert_node_type(std::shared_ptr<QNode> node) {
 		if (nullptr == node.get())
 		{
@@ -249,16 +276,31 @@ public:
 		switch (t)
 		{
 		case GATE_NODE:
+        {
+			QVec temp_qv;
+            auto qgate_node = std::dynamic_pointer_cast<AbstractQGateNode>(node);
+            qgate_node->getQuBitVector(temp_qv);
+            m_used_qubit_vector += temp_qv;
+            m_qgate_num++;
+        }
+        break;
 		case CIRCUIT_NODE:
+        {
+			QVec temp_qv;
+			auto qcircuit_node = std::dynamic_pointer_cast<AbstractQuantumCircuit>(node);
+            qcircuit_node->get_used_qubits(temp_qv);
+			m_used_qubit_vector += temp_qv;
+            m_qgate_num += qcircuit_node->get_qgate_num();
+        }
+		break;
 		case CLASS_COND_NODE:
-			return true;
 			break;
 
 		default:
 			throw qcircuit_construction_fail("bad node type");
 		}
 
-		return false;
+        return true;
 	}
 };
 

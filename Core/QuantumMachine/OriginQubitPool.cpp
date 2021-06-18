@@ -20,30 +20,63 @@ limitations under the License.
 #include <algorithm>
 USING_QPANDA
 using namespace std;
-OriginQubitPool::OriginQubitPool(size_t maxQubit)
+OriginQubitPool::OriginQubitPool()
 {
-    for (auto i = 0U; i < maxQubit; ++i)
-    {
-        auto _New_Physical_Qubit =
-            PhysicalQubitFactory::GetFactoryInstance().
-            GetInstance();
-        vecQubit.push_back(_New_Physical_Qubit);
-        _New_Physical_Qubit->setQubitAddr(i);
-    }
+	size_t m_maxQubit = 29;
+	for (auto i = 0U; i < m_maxQubit; ++i)
+	{
+		auto _New_Physical_Qubit =
+			PhysicalQubitFactory::GetFactoryInstance().
+			GetInstance();
+		vecQubit.push_back(_New_Physical_Qubit);
+		_New_Physical_Qubit->setQubitAddr(i);
+	}
 }
+
+
+size_t OriginQubitPool::get_capacity()
+{
+	return  vecQubit.size();
+}
+
+void OriginQubitPool::set_capacity(size_t capacity_num)
+{
+	auto cur_cap = vecQubit.size();
+
+	if (capacity_num < cur_cap)
+	{
+		vecQubit.erase(vecQubit.begin() + capacity_num, vecQubit.end());
+	}
+	else if(capacity_num > cur_cap)
+	{
+		for (size_t i = cur_cap; i < capacity_num; ++i)
+		{
+			auto _New_Physical_Qubit =
+				PhysicalQubitFactory::GetFactoryInstance().
+				GetInstance();
+			vecQubit.push_back(_New_Physical_Qubit);
+			_New_Physical_Qubit->setQubitAddr(i);
+		}
+	}
+	else
+	{
+		// do nothing
+	}
+}
+
 
 void OriginQubitPool::clearAll()
 {
-    for (auto iter = vecQubit.begin(); iter != vecQubit.end();)
-    {
-        delete *iter;
-        iter = vecQubit.erase(iter);
-    }
+	for (auto iter = vecQubit.begin(); iter != vecQubit.end();)
+	{
+		delete* iter;
+		iter = vecQubit.erase(iter);
+	}
 }
 
 size_t OriginQubitPool::getMaxQubit() const
 {
-    return vecQubit.size();
+	return vecQubit.size();
 }
 
 size_t OriginQubitPool::get_max_usedqubit_addr() const
@@ -63,115 +96,371 @@ size_t OriginQubitPool::get_max_usedqubit_addr() const
 
 size_t OriginQubitPool::getIdleQubit() const
 {
-    size_t retIdle = 0;
-    for (auto iter = vecQubit.begin(); iter != vecQubit.end(); ++iter)
-    {
-        if (!(*iter)->getOccupancy())
-        {
-            retIdle++;
-        }
-    }
-    return retIdle;
+	size_t retIdle = 0;
+	for (auto iter = vecQubit.begin(); iter != vecQubit.end(); ++iter)
+	{
+		if (!(*iter)->getOccupancy())
+		{
+			retIdle++;
+		}
+	}
+	return retIdle;
 }
 
-Qubit * OriginQubitPool::allocateQubit()
+Qubit* OriginQubitPool::allocateQubit()
 {
-    for (auto iter = vecQubit.begin(); iter != vecQubit.end(); ++iter)
-    {
-        if (!(*iter)->getOccupancy())
-        {
-            (*iter)->setOccupancy(true);
-            return QubitFactory::GetFactoryInstance().
-                GetInstance(*iter);
-            
-        }
-    }
-    return nullptr;
+	for (auto iter = vecQubit.begin(); iter != vecQubit.end(); ++iter)
+	{
+		if (!(*iter)->getOccupancy())
+		{
+			(*iter)->setOccupancy(true);
+			return QubitFactory::GetFactoryInstance().GetInstance(*iter);
+		}
+	}
+	return nullptr;
 }
 
-Qubit * OriginQubitPool::allocateQubitThroughPhyAddress(size_t stQubitAddr)
+Qubit* OriginQubitPool::allocateQubitThroughPhyAddress(size_t stQubitAddr)
 {
-    for (auto iter = vecQubit.begin(); iter != vecQubit.end(); ++iter)
-    {
-        if ((*iter)->getQubitAddr() == stQubitAddr)
-        {
-            (*iter)->setOccupancy(true);
-            return QubitFactory::GetFactoryInstance().
-                GetInstance(*iter);
-        }
-    }
-    return nullptr;
+	for (auto iter = vecQubit.begin(); iter != vecQubit.end(); ++iter)
+	{
+		if ((*iter)->getQubitAddr() == stQubitAddr)
+		{
+			(*iter)->setOccupancy(true);
+			return QubitFactory::GetFactoryInstance().
+				GetInstance(*iter);
+		}
+	}
+	return nullptr;
 }
 
-Qubit * OriginQubitPool::allocateQubitThroughVirAddress(size_t qubit_num)
+Qubit* OriginQubitPool::allocateQubitThroughVirAddress(size_t qubit_num)
 {
-    if (qubit_num >= vecQubit.size())
-    {
-        return nullptr;
-    }
+	if (qubit_num >= vecQubit.size())
+	{
+		return nullptr;
+	}
 
 	vecQubit[qubit_num]->setOccupancy(true);
-    return  QubitFactory::GetFactoryInstance().
-        GetInstance(vecQubit[qubit_num]);
+	return  QubitFactory::GetFactoryInstance().
+		GetInstance(vecQubit[qubit_num]);
 }
 
 void OriginQubitPool::Free_Qubit(Qubit* _Qubit)
 {
-    auto ptPhysQ = _Qubit->getPhysicalQubitPtr();
-    auto iter = find(vecQubit.begin(), vecQubit.end(), ptPhysQ);
-    if (iter == vecQubit.end())
-    {
-        QCERR("QubitPool duplicate free");
-        throw runtime_error("QubitPool duplicate free");
-    }
-    else
-    {
-        (*iter)->setOccupancy(false);
-    }
+	auto ptPhysQ = _Qubit->getPhysicalQubitPtr();
+	auto iter = find(vecQubit.begin(), vecQubit.end(), ptPhysQ);
+	if (iter == vecQubit.end())
+	{
+		QCERR("QubitPool duplicate free");
+		throw runtime_error("QubitPool duplicate free");
+	}
+	else
+	{
+		(*iter)->setOccupancy(false);
+	}
 }
 
-size_t OriginQubitPool::getPhysicalQubitAddr(Qubit *qubit)
+size_t OriginQubitPool::getPhysicalQubitAddr(Qubit* qubit)
 {
-    if (nullptr == qubit)
-    {
-        QCERR("qubit is nullptr");
-        throw invalid_argument("qubit is nullptr");
-    }
-    for (auto iter = vecQubit.begin(); iter != vecQubit.end(); ++iter)
-    {
-        auto physAddr = qubit->getPhysicalQubitPtr();
-        if (*iter == physAddr)
-        {
-            return (*iter)->getQubitAddr();
-        }
-    }
-    QCERR("qubit argument error");
-    throw invalid_argument("qubit argument error");
+	if (nullptr == qubit)
+	{
+		QCERR("qubit is nullptr");
+		throw invalid_argument("qubit is nullptr");
+	}
+	for (auto iter = vecQubit.begin(); iter != vecQubit.end(); ++iter)
+	{
+		auto physAddr = qubit->getPhysicalQubitPtr();
+		if (*iter == physAddr)
+		{
+			return (*iter)->getQubitAddr();
+		}
+	}
+	QCERR("qubit argument error");
+	throw invalid_argument("qubit argument error");
 }
 
 size_t OriginQubitPool::getVirtualQubitAddress(Qubit* qubit) const
 {
-    if (nullptr == qubit)
-    {
-        QCERR("qubit is nullptr");
-        throw invalid_argument("qubit is nullptr");
-    }
+	if (nullptr == qubit)
+	{
+		QCERR("qubit is nullptr");
+		throw invalid_argument("qubit is nullptr");
+	}
 
-    for (size_t i = 0; i<vecQubit.size(); ++i)
-    {
-        auto physAddr = qubit->getPhysicalQubitPtr();
-        if (vecQubit[i] == physAddr)
-        {
-            return i;
-        }
-    }
-    QCERR("qubit argument error");
-    throw invalid_argument("qubit argument error");
+	for (size_t i = 0; i < vecQubit.size(); ++i)
+	{
+		auto physAddr = qubit->getPhysicalQubitPtr();
+		if (vecQubit[i] == physAddr)
+		{
+			return i;
+		}
+	}
+	QCERR("qubit argument error");
+	throw invalid_argument("qubit argument error");
 }
+
+size_t OriginQubitPool::get_allocate_qubits(std::vector<Qubit*>& qubit_vect) const
+{
+	size_t allocate_size = 0;
+	for (auto iter = vecQubit.begin(); iter != vecQubit.end(); ++iter)
+	{
+		if ((*iter)->getOccupancy())
+		{
+			qubit_vect.push_back(QubitFactory::GetFactoryInstance().GetInstance(*iter));
+			allocate_size++;
+		}
+	}
+	return allocate_size;
+}
+
+Qubit* OriginQubitPool::qAlloc()
+{
+	for (auto iter = vecQubit.begin(); iter != vecQubit.end(); ++iter)
+	{
+		if (!(*iter)->getOccupancy())
+		{
+			(*iter)->setOccupancy(true);
+			return QubitFactory::GetFactoryInstance().GetInstance(*iter);
+		}
+	}
+	return nullptr;
+}
+
+QVec  OriginQubitPool::qAllocMany(size_t qubit_num)
+{
+	if (qubit_num > getIdleQubit())
+	{
+		QCERR("qubit_num > idle_qubit");
+		throw(qalloc_fail("qubit_num > idle_qubit"));
+	}
+
+	QVec qubits_vect;
+	for (size_t i = 0; i < qubit_num; i++)
+	{
+		qubits_vect.push_back(qAlloc());
+	}
+	return qubits_vect;
+}
+
+void OriginQubitPool::qFree(Qubit* qubit)
+{
+	if (nullptr == qubit)
+	{
+		QCERR("qubit is nullptr");
+		throw invalid_argument("qubit is nullptr");
+	}
+
+	auto phy_qubit = qubit->getPhysicalQubitPtr();
+	auto iter = find(vecQubit.begin(), vecQubit.end(), phy_qubit);
+	if (iter == vecQubit.end())
+	{
+		QCERR("QubitPool duplicate free");
+		throw runtime_error("QubitPool duplicate free");
+	}
+	else
+	{
+		(*iter)->setOccupancy(false);
+	}
+}
+
+void OriginQubitPool::qFreeAll(QVec& qubits_vect)
+{
+	for (auto iter : qubits_vect)
+	{
+		qFree(iter);
+	}
+}
+
+Qubit * OriginQubitPool::get_qubit_by_addr(size_t qaddr)
+{
+	for (auto iter = vecQubit.begin(); iter != vecQubit.end(); ++iter)
+	{
+		auto phy_addr = (*iter)->getQubitAddr();
+		if (phy_addr == qaddr 
+			&& (*iter)->getOccupancy())
+		{
+			return QubitFactory::GetFactoryInstance().GetInstance(*iter);
+		}
+	}
+
+	QCERR("get qubit by physical address error");
+	throw invalid_argument("get qubit by physical address error");
+}
+
+
 
 OriginQubitPool::~OriginQubitPool()
 {
-    for_each(vecQubit.begin(), vecQubit.end(), [](PhysicalQubit* _s) {delete _s; });
+	for_each(vecQubit.begin(), vecQubit.end(), [](PhysicalQubit* _s) {delete _s; });
+}
+
+
+
+OriginQubitPoolv1::OriginQubitPoolv1(size_t maxQubit)
+{
+	for (auto i = 0U; i < maxQubit; ++i)
+	{
+		auto _New_Physical_Qubit =
+			PhysicalQubitFactory::GetFactoryInstance().
+			GetInstance();
+		vecQubit.push_back(_New_Physical_Qubit);
+		_New_Physical_Qubit->setQubitAddr(i);
+	}
+}
+
+void OriginQubitPoolv1::clearAll()
+{
+	for (auto iter = vecQubit.begin(); iter != vecQubit.end();)
+	{
+		delete* iter;
+		iter = vecQubit.erase(iter);
+	}
+}
+
+size_t OriginQubitPoolv1::getMaxQubit() const
+{
+	return vecQubit.size();
+}
+
+size_t OriginQubitPoolv1::get_max_usedqubit_addr() const
+{
+	size_t max_addr = 0;
+	for (auto iter = vecQubit.begin(); iter != vecQubit.end(); ++iter)
+	{
+		if ((*iter)->getOccupancy())
+		{
+			int addr = (*iter)->getQubitAddr();
+			if (max_addr < addr)
+				max_addr = addr;
+		}
+	}
+	return max_addr;
+}
+
+size_t OriginQubitPoolv1::getIdleQubit() const
+{
+	size_t retIdle = 0;
+	for (auto iter = vecQubit.begin(); iter != vecQubit.end(); ++iter)
+	{
+		if (!(*iter)->getOccupancy())
+		{
+			retIdle++;
+		}
+	}
+	return retIdle;
+}
+
+Qubit* OriginQubitPoolv1::allocateQubit()
+{
+	for (auto iter = vecQubit.begin(); iter != vecQubit.end(); ++iter)
+	{
+		if (!(*iter)->getOccupancy())
+		{
+			(*iter)->setOccupancy(true);
+			return QubitFactory::GetFactoryInstance().GetInstance(*iter);
+		}
+	}
+	return nullptr;
+}
+
+Qubit* OriginQubitPoolv1::allocateQubitThroughPhyAddress(size_t stQubitAddr)
+{
+	for (auto iter = vecQubit.begin(); iter != vecQubit.end(); ++iter)
+	{
+		if ((*iter)->getQubitAddr() == stQubitAddr)
+		{
+			(*iter)->setOccupancy(true);
+			return QubitFactory::GetFactoryInstance().
+				GetInstance(*iter);
+		}
+	}
+	return nullptr;
+}
+
+Qubit* OriginQubitPoolv1::allocateQubitThroughVirAddress(size_t qubit_num)
+{
+	if (qubit_num >= vecQubit.size())
+	{
+		return nullptr;
+	}
+
+	vecQubit[qubit_num]->setOccupancy(true);
+	return  QubitFactory::GetFactoryInstance().
+		GetInstance(vecQubit[qubit_num]);
+}
+
+void OriginQubitPoolv1::Free_Qubit(Qubit* _Qubit)
+{
+	auto ptPhysQ = _Qubit->getPhysicalQubitPtr();
+	auto iter = find(vecQubit.begin(), vecQubit.end(), ptPhysQ);
+	if (iter == vecQubit.end())
+	{
+		QCERR("QubitPool duplicate free");
+		throw runtime_error("QubitPool duplicate free");
+	}
+	else
+	{
+		(*iter)->setOccupancy(false);
+	}
+}
+
+size_t OriginQubitPoolv1::getPhysicalQubitAddr(Qubit* qubit)
+{
+	if (nullptr == qubit)
+	{
+		QCERR("qubit is nullptr");
+		throw invalid_argument("qubit is nullptr");
+	}
+	for (auto iter = vecQubit.begin(); iter != vecQubit.end(); ++iter)
+	{
+		auto physAddr = qubit->getPhysicalQubitPtr();
+		if (*iter == physAddr)
+		{
+			return (*iter)->getQubitAddr();
+		}
+	}
+	QCERR("qubit argument error");
+	throw invalid_argument("qubit argument error");
+}
+
+size_t OriginQubitPoolv1::getVirtualQubitAddress(Qubit* qubit) const
+{
+	if (nullptr == qubit)
+	{
+		QCERR("qubit is nullptr");
+		throw invalid_argument("qubit is nullptr");
+	}
+
+	for (size_t i = 0; i < vecQubit.size(); ++i)
+	{
+		auto physAddr = qubit->getPhysicalQubitPtr();
+		if (vecQubit[i] == physAddr)
+		{
+			return i;
+		}
+	}
+	QCERR("qubit argument error");
+	throw invalid_argument("qubit argument error");
+}
+
+size_t OriginQubitPoolv1::get_allocate_qubits(std::vector<Qubit*>& qubit_vect) const
+{
+	size_t allocate_size = 0;
+	for (auto iter = vecQubit.begin(); iter != vecQubit.end(); ++iter)
+	{
+		if ((*iter)->getOccupancy())
+		{
+			qubit_vect.push_back(QubitFactory::GetFactoryInstance().GetInstance(*iter));
+			allocate_size++;
+		}
+	}
+	return allocate_size;
+}
+
+OriginQubitPoolv1::~OriginQubitPoolv1()
+{
+	for_each(vecQubit.begin(), vecQubit.end(), [](PhysicalQubit* _s) {delete _s; });
 }
 
 OriginQubitPoolv2::OriginQubitPoolv2(size_t maxQubit) {
@@ -226,7 +515,7 @@ size_t OriginQubitPoolv2::getIdleQubit() const
 }
 
 Qubit* OriginQubitPoolv2::allocateQubit() {
-	
+
 	for (auto iter = vecQubit.begin(); iter != vecQubit.end(); ++iter)
 	{
 		if (!(*iter)->getOccupancy())
@@ -234,7 +523,7 @@ Qubit* OriginQubitPoolv2::allocateQubit() {
 			PhysicalQubit* valid_qubit = *iter;
 			valid_qubit->setOccupancy(true);
 			// find if it is allocated
-			for (auto &q : allocated_qubit) {
+			for (auto& q : allocated_qubit) {
 				// allocated qubit
 				if (q.first->getPhysicalQubitPtr() == valid_qubit) {
 					q.second++;
@@ -244,17 +533,17 @@ Qubit* OriginQubitPoolv2::allocateQubit() {
 			// not allocated
 			auto qubit_ptr = QubitFactory::GetFactoryInstance().
 				GetInstance(*iter);
-			allocated_qubit.insert(make_pair(qubit_ptr,1));
+			allocated_qubit.insert(make_pair(qubit_ptr, 1));
 			return qubit_ptr;
 		}
 	}
 	return nullptr;
 }
 
-Qubit * OriginQubitPoolv2::allocateQubitThroughPhyAddress(size_t pos)
+Qubit* OriginQubitPoolv2::allocateQubitThroughPhyAddress(size_t pos)
 {
 	// if allocated then return
-	for (auto &q : allocated_qubit) {
+	for (auto& q : allocated_qubit) {
 		if (q.first->getPhysicalQubitPtr()->getQubitAddr() == pos) {
 			q.first->getPhysicalQubitPtr()->setOccupancy(true);
 			q.second++;
@@ -268,17 +557,17 @@ Qubit * OriginQubitPoolv2::allocateQubitThroughPhyAddress(size_t pos)
 		if ((*iter)->getQubitAddr() == pos)
 		{
 			PhysicalQubit* valid_qubit = *iter;
-			valid_qubit->setOccupancy(true);	
+			valid_qubit->setOccupancy(true);
 			auto qubit_ptr = QubitFactory::GetFactoryInstance().
 				GetInstance(*iter);
-			allocated_qubit.insert(make_pair(qubit_ptr,1));
+			allocated_qubit.insert(make_pair(qubit_ptr, 1));
 			return qubit_ptr;
 		}
 	}
 	return nullptr;
 }
 
-Qubit * OriginQubitPoolv2::allocateQubitThroughVirAddress(size_t qubit_num)
+Qubit* OriginQubitPoolv2::allocateQubitThroughVirAddress(size_t qubit_num)
 {
 	if (qubit_num >= vecQubit.size())
 	{
@@ -287,7 +576,7 @@ Qubit * OriginQubitPoolv2::allocateQubitThroughVirAddress(size_t qubit_num)
 	PhysicalQubit* valid_qubit = vecQubit[qubit_num];
 	valid_qubit->setOccupancy(true);
 
-	for (auto &q : allocated_qubit) {
+	for (auto& q : allocated_qubit) {
 		if (q.first->getPhysicalQubitPtr() == valid_qubit) {
 			q.second++;
 			return q.first;
@@ -300,7 +589,7 @@ Qubit * OriginQubitPoolv2::allocateQubitThroughVirAddress(size_t qubit_num)
 
 }
 
-void OriginQubitPoolv2::Free_Qubit(Qubit * _Qubit)
+void OriginQubitPoolv2::Free_Qubit(Qubit* _Qubit)
 {
 	if (nullptr == _Qubit)
 	{
@@ -338,8 +627,8 @@ void OriginQubitPoolv2::Free_Qubit(Qubit * _Qubit)
 			else
 			{
 				(*iter)->setOccupancy(false);
-                allocated_qubit.erase(allocated_iter);
-                delete _Qubit;
+				allocated_qubit.erase(allocated_iter);
+				delete _Qubit;
 			}
 		}
 	}
@@ -350,7 +639,7 @@ void OriginQubitPoolv2::Free_Qubit(Qubit * _Qubit)
 	}
 }
 
-size_t OriginQubitPoolv2::getPhysicalQubitAddr(Qubit *q)
+size_t OriginQubitPoolv2::getPhysicalQubitAddr(Qubit* q)
 {
 	if (nullptr == q)
 	{
@@ -368,7 +657,7 @@ size_t OriginQubitPoolv2::getPhysicalQubitAddr(Qubit *q)
 	throw invalid_argument("qubit argument error");
 }
 
-size_t OriginQubitPoolv2::getVirtualQubitAddress(Qubit *vq) const
+size_t OriginQubitPoolv2::getVirtualQubitAddress(Qubit* vq) const
 {
 	if (nullptr == vq)
 	{
@@ -386,4 +675,13 @@ size_t OriginQubitPoolv2::getVirtualQubitAddress(Qubit *vq) const
 	}
 	QCERR("qubit argument error");
 	throw invalid_argument("qubit argument error");
+}
+
+size_t OriginQubitPoolv2::get_allocate_qubits(std::vector<Qubit*>& qubit_vect) const
+{
+	for (auto iter : allocated_qubit)
+	{
+		qubit_vect.push_back(iter.first);
+	}
+	return allocated_qubit.size();
 }

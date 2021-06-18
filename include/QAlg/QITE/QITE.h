@@ -3,6 +3,7 @@
 #include "Core/QuantumMachine/QuantumMachineInterface.h"
 #include "Components/Operator/PauliOperator.h"
 #include "ThirdParty/Eigen/Dense"
+#include <fstream>
 
 QPANDA_BEGIN
 class QuantumMachine;

@@ -37,13 +37,13 @@ public:
      * @brief Get physical qubit pointer
 	 * @return PhysicalQubit *
      */
-    virtual PhysicalQubit* getPhysicalQubitPtr() = 0;
+    virtual PhysicalQubit* getPhysicalQubitPtr() const = 0;
 
 	/**
 	 * @brief Get physical addr
 	 * @return size_t
 	 */
-	virtual size_t get_phy_addr() { return getPhysicalQubitPtr()->getQubitAddr(); }
+	virtual size_t get_phy_addr() const { return getPhysicalQubitPtr()->getQubitAddr(); }
 
 	/**
 	 * @brief get the occupancy status of this qubit

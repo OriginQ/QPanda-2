@@ -5,7 +5,7 @@
 
 USING_QPANDA
 using namespace std;
-
+#if 0
 void GraphMatch::_replace_node(const ResultVector &match_vector, TopologSequence<SequenceNode> &seq)
 {
     for (const auto &result : match_vector)
@@ -55,10 +55,10 @@ static size_t get_layer_num(const TopologSequence<SequenceNode> &graph_seq,size_
 	QCERR_AND_THROW(run_fail, "Error: failed to get_layer_num.");
 }
 
-Qnum GraphMatch::_get_qubit_vector(const SequenceNode &node, QProgDAG<GateNodeInfo> &dag)
+Qnum GraphMatch::_get_qubit_vector(const SequenceNode &node, QProgDAG &dag)
 {
-    auto vertex_node = dag.get_vertex_node(node.m_vertex_num);
-	std::shared_ptr<QNode> p_QNode = *(vertex_node.m_itr);
+    auto vertex_node = dag.get_vertex(node.m_vertex_num);
+	std::shared_ptr<QNode> p_QNode = *(vertex_node.m_node.m_itr);
     switch (node.m_node_type)
     {
 	case SequenceNodeType::MEASURE:
@@ -421,8 +421,8 @@ void GraphMatch::_convert_prog(TopologSequence<SequenceNode> &seq, QProg &prog)
     {
         for (auto &node : layer)
         {
-			const auto& vertex_node = m_graph_dag.get_vertex_node(node.first.m_vertex_num);
-            prog.pushBackNode(*(vertex_node.m_itr));
+			const auto& vertex_node = m_graph_dag.get_vertex(node.first.m_vertex_num);
+            prog.pushBackNode(*(vertex_node.m_node.m_itr));
         }
     }
 }
@@ -505,8 +505,8 @@ bool GraphMatch::_compare_qnum(Qnum query_qvec, Qnum replace_qvec)
 
 bool GraphMatch::_compare_parm(SequenceNode &graph_node, SequenceNode &query_node)
 {
-    auto g_node = *(m_graph_dag.get_vertex_node(graph_node.m_vertex_num).m_itr);
-    auto q_node = *(m_query_dag.get_vertex_node(graph_node.m_vertex_num).m_itr);
+    auto g_node = *(m_graph_dag.get_vertex(graph_node.m_vertex_num).m_node.m_itr);
+    auto q_node = *(m_query_dag.get_vertex(graph_node.m_vertex_num).m_node.m_itr);
     switch (graph_node.m_node_type)
     {
         case GateType::RX_GATE:
@@ -560,15 +560,15 @@ void GraphMatch::_convert_gate(SequenceNode& old_node, QuantumMachine* qvm, std:
             qvec.emplace_back(qvm->allocateQubitThroughPhyAddress(compare_map.find(qubit_addr)->second));
         });
 
-        auto _node = *(m_replace_dag.get_vertex_node(old_node.m_vertex_num).m_itr);
+        auto _node = *(m_replace_dag.get_vertex(old_node.m_vertex_num).m_node.m_itr);
         if (NodeType::GATE_NODE == _node->getNodeType())
         {
             auto gate_ptr = std::dynamic_pointer_cast<AbstractQGateNode>(_node);
             auto temp_gate =  copy_qgate(gate_ptr->getQGate(), qvec);
             new_node.m_node_type = old_node.m_node_type;
 			NodeIter tmp_iter = m_graph_dag.add_gate(dynamic_pointer_cast<QNode>(temp_gate.getImplementationPtr()));
-			GateNodeInfo tmp_node(tmp_iter);
-            new_node.m_vertex_num = m_graph_dag.add_vertex(tmp_node);
+			QProgDAGNode tmp_node;
+            m_graph_dag.add_vertex(tmp_node);
         }
         else
         {
@@ -582,3 +582,4 @@ void GraphMatch::_convert_gate(SequenceNode& old_node, QuantumMachine* qvm, std:
         throw run_fail(e.what());
     }
 }
+#endif

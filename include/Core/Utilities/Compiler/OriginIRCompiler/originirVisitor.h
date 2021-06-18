@@ -53,6 +53,8 @@ public:
 
     virtual antlrcpp::Any visitTriple_gate_without_parameter_declaration(originirParser::Triple_gate_without_parameter_declarationContext *context) = 0;
 
+    virtual antlrcpp::Any visitDefine_gate_declaration(originirParser::Define_gate_declarationContext *context) = 0;
+
     virtual antlrcpp::Any visitSingle_gate_without_parameter_type(originirParser::Single_gate_without_parameter_typeContext *context) = 0;
 
     virtual antlrcpp::Any visitSingle_gate_with_one_parameter_type(originirParser::Single_gate_with_one_parameter_typeContext *context) = 0;
@@ -118,6 +120,20 @@ public:
     virtual antlrcpp::Any visitBarrier_statement(originirParser::Barrier_statementContext *context) = 0;
 
     virtual antlrcpp::Any visitExpression_statement(originirParser::Expression_statementContext *context) = 0;
+
+    virtual antlrcpp::Any visitDefine_gate_statement(originirParser::Define_gate_statementContext *context) = 0;
+
+    virtual antlrcpp::Any visitExplist(originirParser::ExplistContext *context) = 0;
+
+    virtual antlrcpp::Any visitExp(originirParser::ExpContext *context) = 0;
+
+    virtual antlrcpp::Any visitGate_func_statement(originirParser::Gate_func_statementContext *context) = 0;
+
+    virtual antlrcpp::Any visitId(originirParser::IdContext *context) = 0;
+
+    virtual antlrcpp::Any visitId_list(originirParser::Id_listContext *context) = 0;
+
+    virtual antlrcpp::Any visitGate_name(originirParser::Gate_nameContext *context) = 0;
 
     virtual antlrcpp::Any visitConstant(originirParser::ConstantContext *context) = 0;
 

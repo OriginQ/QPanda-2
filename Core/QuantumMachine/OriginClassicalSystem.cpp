@@ -33,8 +33,9 @@ static string obj2str(_Ty& obj)
     return ss.str();
 }
 
-OriginCMem::OriginCMem(size_t maxMem)
+OriginCMem::OriginCMem()
 {    
+	size_t maxMem = 29;
     for (auto i = 0U; i < maxMem; ++i)
     {        
         auto _New_CBit =
@@ -42,6 +43,47 @@ OriginCMem::OriginCMem(size_t maxMem)
             CreateCBitFromName("c"+obj2str(i));
         vecBit.push_back(_New_CBit);
     }
+}
+
+size_t OriginCMem::get_capacity()
+{
+	return  vecBit.size();
+}
+
+void OriginCMem::set_capacity(size_t capacity_num)
+{
+	auto cur_cap = vecBit.size();
+	if (capacity_num = cur_cap)
+	{
+		return;
+	}
+	else if (capacity_num < cur_cap)
+	{
+		vecBit.erase(vecBit.begin() + capacity_num);
+	}
+	else
+	{
+		for (size_t i = cur_cap; i < capacity_num; ++i)
+		{
+			auto _New_CBit =
+				CBitFactory::GetFactoryInstance().
+				CreateCBitFromName("c" + obj2str(i));
+			vecBit.push_back(_New_CBit);
+		}
+	}
+}
+
+CBit* OriginCMem::get_cbit_by_addr(size_t caddr)
+{
+	std::string str_cbit = "c" + to_string(caddr);
+	for (auto iter = vecBit.begin(); iter != vecBit.end(); ++iter)
+	{
+		if (str_cbit == (*iter)->getName() &&  (*iter)->getOccupancy())
+			return CBitFactory::GetFactoryInstance().CreateCBitFromName(str_cbit);
+	}
+
+	QCERR("get cbit by address error");
+	throw invalid_argument("get cbit by address error");
 }
 
 CBit *OriginCMem::Allocate_CBit()
@@ -123,8 +165,184 @@ void OriginCMem::clearAll()
         *iter = nullptr;
     }
 }
+
+size_t OriginCMem::get_allocate_cbits(std::vector<CBit *>& cbit_vect)
+{
+	size_t allocate_size = 0;
+	for (auto iter = vecBit.begin(); iter != vecBit.end(); ++iter)
+	{
+		if ((*iter)->getOccupancy())
+		{
+            allocate_size++;
+			auto new_cbit = CBitFactory::GetFactoryInstance().CreateCBitFromName((*iter)->getName());
+            cbit_vect.push_back(new_cbit);
+		}
+	}
+	return allocate_size;
+}
+
+CBit* OriginCMem::cAlloc()
+{
+    return Allocate_CBit();
+}
+
+CBit* OriginCMem::cAlloc(size_t cbit_num)
+{
+	return Allocate_CBit(cbit_num);
+}
+
+std::vector<ClassicalCondition> OriginCMem::cAllocMany(size_t count)
+{
+	if (count > getIdleMem())
+	{
+		QCERR("count > getIdleMem()");
+		throw(calloc_fail("count > getIdleMem()"));
+	}
+	try
+	{
+		std::vector<ClassicalCondition> cbits_vect;
+		for (size_t i = 0; i < count; i++)
+		{
+			auto cbit = Allocate_CBit();
+            cbits_vect.push_back(cbit);
+		}
+		return cbits_vect;
+	}
+	catch (const std::exception& e)
+	{
+		QCERR(e.what());
+		throw(calloc_fail(e.what()));
+	}
+
+}
+
+void OriginCMem::cFree(CBit* cbit)
+{
+    Free_CBit(cbit);
+}
+
+void OriginCMem::cFreeAll(std::vector< CBit* >& cbits_vect)
+{
+    for (auto it : cbits_vect)
+    {
+		Free_CBit(it);
+    }
+}
+
 OriginCMem::~OriginCMem()
 {
     for_each(vecBit.begin(), vecBit.end(), [](CBit* _s) {delete _s; });
 }
 
+
+
+OriginCMemv2::OriginCMemv2(size_t maxMem)
+{
+	for (auto i = 0U; i < maxMem; ++i)
+	{
+		auto _New_CBit =
+			CBitFactory::GetFactoryInstance().
+			CreateCBitFromName("c" + obj2str(i));
+		vecBit.push_back(_New_CBit);
+	}
+}
+
+CBit* OriginCMemv2::Allocate_CBit()
+{
+	for (auto iter = vecBit.begin(); iter != vecBit.end(); ++iter)
+	{
+		if (!(*iter)->getOccupancy())
+		{
+			(*iter)->setOccupancy(true);
+			return *iter;
+		}
+	}
+	return nullptr;
+}
+
+CBit* OriginCMemv2::Allocate_CBit(size_t stCBitNum)
+{
+	for (auto iter = vecBit.begin(); iter != vecBit.end(); ++iter)
+	{
+		string sCBitName = "c" + to_string(stCBitNum);
+		if (sCBitName == (*iter)->getName())
+		{
+			(*iter)->setOccupancy(true);
+			return *iter;
+		}
+	}
+	return nullptr;
+}
+
+size_t OriginCMemv2::getMaxMem() const
+{
+	return vecBit.size();
+}
+
+size_t OriginCMemv2::getIdleMem() const
+{
+	size_t idlenum = 0;
+	for (auto iter = vecBit.begin(); iter != vecBit.end(); ++iter)
+	{
+		if (!(*iter)->getOccupancy())
+		{
+			idlenum++;
+		}
+	}
+	return idlenum;
+}
+
+void OriginCMemv2::Free_CBit(CBit* cbit)
+{
+	for (auto iter = vecBit.begin(); iter != vecBit.end(); ++iter)
+	{
+		if ((*iter) == cbit)
+		{
+			if (!(*iter)->getOccupancy())
+			{
+				QCERR("CMem duplicate free");
+				throw runtime_error("CMem duplicate free");
+			}
+			else
+			{
+				((*iter)->setOccupancy(false));
+				return;
+			}
+		}
+	}
+	// if not any matched
+	QCERR("Cbit argument error");
+	throw invalid_argument("Cbit argument error");
+}
+
+void OriginCMemv2::clearAll()
+{
+	for (auto iter = vecBit.begin();
+		iter != vecBit.end();
+		++iter
+		)
+	{
+		delete (*iter);
+		*iter = nullptr;
+	}
+}
+
+size_t OriginCMemv2::get_allocate_cbits(std::vector<CBit*>& cbit_vect)
+{
+	size_t allocate_size = 0;
+	for (auto iter = vecBit.begin(); iter != vecBit.end(); ++iter)
+	{
+		if ((*iter)->getOccupancy())
+		{
+			allocate_size++;
+			auto new_cbit = CBitFactory::GetFactoryInstance().CreateCBitFromName((*iter)->getName());
+			cbit_vect.push_back(new_cbit);
+		}
+	}
+	return allocate_size;
+}
+
+OriginCMemv2::~OriginCMemv2()
+{
+	for_each(vecBit.begin(), vecBit.end(), [](CBit* _s) {delete _s; });
+}

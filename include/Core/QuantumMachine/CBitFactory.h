@@ -62,6 +62,13 @@ public:
 	 * @param[in] cbit_size_t  value
      */
     virtual void set_val(const cbit_size_t) noexcept = 0;
+
+	/**
+	 * @brief get the addr of this bit
+	 * @return cbit_size_t
+	 */
+	virtual cbit_size_t get_addr() const noexcept = 0;
+
     virtual ~CBit() {}
 };
 

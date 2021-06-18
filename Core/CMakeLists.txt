@@ -9,7 +9,7 @@ endif (CUDA_FOUND)
 
 file(GLOB_RECURSE QPandaCore_SRCS_CPP ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp )
 add_library(${LIB_QPANDA} STATIC ${QPandaCore_SRCS_CPP} )
-list(APPEND LIB_LIST ${LIB_XML} ${LIB_ANTLR4})
+list(APPEND LIB_LIST ${LIB_ANTLR4})
 target_link_libraries(${LIB_QPANDA} ${LIB_LIST})
 
 if (UNIX)
@@ -31,7 +31,7 @@ INSTALL(TARGETS ${LIB_QPANDA}
 
 target_include_directories(${LIB_QPANDA} INTERFACE
                            $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-                           $<INSTALL_INTERFACE:include/qpanda-2>)
+                           $<INSTALL_INTERFACE:include/qpanda2>)
         
 export(TARGETS ${LIB_QPANDA}
        APPEND FILE ${PROJECT_BINARY_DIR}/qpanda2.0-target.cmake

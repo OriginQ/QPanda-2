@@ -1,4 +1,5 @@
 #include "Core/QuantumMachine/PartialAmplitudeQVM.h"
+#include <set>
 using angleParameter = QGATE_SPACE::AbstractSingleAngleParameter;
 using namespace std;
 USING_QPANDA
@@ -63,6 +64,33 @@ void PartialAmplitudeQVM::computing_graph(int qubit_num,const cir_type& circuit,
     return;
 }
 
+void PartialAmplitudeQVM::caculate_qstate(QStat &state)
+{
+    auto qubit_num = m_graph_backend.m_qubit_num;
+    auto graph_num = m_graph_backend.m_sub_graph.size();
+    state.resize(1ull << qubit_num, 0);
+
+    for (auto graph_index = 0; graph_index < graph_num; ++graph_index)
+    {
+        QStat under_graph_state;
+        computing_graph(qubit_num / 2, m_graph_backend.m_sub_graph[graph_index][0], under_graph_state);
+
+        QStat upper_graph_state;
+        computing_graph(qubit_num - (qubit_num / 2), m_graph_backend.m_sub_graph[graph_index][1], upper_graph_state);
+
+        for (size_t state_idx = 0;
+             state_idx < (1ull << qubit_num);
+             ++state_idx)
+        {
+            uint64_t under_index, upper_index;
+            get_couple_state_index(state_idx, under_index, upper_index, m_graph_backend.m_qubit_num);
+            state[state_idx] += under_graph_state[under_index] * upper_graph_state[upper_index];
+        }
+    }
+
+    return ;
+}
+
 
 qcomplex_t PartialAmplitudeQVM::PMeasure_bin_index(std::string amplitude)
 {
@@ -123,7 +151,7 @@ stat_map PartialAmplitudeQVM::PMeasure_subset(const std::vector<std::string>& am
 		QStat upper_graph_state;
 		computing_graph(qubit_num - (qubit_num / 2), m_graph_backend.m_sub_graph[graph_index][1], upper_graph_state);
 
-		for (auto idx = 0; idx < dec_state.size(); ++idx)
+        for (size_t idx = 0; idx < dec_state.size(); ++idx)
 		{
 			uint64_t under_index, upper_index;
 			get_couple_state_index(dec_state[idx], under_index, upper_index, m_graph_backend.m_qubit_num);
@@ -139,7 +167,90 @@ stat_map PartialAmplitudeQVM::PMeasure_subset(const std::vector<std::string>& am
 
 		state_result.insert(pair);
 	}
-	return state_result;
+    return state_result;
+}
+
+prob_dict PartialAmplitudeQVM::getProbDict(const QVec &qlist)
+{
+    QStat state;
+    caculate_qstate(state);
+
+    std::vector<size_t> qubits_addr;
+    for_each(qlist.begin(), qlist.end(), [&](Qubit *q){
+        qubits_addr.push_back(q->get_phy_addr());
+    });
+
+    stable_sort(qubits_addr.begin(), qubits_addr.end());
+    qubits_addr.erase(unique(qubits_addr.begin(),
+                             qubits_addr.end(), [](size_t a, size_t b){return a == b;}),
+                             qubits_addr.end());
+    size_t measure_qubit_num = qubits_addr.size();
+
+    prob_dict res;
+    for (size_t i = 0; i < state.size(); i++)
+    {
+        size_t idx = 0;
+        for (size_t j = 0; j < measure_qubit_num; j++)
+        {
+            idx += (((i >> (qubits_addr[j])) % 2) << j);
+        }
+
+        string bin_idx = integerToBinary(idx, measure_qubit_num);
+        auto iter = res.find(bin_idx);
+        if (res.end() == iter)
+        {
+            res.insert({bin_idx, std::norm(state[i])});
+        }
+        else
+        {
+            iter->second += std::norm(state[i]);
+        }
+    }
+
+    return res;
+}
+
+prob_dict PartialAmplitudeQVM::probRunDict(QProg &prog, const QVec &qlist)
+{
+    run(prog);
+    return getProbDict(qlist);
+}
+
+prob_vec PartialAmplitudeQVM::getProbList(const QVec &qlist)
+{
+    QStat state;
+    caculate_qstate(state);
+
+    std::vector<size_t> qubits_addr;
+    for_each(qlist.begin(), qlist.end(), [&](Qubit *q){
+        qubits_addr.push_back(q->get_phy_addr());
+    });
+
+    stable_sort(qubits_addr.begin(), qubits_addr.end());
+    qubits_addr.erase(unique(qubits_addr.begin(),
+                             qubits_addr.end(), [](size_t a, size_t b){return a == b;}),
+                             qubits_addr.end());
+    size_t measure_qubit_num = qubits_addr.size();
+
+    prob_vec res(1ull << measure_qubit_num, 0);
+    for (size_t i = 0; i < state.size(); i++)
+    {
+        size_t idx = 0;
+        for (size_t j = 0; j < measure_qubit_num; j++)
+        {
+            idx += (((i >> (qubits_addr[j])) % 2) << j);
+        }
+
+        res[idx] += std::norm(state[i]);
+    }
+
+    return res;
+}
+
+prob_vec PartialAmplitudeQVM::probRunList(QProg &prog, const QVec &qlist)
+{
+    run(prog);
+    return getProbList(qlist);
 }
 
 

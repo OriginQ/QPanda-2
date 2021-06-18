@@ -35,11 +35,6 @@ void NoiseQVM::init()
     }
 }
 
-void NoiseQVM::initState(const QStat &state)
-{
-    _pGates->initState(getAllocateQubitNum(), state);
-    return;
-}
 
 void NoiseQVM::init(rapidjson::Document &)
 {
@@ -54,6 +49,17 @@ std::map<string, size_t> NoiseQVM::runWithConfiguration(QProg &prog, std::vector
     size_t shots = doc["shots"].GetUint64();
     return runWithConfiguration(prog, cbits, shots);
 }
+
+std::map<std::string, size_t> NoiseQVM::runWithConfiguration(QProg& prog, std::vector<int>& cibts_addr, int shots)
+{
+    std::vector<ClassicalCondition> cbits_vect;
+	auto cmem = OriginCMem::get_instance();
+	for (auto addr : cibts_addr)
+		cbits_vect.push_back(cmem->get_cbit_by_addr(addr));
+
+	return runWithConfiguration(prog, cbits_vect, shots);
+}
+
 
 std::map<string, size_t> NoiseQVM::runWithConfiguration(QProg &prog, std::vector<ClassicalCondition> &cbits, int shots)
 {
@@ -97,8 +103,9 @@ void NoiseQVM::run(QProg & prog)
     {
         TraversalConfig config(m_rotation_angle_error);
         config.m_can_optimize_measure = false;
-        _pGates->initState(0, 1, _Qubit_Pool->get_max_usedqubit_addr() + 1);
 
+		//_pGates->initState(0, 1, _Qubit_Pool->get_max_usedqubit_addr() + 1);
+        _pGates->initState(0, 1, prog.get_max_qubit_addr() + 1);
         QProgExecution prog_exec;
         prog_exec.execute(prog.getImplementationPtr(), nullptr, config, _pGates);
 

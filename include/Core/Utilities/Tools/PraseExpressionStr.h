@@ -9,7 +9,7 @@
 QPANDA_BEGIN
 
 #ifndef PI
-#define PI 3.14159265358979
+#define PI 3.14159265358979323846
 #endif
 
 class ParseExpressionStr
@@ -41,9 +41,9 @@ class ParseExpressionStr
 
 public:
 	ParseExpressionStr() {}
-	~ParseExpressionStr() {}
+	virtual ~ParseExpressionStr() {}
 
-	double parse(const std::string& src_str) {
+	virtual double parse(const std::string& src_str) {
 		char tmp_buf[128] = "";
 		for (size_t i = 0; i < src_str.size(); ++i)
 		{
@@ -93,7 +93,7 @@ public:
 	}
 
 protected:
-	double string_to_double(const std::string src_str) {
+	virtual double string_to_double(const std::string src_str) {
 		double ret_val = 0.0;
 		if (nullptr != strstr(src_str.c_str(), "PI"))
 		{

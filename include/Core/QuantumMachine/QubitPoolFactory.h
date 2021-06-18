@@ -91,6 +91,13 @@ public:
 	 * @return size_t
      */
     virtual size_t getVirtualQubitAddress(Qubit*) const = 0;
+
+    /**
+     * @brief get allocate qubits 
+     * @param[out] QVec&
+     * @return size_t
+     */
+    virtual size_t get_allocate_qubits(std::vector<Qubit*>&) const = 0;
 };
 
 

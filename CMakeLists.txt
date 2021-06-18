@@ -3,7 +3,7 @@ project(QPANDA)
 
 set(QPANDA_MAJOR_VERSION 2)
 set(QPANDA_MINOR_VERSION 1)
-set(QPANDA_PATCH_VERSION 5)
+set(QPANDA_PATCH_VERSION 6)
 set(QPANDA_VERSION "${QPANDA_MAJOR_VERSION}.${QPANDA_MINOR_VERSION}.${QPANDA_PATCH_VERSION}")
 message(STATUS "QPANDA VERSION = " "[${QPANDA_VERSION}]")
 
@@ -29,6 +29,7 @@ include_directories(${PROJECT_SOURCE_DIR}/include
                     ${PROJECT_SOURCE_DIR}/include/Core/Utilities/Transform
                     ${PROJECT_SOURCE_DIR}/include/Core/Utilities/Transform/OriginIRCompiler
                     ${PROJECT_SOURCE_DIR}/include/Variational
+                    ${PROJECT_SOURCE_DIR}/include/ThirdParty/nlopt
                     ${PROJECT_SOURCE_DIR}/ThirdParty
                     ${PROJECT_SOURCE_DIR}/ThirdParty/gtest
                     ${PROJECT_SOURCE_DIR}/ThirdParty/gtest/include
@@ -52,7 +53,8 @@ set(LIB_QPANDA QPanda2)
 set(LIB_GTEST gtest)
 set(LIB_BPLUSTREE BplusTree)
 set(LIB_COMPONENTS Components)
-set (LIB_ANTLR4 antlr4)
+set(LIB_NLOPT nlopt)
+set(LIB_ANTLR4 antlr4)
 set(LIB_QALG QAlg)
 
 set(LIB_PYQPANDA pyQPanda)
@@ -104,7 +106,7 @@ elseif (MINGW)
         -DGTEST_USE_OWN_TR1_TUPLE=1
         -fpermissive)
 
-    set(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -g -ggdb")
+    set(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -g -Og -ggdb -m64 -Wa, -mbig-obj")
     set(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -DNDEBUG")
 elseif (UNIX)
     list(APPEND EXTRA_LDFLAGS
@@ -190,7 +192,7 @@ add_subdirectory(QAlg)
 add_subdirectory(Applications)
 add_subdirectory(test)
 
-option(USE_PYQPANDA "use pyQpanda" OFF)
+option(USE_PYQPANDA "use pyQPanda" OFF)
 if(USE_PYQPANDA)
     include_directories(${PROJECT_SOURCE_DIR}/pyQPandaCpp)
     add_subdirectory(pyQPandaCpp)

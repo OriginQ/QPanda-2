@@ -2,7 +2,7 @@
 #include "QPanda.h"
 
 USING_QPANDA
-
+using namespace std;
 #define MAX_CONNECTIVITY 3
 
 static bool get_qubit_topology_test_1()

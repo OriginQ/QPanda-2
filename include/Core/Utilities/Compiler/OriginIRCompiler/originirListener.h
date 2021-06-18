@@ -65,6 +65,9 @@ public:
   virtual void enterTriple_gate_without_parameter_declaration(originirParser::Triple_gate_without_parameter_declarationContext *ctx) = 0;
   virtual void exitTriple_gate_without_parameter_declaration(originirParser::Triple_gate_without_parameter_declarationContext *ctx) = 0;
 
+  virtual void enterDefine_gate_declaration(originirParser::Define_gate_declarationContext *ctx) = 0;
+  virtual void exitDefine_gate_declaration(originirParser::Define_gate_declarationContext *ctx) = 0;
+
   virtual void enterSingle_gate_without_parameter_type(originirParser::Single_gate_without_parameter_typeContext *ctx) = 0;
   virtual void exitSingle_gate_without_parameter_type(originirParser::Single_gate_without_parameter_typeContext *ctx) = 0;
 
@@ -163,6 +166,27 @@ public:
 
   virtual void enterExpression_statement(originirParser::Expression_statementContext *ctx) = 0;
   virtual void exitExpression_statement(originirParser::Expression_statementContext *ctx) = 0;
+
+  virtual void enterDefine_gate_statement(originirParser::Define_gate_statementContext *ctx) = 0;
+  virtual void exitDefine_gate_statement(originirParser::Define_gate_statementContext *ctx) = 0;
+
+  virtual void enterExplist(originirParser::ExplistContext *ctx) = 0;
+  virtual void exitExplist(originirParser::ExplistContext *ctx) = 0;
+
+  virtual void enterExp(originirParser::ExpContext *ctx) = 0;
+  virtual void exitExp(originirParser::ExpContext *ctx) = 0;
+
+  virtual void enterGate_func_statement(originirParser::Gate_func_statementContext *ctx) = 0;
+  virtual void exitGate_func_statement(originirParser::Gate_func_statementContext *ctx) = 0;
+
+  virtual void enterId(originirParser::IdContext *ctx) = 0;
+  virtual void exitId(originirParser::IdContext *ctx) = 0;
+
+  virtual void enterId_list(originirParser::Id_listContext *ctx) = 0;
+  virtual void exitId_list(originirParser::Id_listContext *ctx) = 0;
+
+  virtual void enterGate_name(originirParser::Gate_nameContext *ctx) = 0;
+  virtual void exitGate_name(originirParser::Gate_nameContext *ctx) = 0;
 
   virtual void enterConstant(originirParser::ConstantContext *ctx) = 0;
   virtual void exitConstant(originirParser::ConstantContext *ctx) = 0;

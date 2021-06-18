@@ -15,7 +15,7 @@ public:
 	HHLAlg(const QStat& A, const std::vector<double>& b, QuantumMachine *qvm);
 	virtual ~HHLAlg();
 
-	QCircuit get_hhl_circuit();
+	QCircuit get_hhl_circuit(uint32_t precision_cnt = 0);
 
 	std::string check_QPE_result();
 
@@ -29,12 +29,14 @@ public:
     */
 	static void expand_linear_equations(QStat& A, std::vector<double>& b);
 
+	const double& get_amplification_factor() const { return m_amplification_factor; }
+
 protected:
 	QCircuit build_CR_cir(QVec& controlqvec, Qubit* target_qubit, double r = 6.0);
 	std::vector<double> get_max_eigen_val(const QStat& A);
 	EigenMatrixX to_real_matrix(const EigenMatrixXc& c_mat);
 	QCircuit build_cir_b(QVec qubits, const std::vector<double>& b);
-	void init_qubits();
+	void init_qubits(uint32_t precision_cnt = 0);
 	bool is_hermitian_matrix();
 	void transform_hermitian_to_unitary_mat(QStat& src_mat);
 
@@ -50,7 +52,7 @@ private:
 	QCircuit m_cir_cr;
 	QCircuit m_hhl_cir;
 	size_t m_qft_cir_used_qubits_cnt;
-	size_t m_mini_qft_qubits;
+	double m_amplification_factor; /**< For eigenvalue amplification. */
 };
 
 /**
@@ -58,20 +60,28 @@ private:
 * @ingroup QAlg
 * @param[in] QStat& a unitary matrix or Hermitian N*N matrix with N=2^n
 * @param[in] std::vector<double>& a given vector
+* @param[in] uint32_t The count of digits after the decimal point, 
+             default is 0, indicates that there are only integer solutions
 * @return  QCircuit The whole quantum circuit for HHL algorithm
-* @note
+* @note The higher the precision is, the more qubit number and circuit-depth will be, 
+        for example: 1-bit precision, 4 additional qubits are required, 
+		for 2-bit precision, we need 7 additional qubits, and so on.
 */
-QCircuit build_HHL_circuit(const QStat& A, const std::vector<double>& b, QuantumMachine *qvm);
+QCircuit build_HHL_circuit(const QStat& A, const std::vector<double>& b, QuantumMachine *qvm, uint32_t precision_cnt = 0);
 
 /**
 * @brief  Use HHL algorithm to solve the target linear systems of equations: Ax=b
 * @ingroup QAlg
 * @param[in] QStat& a unitary matrix or Hermitian N*N matrix with N=2^n
 * @param[in] std::vector<double>& a given vector
+* @param[in] uint32_t The count of digits after the decimal point,
+			 default is 0, indicates that there are only integer solutions.
 * @return  QStat The solution of equation, i.e. x for Ax=b
-* @note
+* @note The higher the precision is, the more qubit number and circuit-depth will be, 
+        for example: 1-bit precision, 4 additional qubits are required, 
+		for 2-bit precision, we need 7 additional qubits, and so on.
 */
-QStat HHL_solve_linear_equations(const QStat& A, const std::vector<double>& b);
+QStat HHL_solve_linear_equations(const QStat& A, const std::vector<double>& b, uint32_t precision_cnt = 0);
 
 QPANDA_END
 

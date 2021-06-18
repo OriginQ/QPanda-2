@@ -1,7 +1,7 @@
 ﻿#include "QAlg/Shor/Shor.h"
 
 QPANDA_BEGIN
-
+using namespace std;
 int ShorAlg::_gcd(int a, int b)
 {
     if (0 == b)
@@ -115,7 +115,7 @@ bool ShorAlg::exec()
     {
         if (_gcd(i, m_target_Num) > 1)
         {
-            m_factor_1 = i;
+            m_factor_1 = _gcd(i, m_target_Num);
             m_factor_2 = m_target_Num / m_factor_1;
             return true;
         }
@@ -130,7 +130,12 @@ bool ShorAlg::exec()
             }
             m_factor_2 = _gcd(m_factor_1 + 1, m_target_Num);
             m_factor_1 = _gcd(m_factor_1 - 1, m_target_Num);
-            return true;
+            if (m_factor_1 * m_factor_2 != m_target_Num) {
+                return false;
+            }
+            else {
+                return true;;
+            }
         }
     }
 

@@ -3,104 +3,91 @@
 #include "Core/Utilities/Tools/QPandaException.h"
 
 using namespace std;
+using namespace antlr4;
 USING_QPANDA
 
-QProg QPanda::convert_originir_to_qprog(std::string file_path, QuantumMachine *qm)
+class OriginIRErrorListener : public BaseErrorListener {
+public:
+	void syntaxError(Recognizer* recognizer, Token* offendingSymbol, size_t line,
+		size_t charPositionInLine, const std::string& msg,
+		std::exception_ptr e) override {
+		std::ostringstream output;
+		output << "Invalid OriginIR source: ";
+		output << "line " << line << ":" << charPositionInLine << " " << msg;
+		QCERR_AND_THROW(run_fail, output.str());
+	}
+};
+
+QProg QPanda::convert_originir_to_qprog(std::string file_path, QuantumMachine* qm)
 {
-	QVec qv; 
+	QVec qv;
 	std::vector<ClassicalCondition> cv;
 	return convert_originir_to_qprog(file_path, qm, qv, cv);
 }
 
-QProg QPanda::convert_originir_to_qprog(std::string file_path, QuantumMachine *qm, QVec &qv,  std::vector<ClassicalCondition> &cv)
+QProg QPanda::convert_originir_to_qprog(std::string file_path, QuantumMachine* qm, QVec& qv, std::vector<ClassicalCondition>& cv)
 {
 	std::ifstream stream;
 	stream.open(file_path);
 	if (!stream)
-	{
 		QCERR_AND_THROW(run_fail, "Error: Filed to open originir file.");
-	}
-	try
-	{
-		antlr4::ANTLRInputStream input(stream);
-		stream.close();
-		originirLexer lexer(&input);
-		antlr4::CommonTokenStream tokens(&lexer);
-		originirParser parser(&tokens);
 
-		antlr4::tree::ParseTree *tree = parser.translationunit();
-		OriginIRVisitor visitor(qm, qv, cv);
-		size_t fullprog = visitor.visit(tree);
-		return visitor.get_qprog(fullprog);
-	}
-	catch (const std::exception&e)
-	{
-		QCERR_AND_THROW(run_fail, "Error: catch a exception: " << e.what());
-	}
+	std::ostringstream in;
+	in << stream.rdbuf();
+	stream.close();
+	std::string str_originir = in.str();
+	return convert_originir_string_to_qprog(str_originir, qm, qv, cv);
 }
 
-QProg QPanda::convert_originir_string_to_qprog(std::string str_originir, QuantumMachine *qm)
+QProg QPanda::convert_originir_string_to_qprog(std::string str_originir, QuantumMachine* qm)
 {
 	QVec qv;
 	std::vector<ClassicalCondition> cv;
 	return convert_originir_string_to_qprog(str_originir, qm, qv, cv);
 }
 
-QProg QPanda::convert_originir_string_to_qprog(std::string str_originir, QuantumMachine *qm, QVec &qv, std::vector<ClassicalCondition> &cv)
+QProg QPanda::convert_originir_string_to_qprog(std::string str_originir, QuantumMachine* qm, QVec& qv, std::vector<ClassicalCondition>& cv)
 {
-	try
-	{
-		antlr4::ANTLRInputStream input(str_originir);
-		originirLexer lexer(&input);
-		antlr4::CommonTokenStream tokens(&lexer);
-		originirParser parser(&tokens);
-
-		antlr4::tree::ParseTree *tree = parser.translationunit();
-		OriginIRVisitor visitor(qm, qv, cv);
-
-		size_t fullprog = visitor.visit(tree);
-		return visitor.get_qprog(fullprog);
-	}
-	catch (const std::exception&e)
-	{
-		QCERR(e.what());
-		throw e;
-	}
+	str_originir += "\r\n";  
+	antlr4::ANTLRInputStream input(str_originir);
+	originirLexer lexer(&input);
+	antlr4::CommonTokenStream tokens(&lexer);
+	originirParser parser(&tokens);
+	parser.removeErrorListeners();
+	OriginIRErrorListener e;
+	parser.addErrorListener(&e);
+	antlr4::tree::ParseTree* tree = parser.translationunit();
+	OriginIRVisitor visitor(qm, qv, cv);
+	size_t fullprog = visitor.visit(tree);
+	return visitor.get_qprog(fullprog);
 }
 
 
-QProg QPanda::transformOriginIRToQProg(std::string filePath, QuantumMachine * qm, QVec &qv, std::vector<ClassicalCondition> &cv)
+QProg QPanda::transformOriginIRToQProg(std::string filePath, QuantumMachine* qm, QVec& qv, std::vector<ClassicalCondition>& cv)
 {
 	std::ifstream stream;
 	stream.open(filePath);
-    if (!stream)
-    {
-        QCERR("File opening fail");
-        throw invalid_argument("File opening fail");
-    }
-
-    try
-    {
-        antlr4::ANTLRInputStream input(stream);
-		stream.close();
-        originirLexer lexer(&input);
-        antlr4::CommonTokenStream tokens(&lexer);
-        originirParser parser(&tokens);
-
-        antlr4::tree::ParseTree *tree = parser.translationunit();
-        OriginIRVisitor visitor(qm, qv, cv);
-
-        size_t fullprog = visitor.visit(tree);
-        return visitor.get_qprog(fullprog);
-    }
-    catch (const std::exception&e)
-    {
-        QCERR(e.what());
-        throw e;
-    }
+	if (!stream)
+		QCERR_AND_THROW(run_fail, "Error: Filed to open originir file.");
+	std::ostringstream in;
+	in << stream.rdbuf();
+	stream.close();
+	std::string str_originir = in.str();
+	str_originir += "\r\n";
+	antlr4::ANTLRInputStream input(str_originir);
+	originirLexer lexer(&input);
+	antlr4::CommonTokenStream tokens(&lexer);
+	originirParser parser(&tokens);
+	parser.removeErrorListeners();
+	OriginIRErrorListener e;
+	parser.addErrorListener(&e);
+	antlr4::tree::ParseTree* tree = parser.translationunit();
+	OriginIRVisitor visitor(qm, qv, cv);
+	size_t fullprog = visitor.visit(tree);
+	return visitor.get_qprog(fullprog);
 }
 
-QProgBuilder::QProgBuilder(QuantumMachine * qm, QVec &qv, std::vector<ClassicalCondition> &cv)
+QProgBuilder::QProgBuilder(QuantumMachine* qm, QVec& qv, std::vector<ClassicalCondition>& cv)
 	:m_machine(qm), qs(qv), ccs(cv)
 { }
 
@@ -111,18 +98,20 @@ QProg QProgBuilder::get_qprog()
 
 void QProgBuilder::alloc_qubit(int num)
 {
-	qs = m_machine->allocateQubits(num);
+	for (int i = 0; i < num; i++)
+		qs.push_back(m_machine->allocateQubitThroughPhyAddress(i));
 }
 
 void QProgBuilder::alloc_cbit(int num)
 {
-	ccs = m_machine->allocateCBits(num);
+	for (int i = 0; i < num; i++)
+		ccs.push_back(m_machine->cAlloc(i));
 }
 
 size_t QProgBuilder::add_prog()
 {
 	m_progid_set.insert({ qid, QProg() });
-	return qid++;	
+	return qid++;
 }
 
 void QProgBuilder::insert_subprog(size_t progid_dst, size_t progid_src)
@@ -136,11 +125,11 @@ size_t QProgBuilder::add_qgate(GateType type, std::vector<int> index, std::vecto
 }
 
 size_t QProgBuilder::add_qgate_cc(
-	GateType type, 
-	std::vector<size_t> exprid, 
-	std::vector<int> index, 
+	GateType type,
+	std::vector<size_t> exprid,
+	std::vector<int> index,
 	std::vector<double> parameters) {
-	
+
 	size_t progid = add_prog();
 	vector<Qubit*> qubits;
 	int counter = 0;
@@ -150,7 +139,7 @@ size_t QProgBuilder::add_qgate_cc(
 			counter++;
 		}
 		else {
-			if (index[i]+1 > qs.size())
+			if (index[i] + 1 > qs.size())
 				throw runtime_error("too little qubits is allocated");
 
 			qubits.push_back(qs[index[i]]);
@@ -162,7 +151,7 @@ size_t QProgBuilder::add_qgate_cc(
 		break;
 	case GateType::ECHO:
 		m_progid_set[progid] << ECHO(qubits[0]);
-        break;
+		break;
 	case GateType::T:
 		m_progid_set[progid] << T(qubits[0]);
 		break;
@@ -213,7 +202,7 @@ size_t QProgBuilder::add_qgate_cc(
 		m_progid_set[progid] << U3(qubits[0], parameters[0], parameters[1], parameters[2]);
 		break;
 	case GateType::U4:
-		m_progid_set[progid] << U4(parameters[0], parameters[1], 
+		m_progid_set[progid] << U4(parameters[0], parameters[1],
 			parameters[2], parameters[3], qubits[0]);
 		break;
 
@@ -230,7 +219,7 @@ size_t QProgBuilder::add_qgate_cc(
 		m_progid_set[progid] << SqiSWAP(qubits[0], qubits[1]);
 		break;
 	case GateType::SWAP:
-        m_progid_set[progid] << SWAP(qubits[0], qubits[1]);
+		m_progid_set[progid] << SWAP(qubits[0], qubits[1]);
 		break;
 
 	case GateType::ISWAPTHETA:
@@ -249,7 +238,7 @@ size_t QProgBuilder::add_qgate_cc(
 		toffoli_gate.setControl({ qubits[0], qubits[1] });
 		m_progid_set[progid] << toffoli_gate;
 	}
-		break;
+	break;
 	default:
 		throw runtime_error("Bad Argument.");
 	}
@@ -259,7 +248,7 @@ size_t QProgBuilder::add_qgate_cc(
 size_t QProgBuilder::add_measure_literal(size_t qidx, size_t cidx)
 {
 	size_t progid = add_prog();
-	if (ccs.size()  <  cidx+1)
+	if (ccs.size() < cidx + 1)
 		throw runtime_error("add_measure_literal too little cbits is allocated");
 
 	m_progid_set[progid] << Measure(qs[qidx], ccs[cidx]);
@@ -351,7 +340,7 @@ size_t QProgBuilder::cc_init_id(size_t cidx)
 size_t QProgBuilder::cc_init_literal(double value)
 {
 	m_exprid_set.insert({ cid, ClassicalCondition((cbit_size_t)value) });
-    return cid++;
+	return cid++;
 }
 
 size_t QProgBuilder::cc_op_cc(size_t exprid1, size_t exprid2, int op_type)
@@ -398,7 +387,7 @@ size_t QProgBuilder::cc_op_cc(size_t exprid1, size_t exprid2, int op_type)
 		m_exprid_set.insert({ cid, m_exprid_set.at(exprid1) = m_exprid_set.at(exprid2) });
 		m_exprid_set.at(cid).get_val();
 	}
-		break;
+	break;
 	default:
 		throw runtime_error("Bad Argument.");
 	}
@@ -449,7 +438,7 @@ size_t QProgBuilder::cc_op_literal(size_t exprid1, double literal2, int op_type)
 		m_exprid_set.insert({ cid, m_exprid_set.at(exprid1) = literal2 });
 		m_exprid_set.at(cid).get_val();
 	}
-		break;
+	break;
 	default:
 		throw runtime_error("Bad Argument.");
 	}
@@ -544,11 +533,11 @@ size_t QProgBuilder::make_dagger_new(size_t progid)
 	}
 }
 
-QVec QProgBuilder::make_qvec( std::vector<size_t> expridx, std::vector<int> idx)
+QVec QProgBuilder::make_qvec(std::vector<size_t> expridx, std::vector<int> idx)
 {
 	QVec q;
 	int counter = 0;
-	for (int i = 0; i < idx.size(); ++i) 
+	for (int i = 0; i < idx.size(); ++i)
 	{
 		if (idx[i] != -1)
 			q.push_back(qs[idx[i]]);
@@ -597,7 +586,7 @@ size_t QProgBuilder::make_control_cc_new(size_t progid, std::vector<size_t> expr
 	QVec q;
 	int counter = 0;
 	for (int i = 0; i < idx.size(); ++i) {
-		if (idx[i]!=-1)
+		if (idx[i] != -1)
 			q.push_back(qs[i]);
 		else {
 			q.push_back(qs[m_exprid_set.at(expridx[counter++])]);
@@ -612,3 +601,4 @@ size_t QProgBuilder::make_control_cc_new(size_t progid, std::vector<size_t> expr
 		throw runtime_error("Non-Circuit Components when controlling.");
 	}
 }
+

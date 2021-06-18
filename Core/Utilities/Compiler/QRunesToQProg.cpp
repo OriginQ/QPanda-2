@@ -5,11 +5,6 @@
 USING_QPANDA
 using namespace std;
 
-QGate _iSWAP(Qubit * targitBit_fisrt, Qubit * targitBit_second)
-{
-    return iSWAP(targitBit_fisrt, targitBit_second);
-}
-
 static vector<string> extract_value(string sQRunes)
 {
     if ('%' == sQRunes[0])
@@ -35,29 +30,33 @@ static vector<string> extract_value(string sQRunes)
 
 QRunesToQProg::QRunesToQProg()
 {
-    m_singleGateFunc.insert(make_pair("H", H));
-    m_singleGateFunc.insert(make_pair("T", T));
-    m_singleGateFunc.insert(make_pair("S", S));
+	typedef QGate(*gate_f1)(Qubit*);
+    m_singleGateFunc.insert(make_pair("H", (gate_f1)H));
+    m_singleGateFunc.insert(make_pair("T", (gate_f1)T));
+    m_singleGateFunc.insert(make_pair("S", (gate_f1)S));
 
-    m_singleGateFunc.insert(make_pair("X", X));
-    m_singleGateFunc.insert(make_pair("Y", Y));
-    m_singleGateFunc.insert(make_pair("Z", Z));
+    m_singleGateFunc.insert(make_pair("X", (gate_f1)X));
+    m_singleGateFunc.insert(make_pair("Y", (gate_f1)Y));
+    m_singleGateFunc.insert(make_pair("Z", (gate_f1)Z));
 
-    m_singleGateFunc.insert(make_pair("X1", X1));
-    m_singleGateFunc.insert(make_pair("Y1", Y1));
-    m_singleGateFunc.insert(make_pair("Z1", Z1));
+    m_singleGateFunc.insert(make_pair("X1", (gate_f1)X1));
+    m_singleGateFunc.insert(make_pair("Y1", (gate_f1)Y1));
+    m_singleGateFunc.insert(make_pair("Z1", (gate_f1)Z1));
 
-    m_doubleGateFunc.insert(make_pair("CNOT", CNOT));
-    m_doubleGateFunc.insert(make_pair("CZ", CZ));
-    m_doubleGateFunc.insert(make_pair("ISWAP", _iSWAP));
-    m_doubleGateFunc.insert(make_pair("SQISWAP", SqiSWAP));
+	typedef QGate(*gate_f2)(Qubit*, Qubit*);
+    m_doubleGateFunc.insert(make_pair("CNOT", (gate_f2)CNOT));
+    m_doubleGateFunc.insert(make_pair("CZ", (gate_f2)CZ));
+    m_doubleGateFunc.insert(make_pair("ISWAP", (gate_f2)iSWAP));
+    m_doubleGateFunc.insert(make_pair("SQISWAP", (gate_f2)SqiSWAP));
 
-    m_angleGateFunc.insert(make_pair("RX", RX));
-    m_angleGateFunc.insert(make_pair("RY", RY));
-    m_angleGateFunc.insert(make_pair("RZ", RZ));
-    m_angleGateFunc.insert(make_pair("U1", U1));
+	typedef QGate(*gate_f3)(Qubit*, double);
+    m_angleGateFunc.insert(make_pair("RX", (gate_f3)RX));
+    m_angleGateFunc.insert(make_pair("RY", (gate_f3)RY));
+    m_angleGateFunc.insert(make_pair("RZ", (gate_f3)RZ));
+    m_angleGateFunc.insert(make_pair("U1", (gate_f3)U1));
 
-    m_doubleAngleGateFunc.insert(make_pair("CR", CR));
+	typedef QGate(*gate_f4)(Qubit*, Qubit*, double);
+    m_doubleAngleGateFunc.insert(make_pair("CR", (gate_f4)CR));
 }
 
 size_t  QRunesToQProg::handleDaggerCircuit(std::shared_ptr<QNode> qNode, size_t pos)
@@ -126,6 +125,8 @@ size_t  QRunesToQProg::handleControlCircuit(std::shared_ptr<QNode> qNode, size_t
     end_sign.pop_back();
 
     size_t cir_size{ 0 }, increment{ 0 };
+    QPANDA_ASSERT(pos >= m_QRunes.size(), "pos limits error");
+
     for (; m_QRunes[pos] != end_sign && pos < m_QRunes.size();)
     {
         increment = traversalQRunes(pos, dynamic_pointer_cast<QNode>(qCircuit.getImplementationPtr()));

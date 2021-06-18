@@ -48,7 +48,7 @@ def test_layer1():
     #new_prog = pq.circuit_optimizer_by_config(prog, mode = pq.QCircuitOPtimizerMode.Merge_RX)
 
     # u3门转换
-    new_prog = pq.circuit_optimizer(prog, mode = pq.QCircuitOPtimizerMode.Merge_U3)
+    new_prog = pq.circuit_optimizer(prog, mode_list = [pq.QCircuitOPtimizerMode.Merge_H_X, pq.QCircuitOPtimizerMode.Merge_U3])
 
     print("The optimizered QProg:")
     print(new_prog)

@@ -545,7 +545,7 @@ QCircuit constModExp(QVec &qvec, QVec &result, int base, int module_Num, QVec &q
     int tmp = base;
     for (int i = 0; i < qvec.size(); i++)
     {
-        circuit << constModMul(result, tmp, module_Num, qvec1, qvec2, qvec3).control(qvec[qvec.size() - 1 - i]);
+        circuit << constModMul(result, tmp, module_Num, qvec1, qvec2, qvec3).control(qvec[i]);
         tmp = (tmp * tmp) % module_Num;
     }
     return circuit;

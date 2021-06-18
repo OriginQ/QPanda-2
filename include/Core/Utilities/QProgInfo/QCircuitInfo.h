@@ -85,9 +85,9 @@ public:
 	/**
 	* @brief Constructor of QCircuitParam
 	*/
-	QCircuitParam(){
-		m_is_dagger = false;
-	}
+	QCircuitParam()
+		:m_is_dagger(false)
+	{}
 
 	virtual ~QCircuitParam() {}
 
@@ -473,6 +473,15 @@ size_t get_all_used_qubits(QProg prog, QVec &vecQuBitsInUse);
 * @return return the size of used class bits
 */
 size_t get_all_used_class_bits(QProg prog, std::vector<int> &vecClBitsInUse);
+
+/**
+* @brief  Get all the measure-info in the input prog
+* @ingroup Utilities
+* @param[in] prog  the input prog
+* @param[out] std::vector<std::pair<uint32_t, uint32_t>> The vector of measure-info: std::pair<measured-qubit, target-cbit>
+* @return return the size of measure-info
+*/
+size_t get_measure_info(QProg prog, std::vector<std::pair<uint32_t, uint32_t>> &measure_info);
 
 /**
 * @brief  output all the node type of the target prog

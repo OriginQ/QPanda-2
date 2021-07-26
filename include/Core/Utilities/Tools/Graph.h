@@ -50,7 +50,7 @@ public:
 	static std::unique_ptr<T> ParseFile(std::string filename) {
 		std::ifstream ifs(filename.c_str());
 		if (!ifs.is_open()){
-			QCERR_AND_THROW(QPanda::run_fail, "Error: failed to parse the config file.");
+			QCERR_AND_THROW(QPanda::run_fail, "Error: failed to open the config file.");
 		}
 
 		return ParseInputStream(std::string((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>()));

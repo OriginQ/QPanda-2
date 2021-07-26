@@ -53,7 +53,7 @@ TEST(NoiseMachineTest, test)
 	doc.AddMember("noisemodel", value, doc.GetAllocator());
 
 	NoiseQVM qvm;
-	qvm.init(doc);
+	qvm.init();
 	auto qvec = qvm.allocateQubits(16);
 	auto cvec = qvm.allocateCBits(16);
 	auto prog = QProg();
@@ -81,10 +81,13 @@ TEST(NoiseMachineTest, test)
 	clock_t end = clock();
 	std::cout << end - start << endl;
 
-	for (auto& aiter : result)
+	/*for (auto& aiter : result)
 	{
 		std::cout << aiter.first << " : " << aiter.second << endl;
-	}
+	}*/
+
+	ASSERT_EQ(result.begin()->second, 10);
+
 	//auto state = qvm.getQState();
 	//for (auto &aiter : state)
 	//{
@@ -92,7 +95,7 @@ TEST(NoiseMachineTest, test)
 	//}
 	qvm.finalize();
 
-	getchar();
+	//std::cout << "NoiseMachineTest.test  tests over!" << endl;
 }
 
 QStat run_one_qubit_circuit()
@@ -130,8 +133,8 @@ TEST(QVM, PartialAmplitudeQVM)
 
 	auto prog = QProg();
 	prog << H(qlist[18])
-		<< X(qlist[19])
-		<< Toffoli;
+		<< X(qlist[19]);
+	//<< Toffoli;
 
 	machine->run(prog);
 
@@ -143,13 +146,19 @@ TEST(QVM, PartialAmplitudeQVM)
 								   "0000000000000000000110000000000000000000" ,
 								   "0000000000000000000111000000000000000000" ,
 								   "1000000000000000000000000000000000000000" };
-	auto result = machine->PMeasure_subset(subSet);
 
-	for (auto val : result)
+	/*for (int i = 0; i < subSet.size(); ++i)
 	{
-		std::cout << val.first << " : " << val.second << std::endl;
-	}
-	getchar();
+		auto result = machine->PMeasure_bin_index(subSet[i]);
+		std::cout << result << std::endl;
+	}*/
+
+	ASSERT_EQ(subSet.size(), 8);
+
+	//std::cout << val.first << " : " << val.second << std::endl;
+
+
+	//getchar();
 }
 
 TEST(QVM, SingleAmplitudeQVM)
@@ -193,11 +202,11 @@ TEST(QVM, SingleAmplitudeQVM)
 	//第三个为最大RANK，这里根据内存设置，默认30；
 	//第四个就是quickBB优化的最大运行时间，默认5s
 	qvm->run(prog, qv);
-	cout << qvm->pMeasureBinindex("00001100000") << endl;
+	//cout << qvm->pMeasureBinindex("00001100000") << endl;
 
 	// pMeasureDecindex : 获取对应（10进制）量子态概率
 	qvm->run(prog, qv);
-	cout << qvm->pMeasureDecindex("2") << endl;
+	//cout << qvm->pMeasureDecindex("2") << endl;
 
 	// getProbDict 获取对应量子比特所有量子态（如果申请比特数超过30， 该接口不提供使用）
 	qvm->run(prog, qv);
@@ -205,14 +214,15 @@ TEST(QVM, SingleAmplitudeQVM)
 
 	// probRunDict  上面两个接口的封装
 	auto res = qvm->probRunDict(prog, qv);
-	for (auto val : res)
+	/*for (auto val : res)
 	{
 		std::cout << val.first << " : " << val.second << std::endl;
-	}
+	}*/
 
+	ASSERT_EQ(res.size(), 2048);
 	qvm->finalize();
 	delete(qvm);
-	getchar();
+	//getchar();
 }
 
 TEST(QubitAddr, test_0)
@@ -222,10 +232,10 @@ TEST(QubitAddr, test_0)
 	auto cmem = OriginCMem::get_instance();
 
 	//获取容器大小
-	std::cout << "set qubit pool capacity  before: "<< qpool->get_capacity() << std::endl;
+	//std::cout << "set qubit pool capacity  before: "<< qpool->get_capacity() << std::endl;
 	// 设置最大容器
 	qpool->set_capacity(20);
-	std::cout << "set qubit pool capacity  after: " << qpool->get_capacity() << std::endl;
+	//std::cout << "set qubit pool capacity  after: " << qpool->get_capacity() << std::endl;
 
 	// 构建虚拟机
 	auto qvm = new CPUQVM();
@@ -236,7 +246,7 @@ TEST(QubitAddr, test_0)
 	// 获取被申请的量子比特
 	QVec used_qv;
 	auto used_qv_size = qpool->get_allocate_qubits(used_qv);
-	std::cout << "allocate qubits number: " << used_qv_size << std::endl;
+	//std::cout << "allocate qubits number: " << used_qv_size << std::endl;
 
 
 	auto prog = QProg();
@@ -253,7 +263,7 @@ TEST(QubitAddr, test_0)
 		<< SWAP(3, 5)
 		<< CU(1, 3, PI / 2, PI / 3, PI / 4, PI / 5)
 		<< U4(4, 2.1, 2.2, 2.3, 2.4)
-		<< BARRIER({0, 1,2,3,4,5})
+		<< BARRIER({ 0, 1,2,3,4,5 })
 		<< BARRIER(0)
 		;
 
@@ -269,7 +279,7 @@ TEST(QubitAddr, test_0)
 		<< Measure(4, 4)
 		<< Measure(5, 5)
 		;
-	
+
 	// 使用经典比特地址入参 
 	vector<int> cbit_addrs = { 0,1,2,3,4,5 };
 	auto res_2 = qvm->runWithConfiguration(prog, cbit_addrs, 5000);
@@ -283,7 +293,9 @@ TEST(QubitAddr, test_0)
 	qvm_noise->finalize();
 	delete(qvm_noise);
 
-	getchar();
+	ASSERT_EQ(res_2.size(), 48);
+
+	//getchar();
 }
 
 
@@ -882,7 +894,7 @@ void cut_one_qubit_circuit()
 		probs_result[0] += get_expectation_O_000(up_probs[2]) * (get_expectation_P_000(down_probs[4]) - get_expectation_P_000(down_probs[5]));
 		probs_result[0] += get_expectation_O_000(up_probs[3]) * (get_expectation_P_000(down_probs[6]) - get_expectation_P_000(down_probs[7]));
 		probs_result[0] *= 1 / 2.;
-}
+	}
 	else
 	{
 
@@ -1126,97 +1138,6 @@ QStat get_sub_set_result()
 	return a;
 }
 
-void test_real_chip_split()
-{
-	CPUQVM cpu;
-	cpu.init();
-
-	auto q = cpu.qAllocMany(4);
-	auto c = cpu.cAllocMany(4);
-
-	//origin circuit
-	QProg prog;
-	prog << H(q[0])
-		<< H(q[1])
-		<< H(q[2])
-		<< H(q[3])
-
-		<< RX(q[0], PI / 3)
-		<< RX(q[0], PI / 3)
-		<< RY(q[0], PI / 3)
-		<< RZ(q[0], PI / 3)
-
-		<< RX(q[1], PI / 4)
-		<< RX(q[1], PI / 4)
-		<< RY(q[1], PI / 4)
-		<< RZ(q[1], PI / 4)
-
-		<< CR(q[0], q[1], PI / 5)
-
-		<< RX(q[2], PI / 5)
-		<< RX(q[2], PI / 5)
-		<< RY(q[2], PI / 5)
-		<< RZ(q[2], PI / 5)
-
-		<< RX(q[3], PI / 6)
-		<< RX(q[3], PI / 6)
-		<< RY(q[3], PI / 6)
-		<< RZ(q[3], PI / 6)
-		<< MeasureAll(q, c);
-
-	auto a = cpu.runWithConfiguration(prog, c, 1000);
-	for (auto val : a)
-	{
-		std::cout << val.first << " : " << val.second << endl;
-	}
-
-	std::cout << " ============================" << endl;
-
-	//auto ar = real_chip_result_split({}, { 0,1 }, a);
-
-
-	CPUQVM cpu1;
-	cpu1.init();
-
-	auto q1 = cpu1.qAllocMany(2);
-	auto c1 = cpu1.cAllocMany(2);
-
-	//origin circuit
-	QProg prog1;
-	prog1 << H(q1[0])
-		<< H(q1[1])
-
-		<< RX(q1[0], PI / 3)
-		<< RX(q1[0], PI / 3)
-		<< RY(q1[0], PI / 3)
-		<< RZ(q1[0], PI / 3)
-
-		<< RX(q1[1], PI / 4)
-		<< RX(q1[1], PI / 4)
-		<< RY(q1[1], PI / 4)
-		<< RZ(q1[1], PI / 4)
-		<< CR(q1[0], q1[1], PI / 5)
-
-
-		<< MeasureAll(q1, c1);
-
-
-	auto as = cpu1.runWithConfiguration(prog1, c1, 1000);
-	for (auto val : as)
-	{
-		std::cout << val.first << " : " << val.second << endl;
-	}
-
-	/*for (auto val : ar)
-	{
-		std::cout << val.first << " : " << val.second << endl;
-	}*/
-
-
-	getchar();
-
-}
-
 string test_jaon()
 {
 	string a = R"([{"key": ["0", "1"], "value": [0.5488410532814034, 0.45115894671859674]}])";
@@ -1236,13 +1157,13 @@ string test_jaon()
 	rapidjson::Value value_array(rapidjson::kArrayType);
 
 	std::for_each(merge_measure_result.begin(), merge_measure_result.end(), [&](std::pair<std::string, double> val)
-	{
-		rapidjson::Value string_key(rapidjson::kStringType);
-		string_key.SetString(val.first.c_str(), (rapidjson::SizeType)val.first.size(), allocator);
+		{
+			rapidjson::Value string_key(rapidjson::kStringType);
+			string_key.SetString(val.first.c_str(), (rapidjson::SizeType)val.first.size(), allocator);
 
-		key_array.PushBack(string_key, allocator);
-		value_array.PushBack(val.second, allocator);
-	});
+			key_array.PushBack(string_key, allocator);
+			value_array.PushBack(val.second, allocator);
+		});
 
 	result_doc.AddMember("key", key_array, allocator);
 	result_doc.AddMember("value", value_array, allocator);
@@ -1421,9 +1342,10 @@ TEST(QVM, MPSQVM)
 
 	for (auto i = 0; i < a.size(); ++i)
 	{
-		cout << a[i] << " : " << b[i] << endl;
+		cout << a[i] << ": " << b[i] << endl;
+		ASSERT_EQ(b[i], 0.21875);
 	}
-
+	
 	mps.finalize();
-	getchar();
+	//getchar();
 }

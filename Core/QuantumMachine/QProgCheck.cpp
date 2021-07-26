@@ -65,29 +65,19 @@ void QProgCheck::execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std::
                          TraversalConfig &param)
 {
     bool save_dagger = param.m_is_dagger;
-    size_t control_qubit_count = 0;
-
     param.m_is_dagger = cur_node->isDagger() ^ param.m_is_dagger;
-
     QVec control_qubit_vector;
-
     cur_node->getControlVector(control_qubit_vector);
-    for (auto aiter : control_qubit_vector)
-    {
-        param.m_control_qubit_vector.push_back(aiter);
-        control_qubit_count++;
-    }
+    auto size_bak = param.m_control_qubit_vector.size();
+    param.m_control_qubit_vector.insert(param.m_control_qubit_vector.end(),
+                                        control_qubit_vector.begin(), control_qubit_vector.end());
 
     if (param.m_is_dagger)
     {
-        auto aiter = cur_node->getLastNodeIter();
-        if (nullptr == *aiter)
+        auto iter = cur_node->getLastNodeIter();
+        for (; iter != cur_node->getHeadNodeIter() && param.m_can_optimize_measure; --iter)
         {
-            return ;
-        }
-        for (; aiter != cur_node->getHeadNodeIter() && param.m_can_optimize_measure; --aiter)
-        {
-            auto node = *aiter;
+            auto node = *iter;
             if (nullptr == node)
             {
                 QCERR("node is null");
@@ -100,14 +90,10 @@ void QProgCheck::execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std::
     }
     else
     {
-        auto aiter = cur_node->getFirstNodeIter();
-        if (nullptr == *aiter)
+        auto iter = cur_node->getFirstNodeIter();
+        for (; iter != cur_node->getEndNodeIter() && param.m_can_optimize_measure; ++iter)
         {
-            return ;
-        }
-        for (; aiter != cur_node->getEndNodeIter() && param.m_can_optimize_measure; ++aiter)
-        {
-            auto node = *aiter;
+            auto node = *iter;
             if (nullptr == node)
             {
                 QCERR("node is null");
@@ -119,11 +105,8 @@ void QProgCheck::execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std::
     }
 
     param.m_is_dagger = save_dagger;
-
-    for (size_t i = 0; i < control_qubit_count; i++)
-    {
-        param.m_control_qubit_vector.pop_back();
-    }
+    param.m_control_qubit_vector.erase(param.m_control_qubit_vector.begin() + size_bak,
+                                       param.m_control_qubit_vector.end());
 
     return ;
 }

@@ -18,6 +18,7 @@ TEST(OriginCollection,CreateTest)
     test.insertValue("444", 0.89898,0.454543);
     test.insertValue(555, 0.89898,"akjsdhjahd");
 
+
     std::vector<int > cc = { 1, 2, 3, 4 };
     test.insertValue(666, 0.89898, cc );
     
@@ -29,10 +30,10 @@ TEST(OriginCollection,CreateTest)
     test.write();
 
     
-    for(auto & aiter : value)
+   /* for(auto & aiter : value)
     {
         std::cout<<aiter<<std::endl;
-    }
+    }*/
 
     OriginCollection test2("test2");
     test2 = { "key","value" };
@@ -45,6 +46,16 @@ TEST(OriginCollection,CreateTest)
         test2.insertValue( aiter.first, aiter.second);
     }
 
-    std::cout << test2.getJsonString() << std::endl;
+    //excepted_val = R"({"key":["c0","c1","c2"],"value":[true,true,true]})";
+    //std::cout << test2.getJsonString() << std::endl;
+    ASSERT_EQ(value[0],"0.89898");
+    ASSERT_EQ(value[1],"0.89898");
+    ASSERT_EQ(value[2],"0.89898");
+    /*ASSERT_EQ(value[3], NULL);
+    ASSERT_EQ(value[4], "");*/
+    /*ASSERT_EQ(a.find("c1"), TRUE);
+    ASSERT_EQ(a.find("c2"), TRUE);*/
+    //cout << "OriginCollection tests over." << endl;
+
 }
 

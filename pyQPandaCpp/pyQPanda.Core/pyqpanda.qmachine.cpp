@@ -38,14 +38,6 @@ void init_quantum_machine(py::module &m)
         .value("ORIGIN_VIRTUAL_ARCH", ArchType::ORIGIN_VIRTUAL_ARCH)
         .export_values();
 
-    py::enum_<QCodarGridDevice>(m, "QCodarGridDevice")
-        .value("IBM_Q20_TOKYO", QCodarGridDevice::IBM_Q20_TOKYO)
-        .value("IBM_Q53", QCodarGridDevice::IBM_Q53)
-        .value("GOOGLE_Q54", QCodarGridDevice::GOOGLE_Q54)
-        .value("SIMPLE_TYPE", QCodarGridDevice::SIMPLE_TYPE)
-		.value("ORIGIN_VIRTUAL", QCodarGridDevice::ORIGIN_VIRTUAL)
-        .export_values();
-
     py::enum_<NOISE_MODEL>(m, "NoiseModel")
         .value("DAMPING_KRAUS_OPERATOR", NOISE_MODEL::DAMPING_KRAUS_OPERATOR)
         .value("DECOHERENCE_KRAUS_OPERATOR", NOISE_MODEL::DECOHERENCE_KRAUS_OPERATOR)
@@ -269,9 +261,14 @@ void init_quantum_machine(py::module &m)
 
         .def("set_noise_model", [](NoiseQVM& self, const NOISE_MODEL &model, const GateType &type, double prob){
                 self.set_noise_model(model, type, prob);})
+		.def("set_noise_model", [](NoiseQVM& self, const NOISE_MODEL &model, const std::vector<GateType> &types, double prob) {
+					self.set_noise_model(model, types, prob); })
         .def("set_noise_model", [](NoiseQVM& self, const NOISE_MODEL &model, const GateType &type, double prob, const QVec &qubits){
                 self.set_noise_model(model, type, prob, qubits);
              })
+		.def("set_noise_model", [](NoiseQVM& self, const NOISE_MODEL &model, const std::vector<GateType> &types, double prob, const QVec &qubits) {
+				 self.set_noise_model(model, types, prob, qubits);
+			 })
         .def("set_noise_model", [](NoiseQVM& self, const NOISE_MODEL &model, const GateType &type, double prob, const std::vector<QVec> &qubits){
                 self.set_noise_model(model, type, prob, qubits);
              })
@@ -279,10 +276,17 @@ void init_quantum_machine(py::module &m)
         .def("set_noise_model", [](NoiseQVM& self, const NOISE_MODEL &model, const GateType &type, double T1, double T2, double t_gate){
                 self.set_noise_model(model, type, T1, T2, t_gate);
              })
+		.def("set_noise_model", [](NoiseQVM& self, const NOISE_MODEL &model, const std::vector<GateType> &types, double T1, double T2, double t_gate) {
+				 self.set_noise_model(model, types, T1, T2, t_gate);
+			 })
         .def("set_noise_model", [](NoiseQVM& self, const NOISE_MODEL &model, const GateType &type, double T1, double T2, double t_gate,
                                    const QVec &qubits){
                 self.set_noise_model(model, type, T1, T2, t_gate, qubits);
              })
+		.def("set_noise_model", [](NoiseQVM& self, const NOISE_MODEL &model, const std::vector<GateType> &types, double T1, double T2, double t_gate,
+					 const QVec &qubits) {
+				 self.set_noise_model(model, types, T1, T2, t_gate, qubits);
+			 })
         .def("set_noise_model", [](NoiseQVM& self, const NOISE_MODEL &model, const GateType &type, double T1, double T2, double t_gate,
                                    const std::vector<QVec> &qubits){
                 self.set_noise_model(model, type, T1, T2, t_gate, qubits);

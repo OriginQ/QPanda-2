@@ -3,11 +3,13 @@ project(QPANDA)
 
 set(QPANDA_MAJOR_VERSION 2)
 set(QPANDA_MINOR_VERSION 1)
-set(QPANDA_PATCH_VERSION 6)
+set(QPANDA_PATCH_VERSION 7)
 set(QPANDA_VERSION "${QPANDA_MAJOR_VERSION}.${QPANDA_MINOR_VERSION}.${QPANDA_PATCH_VERSION}")
 message(STATUS "QPANDA VERSION = " "[${QPANDA_VERSION}]")
 
-include_directories(${PROJECT_SOURCE_DIR}/include
+include_directories(
+                    ${PROJECT_SOURCE_DIR}/Extensions
+                    ${PROJECT_SOURCE_DIR}/include
                     ${PROJECT_SOURCE_DIR}/include/Applications
                     ${PROJECT_SOURCE_DIR}/include/QAlg
                     ${PROJECT_SOURCE_DIR}/include/QAlg/Components
@@ -38,6 +40,7 @@ include_directories(${PROJECT_SOURCE_DIR}/include
                     ${PROJECT_SOURCE_DIR}/ThirdParty/antlr4/runtime/src
                     ${PROJECT_SOURCE_DIR})
 
+
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${PROJECT_BINARY_DIR}/bin)
@@ -60,6 +63,8 @@ set(LIB_QALG QAlg)
 set(LIB_PYQPANDA pyQPanda)
 set(LIB_PYQPANDA_PAUL pyQPandaPauliOperator)
 set(LIB_PYQPANDA_CHEMIQ pyQPandaChemiQ)
+
+option(USE_EXTENSION "EXTENSION FUNTIONS" OFF)
 
 if(NOT CMAKE_BUILD_TYPE)
    message(STATUS ":  No build type selected, default is Release")
@@ -94,7 +99,7 @@ if (MSVC)
             if (${flag} MATCHES "/MD")
                 string(REGEX REPLACE "/MD" "/MT" ${flag} "${${flag}}")
             endif()
-            
+
             if (${flag} MATCHES "/W3")
                 string(REGEX REPLACE "/W3" "/W0" ${flag} "${${flag}}")
             endif()
@@ -228,6 +233,16 @@ add_custom_target(CopyQPandaConfig ALL DEPENDS ${QPANDA_CONFIG})
 
 install(DIRECTORY include/
     DESTINATION "${INCLUDE_INSTALL_DIR}/qpanda2")
+
+if (USE_EXTENSION)
+    install(DIRECTORY Extensions/
+            DESTINATION "${INCLUDE_INSTALL_DIR}/qpanda2/Extensions"
+            FILES_MATCHING PATTERN "*.h")
+else(USE_EXTENSION)
+    install(FILES Extensions/Extensions.h
+            DESTINATION "${INCLUDE_INSTALL_DIR}/qpanda2/Extensions/")
+endif(USE_EXTENSION)
+
 
 install(EXPORT "${TARGETS_EXPORT_NAME}"
         NAMESPACE "${PROJECT_NAME}::"

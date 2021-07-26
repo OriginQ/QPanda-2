@@ -202,6 +202,10 @@ std::unique_ptr<ArchGraph> JsonBackendParser<ArchGraph>::Parse(const rapidjson::
 					QCERR_AND_THROW(run_fail, "Error: ArchGraph json error.");
 				}
 
+				if ((w < 0) || (1.0 < w )){
+					QCERR_AND_THROW(init_fail, "Error: ArchGraph json config error,Double-gate fidelity configuration error.");
+				}
+
                 // In the Json, the standard is to have the probability of error.
                 // What we want is the probability of succes.
                 graph->setW(qubit_index, v, w);

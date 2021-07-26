@@ -8,6 +8,10 @@
 #include <vector>
 #include <map>
 #include <random>
+
+
+
+
 USING_QPANDA
 using namespace std;
 
@@ -123,7 +127,7 @@ std::map<int, double> RandomizedBenchmarking::single_qubit_rb(Qubit* qbit, const
 			{
 				std::map<string, size_t> res = m_mea_qvm->runWithConfiguration(prog, cbits, shots);
 				if (res.find("0") != res.end())
-					total_probs += (double)res["0"] / shots;
+					total_probs += res["0"] / (double)shots;
 			}
 		}
 		rb_result[num_cfds] = total_probs / (double)num_circuits;
@@ -135,8 +139,7 @@ QCircuit RandomizedBenchmarking::_random_single_q_clifford(Qubit* qbit, int num_
 	const std::vector<QStat>& cfd_matrices, const std::vector<QGate>& interleaved_gates)
 {
 	int clifford_group_size = cfds.size();
-	std::random_device rd;
-	std::mt19937 gen(rd());
+	std::mt19937 gen(std::chrono::system_clock::now().time_since_epoch().count());
 	std::uniform_int_distribution<> u(0, clifford_group_size - 1);
 	std::vector<int> gate_ids(num_cfds);
 	QCircuit gen_cir;
@@ -249,8 +252,7 @@ QCircuit RandomizedBenchmarking::_random_two_q_clifford(Qubit* q_0, Qubit* q_1, 
 	};
 
 	int clifford_group_size = 11520;
-	std::random_device rd;
-	std::mt19937 gen(rd());
+	std::mt19937 gen(std::chrono::system_clock::now().time_since_epoch().count());
 	std::uniform_int_distribution<> u(0, clifford_group_size - 1);
 	std::vector<int> gate_ids(num_cfds);
 

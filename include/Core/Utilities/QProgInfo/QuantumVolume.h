@@ -3,8 +3,8 @@
 
 #include "Core/QuantumMachine/QuantumMachineInterface.h"
 #include "Core/QuantumMachine/OriginQuantumMachine.h"
-#include "Core/QuantumMachine/QCloudMachine.h"
 #include "Core/Utilities/QProgInfo/CrossEntropyBenchmarking.h"
+
 
 QPANDA_BEGIN
 

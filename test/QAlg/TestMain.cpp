@@ -2,12 +2,18 @@
 using namespace std;
 
 
-int main(int argc, char **argv) {
-	::testing::GTEST_FLAG(filter) = "VF2.test1";
-    ::testing::InitGoogleTest(&argc, argv);
-	auto ret = RUN_ALL_TESTS();
+int main(int argc, char** argv)
+{
+#if 0
+	//Run a single test of Alg Part
+	::testing::GTEST_FLAG(filter) = "HHL.*";
+#else
+	//Run All Core Part
+#endif
 
-	cout << "GTest over, press Enter to continue." << endl;
+	::testing::InitGoogleTest(&argc, argv);
+	const auto ret = RUN_ALL_TESTS();
+	cout << "Alg Part GTest over, press Enter to continue." << endl;
 	getchar();
 	return ret;
 }

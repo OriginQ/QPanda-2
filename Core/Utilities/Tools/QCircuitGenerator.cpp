@@ -1,5 +1,6 @@
 #include "Core/Utilities/Tools/QCircuitGenerator.h"
 #include "Core/Utilities/Tools/PraseExpressionStr.h"
+#include "Core/Utilities/QProgInfo/Visualization/QVisualization.h"
 
 USING_QPANDA
 using namespace std;

@@ -327,13 +327,13 @@ protected:
 	}
 
 	void _ptrIsNull(void* ptr, std::string name);
-	virtual ~QVM() {}
+	virtual ~QVM();
 	virtual void init() {}
 	virtual std::map<std::string, size_t> run_with_optimizing(QProg& prog, std::vector<ClassicalCondition>& cbits,
 		int shots, TraversalConfig& traver_param);
 	virtual std::map<std::string, size_t> run_with_normal(QProg& prog, std::vector<ClassicalCondition>& cbits, int shots);
 public:
-	virtual void initState(const QStat& state = {}, const QVec& qlist = {});
+    virtual void initState(const QStat& state = {}, const QVec& qlist = {});
 	virtual Qubit* allocateQubitThroughPhyAddress(size_t qubit_num);
 	virtual Qubit* allocateQubitThroughVirAddress(size_t qubit_num); // allocate and return a qubit
 	virtual QMachineStatus* getStatus() const;
@@ -462,11 +462,16 @@ public:
 	//void set_single_gate_noise_model(const NOISE_MODEL &model, const GateType &type, double prob, const std::vector<size_t> &qubits);
 	//void set_noise_model(const NOISE_MODEL &model, const GateType &type, double prob, const std::vector<std::vector<size_t>> &qubits);
 	void set_noise_model(const NOISE_MODEL& model, const GateType& type, double prob);
+	void set_noise_model(const NOISE_MODEL& model, const std::vector<GateType> &types, double prob);
 	void set_noise_model(const NOISE_MODEL& model, const GateType& type, double prob, const QVec& qubits);
+	void set_noise_model(const NOISE_MODEL& model, const std::vector<GateType> &types, double prob, const QVec& qubits);
 	void set_noise_model(const NOISE_MODEL& model, const GateType& type, double prob, const std::vector<QVec>& qubits);
 
 	void set_noise_model(const NOISE_MODEL& model, const GateType& type, double T1, double T2, double t_gate);
+	void set_noise_model(const NOISE_MODEL& model, const std::vector<GateType> &types, double T1, double T2, double t_gate);
 	void set_noise_model(const NOISE_MODEL& model, const GateType& type, double T1, double T2, double t_gate,
+		const QVec& qubits);
+	void set_noise_model(const NOISE_MODEL& model, const std::vector<GateType> &types, double T1, double T2, double t_gate,
 		const QVec& qubits);
 	void set_noise_model(const NOISE_MODEL& model, const GateType& type, double T1, double T2, double t_gate,
 		const std::vector<QVec>& qubits);

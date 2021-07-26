@@ -19,3 +19,6 @@ CMakeSettings.json
 *.dat
 /mingw-build
 /CMakeLists.txt.user
+Extensions/QAlg/*
+Extensions/QCircuitOptimize/*
+Extensions/QMapping/*

@@ -56,7 +56,7 @@ public:
 	}
 
 	~WriteQCircuitTextFile() { 
-		if (!m_outfile.is_open()) { m_outfile.close(); } 
+		if (m_outfile.is_open()) { m_outfile.close(); } 
 	}
 
 	void write(const string& outputStr) {
@@ -537,6 +537,7 @@ void DrawPicture::append_ctrl_gate(std::string gate_name, const int terget_qubit
 	std::vector<int> all_qubits;
 	all_qubits.push_back(terget_qubit);
 
+	circuit_control_qubits_vec -= self_control_qubits_vec;
 	for (auto& itr : self_control_qubits_vec)
 	{
 		all_qubits.push_back(itr->getPhysicalQubitPtr()->getQubitAddr());

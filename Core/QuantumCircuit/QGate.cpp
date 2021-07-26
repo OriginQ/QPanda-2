@@ -415,10 +415,22 @@ insertQGateMapHelper_##FunctionName _G_insertQGateHelper##FunctionName(BitCount,
 REGISTER_QGATE_PARSE(1, QGateParseSingleBit);
 REGISTER_QGATE_PARSE(2, QGateParseDoubleBit);
 
+/*Singl Gate*/
 QGate QPanda::I(Qubit* qubit)
 {
 	string name = "I";
 	return _gs_pGateNodeFactory->getGateNode(name, { qubit });
+}
+
+QCircuit QPanda::I(const QVec& qubits)
+{
+	string name = "I";
+	QCircuit cir = QCircuit();
+	for (auto &qubit : qubits)
+	{
+		cir << _gs_pGateNodeFactory->getGateNode(name, { qubit });		
+	}
+	return cir;	
 }
 
 QGate QPanda::X(Qubit* qubit)
@@ -427,10 +439,32 @@ QGate QPanda::X(Qubit* qubit)
 	return _gs_pGateNodeFactory->getGateNode(name, { qubit });
 }
 
+QCircuit QPanda::X(const QVec& qubits)
+{
+	string name = "X";
+	QCircuit cir = QCircuit();
+	for (auto &qubit : qubits)
+	{
+		cir << _gs_pGateNodeFactory->getGateNode(name, { qubit });
+	}
+	return cir;
+}
+
 QGate QPanda::X1(Qubit* qubit)
 {
 	string name = "X1";
 	return _gs_pGateNodeFactory->getGateNode(name, { qubit });
+}
+
+QCircuit QPanda::X1(const QVec& qubits)
+{
+	string name = "X1";
+	QCircuit cir = QCircuit();
+	for (auto &qubit : qubits)
+	{
+		cir << _gs_pGateNodeFactory->getGateNode(name, { qubit });
+	}
+	return cir;
 }
 
 QGate QPanda::RX(Qubit* qubit, double angle)
@@ -439,10 +473,33 @@ QGate QPanda::RX(Qubit* qubit, double angle)
 	return _gs_pGateNodeFactory->getGateNode(name, { qubit }, angle);
 }
 
+QCircuit QPanda::RX(const QVec& qubits, double angle)
+{
+	string name = "RX";
+	QCircuit cir = QCircuit();
+	for (auto &qubit : qubits)
+	{
+		cir << _gs_pGateNodeFactory->getGateNode(name, { qubit }, angle);
+	}
+	return cir;
+}
+
 QGate QPanda::U1(Qubit* qubit, double angle)
 {
 	string name = "U1";
 	return _gs_pGateNodeFactory->getGateNode(name, { qubit }, angle);
+}
+
+QCircuit QPanda::U1(const QVec& qubits, double angle)
+{
+	string name = "U1";
+	QCircuit cir = QCircuit();
+	for (auto &qubit : qubits)
+	{
+		cir << _gs_pGateNodeFactory->getGateNode(name, { qubit }, angle);
+	}
+
+	return cir;
 }
 
 QGate QPanda::U2(Qubit* qubit, double phi, double lambda)
@@ -451,10 +508,33 @@ QGate QPanda::U2(Qubit* qubit, double phi, double lambda)
 	return _gs_pGateNodeFactory->getGateNode(name, { qubit }, phi, lambda);
 }
 
+QCircuit QPanda::U2(const QVec& qubits, double phi, double lambda)
+{
+	string name = "U2";
+	QCircuit cir = QCircuit();
+	for (auto &qubit : qubits)
+	{
+		cir << _gs_pGateNodeFactory->getGateNode(name, { qubit }, phi, lambda);
+	}
+
+	return cir;
+}
+
 QGate QPanda::U3(Qubit* qubit, double theta, double phi, double lambda)
 {
 	string name = "U3";
 	return _gs_pGateNodeFactory->getGateNode(name, { qubit }, theta, phi, lambda);
+}
+
+QCircuit QPanda::U3(const QVec& qubits, double theta, double phi, double lambda)
+{
+	string name = "RX";
+	QCircuit cir = QCircuit();
+	for (auto &qubit : qubits)
+	{
+		cir << _gs_pGateNodeFactory->getGateNode(name, { qubit }, theta, phi, lambda);
+	}
+	return cir;
 }
 
 QGate QPanda::U3(Qubit* qubit, QStat& matrix)
@@ -462,10 +542,34 @@ QGate QPanda::U3(Qubit* qubit, QStat& matrix)
 	string name = "U3";
 	return _gs_pGateNodeFactory->getGateNode(name, { qubit }, matrix);
 }
+
+QCircuit QPanda::U3(const QVec& qubits, QStat& matrix)
+{
+	string name = "RX";
+	QCircuit cir = QCircuit();
+	for (auto &qubit : qubits)
+	{
+		cir << _gs_pGateNodeFactory->getGateNode(name, { qubit }, matrix);
+	}
+	return cir;
+}
+
 QGate QPanda::Y(Qubit* qubit)
 {
 	string name = "Y";
 	return _gs_pGateNodeFactory->getGateNode(name, { qubit });
+}
+
+QCircuit QPanda::Y(const QVec& qubits)
+{
+	string name = "Y";
+	QCircuit cir = QCircuit();
+	for (auto &qubit : qubits)
+	{
+		cir << _gs_pGateNodeFactory->getGateNode(name, { qubit });
+	}
+
+	return cir;
 }
 
 QGate QPanda::Y1(Qubit* qubit)
@@ -474,20 +578,70 @@ QGate QPanda::Y1(Qubit* qubit)
 	return _gs_pGateNodeFactory->getGateNode(name, { qubit });
 }
 
+QCircuit QPanda::Y1(const QVec& qubits)
+{
+	string name = "Y1";
+	QCircuit cir = QCircuit();
+	for (auto &qubit : qubits)
+	{
+		cir << _gs_pGateNodeFactory->getGateNode(name, { qubit });
+	}
+
+	return cir;
+}
+
 QGate QPanda::RY(Qubit* qubit, double angle)
 {
 	string name = "RY";
 	return _gs_pGateNodeFactory->getGateNode(name, { qubit }, angle);
 }
+
+QCircuit QPanda::RY(const QVec& qubits, double angle)
+{
+	string name = "RY";
+	QCircuit cir = QCircuit();
+	for (auto &qubit : qubits)
+	{
+		cir << _gs_pGateNodeFactory->getGateNode(name, { qubit },angle);
+	}
+
+	return cir;
+}
+
 QGate QPanda::Z(Qubit* qubit)
 {
 	string name = "Z";
 	return _gs_pGateNodeFactory->getGateNode(name, { qubit });
 }
+
+QCircuit QPanda::Z(const QVec& qubits)
+{
+	string name = "Z";
+	QCircuit cir = QCircuit();
+	for (auto &qubit : qubits)
+	{
+		cir << _gs_pGateNodeFactory->getGateNode(name, { qubit });
+	}
+
+	return cir;
+}
+
 QGate QPanda::Z1(Qubit* qubit)
 {
 	string name = "Z1";
 	return _gs_pGateNodeFactory->getGateNode(name, { qubit });
+}
+
+QCircuit QPanda::Z1(const QVec& qubits)
+{
+	string name = "Z1";
+	QCircuit cir = QCircuit();
+	for (auto &qubit : qubits)
+	{
+		cir << _gs_pGateNodeFactory->getGateNode(name, { qubit });
+	}
+
+	return cir;
 }
 
 QGate QPanda::RZ(Qubit* qubit, double angle)
@@ -496,44 +650,34 @@ QGate QPanda::RZ(Qubit* qubit, double angle)
 	return _gs_pGateNodeFactory->getGateNode(name, { qubit }, angle);
 }
 
+QCircuit QPanda::RZ(const QVec& qubits, double angle)
+{
+	string name = "RZ";
+	QCircuit cir = QCircuit();
+	for (auto &qubit : qubits)
+	{
+		cir << _gs_pGateNodeFactory->getGateNode(name, { qubit }, angle);
+	}
+
+	return cir;
+}
+
 QGate QPanda::RPhi(Qubit* qubit, double angle, double phi)
 {
 	string name = "RPhi";
 	return _gs_pGateNodeFactory->getGateNode(name, { qubit }, angle, phi);
 }
 
-QGate QPanda::iSWAP(Qubit* targitBit_fisrt, Qubit* targitBit_second)
+QCircuit QPanda::RPhi(const QVec& qubits, double angle, double phi)
 {
-	string name = "ISWAP";
-	return _gs_pGateNodeFactory->getGateNode(name, { targitBit_fisrt, targitBit_second });
-}
+	string name = "RPhi";
+	QCircuit cir = QCircuit();
+	for (auto &qubit : qubits)
+	{
+		cir << _gs_pGateNodeFactory->getGateNode(name, { qubit },angle, phi);
+	}
 
-QGate QPanda::iSWAP(Qubit* targitBit_fisrt, Qubit* targitBit_second, double theta)
-{
-	string name = "ISWAPTheta";
-	return _gs_pGateNodeFactory->getGateNode(name,
-		{ targitBit_fisrt,targitBit_second },
-		theta);
-}
-
-QGate QPanda::CR(Qubit* control_qubit, Qubit* targit_qubit, double theta)
-{
-	string name = "CPHASE";
-	return _gs_pGateNodeFactory->getGateNode(name, { control_qubit, targit_qubit }, theta);
-}
-
-QGate QPanda::SqiSWAP(Qubit* targitBit_fisrt, Qubit* targitBit_second)
-{
-	string name = "SQISWAP";
-	return _gs_pGateNodeFactory->getGateNode(name,
-		{ targitBit_fisrt,targitBit_second });
-}
-
-QGate QPanda::SWAP(Qubit* targitBit_fisrt, Qubit* targitBit_second)
-{
-	string name = "SWAP";
-	return _gs_pGateNodeFactory->getGateNode(name,
-		{ targitBit_fisrt,targitBit_second });
+	return cir;
 }
 
 QGate QPanda::S(Qubit* qubit)
@@ -542,10 +686,34 @@ QGate QPanda::S(Qubit* qubit)
 	return _gs_pGateNodeFactory->getGateNode(name, { qubit });
 }
 
+QCircuit QPanda::S(const QVec& qubits)
+{
+	string name = "S";
+	QCircuit cir = QCircuit();
+	for (auto &qubit : qubits)
+	{
+		cir << _gs_pGateNodeFactory->getGateNode(name, { qubit });
+	}
+
+	return cir;
+}
+
 QGate QPanda::T(Qubit* qubit)
 {
 	string name = "T";
 	return _gs_pGateNodeFactory->getGateNode(name, { qubit });
+}
+
+QCircuit QPanda::T(const QVec& qubits)
+{
+	string name = "T";
+	QCircuit cir = QCircuit();
+	for (auto &qubit : qubits)
+	{
+		cir << _gs_pGateNodeFactory->getGateNode(name, { qubit });
+	}
+
+	return cir;
 }
 
 QGate  QPanda::H(Qubit* qubit)
@@ -554,10 +722,34 @@ QGate  QPanda::H(Qubit* qubit)
 	return _gs_pGateNodeFactory->getGateNode(name, { qubit });
 }
 
+QCircuit QPanda::H(const QVec& qubits)
+{
+	string name = "H";
+	QCircuit cir = QCircuit();
+	for (auto &qubit : qubits)
+	{
+		cir << _gs_pGateNodeFactory->getGateNode(name, { qubit });
+	}
+
+	return cir;
+}
+
 QGate  QPanda::ECHO(Qubit* qubit)
 {
 	string name = "ECHO";
 	return _gs_pGateNodeFactory->getGateNode(name, { qubit });
+}
+
+QCircuit QPanda::ECHO(const QVec& qubits)
+{
+	string name = "ECHO";
+	QCircuit cir = QCircuit();
+	for (auto &qubit : qubits)
+	{
+		cir << _gs_pGateNodeFactory->getGateNode(name, { qubit });
+	}
+
+	return cir;
 }
 
 QGate  QPanda::BARRIER(Qubit* qubit)
@@ -584,16 +776,587 @@ QGate  QPanda::BARRIER(QVec qubits)
 	return gate;
 }
 
+/** Construct QGate by Qubit physics addr */
+QGate QPanda::I(int qaddr)
+{
+	return I(get_qubit_by_phyaddr(qaddr));
+}
+
+QCircuit QPanda::I(const std::vector<int>& qaddrs)
+{
+	QCircuit cir = QCircuit();
+	for (auto &qaddr : qaddrs)
+	{
+		cir << I(get_qubit_by_phyaddr(qaddr));
+	}
+
+	return cir;
+}
+
+QGate QPanda::X(int qaddr)
+{
+	return X(get_qubit_by_phyaddr(qaddr));
+}
+
+QCircuit QPanda::X(const std::vector<int>& qaddrs)
+{
+	QCircuit cir = QCircuit();
+	for (auto &qaddr : qaddrs)
+	{
+		cir << X(get_qubit_by_phyaddr(qaddr));
+	}
+
+	return cir;
+}
+
+QGate QPanda::X1(int qaddr)
+{
+	return X1(get_qubit_by_phyaddr(qaddr));
+}
+
+QCircuit QPanda::X1(const std::vector<int>& qaddrs)
+{
+	QCircuit cir = QCircuit();
+	for (auto &qaddr : qaddrs)
+	{
+		cir << X1(get_qubit_by_phyaddr(qaddr));
+	}
+
+	return cir;
+}
+
+QGate QPanda::RX(int  qaddr, double angle)
+{
+	return RX(get_qubit_by_phyaddr(qaddr), angle);
+}
+
+QCircuit QPanda::RX(const std::vector<int>& qaddrs, double angle)
+{
+	QCircuit cir = QCircuit();
+	for (auto &qaddr : qaddrs)
+	{
+		cir << RX(get_qubit_by_phyaddr(qaddr), angle);
+	}
+
+	return cir;
+}
+
+QGate QPanda::U1(int  qaddr, double angle)
+{
+	return U1(get_qubit_by_phyaddr(qaddr), angle);
+}
+
+QCircuit QPanda::U1(const std::vector<int>& qaddrs, double angle)
+{
+	QCircuit cir = QCircuit();
+	for (auto &qaddr : qaddrs)
+	{
+		cir << U1(get_qubit_by_phyaddr(qaddr), angle);
+	}
+
+	return cir;
+}
+
+QGate QPanda::U2(int  qaddr, double phi, double lambda)
+{
+	return U2(get_qubit_by_phyaddr(qaddr), phi, lambda);
+}
+
+QCircuit QPanda::U2(const std::vector<int>& qaddrs, double angle, double lambda)
+{
+	QCircuit cir = QCircuit();
+	for (auto &qaddr : qaddrs)
+	{
+		cir << U2(get_qubit_by_phyaddr(qaddr), angle, lambda);
+	}
+
+	return cir;
+}
+
+QGate QPanda::U3(int  qaddr, double theta, double phi, double lambda)
+{
+	return U3(get_qubit_by_phyaddr(qaddr), theta, phi, lambda);
+}
+
+QCircuit QPanda::U3(const std::vector<int>& qaddrs, double theta, double phi, double lambda)
+{
+	QCircuit cir = QCircuit();
+	for (auto &qaddr : qaddrs)
+	{
+		cir << U3(get_qubit_by_phyaddr(qaddr), theta, phi, lambda);
+	}
+
+	return cir;
+}
+
+QGate QPanda::Y(int  qaddr)
+{
+	return Y(get_qubit_by_phyaddr(qaddr));
+}
+
+QCircuit QPanda::Y(const std::vector<int>& qaddrs)
+{
+	QCircuit cir = QCircuit();
+	for (auto &qaddr : qaddrs)
+	{
+		cir << Y(get_qubit_by_phyaddr(qaddr));
+	}
+
+	return cir;
+}
+
+QGate QPanda::Y1(int  qaddr)
+{
+	return Y1(get_qubit_by_phyaddr(qaddr));
+}
+
+QCircuit QPanda::Y1(const std::vector<int>& qaddrs)
+{
+	QCircuit cir = QCircuit();
+	for (auto &qaddr : qaddrs)
+	{
+		cir << Y1(get_qubit_by_phyaddr(qaddr));
+	}
+
+	return cir;
+}
+
+QGate QPanda::RY(int  qaddr, double angle)
+{
+	return RY(get_qubit_by_phyaddr(qaddr), angle);
+}
+
+QCircuit QPanda::RY(const std::vector<int>& qaddrs, double angle)
+{
+	QCircuit cir = QCircuit();
+	for (auto &qaddr : qaddrs)
+	{
+		cir << RY(get_qubit_by_phyaddr(qaddr), angle);
+	}
+
+	return cir;
+}
+
+QGate QPanda::Z(int  qaddr)
+{
+	return Z(get_qubit_by_phyaddr(qaddr));
+}
+
+QCircuit QPanda::Z(const std::vector<int>& qaddrs)
+{
+	QCircuit cir = QCircuit();
+	for (auto &qaddr : qaddrs)
+	{
+		cir << Z(get_qubit_by_phyaddr(qaddr));
+	}
+
+	return cir;
+}
+
+QGate QPanda::Z1(int  qaddr)
+{
+	return Z1(get_qubit_by_phyaddr(qaddr));
+}
+
+QCircuit QPanda::Z1(const std::vector<int>& qaddrs)
+{
+	QCircuit cir = QCircuit();
+	for (auto &qaddr : qaddrs)
+	{
+		cir << Z1(get_qubit_by_phyaddr(qaddr));
+	}
+
+	return cir;
+}
+
+QGate QPanda::RZ(int  qaddr, double angle)
+{
+	return RZ(get_qubit_by_phyaddr(qaddr), angle);
+}
+
+QCircuit QPanda::RZ(const std::vector<int>& qaddrs, double angle)
+{
+	QCircuit cir = QCircuit();
+	for (auto &qaddr : qaddrs)
+	{
+		cir << RZ(get_qubit_by_phyaddr(qaddr), angle);
+	}
+
+	return cir;
+}
+
+QGate QPanda::RPhi(int  qaddr, double angle, double phi)
+{
+	return RPhi(get_qubit_by_phyaddr(qaddr), angle, phi);
+}
+
+QCircuit QPanda::RPhi(const std::vector<int>& qaddrs, double angle, double phi)
+{
+	QCircuit cir = QCircuit();
+	for (auto &qaddr : qaddrs)
+	{
+		cir << RPhi(get_qubit_by_phyaddr(qaddr), angle, phi);
+	}
+
+	return cir;
+}
+
+QGate QPanda::S(int  qaddr)
+{
+	return S(get_qubit_by_phyaddr(qaddr));
+}
+
+QCircuit QPanda::S(const std::vector<int>& qaddrs)
+{
+	QCircuit cir = QCircuit();
+	for (auto &qaddr : qaddrs)
+	{
+		cir << S(get_qubit_by_phyaddr(qaddr));
+	}
+
+	return cir;
+}
+
+QGate QPanda::T(int  qaddr)
+{
+	return T(get_qubit_by_phyaddr(qaddr));
+}
+
+QCircuit QPanda::T(const std::vector<int>& qaddrs)
+{
+	QCircuit cir = QCircuit();
+	for (auto &qaddr : qaddrs)
+	{
+		cir << T(get_qubit_by_phyaddr(qaddr));
+	}
+
+	return cir;
+}
+
+QGate QPanda::H(int  qaddr)
+{
+	return H(get_qubit_by_phyaddr(qaddr));
+}
+
+QCircuit QPanda::H(const std::vector<int>& qaddrs)
+{
+	QCircuit cir = QCircuit();
+	for (auto &qaddr : qaddrs)
+	{
+		cir << H(get_qubit_by_phyaddr(qaddr));
+	}
+
+	return cir;
+}
+
+QGate QPanda::ECHO(int  qaddr)
+{
+	return ECHO(get_qubit_by_phyaddr(qaddr));
+}
+
+QCircuit QPanda::ECHO(const std::vector<int>& qaddrs)
+{
+	QCircuit cir = QCircuit();
+	for (auto &qaddr : qaddrs)
+	{
+		cir << ECHO(get_qubit_by_phyaddr(qaddr));
+	}
+
+	return cir;
+}
+
+QGate QPanda::BARRIER(int  qaddr)
+{
+	return BARRIER(get_qubit_by_phyaddr(qaddr));
+}
+
+QGate QPanda::BARRIER(std::vector<int> qaddrs)
+{
+	return BARRIER(get_qubits_by_phyaddrs(qaddrs));
+}
+
+/*Double Gate*/
+QGate QPanda::iSWAP(Qubit* targitBit_fisrt, Qubit* targitBit_second)
+{
+	string name = "ISWAP";
+	return _gs_pGateNodeFactory->getGateNode(name, { targitBit_fisrt, targitBit_second });
+}
+
+QCircuit QPanda::iSWAP(const QVec& targitBits_first, const  QVec& targitBits_second)
+{
+	if (targitBits_first.size() == 0 || targitBits_second.size() == 0)
+	{
+		QCERR("qubit_vector err");
+		throw invalid_argument("qubit_vector err");
+	}
+
+	string name = "ISWAP";
+	auto cir = QCircuit();
+	if (targitBits_first.size() == targitBits_second.size())
+	{
+		for (int i = 0; i < targitBits_first.size(); ++i)
+		{
+			if (targitBits_first[i] != targitBits_second[i])
+			{
+				cir << _gs_pGateNodeFactory->getGateNode(name, { targitBits_first[i], targitBits_second[i] });
+			}
+			else
+			{
+				QCERR("double_gate qubit err");
+				throw invalid_argument("double_gate qubit");
+			}
+		}
+	}
+	else
+	{
+		QCERR("qubit_vector size err");
+		throw invalid_argument("qubit_vector size");
+	}
+
+	return cir;
+}
+
+QGate QPanda::iSWAP(Qubit* targitBit_fisrt, Qubit* targitBit_second, double theta)
+{
+	string name = "ISWAPTheta";
+	return _gs_pGateNodeFactory->getGateNode(name,
+		{ targitBit_fisrt,targitBit_second },
+		theta);
+}
+
+QCircuit QPanda::iSWAP(const QVec& targitBits_first, const QVec& targitBits_second, double theta)
+{
+	if (targitBits_first.size() == 0 || targitBits_second.size() == 0)
+	{
+		QCERR("qubit_vector err");
+		throw invalid_argument("qubit_vector err");
+	}
+
+	string name = "ISWAPTheta";
+	auto cir = QCircuit();
+	if (targitBits_first.size() == targitBits_second.size())
+	{
+		for (int i = 0; i < targitBits_first.size(); ++i)
+		{
+			if (targitBits_first[i] != targitBits_second[i])
+			{
+				cir << _gs_pGateNodeFactory->getGateNode(name, { targitBits_first[i], targitBits_second[i] },theta);
+			}
+			else
+			{
+				QCERR("double_gate qubit err");
+				throw invalid_argument("double_gate qubit");
+			}
+		}
+	}
+	else
+	{
+		QCERR("qubit_vector size err");
+		throw invalid_argument("qubit_vector size");
+	}
+
+	return cir;
+}
+
+QGate QPanda::CR(Qubit* control_qubit, Qubit* targit_qubit, double theta)
+{
+	string name = "CPHASE";
+	return _gs_pGateNodeFactory->getGateNode(name, { control_qubit, targit_qubit }, theta);
+}
+
+QCircuit QPanda::CR(const QVec& targitBits_first, const QVec& targitBits_second, double theta)
+{
+	if (targitBits_first.size() == 0 || targitBits_second.size() == 0)
+	{
+		QCERR("qubit_vector err");
+		throw invalid_argument("qubit_vector err");
+	}
+
+	string name = "CPHASE";
+	auto cir = QCircuit();
+	if (targitBits_first.size() == targitBits_second.size())
+	{
+		for (int i = 0; i < targitBits_first.size(); ++i)
+		{
+			if (targitBits_first[i] != targitBits_second[i])
+			{
+				cir << _gs_pGateNodeFactory->getGateNode(name, { targitBits_first[i], targitBits_second[i] }, theta);
+			}
+			else
+			{
+				QCERR("double_gate qubit err");
+				throw invalid_argument("double_gate qubit");
+			}
+		}
+	}
+	else
+	{
+		QCERR("qubit_vector size err");
+		throw invalid_argument("qubit_vector size");
+	}
+
+	return cir;
+}
+
+QGate QPanda::SqiSWAP(Qubit* targitBit_fisrt, Qubit* targitBit_second)
+{
+	string name = "SQISWAP";
+	return _gs_pGateNodeFactory->getGateNode(name,
+		{ targitBit_fisrt,targitBit_second });
+}
+
+QCircuit QPanda::SqiSWAP(const QVec& targitBits_first, const QVec& targitBits_second)
+{
+	if (targitBits_first.size() == 0 || targitBits_second.size() == 0)
+	{
+		QCERR("qubit_vector err");
+		throw invalid_argument("qubit_vector err");
+	}
+
+	string name = "SQISWAP";
+	auto cir = QCircuit();
+	if (targitBits_first.size() == targitBits_second.size())
+	{
+		for (int i = 0; i < targitBits_first.size(); ++i)
+		{
+			if (targitBits_first[i] != targitBits_second[i])
+			{
+				cir << _gs_pGateNodeFactory->getGateNode(name, { targitBits_first[i], targitBits_second[i] });
+			}
+			else
+			{
+				QCERR("double_gate qubit err");
+				throw invalid_argument("double_gate qubit");
+			}
+		}
+	}
+	else
+	{
+		QCERR("qubit_vector size err");
+		throw invalid_argument("qubit_vector size");
+	}
+
+	return cir;
+}
+
+QGate QPanda::SWAP(Qubit* targitBit_fisrt, Qubit* targitBit_second)
+{
+	string name = "SWAP";
+	return _gs_pGateNodeFactory->getGateNode(name,
+		{ targitBit_fisrt,targitBit_second });
+}
+
+QCircuit QPanda::SWAP(const QVec& targitBits_first, const QVec& targitBits_second)
+{
+	if (targitBits_first.size() == 0 || targitBits_second.size() == 0)
+	{
+		QCERR("qubit_vector err");
+		throw invalid_argument("qubit_vector err");
+	}
+
+	string name = "SWAP";
+	auto cir = QCircuit();
+	if (targitBits_first.size() == targitBits_second.size())
+	{
+		for (int i = 0; i < targitBits_first.size(); ++i)
+		{
+			if (targitBits_first[i] != targitBits_second[i])
+			{
+				cir << _gs_pGateNodeFactory->getGateNode(name, { targitBits_first[i], targitBits_second[i] });
+			}
+			else
+			{
+				QCERR("double_gate qubit err");
+				throw invalid_argument("double_gate qubit");
+			}
+		}
+	}
+	else
+	{
+		QCERR("qubit_vector size err");
+		throw invalid_argument("qubit_vector size");
+	}
+
+	return cir;
+}
+
 QGate  QPanda::CNOT(Qubit* control_qubit, Qubit* target_qubit)
 {
 	string name = "CNOT";
 	return _gs_pGateNodeFactory->getGateNode(name, { control_qubit, target_qubit });
 }
 
+QCircuit  QPanda::CNOT(const QVec &control_qubits, const QVec &target_qubits)
+{
+	if (control_qubits.size() == 0 || target_qubits.size() == 0)
+	{
+		QCERR("qubit_vector err");
+		throw invalid_argument("qubit_vector err");
+	}
+	string name = "CNOT";
+	auto cir = QCircuit();
+	if (control_qubits.size() == target_qubits.size()) 
+	{
+		for (int i = 0; i < control_qubits.size(); ++i) 
+		{
+			if(control_qubits[i]!=target_qubits[i])
+			{
+               cir << _gs_pGateNodeFactory->getGateNode(name, { control_qubits[i], target_qubits[i] });
+			}
+			else
+			{
+				QCERR("double_gate qubit err");
+				throw invalid_argument("double_gate qubit");
+			}
+		}		
+	}
+	else
+	{
+		QCERR("qubit_vector size err");
+		throw invalid_argument("qubit_vector size");
+	}
+
+	return cir;
+}
+
 QGate QPanda::CZ(Qubit* control_qubit, Qubit* target_qubit)
 {
 	string name = "CZ";
 	return _gs_pGateNodeFactory->getGateNode(name, { control_qubit, target_qubit });
+}
+
+QCircuit QPanda::CZ(const QVec& control_qubits, const QVec &target_qubits)
+{
+	if (control_qubits.size() == 0 || target_qubits.size() == 0)
+	{
+		QCERR("qubit_vector err");
+		throw invalid_argument("qubit_vector err");
+	}
+
+	string name = "CZ";
+	QCircuit cir = QCircuit();
+	if (control_qubits.size() == target_qubits.size())
+	{
+		for (int i = 0; i < control_qubits.size(); ++i)
+		{
+			if (control_qubits[i] != target_qubits[i])
+			{
+				cir << _gs_pGateNodeFactory->getGateNode(name, { control_qubits[i], target_qubits[i] });
+			}
+			else
+			{
+				QCERR("double_gate qubit err");
+				throw invalid_argument("double_gate qubit");
+			}
+		}
+	}
+	else
+	{
+		QCERR("qubit_vector size err");
+		throw invalid_argument("qubit_vector size");
+	}
+
+	return cir;
 }
 
 QGate QPanda::U4(double alpha, double beta, double gamma, double delta, Qubit* qubit)
@@ -608,6 +1371,45 @@ QGate QPanda::U4(QStat& matrix, Qubit* qubit)
 	return _gs_pGateNodeFactory->getGateNode(name, { qubit }, matrix);
 }
 
+/* new interface */
+QGate QPanda::U4(Qubit* qubit, QStat& matrix)
+{
+	string name = "U4";
+	return _gs_pGateNodeFactory->getGateNode(name, { qubit }, matrix);
+}
+
+QCircuit QPanda::U4(const QVec &qubits, QStat& martix)
+{
+	string name = "U4";
+	QCircuit cir = QCircuit();
+	for (auto &qubit : qubits)
+	{
+		cir << _gs_pGateNodeFactory->getGateNode(name, { qubit });
+	}
+
+	return cir;
+}
+
+QGate QPanda::U4(Qubit* qubit, double alpha, double beta, double gamma, double delta)
+{
+	string name = "U4";
+	return _gs_pGateNodeFactory->getGateNode(name, { qubit }, alpha, beta, gamma, delta);
+}
+
+QCircuit QPanda::U4(const QVec& qubits, double alpha, double beta, double gamma, double delta)
+{
+	string name = "U4";
+	QCircuit cir = QCircuit();
+	for (auto &qubit : qubits)
+	{
+		cir << _gs_pGateNodeFactory->getGateNode(name, { qubit });
+	}
+
+	return cir;
+}
+
+/** Construct QGate by Qubit physics addr */
+
 QGate QPanda::CU(double alpha,
 	double beta,
 	double gamma,
@@ -619,10 +1421,82 @@ QGate QPanda::CU(double alpha,
 	return _gs_pGateNodeFactory->getGateNode(name, { control_qubit, target_qubit }, alpha, beta, gamma, delta);
 }
 
+QCircuit QPanda::CU(double alpha, 
+	double beta, 
+	double gamma, 
+	double delta, 
+	const QVec& control_qubits,
+	const QVec& target_qubits)
+{
+	if (control_qubits.size() == 0 || target_qubits.size() == 0)
+	{
+		QCERR("qubit_vector err");
+		throw invalid_argument("qubit_vector err");
+	}
+
+	string name = "CU";
+	QCircuit cir = QCircuit();
+	if (control_qubits.size() == target_qubits.size())
+	{
+		for (int i = 0; i < control_qubits.size(); ++i)
+		{
+			if (control_qubits[i] != target_qubits[i])
+			{
+				cir << _gs_pGateNodeFactory->getGateNode(name, { control_qubits[i], target_qubits[i] }, alpha, beta, gamma, delta);
+			}
+			else
+			{
+				QCERR("double_gate qubit err");
+				throw invalid_argument("double_gate qubit");
+			}
+		}
+	}
+	else
+	{
+		QCERR("qubit_vector size err");
+		throw invalid_argument("qubit_vector size");
+	}
+
+	return cir;
+}
+
 QGate QPanda::CU(QStat& matrix, Qubit* control_qubit, Qubit* target_qubit)
 {
 	string name = "CU";
 	return _gs_pGateNodeFactory->getGateNode(name, { control_qubit, target_qubit }, matrix);
+}
+
+QCircuit QPanda::CU(QStat& matrix, const QVec& control_qubits, const QVec& target_qubits)
+{
+	if (control_qubits.size() == 0 || target_qubits.size() == 0)
+	{
+		QCERR("qubit_vector err");
+		throw invalid_argument("qubit_vector err");
+	}
+	string name = "CU";
+	QCircuit cir = QCircuit();
+	if (control_qubits.size() == target_qubits.size())
+	{
+		for (int i = 0; i < control_qubits.size(); ++i)
+		{
+			if (control_qubits[i] != target_qubits[i])
+			{
+				cir << _gs_pGateNodeFactory->getGateNode(name, { control_qubits[i], target_qubits[i] }, matrix);
+			}
+			else
+			{
+				QCERR("double_gate qubit err");
+				throw invalid_argument("double_gate qubit");
+			}
+		}
+	}
+	else
+	{
+		QCERR("qubit_vector size err");
+		throw invalid_argument("qubit_vector size");
+	}
+
+	return cir;
 }
 
 QGate QPanda::QDouble(QStat& matrix, Qubit* qubit1, Qubit* qubit2)
@@ -644,24 +1518,44 @@ QGate QPanda::oracle(QVec qubits, std::string oracle_name)
 	return _gs_pGateNodeFactory->getGateNode(name, qubits, oracle_name);
 }
 
-
-/* new interface */
-QGate QPanda::U4(Qubit* qubit, QStat& matrix)
-{
-	string name = "U4";
-	return _gs_pGateNodeFactory->getGateNode(name, { qubit }, matrix);
-}
-
-QGate QPanda::U4(Qubit* qubit, double alpha, double beta, double gamma, double delta)
-{
-	string name = "U4";
-	return _gs_pGateNodeFactory->getGateNode(name, { qubit }, alpha, beta, gamma, delta);
-}
-
 QGate QPanda::QDouble(Qubit* qubit1, Qubit* qubit2, QStat& matrix)
 {
 	string name = "QDoubleGate";
 	return _gs_pGateNodeFactory->getGateNode(name, { qubit1, qubit2 }, matrix);
+}
+
+QCircuit QPanda::QDouble(const QVec& qubit1, const QVec& qubit2, QStat& matrix)
+{
+	if (qubit1.size() == 0 || qubit2.size() == 0)
+	{
+		QCERR("qubit_vector err");
+		throw invalid_argument("qubit_vector err");
+	}
+
+	string name = "QDoubleGate";
+	QCircuit cir = QCircuit();
+	if (qubit1.size() == qubit2.size())
+	{
+		for (int i = 0; i < qubit1.size(); ++i)
+		{
+			if (qubit1[i] != qubit2[i])
+			{
+				cir << _gs_pGateNodeFactory->getGateNode(name, { qubit1[i] }, qubit2[i], matrix);
+			}
+			else
+			{
+				QCERR("double_gate qubit err");
+				throw invalid_argument("double_gate qubit");
+			}
+		}
+	}
+	else
+	{
+		QCERR("qubit_vector size err");
+		throw invalid_argument("qubit_vector size");
+	}
+
+	return cir;
 }
 
 QGate QPanda::CU(Qubit* control_qubit,
@@ -673,113 +1567,81 @@ QGate QPanda::CU(Qubit* control_qubit,
 	return _gs_pGateNodeFactory->getGateNode(name, { control_qubit, target_qubit }, alpha, beta, gamma, delta);
 }
 
+QCircuit QPanda::CU(const QVec& control_qubits,
+	const QVec& target_qubits, 
+	double alpha, double beta, 
+	double gamma, double delta)
+{
+	if (control_qubits.size() == 0 || target_qubits.size() == 0)
+	{
+		QCERR("qubit_vector err");
+		throw invalid_argument("qubit_vector err");
+	}
+
+	string name = "CU";
+	QCircuit cir = QCircuit();
+	if (control_qubits.size() == target_qubits.size())
+	{
+		for (int i = 0; i < control_qubits.size(); i++)
+		{
+			if (control_qubits[i] != target_qubits[i])
+			{
+				cir << _gs_pGateNodeFactory->getGateNode(name, { control_qubits[i], target_qubits[i] }, alpha, beta, gamma, delta);
+			}
+			else
+			{
+				QCERR("double_gate qubit err");
+				throw invalid_argument("double_gate qubit");
+			}
+		}
+	}
+	else
+	{
+		QCERR("qubit_vector size err");
+		throw invalid_argument("qubit_vector size");
+	}
+
+	return cir;
+}
+
 QGate QPanda::CU(Qubit* control_qubit, Qubit* target_qubit, QStat& matrix)
 {
 	string name = "CU";
 	return _gs_pGateNodeFactory->getGateNode(name, { control_qubit, target_qubit }, matrix);
 }
 
-
-/** Construct QGate by Qubit physics addr */
-
-QGate QPanda::I(int qaddr)
+QCircuit QPanda::CU(const QVec& control_qubits, const QVec& target_qubits, QStat& matrix)
 {
-	return I(get_qubit_by_phyaddr(qaddr));
-}
+	if (control_qubits.size() == 0 || target_qubits.size() == 0)
+	{
+		QCERR("qubit_vector err");
+		throw invalid_argument("qubit_vector err");
+	}
 
-QGate QPanda::X(int qaddr)
-{
-	return X(get_qubit_by_phyaddr(qaddr));
-}
+	string name = "CU";
+	QCircuit cir = QCircuit();
+	if (control_qubits.size() == target_qubits.size())
+	{
+		for (int i = 0; i < control_qubits.size(); i++)
+		{
+			if (control_qubits[i] != target_qubits[i])
+			{
+				cir << _gs_pGateNodeFactory->getGateNode(name, { control_qubits[i], target_qubits[i] }, matrix);
+			}
+			else
+			{
+				QCERR("double_gate qubit err");
+				throw invalid_argument("double_gate qubit");
+			}
+		}
+	}
+	else
+	{
+		QCERR("qubit_vector size err");
+		throw invalid_argument("qubit_vector size");
+	}
 
-QGate QPanda::X1(int qaddr)
-{
-	return X1(get_qubit_by_phyaddr(qaddr));
-}
-
-QGate QPanda::RX(int  qaddr, double angle)
-{
-	return RX(get_qubit_by_phyaddr(qaddr), angle);
-}
-
-QGate QPanda::U1(int  qaddr, double angle)
-{
-	return U1(get_qubit_by_phyaddr(qaddr), angle);
-}
-
-QGate QPanda::U2(int  qaddr, double phi, double lambda)
-{
-	return U2(get_qubit_by_phyaddr(qaddr), phi, lambda);
-}
-
-QGate QPanda::U3(int  qaddr, double theta, double phi, double lambda)
-{
-	return U3(get_qubit_by_phyaddr(qaddr), theta, phi, lambda);
-}
-
-QGate QPanda::Y(int  qaddr)
-{
-	return Y(get_qubit_by_phyaddr(qaddr));
-}
-
-QGate QPanda::Y1(int  qaddr)
-{
-	return Y1(get_qubit_by_phyaddr(qaddr));
-}
-
-QGate QPanda::RY(int  qaddr, double angle)
-{
-	return RY(get_qubit_by_phyaddr(qaddr), angle);
-}
-
-QGate QPanda::Z(int  qaddr)
-{
-	return Z(get_qubit_by_phyaddr(qaddr));
-}
-
-QGate QPanda::Z1(int  qaddr)
-{
-	return Z1(get_qubit_by_phyaddr(qaddr));
-}
-
-QGate QPanda::RZ(int  qaddr, double angle)
-{
-	return RZ(get_qubit_by_phyaddr(qaddr), angle);
-}
-
-QGate QPanda::RPhi(int  qaddr, double angle, double phi)
-{
-	return RPhi(get_qubit_by_phyaddr(qaddr), angle, phi);
-}
-
-QGate QPanda::S(int  qaddr)
-{
-	return S(get_qubit_by_phyaddr(qaddr));
-}
-
-QGate QPanda::T(int  qaddr)
-{
-	return T(get_qubit_by_phyaddr(qaddr));
-}
-
-QGate QPanda::H(int  qaddr)
-{
-	return H(get_qubit_by_phyaddr(qaddr));
-}
-
-QGate QPanda::ECHO(int  qaddr)
-{
-	return ECHO(get_qubit_by_phyaddr(qaddr));
-}
-
-QGate QPanda::BARRIER(int  qaddr)
-{
-	return BARRIER(get_qubit_by_phyaddr(qaddr));
-}
-
-QGate QPanda::BARRIER(std::vector<int> qaddrs)
-{
-	return BARRIER(get_qubits_by_phyaddrs(qaddrs));
+	return cir;
 }
 
 QGate QPanda::CNOT(int control_qaddr, int target_qaddr)
@@ -787,9 +1649,75 @@ QGate QPanda::CNOT(int control_qaddr, int target_qaddr)
 	return CNOT(get_qubit_by_phyaddr(control_qaddr), get_qubit_by_phyaddr(target_qaddr));
 }
 
+QCircuit QPanda::CNOT(const std::vector<int>& control_qaddrs, const std::vector<int>& target_qaddrs)
+{
+	if (control_qaddrs.size() == 0 || target_qaddrs.size() == 0)
+	{
+		QCERR("qubit_vector err");
+		throw invalid_argument("qubit_vector err");
+	}
+
+	QCircuit cir = QCircuit();
+	if (control_qaddrs.size() == target_qaddrs.size())
+	{
+		for (int i = 0; i < control_qaddrs.size(); ++i)
+		{
+			if (control_qaddrs[i] != target_qaddrs[i])
+			{
+				cir << CNOT(get_qubit_by_phyaddr(control_qaddrs[i]), get_qubit_by_phyaddr(target_qaddrs[i]));
+			}
+			else
+			{
+				QCERR("double_gate qubit err");
+				throw invalid_argument("double_gate qubit");
+			}
+		}
+	}
+	else
+	{
+		QCERR("qubit_vector size err");
+		throw invalid_argument("qubit_vector size");
+	}
+
+	return cir;
+}
+
 QGate QPanda::CZ(int control_qaddr, int target_qaddr)
 {
 	return CZ(get_qubit_by_phyaddr(control_qaddr), get_qubit_by_phyaddr(target_qaddr));
+}
+
+QCircuit QPanda::CZ(const std::vector<int>& control_qaddrs, const std::vector<int>& target_qaddrs)
+{
+	if (control_qaddrs.size() == 0 || target_qaddrs.size() == 0)
+	{
+		QCERR("qubit_vector err");
+		throw invalid_argument("qubit_vector err");
+	}
+
+	QCircuit cir = QCircuit();
+	if (control_qaddrs.size() == target_qaddrs.size())
+	{
+		for (int i = 0; i < control_qaddrs.size(); ++i)
+		{
+			if (control_qaddrs[i] != target_qaddrs[i])
+			{
+				cir << CZ(get_qubit_by_phyaddr(control_qaddrs[i]), get_qubit_by_phyaddr(target_qaddrs[i]));
+			}
+			else
+			{
+				QCERR("double_gate qubit err");
+				throw invalid_argument("double_gate qubit");
+			}
+		}
+	}
+	else
+	{
+		QCERR("qubit_vector size err");
+		throw invalid_argument("qubit_vector size");
+	}
+
+	return cir;
 }
 
 QGate QPanda::iSWAP(int control_qaddr, int target_qaddr)
@@ -797,9 +1725,75 @@ QGate QPanda::iSWAP(int control_qaddr, int target_qaddr)
 	return iSWAP(get_qubit_by_phyaddr(control_qaddr), get_qubit_by_phyaddr(target_qaddr));
 }
 
+QCircuit QPanda::iSWAP(const std::vector<int>& control_qaddrs, const std::vector<int>& target_qaddrs)
+{
+	if (control_qaddrs.size() == 0 || target_qaddrs.size() == 0)
+	{
+		QCERR("qubit_vector err");
+		throw invalid_argument("qubit_vector err");
+	}
+
+	QCircuit cir = QCircuit();
+	if (control_qaddrs.size() == target_qaddrs.size())
+	{
+		for (int i = 0; i < control_qaddrs.size(); ++i)
+		{
+			if (control_qaddrs[i] != target_qaddrs[i])
+			{
+				cir << iSWAP(get_qubit_by_phyaddr(control_qaddrs[i]), get_qubit_by_phyaddr(target_qaddrs[i]));
+			}
+			else
+			{
+				QCERR("double_gate qubit err");
+				throw invalid_argument("double_gate qubit");
+			}
+		}
+	}
+	else
+	{
+		QCERR("qubit_vector size err");
+		throw invalid_argument("qubit_vector size");
+	}
+
+	return cir;
+}
+
 QGate QPanda::iSWAP(int control_qaddr, int target_qaddr, double theta)
 {
 	return iSWAP(get_qubit_by_phyaddr(control_qaddr), get_qubit_by_phyaddr(target_qaddr), theta);
+}
+
+QCircuit QPanda::iSWAP(const std::vector<int>& control_qaddrs, const std::vector<int>& target_qaddrs, double theta)
+{
+	if (control_qaddrs.size() == 0 || target_qaddrs.size() == 0)
+	{
+		QCERR("qubit_vector err");
+		throw invalid_argument("qubit_vector err");
+	}
+
+	QCircuit cir = QCircuit();
+	if (control_qaddrs.size() == target_qaddrs.size())
+	{
+		for (int i = 0; i < control_qaddrs.size(); ++i)
+		{
+			if (control_qaddrs[i] != target_qaddrs[i])
+			{
+				cir << iSWAP(get_qubit_by_phyaddr(control_qaddrs[i]), get_qubit_by_phyaddr(target_qaddrs[i]), theta);
+			}
+			else
+			{
+				QCERR("double_gate qubit err");
+				throw invalid_argument("double_gate qubit");
+			}
+		}
+	}
+	else
+	{
+		QCERR("qubit_vector size err");
+		throw invalid_argument("qubit_vector size");
+	}
+
+	return cir;
 }
 
 QGate QPanda::CR(int control_qaddr, int target_qaddr, double theta)
@@ -807,9 +1801,75 @@ QGate QPanda::CR(int control_qaddr, int target_qaddr, double theta)
 	return CR(get_qubit_by_phyaddr(control_qaddr), get_qubit_by_phyaddr(target_qaddr), theta);
 }
 
+QCircuit QPanda::CR(const std::vector<int>& control_qaddrs, const std::vector<int>& target_qaddrs, double theta)
+{
+	if (control_qaddrs.size() == 0 || target_qaddrs.size() == 0)
+	{
+		QCERR("qubit_vector err");
+		throw invalid_argument("qubit_vector err");
+	}
+
+	QCircuit cir = QCircuit();
+	if (control_qaddrs.size() == target_qaddrs.size())
+	{
+		for (int i = 0; i < control_qaddrs.size(); ++i)
+		{
+			if (control_qaddrs[i] != target_qaddrs[i])
+			{
+				cir << CR(get_qubit_by_phyaddr(control_qaddrs[i]), get_qubit_by_phyaddr(target_qaddrs[i]), theta);
+			}
+			else
+			{
+				QCERR("double_gate qubit err");
+				throw invalid_argument("double_gate qubit");
+			}
+		}
+	}
+	else
+	{
+		QCERR("qubit_vector size err");
+		throw invalid_argument("qubit_vector size");
+	}
+
+	return cir;
+}
+
 QGate QPanda::SqiSWAP(int control_qaddr, int target_qaddr)
 {
 	return SqiSWAP(get_qubit_by_phyaddr(control_qaddr), get_qubit_by_phyaddr(target_qaddr));
+}
+
+QCircuit QPanda::SqiSWAP(const std::vector<int>& control_qaddrs, const std::vector<int>&  target_qaddrs)
+{
+	if (control_qaddrs.size() == 0 || target_qaddrs.size() == 0)
+	{
+		QCERR("qubit_vector err");
+		throw invalid_argument("qubit_vector err");
+	}
+
+	QCircuit cir = QCircuit();
+	if (control_qaddrs.size() == target_qaddrs.size())
+	{
+		for (int i = 0; i < control_qaddrs.size(); ++i)
+		{
+			if (control_qaddrs[i] != target_qaddrs[i])
+			{
+				cir << SqiSWAP(get_qubit_by_phyaddr(control_qaddrs[i]), get_qubit_by_phyaddr(target_qaddrs[i]));
+			}
+			else
+			{
+				QCERR("double_gate qubit err");
+				throw invalid_argument("double_gate qubit");
+			}
+		}
+	}
+	else
+	{
+		QCERR("qubit_vector size err");
+		throw invalid_argument("qubit_vector size");
+	}
+
+	return cir;
 }
 
 QGate QPanda::SWAP(int control_qaddr, int target_qaddr)
@@ -817,9 +1877,53 @@ QGate QPanda::SWAP(int control_qaddr, int target_qaddr)
 	return SWAP(get_qubit_by_phyaddr(control_qaddr), get_qubit_by_phyaddr(target_qaddr));
 }
 
+QCircuit QPanda::SWAP(const std::vector<int>& control_qaddrs, const std::vector<int>& target_qaddrs)
+{
+	if (control_qaddrs.size() == 0 || target_qaddrs.size() == 0)
+	{
+		QCERR("qubit_vector err");
+		throw invalid_argument("qubit_vector err");
+	}
+
+	QCircuit cir = QCircuit();
+	if (control_qaddrs.size() == target_qaddrs.size())
+	{
+		for (int i = 0; i < control_qaddrs.size(); ++i)
+		{
+			if (control_qaddrs[i] != target_qaddrs[i])
+			{
+				cir << SWAP(get_qubit_by_phyaddr(control_qaddrs[i]), get_qubit_by_phyaddr(target_qaddrs[i]));
+			}
+			else
+			{
+				QCERR("double_gate qubit err");
+				throw invalid_argument("double_gate qubit");
+			}
+		}
+	}
+	else
+	{
+		QCERR("qubit_vector size err");
+		throw invalid_argument("qubit_vector size");
+	}
+
+	return cir;
+}
+
 QGate QPanda::U4(int qaddr, double alpha, double beta, double gamma, double delta)
 {
 	return U4(get_qubit_by_phyaddr(qaddr), alpha, beta, gamma, delta);
+}
+
+QCircuit QPanda::U4(const std::vector<int>& qaddrs, double alpha, double beta, double gamma, double delta)
+{
+	QCircuit cir = QCircuit();
+	for (auto &qaddr : qaddrs)
+	{
+		cir << U4(get_qubit_by_phyaddr(qaddr), alpha, beta, gamma, delta);
+	}
+	
+	return cir;
 }
 
 QGate QPanda::U4(int qaddr, QStat& matrix)
@@ -827,9 +1931,53 @@ QGate QPanda::U4(int qaddr, QStat& matrix)
 	return U4(get_qubit_by_phyaddr(qaddr), matrix);
 }
 
+QCircuit QPanda::U4(const std::vector<int>& qaddrs, QStat& martix)
+{
+	QCircuit cir = QCircuit();
+	for (auto &qaddr : qaddrs)
+	{
+		cir << U4(get_qubit_by_phyaddr(qaddr), martix);
+	}
+
+	return cir;
+}
+
 QGate QPanda::QDouble(int control_qaddr, int target_qaddr, QStat& matrix)
 {
 	return QDouble(get_qubit_by_phyaddr(control_qaddr), get_qubit_by_phyaddr(target_qaddr), matrix);
+}
+
+QCircuit QPanda::QDouble(const std::vector<int>& control_qaddrs, const std::vector<int>& target_qaddrs, QStat& matrix)
+{
+	if (control_qaddrs.size() == 0 || target_qaddrs.size() == 0)
+	{
+		QCERR("qubit_vector err");
+		throw invalid_argument("qubit_vector err");
+	}
+
+	QCircuit cir = QCircuit();
+	if (control_qaddrs.size() == target_qaddrs.size())
+	{
+		for (int i = 0; i < control_qaddrs.size(); ++i)
+		{
+			if (control_qaddrs[i] != target_qaddrs[i])
+			{
+				cir << QDouble(get_qubit_by_phyaddr(control_qaddrs[i]), get_qubit_by_phyaddr(target_qaddrs[i]), matrix);
+			}
+			else
+			{
+				QCERR("double_gate qubit err");
+				throw invalid_argument("double_gate qubit");
+			}
+		}
+	}
+	else
+	{
+		QCERR("qubit_vector size err");
+		throw invalid_argument("qubit_vector size");
+	}
+
+	return cir;
 }
 
 QGate QPanda::CU(int control_qaddr, int target_qaddr, double alpha, double beta, double gamma, double delta)
@@ -837,11 +1985,75 @@ QGate QPanda::CU(int control_qaddr, int target_qaddr, double alpha, double beta,
 	return CU(get_qubit_by_phyaddr(control_qaddr), get_qubit_by_phyaddr(target_qaddr), alpha, beta, gamma, delta);
 }
 
+QCircuit QPanda::CU(const std::vector<int>& control_qaddrs, const std::vector<int>& target_qaddrs, double alpha, double beta, double gamma, double delta)
+{
+	if (control_qaddrs.size() == 0 || target_qaddrs.size() == 0)
+	{
+		QCERR("qubit_vector err");
+		throw invalid_argument("qubit_vector err");
+	}
+
+	QCircuit cir = QCircuit();
+	if (control_qaddrs.size() == target_qaddrs.size())
+	{
+		for (int i = 0; i < control_qaddrs.size(); ++i)
+		{
+			if (control_qaddrs[i] != target_qaddrs[i])
+			{
+				cir << CU(get_qubit_by_phyaddr(control_qaddrs[i]), get_qubit_by_phyaddr(target_qaddrs[i]), alpha, beta, gamma, delta);
+			}
+			else
+			{
+				QCERR("double_gate qubit err");
+				throw invalid_argument("double_gate qubit");
+			}
+		}
+	}
+	else
+	{
+		QCERR("qubit_vector size err");
+		throw invalid_argument("qubit_vector size");
+	}
+
+	return cir;
+}
+
 QGate QPanda::CU(int control_qaddr, int target_qaddr, QStat& matrix)
 {
 	return CU(get_qubit_by_phyaddr(control_qaddr), get_qubit_by_phyaddr(target_qaddr), matrix);
 }
 
+QCircuit QPanda::CU(const std::vector<int>& control_qaddrs, const std::vector<int>& target_qaddrs, QStat& matrix)
+{
+	if (control_qaddrs.size() == 0 || target_qaddrs.size() == 0)
+	{
+		QCERR("qubit_vector err");
+		throw invalid_argument("qubit_vector err");
+	}
+	QCircuit cir = QCircuit();
+	if (control_qaddrs.size() == target_qaddrs.size())
+	{
+		for (int i = 0; i < control_qaddrs.size(); ++i)
+		{
+			if (control_qaddrs[i] != target_qaddrs[i])
+			{
+				cir << CU(get_qubit_by_phyaddr(control_qaddrs[i]), get_qubit_by_phyaddr(target_qaddrs[i]), matrix);
+			}
+			else
+			{
+				QCERR("double_gate qubit err");
+				throw invalid_argument("double_gate qubit");
+			}
+		}
+	}
+	else
+	{
+		QCERR("qubit_vector size err");
+		throw invalid_argument("qubit_vector size");
+	}
+
+	return cir;
+}
 
 QGate QPanda::Toffoli(int qaddr0, int qaddr1, int target_qaddr)
 {

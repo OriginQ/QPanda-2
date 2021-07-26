@@ -26,8 +26,9 @@ TEST(Variational, VarOperatorTest)
 
     VarFermionOperator fermion_op("1+ 0", a);
     VarPauliOperator pauli_op("Z1 Z0", b);
-    std::cout << fermion_op << std::endl;
-    std::cout << pauli_op << std::endl;
+    //std::cout << fermion_op << std::endl;
+    //std::cout << pauli_op << std::endl;
+	EXPECT_EQ(true, true);
 }
 
 VQC parity_check_circuit(std::vector<Qubit*> qubit_vec)
@@ -100,6 +101,10 @@ VQC simulatePauliZHamiltonian(
     return circuit;
 }
 
+#ifdef QAOA
+
+
+
 TEST(Variational, QAOATest)
 {
     PauliOperator::PauliMap pauli_map{
@@ -143,7 +148,7 @@ TEST(Variational, QAOATest)
     for (auto i = 0u; i < iterations; i++)
     {
         optimizer->run(leaves);
-        std::cout << "iter: " << i << " loss : " << optimizer->get_loss() << std::endl;
+        //std::cout << "iter: " << i << " loss : " << optimizer->get_loss() << std::endl;
     }
 
     QProg prog;
@@ -153,13 +158,17 @@ TEST(Variational, QAOATest)
     directlyRun(prog);
     auto result = quickMeasure(qlist, 100);
 
-    for (auto i:result)
+    /*for (auto i:result)
     {
         std::cout << i.first << " : " << i.second << std::endl;
-    }
+    }*/
 
 	destroyQuantumMachine(machine);
 }
+
+
+#endif // QAOA
+
 
 TEST(Variational, VQPTest)
 {
@@ -489,14 +498,14 @@ TEST(Variational, VanillaGradientDescentTest) {
 
 		auto leaves = optimizer->get_variables();
 
-		std::cout << "loss:" << "\t" << optimizer->get_loss() << std::endl;
+		//std::cout << "loss:" << "\t" << optimizer->get_loss() << std::endl;
 		size_t iter = 1000;
 		for (size_t i = 0; i < iter; i++)
 		{
 			optimizer->run(leaves);
-			std::cout << "i: " << i << "\t" << optimizer->get_loss()
+			/*std::cout << "i: " << i << "\t" << optimizer->get_loss()
 				<< "\t W:" << QPanda::Variational::eval(W, true) << "\t b:" << QPanda::Variational::eval(b, true)
-				<< std::endl;
+				<< std::endl;*/
 		}
 		EXPECT_EQ(true, true);
 //#endif

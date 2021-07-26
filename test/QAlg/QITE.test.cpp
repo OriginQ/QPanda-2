@@ -6,6 +6,8 @@
 USING_QPANDA
 using namespace std;
 
+#ifdef QITE
+
 int test4GraphOfQITE()
 {
     std::vector<std::vector<double>> node7graph{
@@ -276,16 +278,17 @@ void testQiteInterface()
 
     auto result = qite(hamiltonina, ansatz_vec, iter_num, "", update_mode, upthrow_num, delta_tau);
 
-    for (auto& i : result)
+    /*for (auto& i : result)
     {
         if (i.second > 1e-3)
         {
             std::cout << i.first << "\t" << i.second << std::endl;
         }
-    }
+    }*/
 }
+#endif // QITE
 
-void testToyDemo()
+bool testToyDemo()
 {
     QITE qite;
     qite.setHamiltonian(transVecToPauliOperator(std::vector<int>{1, 2, 3, 0}));
@@ -299,13 +302,20 @@ void testToyDemo()
     qite.setIterNum(1);
     qite.setUpthrowNum(1);
     qite.exec();
-    qite.getResult();
+    //qite.getResult();
+    //a = qite.getResult();
+    if (qite.getResult().begin()->second < 0.9)
+        return false;
+    else 
+        return true;
 }
 
 TEST(QITE, test1)
 {
+    bool test_val = false;
     //EXPECT_EQ(test4GraphOfQITE(), 0);
     //testAccurateResult();
-    testToyDemo();
+    test_val = testToyDemo();
+
     //testQiteInterface();
 }

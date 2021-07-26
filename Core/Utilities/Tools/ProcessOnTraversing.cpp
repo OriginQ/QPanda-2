@@ -821,26 +821,29 @@ protected:
 						continue;
 					}
 
-					if (n->m_control_qubits.size() > 0)
+					if (BARRIER_GATE == n->m_gate_type)
 					{
-						if (BARRIER_GATE == n->m_gate_type)
-						{
-							candidate_special_gate.push_back(std::make_pair(n, n->m_control_qubits + n->m_target_qubits));
-							break;
-						}
+						candidate_special_gate.push_back(std::make_pair(n, n->m_control_qubits + n->m_target_qubits));
+						break;
+					}
 
+					// get gate operate qubits
+					QVec _used_qubit = n->m_control_qubits + n->m_target_qubits;
+
+					if (_used_qubit.size() > 2)
+					{
 						QCERR_AND_THROW(run_fail, "Error: It is not allowed to have multiple control gates during QPressedLayer.");
 					}
 
-					if (n->m_target_qubits.size() == 1)
+					if (_used_qubit.size() == 1)
 					{
 						qubit_relation_pre_nodes.at(item.first).emplace_back(n);
 						continue;
 					}
-					else if (n->m_target_qubits.size() == 2)
+					else if (_used_qubit.size() == 2)
 					{
-						auto q_1 = n->m_target_qubits.front()->get_phy_addr();
-						auto q_2 = n->m_target_qubits.back()->get_phy_addr();
+						auto q_1 = _used_qubit.front()->get_phy_addr();
+						auto q_2 = _used_qubit.back()->get_phy_addr();
 						if (q_1 > q_2) 
 						{ 
 							auto _q = q_2;

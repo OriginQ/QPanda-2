@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 3.1)
-project(QPanda2.0)
 
 if(CUDA_FOUND)
     set(LIB_GPUGATES GPUQGates)
@@ -7,7 +6,13 @@ if(CUDA_FOUND)
     list(APPEND LIB_LIST ${LIB_GPUGATES})
 endif (CUDA_FOUND)
 
-file(GLOB_RECURSE QPandaCore_SRCS_CPP ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp )
+if (USE_EXTENSION)
+    file(GLOB_RECURSE QPandaCore_SRCS_CPP ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp ${PROJECT_SOURCE_DIR}/Extensions/*.cpp)
+else()
+    file(GLOB_RECURSE QPandaCore_SRCS_CPP ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp )
+endif()
+
+
 add_library(${LIB_QPANDA} STATIC ${QPandaCore_SRCS_CPP} )
 list(APPEND LIB_LIST ${LIB_ANTLR4})
 target_link_libraries(${LIB_QPANDA} ${LIB_LIST})

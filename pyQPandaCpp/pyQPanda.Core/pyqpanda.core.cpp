@@ -29,6 +29,10 @@ void init_variational(py::module &);
 void init_qalg(py::module &);
 void init_components(py::module&);
 void init_core_class(py::module &);
+void init_QAlg_class(py::module &);
+void init_extension_class(py::module & m);
+void init_extension_funtion(py::module & m);
+
 
 PYBIND11_MODULE(pyQPanda, m)
 {
@@ -37,6 +41,9 @@ PYBIND11_MODULE(pyQPanda, m)
     init_variational(m);
     init_qalg(m);
     init_components(m);
+	init_QAlg_class(m);
+    init_extension_class(m);
+    init_extension_funtion(m);
 
     m.doc() = "";
 
@@ -108,8 +115,27 @@ PYBIND11_MODULE(pyQPanda, m)
 
     m.def("cFree_all", &cFreeAll, "Free several CBit");
 
-    m.def("apply_QGate", &apply_QGate,
+    m.def("apply_QGate",  [](const QVec &qlist, const std::function<QGate(Qubit*)> &fun)->QCircuit{
+        QCircuit cir;
+        for (auto &q : qlist)
+        {
+            cir << fun(q);
+        }
+        return cir;
+    },
         "Apply QGate to qubits",
+        py::return_value_policy::reference
+    );
+
+    m.def("apply_QGate", [](const std::vector<int> &qlist_addr, const std::function<QGate(int)> &fun)->QCircuit {
+        QCircuit cir;
+        for (auto &q : qlist_addr)
+        {
+            cir << fun(q);
+        }
+        return cir;
+    },
+        "Apply QGate to qlist_addr",
         py::return_value_policy::reference
     );
 
@@ -1060,65 +1086,6 @@ PYBIND11_MODULE(pyQPanda, m)
         py::return_value_policy::automatic_reference
         );
 
-    m.def("qcodar_match", [](QProg prog, QVec qv, QuantumMachine *qvm, QCodarGridDevice arch_type,
-        size_t m, size_t n, size_t run_times, const std::string config_data) {
-        py::list ret_data;
-
-        QProg out_prog;
-        switch (arch_type)
-        {
-        case IBM_Q20_TOKYO:
-        case IBM_Q53:
-        case GOOGLE_Q54:
-            out_prog = qcodar_match_by_target_meachine(prog, qv, qvm, arch_type, run_times);
-            break;
-
-        case SIMPLE_TYPE:
-            out_prog = qcodar_match_by_simple_type(prog, qv, qvm, m, n, run_times);
-            break;
-
-        case ORIGIN_VIRTUAL:
-            out_prog = qcodar_match_by_config(prog, qv, qvm, config_data, run_times);
-            break;
-
-        default:
-            QCERR_AND_THROW_ERRSTR(runtime_error, "Error: QCodarGridDevice error on qcodar match.");
-            break;
-        }
-
-        py::list qubit_list;
-
-        for (auto q : qv)
-            qubit_list.append(q);
-
-        ret_data.append(out_prog);
-        ret_data.append(qubit_list);
-        return ret_data;
-    },
-        "prog"_a, "qubits"_a, "quantum machine"_a, "QCodarGridDevice"_a = SIMPLE_TYPE, "m"_a = 2, "n"_a = 4, "run_times"_a = 5, "config_data"_a = CONFIG_PATH,
-        "/**\
-		* @brief   A Contextual Duration - Aware Qubit Mapping for V arious NISQ Devices\
-		* @ingroup Utilities\
-		* @param[in]  QProg  quantum program\
-		* @param[in, out]  QVec  qubit  vector\
-		* @param[in]  QuantumMachine*  quantum machine\
-        * @param[in]  QCodarGridDevice Device type, currently supported models include: \
-		              IBM_Q20_TOKYO: IBM real phisical quantum chip\
-	                  IBM_Q53: IBM real phisical quantum chip\
-				      GOOGLE_Q54£ºGoogle real phisical quantum chip\
-				      SIMPLE_TYPE£ºSimulator quantum chip\
-					  ORIGIN_VIRTUAL£ºby config\
-		* @param[in]  size_t   m : the length of the topology\
-		* @param[in]  size_t   n : the  width of the topology\
-		* @param[in]  size_t   run_times : the number of times  run the remapping, better parameters get better results\
-		* @return    QProg   mapped  quantum program\
-		* @note	 QCodarGridDevice : SIMPLE_TYPE  It's a simple undirected  topology graph, build a topology based on the values of m(rows) and n(cloumns)\
-		* / ",
-        py::return_value_policy::automatic_reference
-        );
-
-
-
     /* will delete */
     m.def("PMeasure", &PMeasure,
         "Get the probability distribution over qubits",
@@ -1326,21 +1293,6 @@ PYBIND11_MODULE(pyQPanda, m)
         return fill_qprog_by_I(prg);
     }, py::arg("prog"),
         "Fill the input QProg by I gate, get a new quantum program",
-        py::return_value_policy::automatic
-        );
-
-    m.def("matrix_decompose", [](QVec& qubits, QStat& src_mat, const DecompositionMode mode = DecompositionMode::QR) {
-        return matrix_decompose(qubits, src_mat, mode);
-    }, "qubits"_a, "matrix"_a, "mode"_a = DecompositionMode::QR,
-        "/**\
-		* @brief  matrix decomposition\
-		* @ingroup Utilities\
-		* @param[in]  QVec& the used qubits\
-		* @param[in]  QStat& The target matrix\
-		* @param[in]  DecompositionMode decomposition mode, default is QR\
-		* @return    QCircuit The quantum circuit for target matrix\
-		* @see DecompositionMode\
-		* / ",
         py::return_value_policy::automatic
         );
 
@@ -1723,31 +1675,6 @@ PYBIND11_MODULE(pyQPanda, m)
 		"ntrials"_a,
 		"shots"_a,
 		"calculate quantum volume",
-		py::return_value_policy::automatic
-		);
-
-	m.def("OBMT_mapping", [](QPanda::QProg prog, QPanda::QuantumMachine *quantum_machine,
-		bool optimization = false,
-		uint32_t max_partial = (std::numeric_limits<uint32_t>::max)(),
-		uint32_t max_children = (std::numeric_limits<uint32_t>::max)(),
-		const std::string& config_data = CONFIG_PATH) {
-		QVec qv;
-		auto ret_prog = OBMT_mapping(prog, quantum_machine, qv, optimization, max_partial, max_children, config_data);
-		return ret_prog;
-	}, "prog"_a, "quantum_machine"_a, "b_optimization"_a=false, 
-		"max_partial"_a= (std::numeric_limits<uint32_t>::max)(),
-		"max_children"_a = (std::numeric_limits<uint32_t>::max)(),
-		"config_data"_a = CONFIG_PATH,
-		"/**\
-		* @brief OPT_BMT mapping\
-		* @ingroup Utilities\
-		* @param[in] prog  the target prog\
-		* @param[in] QuantumMachine *  quantum machine\
-		* @param[in] uint32_t  Limits the max number of partial solutions per step, There is no limit by default\
-		* @param[in] uint32_t  Limits the max number of candidate - solutions per double gate, There is no limit by default\
-		* @param[in] const std::string config data, @See JsonConfigParam::load_config()\
-		* @return QProg   mapped  quantum program\
-		* / ",
 		py::return_value_policy::automatic
 		);
 

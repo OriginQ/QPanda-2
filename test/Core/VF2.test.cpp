@@ -14,10 +14,260 @@
 #include "Core/Utilities/QProgTransform/QProgToDAG/GraphMatch.h"
 #include "Core/Utilities/Tools/JsonConfigParam.h"
 #include "Core/Utilities/Tools/QCircuitGenerator.h"
-#include "Core/Utilities/QProgTransform/QCircuitRewrite.h"
+
+
+#include "Extensions/Extensions.h"
+#ifdef USE_EXTENSION
 
 using namespace std;
 USING_QPANDA
+
+
+const std::string json = R"(
+{
+  "pattern": {
+    "test": [
+      {
+        "qubits": 1,
+        "src": {
+          "cost": 2,
+          "circuit": {
+            "CNOT": [ 0, 1 ],
+            "CNOT": [ 0, 1 ]
+          }
+        },
+        "dst": {
+          "cost": 0,
+          "circuit": {
+
+          }
+        }
+      },
+      {
+        "qubits": 3,
+        "src": {
+          "cost": 6,
+          "circuit": {
+            "CNOT": [ 0, 1 ],
+            "CNOT": [ 1, 2 ],
+            "CNOT": [ 0, 1 ],
+            "CNOT": [ 1, 2 ]
+          }
+        },
+        "dst": {
+          "cost": 2,
+          "circuit": {
+            "CNOT": [ 0, 2 ]
+          }
+        },
+        "location": "default"
+      },
+      {
+        "qubits": 2,
+        "src": {
+          "cost": 4,
+          "circuit": {
+            "X": [ 1 ],
+            "CNOT": [ 0, 1 ],
+            "X": [ 1 ]
+          }
+        },
+        "dst": {
+          "cost": 2,
+          "circuit": {
+            "CNOT": [ 0, 1 ]
+          }
+        },
+        "location": "default"
+      },
+      {
+        "qubits": 2,
+        "src": {
+          "cost": 6,
+          "circuit": {
+            "CNOT": [ 0, 2 ],
+            "CNOT": [ 0, 1 ],
+            "CNOT": [ 0, 2 ]
+          }
+        },
+        "dst": {
+          "cost": 2,
+          "circuit": {
+            "CNOT": [ 0, 1 ]
+          }
+        },
+        "location": "default"
+      }
+    ],
+    "nopara": [
+      {
+        "qubits": 3,
+        "src": {
+          "cost": 6,
+          "circuit": {
+            "CNOT": [ 0, 1 ],
+            "CNOT": [ 1, 2 ],
+            "CNOT": [ 0, 1 ]
+          }
+        },
+        "dst": {
+          "cost": 2,
+          "circuit": {
+            "CNOT": [ 0, 2 ]
+          }
+        },
+        "location": "default"
+      },
+      {
+        "qubits": 2,
+        "src": {
+          "cost": 4,
+          "circuit": {
+            "X": [ 1 ],
+            "CNOT": [ 0, 1 ],
+            "X": [ 1 ]
+          }
+        },
+        "dst": {
+          "cost": 2,
+          "circuit": {
+            "CNOT": [ 0, 1 ]
+          }
+        },
+        "location": "default"
+      },
+      {
+        "qubits": 2,
+        "src": {
+          "cost": 10,
+          "circuit": {
+            "RZ": [ 1, "theta_1" ],
+            "CNOT": [ 0, 1 ],
+            "RZ": [ 1, "theta_2" ],
+            "CNOT": [ 0, 1 ],
+            "RZ": [ 0, "PI/4" ],
+            "RZ": [ 1, "theta_3" ],
+            "CNOT": [ 1, 0 ]
+          }
+        },
+        "dst": {
+          "cost": 9,
+          "circuit": {
+            "CNOT": [ 0, 1 ],
+            "RZ": [ 1, "theta_2" ],
+            "CNOT": [ 0, 1 ],
+            "RZ": [ 0, "PI/4" ],
+            "RZ": [ 1, "theta_1+theta_3" ],
+            "CNOT": [ 1, 0 ]
+          }
+        },
+        "location": "default"
+      },
+      {
+        "qubits": 1,
+        "src": {
+          "cost": 2,
+          "circuit": {
+            "RZ": [ 0, "theta_1" ],
+            "RZ": [ 0, "theta_2" ]
+          }
+        },
+        "dst": {
+          "cost": 1,
+          "circuit": {
+            "RZ": [ 0, "theta_1+theta_2" ]
+          }
+        }
+      },
+      {
+        "qubits": 1,
+        "src": {
+          "cost": 2,
+          "circuit": {
+            "CNOT": [ 0, 1 ],
+            "CNOT": [ 0, 1 ]
+          }
+        },
+        "dst": {
+          "cost": 0,
+          "circuit": {
+
+          }
+        }
+      },
+      {
+        "qubits": 3,
+        "src": {
+          "cost": 6,
+          "circuit": {
+            "CNOT": [ 0, 1 ],
+            "CNOT": [ 1, 2 ],
+            "CNOT": [ 0, 1 ],
+            "CNOT": [ 1, 2 ]
+          }
+        },
+        "dst": {
+          "cost": 2,
+          "circuit": {
+            "CNOT": [ 0, 2 ]
+          }
+        },
+        "location": "default"
+      }
+    ]
+  }
+}
+)";
+
+const std::string qasm_string = R"(OPENQASM 2.0;
+include "qelib1.inc";
+qreg q[20];
+cx q[10], q[11];
+cx q[10], q[11];
+cx q[10], q[11];
+cx q[12], q[11];
+cx q[15], q[12];
+cx q[10], q[12];
+cx q[10], q[12];
+cx q[5], q[12];
+cx q[18], q[5];
+cx q[7], q[18];
+cx q[16], q[18];
+cx q[13], q[16];
+cx q[17], q[13];
+cx q[13], q[16];
+cx q[13], q[16];
+cx q[7], q[16];
+cx q[7], q[16];
+cx q[16], q[14];
+cx q[0], q[16];
+cx q[0], q[16];
+cx q[7], q[0];
+cx q[7], q[18];
+cx q[7], q[18];
+cx q[7], q[16];
+cx q[7], q[18];
+cx q[7], q[0];
+cx q[7], q[0];
+cx q[7], q[16];
+cx q[7], q[18];
+cx q[7], q[18];
+cx q[16], q[18];
+cx q[18], q[1];
+cx q[18], q[4];
+cx q[3], q[4];
+cx q[16], q[3];
+cx q[16], q[18];
+cx q[18], q[4];
+cx q[18], q[1];
+cx q[7], q[18];
+cx q[7], q[16];
+cx q[7], q[18];
+cx q[7], q[18];
+cx q[18], q[1];
+cx q[18], q[4];
+cx q[1], q[4];)";
+
 
 #if 1
 
@@ -33,7 +283,7 @@ void vertices_output(std::shared_ptr<QProgDAG> dag) {
 		std::cout << std::endl;
 		std::cout << "The Parameter for angle(s) are ";
 		for (auto& _angle : vertice.m_node->m_angles) {
-			std::cout << _angle << " ";
+			//std::cout << _angle << " ";
 		}
 		std::cout << std::endl;
 	}
@@ -67,11 +317,13 @@ static bool test_vf2_1()
 	circuit << CNOT(q[0], q[1]) << CNOT(q[0],q[1]) << H(q[0]);
 	prog << circuit << MeasureAll(q, c);
 
-	std::cout << "src_prog: " << prog;
-	sub_cir_replace(prog, "F:\\tmpShared\\pattern.json", 1);
-	std::cout << "result_prog: " << prog;
-
-	return 1;
+	//std::cout << "src_prog: " << prog;
+	sub_cir_replace(prog, json, 1);
+	//std::cout << "result_prog1: " << prog.get_qgate_num();
+    if (prog.get_qgate_num() != 0)
+        return false;
+    else 
+	    return true;
 }
 
 static bool test_vf2_3() {
@@ -86,32 +338,17 @@ static bool test_vf2_3() {
 		RZ(q[2], PI / 6) << CNOT(q[0], q[2]) << RZ(q[0], PI / 4) << RZ(q[2], PI / 4) << CNOT(q[2], q[0]);
 	prog << circuit << MeasureAll(q, c);
 
-	std::cout << "src_prog: " << prog;
-	sub_cir_replace(prog, "F:\\tmpShared\\pattern.json", 1);
-	std::cout << "result_prog: " << prog;
+	//std::cout << "src_prog: " << prog;
+	sub_cir_replace(prog, json, 1);
+	//std::cout << "result_prog: " << prog;
 
 	return 1;
-}
-
-static bool test_vf2_4() {
-	auto qvm = initQuantumMachine(QMachineType::CPU);
-	QVec out_qv;
-	std::vector<ClassicalCondition> out_cv;
-	std::string filename = "F:\\tmpShared\\BIGD\\20QBT_45CYC_.6D1_.2D2_5.qasm";
-	std::string outfile = "F:\\tmpShared\\test_out\\" + filename.substr(13);
-	outfile = outfile.substr(0, outfile.length() - 5) + ".out";
-
-	ofstream ofs;
-	ofs.open(outfile, ios::trunc | ios::out);
-	QProg prog = convert_qasm_to_qprog(filename, qvm, out_qv, out_cv);
-	
-	std::cout << "src_prog: " << prog;
-	sub_cir_replace(prog, "F:\\tmpShared\\pattern.json", 1);
-	std::cout << "result_prog: " << prog;
-
-	destroyQuantumMachine(qvm);
-	ofs.close();
-	return 1;
+	//std::cout << "src_prog: " << prog;
+	sub_cir_replace(prog, json, 1);
+    if (prog.get_qgate_num() != 1)
+        return false;
+    else 
+	    return true;
 }
 
 static bool test_vf2_1_1() {
@@ -119,52 +356,6 @@ static bool test_vf2_1_1() {
 	return 1;
 } 
 
-static bool test_vf2_4_1() {
-	auto qvm = initQuantumMachine(QMachineType::CPU);
-	QVec out_qv;
-	std::vector<ClassicalCondition> out_cv;
-	std::string filename = "F:\\tmpShared\\BIGD\\20QBT_45CYC_.0D1_.1D2_1.qasm";
-	std::string outfile = "F:\\tmpShared\\test_out\\" + filename.substr(13);
-	outfile = outfile.substr(0, outfile.length() - 5) + ".out";
-
-	ofstream ofs;
-	ofs.open(outfile, ios::trunc | ios::out);
-	QProg prog = convert_qasm_to_qprog(filename, qvm, out_qv, out_cv);
-
-	std::cout << "src_prog: " << prog;
-	sub_cir_replace(prog, "F:\\tmpShared\\pattern.json", 1);
-	std::cout << "result_prog: " << prog;
-
-	ofs << convert_qprog_to_qasm(prog, qvm) << std::endl;
-	/*auto dag = qprog_to_DAG(prog);
-	auto par_list = rewriter.DAGPartition(dag, 2, 0);
-	auto subgraph_list = dag->partition(par_list);
-	edges_output(subgraph_list[0]);*/
-	destroyQuantumMachine(qvm);
-	ofs.close();
-	return 1;
-}
-
-static bool test_vf2_4_2() {
-	auto qvm = initQuantumMachine(QMachineType::CPU);
-	QVec out_qv;
-	std::vector<ClassicalCondition> out_cv;
-	std::string filename = "F:\\tmpShared\\BIGD\\20QBT_45CYC_.7D1_.1D2_1.qasm";
-	std::string outfile = "F:\\tmpShared\\test_out\\" + filename.substr(13);
-	outfile = outfile.substr(0, outfile.length() - 5) + ".out";
-
-	ofstream ofs;
-	ofs.open(outfile, ios::trunc | ios::out);
-	QProg prog = convert_qasm_to_qprog(filename, qvm, out_qv, out_cv);
-	
-	std::cout << "src_prog: " << prog;
-	sub_cir_replace(prog, "F:\\tmpShared\\pattern.json", 1);
-	std::cout << "result_prog: " << prog;
-	ofs << convert_qprog_to_qasm(prog, qvm) << std::endl;
-	destroyQuantumMachine(qvm);
-	ofs.close();
-	return 1;
-}
 
 static bool test_vf2_1_2() {
 	auto qvm = initQuantumMachine(QMachineType::CPU);
@@ -177,14 +368,16 @@ static bool test_vf2_1_2() {
 	circuit << X(q[0]) << CNOT(q[2], q[1]) << CNOT(q[2], q[1]) << H(q[0]) << CNOT(q[0], q[2]) << CNOT(q[0], q[2]) << CNOT(q[1], q[2]);
 	prog << circuit;
 
-	std::cout << "src_prog: "<< prog;
+	//std::cout << "src_prog: "<< prog;
 
 	/*QCircuitRewrite rewriter;
 	auto new_prog = rewriter.circuitRewrite(prog);*/
-	sub_cir_replace(prog, "F:\\tmpShared\\pattern.json", 1);
-	std::cout << "result_prog: " << prog;
-
-	return true;
+	sub_cir_replace(prog, json, 1);
+	//std::cout << "result_prog555: " << prog.get_qgate_num();
+    if (prog.get_qgate_num() != 0)
+        return false;
+    else
+	    return true;
 }
 
 TEST(VF2, test1)
@@ -192,8 +385,10 @@ TEST(VF2, test1)
 	bool test_val = false;
 	try
 	{
+        test_val = test_vf2_1();
+        test_val = test_vf2_3();
 		test_val = test_vf2_1_2();
-		//test_val = test_vf2_4_2();
+        
 	}
 	catch (const std::exception& e)
 	{
@@ -206,7 +401,8 @@ TEST(VF2, test1)
 
 	ASSERT_TRUE(test_val);
 
-	cout << "VF2 test over, press Enter to continue." << endl;
-	getchar();
+	//cout << "VF2 test over, press Enter to continue." << endl;
+	//getchar();
 }
 
+#endif

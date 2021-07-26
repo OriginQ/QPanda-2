@@ -31,8 +31,10 @@ TEST(QProgQGateCount, COUNT)
 //    QGateCounter counter;
 //    counter.traversal(circuit);
     size_t num = getQGateNumber(circuit);
-    std::cout << "QGate count: " << num << std::endl;
+    //std::cout << "QGate count: " << num << std::endl;
     destroyQuantumMachine(qvm);
+    ASSERT_EQ(num, 5);
+    //std::cout << "QProgQGateCount.COUNT tests over." << std::endl;
     return;
 }
 
@@ -54,8 +56,9 @@ TEST(QProgQGateCompare, COMPARE)
     auto gate = CNOT(qubits[0], qubits[1]);
     size_t num = getUnSupportQGateNumber(prog, gates);
     //size_t num = getUnSupportQGateNumber(prog, gates);
-    std::cout << "unsupport QGate count: " << num << std::endl;
-
+    //std::cout << "unsupport QGate count: " << num << std::endl;
     destroyQuantumMachine(qvm);
+    ASSERT_EQ(num, 3);
+    //std::cout << "QProgQGateCompare.COMPARE tests over." << std::endl;
     return;
 }

@@ -23,14 +23,14 @@ static bool test_prog_to_dag_1()
 	prog << H(q[0]) << H(q[2]) << H(q[3])
 		<< CNOT(q[1], q[0]) << CNOT(q[0], q[1]) << H(q[0]) << CNOT(q[1], q[2])
 		<< H(q[2]) << CNOT(q[2], q[3]) << H(q[3]);
-	cout << "src prog:" << prog << endl;
+	//cout << "src prog:" << prog << endl;
 	auto dag = qprog_to_DAG(prog);
 	const std::set<QProgDAGEdge>& edges = dag->get_edges();
 	const std::vector<QProgDAGVertex>& vertex_vec = dag->get_vertex();
-	cout << "vertex_vec:" << endl;
+	/*cout << "vertex_vec:" << endl;
 	for (const auto& _v : vertex_vec)
 	{
-		cout << _v.m_id << " layer:" << _v.m_layer << " " 
+		cout << _v.m_id << " layer:" << _v.m_layer << " "
 			<< TransformQGateType::getInstance()[(GateType)(_v.m_type)] << " qubit(";
 		for (const auto& _q : _v.m_node->m_control_vec)
 		{
@@ -42,14 +42,17 @@ static bool test_prog_to_dag_1()
 		}
 
 		cout << ")" << endl;
-	}
+	}*/
 
 	auto seq = dag->build_topo_sequence();
-	cout << "seq size = " << seq.size() << endl;
+	//cout << "seq size = " << seq.size() << endl;
 
 	destroyQuantumMachine(qvm);
-	cout << "---------" << endl;
-	return true;
+	//cout << "---------" << endl;
+	if (seq.size() != 7)
+		return false;
+	else
+		return true;
 }
 
 TEST(QProgToDAG, test1)
@@ -68,8 +71,8 @@ TEST(QProgToDAG, test1)
 		cout << "Got an unknow exception: " << endl;
 	}
 
-	cout << "QProgToDAG test over, press Enter to continue." << endl;
-	getchar();
+	//cout << "QProgToDAG test over, press Enter to continue." << endl;
+	//getchar();
 
 	ASSERT_TRUE(test_val);
-} 
+}

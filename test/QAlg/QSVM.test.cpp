@@ -1,5 +1,8 @@
 #include "gtest/gtest.h"
 #include "QPanda.h"
+
+#ifdef USE_EXTENSION
+
 using namespace std;
 static bool test_func_1()
 {
@@ -21,7 +24,10 @@ static bool test_func_1()
 
 	std::cout << str_result.str() << std::endl;
 
-	return true;
+	if (ret)
+		return true;
+	else
+		return false;
 }
 
 
@@ -43,3 +49,5 @@ TEST(QSVM, test1)
 
 	ASSERT_TRUE(test_val);
 }
+
+#endif

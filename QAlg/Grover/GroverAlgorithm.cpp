@@ -119,10 +119,10 @@ std::vector<size_t> QPanda::search_target_from_measure_result(const prob_dict& m
 	double average_probability = total_val / data_cnt;
 	size_t possible_solutions_cnt = 0;
 	double possible_solutions_sum = 0.0;
-	printf("measure result:\n");
+	//printf("measure result:\n");
 	for (const auto aiter : measure_result)
 	{
-		printf("%s:%5f\n", aiter.first.c_str(), aiter.second);
+		//printf("%s:%5f\n", aiter.first.c_str(), aiter.second);
 		if (aiter.second > average_probability)
 		{
 			++possible_solutions_cnt;
@@ -130,9 +130,9 @@ std::vector<size_t> QPanda::search_target_from_measure_result(const prob_dict& m
 		}
 	}
 
-	printf("first average_probability: %f\n", average_probability);
+	//printf("first average_probability: %f\n", average_probability);
 	average_probability = ((0.15 * possible_solutions_sum) / possible_solutions_cnt) + (0.85 * average_probability); /**< Weighted Sum */
-	printf("second average_probability: %f\n", average_probability);
+	//printf("second average_probability: %f\n", average_probability);
 	size_t search_result_index = 0;
 	for (const auto aiter : measure_result)
 	{

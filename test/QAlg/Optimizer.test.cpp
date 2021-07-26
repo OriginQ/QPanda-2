@@ -1,3 +1,8 @@
+#ifdef Optimizer
+
+
+
+
 #include "gtest/gtest.h"
 #include "QPanda.h"
 #include "Components/Optimizer/OptimizerFactory.h"
@@ -31,16 +36,18 @@ bool test_Optimizer()
     //optimizer->add_equality_constraint(inconstraint);
     optimizer->exec();
     auto result = optimizer->getResult();
-    std::cout << result.message << std::endl;
+    /*std::cout << result.message << std::endl;
     std::cout << "         Current function value: "
         << result.fun_val << std::endl;
+
     std::cout << "         Iterations: "
         << result.iters << std::endl;
+
     std::cout << "         Function evaluations: "
         << result.fcalls << std::endl;
-    std::cout << "         Optimized para: " << std::endl;
+    std::cout << "         Optimized para: " << std::endl;*/
     bool flag = abs(result.para[0] - 1. / 3) < 1e-2;
-    std::cout << "             " << std::boolalpha << flag << std::endl;
+    //std::cout << "             " << std::boolalpha << flag << std::endl;
     return flag;
 }
 
@@ -62,3 +69,5 @@ TEST(Optimizer, test1)
 
 	ASSERT_TRUE(test_val);
 }
+
+#endif // Optimizer

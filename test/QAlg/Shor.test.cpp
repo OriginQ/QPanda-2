@@ -5,8 +5,13 @@ bool test_Shor()
 {
 	int N = 6;
 	auto p = Shor_factorization(N);
-	cout << p.second.first << "X" << p.second.second << endl;
-	return p.first;
+	//cout << p.second.first << "X" << p.second.second << endl;
+	if (p.second.first == 2 && p.second.second == 3)
+		return true;
+	else
+		return false;
+
+	//return p.first;
 }
 
 TEST(Shor, test1)

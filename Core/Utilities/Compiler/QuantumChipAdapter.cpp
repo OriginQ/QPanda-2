@@ -1,10 +1,11 @@
 #include "Core/Utilities/Compiler/QuantumChipAdapter.h"
-#include "Core/Utilities/QProgTransform/QCodarMatch.h"
 #include "Core/Utilities/QProgInfo/MetadataValidity.h"
 #include "Core/Utilities/Tools/QCircuitOptimize.h"
 #include "Core/Utilities/QProgInfo/Visualization/QVisualization.h"
 #include "Core/Utilities/QProgInfo/QuantumMetadata.h"
 #include "Core/Utilities/Tools/QProgFlattening.h"
+#include "Core/Utilities/QProgTransform/TopologyMatch.h"
+
 
 using namespace std;
 using namespace QGATE_SPACE;
@@ -89,15 +90,10 @@ void QuantumChipAdapter::mapping(QProg &prog)
 	std::vector<std::vector<double>> qubit_matrix;
 	int qubit_num = 0;
 	config.getMetadataConfig(qubit_num, qubit_matrix);
-	if (used_qubits.size() > qubit_num)
-	{
-		QCERR("Warning: The qubit of the output program is greater than the number of configurations, the default topology will be used.");
-		prog = qcodar_match_by_simple_type(prog, m_new_qvec, m_quantum_machine, 4, (used_qubits.size()/4) + 1, 5);
-	}
-	else
-	{
-		prog = qcodar_match_by_config(prog, m_new_qvec, m_quantum_machine, m_config_data, 5);
-	}
+    prog = topology_match(prog, m_new_qvec, m_quantum_machine,
+                          CNOT_GATE_METHOD, IBM_QX5_ARCH, m_config_data);
+
+    return ;
 }
 
 /*******************************************************************

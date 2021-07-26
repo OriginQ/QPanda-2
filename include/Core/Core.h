@@ -30,7 +30,6 @@ limitations under the License.
 #include "Core/QuantumMachine/OriginQuantumMachine.h"
 #include "Core/QuantumMachine/SingleAmplitudeQVM.h" 
 #include "Core/QuantumMachine/PartialAmplitudeQVM.h"
-#include "Core/QuantumMachine/QCloudMachine.h"
 #include "Core/QuantumMachine/QuantumMachineInterface.h"
 #include "Core/QuantumMachine/QVec.h"	
 
@@ -60,10 +59,7 @@ limitations under the License.
 #include "Core/Utilities/QProgTransform/QProgToQMeasure.h"
 #include "Core/Utilities/QProgTransform/TopologyMatch.h"
 #include "Core/Utilities/QProgTransform/SU4TopologyMatch.h"
-#include "Core/Utilities/QProgTransform/QCodarMatch.h"
-#include "Core/Utilities/QProgTransform/QMapping/SabreQMapping.h"
-#include "Core/Utilities/QProgTransform/QMapping/OBMTQMapping.h"
-#include "Core/Utilities/QProgTransform/QCircuitRewrite.h"
+
 
 #include "Core/Utilities/Tools/OriginCollection.h"  
 #include "Core/Utilities/Tools/QPandaException.h"  
@@ -80,7 +76,6 @@ limitations under the License.
 #include "Core/Utilities/Tools/Fidelity.h"
 #include "Core/Utilities/Tools/GetQubitTopology.h"
 #include "Core/Utilities/Tools/RemapQProg.h"
-#include "Core/Utilities/Tools/CutQC.h"
 
 #include "Core/Variational/var.h"
 #include "Core/Variational/Optimizer.h"  
@@ -90,6 +85,8 @@ limitations under the License.
 
 #include "Core/VirtualQuantumProcessor/NoiseQPU/NoiseModel.h"  
 #include "Core/VirtualQuantumProcessor/MPSQVM/MPSQVM.h"
+#include "Core/Utilities/Tools/QuantumStateTomography.h"
+
 
 QPANDA_BEGIN
 /**

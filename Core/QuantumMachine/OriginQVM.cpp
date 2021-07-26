@@ -60,7 +60,7 @@ void QVM::initState(const QStat& state, const QVec& qlist)
 {
 	if (0 == qlist.size())
 	{
-		_pGates->initState(getAllocateQubitNum(), state);
+        _pGates->initState(getAllocateQubitNum(), state);
 	}
 	else
 	{
@@ -1263,6 +1263,10 @@ size_t QVM::get_allocate_cbits(std::vector<ClassicalCondition>& cc_vect)
 	return allocate_size;
 }
 
+QVM::~QVM()
+{
+	finalize();
+}
 
 prob_tuple IdealQVM::pMeasure(QVec qubit_vector, int select_max)
 {

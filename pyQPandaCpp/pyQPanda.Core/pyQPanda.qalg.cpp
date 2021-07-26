@@ -80,6 +80,12 @@ auto QDivWithAccuracy = [](
 	return QDiv(a, b, c, k, f, s);
 };
 
+
+void init_QAlg_class(py::module &)
+{
+    return ;
+}
+
 void init_qalg(py::module & m)
 {
 	m.def("MAJ", &MAJ, "Quantum adder MAJ module", py::return_value_policy::reference);
@@ -119,42 +125,6 @@ void init_qalg(py::module & m)
 		py::return_value_policy::automatic_reference
 		);
 
-	m.def("build_HHL_circuit", [](const QStat& A, const std::vector<double>& b, QuantumMachine *qvm, uint32_t precision_cnt /*= 0*/) {
-		return build_HHL_circuit(A, b, qvm, precision_cnt);
-	}, "/**\
-		* @brief  build the quantum circuit for HHL algorithm to solve the target linear systems of equations : Ax = b\
-		* @ingroup QAlg\
-		* @param[in] QStat& a unitary matrix or Hermitian N*N matrix with N = 2 ^ n\
-		* @param[in] std::vector<double>& a given vector\
-		* @param[in] uint32_t The count of digits after the decimal point,\
-		default is 0, indicates that there are only integer solutions\
-		* @return  QCircuit The whole quantum circuit for HHL algorithm\
-		* @note The higher the precision is, the more qubit number and circuit - depth will be,\
-		for example: 1 - bit precision, 4 additional qubits are required,\
-			for 2 - bit precision, we need 7 additional qubits, and so on.\
-            The final solution = (HHL result) * (normalization factor for b) * (1 << ceil(log2(pow(10, precision_cnt))))\
-				* / ",
-		"matrix"_a, "data"_a, "QuantumMachine"_a, "precision_cnt"_a = 0,
-		py::return_value_policy::automatic
-	);
-
-	m.def("HHL_solve_linear_equations", [](const QStat& A, const std::vector<double>& b, uint32_t precision_cnt/* = 0*/) {
-		return HHL_solve_linear_equations(A, b, precision_cnt);
-	}, "/**\
-		* @brief  Use HHL algorithm to solve the target linear systems of equations : Ax = b\
-		* @ingroup QAlg\
-		* @param[in] QStat& a unitary matrix or Hermitian N*N matrix with N = 2 ^ n\
-		* @param[in] std::vector<double>& a given vector\
-		* @param[in] uint32_t The count of digits after the decimal point,\
-		default is 0, indicates that there are only integer solutions.\
-		* @return  QStat The solution of equation, i.e.x for Ax = b\
-		* @note The higher the precision is, the more qubit number and circuit - depth will be,\
-		for example: 1 - bit precision, 4 additional qubits are required,\
-			for 2 - bit precision, we need 7 additional qubits, and so on.\
-				* / ",
-		"A"_a, "b"_a, "precision_cnt"_a = 0,
-		py::return_value_policy::automatic
-	);
 
 	m.def("Grover", [](const std::vector<uint32_t>& data, ClassicalCondition condition,
 		QuantumMachine *qvm, QVec& measure_qubits, size_t repeat = 2) {

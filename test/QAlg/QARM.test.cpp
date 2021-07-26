@@ -1,3 +1,5 @@
+#ifdef QARM
+
 #include "gtest/gtest.h"
 #include "QPanda.h"
 using namespace std;
@@ -43,3 +45,5 @@ TEST(QARM, test1)
 
 	ASSERT_TRUE(test_val);
 }
+
+#endif // QARM

@@ -45,6 +45,8 @@ REGISTER_ANGLE_GATE_MATRIX(RX_GATE, 1, 0, 0)
 REGISTER_ANGLE_GATE_MATRIX(RY_GATE, 0, 1, 0)
 REGISTER_ANGLE_GATE_MATRIX(RZ_GATE, 0, 0, 1)
 
+const double kStateEpSilon = 1.0e-010;
+
 
 
 
@@ -84,32 +86,31 @@ QError CPUImplQPU::pMeasure(Qnum& qnum, prob_tuple &probs, int select_max)
 QError CPUImplQPU::pMeasure(Qnum& qnum, prob_vec &probs)
 {
     probs.resize(1ll << qnum.size());
-    size_t size = 1ll << m_qubit_num;
+    const size_t probs_size = probs.size();
+    double *probs_pointer = probs.data();
 
-    if (size > m_threshold)
+    size_t size = 1ll << m_qubit_num;
+    stable_sort(qnum.begin(), qnum.end());
+//#pragma omp parallel for num_threads(_omp_thread_num(size)) reduction(+:probs_pointer[0:probs_size])
+    for (int64_t i = 0; i < size; i++)
     {
-#pragma omp parallel for
-        for (int64_t i = 0; i < size; i++)
+        size_t pmeasure_idx = 0;
+        for (size_t idx_q = 0; idx_q < qnum.size(); idx_q++)
         {
-            int64_t idx = 0;
-            for (int64_t j = 0; j < qnum.size(); j++)
+            size_t state_idx = i >> qnum[idx_q];
+            if (state_idx > 0)
             {
-                idx += (((i >> (qnum[j])) % 2) << j);
+                if (1ull & state_idx)
+                {
+                    pmeasure_idx |= 1ull << idx_q;
+                }
             }
-            probs[idx] += std::norm(m_state[i]);
-        }
-    }
-    else
-    {
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t idx = 0;
-            for (int64_t j = 0; j < qnum.size(); j++)
+            else
             {
-                idx += (((i >> (qnum[j])) % 2) << j);
+                break;
             }
-            probs[idx] += std::norm(m_state[i]);
         }
+        probs_pointer[pmeasure_idx] += std::norm(m_state[i]);
     }
 
     return qErrorNone;
@@ -198,7 +199,31 @@ bool CPUImplQPU::qubitMeasure(size_t qn)
 
 QError CPUImplQPU::initState(size_t head_rank, size_t rank_size, size_t qubit_num)
 {
-    return initState(qubit_num);
+    if (m_is_init_state)
+    {
+        m_state.resize(m_init_state.size());
+        if (m_init_state.size() > m_threshold)
+        {
+        #pragma omp parallel for
+            for (int64_t i = 0; i < m_init_state.size(); i++)
+            {
+                m_state[i] = m_init_state[i];
+            }
+        }
+        else
+        {
+            for (int64_t i = 0; i < m_init_state.size(); i++)
+            {
+                m_state[i] = m_init_state[i];
+            }
+        }
+    }
+    else
+    {
+        initState(qubit_num);
+    }
+
+    return QError::qErrorNone;
 }
 
 QError CPUImplQPU::initState(size_t qubit_num, const QStat &state)
@@ -208,40 +233,28 @@ QError CPUImplQPU::initState(size_t qubit_num, const QStat &state)
         m_qubit_num = qubit_num;
         m_state.assign(1ull << m_qubit_num, 0);
         m_state[0] = { 1, 0 };
+        m_is_init_state = false;
     }
     else
     {
         m_qubit_num = qubit_num;
-        m_state.assign(1ull << m_qubit_num, 0);
+        m_init_state.resize(1ull << m_qubit_num, 0);
         QPANDA_ASSERT(1ll << m_qubit_num != state.size(), "Error: initState size.");
+        m_is_init_state = true;
+
         if (state.size() > m_threshold)
         {
-            double prob = 0;
-#pragma omp parallel for reduction(+:prob)
-            for (int64_t i = 0; i < state.size(); i++)
-            {
-                prob += std::norm(state[i]);
-            }
-
-            QPANDA_ASSERT(std::abs(1 - prob) > DBL_EPSILON, "Error: initState size.");
 #pragma omp parallel for
             for (int64_t i = 0; i < state.size(); i++)
             {
-                m_state[i] = state[i];
+                m_init_state[i] = state[i];
             }
         }
         else
         {
-            double prob = 0;
             for (int64_t i = 0; i < state.size(); i++)
             {
-                prob += std::norm(state[i]);
-            }
-
-            QPANDA_ASSERT(std::abs(1 - prob) > DBL_EPSILON, "Error: initState size.");
-            for (int64_t i = 0; i < state.size(); i++)
-            {
-                m_state[i] = state[i];
+                m_init_state[i] = state[i];
             }
         }
     }
@@ -1234,6 +1247,18 @@ QError CPUImplQPU::_CU(size_t qn_0, size_t qn_1, QStat &matrix, bool is_dagger, 
     return qErrorNone;
 }
 
+void CPUImplQPU::_verify_state(const QStat &state)
+{
+    double prob = 0;
+#pragma omp parallel for reduction(+:prob)
+    for (int64_t i = 0; i < state.size(); i++)
+    {
+        prob += std::norm(state[i]);
+    }
+
+    QPANDA_ASSERT(std::abs(1 - prob) > kStateEpSilon, "Error: initState state.");
+}
+
 QError CPUImplQPU::_U1(size_t qn, QStat &matrix, bool is_dagger, Qnum &controls)
 {
     int64_t size = 1ll << (m_qubit_num - 1);
@@ -1738,6 +1763,18 @@ QError CPUImplQPU::controlDiagonalGate(Qnum & vQubit, QStat & matrix, Qnum & vCo
     return qErrorNone;
 }
 
+int CPUImplQPU::_omp_thread_num(size_t size)
+{
+    if (size > m_threshold)
+    {
+        return omp_get_max_threads();
+    }
+    else
+    {
+        return 1;
+    }
+}
+
 QError CPUImplQPUWithOracle::controlOracularGate(std::vector<size_t> bits, std::vector<size_t> controlbits, bool is_dagger, std::string name)
 {
     if (name == "oracle_test") {
@@ -1748,3 +1785,4 @@ QError CPUImplQPUWithOracle::controlOracularGate(std::vector<size_t> bits, std::
     }
     return qErrorNone;
 }
+

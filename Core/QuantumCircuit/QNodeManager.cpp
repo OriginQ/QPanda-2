@@ -41,7 +41,7 @@ void QNodeManager::push_back_node(std::shared_ptr<QNode> node)
 		throw std::runtime_error("Error: Cann't inserte to node-self.");
 	}
 
-	auto copy_node = deepCopyQNode(node);
+	auto copy_node = /*deepCopyQNode*/(node);
 
 	WriteLock wl(m_sm);
 
@@ -93,7 +93,7 @@ NodeIter QNodeManager::insert_QNode(const NodeIter &perIter, std::shared_ptr<QNo
 		throw std::runtime_error("Error: Cann't inserte to node-self.");
 	}
 
-	auto copy_node = deepCopyQNode(node);
+	auto copy_node = /*deepCopyQNode*/(node);
 
 	if (perIter == m_head)
 	{

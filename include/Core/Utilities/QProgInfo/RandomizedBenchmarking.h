@@ -1,61 +1,64 @@
 #ifndef _RANDOMIZED_BENCHMARKING_H
 #define _RANDOMIZED_BENCHMARKING_H
 
+
+
 #include "Core/QuantumCircuit/QGate.h"
 #include "Core/QuantumCircuit/QCircuit.h"
 #include "Core/QuantumMachine/OriginQuantumMachine.h"
-#include "Core/QuantumMachine/QCloudMachine.h"
 #include "Core/Utilities/QProgInfo/CrossEntropyBenchmarking.h"
+
+
 QPANDA_BEGIN
 
 
 class RBGate
 {
 public:
-	virtual QGate qgate(Qubit* qbit) = 0;
-	virtual QStat unitary() = 0;
-	virtual ~RBGate() {}
+    virtual QGate qgate(Qubit* qbit) = 0;
+    virtual QStat unitary() = 0;
+    virtual ~RBGate() {}
 };
 
 /**
 * @class RandomizedBenchmarking
 * @ingroup Utilities
-* @brief 
+* @brief
 */
 class RandomizedBenchmarking
 {
 public:
-	using CliffordsSeq = std::vector<std::vector<std::shared_ptr <RBGate> >>;
-	struct Cliffords
-	{
-		CliffordsSeq c1_in_xy;
-		CliffordsSeq c1_in_xz;
-		CliffordsSeq s1;
-		CliffordsSeq s1_x;
-		CliffordsSeq s1_y;
-	};
+    using CliffordsSeq = std::vector<std::vector<std::shared_ptr <RBGate> >>;
+    struct Cliffords
+    {
+        CliffordsSeq c1_in_xy;
+        CliffordsSeq c1_in_xz;
+        CliffordsSeq s1;
+        CliffordsSeq s1_x;
+        CliffordsSeq s1_y;
+    };
 
-	RandomizedBenchmarking(MeasureQVMType type, QuantumMachine* qvm);
-	~RandomizedBenchmarking();
-	std::map<int, double>single_qubit_rb(Qubit* qbit, const std::vector<int>& clifford_range, int num_circuits, int shots, const std::vector<QGate>& interleaved_gates = {});
-	
-	std::map<int, double> two_qubit_rb(Qubit* qbit0, Qubit* qbit1, const std::vector<int>& clifford_range, int num_circuits, int shots, const std::vector<QGate>& interleaved_gates = {});
+    RandomizedBenchmarking(MeasureQVMType type, QuantumMachine* qvm);
+    ~RandomizedBenchmarking();
+    std::map<int, double>single_qubit_rb(Qubit* qbit, const std::vector<int>& clifford_range, int num_circuits, int shots, const std::vector<QGate>& interleaved_gates = {});
 
-private:
-	Cliffords _single_qubit_cliffords();
-	QCircuit _random_single_q_clifford(Qubit* qbit, int num_cfds, const CliffordsSeq& cfd, const std::vector<QStat>& cfd_matrices, const std::vector<QGate>& interleaved_gates);
-
-	QCircuit _two_qubit_clifford_starters(Qubit* q_0, Qubit* q_1, int idx_0, int idx_1, const Cliffords& cfds);
-	QCircuit _two_qubit_clifford_mixers(Qubit* q_0, Qubit* q_1, int idx_2, const Cliffords& cfds);
-	std::vector<int >_split_two_q_clifford_idx(int idx);
-	QCircuit _random_two_q_clifford(Qubit* q_0, Qubit* q_1, int num_cfds, const Cliffords& cfds, const std::vector<QStat>& cfd_matrices, const std::vector<QGate>& interleaved_gates);
-	std::vector <QStat>_two_qubit_clifford_matrices(Qubit* q_0, Qubit* q_1, const Cliffords& cfds);
+    std::map<int, double> two_qubit_rb(Qubit* qbit0, Qubit* qbit1, const std::vector<int>& clifford_range, int num_circuits, int shots, const std::vector<QGate>& interleaved_gates = {});
 
 private:
-	MeasureQVMType m_qvm_type;
-	NoiseQVM* m_mea_qvm;
+    Cliffords _single_qubit_cliffords();
+    QCircuit _random_single_q_clifford(Qubit* qbit, int num_cfds, const CliffordsSeq& cfd, const std::vector<QStat>& cfd_matrices, const std::vector<QGate>& interleaved_gates);
 
-	QCloudMachine* m_cloud_qvm;
+    QCircuit _two_qubit_clifford_starters(Qubit* q_0, Qubit* q_1, int idx_0, int idx_1, const Cliffords& cfds);
+    QCircuit _two_qubit_clifford_mixers(Qubit* q_0, Qubit* q_1, int idx_2, const Cliffords& cfds);
+    std::vector<int >_split_two_q_clifford_idx(int idx);
+    QCircuit _random_two_q_clifford(Qubit* q_0, Qubit* q_1, int num_cfds, const Cliffords& cfds, const std::vector<QStat>& cfd_matrices, const std::vector<QGate>& interleaved_gates);
+    std::vector <QStat>_two_qubit_clifford_matrices(Qubit* q_0, Qubit* q_1, const Cliffords& cfds);
+
+private:
+    MeasureQVMType m_qvm_type;
+    NoiseQVM* m_mea_qvm;
+
+    QCloudMachine* m_cloud_qvm;
 };
 
 

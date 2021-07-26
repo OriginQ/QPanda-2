@@ -27,7 +27,6 @@ limitations under the License.
 #include "QAlg/QAOA/QAOA.h"
 #include "QAlg/QITE/QITE.h"
 #include "QAlg/ArithmeticUnit/ArithmeticUnit.h"
-#include "QAlg/HHL/HHL.h"
 #include "QAlg/Base_QCircuit/QPE.h"
 #include "QAlg/Base_QCircuit/base_circuit.h"
 #include "QAlg/Base_QCircuit/AmplitudeEncode.h"

@@ -1,3 +1,4 @@
+#ifdef ABANDON
 #include <map>
 #include "QPanda.h"
 #include "Core/Module/Operators.h"
@@ -15,7 +16,7 @@ QCircuit test()
 TEST(Module, module_test1)
 {
 	std::cout << "======================================" << std::endl;
-	auto qm = initQuantumMachine();
+	/*auto qm = initQuantumMachine();
 	Configuration config = { 10000,10000 };
 	qm->setConfig(config);
 	ModuleContext::setContext(qm);
@@ -32,16 +33,18 @@ TEST(Module, module_test1)
 	prog << test();
 
 	std::string s = transformQProgToOriginIR(prog, qm);
-	cout << s<<endl;
+	cout << s<<endl;*/
 
 	std::cout << "======================================" << std::endl;
 
-	qvec qvec1(qs1);
+	/*qvec qvec1(qs1);
 	qvec qvec2(qs1);
 	prog << h(qvec1);
 	std::string s2 = transformQProgToOriginIR(prog, qm);
 	cout << s2 << endl;
 	std::cout << "qvec1+qvec2 size "<<(qvec1+qvec2).size() << std::endl;
-	std::cout << "qvec1-qvec2 size " << (qvec1 - qvec2).size() << std::endl;
+	std::cout << "qvec1-qvec2 size " << (qvec1 - qvec2).size() << std::endl;*/
 }
 
+
+#endif //ABANDON

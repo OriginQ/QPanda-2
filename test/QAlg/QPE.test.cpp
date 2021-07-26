@@ -28,7 +28,7 @@ static bool test_qpe1()
 	QVec second_register = machine->allocateQubits(second_register_qubits_cnt);
 
 	QCircuit cir_qpe = build_QPE_circuit(first_register, second_register, build_U_fun);
-	cout << cir_qpe << endl;
+	//cout << cir_qpe << endl;
 	QProg qpe_prog;
 	qpe_prog << X(second_register[0]) << cir_qpe;
 
@@ -39,11 +39,17 @@ static bool test_qpe1()
 		val.second = abs(val.second) < PRECISION ? 0.0 : val.second;
 	}
 
-	std::cout << "QPE result:" << endl;
+	//std::cout << "QPE result:" << endl;
 	for (auto &val : result1)
 	{
-		std::cout << val.first << ", " << val.second << std::endl;
+		if (result1.size() != 8 && result1.begin()->second != 0.015625)
+			return false;
+		else
+			return true;
+		//std::cout << val.first << ", " << val.second << std::endl;
 	}
+
+	//ASSERT_EQ(result1[0]->second, 0.015625);
 
 	return true;
 }

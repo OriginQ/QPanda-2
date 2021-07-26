@@ -428,9 +428,12 @@ protected:
         int64_t y = ~mask & value;
         return ((y << 1) | x);
     }
-
+    void _verify_state(const QStat &state);
+    inline int _omp_thread_num(size_t size);
 private:
+    bool m_is_init_state{false};
     QStat m_state;
+    QStat m_init_state;
     size_t m_qubit_num;
     const int64_t m_threshold = 1ll << 9;
 };

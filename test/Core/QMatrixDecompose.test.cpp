@@ -17,12 +17,15 @@ bool test_matrix_decompose_1()
 		qcomplex_t(-0.16162176706189363, -0.40204956324682495), qcomplex_t(0.7303014482204584, -0.4215172444390785), qcomplex_t(-0.15199187936216693, 0.09733585496768032), qcomplex_t(-0.22248203136345918, -0.1383600597660744),
 		qcomplex_t(-0.19991615329122003, -0.3764618308248644), qcomplex_t(-0.15199187936216688, 0.09733585496768032), qcomplex_t(0.6826630277354306, -0.37517063774206166), qcomplex_t(-0.3078966462928956, -0.2900897445133085),
 		qcomplex_t(-0.2599957197928923, -0.3593524887300787), qcomplex_t(-0.22248203136345912, -0.1383600597660744), qcomplex_t(-0.30789664629289554, -0.2900897445133085), qcomplex_t(0.6640994547408099, -0.338593803336005) };
-	
-	auto cir = matrix_decompose({q[0], q[1]}, target_matrix);
-	cout << "decomposed circuit:" << cir << endl;
+
+	auto cir = matrix_decompose_qr({ q[0], q[1] }, target_matrix);
+	//cout << "decomposed circuit:" << cir << endl;
 
 	destroyQuantumMachine(qvm);
-	return true;
+	if (cir.get_qgate_num() == 7 && cir.get_used_qubits(q) == 2)
+		return true;
+	else
+		return false;
 }
 
 TEST(QMatrixDecompose, test1)
@@ -41,8 +44,11 @@ TEST(QMatrixDecompose, test1)
 		cout << "Got an unknow exception: " << endl;
 	}
 
-	cout << "QMatrixDecompose test over, press Enter to continue." << endl;
-	getchar();
+	//cout << "QMatrixDecompose test over, press Enter to continue." << endl;
+	//getchar();
 
+
+	//the function return value's type is bool.
 	ASSERT_TRUE(test_val);
+	//cout << "QMatrixDecompose tests over." << endl;
 }

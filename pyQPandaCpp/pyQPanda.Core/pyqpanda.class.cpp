@@ -596,5 +596,27 @@ void init_core_class(py::module & m)
 				return edges_vec; },
 			py::return_value_policy::automatic);
 
+    py::class_<QuantumStateTomography>(m, "QuantumStateTomography")
+        .def(py::init<>())
+        .def("combine_qprogs", py::overload_cast<const QProg &, const QVec &>(&QuantumStateTomography::combine_qprogs<QProg>),
+            "Return a list of quantum state tomography quantum programs.",
+            py::arg("circuit"), py::arg("qlist"), py::return_value_policy::reference)
+        .def("combine_qprogs", py::overload_cast<const QCircuit &, const QVec &>(&QuantumStateTomography::combine_qprogs<QCircuit>),
+            "Return a list of quantum state tomography quantum programs.",
+            py::arg("circuit"), py::arg("qlist"), py::return_value_policy::reference)
+
+        .def("combine_qprogs", py::overload_cast<const QProg &, const std::vector<size_t> &>(&QuantumStateTomography::combine_qprogs<QProg>),
+            "Return a list of quantum state tomography quantum programs.",
+            py::arg("circuit"), py::arg("qlist"), py::return_value_policy::reference)
+        .def("combine_qprogs", py::overload_cast<const QCircuit &, const std::vector<size_t> &>(&QuantumStateTomography::combine_qprogs<QCircuit>),
+            "Return a list of quantum state tomography quantum programs.",
+            py::arg("circuit"), py::arg("qlist"), py::return_value_policy::reference)
+
+        .def("exec", &QuantumStateTomography::exec,
+            "run state tomography QProgs",
+            py::arg("qm"), py::arg("shots"),
+            "")
+        ;
+
     return ;
 }

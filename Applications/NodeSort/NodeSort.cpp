@@ -2,7 +2,9 @@
 #include <iostream>
 #include "Components/NodeSortProblemGenerator/NodeSortProblemGenerator.h"
 #include "Core/Utilities/Tools/QStatMatrix.h"
-#include "QAlg/HHL/HHL.h"
+
+#include "Extensions/Extensions.h"
+
 
 using namespace std;
 USING_QPANDA

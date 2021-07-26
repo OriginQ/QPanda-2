@@ -383,7 +383,7 @@ QStat QPanda::dagger_c(const QStat &src_mat)
 	return tmp_mat;
 }
 
-static std::string double_to_string(const double d, const int precision = 8)
+static std::string double_to_string(const double d, const int precision = 15)
 {
 	std::ostringstream stream;
 	stream.precision(precision);
@@ -391,7 +391,7 @@ static std::string double_to_string(const double d, const int precision = 8)
 	return stream.str();
 }
 
-string QPanda::matrix_to_string(const QStat& mat, const int precision /*= 8*/)
+string QPanda::matrix_to_string(const QStat& mat, const int precision /*= 15*/)
 {
 	int rows = 0;
 	int columns = 0;

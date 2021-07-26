@@ -133,6 +133,15 @@ void NoiseQVM::set_noise_model(const NOISE_MODEL &model, const GateType &type, d
     return ;
 }
 
+void NoiseQVM::set_noise_model(const NOISE_MODEL& model, const std::vector<GateType> &types, double prob)
+{
+	for (auto &type : types)
+	{
+		set_noise_model(model, type, prob, vector<QVec>());
+	}
+	return;
+}
+
 void NoiseQVM::set_noise_model(const NOISE_MODEL &model, const GateType &type, double prob, const std::vector<QVec> &qubits)
 {
     size_t type_qubit_num = 0;
@@ -140,6 +149,7 @@ void NoiseQVM::set_noise_model(const NOISE_MODEL &model, const GateType &type, d
         || GateType::I_GATE == type
         || GATE_TYPE_MEASURE == type
         || GATE_TYPE_RESET == type)
+
     {
         type_qubit_num = 1;
     }
@@ -181,6 +191,20 @@ void NoiseQVM::set_noise_model(const NOISE_MODEL &model, const GateType &type, d
     set_noise_model(model, type, prob, noise_qubits);
 }
 
+void NoiseQVM::set_noise_model(const NOISE_MODEL &model, const std::vector<GateType> &types, double prob, const QVec &qubits)
+{
+	vector<QVec> noise_qubits;
+	noise_qubits.reserve(qubits.size());
+	for (auto &val : qubits)
+	{
+		noise_qubits.push_back({ val });
+	}
+	
+	for (auto &type : types)
+	{
+		set_noise_model(model, type, prob, noise_qubits);
+	}	
+}
 
 void NoiseQVM::set_noise_model(const NOISE_MODEL &model, const GateType &type,
                                  double T1, double T2, double t_gate)
@@ -189,7 +213,19 @@ void NoiseQVM::set_noise_model(const NOISE_MODEL &model, const GateType &type,
     return ;
 }
 
-void NoiseQVM::set_noise_model(const NOISE_MODEL &model, const GateType &type, double T1, double T2, double t_gate, const QVec &qubits)
+void NoiseQVM::set_noise_model(const NOISE_MODEL &model, const std::vector<GateType> &types,
+	double T1, double T2, double t_gate)
+{
+	for (auto &type : types)
+	{
+		set_noise_model(model, type, T1, T2, t_gate, vector<QVec>());
+	}
+
+	return;
+}
+
+void NoiseQVM::set_noise_model(const NOISE_MODEL &model, const GateType &type, double T1, double T2, 
+	double t_gate, const QVec &qubits)
 {
     vector<QVec> noise_qubits;
     noise_qubits.reserve(qubits.size());
@@ -200,6 +236,24 @@ void NoiseQVM::set_noise_model(const NOISE_MODEL &model, const GateType &type, d
 
     set_noise_model(model, type, T1, T2, t_gate, noise_qubits);
     return ;
+}
+
+void NoiseQVM::set_noise_model(const NOISE_MODEL &model, const std::vector<GateType> &types, double T1, double T2,
+	double t_gate, const QVec &qubits)
+{
+	vector<QVec> noise_qubits;
+	noise_qubits.reserve(qubits.size());
+	for (auto &val : qubits)
+	{
+		noise_qubits.push_back({ val });
+	}
+
+	for (auto &type : types)
+	{
+		set_noise_model(model, type, T1, T2, t_gate, noise_qubits);
+	}
+
+	return;
 }
 
 void NoiseQVM::set_noise_model(const NOISE_MODEL &model, const GateType &type, double T1, double T2, double t_gate,

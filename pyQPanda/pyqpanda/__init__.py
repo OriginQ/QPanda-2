@@ -36,7 +36,6 @@ from .pyQPanda import NoiseQVM
 from .pyQPanda import OriginCollection
 from .pyQPanda import PartialAmpQVM
 from .pyQPanda import PhysicalQubit
-from .pyQPanda import QCodarGridDevice
 from .pyQPanda import QError
 from .pyQPanda import QGate
 from .pyQPanda import QIfProg
@@ -171,8 +170,6 @@ from .pyQPanda import Grover_search
 from .pyQPanda import quantum_walk_alg
 from .pyQPanda import quantum_walk_search
 from .pyQPanda import H
-from .pyQPanda import build_HHL_circuit
-from .pyQPanda import HHL_solve_linear_equations
 from .pyQPanda import I
 from .pyQPanda import init
 from .pyQPanda import init_quantum_machine
@@ -190,7 +187,6 @@ from .pyQPanda import Measure
 from .pyQPanda import measure_all
 from .pyQPanda import mul
 from .pyQPanda import originir_to_qprog
-from .pyQPanda import OBMT_mapping
 from .pyQPanda import PMeasure
 from .pyQPanda import pmeasure
 from .pyQPanda import PMeasure_no_index
@@ -204,7 +200,6 @@ from .pyQPanda import QAdder
 from .pyQPanda import QAdderIgnoreCarry
 from .pyQPanda import qAlloc
 from .pyQPanda import qAlloc_many
-from .pyQPanda import qcodar_match
 from .pyQPanda import QFT
 from .pyQPanda import qop
 from .pyQPanda import qop_pmeasure
@@ -278,6 +273,15 @@ from .pyQPanda import double_qubit_rb
 from .pyQPanda import double_gate_xeb
 from .pyQPanda import OriginQubitPool
 from .pyQPanda import OriginCMem
+from .pyQPanda import QuantumStateTomography
+
+# extensions
+try:
+    from .pyQPanda import HHLAlg
+    from .pyQPanda import expand_linear_equations
+    from .pyQPanda import build_HHL_circuit
+except ImportError as e:
+    pass
 
 # pyQPandaOperator
 

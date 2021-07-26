@@ -56,14 +56,14 @@ TEST(JudgeTwoNodeIterIsSwappable, nonGateNode)
 	++itr2;
 
 	bool bCouldBeExchanged = isSwappable(prog, itr1, itr2);
-	if (bCouldBeExchanged)
+	/*if (bCouldBeExchanged)
 	{
 		std::cout << "could be exchanged." << std::endl;
 	}
 	else
 	{
 		std::cout << "could NOT be exchanged." << std::endl;
-	}
+	}*/
 
 	ASSERT_TRUE(!bCouldBeExchanged);
 }
@@ -87,14 +87,14 @@ TEST(JudgeTwoNodeIterIsSwappable, measureAndResetNode)
 	++itr2;
 	++itr2;
 	bool bCouldBeExchanged = isSwappable(prog, itr1, itr2);
-	if (bCouldBeExchanged)
+	/*if (bCouldBeExchanged)
 	{
 		std::cout << "could be exchanged." << std::endl;
 	}
 	else
 	{
 		std::cout << "could NOT be exchanged." << std::endl;
-	}
+	}*/
 
 	ASSERT_TRUE(!bCouldBeExchanged);
 }
@@ -134,14 +134,14 @@ TEST(JudgeTwoNodeIterIsSwappable, controlTest)
 	NodeIter itr2 = branch_true.getLastNodeIter();
 
 	bool bCouldBeExchanged = isSwappable(prog, itr1, itr2);
-	if (bCouldBeExchanged)
+	/*if (bCouldBeExchanged)
 	{
 		std::cout << "could be exchanged." << std::endl;
 	}
 	else
 	{
 		std::cout << "could NOT be exchanged." << std::endl;
-	}
+	}*/
 
 	ASSERT_TRUE(bCouldBeExchanged);
 }
@@ -170,14 +170,14 @@ TEST(JudgeTwoNodeIterIsSwappable, inDifferentSubProg)
 	NodeIter itr2 = circuit3.getLastNodeIter();
 
 	bool bCouldBeExchanged = isSwappable(prog, itr1, itr2);
-	if (bCouldBeExchanged)
+	/*if (bCouldBeExchanged)
 	{
 		std::cout << "could be exchanged." << std::endl;
 	}
 	else
 	{
 		std::cout << "could NOT be exchanged." << std::endl;
-	}
+	}*/
 
 	ASSERT_TRUE(!bCouldBeExchanged);
 }
@@ -235,14 +235,14 @@ TEST(JudgeTwoNodeIterIsSwappable, flowCtrlNodeTest)
 	++itr2;
 	++itr2;
 	bool bCouldBeExchanged = isSwappable(prog, itr1, itr2);
-	if (bCouldBeExchanged)
+	/*if (bCouldBeExchanged)
 	{
 		std::cout << "could be exchanged." << std::endl;
 	}
 	else
 	{
 		std::cout << "could NOT be exchanged." << std::endl;
-	}
+	}*/
 
 	ASSERT_TRUE(bCouldBeExchanged);
 }
@@ -297,14 +297,14 @@ TEST(JudgeTwoNodeIterIsSwappable, nestingTest)
 	++itr2;
 
 	bool bCouldBeExchanged = isSwappable(prog, itr1, itr2);
-	if (bCouldBeExchanged)
+	/*if (bCouldBeExchanged)
 	{
 		std::cout << "could be exchanged." << std::endl;
 	}
 	else
 	{
 		std::cout << "could NOT be exchanged." << std::endl;
-	}
+	}*/
 
 	ASSERT_TRUE(bCouldBeExchanged);
 }
@@ -342,14 +342,14 @@ TEST(JudgeTwoNodeIterIsSwappable, judgeMatrix)
 	NodeIter itr2 = circuit3.getLastNodeIter();
 
 	bool bCouldBeExchanged = isSwappable(prog, itr1, itr2);
-	if (bCouldBeExchanged)
+	/*if (bCouldBeExchanged)
 	{
 		std::cout << "could be exchanged." << std::endl;
 	}
 	else
 	{
 		std::cout << "could NOT be exchanged." << std::endl;
-	}
+	}*/
 
 	ASSERT_TRUE(!bCouldBeExchanged);
 }
@@ -377,7 +377,7 @@ TEST(JudgeTwoNodeIterIsSwappable, doubleGateTest)
 	auto qwhile = CreateWhileProg(c[0] < 3, prog_in);
 
 	QVec control_vec;
-	control_vec.push_back(q[1]);
+	control_vec.push_back(q[1]);	
 
 	auto gate2 = CNOT(q[0], q[3]).dagger();
 	gate2.setControl(control_vec);
@@ -415,14 +415,14 @@ TEST(JudgeTwoNodeIterIsSwappable, doubleGateTest)
 #endif
 
 	bool bCouldBeExchanged = isSwappable(prog, itr1, itr2);
-	if (bCouldBeExchanged)
+	/*if (bCouldBeExchanged)
 	{
 		std::cout << "could be exchanged." << std::endl;
 	}
 	else
 	{
 		std::cout << "could NOT be exchanged." << std::endl;
-	}
+	}*/
 
 	ASSERT_TRUE(bCouldBeExchanged);
 }
@@ -464,14 +464,15 @@ TEST(JudgeTwoNodeIterIsSwappable, doubleGateTest2)
 	--itr2;
 
 	bool bCouldBeExchanged = isSwappable(prog, itr1, itr2);
-	if (bCouldBeExchanged)
+	/*if (bCouldBeExchanged)
 	{
 		std::cout << "could be exchanged." << std::endl;
 	}
 	else
 	{
 		std::cout << "could NOT be exchanged." << std::endl;
-	}
-
+	}*/
+	//the function return value's type is bool.
 	ASSERT_TRUE(bCouldBeExchanged);
+	//cout << " JudgeTwoNodeIterIsSwappable tests over." << endl;
 }

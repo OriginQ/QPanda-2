@@ -5,6 +5,10 @@
 USING_QPANDA
 using namespace std;
 
+#ifdef QVEC
+
+
+
 TEST(QVec,test)
 {
     init();
@@ -27,3 +31,5 @@ TEST(QVec,test)
     }
     finalize();
 }
+
+#endif // QVEC

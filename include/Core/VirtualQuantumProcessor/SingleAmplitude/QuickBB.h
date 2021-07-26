@@ -11,6 +11,8 @@ typedef size_t vertex_index_t;
 typedef std::vector<vertex_index_t> adj_arr_t;
 typedef std::map<vertex_index_t, adj_arr_t> graph_data_t;
 
+#undef max
+
 class QuickBB
 {
 public:

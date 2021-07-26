@@ -32,17 +32,17 @@ TEST(QuantumWalkGrover, test1)
 		++indexx;
 	}
 
-	cout << "The target result's index:" << endl;
+	/*cout << "The target result's index:" << endl;
 	for (const auto &result_item : result_index_vec)
 	{
 		cout << result_item << " ";
 	}
-	cout << endl;
+	cout << endl;*/
 	result_index_vec.clear();
 
 	try
 	{
-		cout << "Start quantum walk search algorithm:" << endl;
+		//cout << "Start quantum walk search algorithm:" << endl;
 		QProg quantum_walk_prog = quantum_walk_alg_search_from_vector(search_vec, x == search_data, machine, result_index_vec, 2);
 		//cout << "quantum_walk_prog:" << quantum_walk_prog << endl;
 	}
@@ -58,11 +58,12 @@ TEST(QuantumWalkGrover, test1)
 	cout << "The result's index:" << endl;
 	for (const auto &result_item : result_index_vec)
 	{
-		cout << result_item << " ";
+		cout << result_item << " " << endl;
+		ASSERT_EQ(result_item, 14);
 	}
 
 	destroyQuantumMachine(machine);
 
-	cout << "\n Quantum walk test over, press Enter to continue..." << endl;
-	getchar();
+	//cout << "\n Quantum walk test over, press Enter to continue..." << endl;
+	//getchar();
 }

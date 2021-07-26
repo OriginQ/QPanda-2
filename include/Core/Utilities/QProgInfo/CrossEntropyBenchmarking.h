@@ -1,8 +1,14 @@
 #ifndef _CROSS_ENTROPY_BENCHMARKING_H
 #define _CROSS_ENTROPY_BENCHMARKING_H
+
+
 #include "Core/QuantumMachine/OriginQuantumMachine.h"
 #include "Core/QuantumCircuit/QCircuit.h"
 #include "Core/QuantumMachine/QCloudMachine.h"
+
+
+
+
 QPANDA_BEGIN
 
 /**

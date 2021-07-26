@@ -116,7 +116,7 @@ QStat tensor(const QStat& leftMatrix, const QStat& rightMatrix);
 * @param[in] const int: precision
 * @return the matrix string
 */
-std::string matrix_to_string(const QStat& mat, const int precision = 8);
+std::string matrix_to_string(const QStat& mat, const int precision = 15);
 
 /**
 * @brief Compare the two matrices to determine whether they are equal

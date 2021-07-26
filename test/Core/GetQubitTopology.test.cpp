@@ -9,7 +9,7 @@ static bool get_qubit_topology_test_1()
 {
 	auto machine = initQuantumMachine(CPU);
 	auto x = machine->allocateCBit();
-	std::vector<SearchDataByUInt> search_sapce = { 3, 6, 6, 9, 10, 15, 11, 6/*, 9, 10, 15, 11, 9, 10, 15*//*, 11, 9, 10, 15, 11, 9, 10, 15, 11, 9, 10, 15, 11, 9, 10, 15, 11 */};
+	std::vector<SearchDataByUInt> search_sapce = { 3, 6, 6, 9, 10, 15, 11, 6/*, 9, 10, 15, 11, 9, 10, 15*//*, 11, 9, 10, 15, 11, 9, 10, 15, 11, 9, 10, 15, 11, 9, 10, 15, 11 */ };
 	/*search_sapce.push_back(8);
 	search_sapce.push_back(7);
 	search_sapce.push_back(6);
@@ -51,8 +51,8 @@ static bool get_qubit_topology_test_1()
 	{
 		search_sapce.insert(search_sapce.end(), search_sapce.begin() + 20, search_sapce.end());
 	}
-	cout << "Grover will search through " << search_sapce.size() << " data." << endl;
-	cout << "Start grover search algorithm:" << endl;
+	//cout << "Grover will search through " << search_sapce.size() << " data." << endl;
+	//cout << "Start grover search algorithm:" << endl;
 	QVec measure_qubits;
 	QProg grover_Qprog = build_grover_alg_prog(search_sapce, x == 6, machine, measure_qubits, 2);
 
@@ -88,7 +88,7 @@ static bool get_qubit_topology_test_1()
 	//}
 
 	//聚团查找
-	std::vector<int> sub_graph =  get_sub_graph(topolog_matrix);
+	std::vector<int> sub_graph = get_sub_graph(topolog_matrix);
 
 	//修剪权重较低的连边
 	//del_weak_edge(topolog_matrix);
@@ -107,7 +107,10 @@ static bool get_qubit_topology_test_1()
 	double evaluate = estimate_topology(topolog_matrix);
 
 	destroyQuantumMachine(machine);
-	return true;
+	if (topolog_matrix.size() != 24)
+		return false;
+	else
+	    return true;
 }
 
 static bool get_qubit_topology_test_2()
@@ -162,13 +165,14 @@ static bool get_qubit_topology_test_2()
 
 	if (planarity_testing(test_topo_data))
 	{
-		cout << "planarity_testing PASS." << endl;
+		return true;
+		//cout << "planarity_testing PASS." << endl;
 	}
 	else
 	{
-		cout << "planarity_testing FAIL ......." << endl;
+		return false;
+		//cout << "planarity_testing FAIL ......." << endl;
 	}
-	return true;
 }
 
 TEST(GetQubitTopology, test1)
@@ -176,7 +180,7 @@ TEST(GetQubitTopology, test1)
 	bool test_val = false;
 	try
 	{
-		//test_val = get_qubit_topology_test_1();
+		test_val = get_qubit_topology_test_1();
 		test_val = get_qubit_topology_test_2();
 	}
 	catch (const std::exception& e)
@@ -188,8 +192,9 @@ TEST(GetQubitTopology, test1)
 		cout << "Got an unknow exception: " << endl;
 	}
 
-	cout << "GetQubitTopology test over, press Enter to continue." << endl;
-	getchar();
+	//cout << "GetQubitTopology test over." << endl;
+	//getchar();
 
+	//the function return value's type is bool.
 	ASSERT_TRUE(test_val);
 }

@@ -24,10 +24,11 @@ const static std::vector<QStat>& _single_gates_params()
 	return gate_params;
 }
 
+
+
 static std::vector<std::vector<int>> random_choice(int max, int layer, int lenght)
 {
-	std::random_device rd;
-	std::mt19937 gen(rd());
+	std::mt19937 gen(std::chrono::system_clock::now().time_since_epoch().count());
 	std::uniform_int_distribution<> u(0, max);
 	std::vector<std::vector<int>> result(layer, std::vector<int>(lenght));
 	for(int i = 0 ;i < layer; i++)

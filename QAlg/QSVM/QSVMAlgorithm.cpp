@@ -1,8 +1,12 @@
 #include "QAlg/QSVM/QSVMAlgorithm.h"
 #include "Core/Utilities/Tools/Utils.h"
-#include "QAlg/HHL/HHL.h"
 #include <cfloat>
 #include <queue>
+
+
+#include "Extensions/Extensions.h"
+
+#ifdef USE_EXTENSION
 
 USING_QPANDA
 using namespace std;
@@ -553,3 +557,5 @@ bool QPanda::qsvm_algorithm(std::vector<std::vector<double > > data, std::vector
 	QSVM qsvm = QSVM(data);
 	return qsvm.run(query_x);
 }
+
+#endif

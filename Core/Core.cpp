@@ -26,6 +26,7 @@ limitations under the License.
 #include "Core/Utilities/Tools/OriginCollection.h"
 #include "Core/QuantumMachine/Factory.h"
 #include "Core/QuantumMachine/QuantumMachineFactory.h"
+#include "Core/QuantumMachine/QCloudMachine.h"
 
 
 USING_QPANDA

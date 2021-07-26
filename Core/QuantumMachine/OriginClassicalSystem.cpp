@@ -53,15 +53,12 @@ size_t OriginCMem::get_capacity()
 void OriginCMem::set_capacity(size_t capacity_num)
 {
 	auto cur_cap = vecBit.size();
-	if (capacity_num = cur_cap)
+
+	if (capacity_num < cur_cap)
 	{
-		return;
+		vecBit.erase(vecBit.begin() + capacity_num, vecBit.end());
 	}
-	else if (capacity_num < cur_cap)
-	{
-		vecBit.erase(vecBit.begin() + capacity_num);
-	}
-	else
+	else if(capacity_num > cur_cap)
 	{
 		for (size_t i = cur_cap; i < capacity_num; ++i)
 		{
@@ -70,6 +67,10 @@ void OriginCMem::set_capacity(size_t capacity_num)
 				CreateCBitFromName("c" + obj2str(i));
 			vecBit.push_back(_New_CBit);
 		}
+	}
+	else
+	{
+		//do nothing
 	}
 }
 

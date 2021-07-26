@@ -9,7 +9,7 @@ USING_QPANDA
 
 static size_t g_shot = 1e5;
 
-bool test_cir_optimize_fun1() 
+bool test_cir_optimize_fun1()
 {
 	auto qvm = initQuantumMachine(QMachineType::CPU);
 	auto q = qvm->allocateQubits(4);
@@ -47,7 +47,7 @@ bool test_cir_optimize_fun1()
 	}*/
 
 	prog << cir << cir2 << Reset(q[1]) << cir3 << cir5 << MeasureAll(q, c);
-	cout << "src QProg:" << endl;
+	/*cout << "src QProg:" << endl;
 	cout << prog << endl;
 	{
 		printf("Measure result for src quantum program:\n");
@@ -55,13 +55,13 @@ bool test_cir_optimize_fun1()
 		for (const auto& _r : result) {
 			printf("%s:%5f\n", _r.first.c_str(), (double)_r.second / (double)g_shot);
 		}
-	}
+	}*/
 
 	cir_optimizer(prog, optimitzer_cir, QCircuitOPtimizerMode::Merge_H_X);
 
 	//prog << cir << cir2 << Reset(q[1]) << cir4 << cir6 << MeasureAll(q, c);
 
-	cout << "The optimizered QProg:" << endl;
+	/*cout << "The optimizered QProg:" << endl;
 	cout << prog << endl;
 	{
 		printf("Measure result for src optimizered-quantum-program:\n");
@@ -69,10 +69,13 @@ bool test_cir_optimize_fun1()
 		for (const auto& _r : result) {
 			printf("%s:%5f\n", _r.first.c_str(), (double)_r.second / (double)g_shot);
 		}
-	}
-
+	}*/
+	
 	destroyQuantumMachine(qvm);
-	return true;
+	if (prog.get_qgate_num() != 22)
+		return false;
+	else
+	    return true;
 }
 
 bool test_cir_optimize_fun11()
@@ -88,25 +91,28 @@ bool test_cir_optimize_fun11()
 
 	std::vector<std::pair<QCircuit, QCircuit>> optimitzer_cir;
 	optimitzer_cir.push_back(make_pair(cir7, cir8));
-	for (auto cir_item : optimitzer_cir)
+	/*for (auto cir_item : optimitzer_cir)
 	{
 		cout << "target cir:" << endl << cir_item.first << endl;
 		cout << "replaceed cir:" << endl << cir_item.second << endl;
-	}
+	}*/
 
 	QProg prog;
 	prog << H(q[0])<< H(q[2])<< H(q[3])<< CNOT(q[1], q[0])<< H(q[0])
 		<< CNOT(q[1], q[2])<< H(q[2])<< CNOT(q[2], q[3])<< H(q[3]);
-	cout << "befort optimizered QProg:" << endl;
-	cout << prog << endl;
+	/*cout << "before optimizered QProg:" << endl;
+	cout << prog << endl;*/
 
 	sub_cir_replace(prog, optimitzer_cir);
 
-	cout << "The optimizered QProg:" << endl;
-	cout << prog << endl;
-
+	/*cout << "The optimizered QProg:" << endl;
+	cout << prog << endl;*/
+	
 	destroyQuantumMachine(qvm);
-	return true;
+	if (optimitzer_cir.size() != 1)
+		return false;
+	else
+	    return true;
 }
 
 bool test_cir_optimize_fun2()
@@ -131,37 +137,36 @@ bool test_cir_optimize_fun2()
 
 	QCircuit cir5;
 	double theta_1 = PI / 3.0;
-	cir5 << RZ(q[3], PI / 2.0).dagger() << CZ(q[0], q[3]).dagger() << RX(q[3], PI / 2.0).dagger() 
+	cir5 << RZ(q[3], PI / 2.0).dagger() << CZ(q[0], q[3]).dagger() << RX(q[3], PI / 2.0).dagger()
 		<< RZ(q[3], theta_1) << RX(q[3], -PI / 2.0) << CZ(q[3], q[0]) << RZ(q[3], -PI / 2.0);
 	cir5.setDagger(true);
 	//cout << "cir5" << cir5 << endl;
 	prog << cir << cir2 /*<< Reset(q[1])*/ << cir3 << cir5 << cir.dagger() << cir.dagger()/*<< MeasureAll(q, c)*/;
-	cout << "prog" << prog << endl;
+	//cout << "prog" << prog << endl;
 	//draw_qprog(prog, 0, true);
 	const auto src_mat = getCircuitMatrix(prog);
-	cout << "src_mat:" << endl << src_mat << endl;
+	//cout << "src_mat:" << endl << src_mat << endl;
 
 	single_gate_optimizer(prog, QCircuitOPtimizerMode::Merge_U3);
 
 	const auto result_mat = getCircuitMatrix(prog);
-	cout << "result_mat:" << endl << result_mat << endl;
+	//cout << "result_mat:" << endl << result_mat << endl;
 
-	cout << "The optimizered QProg:" << endl;
-	cout << prog << endl;
+	//cout << "The optimizered QProg:" << endl;
+	//cout << prog << endl;
 
 	destroyQuantumMachine(qvm);
 
 	if (src_mat == result_mat)
 	{
-		cout << "//////////////////////// right,\\\\\\\\\\\\\\\\\\\\\\'" << endl;
+		return true;
+		//cout << "//////////////////////// right,\\\\\\\\\\\\\\\\\\\\\\'" << endl;
 	}
 	else
 	{
-		cout << "----------------- wrong-------------" << endl;
+		//cout << "----------------- wrong-------------" << endl;
 		return false;
 	}
-
-	return true;
 }
 
 static bool test_cir_optimize_3() {
@@ -178,111 +183,45 @@ static bool test_cir_optimize_3() {
 		/*<< BARRIER(q[0])*/ /*<< RY(q[0], PI/2.0)*/ << RPhi(q[0], -PI / 2.0, PI / 2.0);
 
 	const auto mat1 = getCircuitMatrix(prog);
-	cout << "mat1:" << mat1 << endl;
+	//cout << "mat1:" << mat1 << endl;
 
-	cout << "The source QProg:" << endl;
-	cout << prog << endl;
+	//cout << "The source QProg:" << endl;
+	//cout << prog << endl;
 
 	cir_optimizer(prog, std::vector<std::pair<QCircuit, QCircuit>>(), QCircuitOPtimizerMode::Merge_U3);
-	cout << " transfer_to_u3_gate " << prog << endl;
+	//cout << " transfer_to_u3_gate " << prog << endl;
 
 	auto mat2 = getCircuitMatrix(prog);
-	cout << "mat2:" << mat2 << endl;
-	if (mat1 == mat2)
-	{
-		cout << "oKKKKKKKKKKKKKKKKKKKK" << endl;
-	}
-	else
-	{
-		cout << "EEEErrorrrrrrrrrrrr" << endl;
-	}
+	//cout << "mat2:" << mat2 << endl;
 
 	auto result = runWithConfiguration(prog, c, 100);
 	//auto result = probRunDict(prog, q);
-	for (auto &val : result)
+	/*for (auto &val : result)
 	{
 		std::cout << val.first << ", " << val.second << std::endl;
-	}
+	}*/
 
 	destroyQuantumMachine(qvm);
-	return ret;
-}
-
-static bool test_cir_optimize_4()
-{
-	auto qvm = initQuantumMachine(QMachineType::CPU);
-	qvm->setConfigure({ 128,128 });
-	QVec q;
-	vector<ClassicalCondition> c;
-
-	QProg prog = convert_originir_to_qprog("E://HHL_prog-0602.ir", qvm, q, c);
-	//QProg prog = convert_originir_to_qprog("E://QPE_prog0601-errrr.ir", qvm, q, c);
-	//cout << "src prog:" << prog << endl;
-
-	/*const auto mat1 = getCircuitMatrix(prog);
-	cout << "mat1:" << mat1 << endl;*/
-
+	if (mat1 == mat2)
 	{
-		directlyRun(prog);
-		//auto stat = qvm->getQState();
-		auto result2 = getProbDict(q);
-
-		cout << "src qpe stat:\n";
-		for (auto &val : result2)
-		{
-			cout << val.second << "\n";
-		}
-		cout << endl;
-	}
-
-	decompose_multiple_control_qgate(prog, qvm);
-	/*cout << "after u3 prog:" << prog << endl;
-	const auto mat2 = getCircuitMatrix(prog);
-	cout << "mat2:" << mat2 << endl;*/
-
-	//single_gate_optimizer(prog, QCircuitOPtimizerMode::Merge_U3);
-	//write_to_originir_file(prog, machine, "E://HHL_prog.ir");
-	/*if (0 != mat_compare(mat1, mat2, 1e-10))
-	{
-		cout << "0KKKKKKKKKKK" << endl;
+		return true;
 	}
 	else
 	{
-		cout << "FFFFFFFFFFFFF" << endl;
-	}*/
-
-	PTrace("quantum circuit is running ...");
-	//auto start = chrono::system_clock::now();
-	directlyRun(prog);
-	//auto stat = qvm->getQState();
-	auto result2 = getProbDict(q);
-	/*auto end = chrono::system_clock::now();
-	auto duration = chrono::duration_cast<chrono::microseconds>(end - start);
-	PTrace("run HHL used: "
-		<< double(duration.count()) * chrono::microseconds::period::num / chrono::microseconds::period::den
-		<< " s");*/
-
-	cout << "u3-qpe stat:\n";
-	for (auto &val : result2)
-	{
-		cout << val.second << "\n";
+		return false;
 	}
-	cout << endl;
-
-	qvm->finalize();
-	return true;
 }
+
 
 TEST(QCircuitOptimizer, test1)
 {
 	bool test_val = false;
 	try
 	{
-		//test_val = test_cir_optimize_fun1();
-		//test_val = test_cir_optimize_fun11();
-		//test_val = test_cir_optimize_fun2();
-		//test_val = test_cir_optimize_3();
-		test_val = test_cir_optimize_4();
+		test_val = test_cir_optimize_fun1();
+		test_val = test_cir_optimize_fun11();
+		test_val = test_cir_optimize_fun2();
+		test_val = test_cir_optimize_3();
 	}
 	catch (const std::exception& e)
 	{
@@ -293,8 +232,9 @@ TEST(QCircuitOptimizer, test1)
 		cout << "Got an unknow exception: " << endl;
 	}
 
-	cout << "QCircuitOptimizer test over, press Enter to continue." << endl;
-	getchar();
+
+	//getchar();
 
 	ASSERT_TRUE(test_val);
+	//cout << "QCircuitOptimizer tests over." << endl;
 }

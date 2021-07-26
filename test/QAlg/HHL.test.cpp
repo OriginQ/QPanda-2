@@ -4,6 +4,11 @@
 #include <time.h>
 #include "Components/NodeSortProblemGenerator/NodeSortProblemGenerator.h"
 
+
+#include "Extensions/Extensions.h"
+
+#ifdef USE_EXTENSION
+
 USING_QPANDA
 using namespace std;
 
@@ -30,12 +35,22 @@ static bool test_fun1()
 	QStat result = HHL_solve_linear_equations(A, b);
 	int w = 0;
 	//double coffe = sqrt(340);
-	for (auto &val : result)
+
+	QStat _actual = { qcomplex_t(-0.0625,0) ,qcomplex_t(0.4375,0),
+					  qcomplex_t(0.6875, 0) ,qcomplex_t(0.8125, 0) };
+	//ouput solution
+	const auto _p = 1e-2;
+	for (size_t i = 0; i < result.size(); i++)
 	{
-		//val *= coffe;
+		const auto& val = result[i];
 		std::cout << val << " ";
-		if (++w == 2)
+		if ((abs(abs(val.real()) - abs(_actual[i].real())) > _p) ||
+			(abs(abs(val.imag()) - abs(_actual[i].imag())) > _p))
 		{
+			return false;
+		}
+
+		if (++w == 2) {
 			w = 0;
 			std::cout << std::endl;
 		}
@@ -43,11 +58,13 @@ static bool test_fun1()
 	std::cout << std::endl;
 
 	return true;
+
 }
 
 /**
 * @The HHL result:
-   [(0.867722,0), (0.433861,0), (0.21693,0), (0.108465,0)]
+   (0.5,0) (0.25,0)
+   (0.125,0) (0.0625,0)]
 */
 static bool test_fun2()
 {
@@ -67,13 +84,23 @@ static bool test_fun2()
 
 	QStat result = HHL_solve_linear_equations(A, b);
 	int w = 0;
-	double coffe = sqrt(1);
-	for (auto &val : result)
+	//double coffe = sqrt(340);
+
+	QStat _actual = { qcomplex_t(0.5,0) ,qcomplex_t(0.25,0),
+					  qcomplex_t(0.125,0) ,qcomplex_t(0.0625,0) };
+	//ouput solution
+	const auto _p = 1e-1;
+	for (size_t i = 0; i < result.size(); i++)
 	{
-		val *= coffe;
+		const auto& val = result[i];
 		std::cout << val << " ";
-		if (++w == 2)
+		if ((abs(abs(val.real()) - abs(_actual[i].real())) > _p) ||
+			(abs(abs(val.imag()) - abs(_actual[i].imag())) > _p))
 		{
+			return false;
+		}
+
+		if (++w == 2) {
 			w = 0;
 			std::cout << std::endl;
 		}
@@ -83,6 +110,8 @@ static bool test_fun2()
 	return true;
 }
 
+//(0.626818, 0) (0.2, 0)
+//(0.4, 0) (1.24507, 0)
 static bool test_fun3()
 {
 	auto machine = initQuantumMachine(CPU);
@@ -99,22 +128,34 @@ static bool test_fun3()
 
 	QStat result = HHL_solve_linear_equations(A, b, 1);
 	int w = 0;
-	double coffe = sqrt(1);
-	for (auto &val : result)
+	//double coffe = sqrt(340);
+
+	QStat _actual = { qcomplex_t(0.626818, 0) ,qcomplex_t(0.2, 0),
+					  qcomplex_t(0.4, 0) ,qcomplex_t(1.24507, 0) };
+	//ouput solution
+	const auto _p = 1e-1;
+	for (size_t i = 0; i < result.size(); i++)
 	{
-		val *= coffe;
+		const auto& val = result[i];
 		std::cout << val << " ";
-		if (++w == 2)
+		if ((abs(abs(val.real()) - abs(_actual[i].real())) > _p) ||
+			(abs(abs(val.imag()) - abs(_actual[i].imag())) > _p))
 		{
+			return false;
+		}
+
+		if (++w == 2) {
 			w = 0;
 			std::cout << std::endl;
 		}
 	}
 	std::cout << std::endl;
-
 	return true;
 }
-
+//(0.0232445, 0) (1.04619, 0)
+//(2.07265, 0) (3.08467, 0)
+//(4.09632, 0) (3.09583, 0)
+//(2.1017, 0) (0.030159, 0)
 static bool test_fun4()
 {
 	QStat A = {
@@ -132,11 +173,26 @@ static bool test_fun4()
 
 	QStat result = HHL_solve_linear_equations(A, b);
 	int w = 0;
-	for (auto &val : result)
+	//double coffe = sqrt(340);
+
+	QStat _actual = { qcomplex_t(0.0232445, 0) ,qcomplex_t(1.04619, 0),
+					  qcomplex_t(2.07265, 0) ,qcomplex_t(3.08467, 0),
+	                  qcomplex_t(4.09632, 0) ,qcomplex_t(3.09583, 0),
+	                  qcomplex_t(2.1017, 0) ,qcomplex_t(0.030159, 0)
+	                 };
+	//ouput solution
+	const auto _p = 1e-4;
+	for (size_t i = 0; i < result.size(); i++)
 	{
-		std::cout << (val.real()*val.real() + val.imag()*val.imag()) << " ";
-		if (++w == 2)
+		const auto& val = result[i];
+		std::cout << val << " ";
+		if ((abs(abs(val.real()) - abs(_actual[i].real())) > _p) ||
+			(abs(abs(val.imag()) - abs(_actual[i].imag())) > _p))
 		{
+			return false;
+		}
+
+		if (++w == 2) {
 			w = 0;
 			std::cout << std::endl;
 		}
@@ -146,37 +202,13 @@ static bool test_fun4()
 	return true;
 }
 
+
+
+//(-0.0185844, 0) (0.933218, 0)
+//(1.91188, 0) (2.90063, 0)
+//(3.88659, 0) (2.87717, 0)
+//(1.85705, 0) (-0.0505955, 0)
 static bool test_fun5()
-{
-	QStat A = {
-		qcomplex_t(1, 0), qcomplex_t(0, 0),
-		qcomplex_t(0, 0), qcomplex_t(0.70710678, 0.70710678)
-	};
-
-	/*QStat A = {
-		qcomplex_t(1, 0), qcomplex_t(0, 0),
-		qcomplex_t(0, 0), qcomplex_t(-0.5, 0.866025)
-	};*/
-
-	std::vector<double> b = { 0, 1 };
-
-	QStat result = HHL_solve_linear_equations(A, b);
-	int w = 0;
-	for (auto &val : result)
-	{
-		std::cout << (val.real()/**val.real()*/ + val.imag()/**val.imag()*/) << " ";
-		if (++w == 2)
-		{
-			w = 0;
-			std::cout << std::endl;
-		}
-	}
-	std::cout << std::endl;
-
-	return true;
-}
-
-static bool test_fun6()
 {
 	QStat A = {
 		qcomplex_t(1, 0), qcomplex_t(-1, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(1, 0),
@@ -193,53 +225,26 @@ static bool test_fun6()
 
 	QStat result = HHL_solve_linear_equations(A, b);
 	int w = 0;
-	for (auto &val : result)
+	//double coffe = sqrt(340);
+
+	QStat _actual = { qcomplex_t(-0.0185844, 0) ,qcomplex_t(0.933218, 0),
+					  qcomplex_t(1.91188, 0) ,qcomplex_t(2.90063, 0),
+					  qcomplex_t(3.88659, 0) ,qcomplex_t(2.87717, 0),
+					  qcomplex_t(1.85705, 0) ,qcomplex_t(-0.0505955, 0)
+	                 };
+	//ouput solution
+	const auto _p = 1e-4;
+	for (size_t i = 0; i < result.size(); i++)
 	{
-		std::cout << val.real()/**val.real()*/ << ", " << val.imag()/**val.imag()*/ << "i ";
-		if (++w == 2)
-		{
-			w = 0;
-			std::cout << std::endl;
-		}
-	}
-	std::cout << std::endl;
-
-	return true;
-}
-
-static bool test_fun7()
-{
-	/*QStat A = {
-		qcomplex_t(0.002, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0),
-		qcomplex_t(0, 0), qcomplex_t(0.323, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0),
-		qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0.00024, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0),
-		qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(-1.6, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0),
-		qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(-0.5, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0),
-		qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(1.1005, 0), qcomplex_t(0, 0), qcomplex_t(0, 0),
-		qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(-0.8, 0), qcomplex_t(0, 0),
-		qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0.0015, 0)
-	};*/
-
-	QStat A = {
-		qcomplex_t(2, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0),
-		qcomplex_t(0, 0), qcomplex_t(3, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0),
-		qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(4, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0),
-		qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(-6, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0),
-		qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(-5, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0),
-		qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(7, 0), qcomplex_t(0, 0), qcomplex_t(0, 0),
-		qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(-8, 0), qcomplex_t(0, 0),
-		qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(2, 0)
-	};
-
-	std::vector<double> b = { 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5 };
-
-	QStat result = HHL_solve_linear_equations(A, b);
-	int w = 0;
-	for (auto &val : result)
-	{
+		const auto& val = result[i];
 		std::cout << val << " ";
-		if (++w == 2)
+		if ((abs(abs(val.real()) - abs(_actual[i].real())) > _p) ||
+			(abs(abs(val.imag()) - abs(_actual[i].imag())) > _p))
 		{
+			return false;
+		}
+
+		if (++w == 2) {
 			w = 0;
 			std::cout << std::endl;
 		}
@@ -249,86 +254,9 @@ static bool test_fun7()
 	return true;
 }
 
-static bool test_fun8()
-{
-	//std::vector<std::vector<double>> graph{
-	//	//   O, A, B, C, D, E, F, G
-	//		{0, 1, 0, 0, 0, 0, 0, 0,},
-	//		{1, 0, 1, 0, 0, 0, 0, 0,},
-	//		{0, 1, 0, 1, 1, 1, 0, 0,},
-	//		{0, 0, 1, 0, 0, 1, 1, 0,},
-	//		{0, 0, 1, 0, 0, 1, 0, 1,},
-	//		{0, 0, 1, 1, 1, 0, 1, 1,},
-	//		{0, 0, 0, 1, 0, 1, 0, 0,},
-	//		{0, 0, 0, 0, 1, 1, 0, 0,}
-	//};
-
-	std::vector<std::vector<double>> graph{
-		// 1  2  3  4  5  6  7  8  9 10 11 12
-		  {0, 1 ,0 ,0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //1
-		  {1, 0 ,1 ,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //2
-		  {0, 1 ,0 ,1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //3
-		  {0, 0 ,1 ,0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0}, //4
-		  {0, 0 ,0 ,1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0}, //5
-		  {1, 0 ,0 ,0, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0}, //6
-		  {0, 0 ,0 ,0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0}, //7
-		  {0, 0 ,0 ,0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0}, //8
-		  {0, 0 ,0 ,0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0}, //9
-		  {0, 0 ,0 ,1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0}, //10
-		  {0, 0 ,0 ,0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0}, //11
-		  {0, 0 ,0 ,1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0}, //12
-		  {0, 0 ,0 ,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //13
-		  {0, 0 ,0 ,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //14
-		  {0, 0 ,0 ,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //15
-		  {0, 0 ,0 ,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}  //16
-	};
-
-	NodeSortProblemGenerator problem;
-	problem.setProblemGraph(graph);
-	problem.exec();
-
-	std::cout << "Classical Liner result: " << std::endl;
-	std::cout << problem.getLinearSolverResult();
-	std::cout << std::endl;
-
-	auto oA = problem.getMatrixA();
-	auto ob = problem.getVectorB();
-
-	//QStat A;
-	//for (auto i = 0; i < oA.rows(); i++)
-	//{
-	//	for (auto j = 0; j < oA.cols(); j++)
-	//	{
-	//		A.push_back(oA.row(i)[j]);
-	//	}
-	//}
-	auto A = Eigen_to_QStat(oA);
-	//Eigen::MatrixXcd
-
-	std::vector<double> b;
-	for (auto i = 0; i < ob.size(); i++)
-	{
-		b.push_back(ob[i]);
-	}
-
-	std::cout << "HHL:" << std::endl;
-	QStat result = HHL_solve_linear_equations(A, b);
-	int w = 0;
-	for (auto& val : result)
-	{
-		std::cout << val << " ";
-		if (++w == 1)
-		{
-			w = 0;
-			std::cout << std::endl;
-		}
-	}
-	std::cout << std::endl;
-
-	return true;
-}
-
-static bool test_fun9()
+/* 设置求解精度为2，得到HHL解为：(1.12452,0) (0.374246,0)
+*/
+static bool test_fun6()
 {
 	auto machine = initQuantumMachine(CPU);
 
@@ -353,28 +281,22 @@ static bool test_fun9()
 	}
 
 	//build HHL quantum program
-	auto prog = QProg();
-	QCircuit hhl_cir = build_HHL_circuit(A, tmp_b, machine);
+	QProg prog;
+	HHLAlg hhl_alg(machine);
+	QCircuit hhl_cir = hhl_alg.get_hhl_circuit(A, tmp_b, 2);
 	prog << hhl_cir;
 
-	PTrace("HHL quantum circuit is running ...\n");
+	//PTrace("HHL quantum circuit is running ...\n");
 	directlyRun(prog);
 	auto stat = machine->getQState();
 	machine->finalize();
 	stat.erase(stat.begin(), stat.begin() + (stat.size() / 2));
 
 	// normalise
-	double norm = 0.0;
-	for (auto &val : stat)
-	{
-		norm += ((val.real() * val.real()) + (val.imag() * val.imag()));
-	}
-	norm = sqrt(norm);
-
 	QStat stat_normed;
 	for (auto &val : stat)
 	{
-		stat_normed.push_back(val / qcomplex_t(norm, 0));
+		stat_normed.push_back(val * norm_coffe * hhl_alg.get_amplification_factor());
 	}
 
 	for (auto &val : stat_normed)
@@ -390,12 +312,21 @@ static bool test_fun9()
 		result.push_back(stat_normed.at(i));
 	}
 
+	QStat _actual = { qcomplex_t(1.12452,0), qcomplex_t(0.374246,0)};
+	//ouput solution
 	int w = 0;
-	for (auto &val : result)
+	const auto _p = 1e-5;
+	for (size_t i = 0; i < result.size(); i++)
 	{
+		const auto& val = result[i];
 		std::cout << val << " ";
-		if (++w == 2)
+		if ((abs(abs(val.real()) - abs(_actual[i].real())) > _p) || 
+			(abs(abs(val.imag()) - abs(_actual[i].imag())) > _p))
 		{
+			return false;
+		}
+
+		if (++w == 2){
 			w = 0;
 			std::cout << std::endl;
 		}
@@ -405,7 +336,14 @@ static bool test_fun9()
 	return true;
 }
 
-static bool test_fun10()
+/* 设置求解精度为2，得到HHL解为：
+(2185.3,0) (2205.46,0)
+(2231.63,0) (2265.44,0)
+(2169.26,0) (2192.92,0)
+(2224.78,0) (2258.67,0)
+
+*/
+static bool test_fun7()
 {
 	auto machine = initQuantumMachine(CPU);
 	auto prog = QProg();
@@ -426,11 +364,64 @@ static bool test_fun10()
 
 	QStat result = HHL_solve_linear_equations(A, b, 2);
 	int w = 0;
-	for (auto &val : result)
+	QStat _actual = { qcomplex_t(2185.3,0) ,qcomplex_t(2205.46,0),
+					  qcomplex_t(2231.63,0) ,qcomplex_t(2265.44,0),
+					  qcomplex_t(2169.26,0), qcomplex_t(2192.92,0),
+                      qcomplex_t(2224.78,0),  qcomplex_t(2258.67,0) };
+	//ouput solution
+    //int w = 0;
+	const auto _p = 1e-1;
+	for (size_t i = 0; i < result.size(); i++)
 	{
+		const auto& val = result[i];
 		std::cout << val << " ";
-		if (++w == 2)
+		if ((abs(abs(val.real()) - abs(_actual[i].real())) > _p) ||
+			(abs(abs(val.imag()) - abs(_actual[i].imag())) > _p))
 		{
+			return false;
+		}
+
+		if (++w == 2) {
+			w = 0;
+			std::cout << std::endl;
+		}
+	}
+	std::cout << std::endl;
+
+	return true;
+}
+
+/* HHL解为：(0,0) (1,0)
+*/
+static bool test_fun8()
+{
+	auto machine = initQuantumMachine(CPU);
+	auto prog = QProg();
+
+	QStat A = {
+	  0,  1,  
+	  1,  0
+	};
+
+	std::vector<double> b = { 1,0 };
+
+	QStat result = HHL_solve_linear_equations(A, b, 1);
+	int w = 0;
+	QStat _actual = { qcomplex_t(0,0) ,qcomplex_t(1,0)};
+	//ouput solution
+	//int w = 0;
+	const auto _p = 1e-1;
+	for (size_t i = 0; i < result.size(); i++)
+	{
+		const auto& val = result[i];
+		std::cout << val << " ";
+		if ((abs(abs(val.real()) - abs(_actual[i].real())) > _p) ||
+			(abs(abs(val.imag()) - abs(_actual[i].imag())) > _p))
+		{
+			return false;
+		}
+
+		if (++w == 2) {
 			w = 0;
 			std::cout << std::endl;
 		}
@@ -445,16 +436,14 @@ TEST(HHL, test1)
 	bool test_val = false;
 	try
 	{
-		//test_val = test_fun1();
-		//test_val = test_fun2();
-		//test_val = test_fun3();
-		//test_val = test_fun4();
-		//test_val = test_fun5();
-		//test_val = test_fun6();
-		//test_val = test_fun7();
-		//test_val = test_fun8();
-		//test_val = test_fun9();
-		test_val = test_fun10();
+		test_val = test_fun1();
+		test_val = test_fun2();
+		test_val = test_fun3();
+		test_val = test_fun4();
+		test_val = test_fun5();
+		test_val = test_fun6();
+		test_val = test_fun7();
+		test_val = test_fun8();
 	}
 	catch (const std::exception& e)
 	{
@@ -467,3 +456,5 @@ TEST(HHL, test1)
 
 	ASSERT_TRUE(test_val);
 }
+
+#endif

@@ -1,4 +1,7 @@
-#pragma once
+#ifndef _QVISUALIZATION_H_
+#define _QVISUALIZATION_H_
+
+
 #include "DrawQProg.h"
 #include "Core/Utilities/QPandaNamespace.h"
 #include "Core/Utilities/QProgInfo/Visualization/CharsTransform.h"
@@ -54,3 +57,5 @@ inline std::ostream  &operator<<(std::ostream &out, QProg prog) {
 }
 
 QPANDA_END
+
+#endif

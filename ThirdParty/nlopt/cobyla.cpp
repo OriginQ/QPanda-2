@@ -331,14 +331,13 @@ void restore_break(std::string save_file_name, func_wrap_state* state, int* neva
     int* n, int* m, int* mpp, int para_num, ...)
 {
     Document jsonDoc;
-    FILE* fpin = fopen(save_file_name.c_str(), "rb"); // 非Windows平台使用"r"
+    FILE* fpin = fopen(save_file_name.c_str(), "rb");
     char readBuffer[16000];
     FileReadStream is(fpin, readBuffer, sizeof(readBuffer));
     jsonDoc.ParseStream<kParseNanAndInfFlag>(is);
     fclose(fpin);
-    //判断解析从流中读取的字符串是否有错误
     if (jsonDoc.HasParseError()) {
-        std::cout << ("Json Parse error:%d", jsonDoc.GetParseError()) << std::endl; //打印错误编号
+        std::cout << ("Json Parse error:%d", jsonDoc.GetParseError()) << std::endl;
     }
 
     int w_length = *n * (3 * *n + 2 * *m + 11) + 4 * *m + 6;
@@ -400,13 +399,13 @@ void save_break(std::string save_file_name, func_wrap_state* state, int nevals_p
     int w_length = n * (3 * n + 2 * m + 11) + 4 * m + 6;
     int x_length = n;
     int iact_lenght = m + 1;
-    Document jsonDoc;       //生成一个dom元素Document
-    Document::AllocatorType& allocator = jsonDoc.GetAllocator();    //获取分配器
-    jsonDoc.SetObject();    //将当前的Document设置为一个object，也就是说，整个Document是一个Object类型的dom元素
+    Document jsonDoc;  
+    Document::AllocatorType& allocator = jsonDoc.GetAllocator(); 
+    jsonDoc.SetObject();
 
     jsonDoc.AddMember("nevals_p", nevals_p, allocator);
     jsonDoc.AddMember("niters_p", niters_p, allocator);
-    // 数组指针读取数据并写入数组
+ 
     Value work_array(kArrayType);
     for (i = 0; i < w_length; i++)
     {
@@ -462,7 +461,7 @@ void save_break(std::string save_file_name, func_wrap_state* state, int nevals_p
     }
     va_end(const_para);
 
-    FILE* fpout = fopen(save_file_name.c_str(), "wb"); // 非 Windows 平台使用 "w"
+    FILE* fpout = fopen(save_file_name.c_str(), "wb");
     char writeBuffer[8192];
     FileWriteStream os(fpout, writeBuffer, sizeof(writeBuffer));
     Writer<FileWriteStream, UTF8<>, UTF8<>,

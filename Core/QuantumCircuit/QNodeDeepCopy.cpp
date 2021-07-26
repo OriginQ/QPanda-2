@@ -93,6 +93,7 @@ std::shared_ptr<QNode> QNodeDeepCopy::executeQNode(std::shared_ptr<QNode> node)
 
 		auto temp = copy_node(gate_node);
 		auto result = std::dynamic_pointer_cast<QNode>(temp.getImplementationPtr());
+        return result;
 	}
 	break;
 
@@ -108,6 +109,7 @@ std::shared_ptr<QNode> QNodeDeepCopy::executeQNode(std::shared_ptr<QNode> node)
 
 		auto temp = copy_node(measure_node);
 		auto result = std::dynamic_pointer_cast<QNode>(temp.getImplementationPtr());
+        return result;
 	}
 	break;
 
@@ -139,6 +141,7 @@ std::shared_ptr<QNode> QNodeDeepCopy::executeQNode(std::shared_ptr<QNode> node)
 
 		auto temp = copy_node(qprog_node);
 		auto result = std::dynamic_pointer_cast<QNode>(temp.getImplementationPtr());
+        return result;
 	}
 	break;
 
@@ -154,6 +157,7 @@ std::shared_ptr<QNode> QNodeDeepCopy::executeQNode(std::shared_ptr<QNode> node)
 
 		auto temp = copy_node(cprog_node);
 		auto result = std::dynamic_pointer_cast<QNode>(temp.getImplementationPtr());
+        return result;
 	}
 	break;
 
@@ -422,6 +426,11 @@ std::shared_ptr<QNode> QPanda::deepCopyQNode(std::shared_ptr<QNode> src_node)
 	break;
 
 	case QIF_START_NODE:
+    case CLASS_COND_NODE:
+    {
+        auto cls_node = reproduction.copy_node(std::dynamic_pointer_cast<AbstractClassicalProg>(src_node));
+        return std::dynamic_pointer_cast<QNode>(cls_node.getImplementationPtr());
+    }
 	case WHILE_START_NODE:
 	{
 		auto control_flow_node = reproduction.copy_node(std::dynamic_pointer_cast<AbstractControlFlowNode>(src_node));

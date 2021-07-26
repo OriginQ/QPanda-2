@@ -18,6 +18,8 @@ Description  : Quantum program adaptation metadata instruction set
 #include "Core/QuantumMachine/OriginQuantumMachine.h"
 #include "Core/Utilities/Tools/JsonConfigParam.h"
 #include "Core/Utilities/Tools/QCircuitGenerator.h"
+#include "Core/Utilities/QProgInfo/QCircuitInfo.h"
+#include <vector>
 
 QPANDA_BEGIN
 using QGATE_SPACE::AbstractAngleParameter;
@@ -215,80 +217,14 @@ private:
 * @ingroup Utilities
 * @brief Decomposing control unitary single qgate in qprog
 */
-class DecomposeControlUnitarySingleQGate : public TraversalInterface<>
+class DecomposeControlUnitarySingleQGate : public TraverseByNodeIter
 {
 public:
-    /*!
-    * @brief  Execution traversal qgatenode
-    * @param[in,out]  AbstractQGateNode*  quantum gate
-    * @param[in]  AbstractQGateNode*  quantum gate
-    * @return     void
-    */
-    void execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node);
-
-
-       /*!
-    * @brief  Execution traversal measure node
-    * @param[in,out]  AbstractQuantumMeasure*  measure node
-    * @param[in]  AbstractQGateNode*  quantum gate
-    * @return     void
-    */
-    virtual void execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, std::shared_ptr<QNode> parent_node) 
-    {}
-
-	/*!
-	* @brief  Execution traversal reset node
-	* @param[in,out]  AbstractQuantumReset*  reset node
-	* @param[in]  AbstractQGateNode*  quantum gate
-	* @return     void
-	*/
-	virtual void execute(std::shared_ptr<AbstractQuantumReset> cur_node, std::shared_ptr<QNode> parent_node)
-	{}
-
-    /*!
-    * @brief  Execution traversal control flow node
-    * @param[in,out]  AbstractControlFlowNode*  control flow node
-    * @param[in]  AbstractQGateNode*  quantum gate
-    * @return     void
-    */
-    virtual void execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node) 
-    {
-        Traversal::traversal(cur_node,*this);
-    }
-
-
-    /*!
-    * @brief  Execution traversal qcircuit
-    * @param[in,out]  AbstractQuantumCircuit*  quantum circuit
-    * @param[in]  AbstractQGateNode*  quantum gate
-    * @return     void
-    */
-    virtual void execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std::shared_ptr<QNode> parent_node)
-    {
-        Traversal::traversal(cur_node,false,*this);
-    }
-    /*!
-    * @brief  Execution traversal qprog
-    * @param[in,out]  AbstractQuantumProgram*  quantum prog
-    * @param[in]  AbstractQGateNode*  quantum gate
-    * @return     void
-    */
-    virtual void execute(std::shared_ptr<AbstractQuantumProgram>  cur_node, std::shared_ptr<QNode> parent_node)
-    {
-        Traversal::traversal(cur_node,*this);
-    }
-    /*!
-    * @brief  Execution traversal qprog
-    * @param[in,out]  AbstractClassicalProg*  quantum prog
-    * @param[in]  AbstractQGateNode*  quantum gate
-    * @return     void
-    */
-    virtual void execute(std::shared_ptr<AbstractClassicalProg>  cur_node,
-        std::shared_ptr<QNode> parent_node)
-        {}
-
 	DecomposeControlUnitarySingleQGate(std::vector<std::vector<std::string>> valid_qgate_matrix)
 		:m_valid_qgate_matrix(valid_qgate_matrix) {}
+
+	void execute(std::shared_ptr<AbstractQGateNode> cur_node, std::shared_ptr<QNode> parent_node, QCircuitParam &cir_param, NodeIter& cur_node_iter) override;
+
 private:
 	std::vector<std::vector<std::string>> m_valid_qgate_matrix;
 };
@@ -809,10 +745,29 @@ private:
 * @param[in]  QuantumMachine*  quantum machine pointer
 * @param[in] const std::string& It can be configuration file or configuration data, which can be distinguished by file suffix,
 			 so the configuration file must be end with ".json", default is CONFIG_PATH
+* @param[in]  bool  whether transform to base quantum-gate, default is true
 * @return
 */
-void decompose_multiple_control_qgate(QProg& prog, QuantumMachine *quantum_machine, const std::string& config_data = CONFIG_PATH);
-void decompose_multiple_control_qgate(QCircuit& cir, QuantumMachine *quantum_machine, const std::string& config_data = CONFIG_PATH);
+void decompose_multiple_control_qgate(QProg& prog, QuantumMachine *quantum_machine, const std::string& config_data = CONFIG_PATH, bool b_transform_to_base_qgate = true);
+void decompose_multiple_control_qgate(QCircuit& cir, QuantumMachine *quantum_machine, const std::string& config_data = CONFIG_PATH, bool b_transform_to_base_qgate = true);
+
+/**
+* @brief Decompose multiple control QGate
+* @ingroup Utilities
+* @param[in]  QProg&   Quantum Program
+* @param[in]  QuantumMachine*  quantum machine pointer
+* @param[in] const std::vector<std::vector<string>>& q_gate;Two dimensional array, 
+              the first line of single gate list, the second line of multi gate list
+            single gate:H,I,T,S,X1,Y1,Z1,RX,RY,RZ,U1,U2,U3,U4;
+            multi gate:CNOT,CR,iSWAP,SAWP,CZ,CU
+            The first row of the matrix can be selected from the single gate list, 
+            and the second row of the matrix can be selected from the multi gate list
+
+* @param[in]  bool  whether transform to base quantum-gate, default is true
+* @return
+*/
+void decompose_multiple_control_qgate_withinarg(QProg& prog, QuantumMachine* quantum_machine, const std::vector<std::vector<std::string>>& q_gate, bool b_transform_to_base_qgate = true);
+void transform_to_base_qgate_withinarg(QProg& prog, QuantumMachine* quantum_machine, const std::vector<std::vector<std::string>>& q_gate);
 
 /**
 * @brief Basic quantum-gate conversion

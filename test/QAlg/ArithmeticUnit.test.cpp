@@ -35,10 +35,11 @@ void test_bind_nonnegative_data()
     }
 }
 
-void test_QAdder()
+bool test_QAdder()
 {
-    int n, m;
-    scanf("%d%d", &n, &m);
+    int n = 3;
+    int m = 4;
+   // scanf("%d%d", &n, &m);
     const int len = 10;
     auto a = qAllocMany(len);
     auto b = qAllocMany(len);
@@ -47,17 +48,27 @@ void test_QAdder()
     prog << bind_data(n, a) << bind_data(m, b)
         << QAdder(a, b, c);
     auto result = probRunDict(prog, a);
+    std::map<std::string, size_t> actual;
+    actual["0000000111"]= 1;
     for (auto& val : result)
     {
         if (val.second > 0)
-            std::cout << val.first << ", " << val.second << std::endl;
+        {
+            if (val.first.compare("0000000111"))
+                return false;//!= actual.find(val.first)).
+            //std::cout << val.first << ", " << val.second << std::endl;
+        }
+            
     }
+    return true;
 }
 
-void test_QAdderWithCarry()
+bool test_QAdderWithCarry()
 {
-    int n, m;
-    scanf("%d%d", &n, &m);
+    int n = 1;
+    int m = 1;
+    string res;
+    //scanf("%d%d", &n, &m);
     const int len = 3;
     auto a = qAllocMany(len);
     auto b = qAllocMany(len);
@@ -73,14 +84,21 @@ void test_QAdderWithCarry()
     for (auto& val : result)
     {
         if (val.second > 0)
-            std::cout << val.first << ", " << val.second << std::endl;
-    }
+            if (val.first.compare("0010"))
+            {
+                std::cout << val.first << ", " << val.second << std::endl;
+                return false;
+                // res = val.first;
+            }
+    } 
+    return true;
 }
 
-void test_QAdd()
+bool test_QAdd()
 {
-    int n, m;
-    scanf("%d%d", &n, &m);
+    int n = 0;
+    int m = 1;
+    //scanf("%d%d", &n, &m);
     const int len = 6;
     auto a = qAllocMany(len);
     auto b = qAllocMany(len);
@@ -92,14 +110,21 @@ void test_QAdd()
     for (auto& val : result)
     {
         if (val.second > 0)
-            std::cout << val.first << ", " << val.second << std::endl;
+            if (val.first.compare("000001"))
+            {
+                std::cout << val.first << ", " << val.second << std::endl;
+                return false;
+                // res = val.first;
+            }
     }
+    return true;
 }
 
 void test_QComplement()
 {
-    int n, m;
-    scanf("%d%d", &n, &m);
+    int n = 1;
+    int m = 1;
+    //scanf("%d%d", &n, &m);
     auto a = qAllocMany(n);
     auto k = qAllocMany(n + 2);
     QProg prog;
@@ -113,10 +138,11 @@ void test_QComplement()
     }
 }
 
-void test_QSub()
+bool test_QSub()
 {
-    int n, m;
-    scanf("%d%d", &n, &m);
+    int n = 3;
+    int m = 2;
+    //scanf("%d%d", &n, &m);
     const int len = 6;
     auto a = qAllocMany(len);
     auto b = qAllocMany(len);
@@ -128,14 +154,20 @@ void test_QSub()
     for (auto& val : result)
     {
         if (val.second > 0)
-            std::cout << val.first << ", " << val.second << std::endl;
+            if (val.first.compare("000001"))
+            {
+                std::cout << val.first << ", " << val.second << std::endl;
+                return false;
+            }
     }
+    return true;
 }
 
-void test_QMultiplier()
+bool test_QMultiplier()
 {
-    int n, m;
-    scanf("%d%d", &n, &m);
+    int n = 4;
+    int m = 4;
+    //scanf("%d%d", &n, &m);
     const int len = 4;
     auto a = qAllocMany(len);
     auto b = qAllocMany(len);
@@ -148,14 +180,20 @@ void test_QMultiplier()
     for (auto& val : result)
     {
         if (val.second > 0)
-            std::cout << val.first << ", " << val.second << std::endl;
+            if (val.first.compare("00010000"))
+            {
+                std::cout << val.first << ", " << val.second << std::endl;
+                return false;
+            }
     }
+    return true;
 }
 
-void test_QMul()
+bool test_QMul()
 {
-    int n, m;
-    scanf("%d%d", &n, &m);
+    int n = 3;
+    int m = 4;
+   // scanf("%d%d", &n, &m);
     const int len = 4;
     auto a = qAllocMany(len);
     auto b = qAllocMany(len);
@@ -168,14 +206,20 @@ void test_QMul()
     for (auto& val : result)
     {
         if (val.second > 0)
-            std::cout << val.first << ", " << val.second << std::endl;
+            if (val.first.compare("0001100"))
+            {
+                std::cout << val.first << ", " << val.second << std::endl;
+                return false;
+            }
     }
+    return true;
 }
 
-void test_QDivider()
+bool test_QDivider()
 {
-    int n, m;
-    scanf("%d%d", &n, &m);
+    int n = 4;
+    int m = 2;
+    //scanf("%d%d", &n, &m);
     const int len = 4;
     auto a = qAllocMany(len);
     auto b = qAllocMany(len);
@@ -189,14 +233,20 @@ void test_QDivider()
     for (auto& val : result)
     {
         if (val.second > 0)
-            std::cout << val.first << ", " << val.second << std::endl;
+            if (val.first.compare("0010"))
+            {
+                std::cout << val.first << ", " << val.second << std::endl;
+                return false;
+            }
     }
+    return true;
 }
 
-void test_QDividerWithAccuracy()
+bool test_QDividerWithAccuracy()
 {
-    int n, m;
-    scanf("%d%d", &n, &m);
+    int n = 1;
+    int m = 1;
+    //scanf("%d%d", &n, &m);
     const int len = 3;
     auto a = qAllocMany(len);
     auto b = qAllocMany(len);
@@ -216,12 +266,14 @@ void test_QDividerWithAccuracy()
         if (val.second > 0)
             std::cout << val.first << ", " << val.second << std::endl;
     }
+    return true;
 }
 
 void test_QDiv()
 {
-    int n, m;
-    scanf("%d%d", &n, &m);
+    int n = 1;
+    int m = 1;
+    //scanf("%d%d", &n, &m);
     const int len = 4;
     auto a = qAllocMany(len);
     auto b = qAllocMany(len);
@@ -241,8 +293,8 @@ void test_QDiv()
 
 void test_QDivWithAccuracy()
 {
-    int n, m;
-    scanf("%d%d", &n, &m);
+    int n = 3, m = 4;
+    //scanf("%d%d", &n, &m);
     const int len = 3;
     auto a = qAllocMany(len);
     auto b = qAllocMany(len);
@@ -266,23 +318,48 @@ void test_QDivWithAccuracy()
 
 TEST(ArithmeticUnit, test1)
 {
-    do
-    { 
+    //do
+    //{ 
+    //    init();
+    //    //test_bind_data();
+    //    //test_bind_nonnegative_data();
+    //    //test_QAdder();
+    //    //test_QAdderWithCarry();
+    //    //test_QAdd();
+    //    //test_QComplement();
+    //    //test_QSub();
+    //    //test_QMultiplier();
+    //    //test_QMul();
+    //    //test_QDivider();
+    //    //test_QDividerWithAccuracy();
+    //    //test_QDiv();
+    //    test_QDivWithAccuracy();
+    //    finalize();
+    //} while (getchar() != 'q');
+    
+    bool test_val = false;
+    try
+    {
+        // special algorithm cases , you should run a test case individually
         init();
-        //test_bind_data();
-        //test_bind_nonnegative_data();
-        //test_QAdder();
-        //test_QAdderWithCarry();
-        //test_QAdd();
-        //test_QComplement();
-        //test_QSub();
-        //test_QMultiplier();
-        //test_QMul();
-        //test_QDivider();
-        //test_QDividerWithAccuracy();
-        //test_QDiv();
-        test_QDivWithAccuracy();
+        test_val = test_QAdder();
+        //test_val = test_QAdd();
+        //test_val = test_QSub();
+        //test_val = test_QMultiplier();
+        //test_val = test_QMul();
+        //test_val = test_QDivider();
         finalize();
-    } while (getchar() != 'q');
-   
+        
+    }
+    catch (const std::exception& e)
+    {
+        cout << "Got a exception: " << e.what() << endl;
+    }
+    catch (...)
+    {
+        cout << "Got an unknow exception: " << endl;
+    }
+
+    ASSERT_TRUE(test_val);
+    cout << endl;
 }

@@ -10,8 +10,46 @@
 > -   **Removed**: 删除的功能.
 > -   **Fixed**: Bug修复.
 
-[UNRELEASED](https://github.com/OriginQ/QPanda-2/compare/v2.1.6...HEAD)
+[UNRELEASED](https://github.com/OriginQ/QPanda-2/compare/v2.1.7...HEAD)
 ========================================================================
+
+[v2.1.7](https://github.com/OriginQ/QPanda-2/compare/v2.1.5...v2.1.7) - 2020-7-27
+==================================================================================
+
+QPanda
+-----------
+
+Added
+*********
+
+- 虚拟机添加同时对多种量子逻辑门噪声设置接口
+
+
+Changed
+*********
+
+- 修改control信息遍历方式
+- 修改PMeasure算法
+- 修改GTest测试框架
+- Grover测试用例整改
+
+
+pyqpanda
+-------------
+
+Added
+*********
+
+- 虚拟机添加同时对多种量子逻辑门噪声设置接口
+
+
+Changed
+*********
+
+- 修改control信息遍历方式
+- 修改PMeasure算法
+- OBMT_mapping映射算法接口优化
+- HHL应用程序优化
 
 
 [v2.1.6](https://github.com/OriginQ/QPanda-2/compare/v2.1.5...v2.1.6) - 2020-6-17

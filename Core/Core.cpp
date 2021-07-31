@@ -431,20 +431,7 @@ map<string, size_t> QPanda::quickMeasure(QVec vQubit, int shots)
     return temp->quickMeasure(vQubit, shots);
 }
 
-QProg QPanda::MeasureAll(QVec vQubit, vector<ClassicalCondition> vCBit)
-{
-    QProg qprog = CreateEmptyQProg();
-    if (vQubit.size() != vCBit.size())
-    {
-        QCERR("vQubit != vCBit");
-        throw invalid_argument("vQubit != vCBit");
-    }
-    for (size_t i = 0; i < vQubit.size(); i++)
-    {
-        qprog << Measure(vQubit[i], vCBit[i]);
-    }
-    return qprog;
-}
+
 
 QStat QPanda::getQState()
 {

@@ -22,7 +22,8 @@ limitations under the License.
 #include "Core/QuantumCircuit/ClassicalConditionInterface.h"
 
 QPANDA_BEGIN
-
+class QVec;
+class QProg;
 /**
 * @class AbstractQuantumMeasure
 * @brief Quantum Measure basic abstract class
@@ -166,6 +167,17 @@ QMeasure Measure(Qubit * , ClassicalCondition );
 * @ingroup Core
 */
 QMeasure Measure(int, int);
+
+/**
+* @brief  Measure All  ClassicalCondition
+* @ingroup Core
+* @param[in]  QVec&  qubits vector
+* @param[in]  std::vector<ClassicalCondition>  Cbits vector
+* @return    QPanda::QProg   Quantum program
+*/
+QProg MeasureAll(const QVec&, const std::vector<ClassicalCondition>&);
+
+QProg MeasureAll(const std::vector<int>&, const std::vector<int>&);
 
 QPANDA_END
 

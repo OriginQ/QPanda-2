@@ -16,6 +16,8 @@ limitations under the License.
 
 #include "QuantumMeasure.h"
 #include "Core/Utilities/QProgInfo/ConfigMap.h"
+#include "Core/QuantumCircuit/QProgram.h"
+
 USING_QPANDA
 using namespace std;
 QMeasure  QPanda::Measure(Qubit * target_qubit,ClassicalCondition  classical_cond)
@@ -151,6 +153,36 @@ Qubit * OriginMeasure::getQuBit() const
 CBit * OriginMeasure::getCBit() const
 {
     return m_target_cbit;
+}
+
+QProg QPanda::MeasureAll(const QVec& vQubit, const std::vector<ClassicalCondition>& vCBit)
+{
+	QProg qprog = CreateEmptyQProg();
+	if (vQubit.size() != vCBit.size())
+	{
+		QCERR("vQubit != vCBit");
+		throw invalid_argument("vQubit != vCBit");
+	}
+	for (size_t i = 0; i < vQubit.size(); i++)
+	{
+		qprog << Measure(vQubit[i], vCBit[i]);
+	}
+	return qprog;
+}
+
+QProg QPanda::MeasureAll(const std::vector<int>& iQubit, const std::vector<int>& cCBit)
+{
+	QProg qprog = CreateEmptyQProg();
+	if (iQubit.size() != cCBit.size())
+	{
+		QCERR("iQubit != cCBit");
+		throw invalid_argument("iQubit != cCBit");
+	}
+	for (size_t i = 0; i < iQubit.size(); i++)
+	{
+		qprog << Measure(iQubit[i], cCBit[i]);
+	}
+	return qprog;
 }
 
 REGISTER_MEASURE(OriginMeasure);

@@ -203,6 +203,19 @@ Z::Z()
 	gate_type = GateType::PAULI_Z_GATE;
 }
 
+//P_Gate=[1 0;0 exp(i*angle)]
+P::P(double angle)
+{
+	operation_num = 1;
+	alpha = angle / 2;
+	beta = angle;
+	gamma = 0;
+	delta = 0;
+	gate_matrix[3].real(cos(angle));
+	gate_matrix[3].imag(1 * sin(angle));
+	gate_type = GateType::P_GATE;
+}
+
 //RX(pi/2) gate
 X1::X1()
 {
@@ -585,6 +598,18 @@ CZ::CZ()
     delta = 0;
     gate_matrix[15] = -1;
 	gate_type = GateType::CZ_GATE;
+}
+
+CP::CP(double angle)
+{
+	operation_num = 2;
+	alpha = angle / 2;
+	beta = angle;
+	gamma = 0;
+	delta = 0;
+	gate_matrix[15].real(cos(angle));
+	gate_matrix[15].imag(1 * sin(angle));
+	gate_type = GateType::CP_GATE;
 }
 
 ISWAPTheta::ISWAPTheta(QuantumGate  * gate_old) :QDoubleGate(gate_old)

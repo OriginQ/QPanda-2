@@ -51,6 +51,7 @@ enum GateType {
     X_HALF_PI,/**< Quantum x half gate */
     Y_HALF_PI,/**< Quantum y half gate */
     Z_HALF_PI,/**< Quantum z half gate */
+	P_GATE,/**<Quantum p gate>*/
     HADAMARD_GATE,/**< Quantum hadamard gate */
     T_GATE,/**< Quantum t gate */
     S_GATE,/**< Quantum s gate */
@@ -65,6 +66,7 @@ enum GateType {
     CU_GATE,/**< Quantum control-u gate */
     CNOT_GATE,/**< Quantum control-not gate */
     CZ_GATE,/**< Quantum control-z gate */
+	CP_GATE,/**<Quantum control-p gate>*/
     CPHASE_GATE,/**< Quantum control-rotation gate */
     ISWAP_THETA_GATE,/**< Quantum iswap-theta gate */
     ISWAP_GATE,/**< Quantum iswap gate */

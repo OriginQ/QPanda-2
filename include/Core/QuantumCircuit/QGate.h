@@ -488,6 +488,42 @@ QGate U1(int  qaddr, double angle);
 QCircuit U1(const std::vector<int>& qaddrs, double angle);
 
 /**
+* @brief  Construct a new quantum P gate
+* @param[in]  Qubit* target qubit
+* @param[in]  double angle
+* @return     QPanda::QGate  quantum gate
+* @ingroup QuantumCircuit
+*/
+QGate P(Qubit*, double angle);
+
+/**
+* @brief  Construct qubits.size() new P gate
+* @param[in] const QVec& qubits target qubits vector
+* @return     QPanda::QCircuit  quantum circuit
+* @ingroup QuantumCircuit
+*/
+QCircuit P(const QVec& qubites, double angle);
+
+/**
+* @brief  Construct a new quantum P gate
+* @param[in]  int  qaddr  target qubit phy addr
+* @param[in]  double angle
+* @return     QPanda::QGate  quantum gate
+* @ingroup QuantumCircuit
+*/
+QGate P(int qaddr, double angle);
+
+/**
+* @brief  Construct qaddrs.size() new quantum P gate
+* @param[in]  int  qaddr  target qubit phy addr
+* @param[in]  double angle
+* @return     QPanda::QGate  quantum gate
+* @ingroup QuantumCircuit
+*/
+QCircuit P(const std::vector<int>& qaddrs, double angle);
+
+
+/**
 * @brief  Construct a new quantum U2 gate
 * @param[in]  Qubit* target qubit
 * @param[in]  double phi
@@ -746,6 +782,7 @@ QGate Z1(int  qaddr);
 * @ingroup QuantumCircuit
 */
 QCircuit Z1(const std::vector<int>& qaddrs);
+
 
 /**
 * @brief  Construct a new quantum RZ gate
@@ -1310,6 +1347,47 @@ QGate CR(int control_qaddr, int target_qaddr, double theta);
 * @ingroup QuantumCircuit
 */
 QCircuit CR(const std::vector<int>& control_qaddrs, const std::vector<int>& target_qaddrs, double theta);
+
+/**
+* @brief  Construct a new quantum CP gate
+* @param[in]  Qubit* control qubit
+* @param[in]  Qubit* targit qubit
+* @param[in]  double theta
+* @return     QPanda::QGate  quantum gate
+* @ingroup QuantumCircuit
+*/
+QGate CP(Qubit * control_qubit, Qubit * targit_qubit, double theta);
+
+/**
+* @brief  Construct control_qubits.size() new quantum CP gate
+* @param[in]  Qubit* control qubit
+* @param[in]  Qubit* targit qubit
+* @param[in]  double theta
+* @return     QPanda::QGate  quantum gate
+* @ingroup QuantumCircuit
+*/
+QCircuit CP(const QVec& control_qubits, const QVec& targit_qubits, double theta);
+
+/**
+* @brief  Construct a new quantum CP gate
+* @param[in]  int  qaddr  control qubit phy addr
+* @param[in]  int  qaddr  target qubit phy addr
+* @param[in]  double theta
+* @return     QPanda::QGate  quantum gate
+* @ingroup QuantumCircuit
+*/
+QGate CP(int control_qaddr, int target_qaddr, double theta);
+
+/**
+* @brief  Construct control_qaddrs.size() new quantum CP gate
+* @param[in]  int  qaddr  control qubit phy addr
+* @param[in]  int  qaddr  target qubit phy addr
+* @param[in]  double theta
+* @return     QPanda::QGate  quantum gate
+* @ingroup QuantumCircuit
+*/
+QCircuit CP(const std::vector<int>& control_qaddrs, const std::vector<int>& target_qaddrs, double theta);
+
 
 /**
 * @brief  Construct a new quantum SqiSWAP gate

@@ -139,6 +139,13 @@ public:
         return qErrorNone;
     }
 
+	QError P_GATE(size_t qn, double theta, bool is_dagger, double error_rate)
+	{
+		QStat matrix = { 1, 0, 0, qcomplex_t(cos(theta),sin(theta)) };
+		_U1(qn, matrix, is_dagger);
+		return qErrorNone;
+	}
+
 
     template<const double& Nx, const double& Ny, const double& Nz>
     QError single_angle_gate(size_t qn, double theta, bool is_dagger, double error_rate)
@@ -296,6 +303,28 @@ public:
         return qErrorNone;
     }
 
+	inline QError CP(size_t qn_0, size_t qn_1,
+		double theta, bool isConjugate, double error_rate)
+	{
+		QStat matrix = { 1, 0, 0, 0,
+						0, 1, 0, 0,
+						0, 0, 1, 0,
+						0, 0, 0, qcomplex_t(std::cos(theta), std::sin(theta)) };
+		_CP(qn_0, qn_1, matrix, isConjugate);
+		return qErrorNone;
+	}
+
+	inline QError CP(size_t qn_0, size_t qn_1, Qnum& vControlBit,
+		double theta, bool isConjugate, double error_rate)
+	{
+		QStat matrix = { 1, 0, 0, 0,
+						0, 1, 0, 0,
+						0, 0, 1, 0,
+						0, 0, 0, qcomplex_t(std::cos(theta), std::sin(theta)) };
+		_CP(qn_0, qn_1, matrix, isConjugate, vControlBit);
+		return qErrorNone;
+	}
+
     inline QError CZ(size_t qn_0, size_t qn_1, bool isConjugate, double error_rate)
     {
         CR(qn_0, qn_1, PI, isConjugate, error_rate);
@@ -372,12 +401,14 @@ protected:
     QError _Z(size_t qn);
     QError _S(size_t qn, bool is_dagger);
     QError _U1(size_t qn, QStat &matrix, bool is_dagger);
+	QError _P(size_t qn, QStat &matrix, bool is_dagger);
     QError _RZ(size_t qn, QStat &matrix, bool is_dagger);
     QError _H(size_t qn, QStat &matrix);
 
     QError _CNOT(size_t qn_0, size_t qn_1);
     QError _CZ(size_t qn_0, size_t qn_1);
     QError _CR(size_t qn_0, size_t qn_1, QStat &matrix, bool is_dagger);
+	QError _CP(size_t qn_0, size_t qn_1, QStat &matrix, bool is_dagger);
     QError _SWAP(size_t qn_0, size_t qn_1);
     QError _iSWAP(size_t qn_0, size_t qn_1, QStat &matrix, bool is_dagger);
     QError _iSWAP_theta(size_t qn_0, size_t qn_1, QStat &matrix, bool is_dagger);
@@ -388,12 +419,14 @@ protected:
     QError _Z(size_t qn, Qnum &controls);
     QError _S(size_t qn, bool is_dagger, Qnum &controls);
     QError _U1(size_t qn, QStat &matrix, bool is_dagger, Qnum &controls);
+	QError _P(size_t qn, QStat &matrix, bool is_dagger, Qnum &controls);
     QError _RZ(size_t qn, QStat &matrix, bool is_dagger, Qnum &controls);
     QError _H(size_t qn, QStat &matrix, Qnum &controls);
 
     QError _CNOT(size_t qn_0, size_t qn_1, Qnum &controls);
     QError _CZ(size_t qn_0, size_t qn_1, Qnum &controls);
     QError _CR(size_t qn_0, size_t qn_1, QStat &matrix, bool is_dagger, Qnum &controls);
+	QError _CP(size_t qn_0, size_t qn_1, QStat &matrix, bool is_dagger, Qnum &controls);
     QError _SWAP(size_t qn_0, size_t qn_1, Qnum &controls);
     QError _iSWAP(size_t qn_0, size_t qn_1, QStat &matrix, bool is_dagger, Qnum &controls);
     QError _iSWAP_theta(size_t qn_0, size_t qn_1, QStat &matrix, bool is_dagger, Qnum &controls);

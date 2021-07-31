@@ -86,12 +86,9 @@ QError CPUImplQPU::pMeasure(Qnum& qnum, prob_tuple &probs, int select_max)
 QError CPUImplQPU::pMeasure(Qnum& qnum, prob_vec &probs)
 {
     probs.resize(1ll << qnum.size());
-    const size_t probs_size = probs.size();
-    double *probs_pointer = probs.data();
-
     size_t size = 1ll << m_qubit_num;
     stable_sort(qnum.begin(), qnum.end());
-//#pragma omp parallel for num_threads(_omp_thread_num(size)) reduction(+:probs_pointer[0:probs_size])
+#pragma omp parallel for num_threads(_omp_thread_num(size))
     for (int64_t i = 0; i < size; i++)
     {
         size_t pmeasure_idx = 0;
@@ -110,7 +107,12 @@ QError CPUImplQPU::pMeasure(Qnum& qnum, prob_vec &probs)
                 break;
             }
         }
-        probs_pointer[pmeasure_idx] += std::norm(m_state[i]);
+
+#pragma omp critical
+        {
+            probs[pmeasure_idx] += std::norm(m_state[i]);
+        }
+
     }
 
     return qErrorNone;
@@ -549,6 +551,36 @@ QError CPUImplQPU::_CR(size_t qn_0, size_t qn_1, QStat &matrix, bool is_dagger)
     return qErrorNone;
 }
 
+QError CPUImplQPU::_CP(size_t qn_0, size_t qn_1, QStat &matrix, bool is_dagger)
+{
+	int64_t size = 1ll << (m_qubit_num - 2);
+	int64_t offset0 = 1ll << qn_0;
+	int64_t offset1 = 1ll << qn_1;
+	if (is_dagger)
+	{
+		matrix[15] = { matrix[15].real(), -matrix[15].imag() };
+	}
+
+	if (size > m_threshold)
+	{
+#pragma omp parallel for
+		for (int64_t i = 0; i < size; i++)
+		{
+			int64_t real00_idx = _insert(i, qn_1, qn_0);
+			m_state[real00_idx | offset0 | offset1] *= matrix[15];
+		}
+	}
+	else
+	{
+		for (int64_t i = 0; i < size; i++)
+		{
+			int64_t real00_idx = _insert(i, qn_1, qn_0);
+			m_state[real00_idx | offset0 | offset1] *= matrix[15];
+		}
+	}
+	return qErrorNone;
+}
+
 QError CPUImplQPU::_SWAP(size_t qn_0, size_t qn_1)
 {
     int64_t size = 1ll << (m_qubit_num - 2);
@@ -722,6 +754,36 @@ QError CPUImplQPU::_U1(size_t qn, QStat &matrix, bool is_dagger)
     return qErrorNone;
 }
 
+QError CPUImplQPU::_P(size_t qn, QStat &matrix, bool is_dagger)
+{
+	int64_t size = 1ll << (m_qubit_num - 1);
+	int64_t offset = 1ll << qn;
+	if (is_dagger)
+	{
+		matrix[3] = qcomplex_t(matrix[3].real(), -matrix[3].imag());
+	}
+
+	if (size > m_threshold)
+	{
+#pragma omp parallel for
+		for (int64_t i = 0; i < size; i++)
+		{
+			int64_t real00_idx = _insert(i, qn);
+			int64_t real01_idx = real00_idx | offset;
+			m_state[real01_idx] *= matrix[3];
+		}
+	}
+	else
+	{
+		for (int64_t i = 0; i < size; i++)
+		{
+			int64_t real00_idx = _insert(i, qn);
+			int64_t real01_idx = real00_idx | offset;
+			m_state[real01_idx] *= matrix[3];
+		}
+	}
+	return qErrorNone;
+}
 
 QError CPUImplQPU::_X(size_t qn, Qnum &controls)
 {
@@ -1073,6 +1135,45 @@ QError CPUImplQPU::_CR(size_t qn_0, size_t qn_1, QStat &matrix, bool is_dagger, 
     return qErrorNone;
 }
 
+QError CPUImplQPU::_CP(size_t qn_0, size_t qn_1, QStat &matrix, bool is_dagger, Qnum &controls)
+{
+	int64_t size = 1ll << (m_qubit_num - 2);
+	int64_t offset0 = 1ll << qn_0;
+	int64_t offset1 = 1ll << qn_1;
+	int64_t mask = 0;
+	for_each(controls.begin(), controls.end() - 2, [&](size_t &q) {
+		mask |= 1ll << q;
+	});
+
+	if (is_dagger)
+	{
+		matrix[15] = { matrix[15].real(), -matrix[15].imag() };
+	}
+
+	if (size > m_threshold)
+	{
+#pragma omp parallel for
+		for (int64_t i = 0; i < size; i++)
+		{
+			int64_t real00_idx = _insert(i, qn_1, qn_0);
+			if (mask != (mask & real00_idx))
+				continue;
+			m_state[real00_idx | offset0 | offset1] *= matrix[15];
+		}
+	}
+	else
+	{
+		for (int64_t i = 0; i < size; i++)
+		{
+			int64_t real00_idx = _insert(i, qn_1, qn_0);
+			if (mask != (mask & real00_idx))
+				continue;
+			m_state[real00_idx | offset0 | offset1] *= matrix[15];
+		}
+	}
+	return qErrorNone;
+}
+
 QError CPUImplQPU::_SWAP(size_t qn_0, size_t qn_1, Qnum &controls)
 {
     int64_t size = 1ll << (m_qubit_num - 2);
@@ -1299,6 +1400,45 @@ QError CPUImplQPU::_U1(size_t qn, QStat &matrix, bool is_dagger, Qnum &controls)
     return qErrorNone;
 }
 
+QError CPUImplQPU::_P(size_t qn, QStat &matrix, bool is_dagger, Qnum &controls)
+{
+	int64_t size = 1ll << (m_qubit_num - 1);
+	int64_t offset = 1ll << qn;
+	int64_t mask = 0;
+	for_each(controls.begin(), controls.end() - 1, [&](size_t &q) {
+		mask |= 1ll << q;
+	});
+
+	if (is_dagger)
+	{
+		matrix[3] = qcomplex_t(matrix[3].real(), -matrix[3].imag());
+	}
+
+	if (size > m_threshold)
+	{
+#pragma omp parallel for
+		for (int64_t i = 0; i < size; i++)
+		{
+			int64_t real00_idx = _insert(i, qn);
+			if (mask != (mask & real00_idx))
+				continue;
+			int64_t real01_idx = real00_idx | offset;
+			m_state[real01_idx] *= matrix[3];
+		}
+	}
+	else
+	{
+		for (int64_t i = 0; i < size; i++)
+		{
+			int64_t real00_idx = _insert(i, qn);
+			if (mask != (mask & real00_idx))
+				continue;
+			int64_t real01_idx = real00_idx | offset;
+			m_state[real01_idx] *= matrix[3];
+		}
+	}
+	return qErrorNone;
+}
 
 QError CPUImplQPU::_single_qubit_normal_unitary(size_t qn, QStat &matrix, bool is_dagger)
 {
@@ -1578,6 +1718,9 @@ unitarySingleQubitGate(size_t qn,
     case GateType::U1_GATE:
         _U1(qn, matrix, is_dagger);
         break;
+	case GateType::P_GATE:
+		_P(qn, matrix, is_dagger);
+		break;
     case GateType::RZ_GATE:
     case GateType::Z_HALF_PI:
         _RZ(qn, matrix, is_dagger);
@@ -1631,6 +1774,9 @@ controlunitarySingleQubitGate(size_t qn,
     case GateType::U1_GATE:
         _U1(qn, matrix, is_dagger, controls);
         break;
+	case GateType::P_GATE:
+		_P(qn, matrix, is_dagger, controls);
+		break;
     case GateType::RZ_GATE:
     case GateType::Z_HALF_PI:
         _RZ(qn, matrix, is_dagger, controls);
@@ -1673,6 +1819,9 @@ unitaryDoubleQubitGate(size_t qn_0,
     case GateType::CPHASE_GATE:
         _CR(qn_0, qn_1, matrix, is_dagger);
         break;
+	case GateType::CP_GATE:
+		_CP(qn_0, qn_1, matrix, is_dagger);
+		break;
     case GateType::SWAP_GATE:
         _SWAP(qn_0, qn_1);
         break;
@@ -1714,6 +1863,9 @@ controlunitaryDoubleQubitGate(size_t qn_0,
     case GateType::CPHASE_GATE:
         _CR(qn_0, qn_1, matrix, is_dagger, controls);
         break;
+	case GateType::CP_GATE:
+		_CP(qn_0, qn_1, matrix, is_dagger, controls);
+		break;
     case GateType::SWAP_GATE:
         _SWAP(qn_0, qn_1, controls);
         break;
@@ -1767,7 +1919,11 @@ int CPUImplQPU::_omp_thread_num(size_t size)
 {
     if (size > m_threshold)
     {
+#ifdef USE_OPENMP
         return omp_get_max_threads();
+#else
+        return 1;
+#endif
     }
     else
     {

@@ -245,12 +245,8 @@ void QuantumVolume::calcINoiseResult(std::vector<std::vector <QvCircuit> >&circu
 			for (int i = 0; i < stat_vec.size(); i++)
 			{
 				auto iter_res = result.find(stat_vec[i]);
-				if (iter_res == result.end())
-				{
-					QCERR("find result error !");
-					throw invalid_argument("find result error !");
-				}
-				counts += iter_res->second;
+				if (iter_res != result.end())
+					counts += iter_res->second;
 			}
 			m_heavy_output_counts.insert(std::pair <std::pair<int, int >, size_t >(key, counts));
 		}

@@ -583,6 +583,29 @@ namespace QGATE_SPACE
         }
     };
 
+	class P :public U4,
+		public AbstractSingleAngleParameter,
+		public DynamicCreator<P, double&>,
+		public DynamicCreator<P, QuantumGate*>
+	{
+	public:
+		P(QuantumGate  * gate_old) :U4(gate_old)
+		{
+			if (gate_old->getGateType() != GateType::U1_GATE)
+			{
+				QCERR("Parameter qgate_old error");
+				throw std::invalid_argument("Parameter qgate_old error");
+			}
+			gate_type = gate_old->getGateType();
+		};
+		P(double);
+		inline double getParameter() const
+		{
+			return this->beta;
+		}
+	};
+
+
     class U2 :public U4,
         public DynamicCreator<U2, double&, double&>,
         public DynamicCreator<U2, QuantumGate*>
@@ -816,6 +839,29 @@ namespace QGATE_SPACE
 
         CZ();
     };
+
+	class CP :public CU,
+		public DynamicCreator<CP,double&>,
+		public DynamicCreator<CP, QuantumGate*>
+	{
+	public:
+		CP(QuantumGate  * gate_old) :CU(gate_old)
+		{
+			if (gate_old->getGateType() != GateType::CP_GATE)
+			{
+				QCERR("Parameter qgate_old error");
+				throw std::invalid_argument("Parameter qgate_old error");
+			}
+			gate_type = gate_old->getGateType();
+		}
+
+		CP(double);
+		inline double getParameter() const
+		{
+			return this->beta;
+		}
+
+	};
 
     class ISWAPTheta : public QDoubleGate, 
 		public AbstractSingleAngleParameter,

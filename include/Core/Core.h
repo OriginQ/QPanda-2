@@ -328,14 +328,7 @@ QuantumMachine *initQuantumMachine(QMachineType type=CPU);
 */
 void destroyQuantumMachine(QuantumMachine * qvm);
 
-/**
-* @brief  Measure All  ClassicalCondition
-* @ingroup Core
-* @param[in]  QVec&  qubits vector
-* @param[in]  std::vector<ClassicalCondition>  Cbits vector
-* @return    QPanda::QProg   Quantum program
-*/
-QPanda::QProg MeasureAll(QVec, std::vector<ClassicalCondition>);
+
 
 extern QProg transformOriginIRToQProg(std::string filePath, QuantumMachine* qm, QVec &qv, std::vector<ClassicalCondition> &cv);
 

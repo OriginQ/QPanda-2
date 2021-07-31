@@ -3,6 +3,7 @@
 
 #include "Core/QuantumMachine/OriginQuantumMachine.h"
 #include "Core/QuantumMachine/QuantumMachineInterface.h"
+#include "Core/QuantumCircuit/QNodeDeepCopy.h"
 
 QPANDA_BEGIN
 

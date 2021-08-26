@@ -21,7 +21,7 @@ limitations under the License.
 #include "Core/VirtualQuantumProcessor/QPUImpl.h"
 #include "Core/VirtualQuantumProcessor/QuantumGateParameter.h"
 #include "Core/Utilities/Tools/QPandaException.h"
-#include "Core/VirtualQuantumProcessor/RandomEngine/RandomEngine.h"
+#include "Core/Utilities/Tools/RandomEngine/RandomEngine.h"
 #include "Core/VirtualQuantumProcessor/NoiseQPU/NoiseModel.h"  
 #include "Core/QuantumMachine/QProgCheck.h"
 #include <map>

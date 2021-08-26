@@ -401,6 +401,46 @@ void QGateParseDoubleBit(QuantumGate* qgate,
 	}
 }
 
+void QGateParseOracleBit(QuantumGate* qgate,
+    QVec& qubit_vector,
+    QPUImpl* qgates,
+    bool is_dagger,
+    QVec& control_qubit_vector,
+    GateType type)
+{
+    if (nullptr == qgate)
+    {
+        QCERR("param error");
+        throw invalid_argument("param error");
+    }
+
+    QStat matrix;
+    qgate->getMatrix(matrix);
+
+    Qnum targets(qubit_vector.size());
+    for (size_t i = 0; i < qubit_vector.size(); i++)
+    {
+        targets[i] = qubit_vector[i]->get_phy_addr();
+    }
+
+    if (control_qubit_vector.size() == 0)
+    {
+        qgates->OracleGate(targets, matrix, is_dagger);
+    }
+    else
+    {
+        vector<size_t> controls(control_qubit_vector.size());
+        for (size_t i = 0; i < control_qubit_vector.size(); i++)
+        {
+            controls[i] = control_qubit_vector[i]->get_phy_addr();
+        }
+
+        controls.insert(controls.end(), targets.begin(), targets.end());
+        qgates->controlOracleGate(targets, controls, matrix, is_dagger);
+    }
+
+}
+
 #define REGISTER_QGATE_PARSE(BitCount,FunctionName) \
 class insertQGateMapHelper_##FunctionName \
 { \
@@ -414,6 +454,7 @@ insertQGateMapHelper_##FunctionName _G_insertQGateHelper##FunctionName(BitCount,
 
 REGISTER_QGATE_PARSE(1, QGateParseSingleBit);
 REGISTER_QGATE_PARSE(2, QGateParseDoubleBit);
+REGISTER_QGATE_PARSE(-1, QGateParseOracleBit);
 
 /*Singl Gate*/
 QGate QPanda::I(Qubit* qubit)
@@ -2180,3 +2221,24 @@ QGate QPanda::Toffoli(int qaddr0, int qaddr1, int target_qaddr)
     gate.setControl({ qpool->get_qubit_by_addr(qaddr0), qpool->get_qubit_by_addr(qaddr1) });
     return gate;
 }
+
+
+QGate QPanda::QOracle(const QVec &qubits, const QStat &matrix)
+{
+    for (size_t i = 0; i < qubits.size() - 1; i++)
+    {
+        QPANDA_ASSERT(qubits[i]->get_phy_addr() >= qubits[i+1]->get_phy_addr(), "Error: QOracle qvec");
+    }
+
+    auto value = matrix.size();
+    for (size_t i = 0; i < qubits.size(); i++)
+    {
+        value >>= 2;
+    }
+    QPANDA_ASSERT(1 != value, "Error: QOracle matrix size");
+
+
+    string name = "OracularGate";
+    return _gs_pGateNodeFactory->getGateNode(name, qubits, matrix);
+}
+

@@ -33,6 +33,11 @@ using namespace Eigen;
 using qmatrix2cf_t = Eigen::Matrix<qcomplex_t, 2, 2, Eigen::RowMajor>;
 using qmatrix4cf_t = Eigen::Matrix<qcomplex_t, 4, 4, Eigen::RowMajor>;
 
+using qmatrix_t = Eigen::Matrix<qcomplex_t, Eigen::Dynamic,
+                                Eigen::Dynamic, Eigen::RowMajor>;
+using qvector_t = Eigen::Matrix<qcomplex_t, 1, Eigen::Dynamic, Eigen::RowMajor>;
+
+
 REGISTER_GATE_MATRIX(X, 0, 1, 1, 0)
 REGISTER_GATE_MATRIX(Hadamard, SQ2, SQ2, SQ2, -SQ2)
 REGISTER_GATE_MATRIX(Y, 0, -iunit, iunit, 0)
@@ -87,32 +92,57 @@ QError CPUImplQPU::pMeasure(Qnum& qnum, prob_vec &probs)
 {
     probs.resize(1ll << qnum.size());
     size_t size = 1ll << m_qubit_num;
-    stable_sort(qnum.begin(), qnum.end());
-#pragma omp parallel for num_threads(_omp_thread_num(size))
-    for (int64_t i = 0; i < size; i++)
+    bool ordered = true;
+
+    for (size_t i = 1; i < qnum.size(); i++)
     {
-        size_t pmeasure_idx = 0;
-        for (size_t idx_q = 0; idx_q < qnum.size(); idx_q++)
+        if (qnum[i] < qnum[i - 1])
         {
-            size_t state_idx = i >> qnum[idx_q];
-            if (state_idx > 0)
+            ordered = false;
+            break;
+        }
+    }
+
+    if (ordered)
+    {
+#pragma omp parallel for num_threads(_omp_thread_num(size))
+        for (int64_t i = 0; i < size; i++)
+        {
+            size_t pmeasure_idx = 0;
+            for (size_t idx_q = 0; idx_q < qnum.size(); idx_q++)
             {
-                if (1ull & state_idx)
+                size_t state_idx = i >> qnum[idx_q];
+                if (state_idx > 0)
                 {
-                    pmeasure_idx |= 1ull << idx_q;
+                    if (1ull & state_idx)
+                    {
+                        pmeasure_idx |= 1ull << idx_q;
+                    }
+                }
+                else
+                {
+                    break;
                 }
             }
-            else
-            {
-                break;
-            }
-        }
 
 #pragma omp critical
-        {
-            probs[pmeasure_idx] += std::norm(m_state[i]);
-        }
+            {
+                probs[pmeasure_idx] += std::norm(m_state[i]);
+            }
 
+        }
+    }
+    else
+    {
+        for (int64_t i = 0; i < size; i++)
+        {
+            int64_t idx = 0;
+            for (int64_t j = 0; j < qnum.size(); j++)
+            {
+                idx += (((i >> (qnum[j])) % 2) << j);
+            }
+            probs[idx] += std::norm(m_state[i]);
+        }
     }
 
     return qErrorNone;
@@ -1348,6 +1378,29 @@ QError CPUImplQPU::_CU(size_t qn_0, size_t qn_1, QStat &matrix, bool is_dagger, 
     return qErrorNone;
 }
 
+int64_t CPUImplQPU::_insert(int64_t value, Qnum &qns)
+{
+    int64_t number = 1ll << qns.back();
+    if (value < number)
+    {
+        return value;
+    }
+    int64_t mask = number - 1;
+    int64_t x = mask & value;
+
+    /*
+    for (size_t idx = value - x; idx > 0; idx >>= 1)
+    {
+        if (idx & 1)
+        {
+            real_idx |= (1ll << shelf_left);
+        }
+        shelf_left++;
+    }
+    */
+    return (value - x) << (qns.size()) | x;
+}
+
 void CPUImplQPU::_verify_state(const QStat &state)
 {
     double prob = 0;
@@ -1728,6 +1781,9 @@ unitarySingleQubitGate(size_t qn,
     case GateType::HADAMARD_GATE:
         _H(qn, matrix);
         break;
+
+    case GateType::P0_GATE:
+    case GateType::P1_GATE:
     case GateType::X_HALF_PI:
     case GateType::Y_HALF_PI:
     case GateType::RX_GATE:
@@ -1784,6 +1840,8 @@ controlunitarySingleQubitGate(size_t qn,
     case GateType::HADAMARD_GATE:
         _H(qn, matrix, controls);
         break;
+    case GateType::P0_GATE:
+    case GateType::P1_GATE:
     case GateType::X_HALF_PI:
     case GateType::Y_HALF_PI:
     case GateType::RX_GATE:
@@ -1835,6 +1893,8 @@ unitaryDoubleQubitGate(size_t qn_0,
     case GateType::CU_GATE:
         _CU(qn_0, qn_1, matrix, is_dagger);
         break;
+    case GateType::P00_GATE:
+    case GateType::P11_GATE:
     case GateType::TWO_QUBIT_GATE:
         _double_qubit_normal_unitary(qn_0, qn_1, matrix, is_dagger);
         break;
@@ -1879,6 +1939,8 @@ controlunitaryDoubleQubitGate(size_t qn_0,
     case GateType::CU_GATE:
         _CU(qn_0, qn_1, matrix, is_dagger, controls);
         break;
+    case GateType::P00_GATE:
+    case GateType::P11_GATE:
     case GateType::TWO_QUBIT_GATE:
         _double_qubit_normal_unitary(qn_0, qn_1, controls, matrix, is_dagger);
         break;
@@ -1912,6 +1974,125 @@ QError CPUImplQPU::DiagonalGate(Qnum & vQubit, QStat & matrix, bool isConjugate,
 
 QError CPUImplQPU::controlDiagonalGate(Qnum & vQubit, QStat & matrix, Qnum & vControlBit, bool isConjugate, double error_rate)
 {
+    return qErrorNone;
+}
+
+QError CPUImplQPU::OracleGate(Qnum &qubits, QStat &matrix, bool is_dagger)
+{
+    auto dim = 1ll << qubits.size();
+    qmatrix_t mat_eigen = qmatrix_t::Map(&matrix[0], dim, dim);
+
+    if (is_dagger)
+    {
+        mat_eigen.adjointInPlace();
+    }
+
+    int64_t size = 1ll << (m_qubit_num - qubits.size());
+    qvector_t state_bak(dim);
+    std::vector<int64_t> realxx_idxes(dim);
+
+    std::reverse(qubits.begin(), qubits.end());
+#pragma omp parallel for num_threads(_omp_thread_num(size)) firstprivate(state_bak, realxx_idxes)
+    for (int64_t i = 0; i < size; i++)
+    {
+        int64_t real00_idx = _insert(i, qubits);
+        for (size_t i_dim = 0; i_dim < dim; i_dim++)
+        {
+            size_t realxx_idx = real00_idx;
+            size_t tmp = i_dim;
+            for (size_t qubit_idx = 0; qubit_idx < qubits.size(); qubit_idx++)
+            {
+                tmp = i_dim >> qubit_idx;
+                if (tmp > 0)
+                {
+                    if (1ull & tmp)
+                    {
+                        realxx_idx += 1ll << qubits[qubit_idx];
+                    }
+
+                }
+                else
+                {
+                    break;
+                }
+            }
+            realxx_idxes[i_dim] = realxx_idx;
+        }
+
+        for (size_t i_dim = 0; i_dim < dim; i_dim++)
+        {
+            state_bak(i_dim) = m_state[realxx_idxes[i_dim]];
+        }
+
+        for (size_t i_dim = 0; i_dim < dim; i_dim++)
+        {
+            m_state[realxx_idxes[i_dim]] = mat_eigen.row(i_dim).cwiseProduct(state_bak).sum();
+        }
+    }
+    return qErrorNone;
+}
+
+QError CPUImplQPU::controlOracleGate(Qnum &qubits, const Qnum &controls,
+                                     QStat &matrix, bool is_dagger)
+{
+    auto dim = 1ll << qubits.size();
+    qmatrix_t mat_eigen = qmatrix_t::Map(&matrix[0], dim, dim);
+
+    if (is_dagger)
+    {
+        mat_eigen.adjointInPlace();
+    }
+
+    int64_t mask = 0;
+    for_each(controls.begin(), controls.end() - qubits.size(), [&](size_t q) {
+        mask |= 1ll << q;
+    });
+
+    int64_t size = 1ll << (m_qubit_num - qubits.size());
+    qvector_t state_bak(dim);
+    std::vector<int64_t> realxx_idxes(dim);
+
+    std::reverse(qubits.begin(), qubits.end());
+#pragma omp parallel for num_threads(_omp_thread_num(size)) firstprivate(state_bak, realxx_idxes)
+    for (int64_t i = 0; i < size; i++)
+    {
+        int64_t real00_idx = _insert(i, qubits);
+        if (mask != (mask & real00_idx))
+            continue;
+
+        for (size_t i_dim = 0; i_dim < dim; i_dim++)
+        {
+            size_t realxx_idx = real00_idx;
+            size_t tmp = i_dim;
+            for (size_t qubit_idx = 0; qubit_idx < qubits.size(); qubit_idx++)
+            {
+                tmp = i_dim >> qubit_idx;
+                if (tmp > 0)
+                {
+                    if (1ull & tmp)
+                    {
+                        realxx_idx += 1ll << qubits[qubit_idx];
+                    }
+
+                }
+                else
+                {
+                    break;
+                }
+            }
+            realxx_idxes[i_dim] = realxx_idx;
+        }
+
+        for (size_t i_dim = 0; i_dim < dim; i_dim++)
+        {
+            state_bak(i_dim) = m_state[realxx_idxes[i_dim]];
+        }
+
+        for (size_t i_dim = 0; i_dim < dim; i_dim++)
+        {
+            m_state[realxx_idxes[i_dim]] = mat_eigen.row(i_dim).cwiseProduct(state_bak).sum();
+        }
+    }
     return qErrorNone;
 }
 

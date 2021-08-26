@@ -14,6 +14,43 @@ using namespace std;
 
 USING_QPANDA
 
+bool QPanda::is_single_gate(const GateType gt_type) {
+    if (gt_type < 0)
+    {
+        return false;
+    }
+
+    switch (gt_type)
+    {
+    case P0_GATE:
+    case P1_GATE:
+    case PAULI_X_GATE:
+    case PAULI_Y_GATE:
+    case PAULI_Z_GATE:
+    case X_HALF_PI:
+    case Y_HALF_PI:
+    case Z_HALF_PI:
+    case HADAMARD_GATE:
+    case T_GATE:
+    case S_GATE:
+    case RX_GATE:
+    case RY_GATE:
+    case RZ_GATE:
+    case RPHI_GATE:
+    case U1_GATE:
+    case U2_GATE:
+    case U3_GATE:
+    case U4_GATE:
+    case P00_GATE:
+    case P11_GATE:
+    case I_GATE:
+    case ECHO_GATE:
+        return true;
+    }
+
+    return false;
+}
+
 TransformQGateType::TransformQGateType()
 {
     m_qgate_type_map.insert({ GATE_X, PAULI_X_GATE });
@@ -52,6 +89,7 @@ TransformQGateType::TransformQGateType()
 	m_qgate_type_map.insert({ GATE_I, I_GATE });
     m_qgate_type_map.insert({ GATE_ECHO, ECHO_GATE });
     m_qgate_type_map.insert({ GATE_BARRIER, BARRIER_GATE });
+	m_qgate_type_map.insert({ GATE_ORACLE, ORACLE_GATE });
 }
 
 TransformQGateType & TransformQGateType::getInstance()

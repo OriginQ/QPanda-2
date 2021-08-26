@@ -23,11 +23,13 @@ import math
 
 import numpy as np
 from .circuit_style import *
+import pyqpanda.pyQPanda as pq
 
 try:
     from matplotlib import get_backend
     from matplotlib import patches
     from matplotlib import pyplot as plt
+    plt.switch_backend('agg')
 
     HAS_MATPLOTLIB = True
 except ImportError:
@@ -35,8 +37,6 @@ except ImportError:
 
 from .pi_check import *
 import traceback
-import pyqpanda.pyQPanda as pq
-
 
 logger = logging.getLogger(__name__)
 
@@ -574,16 +574,16 @@ class MatplotlibDrawer:
 
     def _swap_gate(self, q_xy, gate_type, param, dagger, ctrl_qubits = 0):
         font_size = self._style.sfs + 1
-        if gate_type == 23:
+        if gate_type == pq.GateType.ISWAP_THETA_GATE:
             swap_sub_text = '{}'.format(param)
             #font_size = self._style.sfs
-        elif gate_type == 24:
+        elif gate_type == pq.GateType.ISWAP_GATE:
             swap_sub_text = 'iSWAP'
-        elif gate_type == 25:
+        elif gate_type == pq.GateType.SQISWAP_GATE:
             swap_sub_text = 'SqiSWAP'
 
         if dagger:
-            if gate_type == 23:
+            if gate_type == pq.GateType.ISWAP_THETA_GATE:
                 if swap_sub_text[0] == '-':
                     swap_sub_text = swap_sub_text[1:]
                 else:
@@ -591,7 +591,7 @@ class MatplotlibDrawer:
             else:
                 swap_sub_text = swap_sub_text + '.dag'
 
-        if gate_type == 23:
+        if gate_type == pq.GateType.ISWAP_THETA_GATE:
             swap_sub_text = "${}$".format(swap_sub_text)
         else:
             swap_sub_text = "${}$".format(self._style.disptex[swap_sub_text])
@@ -657,25 +657,24 @@ class MatplotlibDrawer:
         xys = config['coord']
         group = config['group']
         y_reg = []
-        print('Unsupport barrier operator')
-        # for qreg in self._qreg_dict.values():
-        #     if qreg['group'] in group:
-        #         y_reg.append(qreg['y'])
-        # x0 = xys[0][0]
+        for qreg in self._qreg_dict.values():
+            if qreg['group'] in group:
+                y_reg.append(qreg['y'])
+        x0 = xys[0][0]
 
-        # box_y0 = min(y_reg) - int(anc / self.fold) * (self._cond['n_lines'] + 1) - 0.5
-        # box_y1 = max(y_reg) - int(anc / self.fold) * (self._cond['n_lines'] + 1) + 0.5
-        # box = patches.Rectangle(xy=(x0 - 0.3 * WID, box_y0),
-        #                         width=0.6 * WID, height=box_y1 - box_y0,
-        #                         fc=self._style.bc, ec=None, alpha=0.6,
-        #                         linewidth=1.5, zorder=PORDER_GRAY)
-        # self.ax.add_patch(box)
-        # for xy in xys:
-        #     xpos, ypos = xy
-        #     self.ax.plot([xpos, xpos], [ypos + 0.5, ypos - 0.5],
-        #                  linewidth=1, linestyle="dashed",
-        #                  color=self._style.lc,
-        #                  zorder=PORDER_TEXT)
+        box_y0 = min(y_reg) - int(anc / self.fold) * (self._cond['n_lines'] + 1) - 0.5
+        box_y1 = max(y_reg) - int(anc / self.fold) * (self._cond['n_lines'] + 1) + 0.5
+        box = patches.Rectangle(xy=(x0 - 0.3 * WID, box_y0),
+                                width=0.6 * WID, height=box_y1 - box_y0,
+                                fc=self._style.bc, ec=None, alpha=0.6,
+                                linewidth=1.5, zorder=PORDER_GRAY)
+        self.ax.add_patch(box)
+        for xy in xys:
+            xpos, ypos = xy
+            self.ax.plot([xpos, xpos], [ypos + 0.5, ypos - 0.5],
+                         linewidth=1, linestyle="dashed",
+                         color=self._style.lc,
+                         zorder=PORDER_TEXT)
 
     def _linefeed_mark(self, xy):
         xpos, ypos = xy
@@ -914,7 +913,8 @@ class MatplotlibDrawer:
             self._line(qreg_b, qreg_t, zorder=PORDER_LINE + 1)
 
     def _draw_ops(self, verbose=False):
-        _wide_gate = [11, 12, 13, 15, 16, 17, 18, 19, 22, 23]
+        _wide_gate = [pq.GateType.RX_GATE, pq.GateType.RY_GATE, pq.GateType.RZ_GATE, pq.GateType.U1_GATE, pq.GateType.U2_GATE, 
+        pq.GateType.U3_GATE, pq.GateType.U4_GATE, pq.GateType.CU_GATE, pq.GateType.CPHASE_GATE, pq.GateType.ISWAP_THETA_GATE]
         _barriers = {'coord': [], 'group': []}
 
         #
@@ -970,7 +970,7 @@ class MatplotlibDrawer:
                             continue
 
                 # If custom ControlledGate
-                elif op.m_gate_type in [14, 22]:
+                elif op.m_gate_type in [pq.GateType.RPHI_GATE, pq.GateType.CPHASE_GATE]:
                     #if op.type == 'op' and hasattr(op.op, 'params'):
                     if int(op.m_gate_type) >= 0 and len(op.m_params) > 0 :
                         param = self.param_parse(op.m_params)
@@ -1050,7 +1050,7 @@ class MatplotlibDrawer:
                 # This prevents additional blank wires at the end of the line if
                 # the last instruction is a barrier type
                 if self.plot_barriers or \
-                        op.m_gate_type not in [34]:
+                        op.m_gate_type not in [pq.GateType.BARRIER_GATE]:
                     for ii in q_idxs:
                         q_anchors[ii].set_index(this_anc, layer_width)
 
@@ -1170,7 +1170,7 @@ class MatplotlibDrawer:
                     #this_anc = this_anc + 1
                 elif op.m_node_type == pq.NodeType.RESET_NODE:
                     self._gate(q_xy[0], text='RESET')
-                elif op.m_gate_type in [34]:
+                elif op.m_gate_type in [pq.GateType.BARRIER_GATE]:
                     _barriers = {'coord': [], 'group': []}
                     for index, qbit in enumerate(q_idxs):
                         q_group = self._qreg_dict[qbit]['group']
@@ -1202,7 +1202,7 @@ class MatplotlibDrawer:
                                        fc=self._style.dispcol[fcx])
                     elif num_qargs == 2:
                         # CNOT
-                        if op.m_gate_type == 20:
+                        if op.m_gate_type == pq.GateType.CNOT_GATE:
                             #self._cnot(q_xy, qreg_b, qreg_t, num_ctrl_qubits+1)
                             color = self._style.dispcol['CNOT']
                             if self._style.name != 'Q1':
@@ -1214,7 +1214,7 @@ class MatplotlibDrawer:
                             self._cnot(cx_xy, qreg_b, qreg_t)
                             
                         # cz for latexmode
-                        elif op.m_gate_type == 21:
+                        elif op.m_gate_type == pq.GateType.CZ_GATE:
                         #     disp = op.m_name
                         #     if self._style.name != 'Q1':
                         #         color = self._style.dispcol['CZ']
@@ -1237,7 +1237,7 @@ class MatplotlibDrawer:
                             cz_xy = q_xy[num_ctrl_qubits:]
                             self._cz(cz_xy, qreg_b, qreg_t)
                         # control gate
-                        elif op.m_gate_type in [19,22]:
+                        elif op.m_gate_type in [pq.GateType.CU_GATE,pq.GateType.CPHASE_GATE]:
                             disp = op.m_name
 
                             color = None
@@ -1259,14 +1259,14 @@ class MatplotlibDrawer:
                             # add qubit-qubit wiring
                             self._line(qreg_b, qreg_t, lc=color)
                         # swap gate
-                        elif op.m_gate_type == 26:
+                        elif op.m_gate_type == pq.GateType.SWAP_GATE:
                             self._swap(q_xy[num_ctrl_qubits], self._style.dispcol['SWAP'])
                             self._swap(q_xy[num_ctrl_qubits + 1], self._style.dispcol['SWAP'])
                             # add qubit-qubit wiring
                             self._line(qreg_b, qreg_t, lc=self._style.dispcol['SWAP'])
 
                         # iswap gate
-                        elif op.m_gate_type in [23,24,25]:
+                        elif op.m_gate_type in [pq.GateType.ISWAP_THETA_GATE,pq.GateType.ISWAP_GATE,pq.GateType.SQISWAP_GATE]:
                             self._swap_gate(q_xy, op.m_gate_type, param, op.m_is_dagger, ctrl_qubits = num_ctrl_qubits)
                             # add qubit-qubit wiring
                             self._line(qreg_b, qreg_t, lc=self._style.dispcol['ISWAP'])
@@ -1298,13 +1298,13 @@ class MatplotlibDrawer:
                 #
                 elif len(q_xy) == 2:
                     # CNOT
-                    if op.m_gate_type == 20:
+                    if op.m_gate_type == pq.GateType.CNOT_GATE:
                         self._cnot(q_xy, qreg_b, qreg_t, 1)
                     # cz for latexmode
-                    elif op.m_gate_type == 21:
+                    elif op.m_gate_type == pq.GateType.CZ_GATE:
                         self._cz(q_xy, qreg_b, qreg_t)
                     # control gate
-                    elif op.m_gate_type in [19,22]:
+                    elif op.m_gate_type in [pq.GateType.CU_GATE, pq.GateType.CPHASE_GATE]:
                         disp = op.m_name
 
                         color = None
@@ -1326,14 +1326,14 @@ class MatplotlibDrawer:
                         # add qubit-qubit wiring
                         self._line(qreg_b, qreg_t, lc=color)
                     # swap gate
-                    elif op.m_gate_type == 26:
+                    elif op.m_gate_type == pq.GateType.SWAP_GATE:
                         self._swap(q_xy[0], self._style.dispcol['SWAP'])
                         self._swap(q_xy[1], self._style.dispcol['SWAP'])
                         # add qubit-qubit wiring
                         self._line(qreg_b, qreg_t, lc=self._style.dispcol['SWAP'])
 
                     # iswap gate
-                    elif op.m_gate_type in [23,24,25]:
+                    elif op.m_gate_type in [pq.GateType.ISWAP_THETA_GATE, pq.GateType.ISWAP_GATE, pq.GateType.SQISWAP_GATE]:
                         self._swap_gate(q_xy, op.m_gate_type, param, op.m_is_dagger)
                         # add qubit-qubit wiring
                         self._line(qreg_b, qreg_t, lc=self._style.dispcol['ISWAP'])
@@ -1435,7 +1435,7 @@ class MatplotlibDrawer:
             if not self.plot_barriers:
                 # only adjust if everything in the layer wasn't plotted
                 barrier_offset = -1 if all([op.m_gate_type in
-                                            [34]
+                                            [pq.GateType.BARRIER_GATE]
                                             for op in layer]) else 0
             prev_anc = this_anc + layer_width + barrier_offset - 1
         #

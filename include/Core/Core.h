@@ -61,6 +61,7 @@ limitations under the License.
 #include "Core/Utilities/QProgTransform/SU4TopologyMatch.h"
 
 
+#include "Core/Utilities/Tools/TranformQGateTypeStringAndEnum.h"
 #include "Core/Utilities/Tools/OriginCollection.h"  
 #include "Core/Utilities/Tools/QPandaException.h"  
 #include "Core/Utilities/Tools/QProgFlattening.h"

@@ -321,7 +321,7 @@ def QCloud_fun():
 
     QCM = QCloud()
     # QCM.init_qvm("C40A08F3D461481D829559EE7CCAA359")
-    QCM.init_qvm("3B1AC640AAC248C6A7EE4E8D8537370D")
+    QCM.init_qvm("C60FBD87EF084DBA820945D052218AA8", True)
 
     # QCM.init_qvm("3B9379860FA349C5904C32EFAC39435D")
 
@@ -369,13 +369,20 @@ def QCloud_fun():
     # print(result4)
     # print("noise_measure pass !")
 
-    result5 = QCM.real_chip_measure(measure_prog, 1000)
+    result5 = QCM.real_chip_measure(
+        measure_prog, 1000, real_chip_type.origin_wuyuan_d4)
     print(result5)
     print("real_chip_measure pass !")
 
-    # result6 = QCM.get_state_tomography_density(measure_prog, 100)
-    # print(result6)
-    # print("get_state_tomography_density !")
+    result6 = QCM.get_state_tomography_density(
+        measure_prog, 1000, real_chip_type.origin_wuyuan_d4)
+    print(result6)
+    print("get_state_tomography_density !")
+
+    result6 = QCM.get_state_fidelity(
+        measure_prog, 1000, real_chip_type.origin_wuyuan_d4)
+    print(result6)
+    print("get_state_fidelity !")
 
     QCM.finalize()
 
@@ -601,7 +608,7 @@ def plot_bloch_vectors():
 
 if __name__ == "__main__":
 
-    # QCloud_fun()
+    QCloud_fun()
     # MPS_fun()
     # cpu_qvm_fun()
     # singleAmp_fun()
@@ -614,5 +621,5 @@ if __name__ == "__main__":
     # plot_density()
     # plot_bloch_vectors()
     # mps_noise()
-    plot_bloch_cir()
+    # plot_bloch_cir()
     # plot_density()

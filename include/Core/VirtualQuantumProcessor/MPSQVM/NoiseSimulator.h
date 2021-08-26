@@ -2,7 +2,7 @@
 #define NOISE_SIMULATOR_H
 
 #include "Core/VirtualQuantumProcessor/MPSQVM/MPSImplQPU.h"
-#include "Core/VirtualQuantumProcessor/RandomEngine/RandomEngine.h"
+#include "Core/Utilities/Tools/RandomEngine/RandomEngine.h"
 
 QPANDA_BEGIN
 

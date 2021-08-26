@@ -1,6 +1,7 @@
 #include <set>
 #include <numeric>
 #include "Core/Utilities/Tools/Uinteger.h"
+#include "Core/Utilities/Tools/TranformQGateTypeStringAndEnum.h"
 #include "Core/VirtualQuantumProcessor/MPSQVM/NoiseSimulator.h"
 #include "Core/VirtualQuantumProcessor/MPSQVM/NoiseDefinition.h"
 
@@ -176,13 +177,6 @@ static std::vector<QStat> get_compose_karus_matrices(const std::vector<QStat>& k
 
     optimize_karus_matrices(karus_compose_results);
     return karus_compose_results;
-}
-
-static bool is_single_gate(GateType type)
-{
-    return static_cast<size_t>(GateType::I_GATE)  == static_cast<size_t>(type) || (
-           static_cast<size_t>(GateType::P0_GATE) <= static_cast<size_t>(type) &&
-           static_cast<size_t>(GateType::U4_GATE) >= static_cast<size_t>(type));
 }
 
 static bool is_rotation_gate(GateType type)

@@ -181,23 +181,27 @@ namespace QGATE_SPACE
         return p;
     }
 
-	class OracularGate : public QuantumGate,
-		public DynamicCreator<OracularGate,std::string&>,
-		public DynamicCreator<OracularGate, QuantumGate *>
-	{
-	private:
-		std::string oracle_name;
-	public:
-		OracularGate(std::string name)
-			:oracle_name(name)
-		{
-			gate_type = GateType::ORACLE_GATE;
-		}
-		OracularGate(QuantumGate * qgate_old);
-		std::string get_name() const { return oracle_name; }		
-		inline int getOperationNum() const { return -1; }
-		inline void getMatrix(QStat & matrix) const {}
-	};
+    class OracularGate : public QuantumGate,
+            public DynamicCreator<OracularGate,std::string&>,
+            public DynamicCreator<OracularGate, QuantumGate *>,
+            public DynamicCreator<OracularGate, const QStat&>
+    {
+    private:
+        std::string oracle_name;
+    public:
+        OracularGate(std::string name)
+            :oracle_name(name)
+        {
+            gate_type = GateType::ORACLE_GATE;
+        }
+        OracularGate(QuantumGate * qgate_old);
+
+        OracularGate(const QStat &matrix);
+
+        std::string get_name() const { return oracle_name; }
+        inline int getOperationNum() const { return -1; }
+        void getMatrix(QStat & matrix) const ;
+    };
 
     class U4 : public QuantumGate,
         public AbstractAngleParameter,

@@ -353,6 +353,12 @@ public:
         bool isConjugate, double error_rate);
     QError controlDiagonalGate(Qnum& vQubit, QStat & matrix, Qnum& vControlBit,
         bool isConjugate, double error_rate);
+
+    QError OracleGate(Qnum& qubits, QStat &matrix,
+                      bool is_dagger);
+    QError controlOracleGate(Qnum& qubits, const Qnum &controls,
+                             QStat &matrix, bool is_dagger);
+
     QStat getQState();
     QError Reset(size_t qn);
     bool qubitMeasure(size_t qn);
@@ -461,6 +467,9 @@ protected:
         int64_t y = ~mask & value;
         return ((y << 1) | x);
     }
+
+    int64_t _insert(int64_t value, Qnum &qns);
+
     void _verify_state(const QStat &state);
     inline int _omp_thread_num(size_t size);
 private:

@@ -1,8 +1,8 @@
+#include <chrono>
+#include <thread>
 #include <math.h>
 #include <fstream>
 #include <algorithm>
-#include <chrono>
-#include <thread>
 #include "Core/Utilities/Tools/base64.hpp"
 #include "Core/Utilities/Tools/Uinteger.h"
 #include "Core/QuantumMachine/QCloudMachine.h"
@@ -15,8 +15,8 @@
 #define DEFAULT_CLUSTER_COMPUTEAPI    "https://qcloud.originqc.com.cn/api/taskApi/submitTask.json"
 #define DEFAULT_CLUSTER_INQUREAPI     "https://qcloud.originqc.com.cn/api/taskApi/getTaskDetail.json"
 
-#define DEFAULT_REAL_CHIP_TASK_COMPUTEAPI     "http://10.10.12.187:8181/task/realQuantum/run"
-#define DEFAULT_REAL_CHIP_TASK_INQUREAPI      "http://10.10.12.187:8181/task/realQuantum/query"
+#define DEFAULT_REAL_CHIP_TASK_COMPUTEAPI     "http://10.10.10.197:5730/taskApi/submitTask.json"
+#define DEFAULT_REAL_CHIP_TASK_INQUREAPI      "http://10.10.10.197:5730/taskApi/getTaskDetail.json"
 
 USING_QPANDA
 using namespace std;
@@ -85,13 +85,15 @@ QCloudMachine::~QCloudMachine()
 #endif
 }
 
-void QCloudMachine::init(string token)
+void QCloudMachine::init(string token, bool is_logged)
 {
     JsonConfigParam config;
     try
     {
         if (!config.load_config(CONFIG_PATH))
         {
+            std::cout << "config warning: can not find config file, use default config" << endl;
+
             m_compute_url = DEFAULT_CLUSTER_COMPUTEAPI;
             m_inqure_url = DEFAULT_CLUSTER_INQUREAPI;
 
@@ -100,11 +102,12 @@ void QCloudMachine::init(string token)
         }
         else
         {
-            map<string, string> QCloudConfig;
+            std::map<string, string> QCloudConfig;
             bool is_success = config.getQuantumCloudConfig(QCloudConfig);
             if (!is_success)
             {
-                QCERR("config error: use default config");
+                std::cout << "config warning: get quantum cloud config failed, use default config" << endl;
+
                 m_compute_url = DEFAULT_CLUSTER_COMPUTEAPI;
                 m_inqure_url = DEFAULT_CLUSTER_INQUREAPI;
 
@@ -123,7 +126,8 @@ void QCloudMachine::init(string token)
     }
     catch (std::exception &e)
     {
-        QCERR("config error: use default config");
+        std::cout << "config warning: load config file catch exception, use default config" << endl;
+
         m_compute_url = DEFAULT_CLUSTER_COMPUTEAPI;
         m_inqure_url = DEFAULT_CLUSTER_INQUREAPI;
 
@@ -134,6 +138,7 @@ void QCloudMachine::init(string token)
     try
     {
         m_token = token;
+        m_is_logged = is_logged;
         _start();
     }
     catch (std::exception &e)
@@ -144,8 +149,7 @@ void QCloudMachine::init(string token)
     }
 }
 
-size_t recvJsonData
-(void *ptr, size_t size, size_t nmemb, void *stream)
+size_t recvJsonData(void *ptr, size_t size, size_t nmemb, void *stream)
 {
     std::string data((const char*)ptr, 0, (size_t)(size * nmemb));
     *((std::stringstream*)stream) << data << std::endl;
@@ -241,31 +245,33 @@ std::string QCloudMachine::post_json(const std::string &sUrl, std::string & sJso
     try
     {
         std::string result =  out.str().substr(out.str().find("{"));;
-        m_retry_num = 0;
+
+        m_retry_times = 0;
         return result;
     }
     catch (...)
     {
-        if ( ++m_retry_num < 3)
+        if ( m_retry_times++ < 3)
         {
             return post_json(sUrl, sJson);
         }
         else
         {
-            QCERR("json error");
-            throw run_fail("json error");
+            if(m_is_logged) std::cout << out.str() << endl;
+
+            QCERR("post json failed");
+            throw run_fail("QCloudMachine::post_json");
         }
     }
 #else
-    QCERR_AND_THROW(run_fail, "Need support the curl libray");
+    QCERR_AND_THROW(run_fail, "need support the curl libray");
 #endif
 }
 
-
-void QCloudMachine::inqure_real_chip_result(std::string recv_json_str)
+void QCloudMachine::inqure_result(std::string recv_json_str, std::string url, CLOUD_QMACHINE_TYPE type)
 {
     std::string taskid;
-    if (parser_real_chip_submit_json(recv_json_str, taskid))
+    if (parser_submit_json(recv_json_str, taskid))
     {
         bool retry_inquire = false;
 
@@ -273,19 +279,9 @@ void QCloudMachine::inqure_real_chip_result(std::string recv_json_str)
         {
             std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
-            rapidjson::Document doc;
-            doc.SetObject();
+            auto result_json = get_result_json(taskid, url, type);
 
-            add_string_value(doc, "taskId", taskid);
-
-            StringBuffer buffer;
-            Writer<StringBuffer> writer(buffer);
-            doc.Accept(writer);
-
-            std::string post_json_str = buffer.GetString();
-            std::string recv_json_str = post_json(m_real_chip_task_inqure_url, post_json_str);
-
-            retry_inquire = parser_real_chip_result_json(recv_json_str, taskid); 
+            retry_inquire = parser_result_json(result_json, taskid);
 
         } while (retry_inquire);
     }
@@ -293,43 +289,19 @@ void QCloudMachine::inqure_real_chip_result(std::string recv_json_str)
     return;
 }
 
-void QCloudMachine::inqure_result(std::string recv_json_str, CLOUD_QMACHINE_TYPE type)
-{
-    std::string taskid;
-    if (parser_cluster_submit_json(recv_json_str, taskid))
-    {
-        bool retry_inquire = false;
-
-        do
-        {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-
-            auto result_json = get_result_json(taskid, type);
-
-            retry_inquire = parser_cluster_result_json(result_json, taskid);
-
-        } while (retry_inquire);
-    }
-
-    return;
-}
-
-std::vector<QStat> QCloudMachine::get_state_tomography_density(QProg &prog, int shots, size_t chipid)
+double QCloudMachine::get_state_fidelity(
+    QProg &prog,
+    int shots,
+    REAL_CHIP_TYPE chipid,
+    bool mapping_flag,
+    bool circuit_optimization,
+    std::string task_name)
 {
     auto qubit_num = getAllocateQubit();
     auto cbit_num = getAllocateCMem();
 
-    if (qubit_num > 6 || cbit_num > 6)
-    {
-        QCERR("real chip qubit num or cbit num error");
-        throw run_fail("real chip qubit num or cbit num error");
-    }
-
-    if (shots > 10000 || shots < 1000)
-    {
-        QCERR("real chip shots must be in range [1000,10000]");
-        throw run_fail("real chip shots must be in range [1000,10000]");
-    }
+    QPANDA_ASSERT(qubit_num > 6 || cbit_num > 6, "real chip qubit num or cbit num are not less or equal to 6");
+    QPANDA_ASSERT(shots > 10000 || shots < 1000, "real chip shots must be in range [1000,10000]");
 
     TraversalConfig traver_param;
     QProgCheck prog_check;
@@ -350,35 +322,97 @@ std::vector<QStat> QCloudMachine::get_state_tomography_density(QProg &prog, int 
 
     add_string_value(doc, "code", prog_str);
     add_string_value(doc, "apiKey", m_token);
-    add_string_value(doc, "QMachineType", "6");
+    add_string_value(doc, "mappingFlag", (size_t)!mapping_flag);
+    add_string_value(doc, "circuitOptimization", (size_t)!circuit_optimization);
+    add_string_value(doc, "QMachineType", (size_t)CLOUD_QMACHINE_TYPE::FIDELITY);
     add_string_value(doc, "codeLen", prog_str.size());
     add_string_value(doc, "qubitNum", getAllocateQubitNum());
     add_string_value(doc, "measureType", (size_t)CLUSTER_TASK_TYPE::CLUSTER_MEASURE);
     add_string_value(doc, "classicalbitNum", getAllocateCMem());
     add_string_value(doc, "shot", (size_t)shots);
-    
-    QPANDA_OP(chipid, add_string_value(doc, "chipid", chipid));
+    add_string_value(doc, "chipId", (size_t)chipid);
 
     StringBuffer buffer;
     Writer<StringBuffer> writer(buffer);
     doc.Accept(writer);
 
     std::string post_json_str = buffer.GetString();
-    std::string recv_json_str = post_json(m_compute_url, post_json_str);
-    
-    inqure_result(recv_json_str, static_cast<CLOUD_QMACHINE_TYPE>(6));
+    std::string recv_json_str = post_json(m_real_chip_task_compute_url, post_json_str);
 
-    return m_qst_result;
+    inqure_result(recv_json_str, m_real_chip_task_inqure_url, CLOUD_QMACHINE_TYPE::FIDELITY);
+
+    return m_qst_fidelity;
 }
 
-std::map<std::string, double> QCloudMachine::real_chip_task(QProg &prog, int shot,
-    bool mapping_flag, bool circuit_optimization, bool is_vip, size_t chipid)
+
+std::vector<QStat> QCloudMachine::get_state_tomography_density(
+    QProg &prog,
+    int shots,
+    REAL_CHIP_TYPE chipid,
+    bool mapping_flag,
+    bool circuit_optimization,
+    std::string task_name)
 {
     auto qubit_num = getAllocateQubit();
     auto cbit_num = getAllocateCMem();
 
     QPANDA_ASSERT(qubit_num > 6 || cbit_num > 6, "real chip qubit num or cbit num are not less or equal to 6");
-    QPANDA_ASSERT(shot > 10000 || shot < 1000, "real chip shots must be in range [1000,10000]");
+    QPANDA_ASSERT(shots > 10000 || shots < 1000, "real chip shots must be in range [1000,10000]");
+
+    TraversalConfig traver_param;
+    QProgCheck prog_check;
+    prog_check.execute(prog.getImplementationPtr(), nullptr, traver_param);
+
+    if (!traver_param.m_can_optimize_measure)
+    {
+        QCERR("measure must be last");
+        throw run_fail("measure must be last");
+    }
+
+    //convert prog to originir 
+    auto prog_str = convert_qprog_to_originir(prog, this);
+
+    //construct json
+    rapidjson::Document doc;
+    doc.SetObject();
+
+    add_string_value(doc, "code", prog_str);
+    add_string_value(doc, "apiKey", m_token);
+    add_string_value(doc, "mappingFlag", (size_t)!mapping_flag);
+    add_string_value(doc, "circuitOptimization", (size_t)!circuit_optimization);
+    add_string_value(doc, "QMachineType", (size_t)CLOUD_QMACHINE_TYPE::QST);
+    add_string_value(doc, "codeLen", prog_str.size());
+    add_string_value(doc, "qubitNum", getAllocateQubitNum());
+    add_string_value(doc, "measureType", (size_t)CLUSTER_TASK_TYPE::CLUSTER_MEASURE);
+    add_string_value(doc, "classicalbitNum", getAllocateCMem());
+    add_string_value(doc, "shot", (size_t)shots);
+    add_string_value(doc, "chipId", (size_t)chipid);
+
+    StringBuffer buffer;
+    Writer<StringBuffer> writer(buffer);
+    doc.Accept(writer);
+
+    std::string post_json_str = buffer.GetString();
+    std::string recv_json_str = post_json(m_real_chip_task_compute_url, post_json_str);
+    
+    inqure_result(recv_json_str, m_real_chip_task_inqure_url, CLOUD_QMACHINE_TYPE::QST);
+
+    return m_qst_result;
+}
+
+std::map<std::string, double> QCloudMachine::real_chip_measure(
+    QProg &prog,
+    int shots,
+    REAL_CHIP_TYPE chipid,
+    bool mapping_flag,
+    bool circuit_optimization,
+    std::string task_name)
+{
+    auto qubit_num = getAllocateQubit();
+    auto cbit_num = getAllocateCMem();
+
+    QPANDA_ASSERT(qubit_num > 6 || cbit_num > 6, "real chip qubit num or cbit num are not less or equal to 6");
+    QPANDA_ASSERT(shots > 10000 || shots < 1000, "real chip shots must be in range [1000,10000]");
 
     TraversalConfig traver_param;
     QProgCheck prog_check;
@@ -399,9 +433,8 @@ std::map<std::string, double> QCloudMachine::real_chip_task(QProg &prog, int sho
 
     rapidjson::Document::AllocatorType &configuration_alloc = configuration_doc.GetAllocator();
 
-    configuration_doc.AddMember("shot", (SizeType)shot, configuration_alloc);
-    configuration_doc.AddMember("mappingFlag", (SizeType)!circuit_optimization, configuration_alloc);
-    configuration_doc.AddMember("circuitOptimization", (SizeType)!mapping_flag, configuration_alloc);
+    configuration_doc.AddMember("mappingFlag", (SizeType)!true, configuration_alloc);
+    configuration_doc.AddMember("circuitOptimization", (SizeType)!true, configuration_alloc);
 
     rapidjson::StringBuffer configuration_buffer;
     rapidjson::Writer<rapidjson::StringBuffer> configuration_writer(configuration_buffer);
@@ -410,13 +443,21 @@ std::map<std::string, double> QCloudMachine::real_chip_task(QProg &prog, int sho
     auto configuration_str = configuration_buffer.GetString();
 
     //others
-    add_string_value(doc, "Configuration", configuration_str);
-    add_string_value(doc, "QProg", prog_str);
-    add_string_value(doc, "QProgLength", prog_str.size());
-    add_string_value(doc, "VIP", (size_t)is_vip);
-    add_string_value(doc, "QMachineType", (size_t)CLOUD_QMACHINE_TYPE::REAL_CHIP);
+    //add_string_value(doc, "apiKey", m_token);
+    //add_string_value(doc, "Configuration", configuration_str);
 
-    QPANDA_OP(chipid, add_string_value(doc, "chipid", chipid));
+    add_string_value(doc, "code", prog_str);
+    add_string_value(doc, "apiKey", m_token);
+    add_string_value(doc, "mappingFlag", (size_t)!mapping_flag);
+    add_string_value(doc, "circuitOptimization", (size_t)!circuit_optimization);
+    add_string_value(doc, "QMachineType", (size_t)CLOUD_QMACHINE_TYPE::REAL_CHIP);
+    add_string_value(doc, "codeLen", prog_str.size());
+    add_string_value(doc, "qubitNum", getAllocateQubitNum());
+    add_string_value(doc, "measureType", (size_t)CLUSTER_TASK_TYPE::CLUSTER_MEASURE);
+    add_string_value(doc, "classicalbitNum", getAllocateCMem());
+    add_string_value(doc, "shot", (size_t)shots);
+    add_string_value(doc, "taskName", task_name);
+    add_string_value(doc, "chipId", (size_t)chipid);
 
     StringBuffer buffer;
     Writer<StringBuffer> writer(buffer);
@@ -425,64 +466,7 @@ std::map<std::string, double> QCloudMachine::real_chip_task(QProg &prog, int sho
     std::string post_json_str = buffer.GetString();
     std::string recv_json_str = post_json(m_real_chip_task_compute_url, post_json_str);
 
-    inqure_real_chip_result(recv_json_str);
-    return m_measure_result;
-}
-
-std::map<std::string, double> QCloudMachine::real_chip_measure(QProg &prog, int shots, size_t chipid , string task_name)
-{
-    auto qubit_num = getAllocateQubit();
-    auto cbit_num = getAllocateCMem();
-
-    if (qubit_num > 6 || cbit_num > 6)
-    {
-        std::cout << "Failed! real chip qubit num or cbit num are not less or equal to 6" << std::endl;
-        throw run_fail("real chip qubit num or cbit num are not less or equal to 6");
-    }
-
-    if (shots > 10000 || shots < 1000)
-    {
-        QCERR("real chip shots must be in range [1000,10000]");
-        throw run_fail("real chip shots must be in range [1000,10000]");
-    }
-
-    TraversalConfig traver_param;
-    QProgCheck prog_check;
-    prog_check.execute(prog.getImplementationPtr(), nullptr, traver_param);
-
-    if (!traver_param.m_can_optimize_measure)
-    {
-        QCERR("measure must be last");
-        throw run_fail("measure must be last");
-    }
-
-    //convert prog to originir 
-    auto prog_str = convert_qprog_to_originir(prog, this);
-
-    //construct json
-    rapidjson::Document doc;
-    doc.SetObject();
-
-    add_string_value(doc, "code", prog_str);
-    add_string_value(doc, "apiKey", m_token);
-    add_string_value(doc, "QMachineType", (size_t)CLOUD_QMACHINE_TYPE::REAL_CHIP);
-    add_string_value(doc, "codeLen", prog_str.size());
-    add_string_value(doc, "qubitNum", getAllocateQubitNum());
-    add_string_value(doc, "measureType", (size_t)CLUSTER_TASK_TYPE::CLUSTER_MEASURE);
-    add_string_value(doc, "classicalbitNum", getAllocateCMem());
-    add_string_value(doc, "shot", (size_t)shots);
-    add_string_value(doc, "taskName", task_name);
-
-    QPANDA_OP(chipid, add_string_value(doc, "chipid", chipid));
-
-    StringBuffer buffer;
-    Writer<StringBuffer> writer(buffer);
-    doc.Accept(writer);
-
-    std::string post_json_str = buffer.GetString();
-    std::string recv_json_str = post_json(m_compute_url, post_json_str);
-
-    inqure_result(recv_json_str, CLOUD_QMACHINE_TYPE::REAL_CHIP);
+    inqure_result(recv_json_str, m_real_chip_task_inqure_url, CLOUD_QMACHINE_TYPE::REAL_CHIP);
     return m_measure_result;
 }
 
@@ -523,7 +507,7 @@ std::map<std::string, double> QCloudMachine::noise_measure(QProg &prog, int shot
     std::string post_json_str = buffer.GetString();
     std::string recv_json_str = post_json(m_compute_url, post_json_str);
 
-    inqure_result(recv_json_str, CLOUD_QMACHINE_TYPE::NOISE_QMACHINE);
+    inqure_result(recv_json_str, m_inqure_url, CLOUD_QMACHINE_TYPE::NOISE_QMACHINE);
     return m_measure_result;
 }
 
@@ -553,7 +537,7 @@ std::map<std::string, double> QCloudMachine::full_amplitude_measure(QProg &prog,
     std::string post_json_str = buffer.GetString();
     std::string recv_json_str = post_json(m_compute_url, post_json_str);
 
-    inqure_result(recv_json_str, CLOUD_QMACHINE_TYPE::Full_AMPLITUDE);
+    inqure_result(recv_json_str, m_inqure_url, CLOUD_QMACHINE_TYPE::Full_AMPLITUDE);
     return m_measure_result;
 }
 
@@ -581,10 +565,9 @@ std::map<std::string, double> QCloudMachine::full_amplitude_pmeasure(QProg &prog
     doc.Accept(writer);
 
     std::string post_json_str = buffer.GetString();
-
     std::string recv_json_str = post_json(m_compute_url, post_json_str);
 
-    inqure_result(recv_json_str, CLOUD_QMACHINE_TYPE::Full_AMPLITUDE);
+    inqure_result(recv_json_str, m_inqure_url, CLOUD_QMACHINE_TYPE::Full_AMPLITUDE);
     return m_measure_result;
 }
 
@@ -614,7 +597,7 @@ std::map<std::string, qcomplex_t> QCloudMachine::partial_amplitude_pmeasure(QPro
     std::string post_json_str = buffer.GetString();
     std::string recv_json_str = post_json(m_compute_url, post_json_str);
 	
-    inqure_result(recv_json_str, CLOUD_QMACHINE_TYPE::PARTIAL_AMPLITUDE);
+    inqure_result(recv_json_str, m_inqure_url, CLOUD_QMACHINE_TYPE::PARTIAL_AMPLITUDE);
     return m_pmeasure_result;
 }
 
@@ -644,34 +627,17 @@ qcomplex_t QCloudMachine::single_amplitude_pmeasure(QProg &prog, std::string amp
     std::string post_json_str = buffer.GetString();
     std::string recv_json_str = post_json(m_compute_url, post_json_str);
 
-    inqure_result(recv_json_str, CLOUD_QMACHINE_TYPE::SINGLE_AMPLITUDE);
+    inqure_result(recv_json_str, m_inqure_url, CLOUD_QMACHINE_TYPE::SINGLE_AMPLITUDE);
     return m_single_result;
 }
 
-bool QCloudMachine::parser_real_chip_submit_json(std::string &recv_json, std::string& taskid)
-{
-    Document recv_doc;
-    if (recv_doc.Parse(recv_json.c_str()).HasParseError() 
-        || !recv_doc.HasMember("taskState")
-        || !recv_doc.HasMember("taskId"))
-    {
-        QCERR("json parser error : ");
-        QCERR(recv_json);
-        throw run_fail("json parser error");
-    }
-    else
-    {
-        const rapidjson::Value &task_value = recv_doc["taskId"];
-        taskid = task_value.GetString();
-        return true;
-    }
-}
-
-bool QCloudMachine::parser_cluster_submit_json(std::string &recv_json, std::string& taskid)
+bool QCloudMachine::parser_submit_json(std::string &recv_json, std::string& taskid)
 {
     Document recv_doc;
     if (recv_doc.Parse(recv_json.c_str()).HasParseError() || !recv_doc.HasMember("success"))
     {
+        if(m_is_logged) std::cout << recv_json << std::endl;
+
         QCERR("server connection failed");
         throw run_fail("server connection failed");
     }
@@ -693,6 +659,8 @@ bool QCloudMachine::parser_cluster_submit_json(std::string &recv_json, std::stri
                 !Obj.HasMember("taskId") ||
                 !Obj.HasMember("id"))
             {
+                if (m_is_logged) std::cout << recv_json << std::endl;
+
                 QCERR("json object error");
                 throw run_fail("json object error");
             }
@@ -706,7 +674,7 @@ bool QCloudMachine::parser_cluster_submit_json(std::string &recv_json, std::stri
     }
 }
 
-bool QCloudMachine::parser_cluster_result_json(std::string &recv_json, std::string& taskid)
+bool QCloudMachine::parser_result_json(std::string &recv_json, std::string& taskid)
 {
     //delete "\r\n" from recv json, Transfer-Encoding: chunked
     int pos = 0;
@@ -816,7 +784,7 @@ bool QCloudMachine::parser_cluster_result_json(std::string &recv_json, std::stri
                         break;
                     }
 
-                    case static_cast<CLOUD_QMACHINE_TYPE>(6):
+                    case CLOUD_QMACHINE_TYPE::QST:
                     {
                         const rapidjson::Value &qst_result = List[0]["qstresult"];
 
@@ -839,6 +807,17 @@ bool QCloudMachine::parser_cluster_result_json(std::string &recv_json, std::stri
 
                             m_qst_result.emplace_back(row_value);
                         }
+
+                        break;
+                    }
+
+                    case CLOUD_QMACHINE_TYPE::FIDELITY:
+                    {
+                        const rapidjson::Value &qst_fidelity = List[0]["qstfidelity"];
+
+                        std::string qst_fidelity_str = qst_fidelity.GetString();
+
+                        m_qst_fidelity = stod(qst_fidelity_str);
 
                         break;
                     }
@@ -889,6 +868,7 @@ bool QCloudMachine::parser_cluster_result_json(std::string &recv_json, std::stri
 	}
 	catch (const std::exception&e)
 	{
+        if (m_is_logged) std::cout << recv_json << std::endl;
         QCERR("parse result exception error");
         throw run_fail("parse result exception error");
 	}
@@ -896,82 +876,7 @@ bool QCloudMachine::parser_cluster_result_json(std::string &recv_json, std::stri
     return false;
 }
 
-bool QCloudMachine::parser_real_chip_result_json(std::string &recv_json, std::string& taskid)
-{
-    //delete "\r\n" from recv json, Transfer-Encoding: chunked
-    int pos = 0;
-    while ((pos = recv_json.find("\n")) != -1)
-    {
-        recv_json.erase(pos, 1);
-    }
-
-    if (recv_json.empty())
-    {
-        QCERR(recv_json.c_str());
-        throw run_fail("result json is empty");
-    }
-
-    Document recv_doc;
-    if (recv_doc.Parse(recv_json.c_str()).HasParseError() 
-        || !recv_doc.HasMember("taskState"))
-    {
-        std::string error_str = "recv_json parser error, recv json : " + recv_json;
-        QCERR(error_str.c_str());
-        throw run_fail("result json parse error");
-    }
-
-    try
-    {
-        const rapidjson::Value &state = recv_doc["taskState"];
-
-        std::string state_str = state.GetString();
-
-        auto status = static_cast<TASK_STATUS>(atoi(state_str.c_str()));
-        switch (status)
-        {
-        case TASK_STATUS::FINISHED:
-        {
-            const rapidjson::Value &result = recv_doc["taskResult"];
-                
-            Document result_doc;
-            result_doc.Parse(result.GetString());
-
-            auto& key = result_doc["key"];
-            auto& value = result_doc["value"];
-
-            m_measure_result.clear();
-            for (SizeType i = 0; i < key.Size(); ++i)
-            {
-                std::string bin_amplitude = key[i].GetString();
-                m_measure_result.insert(make_pair(bin_amplitude, value[i].GetDouble()));
-            }
-
-            break;
-        }
-
-        case TASK_STATUS::FAILED:
-        case static_cast<TASK_STATUS>(7) :
-        case static_cast<TASK_STATUS>(8) :
-        {
-            std::string error_str = "Task status failed ,status : " + to_string((size_t)status);
-            QCERR(error_str.c_str());
-            throw run_fail("Task status failed");
-        }
-
-        default: return true;
-        }
-    }
-    catch (const std::exception&e)
-    {
-        QCERR("parse result exception error");
-        throw run_fail("parse result exception error");
-    }
-
-    return false;
-}
-
-
-std::string QCloudMachine::get_result_json(std::string taskid, CLOUD_QMACHINE_TYPE type)
+std::string QCloudMachine::get_result_json(std::string taskid, std::string url, CLOUD_QMACHINE_TYPE type)
 {
     rapidjson::Document doc;
     doc.SetObject();
@@ -985,7 +890,7 @@ std::string QCloudMachine::get_result_json(std::string taskid, CLOUD_QMACHINE_TY
     doc.Accept(writer);
 
     std::string post_json_str = buffer.GetString();
-    std::string recv_json_str = post_json(m_inqure_url, post_json_str);
+    std::string recv_json_str = post_json(url, post_json_str);
 	return recv_json_str;
 }
 
@@ -1015,5 +920,3 @@ void QCloudMachine::add_string_value(rapidjson::Document &doc, const string &key
 }
 
 REGISTER_QUANTUM_MACHINE(QCloudMachine);
-
-

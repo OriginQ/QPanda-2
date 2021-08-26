@@ -1,100 +1,102 @@
 from pyqpanda import *
 from numpy import pi
 from matplotlib import pyplot as plt
+import unittest
+
+class Test_draw_state(unittest.TestCase):
+
+    def plot_state(self):
+
+        machine = CPUQVM()
+        machine.set_configure(50, 50)
+        machine.init_qvm()
+
+        q = machine.qAlloc_many(4)
+        c = machine.cAlloc_many(4)
+
+        prog = QProg()
+        prog.insert(X(q[1]))\
+            .insert(H(q[0]))\
+            .insert(RX(q[1], pi/2))\
+            .insert(RZ(q[0], pi/4))
+
+        machine.directly_run(prog)
+        result = machine.get_qstate()
+
+        plot_state_city(result)
+        machine.finalize()
 
 
-def plot_state():
+    def plot_density(self):
 
-    machine = CPUQVM()
-    machine.set_configure(50, 50)
-    machine.init_qvm()
+        machine = CPUQVM()
+        machine.set_configure(50, 50)
+        machine.init_qvm()
 
-    q = machine.qAlloc_many(4)
-    c = machine.cAlloc_many(4)
+        q = machine.qAlloc_many(4)
+        c = machine.cAlloc_many(4)
 
-    prog = QProg()
-    prog.insert(X(q[1]))\
-        .insert(H(q[0]))\
-        .insert(RX(q[1], pi/2))\
-        .insert(RZ(q[0], pi/4))
+        prog = QProg()
+        prog.insert(X(q[1]))\
+            .insert(H(q[0]))\
+            .insert(H(q[1]))\
+            .insert(H(q[2]))\
+            .insert(RX(q[1], pi/2))\
+            .insert(RY(q[3], pi/3))\
+            .insert(RZ(q[0], pi/4))\
+            .insert(RZ(q[1], pi))\
+            .insert(RZ(q[2], pi))\
+            .insert(RZ(q[3], pi))
 
-    machine.directly_run(prog)
-    result = machine.get_qstate()
+        machine.directly_run(prog)
+        result = machine.get_qstate()
 
-    plot_state_city(result)
-    machine.finalize()
-
-
-def plot_density():
-
-    machine = CPUQVM()
-    machine.set_configure(50, 50)
-    machine.init_qvm()
-
-    q = machine.qAlloc_many(4)
-    c = machine.cAlloc_many(4)
-
-    prog = QProg()
-    prog.insert(X(q[1]))\
-        .insert(H(q[0]))\
-        .insert(H(q[1]))\
-        .insert(H(q[2]))\
-        .insert(RX(q[1], pi/2))\
-        .insert(RY(q[3], pi/3))\
-        .insert(RZ(q[0], pi/4))\
-        .insert(RZ(q[1], pi))\
-        .insert(RZ(q[2], pi))\
-        .insert(RZ(q[3], pi))
-
-    machine.directly_run(prog)
-    result = machine.get_qstate()
-
-    rho = state_to_density_matrix(result)
-    plot_density_matrix(rho)
-    machine.finalize()
+        rho = state_to_density_matrix(result)
+        plot_density_matrix(rho)
+        machine.finalize()
 
 
-def plot_bloch_cir():
+    def plot_bloch_cir(self):
 
-    machine = CPUQVM()
-    machine.set_configure(50, 50)
-    machine.init_qvm()
+        machine = CPUQVM()
+        machine.set_configure(50, 50)
+        machine.init_qvm()
 
-    q = machine.qAlloc_many(1)
-    c = machine.cAlloc_many(1)
+        q = machine.qAlloc_many(1)
+        c = machine.cAlloc_many(1)
 
-    cir = QCircuit()
-    cir.insert(X(q[0]))\
-       .insert(H(q[0]))\
-       .insert(RX(q[0], pi/2))\
-       .insert(RZ(q[0], pi/4))
+        cir = QCircuit()
+        cir.insert(X(q[0]))\
+           .insert(H(q[0]))\
+           .insert(RX(q[0], pi/2))\
+           .insert(RZ(q[0], pi/4))
 
-    plot_bloch_circuit(cir)
-    machine.finalize()
+        plot_bloch_circuit(cir)
+        machine.finalize()
 
 
-def plot_bloch_vectors():
+    def plot_bloch_vectors(self):
 
-    machine = CPUQVM()
-    machine.set_configure(50, 50)
-    machine.init_qvm()
+        machine = CPUQVM()
+        machine.set_configure(50, 50)
+        machine.init_qvm()
 
-    q = machine.qAlloc_many(2)
-    c = machine.cAlloc_many(2)
+        q = machine.qAlloc_many(2)
+        c = machine.cAlloc_many(2)
 
-    prog = QProg()
-    prog.insert(X(q[1]))\
-        .insert(H(q[0]))\
-        .insert(RX(q[1], pi/2))\
-        .insert(RY(q[0], pi/4))\
-        .insert(RX(q[0], pi/3))
+        prog = QProg()
+        prog.insert(X(q[1]))\
+            .insert(H(q[0]))\
+            .insert(RX(q[1], pi/2))\
+            .insert(RY(q[0], pi/4))\
+            .insert(RX(q[0], pi/3))
 
-    machine.directly_run(prog)
-    result = machine.get_qstate()
+        machine.directly_run(prog)
+        result = machine.get_qstate()
 
-    # plot_bloch_vector([0, 1, 0])
-    plot_bloch_multivector(result)
-    machine.finalize()
+        # plot_bloch_vector([0, 1, 0])
+        plot_bloch_multivector(result)
+        machine.finalize()
 
 
 if __name__ == "__main__":
@@ -122,10 +124,10 @@ if __name__ == "__main__":
     qvm.finalize()
 
     # test draw_state_city arg :state vector
-    draw_state_city(result)
+    # draw_state_city(result)
 
     rho = state_to_density_matrix(result)
 
     # test draw_density_matrix arg :density matrix
-    fig = draw_density_matrix(rho)
-    plt.show()
+    # fig = draw_density_matrix(rho)
+    # plt.show()

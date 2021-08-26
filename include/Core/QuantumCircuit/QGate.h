@@ -1655,6 +1655,8 @@ inline QGate copy_qgate(QuantumGate *  qgate_old,QVec qubit_vector)
     return temp_gate;
 }
 
+QGate QOracle(const QVec& qubits, const QStat& matrix);
+
 inline QGate copy_qgate(QGate &qgate,QVec qubit_vector)
 {
 	return copy_qgate(qgate.getQGate(), qubit_vector);

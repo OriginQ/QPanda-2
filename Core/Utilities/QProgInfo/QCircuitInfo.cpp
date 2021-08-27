@@ -916,6 +916,7 @@ bool QPanda::check_dagger(std::shared_ptr<AbstractQGateNode> p_gate, const bool&
 	case CZ_GATE:
 	case SWAP_GATE:
 	case I_GATE:
+	case BARRIER_GATE:
 		return false;
 		break;
 

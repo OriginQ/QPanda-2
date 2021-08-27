@@ -459,43 +459,6 @@ protected:
 		return AbstractCirOptimizer::is_same_controled(*(continues_itr_vec.back()), *cur_iter);
 	}
 
-	bool is_single_gate(const GateType gt_type) {
-		if (gt_type < 0)
-		{
-			return false;
-		}
-
-		switch (gt_type)
-		{
-		case P0_GATE:
-		case P1_GATE:
-		case PAULI_X_GATE:
-		case PAULI_Y_GATE:
-		case PAULI_Z_GATE:
-		case X_HALF_PI:
-		case Y_HALF_PI:
-		case Z_HALF_PI:
-		case HADAMARD_GATE:
-		case T_GATE:
-		case S_GATE:
-		case RX_GATE:
-		case RY_GATE:
-		case RZ_GATE:
-		case RPHI_GATE:
-		case U1_GATE:
-		case U2_GATE:
-		case U3_GATE:
-		case U4_GATE:
-		case P00_GATE:
-		case P11_GATE:
-		case I_GATE:
-		case ECHO_GATE:
-			return true;
-		}
-
-		return false;
-	}
-
 private:
 	threadPool m_thread_pool;
 	std::map<size_t, QCircuit> m_replace_cir_vec;

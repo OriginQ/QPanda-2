@@ -827,6 +827,7 @@ std::vector<std::vector<size_t>> MPSImplQPU::measure_all_noncollapsing(Qnum qubi
 		measure_result[i] = single_result;
 	}
 
+
 	return measure_result;
 }
 
@@ -890,7 +891,6 @@ bool MPSImplQPU::apply_measure(size_t qubit)
 
 	for (size_t i = qubit; i < m_qubits_num - 1; i++)
 	{
-		// no need to propagate if no entanglement
 		if (m_lambdas[i].size() == 1)
 			break;   
 
@@ -906,6 +906,7 @@ bool MPSImplQPU::apply_measure(size_t qubit)
 
 		execute_two_qubit_gate(i - 1, i, id_mat);
 	}
+
 	return measurement;
 }
 

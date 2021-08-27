@@ -34,8 +34,19 @@ static void get_couple_state_index(uint128_t num, uint64_t& under_index, uint64_
     return;
 }
 
-void PartialAmplitudeQVM::init()
+void PartialAmplitudeQVM::init(BackendType type)
 {
+    if (BackendType::CPU == type)
+        m_simulator = std::make_unique<CPUImplQPU>();
+    else if (BackendType::MPS == type)
+        m_simulator = std::make_unique<MPSImplQPU>();
+#ifdef USE_CUDA
+    else if (BackendType::GPU == type)
+        m_simulator = std::make_unique<GPUImplQPU>();
+#endif // USE_CUDA
+    else
+        QCERR_AND_THROW(run_fail, "PartialAmplitudeQVM::init");
+
 	_Config.maxQubit = 80;
 	_Config.maxCMem = 80;
 	_start();
@@ -44,21 +55,19 @@ void PartialAmplitudeQVM::init()
 void PartialAmplitudeQVM::computing_graph(int qubit_num,const cir_type& circuit, QStat& state)
 {
 	state.resize(1ull << qubit_num);
-	QPUImpl *pQGate = new CPUImplQPU();
 
 	try
 	{
-		pQGate->initState(0, 1, qubit_num);
-		m_graph_backend.computing_graph(circuit, pQGate);
+		m_simulator->initState(0, 1, qubit_num);
+		m_graph_backend.computing_graph(circuit, m_simulator);
 
-		auto graph_state = pQGate->getQState();
+		auto graph_state = m_simulator->getQState();
 
 		state.assign(graph_state.begin(), graph_state.end());
-		delete pQGate;
 	}
 	catch (const std::exception& e)
 	{
-		delete pQGate;
+        QCERR_AND_THROW(run_fail, e.what());
 	}
 
     return;
@@ -92,7 +101,7 @@ void PartialAmplitudeQVM::caculate_qstate(QStat &state)
 }
 
 
-qcomplex_t PartialAmplitudeQVM::PMeasure_bin_index(std::string amplitude)
+qcomplex_t PartialAmplitudeQVM::pmeasure_bin_index(std::string amplitude)
 {
 	uint128_t index = 0;
 	size_t qubit_num = amplitude.size();
@@ -101,10 +110,10 @@ qcomplex_t PartialAmplitudeQVM::PMeasure_bin_index(std::string amplitude)
 		index += (amplitude[qubit_num - i - 1] != '0') << i ;
 	}
 
-	return PMeasure_dec_index(integerToString(index));
+	return pmeasure_dec_index(integerToString(index));
 }
 
-qcomplex_t PartialAmplitudeQVM::PMeasure_dec_index(std::string amplitude)
+qcomplex_t PartialAmplitudeQVM::pmeasure_dec_index(std::string amplitude)
 {
 	uint128_t dec_amplitude(amplitude.c_str());
 
@@ -130,7 +139,7 @@ qcomplex_t PartialAmplitudeQVM::PMeasure_dec_index(std::string amplitude)
 }
 
 
-stat_map PartialAmplitudeQVM::PMeasure_subset(const std::vector<std::string>& amplitude)
+stat_map PartialAmplitudeQVM::pmeasure_subset(const std::vector<std::string>& amplitude)
 {
 	std::vector<uint128_t> dec_state;
 	for (auto state : amplitude)
@@ -310,7 +319,7 @@ void PartialAmplitudeQVM::execute(std::shared_ptr<AbstractQGateNode>  cur_node, 
 	case GateType::T_GATE:
 	case GateType::S_GATE:
 	{
-		node.tar_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
+		node.qubits.emplace_back(qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr());
 	}
 	break;
 
@@ -321,16 +330,19 @@ void PartialAmplitudeQVM::execute(std::shared_ptr<AbstractQGateNode>  cur_node, 
 
 		if (control_qvec.empty())
 		{
-			node.tar_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
+            node.qubits.emplace_back(qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr());
 		}
 		else
 		{
 			node.gate_type = TOFFOLI_GATE;
 
-			auto tar_qubit = node.tar_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
+			auto tar_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
+			auto ctr_qubit = control_qvec[0]->getPhysicalQubitPtr()->getQubitAddr();
+			auto tof_qubit = control_qvec[1]->getPhysicalQubitPtr()->getQubitAddr();
 
-			auto ctr_qubit = node.ctr_qubit = control_qvec[0]->getPhysicalQubitPtr()->getQubitAddr();
-			auto tof_qubit = node.tof_qubit = control_qvec[1]->getPhysicalQubitPtr()->getQubitAddr();
+            node.qubits.emplace_back(tar_qubit);
+            node.qubits.emplace_back(ctr_qubit);
+            node.qubits.emplace_back(tof_qubit);
 
 			m_graph_backend.m_spilt_num += (m_graph_backend.is_corss_node(ctr_qubit, tar_qubit)) ||
 				(m_graph_backend.is_corss_node(ctr_qubit, tof_qubit)) ||
@@ -344,10 +356,47 @@ void PartialAmplitudeQVM::execute(std::shared_ptr<AbstractQGateNode>  cur_node, 
 	case GateType::RY_GATE:
 	case GateType::RZ_GATE:
 	{
-		node.tar_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
-		node.gate_parm = dynamic_cast<angleParameter *>(cur_node->getQGate())->getParameter();
+        auto param_ptr = dynamic_cast<angleParameter*>(cur_node->getQGate());
+
+        node.params.emplace_back(param_ptr->getParameter());
+        node.qubits.emplace_back(qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr());
 	}
 	break;
+
+    case GateType::U2_GATE:
+    {
+        auto u2_gate = dynamic_cast<QGATE_SPACE::U2*>(cur_node->getQGate());
+
+        node.params.emplace_back(u2_gate->get_phi());
+        node.params.emplace_back(u2_gate->get_lambda());
+        node.qubits.emplace_back(qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr());
+    }
+    break;
+
+    case GateType::U3_GATE:
+    {
+        auto u3_gate = dynamic_cast<QGATE_SPACE::U3*>(cur_node->getQGate());
+
+        node.params.emplace_back(u3_gate->get_theta());
+        node.params.emplace_back(u3_gate->get_phi());
+        node.params.emplace_back(u3_gate->get_lambda());
+
+        node.qubits.emplace_back(qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr());
+    }
+    break;
+
+    case GateType::U4_GATE:
+    {
+        auto angle_param = dynamic_cast<QGATE_SPACE::AbstractAngleParameter *>(cur_node->getQGate());
+
+        node.params.emplace_back(angle_param->getAlpha());
+        node.params.emplace_back(angle_param->getBeta());
+        node.params.emplace_back(angle_param->getGamma());
+        node.params.emplace_back(angle_param->getDelta());
+
+        node.qubits.emplace_back(qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr());
+    }
+    break;
 
 	case GateType::ISWAP_GATE:
 	case GateType::SWAP_GATE:
@@ -355,6 +404,7 @@ void PartialAmplitudeQVM::execute(std::shared_ptr<AbstractQGateNode>  cur_node, 
 	{
 		auto ctr_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
 		auto tar_qubit = qubits_vector[1]->getPhysicalQubitPtr()->getQubitAddr();
+
 		if (m_graph_backend.is_corss_node(ctr_qubit, tar_qubit))
 		{
 			QCERR("Error");
@@ -362,8 +412,8 @@ void PartialAmplitudeQVM::execute(std::shared_ptr<AbstractQGateNode>  cur_node, 
 		}
 		else
 		{
-			node.ctr_qubit = ctr_qubit;
-			node.tar_qubit = tar_qubit;
+            node.qubits.emplace_back(tar_qubit);
+            node.qubits.emplace_back(ctr_qubit);
 		}
 	}
 	break;
@@ -371,17 +421,27 @@ void PartialAmplitudeQVM::execute(std::shared_ptr<AbstractQGateNode>  cur_node, 
 	case GateType::CNOT_GATE:
 	case GateType::CZ_GATE:
 	{
-		auto ctr_qubit = node.ctr_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
-		auto tar_qubit = node.tar_qubit = qubits_vector[1]->getPhysicalQubitPtr()->getQubitAddr();
+		auto ctr_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
+		auto tar_qubit = qubits_vector[1]->getPhysicalQubitPtr()->getQubitAddr();
+
+        node.qubits.emplace_back(tar_qubit);
+        node.qubits.emplace_back(ctr_qubit);
+
 		m_graph_backend.m_spilt_num += m_graph_backend.is_corss_node(ctr_qubit, tar_qubit);
 	}
 	break;
 
 	case GateType::CPHASE_GATE:
 	{
-		auto ctr_qubit = node.ctr_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
-		auto tar_qubit = node.tar_qubit = qubits_vector[1]->getPhysicalQubitPtr()->getQubitAddr();
-		node.gate_parm = dynamic_cast<QGATE_SPACE::AbstractSingleAngleParameter *>(cur_node->getQGate())->getParameter();
+		auto ctr_qubit  = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
+		auto tar_qubit  = qubits_vector[1]->getPhysicalQubitPtr()->getQubitAddr();
+
+        auto param_ptr = dynamic_cast<QGATE_SPACE::AbstractSingleAngleParameter *>(cur_node->getQGate());
+
+        node.qubits.emplace_back(tar_qubit);
+        node.qubits.emplace_back(ctr_qubit);
+        node.params.emplace_back(param_ptr->getParameter());
+
 		m_graph_backend.m_spilt_num += m_graph_backend.is_corss_node(ctr_qubit, tar_qubit);
 	}
 	break;

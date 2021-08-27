@@ -38,15 +38,15 @@ inline QCircuit amplitude_encode(QVec q, std::vector<double> data, const bool b_
 			tmp_sum += (i*i);
 		}
 		//cout << "tmp_sum = " << tmp_sum << endl;
-		if (abs(1.0 - tmp_sum) > max_precision)
+		if (std::abs(1.0 - tmp_sum) > max_precision)
 		{
-			if (abs(tmp_sum) < max_precision)
+			if (std::abs(tmp_sum) < max_precision)
 			{
 				QCERR("Error: The input vector b is zero.");
 				return QCircuit();
 			}
 
-			//cout << "sum = " << abs(1.0 - tmp_sum) << endl;
+			//cout << "sum = " << std::abs(1.0 - tmp_sum) << endl;
 			QCERR_AND_THROW_ERRSTR(run_fail, "Error: The input vector b must satisfy the normalization condition.");
 		}
 	}
@@ -81,19 +81,19 @@ inline QCircuit amplitude_encode(QVec q, std::vector<double> data, const bool b_
 		{
 			qcir << RY(q[0], 2 * (2 * PI - acos(data[0] / sqrt(data[0] * data[0] + data[1] * data[1]))));
 		}
-		else if (abs(data[0]) < 1e-20 && data[1] > 1e-20)
+		else if (std::abs(data[0]) < 1e-20 && data[1] > 1e-20)
 		{
 			qcir << RY(q[0], PI);
 		}
-		else if (abs(data[0]) < 1e-20 && data[1] < -1e-20)
+		else if (std::abs(data[0]) < 1e-20 && data[1] < -1e-20)
 		{
 			qcir << RY(q[0], -PI);
 		}
-		else if (abs(data[1]) < 1e-20 && data[0] < -1e-20)
+		else if (std::abs(data[1]) < 1e-20 && data[0] < -1e-20)
 		{
 			qcir << RY(q[0], 2 * PI);
 		}
-		else if (abs(data[0]) < 1e-20 && abs(data[1]) < 1e-20)
+		else if (std::abs(data[0]) < 1e-20 && std::abs(data[1]) < 1e-20)
 		{
 			throw run_fail("Amplitude_encode error.");
 		}

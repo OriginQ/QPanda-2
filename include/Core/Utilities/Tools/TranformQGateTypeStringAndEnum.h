@@ -50,6 +50,7 @@ QPANDA_BEGIN
 #define GATE_SQISWAP "SQISWAP"
 #define GATE_BARRIER "BARRIER"
 #define GATE_QDoubleGate "QDoubleGate"
+#define GATE_ORACLE "OracularGate"
 
 /**
 * @brief Classes for tranform gate type  and gate name
@@ -70,7 +71,7 @@ private:
 };
 
 
-
+bool is_single_gate(const GateType gt_type);
 
 
 QPANDA_END

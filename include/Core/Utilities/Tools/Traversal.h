@@ -39,6 +39,13 @@ public:
     std::vector<size_t> m_measure_qubits;
     std::vector<CBit *> m_measure_cc;
 
+    void clear()
+    {
+        m_return_value.clear();
+        m_measure_qubits.clear();
+        m_measure_cc.clear();
+    }
+
     TraversalConfig(double rotation_angle_error = 0)
         : m_qubit_number(0), m_is_dagger(false)
 

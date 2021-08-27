@@ -1,5 +1,6 @@
 ﻿#include "Core/Utilities/Tools/QProgFlattening.h"
 #include <set>
+#include "Core/Utilities/QProgInfo/Visualization/QVisualization.h"
 
 USING_QPANDA
 
@@ -257,6 +258,7 @@ void QProgFlattening::flatten_by_type(std::shared_ptr<QNode> node, QProg& flatte
 QCircuit QProgFlattening::prog_flatten_to_cir(QProg& prog)
 {
 	QCircuit ret_cir;
+	flatten(prog);
 	for (auto gate_itr = prog.getFirstNodeIter(); gate_itr != prog.getEndNodeIter(); ++gate_itr)
 	{
 		if (GATE_NODE != (*gate_itr)->getNodeType())

@@ -697,6 +697,23 @@ OracularGate::OracularGate(QuantumGate * qgate_old)
 	}
 
 	oracle_name = oracular_ptr_old->oracle_name;
+    oracular_ptr_old->getMatrix(gate_matrix);
+        oracle_name = "Matrix";
+        gate_type = GateType::ORACLE_GATE;
+    }
+
+OracularGate::OracularGate(const QStat &matrix)
+{
+
+    gate_matrix = matrix;
+    oracle_name = "Matrix";
+    gate_type = GateType::ORACLE_GATE;
+}
+
+void OracularGate::getMatrix(QStat &matrix) const
+{
+    matrix = gate_matrix;
+    return;
 }
 
 U2::U2(double phi, double lambda)

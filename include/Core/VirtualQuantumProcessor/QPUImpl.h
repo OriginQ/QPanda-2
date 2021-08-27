@@ -23,7 +23,7 @@ limitations under the License.
 #include <map>
 #include "Core/VirtualQuantumProcessor/QuantumGateParameter.h"
 #include "Core/VirtualQuantumProcessor/QError.h"
-#include "Core/VirtualQuantumProcessor/RandomEngine/RandomEngine.h"
+#include "Core/Utilities/Tools/RandomEngine/RandomEngine.h"
 #include "Core/QuantumCircuit/QGlobalVariable.h"
 
 typedef std::vector<QGateParam> vQParam;
@@ -104,6 +104,14 @@ public:
                         QStat& matrix,
                         bool isConjugate,
                         GateType) = 0;
+
+    virtual QError OracleGate(Qnum& qubits, QStat &matrix,
+                              bool isConjugate)
+                             {return QError::qErrorNone;}
+    virtual QError controlOracleGate(Qnum& qubits, const Qnum& controls,
+                                     QStat &matrix, bool isConjugate)
+                                     {return QError::qErrorNone;}
+
 	/**
 	* @brief get quantum states
 	*/

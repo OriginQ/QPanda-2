@@ -13,8 +13,7 @@ class InitQMachine:
     def __del__(self):
         pq.destroy_quantum_machine(self.m_machine)
 
-class Test_clock_layer(unittest.TestCase):
-
+class Test_Decompose_Multiple_Control_qgate(unittest.TestCase):
     def test_layer1(self):
         init_machine = InitQMachine()
         machine = init_machine.m_machine
@@ -22,20 +21,23 @@ class Test_clock_layer(unittest.TestCase):
         c = machine.cAlloc_many(6)
         prog = pq.QProg()
         cir = pq.QCircuit()
-        cir.insert(pq.T(q[0])).insert(pq.iSWAP(q[1], q[5])).insert(pq.S(q[1])).insert(pq.CNOT(q[1], q[0]))
-        cir.insert(pq.CU(np.pi/3, 3, 4, 5, q[3], q[2]))
+        cir.insert(pq.T(q[0])).insert(pq.iSWAP(q[1], q[5], 3.2233233)).insert(pq.S(q[1])).insert(pq.CNOT(q[1], q[0]))
+        cir.insert(pq.CU(np.pi/3, 3, 4, 5, q[1], q[2]))
+        cir.insert(pq.CR(q[2], q[1], 0.00000334))
+        cir.insert(pq.RX(q[2], np.pi/3)).insert(pq.RZ(q[2], np.pi/3)).insert(pq.RY(q[2], np.pi/3))
         cir.insert(pq.CZ(q[0], q[2])).insert(pq.CU(np.pi/3, 3, 4, 5, q[5], q[2])).insert(pq.SWAP(q[1], q[0]))
-        cir.insert(pq.iSWAP(q[1], q[5])).insert(pq.iSWAP(q[1], q[5], 0.12345)).insert(pq.SqiSWAP(q[1], q[5]))
         cir.set_control([q[4],q[3]])
         cir.set_dagger(True)
         prog.insert(cir)
 
-        # 按时序分层
-        text = pq.draw_qprog_text_with_clock(prog)
-        # print(text)
+        # 打印多控门分解之前的量子线路
+        # draw_qprog(prog, 'pic', filename='D:/before_decompose_multiple_control_qgate.jpg', verbose=True)
 
-        # utf8 to gbk, for windows
-        #print(pq.fit_to_gbk(text))
+        #多控门分解接口
+        # new_prog = pq.decompose_multiple_control_qgate(prog, machine)
+
+        #打印多控门分解之后的量子线路
+        # draw_qprog(new_prog, 'pic', filename='D:/after_decompose_multiple_control_qgate.jpg', verbose=True)
 
 if __name__=="__main__":
-    Test_clock_layer.test_layer1()
+    unittest.main(verbosity=2)

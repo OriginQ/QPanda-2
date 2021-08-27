@@ -68,7 +68,7 @@ public:
 			QCERR_AND_THROW_ERRSTR(std::invalid_argument, "Error: The input matrix for QPE must be a unitary matrix or Hermitian N*N matrix with N=2^n.");
 		}
 
-		const uint32_t thread_cnt = 2;
+		const uint32_t thread_cnt = 1;
 		m_thread_pool.init_thread_pool(thread_cnt);
 
 #if PRINT_TRACE
@@ -182,7 +182,8 @@ protected:
 			auto exp_matrix = eigen_mat.exp().eval();
 
 			PTrace("On matrix decompose: " << min);
-            QCircuit decomposed_cir = matrix_decompose_qr(m_target_qubits, exp_matrix);
+            QCircuit decomposed_cir /*= matrix_decompose_qr(m_target_qubits, exp_matrix)*/;
+            decomposed_cir << QOracle(m_target_qubits, Eigen_to_QStat(exp_matrix));
 			//QCircuit decomposed_cir = Householder_qr_matrix_decompose(m_target_qubits, exp_matrix);
 			PTrace("Finished matrix decompose: " << min);
 			cir_u << cir_swap_qubits_b << decomposed_cir << cir_swap_qubits_b;

@@ -60,7 +60,7 @@ static std::string build_chain_typed_quantum_chip_config_data(size_t qubit_num)
     rapidjson::Document::AllocatorType &arch_alloc = arch_doc.GetAllocator();
 
     rapidjson::Value adj_object(rapidjson::kObjectType);
-    for (auto qubit_addr = 0; qubit_addr < qubit_num; qubit_addr++)
+    for (SizeType qubit_addr = 0; qubit_addr < qubit_num; qubit_addr++)
     {
         rapidjson::Value qubit_array(rapidjson::kArrayType);
 
@@ -93,7 +93,7 @@ static std::string build_chain_typed_quantum_chip_config_data(size_t qubit_num)
     }
 
     arch_doc.AddMember("adj", adj_object, arch_alloc);
-    arch_doc.AddMember("QubitCount", qubit_num, arch_alloc);
+    arch_doc.AddMember("QubitCount", (SizeType)qubit_num, arch_alloc);
 
     //construct final json
     rapidjson::Document doc;

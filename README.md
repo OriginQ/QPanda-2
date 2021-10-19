@@ -1,32 +1,35 @@
+
+
 ## QPanda 2
 
 ![图片: ](./Documentation/img/1.png)
 
-QPanda 2是由本源量子开发的开源量子计算框架，它可以用于构建、运行和优化量子算法.
+QPanda2 is an open source quantum computing framework developed by Origin Quantum, which can be used to build, run and optimize quantum algorithms.
+QPanda2 is the basic library of a series of software developped by  Origin Quantum, which provides core components for QRunes, Qurator and quantum computing services.
 
-QPanda 2作为本源量子计算系列软件的基础库，为QRunes、Qurator、量子计算服务提供核心部件。
-
-## 持续化集成状态
 | Linux                | Windows and MacOS|
 |-------------------------|------------------|
 [![Build Status](https://travis-ci.org/OriginQ/QPanda-2.svg?branch=master)](https://travis-ci.org/OriginQ/QPanda-2)        |    [![Build Status](https://dev.azure.com/yekongxiaogang/QPanda2/_apis/build/status/OriginQ.QPanda-2?branchName=master)](https://dev.azure.com/yekongxiaogang/QPanda2/_build/latest?definitionId=4&branchName=master)   
 
-| C++ 文档         | Python 文档 |
+| C++ Documents         | Python Documents |
 |-------------------------|-----------------|
  | [![Documentation Status](https://readthedocs.org/projects/qpanda-tutorial/badge/?version=latest)](https://qpanda-tutorial.readthedocs.io/zh/latest/?badge=latest)      | [![Documentation Status](https://readthedocs.org/projects/pyqpanda-toturial/badge/?version=latest)](https://pyqpanda-toturial.readthedocs.io/zh/latest/?badge=latest)    
 
-## 安装
+
+##Install for Python
 ### Python 3.6-3.9
-通过pip进行安装：
+Install using pip:
 
     pip install pyqpanda
     
-### Python 其他版本和C++
+### Other versions of Python and C++
 
-如果要使用Python 3的其他版本，或者直接通过C++ API进行量子编程，建议直接从源码进行编译。内容参见[使用文档](https://qpanda-tutorial.readthedocs.io/zh/latest/)
+If you want to use other versions of Python3 or use C++ API, Compiling from source is recommended. 
+Reference to the [Documents for tutorials](https://pyqpanda-tutorial-en.readthedocs.io/en/latest/)
 
-### 验证安装
-下面的例子可以在量子计算机中构建量子纠缠态(|00>+|11>)，对其进行测量，重复制备1000次。预期的结果是约有50%的概率使测量结果分别在00或11上。
+### Python sample code
+
+The following example can be used to construct quantum entanglement in a quantum computer(|00>+|11>), measure all qubits and run 1000 times:
 
     from pyqpanda import *
 
@@ -41,26 +44,31 @@ QPanda 2作为本源量子计算系列软件的基础库，为QRunes、Qurator�
     print(result)
     finalize()
 
-观察到如下结果说明您已经成功安装QPanda！（安装失败请参阅[FAQ](https://pyqpanda-toturial.readthedocs.io/zh/latest/)，或在issue中提出）
-    
+ Results:
+ 
     {'00': 493, '11': 507}
     
-更多的例子请参见[使用示例](https://github.com/OriginQ/QPanda-Example)。
+See more examples[Examples](https://github.com/OriginQ/QPanda-Example)。
 
-## 相关资料
+## Other informations
 
- - [本源量子官网](http://originqc.com.cn/)
- - [本源量子云平台](http://www.qubitonline.cn/)
- - [本源量子教育](https://learn-quantum.com/EDU/index.html)
+ - [Official website of Origin Quantum](http://originqc.com.cn/)
+ - [OriginQ Cloud](http://www.qubitonline.cn/)
+ - [OriginQ Education](https://learn-quantum.com/EDU/index.html)
  - [ReadTheDocs文档(C++)](https://qpanda-tutorial.readthedocs.io/zh/latest/)
  - [ReadTheDocs文档(Python)](https://pyqpanda-toturial.readthedocs.io/zh/latest/)
- - [QRunes量子语言](https://qrunes-tutorial.readthedocs.io/en/latest/)
+ - [QRunes](https://qrunes-tutorial.readthedocs.io/en/latest/)
  - [Qurator-VSCode](https://qurator-vscode.readthedocs.io/zh_CN/latest/)
 
 
-## 团队介绍
+## About
 
-QPanda由本源量子开发，本源量子致力于量子计算机的研发与应用，已推出6-qubit超导量子芯片（KF C6-130）、2-qubit半导量子芯片（XW B2-100），团队的目标是在近年制造出更多量子比特的芯片，提供公开云服务，实现量子优势与量子应用。软件团队为硬件提供支撑，除QPanda外还开发了QRunes量子语言、Qurator量子软件开发插件、本源量子云计算云服务平台、本源量子教育云等产品。
+QPanda is developed by Origin Quantum, which is committed to the development and application of quantum computers, 
+It has launched 6-Qubit superconducting quantum chip (KF C6-130) and 2-Qubit semi-conducting quantum chip (XW B2-100).
+The goal of the team is to produce more qubit chips in recent years, provide open cloud services, and realize quantum advantages and quantum applications.
+The software team underpins the hardware,In addition to QPanda, it has also developed QRunes, Qurator, 
+OriginQ Cloud service platform, OriginQ Education cloud and other products.
+
 
  ## License
  Apache License 2.0

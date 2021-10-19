@@ -55,8 +55,8 @@ See more examples[Examples](https://github.com/OriginQ/QPanda-Example)。
  - [Official website of Origin Quantum](http://originqc.com.cn/)
  - [OriginQ Cloud](http://www.qubitonline.cn/)
  - [OriginQ Education](https://learn-quantum.com/EDU/index.html)
- - [ReadTheDocs文档(C++)](https://qpanda-tutorial.readthedocs.io/zh/latest/)
- - [ReadTheDocs文档(Python)](https://pyqpanda-toturial.readthedocs.io/zh/latest/)
+ - [ReadTheDocs(C++)](https://qpanda-tutorial.readthedocs.io/zh/latest/)
+ - [ReadTheDocs(Python)](https://pyqpanda-tutorial-en.readthedocs.io/en/latest/)
  - [QRunes](https://qrunes-tutorial.readthedocs.io/en/latest/)
  - [Qurator-VSCode](https://qurator-vscode.readthedocs.io/zh_CN/latest/)
 

@@ -16,7 +16,7 @@ QPanda2 is the basic library of a series of software developped by  Origin Quant
  | [![Documentation Status](https://readthedocs.org/projects/qpanda-tutorial/badge/?version=latest)](https://qpanda-tutorial.readthedocs.io/zh/latest/?badge=latest)      | [![Documentation Status](https://readthedocs.org/projects/pyqpanda-toturial/badge/?version=latest)](https://pyqpanda-toturial.readthedocs.io/zh/latest/?badge=latest)    
 
 
-##Install for Python
+## Install for Python
 
 ### Python 3.6-3.9
 

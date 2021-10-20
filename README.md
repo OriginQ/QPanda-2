@@ -35,22 +35,23 @@ The following example can be used to construct quantum entanglement in a quantum
 
     from pyqpanda import *
 
-    init(QMachineType.CPU)
+    qvm = CPUQVM()
+    qvm.init_qvm()
     prog = QProg()
-    q = qAlloc_many(2)
-    c = cAlloc_many(2)
-    prog.insert(H(q[0]))
-    prog.insert(CNOT(q[0],q[1]))
-    prog.insert(measure_all(q,c))
-    result = run_with_configuration(prog, cbit_list = c, shots = 1000)
+    q = qvm.qAlloc_many(4)
+    c = qvm.cAlloc_many(4)
+    prog << H(q[0])\
+        << CNOT(q[0:-1],q[1:])\
+        << measure_all(q,c)
+    result = qvm.run_with_configuration(prog, c, 1000)
     print(result)
-    finalize()
+    qvm.finalize()
 
  Results:
  
-    {'00': 493, '11': 507}
+    {'0000': 518, '1111': 482}
     
-See more examples[Examples](https://github.com/OriginQ/QPanda-Example)。
+See more [examples](https://github.com/OriginQ/QPanda-Example)。
 
 ## Other informations
 

@@ -31,7 +31,7 @@ Reference to the [Documents for tutorials](https://pyqpanda-tutorial-en.readthed
 
 ### Python sample code
 
-The following example can be used to construct quantum entanglement in a quantum computer(|00>+|11>), measure all qubits and run 1000 times:
+The following example can be used to construct quantum entanglement in a quantum computer(|0000>+|1111>), measure all qubits and run 1000 times:
 
     from pyqpanda import *
 

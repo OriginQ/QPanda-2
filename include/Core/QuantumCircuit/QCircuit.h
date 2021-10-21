@@ -252,7 +252,10 @@ public:
 
 		return NodeIter();
 	}
-    NodeIter  deleteQNode(NodeIter &target_iter) { return m_node_manager.delete_QNode(target_iter); }
+	NodeIter  deleteQNode(NodeIter &target_iter) {
+		m_qgate_num--;
+		return m_node_manager.delete_QNode(target_iter);
+	}
 	/**
 	* @brief  Clear all node in current quantum program node
 	* @return     void

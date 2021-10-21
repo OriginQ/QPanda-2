@@ -765,7 +765,7 @@ QStat QProgToMatrix::get_matrix()
 
 	//for Bid Endian(positive sequence)
 	QCircuit cir_swap_qubits;
-	if (m_b_bid_endian)
+	if (m_b_positive_seq)
 	{
 		for (size_t i = 0; (i * 2) < (all_used_qubits.size() - 1); ++i)
 		{

@@ -109,10 +109,14 @@ void init_qalg(py::module & m)
 	m.def("constModMul", &constModMul, "Quantum modular multiplier", py::return_value_policy::reference);
 	m.def("constModExp", &constModExp, "Quantum modular exponents", py::return_value_policy::reference);
 
-    m.def("amplitude_encode", &amplitude_encode, "Encode the input data to the amplitude of qubits", "qlist"_a, "data"_a, "bool"_a = true,
+    m.def("amplitude_encode", [](QVec& qbits, std::vector<double> data, const bool b_need_check_normalization = true) {
+		return amplitude_encode(qbits, data, b_need_check_normalization); }, "Encode the input double data to the amplitude of qubits", "qlist"_a, "data"_a, "bool"_a = true,
         py::return_value_policy::automatic
         );
-
+	m.def("amplitude_encode", [](QVec& qbits, std::vector<complex<double>>& data) {
+		return amplitude_encode(qbits, data); }, "Encode the input complex data to the amplitude of qubits", "qlist"_a, "data"_a,
+		py::return_value_policy::automatic
+	);
 	m.def("QFT", &QFT, "Build QFT quantum circuit", "qlist"_a,
 		py::return_value_policy::automatic
 	);

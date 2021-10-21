@@ -21,7 +21,7 @@ limitations under the License.
 USING_QPANDA
 using namespace std;
 
-static size_t g_shot = 100000;
+static size_t g_shot = 10000;
 
 static uint32_t classcial_search(const std::vector<uint32_t>& search_space, const std::vector<uint32_t>& search_data,
 	std::vector<size_t>& search_result)
@@ -47,7 +47,10 @@ static uint32_t quantum_grover_search(const std::vector<uint32_t>& search_space,
 	uint32_t repeat_times = 0;
 	auto machine = initQuantumMachine(CPU);
 	machine->setConfigure({ 64,64 });
-	auto x = machine->allocateCBit();
+
+	CPUQVM _tmp_qvm;
+	_tmp_qvm.init();
+	auto x = _tmp_qvm.allocateCBit();
 
 	std::vector<size_t> search_result_for_check;
 	for (size_t i = 0; i < search_space.size(); ++i)
@@ -85,6 +88,12 @@ static uint32_t quantum_grover_search(const std::vector<uint32_t>& search_space,
 		printf("Strat measure.\n");
 		//auto result = probRunDict(grover_Qprog, measure_qubits);
 		grover_Qprog << MeasureAll(measure_qubits, c);
+		write_to_originir_file(grover_Qprog, machine, "Grover_prog.ir");
+
+		// just for test
+		//auto _grover_prog = convert_originir_to_qprog("Grover_prog.ir", machine);
+		//auto result = runWithConfiguration(_grover_prog, c, g_shot);
+
 		auto result = runWithConfiguration(grover_Qprog, c, g_shot);
 
 		//get result
@@ -92,7 +101,7 @@ static uint32_t quantum_grover_search(const std::vector<uint32_t>& search_space,
 		for (const auto& _r : result){
 			normal_result.insert(std::make_pair(_r.first, (double)_r.second/(double)g_shot));
 		}
-		search_result = search_target_from_measure_result(normal_result);
+		search_result = search_target_from_measure_result(normal_result, measure_qubits.size());
 		if ((search_result.size() > 0)
 			|| ((search_result.size() == 0) && (max_repeat < repeat_times))){
 			break;
@@ -180,7 +189,7 @@ static uint32_t quantum_walk_search(const std::vector<uint32_t>& search_space, c
 		for (const auto& _r : result) {
 			normal_result.insert(std::make_pair(_r.first, (double)_r.second / (double)g_shot));
 		}
-		search_result = search_target_from_measure_result(normal_result);
+		search_result = search_target_from_measure_result(normal_result, measure_qubits.size());
 		if ((search_result.size() > 0)
 			|| ((search_result.size() == 0) && (4 < repeat_times))) {
 			break;
@@ -260,16 +269,18 @@ int main(int argc, char* argv[])
 {
 	const std::string parameter_descr_str = R"(
     The legal parameter form is as follows:
-    QGrover.exe [Option] [search-space-file] [search-data]
+    Grover_Algorithm.exe [Option] [search-space-file] [search-data]
     Option:
         -g: run Grover-search-algorithm
         -c: run classcial-search-algorithm
         -r: run quantum-walk-search-algorithm
     example:
-    To search for 100 in data.txt use Grover-search-algorithm, execute the following command:
-        Search.exe -g data.txt 100
+    To search for 2 in data.txt use Grover-search-algorithm, execute the following command:
+        Grover_Algorithm.exe -g data.txt 2
+    data.txt:
+    2,4,12,23,1,2,3,4,3,3,21,8,
     )";
-#if 1
+#if 0
 	/* read param
 	*/
 	int search_type = -1; /**< 0: classcial-search-algorithm; 1:Grover-search-algorithm; 2:quantum-walk-search-algorithm */
@@ -314,8 +325,8 @@ int main(int argc, char* argv[])
 		return -1;
 	}
 #else
-	int search_type = 2;
-	std::string data_file = "data1.txt";
+	int search_type = 1;
+	std::string data_file = "F:\\data.txt";
 	std::vector<uint32_t> search_data = {21};
 #endif
 	/* run search algorithm

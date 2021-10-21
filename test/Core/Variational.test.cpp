@@ -511,6 +511,114 @@ TEST(Variational, VanillaGradientDescentTest) {
 //#endif
 }
 
+TEST(Variational, assert_operation)
+{
+	using namespace QPanda;
+	using namespace QPanda::Variational;
+
+	constexpr int qnum = 4;
+	//auto q = qAllocMany(4);
+
+	QuantumMachine* machine = initQuantumMachine(CPU);
+	auto q = machine->qAllocMany(qnum);
+
+	MatrixXd m1(1, 1);
+	MatrixXd m2(1, 1);
+	m1(0, 0) = 1;
+	m2(0, 0) = 2;
+
+	double x1 = 1.562;
+	double x2 = 2.3658;
+	var x(m1);
+	var y(m2);
+	var ts(1.5);
+	ts = 1.8;
+
+	QVec qvec = { q[0], q[1],q[2] };
+
+	//QVec q
+	VQC vqc;
+	vqc << VQG_H_batch(qvec);
+
+	vqc << VQG_I(q[0])
+		<< VQG_U1(q[1], ts)
+		<< VQG_H_batch(qvec)
+		<< VQG_S_batch(qvec)
+		<< VQG_I(q[0])
+		<< VQG_T(q[0])
+		<< VQG_S(q[1])
+		<< VQG_X(q[2])
+		<< VQG_Y(q[1])
+		<< VQG_Z(q[2])
+
+		<< VQG_X1(q[2])
+		<< VQG_Y1(q[1])
+		<< VQG_Z1(q[2])
+
+		<< VQG_RPhi(q[0], ts, x)
+		<< VQG_U1_batch(qvec, ts)
+		<< VQG_U2_batch(qvec, PI, ts)
+		<< VQG_U3(q[2], PI, ts, x)
+		<< VQG_U4(q[2], PI, ts, x, x1)
+		<< VQG_RX(q[0], x1)
+		<< VQG_RY_batch(qvec, x2)
+		<< VQG_RZ(q[0], x1)
+		<< VQG_CZ(q[0], q[1])
+		<< VQG_CR(q[0], q[1], ts)
+		<< VQG_CNOT(q[0], q[1]);
+
+
+	//vqc.insert(VQG_H_batch(qvec));
+	//vqc.insert(VQG_I(q[0]));
+	//vqc.insert(VQG_H(qvec));
+	//vqc.insert(VQG_T(q[0]));
+	//vqc.insert(VQG_S(q[1]));
+
+	//vqc.insert(VQG_X(q[2]));
+	//vqc.insert(VQG_Y(q[1]));
+	//vqc.insert(VQG_Z(q[2]));
+
+	//vqc.insert(VQG_X1(q[2]));
+	//vqc.insert(VQG_Y1(q[1]));
+	//vqc.insert(VQG_Z1(q[2]));
+
+	//vqc.insert(VQG_RPhi(q[0], ts, x));
+	//vqc.insert(VQG_U1_plus(qvec, ts));
+	//vqc.insert(VQG_U2(q[1], PI, ts));
+	//vqc.insert(VQG_U3(q[2], PI, ts, x));
+	//vqc.insert(VQG_U4(q[2], PI, ts, x, x1));
+	////vqc.insert();
+	//vqc.insert(VQG_RX(q[0], x1));
+	//vqc.insert(VQG_RY(q[1], x2));
+	//vqc.insert(VQG_RZ(q[0], x1));
+	//vqc.insert(VQG_CZ(q[0], q[1]));
+	//vqc.insert(VQG_CR(q[0], q[1], ts));
+	//vqc.insert(VQG_CNOT(q[0], q[1]));
+
+	QCircuit circuit = vqc.feed();
+	QProg prog;
+	prog << circuit;
+
+	std::cout << convert_qprog_to_originir(prog, machine) << std::endl << std::endl;
+
+	m1(0, 0) = 3.3;
+	m2(0, 0) = 4;
+
+	double s = 2.36559;
+
+	x.setValue(m1);
+	y.setValue(m2);
+
+	ts.setValue(3.145);
+	ts = 3.148;
+
+	QCircuit circuit2 = vqc.feed();
+	QProg prog2;
+	prog2 << circuit2;
+
+	std::cout << convert_qprog_to_originir(prog2, machine) << std::endl;
+
+}
 
 
 

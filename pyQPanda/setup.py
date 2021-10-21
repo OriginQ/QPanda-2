@@ -12,7 +12,7 @@ with open(README_PATH) as readme_file:
 
 setup(  
     name = "pyqpanda",  
-    version = "3.7.3",  
+    version = "3.7.8",  
     license = "Apache Licence",  
     author = "OriginQ",
     install_requires=requirements,

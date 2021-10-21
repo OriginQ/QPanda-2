@@ -114,25 +114,33 @@ protected:
 		return ret_val;
 	}
 
-	double calc_expression() {
+	double calc_expression(
+		std::list<std::shared_ptr<StrNode>>::iterator start_itr = std::list<std::shared_ptr<StrNode>>::iterator(),
+		bool b_start = true) {
 		double ret_val = 0.0;
-		for (auto expression_iter = m_expression_list.begin(); expression_iter != m_expression_list.end(); ++expression_iter)
+		if (b_start){
+			start_itr = m_expression_list.begin();
+		}
+
+		auto get_data_node_val = [&](const StrNode& data_node) ->double{
+			if (DATA_T != data_node.m_type)
+			{
+				QCERR_AND_THROW_ERRSTR(run_fail, "Error: failed to calc_expression, node type error.");
+			}
+			return string_to_double(data_node.m_str);
+		};
+
+		for (; start_itr != m_expression_list.end(); ++start_itr)
 		{
-			auto& node = (*expression_iter);
-			if ((DATA_T == node->m_type) && (m_expression_list.begin() == expression_iter))
+			const auto& node = (*start_itr);
+			if ((DATA_T == node->m_type))
 			{
 				ret_val = string_to_double(node->m_str);
 				continue;
 			}
+
 			else if (OP_T == node->m_type)
 			{
-				auto& next_node = (*(++expression_iter));
-				if (DATA_T != next_node->m_type)
-				{
-					QCERR_AND_THROW_ERRSTR(run_fail, "Error: failed to calc_expression, node type error.");
-				}
-				double next_val = string_to_double(next_node->m_str);
-
 				if (node->m_str.size() != 1)
 				{
 					QCERR_AND_THROW_ERRSTR(run_fail, "Error: nuknow error on parse expression string.");
@@ -141,19 +149,25 @@ protected:
 				switch (node->m_str.at(0))
 				{
 				case OP_ADD:
-					ret_val = (ret_val + next_val);
-					break;
+					return ret_val + calc_expression(++start_itr, false);
+					//break;
 
 				case OP_SUB:
-					ret_val = (ret_val - next_val);
-					break;
+					return ret_val - calc_expression(++start_itr, false);
+					//break;
 
 				case OP_MUL:
+				{
+					const auto next_val = get_data_node_val(*(*(++start_itr)));
 					ret_val = (ret_val * next_val);
+				}
 					break;
 
 				case OP_DIV:
+				{
+					const auto next_val = get_data_node_val(*(*(++start_itr)));
 					ret_val = (ret_val / next_val);
+				}
 					break;
 
 				default:

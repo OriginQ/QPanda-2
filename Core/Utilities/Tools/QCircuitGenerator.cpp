@@ -68,7 +68,7 @@ QCircuit QCircuitGenerator::get_cir()
 
 		case 1:
 		{
-			if (m_angle_vec.size() < 1){
+			if (cir_node->m_angle.size() < 1){
 				QCERR_AND_THROW(run_fail, "Error: unknow circuit node error, no angle for rotation gate.");
 			}
 
@@ -79,7 +79,7 @@ QCircuit QCircuitGenerator::get_cir()
 
 		case 2:
 		{
-			if (m_angle_vec.size() < 2) {
+			if (cir_node->m_angle.size() < 1) {
 				QCERR_AND_THROW(run_fail, "Error: unknow circuit node error, no enough angles for double rotation gate.");
 			}
 
@@ -91,7 +91,7 @@ QCircuit QCircuitGenerator::get_cir()
 
 		case 3:
 		{
-			if (m_angle_vec.size() < 3) {
+			if (cir_node->m_angle.size() < 1) {
 				QCERR_AND_THROW(run_fail, "Error: unknow circuit node error, no enough angles for three rotation gate.");
 			}
 

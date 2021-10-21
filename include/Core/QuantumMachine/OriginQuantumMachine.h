@@ -24,6 +24,9 @@ limitations under the License.
 #include "Core/Utilities/Tools/RandomEngine/RandomEngine.h"
 #include "Core/VirtualQuantumProcessor/NoiseQPU/NoiseModel.h"  
 #include "Core/QuantumMachine/QProgCheck.h"
+#include "Core/QuantumMachine/QProgExecution.h"
+#include "Core/Utilities/Tools/AsyncTask.h"
+#include "Core/Utilities/QProgInfo/QProgProgress.h"
 #include <map>
 QPANDA_BEGIN
 
@@ -318,10 +321,16 @@ protected:
 	QMachineStatus* _QMachineStatus = nullptr;
 	QPUImpl* _pGates = nullptr;
 	Configuration _Config;
+	uint64_t _ExecId{0};
 	virtual void run(QProg&);
 	std::string _ResultToBinaryString(std::vector<ClassicalCondition>& vCBit);
 	virtual void _start();
-	QVM() {
+	QVM()
+		:_AsyncTask(new AsyncTask<decltype(&QVM::directlyRun), \
+								  decltype(&QProgProgress::get_processed_gate_num)>(\
+								  &QVM::directlyRun, \
+								  &QProgProgress::get_processed_gate_num))
+	{
 		_Config.maxQubit = 29;
 		_Config.maxCMem = 256;
 	}
@@ -382,6 +391,14 @@ public:
 	virtual size_t get_allocate_cbits(std::vector<ClassicalCondition>&);
 	virtual double get_expectation(QProg, const QHamiltonian&, const QVec&);
 	virtual double get_expectation(QProg, const QHamiltonian&, const QVec&, int);
+	virtual size_t get_processed_qgate_num();
+	virtual void async_run(QProg& qProg);
+	virtual bool is_async_finished();
+    virtual std::map<std::string, bool> get_async_result();
+
+// sorry AsyncTask declaretion must be after function declaretion
+protected:
+	AsyncTask<decltype(&QVM::directlyRun), decltype(&QProgProgress::get_processed_gate_num)>* _AsyncTask{nullptr};
 };
 
 
@@ -457,6 +474,10 @@ public:
 
 	std::map<std::string, bool> directlyRun(QProg& prog);
 	void run(QProg& prog);
+	virtual size_t get_processed_qgate_num() override { throw std::runtime_error("not implementd yet"); }
+	virtual void async_run(QProg& qProg) override { throw std::runtime_error("not implementd yet"); }
+	virtual bool is_async_finished() override { throw std::runtime_error("not implementd yet"); }
+    virtual std::map<std::string, bool> get_async_result() override { throw std::runtime_error("not implementd yet"); }
 
 
 	//void set_single_gate_noise_model(const NOISE_MODEL &model, const GateType &type, double prob, const std::vector<size_t> &qubits);

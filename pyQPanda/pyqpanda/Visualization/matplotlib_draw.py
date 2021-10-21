@@ -29,7 +29,7 @@ try:
     from matplotlib import get_backend
     from matplotlib import patches
     from matplotlib import pyplot as plt
-    plt.switch_backend('agg')
+    #plt.switch_backend('agg')
 
     HAS_MATPLOTLIB = True
 except ImportError:

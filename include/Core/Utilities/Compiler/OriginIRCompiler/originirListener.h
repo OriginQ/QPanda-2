@@ -1,5 +1,5 @@
 
-// Generated from .\originir.g4 by ANTLR 4.7.2
+// Generated from .\originir.g4 by ANTLR 4.9.2
 
 #pragma once
 
@@ -169,6 +169,15 @@ public:
 
   virtual void enterDefine_gate_statement(originirParser::Define_gate_statementContext *ctx) = 0;
   virtual void exitDefine_gate_statement(originirParser::Define_gate_statementContext *ctx) = 0;
+
+  virtual void enterDefine_dagger_statement(originirParser::Define_dagger_statementContext *ctx) = 0;
+  virtual void exitDefine_dagger_statement(originirParser::Define_dagger_statementContext *ctx) = 0;
+
+  virtual void enterDefine_control_statement(originirParser::Define_control_statementContext *ctx) = 0;
+  virtual void exitDefine_control_statement(originirParser::Define_control_statementContext *ctx) = 0;
+
+  virtual void enterUser_defined_gate(originirParser::User_defined_gateContext *ctx) = 0;
+  virtual void exitUser_defined_gate(originirParser::User_defined_gateContext *ctx) = 0;
 
   virtual void enterExplist(originirParser::ExplistContext *ctx) = 0;
   virtual void exitExplist(originirParser::ExplistContext *ctx) = 0;

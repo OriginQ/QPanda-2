@@ -30,6 +30,7 @@
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
 using Eigen::ArrayXd;
+using namespace std;
 
 QPANDA_BEGIN
 namespace Variational {
@@ -109,6 +110,7 @@ namespace Variational {
          *
          */
         MatrixXd val;
+        double num;
 
         /**
          * @brief Placeholder/Variable
@@ -244,11 +246,24 @@ namespace Variational {
          */
         var& operator=(var&&);
         var(const var&);
+        inline var& operator=(const double& num) {
+            MatrixXd temp(1, 1);
+            temp(0, 0) = num;
+            this->pimpl->val = temp;
+            return *this;
+        };
+        
         var& operator=(const var&);
         var clone();
         virtual size_t getNumOpArgs();
         MatrixXd getValue() const;
         void setValue(const MatrixXd&);
+        void setValue(const double& num)
+        {
+                MatrixXd temp(1, 1);
+                temp(0, 0) = num;
+                pimpl->val = temp;
+        }
         op_type getOp() const;
         void setOp(op_type);
         std::vector<var>& getChildren() const;
@@ -414,10 +429,57 @@ namespace Variational {
 
     };
 
+    class VariationalQuantumGate_I : public VariationalQuantumGate
+    {
+    private:
+        Qubit* m_q;
+    public:
+        explicit VariationalQuantumGate_I(Qubit* q);
+        VariationalQuantumGate_I(Qubit* q, bool is_dagger);
+        VariationalQuantumGate_I(Qubit* q, bool is_dagger, QVec control_qubit);
+        VariationalQuantumGate_I(const VariationalQuantumGate_I& gate) :
+            m_q(gate.m_q)
+        {
+            m_vars = gate.m_vars;
+            m_constants = gate.m_constants;
+            m_control_qubit = gate.m_control_qubit;
+            m_is_dagger = gate.m_is_dagger;
+        }
+
+
+        inline QGate feed()
+        {
+            QGate i = I(m_q);
+            copy_dagger_and_control_qubit(i);
+            return i;
+        }
+        inline std::shared_ptr<VariationalQuantumGate> copy()
+        {
+            auto shared_ptr_i = std::make_shared<VariationalQuantumGate_I>(m_q);
+            copy_dagger_and_control_qubit(shared_ptr_i);
+            return shared_ptr_i;
+        }
+        inline VariationalQuantumGate_I dagger()
+        {
+            auto temp = VariationalQuantumGate_I(*this);
+            temp.m_is_dagger = temp.m_is_dagger ^ true;
+            return temp;
+        }
+
+        inline VariationalQuantumGate_I control(QVec qv)
+        {
+            auto temp = VariationalQuantumGate_I(*this);
+            temp.m_control_qubit.insert(m_control_qubit.end(), qv.begin(), qv.end());
+            return temp;
+        }
+    };
+
+
     class VariationalQuantumGate_H : public VariationalQuantumGate
     {
     private:
         Qubit* m_q;
+        QVec v_q;
     public:
         explicit VariationalQuantumGate_H(Qubit* q);
         VariationalQuantumGate_H(Qubit* q, bool is_dagger);
@@ -457,8 +519,9 @@ namespace Variational {
             temp.m_control_qubit.insert(m_control_qubit.end(),qv.begin(), qv.end());
             return temp;
         }
+        
     };
-
+ 
     class VariationalQuantumGate_X : public VariationalQuantumGate
     {
     private:
@@ -1246,15 +1309,17 @@ namespace Variational {
         {
             if (m_vars.size() == 0)
             {
-                auto shared_ptr_crx = std::make_shared<VariationalQuantumGate_CRX>(m_target, m_control_qubit, m_constants[0]);
+                /*auto shared_ptr_crx = std::make_shared<VariationalQuantumGate_CRX>(m_target, m_control_qubit, m_constants[0]);
                 copy_dagger_and_control_qubit(shared_ptr_crx);
-                return shared_ptr_crx;
+                return shared_ptr_crx;*/
+                return std::shared_ptr<VariationalQuantumGate>();
             }
             else
             {
-                auto shared_ptr_crx = std::make_shared<VariationalQuantumGate_CRX>(m_target, m_control_qubit, m_vars[0]);
+                /*auto shared_ptr_crx = std::make_shared<VariationalQuantumGate_CRX>(m_target, m_control_qubit, m_vars[0]);
                 copy_dagger_and_control_qubit(shared_ptr_crx);
-                return shared_ptr_crx;
+                return shared_ptr_crx;*/
+                return std::shared_ptr<VariationalQuantumGate>();
             }
 
         }
@@ -1694,6 +1759,7 @@ namespace Variational {
         QVec m_control_qubit;
 
         void _insert_copied_gate(std::shared_ptr<VariationalQuantumGate> gate);
+        void _insert_copied_gate(QVec& qvec);
         void _insert_copied_gate(VariationalQuantumGate &gate);
     public:
 
@@ -1715,11 +1781,41 @@ namespace Variational {
 
         template<typename VQG_Ty>
         VariationalQuantumCircuit& insert(VQG_Ty gate);
+
+        template<typename T>
+        VariationalQuantumCircuit& operator<<(T gate);
+
         inline bool set_dagger(bool dagger)
         {
             m_is_dagger = dagger;
             return m_is_dagger;
         }
+
+        inline VariationalQuantumCircuit& operator<<(VariationalQuantumCircuit circuit)
+        {
+            if (circuit.m_is_dagger)
+            {
+                for (auto temp = circuit.m_gates.rbegin(); temp != circuit.m_gates.rend(); temp++)
+                {
+                    auto gate = (*temp)->copy();
+                    gate->set_dagger(circuit.m_is_dagger ^ gate->is_dagger());
+                    gate->set_control(circuit.m_control_qubit);
+                    _insert_copied_gate(gate);
+                }
+            }
+            else
+            {
+                for (auto gate : circuit.m_gates)
+                {
+                    gate->set_dagger(circuit.m_is_dagger ^ gate->is_dagger());
+                    gate->set_control(circuit.m_control_qubit);
+                    _insert_copied_gate(gate->copy());
+                }
+
+            }
+            return *this;
+        }
+        
 
         inline bool set_control(QVec control_qubit)
         {
@@ -1752,6 +1848,8 @@ namespace Variational {
 			temp.m_control_qubit.insert(m_control_qubit.end(), qv.begin(), qv.end());
             return temp;
         }
+
+
     private:
         std::shared_ptr<VariationalQuantumGate> qg2vqg(AbstractQGateNode* gate) const;
         VariationalQuantumCircuit qc2vqc(AbstractQuantumCircuit* q) const;
@@ -1762,6 +1860,15 @@ namespace Variational {
     VariationalQuantumCircuit& VariationalQuantumCircuit::insert(VQG_Ty  gate)
     {
         static_assert(std::is_base_of<VariationalQuantumGate, VQG_Ty>::value, "Bad VQG Type");
+        auto copy_gate = gate.copy();
+        _insert_copied_gate(copy_gate);
+        return *this;
+    }
+
+    template<typename T>
+    VariationalQuantumCircuit& VariationalQuantumCircuit::operator<<(T gate)
+    {
+        static_assert(std::is_base_of<VariationalQuantumGate, T>::value, "Bad VQG Type");
         auto copy_gate = gate.copy();
         _insert_copied_gate(copy_gate);
         return *this;
@@ -1784,6 +1891,7 @@ namespace Variational {
     template<>
     VariationalQuantumCircuit& VariationalQuantumCircuit::insert<QCircuit>(QCircuit c);
 
+    typedef VariationalQuantumGate_I VQG_I;
     typedef VariationalQuantumGate_H VQG_H;
     typedef VariationalQuantumGate_X VQG_X;
 	typedef VariationalQuantumGate_X1 VQG_X1;
@@ -2124,7 +2232,227 @@ namespace Variational {
         return MatrixXd::Ones(like.getValue().rows(), like.getValue().cols());
     }
 
+    /**
+    * @brief  Construct qubits.size() new I gate by batch
+    * @param[in] const QVec& qubits target qubits vector
+    * @return    VQC
+    * @ingroup VariationalQuantumCircuit
+    */
+    VQC VQG_I_batch(const QVec& qvec);
+
+    /**
+    * @brief  Construct qubits.size() new H gate by batch
+    * @param[in] const QVec& qubits target qubits vector
+    * @return    VQC
+    * @ingroup VariationalQuantumCircuit
+    */
+    VQC VQG_H_batch(const QVec& qvec);
+
+    /**
+    * @brief  Construct qubits.size() new T gate by batch
+    * @param[in] const QVec& qubits target qubits vector
+    * @return    VQC
+    * @ingroup VariationalQuantumCircuit
+    */
+    VQC VQG_T_batch(const QVec& qvec);
+
+    /**
+    * @brief  Construct qubits.size() new S gate by batch
+    * @param[in] const QVec& qubits target qubits vector
+    * @return    VQC
+    * @ingroup VariationalQuantumCircuit
+    */
+    VQC VQG_S_batch(const QVec& qvec);
+    
+
+    /**
+    * @brief  Construct qubits.size() new X gate by batch
+    * @param[in] const QVec& qubits target qubits vector
+    * @return    VQC
+    * @ingroup VariationalQuantumCircuit
+    */
+    VQC VQG_X_batch(const QVec& qvec);
+  
+    /**
+    * @brief  Construct qubits.size() new Y gate by batch
+    * @param[in] const QVec& qubits target qubits vector
+    * @return    VQC
+    * @ingroup VariationalQuantumCircuit
+    */
+    VQC VQG_Y_batch(const QVec& qvec);
+    
+
+    /**
+    * @brief  Construct qubits.size() new Z gate by batch
+    * @param[in] const QVec& qubits target qubits vector
+    * @return    VQC
+    * @ingroup VariationalQuantumCircuit
+    */
+    VQC VQG_Z_batch(const QVec& qvec);
+    
+
+    /**
+    * @brief  Construct qubits.size() new X1 gate by batch
+    * @param[in] const QVec& qubits target qubits vector
+    * @return    VQC
+    * @ingroup VariationalQuantumCircuit
+    */
+    VQC VQG_X1_batch(const QVec& qvec);
+ 
+    /**
+    * @brief  Construct qubits.size() new Y1 gate by batch
+    * @param[in] const QVec& qubits target qubits vector
+    * @return    VQC
+    * @ingroup VariationalQuantumCircuit
+    */
+    VQC VQG_Y1_batch(const QVec& qvec);
+    
+    /**
+    * @brief  Construct qubits.size() new Z1 gate by batch
+    * @param[in] const QVec& qubits target qubits vector
+    * @return    VQC
+    * @ingroup VariationalQuantumCircuit
+    */
+    VQC VQG_Z1_batch(const QVec& qvec);
+    
+
+    /**
+    * @brief  Construct qubits.size() new U1 gate by batch
+    * @param[in] const QVec& qubits target qubits vector
+    * @return    VQC
+    * @ingroup VariationalQuantumCircuit
+    */
+    VQC VQG_U1_batch(const QVec& qvec, var angle);
+
+    /**
+    * @brief  Construct qubits.size() new U2 gate by batch
+    * @param[in] const QVec& qubits target qubits vector
+    * @return    VQC
+    * @ingroup VariationalQuantumCircuit
+    */
+    VQC VQG_U2_batch(const QVec& qvec, var phi, var lambda);
+  
+    /**
+    * @brief  Construct qubits.size() new U3 gate by batch
+    * @param[in] const QVec& qubits target qubits vector
+    * @return    VQC
+    * @ingroup VariationalQuantumCircuit
+    */
+    VQC VQG_U3_batch(const QVec& qvec, var theta, var phi, var lambda);
+
+    /**
+    * @brief  Construct qubits.size() new U4 gate by batch
+    * @param[in] const QVec& qubits target qubits vector
+    * @return    VQC
+    * @ingroup VariationalQuantumCircuit
+    */
+    VQC VQG_U4_batch(const QVec& qvec, var alpha, var beta, var gamma, var delta);
+    
+
+    /**
+    * @brief  Construct qubits.size() new RPhi gate by batch
+    * @param[in] const QVec& qubits target qubits vector
+    * @return    VQC
+    * @ingroup VariationalQuantumCircuit
+    */
+    VQC VQG_RPhi_batch(const QVec& qvec, var angle, var phi);
+    
+
+    /**
+    * @brief  Construct qubits.size() new RX gate by batch
+    * @param[in] const QVec& qubits target qubits vector
+    * @return    VQC
+    * @ingroup VariationalQuantumCircuit
+    */
+    VQC VQG_RX_batch(const QVec& qvec, var angle);
+    
+    /**
+    * @brief  Construct qubits.size() new RY gate by batch
+    * @param[in] const QVec& qubits target qubits vector
+    * @return    VQC
+    * @ingroup VariationalQuantumCircuit
+    */
+    VQC VQG_RY_batch(const QVec& qvec, var angle);
+    
+
+    /**
+    * @brief  Construct qubits.size() new RZ gate by batch
+    * @param[in] const QVec& qubits target qubits vector
+    * @return    VQC
+    * @ingroup VariationalQuantumCircuit
+    */
+    VQC VQG_RZ_batch(const QVec& qvec, var angle);
+    
+
+    /**
+    * @brief  Construct qubits.size() new CNOT gate by batch
+    * @param[in]  QVec& control qubit
+    * @param[in]  QVec& target qubit
+    * @return    VQC
+    * @ingroup VariationalQuantumCircuit
+    */
+    VQC VQG_CNOT_batch(const QVec& control_qubits, const QVec& target_qubits);
+    
+
+    /**
+    * @brief  Construct qubits.size() new CZ gate by batch
+    * @param[in]  QVec& control qubit
+    * @param[in]  QVec& target qubit
+    * @ingroup VariationalQuantumCircuit
+    */
+    VQC VQG_CZ_batch(const QVec& control_qubits, const QVec& target_qubits);
+    
+
+    /**
+    * @brief  Construct qubits.size() new CU gate by batch
+    * @param[in]  QVec& control qubit
+    * @param[in]  QVec& target qubit
+    * @return    VQC
+    * @ingroup VariationalQuantumCircuit
+    */
+    VQC VQG_CU_batch(const QVec& control_qubits, const QVec& target_qubits,
+        var alpha, var beta, var gamma, var delta);
+    
+    /**
+    * @brief  Construct qubits.size() new CR gate by batch
+    * @param[in]  QVec& control qubit
+    * @param[in]  QVec& target qubit
+    * @return    VQC
+    * @ingroup VariationalQuantumCircuit
+    */
+    VQC VQG_CR_batch(const QVec& targitBits_first, const QVec& targitBits_second, var theta);
+    
+    /**
+    * @brief  Construct qubits.size() new SWAP gate by batch
+    * @param[in]  QVec& control qubit
+    * @param[in]  QVec& target qubit
+    * @return    VQC
+    * @ingroup VariationalQuantumCircuit
+    */
+    VQC VQG_SWAP_batch(const QVec& targitBits_first, const QVec& targitBits_second);
+    
+
+    /**
+    * @brief  Construct qubits.size() new iSWAP gate by batch
+    * @param[in]  QVec& control qubit
+    * @param[in]  QVec& target qubit
+    * @return    VQC
+    * @ingroup VariationalQuantumCircuit
+    */
+    VQC VQG_iSWAP_batch(const QVec& targitBits_first, const QVec& targitBits_second);
+    
+    /**
+    * @brief  Construct qubits.size() new SqiSWAP gate by batch
+    * @param[in]  QVec& control qubit
+    * @param[in]  QVec& target qubit
+    * @return    VQC
+    * @ingroup VariationalQuantumCircuit
+    */
+    VQC VQG_SqiSWAP_batch(const QVec& targitBits_first, const QVec& targitBits_second);
+    
 } // namespace Variational
+
+
 
 QPANDA_END
 

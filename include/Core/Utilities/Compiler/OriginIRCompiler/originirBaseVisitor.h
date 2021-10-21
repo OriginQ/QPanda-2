@@ -1,5 +1,5 @@
 
-// Generated from .\originir.g4 by ANTLR 4.7.2
+// Generated from .\originir.g4 by ANTLR 4.9.2
 
 #pragma once
 
@@ -220,6 +220,18 @@ public:
   }
 
   virtual antlrcpp::Any visitDefine_gate_statement(originirParser::Define_gate_statementContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual antlrcpp::Any visitDefine_dagger_statement(originirParser::Define_dagger_statementContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual antlrcpp::Any visitDefine_control_statement(originirParser::Define_control_statementContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual antlrcpp::Any visitUser_defined_gate(originirParser::User_defined_gateContext *ctx) override {
     return visitChildren(ctx);
   }
 

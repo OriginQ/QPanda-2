@@ -61,6 +61,8 @@ TransformQGateType::TransformQGateType()
     m_qgate_type_map.insert({ GATE_Y1, Y_HALF_PI });
     m_qgate_type_map.insert({ GATE_Z1, Z_HALF_PI });
 
+    m_qgate_type_map.insert({ GATE_P, P_GATE });
+
     m_qgate_type_map.insert({ GATE_H, HADAMARD_GATE });
     m_qgate_type_map.insert({ GATE_T, T_GATE });
     m_qgate_type_map.insert({ GATE_S, S_GATE });
@@ -68,7 +70,7 @@ TransformQGateType::TransformQGateType()
     m_qgate_type_map.insert({ GATE_RX, RX_GATE });
     m_qgate_type_map.insert({ GATE_RY, RY_GATE });
     m_qgate_type_map.insert({ GATE_RZ, RZ_GATE });
-	m_qgate_type_map.insert({ GATE_RPHI, RPHI_GATE });
+    m_qgate_type_map.insert({ GATE_RPHI, RPHI_GATE });
 
     m_qgate_type_map.insert({ GATE_U1, U1_GATE });
     m_qgate_type_map.insert({ GATE_U2, U2_GATE });
@@ -76,6 +78,7 @@ TransformQGateType::TransformQGateType()
     m_qgate_type_map.insert({ GATE_U4, U4_GATE });
 
     m_qgate_type_map.insert({ GATE_CU, CU_GATE });
+    m_qgate_type_map.insert({ GATE_CP, CP_GATE });
     m_qgate_type_map.insert({ GATE_CNOT, CNOT_GATE });
     m_qgate_type_map.insert({ GATE_CZ, CZ_GATE });
     m_qgate_type_map.insert({ GATE_CPHASE, CPHASE_GATE });

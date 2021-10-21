@@ -217,8 +217,14 @@ public:
     NodeIter getLastNodeIter() { return m_node_manager.get_last_node_iter(); }
     NodeIter getEndNodeIter() { return m_node_manager.get_end_node_iter(); }
     NodeIter getHeadNodeIter() { return m_node_manager.get_head_node_iter(); }
-    NodeIter insertQNode(const NodeIter& perIter, std::shared_ptr<QNode> node) { return m_node_manager.insert_QNode(perIter, node); }
-    NodeIter deleteQNode(NodeIter& target_iter) { return m_node_manager.delete_QNode(target_iter); }
+	NodeIter insertQNode(const NodeIter& perIter, std::shared_ptr<QNode> node) {
+		check_insert_node_type(node);
+		return m_node_manager.insert_QNode(perIter, node);
+	}
+	NodeIter deleteQNode(NodeIter& target_iter) {
+		m_qgate_num--;
+		return m_node_manager.delete_QNode(target_iter);
+	}
     NodeType getNodeType() const;
 
     /**

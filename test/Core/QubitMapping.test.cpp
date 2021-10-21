@@ -6,8 +6,6 @@
 #include <memory>
 #include <chrono>
 #include <string>
-
-
 #include "Extensions/Extensions.h"
 
 #ifdef USE_EXTENSION
@@ -16,23 +14,40 @@
 #define PI 3.1415926
 #endif // !PI
 
-const std::string IR = R"(QINIT 6 
-CREG 0 
+const size_t kShots = 2048;
+const size_t kEpsion = kShots * 0.05;
+#define CHECK_TIME 1
+#define CHECK_SWAP 1
+
+const std::string test_IR_1 = R"(QINIT 6 
+CREG 4
 H q[0]
-H q[1]
-H q[2]
-H q[3]
-H q[4]
-H q[5]
+X q[1]
+X q[5]
 CNOT q[0],q[1]
 CNOT q[4],q[5]
 CNOT q[0],q[2]
-RZ q[1],(0.78539816)
-RZ q[4],(0.78539816)
-RZ q[5],(0.78539816)
-RZ q[0],(0.78539816)
-RZ q[2],(0.78539816)
+RZ q[1],(1.16)
+RZ q[4],(0.785)
+RZ q[5],(2.78539816)
+RZ q[0],(1.9816)
+RY q[2],(1.112)
 CNOT q[3],q[5]
+CR q[2],q[4],(0.567)
+MEASURE q[1],c[0]
+MEASURE q[2],c[1]
+MEASURE q[3],c[2]
+MEASURE q[4],c[3]
+)";
+
+const std::string test_IR_2 = R"(QINIT 4 
+CREG 1
+H q[0]
+X q[1]
+X q[2]
+X q[3]
+CNOT q[3],q[1]
+MEASURE q[1],c[0]
 )";
 
 USING_QPANDA
@@ -248,10 +263,6 @@ static bool test_opt_BMT_qubit_allocator_1()
 		return false;
 
 #ifdef qcodar
-
-
-
-	
 	// 2. qcodar
 	//auto qcodar_mapped_prog = qcodar_match_by_simple_type(prog, old_qv_1, qvm, 2, 4, 10);
 	auto qcodar_mapped_prog = qcodar_match_by_config(prog, old_qv_1, qvm, "QPandaConfig.json", 5);
@@ -262,7 +273,7 @@ static bool test_opt_BMT_qubit_allocator_1()
 	std::cout << "qcodar swap :  " << cf.calc_fidelity(qcodar_mapped_prog).second << std::endl;
 
 	// 3. astar
-	auto astar_mapped_prog = topology_match(prog, old_qv_2, qvm, SWAP_GATE_METHOD, ORIGIN_VIRTUAL_ARCH);
+	auto astar_mapped_prog = topology_match(prog, old_qv_2, qvm);
 	cout << "astar_mapped_prog:" << astar_mapped_prog << endl;
 
 	std::cout << "astar fidelity :  " << cf.calc_fidelity(astar_mapped_prog).first << std::endl;
@@ -296,7 +307,7 @@ static bool test_opt_BMT_qubit_allocator_3()
 	auto c = tmp_qvm.allocate_class_bits(8);*/
 	QVec q;
 	vector<ClassicalCondition> c;
-	QProg prog_100qubits = convert_originir_string_to_qprog(IR, machine, q, c);
+	QProg prog_100qubits = convert_originir_string_to_qprog(test_IR_1, machine, q, c);
 
 	/*printf("^^^^^^^^^^^^^^^^^after decompose_multiple_control_qgate the hhl_cir_gate_cnt: %llu ^^^^^^^^^^^^^^^^^^^^\n",
 		getQGateNum(prog_100qubits));*/
@@ -352,9 +363,6 @@ static bool test_SABRE_qubit_mapping_1()
 
 	//cout << "srd prog:" << cir << endl;
 
-	/*write_to_originir_file(cir, machine, "E:\\11\\qft-10.txt");
-	getchar();*/
-
 	// 1. SABRE
 	auto sabre_mapped_prog = SABRE_mapping(cir, machine, q);
 	//cout << "SABRE_mapped_prog:" << sabre_mapped_prog << endl;
@@ -366,7 +374,7 @@ static bool test_SABRE_qubit_mapping_1()
 	return true;
 }
 
-static bool test_mapping_overall_1()
+static bool test_mapping_overall_1(const std::string& ir_str)
 {
 	QVMInit<> tmp_qvm;
 	auto machine = tmp_qvm.m_qvm;
@@ -374,72 +382,93 @@ static bool test_mapping_overall_1()
 
 	QVec q;
 	vector<ClassicalCondition> c;
-	//QProg test_prog = convert_originir_to_qprog("E:\\11\\cir_5_qubit.ir", machine, q, c);
-	//QProg test_prog = convert_originir_to_qprog("E:\\11\\cir_8_qubit.ir", machine, q, c);
-	//QProg test_prog = convert_originir_to_qprog("E:\\11\\hhl_8_qubit.ir", machine, q, c);
-	//QProg test_prog = convert_originir_to_qprog("E:\\11\\qft-10.ir", machine, q, c);
-	//QProg test_prog = convert_originir_to_qprog("E:\\11\\hhl_10_qubit.ir", machine, q, c);
+	QProg test_prog = convert_originir_string_to_qprog(ir_str, machine, q, c);
 
-	//QProg test_prog = convert_originir_to_qprog("E:\\doc\\Quantum-mapping\\mapping_test\\11\\random_cir_20_qubits.ir", machine, q, c);
-	QProg test_prog = convert_originir_string_to_qprog(IR, machine, q, c);
-	//QProg test_prog = convert_originir_to_qprog("E:\\11\\random_cir_20_qubits_2.ir", machine, q, c);
-	//QProg test_prog = convert_originir_to_qprog("E:\\11\\random_cir_20_qubits_3.ir", machine, q, c);
-
-	//QProg test_prog = convert_originir_to_qprog("E:\\doc\\Quantum-mapping\\mapping_test\\11\\random_cir_50_qubits_1.ir", machine, q, c);
-	//QProg test_prog = convert_originir_to_qprog("E:\\doc\\Quantum-mapping\\mapping_test\\11\\random_cir_50_qubits_2.ir", machine, q, c);
-	
-	//QProg test_prog = convert_originir_to_qprog("E:\\doc\\Quantum-mapping\\mapping_test\\11\\random_100_qubit-0.ir", machine, q, c);
-	//QProg test_prog = convert_originir_to_qprog("E:\\11\\random_100_qubit-1.ir", machine, q, c);
-	//QProg test_prog = convert_originir_to_qprog("E:\\11\\random_cir_100_qubits_1.ir", machine, q, c);
-	//QProg test_prog = convert_originir_to_qprog("E:\\doc\\Quantum-mapping\\mapping_test\\11\\random_cir_100_qubits_2.ir", machine, q, c);
-	/*cout << test_prog << endl;
-	write_to_qasm_file(test_prog, machine, "E:\\tmp\\random_20_qubit_1_cx.qasm");*/
+	// Get correct result
+	const std::map<string, size_t> correct_result = machine->runWithConfiguration(test_prog, c, kShots);
 
 	// 1. SABRE
-	//std::cout << "-------------------- start SABRE >>> " << endl;
 	auto start = chrono::system_clock::now();
-	auto sabre_mapped_prog = SABRE_mapping(test_prog, machine, q, 20, 10);
+	auto _prog = deepCopy(test_prog);
+	auto sabre_mapped_prog = SABRE_mapping(_prog, machine, q, 20, 10);
 	auto end = chrono::system_clock::now();
-	//cout << "SABRE_mapped_prog:" << sabre_mapped_prog << endl;
-	CalcFidelity cf;
-	auto layer_info = prog_layer(sabre_mapped_prog);
 
-	//cout << "SABRE_mapped_prog deeps = " << layer_info.size() << endl;
-
-	//ASSERT_EQ(layer_info.size(),0.2314);
-
-	//std::cout << "SABRE fidelity :  " << cf.calc_fidelity(sabre_mapped_prog).first << std::endl;
-	//std::cout << "SABRE swap :  " << cf.calc_fidelity(sabre_mapped_prog).second << std::endl;
-	if (cf.calc_fidelity(sabre_mapped_prog).first != 0.5184 && cf.calc_fidelity(sabre_mapped_prog).second != 0)
-		return false;
-	//auto duration = chrono::duration_cast<chrono::microseconds>(end - start);
-	/*cout << "The SABRE takes "
-		<< double(duration.count()) * chrono::microseconds::period::num / chrono::microseconds::period::den
-		<< "seconds" << endl;
-	std::cout << " <<<< ------------- SABRE END -------------------------- \n" << endl;*/
-
+	// check Fidelity
+	if (CHECK_TIME)
+	{
+		CalcFidelity cf;
+		std::cout << "SABRE fidelity :  " << cf.calc_fidelity(sabre_mapped_prog).first << std::endl;
+		std::cout << "SABRE swap :  " << cf.calc_fidelity(sabre_mapped_prog).second << std::endl;
+	}
+	
+	// check circuit-deep
+	if (CHECK_TIME)
+	{
+		//cout << "SABRE_mapped_prog:" << sabre_mapped_prog << endl;
+		auto layer_info = prog_layer(sabre_mapped_prog);
+		cout << "SABRE_mapped_prog deeps = " << layer_info.size() << endl;
+		auto duration = chrono::duration_cast<chrono::microseconds>(end - start);
+		cout << "The SABRE takes "
+			<< double(duration.count()) * chrono::microseconds::period::num / chrono::microseconds::period::den
+			<< "seconds" << endl;
+		std::cout << " <<<< ------------- SABRE END -------------------------- \n" << endl;
+	}
+	
+	// check result
+	{
+		std::map<string, size_t> _result = machine->runWithConfiguration(sabre_mapped_prog, c, kShots);
+		for (const auto& i : _result)
+		{
+            if (abs((long)i.second < kEpsion))
+                continue;
+			const long _a = i.second - correct_result.at(i.first);
+			if (std::abs(_a) > kEpsion){
+				return false;
+			}
+		}
+	}
+	
 	// 2. opt-bmt
 	//std::cout << "--------------------  start opt-bmt >>> " << endl;
 	start = chrono::system_clock::now();
-	auto bmt_mapped_prog = OBMT_mapping(test_prog, machine, q, 200);
+	_prog = deepCopy(test_prog);
+	auto bmt_mapped_prog = OBMT_mapping(_prog, machine, q, 200);
 	end = chrono::system_clock::now();
-	//cout << "opt-bmt mapped_prog:" << bmt_mapped_prog << endl;
-	layer_info = prog_layer(bmt_mapped_prog);
-	//cout << "opt-bmt mapped_prog deeps = " << layer_info.size() << endl;
-	//std::cout << "opt-bmt fidelity :  " << cf.calc_fidelity(bmt_mapped_prog).first << std::endl;
-	//std::cout << "opt-bmt swap :  " << cf.calc_fidelity(bmt_mapped_prog).second << std::endl;
-	if (cf.calc_fidelity(bmt_mapped_prog).first != 0.5832 && cf.calc_fidelity(bmt_mapped_prog).second != 0)
-		return false;
-	//duration = chrono::duration_cast<chrono::microseconds>(end - start);
-	/*cout << "The opt-bmt takes "
-		<< double(duration.count()) * chrono::microseconds::period::num / chrono::microseconds::period::den
-		<< "seconds" << endl;
-	std::cout << " <<<< ------------- opt-bmt END -------------------------- \n" << endl;*/
+	// check Fidelity
+	if (CHECK_TIME)
+	{
+		CalcFidelity cf;
+		std::cout << "opt-bmt fidelity :  " << cf.calc_fidelity(bmt_mapped_prog).first << std::endl;
+		std::cout << "opt-bmt swap :  " << cf.calc_fidelity(bmt_mapped_prog).second << std::endl;
+	}
+
+	// check circuit-deep
+	if (CHECK_TIME)
+	{
+		//cout << "opt-bmt mapped_prog:" << bmt_mapped_prog << endl;
+		auto layer_info = prog_layer(bmt_mapped_prog);
+		//cout << "opt-bmt mapped_prog deeps = " << layer_info.size() << endl;
+		auto duration = chrono::duration_cast<chrono::microseconds>(end - start);
+		cout << "The opt-bmt takes "
+			<< double(duration.count()) * chrono::microseconds::period::num / chrono::microseconds::period::den
+			<< "seconds" << endl;
+		std::cout << " <<<< ------------- opt-bmt END -------------------------- \n" << endl;
+	}
+
+	// check result
+	{
+		auto _result = machine->runWithConfiguration(bmt_mapped_prog, c, kShots);
+		for (const auto& i : _result)
+		{
+            if (abs((long)i.second < kEpsion))
+                continue;
+			if (abs((long)i.second - (long)correct_result.at(i.first)) > kEpsion) {
+				return false;
+			}
+		}
+	}
 
 #ifdef QCoadr
-
-
-
 	// 3. QCodar
 	std::cout << "-------------------- start QCodar >>> " << endl;
 	start = chrono::system_clock::now();
@@ -459,27 +488,45 @@ static bool test_mapping_overall_1()
 
 #endif // QCoadr
 
-#ifdef AStar
-
-
-
 	// 4. A-star
-	std::cout << "--------------------  start A-star >>> " << endl;
 	start = chrono::system_clock::now();
-	auto astar_mapped_prog = topology_match(test_prog, q, machine, SWAP_GATE_METHOD, ORIGIN_VIRTUAL_ARCH, CONFIG_PATH);
+	_prog = deepCopy(test_prog);
+	auto astar_mapped_prog = topology_match(_prog, q, machine, CONFIG_PATH);
 	end = chrono::system_clock::now();
-	//cout << "A-star mapped_prog:" << astar_mapped_prog << endl;
-	layer_info = prog_layer(astar_mapped_prog);
-	cout << "astar_mapped_prog deeps = " << layer_info.size() << endl;
-	std::cout << "A-star fidelity :  " << cf.calc_fidelity(astar_mapped_prog).first << std::endl;
-	std::cout << "A-star swap :  " << cf.calc_fidelity(astar_mapped_prog).second << std::endl;
-	duration = chrono::duration_cast<chrono::microseconds>(end - start);
-	cout << "The A-star takes "
-		<< double(duration.count()) * chrono::microseconds::period::num / chrono::microseconds::period::den
-		<< "seconds" << endl;
-	std::cout << " <<<< ------------- A-star END -------------------------- \n" << endl;
 
-#endif // AStar
+	// check Fidelity
+	if (CHECK_TIME)
+	{
+		CalcFidelity cf;
+		std::cout << "A-star fidelity :  " << cf.calc_fidelity(astar_mapped_prog).first << std::endl;
+		std::cout << "A-star swap :  " << cf.calc_fidelity(astar_mapped_prog).second << std::endl;
+	}
+
+	// check circuit-deep
+	if (CHECK_TIME)
+	{
+		//cout << "A-star mapped_prog:" << astar_mapped_prog << endl;
+		auto layer_info = prog_layer(astar_mapped_prog);
+		cout << "astar_mapped_prog deeps = " << layer_info.size() << endl;
+		auto duration = chrono::duration_cast<chrono::microseconds>(end - start);
+		cout << "The A-star takes "
+			<< double(duration.count()) * chrono::microseconds::period::num / chrono::microseconds::period::den
+			<< "seconds" << endl;
+		std::cout << " <<<< ------------- A-star END -------------------------- \n" << endl;
+	}
+
+	// check result
+	{
+		auto _result = machine->runWithConfiguration(bmt_mapped_prog, c, kShots);
+		for (const auto& i : _result)
+		{
+            if (abs((long)i.second < kEpsion))
+                continue;
+			if (abs((long)i.second - (long)correct_result.at(i.first)) > kEpsion) {
+				return false;
+			}
+		}
+	}
 
 	return true;
 }
@@ -490,22 +537,22 @@ TEST(QubitMapping, test1)
 	bool test_val = false;
 	try
 	{
-		test_val = test_mapping_overall_1();
-		test_val = test_opt_BMT_qubit_allocator_3();
-		test_val = test_SABRE_qubit_mapping_1();
-		test_val = test_opt_BMT_qubit_allocator_1();
+		test_val = test_mapping_overall_1(test_IR_1);
+		test_val = test_val && test_mapping_overall_1(test_IR_2);
+		/*test_val = test_val && test_opt_BMT_qubit_allocator_3();
+		test_val = test_val && test_SABRE_qubit_mapping_1();
+		test_val = test_val && test_opt_BMT_qubit_allocator_1();*/
 	}
 	catch (const std::exception& e)
 	{
 		std::cout << "Got a exception: " << e.what() << endl;
+		test_val = false;
 	}
 	catch (...)
 	{
 		std::cout << "Got an unknow exception: " << endl;
+		test_val = false;
 	}
-
-	//cout << "QubitMapping test over." << endl;
-	//getchar();
 
 	ASSERT_TRUE(test_val);
 }

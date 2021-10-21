@@ -104,12 +104,19 @@ QProg quantum_walk_alg_search_from_vector(const std::vector<T> &data_vec,
 	QVec measure_qubits;
 	QProg quantum_walk_prog = build_quantum_walk_alg_prog(data_vec, condition, qvm, measure_qubits, repeat);
 
+	auto c = qvm->allocateCBits(measure_qubits.size());
+	quantum_walk_prog << MeasureAll(measure_qubits, c);
 	//measure
-	//printf("Strat pmeasure.\n");
-	auto result = probRunDict(quantum_walk_prog, measure_qubits);
+	PTrace("Strat pmeasure.\n");
+	const double _shot = 2048;
+	auto result = qvm->runWithConfiguration(quantum_walk_prog, c, _shot);
+	prob_dict _double_result;
+	for (auto const& _i : result) {
+		_double_result.emplace(std::make_pair(_i.first, (double)_i.second / _shot));
+	}
 
 	//get result
-	result_index_vec = search_target_from_measure_result(result);
+	result_index_vec = search_target_from_measure_result(_double_result, measure_qubits.size());
 
 	return quantum_walk_prog;
 }

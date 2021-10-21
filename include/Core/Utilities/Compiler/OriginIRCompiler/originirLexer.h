@@ -1,5 +1,5 @@
 
-// Generated from .\originir.g4 by ANTLR 4.7.2
+// Generated from .\originir.g4 by ANTLR 4.9.2
 
 #pragma once
 
@@ -29,7 +29,7 @@ public:
     WhiteSpace = 74, SingleLineComment = 75
   };
 
-  originirLexer(antlr4::CharStream *input);
+  explicit originirLexer(antlr4::CharStream *input);
   ~originirLexer();
 
   virtual std::string getGrammarFileName() const override;

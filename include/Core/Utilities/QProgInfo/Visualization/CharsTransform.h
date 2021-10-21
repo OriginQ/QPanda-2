@@ -127,25 +127,23 @@ inline void utf8_fit_to_gbk(std::string &utf8_str)
 	while (true)
 	{
 		pos = get_wide_char_pos(utf8_str, pos);
-		if (0 > pos)
-		{
+		if (0 > pos){
 			break;
 		}
 
-		utf8_str.erase(pos + 3, 1);
-		utf8_str.erase(pos + 3, 1);
-		utf8_str.erase(pos + 3, 1);
+		utf8_str.erase(pos + 3, 3);
 		pos += 3;
 	}
 }
 
+/**
+* @brief Special character conversion
+* @param[in] string& the source string
+* @return std::string Converted string
+*/
 inline std::string fit_to_gbk(std::string& utf8_str)
 {
 	utf8_fit_to_gbk(utf8_str);
-#if defined(WIN32) || defined(_WIN32)
-	//utf8_str = Utf8ToGbkOnWin32(utf8_str.c_str());
-#endif
-
 	return utf8_str;
 }
 

@@ -154,6 +154,8 @@ QStat Eigen_to_QStat(const EigenMatrixXc& mat);
 * @return if the input matrix is unitary matrix return true, or else return false
 */
 bool is_unitary_matrix(const QStat &circuit_matrix, const double precision = MAX_COMPARE_PRECISION);
+bool is_unitary_matrix_by_eigen(const QStat& circuit_matrix, const double precision = MAX_COMPARE_PRECISION);
+bool is_unitary_matrix_by_eigen(const EigenMatrixXc& circuit_matrix, const double precision = MAX_COMPARE_PRECISION);
 
 QPANDA_END
 #endif // QSTATMATRIX_H

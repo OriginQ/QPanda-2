@@ -27,8 +27,7 @@ bool QPanda::isPerfectSquare(int number)
 
 QStat QPanda::operator+(const QStat &matrix_left, const QStat &matrix_right)
 {
-    if ((matrix_left.size() != matrix_right.size())    // insure dimension of the two matrixes is same
-        || (!isPerfectSquare((int)matrix_left.size())))   
+    if ((matrix_left.size() != matrix_right.size()))   
     {
         QCERR("QStat is illegal");
         throw invalid_argument("QStat is illegal");
@@ -48,11 +47,6 @@ QStat QPanda::operator+(const QStat &matrix_left, const QStat &matrix_right)
 
 QStat QPanda::operator+(const QStat &matrix_left, const qcomplex_t value)
 {
-    if (!isPerfectSquare((int)matrix_left.size()))
-    {
-        QCERR("QStat is illegal");
-        throw invalid_argument("QStat is illegal");
-    }
 
     int size = (int)matrix_left.size();
     QStat matrix_result(size, 0);
@@ -69,12 +63,6 @@ QStat QPanda::operator+(const QStat &matrix_left, const qcomplex_t value)
 
 QStat QPanda::operator+(const qcomplex_t value, const QStat &matrix_right)
 {
-    if (!isPerfectSquare((int)matrix_right.size()))
-    {
-        QCERR("QStat is illegal");
-        throw invalid_argument("QStat is illegal");
-    }
-
     int size = (int)matrix_right.size();
     QStat matrix_result(size, 0);
 
@@ -89,8 +77,7 @@ QStat QPanda::operator+(const qcomplex_t value, const QStat &matrix_right)
 
 QStat QPanda::operator-(const QStat &matrix_left, const QStat &matrix_right)
 {
-    if ((matrix_left.size() != matrix_right.size())  // insure dimension of the two matrixes is same
-        || (!isPerfectSquare((int)matrix_left.size()))) 
+    if ((matrix_left.size() != matrix_right.size())) 
     {
         QCERR("QStat is illegal");
         throw invalid_argument("QStat is illegal");
@@ -111,12 +98,6 @@ QStat QPanda::operator-(const QStat &matrix_left, const QStat &matrix_right)
 
 QStat QPanda::operator-(const QStat &matrix_left, const qcomplex_t &value)
 {
-    if (!isPerfectSquare((int)matrix_left.size()))
-    {
-        QCERR("QStat is illegal");
-        throw invalid_argument("QStat is illegal");
-    }
-
     int size = (int)matrix_left.size();
     QStat matrix_result(size, 0);
 
@@ -132,12 +113,6 @@ QStat QPanda::operator-(const QStat &matrix_left, const qcomplex_t &value)
 
 QStat QPanda::operator-(const qcomplex_t &value, const QStat &matrix_right)
 {
-    if (!isPerfectSquare((int)matrix_right.size()))
-    {
-        QCERR("QStat is illegal");
-        throw invalid_argument("QStat is illegal");
-    }
-
     int size = (int)matrix_right.size();
     QStat matrix_result(size, 0);
 
@@ -520,7 +495,7 @@ QStat QPanda::Eigen_to_QStat(const EigenMatrixXc& eigen_mat)
 	return q_mat;
 }
 
-bool QPanda::is_unitary_matrix(const QStat &circuit_matrix, const double precision /*= 0.000001*/)
+bool QPanda::is_unitary_matrix(const QStat &circuit_matrix, const double precision /*= MAX_COMPARE_PRECISION*/)
 {
 	size_t matrix_dimension = sqrt(circuit_matrix.size());
 	QStat tmp_matrix_dagger = dagger_c(circuit_matrix);
@@ -537,4 +512,16 @@ bool QPanda::is_unitary_matrix(const QStat &circuit_matrix, const double precisi
 	}
 
 	return false;
+}
+
+bool QPanda::is_unitary_matrix_by_eigen(const QStat& circuit_matrix, const double precision /*= MAX_COMPARE_PRECISION*/)
+{
+	auto order = std::sqrt(circuit_matrix.size());
+	EigenMatrixXc tmp_mat = EigenMatrixXc::Map(&circuit_matrix[0], order, order);
+	return is_unitary_matrix_by_eigen(tmp_mat, precision);
+}
+
+bool QPanda::is_unitary_matrix_by_eigen(const EigenMatrixXc& circuit_matrix, const double precision /*= MAX_COMPARE_PRECISION*/)
+{
+	return circuit_matrix.isUnitary(precision);
 }

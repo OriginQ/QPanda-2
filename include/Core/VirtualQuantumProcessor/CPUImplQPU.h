@@ -367,6 +367,7 @@ public:
     QError pMeasure(Qnum& qnum, prob_vec &probs);
     QError initState(size_t head_rank, size_t rank_size, size_t qubit_num);
     QError initState(size_t qubit_num, const QStat &state = {});
+	QError initMatrixState(size_t qubit_num, const QStat& state = {});
 
     inline QError P00(size_t qn_0, size_t qn_1, bool isConjugate, double error_rate)
     {

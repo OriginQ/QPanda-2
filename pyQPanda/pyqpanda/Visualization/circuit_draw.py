@@ -8,7 +8,7 @@ def draw_circuit_pic(prog, pic_name, verbose=False):
     qcd.draw(pic_name, verbose)
 
 def draw_qprog(prog, output=None, scale=0.7, filename=None, line_length=100, NodeIter_first=None, \
-    NodeIter_second=None, console_encode_type = 'utf8', text_to_file = False):
+    NodeIter_second=None, console_encode_type = 'utf8'):
     """Draw a quantum circuit to different formats (set by output parameter):
 
     **text**: ASCII art TextDrawing that can be printed in the console.
@@ -39,15 +39,27 @@ def draw_qprog(prog, output=None, scale=0.7, filename=None, line_length=100, Nod
             filename = 'QCircuit_pic.jpg'
         draw_circuit_pic(prog, filename)
     elif output == 'text':
+        if filename is None:
+            filename = ''
         if NodeIter_first is None and  NodeIter_second is None:
-            text_pic = pq.draw_qprog_text(prog, line_length, text_to_file)
+            text_pic = pq.draw_qprog_text(prog, line_length, filename)
         elif NodeIter_first is None:
-            text_pic = pq.draw_qprog_text(prog, line_length, text_to_file, prog.begin(), NodeIter_second)
+            text_pic = pq.draw_qprog_text(prog, line_length, filename, prog.begin(), NodeIter_second)
         elif NodeIter_second is None:
-            text_pic = pq.draw_qprog_text(prog, line_length, text_to_file, NodeIter_first, prog.end())
+            text_pic = pq.draw_qprog_text(prog, line_length, filename, NodeIter_first, prog.end())
         
         if console_encode_type == 'gbk':
             text_pic = pq.fit_to_gbk(text_pic)
         
-        print(text_pic)
+        #print(text_pic)
+    elif output == 'latex':
+        if filename is None:
+            filename = 'QCircuit_latex.tex'
+        if NodeIter_first is None and  NodeIter_second is None:
+            text_pic = pq.draw_qprog_latex(prog, line_length, filename)
+        elif NodeIter_first is None:
+            text_pic = pq.draw_qprog_latex(prog, line_length, filename, prog.begin(), NodeIter_second)
+        elif NodeIter_second is None:
+            text_pic = pq.draw_qprog_latex(prog, line_length, filename, NodeIter_first, prog.end())
+        
     return text_pic

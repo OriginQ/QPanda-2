@@ -1,6 +1,6 @@
 
-// Generated from .\originir.g4 by ANTLR 4.7.2
-
+// Generated from .\originir.g4 by ANTLR 4.9.2
+#pragma once
 
 #include "Core/Utilities/Compiler/OriginIRCompiler/originirListener.h"
 #include "Core/Utilities/Compiler/OriginIRCompiler/originirVisitor.h"
@@ -12,6290 +12,7025 @@
 using namespace antlrcpp;
 using namespace antlr4;
 
-originirParser::originirParser(TokenStream *input) : Parser(input) {
-  _interpreter = new atn::ParserATNSimulator(this, _atn, _decisionToDFA, _sharedContextCache);
+originirParser::originirParser(TokenStream* input) : Parser(input) {
+    _interpreter = new atn::ParserATNSimulator(this, _atn, _decisionToDFA, _sharedContextCache);
 }
 
 originirParser::~originirParser() {
-  delete _interpreter;
+    delete _interpreter;
 }
 
 std::string originirParser::getGrammarFileName() const {
-  return "originir.g4";
+    return "originir.g4";
 }
 
 const std::vector<std::string>& originirParser::getRuleNames() const {
-  return _ruleNames;
+    return _ruleNames;
 }
 
 dfa::Vocabulary& originirParser::getVocabulary() const {
-  return _vocabulary;
+    return _vocabulary;
 }
 
 
 //----------------- TranslationunitContext ------------------------------------------------------------------
 
-originirParser::TranslationunitContext::TranslationunitContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::TranslationunitContext::TranslationunitContext(ParserRuleContext* parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 originirParser::DeclarationContext* originirParser::TranslationunitContext::declaration() {
-  return getRuleContext<originirParser::DeclarationContext>(0);
+    return getRuleContext<originirParser::DeclarationContext>(0);
 }
 
-std::vector<originirParser::StatementContext *> originirParser::TranslationunitContext::statement() {
-  return getRuleContexts<originirParser::StatementContext>();
+std::vector<tree::TerminalNode*> originirParser::TranslationunitContext::NEWLINE() {
+    return getTokens(originirParser::NEWLINE);
+}
+
+tree::TerminalNode* originirParser::TranslationunitContext::NEWLINE(size_t i) {
+    return getToken(originirParser::NEWLINE, i);
+}
+
+std::vector<originirParser::Gate_func_statementContext*> originirParser::TranslationunitContext::gate_func_statement() {
+    return getRuleContexts<originirParser::Gate_func_statementContext>();
+}
+
+originirParser::Gate_func_statementContext* originirParser::TranslationunitContext::gate_func_statement(size_t i) {
+    return getRuleContext<originirParser::Gate_func_statementContext>(i);
+}
+
+std::vector<originirParser::StatementContext*> originirParser::TranslationunitContext::statement() {
+    return getRuleContexts<originirParser::StatementContext>();
 }
 
 originirParser::StatementContext* originirParser::TranslationunitContext::statement(size_t i) {
-  return getRuleContext<originirParser::StatementContext>(i);
+    return getRuleContext<originirParser::StatementContext>(i);
 }
 
 
 size_t originirParser::TranslationunitContext::getRuleIndex() const {
-  return originirParser::RuleTranslationunit;
+    return originirParser::RuleTranslationunit;
 }
 
-void originirParser::TranslationunitContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterTranslationunit(this);
+void originirParser::TranslationunitContext::enterRule(tree::ParseTreeListener* listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterTranslationunit(this);
 }
 
-void originirParser::TranslationunitContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitTranslationunit(this);
+void originirParser::TranslationunitContext::exitRule(tree::ParseTreeListener* listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitTranslationunit(this);
 }
 
 
-antlrcpp::Any originirParser::TranslationunitContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitTranslationunit(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::TranslationunitContext::accept(tree::ParseTreeVisitor* visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitTranslationunit(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 originirParser::TranslationunitContext* originirParser::translationunit() {
-  TranslationunitContext *_localctx = _tracker.createInstance<TranslationunitContext>(_ctx, getState());
-  enterRule(_localctx, 0, originirParser::RuleTranslationunit);
-  size_t _la = 0;
+    TranslationunitContext* _localctx = _tracker.createInstance<TranslationunitContext>(_ctx, getState());
+    enterRule(_localctx, 0, originirParser::RuleTranslationunit);
+    size_t _la = 0;
 
-  auto onExit = finally([=] {
-    exitRule();
-  });
-  try {
-    enterOuterAlt(_localctx, 1);
-    setState(112);
-    declaration();
-    setState(116);
-    _errHandler->sync(this);
-    _la = _input->LA(1);
-    while ((((_la & ~ 0x3fULL) == 0) &&
-      ((1ULL << _la) & ((1ULL << originirParser::PI)
-      | (1ULL << originirParser::C_KEY)
-      | (1ULL << originirParser::BARRIER_KEY)
-      | (1ULL << originirParser::QGATE_KEY)
-      | (1ULL << originirParser::ECHO_GATE)
-      | (1ULL << originirParser::H_GATE)
-      | (1ULL << originirParser::X_GATE)
-      | (1ULL << originirParser::T_GATE)
-      | (1ULL << originirParser::S_GATE)
-      | (1ULL << originirParser::Y_GATE)
-      | (1ULL << originirParser::Z_GATE)
-      | (1ULL << originirParser::X1_GATE)
-      | (1ULL << originirParser::Y1_GATE)
-      | (1ULL << originirParser::Z1_GATE)
-      | (1ULL << originirParser::I_GATE)
-      | (1ULL << originirParser::U2_GATE)
-      | (1ULL << originirParser::RPHI_GATE)
-      | (1ULL << originirParser::U3_GATE)
-      | (1ULL << originirParser::U4_GATE)
-      | (1ULL << originirParser::RX_GATE)
-      | (1ULL << originirParser::RY_GATE)
-      | (1ULL << originirParser::RZ_GATE)
-      | (1ULL << originirParser::U1_GATE)
-      | (1ULL << originirParser::CNOT_GATE)
-      | (1ULL << originirParser::CZ_GATE)
-      | (1ULL << originirParser::CU_GATE)
-      | (1ULL << originirParser::ISWAP_GATE)
-      | (1ULL << originirParser::SQISWAP_GATE)
-      | (1ULL << originirParser::SWAPZ1_GATE)
-      | (1ULL << originirParser::ISWAPTHETA_GATE)
-      | (1ULL << originirParser::CR_GATE)
-      | (1ULL << originirParser::TOFFOLI_GATE)
-      | (1ULL << originirParser::DAGGER_KEY)
-      | (1ULL << originirParser::CONTROL_KEY)
-      | (1ULL << originirParser::QIF_KEY)
-      | (1ULL << originirParser::QWHILE_KEY)
-      | (1ULL << originirParser::MEASURE_KEY)
-      | (1ULL << originirParser::RESET_KEY)
-      | (1ULL << originirParser::NOT)
-      | (1ULL << originirParser::PLUS)
-      | (1ULL << originirParser::MINUS))) != 0) || ((((_la - 64) & ~ 0x3fULL) == 0) &&
-      ((1ULL << (_la - 64)) & ((1ULL << (originirParser::LPAREN - 64))
-      | (1ULL << (originirParser::Identifier - 64))
-      | (1ULL << (originirParser::Integer_Literal - 64))
-      | (1ULL << (originirParser::Double_Literal - 64)))) != 0)) {
-      setState(113);
-      statement();
-      setState(118);
-      _errHandler->sync(this);
-      _la = _input->LA(1);
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        size_t alt;
+        enterOuterAlt(_localctx, 1);
+        setState(121);
+        _errHandler->sync(this);
+        _la = _input->LA(1);
+        while (_la == originirParser::NEWLINE) {
+            setState(118);
+            match(originirParser::NEWLINE);
+            setState(123);
+            _errHandler->sync(this);
+            _la = _input->LA(1);
+        }
+        setState(127);
+        _errHandler->sync(this);
+        _la = _input->LA(1);
+        while (_la == originirParser::QGATE_KEY) {
+            setState(124);
+            gate_func_statement();
+            setState(129);
+            _errHandler->sync(this);
+            _la = _input->LA(1);
+        }
+        setState(130);
+        declaration();
+        setState(134);
+        _errHandler->sync(this);
+        alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 2, _ctx);
+        while (alt != 2 && alt != atn::ATN::INVALID_ALT_NUMBER) {
+            if (alt == 1) {
+                setState(131);
+                gate_func_statement();
+            }
+            setState(136);
+            _errHandler->sync(this);
+            alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 2, _ctx);
+        }
+        setState(140);
+        _errHandler->sync(this);
+        _la = _input->LA(1);
+        while ((((_la & ~0x3fULL) == 0) &&
+            ((1ULL << _la) & ((1ULL << originirParser::PI)
+                | (1ULL << originirParser::C_KEY)
+                | (1ULL << originirParser::BARRIER_KEY)
+                | (1ULL << originirParser::QGATE_KEY)
+                | (1ULL << originirParser::ECHO_GATE)
+                | (1ULL << originirParser::H_GATE)
+                | (1ULL << originirParser::X_GATE)
+                | (1ULL << originirParser::T_GATE)
+                | (1ULL << originirParser::S_GATE)
+                | (1ULL << originirParser::Y_GATE)
+                | (1ULL << originirParser::Z_GATE)
+                | (1ULL << originirParser::X1_GATE)
+                | (1ULL << originirParser::Y1_GATE)
+                | (1ULL << originirParser::Z1_GATE)
+                | (1ULL << originirParser::I_GATE)
+                | (1ULL << originirParser::U2_GATE)
+                | (1ULL << originirParser::RPHI_GATE)
+                | (1ULL << originirParser::U3_GATE)
+                | (1ULL << originirParser::U4_GATE)
+                | (1ULL << originirParser::RX_GATE)
+                | (1ULL << originirParser::RY_GATE)
+                | (1ULL << originirParser::RZ_GATE)
+                | (1ULL << originirParser::U1_GATE)
+                | (1ULL << originirParser::CNOT_GATE)
+                | (1ULL << originirParser::CZ_GATE)
+                | (1ULL << originirParser::CU_GATE)
+                | (1ULL << originirParser::ISWAP_GATE)
+                | (1ULL << originirParser::SQISWAP_GATE)
+                | (1ULL << originirParser::SWAPZ1_GATE)
+                | (1ULL << originirParser::ISWAPTHETA_GATE)
+                | (1ULL << originirParser::CR_GATE)
+                | (1ULL << originirParser::TOFFOLI_GATE)
+                | (1ULL << originirParser::DAGGER_KEY)
+                | (1ULL << originirParser::CONTROL_KEY)
+                | (1ULL << originirParser::QIF_KEY)
+                | (1ULL << originirParser::QWHILE_KEY)
+                | (1ULL << originirParser::MEASURE_KEY)
+                | (1ULL << originirParser::RESET_KEY)
+                | (1ULL << originirParser::NOT)
+                | (1ULL << originirParser::PLUS)
+                | (1ULL << originirParser::MINUS))) != 0) || ((((_la - 64) & ~0x3fULL) == 0) &&
+                    ((1ULL << (_la - 64)) & ((1ULL << (originirParser::LPAREN - 64))
+                        | (1ULL << (originirParser::Identifier - 64))
+                        | (1ULL << (originirParser::Integer_Literal - 64))
+                        | (1ULL << (originirParser::Double_Literal - 64)))) != 0)) {
+            setState(137);
+            statement();
+            setState(142);
+            _errHandler->sync(this);
+            _la = _input->LA(1);
+        }
+
     }
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
+    }
 
-  return _localctx;
-}
+    return _localctx;
+        }
 
 //----------------- DeclarationContext ------------------------------------------------------------------
 
-originirParser::DeclarationContext::DeclarationContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::DeclarationContext::DeclarationContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 originirParser::Qinit_declarationContext* originirParser::DeclarationContext::qinit_declaration() {
-  return getRuleContext<originirParser::Qinit_declarationContext>(0);
+    return getRuleContext<originirParser::Qinit_declarationContext>(0);
 }
 
 originirParser::Cinit_declarationContext* originirParser::DeclarationContext::cinit_declaration() {
-  return getRuleContext<originirParser::Cinit_declarationContext>(0);
+    return getRuleContext<originirParser::Cinit_declarationContext>(0);
 }
 
 
 size_t originirParser::DeclarationContext::getRuleIndex() const {
-  return originirParser::RuleDeclaration;
+    return originirParser::RuleDeclaration;
 }
 
-void originirParser::DeclarationContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterDeclaration(this);
+void originirParser::DeclarationContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterDeclaration(this);
 }
 
-void originirParser::DeclarationContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitDeclaration(this);
+void originirParser::DeclarationContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitDeclaration(this);
 }
 
 
-antlrcpp::Any originirParser::DeclarationContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitDeclaration(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::DeclarationContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitDeclaration(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 originirParser::DeclarationContext* originirParser::declaration() {
-  DeclarationContext *_localctx = _tracker.createInstance<DeclarationContext>(_ctx, getState());
-  enterRule(_localctx, 2, originirParser::RuleDeclaration);
+    DeclarationContext* _localctx = _tracker.createInstance<DeclarationContext>(_ctx, getState());
+    enterRule(_localctx, 2, originirParser::RuleDeclaration);
 
-  auto onExit = finally([=] {
-    exitRule();
-  });
-  try {
-    enterOuterAlt(_localctx, 1);
-    setState(119);
-    qinit_declaration();
-    setState(120);
-    cinit_declaration();
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        enterOuterAlt(_localctx, 1);
+        setState(143);
+        qinit_declaration();
+        setState(144);
+        cinit_declaration();
 
-  return _localctx;
-}
+    }
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
+    }
+
+    return _localctx;
+        }
 
 //----------------- Qinit_declarationContext ------------------------------------------------------------------
 
-originirParser::Qinit_declarationContext::Qinit_declarationContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::Qinit_declarationContext::Qinit_declarationContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 tree::TerminalNode* originirParser::Qinit_declarationContext::QINIT_KEY() {
-  return getToken(originirParser::QINIT_KEY, 0);
+    return getToken(originirParser::QINIT_KEY, 0);
 }
 
 tree::TerminalNode* originirParser::Qinit_declarationContext::Integer_Literal() {
-  return getToken(originirParser::Integer_Literal, 0);
+    return getToken(originirParser::Integer_Literal, 0);
 }
 
 tree::TerminalNode* originirParser::Qinit_declarationContext::NEWLINE() {
-  return getToken(originirParser::NEWLINE, 0);
+    return getToken(originirParser::NEWLINE, 0);
 }
 
 
 size_t originirParser::Qinit_declarationContext::getRuleIndex() const {
-  return originirParser::RuleQinit_declaration;
+    return originirParser::RuleQinit_declaration;
 }
 
-void originirParser::Qinit_declarationContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterQinit_declaration(this);
+void originirParser::Qinit_declarationContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterQinit_declaration(this);
 }
 
-void originirParser::Qinit_declarationContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitQinit_declaration(this);
+void originirParser::Qinit_declarationContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitQinit_declaration(this);
 }
 
 
-antlrcpp::Any originirParser::Qinit_declarationContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitQinit_declaration(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::Qinit_declarationContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitQinit_declaration(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 originirParser::Qinit_declarationContext* originirParser::qinit_declaration() {
-  Qinit_declarationContext *_localctx = _tracker.createInstance<Qinit_declarationContext>(_ctx, getState());
-  enterRule(_localctx, 4, originirParser::RuleQinit_declaration);
+    Qinit_declarationContext* _localctx = _tracker.createInstance<Qinit_declarationContext>(_ctx, getState());
+    enterRule(_localctx, 4, originirParser::RuleQinit_declaration);
 
-  auto onExit = finally([=] {
-    exitRule();
-  });
-  try {
-    enterOuterAlt(_localctx, 1);
-    setState(122);
-    match(originirParser::QINIT_KEY);
-    setState(123);
-    match(originirParser::Integer_Literal);
-    setState(124);
-    match(originirParser::NEWLINE);
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        enterOuterAlt(_localctx, 1);
+        setState(146);
+        match(originirParser::QINIT_KEY);
+        setState(147);
+        match(originirParser::Integer_Literal);
+        setState(148);
+        match(originirParser::NEWLINE);
 
-  return _localctx;
-}
+    }
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
+    }
+
+    return _localctx;
+        }
 
 //----------------- Cinit_declarationContext ------------------------------------------------------------------
 
-originirParser::Cinit_declarationContext::Cinit_declarationContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::Cinit_declarationContext::Cinit_declarationContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 tree::TerminalNode* originirParser::Cinit_declarationContext::CREG_KEY() {
-  return getToken(originirParser::CREG_KEY, 0);
+    return getToken(originirParser::CREG_KEY, 0);
 }
 
 tree::TerminalNode* originirParser::Cinit_declarationContext::Integer_Literal() {
-  return getToken(originirParser::Integer_Literal, 0);
+    return getToken(originirParser::Integer_Literal, 0);
 }
 
 tree::TerminalNode* originirParser::Cinit_declarationContext::NEWLINE() {
-  return getToken(originirParser::NEWLINE, 0);
+    return getToken(originirParser::NEWLINE, 0);
 }
 
 
 size_t originirParser::Cinit_declarationContext::getRuleIndex() const {
-  return originirParser::RuleCinit_declaration;
+    return originirParser::RuleCinit_declaration;
 }
 
-void originirParser::Cinit_declarationContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterCinit_declaration(this);
+void originirParser::Cinit_declarationContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterCinit_declaration(this);
 }
 
-void originirParser::Cinit_declarationContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitCinit_declaration(this);
+void originirParser::Cinit_declarationContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitCinit_declaration(this);
 }
 
 
-antlrcpp::Any originirParser::Cinit_declarationContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitCinit_declaration(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::Cinit_declarationContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitCinit_declaration(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 originirParser::Cinit_declarationContext* originirParser::cinit_declaration() {
-  Cinit_declarationContext *_localctx = _tracker.createInstance<Cinit_declarationContext>(_ctx, getState());
-  enterRule(_localctx, 6, originirParser::RuleCinit_declaration);
+    Cinit_declarationContext* _localctx = _tracker.createInstance<Cinit_declarationContext>(_ctx, getState());
+    enterRule(_localctx, 6, originirParser::RuleCinit_declaration);
 
-  auto onExit = finally([=] {
-    exitRule();
-  });
-  try {
-    enterOuterAlt(_localctx, 1);
-    setState(126);
-    match(originirParser::CREG_KEY);
-    setState(127);
-    match(originirParser::Integer_Literal);
-    setState(128);
-    match(originirParser::NEWLINE);
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        enterOuterAlt(_localctx, 1);
+        setState(150);
+        match(originirParser::CREG_KEY);
+        setState(151);
+        match(originirParser::Integer_Literal);
+        setState(152);
+        match(originirParser::NEWLINE);
 
-  return _localctx;
-}
+    }
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
+    }
+
+    return _localctx;
+        }
 
 //----------------- Quantum_gate_declarationContext ------------------------------------------------------------------
 
-originirParser::Quantum_gate_declarationContext::Quantum_gate_declarationContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::Quantum_gate_declarationContext::Quantum_gate_declarationContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 originirParser::Single_gate_without_parameter_declarationContext* originirParser::Quantum_gate_declarationContext::single_gate_without_parameter_declaration() {
-  return getRuleContext<originirParser::Single_gate_without_parameter_declarationContext>(0);
+    return getRuleContext<originirParser::Single_gate_without_parameter_declarationContext>(0);
 }
 
 originirParser::Single_gate_with_one_parameter_declarationContext* originirParser::Quantum_gate_declarationContext::single_gate_with_one_parameter_declaration() {
-  return getRuleContext<originirParser::Single_gate_with_one_parameter_declarationContext>(0);
+    return getRuleContext<originirParser::Single_gate_with_one_parameter_declarationContext>(0);
 }
 
 originirParser::Single_gate_with_two_parameter_declarationContext* originirParser::Quantum_gate_declarationContext::single_gate_with_two_parameter_declaration() {
-  return getRuleContext<originirParser::Single_gate_with_two_parameter_declarationContext>(0);
+    return getRuleContext<originirParser::Single_gate_with_two_parameter_declarationContext>(0);
 }
 
 originirParser::Single_gate_with_three_parameter_declarationContext* originirParser::Quantum_gate_declarationContext::single_gate_with_three_parameter_declaration() {
-  return getRuleContext<originirParser::Single_gate_with_three_parameter_declarationContext>(0);
+    return getRuleContext<originirParser::Single_gate_with_three_parameter_declarationContext>(0);
 }
 
 originirParser::Single_gate_with_four_parameter_declarationContext* originirParser::Quantum_gate_declarationContext::single_gate_with_four_parameter_declaration() {
-  return getRuleContext<originirParser::Single_gate_with_four_parameter_declarationContext>(0);
+    return getRuleContext<originirParser::Single_gate_with_four_parameter_declarationContext>(0);
 }
 
 originirParser::Double_gate_without_parameter_declarationContext* originirParser::Quantum_gate_declarationContext::double_gate_without_parameter_declaration() {
-  return getRuleContext<originirParser::Double_gate_without_parameter_declarationContext>(0);
+    return getRuleContext<originirParser::Double_gate_without_parameter_declarationContext>(0);
 }
 
 originirParser::Double_gate_with_one_parameter_declarationContext* originirParser::Quantum_gate_declarationContext::double_gate_with_one_parameter_declaration() {
-  return getRuleContext<originirParser::Double_gate_with_one_parameter_declarationContext>(0);
+    return getRuleContext<originirParser::Double_gate_with_one_parameter_declarationContext>(0);
 }
 
 originirParser::Double_gate_with_four_parameter_declarationContext* originirParser::Quantum_gate_declarationContext::double_gate_with_four_parameter_declaration() {
-  return getRuleContext<originirParser::Double_gate_with_four_parameter_declarationContext>(0);
+    return getRuleContext<originirParser::Double_gate_with_four_parameter_declarationContext>(0);
 }
 
 originirParser::Triple_gate_without_parameter_declarationContext* originirParser::Quantum_gate_declarationContext::triple_gate_without_parameter_declaration() {
-  return getRuleContext<originirParser::Triple_gate_without_parameter_declarationContext>(0);
+    return getRuleContext<originirParser::Triple_gate_without_parameter_declarationContext>(0);
 }
 
 originirParser::Define_gate_declarationContext* originirParser::Quantum_gate_declarationContext::define_gate_declaration() {
-  return getRuleContext<originirParser::Define_gate_declarationContext>(0);
+    return getRuleContext<originirParser::Define_gate_declarationContext>(0);
 }
 
 
 size_t originirParser::Quantum_gate_declarationContext::getRuleIndex() const {
-  return originirParser::RuleQuantum_gate_declaration;
+    return originirParser::RuleQuantum_gate_declaration;
 }
 
-void originirParser::Quantum_gate_declarationContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterQuantum_gate_declaration(this);
+void originirParser::Quantum_gate_declarationContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterQuantum_gate_declaration(this);
 }
 
-void originirParser::Quantum_gate_declarationContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitQuantum_gate_declaration(this);
+void originirParser::Quantum_gate_declarationContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitQuantum_gate_declaration(this);
 }
 
 
-antlrcpp::Any originirParser::Quantum_gate_declarationContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitQuantum_gate_declaration(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::Quantum_gate_declarationContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitQuantum_gate_declaration(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 originirParser::Quantum_gate_declarationContext* originirParser::quantum_gate_declaration() {
-  Quantum_gate_declarationContext *_localctx = _tracker.createInstance<Quantum_gate_declarationContext>(_ctx, getState());
-  enterRule(_localctx, 8, originirParser::RuleQuantum_gate_declaration);
+    Quantum_gate_declarationContext* _localctx = _tracker.createInstance<Quantum_gate_declarationContext>(_ctx, getState());
+    enterRule(_localctx, 8, originirParser::RuleQuantum_gate_declaration);
 
-  auto onExit = finally([=] {
-    exitRule();
-  });
-  try {
-    setState(140);
-    _errHandler->sync(this);
-    switch (_input->LA(1)) {
-      case originirParser::ECHO_GATE:
-      case originirParser::H_GATE:
-      case originirParser::X_GATE:
-      case originirParser::T_GATE:
-      case originirParser::S_GATE:
-      case originirParser::Y_GATE:
-      case originirParser::Z_GATE:
-      case originirParser::X1_GATE:
-      case originirParser::Y1_GATE:
-      case originirParser::Z1_GATE:
-      case originirParser::I_GATE: {
-        enterOuterAlt(_localctx, 1);
-        setState(130);
-        single_gate_without_parameter_declaration();
-        break;
-      }
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        setState(164);
+        _errHandler->sync(this);
+        switch (_input->LA(1)) {
+        case originirParser::ECHO_GATE:
+        case originirParser::H_GATE:
+        case originirParser::X_GATE:
+        case originirParser::T_GATE:
+        case originirParser::S_GATE:
+        case originirParser::Y_GATE:
+        case originirParser::Z_GATE:
+        case originirParser::X1_GATE:
+        case originirParser::Y1_GATE:
+        case originirParser::Z1_GATE:
+        case originirParser::I_GATE: {
+            enterOuterAlt(_localctx, 1);
+            setState(154);
+            single_gate_without_parameter_declaration();
+            break;
+        }
 
-      case originirParser::RX_GATE:
-      case originirParser::RY_GATE:
-      case originirParser::RZ_GATE:
-      case originirParser::U1_GATE: {
-        enterOuterAlt(_localctx, 2);
-        setState(131);
-        single_gate_with_one_parameter_declaration();
-        break;
-      }
+        case originirParser::RX_GATE:
+        case originirParser::RY_GATE:
+        case originirParser::RZ_GATE:
+        case originirParser::U1_GATE: {
+            enterOuterAlt(_localctx, 2);
+            setState(155);
+            single_gate_with_one_parameter_declaration();
+            break;
+        }
 
-      case originirParser::U2_GATE:
-      case originirParser::RPHI_GATE: {
-        enterOuterAlt(_localctx, 3);
-        setState(132);
-        single_gate_with_two_parameter_declaration();
-        break;
-      }
+        case originirParser::U2_GATE:
+        case originirParser::RPHI_GATE: {
+            enterOuterAlt(_localctx, 3);
+            setState(156);
+            single_gate_with_two_parameter_declaration();
+            break;
+        }
 
-      case originirParser::U3_GATE: {
-        enterOuterAlt(_localctx, 4);
-        setState(133);
-        single_gate_with_three_parameter_declaration();
-        break;
-      }
+        case originirParser::U3_GATE: {
+            enterOuterAlt(_localctx, 4);
+            setState(157);
+            single_gate_with_three_parameter_declaration();
+            break;
+        }
 
-      case originirParser::U4_GATE: {
-        enterOuterAlt(_localctx, 5);
-        setState(134);
-        single_gate_with_four_parameter_declaration();
-        break;
-      }
+        case originirParser::U4_GATE: {
+            enterOuterAlt(_localctx, 5);
+            setState(158);
+            single_gate_with_four_parameter_declaration();
+            break;
+        }
 
-      case originirParser::CNOT_GATE:
-      case originirParser::CZ_GATE:
-      case originirParser::ISWAP_GATE:
-      case originirParser::SQISWAP_GATE:
-      case originirParser::SWAPZ1_GATE: {
-        enterOuterAlt(_localctx, 6);
-        setState(135);
-        double_gate_without_parameter_declaration();
-        break;
-      }
+        case originirParser::CNOT_GATE:
+        case originirParser::CZ_GATE:
+        case originirParser::ISWAP_GATE:
+        case originirParser::SQISWAP_GATE:
+        case originirParser::SWAPZ1_GATE: {
+            enterOuterAlt(_localctx, 6);
+            setState(159);
+            double_gate_without_parameter_declaration();
+            break;
+        }
 
-      case originirParser::ISWAPTHETA_GATE:
-      case originirParser::CR_GATE: {
-        enterOuterAlt(_localctx, 7);
-        setState(136);
-        double_gate_with_one_parameter_declaration();
-        break;
-      }
+        case originirParser::ISWAPTHETA_GATE:
+        case originirParser::CR_GATE: {
+            enterOuterAlt(_localctx, 7);
+            setState(160);
+            double_gate_with_one_parameter_declaration();
+            break;
+        }
 
-      case originirParser::CU_GATE: {
-        enterOuterAlt(_localctx, 8);
-        setState(137);
-        double_gate_with_four_parameter_declaration();
-        break;
-      }
+        case originirParser::CU_GATE: {
+            enterOuterAlt(_localctx, 8);
+            setState(161);
+            double_gate_with_four_parameter_declaration();
+            break;
+        }
 
-      case originirParser::TOFFOLI_GATE: {
-        enterOuterAlt(_localctx, 9);
-        setState(138);
-        triple_gate_without_parameter_declaration();
-        break;
-      }
+        case originirParser::TOFFOLI_GATE: {
+            enterOuterAlt(_localctx, 9);
+            setState(162);
+            triple_gate_without_parameter_declaration();
+            break;
+        }
 
-      case originirParser::Identifier: {
-        enterOuterAlt(_localctx, 10);
-        setState(139);
-        define_gate_declaration();
-        break;
-      }
+        case originirParser::Identifier: {
+            enterOuterAlt(_localctx, 10);
+            setState(163);
+            define_gate_declaration();
+            break;
+        }
 
-    default:
-      throw NoViableAltException(this);
+        default:
+            throw NoViableAltException(this);
+        }
+
     }
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
+    }
 
-  return _localctx;
-}
+    return _localctx;
+        }
 
 //----------------- IndexContext ------------------------------------------------------------------
 
-originirParser::IndexContext::IndexContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::IndexContext::IndexContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 tree::TerminalNode* originirParser::IndexContext::LBRACK() {
-  return getToken(originirParser::LBRACK, 0);
+    return getToken(originirParser::LBRACK, 0);
 }
 
 originirParser::ExpressionContext* originirParser::IndexContext::expression() {
-  return getRuleContext<originirParser::ExpressionContext>(0);
+    return getRuleContext<originirParser::ExpressionContext>(0);
 }
 
 tree::TerminalNode* originirParser::IndexContext::RBRACK() {
-  return getToken(originirParser::RBRACK, 0);
+    return getToken(originirParser::RBRACK, 0);
 }
 
 
 size_t originirParser::IndexContext::getRuleIndex() const {
-  return originirParser::RuleIndex;
+    return originirParser::RuleIndex;
 }
 
-void originirParser::IndexContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterIndex(this);
+void originirParser::IndexContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterIndex(this);
 }
 
-void originirParser::IndexContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitIndex(this);
+void originirParser::IndexContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitIndex(this);
 }
 
 
-antlrcpp::Any originirParser::IndexContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitIndex(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::IndexContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitIndex(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 originirParser::IndexContext* originirParser::index() {
-  IndexContext *_localctx = _tracker.createInstance<IndexContext>(_ctx, getState());
-  enterRule(_localctx, 10, originirParser::RuleIndex);
+    IndexContext* _localctx = _tracker.createInstance<IndexContext>(_ctx, getState());
+    enterRule(_localctx, 10, originirParser::RuleIndex);
 
-  auto onExit = finally([=] {
-    exitRule();
-  });
-  try {
-    enterOuterAlt(_localctx, 1);
-    setState(142);
-    match(originirParser::LBRACK);
-    setState(143);
-    expression();
-    setState(144);
-    match(originirParser::RBRACK);
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        enterOuterAlt(_localctx, 1);
+        setState(166);
+        match(originirParser::LBRACK);
+        setState(167);
+        expression();
+        setState(168);
+        match(originirParser::RBRACK);
 
-  return _localctx;
-}
+    }
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
+    }
+
+    return _localctx;
+        }
 
 //----------------- C_KEY_declarationContext ------------------------------------------------------------------
 
-originirParser::C_KEY_declarationContext::C_KEY_declarationContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::C_KEY_declarationContext::C_KEY_declarationContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 tree::TerminalNode* originirParser::C_KEY_declarationContext::C_KEY() {
-  return getToken(originirParser::C_KEY, 0);
+    return getToken(originirParser::C_KEY, 0);
 }
 
 originirParser::IndexContext* originirParser::C_KEY_declarationContext::index() {
-  return getRuleContext<originirParser::IndexContext>(0);
+    return getRuleContext<originirParser::IndexContext>(0);
 }
 
 
 size_t originirParser::C_KEY_declarationContext::getRuleIndex() const {
-  return originirParser::RuleC_KEY_declaration;
+    return originirParser::RuleC_KEY_declaration;
 }
 
-void originirParser::C_KEY_declarationContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterC_KEY_declaration(this);
+void originirParser::C_KEY_declarationContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterC_KEY_declaration(this);
 }
 
-void originirParser::C_KEY_declarationContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitC_KEY_declaration(this);
+void originirParser::C_KEY_declarationContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitC_KEY_declaration(this);
 }
 
 
-antlrcpp::Any originirParser::C_KEY_declarationContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitC_KEY_declaration(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::C_KEY_declarationContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitC_KEY_declaration(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 originirParser::C_KEY_declarationContext* originirParser::c_KEY_declaration() {
-  C_KEY_declarationContext *_localctx = _tracker.createInstance<C_KEY_declarationContext>(_ctx, getState());
-  enterRule(_localctx, 12, originirParser::RuleC_KEY_declaration);
+    C_KEY_declarationContext* _localctx = _tracker.createInstance<C_KEY_declarationContext>(_ctx, getState());
+    enterRule(_localctx, 12, originirParser::RuleC_KEY_declaration);
 
-  auto onExit = finally([=] {
-    exitRule();
-  });
-  try {
-    enterOuterAlt(_localctx, 1);
-    setState(146);
-    match(originirParser::C_KEY);
-    setState(147);
-    index();
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        enterOuterAlt(_localctx, 1);
+        setState(170);
+        match(originirParser::C_KEY);
+        setState(171);
+        index();
 
-  return _localctx;
-}
+    }
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
+    }
+
+    return _localctx;
+        }
 
 //----------------- Q_KEY_declarationContext ------------------------------------------------------------------
 
-originirParser::Q_KEY_declarationContext::Q_KEY_declarationContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::Q_KEY_declarationContext::Q_KEY_declarationContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 tree::TerminalNode* originirParser::Q_KEY_declarationContext::Q_KEY() {
-  return getToken(originirParser::Q_KEY, 0);
+    return getToken(originirParser::Q_KEY, 0);
 }
 
 originirParser::IndexContext* originirParser::Q_KEY_declarationContext::index() {
-  return getRuleContext<originirParser::IndexContext>(0);
+    return getRuleContext<originirParser::IndexContext>(0);
 }
 
 
 size_t originirParser::Q_KEY_declarationContext::getRuleIndex() const {
-  return originirParser::RuleQ_KEY_declaration;
+    return originirParser::RuleQ_KEY_declaration;
 }
 
-void originirParser::Q_KEY_declarationContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterQ_KEY_declaration(this);
+void originirParser::Q_KEY_declarationContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterQ_KEY_declaration(this);
 }
 
-void originirParser::Q_KEY_declarationContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitQ_KEY_declaration(this);
+void originirParser::Q_KEY_declarationContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitQ_KEY_declaration(this);
 }
 
 
-antlrcpp::Any originirParser::Q_KEY_declarationContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitQ_KEY_declaration(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::Q_KEY_declarationContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitQ_KEY_declaration(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 originirParser::Q_KEY_declarationContext* originirParser::q_KEY_declaration() {
-  Q_KEY_declarationContext *_localctx = _tracker.createInstance<Q_KEY_declarationContext>(_ctx, getState());
-  enterRule(_localctx, 14, originirParser::RuleQ_KEY_declaration);
+    Q_KEY_declarationContext* _localctx = _tracker.createInstance<Q_KEY_declarationContext>(_ctx, getState());
+    enterRule(_localctx, 14, originirParser::RuleQ_KEY_declaration);
 
-  auto onExit = finally([=] {
-    exitRule();
-  });
-  try {
-    enterOuterAlt(_localctx, 1);
-    setState(149);
-    match(originirParser::Q_KEY);
-    setState(150);
-    index();
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        enterOuterAlt(_localctx, 1);
+        setState(173);
+        match(originirParser::Q_KEY);
+        setState(174);
+        index();
 
-  return _localctx;
-}
+    }
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
+    }
+
+    return _localctx;
+        }
 
 //----------------- Single_gate_without_parameter_declarationContext ------------------------------------------------------------------
 
-originirParser::Single_gate_without_parameter_declarationContext::Single_gate_without_parameter_declarationContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::Single_gate_without_parameter_declarationContext::Single_gate_without_parameter_declarationContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 originirParser::Single_gate_without_parameter_typeContext* originirParser::Single_gate_without_parameter_declarationContext::single_gate_without_parameter_type() {
-  return getRuleContext<originirParser::Single_gate_without_parameter_typeContext>(0);
+    return getRuleContext<originirParser::Single_gate_without_parameter_typeContext>(0);
 }
 
 originirParser::Q_KEY_declarationContext* originirParser::Single_gate_without_parameter_declarationContext::q_KEY_declaration() {
-  return getRuleContext<originirParser::Q_KEY_declarationContext>(0);
+    return getRuleContext<originirParser::Q_KEY_declarationContext>(0);
 }
 
 tree::TerminalNode* originirParser::Single_gate_without_parameter_declarationContext::Q_KEY() {
-  return getToken(originirParser::Q_KEY, 0);
+    return getToken(originirParser::Q_KEY, 0);
 }
 
 
 size_t originirParser::Single_gate_without_parameter_declarationContext::getRuleIndex() const {
-  return originirParser::RuleSingle_gate_without_parameter_declaration;
+    return originirParser::RuleSingle_gate_without_parameter_declaration;
 }
 
-void originirParser::Single_gate_without_parameter_declarationContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterSingle_gate_without_parameter_declaration(this);
+void originirParser::Single_gate_without_parameter_declarationContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterSingle_gate_without_parameter_declaration(this);
 }
 
-void originirParser::Single_gate_without_parameter_declarationContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitSingle_gate_without_parameter_declaration(this);
+void originirParser::Single_gate_without_parameter_declarationContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitSingle_gate_without_parameter_declaration(this);
 }
 
 
-antlrcpp::Any originirParser::Single_gate_without_parameter_declarationContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitSingle_gate_without_parameter_declaration(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::Single_gate_without_parameter_declarationContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitSingle_gate_without_parameter_declaration(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 originirParser::Single_gate_without_parameter_declarationContext* originirParser::single_gate_without_parameter_declaration() {
-  Single_gate_without_parameter_declarationContext *_localctx = _tracker.createInstance<Single_gate_without_parameter_declarationContext>(_ctx, getState());
-  enterRule(_localctx, 16, originirParser::RuleSingle_gate_without_parameter_declaration);
+    Single_gate_without_parameter_declarationContext* _localctx = _tracker.createInstance<Single_gate_without_parameter_declarationContext>(_ctx, getState());
+    enterRule(_localctx, 16, originirParser::RuleSingle_gate_without_parameter_declaration);
 
-  auto onExit = finally([=] {
-    exitRule();
-  });
-  try {
-    setState(158);
-    _errHandler->sync(this);
-    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 2, _ctx)) {
-    case 1: {
-      enterOuterAlt(_localctx, 1);
-      setState(152);
-      single_gate_without_parameter_type();
-      setState(153);
-      q_KEY_declaration();
-      break;
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        setState(182);
+        _errHandler->sync(this);
+        switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 5, _ctx)) {
+        case 1: {
+            enterOuterAlt(_localctx, 1);
+            setState(176);
+            single_gate_without_parameter_type();
+            setState(177);
+            q_KEY_declaration();
+            break;
+        }
+
+        case 2: {
+            enterOuterAlt(_localctx, 2);
+            setState(179);
+            single_gate_without_parameter_type();
+            setState(180);
+            match(originirParser::Q_KEY);
+            break;
+        }
+
+        default:
+            break;
+        }
+
+    }
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
     }
 
-    case 2: {
-      enterOuterAlt(_localctx, 2);
-      setState(155);
-      single_gate_without_parameter_type();
-      setState(156);
-      match(originirParser::Q_KEY);
-      break;
-    }
-
-    }
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
-
-  return _localctx;
-}
+    return _localctx;
+        }
 
 //----------------- Single_gate_with_one_parameter_declarationContext ------------------------------------------------------------------
 
-originirParser::Single_gate_with_one_parameter_declarationContext::Single_gate_with_one_parameter_declarationContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::Single_gate_with_one_parameter_declarationContext::Single_gate_with_one_parameter_declarationContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 originirParser::Single_gate_with_one_parameter_typeContext* originirParser::Single_gate_with_one_parameter_declarationContext::single_gate_with_one_parameter_type() {
-  return getRuleContext<originirParser::Single_gate_with_one_parameter_typeContext>(0);
+    return getRuleContext<originirParser::Single_gate_with_one_parameter_typeContext>(0);
 }
 
 originirParser::Q_KEY_declarationContext* originirParser::Single_gate_with_one_parameter_declarationContext::q_KEY_declaration() {
-  return getRuleContext<originirParser::Q_KEY_declarationContext>(0);
+    return getRuleContext<originirParser::Q_KEY_declarationContext>(0);
 }
 
 tree::TerminalNode* originirParser::Single_gate_with_one_parameter_declarationContext::COMMA() {
-  return getToken(originirParser::COMMA, 0);
+    return getToken(originirParser::COMMA, 0);
 }
 
 tree::TerminalNode* originirParser::Single_gate_with_one_parameter_declarationContext::LPAREN() {
-  return getToken(originirParser::LPAREN, 0);
+    return getToken(originirParser::LPAREN, 0);
 }
 
 originirParser::ExpressionContext* originirParser::Single_gate_with_one_parameter_declarationContext::expression() {
-  return getRuleContext<originirParser::ExpressionContext>(0);
+    return getRuleContext<originirParser::ExpressionContext>(0);
 }
 
 tree::TerminalNode* originirParser::Single_gate_with_one_parameter_declarationContext::RPAREN() {
-  return getToken(originirParser::RPAREN, 0);
+    return getToken(originirParser::RPAREN, 0);
 }
 
 tree::TerminalNode* originirParser::Single_gate_with_one_parameter_declarationContext::Q_KEY() {
-  return getToken(originirParser::Q_KEY, 0);
+    return getToken(originirParser::Q_KEY, 0);
 }
 
 
 size_t originirParser::Single_gate_with_one_parameter_declarationContext::getRuleIndex() const {
-  return originirParser::RuleSingle_gate_with_one_parameter_declaration;
+    return originirParser::RuleSingle_gate_with_one_parameter_declaration;
 }
 
-void originirParser::Single_gate_with_one_parameter_declarationContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterSingle_gate_with_one_parameter_declaration(this);
+void originirParser::Single_gate_with_one_parameter_declarationContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterSingle_gate_with_one_parameter_declaration(this);
 }
 
-void originirParser::Single_gate_with_one_parameter_declarationContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitSingle_gate_with_one_parameter_declaration(this);
+void originirParser::Single_gate_with_one_parameter_declarationContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitSingle_gate_with_one_parameter_declaration(this);
 }
 
 
-antlrcpp::Any originirParser::Single_gate_with_one_parameter_declarationContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitSingle_gate_with_one_parameter_declaration(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::Single_gate_with_one_parameter_declarationContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitSingle_gate_with_one_parameter_declaration(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 originirParser::Single_gate_with_one_parameter_declarationContext* originirParser::single_gate_with_one_parameter_declaration() {
-  Single_gate_with_one_parameter_declarationContext *_localctx = _tracker.createInstance<Single_gate_with_one_parameter_declarationContext>(_ctx, getState());
-  enterRule(_localctx, 18, originirParser::RuleSingle_gate_with_one_parameter_declaration);
+    Single_gate_with_one_parameter_declarationContext* _localctx = _tracker.createInstance<Single_gate_with_one_parameter_declarationContext>(_ctx, getState());
+    enterRule(_localctx, 18, originirParser::RuleSingle_gate_with_one_parameter_declaration);
 
-  auto onExit = finally([=] {
-    exitRule();
-  });
-  try {
-    setState(174);
-    _errHandler->sync(this);
-    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 3, _ctx)) {
-    case 1: {
-      enterOuterAlt(_localctx, 1);
-      setState(160);
-      single_gate_with_one_parameter_type();
-      setState(161);
-      q_KEY_declaration();
-      setState(162);
-      match(originirParser::COMMA);
-      setState(163);
-      match(originirParser::LPAREN);
-      setState(164);
-      expression();
-      setState(165);
-      match(originirParser::RPAREN);
-      break;
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        setState(198);
+        _errHandler->sync(this);
+        switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 6, _ctx)) {
+        case 1: {
+            enterOuterAlt(_localctx, 1);
+            setState(184);
+            single_gate_with_one_parameter_type();
+            setState(185);
+            q_KEY_declaration();
+            setState(186);
+            match(originirParser::COMMA);
+            setState(187);
+            match(originirParser::LPAREN);
+            setState(188);
+            expression();
+            setState(189);
+            match(originirParser::RPAREN);
+            break;
+        }
+
+        case 2: {
+            enterOuterAlt(_localctx, 2);
+            setState(191);
+            single_gate_with_one_parameter_type();
+            setState(192);
+            match(originirParser::Q_KEY);
+            setState(193);
+            match(originirParser::COMMA);
+            setState(194);
+            match(originirParser::LPAREN);
+            setState(195);
+            expression();
+            setState(196);
+            match(originirParser::RPAREN);
+            break;
+        }
+
+        default:
+            break;
+        }
+
+    }
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
     }
 
-    case 2: {
-      enterOuterAlt(_localctx, 2);
-      setState(167);
-      single_gate_with_one_parameter_type();
-      setState(168);
-      match(originirParser::Q_KEY);
-      setState(169);
-      match(originirParser::COMMA);
-      setState(170);
-      match(originirParser::LPAREN);
-      setState(171);
-      expression();
-      setState(172);
-      match(originirParser::RPAREN);
-      break;
-    }
-
-    }
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
-
-  return _localctx;
-}
+    return _localctx;
+        }
 
 //----------------- Single_gate_with_two_parameter_declarationContext ------------------------------------------------------------------
 
-originirParser::Single_gate_with_two_parameter_declarationContext::Single_gate_with_two_parameter_declarationContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::Single_gate_with_two_parameter_declarationContext::Single_gate_with_two_parameter_declarationContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 originirParser::Single_gate_with_two_parameter_typeContext* originirParser::Single_gate_with_two_parameter_declarationContext::single_gate_with_two_parameter_type() {
-  return getRuleContext<originirParser::Single_gate_with_two_parameter_typeContext>(0);
+    return getRuleContext<originirParser::Single_gate_with_two_parameter_typeContext>(0);
 }
 
 originirParser::Q_KEY_declarationContext* originirParser::Single_gate_with_two_parameter_declarationContext::q_KEY_declaration() {
-  return getRuleContext<originirParser::Q_KEY_declarationContext>(0);
+    return getRuleContext<originirParser::Q_KEY_declarationContext>(0);
 }
 
-std::vector<tree::TerminalNode *> originirParser::Single_gate_with_two_parameter_declarationContext::COMMA() {
-  return getTokens(originirParser::COMMA);
+std::vector<tree::TerminalNode*> originirParser::Single_gate_with_two_parameter_declarationContext::COMMA() {
+    return getTokens(originirParser::COMMA);
 }
 
 tree::TerminalNode* originirParser::Single_gate_with_two_parameter_declarationContext::COMMA(size_t i) {
-  return getToken(originirParser::COMMA, i);
+    return getToken(originirParser::COMMA, i);
 }
 
 tree::TerminalNode* originirParser::Single_gate_with_two_parameter_declarationContext::LPAREN() {
-  return getToken(originirParser::LPAREN, 0);
+    return getToken(originirParser::LPAREN, 0);
 }
 
-std::vector<originirParser::ExpressionContext *> originirParser::Single_gate_with_two_parameter_declarationContext::expression() {
-  return getRuleContexts<originirParser::ExpressionContext>();
+std::vector<originirParser::ExpressionContext*> originirParser::Single_gate_with_two_parameter_declarationContext::expression() {
+    return getRuleContexts<originirParser::ExpressionContext>();
 }
 
 originirParser::ExpressionContext* originirParser::Single_gate_with_two_parameter_declarationContext::expression(size_t i) {
-  return getRuleContext<originirParser::ExpressionContext>(i);
+    return getRuleContext<originirParser::ExpressionContext>(i);
 }
 
 tree::TerminalNode* originirParser::Single_gate_with_two_parameter_declarationContext::RPAREN() {
-  return getToken(originirParser::RPAREN, 0);
+    return getToken(originirParser::RPAREN, 0);
 }
 
 tree::TerminalNode* originirParser::Single_gate_with_two_parameter_declarationContext::Q_KEY() {
-  return getToken(originirParser::Q_KEY, 0);
+    return getToken(originirParser::Q_KEY, 0);
 }
 
 
 size_t originirParser::Single_gate_with_two_parameter_declarationContext::getRuleIndex() const {
-  return originirParser::RuleSingle_gate_with_two_parameter_declaration;
+    return originirParser::RuleSingle_gate_with_two_parameter_declaration;
 }
 
-void originirParser::Single_gate_with_two_parameter_declarationContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterSingle_gate_with_two_parameter_declaration(this);
+void originirParser::Single_gate_with_two_parameter_declarationContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterSingle_gate_with_two_parameter_declaration(this);
 }
 
-void originirParser::Single_gate_with_two_parameter_declarationContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitSingle_gate_with_two_parameter_declaration(this);
+void originirParser::Single_gate_with_two_parameter_declarationContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitSingle_gate_with_two_parameter_declaration(this);
 }
 
 
-antlrcpp::Any originirParser::Single_gate_with_two_parameter_declarationContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitSingle_gate_with_two_parameter_declaration(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::Single_gate_with_two_parameter_declarationContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitSingle_gate_with_two_parameter_declaration(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 originirParser::Single_gate_with_two_parameter_declarationContext* originirParser::single_gate_with_two_parameter_declaration() {
-  Single_gate_with_two_parameter_declarationContext *_localctx = _tracker.createInstance<Single_gate_with_two_parameter_declarationContext>(_ctx, getState());
-  enterRule(_localctx, 20, originirParser::RuleSingle_gate_with_two_parameter_declaration);
+    Single_gate_with_two_parameter_declarationContext* _localctx = _tracker.createInstance<Single_gate_with_two_parameter_declarationContext>(_ctx, getState());
+    enterRule(_localctx, 20, originirParser::RuleSingle_gate_with_two_parameter_declaration);
 
-  auto onExit = finally([=] {
-    exitRule();
-  });
-  try {
-    setState(194);
-    _errHandler->sync(this);
-    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 4, _ctx)) {
-    case 1: {
-      enterOuterAlt(_localctx, 1);
-      setState(176);
-      single_gate_with_two_parameter_type();
-      setState(177);
-      q_KEY_declaration();
-      setState(178);
-      match(originirParser::COMMA);
-      setState(179);
-      match(originirParser::LPAREN);
-      setState(180);
-      expression();
-      setState(181);
-      match(originirParser::COMMA);
-      setState(182);
-      expression();
-      setState(183);
-      match(originirParser::RPAREN);
-      break;
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        setState(218);
+        _errHandler->sync(this);
+        switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 7, _ctx)) {
+        case 1: {
+            enterOuterAlt(_localctx, 1);
+            setState(200);
+            single_gate_with_two_parameter_type();
+            setState(201);
+            q_KEY_declaration();
+            setState(202);
+            match(originirParser::COMMA);
+            setState(203);
+            match(originirParser::LPAREN);
+            setState(204);
+            expression();
+            setState(205);
+            match(originirParser::COMMA);
+            setState(206);
+            expression();
+            setState(207);
+            match(originirParser::RPAREN);
+            break;
+        }
+
+        case 2: {
+            enterOuterAlt(_localctx, 2);
+            setState(209);
+            single_gate_with_two_parameter_type();
+            setState(210);
+            match(originirParser::Q_KEY);
+            setState(211);
+            match(originirParser::COMMA);
+            setState(212);
+            match(originirParser::LPAREN);
+            setState(213);
+            expression();
+            setState(214);
+            match(originirParser::COMMA);
+            setState(215);
+            expression();
+            setState(216);
+            match(originirParser::RPAREN);
+            break;
+        }
+
+        default:
+            break;
+        }
+
+    }
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
     }
 
-    case 2: {
-      enterOuterAlt(_localctx, 2);
-      setState(185);
-      single_gate_with_two_parameter_type();
-      setState(186);
-      match(originirParser::Q_KEY);
-      setState(187);
-      match(originirParser::COMMA);
-      setState(188);
-      match(originirParser::LPAREN);
-      setState(189);
-      expression();
-      setState(190);
-      match(originirParser::COMMA);
-      setState(191);
-      expression();
-      setState(192);
-      match(originirParser::RPAREN);
-      break;
-    }
-
-    }
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
-
-  return _localctx;
-}
+    return _localctx;
+        }
 
 //----------------- Single_gate_with_three_parameter_declarationContext ------------------------------------------------------------------
 
-originirParser::Single_gate_with_three_parameter_declarationContext::Single_gate_with_three_parameter_declarationContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::Single_gate_with_three_parameter_declarationContext::Single_gate_with_three_parameter_declarationContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 originirParser::Single_gate_with_three_parameter_typeContext* originirParser::Single_gate_with_three_parameter_declarationContext::single_gate_with_three_parameter_type() {
-  return getRuleContext<originirParser::Single_gate_with_three_parameter_typeContext>(0);
+    return getRuleContext<originirParser::Single_gate_with_three_parameter_typeContext>(0);
 }
 
 originirParser::Q_KEY_declarationContext* originirParser::Single_gate_with_three_parameter_declarationContext::q_KEY_declaration() {
-  return getRuleContext<originirParser::Q_KEY_declarationContext>(0);
+    return getRuleContext<originirParser::Q_KEY_declarationContext>(0);
 }
 
-std::vector<tree::TerminalNode *> originirParser::Single_gate_with_three_parameter_declarationContext::COMMA() {
-  return getTokens(originirParser::COMMA);
+std::vector<tree::TerminalNode*> originirParser::Single_gate_with_three_parameter_declarationContext::COMMA() {
+    return getTokens(originirParser::COMMA);
 }
 
 tree::TerminalNode* originirParser::Single_gate_with_three_parameter_declarationContext::COMMA(size_t i) {
-  return getToken(originirParser::COMMA, i);
+    return getToken(originirParser::COMMA, i);
 }
 
 tree::TerminalNode* originirParser::Single_gate_with_three_parameter_declarationContext::LPAREN() {
-  return getToken(originirParser::LPAREN, 0);
+    return getToken(originirParser::LPAREN, 0);
 }
 
-std::vector<originirParser::ExpressionContext *> originirParser::Single_gate_with_three_parameter_declarationContext::expression() {
-  return getRuleContexts<originirParser::ExpressionContext>();
+std::vector<originirParser::ExpressionContext*> originirParser::Single_gate_with_three_parameter_declarationContext::expression() {
+    return getRuleContexts<originirParser::ExpressionContext>();
 }
 
 originirParser::ExpressionContext* originirParser::Single_gate_with_three_parameter_declarationContext::expression(size_t i) {
-  return getRuleContext<originirParser::ExpressionContext>(i);
+    return getRuleContext<originirParser::ExpressionContext>(i);
 }
 
 tree::TerminalNode* originirParser::Single_gate_with_three_parameter_declarationContext::RPAREN() {
-  return getToken(originirParser::RPAREN, 0);
+    return getToken(originirParser::RPAREN, 0);
 }
 
 tree::TerminalNode* originirParser::Single_gate_with_three_parameter_declarationContext::Q_KEY() {
-  return getToken(originirParser::Q_KEY, 0);
+    return getToken(originirParser::Q_KEY, 0);
 }
 
 
 size_t originirParser::Single_gate_with_three_parameter_declarationContext::getRuleIndex() const {
-  return originirParser::RuleSingle_gate_with_three_parameter_declaration;
+    return originirParser::RuleSingle_gate_with_three_parameter_declaration;
 }
 
-void originirParser::Single_gate_with_three_parameter_declarationContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterSingle_gate_with_three_parameter_declaration(this);
+void originirParser::Single_gate_with_three_parameter_declarationContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterSingle_gate_with_three_parameter_declaration(this);
 }
 
-void originirParser::Single_gate_with_three_parameter_declarationContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitSingle_gate_with_three_parameter_declaration(this);
+void originirParser::Single_gate_with_three_parameter_declarationContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitSingle_gate_with_three_parameter_declaration(this);
 }
 
 
-antlrcpp::Any originirParser::Single_gate_with_three_parameter_declarationContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitSingle_gate_with_three_parameter_declaration(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::Single_gate_with_three_parameter_declarationContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitSingle_gate_with_three_parameter_declaration(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 originirParser::Single_gate_with_three_parameter_declarationContext* originirParser::single_gate_with_three_parameter_declaration() {
-  Single_gate_with_three_parameter_declarationContext *_localctx = _tracker.createInstance<Single_gate_with_three_parameter_declarationContext>(_ctx, getState());
-  enterRule(_localctx, 22, originirParser::RuleSingle_gate_with_three_parameter_declaration);
+    Single_gate_with_three_parameter_declarationContext* _localctx = _tracker.createInstance<Single_gate_with_three_parameter_declarationContext>(_ctx, getState());
+    enterRule(_localctx, 22, originirParser::RuleSingle_gate_with_three_parameter_declaration);
 
-  auto onExit = finally([=] {
-    exitRule();
-  });
-  try {
-    setState(218);
-    _errHandler->sync(this);
-    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 5, _ctx)) {
-    case 1: {
-      enterOuterAlt(_localctx, 1);
-      setState(196);
-      single_gate_with_three_parameter_type();
-      setState(197);
-      q_KEY_declaration();
-      setState(198);
-      match(originirParser::COMMA);
-      setState(199);
-      match(originirParser::LPAREN);
-      setState(200);
-      expression();
-      setState(201);
-      match(originirParser::COMMA);
-      setState(202);
-      expression();
-      setState(203);
-      match(originirParser::COMMA);
-      setState(204);
-      expression();
-      setState(205);
-      match(originirParser::RPAREN);
-      break;
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        setState(242);
+        _errHandler->sync(this);
+        switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 8, _ctx)) {
+        case 1: {
+            enterOuterAlt(_localctx, 1);
+            setState(220);
+            single_gate_with_three_parameter_type();
+            setState(221);
+            q_KEY_declaration();
+            setState(222);
+            match(originirParser::COMMA);
+            setState(223);
+            match(originirParser::LPAREN);
+            setState(224);
+            expression();
+            setState(225);
+            match(originirParser::COMMA);
+            setState(226);
+            expression();
+            setState(227);
+            match(originirParser::COMMA);
+            setState(228);
+            expression();
+            setState(229);
+            match(originirParser::RPAREN);
+            break;
+        }
+
+        case 2: {
+            enterOuterAlt(_localctx, 2);
+            setState(231);
+            single_gate_with_three_parameter_type();
+            setState(232);
+            match(originirParser::Q_KEY);
+            setState(233);
+            match(originirParser::COMMA);
+            setState(234);
+            match(originirParser::LPAREN);
+            setState(235);
+            expression();
+            setState(236);
+            match(originirParser::COMMA);
+            setState(237);
+            expression();
+            setState(238);
+            match(originirParser::COMMA);
+            setState(239);
+            expression();
+            setState(240);
+            match(originirParser::RPAREN);
+            break;
+        }
+
+        default:
+            break;
+        }
+
+    }
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
     }
 
-    case 2: {
-      enterOuterAlt(_localctx, 2);
-      setState(207);
-      single_gate_with_three_parameter_type();
-      setState(208);
-      match(originirParser::Q_KEY);
-      setState(209);
-      match(originirParser::COMMA);
-      setState(210);
-      match(originirParser::LPAREN);
-      setState(211);
-      expression();
-      setState(212);
-      match(originirParser::COMMA);
-      setState(213);
-      expression();
-      setState(214);
-      match(originirParser::COMMA);
-      setState(215);
-      expression();
-      setState(216);
-      match(originirParser::RPAREN);
-      break;
-    }
-
-    }
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
-
-  return _localctx;
-}
+    return _localctx;
+        }
 
 //----------------- Single_gate_with_four_parameter_declarationContext ------------------------------------------------------------------
 
-originirParser::Single_gate_with_four_parameter_declarationContext::Single_gate_with_four_parameter_declarationContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::Single_gate_with_four_parameter_declarationContext::Single_gate_with_four_parameter_declarationContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 originirParser::Single_gate_with_four_parameter_typeContext* originirParser::Single_gate_with_four_parameter_declarationContext::single_gate_with_four_parameter_type() {
-  return getRuleContext<originirParser::Single_gate_with_four_parameter_typeContext>(0);
+    return getRuleContext<originirParser::Single_gate_with_four_parameter_typeContext>(0);
 }
 
 originirParser::Q_KEY_declarationContext* originirParser::Single_gate_with_four_parameter_declarationContext::q_KEY_declaration() {
-  return getRuleContext<originirParser::Q_KEY_declarationContext>(0);
+    return getRuleContext<originirParser::Q_KEY_declarationContext>(0);
 }
 
-std::vector<tree::TerminalNode *> originirParser::Single_gate_with_four_parameter_declarationContext::COMMA() {
-  return getTokens(originirParser::COMMA);
+std::vector<tree::TerminalNode*> originirParser::Single_gate_with_four_parameter_declarationContext::COMMA() {
+    return getTokens(originirParser::COMMA);
 }
 
 tree::TerminalNode* originirParser::Single_gate_with_four_parameter_declarationContext::COMMA(size_t i) {
-  return getToken(originirParser::COMMA, i);
+    return getToken(originirParser::COMMA, i);
 }
 
 tree::TerminalNode* originirParser::Single_gate_with_four_parameter_declarationContext::LPAREN() {
-  return getToken(originirParser::LPAREN, 0);
+    return getToken(originirParser::LPAREN, 0);
 }
 
-std::vector<originirParser::ExpressionContext *> originirParser::Single_gate_with_four_parameter_declarationContext::expression() {
-  return getRuleContexts<originirParser::ExpressionContext>();
+std::vector<originirParser::ExpressionContext*> originirParser::Single_gate_with_four_parameter_declarationContext::expression() {
+    return getRuleContexts<originirParser::ExpressionContext>();
 }
 
 originirParser::ExpressionContext* originirParser::Single_gate_with_four_parameter_declarationContext::expression(size_t i) {
-  return getRuleContext<originirParser::ExpressionContext>(i);
+    return getRuleContext<originirParser::ExpressionContext>(i);
 }
 
 tree::TerminalNode* originirParser::Single_gate_with_four_parameter_declarationContext::RPAREN() {
-  return getToken(originirParser::RPAREN, 0);
+    return getToken(originirParser::RPAREN, 0);
 }
 
 tree::TerminalNode* originirParser::Single_gate_with_four_parameter_declarationContext::Q_KEY() {
-  return getToken(originirParser::Q_KEY, 0);
+    return getToken(originirParser::Q_KEY, 0);
 }
 
 
 size_t originirParser::Single_gate_with_four_parameter_declarationContext::getRuleIndex() const {
-  return originirParser::RuleSingle_gate_with_four_parameter_declaration;
+    return originirParser::RuleSingle_gate_with_four_parameter_declaration;
 }
 
-void originirParser::Single_gate_with_four_parameter_declarationContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterSingle_gate_with_four_parameter_declaration(this);
+void originirParser::Single_gate_with_four_parameter_declarationContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterSingle_gate_with_four_parameter_declaration(this);
 }
 
-void originirParser::Single_gate_with_four_parameter_declarationContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitSingle_gate_with_four_parameter_declaration(this);
+void originirParser::Single_gate_with_four_parameter_declarationContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitSingle_gate_with_four_parameter_declaration(this);
 }
 
 
-antlrcpp::Any originirParser::Single_gate_with_four_parameter_declarationContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitSingle_gate_with_four_parameter_declaration(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::Single_gate_with_four_parameter_declarationContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitSingle_gate_with_four_parameter_declaration(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 originirParser::Single_gate_with_four_parameter_declarationContext* originirParser::single_gate_with_four_parameter_declaration() {
-  Single_gate_with_four_parameter_declarationContext *_localctx = _tracker.createInstance<Single_gate_with_four_parameter_declarationContext>(_ctx, getState());
-  enterRule(_localctx, 24, originirParser::RuleSingle_gate_with_four_parameter_declaration);
+    Single_gate_with_four_parameter_declarationContext* _localctx = _tracker.createInstance<Single_gate_with_four_parameter_declarationContext>(_ctx, getState());
+    enterRule(_localctx, 24, originirParser::RuleSingle_gate_with_four_parameter_declaration);
 
-  auto onExit = finally([=] {
-    exitRule();
-  });
-  try {
-    setState(246);
-    _errHandler->sync(this);
-    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 6, _ctx)) {
-    case 1: {
-      enterOuterAlt(_localctx, 1);
-      setState(220);
-      single_gate_with_four_parameter_type();
-      setState(221);
-      q_KEY_declaration();
-      setState(222);
-      match(originirParser::COMMA);
-      setState(223);
-      match(originirParser::LPAREN);
-      setState(224);
-      expression();
-      setState(225);
-      match(originirParser::COMMA);
-      setState(226);
-      expression();
-      setState(227);
-      match(originirParser::COMMA);
-      setState(228);
-      expression();
-      setState(229);
-      match(originirParser::COMMA);
-      setState(230);
-      expression();
-      setState(231);
-      match(originirParser::RPAREN);
-      break;
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        setState(270);
+        _errHandler->sync(this);
+        switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 9, _ctx)) {
+        case 1: {
+            enterOuterAlt(_localctx, 1);
+            setState(244);
+            single_gate_with_four_parameter_type();
+            setState(245);
+            q_KEY_declaration();
+            setState(246);
+            match(originirParser::COMMA);
+            setState(247);
+            match(originirParser::LPAREN);
+            setState(248);
+            expression();
+            setState(249);
+            match(originirParser::COMMA);
+            setState(250);
+            expression();
+            setState(251);
+            match(originirParser::COMMA);
+            setState(252);
+            expression();
+            setState(253);
+            match(originirParser::COMMA);
+            setState(254);
+            expression();
+            setState(255);
+            match(originirParser::RPAREN);
+            break;
+        }
+
+        case 2: {
+            enterOuterAlt(_localctx, 2);
+            setState(257);
+            single_gate_with_four_parameter_type();
+            setState(258);
+            match(originirParser::Q_KEY);
+            setState(259);
+            match(originirParser::COMMA);
+            setState(260);
+            match(originirParser::LPAREN);
+            setState(261);
+            expression();
+            setState(262);
+            match(originirParser::COMMA);
+            setState(263);
+            expression();
+            setState(264);
+            match(originirParser::COMMA);
+            setState(265);
+            expression();
+            setState(266);
+            match(originirParser::COMMA);
+            setState(267);
+            expression();
+            setState(268);
+            match(originirParser::RPAREN);
+            break;
+        }
+
+        default:
+            break;
+        }
+
+    }
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
     }
 
-    case 2: {
-      enterOuterAlt(_localctx, 2);
-      setState(233);
-      single_gate_with_four_parameter_type();
-      setState(234);
-      match(originirParser::Q_KEY);
-      setState(235);
-      match(originirParser::COMMA);
-      setState(236);
-      match(originirParser::LPAREN);
-      setState(237);
-      expression();
-      setState(238);
-      match(originirParser::COMMA);
-      setState(239);
-      expression();
-      setState(240);
-      match(originirParser::COMMA);
-      setState(241);
-      expression();
-      setState(242);
-      match(originirParser::COMMA);
-      setState(243);
-      expression();
-      setState(244);
-      match(originirParser::RPAREN);
-      break;
-    }
-
-    }
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
-
-  return _localctx;
-}
+    return _localctx;
+        }
 
 //----------------- Double_gate_without_parameter_declarationContext ------------------------------------------------------------------
 
-originirParser::Double_gate_without_parameter_declarationContext::Double_gate_without_parameter_declarationContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::Double_gate_without_parameter_declarationContext::Double_gate_without_parameter_declarationContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 originirParser::Double_gate_without_parameter_typeContext* originirParser::Double_gate_without_parameter_declarationContext::double_gate_without_parameter_type() {
-  return getRuleContext<originirParser::Double_gate_without_parameter_typeContext>(0);
+    return getRuleContext<originirParser::Double_gate_without_parameter_typeContext>(0);
 }
 
-std::vector<originirParser::Q_KEY_declarationContext *> originirParser::Double_gate_without_parameter_declarationContext::q_KEY_declaration() {
-  return getRuleContexts<originirParser::Q_KEY_declarationContext>();
+std::vector<originirParser::Q_KEY_declarationContext*> originirParser::Double_gate_without_parameter_declarationContext::q_KEY_declaration() {
+    return getRuleContexts<originirParser::Q_KEY_declarationContext>();
 }
 
 originirParser::Q_KEY_declarationContext* originirParser::Double_gate_without_parameter_declarationContext::q_KEY_declaration(size_t i) {
-  return getRuleContext<originirParser::Q_KEY_declarationContext>(i);
+    return getRuleContext<originirParser::Q_KEY_declarationContext>(i);
 }
 
 tree::TerminalNode* originirParser::Double_gate_without_parameter_declarationContext::COMMA() {
-  return getToken(originirParser::COMMA, 0);
+    return getToken(originirParser::COMMA, 0);
 }
 
 
 size_t originirParser::Double_gate_without_parameter_declarationContext::getRuleIndex() const {
-  return originirParser::RuleDouble_gate_without_parameter_declaration;
+    return originirParser::RuleDouble_gate_without_parameter_declaration;
 }
 
-void originirParser::Double_gate_without_parameter_declarationContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterDouble_gate_without_parameter_declaration(this);
+void originirParser::Double_gate_without_parameter_declarationContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterDouble_gate_without_parameter_declaration(this);
 }
 
-void originirParser::Double_gate_without_parameter_declarationContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitDouble_gate_without_parameter_declaration(this);
+void originirParser::Double_gate_without_parameter_declarationContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitDouble_gate_without_parameter_declaration(this);
 }
 
 
-antlrcpp::Any originirParser::Double_gate_without_parameter_declarationContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitDouble_gate_without_parameter_declaration(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::Double_gate_without_parameter_declarationContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitDouble_gate_without_parameter_declaration(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 originirParser::Double_gate_without_parameter_declarationContext* originirParser::double_gate_without_parameter_declaration() {
-  Double_gate_without_parameter_declarationContext *_localctx = _tracker.createInstance<Double_gate_without_parameter_declarationContext>(_ctx, getState());
-  enterRule(_localctx, 26, originirParser::RuleDouble_gate_without_parameter_declaration);
+    Double_gate_without_parameter_declarationContext* _localctx = _tracker.createInstance<Double_gate_without_parameter_declarationContext>(_ctx, getState());
+    enterRule(_localctx, 26, originirParser::RuleDouble_gate_without_parameter_declaration);
 
-  auto onExit = finally([=] {
-    exitRule();
-  });
-  try {
-    enterOuterAlt(_localctx, 1);
-    setState(248);
-    double_gate_without_parameter_type();
-    setState(249);
-    q_KEY_declaration();
-    setState(250);
-    match(originirParser::COMMA);
-    setState(251);
-    q_KEY_declaration();
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        enterOuterAlt(_localctx, 1);
+        setState(272);
+        double_gate_without_parameter_type();
+        setState(273);
+        q_KEY_declaration();
+        setState(274);
+        match(originirParser::COMMA);
+        setState(275);
+        q_KEY_declaration();
 
-  return _localctx;
-}
+    }
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
+    }
+
+    return _localctx;
+        }
 
 //----------------- Double_gate_with_one_parameter_declarationContext ------------------------------------------------------------------
 
-originirParser::Double_gate_with_one_parameter_declarationContext::Double_gate_with_one_parameter_declarationContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::Double_gate_with_one_parameter_declarationContext::Double_gate_with_one_parameter_declarationContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 originirParser::Double_gate_with_one_parameter_typeContext* originirParser::Double_gate_with_one_parameter_declarationContext::double_gate_with_one_parameter_type() {
-  return getRuleContext<originirParser::Double_gate_with_one_parameter_typeContext>(0);
+    return getRuleContext<originirParser::Double_gate_with_one_parameter_typeContext>(0);
 }
 
-std::vector<originirParser::Q_KEY_declarationContext *> originirParser::Double_gate_with_one_parameter_declarationContext::q_KEY_declaration() {
-  return getRuleContexts<originirParser::Q_KEY_declarationContext>();
+std::vector<originirParser::Q_KEY_declarationContext*> originirParser::Double_gate_with_one_parameter_declarationContext::q_KEY_declaration() {
+    return getRuleContexts<originirParser::Q_KEY_declarationContext>();
 }
 
 originirParser::Q_KEY_declarationContext* originirParser::Double_gate_with_one_parameter_declarationContext::q_KEY_declaration(size_t i) {
-  return getRuleContext<originirParser::Q_KEY_declarationContext>(i);
+    return getRuleContext<originirParser::Q_KEY_declarationContext>(i);
 }
 
-std::vector<tree::TerminalNode *> originirParser::Double_gate_with_one_parameter_declarationContext::COMMA() {
-  return getTokens(originirParser::COMMA);
+std::vector<tree::TerminalNode*> originirParser::Double_gate_with_one_parameter_declarationContext::COMMA() {
+    return getTokens(originirParser::COMMA);
 }
 
 tree::TerminalNode* originirParser::Double_gate_with_one_parameter_declarationContext::COMMA(size_t i) {
-  return getToken(originirParser::COMMA, i);
+    return getToken(originirParser::COMMA, i);
 }
 
 tree::TerminalNode* originirParser::Double_gate_with_one_parameter_declarationContext::LPAREN() {
-  return getToken(originirParser::LPAREN, 0);
+    return getToken(originirParser::LPAREN, 0);
 }
 
 originirParser::ExpressionContext* originirParser::Double_gate_with_one_parameter_declarationContext::expression() {
-  return getRuleContext<originirParser::ExpressionContext>(0);
+    return getRuleContext<originirParser::ExpressionContext>(0);
 }
 
 tree::TerminalNode* originirParser::Double_gate_with_one_parameter_declarationContext::RPAREN() {
-  return getToken(originirParser::RPAREN, 0);
+    return getToken(originirParser::RPAREN, 0);
 }
 
 
 size_t originirParser::Double_gate_with_one_parameter_declarationContext::getRuleIndex() const {
-  return originirParser::RuleDouble_gate_with_one_parameter_declaration;
+    return originirParser::RuleDouble_gate_with_one_parameter_declaration;
 }
 
-void originirParser::Double_gate_with_one_parameter_declarationContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterDouble_gate_with_one_parameter_declaration(this);
+void originirParser::Double_gate_with_one_parameter_declarationContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterDouble_gate_with_one_parameter_declaration(this);
 }
 
-void originirParser::Double_gate_with_one_parameter_declarationContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitDouble_gate_with_one_parameter_declaration(this);
+void originirParser::Double_gate_with_one_parameter_declarationContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitDouble_gate_with_one_parameter_declaration(this);
 }
 
 
-antlrcpp::Any originirParser::Double_gate_with_one_parameter_declarationContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitDouble_gate_with_one_parameter_declaration(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::Double_gate_with_one_parameter_declarationContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitDouble_gate_with_one_parameter_declaration(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 originirParser::Double_gate_with_one_parameter_declarationContext* originirParser::double_gate_with_one_parameter_declaration() {
-  Double_gate_with_one_parameter_declarationContext *_localctx = _tracker.createInstance<Double_gate_with_one_parameter_declarationContext>(_ctx, getState());
-  enterRule(_localctx, 28, originirParser::RuleDouble_gate_with_one_parameter_declaration);
+    Double_gate_with_one_parameter_declarationContext* _localctx = _tracker.createInstance<Double_gate_with_one_parameter_declarationContext>(_ctx, getState());
+    enterRule(_localctx, 28, originirParser::RuleDouble_gate_with_one_parameter_declaration);
 
-  auto onExit = finally([=] {
-    exitRule();
-  });
-  try {
-    enterOuterAlt(_localctx, 1);
-    setState(253);
-    double_gate_with_one_parameter_type();
-    setState(254);
-    q_KEY_declaration();
-    setState(255);
-    match(originirParser::COMMA);
-    setState(256);
-    q_KEY_declaration();
-    setState(257);
-    match(originirParser::COMMA);
-    setState(258);
-    match(originirParser::LPAREN);
-    setState(259);
-    expression();
-    setState(260);
-    match(originirParser::RPAREN);
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        enterOuterAlt(_localctx, 1);
+        setState(277);
+        double_gate_with_one_parameter_type();
+        setState(278);
+        q_KEY_declaration();
+        setState(279);
+        match(originirParser::COMMA);
+        setState(280);
+        q_KEY_declaration();
+        setState(281);
+        match(originirParser::COMMA);
+        setState(282);
+        match(originirParser::LPAREN);
+        setState(283);
+        expression();
+        setState(284);
+        match(originirParser::RPAREN);
 
-  return _localctx;
-}
+    }
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
+    }
+
+    return _localctx;
+        }
 
 //----------------- Double_gate_with_four_parameter_declarationContext ------------------------------------------------------------------
 
-originirParser::Double_gate_with_four_parameter_declarationContext::Double_gate_with_four_parameter_declarationContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::Double_gate_with_four_parameter_declarationContext::Double_gate_with_four_parameter_declarationContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 originirParser::Double_gate_with_four_parameter_typeContext* originirParser::Double_gate_with_four_parameter_declarationContext::double_gate_with_four_parameter_type() {
-  return getRuleContext<originirParser::Double_gate_with_four_parameter_typeContext>(0);
+    return getRuleContext<originirParser::Double_gate_with_four_parameter_typeContext>(0);
 }
 
-std::vector<originirParser::Q_KEY_declarationContext *> originirParser::Double_gate_with_four_parameter_declarationContext::q_KEY_declaration() {
-  return getRuleContexts<originirParser::Q_KEY_declarationContext>();
+std::vector<originirParser::Q_KEY_declarationContext*> originirParser::Double_gate_with_four_parameter_declarationContext::q_KEY_declaration() {
+    return getRuleContexts<originirParser::Q_KEY_declarationContext>();
 }
 
 originirParser::Q_KEY_declarationContext* originirParser::Double_gate_with_four_parameter_declarationContext::q_KEY_declaration(size_t i) {
-  return getRuleContext<originirParser::Q_KEY_declarationContext>(i);
+    return getRuleContext<originirParser::Q_KEY_declarationContext>(i);
 }
 
-std::vector<tree::TerminalNode *> originirParser::Double_gate_with_four_parameter_declarationContext::COMMA() {
-  return getTokens(originirParser::COMMA);
+std::vector<tree::TerminalNode*> originirParser::Double_gate_with_four_parameter_declarationContext::COMMA() {
+    return getTokens(originirParser::COMMA);
 }
 
 tree::TerminalNode* originirParser::Double_gate_with_four_parameter_declarationContext::COMMA(size_t i) {
-  return getToken(originirParser::COMMA, i);
+    return getToken(originirParser::COMMA, i);
 }
 
 tree::TerminalNode* originirParser::Double_gate_with_four_parameter_declarationContext::LPAREN() {
-  return getToken(originirParser::LPAREN, 0);
+    return getToken(originirParser::LPAREN, 0);
 }
 
-std::vector<originirParser::ExpressionContext *> originirParser::Double_gate_with_four_parameter_declarationContext::expression() {
-  return getRuleContexts<originirParser::ExpressionContext>();
+std::vector<originirParser::ExpressionContext*> originirParser::Double_gate_with_four_parameter_declarationContext::expression() {
+    return getRuleContexts<originirParser::ExpressionContext>();
 }
 
 originirParser::ExpressionContext* originirParser::Double_gate_with_four_parameter_declarationContext::expression(size_t i) {
-  return getRuleContext<originirParser::ExpressionContext>(i);
+    return getRuleContext<originirParser::ExpressionContext>(i);
 }
 
 tree::TerminalNode* originirParser::Double_gate_with_four_parameter_declarationContext::RPAREN() {
-  return getToken(originirParser::RPAREN, 0);
+    return getToken(originirParser::RPAREN, 0);
 }
 
 
 size_t originirParser::Double_gate_with_four_parameter_declarationContext::getRuleIndex() const {
-  return originirParser::RuleDouble_gate_with_four_parameter_declaration;
+    return originirParser::RuleDouble_gate_with_four_parameter_declaration;
 }
 
-void originirParser::Double_gate_with_four_parameter_declarationContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterDouble_gate_with_four_parameter_declaration(this);
+void originirParser::Double_gate_with_four_parameter_declarationContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterDouble_gate_with_four_parameter_declaration(this);
 }
 
-void originirParser::Double_gate_with_four_parameter_declarationContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitDouble_gate_with_four_parameter_declaration(this);
+void originirParser::Double_gate_with_four_parameter_declarationContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitDouble_gate_with_four_parameter_declaration(this);
 }
 
 
-antlrcpp::Any originirParser::Double_gate_with_four_parameter_declarationContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitDouble_gate_with_four_parameter_declaration(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::Double_gate_with_four_parameter_declarationContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitDouble_gate_with_four_parameter_declaration(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 originirParser::Double_gate_with_four_parameter_declarationContext* originirParser::double_gate_with_four_parameter_declaration() {
-  Double_gate_with_four_parameter_declarationContext *_localctx = _tracker.createInstance<Double_gate_with_four_parameter_declarationContext>(_ctx, getState());
-  enterRule(_localctx, 30, originirParser::RuleDouble_gate_with_four_parameter_declaration);
+    Double_gate_with_four_parameter_declarationContext* _localctx = _tracker.createInstance<Double_gate_with_four_parameter_declarationContext>(_ctx, getState());
+    enterRule(_localctx, 30, originirParser::RuleDouble_gate_with_four_parameter_declaration);
 
-  auto onExit = finally([=] {
-    exitRule();
-  });
-  try {
-    enterOuterAlt(_localctx, 1);
-    setState(262);
-    double_gate_with_four_parameter_type();
-    setState(263);
-    q_KEY_declaration();
-    setState(264);
-    match(originirParser::COMMA);
-    setState(265);
-    q_KEY_declaration();
-    setState(266);
-    match(originirParser::COMMA);
-    setState(267);
-    match(originirParser::LPAREN);
-    setState(268);
-    expression();
-    setState(269);
-    match(originirParser::COMMA);
-    setState(270);
-    expression();
-    setState(271);
-    match(originirParser::COMMA);
-    setState(272);
-    expression();
-    setState(273);
-    match(originirParser::COMMA);
-    setState(274);
-    expression();
-    setState(275);
-    match(originirParser::RPAREN);
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        enterOuterAlt(_localctx, 1);
+        setState(286);
+        double_gate_with_four_parameter_type();
+        setState(287);
+        q_KEY_declaration();
+        setState(288);
+        match(originirParser::COMMA);
+        setState(289);
+        q_KEY_declaration();
+        setState(290);
+        match(originirParser::COMMA);
+        setState(291);
+        match(originirParser::LPAREN);
+        setState(292);
+        expression();
+        setState(293);
+        match(originirParser::COMMA);
+        setState(294);
+        expression();
+        setState(295);
+        match(originirParser::COMMA);
+        setState(296);
+        expression();
+        setState(297);
+        match(originirParser::COMMA);
+        setState(298);
+        expression();
+        setState(299);
+        match(originirParser::RPAREN);
 
-  return _localctx;
-}
+    }
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
+    }
+
+    return _localctx;
+        }
 
 //----------------- Triple_gate_without_parameter_declarationContext ------------------------------------------------------------------
 
-originirParser::Triple_gate_without_parameter_declarationContext::Triple_gate_without_parameter_declarationContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::Triple_gate_without_parameter_declarationContext::Triple_gate_without_parameter_declarationContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 originirParser::Triple_gate_without_parameter_typeContext* originirParser::Triple_gate_without_parameter_declarationContext::triple_gate_without_parameter_type() {
-  return getRuleContext<originirParser::Triple_gate_without_parameter_typeContext>(0);
+    return getRuleContext<originirParser::Triple_gate_without_parameter_typeContext>(0);
 }
 
-std::vector<originirParser::Q_KEY_declarationContext *> originirParser::Triple_gate_without_parameter_declarationContext::q_KEY_declaration() {
-  return getRuleContexts<originirParser::Q_KEY_declarationContext>();
+std::vector<originirParser::Q_KEY_declarationContext*> originirParser::Triple_gate_without_parameter_declarationContext::q_KEY_declaration() {
+    return getRuleContexts<originirParser::Q_KEY_declarationContext>();
 }
 
 originirParser::Q_KEY_declarationContext* originirParser::Triple_gate_without_parameter_declarationContext::q_KEY_declaration(size_t i) {
-  return getRuleContext<originirParser::Q_KEY_declarationContext>(i);
+    return getRuleContext<originirParser::Q_KEY_declarationContext>(i);
 }
 
-std::vector<tree::TerminalNode *> originirParser::Triple_gate_without_parameter_declarationContext::COMMA() {
-  return getTokens(originirParser::COMMA);
+std::vector<tree::TerminalNode*> originirParser::Triple_gate_without_parameter_declarationContext::COMMA() {
+    return getTokens(originirParser::COMMA);
 }
 
 tree::TerminalNode* originirParser::Triple_gate_without_parameter_declarationContext::COMMA(size_t i) {
-  return getToken(originirParser::COMMA, i);
+    return getToken(originirParser::COMMA, i);
 }
 
 
 size_t originirParser::Triple_gate_without_parameter_declarationContext::getRuleIndex() const {
-  return originirParser::RuleTriple_gate_without_parameter_declaration;
+    return originirParser::RuleTriple_gate_without_parameter_declaration;
 }
 
-void originirParser::Triple_gate_without_parameter_declarationContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterTriple_gate_without_parameter_declaration(this);
+void originirParser::Triple_gate_without_parameter_declarationContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterTriple_gate_without_parameter_declaration(this);
 }
 
-void originirParser::Triple_gate_without_parameter_declarationContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitTriple_gate_without_parameter_declaration(this);
+void originirParser::Triple_gate_without_parameter_declarationContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitTriple_gate_without_parameter_declaration(this);
 }
 
 
-antlrcpp::Any originirParser::Triple_gate_without_parameter_declarationContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitTriple_gate_without_parameter_declaration(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::Triple_gate_without_parameter_declarationContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitTriple_gate_without_parameter_declaration(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 originirParser::Triple_gate_without_parameter_declarationContext* originirParser::triple_gate_without_parameter_declaration() {
-  Triple_gate_without_parameter_declarationContext *_localctx = _tracker.createInstance<Triple_gate_without_parameter_declarationContext>(_ctx, getState());
-  enterRule(_localctx, 32, originirParser::RuleTriple_gate_without_parameter_declaration);
+    Triple_gate_without_parameter_declarationContext* _localctx = _tracker.createInstance<Triple_gate_without_parameter_declarationContext>(_ctx, getState());
+    enterRule(_localctx, 32, originirParser::RuleTriple_gate_without_parameter_declaration);
 
-  auto onExit = finally([=] {
-    exitRule();
-  });
-  try {
-    enterOuterAlt(_localctx, 1);
-    setState(277);
-    triple_gate_without_parameter_type();
-    setState(278);
-    q_KEY_declaration();
-    setState(279);
-    match(originirParser::COMMA);
-    setState(280);
-    q_KEY_declaration();
-    setState(281);
-    match(originirParser::COMMA);
-    setState(282);
-    q_KEY_declaration();
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        enterOuterAlt(_localctx, 1);
+        setState(301);
+        triple_gate_without_parameter_type();
+        setState(302);
+        q_KEY_declaration();
+        setState(303);
+        match(originirParser::COMMA);
+        setState(304);
+        q_KEY_declaration();
+        setState(305);
+        match(originirParser::COMMA);
+        setState(306);
+        q_KEY_declaration();
 
-  return _localctx;
-}
+    }
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
+    }
+
+    return _localctx;
+        }
 
 //----------------- Define_gate_declarationContext ------------------------------------------------------------------
 
-originirParser::Define_gate_declarationContext::Define_gate_declarationContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::Define_gate_declarationContext::Define_gate_declarationContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 originirParser::IdContext* originirParser::Define_gate_declarationContext::id() {
-  return getRuleContext<originirParser::IdContext>(0);
+    return getRuleContext<originirParser::IdContext>(0);
 }
 
-std::vector<originirParser::Q_KEY_declarationContext *> originirParser::Define_gate_declarationContext::q_KEY_declaration() {
-  return getRuleContexts<originirParser::Q_KEY_declarationContext>();
+std::vector<originirParser::Q_KEY_declarationContext*> originirParser::Define_gate_declarationContext::q_KEY_declaration() {
+    return getRuleContexts<originirParser::Q_KEY_declarationContext>();
 }
 
 originirParser::Q_KEY_declarationContext* originirParser::Define_gate_declarationContext::q_KEY_declaration(size_t i) {
-  return getRuleContext<originirParser::Q_KEY_declarationContext>(i);
+    return getRuleContext<originirParser::Q_KEY_declarationContext>(i);
 }
 
-std::vector<tree::TerminalNode *> originirParser::Define_gate_declarationContext::COMMA() {
-  return getTokens(originirParser::COMMA);
+std::vector<tree::TerminalNode*> originirParser::Define_gate_declarationContext::COMMA() {
+    return getTokens(originirParser::COMMA);
 }
 
 tree::TerminalNode* originirParser::Define_gate_declarationContext::COMMA(size_t i) {
-  return getToken(originirParser::COMMA, i);
+    return getToken(originirParser::COMMA, i);
 }
 
 tree::TerminalNode* originirParser::Define_gate_declarationContext::LPAREN() {
-  return getToken(originirParser::LPAREN, 0);
+    return getToken(originirParser::LPAREN, 0);
 }
 
-std::vector<originirParser::ExpressionContext *> originirParser::Define_gate_declarationContext::expression() {
-  return getRuleContexts<originirParser::ExpressionContext>();
+std::vector<originirParser::ExpressionContext*> originirParser::Define_gate_declarationContext::expression() {
+    return getRuleContexts<originirParser::ExpressionContext>();
 }
 
 originirParser::ExpressionContext* originirParser::Define_gate_declarationContext::expression(size_t i) {
-  return getRuleContext<originirParser::ExpressionContext>(i);
+    return getRuleContext<originirParser::ExpressionContext>(i);
 }
 
 tree::TerminalNode* originirParser::Define_gate_declarationContext::RPAREN() {
-  return getToken(originirParser::RPAREN, 0);
+    return getToken(originirParser::RPAREN, 0);
 }
 
 
 size_t originirParser::Define_gate_declarationContext::getRuleIndex() const {
-  return originirParser::RuleDefine_gate_declaration;
+    return originirParser::RuleDefine_gate_declaration;
 }
 
-void originirParser::Define_gate_declarationContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterDefine_gate_declaration(this);
+void originirParser::Define_gate_declarationContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterDefine_gate_declaration(this);
 }
 
-void originirParser::Define_gate_declarationContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitDefine_gate_declaration(this);
+void originirParser::Define_gate_declarationContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitDefine_gate_declaration(this);
 }
 
 
-antlrcpp::Any originirParser::Define_gate_declarationContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitDefine_gate_declaration(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::Define_gate_declarationContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitDefine_gate_declaration(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 originirParser::Define_gate_declarationContext* originirParser::define_gate_declaration() {
-  Define_gate_declarationContext *_localctx = _tracker.createInstance<Define_gate_declarationContext>(_ctx, getState());
-  enterRule(_localctx, 34, originirParser::RuleDefine_gate_declaration);
-  size_t _la = 0;
+    Define_gate_declarationContext* _localctx = _tracker.createInstance<Define_gate_declarationContext>(_ctx, getState());
+    enterRule(_localctx, 34, originirParser::RuleDefine_gate_declaration);
+    size_t _la = 0;
 
-  auto onExit = finally([=] {
-    exitRule();
-  });
-  try {
-    size_t alt;
-    setState(314);
-    _errHandler->sync(this);
-    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 10, _ctx)) {
-    case 1: {
-      enterOuterAlt(_localctx, 1);
-      setState(284);
-      id();
-      setState(285);
-      q_KEY_declaration();
-      setState(290);
-      _errHandler->sync(this);
-      _la = _input->LA(1);
-      while (_la == originirParser::COMMA) {
-        setState(286);
-        match(originirParser::COMMA);
-        setState(287);
-        q_KEY_declaration();
-        setState(292);
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        size_t alt;
+        setState(338);
         _errHandler->sync(this);
-        _la = _input->LA(1);
-      }
-      break;
-    }
-
-    case 2: {
-      enterOuterAlt(_localctx, 2);
-      setState(293);
-      id();
-      setState(294);
-      q_KEY_declaration();
-      setState(299);
-      _errHandler->sync(this);
-      alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 8, _ctx);
-      while (alt != 2 && alt != atn::ATN::INVALID_ALT_NUMBER) {
-        if (alt == 1) {
-          setState(295);
-          match(originirParser::COMMA);
-          setState(296);
-          q_KEY_declaration(); 
+        switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 13, _ctx)) {
+        case 1: {
+            enterOuterAlt(_localctx, 1);
+            setState(308);
+            id();
+            setState(309);
+            q_KEY_declaration();
+            setState(314);
+            _errHandler->sync(this);
+            _la = _input->LA(1);
+            while (_la == originirParser::COMMA) {
+                setState(310);
+                match(originirParser::COMMA);
+                setState(311);
+                q_KEY_declaration();
+                setState(316);
+                _errHandler->sync(this);
+                _la = _input->LA(1);
+            }
+            break;
         }
-        setState(301);
-        _errHandler->sync(this);
-        alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 8, _ctx);
-      }
-      setState(302);
-      match(originirParser::COMMA);
-      setState(303);
-      match(originirParser::LPAREN);
-      setState(304);
-      expression();
-      setState(309);
-      _errHandler->sync(this);
-      _la = _input->LA(1);
-      while (_la == originirParser::COMMA) {
-        setState(305);
-        match(originirParser::COMMA);
-        setState(306);
-        expression();
-        setState(311);
-        _errHandler->sync(this);
-        _la = _input->LA(1);
-      }
-      setState(312);
-      match(originirParser::RPAREN);
-      break;
-    }
+
+        case 2: {
+            enterOuterAlt(_localctx, 2);
+            setState(317);
+            id();
+            setState(318);
+            q_KEY_declaration();
+            setState(323);
+            _errHandler->sync(this);
+            alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 11, _ctx);
+            while (alt != 2 && alt != atn::ATN::INVALID_ALT_NUMBER) {
+                if (alt == 1) {
+                    setState(319);
+                    match(originirParser::COMMA);
+                    setState(320);
+                    q_KEY_declaration();
+                }
+                setState(325);
+                _errHandler->sync(this);
+                alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 11, _ctx);
+            }
+            setState(326);
+            match(originirParser::COMMA);
+            setState(327);
+            match(originirParser::LPAREN);
+            setState(328);
+            expression();
+            setState(333);
+            _errHandler->sync(this);
+            _la = _input->LA(1);
+            while (_la == originirParser::COMMA) {
+                setState(329);
+                match(originirParser::COMMA);
+                setState(330);
+                expression();
+                setState(335);
+                _errHandler->sync(this);
+                _la = _input->LA(1);
+            }
+            setState(336);
+            match(originirParser::RPAREN);
+            break;
+        }
+
+        default:
+            break;
+        }
 
     }
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
+    }
 
-  return _localctx;
-}
+    return _localctx;
+        }
 
 //----------------- Single_gate_without_parameter_typeContext ------------------------------------------------------------------
 
-originirParser::Single_gate_without_parameter_typeContext::Single_gate_without_parameter_typeContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::Single_gate_without_parameter_typeContext::Single_gate_without_parameter_typeContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 tree::TerminalNode* originirParser::Single_gate_without_parameter_typeContext::H_GATE() {
-  return getToken(originirParser::H_GATE, 0);
+    return getToken(originirParser::H_GATE, 0);
 }
 
 tree::TerminalNode* originirParser::Single_gate_without_parameter_typeContext::T_GATE() {
-  return getToken(originirParser::T_GATE, 0);
+    return getToken(originirParser::T_GATE, 0);
 }
 
 tree::TerminalNode* originirParser::Single_gate_without_parameter_typeContext::S_GATE() {
-  return getToken(originirParser::S_GATE, 0);
+    return getToken(originirParser::S_GATE, 0);
 }
 
 tree::TerminalNode* originirParser::Single_gate_without_parameter_typeContext::X_GATE() {
-  return getToken(originirParser::X_GATE, 0);
+    return getToken(originirParser::X_GATE, 0);
 }
 
 tree::TerminalNode* originirParser::Single_gate_without_parameter_typeContext::Y_GATE() {
-  return getToken(originirParser::Y_GATE, 0);
+    return getToken(originirParser::Y_GATE, 0);
 }
 
 tree::TerminalNode* originirParser::Single_gate_without_parameter_typeContext::Z_GATE() {
-  return getToken(originirParser::Z_GATE, 0);
+    return getToken(originirParser::Z_GATE, 0);
 }
 
 tree::TerminalNode* originirParser::Single_gate_without_parameter_typeContext::X1_GATE() {
-  return getToken(originirParser::X1_GATE, 0);
+    return getToken(originirParser::X1_GATE, 0);
 }
 
 tree::TerminalNode* originirParser::Single_gate_without_parameter_typeContext::Y1_GATE() {
-  return getToken(originirParser::Y1_GATE, 0);
+    return getToken(originirParser::Y1_GATE, 0);
 }
 
 tree::TerminalNode* originirParser::Single_gate_without_parameter_typeContext::Z1_GATE() {
-  return getToken(originirParser::Z1_GATE, 0);
+    return getToken(originirParser::Z1_GATE, 0);
 }
 
 tree::TerminalNode* originirParser::Single_gate_without_parameter_typeContext::I_GATE() {
-  return getToken(originirParser::I_GATE, 0);
+    return getToken(originirParser::I_GATE, 0);
 }
 
 tree::TerminalNode* originirParser::Single_gate_without_parameter_typeContext::ECHO_GATE() {
-  return getToken(originirParser::ECHO_GATE, 0);
+    return getToken(originirParser::ECHO_GATE, 0);
 }
 
 
 size_t originirParser::Single_gate_without_parameter_typeContext::getRuleIndex() const {
-  return originirParser::RuleSingle_gate_without_parameter_type;
+    return originirParser::RuleSingle_gate_without_parameter_type;
 }
 
-void originirParser::Single_gate_without_parameter_typeContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterSingle_gate_without_parameter_type(this);
+void originirParser::Single_gate_without_parameter_typeContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterSingle_gate_without_parameter_type(this);
 }
 
-void originirParser::Single_gate_without_parameter_typeContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitSingle_gate_without_parameter_type(this);
+void originirParser::Single_gate_without_parameter_typeContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitSingle_gate_without_parameter_type(this);
 }
 
 
-antlrcpp::Any originirParser::Single_gate_without_parameter_typeContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitSingle_gate_without_parameter_type(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::Single_gate_without_parameter_typeContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitSingle_gate_without_parameter_type(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 originirParser::Single_gate_without_parameter_typeContext* originirParser::single_gate_without_parameter_type() {
-  Single_gate_without_parameter_typeContext *_localctx = _tracker.createInstance<Single_gate_without_parameter_typeContext>(_ctx, getState());
-  enterRule(_localctx, 36, originirParser::RuleSingle_gate_without_parameter_type);
-  size_t _la = 0;
+    Single_gate_without_parameter_typeContext* _localctx = _tracker.createInstance<Single_gate_without_parameter_typeContext>(_ctx, getState());
+    enterRule(_localctx, 36, originirParser::RuleSingle_gate_without_parameter_type);
+    size_t _la = 0;
 
-  auto onExit = finally([=] {
-    exitRule();
-  });
-  try {
-    enterOuterAlt(_localctx, 1);
-    setState(316);
-    _la = _input->LA(1);
-    if (!((((_la & ~ 0x3fULL) == 0) &&
-      ((1ULL << _la) & ((1ULL << originirParser::ECHO_GATE)
-      | (1ULL << originirParser::H_GATE)
-      | (1ULL << originirParser::X_GATE)
-      | (1ULL << originirParser::T_GATE)
-      | (1ULL << originirParser::S_GATE)
-      | (1ULL << originirParser::Y_GATE)
-      | (1ULL << originirParser::Z_GATE)
-      | (1ULL << originirParser::X1_GATE)
-      | (1ULL << originirParser::Y1_GATE)
-      | (1ULL << originirParser::Z1_GATE)
-      | (1ULL << originirParser::I_GATE))) != 0))) {
-    _errHandler->recoverInline(this);
-    }
-    else {
-      _errHandler->reportMatch(this);
-      consume();
-    }
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        enterOuterAlt(_localctx, 1);
+        setState(340);
+        _la = _input->LA(1);
+        if (!((((_la & ~0x3fULL) == 0) &&
+            ((1ULL << _la) & ((1ULL << originirParser::ECHO_GATE)
+                | (1ULL << originirParser::H_GATE)
+                | (1ULL << originirParser::X_GATE)
+                | (1ULL << originirParser::T_GATE)
+                | (1ULL << originirParser::S_GATE)
+                | (1ULL << originirParser::Y_GATE)
+                | (1ULL << originirParser::Z_GATE)
+                | (1ULL << originirParser::X1_GATE)
+                | (1ULL << originirParser::Y1_GATE)
+                | (1ULL << originirParser::Z1_GATE)
+                | (1ULL << originirParser::I_GATE))) != 0))) {
+            _errHandler->recoverInline(this);
+        }
+        else {
+            _errHandler->reportMatch(this);
+            consume();
+        }
 
-  return _localctx;
-}
+    }
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
+    }
+
+    return _localctx;
+        }
 
 //----------------- Single_gate_with_one_parameter_typeContext ------------------------------------------------------------------
 
-originirParser::Single_gate_with_one_parameter_typeContext::Single_gate_with_one_parameter_typeContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::Single_gate_with_one_parameter_typeContext::Single_gate_with_one_parameter_typeContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 tree::TerminalNode* originirParser::Single_gate_with_one_parameter_typeContext::RX_GATE() {
-  return getToken(originirParser::RX_GATE, 0);
+    return getToken(originirParser::RX_GATE, 0);
 }
 
 tree::TerminalNode* originirParser::Single_gate_with_one_parameter_typeContext::RY_GATE() {
-  return getToken(originirParser::RY_GATE, 0);
+    return getToken(originirParser::RY_GATE, 0);
 }
 
 tree::TerminalNode* originirParser::Single_gate_with_one_parameter_typeContext::RZ_GATE() {
-  return getToken(originirParser::RZ_GATE, 0);
+    return getToken(originirParser::RZ_GATE, 0);
 }
 
 tree::TerminalNode* originirParser::Single_gate_with_one_parameter_typeContext::U1_GATE() {
-  return getToken(originirParser::U1_GATE, 0);
+    return getToken(originirParser::U1_GATE, 0);
 }
 
 
 size_t originirParser::Single_gate_with_one_parameter_typeContext::getRuleIndex() const {
-  return originirParser::RuleSingle_gate_with_one_parameter_type;
+    return originirParser::RuleSingle_gate_with_one_parameter_type;
 }
 
-void originirParser::Single_gate_with_one_parameter_typeContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterSingle_gate_with_one_parameter_type(this);
+void originirParser::Single_gate_with_one_parameter_typeContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterSingle_gate_with_one_parameter_type(this);
 }
 
-void originirParser::Single_gate_with_one_parameter_typeContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitSingle_gate_with_one_parameter_type(this);
+void originirParser::Single_gate_with_one_parameter_typeContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitSingle_gate_with_one_parameter_type(this);
 }
 
 
-antlrcpp::Any originirParser::Single_gate_with_one_parameter_typeContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitSingle_gate_with_one_parameter_type(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::Single_gate_with_one_parameter_typeContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitSingle_gate_with_one_parameter_type(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 originirParser::Single_gate_with_one_parameter_typeContext* originirParser::single_gate_with_one_parameter_type() {
-  Single_gate_with_one_parameter_typeContext *_localctx = _tracker.createInstance<Single_gate_with_one_parameter_typeContext>(_ctx, getState());
-  enterRule(_localctx, 38, originirParser::RuleSingle_gate_with_one_parameter_type);
-  size_t _la = 0;
+    Single_gate_with_one_parameter_typeContext* _localctx = _tracker.createInstance<Single_gate_with_one_parameter_typeContext>(_ctx, getState());
+    enterRule(_localctx, 38, originirParser::RuleSingle_gate_with_one_parameter_type);
+    size_t _la = 0;
 
-  auto onExit = finally([=] {
-    exitRule();
-  });
-  try {
-    enterOuterAlt(_localctx, 1);
-    setState(318);
-    _la = _input->LA(1);
-    if (!((((_la & ~ 0x3fULL) == 0) &&
-      ((1ULL << _la) & ((1ULL << originirParser::RX_GATE)
-      | (1ULL << originirParser::RY_GATE)
-      | (1ULL << originirParser::RZ_GATE)
-      | (1ULL << originirParser::U1_GATE))) != 0))) {
-    _errHandler->recoverInline(this);
-    }
-    else {
-      _errHandler->reportMatch(this);
-      consume();
-    }
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        enterOuterAlt(_localctx, 1);
+        setState(342);
+        _la = _input->LA(1);
+        if (!((((_la & ~0x3fULL) == 0) &&
+            ((1ULL << _la) & ((1ULL << originirParser::RX_GATE)
+                | (1ULL << originirParser::RY_GATE)
+                | (1ULL << originirParser::RZ_GATE)
+                | (1ULL << originirParser::U1_GATE))) != 0))) {
+            _errHandler->recoverInline(this);
+        }
+        else {
+            _errHandler->reportMatch(this);
+            consume();
+        }
 
-  return _localctx;
-}
+    }
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
+    }
+
+    return _localctx;
+        }
 
 //----------------- Single_gate_with_two_parameter_typeContext ------------------------------------------------------------------
 
-originirParser::Single_gate_with_two_parameter_typeContext::Single_gate_with_two_parameter_typeContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::Single_gate_with_two_parameter_typeContext::Single_gate_with_two_parameter_typeContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 tree::TerminalNode* originirParser::Single_gate_with_two_parameter_typeContext::U2_GATE() {
-  return getToken(originirParser::U2_GATE, 0);
+    return getToken(originirParser::U2_GATE, 0);
 }
 
 tree::TerminalNode* originirParser::Single_gate_with_two_parameter_typeContext::RPHI_GATE() {
-  return getToken(originirParser::RPHI_GATE, 0);
+    return getToken(originirParser::RPHI_GATE, 0);
 }
 
 
 size_t originirParser::Single_gate_with_two_parameter_typeContext::getRuleIndex() const {
-  return originirParser::RuleSingle_gate_with_two_parameter_type;
+    return originirParser::RuleSingle_gate_with_two_parameter_type;
 }
 
-void originirParser::Single_gate_with_two_parameter_typeContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterSingle_gate_with_two_parameter_type(this);
+void originirParser::Single_gate_with_two_parameter_typeContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterSingle_gate_with_two_parameter_type(this);
 }
 
-void originirParser::Single_gate_with_two_parameter_typeContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitSingle_gate_with_two_parameter_type(this);
+void originirParser::Single_gate_with_two_parameter_typeContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitSingle_gate_with_two_parameter_type(this);
 }
 
 
-antlrcpp::Any originirParser::Single_gate_with_two_parameter_typeContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitSingle_gate_with_two_parameter_type(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::Single_gate_with_two_parameter_typeContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitSingle_gate_with_two_parameter_type(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 originirParser::Single_gate_with_two_parameter_typeContext* originirParser::single_gate_with_two_parameter_type() {
-  Single_gate_with_two_parameter_typeContext *_localctx = _tracker.createInstance<Single_gate_with_two_parameter_typeContext>(_ctx, getState());
-  enterRule(_localctx, 40, originirParser::RuleSingle_gate_with_two_parameter_type);
-  size_t _la = 0;
+    Single_gate_with_two_parameter_typeContext* _localctx = _tracker.createInstance<Single_gate_with_two_parameter_typeContext>(_ctx, getState());
+    enterRule(_localctx, 40, originirParser::RuleSingle_gate_with_two_parameter_type);
+    size_t _la = 0;
 
-  auto onExit = finally([=] {
-    exitRule();
-  });
-  try {
-    enterOuterAlt(_localctx, 1);
-    setState(320);
-    _la = _input->LA(1);
-    if (!(_la == originirParser::U2_GATE
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        enterOuterAlt(_localctx, 1);
+        setState(344);
+        _la = _input->LA(1);
+        if (!(_la == originirParser::U2_GATE
 
-    || _la == originirParser::RPHI_GATE)) {
-    _errHandler->recoverInline(this);
+            || _la == originirParser::RPHI_GATE)) {
+            _errHandler->recoverInline(this);
+        }
+        else {
+            _errHandler->reportMatch(this);
+            consume();
+        }
+
     }
-    else {
-      _errHandler->reportMatch(this);
-      consume();
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
     }
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
 
-  return _localctx;
-}
+    return _localctx;
+        }
 
 //----------------- Single_gate_with_three_parameter_typeContext ------------------------------------------------------------------
 
-originirParser::Single_gate_with_three_parameter_typeContext::Single_gate_with_three_parameter_typeContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::Single_gate_with_three_parameter_typeContext::Single_gate_with_three_parameter_typeContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 tree::TerminalNode* originirParser::Single_gate_with_three_parameter_typeContext::U3_GATE() {
-  return getToken(originirParser::U3_GATE, 0);
+    return getToken(originirParser::U3_GATE, 0);
 }
 
 
 size_t originirParser::Single_gate_with_three_parameter_typeContext::getRuleIndex() const {
-  return originirParser::RuleSingle_gate_with_three_parameter_type;
+    return originirParser::RuleSingle_gate_with_three_parameter_type;
 }
 
-void originirParser::Single_gate_with_three_parameter_typeContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterSingle_gate_with_three_parameter_type(this);
+void originirParser::Single_gate_with_three_parameter_typeContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterSingle_gate_with_three_parameter_type(this);
 }
 
-void originirParser::Single_gate_with_three_parameter_typeContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitSingle_gate_with_three_parameter_type(this);
+void originirParser::Single_gate_with_three_parameter_typeContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitSingle_gate_with_three_parameter_type(this);
 }
 
 
-antlrcpp::Any originirParser::Single_gate_with_three_parameter_typeContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitSingle_gate_with_three_parameter_type(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::Single_gate_with_three_parameter_typeContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitSingle_gate_with_three_parameter_type(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 originirParser::Single_gate_with_three_parameter_typeContext* originirParser::single_gate_with_three_parameter_type() {
-  Single_gate_with_three_parameter_typeContext *_localctx = _tracker.createInstance<Single_gate_with_three_parameter_typeContext>(_ctx, getState());
-  enterRule(_localctx, 42, originirParser::RuleSingle_gate_with_three_parameter_type);
+    Single_gate_with_three_parameter_typeContext* _localctx = _tracker.createInstance<Single_gate_with_three_parameter_typeContext>(_ctx, getState());
+    enterRule(_localctx, 42, originirParser::RuleSingle_gate_with_three_parameter_type);
 
-  auto onExit = finally([=] {
-    exitRule();
-  });
-  try {
-    enterOuterAlt(_localctx, 1);
-    setState(322);
-    match(originirParser::U3_GATE);
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        enterOuterAlt(_localctx, 1);
+        setState(346);
+        match(originirParser::U3_GATE);
 
-  return _localctx;
-}
+    }
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
+    }
+
+    return _localctx;
+        }
 
 //----------------- Single_gate_with_four_parameter_typeContext ------------------------------------------------------------------
 
-originirParser::Single_gate_with_four_parameter_typeContext::Single_gate_with_four_parameter_typeContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::Single_gate_with_four_parameter_typeContext::Single_gate_with_four_parameter_typeContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 tree::TerminalNode* originirParser::Single_gate_with_four_parameter_typeContext::U4_GATE() {
-  return getToken(originirParser::U4_GATE, 0);
+    return getToken(originirParser::U4_GATE, 0);
 }
 
 
 size_t originirParser::Single_gate_with_four_parameter_typeContext::getRuleIndex() const {
-  return originirParser::RuleSingle_gate_with_four_parameter_type;
+    return originirParser::RuleSingle_gate_with_four_parameter_type;
 }
 
-void originirParser::Single_gate_with_four_parameter_typeContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterSingle_gate_with_four_parameter_type(this);
+void originirParser::Single_gate_with_four_parameter_typeContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterSingle_gate_with_four_parameter_type(this);
 }
 
-void originirParser::Single_gate_with_four_parameter_typeContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitSingle_gate_with_four_parameter_type(this);
+void originirParser::Single_gate_with_four_parameter_typeContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitSingle_gate_with_four_parameter_type(this);
 }
 
 
-antlrcpp::Any originirParser::Single_gate_with_four_parameter_typeContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitSingle_gate_with_four_parameter_type(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::Single_gate_with_four_parameter_typeContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitSingle_gate_with_four_parameter_type(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 originirParser::Single_gate_with_four_parameter_typeContext* originirParser::single_gate_with_four_parameter_type() {
-  Single_gate_with_four_parameter_typeContext *_localctx = _tracker.createInstance<Single_gate_with_four_parameter_typeContext>(_ctx, getState());
-  enterRule(_localctx, 44, originirParser::RuleSingle_gate_with_four_parameter_type);
+    Single_gate_with_four_parameter_typeContext* _localctx = _tracker.createInstance<Single_gate_with_four_parameter_typeContext>(_ctx, getState());
+    enterRule(_localctx, 44, originirParser::RuleSingle_gate_with_four_parameter_type);
 
-  auto onExit = finally([=] {
-    exitRule();
-  });
-  try {
-    enterOuterAlt(_localctx, 1);
-    setState(324);
-    match(originirParser::U4_GATE);
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        enterOuterAlt(_localctx, 1);
+        setState(348);
+        match(originirParser::U4_GATE);
 
-  return _localctx;
-}
+    }
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
+    }
+
+    return _localctx;
+        }
 
 //----------------- Double_gate_without_parameter_typeContext ------------------------------------------------------------------
 
-originirParser::Double_gate_without_parameter_typeContext::Double_gate_without_parameter_typeContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::Double_gate_without_parameter_typeContext::Double_gate_without_parameter_typeContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 tree::TerminalNode* originirParser::Double_gate_without_parameter_typeContext::CNOT_GATE() {
-  return getToken(originirParser::CNOT_GATE, 0);
+    return getToken(originirParser::CNOT_GATE, 0);
 }
 
 tree::TerminalNode* originirParser::Double_gate_without_parameter_typeContext::CZ_GATE() {
-  return getToken(originirParser::CZ_GATE, 0);
+    return getToken(originirParser::CZ_GATE, 0);
 }
 
 tree::TerminalNode* originirParser::Double_gate_without_parameter_typeContext::ISWAP_GATE() {
-  return getToken(originirParser::ISWAP_GATE, 0);
+    return getToken(originirParser::ISWAP_GATE, 0);
 }
 
 tree::TerminalNode* originirParser::Double_gate_without_parameter_typeContext::SQISWAP_GATE() {
-  return getToken(originirParser::SQISWAP_GATE, 0);
+    return getToken(originirParser::SQISWAP_GATE, 0);
 }
 
 tree::TerminalNode* originirParser::Double_gate_without_parameter_typeContext::SWAPZ1_GATE() {
-  return getToken(originirParser::SWAPZ1_GATE, 0);
+    return getToken(originirParser::SWAPZ1_GATE, 0);
 }
 
 
 size_t originirParser::Double_gate_without_parameter_typeContext::getRuleIndex() const {
-  return originirParser::RuleDouble_gate_without_parameter_type;
+    return originirParser::RuleDouble_gate_without_parameter_type;
 }
 
-void originirParser::Double_gate_without_parameter_typeContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterDouble_gate_without_parameter_type(this);
+void originirParser::Double_gate_without_parameter_typeContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterDouble_gate_without_parameter_type(this);
 }
 
-void originirParser::Double_gate_without_parameter_typeContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitDouble_gate_without_parameter_type(this);
+void originirParser::Double_gate_without_parameter_typeContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitDouble_gate_without_parameter_type(this);
 }
 
 
-antlrcpp::Any originirParser::Double_gate_without_parameter_typeContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitDouble_gate_without_parameter_type(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::Double_gate_without_parameter_typeContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitDouble_gate_without_parameter_type(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 originirParser::Double_gate_without_parameter_typeContext* originirParser::double_gate_without_parameter_type() {
-  Double_gate_without_parameter_typeContext *_localctx = _tracker.createInstance<Double_gate_without_parameter_typeContext>(_ctx, getState());
-  enterRule(_localctx, 46, originirParser::RuleDouble_gate_without_parameter_type);
-  size_t _la = 0;
+    Double_gate_without_parameter_typeContext* _localctx = _tracker.createInstance<Double_gate_without_parameter_typeContext>(_ctx, getState());
+    enterRule(_localctx, 46, originirParser::RuleDouble_gate_without_parameter_type);
+    size_t _la = 0;
 
-  auto onExit = finally([=] {
-    exitRule();
-  });
-  try {
-    enterOuterAlt(_localctx, 1);
-    setState(326);
-    _la = _input->LA(1);
-    if (!((((_la & ~ 0x3fULL) == 0) &&
-      ((1ULL << _la) & ((1ULL << originirParser::CNOT_GATE)
-      | (1ULL << originirParser::CZ_GATE)
-      | (1ULL << originirParser::ISWAP_GATE)
-      | (1ULL << originirParser::SQISWAP_GATE)
-      | (1ULL << originirParser::SWAPZ1_GATE))) != 0))) {
-    _errHandler->recoverInline(this);
-    }
-    else {
-      _errHandler->reportMatch(this);
-      consume();
-    }
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        enterOuterAlt(_localctx, 1);
+        setState(350);
+        _la = _input->LA(1);
+        if (!((((_la & ~0x3fULL) == 0) &&
+            ((1ULL << _la) & ((1ULL << originirParser::CNOT_GATE)
+                | (1ULL << originirParser::CZ_GATE)
+                | (1ULL << originirParser::ISWAP_GATE)
+                | (1ULL << originirParser::SQISWAP_GATE)
+                | (1ULL << originirParser::SWAPZ1_GATE))) != 0))) {
+            _errHandler->recoverInline(this);
+        }
+        else {
+            _errHandler->reportMatch(this);
+            consume();
+        }
 
-  return _localctx;
-}
+    }
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
+    }
+
+    return _localctx;
+        }
 
 //----------------- Double_gate_with_one_parameter_typeContext ------------------------------------------------------------------
 
-originirParser::Double_gate_with_one_parameter_typeContext::Double_gate_with_one_parameter_typeContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::Double_gate_with_one_parameter_typeContext::Double_gate_with_one_parameter_typeContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 tree::TerminalNode* originirParser::Double_gate_with_one_parameter_typeContext::ISWAPTHETA_GATE() {
-  return getToken(originirParser::ISWAPTHETA_GATE, 0);
+    return getToken(originirParser::ISWAPTHETA_GATE, 0);
 }
 
 tree::TerminalNode* originirParser::Double_gate_with_one_parameter_typeContext::CR_GATE() {
-  return getToken(originirParser::CR_GATE, 0);
+    return getToken(originirParser::CR_GATE, 0);
 }
 
 
 size_t originirParser::Double_gate_with_one_parameter_typeContext::getRuleIndex() const {
-  return originirParser::RuleDouble_gate_with_one_parameter_type;
+    return originirParser::RuleDouble_gate_with_one_parameter_type;
 }
 
-void originirParser::Double_gate_with_one_parameter_typeContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterDouble_gate_with_one_parameter_type(this);
+void originirParser::Double_gate_with_one_parameter_typeContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterDouble_gate_with_one_parameter_type(this);
 }
 
-void originirParser::Double_gate_with_one_parameter_typeContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitDouble_gate_with_one_parameter_type(this);
+void originirParser::Double_gate_with_one_parameter_typeContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitDouble_gate_with_one_parameter_type(this);
 }
 
 
-antlrcpp::Any originirParser::Double_gate_with_one_parameter_typeContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitDouble_gate_with_one_parameter_type(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::Double_gate_with_one_parameter_typeContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitDouble_gate_with_one_parameter_type(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 originirParser::Double_gate_with_one_parameter_typeContext* originirParser::double_gate_with_one_parameter_type() {
-  Double_gate_with_one_parameter_typeContext *_localctx = _tracker.createInstance<Double_gate_with_one_parameter_typeContext>(_ctx, getState());
-  enterRule(_localctx, 48, originirParser::RuleDouble_gate_with_one_parameter_type);
-  size_t _la = 0;
+    Double_gate_with_one_parameter_typeContext* _localctx = _tracker.createInstance<Double_gate_with_one_parameter_typeContext>(_ctx, getState());
+    enterRule(_localctx, 48, originirParser::RuleDouble_gate_with_one_parameter_type);
+    size_t _la = 0;
 
-  auto onExit = finally([=] {
-    exitRule();
-  });
-  try {
-    enterOuterAlt(_localctx, 1);
-    setState(328);
-    _la = _input->LA(1);
-    if (!(_la == originirParser::ISWAPTHETA_GATE
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        enterOuterAlt(_localctx, 1);
+        setState(352);
+        _la = _input->LA(1);
+        if (!(_la == originirParser::ISWAPTHETA_GATE
 
-    || _la == originirParser::CR_GATE)) {
-    _errHandler->recoverInline(this);
+            || _la == originirParser::CR_GATE)) {
+            _errHandler->recoverInline(this);
+        }
+        else {
+            _errHandler->reportMatch(this);
+            consume();
+        }
+
     }
-    else {
-      _errHandler->reportMatch(this);
-      consume();
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
     }
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
 
-  return _localctx;
-}
+    return _localctx;
+        }
 
 //----------------- Double_gate_with_four_parameter_typeContext ------------------------------------------------------------------
 
-originirParser::Double_gate_with_four_parameter_typeContext::Double_gate_with_four_parameter_typeContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::Double_gate_with_four_parameter_typeContext::Double_gate_with_four_parameter_typeContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 tree::TerminalNode* originirParser::Double_gate_with_four_parameter_typeContext::CU_GATE() {
-  return getToken(originirParser::CU_GATE, 0);
+    return getToken(originirParser::CU_GATE, 0);
 }
 
 
 size_t originirParser::Double_gate_with_four_parameter_typeContext::getRuleIndex() const {
-  return originirParser::RuleDouble_gate_with_four_parameter_type;
+    return originirParser::RuleDouble_gate_with_four_parameter_type;
 }
 
-void originirParser::Double_gate_with_four_parameter_typeContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterDouble_gate_with_four_parameter_type(this);
+void originirParser::Double_gate_with_four_parameter_typeContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterDouble_gate_with_four_parameter_type(this);
 }
 
-void originirParser::Double_gate_with_four_parameter_typeContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitDouble_gate_with_four_parameter_type(this);
+void originirParser::Double_gate_with_four_parameter_typeContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitDouble_gate_with_four_parameter_type(this);
 }
 
 
-antlrcpp::Any originirParser::Double_gate_with_four_parameter_typeContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitDouble_gate_with_four_parameter_type(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::Double_gate_with_four_parameter_typeContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitDouble_gate_with_four_parameter_type(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 originirParser::Double_gate_with_four_parameter_typeContext* originirParser::double_gate_with_four_parameter_type() {
-  Double_gate_with_four_parameter_typeContext *_localctx = _tracker.createInstance<Double_gate_with_four_parameter_typeContext>(_ctx, getState());
-  enterRule(_localctx, 50, originirParser::RuleDouble_gate_with_four_parameter_type);
+    Double_gate_with_four_parameter_typeContext* _localctx = _tracker.createInstance<Double_gate_with_four_parameter_typeContext>(_ctx, getState());
+    enterRule(_localctx, 50, originirParser::RuleDouble_gate_with_four_parameter_type);
 
-  auto onExit = finally([=] {
-    exitRule();
-  });
-  try {
-    enterOuterAlt(_localctx, 1);
-    setState(330);
-    match(originirParser::CU_GATE);
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        enterOuterAlt(_localctx, 1);
+        setState(354);
+        match(originirParser::CU_GATE);
 
-  return _localctx;
-}
+    }
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
+    }
+
+    return _localctx;
+        }
 
 //----------------- Triple_gate_without_parameter_typeContext ------------------------------------------------------------------
 
-originirParser::Triple_gate_without_parameter_typeContext::Triple_gate_without_parameter_typeContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::Triple_gate_without_parameter_typeContext::Triple_gate_without_parameter_typeContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 tree::TerminalNode* originirParser::Triple_gate_without_parameter_typeContext::TOFFOLI_GATE() {
-  return getToken(originirParser::TOFFOLI_GATE, 0);
+    return getToken(originirParser::TOFFOLI_GATE, 0);
 }
 
 
 size_t originirParser::Triple_gate_without_parameter_typeContext::getRuleIndex() const {
-  return originirParser::RuleTriple_gate_without_parameter_type;
+    return originirParser::RuleTriple_gate_without_parameter_type;
 }
 
-void originirParser::Triple_gate_without_parameter_typeContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterTriple_gate_without_parameter_type(this);
+void originirParser::Triple_gate_without_parameter_typeContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterTriple_gate_without_parameter_type(this);
 }
 
-void originirParser::Triple_gate_without_parameter_typeContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitTriple_gate_without_parameter_type(this);
+void originirParser::Triple_gate_without_parameter_typeContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitTriple_gate_without_parameter_type(this);
 }
 
 
-antlrcpp::Any originirParser::Triple_gate_without_parameter_typeContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitTriple_gate_without_parameter_type(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::Triple_gate_without_parameter_typeContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitTriple_gate_without_parameter_type(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 originirParser::Triple_gate_without_parameter_typeContext* originirParser::triple_gate_without_parameter_type() {
-  Triple_gate_without_parameter_typeContext *_localctx = _tracker.createInstance<Triple_gate_without_parameter_typeContext>(_ctx, getState());
-  enterRule(_localctx, 52, originirParser::RuleTriple_gate_without_parameter_type);
+    Triple_gate_without_parameter_typeContext* _localctx = _tracker.createInstance<Triple_gate_without_parameter_typeContext>(_ctx, getState());
+    enterRule(_localctx, 52, originirParser::RuleTriple_gate_without_parameter_type);
 
-  auto onExit = finally([=] {
-    exitRule();
-  });
-  try {
-    enterOuterAlt(_localctx, 1);
-    setState(332);
-    match(originirParser::TOFFOLI_GATE);
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        enterOuterAlt(_localctx, 1);
+        setState(356);
+        match(originirParser::TOFFOLI_GATE);
 
-  return _localctx;
-}
+    }
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
+    }
+
+    return _localctx;
+        }
 
 //----------------- Primary_expressionContext ------------------------------------------------------------------
 
-originirParser::Primary_expressionContext::Primary_expressionContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::Primary_expressionContext::Primary_expressionContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 
 size_t originirParser::Primary_expressionContext::getRuleIndex() const {
-  return originirParser::RulePrimary_expression;
+    return originirParser::RulePrimary_expression;
 }
 
-void originirParser::Primary_expressionContext::copyFrom(Primary_expressionContext *ctx) {
-  ParserRuleContext::copyFrom(ctx);
+void originirParser::Primary_expressionContext::copyFrom(Primary_expressionContext * ctx) {
+    ParserRuleContext::copyFrom(ctx);
 }
 
 //----------------- Pri_ckeyContext ------------------------------------------------------------------
 
 originirParser::C_KEY_declarationContext* originirParser::Pri_ckeyContext::c_KEY_declaration() {
-  return getRuleContext<originirParser::C_KEY_declarationContext>(0);
+    return getRuleContext<originirParser::C_KEY_declarationContext>(0);
 }
 
-originirParser::Pri_ckeyContext::Pri_ckeyContext(Primary_expressionContext *ctx) { copyFrom(ctx); }
+originirParser::Pri_ckeyContext::Pri_ckeyContext(Primary_expressionContext * ctx) { copyFrom(ctx); }
 
-void originirParser::Pri_ckeyContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterPri_ckey(this);
+void originirParser::Pri_ckeyContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterPri_ckey(this);
 }
-void originirParser::Pri_ckeyContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitPri_ckey(this);
+void originirParser::Pri_ckeyContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitPri_ckey(this);
 }
 
-antlrcpp::Any originirParser::Pri_ckeyContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitPri_ckey(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::Pri_ckeyContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitPri_ckey(this);
+    else
+        return visitor->visitChildren(this);
 }
 //----------------- Pri_cstContext ------------------------------------------------------------------
 
 originirParser::ConstantContext* originirParser::Pri_cstContext::constant() {
-  return getRuleContext<originirParser::ConstantContext>(0);
+    return getRuleContext<originirParser::ConstantContext>(0);
 }
 
-originirParser::Pri_cstContext::Pri_cstContext(Primary_expressionContext *ctx) { copyFrom(ctx); }
+originirParser::Pri_cstContext::Pri_cstContext(Primary_expressionContext * ctx) { copyFrom(ctx); }
 
-void originirParser::Pri_cstContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterPri_cst(this);
+void originirParser::Pri_cstContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterPri_cst(this);
 }
-void originirParser::Pri_cstContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitPri_cst(this);
+void originirParser::Pri_cstContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitPri_cst(this);
 }
 
-antlrcpp::Any originirParser::Pri_cstContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitPri_cst(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::Pri_cstContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitPri_cst(this);
+    else
+        return visitor->visitChildren(this);
 }
 //----------------- Pri_exprContext ------------------------------------------------------------------
 
-std::vector<tree::TerminalNode *> originirParser::Pri_exprContext::LPAREN() {
-  return getTokens(originirParser::LPAREN);
+std::vector<tree::TerminalNode*> originirParser::Pri_exprContext::LPAREN() {
+    return getTokens(originirParser::LPAREN);
 }
 
 tree::TerminalNode* originirParser::Pri_exprContext::LPAREN(size_t i) {
-  return getToken(originirParser::LPAREN, i);
+    return getToken(originirParser::LPAREN, i);
 }
 
 originirParser::ExpressionContext* originirParser::Pri_exprContext::expression() {
-  return getRuleContext<originirParser::ExpressionContext>(0);
+    return getRuleContext<originirParser::ExpressionContext>(0);
 }
 
-originirParser::Pri_exprContext::Pri_exprContext(Primary_expressionContext *ctx) { copyFrom(ctx); }
+originirParser::Pri_exprContext::Pri_exprContext(Primary_expressionContext * ctx) { copyFrom(ctx); }
 
-void originirParser::Pri_exprContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterPri_expr(this);
+void originirParser::Pri_exprContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterPri_expr(this);
 }
-void originirParser::Pri_exprContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitPri_expr(this);
+void originirParser::Pri_exprContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitPri_expr(this);
 }
 
-antlrcpp::Any originirParser::Pri_exprContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitPri_expr(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::Pri_exprContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitPri_expr(this);
+    else
+        return visitor->visitChildren(this);
 }
 originirParser::Primary_expressionContext* originirParser::primary_expression() {
-  Primary_expressionContext *_localctx = _tracker.createInstance<Primary_expressionContext>(_ctx, getState());
-  enterRule(_localctx, 54, originirParser::RulePrimary_expression);
+    Primary_expressionContext* _localctx = _tracker.createInstance<Primary_expressionContext>(_ctx, getState());
+    enterRule(_localctx, 54, originirParser::RulePrimary_expression);
 
-  auto onExit = finally([=] {
-    exitRule();
-  });
-  try {
-    setState(340);
-    _errHandler->sync(this);
-    switch (_input->LA(1)) {
-      case originirParser::C_KEY: {
-        _localctx = dynamic_cast<Primary_expressionContext *>(_tracker.createInstance<originirParser::Pri_ckeyContext>(_localctx));
-        enterOuterAlt(_localctx, 1);
-        setState(334);
-        c_KEY_declaration();
-        break;
-      }
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        setState(364);
+        _errHandler->sync(this);
+        switch (_input->LA(1)) {
+        case originirParser::C_KEY: {
+            _localctx = dynamic_cast<Primary_expressionContext*>(_tracker.createInstance<originirParser::Pri_ckeyContext>(_localctx));
+            enterOuterAlt(_localctx, 1);
+            setState(358);
+            c_KEY_declaration();
+            break;
+        }
 
-      case originirParser::PI:
-      case originirParser::Integer_Literal:
-      case originirParser::Double_Literal: {
-        _localctx = dynamic_cast<Primary_expressionContext *>(_tracker.createInstance<originirParser::Pri_cstContext>(_localctx));
-        enterOuterAlt(_localctx, 2);
-        setState(335);
-        constant();
-        break;
-      }
+        case originirParser::PI:
+        case originirParser::Integer_Literal:
+        case originirParser::Double_Literal: {
+            _localctx = dynamic_cast<Primary_expressionContext*>(_tracker.createInstance<originirParser::Pri_cstContext>(_localctx));
+            enterOuterAlt(_localctx, 2);
+            setState(359);
+            constant();
+            break;
+        }
 
-      case originirParser::LPAREN: {
-        _localctx = dynamic_cast<Primary_expressionContext *>(_tracker.createInstance<originirParser::Pri_exprContext>(_localctx));
-        enterOuterAlt(_localctx, 3);
-        setState(336);
-        match(originirParser::LPAREN);
-        setState(337);
-        expression();
-        setState(338);
-        match(originirParser::LPAREN);
-        break;
-      }
+        case originirParser::LPAREN: {
+            _localctx = dynamic_cast<Primary_expressionContext*>(_tracker.createInstance<originirParser::Pri_exprContext>(_localctx));
+            enterOuterAlt(_localctx, 3);
+            setState(360);
+            match(originirParser::LPAREN);
+            setState(361);
+            expression();
+            setState(362);
+            match(originirParser::LPAREN);
+            break;
+        }
 
-    default:
-      throw NoViableAltException(this);
+        default:
+            throw NoViableAltException(this);
+        }
+
     }
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
+    }
 
-  return _localctx;
-}
+    return _localctx;
+        }
 
 //----------------- Unary_expressionContext ------------------------------------------------------------------
 
-originirParser::Unary_expressionContext::Unary_expressionContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::Unary_expressionContext::Unary_expressionContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 originirParser::Primary_expressionContext* originirParser::Unary_expressionContext::primary_expression() {
-  return getRuleContext<originirParser::Primary_expressionContext>(0);
+    return getRuleContext<originirParser::Primary_expressionContext>(0);
 }
 
 tree::TerminalNode* originirParser::Unary_expressionContext::PLUS() {
-  return getToken(originirParser::PLUS, 0);
+    return getToken(originirParser::PLUS, 0);
 }
 
 tree::TerminalNode* originirParser::Unary_expressionContext::MINUS() {
-  return getToken(originirParser::MINUS, 0);
+    return getToken(originirParser::MINUS, 0);
 }
 
 tree::TerminalNode* originirParser::Unary_expressionContext::NOT() {
-  return getToken(originirParser::NOT, 0);
+    return getToken(originirParser::NOT, 0);
 }
 
 
 size_t originirParser::Unary_expressionContext::getRuleIndex() const {
-  return originirParser::RuleUnary_expression;
+    return originirParser::RuleUnary_expression;
 }
 
-void originirParser::Unary_expressionContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterUnary_expression(this);
+void originirParser::Unary_expressionContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterUnary_expression(this);
 }
 
-void originirParser::Unary_expressionContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitUnary_expression(this);
+void originirParser::Unary_expressionContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitUnary_expression(this);
 }
 
 
-antlrcpp::Any originirParser::Unary_expressionContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitUnary_expression(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::Unary_expressionContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitUnary_expression(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 originirParser::Unary_expressionContext* originirParser::unary_expression() {
-  Unary_expressionContext *_localctx = _tracker.createInstance<Unary_expressionContext>(_ctx, getState());
-  enterRule(_localctx, 56, originirParser::RuleUnary_expression);
+    Unary_expressionContext* _localctx = _tracker.createInstance<Unary_expressionContext>(_ctx, getState());
+    enterRule(_localctx, 56, originirParser::RuleUnary_expression);
 
-  auto onExit = finally([=] {
-    exitRule();
-  });
-  try {
-    setState(349);
-    _errHandler->sync(this);
-    switch (_input->LA(1)) {
-      case originirParser::PI:
-      case originirParser::C_KEY:
-      case originirParser::LPAREN:
-      case originirParser::Integer_Literal:
-      case originirParser::Double_Literal: {
-        enterOuterAlt(_localctx, 1);
-        setState(342);
-        primary_expression();
-        break;
-      }
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        setState(373);
+        _errHandler->sync(this);
+        switch (_input->LA(1)) {
+        case originirParser::PI:
+        case originirParser::C_KEY:
+        case originirParser::LPAREN:
+        case originirParser::Integer_Literal:
+        case originirParser::Double_Literal: {
+            enterOuterAlt(_localctx, 1);
+            setState(366);
+            primary_expression();
+            break;
+        }
 
-      case originirParser::PLUS: {
-        enterOuterAlt(_localctx, 2);
-        setState(343);
-        match(originirParser::PLUS);
-        setState(344);
-        primary_expression();
-        break;
-      }
+        case originirParser::PLUS: {
+            enterOuterAlt(_localctx, 2);
+            setState(367);
+            match(originirParser::PLUS);
+            setState(368);
+            primary_expression();
+            break;
+        }
 
-      case originirParser::MINUS: {
-        enterOuterAlt(_localctx, 3);
-        setState(345);
-        match(originirParser::MINUS);
-        setState(346);
-        primary_expression();
-        break;
-      }
+        case originirParser::MINUS: {
+            enterOuterAlt(_localctx, 3);
+            setState(369);
+            match(originirParser::MINUS);
+            setState(370);
+            primary_expression();
+            break;
+        }
 
-      case originirParser::NOT: {
-        enterOuterAlt(_localctx, 4);
-        setState(347);
-        match(originirParser::NOT);
-        setState(348);
-        primary_expression();
-        break;
-      }
+        case originirParser::NOT: {
+            enterOuterAlt(_localctx, 4);
+            setState(371);
+            match(originirParser::NOT);
+            setState(372);
+            primary_expression();
+            break;
+        }
 
-    default:
-      throw NoViableAltException(this);
+        default:
+            throw NoViableAltException(this);
+        }
+
     }
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
+    }
 
-  return _localctx;
-}
+    return _localctx;
+        }
 
 //----------------- Multiplicative_expressionContext ------------------------------------------------------------------
 
-originirParser::Multiplicative_expressionContext::Multiplicative_expressionContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::Multiplicative_expressionContext::Multiplicative_expressionContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 originirParser::Unary_expressionContext* originirParser::Multiplicative_expressionContext::unary_expression() {
-  return getRuleContext<originirParser::Unary_expressionContext>(0);
+    return getRuleContext<originirParser::Unary_expressionContext>(0);
 }
 
 originirParser::Multiplicative_expressionContext* originirParser::Multiplicative_expressionContext::multiplicative_expression() {
-  return getRuleContext<originirParser::Multiplicative_expressionContext>(0);
+    return getRuleContext<originirParser::Multiplicative_expressionContext>(0);
 }
 
 tree::TerminalNode* originirParser::Multiplicative_expressionContext::MUL() {
-  return getToken(originirParser::MUL, 0);
+    return getToken(originirParser::MUL, 0);
 }
 
 tree::TerminalNode* originirParser::Multiplicative_expressionContext::DIV() {
-  return getToken(originirParser::DIV, 0);
+    return getToken(originirParser::DIV, 0);
 }
 
 
 size_t originirParser::Multiplicative_expressionContext::getRuleIndex() const {
-  return originirParser::RuleMultiplicative_expression;
+    return originirParser::RuleMultiplicative_expression;
 }
 
-void originirParser::Multiplicative_expressionContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterMultiplicative_expression(this);
+void originirParser::Multiplicative_expressionContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterMultiplicative_expression(this);
 }
 
-void originirParser::Multiplicative_expressionContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitMultiplicative_expression(this);
+void originirParser::Multiplicative_expressionContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitMultiplicative_expression(this);
 }
 
 
-antlrcpp::Any originirParser::Multiplicative_expressionContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitMultiplicative_expression(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::Multiplicative_expressionContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitMultiplicative_expression(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 
 originirParser::Multiplicative_expressionContext* originirParser::multiplicative_expression() {
-   return multiplicative_expression(0);
+    return multiplicative_expression(0);
 }
 
 originirParser::Multiplicative_expressionContext* originirParser::multiplicative_expression(int precedence) {
-  ParserRuleContext *parentContext = _ctx;
-  size_t parentState = getState();
-  originirParser::Multiplicative_expressionContext *_localctx = _tracker.createInstance<Multiplicative_expressionContext>(_ctx, parentState);
-  originirParser::Multiplicative_expressionContext *previousContext = _localctx;
-  (void)previousContext; // Silence compiler, in case the context is not used by generated code.
-  size_t startState = 58;
-  enterRecursionRule(_localctx, 58, originirParser::RuleMultiplicative_expression, precedence);
+    ParserRuleContext* parentContext = _ctx;
+    size_t parentState = getState();
+    originirParser::Multiplicative_expressionContext* _localctx = _tracker.createInstance<Multiplicative_expressionContext>(_ctx, parentState);
+    originirParser::Multiplicative_expressionContext* previousContext = _localctx;
+    (void)previousContext; // Silence compiler, in case the context is not used by generated code.
+    size_t startState = 58;
+    enterRecursionRule(_localctx, 58, originirParser::RuleMultiplicative_expression, precedence);
 
-    
 
-  auto onExit = finally([=] {
-    unrollRecursionContexts(parentContext);
-  });
-  try {
-    size_t alt;
-    enterOuterAlt(_localctx, 1);
-    setState(352);
-    unary_expression();
-    _ctx->stop = _input->LT(-1);
-    setState(362);
-    _errHandler->sync(this);
-    alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 14, _ctx);
-    while (alt != 2 && alt != atn::ATN::INVALID_ALT_NUMBER) {
-      if (alt == 1) {
-        if (!_parseListeners.empty())
-          triggerExitRuleEvent();
-        previousContext = _localctx;
-        setState(360);
+
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        unrollRecursionContexts(parentContext);
+        });
+    try {
+        size_t alt;
+        enterOuterAlt(_localctx, 1);
+        setState(376);
+        unary_expression();
+        _ctx->stop = _input->LT(-1);
+        setState(386);
         _errHandler->sync(this);
-        switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 13, _ctx)) {
-        case 1: {
-          _localctx = _tracker.createInstance<Multiplicative_expressionContext>(parentContext, parentState);
-          pushNewRecursionContext(_localctx, startState, RuleMultiplicative_expression);
-          setState(354);
+        alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 17, _ctx);
+        while (alt != 2 && alt != atn::ATN::INVALID_ALT_NUMBER) {
+            if (alt == 1) {
+                if (!_parseListeners.empty())
+                    triggerExitRuleEvent();
+                previousContext = _localctx;
+                setState(384);
+                _errHandler->sync(this);
+                switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 16, _ctx)) {
+                case 1: {
+                    _localctx = _tracker.createInstance<Multiplicative_expressionContext>(parentContext, parentState);
+                    pushNewRecursionContext(_localctx, startState, RuleMultiplicative_expression);
+                    setState(378);
 
-          if (!(precpred(_ctx, 2))) throw FailedPredicateException(this, "precpred(_ctx, 2)");
-          setState(355);
-          match(originirParser::MUL);
-          setState(356);
-          unary_expression();
-          break;
+                    if (!(precpred(_ctx, 2))) throw FailedPredicateException(this, "precpred(_ctx, 2)");
+                    setState(379);
+                    match(originirParser::MUL);
+                    setState(380);
+                    unary_expression();
+                    break;
+                }
+
+                case 2: {
+                    _localctx = _tracker.createInstance<Multiplicative_expressionContext>(parentContext, parentState);
+                    pushNewRecursionContext(_localctx, startState, RuleMultiplicative_expression);
+                    setState(381);
+
+                    if (!(precpred(_ctx, 1))) throw FailedPredicateException(this, "precpred(_ctx, 1)");
+                    setState(382);
+                    match(originirParser::DIV);
+                    setState(383);
+                    unary_expression();
+                    break;
+                }
+
+                default:
+                    break;
+                }
+            }
+            setState(388);
+            _errHandler->sync(this);
+            alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 17, _ctx);
         }
-
-        case 2: {
-          _localctx = _tracker.createInstance<Multiplicative_expressionContext>(parentContext, parentState);
-          pushNewRecursionContext(_localctx, startState, RuleMultiplicative_expression);
-          setState(357);
-
-          if (!(precpred(_ctx, 1))) throw FailedPredicateException(this, "precpred(_ctx, 1)");
-          setState(358);
-          match(originirParser::DIV);
-          setState(359);
-          unary_expression();
-          break;
-        }
-
-        } 
-      }
-      setState(364);
-      _errHandler->sync(this);
-      alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 14, _ctx);
     }
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
-  return _localctx;
-}
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
+    }
+    return _localctx;
+        }
 
 //----------------- Addtive_expressionContext ------------------------------------------------------------------
 
-originirParser::Addtive_expressionContext::Addtive_expressionContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::Addtive_expressionContext::Addtive_expressionContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 originirParser::Multiplicative_expressionContext* originirParser::Addtive_expressionContext::multiplicative_expression() {
-  return getRuleContext<originirParser::Multiplicative_expressionContext>(0);
+    return getRuleContext<originirParser::Multiplicative_expressionContext>(0);
 }
 
 originirParser::Addtive_expressionContext* originirParser::Addtive_expressionContext::addtive_expression() {
-  return getRuleContext<originirParser::Addtive_expressionContext>(0);
+    return getRuleContext<originirParser::Addtive_expressionContext>(0);
 }
 
 tree::TerminalNode* originirParser::Addtive_expressionContext::PLUS() {
-  return getToken(originirParser::PLUS, 0);
+    return getToken(originirParser::PLUS, 0);
 }
 
 tree::TerminalNode* originirParser::Addtive_expressionContext::MINUS() {
-  return getToken(originirParser::MINUS, 0);
+    return getToken(originirParser::MINUS, 0);
 }
 
 
 size_t originirParser::Addtive_expressionContext::getRuleIndex() const {
-  return originirParser::RuleAddtive_expression;
+    return originirParser::RuleAddtive_expression;
 }
 
-void originirParser::Addtive_expressionContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterAddtive_expression(this);
+void originirParser::Addtive_expressionContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterAddtive_expression(this);
 }
 
-void originirParser::Addtive_expressionContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitAddtive_expression(this);
+void originirParser::Addtive_expressionContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitAddtive_expression(this);
 }
 
 
-antlrcpp::Any originirParser::Addtive_expressionContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitAddtive_expression(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::Addtive_expressionContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitAddtive_expression(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 
 originirParser::Addtive_expressionContext* originirParser::addtive_expression() {
-   return addtive_expression(0);
+    return addtive_expression(0);
 }
 
 originirParser::Addtive_expressionContext* originirParser::addtive_expression(int precedence) {
-  ParserRuleContext *parentContext = _ctx;
-  size_t parentState = getState();
-  originirParser::Addtive_expressionContext *_localctx = _tracker.createInstance<Addtive_expressionContext>(_ctx, parentState);
-  originirParser::Addtive_expressionContext *previousContext = _localctx;
-  (void)previousContext; // Silence compiler, in case the context is not used by generated code.
-  size_t startState = 60;
-  enterRecursionRule(_localctx, 60, originirParser::RuleAddtive_expression, precedence);
+    ParserRuleContext* parentContext = _ctx;
+    size_t parentState = getState();
+    originirParser::Addtive_expressionContext* _localctx = _tracker.createInstance<Addtive_expressionContext>(_ctx, parentState);
+    originirParser::Addtive_expressionContext* previousContext = _localctx;
+    (void)previousContext; // Silence compiler, in case the context is not used by generated code.
+    size_t startState = 60;
+    enterRecursionRule(_localctx, 60, originirParser::RuleAddtive_expression, precedence);
 
-    
 
-  auto onExit = finally([=] {
-    unrollRecursionContexts(parentContext);
-  });
-  try {
-    size_t alt;
-    enterOuterAlt(_localctx, 1);
-    setState(366);
-    multiplicative_expression(0);
-    _ctx->stop = _input->LT(-1);
-    setState(376);
-    _errHandler->sync(this);
-    alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 16, _ctx);
-    while (alt != 2 && alt != atn::ATN::INVALID_ALT_NUMBER) {
-      if (alt == 1) {
-        if (!_parseListeners.empty())
-          triggerExitRuleEvent();
-        previousContext = _localctx;
-        setState(374);
+
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        unrollRecursionContexts(parentContext);
+        });
+    try {
+        size_t alt;
+        enterOuterAlt(_localctx, 1);
+        setState(390);
+        multiplicative_expression(0);
+        _ctx->stop = _input->LT(-1);
+        setState(400);
         _errHandler->sync(this);
-        switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 15, _ctx)) {
-        case 1: {
-          _localctx = _tracker.createInstance<Addtive_expressionContext>(parentContext, parentState);
-          pushNewRecursionContext(_localctx, startState, RuleAddtive_expression);
-          setState(368);
+        alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 19, _ctx);
+        while (alt != 2 && alt != atn::ATN::INVALID_ALT_NUMBER) {
+            if (alt == 1) {
+                if (!_parseListeners.empty())
+                    triggerExitRuleEvent();
+                previousContext = _localctx;
+                setState(398);
+                _errHandler->sync(this);
+                switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 18, _ctx)) {
+                case 1: {
+                    _localctx = _tracker.createInstance<Addtive_expressionContext>(parentContext, parentState);
+                    pushNewRecursionContext(_localctx, startState, RuleAddtive_expression);
+                    setState(392);
 
-          if (!(precpred(_ctx, 2))) throw FailedPredicateException(this, "precpred(_ctx, 2)");
-          setState(369);
-          match(originirParser::PLUS);
-          setState(370);
-          multiplicative_expression(0);
-          break;
+                    if (!(precpred(_ctx, 2))) throw FailedPredicateException(this, "precpred(_ctx, 2)");
+                    setState(393);
+                    match(originirParser::PLUS);
+                    setState(394);
+                    multiplicative_expression(0);
+                    break;
+                }
+
+                case 2: {
+                    _localctx = _tracker.createInstance<Addtive_expressionContext>(parentContext, parentState);
+                    pushNewRecursionContext(_localctx, startState, RuleAddtive_expression);
+                    setState(395);
+
+                    if (!(precpred(_ctx, 1))) throw FailedPredicateException(this, "precpred(_ctx, 1)");
+                    setState(396);
+                    match(originirParser::MINUS);
+                    setState(397);
+                    multiplicative_expression(0);
+                    break;
+                }
+
+                default:
+                    break;
+                }
+            }
+            setState(402);
+            _errHandler->sync(this);
+            alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 19, _ctx);
         }
-
-        case 2: {
-          _localctx = _tracker.createInstance<Addtive_expressionContext>(parentContext, parentState);
-          pushNewRecursionContext(_localctx, startState, RuleAddtive_expression);
-          setState(371);
-
-          if (!(precpred(_ctx, 1))) throw FailedPredicateException(this, "precpred(_ctx, 1)");
-          setState(372);
-          match(originirParser::MINUS);
-          setState(373);
-          multiplicative_expression(0);
-          break;
-        }
-
-        } 
-      }
-      setState(378);
-      _errHandler->sync(this);
-      alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 16, _ctx);
     }
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
-  return _localctx;
-}
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
+    }
+    return _localctx;
+        }
 
 //----------------- Relational_expressionContext ------------------------------------------------------------------
 
-originirParser::Relational_expressionContext::Relational_expressionContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::Relational_expressionContext::Relational_expressionContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 originirParser::Addtive_expressionContext* originirParser::Relational_expressionContext::addtive_expression() {
-  return getRuleContext<originirParser::Addtive_expressionContext>(0);
+    return getRuleContext<originirParser::Addtive_expressionContext>(0);
 }
 
 originirParser::Relational_expressionContext* originirParser::Relational_expressionContext::relational_expression() {
-  return getRuleContext<originirParser::Relational_expressionContext>(0);
+    return getRuleContext<originirParser::Relational_expressionContext>(0);
 }
 
 tree::TerminalNode* originirParser::Relational_expressionContext::LT() {
-  return getToken(originirParser::LT, 0);
+    return getToken(originirParser::LT, 0);
 }
 
 tree::TerminalNode* originirParser::Relational_expressionContext::GT() {
-  return getToken(originirParser::GT, 0);
+    return getToken(originirParser::GT, 0);
 }
 
 tree::TerminalNode* originirParser::Relational_expressionContext::LEQ() {
-  return getToken(originirParser::LEQ, 0);
+    return getToken(originirParser::LEQ, 0);
 }
 
 tree::TerminalNode* originirParser::Relational_expressionContext::GEQ() {
-  return getToken(originirParser::GEQ, 0);
+    return getToken(originirParser::GEQ, 0);
 }
 
 
 size_t originirParser::Relational_expressionContext::getRuleIndex() const {
-  return originirParser::RuleRelational_expression;
+    return originirParser::RuleRelational_expression;
 }
 
-void originirParser::Relational_expressionContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterRelational_expression(this);
+void originirParser::Relational_expressionContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterRelational_expression(this);
 }
 
-void originirParser::Relational_expressionContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitRelational_expression(this);
+void originirParser::Relational_expressionContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitRelational_expression(this);
 }
 
 
-antlrcpp::Any originirParser::Relational_expressionContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitRelational_expression(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::Relational_expressionContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitRelational_expression(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 
 originirParser::Relational_expressionContext* originirParser::relational_expression() {
-   return relational_expression(0);
+    return relational_expression(0);
 }
 
 originirParser::Relational_expressionContext* originirParser::relational_expression(int precedence) {
-  ParserRuleContext *parentContext = _ctx;
-  size_t parentState = getState();
-  originirParser::Relational_expressionContext *_localctx = _tracker.createInstance<Relational_expressionContext>(_ctx, parentState);
-  originirParser::Relational_expressionContext *previousContext = _localctx;
-  (void)previousContext; // Silence compiler, in case the context is not used by generated code.
-  size_t startState = 62;
-  enterRecursionRule(_localctx, 62, originirParser::RuleRelational_expression, precedence);
+    ParserRuleContext* parentContext = _ctx;
+    size_t parentState = getState();
+    originirParser::Relational_expressionContext* _localctx = _tracker.createInstance<Relational_expressionContext>(_ctx, parentState);
+    originirParser::Relational_expressionContext* previousContext = _localctx;
+    (void)previousContext; // Silence compiler, in case the context is not used by generated code.
+    size_t startState = 62;
+    enterRecursionRule(_localctx, 62, originirParser::RuleRelational_expression, precedence);
 
-    
 
-  auto onExit = finally([=] {
-    unrollRecursionContexts(parentContext);
-  });
-  try {
-    size_t alt;
-    enterOuterAlt(_localctx, 1);
-    setState(380);
-    addtive_expression(0);
-    _ctx->stop = _input->LT(-1);
-    setState(396);
-    _errHandler->sync(this);
-    alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 18, _ctx);
-    while (alt != 2 && alt != atn::ATN::INVALID_ALT_NUMBER) {
-      if (alt == 1) {
-        if (!_parseListeners.empty())
-          triggerExitRuleEvent();
-        previousContext = _localctx;
-        setState(394);
+
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        unrollRecursionContexts(parentContext);
+        });
+    try {
+        size_t alt;
+        enterOuterAlt(_localctx, 1);
+        setState(404);
+        addtive_expression(0);
+        _ctx->stop = _input->LT(-1);
+        setState(420);
         _errHandler->sync(this);
-        switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 17, _ctx)) {
-        case 1: {
-          _localctx = _tracker.createInstance<Relational_expressionContext>(parentContext, parentState);
-          pushNewRecursionContext(_localctx, startState, RuleRelational_expression);
-          setState(382);
+        alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 21, _ctx);
+        while (alt != 2 && alt != atn::ATN::INVALID_ALT_NUMBER) {
+            if (alt == 1) {
+                if (!_parseListeners.empty())
+                    triggerExitRuleEvent();
+                previousContext = _localctx;
+                setState(418);
+                _errHandler->sync(this);
+                switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 20, _ctx)) {
+                case 1: {
+                    _localctx = _tracker.createInstance<Relational_expressionContext>(parentContext, parentState);
+                    pushNewRecursionContext(_localctx, startState, RuleRelational_expression);
+                    setState(406);
 
-          if (!(precpred(_ctx, 4))) throw FailedPredicateException(this, "precpred(_ctx, 4)");
-          setState(383);
-          match(originirParser::LT);
-          setState(384);
-          addtive_expression(0);
-          break;
+                    if (!(precpred(_ctx, 4))) throw FailedPredicateException(this, "precpred(_ctx, 4)");
+                    setState(407);
+                    match(originirParser::LT);
+                    setState(408);
+                    addtive_expression(0);
+                    break;
+                }
+
+                case 2: {
+                    _localctx = _tracker.createInstance<Relational_expressionContext>(parentContext, parentState);
+                    pushNewRecursionContext(_localctx, startState, RuleRelational_expression);
+                    setState(409);
+
+                    if (!(precpred(_ctx, 3))) throw FailedPredicateException(this, "precpred(_ctx, 3)");
+                    setState(410);
+                    match(originirParser::GT);
+                    setState(411);
+                    addtive_expression(0);
+                    break;
+                }
+
+                case 3: {
+                    _localctx = _tracker.createInstance<Relational_expressionContext>(parentContext, parentState);
+                    pushNewRecursionContext(_localctx, startState, RuleRelational_expression);
+                    setState(412);
+
+                    if (!(precpred(_ctx, 2))) throw FailedPredicateException(this, "precpred(_ctx, 2)");
+                    setState(413);
+                    match(originirParser::LEQ);
+                    setState(414);
+                    addtive_expression(0);
+                    break;
+                }
+
+                case 4: {
+                    _localctx = _tracker.createInstance<Relational_expressionContext>(parentContext, parentState);
+                    pushNewRecursionContext(_localctx, startState, RuleRelational_expression);
+                    setState(415);
+
+                    if (!(precpred(_ctx, 1))) throw FailedPredicateException(this, "precpred(_ctx, 1)");
+                    setState(416);
+                    match(originirParser::GEQ);
+                    setState(417);
+                    addtive_expression(0);
+                    break;
+                }
+
+                default:
+                    break;
+                }
+            }
+            setState(422);
+            _errHandler->sync(this);
+            alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 21, _ctx);
         }
-
-        case 2: {
-          _localctx = _tracker.createInstance<Relational_expressionContext>(parentContext, parentState);
-          pushNewRecursionContext(_localctx, startState, RuleRelational_expression);
-          setState(385);
-
-          if (!(precpred(_ctx, 3))) throw FailedPredicateException(this, "precpred(_ctx, 3)");
-          setState(386);
-          match(originirParser::GT);
-          setState(387);
-          addtive_expression(0);
-          break;
-        }
-
-        case 3: {
-          _localctx = _tracker.createInstance<Relational_expressionContext>(parentContext, parentState);
-          pushNewRecursionContext(_localctx, startState, RuleRelational_expression);
-          setState(388);
-
-          if (!(precpred(_ctx, 2))) throw FailedPredicateException(this, "precpred(_ctx, 2)");
-          setState(389);
-          match(originirParser::LEQ);
-          setState(390);
-          addtive_expression(0);
-          break;
-        }
-
-        case 4: {
-          _localctx = _tracker.createInstance<Relational_expressionContext>(parentContext, parentState);
-          pushNewRecursionContext(_localctx, startState, RuleRelational_expression);
-          setState(391);
-
-          if (!(precpred(_ctx, 1))) throw FailedPredicateException(this, "precpred(_ctx, 1)");
-          setState(392);
-          match(originirParser::GEQ);
-          setState(393);
-          addtive_expression(0);
-          break;
-        }
-
-        } 
-      }
-      setState(398);
-      _errHandler->sync(this);
-      alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 18, _ctx);
     }
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
-  return _localctx;
-}
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
+    }
+    return _localctx;
+        }
 
 //----------------- Equality_expressionContext ------------------------------------------------------------------
 
-originirParser::Equality_expressionContext::Equality_expressionContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::Equality_expressionContext::Equality_expressionContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 originirParser::Relational_expressionContext* originirParser::Equality_expressionContext::relational_expression() {
-  return getRuleContext<originirParser::Relational_expressionContext>(0);
+    return getRuleContext<originirParser::Relational_expressionContext>(0);
 }
 
 originirParser::Equality_expressionContext* originirParser::Equality_expressionContext::equality_expression() {
-  return getRuleContext<originirParser::Equality_expressionContext>(0);
+    return getRuleContext<originirParser::Equality_expressionContext>(0);
 }
 
 tree::TerminalNode* originirParser::Equality_expressionContext::EQ() {
-  return getToken(originirParser::EQ, 0);
+    return getToken(originirParser::EQ, 0);
 }
 
 tree::TerminalNode* originirParser::Equality_expressionContext::NE() {
-  return getToken(originirParser::NE, 0);
+    return getToken(originirParser::NE, 0);
 }
 
 
 size_t originirParser::Equality_expressionContext::getRuleIndex() const {
-  return originirParser::RuleEquality_expression;
+    return originirParser::RuleEquality_expression;
 }
 
-void originirParser::Equality_expressionContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterEquality_expression(this);
+void originirParser::Equality_expressionContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterEquality_expression(this);
 }
 
-void originirParser::Equality_expressionContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitEquality_expression(this);
+void originirParser::Equality_expressionContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitEquality_expression(this);
 }
 
 
-antlrcpp::Any originirParser::Equality_expressionContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitEquality_expression(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::Equality_expressionContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitEquality_expression(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 
 originirParser::Equality_expressionContext* originirParser::equality_expression() {
-   return equality_expression(0);
+    return equality_expression(0);
 }
 
 originirParser::Equality_expressionContext* originirParser::equality_expression(int precedence) {
-  ParserRuleContext *parentContext = _ctx;
-  size_t parentState = getState();
-  originirParser::Equality_expressionContext *_localctx = _tracker.createInstance<Equality_expressionContext>(_ctx, parentState);
-  originirParser::Equality_expressionContext *previousContext = _localctx;
-  (void)previousContext; // Silence compiler, in case the context is not used by generated code.
-  size_t startState = 64;
-  enterRecursionRule(_localctx, 64, originirParser::RuleEquality_expression, precedence);
+    ParserRuleContext* parentContext = _ctx;
+    size_t parentState = getState();
+    originirParser::Equality_expressionContext* _localctx = _tracker.createInstance<Equality_expressionContext>(_ctx, parentState);
+    originirParser::Equality_expressionContext* previousContext = _localctx;
+    (void)previousContext; // Silence compiler, in case the context is not used by generated code.
+    size_t startState = 64;
+    enterRecursionRule(_localctx, 64, originirParser::RuleEquality_expression, precedence);
 
-    
 
-  auto onExit = finally([=] {
-    unrollRecursionContexts(parentContext);
-  });
-  try {
-    size_t alt;
-    enterOuterAlt(_localctx, 1);
-    setState(400);
-    relational_expression(0);
-    _ctx->stop = _input->LT(-1);
-    setState(410);
-    _errHandler->sync(this);
-    alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 20, _ctx);
-    while (alt != 2 && alt != atn::ATN::INVALID_ALT_NUMBER) {
-      if (alt == 1) {
-        if (!_parseListeners.empty())
-          triggerExitRuleEvent();
-        previousContext = _localctx;
-        setState(408);
+
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        unrollRecursionContexts(parentContext);
+        });
+    try {
+        size_t alt;
+        enterOuterAlt(_localctx, 1);
+        setState(424);
+        relational_expression(0);
+        _ctx->stop = _input->LT(-1);
+        setState(434);
         _errHandler->sync(this);
-        switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 19, _ctx)) {
-        case 1: {
-          _localctx = _tracker.createInstance<Equality_expressionContext>(parentContext, parentState);
-          pushNewRecursionContext(_localctx, startState, RuleEquality_expression);
-          setState(402);
+        alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 23, _ctx);
+        while (alt != 2 && alt != atn::ATN::INVALID_ALT_NUMBER) {
+            if (alt == 1) {
+                if (!_parseListeners.empty())
+                    triggerExitRuleEvent();
+                previousContext = _localctx;
+                setState(432);
+                _errHandler->sync(this);
+                switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 22, _ctx)) {
+                case 1: {
+                    _localctx = _tracker.createInstance<Equality_expressionContext>(parentContext, parentState);
+                    pushNewRecursionContext(_localctx, startState, RuleEquality_expression);
+                    setState(426);
 
-          if (!(precpred(_ctx, 2))) throw FailedPredicateException(this, "precpred(_ctx, 2)");
-          setState(403);
-          match(originirParser::EQ);
-          setState(404);
-          relational_expression(0);
-          break;
+                    if (!(precpred(_ctx, 2))) throw FailedPredicateException(this, "precpred(_ctx, 2)");
+                    setState(427);
+                    match(originirParser::EQ);
+                    setState(428);
+                    relational_expression(0);
+                    break;
+                }
+
+                case 2: {
+                    _localctx = _tracker.createInstance<Equality_expressionContext>(parentContext, parentState);
+                    pushNewRecursionContext(_localctx, startState, RuleEquality_expression);
+                    setState(429);
+
+                    if (!(precpred(_ctx, 1))) throw FailedPredicateException(this, "precpred(_ctx, 1)");
+                    setState(430);
+                    match(originirParser::NE);
+                    setState(431);
+                    relational_expression(0);
+                    break;
+                }
+
+                default:
+                    break;
+                }
+            }
+            setState(436);
+            _errHandler->sync(this);
+            alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 23, _ctx);
         }
-
-        case 2: {
-          _localctx = _tracker.createInstance<Equality_expressionContext>(parentContext, parentState);
-          pushNewRecursionContext(_localctx, startState, RuleEquality_expression);
-          setState(405);
-
-          if (!(precpred(_ctx, 1))) throw FailedPredicateException(this, "precpred(_ctx, 1)");
-          setState(406);
-          match(originirParser::NE);
-          setState(407);
-          relational_expression(0);
-          break;
-        }
-
-        } 
-      }
-      setState(412);
-      _errHandler->sync(this);
-      alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 20, _ctx);
     }
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
-  return _localctx;
-}
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
+    }
+    return _localctx;
+        }
 
 //----------------- Logical_and_expressionContext ------------------------------------------------------------------
 
-originirParser::Logical_and_expressionContext::Logical_and_expressionContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::Logical_and_expressionContext::Logical_and_expressionContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 originirParser::Equality_expressionContext* originirParser::Logical_and_expressionContext::equality_expression() {
-  return getRuleContext<originirParser::Equality_expressionContext>(0);
+    return getRuleContext<originirParser::Equality_expressionContext>(0);
 }
 
 originirParser::Logical_and_expressionContext* originirParser::Logical_and_expressionContext::logical_and_expression() {
-  return getRuleContext<originirParser::Logical_and_expressionContext>(0);
+    return getRuleContext<originirParser::Logical_and_expressionContext>(0);
 }
 
 tree::TerminalNode* originirParser::Logical_and_expressionContext::AND() {
-  return getToken(originirParser::AND, 0);
+    return getToken(originirParser::AND, 0);
 }
 
 
 size_t originirParser::Logical_and_expressionContext::getRuleIndex() const {
-  return originirParser::RuleLogical_and_expression;
+    return originirParser::RuleLogical_and_expression;
 }
 
-void originirParser::Logical_and_expressionContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterLogical_and_expression(this);
+void originirParser::Logical_and_expressionContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterLogical_and_expression(this);
 }
 
-void originirParser::Logical_and_expressionContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitLogical_and_expression(this);
+void originirParser::Logical_and_expressionContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitLogical_and_expression(this);
 }
 
 
-antlrcpp::Any originirParser::Logical_and_expressionContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitLogical_and_expression(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::Logical_and_expressionContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitLogical_and_expression(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 
 originirParser::Logical_and_expressionContext* originirParser::logical_and_expression() {
-   return logical_and_expression(0);
+    return logical_and_expression(0);
 }
 
 originirParser::Logical_and_expressionContext* originirParser::logical_and_expression(int precedence) {
-  ParserRuleContext *parentContext = _ctx;
-  size_t parentState = getState();
-  originirParser::Logical_and_expressionContext *_localctx = _tracker.createInstance<Logical_and_expressionContext>(_ctx, parentState);
-  originirParser::Logical_and_expressionContext *previousContext = _localctx;
-  (void)previousContext; // Silence compiler, in case the context is not used by generated code.
-  size_t startState = 66;
-  enterRecursionRule(_localctx, 66, originirParser::RuleLogical_and_expression, precedence);
+    ParserRuleContext* parentContext = _ctx;
+    size_t parentState = getState();
+    originirParser::Logical_and_expressionContext* _localctx = _tracker.createInstance<Logical_and_expressionContext>(_ctx, parentState);
+    originirParser::Logical_and_expressionContext* previousContext = _localctx;
+    (void)previousContext; // Silence compiler, in case the context is not used by generated code.
+    size_t startState = 66;
+    enterRecursionRule(_localctx, 66, originirParser::RuleLogical_and_expression, precedence);
 
-    
 
-  auto onExit = finally([=] {
-    unrollRecursionContexts(parentContext);
-  });
-  try {
-    size_t alt;
-    enterOuterAlt(_localctx, 1);
-    setState(414);
-    equality_expression(0);
-    _ctx->stop = _input->LT(-1);
-    setState(421);
-    _errHandler->sync(this);
-    alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 21, _ctx);
-    while (alt != 2 && alt != atn::ATN::INVALID_ALT_NUMBER) {
-      if (alt == 1) {
-        if (!_parseListeners.empty())
-          triggerExitRuleEvent();
-        previousContext = _localctx;
-        _localctx = _tracker.createInstance<Logical_and_expressionContext>(parentContext, parentState);
-        pushNewRecursionContext(_localctx, startState, RuleLogical_and_expression);
-        setState(416);
 
-        if (!(precpred(_ctx, 1))) throw FailedPredicateException(this, "precpred(_ctx, 1)");
-        setState(417);
-        match(originirParser::AND);
-        setState(418);
-        equality_expression(0); 
-      }
-      setState(423);
-      _errHandler->sync(this);
-      alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 21, _ctx);
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        unrollRecursionContexts(parentContext);
+        });
+    try {
+        size_t alt;
+        enterOuterAlt(_localctx, 1);
+        setState(438);
+        equality_expression(0);
+        _ctx->stop = _input->LT(-1);
+        setState(445);
+        _errHandler->sync(this);
+        alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 24, _ctx);
+        while (alt != 2 && alt != atn::ATN::INVALID_ALT_NUMBER) {
+            if (alt == 1) {
+                if (!_parseListeners.empty())
+                    triggerExitRuleEvent();
+                previousContext = _localctx;
+                _localctx = _tracker.createInstance<Logical_and_expressionContext>(parentContext, parentState);
+                pushNewRecursionContext(_localctx, startState, RuleLogical_and_expression);
+                setState(440);
+
+                if (!(precpred(_ctx, 1))) throw FailedPredicateException(this, "precpred(_ctx, 1)");
+                setState(441);
+                match(originirParser::AND);
+                setState(442);
+                equality_expression(0);
+            }
+            setState(447);
+            _errHandler->sync(this);
+            alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 24, _ctx);
+        }
     }
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
-  return _localctx;
-}
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
+    }
+    return _localctx;
+        }
 
 //----------------- Logical_or_expressionContext ------------------------------------------------------------------
 
-originirParser::Logical_or_expressionContext::Logical_or_expressionContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::Logical_or_expressionContext::Logical_or_expressionContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 originirParser::Logical_and_expressionContext* originirParser::Logical_or_expressionContext::logical_and_expression() {
-  return getRuleContext<originirParser::Logical_and_expressionContext>(0);
+    return getRuleContext<originirParser::Logical_and_expressionContext>(0);
 }
 
 originirParser::Logical_or_expressionContext* originirParser::Logical_or_expressionContext::logical_or_expression() {
-  return getRuleContext<originirParser::Logical_or_expressionContext>(0);
+    return getRuleContext<originirParser::Logical_or_expressionContext>(0);
 }
 
 tree::TerminalNode* originirParser::Logical_or_expressionContext::OR() {
-  return getToken(originirParser::OR, 0);
+    return getToken(originirParser::OR, 0);
 }
 
 
 size_t originirParser::Logical_or_expressionContext::getRuleIndex() const {
-  return originirParser::RuleLogical_or_expression;
+    return originirParser::RuleLogical_or_expression;
 }
 
-void originirParser::Logical_or_expressionContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterLogical_or_expression(this);
+void originirParser::Logical_or_expressionContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterLogical_or_expression(this);
 }
 
-void originirParser::Logical_or_expressionContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitLogical_or_expression(this);
+void originirParser::Logical_or_expressionContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitLogical_or_expression(this);
 }
 
 
-antlrcpp::Any originirParser::Logical_or_expressionContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitLogical_or_expression(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::Logical_or_expressionContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitLogical_or_expression(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 
 originirParser::Logical_or_expressionContext* originirParser::logical_or_expression() {
-   return logical_or_expression(0);
+    return logical_or_expression(0);
 }
 
 originirParser::Logical_or_expressionContext* originirParser::logical_or_expression(int precedence) {
-  ParserRuleContext *parentContext = _ctx;
-  size_t parentState = getState();
-  originirParser::Logical_or_expressionContext *_localctx = _tracker.createInstance<Logical_or_expressionContext>(_ctx, parentState);
-  originirParser::Logical_or_expressionContext *previousContext = _localctx;
-  (void)previousContext; // Silence compiler, in case the context is not used by generated code.
-  size_t startState = 68;
-  enterRecursionRule(_localctx, 68, originirParser::RuleLogical_or_expression, precedence);
+    ParserRuleContext* parentContext = _ctx;
+    size_t parentState = getState();
+    originirParser::Logical_or_expressionContext* _localctx = _tracker.createInstance<Logical_or_expressionContext>(_ctx, parentState);
+    originirParser::Logical_or_expressionContext* previousContext = _localctx;
+    (void)previousContext; // Silence compiler, in case the context is not used by generated code.
+    size_t startState = 68;
+    enterRecursionRule(_localctx, 68, originirParser::RuleLogical_or_expression, precedence);
 
-    
 
-  auto onExit = finally([=] {
-    unrollRecursionContexts(parentContext);
-  });
-  try {
-    size_t alt;
-    enterOuterAlt(_localctx, 1);
-    setState(425);
-    logical_and_expression(0);
-    _ctx->stop = _input->LT(-1);
-    setState(432);
-    _errHandler->sync(this);
-    alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 22, _ctx);
-    while (alt != 2 && alt != atn::ATN::INVALID_ALT_NUMBER) {
-      if (alt == 1) {
-        if (!_parseListeners.empty())
-          triggerExitRuleEvent();
-        previousContext = _localctx;
-        _localctx = _tracker.createInstance<Logical_or_expressionContext>(parentContext, parentState);
-        pushNewRecursionContext(_localctx, startState, RuleLogical_or_expression);
-        setState(427);
 
-        if (!(precpred(_ctx, 1))) throw FailedPredicateException(this, "precpred(_ctx, 1)");
-        setState(428);
-        match(originirParser::OR);
-        setState(429);
-        logical_and_expression(0); 
-      }
-      setState(434);
-      _errHandler->sync(this);
-      alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 22, _ctx);
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        unrollRecursionContexts(parentContext);
+        });
+    try {
+        size_t alt;
+        enterOuterAlt(_localctx, 1);
+        setState(449);
+        logical_and_expression(0);
+        _ctx->stop = _input->LT(-1);
+        setState(456);
+        _errHandler->sync(this);
+        alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 25, _ctx);
+        while (alt != 2 && alt != atn::ATN::INVALID_ALT_NUMBER) {
+            if (alt == 1) {
+                if (!_parseListeners.empty())
+                    triggerExitRuleEvent();
+                previousContext = _localctx;
+                _localctx = _tracker.createInstance<Logical_or_expressionContext>(parentContext, parentState);
+                pushNewRecursionContext(_localctx, startState, RuleLogical_or_expression);
+                setState(451);
+
+                if (!(precpred(_ctx, 1))) throw FailedPredicateException(this, "precpred(_ctx, 1)");
+                setState(452);
+                match(originirParser::OR);
+                setState(453);
+                logical_and_expression(0);
+            }
+            setState(458);
+            _errHandler->sync(this);
+            alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 25, _ctx);
+        }
     }
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
-  return _localctx;
-}
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
+    }
+    return _localctx;
+        }
 
 //----------------- Assignment_expressionContext ------------------------------------------------------------------
 
-originirParser::Assignment_expressionContext::Assignment_expressionContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::Assignment_expressionContext::Assignment_expressionContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 originirParser::Logical_or_expressionContext* originirParser::Assignment_expressionContext::logical_or_expression() {
-  return getRuleContext<originirParser::Logical_or_expressionContext>(0);
+    return getRuleContext<originirParser::Logical_or_expressionContext>(0);
 }
 
 originirParser::C_KEY_declarationContext* originirParser::Assignment_expressionContext::c_KEY_declaration() {
-  return getRuleContext<originirParser::C_KEY_declarationContext>(0);
+    return getRuleContext<originirParser::C_KEY_declarationContext>(0);
 }
 
 tree::TerminalNode* originirParser::Assignment_expressionContext::ASSIGN() {
-  return getToken(originirParser::ASSIGN, 0);
+    return getToken(originirParser::ASSIGN, 0);
 }
 
 
 size_t originirParser::Assignment_expressionContext::getRuleIndex() const {
-  return originirParser::RuleAssignment_expression;
+    return originirParser::RuleAssignment_expression;
 }
 
-void originirParser::Assignment_expressionContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterAssignment_expression(this);
+void originirParser::Assignment_expressionContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterAssignment_expression(this);
 }
 
-void originirParser::Assignment_expressionContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitAssignment_expression(this);
+void originirParser::Assignment_expressionContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitAssignment_expression(this);
 }
 
 
-antlrcpp::Any originirParser::Assignment_expressionContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitAssignment_expression(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::Assignment_expressionContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitAssignment_expression(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 originirParser::Assignment_expressionContext* originirParser::assignment_expression() {
-  Assignment_expressionContext *_localctx = _tracker.createInstance<Assignment_expressionContext>(_ctx, getState());
-  enterRule(_localctx, 70, originirParser::RuleAssignment_expression);
+    Assignment_expressionContext* _localctx = _tracker.createInstance<Assignment_expressionContext>(_ctx, getState());
+    enterRule(_localctx, 70, originirParser::RuleAssignment_expression);
 
-  auto onExit = finally([=] {
-    exitRule();
-  });
-  try {
-    setState(440);
-    _errHandler->sync(this);
-    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 23, _ctx)) {
-    case 1: {
-      enterOuterAlt(_localctx, 1);
-      setState(435);
-      logical_or_expression(0);
-      break;
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        setState(464);
+        _errHandler->sync(this);
+        switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 26, _ctx)) {
+        case 1: {
+            enterOuterAlt(_localctx, 1);
+            setState(459);
+            logical_or_expression(0);
+            break;
+        }
+
+        case 2: {
+            enterOuterAlt(_localctx, 2);
+            setState(460);
+            c_KEY_declaration();
+            setState(461);
+            match(originirParser::ASSIGN);
+            setState(462);
+            logical_or_expression(0);
+            break;
+        }
+
+        default:
+            break;
+        }
+
+    }
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
     }
 
-    case 2: {
-      enterOuterAlt(_localctx, 2);
-      setState(436);
-      c_KEY_declaration();
-      setState(437);
-      match(originirParser::ASSIGN);
-      setState(438);
-      logical_or_expression(0);
-      break;
-    }
-
-    }
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
-
-  return _localctx;
-}
+    return _localctx;
+        }
 
 //----------------- ExpressionContext ------------------------------------------------------------------
 
-originirParser::ExpressionContext::ExpressionContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::ExpressionContext::ExpressionContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 originirParser::Assignment_expressionContext* originirParser::ExpressionContext::assignment_expression() {
-  return getRuleContext<originirParser::Assignment_expressionContext>(0);
+    return getRuleContext<originirParser::Assignment_expressionContext>(0);
 }
 
 
 size_t originirParser::ExpressionContext::getRuleIndex() const {
-  return originirParser::RuleExpression;
+    return originirParser::RuleExpression;
 }
 
-void originirParser::ExpressionContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterExpression(this);
+void originirParser::ExpressionContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterExpression(this);
 }
 
-void originirParser::ExpressionContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitExpression(this);
+void originirParser::ExpressionContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitExpression(this);
 }
 
 
-antlrcpp::Any originirParser::ExpressionContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitExpression(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::ExpressionContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitExpression(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 originirParser::ExpressionContext* originirParser::expression() {
-  ExpressionContext *_localctx = _tracker.createInstance<ExpressionContext>(_ctx, getState());
-  enterRule(_localctx, 72, originirParser::RuleExpression);
+    ExpressionContext* _localctx = _tracker.createInstance<ExpressionContext>(_ctx, getState());
+    enterRule(_localctx, 72, originirParser::RuleExpression);
 
-  auto onExit = finally([=] {
-    exitRule();
-  });
-  try {
-    enterOuterAlt(_localctx, 1);
-    setState(442);
-    assignment_expression();
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        enterOuterAlt(_localctx, 1);
+        setState(466);
+        assignment_expression();
 
-  return _localctx;
-}
+    }
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
+    }
+
+    return _localctx;
+        }
 
 //----------------- Controlbit_listContext ------------------------------------------------------------------
 
-originirParser::Controlbit_listContext::Controlbit_listContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::Controlbit_listContext::Controlbit_listContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
-std::vector<originirParser::Q_KEY_declarationContext *> originirParser::Controlbit_listContext::q_KEY_declaration() {
-  return getRuleContexts<originirParser::Q_KEY_declarationContext>();
+std::vector<originirParser::Q_KEY_declarationContext*> originirParser::Controlbit_listContext::q_KEY_declaration() {
+    return getRuleContexts<originirParser::Q_KEY_declarationContext>();
 }
 
 originirParser::Q_KEY_declarationContext* originirParser::Controlbit_listContext::q_KEY_declaration(size_t i) {
-  return getRuleContext<originirParser::Q_KEY_declarationContext>(i);
+    return getRuleContext<originirParser::Q_KEY_declarationContext>(i);
 }
 
-std::vector<tree::TerminalNode *> originirParser::Controlbit_listContext::COMMA() {
-  return getTokens(originirParser::COMMA);
+std::vector<tree::TerminalNode*> originirParser::Controlbit_listContext::COMMA() {
+    return getTokens(originirParser::COMMA);
 }
 
 tree::TerminalNode* originirParser::Controlbit_listContext::COMMA(size_t i) {
-  return getToken(originirParser::COMMA, i);
+    return getToken(originirParser::COMMA, i);
+}
+
+std::vector<tree::TerminalNode*> originirParser::Controlbit_listContext::Identifier() {
+    return getTokens(originirParser::Identifier);
+}
+
+tree::TerminalNode* originirParser::Controlbit_listContext::Identifier(size_t i) {
+    return getToken(originirParser::Identifier, i);
 }
 
 
 size_t originirParser::Controlbit_listContext::getRuleIndex() const {
-  return originirParser::RuleControlbit_list;
+    return originirParser::RuleControlbit_list;
 }
 
-void originirParser::Controlbit_listContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterControlbit_list(this);
+void originirParser::Controlbit_listContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterControlbit_list(this);
 }
 
-void originirParser::Controlbit_listContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitControlbit_list(this);
+void originirParser::Controlbit_listContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitControlbit_list(this);
 }
 
 
-antlrcpp::Any originirParser::Controlbit_listContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitControlbit_list(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::Controlbit_listContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitControlbit_list(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 originirParser::Controlbit_listContext* originirParser::controlbit_list() {
-  Controlbit_listContext *_localctx = _tracker.createInstance<Controlbit_listContext>(_ctx, getState());
-  enterRule(_localctx, 74, originirParser::RuleControlbit_list);
-  size_t _la = 0;
+    Controlbit_listContext* _localctx = _tracker.createInstance<Controlbit_listContext>(_ctx, getState());
+    enterRule(_localctx, 74, originirParser::RuleControlbit_list);
+    size_t _la = 0;
 
-  auto onExit = finally([=] {
-    exitRule();
-  });
-  try {
-    enterOuterAlt(_localctx, 1);
-    setState(444);
-    q_KEY_declaration();
-    setState(449);
-    _errHandler->sync(this);
-    _la = _input->LA(1);
-    while (_la == originirParser::COMMA) {
-      setState(445);
-      match(originirParser::COMMA);
-      setState(446);
-      q_KEY_declaration();
-      setState(451);
-      _errHandler->sync(this);
-      _la = _input->LA(1);
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        setState(484);
+        _errHandler->sync(this);
+        switch (_input->LA(1)) {
+        case originirParser::Q_KEY: {
+            enterOuterAlt(_localctx, 1);
+            setState(468);
+            q_KEY_declaration();
+            setState(473);
+            _errHandler->sync(this);
+            _la = _input->LA(1);
+            while (_la == originirParser::COMMA) {
+                setState(469);
+                match(originirParser::COMMA);
+                setState(470);
+                q_KEY_declaration();
+                setState(475);
+                _errHandler->sync(this);
+                _la = _input->LA(1);
+            }
+            break;
+        }
+
+        case originirParser::Identifier: {
+            enterOuterAlt(_localctx, 2);
+            setState(476);
+            match(originirParser::Identifier);
+            setState(481);
+            _errHandler->sync(this);
+            _la = _input->LA(1);
+            while (_la == originirParser::COMMA) {
+                setState(477);
+                match(originirParser::COMMA);
+                setState(478);
+                match(originirParser::Identifier);
+                setState(483);
+                _errHandler->sync(this);
+                _la = _input->LA(1);
+            }
+            break;
+        }
+
+        default:
+            throw NoViableAltException(this);
+        }
+
     }
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
+    }
 
-  return _localctx;
-}
+    return _localctx;
+        }
 
 //----------------- StatementContext ------------------------------------------------------------------
 
-originirParser::StatementContext::StatementContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::StatementContext::StatementContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 originirParser::Quantum_gate_declarationContext* originirParser::StatementContext::quantum_gate_declaration() {
-  return getRuleContext<originirParser::Quantum_gate_declarationContext>(0);
+    return getRuleContext<originirParser::Quantum_gate_declarationContext>(0);
 }
 
 tree::TerminalNode* originirParser::StatementContext::NEWLINE() {
-  return getToken(originirParser::NEWLINE, 0);
+    return getToken(originirParser::NEWLINE, 0);
 }
 
 originirParser::Control_statementContext* originirParser::StatementContext::control_statement() {
-  return getRuleContext<originirParser::Control_statementContext>(0);
+    return getRuleContext<originirParser::Control_statementContext>(0);
 }
 
 originirParser::Qif_statementContext* originirParser::StatementContext::qif_statement() {
-  return getRuleContext<originirParser::Qif_statementContext>(0);
+    return getRuleContext<originirParser::Qif_statementContext>(0);
 }
 
 originirParser::Qwhile_statementContext* originirParser::StatementContext::qwhile_statement() {
-  return getRuleContext<originirParser::Qwhile_statementContext>(0);
+    return getRuleContext<originirParser::Qwhile_statementContext>(0);
 }
 
 originirParser::Dagger_statementContext* originirParser::StatementContext::dagger_statement() {
-  return getRuleContext<originirParser::Dagger_statementContext>(0);
+    return getRuleContext<originirParser::Dagger_statementContext>(0);
 }
 
 originirParser::Measure_statementContext* originirParser::StatementContext::measure_statement() {
-  return getRuleContext<originirParser::Measure_statementContext>(0);
+    return getRuleContext<originirParser::Measure_statementContext>(0);
 }
 
 originirParser::Reset_statementContext* originirParser::StatementContext::reset_statement() {
-  return getRuleContext<originirParser::Reset_statementContext>(0);
+    return getRuleContext<originirParser::Reset_statementContext>(0);
 }
 
 originirParser::Expression_statementContext* originirParser::StatementContext::expression_statement() {
-  return getRuleContext<originirParser::Expression_statementContext>(0);
+    return getRuleContext<originirParser::Expression_statementContext>(0);
 }
 
 originirParser::Barrier_statementContext* originirParser::StatementContext::barrier_statement() {
-  return getRuleContext<originirParser::Barrier_statementContext>(0);
+    return getRuleContext<originirParser::Barrier_statementContext>(0);
 }
 
 originirParser::Gate_func_statementContext* originirParser::StatementContext::gate_func_statement() {
-  return getRuleContext<originirParser::Gate_func_statementContext>(0);
+    return getRuleContext<originirParser::Gate_func_statementContext>(0);
 }
 
 
 size_t originirParser::StatementContext::getRuleIndex() const {
-  return originirParser::RuleStatement;
+    return originirParser::RuleStatement;
 }
 
-void originirParser::StatementContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterStatement(this);
+void originirParser::StatementContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterStatement(this);
 }
 
-void originirParser::StatementContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitStatement(this);
+void originirParser::StatementContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitStatement(this);
 }
 
 
-antlrcpp::Any originirParser::StatementContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitStatement(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::StatementContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitStatement(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 originirParser::StatementContext* originirParser::statement() {
-  StatementContext *_localctx = _tracker.createInstance<StatementContext>(_ctx, getState());
-  enterRule(_localctx, 76, originirParser::RuleStatement);
+    StatementContext* _localctx = _tracker.createInstance<StatementContext>(_ctx, getState());
+    enterRule(_localctx, 76, originirParser::RuleStatement);
 
-  auto onExit = finally([=] {
-    exitRule();
-  });
-  try {
-    setState(464);
-    _errHandler->sync(this);
-    switch (_input->LA(1)) {
-      case originirParser::ECHO_GATE:
-      case originirParser::H_GATE:
-      case originirParser::X_GATE:
-      case originirParser::T_GATE:
-      case originirParser::S_GATE:
-      case originirParser::Y_GATE:
-      case originirParser::Z_GATE:
-      case originirParser::X1_GATE:
-      case originirParser::Y1_GATE:
-      case originirParser::Z1_GATE:
-      case originirParser::I_GATE:
-      case originirParser::U2_GATE:
-      case originirParser::RPHI_GATE:
-      case originirParser::U3_GATE:
-      case originirParser::U4_GATE:
-      case originirParser::RX_GATE:
-      case originirParser::RY_GATE:
-      case originirParser::RZ_GATE:
-      case originirParser::U1_GATE:
-      case originirParser::CNOT_GATE:
-      case originirParser::CZ_GATE:
-      case originirParser::CU_GATE:
-      case originirParser::ISWAP_GATE:
-      case originirParser::SQISWAP_GATE:
-      case originirParser::SWAPZ1_GATE:
-      case originirParser::ISWAPTHETA_GATE:
-      case originirParser::CR_GATE:
-      case originirParser::TOFFOLI_GATE:
-      case originirParser::Identifier: {
-        enterOuterAlt(_localctx, 1);
-        setState(452);
-        quantum_gate_declaration();
-        setState(453);
-        match(originirParser::NEWLINE);
-        break;
-      }
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        setState(498);
+        _errHandler->sync(this);
+        switch (_input->LA(1)) {
+        case originirParser::ECHO_GATE:
+        case originirParser::H_GATE:
+        case originirParser::X_GATE:
+        case originirParser::T_GATE:
+        case originirParser::S_GATE:
+        case originirParser::Y_GATE:
+        case originirParser::Z_GATE:
+        case originirParser::X1_GATE:
+        case originirParser::Y1_GATE:
+        case originirParser::Z1_GATE:
+        case originirParser::I_GATE:
+        case originirParser::U2_GATE:
+        case originirParser::RPHI_GATE:
+        case originirParser::U3_GATE:
+        case originirParser::U4_GATE:
+        case originirParser::RX_GATE:
+        case originirParser::RY_GATE:
+        case originirParser::RZ_GATE:
+        case originirParser::U1_GATE:
+        case originirParser::CNOT_GATE:
+        case originirParser::CZ_GATE:
+        case originirParser::CU_GATE:
+        case originirParser::ISWAP_GATE:
+        case originirParser::SQISWAP_GATE:
+        case originirParser::SWAPZ1_GATE:
+        case originirParser::ISWAPTHETA_GATE:
+        case originirParser::CR_GATE:
+        case originirParser::TOFFOLI_GATE:
+        case originirParser::Identifier: {
+            enterOuterAlt(_localctx, 1);
+            setState(486);
+            quantum_gate_declaration();
+            setState(487);
+            match(originirParser::NEWLINE);
+            break;
+        }
 
-      case originirParser::CONTROL_KEY: {
-        enterOuterAlt(_localctx, 2);
-        setState(455);
-        control_statement();
-        break;
-      }
+        case originirParser::CONTROL_KEY: {
+            enterOuterAlt(_localctx, 2);
+            setState(489);
+            control_statement();
+            break;
+        }
 
-      case originirParser::QIF_KEY: {
-        enterOuterAlt(_localctx, 3);
-        setState(456);
-        qif_statement();
-        break;
-      }
+        case originirParser::QIF_KEY: {
+            enterOuterAlt(_localctx, 3);
+            setState(490);
+            qif_statement();
+            break;
+        }
 
-      case originirParser::QWHILE_KEY: {
-        enterOuterAlt(_localctx, 4);
-        setState(457);
-        qwhile_statement();
-        break;
-      }
+        case originirParser::QWHILE_KEY: {
+            enterOuterAlt(_localctx, 4);
+            setState(491);
+            qwhile_statement();
+            break;
+        }
 
-      case originirParser::DAGGER_KEY: {
-        enterOuterAlt(_localctx, 5);
-        setState(458);
-        dagger_statement();
-        break;
-      }
+        case originirParser::DAGGER_KEY: {
+            enterOuterAlt(_localctx, 5);
+            setState(492);
+            dagger_statement();
+            break;
+        }
 
-      case originirParser::MEASURE_KEY: {
-        enterOuterAlt(_localctx, 6);
-        setState(459);
-        measure_statement();
-        break;
-      }
+        case originirParser::MEASURE_KEY: {
+            enterOuterAlt(_localctx, 6);
+            setState(493);
+            measure_statement();
+            break;
+        }
 
-      case originirParser::RESET_KEY: {
-        enterOuterAlt(_localctx, 7);
-        setState(460);
-        reset_statement();
-        break;
-      }
+        case originirParser::RESET_KEY: {
+            enterOuterAlt(_localctx, 7);
+            setState(494);
+            reset_statement();
+            break;
+        }
 
-      case originirParser::PI:
-      case originirParser::C_KEY:
-      case originirParser::NOT:
-      case originirParser::PLUS:
-      case originirParser::MINUS:
-      case originirParser::LPAREN:
-      case originirParser::Integer_Literal:
-      case originirParser::Double_Literal: {
-        enterOuterAlt(_localctx, 8);
-        setState(461);
-        expression_statement();
-        break;
-      }
+        case originirParser::PI:
+        case originirParser::C_KEY:
+        case originirParser::NOT:
+        case originirParser::PLUS:
+        case originirParser::MINUS:
+        case originirParser::LPAREN:
+        case originirParser::Integer_Literal:
+        case originirParser::Double_Literal: {
+            enterOuterAlt(_localctx, 8);
+            setState(495);
+            expression_statement();
+            break;
+        }
 
-      case originirParser::BARRIER_KEY: {
-        enterOuterAlt(_localctx, 9);
-        setState(462);
-        barrier_statement();
-        break;
-      }
+        case originirParser::BARRIER_KEY: {
+            enterOuterAlt(_localctx, 9);
+            setState(496);
+            barrier_statement();
+            break;
+        }
 
-      case originirParser::QGATE_KEY: {
-        enterOuterAlt(_localctx, 10);
-        setState(463);
-        gate_func_statement();
-        break;
-      }
+        case originirParser::QGATE_KEY: {
+            enterOuterAlt(_localctx, 10);
+            setState(497);
+            gate_func_statement();
+            break;
+        }
 
-    default:
-      throw NoViableAltException(this);
+        default:
+            throw NoViableAltException(this);
+        }
+
     }
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
+    }
 
-  return _localctx;
-}
+    return _localctx;
+        }
 
 //----------------- Dagger_statementContext ------------------------------------------------------------------
 
-originirParser::Dagger_statementContext::Dagger_statementContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::Dagger_statementContext::Dagger_statementContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 tree::TerminalNode* originirParser::Dagger_statementContext::DAGGER_KEY() {
-  return getToken(originirParser::DAGGER_KEY, 0);
+    return getToken(originirParser::DAGGER_KEY, 0);
 }
 
-std::vector<tree::TerminalNode *> originirParser::Dagger_statementContext::NEWLINE() {
-  return getTokens(originirParser::NEWLINE);
+std::vector<tree::TerminalNode*> originirParser::Dagger_statementContext::NEWLINE() {
+    return getTokens(originirParser::NEWLINE);
 }
 
 tree::TerminalNode* originirParser::Dagger_statementContext::NEWLINE(size_t i) {
-  return getToken(originirParser::NEWLINE, i);
+    return getToken(originirParser::NEWLINE, i);
 }
 
 tree::TerminalNode* originirParser::Dagger_statementContext::ENDDAGGER_KEY() {
-  return getToken(originirParser::ENDDAGGER_KEY, 0);
+    return getToken(originirParser::ENDDAGGER_KEY, 0);
 }
 
-std::vector<originirParser::StatementContext *> originirParser::Dagger_statementContext::statement() {
-  return getRuleContexts<originirParser::StatementContext>();
+std::vector<originirParser::StatementContext*> originirParser::Dagger_statementContext::statement() {
+    return getRuleContexts<originirParser::StatementContext>();
 }
 
 originirParser::StatementContext* originirParser::Dagger_statementContext::statement(size_t i) {
-  return getRuleContext<originirParser::StatementContext>(i);
+    return getRuleContext<originirParser::StatementContext>(i);
 }
 
 
 size_t originirParser::Dagger_statementContext::getRuleIndex() const {
-  return originirParser::RuleDagger_statement;
+    return originirParser::RuleDagger_statement;
 }
 
-void originirParser::Dagger_statementContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterDagger_statement(this);
+void originirParser::Dagger_statementContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterDagger_statement(this);
 }
 
-void originirParser::Dagger_statementContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitDagger_statement(this);
+void originirParser::Dagger_statementContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitDagger_statement(this);
 }
 
 
-antlrcpp::Any originirParser::Dagger_statementContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitDagger_statement(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::Dagger_statementContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitDagger_statement(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 originirParser::Dagger_statementContext* originirParser::dagger_statement() {
-  Dagger_statementContext *_localctx = _tracker.createInstance<Dagger_statementContext>(_ctx, getState());
-  enterRule(_localctx, 78, originirParser::RuleDagger_statement);
-  size_t _la = 0;
+    Dagger_statementContext* _localctx = _tracker.createInstance<Dagger_statementContext>(_ctx, getState());
+    enterRule(_localctx, 78, originirParser::RuleDagger_statement);
+    size_t _la = 0;
 
-  auto onExit = finally([=] {
-    exitRule();
-  });
-  try {
-    enterOuterAlt(_localctx, 1);
-    setState(466);
-    match(originirParser::DAGGER_KEY);
-    setState(467);
-    match(originirParser::NEWLINE);
-    setState(471);
-    _errHandler->sync(this);
-    _la = _input->LA(1);
-    while ((((_la & ~ 0x3fULL) == 0) &&
-      ((1ULL << _la) & ((1ULL << originirParser::PI)
-      | (1ULL << originirParser::C_KEY)
-      | (1ULL << originirParser::BARRIER_KEY)
-      | (1ULL << originirParser::QGATE_KEY)
-      | (1ULL << originirParser::ECHO_GATE)
-      | (1ULL << originirParser::H_GATE)
-      | (1ULL << originirParser::X_GATE)
-      | (1ULL << originirParser::T_GATE)
-      | (1ULL << originirParser::S_GATE)
-      | (1ULL << originirParser::Y_GATE)
-      | (1ULL << originirParser::Z_GATE)
-      | (1ULL << originirParser::X1_GATE)
-      | (1ULL << originirParser::Y1_GATE)
-      | (1ULL << originirParser::Z1_GATE)
-      | (1ULL << originirParser::I_GATE)
-      | (1ULL << originirParser::U2_GATE)
-      | (1ULL << originirParser::RPHI_GATE)
-      | (1ULL << originirParser::U3_GATE)
-      | (1ULL << originirParser::U4_GATE)
-      | (1ULL << originirParser::RX_GATE)
-      | (1ULL << originirParser::RY_GATE)
-      | (1ULL << originirParser::RZ_GATE)
-      | (1ULL << originirParser::U1_GATE)
-      | (1ULL << originirParser::CNOT_GATE)
-      | (1ULL << originirParser::CZ_GATE)
-      | (1ULL << originirParser::CU_GATE)
-      | (1ULL << originirParser::ISWAP_GATE)
-      | (1ULL << originirParser::SQISWAP_GATE)
-      | (1ULL << originirParser::SWAPZ1_GATE)
-      | (1ULL << originirParser::ISWAPTHETA_GATE)
-      | (1ULL << originirParser::CR_GATE)
-      | (1ULL << originirParser::TOFFOLI_GATE)
-      | (1ULL << originirParser::DAGGER_KEY)
-      | (1ULL << originirParser::CONTROL_KEY)
-      | (1ULL << originirParser::QIF_KEY)
-      | (1ULL << originirParser::QWHILE_KEY)
-      | (1ULL << originirParser::MEASURE_KEY)
-      | (1ULL << originirParser::RESET_KEY)
-      | (1ULL << originirParser::NOT)
-      | (1ULL << originirParser::PLUS)
-      | (1ULL << originirParser::MINUS))) != 0) || ((((_la - 64) & ~ 0x3fULL) == 0) &&
-      ((1ULL << (_la - 64)) & ((1ULL << (originirParser::LPAREN - 64))
-      | (1ULL << (originirParser::Identifier - 64))
-      | (1ULL << (originirParser::Integer_Literal - 64))
-      | (1ULL << (originirParser::Double_Literal - 64)))) != 0)) {
-      setState(468);
-      statement();
-      setState(473);
-      _errHandler->sync(this);
-      _la = _input->LA(1);
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        enterOuterAlt(_localctx, 1);
+        setState(500);
+        match(originirParser::DAGGER_KEY);
+        setState(501);
+        match(originirParser::NEWLINE);
+        setState(505);
+        _errHandler->sync(this);
+        _la = _input->LA(1);
+        while ((((_la & ~0x3fULL) == 0) &&
+            ((1ULL << _la) & ((1ULL << originirParser::PI)
+                | (1ULL << originirParser::C_KEY)
+                | (1ULL << originirParser::BARRIER_KEY)
+                | (1ULL << originirParser::QGATE_KEY)
+                | (1ULL << originirParser::ECHO_GATE)
+                | (1ULL << originirParser::H_GATE)
+                | (1ULL << originirParser::X_GATE)
+                | (1ULL << originirParser::T_GATE)
+                | (1ULL << originirParser::S_GATE)
+                | (1ULL << originirParser::Y_GATE)
+                | (1ULL << originirParser::Z_GATE)
+                | (1ULL << originirParser::X1_GATE)
+                | (1ULL << originirParser::Y1_GATE)
+                | (1ULL << originirParser::Z1_GATE)
+                | (1ULL << originirParser::I_GATE)
+                | (1ULL << originirParser::U2_GATE)
+                | (1ULL << originirParser::RPHI_GATE)
+                | (1ULL << originirParser::U3_GATE)
+                | (1ULL << originirParser::U4_GATE)
+                | (1ULL << originirParser::RX_GATE)
+                | (1ULL << originirParser::RY_GATE)
+                | (1ULL << originirParser::RZ_GATE)
+                | (1ULL << originirParser::U1_GATE)
+                | (1ULL << originirParser::CNOT_GATE)
+                | (1ULL << originirParser::CZ_GATE)
+                | (1ULL << originirParser::CU_GATE)
+                | (1ULL << originirParser::ISWAP_GATE)
+                | (1ULL << originirParser::SQISWAP_GATE)
+                | (1ULL << originirParser::SWAPZ1_GATE)
+                | (1ULL << originirParser::ISWAPTHETA_GATE)
+                | (1ULL << originirParser::CR_GATE)
+                | (1ULL << originirParser::TOFFOLI_GATE)
+                | (1ULL << originirParser::DAGGER_KEY)
+                | (1ULL << originirParser::CONTROL_KEY)
+                | (1ULL << originirParser::QIF_KEY)
+                | (1ULL << originirParser::QWHILE_KEY)
+                | (1ULL << originirParser::MEASURE_KEY)
+                | (1ULL << originirParser::RESET_KEY)
+                | (1ULL << originirParser::NOT)
+                | (1ULL << originirParser::PLUS)
+                | (1ULL << originirParser::MINUS))) != 0) || ((((_la - 64) & ~0x3fULL) == 0) &&
+                    ((1ULL << (_la - 64)) & ((1ULL << (originirParser::LPAREN - 64))
+                        | (1ULL << (originirParser::Identifier - 64))
+                        | (1ULL << (originirParser::Integer_Literal - 64))
+                        | (1ULL << (originirParser::Double_Literal - 64)))) != 0)) {
+            setState(502);
+            statement();
+            setState(507);
+            _errHandler->sync(this);
+            _la = _input->LA(1);
+        }
+        setState(508);
+        match(originirParser::ENDDAGGER_KEY);
+        setState(509);
+        match(originirParser::NEWLINE);
+
     }
-    setState(474);
-    match(originirParser::ENDDAGGER_KEY);
-    setState(475);
-    match(originirParser::NEWLINE);
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
+    }
 
-  return _localctx;
-}
+    return _localctx;
+        }
 
 //----------------- Control_statementContext ------------------------------------------------------------------
 
-originirParser::Control_statementContext::Control_statementContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::Control_statementContext::Control_statementContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 tree::TerminalNode* originirParser::Control_statementContext::CONTROL_KEY() {
-  return getToken(originirParser::CONTROL_KEY, 0);
+    return getToken(originirParser::CONTROL_KEY, 0);
 }
 
 originirParser::Controlbit_listContext* originirParser::Control_statementContext::controlbit_list() {
-  return getRuleContext<originirParser::Controlbit_listContext>(0);
+    return getRuleContext<originirParser::Controlbit_listContext>(0);
 }
 
-std::vector<tree::TerminalNode *> originirParser::Control_statementContext::NEWLINE() {
-  return getTokens(originirParser::NEWLINE);
+std::vector<tree::TerminalNode*> originirParser::Control_statementContext::NEWLINE() {
+    return getTokens(originirParser::NEWLINE);
 }
 
 tree::TerminalNode* originirParser::Control_statementContext::NEWLINE(size_t i) {
-  return getToken(originirParser::NEWLINE, i);
+    return getToken(originirParser::NEWLINE, i);
 }
 
 tree::TerminalNode* originirParser::Control_statementContext::ENDCONTROL_KEY() {
-  return getToken(originirParser::ENDCONTROL_KEY, 0);
+    return getToken(originirParser::ENDCONTROL_KEY, 0);
 }
 
-std::vector<originirParser::StatementContext *> originirParser::Control_statementContext::statement() {
-  return getRuleContexts<originirParser::StatementContext>();
+std::vector<originirParser::StatementContext*> originirParser::Control_statementContext::statement() {
+    return getRuleContexts<originirParser::StatementContext>();
 }
 
 originirParser::StatementContext* originirParser::Control_statementContext::statement(size_t i) {
-  return getRuleContext<originirParser::StatementContext>(i);
+    return getRuleContext<originirParser::StatementContext>(i);
 }
 
 
 size_t originirParser::Control_statementContext::getRuleIndex() const {
-  return originirParser::RuleControl_statement;
+    return originirParser::RuleControl_statement;
 }
 
-void originirParser::Control_statementContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterControl_statement(this);
+void originirParser::Control_statementContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterControl_statement(this);
 }
 
-void originirParser::Control_statementContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitControl_statement(this);
+void originirParser::Control_statementContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitControl_statement(this);
 }
 
 
-antlrcpp::Any originirParser::Control_statementContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitControl_statement(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::Control_statementContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitControl_statement(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 originirParser::Control_statementContext* originirParser::control_statement() {
-  Control_statementContext *_localctx = _tracker.createInstance<Control_statementContext>(_ctx, getState());
-  enterRule(_localctx, 80, originirParser::RuleControl_statement);
-  size_t _la = 0;
+    Control_statementContext* _localctx = _tracker.createInstance<Control_statementContext>(_ctx, getState());
+    enterRule(_localctx, 80, originirParser::RuleControl_statement);
+    size_t _la = 0;
 
-  auto onExit = finally([=] {
-    exitRule();
-  });
-  try {
-    enterOuterAlt(_localctx, 1);
-    setState(477);
-    match(originirParser::CONTROL_KEY);
-    setState(478);
-    controlbit_list();
-    setState(479);
-    match(originirParser::NEWLINE);
-    setState(483);
-    _errHandler->sync(this);
-    _la = _input->LA(1);
-    while ((((_la & ~ 0x3fULL) == 0) &&
-      ((1ULL << _la) & ((1ULL << originirParser::PI)
-      | (1ULL << originirParser::C_KEY)
-      | (1ULL << originirParser::BARRIER_KEY)
-      | (1ULL << originirParser::QGATE_KEY)
-      | (1ULL << originirParser::ECHO_GATE)
-      | (1ULL << originirParser::H_GATE)
-      | (1ULL << originirParser::X_GATE)
-      | (1ULL << originirParser::T_GATE)
-      | (1ULL << originirParser::S_GATE)
-      | (1ULL << originirParser::Y_GATE)
-      | (1ULL << originirParser::Z_GATE)
-      | (1ULL << originirParser::X1_GATE)
-      | (1ULL << originirParser::Y1_GATE)
-      | (1ULL << originirParser::Z1_GATE)
-      | (1ULL << originirParser::I_GATE)
-      | (1ULL << originirParser::U2_GATE)
-      | (1ULL << originirParser::RPHI_GATE)
-      | (1ULL << originirParser::U3_GATE)
-      | (1ULL << originirParser::U4_GATE)
-      | (1ULL << originirParser::RX_GATE)
-      | (1ULL << originirParser::RY_GATE)
-      | (1ULL << originirParser::RZ_GATE)
-      | (1ULL << originirParser::U1_GATE)
-      | (1ULL << originirParser::CNOT_GATE)
-      | (1ULL << originirParser::CZ_GATE)
-      | (1ULL << originirParser::CU_GATE)
-      | (1ULL << originirParser::ISWAP_GATE)
-      | (1ULL << originirParser::SQISWAP_GATE)
-      | (1ULL << originirParser::SWAPZ1_GATE)
-      | (1ULL << originirParser::ISWAPTHETA_GATE)
-      | (1ULL << originirParser::CR_GATE)
-      | (1ULL << originirParser::TOFFOLI_GATE)
-      | (1ULL << originirParser::DAGGER_KEY)
-      | (1ULL << originirParser::CONTROL_KEY)
-      | (1ULL << originirParser::QIF_KEY)
-      | (1ULL << originirParser::QWHILE_KEY)
-      | (1ULL << originirParser::MEASURE_KEY)
-      | (1ULL << originirParser::RESET_KEY)
-      | (1ULL << originirParser::NOT)
-      | (1ULL << originirParser::PLUS)
-      | (1ULL << originirParser::MINUS))) != 0) || ((((_la - 64) & ~ 0x3fULL) == 0) &&
-      ((1ULL << (_la - 64)) & ((1ULL << (originirParser::LPAREN - 64))
-      | (1ULL << (originirParser::Identifier - 64))
-      | (1ULL << (originirParser::Integer_Literal - 64))
-      | (1ULL << (originirParser::Double_Literal - 64)))) != 0)) {
-      setState(480);
-      statement();
-      setState(485);
-      _errHandler->sync(this);
-      _la = _input->LA(1);
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        enterOuterAlt(_localctx, 1);
+        setState(511);
+        match(originirParser::CONTROL_KEY);
+        setState(512);
+        controlbit_list();
+        setState(513);
+        match(originirParser::NEWLINE);
+        setState(517);
+        _errHandler->sync(this);
+        _la = _input->LA(1);
+        while ((((_la & ~0x3fULL) == 0) &&
+            ((1ULL << _la) & ((1ULL << originirParser::PI)
+                | (1ULL << originirParser::C_KEY)
+                | (1ULL << originirParser::BARRIER_KEY)
+                | (1ULL << originirParser::QGATE_KEY)
+                | (1ULL << originirParser::ECHO_GATE)
+                | (1ULL << originirParser::H_GATE)
+                | (1ULL << originirParser::X_GATE)
+                | (1ULL << originirParser::T_GATE)
+                | (1ULL << originirParser::S_GATE)
+                | (1ULL << originirParser::Y_GATE)
+                | (1ULL << originirParser::Z_GATE)
+                | (1ULL << originirParser::X1_GATE)
+                | (1ULL << originirParser::Y1_GATE)
+                | (1ULL << originirParser::Z1_GATE)
+                | (1ULL << originirParser::I_GATE)
+                | (1ULL << originirParser::U2_GATE)
+                | (1ULL << originirParser::RPHI_GATE)
+                | (1ULL << originirParser::U3_GATE)
+                | (1ULL << originirParser::U4_GATE)
+                | (1ULL << originirParser::RX_GATE)
+                | (1ULL << originirParser::RY_GATE)
+                | (1ULL << originirParser::RZ_GATE)
+                | (1ULL << originirParser::U1_GATE)
+                | (1ULL << originirParser::CNOT_GATE)
+                | (1ULL << originirParser::CZ_GATE)
+                | (1ULL << originirParser::CU_GATE)
+                | (1ULL << originirParser::ISWAP_GATE)
+                | (1ULL << originirParser::SQISWAP_GATE)
+                | (1ULL << originirParser::SWAPZ1_GATE)
+                | (1ULL << originirParser::ISWAPTHETA_GATE)
+                | (1ULL << originirParser::CR_GATE)
+                | (1ULL << originirParser::TOFFOLI_GATE)
+                | (1ULL << originirParser::DAGGER_KEY)
+                | (1ULL << originirParser::CONTROL_KEY)
+                | (1ULL << originirParser::QIF_KEY)
+                | (1ULL << originirParser::QWHILE_KEY)
+                | (1ULL << originirParser::MEASURE_KEY)
+                | (1ULL << originirParser::RESET_KEY)
+                | (1ULL << originirParser::NOT)
+                | (1ULL << originirParser::PLUS)
+                | (1ULL << originirParser::MINUS))) != 0) || ((((_la - 64) & ~0x3fULL) == 0) &&
+                    ((1ULL << (_la - 64)) & ((1ULL << (originirParser::LPAREN - 64))
+                        | (1ULL << (originirParser::Identifier - 64))
+                        | (1ULL << (originirParser::Integer_Literal - 64))
+                        | (1ULL << (originirParser::Double_Literal - 64)))) != 0)) {
+            setState(514);
+            statement();
+            setState(519);
+            _errHandler->sync(this);
+            _la = _input->LA(1);
+        }
+        setState(520);
+        match(originirParser::ENDCONTROL_KEY);
+        setState(521);
+        match(originirParser::NEWLINE);
+
     }
-    setState(486);
-    match(originirParser::ENDCONTROL_KEY);
-    setState(487);
-    match(originirParser::NEWLINE);
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
+    }
 
-  return _localctx;
-}
+    return _localctx;
+        }
 
 //----------------- Qelse_statement_fragmentContext ------------------------------------------------------------------
 
-originirParser::Qelse_statement_fragmentContext::Qelse_statement_fragmentContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::Qelse_statement_fragmentContext::Qelse_statement_fragmentContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 tree::TerminalNode* originirParser::Qelse_statement_fragmentContext::ELSE_KEY() {
-  return getToken(originirParser::ELSE_KEY, 0);
+    return getToken(originirParser::ELSE_KEY, 0);
 }
 
 tree::TerminalNode* originirParser::Qelse_statement_fragmentContext::NEWLINE() {
-  return getToken(originirParser::NEWLINE, 0);
+    return getToken(originirParser::NEWLINE, 0);
 }
 
-std::vector<originirParser::StatementContext *> originirParser::Qelse_statement_fragmentContext::statement() {
-  return getRuleContexts<originirParser::StatementContext>();
+std::vector<originirParser::StatementContext*> originirParser::Qelse_statement_fragmentContext::statement() {
+    return getRuleContexts<originirParser::StatementContext>();
 }
 
 originirParser::StatementContext* originirParser::Qelse_statement_fragmentContext::statement(size_t i) {
-  return getRuleContext<originirParser::StatementContext>(i);
+    return getRuleContext<originirParser::StatementContext>(i);
 }
 
 
 size_t originirParser::Qelse_statement_fragmentContext::getRuleIndex() const {
-  return originirParser::RuleQelse_statement_fragment;
+    return originirParser::RuleQelse_statement_fragment;
 }
 
-void originirParser::Qelse_statement_fragmentContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterQelse_statement_fragment(this);
+void originirParser::Qelse_statement_fragmentContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterQelse_statement_fragment(this);
 }
 
-void originirParser::Qelse_statement_fragmentContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitQelse_statement_fragment(this);
+void originirParser::Qelse_statement_fragmentContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitQelse_statement_fragment(this);
 }
 
 
-antlrcpp::Any originirParser::Qelse_statement_fragmentContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitQelse_statement_fragment(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::Qelse_statement_fragmentContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitQelse_statement_fragment(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 originirParser::Qelse_statement_fragmentContext* originirParser::qelse_statement_fragment() {
-  Qelse_statement_fragmentContext *_localctx = _tracker.createInstance<Qelse_statement_fragmentContext>(_ctx, getState());
-  enterRule(_localctx, 82, originirParser::RuleQelse_statement_fragment);
-  size_t _la = 0;
+    Qelse_statement_fragmentContext* _localctx = _tracker.createInstance<Qelse_statement_fragmentContext>(_ctx, getState());
+    enterRule(_localctx, 82, originirParser::RuleQelse_statement_fragment);
+    size_t _la = 0;
 
-  auto onExit = finally([=] {
-    exitRule();
-  });
-  try {
-    enterOuterAlt(_localctx, 1);
-    setState(489);
-    match(originirParser::ELSE_KEY);
-    setState(490);
-    match(originirParser::NEWLINE);
-    setState(494);
-    _errHandler->sync(this);
-    _la = _input->LA(1);
-    while ((((_la & ~ 0x3fULL) == 0) &&
-      ((1ULL << _la) & ((1ULL << originirParser::PI)
-      | (1ULL << originirParser::C_KEY)
-      | (1ULL << originirParser::BARRIER_KEY)
-      | (1ULL << originirParser::QGATE_KEY)
-      | (1ULL << originirParser::ECHO_GATE)
-      | (1ULL << originirParser::H_GATE)
-      | (1ULL << originirParser::X_GATE)
-      | (1ULL << originirParser::T_GATE)
-      | (1ULL << originirParser::S_GATE)
-      | (1ULL << originirParser::Y_GATE)
-      | (1ULL << originirParser::Z_GATE)
-      | (1ULL << originirParser::X1_GATE)
-      | (1ULL << originirParser::Y1_GATE)
-      | (1ULL << originirParser::Z1_GATE)
-      | (1ULL << originirParser::I_GATE)
-      | (1ULL << originirParser::U2_GATE)
-      | (1ULL << originirParser::RPHI_GATE)
-      | (1ULL << originirParser::U3_GATE)
-      | (1ULL << originirParser::U4_GATE)
-      | (1ULL << originirParser::RX_GATE)
-      | (1ULL << originirParser::RY_GATE)
-      | (1ULL << originirParser::RZ_GATE)
-      | (1ULL << originirParser::U1_GATE)
-      | (1ULL << originirParser::CNOT_GATE)
-      | (1ULL << originirParser::CZ_GATE)
-      | (1ULL << originirParser::CU_GATE)
-      | (1ULL << originirParser::ISWAP_GATE)
-      | (1ULL << originirParser::SQISWAP_GATE)
-      | (1ULL << originirParser::SWAPZ1_GATE)
-      | (1ULL << originirParser::ISWAPTHETA_GATE)
-      | (1ULL << originirParser::CR_GATE)
-      | (1ULL << originirParser::TOFFOLI_GATE)
-      | (1ULL << originirParser::DAGGER_KEY)
-      | (1ULL << originirParser::CONTROL_KEY)
-      | (1ULL << originirParser::QIF_KEY)
-      | (1ULL << originirParser::QWHILE_KEY)
-      | (1ULL << originirParser::MEASURE_KEY)
-      | (1ULL << originirParser::RESET_KEY)
-      | (1ULL << originirParser::NOT)
-      | (1ULL << originirParser::PLUS)
-      | (1ULL << originirParser::MINUS))) != 0) || ((((_la - 64) & ~ 0x3fULL) == 0) &&
-      ((1ULL << (_la - 64)) & ((1ULL << (originirParser::LPAREN - 64))
-      | (1ULL << (originirParser::Identifier - 64))
-      | (1ULL << (originirParser::Integer_Literal - 64))
-      | (1ULL << (originirParser::Double_Literal - 64)))) != 0)) {
-      setState(491);
-      statement();
-      setState(496);
-      _errHandler->sync(this);
-      _la = _input->LA(1);
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        enterOuterAlt(_localctx, 1);
+        setState(523);
+        match(originirParser::ELSE_KEY);
+        setState(524);
+        match(originirParser::NEWLINE);
+        setState(528);
+        _errHandler->sync(this);
+        _la = _input->LA(1);
+        while ((((_la & ~0x3fULL) == 0) &&
+            ((1ULL << _la) & ((1ULL << originirParser::PI)
+                | (1ULL << originirParser::C_KEY)
+                | (1ULL << originirParser::BARRIER_KEY)
+                | (1ULL << originirParser::QGATE_KEY)
+                | (1ULL << originirParser::ECHO_GATE)
+                | (1ULL << originirParser::H_GATE)
+                | (1ULL << originirParser::X_GATE)
+                | (1ULL << originirParser::T_GATE)
+                | (1ULL << originirParser::S_GATE)
+                | (1ULL << originirParser::Y_GATE)
+                | (1ULL << originirParser::Z_GATE)
+                | (1ULL << originirParser::X1_GATE)
+                | (1ULL << originirParser::Y1_GATE)
+                | (1ULL << originirParser::Z1_GATE)
+                | (1ULL << originirParser::I_GATE)
+                | (1ULL << originirParser::U2_GATE)
+                | (1ULL << originirParser::RPHI_GATE)
+                | (1ULL << originirParser::U3_GATE)
+                | (1ULL << originirParser::U4_GATE)
+                | (1ULL << originirParser::RX_GATE)
+                | (1ULL << originirParser::RY_GATE)
+                | (1ULL << originirParser::RZ_GATE)
+                | (1ULL << originirParser::U1_GATE)
+                | (1ULL << originirParser::CNOT_GATE)
+                | (1ULL << originirParser::CZ_GATE)
+                | (1ULL << originirParser::CU_GATE)
+                | (1ULL << originirParser::ISWAP_GATE)
+                | (1ULL << originirParser::SQISWAP_GATE)
+                | (1ULL << originirParser::SWAPZ1_GATE)
+                | (1ULL << originirParser::ISWAPTHETA_GATE)
+                | (1ULL << originirParser::CR_GATE)
+                | (1ULL << originirParser::TOFFOLI_GATE)
+                | (1ULL << originirParser::DAGGER_KEY)
+                | (1ULL << originirParser::CONTROL_KEY)
+                | (1ULL << originirParser::QIF_KEY)
+                | (1ULL << originirParser::QWHILE_KEY)
+                | (1ULL << originirParser::MEASURE_KEY)
+                | (1ULL << originirParser::RESET_KEY)
+                | (1ULL << originirParser::NOT)
+                | (1ULL << originirParser::PLUS)
+                | (1ULL << originirParser::MINUS))) != 0) || ((((_la - 64) & ~0x3fULL) == 0) &&
+                    ((1ULL << (_la - 64)) & ((1ULL << (originirParser::LPAREN - 64))
+                        | (1ULL << (originirParser::Identifier - 64))
+                        | (1ULL << (originirParser::Integer_Literal - 64))
+                        | (1ULL << (originirParser::Double_Literal - 64)))) != 0)) {
+            setState(525);
+            statement();
+            setState(530);
+            _errHandler->sync(this);
+            _la = _input->LA(1);
+        }
+
     }
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
+    }
 
-  return _localctx;
-}
+    return _localctx;
+        }
 
 //----------------- Qif_statementContext ------------------------------------------------------------------
 
-originirParser::Qif_statementContext::Qif_statementContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::Qif_statementContext::Qif_statementContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 
 size_t originirParser::Qif_statementContext::getRuleIndex() const {
-  return originirParser::RuleQif_statement;
+    return originirParser::RuleQif_statement;
 }
 
-void originirParser::Qif_statementContext::copyFrom(Qif_statementContext *ctx) {
-  ParserRuleContext::copyFrom(ctx);
+void originirParser::Qif_statementContext::copyFrom(Qif_statementContext * ctx) {
+    ParserRuleContext::copyFrom(ctx);
 }
 
 //----------------- Qif_ifContext ------------------------------------------------------------------
 
 tree::TerminalNode* originirParser::Qif_ifContext::QIF_KEY() {
-  return getToken(originirParser::QIF_KEY, 0);
+    return getToken(originirParser::QIF_KEY, 0);
 }
 
 originirParser::ExpressionContext* originirParser::Qif_ifContext::expression() {
-  return getRuleContext<originirParser::ExpressionContext>(0);
+    return getRuleContext<originirParser::ExpressionContext>(0);
 }
 
-std::vector<tree::TerminalNode *> originirParser::Qif_ifContext::NEWLINE() {
-  return getTokens(originirParser::NEWLINE);
+std::vector<tree::TerminalNode*> originirParser::Qif_ifContext::NEWLINE() {
+    return getTokens(originirParser::NEWLINE);
 }
 
 tree::TerminalNode* originirParser::Qif_ifContext::NEWLINE(size_t i) {
-  return getToken(originirParser::NEWLINE, i);
+    return getToken(originirParser::NEWLINE, i);
 }
 
 originirParser::Qelse_statement_fragmentContext* originirParser::Qif_ifContext::qelse_statement_fragment() {
-  return getRuleContext<originirParser::Qelse_statement_fragmentContext>(0);
+    return getRuleContext<originirParser::Qelse_statement_fragmentContext>(0);
 }
 
 tree::TerminalNode* originirParser::Qif_ifContext::ENDIF_KEY() {
-  return getToken(originirParser::ENDIF_KEY, 0);
+    return getToken(originirParser::ENDIF_KEY, 0);
 }
 
-std::vector<originirParser::StatementContext *> originirParser::Qif_ifContext::statement() {
-  return getRuleContexts<originirParser::StatementContext>();
+std::vector<originirParser::StatementContext*> originirParser::Qif_ifContext::statement() {
+    return getRuleContexts<originirParser::StatementContext>();
 }
 
 originirParser::StatementContext* originirParser::Qif_ifContext::statement(size_t i) {
-  return getRuleContext<originirParser::StatementContext>(i);
+    return getRuleContext<originirParser::StatementContext>(i);
 }
 
-originirParser::Qif_ifContext::Qif_ifContext(Qif_statementContext *ctx) { copyFrom(ctx); }
+originirParser::Qif_ifContext::Qif_ifContext(Qif_statementContext * ctx) { copyFrom(ctx); }
 
-void originirParser::Qif_ifContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterQif_if(this);
+void originirParser::Qif_ifContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterQif_if(this);
 }
-void originirParser::Qif_ifContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitQif_if(this);
+void originirParser::Qif_ifContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitQif_if(this);
 }
 
-antlrcpp::Any originirParser::Qif_ifContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitQif_if(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::Qif_ifContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitQif_if(this);
+    else
+        return visitor->visitChildren(this);
 }
 //----------------- Qif_ifelseContext ------------------------------------------------------------------
 
 tree::TerminalNode* originirParser::Qif_ifelseContext::QIF_KEY() {
-  return getToken(originirParser::QIF_KEY, 0);
+    return getToken(originirParser::QIF_KEY, 0);
 }
 
 originirParser::ExpressionContext* originirParser::Qif_ifelseContext::expression() {
-  return getRuleContext<originirParser::ExpressionContext>(0);
+    return getRuleContext<originirParser::ExpressionContext>(0);
 }
 
-std::vector<tree::TerminalNode *> originirParser::Qif_ifelseContext::NEWLINE() {
-  return getTokens(originirParser::NEWLINE);
+std::vector<tree::TerminalNode*> originirParser::Qif_ifelseContext::NEWLINE() {
+    return getTokens(originirParser::NEWLINE);
 }
 
 tree::TerminalNode* originirParser::Qif_ifelseContext::NEWLINE(size_t i) {
-  return getToken(originirParser::NEWLINE, i);
+    return getToken(originirParser::NEWLINE, i);
 }
 
 tree::TerminalNode* originirParser::Qif_ifelseContext::ENDIF_KEY() {
-  return getToken(originirParser::ENDIF_KEY, 0);
+    return getToken(originirParser::ENDIF_KEY, 0);
 }
 
-std::vector<originirParser::StatementContext *> originirParser::Qif_ifelseContext::statement() {
-  return getRuleContexts<originirParser::StatementContext>();
+std::vector<originirParser::StatementContext*> originirParser::Qif_ifelseContext::statement() {
+    return getRuleContexts<originirParser::StatementContext>();
 }
 
 originirParser::StatementContext* originirParser::Qif_ifelseContext::statement(size_t i) {
-  return getRuleContext<originirParser::StatementContext>(i);
+    return getRuleContext<originirParser::StatementContext>(i);
 }
 
-originirParser::Qif_ifelseContext::Qif_ifelseContext(Qif_statementContext *ctx) { copyFrom(ctx); }
+originirParser::Qif_ifelseContext::Qif_ifelseContext(Qif_statementContext * ctx) { copyFrom(ctx); }
 
-void originirParser::Qif_ifelseContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterQif_ifelse(this);
+void originirParser::Qif_ifelseContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterQif_ifelse(this);
 }
-void originirParser::Qif_ifelseContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitQif_ifelse(this);
+void originirParser::Qif_ifelseContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitQif_ifelse(this);
 }
 
-antlrcpp::Any originirParser::Qif_ifelseContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitQif_ifelse(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::Qif_ifelseContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitQif_ifelse(this);
+    else
+        return visitor->visitChildren(this);
 }
 originirParser::Qif_statementContext* originirParser::qif_statement() {
-  Qif_statementContext *_localctx = _tracker.createInstance<Qif_statementContext>(_ctx, getState());
-  enterRule(_localctx, 84, originirParser::RuleQif_statement);
-  size_t _la = 0;
+    Qif_statementContext* _localctx = _tracker.createInstance<Qif_statementContext>(_ctx, getState());
+    enterRule(_localctx, 84, originirParser::RuleQif_statement);
+    size_t _la = 0;
 
-  auto onExit = finally([=] {
-    exitRule();
-  });
-  try {
-    setState(522);
-    _errHandler->sync(this);
-    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 31, _ctx)) {
-    case 1: {
-      _localctx = dynamic_cast<Qif_statementContext *>(_tracker.createInstance<originirParser::Qif_ifContext>(_localctx));
-      enterOuterAlt(_localctx, 1);
-      setState(497);
-      match(originirParser::QIF_KEY);
-      setState(498);
-      expression();
-      setState(499);
-      match(originirParser::NEWLINE);
-      setState(503);
-      _errHandler->sync(this);
-      _la = _input->LA(1);
-      while ((((_la & ~ 0x3fULL) == 0) &&
-        ((1ULL << _la) & ((1ULL << originirParser::PI)
-        | (1ULL << originirParser::C_KEY)
-        | (1ULL << originirParser::BARRIER_KEY)
-        | (1ULL << originirParser::QGATE_KEY)
-        | (1ULL << originirParser::ECHO_GATE)
-        | (1ULL << originirParser::H_GATE)
-        | (1ULL << originirParser::X_GATE)
-        | (1ULL << originirParser::T_GATE)
-        | (1ULL << originirParser::S_GATE)
-        | (1ULL << originirParser::Y_GATE)
-        | (1ULL << originirParser::Z_GATE)
-        | (1ULL << originirParser::X1_GATE)
-        | (1ULL << originirParser::Y1_GATE)
-        | (1ULL << originirParser::Z1_GATE)
-        | (1ULL << originirParser::I_GATE)
-        | (1ULL << originirParser::U2_GATE)
-        | (1ULL << originirParser::RPHI_GATE)
-        | (1ULL << originirParser::U3_GATE)
-        | (1ULL << originirParser::U4_GATE)
-        | (1ULL << originirParser::RX_GATE)
-        | (1ULL << originirParser::RY_GATE)
-        | (1ULL << originirParser::RZ_GATE)
-        | (1ULL << originirParser::U1_GATE)
-        | (1ULL << originirParser::CNOT_GATE)
-        | (1ULL << originirParser::CZ_GATE)
-        | (1ULL << originirParser::CU_GATE)
-        | (1ULL << originirParser::ISWAP_GATE)
-        | (1ULL << originirParser::SQISWAP_GATE)
-        | (1ULL << originirParser::SWAPZ1_GATE)
-        | (1ULL << originirParser::ISWAPTHETA_GATE)
-        | (1ULL << originirParser::CR_GATE)
-        | (1ULL << originirParser::TOFFOLI_GATE)
-        | (1ULL << originirParser::DAGGER_KEY)
-        | (1ULL << originirParser::CONTROL_KEY)
-        | (1ULL << originirParser::QIF_KEY)
-        | (1ULL << originirParser::QWHILE_KEY)
-        | (1ULL << originirParser::MEASURE_KEY)
-        | (1ULL << originirParser::RESET_KEY)
-        | (1ULL << originirParser::NOT)
-        | (1ULL << originirParser::PLUS)
-        | (1ULL << originirParser::MINUS))) != 0) || ((((_la - 64) & ~ 0x3fULL) == 0) &&
-        ((1ULL << (_la - 64)) & ((1ULL << (originirParser::LPAREN - 64))
-        | (1ULL << (originirParser::Identifier - 64))
-        | (1ULL << (originirParser::Integer_Literal - 64))
-        | (1ULL << (originirParser::Double_Literal - 64)))) != 0)) {
-        setState(500);
-        statement();
-        setState(505);
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        setState(556);
         _errHandler->sync(this);
-        _la = _input->LA(1);
-      }
-      setState(506);
-      qelse_statement_fragment();
-      setState(507);
-      match(originirParser::ENDIF_KEY);
-      setState(508);
-      match(originirParser::NEWLINE);
-      break;
+        switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 36, _ctx)) {
+        case 1: {
+            _localctx = dynamic_cast<Qif_statementContext*>(_tracker.createInstance<originirParser::Qif_ifContext>(_localctx));
+            enterOuterAlt(_localctx, 1);
+            setState(531);
+            match(originirParser::QIF_KEY);
+            setState(532);
+            expression();
+            setState(533);
+            match(originirParser::NEWLINE);
+            setState(537);
+            _errHandler->sync(this);
+            _la = _input->LA(1);
+            while ((((_la & ~0x3fULL) == 0) &&
+                ((1ULL << _la) & ((1ULL << originirParser::PI)
+                    | (1ULL << originirParser::C_KEY)
+                    | (1ULL << originirParser::BARRIER_KEY)
+                    | (1ULL << originirParser::QGATE_KEY)
+                    | (1ULL << originirParser::ECHO_GATE)
+                    | (1ULL << originirParser::H_GATE)
+                    | (1ULL << originirParser::X_GATE)
+                    | (1ULL << originirParser::T_GATE)
+                    | (1ULL << originirParser::S_GATE)
+                    | (1ULL << originirParser::Y_GATE)
+                    | (1ULL << originirParser::Z_GATE)
+                    | (1ULL << originirParser::X1_GATE)
+                    | (1ULL << originirParser::Y1_GATE)
+                    | (1ULL << originirParser::Z1_GATE)
+                    | (1ULL << originirParser::I_GATE)
+                    | (1ULL << originirParser::U2_GATE)
+                    | (1ULL << originirParser::RPHI_GATE)
+                    | (1ULL << originirParser::U3_GATE)
+                    | (1ULL << originirParser::U4_GATE)
+                    | (1ULL << originirParser::RX_GATE)
+                    | (1ULL << originirParser::RY_GATE)
+                    | (1ULL << originirParser::RZ_GATE)
+                    | (1ULL << originirParser::U1_GATE)
+                    | (1ULL << originirParser::CNOT_GATE)
+                    | (1ULL << originirParser::CZ_GATE)
+                    | (1ULL << originirParser::CU_GATE)
+                    | (1ULL << originirParser::ISWAP_GATE)
+                    | (1ULL << originirParser::SQISWAP_GATE)
+                    | (1ULL << originirParser::SWAPZ1_GATE)
+                    | (1ULL << originirParser::ISWAPTHETA_GATE)
+                    | (1ULL << originirParser::CR_GATE)
+                    | (1ULL << originirParser::TOFFOLI_GATE)
+                    | (1ULL << originirParser::DAGGER_KEY)
+                    | (1ULL << originirParser::CONTROL_KEY)
+                    | (1ULL << originirParser::QIF_KEY)
+                    | (1ULL << originirParser::QWHILE_KEY)
+                    | (1ULL << originirParser::MEASURE_KEY)
+                    | (1ULL << originirParser::RESET_KEY)
+                    | (1ULL << originirParser::NOT)
+                    | (1ULL << originirParser::PLUS)
+                    | (1ULL << originirParser::MINUS))) != 0) || ((((_la - 64) & ~0x3fULL) == 0) &&
+                        ((1ULL << (_la - 64)) & ((1ULL << (originirParser::LPAREN - 64))
+                            | (1ULL << (originirParser::Identifier - 64))
+                            | (1ULL << (originirParser::Integer_Literal - 64))
+                            | (1ULL << (originirParser::Double_Literal - 64)))) != 0)) {
+                setState(534);
+                statement();
+                setState(539);
+                _errHandler->sync(this);
+                _la = _input->LA(1);
+            }
+            setState(540);
+            qelse_statement_fragment();
+            setState(541);
+            match(originirParser::ENDIF_KEY);
+            setState(542);
+            match(originirParser::NEWLINE);
+            break;
+        }
+
+        case 2: {
+            _localctx = dynamic_cast<Qif_statementContext*>(_tracker.createInstance<originirParser::Qif_ifelseContext>(_localctx));
+            enterOuterAlt(_localctx, 2);
+            setState(544);
+            match(originirParser::QIF_KEY);
+            setState(545);
+            expression();
+            setState(546);
+            match(originirParser::NEWLINE);
+            setState(550);
+            _errHandler->sync(this);
+            _la = _input->LA(1);
+            while ((((_la & ~0x3fULL) == 0) &&
+                ((1ULL << _la) & ((1ULL << originirParser::PI)
+                    | (1ULL << originirParser::C_KEY)
+                    | (1ULL << originirParser::BARRIER_KEY)
+                    | (1ULL << originirParser::QGATE_KEY)
+                    | (1ULL << originirParser::ECHO_GATE)
+                    | (1ULL << originirParser::H_GATE)
+                    | (1ULL << originirParser::X_GATE)
+                    | (1ULL << originirParser::T_GATE)
+                    | (1ULL << originirParser::S_GATE)
+                    | (1ULL << originirParser::Y_GATE)
+                    | (1ULL << originirParser::Z_GATE)
+                    | (1ULL << originirParser::X1_GATE)
+                    | (1ULL << originirParser::Y1_GATE)
+                    | (1ULL << originirParser::Z1_GATE)
+                    | (1ULL << originirParser::I_GATE)
+                    | (1ULL << originirParser::U2_GATE)
+                    | (1ULL << originirParser::RPHI_GATE)
+                    | (1ULL << originirParser::U3_GATE)
+                    | (1ULL << originirParser::U4_GATE)
+                    | (1ULL << originirParser::RX_GATE)
+                    | (1ULL << originirParser::RY_GATE)
+                    | (1ULL << originirParser::RZ_GATE)
+                    | (1ULL << originirParser::U1_GATE)
+                    | (1ULL << originirParser::CNOT_GATE)
+                    | (1ULL << originirParser::CZ_GATE)
+                    | (1ULL << originirParser::CU_GATE)
+                    | (1ULL << originirParser::ISWAP_GATE)
+                    | (1ULL << originirParser::SQISWAP_GATE)
+                    | (1ULL << originirParser::SWAPZ1_GATE)
+                    | (1ULL << originirParser::ISWAPTHETA_GATE)
+                    | (1ULL << originirParser::CR_GATE)
+                    | (1ULL << originirParser::TOFFOLI_GATE)
+                    | (1ULL << originirParser::DAGGER_KEY)
+                    | (1ULL << originirParser::CONTROL_KEY)
+                    | (1ULL << originirParser::QIF_KEY)
+                    | (1ULL << originirParser::QWHILE_KEY)
+                    | (1ULL << originirParser::MEASURE_KEY)
+                    | (1ULL << originirParser::RESET_KEY)
+                    | (1ULL << originirParser::NOT)
+                    | (1ULL << originirParser::PLUS)
+                    | (1ULL << originirParser::MINUS))) != 0) || ((((_la - 64) & ~0x3fULL) == 0) &&
+                        ((1ULL << (_la - 64)) & ((1ULL << (originirParser::LPAREN - 64))
+                            | (1ULL << (originirParser::Identifier - 64))
+                            | (1ULL << (originirParser::Integer_Literal - 64))
+                            | (1ULL << (originirParser::Double_Literal - 64)))) != 0)) {
+                setState(547);
+                statement();
+                setState(552);
+                _errHandler->sync(this);
+                _la = _input->LA(1);
+            }
+            setState(553);
+            match(originirParser::ENDIF_KEY);
+            setState(554);
+            match(originirParser::NEWLINE);
+            break;
+        }
+
+        default:
+            break;
+        }
+
+    }
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
     }
 
-    case 2: {
-      _localctx = dynamic_cast<Qif_statementContext *>(_tracker.createInstance<originirParser::Qif_ifelseContext>(_localctx));
-      enterOuterAlt(_localctx, 2);
-      setState(510);
-      match(originirParser::QIF_KEY);
-      setState(511);
-      expression();
-      setState(512);
-      match(originirParser::NEWLINE);
-      setState(516);
-      _errHandler->sync(this);
-      _la = _input->LA(1);
-      while ((((_la & ~ 0x3fULL) == 0) &&
-        ((1ULL << _la) & ((1ULL << originirParser::PI)
-        | (1ULL << originirParser::C_KEY)
-        | (1ULL << originirParser::BARRIER_KEY)
-        | (1ULL << originirParser::QGATE_KEY)
-        | (1ULL << originirParser::ECHO_GATE)
-        | (1ULL << originirParser::H_GATE)
-        | (1ULL << originirParser::X_GATE)
-        | (1ULL << originirParser::T_GATE)
-        | (1ULL << originirParser::S_GATE)
-        | (1ULL << originirParser::Y_GATE)
-        | (1ULL << originirParser::Z_GATE)
-        | (1ULL << originirParser::X1_GATE)
-        | (1ULL << originirParser::Y1_GATE)
-        | (1ULL << originirParser::Z1_GATE)
-        | (1ULL << originirParser::I_GATE)
-        | (1ULL << originirParser::U2_GATE)
-        | (1ULL << originirParser::RPHI_GATE)
-        | (1ULL << originirParser::U3_GATE)
-        | (1ULL << originirParser::U4_GATE)
-        | (1ULL << originirParser::RX_GATE)
-        | (1ULL << originirParser::RY_GATE)
-        | (1ULL << originirParser::RZ_GATE)
-        | (1ULL << originirParser::U1_GATE)
-        | (1ULL << originirParser::CNOT_GATE)
-        | (1ULL << originirParser::CZ_GATE)
-        | (1ULL << originirParser::CU_GATE)
-        | (1ULL << originirParser::ISWAP_GATE)
-        | (1ULL << originirParser::SQISWAP_GATE)
-        | (1ULL << originirParser::SWAPZ1_GATE)
-        | (1ULL << originirParser::ISWAPTHETA_GATE)
-        | (1ULL << originirParser::CR_GATE)
-        | (1ULL << originirParser::TOFFOLI_GATE)
-        | (1ULL << originirParser::DAGGER_KEY)
-        | (1ULL << originirParser::CONTROL_KEY)
-        | (1ULL << originirParser::QIF_KEY)
-        | (1ULL << originirParser::QWHILE_KEY)
-        | (1ULL << originirParser::MEASURE_KEY)
-        | (1ULL << originirParser::RESET_KEY)
-        | (1ULL << originirParser::NOT)
-        | (1ULL << originirParser::PLUS)
-        | (1ULL << originirParser::MINUS))) != 0) || ((((_la - 64) & ~ 0x3fULL) == 0) &&
-        ((1ULL << (_la - 64)) & ((1ULL << (originirParser::LPAREN - 64))
-        | (1ULL << (originirParser::Identifier - 64))
-        | (1ULL << (originirParser::Integer_Literal - 64))
-        | (1ULL << (originirParser::Double_Literal - 64)))) != 0)) {
-        setState(513);
-        statement();
-        setState(518);
-        _errHandler->sync(this);
-        _la = _input->LA(1);
-      }
-      setState(519);
-      match(originirParser::ENDIF_KEY);
-      setState(520);
-      match(originirParser::NEWLINE);
-      break;
-    }
-
-    }
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
-
-  return _localctx;
-}
+    return _localctx;
+        }
 
 //----------------- Qwhile_statementContext ------------------------------------------------------------------
 
-originirParser::Qwhile_statementContext::Qwhile_statementContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::Qwhile_statementContext::Qwhile_statementContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 tree::TerminalNode* originirParser::Qwhile_statementContext::QWHILE_KEY() {
-  return getToken(originirParser::QWHILE_KEY, 0);
+    return getToken(originirParser::QWHILE_KEY, 0);
 }
 
 originirParser::ExpressionContext* originirParser::Qwhile_statementContext::expression() {
-  return getRuleContext<originirParser::ExpressionContext>(0);
+    return getRuleContext<originirParser::ExpressionContext>(0);
 }
 
-std::vector<tree::TerminalNode *> originirParser::Qwhile_statementContext::NEWLINE() {
-  return getTokens(originirParser::NEWLINE);
+std::vector<tree::TerminalNode*> originirParser::Qwhile_statementContext::NEWLINE() {
+    return getTokens(originirParser::NEWLINE);
 }
 
 tree::TerminalNode* originirParser::Qwhile_statementContext::NEWLINE(size_t i) {
-  return getToken(originirParser::NEWLINE, i);
+    return getToken(originirParser::NEWLINE, i);
 }
 
 tree::TerminalNode* originirParser::Qwhile_statementContext::ENDQWHILE_KEY() {
-  return getToken(originirParser::ENDQWHILE_KEY, 0);
+    return getToken(originirParser::ENDQWHILE_KEY, 0);
 }
 
-std::vector<originirParser::StatementContext *> originirParser::Qwhile_statementContext::statement() {
-  return getRuleContexts<originirParser::StatementContext>();
+std::vector<originirParser::StatementContext*> originirParser::Qwhile_statementContext::statement() {
+    return getRuleContexts<originirParser::StatementContext>();
 }
 
 originirParser::StatementContext* originirParser::Qwhile_statementContext::statement(size_t i) {
-  return getRuleContext<originirParser::StatementContext>(i);
+    return getRuleContext<originirParser::StatementContext>(i);
 }
 
 
 size_t originirParser::Qwhile_statementContext::getRuleIndex() const {
-  return originirParser::RuleQwhile_statement;
+    return originirParser::RuleQwhile_statement;
 }
 
-void originirParser::Qwhile_statementContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterQwhile_statement(this);
+void originirParser::Qwhile_statementContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterQwhile_statement(this);
 }
 
-void originirParser::Qwhile_statementContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitQwhile_statement(this);
+void originirParser::Qwhile_statementContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitQwhile_statement(this);
 }
 
 
-antlrcpp::Any originirParser::Qwhile_statementContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitQwhile_statement(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::Qwhile_statementContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitQwhile_statement(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 originirParser::Qwhile_statementContext* originirParser::qwhile_statement() {
-  Qwhile_statementContext *_localctx = _tracker.createInstance<Qwhile_statementContext>(_ctx, getState());
-  enterRule(_localctx, 86, originirParser::RuleQwhile_statement);
-  size_t _la = 0;
+    Qwhile_statementContext* _localctx = _tracker.createInstance<Qwhile_statementContext>(_ctx, getState());
+    enterRule(_localctx, 86, originirParser::RuleQwhile_statement);
+    size_t _la = 0;
 
-  auto onExit = finally([=] {
-    exitRule();
-  });
-  try {
-    enterOuterAlt(_localctx, 1);
-    setState(524);
-    match(originirParser::QWHILE_KEY);
-    setState(525);
-    expression();
-    setState(526);
-    match(originirParser::NEWLINE);
-    setState(530);
-    _errHandler->sync(this);
-    _la = _input->LA(1);
-    while ((((_la & ~ 0x3fULL) == 0) &&
-      ((1ULL << _la) & ((1ULL << originirParser::PI)
-      | (1ULL << originirParser::C_KEY)
-      | (1ULL << originirParser::BARRIER_KEY)
-      | (1ULL << originirParser::QGATE_KEY)
-      | (1ULL << originirParser::ECHO_GATE)
-      | (1ULL << originirParser::H_GATE)
-      | (1ULL << originirParser::X_GATE)
-      | (1ULL << originirParser::T_GATE)
-      | (1ULL << originirParser::S_GATE)
-      | (1ULL << originirParser::Y_GATE)
-      | (1ULL << originirParser::Z_GATE)
-      | (1ULL << originirParser::X1_GATE)
-      | (1ULL << originirParser::Y1_GATE)
-      | (1ULL << originirParser::Z1_GATE)
-      | (1ULL << originirParser::I_GATE)
-      | (1ULL << originirParser::U2_GATE)
-      | (1ULL << originirParser::RPHI_GATE)
-      | (1ULL << originirParser::U3_GATE)
-      | (1ULL << originirParser::U4_GATE)
-      | (1ULL << originirParser::RX_GATE)
-      | (1ULL << originirParser::RY_GATE)
-      | (1ULL << originirParser::RZ_GATE)
-      | (1ULL << originirParser::U1_GATE)
-      | (1ULL << originirParser::CNOT_GATE)
-      | (1ULL << originirParser::CZ_GATE)
-      | (1ULL << originirParser::CU_GATE)
-      | (1ULL << originirParser::ISWAP_GATE)
-      | (1ULL << originirParser::SQISWAP_GATE)
-      | (1ULL << originirParser::SWAPZ1_GATE)
-      | (1ULL << originirParser::ISWAPTHETA_GATE)
-      | (1ULL << originirParser::CR_GATE)
-      | (1ULL << originirParser::TOFFOLI_GATE)
-      | (1ULL << originirParser::DAGGER_KEY)
-      | (1ULL << originirParser::CONTROL_KEY)
-      | (1ULL << originirParser::QIF_KEY)
-      | (1ULL << originirParser::QWHILE_KEY)
-      | (1ULL << originirParser::MEASURE_KEY)
-      | (1ULL << originirParser::RESET_KEY)
-      | (1ULL << originirParser::NOT)
-      | (1ULL << originirParser::PLUS)
-      | (1ULL << originirParser::MINUS))) != 0) || ((((_la - 64) & ~ 0x3fULL) == 0) &&
-      ((1ULL << (_la - 64)) & ((1ULL << (originirParser::LPAREN - 64))
-      | (1ULL << (originirParser::Identifier - 64))
-      | (1ULL << (originirParser::Integer_Literal - 64))
-      | (1ULL << (originirParser::Double_Literal - 64)))) != 0)) {
-      setState(527);
-      statement();
-      setState(532);
-      _errHandler->sync(this);
-      _la = _input->LA(1);
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        enterOuterAlt(_localctx, 1);
+        setState(558);
+        match(originirParser::QWHILE_KEY);
+        setState(559);
+        expression();
+        setState(560);
+        match(originirParser::NEWLINE);
+        setState(564);
+        _errHandler->sync(this);
+        _la = _input->LA(1);
+        while ((((_la & ~0x3fULL) == 0) &&
+            ((1ULL << _la) & ((1ULL << originirParser::PI)
+                | (1ULL << originirParser::C_KEY)
+                | (1ULL << originirParser::BARRIER_KEY)
+                | (1ULL << originirParser::QGATE_KEY)
+                | (1ULL << originirParser::ECHO_GATE)
+                | (1ULL << originirParser::H_GATE)
+                | (1ULL << originirParser::X_GATE)
+                | (1ULL << originirParser::T_GATE)
+                | (1ULL << originirParser::S_GATE)
+                | (1ULL << originirParser::Y_GATE)
+                | (1ULL << originirParser::Z_GATE)
+                | (1ULL << originirParser::X1_GATE)
+                | (1ULL << originirParser::Y1_GATE)
+                | (1ULL << originirParser::Z1_GATE)
+                | (1ULL << originirParser::I_GATE)
+                | (1ULL << originirParser::U2_GATE)
+                | (1ULL << originirParser::RPHI_GATE)
+                | (1ULL << originirParser::U3_GATE)
+                | (1ULL << originirParser::U4_GATE)
+                | (1ULL << originirParser::RX_GATE)
+                | (1ULL << originirParser::RY_GATE)
+                | (1ULL << originirParser::RZ_GATE)
+                | (1ULL << originirParser::U1_GATE)
+                | (1ULL << originirParser::CNOT_GATE)
+                | (1ULL << originirParser::CZ_GATE)
+                | (1ULL << originirParser::CU_GATE)
+                | (1ULL << originirParser::ISWAP_GATE)
+                | (1ULL << originirParser::SQISWAP_GATE)
+                | (1ULL << originirParser::SWAPZ1_GATE)
+                | (1ULL << originirParser::ISWAPTHETA_GATE)
+                | (1ULL << originirParser::CR_GATE)
+                | (1ULL << originirParser::TOFFOLI_GATE)
+                | (1ULL << originirParser::DAGGER_KEY)
+                | (1ULL << originirParser::CONTROL_KEY)
+                | (1ULL << originirParser::QIF_KEY)
+                | (1ULL << originirParser::QWHILE_KEY)
+                | (1ULL << originirParser::MEASURE_KEY)
+                | (1ULL << originirParser::RESET_KEY)
+                | (1ULL << originirParser::NOT)
+                | (1ULL << originirParser::PLUS)
+                | (1ULL << originirParser::MINUS))) != 0) || ((((_la - 64) & ~0x3fULL) == 0) &&
+                    ((1ULL << (_la - 64)) & ((1ULL << (originirParser::LPAREN - 64))
+                        | (1ULL << (originirParser::Identifier - 64))
+                        | (1ULL << (originirParser::Integer_Literal - 64))
+                        | (1ULL << (originirParser::Double_Literal - 64)))) != 0)) {
+            setState(561);
+            statement();
+            setState(566);
+            _errHandler->sync(this);
+            _la = _input->LA(1);
+        }
+        setState(567);
+        match(originirParser::ENDQWHILE_KEY);
+        setState(568);
+        match(originirParser::NEWLINE);
+
     }
-    setState(533);
-    match(originirParser::ENDQWHILE_KEY);
-    setState(534);
-    match(originirParser::NEWLINE);
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
+    }
 
-  return _localctx;
-}
+    return _localctx;
+        }
 
 //----------------- Measure_statementContext ------------------------------------------------------------------
 
-originirParser::Measure_statementContext::Measure_statementContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::Measure_statementContext::Measure_statementContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 tree::TerminalNode* originirParser::Measure_statementContext::MEASURE_KEY() {
-  return getToken(originirParser::MEASURE_KEY, 0);
+    return getToken(originirParser::MEASURE_KEY, 0);
 }
 
 originirParser::Q_KEY_declarationContext* originirParser::Measure_statementContext::q_KEY_declaration() {
-  return getRuleContext<originirParser::Q_KEY_declarationContext>(0);
+    return getRuleContext<originirParser::Q_KEY_declarationContext>(0);
 }
 
 tree::TerminalNode* originirParser::Measure_statementContext::COMMA() {
-  return getToken(originirParser::COMMA, 0);
+    return getToken(originirParser::COMMA, 0);
 }
 
 originirParser::C_KEY_declarationContext* originirParser::Measure_statementContext::c_KEY_declaration() {
-  return getRuleContext<originirParser::C_KEY_declarationContext>(0);
+    return getRuleContext<originirParser::C_KEY_declarationContext>(0);
 }
 
 tree::TerminalNode* originirParser::Measure_statementContext::NEWLINE() {
-  return getToken(originirParser::NEWLINE, 0);
+    return getToken(originirParser::NEWLINE, 0);
 }
 
 tree::TerminalNode* originirParser::Measure_statementContext::Q_KEY() {
-  return getToken(originirParser::Q_KEY, 0);
+    return getToken(originirParser::Q_KEY, 0);
 }
 
 tree::TerminalNode* originirParser::Measure_statementContext::C_KEY() {
-  return getToken(originirParser::C_KEY, 0);
+    return getToken(originirParser::C_KEY, 0);
 }
 
 
 size_t originirParser::Measure_statementContext::getRuleIndex() const {
-  return originirParser::RuleMeasure_statement;
+    return originirParser::RuleMeasure_statement;
 }
 
-void originirParser::Measure_statementContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterMeasure_statement(this);
+void originirParser::Measure_statementContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterMeasure_statement(this);
 }
 
-void originirParser::Measure_statementContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitMeasure_statement(this);
+void originirParser::Measure_statementContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitMeasure_statement(this);
 }
 
 
-antlrcpp::Any originirParser::Measure_statementContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitMeasure_statement(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::Measure_statementContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitMeasure_statement(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 originirParser::Measure_statementContext* originirParser::measure_statement() {
-  Measure_statementContext *_localctx = _tracker.createInstance<Measure_statementContext>(_ctx, getState());
-  enterRule(_localctx, 88, originirParser::RuleMeasure_statement);
+    Measure_statementContext* _localctx = _tracker.createInstance<Measure_statementContext>(_ctx, getState());
+    enterRule(_localctx, 88, originirParser::RuleMeasure_statement);
 
-  auto onExit = finally([=] {
-    exitRule();
-  });
-  try {
-    setState(547);
-    _errHandler->sync(this);
-    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 33, _ctx)) {
-    case 1: {
-      enterOuterAlt(_localctx, 1);
-      setState(536);
-      match(originirParser::MEASURE_KEY);
-      setState(537);
-      q_KEY_declaration();
-      setState(538);
-      match(originirParser::COMMA);
-      setState(539);
-      c_KEY_declaration();
-      setState(540);
-      match(originirParser::NEWLINE);
-      break;
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        setState(581);
+        _errHandler->sync(this);
+        switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 38, _ctx)) {
+        case 1: {
+            enterOuterAlt(_localctx, 1);
+            setState(570);
+            match(originirParser::MEASURE_KEY);
+            setState(571);
+            q_KEY_declaration();
+            setState(572);
+            match(originirParser::COMMA);
+            setState(573);
+            c_KEY_declaration();
+            setState(574);
+            match(originirParser::NEWLINE);
+            break;
+        }
+
+        case 2: {
+            enterOuterAlt(_localctx, 2);
+            setState(576);
+            match(originirParser::MEASURE_KEY);
+            setState(577);
+            match(originirParser::Q_KEY);
+            setState(578);
+            match(originirParser::COMMA);
+            setState(579);
+            match(originirParser::C_KEY);
+            setState(580);
+            match(originirParser::NEWLINE);
+            break;
+        }
+
+        default:
+            break;
+        }
+
+    }
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
     }
 
-    case 2: {
-      enterOuterAlt(_localctx, 2);
-      setState(542);
-      match(originirParser::MEASURE_KEY);
-      setState(543);
-      match(originirParser::Q_KEY);
-      setState(544);
-      match(originirParser::COMMA);
-      setState(545);
-      match(originirParser::C_KEY);
-      setState(546);
-      match(originirParser::NEWLINE);
-      break;
-    }
-
-    }
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
-
-  return _localctx;
-}
+    return _localctx;
+        }
 
 //----------------- Reset_statementContext ------------------------------------------------------------------
 
-originirParser::Reset_statementContext::Reset_statementContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::Reset_statementContext::Reset_statementContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 tree::TerminalNode* originirParser::Reset_statementContext::RESET_KEY() {
-  return getToken(originirParser::RESET_KEY, 0);
+    return getToken(originirParser::RESET_KEY, 0);
 }
 
 originirParser::Q_KEY_declarationContext* originirParser::Reset_statementContext::q_KEY_declaration() {
-  return getRuleContext<originirParser::Q_KEY_declarationContext>(0);
+    return getRuleContext<originirParser::Q_KEY_declarationContext>(0);
 }
 
 tree::TerminalNode* originirParser::Reset_statementContext::NEWLINE() {
-  return getToken(originirParser::NEWLINE, 0);
+    return getToken(originirParser::NEWLINE, 0);
 }
 
 tree::TerminalNode* originirParser::Reset_statementContext::Q_KEY() {
-  return getToken(originirParser::Q_KEY, 0);
+    return getToken(originirParser::Q_KEY, 0);
 }
 
 
 size_t originirParser::Reset_statementContext::getRuleIndex() const {
-  return originirParser::RuleReset_statement;
+    return originirParser::RuleReset_statement;
 }
 
-void originirParser::Reset_statementContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterReset_statement(this);
+void originirParser::Reset_statementContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterReset_statement(this);
 }
 
-void originirParser::Reset_statementContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitReset_statement(this);
+void originirParser::Reset_statementContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitReset_statement(this);
 }
 
 
-antlrcpp::Any originirParser::Reset_statementContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitReset_statement(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::Reset_statementContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitReset_statement(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 originirParser::Reset_statementContext* originirParser::reset_statement() {
-  Reset_statementContext *_localctx = _tracker.createInstance<Reset_statementContext>(_ctx, getState());
-  enterRule(_localctx, 90, originirParser::RuleReset_statement);
+    Reset_statementContext* _localctx = _tracker.createInstance<Reset_statementContext>(_ctx, getState());
+    enterRule(_localctx, 90, originirParser::RuleReset_statement);
 
-  auto onExit = finally([=] {
-    exitRule();
-  });
-  try {
-    setState(556);
-    _errHandler->sync(this);
-    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 34, _ctx)) {
-    case 1: {
-      enterOuterAlt(_localctx, 1);
-      setState(549);
-      match(originirParser::RESET_KEY);
-      setState(550);
-      q_KEY_declaration();
-      setState(551);
-      match(originirParser::NEWLINE);
-      break;
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        setState(590);
+        _errHandler->sync(this);
+        switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 39, _ctx)) {
+        case 1: {
+            enterOuterAlt(_localctx, 1);
+            setState(583);
+            match(originirParser::RESET_KEY);
+            setState(584);
+            q_KEY_declaration();
+            setState(585);
+            match(originirParser::NEWLINE);
+            break;
+        }
+
+        case 2: {
+            enterOuterAlt(_localctx, 2);
+            setState(587);
+            match(originirParser::RESET_KEY);
+            setState(588);
+            match(originirParser::Q_KEY);
+            setState(589);
+            match(originirParser::NEWLINE);
+            break;
+        }
+
+        default:
+            break;
+        }
+
+    }
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
     }
 
-    case 2: {
-      enterOuterAlt(_localctx, 2);
-      setState(553);
-      match(originirParser::RESET_KEY);
-      setState(554);
-      match(originirParser::Q_KEY);
-      setState(555);
-      match(originirParser::NEWLINE);
-      break;
-    }
-
-    }
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
-
-  return _localctx;
-}
+    return _localctx;
+        }
 
 //----------------- Barrier_statementContext ------------------------------------------------------------------
 
-originirParser::Barrier_statementContext::Barrier_statementContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::Barrier_statementContext::Barrier_statementContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 tree::TerminalNode* originirParser::Barrier_statementContext::BARRIER_KEY() {
-  return getToken(originirParser::BARRIER_KEY, 0);
+    return getToken(originirParser::BARRIER_KEY, 0);
 }
 
 originirParser::Controlbit_listContext* originirParser::Barrier_statementContext::controlbit_list() {
-  return getRuleContext<originirParser::Controlbit_listContext>(0);
+    return getRuleContext<originirParser::Controlbit_listContext>(0);
 }
 
 tree::TerminalNode* originirParser::Barrier_statementContext::NEWLINE() {
-  return getToken(originirParser::NEWLINE, 0);
+    return getToken(originirParser::NEWLINE, 0);
 }
 
 tree::TerminalNode* originirParser::Barrier_statementContext::Q_KEY() {
-  return getToken(originirParser::Q_KEY, 0);
+    return getToken(originirParser::Q_KEY, 0);
 }
 
 
 size_t originirParser::Barrier_statementContext::getRuleIndex() const {
-  return originirParser::RuleBarrier_statement;
+    return originirParser::RuleBarrier_statement;
 }
 
-void originirParser::Barrier_statementContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterBarrier_statement(this);
+void originirParser::Barrier_statementContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterBarrier_statement(this);
 }
 
-void originirParser::Barrier_statementContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitBarrier_statement(this);
+void originirParser::Barrier_statementContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitBarrier_statement(this);
 }
 
 
-antlrcpp::Any originirParser::Barrier_statementContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitBarrier_statement(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::Barrier_statementContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitBarrier_statement(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 originirParser::Barrier_statementContext* originirParser::barrier_statement() {
-  Barrier_statementContext *_localctx = _tracker.createInstance<Barrier_statementContext>(_ctx, getState());
-  enterRule(_localctx, 92, originirParser::RuleBarrier_statement);
+    Barrier_statementContext* _localctx = _tracker.createInstance<Barrier_statementContext>(_ctx, getState());
+    enterRule(_localctx, 92, originirParser::RuleBarrier_statement);
 
-  auto onExit = finally([=] {
-    exitRule();
-  });
-  try {
-    setState(565);
-    _errHandler->sync(this);
-    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 35, _ctx)) {
-    case 1: {
-      enterOuterAlt(_localctx, 1);
-      setState(558);
-      match(originirParser::BARRIER_KEY);
-      setState(559);
-      controlbit_list();
-      setState(560);
-      match(originirParser::NEWLINE);
-      break;
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        setState(599);
+        _errHandler->sync(this);
+        switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 40, _ctx)) {
+        case 1: {
+            enterOuterAlt(_localctx, 1);
+            setState(592);
+            match(originirParser::BARRIER_KEY);
+            setState(593);
+            controlbit_list();
+            setState(594);
+            match(originirParser::NEWLINE);
+            break;
+        }
+
+        case 2: {
+            enterOuterAlt(_localctx, 2);
+            setState(596);
+            match(originirParser::BARRIER_KEY);
+            setState(597);
+            match(originirParser::Q_KEY);
+            setState(598);
+            match(originirParser::NEWLINE);
+            break;
+        }
+
+        default:
+            break;
+        }
+
+    }
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
     }
 
-    case 2: {
-      enterOuterAlt(_localctx, 2);
-      setState(562);
-      match(originirParser::BARRIER_KEY);
-      setState(563);
-      match(originirParser::Q_KEY);
-      setState(564);
-      match(originirParser::NEWLINE);
-      break;
-    }
-
-    }
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
-
-  return _localctx;
-}
+    return _localctx;
+        }
 
 //----------------- Expression_statementContext ------------------------------------------------------------------
 
-originirParser::Expression_statementContext::Expression_statementContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::Expression_statementContext::Expression_statementContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 originirParser::ExpressionContext* originirParser::Expression_statementContext::expression() {
-  return getRuleContext<originirParser::ExpressionContext>(0);
+    return getRuleContext<originirParser::ExpressionContext>(0);
 }
 
 tree::TerminalNode* originirParser::Expression_statementContext::NEWLINE() {
-  return getToken(originirParser::NEWLINE, 0);
+    return getToken(originirParser::NEWLINE, 0);
 }
 
 
 size_t originirParser::Expression_statementContext::getRuleIndex() const {
-  return originirParser::RuleExpression_statement;
+    return originirParser::RuleExpression_statement;
 }
 
-void originirParser::Expression_statementContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterExpression_statement(this);
+void originirParser::Expression_statementContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterExpression_statement(this);
 }
 
-void originirParser::Expression_statementContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitExpression_statement(this);
+void originirParser::Expression_statementContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitExpression_statement(this);
 }
 
 
-antlrcpp::Any originirParser::Expression_statementContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitExpression_statement(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::Expression_statementContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitExpression_statement(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 originirParser::Expression_statementContext* originirParser::expression_statement() {
-  Expression_statementContext *_localctx = _tracker.createInstance<Expression_statementContext>(_ctx, getState());
-  enterRule(_localctx, 94, originirParser::RuleExpression_statement);
+    Expression_statementContext* _localctx = _tracker.createInstance<Expression_statementContext>(_ctx, getState());
+    enterRule(_localctx, 94, originirParser::RuleExpression_statement);
 
-  auto onExit = finally([=] {
-    exitRule();
-  });
-  try {
-    enterOuterAlt(_localctx, 1);
-    setState(567);
-    expression();
-    setState(568);
-    match(originirParser::NEWLINE);
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        enterOuterAlt(_localctx, 1);
+        setState(601);
+        expression();
+        setState(602);
+        match(originirParser::NEWLINE);
 
-  return _localctx;
-}
+    }
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
+    }
+
+    return _localctx;
+        }
 
 //----------------- Define_gate_statementContext ------------------------------------------------------------------
 
-originirParser::Define_gate_statementContext::Define_gate_statementContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::Define_gate_statementContext::Define_gate_statementContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 originirParser::Gate_nameContext* originirParser::Define_gate_statementContext::gate_name() {
-  return getRuleContext<originirParser::Gate_nameContext>(0);
+    return getRuleContext<originirParser::Gate_nameContext>(0);
 }
 
 originirParser::Id_listContext* originirParser::Define_gate_statementContext::id_list() {
-  return getRuleContext<originirParser::Id_listContext>(0);
+    return getRuleContext<originirParser::Id_listContext>(0);
 }
 
 tree::TerminalNode* originirParser::Define_gate_statementContext::NEWLINE() {
-  return getToken(originirParser::NEWLINE, 0);
+    return getToken(originirParser::NEWLINE, 0);
 }
 
 tree::TerminalNode* originirParser::Define_gate_statementContext::COMMA() {
-  return getToken(originirParser::COMMA, 0);
+    return getToken(originirParser::COMMA, 0);
 }
 
 tree::TerminalNode* originirParser::Define_gate_statementContext::LPAREN() {
-  return getToken(originirParser::LPAREN, 0);
+    return getToken(originirParser::LPAREN, 0);
 }
 
 originirParser::ExplistContext* originirParser::Define_gate_statementContext::explist() {
-  return getRuleContext<originirParser::ExplistContext>(0);
+    return getRuleContext<originirParser::ExplistContext>(0);
 }
 
 tree::TerminalNode* originirParser::Define_gate_statementContext::RPAREN() {
-  return getToken(originirParser::RPAREN, 0);
+    return getToken(originirParser::RPAREN, 0);
 }
 
 
 size_t originirParser::Define_gate_statementContext::getRuleIndex() const {
-  return originirParser::RuleDefine_gate_statement;
+    return originirParser::RuleDefine_gate_statement;
 }
 
-void originirParser::Define_gate_statementContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterDefine_gate_statement(this);
+void originirParser::Define_gate_statementContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterDefine_gate_statement(this);
 }
 
-void originirParser::Define_gate_statementContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitDefine_gate_statement(this);
+void originirParser::Define_gate_statementContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitDefine_gate_statement(this);
 }
 
 
-antlrcpp::Any originirParser::Define_gate_statementContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitDefine_gate_statement(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::Define_gate_statementContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitDefine_gate_statement(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 originirParser::Define_gate_statementContext* originirParser::define_gate_statement() {
-  Define_gate_statementContext *_localctx = _tracker.createInstance<Define_gate_statementContext>(_ctx, getState());
-  enterRule(_localctx, 96, originirParser::RuleDefine_gate_statement);
+    Define_gate_statementContext* _localctx = _tracker.createInstance<Define_gate_statementContext>(_ctx, getState());
+    enterRule(_localctx, 96, originirParser::RuleDefine_gate_statement);
 
-  auto onExit = finally([=] {
-    exitRule();
-  });
-  try {
-    setState(582);
-    _errHandler->sync(this);
-    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 36, _ctx)) {
-    case 1: {
-      enterOuterAlt(_localctx, 1);
-      setState(570);
-      gate_name();
-      setState(571);
-      id_list();
-      setState(572);
-      match(originirParser::NEWLINE);
-      break;
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        setState(616);
+        _errHandler->sync(this);
+        switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 41, _ctx)) {
+        case 1: {
+            enterOuterAlt(_localctx, 1);
+            setState(604);
+            gate_name();
+            setState(605);
+            id_list();
+            setState(606);
+            match(originirParser::NEWLINE);
+            break;
+        }
+
+        case 2: {
+            enterOuterAlt(_localctx, 2);
+            setState(608);
+            gate_name();
+            setState(609);
+            id_list();
+            setState(610);
+            match(originirParser::COMMA);
+            setState(611);
+            match(originirParser::LPAREN);
+            setState(612);
+            explist();
+            setState(613);
+            match(originirParser::RPAREN);
+            setState(614);
+            match(originirParser::NEWLINE);
+            break;
+        }
+
+        default:
+            break;
+        }
+
+    }
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
     }
 
-    case 2: {
-      enterOuterAlt(_localctx, 2);
-      setState(574);
-      gate_name();
-      setState(575);
-      id_list();
-      setState(576);
-      match(originirParser::COMMA);
-      setState(577);
-      match(originirParser::LPAREN);
-      setState(578);
-      explist();
-      setState(579);
-      match(originirParser::RPAREN);
-      setState(580);
-      match(originirParser::NEWLINE);
-      break;
-    }
+    return _localctx;
+        }
 
-    }
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
+//----------------- Define_dagger_statementContext ------------------------------------------------------------------
 
-  return _localctx;
+originirParser::Define_dagger_statementContext::Define_dagger_statementContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
+
+tree::TerminalNode* originirParser::Define_dagger_statementContext::DAGGER_KEY() {
+    return getToken(originirParser::DAGGER_KEY, 0);
+}
+
+std::vector<tree::TerminalNode*> originirParser::Define_dagger_statementContext::NEWLINE() {
+    return getTokens(originirParser::NEWLINE);
+}
+
+tree::TerminalNode* originirParser::Define_dagger_statementContext::NEWLINE(size_t i) {
+    return getToken(originirParser::NEWLINE, i);
+}
+
+tree::TerminalNode* originirParser::Define_dagger_statementContext::ENDDAGGER_KEY() {
+    return getToken(originirParser::ENDDAGGER_KEY, 0);
+}
+
+std::vector<originirParser::User_defined_gateContext*> originirParser::Define_dagger_statementContext::user_defined_gate() {
+    return getRuleContexts<originirParser::User_defined_gateContext>();
+}
+
+originirParser::User_defined_gateContext* originirParser::Define_dagger_statementContext::user_defined_gate(size_t i) {
+    return getRuleContext<originirParser::User_defined_gateContext>(i);
+}
+
+
+size_t originirParser::Define_dagger_statementContext::getRuleIndex() const {
+    return originirParser::RuleDefine_dagger_statement;
+}
+
+void originirParser::Define_dagger_statementContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterDefine_dagger_statement(this);
+}
+
+void originirParser::Define_dagger_statementContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitDefine_dagger_statement(this);
+}
+
+
+antlrcpp::Any originirParser::Define_dagger_statementContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitDefine_dagger_statement(this);
+    else
+        return visitor->visitChildren(this);
+}
+
+originirParser::Define_dagger_statementContext* originirParser::define_dagger_statement() {
+    Define_dagger_statementContext* _localctx = _tracker.createInstance<Define_dagger_statementContext>(_ctx, getState());
+    enterRule(_localctx, 98, originirParser::RuleDefine_dagger_statement);
+    size_t _la = 0;
+
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        enterOuterAlt(_localctx, 1);
+        setState(618);
+        match(originirParser::DAGGER_KEY);
+        setState(619);
+        match(originirParser::NEWLINE);
+        setState(621);
+        _errHandler->sync(this);
+        _la = _input->LA(1);
+        do {
+            setState(620);
+            user_defined_gate();
+            setState(623);
+            _errHandler->sync(this);
+            _la = _input->LA(1);
+        } while (((((_la - 9) & ~0x3fULL) == 0) &&
+            ((1ULL << (_la - 9)) & ((1ULL << (originirParser::ECHO_GATE - 9))
+                | (1ULL << (originirParser::H_GATE - 9))
+                | (1ULL << (originirParser::X_GATE - 9))
+                | (1ULL << (originirParser::T_GATE - 9))
+                | (1ULL << (originirParser::S_GATE - 9))
+                | (1ULL << (originirParser::Y_GATE - 9))
+                | (1ULL << (originirParser::Z_GATE - 9))
+                | (1ULL << (originirParser::X1_GATE - 9))
+                | (1ULL << (originirParser::Y1_GATE - 9))
+                | (1ULL << (originirParser::Z1_GATE - 9))
+                | (1ULL << (originirParser::I_GATE - 9))
+                | (1ULL << (originirParser::U2_GATE - 9))
+                | (1ULL << (originirParser::RPHI_GATE - 9))
+                | (1ULL << (originirParser::U3_GATE - 9))
+                | (1ULL << (originirParser::U4_GATE - 9))
+                | (1ULL << (originirParser::RX_GATE - 9))
+                | (1ULL << (originirParser::RY_GATE - 9))
+                | (1ULL << (originirParser::RZ_GATE - 9))
+                | (1ULL << (originirParser::U1_GATE - 9))
+                | (1ULL << (originirParser::CNOT_GATE - 9))
+                | (1ULL << (originirParser::CZ_GATE - 9))
+                | (1ULL << (originirParser::CU_GATE - 9))
+                | (1ULL << (originirParser::ISWAP_GATE - 9))
+                | (1ULL << (originirParser::SQISWAP_GATE - 9))
+                | (1ULL << (originirParser::SWAPZ1_GATE - 9))
+                | (1ULL << (originirParser::ISWAPTHETA_GATE - 9))
+                | (1ULL << (originirParser::CR_GATE - 9))
+                | (1ULL << (originirParser::TOFFOLI_GATE - 9))
+                | (1ULL << (originirParser::DAGGER_KEY - 9))
+                | (1ULL << (originirParser::CONTROL_KEY - 9))
+                | (1ULL << (originirParser::Identifier - 9)))) != 0));
+        setState(625);
+        match(originirParser::ENDDAGGER_KEY);
+        setState(626);
+        match(originirParser::NEWLINE);
+
+    }
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
+    }
+
+    return _localctx;
+        }
+
+//----------------- Define_control_statementContext ------------------------------------------------------------------
+
+originirParser::Define_control_statementContext::Define_control_statementContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
+}
+
+tree::TerminalNode* originirParser::Define_control_statementContext::CONTROL_KEY() {
+    return getToken(originirParser::CONTROL_KEY, 0);
+}
+
+originirParser::Controlbit_listContext* originirParser::Define_control_statementContext::controlbit_list() {
+    return getRuleContext<originirParser::Controlbit_listContext>(0);
+}
+
+std::vector<tree::TerminalNode*> originirParser::Define_control_statementContext::NEWLINE() {
+    return getTokens(originirParser::NEWLINE);
+}
+
+tree::TerminalNode* originirParser::Define_control_statementContext::NEWLINE(size_t i) {
+    return getToken(originirParser::NEWLINE, i);
+}
+
+tree::TerminalNode* originirParser::Define_control_statementContext::ENDCONTROL_KEY() {
+    return getToken(originirParser::ENDCONTROL_KEY, 0);
+}
+
+std::vector<originirParser::User_defined_gateContext*> originirParser::Define_control_statementContext::user_defined_gate() {
+    return getRuleContexts<originirParser::User_defined_gateContext>();
+}
+
+originirParser::User_defined_gateContext* originirParser::Define_control_statementContext::user_defined_gate(size_t i) {
+    return getRuleContext<originirParser::User_defined_gateContext>(i);
+}
+
+
+size_t originirParser::Define_control_statementContext::getRuleIndex() const {
+    return originirParser::RuleDefine_control_statement;
+}
+
+void originirParser::Define_control_statementContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterDefine_control_statement(this);
+}
+
+void originirParser::Define_control_statementContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitDefine_control_statement(this);
+}
+
+
+antlrcpp::Any originirParser::Define_control_statementContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitDefine_control_statement(this);
+    else
+        return visitor->visitChildren(this);
+}
+
+originirParser::Define_control_statementContext* originirParser::define_control_statement() {
+    Define_control_statementContext* _localctx = _tracker.createInstance<Define_control_statementContext>(_ctx, getState());
+    enterRule(_localctx, 100, originirParser::RuleDefine_control_statement);
+    size_t _la = 0;
+
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        enterOuterAlt(_localctx, 1);
+        setState(628);
+        match(originirParser::CONTROL_KEY);
+        setState(629);
+        controlbit_list();
+        setState(630);
+        match(originirParser::NEWLINE);
+        setState(632);
+        _errHandler->sync(this);
+        _la = _input->LA(1);
+        do {
+            setState(631);
+            user_defined_gate();
+            setState(634);
+            _errHandler->sync(this);
+            _la = _input->LA(1);
+        } while (((((_la - 9) & ~0x3fULL) == 0) &&
+            ((1ULL << (_la - 9)) & ((1ULL << (originirParser::ECHO_GATE - 9))
+                | (1ULL << (originirParser::H_GATE - 9))
+                | (1ULL << (originirParser::X_GATE - 9))
+                | (1ULL << (originirParser::T_GATE - 9))
+                | (1ULL << (originirParser::S_GATE - 9))
+                | (1ULL << (originirParser::Y_GATE - 9))
+                | (1ULL << (originirParser::Z_GATE - 9))
+                | (1ULL << (originirParser::X1_GATE - 9))
+                | (1ULL << (originirParser::Y1_GATE - 9))
+                | (1ULL << (originirParser::Z1_GATE - 9))
+                | (1ULL << (originirParser::I_GATE - 9))
+                | (1ULL << (originirParser::U2_GATE - 9))
+                | (1ULL << (originirParser::RPHI_GATE - 9))
+                | (1ULL << (originirParser::U3_GATE - 9))
+                | (1ULL << (originirParser::U4_GATE - 9))
+                | (1ULL << (originirParser::RX_GATE - 9))
+                | (1ULL << (originirParser::RY_GATE - 9))
+                | (1ULL << (originirParser::RZ_GATE - 9))
+                | (1ULL << (originirParser::U1_GATE - 9))
+                | (1ULL << (originirParser::CNOT_GATE - 9))
+                | (1ULL << (originirParser::CZ_GATE - 9))
+                | (1ULL << (originirParser::CU_GATE - 9))
+                | (1ULL << (originirParser::ISWAP_GATE - 9))
+                | (1ULL << (originirParser::SQISWAP_GATE - 9))
+                | (1ULL << (originirParser::SWAPZ1_GATE - 9))
+                | (1ULL << (originirParser::ISWAPTHETA_GATE - 9))
+                | (1ULL << (originirParser::CR_GATE - 9))
+                | (1ULL << (originirParser::TOFFOLI_GATE - 9))
+                | (1ULL << (originirParser::DAGGER_KEY - 9))
+                | (1ULL << (originirParser::CONTROL_KEY - 9))
+                | (1ULL << (originirParser::Identifier - 9)))) != 0));
+        setState(636);
+        match(originirParser::ENDCONTROL_KEY);
+        setState(637);
+        match(originirParser::NEWLINE);
+
+    }
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
+    }
+
+    return _localctx;
+        }
+
+//----------------- User_defined_gateContext ------------------------------------------------------------------
+
+originirParser::User_defined_gateContext::User_defined_gateContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
+}
+
+originirParser::Define_gate_statementContext* originirParser::User_defined_gateContext::define_gate_statement() {
+    return getRuleContext<originirParser::Define_gate_statementContext>(0);
+}
+
+originirParser::Define_dagger_statementContext* originirParser::User_defined_gateContext::define_dagger_statement() {
+    return getRuleContext<originirParser::Define_dagger_statementContext>(0);
+}
+
+originirParser::Define_control_statementContext* originirParser::User_defined_gateContext::define_control_statement() {
+    return getRuleContext<originirParser::Define_control_statementContext>(0);
+}
+
+
+size_t originirParser::User_defined_gateContext::getRuleIndex() const {
+    return originirParser::RuleUser_defined_gate;
+}
+
+void originirParser::User_defined_gateContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterUser_defined_gate(this);
+}
+
+void originirParser::User_defined_gateContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitUser_defined_gate(this);
+}
+
+
+antlrcpp::Any originirParser::User_defined_gateContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitUser_defined_gate(this);
+    else
+        return visitor->visitChildren(this);
+}
+
+originirParser::User_defined_gateContext* originirParser::user_defined_gate() {
+    User_defined_gateContext* _localctx = _tracker.createInstance<User_defined_gateContext>(_ctx, getState());
+    enterRule(_localctx, 102, originirParser::RuleUser_defined_gate);
+
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        setState(642);
+        _errHandler->sync(this);
+        switch (_input->LA(1)) {
+        case originirParser::ECHO_GATE:
+        case originirParser::H_GATE:
+        case originirParser::X_GATE:
+        case originirParser::T_GATE:
+        case originirParser::S_GATE:
+        case originirParser::Y_GATE:
+        case originirParser::Z_GATE:
+        case originirParser::X1_GATE:
+        case originirParser::Y1_GATE:
+        case originirParser::Z1_GATE:
+        case originirParser::I_GATE:
+        case originirParser::U2_GATE:
+        case originirParser::RPHI_GATE:
+        case originirParser::U3_GATE:
+        case originirParser::U4_GATE:
+        case originirParser::RX_GATE:
+        case originirParser::RY_GATE:
+        case originirParser::RZ_GATE:
+        case originirParser::U1_GATE:
+        case originirParser::CNOT_GATE:
+        case originirParser::CZ_GATE:
+        case originirParser::CU_GATE:
+        case originirParser::ISWAP_GATE:
+        case originirParser::SQISWAP_GATE:
+        case originirParser::SWAPZ1_GATE:
+        case originirParser::ISWAPTHETA_GATE:
+        case originirParser::CR_GATE:
+        case originirParser::TOFFOLI_GATE:
+        case originirParser::Identifier: {
+            enterOuterAlt(_localctx, 1);
+            setState(639);
+            define_gate_statement();
+            break;
+        }
+
+        case originirParser::DAGGER_KEY: {
+            enterOuterAlt(_localctx, 2);
+            setState(640);
+            define_dagger_statement();
+            break;
+        }
+
+        case originirParser::CONTROL_KEY: {
+            enterOuterAlt(_localctx, 3);
+            setState(641);
+            define_control_statement();
+            break;
+        }
+
+        default:
+            throw NoViableAltException(this);
+        }
+
+    }
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
+    }
+
+    return _localctx;
+        }
 
 //----------------- ExplistContext ------------------------------------------------------------------
 
-originirParser::ExplistContext::ExplistContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::ExplistContext::ExplistContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
-std::vector<originirParser::ExpContext *> originirParser::ExplistContext::exp() {
-  return getRuleContexts<originirParser::ExpContext>();
+std::vector<originirParser::ExpContext*> originirParser::ExplistContext::exp() {
+    return getRuleContexts<originirParser::ExpContext>();
 }
 
 originirParser::ExpContext* originirParser::ExplistContext::exp(size_t i) {
-  return getRuleContext<originirParser::ExpContext>(i);
+    return getRuleContext<originirParser::ExpContext>(i);
 }
 
-std::vector<tree::TerminalNode *> originirParser::ExplistContext::COMMA() {
-  return getTokens(originirParser::COMMA);
+std::vector<tree::TerminalNode*> originirParser::ExplistContext::COMMA() {
+    return getTokens(originirParser::COMMA);
 }
 
 tree::TerminalNode* originirParser::ExplistContext::COMMA(size_t i) {
-  return getToken(originirParser::COMMA, i);
+    return getToken(originirParser::COMMA, i);
 }
 
 
 size_t originirParser::ExplistContext::getRuleIndex() const {
-  return originirParser::RuleExplist;
+    return originirParser::RuleExplist;
 }
 
-void originirParser::ExplistContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterExplist(this);
+void originirParser::ExplistContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterExplist(this);
 }
 
-void originirParser::ExplistContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitExplist(this);
+void originirParser::ExplistContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitExplist(this);
 }
 
 
-antlrcpp::Any originirParser::ExplistContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitExplist(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::ExplistContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitExplist(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 originirParser::ExplistContext* originirParser::explist() {
-  ExplistContext *_localctx = _tracker.createInstance<ExplistContext>(_ctx, getState());
-  enterRule(_localctx, 98, originirParser::RuleExplist);
-  size_t _la = 0;
+    ExplistContext* _localctx = _tracker.createInstance<ExplistContext>(_ctx, getState());
+    enterRule(_localctx, 104, originirParser::RuleExplist);
+    size_t _la = 0;
 
-  auto onExit = finally([=] {
-    exitRule();
-  });
-  try {
-    enterOuterAlt(_localctx, 1);
-    setState(584);
-    exp(0);
-    setState(589);
-    _errHandler->sync(this);
-    _la = _input->LA(1);
-    while (_la == originirParser::COMMA) {
-      setState(585);
-      match(originirParser::COMMA);
-      setState(586);
-      exp(0);
-      setState(591);
-      _errHandler->sync(this);
-      _la = _input->LA(1);
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        enterOuterAlt(_localctx, 1);
+        setState(644);
+        exp(0);
+        setState(649);
+        _errHandler->sync(this);
+        _la = _input->LA(1);
+        while (_la == originirParser::COMMA) {
+            setState(645);
+            match(originirParser::COMMA);
+            setState(646);
+            exp(0);
+            setState(651);
+            _errHandler->sync(this);
+            _la = _input->LA(1);
+        }
+
     }
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
+    }
 
-  return _localctx;
-}
+    return _localctx;
+        }
 
 //----------------- ExpContext ------------------------------------------------------------------
 
-originirParser::ExpContext::ExpContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::ExpContext::ExpContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 originirParser::IdContext* originirParser::ExpContext::id() {
-  return getRuleContext<originirParser::IdContext>(0);
+    return getRuleContext<originirParser::IdContext>(0);
 }
 
 tree::TerminalNode* originirParser::ExpContext::Integer_Literal() {
-  return getToken(originirParser::Integer_Literal, 0);
+    return getToken(originirParser::Integer_Literal, 0);
 }
 
 tree::TerminalNode* originirParser::ExpContext::Double_Literal() {
-  return getToken(originirParser::Double_Literal, 0);
+    return getToken(originirParser::Double_Literal, 0);
 }
 
 tree::TerminalNode* originirParser::ExpContext::PI() {
-  return getToken(originirParser::PI, 0);
+    return getToken(originirParser::PI, 0);
 }
 
 tree::TerminalNode* originirParser::ExpContext::LPAREN() {
-  return getToken(originirParser::LPAREN, 0);
+    return getToken(originirParser::LPAREN, 0);
 }
 
-std::vector<originirParser::ExpContext *> originirParser::ExpContext::exp() {
-  return getRuleContexts<originirParser::ExpContext>();
+std::vector<originirParser::ExpContext*> originirParser::ExpContext::exp() {
+    return getRuleContexts<originirParser::ExpContext>();
 }
 
 originirParser::ExpContext* originirParser::ExpContext::exp(size_t i) {
-  return getRuleContext<originirParser::ExpContext>(i);
+    return getRuleContext<originirParser::ExpContext>(i);
 }
 
 tree::TerminalNode* originirParser::ExpContext::RPAREN() {
-  return getToken(originirParser::RPAREN, 0);
+    return getToken(originirParser::RPAREN, 0);
 }
 
 tree::TerminalNode* originirParser::ExpContext::MINUS() {
-  return getToken(originirParser::MINUS, 0);
+    return getToken(originirParser::MINUS, 0);
 }
 
 tree::TerminalNode* originirParser::ExpContext::MUL() {
-  return getToken(originirParser::MUL, 0);
+    return getToken(originirParser::MUL, 0);
 }
 
 tree::TerminalNode* originirParser::ExpContext::DIV() {
-  return getToken(originirParser::DIV, 0);
+    return getToken(originirParser::DIV, 0);
 }
 
 tree::TerminalNode* originirParser::ExpContext::PLUS() {
-  return getToken(originirParser::PLUS, 0);
+    return getToken(originirParser::PLUS, 0);
 }
 
 
 size_t originirParser::ExpContext::getRuleIndex() const {
-  return originirParser::RuleExp;
+    return originirParser::RuleExp;
 }
 
-void originirParser::ExpContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterExp(this);
+void originirParser::ExpContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterExp(this);
 }
 
-void originirParser::ExpContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitExp(this);
+void originirParser::ExpContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitExp(this);
 }
 
 
-antlrcpp::Any originirParser::ExpContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitExp(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::ExpContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitExp(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 
 originirParser::ExpContext* originirParser::exp() {
-   return exp(0);
+    return exp(0);
 }
 
 originirParser::ExpContext* originirParser::exp(int precedence) {
-  ParserRuleContext *parentContext = _ctx;
-  size_t parentState = getState();
-  originirParser::ExpContext *_localctx = _tracker.createInstance<ExpContext>(_ctx, parentState);
-  originirParser::ExpContext *previousContext = _localctx;
-  (void)previousContext; // Silence compiler, in case the context is not used by generated code.
-  size_t startState = 100;
-  enterRecursionRule(_localctx, 100, originirParser::RuleExp, precedence);
+    ParserRuleContext* parentContext = _ctx;
+    size_t parentState = getState();
+    originirParser::ExpContext* _localctx = _tracker.createInstance<ExpContext>(_ctx, parentState);
+    originirParser::ExpContext* previousContext = _localctx;
+    (void)previousContext; // Silence compiler, in case the context is not used by generated code.
+    size_t startState = 106;
+    enterRecursionRule(_localctx, 106, originirParser::RuleExp, precedence);
 
-    
 
-  auto onExit = finally([=] {
-    unrollRecursionContexts(parentContext);
-  });
-  try {
-    size_t alt;
-    enterOuterAlt(_localctx, 1);
-    setState(603);
-    _errHandler->sync(this);
-    switch (_input->LA(1)) {
-      case originirParser::Identifier: {
-        setState(593);
-        id();
-        break;
-      }
 
-      case originirParser::Integer_Literal: {
-        setState(594);
-        match(originirParser::Integer_Literal);
-        break;
-      }
-
-      case originirParser::Double_Literal: {
-        setState(595);
-        match(originirParser::Double_Literal);
-        break;
-      }
-
-      case originirParser::PI: {
-        setState(596);
-        match(originirParser::PI);
-        break;
-      }
-
-      case originirParser::LPAREN: {
-        setState(597);
-        match(originirParser::LPAREN);
-        setState(598);
-        exp(0);
-        setState(599);
-        match(originirParser::RPAREN);
-        break;
-      }
-
-      case originirParser::MINUS: {
-        setState(601);
-        match(originirParser::MINUS);
-        setState(602);
-        exp(5);
-        break;
-      }
-
-    default:
-      throw NoViableAltException(this);
-    }
-    _ctx->stop = _input->LT(-1);
-    setState(619);
-    _errHandler->sync(this);
-    alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 40, _ctx);
-    while (alt != 2 && alt != atn::ATN::INVALID_ALT_NUMBER) {
-      if (alt == 1) {
-        if (!_parseListeners.empty())
-          triggerExitRuleEvent();
-        previousContext = _localctx;
-        setState(617);
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        unrollRecursionContexts(parentContext);
+        });
+    try {
+        size_t alt;
+        enterOuterAlt(_localctx, 1);
+        setState(663);
         _errHandler->sync(this);
-        switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 39, _ctx)) {
-        case 1: {
-          _localctx = _tracker.createInstance<ExpContext>(parentContext, parentState);
-          pushNewRecursionContext(_localctx, startState, RuleExp);
-          setState(605);
-
-          if (!(precpred(_ctx, 4))) throw FailedPredicateException(this, "precpred(_ctx, 4)");
-          setState(606);
-          match(originirParser::MUL);
-          setState(607);
-          exp(5);
-          break;
+        switch (_input->LA(1)) {
+        case originirParser::Identifier: {
+            setState(653);
+            id();
+            break;
         }
 
-        case 2: {
-          _localctx = _tracker.createInstance<ExpContext>(parentContext, parentState);
-          pushNewRecursionContext(_localctx, startState, RuleExp);
-          setState(608);
-
-          if (!(precpred(_ctx, 3))) throw FailedPredicateException(this, "precpred(_ctx, 3)");
-          setState(609);
-          match(originirParser::DIV);
-          setState(610);
-          exp(4);
-          break;
+        case originirParser::Integer_Literal: {
+            setState(654);
+            match(originirParser::Integer_Literal);
+            break;
         }
 
-        case 3: {
-          _localctx = _tracker.createInstance<ExpContext>(parentContext, parentState);
-          pushNewRecursionContext(_localctx, startState, RuleExp);
-          setState(611);
-
-          if (!(precpred(_ctx, 2))) throw FailedPredicateException(this, "precpred(_ctx, 2)");
-          setState(612);
-          match(originirParser::PLUS);
-          setState(613);
-          exp(3);
-          break;
+        case originirParser::Double_Literal: {
+            setState(655);
+            match(originirParser::Double_Literal);
+            break;
         }
 
-        case 4: {
-          _localctx = _tracker.createInstance<ExpContext>(parentContext, parentState);
-          pushNewRecursionContext(_localctx, startState, RuleExp);
-          setState(614);
-
-          if (!(precpred(_ctx, 1))) throw FailedPredicateException(this, "precpred(_ctx, 1)");
-          setState(615);
-          match(originirParser::MINUS);
-          setState(616);
-          exp(2);
-          break;
+        case originirParser::PI: {
+            setState(656);
+            match(originirParser::PI);
+            break;
         }
 
-        } 
-      }
-      setState(621);
-      _errHandler->sync(this);
-      alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 40, _ctx);
+        case originirParser::LPAREN: {
+            setState(657);
+            match(originirParser::LPAREN);
+            setState(658);
+            exp(0);
+            setState(659);
+            match(originirParser::RPAREN);
+            break;
+        }
+
+        case originirParser::MINUS: {
+            setState(661);
+            match(originirParser::MINUS);
+            setState(662);
+            exp(5);
+            break;
+        }
+
+        default:
+            throw NoViableAltException(this);
+        }
+        _ctx->stop = _input->LT(-1);
+        setState(679);
+        _errHandler->sync(this);
+        alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 48, _ctx);
+        while (alt != 2 && alt != atn::ATN::INVALID_ALT_NUMBER) {
+            if (alt == 1) {
+                if (!_parseListeners.empty())
+                    triggerExitRuleEvent();
+                previousContext = _localctx;
+                setState(677);
+                _errHandler->sync(this);
+                switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 47, _ctx)) {
+                case 1: {
+                    _localctx = _tracker.createInstance<ExpContext>(parentContext, parentState);
+                    pushNewRecursionContext(_localctx, startState, RuleExp);
+                    setState(665);
+
+                    if (!(precpred(_ctx, 4))) throw FailedPredicateException(this, "precpred(_ctx, 4)");
+                    setState(666);
+                    match(originirParser::MUL);
+                    setState(667);
+                    exp(5);
+                    break;
+                }
+
+                case 2: {
+                    _localctx = _tracker.createInstance<ExpContext>(parentContext, parentState);
+                    pushNewRecursionContext(_localctx, startState, RuleExp);
+                    setState(668);
+
+                    if (!(precpred(_ctx, 3))) throw FailedPredicateException(this, "precpred(_ctx, 3)");
+                    setState(669);
+                    match(originirParser::DIV);
+                    setState(670);
+                    exp(4);
+                    break;
+                }
+
+                case 3: {
+                    _localctx = _tracker.createInstance<ExpContext>(parentContext, parentState);
+                    pushNewRecursionContext(_localctx, startState, RuleExp);
+                    setState(671);
+
+                    if (!(precpred(_ctx, 2))) throw FailedPredicateException(this, "precpred(_ctx, 2)");
+                    setState(672);
+                    match(originirParser::PLUS);
+                    setState(673);
+                    exp(3);
+                    break;
+                }
+
+                case 4: {
+                    _localctx = _tracker.createInstance<ExpContext>(parentContext, parentState);
+                    pushNewRecursionContext(_localctx, startState, RuleExp);
+                    setState(674);
+
+                    if (!(precpred(_ctx, 1))) throw FailedPredicateException(this, "precpred(_ctx, 1)");
+                    setState(675);
+                    match(originirParser::MINUS);
+                    setState(676);
+                    exp(2);
+                    break;
+                }
+
+                default:
+                    break;
+                }
+            }
+            setState(681);
+            _errHandler->sync(this);
+            alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 48, _ctx);
+        }
     }
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
-  return _localctx;
-}
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
+    }
+    return _localctx;
+        }
 
 //----------------- Gate_func_statementContext ------------------------------------------------------------------
 
-originirParser::Gate_func_statementContext::Gate_func_statementContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::Gate_func_statementContext::Gate_func_statementContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 tree::TerminalNode* originirParser::Gate_func_statementContext::QGATE_KEY() {
-  return getToken(originirParser::QGATE_KEY, 0);
+    return getToken(originirParser::QGATE_KEY, 0);
 }
 
 originirParser::IdContext* originirParser::Gate_func_statementContext::id() {
-  return getRuleContext<originirParser::IdContext>(0);
+    return getRuleContext<originirParser::IdContext>(0);
 }
 
-std::vector<originirParser::Id_listContext *> originirParser::Gate_func_statementContext::id_list() {
-  return getRuleContexts<originirParser::Id_listContext>();
+std::vector<originirParser::Id_listContext*> originirParser::Gate_func_statementContext::id_list() {
+    return getRuleContexts<originirParser::Id_listContext>();
 }
 
 originirParser::Id_listContext* originirParser::Gate_func_statementContext::id_list(size_t i) {
-  return getRuleContext<originirParser::Id_listContext>(i);
+    return getRuleContext<originirParser::Id_listContext>(i);
 }
 
-std::vector<tree::TerminalNode *> originirParser::Gate_func_statementContext::NEWLINE() {
-  return getTokens(originirParser::NEWLINE);
+std::vector<tree::TerminalNode*> originirParser::Gate_func_statementContext::NEWLINE() {
+    return getTokens(originirParser::NEWLINE);
 }
 
 tree::TerminalNode* originirParser::Gate_func_statementContext::NEWLINE(size_t i) {
-  return getToken(originirParser::NEWLINE, i);
+    return getToken(originirParser::NEWLINE, i);
 }
 
 tree::TerminalNode* originirParser::Gate_func_statementContext::ENDQGATE_KEY() {
-  return getToken(originirParser::ENDQGATE_KEY, 0);
+    return getToken(originirParser::ENDQGATE_KEY, 0);
 }
 
-std::vector<originirParser::Define_gate_statementContext *> originirParser::Gate_func_statementContext::define_gate_statement() {
-  return getRuleContexts<originirParser::Define_gate_statementContext>();
+std::vector<originirParser::User_defined_gateContext*> originirParser::Gate_func_statementContext::user_defined_gate() {
+    return getRuleContexts<originirParser::User_defined_gateContext>();
 }
 
-originirParser::Define_gate_statementContext* originirParser::Gate_func_statementContext::define_gate_statement(size_t i) {
-  return getRuleContext<originirParser::Define_gate_statementContext>(i);
+originirParser::User_defined_gateContext* originirParser::Gate_func_statementContext::user_defined_gate(size_t i) {
+    return getRuleContext<originirParser::User_defined_gateContext>(i);
 }
 
 tree::TerminalNode* originirParser::Gate_func_statementContext::COMMA() {
-  return getToken(originirParser::COMMA, 0);
+    return getToken(originirParser::COMMA, 0);
 }
 
 tree::TerminalNode* originirParser::Gate_func_statementContext::LPAREN() {
-  return getToken(originirParser::LPAREN, 0);
+    return getToken(originirParser::LPAREN, 0);
 }
 
 tree::TerminalNode* originirParser::Gate_func_statementContext::RPAREN() {
-  return getToken(originirParser::RPAREN, 0);
+    return getToken(originirParser::RPAREN, 0);
 }
 
 
 size_t originirParser::Gate_func_statementContext::getRuleIndex() const {
-  return originirParser::RuleGate_func_statement;
+    return originirParser::RuleGate_func_statement;
 }
 
-void originirParser::Gate_func_statementContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterGate_func_statement(this);
+void originirParser::Gate_func_statementContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterGate_func_statement(this);
 }
 
-void originirParser::Gate_func_statementContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitGate_func_statement(this);
+void originirParser::Gate_func_statementContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitGate_func_statement(this);
 }
 
 
-antlrcpp::Any originirParser::Gate_func_statementContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitGate_func_statement(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::Gate_func_statementContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitGate_func_statement(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 originirParser::Gate_func_statementContext* originirParser::gate_func_statement() {
-  Gate_func_statementContext *_localctx = _tracker.createInstance<Gate_func_statementContext>(_ctx, getState());
-  enterRule(_localctx, 102, originirParser::RuleGate_func_statement);
-  size_t _la = 0;
+    Gate_func_statementContext* _localctx = _tracker.createInstance<Gate_func_statementContext>(_ctx, getState());
+    enterRule(_localctx, 108, originirParser::RuleGate_func_statement);
+    size_t _la = 0;
 
-  auto onExit = finally([=] {
-    exitRule();
-  });
-  try {
-    setState(652);
-    _errHandler->sync(this);
-    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 43, _ctx)) {
-    case 1: {
-      enterOuterAlt(_localctx, 1);
-      setState(622);
-      match(originirParser::QGATE_KEY);
-      setState(623);
-      id();
-      setState(624);
-      id_list();
-      setState(625);
-      match(originirParser::NEWLINE);
-      setState(629);
-      _errHandler->sync(this);
-      _la = _input->LA(1);
-      while (((((_la - 9) & ~ 0x3fULL) == 0) &&
-        ((1ULL << (_la - 9)) & ((1ULL << (originirParser::ECHO_GATE - 9))
-        | (1ULL << (originirParser::H_GATE - 9))
-        | (1ULL << (originirParser::X_GATE - 9))
-        | (1ULL << (originirParser::T_GATE - 9))
-        | (1ULL << (originirParser::S_GATE - 9))
-        | (1ULL << (originirParser::Y_GATE - 9))
-        | (1ULL << (originirParser::Z_GATE - 9))
-        | (1ULL << (originirParser::X1_GATE - 9))
-        | (1ULL << (originirParser::Y1_GATE - 9))
-        | (1ULL << (originirParser::Z1_GATE - 9))
-        | (1ULL << (originirParser::I_GATE - 9))
-        | (1ULL << (originirParser::U2_GATE - 9))
-        | (1ULL << (originirParser::RPHI_GATE - 9))
-        | (1ULL << (originirParser::U3_GATE - 9))
-        | (1ULL << (originirParser::U4_GATE - 9))
-        | (1ULL << (originirParser::RX_GATE - 9))
-        | (1ULL << (originirParser::RY_GATE - 9))
-        | (1ULL << (originirParser::RZ_GATE - 9))
-        | (1ULL << (originirParser::U1_GATE - 9))
-        | (1ULL << (originirParser::CNOT_GATE - 9))
-        | (1ULL << (originirParser::CZ_GATE - 9))
-        | (1ULL << (originirParser::CU_GATE - 9))
-        | (1ULL << (originirParser::ISWAP_GATE - 9))
-        | (1ULL << (originirParser::SQISWAP_GATE - 9))
-        | (1ULL << (originirParser::SWAPZ1_GATE - 9))
-        | (1ULL << (originirParser::ISWAPTHETA_GATE - 9))
-        | (1ULL << (originirParser::CR_GATE - 9))
-        | (1ULL << (originirParser::TOFFOLI_GATE - 9))
-        | (1ULL << (originirParser::Identifier - 9)))) != 0)) {
-        setState(626);
-        define_gate_statement();
-        setState(631);
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        setState(712);
         _errHandler->sync(this);
-        _la = _input->LA(1);
-      }
-      setState(632);
-      match(originirParser::ENDQGATE_KEY);
-      setState(633);
-      match(originirParser::NEWLINE);
-      break;
+        switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 51, _ctx)) {
+        case 1: {
+            enterOuterAlt(_localctx, 1);
+            setState(682);
+            match(originirParser::QGATE_KEY);
+            setState(683);
+            id();
+            setState(684);
+            id_list();
+            setState(685);
+            match(originirParser::NEWLINE);
+            setState(689);
+            _errHandler->sync(this);
+            _la = _input->LA(1);
+            while (((((_la - 9) & ~0x3fULL) == 0) &&
+                ((1ULL << (_la - 9)) & ((1ULL << (originirParser::ECHO_GATE - 9))
+                    | (1ULL << (originirParser::H_GATE - 9))
+                    | (1ULL << (originirParser::X_GATE - 9))
+                    | (1ULL << (originirParser::T_GATE - 9))
+                    | (1ULL << (originirParser::S_GATE - 9))
+                    | (1ULL << (originirParser::Y_GATE - 9))
+                    | (1ULL << (originirParser::Z_GATE - 9))
+                    | (1ULL << (originirParser::X1_GATE - 9))
+                    | (1ULL << (originirParser::Y1_GATE - 9))
+                    | (1ULL << (originirParser::Z1_GATE - 9))
+                    | (1ULL << (originirParser::I_GATE - 9))
+                    | (1ULL << (originirParser::U2_GATE - 9))
+                    | (1ULL << (originirParser::RPHI_GATE - 9))
+                    | (1ULL << (originirParser::U3_GATE - 9))
+                    | (1ULL << (originirParser::U4_GATE - 9))
+                    | (1ULL << (originirParser::RX_GATE - 9))
+                    | (1ULL << (originirParser::RY_GATE - 9))
+                    | (1ULL << (originirParser::RZ_GATE - 9))
+                    | (1ULL << (originirParser::U1_GATE - 9))
+                    | (1ULL << (originirParser::CNOT_GATE - 9))
+                    | (1ULL << (originirParser::CZ_GATE - 9))
+                    | (1ULL << (originirParser::CU_GATE - 9))
+                    | (1ULL << (originirParser::ISWAP_GATE - 9))
+                    | (1ULL << (originirParser::SQISWAP_GATE - 9))
+                    | (1ULL << (originirParser::SWAPZ1_GATE - 9))
+                    | (1ULL << (originirParser::ISWAPTHETA_GATE - 9))
+                    | (1ULL << (originirParser::CR_GATE - 9))
+                    | (1ULL << (originirParser::TOFFOLI_GATE - 9))
+                    | (1ULL << (originirParser::DAGGER_KEY - 9))
+                    | (1ULL << (originirParser::CONTROL_KEY - 9))
+                    | (1ULL << (originirParser::Identifier - 9)))) != 0)) {
+                setState(686);
+                user_defined_gate();
+                setState(691);
+                _errHandler->sync(this);
+                _la = _input->LA(1);
+            }
+            setState(692);
+            match(originirParser::ENDQGATE_KEY);
+            setState(693);
+            match(originirParser::NEWLINE);
+            break;
+        }
+
+        case 2: {
+            enterOuterAlt(_localctx, 2);
+            setState(695);
+            match(originirParser::QGATE_KEY);
+            setState(696);
+            id();
+            setState(697);
+            id_list();
+            setState(698);
+            match(originirParser::COMMA);
+            setState(699);
+            match(originirParser::LPAREN);
+            setState(700);
+            id_list();
+            setState(701);
+            match(originirParser::RPAREN);
+            setState(702);
+            match(originirParser::NEWLINE);
+            setState(706);
+            _errHandler->sync(this);
+            _la = _input->LA(1);
+            while (((((_la - 9) & ~0x3fULL) == 0) &&
+                ((1ULL << (_la - 9)) & ((1ULL << (originirParser::ECHO_GATE - 9))
+                    | (1ULL << (originirParser::H_GATE - 9))
+                    | (1ULL << (originirParser::X_GATE - 9))
+                    | (1ULL << (originirParser::T_GATE - 9))
+                    | (1ULL << (originirParser::S_GATE - 9))
+                    | (1ULL << (originirParser::Y_GATE - 9))
+                    | (1ULL << (originirParser::Z_GATE - 9))
+                    | (1ULL << (originirParser::X1_GATE - 9))
+                    | (1ULL << (originirParser::Y1_GATE - 9))
+                    | (1ULL << (originirParser::Z1_GATE - 9))
+                    | (1ULL << (originirParser::I_GATE - 9))
+                    | (1ULL << (originirParser::U2_GATE - 9))
+                    | (1ULL << (originirParser::RPHI_GATE - 9))
+                    | (1ULL << (originirParser::U3_GATE - 9))
+                    | (1ULL << (originirParser::U4_GATE - 9))
+                    | (1ULL << (originirParser::RX_GATE - 9))
+                    | (1ULL << (originirParser::RY_GATE - 9))
+                    | (1ULL << (originirParser::RZ_GATE - 9))
+                    | (1ULL << (originirParser::U1_GATE - 9))
+                    | (1ULL << (originirParser::CNOT_GATE - 9))
+                    | (1ULL << (originirParser::CZ_GATE - 9))
+                    | (1ULL << (originirParser::CU_GATE - 9))
+                    | (1ULL << (originirParser::ISWAP_GATE - 9))
+                    | (1ULL << (originirParser::SQISWAP_GATE - 9))
+                    | (1ULL << (originirParser::SWAPZ1_GATE - 9))
+                    | (1ULL << (originirParser::ISWAPTHETA_GATE - 9))
+                    | (1ULL << (originirParser::CR_GATE - 9))
+                    | (1ULL << (originirParser::TOFFOLI_GATE - 9))
+                    | (1ULL << (originirParser::DAGGER_KEY - 9))
+                    | (1ULL << (originirParser::CONTROL_KEY - 9))
+                    | (1ULL << (originirParser::Identifier - 9)))) != 0)) {
+                setState(703);
+                user_defined_gate();
+                setState(708);
+                _errHandler->sync(this);
+                _la = _input->LA(1);
+            }
+            setState(709);
+            match(originirParser::ENDQGATE_KEY);
+            setState(710);
+            match(originirParser::NEWLINE);
+            break;
+        }
+
+        default:
+            break;
+        }
+
+    }
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
     }
 
-    case 2: {
-      enterOuterAlt(_localctx, 2);
-      setState(635);
-      match(originirParser::QGATE_KEY);
-      setState(636);
-      id();
-      setState(637);
-      id_list();
-      setState(638);
-      match(originirParser::COMMA);
-      setState(639);
-      match(originirParser::LPAREN);
-      setState(640);
-      id_list();
-      setState(641);
-      match(originirParser::RPAREN);
-      setState(642);
-      match(originirParser::NEWLINE);
-      setState(646);
-      _errHandler->sync(this);
-      _la = _input->LA(1);
-      while (((((_la - 9) & ~ 0x3fULL) == 0) &&
-        ((1ULL << (_la - 9)) & ((1ULL << (originirParser::ECHO_GATE - 9))
-        | (1ULL << (originirParser::H_GATE - 9))
-        | (1ULL << (originirParser::X_GATE - 9))
-        | (1ULL << (originirParser::T_GATE - 9))
-        | (1ULL << (originirParser::S_GATE - 9))
-        | (1ULL << (originirParser::Y_GATE - 9))
-        | (1ULL << (originirParser::Z_GATE - 9))
-        | (1ULL << (originirParser::X1_GATE - 9))
-        | (1ULL << (originirParser::Y1_GATE - 9))
-        | (1ULL << (originirParser::Z1_GATE - 9))
-        | (1ULL << (originirParser::I_GATE - 9))
-        | (1ULL << (originirParser::U2_GATE - 9))
-        | (1ULL << (originirParser::RPHI_GATE - 9))
-        | (1ULL << (originirParser::U3_GATE - 9))
-        | (1ULL << (originirParser::U4_GATE - 9))
-        | (1ULL << (originirParser::RX_GATE - 9))
-        | (1ULL << (originirParser::RY_GATE - 9))
-        | (1ULL << (originirParser::RZ_GATE - 9))
-        | (1ULL << (originirParser::U1_GATE - 9))
-        | (1ULL << (originirParser::CNOT_GATE - 9))
-        | (1ULL << (originirParser::CZ_GATE - 9))
-        | (1ULL << (originirParser::CU_GATE - 9))
-        | (1ULL << (originirParser::ISWAP_GATE - 9))
-        | (1ULL << (originirParser::SQISWAP_GATE - 9))
-        | (1ULL << (originirParser::SWAPZ1_GATE - 9))
-        | (1ULL << (originirParser::ISWAPTHETA_GATE - 9))
-        | (1ULL << (originirParser::CR_GATE - 9))
-        | (1ULL << (originirParser::TOFFOLI_GATE - 9))
-        | (1ULL << (originirParser::Identifier - 9)))) != 0)) {
-        setState(643);
-        define_gate_statement();
-        setState(648);
-        _errHandler->sync(this);
-        _la = _input->LA(1);
-      }
-      setState(649);
-      match(originirParser::ENDQGATE_KEY);
-      setState(650);
-      match(originirParser::NEWLINE);
-      break;
-    }
-
-    }
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
-
-  return _localctx;
-}
+    return _localctx;
+        }
 
 //----------------- IdContext ------------------------------------------------------------------
 
-originirParser::IdContext::IdContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::IdContext::IdContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 tree::TerminalNode* originirParser::IdContext::Identifier() {
-  return getToken(originirParser::Identifier, 0);
+    return getToken(originirParser::Identifier, 0);
 }
 
 
 size_t originirParser::IdContext::getRuleIndex() const {
-  return originirParser::RuleId;
+    return originirParser::RuleId;
 }
 
-void originirParser::IdContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterId(this);
+void originirParser::IdContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterId(this);
 }
 
-void originirParser::IdContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitId(this);
+void originirParser::IdContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitId(this);
 }
 
 
-antlrcpp::Any originirParser::IdContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitId(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::IdContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitId(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 originirParser::IdContext* originirParser::id() {
-  IdContext *_localctx = _tracker.createInstance<IdContext>(_ctx, getState());
-  enterRule(_localctx, 104, originirParser::RuleId);
+    IdContext* _localctx = _tracker.createInstance<IdContext>(_ctx, getState());
+    enterRule(_localctx, 110, originirParser::RuleId);
 
-  auto onExit = finally([=] {
-    exitRule();
-  });
-  try {
-    enterOuterAlt(_localctx, 1);
-    setState(654);
-    match(originirParser::Identifier);
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        enterOuterAlt(_localctx, 1);
+        setState(714);
+        match(originirParser::Identifier);
 
-  return _localctx;
-}
+    }
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
+    }
+
+    return _localctx;
+        }
 
 //----------------- Id_listContext ------------------------------------------------------------------
 
-originirParser::Id_listContext::Id_listContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::Id_listContext::Id_listContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
-std::vector<originirParser::IdContext *> originirParser::Id_listContext::id() {
-  return getRuleContexts<originirParser::IdContext>();
+std::vector<originirParser::IdContext*> originirParser::Id_listContext::id() {
+    return getRuleContexts<originirParser::IdContext>();
 }
 
 originirParser::IdContext* originirParser::Id_listContext::id(size_t i) {
-  return getRuleContext<originirParser::IdContext>(i);
+    return getRuleContext<originirParser::IdContext>(i);
 }
 
-std::vector<tree::TerminalNode *> originirParser::Id_listContext::COMMA() {
-  return getTokens(originirParser::COMMA);
+std::vector<tree::TerminalNode*> originirParser::Id_listContext::COMMA() {
+    return getTokens(originirParser::COMMA);
 }
 
 tree::TerminalNode* originirParser::Id_listContext::COMMA(size_t i) {
-  return getToken(originirParser::COMMA, i);
+    return getToken(originirParser::COMMA, i);
 }
 
 
 size_t originirParser::Id_listContext::getRuleIndex() const {
-  return originirParser::RuleId_list;
+    return originirParser::RuleId_list;
 }
 
-void originirParser::Id_listContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterId_list(this);
+void originirParser::Id_listContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterId_list(this);
 }
 
-void originirParser::Id_listContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitId_list(this);
+void originirParser::Id_listContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitId_list(this);
 }
 
 
-antlrcpp::Any originirParser::Id_listContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitId_list(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::Id_listContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitId_list(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 originirParser::Id_listContext* originirParser::id_list() {
-  Id_listContext *_localctx = _tracker.createInstance<Id_listContext>(_ctx, getState());
-  enterRule(_localctx, 106, originirParser::RuleId_list);
+    Id_listContext* _localctx = _tracker.createInstance<Id_listContext>(_ctx, getState());
+    enterRule(_localctx, 112, originirParser::RuleId_list);
 
-  auto onExit = finally([=] {
-    exitRule();
-  });
-  try {
-    size_t alt;
-    enterOuterAlt(_localctx, 1);
-    setState(656);
-    id();
-    setState(661);
-    _errHandler->sync(this);
-    alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 44, _ctx);
-    while (alt != 2 && alt != atn::ATN::INVALID_ALT_NUMBER) {
-      if (alt == 1) {
-        setState(657);
-        match(originirParser::COMMA);
-        setState(658);
-        id(); 
-      }
-      setState(663);
-      _errHandler->sync(this);
-      alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 44, _ctx);
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        size_t alt;
+        enterOuterAlt(_localctx, 1);
+        setState(716);
+        id();
+        setState(721);
+        _errHandler->sync(this);
+        alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 52, _ctx);
+        while (alt != 2 && alt != atn::ATN::INVALID_ALT_NUMBER) {
+            if (alt == 1) {
+                setState(717);
+                match(originirParser::COMMA);
+                setState(718);
+                id();
+            }
+            setState(723);
+            _errHandler->sync(this);
+            alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 52, _ctx);
+        }
+
     }
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
+    }
 
-  return _localctx;
-}
+    return _localctx;
+        }
 
 //----------------- Gate_nameContext ------------------------------------------------------------------
 
-originirParser::Gate_nameContext::Gate_nameContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::Gate_nameContext::Gate_nameContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 originirParser::Single_gate_without_parameter_typeContext* originirParser::Gate_nameContext::single_gate_without_parameter_type() {
-  return getRuleContext<originirParser::Single_gate_without_parameter_typeContext>(0);
+    return getRuleContext<originirParser::Single_gate_without_parameter_typeContext>(0);
 }
 
 originirParser::Single_gate_with_one_parameter_typeContext* originirParser::Gate_nameContext::single_gate_with_one_parameter_type() {
-  return getRuleContext<originirParser::Single_gate_with_one_parameter_typeContext>(0);
+    return getRuleContext<originirParser::Single_gate_with_one_parameter_typeContext>(0);
 }
 
 originirParser::Single_gate_with_two_parameter_typeContext* originirParser::Gate_nameContext::single_gate_with_two_parameter_type() {
-  return getRuleContext<originirParser::Single_gate_with_two_parameter_typeContext>(0);
+    return getRuleContext<originirParser::Single_gate_with_two_parameter_typeContext>(0);
 }
 
 originirParser::Single_gate_with_three_parameter_typeContext* originirParser::Gate_nameContext::single_gate_with_three_parameter_type() {
-  return getRuleContext<originirParser::Single_gate_with_three_parameter_typeContext>(0);
+    return getRuleContext<originirParser::Single_gate_with_three_parameter_typeContext>(0);
 }
 
 originirParser::Single_gate_with_four_parameter_typeContext* originirParser::Gate_nameContext::single_gate_with_four_parameter_type() {
-  return getRuleContext<originirParser::Single_gate_with_four_parameter_typeContext>(0);
+    return getRuleContext<originirParser::Single_gate_with_four_parameter_typeContext>(0);
 }
 
 originirParser::Double_gate_without_parameter_typeContext* originirParser::Gate_nameContext::double_gate_without_parameter_type() {
-  return getRuleContext<originirParser::Double_gate_without_parameter_typeContext>(0);
+    return getRuleContext<originirParser::Double_gate_without_parameter_typeContext>(0);
 }
 
 originirParser::Double_gate_with_one_parameter_typeContext* originirParser::Gate_nameContext::double_gate_with_one_parameter_type() {
-  return getRuleContext<originirParser::Double_gate_with_one_parameter_typeContext>(0);
+    return getRuleContext<originirParser::Double_gate_with_one_parameter_typeContext>(0);
 }
 
 originirParser::Double_gate_with_four_parameter_typeContext* originirParser::Gate_nameContext::double_gate_with_four_parameter_type() {
-  return getRuleContext<originirParser::Double_gate_with_four_parameter_typeContext>(0);
+    return getRuleContext<originirParser::Double_gate_with_four_parameter_typeContext>(0);
 }
 
 originirParser::Triple_gate_without_parameter_typeContext* originirParser::Gate_nameContext::triple_gate_without_parameter_type() {
-  return getRuleContext<originirParser::Triple_gate_without_parameter_typeContext>(0);
+    return getRuleContext<originirParser::Triple_gate_without_parameter_typeContext>(0);
 }
 
 originirParser::IdContext* originirParser::Gate_nameContext::id() {
-  return getRuleContext<originirParser::IdContext>(0);
+    return getRuleContext<originirParser::IdContext>(0);
 }
 
 
 size_t originirParser::Gate_nameContext::getRuleIndex() const {
-  return originirParser::RuleGate_name;
+    return originirParser::RuleGate_name;
 }
 
-void originirParser::Gate_nameContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterGate_name(this);
+void originirParser::Gate_nameContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterGate_name(this);
 }
 
-void originirParser::Gate_nameContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitGate_name(this);
+void originirParser::Gate_nameContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitGate_name(this);
 }
 
 
-antlrcpp::Any originirParser::Gate_nameContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitGate_name(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::Gate_nameContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitGate_name(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 originirParser::Gate_nameContext* originirParser::gate_name() {
-  Gate_nameContext *_localctx = _tracker.createInstance<Gate_nameContext>(_ctx, getState());
-  enterRule(_localctx, 108, originirParser::RuleGate_name);
+    Gate_nameContext* _localctx = _tracker.createInstance<Gate_nameContext>(_ctx, getState());
+    enterRule(_localctx, 114, originirParser::RuleGate_name);
 
-  auto onExit = finally([=] {
-    exitRule();
-  });
-  try {
-    setState(674);
-    _errHandler->sync(this);
-    switch (_input->LA(1)) {
-      case originirParser::ECHO_GATE:
-      case originirParser::H_GATE:
-      case originirParser::X_GATE:
-      case originirParser::T_GATE:
-      case originirParser::S_GATE:
-      case originirParser::Y_GATE:
-      case originirParser::Z_GATE:
-      case originirParser::X1_GATE:
-      case originirParser::Y1_GATE:
-      case originirParser::Z1_GATE:
-      case originirParser::I_GATE: {
-        enterOuterAlt(_localctx, 1);
-        setState(664);
-        single_gate_without_parameter_type();
-        break;
-      }
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        setState(734);
+        _errHandler->sync(this);
+        switch (_input->LA(1)) {
+        case originirParser::ECHO_GATE:
+        case originirParser::H_GATE:
+        case originirParser::X_GATE:
+        case originirParser::T_GATE:
+        case originirParser::S_GATE:
+        case originirParser::Y_GATE:
+        case originirParser::Z_GATE:
+        case originirParser::X1_GATE:
+        case originirParser::Y1_GATE:
+        case originirParser::Z1_GATE:
+        case originirParser::I_GATE: {
+            enterOuterAlt(_localctx, 1);
+            setState(724);
+            single_gate_without_parameter_type();
+            break;
+        }
 
-      case originirParser::RX_GATE:
-      case originirParser::RY_GATE:
-      case originirParser::RZ_GATE:
-      case originirParser::U1_GATE: {
-        enterOuterAlt(_localctx, 2);
-        setState(665);
-        single_gate_with_one_parameter_type();
-        break;
-      }
+        case originirParser::RX_GATE:
+        case originirParser::RY_GATE:
+        case originirParser::RZ_GATE:
+        case originirParser::U1_GATE: {
+            enterOuterAlt(_localctx, 2);
+            setState(725);
+            single_gate_with_one_parameter_type();
+            break;
+        }
 
-      case originirParser::U2_GATE:
-      case originirParser::RPHI_GATE: {
-        enterOuterAlt(_localctx, 3);
-        setState(666);
-        single_gate_with_two_parameter_type();
-        break;
-      }
+        case originirParser::U2_GATE:
+        case originirParser::RPHI_GATE: {
+            enterOuterAlt(_localctx, 3);
+            setState(726);
+            single_gate_with_two_parameter_type();
+            break;
+        }
 
-      case originirParser::U3_GATE: {
-        enterOuterAlt(_localctx, 4);
-        setState(667);
-        single_gate_with_three_parameter_type();
-        break;
-      }
+        case originirParser::U3_GATE: {
+            enterOuterAlt(_localctx, 4);
+            setState(727);
+            single_gate_with_three_parameter_type();
+            break;
+        }
 
-      case originirParser::U4_GATE: {
-        enterOuterAlt(_localctx, 5);
-        setState(668);
-        single_gate_with_four_parameter_type();
-        break;
-      }
+        case originirParser::U4_GATE: {
+            enterOuterAlt(_localctx, 5);
+            setState(728);
+            single_gate_with_four_parameter_type();
+            break;
+        }
 
-      case originirParser::CNOT_GATE:
-      case originirParser::CZ_GATE:
-      case originirParser::ISWAP_GATE:
-      case originirParser::SQISWAP_GATE:
-      case originirParser::SWAPZ1_GATE: {
-        enterOuterAlt(_localctx, 6);
-        setState(669);
-        double_gate_without_parameter_type();
-        break;
-      }
+        case originirParser::CNOT_GATE:
+        case originirParser::CZ_GATE:
+        case originirParser::ISWAP_GATE:
+        case originirParser::SQISWAP_GATE:
+        case originirParser::SWAPZ1_GATE: {
+            enterOuterAlt(_localctx, 6);
+            setState(729);
+            double_gate_without_parameter_type();
+            break;
+        }
 
-      case originirParser::ISWAPTHETA_GATE:
-      case originirParser::CR_GATE: {
-        enterOuterAlt(_localctx, 7);
-        setState(670);
-        double_gate_with_one_parameter_type();
-        break;
-      }
+        case originirParser::ISWAPTHETA_GATE:
+        case originirParser::CR_GATE: {
+            enterOuterAlt(_localctx, 7);
+            setState(730);
+            double_gate_with_one_parameter_type();
+            break;
+        }
 
-      case originirParser::CU_GATE: {
-        enterOuterAlt(_localctx, 8);
-        setState(671);
-        double_gate_with_four_parameter_type();
-        break;
-      }
+        case originirParser::CU_GATE: {
+            enterOuterAlt(_localctx, 8);
+            setState(731);
+            double_gate_with_four_parameter_type();
+            break;
+        }
 
-      case originirParser::TOFFOLI_GATE: {
-        enterOuterAlt(_localctx, 9);
-        setState(672);
-        triple_gate_without_parameter_type();
-        break;
-      }
+        case originirParser::TOFFOLI_GATE: {
+            enterOuterAlt(_localctx, 9);
+            setState(732);
+            triple_gate_without_parameter_type();
+            break;
+        }
 
-      case originirParser::Identifier: {
-        enterOuterAlt(_localctx, 10);
-        setState(673);
-        id();
-        break;
-      }
+        case originirParser::Identifier: {
+            enterOuterAlt(_localctx, 10);
+            setState(733);
+            id();
+            break;
+        }
 
-    default:
-      throw NoViableAltException(this);
+        default:
+            throw NoViableAltException(this);
+        }
+
     }
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
+    }
 
-  return _localctx;
-}
+    return _localctx;
+        }
 
 //----------------- ConstantContext ------------------------------------------------------------------
 
-originirParser::ConstantContext::ConstantContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
+originirParser::ConstantContext::ConstantContext(ParserRuleContext * parent, size_t invokingState)
+    : ParserRuleContext(parent, invokingState) {
 }
 
 tree::TerminalNode* originirParser::ConstantContext::Integer_Literal() {
-  return getToken(originirParser::Integer_Literal, 0);
+    return getToken(originirParser::Integer_Literal, 0);
 }
 
 tree::TerminalNode* originirParser::ConstantContext::Double_Literal() {
-  return getToken(originirParser::Double_Literal, 0);
+    return getToken(originirParser::Double_Literal, 0);
 }
 
 tree::TerminalNode* originirParser::ConstantContext::PI() {
-  return getToken(originirParser::PI, 0);
+    return getToken(originirParser::PI, 0);
 }
 
 
 size_t originirParser::ConstantContext::getRuleIndex() const {
-  return originirParser::RuleConstant;
+    return originirParser::RuleConstant;
 }
 
-void originirParser::ConstantContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterConstant(this);
+void originirParser::ConstantContext::enterRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->enterConstant(this);
 }
 
-void originirParser::ConstantContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<originirListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitConstant(this);
+void originirParser::ConstantContext::exitRule(tree::ParseTreeListener * listener) {
+    auto parserListener = dynamic_cast<originirListener*>(listener);
+    if (parserListener != nullptr)
+        parserListener->exitConstant(this);
 }
 
 
-antlrcpp::Any originirParser::ConstantContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
-    return parserVisitor->visitConstant(this);
-  else
-    return visitor->visitChildren(this);
+antlrcpp::Any originirParser::ConstantContext::accept(tree::ParseTreeVisitor * visitor) {
+    if (auto parserVisitor = dynamic_cast<originirVisitor*>(visitor))
+        return parserVisitor->visitConstant(this);
+    else
+        return visitor->visitChildren(this);
 }
 
 originirParser::ConstantContext* originirParser::constant() {
-  ConstantContext *_localctx = _tracker.createInstance<ConstantContext>(_ctx, getState());
-  enterRule(_localctx, 110, originirParser::RuleConstant);
-  size_t _la = 0;
+    ConstantContext* _localctx = _tracker.createInstance<ConstantContext>(_ctx, getState());
+    enterRule(_localctx, 116, originirParser::RuleConstant);
+    size_t _la = 0;
 
-  auto onExit = finally([=] {
-    exitRule();
-  });
-  try {
-    enterOuterAlt(_localctx, 1);
-    setState(676);
-    _la = _input->LA(1);
-    if (!(_la == originirParser::PI || _la == originirParser::Integer_Literal
+#if __cplusplus > 201703L
+    auto onExit = finally([=, this] {
+#else
+    auto onExit = finally([=] {
+#endif
+        exitRule();
+        });
+    try {
+        enterOuterAlt(_localctx, 1);
+        setState(736);
+        _la = _input->LA(1);
+        if (!(_la == originirParser::PI || _la == originirParser::Integer_Literal
 
-    || _la == originirParser::Double_Literal)) {
-    _errHandler->recoverInline(this);
+            || _la == originirParser::Double_Literal)) {
+            _errHandler->recoverInline(this);
+        }
+        else {
+            _errHandler->reportMatch(this);
+            consume();
+        }
+
     }
-    else {
-      _errHandler->reportMatch(this);
-      consume();
+    catch (RecognitionException& e) {
+        _errHandler->reportError(this, e);
+        _localctx->exception = std::current_exception();
+        _errHandler->recover(this, _localctx->exception);
     }
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
 
-  return _localctx;
+    return _localctx;
+        }
+
+bool originirParser::sempred(RuleContext * context, size_t ruleIndex, size_t predicateIndex) {
+    switch (ruleIndex) {
+    case 29: return multiplicative_expressionSempred(dynamic_cast<Multiplicative_expressionContext*>(context), predicateIndex);
+    case 30: return addtive_expressionSempred(dynamic_cast<Addtive_expressionContext*>(context), predicateIndex);
+    case 31: return relational_expressionSempred(dynamic_cast<Relational_expressionContext*>(context), predicateIndex);
+    case 32: return equality_expressionSempred(dynamic_cast<Equality_expressionContext*>(context), predicateIndex);
+    case 33: return logical_and_expressionSempred(dynamic_cast<Logical_and_expressionContext*>(context), predicateIndex);
+    case 34: return logical_or_expressionSempred(dynamic_cast<Logical_or_expressionContext*>(context), predicateIndex);
+    case 53: return expSempred(dynamic_cast<ExpContext*>(context), predicateIndex);
+
+    default:
+        break;
+    }
+    return true;
 }
 
-bool originirParser::sempred(RuleContext *context, size_t ruleIndex, size_t predicateIndex) {
-  switch (ruleIndex) {
-    case 29: return multiplicative_expressionSempred(dynamic_cast<Multiplicative_expressionContext *>(context), predicateIndex);
-    case 30: return addtive_expressionSempred(dynamic_cast<Addtive_expressionContext *>(context), predicateIndex);
-    case 31: return relational_expressionSempred(dynamic_cast<Relational_expressionContext *>(context), predicateIndex);
-    case 32: return equality_expressionSempred(dynamic_cast<Equality_expressionContext *>(context), predicateIndex);
-    case 33: return logical_and_expressionSempred(dynamic_cast<Logical_and_expressionContext *>(context), predicateIndex);
-    case 34: return logical_or_expressionSempred(dynamic_cast<Logical_or_expressionContext *>(context), predicateIndex);
-    case 50: return expSempred(dynamic_cast<ExpContext *>(context), predicateIndex);
-
-  default:
-    break;
-  }
-  return true;
-}
-
-bool originirParser::multiplicative_expressionSempred(Multiplicative_expressionContext *_localctx, size_t predicateIndex) {
-  switch (predicateIndex) {
+bool originirParser::multiplicative_expressionSempred(Multiplicative_expressionContext * _localctx, size_t predicateIndex) {
+    switch (predicateIndex) {
     case 0: return precpred(_ctx, 2);
     case 1: return precpred(_ctx, 1);
 
-  default:
-    break;
-  }
-  return true;
+    default:
+        break;
+    }
+    return true;
 }
 
-bool originirParser::addtive_expressionSempred(Addtive_expressionContext *_localctx, size_t predicateIndex) {
-  switch (predicateIndex) {
+bool originirParser::addtive_expressionSempred(Addtive_expressionContext * _localctx, size_t predicateIndex) {
+    switch (predicateIndex) {
     case 2: return precpred(_ctx, 2);
     case 3: return precpred(_ctx, 1);
 
-  default:
-    break;
-  }
-  return true;
+    default:
+        break;
+    }
+    return true;
 }
 
-bool originirParser::relational_expressionSempred(Relational_expressionContext *_localctx, size_t predicateIndex) {
-  switch (predicateIndex) {
+bool originirParser::relational_expressionSempred(Relational_expressionContext * _localctx, size_t predicateIndex) {
+    switch (predicateIndex) {
     case 4: return precpred(_ctx, 4);
     case 5: return precpred(_ctx, 3);
     case 6: return precpred(_ctx, 2);
     case 7: return precpred(_ctx, 1);
 
-  default:
-    break;
-  }
-  return true;
+    default:
+        break;
+    }
+    return true;
 }
 
-bool originirParser::equality_expressionSempred(Equality_expressionContext *_localctx, size_t predicateIndex) {
-  switch (predicateIndex) {
+bool originirParser::equality_expressionSempred(Equality_expressionContext * _localctx, size_t predicateIndex) {
+    switch (predicateIndex) {
     case 8: return precpred(_ctx, 2);
     case 9: return precpred(_ctx, 1);
 
-  default:
-    break;
-  }
-  return true;
+    default:
+        break;
+    }
+    return true;
 }
 
-bool originirParser::logical_and_expressionSempred(Logical_and_expressionContext *_localctx, size_t predicateIndex) {
-  switch (predicateIndex) {
+bool originirParser::logical_and_expressionSempred(Logical_and_expressionContext * _localctx, size_t predicateIndex) {
+    switch (predicateIndex) {
     case 10: return precpred(_ctx, 1);
 
-  default:
-    break;
-  }
-  return true;
+    default:
+        break;
+    }
+    return true;
 }
 
-bool originirParser::logical_or_expressionSempred(Logical_or_expressionContext *_localctx, size_t predicateIndex) {
-  switch (predicateIndex) {
+bool originirParser::logical_or_expressionSempred(Logical_or_expressionContext * _localctx, size_t predicateIndex) {
+    switch (predicateIndex) {
     case 11: return precpred(_ctx, 1);
 
-  default:
-    break;
-  }
-  return true;
+    default:
+        break;
+    }
+    return true;
 }
 
-bool originirParser::expSempred(ExpContext *_localctx, size_t predicateIndex) {
-  switch (predicateIndex) {
+bool originirParser::expSempred(ExpContext * _localctx, size_t predicateIndex) {
+    switch (predicateIndex) {
     case 12: return precpred(_ctx, 4);
     case 13: return precpred(_ctx, 3);
     case 14: return precpred(_ctx, 2);
     case 15: return precpred(_ctx, 1);
 
-  default:
-    break;
-  }
-  return true;
+    default:
+        break;
+    }
+    return true;
 }
 
 // Static vars and initialization.
@@ -6307,51 +7042,52 @@ atn::ATN originirParser::_atn;
 std::vector<uint16_t> originirParser::_serializedATN;
 
 std::vector<std::string> originirParser::_ruleNames = {
-  "translationunit", "declaration", "qinit_declaration", "cinit_declaration", 
-  "quantum_gate_declaration", "index", "c_KEY_declaration", "q_KEY_declaration", 
-  "single_gate_without_parameter_declaration", "single_gate_with_one_parameter_declaration", 
-  "single_gate_with_two_parameter_declaration", "single_gate_with_three_parameter_declaration", 
-  "single_gate_with_four_parameter_declaration", "double_gate_without_parameter_declaration", 
-  "double_gate_with_one_parameter_declaration", "double_gate_with_four_parameter_declaration", 
-  "triple_gate_without_parameter_declaration", "define_gate_declaration", 
-  "single_gate_without_parameter_type", "single_gate_with_one_parameter_type", 
-  "single_gate_with_two_parameter_type", "single_gate_with_three_parameter_type", 
-  "single_gate_with_four_parameter_type", "double_gate_without_parameter_type", 
-  "double_gate_with_one_parameter_type", "double_gate_with_four_parameter_type", 
-  "triple_gate_without_parameter_type", "primary_expression", "unary_expression", 
-  "multiplicative_expression", "addtive_expression", "relational_expression", 
-  "equality_expression", "logical_and_expression", "logical_or_expression", 
-  "assignment_expression", "expression", "controlbit_list", "statement", 
-  "dagger_statement", "control_statement", "qelse_statement_fragment", "qif_statement", 
-  "qwhile_statement", "measure_statement", "reset_statement", "barrier_statement", 
-  "expression_statement", "define_gate_statement", "explist", "exp", "gate_func_statement", 
+  "translationunit", "declaration", "qinit_declaration", "cinit_declaration",
+  "quantum_gate_declaration", "index", "c_KEY_declaration", "q_KEY_declaration",
+  "single_gate_without_parameter_declaration", "single_gate_with_one_parameter_declaration",
+  "single_gate_with_two_parameter_declaration", "single_gate_with_three_parameter_declaration",
+  "single_gate_with_four_parameter_declaration", "double_gate_without_parameter_declaration",
+  "double_gate_with_one_parameter_declaration", "double_gate_with_four_parameter_declaration",
+  "triple_gate_without_parameter_declaration", "define_gate_declaration",
+  "single_gate_without_parameter_type", "single_gate_with_one_parameter_type",
+  "single_gate_with_two_parameter_type", "single_gate_with_three_parameter_type",
+  "single_gate_with_four_parameter_type", "double_gate_without_parameter_type",
+  "double_gate_with_one_parameter_type", "double_gate_with_four_parameter_type",
+  "triple_gate_without_parameter_type", "primary_expression", "unary_expression",
+  "multiplicative_expression", "addtive_expression", "relational_expression",
+  "equality_expression", "logical_and_expression", "logical_or_expression",
+  "assignment_expression", "expression", "controlbit_list", "statement",
+  "dagger_statement", "control_statement", "qelse_statement_fragment", "qif_statement",
+  "qwhile_statement", "measure_statement", "reset_statement", "barrier_statement",
+  "expression_statement", "define_gate_statement", "define_dagger_statement",
+  "define_control_statement", "user_defined_gate", "explist", "exp", "gate_func_statement",
   "id", "id_list", "gate_name", "constant"
 };
 
 std::vector<std::string> originirParser::_literalNames = {
-  "", "'PI'", "'QINIT'", "'CREG'", "'q'", "'c'", "'BARRIER'", "'QGATE'", 
-  "'ENDQGATE'", "'ECHO'", "'H'", "'X'", "'NOT'", "'T'", "'S'", "'Y'", "'Z'", 
-  "'X1'", "'Y1'", "'Z1'", "'I'", "'U2'", "'RPhi'", "'U3'", "'U4'", "'RX'", 
-  "'RY'", "'RZ'", "'U1'", "'CNOT'", "'CZ'", "'CU'", "'ISWAP'", "'SQISWAP'", 
-  "'SWAP'", "'ISWAPTHETA'", "'CR'", "'TOFFOLI'", "'DAGGER'", "'ENDDAGGER'", 
-  "'CONTROL'", "'ENDCONTROL'", "'QIF'", "'ELSE'", "'ENDQIF'", "'QWHILE'", 
-  "'ENDQWHILE'", "'MEASURE'", "'RESET'", "'='", "'>'", "'<'", "'!'", "'=='", 
-  "'<='", "'>='", "'!='", "'&&'", "'||'", "'+'", "'-'", "'*'", "'/'", "','", 
+  "", "'PI'", "'QINIT'", "'CREG'", "'q'", "'c'", "'BARRIER'", "'QGATE'",
+  "'ENDQGATE'", "'ECHO'", "'H'", "'X'", "'NOT'", "'T'", "'S'", "'Y'", "'Z'",
+  "'X1'", "'Y1'", "'Z1'", "'I'", "'U2'", "'RPhi'", "'U3'", "'U4'", "'RX'",
+  "'RY'", "'RZ'", "'U1'", "'CNOT'", "'CZ'", "'CU'", "'ISWAP'", "'SQISWAP'",
+  "'SWAP'", "'ISWAPTHETA'", "'CR'", "'TOFFOLI'", "'DAGGER'", "'ENDDAGGER'",
+  "'CONTROL'", "'ENDCONTROL'", "'QIF'", "'ELSE'", "'ENDQIF'", "'QWHILE'",
+  "'ENDQWHILE'", "'MEASURE'", "'RESET'", "'='", "'>'", "'<'", "'!'", "'=='",
+  "'<='", "'>='", "'!='", "'&&'", "'||'", "'+'", "'-'", "'*'", "'/'", "','",
   "'('", "')'", "'['", "']'"
 };
 
 std::vector<std::string> originirParser::_symbolicNames = {
-  "", "PI", "QINIT_KEY", "CREG_KEY", "Q_KEY", "C_KEY", "BARRIER_KEY", "QGATE_KEY", 
-  "ENDQGATE_KEY", "ECHO_GATE", "H_GATE", "X_GATE", "NOT_GATE", "T_GATE", 
-  "S_GATE", "Y_GATE", "Z_GATE", "X1_GATE", "Y1_GATE", "Z1_GATE", "I_GATE", 
-  "U2_GATE", "RPHI_GATE", "U3_GATE", "U4_GATE", "RX_GATE", "RY_GATE", "RZ_GATE", 
-  "U1_GATE", "CNOT_GATE", "CZ_GATE", "CU_GATE", "ISWAP_GATE", "SQISWAP_GATE", 
-  "SWAPZ1_GATE", "ISWAPTHETA_GATE", "CR_GATE", "TOFFOLI_GATE", "DAGGER_KEY", 
-  "ENDDAGGER_KEY", "CONTROL_KEY", "ENDCONTROL_KEY", "QIF_KEY", "ELSE_KEY", 
-  "ENDIF_KEY", "QWHILE_KEY", "ENDQWHILE_KEY", "MEASURE_KEY", "RESET_KEY", 
-  "ASSIGN", "GT", "LT", "NOT", "EQ", "LEQ", "GEQ", "NE", "AND", "OR", "PLUS", 
-  "MINUS", "MUL", "DIV", "COMMA", "LPAREN", "RPAREN", "LBRACK", "RBRACK", 
-  "NEWLINE", "Identifier", "Integer_Literal", "Double_Literal", "Digit_Sequence", 
+  "", "PI", "QINIT_KEY", "CREG_KEY", "Q_KEY", "C_KEY", "BARRIER_KEY", "QGATE_KEY",
+  "ENDQGATE_KEY", "ECHO_GATE", "H_GATE", "X_GATE", "NOT_GATE", "T_GATE",
+  "S_GATE", "Y_GATE", "Z_GATE", "X1_GATE", "Y1_GATE", "Z1_GATE", "I_GATE",
+  "U2_GATE", "RPHI_GATE", "U3_GATE", "U4_GATE", "RX_GATE", "RY_GATE", "RZ_GATE",
+  "U1_GATE", "CNOT_GATE", "CZ_GATE", "CU_GATE", "ISWAP_GATE", "SQISWAP_GATE",
+  "SWAPZ1_GATE", "ISWAPTHETA_GATE", "CR_GATE", "TOFFOLI_GATE", "DAGGER_KEY",
+  "ENDDAGGER_KEY", "CONTROL_KEY", "ENDCONTROL_KEY", "QIF_KEY", "ELSE_KEY",
+  "ENDIF_KEY", "QWHILE_KEY", "ENDQWHILE_KEY", "MEASURE_KEY", "RESET_KEY",
+  "ASSIGN", "GT", "LT", "NOT", "EQ", "LEQ", "GEQ", "NE", "AND", "OR", "PLUS",
+  "MINUS", "MUL", "DIV", "COMMA", "LPAREN", "RPAREN", "LBRACK", "RBRACK",
+  "NEWLINE", "Identifier", "Integer_Literal", "Double_Literal", "Digit_Sequence",
   "REALEXP", "WhiteSpace", "SingleLineComment"
 };
 
@@ -6360,495 +7096,562 @@ dfa::Vocabulary originirParser::_vocabulary(_literalNames, _symbolicNames);
 std::vector<std::string> originirParser::_tokenNames;
 
 originirParser::Initializer::Initializer() {
-	for (size_t i = 0; i < _symbolicNames.size(); ++i) {
-		std::string name = _vocabulary.getLiteralName(i);
-		if (name.empty()) {
-			name = _vocabulary.getSymbolicName(i);
-		}
+    for (size_t i = 0; i < _symbolicNames.size(); ++i) {
+        std::string name = _vocabulary.getLiteralName(i);
+        if (name.empty()) {
+            name = _vocabulary.getSymbolicName(i);
+        }
 
-		if (name.empty()) {
-			_tokenNames.push_back("<INVALID>");
-		} else {
-      _tokenNames.push_back(name);
+        if (name.empty()) {
+            _tokenNames.push_back("<INVALID>");
+        }
+        else {
+            _tokenNames.push_back(name);
+        }
     }
-	}
 
-  _serializedATN = {
-    0x3, 0x608b, 0xa72a, 0x8133, 0xb9ed, 0x417c, 0x3be7, 0x7786, 0x5964, 
-    0x3, 0x4d, 0x2a9, 0x4, 0x2, 0x9, 0x2, 0x4, 0x3, 0x9, 0x3, 0x4, 0x4, 
-    0x9, 0x4, 0x4, 0x5, 0x9, 0x5, 0x4, 0x6, 0x9, 0x6, 0x4, 0x7, 0x9, 0x7, 
-    0x4, 0x8, 0x9, 0x8, 0x4, 0x9, 0x9, 0x9, 0x4, 0xa, 0x9, 0xa, 0x4, 0xb, 
-    0x9, 0xb, 0x4, 0xc, 0x9, 0xc, 0x4, 0xd, 0x9, 0xd, 0x4, 0xe, 0x9, 0xe, 
-    0x4, 0xf, 0x9, 0xf, 0x4, 0x10, 0x9, 0x10, 0x4, 0x11, 0x9, 0x11, 0x4, 
-    0x12, 0x9, 0x12, 0x4, 0x13, 0x9, 0x13, 0x4, 0x14, 0x9, 0x14, 0x4, 0x15, 
-    0x9, 0x15, 0x4, 0x16, 0x9, 0x16, 0x4, 0x17, 0x9, 0x17, 0x4, 0x18, 0x9, 
-    0x18, 0x4, 0x19, 0x9, 0x19, 0x4, 0x1a, 0x9, 0x1a, 0x4, 0x1b, 0x9, 0x1b, 
-    0x4, 0x1c, 0x9, 0x1c, 0x4, 0x1d, 0x9, 0x1d, 0x4, 0x1e, 0x9, 0x1e, 0x4, 
-    0x1f, 0x9, 0x1f, 0x4, 0x20, 0x9, 0x20, 0x4, 0x21, 0x9, 0x21, 0x4, 0x22, 
-    0x9, 0x22, 0x4, 0x23, 0x9, 0x23, 0x4, 0x24, 0x9, 0x24, 0x4, 0x25, 0x9, 
-    0x25, 0x4, 0x26, 0x9, 0x26, 0x4, 0x27, 0x9, 0x27, 0x4, 0x28, 0x9, 0x28, 
-    0x4, 0x29, 0x9, 0x29, 0x4, 0x2a, 0x9, 0x2a, 0x4, 0x2b, 0x9, 0x2b, 0x4, 
-    0x2c, 0x9, 0x2c, 0x4, 0x2d, 0x9, 0x2d, 0x4, 0x2e, 0x9, 0x2e, 0x4, 0x2f, 
-    0x9, 0x2f, 0x4, 0x30, 0x9, 0x30, 0x4, 0x31, 0x9, 0x31, 0x4, 0x32, 0x9, 
-    0x32, 0x4, 0x33, 0x9, 0x33, 0x4, 0x34, 0x9, 0x34, 0x4, 0x35, 0x9, 0x35, 
-    0x4, 0x36, 0x9, 0x36, 0x4, 0x37, 0x9, 0x37, 0x4, 0x38, 0x9, 0x38, 0x4, 
-    0x39, 0x9, 0x39, 0x3, 0x2, 0x3, 0x2, 0x7, 0x2, 0x75, 0xa, 0x2, 0xc, 
-    0x2, 0xe, 0x2, 0x78, 0xb, 0x2, 0x3, 0x3, 0x3, 0x3, 0x3, 0x3, 0x3, 0x4, 
-    0x3, 0x4, 0x3, 0x4, 0x3, 0x4, 0x3, 0x5, 0x3, 0x5, 0x3, 0x5, 0x3, 0x5, 
-    0x3, 0x6, 0x3, 0x6, 0x3, 0x6, 0x3, 0x6, 0x3, 0x6, 0x3, 0x6, 0x3, 0x6, 
-    0x3, 0x6, 0x3, 0x6, 0x3, 0x6, 0x5, 0x6, 0x8f, 0xa, 0x6, 0x3, 0x7, 0x3, 
-    0x7, 0x3, 0x7, 0x3, 0x7, 0x3, 0x8, 0x3, 0x8, 0x3, 0x8, 0x3, 0x9, 0x3, 
-    0x9, 0x3, 0x9, 0x3, 0xa, 0x3, 0xa, 0x3, 0xa, 0x3, 0xa, 0x3, 0xa, 0x3, 
-    0xa, 0x5, 0xa, 0xa1, 0xa, 0xa, 0x3, 0xb, 0x3, 0xb, 0x3, 0xb, 0x3, 0xb, 
-    0x3, 0xb, 0x3, 0xb, 0x3, 0xb, 0x3, 0xb, 0x3, 0xb, 0x3, 0xb, 0x3, 0xb, 
-    0x3, 0xb, 0x3, 0xb, 0x3, 0xb, 0x5, 0xb, 0xb1, 0xa, 0xb, 0x3, 0xc, 0x3, 
-    0xc, 0x3, 0xc, 0x3, 0xc, 0x3, 0xc, 0x3, 0xc, 0x3, 0xc, 0x3, 0xc, 0x3, 
-    0xc, 0x3, 0xc, 0x3, 0xc, 0x3, 0xc, 0x3, 0xc, 0x3, 0xc, 0x3, 0xc, 0x3, 
-    0xc, 0x3, 0xc, 0x3, 0xc, 0x5, 0xc, 0xc5, 0xa, 0xc, 0x3, 0xd, 0x3, 0xd, 
-    0x3, 0xd, 0x3, 0xd, 0x3, 0xd, 0x3, 0xd, 0x3, 0xd, 0x3, 0xd, 0x3, 0xd, 
-    0x3, 0xd, 0x3, 0xd, 0x3, 0xd, 0x3, 0xd, 0x3, 0xd, 0x3, 0xd, 0x3, 0xd, 
-    0x3, 0xd, 0x3, 0xd, 0x3, 0xd, 0x3, 0xd, 0x3, 0xd, 0x3, 0xd, 0x5, 0xd, 
-    0xdd, 0xa, 0xd, 0x3, 0xe, 0x3, 0xe, 0x3, 0xe, 0x3, 0xe, 0x3, 0xe, 0x3, 
-    0xe, 0x3, 0xe, 0x3, 0xe, 0x3, 0xe, 0x3, 0xe, 0x3, 0xe, 0x3, 0xe, 0x3, 
-    0xe, 0x3, 0xe, 0x3, 0xe, 0x3, 0xe, 0x3, 0xe, 0x3, 0xe, 0x3, 0xe, 0x3, 
-    0xe, 0x3, 0xe, 0x3, 0xe, 0x3, 0xe, 0x3, 0xe, 0x3, 0xe, 0x3, 0xe, 0x5, 
-    0xe, 0xf9, 0xa, 0xe, 0x3, 0xf, 0x3, 0xf, 0x3, 0xf, 0x3, 0xf, 0x3, 0xf, 
-    0x3, 0x10, 0x3, 0x10, 0x3, 0x10, 0x3, 0x10, 0x3, 0x10, 0x3, 0x10, 0x3, 
-    0x10, 0x3, 0x10, 0x3, 0x10, 0x3, 0x11, 0x3, 0x11, 0x3, 0x11, 0x3, 0x11, 
-    0x3, 0x11, 0x3, 0x11, 0x3, 0x11, 0x3, 0x11, 0x3, 0x11, 0x3, 0x11, 0x3, 
-    0x11, 0x3, 0x11, 0x3, 0x11, 0x3, 0x11, 0x3, 0x11, 0x3, 0x12, 0x3, 0x12, 
-    0x3, 0x12, 0x3, 0x12, 0x3, 0x12, 0x3, 0x12, 0x3, 0x12, 0x3, 0x13, 0x3, 
-    0x13, 0x3, 0x13, 0x3, 0x13, 0x7, 0x13, 0x123, 0xa, 0x13, 0xc, 0x13, 
-    0xe, 0x13, 0x126, 0xb, 0x13, 0x3, 0x13, 0x3, 0x13, 0x3, 0x13, 0x3, 0x13, 
-    0x7, 0x13, 0x12c, 0xa, 0x13, 0xc, 0x13, 0xe, 0x13, 0x12f, 0xb, 0x13, 
-    0x3, 0x13, 0x3, 0x13, 0x3, 0x13, 0x3, 0x13, 0x3, 0x13, 0x7, 0x13, 0x136, 
-    0xa, 0x13, 0xc, 0x13, 0xe, 0x13, 0x139, 0xb, 0x13, 0x3, 0x13, 0x3, 0x13, 
-    0x5, 0x13, 0x13d, 0xa, 0x13, 0x3, 0x14, 0x3, 0x14, 0x3, 0x15, 0x3, 0x15, 
-    0x3, 0x16, 0x3, 0x16, 0x3, 0x17, 0x3, 0x17, 0x3, 0x18, 0x3, 0x18, 0x3, 
-    0x19, 0x3, 0x19, 0x3, 0x1a, 0x3, 0x1a, 0x3, 0x1b, 0x3, 0x1b, 0x3, 0x1c, 
-    0x3, 0x1c, 0x3, 0x1d, 0x3, 0x1d, 0x3, 0x1d, 0x3, 0x1d, 0x3, 0x1d, 0x3, 
-    0x1d, 0x5, 0x1d, 0x157, 0xa, 0x1d, 0x3, 0x1e, 0x3, 0x1e, 0x3, 0x1e, 
-    0x3, 0x1e, 0x3, 0x1e, 0x3, 0x1e, 0x3, 0x1e, 0x5, 0x1e, 0x160, 0xa, 0x1e, 
-    0x3, 0x1f, 0x3, 0x1f, 0x3, 0x1f, 0x3, 0x1f, 0x3, 0x1f, 0x3, 0x1f, 0x3, 
-    0x1f, 0x3, 0x1f, 0x3, 0x1f, 0x7, 0x1f, 0x16b, 0xa, 0x1f, 0xc, 0x1f, 
-    0xe, 0x1f, 0x16e, 0xb, 0x1f, 0x3, 0x20, 0x3, 0x20, 0x3, 0x20, 0x3, 0x20, 
-    0x3, 0x20, 0x3, 0x20, 0x3, 0x20, 0x3, 0x20, 0x3, 0x20, 0x7, 0x20, 0x179, 
-    0xa, 0x20, 0xc, 0x20, 0xe, 0x20, 0x17c, 0xb, 0x20, 0x3, 0x21, 0x3, 0x21, 
-    0x3, 0x21, 0x3, 0x21, 0x3, 0x21, 0x3, 0x21, 0x3, 0x21, 0x3, 0x21, 0x3, 
-    0x21, 0x3, 0x21, 0x3, 0x21, 0x3, 0x21, 0x3, 0x21, 0x3, 0x21, 0x3, 0x21, 
-    0x7, 0x21, 0x18d, 0xa, 0x21, 0xc, 0x21, 0xe, 0x21, 0x190, 0xb, 0x21, 
-    0x3, 0x22, 0x3, 0x22, 0x3, 0x22, 0x3, 0x22, 0x3, 0x22, 0x3, 0x22, 0x3, 
-    0x22, 0x3, 0x22, 0x3, 0x22, 0x7, 0x22, 0x19b, 0xa, 0x22, 0xc, 0x22, 
-    0xe, 0x22, 0x19e, 0xb, 0x22, 0x3, 0x23, 0x3, 0x23, 0x3, 0x23, 0x3, 0x23, 
-    0x3, 0x23, 0x3, 0x23, 0x7, 0x23, 0x1a6, 0xa, 0x23, 0xc, 0x23, 0xe, 0x23, 
-    0x1a9, 0xb, 0x23, 0x3, 0x24, 0x3, 0x24, 0x3, 0x24, 0x3, 0x24, 0x3, 0x24, 
-    0x3, 0x24, 0x7, 0x24, 0x1b1, 0xa, 0x24, 0xc, 0x24, 0xe, 0x24, 0x1b4, 
-    0xb, 0x24, 0x3, 0x25, 0x3, 0x25, 0x3, 0x25, 0x3, 0x25, 0x3, 0x25, 0x5, 
-    0x25, 0x1bb, 0xa, 0x25, 0x3, 0x26, 0x3, 0x26, 0x3, 0x27, 0x3, 0x27, 
-    0x3, 0x27, 0x7, 0x27, 0x1c2, 0xa, 0x27, 0xc, 0x27, 0xe, 0x27, 0x1c5, 
-    0xb, 0x27, 0x3, 0x28, 0x3, 0x28, 0x3, 0x28, 0x3, 0x28, 0x3, 0x28, 0x3, 
-    0x28, 0x3, 0x28, 0x3, 0x28, 0x3, 0x28, 0x3, 0x28, 0x3, 0x28, 0x3, 0x28, 
-    0x5, 0x28, 0x1d3, 0xa, 0x28, 0x3, 0x29, 0x3, 0x29, 0x3, 0x29, 0x7, 0x29, 
-    0x1d8, 0xa, 0x29, 0xc, 0x29, 0xe, 0x29, 0x1db, 0xb, 0x29, 0x3, 0x29, 
-    0x3, 0x29, 0x3, 0x29, 0x3, 0x2a, 0x3, 0x2a, 0x3, 0x2a, 0x3, 0x2a, 0x7, 
-    0x2a, 0x1e4, 0xa, 0x2a, 0xc, 0x2a, 0xe, 0x2a, 0x1e7, 0xb, 0x2a, 0x3, 
-    0x2a, 0x3, 0x2a, 0x3, 0x2a, 0x3, 0x2b, 0x3, 0x2b, 0x3, 0x2b, 0x7, 0x2b, 
-    0x1ef, 0xa, 0x2b, 0xc, 0x2b, 0xe, 0x2b, 0x1f2, 0xb, 0x2b, 0x3, 0x2c, 
-    0x3, 0x2c, 0x3, 0x2c, 0x3, 0x2c, 0x7, 0x2c, 0x1f8, 0xa, 0x2c, 0xc, 0x2c, 
-    0xe, 0x2c, 0x1fb, 0xb, 0x2c, 0x3, 0x2c, 0x3, 0x2c, 0x3, 0x2c, 0x3, 0x2c, 
-    0x3, 0x2c, 0x3, 0x2c, 0x3, 0x2c, 0x3, 0x2c, 0x7, 0x2c, 0x205, 0xa, 0x2c, 
-    0xc, 0x2c, 0xe, 0x2c, 0x208, 0xb, 0x2c, 0x3, 0x2c, 0x3, 0x2c, 0x3, 0x2c, 
-    0x5, 0x2c, 0x20d, 0xa, 0x2c, 0x3, 0x2d, 0x3, 0x2d, 0x3, 0x2d, 0x3, 0x2d, 
-    0x7, 0x2d, 0x213, 0xa, 0x2d, 0xc, 0x2d, 0xe, 0x2d, 0x216, 0xb, 0x2d, 
-    0x3, 0x2d, 0x3, 0x2d, 0x3, 0x2d, 0x3, 0x2e, 0x3, 0x2e, 0x3, 0x2e, 0x3, 
-    0x2e, 0x3, 0x2e, 0x3, 0x2e, 0x3, 0x2e, 0x3, 0x2e, 0x3, 0x2e, 0x3, 0x2e, 
-    0x3, 0x2e, 0x5, 0x2e, 0x226, 0xa, 0x2e, 0x3, 0x2f, 0x3, 0x2f, 0x3, 0x2f, 
-    0x3, 0x2f, 0x3, 0x2f, 0x3, 0x2f, 0x3, 0x2f, 0x5, 0x2f, 0x22f, 0xa, 0x2f, 
-    0x3, 0x30, 0x3, 0x30, 0x3, 0x30, 0x3, 0x30, 0x3, 0x30, 0x3, 0x30, 0x3, 
-    0x30, 0x5, 0x30, 0x238, 0xa, 0x30, 0x3, 0x31, 0x3, 0x31, 0x3, 0x31, 
-    0x3, 0x32, 0x3, 0x32, 0x3, 0x32, 0x3, 0x32, 0x3, 0x32, 0x3, 0x32, 0x3, 
-    0x32, 0x3, 0x32, 0x3, 0x32, 0x3, 0x32, 0x3, 0x32, 0x3, 0x32, 0x5, 0x32, 
-    0x249, 0xa, 0x32, 0x3, 0x33, 0x3, 0x33, 0x3, 0x33, 0x7, 0x33, 0x24e, 
-    0xa, 0x33, 0xc, 0x33, 0xe, 0x33, 0x251, 0xb, 0x33, 0x3, 0x34, 0x3, 0x34, 
-    0x3, 0x34, 0x3, 0x34, 0x3, 0x34, 0x3, 0x34, 0x3, 0x34, 0x3, 0x34, 0x3, 
-    0x34, 0x3, 0x34, 0x3, 0x34, 0x5, 0x34, 0x25e, 0xa, 0x34, 0x3, 0x34, 
-    0x3, 0x34, 0x3, 0x34, 0x3, 0x34, 0x3, 0x34, 0x3, 0x34, 0x3, 0x34, 0x3, 
-    0x34, 0x3, 0x34, 0x3, 0x34, 0x3, 0x34, 0x3, 0x34, 0x7, 0x34, 0x26c, 
-    0xa, 0x34, 0xc, 0x34, 0xe, 0x34, 0x26f, 0xb, 0x34, 0x3, 0x35, 0x3, 0x35, 
-    0x3, 0x35, 0x3, 0x35, 0x3, 0x35, 0x7, 0x35, 0x276, 0xa, 0x35, 0xc, 0x35, 
-    0xe, 0x35, 0x279, 0xb, 0x35, 0x3, 0x35, 0x3, 0x35, 0x3, 0x35, 0x3, 0x35, 
-    0x3, 0x35, 0x3, 0x35, 0x3, 0x35, 0x3, 0x35, 0x3, 0x35, 0x3, 0x35, 0x3, 
-    0x35, 0x3, 0x35, 0x7, 0x35, 0x287, 0xa, 0x35, 0xc, 0x35, 0xe, 0x35, 
-    0x28a, 0xb, 0x35, 0x3, 0x35, 0x3, 0x35, 0x3, 0x35, 0x5, 0x35, 0x28f, 
-    0xa, 0x35, 0x3, 0x36, 0x3, 0x36, 0x3, 0x37, 0x3, 0x37, 0x3, 0x37, 0x7, 
-    0x37, 0x296, 0xa, 0x37, 0xc, 0x37, 0xe, 0x37, 0x299, 0xb, 0x37, 0x3, 
-    0x38, 0x3, 0x38, 0x3, 0x38, 0x3, 0x38, 0x3, 0x38, 0x3, 0x38, 0x3, 0x38, 
-    0x3, 0x38, 0x3, 0x38, 0x3, 0x38, 0x5, 0x38, 0x2a5, 0xa, 0x38, 0x3, 0x39, 
-    0x3, 0x39, 0x3, 0x39, 0x2, 0x9, 0x3c, 0x3e, 0x40, 0x42, 0x44, 0x46, 
-    0x66, 0x3a, 0x2, 0x4, 0x6, 0x8, 0xa, 0xc, 0xe, 0x10, 0x12, 0x14, 0x16, 
-    0x18, 0x1a, 0x1c, 0x1e, 0x20, 0x22, 0x24, 0x26, 0x28, 0x2a, 0x2c, 0x2e, 
-    0x30, 0x32, 0x34, 0x36, 0x38, 0x3a, 0x3c, 0x3e, 0x40, 0x42, 0x44, 0x46, 
-    0x48, 0x4a, 0x4c, 0x4e, 0x50, 0x52, 0x54, 0x56, 0x58, 0x5a, 0x5c, 0x5e, 
-    0x60, 0x62, 0x64, 0x66, 0x68, 0x6a, 0x6c, 0x6e, 0x70, 0x2, 0x8, 0x4, 
-    0x2, 0xb, 0xd, 0xf, 0x16, 0x3, 0x2, 0x1b, 0x1e, 0x3, 0x2, 0x17, 0x18, 
-    0x4, 0x2, 0x1f, 0x20, 0x22, 0x24, 0x3, 0x2, 0x25, 0x26, 0x4, 0x2, 0x3, 
-    0x3, 0x48, 0x49, 0x2, 0x2c1, 0x2, 0x72, 0x3, 0x2, 0x2, 0x2, 0x4, 0x79, 
-    0x3, 0x2, 0x2, 0x2, 0x6, 0x7c, 0x3, 0x2, 0x2, 0x2, 0x8, 0x80, 0x3, 0x2, 
-    0x2, 0x2, 0xa, 0x8e, 0x3, 0x2, 0x2, 0x2, 0xc, 0x90, 0x3, 0x2, 0x2, 0x2, 
-    0xe, 0x94, 0x3, 0x2, 0x2, 0x2, 0x10, 0x97, 0x3, 0x2, 0x2, 0x2, 0x12, 
-    0xa0, 0x3, 0x2, 0x2, 0x2, 0x14, 0xb0, 0x3, 0x2, 0x2, 0x2, 0x16, 0xc4, 
-    0x3, 0x2, 0x2, 0x2, 0x18, 0xdc, 0x3, 0x2, 0x2, 0x2, 0x1a, 0xf8, 0x3, 
-    0x2, 0x2, 0x2, 0x1c, 0xfa, 0x3, 0x2, 0x2, 0x2, 0x1e, 0xff, 0x3, 0x2, 
-    0x2, 0x2, 0x20, 0x108, 0x3, 0x2, 0x2, 0x2, 0x22, 0x117, 0x3, 0x2, 0x2, 
-    0x2, 0x24, 0x13c, 0x3, 0x2, 0x2, 0x2, 0x26, 0x13e, 0x3, 0x2, 0x2, 0x2, 
-    0x28, 0x140, 0x3, 0x2, 0x2, 0x2, 0x2a, 0x142, 0x3, 0x2, 0x2, 0x2, 0x2c, 
-    0x144, 0x3, 0x2, 0x2, 0x2, 0x2e, 0x146, 0x3, 0x2, 0x2, 0x2, 0x30, 0x148, 
-    0x3, 0x2, 0x2, 0x2, 0x32, 0x14a, 0x3, 0x2, 0x2, 0x2, 0x34, 0x14c, 0x3, 
-    0x2, 0x2, 0x2, 0x36, 0x14e, 0x3, 0x2, 0x2, 0x2, 0x38, 0x156, 0x3, 0x2, 
-    0x2, 0x2, 0x3a, 0x15f, 0x3, 0x2, 0x2, 0x2, 0x3c, 0x161, 0x3, 0x2, 0x2, 
-    0x2, 0x3e, 0x16f, 0x3, 0x2, 0x2, 0x2, 0x40, 0x17d, 0x3, 0x2, 0x2, 0x2, 
-    0x42, 0x191, 0x3, 0x2, 0x2, 0x2, 0x44, 0x19f, 0x3, 0x2, 0x2, 0x2, 0x46, 
-    0x1aa, 0x3, 0x2, 0x2, 0x2, 0x48, 0x1ba, 0x3, 0x2, 0x2, 0x2, 0x4a, 0x1bc, 
-    0x3, 0x2, 0x2, 0x2, 0x4c, 0x1be, 0x3, 0x2, 0x2, 0x2, 0x4e, 0x1d2, 0x3, 
-    0x2, 0x2, 0x2, 0x50, 0x1d4, 0x3, 0x2, 0x2, 0x2, 0x52, 0x1df, 0x3, 0x2, 
-    0x2, 0x2, 0x54, 0x1eb, 0x3, 0x2, 0x2, 0x2, 0x56, 0x20c, 0x3, 0x2, 0x2, 
-    0x2, 0x58, 0x20e, 0x3, 0x2, 0x2, 0x2, 0x5a, 0x225, 0x3, 0x2, 0x2, 0x2, 
-    0x5c, 0x22e, 0x3, 0x2, 0x2, 0x2, 0x5e, 0x237, 0x3, 0x2, 0x2, 0x2, 0x60, 
-    0x239, 0x3, 0x2, 0x2, 0x2, 0x62, 0x248, 0x3, 0x2, 0x2, 0x2, 0x64, 0x24a, 
-    0x3, 0x2, 0x2, 0x2, 0x66, 0x25d, 0x3, 0x2, 0x2, 0x2, 0x68, 0x28e, 0x3, 
-    0x2, 0x2, 0x2, 0x6a, 0x290, 0x3, 0x2, 0x2, 0x2, 0x6c, 0x292, 0x3, 0x2, 
-    0x2, 0x2, 0x6e, 0x2a4, 0x3, 0x2, 0x2, 0x2, 0x70, 0x2a6, 0x3, 0x2, 0x2, 
-    0x2, 0x72, 0x76, 0x5, 0x4, 0x3, 0x2, 0x73, 0x75, 0x5, 0x4e, 0x28, 0x2, 
-    0x74, 0x73, 0x3, 0x2, 0x2, 0x2, 0x75, 0x78, 0x3, 0x2, 0x2, 0x2, 0x76, 
-    0x74, 0x3, 0x2, 0x2, 0x2, 0x76, 0x77, 0x3, 0x2, 0x2, 0x2, 0x77, 0x3, 
-    0x3, 0x2, 0x2, 0x2, 0x78, 0x76, 0x3, 0x2, 0x2, 0x2, 0x79, 0x7a, 0x5, 
-    0x6, 0x4, 0x2, 0x7a, 0x7b, 0x5, 0x8, 0x5, 0x2, 0x7b, 0x5, 0x3, 0x2, 
-    0x2, 0x2, 0x7c, 0x7d, 0x7, 0x4, 0x2, 0x2, 0x7d, 0x7e, 0x7, 0x48, 0x2, 
-    0x2, 0x7e, 0x7f, 0x7, 0x46, 0x2, 0x2, 0x7f, 0x7, 0x3, 0x2, 0x2, 0x2, 
-    0x80, 0x81, 0x7, 0x5, 0x2, 0x2, 0x81, 0x82, 0x7, 0x48, 0x2, 0x2, 0x82, 
-    0x83, 0x7, 0x46, 0x2, 0x2, 0x83, 0x9, 0x3, 0x2, 0x2, 0x2, 0x84, 0x8f, 
-    0x5, 0x12, 0xa, 0x2, 0x85, 0x8f, 0x5, 0x14, 0xb, 0x2, 0x86, 0x8f, 0x5, 
-    0x16, 0xc, 0x2, 0x87, 0x8f, 0x5, 0x18, 0xd, 0x2, 0x88, 0x8f, 0x5, 0x1a, 
-    0xe, 0x2, 0x89, 0x8f, 0x5, 0x1c, 0xf, 0x2, 0x8a, 0x8f, 0x5, 0x1e, 0x10, 
-    0x2, 0x8b, 0x8f, 0x5, 0x20, 0x11, 0x2, 0x8c, 0x8f, 0x5, 0x22, 0x12, 
-    0x2, 0x8d, 0x8f, 0x5, 0x24, 0x13, 0x2, 0x8e, 0x84, 0x3, 0x2, 0x2, 0x2, 
-    0x8e, 0x85, 0x3, 0x2, 0x2, 0x2, 0x8e, 0x86, 0x3, 0x2, 0x2, 0x2, 0x8e, 
-    0x87, 0x3, 0x2, 0x2, 0x2, 0x8e, 0x88, 0x3, 0x2, 0x2, 0x2, 0x8e, 0x89, 
-    0x3, 0x2, 0x2, 0x2, 0x8e, 0x8a, 0x3, 0x2, 0x2, 0x2, 0x8e, 0x8b, 0x3, 
-    0x2, 0x2, 0x2, 0x8e, 0x8c, 0x3, 0x2, 0x2, 0x2, 0x8e, 0x8d, 0x3, 0x2, 
-    0x2, 0x2, 0x8f, 0xb, 0x3, 0x2, 0x2, 0x2, 0x90, 0x91, 0x7, 0x44, 0x2, 
-    0x2, 0x91, 0x92, 0x5, 0x4a, 0x26, 0x2, 0x92, 0x93, 0x7, 0x45, 0x2, 0x2, 
-    0x93, 0xd, 0x3, 0x2, 0x2, 0x2, 0x94, 0x95, 0x7, 0x7, 0x2, 0x2, 0x95, 
-    0x96, 0x5, 0xc, 0x7, 0x2, 0x96, 0xf, 0x3, 0x2, 0x2, 0x2, 0x97, 0x98, 
-    0x7, 0x6, 0x2, 0x2, 0x98, 0x99, 0x5, 0xc, 0x7, 0x2, 0x99, 0x11, 0x3, 
-    0x2, 0x2, 0x2, 0x9a, 0x9b, 0x5, 0x26, 0x14, 0x2, 0x9b, 0x9c, 0x5, 0x10, 
-    0x9, 0x2, 0x9c, 0xa1, 0x3, 0x2, 0x2, 0x2, 0x9d, 0x9e, 0x5, 0x26, 0x14, 
-    0x2, 0x9e, 0x9f, 0x7, 0x6, 0x2, 0x2, 0x9f, 0xa1, 0x3, 0x2, 0x2, 0x2, 
-    0xa0, 0x9a, 0x3, 0x2, 0x2, 0x2, 0xa0, 0x9d, 0x3, 0x2, 0x2, 0x2, 0xa1, 
-    0x13, 0x3, 0x2, 0x2, 0x2, 0xa2, 0xa3, 0x5, 0x28, 0x15, 0x2, 0xa3, 0xa4, 
-    0x5, 0x10, 0x9, 0x2, 0xa4, 0xa5, 0x7, 0x41, 0x2, 0x2, 0xa5, 0xa6, 0x7, 
-    0x42, 0x2, 0x2, 0xa6, 0xa7, 0x5, 0x4a, 0x26, 0x2, 0xa7, 0xa8, 0x7, 0x43, 
-    0x2, 0x2, 0xa8, 0xb1, 0x3, 0x2, 0x2, 0x2, 0xa9, 0xaa, 0x5, 0x28, 0x15, 
-    0x2, 0xaa, 0xab, 0x7, 0x6, 0x2, 0x2, 0xab, 0xac, 0x7, 0x41, 0x2, 0x2, 
-    0xac, 0xad, 0x7, 0x42, 0x2, 0x2, 0xad, 0xae, 0x5, 0x4a, 0x26, 0x2, 0xae, 
-    0xaf, 0x7, 0x43, 0x2, 0x2, 0xaf, 0xb1, 0x3, 0x2, 0x2, 0x2, 0xb0, 0xa2, 
-    0x3, 0x2, 0x2, 0x2, 0xb0, 0xa9, 0x3, 0x2, 0x2, 0x2, 0xb1, 0x15, 0x3, 
-    0x2, 0x2, 0x2, 0xb2, 0xb3, 0x5, 0x2a, 0x16, 0x2, 0xb3, 0xb4, 0x5, 0x10, 
-    0x9, 0x2, 0xb4, 0xb5, 0x7, 0x41, 0x2, 0x2, 0xb5, 0xb6, 0x7, 0x42, 0x2, 
-    0x2, 0xb6, 0xb7, 0x5, 0x4a, 0x26, 0x2, 0xb7, 0xb8, 0x7, 0x41, 0x2, 0x2, 
-    0xb8, 0xb9, 0x5, 0x4a, 0x26, 0x2, 0xb9, 0xba, 0x7, 0x43, 0x2, 0x2, 0xba, 
-    0xc5, 0x3, 0x2, 0x2, 0x2, 0xbb, 0xbc, 0x5, 0x2a, 0x16, 0x2, 0xbc, 0xbd, 
-    0x7, 0x6, 0x2, 0x2, 0xbd, 0xbe, 0x7, 0x41, 0x2, 0x2, 0xbe, 0xbf, 0x7, 
-    0x42, 0x2, 0x2, 0xbf, 0xc0, 0x5, 0x4a, 0x26, 0x2, 0xc0, 0xc1, 0x7, 0x41, 
-    0x2, 0x2, 0xc1, 0xc2, 0x5, 0x4a, 0x26, 0x2, 0xc2, 0xc3, 0x7, 0x43, 0x2, 
-    0x2, 0xc3, 0xc5, 0x3, 0x2, 0x2, 0x2, 0xc4, 0xb2, 0x3, 0x2, 0x2, 0x2, 
-    0xc4, 0xbb, 0x3, 0x2, 0x2, 0x2, 0xc5, 0x17, 0x3, 0x2, 0x2, 0x2, 0xc6, 
-    0xc7, 0x5, 0x2c, 0x17, 0x2, 0xc7, 0xc8, 0x5, 0x10, 0x9, 0x2, 0xc8, 0xc9, 
-    0x7, 0x41, 0x2, 0x2, 0xc9, 0xca, 0x7, 0x42, 0x2, 0x2, 0xca, 0xcb, 0x5, 
-    0x4a, 0x26, 0x2, 0xcb, 0xcc, 0x7, 0x41, 0x2, 0x2, 0xcc, 0xcd, 0x5, 0x4a, 
-    0x26, 0x2, 0xcd, 0xce, 0x7, 0x41, 0x2, 0x2, 0xce, 0xcf, 0x5, 0x4a, 0x26, 
-    0x2, 0xcf, 0xd0, 0x7, 0x43, 0x2, 0x2, 0xd0, 0xdd, 0x3, 0x2, 0x2, 0x2, 
-    0xd1, 0xd2, 0x5, 0x2c, 0x17, 0x2, 0xd2, 0xd3, 0x7, 0x6, 0x2, 0x2, 0xd3, 
-    0xd4, 0x7, 0x41, 0x2, 0x2, 0xd4, 0xd5, 0x7, 0x42, 0x2, 0x2, 0xd5, 0xd6, 
-    0x5, 0x4a, 0x26, 0x2, 0xd6, 0xd7, 0x7, 0x41, 0x2, 0x2, 0xd7, 0xd8, 0x5, 
-    0x4a, 0x26, 0x2, 0xd8, 0xd9, 0x7, 0x41, 0x2, 0x2, 0xd9, 0xda, 0x5, 0x4a, 
-    0x26, 0x2, 0xda, 0xdb, 0x7, 0x43, 0x2, 0x2, 0xdb, 0xdd, 0x3, 0x2, 0x2, 
-    0x2, 0xdc, 0xc6, 0x3, 0x2, 0x2, 0x2, 0xdc, 0xd1, 0x3, 0x2, 0x2, 0x2, 
-    0xdd, 0x19, 0x3, 0x2, 0x2, 0x2, 0xde, 0xdf, 0x5, 0x2e, 0x18, 0x2, 0xdf, 
-    0xe0, 0x5, 0x10, 0x9, 0x2, 0xe0, 0xe1, 0x7, 0x41, 0x2, 0x2, 0xe1, 0xe2, 
-    0x7, 0x42, 0x2, 0x2, 0xe2, 0xe3, 0x5, 0x4a, 0x26, 0x2, 0xe3, 0xe4, 0x7, 
-    0x41, 0x2, 0x2, 0xe4, 0xe5, 0x5, 0x4a, 0x26, 0x2, 0xe5, 0xe6, 0x7, 0x41, 
-    0x2, 0x2, 0xe6, 0xe7, 0x5, 0x4a, 0x26, 0x2, 0xe7, 0xe8, 0x7, 0x41, 0x2, 
-    0x2, 0xe8, 0xe9, 0x5, 0x4a, 0x26, 0x2, 0xe9, 0xea, 0x7, 0x43, 0x2, 0x2, 
-    0xea, 0xf9, 0x3, 0x2, 0x2, 0x2, 0xeb, 0xec, 0x5, 0x2e, 0x18, 0x2, 0xec, 
-    0xed, 0x7, 0x6, 0x2, 0x2, 0xed, 0xee, 0x7, 0x41, 0x2, 0x2, 0xee, 0xef, 
-    0x7, 0x42, 0x2, 0x2, 0xef, 0xf0, 0x5, 0x4a, 0x26, 0x2, 0xf0, 0xf1, 0x7, 
-    0x41, 0x2, 0x2, 0xf1, 0xf2, 0x5, 0x4a, 0x26, 0x2, 0xf2, 0xf3, 0x7, 0x41, 
-    0x2, 0x2, 0xf3, 0xf4, 0x5, 0x4a, 0x26, 0x2, 0xf4, 0xf5, 0x7, 0x41, 0x2, 
-    0x2, 0xf5, 0xf6, 0x5, 0x4a, 0x26, 0x2, 0xf6, 0xf7, 0x7, 0x43, 0x2, 0x2, 
-    0xf7, 0xf9, 0x3, 0x2, 0x2, 0x2, 0xf8, 0xde, 0x3, 0x2, 0x2, 0x2, 0xf8, 
-    0xeb, 0x3, 0x2, 0x2, 0x2, 0xf9, 0x1b, 0x3, 0x2, 0x2, 0x2, 0xfa, 0xfb, 
-    0x5, 0x30, 0x19, 0x2, 0xfb, 0xfc, 0x5, 0x10, 0x9, 0x2, 0xfc, 0xfd, 0x7, 
-    0x41, 0x2, 0x2, 0xfd, 0xfe, 0x5, 0x10, 0x9, 0x2, 0xfe, 0x1d, 0x3, 0x2, 
-    0x2, 0x2, 0xff, 0x100, 0x5, 0x32, 0x1a, 0x2, 0x100, 0x101, 0x5, 0x10, 
-    0x9, 0x2, 0x101, 0x102, 0x7, 0x41, 0x2, 0x2, 0x102, 0x103, 0x5, 0x10, 
-    0x9, 0x2, 0x103, 0x104, 0x7, 0x41, 0x2, 0x2, 0x104, 0x105, 0x7, 0x42, 
-    0x2, 0x2, 0x105, 0x106, 0x5, 0x4a, 0x26, 0x2, 0x106, 0x107, 0x7, 0x43, 
-    0x2, 0x2, 0x107, 0x1f, 0x3, 0x2, 0x2, 0x2, 0x108, 0x109, 0x5, 0x34, 
-    0x1b, 0x2, 0x109, 0x10a, 0x5, 0x10, 0x9, 0x2, 0x10a, 0x10b, 0x7, 0x41, 
-    0x2, 0x2, 0x10b, 0x10c, 0x5, 0x10, 0x9, 0x2, 0x10c, 0x10d, 0x7, 0x41, 
-    0x2, 0x2, 0x10d, 0x10e, 0x7, 0x42, 0x2, 0x2, 0x10e, 0x10f, 0x5, 0x4a, 
-    0x26, 0x2, 0x10f, 0x110, 0x7, 0x41, 0x2, 0x2, 0x110, 0x111, 0x5, 0x4a, 
-    0x26, 0x2, 0x111, 0x112, 0x7, 0x41, 0x2, 0x2, 0x112, 0x113, 0x5, 0x4a, 
-    0x26, 0x2, 0x113, 0x114, 0x7, 0x41, 0x2, 0x2, 0x114, 0x115, 0x5, 0x4a, 
-    0x26, 0x2, 0x115, 0x116, 0x7, 0x43, 0x2, 0x2, 0x116, 0x21, 0x3, 0x2, 
-    0x2, 0x2, 0x117, 0x118, 0x5, 0x36, 0x1c, 0x2, 0x118, 0x119, 0x5, 0x10, 
-    0x9, 0x2, 0x119, 0x11a, 0x7, 0x41, 0x2, 0x2, 0x11a, 0x11b, 0x5, 0x10, 
-    0x9, 0x2, 0x11b, 0x11c, 0x7, 0x41, 0x2, 0x2, 0x11c, 0x11d, 0x5, 0x10, 
-    0x9, 0x2, 0x11d, 0x23, 0x3, 0x2, 0x2, 0x2, 0x11e, 0x11f, 0x5, 0x6a, 
-    0x36, 0x2, 0x11f, 0x124, 0x5, 0x10, 0x9, 0x2, 0x120, 0x121, 0x7, 0x41, 
-    0x2, 0x2, 0x121, 0x123, 0x5, 0x10, 0x9, 0x2, 0x122, 0x120, 0x3, 0x2, 
-    0x2, 0x2, 0x123, 0x126, 0x3, 0x2, 0x2, 0x2, 0x124, 0x122, 0x3, 0x2, 
-    0x2, 0x2, 0x124, 0x125, 0x3, 0x2, 0x2, 0x2, 0x125, 0x13d, 0x3, 0x2, 
-    0x2, 0x2, 0x126, 0x124, 0x3, 0x2, 0x2, 0x2, 0x127, 0x128, 0x5, 0x6a, 
-    0x36, 0x2, 0x128, 0x12d, 0x5, 0x10, 0x9, 0x2, 0x129, 0x12a, 0x7, 0x41, 
-    0x2, 0x2, 0x12a, 0x12c, 0x5, 0x10, 0x9, 0x2, 0x12b, 0x129, 0x3, 0x2, 
-    0x2, 0x2, 0x12c, 0x12f, 0x3, 0x2, 0x2, 0x2, 0x12d, 0x12b, 0x3, 0x2, 
-    0x2, 0x2, 0x12d, 0x12e, 0x3, 0x2, 0x2, 0x2, 0x12e, 0x130, 0x3, 0x2, 
-    0x2, 0x2, 0x12f, 0x12d, 0x3, 0x2, 0x2, 0x2, 0x130, 0x131, 0x7, 0x41, 
-    0x2, 0x2, 0x131, 0x132, 0x7, 0x42, 0x2, 0x2, 0x132, 0x137, 0x5, 0x4a, 
-    0x26, 0x2, 0x133, 0x134, 0x7, 0x41, 0x2, 0x2, 0x134, 0x136, 0x5, 0x4a, 
-    0x26, 0x2, 0x135, 0x133, 0x3, 0x2, 0x2, 0x2, 0x136, 0x139, 0x3, 0x2, 
-    0x2, 0x2, 0x137, 0x135, 0x3, 0x2, 0x2, 0x2, 0x137, 0x138, 0x3, 0x2, 
-    0x2, 0x2, 0x138, 0x13a, 0x3, 0x2, 0x2, 0x2, 0x139, 0x137, 0x3, 0x2, 
-    0x2, 0x2, 0x13a, 0x13b, 0x7, 0x43, 0x2, 0x2, 0x13b, 0x13d, 0x3, 0x2, 
-    0x2, 0x2, 0x13c, 0x11e, 0x3, 0x2, 0x2, 0x2, 0x13c, 0x127, 0x3, 0x2, 
-    0x2, 0x2, 0x13d, 0x25, 0x3, 0x2, 0x2, 0x2, 0x13e, 0x13f, 0x9, 0x2, 0x2, 
-    0x2, 0x13f, 0x27, 0x3, 0x2, 0x2, 0x2, 0x140, 0x141, 0x9, 0x3, 0x2, 0x2, 
-    0x141, 0x29, 0x3, 0x2, 0x2, 0x2, 0x142, 0x143, 0x9, 0x4, 0x2, 0x2, 0x143, 
-    0x2b, 0x3, 0x2, 0x2, 0x2, 0x144, 0x145, 0x7, 0x19, 0x2, 0x2, 0x145, 
-    0x2d, 0x3, 0x2, 0x2, 0x2, 0x146, 0x147, 0x7, 0x1a, 0x2, 0x2, 0x147, 
-    0x2f, 0x3, 0x2, 0x2, 0x2, 0x148, 0x149, 0x9, 0x5, 0x2, 0x2, 0x149, 0x31, 
-    0x3, 0x2, 0x2, 0x2, 0x14a, 0x14b, 0x9, 0x6, 0x2, 0x2, 0x14b, 0x33, 0x3, 
-    0x2, 0x2, 0x2, 0x14c, 0x14d, 0x7, 0x21, 0x2, 0x2, 0x14d, 0x35, 0x3, 
-    0x2, 0x2, 0x2, 0x14e, 0x14f, 0x7, 0x27, 0x2, 0x2, 0x14f, 0x37, 0x3, 
-    0x2, 0x2, 0x2, 0x150, 0x157, 0x5, 0xe, 0x8, 0x2, 0x151, 0x157, 0x5, 
-    0x70, 0x39, 0x2, 0x152, 0x153, 0x7, 0x42, 0x2, 0x2, 0x153, 0x154, 0x5, 
-    0x4a, 0x26, 0x2, 0x154, 0x155, 0x7, 0x42, 0x2, 0x2, 0x155, 0x157, 0x3, 
-    0x2, 0x2, 0x2, 0x156, 0x150, 0x3, 0x2, 0x2, 0x2, 0x156, 0x151, 0x3, 
-    0x2, 0x2, 0x2, 0x156, 0x152, 0x3, 0x2, 0x2, 0x2, 0x157, 0x39, 0x3, 0x2, 
-    0x2, 0x2, 0x158, 0x160, 0x5, 0x38, 0x1d, 0x2, 0x159, 0x15a, 0x7, 0x3d, 
-    0x2, 0x2, 0x15a, 0x160, 0x5, 0x38, 0x1d, 0x2, 0x15b, 0x15c, 0x7, 0x3e, 
-    0x2, 0x2, 0x15c, 0x160, 0x5, 0x38, 0x1d, 0x2, 0x15d, 0x15e, 0x7, 0x36, 
-    0x2, 0x2, 0x15e, 0x160, 0x5, 0x38, 0x1d, 0x2, 0x15f, 0x158, 0x3, 0x2, 
-    0x2, 0x2, 0x15f, 0x159, 0x3, 0x2, 0x2, 0x2, 0x15f, 0x15b, 0x3, 0x2, 
-    0x2, 0x2, 0x15f, 0x15d, 0x3, 0x2, 0x2, 0x2, 0x160, 0x3b, 0x3, 0x2, 0x2, 
-    0x2, 0x161, 0x162, 0x8, 0x1f, 0x1, 0x2, 0x162, 0x163, 0x5, 0x3a, 0x1e, 
-    0x2, 0x163, 0x16c, 0x3, 0x2, 0x2, 0x2, 0x164, 0x165, 0xc, 0x4, 0x2, 
-    0x2, 0x165, 0x166, 0x7, 0x3f, 0x2, 0x2, 0x166, 0x16b, 0x5, 0x3a, 0x1e, 
-    0x2, 0x167, 0x168, 0xc, 0x3, 0x2, 0x2, 0x168, 0x169, 0x7, 0x40, 0x2, 
-    0x2, 0x169, 0x16b, 0x5, 0x3a, 0x1e, 0x2, 0x16a, 0x164, 0x3, 0x2, 0x2, 
-    0x2, 0x16a, 0x167, 0x3, 0x2, 0x2, 0x2, 0x16b, 0x16e, 0x3, 0x2, 0x2, 
-    0x2, 0x16c, 0x16a, 0x3, 0x2, 0x2, 0x2, 0x16c, 0x16d, 0x3, 0x2, 0x2, 
-    0x2, 0x16d, 0x3d, 0x3, 0x2, 0x2, 0x2, 0x16e, 0x16c, 0x3, 0x2, 0x2, 0x2, 
-    0x16f, 0x170, 0x8, 0x20, 0x1, 0x2, 0x170, 0x171, 0x5, 0x3c, 0x1f, 0x2, 
-    0x171, 0x17a, 0x3, 0x2, 0x2, 0x2, 0x172, 0x173, 0xc, 0x4, 0x2, 0x2, 
-    0x173, 0x174, 0x7, 0x3d, 0x2, 0x2, 0x174, 0x179, 0x5, 0x3c, 0x1f, 0x2, 
-    0x175, 0x176, 0xc, 0x3, 0x2, 0x2, 0x176, 0x177, 0x7, 0x3e, 0x2, 0x2, 
-    0x177, 0x179, 0x5, 0x3c, 0x1f, 0x2, 0x178, 0x172, 0x3, 0x2, 0x2, 0x2, 
-    0x178, 0x175, 0x3, 0x2, 0x2, 0x2, 0x179, 0x17c, 0x3, 0x2, 0x2, 0x2, 
-    0x17a, 0x178, 0x3, 0x2, 0x2, 0x2, 0x17a, 0x17b, 0x3, 0x2, 0x2, 0x2, 
-    0x17b, 0x3f, 0x3, 0x2, 0x2, 0x2, 0x17c, 0x17a, 0x3, 0x2, 0x2, 0x2, 0x17d, 
-    0x17e, 0x8, 0x21, 0x1, 0x2, 0x17e, 0x17f, 0x5, 0x3e, 0x20, 0x2, 0x17f, 
-    0x18e, 0x3, 0x2, 0x2, 0x2, 0x180, 0x181, 0xc, 0x6, 0x2, 0x2, 0x181, 
-    0x182, 0x7, 0x35, 0x2, 0x2, 0x182, 0x18d, 0x5, 0x3e, 0x20, 0x2, 0x183, 
-    0x184, 0xc, 0x5, 0x2, 0x2, 0x184, 0x185, 0x7, 0x34, 0x2, 0x2, 0x185, 
-    0x18d, 0x5, 0x3e, 0x20, 0x2, 0x186, 0x187, 0xc, 0x4, 0x2, 0x2, 0x187, 
-    0x188, 0x7, 0x38, 0x2, 0x2, 0x188, 0x18d, 0x5, 0x3e, 0x20, 0x2, 0x189, 
-    0x18a, 0xc, 0x3, 0x2, 0x2, 0x18a, 0x18b, 0x7, 0x39, 0x2, 0x2, 0x18b, 
-    0x18d, 0x5, 0x3e, 0x20, 0x2, 0x18c, 0x180, 0x3, 0x2, 0x2, 0x2, 0x18c, 
-    0x183, 0x3, 0x2, 0x2, 0x2, 0x18c, 0x186, 0x3, 0x2, 0x2, 0x2, 0x18c, 
-    0x189, 0x3, 0x2, 0x2, 0x2, 0x18d, 0x190, 0x3, 0x2, 0x2, 0x2, 0x18e, 
-    0x18c, 0x3, 0x2, 0x2, 0x2, 0x18e, 0x18f, 0x3, 0x2, 0x2, 0x2, 0x18f, 
-    0x41, 0x3, 0x2, 0x2, 0x2, 0x190, 0x18e, 0x3, 0x2, 0x2, 0x2, 0x191, 0x192, 
-    0x8, 0x22, 0x1, 0x2, 0x192, 0x193, 0x5, 0x40, 0x21, 0x2, 0x193, 0x19c, 
-    0x3, 0x2, 0x2, 0x2, 0x194, 0x195, 0xc, 0x4, 0x2, 0x2, 0x195, 0x196, 
-    0x7, 0x37, 0x2, 0x2, 0x196, 0x19b, 0x5, 0x40, 0x21, 0x2, 0x197, 0x198, 
-    0xc, 0x3, 0x2, 0x2, 0x198, 0x199, 0x7, 0x3a, 0x2, 0x2, 0x199, 0x19b, 
-    0x5, 0x40, 0x21, 0x2, 0x19a, 0x194, 0x3, 0x2, 0x2, 0x2, 0x19a, 0x197, 
-    0x3, 0x2, 0x2, 0x2, 0x19b, 0x19e, 0x3, 0x2, 0x2, 0x2, 0x19c, 0x19a, 
-    0x3, 0x2, 0x2, 0x2, 0x19c, 0x19d, 0x3, 0x2, 0x2, 0x2, 0x19d, 0x43, 0x3, 
-    0x2, 0x2, 0x2, 0x19e, 0x19c, 0x3, 0x2, 0x2, 0x2, 0x19f, 0x1a0, 0x8, 
-    0x23, 0x1, 0x2, 0x1a0, 0x1a1, 0x5, 0x42, 0x22, 0x2, 0x1a1, 0x1a7, 0x3, 
-    0x2, 0x2, 0x2, 0x1a2, 0x1a3, 0xc, 0x3, 0x2, 0x2, 0x1a3, 0x1a4, 0x7, 
-    0x3b, 0x2, 0x2, 0x1a4, 0x1a6, 0x5, 0x42, 0x22, 0x2, 0x1a5, 0x1a2, 0x3, 
-    0x2, 0x2, 0x2, 0x1a6, 0x1a9, 0x3, 0x2, 0x2, 0x2, 0x1a7, 0x1a5, 0x3, 
-    0x2, 0x2, 0x2, 0x1a7, 0x1a8, 0x3, 0x2, 0x2, 0x2, 0x1a8, 0x45, 0x3, 0x2, 
-    0x2, 0x2, 0x1a9, 0x1a7, 0x3, 0x2, 0x2, 0x2, 0x1aa, 0x1ab, 0x8, 0x24, 
-    0x1, 0x2, 0x1ab, 0x1ac, 0x5, 0x44, 0x23, 0x2, 0x1ac, 0x1b2, 0x3, 0x2, 
-    0x2, 0x2, 0x1ad, 0x1ae, 0xc, 0x3, 0x2, 0x2, 0x1ae, 0x1af, 0x7, 0x3c, 
-    0x2, 0x2, 0x1af, 0x1b1, 0x5, 0x44, 0x23, 0x2, 0x1b0, 0x1ad, 0x3, 0x2, 
-    0x2, 0x2, 0x1b1, 0x1b4, 0x3, 0x2, 0x2, 0x2, 0x1b2, 0x1b0, 0x3, 0x2, 
-    0x2, 0x2, 0x1b2, 0x1b3, 0x3, 0x2, 0x2, 0x2, 0x1b3, 0x47, 0x3, 0x2, 0x2, 
-    0x2, 0x1b4, 0x1b2, 0x3, 0x2, 0x2, 0x2, 0x1b5, 0x1bb, 0x5, 0x46, 0x24, 
-    0x2, 0x1b6, 0x1b7, 0x5, 0xe, 0x8, 0x2, 0x1b7, 0x1b8, 0x7, 0x33, 0x2, 
-    0x2, 0x1b8, 0x1b9, 0x5, 0x46, 0x24, 0x2, 0x1b9, 0x1bb, 0x3, 0x2, 0x2, 
-    0x2, 0x1ba, 0x1b5, 0x3, 0x2, 0x2, 0x2, 0x1ba, 0x1b6, 0x3, 0x2, 0x2, 
-    0x2, 0x1bb, 0x49, 0x3, 0x2, 0x2, 0x2, 0x1bc, 0x1bd, 0x5, 0x48, 0x25, 
-    0x2, 0x1bd, 0x4b, 0x3, 0x2, 0x2, 0x2, 0x1be, 0x1c3, 0x5, 0x10, 0x9, 
-    0x2, 0x1bf, 0x1c0, 0x7, 0x41, 0x2, 0x2, 0x1c0, 0x1c2, 0x5, 0x10, 0x9, 
-    0x2, 0x1c1, 0x1bf, 0x3, 0x2, 0x2, 0x2, 0x1c2, 0x1c5, 0x3, 0x2, 0x2, 
-    0x2, 0x1c3, 0x1c1, 0x3, 0x2, 0x2, 0x2, 0x1c3, 0x1c4, 0x3, 0x2, 0x2, 
-    0x2, 0x1c4, 0x4d, 0x3, 0x2, 0x2, 0x2, 0x1c5, 0x1c3, 0x3, 0x2, 0x2, 0x2, 
-    0x1c6, 0x1c7, 0x5, 0xa, 0x6, 0x2, 0x1c7, 0x1c8, 0x7, 0x46, 0x2, 0x2, 
-    0x1c8, 0x1d3, 0x3, 0x2, 0x2, 0x2, 0x1c9, 0x1d3, 0x5, 0x52, 0x2a, 0x2, 
-    0x1ca, 0x1d3, 0x5, 0x56, 0x2c, 0x2, 0x1cb, 0x1d3, 0x5, 0x58, 0x2d, 0x2, 
-    0x1cc, 0x1d3, 0x5, 0x50, 0x29, 0x2, 0x1cd, 0x1d3, 0x5, 0x5a, 0x2e, 0x2, 
-    0x1ce, 0x1d3, 0x5, 0x5c, 0x2f, 0x2, 0x1cf, 0x1d3, 0x5, 0x60, 0x31, 0x2, 
-    0x1d0, 0x1d3, 0x5, 0x5e, 0x30, 0x2, 0x1d1, 0x1d3, 0x5, 0x68, 0x35, 0x2, 
-    0x1d2, 0x1c6, 0x3, 0x2, 0x2, 0x2, 0x1d2, 0x1c9, 0x3, 0x2, 0x2, 0x2, 
-    0x1d2, 0x1ca, 0x3, 0x2, 0x2, 0x2, 0x1d2, 0x1cb, 0x3, 0x2, 0x2, 0x2, 
-    0x1d2, 0x1cc, 0x3, 0x2, 0x2, 0x2, 0x1d2, 0x1cd, 0x3, 0x2, 0x2, 0x2, 
-    0x1d2, 0x1ce, 0x3, 0x2, 0x2, 0x2, 0x1d2, 0x1cf, 0x3, 0x2, 0x2, 0x2, 
-    0x1d2, 0x1d0, 0x3, 0x2, 0x2, 0x2, 0x1d2, 0x1d1, 0x3, 0x2, 0x2, 0x2, 
-    0x1d3, 0x4f, 0x3, 0x2, 0x2, 0x2, 0x1d4, 0x1d5, 0x7, 0x28, 0x2, 0x2, 
-    0x1d5, 0x1d9, 0x7, 0x46, 0x2, 0x2, 0x1d6, 0x1d8, 0x5, 0x4e, 0x28, 0x2, 
-    0x1d7, 0x1d6, 0x3, 0x2, 0x2, 0x2, 0x1d8, 0x1db, 0x3, 0x2, 0x2, 0x2, 
-    0x1d9, 0x1d7, 0x3, 0x2, 0x2, 0x2, 0x1d9, 0x1da, 0x3, 0x2, 0x2, 0x2, 
-    0x1da, 0x1dc, 0x3, 0x2, 0x2, 0x2, 0x1db, 0x1d9, 0x3, 0x2, 0x2, 0x2, 
-    0x1dc, 0x1dd, 0x7, 0x29, 0x2, 0x2, 0x1dd, 0x1de, 0x7, 0x46, 0x2, 0x2, 
-    0x1de, 0x51, 0x3, 0x2, 0x2, 0x2, 0x1df, 0x1e0, 0x7, 0x2a, 0x2, 0x2, 
-    0x1e0, 0x1e1, 0x5, 0x4c, 0x27, 0x2, 0x1e1, 0x1e5, 0x7, 0x46, 0x2, 0x2, 
-    0x1e2, 0x1e4, 0x5, 0x4e, 0x28, 0x2, 0x1e3, 0x1e2, 0x3, 0x2, 0x2, 0x2, 
-    0x1e4, 0x1e7, 0x3, 0x2, 0x2, 0x2, 0x1e5, 0x1e3, 0x3, 0x2, 0x2, 0x2, 
-    0x1e5, 0x1e6, 0x3, 0x2, 0x2, 0x2, 0x1e6, 0x1e8, 0x3, 0x2, 0x2, 0x2, 
-    0x1e7, 0x1e5, 0x3, 0x2, 0x2, 0x2, 0x1e8, 0x1e9, 0x7, 0x2b, 0x2, 0x2, 
-    0x1e9, 0x1ea, 0x7, 0x46, 0x2, 0x2, 0x1ea, 0x53, 0x3, 0x2, 0x2, 0x2, 
-    0x1eb, 0x1ec, 0x7, 0x2d, 0x2, 0x2, 0x1ec, 0x1f0, 0x7, 0x46, 0x2, 0x2, 
-    0x1ed, 0x1ef, 0x5, 0x4e, 0x28, 0x2, 0x1ee, 0x1ed, 0x3, 0x2, 0x2, 0x2, 
-    0x1ef, 0x1f2, 0x3, 0x2, 0x2, 0x2, 0x1f0, 0x1ee, 0x3, 0x2, 0x2, 0x2, 
-    0x1f0, 0x1f1, 0x3, 0x2, 0x2, 0x2, 0x1f1, 0x55, 0x3, 0x2, 0x2, 0x2, 0x1f2, 
-    0x1f0, 0x3, 0x2, 0x2, 0x2, 0x1f3, 0x1f4, 0x7, 0x2c, 0x2, 0x2, 0x1f4, 
-    0x1f5, 0x5, 0x4a, 0x26, 0x2, 0x1f5, 0x1f9, 0x7, 0x46, 0x2, 0x2, 0x1f6, 
-    0x1f8, 0x5, 0x4e, 0x28, 0x2, 0x1f7, 0x1f6, 0x3, 0x2, 0x2, 0x2, 0x1f8, 
-    0x1fb, 0x3, 0x2, 0x2, 0x2, 0x1f9, 0x1f7, 0x3, 0x2, 0x2, 0x2, 0x1f9, 
-    0x1fa, 0x3, 0x2, 0x2, 0x2, 0x1fa, 0x1fc, 0x3, 0x2, 0x2, 0x2, 0x1fb, 
-    0x1f9, 0x3, 0x2, 0x2, 0x2, 0x1fc, 0x1fd, 0x5, 0x54, 0x2b, 0x2, 0x1fd, 
-    0x1fe, 0x7, 0x2e, 0x2, 0x2, 0x1fe, 0x1ff, 0x7, 0x46, 0x2, 0x2, 0x1ff, 
-    0x20d, 0x3, 0x2, 0x2, 0x2, 0x200, 0x201, 0x7, 0x2c, 0x2, 0x2, 0x201, 
-    0x202, 0x5, 0x4a, 0x26, 0x2, 0x202, 0x206, 0x7, 0x46, 0x2, 0x2, 0x203, 
-    0x205, 0x5, 0x4e, 0x28, 0x2, 0x204, 0x203, 0x3, 0x2, 0x2, 0x2, 0x205, 
-    0x208, 0x3, 0x2, 0x2, 0x2, 0x206, 0x204, 0x3, 0x2, 0x2, 0x2, 0x206, 
-    0x207, 0x3, 0x2, 0x2, 0x2, 0x207, 0x209, 0x3, 0x2, 0x2, 0x2, 0x208, 
-    0x206, 0x3, 0x2, 0x2, 0x2, 0x209, 0x20a, 0x7, 0x2e, 0x2, 0x2, 0x20a, 
-    0x20b, 0x7, 0x46, 0x2, 0x2, 0x20b, 0x20d, 0x3, 0x2, 0x2, 0x2, 0x20c, 
-    0x1f3, 0x3, 0x2, 0x2, 0x2, 0x20c, 0x200, 0x3, 0x2, 0x2, 0x2, 0x20d, 
-    0x57, 0x3, 0x2, 0x2, 0x2, 0x20e, 0x20f, 0x7, 0x2f, 0x2, 0x2, 0x20f, 
-    0x210, 0x5, 0x4a, 0x26, 0x2, 0x210, 0x214, 0x7, 0x46, 0x2, 0x2, 0x211, 
-    0x213, 0x5, 0x4e, 0x28, 0x2, 0x212, 0x211, 0x3, 0x2, 0x2, 0x2, 0x213, 
-    0x216, 0x3, 0x2, 0x2, 0x2, 0x214, 0x212, 0x3, 0x2, 0x2, 0x2, 0x214, 
-    0x215, 0x3, 0x2, 0x2, 0x2, 0x215, 0x217, 0x3, 0x2, 0x2, 0x2, 0x216, 
-    0x214, 0x3, 0x2, 0x2, 0x2, 0x217, 0x218, 0x7, 0x30, 0x2, 0x2, 0x218, 
-    0x219, 0x7, 0x46, 0x2, 0x2, 0x219, 0x59, 0x3, 0x2, 0x2, 0x2, 0x21a, 
-    0x21b, 0x7, 0x31, 0x2, 0x2, 0x21b, 0x21c, 0x5, 0x10, 0x9, 0x2, 0x21c, 
-    0x21d, 0x7, 0x41, 0x2, 0x2, 0x21d, 0x21e, 0x5, 0xe, 0x8, 0x2, 0x21e, 
-    0x21f, 0x7, 0x46, 0x2, 0x2, 0x21f, 0x226, 0x3, 0x2, 0x2, 0x2, 0x220, 
-    0x221, 0x7, 0x31, 0x2, 0x2, 0x221, 0x222, 0x7, 0x6, 0x2, 0x2, 0x222, 
-    0x223, 0x7, 0x41, 0x2, 0x2, 0x223, 0x224, 0x7, 0x7, 0x2, 0x2, 0x224, 
-    0x226, 0x7, 0x46, 0x2, 0x2, 0x225, 0x21a, 0x3, 0x2, 0x2, 0x2, 0x225, 
-    0x220, 0x3, 0x2, 0x2, 0x2, 0x226, 0x5b, 0x3, 0x2, 0x2, 0x2, 0x227, 0x228, 
-    0x7, 0x32, 0x2, 0x2, 0x228, 0x229, 0x5, 0x10, 0x9, 0x2, 0x229, 0x22a, 
-    0x7, 0x46, 0x2, 0x2, 0x22a, 0x22f, 0x3, 0x2, 0x2, 0x2, 0x22b, 0x22c, 
-    0x7, 0x32, 0x2, 0x2, 0x22c, 0x22d, 0x7, 0x6, 0x2, 0x2, 0x22d, 0x22f, 
-    0x7, 0x46, 0x2, 0x2, 0x22e, 0x227, 0x3, 0x2, 0x2, 0x2, 0x22e, 0x22b, 
-    0x3, 0x2, 0x2, 0x2, 0x22f, 0x5d, 0x3, 0x2, 0x2, 0x2, 0x230, 0x231, 0x7, 
-    0x8, 0x2, 0x2, 0x231, 0x232, 0x5, 0x4c, 0x27, 0x2, 0x232, 0x233, 0x7, 
-    0x46, 0x2, 0x2, 0x233, 0x238, 0x3, 0x2, 0x2, 0x2, 0x234, 0x235, 0x7, 
-    0x8, 0x2, 0x2, 0x235, 0x236, 0x7, 0x6, 0x2, 0x2, 0x236, 0x238, 0x7, 
-    0x46, 0x2, 0x2, 0x237, 0x230, 0x3, 0x2, 0x2, 0x2, 0x237, 0x234, 0x3, 
-    0x2, 0x2, 0x2, 0x238, 0x5f, 0x3, 0x2, 0x2, 0x2, 0x239, 0x23a, 0x5, 0x4a, 
-    0x26, 0x2, 0x23a, 0x23b, 0x7, 0x46, 0x2, 0x2, 0x23b, 0x61, 0x3, 0x2, 
-    0x2, 0x2, 0x23c, 0x23d, 0x5, 0x6e, 0x38, 0x2, 0x23d, 0x23e, 0x5, 0x6c, 
-    0x37, 0x2, 0x23e, 0x23f, 0x7, 0x46, 0x2, 0x2, 0x23f, 0x249, 0x3, 0x2, 
-    0x2, 0x2, 0x240, 0x241, 0x5, 0x6e, 0x38, 0x2, 0x241, 0x242, 0x5, 0x6c, 
-    0x37, 0x2, 0x242, 0x243, 0x7, 0x41, 0x2, 0x2, 0x243, 0x244, 0x7, 0x42, 
-    0x2, 0x2, 0x244, 0x245, 0x5, 0x64, 0x33, 0x2, 0x245, 0x246, 0x7, 0x43, 
-    0x2, 0x2, 0x246, 0x247, 0x7, 0x46, 0x2, 0x2, 0x247, 0x249, 0x3, 0x2, 
-    0x2, 0x2, 0x248, 0x23c, 0x3, 0x2, 0x2, 0x2, 0x248, 0x240, 0x3, 0x2, 
-    0x2, 0x2, 0x249, 0x63, 0x3, 0x2, 0x2, 0x2, 0x24a, 0x24f, 0x5, 0x66, 
-    0x34, 0x2, 0x24b, 0x24c, 0x7, 0x41, 0x2, 0x2, 0x24c, 0x24e, 0x5, 0x66, 
-    0x34, 0x2, 0x24d, 0x24b, 0x3, 0x2, 0x2, 0x2, 0x24e, 0x251, 0x3, 0x2, 
-    0x2, 0x2, 0x24f, 0x24d, 0x3, 0x2, 0x2, 0x2, 0x24f, 0x250, 0x3, 0x2, 
-    0x2, 0x2, 0x250, 0x65, 0x3, 0x2, 0x2, 0x2, 0x251, 0x24f, 0x3, 0x2, 0x2, 
-    0x2, 0x252, 0x253, 0x8, 0x34, 0x1, 0x2, 0x253, 0x25e, 0x5, 0x6a, 0x36, 
-    0x2, 0x254, 0x25e, 0x7, 0x48, 0x2, 0x2, 0x255, 0x25e, 0x7, 0x49, 0x2, 
-    0x2, 0x256, 0x25e, 0x7, 0x3, 0x2, 0x2, 0x257, 0x258, 0x7, 0x42, 0x2, 
-    0x2, 0x258, 0x259, 0x5, 0x66, 0x34, 0x2, 0x259, 0x25a, 0x7, 0x43, 0x2, 
-    0x2, 0x25a, 0x25e, 0x3, 0x2, 0x2, 0x2, 0x25b, 0x25c, 0x7, 0x3e, 0x2, 
-    0x2, 0x25c, 0x25e, 0x5, 0x66, 0x34, 0x7, 0x25d, 0x252, 0x3, 0x2, 0x2, 
-    0x2, 0x25d, 0x254, 0x3, 0x2, 0x2, 0x2, 0x25d, 0x255, 0x3, 0x2, 0x2, 
-    0x2, 0x25d, 0x256, 0x3, 0x2, 0x2, 0x2, 0x25d, 0x257, 0x3, 0x2, 0x2, 
-    0x2, 0x25d, 0x25b, 0x3, 0x2, 0x2, 0x2, 0x25e, 0x26d, 0x3, 0x2, 0x2, 
-    0x2, 0x25f, 0x260, 0xc, 0x6, 0x2, 0x2, 0x260, 0x261, 0x7, 0x3f, 0x2, 
-    0x2, 0x261, 0x26c, 0x5, 0x66, 0x34, 0x7, 0x262, 0x263, 0xc, 0x5, 0x2, 
-    0x2, 0x263, 0x264, 0x7, 0x40, 0x2, 0x2, 0x264, 0x26c, 0x5, 0x66, 0x34, 
-    0x6, 0x265, 0x266, 0xc, 0x4, 0x2, 0x2, 0x266, 0x267, 0x7, 0x3d, 0x2, 
-    0x2, 0x267, 0x26c, 0x5, 0x66, 0x34, 0x5, 0x268, 0x269, 0xc, 0x3, 0x2, 
-    0x2, 0x269, 0x26a, 0x7, 0x3e, 0x2, 0x2, 0x26a, 0x26c, 0x5, 0x66, 0x34, 
-    0x4, 0x26b, 0x25f, 0x3, 0x2, 0x2, 0x2, 0x26b, 0x262, 0x3, 0x2, 0x2, 
-    0x2, 0x26b, 0x265, 0x3, 0x2, 0x2, 0x2, 0x26b, 0x268, 0x3, 0x2, 0x2, 
-    0x2, 0x26c, 0x26f, 0x3, 0x2, 0x2, 0x2, 0x26d, 0x26b, 0x3, 0x2, 0x2, 
-    0x2, 0x26d, 0x26e, 0x3, 0x2, 0x2, 0x2, 0x26e, 0x67, 0x3, 0x2, 0x2, 0x2, 
-    0x26f, 0x26d, 0x3, 0x2, 0x2, 0x2, 0x270, 0x271, 0x7, 0x9, 0x2, 0x2, 
-    0x271, 0x272, 0x5, 0x6a, 0x36, 0x2, 0x272, 0x273, 0x5, 0x6c, 0x37, 0x2, 
-    0x273, 0x277, 0x7, 0x46, 0x2, 0x2, 0x274, 0x276, 0x5, 0x62, 0x32, 0x2, 
-    0x275, 0x274, 0x3, 0x2, 0x2, 0x2, 0x276, 0x279, 0x3, 0x2, 0x2, 0x2, 
-    0x277, 0x275, 0x3, 0x2, 0x2, 0x2, 0x277, 0x278, 0x3, 0x2, 0x2, 0x2, 
-    0x278, 0x27a, 0x3, 0x2, 0x2, 0x2, 0x279, 0x277, 0x3, 0x2, 0x2, 0x2, 
-    0x27a, 0x27b, 0x7, 0xa, 0x2, 0x2, 0x27b, 0x27c, 0x7, 0x46, 0x2, 0x2, 
-    0x27c, 0x28f, 0x3, 0x2, 0x2, 0x2, 0x27d, 0x27e, 0x7, 0x9, 0x2, 0x2, 
-    0x27e, 0x27f, 0x5, 0x6a, 0x36, 0x2, 0x27f, 0x280, 0x5, 0x6c, 0x37, 0x2, 
-    0x280, 0x281, 0x7, 0x41, 0x2, 0x2, 0x281, 0x282, 0x7, 0x42, 0x2, 0x2, 
-    0x282, 0x283, 0x5, 0x6c, 0x37, 0x2, 0x283, 0x284, 0x7, 0x43, 0x2, 0x2, 
-    0x284, 0x288, 0x7, 0x46, 0x2, 0x2, 0x285, 0x287, 0x5, 0x62, 0x32, 0x2, 
-    0x286, 0x285, 0x3, 0x2, 0x2, 0x2, 0x287, 0x28a, 0x3, 0x2, 0x2, 0x2, 
-    0x288, 0x286, 0x3, 0x2, 0x2, 0x2, 0x288, 0x289, 0x3, 0x2, 0x2, 0x2, 
-    0x289, 0x28b, 0x3, 0x2, 0x2, 0x2, 0x28a, 0x288, 0x3, 0x2, 0x2, 0x2, 
-    0x28b, 0x28c, 0x7, 0xa, 0x2, 0x2, 0x28c, 0x28d, 0x7, 0x46, 0x2, 0x2, 
-    0x28d, 0x28f, 0x3, 0x2, 0x2, 0x2, 0x28e, 0x270, 0x3, 0x2, 0x2, 0x2, 
-    0x28e, 0x27d, 0x3, 0x2, 0x2, 0x2, 0x28f, 0x69, 0x3, 0x2, 0x2, 0x2, 0x290, 
-    0x291, 0x7, 0x47, 0x2, 0x2, 0x291, 0x6b, 0x3, 0x2, 0x2, 0x2, 0x292, 
-    0x297, 0x5, 0x6a, 0x36, 0x2, 0x293, 0x294, 0x7, 0x41, 0x2, 0x2, 0x294, 
-    0x296, 0x5, 0x6a, 0x36, 0x2, 0x295, 0x293, 0x3, 0x2, 0x2, 0x2, 0x296, 
-    0x299, 0x3, 0x2, 0x2, 0x2, 0x297, 0x295, 0x3, 0x2, 0x2, 0x2, 0x297, 
-    0x298, 0x3, 0x2, 0x2, 0x2, 0x298, 0x6d, 0x3, 0x2, 0x2, 0x2, 0x299, 0x297, 
-    0x3, 0x2, 0x2, 0x2, 0x29a, 0x2a5, 0x5, 0x26, 0x14, 0x2, 0x29b, 0x2a5, 
-    0x5, 0x28, 0x15, 0x2, 0x29c, 0x2a5, 0x5, 0x2a, 0x16, 0x2, 0x29d, 0x2a5, 
-    0x5, 0x2c, 0x17, 0x2, 0x29e, 0x2a5, 0x5, 0x2e, 0x18, 0x2, 0x29f, 0x2a5, 
-    0x5, 0x30, 0x19, 0x2, 0x2a0, 0x2a5, 0x5, 0x32, 0x1a, 0x2, 0x2a1, 0x2a5, 
-    0x5, 0x34, 0x1b, 0x2, 0x2a2, 0x2a5, 0x5, 0x36, 0x1c, 0x2, 0x2a3, 0x2a5, 
-    0x5, 0x6a, 0x36, 0x2, 0x2a4, 0x29a, 0x3, 0x2, 0x2, 0x2, 0x2a4, 0x29b, 
-    0x3, 0x2, 0x2, 0x2, 0x2a4, 0x29c, 0x3, 0x2, 0x2, 0x2, 0x2a4, 0x29d, 
-    0x3, 0x2, 0x2, 0x2, 0x2a4, 0x29e, 0x3, 0x2, 0x2, 0x2, 0x2a4, 0x29f, 
-    0x3, 0x2, 0x2, 0x2, 0x2a4, 0x2a0, 0x3, 0x2, 0x2, 0x2, 0x2a4, 0x2a1, 
-    0x3, 0x2, 0x2, 0x2, 0x2a4, 0x2a2, 0x3, 0x2, 0x2, 0x2, 0x2a4, 0x2a3, 
-    0x3, 0x2, 0x2, 0x2, 0x2a5, 0x6f, 0x3, 0x2, 0x2, 0x2, 0x2a6, 0x2a7, 0x9, 
-    0x7, 0x2, 0x2, 0x2a7, 0x71, 0x3, 0x2, 0x2, 0x2, 0x30, 0x76, 0x8e, 0xa0, 
-    0xb0, 0xc4, 0xdc, 0xf8, 0x124, 0x12d, 0x137, 0x13c, 0x156, 0x15f, 0x16a, 
-    0x16c, 0x178, 0x17a, 0x18c, 0x18e, 0x19a, 0x19c, 0x1a7, 0x1b2, 0x1ba, 
-    0x1c3, 0x1d2, 0x1d9, 0x1e5, 0x1f0, 0x1f9, 0x206, 0x20c, 0x214, 0x225, 
-    0x22e, 0x237, 0x248, 0x24f, 0x25d, 0x26b, 0x26d, 0x277, 0x288, 0x28e, 
-    0x297, 0x2a4, 
-  };
+    static const uint16_t serializedATNSegment0[] = {
+      0x3, 0x608b, 0xa72a, 0x8133, 0xb9ed, 0x417c, 0x3be7, 0x7786, 0x5964,
+         0x3, 0x4d, 0x2e5, 0x4, 0x2, 0x9, 0x2, 0x4, 0x3, 0x9, 0x3, 0x4, 0x4,
+         0x9, 0x4, 0x4, 0x5, 0x9, 0x5, 0x4, 0x6, 0x9, 0x6, 0x4, 0x7, 0x9,
+         0x7, 0x4, 0x8, 0x9, 0x8, 0x4, 0x9, 0x9, 0x9, 0x4, 0xa, 0x9, 0xa,
+         0x4, 0xb, 0x9, 0xb, 0x4, 0xc, 0x9, 0xc, 0x4, 0xd, 0x9, 0xd, 0x4,
+         0xe, 0x9, 0xe, 0x4, 0xf, 0x9, 0xf, 0x4, 0x10, 0x9, 0x10, 0x4, 0x11,
+         0x9, 0x11, 0x4, 0x12, 0x9, 0x12, 0x4, 0x13, 0x9, 0x13, 0x4, 0x14,
+         0x9, 0x14, 0x4, 0x15, 0x9, 0x15, 0x4, 0x16, 0x9, 0x16, 0x4, 0x17,
+         0x9, 0x17, 0x4, 0x18, 0x9, 0x18, 0x4, 0x19, 0x9, 0x19, 0x4, 0x1a,
+         0x9, 0x1a, 0x4, 0x1b, 0x9, 0x1b, 0x4, 0x1c, 0x9, 0x1c, 0x4, 0x1d,
+         0x9, 0x1d, 0x4, 0x1e, 0x9, 0x1e, 0x4, 0x1f, 0x9, 0x1f, 0x4, 0x20,
+         0x9, 0x20, 0x4, 0x21, 0x9, 0x21, 0x4, 0x22, 0x9, 0x22, 0x4, 0x23,
+         0x9, 0x23, 0x4, 0x24, 0x9, 0x24, 0x4, 0x25, 0x9, 0x25, 0x4, 0x26,
+         0x9, 0x26, 0x4, 0x27, 0x9, 0x27, 0x4, 0x28, 0x9, 0x28, 0x4, 0x29,
+         0x9, 0x29, 0x4, 0x2a, 0x9, 0x2a, 0x4, 0x2b, 0x9, 0x2b, 0x4, 0x2c,
+         0x9, 0x2c, 0x4, 0x2d, 0x9, 0x2d, 0x4, 0x2e, 0x9, 0x2e, 0x4, 0x2f,
+         0x9, 0x2f, 0x4, 0x30, 0x9, 0x30, 0x4, 0x31, 0x9, 0x31, 0x4, 0x32,
+         0x9, 0x32, 0x4, 0x33, 0x9, 0x33, 0x4, 0x34, 0x9, 0x34, 0x4, 0x35,
+         0x9, 0x35, 0x4, 0x36, 0x9, 0x36, 0x4, 0x37, 0x9, 0x37, 0x4, 0x38,
+         0x9, 0x38, 0x4, 0x39, 0x9, 0x39, 0x4, 0x3a, 0x9, 0x3a, 0x4, 0x3b,
+         0x9, 0x3b, 0x4, 0x3c, 0x9, 0x3c, 0x3, 0x2, 0x7, 0x2, 0x7a, 0xa, 0x2,
+         0xc, 0x2, 0xe, 0x2, 0x7d, 0xb, 0x2, 0x3, 0x2, 0x7, 0x2, 0x80, 0xa,
+         0x2, 0xc, 0x2, 0xe, 0x2, 0x83, 0xb, 0x2, 0x3, 0x2, 0x3, 0x2, 0x7,
+         0x2, 0x87, 0xa, 0x2, 0xc, 0x2, 0xe, 0x2, 0x8a, 0xb, 0x2, 0x3, 0x2,
+         0x7, 0x2, 0x8d, 0xa, 0x2, 0xc, 0x2, 0xe, 0x2, 0x90, 0xb, 0x2, 0x3,
+         0x3, 0x3, 0x3, 0x3, 0x3, 0x3, 0x4, 0x3, 0x4, 0x3, 0x4, 0x3, 0x4,
+         0x3, 0x5, 0x3, 0x5, 0x3, 0x5, 0x3, 0x5, 0x3, 0x6, 0x3, 0x6, 0x3,
+         0x6, 0x3, 0x6, 0x3, 0x6, 0x3, 0x6, 0x3, 0x6, 0x3, 0x6, 0x3, 0x6,
+         0x3, 0x6, 0x5, 0x6, 0xa7, 0xa, 0x6, 0x3, 0x7, 0x3, 0x7, 0x3, 0x7,
+         0x3, 0x7, 0x3, 0x8, 0x3, 0x8, 0x3, 0x8, 0x3, 0x9, 0x3, 0x9, 0x3,
+         0x9, 0x3, 0xa, 0x3, 0xa, 0x3, 0xa, 0x3, 0xa, 0x3, 0xa, 0x3, 0xa,
+         0x5, 0xa, 0xb9, 0xa, 0xa, 0x3, 0xb, 0x3, 0xb, 0x3, 0xb, 0x3, 0xb,
+         0x3, 0xb, 0x3, 0xb, 0x3, 0xb, 0x3, 0xb, 0x3, 0xb, 0x3, 0xb, 0x3,
+         0xb, 0x3, 0xb, 0x3, 0xb, 0x3, 0xb, 0x5, 0xb, 0xc9, 0xa, 0xb, 0x3,
+         0xc, 0x3, 0xc, 0x3, 0xc, 0x3, 0xc, 0x3, 0xc, 0x3, 0xc, 0x3, 0xc,
+         0x3, 0xc, 0x3, 0xc, 0x3, 0xc, 0x3, 0xc, 0x3, 0xc, 0x3, 0xc, 0x3,
+         0xc, 0x3, 0xc, 0x3, 0xc, 0x3, 0xc, 0x3, 0xc, 0x5, 0xc, 0xdd, 0xa,
+         0xc, 0x3, 0xd, 0x3, 0xd, 0x3, 0xd, 0x3, 0xd, 0x3, 0xd, 0x3, 0xd,
+         0x3, 0xd, 0x3, 0xd, 0x3, 0xd, 0x3, 0xd, 0x3, 0xd, 0x3, 0xd, 0x3,
+         0xd, 0x3, 0xd, 0x3, 0xd, 0x3, 0xd, 0x3, 0xd, 0x3, 0xd, 0x3, 0xd,
+         0x3, 0xd, 0x3, 0xd, 0x3, 0xd, 0x5, 0xd, 0xf5, 0xa, 0xd, 0x3, 0xe,
+         0x3, 0xe, 0x3, 0xe, 0x3, 0xe, 0x3, 0xe, 0x3, 0xe, 0x3, 0xe, 0x3,
+         0xe, 0x3, 0xe, 0x3, 0xe, 0x3, 0xe, 0x3, 0xe, 0x3, 0xe, 0x3, 0xe,
+         0x3, 0xe, 0x3, 0xe, 0x3, 0xe, 0x3, 0xe, 0x3, 0xe, 0x3, 0xe, 0x3,
+         0xe, 0x3, 0xe, 0x3, 0xe, 0x3, 0xe, 0x3, 0xe, 0x3, 0xe, 0x5, 0xe,
+         0x111, 0xa, 0xe, 0x3, 0xf, 0x3, 0xf, 0x3, 0xf, 0x3, 0xf, 0x3, 0xf,
+         0x3, 0x10, 0x3, 0x10, 0x3, 0x10, 0x3, 0x10, 0x3, 0x10, 0x3, 0x10,
+         0x3, 0x10, 0x3, 0x10, 0x3, 0x10, 0x3, 0x11, 0x3, 0x11, 0x3, 0x11,
+         0x3, 0x11, 0x3, 0x11, 0x3, 0x11, 0x3, 0x11, 0x3, 0x11, 0x3, 0x11,
+         0x3, 0x11, 0x3, 0x11, 0x3, 0x11, 0x3, 0x11, 0x3, 0x11, 0x3, 0x11,
+         0x3, 0x12, 0x3, 0x12, 0x3, 0x12, 0x3, 0x12, 0x3, 0x12, 0x3, 0x12,
+         0x3, 0x12, 0x3, 0x13, 0x3, 0x13, 0x3, 0x13, 0x3, 0x13, 0x7, 0x13,
+         0x13b, 0xa, 0x13, 0xc, 0x13, 0xe, 0x13, 0x13e, 0xb, 0x13, 0x3, 0x13,
+         0x3, 0x13, 0x3, 0x13, 0x3, 0x13, 0x7, 0x13, 0x144, 0xa, 0x13, 0xc,
+         0x13, 0xe, 0x13, 0x147, 0xb, 0x13, 0x3, 0x13, 0x3, 0x13, 0x3, 0x13,
+         0x3, 0x13, 0x3, 0x13, 0x7, 0x13, 0x14e, 0xa, 0x13, 0xc, 0x13, 0xe,
+         0x13, 0x151, 0xb, 0x13, 0x3, 0x13, 0x3, 0x13, 0x5, 0x13, 0x155, 0xa,
+         0x13, 0x3, 0x14, 0x3, 0x14, 0x3, 0x15, 0x3, 0x15, 0x3, 0x16, 0x3,
+         0x16, 0x3, 0x17, 0x3, 0x17, 0x3, 0x18, 0x3, 0x18, 0x3, 0x19, 0x3,
+         0x19, 0x3, 0x1a, 0x3, 0x1a, 0x3, 0x1b, 0x3, 0x1b, 0x3, 0x1c, 0x3,
+         0x1c, 0x3, 0x1d, 0x3, 0x1d, 0x3, 0x1d, 0x3, 0x1d, 0x3, 0x1d, 0x3,
+         0x1d, 0x5, 0x1d, 0x16f, 0xa, 0x1d, 0x3, 0x1e, 0x3, 0x1e, 0x3, 0x1e,
+         0x3, 0x1e, 0x3, 0x1e, 0x3, 0x1e, 0x3, 0x1e, 0x5, 0x1e, 0x178, 0xa,
+         0x1e, 0x3, 0x1f, 0x3, 0x1f, 0x3, 0x1f, 0x3, 0x1f, 0x3, 0x1f, 0x3,
+         0x1f, 0x3, 0x1f, 0x3, 0x1f, 0x3, 0x1f, 0x7, 0x1f, 0x183, 0xa, 0x1f,
+         0xc, 0x1f, 0xe, 0x1f, 0x186, 0xb, 0x1f, 0x3, 0x20, 0x3, 0x20, 0x3,
+         0x20, 0x3, 0x20, 0x3, 0x20, 0x3, 0x20, 0x3, 0x20, 0x3, 0x20, 0x3,
+         0x20, 0x7, 0x20, 0x191, 0xa, 0x20, 0xc, 0x20, 0xe, 0x20, 0x194, 0xb,
+         0x20, 0x3, 0x21, 0x3, 0x21, 0x3, 0x21, 0x3, 0x21, 0x3, 0x21, 0x3,
+         0x21, 0x3, 0x21, 0x3, 0x21, 0x3, 0x21, 0x3, 0x21, 0x3, 0x21, 0x3,
+         0x21, 0x3, 0x21, 0x3, 0x21, 0x3, 0x21, 0x7, 0x21, 0x1a5, 0xa, 0x21,
+         0xc, 0x21, 0xe, 0x21, 0x1a8, 0xb, 0x21, 0x3, 0x22, 0x3, 0x22, 0x3,
+         0x22, 0x3, 0x22, 0x3, 0x22, 0x3, 0x22, 0x3, 0x22, 0x3, 0x22, 0x3,
+         0x22, 0x7, 0x22, 0x1b3, 0xa, 0x22, 0xc, 0x22, 0xe, 0x22, 0x1b6, 0xb,
+         0x22, 0x3, 0x23, 0x3, 0x23, 0x3, 0x23, 0x3, 0x23, 0x3, 0x23, 0x3,
+         0x23, 0x7, 0x23, 0x1be, 0xa, 0x23, 0xc, 0x23, 0xe, 0x23, 0x1c1, 0xb,
+         0x23, 0x3, 0x24, 0x3, 0x24, 0x3, 0x24, 0x3, 0x24, 0x3, 0x24, 0x3,
+         0x24, 0x7, 0x24, 0x1c9, 0xa, 0x24, 0xc, 0x24, 0xe, 0x24, 0x1cc, 0xb,
+         0x24, 0x3, 0x25, 0x3, 0x25, 0x3, 0x25, 0x3, 0x25, 0x3, 0x25, 0x5,
+         0x25, 0x1d3, 0xa, 0x25, 0x3, 0x26, 0x3, 0x26, 0x3, 0x27, 0x3, 0x27,
+         0x3, 0x27, 0x7, 0x27, 0x1da, 0xa, 0x27, 0xc, 0x27, 0xe, 0x27, 0x1dd,
+         0xb, 0x27, 0x3, 0x27, 0x3, 0x27, 0x3, 0x27, 0x7, 0x27, 0x1e2, 0xa,
+         0x27, 0xc, 0x27, 0xe, 0x27, 0x1e5, 0xb, 0x27, 0x5, 0x27, 0x1e7, 0xa,
+         0x27, 0x3, 0x28, 0x3, 0x28, 0x3, 0x28, 0x3, 0x28, 0x3, 0x28, 0x3,
+         0x28, 0x3, 0x28, 0x3, 0x28, 0x3, 0x28, 0x3, 0x28, 0x3, 0x28, 0x3,
+         0x28, 0x5, 0x28, 0x1f5, 0xa, 0x28, 0x3, 0x29, 0x3, 0x29, 0x3, 0x29,
+         0x7, 0x29, 0x1fa, 0xa, 0x29, 0xc, 0x29, 0xe, 0x29, 0x1fd, 0xb, 0x29,
+         0x3, 0x29, 0x3, 0x29, 0x3, 0x29, 0x3, 0x2a, 0x3, 0x2a, 0x3, 0x2a,
+         0x3, 0x2a, 0x7, 0x2a, 0x206, 0xa, 0x2a, 0xc, 0x2a, 0xe, 0x2a, 0x209,
+         0xb, 0x2a, 0x3, 0x2a, 0x3, 0x2a, 0x3, 0x2a, 0x3, 0x2b, 0x3, 0x2b,
+         0x3, 0x2b, 0x7, 0x2b, 0x211, 0xa, 0x2b, 0xc, 0x2b, 0xe, 0x2b, 0x214,
+         0xb, 0x2b, 0x3, 0x2c, 0x3, 0x2c, 0x3, 0x2c, 0x3, 0x2c, 0x7, 0x2c,
+         0x21a, 0xa, 0x2c, 0xc, 0x2c, 0xe, 0x2c, 0x21d, 0xb, 0x2c, 0x3, 0x2c,
+         0x3, 0x2c, 0x3, 0x2c, 0x3, 0x2c, 0x3, 0x2c, 0x3, 0x2c, 0x3, 0x2c,
+         0x3, 0x2c, 0x7, 0x2c, 0x227, 0xa, 0x2c, 0xc, 0x2c, 0xe, 0x2c, 0x22a,
+         0xb, 0x2c, 0x3, 0x2c, 0x3, 0x2c, 0x3, 0x2c, 0x5, 0x2c, 0x22f, 0xa,
+         0x2c, 0x3, 0x2d, 0x3, 0x2d, 0x3, 0x2d, 0x3, 0x2d, 0x7, 0x2d, 0x235,
+         0xa, 0x2d, 0xc, 0x2d, 0xe, 0x2d, 0x238, 0xb, 0x2d, 0x3, 0x2d, 0x3,
+         0x2d, 0x3, 0x2d, 0x3, 0x2e, 0x3, 0x2e, 0x3, 0x2e, 0x3, 0x2e, 0x3,
+         0x2e, 0x3, 0x2e, 0x3, 0x2e, 0x3, 0x2e, 0x3, 0x2e, 0x3, 0x2e, 0x3,
+         0x2e, 0x5, 0x2e, 0x248, 0xa, 0x2e, 0x3, 0x2f, 0x3, 0x2f, 0x3, 0x2f,
+         0x3, 0x2f, 0x3, 0x2f, 0x3, 0x2f, 0x3, 0x2f, 0x5, 0x2f, 0x251, 0xa,
+         0x2f, 0x3, 0x30, 0x3, 0x30, 0x3, 0x30, 0x3, 0x30, 0x3, 0x30, 0x3,
+         0x30, 0x3, 0x30, 0x5, 0x30, 0x25a, 0xa, 0x30, 0x3, 0x31, 0x3, 0x31,
+         0x3, 0x31, 0x3, 0x32, 0x3, 0x32, 0x3, 0x32, 0x3, 0x32, 0x3, 0x32,
+         0x3, 0x32, 0x3, 0x32, 0x3, 0x32, 0x3, 0x32, 0x3, 0x32, 0x3, 0x32,
+         0x3, 0x32, 0x5, 0x32, 0x26b, 0xa, 0x32, 0x3, 0x33, 0x3, 0x33, 0x3,
+         0x33, 0x6, 0x33, 0x270, 0xa, 0x33, 0xd, 0x33, 0xe, 0x33, 0x271, 0x3,
+         0x33, 0x3, 0x33, 0x3, 0x33, 0x3, 0x34, 0x3, 0x34, 0x3, 0x34, 0x3,
+         0x34, 0x6, 0x34, 0x27b, 0xa, 0x34, 0xd, 0x34, 0xe, 0x34, 0x27c, 0x3,
+         0x34, 0x3, 0x34, 0x3, 0x34, 0x3, 0x35, 0x3, 0x35, 0x3, 0x35, 0x5,
+         0x35, 0x285, 0xa, 0x35, 0x3, 0x36, 0x3, 0x36, 0x3, 0x36, 0x7, 0x36,
+         0x28a, 0xa, 0x36, 0xc, 0x36, 0xe, 0x36, 0x28d, 0xb, 0x36, 0x3, 0x37,
+         0x3, 0x37, 0x3, 0x37, 0x3, 0x37, 0x3, 0x37, 0x3, 0x37, 0x3, 0x37,
+         0x3, 0x37, 0x3, 0x37, 0x3, 0x37, 0x3, 0x37, 0x5, 0x37, 0x29a, 0xa,
+         0x37, 0x3, 0x37, 0x3, 0x37, 0x3, 0x37, 0x3, 0x37, 0x3, 0x37, 0x3,
+         0x37, 0x3, 0x37, 0x3, 0x37, 0x3, 0x37, 0x3, 0x37, 0x3, 0x37, 0x3,
+         0x37, 0x7, 0x37, 0x2a8, 0xa, 0x37, 0xc, 0x37, 0xe, 0x37, 0x2ab, 0xb,
+         0x37, 0x3, 0x38, 0x3, 0x38, 0x3, 0x38, 0x3, 0x38, 0x3, 0x38, 0x7,
+         0x38, 0x2b2, 0xa, 0x38, 0xc, 0x38, 0xe, 0x38, 0x2b5, 0xb, 0x38, 0x3,
+         0x38, 0x3, 0x38, 0x3, 0x38, 0x3, 0x38, 0x3, 0x38, 0x3, 0x38, 0x3,
+         0x38, 0x3, 0x38, 0x3, 0x38, 0x3, 0x38, 0x3, 0x38, 0x3, 0x38, 0x7,
+         0x38, 0x2c3, 0xa, 0x38, 0xc, 0x38, 0xe, 0x38, 0x2c6, 0xb, 0x38, 0x3,
+         0x38, 0x3, 0x38, 0x3, 0x38, 0x5, 0x38, 0x2cb, 0xa, 0x38, 0x3, 0x39,
+         0x3, 0x39, 0x3, 0x3a, 0x3, 0x3a, 0x3, 0x3a, 0x7, 0x3a, 0x2d2, 0xa,
+         0x3a, 0xc, 0x3a, 0xe, 0x3a, 0x2d5, 0xb, 0x3a, 0x3, 0x3b, 0x3, 0x3b,
+         0x3, 0x3b, 0x3, 0x3b, 0x3, 0x3b, 0x3, 0x3b, 0x3, 0x3b, 0x3, 0x3b,
+         0x3, 0x3b, 0x3, 0x3b, 0x5, 0x3b, 0x2e1, 0xa, 0x3b, 0x3, 0x3c, 0x3,
+         0x3c, 0x3, 0x3c, 0x2, 0x9, 0x3c, 0x3e, 0x40, 0x42, 0x44, 0x46, 0x6c,
+         0x3d, 0x2, 0x4, 0x6, 0x8, 0xa, 0xc, 0xe, 0x10, 0x12, 0x14, 0x16,
+         0x18, 0x1a, 0x1c, 0x1e, 0x20, 0x22, 0x24, 0x26, 0x28, 0x2a, 0x2c,
+         0x2e, 0x30, 0x32, 0x34, 0x36, 0x38, 0x3a, 0x3c, 0x3e, 0x40, 0x42,
+         0x44, 0x46, 0x48, 0x4a, 0x4c, 0x4e, 0x50, 0x52, 0x54, 0x56, 0x58,
+         0x5a, 0x5c, 0x5e, 0x60, 0x62, 0x64, 0x66, 0x68, 0x6a, 0x6c, 0x6e,
+         0x70, 0x72, 0x74, 0x76, 0x2, 0x8, 0x4, 0x2, 0xb, 0xd, 0xf, 0x16,
+         0x3, 0x2, 0x1b, 0x1e, 0x3, 0x2, 0x17, 0x18, 0x4, 0x2, 0x1f, 0x20,
+         0x22, 0x24, 0x3, 0x2, 0x25, 0x26, 0x4, 0x2, 0x3, 0x3, 0x48, 0x49,
+         0x2, 0x303, 0x2, 0x7b, 0x3, 0x2, 0x2, 0x2, 0x4, 0x91, 0x3, 0x2, 0x2,
+         0x2, 0x6, 0x94, 0x3, 0x2, 0x2, 0x2, 0x8, 0x98, 0x3, 0x2, 0x2, 0x2,
+         0xa, 0xa6, 0x3, 0x2, 0x2, 0x2, 0xc, 0xa8, 0x3, 0x2, 0x2, 0x2, 0xe,
+         0xac, 0x3, 0x2, 0x2, 0x2, 0x10, 0xaf, 0x3, 0x2, 0x2, 0x2, 0x12, 0xb8,
+         0x3, 0x2, 0x2, 0x2, 0x14, 0xc8, 0x3, 0x2, 0x2, 0x2, 0x16, 0xdc, 0x3,
+         0x2, 0x2, 0x2, 0x18, 0xf4, 0x3, 0x2, 0x2, 0x2, 0x1a, 0x110, 0x3,
+         0x2, 0x2, 0x2, 0x1c, 0x112, 0x3, 0x2, 0x2, 0x2, 0x1e, 0x117, 0x3,
+         0x2, 0x2, 0x2, 0x20, 0x120, 0x3, 0x2, 0x2, 0x2, 0x22, 0x12f, 0x3,
+         0x2, 0x2, 0x2, 0x24, 0x154, 0x3, 0x2, 0x2, 0x2, 0x26, 0x156, 0x3,
+         0x2, 0x2, 0x2, 0x28, 0x158, 0x3, 0x2, 0x2, 0x2, 0x2a, 0x15a, 0x3,
+         0x2, 0x2, 0x2, 0x2c, 0x15c, 0x3, 0x2, 0x2, 0x2, 0x2e, 0x15e, 0x3,
+         0x2, 0x2, 0x2, 0x30, 0x160, 0x3, 0x2, 0x2, 0x2, 0x32, 0x162, 0x3,
+         0x2, 0x2, 0x2, 0x34, 0x164, 0x3, 0x2, 0x2, 0x2, 0x36, 0x166, 0x3,
+         0x2, 0x2, 0x2, 0x38, 0x16e, 0x3, 0x2, 0x2, 0x2, 0x3a, 0x177, 0x3,
+         0x2, 0x2, 0x2, 0x3c, 0x179, 0x3, 0x2, 0x2, 0x2, 0x3e, 0x187, 0x3,
+         0x2, 0x2, 0x2, 0x40, 0x195, 0x3, 0x2, 0x2, 0x2, 0x42, 0x1a9, 0x3,
+         0x2, 0x2, 0x2, 0x44, 0x1b7, 0x3, 0x2, 0x2, 0x2, 0x46, 0x1c2, 0x3,
+         0x2, 0x2, 0x2, 0x48, 0x1d2, 0x3, 0x2, 0x2, 0x2, 0x4a, 0x1d4, 0x3,
+         0x2, 0x2, 0x2, 0x4c, 0x1e6, 0x3, 0x2, 0x2, 0x2, 0x4e, 0x1f4, 0x3,
+         0x2, 0x2, 0x2, 0x50, 0x1f6, 0x3, 0x2, 0x2, 0x2, 0x52, 0x201, 0x3,
+         0x2, 0x2, 0x2, 0x54, 0x20d, 0x3, 0x2, 0x2, 0x2, 0x56, 0x22e, 0x3,
+         0x2, 0x2, 0x2, 0x58, 0x230, 0x3, 0x2, 0x2, 0x2, 0x5a, 0x247, 0x3,
+         0x2, 0x2, 0x2, 0x5c, 0x250, 0x3, 0x2, 0x2, 0x2, 0x5e, 0x259, 0x3,
+         0x2, 0x2, 0x2, 0x60, 0x25b, 0x3, 0x2, 0x2, 0x2, 0x62, 0x26a, 0x3,
+         0x2, 0x2, 0x2, 0x64, 0x26c, 0x3, 0x2, 0x2, 0x2, 0x66, 0x276, 0x3,
+         0x2, 0x2, 0x2, 0x68, 0x284, 0x3, 0x2, 0x2, 0x2, 0x6a, 0x286, 0x3,
+         0x2, 0x2, 0x2, 0x6c, 0x299, 0x3, 0x2, 0x2, 0x2, 0x6e, 0x2ca, 0x3,
+         0x2, 0x2, 0x2, 0x70, 0x2cc, 0x3, 0x2, 0x2, 0x2, 0x72, 0x2ce, 0x3,
+         0x2, 0x2, 0x2, 0x74, 0x2e0, 0x3, 0x2, 0x2, 0x2, 0x76, 0x2e2, 0x3,
+         0x2, 0x2, 0x2, 0x78, 0x7a, 0x7, 0x46, 0x2, 0x2, 0x79, 0x78, 0x3,
+         0x2, 0x2, 0x2, 0x7a, 0x7d, 0x3, 0x2, 0x2, 0x2, 0x7b, 0x79, 0x3, 0x2,
+         0x2, 0x2, 0x7b, 0x7c, 0x3, 0x2, 0x2, 0x2, 0x7c, 0x81, 0x3, 0x2, 0x2,
+         0x2, 0x7d, 0x7b, 0x3, 0x2, 0x2, 0x2, 0x7e, 0x80, 0x5, 0x6e, 0x38,
+         0x2, 0x7f, 0x7e, 0x3, 0x2, 0x2, 0x2, 0x80, 0x83, 0x3, 0x2, 0x2, 0x2,
+         0x81, 0x7f, 0x3, 0x2, 0x2, 0x2, 0x81, 0x82, 0x3, 0x2, 0x2, 0x2, 0x82,
+         0x84, 0x3, 0x2, 0x2, 0x2, 0x83, 0x81, 0x3, 0x2, 0x2, 0x2, 0x84, 0x88,
+         0x5, 0x4, 0x3, 0x2, 0x85, 0x87, 0x5, 0x6e, 0x38, 0x2, 0x86, 0x85,
+         0x3, 0x2, 0x2, 0x2, 0x87, 0x8a, 0x3, 0x2, 0x2, 0x2, 0x88, 0x86, 0x3,
+         0x2, 0x2, 0x2, 0x88, 0x89, 0x3, 0x2, 0x2, 0x2, 0x89, 0x8e, 0x3, 0x2,
+         0x2, 0x2, 0x8a, 0x88, 0x3, 0x2, 0x2, 0x2, 0x8b, 0x8d, 0x5, 0x4e,
+         0x28, 0x2, 0x8c, 0x8b, 0x3, 0x2, 0x2, 0x2, 0x8d, 0x90, 0x3, 0x2,
+         0x2, 0x2, 0x8e, 0x8c, 0x3, 0x2, 0x2, 0x2, 0x8e, 0x8f, 0x3, 0x2, 0x2,
+         0x2, 0x8f, 0x3, 0x3, 0x2, 0x2, 0x2, 0x90, 0x8e, 0x3, 0x2, 0x2, 0x2,
+         0x91, 0x92, 0x5, 0x6, 0x4, 0x2, 0x92, 0x93, 0x5, 0x8, 0x5, 0x2, 0x93,
+         0x5, 0x3, 0x2, 0x2, 0x2, 0x94, 0x95, 0x7, 0x4, 0x2, 0x2, 0x95, 0x96,
+         0x7, 0x48, 0x2, 0x2, 0x96, 0x97, 0x7, 0x46, 0x2, 0x2, 0x97, 0x7,
+         0x3, 0x2, 0x2, 0x2, 0x98, 0x99, 0x7, 0x5, 0x2, 0x2, 0x99, 0x9a, 0x7,
+         0x48, 0x2, 0x2, 0x9a, 0x9b, 0x7, 0x46, 0x2, 0x2, 0x9b, 0x9, 0x3,
+         0x2, 0x2, 0x2, 0x9c, 0xa7, 0x5, 0x12, 0xa, 0x2, 0x9d, 0xa7, 0x5,
+         0x14, 0xb, 0x2, 0x9e, 0xa7, 0x5, 0x16, 0xc, 0x2, 0x9f, 0xa7, 0x5,
+         0x18, 0xd, 0x2, 0xa0, 0xa7, 0x5, 0x1a, 0xe, 0x2, 0xa1, 0xa7, 0x5,
+         0x1c, 0xf, 0x2, 0xa2, 0xa7, 0x5, 0x1e, 0x10, 0x2, 0xa3, 0xa7, 0x5,
+         0x20, 0x11, 0x2, 0xa4, 0xa7, 0x5, 0x22, 0x12, 0x2, 0xa5, 0xa7, 0x5,
+         0x24, 0x13, 0x2, 0xa6, 0x9c, 0x3, 0x2, 0x2, 0x2, 0xa6, 0x9d, 0x3,
+         0x2, 0x2, 0x2, 0xa6, 0x9e, 0x3, 0x2, 0x2, 0x2, 0xa6, 0x9f, 0x3, 0x2,
+         0x2, 0x2, 0xa6, 0xa0, 0x3, 0x2, 0x2, 0x2, 0xa6, 0xa1, 0x3, 0x2, 0x2,
+         0x2, 0xa6, 0xa2, 0x3, 0x2, 0x2, 0x2, 0xa6, 0xa3, 0x3, 0x2, 0x2, 0x2,
+         0xa6, 0xa4, 0x3, 0x2, 0x2, 0x2, 0xa6, 0xa5, 0x3, 0x2, 0x2, 0x2, 0xa7,
+         0xb, 0x3, 0x2, 0x2, 0x2, 0xa8, 0xa9, 0x7, 0x44, 0x2, 0x2, 0xa9, 0xaa,
+         0x5, 0x4a, 0x26, 0x2, 0xaa, 0xab, 0x7, 0x45, 0x2, 0x2, 0xab, 0xd,
+         0x3, 0x2, 0x2, 0x2, 0xac, 0xad, 0x7, 0x7, 0x2, 0x2, 0xad, 0xae, 0x5,
+         0xc, 0x7, 0x2, 0xae, 0xf, 0x3, 0x2, 0x2, 0x2, 0xaf, 0xb0, 0x7, 0x6,
+         0x2, 0x2, 0xb0, 0xb1, 0x5, 0xc, 0x7, 0x2, 0xb1, 0x11, 0x3, 0x2, 0x2,
+         0x2, 0xb2, 0xb3, 0x5, 0x26, 0x14, 0x2, 0xb3, 0xb4, 0x5, 0x10, 0x9,
+         0x2, 0xb4, 0xb9, 0x3, 0x2, 0x2, 0x2, 0xb5, 0xb6, 0x5, 0x26, 0x14,
+         0x2, 0xb6, 0xb7, 0x7, 0x6, 0x2, 0x2, 0xb7, 0xb9, 0x3, 0x2, 0x2, 0x2,
+         0xb8, 0xb2, 0x3, 0x2, 0x2, 0x2, 0xb8, 0xb5, 0x3, 0x2, 0x2, 0x2, 0xb9,
+         0x13, 0x3, 0x2, 0x2, 0x2, 0xba, 0xbb, 0x5, 0x28, 0x15, 0x2, 0xbb,
+         0xbc, 0x5, 0x10, 0x9, 0x2, 0xbc, 0xbd, 0x7, 0x41, 0x2, 0x2, 0xbd,
+         0xbe, 0x7, 0x42, 0x2, 0x2, 0xbe, 0xbf, 0x5, 0x4a, 0x26, 0x2, 0xbf,
+         0xc0, 0x7, 0x43, 0x2, 0x2, 0xc0, 0xc9, 0x3, 0x2, 0x2, 0x2, 0xc1,
+         0xc2, 0x5, 0x28, 0x15, 0x2, 0xc2, 0xc3, 0x7, 0x6, 0x2, 0x2, 0xc3,
+         0xc4, 0x7, 0x41, 0x2, 0x2, 0xc4, 0xc5, 0x7, 0x42, 0x2, 0x2, 0xc5,
+         0xc6, 0x5, 0x4a, 0x26, 0x2, 0xc6, 0xc7, 0x7, 0x43, 0x2, 0x2, 0xc7,
+         0xc9, 0x3, 0x2, 0x2, 0x2, 0xc8, 0xba, 0x3, 0x2, 0x2, 0x2, 0xc8, 0xc1,
+         0x3, 0x2, 0x2, 0x2, 0xc9, 0x15, 0x3, 0x2, 0x2, 0x2, 0xca, 0xcb, 0x5,
+         0x2a, 0x16, 0x2, 0xcb, 0xcc, 0x5, 0x10, 0x9, 0x2, 0xcc, 0xcd, 0x7,
+         0x41, 0x2, 0x2, 0xcd, 0xce, 0x7, 0x42, 0x2, 0x2, 0xce, 0xcf, 0x5,
+         0x4a, 0x26, 0x2, 0xcf, 0xd0, 0x7, 0x41, 0x2, 0x2, 0xd0, 0xd1, 0x5,
+         0x4a, 0x26, 0x2, 0xd1, 0xd2, 0x7, 0x43, 0x2, 0x2, 0xd2, 0xdd, 0x3,
+         0x2, 0x2, 0x2, 0xd3, 0xd4, 0x5, 0x2a, 0x16, 0x2, 0xd4, 0xd5, 0x7,
+         0x6, 0x2, 0x2, 0xd5, 0xd6, 0x7, 0x41, 0x2, 0x2, 0xd6, 0xd7, 0x7,
+         0x42, 0x2, 0x2, 0xd7, 0xd8, 0x5, 0x4a, 0x26, 0x2, 0xd8, 0xd9, 0x7,
+         0x41, 0x2, 0x2, 0xd9, 0xda, 0x5, 0x4a, 0x26, 0x2, 0xda, 0xdb, 0x7,
+         0x43, 0x2, 0x2, 0xdb, 0xdd, 0x3, 0x2, 0x2, 0x2, 0xdc, 0xca, 0x3,
+         0x2, 0x2, 0x2, 0xdc, 0xd3, 0x3, 0x2, 0x2, 0x2, 0xdd, 0x17, 0x3, 0x2,
+         0x2, 0x2, 0xde, 0xdf, 0x5, 0x2c, 0x17, 0x2, 0xdf, 0xe0, 0x5, 0x10,
+         0x9, 0x2, 0xe0, 0xe1, 0x7, 0x41, 0x2, 0x2, 0xe1, 0xe2, 0x7, 0x42,
+         0x2, 0x2, 0xe2, 0xe3, 0x5, 0x4a, 0x26, 0x2, 0xe3, 0xe4, 0x7, 0x41,
+         0x2, 0x2, 0xe4, 0xe5, 0x5, 0x4a, 0x26, 0x2, 0xe5, 0xe6, 0x7, 0x41,
+         0x2, 0x2, 0xe6, 0xe7, 0x5, 0x4a, 0x26, 0x2, 0xe7, 0xe8, 0x7, 0x43,
+         0x2, 0x2, 0xe8, 0xf5, 0x3, 0x2, 0x2, 0x2, 0xe9, 0xea, 0x5, 0x2c,
+         0x17, 0x2, 0xea, 0xeb, 0x7, 0x6, 0x2, 0x2, 0xeb, 0xec, 0x7, 0x41,
+         0x2, 0x2, 0xec, 0xed, 0x7, 0x42, 0x2, 0x2, 0xed, 0xee, 0x5, 0x4a,
+         0x26, 0x2, 0xee, 0xef, 0x7, 0x41, 0x2, 0x2, 0xef, 0xf0, 0x5, 0x4a,
+         0x26, 0x2, 0xf0, 0xf1, 0x7, 0x41, 0x2, 0x2, 0xf1, 0xf2, 0x5, 0x4a,
+         0x26, 0x2, 0xf2, 0xf3, 0x7, 0x43, 0x2, 0x2, 0xf3, 0xf5, 0x3, 0x2,
+         0x2, 0x2, 0xf4, 0xde, 0x3, 0x2, 0x2, 0x2, 0xf4, 0xe9, 0x3, 0x2, 0x2,
+         0x2, 0xf5, 0x19, 0x3, 0x2, 0x2, 0x2, 0xf6, 0xf7, 0x5, 0x2e, 0x18,
+         0x2, 0xf7, 0xf8, 0x5, 0x10, 0x9, 0x2, 0xf8, 0xf9, 0x7, 0x41, 0x2,
+         0x2, 0xf9, 0xfa, 0x7, 0x42, 0x2, 0x2, 0xfa, 0xfb, 0x5, 0x4a, 0x26,
+         0x2, 0xfb, 0xfc, 0x7, 0x41, 0x2, 0x2, 0xfc, 0xfd, 0x5, 0x4a, 0x26,
+         0x2, 0xfd, 0xfe, 0x7, 0x41, 0x2, 0x2, 0xfe, 0xff, 0x5, 0x4a, 0x26,
+         0x2, 0xff, 0x100, 0x7, 0x41, 0x2, 0x2, 0x100, 0x101, 0x5, 0x4a, 0x26,
+         0x2, 0x101, 0x102, 0x7, 0x43, 0x2, 0x2, 0x102, 0x111, 0x3, 0x2, 0x2,
+         0x2, 0x103, 0x104, 0x5, 0x2e, 0x18, 0x2, 0x104, 0x105, 0x7, 0x6,
+         0x2, 0x2, 0x105, 0x106, 0x7, 0x41, 0x2, 0x2, 0x106, 0x107, 0x7, 0x42,
+         0x2, 0x2, 0x107, 0x108, 0x5, 0x4a, 0x26, 0x2, 0x108, 0x109, 0x7,
+         0x41, 0x2, 0x2, 0x109, 0x10a, 0x5, 0x4a, 0x26, 0x2, 0x10a, 0x10b,
+         0x7, 0x41, 0x2, 0x2, 0x10b, 0x10c, 0x5, 0x4a, 0x26, 0x2, 0x10c, 0x10d,
+         0x7, 0x41, 0x2, 0x2, 0x10d, 0x10e, 0x5, 0x4a, 0x26, 0x2, 0x10e, 0x10f,
+         0x7, 0x43, 0x2, 0x2, 0x10f, 0x111, 0x3, 0x2, 0x2, 0x2, 0x110, 0xf6,
+         0x3, 0x2, 0x2, 0x2, 0x110, 0x103, 0x3, 0x2, 0x2, 0x2, 0x111, 0x1b,
+         0x3, 0x2, 0x2, 0x2, 0x112, 0x113, 0x5, 0x30, 0x19, 0x2, 0x113, 0x114,
+         0x5, 0x10, 0x9, 0x2, 0x114, 0x115, 0x7, 0x41, 0x2, 0x2, 0x115, 0x116,
+         0x5, 0x10, 0x9, 0x2, 0x116, 0x1d, 0x3, 0x2, 0x2, 0x2, 0x117, 0x118,
+         0x5, 0x32, 0x1a, 0x2, 0x118, 0x119, 0x5, 0x10, 0x9, 0x2, 0x119, 0x11a,
+         0x7, 0x41, 0x2, 0x2, 0x11a, 0x11b, 0x5, 0x10, 0x9, 0x2, 0x11b, 0x11c,
+         0x7, 0x41, 0x2, 0x2, 0x11c, 0x11d, 0x7, 0x42, 0x2, 0x2, 0x11d, 0x11e,
+         0x5, 0x4a, 0x26, 0x2, 0x11e, 0x11f, 0x7, 0x43, 0x2, 0x2, 0x11f, 0x1f,
+         0x3, 0x2, 0x2, 0x2, 0x120, 0x121, 0x5, 0x34, 0x1b, 0x2, 0x121, 0x122,
+         0x5, 0x10, 0x9, 0x2, 0x122, 0x123, 0x7, 0x41, 0x2, 0x2, 0x123, 0x124,
+         0x5, 0x10, 0x9, 0x2, 0x124, 0x125, 0x7, 0x41, 0x2, 0x2, 0x125, 0x126,
+         0x7, 0x42, 0x2, 0x2, 0x126, 0x127, 0x5, 0x4a, 0x26, 0x2, 0x127, 0x128,
+         0x7, 0x41, 0x2, 0x2, 0x128, 0x129, 0x5, 0x4a, 0x26, 0x2, 0x129, 0x12a,
+         0x7, 0x41, 0x2, 0x2, 0x12a, 0x12b, 0x5, 0x4a, 0x26, 0x2, 0x12b, 0x12c,
+         0x7, 0x41, 0x2, 0x2, 0x12c, 0x12d, 0x5, 0x4a, 0x26, 0x2, 0x12d, 0x12e,
+         0x7, 0x43, 0x2, 0x2, 0x12e, 0x21, 0x3, 0x2, 0x2, 0x2, 0x12f, 0x130,
+         0x5, 0x36, 0x1c, 0x2, 0x130, 0x131, 0x5, 0x10, 0x9, 0x2, 0x131, 0x132,
+         0x7, 0x41, 0x2, 0x2, 0x132, 0x133, 0x5, 0x10, 0x9, 0x2, 0x133, 0x134,
+         0x7, 0x41, 0x2, 0x2, 0x134, 0x135, 0x5, 0x10, 0x9, 0x2, 0x135, 0x23,
+         0x3, 0x2, 0x2, 0x2, 0x136, 0x137, 0x5, 0x70, 0x39, 0x2, 0x137, 0x13c,
+         0x5, 0x10, 0x9, 0x2, 0x138, 0x139, 0x7, 0x41, 0x2, 0x2, 0x139, 0x13b,
+         0x5, 0x10, 0x9, 0x2, 0x13a, 0x138, 0x3, 0x2, 0x2, 0x2, 0x13b, 0x13e,
+         0x3, 0x2, 0x2, 0x2, 0x13c, 0x13a, 0x3, 0x2, 0x2, 0x2, 0x13c, 0x13d,
+         0x3, 0x2, 0x2, 0x2, 0x13d, 0x155, 0x3, 0x2, 0x2, 0x2, 0x13e, 0x13c,
+         0x3, 0x2, 0x2, 0x2, 0x13f, 0x140, 0x5, 0x70, 0x39, 0x2, 0x140, 0x145,
+         0x5, 0x10, 0x9, 0x2, 0x141, 0x142, 0x7, 0x41, 0x2, 0x2, 0x142, 0x144,
+         0x5, 0x10, 0x9, 0x2, 0x143, 0x141, 0x3, 0x2, 0x2, 0x2, 0x144, 0x147,
+         0x3, 0x2, 0x2, 0x2, 0x145, 0x143, 0x3, 0x2, 0x2, 0x2, 0x145, 0x146,
+         0x3, 0x2, 0x2, 0x2, 0x146, 0x148, 0x3, 0x2, 0x2, 0x2, 0x147, 0x145,
+         0x3, 0x2, 0x2, 0x2, 0x148, 0x149, 0x7, 0x41, 0x2, 0x2, 0x149, 0x14a,
+         0x7, 0x42, 0x2, 0x2, 0x14a, 0x14f, 0x5, 0x4a, 0x26, 0x2, 0x14b, 0x14c,
+         0x7, 0x41, 0x2, 0x2, 0x14c, 0x14e, 0x5, 0x4a, 0x26, 0x2, 0x14d, 0x14b,
+         0x3, 0x2, 0x2, 0x2, 0x14e, 0x151, 0x3, 0x2, 0x2, 0x2, 0x14f, 0x14d,
+         0x3, 0x2, 0x2, 0x2, 0x14f, 0x150, 0x3, 0x2, 0x2, 0x2, 0x150, 0x152,
+         0x3, 0x2, 0x2, 0x2, 0x151, 0x14f, 0x3, 0x2, 0x2, 0x2, 0x152, 0x153,
+         0x7, 0x43, 0x2, 0x2, 0x153, 0x155, 0x3, 0x2, 0x2, 0x2, 0x154, 0x136,
+         0x3, 0x2, 0x2, 0x2, 0x154, 0x13f, 0x3, 0x2, 0x2, 0x2, 0x155, 0x25,
+         0x3, 0x2, 0x2, 0x2, 0x156, 0x157, 0x9, 0x2, 0x2, 0x2, 0x157, 0x27,
+         0x3, 0x2, 0x2, 0x2, 0x158, 0x159, 0x9, 0x3, 0x2, 0x2, 0x159, 0x29,
+         0x3, 0x2, 0x2, 0x2, 0x15a, 0x15b, 0x9, 0x4, 0x2, 0x2, 0x15b, 0x2b,
+         0x3, 0x2, 0x2, 0x2, 0x15c, 0x15d, 0x7, 0x19, 0x2, 0x2, 0x15d, 0x2d,
+         0x3, 0x2, 0x2, 0x2, 0x15e, 0x15f, 0x7, 0x1a, 0x2, 0x2, 0x15f, 0x2f,
+         0x3, 0x2, 0x2, 0x2, 0x160, 0x161, 0x9, 0x5, 0x2, 0x2, 0x161, 0x31,
+         0x3, 0x2, 0x2, 0x2, 0x162, 0x163, 0x9, 0x6, 0x2, 0x2, 0x163, 0x33,
+         0x3, 0x2, 0x2, 0x2, 0x164, 0x165, 0x7, 0x21, 0x2, 0x2, 0x165, 0x35,
+         0x3, 0x2, 0x2, 0x2, 0x166, 0x167, 0x7, 0x27, 0x2, 0x2, 0x167, 0x37,
+         0x3, 0x2, 0x2, 0x2, 0x168, 0x16f, 0x5, 0xe, 0x8, 0x2, 0x169, 0x16f,
+         0x5, 0x76, 0x3c, 0x2, 0x16a, 0x16b, 0x7, 0x42, 0x2, 0x2, 0x16b, 0x16c,
+         0x5, 0x4a, 0x26, 0x2, 0x16c, 0x16d, 0x7, 0x42, 0x2, 0x2, 0x16d, 0x16f,
+         0x3, 0x2, 0x2, 0x2, 0x16e, 0x168, 0x3, 0x2, 0x2, 0x2, 0x16e, 0x169,
+         0x3, 0x2, 0x2, 0x2, 0x16e, 0x16a, 0x3, 0x2, 0x2, 0x2, 0x16f, 0x39,
+         0x3, 0x2, 0x2, 0x2, 0x170, 0x178, 0x5, 0x38, 0x1d, 0x2, 0x171, 0x172,
+         0x7, 0x3d, 0x2, 0x2, 0x172, 0x178, 0x5, 0x38, 0x1d, 0x2, 0x173, 0x174,
+         0x7, 0x3e, 0x2, 0x2, 0x174, 0x178, 0x5, 0x38, 0x1d, 0x2, 0x175, 0x176,
+         0x7, 0x36, 0x2, 0x2, 0x176, 0x178, 0x5, 0x38, 0x1d, 0x2, 0x177, 0x170,
+         0x3, 0x2, 0x2, 0x2, 0x177, 0x171, 0x3, 0x2, 0x2, 0x2, 0x177, 0x173,
+         0x3, 0x2, 0x2, 0x2, 0x177, 0x175, 0x3, 0x2, 0x2, 0x2, 0x178, 0x3b,
+         0x3, 0x2, 0x2, 0x2, 0x179, 0x17a, 0x8, 0x1f, 0x1, 0x2, 0x17a, 0x17b,
+         0x5, 0x3a, 0x1e, 0x2, 0x17b, 0x184, 0x3, 0x2, 0x2, 0x2, 0x17c, 0x17d,
+         0xc, 0x4, 0x2, 0x2, 0x17d, 0x17e, 0x7, 0x3f, 0x2, 0x2, 0x17e, 0x183,
+         0x5, 0x3a, 0x1e, 0x2, 0x17f, 0x180, 0xc, 0x3, 0x2, 0x2, 0x180, 0x181,
+         0x7, 0x40, 0x2, 0x2, 0x181, 0x183, 0x5, 0x3a, 0x1e, 0x2, 0x182, 0x17c,
+         0x3, 0x2, 0x2, 0x2, 0x182, 0x17f, 0x3, 0x2, 0x2, 0x2, 0x183, 0x186,
+         0x3, 0x2, 0x2, 0x2, 0x184, 0x182, 0x3, 0x2, 0x2, 0x2, 0x184, 0x185,
+         0x3, 0x2, 0x2, 0x2, 0x185, 0x3d, 0x3, 0x2, 0x2, 0x2, 0x186, 0x184,
+         0x3, 0x2, 0x2, 0x2, 0x187, 0x188, 0x8, 0x20, 0x1, 0x2, 0x188, 0x189,
+         0x5, 0x3c, 0x1f, 0x2, 0x189, 0x192, 0x3, 0x2, 0x2, 0x2, 0x18a, 0x18b,
+         0xc, 0x4, 0x2, 0x2, 0x18b, 0x18c, 0x7, 0x3d, 0x2, 0x2, 0x18c, 0x191,
+         0x5, 0x3c, 0x1f, 0x2, 0x18d, 0x18e, 0xc, 0x3, 0x2, 0x2, 0x18e, 0x18f,
+         0x7, 0x3e, 0x2, 0x2, 0x18f, 0x191, 0x5, 0x3c, 0x1f, 0x2, 0x190, 0x18a,
+         0x3, 0x2, 0x2, 0x2, 0x190, 0x18d, 0x3, 0x2, 0x2, 0x2, 0x191, 0x194,
+         0x3, 0x2, 0x2, 0x2, 0x192, 0x190, 0x3, 0x2, 0x2, 0x2, 0x192, 0x193,
+         0x3, 0x2, 0x2, 0x2, 0x193, 0x3f, 0x3, 0x2, 0x2, 0x2, 0x194, 0x192,
+         0x3, 0x2, 0x2, 0x2, 0x195, 0x196, 0x8, 0x21, 0x1, 0x2, 0x196, 0x197,
+         0x5, 0x3e, 0x20, 0x2, 0x197, 0x1a6, 0x3, 0x2, 0x2, 0x2, 0x198, 0x199,
+         0xc, 0x6, 0x2, 0x2, 0x199, 0x19a, 0x7, 0x35, 0x2, 0x2, 0x19a, 0x1a5,
+         0x5, 0x3e, 0x20, 0x2, 0x19b, 0x19c, 0xc, 0x5, 0x2, 0x2, 0x19c, 0x19d,
+         0x7, 0x34, 0x2, 0x2, 0x19d, 0x1a5, 0x5, 0x3e, 0x20, 0x2, 0x19e, 0x19f,
+         0xc, 0x4, 0x2, 0x2, 0x19f, 0x1a0, 0x7, 0x38, 0x2, 0x2, 0x1a0, 0x1a5,
+         0x5, 0x3e, 0x20, 0x2, 0x1a1, 0x1a2, 0xc, 0x3, 0x2, 0x2, 0x1a2, 0x1a3,
+         0x7, 0x39, 0x2, 0x2, 0x1a3, 0x1a5, 0x5, 0x3e, 0x20, 0x2, 0x1a4, 0x198,
+         0x3, 0x2, 0x2, 0x2, 0x1a4, 0x19b, 0x3, 0x2, 0x2, 0x2, 0x1a4, 0x19e,
+         0x3, 0x2, 0x2, 0x2, 0x1a4, 0x1a1, 0x3, 0x2, 0x2, 0x2, 0x1a5, 0x1a8,
+         0x3, 0x2, 0x2, 0x2, 0x1a6, 0x1a4, 0x3, 0x2, 0x2, 0x2, 0x1a6, 0x1a7,
+         0x3, 0x2, 0x2, 0x2, 0x1a7, 0x41, 0x3, 0x2, 0x2, 0x2, 0x1a8, 0x1a6,
+         0x3, 0x2, 0x2, 0x2, 0x1a9, 0x1aa, 0x8, 0x22, 0x1, 0x2, 0x1aa, 0x1ab,
+         0x5, 0x40, 0x21, 0x2, 0x1ab, 0x1b4, 0x3, 0x2, 0x2, 0x2, 0x1ac, 0x1ad,
+         0xc, 0x4, 0x2, 0x2, 0x1ad, 0x1ae, 0x7, 0x37, 0x2, 0x2, 0x1ae, 0x1b3,
+         0x5, 0x40, 0x21, 0x2, 0x1af, 0x1b0, 0xc, 0x3, 0x2, 0x2, 0x1b0, 0x1b1,
+         0x7, 0x3a, 0x2, 0x2, 0x1b1, 0x1b3, 0x5, 0x40, 0x21, 0x2, 0x1b2, 0x1ac,
+         0x3, 0x2, 0x2, 0x2, 0x1b2, 0x1af, 0x3, 0x2, 0x2, 0x2, 0x1b3, 0x1b6,
+         0x3, 0x2, 0x2, 0x2, 0x1b4, 0x1b2, 0x3, 0x2, 0x2, 0x2, 0x1b4, 0x1b5,
+         0x3, 0x2, 0x2, 0x2, 0x1b5, 0x43, 0x3, 0x2, 0x2, 0x2, 0x1b6, 0x1b4,
+         0x3, 0x2, 0x2, 0x2, 0x1b7, 0x1b8, 0x8, 0x23, 0x1, 0x2, 0x1b8, 0x1b9,
+         0x5, 0x42, 0x22, 0x2, 0x1b9, 0x1bf, 0x3, 0x2, 0x2, 0x2, 0x1ba, 0x1bb,
+         0xc, 0x3, 0x2, 0x2, 0x1bb, 0x1bc, 0x7, 0x3b, 0x2, 0x2, 0x1bc, 0x1be,
+         0x5, 0x42, 0x22, 0x2, 0x1bd, 0x1ba, 0x3, 0x2, 0x2, 0x2, 0x1be, 0x1c1,
+         0x3, 0x2, 0x2, 0x2, 0x1bf, 0x1bd, 0x3, 0x2, 0x2, 0x2, 0x1bf, 0x1c0,
+         0x3, 0x2, 0x2, 0x2, 0x1c0, 0x45, 0x3, 0x2, 0x2, 0x2, 0x1c1, 0x1bf,
+         0x3, 0x2, 0x2, 0x2, 0x1c2, 0x1c3, 0x8, 0x24, 0x1, 0x2, 0x1c3, 0x1c4,
+         0x5, 0x44, 0x23, 0x2, 0x1c4, 0x1ca, 0x3, 0x2, 0x2, 0x2, 0x1c5, 0x1c6,
+         0xc, 0x3, 0x2, 0x2, 0x1c6, 0x1c7, 0x7, 0x3c, 0x2, 0x2, 0x1c7, 0x1c9,
+         0x5, 0x44, 0x23, 0x2, 0x1c8, 0x1c5, 0x3, 0x2, 0x2, 0x2, 0x1c9, 0x1cc,
+         0x3, 0x2, 0x2, 0x2, 0x1ca, 0x1c8, 0x3, 0x2, 0x2, 0x2, 0x1ca, 0x1cb,
+         0x3, 0x2, 0x2, 0x2, 0x1cb, 0x47, 0x3, 0x2, 0x2, 0x2, 0x1cc, 0x1ca,
+         0x3, 0x2, 0x2, 0x2, 0x1cd, 0x1d3, 0x5, 0x46, 0x24, 0x2, 0x1ce, 0x1cf,
+         0x5, 0xe, 0x8, 0x2, 0x1cf, 0x1d0, 0x7, 0x33, 0x2, 0x2, 0x1d0, 0x1d1,
+         0x5, 0x46, 0x24, 0x2, 0x1d1, 0x1d3, 0x3, 0x2, 0x2, 0x2, 0x1d2, 0x1cd,
+         0x3, 0x2, 0x2, 0x2, 0x1d2, 0x1ce, 0x3, 0x2, 0x2, 0x2, 0x1d3, 0x49,
+         0x3, 0x2, 0x2, 0x2, 0x1d4, 0x1d5, 0x5, 0x48, 0x25, 0x2, 0x1d5, 0x4b,
+         0x3, 0x2, 0x2, 0x2, 0x1d6, 0x1db, 0x5, 0x10, 0x9, 0x2, 0x1d7, 0x1d8,
+         0x7, 0x41, 0x2, 0x2, 0x1d8, 0x1da, 0x5, 0x10, 0x9, 0x2, 0x1d9, 0x1d7,
+         0x3, 0x2, 0x2, 0x2, 0x1da, 0x1dd, 0x3, 0x2, 0x2, 0x2, 0x1db, 0x1d9,
+         0x3, 0x2, 0x2, 0x2, 0x1db, 0x1dc, 0x3, 0x2, 0x2, 0x2, 0x1dc, 0x1e7,
+         0x3, 0x2, 0x2, 0x2, 0x1dd, 0x1db, 0x3, 0x2, 0x2, 0x2, 0x1de, 0x1e3,
+         0x7, 0x47, 0x2, 0x2, 0x1df, 0x1e0, 0x7, 0x41, 0x2, 0x2, 0x1e0, 0x1e2,
+         0x7, 0x47, 0x2, 0x2, 0x1e1, 0x1df, 0x3, 0x2, 0x2, 0x2, 0x1e2, 0x1e5,
+         0x3, 0x2, 0x2, 0x2, 0x1e3, 0x1e1, 0x3, 0x2, 0x2, 0x2, 0x1e3, 0x1e4,
+         0x3, 0x2, 0x2, 0x2, 0x1e4, 0x1e7, 0x3, 0x2, 0x2, 0x2, 0x1e5, 0x1e3,
+         0x3, 0x2, 0x2, 0x2, 0x1e6, 0x1d6, 0x3, 0x2, 0x2, 0x2, 0x1e6, 0x1de,
+         0x3, 0x2, 0x2, 0x2, 0x1e7, 0x4d, 0x3, 0x2, 0x2, 0x2, 0x1e8, 0x1e9,
+         0x5, 0xa, 0x6, 0x2, 0x1e9, 0x1ea, 0x7, 0x46, 0x2, 0x2, 0x1ea, 0x1f5,
+         0x3, 0x2, 0x2, 0x2, 0x1eb, 0x1f5, 0x5, 0x52, 0x2a, 0x2, 0x1ec, 0x1f5,
+         0x5, 0x56, 0x2c, 0x2, 0x1ed, 0x1f5, 0x5, 0x58, 0x2d, 0x2, 0x1ee,
+         0x1f5, 0x5, 0x50, 0x29, 0x2, 0x1ef, 0x1f5, 0x5, 0x5a, 0x2e, 0x2,
+         0x1f0, 0x1f5, 0x5, 0x5c, 0x2f, 0x2, 0x1f1, 0x1f5, 0x5, 0x60, 0x31,
+         0x2, 0x1f2, 0x1f5, 0x5, 0x5e, 0x30, 0x2, 0x1f3, 0x1f5, 0x5, 0x6e,
+         0x38, 0x2, 0x1f4, 0x1e8, 0x3, 0x2, 0x2, 0x2, 0x1f4, 0x1eb, 0x3, 0x2,
+         0x2, 0x2, 0x1f4, 0x1ec, 0x3, 0x2, 0x2, 0x2, 0x1f4, 0x1ed, 0x3, 0x2,
+         0x2, 0x2, 0x1f4, 0x1ee, 0x3, 0x2, 0x2, 0x2, 0x1f4, 0x1ef, 0x3, 0x2,
+         0x2, 0x2, 0x1f4, 0x1f0, 0x3, 0x2, 0x2, 0x2, 0x1f4, 0x1f1, 0x3, 0x2,
+         0x2, 0x2, 0x1f4, 0x1f2, 0x3, 0x2, 0x2, 0x2, 0x1f4, 0x1f3, 0x3, 0x2,
+         0x2, 0x2, 0x1f5, 0x4f, 0x3, 0x2, 0x2, 0x2, 0x1f6, 0x1f7, 0x7, 0x28,
+         0x2, 0x2, 0x1f7, 0x1fb, 0x7, 0x46, 0x2, 0x2, 0x1f8, 0x1fa, 0x5, 0x4e,
+         0x28, 0x2, 0x1f9, 0x1f8, 0x3, 0x2, 0x2, 0x2, 0x1fa, 0x1fd, 0x3, 0x2,
+         0x2, 0x2, 0x1fb, 0x1f9, 0x3, 0x2, 0x2, 0x2, 0x1fb, 0x1fc, 0x3, 0x2,
+         0x2, 0x2, 0x1fc, 0x1fe, 0x3, 0x2, 0x2, 0x2, 0x1fd, 0x1fb, 0x3, 0x2,
+         0x2, 0x2, 0x1fe, 0x1ff, 0x7, 0x29, 0x2, 0x2, 0x1ff, 0x200, 0x7, 0x46,
+         0x2, 0x2, 0x200, 0x51, 0x3, 0x2, 0x2, 0x2, 0x201, 0x202, 0x7, 0x2a,
+         0x2, 0x2, 0x202, 0x203, 0x5, 0x4c, 0x27, 0x2, 0x203, 0x207, 0x7,
+         0x46, 0x2, 0x2, 0x204, 0x206, 0x5, 0x4e, 0x28, 0x2, 0x205, 0x204,
+         0x3, 0x2, 0x2, 0x2, 0x206, 0x209, 0x3, 0x2, 0x2, 0x2, 0x207, 0x205,
+         0x3, 0x2, 0x2, 0x2, 0x207, 0x208, 0x3, 0x2, 0x2, 0x2, 0x208, 0x20a,
+         0x3, 0x2, 0x2, 0x2, 0x209, 0x207, 0x3, 0x2, 0x2, 0x2, 0x20a, 0x20b,
+         0x7, 0x2b, 0x2, 0x2, 0x20b, 0x20c, 0x7, 0x46, 0x2, 0x2, 0x20c, 0x53,
+         0x3, 0x2, 0x2, 0x2, 0x20d, 0x20e, 0x7, 0x2d, 0x2, 0x2, 0x20e, 0x212,
+         0x7, 0x46, 0x2, 0x2, 0x20f, 0x211, 0x5, 0x4e, 0x28, 0x2, 0x210, 0x20f,
+         0x3, 0x2, 0x2, 0x2, 0x211, 0x214, 0x3, 0x2, 0x2, 0x2, 0x212, 0x210,
+         0x3, 0x2, 0x2, 0x2, 0x212, 0x213, 0x3, 0x2, 0x2, 0x2, 0x213, 0x55,
+         0x3, 0x2, 0x2, 0x2, 0x214, 0x212, 0x3, 0x2, 0x2, 0x2, 0x215, 0x216,
+         0x7, 0x2c, 0x2, 0x2, 0x216, 0x217, 0x5, 0x4a, 0x26, 0x2, 0x217, 0x21b,
+         0x7, 0x46, 0x2, 0x2, 0x218, 0x21a, 0x5, 0x4e, 0x28, 0x2, 0x219, 0x218,
+         0x3, 0x2, 0x2, 0x2, 0x21a, 0x21d, 0x3, 0x2, 0x2, 0x2, 0x21b, 0x219,
+         0x3, 0x2, 0x2, 0x2, 0x21b, 0x21c, 0x3, 0x2, 0x2, 0x2, 0x21c, 0x21e,
+         0x3, 0x2, 0x2, 0x2, 0x21d, 0x21b, 0x3, 0x2, 0x2, 0x2, 0x21e, 0x21f,
+         0x5, 0x54, 0x2b, 0x2, 0x21f, 0x220, 0x7, 0x2e, 0x2, 0x2, 0x220, 0x221,
+         0x7, 0x46, 0x2, 0x2, 0x221, 0x22f, 0x3, 0x2, 0x2, 0x2, 0x222, 0x223,
+         0x7, 0x2c, 0x2, 0x2, 0x223, 0x224, 0x5, 0x4a, 0x26, 0x2, 0x224, 0x228,
+         0x7, 0x46, 0x2, 0x2, 0x225, 0x227, 0x5, 0x4e, 0x28, 0x2, 0x226, 0x225,
+         0x3, 0x2, 0x2, 0x2, 0x227, 0x22a, 0x3, 0x2, 0x2, 0x2, 0x228, 0x226,
+         0x3, 0x2, 0x2, 0x2, 0x228, 0x229, 0x3, 0x2, 0x2, 0x2, 0x229, 0x22b,
+         0x3, 0x2, 0x2, 0x2, 0x22a, 0x228, 0x3, 0x2, 0x2, 0x2, 0x22b, 0x22c,
+         0x7, 0x2e, 0x2, 0x2, 0x22c, 0x22d, 0x7, 0x46, 0x2, 0x2, 0x22d, 0x22f,
+         0x3, 0x2, 0x2, 0x2, 0x22e, 0x215, 0x3, 0x2, 0x2, 0x2, 0x22e, 0x222,
+         0x3, 0x2, 0x2, 0x2, 0x22f, 0x57, 0x3, 0x2, 0x2, 0x2, 0x230, 0x231,
+         0x7, 0x2f, 0x2, 0x2, 0x231, 0x232, 0x5, 0x4a, 0x26, 0x2, 0x232, 0x236,
+         0x7, 0x46, 0x2, 0x2, 0x233, 0x235, 0x5, 0x4e, 0x28, 0x2, 0x234, 0x233,
+         0x3, 0x2, 0x2, 0x2, 0x235, 0x238, 0x3, 0x2, 0x2, 0x2, 0x236, 0x234,
+         0x3, 0x2, 0x2, 0x2, 0x236, 0x237, 0x3, 0x2, 0x2, 0x2, 0x237, 0x239,
+         0x3, 0x2, 0x2, 0x2, 0x238, 0x236, 0x3, 0x2, 0x2, 0x2, 0x239, 0x23a,
+         0x7, 0x30, 0x2, 0x2, 0x23a, 0x23b, 0x7, 0x46, 0x2, 0x2, 0x23b, 0x59,
+         0x3, 0x2, 0x2, 0x2, 0x23c, 0x23d, 0x7, 0x31, 0x2, 0x2, 0x23d, 0x23e,
+         0x5, 0x10, 0x9, 0x2, 0x23e, 0x23f, 0x7, 0x41, 0x2, 0x2, 0x23f, 0x240,
+         0x5, 0xe, 0x8, 0x2, 0x240, 0x241, 0x7, 0x46, 0x2, 0x2, 0x241, 0x248,
+         0x3, 0x2, 0x2, 0x2, 0x242, 0x243, 0x7, 0x31, 0x2, 0x2, 0x243, 0x244,
+         0x7, 0x6, 0x2, 0x2, 0x244, 0x245, 0x7, 0x41, 0x2, 0x2, 0x245, 0x246,
+         0x7, 0x7, 0x2, 0x2, 0x246, 0x248, 0x7, 0x46, 0x2, 0x2, 0x247, 0x23c,
+         0x3, 0x2, 0x2, 0x2, 0x247, 0x242, 0x3, 0x2, 0x2, 0x2, 0x248, 0x5b,
+         0x3, 0x2, 0x2, 0x2, 0x249, 0x24a, 0x7, 0x32, 0x2, 0x2, 0x24a, 0x24b,
+         0x5, 0x10, 0x9, 0x2, 0x24b, 0x24c, 0x7, 0x46, 0x2, 0x2, 0x24c, 0x251,
+         0x3, 0x2, 0x2, 0x2, 0x24d, 0x24e, 0x7, 0x32, 0x2, 0x2, 0x24e, 0x24f,
+         0x7, 0x6, 0x2, 0x2, 0x24f, 0x251, 0x7, 0x46, 0x2, 0x2, 0x250, 0x249,
+         0x3, 0x2, 0x2, 0x2, 0x250, 0x24d, 0x3, 0x2, 0x2, 0x2, 0x251, 0x5d,
+         0x3, 0x2, 0x2, 0x2, 0x252, 0x253, 0x7, 0x8, 0x2, 0x2, 0x253, 0x254,
+         0x5, 0x4c, 0x27, 0x2, 0x254, 0x255, 0x7, 0x46, 0x2, 0x2, 0x255, 0x25a,
+         0x3, 0x2, 0x2, 0x2, 0x256, 0x257, 0x7, 0x8, 0x2, 0x2, 0x257, 0x258,
+         0x7, 0x6, 0x2, 0x2, 0x258, 0x25a, 0x7, 0x46, 0x2, 0x2, 0x259, 0x252,
+         0x3, 0x2, 0x2, 0x2, 0x259, 0x256, 0x3, 0x2, 0x2, 0x2, 0x25a, 0x5f,
+         0x3, 0x2, 0x2, 0x2, 0x25b, 0x25c, 0x5, 0x4a, 0x26, 0x2, 0x25c, 0x25d,
+         0x7, 0x46, 0x2, 0x2, 0x25d, 0x61, 0x3, 0x2, 0x2, 0x2, 0x25e, 0x25f,
+         0x5, 0x74, 0x3b, 0x2, 0x25f, 0x260, 0x5, 0x72, 0x3a, 0x2, 0x260,
+         0x261, 0x7, 0x46, 0x2, 0x2, 0x261, 0x26b, 0x3, 0x2, 0x2, 0x2, 0x262,
+         0x263, 0x5, 0x74, 0x3b, 0x2, 0x263, 0x264, 0x5, 0x72, 0x3a, 0x2,
+         0x264, 0x265, 0x7, 0x41, 0x2, 0x2, 0x265, 0x266, 0x7, 0x42, 0x2,
+         0x2, 0x266, 0x267, 0x5, 0x6a, 0x36, 0x2, 0x267, 0x268, 0x7, 0x43,
+         0x2, 0x2, 0x268, 0x269, 0x7, 0x46, 0x2, 0x2, 0x269, 0x26b, 0x3, 0x2,
+         0x2, 0x2, 0x26a, 0x25e, 0x3, 0x2, 0x2, 0x2, 0x26a, 0x262, 0x3, 0x2,
+         0x2, 0x2, 0x26b, 0x63, 0x3, 0x2, 0x2, 0x2, 0x26c, 0x26d, 0x7, 0x28,
+         0x2, 0x2, 0x26d, 0x26f, 0x7, 0x46, 0x2, 0x2, 0x26e, 0x270, 0x5, 0x68,
+         0x35, 0x2, 0x26f, 0x26e, 0x3, 0x2, 0x2, 0x2, 0x270, 0x271, 0x3, 0x2,
+         0x2, 0x2, 0x271, 0x26f, 0x3, 0x2, 0x2, 0x2, 0x271, 0x272, 0x3, 0x2,
+         0x2, 0x2, 0x272, 0x273, 0x3, 0x2, 0x2, 0x2, 0x273, 0x274, 0x7, 0x29,
+         0x2, 0x2, 0x274, 0x275, 0x7, 0x46, 0x2, 0x2, 0x275, 0x65, 0x3, 0x2,
+         0x2, 0x2, 0x276, 0x277, 0x7, 0x2a, 0x2, 0x2, 0x277, 0x278, 0x5, 0x4c,
+         0x27, 0x2, 0x278, 0x27a, 0x7, 0x46, 0x2, 0x2, 0x279, 0x27b, 0x5,
+         0x68, 0x35, 0x2, 0x27a, 0x279, 0x3, 0x2, 0x2, 0x2, 0x27b, 0x27c,
+         0x3, 0x2, 0x2, 0x2, 0x27c, 0x27a, 0x3, 0x2, 0x2, 0x2, 0x27c, 0x27d,
+         0x3, 0x2, 0x2, 0x2, 0x27d, 0x27e, 0x3, 0x2, 0x2, 0x2, 0x27e, 0x27f,
+         0x7, 0x2b, 0x2, 0x2, 0x27f, 0x280, 0x7, 0x46, 0x2, 0x2, 0x280, 0x67,
+         0x3, 0x2, 0x2, 0x2, 0x281, 0x285, 0x5, 0x62, 0x32, 0x2, 0x282, 0x285,
+         0x5, 0x64, 0x33, 0x2, 0x283, 0x285, 0x5, 0x66, 0x34, 0x2, 0x284,
+         0x281, 0x3, 0x2, 0x2, 0x2, 0x284, 0x282, 0x3, 0x2, 0x2, 0x2, 0x284,
+         0x283, 0x3, 0x2, 0x2, 0x2, 0x285, 0x69, 0x3, 0x2, 0x2, 0x2, 0x286,
+         0x28b, 0x5, 0x6c, 0x37, 0x2, 0x287, 0x288, 0x7, 0x41, 0x2, 0x2, 0x288,
+         0x28a, 0x5, 0x6c, 0x37, 0x2, 0x289, 0x287, 0x3, 0x2, 0x2, 0x2, 0x28a,
+         0x28d, 0x3, 0x2, 0x2, 0x2, 0x28b, 0x289, 0x3, 0x2, 0x2, 0x2, 0x28b,
+         0x28c, 0x3, 0x2, 0x2, 0x2, 0x28c, 0x6b, 0x3, 0x2, 0x2, 0x2, 0x28d,
+         0x28b, 0x3, 0x2, 0x2, 0x2, 0x28e, 0x28f, 0x8, 0x37, 0x1, 0x2, 0x28f,
+         0x29a, 0x5, 0x70, 0x39, 0x2, 0x290, 0x29a, 0x7, 0x48, 0x2, 0x2, 0x291,
+         0x29a, 0x7, 0x49, 0x2, 0x2, 0x292, 0x29a, 0x7, 0x3, 0x2, 0x2, 0x293,
+         0x294, 0x7, 0x42, 0x2, 0x2, 0x294, 0x295, 0x5, 0x6c, 0x37, 0x2, 0x295,
+         0x296, 0x7, 0x43, 0x2, 0x2, 0x296, 0x29a, 0x3, 0x2, 0x2, 0x2, 0x297,
+         0x298, 0x7, 0x3e, 0x2, 0x2, 0x298, 0x29a, 0x5, 0x6c, 0x37, 0x7, 0x299,
+         0x28e, 0x3, 0x2, 0x2, 0x2, 0x299, 0x290, 0x3, 0x2, 0x2, 0x2, 0x299,
+         0x291, 0x3, 0x2, 0x2, 0x2, 0x299, 0x292, 0x3, 0x2, 0x2, 0x2, 0x299,
+         0x293, 0x3, 0x2, 0x2, 0x2, 0x299, 0x297, 0x3, 0x2, 0x2, 0x2, 0x29a,
+         0x2a9, 0x3, 0x2, 0x2, 0x2, 0x29b, 0x29c, 0xc, 0x6, 0x2, 0x2, 0x29c,
+         0x29d, 0x7, 0x3f, 0x2, 0x2, 0x29d, 0x2a8, 0x5, 0x6c, 0x37, 0x7, 0x29e,
+         0x29f, 0xc, 0x5, 0x2, 0x2, 0x29f, 0x2a0, 0x7, 0x40, 0x2, 0x2, 0x2a0,
+         0x2a8, 0x5, 0x6c, 0x37, 0x6, 0x2a1, 0x2a2, 0xc, 0x4, 0x2, 0x2, 0x2a2,
+         0x2a3, 0x7, 0x3d, 0x2, 0x2, 0x2a3, 0x2a8, 0x5, 0x6c, 0x37, 0x5, 0x2a4,
+         0x2a5, 0xc, 0x3, 0x2, 0x2, 0x2a5, 0x2a6, 0x7, 0x3e, 0x2, 0x2, 0x2a6,
+         0x2a8, 0x5, 0x6c, 0x37, 0x4, 0x2a7, 0x29b, 0x3, 0x2, 0x2, 0x2, 0x2a7,
+         0x29e, 0x3, 0x2, 0x2, 0x2, 0x2a7, 0x2a1, 0x3, 0x2, 0x2, 0x2, 0x2a7,
+         0x2a4, 0x3, 0x2, 0x2, 0x2, 0x2a8, 0x2ab, 0x3, 0x2, 0x2, 0x2, 0x2a9,
+         0x2a7, 0x3, 0x2, 0x2, 0x2, 0x2a9, 0x2aa, 0x3, 0x2, 0x2, 0x2, 0x2aa,
+         0x6d, 0x3, 0x2, 0x2, 0x2, 0x2ab, 0x2a9, 0x3, 0x2, 0x2, 0x2, 0x2ac,
+         0x2ad, 0x7, 0x9, 0x2, 0x2, 0x2ad, 0x2ae, 0x5, 0x70, 0x39, 0x2, 0x2ae,
+         0x2af, 0x5, 0x72, 0x3a, 0x2, 0x2af, 0x2b3, 0x7, 0x46, 0x2, 0x2, 0x2b0,
+         0x2b2, 0x5, 0x68, 0x35, 0x2, 0x2b1, 0x2b0, 0x3, 0x2, 0x2, 0x2, 0x2b2,
+         0x2b5, 0x3, 0x2, 0x2, 0x2, 0x2b3, 0x2b1, 0x3, 0x2, 0x2, 0x2, 0x2b3,
+         0x2b4, 0x3, 0x2, 0x2, 0x2, 0x2b4, 0x2b6, 0x3, 0x2, 0x2, 0x2, 0x2b5,
+         0x2b3, 0x3, 0x2, 0x2, 0x2, 0x2b6, 0x2b7, 0x7, 0xa, 0x2, 0x2, 0x2b7,
+         0x2b8, 0x7, 0x46, 0x2, 0x2, 0x2b8, 0x2cb, 0x3, 0x2, 0x2, 0x2, 0x2b9,
+         0x2ba, 0x7, 0x9, 0x2, 0x2, 0x2ba, 0x2bb, 0x5, 0x70, 0x39, 0x2, 0x2bb,
+         0x2bc, 0x5, 0x72, 0x3a, 0x2, 0x2bc, 0x2bd, 0x7, 0x41, 0x2, 0x2, 0x2bd,
+         0x2be, 0x7, 0x42, 0x2, 0x2, 0x2be, 0x2bf, 0x5, 0x72, 0x3a, 0x2, 0x2bf,
+         0x2c0, 0x7, 0x43, 0x2, 0x2, 0x2c0, 0x2c4, 0x7, 0x46, 0x2, 0x2, 0x2c1,
+         0x2c3, 0x5, 0x68, 0x35, 0x2, 0x2c2, 0x2c1, 0x3, 0x2, 0x2, 0x2, 0x2c3,
+         0x2c6, 0x3, 0x2, 0x2, 0x2, 0x2c4, 0x2c2, 0x3, 0x2, 0x2, 0x2, 0x2c4,
+         0x2c5, 0x3, 0x2, 0x2, 0x2, 0x2c5, 0x2c7, 0x3, 0x2, 0x2, 0x2, 0x2c6,
+         0x2c4, 0x3, 0x2, 0x2, 0x2, 0x2c7, 0x2c8, 0x7, 0xa, 0x2, 0x2, 0x2c8,
+         0x2c9, 0x7, 0x46, 0x2, 0x2, 0x2c9, 0x2cb, 0x3, 0x2, 0x2, 0x2, 0x2ca,
+         0x2ac, 0x3, 0x2, 0x2, 0x2, 0x2ca, 0x2b9, 0x3, 0x2, 0x2, 0x2, 0x2cb,
+         0x6f, 0x3, 0x2, 0x2, 0x2, 0x2cc, 0x2cd, 0x7, 0x47, 0x2, 0x2, 0x2cd,
+         0x71, 0x3, 0x2, 0x2, 0x2, 0x2ce, 0x2d3, 0x5, 0x70, 0x39, 0x2, 0x2cf,
+         0x2d0, 0x7, 0x41, 0x2, 0x2, 0x2d0, 0x2d2, 0x5, 0x70, 0x39, 0x2, 0x2d1,
+         0x2cf, 0x3, 0x2, 0x2, 0x2, 0x2d2, 0x2d5, 0x3, 0x2, 0x2, 0x2, 0x2d3,
+         0x2d1, 0x3, 0x2, 0x2, 0x2, 0x2d3, 0x2d4, 0x3, 0x2, 0x2, 0x2, 0x2d4,
+         0x73, 0x3, 0x2, 0x2, 0x2, 0x2d5, 0x2d3, 0x3, 0x2, 0x2, 0x2, 0x2d6,
+         0x2e1, 0x5, 0x26, 0x14, 0x2, 0x2d7, 0x2e1, 0x5, 0x28, 0x15, 0x2,
+         0x2d8, 0x2e1, 0x5, 0x2a, 0x16, 0x2, 0x2d9, 0x2e1, 0x5, 0x2c, 0x17,
+         0x2, 0x2da, 0x2e1, 0x5, 0x2e, 0x18, 0x2, 0x2db, 0x2e1, 0x5, 0x30,
+         0x19, 0x2, 0x2dc, 0x2e1, 0x5, 0x32, 0x1a, 0x2, 0x2dd, 0x2e1, 0x5,
+         0x34, 0x1b, 0x2, 0x2de, 0x2e1, 0x5, 0x36, 0x1c, 0x2, 0x2df, 0x2e1,
+         0x5, 0x70, 0x39, 0x2, 0x2e0, 0x2d6, 0x3, 0x2, 0x2, 0x2, 0x2e0, 0x2d7,
+         0x3, 0x2, 0x2, 0x2, 0x2e0, 0x2d8, 0x3, 0x2, 0x2, 0x2, 0x2e0, 0x2d9,
+         0x3, 0x2, 0x2, 0x2, 0x2e0, 0x2da, 0x3, 0x2, 0x2, 0x2, 0x2e0, 0x2db,
+         0x3, 0x2, 0x2, 0x2, 0x2e0, 0x2dc, 0x3, 0x2, 0x2, 0x2, 0x2e0, 0x2dd,
+         0x3, 0x2, 0x2, 0x2, 0x2e0, 0x2de, 0x3, 0x2, 0x2, 0x2, 0x2e0, 0x2df,
+         0x3, 0x2, 0x2, 0x2, 0x2e1, 0x75, 0x3, 0x2, 0x2, 0x2, 0x2e2, 0x2e3,
+         0x9, 0x7, 0x2, 0x2, 0x2e3, 0x77, 0x3, 0x2, 0x2, 0x2, 0x38, 0x7b,
+         0x81, 0x88, 0x8e, 0xa6, 0xb8, 0xc8, 0xdc, 0xf4, 0x110, 0x13c, 0x145,
+         0x14f, 0x154, 0x16e, 0x177, 0x182, 0x184, 0x190, 0x192, 0x1a4, 0x1a6,
+         0x1b2, 0x1b4, 0x1bf, 0x1ca, 0x1d2, 0x1db, 0x1e3, 0x1e6, 0x1f4, 0x1fb,
+         0x207, 0x212, 0x21b, 0x228, 0x22e, 0x236, 0x247, 0x250, 0x259, 0x26a,
+         0x271, 0x27c, 0x284, 0x28b, 0x299, 0x2a7, 0x2a9, 0x2b3, 0x2c4, 0x2ca,
+         0x2d3, 0x2e0,
+    };
 
-  atn::ATNDeserializer deserializer;
-  _atn = deserializer.deserialize(_serializedATN);
+    _serializedATN.insert(_serializedATN.end(), serializedATNSegment0,
+        serializedATNSegment0 + sizeof(serializedATNSegment0) / sizeof(serializedATNSegment0[0]));
 
-  size_t count = _atn.getNumberOfDecisions();
-  _decisionToDFA.reserve(count);
-  for (size_t i = 0; i < count; i++) { 
-    _decisionToDFA.emplace_back(_atn.getDecisionState(i), i);
-  }
+
+    atn::ATNDeserializer deserializer;
+    _atn = deserializer.deserialize(_serializedATN);
+
+    size_t count = _atn.getNumberOfDecisions();
+    _decisionToDFA.reserve(count);
+    for (size_t i = 0; i < count; i++) {
+        _decisionToDFA.emplace_back(_atn.getDecisionState(i), i);
+    }
 }
 
 originirParser::Initializer originirParser::_init;

@@ -57,8 +57,8 @@ class QProgToMatrix
 	friend class MatrixOfOneLayer;
 
 public:
-	QProgToMatrix(QProg& p, const bool b_bid_endian = false)
-		:m_prog(p), m_b_bid_endian(b_bid_endian)
+	QProgToMatrix(QProg& p, const bool b_positive_seq = false)
+		:m_prog(p), m_b_positive_seq(b_positive_seq)
 	{
 		m_qvm.init();
 	}
@@ -85,7 +85,7 @@ protected:
 
 private:
 	QProg& m_prog;
-	const bool m_b_bid_endian;
+	const bool m_b_positive_seq;
 	std::vector<int> m_qubits_in_use;
 	CPUQVM m_qvm; 
 	QVec m_allocate_qubits;

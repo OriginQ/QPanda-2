@@ -5,6 +5,7 @@
 #include "Core/Utilities/Compiler/OriginIRCompiler/originirLexer.h"
 #include "Core/Utilities/Compiler/OriginIRCompiler/originirParser.h"
 #include "Core/Utilities/Compiler/OriginIRCompiler/originirVisitor.h"
+#include "Core/Utilities/Compiler/OriginIRCompiler/originirListener.h"
 #include "Core/QuantumCircuit/QProgram.h"
 #include "Core/QuantumCircuit/QCircuit.h"
 #include "Core/QuantumCircuit/QGate.h"
@@ -15,6 +16,12 @@
 #include "Core/QuantumCircuit/ClassicalProgram.h"
 #include "Core/QuantumCircuit/QGlobalVariable.h"
 #include "Core/Utilities/Compiler/QASMToQProg.h"
+#include <Core/Utilities/Compiler/OriginIRCompiler/originirParser.h>
+#include <Core/Utilities/Compiler/OriginIRCompiler/originirParser.h>
+#include <algorithm>
+#include <numeric>
+
+
 QPANDA_BEGIN
 
 
@@ -84,12 +91,10 @@ struct CallGateInfo
 	std::vector<std::shared_ptr<Exp>> angles;
 };
 
-struct DefineQGateContent
-{
-	std::string define_name;
-	std::vector<std::string> formal_qubits;
-	std::vector<std::string> formal_angles;
-	std::vector<CallGateInfo> gate_bodys;
+
+struct UserDefineGateInfo {
+	std::vector<std::string> gate_bodys;
+	std::vector<std::string> to_bereplaced_par;
 };
 
 
@@ -106,7 +111,6 @@ class QProgBuilder {
 
 	QVec& qs;
 	std::vector<ClassicalCondition>& ccs;
-	std::map<std::string, DefineQGateContent> define_gates_map;
 
 public:
 	QProgBuilder(QuantumMachine* qm, QVec& qv, std::vector<ClassicalCondition>& cv);
@@ -125,6 +129,7 @@ public:
 		ISWAPTHETA, CR,
 
 		CU,
+		DAGGER, CONTROL,
 
 		TOFFOLI,
 		DEFINE_QAGE,
@@ -161,25 +166,6 @@ public:
 		MACRO_GET_GATETYPE(CU);
 		MACRO_GET_GATETYPE(TOFFOLI);
 		return GateType::DEFINE_QAGE;
-	}
-	// add up a level on the prog stack.
-
-	void set_define_qgate_function(const DefineQGateContent& define_qgate)
-	{
-		if (define_gates_map.find(define_qgate.define_name) != define_gates_map.end())
-		{
-			QCERR_AND_THROW(run_fail, "Define qgate functions cannot be overloaded");
-		}
-		define_gates_map[define_qgate.define_name] = define_qgate;
-	}
-
-	DefineQGateContent get_define_qgate_function(const std::string& gate_name)
-	{
-		if (define_gates_map.find(gate_name) == define_gates_map.end())
-		{
-			QCERR_AND_THROW(run_fail, "Define qgate functions cannot be overloaded");
-		}
-		return define_gates_map[gate_name];
 	}
 
 	void alloc_qubit(int num);
@@ -236,6 +222,7 @@ public:
 	size_t make_control_cc_new(size_t progid, std::vector<size_t> expridx, std::vector<int> idx);
 };
 
+
 /**
 * @brief OriginIR  Visitor
 * @ingroup Utilities
@@ -267,6 +254,7 @@ class OriginIRVisitor : public originirBaseVisitor {
 		QProgBuilder::GateType gatetype;
 	};
 
+	std::map<std::string, UserDefineGateInfo> UserDefinedGateInf;
 
 public:
 	OriginIRVisitor(QuantumMachine* qm, QVec& qv, std::vector<ClassicalCondition>& cv)
@@ -300,15 +288,21 @@ public:
 	}
 
 	antlrcpp::Any visitTranslationunit(originirParser::TranslationunitContext* ctx) {
-		visit(ctx->children[0]);
-		builder.alloc_qubit(qinit);
-		builder.alloc_cbit(cinit);
 		auto fullprog = builder.add_prog();
-		for (int i = 1; i < ctx->children.size(); ++i) {
+		for (int i = 0; i < ctx->children.size(); ++i) {
 			size_t prog = visit(ctx->children[i]);
 			builder.insert_subprog(fullprog, prog);
 		}
 		return fullprog;
+	}
+	antlrcpp::Any visitDeclaration(originirParser::DeclarationContext* ctx) {
+
+		visit(ctx->qinit_declaration());
+		visit(ctx->cinit_declaration());
+
+		builder.alloc_qubit(qinit);
+		builder.alloc_cbit(cinit);
+		return builder.add_prog();
 	}
 
 	antlrcpp::Any visitQinit_declaration(originirParser::Qinit_declarationContext* ctx) {
@@ -622,100 +616,73 @@ public:
 		return QProgBuilder::get_gatetype(gatename);
 	}
 
-	void call_define_gatefunc(size_t prog_id, const std::string& func_name,
-		const std::vector< ExprContext>& actual_qubits,
-		const std::vector<double>& actual_angles)
-	{
-		DefineQGateContent define_qgate = builder.get_define_qgate_function(func_name);
-
-		if (0 == define_qgate.gate_bodys.size())
-		{
-			return;
-		}
-
-		if (define_qgate.formal_qubits.size() != actual_qubits.size()
-			|| define_qgate.formal_angles.size() != actual_angles.size())
-		{
-			QCERR_AND_THROW(run_fail, "Execution function parameters donot match");
-		}
-		std::map<std::string, ExprContext> actual_formal_qubits;
-		std::map<std::string, double> actual_formal_angles;
-
-		for (int i = 0; i < actual_qubits.size(); i++)
-		{
-			actual_formal_qubits[define_qgate.formal_qubits[i]] = actual_qubits[i];
-		}
-		for (int i = 0; i < actual_angles.size(); i++)
-		{
-			actual_formal_angles[define_qgate.formal_angles[i]] = actual_angles[i];
-		}
-
-		for (auto iter : define_qgate.gate_bodys)
-		{
-			QProgBuilder::GateType gatetype = QProgBuilder::get_gatetype(iter.gate_name);
-			std::vector<size_t> exprid;
-			std::vector<int> index;
-			std::vector<double> params;
-			std::vector<ExprContext> ctx_qubits;
-
-			for (auto qubit : iter.qubits)
-			{
-				if (actual_formal_qubits.find(qubit) == actual_formal_qubits.end())
-					QCERR_AND_THROW(run_fail, "Arguments donot match");
-				ExprContext context = actual_formal_qubits[qubit];
-				ctx_qubits.push_back(context);
-				if (context.isConstant)
-				{
-					index.push_back(context.value);
-				}
-				else
-				{
-					exprid.push_back(context.ccid);
-					index.push_back(-1);
-				}
-			}
-
-			for (auto angle : iter.angles)
-			{
-				angle->set_formal_actual_var_map(actual_formal_angles);
-				double angle_val = angle->eval();
-				params.push_back(angle_val);
-			}
-
-			if (QProgBuilder::GateType::DEFINE_QAGE != gatetype)
-			{
-				size_t id = builder.add_qgate_cc(gatetype, exprid, index, params);
-				builder.insert_subprog(prog_id, id);
-			}
-			else
-			{
-				call_define_gatefunc(prog_id, iter.gate_name, ctx_qubits, params);
-			}
-		}
-	}
-
 	antlrcpp::Any visitDefine_gate_declaration(originirParser::Define_gate_declarationContext* ctx) {
 
 		auto prog_id = builder.add_prog();
 
-		std::string func_name = ctx->id()->getText();
+		auto func_name = ctx->id()->getText();
+		if (UserDefinedGateInf.find(func_name) == UserDefinedGateInf.end())
+		{
+			QCERR_AND_THROW(run_fail, " UserDefinedGateInf find error!");
+		}
 
-		std::vector<ExprContext> actual_qubits;
-		std::vector<double> actual_angles;
+		auto information = UserDefinedGateInf[func_name];
 
+		std::vector<std::string> gate_bodys = information.gate_bodys;
+		std::vector<std::string> to_bereplaced_par = information.to_bereplaced_par;
+
+		std::map < std::string, std::string> formal2actual_map;
+		int idx = 0;
 		for (int i = 0; i < ctx->q_KEY_declaration().size(); i++)
 		{
-			ExprContext context = visit(ctx->q_KEY_declaration(i));
-			actual_qubits.push_back(context);
+			std::string str_shi_id = ctx->q_KEY_declaration(i)->getText();
+			formal2actual_map[to_bereplaced_par[idx]] = str_shi_id;
+			idx++;
 		}
 
 		for (int i = 0; i < ctx->expression().size(); i++)
 		{
-			ExprContext angle = visit(ctx->expression(i));
-			actual_angles.push_back(angle.value);
+			std::string str_shi_id = ctx->expression(i)->getText();
+			formal2actual_map[to_bereplaced_par[idx]] = str_shi_id;
+			idx++;
 		}
-		call_define_gatefunc(prog_id, func_name, actual_qubits, actual_angles);
 
+		auto replaceAWithX = [](std::string& src_str, std::string strA, std::string strX)
+		{
+			int pos;
+			pos = src_str.find(strA);
+			while (pos != -1) {
+				src_str.replace(pos, std::string(strA).length(), strX);
+				pos = src_str.find(strA);
+			}
+			
+		};
+
+		for (auto& str : gate_bodys)
+		{
+			for (auto& it : formal2actual_map)
+			{
+				std::string s;
+				std::stringstream linestream;
+				linestream.str(str);
+				while (linestream >> s) {
+					std::string temp = s;
+					int pos = temp.find(it.first);
+					if (pos != -1)
+						replaceAWithX(str, it.first, it.second);
+				}
+			}
+
+			antlr4::ANTLRInputStream input(str);
+			originirLexer lexer(&input);
+			antlr4::CommonTokenStream tokens(&lexer);
+			originirParser parser(&tokens);
+			parser.removeErrorListeners();
+			antlr4::tree::ParseTree* tree = parser.statement();
+			size_t _tmp_id = visit(tree);
+			builder.insert_subprog(prog_id, _tmp_id);
+		}
+		
 		return prog_id;
 	}
 
@@ -1112,6 +1079,58 @@ public:
 	antlrcpp::Any visitStatement(originirParser::StatementContext* ctx) {
 		return visit(ctx->children[0]);
 	}
+	
+
+	antlrcpp::Any visitUser_defined_gate(originirParser::User_defined_gateContext* ctx) {
+		auto startToken = ctx->start;
+		auto stopToken = ctx->stop;
+		auto interval = antlr4::misc::Interval(startToken->getStartIndex(), stopToken->getStopIndex());
+		auto text = startToken->getInputStream()->getText(interval);
+		std::string text1 = text;
+		return text;
+	}
+
+	virtual antlrcpp::Any visitDefine_dagger_statement(originirParser::Define_dagger_statementContext* ctx) {
+		size_t progid = builder.add_prog();
+
+		for (int i = 2; i < ctx->children.size() - 2; ++i) {
+			size_t prog = visit(ctx->children[i]);
+			builder.insert_subprog(progid, prog);
+			builder.delete_prog(prog);
+		}
+
+		builder.make_dagger(progid);
+		return progid;
+	}
+
+	antlrcpp::Any visitDefine_control_statement(originirParser::Define_control_statementContext* ctx) {
+		size_t progid = builder.add_prog();
+		std::vector<ExprContext> qkeys = visit(ctx->children[1]);
+
+		for (int i = 3; i < ctx->children.size() - 2; ++i) {
+			size_t id = visit(ctx->children[i]);
+			builder.insert_subprog(progid, id);
+			builder.delete_prog(id);
+		}
+		bool isAllConstant = true;
+		std::vector<int> indices;
+		std::vector<size_t> exprindices;
+		for (auto qkey : qkeys) {
+			isAllConstant &= qkey.isConstant;
+			if (qkey.isConstant)
+				indices.push_back((int)qkey.value);
+			else {
+				indices.push_back(-1);
+				exprindices.push_back(qkey.ccid);
+			}
+		}
+		if (isAllConstant)
+			builder.make_control(progid, indices);
+		else
+			builder.make_control_cc(progid, exprindices, indices);
+
+		return progid;
+	}
 
 	antlrcpp::Any visitDagger_statement(originirParser::Dagger_statementContext* ctx) {
 		size_t progid = builder.add_prog();
@@ -1312,6 +1331,7 @@ public:
 		call_gate.gate_name = ctx->gate_name()->getText();
 		std::vector<std::string> qubits = visit(ctx->id_list());
 		call_gate.qubits = qubits;
+
 		if (ctx->explist())
 		{
 			std::vector<std::shared_ptr<Exp>> angles = visit(ctx->explist());
@@ -1390,25 +1410,23 @@ public:
 		return exp_ptr;
 	}
 
-	antlrcpp::Any visitGate_func_statement(originirParser::Gate_func_statementContext* ctx) {
-		DefineQGateContent define_qgates;
-		std::vector<CallGateInfo>  call_gates;
 
-		define_qgates.define_name = ctx->id()->getText();
-		std::vector<std::string> formal_qubits = visit(ctx->id_list(0));
-		define_qgates.formal_qubits = formal_qubits;
-		if (ctx->id_list().size() == 2)
+	antlrcpp::Any visitGate_func_statement(originirParser::Gate_func_statementContext* ctx) {
+
+		UserDefineGateInfo defined_gate;
+		std::string UserDefinedGateName = ctx->id()->getText();
+		std::vector<std::string> to_bereplaced_par= visit(ctx->id_list(0));
+
+		std::vector<std::string> str_body_vect;
+		for (int i = 0; i < ctx->user_defined_gate().size(); i++)
 		{
-			std::vector<std::string> formal_angles = visit(ctx->id_list(1));
-			define_qgates.formal_angles = formal_angles;
+			str_body_vect.push_back(visit(ctx->user_defined_gate(i)));
 		}
-		size_t body_size = ctx->define_gate_statement().size();
-		for (int i = 0; i < body_size; i++)
-		{
-			call_gates.push_back(visit(ctx->define_gate_statement(i)));
-		}
-		define_qgates.gate_bodys = call_gates;
-		builder.set_define_qgate_function(define_qgates);
+
+		defined_gate.gate_bodys = str_body_vect;
+		defined_gate.to_bereplaced_par = to_bereplaced_par;
+		UserDefinedGateInf.insert(make_pair(UserDefinedGateName, defined_gate));
+
 		return builder.add_prog();
 	}
 
@@ -1420,6 +1438,7 @@ public:
 		}
 		return id_list;
 	}
+
 };
 
 QPANDA_END

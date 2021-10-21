@@ -52,6 +52,11 @@ public:
     void execute(std::shared_ptr<AbstractQuantumProgram>, std::shared_ptr<QNode>, QCircuitConfig &config);
     void execute(std::shared_ptr<AbstractControlFlowNode>, std::shared_ptr<QNode>, QCircuitConfig &config);
 
+    virtual size_t get_processed_qgate_num() override { throw std::runtime_error("not implementd yet"); }
+	virtual void async_run(QProg& qProg) override { throw std::runtime_error("not implementd yet"); }
+	virtual bool is_async_finished() override { throw std::runtime_error("not implementd yet"); }
+    virtual std::map<std::string, bool> get_async_result() override { throw std::runtime_error("not implementd yet"); }
+
     //The all next functions are only for noise simulation
 
     /*combine error*/

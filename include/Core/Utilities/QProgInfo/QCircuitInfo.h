@@ -432,14 +432,14 @@ bool isSupportedGateType(const NodeIter &nodeItr);
 /**
 * @brief  get the target matrix between the input two Nodeiters
 * @ingroup Utilities
-* @param[in] const bool Qubit order mark of output matrix, 
-             true for positive sequence(Bid Endian), false for inverted order(Little Endian), default is false
+* @param[in] const bool Qubit order of output matrix, 
+             true for positive sequence(q0q1q2), false for inverted order(q2q1q0), default is false
 * @param[in] nodeItrStart the start NodeIter
 * @param[in] nodeItrEnd the end NodeIter
 * @return the target matrix include all the QGate's matrix (multiply).
 * @see
 */
-QStat getCircuitMatrix(QProg srcProg, const bool b_bid_endian = false, const NodeIter nodeItrStart = NodeIter(), const NodeIter nodeItrEnd = NodeIter());
+QStat getCircuitMatrix(QProg srcProg, const bool b_positive_seq = false, const NodeIter nodeItrStart = NodeIter(), const NodeIter nodeItrEnd = NodeIter());
 
 /**
 * @brief  pick up the nodes of srcProg between nodeItrStart and  nodeItrEnd to outPutProg

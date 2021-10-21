@@ -1247,7 +1247,7 @@ PYBIND11_MODULE(pyQPanda, m)
 		);
 	m.def("get_bin_str", [](QProg prog, QuantumMachine *qvm) {
 		auto data = transformQProgToBinary(prog, qvm);
-		auto base64_data = Base64::encode(data.data(), data.size()); // ½«µÃµ½µÄ¶þ½øÖÆÊý¾ÝÒÔbase64µÄ·½Ê½±àÂë
+		auto base64_data = Base64::encode(data.data(), data.size()); // ï¿½ï¿½ï¿½Ãµï¿½ï¿½Ä¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½base64ï¿½Ä·ï¿½Ê½ï¿½ï¿½ï¿½ï¿½
 		std::string data_str(base64_data.begin(), base64_data.end());
 		return data_str;
 	}, "prog"_a, "quantum machine"_a, py::return_value_policy::automatic);
@@ -1508,10 +1508,10 @@ PYBIND11_MODULE(pyQPanda, m)
 		py::return_value_policy::automatic_reference
 		);
 
-	m.def("topology_match", [](QProg prog, QVec qv, QuantumMachine *qvm, SwapQubitsMethod method,
-		ArchType arch_type, const std::string conf) {
+	m.def("topology_match", [](QProg prog, QVec qv, QuantumMachine *qvm, 
+		const std::string conf) {
 		py::list ret_data;
-		QProg out_prog = topology_match(prog, qv, qvm, method, arch_type, conf);
+		QProg out_prog = topology_match(prog, qv, qvm, conf);
 		py::list qubit_list;
 		for (auto q : qv)
 			qubit_list.append(q);
@@ -1520,8 +1520,8 @@ PYBIND11_MODULE(pyQPanda, m)
 		ret_data.append(qubit_list);
 		return ret_data;
 	},
-		"prog"_a, "qubits"_a, "quantum machine"_a, "SwapQubitsMethod"_a = CNOT_GATE_METHOD,
-		"ArchType"_a = IBM_QX5_ARCH, "conf"_a = CONFIG_PATH,
+		"prog"_a, "qubits"_a, "quantum machine"_a, 
+		 "conf"_a = CONFIG_PATH,
 		py::return_value_policy::automatic_reference
 		);
 
@@ -1704,24 +1704,49 @@ PYBIND11_MODULE(pyQPanda, m)
 		py::return_value_policy::automatic
 		);
 
-	m.def("draw_qprog_text", [](QProg prg, uint32_t auto_wrap_len, bool b_out_put_to_file, const NodeIter itr_start, const NodeIter itr_end) {
-		return draw_qprog(prg, auto_wrap_len, b_out_put_to_file, itr_start, itr_end);
-	}, py::arg("prog"), py::arg("auto_wrap_len") = 100, py::arg("b_out_put_to_file") = false, py::arg("itr_start") = NodeIter(), py::arg("itr_end") = NodeIter(),
+	m.def("draw_qprog_text", [](QProg prg, uint32_t auto_wrap_len, const std::string& output_file, 
+		const NodeIter itr_start, const NodeIter itr_end) {
+		return draw_qprog(prg, PIC_TYPE::TEXT, auto_wrap_len, output_file, itr_start, itr_end);
+	}, py::arg("prog"), py::arg("auto_wrap_len") = 100, py::arg("output_file") = "", py::arg("itr_start") = NodeIter(), py::arg("itr_end") = NodeIter(),
+		"Convert a quantum prog/circuit to text-pic(UTF-8 code), \
+        and will save the text-pic in file named QCircuitTextPic.txt in the same time in current path",
+		py::return_value_policy::automatic
+		);
+
+	m.def("draw_qprog_latex", [](QProg prg, uint32_t auto_wrap_len, const std::string& output_file, 
+		const NodeIter itr_start, const NodeIter itr_end) {
+		return draw_qprog(prg, PIC_TYPE::LATEX, auto_wrap_len, output_file, itr_start, itr_end);
+	}, py::arg("prog"), py::arg("auto_wrap_len") = 100, py::arg("output_file") = "", py::arg("itr_start") = NodeIter(), py::arg("itr_end") = NodeIter(),
 		"Convert a quantum prog/circuit to text-pic(UTF-8 code), \
         and will save the text-pic in file named QCircuitTextPic.txt in the same time in current path",
 		py::return_value_policy::automatic
 		);
 
 	m.def("fit_to_gbk", &fit_to_gbk, py::arg("utf8_str"),
-		"Adapting utf8 characters to GBK",
+		"/**\
+		* @brief Special character conversion\
+		* @param[in] string& the source string\
+		* @return std::string Converted string\
+		* / ",
 		py::return_value_policy::automatic
 	);
 
 	m.def("draw_qprog_text_with_clock", [](QProg prog, const std::string config_data, uint32_t auto_wrap_len,
-		bool b_out_put_to_file, const NodeIter itr_start, const NodeIter itr_end) {
-		return draw_qprog_with_clock(prog, config_data, auto_wrap_len, b_out_put_to_file, itr_start, itr_end);
+		const std::string& output_file, const NodeIter itr_start, const NodeIter itr_end) {
+		return draw_qprog_with_clock(prog, PIC_TYPE::TEXT, config_data, auto_wrap_len, output_file, itr_start, itr_end);
 	}, py::arg("prog"), py::arg("config_data") = CONFIG_PATH, py::arg("auto_wrap_len") = 100,
-		py::arg("b_out_put_to_file") = false,
+		py::arg("output_file") = "",
+		py::arg("itr_start") = NodeIter(), py::arg("itr_end") = NodeIter(),
+		"Convert a quantum prog/circuit to text-pic(UTF-8 code) with time sequence, \
+        and will save the text-pic in file named QCircuitTextPic.txt in the same time in current path",
+		py::return_value_policy::automatic
+		);
+	
+	m.def("draw_qprog_latex_with_clock", [](QProg prog, const std::string config_data, uint32_t auto_wrap_len,
+		const std::string& output_file, const NodeIter itr_start, const NodeIter itr_end) {
+		return draw_qprog_with_clock(prog, PIC_TYPE::LATEX, config_data, auto_wrap_len, output_file, itr_start, itr_end);
+	}, py::arg("prog"), py::arg("config_data") = CONFIG_PATH, py::arg("auto_wrap_len") = 100,
+		py::arg("output_file") = "",
 		py::arg("itr_start") = NodeIter(), py::arg("itr_end") = NodeIter(),
 		"Convert a quantum prog/circuit to text-pic(UTF-8 code) with time sequence, \
         and will save the text-pic in file named QCircuitTextPic.txt in the same time in current path",

@@ -1,4 +1,5 @@
 #include "Core/QuantumMachine/QProgExecution.h"
+#include "Core/Utilities/QProgInfo/QProgProgress.h"
 #include <float.h>
 #include <random>
 
@@ -93,6 +94,9 @@ void QProgExecution::execute(std::shared_ptr<AbstractQGateNode> cur_node,
         aiter(new_quantum_gate, target_qubit, qpu, dagger, control_qubit_vector, (GateType)qgate->getGateType());
         delete new_quantum_gate;
     }
+    
+    uint64_t exec_id = (uint64_t)this;
+    QProgProgress::getInstance().update_processed_gate_num(exec_id);
 }
 
 

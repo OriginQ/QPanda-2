@@ -18,7 +18,8 @@ class AbstractDistributedFullAmplitudeEngine
 public:
     virtual void initState(int head_rank, int rank_size, int qubit_num) = 0;
     virtual void initState(size_t qubit_num, const QStat &state = {}) = 0;
-    virtual QStat getQState() = 0;
+
+    virtual QStat getQState(bool is_all_state = true) = 0;
     virtual void singleQubitOperation(const int &iQn, QStat U, bool isConjugate) = 0;
     virtual void controlsingleQubitOperation(const int &iQn, Qnum& qnum, QStat U, bool isConjugate) = 0;
 

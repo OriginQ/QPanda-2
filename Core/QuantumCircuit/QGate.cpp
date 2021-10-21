@@ -2,6 +2,8 @@
 #include "Core/Utilities/QProgInfo/ConfigMap.h"
 #include "Core/Utilities/Tools/QPandaException.h"
 #include <type_traits>
+#include "Core/Utilities/Tools/QStatMatrix.h"
+
 using namespace QGATE_SPACE;
 using namespace std;
 USING_QPANDA
@@ -604,7 +606,7 @@ QGate QPanda::U3(Qubit* qubit, double theta, double phi, double lambda)
 
 QCircuit QPanda::U3(const QVec& qubits, double theta, double phi, double lambda)
 {
-	string name = "RX";
+	string name = "U3";
 	QCircuit cir = QCircuit();
 	for (auto &qubit : qubits)
 	{
@@ -621,7 +623,7 @@ QGate QPanda::U3(Qubit* qubit, QStat& matrix)
 
 QCircuit QPanda::U3(const QVec& qubits, QStat& matrix)
 {
-	string name = "RX";
+	string name = "U3";
 	QCircuit cir = QCircuit();
 	for (auto &qubit : qubits)
 	{
@@ -2225,10 +2227,10 @@ QGate QPanda::Toffoli(int qaddr0, int qaddr1, int target_qaddr)
 
 QGate QPanda::QOracle(const QVec &qubits, const QStat &matrix)
 {
-    for (size_t i = 0; i < qubits.size() - 1; i++)
-    {
-        QPANDA_ASSERT(qubits[i]->get_phy_addr() >= qubits[i+1]->get_phy_addr(), "Error: QOracle qvec");
-    }
+	if (!is_unitary_matrix_by_eigen(matrix))
+	{
+		QCERR_AND_THROW_ERRSTR(invalid_argument, "Non-unitary matrix for QOracle-gate.");
+	}
 
     auto value = matrix.size();
     for (size_t i = 0; i < qubits.size(); i++)

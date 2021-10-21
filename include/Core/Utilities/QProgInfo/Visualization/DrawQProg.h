@@ -3,11 +3,18 @@
 #include "Core/QuantumCircuit/QProgram.h"
 #include "Core/Utilities/QProgTransform/QProgToDAG/GraphMatch.h"
 #include "Core/Utilities/QProgInfo/Visualization/Draw.h"
+#include "Core/Utilities/QProgInfo/Visualization/DrawTextPic.h"
+#include "Core/Utilities/QProgInfo/Visualization/DrawLatex.h"
 
 QPANDA_BEGIN
 
 namespace DRAW_TEXT_PIC
-{ 
+{
+	enum LAYER_TYPE
+	{
+		LAYER = 0,	  /**< draw text-picture by layer */
+		TIME_SEQUENCE /**< draw text-picture by time sequence */
+	};
 	/**
     * @brief draw Qprog by text
     * @ingroup Utilities
@@ -18,26 +25,28 @@ namespace DRAW_TEXT_PIC
 		/**
 		* @brief  Constructor of DrawQProg
 		*/
-		DrawQProg(QProg &prg, const NodeIter node_itr_start, const NodeIter node_itr_end, bool b_out_put_to_file = false);
+		DrawQProg(QProg &prg, const NodeIter node_itr_start, const NodeIter node_itr_end, const std::string &output_file = "");
 		~DrawQProg();
 
 		/**
 		* @brief Draw text-picture
-		* @param[in] TEXT_PIC_TYPE draw type
+		* @param[in] LAYER_TYPE draw type
+		* @param[in] PIC_TYPE draw text pic or latex
 		* @param[in] const std::string It can be configuration file or configuration data, which can be distinguished by file suffix,
 			 so the configuration file must be end with ".json", default is CONFIG_PATH
 		* @return std::string the text-picture
-		* @see TEXT_PIC_TYPE
+		* @see LAYER_TYPE
+		* @see PIC_TYPE
 		*/
-		std::string textDraw(TEXT_PIC_TYPE t, uint32_t length = 100, const std::string config_data = CONFIG_PATH);
+		std::string textDraw(LAYER_TYPE t, PIC_TYPE p = PIC_TYPE::TEXT, uint32_t length = 100, const std::string config_data = CONFIG_PATH);
 
 	private:
 		QProg m_prog;
-		DrawPicture* m_p_text;
+		AbstractDraw *m_drawer;
 		std::vector<int> m_quantum_bits_in_use;
 		std::vector<int> m_class_bits_in_use;
 		LayeredTopoSeq m_layer_info;
-		bool m_b_out_put_to_file;
+		const std::string &m_output_file;
 	};
 }
 

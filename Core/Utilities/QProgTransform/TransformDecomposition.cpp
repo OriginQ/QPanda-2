@@ -945,7 +945,28 @@ void DecomposeControlSingleQGateIntoMetadataDoubleQGate ::
 		QCERR_AND_THROW_ERRSTR(runtime_error, "Error: no valid double gate in meatdata.");
 	}
 
-    string sGateName = m_valid_qgate_matrix[1][0];
+	auto _check_meta_double_gate_fun = 
+		[](const std::vector<std::string>& vec, const std::string target_gate)->bool {
+		for (const auto& i : vec)
+		{
+			if (target_gate == i){
+				return true;
+			}
+		}
+
+		return false;
+	};
+
+    string sGateName;
+	if (_check_meta_double_gate_fun(m_valid_qgate_matrix[1], "CZ")){
+		sGateName = "CZ";
+	}
+	else if (_check_meta_double_gate_fun(m_valid_qgate_matrix[1], "CNOT")){
+		sGateName = "CNOT";
+	}
+	else if (_check_meta_double_gate_fun(m_valid_qgate_matrix[1], "ISWAP")){
+		sGateName = "ISWAP";
+	}
 
     if (sGateName.size() <= 0)
     {
@@ -2260,8 +2281,7 @@ void QPanda::transform_to_base_qgate(QProg& prog, QuantumMachine *quantum_machin
 
 void QPanda::transform_to_base_qgate_withinarg(QProg& prog, QuantumMachine* quantum_machine, const std::vector<std::vector<string>>  & q_gate )
 {
-
-    if (q_gate[0].empty() == NULL || q_gate[1].empty() == NULL)
+    if (q_gate[0].empty()  || q_gate[1].empty())
     {
         QCERR_AND_THROW_ERRSTR(run_fail, "Error: The target quantum circuit or program cannot only contain single(double) gates.");
     }

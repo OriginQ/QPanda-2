@@ -2,9 +2,6 @@
 #include <iostream>
 #include "QPanda.h"
 #include <time.h>
-#include "Components/NodeSortProblemGenerator/NodeSortProblemGenerator.h"
-
-
 #include "Extensions/Extensions.h"
 
 #ifdef USE_EXTENSION
@@ -437,21 +434,23 @@ TEST(HHL, test1)
 	try
 	{
 		test_val = test_fun1();
-		test_val = test_fun2();
-		test_val = test_fun3();
-		test_val = test_fun4();
-		test_val = test_fun5();
-		test_val = test_fun6();
-		test_val = test_fun7();
-		test_val = test_fun8();
+		test_val = test_val && test_fun2();
+		test_val = test_val && test_fun3();
+		test_val = test_val && test_fun4();
+		test_val = test_val && test_fun5();
+		test_val = test_val && test_fun6();
+		test_val = test_val && test_fun7();
+		test_val = test_val && test_fun8();
 	}
 	catch (const std::exception& e)
 	{
 		cout << "Got a exception: " << e.what() << endl;
+		test_val = false;
 	}
 	catch (...)
 	{
 		cout << "Got an unknow exception: " << endl;
+		test_val = false;
 	}
 
 	ASSERT_TRUE(test_val);

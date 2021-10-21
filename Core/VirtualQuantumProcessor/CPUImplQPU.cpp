@@ -294,6 +294,22 @@ QError CPUImplQPU::initState(size_t qubit_num, const QStat &state)
     return qErrorNone;
 }
 
+QError CPUImplQPU::initMatrixState(size_t qubit_num, const QStat &state)
+{
+	if (0 == state.size())
+	{
+		m_qubit_num = qubit_num;
+		m_state.assign(1ull << m_qubit_num, 0);
+		int row = sqrt(m_state.size());
+		for (int k = 0; k < row; k++)
+		{
+			m_state[k * (row + 1)] = 1.0;
+		}
+	}
+	return qErrorNone;
+}
+
+
 QError CPUImplQPU::_X(size_t qn)
 {
     int64_t size = 1ll << (m_qubit_num - 1);
@@ -683,8 +699,8 @@ QError CPUImplQPU::_iSWAP_theta(size_t qn_0, size_t qn_1, QStat &matrix, bool is
 
     if (is_dagger)
     {
-        matrix[6] = { matrix[6].real(), -matrix[6].real() };
-        matrix[9] = { matrix[9].real(), -matrix[9].real() };
+        matrix[6] = { matrix[6].real(), -matrix[6].imag() };
+        matrix[9] = { matrix[9].real(), -matrix[9].imag() };
     }
 
     if (size > m_threshold)
@@ -719,12 +735,14 @@ QError CPUImplQPU::_CU(size_t qn_0, size_t qn_1, QStat &matrix, bool is_dagger)
     int64_t offset0 = 1ll << qn_0;
     int64_t offset1 = 1ll << qn_1;
 
+	qcomplex_t temp;
     if (is_dagger)
     {
-        matrix[10] = { matrix[10].real(), -matrix[10].real() };
-        matrix[11] = { matrix[14].real(), -matrix[14].real() };
-        matrix[14] = { matrix[11].real(), -matrix[11].real() };
-        matrix[15] = { matrix[15].real(), -matrix[15].real() };
+        matrix[10] = { matrix[10].real(), -matrix[10].imag() };
+		temp = matrix[11];
+        matrix[11] = { matrix[14].real(), -matrix[14].imag() };
+        matrix[14] = { temp.real(), -temp.imag()			 };
+        matrix[15] = { matrix[15].real(), -matrix[15].imag() };
     }
 
     if (size > m_threshold)
@@ -1296,8 +1314,8 @@ QError CPUImplQPU::_iSWAP_theta(size_t qn_0, size_t qn_1, QStat &matrix, bool is
 
     if (is_dagger)
     {
-        matrix[6] = { matrix[6].real(), -matrix[6].real() };
-        matrix[9] = { matrix[9].real(), -matrix[9].real() };
+        matrix[6] = { matrix[6].real(), -matrix[6].imag() };
+        matrix[9] = { matrix[9].real(), -matrix[9].imag() };
     }
 
     if (size > m_threshold)
@@ -1340,12 +1358,14 @@ QError CPUImplQPU::_CU(size_t qn_0, size_t qn_1, QStat &matrix, bool is_dagger, 
         mask |= 1ll << q;
     });
 
+	qcomplex_t temp;
     if (is_dagger)
     {
-        matrix[10] = { matrix[10].real(), -matrix[10].real() };
-        matrix[11] = { matrix[14].real(), -matrix[14].real() };
-        matrix[14] = { matrix[11].real(), -matrix[11].real() };
-        matrix[15] = { matrix[15].real(), -matrix[15].real() };
+        matrix[10] = { matrix[10].real(), -matrix[10].imag() };
+		temp = matrix[11];
+        matrix[11] = { matrix[14].real(), -matrix[14].imag() };
+        matrix[14] = { temp.real(), -temp.imag()			 };
+        matrix[15] = { matrix[15].real(), -matrix[15].imag() };
     }
 
     if (size > m_threshold)

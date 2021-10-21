@@ -110,139 +110,128 @@ static std::string build_chain_typed_quantum_chip_config_data(size_t qubit_num)
     return buffer.GetString();
 }
 
-QStat cpu_backend(size_t qubit_num, QProg& prog)
+bool test_matrix_decompose_mps()
 {
-    CPUQVM qvm;
-    qvm.setConfigure({ 64,64 });
-    qvm.init();
+    auto qvm = initQuantumMachine(QMachineType::CPU);
+    auto q = qvm->allocateQubits(2);
+    auto c = qvm->allocateCBits(2);
 
-    auto q = qvm.qAllocMany(qubit_num);
-    auto c = qvm.cAllocMany(qubit_num);
+    QCircuit test_cir;
+    test_cir << H(q[0]) << H(q[1]) << CNOT(q[0], q[1]) << T(q[1]);
+    //test_cir << CNOT(q[0], q[1]);
+    QStat stat_0;
+    /*{
+        auto prog = QProg();
+        prog << test_cir;
+        qvm->directlyRun(prog);
+        stat_0 = qvm->getQState();
+        std::cout << "stat_0:\n" << stat << endl;
+    }*/
+    const QStat target_matrix = getCircuitMatrix(test_cir);
+    std::cout << "target_matrix:\n" << target_matrix << endl;
 
-    qvm.directlyRun(prog);
-    return qvm.getQState();
+    auto cir = matrix_decompose_qr({ q[0], q[1] }, target_matrix);
+    //auto cir = matrix_decompose_householder({ q[0], q[1] }, target_matrix);
+    std::cout << "decomposed circuit:" << cir << endl;
+    const auto mat_2 = getCircuitMatrix(cir);
+    std::cout << "mat_2:\n" << mat_2 << endl;
+
+    auto prog = QProg();
+    prog << cir;
+    qvm->directlyRun(prog);
+    auto stat = qvm->getQState();
+
+    destroyQuantumMachine(qvm);
+
+    if (0 == mat_compare(target_matrix, mat_2, MAX_COMPARE_PRECISION)) {
+        return true;
+    }
+
+    return false;
 }
+
 
 TEST(MPS, test)
 {
-#if 0
-    PartialAmplitudeQVM mps;
+    auto machine = initQuantumMachine(CPU);
+    machine->setConfigure({ 64,64 });
 
-    mps.init();
-    auto qa = mps.qAllocMany(4);
-    auto ca = mps.cAllocMany(4);
+    auto qv = machine->allocateQubits(36);
+    auto cv = machine->allocateCBits(36);
 
-    QProg pp;
-    //pp << H(qa[0]) << CNOT(qa[0], qa[1]) << Measure(qa[0], ca[0]);
-    pp << H(qa[0]) << S(qa[0]);// << Measure(qa[0], ca[0]);
 
-    //QVec qv;
-    //std::vector<ClassicalCondition> cv;
-    //auto prog1 = convert_originir_to_qprog("D:\\123.txt", &mps, qv, cv);
-    //auto result = mps.runWithConfiguration(pp, ca, 1000);
-    mps.run(pp);
-    auto result = mps.pmeasure_dec_index("0");
-    auto result1 = mps.pmeasure_dec_index("1");
+    auto _grover_prog = ghz_prog(qv);
+    _grover_prog << MeasureAll(qv, cv);
 
-#endif 
+    cout << convert_qprog_to_originir(_grover_prog, machine);
+    getchar();
 
-#if 0
-    //通过QCloudMachine创建量子云虚拟机
-    QCloudMachine QCM;;
-
-    //通过传入当前用户的token来初始化
-    QCM.init("5075D2CF755640C99B586A3E10C73437",true);
-    auto q = QCM.allocateQubits(6);
-    auto c = QCM.allocateCBits(6);
-
-    //构建量子程序
-    auto measure_prog = QProg();
-    measure_prog << HadamardQCircuit(q)
-        << RX(q[1], PI / 4)
-        << Measure(q[0], c[0])
-        << Measure(q[1], c[1]);
-
-    //调用真实芯片计算接口，需要量子程序和测量次数两个参数
-    auto result = QCM.real_chip_measure(measure_prog, 1000, REAL_CHIP_TYPE::ORIGIN_WUYUAN_D4);
-    for (auto val : result)
+	test_matrix_decompose_mps();
+    return;
+#if 1
+    try
     {
-        cout << val.first << " : " << val.second << endl;
+        QCloudMachine QCM;
+        QCM.init("C60FBD87EF084DBA820945D052218AA8", true);
+        //QCM.init();
+
+        //QVec qv;
+        //std::vector<ClassicalCondition> cv;
+        //QProg prog1 = convert_originir_to_qprog("E:\\N4.txt", &QCM, qv, cv);
+
+        QCM.set_qcloud_api("http://10.10.10.197:8060");
+        QCM.set_real_chip_api("http://10.10.10.197:8060");
+
+        QVec qv;
+        vector<ClassicalCondition> cv;
+        auto ir = convert_originir_to_qprog("E:\\N4.txt", &QCM, qv, cv);
+
+        TASK_STATUS status;
+        auto result = QCM.full_amplitude_measure(ir,1000);
+        cout << 123 << endl;
+        /* TASK_STATUS status;
+         auto taskid = QCM.get_expectation_commit(prog, hamiltonian, q, status);
+         if (status == TASK_STATUS::FAILED)
+         {
+             cout << QCM.get_last_error() << endl;
+         }
+         else
+         {
+             auto result = QCM.get_expectation_exec(taskid, status);
+             if (status == TASK_STATUS::FAILED)
+             {
+                 cout << QCM.get_last_error() << endl;
+             }
+             else
+             {
+                 auto result = QCM.get_expectation_exec(taskid, status);
+                 std::cout << result << std::endl;
+             }
+         }*/
+
+        QCM.finalize();
+    }
+    catch (const std::exception e)
+    {
+        cout << e.what() << endl;
+    }
+    catch (...)
+    {
+        cout << 123 << endl;
     }
 
-    //auto result1 = QCM.real_chip_task(measure_prog, 1000, true, true, REAL_CHIP_TYPE::ORIGIN_WUYUAN_D4);
-    //for (auto val : result1)
+    //QProg measure_prog;
+    //measure_prog << HadamardQCircuit(q) << MeasureAll(q, c);
+    //auto result2 = QCM.get_state_tomography_density(measure_prog, 1000, REAL_CHIP_TYPE::ORIGIN_WUYUAN_D4);
+    //for (auto val : result2)
     //{
-    //    cout << val.first << " : " << val.second << endl;
+    //    cout << val << endl;
     //}
 
-    auto result2 = QCM.get_state_tomography_density(measure_prog, 1000, REAL_CHIP_TYPE::ORIGIN_WUYUAN_D4);
-    for (auto val : result2)
-    {
-        cout << val << endl;
-    }
-
-    auto result3 = QCM.get_state_fidelity(measure_prog, 1000, REAL_CHIP_TYPE::ORIGIN_WUYUAN_D4);
-    cout << result3 << endl;
+    //auto result3 = QCM.get_state_fidelity(measure_prog, 1000, REAL_CHIP_TYPE::ORIGIN_WUYUAN_D4);
+    //cout << result3 << endl;
 
 
-    QCM.finalize();
     return;
-
 #endif
-
-
-    auto machine = new PartialAmplitudeQVM();
-    //auto machine = new SingleAmplitudeQVM();
-     machine->init();
-    auto qlist = machine->qAllocMany(10);
-
-    // 构建量子程序
-    QProg prog;
-    for_each(qlist.begin(), qlist.end(), [&](Qubit *val) { prog << H(val); });
-    prog << CZ(qlist[1], qlist[5])
-        << CZ(qlist[3], qlist[7])
-        << RZ(qlist[7], PI / 4)
-        << U2(qlist[5], PI / 4, 1.)
-        << U3(qlist[5], PI / 4, 1., 2.)
-        << U4(qlist[5], PI / 4, 1., 2., 3.)
-        << RX(qlist[4], PI / 4)
-        << RY(qlist[3], PI / 4)
-        << CZ(qlist[2], qlist[6])
-        << RZ(qlist[3], PI / 4)
-        << RZ(qlist[8], PI / 4)
-        << CZ(qlist[9], qlist[5])
-        << RZ(qlist[9], PI / 4)
-        << SWAP(qlist[0], qlist[1])
-        << CR(qlist[2], qlist[7], PI / 4)
-        << X(qlist[5]).control({ qlist[1], qlist[2] });
-
-    // 获取量子态所有分量的振幅
-    //machine->run(prog, qlist);
-    machine->run(prog);
-
-    // 打印特定量子态分量的振幅
-    //cout << machine->pMeasureDecindex("0") << endl;
-    cout << machine->pmeasure_dec_index("0") << endl;
-    cout << machine->pmeasure_dec_index("1") << endl;
-    cout << machine->pmeasure_dec_index("2") << endl;
-    cout << machine->pmeasure_dec_index("3") << endl;
-    cout << machine->pmeasure_dec_index("4") << endl;
-    cout << machine->pmeasure_dec_index("5") << endl;
-    cout << machine->pmeasure_dec_index("6") << endl;
-    cout << machine->pmeasure_dec_index("7") << endl;
-
-    cout << "=========================" << endl;
-
-    auto re = cpu_backend(10,prog);
-
-    cout << re[0] << endl;
-    cout << re[1] << endl;
-    cout << re[2] << endl;
-    cout << re[3] << endl;
-    cout << re[4] << endl;
-    cout << re[5] << endl;
-    cout << re[6] << endl;
-    cout << re[7] << endl;
-
-    getchar();
 }

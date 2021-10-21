@@ -70,6 +70,11 @@ namespace QGATE_SPACE
 		{
 			return gate_type;
 		};
+
+		virtual void setGateType(GateType type)
+		{
+			gate_type = type;
+		};
     };
 
 	/**

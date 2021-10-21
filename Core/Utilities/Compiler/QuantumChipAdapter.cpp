@@ -91,7 +91,7 @@ void QuantumChipAdapter::mapping(QProg &prog)
 	int qubit_num = 0;
 	config.getMetadataConfig(qubit_num, qubit_matrix);
     prog = topology_match(prog, m_new_qvec, m_quantum_machine,
-                          CNOT_GATE_METHOD, IBM_QX5_ARCH, m_config_data);
+                           m_config_data);
 
     return ;
 }

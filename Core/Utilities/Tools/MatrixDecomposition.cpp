@@ -224,7 +224,7 @@ static void decomposition(EigenMatrixXc& matrix, MatrixOperator& entries, std::v
 			auto opt = entries[cdx][idx].second;
 
 			if ((EigenComplexT(0, 0) == matrix(rdx, cdx) && (idx != opts - 1)) ||
-				(EigenComplexT(1, 0) == matrix(cdx + 1, cdx) && (idx == opts - 1)))
+				(EigenComplexT(1, 0) == matrix(cdx, cdx) && (idx == opts - 1)))
 			{
 				continue;
 			}
@@ -283,8 +283,14 @@ static void decomposition(EigenMatrixXc& matrix, MatrixOperator& entries, std::v
 	EigenMatrix2c V2 = matrix.bottomRightCorner(2, 2);
 	if (EigenMatrixXc::Identity(2, 2) != V2)
 	{
-		QStat M2 = { (qcomplex_t)((EigenComplexT)1.0 / V2(0,0)), (qcomplex_t)(V2(0,1)),
-					 (qcomplex_t)(V2(1,0)) , (qcomplex_t)((EigenComplexT)1.0 / V2(1,1))};
+        QPANDA_ASSERT((V2(0, 0) * V2(1, 1)) == (V2(0, 1) * V2(1, 0)), "decomposition error on matrix.bottomRightCorner(2, 2)");
+
+        qcomplex_t E0 = V2(1, 1) / ((V2(0, 0) * V2(1, 1)) - (V2(0, 1) * V2(1, 0)));
+        qcomplex_t E1 = V2(0, 1) / ((V2(0, 1) * V2(1, 0)) - (V2(0, 0) * V2(1, 1)));
+        qcomplex_t E2 = V2(1, 0) / ((V2(0, 1) * V2(1, 0)) - (V2(0, 0) * V2(1, 1)));
+        qcomplex_t E3 = V2(0, 0) / ((V2(0, 0) * V2(1, 1)) - (V2(0, 1) * V2(1, 0)));
+
+        QStat M2 = { E0 ,E1 ,E2 ,E3 };
 
 		auto entry = entries.back().back().second;
 		cir_units.insert(cir_units.begin(), std::make_pair(entry, M2));
@@ -343,14 +349,23 @@ static void general_scheme(EigenMatrixXc& matrix, std::vector<SingleGateUnit>& c
     return;
 }
 
-static void circuit_insert(QVec& qubits, std::vector<SingleGateUnit>& cir_units, QCircuit &circuit)
+static void circuit_insert(QVec& qubits, std::vector<SingleGateUnit>& cir_units, QCircuit &circuit,bool b_positive_seq)
 {
-	std::sort(qubits.begin(), qubits.end(), [&](Qubit *a, Qubit *b)
+	if (b_positive_seq) 
 	{
-		return a->getPhysicalQubitPtr()->getQubitAddr()
-			 < b->getPhysicalQubitPtr()->getQubitAddr();
-	});
-
+		std::sort(qubits.begin(), qubits.end(), [&](Qubit *a, Qubit *b){
+			return a->getPhysicalQubitPtr()->getQubitAddr()
+				< b->getPhysicalQubitPtr()->getQubitAddr();
+		});
+	}
+	else 
+	{
+		std::sort(qubits.begin(), qubits.end(), [&](Qubit *a, Qubit *b){
+			return a->getPhysicalQubitPtr()->getQubitAddr()
+				> b->getPhysicalQubitPtr()->getQubitAddr();
+		});
+	}
+	
 	auto rank = qubits.size();
 	for (auto &val : cir_units)
 	{
@@ -413,6 +428,7 @@ public:
 
 		QCircuit decompose_result_cir;
 		m_qubits = qubits;
+
 		QVec controlqvec = qubits;
 		controlqvec.pop_back();
 		QStat tmp_mat22; //2*2 unitary matrix
@@ -536,15 +552,15 @@ private:
 /*******************************************************************
 *                      public interface
 ********************************************************************/
-QCircuit QPanda::matrix_decompose_qr(QVec qubits, const QStat& src_mat)
+QCircuit QPanda::matrix_decompose_qr(QVec qubits, const QStat& src_mat,const bool b_positive_seq)
 {
 	auto order = std::sqrt(src_mat.size());
 	EigenMatrixXc tmp_mat = EigenMatrixXc::Map(&src_mat[0], order, order);
 
-    return matrix_decompose_qr(qubits, tmp_mat);
+    return matrix_decompose_qr(qubits, tmp_mat, b_positive_seq);
 }
 
-QCircuit QPanda::matrix_decompose_qr(QVec qubits, EigenMatrixXc& src_mat)
+QCircuit QPanda::matrix_decompose_qr(QVec qubits, EigenMatrixXc& src_mat,const bool b_positive_seq)
 {
 	if (!src_mat.isUnitary(MAX_MATRIX_PRECISION))
 	{
@@ -560,7 +576,7 @@ QCircuit QPanda::matrix_decompose_qr(QVec qubits, EigenMatrixXc& src_mat)
     //QR decompose
     std::vector<SingleGateUnit> cir_units;
     general_scheme(src_mat, cir_units);
-    circuit_insert(qubits, cir_units, output_circuit);
+    circuit_insert(qubits, cir_units, output_circuit, b_positive_seq);
 	
 	return output_circuit;
 }

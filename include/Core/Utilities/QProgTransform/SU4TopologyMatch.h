@@ -142,7 +142,7 @@ private:
 
 public:
 
-	SU4TopologyMatch(QuantumMachine * machine, QVec &qv, ArchType arch_type = IBM_QX5_ARCH);
+	SU4TopologyMatch(QuantumMachine * machine, QVec &qv);
 	~SU4TopologyMatch() {}
 
 	/**
@@ -168,7 +168,7 @@ private:
 	/**
 	* @brief Build coupling map by topological type
 	**/
-	void build_coupling_map(ArchType type);
+	void build_coupling_map();
 
 	/**
 	* @brief Breadth-first search algorithm to find minimal distances between physical qubits
@@ -211,10 +211,9 @@ private:
 * @param[in]  QProg  quantum program
 * @param[in]  QVec  qubit  vector
 * @param[in]  QuantumMachine *  quantum machine
-* @param[in]  ArchType    architectures type
 * @return    QProg   mapped  quantum program
 */
-QProg  su4_circiut_topology_match(QProg prog, QVec &qv, QuantumMachine *machine, ArchType arch_type = IBM_QX5_ARCH);
+QProg  su4_circiut_topology_match(QProg prog, QVec &qv, QuantumMachine *machine);
 
 
 QPANDA_END

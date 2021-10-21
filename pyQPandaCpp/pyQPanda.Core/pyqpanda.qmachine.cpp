@@ -26,18 +26,6 @@ void init_quantum_machine(py::module &m)
         .value("NOISE", QMachineType::NOISE)
         .export_values();
 
-    py::enum_<SwapQubitsMethod>(m, "SwapQubitsMethod")
-        .value("ISWAP_GATE_METHOD", SwapQubitsMethod::ISWAP_GATE_METHOD)
-        .value("CZ_GATE_METHOD", SwapQubitsMethod::CZ_GATE_METHOD)
-        .value("CNOT_GATE_METHOD", SwapQubitsMethod::CNOT_GATE_METHOD)
-        .value("SWAP_GATE_METHOD", SwapQubitsMethod::SWAP_GATE_METHOD)
-        .export_values();
-
-    py::enum_<ArchType>(m, "ArchType")
-        .value("IBM_QX5_ARCH", ArchType::IBM_QX5_ARCH)
-        .value("ORIGIN_VIRTUAL_ARCH", ArchType::ORIGIN_VIRTUAL_ARCH)
-        .export_values();
-
     py::enum_<NOISE_MODEL>(m, "NoiseModel")
         .value("DAMPING_KRAUS_OPERATOR", NOISE_MODEL::DAMPING_KRAUS_OPERATOR)
         .value("DECOHERENCE_KRAUS_OPERATOR", NOISE_MODEL::DECOHERENCE_KRAUS_OPERATOR)
@@ -130,6 +118,7 @@ void init_quantum_machine(py::module &m)
 	size_t(QuantumMachine::* get_allocate_cbits)(std::vector<ClassicalCondition>&) = &QuantumMachine::get_allocate_cbits;
 	double(QuantumMachine::* get_expectation_shots)(QProg, const QHamiltonian&, const QVec&, int) = &QuantumMachine::get_expectation;
 	double(QuantumMachine::* get_expectation)(QProg, const QHamiltonian&, const QVec&) = &QuantumMachine::get_expectation;
+    size_t(QuantumMachine::* get_processed_qgate_num)() = &QuantumMachine::get_processed_qgate_num;
 
     py::class_<QuantumMachine>(m, "QuantumMachine")
         .def("set_configure", [](QuantumMachine &qvm, size_t max_qubit, size_t max_cbit)
@@ -140,7 +129,8 @@ void init_quantum_machine(py::module &m)
         .def("finalize", &QuantumMachine::finalize, "finalize")
         .def("get_qstate", &QuantumMachine::getQState, "getState", py::return_value_policy::automatic)
         .def("qAlloc", qalloc, "Allocate a qubit", py::return_value_policy::reference)
-        .def("qAlloc_many", [](QuantumMachine & self, size_t num) { vector<Qubit *> temp = self.allocateQubits(num); return temp; },
+        .def("qAlloc_many", [](QuantumMachine & self, size_t num) { 
+				vector<Qubit *> temp = self.allocateQubits(num); return temp; },
             "Allocate a list of qubits", "n_qubit"_a, py::return_value_policy::reference)
         .def("cAlloc", cAlloc, "Allocate a cbit", py::return_value_policy::reference)
         .def("cAlloc_many", callocMany, "Allocate a list of cbits", "n_cbit"_a, py::return_value_policy::reference)
@@ -166,6 +156,10 @@ void init_quantum_machine(py::module &m)
 		.def("get_allocate_cbits", get_allocate_cbits, "cbit vector"_a,  py::return_value_policy::reference)
 		.def("get_expectation", get_expectation, "quantum prog"_a, "hamiltonian"_a, "qubit vector"_a, py::return_value_policy::reference)
 		.def("get_expectation", get_expectation_shots, "quantum prog"_a, "hamiltonian"_a, "qubit vector"_a, "shots"_a, py::return_value_policy::reference)
+        .def("get_processed_qgate_num", get_processed_qgate_num, py::return_value_policy::reference)
+        .def("async_run", &QuantumMachine::async_run, "program"_a, py::return_value_policy::reference)
+        .def("is_async_finished", &QuantumMachine::is_async_finished, py::return_value_policy::reference)
+        .def("get_async_result", &QuantumMachine::get_async_result, py::return_value_policy::reference)
         .def("directly_run", &QuantumMachine::directlyRun, "program"_a, py::return_value_policy::reference)
         .def("run_with_configuration", [](QuantumMachine &qvm, QProg & prog, vector<ClassicalCondition> & cc_vector, py::dict param)
             {
@@ -215,7 +209,12 @@ void init_quantum_machine(py::module &m)
         ,py::return_value_policy::reference)\
         .def("get_allocate_qubit_num", get_allocate_qubit, "getAllocateQubitNum", py::return_value_policy::reference)\
         .def("get_allocate_cmem_num", get_allocate_CMem, "getAllocateCMem", py::return_value_policy::reference)\
-        .def("directly_run", &class_name::directlyRun, "program"_a,py::return_value_policy::reference)\
+		.def("directly_run", &class_name::directlyRun, \
+			"directly_run a prog", "program"_a, py::return_value_policy::reference)\
+        .def("get_processed_qgate_num", &class_name::get_processed_qgate_num, py::return_value_policy::reference)\
+        .def("async_run", &class_name::async_run, "program"_a, py::return_value_policy::reference)\
+        .def("is_async_finished", &class_name::is_async_finished, py::return_value_policy::reference)\
+        .def("get_async_result", &class_name::get_async_result, py::return_value_policy::reference)\
         .def("run_with_configuration", [](class_name &qvm, QProg &prog, vector<ClassicalCondition> & cc_vector, py::dict param)\
 			{\
 				py::object json = py::module::import("json");\
@@ -353,7 +352,8 @@ void init_quantum_machine(py::module &m)
                 doc.Parse(json_string.c_str());
                 qvm.init(doc);
             }, "init quantum virtual machine")
-        .def("directly_run", &NoiseQVM::directlyRun, "program"_a, py::return_value_policy::reference)
+		.def("directly_run", &NoiseQVM::directlyRun,
+			"directly_run a prog", "program"_a, py::return_value_policy::reference)
         .def("init_state", [](NoiseQVM& self, const QStat & state, const QVec &qlist){
                 self.initState(state, qlist);
             }, py::arg("state") = QStat(), py::arg("qlist") = QVec()
@@ -393,11 +393,21 @@ void init_quantum_machine(py::module &m)
             .def("get_prob_dict", [](SingleAmplitudeQVM& self, const std::vector<int>& qaddrs_vect) {return self.getProbDict(qaddrs_vect); })
 			.def("prob_run_dict", [](SingleAmplitudeQVM& self, QProg prog, const std::vector<int>& qaddrs_vect) {return self.probRunDict(prog, qaddrs_vect); });
 
+           
+        py::enum_<BackendType>(m, "BackendType")
+            .value("CPU", BackendType::CPU)
+            .value("GPU", BackendType::GPU)
+            .value("CPU_SINGLE_THREAD", BackendType::CPU_SINGLE_THREAD)
+            .value("NOISE", BackendType::NOISE)
+            .value("MPS", BackendType::MPS)
+            .export_values();
 
         py::class_<PartialAmplitudeQVM, QuantumMachine>(m, "PartialAmpQVM")
             .def(py::init<>())
 
-            .def("init_qvm", &PartialAmplitudeQVM::init, "init quantum virtual machine")
+            .def("init_qvm", [](PartialAmplitudeQVM &qvm, BackendType type) {return qvm.init(type); },
+                 py::arg("type") = BackendType::CPU, "init quantum virtual machine")
+
             .def("run", [](PartialAmplitudeQVM &qvm, QProg prog) {return qvm.run(prog); }, "load the quantum program")
             .def("run", [](PartialAmplitudeQVM &qvm, QCircuit cir) {return qvm.run(cir); }, "load the quantum program")
 
@@ -422,7 +432,8 @@ void init_quantum_machine(py::module &m)
 
             .def("get_allocate_qubit_num", get_allocate_qubit, "getAllocateQubitNum", py::return_value_policy::reference)
             .def("get_allocate_cmem_num", get_allocate_CMem, "getAllocateCMem", py::return_value_policy::reference)
-            .def("directly_run", &MPSQVM::directlyRun, "program"_a, py::return_value_policy::reference)
+			.def("directly_run", &MPSQVM::directlyRun,
+			"directly_run a prog", "program"_a, py::return_value_policy::reference)
             .def("run_with_configuration", [](MPSQVM &qvm, QProg &prog, std::vector<ClassicalCondition> & cc_vector, py::dict param)
                 {
                     py::object json = py::module::import("json"); 
@@ -496,74 +507,183 @@ void init_quantum_machine(py::module &m)
             .value("origin_wuyuan_d5", REAL_CHIP_TYPE::ORIGIN_WUYUAN_D5)
             .export_values();
 
+        py::enum_<TASK_STATUS>(m, "task_status")
+            .value("waiting", TASK_STATUS::WAITING)
+            .value("computing", TASK_STATUS::COMPUTING)
+            .value("finished", TASK_STATUS::FINISHED)
+            .value("failed", TASK_STATUS::FAILED)
+            .value("queuing", TASK_STATUS::QUEUING)
+            .export_values();
+
         py::class_<QCloudMachine, QuantumMachine>(m, "QCloud")
             .def(py::init<>())
             .def("init_qvm", [](QCloudMachine &qvm, std::string token, bool is_logged) {return qvm.init(token, is_logged); },
                 py::arg("token"), py::arg("is_logged") = false, "init quantum virtual machine")
 
             //url setting
-            .def("set_compute_api", [](QCloudMachine &qcm, std::string url) {return qcm.set_compute_api(url); })
-            .def("set_inqure_api", [](QCloudMachine &qcm, std::string url) {return qcm.set_inqure_api(url); })
-
-            .def("set_real_chip_compute_api", [](QCloudMachine &qcm, std::string url) {return qcm.set_real_chip_compute_api(url); })
-            .def("set_real_chip_inqure_api", [](QCloudMachine &qcm, std::string url) {return qcm.set_real_chip_inqure_api(url); })
+            .def("set_qcloud_api", [](QCloudMachine &qcm, std::string url) {return qcm.set_qcloud_api(url); })
+            .def("set_real_chip_api", [](QCloudMachine &qcm, std::string url) {return qcm.set_real_chip_api(url); })
 
             // noise
             .def("set_noise_model", [](QCloudMachine &qcm, NOISE_MODEL model, const std::vector<double> single_params, const std::vector<double> double_params) {return qcm.set_noise_model(model, single_params, double_params); })
-            .def("noise_measure", [](QCloudMachine &qcm, QProg &prog, int shot) {return qcm.noise_measure(prog, shot); })
+            .def("noise_measure", [](QCloudMachine &qcm, 
+                QProg &prog, 
+                int shot,
+                std::string task_name)
+
+                {return qcm.noise_measure(prog, shot, task_name); },
+                py::arg("prog"),
+                py::arg("shot"),
+                py::arg("task_name") = "Qurator Experiment")
+
 
             // full_amplitude
-            .def("full_amplitude_measure", [](QCloudMachine &qcm, QProg &prog, int shot) {return qcm.full_amplitude_measure(prog, shot); })
-            .def("full_amplitude_pmeasure", [](QCloudMachine &qcm, QProg &prog, Qnum qvec) {return qcm.full_amplitude_pmeasure(prog, qvec); })
+            .def("full_amplitude_measure", [](QCloudMachine &qcm, 
+                QProg &prog, 
+                int shot,
+                std::string task_name)
+        
+                {return qcm.full_amplitude_measure(prog, shot, task_name); },
+                py::arg("prog"),
+                py::arg("shot"),
+                py::arg("task_name") = "Qurator Experiment")
+
+
+            .def("full_amplitude_pmeasure", [](QCloudMachine &qcm, 
+                QProg &prog, 
+                Qnum qvec,
+                std::string task_name)
+                
+                {return qcm.full_amplitude_pmeasure(prog, qvec, task_name); },
+                py::arg("prog"),
+                py::arg("qvec"),
+                py::arg("task_name") = "Qurator Experiment")
+
 
             //partial_amplitude
-            .def("partial_amplitude_pmeasure", [](QCloudMachine &qcm, QProg &prog, std::vector<std::string> amp_vec) {return qcm.partial_amplitude_pmeasure(prog, amp_vec); })
+            .def("partial_amplitude_pmeasure", [](QCloudMachine &qcm, 
+                QProg &prog, 
+                std::vector<std::string> amp_vec, 
+                std::string task_name) 
+                
+                {return qcm.partial_amplitude_pmeasure(prog, amp_vec, task_name); },
+                py::arg("prog"),
+                py::arg("amp_vec"),
+                py::arg("task_name") = "Qurator Experiment")
+
 
             //single_amplitude
-            .def("single_amplitude_pmeasure", [](QCloudMachine &qcm, QProg &prog, std::string amplitude) {return qcm.single_amplitude_pmeasure(prog, amplitude); })
+            .def("single_amplitude_pmeasure", [](QCloudMachine &qcm, 
+                QProg &prog, 
+                std::string amplitude,
+                std::string task_name)
+                
+                {return qcm.single_amplitude_pmeasure(prog, amplitude, task_name); },
+                py::arg("prog"),
+                py::arg("amplitude"),
+                py::arg("task_name") = "Qurator Experiment")
 
-            //real chip
+
+            //real chip measure
             .def("real_chip_measure", [](QCloudMachine &qcm,
                 QProg &prog,
                 int shot,
                 REAL_CHIP_TYPE chipid,
                 bool mapping_flag,
-                bool circuit_optimization)
+                bool circuit_optimization,
+                std::string task_name)
 
-            {return qcm.real_chip_measure(prog, shot, chipid, mapping_flag, circuit_optimization); },
+                {return qcm.real_chip_measure(prog, shot, chipid, mapping_flag, circuit_optimization, task_name); },
                 py::arg("prog"),
                 py::arg("shot"),
                 py::arg("chipid") = REAL_CHIP_TYPE::ORIGIN_WUYUAN_D5,
                 py::arg("mapping_flag") = true,
-                py::arg("circuit_optimization") = true)
+                py::arg("circuit_optimization") = true,
+                py::arg("task_name") = "Qurator Experiment")
 
+
+            //real chip get_state_fidelity
             .def("get_state_fidelity", [](QCloudMachine &qcm,
                 QProg &prog,
                 int shot,
                 REAL_CHIP_TYPE chipid,
                 bool mapping_flag,
-                bool circuit_optimization)
+                bool circuit_optimization,
+                std::string task_name)
 
-            {return qcm.get_state_fidelity(prog, shot, chipid, mapping_flag, circuit_optimization); },
+                {return qcm.get_state_fidelity(prog, shot, chipid, mapping_flag, circuit_optimization, task_name); },
                 py::arg("prog"),
                 py::arg("shot"),
                 py::arg("chipid") = REAL_CHIP_TYPE::ORIGIN_WUYUAN_D5,
                 py::arg("mapping_flag") = true,
-                py::arg("circuit_optimization") = true)
+                py::arg("circuit_optimization") = true,
+                py::arg("task_name") = "Qurator Experiment")
 
+
+            //real chip get_state_tomography_density
             .def("get_state_tomography_density", [](QCloudMachine &qcm,
                 QProg &prog,
                 int shot,
                 REAL_CHIP_TYPE chipid,
                 bool mapping_flag,
-                bool circuit_optimization)
+                bool circuit_optimization,
+                std::string task_name)
 
-            {return qcm.get_state_tomography_density(prog, shot, chipid, mapping_flag, circuit_optimization); },
+                {return qcm.get_state_tomography_density(prog, shot, chipid, mapping_flag, circuit_optimization, task_name); },
                 py::arg("prog"),
                 py::arg("shot"),
                 py::arg("chipid") = REAL_CHIP_TYPE::ORIGIN_WUYUAN_D5,
                 py::arg("mapping_flag") = true,
-                py::arg("circuit_optimization") = true);
+                py::arg("circuit_optimization") = true,
+                py::arg("task_name") = "Qurator Experiment")
+
+
+            //get_expectation
+            .def("get_expectation", [](QCloudMachine &qcm,
+                QProg &prog,
+                const QHamiltonian& hamiltonian,
+                const QVec& qvec,
+                TASK_STATUS& status,
+                std::string task_name)
+
+                {return qcm.get_expectation(prog, hamiltonian, qvec, status, task_name); },
+                py::arg("prog"),
+                py::arg("hamiltonian"),
+                py::arg("qvec"),
+                py::arg("status"),
+                py::arg("task_name") = "Qurator Experiment")
+
+
+            //get_expectation commit
+            .def("get_expectation_commit", [](QCloudMachine &qcm,
+                QProg &prog,
+                const QHamiltonian& hamiltonian,
+                const QVec& qvec,
+                TASK_STATUS& status)
+
+            {return qcm.get_expectation(prog, hamiltonian, qvec, status); },
+                py::arg("prog"),
+                py::arg("hamiltonian"),
+                py::arg("qvec"),
+                py::arg("status"))
+
+            //get_expectation_exec
+            .def("get_expectation_exec", [](QCloudMachine &qcm,
+                std::string taskid, 
+                TASK_STATUS& status)
+
+            {return qcm.get_expectation_exec(taskid, status); },
+                py::arg("taskid"),
+                py::arg("status"))
+
+            //get_expectation_query
+            .def("get_expectation_query", [](QCloudMachine &qcm,
+                std::string taskid,
+                TASK_STATUS& status)
+
+            {return qcm.get_expectation_query(taskid, status); },
+                py::arg("taskid"),
+                py::arg("status"));
 
 #endif // USE_CURL
 

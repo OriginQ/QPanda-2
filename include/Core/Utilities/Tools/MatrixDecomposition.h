@@ -27,12 +27,14 @@ enum DecompositionMode
 * @param[in]  QVec& the used qubits
 * @param[in]  QStat& The target matrix
 * @param[in]  DecompositionMode decomposition mode, default is HOUSEHOLDER_QR
+* @param[in]  const bool true for positive sequence(q0q1q2), false for inverted order(q2q1q0), 
+              default is true
 * @return    QCircuit The quantum circuit for target matrix
 * @see Decomposition of quantum gates by Chi Kwong Li and Diane Christine Pelejo
        Un，Un-1，，，U1，U = I
 */
-QCircuit matrix_decompose_qr(QVec qubits, const QStat& src_mat);
-QCircuit matrix_decompose_qr(QVec qubits, EigenMatrixXc& src_mat);
+QCircuit matrix_decompose_qr(QVec qubits, const QStat& src_mat, const bool b_positive_seq = true);
+QCircuit matrix_decompose_qr(QVec qubits, EigenMatrixXc& src_mat, const bool b_positive_seq = true);
 QCircuit diagonal_matrix_decompose(const QVec& qubits, const QStat& src_mat);
 
 QPANDA_END

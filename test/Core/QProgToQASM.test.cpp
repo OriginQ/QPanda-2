@@ -112,11 +112,11 @@ bool test_prog_to_qasm_2()
 
 TEST(QProgToQASM, test1)
 {
-	bool test_actual = false;
+	bool test_actual = true;
 	try
 	{
-		test_actual = test_QProgToQASM_fun_1();
-		test_actual = test_prog_to_qasm_2();
+		test_actual = test_actual && test_QProgToQASM_fun_1();
+		test_actual = test_actual && test_prog_to_qasm_2();
 	}
 
 	catch (const std::exception& e)
@@ -134,4 +134,79 @@ U3 q[0],(1.5707963,3.1415927,3.1415927)
 U3 q[1],(3.1415927,-1.8269113,2.1000796)
 U3 q[2],(0,3.1415927,0))";*/
 	ASSERT_TRUE(test_actual);
+}
+
+
+const std::string UserDefinedeGateIR = R"(QINIT 7
+CREG 7
+QGATE N0 a,b
+H a
+T b
+ENDQGATE
+QGATE N1 a,b
+U1 a,(1.570796)
+U2 b,(1.570796,-3.141593)
+ENDQGATE
+QGATE N2 a,b
+U3 a,(1.570796,4.712389,1.570796)
+U4 b,(3.141593,4.712389,1.570796,-3.141593)
+ENDQGATE
+QGATE N3 a,b
+RX a,(0.785398)
+RY b,(0.785398)
+ENDQGATE
+QGATE N4 a,b
+RZ a,(0.785398)
+CNOT b,a
+ENDQGATE
+QGATE N5 a,b,d
+ISWAP a,b
+SQISWAP d,b
+ENDQGATE
+QGATE N6 a,b,d
+SWAP a,b
+TOFFOLI d,a,b
+CR d,b,(1.570796)
+CZ d,b
+ENDQGATE
+N0 q[0],q[1]
+N1 q[0],q[1]
+N2 q[0],q[1]
+N3 q[0],q[1]
+N4 q[0],q[1]
+N5 q[2],q[0],q[3]
+N6 q[1],q[0],q[2]
+MEASURE q[0],c[0]
+MEASURE q[1],c[1]
+MEASURE q[2],c[2]
+MEASURE q[3],c[3]
+)";
+
+TEST(QProgToQASM, test_UserDefinedeGate)
+{
+	auto machine = initQuantumMachine(QMachineType::CPU);
+	QVec out_qv;
+	std::vector<ClassicalCondition> out_cv;
+
+	std::cout << "The user-defined-gate (base OriginIR): " << std::endl;
+	std::cout << UserDefinedeGateIR << std::endl;
+	std::cout << "============================================" << std::endl;
+
+	std::cout << "The user-defined-gate (TransformToOriginIR): " << std::endl;
+
+	// OriginIR转换量子程序
+	QProg out_prog = convert_originir_string_to_qprog(UserDefinedeGateIR, machine);
+
+	// 量子程序转换OriginIR，打印并对比转换结果
+	std::cout <<
+		convert_qprog_to_originir(out_prog, machine)
+		<< std::endl;
+
+	std::cout << "============================================" << std::endl;
+
+	std::cout << "The user-defined-gate (QProg): " << std::endl;
+	std::cout << out_prog
+		<< std::endl;
+	destroyQuantumMachine(machine);
+
 }

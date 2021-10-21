@@ -116,6 +116,21 @@ NodeIter NodeIter::getNextIter()
     }
 }
 
+NodeIter NodeIter::getPreIter()
+{
+	if (nullptr != m_pCur)
+	{
+		auto pItem = m_pCur->getPre();
+		NodeIter temp(pItem);
+		return temp;
+	}
+	else
+	{
+		NodeIter temp(nullptr);
+		return temp;
+	}
+}
+
 bool NodeIter::operator!=(NodeIter  iter) const
 {
     return this->m_pCur != iter.m_pCur;

@@ -16,7 +16,6 @@ import warnings
 from .pyQPanda import AbstractOptimizer
 from .pyQPanda import AdaGradOptimizer
 from .pyQPanda import AdamOptimizer
-from .pyQPanda import ArchType
 from .pyQPanda import CBit
 from .pyQPanda import ClassicalCondition
 from .pyQPanda import ClassicalProg
@@ -49,8 +48,7 @@ from .pyQPanda import QVec
 from .pyQPanda import QWhileProg
 from .pyQPanda import SingleAmpQVM
 from .pyQPanda import SingleGateTransferType
-from .pyQPanda import SwapQubitsMethod
-
+from .pyQPanda import Encode 
 from .pyQPanda import complex_var
 from .pyQPanda import expression
 from .pyQPanda import MomentumOptimizer
@@ -75,6 +73,7 @@ from .pyQPanda import VariationalQuantumGate_RX
 from .pyQPanda import VariationalQuantumGate_RY
 from .pyQPanda import VariationalQuantumGate_RZ
 from .pyQPanda import VariationalQuantumGate_X
+from .pyQPanda import Fusion
 
 from .Operator.pyQPandaOperator import *
 # pyQPandaOperator class
@@ -287,7 +286,7 @@ except ImportError as e:
 
 try:
     from .pyQPanda import QCloud
-    from .pyQPanda import ClusterMachineType
+    from .pyQPanda import real_chip_type
 except ImportError as e:
     warnings.warn("No module named QCloud")
 

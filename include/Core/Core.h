@@ -77,6 +77,7 @@ limitations under the License.
 #include "Core/Utilities/Tools/Fidelity.h"
 #include "Core/Utilities/Tools/GetQubitTopology.h"
 #include "Core/Utilities/Tools/RemapQProg.h"
+#include "Core/Utilities/Tools/QCircuitFusion.h"
 
 #include "Core/Variational/var.h"
 #include "Core/Variational/Optimizer.h"  

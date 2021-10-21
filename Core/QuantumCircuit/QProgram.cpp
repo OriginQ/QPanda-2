@@ -470,9 +470,6 @@ size_t OriginProgram::get_qgate_num()
 
 bool OriginProgram::is_measure_last_pos()
 {
-	if (m_last_measure.empty())
-		return false;
-
 	for (auto iter : m_last_measure)
 	{
 		if (iter.second == false)

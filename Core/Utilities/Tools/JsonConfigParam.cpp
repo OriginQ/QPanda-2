@@ -729,8 +729,17 @@ void QCircuitConfigReader::read_cir()
 		{
 			/*double angle = get_angle(gate_para[1]);
 			double phi = get_angle(gate_para[2]);*/
-
+			gate_name = "RPhi";
 			m_cir_generator.append_cir_node(gate_name, { gate_para[0].GetUint() }, { gate_para[1].GetString(), gate_para[2].GetString() });
+		}
+		else if (0 == strcmp(gate_name.c_str(), "U2"))
+		{
+			/*double theta = get_angle(gate_para[1]);
+			double phi = get_angle(gate_para[2]);
+			double lamda = get_angle(gate_para[3]);*/
+
+			m_cir_generator.append_cir_node(gate_name, { gate_para[0].GetUint() },
+				{ gate_para[1].GetString(), gate_para[2].GetString() });
 		}
 		else if (0 == strcmp(gate_name.c_str(), "U3"))
 		{

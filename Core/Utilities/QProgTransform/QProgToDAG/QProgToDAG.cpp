@@ -40,14 +40,14 @@ void QProgToDAG::execute(std::shared_ptr<AbstractQuantumMeasure>  cur_node, std:
 {
 	QCirParamForDAG& cir_param = static_cast<QCirParamForDAG&>(param);
 	QProgDAG &prog_dag = cir_param.m_dag;
-	transform_non_gate_node(cur_node, prog_dag, cur_iter, -1);
+	transform_non_gate_node(cur_node, prog_dag, cur_iter, DAGNodeType::MEASURE);
 }
 
 void QProgToDAG::execute(std::shared_ptr<AbstractQuantumReset> cur_node, std::shared_ptr<QNode> parent_node, QCircuitParam& param, NodeIter& cur_iter)
 {
 	QCirParamForDAG& cir_param = static_cast<QCirParamForDAG&>(param);
 	QProgDAG &prog_dag = cir_param.m_dag;
-	transform_non_gate_node(cur_node, prog_dag, cur_iter, -2);
+	transform_non_gate_node(cur_node, prog_dag, cur_iter, DAGNodeType::RESET);
 }
 
 void QProgToDAG::execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node, QCircuitParam& param, NodeIter& cur_iter)

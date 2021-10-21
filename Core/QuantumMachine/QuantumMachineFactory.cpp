@@ -16,6 +16,7 @@ limitations under the License.
 
 #include "QuantumMachineFactory.h"
 #include "OriginQuantumMachine.h"
+#include "Core/QuantumMachine/QCloudMachine.h"
 using namespace std;
 USING_QPANDA
 QMachineStatus * QMachineStatusFactory::GetQMachineStatus()
@@ -82,6 +83,13 @@ CreateByType(QMachineType type)
         break;
     case QMachineType::NOISE:
         qm = new NoiseQVM();
+        break;
+    case QMachineType::QCloud:
+#ifdef USE_CURL
+        qm = new QCloudMachine();
+#else
+        throw init_fail("no libcurl found");
+#endif
         break;
     default:
         qm = nullptr;

@@ -109,6 +109,7 @@ public:
     NodeIter &operator--();
     NodeIter operator--(int);
     NodeIter getNextIter();
+	NodeIter getPreIter();
     bool operator!=(NodeIter) const;
     bool operator==(NodeIter) const;
 };

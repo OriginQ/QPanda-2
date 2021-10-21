@@ -1,55 +1,22 @@
 #include "Core/Utilities/QProgTransform/TopologyMatch.h"
 #include "Core/Utilities/QProgInfo/QuantumMetadata.h"
 #include "Core/Utilities/QProgInfo/QCircuitInfo.h"
+#include "Core/QuantumCircuit/QNodeDeepCopy.h"
 
 USING_QPANDA
 using namespace std;
-using namespace QGATE_SPACE;
 
 #define DUMMY_SWAP_GATE  -2
 
 #define PRINTF_MAPPING_RESULT 0 
 
-
-bool TopologyMatch::isContains(std::vector<int> v, int e)
-{
-	for (std::vector<int>::iterator it = v.begin(); it != v.end(); it++)
-	{
-		if (*it == e)
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
-bool TopologyMatch::isReversed(std::set<edge> graph, edge det_edge)
-{
-	if (graph.find(det_edge) != graph.end())
-	{
-		return false;
-	}
-	else
-	{
-		int tmp = det_edge.v1;
-		det_edge.v1 = det_edge.v2;
-		det_edge.v2 = tmp;
-		if (graph.find(det_edge) == graph.end())
-		{
-			QCERR("detect edga invalid");
-			throw runtime_error("detect edga invalid");
-		}
-		return true;
-	}
-}
-
-TopologyMatch::TopologyMatch(QuantumMachine * machine, QProg prog, SwapQubitsMethod method, 
-	ArchType arch_type, const std::string conf /*= CONFIG_PATH*/)
+TopologyMatch::TopologyMatch(QuantumMachine* machine, QProg prog,
+	const string conf /*= CONFIG_PATH*/)
 	:m_prog(prog)
 {
 	m_nqubits = machine->getAllocateQubit();
 	m_qvm = machine;
-	buildGraph(arch_type, m_graph, m_positions);
+	buildGraph(m_graph, m_positions);
 
 	if (m_nqubits > m_positions)
 	{
@@ -57,199 +24,50 @@ TopologyMatch::TopologyMatch(QuantumMachine * machine, QProg prog, SwapQubitsMet
 		throw runtime_error("ERROR before mapping: more logical qubits than physical ones!");
 	}
 
-	QuantumMetadata metaData(conf);
-	std::vector<std::string> single_gates_vec, double_gates_vec;
-	metaData.getQGate(single_gates_vec, double_gates_vec);
-	bool b_suppert_swap = false;
-	for (auto gate_name : double_gates_vec)
-	{
-		if (method == ISWAP_GATE_METHOD && gate_name == "ISWAP")
-		{
-			b_suppert_swap = true;
-			break;
-		}
-		else if (method == CZ_GATE_METHOD && gate_name == "CZ")
-		{
-			b_suppert_swap = true;
-			break;
-		}
-		else if (method == CNOT_GATE_METHOD && gate_name == "CNOT")
-		{
-			b_suppert_swap = true;
-			break;
-		}
-		else if (method == SWAP_GATE_METHOD && gate_name == "SWAP")
-		{
-			b_suppert_swap = true;
-			break;
-		}
-	}
-	if (!b_suppert_swap)
-	{
-		QCERR("ERROR swap qubits method is not supported!");
-		throw runtime_error("ERROR swap qubits method is not supported!");
-	}
-
-	m_pTransformSwap = TransformSwapAlgFactory::GetFactoryInstance().CreateByType(method);
-	m_swap_cost = m_pTransformSwap->getSwapCost();
-	m_flip_cost = m_pTransformSwap->getFlipCost();
-
-	std::vector<std::vector<int> > dist;
-	dist = buildDistTable(m_positions, m_graph, m_swap_cost, 4);
-	m_gate_dist_map.insert(make_pair(GateType::CNOT_GATE, dist));
-	dist = buildDistTable(m_positions, m_graph, m_swap_cost, 0);
-	m_gate_dist_map.insert(make_pair(GateType::SWAP_GATE, dist));
-	m_gate_dist_map.insert(make_pair(GateType::CZ_GATE, dist));
-	m_gate_dist_map.insert(make_pair(GateType::ISWAP_GATE, dist));
-	dist = buildDistTable(m_positions, m_graph, m_swap_cost, 2 * m_swap_cost);
-	m_gate_dist_map.insert(make_pair(GateType::CPHASE_GATE, dist));
-	m_gate_dist_map.insert(make_pair(GateType::CU_GATE, dist));
-
-	typedef QGate(*gate_f1)(Qubit*);
-	m_singleGateFunc.insert(make_pair(GateType::PAULI_X_GATE, (gate_f1)X));
-	m_singleGateFunc.insert(make_pair(GateType::PAULI_Y_GATE, (gate_f1)Y));
-	m_singleGateFunc.insert(make_pair(GateType::PAULI_Z_GATE, (gate_f1)Z));
-	m_singleGateFunc.insert(make_pair(GateType::X_HALF_PI, (gate_f1)X1));
-	m_singleGateFunc.insert(make_pair(GateType::Y_HALF_PI, (gate_f1)Y1));
-	m_singleGateFunc.insert(make_pair(GateType::Z_HALF_PI, (gate_f1)Z1));
-	m_singleGateFunc.insert(make_pair(GateType::HADAMARD_GATE, (gate_f1)H));
-	m_singleGateFunc.insert(make_pair(GateType::T_GATE, (gate_f1)T));
-	m_singleGateFunc.insert(make_pair(GateType::S_GATE, (gate_f1)S));
-
-	typedef QGate(*gate_f2)(Qubit*, double);
-	m_singleAngleGateFunc.insert(make_pair(GateType::RX_GATE, (gate_f2)RX));
-	m_singleAngleGateFunc.insert(make_pair(GateType::RY_GATE, (gate_f2)RY));
-	m_singleAngleGateFunc.insert(make_pair(GateType::RZ_GATE, (gate_f2)RZ));
-	m_singleAngleGateFunc.insert(make_pair(GateType::U1_GATE, (gate_f2)U1));
-
-	typedef QGate(*gate_f3)(Qubit*, Qubit*);
-	m_doubleGateFunc.insert(make_pair(GateType::CNOT_GATE, (gate_f3)CNOT));
-	m_doubleGateFunc.insert(make_pair(GateType::CZ_GATE, (gate_f3)CZ));
-	m_doubleGateFunc.insert(make_pair(GateType::ISWAP_GATE, (gate_f3)iSWAP));
-	m_doubleGateFunc.insert(make_pair(GateType::SQISWAP_GATE, (gate_f3)SqiSWAP));
-
-	typedef QGate(*gate_f4)(Qubit*, Qubit*, double);
-	m_doubleAngleGateFunc.insert(make_pair(GateType::CPHASE_GATE, (gate_f4)CR));
+	m_dist = buildDistTable(m_positions, m_graph, m_swap_cost, m_flip_cost);
 }
 
 TopologyMatch::~TopologyMatch()
 {
-	if (nullptr != m_pTransformSwap)
-	{
-		delete m_pTransformSwap;
-		m_pTransformSwap = nullptr;
-	}
 }
 
-void  TopologyMatch::buildGraph(ArchType type, std::set<edge> &graph, size_t &positions)
+
+bool TopologyMatch::isContains(vector<int> v, int e)
 {
-	switch (type)
+	for (auto it = v.begin(); it != v.end(); it++)
 	{
-	case ArchType::IBM_QX5_ARCH:
-	{
-		graph.clear();
-		positions = 16;
-		edge e;
-		e.v1 = 1;
-		e.v2 = 0;
-		graph.insert(e);
-		e.v1 = 1;
-		e.v2 = 2;
-		graph.insert(e);
-		e.v1 = 2;
-		e.v2 = 3;
-		graph.insert(e);
-		e.v1 = 3;
-		e.v2 = 14;
-		graph.insert(e);
-		e.v1 = 3;
-		e.v2 = 4;
-		graph.insert(e);
-		e.v1 = 5;
-		e.v2 = 4;
-		graph.insert(e);
-		e.v1 = 6;
-		e.v2 = 5;
-		graph.insert(e);
-		e.v1 = 6;
-		e.v2 = 11;
-		graph.insert(e);
-		e.v1 = 6;
-		e.v2 = 7;
-		graph.insert(e);
-		e.v1 = 7;
-		e.v2 = 10;
-		graph.insert(e);
-		e.v1 = 8;
-		e.v2 = 7;
-		graph.insert(e);
-		e.v1 = 9;
-		e.v2 = 8;
-		graph.insert(e);
-		e.v1 = 9;
-		e.v2 = 10;
-		graph.insert(e);
-		e.v1 = 11;
-		e.v2 = 10;
-		graph.insert(e);
-		e.v1 = 12;
-		e.v2 = 5;
-		graph.insert(e);
-		e.v1 = 12;
-		e.v2 = 11;
-		graph.insert(e);
-		e.v1 = 12;
-		e.v2 = 13;
-		graph.insert(e);
-		e.v1 = 13;
-		e.v2 = 4;
-		graph.insert(e);
-		e.v1 = 13;
-		e.v2 = 14;
-		graph.insert(e);
-		e.v1 = 15;
-		e.v2 = 0;
-		graph.insert(e);
-		e.v1 = 15;
-		e.v2 = 14;
-		graph.insert(e);
-		e.v1 = 15;
-		e.v2 = 2;
-		graph.insert(e);
+		if (*it == e)
+			return true;
 	}
-	break;
-	case ArchType::ORIGIN_VIRTUAL_ARCH:
+	return false;
+}
+
+void  TopologyMatch::buildGraph(set<edge>& graph, size_t& positions)
+{
+	graph.clear();
+	vector<vector<double>> qubit_matrix;
+	int qubit_num = 0;
+	JsonConfigParam config;
+	config.load_config(CONFIG_PATH);
+	config.getMetadataConfig(qubit_num, qubit_matrix);
+	positions = qubit_num;
+	for (int i = 0; i < positions; i++)
 	{
-		graph.clear();
-		std::vector<std::vector<double>> qubit_matrix;
-		int qubit_num = 0;
-		JsonConfigParam config;
-		config.load_config(CONFIG_PATH);
-		config.getMetadataConfig(qubit_num, qubit_matrix);
-		positions = qubit_num;
-		edge e;
-		for (int i = 0; i < positions; i++)
+		for (int j = 0; j < positions; j++)
 		{
-			for (int j = 0; j < positions; j++)
+			if (qubit_matrix[i][j] > 1e-6)
 			{
-				if (qubit_matrix[i][j] > 1e-6)
-				{
-					e.v1 = i;
-					e.v2 = j;
-					graph.insert(e);
-				}
+				edge e;
+				e.v1 = i;
+				e.v2 = j;
+				graph.insert(e);
 			}
 		}
-
-	}
-	break;
-	default:
-		break;
 	}
 }
 
 //Breadth first search algorithm to determine the shortest paths between two physical qubits
-int TopologyMatch::breadthFirstSearch(int start, int goal, const std::set<edge>& graph, size_t swap_cost, size_t flip_cost)
+int TopologyMatch::breadthFirstSearch(int start, int goal, const set<edge>& graph, size_t swap_cost, size_t flip_cost)
 {
 	queue<vector<int> > queue;
 	vector<int> v;
@@ -258,7 +76,7 @@ int TopologyMatch::breadthFirstSearch(int start, int goal, const std::set<edge>&
 	vector<vector<int> > solutions;
 
 	int length;
-	std::set<int> successors;
+	set<int> successors;
 	while (!queue.empty())
 	{
 		v = queue.front();
@@ -319,9 +137,11 @@ int TopologyMatch::breadthFirstSearch(int start, int goal, const std::set<edge>&
 	return (length - 2) * swap_cost + flip_cost;
 }
 
-std::vector<std::vector<int> > TopologyMatch::buildDistTable(int positions, const std::set<edge> &graph, size_t swap_cost, size_t flip_cost)
+vector<vector<int> >
+TopologyMatch::buildDistTable(int positions,
+	const set<edge>& graph, size_t swap_cost, size_t flip_cost)
 {
-	std::vector<std::vector<int> > dist;
+	vector<vector<int> > dist;
 
 	dist.resize(positions);
 
@@ -345,20 +165,9 @@ std::vector<std::vector<int> > TopologyMatch::buildDistTable(int positions, cons
 	return dist;
 }
 
-std::vector<std::vector<int> > TopologyMatch::getGateDistTable(int gate_type)
-{
-	std::vector<std::vector<int> > dist;
-	auto iter = m_gate_dist_map.find(gate_type);
-	if (iter == m_gate_dist_map.end())
-	{
-		QCERR("no find!");
-		throw runtime_error("no find!");
-	}
-	dist = iter->second;
-	return dist;
-}
 
-void TopologyMatch::createNodeFromBase(node base_node, vector<edge> &swaps, int nswaps, node &new_node)
+void TopologyMatch::createNodeFromBase(node base_node,
+	vector<edge>& swaps, int nswaps, node& new_node)
 {
 	new_node.qubits = base_node.qubits;
 	new_node.locations = base_node.locations;
@@ -399,7 +208,7 @@ void TopologyMatch::createNodeFromBase(node base_node, vector<edge> &swaps, int 
 	new_node.done = 1;
 }
 
-void TopologyMatch::calculateHeurCostForNextLayer(int next_layer, node &new_node)
+void TopologyMatch::calculateHeurCostForNextLayer(int next_layer, node& new_node)
 {
 	new_node.cost_heur2 = 0;
 	if (next_layer != -1)
@@ -408,8 +217,9 @@ void TopologyMatch::calculateHeurCostForNextLayer(int next_layer, node &new_node
 		{
 			if (g.control != -1)
 			{
-				std::vector<std::vector<int> > dist = getGateDistTable(g.type);
-				if (new_node.locations[g.control] == -1 && new_node.locations[g.target] == -1)
+				vector<vector<int> > dist = m_dist;
+				if (new_node.locations[g.control] == -1
+					&& new_node.locations[g.target] == -1)
 				{
 				}
 				else if (new_node.locations[g.control] == -1)
@@ -417,7 +227,8 @@ void TopologyMatch::calculateHeurCostForNextLayer(int next_layer, node &new_node
 					int min = 1000;
 					for (int i = 0; i < new_node.qubits.size(); i++)
 					{
-						if (new_node.qubits[i] == -1 && dist[i][new_node.locations[g.target]] < min)
+						if (new_node.qubits[i] == -1
+							&& dist[i][new_node.locations[g.target]] < min)
 						{
 							min = dist[i][new_node.locations[g.target]];
 						}
@@ -429,7 +240,8 @@ void TopologyMatch::calculateHeurCostForNextLayer(int next_layer, node &new_node
 					int min = 1000;
 					for (int i = 0; i < new_node.qubits.size(); i++)
 					{
-						if (new_node.qubits[i] == -1 && dist[new_node.locations[g.control]][i] < min)
+						if (new_node.qubits[i] == -1
+							&& dist[new_node.locations[g.control]][i] < min)
 						{
 							min = dist[new_node.locations[g.control]][i];
 						}
@@ -438,17 +250,19 @@ void TopologyMatch::calculateHeurCostForNextLayer(int next_layer, node &new_node
 				}
 				else
 				{
-					new_node.cost_heur2 = new_node.cost_heur2 + dist[new_node.locations[g.control]][new_node.locations[g.target]];
+					new_node.cost_heur2 = new_node.cost_heur2 + \
+						dist[new_node.locations[g.control]][new_node.locations[g.target]];
 				}
 			}
 		}
 	}
 }
 
-void TopologyMatch::expandNode(const vector<int>& qubits, int qubit, vector<edge> &swaps, int nswaps,
-	vector<int> &used, node base_node, const vector<gate>& layer_gates, int next_layer)
+void TopologyMatch::expandNode(const vector<int>& qubits, int qubit,
+	vector<edge>& swaps, int nswaps,
+	vector<int>& used, node base_node,
+	const vector<gate>& layer_gates, int next_layer)
 {
-
 	if (qubit == qubits.size())
 	{
 		//base case: insert node into queue
@@ -463,11 +277,13 @@ void TopologyMatch::expandNode(const vector<int>& qubits, int qubit, vector<edge
 		{
 			if (g.control != -1)
 			{
-				std::vector<std::vector<int> > dist = getGateDistTable(g.type);
+				vector<vector<int> > dist = m_dist;
 
-				new_node.cost_heur = new_node.cost_heur + dist[new_node.locations[g.control]][new_node.locations[g.target]];
+				auto n_c = new_node.locations[g.control];
+				auto n_t = new_node.locations[g.target];
+				new_node.cost_heur = new_node.cost_heur + dist[n_c][n_t];
 
-				if (dist[new_node.locations[g.control]][new_node.locations[g.target]] > m_flip_cost)
+				if (dist[n_c][n_t] > m_flip_cost)
 				{
 					new_node.done = 0;
 				}
@@ -481,7 +297,8 @@ void TopologyMatch::expandNode(const vector<int>& qubits, int qubit, vector<edge
 	}
 	else
 	{
-		expandNode(qubits, qubit + 1, swaps, nswaps, used, base_node, layer_gates, next_layer);
+		expandNode(qubits, qubit + 1, swaps, nswaps, \
+			used, base_node, layer_gates, next_layer);
 
 		for (auto e : m_graph)
 		{
@@ -521,7 +338,9 @@ int TopologyMatch::getNextLayer(int layer)
 	return -1;
 }
 
-TopologyMatch::node TopologyMatch::fixLayerByAStar(int layer, std::vector<int> &map, std::vector<int> &loc)
+TopologyMatch::node
+TopologyMatch::fixLayerByAStar(int layer,
+	vector<int>& map, vector<int>& loc)
 {
 	int next_layer = getNextLayer(layer);
 
@@ -532,24 +351,26 @@ TopologyMatch::node TopologyMatch::fixLayerByAStar(int layer, std::vector<int> &
 	n.swaps = vector<vector<edge> >();
 	n.done = 1;
 
-	vector<gate> layer_gates = vector<gate>(m_layers[layer]);
+	vector<gate> layer_gates = m_layers[layer];
 	vector<int> considered_qubits;
 
-	//Find a mapping for all logical qubits in the CNOTs of the layer that are not yet mapped
+	// Find a mapping for all logical qubits 
+	// in the CNOTs of the layer that are not yet mapped
 	for (auto g : layer_gates)
 	{
 		if (g.control != -1)
 		{
-			std::vector<std::vector<int> > dist = getGateDistTable(g.type);
+			vector<vector<int> > dist = m_dist;
 
 			considered_qubits.push_back(g.control);
 			considered_qubits.push_back(g.target);
 			if (loc[g.control] == -1 && loc[g.target] == -1)
 			{
 				set<edge> possible_edges;
-				for (set<edge>::iterator it = m_graph.begin(); it != m_graph.end(); it++)
+				for (auto it = m_graph.begin(); it != m_graph.end(); it++)
 				{
-					if (map[it->v1] == -1 && map[it->v2] == -1) {
+					if (map[it->v1] == -1 && map[it->v2] == -1)
+					{
 						possible_edges.insert(*it);
 					}
 				}
@@ -621,7 +442,8 @@ TopologyMatch::node TopologyMatch::fixLayerByAStar(int layer, std::vector<int> &
 	{
 		node first_node = m_nodes.top();
 		m_nodes.pop();
-		expandNode(considered_qubits, 0, edges, 0, used, first_node, layer_gates, next_layer);
+		expandNode(considered_qubits, 0, edges, 0, \
+			used, first_node, layer_gates, next_layer);
 	}
 
 	node result = m_nodes.top();
@@ -633,9 +455,10 @@ TopologyMatch::node TopologyMatch::fixLayerByAStar(int layer, std::vector<int> &
 	return result;
 }
 
-void TopologyMatch::mappingQProg(QVec &qv, QProg &mapped_prog)
+void TopologyMatch::mappingQProg(QVec& qv, QProg& mapped_prog)
 {
-	traversalQProgToLayers(&m_prog);
+	traversalQProgToLayers();
+
 	vector<int> qubits(m_positions, -1);
 	vector<int> locations(m_nqubits, -1);
 
@@ -660,23 +483,14 @@ void TopologyMatch::mappingQProg(QVec &qv, QProg &mapped_prog)
 			{
 				for (auto e : swaps)
 				{
-					//Insert a dummy SWAP gate to allow for tracking the m_positions of the logical qubits
-					gate gg;
-					if (isReversed(m_graph, e))
-					{
-						gg.control = e.v2;
-						gg.target = e.v1;
-					}
-					else
-					{
-						gg.control = e.v1;
-						gg.target = e.v2;
-					}
-					gg.type = DUMMY_SWAP_GATE;
-					gg.is_dagger = false;
-					gg.is_flip = false;
+					// Insert a dummy SWAP gate to allow for
+					// tracking the m_positions of the logical qubits
+					gate g;
+					g.control = e.v1;
+					g.target = e.v2;
+					g.type = DUMMY_SWAP_GATE;
 
-					all_gates.push_back(gg);
+					all_gates.push_back(g);
 					total_swaps++;
 				}
 			}
@@ -690,7 +504,8 @@ void TopologyMatch::mappingQProg(QVec &qv, QProg &mapped_prog)
 			{
 				if (locations[g.target] == -1)
 				{
-					//handle the case that the qubit is not yet mapped. This happens if the qubit has not yet occurred in a CNOT gate
+					// handle the case that the qubit is not yet mapped. 
+					// this happens if the qubit has not yet occurred in a CNOT gate
 					gate g2 = g;
 					g2.target = -g.target - 1;
 					all_gates.push_back(g2);
@@ -709,15 +524,6 @@ void TopologyMatch::mappingQProg(QVec &qv, QProg &mapped_prog)
 				edge e;
 				e.v1 = g.control;
 				e.v2 = g.target;
-
-				if (isReversed(m_graph, e))	//flip the direction of the CNOT by inserting H gates
-				{
-					g.is_flip = true;
-					int tmp = g.target;
-					g.target = g.control;
-					g.control = tmp;
-				}
-
 				all_gates.push_back(g);
 			}
 		}
@@ -746,7 +552,6 @@ void TopologyMatch::mappingQProg(QVec &qv, QProg &mapped_prog)
 		if (it->target < 0)
 		{
 			int target = -(it->target + 1);
-			it->target = locations[target];
 			if (locations[target] == -1)
 			{
 				//This qubit occurs only in single qubit gates -> it can be mapped to an arbirary physical qubit
@@ -756,28 +561,28 @@ void TopologyMatch::mappingQProg(QVec &qv, QProg &mapped_prog)
 					loc++;
 				}
 				locations[target] = loc;
-
-				it->target = target;
+				qubits[loc] = target;
 			}
+			it->target = locations[target];
 		}
 	}
 
 #if PRINTF_MAPPING_RESULT
-	std::cout << "The mapping results : " << std::endl;
+	cout << "The mapping results : " << endl;
 	for (int i = 0; i < locations.size(); i++)
 	{
 		if (locations[i] != -1)
 		{
-			std::cout << i << " -> " << locations[i] << std::endl;
+			cout << i << " -> " << locations[i] << endl;
 		}
 	}
 
-	std::cout << "Swap qubits : " << std::endl;
+	cout << "Swap qubits : " << endl;
 	for (auto g : all_gates)
 	{
 		if (DUMMY_SWAP_GATE == g.type)
 		{
-			std::cout << g.target << " <-> " << g.control << std::endl;
+			cout << g.target << " <-> " << g.control << endl;
 		}
 	}
 
@@ -786,50 +591,55 @@ void TopologyMatch::mappingQProg(QVec &qv, QProg &mapped_prog)
 	buildResultingQProg(all_gates, locations, qv, mapped_prog);
 }
 
-
-void TopologyMatch::buildResultingQProg(const std::vector<gate> &resulting_gates, std::vector<int> loc, QVec &qv, QProg &prog)
+vector<int> TopologyMatch::getGateQaddrs(const QProgDAGVertex& _v)
 {
-	vector<int> last_layer(m_positions, -1);
-	vector<vector<gate> > mapped_qporg;
-	std::map<int, int> mapping_result;  // ph => QVec id
-	std::vector<std::pair<int, int>>swap_vec;
+	vector<int> qaddrs;
+	for (auto& _q : _v.m_node->m_control_vec)
+		qaddrs.push_back(_q->get_phy_addr());
+
+	for (auto& _q : _v.m_node->m_qubits_vec)
+		qaddrs.push_back(_q->get_phy_addr());
+
+	return qaddrs;
+		}
+
+void TopologyMatch::buildResultingQProg(const vector<gate>& resulting_gates, vector<int> loc, QVec& qv, QProg& prog)
+{
+	map<int, int> mapping_result;  // ph => QVec id
+	vector<pair<int, int>>swap_vec;
 
 	for (auto g : resulting_gates)
 	{
 		if (DUMMY_SWAP_GATE == g.type)
-		{
-			swap_vec.push_back(std::pair<int, int>(g.target, g.control));
-		}
+			swap_vec.push_back(make_pair(g.target, g.control));
 	}
 
 	for (int i = 0; i < loc.size(); i++)
 	{
 		if (loc[i] != -1)
 		{
-			int index = mapping_result.size();
-			mapping_result.insert(std::pair<int, int>(loc[i], index));
+			int idx = mapping_result.size();
+			mapping_result[loc[i]] = idx;
 		}
 	}
 
 	for (auto swap : swap_vec)
 	{
-		auto iter_1 = mapping_result.find(swap.first);
-		if (iter_1 == mapping_result.end())
+		if (mapping_result.find(swap.first) == mapping_result.end())
 		{
-			int index = mapping_result.size();
-			mapping_result.insert(std::pair<int, int>(swap.first, index));
+			int idx = mapping_result.size();
+			mapping_result[swap.first] = idx;
 		}
-		auto iter_2 = mapping_result.find(swap.second);
-		if (iter_2 == mapping_result.end())
+		if (mapping_result.find(swap.second) == mapping_result.end())
 		{
-			int index = mapping_result.size();
-			mapping_result.insert(std::pair<int, int>(swap.second, index));
+			int idx = mapping_result.size();
+			mapping_result[swap.second] = idx;
 		}
 	}
 
-	for (auto swap : swap_vec)
+	for (auto it : swap_vec)
 	{
-		std::swap(mapping_result[swap.first], mapping_result[swap.second]);
+		swap(mapping_result[it.first], mapping_result[it.second]);
 	}
 
 	loc.resize(mapping_result.size());
@@ -838,488 +648,158 @@ void TopologyMatch::buildResultingQProg(const std::vector<gate> &resulting_gates
 		loc[map.second] = map.first;
 	}
 
-	QVec q;
+	qv.clear();
 	for (int i = 0; i < loc.size(); i++)
 	{
-		q.push_back(m_qvm->allocateQubitThroughPhyAddress(loc[i]));
+		qv.push_back(m_qvm->allocateQubitThroughPhyAddress(loc[i]));
 	}
-	qv = q;
 
+	map<int, QVec> barrier_qv_map;
 	for (auto g : resulting_gates)
 	{
+		Qubit* q_ctrl;
+		Qubit* q_tar;
+		if (g.control != -1)
+		{
+			q_ctrl = qv[mapping_result[g.control]];
+		}
+
+		q_tar = qv[mapping_result[g.target]];
+
+		if (g.type == DUMMY_SWAP_GATE)
+		{
+#if 0
+			prog << U3(q_ctrl, PI / 2.0, 0, PI) << CZ(q_ctrl, q_tar) << U3(q_ctrl, PI / 2.0, 0, PI)
+				<< U3(q_tar, PI / 2.0, 0, PI) << CZ(q_tar, q_ctrl) << U3(q_tar, PI / 2.0, 0, PI)
+				<< U3(q_ctrl, PI / 2.0, 0, PI) << CZ(q_ctrl, q_tar) << U3(q_ctrl, PI / 2.0, 0, PI);
+#else
+			prog << SWAP(q_ctrl, q_tar);
+#endif
+
+			continue;
+		}
+
+		auto _v_id = g.vertex_id;
+		auto _v = m_dag->get_vertex(_v_id);
+		vector<int> qaddrs = getGateQaddrs(_v);
+		shared_ptr<QNode> qnode = *(_v.m_node->m_itr);
+
 		if (g.control == -1)
 		{
-			int layer = last_layer[g.target] + 1;
-
-			if (mapped_qporg.size() <= layer)
+			if (_v.m_type == BARRIER_GATE)
 			{
-				mapped_qporg.push_back(vector<gate>());
+				barrier_qv_map[g.barrier_id].push_back(q_tar);
+				if (barrier_qv_map[g.barrier_id].size() == g.barrier_size)
+				{
+					prog << BARRIER(barrier_qv_map[g.barrier_id]);
+				}
 			}
-			mapped_qporg[layer].push_back(g);
-			last_layer[g.target] = layer;
+			else if (_v.m_type == MEASURE)
+			{
+				auto pgate = dynamic_pointer_cast<AbstractQuantumMeasure>(*(_v.m_node->m_itr));
+				auto cbit = pgate->getCBit();
+				prog << Measure(q_tar, cbit);
+			}
+			else
+			{
+				auto pgate = dynamic_pointer_cast<AbstractQGateNode>(*(_v.m_node->m_itr));
+ 				auto g = QGate(pgate);
+				QGate new_gate = deepCopy(g);
+				new_gate.remap({ q_tar });
+				prog << new_gate;
+			}
 		}
 		else
 		{
-			int layer = max(last_layer[g.control], last_layer[g.target]) + 1;
-			if (mapped_qporg.size() <= layer)
+			auto pgate = dynamic_pointer_cast<AbstractQGateNode>(*(_v.m_node->m_itr));
+			auto g = QGate(pgate);
+			QGate new_gate = deepCopy(g);
+			if (_v.m_node->m_control_vec.size() == 1)
 			{
-				mapped_qporg.push_back(vector<gate>());
+				new_gate.clear_control();
+				new_gate.remap({ q_tar });
+				prog << new_gate.control(q_ctrl);
 			}
-			mapped_qporg[layer].push_back(g);
-
-			last_layer[g.target] = layer;
-			last_layer[g.control] = layer;
+			else
+			{
+				new_gate.remap({ q_ctrl, q_tar });
+				prog << new_gate;
+			}
+		}
 		}
 	}
 
-	for (auto layer_gates : mapped_qporg)
+void TopologyMatch::traversalQProgToLayers()
+{
+	if (!m_prog.is_measure_last_pos())
 	{
-		for (auto g : layer_gates)
+		QCERR("measure is not at the end of the circuit!");
+		throw invalid_argument("measure  is not at the end of the circuit!");
+	}
+
+	m_dag = qprog_to_DAG(m_prog);
+	auto top_seq = m_dag->build_topo_sequence();
+	vector<int> top_order;
+	int barrier_id = 0;
+	for (auto& layer_seq : top_seq)
+	{
+		vector<gate> gates;
+		for (auto& seq : layer_seq)
 		{
-			if (g.control != -1)
+			auto _v_id = seq.first.m_vertex_num;
+			auto tmp_qv = getGateQaddrs(m_dag->get_vertex(_v_id));
+			if (m_dag->get_vertex(_v_id).m_type == BARRIER_GATE)
 			{
-				auto iter_c = mapping_result.find(g.control);
-				if (iter_c == mapping_result.end())
+				for (auto& qaddr : tmp_qv)
 				{
-					QCERR("find mapping_result error!");
-					throw invalid_argument("find mapping_result error!");
+					gate g;
+					g.vertex_id = _v_id;
+					g.control = -1;
+					g.target = qaddr;
+					g.barrier_id = barrier_id;
+					g.barrier_size = tmp_qv.size();
+					gates.push_back(g);
 				}
-				g.control = iter_c->second;
+				barrier_id++;
 			}
-
-			auto iter_t = mapping_result.find(g.target);
-			if (iter_t == mapping_result.end())
+			else
 			{
-				QCERR("find mapping_result error!");
-				throw invalid_argument("find mapping_result error!");
-			}
-			g.target = iter_t->second;
-
-
-			switch (g.type)
-			{
-			case DUMMY_SWAP_GATE:
-				m_pTransformSwap->transform(q[g.control], q[g.target], prog);
-				break;
-			case GateType::PAULI_X_GATE:
-			case GateType::PAULI_Y_GATE:
-			case GateType::PAULI_Z_GATE:
-			case GateType::X_HALF_PI:
-			case GateType::Y_HALF_PI:
-			case GateType::Z_HALF_PI:
-			case GateType::HADAMARD_GATE:
-			case GateType::T_GATE:
-			case GateType::S_GATE:
-			{
-				auto iter = m_singleGateFunc.find(g.type);
-				if (m_singleGateFunc.end() == iter)
+				gate g;
+				g.vertex_id = _v_id;
+				if (tmp_qv.size() == 2)
 				{
-					QCERR("unsupported QGate");
-					throw invalid_argument("unsupported QGate");
+					g.control = tmp_qv[0];
+					g.target = tmp_qv[1];
 				}
-
-				QGate single_gate = iter->second(q[g.target]);
-				single_gate.setDagger(g.is_dagger);
-				prog << single_gate;
-
-			}
-			break;
-
-			case GateType::RX_GATE:
-			case GateType::RY_GATE:
-			case GateType::RZ_GATE:
-			case GateType::U1_GATE:
-			{
-				auto iter = m_singleAngleGateFunc.find(g.type);
-				if (m_singleAngleGateFunc.end() == iter)
+				else if (tmp_qv.size() == 1)
 				{
-					QCERR("unsupported QGate");
-					throw invalid_argument("unsupported QGate");
-				}
-				double angle = g.param[0];
-				QGate single_angle_gate = iter->second(q[g.target], angle);
-				single_angle_gate.setDagger(g.is_dagger);
-				prog << single_angle_gate;
-			}
-			break;
-
-			case GateType::CNOT_GATE:
-			{
-				QGate cnot_gate = CNOT(q[g.control], q[g.target]);
-				cnot_gate.setDagger(g.is_dagger);
-				if (g.is_flip)
-				{
-					prog << H(q[g.target])
-						<< H(q[g.control])
-						<< cnot_gate
-						<< H(q[g.control])
-						<< H(q[g.target]);
+					g.control = -1;
+					g.target = tmp_qv[0];
 				}
 				else
 				{
-					prog << cnot_gate;
+					QCERR("qubits size error!");
+					throw invalid_argument("qubits size error!");
 				}
-			}
-			break;
-
-			case GateType::SWAP_GATE:
-				m_pTransformSwap->transform(q[g.control], q[g.target], prog);
-				break;
-			case GateType::CZ_GATE:
-			case GateType::ISWAP_GATE:
-			case GateType::SQISWAP_GATE:
-			{
-				auto iter = m_doubleGateFunc.find(g.type);
-				if (m_doubleGateFunc.end() == iter)
-				{
-					QCERR("unsupported QGate");
-					throw invalid_argument("unsupported QGate");
-				}
-				QGate double_gate = iter->second(q[g.control], q[g.target]);
-				double_gate.setDagger(g.is_dagger);
-				prog << double_gate;
-			}
-			break;
-			case GateType::CPHASE_GATE:
-			{
-				auto iter = m_doubleAngleGateFunc.find(g.type);
-				if (m_doubleAngleGateFunc.end() == iter)
-				{
-					QCERR("unsupported QGate");
-					throw invalid_argument("unsupported QGate");
-				}
-				double angle = g.param[0];
-				QGate cr_gate = iter->second(q[g.control], q[g.target], angle);
-				cr_gate.setDagger(g.is_dagger);
-
-				if (g.is_flip)
-				{
-					m_pTransformSwap->transform(q[g.control], q[g.target], prog);
-					prog << cr_gate;
-					m_pTransformSwap->transform(q[g.control], q[g.target], prog);
-				}
-				else
-				{
-					prog << cr_gate;
-				}
-			}
-			break;
-			case  GateType::CU_GATE:
-			{
-				QGate cu_gate = CU(g.param[0], g.param[1], g.param[2], g.param[3], q[g.control], q[g.target]);
-				cu_gate.setDagger(g.is_dagger);
-				if (g.is_flip)
-				{
-					m_pTransformSwap->transform(q[g.control], q[g.target], prog);
-					prog << cu_gate;
-					m_pTransformSwap->transform(q[g.control], q[g.target], prog);
-				}
-				else
-				{
-					prog << cu_gate;
-				}
-			}
-			break;
-			case  GateType::U2_GATE:
-			{
-				QGate u2_gate = U2(q[g.target], g.param[0], g.param[1]);
-				u2_gate.setDagger(g.is_dagger);
-				prog << u2_gate;
-			}
-			break;
-			case  GateType::U3_GATE:
-			{
-				QGate u3_gate = U3(q[g.target], g.param[0], g.param[1], g.param[2]);
-				u3_gate.setDagger(g.is_dagger);
-				prog << u3_gate;
-			}
-			break;
-			case  GateType::U4_GATE:
-			{
-				QGate u4_gate = U4(g.param[0], g.param[1], g.param[2], g.param[3], q[g.target]);
-				u4_gate.setDagger(g.is_dagger);
-				prog << u4_gate;
-			}
-			break;
-			default:
-			{
-				QCERR("error! unsupported QGate");
-				throw invalid_argument("error! unsupported QGate");
-			}
-			break;
+				gates.push_back(g);
 			}
 		}
+		m_layers.push_back(gates);
 	}
 }
 
-void TopologyMatch::traversalQProgToLayers(QProg *prog)
-{
-	if (nullptr == prog)
-	{
-		QCERR("p_prog is null");
-		throw runtime_error("p_prog is null");
-		return;
-	}
-
-	m_last_layer.resize(m_nqubits, -1);
-
-	bool isDagger = false;
-	execute(prog->getImplementationPtr(), nullptr, isDagger);
-}
-
-void TopologyMatch::execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node, bool &is_dagger)
-{
-	QVec qgate_ctrl_qubits;
-	cur_node->getControlVector(qgate_ctrl_qubits);
-	if (!qgate_ctrl_qubits.empty())
-	{
-		QCERR("control qubits in qgate are not supported!");
-		throw invalid_argument("control qubits in qgate are not supported!");
-	}
-
-	gate g;
-	QVec qv;
-	int layer;
-	cur_node->getQuBitVector(qv);
-	auto type = cur_node->getQGate()->getGateType();
-
-	g.type = type;
-	g.is_dagger = cur_node->isDagger() ^ is_dagger;
-	g.is_flip = false;
-	switch (type)
-	{
-	case GateType::PAULI_X_GATE:
-	case GateType::PAULI_Y_GATE:
-	case GateType::PAULI_Z_GATE:
-	case GateType::X_HALF_PI:
-	case GateType::Y_HALF_PI:
-	case GateType::Z_HALF_PI:
-	case GateType::HADAMARD_GATE:
-	case GateType::T_GATE:
-	case GateType::S_GATE:
-	{
-		g.control = -1;
-		g.target = qv[0]->getPhysicalQubitPtr()->getQubitAddr();
-
-		layer = m_last_layer[g.target] + 1;
-		m_last_layer[g.target] = layer;
-	}
-	break;
-
-	case GateType::RX_GATE:
-	case GateType::RY_GATE:
-	case GateType::RZ_GATE:
-	case GateType::U1_GATE:
-	{
-		g.control = -1;
-		g.target = qv[0]->getPhysicalQubitPtr()->getQubitAddr();
-
-		auto gate_parameter = dynamic_cast<AbstractSingleAngleParameter*>(cur_node->getQGate());
-		double angle = gate_parameter->getParameter();
-		g.param.push_back(angle);
-
-		layer = m_last_layer[g.target] + 1;
-		m_last_layer[g.target] = layer;
-	}
-	break;
-
-	case GateType::CNOT_GATE:
-	case GateType::CZ_GATE:
-	case GateType::ISWAP_GATE:
-	case GateType::SWAP_GATE:
-	{
-		g.control = qv[0]->getPhysicalQubitPtr()->getQubitAddr();
-		g.target = qv[1]->getPhysicalQubitPtr()->getQubitAddr();
-
-		layer = max(m_last_layer[g.target], m_last_layer[g.control]) + 1;
-		m_last_layer[g.target] = m_last_layer[g.control] = layer;
-	}
-	break;
-	case GateType::CPHASE_GATE:
-	{
-		g.control = qv[0]->getPhysicalQubitPtr()->getQubitAddr();
-		g.target = qv[1]->getPhysicalQubitPtr()->getQubitAddr();
-
-		auto gate_parameter = dynamic_cast<AbstractSingleAngleParameter*>(cur_node->getQGate());
-		double angle = gate_parameter->getParameter();
-		g.param.push_back(angle);
-
-		layer = max(m_last_layer[g.target], m_last_layer[g.control]) + 1;
-		m_last_layer[g.target] = m_last_layer[g.control] = layer;
-	}
-	break;
-	case GateType::U2_GATE:
-	{
-		g.control = -1;
-		g.target = qv[0]->getPhysicalQubitPtr()->getQubitAddr();
-		QGATE_SPACE::U2 *u2_gate = dynamic_cast<QGATE_SPACE::U2*>(cur_node->getQGate());
-		double phi = u2_gate->get_phi();
-		double lam = u2_gate->get_lambda();
-
-		g.param.push_back(phi);
-		g.param.push_back(lam);
-
-		layer = m_last_layer[g.target] + 1;
-		m_last_layer[g.target] = layer;
-	}
-	break;
-	case GateType::U3_GATE:
-	{
-		g.control = -1;
-		g.target = qv[0]->getPhysicalQubitPtr()->getQubitAddr();
-		QGATE_SPACE::U3 *u3_gate = dynamic_cast<QGATE_SPACE::U3*>(cur_node->getQGate());
-		double theta = u3_gate->get_theta();
-		double phi = u3_gate->get_phi();
-		double lam = u3_gate->get_lambda();
-		g.param.push_back(theta);
-		g.param.push_back(phi);
-		g.param.push_back(lam);
-
-		layer = m_last_layer[g.target] + 1;
-		m_last_layer[g.target] = layer;
-	}
-	break;
-	case GateType::U4_GATE:
-	{
-		g.control = -1;
-		g.target = qv[0]->getPhysicalQubitPtr()->getQubitAddr();
-
-		auto angle = dynamic_cast<AbstractAngleParameter *>(cur_node->getQGate());
-
-		double alpha = angle->getAlpha();
-		double beta = angle->getBeta();
-		double gamma = angle->getGamma();
-		double delta = angle->getDelta();
-
-		g.param.push_back(alpha);
-		g.param.push_back(beta);
-		g.param.push_back(gamma);
-		g.param.push_back(delta);
-
-		layer = m_last_layer[g.target] + 1;
-		m_last_layer[g.target] = layer;
-	}
-	break;
-	case GateType::CU_GATE:
-	{
-		g.control = qv[0]->getPhysicalQubitPtr()->getQubitAddr();
-		g.target = qv[1]->getPhysicalQubitPtr()->getQubitAddr();
-
-		auto angle = dynamic_cast<AbstractAngleParameter *>(cur_node->getQGate());
-
-		double alpha = angle->getAlpha();
-		double beta = angle->getBeta();
-		double gamma = angle->getGamma();
-		double delta = angle->getDelta();
-
-		g.param.push_back(alpha);
-		g.param.push_back(beta);
-		g.param.push_back(gamma);
-		g.param.push_back(delta);
-
-		layer = max(m_last_layer[g.target], m_last_layer[g.control]) + 1;
-		m_last_layer[g.target] = m_last_layer[g.control] = layer;
-	}
-	break;
-	default:
-		break;
-	}
-
-	if (m_layers.size() <= layer)
-	{
-		m_layers.push_back(vector<gate>());
-	}
-	m_layers[layer].push_back(g);
-
-}
-
-void TopologyMatch::execute(std::shared_ptr<AbstractQuantumProgram>  cur_node, std::shared_ptr<QNode> parent_node, bool &is_dagger)
-{
-	Traversal::traversal(cur_node, *this, is_dagger);
-}
-
-void TopologyMatch::execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std::shared_ptr<QNode> parent_node, bool &is_dagger)
-{
-	QVec circuit_ctrl_qubits;
-	cur_node->getControlVector(circuit_ctrl_qubits);
-	if (!circuit_ctrl_qubits.empty())
-	{
-		QCERR("control qubits in circuit are not supported!");
-		throw invalid_argument("control qubits in circuit are not supported!");
-	}
-
-	auto pNode = std::dynamic_pointer_cast<QNode>(cur_node);
-	if (nullptr == pNode)
-	{
-		QCERR("Unknown internal error");
-		throw std::runtime_error("Unknown internal error");
-	}
-
-	bool bDagger = cur_node->isDagger() ^ is_dagger;
-
-	if (bDagger)
-	{
-		auto aiter = cur_node->getLastNodeIter();
-		if (nullptr == *aiter)
-			return;
-
-		while (aiter != cur_node->getHeadNodeIter())
-		{
-			if (aiter == nullptr)
-				break;
-
-			Traversal::traversalByType(*aiter, pNode, *this, bDagger);
-			--aiter;
-		}
-	}
-	else
-	{
-		auto aiter = cur_node->getFirstNodeIter();
-		while (aiter != cur_node->getEndNodeIter())
-		{
-			auto next = aiter.getNextIter();
-			Traversal::traversalByType(*aiter, pNode, *this, bDagger);
-			aiter = next;
-		}
-	}
-}
-
-void TopologyMatch::execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, std::shared_ptr<QNode> parent_node, bool &is_dagger)
-{
-	QCERR("transform error, there shouldn't be quantum measure node here.");
-	throw invalid_argument("transform error, there shouldn't be quantum measure node here.");
-}
-
-void TopologyMatch::execute(std::shared_ptr<AbstractQuantumReset> cur_node, std::shared_ptr<QNode> parent_node, bool &is_dagger)
-{
-	QCERR("transform error, there shouldn't be quantum reset node here.");
-	throw invalid_argument("transform error, there shouldn't be quantum reset node here.");
-}
-
-void TopologyMatch::execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node, bool &is_dagger)
-{
-	QCERR("transform error, there shouldn't be control flow node here.");
-	throw invalid_argument("transform error, there shouldn't be control flow node here.");
-}
-
-void TopologyMatch::execute(std::shared_ptr<AbstractClassicalProg>  cur_node, std::shared_ptr<QNode> parent_node, bool &is_dagger)
-{
-	QCERR("transform error, there shouldn't be classicalProg here.");
-	throw invalid_argument("transform error, there shouldn't be classicalProg here.");
-}
-
-
-QProg QPanda::topology_match(QProg prog, QVec &qv, QuantumMachine * machine, SwapQubitsMethod method, 
-	ArchType arch_type, const std::string& conf /*= CONFIG_PATH*/)
+QProg QPanda::topology_match(QProg prog, QVec& qv, QuantumMachine* machine,
+	const string& conf /*= CONFIG_PATH*/)
 {
 	if (nullptr == machine)
 	{
 		QCERR("Quantum machine is nullptr");
-		throw std::invalid_argument("Quantum machine is nullptr");
+		throw invalid_argument("Quantum machine is nullptr");
 	}
 
-	QProg outprog;
-	TopologyMatch match = TopologyMatch(machine, prog, method, arch_type, conf);
-	match.mappingQProg(qv, outprog);
-	return outprog;
+	QProg mapped_prog;
+	TopologyMatch match = TopologyMatch(machine, prog, conf);
+	match.mappingQProg(qv, mapped_prog);
+
+	return mapped_prog;
 }

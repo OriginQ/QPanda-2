@@ -177,7 +177,7 @@ std::shared_ptr<QProg> QProgDAG::dag_to_qprog() {
 		auto k = topo_queue.front();
 		auto& vertex = m_vertex_vec[k];
 		bool measure_find = false;
-		if (vertex.m_type != GateType::GATE_UNDEFINED) {
+		if (vertex.m_type != DAGNodeType::MEASURE) {
 			auto p_gate = std::dynamic_pointer_cast<AbstractQGateNode>(*(vertex.m_node->m_itr));
 			QVec qubit_vec = vertex.m_node->m_qubits_vec;
 			QVec control_vec;

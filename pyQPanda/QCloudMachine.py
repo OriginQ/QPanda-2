@@ -319,68 +319,36 @@ def graph_match_fun():
 
 def QCloud_fun():
 
+    PI = 3.1416
+
     QCM = QCloud()
-    # QCM.init_qvm("C40A08F3D461481D829559EE7CCAA359")
-    QCM.init_qvm("C60FBD87EF084DBA820945D052218AA8", True)
+    QCM.init_qvm("E02BB115D5294012AA88D4BE82603984", True)
 
-    # QCM.init_qvm("3B9379860FA349C5904C32EFAC39435D")
+    q = QCM.qAlloc_many(6)
+    c = QCM.cAlloc_many(6)
 
-    # QCM.set_compute_api(
-    #     "https://qcloud.qubitonline.cn/api/taskApi/submitTask.json")
-    # QCM.set_inqure_api(
-    #     "https://qcloud.qubitonline.cn/api/taskApi/getTaskDetail.json")
-
-    # QCM.set_compute_api(
-    #     "10.10.10.197:8060/api/taskApi/submitTask.json")
-    # QCM.set_inqure_api(
-    #     "10.10.10.197:8060/api/taskApi/getTaskDetail.json")
-
-    qlist = QCM.qAlloc_many(6)
-    clist = QCM.cAlloc_many(6)
-
-    measure_prog = QProg()
-    measure_prog.insert(hadamard_circuit(qlist))\
-                .insert(Measure(qlist[0], clist[0]))
-
-    pmeasure_prog = QProg()
-    pmeasure_prog.insert(hadamard_circuit(qlist))\
-                 .insert(CZ(qlist[1], qlist[5]))\
-                 .insert(RX(qlist[2], PI / 4))\
-                 .insert(RX(qlist[1], PI / 4))
-
-    # result0 = QCM.full_amplitude_measure(measure_prog, 100)
-    # print(result0)
-    # print("full_amplitude_measure pass !")
-
-    # result1 = QCM.full_amplitude_pmeasure(pmeasure_prog, [0, 1, 2])
-    # print(result1)
-    # print("full_amplitude_pmeasure pass !")
-
-    # result2 = QCM.partial_amplitude_pmeasure(pmeasure_prog, ["0", "1", "2"])
-    # print(result2)
-    # print("partial_amplitude_pmeasure pass !")
-
-    # result3 = QCM.single_amplitude_pmeasure(pmeasure_prog, "0")
-    # print(result3)
-    # print("single_amplitude_pmeasure pass !")
-
-    # QCM.set_noise_model(NoiseModel.BIT_PHASE_FLIP_OPRATOR, [0.01], [0.02])
-    # result4 = QCM.noise_measure(measure_prog, 100)
-    # print(result4)
-    # print("noise_measure pass !")
+    prog = QProg()
+    prog << hadamard_circuit(q)\
+        << RX(q[1], PI / 4)\
+        << RX(q[2], PI / 4)\
+        << RX(q[1], PI / 4)\
+        << CZ(q[0], q[1])\
+        << CZ(q[1], q[2])\
+        << Measure(q[0], c[0])\
+        << Measure(q[1], c[1])
 
     result5 = QCM.real_chip_measure(
-        measure_prog, 1000, real_chip_type.origin_wuyuan_d4)
+        prog, 1000, real_chip_type.origin_wuyuan_d4)
     print(result5)
     print("real_chip_measure pass !")
 
     result6 = QCM.get_state_tomography_density(
-        measure_prog, 1000, real_chip_type.origin_wuyuan_d4)
+        prog, 1000, real_chip_type.origin_wuyuan_d4)
     print(result6)
     print("get_state_tomography_density !")
 
     result6 = QCM.get_state_fidelity(
-        measure_prog, 1000, real_chip_type.origin_wuyuan_d4)
+        prog, 1000, real_chip_type.origin_wuyuan_d4)
     print(result6)
     print("get_state_fidelity !")
 
@@ -390,7 +358,9 @@ def QCloud_fun():
 def Cluster_Cloud():
 
     QCM = QCloud()
-    QCM.initQVM()
+    QCM.init_qvm("E02BB115D5294012AA88D4BE82603984", True)
+
+    QCM.set_qcloud_api("https://qcloud.originqc.com.cn")
 
     qlist = QCM.qAlloc_many(10)
     clist = QCM.cAlloc_many(10)
@@ -399,13 +369,20 @@ def Cluster_Cloud():
     prog.insert(H(qlist[0]))\
         .insert(Measure(qlist[0], clist[0]))
 
-    # task = QCM.full_amplitude_measure(prog, 100)
-    # print(task)
+    task = QCM.full_amplitude_measure(prog, 100, "123")
+    print(task)
 
-    # time.sleep(3)
-    result = QCM.get_cluster_result(
-        ClusterMachineType.Full_AMPLITUDE, "2001061726139435101012920")
-    # result = QCM.get_cluster_result(0, "2001061726139435101012920")
+    prog1 = QProg()
+    prog1.insert(H(qlist[0]))
+
+    task2 = QCM.full_amplitude_pmeasure(prog1, [0, 1, 2], "123")
+    print(task2)
+
+    task3 = QCM.single_amplitude_pmeasure(prog1, "1", "123")
+    print(task3)
+
+    task4 = QCM.partial_amplitude_pmeasure(prog1, ["1"], "123")
+    print(task4)
 
     QCM.finalize()
 
@@ -608,12 +585,12 @@ def plot_bloch_vectors():
 
 if __name__ == "__main__":
 
-    QCloud_fun()
+    # partialAmp_fun()
     # MPS_fun()
     # cpu_qvm_fun()
     # singleAmp_fun()
     # partialAmp_fun()
-    # Cluster_Cloud()
+    Cluster_Cloud()
     # graph_match_fun()
     # noise_fun()
     # jkuqvm_fun()

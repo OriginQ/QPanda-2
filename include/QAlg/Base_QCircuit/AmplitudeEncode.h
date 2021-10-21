@@ -2,27 +2,261 @@
 Copyright (c) 2017-2020 Origin Quantum Computing. All Right Reserved.
 Licensed under the Apache License 2.0
 
-amplitude encode
+encode 
 
-Author: XueCheng
+Author: Zoutianrui
 */
 
 #ifndef  AMPLITUDE_ENCODE_H
 #define  AMPLITUDE_ENCODE_H
 
 #include "Core/Core.h"
-
+#include <complex>
 QPANDA_BEGIN
 
+
+
+
+class StateNode{
+public:
+	int index;
+	int level;
+	double amplitude;
+	StateNode* left;
+	StateNode* right;
+	StateNode(int out_index, int out_level, double out_amplitude, StateNode* out_left, StateNode* out_right);
+};
+class NodeAngleTree {
+
+public:
+	int index;
+	int level;
+	int qubit_index;
+	double angle;
+	NodeAngleTree* left;
+	NodeAngleTree* right;
+	NodeAngleTree(int out_index, int out_level, int out_qubit_index,double out_angle, NodeAngleTree* out_left, NodeAngleTree* out_right);
+};
+
+/**
+* @brief Encode Class
+* @ingroup quantum Algorithm
+*/
+class Encode {
+public:
+	Encode();
 /**
 * @brief  amplitude encode
-* @ingroup quantum Algorithm
-* @param[in] QVec& Available qubits
-* @param[in] std::vector<double>& the target datas which will be encoded to the quantum state
-* @param[in] const bool Whether to carry out normalization verification
-* @return the encoded circuit
+* @ingroup quantum Algorithm.
+* @param[in] QVec& Available qubits.
+* @param[in] std::vector<double>& the target datas which will be encoded to the quantum state.
 * @note The coding data must meet normalization conditions.
 */
+	void amplitude_encode(QVec &q, const std::vector<double>& data);
+
+	void amplitude_encode(QVec &q, const std::vector<complex<double>>& data);
+
+	void amplitude_encode_recursive(QVec &q, const std::vector<double>& data);
+
+	void amplitude_encode_recursive(QVec qubits, const QStat& full_cur_vec);
+
+/**
+* @brief  angle encode
+* @ingroup quantum Algorithm.
+* @param[in] QVec& Available qubits.
+* @param[in] std::vector<double>& the target datas which will be encoded to the quantum state angle.
+* @param[in] GateType gate_type gate types used in circuit.
+* @note The coding data must meet [0,PI].
+* @note This concrete implementation is from https://arxiv.org/pdf/2003.01695.pdf.
+*/
+	void angle_encode(QVec &q, const std::vector<double>& data, const GateType& gate_type=GateType::RY_GATE);
+
+/**
+* @brief  dense angle encode
+* @ingroup quantum Algorithm.
+* @param[in] QVec& Available qubits.
+* @param[in] std::vector<double>& the target datas which will be encoded to the quantum state angle and phase.
+* @note The coding data must meet [0,PI].
+* @note The algorithm is implemented using U3 gates, and each gate is loaded with two data, theta, phi respectively.
+* @note This concrete implementation is from https://arxiv.org/pdf/2003.01695.pdf.
+*/
+	void dense_angle_encode(QVec &q, const std::vector<double>& data);
+
+/**
+* @brief divide conquer amplitude encode
+* @ingroup quantum Algorithm.
+* @param[in] QVec& Available qubits.
+* @param[in] std::vector<double>& the target datas which will be encoded to the quantum state.
+* @note The coding data must meet normalization conditions.
+* @note The algorithm is implemented using CSWAP gates and data.size-1 qubits, effectively reducing the depth of quantum circuits.
+* @note This concrete implementation is from https://arxiv.org/pdf/2008.01511.pdf.
+*/
+	void dc_amplitude_encode(QVec &q, const std::vector<double>& data);
+
+/**
+* @brief  basic encode
+* @ingroup quantum Algorithm.
+* @param[in] QVec& Available qubits.
+* @param[in] std::string& the target datas which will be encoded to the quantum state.
+* @note The coding data must meet binary string.
+* @note It converts a binary string x of length n into a quantum state with n qubits.
+*/
+	void basic_encode(QVec &q,const std::string& data);
+
+/**
+* @brief  bidirectional amplitude encode
+* @ingroup quantum Algorithm.
+* @param[in] QVec& Available qubits.
+* @param[in] std::vector<double>& the target datas which will be encoded to the quantum state.
+* @param[in] int spilit which is the level of the angle tree.
+* @note The coding data must meet normalization conditions.
+* @note The algorithm is implemented using top_down and bottom_up method to generate circuit.
+* @note The depth and width of the quantum circuit can be adjusted through the spilit parameter.
+* @note This concrete implementation is from https://arxiv.org/pdf/2108.10182.pdf.
+*/
+	void bid_amplitude_encode(QVec &q, const std::vector<double>& data, const int split=0);
+
+/**
+* @brief  instantaneous quantum polynomial style encoding
+* @ingroup quantum Algorithm.
+* @param[in] QVec& Available qubits.
+* @param[in] std::vector<double>& the target datas which will be encoded to the quantum state.
+* @param[in] std::vector<std::pair<int, int>>control_vector which is entanglement of qubits.
+* @param[in] bool inverse, whether the added is the inverse circuit of the encoding circuit, the default is ``False``, that is, adding a normal encoding circuit.
+* @param[in] int repeats, number of coding layers.
+* @param[in] GateType gate_type gate types used in circuit.
+* @note Encode the input classical data using IQP encoding.
+* @note This concrete implementation is from https://arxiv.org/pdf/1804.11326.pdf.
+*/
+	void iqp_encode(QVec &q, const std::vector<double>& data, const std::vector<std::pair<int, int>>& control_vector = {},
+		            const bool& inverse=false, const int& repeats = 1);
+
+/**
+* @brief  double sparse quantum state preparation
+* @ingroup quantum Algorithm.
+* @param[in] QVec& Available qubits.
+* @param[in] std::map<std::string, double>& or std::map<std::string, std::complex<double>> a unit vector representing a quantum state,
+* Keys are binary strings and values are amplitudes.
+* @note The data must meet normalization conditions.
+* @note The algorithm can prepare the corresponding quantum state according to the input data.
+* @note This concrete implementation is from https://arxiv.org/pdf/2108.13527.pdf.
+*/
+
+	void ds_quantum_state_preparation(QVec &q, const std::map<std::string, double>&);
+
+	void ds_quantum_state_preparation(QVec &q, const std::map<std::string, std::complex<double>>&);
+
+/**
+* @brief sparse isometries quantum state preparation
+* @ingroup quantum Algorithm.
+* @param[in] QVec& Available qubits.
+* @param[in] std::map<std::string, double>& or std::map<std::string, std::complex<double>> a unit vector representing a quantum state,
+* Keys are binary strings and values are amplitudes.
+* @note The data must meet normalization conditions.
+* @note The algorithm can prepare the corresponding quantum state according to the input data without auxiliary  quantum bits.
+* @note This concrete implementation is from https://arxiv.org/pdf/2006.00016.pdf.
+*/
+	void sparse_isometry(QVec &q, const std::map<std::string, double>&);
+	void sparse_isometry(QVec &q, const std::map<std::string, complex<double>>&);
+
+/**
+* @brief schmidt decomposition encode
+* @ingroup quantum Algorithm.
+* @param[in] QVec& Available qubits.
+* @param[in] std::vector<double>& or std::vector<complex<double>>&the target datas which will be encoded to the quantum state.
+* @note The coding data must meet normalization conditions.
+* @note This concrete implementation is from https://arxiv.org/pdf/2107.09155.pdf.
+*/
+	void schmidt_encode(QVec &q, const std::vector<double>& data);
+
+/**
+* @brief  get the corresponding quantum circuit
+*/
+	QCircuit get_circuit();
+
+/**
+* @brief  get qubits loaded with classical data
+*/
+
+	QVec get_out_qubits();
+
+/**
+* @brief  get the corresponding normalization parameters
+*/
+
+	double get_normalization_constant();
+
+protected:
+	void _generate_circuit(std::vector<std::vector<double>> &betas, QVec &quantum_input);
+
+	void _recursive_compute_beta(const std::vector<double>&input_vector, std::vector<std::vector<double>>&betas,int count);
+
+	QCircuit _recursive_compute_beta(const QVec& q, const std::vector<double>&data);
+
+	void _index(const int value, QVec control_qubits, const int numberof_controls);
+
+	void _dc_generate_circuit(std::vector<std::vector<double>> &betas, QVec &quantum_input, const int cnt);
+
+	StateNode* _state_decomposition(int nqubits, std::vector<double>data);
+
+	NodeAngleTree* _create_angles_tree(StateNode* state_tree);
+
+	void _add_register(NodeAngleTree *angle_tree, int start_level);
+
+	void _add_registers(NodeAngleTree* angle_tree, std::queue<int>&q, int start_level);
+
+	void _top_down_tree_walk(NodeAngleTree* angle_tree, QVec q, int start_level, std::vector<NodeAngleTree*>control_nodes = {}, 
+		                     std::vector<NodeAngleTree*>target_nodes = {});
+
+	void _bottom_up_tree_walk(NodeAngleTree* angle_tree, QVec q, int start_level);
+
+	void _apply_cswaps(NodeAngleTree* angle_tree, QVec q);
+
+	void _output(NodeAngleTree* angletree, QVec q);
+
+	std::vector<NodeAngleTree*> _children(std::vector<NodeAngleTree*> nodes);
+
+	std::vector<int> _select_controls(std::string binary_string);
+
+	void _flip_flop(QVec& q, std::vector<int>control, int numqbits);
+
+	template<typename T>
+	void _load_superposition(QVec& q, std::vector<int>control, int numqubits, T feature, double& norm);
+
+	void _mcuvchain(QVec &q, std::vector<int>control, std::vector<double> angle, int numqbits);
+
+	std::vector<double> _compute_matrix_angles(double feature, double norm);
+
+	std::vector<double> _compute_matrix_angles(std::complex<double> feature, double norm);
+
+	template<typename T>
+	std::string _get_index_nz(std::map<std::string, T>, int);
+
+	template<typename T>
+	std::string _get_index_zero(std::map<std::string, T>, int,int);
+
+	template<typename T>
+	std::map<std::string, T> _next_state(char ctrl_state, int index_differ, std::string index_zero, 
+		     std::vector<int>remain, std::map<std::string, T> state, std::vector<int>target_cx);
+
+	template<typename T>
+	std::map<std::string, T> _pivoting(QCircuit& qcir,QVec &qubits, std::string index_zero, 
+		            std::string index_nonzero, int target_size, std::map<std::string, T> state);
+
+	void _unitary(QVec &q, EigenMatrixXc gate);
+
+	void normalized(std::vector<double>&data);
+
+private:
+
+	QCircuit m_qcircuit;
+
+	QVec m_out_qubits;
+
+	double m_data_std;
+
+};
+
 inline QCircuit amplitude_encode(QVec q, std::vector<double> data, const bool b_need_check_normalization = true)
 {
 	if (b_need_check_normalization)
@@ -129,6 +363,47 @@ inline QCircuit amplitude_encode(QVec q, std::vector<double> data, const bool b_
 	return qcir;
 }
 
+
+inline QCircuit amplitude_encode(QVec qubits, const QStat& full_cur_vec)
+{
+	const auto _dimension = full_cur_vec.size();
+	if (full_cur_vec.size() != _dimension)
+	{
+		QCERR_AND_THROW_ERRSTR(run_fail, "Error: current vector size error on HQRDecompose.");
+	}
+
+	QCircuit cir_swap_qubits;
+	for (size_t i = 0; (i * 2) < (qubits.size() - 1); ++i)
+	{
+		cir_swap_qubits << SWAP(qubits[i], qubits[qubits.size() - 1 - i]);
+	}
+
+	std::vector<double> ui_mod(_dimension);
+	std::vector<double> ui_angle(_dimension);
+	double tatal = 0.0;
+	for (size_t i = 0; i < _dimension; ++i)
+	{
+		auto tmp_m = full_cur_vec[i].real() * full_cur_vec[i].real() + full_cur_vec[i].imag() * full_cur_vec[i].imag();
+		tatal += tmp_m;
+		ui_mod[i] = sqrt(tmp_m);
+		ui_angle[i] = arg(full_cur_vec[i]);
+	}
+
+	QStat mat_d(_dimension * _dimension, qcomplex_t(0, 0));
+	for (size_t i = 0; i < _dimension; ++i)
+	{
+		mat_d[i + i * _dimension] = exp(qcomplex_t(0, ui_angle[i]));
+	}
+
+	QCircuit cir_d = diagonal_matrix_decompose(qubits, mat_d);
+
+	QCircuit cir_y = amplitude_encode(qubits, ui_mod);
+	QCircuit cir_P;
+	cir_P << cir_y << cir_swap_qubits << cir_d << cir_swap_qubits;
+
+	return cir_P;
+}
+
 /**
 * @brief  init superposition state
 * @ingroup quantum Algorithm
@@ -137,6 +412,8 @@ inline QCircuit amplitude_encode(QVec q, std::vector<double> data, const bool b_
 * @return the circuit
 * @note
 */
+
+
 #if 0
 inline QCircuit init_superposition_state(QVec q, size_t d){
 	QCircuit qcir;

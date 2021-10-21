@@ -1,4 +1,4 @@
-﻿#include "Core/Utilities/QProgInfo/Visualization/Draw.h"
+﻿#include "Core/Utilities/QProgInfo/Visualization/DrawTextPic.h"
 #include "Core/Utilities/QProgInfo/Visualization/CharsTransform.h"
 #include "Core/Utilities/Tools/TranformQGateTypeStringAndEnum.h"
 #include <iostream>
@@ -17,7 +17,6 @@ using namespace QGATE_SPACE;
 using namespace DRAW_TEXT_PIC;
 
 #define WIRE_HEAD_LEN 6
-#define OUTPUT_TMP_FILE ("QCircuitTextPic.txt")
 
 #define BOX_RIGHT_CONNECT_CHAR              0XE2949C     /* UNICODE CHAR:    ├    */
 #define BOX_LEFT_CONNECT_CHAR               0XE294A4     /* UNICODE CHAR:    ┤    */
@@ -37,7 +36,10 @@ using namespace DRAW_TEXT_PIC;
 #define DOUBLE_HORIZONTAL_LINE              0XE29590     /* UNICODE CHAR:    ═    */
 #define CROSS_CHAR                          0XE294BC     /* UNICODE CHAR:    ┼    */
 #define DOUBLE_CROSS_CHAR                   0XE295AC     /* UNICODE CHAR:    ╬    */
-#define BLACK_SQUARE_CHAR                   0XE296A0     /* UNICODE CHAR:    ■    */  
+#define BLACK_SQUARE_CHAR                   0XE296A0     /* UNICODE CHAR:    ■    */ 
+//#define BLACK_SQUARE_CHAR                   0XE2978F     /* UNICODE CHAR:    ●    */ 
+//#define BLACK_SQUARE_CHAR                   0X2A         /* UNICODE CHAR:    *    */ 
+//#define BLACK_SQUARE_CHAR                   0X40         /* UNICODE CHAR:    @    */ 
 #define BLACK_PRISMATIC_CHAR                0XE29786     /* UNICODE CHAR:    ◆    */
 #define DOUBLE_LINE_UP_CONNECT_CHAR         0XE295A9     /* UNICODE CHAR:    ╩    */
 #define SINGLE_LINE_ACROSS_DOUBLE_LINE      0XE295AB     /* UNICODE CHAR:    ╫    */
@@ -50,8 +52,8 @@ using namespace DRAW_TEXT_PIC;
 class WriteQCircuitTextFile
 {
 public:
-	static WriteQCircuitTextFile& get_instance() {
-		static WriteQCircuitTextFile _instance;
+	static WriteQCircuitTextFile& get_instance(const std::string& file_name) {
+		static WriteQCircuitTextFile _instance(file_name);
 		return _instance;
 	}
 
@@ -62,7 +64,7 @@ public:
 	void write(const string& outputStr) {
 		if (!m_outfile.is_open())
 		{
-			QCERR("Can NOT open the output file: QCircuitTextPic.txt");
+			QCERR("Can NOT open the output file: " << m_file_name);
 			return;
 		}
 
@@ -76,9 +78,9 @@ public:
 	}
 
 protected:
-	WriteQCircuitTextFile()
-		:m_outfile(ofstream(OUTPUT_TMP_FILE, ios::out | ios::binary))
-		, m_cir_index(0)
+	WriteQCircuitTextFile(const std::string& file_name)
+		:m_outfile(ofstream(file_name, ios::out | ios::binary))
+		, m_cir_index(0), m_file_name(file_name)
 	{}
 
 	void insert_divider_line() { 
@@ -90,6 +92,7 @@ protected:
 private:
 	ofstream m_outfile;
 	uint32_t m_cir_index;
+	std::string m_file_name;
 };
 
 class MeasureTo : public DrawBox
@@ -477,12 +480,10 @@ public:
 private:
 };
 
-DrawPicture::DrawPicture(QProg prog, LayeredTopoSeq& layer_info, uint32_t length)
-	: m_prog(prog)
-	, m_layer_info(layer_info)
+DrawPicture::DrawPicture(const QProg& prog, LayeredTopoSeq& layer_info, uint32_t length)
+	: AbstractDraw(prog, layer_info, length)
 	, m_text_len(0)
 	, m_max_time_sequence(0)
-	, m_wire_length(length)
 {}
 
 void DrawPicture::appendMeasure(std::shared_ptr<AbstractQuantumMeasure> pMeasure)
@@ -1202,7 +1203,7 @@ void DrawPicture::updateTextPicLen()
 	m_text_len = max_len;
 }
 
-string DrawPicture::present(bool b_out_put_to_file /*= false*/)
+string DrawPicture::present(const std::string& file_name)
 {
 	std::string outputStr = "\n";
 	const auto rows = m_quantum_bit_wires.begin()->second.size();
@@ -1221,8 +1222,8 @@ string DrawPicture::present(bool b_out_put_to_file /*= false*/)
 	}
 	
 	/* write to file */
-	if (b_out_put_to_file){
-		WriteQCircuitTextFile::get_instance().write(outputStr);
+	if (file_name.length() > 0){
+		WriteQCircuitTextFile::get_instance(file_name).write(outputStr);
 	}
 
 	return outputStr;

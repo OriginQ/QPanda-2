@@ -42,6 +42,7 @@ enum NodeType
 *  @brief   QPanda2 quantum gate type
 */
 enum GateType {
+	GATE_NOP = -2,
     GATE_UNDEFINED = -1,
     P0_GATE,/**< Quantum p0 gate */
     P1_GATE,/**< Quantum p1 gate */

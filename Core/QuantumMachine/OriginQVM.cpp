@@ -27,7 +27,9 @@ limitations under the License.
 #include "Core/QuantumMachine/QProgExecution.h"
 #include "Core/Utilities/Tools/Uinteger.h"
 #include "Core/QuantumMachine/QProgCheck.h"
+#include "Core/Utilities/QProgInfo/QProgProgress.h"
 #include <set>
+#include <thread>
 
 
 
@@ -462,7 +464,10 @@ void QVM::run(QProg& node)
 		_pGates->initState(0, 1, node.get_max_qubit_addr() + 1);
 
 		QProgExecution prog_exec;
+		_ExecId = uint64_t(&prog_exec);
+		QProgProgress::getInstance().prog_start(_ExecId);
 		prog_exec.execute(node.getImplementationPtr(), nullptr, config, _pGates);
+		QProgProgress::getInstance().prog_end(_ExecId);
 
 		std::map<string, bool>result;
 		prog_exec.get_return_value(result);
@@ -548,6 +553,15 @@ QResult* QVM::getResult()
 
 void QVM::finalize()
 {
+	if (nullptr != _AsyncTask)
+	{	
+		// if( !_AsyncTask->is_finished())
+		// {
+			_AsyncTask->wait();
+		// }
+		delete _AsyncTask;
+	}
+
 	if (nullptr != _Qubit_Pool)
 	{
 		delete _Qubit_Pool;
@@ -578,6 +592,8 @@ void QVM::finalize()
 	_QResult = nullptr;
 	_QMachineStatus = nullptr;
 	_pGates = nullptr;
+	_AsyncTask = nullptr;
+	_ExecId = 0;
 }
 
 size_t QVM::getAllocateQubit()
@@ -1055,6 +1071,26 @@ double QVM::get_expectation(QProg prog, const QHamiltonian& hamiltonian, const Q
 		total_expectation += component.second * expectation;
 	}
 	return total_expectation;
+}
+
+size_t QVM::get_processed_qgate_num()
+{
+	return _AsyncTask->get_process(QProgProgress::getInstance(), _ExecId);
+}
+
+void QVM::async_run(QProg& qProg)
+{
+	_AsyncTask->run(this, qProg);
+}
+
+bool QVM::is_async_finished()
+{
+	return _AsyncTask->is_finished();
+}
+
+std::map<std::string, bool> QVM::get_async_result()
+{
+	return _AsyncTask->result();
 }
 
 static void accumulateProbability(prob_vec& probList, prob_vec& accumulateProb)

@@ -136,24 +136,26 @@ void init_extension_funtion(py::module & m)
         py::return_value_policy::automatic
         );
 
-    m.def("matrix_decompose", [](QVec& qubits, QStat& src_mat, const DecompositionMode mode) {
+    m.def("matrix_decompose", [](QVec& qubits, QStat& src_mat, const DecompositionMode mode, bool b_positive_seq) {
         switch (mode) {
         case DecompositionMode::QR:
-            return matrix_decompose_qr(qubits, src_mat);
-            break;
+            return matrix_decompose_qr(qubits, src_mat, b_positive_seq);
+            //break;
         case DecompositionMode::HOUSEHOLDER_QR:
-            return matrix_decompose_householder(qubits, src_mat);
-            break;
+            return matrix_decompose_householder(qubits, src_mat, b_positive_seq);
+            //break;
         default:
             throw std::runtime_error("Error: DecompositionMode");
         }
-    }, "qubits"_a, "matrix"_a, "mode"_a = DecompositionMode::QR,
+    }, "qubits"_a, "matrix"_a, "mode"_a = DecompositionMode::QR, "b_positive_seq"_a = true,
         "/**\
         * @brief  matrix decomposition\
         * @ingroup Utilities\
         * @param[in]  QVec& the used qubits\
         * @param[in]  QStat& The target matrix\
         * @param[in]  DecompositionMode decomposition mode, default is QR\
+		* @param[in] const bool true for positive sequence(q0q1q2), false for inverted order(q2q1q0), \
+		             default is true\
         * @return    QCircuit The quantum circuit for target matrix\
         * @see DecompositionMode\
         * / ",
@@ -161,10 +163,10 @@ void init_extension_funtion(py::module & m)
         );
 
 #else
-    m.def("matrix_decompose", [](QVec& qubits, QStat& src_mat, const DecompositionMode mode) {
+    m.def("matrix_decompose", [](QVec& qubits, QStat& src_mat, const DecompositionMode mode, bool b_positive_seq) {
         switch (mode) {
         case DecompositionMode::QR:
-            return matrix_decompose_qr(qubits, src_mat);
+            return matrix_decompose_qr(qubits, src_mat, b_positive_seq);
             break;
         case DecompositionMode::HOUSEHOLDER_QR:
             throw std::runtime_error("Error: only QPanda extensions support.");
@@ -172,13 +174,15 @@ void init_extension_funtion(py::module & m)
         default:
             throw std::runtime_error("Error: DecompositionMode");
         }
-    }, "qubits"_a, "matrix"_a, "mode"_a = DecompositionMode::QR,
+    }, "qubits"_a, "matrix"_a, "mode"_a = DecompositionMode::QR, "b_positive_seq"_a = true,
         "/**\
         * @brief  matrix decomposition\
         * @ingroup Utilities\
         * @param[in]  QVec& the used qubits\
         * @param[in]  QStat& The target matrix\
         * @param[in]  DecompositionMode decomposition mode, default is QR\
+        * @param[in] const bool true for positive sequence(q0q1q2), false for inverted order(q2q1q0), \
+		             default is true\
         * @return    QCircuit The quantum circuit for target matrix\
         * @see DecompositionMode\
         * / ",

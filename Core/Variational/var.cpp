@@ -10,7 +10,6 @@ using namespace std;
 
 /* enum find */
 
-
 int numOpArgs(op_type op) {
     static const std::map<op_type, int> op_args = {
         { op_type::plus, 2 },
@@ -35,6 +34,7 @@ int numOpArgs(op_type op) {
 
 var::var(var&&) = default;
 var& var::operator=(var&&) = default;
+
 var::~var() = default;
 var::var(const var&) = default;
 var& var::operator=(const var&) = default;
@@ -69,6 +69,7 @@ var::var(op_type _op, const std::vector<var>& _children)
 MatrixXd var::getValue() const { return pimpl->val; }
 
 void var::setValue(const MatrixXd& _val) { pimpl->val = _val; }
+
 
 op_type var::getOp() const { return pimpl->op; }
 
@@ -571,6 +572,23 @@ VariationalQuantumGate::VariationalQuantumGate(const VariationalQuantumGate &gat
     m_control_qubit.assign(gate.m_control_qubit.begin(), gate.m_control_qubit.end());
 }
 
+VariationalQuantumGate_I::VariationalQuantumGate_I(Qubit* q)
+{
+    m_q = q;
+}
+
+VariationalQuantumGate_I::VariationalQuantumGate_I(Qubit* q, bool is_dagger)
+{
+    m_q = q;
+    m_is_dagger = is_dagger;
+}
+VariationalQuantumGate_I::VariationalQuantumGate_I(Qubit* q, bool is_dagger, QVec control_qubit)
+{
+    m_q = q;
+    m_is_dagger = is_dagger;
+    m_control_qubit.assign(control_qubit.begin(), control_qubit.end());
+}
+
 VariationalQuantumGate_H::VariationalQuantumGate_H(Qubit* q)
 {
     m_q = q;
@@ -587,6 +605,7 @@ VariationalQuantumGate_H::VariationalQuantumGate_H(Qubit* q, bool is_dagger, QVe
     m_is_dagger = is_dagger;
     m_control_qubit.assign(control_qubit.begin(), control_qubit.end());
 }
+
 
 VariationalQuantumGate_U1::VariationalQuantumGate_U1(Qubit* q, var _var)
 {
@@ -1905,9 +1924,6 @@ std::vector<double> impl_qop_pmeasure_real_chip::_get_gradient(var _var)
     return grad;
 }
 
-
-
-
 template<>
 VariationalQuantumCircuit&  VariationalQuantumCircuit::insert<std::shared_ptr<VariationalQuantumGate>>(std::shared_ptr<VariationalQuantumGate> gate)
 {
@@ -1941,6 +1957,7 @@ VariationalQuantumCircuit& VariationalQuantumCircuit::insert<VariationalQuantumC
     }
     return *this;
 }
+
 template< >
 VariationalQuantumCircuit&  VariationalQuantumCircuit::insert<QGate &>(QGate  &gate)
 {
@@ -2072,4 +2089,393 @@ VariationalQuantumCircuit VariationalQuantumCircuit::qc2vqc(AbstractQuantumCircu
     new_vqc.m_control_qubit.assign(control_qubit.begin(), control_qubit.end());
     return new_vqc;
 }
+VQC QPanda::Variational::VQG_H_batch(const QVec& qvec){
+    VQC vqc;
+    for (int i = 0; i < qvec.size(); ++i)
+    {
+        vqc.insert(VQG_H(qvec[i]));
+    }
+    return vqc;
+}
 
+
+VQC QPanda::Variational::VQG_I_batch(const QVec& qvec)
+{
+    VariationalQuantumCircuit vqc;
+    for (int i = 0; i < qvec.size(); ++i)
+    {
+        vqc.insert(VQG_I(qvec[i]));
+    }
+    return vqc;
+}
+
+VQC QPanda::Variational::VQG_T_batch(const QVec& qvec) {
+    VariationalQuantumCircuit vqc;
+    for (int i = 0; i < qvec.size(); ++i)
+    {
+        vqc.insert(VQG_T(qvec[i]));
+    }
+    return vqc;
+}
+
+VQC QPanda::Variational::VQG_S_batch(const QVec& qvec) {
+    VariationalQuantumCircuit vqc;
+    for (int i = 0; i < qvec.size(); ++i)
+    {
+        vqc.insert(VQG_S(qvec[i]));
+    }
+    return vqc;
+}
+
+VQC QPanda::Variational::VQG_X_batch(const QVec& qvec) {
+    VariationalQuantumCircuit vqc;
+    for (int i = 0; i < qvec.size(); ++i)
+    {
+        vqc.insert(VQG_X(qvec[i]));
+    }
+    return vqc;
+}
+
+VQC QPanda::Variational::VQG_Y_batch(const QVec& qvec) {
+    VariationalQuantumCircuit vqc;
+    for (int i = 0; i < qvec.size(); ++i)
+    {
+        vqc.insert(VQG_Y(qvec[i]));
+    }
+    return vqc;
+}
+
+VQC QPanda::Variational::VQG_Z_batch(const QVec& qvec) {
+    VariationalQuantumCircuit vqc;
+    for (int i = 0; i < qvec.size(); ++i)
+    {
+        vqc.insert(VQG_Z(qvec[i]));
+    }
+    return vqc;
+}
+
+VQC QPanda::Variational::VQG_X1_batch(const QVec& qvec) {
+    VariationalQuantumCircuit vqc;
+    for (int i = 0; i < qvec.size(); ++i)
+    {
+        vqc.insert(VQG_X1(qvec[i]));
+    }
+    return vqc;
+}
+
+VQC QPanda::Variational::VQG_Y1_batch(const QVec& qvec) {
+    VariationalQuantumCircuit vqc;
+    for (int i = 0; i < qvec.size(); ++i)
+    {
+        vqc.insert(VQG_Y1(qvec[i]));
+    }
+    return vqc;
+}
+
+VQC QPanda::Variational::VQG_Z1_batch(const QVec& qvec) {
+    VariationalQuantumCircuit vqc;
+    for (int i = 0; i < qvec.size(); ++i)
+    {
+        vqc.insert(VQG_Z1(qvec[i]));
+    }
+    return vqc;
+}
+
+VQC QPanda::Variational::VQG_U1_batch(const QVec& qvec, var angle) {
+    VariationalQuantumCircuit vqc;
+    for (int i = 0; i < qvec.size(); ++i)
+    {
+        vqc.insert(VQG_U1(qvec[i], angle));
+    }
+    return vqc;
+}
+
+VQC QPanda::Variational::VQG_U2_batch(const QVec& qvec, var phi, var lambda) {
+    VariationalQuantumCircuit vqc;
+    for (int i = 0; i < qvec.size(); ++i)
+    {
+        vqc.insert(VQG_U2(qvec[i], phi, lambda));
+    }
+    return vqc;
+}
+
+VQC QPanda::Variational::VQG_U3_batch(const QVec& qvec, var theta, var phi, var lambda) {
+    VariationalQuantumCircuit vqc;
+    for (int i = 0; i < qvec.size(); ++i)
+    {
+        vqc.insert(VQG_U3(qvec[i], theta, phi, lambda));
+    }
+    return vqc;
+}
+
+VQC QPanda::Variational::VQG_U4_batch(const QVec& qvec, var alpha, var beta, var gamma, var delta) {
+    VariationalQuantumCircuit vqc;
+    for (int i = 0; i < qvec.size(); ++i)
+    {
+        vqc.insert(VQG_U4(qvec[i], alpha, beta, gamma, delta));
+    }
+    return vqc;
+}
+
+VQC QPanda::Variational::VQG_RPhi_batch(const QVec& qvec, var angle, var phi) {
+    VariationalQuantumCircuit vqc;
+    for (int i = 0; i < qvec.size(); ++i)
+    {
+        vqc.insert(VQG_RPhi(qvec[i], angle, phi));
+    }
+    return vqc;
+}
+
+VQC QPanda::Variational::VQG_RX_batch(const QVec& qvec, var angle)
+{
+    VariationalQuantumCircuit vqc;
+    for (int i = 0; i < qvec.size(); ++i)
+    {
+        vqc.insert(VQG_RX(qvec[i], angle));
+    }
+    return vqc;
+}
+
+VQC QPanda::Variational::VQG_RY_batch(const QVec& qvec, var angle) {
+    VariationalQuantumCircuit vqc;
+    for (int i = 0; i < qvec.size(); ++i)
+    {
+        vqc.insert(VQG_RY(qvec[i], angle));
+    }
+    return vqc;
+}
+
+VQC QPanda::Variational::VQG_RZ_batch(const QVec& qvec, var angle) {
+    VariationalQuantumCircuit vqc;
+    for (int i = 0; i < qvec.size(); ++i)
+    {
+        vqc.insert(VQG_RZ(qvec[i], angle));
+    }
+    return vqc;
+}
+
+VQC QPanda::Variational::VQG_CNOT_batch(const QVec& control_qubits, const QVec& target_qubits)
+{
+    if (control_qubits.size() == 0 || target_qubits.size() == 0)
+    {
+        QCERR("qubit_vector error");
+        throw invalid_argument("qubit_vector error");
+    }
+    VariationalQuantumCircuit vqc;
+    if (control_qubits.size() == target_qubits.size())
+    {
+        for (int i = 0; i < control_qubits.size(); ++i)
+        {
+            if (control_qubits[i] != target_qubits[i])
+            {
+                vqc.insert(VQG_CNOT(control_qubits[i], target_qubits[i]));
+            }
+            else
+            {
+                QCERR("double_gate qubit error");
+                throw invalid_argument("double_gate qubit");
+            }
+        }
+    }
+    else
+    {
+        QCERR("qubit_vector size error");
+        throw invalid_argument("qubit_vector size");
+    }
+
+    return vqc;
+}
+
+VQC QPanda::Variational::VQG_CZ_batch(const QVec& control_qubits, const QVec& target_qubits)
+{
+    if (control_qubits.size() == 0 || target_qubits.size() == 0)
+    {
+        QCERR("qubit_vector error");
+        throw invalid_argument("qubit_vector error");
+    }
+
+    VariationalQuantumCircuit vqc;
+    if (control_qubits.size() == target_qubits.size())
+    {
+        for (int i = 0; i < control_qubits.size(); ++i)
+        {
+            if (control_qubits[i] != target_qubits[i])
+            {
+                vqc.insert(VQG_CZ(control_qubits[i], target_qubits[i]));
+            }
+            else
+            {
+                QCERR("var_gate qubit error");
+                throw invalid_argument("var_gate qubit");
+            }
+        }
+    }
+    else
+    {
+        QCERR("qubit_vector size error");
+        throw invalid_argument("qubit_vector size");
+    }
+    return vqc;
+}
+
+VQC QPanda::Variational::VQG_CU_batch(const QVec& control_qubits, const QVec& target_qubits,
+    var alpha, var beta, var gamma, var delta)
+{
+    if (control_qubits.size() == 0 || target_qubits.size() == 0)
+    {
+        QCERR("qubit_vector error");
+        throw invalid_argument("qubit_vector error");
+    }
+
+    VariationalQuantumCircuit vqc;
+    if (control_qubits.size() == target_qubits.size())
+    {
+        for (int i = 0; i < control_qubits.size(); ++i)
+        {
+            if (control_qubits[i] != target_qubits[i])
+            {
+                vqc.insert(VQG_CU(control_qubits[i], target_qubits[i], alpha, beta, gamma, delta));
+            }
+            else
+            {
+                QCERR("var_gate qubit error");
+                throw invalid_argument("var_gate qubit");
+            }
+        }
+    }
+    else
+    {
+        QCERR("qubit_vector size error");
+        throw invalid_argument("qubit_vector size");
+    }
+
+    return vqc;
+}
+
+VQC QPanda::Variational::VQG_CR_batch(const QVec& targitBits_first, const QVec& targitBits_second, var theta)
+{
+    if (targitBits_first.size() == 0 || targitBits_second.size() == 0)
+    {
+        QCERR("qubit_vector error");
+        throw invalid_argument("qubit_vector error");
+    }
+    VariationalQuantumCircuit vqc;
+    if (targitBits_first.size() == targitBits_second.size())
+    {
+        for (int i = 0; i < targitBits_first.size(); ++i)
+        {
+            if (targitBits_first[i] != targitBits_second[i])
+            {
+                vqc.insert(VQG_CR(targitBits_first[i], targitBits_second[i], theta));
+            }
+            else
+            {
+                QCERR("var_gate qubit error");
+                throw invalid_argument("var_gate qubit");
+            }
+        }
+    }
+    else
+    {
+        QCERR("qubit_vector size error");
+        throw invalid_argument("qubit_vector size");
+    }
+
+    return vqc;
+}
+
+VQC QPanda::Variational::VQG_SWAP_batch(const QVec& targitBits_first, const QVec& targitBits_second)
+{
+    if (targitBits_first.size() == 0 || targitBits_second.size() == 0)
+    {
+        QCERR("qubit_vector error");
+        throw invalid_argument("qubit_vector error");
+    }
+    VariationalQuantumCircuit vqc;
+    if (targitBits_first.size() == targitBits_second.size())
+    {
+        for (int i = 0; i < targitBits_first.size(); ++i)
+        {
+            if (targitBits_first[i] != targitBits_second[i])
+            {
+                vqc.insert(VQG_SWAP(targitBits_first[i], targitBits_second[i]));
+            }
+            else
+            {
+                QCERR("var_gate qubit error");
+                throw invalid_argument("var_gate qubit");
+            }
+        }
+    }
+    else
+    {
+        QCERR("qubit_vector size error");
+        throw invalid_argument("qubit_vector size");
+    }
+
+    return vqc;
+}
+
+VQC QPanda::Variational::VQG_iSWAP_batch(const QVec& targitBits_first, const QVec& targitBits_second)
+{
+    if (targitBits_first.size() == 0 || targitBits_second.size() == 0)
+    {
+        QCERR("qubit_vector error");
+        throw invalid_argument("qubit_vector error");
+    }
+    VariationalQuantumCircuit vqc;
+    if (targitBits_first.size() == targitBits_second.size())
+    {
+        for (int i = 0; i < targitBits_first.size(); ++i)
+        {
+            if (targitBits_first[i] != targitBits_second[i])
+            {
+                vqc.insert(VQG_iSWAP(targitBits_first[i], targitBits_second[i]));
+            }
+            else
+            {
+                QCERR("var_gate qubit error");
+                throw invalid_argument("var_gate qubit");
+            }
+        }
+    }
+    else
+    {
+        QCERR("qubit_vector size error");
+        throw invalid_argument("qubit_vector size");
+    }
+
+    return vqc;
+
+}
+
+VQC QPanda::Variational::VQG_SqiSWAP_batch(const QVec& targitBits_first, const QVec& targitBits_second)
+{
+    if (targitBits_first.size() == 0 || targitBits_second.size() == 0)
+    {
+        QCERR("qubit_vector error");
+        throw invalid_argument("qubit_vector error");
+    }
+    VariationalQuantumCircuit vqc;
+    if (targitBits_first.size() == targitBits_second.size())
+    {
+        for (int i = 0; i < targitBits_first.size(); ++i)
+        {
+            if (targitBits_first[i] != targitBits_second[i])
+            {
+                vqc.insert(VQG_SqiSWAP(targitBits_first[i], targitBits_second[i]));
+            }
+            else
+            {
+                QCERR("var_gate qubit error");
+                throw invalid_argument("var_gate qubit");
+            }
+        }
+    }
+    else
+    {
+        QCERR("qubit_vector size error");
+        throw invalid_argument("qubit_vector size");
+    }
+    return vqc;
+}

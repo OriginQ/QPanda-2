@@ -569,7 +569,7 @@ void PickUpNodes::reverse_dagger_circuit()
 /*******************************************************************
 *                      public interface
 ********************************************************************/
-QStat QPanda::getCircuitMatrix(QProg srcProg, const bool b_bid_endian /*= false*/, const NodeIter nodeItrStart, const NodeIter nodeItrEnd)
+QStat QPanda::getCircuitMatrix(QProg srcProg, const bool b_positive_seq /*= false*/, const NodeIter nodeItrStart, const NodeIter nodeItrEnd)
 {
 	QProg tmp_prog;
 
@@ -581,7 +581,7 @@ QStat QPanda::getCircuitMatrix(QProg srcProg, const bool b_bid_endian /*= false*
 	printAllNodeType(tmp_prog);
 #endif
 
-	QProgToMatrix calc_matrix(tmp_prog, b_bid_endian);
+	QProgToMatrix calc_matrix(tmp_prog, b_positive_seq);
 
 	return calc_matrix.get_matrix();
 }

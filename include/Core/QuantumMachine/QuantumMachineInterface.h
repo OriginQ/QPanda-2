@@ -38,7 +38,8 @@ enum QMachineType {
     CPU,  /**< Cpu quantum machine  */
     GPU, /**< Gpu quantum machine  */
     CPU_SINGLE_THREAD, /**< Cpu quantum machine with single thread */
-    NOISE  /**< Cpu quantum machine with  noise */
+    NOISE,  /**< Cpu quantum machine with  noise */
+    QCloud
 };
 /**
 * @class Configuration
@@ -150,6 +151,7 @@ public:
     /**
     * @brief  directlyRun
     * @param[in]  QProg& quantum program
+    * @param[in]  bg_run will run in background, default is not
     * @return     std::map<std::string, bool>
     */
     virtual std::map<std::string, bool> directlyRun(QProg & qProg) = 0;
@@ -342,6 +344,33 @@ public:
     * @return double  expectation
     */
     virtual double get_expectation(QProg, const QHamiltonian&, const QVec&, int) = 0;
+
+    /**
+     * @brief get gate num have been processed while machine running prog async
+     * 
+     * @return size_t gate count
+     */
+    virtual size_t get_processed_qgate_num() = 0;
+
+    /**
+     * @brief like @direclyRun but run prog async
+     * 
+     */
+    virtual void async_run(QProg & qProg) = 0;
+
+    /**
+     * @brief check async_run is finished
+     * 
+     */
+    virtual bool is_async_finished() = 0;
+
+    /**
+     * @brief get the async_run result
+     * 
+     * @return std::map<std::string, bool> 
+     */
+    virtual std::map<std::string, bool> get_async_result() = 0;
+
     virtual ~QuantumMachine() {} //! Destructor
 };
 QPANDA_END

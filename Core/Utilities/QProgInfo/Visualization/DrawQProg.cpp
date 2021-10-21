@@ -1,5 +1,6 @@
 #include "Core/Utilities/QProgInfo/Visualization/DrawQProg.h"
-#include "Core/Utilities/QProgInfo/Visualization/Draw.h"
+#include "Core/Utilities/QProgInfo/Visualization/DrawTextPic.h"
+#include "Core/Utilities/QProgInfo/Visualization/DrawLatex.h"
 #include <stdexcept>
 #include "Core/Utilities/QProgInfo/QCircuitInfo.h"
 
@@ -9,8 +10,8 @@ using namespace DRAW_TEXT_PIC;
 
 #define PRINT_TRACE 0
 
-DrawQProg::DrawQProg(QProg &prg, const NodeIter node_itr_start, const NodeIter node_itr_end, bool b_out_put_to_file /*= false*/)
-	: m_p_text(nullptr), m_b_out_put_to_file(b_out_put_to_file)
+DrawQProg::DrawQProg(QProg &prg, const NodeIter node_itr_start, const NodeIter node_itr_end, const std::string& output_file /*= ""*/)
+	: m_drawer(nullptr), m_output_file(output_file)
 {
 	pickUpNode(m_prog, prg, {},
 		node_itr_start == NodeIter() ? prg.getFirstNodeIter() : node_itr_start,
@@ -28,13 +29,13 @@ DrawQProg::DrawQProg(QProg &prg, const NodeIter node_itr_start, const NodeIter n
 
 DrawQProg::~DrawQProg()
 {
-	if (nullptr != m_p_text)
+	if (nullptr != m_drawer)
 	{
-		delete m_p_text;
+		delete m_drawer;
 	}
 }
 
-string DrawQProg::textDraw(const TEXT_PIC_TYPE t, uint32_t length /*= 100*/, const std::string config_data /*= CONFIG_PATH*/)
+string DrawQProg::textDraw(const LAYER_TYPE t, PIC_TYPE p /*= PIC_TYPE::TEXT*/, uint32_t length /*= 100*/, const std::string config_data /*= CONFIG_PATH*/)
 {
 	/*Do some preparations*/
 	if (m_quantum_bits_in_use.size() == 0)
@@ -43,10 +44,10 @@ string DrawQProg::textDraw(const TEXT_PIC_TYPE t, uint32_t length /*= 100*/, con
 	}
 
 	//draw
-	if (nullptr != m_p_text)
+	if (nullptr != m_drawer)
 	{
-		delete m_p_text;
-		m_p_text = nullptr;
+		delete m_drawer;
+		m_drawer = nullptr;
 	}
 
 	if (t == LAYER)
@@ -58,31 +59,40 @@ string DrawQProg::textDraw(const TEXT_PIC_TYPE t, uint32_t length /*= 100*/, con
 		m_layer_info = get_clock_layer(m_prog, config_data);
 	}
 
-	m_p_text = new(std::nothrow) DrawPicture(m_prog, m_layer_info, length);
-	if (nullptr == m_p_text)
+	if (PIC_TYPE::TEXT == p)
+	{
+		m_drawer = new(std::nothrow) DrawPicture(m_prog, m_layer_info, length);
+	}else if(PIC_TYPE::LATEX  == p){
+		m_drawer = new(std::nothrow) DrawLatex(m_prog, m_layer_info, length);
+	}else
+	{
+		QCERR_AND_THROW(runtime_error, "Unknow text-pic type, failed to draw Pic.")
+	}
+	
+	if (nullptr == m_drawer)
 	{
 		QCERR_AND_THROW(runtime_error, "Memory error, failed to create DrawPicture obj.");
 	}
 
-	m_p_text->init(m_quantum_bits_in_use, m_class_bits_in_use);
+	m_drawer->init(m_quantum_bits_in_use, m_class_bits_in_use);
 
 	if (t == LAYER)
 	{
-		m_p_text->draw_by_layer();
+		m_drawer->draw_by_layer();
 	}
 	else if (t == TIME_SEQUENCE)
 	{
-		m_p_text->draw_by_time_sequence(config_data);
+		m_drawer->draw_by_time_sequence(config_data);
 	}
 	else
 	{
 		throw runtime_error("Unknow text-pic type, failed to draw Text-Pic.");
 	}
 	
-	string outputStr = m_p_text->present(m_b_out_put_to_file);
+	string outputStr = m_drawer->present(m_output_file);
 
-	delete m_p_text;
-	m_p_text = nullptr;
+	delete m_drawer;
+	m_drawer = nullptr;
 
 	return outputStr;
 }

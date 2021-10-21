@@ -1,5 +1,5 @@
 
-// Generated from .\originir.g4 by ANTLR 4.7.2
+// Generated from .\originir.g4 by ANTLR 4.9.2
 
 #pragma once
 
@@ -49,11 +49,12 @@ public:
     RuleControl_statement = 40, RuleQelse_statement_fragment = 41, RuleQif_statement = 42, 
     RuleQwhile_statement = 43, RuleMeasure_statement = 44, RuleReset_statement = 45, 
     RuleBarrier_statement = 46, RuleExpression_statement = 47, RuleDefine_gate_statement = 48, 
-    RuleExplist = 49, RuleExp = 50, RuleGate_func_statement = 51, RuleId = 52, 
-    RuleId_list = 53, RuleGate_name = 54, RuleConstant = 55
+    RuleDefine_dagger_statement = 49, RuleDefine_control_statement = 50, 
+    RuleUser_defined_gate = 51, RuleExplist = 52, RuleExp = 53, RuleGate_func_statement = 54, 
+    RuleId = 55, RuleId_list = 56, RuleGate_name = 57, RuleConstant = 58
   };
 
-  originirParser(antlr4::TokenStream *input);
+  explicit originirParser(antlr4::TokenStream *input);
   ~originirParser();
 
   virtual std::string getGrammarFileName() const override;
@@ -112,6 +113,9 @@ public:
   class Barrier_statementContext;
   class Expression_statementContext;
   class Define_gate_statementContext;
+  class Define_dagger_statementContext;
+  class Define_control_statementContext;
+  class User_defined_gateContext;
   class ExplistContext;
   class ExpContext;
   class Gate_func_statementContext;
@@ -125,6 +129,10 @@ public:
     TranslationunitContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     DeclarationContext *declaration();
+    std::vector<antlr4::tree::TerminalNode *> NEWLINE();
+    antlr4::tree::TerminalNode* NEWLINE(size_t i);
+    std::vector<Gate_func_statementContext *> gate_func_statement();
+    Gate_func_statementContext* gate_func_statement(size_t i);
     std::vector<StatementContext *> statement();
     StatementContext* statement(size_t i);
 
@@ -842,6 +850,8 @@ public:
     Q_KEY_declarationContext* q_KEY_declaration(size_t i);
     std::vector<antlr4::tree::TerminalNode *> COMMA();
     antlr4::tree::TerminalNode* COMMA(size_t i);
+    std::vector<antlr4::tree::TerminalNode *> Identifier();
+    antlr4::tree::TerminalNode* Identifier(size_t i);
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -1101,6 +1111,64 @@ public:
 
   Define_gate_statementContext* define_gate_statement();
 
+  class  Define_dagger_statementContext : public antlr4::ParserRuleContext {
+  public:
+    Define_dagger_statementContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *DAGGER_KEY();
+    std::vector<antlr4::tree::TerminalNode *> NEWLINE();
+    antlr4::tree::TerminalNode* NEWLINE(size_t i);
+    antlr4::tree::TerminalNode *ENDDAGGER_KEY();
+    std::vector<User_defined_gateContext *> user_defined_gate();
+    User_defined_gateContext* user_defined_gate(size_t i);
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
+  };
+
+  Define_dagger_statementContext* define_dagger_statement();
+
+  class  Define_control_statementContext : public antlr4::ParserRuleContext {
+  public:
+    Define_control_statementContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *CONTROL_KEY();
+    Controlbit_listContext *controlbit_list();
+    std::vector<antlr4::tree::TerminalNode *> NEWLINE();
+    antlr4::tree::TerminalNode* NEWLINE(size_t i);
+    antlr4::tree::TerminalNode *ENDCONTROL_KEY();
+    std::vector<User_defined_gateContext *> user_defined_gate();
+    User_defined_gateContext* user_defined_gate(size_t i);
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
+  };
+
+  Define_control_statementContext* define_control_statement();
+
+  class  User_defined_gateContext : public antlr4::ParserRuleContext {
+  public:
+    User_defined_gateContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    Define_gate_statementContext *define_gate_statement();
+    Define_dagger_statementContext *define_dagger_statement();
+    Define_control_statementContext *define_control_statement();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
+  };
+
+  User_defined_gateContext* user_defined_gate();
+
   class  ExplistContext : public antlr4::ParserRuleContext {
   public:
     ExplistContext(antlr4::ParserRuleContext *parent, size_t invokingState);
@@ -1156,8 +1224,8 @@ public:
     std::vector<antlr4::tree::TerminalNode *> NEWLINE();
     antlr4::tree::TerminalNode* NEWLINE(size_t i);
     antlr4::tree::TerminalNode *ENDQGATE_KEY();
-    std::vector<Define_gate_statementContext *> define_gate_statement();
-    Define_gate_statementContext* define_gate_statement(size_t i);
+    std::vector<User_defined_gateContext *> user_defined_gate();
+    User_defined_gateContext* user_defined_gate(size_t i);
     antlr4::tree::TerminalNode *COMMA();
     antlr4::tree::TerminalNode *LPAREN();
     antlr4::tree::TerminalNode *RPAREN();

@@ -62,7 +62,6 @@ QProg QPanda::convert_originir_string_to_qprog(std::string str_originir, Quantum
 	return visitor.get_qprog(fullprog);
 }
 
-
 QProg QPanda::transformOriginIRToQProg(std::string filePath, QuantumMachine* qm, QVec& qv, std::vector<ClassicalCondition>& cv)
 {
 	std::ifstream stream;
@@ -98,12 +97,14 @@ QProg QProgBuilder::get_qprog()
 
 void QProgBuilder::alloc_qubit(int num)
 {
+	qs.clear();
 	for (int i = 0; i < num; i++)
 		qs.push_back(m_machine->allocateQubitThroughPhyAddress(i));
 }
 
 void QProgBuilder::alloc_cbit(int num)
 {
+	ccs.clear();
 	for (int i = 0; i < num; i++)
 		ccs.push_back(m_machine->cAlloc(i));
 }

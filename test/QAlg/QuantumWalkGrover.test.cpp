@@ -7,63 +7,60 @@
 USING_QPANDA
 using namespace std;
 
-TEST(QuantumWalkGrover, test1)
+static bool qw_gorver_test_1()
 {
 	auto machine = initQuantumMachine(CPU);
 	auto x = machine->allocateCBit();
-
-	//std::vector<SearchDataByUInt> search_vec = { 7, 5, 6, 6, 7, 2, 3, 6/*, 9, 6*//*, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6*/
-	///*, 7, 2, 13, 12, 14, 7, 8, 9, 10, 11, 15, 14, 5, 7, 2, 13, 12, 14, 7, 8, 6, 10, 11, 15, 14, 5, 9, 12, 13, 11*/
-	///*, 7, 2, 13, 12, 14, 7, 8, 9, 10, 11, 15, 14, 5, 7, 2, 13, 12, 14, 7, 8, 6, 10, 11, 15, 14, 5, 9, 12, 13, 11*/ 
-	///*, 7, 2, 13, 12, 14, 7, 8, 9, 10, 11, 15, 14, 5, 7, 2, 13, 12, 14, 7, 8, 6, 10, 11, 15, 14, 5, 9, 12, 13, 11*/ };
 	std::vector<SearchDataByUInt> search_vec = { 6, 6, 6, 15, 16, 6, 6, 4, 6, 6, 6, 6, 14, 6, 0 };
-
 	std::vector<size_t> result_index_vec;
 	const int search_data = 0;
 
-	//test
 	size_t indexx = 0;
 	for (const auto &item : search_vec)
 	{
-		if (item == SearchDataByUInt(search_data))
-		{
+		if (item == SearchDataByUInt(search_data)) {
 			result_index_vec.push_back(indexx);
 		}
 		++indexx;
 	}
 
-	/*cout << "The target result's index:" << endl;
+	std::vector<size_t> result_index_vec_qw;
+	QProg quantum_walk_prog =
+		quantum_walk_alg_search_from_vector(search_vec, x == search_data, machine, result_index_vec_qw, 2);
+
+	uint32_t i = 0;
+	if (result_index_vec_qw.size() != result_index_vec.size()){
+		return false;
+	}
+
 	for (const auto &result_item : result_index_vec)
 	{
-		cout << result_item << " ";
+		if (result_item != result_index_vec_qw[i]){
+			return false;
+		}
 	}
-	cout << endl;*/
-	result_index_vec.clear();
 
-	try
-	{
-		//cout << "Start quantum walk search algorithm:" << endl;
-		QProg quantum_walk_prog = quantum_walk_alg_search_from_vector(search_vec, x == search_data, machine, result_index_vec, 2);
-		//cout << "quantum_walk_prog:" << quantum_walk_prog << endl;
+	destroyQuantumMachine(machine);
+	return true;
+}
+
+TEST(QuantumWalkGrover, test1)
+{
+	bool test_val = false;
+
+	try{
+		test_val = qw_gorver_test_1();
 	}
 	catch (const std::exception& e)
 	{
 		cout << "Error:Catch an exception: " << e.what() << endl;
+		test_val = false;
 	}
 	catch (...)
 	{
 		cout << "Error: Catch a unknow exception." << endl;
+		test_val = false;
 	}
 
-	cout << "The result's index:" << endl;
-	for (const auto &result_item : result_index_vec)
-	{
-		cout << result_item << " " << endl;
-		ASSERT_EQ(result_item, 14);
-	}
-
-	destroyQuantumMachine(machine);
-
-	//cout << "\n Quantum walk test over, press Enter to continue..." << endl;
-	//getchar();
+	ASSERT_TRUE(test_val);
 }

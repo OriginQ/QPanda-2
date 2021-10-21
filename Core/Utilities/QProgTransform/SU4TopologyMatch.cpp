@@ -6,7 +6,7 @@ USING_QPANDA
 using namespace std;
 using namespace QGATE_SPACE;
 
-SU4TopologyMatch::SU4TopologyMatch(QuantumMachine * machine, QVec &qv, ArchType arch_type)
+SU4TopologyMatch::SU4TopologyMatch(QuantumMachine * machine, QVec &qv)
 	:m_qvm(machine), m_qv(qv)
 {
 	m_gate_costs = {
@@ -16,65 +16,29 @@ SU4TopologyMatch::SU4TopologyMatch(QuantumMachine * machine, QVec &qv, ArchType 
 	{GateType::CNOT_GATE, 10},
 	};
 
-	build_coupling_map(arch_type);
+	build_coupling_map();
 }
 
-void  SU4TopologyMatch::build_coupling_map(ArchType type)
+void  SU4TopologyMatch::build_coupling_map()
 {
-	switch (type)
+	m_coupling_map.clear();
+	std::vector<std::vector<double>> qubit_matrix;
+	int qubit_num = 0;
+	JsonConfigParam config;
+	config.load_config(CONFIG_PATH);
+	config.getMetadataConfig(qubit_num, qubit_matrix);
+	m_nqubits = qubit_num;
+	for (int i = 0; i < m_nqubits; i++)
 	{
-	case ArchType::IBM_QX5_ARCH:
-	{
-		m_coupling_map.clear();
-		m_nqubits = 16;
-		m_coupling_map.insert({ 1, 0 });
-		m_coupling_map.insert({ 1, 2 });
-		m_coupling_map.insert({ 2, 3 });
-		m_coupling_map.insert({ 3, 14 });
-		m_coupling_map.insert({ 3, 4 });
-		m_coupling_map.insert({ 5, 4 });
-		m_coupling_map.insert({ 6, 5 });
-		m_coupling_map.insert({ 6, 11 });
-		m_coupling_map.insert({ 6, 7 });
-		m_coupling_map.insert({ 7, 10 });
-		m_coupling_map.insert({ 8, 7 });
-		m_coupling_map.insert({ 9, 8 });
-		m_coupling_map.insert({ 9, 10 });
-		m_coupling_map.insert({ 11, 10 });
-		m_coupling_map.insert({ 12, 5 });
-		m_coupling_map.insert({ 12, 11 });
-		m_coupling_map.insert({ 12, 13 });
-		m_coupling_map.insert({ 13, 4 });
-		m_coupling_map.insert({ 13, 14 });
-		m_coupling_map.insert({ 15, 0 });
-		m_coupling_map.insert({ 15,14 });
-		m_coupling_map.insert({ 15,2 });
-	}
-	break;
-	case ArchType::ORIGIN_VIRTUAL_ARCH:
-	{
-		m_coupling_map.clear();
-		std::vector<std::vector<double>> qubit_matrix;
-		int qubit_num = 0;
-		JsonConfigParam config;
-		config.load_config(CONFIG_PATH);
-		config.getMetadataConfig(qubit_num, qubit_matrix);
-		m_nqubits = qubit_num;
-		for (int i = 0; i < m_nqubits; i++)
+		for (int j = 0; j < m_nqubits; j++)
 		{
-			for (int j = 0; j < m_nqubits; j++)
+			if (qubit_matrix[i][j] > 1e-6)
 			{
-				if (qubit_matrix[i][j] > 1e-6)
-				{
-					m_coupling_map.insert({ i, j });
-				}
+				m_coupling_map.insert({ i, j });
 			}
 		}
 	}
-	break;
-	default:
-		break;
-	}
+
 }
 
 void SU4TopologyMatch::transform_qprog(QProg prog, std::vector<gate> &circuit)
@@ -915,7 +879,7 @@ void SU4TopologyMatch::mapping_qprog(QProg prog, QProg &mapped_prog)
 	build_qprog(compiled_circuit, mapped_prog);
 }
 
-QProg  QPanda::su4_circiut_topology_match(QProg prog, QVec &qv, QuantumMachine *machine, ArchType arch_type)
+QProg  QPanda::su4_circiut_topology_match(QProg prog, QVec &qv, QuantumMachine *machine)
 {
 	if (nullptr == machine)
 	{
@@ -924,7 +888,7 @@ QProg  QPanda::su4_circiut_topology_match(QProg prog, QVec &qv, QuantumMachine *
 	}
 
 	QProg outprog;
-	SU4TopologyMatch match = SU4TopologyMatch(machine, qv, arch_type);
+	SU4TopologyMatch match = SU4TopologyMatch(machine, qv);
 	match.mapping_qprog(prog, outprog);
 	return outprog;
 }

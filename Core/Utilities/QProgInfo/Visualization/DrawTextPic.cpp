@@ -253,7 +253,7 @@ public:
 	LayerLine()
 		:DrawBox(
 			string(LAYER_SEPARATOR_CHAR),
-			string(LAYER_SEPARATOR_CHAR),
+			ulongToUtf8(SINGLE_HORIZONTAL_LINE),
 			string(LAYER_SEPARATOR_CHAR))
 	{}
 

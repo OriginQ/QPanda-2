@@ -10,10 +10,77 @@
 > -   **Removed**: 删除的功能.
 > -   **Fixed**: Bug修复.
 
-[UNRELEASED](https://github.com/OriginQ/QPanda-2/compare/v2.1.8...HEAD)
+[UNRELEASED](https://github.com/OriginQ/QPanda-2/compare/v2.1.10...HEAD)
 ========================================================================
 
-[v2.1.8](https://github.com/OriginQ/QPanda-2/compare/v2.1.7...v2.1.8) - 2020-8-24
+[v2.1.8](https://github.com/OriginQ/QPanda-2/compare/v2.1.9...v2.1.10) - 2021-11-29
+=====================================================================================
+
+QPanda
+-----------
+
+Added
+*********
+
+- 添加LaTeX可视化量子线路方法
+
+Changed
+*********
+
+- 去除无用代码
+- 修改schmdit编码orcle实现，添加mottonen编码python实现
+- 修改qst接口使用方法
+
+pyqpanda
+-------------
+
+Added
+*********
+
+- 添加LaTeX可视化量子线路方法
+
+Changed
+*********
+
+- 去除无用代码
+- 修改schmdit编码orcle实现，添加mottonen编码python实现
+- 修改qst接口使用方法
+
+
+[v2.1.8](https://github.com/OriginQ/QPanda-2/compare/v2.1.8...v2.1.9) - 2021-10-12
+==================================================================================
+
+QPanda
+-----------
+
+Added
+*********
+
+
+
+Changed
+*********
+
+- 线路优化算法
+- 字符画接口优化
+- 添加测试框架
+
+
+pyqpanda
+-------------
+
+Added
+*********
+
+
+Changed
+*********
+
+- 线路优化算法
+- 字符画接口优化
+- 添加测试框架
+
+[v2.1.8](https://github.com/OriginQ/QPanda-2/compare/v2.1.7...v2.1.8) - 2021-8-24
 ==================================================================================
 
 QPanda
@@ -47,7 +114,7 @@ Changed
 - 添加测试框架
 
 
-[v2.1.7](https://github.com/OriginQ/QPanda-2/compare/v2.1.5...v2.1.7) - 2020-7-27
+[v2.1.7](https://github.com/OriginQ/QPanda-2/compare/v2.1.5...v2.1.7) - 2021-7-27
 ==================================================================================
 
 QPanda
@@ -86,7 +153,7 @@ Changed
 - HHL应用程序优化
 
 
-[v2.1.6](https://github.com/OriginQ/QPanda-2/compare/v2.1.5...v2.1.6) - 2020-6-17
+[v2.1.6](https://github.com/OriginQ/QPanda-2/compare/v2.1.5...v2.1.6) - 2021-6-17
 ==================================================================================
 
 QPanda

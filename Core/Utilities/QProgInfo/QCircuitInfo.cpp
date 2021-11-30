@@ -807,6 +807,7 @@ std::vector<double> QPanda::get_gate_parameter(std::shared_ptr<AbstractQGateNode
 	case TWO_QUBIT_GATE:
 	case ISWAP_GATE:
 	case SQISWAP_GATE:
+	case ORACLE_GATE:
 		break;
 
 	case ISWAP_THETA_GATE:

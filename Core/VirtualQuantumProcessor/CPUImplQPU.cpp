@@ -1398,29 +1398,6 @@ QError CPUImplQPU::_CU(size_t qn_0, size_t qn_1, QStat &matrix, bool is_dagger, 
     return qErrorNone;
 }
 
-int64_t CPUImplQPU::_insert(int64_t value, Qnum &qns)
-{
-    int64_t number = 1ll << qns.back();
-    if (value < number)
-    {
-        return value;
-    }
-    int64_t mask = number - 1;
-    int64_t x = mask & value;
-
-    /*
-    for (size_t idx = value - x; idx > 0; idx >>= 1)
-    {
-        if (idx & 1)
-        {
-            real_idx |= (1ll << shelf_left);
-        }
-        shelf_left++;
-    }
-    */
-    return (value - x) << (qns.size()) | x;
-}
-
 void CPUImplQPU::_verify_state(const QStat &state)
 {
     double prob = 0;
@@ -1619,7 +1596,10 @@ QError CPUImplQPU::_double_qubit_normal_unitary(size_t qn_0, size_t qn_1, QStat 
     int64_t size = 1ll << (m_qubit_num - 2);
     int64_t offset0 = 1ll << qn_0;
     int64_t offset1 = 1ll << qn_1;
-
+	if (qn_0 > qn_1)
+	{
+		std::swap(qn_0, qn_1);
+	}
     if (is_dagger)
     {
         qcomplex_t temp;
@@ -1643,17 +1623,17 @@ QError CPUImplQPU::_double_qubit_normal_unitary(size_t qn_0, size_t qn_1, QStat 
 #pragma omp parallel for
         for (int64_t i = 0; i < size; i++)
         {
-            int64_t real00_idx = _insert(i, qn_1, qn_0);
+            int64_t real00_idx = _insert(i, qn_0, qn_1);
             auto phi00 = m_state[real00_idx];
-            auto phi01 = m_state[real00_idx | offset1];
-            auto phi10 = m_state[real00_idx | offset0];
+            auto phi01 = m_state[real00_idx | offset0];
+            auto phi10 = m_state[real00_idx | offset1];
             auto phi11 = m_state[real00_idx | offset0 | offset1];
 
             m_state[real00_idx] = matrix[0] * phi00 + matrix[1] * phi01
                 + matrix[2] * phi10 + matrix[3] * phi11;
-            m_state[real00_idx | offset1] = matrix[4] * phi00 + matrix[5] * phi01
+			m_state[real00_idx | offset0] = matrix[4] * phi00 + matrix[5] * phi01
                 + matrix[6] * phi10 + matrix[7] * phi11;
-            m_state[real00_idx | offset0] = matrix[8] * phi00 + matrix[9] * phi01
+			m_state[real00_idx | offset1] = matrix[8] * phi00 + matrix[9] * phi01
                 + matrix[10] * phi10 + matrix[11] * phi11;
             m_state[real00_idx | offset0 | offset1] = matrix[12] * phi00 + matrix[13] * phi01
                 + matrix[14] * phi10 + matrix[15] * phi11;
@@ -1665,15 +1645,15 @@ QError CPUImplQPU::_double_qubit_normal_unitary(size_t qn_0, size_t qn_1, QStat 
         {
             int64_t real00_idx = _insert(i, qn_0, qn_1);
             auto phi00 = m_state[real00_idx];
-            auto phi01 = m_state[real00_idx | offset1];
-            auto phi10 = m_state[real00_idx | offset0];
+            auto phi01 = m_state[real00_idx | offset0];
+            auto phi10 = m_state[real00_idx | offset1];
             auto phi11 = m_state[real00_idx | offset0 | offset1];
 
             m_state[real00_idx] = matrix[0] * phi00 + matrix[1] * phi01
                 + matrix[2] * phi10 + matrix[3] * phi11;
-            m_state[real00_idx | offset1] = matrix[4] * phi00 + matrix[5] * phi01
+			m_state[real00_idx | offset0] = matrix[4] * phi00 + matrix[5] * phi01
                 + matrix[6] * phi10 + matrix[7] * phi11;
-            m_state[real00_idx | offset0] = matrix[8] * phi00 + matrix[9] * phi01
+			m_state[real00_idx | offset1] = matrix[8] * phi00 + matrix[9] * phi01
                 + matrix[10] * phi10 + matrix[11] * phi11;
             m_state[real00_idx | offset0 | offset1] = matrix[12] * phi00 + matrix[13] * phi01
                 + matrix[14] * phi10 + matrix[15] * phi11;
@@ -1707,6 +1687,10 @@ QError CPUImplQPU::_double_qubit_normal_unitary(size_t qn_0, size_t qn_1, Qnum &
     int64_t size = 1ll << (m_qubit_num - 2);
     int64_t offset0 = 1ll << qn_0;
     int64_t offset1 = 1ll << qn_1;
+	if (qn_0 > qn_1)
+	{
+		std::swap(qn_0, qn_1);
+	}
     int64_t mask = 0;
     for_each(controls.begin(), controls.end() - 2, [&](size_t &q) {
         mask |= 1ll << q;
@@ -1717,20 +1701,20 @@ QError CPUImplQPU::_double_qubit_normal_unitary(size_t qn_0, size_t qn_1, Qnum &
 #pragma omp parallel for
         for (int64_t i = 0; i < size; i++)
         {
-            int64_t real00_idx = _insert(i, qn_1, qn_0);
+            int64_t real00_idx = _insert(i, qn_0, qn_1);
             if (mask != (mask & real00_idx))
                 continue;
 
             auto phi00 = m_state[real00_idx];
-            auto phi01 = m_state[real00_idx | offset1];
-            auto phi10 = m_state[real00_idx | offset0];
+            auto phi01 = m_state[real00_idx | offset0];
+            auto phi10 = m_state[real00_idx | offset1];
             auto phi11 = m_state[real00_idx | offset0 + offset1];
 
             m_state[real00_idx] = matrix[0] * phi00 + matrix[1] * phi01
                 + matrix[2] * phi10 + matrix[3] * phi11;
-            m_state[real00_idx | offset1] = matrix[4] * phi00 + matrix[5] * phi01
+			m_state[real00_idx | offset0] = matrix[4] * phi00 + matrix[5] * phi01
                 + matrix[6] * phi10 + matrix[7] * phi11;
-            m_state[real00_idx | offset0] = matrix[8] * phi00 + matrix[9] * phi01
+			m_state[real00_idx | offset1] = matrix[8] * phi00 + matrix[9] * phi01
                 + matrix[10] * phi10 + matrix[11] * phi11;
             m_state[real00_idx | offset0 | offset1] = matrix[12] * phi00 + matrix[13] * phi01
                 + matrix[14] * phi10 + matrix[15] * phi11;
@@ -1745,15 +1729,15 @@ QError CPUImplQPU::_double_qubit_normal_unitary(size_t qn_0, size_t qn_1, Qnum &
                 continue;
 
             auto phi00 = m_state[real00_idx];
-            auto phi01 = m_state[real00_idx | offset1];
-            auto phi10 = m_state[real00_idx | offset0];
+            auto phi01 = m_state[real00_idx | offset0];
+            auto phi10 = m_state[real00_idx | offset1];
             auto phi11 = m_state[real00_idx | offset0 + offset1];
 
             m_state[real00_idx] = matrix[0] * phi00 + matrix[1] * phi01
                 + matrix[2] * phi10 + matrix[3] * phi11;
-            m_state[real00_idx | offset1] = matrix[4] * phi00 + matrix[5] * phi01
+			m_state[real00_idx | offset0] = matrix[4] * phi00 + matrix[5] * phi01
                 + matrix[6] * phi10 + matrix[7] * phi11;
-            m_state[real00_idx | offset0] = matrix[8] * phi00 + matrix[9] * phi01
+			m_state[real00_idx | offset1] = matrix[8] * phi00 + matrix[9] * phi01
                 + matrix[10] * phi10 + matrix[11] * phi11;
             m_state[real00_idx | offset0 | offset1] = matrix[12] * phi00 + matrix[13] * phi01
                 + matrix[14] * phi10 + matrix[15] * phi11;
@@ -1999,6 +1983,22 @@ QError CPUImplQPU::controlDiagonalGate(Qnum & vQubit, QStat & matrix, Qnum & vCo
 
 QError CPUImplQPU::OracleGate(Qnum &qubits, QStat &matrix, bool is_dagger)
 {
+	if (qubits.size() == 3)
+	{
+		_three_qubit_gate(qubits, matrix, is_dagger);
+		return qErrorNone;
+	}
+	else if (qubits.size() == 4)
+	{
+		_four_qubit_gate(qubits, matrix, is_dagger);
+		return qErrorNone;
+	}
+	else if (qubits.size() == 5)
+	{
+		_five_qubit_gate(qubits, matrix, is_dagger);
+		return qErrorNone;
+	}
+
     auto dim = 1ll << qubits.size();
     qmatrix_t mat_eigen = qmatrix_t::Map(&matrix[0], dim, dim);
 
@@ -2011,7 +2011,7 @@ QError CPUImplQPU::OracleGate(Qnum &qubits, QStat &matrix, bool is_dagger)
     qvector_t state_bak(dim);
     std::vector<int64_t> realxx_idxes(dim);
 
-    std::reverse(qubits.begin(), qubits.end());
+    //std::reverse(qubits.begin(), qubits.end());
 #pragma omp parallel for num_threads(_omp_thread_num(size)) firstprivate(state_bak, realxx_idxes)
     for (int64_t i = 0; i < size; i++)
     {
@@ -2055,6 +2055,21 @@ QError CPUImplQPU::OracleGate(Qnum &qubits, QStat &matrix, bool is_dagger)
 QError CPUImplQPU::controlOracleGate(Qnum &qubits, const Qnum &controls,
                                      QStat &matrix, bool is_dagger)
 {
+	if (qubits.size() == 3)
+	{
+		_three_qubit_gate(qubits, matrix, is_dagger, controls);
+		return qErrorNone;
+	}
+	else if (qubits.size() == 4)
+	{
+		_four_qubit_gate(qubits, matrix, is_dagger, controls);
+		return qErrorNone;
+	}
+	else if (qubits.size() == 5)
+	{
+		_five_qubit_gate(qubits, matrix, is_dagger, controls);
+		return qErrorNone;
+	}
     auto dim = 1ll << qubits.size();
     qmatrix_t mat_eigen = qmatrix_t::Map(&matrix[0], dim, dim);
 
@@ -2072,7 +2087,7 @@ QError CPUImplQPU::controlOracleGate(Qnum &qubits, const Qnum &controls,
     qvector_t state_bak(dim);
     std::vector<int64_t> realxx_idxes(dim);
 
-    std::reverse(qubits.begin(), qubits.end());
+    //std::reverse(qubits.begin(), qubits.end());
 #pragma omp parallel for num_threads(_omp_thread_num(size)) firstprivate(state_bak, realxx_idxes)
     for (int64_t i = 0; i < size; i++)
     {
@@ -2141,5 +2156,423 @@ QError CPUImplQPUWithOracle::controlOracularGate(std::vector<size_t> bits, std::
         throw runtime_error("Not Implemented.");
     }
     return qErrorNone;
+}
+
+QError  CPUImplQPU::single_qubit_gate_fusion(size_t qn, QStat& matrix)
+{
+	int64_t size = 1ll << (m_qubit_num - 1);
+	int64_t offset = 1ll << qn;
+	if (size > m_threshold)
+	{
+#pragma omp parallel for
+		for (int64_t i = 0; i < size; i++)
+		{
+			int64_t real00_idx = i;
+			int64_t real01_idx = i + 1;
+
+			auto alpha = m_state[real00_idx];
+			auto beta = m_state[real01_idx];
+			m_state[real00_idx] = matrix[0] * alpha + matrix[2] * beta;
+			m_state[real01_idx] = matrix[1] * alpha + matrix[3] * beta;
+		}
+	}
+	else
+	{
+		for (int64_t i = 0; i < size; i++)
+		{
+			int64_t real00_idx = _insert(i, qn);
+			int64_t real01_idx = real00_idx | offset;
+
+			auto alpha = m_state[real00_idx];
+			auto beta = m_state[real01_idx];
+			m_state[real00_idx] = matrix[0] * alpha + matrix[2] * beta;
+			m_state[real01_idx] = matrix[1] * alpha + matrix[3] * beta;
+		}
+	}
+	return qErrorNone;
+}
+
+
+QError CPUImplQPU::double_qubit_gate_fusion(size_t qn_0, size_t qn_1, QStat &matrix)
+{
+	int64_t size = 1ll << (m_qubit_num - 2);
+	int64_t offset0 = 1ll << qn_0;
+	int64_t offset1 = 1ll << qn_1;
+
+	if (size > m_threshold)
+	{
+#pragma omp parallel for
+		for (int64_t i = 0; i < size; i++)
+		{
+			QStat temp;
+			temp.resize(16);
+			for (int i = 0; i < 16; i++)
+			{
+				temp[i] = m_state[i];
+			}
+
+			for (int64_t i = 0; i < size; i++)
+			{
+				for (int64_t j = 0; j < size; j++)
+				{
+					m_state[i * 4 + j] = 0;
+					for (int64_t k = 0; k < size; k++)
+					{
+						m_state[i*size + j] += temp[j * size + k] * matrix[k*size + j];
+					}
+				}
+			}
+		}
+	}
+	else
+	{
+		QStat temp;
+		temp.resize(16);
+		for (int i = 0; i < 16; i++)
+		{
+			temp[i] = m_state[i];
+		}
+
+		for (int64_t i = 0; i < size; i++)
+		{
+			for (int64_t j = 0; j < size; j++)
+			{
+				m_state[i * size + j] = 0;
+				for (int64_t k = 0; k < size; k++)
+				{
+					m_state[i * size + j] += temp[i * size + k] * matrix[k * size + j];
+				}
+			}
+		}
+
+	}
+
+	return qErrorNone;
+}
+
+
+QError CPUImplQPU::_three_qubit_gate(Qnum& qubits, QStat& matrix, bool is_dagger, const Qnum& controls)
+{
+	int64_t size = 1ll << (m_qubit_num - 3);
+	int64_t offset0 = 1ll << qubits[0];
+	int64_t offset1 = 1ll << qubits[1];
+	int64_t offset2 = 1ll << qubits[2];
+	int64_t mask = 0;
+	std::sort(qubits.begin(), qubits.end());
+	if (is_dagger)
+	{
+		qcomplex_t temp;
+		for (size_t i = 0; i < 8; i++)
+		{
+			for (size_t j = i + 1; j < 8; j++)
+			{
+				temp = matrix[8 * i + j];
+				matrix[8 * i + j] = matrix[8 * j + i];
+				matrix[8 * j + i] = temp;
+			}
+		}
+		for (size_t i = 0; i < 64; i++)
+		{
+			matrix[i] = qcomplex_t(matrix[i].real(), -matrix[i].imag());
+		}//dagger
+	}
+	if (controls.size() > 3)
+	{
+		for_each(controls.begin(), controls.end() - 3, [&](size_t q) {
+			mask |= 1ll << q;
+		});
+	}
+
+
+	if (size > m_threshold)
+	{
+		//#pragma omp parallel for
+		for (int64_t i = 0; i < size; i++)
+		{
+			int64_t real00_idx = _insert(i, qubits[0], qubits[1], qubits[2]);
+			if (mask != (mask & real00_idx)) {
+				continue;
+			}
+
+
+			/* bit swap 001 ===> 100 , 011 ===> 110  */
+			auto phi0000 = m_state[real00_idx];
+			auto phi0001 = m_state[real00_idx | offset0];
+			auto phi0010 = m_state[real00_idx | offset1];
+			auto phi0011 = m_state[real00_idx | offset0 | offset1];
+
+			auto phi0100 = m_state[real00_idx | offset2];
+			auto phi0101 = m_state[real00_idx | offset2 | offset0];
+			auto phi0110 = m_state[real00_idx | offset2 | offset1];
+			auto phi0111 = m_state[real00_idx | offset2 | offset1 | offset0];
+
+			// m_state[0]
+			m_state[real00_idx]
+				= matrix[0] * phi0000 + matrix[1] * phi0001
+				+ matrix[2] * phi0010 + matrix[3] * phi0011
+				+ matrix[4] * phi0100 + matrix[5] * phi0101
+				+ matrix[6] * phi0110 + matrix[7] * phi0111;
+			// m_state[1]
+			m_state[real00_idx | offset0]
+				= matrix[8] * phi0000 + matrix[9] * phi0001
+				+ matrix[10] * phi0010 + matrix[11] * phi0011
+				+ matrix[12] * phi0100 + matrix[13] * phi0101
+				+ matrix[14] * phi0110 + matrix[15] * phi0111;
+			// m_state[2]
+			m_state[real00_idx | offset1]
+				= matrix[16] * phi0000 + matrix[17] * phi0001
+				+ matrix[18] * phi0010 + matrix[19] * phi0011
+				+ matrix[20] * phi0100 + matrix[21] * phi0101
+				+ matrix[22] * phi0110 + matrix[23] * phi0111;
+			// m_state[3]
+			m_state[real00_idx | offset0 | offset1]
+				= matrix[24] * phi0000 + matrix[25] * phi0001
+				+ matrix[26] * phi0010 + matrix[27] * phi0011
+				+ matrix[28] * phi0100 + matrix[29] * phi0101
+				+ matrix[30] * phi0110 + matrix[31] * phi0111;
+			// m_state[4]
+			m_state[real00_idx | offset2]
+				= matrix[32] * phi0000 + matrix[33] * phi0001
+				+ matrix[34] * phi0010 + matrix[35] * phi0011
+				+ matrix[36] * phi0100 + matrix[37] * phi0101
+				+ matrix[38] * phi0110 + matrix[39] * phi0111;
+			// m_state[5]
+			m_state[real00_idx | offset2 | offset0]
+				= matrix[40] * phi0000 + matrix[41] * phi0001
+				+ matrix[42] * phi0010 + matrix[43] * phi0011
+				+ matrix[44] * phi0100 + matrix[45] * phi0101
+				+ matrix[46] * phi0110 + matrix[47] * phi0111;
+
+			// m_state[6]
+			m_state[real00_idx | offset2 | offset1]
+				= matrix[48] * phi0000 + matrix[49] * phi0001
+				+ matrix[50] * phi0010 + matrix[51] * phi0011
+				+ matrix[52] * phi0100 + matrix[53] * phi0101
+				+ matrix[54] * phi0110 + matrix[55] * phi0111;
+			// m_state[7]
+			m_state[real00_idx | offset2 | offset1 | offset0]
+				= matrix[56] * phi0000 + matrix[57] * phi0001
+				+ matrix[58] * phi0010 + matrix[59] * phi0011
+				+ matrix[60] * phi0100 + matrix[61] * phi0101
+				+ matrix[62] * phi0110 + matrix[63] * phi0111;
+		}
+	}
+	else
+	{
+		for (int64_t i = 0; i < size; i++)
+		{
+			int64_t real00_idx = _insert(i, qubits[0], qubits[1], qubits[2]);
+			if (mask != (mask & real00_idx))
+				continue;
+
+			auto phi0000 = m_state[real00_idx];
+			auto phi0001 = m_state[real00_idx | offset0];
+			auto phi0010 = m_state[real00_idx | offset1];
+			auto phi0011 = m_state[real00_idx | offset0 | offset1];
+
+			auto phi0100 = m_state[real00_idx | offset2];
+			auto phi0101 = m_state[real00_idx | offset2 | offset0];
+			auto phi0110 = m_state[real00_idx | offset2 | offset1];
+			auto phi0111 = m_state[real00_idx | offset2 | offset1 | offset0];
+
+			// m_state[0]
+			m_state[real00_idx]
+				= matrix[0] * phi0000 + matrix[1] * phi0001
+				+ matrix[2] * phi0010 + matrix[3] * phi0011
+				+ matrix[4] * phi0100 + matrix[5] * phi0101
+				+ matrix[6] * phi0110 + matrix[7] * phi0111;
+			// m_state[1]
+			m_state[real00_idx | offset0]
+				= matrix[8] * phi0000 + matrix[9] * phi0001
+				+ matrix[10] * phi0010 + matrix[11] * phi0011
+				+ matrix[12] * phi0100 + matrix[13] * phi0101
+				+ matrix[14] * phi0110 + matrix[15] * phi0111;
+			// m_state[2]
+			m_state[real00_idx | offset1]
+				= matrix[16] * phi0000 + matrix[17] * phi0001
+				+ matrix[18] * phi0010 + matrix[19] * phi0011
+				+ matrix[20] * phi0100 + matrix[21] * phi0101
+				+ matrix[22] * phi0110 + matrix[23] * phi0111;
+			// m_state[3]
+			m_state[real00_idx | offset0 | offset1]
+				= matrix[24] * phi0000 + matrix[25] * phi0001
+				+ matrix[26] * phi0010 + matrix[27] * phi0011
+				+ matrix[28] * phi0100 + matrix[29] * phi0101
+				+ matrix[30] * phi0110 + matrix[31] * phi0111;
+			// m_state[4]
+			m_state[real00_idx | offset2]
+				= matrix[32] * phi0000 + matrix[33] * phi0001
+				+ matrix[34] * phi0010 + matrix[35] * phi0011
+				+ matrix[36] * phi0100 + matrix[37] * phi0101
+				+ matrix[38] * phi0110 + matrix[39] * phi0111;
+			// m_state[5]
+			m_state[real00_idx | offset2 | offset0]
+				= matrix[40] * phi0000 + matrix[41] * phi0001
+				+ matrix[42] * phi0010 + matrix[43] * phi0011
+				+ matrix[44] * phi0100 + matrix[45] * phi0101
+				+ matrix[46] * phi0110 + matrix[47] * phi0111;
+			// m_state[6]
+			m_state[real00_idx | offset2 | offset1]
+				= matrix[48] * phi0000 + matrix[49] * phi0001
+				+ matrix[50] * phi0010 + matrix[51] * phi0011
+				+ matrix[52] * phi0100 + matrix[53] * phi0101
+				+ matrix[54] * phi0110 + matrix[55] * phi0111;
+			// m_state[7]
+			m_state[real00_idx | offset2 | offset1 | offset0]
+				= matrix[56] * phi0000 + matrix[57] * phi0001
+				+ matrix[58] * phi0010 + matrix[59] * phi0011
+				+ matrix[60] * phi0100 + matrix[61] * phi0101
+				+ matrix[62] * phi0110 + matrix[63] * phi0111;
+		}
+	}
+
+	return qErrorNone;
+}
+
+QError CPUImplQPU::_four_qubit_gate(Qnum &qubits, QStat& matrix, bool is_dagger, const Qnum& controls)
+{
+
+	int64_t size = 1ll << (m_qubit_num - 4);
+	int64_t offset0 = 1ll << qubits[0];
+	int64_t offset1 = 1ll << qubits[1];
+	int64_t offset2 = 1ll << qubits[2];
+	int64_t offset3 = 1ll << qubits[3];
+	int64_t mask = 0;
+	std::sort(qubits.begin(), qubits.end());
+	auto dim = 1ll << qubits.size();
+	qmatrix_t mat_eigen = qmatrix_t::Map(&matrix[0], dim, dim);
+	if (is_dagger)
+	{
+		mat_eigen.adjointInPlace();
+	}
+
+	qvector_t state_bak(dim);
+	std::vector<int64_t> realxx_idxes(dim);
+	if (controls.size() > 4)
+	{
+		for_each(controls.begin(), controls.end() - 4, [&](size_t q) {
+			mask |= 1ll << q;
+		});
+	}
+
+	for (int64_t i = 0; i < size; i++)
+	{
+		int64_t real00_idx = _insert(i, qubits[0], qubits[1], qubits[2], qubits[3]);
+		if (mask != (mask & real00_idx)) {
+			continue;
+		}
+
+		realxx_idxes[0] = real00_idx;
+		realxx_idxes[1] = real00_idx | offset0;
+		realxx_idxes[2] = real00_idx | offset1;
+		realxx_idxes[3] = real00_idx | offset0 | offset1;
+		realxx_idxes[4] = real00_idx | offset2;
+		realxx_idxes[5] = real00_idx | offset2 | offset0;
+		realxx_idxes[6] = real00_idx | offset2 | offset1;
+		realxx_idxes[7] = real00_idx | offset2 | offset1 | offset0;
+		realxx_idxes[8] = real00_idx | offset3;
+		realxx_idxes[9] = real00_idx | offset3 | offset0;
+		realxx_idxes[10] = real00_idx | offset3 | offset1;
+		realxx_idxes[11] = real00_idx | offset3 | offset1 | offset0;
+		realxx_idxes[12] = real00_idx | offset3 | offset2;
+		realxx_idxes[13] = real00_idx | offset3 | offset2 | offset0;
+		realxx_idxes[14] = real00_idx | offset3 | offset2 | offset1;
+		realxx_idxes[15] = real00_idx | offset3 | offset2 | offset1 | offset0;
+
+		for (size_t i_dim = 0; i_dim < dim; i_dim++)
+		{
+			state_bak(i_dim) = m_state[realxx_idxes[i_dim]];
+		}
+
+		for (size_t i_dim = 0; i_dim < dim; i_dim++)
+		{
+			m_state[realxx_idxes[i_dim]] = mat_eigen.row(i_dim).cwiseProduct(state_bak).sum();
+		}
+	}
+
+	return qErrorNone;
+}
+
+
+QError CPUImplQPU::_five_qubit_gate(Qnum &qubits, QStat& matrix, bool is_dagger, const Qnum& controls)
+{
+
+	int64_t size = 1ll << (m_qubit_num - 5);
+	int64_t offset0 = 1ll << qubits[0];
+	int64_t offset1 = 1ll << qubits[1];
+	int64_t offset2 = 1ll << qubits[2];
+	int64_t offset3 = 1ll << qubits[3];
+	int64_t offset4 = 1ll << qubits[4];
+	int64_t mask = 0;
+	std::sort(qubits.begin(), qubits.end());
+	auto dim = 1ll << qubits.size();
+	qmatrix_t mat_eigen = qmatrix_t::Map(&matrix[0], dim, dim);
+	if (is_dagger)
+	{
+		mat_eigen.adjointInPlace();
+	}
+
+	qvector_t state_bak(dim);
+	std::vector<int64_t> realxx_idxes(dim);
+	if (controls.size() > 5)
+	{
+		for_each(controls.begin(), controls.end() - 5, [&](size_t q) {
+			mask |= 1ll << q;
+		});
+	}
+
+	for (int64_t i = 0; i < size; i++)
+	{
+		int64_t real00_idx = _insert(i, qubits[0], qubits[1], qubits[2], qubits[3], qubits[4]);
+		if (mask != (mask & real00_idx)) {
+			continue;
+		}
+
+		realxx_idxes[0] = real00_idx;
+		realxx_idxes[1] = real00_idx | offset0;
+		realxx_idxes[2] = real00_idx | offset1;
+		realxx_idxes[3] = real00_idx | offset0 | offset1;
+		realxx_idxes[4] = real00_idx | offset2;
+		realxx_idxes[5] = real00_idx | offset2 | offset0;
+		realxx_idxes[6] = real00_idx | offset2 | offset1;
+		realxx_idxes[7] = real00_idx | offset2 | offset1 | offset0;
+		realxx_idxes[8] = real00_idx | offset3;
+		realxx_idxes[9] = real00_idx | offset3 | offset0;
+		realxx_idxes[10] = real00_idx | offset3 | offset1;
+		realxx_idxes[11] = real00_idx | offset3 | offset1 | offset0;
+		realxx_idxes[12] = real00_idx | offset3 | offset2;
+		realxx_idxes[13] = real00_idx | offset3 | offset2 | offset0;
+		realxx_idxes[14] = real00_idx | offset3 | offset2 | offset1;
+		realxx_idxes[15] = real00_idx | offset3 | offset2 | offset1 | offset0;
+		realxx_idxes[16] = real00_idx | offset4;
+		realxx_idxes[17] = real00_idx | offset4 | offset0;
+		realxx_idxes[18] = real00_idx | offset4 | offset1;
+		realxx_idxes[19] = real00_idx | offset4 | offset1 | offset0;
+		realxx_idxes[20] = real00_idx | offset4 | offset2;
+		realxx_idxes[21] = real00_idx | offset4 | offset2 | offset0;
+		realxx_idxes[22] = real00_idx | offset4 | offset2 | offset1;
+		realxx_idxes[23] = real00_idx | offset4 | offset2 | offset1 | offset0;
+		realxx_idxes[24] = real00_idx | offset4 | offset3;
+		realxx_idxes[25] = real00_idx | offset4 | offset3 | offset0;
+		realxx_idxes[26] = real00_idx | offset4 | offset3 | offset1;
+		realxx_idxes[27] = real00_idx | offset4 | offset3 | offset1 | offset0;
+		realxx_idxes[28] = real00_idx | offset4 | offset3 | offset2;
+		realxx_idxes[29] = real00_idx | offset4 | offset3 | offset2 | offset0;
+		realxx_idxes[30] = real00_idx | offset4 | offset3 | offset2 | offset1;
+		realxx_idxes[31] = real00_idx | offset4 | offset3 | offset2 | offset1 | offset0;
+
+
+		for (size_t i_dim = 0; i_dim < dim; i_dim++)
+		{
+			state_bak(i_dim) = m_state[realxx_idxes[i_dim]];
+		}
+
+		for (size_t i_dim = 0; i_dim < dim; i_dim++)
+		{
+			m_state[realxx_idxes[i_dim]] = mat_eigen.row(i_dim).cwiseProduct(state_bak).sum();
+		}
+	}
+
+	return qErrorNone;
 }
 

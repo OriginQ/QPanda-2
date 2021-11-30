@@ -11,7 +11,6 @@ enum PIC_TYPE
 	LATEX
 };
 
-
 class AbstractDraw
 {
 public:
@@ -30,17 +29,17 @@ public:
 	virtual void init(std::vector<int> &quBits, std::vector<int> &clBits) = 0;
 
 	/**
-	 * @brief draw text-picture by layer
+	 * @brief draw picture by layer
 	 * 
 	 */
 	virtual void draw_by_layer() = 0;
 
 	/**
-	 * @brief draw text-picture by time sequence
+	 * @brief draw picture by time sequence
 	 * 
 	 * @param[in] config_data const std::string It can be configuration file or configuration data, 
 	 						  which can be distinguished by file suffix,
-			 				  so the configuration file must be end with ".json", default is CONFIG_PAT
+			 				  so the configuration file must be end with ".json", default is CONFIG_PATH
 	 */
 	virtual void draw_by_time_sequence(const std::string config_data = CONFIG_PATH) = 0;
 

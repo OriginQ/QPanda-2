@@ -16,6 +16,8 @@ using std::map;
 namespace py = pybind11;
 namespace Var = QPanda::Variational;
 
+
+
 #define GET_FEED_PTR_NO_OFFSET(ptr_name, classname) \
     QPanda::QGate(classname::*ptr_name)() \
     = &classname::feed
@@ -28,6 +30,7 @@ namespace Var = QPanda::Variational;
 #define BIND_VAR_OPERATOR_OVERLOAD(OP) .def(py::self OP py::self)\
                                        .def(py::self OP double())\
                                        .def(double() OP py::self)
+
 
 namespace QPanda {
     namespace Variational {
@@ -47,11 +50,33 @@ namespace QPanda {
 
 void init_variational(py::module& m)
 {
+    m.def("VQG_I_batch", &Var::VQG_I_batch);
+    m.def("VQG_H_batch", &Var::VQG_H_batch);
+    m.def("VQG_T_batch", &Var::VQG_T_batch);
+    m.def("VQG_S_batch", &Var::VQG_S_batch);
+    m.def("VQG_X_batch", &Var::VQG_X_batch);
+    m.def("VQG_Y_batch", &Var::VQG_Y_batch);
+    m.def("VQG_Z_batch", &Var::VQG_Z_batch);
+    m.def("VQG_X1_batch", &Var::VQG_X1_batch);
+    m.def("VQG_Y1_batch", &Var::VQG_Y1_batch);
+    m.def("VQG_Z1_batch", &Var::VQG_Z1_batch);
+    m.def("VQG_U1_batch", &Var::VQG_U1_batch);
+    m.def("VQG_U2_batch", &Var::VQG_U2_batch);
+    m.def("VQG_U3_batch", &Var::VQG_U3_batch);
+    m.def("VQG_U4_batch", &Var::VQG_U4_batch);
+    m.def("VQG_CU_batch", &Var::VQG_CU_batch);
+    m.def("VQG_CZ_batch", &Var::VQG_CZ_batch);
+    m.def("VQG_CNOT_batch", &Var::VQG_CNOT_batch);
+    m.def("VQG_SWAP_batch", &Var::VQG_SWAP_batch);
+    m.def("VQG_iSWAP_batch", &Var::VQG_iSWAP_batch);
+    m.def("VQG_SqiSWAP_batch", &Var::VQG_SqiSWAP_batch);
+  
     py::class_<Var::var>(m, "var")
         .def(py::init<double>())
         .def(py::init<py::EigenDRef<Eigen::MatrixXd>>())
         .def(py::init<double, bool>())
         .def(py::init<py::EigenDRef<Eigen::MatrixXd>, bool>())
+        
         .def("get_value", &Var::var::getValue)
         .def("set_value", py::overload_cast<const MatrixXd&>(&Var::var::setValue))
         .def("set_value", py::overload_cast<const double&>(&Var::var::setValue))
@@ -60,6 +85,7 @@ void init_variational(py::module& m)
         BIND_VAR_OPERATOR_OVERLOAD(-)
         BIND_VAR_OPERATOR_OVERLOAD(*)
         BIND_VAR_OPERATOR_OVERLOAD(/)
+        
         .def("__getitem__", [](Var::var& v, int idx) {return v[idx]; }, py::is_operator())
         .def(py::self == py::self);
 
@@ -362,7 +388,7 @@ void init_variational(py::module& m)
     QCircuit(Var::VariationalQuantumCircuit:: * feed_vqc_no_ptr)()
         = &Var::VariationalQuantumCircuit::feed;
 
-    Var::VariationalQuantumCircuit& (Var::VariationalQuantumCircuit:: * insert_vqc_vqc)
+    Var::VariationalQuantumCircuit& (Var::VariationalQuantumCircuit::* insert_vqc_vqc)
         (Var::VariationalQuantumCircuit)
         = &Var::VariationalQuantumCircuit::insert;
 
@@ -372,12 +398,73 @@ void init_variational(py::module& m)
     Var::VariationalQuantumCircuit& (Var::VariationalQuantumCircuit:: * insert_vqc_qg)
         (QGate&) = &Var::VariationalQuantumCircuit::insert;
 
+    Var::VariationalQuantumCircuit& (Var::VariationalQuantumCircuit::* insert_vqc_vqc_ass)
+        (Var::VariationalQuantumCircuit)
+        = &Var::VariationalQuantumCircuit::operator<<;
 
+    Var::VariationalQuantumCircuit& (Var::VariationalQuantumCircuit::* insert_vqc_qc_ass)
+        (QCircuit) = &Var::VariationalQuantumCircuit::operator<<;
+
+    Var::VariationalQuantumCircuit& (Var::VariationalQuantumCircuit::* insert_vqc_qg_ass)
+        (QGate&) = &Var::VariationalQuantumCircuit::operator<<;
 
     py::class_<Var::VariationalQuantumCircuit>
         (m, "VariationalQuantumCircuit")
         .def(py::init<>())
         .def(py::init<QCircuit>())
+        .def("__lshift__", &Var::VariationalQuantumCircuit::operator<< <Var::VQG_I>,
+            py::return_value_policy::reference)
+        .def("__lshift__", &Var::VariationalQuantumCircuit::operator<< <Var::VQG_H>,
+            py::return_value_policy::reference)
+        .def("__lshift__", &Var::VariationalQuantumCircuit::operator<< <Var::VQG_X>,
+            py::return_value_policy::reference)
+        .def("__lshift__", &Var::VariationalQuantumCircuit::operator<< <Var::VQG_Y>,
+            py::return_value_policy::reference)
+        .def("__lshift__", &Var::VariationalQuantumCircuit::operator<< <Var::VQG_T>,
+            py::return_value_policy::reference)
+        .def("__lshift__", &Var::VariationalQuantumCircuit::operator<< <Var::VQG_S>,
+            py::return_value_policy::reference)
+        .def("__lshift__", &Var::VariationalQuantumCircuit::operator<< <Var::VQG_Z>,
+            py::return_value_policy::reference)
+        .def("__lshift__", &Var::VariationalQuantumCircuit::operator<< <Var::VQG_X1>,
+            py::return_value_policy::reference)
+        .def("__lshift__", &Var::VariationalQuantumCircuit::operator<< <Var::VQG_Y1>,
+            py::return_value_policy::reference)
+        .def("__lshift__", &Var::VariationalQuantumCircuit::operator<< <Var::VQG_Z1>,
+            py::return_value_policy::reference)
+        .def("__lshift__", &Var::VariationalQuantumCircuit::operator<< <Var::VQG_U1>,
+            py::return_value_policy::reference)
+        .def("__lshift__", &Var::VariationalQuantumCircuit::operator<< <Var::VQG_U2>,
+            py::return_value_policy::reference)
+        .def("__lshift__", &Var::VariationalQuantumCircuit::operator<< <Var::VQG_U3>,
+            py::return_value_policy::reference)
+        .def("__lshift__", &Var::VariationalQuantumCircuit::operator<< <Var::VQG_U4>,
+            py::return_value_policy::reference)
+        .def("__lshift__", &Var::VariationalQuantumCircuit::operator<< <Var::VQG_RX>,
+            py::return_value_policy::reference)
+        .def("__lshift__", &Var::VariationalQuantumCircuit::operator<< <Var::VQG_RY>,
+            py::return_value_policy::reference)
+        .def("__lshift__", &Var::VariationalQuantumCircuit::operator<< <Var::VQG_RZ>,
+            py::return_value_policy::reference)
+        .def("__lshift__", &Var::VariationalQuantumCircuit::operator<< <Var::VQG_CNOT>,
+            py::return_value_policy::reference)
+        .def("__lshift__", &Var::VariationalQuantumCircuit::operator<< <Var::VQG_CR>,
+            py::return_value_policy::reference)
+        .def("__lshift__", &Var::VariationalQuantumCircuit::operator<< <Var::VQG_CZ>,
+            py::return_value_policy::reference)
+        .def("__lshift__", &Var::VariationalQuantumCircuit::operator<< <Var::VQG_CRX>,
+            py::return_value_policy::reference)
+        .def("__lshift__", &Var::VariationalQuantumCircuit::operator<< <Var::VQG_CRY>,
+            py::return_value_policy::reference)
+        .def("__lshift__", &Var::VariationalQuantumCircuit::operator<< <Var::VQG_CRZ>,
+            py::return_value_policy::reference)
+        .def("__lshift__", &Var::VariationalQuantumCircuit::operator<< <Var::VQG_SWAP>,
+            py::return_value_policy::reference)
+        .def("__lshift__", &Var::VariationalQuantumCircuit::operator<< <Var::VQG_iSWAP>,
+            py::return_value_policy::reference)
+        .def("__lshift__", &Var::VariationalQuantumCircuit::operator<< <Var::VQG_SqiSWAP>,
+            py::return_value_policy::reference)
+        
         .def("insert", &Var::VariationalQuantumCircuit::insert<Var::VQG_I>, py::return_value_policy::reference)
         .def("insert", &Var::VariationalQuantumCircuit::insert<Var::VQG_H>, py::return_value_policy::reference)
         .def("insert", &Var::VariationalQuantumCircuit::insert<Var::VQG_X>, py::return_value_policy::reference)
@@ -404,10 +491,12 @@ void init_variational(py::module& m)
         .def("insert", &Var::VariationalQuantumCircuit::insert<Var::VQG_SWAP>, py::return_value_policy::reference)
         .def("insert", &Var::VariationalQuantumCircuit::insert<Var::VQG_iSWAP>, py::return_value_policy::reference)
         .def("insert", &Var::VariationalQuantumCircuit::insert<Var::VQG_SqiSWAP>, py::return_value_policy::reference)
-       
         .def("insert", insert_vqc_vqc, py::return_value_policy::reference)
         .def("insert", insert_vqc_qc, py::return_value_policy::reference)
         .def("insert", insert_vqc_qg, py::return_value_policy::reference)
+        .def("__lshift__", insert_vqc_vqc_ass, py::return_value_policy::reference)
+        .def("__lshift__", insert_vqc_qc_ass, py::return_value_policy::reference)
+        .def("__lshift__", insert_vqc_qg_ass, py::return_value_policy::reference)
         .def("feed", feed_vqc_no_ptr)
         .def("feed", feed_vqc_with_ptr)
         .def("dagger", &Var::VariationalQuantumCircuit::dagger, py::return_value_policy::automatic)
@@ -417,7 +506,7 @@ void init_variational(py::module& m)
         .def("is_dagger", &Var::VariationalQuantumCircuit::is_dagger, py::return_value_policy::automatic)
         .def("get_control_qubit", &Var::VariationalQuantumCircuit::get_control_qubit, py::return_value_policy::automatic)
        ;
-   
+    
   
     py::class_<Var::expression>(m, "expression")
         .def(py::init<Var::var>())
@@ -496,7 +585,6 @@ void init_variational(py::module& m)
         .def("get_variables", &Var::Optimizer::get_variables)
         .def("get_loss", &Var::Optimizer::get_loss)
         .def("run", &Var::Optimizer::run);
-
 
     py::enum_<Var::OptimizerMode>(m, "OptimizerMode");
 

@@ -324,78 +324,79 @@ void init_core_class(py::module & m)
     }, py::return_value_policy::automatic);
 
 	py::class_<Encode>(m, "Encode")
-		.def(py::init<>())
-		.def("amplitude_encode", [](Encode & self, QVec& qbits, std::vector<double> data) {
-		return self.amplitude_encode(qbits, data); },
-			"qubit"_a, "data"_a,
-			py::return_value_policy::automatic
-			)
-		.def("amplitude_encode", [](Encode & self, QVec& qbits, std::vector<complex<double>> data) {
+			.def(py::init<>())
+			.def("amplitude_encode", [](Encode & self, QVec& qbits, std::vector<double> data) {
 			return self.amplitude_encode(qbits, data); },
 			"qubit"_a, "data"_a,
-				py::return_value_policy::automatic
+			py::return_value_policy::automatic
 			)
-		.def("amplitude_encode_recursive", [](Encode & self, QVec& qbits, std::vector<double> data) {
+			.def("amplitude_encode", [](Encode & self, QVec& qbits, std::vector<complex<double>> data) {
+			return self.amplitude_encode(qbits, data); },
+			"qubit"_a, "data"_a,
+			py::return_value_policy::automatic
+			)
+			.def("amplitude_encode_recursive", [](Encode & self, QVec& qbits, std::vector<double> data) {
 			return self.amplitude_encode_recursive(qbits, data); },
 			"qubit"_a, "data"_a,
-				py::return_value_policy::automatic
+			py::return_value_policy::automatic
 			)
-		.def("amplitude_encode_recursive", [](Encode & self, QVec& qbits, std::vector<complex<double>> data) {
-		return self.amplitude_encode_recursive(qbits, data); },
+			.def("amplitude_encode_recursive", [](Encode & self, QVec& qbits, std::vector<complex<double>> data) {
+			return self.amplitude_encode_recursive(qbits, data); },
 			"qubit"_a, "data"_a,
 			py::return_value_policy::automatic
 			)
-		.def("angle_encode", [](Encode & self, QVec& qbits, std::vector<double> data, GateType gate_type = GateType::RY_GATE) {
-			return self.angle_encode(qbits, data,gate_type); },
-			"qubit"_a, "data"_a,"gate_type"_a= GateType::RY_GATE,
-				py::return_value_policy::automatic)
-		.def("dense_angle_encode", [](Encode & self, QVec& qbits, std::vector<double> data) {
-				return self.dense_angle_encode(qbits, data); },
+			.def("angle_encode", [](Encode & self, QVec& qbits, std::vector<double> data, GateType gate_type = GateType::RY_GATE) {
+			return self.angle_encode(qbits, data, gate_type); },
+			"qubit"_a, "data"_a, "gate_type"_a = GateType::RY_GATE,
+			py::return_value_policy::automatic)
+			.def("dense_angle_encode", [](Encode & self, QVec& qbits, std::vector<double> data) {
+			return self.dense_angle_encode(qbits, data); },
 			"qubit"_a, "data"_a,
-					py::return_value_policy::automatic)
-		.def("iqp_encode", [](Encode & self, QVec& qbits, std::vector<double> data, std::vector<std::pair<int, int>>control_vector = {}, bool inverse = false, int repeats = 1) {
-					return self.iqp_encode(qbits, data, control_vector, inverse, repeats); },
-			"qubit"_a, "data"_a, "control_list"_a = std::vector<std::pair<int, int>>{},"bool_inverse"_a=false,"repeats"_a=1,
-						py::return_value_policy::automatic)
-		.def("basic_encode", [](Encode & self, QVec& qbits, std::string data) {
-						return self.basic_encode(qbits, data); },
-			"qubit"_a, "data"_a, 
-							py::return_value_policy::automatic)
-		.def("dc_amplitude_encode", [](Encode & self, QVec& qbits, std::vector<double> data) {
-							return self.dc_amplitude_encode(qbits, data); },
+			py::return_value_policy::automatic)
+			.def("iqp_encode", [](Encode & self, QVec& qbits, std::vector<double> data, std::vector<std::pair<int, int>>control_vector = {}, bool inverse = false, int repeats = 1) {
+			return self.iqp_encode(qbits, data, control_vector, inverse, repeats); },
+			"qubit"_a, "data"_a, "control_list"_a = std::vector<std::pair<int, int>>{}, "bool_inverse"_a = false, "repeats"_a = 1,
+			py::return_value_policy::automatic)
+			.def("basic_encode", [](Encode & self, QVec& qbits, std::string data) {
+			return self.basic_encode(qbits, data); },
 			"qubit"_a, "data"_a,
-								py::return_value_policy::automatic)
-		.def("schmidt_encode", [](Encode & self, QVec& qbits, std::vector<double> data) {
+			py::return_value_policy::automatic)
+			.def("dc_amplitude_encode", [](Encode & self, QVec& qbits, std::vector<double> data) {
+			return self.dc_amplitude_encode(qbits, data); },
+			"qubit"_a, "data"_a,
+			py::return_value_policy::automatic)
+			.def("schmidt_encode", [](Encode & self, QVec& qbits, std::vector<double> data) {
 			return self.schmidt_encode(qbits, data); },
 			"qubit"_a, "data"_a,
-				py::return_value_policy::automatic)
-		.def("bid_amplitude_encode", [](Encode & self, QVec q, std::vector<double>data, int split = 0) {
-								return self.bid_amplitude_encode(q,data,split); },
-			"qubit"_a, "data"_a,"split"_a=0,
-									py::return_value_policy::automatic)
-		.def("ds_quantum_state_preparation", [](Encode & self,QVec& qbits, std::map<std::string, double> data) {
-		return self.ds_quantum_state_preparation(qbits, data); },
-			"qubit"_a, "data"_a,
-			py::return_value_policy::automatic
-			)
-		.def("ds_quantum_state_preparation", [](Encode & self, QVec& qbits, std::map < std::string, std::complex<double>> data) {
+			py::return_value_policy::automatic)
+			.def("bid_amplitude_encode", [](Encode & self, QVec q, std::vector<double>data, int split = 0) {
+			return self.bid_amplitude_encode(q, data, split); },
+			"qubit"_a, "data"_a, "split"_a = 0,
+			py::return_value_policy::automatic)
+			.def("ds_quantum_state_preparation", [](Encode & self, QVec& qbits, std::map<std::string, double> data) {
 			return self.ds_quantum_state_preparation(qbits, data); },
 			"qubit"_a, "data"_a,
-				py::return_value_policy::automatic
-				)
-		.def("sparse_isometry", [](Encode & self, QVec& qbits, std::map < std::string, double> data) {
-			return self.sparse_isometry(qbits, data); },
-			"qubit"_a, "data"_a,
-				py::return_value_policy::automatic
+			py::return_value_policy::automatic
 			)
-		.def("sparse_isometry", [](Encode & self, QVec& qbits, std::map < std::string, complex<double>> data) {
-		    return self.sparse_isometry(qbits, data); },
+			.def("ds_quantum_state_preparation", [](Encode & self, QVec& qbits, std::map < std::string, std::complex<double>> data) {
+			return self.ds_quantum_state_preparation(qbits, data); },
 			"qubit"_a, "data"_a,
 			py::return_value_policy::automatic
 			)
-		.def("get_circuit", &Encode::get_circuit)
-		.def("get_out_qubits", &Encode::get_out_qubits)
-		.def("get_normalization_constant", &Encode::get_normalization_constant);
+			.def("sparse_isometry", [](Encode & self, QVec& qbits, std::map < std::string, double> data) {
+			return self.sparse_isometry(qbits, data); },
+			"qubit"_a, "data"_a,
+			py::return_value_policy::automatic
+			)
+			.def("sparse_isometry", [](Encode & self, QVec& qbits, std::map < std::string, complex<double>> data) {
+			return self.sparse_isometry(qbits, data); },
+			"qubit"_a, "data"_a,
+			py::return_value_policy::automatic
+			)
+			.def("get_circuit", &Encode::get_circuit)
+			.def("get_out_qubits", &Encode::get_out_qubits)
+			.def("get_normalization_constant", &Encode::get_normalization_constant);
+
     py::class_<QIfProg>(m, "QIfProg")
             .def(py::init([](NodeIter & iter) {
                      if (!(*iter))

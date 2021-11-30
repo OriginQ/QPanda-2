@@ -20,6 +20,7 @@
 #include <Core/Utilities/Compiler/OriginIRCompiler/originirParser.h>
 #include <algorithm>
 #include <numeric>
+#include <string>
 
 
 QPANDA_BEGIN
@@ -94,7 +95,7 @@ struct CallGateInfo
 
 struct UserDefineGateInfo {
 	std::vector<std::string> gate_bodys;
-	std::vector<std::string> to_bereplaced_par;
+	std::vector<std::string> tobe_replaced_par;
 };
 
 
@@ -620,30 +621,34 @@ public:
 
 		auto prog_id = builder.add_prog();
 
+		antlr4::Token* tk = ctx->getStart();
+		size_t line = tk->getLine();
 		auto func_name = ctx->id()->getText();
+		std::string error_inf = "line" + std::to_string(line) + ":" + "UserDefinedGate " + func_name + " undefined error!";
+
 		if (UserDefinedGateInf.find(func_name) == UserDefinedGateInf.end())
 		{
-			QCERR_AND_THROW(run_fail, " UserDefinedGateInf find error!");
+			QCERR_AND_THROW_ERRSTR(run_fail, error_inf);
 		}
 
 		auto information = UserDefinedGateInf[func_name];
 
 		std::vector<std::string> gate_bodys = information.gate_bodys;
-		std::vector<std::string> to_bereplaced_par = information.to_bereplaced_par;
+		std::vector<std::string> tobe_replaced_par = information.tobe_replaced_par;
 
 		std::map < std::string, std::string> formal2actual_map;
 		int idx = 0;
 		for (int i = 0; i < ctx->q_KEY_declaration().size(); i++)
 		{
 			std::string str_shi_id = ctx->q_KEY_declaration(i)->getText();
-			formal2actual_map[to_bereplaced_par[idx]] = str_shi_id;
+			formal2actual_map[tobe_replaced_par[idx]] = str_shi_id;
 			idx++;
 		}
 
 		for (int i = 0; i < ctx->expression().size(); i++)
 		{
 			std::string str_shi_id = ctx->expression(i)->getText();
-			formal2actual_map[to_bereplaced_par[idx]] = str_shi_id;
+			formal2actual_map[tobe_replaced_par[idx]] = str_shi_id;
 			idx++;
 		}
 
@@ -655,7 +660,6 @@ public:
 				src_str.replace(pos, std::string(strA).length(), strX);
 				pos = src_str.find(strA);
 			}
-			
 		};
 
 		for (auto& str : gate_bodys)
@@ -1086,8 +1090,8 @@ public:
 		auto stopToken = ctx->stop;
 		auto interval = antlr4::misc::Interval(startToken->getStartIndex(), stopToken->getStopIndex());
 		auto text = startToken->getInputStream()->getText(interval);
-		std::string text1 = text;
-		return text;
+		std::string actual_text = text;
+		return actual_text;
 	}
 
 	virtual antlrcpp::Any visitDefine_dagger_statement(originirParser::Define_dagger_statementContext* ctx) {
@@ -1414,8 +1418,8 @@ public:
 	antlrcpp::Any visitGate_func_statement(originirParser::Gate_func_statementContext* ctx) {
 
 		UserDefineGateInfo defined_gate;
-		std::string UserDefinedGateName = ctx->id()->getText();
-		std::vector<std::string> to_bereplaced_par= visit(ctx->id_list(0));
+		std::string userDefinedGateName = ctx->id()->getText();
+		std::vector<std::string> tobe_replaced_par= visit(ctx->id_list(0));
 
 		std::vector<std::string> str_body_vect;
 		for (int i = 0; i < ctx->user_defined_gate().size(); i++)
@@ -1424,8 +1428,8 @@ public:
 		}
 
 		defined_gate.gate_bodys = str_body_vect;
-		defined_gate.to_bereplaced_par = to_bereplaced_par;
-		UserDefinedGateInf.insert(make_pair(UserDefinedGateName, defined_gate));
+		defined_gate.tobe_replaced_par = tobe_replaced_par;
+		UserDefinedGateInf.insert(make_pair(userDefinedGateName, defined_gate));
 
 		return builder.add_prog();
 	}

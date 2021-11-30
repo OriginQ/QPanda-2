@@ -87,6 +87,31 @@ std::vector<QStat> QuantumStateTomography::exec(QuantumMachine *qm, size_t shots
         m_prog_results.push_back(result_prob);
     }
 
+    return caculate_tomography_density();
+}
+
+void QuantumStateTomography::set_qprog_results(std::vector<size_t> &qlist, const std::vector<std::map<std::string, double>>& results)
+{
+    QVec qv;
+    OriginQubitPool *qubit_pool = OriginQubitPool::get_instance();
+    for (auto qaddr : qlist)
+    {
+        qv.push_back(qubit_pool->allocateQubitThroughVirAddress(qaddr));
+    }
+
+    set_qprog_results(qv, results);
+    return;
+}
+
+void QuantumStateTomography::set_qprog_results(const QVec &qlist, const std::vector<std::map<std::string, double>>& results)
+{
+    m_prog_results = results;
+    m_qlist = qlist;
+    return;
+}
+
+std::vector<QStat> QuantumStateTomography::caculate_tomography_density()
+{
     _get_s();
     qmatrix_t gate_i(2, 2);
     qmatrix_t gate_x(2, 2);

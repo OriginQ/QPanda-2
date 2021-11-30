@@ -3,7 +3,7 @@ project(QPANDA)
 
 set(QPANDA_MAJOR_VERSION 2)
 set(QPANDA_MINOR_VERSION 1)
-set(QPANDA_PATCH_VERSION 8)
+set(QPANDA_PATCH_VERSION 10)
 set(QPANDA_VERSION "${QPANDA_MAJOR_VERSION}.${QPANDA_MINOR_VERSION}.${QPANDA_PATCH_VERSION}")
 message(STATUS "QPANDA VERSION = " "[${QPANDA_VERSION}]")
 
@@ -65,6 +65,9 @@ set(LIB_PYQPANDA_PAUL pyQPandaPauliOperator)
 set(LIB_PYQPANDA_CHEMIQ pyQPandaChemiQ)
 
 option(USE_EXTENSION "EXTENSION FUNTIONS" OFF)
+option(USE_MSVC_RUNTIME_LIBRARY_DLL "MD/MT" OFF)
+
+
 
 if(NOT CMAKE_BUILD_TYPE)
    message(STATUS ":  No build type selected, default is Release")
@@ -77,21 +80,22 @@ if (MSVC)
     list(APPEND EXTRA_LDFLAGS
         -D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING
         -D_CRT_SECURE_NO_WARNINGS
+        -DNOMINMAX 
         /bigobj)
 
-    if (NOT USE_MSVC_RUNTIME_LIBRARY_DLL)
-        foreach (flag
-            CMAKE_C_FLAGS
-            CMAKE_C_FLAGS_DEBUG
-            CMAKE_C_FLAGS_RELEASE
-            CMAKE_C_FLAGS_MINSIZEREL
-            CMAKE_C_FLAGS_RELWITHDEBINFO
-            CMAKE_CXX_FLAGS
-            CMAKE_CXX_FLAGS_DEBUG
-            CMAKE_CXX_FLAGS_RELEASE
-            CMAKE_CXX_FLAGS_MINSIZEREL
-            CMAKE_CXX_FLAGS_RELWITHDEBINFO)
+    foreach (flag
+        CMAKE_C_FLAGS
+        CMAKE_C_FLAGS_DEBUG
+        CMAKE_C_FLAGS_RELEASE
+        CMAKE_C_FLAGS_MINSIZEREL
+        CMAKE_C_FLAGS_RELWITHDEBINFO
+        CMAKE_CXX_FLAGS
+        CMAKE_CXX_FLAGS_DEBUG
+        CMAKE_CXX_FLAGS_RELEASE
+        CMAKE_CXX_FLAGS_MINSIZEREL
+        CMAKE_CXX_FLAGS_RELWITHDEBINFO)
 
+        if (NOT USE_MSVC_RUNTIME_LIBRARY_DLL)
             if (${flag} MATCHES "/MDd")
                 string(REGEX REPLACE "/MDd" "/MTd" ${flag} "${${flag}}")
             endif()
@@ -99,12 +103,12 @@ if (MSVC)
             if (${flag} MATCHES "/MD")
                 string(REGEX REPLACE "/MD" "/MT" ${flag} "${${flag}}")
             endif()
+        endif()
 
-            if (${flag} MATCHES "/W3")
-                string(REGEX REPLACE "/W3" "/W0" ${flag} "${${flag}}")
-            endif()
-        endforeach()
-    endif()
+        if (${flag} MATCHES "/W3")
+            string(REGEX REPLACE "/W3" "/W0" ${flag} "${${flag}}")
+        endif()
+    endforeach()
 elseif (MINGW)
     list(APPEND EXTRA_LDFLAGS
         -w

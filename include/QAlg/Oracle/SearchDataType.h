@@ -119,7 +119,7 @@ public:
 			weight_data /= 2;
 		}
 
-		ret_cir << search_cir << cir_mark << search_cir;
+		ret_cir << search_cir;
 		//PTraceQCircuit("ret_cir", ret_cir);
 		return ret_cir;
 	}

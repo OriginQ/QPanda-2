@@ -69,6 +69,18 @@ var::var(op_type _op, const std::vector<var>& _children)
 MatrixXd var::getValue() const { return pimpl->val; }
 
 void var::setValue(const MatrixXd& _val) { pimpl->val = _val; }
+void var::setValue(const double& num)
+{
+    MatrixXd temp(1, 1);
+    temp(0, 0) = num;
+    pimpl->val = temp;
+}
+var &var::operator=(const double& num) {
+    MatrixXd temp(1, 1);
+    temp(0, 0) = num;
+    this->pimpl->val = temp;
+    return *this;
+};
 
 
 op_type var::getOp() const { return pimpl->op; }
@@ -1128,6 +1140,7 @@ VariationalQuantumGate_CRX::VariationalQuantumGate_CRX(Qubit* q_target, QVec q_c
         m_control_qubit.push_back(iter);
     }
     m_constants.push_back(angle);
+
 }
 VariationalQuantumGate_CRX::VariationalQuantumGate_CRX(const VariationalQuantumGate_CRX &old)
 {
@@ -1177,8 +1190,11 @@ VariationalQuantumGate_CRY::VariationalQuantumGate_CRY(Qubit* q_target, QVec q_c
 {
     m_target = q_target;
     m_control_qubit.clear();
-    m_control_qubit.assign(q_control.begin(), q_control.end());
-    m_constants[0] = angle;
+    for (auto iter : q_control)
+    {
+        m_control_qubit.push_back(iter);
+    }
+    m_constants.push_back(angle);
 }
 
 VariationalQuantumGate_CRY::VariationalQuantumGate_CRY(const VariationalQuantumGate_CRY &old)
@@ -1925,7 +1941,7 @@ std::vector<double> impl_qop_pmeasure_real_chip::_get_gradient(var _var)
 }
 
 template<>
-VariationalQuantumCircuit&  VariationalQuantumCircuit::insert<std::shared_ptr<VariationalQuantumGate>>(std::shared_ptr<VariationalQuantumGate> gate)
+VariationalQuantumCircuit&  VariationalQuantumCircuit::operator<< <std::shared_ptr<VariationalQuantumGate>>(std::shared_ptr<VariationalQuantumGate> gate)
 {
     auto copy_gate = gate->copy();
     _insert_copied_gate(copy_gate);
@@ -1933,7 +1949,7 @@ VariationalQuantumCircuit&  VariationalQuantumCircuit::insert<std::shared_ptr<Va
 }
 
 template <>
-VariationalQuantumCircuit& VariationalQuantumCircuit::insert<VariationalQuantumCircuit>(VariationalQuantumCircuit circuit)
+VariationalQuantumCircuit& VariationalQuantumCircuit::operator<< <VariationalQuantumCircuit>(VariationalQuantumCircuit circuit)
 {
     if (circuit.m_is_dagger)
     {
@@ -1959,21 +1975,77 @@ VariationalQuantumCircuit& VariationalQuantumCircuit::insert<VariationalQuantumC
 }
 
 template< >
-VariationalQuantumCircuit&  VariationalQuantumCircuit::insert<QGate &>(QGate  &gate)
+VariationalQuantumCircuit&  VariationalQuantumCircuit::operator<< <QGate &>(QGate  &gate)
 {
     _insert_copied_gate(qg2vqg(&gate));
     return *this;
 }
 
 template< >
-VariationalQuantumCircuit&  VariationalQuantumCircuit::insert<QGate >(QGate  gate)
+VariationalQuantumCircuit&  VariationalQuantumCircuit::operator<< <QGate >(QGate  gate)
 {
     _insert_copied_gate(qg2vqg(&gate));
     return *this;
 }
 
 template<>
-VariationalQuantumCircuit&  VariationalQuantumCircuit::insert<QCircuit>(QCircuit c)
+VariationalQuantumCircuit&  VariationalQuantumCircuit::operator<< <QCircuit>(QCircuit c)
+{
+    this->insert(qc2vqc(&c));
+    return *this;
+}
+
+
+template<>
+VariationalQuantumCircuit& VariationalQuantumCircuit::insert<std::shared_ptr<VariationalQuantumGate>>(std::shared_ptr<VariationalQuantumGate> gate)
+{
+    auto copy_gate = gate->copy();
+    _insert_copied_gate(copy_gate);
+    return *this;
+}
+
+template <>
+VariationalQuantumCircuit& VariationalQuantumCircuit::insert<VariationalQuantumCircuit>(VariationalQuantumCircuit circuit)
+{
+    if (circuit.m_is_dagger)
+    {
+        for (auto temp = circuit.m_gates.rbegin(); temp != circuit.m_gates.rend(); temp++)
+        {
+            auto gate = (*temp)->copy();
+            gate->set_dagger(circuit.m_is_dagger ^ gate->is_dagger());
+            gate->set_control(circuit.m_control_qubit);
+            _insert_copied_gate(gate);
+        }
+    }
+    else
+    {
+        for (auto gate : circuit.m_gates)
+        {
+            gate->set_dagger(circuit.m_is_dagger ^ gate->is_dagger());
+            gate->set_control(circuit.m_control_qubit);
+            _insert_copied_gate(gate->copy());
+        }
+
+    }
+    return *this;
+}
+
+template< >
+VariationalQuantumCircuit& VariationalQuantumCircuit::insert<QGate&>(QGate& gate)
+{
+    _insert_copied_gate(qg2vqg(&gate));
+    return *this;
+}
+
+template< >
+VariationalQuantumCircuit& VariationalQuantumCircuit::insert<QGate >(QGate  gate)
+{
+    _insert_copied_gate(qg2vqg(&gate));
+    return *this;
+}
+
+template<>
+VariationalQuantumCircuit& VariationalQuantumCircuit::insert<QCircuit>(QCircuit c)
 {
     this->insert(qc2vqc(&c));
     return *this;
@@ -2352,37 +2424,6 @@ VQC QPanda::Variational::VQG_CU_batch(const QVec& control_qubits, const QVec& ta
     return vqc;
 }
 
-VQC QPanda::Variational::VQG_CR_batch(const QVec& targitBits_first, const QVec& targitBits_second, var theta)
-{
-    if (targitBits_first.size() == 0 || targitBits_second.size() == 0)
-    {
-        QCERR("qubit_vector error");
-        throw invalid_argument("qubit_vector error");
-    }
-    VariationalQuantumCircuit vqc;
-    if (targitBits_first.size() == targitBits_second.size())
-    {
-        for (int i = 0; i < targitBits_first.size(); ++i)
-        {
-            if (targitBits_first[i] != targitBits_second[i])
-            {
-                vqc.insert(VQG_CR(targitBits_first[i], targitBits_second[i], theta));
-            }
-            else
-            {
-                QCERR("var_gate qubit error");
-                throw invalid_argument("var_gate qubit");
-            }
-        }
-    }
-    else
-    {
-        QCERR("qubit_vector size error");
-        throw invalid_argument("qubit_vector size");
-    }
-
-    return vqc;
-}
 
 VQC QPanda::Variational::VQG_SWAP_batch(const QVec& targitBits_first, const QVec& targitBits_second)
 {

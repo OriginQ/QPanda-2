@@ -210,3 +210,52 @@ TEST(QProgToQASM, test_UserDefinedeGate)
 	destroyQuantumMachine(machine);
 
 }
+
+TEST(QProgToQASM, qprog2pyquil)
+{
+	init();
+	QuantumMachine* machine = initQuantumMachine(CPU);
+	auto qvec = qAllocMany(4);
+	auto cbits = cAllocMany(4);
+	auto circuit = createEmptyCircuit();
+	auto prog = createEmptyQProg();
+	circuit << H(qvec[0]) << CNOT(qvec[0], qvec[1]);
+
+	circuit << CNOT(qvec[1], qvec[2]) << SWAP(qvec[2], qvec[3]);
+
+	prog
+		<< H(qvec[0])
+		<< T(qvec[0])
+		<< S(qvec[0])
+		<< X(qvec[1])
+		<< Y(qvec[1])
+		<< Z(qvec[1])
+		<< X1(qvec[2])
+		<< Y1(qvec[2])
+		<< Z1(qvec[2])
+		<< RX(qvec[3], PI)
+		<< RY(qvec[3], PI)
+		<< RZ(qvec[3], PI)
+		<< U1(qvec[0], PI)
+		<< U2(qvec[0], PI, PI / 2)
+		<< U3(qvec[0], PI, PI / 2, PI / 4)
+		<< U4(qvec[0], PI, PI / 2, PI / 4, PI / 4)
+		<< RX(qvec[0], PI)
+		<< RY(qvec[0], PI)
+		<< RZ(qvec[0], PI)
+		<< SWAP(qvec[0], qvec[1])
+		<< iSWAP(qvec[2], qvec[3])
+		<< Toffoli(qvec[0], qvec[1], qvec[2])
+		<< CR(qvec[0], qvec[1], PI)
+		<< CZ(qvec[0], qvec[1])
+		<< Measure(qvec[0], cbits[0])
+		<< Measure(qvec[1], cbits[1])
+		<< Measure(qvec[2], cbits[2])
+		<< Measure(qvec[3], cbits[3]);
+
+	std::string a = convert_qprog_to_quil(prog, machine);
+	//write_to_native_quil_file(prog, machine, "E:\\q.txt");
+
+	std::cout << (a);
+	finalize();
+}

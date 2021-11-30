@@ -548,14 +548,67 @@ static bool test_vf2_1_2() {
     else
 	    return true;
 }
+static bool test_vf5_0()
+{
+	int deepth = 9;
+	for(int i = 5; i <26; i++)
+	{
+		auto qvm = initQuantumMachine(QMachineType::CPU);
+		auto qubits = qvm->qAllocMany(i);
+		auto c = qvm->cAllocMany(i);
 
+		auto circuit = CreateEmptyCircuit();
+		auto prog = CreateEmptyQProg();
+		for (auto &qbit : qubits) {
+			circuit << RX(qbit, rand());
+		}
+		for (auto &qbit : qubits) {
+			circuit << RY(qbit, rand());
+		}
+		for (size_t j = 0; j < i - 1; ++j) {
+			circuit << CNOT(qubits[j], qubits[(j + 1)]);
+		}
+		for (size_t k = 0; k < deepth - 1; ++k) {
+			for (auto &qbit : qubits) {
+				circuit << RZ(qbit, rand());
+			}
+			for (auto &qbit : qubits) {
+				circuit << RX(qbit, rand());
+			}
+			for (auto &qbit : qubits) {
+				circuit << RZ(qbit, rand());
+			}
+			for (size_t j = 0; j < i - 1; ++j) {
+				circuit << CNOT(qubits[j], qubits[(j + 1)]);
+			}
+		}
+		for (auto &qbit : qubits) {
+			circuit << RZ(qbit, rand());
+		}
+		for (auto &qbit : qubits) {
+			circuit << RX(qbit, rand());
+		}
+
+		prog << circuit;
+		std::cout << "===============================" << std::endl;
+		Fusion fuser;
+		fuser.aggregate_operations(prog, qvm);		
+		auto start = std::chrono::system_clock::now();
+		qvm->directlyRun(prog);
+		auto end = std::chrono::system_clock::now();
+		std::chrono::duration<double>elapsed_seconds = end - start;
+		std::cout << "qbit: " << i << ", Time used:  " << elapsed_seconds.count() << std::endl;
+	}
+
+	return true;
+}
 TEST(VF2, test1)
 {
 	bool test_val = false;
 	try
 	{
-        test_val = test_vf2_1();
-        test_val = test_vf2_3();
+		test_val = test_vf2_1();
+		test_val = test_vf2_3();
 		test_val = test_vf2_1_2();
         
 	}

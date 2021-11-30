@@ -42,6 +42,10 @@ public:
     }
 
     std::vector<QStat> exec(QuantumMachine *qm, size_t shots);
+
+    void set_qprog_results(const QVec &qlist, const std::vector<std::map<std::string, double>> &results);
+    void set_qprog_results(std::vector<size_t> &qlist, const std::vector<std::map<std::string, double>> &results);
+    std::vector<QStat> caculate_tomography_density();
 protected:
     template<typename T>
     void _tomography_meas(const T &node)
@@ -77,6 +81,21 @@ private:
 };
 
 
+template<typename T>
+std::vector<QStat> state_tomography_density(const T &node, const QVec &qlist, QuantumMachine *qm, size_t shots = 1024)
+{
+    QuantumStateTomography qst;
+    qst.combine_qprogs(node, qlist);
+    return qst.exec(qm, shots);
+}
+
+
+inline std::vector<QStat> state_tomography_density(const QVec &qlist, const std::vector<std::map<std::string, double>> &results)
+{
+    QuantumStateTomography qst;
+    qst.set_qprog_results(qlist, results);
+    return qst.caculate_tomography_density();
+}
 
 QPANDA_END
 

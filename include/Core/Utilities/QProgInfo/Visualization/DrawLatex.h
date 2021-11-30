@@ -31,15 +31,16 @@ public:
 		bool operator!=(const ElemView &lhs)
 		{
 			/* 
-			 for iterator compare with end()
+			  for iterator compare with end()
 			 
-			 if matrix is empty OR current hit matrix col bottom, return true
+			  if matrix is empty OR current hit matrix col bottom, return true
+			  means reach matrix last col
 			*/
 			bool col_valid = (!m_spare_matrix.m_matrix.empty() && m_cur_col <= m_spare_matrix.m_max_col);
 			return col_valid;
 		}
 
-		const Elem_t& operator*()
+		const Elem_t &operator*() const
 		{
 			if (m_spare_matrix.m_matrix.count(m_cur_row) && m_spare_matrix.m_matrix.at(m_cur_row).count(m_cur_col))
 			{
@@ -73,30 +74,38 @@ public:
 		bool operator!=(const RowView &lhs)
 		{
 			/*
-			 for iterator compare with end()
+			  for iterator compare with end()
 			 
-			 if matrix is empty OR current row hit matrix row bottom, return true
+			  if matrix is empty OR current row hit matrix row bottom, return true
+			  means reach the matrix bottom
 			*/
 			bool row_valid = (!m_spare_matrix.m_matrix.empty() && m_cur_row <= m_spare_matrix.m_max_row);
 			return row_valid;
 		}
 
-		RowView &operator*()
+		/*
+		  wired iterator for sapre matrix 
+		*/
+		const RowView &operator*() const
 		{
 			return *this;
 		}
 
-		const ElemView begin()
+		const ElemView begin() const
 		{
 			return ElemView(m_spare_matrix, m_cur_row);
 		}
 
-		const ElemView end()
+		const ElemView end() const
 		{
 			return ElemView(m_spare_matrix, m_cur_row);
 		}
 
-		Elem_t operator[](col_t col)
+		/* 
+		  get non-writable element, 
+		  cause remove const keyword may cause member default_value be modified 
+		*/
+		const Elem_t &operator[](col_t col) const
 		{
 			if (m_spare_matrix.m_matrix.count(m_cur_row) && m_spare_matrix.m_matrix.at(m_cur_row).count(col))
 			{
@@ -134,9 +143,6 @@ public:
 		m_matrix[row][col] = elem;
 	}
 
-	friend class RowView;
-	friend class ElemView;
-
 	row_t &max_row()
 	{
 		return m_max_row;
@@ -147,15 +153,16 @@ public:
 		return m_max_col;
 	}
 
-	RowView operator[](row_t row)
+	const RowView operator[](row_t row) const
 	{
 		return RowView(*this, row);
 	}
 
 	/**
-	 * @brief check element at row:col is or not default value
+	 * @brief check element at row:col is or not empty
 	 * 
-	 * @return true if element is default value 
+	 * @return true if element is empty
+	 * @note even element is default value, return false 
 	 */
 	bool is_empty(row_t row, col_t col)
 	{
@@ -169,6 +176,9 @@ public:
 		}
 	}
 
+	friend class RowView;
+	friend class ElemView;
+
 private:
 	row_t m_max_row{0};
 	col_t m_max_col{0};
@@ -178,6 +188,17 @@ private:
 
 QPANDA_BEGIN
 
+/**
+ * @brief ouput qprog circute to latex source file
+ * 
+ * @note qprog circute is represented by LayeredTopoSeq, 
+ * 		 in which there is a conception 'layer', SeqLayer type.
+ *       each layer has a layer id, contains a bunch of OptimizerNodeInfo from qprog
+ *
+ * @see LayeredTopoSeq
+ * @see SeqLayer
+ * @see OptimizerNodeInfo
+ */
 class DrawLatex : public AbstractDraw
 {
 public:
@@ -187,10 +208,10 @@ public:
 	/**
 	 * @brief initialize
 	 * 
-	 * @param[in] quBits std::vector<int>& used qubits
-	 * @param[in] clBits std::vector<int>& used class bits
+	 * @param[in] qbits std::vector<int>& used qubits
+	 * @param[in] cbits std::vector<int>& used class bits
 	 */
-	virtual void init(std::vector<int> &quBits, std::vector<int> &clBits) override;
+	virtual void init(std::vector<int> &qbits, std::vector<int> &cbits) override;
 
 	/**
 	 * @brief draw latex-picture by layer
@@ -203,15 +224,15 @@ public:
 	 * 
 	 * @param[in] config_data const std::string It can be configuration file or configuration data, 
 	 						  which can be distinguished by file suffix,
-			 				  so the configuration file must be end with ".json", default is CONFIG_PAT
+			 				  so the configuration file must be end with ".json", default is CONFIG_PATH
 	 */
 	virtual void draw_by_time_sequence(const std::string config_data /*= CONFIG_PATH*/) override;
 
 	/**
 	 * @brief display and return the target string
 	 * 
-	 * @param[in] file_name 
-	 * @return std::string 
+	 * @param[in] file_name output latex source file
+	 * @return std::string 	latex source code
 	 */
 	virtual std::string present(const std::string &file_name) override;
 
@@ -223,18 +244,35 @@ private:
 	void append_barrier(pOptimizerNodeInfo &node_info, uint64_t layer_id);
 
 	/**
-	 * @brief find valid col to put gate from span_start row to span_end
+	 * @brief find valid col to put gate from span_start row to span_end row
 	 * 
 	 * @param span_start gate start row
 	 * @param span_end 	 gate end row
 	 * @param col 		 try destiny col
-	 * @return size_t return valid zone col can put whole gate
+	 * @return size_t return valid zone col can place whole gate
 	 */
 	size_t find_valid_matrix_col(size_t span_start, size_t span_end, size_t col);
 	void align_matrix_col();
+	int update_layer_time_seq(int time_seq);
+	/**
+	 * @brief Get the dst col to put gate latex smybol
+	 * 
+	 * @param layer_id   gate layer id
+	 * @param span_start gate start row
+	 * @param span_end 	 gate end row
+	 * @return size_t    dst latex matrix col
+	 */
+	size_t get_dst_col(size_t layer_id, size_t span_start, size_t span_end);
 
 	SpareMatrix<std::string> m_latex_qwire; /**< latex quantum circuit formarted as matrix, we only save code except for wires */
 	SpareMatrix<std::string> m_latex_cwire; /**< cbits and qubits all start from 0, better slipt two matrix */
+	SpareMatrix<std::string> m_latex_time_seq;
+	TimeSequenceConfig m_time_sequence_conf;
+	/* TODO: swip out unused qubit in latex matrix */
+	// std::unordered_map<size_t, size_t> m_qid_row;		  /**< qubit id map to latex matrix row number, for same qubit may not be saved to matrix */
+	// std::unordered_map<size_t, size_t> m_cid_row;		  /**< cbit id map to latex matrix row number */
+	std::unordered_map<size_t, size_t> m_layer_col_range; /**< layer map to latex matrix cols range(only save last col for short) */
+	int m_layer_max_time_seq{0};
 };
 
 QPANDA_END

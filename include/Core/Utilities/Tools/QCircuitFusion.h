@@ -1,3 +1,12 @@
+/*
+Copyright (c) 2017-2020 Origin Quantum Computing. All Right Reserved.
+Licensed under the Apache License 2.0
+
+fusion gate
+
+Author: Guowenbo
+*/
+
 #ifndef  QCIRCUITFUSION_H
 #define  QCIRCUITFUSION_H
 

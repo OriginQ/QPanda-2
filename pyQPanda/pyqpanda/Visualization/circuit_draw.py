@@ -15,6 +15,8 @@ def draw_qprog(prog, output=None, scale=0.7, filename=None, line_length=100, Nod
 
     **pic**: images with color rendered purely in Python.
 
+    **latex**: latex source code of circuit
+
     Args:
         prog : the quantum circuit to draw
         scale (float): scale of image to draw (shrink if < 1). Only used by the ``pic`` outputs.

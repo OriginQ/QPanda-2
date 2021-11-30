@@ -4,8 +4,8 @@ using namespace std;
 int main(int argc, char** argv) 
 {
 #if 0
+	::testing::GTEST_FLAG(filter) = "QuantumStateTomography.test";
 	//Run a single test of Alg Part
-	::testing::GTEST_FLAG(filter) = "QubitMapping.test1";
 #else
 	//Run All Core Part
 #endif

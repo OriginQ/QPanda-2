@@ -68,11 +68,11 @@ void Encode::normalized(std::vector<double>& data)
 
 	const double max_precision = 1e-13;
 
-	if (abs(1.0 - tmp_sum) > max_precision) {
+	if (std::abs(1.0 - tmp_sum) > max_precision) {
 
 		m_data_std = tmp_sum;
 
-		m_data_std = sqrt(m_data_std);
+		m_data_std = std::sqrt(m_data_std);
 
 		Map<VectorXd> v1(data.data(), data.size());
 		VectorXd v2 = Map<VectorXd>(data.data(), data.size());
@@ -85,7 +85,7 @@ void Encode::normalized(std::vector<double>& data)
 	return;
 }
 
-void Encode::basic_encode(QVec &q, const std::string& data) {
+void Encode::basic_encode(const QVec &q, const std::string& data) {
 
 	for (auto i : data) {
 		if (i != '0' && i != '1') {
@@ -113,7 +113,7 @@ void Encode::basic_encode(QVec &q, const std::string& data) {
 
 }
 
-void Encode::amplitude_encode_recursive(QVec &q, const std::vector<double>& data)
+void Encode::amplitude_encode_recursive(const QVec &q, const std::vector<double>& data)
 {
 	vector<double>data_temp(data);
 
@@ -135,7 +135,7 @@ void Encode::amplitude_encode_recursive(QVec &q, const std::vector<double>& data
 	return;
 }
 
-void Encode::amplitude_encode_recursive(QVec qubits, const QStat& full_cur_vec)
+void Encode::amplitude_encode_recursive(const QVec &qubits, const QStat& full_cur_vec)
 {
 	const auto _dimension = full_cur_vec.size();
 	const double max_precision = 1e-13;
@@ -160,15 +160,15 @@ void Encode::amplitude_encode_recursive(QVec qubits, const QStat& full_cur_vec)
 	for (size_t i = 0; i < _dimension; ++i)
 	{
 		auto tmp_m = full_cur_vec[i].real() * full_cur_vec[i].real() + full_cur_vec[i].imag() * full_cur_vec[i].imag();
-		tmp_sum += tmp_m * tmp_m;
+		tmp_sum += tmp_m;
 		tatal += tmp_m;
 		ui_mod[i] = sqrt(tmp_m);
 		ui_angle[i] = arg(full_cur_vec[i]);
 	}
 
-	if (abs(1.0 - tmp_sum) > max_precision)
+	if (std::abs(1.0 - tmp_sum) > max_precision)
 	{
-		if (abs(tmp_sum) < max_precision)
+		if (std::abs(tmp_sum) < max_precision)
 		{
 			QCERR("Error: The input vector b is zero.");
 			return;
@@ -179,7 +179,7 @@ void Encode::amplitude_encode_recursive(QVec qubits, const QStat& full_cur_vec)
 	QStat mat_d(_dimension * _dimension, qcomplex_t(0, 0));
 	for (size_t i = 0; i < _dimension; ++i)
 	{
-		mat_d[i + i * _dimension] = exp(qcomplex_t(0, ui_angle[i]));
+		mat_d[i + i * _dimension] = std::exp(qcomplex_t(0, ui_angle[i]));
 	}
 
 	QCircuit cir_d = diagonal_matrix_decompose(qubits, mat_d);
@@ -196,7 +196,7 @@ QCircuit Encode::_recursive_compute_beta(const QVec& q, const std::vector<double
 	QCircuit qcir;
 	double sum_0 = 0;
 	double sum_1 = 0;
-	size_t high_bit = (size_t)log2(data.size()) - 1;
+	size_t high_bit = (size_t)std::log2(data.size()) - 1;
 
 	if (high_bit == 0)
 	{
@@ -214,7 +214,7 @@ QCircuit Encode::_recursive_compute_beta(const QVec& q, const std::vector<double
 		}
 		else if (data[0] < -1e-20 && data[1] < -1e-20)
 		{
-			qcir << RY(q[0], 2 * (2 * PI - acos(data[0] / sqrt(data[0] * data[0] + data[1] * data[1]))));
+			qcir << RY(q[0], 2 * (2 * PI - acos(data[0] / std::sqrt(data[0] * data[0] + data[1] * data[1]))));
 		}
 		else if (std::abs(data[0]) < 1e-20 && data[1] > 1e-20)
 		{
@@ -241,7 +241,7 @@ QCircuit Encode::_recursive_compute_beta(const QVec& q, const std::vector<double
 			sum_1 += data[i + (data.size() >> 1)] * data[i + (data.size() >> 1)];
 		}
 		if (sum_0 + sum_1 > 1e-20)
-			qcir << RY(q[high_bit], 2 * acos(sqrt(sum_0 / (sum_0 + sum_1))));
+			qcir << RY(q[high_bit], 2 * acos(std::sqrt(sum_0 / (sum_0 + sum_1))));
 		else
 		{
 			throw run_fail("Amplitude_encode error.");
@@ -264,7 +264,7 @@ QCircuit Encode::_recursive_compute_beta(const QVec& q, const std::vector<double
 	return qcir;
 }
 
-void Encode::amplitude_encode(QVec &q, const std::vector<double>& data)
+void Encode::amplitude_encode(const QVec &q, const std::vector<double>& data)
 {
 
 	vector<double>data_temp(data);
@@ -280,7 +280,7 @@ void Encode::amplitude_encode(QVec &q, const std::vector<double>& data)
 	int k = 0;
 
 	for (auto i : q) {
-		if (k >= ceil(log2(data.size()))) break;
+		if (k >= std::ceil(std::log2(data.size()))) break;
 		qubits.push_back(i);
 		++k;
 	}
@@ -295,14 +295,14 @@ void Encode::amplitude_encode(QVec &q, const std::vector<double>& data)
 	_recursive_compute_beta(data_temp, betas,(int)(qubits.size()-1));
 	_generate_circuit(betas, qubits);
 
-	for (int i = 0; i < ceil(log2(data.size())); ++i)
+	for (int i = 0; i < std::ceil(std::log2(data.size())); ++i)
 	{
 		m_out_qubits.push_back(q[i]);
 	}
 
 	return;
 }
-void Encode::amplitude_encode(QVec &q, const std::vector<complex<double>>& data)
+void Encode::amplitude_encode(const QVec &q, const std::vector<complex<double>>& data)
 {
 	vector<complex<double>> data_temp(data);
 	const double max_precision = 1e-13;
@@ -313,9 +313,9 @@ void Encode::amplitude_encode(QVec &q, const std::vector<complex<double>>& data)
 		tmp_sum += (i.real()*i.real())+(i.imag()*i.imag());
 	}
 
-	if (abs(1.0 - tmp_sum) > max_precision)
+	if (std::abs(1.0 - tmp_sum) > max_precision)
 	{
-		if (abs(tmp_sum) < max_precision)
+		if (std::abs(tmp_sum) < max_precision)
 		{
 			QCERR("Error: The input vector b is zero.");
 			return;
@@ -333,7 +333,7 @@ void Encode::amplitude_encode(QVec &q, const std::vector<complex<double>>& data)
 	int k = 0;
 
 	for (auto i : q) {
-		if (k >= ceil(log2(data.size()))) break;
+		if (k >= std::ceil(std::log2(data.size()))) break;
 		qubits.push_back(i);
 		++k;
 	}
@@ -363,7 +363,7 @@ void Encode::amplitude_encode(QVec &q, const std::vector<complex<double>>& data)
 	{
 		auto tmp_m = data_temp[i].real() * data_temp[i].real() + data_temp[i].imag() * data_temp[i].imag();
 		tatal += tmp_m;
-		ui_mod[i] = sqrt(tmp_m);
+		ui_mod[i] = std::sqrt(tmp_m);
 		ui_angle[i] = arg(data_temp[i]);
 	}
 
@@ -383,11 +383,11 @@ void Encode::amplitude_encode(QVec &q, const std::vector<complex<double>>& data)
 	}
 	return;
 }
-void Encode::_generate_circuit(std::vector<std::vector<double>> &betas, QVec &quantum_input) {
+void Encode::_generate_circuit(std::vector<std::vector<double>> &betas, const QVec &quantum_input) {
 	int numberof_controls = 0;
 	int size = quantum_input.size();
 	QVec control_bits;
-
+	int num = 0;
 	for (auto angles : betas) {
 		if (numberof_controls == 0) {
 			m_qcircuit << RY(quantum_input[size - 1], angles[0]);
@@ -398,10 +398,21 @@ void Encode::_generate_circuit(std::vector<std::vector<double>> &betas, QVec &qu
 		{
 			for (int k = angles.size() - 1; k >= 0; --k) 
 			{
-				_index(angles.size() - 1-k,control_bits, numberof_controls);
+
+				if (k == angles.size() - 1) {
+					
+					num = angles.size()-1-k;
+
+				}
+				else 
+				{
+					   num = (angles.size() - 1-k) ^ (angles.size() -2- k);
+				}
+				_index(num,control_bits, numberof_controls);
 				m_qcircuit << RY(quantum_input[size - 1 - numberof_controls], angles[k]).control(control_bits);
-				_index(angles.size() - 1-k, control_bits, numberof_controls);
+				//_index(num, control_bits, numberof_controls);
 			}
+			_index(angles.size()-1, control_bits, numberof_controls);
 			control_bits.push_back(quantum_input[size - 1 - numberof_controls]);
 			numberof_controls += 1;
 		}
@@ -409,15 +420,8 @@ void Encode::_generate_circuit(std::vector<std::vector<double>> &betas, QVec &qu
 	return;
 }
 
-void Encode::angle_encode(QVec &q,const std::vector<double>& data, const GateType& gate_type)
+void Encode::angle_encode(const QVec &q,const std::vector<double>& data, const GateType& gate_type)
 {
-	for (const auto i : data)
-	{
-			if (i < 0 || i > PI)
-			{
-				QCERR_AND_THROW_ERRSTR(run_fail, "Error: The input vector b must satisfy the condition of [0,PI].");
-			}
-	}
 
 	if (data.size() > q.size())
 	{
@@ -465,7 +469,7 @@ void Encode::_recursive_compute_beta(const std::vector<double>&input_vector, std
 		std::vector<double>beta(size);
 
 		for (auto k = 0; k < input_vector.size(); k += 2) {
-			double norm = sqrt(input_vector[k] * input_vector[k] + input_vector[k + 1] * input_vector[k + 1]);
+			double norm = std::sqrt(input_vector[k] * input_vector[k] + input_vector[k + 1] * input_vector[k + 1]);
 			new_x[cnt]=norm;
 			if (norm == 0) {
 				beta[cnt]=0;
@@ -486,7 +490,7 @@ void Encode::_recursive_compute_beta(const std::vector<double>&input_vector, std
 	return;
 }
 
-void Encode::_dc_generate_circuit(std::vector<std::vector<double>>& betas, QVec& quantum_input, const int cnt) {
+void Encode::_dc_generate_circuit(std::vector<std::vector<double>>& betas, const QVec &quantum_input, const int cnt) {
 	int k = 0;
 
 	for (auto angles : betas) {
@@ -523,14 +527,14 @@ void Encode::_dc_generate_circuit(std::vector<std::vector<double>>& betas, QVec&
 	return;
 }
 
-void Encode::dc_amplitude_encode(QVec &q, const std::vector<double>& data)
+void Encode::dc_amplitude_encode(const QVec &q, const std::vector<double>& data)
 {
 	vector<double>data_temp(data);
 
 	normalized(data_temp);
 
 	int size = data_temp.size();
-	int log_ceil_size = ceil(log2(size));
+	int log_ceil_size = std::ceil(std::log2(size));
 	if (1<<log_ceil_size > q.size()+1) {
 		throw run_fail("Dc_Amplitude_encode parameter error.");
 	}
@@ -539,15 +543,15 @@ void Encode::dc_amplitude_encode(QVec &q, const std::vector<double>& data)
 		data_temp.push_back(0);
 	}
 
-	std::vector<std::vector<double>>betas(log2(data_temp.size()));
+	std::vector<std::vector<double>>betas(std::log2(data_temp.size()));
 	std::vector<double>input(data_temp);
-	_recursive_compute_beta(data_temp, betas, (int)(log2(data_temp.size())-1));
+	_recursive_compute_beta(data_temp, betas, (int)(std::log2(data_temp.size())-1));
 	_dc_generate_circuit(betas, q, (int)data_temp.size());
 
 	return;
 }
 
-void Encode::_index(const int value, QVec control_qubits, const int numberof_controls) {
+void Encode::_index(const int value, const QVec &control_qubits, const int numberof_controls) {
 	bitset<32> temp(value);
 	std::string str = temp.to_string();
 
@@ -560,15 +564,8 @@ void Encode::_index(const int value, QVec control_qubits, const int numberof_con
 	}
 }
 
-void Encode::dense_angle_encode(QVec &q, const std::vector<double>& data) 
+void Encode::dense_angle_encode(const QVec &q, const std::vector<double>& data) 
 {
-	for (const auto i : data)
-	{
-			if (i < 0 || i > PI)
-			{
-				QCERR_AND_THROW_ERRSTR(run_fail, "Error: The input vector b must satisfy the condition of [0,PI].");
-			}
-	}
 
 	if (data.size() > q.size()*2)
 	{
@@ -596,13 +593,13 @@ void Encode::dense_angle_encode(QVec &q, const std::vector<double>& data)
 
 	return;
 }
-void Encode::bid_amplitude_encode(QVec &q,const std::vector<double>& data, const int split) {
+void Encode::bid_amplitude_encode(const QVec &q,const std::vector<double>& data, const int split) {
 
 	vector<double>data_temp(data);
 
 	normalized(data_temp);
 
-	int n_qubits = ceil(log2(data_temp.size()));
+	int n_qubits = std::ceil(std::log2(data_temp.size()));
 	int split_temp = split;
 
 	if (split == 0) {
@@ -621,7 +618,7 @@ void Encode::bid_amplitude_encode(QVec &q,const std::vector<double>& data, const
 		throw run_fail("Bid_Amplitude_encode parameter error.");
 	}
 
-	if (split_temp > ceil(log2(data_temp.size()))) {
+	if (split_temp > std::ceil(std::log2(data_temp.size()))) {
 		throw run_fail("Bid_Amplitude_encode parameter error.");
 	}
 
@@ -647,7 +644,7 @@ void Encode::bid_amplitude_encode(QVec &q,const std::vector<double>& data, const
 
 	return;
 }
-void Encode::_output(NodeAngleTree* angle_tree, QVec q) {
+void Encode::_output(NodeAngleTree* angle_tree, const QVec &q) {
 	if (angle_tree) {
 		if (angle_tree->left) {
 			_output(angle_tree->left, q);
@@ -677,7 +674,7 @@ StateNode* Encode::_state_decomposition(int nqubits, vector<double>data)
 		int k = 0;
 		int n_nodes = nodes.size();
 		while (k < n_nodes) {
-			double mag = sqrt(nodes[k]->amplitude* nodes[k]->amplitude + nodes[k+1]->amplitude*nodes[k+1]->amplitude);
+			double mag = std::sqrt(nodes[k]->amplitude* nodes[k]->amplitude + nodes[k+1]->amplitude*nodes[k+1]->amplitude);
 			new_nodes.push_back(new StateNode((int)(nodes[k]->index / 2), nqubits, mag, nodes[k], nodes[k + 1]));
 			k = k + 2;
 		}				
@@ -730,7 +727,7 @@ void Encode::_add_registers(NodeAngleTree* angle_tree,std::queue<int>&q, int sta
 
 	}
 }
-void Encode::_top_down_tree_walk(NodeAngleTree* angle_tree, QVec q,int start_level, std::vector<NodeAngleTree*>control_nodes, std::vector<NodeAngleTree*>target_nodes) {
+void Encode::_top_down_tree_walk(NodeAngleTree* angle_tree, const QVec &q,int start_level, std::vector<NodeAngleTree*>control_nodes, std::vector<NodeAngleTree*>target_nodes) {
 	if (angle_tree) {
 		if (angle_tree->level < start_level) {
 			_top_down_tree_walk(angle_tree->left, q,start_level);
@@ -775,7 +772,7 @@ void Encode::_top_down_tree_walk(NodeAngleTree* angle_tree, QVec q,int start_lev
 		}
 	}		
 }
-void Encode::_apply_cswaps(NodeAngleTree* angle_tree, QVec q) {
+void Encode::_apply_cswaps(NodeAngleTree* angle_tree, const QVec &q) {
 
 	if (angle_tree->angle != 0.0) {
 
@@ -795,7 +792,7 @@ void Encode::_apply_cswaps(NodeAngleTree* angle_tree, QVec q) {
 		}
 	}
 }
-void Encode::_bottom_up_tree_walk(NodeAngleTree* angle_tree,QVec q, int start_level) {
+void Encode::_bottom_up_tree_walk(NodeAngleTree* angle_tree,const QVec &q, int start_level) {
 	if (angle_tree && angle_tree->level < start_level) {
 
 		m_qcircuit<<RY(q[angle_tree->qubit_index], angle_tree->angle);
@@ -850,7 +847,7 @@ void Encode::_add_register(NodeAngleTree *angle_tree, int start_level)
 	_add_registers(angle_tree, q, start_level);
 }
 
-void Encode::iqp_encode(QVec &q, const vector<double>& data, const std::vector<pair<int, int>>& control_vector, const bool& inverse, const int& repeats) 
+void Encode::iqp_encode(const QVec &q, const vector<double>& data, const std::vector<pair<int, int>>& control_vector, const bool& inverse, const int& repeats) 
 {
 	int size = data.size();
 
@@ -904,7 +901,35 @@ void Encode::iqp_encode(QVec &q, const vector<double>& data, const std::vector<p
 	return;
 }
 
-void Encode::ds_quantum_state_preparation(QVec &q, const std::map<std::string, double>& data) {
+void Encode::ds_quantum_state_preparation(const QVec &q, const std::map<std::string, double>& data) 
+{
+	if (data.empty()){
+
+		QCERR_AND_THROW_ERRSTR(run_fail, "Error: The input map data must not null.");
+	}
+
+	int size = (*data.begin()).first.size();
+
+	if (size * 2 > q.size()) {
+
+		QCERR_AND_THROW_ERRSTR(run_fail, "Error: The input qubits size error.");
+	}
+
+	for (auto i : data)
+	{
+		if (i.first.size() != size)
+		{
+			QCERR_AND_THROW_ERRSTR(run_fail, "Error: The input map data.key must have same dimension.");
+		}
+		for (char c : i.first)
+		{
+			if (c != '0'&&c != '1')
+			{
+				QCERR_AND_THROW_ERRSTR(run_fail, "Error: The input map data.key must be binary string.");
+			}
+		}
+
+	}
 	const double max_precision = 1e-13;
 	double tmp_sum = 0.0;
 
@@ -912,9 +937,9 @@ void Encode::ds_quantum_state_preparation(QVec &q, const std::map<std::string, d
 	{
 		tmp_sum += (i.second*i.second);
 	}
-	if (abs(1.0 - tmp_sum) > max_precision)
+	if (std::abs(1.0 - tmp_sum) > max_precision)
 	{
-		if (abs(tmp_sum) < max_precision)
+		if (std::abs(tmp_sum) < max_precision)
 		{
 			QCERR("Error: The input vector b is zero.");
 			return;
@@ -949,13 +974,18 @@ void Encode::ds_quantum_state_preparation(QVec &q, const std::map<std::string, d
 		m_out_qubits.push_back(q[i]);
 	}
 }
-void Encode::ds_quantum_state_preparation(QVec &q, const std::map<std::string, std::complex<double>>& data) {
+void Encode::ds_quantum_state_preparation(const QVec &q, const std::map<std::string, std::complex<double>>& data) {
 	if (data.empty()) 
 	{
 		QCERR_AND_THROW_ERRSTR(run_fail, "Error: The input map data must not null.");
 	}
 
 	int size = (*data.begin()).first.size();
+
+	if (size * 2 > q.size()) {
+
+		QCERR_AND_THROW_ERRSTR(run_fail, "Error: The input qubits size error.");
+	}
 
 	for (auto i : data) 
 	{
@@ -981,9 +1011,9 @@ void Encode::ds_quantum_state_preparation(QVec &q, const std::map<std::string, s
 		tmp_sum += (i.second.real()*i.second.real())+(i.second.imag()*i.second.imag());
 	}
 
-	if (abs(1.0 - tmp_sum) > max_precision)
+	if (std::abs(1.0 - tmp_sum) > max_precision)
 	{
-		if (abs(tmp_sum) < max_precision)
+		if (std::abs(tmp_sum) < max_precision)
 		{
 			QCERR("Error: The input vector b is zero.");
 			return;
@@ -1018,7 +1048,7 @@ void Encode::ds_quantum_state_preparation(QVec &q, const std::map<std::string, s
 		m_out_qubits.push_back(q[i]);
 	}
 }
-void Encode::_flip_flop(QVec& q,std::vector<int>control,int numqbits) 
+void Encode::_flip_flop(const QVec& q,std::vector<int>control,int numqbits) 
 {
 	for (int i : control) 
 	{
@@ -1027,7 +1057,7 @@ void Encode::_flip_flop(QVec& q,std::vector<int>control,int numqbits)
 }
 
 template<typename T>
-void Encode::_load_superposition(QVec& q, std::vector<int>control, int numqbits, T feature, double& norm)
+void Encode::_load_superposition(const QVec& q, std::vector<int>control, int numqbits, T feature, double& norm)
 {
 	vector<double>angle = _compute_matrix_angles(feature, norm);
 
@@ -1044,7 +1074,7 @@ void Encode::_load_superposition(QVec& q, std::vector<int>control, int numqbits,
 		_mcuvchain(q, control, angle, numqbits);
 	}
 
-	norm = norm - abs(feature*feature);
+	norm = norm - std::abs(feature*feature);
 	return;
 }
 std::vector<int> Encode::_select_controls(string binary_string) 
@@ -1061,7 +1091,7 @@ std::vector<int> Encode::_select_controls(string binary_string)
 
 	return control_qubits;
 }
-void Encode::_mcuvchain(QVec &q,std::vector<int>control, std::vector<double> angle,int numqbits)
+void Encode::_mcuvchain(const QVec &q,std::vector<int>control, std::vector<double> angle,int numqbits)
 {
 	vector<int>reverse_control(control);
 	reverse(reverse_control.begin(), reverse_control.end());
@@ -1092,9 +1122,9 @@ void Encode::_mcuvchain(QVec &q,std::vector<int>control, std::vector<double> ang
 std::vector<double> Encode::_compute_matrix_angles(std::complex<double> feature, double norm)
 {
 	double alpha = 0.0, beta = 0.0, phi = 0.0;
-	double phase = abs(feature*feature);
-	double cos_value = sqrt((norm - phase) / norm);
-	double value = min(cos_value, 1.0);
+	double phase = std::abs(feature*feature);
+	double cos_value = std::sqrt((norm - phase) / norm);
+	double value = std::min(cos_value, 1.0);
 
 	if (value < -1)
 	{
@@ -1103,7 +1133,7 @@ std::vector<double> Encode::_compute_matrix_angles(std::complex<double> feature,
 
 	cos_value = value;
 	alpha = 2 * (acos(cos_value));
-	beta = acos(-feature.real() / sqrt(abs(feature*feature)));
+	beta = acos(-feature.real() / std::sqrt(std::abs(feature*feature)));
 
 	if (feature.imag() < 0) {
 		beta = 2 * PI - beta;
@@ -1116,8 +1146,8 @@ std::vector<double> Encode::_compute_matrix_angles(std::complex<double> feature,
 std::vector<double> Encode::_compute_matrix_angles(double feature, double norm)
 {
 	double alpha = 0.0, beta = 0.0, phi = 0.0;
-	double sin_value = -feature / sqrt(norm);
-	double value = min(sin_value, 1.0);
+	double sin_value = -feature / std::sqrt(norm);
+	double value = std::min(sin_value, 1.0);
 
 	if (value < -1)
 	{
@@ -1129,7 +1159,7 @@ std::vector<double> Encode::_compute_matrix_angles(double feature, double norm)
 
 	return { alpha,beta,phi };
 }
-void Encode::sparse_isometry(QVec &q, const std::map<std::string, double>& data) 
+void Encode::sparse_isometry(const QVec &q, const std::map<std::string, double>& data) 
 {
 	if (data.empty())
 	{
@@ -1162,9 +1192,9 @@ void Encode::sparse_isometry(QVec &q, const std::map<std::string, double>& data)
 		tmp_sum += i.second*i.second;
 	}
 
-	if (abs(1.0 - tmp_sum) > max_precision)
+	if (std::abs(1.0 - tmp_sum) > max_precision)
 	{
-		if (abs(tmp_sum) < max_precision)
+		if (std::abs(tmp_sum) < max_precision)
 		{
 			QCERR("Error: The input vector b is zero.");
 			return;
@@ -1183,6 +1213,11 @@ void Encode::sparse_isometry(QVec &q, const std::map<std::string, double>& data)
 	QVec qubits;
 	key = (*data.begin()).first;
 	int	n_qubits = key.size();
+
+	if (n_qubits > q.size()) {
+		QCERR_AND_THROW_ERRSTR(run_fail, "Error: The input qubits size error.");
+	}
+
 	int	non_zero = data.size();
 	int	target_size = ceil(log2(non_zero));
 	std::map<std::string, double> next_state = data;
@@ -1215,10 +1250,11 @@ void Encode::sparse_isometry(QVec &q, const std::map<std::string, double>& data)
 		index_nonzero = _get_index_nz(next_state, n_qubits - target_size);
 	}
 
-	std::vector<double>dense_state;
+	std::vector<double>dense_state(1<<target_size);
 
 	for (auto i : next_state) {
-		dense_state.push_back(i.second);
+		int cnt = stoi(i.first,0,2);
+		dense_state[cnt] = i.second;
 	}
 
 	QCircuit cir;
@@ -1250,7 +1286,7 @@ std::string Encode::_get_index_nz(std::map<std::string, T>data, int target_size)
 	{
 		std::string temp(i.first.begin(), i.first.begin() + target_size);
 		std::string target;
-		for (int i = 0; i < target_size; ++i) 
+		for (int j = 0; j < target_size; ++j) 
 		{
 			target.push_back('0');
 		}
@@ -1263,7 +1299,7 @@ std::string Encode::_get_index_nz(std::map<std::string, T>data, int target_size)
 	return index_nonzero;
 }
 
-void Encode::sparse_isometry(QVec &q, const std::map<std::string, complex<double>>& data)
+void Encode::sparse_isometry(const QVec &q, const std::map<std::string, complex<double>>& data)
 {
 	if (data.empty())
 	{
@@ -1296,9 +1332,9 @@ void Encode::sparse_isometry(QVec &q, const std::map<std::string, complex<double
 		tmp_sum += (i.second.real()*i.second.real()) + (i.second.imag()*i.second.imag());
 	}
 
-	if (abs(1.0 - tmp_sum) > max_precision)
+	if (std::abs(1.0 - tmp_sum) > max_precision)
 	{
-		if (abs(tmp_sum) < max_precision)
+		if (std::abs(tmp_sum) < max_precision)
 		{
 			QCERR("Error: The input vector b is zero.");
 			return;
@@ -1317,6 +1353,10 @@ void Encode::sparse_isometry(QVec &q, const std::map<std::string, complex<double
 	QVec qubits;
 	key = (*data.begin()).first;
 	int	n_qubits = key.size();
+
+	if (n_qubits > q.size()) {
+		QCERR_AND_THROW_ERRSTR(run_fail, "Error: The input qubits size error.");
+	}
 	int	non_zero = data.size();
 	int	target_size = ceil(log2(non_zero));
 	std::map<std::string, complex<double>> next_state = data;
@@ -1349,11 +1389,13 @@ void Encode::sparse_isometry(QVec &q, const std::map<std::string, complex<double
 		index_nonzero = _get_index_nz(next_state, n_qubits - target_size);
 	}
 
-	std::vector<complex<double>>dense_state;
-	for (auto i : next_state) {
-		dense_state.push_back(i.second);
-	}
+	std::vector<complex<double>>dense_state(1 << target_size);
 
+	for (auto i : next_state) {
+		int cnt = stoi(i.first, 0, 2);
+		dense_state[cnt] = i.second;
+	}
+	
 	QCircuit cir;
 	cir = qcir.dagger();
 	size = ceil(log2(dense_state.size()));
@@ -1460,7 +1502,7 @@ std::map<std::string, T> Encode::_next_state(char ctrl_state, int index_differ, 
 }
 
 template<typename T>
-std::map<std::string, T>  Encode::_pivoting(QCircuit& qcir, QVec &qubits, std::string index_zero, std::string index_nonzero, int target_size, std::map<std::string, T> state)
+std::map<std::string, T>  Encode::_pivoting(QCircuit& qcir, const QVec &qubits, std::string index_zero, std::string index_nonzero, int target_size, std::map<std::string, T> state)
 {
 	int n_qubits = index_zero.size();
 	std::vector<int>remain, target;
@@ -1530,7 +1572,7 @@ std::map<std::string, T>  Encode::_pivoting(QCircuit& qcir, QVec &qubits, std::s
 	return new_state;
 }
 
-void Encode::schmidt_encode(QVec &q, const std::vector<double>& data)
+void Encode::schmidt_encode(const QVec &q, const std::vector<double>& data)
 {
 	vector<double>data_temp(data);
 
@@ -1550,6 +1592,18 @@ void Encode::schmidt_encode(QVec &q, const std::vector<double>& data)
 		++k;
 	}
 
+	if (qubits.size() == 1) {
+
+		if (data_temp[0] < 0) {
+			m_qcircuit << RY(qubits[0], 2 * PI - 2 * acos(data_temp[0]));
+		}
+		else {
+			m_qcircuit << RY(qubits, 2 * acos(data_temp[0]));
+		}
+
+		return;
+	}
+
 	while (data_temp.size() < (1 << qubits.size()))
 	{
 		data_temp.push_back(0);
@@ -1567,7 +1621,7 @@ void Encode::schmidt_encode(QVec &q, const std::vector<double>& data)
 	{
 		for (auto cdx = 0; cdx < col; ++cdx)
 		{
-			eigen_matrix(rdx, cdx) = data[k++];
+			eigen_matrix(rdx, cdx) = data_temp[k++];
 		}
 	}
 
@@ -1637,11 +1691,14 @@ void Encode::schmidt_encode(QVec &q, const std::vector<double>& data)
 
 	return;
 }
-void Encode::_unitary(QVec &q, EigenMatrixXc gate) {
+void Encode::_unitary(const QVec &q, EigenMatrixXc gate) {
 
-	QCircuit circuit = matrix_decompose_qr(q, gate,true);
+	const QStat mat = Eigen_to_QStat(gate);
 
-	m_qcircuit << circuit;
+
+	//QCircuit circuit = matrix_decompose_qr(q, gate,false);
+
+	m_qcircuit << QOracle(q, mat);
 
 	return;
 }

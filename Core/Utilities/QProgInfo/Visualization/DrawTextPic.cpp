@@ -603,7 +603,12 @@ void DrawPicture::append_single_gate(std::string gate_name, QVec &qubits_vector,
 	}
 
 	//get time sequence
-	int time_sequence = circuit_control_qubits_vec.size() > 0 ? (get_ctrl_node_time_sequence() * circuit_control_qubits_vec.size()) : get_single_gate_time_sequence();
+	int time_sequence = 0;
+	// Barrier is treated as single bit gate in QPanda, it should not consume time 
+	if ("BARRIER"!=gate_name)
+	{
+		time_sequence =circuit_control_qubits_vec.size() > 0 ? (get_ctrl_node_time_sequence() * circuit_control_qubits_vec.size()) : get_single_gate_time_sequence();
+	}
 
 	//sort
 	sort(all_qubits.begin(), all_qubits.end(), [](int a, int b) {return a < b; });

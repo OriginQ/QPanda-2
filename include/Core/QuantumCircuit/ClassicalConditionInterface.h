@@ -119,14 +119,14 @@ public:
      * @param[in] old target ClassicalCondition object
      * @return ClassicalCondition 
      */
-    ClassicalCondition operator=(ClassicalCondition old);
+    ClassicalCondition& operator=(const ClassicalCondition &old);
 
     /**
      * @brief ClassicalCondition assgen function by value
      * @param[in] value target value 
      * @return ClassicalCondition 
      */
-    ClassicalCondition operator=(const cbit_size_t value);
+    ClassicalCondition& operator=(const cbit_size_t value);
     ~ClassicalCondition();
 };
 

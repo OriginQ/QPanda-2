@@ -1926,7 +1926,7 @@ QCircuit QPanda::CU(QStat& matrix, const QVec& control_qubits, const QVec& targe
 
 QGate QPanda::QDouble(QStat& matrix, Qubit* qubit1, Qubit* qubit2)
 {
-	string name = ":QDoubleGate";
+	string name = "QDoubleGate";
 	return _gs_pGateNodeFactory->getGateNode(name, { qubit1, qubit2 }, matrix);
 }
 

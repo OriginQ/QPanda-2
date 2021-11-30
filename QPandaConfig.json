@@ -33,10 +33,8 @@
     "ClassicalProg": "OriginClassicalProg"
   },
   "QuantumCloudConfig": {
-    "ComputeAPI": "https://qcloud.originqc.com.cn/api/taskApi/submitTask.json",
-    "InqureAPI": "https://qcloud.originqc.com.cn/api/taskApi/getTaskDetail.json",
-    "RealChipComputeAPI": "https://qcloud.originqc.com.cn/api/taskApi/submitTask.json",
-    "RealChipInqureAPI": "https://qcloud.originqc.com.cn/api/taskApi/getTaskDetail.json"
+    "QCloudAPI": "https://qcloud.originqc.com.cn",
+    "RealChipAPI": "https://qcloud.originqc.com.cn"
   },
   "QuantumChipArch": {
     "QubitCount": 8,

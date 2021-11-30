@@ -205,6 +205,54 @@ bool gorver_test_fun3()
 	return true;
 }
 
+bool gorver_test_fun4()
+{
+	auto machine = initQuantumMachine(CPU);
+	auto x = machine->allocateCBit();
+	//std::vector<uint32_t> search_sapce = { 2, 5, 5, 4, 3 };
+	std::vector <std::string>search_sapce = { "alice", "Bob", "Bob","eve","dendi","S4" };
+	std::vector<size_t> result_index_vec;
+	//cout << "Grover will search through " << search_sapce.size() << " data." << endl;
+	//cout << "Start grover search algorithm:" << endl;
+	QVec measure_qubits;
+	//QProg grover_Qprog = grover_alg_search_from_vector(search_sapce, x == 5, result_index_vec, machine, 2);
+	QProg grover_Qprog = grover_search_alg(search_sapce, "Bob", result_index_vec, machine, 1);
+
+	//std::cout << grover_Qprog << std::endl;
+	//QProg grover_Qprog = build_grover_prog(search_sapce, x==5, machine, measure_qubits, 1);
+	//decompose_multiple_control_qgate(grover_Qprog, machine);
+
+	//test
+
+	std::vector<size_t> result_index_vec_actual;
+	size_t _i = 0;
+	for (const auto &item : search_sapce)
+	{
+		if (item == "Bob") {
+			result_index_vec_actual.push_back(_i);
+		}
+		++_i;
+	}
+
+	//measure
+	//printf("Measuring...\n");
+	//auto result = probRunDict(grover_Qprog, measure_qubits);
+
+	//get result
+	//auto result_index_vec = search_target_from_measure_result(result, measure_qubits.size());
+
+	//cout << "The result's index:\n";
+	for (int i = 0; i < result_index_vec.size(); i++)
+	{
+		//cout << result_index_vec[i] << " ";
+		if (result_index_vec[i] != result_index_vec_actual[i]) {
+			return false;
+		}
+	}
+	//cout << endl;
+	destroyQuantumMachine(machine);
+	return true;
+}
 TEST(GroverAlg, test1)
 {
 	bool test_val = false;
@@ -213,6 +261,7 @@ TEST(GroverAlg, test1)
 		test_val = gorver_test_fun1();
 		test_val = test_val && gorver_test_fun2();
 		test_val = test_val && gorver_test_fun3();
+		test_val = test_val && gorver_test_fun4();
 	}
 	catch (const std::exception& e)
 	{

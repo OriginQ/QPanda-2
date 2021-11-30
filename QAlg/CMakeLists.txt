@@ -23,7 +23,7 @@ if (USE_CHEMIQ)
      add_library(${LIB_SHARED_QALG} SHARED ${ALG_SRC_CPP} ${ALG_CHEMIQ_SRC_CPP})
      target_link_libraries(${LIB_SHARED_QALG} ${LIB_QPANDA} ${LIB_COMPONENTS} ${PYTHON_LIBRARIES})
 else ()
-    add_library(${LIB_QALG} STATIC ${ALG_SRC_CPP})
+    add_library(${LIB_QALG} STATIC ${ALG_SRC_CPP} "Grover/GroverFrame.cpp")
     target_link_libraries(${LIB_QALG} ${LIB_QPANDA} ${LIB_COMPONENTS})
 
     # set(LIB_SHARED_QALG DLL_QALG)

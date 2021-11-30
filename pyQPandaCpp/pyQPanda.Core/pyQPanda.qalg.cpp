@@ -151,6 +151,18 @@ void init_qalg(py::module & m)
 		py::return_value_policy::automatic
 	);
 
+	m.def("Grover_search", [](const std::vector<std::string>& data, std::string search_element, QuantumMachine *qvm, size_t repeat = 2) {
+		std::vector<size_t> search_result;
+		auto prog = grover_search_alg(data, search_element, search_result, qvm, repeat);
+		py::list ret_data;
+		ret_data.append(prog);
+		ret_data.append(search_result);
+		return ret_data;
+	}, "use Grover algorithm to search target data, return QProg and search_result",
+		"list"_a, "Classical_condition"_a, "QuantumMachine"_a, "data"_a = 2,
+		py::return_value_policy::automatic
+	);
+
 	py::enum_<AnsatzGateType>(m, "AnsatzGateType", py::arithmetic())
 		.value("AGT_NOT", AnsatzGateType::AGT_NOT)
 		.value("AGT_H", AnsatzGateType::AGT_H)

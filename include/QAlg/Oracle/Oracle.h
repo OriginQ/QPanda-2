@@ -55,7 +55,13 @@ public:
 
 		//build search circuit
 		auto data_qubits = m_search_space.get_data_qubits();
-		m_cir_search = m_search_condition.build_to_circuit(data_qubits, m_ancilla_qubits, m_search_space.get_mini_data(), cir_mark);
+		QVec controller(data_qubits.begin(), data_qubits.end() - 1);
+		QCircuit cir_search = m_search_condition.build_to_circuit(data_qubits, m_ancilla_qubits, m_search_space.get_mini_data(), cir_mark);
+
+		QCircuit circuit;
+		circuit << H(data_qubits.back()) << X(data_qubits.back()).control(controller) << H(data_qubits.back());
+
+		m_cir_search << cir_search << circuit << cir_search;
 
 		//build oracle
 		circuit_oracle << m_cir_u << m_cir_search << m_cir_u.dagger();

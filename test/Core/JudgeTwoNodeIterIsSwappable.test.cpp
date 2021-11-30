@@ -440,7 +440,7 @@ TEST(JudgeTwoNodeIterIsSwappable, doubleGateTest2)
 
 	QProg branch_true;
 	QProg branch_false;
-	branch_true << H(q[2]) << CNOT(q[2], q[5]) << S(q[4]) << (c[1] = c[1] + 1) << H(q[5]) << Y(q[2]);
+	branch_true << H(q[2]) << CNOT(q[2], q[5]) << S(q[4]) <<  H(q[5]) << Y(q[2]);
 	branch_false << H(q[4]) << CNOT(q[5], q[4]);
 
 	auto qif = CreateIfProg(c[1] > 5, branch_true, branch_false);

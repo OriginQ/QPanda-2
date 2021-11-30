@@ -1,4 +1,5 @@
 
+
 #ifndef  _GROVER_ALGORITHM_H
 #define  _GROVER_ALGORITHM_H
 
@@ -39,15 +40,15 @@ using grover_oracle = Oracle<QVec, Qubit*>;
 * @param[in] QuantumMachine* Quantum machine ptr
 * @param[in] grover_oracle Grover Algorithm oracle
 * @return    QProg
-* @note  
+* @note
 */
 QProg groverAlgorithm(size_t target,
 	size_t search_range,
 	QuantumMachine * qvm,
 	grover_oracle oracle);
 
-inline QProg grover_alg(QCircuit cir_oracle, 
-	QCircuit cir_diffusion, 
+inline QProg grover_alg(QCircuit cir_oracle,
+	QCircuit cir_diffusion,
 	const QVec &data_index_qubits,
 	const QVec &ancilla_qubits,
 	size_t repeat) {
@@ -58,7 +59,7 @@ inline QProg grover_alg(QCircuit cir_oracle,
 	grover_prog << circuit_prepare;
 
 	//anclilla qubits
-	grover_prog << X(ancilla_qubits.back()) << H(ancilla_qubits.back());
+	//grover_prog << X(ancilla_qubits.back()) << H(ancilla_qubits.back());
 	/*for (const auto qubit : ancilla_qubits)
 	{
 		grover_prog << X(qubit) << H(qubit);
@@ -98,9 +99,9 @@ QProg build_grover_alg_prog(const std::vector<T> &data_vec,
 	//oracle
 	OracleBuilder<T> oracle_builder(data_vec, condition, qvm);
 	const QVec &ancilla_qubits = oracle_builder.get_ancilla_qubits();
-	QCircuit mark_cir = get_mark_circuit(static_cast<QGate(*)(Qubit *)>(&X), ancilla_qubits.back());
+	//QCircuit mark_cir = get_mark_circuit(static_cast<QGate(*)(Qubit *)>(&X), ancilla_qubits.back());
+	QCircuit mark_cir;
 	QCircuit cir_oracle = oracle_builder.build_oracle_circuit(mark_cir);
-
 	//diffusion
 	DiffusionCirBuilder diffusion_op;
 	QCircuit cir_diffusion = build_diffusion_circuit(oracle_builder.get_index_qubits(), diffusion_op);
@@ -133,6 +134,45 @@ inline QProg build_grover_prog(const std::vector<uint32_t> &data_vec,
 
 std::vector<size_t> search_target_from_measure_result(const prob_dict& measure_result, uint32_t qubit_size);
 
+inline QProg grover_search_alg(const std::vector<std::string> &data_vec,
+	std::string query,
+	std::vector<size_t> &result_index_vec,
+	QuantumMachine * qvm,
+	size_t repeat = 2)
+{
+	auto x = qvm->allocateCBit();
+	unordered_map<std::string, uint32_t>search_space;
+	uint32_t cnt = 0, count = 1;
+	vector<uint32_t>data_temp(data_vec.size());
+	for (string str : data_vec)
+	{
+		if (!search_space.count(str)) {
+			search_space[str] = count++;
+		}
+		data_temp[cnt++] = search_space[str];
+	}
+	QVec measure_qubits;
+
+	QProg grover_prog = build_grover_prog(data_temp, x == search_space[query], qvm, measure_qubits, repeat);
+
+	auto c = qvm->allocateCBits(measure_qubits.size());
+	grover_prog << MeasureAll(measure_qubits, c);
+	//measure
+	PTrace("Strat pmeasure.\n");
+	const double _shot = 2048;
+	auto result = qvm->runWithConfiguration(grover_prog, c, _shot);
+	prob_dict _double_result;
+	for (auto const& _i : result) {
+		_double_result.emplace(std::make_pair(_i.first, (double)_i.second / _shot));
+	}
+
+	//get result
+	result_index_vec = search_target_from_measure_result(_double_result, measure_qubits.size());
+
+	return grover_prog;
+}
+
+
 /**
 * @brief  Grover search Algorithm example
 * @ingroup Grover_Algorithm
@@ -141,7 +181,7 @@ std::vector<size_t> search_target_from_measure_result(const prob_dict& measure_r
 * @param[out] std::vector<T>& vector of the search result
 * @param[in] QuantumMachine* the quantum virtual machine
 * @param[in] size_t iterations number for oracle circuit, default is 2
-* @return the grove algorithm's QProg 
+* @return the grove algorithm's QProg
 * @note
 */
 template <class T>
@@ -161,7 +201,7 @@ QProg grover_alg_search_from_vector(const std::vector<T> &data_vec,
 	const double _shot = 2048;
 	auto result = qvm->runWithConfiguration(grover_prog, c, _shot);
 	prob_dict _double_result;
-	for (auto const& _i : result){
+	for (auto const& _i : result) {
 		_double_result.emplace(std::make_pair(_i.first, (double)_i.second / _shot));
 	}
 
@@ -170,7 +210,6 @@ QProg grover_alg_search_from_vector(const std::vector<T> &data_vec,
 
 	return grover_prog;
 }
-
 QPANDA_END
 
 #endif

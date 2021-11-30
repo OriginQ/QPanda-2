@@ -11,7 +11,7 @@
 #include "QMapping/SabreQMapping.h"
 #include "QCircuitOptimize/QCircuitRewrite.h"
 #include "QAlg/HHL.h"
-
+#include "CutQC/CutQC.h"
 
 #endif
 

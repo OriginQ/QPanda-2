@@ -52,13 +52,13 @@ public:
 * @param[in] std::vector<double>& the target datas which will be encoded to the quantum state.
 * @note The coding data must meet normalization conditions.
 */
-	void amplitude_encode(QVec &q, const std::vector<double>& data);
+	void amplitude_encode(const QVec &q, const std::vector<double>& data);
 
-	void amplitude_encode(QVec &q, const std::vector<complex<double>>& data);
+	void amplitude_encode(const QVec &q, const std::vector<complex<double>>& data);
 
-	void amplitude_encode_recursive(QVec &q, const std::vector<double>& data);
+	void amplitude_encode_recursive(const QVec &q, const std::vector<double>& data);
 
-	void amplitude_encode_recursive(QVec qubits, const QStat& full_cur_vec);
+	void amplitude_encode_recursive(const QVec &qubits, const QStat& full_cur_vec);
 
 /**
 * @brief  angle encode
@@ -69,7 +69,7 @@ public:
 * @note The coding data must meet [0,PI].
 * @note This concrete implementation is from https://arxiv.org/pdf/2003.01695.pdf.
 */
-	void angle_encode(QVec &q, const std::vector<double>& data, const GateType& gate_type=GateType::RY_GATE);
+	void angle_encode(const QVec &q, const std::vector<double>& data, const GateType& gate_type=GateType::RY_GATE);
 
 /**
 * @brief  dense angle encode
@@ -80,7 +80,7 @@ public:
 * @note The algorithm is implemented using U3 gates, and each gate is loaded with two data, theta, phi respectively.
 * @note This concrete implementation is from https://arxiv.org/pdf/2003.01695.pdf.
 */
-	void dense_angle_encode(QVec &q, const std::vector<double>& data);
+	void dense_angle_encode(const QVec &q, const std::vector<double>& data);
 
 /**
 * @brief divide conquer amplitude encode
@@ -91,7 +91,7 @@ public:
 * @note The algorithm is implemented using CSWAP gates and data.size-1 qubits, effectively reducing the depth of quantum circuits.
 * @note This concrete implementation is from https://arxiv.org/pdf/2008.01511.pdf.
 */
-	void dc_amplitude_encode(QVec &q, const std::vector<double>& data);
+	void dc_amplitude_encode(const QVec &q, const std::vector<double>& data);
 
 /**
 * @brief  basic encode
@@ -101,7 +101,7 @@ public:
 * @note The coding data must meet binary string.
 * @note It converts a binary string x of length n into a quantum state with n qubits.
 */
-	void basic_encode(QVec &q,const std::string& data);
+	void basic_encode(const QVec &q,const std::string& data);
 
 /**
 * @brief  bidirectional amplitude encode
@@ -114,7 +114,7 @@ public:
 * @note The depth and width of the quantum circuit can be adjusted through the spilit parameter.
 * @note This concrete implementation is from https://arxiv.org/pdf/2108.10182.pdf.
 */
-	void bid_amplitude_encode(QVec &q, const std::vector<double>& data, const int split=0);
+	void bid_amplitude_encode(const QVec &q, const std::vector<double>& data, const int split=0);
 
 /**
 * @brief  instantaneous quantum polynomial style encoding
@@ -128,7 +128,7 @@ public:
 * @note Encode the input classical data using IQP encoding.
 * @note This concrete implementation is from https://arxiv.org/pdf/1804.11326.pdf.
 */
-	void iqp_encode(QVec &q, const std::vector<double>& data, const std::vector<std::pair<int, int>>& control_vector = {},
+	void iqp_encode(const QVec &q, const std::vector<double>& data, const std::vector<std::pair<int, int>>& control_vector = {},
 		            const bool& inverse=false, const int& repeats = 1);
 
 /**
@@ -142,9 +142,9 @@ public:
 * @note This concrete implementation is from https://arxiv.org/pdf/2108.13527.pdf.
 */
 
-	void ds_quantum_state_preparation(QVec &q, const std::map<std::string, double>&);
+	void ds_quantum_state_preparation(const QVec &q, const std::map<std::string, double>&);
 
-	void ds_quantum_state_preparation(QVec &q, const std::map<std::string, std::complex<double>>&);
+	void ds_quantum_state_preparation(const QVec &q, const std::map<std::string, std::complex<double>>&);
 
 /**
 * @brief sparse isometries quantum state preparation
@@ -156,8 +156,8 @@ public:
 * @note The algorithm can prepare the corresponding quantum state according to the input data without auxiliary  quantum bits.
 * @note This concrete implementation is from https://arxiv.org/pdf/2006.00016.pdf.
 */
-	void sparse_isometry(QVec &q, const std::map<std::string, double>&);
-	void sparse_isometry(QVec &q, const std::map<std::string, complex<double>>&);
+	void sparse_isometry(const QVec &q, const std::map<std::string, double>&);
+	void sparse_isometry(const QVec &q, const std::map<std::string, complex<double>>&);
 
 /**
 * @brief schmidt decomposition encode
@@ -167,7 +167,7 @@ public:
 * @note The coding data must meet normalization conditions.
 * @note This concrete implementation is from https://arxiv.org/pdf/2107.09155.pdf.
 */
-	void schmidt_encode(QVec &q, const std::vector<double>& data);
+	void schmidt_encode(const QVec &q, const std::vector<double>& data);
 
 /**
 * @brief  get the corresponding quantum circuit
@@ -187,15 +187,15 @@ public:
 	double get_normalization_constant();
 
 protected:
-	void _generate_circuit(std::vector<std::vector<double>> &betas, QVec &quantum_input);
+	void _generate_circuit(std::vector<std::vector<double>> &betas, const QVec &quantum_input);
 
-	void _recursive_compute_beta(const std::vector<double>&input_vector, std::vector<std::vector<double>>&betas,int count);
+	void _recursive_compute_beta(const std::vector<double>&input_vector, std::vector<std::vector<double>>&betas,const int count);
 
 	QCircuit _recursive_compute_beta(const QVec& q, const std::vector<double>&data);
 
-	void _index(const int value, QVec control_qubits, const int numberof_controls);
+	void _index(const int value, const QVec &control_qubits, const int numberof_controls);
 
-	void _dc_generate_circuit(std::vector<std::vector<double>> &betas, QVec &quantum_input, const int cnt);
+	void _dc_generate_circuit(std::vector<std::vector<double>> &betas, const QVec &quantum_input, const int cnt);
 
 	StateNode* _state_decomposition(int nqubits, std::vector<double>data);
 
@@ -205,25 +205,25 @@ protected:
 
 	void _add_registers(NodeAngleTree* angle_tree, std::queue<int>&q, int start_level);
 
-	void _top_down_tree_walk(NodeAngleTree* angle_tree, QVec q, int start_level, std::vector<NodeAngleTree*>control_nodes = {}, 
+	void _top_down_tree_walk(NodeAngleTree* angle_tree, const QVec &q, int start_level, std::vector<NodeAngleTree*>control_nodes = {}, 
 		                     std::vector<NodeAngleTree*>target_nodes = {});
 
-	void _bottom_up_tree_walk(NodeAngleTree* angle_tree, QVec q, int start_level);
+	void _bottom_up_tree_walk(NodeAngleTree* angle_tree, const QVec &q, int start_level);
 
-	void _apply_cswaps(NodeAngleTree* angle_tree, QVec q);
+	void _apply_cswaps(NodeAngleTree* angle_tree, const QVec &q);
 
-	void _output(NodeAngleTree* angletree, QVec q);
+	void _output(NodeAngleTree* angletree, const QVec &q);
 
 	std::vector<NodeAngleTree*> _children(std::vector<NodeAngleTree*> nodes);
 
 	std::vector<int> _select_controls(std::string binary_string);
 
-	void _flip_flop(QVec& q, std::vector<int>control, int numqbits);
+	void _flip_flop(const QVec &q, std::vector<int>control, int numqbits);
 
 	template<typename T>
-	void _load_superposition(QVec& q, std::vector<int>control, int numqubits, T feature, double& norm);
+	void _load_superposition(const QVec &q, std::vector<int>control, int numqubits, T feature, double& norm);
 
-	void _mcuvchain(QVec &q, std::vector<int>control, std::vector<double> angle, int numqbits);
+	void _mcuvchain(const QVec &q, std::vector<int>control, std::vector<double> angle, int numqbits);
 
 	std::vector<double> _compute_matrix_angles(double feature, double norm);
 
@@ -240,10 +240,10 @@ protected:
 		     std::vector<int>remain, std::map<std::string, T> state, std::vector<int>target_cx);
 
 	template<typename T>
-	std::map<std::string, T> _pivoting(QCircuit& qcir,QVec &qubits, std::string index_zero, 
+	std::map<std::string, T> _pivoting(QCircuit& qcir,const QVec &qubits, std::string index_zero, 
 		            std::string index_nonzero, int target_size, std::map<std::string, T> state);
 
-	void _unitary(QVec &q, EigenMatrixXc gate);
+	void _unitary(const QVec &q, EigenMatrixXc gate);
 
 	void normalized(std::vector<double>&data);
 

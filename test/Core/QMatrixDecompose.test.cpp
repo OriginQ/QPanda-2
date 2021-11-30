@@ -20,6 +20,7 @@ bool test_matrix_decompose_1()
 		qcomplex_t(-0.2599957197928923, -0.3593524887300787), qcomplex_t(-0.22248203136345912, -0.1383600597660744), qcomplex_t(-0.30789664629289554, -0.2900897445133085), qcomplex_t(0.6640994547408099, -0.338593803336005) };
 
 	auto cir = matrix_decompose_qr({ q[0], q[1] }, target_matrix);
+	//auto cir = matrix_decompose_householder({ q[0], q[1] }, target_matrix, false);
 	//cout << "decomposed circuit:" << cir << endl;
 	const auto mat_2 = getCircuitMatrix(cir);
 	cout << "mat_2:\n" << mat_2 << endl;

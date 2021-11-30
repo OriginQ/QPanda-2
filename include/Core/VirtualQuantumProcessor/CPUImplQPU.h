@@ -193,149 +193,8 @@ public:
         return qErrorNone;
     }
 
-    //single qubit gate and control-single qubit gate
-    CONST_GATE(P0);
-    CONST_GATE(P1);
-    CONST_GATE(X);
-    CONST_GATE(Y);
-    CONST_GATE(Z);
-    CONST_GATE(Hadamard);
-    CONST_GATE(T);
-    CONST_GATE(S);
-    SINGLE_ANGLE_GATE(RX_GATE);
-    SINGLE_ANGLE_GATE(RY_GATE);
-    SINGLE_ANGLE_GATE(RZ_GATE);
-    CONTROL_SINGLE_ANGLE_GATE(RX_GATE);
-    CONTROL_SINGLE_ANGLE_GATE(RY_GATE);
-    CONTROL_SINGLE_ANGLE_GATE(RZ_GATE);
-    CONTROL_CONST_GATE(Hadamard);
-    CONTROL_CONST_GATE(X);             //CCCC-NOT
-    CONTROL_CONST_GATE(Y);
-    CONTROL_CONST_GATE(Z);
-    CONTROL_CONST_GATE(T);
-    CONTROL_CONST_GATE(S);
-    CONTROL_CONST_GATE(P0);
-    CONTROL_CONST_GATE(P1);
-
-    //define const CNOT,CZ,ISWAP,SQISWAP
-    inline QError CNOT(size_t qn_0, size_t qn_1,
-        bool isConjugate, double error_rate)
-    {
-        _CNOT(qn_0, qn_1);
-        return qErrorNone;
-    }
-
-    inline QError CNOT(size_t qn_0, size_t qn_1, Qnum& vControlBit,
-        bool isConjugate, double error_rate)
-    {
-        _CNOT(qn_0, qn_1, vControlBit);
-        return qErrorNone;
-    }
-
-    inline QError iSWAP(size_t qn_0, size_t qn_1, double theta,
-        bool isConjugate, double)
-    {
-        QStat matrix = { 1, 0, 0, 0,
-                        0, std::cos(theta), qcomplex_t(0,-std::sin(theta)), 0,
-                        0, qcomplex_t(0,-std::sin(theta)), std::cos(theta), 0,
-                        0, 0, 0, 1 };
-        _iSWAP_theta(qn_0, qn_1, matrix, isConjugate);
-        return qErrorNone;
-    }
-
-
-    inline QError iSWAP(size_t qn_0, size_t qn_1, Qnum& vControlBit,
-        double theta, bool isConjugate, double)
-    {
-        QStat matrix = { 1, 0, 0, 0,
-                        0, std::cos(theta), qcomplex_t(0,-std::sin(theta)), 0,
-                        0, qcomplex_t(0,-std::sin(theta)), std::cos(theta), 0,
-                        0, 0, 0, 1 };
-        _iSWAP_theta(qn_0, qn_1, matrix, isConjugate, vControlBit);
-        return qErrorNone;
-    }
-
-    inline QError iSWAP(size_t qn_0, size_t qn_1,
-        bool isConjugate, double error_rate)
-    {
-        iSWAP(qn_0, qn_1, PI / 2, isConjugate, error_rate);
-        return qErrorNone;
-    }
-    inline QError iSWAP(size_t qn_0, size_t qn_1, Qnum& vControlBit,
-        bool isConjugate, double error_rate)
-    {
-        iSWAP(qn_0, qn_1, vControlBit, PI / 2, isConjugate, error_rate);
-        return qErrorNone;
-    }
-
-    inline QError SqiSWAP(size_t qn_0, size_t qn_1,
-        bool isConjugate, double error_rate)
-    {
-        iSWAP(qn_0, qn_1, PI / 4, isConjugate, error_rate);
-        return qErrorNone;
-    }
-    inline QError SqiSWAP(size_t qn_0, size_t qn_1, Qnum& vControlBit,
-        bool isConjugate, double error_rate)
-    {
-        iSWAP(qn_0, qn_1, vControlBit, PI / 4, isConjugate, error_rate);
-        return qErrorNone;
-    }
-
-    inline QError CR(size_t qn_0, size_t qn_1,
-        double theta, bool isConjugate, double error_rate)
-    {
-        QStat matrix = { 1, 0, 0, 0,
-                        0, 1, 0, 0,
-                        0, 0, 1, 0,
-                        0, 0, 0, qcomplex_t(std::cos(theta), std::sin(theta)) };
-        _CR(qn_0, qn_1, matrix, isConjugate);
-        return qErrorNone;
-    }
-
-    inline QError CR(size_t qn_0, size_t qn_1, Qnum& vControlBit,
-        double theta, bool isConjugate, double error_rate)
-    {
-        QStat matrix = { 1, 0, 0, 0,
-                        0, 1, 0, 0,
-                        0, 0, 1, 0,
-                        0, 0, 0, qcomplex_t(std::cos(theta), std::sin(theta)) };
-        _CR(qn_0, qn_1, matrix, isConjugate, vControlBit);
-        return qErrorNone;
-    }
-
-	inline QError CP(size_t qn_0, size_t qn_1,
-		double theta, bool isConjugate, double error_rate)
-	{
-		QStat matrix = { 1, 0, 0, 0,
-						0, 1, 0, 0,
-						0, 0, 1, 0,
-						0, 0, 0, qcomplex_t(std::cos(theta), std::sin(theta)) };
-		_CP(qn_0, qn_1, matrix, isConjugate);
-		return qErrorNone;
-	}
-
-	inline QError CP(size_t qn_0, size_t qn_1, Qnum& vControlBit,
-		double theta, bool isConjugate, double error_rate)
-	{
-		QStat matrix = { 1, 0, 0, 0,
-						0, 1, 0, 0,
-						0, 0, 1, 0,
-						0, 0, 0, qcomplex_t(std::cos(theta), std::sin(theta)) };
-		_CP(qn_0, qn_1, matrix, isConjugate, vControlBit);
-		return qErrorNone;
-	}
-
-    inline QError CZ(size_t qn_0, size_t qn_1, bool isConjugate, double error_rate)
-    {
-        CR(qn_0, qn_1, PI, isConjugate, error_rate);
-        return qErrorNone;
-    }
-    inline QError CZ(size_t qn_0, size_t qn_1, Qnum& vControlBit, bool isConjugate, double error_rate)
-    {
-        CR(qn_0, qn_1, vControlBit, PI, isConjugate, error_rate);
-        return qErrorNone;
-    }
-
+	QError single_qubit_gate_fusion(size_t qn, QStat& matrix);
+	QError double_qubit_gate_fusion(size_t qn_0, size_t qn_1, QStat &matrix);
     //define unitary single/double quantum gate
     QError unitarySingleQubitGate(size_t qn,
         QStat& matrix, bool is_dagger,
@@ -397,13 +256,16 @@ public:
     }
 
 protected:
+	
     QError _single_qubit_normal_unitary(size_t qn, QStat& matrix, bool is_dagger);
     QError _single_qubit_normal_unitary(size_t qn, Qnum& controls, QStat& matrix, bool is_dagger);
 
     QError _double_qubit_normal_unitary(size_t qn_0, size_t qn_1, QStat& matrix, bool is_dagger);
     QError _double_qubit_normal_unitary(size_t qn_0, size_t qn_1, Qnum& controls, QStat& matrix, bool is_dagger);
-
-    QError _X(size_t qn);
+	QError _three_qubit_gate(Qnum &qubits, QStat& matrix, bool is_dagger, const Qnum& controls = {});
+	QError _four_qubit_gate(Qnum &qubits, QStat& matrix, bool is_dagger, const Qnum& controls = {});
+	QError _five_qubit_gate(Qnum &qubits, QStat& matrix, bool is_dagger, const Qnum& controls = {});
+	QError _X(size_t qn);
     QError _Y(size_t qn);
     QError _Z(size_t qn);
     QError _S(size_t qn, bool is_dagger);
@@ -439,13 +301,56 @@ protected:
     QError _iSWAP_theta(size_t qn_0, size_t qn_1, QStat &matrix, bool is_dagger, Qnum &controls);
     QError _CU(size_t qn_0, size_t qn_1, QStat &matrix, bool is_dagger, Qnum &controls);
 
+	inline int64_t _insert(int64_t value, size_t n1, size_t n2, size_t n3, size_t n4, size_t n5)
+	{
+		int64_t mask1 = (1ll << n1) - 1;
+		int64_t mask2 = (1ll << (n2 - 1)) - 1;
+		int64_t mask3 = (1ll << (n3 - 2)) - 1;
+		int64_t mask4 = (1ll << (n4 - 3)) - 1;
+		int64_t mask5 = (1ll << (n5 - 4)) - 1;
+		int64_t t = value & mask1;
+		int64_t s = ~mask1 & value & mask2;//(value - w) & mask2; //~mask1 & value & mask2;
+		int64_t w = ~mask2 & value & mask3;//(value - z) & mask3;					//~mask1 & value & mask2 & mask3;
+		int64_t z = ~mask3 & value & mask4;//(value - z) & mask3;
+		int64_t y = ~mask4 & value & mask5;//~mask3 & value;
+		int64_t x = ~mask5 & value;
+		return ((x << 5) | (y << 4) | (z << 3) | (w << 2) | (s << 1) | t);
+	}
+
+	inline int64_t _insert(int64_t value, size_t n1, size_t n2, size_t n3, size_t n4)
+	{
+		int64_t mask1 = (1ll << n1) - 1;
+		int64_t mask2 = (1ll << (n2 - 1)) - 1;
+		int64_t mask3 = (1ll << (n3 - 2)) - 1;
+		int64_t mask4 = (1ll << (n4 - 3)) - 1;
+		int64_t s = value & mask1;
+		int64_t w = ~mask1 & value & mask2;//(value - w) & mask2; //~mask1 & value & mask2;
+		int64_t z = ~mask2 & value & mask3;//(value - z) & mask3;					//~mask1 & value & mask2 & mask3;
+		int64_t y = ~mask3 & value & mask4;//(value - z) & mask3;
+		int64_t x = ~mask4 & value;//~mask3 & value;
+
+		return ((x << 4) | (y << 3) | (z << 2) | (w << 1) | s);
+	}
+
+
+	inline int64_t _insert(int64_t value, size_t n1, size_t n2, size_t n3)
+	{
+		int64_t mask1 = (1ll << n1) - 1;
+		int64_t mask2 = (1ll << (n2 - 1)) - 1;
+		int64_t mask3 = (1ll << (n3 - 2)) - 1;
+		int64_t w = value & mask1;
+		int64_t z = ~mask1 & value & mask2;//(value - w) & mask2; //~mask1 & value & mask2;
+		int64_t y = ~mask2 & value & mask3;//(value - z) & mask3;					//~mask1 & value & mask2 & mask3;
+		int64_t x = ~mask3 & value;//~mask3 & value;
+
+		return ((x << 3) | (y << 2) | (z << 1) | w);
+	}
     inline int64_t _insert(int64_t value, size_t n1, size_t n2)
     {
-        if (n1 > n2)
-        {
-            std::swap(n1, n2);
-        }
-
+		if (n1 > n2)
+		{
+			std::swap(n1, n2);
+		}
         int64_t mask1 = (1ll << n1) - 1;
         int64_t mask2 = (1ll << (n2 - 1)) - 1;
         int64_t z = value & mask1;
@@ -469,7 +374,31 @@ protected:
         return ((y << 1) | x);
     }
 
-    int64_t _insert(int64_t value, Qnum &qns);
+	int64_t _insert(int64_t value, Qnum &qns)
+	{
+		std::sort(qns.begin(), qns.end());
+		std::vector<int> MASK(qns.size());
+		for (int i = 0; i < qns.size(); i++)
+		{
+			MASK[i] = (1 << (qns[i] - i)) - 1;
+		}
+		std::vector<int> tmp(MASK.size() + 1);
+		tmp[0] = MASK[0] & value;
+
+		for (int i = 1; i < tmp.size() - 1; i++)
+		{
+			tmp[i] = ~MASK[i - 1] & value & MASK[i];
+		}
+		tmp[tmp.size() - 1] = ~MASK[MASK.size() - 1] & value;
+
+		int offset = tmp[0];
+		for (int i = 1; i < tmp.size(); i++)
+		{
+			offset += tmp[i] << i;
+		}
+
+		return offset;
+	}
 
     void _verify_state(const QStat &state);
     inline int _omp_thread_num(size_t size);

@@ -116,5 +116,25 @@ std::string transformQProgToQuil(QProg&, QuantumMachine * quantum_machine);
 */
 std::string convert_qprog_to_quil(QProg &prog, QuantumMachine *qm);
 
+
+/**
+* @brief  Quantum program transform to pyquil instruction set interface
+* @ingroup Utilities
+* @param[in]  std::string  Quil instruction
+* @return     std::string  pyquil instruction set
+*/
+std::string transformQuil2PyQuil(std::string& Quil);
+
+
+/**
+* @brief  write prog to native Quil file
+* @ingroup Utilities
+* @param[in] QProg&   Quantum Program
+* @param[in] QuantumMachine*  quantum machine pointer
+* @param[in] const std::string	native Quil file name
+* @return
+*/
+void write_to_native_quil_file(QProg prog, QuantumMachine* qvm, const std::string file_name);
+
 QPANDA_END
 #endif // ! _QPROG_TO_QUIL_

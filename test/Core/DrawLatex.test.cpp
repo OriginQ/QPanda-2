@@ -9,16 +9,16 @@ TEST(DrawLatex, output_latex_source)
 {
     auto qvm = initQuantumMachine(QMachineType::CPU);
     auto q = qvm->qAllocMany(3);
+    auto q1 = qvm->qAllocMany(3);
     auto c = qvm->cAllocMany(3);
     QProg prog;
     QCircuit cir1, cir2;
 
-    // 构建量子程序
     auto gate = S(q[1]);
     gate.setDagger(true);
     cir1 << H(q[0]).control(q[1]) << S(q[2]) << CNOT(q[0], q[1]) << CZ(q[1], q[2]) << gate;
     cir1.setDagger(true);
-    cir2 << cir1 << H(q) << CU(1, 2, 3, 4, q[0], q[2]) << BARRIER(q) << S(q[2]) << CR(q[2], q[1], PI / 2) << SWAP(q[1], q[2]);
+    cir2 << cir1 << H(q) << BARRIER(q) << CU(1, 2, 3, 4, q[0], q[2]) << BARRIER(q[0]) << BARRIER(q1[1]) << S(q1[1]) << CR(q[2], q[1], PI / 2) << SWAP(q[1], q[2]);
     cir2.setDagger(true);
     prog << cir2 << MeasureAll(q, c);
 
@@ -33,14 +33,12 @@ TEST(DrawLatex, output_latex_source)
     QProg prog2;
     prog2 << cir2 << oracle(q, "Test") << QDouble(q[1], q[2], matrix) << Toffoli(q[0], q[1], q[2]) << MeasureAll(q, c);
 
-    // 输出latex文本
     std::string latex_str = draw_qprog(prog, PIC_TYPE::LATEX);
     std::fstream f0("latex_out_test.tex", std::ios_base::out);
     f0 << latex_str;
     f0.close();
 
-    // 输出latex文本(含Oracle，QDouble，Toffoli门)
-    latex_str = draw_qprog(prog2, PIC_TYPE::LATEX);
+    latex_str = draw_qprog(prog2, PIC_TYPE::LATEX, true);
     std::fstream f1("latex_out_test2.tex", std::ios_base::out);
     f1 << latex_str;
     f1.close();
@@ -50,7 +48,6 @@ TEST(DrawLatex, output_latex_source)
     f2 << latex_str;
     f2.close();
 
-    // 打印字符画
     std::string text_pic = draw_qprog(prog);
 
 #if defined(WIN32) || defined(_WIN32)
@@ -59,7 +56,6 @@ TEST(DrawLatex, output_latex_source)
 #endif
     std::cout << text_pic << std::endl;
 
-    // 打印字符画(含Oracle，QDouble，Toffoli门)
     text_pic = draw_qprog(prog2);
 
 #if defined(WIN32) || defined(_WIN32)
@@ -75,4 +71,18 @@ TEST(DrawLatex, output_latex_source)
 #endif
     std::cout << text_pic_with_clock << std::endl;
     destroyQuantumMachine(qvm);
+
+    auto latex_drawer = std::make_shared<LatexMatrix>();
+    latex_drawer->setLogo("TestLogo");
+    latex_drawer->insertGate({2, 3}, {}, 3, LATEX_GATE_TYPE::GENERAL_GATE, "MAJ");
+    latex_drawer->insertBarrier({1, 3}, 3);
+    latex_drawer->insertGate({3, 4}, {}, 3, LATEX_GATE_TYPE::GENERAL_GATE, "MAJ");
+    latex_drawer->insertReset(4, 4);
+    latex_drawer->setLabel({{0, "a_0"}, {1, "a_1"}}, {{2, "c_2"}});
+    latex_drawer->setLabel({{0, "s_0"}, {1, "s_1"}}, {}, "", false);
+    latex_str = latex_drawer->str();
+
+    std::fstream f_test("test.tex", std::ios_base::out);
+    f_test << latex_str;
+    f_test.close();
 }

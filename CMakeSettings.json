@@ -9,7 +9,7 @@
         ],
         "buildRoot": "${projectDir}\\build\\${name}",
         "installRoot": "C:\\QPanda2",
-        "cmakeCommandArgs": "-DUSE_PYQPANDA=OFF -DFIND_CUDA=OFF -DUSE_CHEMIQ=OFF -DUSE_EXTENSION=OFF",
+        "cmakeCommandArgs": "-DUSE_PYQPANDA=OFF -DFIND_CUDA=OFF -DUSE_CHEMIQ=OFF -DUSE_EXTENSION=ON",
         "buildCommandArgs": "-v",
         "ctestCommandArgs": ""
     },
@@ -22,7 +22,7 @@
         ],
         "buildRoot": "${projectDir}\\build\\${name}",
         "installRoot": "C:\\QPanda2",
-        "cmakeCommandArgs": "-DUSE_PYQPANDA=OFF -DFIND_CUDA=OFF -DUSE_CHEMIQ=OFF -DUSE_EXTENSION=OFF",
+        "cmakeCommandArgs": "-DUSE_PYQPANDA=OFF -DFIND_CUDA=OFF -DUSE_CHEMIQ=OFF -DUSE_EXTENSION=ON",
         "buildCommandArgs": "-v",
         "ctestCommandArgs": ""
     }

@@ -13,7 +13,6 @@ TEST(DrawLatex, output_latex_source)
     QProg prog;
     QCircuit cir1, cir2;
 
-    // 构建量子程序
     auto gate = S(q[1]);
     gate.setDagger(true);
     cir1 << H(q[0]).control(q[1]) << S(q[2]) << CNOT(q[0], q[1]) << CZ(q[1], q[2]) << gate;
@@ -33,13 +32,10 @@ TEST(DrawLatex, output_latex_source)
     QProg prog2;
     prog2 << cir2 << oracle(q, "Test") << QDouble(q[1], q[2], matrix) << Toffoli(q[0], q[1], q[2]) << MeasureAll(q, c);
 
-    // 输出latex文本
     std::string latex_str = draw_qprog(prog, PIC_TYPE::LATEX);
     std::fstream f0("latex_out_test.tex", std::ios_base::out);
     f0 << latex_str;
     f0.close();
-
-    // 输出latex文本(含Oracle，QDouble，Toffoli门)
     latex_str = draw_qprog(prog2, PIC_TYPE::LATEX);
     std::fstream f1("latex_out_test2.tex", std::ios_base::out);
     f1 << latex_str;
@@ -50,7 +46,6 @@ TEST(DrawLatex, output_latex_source)
     f2 << latex_str;
     f2.close();
 
-    // 打印字符画
     std::string text_pic = draw_qprog(prog);
 
 #if defined(WIN32) || defined(_WIN32)
@@ -58,8 +53,6 @@ TEST(DrawLatex, output_latex_source)
     text_pic = Utf8ToGbkOnWin32(text_pic.c_str());
 #endif
     std::cout << text_pic << std::endl;
-
-    // 打印字符画(含Oracle，QDouble，Toffoli门)
     text_pic = draw_qprog(prog2);
 
 #if defined(WIN32) || defined(_WIN32)

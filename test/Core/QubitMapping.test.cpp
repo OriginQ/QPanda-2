@@ -15,7 +15,7 @@
 #endif // !PI
 
 const size_t kShots = 2048;
-const size_t kEpsion = kShots * 0.05;
+const size_t kEpsion = kShots * 0.07;
 #define CHECK_TIME 1
 #define CHECK_SWAP 1
 
@@ -386,7 +386,7 @@ static bool test_mapping_overall_1(const std::string& ir_str)
 
 	// Get correct result
 	const std::map<string, size_t> correct_result = machine->runWithConfiguration(test_prog, c, kShots);
-
+	
 	// 1. SABRE
 	auto start = chrono::system_clock::now();
 	auto _prog = deepCopy(test_prog);
@@ -404,7 +404,7 @@ static bool test_mapping_overall_1(const std::string& ir_str)
 	// check circuit-deep
 	if (CHECK_TIME)
 	{
-		//cout << "SABRE_mapped_prog:" << sabre_mapped_prog << endl;
+		cout << "SABRE_mapped_prog:" << sabre_mapped_prog << endl;
 		auto layer_info = prog_layer(sabre_mapped_prog);
 		cout << "SABRE_mapped_prog deeps = " << layer_info.size() << endl;
 		auto duration = chrono::duration_cast<chrono::microseconds>(end - start);
@@ -427,7 +427,7 @@ static bool test_mapping_overall_1(const std::string& ir_str)
 			}
 		}
 	}
-	
+
 	// 2. opt-bmt
 	//std::cout << "--------------------  start opt-bmt >>> " << endl;
 	start = chrono::system_clock::now();
@@ -537,11 +537,18 @@ TEST(QubitMapping, test1)
 	bool test_val = false;
 	try
 	{
-		test_val = test_mapping_overall_1(test_IR_1);
-		test_val = test_val && test_mapping_overall_1(test_IR_2);
-		/*test_val = test_val && test_opt_BMT_qubit_allocator_3();
-		test_val = test_val && test_SABRE_qubit_mapping_1();
-		test_val = test_val && test_opt_BMT_qubit_allocator_1();*/
+		for (size_t i = 0; i < 10; ++i)
+		{
+			test_val = test_mapping_overall_1(test_IR_1);
+			test_val = test_val && test_mapping_overall_1(test_IR_2);
+			/*test_val = test_val && test_opt_BMT_qubit_allocator_3();
+			test_val = test_val && test_SABRE_qubit_mapping_1();
+			test_val = test_val && test_opt_BMT_qubit_allocator_1();*/
+
+			if (!test_val){
+				break;
+			}
+		}
 	}
 	catch (const std::exception& e)
 	{

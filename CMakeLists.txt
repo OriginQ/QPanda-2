@@ -38,6 +38,7 @@ include_directories(
                     ${PROJECT_SOURCE_DIR}/ThirdParty/bplus-tree
                     ${PROJECT_SOURCE_DIR}/ThirdParty/bplus-tree/include
                     ${PROJECT_SOURCE_DIR}/ThirdParty/antlr4/runtime/src
+                    ${PROJECT_SOURCE_DIR}/ThirdParty/rabbit
                     ${PROJECT_SOURCE_DIR})
 
 
@@ -144,7 +145,7 @@ if(APPLE)
     find_library(COREFOUNDATION_LIBRARY CoreFoundation)
 endif()
 
-option(FIND_CUDA "find cuda" OFF)
+option(FIND_CUDA "find cuda" ON)
 if (FIND_CUDA)
     find_package(CUDA)
 endif(FIND_CUDA)

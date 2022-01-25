@@ -560,165 +560,80 @@ void ProcessOnTraversing::init_gate_buf()
 /*******************************************************************
 *                      class QProgLayer
 ********************************************************************/
-class QProgLayer : protected ProcessOnTraversing
+void QProgLayer::layer(QProg src_prog)
 {
-public:
-	QProgLayer(const bool b_double_gate_one_layer = false, const std::string& config_data = CONFIG_PATH)
-		:m_b_double_gate_one_layer(b_double_gate_one_layer), m_config_data(config_data)
-	{}
-	~QProgLayer() {}
+	init();
+	run_traversal(src_prog);
+}
 
-	void init() {
-		if (m_b_double_gate_one_layer)
-		{
-			QuantumChipConfig config_reader;
-			config_reader.load_config(m_config_data);
-			if (!(config_reader.read_adjacent_matrix(m_qubit_size, m_qubit_topo_matrix)))
-			{
-				QCERR_AND_THROW(run_fail, "Error: failed to read virtual_Z_config.");
-			}
-
-			m_high_frequency_qubits = config_reader.read_high_frequency_qubit();
-		}
+void QProgLayer::process(const bool on_travel_end /*= false*/) 
+{
+	if (m_cur_gates_buffer.size() == 0)
+	{
+		return;
 	}
 
-	void layer(QProg src_prog) { 
-		//read compensate-qubit
-		init();
-
-		run_traversal(src_prog); }
-
-	const LayeredTopoSeq& get_topo_seq() { return m_topolog_sequence; }
-
-protected:
-	void process(const bool on_travel_end = false) override {
-		if (m_cur_gates_buffer.size() == 0)
+	get_min_include_layers();
+	size_t drop_max_layer = 0;
+	if (on_travel_end)
+	{
+		drop_max_layer = MAX_LAYER;
+	}
+	else
+	{
+		if (m_min_layer <= MIN_INCLUDE_LAYERS)
 		{
 			return;
 		}
-
-		get_min_include_layers();
-		size_t drop_max_layer = 0;
-		if (on_travel_end)
-		{
-			drop_max_layer = MAX_LAYER;
-		}
-		else
-		{
-			if (m_min_layer <= MIN_INCLUDE_LAYERS)
-			{
-				return;
-			}
-			drop_max_layer = m_min_layer - MIN_INCLUDE_LAYERS;
-		}
-	
-		//transfer gate sink to topolog sequence
-		LayeredTopoSeq tmp_topolog_sequence;
-		gates_sink_to_topolog_sequence(m_cur_gates_buffer, tmp_topolog_sequence, drop_max_layer);
-
-		//update gate sink
-		append_topolog_seq(tmp_topolog_sequence);
-
-		drop_gates(drop_max_layer);
-	}
-	void append_topolog_seq(LayeredTopoSeq& tmp_seq) {
-		m_topolog_sequence.insert(m_topolog_sequence.end(), tmp_seq.begin(), tmp_seq.end());
+		drop_max_layer = m_min_layer - MIN_INCLUDE_LAYERS;
 	}
 
-	void add_gate_to_buffer(NodeIter iter, QCircuitParam &cir_param, std::shared_ptr<QNode> parent_node, OptimizerSink& gates_buffer) override {
-		auto gate_node = std::dynamic_pointer_cast<AbstractQGateNode>(*iter);
-		QVec gate_qubits;
-		gate_node->getQuBitVector(gate_qubits);
-		QVec control_qubits;
-		gate_node->getControlVector(control_qubits);
-		control_qubits += cir_param.m_control_qubits;
+	//transfer gate sink to topolog sequence
+	LayeredTopoSeq tmp_topolog_sequence;
+	gates_sink_to_topolog_sequence(m_cur_gates_buffer, tmp_topolog_sequence, drop_max_layer);
 
-		QVec total_qubits = gate_qubits + control_qubits;
-		std::vector<int> relation_qubits;
-		if (m_b_double_gate_one_layer && (total_qubits.size() > 1))
-		{
-			//append relation qubits
-			for (auto  tmp_qubit : total_qubits)
-			{
-				for (const auto& h : m_high_frequency_qubits)
-				{
-					if (h == tmp_qubit->get_phy_addr())
-					{
-						//get adjacent qubit
-						for (int a = 0; a < m_qubit_topo_matrix[h].size(); ++a)
-						{
-							if (0 != m_qubit_topo_matrix[h][a])
-							{
-								if (gates_buffer.end() != gates_buffer.find(a))
-								{
-									relation_qubits.push_back(a);
-								}
-							}
-						}
-					}
-				}
-			}
-		}
+	//update gate sink
+	append_topolog_seq(tmp_topolog_sequence);
 
-		for (auto relation_qubit_itr = relation_qubits.begin(); relation_qubit_itr != relation_qubits.end(); )
-		{
-			bool b = false;
-			for (auto &q : total_qubits)
-			{
-				if (q->get_phy_addr() == (*relation_qubit_itr))
-				{
-					b = true;
-					break;
-				}
-			}
+	drop_gates(drop_max_layer);
+}
 
-			if (b)
-			{
-				relation_qubit_itr = relation_qubits.erase(relation_qubit_itr);
-			}
-			else
-			{
-				++relation_qubit_itr;
-			}
-		}
+void QProgLayer::append_topolog_seq(LayeredTopoSeq& tmp_seq)
+{
+	m_topolog_sequence.insert(m_topolog_sequence.end(), tmp_seq.begin(), tmp_seq.end());
+}
 
-		std::vector<int> total_qubits_i;
-		for (auto q : total_qubits)
-		{
-			total_qubits_i.push_back(q->get_phy_addr());
-		}
-		total_qubits_i.insert(total_qubits_i.end(), relation_qubits.begin(), relation_qubits.end());
-		size_t layer = get_node_layer(total_qubits_i, gates_buffer);
-		//PTrace("On layer: %lld\n", layer);
+void QProgLayer::add_gate_to_buffer(NodeIter iter, QCircuitParam &cir_param,
+	std::shared_ptr<QNode> parent_node, OptimizerSink& gates_buffer)
+{
+	auto gate_node = std::dynamic_pointer_cast<AbstractQGateNode>(*iter);
+	QVec gate_qubits;
+	gate_node->getQuBitVector(gate_qubits);
+	QVec control_qubits;
+	gate_node->getControlVector(control_qubits);
+	control_qubits += cir_param.m_control_qubits;
 
-		pOptimizerNodeInfo tmp_node = std::make_shared<OptimizerNodeInfo>(iter, layer,
-			gate_qubits, control_qubits, (GateType)(gate_node->getQGate()->getGateType()), parent_node, 
-			check_dagger(gate_node, (gate_node->isDagger() ^ cir_param.m_is_dagger)));
-		for (const auto& i : total_qubits)
-		{
-			const auto qubit_i = i->get_phy_addr();
-			gates_buffer.append_data(tmp_node, qubit_i);
-		}
+	QVec total_qubits = gate_qubits + control_qubits;
 
-		if (relation_qubits.size() > 0)
-		{
-			tmp_node = std::make_shared<OptimizerNodeInfo>(NodeIter(), layer,
-				QVec(), QVec(), (GateType)(COMPENSATE_GATE_TYPE), nullptr, false);
-			for (const auto& i : relation_qubits)
-			{
-				gates_buffer.append_data(tmp_node, i);
-			}
-		}
+	std::vector<int> total_qubits_i;
+	for (auto q : total_qubits)
+	{
+		total_qubits_i.push_back(q->get_phy_addr());
 	}
+	//total_qubits_i.insert(total_qubits_i.end(), relation_qubits.begin(), relation_qubits.end());
+	size_t layer = get_node_layer(total_qubits_i, gates_buffer);
+	//PTrace("On layer: %lld\n", layer);
 
-private:
-	bool m_b_double_gate_one_layer;
-	const std::string m_config_data;
-	LayeredTopoSeq m_topolog_sequence;
-	std::vector<std::vector<int>> m_qubit_topo_matrix;
-	std::vector<int> m_high_frequency_qubits;
-	size_t m_qubit_size;
-};
+	pOptimizerNodeInfo tmp_node = std::make_shared<OptimizerNodeInfo>(iter, layer,
+		gate_qubits, control_qubits, (GateType)(gate_node->getQGate()->getGateType()), parent_node,
+		check_dagger(gate_node, (gate_node->isDagger() ^ cir_param.m_is_dagger)));
+	for (const auto& i : total_qubits)
+	{
+		const auto qubit_i = i->get_phy_addr();
+		gates_buffer.append_data(tmp_node, qubit_i);
+	}
+}
+
 #if 1
 /*******************************************************************
 *                      class QPressedLayer
@@ -986,7 +901,7 @@ protected:
 						continue;
 					}
 
-					for (auto _iter = last_layer.begin(); _iter != last_layer.end(); )
+					/*for (auto _iter = last_layer.begin(); _iter != last_layer.end(); )
 					{
 						auto& last_layer_node = *_iter;
 						if (BARRIER_GATE == last_layer_node.first->m_cur_node->m_gate_type)
@@ -1009,7 +924,7 @@ protected:
 						}
 
 						++_iter;
-					}
+					}*/
 				}
 
 				seq.emplace_back(tmp_layer);
@@ -1385,78 +1300,12 @@ private:
 /*******************************************************************
 *                      public interface
 ********************************************************************/
-static void move_measure_to_last_layer(LayeredTopoSeq& seq) {
-	if (seq.size() == 0)
-	{
-		return;
-	}
-
-	auto& last_layer = seq.back();
-	bool b_exist_measure_node = false;
-	bool b_exist_gate_node = false;
-	for (const auto& gate_item : last_layer)
-	{
-		const NodeType tmp_node_type = (*gate_item.first->m_iter)->getNodeType();
-		if (tmp_node_type == MEASURE_GATE)
-		{
-			b_exist_measure_node = true;
-		}
-		else if (tmp_node_type == GATE_NODE)
-		{
-			b_exist_gate_node = true;
-		}
-		else
-		{
-			QCERR_AND_THROW(run_fail, "Error: error node type in last layer.");
-		}
-	}
-
-	if (b_exist_gate_node)
-	{
-		seq.push_back(SeqLayer<pOptimizerNodeInfo>());
-	}
-
-	auto& real_last_layer = seq.back();
-
-	for (auto layer_iter = seq.begin(); layer_iter != (--seq.end()); ++layer_iter)
-	{
-		auto& cur_layer = *layer_iter;
-		for (auto gate_itr = cur_layer.begin(); gate_itr != cur_layer.end();)
-		{
-			const NodeType t = (*(gate_itr->first->m_iter))->getNodeType();
-			if (t == MEASURE_GATE)
-			{
-				real_last_layer.push_back(*gate_itr);
-				gate_itr = cur_layer.erase(gate_itr);
-			}
-			else
-			{
-				++gate_itr;
-			}
-		}
-	}
-}
-
-LayeredTopoSeq QPanda::prog_layer(QProg src_prog, const bool b_enable_qubit_compensation/* = false*/, const std::string config_data /*= CONFIG_PATH*/)
+LayeredTopoSeq QPanda::prog_layer(QProg src_prog)
 {
-	QProgLayer q_layer(b_enable_qubit_compensation, config_data);
-
-	//auto start = std::chrono::system_clock::now();
+	QProgLayer q_layer;
 	q_layer.layer(src_prog);
-	/*auto end = chrono::system_clock::now();
-	auto duration = chrono::duration_cast<chrono::microseconds>(end - start);
-	cout << "The QProgLayer::layer() takes "
-		<< double(duration.count()) * chrono::microseconds::period::num / chrono::microseconds::period::den
-		<< "seconds" << endl;*/
 
-	LayeredTopoSeq seq = q_layer.get_topo_seq();
-
-	if (b_enable_qubit_compensation)
-	{
-		move_measure_to_last_layer(seq);
-	}
-
-	return seq;
+	return q_layer.get_topo_seq();
 }
 
 PressedTopoSeq QPanda::get_pressed_layer(QProg src_prog)

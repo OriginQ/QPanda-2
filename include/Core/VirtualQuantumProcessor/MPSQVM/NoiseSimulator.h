@@ -92,7 +92,7 @@ private:
     size_t m_qubit_num = 1;
      
     //KARUS_MATRIICES or UNITARY_MATRIICES
-    KarusErrorType  m_karus_error_type;
+    KarusErrorType  m_karus_error_type = KarusErrorType::KARUS_MATRIICES;
 
     //karus matrices for all karus noise model 
     std::vector<QStat>  m_karus_matrices = {};
@@ -128,7 +128,7 @@ public:
     void set_readout_error(const std::vector<std::vector<double>>& readout_params, const Qnum& qubits);
 
     /*The next error are karus error*/
-    void set_combining_error(GateType gate_type, const KarusError& karus_error, const std::vector<Qnum>& qubits_vecs);
+    //void set_combining_error(GateType gate_type, const KarusError& karus_error, const std::vector<Qnum>& qubits_vecs);
 
     /*mixed unitary error*/
     void set_mixed_unitary_error(GateType gate_type, const std::vector<QStat>& karus_matrices);
@@ -150,6 +150,9 @@ public:
     void set_noise_model(NOISE_MODEL model, GateType gate_type, double T1, double T2, double time_param, const std::vector<Qnum>& qubits_vecs);
 
     void set_mps_qpu_and_result(std::shared_ptr<MPSImplQPU> mps_qpu, QResult* result);
+
+    void add_single_noise_model(NOISE_MODEL model, GateType gate_type, double param);
+    void add_single_noise_model(NOISE_MODEL model, GateType gate_type, double T1, double T2, double time_param);
 
     //traversal component
     void execute(std::shared_ptr<AbstractQGateNode>, std::shared_ptr<QNode>, QCircuitConfig &config);
@@ -173,9 +176,10 @@ private:
 
     NonKarusError m_non_karus_error;
 
+    KarusError m_karus_error;
+
     std::vector<std::tuple<GateType, int, KarusError>> m_one_qubit_karus_error_tuple;
     std::vector<std::tuple<GateType, int, int, KarusError>> m_two_qubit_karus_error_tuple;
-
 
     void handle_karus_matrices(std::vector<QStat>& karus_matrices, const QVec& qubits);
     void handle_unitary_matrices(const std::vector<QStat>& unitary_matrices, const std::vector<double> m_unitary_probs, const QVec& qubits);

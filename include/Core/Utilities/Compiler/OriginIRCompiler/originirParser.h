@@ -1,5 +1,5 @@
 
-// Generated from .\originir.g4 by ANTLR 4.9.2
+// Generated from .\originir.g4 by ANTLR 4.8
 
 #pragma once
 
@@ -54,7 +54,7 @@ public:
     RuleId = 55, RuleId_list = 56, RuleGate_name = 57, RuleConstant = 58
   };
 
-  explicit originirParser(antlr4::TokenStream *input);
+  originirParser(antlr4::TokenStream *input);
   ~originirParser();
 
   virtual std::string getGrammarFileName() const override;

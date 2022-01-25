@@ -7,7 +7,7 @@
 #include "Core/Utilities/QProgTransform/QProgToDAG/GraphMatch.h"
 #include "Core/Utilities/QProgTransform/QProgToDAG/QProgDAG.h"
 #include "Core/Utilities/Tools/ProcessOnTraversing.h"
-#include "Core/Utilities/QProgInfo/Visualization/Draw.h"
+#include "Core/Utilities/QProgInfo/Visualization/AbstractDraw.h"
 
 QPANDA_BEGIN
 

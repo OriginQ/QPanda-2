@@ -31,7 +31,6 @@ void init_quantum_machine(py::module &m)
         .value("DECOHERENCE_KRAUS_OPERATOR", NOISE_MODEL::DECOHERENCE_KRAUS_OPERATOR)
         .value("DEPHASING_KRAUS_OPERATOR", NOISE_MODEL::DEPHASING_KRAUS_OPERATOR)
         .value("PAULI_KRAUS_MAP", NOISE_MODEL::PAULI_KRAUS_MAP)
-        .value("DECOHERENCE_KRAUS_OPERATOR_P1_P2", NOISE_MODEL::DECOHERENCE_KRAUS_OPERATOR_P1_P2)
         .value("BITFLIP_KRAUS_OPERATOR", NOISE_MODEL::BITFLIP_KRAUS_OPERATOR)
         .value("DEPOLARIZING_KRAUS_OPERATOR", NOISE_MODEL::DEPOLARIZING_KRAUS_OPERATOR)
         .value("BIT_PHASE_FLIP_OPRATOR", NOISE_MODEL::BIT_PHASE_FLIP_OPRATOR)
@@ -443,77 +442,100 @@ void init_quantum_machine(py::module &m)
                     auto & alloc = doc.GetAllocator(); 
                     doc.Parse(json_string.c_str()); 
                     return qvm.runWithConfiguration(prog, cc_vector, doc); 
-        }, "program"_a, "cbit_list"_a, "data"_a, py::return_value_policy::automatic)
-            .def("run_with_configuration", [](MPSQVM &qvm, QProg & prog, std::vector<ClassicalCondition> & cc_vector, int shots)
-        { return qvm.runWithConfiguration(prog, cc_vector, shots); }, "program"_a, "cbit_list"_a, "data"_a, py::return_value_policy::automatic)
-            .def("pmeasure", &MPSQVM::PMeasure, "qubit_list"_a, "select_max"_a = -1, "Get the probability distribution over qubits", py::return_value_policy::reference)
-            .def("pmeasure_no_index", &MPSQVM::PMeasure_no_index, "qubit_list"_a, "Get the probability distribution over qubits", py::return_value_policy::reference)
-            .def("get_prob_tuple_list", &MPSQVM::getProbTupleList, "qubit_list"_a, "select_max"_a = -1, py::return_value_policy::reference)
-            .def("get_prob_list", &MPSQVM::getProbList, "qubit_list"_a, "select_max"_a = -1, py::return_value_policy::reference)
-            .def("get_prob_dict", &MPSQVM::getProbDict, "qubit_list"_a, "select_max"_a = -1, py::return_value_policy::reference)
-            .def("prob_run_tuple_list", &MPSQVM::probRunTupleList, "program"_a, "qubit_list"_a, "select_max"_a = -1, py::return_value_policy::reference)
-            .def("prob_run_list", &MPSQVM::probRunList, "program"_a, "qubit_list"_a, "select_max"_a = -1, py::return_value_policy::reference)
-            .def("prob_run_dict", &MPSQVM::probRunDict, "program"_a, "qubit_list"_a, "select_max"_a = -1, py::return_value_policy::reference)
-            .def("quick_measure", &MPSQVM::quickMeasure, "qubit_list"_a, "shots"_a, py::return_value_policy::reference)
+                }, "program"_a, "cbit_list"_a, "data"_a, py::return_value_policy::automatic)
+                    .def("run_with_configuration", [](MPSQVM &qvm, QProg & prog, std::vector<ClassicalCondition> & cc_vector, int shots)
+                { return qvm.runWithConfiguration(prog, cc_vector, shots); }, "program"_a, "cbit_list"_a, "data"_a, py::return_value_policy::automatic)
+                    .def("pmeasure", &MPSQVM::PMeasure, "qubit_list"_a, "select_max"_a = -1, "Get the probability distribution over qubits", py::return_value_policy::reference)
+                    .def("pmeasure_no_index", &MPSQVM::PMeasure_no_index, "qubit_list"_a, "Get the probability distribution over qubits", py::return_value_policy::reference)
+                    .def("get_prob_tuple_list", &MPSQVM::getProbTupleList, "qubit_list"_a, "select_max"_a = -1, py::return_value_policy::reference)
+                    .def("get_prob_list", &MPSQVM::getProbList, "qubit_list"_a, "select_max"_a = -1, py::return_value_policy::reference)
+                    .def("get_prob_dict", &MPSQVM::getProbDict, "qubit_list"_a, "select_max"_a = -1, py::return_value_policy::reference)
+                    .def("prob_run_tuple_list", &MPSQVM::probRunTupleList, "program"_a, "qubit_list"_a, "select_max"_a = -1, py::return_value_policy::reference)
+                    .def("prob_run_list", &MPSQVM::probRunList, "program"_a, "qubit_list"_a, "select_max"_a = -1, py::return_value_policy::reference)
+                    .def("prob_run_dict", &MPSQVM::probRunDict, "program"_a, "qubit_list"_a, "select_max"_a = -1, py::return_value_policy::reference)
+                    .def("quick_measure", &MPSQVM::quickMeasure, "qubit_list"_a, "shots"_a, py::return_value_policy::reference)
 
-            .def("pmeasure_bin_index", &MPSQVM::pmeasure_bin_index, "program"_a, "string"_a, py::return_value_policy::reference)
-            .def("pmeasure_dec_index", &MPSQVM::pmeasure_dec_index, "program"_a, "string"_a, py::return_value_policy::reference)
-            .def("pmeasure_bin_subset", &MPSQVM::pmeasure_bin_subset, "program"_a, "string_list"_a, py::return_value_policy::reference)
-            .def("pmeasure_dec_subset", &MPSQVM::pmeasure_dec_subset, "program"_a, "string_list"_a, py::return_value_policy::reference)
+                    .def("pmeasure_bin_index", &MPSQVM::pmeasure_bin_index, "program"_a, "string"_a, py::return_value_policy::reference)
+                    .def("pmeasure_dec_index", &MPSQVM::pmeasure_dec_index, "program"_a, "string"_a, py::return_value_policy::reference)
+                    .def("pmeasure_bin_subset", &MPSQVM::pmeasure_bin_subset, "program"_a, "string_list"_a, py::return_value_policy::reference)
+                    .def("pmeasure_dec_subset", &MPSQVM::pmeasure_dec_subset, "program"_a, "string_list"_a, py::return_value_policy::reference)
 
-            //The all next MPSQVM functions are only for noise simulation
+                    //The all next MPSQVM functions are only for noise simulation
 
-            /* bit-flip,phase-flip,bit-phase-flip,phase-damping,amplitude-damping,depolarizing*/
-            .def("set_noise_model", [](MPSQVM &qvm, NOISE_MODEL model, GateType gate_type, double param)
+                    /* bit-flip,phase-flip,bit-phase-flip,phase-damping,amplitude-damping,depolarizing*/
+                    .def("set_noise_model", [](MPSQVM &qvm, NOISE_MODEL model, GateType gate_type, double param)
                 {return qvm.set_noise_model(model, gate_type, param); })
-            .def("set_noise_model", [](MPSQVM &qvm, NOISE_MODEL model, GateType gate_type, double param, const std::vector<QVec>& qvecs)
+                    .def("set_noise_model", [](MPSQVM &qvm, NOISE_MODEL model, GateType gate_type, double param, const std::vector<QVec>& qvecs)
                 {return qvm.set_noise_model(model, gate_type, param, qvecs); })
 
-            /*decoherence error*/
-            .def("set_noise_model", [](MPSQVM &qvm, NOISE_MODEL model, GateType gate_type, double T1, double T2, double time_param)
+                    /*decoherence error*/
+                    .def("set_noise_model", [](MPSQVM &qvm, NOISE_MODEL model, GateType gate_type, double T1, double T2, double time_param)
                 {return qvm.set_noise_model(model, gate_type, T1, T2, time_param); })
-            .def("set_noise_model", [](MPSQVM &qvm, NOISE_MODEL model, GateType gate_type, double T1, double T2, double time_param, const std::vector<QVec>& qvecs)
+                    .def("set_noise_model", [](MPSQVM &qvm, NOISE_MODEL model, GateType gate_type, double T1, double T2, double time_param, const std::vector<QVec>& qvecs)
                 {return qvm.set_noise_model(model, gate_type, T1, T2, time_param, qvecs); })
 
-            /*mixed unitary error*/
-            .def("set_mixed_unitary_error", [](MPSQVM &qvm, GateType gate_type, const std::vector<QStat>& karus_matrices, const std::vector<QVec>& qubits_vecs)
+                    /*mixed unitary error*/
+                    .def("set_mixed_unitary_error", [](MPSQVM &qvm, GateType gate_type, const std::vector<QStat>& karus_matrices, const std::vector<QVec>& qubits_vecs)
                 {return qvm.set_mixed_unitary_error(gate_type, karus_matrices, qubits_vecs); })
-            .def("set_mixed_unitary_error", [](MPSQVM &qvm, GateType gate_type, const std::vector<QStat>& unitary_matrices, prob_vec probs_vec, const std::vector<QVec>& qubits_vecs)
+                    .def("set_mixed_unitary_error", [](MPSQVM &qvm, GateType gate_type, const std::vector<QStat>& unitary_matrices, prob_vec probs_vec, const std::vector<QVec>& qubits_vecs)
                 {return qvm.set_mixed_unitary_error(gate_type, unitary_matrices, probs_vec, qubits_vecs); })
-            .def("set_mixed_unitary_error", [](MPSQVM &qvm, GateType gate_type, const std::vector<QStat>& karus_matrices)
+                    .def("set_mixed_unitary_error", [](MPSQVM &qvm, GateType gate_type, const std::vector<QStat>& karus_matrices)
                 {return qvm.set_mixed_unitary_error(gate_type, karus_matrices); })
-            .def("set_mixed_unitary_error", [](MPSQVM &qvm, GateType gate_type, const std::vector<QStat>& unitary_matrices, prob_vec probs_vec)
+                    .def("set_mixed_unitary_error", [](MPSQVM &qvm, GateType gate_type, const std::vector<QStat>& unitary_matrices, prob_vec probs_vec)
                 {return qvm.set_mixed_unitary_error(gate_type, unitary_matrices, probs_vec); })
 
-            /*readout error*/
-            .def("set_readout_error", &MPSQVM::set_readout_error, "readout_params"_a, "qubits"_a, py::return_value_policy::reference)
+                    /*readout error*/
+                    .def("set_readout_error", &MPSQVM::set_readout_error, "readout_params"_a, "qubits"_a, py::return_value_policy::reference)
 
-            /*measurement error*/
-            .def("set_measure_error", [](MPSQVM &qvm, NOISE_MODEL model, double param) {return qvm.set_measure_error(model, param); })
-            .def("set_measure_error", [](MPSQVM &qvm, NOISE_MODEL model, double T1, double T2, double time_param) {return qvm.set_measure_error(model, T1, T2, time_param); })
+                    /*measurement error*/
+                    .def("set_measure_error", [](MPSQVM &qvm, NOISE_MODEL model, double param) {return qvm.set_measure_error(model, param); })
+                    .def("set_measure_error", [](MPSQVM &qvm, NOISE_MODEL model, double T1, double T2, double time_param) {return qvm.set_measure_error(model, T1, T2, time_param); })
 
-            /*rotation error*/
-            .def("set_rotation_error", &MPSQVM::set_rotation_error, "param"_a, py::return_value_policy::reference)
+                    /*rotation error*/
+                    .def("set_rotation_error", &MPSQVM::set_rotation_error, "param"_a, py::return_value_policy::reference)
 
-            /*reset error*/
-            .def("set_reset_error", &MPSQVM::set_reset_error, "reset_0_param"_a, "reset_1_param"_a, py::return_value_policy::reference);
+                    /*reset error*/
+                    .def("set_reset_error", &MPSQVM::set_reset_error, "reset_0_param"_a, "reset_1_param"_a, py::return_value_policy::reference)
+
+                    /* bit-flip,phase-flip,bit-phase-flip,phase-damping,amplitude-damping,depolarizing*/
+                    .def("add_single_noise_model", [](MPSQVM &qvm, NOISE_MODEL model, GateType gate_type, double param)
+                        {return qvm.add_single_noise_model(model, gate_type, param); })
+
+                    /*decoherence error*/
+                    .def("add_single_noise_model", [](MPSQVM &qvm, NOISE_MODEL model, GateType gate_type, double T1, double T2, double time_param)
+                        {return qvm.add_single_noise_model(model, gate_type, T1, T2, time_param); });
 
             /*combine error*/
                
 #ifdef USE_CURL
 
-        py::enum_<REAL_CHIP_TYPE>(m, "real_chip_type")
-            .value("origin_wuyuan_d4", REAL_CHIP_TYPE::ORIGIN_WUYUAN_D4)
-            .value("origin_wuyuan_d5", REAL_CHIP_TYPE::ORIGIN_WUYUAN_D5)
+        py::enum_<RealChipType>(m, "real_chip_type")
+            .value("origin_wuyuan_d3", RealChipType::ORIGIN_WUYUAN_D3)
+            .value("origin_wuyuan_d4", RealChipType::ORIGIN_WUYUAN_D4)
+            .value("origin_wuyuan_d5", RealChipType::ORIGIN_WUYUAN_D5)
             .export_values();
 
-        py::enum_<TASK_STATUS>(m, "task_status")
-            .value("waiting", TASK_STATUS::WAITING)
-            .value("computing", TASK_STATUS::COMPUTING)
-            .value("finished", TASK_STATUS::FINISHED)
-            .value("failed", TASK_STATUS::FAILED)
-            .value("queuing", TASK_STATUS::QUEUING)
+        py::enum_<TaskStatus>(m, "task_status")
+            .value("waiting", TaskStatus::WAITING)
+            .value("computing", TaskStatus::COMPUTING)
+            .value("finished", TaskStatus::FINISHED)
+            .value("failed", TaskStatus::FAILED)
+            .value("queuing", TaskStatus::QUEUING)
             .export_values();
+
+        //py::enum_<RealChipType>(m, "RealChipType")
+        //    .value("origin_wuyuan_d3", RealChipType::ORIGIN_WUYUAN_D3)
+        //    .value("origin_wuyuan_d4", RealChipType::ORIGIN_WUYUAN_D4)
+        //    .value("origin_wuyuan_d5", RealChipType::ORIGIN_WUYUAN_D5)
+        //    .export_values();
+
+        //py::enum_<TaskStatus>(m, "TaskStatus")
+        //    .value("waiting", TaskStatus::WAITING)
+        //    .value("computing", TaskStatus::COMPUTING)
+        //    .value("finished", TaskStatus::FINISHED)
+        //    .value("failed", TaskStatus::FAILED)
+        //    .value("queuing", TaskStatus::QUEUING)
+        //    .export_values();
 
         py::class_<QCloudMachine, QuantumMachine>(m, "QCloud")
             .def(py::init<>())
@@ -522,7 +544,11 @@ void init_quantum_machine(py::module &m)
 
             //url setting
             .def("set_qcloud_api", [](QCloudMachine &qcm, std::string url) {return qcm.set_qcloud_api(url); })
-            .def("set_real_chip_api", [](QCloudMachine &qcm, std::string url) {return qcm.set_real_chip_api(url); })
+
+            .def("set_inquire_url", [](QCloudMachine &qcm, std::string url) {return qcm.set_inquire_url(url); })
+            .def("set_compute_url", [](QCloudMachine &qcm, std::string url) {return qcm.set_compute_url(url); })
+            .def("set_batch_inquire_url", [](QCloudMachine &qcm, std::string url) {return qcm.set_batch_inquire_url(url); })
+            .def("set_batch_compute_url", [](QCloudMachine &qcm, std::string url) {return qcm.set_batch_compute_url(url); })
 
             // noise
             .def("set_noise_model", [](QCloudMachine &qcm, NOISE_MODEL model, const std::vector<double> single_params, const std::vector<double> double_params) {return qcm.set_noise_model(model, single_params, double_params); })
@@ -588,17 +614,19 @@ void init_quantum_machine(py::module &m)
             .def("real_chip_measure", [](QCloudMachine &qcm,
                 QProg &prog,
                 int shot,
-                REAL_CHIP_TYPE chipid,
-                bool mapping_flag,
-                bool circuit_optimization,
+                RealChipType chip_id,
+                bool is_amend,
+                bool is_mapping,
+                bool is_optimization,
                 std::string task_name)
 
-                {return qcm.real_chip_measure(prog, shot, chipid, mapping_flag, circuit_optimization, task_name); },
+                {return qcm.real_chip_measure(prog, shot, chip_id, is_amend, is_mapping, is_optimization, task_name); },
                 py::arg("prog"),
                 py::arg("shot"),
-                py::arg("chipid") = REAL_CHIP_TYPE::ORIGIN_WUYUAN_D5,
-                py::arg("mapping_flag") = true,
-                py::arg("circuit_optimization") = true,
+                py::arg("chip_id") = RealChipType::ORIGIN_WUYUAN_D5,
+                py::arg("is_amend") = true,
+                py::arg("is_mapping") = true,
+                py::arg("is_optimization") = true,
                 py::arg("task_name") = "Qurator Experiment")
 
 
@@ -606,17 +634,19 @@ void init_quantum_machine(py::module &m)
             .def("get_state_fidelity", [](QCloudMachine &qcm,
                 QProg &prog,
                 int shot,
-                REAL_CHIP_TYPE chipid,
-                bool mapping_flag,
-                bool circuit_optimization,
+                RealChipType chip_id,
+                bool is_amend,
+                bool is_mapping,
+                bool is_optimization,
                 std::string task_name)
 
-                {return qcm.get_state_fidelity(prog, shot, chipid, mapping_flag, circuit_optimization, task_name); },
+                {return qcm.get_state_fidelity(prog, shot, chip_id, is_amend, is_mapping, is_optimization, task_name); },
                 py::arg("prog"),
                 py::arg("shot"),
-                py::arg("chipid") = REAL_CHIP_TYPE::ORIGIN_WUYUAN_D5,
-                py::arg("mapping_flag") = true,
-                py::arg("circuit_optimization") = true,
+                py::arg("chip_id") = RealChipType::ORIGIN_WUYUAN_D5,
+                py::arg("is_amend") = true,
+                py::arg("is_mapping") = true,
+                py::arg("is_optimization") = true,
                 py::arg("task_name") = "Qurator Experiment")
 
 
@@ -624,17 +654,19 @@ void init_quantum_machine(py::module &m)
             .def("get_state_tomography_density", [](QCloudMachine &qcm,
                 QProg &prog,
                 int shot,
-                REAL_CHIP_TYPE chipid,
-                bool mapping_flag,
-                bool circuit_optimization,
+                RealChipType chip_id,
+                bool is_amend,
+                bool is_mapping,
+                bool is_optimization,
                 std::string task_name)
 
-                {return qcm.get_state_tomography_density(prog, shot, chipid, mapping_flag, circuit_optimization, task_name); },
+                {return qcm.get_state_tomography_density(prog, shot, chip_id, is_amend, is_mapping, is_optimization, task_name); },
                 py::arg("prog"),
                 py::arg("shot"),
-                py::arg("chipid") = REAL_CHIP_TYPE::ORIGIN_WUYUAN_D5,
-                py::arg("mapping_flag") = true,
-                py::arg("circuit_optimization") = true,
+                py::arg("chip_id") = RealChipType::ORIGIN_WUYUAN_D5,
+                py::arg("is_amend") = true,
+                py::arg("is_mapping") = true,
+                py::arg("is_optimization") = true,
                 py::arg("task_name") = "Qurator Experiment")
 
 
@@ -643,7 +675,7 @@ void init_quantum_machine(py::module &m)
                 QProg &prog,
                 const QHamiltonian& hamiltonian,
                 const QVec& qvec,
-                TASK_STATUS& status,
+                TaskStatus& status,
                 std::string task_name)
 
                 {return qcm.get_expectation(prog, hamiltonian, qvec, status, task_name); },
@@ -659,9 +691,9 @@ void init_quantum_machine(py::module &m)
                 QProg &prog,
                 const QHamiltonian& hamiltonian,
                 const QVec& qvec,
-                TASK_STATUS& status)
+                TaskStatus& status)
 
-            {return qcm.get_expectation(prog, hamiltonian, qvec, status); },
+                {return qcm.get_expectation(prog, hamiltonian, qvec, status); },
                 py::arg("prog"),
                 py::arg("hamiltonian"),
                 py::arg("qvec"),
@@ -669,21 +701,157 @@ void init_quantum_machine(py::module &m)
 
             //get_expectation_exec
             .def("get_expectation_exec", [](QCloudMachine &qcm,
-                std::string taskid, 
-                TASK_STATUS& status)
+                std::string taskid,
+                TaskStatus& status)
 
-            {return qcm.get_expectation_exec(taskid, status); },
+                {return qcm.get_expectation_exec(taskid, status); },
                 py::arg("taskid"),
                 py::arg("status"))
 
             //get_expectation_query
             .def("get_expectation_query", [](QCloudMachine &qcm,
                 std::string taskid,
-                TASK_STATUS& status)
+                TaskStatus& status)
 
-            {return qcm.get_expectation_query(taskid, status); },
+                {return qcm.get_expectation_query(taskid, status); },
                 py::arg("taskid"),
-                py::arg("status"));
+                py::arg("status"))
+
+            // full_amplitude
+            .def("full_amplitude_measure_batch", [](QCloudMachine &qcm,
+                std::vector<QProg>& prog_array,
+                int shot,
+                std::string task_name)
+
+                {return qcm.full_amplitude_measure_batch(prog_array, shot, task_name); },
+                py::arg("prog_array"),
+                py::arg("shot"),
+                py::arg("task_name") = "QPanda Experiment")
+
+            .def("full_amplitude_pmeasure_batch", [](QCloudMachine &qcm,
+                std::vector<QProg>& prog_array,
+                Qnum qvec,
+                std::string task_name)
+
+                {return qcm.full_amplitude_pmeasure_batch(prog_array, qvec, task_name); },
+                py::arg("prog_array"),
+                py::arg("qvec"),
+                py::arg("task_name") = "QPanda Experiment")
+
+            //partial_amplitude
+            .def("partial_amplitude_pmeasure_batch", [](QCloudMachine &qcm,
+                std::vector<QProg>& prog_array,
+                std::vector<std::string> amp_vec,
+                std::string task_name)
+
+                {return qcm.partial_amplitude_pmeasure_batch(prog_array, amp_vec, task_name); },
+                py::arg("prog_array"),
+                py::arg("amp_vec"),
+                py::arg("task_name") = "QPanda Experiment")
+
+                //single_amplitude
+                .def("single_amplitude_pmeasure_batch", [](QCloudMachine &qcm,
+                    std::vector<QProg>& prog_array,
+                    std::string amplitude,
+                    std::string task_name)
+
+                {return qcm.single_amplitude_pmeasure_batch(prog_array, amplitude, task_name); },
+                py::arg("prog"),
+                py::arg("amplitude"),
+                py::arg("task_name") = "QPanda Experiment")
+
+                //noise
+                .def("noise_measure_batch", [](QCloudMachine &qcm,
+                    std::vector<QProg>& prog_array,
+                    int shot,
+                    std::string task_name)
+
+                    {return qcm.noise_measure_batch(prog_array, shot, task_name); },
+                    py::arg("prog_array"),
+                    py::arg("shot"),
+                    py::arg("task_name") = "QPanda Experiment")
+
+                //real chip measure
+                .def("real_chip_measure_batch", [](QCloudMachine &qcm,
+                    std::vector<QProg>& prog_array,
+                    int shot,
+                    RealChipType chip_id,
+                    bool is_amend,
+                    bool is_mapping,
+                    bool is_optimization,
+                    std::string task_name)
+
+                    {return qcm.real_chip_measure_batch(prog_array, shot, chip_id, is_amend, is_mapping, is_optimization, task_name); },
+                    py::arg("prog_array"),
+                    py::arg("shot"),
+                    py::arg("chip_id") = RealChipType::ORIGIN_WUYUAN_D3,
+                    py::arg("is_amend") = true,
+                    py::arg("is_mapping") = true,
+                    py::arg("is_optimization") = true,
+                    py::arg("task_name") = "QPanda Experiment")
+
+                .def("full_amplitude_measure_batch_commit", [](QCloudMachine &qcm,
+                    std::vector<QProg>& prog_array,
+                    int shot,
+                    TaskStatus& status,
+                    std::string task_name)
+
+                    {return qcm.full_amplitude_measure_batch_commit(prog_array, shot, status, task_name); },
+                    py::arg("prog_array"),
+                    py::arg("shot"),
+                    py::arg("status"),
+                    py::arg("task_name") = "QPanda Experiment")
+
+                .def("full_amplitude_pmeasure_batch_commit", [](QCloudMachine &qcm,
+                    std::vector<QProg>& prog_array,
+                    Qnum qvec,
+                    TaskStatus& status,
+                    std::string task_name)
+
+                    {return qcm.full_amplitude_pmeasure_batch_commit(prog_array, qvec, status, task_name); },
+                    py::arg("prog_array"),
+                    py::arg("qvec"),
+                    py::arg("status"),
+                    py::arg("task_name") = "QPanda Experiment")
+
+                .def("real_chip_measure_batch_commit", [](QCloudMachine &qcm,
+                    std::vector<QProg>& prog_array,
+                    int shot,
+                    TaskStatus& status,
+                    RealChipType chip_id,
+                    bool is_amend,
+                    bool is_mapping,
+                    bool is_optimization,
+                    std::string task_name)
+
+                    {return qcm.real_chip_measure_batch_commit(prog_array, shot, status, chip_id, is_amend, is_mapping, is_optimization, task_name); },
+                    py::arg("prog_array"),
+                    py::arg("shot"),
+                    py::arg("status"),
+                    py::arg("chip_id") = RealChipType::ORIGIN_WUYUAN_D3,
+                    py::arg("is_amend") = true,
+                    py::arg("is_mapping") = true,
+                    py::arg("is_optimization") = true,
+                    py::arg("task_name") = "QPanda Experiment")
+
+                .def("full_amplitude_measure_batch_query", [](QCloudMachine &qcm,
+                    std::map<size_t, std::string> taskid_map)
+
+                    {return qcm.full_amplitude_measure_batch_query(taskid_map); },
+                    py::arg("taskid_map"))
+
+                .def("full_amplitude_pmeasure_batch_query", [](QCloudMachine &qcm,
+                    std::map<size_t, std::string> taskid_map)
+
+                    {return qcm.full_amplitude_pmeasure_batch_query(taskid_map); },
+                    py::arg("taskid_map"))
+
+                .def("real_chip_measure_batch_query", [](QCloudMachine &qcm,
+                    std::map<size_t, std::string> taskid_map)
+
+                    {return qcm.real_chip_measure_batch_query(taskid_map); },
+                    py::arg("taskid_map"));
+
 
 #endif // USE_CURL
 

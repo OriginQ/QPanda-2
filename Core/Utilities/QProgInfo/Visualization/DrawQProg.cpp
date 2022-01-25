@@ -35,7 +35,7 @@ DrawQProg::~DrawQProg()
 	}
 }
 
-string DrawQProg::textDraw(const LAYER_TYPE t, PIC_TYPE p /*= PIC_TYPE::TEXT*/, uint32_t length /*= 100*/, const std::string config_data /*= CONFIG_PATH*/)
+string DrawQProg::textDraw(const LAYER_TYPE t, PIC_TYPE p /*= PIC_TYPE::TEXT*/, bool with_logo /* = false */, uint32_t length /*= 100*/, const std::string config_data /*= CONFIG_PATH*/)
 {
 	/*Do some preparations*/
 	if (m_quantum_bits_in_use.size() == 0)
@@ -88,6 +88,12 @@ string DrawQProg::textDraw(const LAYER_TYPE t, PIC_TYPE p /*= PIC_TYPE::TEXT*/, 
 	{
 		throw runtime_error("Unknow text-pic type, failed to draw Text-Pic.");
 	}
+
+	if (PIC_TYPE::LATEX == p && with_logo)
+	{
+		dynamic_cast<DrawLatex *>(m_drawer)->setLogo();
+	}
+	
 	
 	string outputStr = m_drawer->present(m_output_file);
 

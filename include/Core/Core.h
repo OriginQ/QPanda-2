@@ -378,5 +378,7 @@ prob_tuple pMeasure(QVec qubit_vector, int select_max);
 prob_vec pMeasureNoIndex(QVec qubit_vector);
 
 
+QGate QOracle(const QVec& qubits, const EigenMatrixXc& matrix);
+
 QPANDA_END
 #endif // !_CORE_H

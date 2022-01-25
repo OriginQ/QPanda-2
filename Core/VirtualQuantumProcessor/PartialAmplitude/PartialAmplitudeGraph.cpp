@@ -56,19 +56,19 @@ static void _P1(QGateNode &node, QPUImpl *qpu)
 static void _X1(QGateNode &node, QPUImpl *qpu)
 {
     QStat _x1 = { _SQ2, qcomplex_t(0, -_SQ2), qcomplex_t(0, -_SQ2), _SQ2 };
-    qpu->unitarySingleQubitGate(node.qubits[0], _x1, node.is_dagger, GateType::HADAMARD_GATE);
+    qpu->unitarySingleQubitGate(node.qubits[0], _x1, node.is_dagger, GateType::U3_GATE);
 }
 
 static void _Y1(QGateNode &node, QPUImpl *qpu)
 {
     QStat _y1 = { _SQ2, -_SQ2, _SQ2, _SQ2 };
-    qpu->unitarySingleQubitGate(node.qubits[0], _y1, node.is_dagger, GateType::HADAMARD_GATE);
+    qpu->unitarySingleQubitGate(node.qubits[0], _y1, node.is_dagger, GateType::U3_GATE);
 }
 
 static void _Z1(QGateNode &node, QPUImpl *qpu)
 {
     QStat _z1 = { qcomplex_t(-_SQ2, _SQ2), 0, 0, qcomplex_t(_SQ2, _SQ2) };
-    qpu->unitarySingleQubitGate(node.qubits[0], _z1, node.is_dagger, GateType::HADAMARD_GATE);
+    qpu->unitarySingleQubitGate(node.qubits[0], _z1, node.is_dagger, GateType::U3_GATE);
 }
 
 static void _P00(QGateNode &node, QPUImpl *qpu)
@@ -127,7 +127,7 @@ static void _SQISWAP(QGateNode &node, QPUImpl *qpu)
 
 static void _ISWAP(QGateNode &node, QPUImpl *qpu)
 {
-    QStat _iswap = {1 , 0, 0, 0,
+    QStat _iswap = { 1 , 0, 0, 0,
                     0, 0, qcomplex_t(0, 1), 0,
                     0, qcomplex_t(0, 1), 0, 0,
                     0, 0, 0, 1 };
@@ -137,7 +137,7 @@ static void _ISWAP(QGateNode &node, QPUImpl *qpu)
 static void _RX(QGateNode &node, QPUImpl *qpu)
 {
     auto theta = node.params[0];
-    QStat _rx = { qcomplex_t(cos(theta / 2), 0), 
+    QStat _rx = { qcomplex_t(cos(theta / 2), 0),
                   qcomplex_t(0, -sin(theta / 2)),
                   qcomplex_t(0, -sin(theta / 2)),
                   qcomplex_t(cos(theta / 2), 0) };
@@ -148,7 +148,7 @@ static void _RX(QGateNode &node, QPUImpl *qpu)
 static void _RY(QGateNode &node, QPUImpl *qpu)
 {
     auto theta = node.params[0];
-    QStat _ry = { qcomplex_t(cos(theta / 2), 0), 
+    QStat _ry = { qcomplex_t(cos(theta / 2), 0),
                   qcomplex_t(-sin(theta / 2), 0),
                   qcomplex_t(sin(theta / 2), 0),
                   qcomplex_t(cos(theta / 2), 0) };
@@ -159,7 +159,7 @@ static void _RY(QGateNode &node, QPUImpl *qpu)
 static void _RZ(QGateNode &node, QPUImpl *qpu)
 {
     auto theta = node.params[0];
-    QStat _rz = { exp(qcomplex_t(0, -theta / 2)), 
+    QStat _rz = { exp(qcomplex_t(0, -theta / 2)),
                   0,
                   0,
                   exp(qcomplex_t(0, theta / 2)) };
@@ -170,7 +170,7 @@ static void _RZ(QGateNode &node, QPUImpl *qpu)
 static void _U1(QGateNode &node, QPUImpl *qpu)
 {
     auto theta = node.params[0];
-    QStat _u1 = { 1, 
+    QStat _u1 = { 1,
                   0,
                   0,
                   exp(qcomplex_t(0, theta)) };
@@ -211,8 +211,8 @@ static void _U3(QGateNode &node, QPUImpl *qpu)
 
     QStat _u3(4);
 
-	const auto _v1 = (qstate_type)(std::cos(theta / 2.0));
-	const auto _v2 = (qstate_type)(std::sin(theta / 2.0));
+    const auto _v1 = (qstate_type)(std::cos(theta / 2.0));
+    const auto _v2 = (qstate_type)(std::sin(theta / 2.0));
 
     _u3[0] = _v1;
     _u3[1] = -std::exp(qcomplex_t(0, lambda)) * _v2;
@@ -252,7 +252,7 @@ static void _CR(QGateNode &node, QPUImpl *qpu)
                   0, 0, 1, 0,
                   0, 0, 0, exp(qcomplex_t(0, theta)) };
 
-    qpu->unitaryDoubleQubitGate(node.qubits[1],node.qubits[0], _cr, node.is_dagger, GateType::CPHASE_GATE);
+    qpu->unitaryDoubleQubitGate(node.qubits[1], node.qubits[0], _cr, node.is_dagger, GateType::CPHASE_GATE);
 }
 
 static void _TOFFOLI(QGateNode &node, QPUImpl *qpu)
@@ -328,310 +328,305 @@ void PartialAmplitudeGraph::computing_graph(const cir_type &prog_map, std::share
 
 void PartialAmplitudeGraph::traversal(std::vector<QGateNode> &circuit)
 {
-	for (size_t i = 0; i < circuit.size(); ++i)
-	{
-		auto iter = m_key_map.find(circuit[i].gate_type);
-		if (m_key_map.end() != iter)
-		{
-			if (GateType::TOFFOLI_GATE == circuit[i].gate_type)
-			{
-				if (is_corss_node(circuit[i].qubits[1], circuit[i].qubits[0]) &&
-					is_corss_node(circuit[i].qubits[2], circuit[i].qubits[0]))
-				{
-					std::vector<QGateNode> P0_Cir = circuit;
+    for (size_t i = 0; i < circuit.size(); ++i)
+    {
+        auto iter = m_key_map.find(circuit[i].gate_type);
+        if (m_key_map.end() != iter)
+        {
+            if (GateType::TOFFOLI_GATE == circuit[i].gate_type)
+            {
+                if (is_corss_node(circuit[i].qubits[1], circuit[i].qubits[0]) &&
+                    is_corss_node(circuit[i].qubits[2], circuit[i].qubits[0]))
+                {
+                    std::vector<QGateNode> P0_Cir = circuit;
                     std::vector<QGateNode> P1_Cir = circuit;
 
-					QGateNode P0_Node = { P00_GATE , circuit[i].is_dagger, std::vector<uint32_t>(2)};
-					P0_Node.qubits[1] = circuit[i].qubits[1];
-					P0_Node.qubits[0] = circuit[i].qubits[2];
-					P0_Cir[i] = P0_Node;
+                    QGateNode P0_Node = { P00_GATE , circuit[i].is_dagger, std::vector<size_t>(2) };
+                    P0_Node.qubits[1] = circuit[i].qubits[1];
+                    P0_Node.qubits[0] = circuit[i].qubits[2];
+                    P0_Cir[i] = P0_Node;
 
-					QGateNode P1_Node1 = { P11_GATE , circuit[i].is_dagger, std::vector<uint32_t>(2)};
-					P1_Node1.qubits[1] = circuit[i].qubits[1];
-					P1_Node1.qubits[0] = circuit[i].qubits[2];
+                    QGateNode P1_Node1 = { P11_GATE , circuit[i].is_dagger, std::vector<size_t>(2) };
+                    P1_Node1.qubits[1] = circuit[i].qubits[1];
+                    P1_Node1.qubits[0] = circuit[i].qubits[2];
 
-					QGateNode P1_Node2 = { PAULI_X_GATE ,circuit[i].is_dagger, std::vector<uint32_t>(1)};
-					P1_Node2.qubits[0] = circuit[i].qubits[0];
+                    QGateNode P1_Node2 = { PAULI_X_GATE ,circuit[i].is_dagger, std::vector<size_t>(1) };
+                    P1_Node2.qubits[0] = circuit[i].qubits[0];
 
-					P1_Cir[i] = P1_Node2;
-					P1_Cir.emplace(P1_Cir.begin() + i, P1_Node1);
+                    P1_Cir[i] = P1_Node2;
+                    P1_Cir.emplace(P1_Cir.begin() + i, P1_Node1);
 
-					traversal(P0_Cir);
-					traversal(P1_Cir);
+                    traversal(P0_Cir);
+                    traversal(P1_Cir);
 
-					split_circuit(P0_Cir);
-					split_circuit(P1_Cir);
-					break;
-				}
-				else if (is_corss_node(circuit[i].qubits[1], circuit[i].qubits[2]))
-				{
-					std::vector<QGateNode> P0_Cir = circuit;
-					std::vector<QGateNode> P1_Cir = circuit;
+                    split_circuit(P0_Cir);
+                    split_circuit(P1_Cir);
+                    break;
+                }
+                else if (is_corss_node(circuit[i].qubits[1], circuit[i].qubits[2]))
+                {
+                    std::vector<QGateNode> P0_Cir = circuit;
+                    std::vector<QGateNode> P1_Cir = circuit;
 
-					if (is_corss_node(circuit[i].qubits[1], circuit[i].qubits[0]))
-					{
-                        QGateNode P0_Node = { P0_GATE , circuit[i].is_dagger, std::vector<uint32_t>(1)};
-						P0_Node.qubits[0] = circuit[i].qubits[1];
-						P0_Cir[i] = P0_Node;
+                    if (is_corss_node(circuit[i].qubits[1], circuit[i].qubits[0]))
+                    {
+                        QGateNode P0_Node = { P0_GATE , circuit[i].is_dagger, std::vector<size_t>(1) };
+                        P0_Node.qubits[0] = circuit[i].qubits[1];
+                        P0_Cir[i] = P0_Node;
 
-						QGateNode P1_Node1 = { P1_GATE , circuit[i].is_dagger, std::vector<uint32_t>(1)};
-						P1_Node1.qubits[0] = circuit[i].qubits[1];
+                        QGateNode P1_Node1 = { P1_GATE , circuit[i].is_dagger, std::vector<size_t>(1) };
+                        P1_Node1.qubits[0] = circuit[i].qubits[1];
 
-						QGateNode P1_Node2 = { CNOT_GATE ,circuit[i].is_dagger, std::vector<uint32_t>(2)};
-						P1_Node2.qubits[0] = circuit[i].qubits[0];
-						P1_Node2.qubits[1] = circuit[i].qubits[2];
+                        QGateNode P1_Node2 = { CNOT_GATE ,circuit[i].is_dagger, std::vector<size_t>(2) };
+                        P1_Node2.qubits[0] = circuit[i].qubits[0];
+                        P1_Node2.qubits[1] = circuit[i].qubits[2];
 
-						P1_Cir[i] = P1_Node2;
-						P1_Cir.emplace(P1_Cir.begin() + i, P1_Node1);
-					}
-					else
-					{
-						QGateNode P0_Node = { P0_GATE , circuit[i].is_dagger, std::vector<uint32_t>(1)};
-						P0_Node.qubits[0] = circuit[i].qubits[2];
-						P0_Cir[i] = P0_Node;
+                        P1_Cir[i] = P1_Node2;
+                        P1_Cir.emplace(P1_Cir.begin() + i, P1_Node1);
+                    }
+                    else
+                    {
+                        QGateNode P0_Node = { P0_GATE , circuit[i].is_dagger, std::vector<size_t>(1) };
+                        P0_Node.qubits[0] = circuit[i].qubits[2];
+                        P0_Cir[i] = P0_Node;
 
-						QGateNode P1_Node1 = { P1_GATE , circuit[i].is_dagger, std::vector<uint32_t>(1)};
-						P1_Node1.qubits[0] = circuit[i].qubits[2];
+                        QGateNode P1_Node1 = { P1_GATE , circuit[i].is_dagger, std::vector<size_t>(1) };
+                        P1_Node1.qubits[0] = circuit[i].qubits[2];
 
-						QGateNode P1_Node2 = { CNOT_GATE ,circuit[i].is_dagger, std::vector<uint32_t>(2)};
-						P1_Node2.qubits[0] = circuit[i].qubits[0];
-						P1_Node2.qubits[1] = circuit[i].qubits[1];
+                        QGateNode P1_Node2 = { CNOT_GATE ,circuit[i].is_dagger, std::vector<size_t>(2) };
+                        P1_Node2.qubits[0] = circuit[i].qubits[0];
+                        P1_Node2.qubits[1] = circuit[i].qubits[1];
 
-						P1_Cir[i] = P1_Node2;
-						P1_Cir.emplace(P1_Cir.begin() + i, P1_Node1);
-					}
+                        P1_Cir[i] = P1_Node2;
+                        P1_Cir.emplace(P1_Cir.begin() + i, P1_Node1);
+                    }
 
-					traversal(P0_Cir);
-					traversal(P1_Cir);
+                    traversal(P0_Cir);
+                    traversal(P1_Cir);
 
-					split_circuit(P0_Cir);
-					split_circuit(P1_Cir);
-					break;
-				}
-				else
-				{}
-			}
-			else
-			{
-				if (is_corss_node(circuit[i].qubits[1], circuit[i].qubits[0]))
-				{
-					vector<QGateNode> P0_Cir = circuit;
-					vector<QGateNode> P1_Cir = circuit;
+                    split_circuit(P0_Cir);
+                    split_circuit(P1_Cir);
+                    break;
+                }
+                else
+                {
+                }
+            }
+            else
+            {
+                if (is_corss_node(circuit[i].qubits[1], circuit[i].qubits[0]))
+                {
+                    vector<QGateNode> P0_Cir = circuit;
+                    vector<QGateNode> P1_Cir = circuit;
 
-					QGateNode P0_Node = { P0_GATE , circuit[i].is_dagger, std::vector<uint32_t>(1)};
-					P0_Node.qubits[0] = circuit[i].qubits[1];
-					P0_Cir[i] = P0_Node;
+                    QGateNode P0_Node = { P0_GATE , circuit[i].is_dagger, std::vector<size_t>(1) };
+                    P0_Node.qubits[0] = circuit[i].qubits[1];
+                    P0_Cir[i] = P0_Node;
 
-                    QGateNode P1_Node1 = { P1_GATE , circuit[i].is_dagger, std::vector<uint32_t>(1)};
-					P1_Node1.qubits[0] = circuit[i].qubits[1];
+                    QGateNode P1_Node1 = { P1_GATE , circuit[i].is_dagger, std::vector<size_t>(1) };
+                    P1_Node1.qubits[0] = circuit[i].qubits[1];
 
-					QGateNode P1_Node2 = { iter->second ,circuit[i].is_dagger, std::vector<uint32_t>(1)};
+                    QGateNode P1_Node2 = { iter->second ,circuit[i].is_dagger, std::vector<size_t>(1) };
                     P1_Node2.params = circuit[i].params;
-					P1_Node2.qubits[0] = circuit[i].qubits[0];
+                    P1_Node2.qubits[0] = circuit[i].qubits[0];
 
-					P1_Cir[i] = P1_Node2;
-					P1_Cir.emplace(P1_Cir.begin() + i, P1_Node1);
+                    P1_Cir[i] = P1_Node2;
+                    P1_Cir.emplace(P1_Cir.begin() + i, P1_Node1);
 
-					traversal(P0_Cir);
-					traversal(P1_Cir);
+                    traversal(P0_Cir);
+                    traversal(P1_Cir);
 
-					split_circuit(P0_Cir);
-					split_circuit(P1_Cir);
-					break;
-				}
-			}
-		}
-	}
+                    split_circuit(P0_Cir);
+                    split_circuit(P1_Cir);
+                    break;
+                }
+            }
+        }
+    }
 }
 
 
 void PartialAmplitudeGraph::split_circuit(std::vector<QGateNode> &circuit)
 {
-	bool is_operater{ true };
-	for (auto val : circuit)
-	{
-		auto iter = m_key_map.find(val.gate_type);
-		if (iter != m_key_map.end())
-		{
-			if (GateType::TOFFOLI_GATE == val.gate_type)
-			{
-				if ((is_corss_node(val.qubits[1], val.qubits[0])) ||
-					(is_corss_node(val.qubits[1], val.qubits[2])) ||
-					(is_corss_node(val.qubits[0], val.qubits[2])))
-				{
-					is_operater = false;
-					break;
-				}
-			}
-			else
-			{
-				if (is_corss_node(val.qubits[0], val.qubits[1]))
-				{
-					is_operater = false;
-					break;
-				}
-			}
-		}
-	}
+    bool is_operater{ true };
+    for (auto val : circuit)
+    {
+        auto iter = m_key_map.find(val.gate_type);
+        if (iter != m_key_map.end())
+        {
+            if (GateType::TOFFOLI_GATE == val.gate_type)
+            {
+                if ((is_corss_node(val.qubits[1], val.qubits[0])) ||
+                    (is_corss_node(val.qubits[1], val.qubits[2])) ||
+                    (is_corss_node(val.qubits[0], val.qubits[2])))
+                {
+                    is_operater = false;
+                    break;
+                }
+            }
+            else
+            {
+                if (is_corss_node(val.qubits[0], val.qubits[1]))
+                {
+                    is_operater = false;
+                    break;
+                }
+            }
+        }
+    }
 
-	if (is_operater)
-	{
-		std::vector<QGateNode> upper_graph, under_graph;
-		for (auto val : circuit)
-		{
-			QGateNode node = { val.gate_type,val.is_dagger };
-			switch (val.gate_type)
-			{
-			case GateType::P0_GATE:
-			case GateType::P1_GATE:
-			case GateType::HADAMARD_GATE:
-			case GateType::T_GATE:
-			case GateType::S_GATE:
-			case GateType::PAULI_X_GATE:
-			case GateType::PAULI_Y_GATE:
-			case GateType::PAULI_Z_GATE:
-			case GateType::X_HALF_PI:
-			case GateType::Y_HALF_PI:
-			case GateType::Z_HALF_PI:
-			{
+    if (is_operater)
+    {
+        std::vector<QGateNode> upper_graph, under_graph;
+        for (auto val : circuit)
+        {
+            QGateNode node = { val.gate_type,val.is_dagger };
+            switch (val.gate_type)
+            {
+            case GateType::P0_GATE:
+            case GateType::P1_GATE:
+            case GateType::HADAMARD_GATE:
+            case GateType::T_GATE:
+            case GateType::S_GATE:
+            case GateType::PAULI_X_GATE:
+            case GateType::PAULI_Y_GATE:
+            case GateType::PAULI_Z_GATE:
+            case GateType::X_HALF_PI:
+            case GateType::Y_HALF_PI:
+            case GateType::Z_HALF_PI:
+            {
                 node.qubits.resize(1);
 
-				if (val.qubits[0] < (m_qubit_num / 2))
-				{
-					node.qubits[0] = val.qubits[0];
-					upper_graph.emplace_back(node);
-				}
-				else
-				{
-					node.qubits[0] = val.qubits[0] - (m_qubit_num / 2);
-					under_graph.emplace_back(node);
-				}
-			}
-			break;
+                if (val.qubits[0] < (m_qubit_num / 2))
+                {
+                    node.qubits[0] = val.qubits[0];
+                    upper_graph.emplace_back(node);
+                }
+                else
+                {
+                    node.qubits[0] = val.qubits[0] - (m_qubit_num / 2);
+                    under_graph.emplace_back(node);
+                }
+            }
+            break;
 
             case GateType::U1_GATE:
             case GateType::U2_GATE:
             case GateType::U3_GATE:
             case GateType::U4_GATE:
-			case GateType::RX_GATE:
-			case GateType::RY_GATE:
+            case GateType::RX_GATE:
+            case GateType::RY_GATE:
             case GateType::RZ_GATE:
-			{
+            {
                 node.qubits.resize(1);
                 node.params = val.params;
 
-				if (val.qubits[0] < (m_qubit_num / 2))
-				{
-					node.qubits[0] = val.qubits[0];
-					upper_graph.emplace_back(node);
-				}
-				else
-				{
-					node.qubits[0] = val.qubits[0] - (m_qubit_num / 2);
-					under_graph.emplace_back(node);
-				}
-			}
-			break;
+                if (val.qubits[0] < (m_qubit_num / 2))
+                {
+                    node.qubits[0] = val.qubits[0];
+                    upper_graph.emplace_back(node);
+                }
+                else
+                {
+                    node.qubits[0] = val.qubits[0] - (m_qubit_num / 2);
+                    under_graph.emplace_back(node);
+                }
+            }
+            break;
 
-			case GateType::CNOT_GATE:
-			case GateType::CZ_GATE:
-			case GateType::ISWAP_GATE:
-			case GateType::SWAP_GATE:
-			case GateType::SQISWAP_GATE:
-			case GateType::P00_GATE:
-			case GateType::P11_GATE:
-			{
+            case GateType::CNOT_GATE:
+            case GateType::CZ_GATE:
+            case GateType::ISWAP_GATE:
+            case GateType::SWAP_GATE:
+            case GateType::SQISWAP_GATE:
+            case GateType::P00_GATE:
+            case GateType::P11_GATE:
+            {
                 node.qubits.resize(2);
 
-				if ((val.qubits[0] <= (m_qubit_num / 2)) &&
-					(val.qubits[1] <= (m_qubit_num / 2)))
-				{
-					node.qubits[0] = val.qubits[0];
-					node.qubits[1] = val.qubits[1];
-					upper_graph.emplace_back(node);
-				}
-				else
-				{
-					node.qubits[0] = val.qubits[0] - (m_qubit_num / 2),
-						node.qubits[1] = val.qubits[1] - (m_qubit_num / 2);
-					under_graph.emplace_back(node);
-				}
-			}
-			break;
+                if ((val.qubits[0] < (m_qubit_num / 2)) &&
+                    (val.qubits[1] < (m_qubit_num / 2)))
+                {
+                    node.qubits[0] = val.qubits[0];
+                    node.qubits[1] = val.qubits[1];
+                    upper_graph.emplace_back(node);
+                }
+                else
+                {
+                    node.qubits[0] = val.qubits[0] - (m_qubit_num / 2),
+                    node.qubits[1] = val.qubits[1] - (m_qubit_num / 2);
+                    under_graph.emplace_back(node);
+                }
+            }
+            break;
 
-			case GateType::CPHASE_GATE:
-			{
+            case GateType::CPHASE_GATE:
+            {
                 node.qubits.resize(2);
                 node.params = val.params;
 
-				if ((val.qubits[0] <= (m_qubit_num / 2)) &&
-					(val.qubits[1] <= (m_qubit_num / 2)))
-				{
-					node.qubits[0] = val.qubits[0];
-					node.qubits[1] = val.qubits[1];
-					upper_graph.emplace_back(node);
-				}
-				else
-				{
-					node.qubits[0] = val.qubits[0] - (m_qubit_num / 2),
-					node.qubits[1] = val.qubits[1] - (m_qubit_num / 2);
-					under_graph.emplace_back(node);
-				}
-			}
-			break;
+                if ((val.qubits[0] < (m_qubit_num / 2)) &&
+                    (val.qubits[1] < (m_qubit_num / 2)))
+                {
+                    node.qubits[0] = val.qubits[0];
+                    node.qubits[1] = val.qubits[1];
+                    upper_graph.emplace_back(node);
+                }
+                else
+                {
+                    node.qubits[0] = val.qubits[0] - (m_qubit_num / 2),
+                        node.qubits[1] = val.qubits[1] - (m_qubit_num / 2);
+                    under_graph.emplace_back(node);
+                }
+            }
+            break;
 
-			case GateType::TOFFOLI_GATE:
-			{
+            case GateType::TOFFOLI_GATE:
+            {
                 node.qubits.resize(3);
 
-				if ((val.qubits[0] <= (m_qubit_num / 2)) &&
-					(val.qubits[1] <= (m_qubit_num / 2)) &&
-					(val.qubits[2] <= (m_qubit_num / 2)))
-				{
-					node.qubits[0] = val.qubits[0];
-					node.qubits[1] = val.qubits[1];
-					node.qubits[2] = val.qubits[2];
-					upper_graph.emplace_back(node);
-				}
-				else if ((val.qubits[0] > (m_qubit_num / 2)) &&
-					(val.qubits[1] > (m_qubit_num / 2)) &&
-					(val.qubits[2] > (m_qubit_num / 2)))
-				{
-					node.qubits[0] = val.qubits[0] - (m_qubit_num / 2),
-					node.qubits[1] = val.qubits[1] - (m_qubit_num / 2);
-					node.qubits[2] = val.qubits[2] - (m_qubit_num / 2);
-					under_graph.emplace_back(node);
-				}
-				else
-				{
-					QCERR("Toffoli spilt error");
-					throw run_fail("Toffoli spilt error");
-				}
-			}
-			break;
+                if ((val.qubits[0] < (m_qubit_num / 2)) &&
+                    (val.qubits[1] < (m_qubit_num / 2)) &&
+                    (val.qubits[2] < (m_qubit_num / 2)))
+                {
+                    node.qubits[0] = val.qubits[0];
+                    node.qubits[1] = val.qubits[1];
+                    node.qubits[2] = val.qubits[2];
+                    upper_graph.emplace_back(node);
+                }
+                else
+                {
+                    node.qubits[0] = val.qubits[0] - (m_qubit_num / 2),
+                    node.qubits[1] = val.qubits[1] - (m_qubit_num / 2);
+                    node.qubits[2] = val.qubits[2] - (m_qubit_num / 2);
+                    under_graph.emplace_back(node);
+                }
+ 
+            }
+            break;
 
-			default:
-			{
-				QCERR("UnSupported QGate Node");
-				throw undefine_error("QGate");
-			}
-			break;
-			}
-		}
+            default:
+            {
+                QCERR("UnSupported QGate Node");
+                throw undefine_error("QGate");
+            }
+            break;
+            }
+        }
 
-		std::vector<cir_type> circuit_vec = { upper_graph ,under_graph };
-		m_sub_graph.emplace_back(circuit_vec);
+        std::vector<cir_type> circuit_vec = { upper_graph ,under_graph };
+        m_sub_graph.emplace_back(circuit_vec);
     }
 }
 
 bool PartialAmplitudeGraph::is_corss_node(size_t ctr, size_t tar)
 {
-	if (ctr == tar)
-	{
-		QCERR("Control qubit is equal to target qubit");
-		throw run_fail("Control qubit is equal to target qubit");
-	}
+    if (ctr == tar)
+    {
+        QCERR("Control qubit is equal to target qubit");
+        throw run_fail("Control qubit is equal to target qubit");
+    }
 
-	return ((ctr >= m_qubit_num / 2) && (tar < m_qubit_num / 2)) ||
-		   ((tar >= m_qubit_num / 2) && (ctr < m_qubit_num / 2));
+    return ((ctr >= m_qubit_num / 2) && (tar < m_qubit_num / 2)) ||
+        ((tar >= m_qubit_num / 2) && (ctr < m_qubit_num / 2));
 }

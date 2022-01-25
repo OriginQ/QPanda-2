@@ -2,7 +2,7 @@
 #include "Core/Utilities/QPandaNamespace.h"
 #include "Core/QuantumCircuit/QProgram.h"
 #include "Core/Utilities/QProgTransform/QProgToDAG/GraphMatch.h"
-#include "Core/Utilities/QProgInfo/Visualization/Draw.h"
+#include "Core/Utilities/QProgInfo/Visualization/AbstractDraw.h"
 #include "Core/Utilities/QProgInfo/Visualization/DrawTextPic.h"
 #include "Core/Utilities/QProgInfo/Visualization/DrawLatex.h"
 
@@ -38,7 +38,7 @@ namespace DRAW_TEXT_PIC
 		* @see LAYER_TYPE
 		* @see PIC_TYPE
 		*/
-		std::string textDraw(LAYER_TYPE t, PIC_TYPE p = PIC_TYPE::TEXT, uint32_t length = 100, const std::string config_data = CONFIG_PATH);
+		std::string textDraw(LAYER_TYPE t, PIC_TYPE p = PIC_TYPE::TEXT, bool with_logo = false , uint32_t length = 100, const std::string config_data = CONFIG_PATH);
 
 	private:
 		QProg m_prog;

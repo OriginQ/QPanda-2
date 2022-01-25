@@ -96,6 +96,17 @@ public:
     /*reset error*/
     void set_reset_error(double reset_0_param, double reset_1_param);
 
+    void add_single_noise_model(NOISE_MODEL model, GateType gate_type, double param)
+    {
+        m_noise_simulator.add_single_noise_model(model, gate_type, param);
+        return;
+    }
+    void add_single_noise_model(NOISE_MODEL model, GateType gate_type, double T1, double T2, double time_param)
+    {
+        m_noise_simulator.add_single_noise_model(model, gate_type, T1, T2, time_param);
+        return;
+    }
+
 protected:
     void handle_one_target(std::shared_ptr<AbstractQGateNode> gate, const QCircuitConfig &config);
     void handle_two_targets(std::shared_ptr<AbstractQGateNode> gate, const QCircuitConfig &config);

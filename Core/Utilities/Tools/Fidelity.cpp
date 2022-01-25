@@ -140,3 +140,52 @@ double QPanda::state_fidelity(const std::vector<QStat> &matrix, const QStat &sta
 {
     return state_fidelity(state, matrix, validate);
 }
+
+double QPanda::process_fidelity(const QStat& state1, const QStat& state2, bool validate /* = true */)
+{
+    if (validate)
+    {
+        QPANDA_ASSERT(state1.size() != state2.size(),
+            "Error: state fidelity");
+    }
+
+    qvector_t state_qvec1 = qvector_t::Map(&state1[0], state1.size());
+    qvector_t state_qvec2 = qvector_t::Map(&state2[0], state2.size());
+    auto state_qvec2_conj = state_qvec2.conjugate();
+
+    return std::norm(state_qvec2_conj.dot(state_qvec1));
+}
+
+double QPanda::average_gate_fidelity(const qmatrix_t& matrix, const QStat& state, bool validate)
+{
+    size_t dim1 = matrix.size();
+    size_t dim2 = state.size();
+    QPANDA_ASSERT(dim1 != dim2, "Error: matrix dim");
+    qmatrix_t mat_cir = QStat_to_Eigen(state);
+    auto sqrt_matrix = [](const qmatrix_t& m)->qmatrix_t
+    {
+        JacobiSVD<qmatrix_t> svd(m, ComputeThinU | ComputeThinV);
+        qmatrix_t u = svd.matrixU();
+        qmatrix_t v = svd.matrixV().transpose().conjugate();
+        qvector_t s = svd.singularValues();
+
+        s = s.array().sqrt();
+        qmatrix_t diag_sqrt = s.asDiagonal();
+        return u * diag_sqrt * v;
+    };
+    size_t dim = matrix.rows();
+    /*For comparing two non - unitary matrixs we compute the state fidelity of
+    the normalized Choi - matrices.*/
+    auto s1sq = sqrt_matrix(matrix / dim);
+    auto s2sq = sqrt_matrix(mat_cir / dim);
+
+    double fid = process_fidelity(Eigen_to_QStat(s1sq), Eigen_to_QStat(s2sq));
+    double average_gate_fidelity_num = (dim * fid + 1) / (dim + 1);
+    return average_gate_fidelity_num;
+}
+
+double QPanda::average_gate_fidelity(const qmatrix_t& matrix, const qmatrix_t& state, bool validate)
+{
+    auto state_new = Eigen_to_QStat(state);
+    return average_gate_fidelity(matrix, state_new);
+}

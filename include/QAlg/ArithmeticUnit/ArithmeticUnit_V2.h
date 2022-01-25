@@ -14,6 +14,13 @@ enum class ADDER
     DRAPER_QCLA
 };
 /**
+ * @brief get required aux bit size
+ * 
+ * @param[in] t calculation destation qubits width 
+ */
+size_t auxBitSize(size_t t, ADDER adder);
+
+/**
  * @brief Quantum adder that supports signed operations, but ignore carry
  * 
  * @param[inout] a  adder qubits
@@ -59,6 +66,20 @@ QCircuit QSub_V2(QVec &a, QVec &b, QVec &aux, ADDER adder = ADDER::CDKM_RIPPLE);
  * [2] F. Orts et al., An optimized quantum circuit for converting from sign–magnitude to two’s complement
  */
 QCircuit QComplement_V2(QVec &a, QVec &aux);
+
+/**
+ * @brief Convert quantum state to binary complement representation
+ * @ingroup ArithmeticUnit
+ * @param[in] a qubits represented in binary number, highest bit is sign
+ * @param[in] aux  auxiliary qubit, should be |0>
+ * @return QCircuit
+ * @note The initial value of aux are all |0>.
+ *       We used propesed circuit based on Draper QFT adder
+ *       The result of complement is saved in a
+ *       input negative zero like |100..00> is illegal
+ *       if origin a is negative zero, output will be |000...00>, but aux will be tagged |1>. Else aux not changed.
+ */
+QCircuit QComplement_V2(QVec &a, Qubit* aux);
 #if 0
 /**
 * @brief Quantum subtraction

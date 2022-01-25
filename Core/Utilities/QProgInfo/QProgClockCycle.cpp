@@ -32,11 +32,11 @@ size_t QProgClockCycle::count(QProg &prog, bool optimize /* = false */)
         cir_optimizer_by_config(prog, CONFIG_PATH, QCircuitOPtimizerMode::Merge_U3);
     }
 
-	/*QProgTopologSeq<GateNodeInfo, SequenceNode> m_prog_topo_seq;
-	m_prog_topo_seq.prog_to_topolog_seq(prog, SequenceNode::construct_sequence_node);
-	TopologSequence<SequenceNode>& graph_seq = m_prog_topo_seq.get_seq();*/
-	std::shared_ptr<QProgDAG> dag = qprog_to_DAG(prog);
-	TopologSequence<DAGSeqNode> graph_seq = dag->build_topo_sequence();
+    /*QProgTopologSeq<GateNodeInfo, SequenceNode> m_prog_topo_seq;
+    m_prog_topo_seq.prog_to_topolog_seq(prog, SequenceNode::construct_sequence_node);
+    TopologSequence<SequenceNode>& graph_seq = m_prog_topo_seq.get_seq();*/
+    std::shared_ptr<QProgDAG> dag = qprog_to_DAG(prog);
+    TopologSequence<DAGSeqNode> graph_seq = dag->build_topo_sequence();
     size_t clock_cycle = 0;
 
     for (auto &layer : graph_seq)
@@ -75,7 +75,7 @@ size_t QProgClockCycle::getDefalutQGateTime(GateType gate_type)
     case HADAMARD_GATE:
     case T_GATE:
     case S_GATE:
-	case I_GATE:
+    case I_GATE:
     case RX_GATE:
     case RY_GATE:
     case RZ_GATE:
@@ -83,6 +83,7 @@ size_t QProgClockCycle::getDefalutQGateTime(GateType gate_type)
     case U2_GATE:
     case U3_GATE:
     case U4_GATE:
+    case BARRIER_GATE:
         return kSingleGateDefaultTime;
     case CU_GATE:
     case CNOT_GATE:
@@ -90,12 +91,16 @@ size_t QProgClockCycle::getDefalutQGateTime(GateType gate_type)
     case CPHASE_GATE:
     case ISWAP_THETA_GATE:
     case ISWAP_GATE:
+    case SWAP_GATE:
     case SQISWAP_GATE:
     case TWO_QUBIT_GATE:
         return kDoubleGateDefaultTime;
+    case DAGNodeType::RESET:
+    case DAGNodeType::MEASURE:
+        return 0;
     default:
-        QCERR("Bad nodeType");
-        throw std::runtime_error("Bad nodeType");
+        std::string error_msg = "Bad nodeType -> " + to_string(gate_type);
+        QCERR_AND_THROW(run_fail, error_msg);
     }
 
     return 0;

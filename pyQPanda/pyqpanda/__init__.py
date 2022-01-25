@@ -73,6 +73,10 @@ from .pyQPanda import VariationalQuantumGate_RX
 from .pyQPanda import VariationalQuantumGate_RY
 from .pyQPanda import VariationalQuantumGate_RZ
 from .pyQPanda import VariationalQuantumGate_X
+from .pyQPanda import QOperator
+from .pyQPanda import expMat
+from .pyQPanda import average_gate_fidelity
+
 from .pyQPanda import Fusion
 
 from .Operator.pyQPandaOperator import *

@@ -10,10 +10,49 @@
 > -   **Removed**: 删除的功能.
 > -   **Fixed**: Bug修复.
 
-[UNRELEASED](https://github.com/OriginQ/QPanda-2/compare/v2.1.10...HEAD)
+[UNRELEASED](https://github.com/OriginQ/QPanda-2/compare/v2.1.11...HEAD)
 ========================================================================
 
-[v2.1.8](https://github.com/OriginQ/QPanda-2/compare/v2.1.9...v2.1.10) - 2021-11-29
+
+[v2.1.11](https://github.com/OriginQ/QPanda-2/compare/v2.1.10...v2.1.11) - 2021-11-29
+=====================================================================================
+
+
+QPanda
+-----------
+
+Added
+*********
+
+- 添加GPU虚拟机
+- 添加泡利矩阵分解
+- 添加单个哈密顿量模拟
+
+Changed
+*********
+
+- 修复线路优化bug
+- 修改QPanda中QST命名冲突问题
+
+pyqpanda
+-------------
+
+Added
+*********
+
+- 添加GPU虚拟机
+- 添加泡利矩阵分解
+- 添加单个哈密顿量模拟
+
+Changed
+*********
+
+- 修复线路优化bug
+- 修改QPanda中QST命名冲突问题
+
+
+
+[v2.1.10](https://github.com/OriginQ/QPanda-2/compare/v2.1.9...v2.1.10) - 2021-11-29
 =====================================================================================
 
 QPanda
@@ -47,7 +86,7 @@ Changed
 - 修改qst接口使用方法
 
 
-[v2.1.8](https://github.com/OriginQ/QPanda-2/compare/v2.1.8...v2.1.9) - 2021-10-12
+[v2.1.9](https://github.com/OriginQ/QPanda-2/compare/v2.1.8...v2.1.9) - 2021-10-12
 ==================================================================================
 
 QPanda

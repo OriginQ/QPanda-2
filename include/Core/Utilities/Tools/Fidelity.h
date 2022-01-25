@@ -25,6 +25,9 @@ double state_fidelity(const QStat &state1, const QStat &state2, bool validate = 
 double state_fidelity(const std::vector<QStat> &matrix1, const std::vector<QStat> &matrix2, bool validate = true);
 double state_fidelity(const QStat &state, const std::vector<QStat> &matrix, bool validate = true);
 double state_fidelity(const std::vector<QStat> &matrix, const QStat &state, bool validate = true);
+double process_fidelity(const QStat& state1, const QStat& state2, bool validate = true);
+double average_gate_fidelity(const qmatrix_t& matrix, const QStat& state, bool validate = true);
+double average_gate_fidelity(const qmatrix_t& matrix, const qmatrix_t& state, bool validate = true);
 
 QPANDA_END
 

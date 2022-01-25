@@ -138,8 +138,10 @@ U3 q[2],(0,3.1415927,0))";*/
 
 
 const std::string UserDefinedeGateIR = R"(QINIT 7
+# here is an annotation line
 CREG 7
 QGATE N0 a,b
+# here is an annotation line
 H a
 T b
 ENDQGATE
@@ -169,18 +171,122 @@ TOFFOLI d,a,b
 CR d,b,(1.570796)
 CZ d,b
 ENDQGATE
+# here is an annotation line
 N0 q[0],q[1]
 N1 q[0],q[1]
 N2 q[0],q[1]
 N3 q[0],q[1]
 N4 q[0],q[1]
+# here is an annotation line
 N5 q[2],q[0],q[3]
 N6 q[1],q[0],q[2]
 MEASURE q[0],c[0]
+# here is an annotation line
 MEASURE q[1],c[1]
 MEASURE q[2],c[2]
 MEASURE q[3],c[3]
 )";
+
+
+const std::string UserDefinedeGateIR0 = R"(QINIT 10
+CREG 10
+QGATE abcder a,b
+H a
+H b
+ENDQGATE
+QGATE N5eeee a,b
+abcder a,b
+H a
+ENDQGATE
+QGATE cddasf a,b,d,e,f,g,h,i,j,k
+H a
+H b
+H d
+H e
+H f
+H g
+H h
+H i
+H j
+H k
+ENDQGATE
+H q[0]
+SQISWAP q[2],q[1]
+SWAP q[3],q[4]
+H q[6]
+CR q[9],q[8],(1.570796)
+S q[0]
+H q[2]
+BARRIER q[3]
+H q[9]
+N5eeee q[0],q[1]
+N5eeee q[3],q[4]
+CR q[9],q[6],(0.392699)
+H q[0]
+BARRIER q[3]
+CR q[5],q[4],(1.570796)
+CR q[1],q[0],(1.570796)
+H q[3]
+CR q[6],q[4],(0.785398)
+BARRIER q[7]
+CR q[2],q[3],(1.570796)
+H q[4]
+S q[5]
+Y q[2]
+DAGGER
+H q[5]
+ENDDAGGER
+CNOT q[4],q[5]
+CR q[2],q[0],(0.785398)
+H q[4]
+CNOT q[5],q[6]
+H q[1]
+CNOT q[4],q[5]
+abcder q[1],q[2]
+CNOT q[5],q[6]
+H q[5]
+CNOT q[5],q[6]
+CNOT q[6],q[7]
+MEASURE q[0],c[0]
+MEASURE q[1],c[1]
+MEASURE q[2],c[2]
+MEASURE q[3],c[3]
+MEASURE q[4],c[4]
+MEASURE q[5],c[5]
+MEASURE q[6],c[6]
+MEASURE q[7],c[7]
+MEASURE q[8],c[8]
+MEASURE q[9],c[9]
+)";
+
+
+const std::string QPE_IR = R"(QINIT 3
+# here is an annotation line
+CREG 2
+# here is an annotation line
+H q[2]
+H q[0]
+H q[1]
+CONTROL q[1]
+RX q[2],(-3.141593)
+ENDCONTROL
+CONTROL q[0]
+# here is an annotation line
+RX q[2],(-3.141593)
+RX q[2],(-3.141593)
+ENDCONTROL
+# here is an annotation line
+DAGGER
+H q[1]
+CR q[0],q[1],(1.570796)
+H q[0]
+ENDDAGGER
+MEASURE q[0],c[0]
+# here is an annotation line
+MEASURE q[1],c[1]
+)";
+
+
 
 TEST(QProgToQASM, test_UserDefinedeGate)
 {

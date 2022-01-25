@@ -102,7 +102,7 @@ private:
 	QProg m_prog;
 
 public:
-	TopologyMatch(QuantumMachine * machine, QProg prog,  const std::string conf = CONFIG_PATH);
+	TopologyMatch(QuantumMachine * machine, QProg prog,  const std::string& conf);
 
 	~TopologyMatch();
 	
@@ -118,7 +118,7 @@ private:
 
 	void traversalQProgToLayers();
 
-	void buildGraph(std::set<edge> &graph, size_t &positions);
+	void buildGraph(std::set<edge> &graph, size_t &positions, const std::string& conf);
 
 	int breadthFirstSearch(int start, int goal, 
 		const std::set<edge>& graph, size_t swap_cost, size_t flip_cost);

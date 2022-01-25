@@ -365,7 +365,7 @@ int TimeSequenceConfig::get_reset_time_sequence()
 /*******************************************************************
 *                 class QCircuitOptimizerConfig
 ********************************************************************/
-QCircuitOptimizerConfig::QCircuitOptimizerConfig(const std::string config_data /*= CONFIG_PATH*/)
+QCircuitOptimizerConfig::QCircuitOptimizerConfig(const std::string& config_data /*= CONFIG_PATH*/)
 { 
 	m_config_file.load_config(config_data);
 	m_qvm.init();
@@ -757,6 +757,10 @@ void QCircuitConfigReader::read_cir()
 		{
 			m_cir_generator.append_cir_node(gate_name, { gate_para[0].GetUint(), gate_para[1].GetUint() }, { gate_para[2].GetString() });
 		}
+        else if (0 == strcmp(gate_name.c_str(), "CCX"))
+        {
+            m_cir_generator.append_cir_node(gate_name, { gate_para[0].GetUint(), gate_para[1].GetUint(), gate_para[2].GetUint() });
+        }
 		else
 		{
 			QCERR_AND_THROW_ERRSTR(run_fail, "Error: unknow error on read_cir form config file.");

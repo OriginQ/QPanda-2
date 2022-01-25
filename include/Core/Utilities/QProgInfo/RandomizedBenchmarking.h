@@ -5,6 +5,7 @@
 
 #include "Core/QuantumCircuit/QGate.h"
 #include "Core/QuantumCircuit/QCircuit.h"
+#include "Core/QuantumMachine/QCloudMachine.h"
 #include "Core/QuantumMachine/OriginQuantumMachine.h"
 #include "Core/Utilities/QProgInfo/CrossEntropyBenchmarking.h"
 

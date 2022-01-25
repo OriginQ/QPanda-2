@@ -13,6 +13,7 @@
 #include "Core/QuantumMachine/QVec.h"
 #include "Core/QuantumCircuit/QGlobalVariable.h"
 #include "Core/Utilities/Tools/TranformQGateTypeStringAndEnum.h"
+
 QPANDA_BEGIN
 
 using QGATE_SPACE::QuantumGate;

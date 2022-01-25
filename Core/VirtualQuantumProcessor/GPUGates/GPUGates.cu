@@ -27,11 +27,10 @@ Description: Definition of Cuda function of gates
 #include <cuda_device_runtime_api.h>
 #include <device_launch_parameters.h>
 #include <cuda_runtime.h>
-#include <device_functions.h>
 #include <vector>
 #include <algorithm>
 #include <time.h>
-#include "GPUGates.h"
+#include "Core/VirtualQuantumProcessor/GPUGates/GPUGates.cuh"
 using namespace std;
 
 namespace gpu {

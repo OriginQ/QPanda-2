@@ -116,7 +116,7 @@ class QCircuitOptimizerConfig
 #define ANGLE_VAR_BASE 1024
 
 public:
-	QCircuitOptimizerConfig(const std::string config_data = CONFIG_PATH);
+	QCircuitOptimizerConfig(const std::string& config_data = CONFIG_PATH);
 	~QCircuitOptimizerConfig();
 
 	bool get_replace_cir(std::vector<std::pair<QCircuit, QCircuit>>& replace_cir_vec,std::string key_name = QCIRCUIT_OPTIMIZER);

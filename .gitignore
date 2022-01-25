@@ -20,3 +20,4 @@ CMakeSettings.json
 /mingw-build
 /CMakeLists.txt.user
 out/*
+*.py[cod]

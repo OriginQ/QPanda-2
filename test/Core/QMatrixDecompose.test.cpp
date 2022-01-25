@@ -78,6 +78,35 @@ bool test_matrix_decompose_2()
 	return false;
 }
 
+bool test_matrix_decompose2pualis()
+{
+	QuantumMachine* machine = initQuantumMachine(CPU);
+	Matrix4d mat;
+	mat << 15, 9, 5, -3,
+		9, 15, 3, 2,
+		5, 3, 4, 96,
+		-3, 96, -9, 6;
+	mat *= (1 / 4.0);
+	cout << "The matrix is:" << endl;
+	cout << mat << endl;
+	EigenMatrixX eigMat = mat;
+	PualiOperatorLinearCombination res;
+	matrix_decompose_pualis(machine, eigMat, res);
+	cout << endl << "**************************************************" << endl;
+	cout << "The linear combination of unitaries(coefficient) is:" << endl;
+	for (auto& val : res)
+	{
+		cout << val.first << ", ";
+	}
+	cout << endl << "**************************************************" << endl;
+	std::cout << "The linear combination of unitaries(circuit) is:" << endl;
+	for (auto& val : res)
+	{
+		cout << val.second << endl;
+	}
+	return true;
+}
+
 TEST(QMatrixDecompose, test1)
 {
 	bool test_val = false;
@@ -85,6 +114,7 @@ TEST(QMatrixDecompose, test1)
 	{
 		test_val = test_matrix_decompose_1();
 		test_val = (test_val && test_matrix_decompose_2());
+		test_val = (test_val && test_matrix_decompose2pualis());
 	}
 	catch (const std::exception& e)
 	{

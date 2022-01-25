@@ -106,7 +106,7 @@ void init_variational(py::module& m)
         .def("feed", feed_vqg_i_no_ptr)
         .def("dagger", &Var::VariationalQuantumGate_I::dagger, py::return_value_policy::automatic)
         .def("control", &Var::VariationalQuantumGate_I::control, py::return_value_policy::automatic);
-
+    
     GET_FEED_PTR_NO_OFFSET(feed_vqg_h_no_ptr, Var::VariationalQuantumGate_H);
 
     py::class_<Var::VariationalQuantumGate_H, Var::VariationalQuantumGate>

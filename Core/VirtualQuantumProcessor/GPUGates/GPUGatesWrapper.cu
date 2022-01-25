@@ -9,791 +9,310 @@ Description: Definition of Encapsulation of GPU gates
 #include <cuda_device_runtime_api.h>
 #include <device_launch_parameters.h>
 #include <cuda_runtime.h>
-#include <device_functions.h>
-#include "GPUGatesWrapper.h"
-#include "GPUGates.h"
+#include "Core/VirtualQuantumProcessor/GPUGates/GPUGatesWrapper.cuh"
+#include "Core/VirtualQuantumProcessor/GPUGates/GPUGates.cuh"
+#include <thrust/transform_reduce.h>
+#include "Core/Utilities/Tools/Utils.h"
 
 
 using namespace std;
-#define SET_BLOCKDIM  BLOCKDIM = (1ull << (psigpu.qnum - 1)) / kThreadDim;
 
-static bool pMeasure_few_target(GATEGPU::QState&, vector<double>&result, Qnum&);
-static bool pMeasure_many_target(GATEGPU::QState&, vector<double>&result, Qnum&);
-
-static gpu_qsize_t getControllerMask(Qnum& qnum, int target = 1)
+DeviceQPU::DeviceQPU()
 {
-    gpu_qsize_t qnum_mask = 0;
 
-    // obtain the mask for controller qubit
-    for (auto iter = qnum.begin(); iter != qnum.end() - target; ++iter)
-    {
-        qnum_mask += (1ull << *iter);
-    }
-    return qnum_mask;
 }
 
-int GATEGPU::devicecount()
+int DeviceQPU::device_count()
 {
     int count;
     cudaGetDeviceCount(&count);
     return count;
 }
 
-static bool getSynchronizeResult( cudaError_t cudaStatue, const char * pcGate)
+bool DeviceQPU::init()
 {
-    if (cudaSuccess != cudaStatue)
-    {
-        cout << "err " << pcGate << " = " << cudaGetErrorString(cudaStatue) << endl;
-        return false;
-    }
+    m_device_matrix.resize(m_max_matrix_size, 0);
+    m_device_qubits.resize(m_max_qubit_num, 0);
+
+    m_type_gate_fun.insert({GateType::I_GATE, std::shared_ptr<BaseGateFun>(new SingleGateFun())});
+    m_type_gate_fun.insert({GateType::BARRIER_GATE, std::shared_ptr<BaseGateFun>(new SingleGateFun())});
+    m_type_gate_fun.insert({GateType::ECHO_GATE, std::shared_ptr<BaseGateFun>(new SingleGateFun())});
+
+    m_type_gate_fun.insert({GateType::PAULI_X_GATE, std::shared_ptr<BaseGateFun>(new XFun())});
+    m_type_gate_fun.insert({GateType::PAULI_Y_GATE, std::shared_ptr<BaseGateFun>(new YFun())});
+    m_type_gate_fun.insert({GateType::PAULI_Z_GATE, std::shared_ptr<BaseGateFun>(new ZFun())});
+
+    m_type_gate_fun.insert({GateType::X_HALF_PI, std::shared_ptr<BaseGateFun>(new SingleGateFun())});
+    m_type_gate_fun.insert({GateType::Y_HALF_PI, std::shared_ptr<BaseGateFun>(new SingleGateFun())});
+    m_type_gate_fun.insert({GateType::Z_HALF_PI, std::shared_ptr<BaseGateFun>(new RZFun())});
+
+    m_type_gate_fun.insert({GateType::RX_GATE, std::shared_ptr<BaseGateFun>(new SingleGateFun())});
+    m_type_gate_fun.insert({GateType::RY_GATE, std::shared_ptr<BaseGateFun>(new SingleGateFun())});
+    m_type_gate_fun.insert({GateType::RZ_GATE, std::shared_ptr<BaseGateFun>(new RZFun())});
+
+    m_type_gate_fun.insert({GateType::S_GATE, std::shared_ptr<BaseGateFun>(new SFun())});
+    m_type_gate_fun.insert({GateType::T_GATE, std::shared_ptr<BaseGateFun>(new U1Fun())});
+    m_type_gate_fun.insert({GateType::P_GATE, std::shared_ptr<BaseGateFun>(new PFun())});
+
+    m_type_gate_fun.insert({GateType::HADAMARD_GATE, std::shared_ptr<BaseGateFun>(new HFun())});
+    m_type_gate_fun.insert({GateType::RPHI_GATE, std::shared_ptr<BaseGateFun>(new SingleGateFun())});
+
+    m_type_gate_fun.insert({GateType::U1_GATE, std::shared_ptr<BaseGateFun>(new U1Fun())});
+    m_type_gate_fun.insert({GateType::U2_GATE, std::shared_ptr<BaseGateFun>(new SingleGateFun())});
+    m_type_gate_fun.insert({GateType::U3_GATE, std::shared_ptr<BaseGateFun>(new SingleGateFun())});
+    m_type_gate_fun.insert({GateType::U4_GATE, std::shared_ptr<BaseGateFun>(new SingleGateFun())});
+
+    m_type_gate_fun.insert({GateType::CNOT_GATE, std::shared_ptr<BaseGateFun>(new CNOTFun())});
+    m_type_gate_fun.insert({GateType::CZ_GATE, std::shared_ptr<BaseGateFun>(new CZFun())});
+    m_type_gate_fun.insert({GateType::CPHASE_GATE, std::shared_ptr<BaseGateFun>(new CRFun())});
+    m_type_gate_fun.insert({GateType::CP_GATE, std::shared_ptr<BaseGateFun>(new CPFun())});
+
+    m_type_gate_fun.insert({GateType::SWAP_GATE, std::shared_ptr<BaseGateFun>(new SWAPFun())});
+    m_type_gate_fun.insert({GateType::ISWAP_GATE, std::shared_ptr<BaseGateFun>(new ISWAPFun())});
+    m_type_gate_fun.insert({GateType::ISWAP_THETA_GATE, std::shared_ptr<BaseGateFun>(new ISWAPThetaFun())});
+    m_type_gate_fun.insert({GateType::SQISWAP_GATE, std::shared_ptr<BaseGateFun>(new ISWAPThetaFun())});
+
+    m_type_gate_fun.insert({GateType::CU_GATE, std::shared_ptr<BaseGateFun>(new CUFun())});
+    m_type_gate_fun.insert({GateType::TWO_QUBIT_GATE, std::shared_ptr<BaseGateFun>(new DoubleGateFun())});
+    m_measure_fun = std::shared_ptr<MeasureFun>(new MeasureFun());
+    m_norm_fun = std::shared_ptr<NormlizeFun>(new NormlizeFun());
     return true;
 }
 
-#define GET_SYN_RES(x)      cudaError_t cudaStatue = cudaDeviceSynchronize();\
-                            return getSynchronizeResult(cudaStatue,(x));
-
-bool GATEGPU::destroyState(QState& psi, QState& psigpu, size_t stQnum)
+bool DeviceQPU::init_state(size_t qnum, const QStat &state)
 {
-    if ((nullptr == psi.real) ||
-        (nullptr == psi.imag) ||
-        (nullptr == psigpu.real) ||
-        (nullptr == psigpu.imag))
-    {
-        return false;
-    }
+    auto ret = cudaGetDeviceCount(&m_device_num);
+    QPANDA_ASSERT(cudaSuccess != ret, "Error: get device num.");
+    m_device_id = 0;
+    set_device();
+    ret = cudaStreamCreateWithFlags(&m_cuda_stream, cudaStreamNonBlocking);
+    QPANDA_ASSERT(cudaSuccess != ret, "Error: cudaStreamCreateWithFlags.");
 
-    if (stQnum < 30)
+    m_qubit_num = qnum;
+
+    if (0 == state.size())
     {
-        cudaError_t cuda_status = cudaFree(psigpu.real);
-        if (cudaSuccess != cuda_status)
-        {
-            cout << "psigpu.real free error" << endl;
-            return false;
-        }
-        cuda_status = cudaFree(psigpu.imag);
-        if (cudaSuccess != cuda_status)
-        {
-            cout << "psigpu.imag free error" << endl;
-            return false;
-        }
-        free(psi.real);
-        free(psi.imag);
-        psi.real = nullptr;
-        psi.imag = nullptr;
-        psigpu.real = nullptr;
-        psigpu.imag = nullptr;
+        m_device_state.resize(1ll << m_qubit_num);
+        thrust::fill(m_device_state.begin(), m_device_state.end(), 0);
+        m_device_state[0] = 1;
     }
     else
     {
-        cudaFreeHost(psigpu.real);
-        cudaFreeHost(psigpu.imag);
-        psigpu.real = nullptr;
-        psigpu.imag = nullptr;
+        m_device_state = state;
     }
 
-    return true;
-}
-
-bool GATEGPU::clearState(QState& psi, QState& psigpu, size_t stQnum)
-{
-    if ((nullptr == psi.real) ||
-        (nullptr == psi.imag) ||
-        (nullptr == psigpu.real) ||
-        (nullptr == psigpu.imag))
-    {
-        return false;
-    }
-
-    if (stQnum < 30)
-    {
-        gpu_qsize_t BLOCKDIM;
-        BLOCKDIM = (1ull << psigpu.qnum) / kThreadDim;
-        gpu::initState<<< (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)kThreadDim >>>(psigpu.real, psigpu.imag, 1ull << (psigpu.qnum));
-    }
-    else
-    {
-        gpu_qsize_t BLOCKDIM;
-        BLOCKDIM = (1ull << psigpu.qnum) / kThreadDim;
-        gpu::initState <<< (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)kThreadDim >>> (psigpu.real, psigpu.imag, 1ull << (psigpu.qnum));
-    }
-
-    return true;
-}
-
-bool GATEGPU::initstate(QState& psi, QState& psigpu, size_t qnum)
-{
-    if (qnum >= 30)
-    {
-        if (nullptr == psi.real)
-        {
-            cudaError_t cuda_status = cudaHostAlloc(&psi.real, sizeof(gpu_qstate_t)*(1ll << qnum), cudaHostAllocMapped);
-            if (cuda_status != cudaSuccess)
-            {
-                printf("host alloc fail!\n");
-                return false;
-            }
-            cudaHostGetDevicePointer(&psigpu.real, psi.real, 0);
-        }
-
-        if (nullptr == psi.imag)
-        {
-            cudaError_t cuda_status1 = cudaHostAlloc(&psi.imag, sizeof(gpu_qstate_t)*(1ll << qnum), cudaHostAllocMapped);
-            if (cuda_status1 != cudaSuccess)
-            {
-                printf("host alloc fail!\n");
-                cudaFreeHost(psi.real);
-                return false;
-            }
-            cudaHostGetDevicePointer(&psigpu.imag, psi.imag, 0);
-        }
-        
-        psi.qnum = qnum;
-        psigpu.qnum = qnum;
-        gpu_qsize_t BLOCKDIM;
-        BLOCKDIM = (1ull << psigpu.qnum) / kThreadDim;
-        gpu::initState << < (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)kThreadDim >> > (psigpu.real, psigpu.imag, 1ull << (psigpu.qnum));
-    }
-    else
-    {
-        gpu_qsize_t Dim = 1ull << qnum;
-        cudaError_t cuda_status;
-
-        if (nullptr == psi.real)
-        {
-            psi.real = (gpu_qstate_t*)malloc(sizeof(gpu_qstate_t)*Dim);
-        }
-
-        if (nullptr == psi.imag)
-        {
-            psi.imag = (gpu_qstate_t*)malloc(sizeof(gpu_qstate_t)*Dim);
-        }
-        
-        if (nullptr == psigpu.real)
-        {
-            cuda_status = cudaMalloc((void**)&psigpu.real, sizeof(gpu_qstate_t)*Dim);
-            if (cudaSuccess != cuda_status)
-            {
-                printf("psigpu.real alloc gpu memoery error!\n");
-                free(psi.real);
-                free(psi.imag);
-                return false;
-            }
-        }
-
-        if (nullptr == psigpu.imag)
-        {
-            cuda_status = cudaMalloc((void**)&psigpu.imag, sizeof(gpu_qstate_t)*Dim);
-            if (cudaSuccess != cuda_status)
-            {
-                printf("psigpu.imag alloc gpu memoery error!\n");
-                free(psi.real);
-                free(psi.imag);
-                cudaFree(psigpu.real);
-                return false;
-            }
-        }
-        psigpu.qnum = qnum;
-        psi.qnum = qnum;
-        gpu_qsize_t BLOCKDIM;
-        BLOCKDIM = (1ull << psigpu.qnum) / kThreadDim;
-        gpu::initState << < (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)kThreadDim >> > (psigpu.real, psigpu.imag, 1ull << (psigpu.qnum));
-
-    }
-    return true;
-}
-
-bool GATEGPU::unitarysingle(
-    QState& psigpu,
-    size_t qn,
-    QState& matrix,
-    bool isConjugate,
-    double error_rate)
-{
-    if (gpu::randGenerator() > error_rate)
-    {
-
-        if (isConjugate)
-        {
-            gpu_qstate_t temp_real, temp_imag;
-            temp_real = matrix.real[1];
-            temp_imag = matrix.imag[1];
-            matrix.real[1] = matrix.real[2];
-            matrix.imag[1] = matrix.imag[2];
-            matrix.real[2] = temp_real;  //convert
-            matrix.imag[2] = temp_imag;  //convert
-            for (size_t i = 0; i < 4; i++)
-            {
-                matrix.real[i] = matrix.real[i];
-                matrix.imag[i] = -matrix.imag[i];
-                // matrix[i] = qcomplex_t(matrix[i].real(), -matrix[i].imag());
-            }//dagger
-        }
-
-        gpu_qstate_t real00 = matrix.real[0];
-        gpu_qstate_t real01 = matrix.real[1];
-        gpu_qstate_t real10 = matrix.real[2];
-        gpu_qstate_t real11 = matrix.real[3];
-        gpu_qstate_t imag00 = matrix.imag[0];
-        gpu_qstate_t imag01 = matrix.imag[1];
-        gpu_qstate_t imag10 = matrix.imag[2];
-        gpu_qstate_t imag11 = matrix.imag[3];
-
-        //test
-
-        gpu_qsize_t BLOCKDIM;
-        SET_BLOCKDIM
-            gpu::unitarysingle << < (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)kThreadDim >> >
-            (psigpu.real, psigpu.imag, 1ull << (psigpu.qnum), 1ull << qn, real00, real01, real10, real11, imag00, imag01, imag10, imag11);
-
-        return true;
-    }
-    return true;
-}
-
-bool GATEGPU::controlunitarysingle(
-    QState& psigpu,
-    Qnum& qnum,
-    QState& matrix,
-    bool isConjugate,
-    double error_rate)
-{
-    if (gpu::randGenerator() > error_rate)
-    {
-        if (isConjugate)
-        {
-            gpu_qstate_t temp_real, temp_imag;
-            temp_real = matrix.real[1];
-            temp_imag = matrix.imag[1];
-            matrix.real[1] = matrix.real[2];
-            matrix.imag[1] = matrix.imag[2];
-            matrix.real[2] = temp_real;  //convert
-            matrix.imag[2] = temp_imag;  //convert
-            for (size_t i = 0; i < 4; i++)
-            {
-                matrix.real[i] = matrix.real[i];
-                matrix.imag[i] = -matrix.imag[i];
-                //matrix[i] = qcomplex_t(matrix[i].real(), -matrix[i].imag());
-            }//dagger
-        }
-        gpu_qsize_t target_qubit = 1ull << qnum.back();
-
-        // 1 is for the control single gate
-        gpu_qsize_t mask = getControllerMask(qnum, 1);
-
-        gpu_qstate_t real00 = matrix.real[0];
-        gpu_qstate_t real01 = matrix.real[1];
-        gpu_qstate_t real10 = matrix.real[2];
-        gpu_qstate_t real11 = matrix.real[3];
-        gpu_qstate_t imag00 = matrix.imag[0];
-        gpu_qstate_t imag01 = matrix.imag[1];
-        gpu_qstate_t imag10 = matrix.imag[2];
-        gpu_qstate_t imag11 = matrix.imag[3];
-
-        gpu_qsize_t BLOCKDIM;
-        SET_BLOCKDIM;
-
-        BLOCKDIM = (1ull << (psigpu.qnum)) / kThreadDim;
-
-        gpu::controlunitarysingle << < (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)kThreadDim >> >
-            (
-                psigpu.real, 
-                psigpu.imag, 
-                1ull << (psigpu.qnum), 
-                target_qubit,
-                mask,                 
-                real00, real01, real10, real11, imag00, imag01, imag10, imag11
-            );
-
-        return true;
-    }
+    return init();
     return true;
 }
 
 
-//unitary double gate
-bool GATEGPU::unitarydouble(
-    QState& psigpu,
-    size_t qn_0,
-    size_t qn_1,
-    QState& matrix,
-    bool isConjugate,
-    double error_rate)
+void DeviceQPU::set_device()
 {
-    if (gpu::randGenerator() > error_rate)
-    {
-
-        if (isConjugate)
-        {
-            gpu_qstate_t temp_real, temp_imag;
-            for (size_t i = 0; i < 4; i++)
-            {
-                for (size_t j = i + 1; j < 4; j++)
-                {
-                    temp_real = matrix.real[4 * i + j];
-                    temp_imag = matrix.imag[4 * i + j];
-                    matrix.real[4 * i + j] = matrix.real[4 * j + i];
-                    matrix.imag[4 * i + j] = matrix.imag[4 * j + i];
-                    matrix.real[4 * j + i] = temp_real;
-                    matrix.imag[4 * j + i] = temp_imag;
-                }
-            }
-            for (size_t i = 0; i < 16; i++)
-            {
-                //matrix[i].imag = -matrix[i].imag;
-                matrix.real[i] = matrix.real[i];
-                matrix.imag[i] = -matrix.imag[i];
-                //matrix[i] = qcomplex_t(matrix[i].real(), -matrix[i].imag());
-            }//dagger
-        }
-
-        gpu_qsize_t BLOCKDIM;
-        SET_BLOCKDIM
-            gpu::unitarydouble << < (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)kThreadDim >> >
-            (psigpu.real, psigpu.imag, 1ull << (psigpu.qnum), 1ull << qn_0, 1ull << qn_1,
-                matrix.real[0], matrix.real[1], matrix.real[2], matrix.real[3],
-                matrix.real[4], matrix.real[5], matrix.real[6], matrix.real[7],
-                matrix.real[8], matrix.real[9], matrix.real[10], matrix.real[11],
-                matrix.real[12], matrix.real[13], matrix.real[14], matrix.real[15],
-                matrix.imag[0], matrix.imag[1], matrix.imag[2], matrix.imag[3],
-                matrix.imag[4], matrix.imag[5], matrix.imag[6], matrix.imag[7],
-                matrix.imag[8], matrix.imag[9], matrix.imag[10], matrix.imag[11],
-                matrix.imag[12], matrix.imag[13], matrix.imag[14], matrix.imag[15]);
-
-        return true;
-    }
-
-    return true;
+    auto ret = cudaSetDevice(m_device_id);
+    QPANDA_ASSERT(cudaSuccess != ret, "Error: cudaSetDevice.");
+    return ;
 }
 
-bool GATEGPU::controlunitarydouble(
-    QState& psigpu,
-    Qnum& qnum,
-    QState& matrix,
-    bool isConjugate,
-    double error_rate)
+void DeviceQPU::device_barrier()
 {
-    if (gpu::randGenerator() > error_rate)
-    {
-        if (isConjugate)
-        {
-            gpu_qstate_t temp_real, temp_imag;
-            for (size_t i = 0; i < 4; i++)
-            {
-                for (size_t j = i + 1; j < 4; j++)
-                {
-                    temp_real = matrix.real[4 * i + j];
-                    temp_imag = matrix.imag[4 * i + j];
-                    matrix.real[4 * i + j] = matrix.real[4 * j + i];
-                    matrix.imag[4 * i + j] = matrix.imag[4 * j + i];
-                    matrix.real[4 * j + i] = temp_real;
-                    matrix.imag[4 * j + i] = temp_imag;
-                }
-            }
-            for (size_t i = 0; i < 16; i++)
-            {
-                matrix.real[i] = matrix.real[i];
-                matrix.imag[i] = -matrix.imag[i];
-                //matrix[i] = qcomplex_t(matrix[i].real(), -matrix[i].imag());
-            }//dagger
-        }
-        gpu_qsize_t m = qnum.size();
-        gpu_qsize_t control_qubit = qnum[m - 2];
-        gpu_qsize_t target_qubit = qnum.back();
-        //sort(qnum.begin(), qnum.end());
-        gpu_qsize_t mask = getControllerMask(qnum, 1);
-        gpu_qsize_t BLOCKDIM;
-        SET_BLOCKDIM
-            gpu::controlunitarydouble << < (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)kThreadDim >> >
-            (psigpu.real, psigpu.imag, 1ull << (psigpu.qnum), mask, 1ull << control_qubit, 1ull << target_qubit,
-                matrix.real[0], matrix.real[1], matrix.real[2], matrix.real[3],
-                matrix.real[4], matrix.real[5], matrix.real[6], matrix.real[7],
-                matrix.real[8], matrix.real[9], matrix.real[10], matrix.real[11],
-                matrix.real[12], matrix.real[13], matrix.real[14], matrix.real[15],
-                matrix.imag[0], matrix.imag[1], matrix.imag[2], matrix.imag[3],
-                matrix.imag[4], matrix.imag[5], matrix.imag[6], matrix.imag[7],
-                matrix.imag[8], matrix.imag[9], matrix.imag[10], matrix.imag[11],
-                matrix.imag[12], matrix.imag[13], matrix.imag[14], matrix.imag[15]);
-        return true;
-    }
-
-    return true;
+    auto ret = cudaStreamSynchronize(m_cuda_stream);
+    QPANDA_ASSERT(cudaSuccess != ret, "Error: cudaStreamSynchronize.");
+    return ;
 }
 
-//bool GATEGPU::DiagonalGate(
-//    QState& psigpu,
-//    Qnum& qnum,
-//    QState& matrix,
-//    bool isConjugate,
-//    double error_rate)
-//{
-//    if (gpu::randGenerator() > error_rate)
-//    {
-//        if (isConjugate)
-//        {
-//            for (size_t i = 0; i < (1 << qnum); i++)
-//            {
-//                matrix.image[i] = -matrix.imag[i];
-//            }
-//        }
-//        gpu_qsize_t m = qnum.size();
-//        gpu_qsize_t mask = getControllerMask(qnum, 1);
-//        gpu_qsize_t BLOCKDIM;
-//        SET_BLOCKDIM
-//            gpu::DiagonalGate << < (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)kThreadDim >> >
-//            (psigpu.real, psigpu.imag, 1ull << (psigpu.qnum), mask, matrix);
-//        return true;
-//    }
-//
-//    return true;
-//}
 
-
-
-
-
-
-//qbReset
-bool GATEGPU::qbReset(QState& psigpu, size_t qn, double error_rate)
+void DeviceQPU::device_debug(const std::string &flag, device_state_t &device_data)
 {
-    if (gpu::randGenerator() > error_rate)
+    std::cout << flag << std::endl;
+    thrust::host_vector<thrust::complex<qstate_type>> state = m_device_state;
+    for (auto val : state)
     {
-        cudaError_t cuda_status;
-        gpu_qstate_t * resultgpu;
-        // cudaHostAlloc((void **)&result, sizeof(gpu_qstate_t)*(psigpu.qnum-1))/kThreadDim, cudaHostAllocMapped);
-        //cudaHostGetDevicePointer(&resultgpu, result, 0);
-
-        cuda_status = cudaMalloc((void **)&resultgpu, sizeof(gpu_qstate_t)*(1ull << (psigpu.qnum - 1)) / kThreadDim);
-        if (cudaSuccess != cuda_status)
-        {
-            fprintf(stderr, "cudaMalloc error\n");
-            return false;
-        }
-
-        gpu_qstate_t * probgpu, *prob;
-        cuda_status = cudaHostAlloc((void **)&prob, sizeof(gpu_qstate_t), cudaHostAllocMapped);
-        if (cudaSuccess != cuda_status)
-        {
-            fprintf(stderr, "cudaHostAlloc error\n");
-            cudaFree(resultgpu);
-        }
-        cudaHostGetDevicePointer(&probgpu, prob, 0);
-
-        gpu_qsize_t BLOCKDIM;
-        SET_BLOCKDIM
-            gpu::qubitprob << < (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)kThreadDim, kThreadDim * sizeof(gpu_qstate_t) >> >
-            (psigpu.real, psigpu.imag, 1ull << (psigpu.qnum), 1ull << qn, resultgpu);
-        cuda_status = cudaDeviceSynchronize();
-        gpu::probsum << < (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)kThreadDim >> > (resultgpu, probgpu);
-        cuda_status = cudaDeviceSynchronize();
-        *prob = 1 / sqrt(*prob);
-        gpu::qubitcollapse0 << < (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)kThreadDim >> >
-            (psigpu.real, psigpu.imag, 1ull << (psigpu.qnum), 1ull << qn, *prob);
-        cuda_status = cudaDeviceSynchronize();
-
-        cudaFree(resultgpu);
-        cudaFreeHost(prob);
-        return getSynchronizeResult(cuda_status, "qReset");
+        std::cout << val << std::endl;
     }
-
-    return true;
 }
 
-int GATEGPU::qubitmeasure(QState& psigpu, gpu_qsize_t Block, gpu_qstate_t* resultgpu, gpu_qstate_t* probgpu)
+void DeviceQPU::exec_gate(std::shared_ptr<BaseGateFun> fun, GateType type, QStat &matrix,
+                          const Qnum &qnum, size_t num, bool is_dagger)
 {
-    //double * resultgpu;
-    gpu_qsize_t BLOCKDIM;
-    SET_BLOCKDIM
+    set_device();
+    fun->set_state(m_device_state);
+    fun->set_device_prams(m_device_qubits, m_device_matrix);
+    fun->set_matrix(matrix, is_dagger, m_cuda_stream);
+    fun->set_qubits(qnum, num, m_cuda_stream);
 
-    gpu_qsize_t count = (0 == BLOCKDIM) ? 1 : BLOCKDIM;
-    gpu_qstate_t prob;
-    cudaError_t cuda_status;
-    if (nullptr == resultgpu)
+    size_t dim;
+    int64_t size = 1ll << (m_qubit_num - num);
+    dim = size / kThreadDim;
+    dim = 0 == dim ? 1 : dim;
+
+    switch (type)
     {
-        cuda_status = cudaMalloc(&resultgpu, sizeof(gpu_qstate_t) * count);
-        if (cudaSuccess != cuda_status)
-        {
-            cout << "resultgpu  " << cudaGetErrorString(cuda_status) << endl;
-            return -1;
-        }
+    case GateType::I_GATE:
+    case GateType::BARRIER_GATE:
+    case GateType::ECHO_GATE:
+        break;
+    case GateType::PAULI_X_GATE:
+        exec_gate_kernel<XFun><<<dim, kThreadDim, 0, m_cuda_stream>>>(*dynamic_pointer_cast<XFun>(fun), size);
+        break;
+    case GateType::PAULI_Y_GATE:
+        exec_gate_kernel<YFun><<<dim, kThreadDim, 0, m_cuda_stream>>>(*dynamic_pointer_cast<YFun>(fun), size);
+        break;
+    case GateType::PAULI_Z_GATE:
+        exec_gate_kernel<ZFun><<<dim, kThreadDim, 0, m_cuda_stream>>>(*dynamic_pointer_cast<ZFun>(fun), size);
+        break;
+    case GateType::S_GATE:
+        exec_gate_kernel<SFun><<<dim, kThreadDim, 0, m_cuda_stream>>>(*dynamic_pointer_cast<SFun>(fun), size);
+        break;
+    case GateType::T_GATE:
+    case GateType::U1_GATE:
+        exec_gate_kernel<U1Fun><<<dim, kThreadDim, 0, m_cuda_stream>>>(*dynamic_pointer_cast<U1Fun>(fun), size);
+        break;
+    case GateType::P_GATE:
+        exec_gate_kernel<PFun><<<dim, kThreadDim, 0, m_cuda_stream>>>(*dynamic_pointer_cast<PFun>(fun), size);
+        break;
+    case GateType::RZ_GATE:
+    case GateType::Z_HALF_PI:
+        exec_gate_kernel<RZFun><<<dim, kThreadDim, 0, m_cuda_stream>>>(*dynamic_pointer_cast<RZFun>(fun), size);
+        break;
+    case GateType::HADAMARD_GATE:
+        exec_gate_kernel<HFun><<<dim, kThreadDim, 0, m_cuda_stream>>>(*dynamic_pointer_cast<HFun>(fun), size);
+        break;
+    case GateType::X_HALF_PI:
+    case GateType::Y_HALF_PI:
+    case GateType::RX_GATE:
+    case GateType::RY_GATE:
+    case GateType::U2_GATE:
+    case GateType::U3_GATE:
+    case GateType::U4_GATE:
+    case GateType::RPHI_GATE:
+        exec_gate_kernel<SingleGateFun><<<dim, kThreadDim, 0, m_cuda_stream>>>(*dynamic_pointer_cast<SingleGateFun>(fun), size);
+        break;
+    case GateType::CNOT_GATE:
+        exec_gate_kernel<CNOTFun><<<dim, kThreadDim, 0, m_cuda_stream>>>(*dynamic_pointer_cast<CNOTFun>(fun), size);
+        break;
+    case GateType::CZ_GATE:
+        exec_gate_kernel<CZFun><<<dim, kThreadDim, 0, m_cuda_stream>>>(*dynamic_pointer_cast<CZFun>(fun), size);
+        break;
+    case GateType::CPHASE_GATE:
+        exec_gate_kernel<CRFun><<<dim, kThreadDim, 0, m_cuda_stream>>>(*dynamic_pointer_cast<CRFun>(fun), size);
+        break;
+    case GateType::CP_GATE:
+        exec_gate_kernel<CPFun><<<dim, kThreadDim, 0, m_cuda_stream>>>(*dynamic_pointer_cast<CPFun>(fun), size);
+        break;
+    case GateType::SWAP_GATE:
+        exec_gate_kernel<SWAPFun><<<dim, kThreadDim, 0, m_cuda_stream>>>(*dynamic_pointer_cast<SWAPFun>(fun), size);
+        break;
+    case GateType::ISWAP_GATE:
+        exec_gate_kernel<ISWAPFun><<<dim, kThreadDim, 0, m_cuda_stream>>>(*dynamic_pointer_cast<ISWAPFun>(fun), size);
+        break;
+    case GateType::ISWAP_THETA_GATE:
+    case GateType::SQISWAP_GATE:
+        exec_gate_kernel<ISWAPThetaFun><<<dim, kThreadDim, 0, m_cuda_stream>>>(*dynamic_pointer_cast<ISWAPThetaFun>(fun), size);
+        break;
+    case GateType::CU_GATE:
+        exec_gate_kernel<CUFun><<<dim, kThreadDim, 0, m_cuda_stream>>>(*dynamic_pointer_cast<CUFun>(fun), size);
+        break;
+    case GateType::TWO_QUBIT_GATE:
+        exec_gate_kernel<DoubleGateFun><<<dim, kThreadDim, 0, m_cuda_stream>>>(*dynamic_pointer_cast<DoubleGateFun>(fun), size);
+        break;
+    default:
+        throw std::runtime_error("Error: gate type: " + std::to_string(type));
     }
 
-    if (nullptr == probgpu)
-    {
-        cuda_status = cudaMalloc(&probgpu, sizeof(gpu_qstate_t));
-        if (cudaSuccess != cuda_status)
-        {
-            cout << "probgpu  " << cudaGetErrorString(cuda_status) << endl;
-            cudaFree(resultgpu);
-            resultgpu = nullptr;
-            return -1;
-        }
-    }
-
-    gpu::qubitprob << < (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)kThreadDim, kThreadDim * sizeof(gpu_qstate_t) >> >
-        (psigpu.real, psigpu.imag, 1ull << (psigpu.qnum), Block, resultgpu);
-    cuda_status = cudaDeviceSynchronize(); 
-    if (cudaSuccess != cuda_status)
-    {
-        cout << cudaGetErrorString(cuda_status) << endl;
-        return -1;
-    }
-
-    gpu::probsum << < (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)kThreadDim >> > (resultgpu, probgpu);
-    cuda_status = cudaDeviceSynchronize();
-    if (cudaSuccess != cuda_status)
-    {
-        cout << cudaGetErrorString(cuda_status) << endl;
-        return -1;
-    }
-
-    cuda_status = cudaMemcpy(&prob, probgpu, sizeof(gpu_qstate_t), cudaMemcpyDeviceToHost);
-    if (cudaSuccess != cuda_status)
-    {
-        fprintf(stderr, "cudaMemcpy error\n");
-        return -1;
-    }
-
-    cuda_status = cudaDeviceSynchronize();
-    if (cudaSuccess != cuda_status)
-    {
-        cout << cudaGetErrorString(cuda_status) << endl;
-        return -1;
-    }
-
-    int outcome = 0;
-    if (gpu::randGenerator() > prob)
-    {
-        outcome = 1;
-    }
-
-    if (0 == outcome)
-    {
-        if (prob < 0.000001 && prob > -0.000001)
-        {
-            return outcome;
-        }
-
-        prob = 1 / sqrt(prob);
-        gpu::qubitcollapse0 <<< (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)kThreadDim >>>
-            (psigpu.real, psigpu.imag, 1ull << (psigpu.qnum), Block, prob);
-    }
-    else
-    {
-        if (1 - prob < 0.000001 && 1- prob > -0.000001)
-        {
-            return outcome;
-        }
-
-        prob = 1 / sqrt(1 - prob);
-        gpu::qubitcollapse1 <<< (unsigned)(BLOCKDIM == 0 ? 1 : BLOCKDIM), (unsigned)kThreadDim >>>
-            (psigpu.real, psigpu.imag, 1ull << (psigpu.qnum), Block, prob);
-    }
-    cuda_status = cudaDeviceSynchronize();
-    getSynchronizeResult(cuda_status, "qubitmeasure");
-
-    return outcome;
-}//checked
-
-bool probcompare(pair<size_t, gpu_qstate_t>& a, pair<size_t, gpu_qstate_t>& b)
-{
-    return a.second > b.second;
+    device_barrier();
+    return ;
 }
 
-bool GATEGPU::pMeasurenew(QState& psigpu,
-    touple_prob &vprob,
-    Qnum& qnum,
-    int select_max)
+
+void DeviceQPU::exec_gate(GateType type, QStat &matrix, const Qnum &qnum, size_t num, bool is_dagger)
 {
-	// 10 可能是一个比较好的阈值，因为1024为线程单位，就更适合使用many_target
-    vec_prob result;
-	bool status = false;
-
-	if (qnum.size() < 10)
-	{
-        status = pMeasure_few_target(psigpu, result, qnum);
-	}
-	else
-	{
-        status = pMeasure_many_target(psigpu, result, qnum);
-	}
-
-	if (status)
-	{
-		size_t i = 0;
-        for (auto &aiter : result)
-		{
-			vprob.push_back(make_pair(i, aiter));
-			i++;
-		}
-	}
-    else
+    auto iter = m_type_gate_fun.find(type);
+    if (m_type_gate_fun.end() == iter)
     {
-        throw std::runtime_error("PMeasure error");
+        throw std::runtime_error("gate type");
     }
 
-	return status;
-	
+    this->exec_gate(iter->second, type, matrix, qnum, num, is_dagger);
+    return ;
 }
 
-bool GATEGPU::pMeasure_no_index(
-    QState& psigpu,
-    vec_prob &mResult,
-    Qnum& qnum)
+
+void DeviceQPU::probs_measure(const Qnum &qnum,  prob_vec &probs)
 {
-    // 10 可能是一个比较好的阈值，因为1024为线程单位，就更适合使用many_target
-
-    bool status = false;
-    if (qnum.size() < 10)
-    {
-        status = pMeasure_few_target(psigpu, mResult, qnum);
-    }
-    else
-    {
-        status = pMeasure_many_target(psigpu, mResult, qnum);
-    }
-
-    if (!status)
-    {
-        throw std::runtime_error("pmeasure error");
-    }
-    return true;
+    set_device();
+    exec_probs_measure(qnum, m_device_state,
+                          m_qubit_num,
+                          m_cuda_stream,
+                          probs);
+    return ;
 }
 
-static bool pMeasure_few_target(GATEGPU::QState& psigpu, vector<double> &result, Qnum& qnum)
+void DeviceQPU::probs_measure(const Qnum &qnum, prob_tuple &probs, int select_max)
 {
-    gpu_qsize_t result_size = 1ull << qnum.size();
-    result.assign(result_size, 0);
-
-    gpu_qsize_t Dim = 1ull << psigpu.qnum; // 态矢总长度
-    gpu_qsize_t BLOCKDIM;
-    BLOCKDIM = Dim / result_size;
-
-    cudaError_t cudaStatus;
-    // 一般来说BLOCKDIM不可能为0，因为对于few target的情况，result_size<10
-    // 保险起见
-    BLOCKDIM = (BLOCKDIM == 0 ? 1 : BLOCKDIM);
-
-    double* result_gpu = nullptr;
-    cudaStatus = cudaMalloc(&result_gpu, sizeof(double)*BLOCKDIM);
-    if (cudaSuccess != cudaStatus)
-    {
-        return false;
-    }
-
-    double *result_cpu = (double *)malloc(sizeof(double) * BLOCKDIM);
-    if (nullptr == result_cpu)
-    {
-        cudaFree(result_gpu);
-        return false;
-    }
-
-    gpu_qsize_t qnum_mask = 0;
-    // obtain the mask for pMeasure qubit
-    for (auto iter : qnum)
-    {
-        qnum_mask += (1ull << iter);
-    }
-    gpu_qsize_t SHARED_SIZE = kThreadDim * sizeof(double);
-    for (size_t result_idx = 0; result_idx < result_size; ++result_idx)
-    {
-        gpu::pmeasure_one_target << < BLOCKDIM, kThreadDim, SHARED_SIZE >> > (
-            psigpu.real,
-            psigpu.imag,
-            result_gpu,
-            qnum_mask,
-            result_idx,
-            qnum.size(),
-            Dim);
-
-        cudaStatus = cudaMemcpy(result_cpu, result_gpu, sizeof(double)*BLOCKDIM, cudaMemcpyDeviceToHost);
-        if (cudaSuccess != cudaStatus)
-        {
-            cudaFree(result_gpu);
-            free(result_cpu);
-            return false;
-        }
-        
-        double result_sum = 0;
-        for (size_t i = 0; i < BLOCKDIM; ++i)
-        {
-            result_sum += result_cpu[i];
-        }            
-        result[result_idx] = result_sum;
-    }
-
-    cudaFree(result_gpu);
-    free(result_cpu);
-
-    return true;
+    set_device();
+    exec_probs_measure(qnum, m_device_state,
+                          m_qubit_num,
+                          m_cuda_stream,
+                          probs,
+                          select_max);
+    return ;
 }
 
-static bool pMeasure_many_target(GATEGPU::QState& psigpu, vector<double> &result, Qnum& qnum)
+bool DeviceQPU::qubit_measure(size_t qn)
 {
-    gpu_qsize_t qnum_mask = 0;
+    set_device();
+    m_measure_fun->set_device_prams(m_device_qubits, m_device_matrix);
+    m_measure_fun->set_state(m_device_state);
+    m_measure_fun->set_qubits({qn}, 1, m_cuda_stream);
+    int64_t size = 1ll << (m_qubit_num - 1);
 
-    // obtain the mask for pMeasure qubit
-    for (auto iter : qnum)
+    double dprob = exec_measure(*m_measure_fun, size, m_cuda_stream);
+    device_barrier();
+
+    bool measure_out = false;
+    double fi = random_generator19937();
+    if (fi > dprob)
     {
-        qnum_mask += (1ull << iter);
+        measure_out = true;
     }
 
-    gpu_qsize_t result_size = 1ull << qnum.size();
-    result.resize(result_size);
+    dprob = measure_out ? 1 / sqrt(1 - dprob) : 1 / sqrt(dprob);
+    m_norm_fun->set_device_prams(m_device_qubits, m_device_matrix);
+    m_norm_fun->set_measure_out(dprob, measure_out);
+    m_norm_fun->set_state(m_device_state);
+    m_norm_fun->set_qubits({qn}, 1, m_cuda_stream);
 
-    // allocate the graphics memory for result
-    double* result_gpu = nullptr;
-    cudaError_t cudaStatus;
-    cudaStatus = cudaMalloc(&result_gpu, result_size * sizeof(double));
-    if (cudaSuccess != cudaStatus)
-    {
-        return false;
-    }
-    cudaMemset(result_gpu, 0, result_size * sizeof(double));
-
-    gpu_qsize_t BLOCKDIM;
-    BLOCKDIM = result_size / kThreadDim;
-
-    gpu::pmeasure_many_target <<< (BLOCKDIM == 0 ? 1 : BLOCKDIM), kThreadDim >>> (
-        psigpu.real,
-        psigpu.imag,
-        result_gpu,
-        qnum_mask,
-        result_size,
-        1ull << (psigpu.qnum));
-
-    cudaMemcpy(result.data(), result_gpu, result_size * sizeof(double), cudaMemcpyDeviceToHost);
-    cudaFree(result_gpu);
-    return true;
+    exec_normalize(*m_norm_fun, size, m_cuda_stream);
+    device_barrier();
+    return measure_out;
 }
 
-bool GATEGPU::getState(QState &psi, QState &psigpu, size_t qnum)
+
+void DeviceQPU::get_qstate(QStat &state)
 {
-    cudaError_t cuda_status;
-
-    if (qnum < 30)
-    {
-        gpu_qsize_t Dim = 1ull << qnum;
-        cuda_status = cudaMemcpy(psi.real, psigpu.real, sizeof(gpu_qstate_t)*Dim, cudaMemcpyDeviceToHost);
-        if (cudaSuccess != cuda_status)
-        {
-            fprintf(stderr, "cudaMemcpy error\n");
-            return false;
-        }
-
-        cuda_status = cudaMemcpy(psi.imag, psigpu.imag, sizeof(gpu_qstate_t)*Dim, cudaMemcpyDeviceToHost);
-        if (cudaSuccess != cuda_status)
-        {
-            fprintf(stderr, "cudaMemcpy error\n");
-            return false;
-        }
-    }
-    return true;
+    state.resize(m_device_state.size(), 0);
+    thrust::copy_n(m_device_state.begin(), m_device_state.size(), state.begin());
+    return ;
 }
 
-void GATEGPU::gpuFree(void* memory)
+
+void DeviceQPU::reset(size_t qn)
 {
-    if (memory != nullptr)
+    auto measure_out = qubit_measure(qn);
+    if (measure_out)
     {
-        cudaFree(memory);
+        QStat matrix = {0, 1, 1, 0};
+        this->exec_gate(GateType::PAULI_X_GATE, matrix, {qn}, 1, false);
+    }
+
+    return ;
+}
+
+DeviceQPU::~DeviceQPU()
+{
+    if (nullptr != m_cuda_stream)
+    {
+        cudaStreamDestroy(m_cuda_stream);
+        m_cuda_stream = nullptr;
     }
 }

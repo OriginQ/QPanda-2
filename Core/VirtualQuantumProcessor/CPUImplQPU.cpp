@@ -1960,8 +1960,7 @@ QError CPUImplQPU::Reset(size_t qn)
     bool measure_out = qubitMeasure(qn);
     if (measure_out)
     {
-        QStat matrix_x = { 0, 1, 1, 0 };
-        _single_qubit_normal_unitary(qn, matrix_x, false);
+        _X(qn);
     }
     return qErrorNone;
 }
@@ -2195,238 +2194,125 @@ QError  CPUImplQPU::single_qubit_gate_fusion(size_t qn, QStat& matrix)
 
 QError CPUImplQPU::double_qubit_gate_fusion(size_t qn_0, size_t qn_1, QStat &matrix)
 {
-	int64_t size = 1ll << (m_qubit_num - 2);
-	int64_t offset0 = 1ll << qn_0;
-	int64_t offset1 = 1ll << qn_1;
+    int64_t size = 1ll << (m_qubit_num - 2);
+    
+    int64_t offset0 = 1ll << qn_0;
+    int64_t offset1 = 1ll << qn_1;
+    if (qn_0 > qn_1)
+    {
+        std::swap(qn_0, qn_1);
+    }
 
-	if (size > m_threshold)
-	{
-#pragma omp parallel for
-		for (int64_t i = 0; i < size; i++)
-		{
-			QStat temp;
-			temp.resize(16);
-			for (int i = 0; i < 16; i++)
-			{
-				temp[i] = m_state[i];
-			}
+    for (int64_t i = 0; i < size; i++)
+    {
+        int64_t real00_idx = _insert(i, qn_0, qn_1);
+        auto phi00 = m_state[real00_idx];
+        auto phi01 = m_state[real00_idx | offset0];
+        auto phi10 = m_state[real00_idx | offset1];
+        auto phi11 = m_state[real00_idx | offset0 + offset1];
 
-			for (int64_t i = 0; i < size; i++)
-			{
-				for (int64_t j = 0; j < size; j++)
-				{
-					m_state[i * 4 + j] = 0;
-					for (int64_t k = 0; k < size; k++)
-					{
-						m_state[i*size + j] += temp[j * size + k] * matrix[k*size + j];
-					}
-				}
-			}
-		}
-	}
-	else
-	{
-		QStat temp;
-		temp.resize(16);
-		for (int i = 0; i < 16; i++)
-		{
-			temp[i] = m_state[i];
-		}
+        m_state[real00_idx] = matrix[0] * phi00 + matrix[4] * phi01
+            + matrix[8] * phi10 + matrix[12] * phi11;
+        m_state[real00_idx | offset0] = matrix[1] * phi00 + matrix[5] * phi01
+            + matrix[9] * phi10 + matrix[13] * phi11;
+        m_state[real00_idx | offset1] = matrix[2] * phi00 + matrix[6] * phi01
+            + matrix[10] * phi10 + matrix[14] * phi11;
+        m_state[real00_idx | offset0 | offset1] = matrix[3] * phi00 + matrix[7] * phi01
+            + matrix[11] * phi10 + matrix[15] * phi11;
+    }
+    return qErrorNone;
+}
 
-		for (int64_t i = 0; i < size; i++)
-		{
-			for (int64_t j = 0; j < size; j++)
-			{
-				m_state[i * size + j] = 0;
-				for (int64_t k = 0; k < size; k++)
-				{
-					m_state[i * size + j] += temp[i * size + k] * matrix[k * size + j];
-				}
-			}
-		}
+QError CPUImplQPU::three_qubit_gate_fusion(size_t qn_0, size_t qn_1, QStat &matrix)
+{
+    int64_t size = 1ll << (m_qubit_num - 2);
+    if (qn_0 > qn_1)
+    {
+        std::swap(qn_0, qn_1);
+    }
+    int64_t offset0 = 1ll << qn_0;
+    int64_t offset1 = 1ll << qn_1;
 
-	}
+    for (int64_t i = 0; i < size; i++)
+    {
+        int64_t real00_idx = _insert(i, qn_0, qn_1);
+        auto phi00 = m_state[real00_idx];
+        auto phi01 = m_state[real00_idx | offset0];
+        auto phi10 = m_state[real00_idx | offset1];
+        auto phi11 = m_state[real00_idx | offset0 + offset1];
 
-	return qErrorNone;
+        m_state[real00_idx] = matrix[0] * phi00 + matrix[4] * phi01
+            + matrix[8] * phi10 + matrix[12] * phi11;
+        m_state[real00_idx | offset0] = matrix[1] * phi00 + matrix[5] * phi01
+            + matrix[9] * phi10 + matrix[13] * phi11;
+        m_state[real00_idx | offset1] = matrix[2] * phi00 + matrix[6] * phi01
+            + matrix[10] * phi10 + matrix[14] * phi11;
+        m_state[real00_idx | offset0 | offset1] = matrix[3] * phi00 + matrix[7] * phi01
+            + matrix[11] * phi10 + matrix[15] * phi11;
+    }
+
+
+    return qErrorNone;
 }
 
 
 QError CPUImplQPU::_three_qubit_gate(Qnum& qubits, QStat& matrix, bool is_dagger, const Qnum& controls)
 {
-	int64_t size = 1ll << (m_qubit_num - 3);
-	int64_t offset0 = 1ll << qubits[0];
-	int64_t offset1 = 1ll << qubits[1];
-	int64_t offset2 = 1ll << qubits[2];
-	int64_t mask = 0;
-	std::sort(qubits.begin(), qubits.end());
-	if (is_dagger)
-	{
-		qcomplex_t temp;
-		for (size_t i = 0; i < 8; i++)
-		{
-			for (size_t j = i + 1; j < 8; j++)
-			{
-				temp = matrix[8 * i + j];
-				matrix[8 * i + j] = matrix[8 * j + i];
-				matrix[8 * j + i] = temp;
-			}
-		}
-		for (size_t i = 0; i < 64; i++)
-		{
-			matrix[i] = qcomplex_t(matrix[i].real(), -matrix[i].imag());
-		}//dagger
-	}
-	if (controls.size() > 3)
-	{
-		for_each(controls.begin(), controls.end() - 3, [&](size_t q) {
-			mask |= 1ll << q;
-		});
-	}
+    int64_t size = 1ll << (m_qubit_num - 3);
+    int64_t offset0 = 1ll << qubits[0];
+    int64_t offset1 = 1ll << qubits[1];
+    int64_t offset2 = 1ll << qubits[2];
+    int64_t mask = 0;
+    std::sort(qubits.begin(), qubits.end());
+    auto dim = 1ll << qubits.size();
+    qmatrix_t mat_eigen = qmatrix_t::Map(&matrix[0], dim, dim);
+    if (is_dagger)
+    {
+        mat_eigen.adjointInPlace();
+    }
+    qvector_t state_bak(dim);
+    state_bak.setZero();
+    /*Eigen::VectorXcd state_bak(dim);
+    state_bak.setZero(dim);*/
 
+    std::vector<int64_t> realxx_idxes(dim);
 
-	if (size > m_threshold)
-	{
-		//#pragma omp parallel for
-		for (int64_t i = 0; i < size; i++)
-		{
-			int64_t real00_idx = _insert(i, qubits[0], qubits[1], qubits[2]);
-			if (mask != (mask & real00_idx)) {
-				continue;
-			}
+    if (controls.size() > 3)
+    {
+        for_each(controls.begin(), controls.end() - 3, [&](size_t q) {
+            mask |= 1ll << q;
+        });
+    }
 
+#pragma omp parallel for num_threads(_omp_thread_num(size)) firstprivate(realxx_idxes, state_bak)
+    for (int64_t i = 0; i < size; i++)
+    {
+        int64_t real00_idx = _insert(i, qubits[0], qubits[1], qubits[2]);
+        if (mask != (mask & real00_idx)) {
+            continue;
+        }
 
-			/* bit swap 001 ===> 100 , 011 ===> 110  */
-			auto phi0000 = m_state[real00_idx];
-			auto phi0001 = m_state[real00_idx | offset0];
-			auto phi0010 = m_state[real00_idx | offset1];
-			auto phi0011 = m_state[real00_idx | offset0 | offset1];
+        realxx_idxes[0] = real00_idx;
+        realxx_idxes[1] = real00_idx | offset0;
+        realxx_idxes[2] = real00_idx | offset1;
+        realxx_idxes[3] = real00_idx | offset0 | offset1;
 
-			auto phi0100 = m_state[real00_idx | offset2];
-			auto phi0101 = m_state[real00_idx | offset2 | offset0];
-			auto phi0110 = m_state[real00_idx | offset2 | offset1];
-			auto phi0111 = m_state[real00_idx | offset2 | offset1 | offset0];
+        realxx_idxes[4] = real00_idx | offset2;
+        realxx_idxes[5] = real00_idx | offset2 | offset0;
+        realxx_idxes[6] = real00_idx | offset2 | offset1;
+        realxx_idxes[7] = real00_idx | offset2 | offset1 | offset0;
 
-			// m_state[0]
-			m_state[real00_idx]
-				= matrix[0] * phi0000 + matrix[1] * phi0001
-				+ matrix[2] * phi0010 + matrix[3] * phi0011
-				+ matrix[4] * phi0100 + matrix[5] * phi0101
-				+ matrix[6] * phi0110 + matrix[7] * phi0111;
-			// m_state[1]
-			m_state[real00_idx | offset0]
-				= matrix[8] * phi0000 + matrix[9] * phi0001
-				+ matrix[10] * phi0010 + matrix[11] * phi0011
-				+ matrix[12] * phi0100 + matrix[13] * phi0101
-				+ matrix[14] * phi0110 + matrix[15] * phi0111;
-			// m_state[2]
-			m_state[real00_idx | offset1]
-				= matrix[16] * phi0000 + matrix[17] * phi0001
-				+ matrix[18] * phi0010 + matrix[19] * phi0011
-				+ matrix[20] * phi0100 + matrix[21] * phi0101
-				+ matrix[22] * phi0110 + matrix[23] * phi0111;
-			// m_state[3]
-			m_state[real00_idx | offset0 | offset1]
-				= matrix[24] * phi0000 + matrix[25] * phi0001
-				+ matrix[26] * phi0010 + matrix[27] * phi0011
-				+ matrix[28] * phi0100 + matrix[29] * phi0101
-				+ matrix[30] * phi0110 + matrix[31] * phi0111;
-			// m_state[4]
-			m_state[real00_idx | offset2]
-				= matrix[32] * phi0000 + matrix[33] * phi0001
-				+ matrix[34] * phi0010 + matrix[35] * phi0011
-				+ matrix[36] * phi0100 + matrix[37] * phi0101
-				+ matrix[38] * phi0110 + matrix[39] * phi0111;
-			// m_state[5]
-			m_state[real00_idx | offset2 | offset0]
-				= matrix[40] * phi0000 + matrix[41] * phi0001
-				+ matrix[42] * phi0010 + matrix[43] * phi0011
-				+ matrix[44] * phi0100 + matrix[45] * phi0101
-				+ matrix[46] * phi0110 + matrix[47] * phi0111;
+        for (size_t i_dim = 0; i_dim < dim; i_dim++)
+        {
+            state_bak(i_dim) = m_state[realxx_idxes[i_dim]];
+        }
 
-			// m_state[6]
-			m_state[real00_idx | offset2 | offset1]
-				= matrix[48] * phi0000 + matrix[49] * phi0001
-				+ matrix[50] * phi0010 + matrix[51] * phi0011
-				+ matrix[52] * phi0100 + matrix[53] * phi0101
-				+ matrix[54] * phi0110 + matrix[55] * phi0111;
-			// m_state[7]
-			m_state[real00_idx | offset2 | offset1 | offset0]
-				= matrix[56] * phi0000 + matrix[57] * phi0001
-				+ matrix[58] * phi0010 + matrix[59] * phi0011
-				+ matrix[60] * phi0100 + matrix[61] * phi0101
-				+ matrix[62] * phi0110 + matrix[63] * phi0111;
-		}
-	}
-	else
-	{
-		for (int64_t i = 0; i < size; i++)
-		{
-			int64_t real00_idx = _insert(i, qubits[0], qubits[1], qubits[2]);
-			if (mask != (mask & real00_idx))
-				continue;
-
-			auto phi0000 = m_state[real00_idx];
-			auto phi0001 = m_state[real00_idx | offset0];
-			auto phi0010 = m_state[real00_idx | offset1];
-			auto phi0011 = m_state[real00_idx | offset0 | offset1];
-
-			auto phi0100 = m_state[real00_idx | offset2];
-			auto phi0101 = m_state[real00_idx | offset2 | offset0];
-			auto phi0110 = m_state[real00_idx | offset2 | offset1];
-			auto phi0111 = m_state[real00_idx | offset2 | offset1 | offset0];
-
-			// m_state[0]
-			m_state[real00_idx]
-				= matrix[0] * phi0000 + matrix[1] * phi0001
-				+ matrix[2] * phi0010 + matrix[3] * phi0011
-				+ matrix[4] * phi0100 + matrix[5] * phi0101
-				+ matrix[6] * phi0110 + matrix[7] * phi0111;
-			// m_state[1]
-			m_state[real00_idx | offset0]
-				= matrix[8] * phi0000 + matrix[9] * phi0001
-				+ matrix[10] * phi0010 + matrix[11] * phi0011
-				+ matrix[12] * phi0100 + matrix[13] * phi0101
-				+ matrix[14] * phi0110 + matrix[15] * phi0111;
-			// m_state[2]
-			m_state[real00_idx | offset1]
-				= matrix[16] * phi0000 + matrix[17] * phi0001
-				+ matrix[18] * phi0010 + matrix[19] * phi0011
-				+ matrix[20] * phi0100 + matrix[21] * phi0101
-				+ matrix[22] * phi0110 + matrix[23] * phi0111;
-			// m_state[3]
-			m_state[real00_idx | offset0 | offset1]
-				= matrix[24] * phi0000 + matrix[25] * phi0001
-				+ matrix[26] * phi0010 + matrix[27] * phi0011
-				+ matrix[28] * phi0100 + matrix[29] * phi0101
-				+ matrix[30] * phi0110 + matrix[31] * phi0111;
-			// m_state[4]
-			m_state[real00_idx | offset2]
-				= matrix[32] * phi0000 + matrix[33] * phi0001
-				+ matrix[34] * phi0010 + matrix[35] * phi0011
-				+ matrix[36] * phi0100 + matrix[37] * phi0101
-				+ matrix[38] * phi0110 + matrix[39] * phi0111;
-			// m_state[5]
-			m_state[real00_idx | offset2 | offset0]
-				= matrix[40] * phi0000 + matrix[41] * phi0001
-				+ matrix[42] * phi0010 + matrix[43] * phi0011
-				+ matrix[44] * phi0100 + matrix[45] * phi0101
-				+ matrix[46] * phi0110 + matrix[47] * phi0111;
-			// m_state[6]
-			m_state[real00_idx | offset2 | offset1]
-				= matrix[48] * phi0000 + matrix[49] * phi0001
-				+ matrix[50] * phi0010 + matrix[51] * phi0011
-				+ matrix[52] * phi0100 + matrix[53] * phi0101
-				+ matrix[54] * phi0110 + matrix[55] * phi0111;
-			// m_state[7]
-			m_state[real00_idx | offset2 | offset1 | offset0]
-				= matrix[56] * phi0000 + matrix[57] * phi0001
-				+ matrix[58] * phi0010 + matrix[59] * phi0011
-				+ matrix[60] * phi0100 + matrix[61] * phi0101
-				+ matrix[62] * phi0110 + matrix[63] * phi0111;
-		}
-	}
-
-	return qErrorNone;
+        for (size_t i_dim = 0; i_dim < dim; i_dim++)
+        {
+            m_state[realxx_idxes[i_dim]] = mat_eigen.row(i_dim).cwiseProduct(state_bak).sum();
+        }
+    }
+    return qErrorNone;
 }
 
 QError CPUImplQPU::_four_qubit_gate(Qnum &qubits, QStat& matrix, bool is_dagger, const Qnum& controls)
@@ -2446,7 +2332,10 @@ QError CPUImplQPU::_four_qubit_gate(Qnum &qubits, QStat& matrix, bool is_dagger,
 		mat_eigen.adjointInPlace();
 	}
 
-	qvector_t state_bak(dim);
+    qvector_t state_bak(dim);
+    state_bak.setZero();
+    /*Eigen::VectorXcd state_bak(dim);
+    state_bak.setZero(dim);*/
 	std::vector<int64_t> realxx_idxes(dim);
 	if (controls.size() > 4)
 	{
@@ -2454,7 +2343,7 @@ QError CPUImplQPU::_four_qubit_gate(Qnum &qubits, QStat& matrix, bool is_dagger,
 			mask |= 1ll << q;
 		});
 	}
-
+#pragma omp parallel for num_threads(_omp_thread_num(size)) firstprivate(state_bak, realxx_idxes)
 	for (int64_t i = 0; i < size; i++)
 	{
 		int64_t real00_idx = _insert(i, qubits[0], qubits[1], qubits[2], qubits[3]);
@@ -2512,7 +2401,10 @@ QError CPUImplQPU::_five_qubit_gate(Qnum &qubits, QStat& matrix, bool is_dagger,
 		mat_eigen.adjointInPlace();
 	}
 
-	qvector_t state_bak(dim);
+    /*Eigen::VectorXcd state_bak(dim);
+    state_bak.setZero(dim);*/
+    qvector_t state_bak(dim);
+    state_bak.setZero();
 	std::vector<int64_t> realxx_idxes(dim);
 	if (controls.size() > 5)
 	{
@@ -2520,7 +2412,7 @@ QError CPUImplQPU::_five_qubit_gate(Qnum &qubits, QStat& matrix, bool is_dagger,
 			mask |= 1ll << q;
 		});
 	}
-
+#pragma omp parallel for num_threads(_omp_thread_num(size)) firstprivate(state_bak, realxx_idxes)
 	for (int64_t i = 0; i < size; i++)
 	{
 		int64_t real00_idx = _insert(i, qubits[0], qubits[1], qubits[2], qubits[3], qubits[4]);

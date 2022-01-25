@@ -232,17 +232,40 @@ using PressedTopoSeq = TopologSequence<pPressedCirNode>;
 using PressedLayer = SeqLayer<pPressedCirNode>;
 using PressedNode = SeqNode<pPressedCirNode>;
 
+class QProgLayer : protected ProcessOnTraversing
+{
+public:
+	QProgLayer() {}
+	virtual ~QProgLayer() {}
+
+	virtual void init() {}
+
+	virtual void layer(QProg src_prog);
+
+	virtual const LayeredTopoSeq& get_topo_seq() { return m_topolog_sequence; }
+
+protected:
+	void process(const bool on_travel_end = false) override;
+	void append_topolog_seq(LayeredTopoSeq& tmp_seq);
+	void add_gate_to_buffer(NodeIter iter, QCircuitParam &cir_param,
+		std::shared_ptr<QNode> parent_node, OptimizerSink& gates_buffer) override;
+
+private:
+	LayeredTopoSeq m_topolog_sequence;
+	std::vector<std::vector<int>> m_qubit_topo_matrix;
+	std::vector<int> m_high_frequency_qubits;
+	size_t m_qubit_size;
+};
+
 PressedTopoSeq get_pressed_layer(QProg src_prog);
 
 /**
 * @brief Program layering.
 * @ingroup Utilities
 * @param[in] prog  the source prog
-* @param[in] bool Whether to enable low-frequency qubit compensation, default is false
-* @param[in] const std::string config data, @See JsonConfigParam::load_config()
 * @return the TopologSequence
 */
-LayeredTopoSeq prog_layer(QProg src_prog, const bool b_enable_qubit_compensation = false, const std::string config_data = CONFIG_PATH);
+LayeredTopoSeq prog_layer(QProg src_prog);
 
 LayeredTopoSeq get_clock_layer(QProg src_prog, const std::string config_data = CONFIG_PATH);
 

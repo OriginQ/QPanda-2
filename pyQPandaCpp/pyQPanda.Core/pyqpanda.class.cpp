@@ -689,7 +689,17 @@ void init_core_class(py::module & m)
         .def("exec", &QuantumStateTomography::exec,
             "run state tomography QProgs",
             py::arg("qm"), py::arg("shots"),
-            "")
+            py::return_value_policy::reference)
+
+        .def("set_qprog_results", py::overload_cast<size_t, const std::vector<std::map<std::string, double>>& >
+                                  (&QuantumStateTomography::set_qprog_results),
+            "set combine_qprogs result",
+            py::arg("qlist"), py::arg("results"),
+            py::return_value_policy::reference)
+
+        .def("caculate_tomography_density", &QuantumStateTomography::caculate_tomography_density,
+            "caculate tomography density",
+            py::return_value_policy::reference)
         ;
 
 	py::class_<Fusion>(m, "Fusion")
@@ -703,6 +713,29 @@ void init_core_class(py::module & m)
 			return  self.aggregate_operations(prog, qvm); },
 			"prog"_a, " QuantumMachine"_a,
 				py::return_value_policy::automatic);
+
+    py::enum_<LATEX_GATE_TYPE>(m, "LATEX_GATE_TYPE")
+            .value("GENERAL_GATE", LATEX_GATE_TYPE::GENERAL_GATE)
+            .value("CNOT_GATE", LATEX_GATE_TYPE::CNOT)
+            .value("SWAP_GATE", LATEX_GATE_TYPE::SWAP)
+            .export_values();
+
+    py::class_<LatexMatrix>(m, "LatexMatrix")
+        .def(py::init<>())
+        .def("set_label", &LatexMatrix::setLabel, py::arg("qubit_label"), py::arg("cbit_label") = LatexMatrix::Label(), py::arg("time_seq_label") = "", py::arg("head") = true)
+        .def("set_logo", &LatexMatrix::setLogo, py::arg("logo") = py::str())
+        .def("insert_gate", &LatexMatrix::insertGate, py::arg("target_rows"),
+				                                      py::arg("ctrl_rows"),
+				                                      py::arg("from_col"),
+				                                      py::arg("type"),
+				                                      py::arg("gate_name") = "",
+				                                      py::arg("dagger") = false,
+				                                      py::arg("param") = "")
+        .def("insert_barrier", &LatexMatrix::insertBarrier, py::arg("rows"), py::arg("from_col"))
+        .def("insert_measure", &LatexMatrix::insertMeasure,  py::arg("q_row"), py::arg("c_row"), py::arg("from_col"))
+        .def("insert_reset", &LatexMatrix::insertReset, py::arg("q_row"), py::arg("from_col"))
+        .def("insert_timeseq", &LatexMatrix::insertTimeSeq, py::arg("t_col"), py::arg("time_seq"))
+        .def("str", &LatexMatrix::str, py::arg("with_time") = false);
 
     return ;
 }

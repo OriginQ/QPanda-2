@@ -195,6 +195,7 @@ public:
 
 	QError single_qubit_gate_fusion(size_t qn, QStat& matrix);
 	QError double_qubit_gate_fusion(size_t qn_0, size_t qn_1, QStat &matrix);
+    QError three_qubit_gate_fusion(size_t qn_0, size_t qn_1, QStat &matrix);
     //define unitary single/double quantum gate
     QError unitarySingleQubitGate(size_t qn,
         QStat& matrix, bool is_dagger,

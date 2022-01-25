@@ -86,27 +86,14 @@ std::vector<QStat> QuantumStateTomography::exec(QuantumMachine *qm, size_t shots
 
         m_prog_results.push_back(result_prob);
     }
-
     return caculate_tomography_density();
 }
 
-void QuantumStateTomography::set_qprog_results(std::vector<size_t> &qlist, const std::vector<std::map<std::string, double>>& results)
-{
-    QVec qv;
-    OriginQubitPool *qubit_pool = OriginQubitPool::get_instance();
-    for (auto qaddr : qlist)
-    {
-        qv.push_back(qubit_pool->allocateQubitThroughVirAddress(qaddr));
-    }
 
-    set_qprog_results(qv, results);
-    return;
-}
-
-void QuantumStateTomography::set_qprog_results(const QVec &qlist, const std::vector<std::map<std::string, double>>& results)
+void QuantumStateTomography::set_qprog_results(size_t opt_num, const std::vector<std::map<std::string, double>>& results)
 {
     m_prog_results = results;
-    m_qlist = qlist;
+    m_opt_num = opt_num;
     return;
 }
 
@@ -145,7 +132,7 @@ std::vector<QStat> QuantumStateTomography::caculate_tomography_density()
 
     auto tensor_kraus = [&](size_t idx)->qmatrix_t
     {
-        auto ary = uint_to_ary(idx, 4, m_qlist.size());
+        auto ary = uint_to_ary(idx, 4, m_opt_num);
         qmatrix_t ret_kraus = kraus[ary[0]];
 
         for (size_t i = 1; i < ary.size(); i++)
@@ -158,13 +145,13 @@ std::vector<QStat> QuantumStateTomography::caculate_tomography_density()
         return ret_kraus;
     };
 
-    size_t dim = 1ull << m_qlist.size();
+    size_t dim = 1ull << m_opt_num;
     qmatrix_t eigen_density(dim, dim);
     eigen_density.setZero();
 
     for (size_t i = 0; i < m_s.size(); i++)
     {
-        double fact = 1. / (1ull << m_qlist.size());
+        double fact = 1. / (1ull << m_opt_num);
         fact *= m_s[i];
         qmatrix_t tmp_density = tensor_kraus(i);
         eigen_density += fact * tmp_density;
@@ -249,10 +236,10 @@ void QuantumStateTomography::_get_s()
         return s;
     };
 
-    m_s.assign(1ull << (2 * m_qlist.size()), 0);
+    m_s.assign(1ull << (2 * m_opt_num), 0);
     for (size_t i = 0; i < m_s.size(); i++)
     {
-        auto idx_ary = uint_to_ary(i, 4, m_qlist.size());
+        auto idx_ary = uint_to_ary(i, 4, m_opt_num);
         auto idx_p = s_map_p(idx_ary);
         vector<size_t> nozore_pos = store_nozero_pos(idx_ary);
         m_s[i] = compute_s(nozore_pos, m_prog_results[idx_p]);

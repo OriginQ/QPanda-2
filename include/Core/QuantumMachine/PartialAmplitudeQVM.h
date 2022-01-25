@@ -45,7 +45,6 @@ public:
 	template <typename _Ty>
 	void run(_Ty &node)
 	{
-        //decompose_multiple_control_qgate(node, this, "");
 		auto qubit_num = getAllocateQubitNum();
 		m_graph_backend.reset(qubit_num);
 		execute(node.getImplementationPtr(), nullptr);
@@ -101,6 +100,10 @@ private:
 	void construct_graph();
 	void computing_graph(int qubit_num, const cir_type& circuit, QStat& state);
     void caculate_qstate(QStat &state);
+    void construct_qnode(int gate_type,
+                         bool is_dagger,
+                         const std::vector<size_t>& qubits,
+                         const std::vector<double>& params);
 
     std::shared_ptr<QPUImpl> m_simulator = nullptr;
 };

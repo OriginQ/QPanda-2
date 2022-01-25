@@ -25,7 +25,9 @@ QPANDA_BEGIN
 class Fusion
 {
 public:
-
+    Fusion() {
+        std::fill_n(distances_, 64, -1);
+    };
 	/**
 	* @brief
 	* @param[in]  QCircuit& cir target optimize circuit
@@ -45,6 +47,19 @@ public:
 	void aggregate_operations(QProg& prog, QuantumMachine* qvm);
 
 protected:
+    double distance_cost(const std::vector<QGate>& ops,
+        const int from,
+        const int until) const;
+    /*double estimate_cost(QProg& prog,NodeIter &itr_star, NodeIter &itr_end)const;*/
+
+    void add_optimize_qubits(std::vector<int>& fusion_qubits, const QGate& gate) const;
+
+    bool aggreate(std::vector<QGate>& prog, QuantumMachine* qvm);
+    //bool aggreate(QProg& prog, QuantumMachine* qvm);
+
+    QGate _generate_oracle_gate(const std::vector<QGate>& fusioned_ops,
+        const std::vector<int>& qubits, QuantumMachine* qvm);
+
 	bool _exclude_escaped_qubits(std::vector<int>& fusing_qubits,
 		const QGate& tgt_op)  const;
 
@@ -60,6 +75,12 @@ protected:
 	void _allocate_new_operation(T& prog, NodeIter& index_itr,
 		std::vector<NodeIter>& fusing_op_itrs, QuantumMachine* qvm);
 
+    void _allocate_new_gate(std::vector<QGate>& prog, int index,
+        std::vector<int>& fusing_op_itrs, QuantumMachine* qvm);
+
+private:
+    double distance_factor = 1.8;
+    double distances_[64];
 };
 QPANDA_END
 

@@ -11,12 +11,12 @@ using namespace std;
 #define PRINTF_MAPPING_RESULT 0 
 
 TopologyMatch::TopologyMatch(QuantumMachine* machine, QProg prog,
-	const string conf /*= CONFIG_PATH*/)
+	const std::string& conf)
 	:m_prog(prog)
 {
 	m_nqubits = machine->getAllocateQubit();
 	m_qvm = machine;
-	buildGraph(m_graph, m_positions);
+	buildGraph(m_graph, m_positions, conf);
 
 	if (m_nqubits > m_positions)
 	{
@@ -42,13 +42,13 @@ bool TopologyMatch::isContains(vector<int> v, int e)
 	return false;
 }
 
-void  TopologyMatch::buildGraph(set<edge>& graph, size_t& positions)
+void  TopologyMatch::buildGraph(set<edge>& graph, size_t& positions, const std::string& conf)
 {
 	graph.clear();
 	vector<vector<double>> qubit_matrix;
 	int qubit_num = 0;
 	JsonConfigParam config;
-	config.load_config(CONFIG_PATH);
+	config.load_config(conf);
 	config.getMetadataConfig(qubit_num, qubit_matrix);
 	positions = qubit_num;
 	for (int i = 0; i < positions; i++)

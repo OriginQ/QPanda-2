@@ -1,3 +1,5 @@
+from pyqpanda import NoiseModel
+from pyqpanda import GateType
 from numpy import pi
 from pyqpanda import *
 import time
@@ -388,19 +390,25 @@ def Cluster_Cloud():
 
 
 def noise_fun():
-    qvm = NoiseQVM()
+    qvm = MPSQVM()
     qvm.set_configure(20, 20)
 
     # default argc
-    qubits_num = 10
-    shot = 100
+    qubits_num = 1
+    shot = 1000
 
     # 设置噪声模型参数
-    noise_rate = 0.001
-    qvm.set_noise_model(NoiseModel.DEPHASING_KRAUS_OPERATOR,
-                        GateType.HADAMARD_GATE, [noise_rate])
-    qvm.set_noise_model(NoiseModel.DEPHASING_KRAUS_OPERATOR,
-                        GateType.CPHASE_GATE, [2 * noise_rate])
+    # qvm.set_noise_model(NoiseModel.DEPHASING_KRAUS_OPERATOR, GateType.HADAMARD_GATE, [noise_rate])
+    # qvm.set_noise_model(NoiseModel.DEPHASING_KRAUS_OPERATOR,GateType.CPHASE_GATE, [2 * noise_rate])
+
+    qvm.add_single_noise_model(
+        NoiseModel.BITFLIP_KRAUS_OPERATOR, GateType.PAULI_X_GATE, 0.9)
+    qvm.add_single_noise_model(
+        NoiseModel.DEPHASING_KRAUS_OPERATOR, GateType.PAULI_X_GATE, 0.4)
+    qvm.add_single_noise_model(
+        NoiseModel.DEPOLARIZING_KRAUS_OPERATOR, GateType.PAULI_X_GATE, 0.999)
+    qvm.add_single_noise_model(
+        NoiseModel.DECOHERENCE_KRAUS_OPERATOR, GateType.PAULI_X_GATE, 5, 5, 0.9)
 
     qvm.init_qvm()
 
@@ -408,25 +416,19 @@ def noise_fun():
     c = qvm.cAlloc_many(qubits_num)
 
     prog = QProg()
-    for i in range(0, qubits_num):
-        target = q[qubits_num - 1 - i]
-        prog.insert(H(target))
-        for j in range(i + 1, qubits_num):
-            control = q[qubits_num - 1 - j]
-            prog.insert(CR(control, target, 2 * pi / (1 << (j - i + 1))))
+    prog << X(q[0]) << measure_all(q, c)
 
-    prog.insert(measure_all(q, c))
+    # for i in range(0, qubits_num):
+    #     target = q[qubits_num - 1 - i]
+    #     prog.insert(H(target))
+    #     for j in range(i + 1, qubits_num):
+    #         control = q[qubits_num - 1 - j]
+    #         prog.insert(CR(control, target, 2 * pi / (1 << (j - i + 1))))
+    # prog.insert(measure_all(q, c))
 
-    start = time.time()
     result = qvm.run_with_configuration(prog, c, shot)
-    end = time.time()
-    print(qvm.get_allocate_cmem_num())
-    print(qvm.get_allocate_qubit_num())
-    print(qvm.getAllocateCMem())
-    print(qvm.getAllocateQubitNum())
-    print("noise :", "qubit =", qubits_num,
-          " shots =", shot, " times =", end - start)
-    # print(result)
+    print(result)
+
     qvm.finalize()
 
 

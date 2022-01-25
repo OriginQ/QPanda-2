@@ -27,413 +27,110 @@ Description:gpu quantum logic gates class
 #ifdef USE_CUDA
 using namespace std;
 #include "QPandaNamespace.h"
-#include "GPUGatesWrapper.h"
 #include <algorithm>
 #include <thread>
 #include <map>
 #include <iostream>
 #include <sstream>
 
+#include "Core/Utilities/QPandaNamespace.h"
+#include "Core/Utilities/Tools/QPandaException.h"
+
+
 using std::stringstream;
+
+
+GPUImplQPU::GPUImplQPU()
+{
+    m_device_qpu = make_unique<DeviceQPU>();
+}
 
 GPUImplQPU::~GPUImplQPU()
 {
-    if (miQbitNum > 0)
-        GATEGPU::destroyState(mvCPUQuantumStat, mvQuantumStat, miQbitNum);
 
-    if (m_probgpu != nullptr)
-    {
-        GATEGPU::gpuFree(m_probgpu);
-    }
-    if (m_resultgpu != nullptr)
-    {
-        GATEGPU::gpuFree(m_resultgpu);
-    }
 }
 
 size_t GPUImplQPU::getQStateSize()
 {
-    if (!mbIsInitQState)
+    if (!m_is_init_state)
         return 0;
     else
     {
-        return 1ull << miQbitNum;
+        return 1ull << m_qubit_num;
     }
 }
 
-/*****************************************************************************************************************
-Name:        initState
-Description: initialize the quantum state
-Argin:       stNumber  Quantum number
-Argout:      None
-return:      quantum error
-*****************************************************************************************************************/
+
 QError GPUImplQPU::initState(size_t head_rank, size_t rank_size, size_t qubit_num)
-{
-    if (!GATEGPU::initstate(mvCPUQuantumStat, mvQuantumStat, qubit_num))
+{   
+    m_qubit_num = qubit_num;
+    if (m_is_init_state)
     {
-        return undefineError;
+        m_device_qpu->init_state(m_qubit_num, m_init_state);
     }
-    miQbitNum = qubit_num;
-    mbIsInitQState = true;
+    else
+    {
+        m_device_qpu->init_state(m_qubit_num);
+    }
+
     return qErrorNone;
 }
 
+QError GPUImplQPU::initState(size_t qubit_num, const QStat &state)
+{
+    if (0 == state.size())
+    {
+        m_device_qpu->init_state(m_qubit_num);
+        m_is_init_state = false;
+    }
+    else
+    {
+        m_qubit_num = qubit_num;
+        m_init_state.resize(1ull << m_qubit_num, 0);
+        QPANDA_ASSERT(1ll << m_qubit_num != state.size(), "Error: initState size.");
+        m_is_init_state = true;
 
-/*****************************************************************************************************************
-Name:        getQState
-Description: get quantum state
-Argin:       pQuantumProParam       quantum program prarm pointer
-Argout:      sState                 string state
-return:      quantum error
-*****************************************************************************************************************/
+        for (int64_t i = 0; i < state.size(); i++)
+        {
+            m_init_state[i] = state[i];
+        }
+    }
+    return undefineError;
+}
+
 QStat GPUImplQPU::getQState()
 {
-	if (miQbitNum <= 0)
-	{
-        return QStat();
-	}
-
-    GATEGPU::getState(mvCPUQuantumStat, mvQuantumStat, miQbitNum);
-    size_t uiDim = 1ull << miQbitNum;
-    stringstream ssTemp;
-	QStat temp;
-
-    for (size_t i = 0; i < uiDim; i++)
-    {
-        qcomplex_t qstate = { mvCPUQuantumStat.real[i] ,mvCPUQuantumStat.imag[i] };
-        temp.push_back(qstate);
-    }
-    return temp;
+    m_device_qpu->get_qstate(m_init_state);
+    return m_init_state;
 }
 
-/*****************************************************************************************************************
-Name:        endGate
-Description: end gate
-Argin:       pQuantumProParam       quantum program param pointer
-pQGate                 quantum gate
-Argout:      None
-return:      quantum error
-*****************************************************************************************************************/
-QError GPUImplQPU::endGate(QPanda::TraversalConfig *pQuantumProParam, QPUImpl * pQGate)
-{
-    return qErrorNone;
-}
-
-QError GPUImplQPU::Hadamard(size_t qn, bool isConjugate, double error_rate)
-{
-    return undefineError;
-}
-
-QError GPUImplQPU::Hadamard(
-    size_t qn,
-    Qnum& vControlBit,
-    bool isConjugate,
-    double error_rate)
-{
-    return undefineError;
-}
-
-QError GPUImplQPU::X(size_t qn, bool isConjugate, double error_rate)
-{
-    return undefineError;
-}
-
-QError GPUImplQPU::X(
-    size_t qn,
-    Qnum& vControlBit,
-    bool isConjugate,
-    double error_rate)
-{
-    return undefineError;
-}
-
-QError GPUImplQPU::Y(size_t qn, bool isConjugate, double error_rate)
-{
-    return undefineError;
-}
-QError GPUImplQPU::Y(
-    size_t qn,
-    Qnum& vControlBit,
-    bool isConjugate,
-    double error_rate)
-{
-    return undefineError;
-}
-
-QError GPUImplQPU::Z(size_t qn, bool isConjugate, double error_rate)
-{
-    return undefineError;
-}
-QError GPUImplQPU::Z(
-    size_t qn,
-    Qnum& vControlBit,
-    bool isConjugate,
-    double error_rate)
-{
-    return undefineError;
-}
-QError GPUImplQPU::S(size_t qn, bool isConjugate, double error_rate)
-{
-    return undefineError;
-}
-QError GPUImplQPU::S(
-    size_t qn,
-    Qnum& vControlBit,
-    bool isConjugate,
-    double error_rate)
-{
-    return undefineError;
-}
-QError GPUImplQPU::T(size_t qn, bool isConjugate, double error_rate)
-{
-    return undefineError;
-}
-
-QError GPUImplQPU::T(
-    size_t qn,
-    Qnum& vControlBit,
-    bool isConjugate,
-    double error_rate)
-{
-    return undefineError;
-}
-
-
-QError GPUImplQPU::RX_GATE(size_t qn, double theta,
-    bool isConjugate, double error_rate)
-{
-    return undefineError;
-}
-
-QError GPUImplQPU::RX_GATE(
-    size_t qn,
-    double theta,
-    Qnum& vControlBit,
-    bool isConjugate,
-    double error_rate)
-{
-    return undefineError;
-}
-
-QError GPUImplQPU::RY_GATE(size_t qn, double theta,
-    bool isConjugate, double error_rate)
-{
-    return undefineError;
-}
-
-QError GPUImplQPU::RY_GATE(
-    size_t qn,
-    double theta,
-    Qnum& vControlBit,
-    bool isConjugate,
-    double error_rate)
-{
-    return undefineError;
-}
-
-
-QError GPUImplQPU::RZ_GATE(size_t qn, double theta,
-    bool isConjugate, double error_rate)
-{
-    return undefineError;
-}
-
-QError GPUImplQPU::RZ_GATE(
-    size_t qn,
-    double theta,
-    Qnum& vControlBit,
-    bool isConjugate,
-    double error_rate)
-{
-    return undefineError;
-}
-
-
-
-//double quantum gate
-QError GPUImplQPU::CNOT(size_t qn_0, size_t qn_1, bool isConjugate, double error_rate)
-{
-    return undefineError;
-}
-
-QError GPUImplQPU::CNOT(
-    size_t qn_0,
-    size_t qn_1,
-    Qnum& vControlBit,
-    bool isConjugate,
-    double error_rate)
-{
-    return undefineError;
-}
-
-QError GPUImplQPU::CZ(size_t qn_0, size_t qn_1, bool isConjugate, double error_rate)
-{
-    return undefineError;
-}
-
-QError GPUImplQPU::CZ(
-    size_t qn_0,
-    size_t qn_1,
-    Qnum& vControlBit,
-    bool isConjugate,
-    double error_rate)
-{
-    return undefineError;
-}
-
-QError GPUImplQPU::CR(size_t qn_0, size_t qn_1, double theta, bool isConjugate, double error_rate)
-{
-    return undefineError;
-}
-
-QError GPUImplQPU::CR(
-    size_t qn_0,
-    size_t qn_1,
-    Qnum& vControlBit,
-    double theta,
-    bool isConjugate,
-    double error_rate)
-{
-    return undefineError;
-}
-
-QError GPUImplQPU::iSWAP(size_t qn_0, size_t qn_1, double theta, bool isConjugate, double error_rate)
-{
-    return undefineError;
-}
-
-QError GPUImplQPU::iSWAP(
-    size_t qn_0,
-    size_t qn_1,
-    Qnum& vControlBit,
-    double theta,
-    bool isConjugate,
-    double error_rate)
-{
-    return undefineError;
-}
-
-//pi/2 iSWAP
-QError GPUImplQPU::iSWAP(size_t qn_0, size_t qn_1, bool isConjugate, double error_rate)
-{
-    return undefineError;
-}
-
-QError GPUImplQPU::iSWAP(
-    size_t qn_0,
-    size_t qn_1,
-    Qnum& vControlBit,
-    bool isConjugate,
-    double error_rate)
-{
-    return undefineError;
-}
-
-
-//pi/4 SqiSWAP
-QError GPUImplQPU::SqiSWAP(size_t qn_0, size_t qn_1, bool isConjugate, double error_rate)
-{
-    return undefineError;
-}
-QError GPUImplQPU::SqiSWAP(
-    size_t qn_0,
-    size_t qn_1,
-    Qnum& vControlBit,
-    bool isConjugate,
-    double error_rate)
-{
-    return undefineError;
-}
-
-QError GPUImplQPU::U1_GATE(size_t qn, double theta, bool isConjugate, double error_rate)
-{
-    return undefineError;
-}
-
-QError GPUImplQPU::U1_GATE(size_t qn, Qnum & vControlBit, double theta, bool isConjugate, double error_rate)
-{
-    return undefineError;
-}
-
-QError GPUImplQPU::U2_GATE(size_t qn, double phi, double lambda, bool isConjugate, double error_rate)
-{
-    return undefineError;
-}
-
-QError GPUImplQPU::U2_GATE(size_t qn, Qnum & vControlBit, double phi, double lambda, bool isConjugate, double error_rate)
-{
-    return undefineError;
-}
-
-QError GPUImplQPU::U3_GATE(size_t qn, double theta, double phi, double lambda, bool isConjugate, double error_rate)
-{
-    return undefineError;
-}
-
-QError GPUImplQPU::U3_GATE(size_t qn, Qnum & vControlBit, double theta, double phi, double lambda, bool isConjugate, double error_rate)
-{
-    return undefineError;
-}
 
 QError GPUImplQPU::unitarySingleQubitGate(size_t qn,
     QStat & matrix,
-    bool isConjugate,
+    bool is_dagger,
     GateType type)
 {
-    gpu_qstate_t matrix_real[4] = { matrix[0].real(),matrix[1].real(), matrix[2].real(), matrix[3].real()};
-    gpu_qstate_t matrix_imag[4] = { matrix[0].imag(),matrix[1].imag(), matrix[2].imag(), matrix[3].imag() };
-    GATEGPU::QState gpu_matrix;
-    gpu_matrix.real = matrix_real;
-    gpu_matrix.imag = matrix_imag;
-    if (!GATEGPU::unitarysingle(mvQuantumStat, qn, gpu_matrix, isConjugate))
-    {
-        return undefineError;
-    }
-
-    return qErrorNone;
+    m_device_qpu->exec_gate(type, matrix, {qn}, 1, is_dagger);
+    return QError::qErrorNone;
 }
 
 QError GPUImplQPU::controlunitarySingleQubitGate(size_t qn,
     Qnum& qnum,
     QStat& matrix,
-    bool isConjugate,
+    bool is_dagger,
     GateType type)
 {
-    gpu_qstate_t matrix_real[4] = { matrix[0].real(),matrix[1].real(), matrix[2].real(), matrix[3].real() };
-    gpu_qstate_t matrix_imag[4] = { matrix[0].imag(),matrix[1].imag(), matrix[2].imag(), matrix[3].imag() };
-    GATEGPU::QState gpu_matrix;
-    gpu_matrix.real = matrix_real;
-    gpu_matrix.imag = matrix_imag;
-    if (!GATEGPU::controlunitarysingle(mvQuantumStat, qnum, gpu_matrix, isConjugate))
-    {
-        return undefineError;
-    }
-
+    m_device_qpu->exec_gate(type, matrix, qnum, 1, is_dagger);
     return qErrorNone;
 }
 
 QError GPUImplQPU::unitaryDoubleQubitGate(size_t qn_0,
     size_t qn_1,
     QStat& matrix,
-    bool isConjugate,
+    bool is_dagger,
     GateType type)
 {
-    gpu_qstate_t matrix_real[16];
-    gpu_qstate_t matrix_imag[16];
-    for (int i = 0; i < 16; i++)
-    {
-        matrix_real[i] = matrix[i].real();
-        matrix_imag[i] = matrix[i].imag();
-    }
-    GATEGPU::QState gpu_matrix;
-    gpu_matrix.real = matrix_real;
-    gpu_matrix.imag = matrix_imag;
-    if (!GATEGPU::unitarydouble(mvQuantumStat, qn_0, qn_1, gpu_matrix, isConjugate))
-    {
-        return undefineError;
-    }
-
+    m_device_qpu->exec_gate(type, matrix, {qn_0, qn_1}, 2, is_dagger);
     return qErrorNone;
 }
 
@@ -441,122 +138,61 @@ QError GPUImplQPU::controlunitaryDoubleQubitGate(size_t qn_0,
     size_t qn_1,
     Qnum& qnum,
     QStat& matrix,
-    bool isConjugate,
+    bool is_dagger,
     GateType type)
 {
-    gpu_qstate_t matrix_real[16];
-    gpu_qstate_t matrix_imag[16];
-    for (int i = 0; i < 16; i++)
-    {
-        matrix_real[i] = matrix[i].real();
-        matrix_imag[i] = matrix[i].imag();
-    }
-    GATEGPU::QState gpu_matrix;
-    gpu_matrix.real = matrix_real;
-    gpu_matrix.imag = matrix_imag;
-    if (!GATEGPU::controlunitarydouble(mvQuantumStat, qnum, gpu_matrix, isConjugate))
-    {
-        return undefineError;
-    }
+    m_device_qpu->exec_gate(type, matrix, qnum, 2, is_dagger);
+    return qErrorNone;
+}
+
+QError GPUImplQPU::DiagonalGate(Qnum & qnum, QStat & matrix, bool is_dagger, double error_rate)
+{
 
     return qErrorNone;
 }
 
-QError GPUImplQPU::DiagonalGate(Qnum & vQubit, QStat & matrix, bool isConjugate, double error_rate)
+QError GPUImplQPU::controlDiagonalGate(Qnum& qnum, QStat & matrix, Qnum& controls,
+                                       bool is_dagger, double error_rate)
 {
-   /* size_t sdimension = matrix.size();
-    gpu_qstate_t matrix_real;
-    gpu_qstate_t matrix_imag;
-    if (!GATEGPU::DiagonalGate(mvQuantumStat, vQubit, matrix, isConjugate, error_rate))
-    {
-        return undefineError;
-    }*/
-    return qErrorNone;
-}
 
-QError GPUImplQPU::controlDiagonalGate(Qnum& vQubit, QStat & matrix, Qnum& vControlBit,
-                                       bool isConjugate, double error_rate)
-{
-    /*if (!GATEGPU::controlDiagonalGate(mvQuantumStat, vQubit, matrix, vControlBit, isConjugate, error_rate))
-    {
-        return undefineError;
-    }*/
     return qErrorNone;
 }
 
 QError GPUImplQPU::Reset(size_t qn)
 {
-    if (!GATEGPU::qbReset(mvQuantumStat, qn, 0))
-    {
-        return undefineError;
-    }
+    m_device_qpu->reset(qn);
     return qErrorNone;
 }
 
+
 bool GPUImplQPU::qubitMeasure(size_t qn)
 {
-    return GATEGPU::qubitmeasure(mvQuantumStat, 1ull << qn, m_resultgpu, m_probgpu);
+    m_device_qpu->qubit_measure(qn);
+    return true;
 }
 
 QError GPUImplQPU::pMeasure(Qnum& qnum, prob_tuple &mResult,int select_max)
 {
-    if (!GATEGPU::pMeasurenew(mvQuantumStat, mResult, qnum, select_max))
-    {
-        return undefineError;
-    }
+    m_device_qpu->probs_measure(qnum, mResult, select_max);
     return qErrorNone;
 }
 
 QError GPUImplQPU::pMeasure(Qnum& qnum, prob_vec &mResult)
 {
-    if (!GATEGPU::pMeasure_no_index(mvQuantumStat, mResult, qnum))
-    {
-        return undefineError;
-    }
+    m_device_qpu->probs_measure(qnum, mResult);
     return qErrorNone;
 }
 
-
-
-QError GPUImplQPU::P0(size_t qn, bool isConjugate, double error_rate)
+QError GPUImplQPU::OracleGate(Qnum& qubits, QStat &matrix,
+                  bool is_dagger)
 {
-    return undefineError;
-}
-QError GPUImplQPU::P0(
-    size_t qn,
-    Qnum& vControlBit,
-    bool isConjugate,
-    double error_rate)
-{
-    return undefineError;
+    throw std::invalid_argument("Error: not support QOracle");
 }
 
-QError GPUImplQPU::P1(size_t qn, bool isConjugate, double error_rate)
+QError GPUImplQPU::controlOracleGate(Qnum& qubits, const Qnum &controls,
+                         QStat &matrix, bool is_dagger)
 {
-    return undefineError;
-}
-QError GPUImplQPU::P1(
-    size_t qn,
-    Qnum& vControlBit,
-    bool isConjugate,
-    double error_rate)
-{
-    return undefineError;
-}
-
-QError GPUImplQPU::I(size_t qn, bool isConjugate, double error_rate)
-{
-    return undefineError;
-}
-
-QError GPUImplQPU::I(size_t qn, Qnum & vControlBit, bool isConjugate, double error_rate)
-{
-    return undefineError;
-}
-
-QError GPUImplQPU::initState(size_t qubit_num, const QStat &state)
-{
-    return undefineError;
+    throw std::invalid_argument("Error: not support QOracle");
 }
 
 

@@ -398,7 +398,7 @@ SingleGateNoiseModeMap::SingleGateNoiseModeMap()
 
     m_function_map.insert(make_pair(KRAUS_MATRIX_OPRATOR, kraus_matrix_oprator));
 
-    m_function_map.insert({DECOHERENCE_KRAUS_OPERATOR_P1_P2, decoherence_kraus_operator_p1_p2});
+
     m_function_map.insert({BITFLIP_KRAUS_OPERATOR, bitflip_kraus_operator});
     m_function_map.insert({DEPOLARIZING_KRAUS_OPERATOR, depolarizing_kraus_operator});
     m_function_map.insert({BIT_PHASE_FLIP_OPRATOR, bit_phase_flip_operator});
@@ -433,61 +433,14 @@ DoubleGateNoiseModeMap::DoubleGateNoiseModeMap()
 
     m_function_map.insert(make_pair(KRAUS_MATRIX_OPRATOR, kraus_matrix_oprator));
 
-    m_function_map.insert({DECOHERENCE_KRAUS_OPERATOR_P1_P2, double_decoherence_kraus_operator_p1_p2});
+
     m_function_map.insert({BITFLIP_KRAUS_OPERATOR, double_bitflip_kraus_operator});
     m_function_map.insert({DEPOLARIZING_KRAUS_OPERATOR, double_depolarizing_kraus_operator});
     m_function_map.insert({BIT_PHASE_FLIP_OPRATOR, double_bit_phase_flip_operator});
     m_function_map.insert({PHASE_DAMPING_OPRATOR, double_phase_damping_oprator});
 
 }
-bool decoherence_kraus_operator_p1_p2(Value &value, NoiseOp &noise)
-{
-    if ((!value.IsArray()) || (value.Size() != 3))
-    {
-        QCERR("param error");
-        throw std::invalid_argument("param error");
-    }
-    if (NOISE_MODEL::DECOHERENCE_KRAUS_OPERATOR_P1_P2 != (NOISE_MODEL)value[0].GetUint())
-    {
-        QCERR("param error");
-        throw std::invalid_argument("param error");
-    }
 
-    for (SizeType i = 1; i < value.Size(); i++)
-    {
-        if (!value[i].IsDouble())
-        {
-            QCERR("param error");
-            throw std::invalid_argument("param error");
-        }
-    }
-
-    double p1 = value[1].GetDouble();
-    double p2 = value[2].GetDouble();
-    Document document;
-    document.SetObject();
-    auto & alloc = document.GetAllocator();
-    NoiseOp damping, dephasing;
-    Value damping_value(kArrayType);
-    damping_value.PushBack(NOISE_MODEL::DAMPING_KRAUS_OPERATOR, alloc);
-    damping_value.PushBack(p1, alloc);
-    damping_kraus_operator(damping_value, damping);
-
-    Value dephasing_value(kArrayType);
-    dephasing_value.PushBack(NOISE_MODEL::DEPHASING_KRAUS_OPERATOR, alloc);
-    dephasing_value.PushBack(p2, alloc);
-    dephasing_kraus_operator(dephasing_value, dephasing);
-
-    for (auto iter : damping)
-    {
-        for (auto iter1 : dephasing)
-        {
-            noise.push_back(matrix_multiply(iter, iter1));
-        }
-    }
-
-    return true;
-}
 
 bool bitflip_kraus_operator(Value &value, NoiseOp &noise)
 {
@@ -608,64 +561,6 @@ bool phase_damping_oprator(Value &value, NoiseOp &noise)
     return true;
 }
 
-bool double_decoherence_kraus_operator_p1_p2(Value &value, NoiseOp &noise)
-{
-    NoiseOp ntemp;
-    if ((!value.IsArray()) || (value.Size() != 3))
-    {
-        QCERR("param error");
-        throw std::invalid_argument("param error");
-    }
-
-    if (NOISE_MODEL::DECOHERENCE_KRAUS_OPERATOR_P1_P2 != (NOISE_MODEL)value[0].GetUint())
-    {
-        QCERR("param error");
-        throw std::invalid_argument("param error");
-    }
-
-    for (SizeType i = 1; i < value.Size(); i++)
-    {
-        if (!value[i].IsDouble())
-        {
-            QCERR("param error");
-            throw std::invalid_argument("param error");
-        }
-    }
-
-    double p1 = value[1].GetDouble();
-    double p2 = value[2].GetDouble();
-    Document document;
-    document.SetObject();
-    auto & alloc = document.GetAllocator();
-    NoiseOp damping, dephasing;
-    Value damping_value(kArrayType);
-    damping_value.PushBack(NOISE_MODEL::DAMPING_KRAUS_OPERATOR, alloc);
-    damping_value.PushBack(p1, alloc);
-    damping_kraus_operator(damping_value, damping);
-
-    Value dephasing_value(kArrayType);
-    dephasing_value.PushBack(NOISE_MODEL::DEPHASING_KRAUS_OPERATOR, alloc);
-    dephasing_value.PushBack(p2, alloc);
-    dephasing_kraus_operator(dephasing_value, dephasing);
-
-    for (auto iter : damping)
-    {
-        for (auto iter1 : dephasing)
-        {
-            ntemp.push_back(matrix_multiply(iter, iter1));
-        }
-    }
-
-    for (auto i = 0; i < ntemp.size(); i++)
-    {
-        for (auto j = 0; j < ntemp.size(); j++)
-        {
-            noise.push_back(matrix_tensor(ntemp[i], ntemp[j]));
-        }
-    }
-
-    return true;
-}
 
 bool double_bitflip_kraus_operator(Value &value, NoiseOp &noise)
 {

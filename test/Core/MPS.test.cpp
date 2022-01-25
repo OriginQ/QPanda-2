@@ -109,105 +109,157 @@ static std::string build_chain_typed_quantum_chip_config_data(size_t qubit_num)
 
     return buffer.GetString();
 }
-
-bool test_matrix_decompose_mps()
+#if 0
+void test_real_chip()
 {
-    auto qvm = initQuantumMachine(QMachineType::CPU);
-    auto q = qvm->allocateQubits(2);
-    auto c = qvm->allocateCBits(2);
+    QCloudMachine QCM;;
 
-    QCircuit test_cir;
-    test_cir << H(q[0]) << H(q[1]) << CNOT(q[0], q[1]) << T(q[1]);
-    //test_cir << CNOT(q[0], q[1]);
-    QStat stat_0;
-    /*{
-        auto prog = QProg();
-        prog << test_cir;
-        qvm->directlyRun(prog);
-        stat_0 = qvm->getQState();
-        std::cout << "stat_0:\n" << stat << endl;
-    }*/
-    const QStat target_matrix = getCircuitMatrix(test_cir);
-    std::cout << "target_matrix:\n" << target_matrix << endl;
+    QCM.init("A0D08FA558CE45B2AF4F1DC122CF2589", true);
 
-    auto cir = matrix_decompose_qr({ q[0], q[1] }, target_matrix);
-    //auto cir = matrix_decompose_householder({ q[0], q[1] }, target_matrix);
-    std::cout << "decomposed circuit:" << cir << endl;
-    const auto mat_2 = getCircuitMatrix(cir);
-    std::cout << "mat_2:\n" << mat_2 << endl;
+    QCM.set_qcloud_api("http://www.72bit.com");
+    auto q = QCM.allocateQubits(6);
+    auto c = QCM.allocateCBits(6);
 
-    auto prog = QProg();
-    prog << cir;
-    qvm->directlyRun(prog);
-    auto stat = qvm->getQState();
+    //构建量子程序
+    auto measure_prog = QProg();
+    measure_prog << HadamardQCircuit(q)
+        << RX(q[1], PI / 4)
+        << RX(q[2], PI / 4)
+        << RX(q[1], PI / 4)
+        << CZ(q[0], q[1])
+        << CZ(q[1], q[2])
+        << Measure(q[0], c[0])
+        << Measure(q[1], c[1]);
 
-    destroyQuantumMachine(qvm);
-
-    if (0 == mat_compare(target_matrix, mat_2, MAX_COMPARE_PRECISION)) {
-        return true;
+    auto result = QCM.real_chip_measure(measure_prog, 1000, RealChipType::ORIGIN_WUYUAN_D4,true, true);
+    for (auto val : result)
+    {
+        std::cout << val.first << " : " << val.second << std::endl;
     }
 
-    return false;
+    auto result2 = QCM.get_state_tomography_density(measure_prog, 1000, RealChipType::ORIGIN_WUYUAN_D4);
+    for (auto val : result2)
+    {
+        cout << val << endl;
+    }
+
+    auto result3 = QCM.get_state_fidelity(measure_prog, 1000, RealChipType::ORIGIN_WUYUAN_D4);
+    cout << result3 << endl;
+
+
+    QCM.finalize();
+    return;
 }
 
-
-TEST(MPS, test)
+void test_partial()
 {
-    auto machine = initQuantumMachine(CPU);
-    machine->setConfigure({ 64,64 });
+    MPSQVM QCM;;
 
-    auto qv = machine->allocateQubits(36);
-    auto cv = machine->allocateCBits(36);
+    QCM.init();
+    auto q = QCM.allocateQubits(6);
+    auto c = QCM.allocateCBits(6);
 
+    auto measure_prog = QProg();
+    auto measure_prog1 = QProg();
+    measure_prog1 << X(q[0])
+    << CZ(q[1], q[2])
+    << CZ(q[0], q[1])
+    << CZ(q[1], q[2])
+    << MeasureAll(q,c);
 
-    auto _grover_prog = ghz_prog(qv);
-    _grover_prog << MeasureAll(qv, cv);
+    QCM.set_noise_model(BIT_PHASE_FLIP_OPRATOR, GateType::CZ_GATE, 0.799);
+    auto result = QCM.runWithConfiguration(measure_prog1, c, 10000);
 
-    cout << convert_qprog_to_originir(_grover_prog, machine);
-    getchar();
-
-	test_matrix_decompose_mps();
+    QCM.finalize();
     return;
-#if 1
+}
+
+void test_qcloud()
+{
     try
     {
         QCloudMachine QCM;
-        QCM.init("C60FBD87EF084DBA820945D052218AA8", true);
-        //QCM.init();
+        QCM.init("A0D08FA558CE45B2AF4F1DC122CF2589", true);
 
-        //QVec qv;
-        //std::vector<ClassicalCondition> cv;
-        //QProg prog1 = convert_originir_to_qprog("E:\\N4.txt", &QCM, qv, cv);
+        QCM.set_qcloud_api("http://www.72bit.com");
+        //QCM.set_qcloud_api("http://10.10.10.39:8060");
 
-        QCM.set_qcloud_api("http://10.10.10.197:8060");
-        QCM.set_real_chip_api("http://10.10.10.197:8060");
+        auto q = QCM.allocateQubits(4);
+        auto c = QCM.allocateCBits(4);
 
-        QVec qv;
-        vector<ClassicalCondition> cv;
-        auto ir = convert_originir_to_qprog("E:\\N4.txt", &QCM, qv, cv);
+        std::vector<QProg> measure_prog_array(3);
+        measure_prog_array[0] << H(q[0]) << MeasureAll(q, c);
+        measure_prog_array[1] << H(q[0]) << CNOT(q[0], q[1]) << MeasureAll(q, c);
+        measure_prog_array[2] << H(q[0]) << H(q[1]) << H(q[2]) << MeasureAll(q, c);
 
-        TASK_STATUS status;
-        auto result = QCM.full_amplitude_measure(ir,1000);
-        cout << 123 << endl;
-        /* TASK_STATUS status;
-         auto taskid = QCM.get_expectation_commit(prog, hamiltonian, q, status);
-         if (status == TASK_STATUS::FAILED)
-         {
-             cout << QCM.get_last_error() << endl;
-         }
-         else
-         {
-             auto result = QCM.get_expectation_exec(taskid, status);
-             if (status == TASK_STATUS::FAILED)
-             {
-                 cout << QCM.get_last_error() << endl;
-             }
-             else
-             {
-                 auto result = QCM.get_expectation_exec(taskid, status);
-                 std::cout << result << std::endl;
-             }
-         }*/
+        std::vector<QProg> pmeasure_prog_array(3);
+        pmeasure_prog_array[0] << H(q[0]) << H(q[1]);
+        pmeasure_prog_array[1] << H(q[0]) << CNOT(q[0], q[1]);
+        pmeasure_prog_array[2] << H(q[0]) << H(q[1]) << H(q[2]);
+
+        //auto measure_result = QCM.full_amplitude_measure_batch(measure_prog_array, 10000);
+        //TaskStatus status;
+        //auto taskids = QCM.real_chip_measure_batch_commit(measure_prog_array, 10000, status);
+        auto real_result = QCM.real_chip_measure_batch(measure_prog_array, 10000);
+        //auto a = QCM.real_chip_measure_batch_query(taskids);
+        //auto pmeasure_result = QCM.full_amplitude_pmeasure_batch(pmeasure_prog_array, { 0,1,2,3,4,5 });
+        //auto partial_pmeasure_result = QCM.partial_amplitude_pmeasure_batch(pmeasure_prog_array, { "0","1","2" });
+        //auto single_pmeasure_result = QCM.single_amplitude_pmeasure_batch(pmeasure_prog_array, "0");
+
+        //for (auto item : measure_result)
+        //{
+            //for (auto val : item)
+            //{
+                //cout << val.first << " : " << val.second << endl;
+            //}
+        //}
+
+        //QCM.set_noise_model(NOISE_MODEL::BITFLIP_KRAUS_OPERATOR, { 0.9 }, { 0.9 });
+        //auto noise_measure_result = QCM.noise_measure(measure_prog_array[0], 10000);
+
+        //for (auto item : measure_result)
+        //{
+            //for (auto val : item)
+            //{
+                //cout << val.first << " : " << val.second << endl;
+            //}
+        //}
+
+        cout << "--------------" << endl;
+
+        //for (auto item : real_measure_result)
+        //{
+            //cout << "--------------" << endl;
+            //for (auto val : item)
+            //{
+            //    cout << val.first << " : " << val.second << endl;
+            //}
+        //}
+
+        cout << "--------------" << endl;
+
+        //for (auto item : pmeasure_result)
+        //{
+            //cout << "--------------" << endl;
+            //for (auto val : item)
+            //{
+                //cout << val.first << " : " << val.second << endl;
+            //}
+        //}
+
+        cout << "--------------" << endl;
+
+
+        cout << "--------------" << endl;
+
+        //for (auto item : single_pmeasure_result)
+        //{
+        //    cout << item << endl;
+        //}
+
+        cout << "--------------" << endl;
+
+
 
         QCM.finalize();
     }
@@ -215,23 +267,49 @@ TEST(MPS, test)
     {
         cout << e.what() << endl;
     }
-    catch (...)
-    {
-        cout << 123 << endl;
-    }
-
-    //QProg measure_prog;
-    //measure_prog << HadamardQCircuit(q) << MeasureAll(q, c);
-    //auto result2 = QCM.get_state_tomography_density(measure_prog, 1000, REAL_CHIP_TYPE::ORIGIN_WUYUAN_D4);
-    //for (auto val : result2)
-    //{
-    //    cout << val << endl;
-    //}
-
-    //auto result3 = QCM.get_state_fidelity(measure_prog, 1000, REAL_CHIP_TYPE::ORIGIN_WUYUAN_D4);
-    //cout << result3 << endl;
-
 
     return;
-#endif
 }
+
+TEST(MPS, test)
+{
+    //test_partial();
+    cout << 1222 << endl;
+
+    test_partial();
+    
+    MPSQVM qvm;
+    qvm.init();
+
+    auto q = qvm.qAllocMany(2);
+    auto c = qvm.cAllocMany(2);
+
+    qvm.add_single_noise_model(NOISE_MODEL::PHASE_DAMPING_OPRATOR, GateType::PAULI_X_GATE, 0.8);
+    qvm.add_single_noise_model(NOISE_MODEL::BITFLIP_KRAUS_OPERATOR, GateType::PAULI_X_GATE, 0.8);
+    //qvm.add_single_noise_model(NOISE_MODEL::DEPOLARIZING_KRAUS_OPERATOR, GateType::PAULI_X_GATE, 0.99);
+    //qvm.add_single_noise_model(NOISE_MODEL::DEPHASING_KRAUS_OPERATOR, GateType::PAULI_X_GATE, 0.49);
+    //qvm.add_single_noise_model(NOISE_MODEL::DECOHERENCE_KRAUS_OPERATOR, GateType::PAULI_X_GATE, 5, 5, 0.9);
+    //qvm.set_noise_model(NOISE_MODEL::BITFLIP_KRAUS_OPERATOR, GateType::CNOT_GATE, 0.1);
+    //QVec qv0 = { q[0], q[1] };
+    //qvm.set_noise_model(NOISE_MODEL::DEPHASING_KRAUS_OPERATOR, GateType::HADAMARD_GATE, 0.1, qv0);
+    //std::vector<QVec> qves = { {q[0], q[1]}, {q[1], q[2]} };
+    //qvm.set_noise_model(NOISE_MODEL::DAMPING_KRAUS_OPERATOR, GateType::CNOT_GATE, 0.1, qves);
+
+    QProg prog;
+    //prog << X(q[0]) << MeasureAll(q, c);
+    prog << H(q[0]) << X(q[1]) << H(q[1]) << CNOT(q[0],q[1]) << H(q[0]) << Measure(q[0], c[0]);
+
+    //auto noise_ptr = (NoiseQVM*)(&qvm);
+    //auto noise_ptr = dynamic_cast<NoiseQVM*>(&qvm);
+    //single_qubit_rb(&qvm, q[0], {6}, 1, 100);
+
+    auto result = qvm.runWithConfiguration(prog, c, 10000);
+    for (auto &item : result)
+    {
+        std::cout << item.first << " : " << item.second << std::endl;
+    }
+
+    return;
+}
+
+#endif

@@ -165,6 +165,9 @@ static std::vector<double> get_tensor_probs(const std::vector<double>& probs_a, 
 static std::vector<QStat> get_compose_karus_matrices(const std::vector<QStat>& karus_matrices_a,
     const std::vector<QStat>& karus_matrices_b)
 {
+    QPANDA_RETURN(karus_matrices_a.empty(), karus_matrices_b);
+    QPANDA_RETURN(karus_matrices_b.empty(), karus_matrices_a);
+
     std::vector<QStat> karus_compose_results;
 
     for (const auto& karus_matrix_a : karus_matrices_a)
@@ -388,7 +391,7 @@ KarusError KarusError::expand(const KarusError& karus_error)
     std::vector<QStat> karus_matrices_b;
     karus_error.get_karus_matrices(karus_matrices_b);
 
-    auto tensor_karus_matrices = get_tensor_matrices(karus_matrices_b, karus_matrices_a);
+    auto tensor_karus_matrices = get_compose_karus_matrices(karus_matrices_b, karus_matrices_a);
     return KarusError(tensor_karus_matrices);
 }
 
@@ -402,8 +405,8 @@ KarusError KarusError::compose(const KarusError& karus_error)
     std::vector<QStat> karus_matrices_b;
     karus_error.get_karus_matrices(karus_matrices_b);
 
-    auto tensor_karus_matrices = get_compose_karus_matrices(karus_matrices_a, karus_matrices_b);
-    return KarusError(tensor_karus_matrices);
+    auto compose_karus_matrices = get_compose_karus_matrices(karus_matrices_a, karus_matrices_b);
+    return KarusError(compose_karus_matrices);
 }
 
 bool NoiseSimulator::has_error_for_current_gate(GateType gate_type, QVec qubits)
@@ -649,6 +652,7 @@ KarusError NoiseSimulator::get_karus_error(GateType gate_type, const QVec& qubit
 
 void NoiseSimulator::handle_noise_gate(GateType gate_type, QVec& qubits)
 {
+    //auto karus_error = m_karus_error;
     auto karus_error = get_karus_error(gate_type, qubits);
     auto karus_error_qubit = karus_error.get_qubit_num();
 
@@ -840,6 +844,7 @@ void NoiseSimulator::execute(std::shared_ptr<AbstractQGateNode> cur_node, std::s
     auto gate_type = (GateType)gate_node->getQGate()->getGateType();
     bool is_dagger = gate_node->isDagger() ^ config._is_dagger;
 
+    if (GateType::BARRIER_GATE == gate_type) return;
     handle_quantum_gate(gate_node, is_dagger);
     QPANDA_OP(has_error_for_current_gate(gate_type, targets), handle_noise_gate(gate_type, targets));
 }
@@ -1299,6 +1304,44 @@ void NoiseSimulator::handle_karus_matrices(std::vector<QStat>& matrixs, const QV
         qcomplex_t renorm = 1 / std::sqrt(1. - sum_probs);
         m_mps_qpu->unitaryQubitGate(qubits_addr, renorm * matrixs.back(), false);
     }
+
+    return;
+}
+
+
+
+void NoiseSimulator::add_single_noise_model(NOISE_MODEL model, GateType gate_type, double param)
+{
+    QPANDA_ASSERT(NOISE_MODEL::DECOHERENCE_KRAUS_OPERATOR == model, "model == DECOHERENCE_KRAUS_OPERATOR !");
+    QPANDA_ASSERT(0. > param || param > 1., "param range error");
+    QPANDA_ASSERT(!is_single_gate(gate_type), "gate_type error");
+
+    auto karus_matrices = get_noise_model_karus_matrices(model, { param });
+    auto karus_error = KarusError(karus_matrices);
+
+    m_karus_error = m_karus_error.compose(karus_error);
+
+    set_gate_and_qnums(gate_type, {});
+
+    QPANDA_OP(is_single_gate(gate_type), set_single_karus_error_tuple(gate_type, m_karus_error, {}));
+    return;
+
+    return;
+}
+
+void NoiseSimulator::add_single_noise_model(NOISE_MODEL model, GateType gate_type, double T1, double T2, double time_param)
+{
+    QPANDA_ASSERT(NOISE_MODEL::DECOHERENCE_KRAUS_OPERATOR != model, "model != DECOHERENCE_KRAUS_OPERATOR");
+    QPANDA_ASSERT(!is_single_gate(gate_type), "gate_type error");
+
+    set_gate_and_qnums(gate_type, {});
+
+    std::vector<QStat> karus_matrices = get_noise_model_karus_matrices(DECOHERENCE_KRAUS_OPERATOR, { T1,T2,time_param });
+
+    auto karus_error = KarusError(karus_matrices);
+    m_karus_error = m_karus_error.compose(karus_error);
+
+    QPANDA_OP(is_single_gate(gate_type), set_single_karus_error_tuple(gate_type, m_karus_error, {}));
 
     return;
 }

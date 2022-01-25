@@ -33,7 +33,6 @@ enum NOISE_MODEL
 {
     DAMPING_KRAUS_OPERATOR,
     DEPHASING_KRAUS_OPERATOR,
-    DECOHERENCE_KRAUS_OPERATOR_P1_P2,
     BITFLIP_KRAUS_OPERATOR,
     DEPOLARIZING_KRAUS_OPERATOR,
     BIT_PHASE_FLIP_OPRATOR,
@@ -58,7 +57,6 @@ bool double_damping_kraus_operator(rapidjson::Value &, NoiseOp & noise);
 bool double_decoherence_kraus_operator(rapidjson::Value &, NoiseOp & noise);
 bool pauli_kraus_map(rapidjson::Value &, NoiseOp & noise);
 
-bool decoherence_kraus_operator_p1_p2(rapidjson::Value &value, NoiseOp & noise);
 bool bitflip_kraus_operator(rapidjson::Value &value, NoiseOp & noise);
 bool depolarizing_kraus_operator(rapidjson::Value &value, NoiseOp & noise);
 

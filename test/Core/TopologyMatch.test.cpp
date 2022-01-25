@@ -11,7 +11,6 @@ USING_QPANDA
 
 static bool test_topology_match_1()
 {
-    return true;
 	CPUQVM qvm;
 	qvm.init();
 	auto q = qvm.allocateQubits(6);

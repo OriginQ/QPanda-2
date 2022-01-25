@@ -1,5 +1,4 @@
 #include "Components/ChemiQ/ChemiqUtil.h"
-#include "complex.h"
 
 QPANDA_BEGIN
 size_t getElectronNum(const std::string &atom)

@@ -9,7 +9,7 @@ struct QGateNode
 {
     int gate_type;
     bool is_dagger;
-    std::vector<uint32_t> qubits; //first target, other controls
+    std::vector<size_t> qubits; //first target, other controls
     std::vector<double> params;
 };
 

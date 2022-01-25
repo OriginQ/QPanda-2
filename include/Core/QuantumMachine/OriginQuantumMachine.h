@@ -510,7 +510,6 @@ public:
 	void set_reset_error(double p0, double p1, const QVec& qubits = {});
 	void set_readout_error(const std::vector<std::vector<double>>& probs_list, const QVec& qubits = {});
 
-
 	/**
 	* @brief  set QGate rotation angle errors
 	* @param[in]  double rotation angle errors

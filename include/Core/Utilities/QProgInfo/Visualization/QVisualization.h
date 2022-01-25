@@ -19,9 +19,9 @@ QPANDA_BEGIN
  * @return the output string
  * @note All the output characters are UTF-8 encoded.
  */
-std::string draw_qprog(QProg prog, PIC_TYPE p = PIC_TYPE::TEXT, uint32_t line_length = 100, const std::string &output_file = "",
+std::string draw_qprog(QProg prog, PIC_TYPE p = PIC_TYPE::TEXT, bool with_logo = false, uint32_t line_length = 100, const std::string &output_file = "",
 					   const NodeIter itr_start = NodeIter(), const NodeIter itr_end = NodeIter());
-std::string draw_qprog(QProg prog, LayeredTopoSeq &m_layer_info, PIC_TYPE p = PIC_TYPE::TEXT, uint32_t line_length = 100,
+std::string draw_qprog(QProg prog, LayeredTopoSeq &m_layer_info, PIC_TYPE p = PIC_TYPE::TEXT, bool with_logo = false, uint32_t line_length = 100,
 					   const std::string &output_file = "");
 
 /**
@@ -36,7 +36,7 @@ std::string draw_qprog(QProg prog, LayeredTopoSeq &m_layer_info, PIC_TYPE p = PI
  * @return the output string
  * @note All the output characters are GBK encoded on windows,  UTF-8 encoded on other OS.
  */
-std::string draw_qprog_with_clock(QProg prog, PIC_TYPE p = PIC_TYPE::TEXT, const std::string config_data = CONFIG_PATH, uint32_t length = 100,
+std::string draw_qprog_with_clock(QProg prog, PIC_TYPE p = PIC_TYPE::TEXT, const std::string config_data = CONFIG_PATH, bool with_logo = false, uint32_t length = 100,
 								  const std::string &output_file = "", const NodeIter itr_start = NodeIter(), const NodeIter itr_end = NodeIter());
 
 /**

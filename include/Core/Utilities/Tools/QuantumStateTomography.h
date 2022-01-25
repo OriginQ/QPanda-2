@@ -18,6 +18,7 @@ public:
     std::vector<QProg> &combine_qprogs(const T &node, const QVec &qlist)
     {
         m_qlist = qlist;
+        m_opt_num = m_qlist.size();
         m_clist.clear();
 
         auto cbit_pool = OriginCMem::get_instance();
@@ -43,8 +44,7 @@ public:
 
     std::vector<QStat> exec(QuantumMachine *qm, size_t shots);
 
-    void set_qprog_results(const QVec &qlist, const std::vector<std::map<std::string, double>> &results);
-    void set_qprog_results(std::vector<size_t> &qlist, const std::vector<std::map<std::string, double>> &results);
+    void set_qprog_results(size_t opt_num, const std::vector<std::map<std::string, double>> &results);
     std::vector<QStat> caculate_tomography_density();
 protected:
     template<typename T>
@@ -78,6 +78,7 @@ private:
     std::vector<QProg> m_combine_progs;
     std::vector<double> m_s;
     std::vector<std::map<std::string, double>> m_prog_results;
+    size_t m_opt_num;
 };
 
 
@@ -90,10 +91,10 @@ std::vector<QStat> state_tomography_density(const T &node, const QVec &qlist, Qu
 }
 
 
-inline std::vector<QStat> state_tomography_density(const QVec &qlist, const std::vector<std::map<std::string, double>> &results)
+inline std::vector<QStat> state_tomography_density(size_t opt_num, const std::vector<std::map<std::string, double>> &results)
 {
     QuantumStateTomography qst;
-    qst.set_qprog_results(qlist, results);
+    qst.set_qprog_results(opt_num, results);
     return qst.caculate_tomography_density();
 }
 

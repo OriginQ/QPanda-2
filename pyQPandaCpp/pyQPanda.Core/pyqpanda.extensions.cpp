@@ -13,7 +13,7 @@
 #include "pybind11/operators.h"
 #include "QPandaConfig.h"
 #include "QPanda.h"
-
+#include "Extensions/VirtualZTransfer/VirtualZTransfer.h"
 #include "Extensions/Extensions.h"
 
 
@@ -136,6 +136,14 @@ void init_extension_funtion(py::module & m)
         py::return_value_policy::automatic
         );
 
+    m.def("virtual_z_transform", [](QPanda::QProg prog, QPanda::QuantumMachine *quantum_machine,
+        bool b_del_rz_gate = false,
+        const std::string& config_data = CONFIG_PATH) {
+        return virtual_z_transform(prog, quantum_machine, b_del_rz_gate, config_data);;
+        }, "prog"_a, "quantum_machine"_a, "b_del_rz_gate"_a = false, "config_data"_a = CONFIG_PATH,
+        py::return_value_policy::automatic
+        );
+
     m.def("matrix_decompose", [](QVec& qubits, QStat& src_mat, const DecompositionMode mode, bool b_positive_seq) {
         switch (mode) {
         case DecompositionMode::QR:
@@ -162,6 +170,14 @@ void init_extension_funtion(py::module & m)
         py::return_value_policy::automatic
         );
 
+    m.def("matrix_decompose_pualis", [](QuantumMachine* qvm, const EigenMatrixX& mat
+        ) {
+            PualiOperatorLinearCombination linearcom;
+            matrix_decompose_pualis(qvm, mat, linearcom);
+            return linearcom;
+        }, 
+            py::return_value_policy::automatic
+            );
 #else
     m.def("matrix_decompose", [](QVec& qubits, QStat& src_mat, const DecompositionMode mode, bool b_positive_seq) {
         switch (mode) {

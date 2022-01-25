@@ -74,6 +74,25 @@ double transformMatrixToAxis(QStat &QMatrix, axis &Axis)
 
 }
 
+static bool _is_empty_gate(std::shared_ptr<AbstractQGateNode> cur_node, std::shared_ptr<QNode> parent_node)
+{
+	QuantumGate* qgate = cur_node->getQGate();
+	auto angle = dynamic_cast<AbstractAngleParameter *>(qgate);
+
+	double dAlpha = angle->getAlpha();
+	double dBeta = angle->getBeta();
+	double dDelta = angle->getDelta();
+	double dGamma = angle->getGamma();
+	if ((abs(dAlpha) < DBL_EPSILON)
+		&& (abs(dBeta) < DBL_EPSILON)
+		&& (abs(dDelta) < DBL_EPSILON)
+		&& (abs(dGamma) < DBL_EPSILON)){
+		return true;
+	}
+
+	return false;
+}
+
 class CheckMultipleControlQGate : public TraverseByNodeIter
 {
 public:
@@ -292,6 +311,9 @@ void DecomposeDoubleQGate::execute(std::shared_ptr<AbstractQGateNode>  cur_node,
 		}
 
 		replace_qcircuit(cur_node.get(), qCircuit, parent_node.get());
+		return;
+	}
+	else if (qGate->getGateType() == CNOT_GATE){
 		return;
 	}
 
@@ -1859,10 +1881,9 @@ void TransformDecomposition::decompose_double_qgate(QProg & prog, bool b_decompo
 
 	//double gate to : x + cnot + cu
 	Traversal::traversal(prog.getImplementationPtr(), m_decompose_double_gate);
-	
+
 	// decompose cu
 	m_decompose_control_unitary_single_qgate.traverse_qprog(prog);
-	//Traversal::traversal(prog.getImplementationPtr(), m_decompose_control_unitary_single_qgate);
 
 	if (b_decompose_multiple_gate)
 	{

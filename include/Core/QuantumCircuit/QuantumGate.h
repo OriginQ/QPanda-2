@@ -56,8 +56,8 @@ namespace QGATE_SPACE
     class QuantumGate
     {
     protected:
-        int operation_num;
-        int gate_type;
+		int operation_num{0};
+        int gate_type{ 0 };
         size_t time = 0;
         QStat gate_matrix;
     public:
@@ -215,10 +215,10 @@ namespace QGATE_SPACE
 		public DynamicCreator<U4, QStat&>
     {
     protected:
-        double alpha;
-        double beta;
-        double gamma;
-        double delta;
+		double alpha{0};
+        double beta{ 0 };
+        double gamma{ 0 };
+        double delta{ 0 };
     public:
         U4();
         U4(U4&);
@@ -567,7 +567,7 @@ namespace QGATE_SPACE
 			return this->beta;
 		}
 	private:
-		double m_phi;
+		double m_phi{0};
 	};
 
     class U1 :public U4,
@@ -660,8 +660,8 @@ namespace QGATE_SPACE
             return this->m_lambda;
         }
     private:
-        double m_phi;
-        double m_lambda;
+		double m_phi{0};
+		double m_lambda{0};
     };
 
     class U3 :public U4,
@@ -718,9 +718,9 @@ namespace QGATE_SPACE
         }
 
     private:
-        double m_theta;
-        double m_phi;
-        double m_lambda;
+		double m_theta{0};
+		double m_phi{0};
+		double m_lambda{0};
     };
 
     //double quantum gate 
@@ -754,10 +754,10 @@ namespace QGATE_SPACE
 		public DynamicCreator<CU, QuantumGate*>
     {
     protected:
-        double alpha;
-        double beta;
-        double gamma;
-        double delta;
+		double alpha{0};
+		double beta{0};
+		double gamma{0};
+		double delta{0};
     public:
 		CU(QuantumGate  * gate_old);
         CU();
@@ -879,7 +879,7 @@ namespace QGATE_SPACE
     {
     protected:
 		ISWAPTheta() {};
-        double theta;
+		double theta{0};
     public:
 		ISWAPTheta(QuantumGate  * gate_old);
         ISWAPTheta(double);
@@ -922,7 +922,7 @@ namespace QGATE_SPACE
 			theta = PI / 4;
 		}
 		SQISWAP();
-		double theta;
+		double theta{0};
     };
 
     class SWAP : public QDoubleGate,

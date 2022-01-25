@@ -31,3 +31,13 @@ add_custom_command(OUTPUT ${PYQPANDA_OUT_LIB}
    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}/${PYQPANDA_OUT_LIB} ${PYQPANDA_OUT_PATH}/${PYQPANDA_OUT_LIB}
  )
 add_custom_target(CopyQPandaTaskOperator ALL DEPENDS ${PYQPANDA_OUT_LIB} ${LIB_PYQPANDA_OPERATOR})
+
+# generate stub file for IDE intelliSense
+# add_custom_command(TARGET CopyQPandaTaskOperator 
+#     POST_BUILD
+#     COMMAND pip install -r ${PYQPANDA_POST_BUILD_TOOL_DIR}/requirements.txt
+#     COMMAND python ${PYQPANDA_POST_BUILD_TOOL_DIR}/stubgen.py --search-path ${PYQPANDA_OUT_PATH} -m ${LIB_PYQPANDA_OPERATOR} -o ${PYQPANDA_OUT_PATH}
+#     WORKING_DIRECTORY ${PYQPANDA_OUT_PATH}
+#     VERBATIM
+#     USES_TERMINAL
+# )

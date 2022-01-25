@@ -32,6 +32,8 @@ void init_core_class(py::module &);
 void init_QAlg_class(py::module &);
 void init_extension_class(py::module & m);
 void init_extension_funtion(py::module & m);
+void init_hamiltoniansimulation(py::module& m);
+
 
 
 PYBIND11_MODULE(pyQPanda, m)
@@ -44,7 +46,8 @@ PYBIND11_MODULE(pyQPanda, m)
 	init_QAlg_class(m);
 	init_extension_class(m);
 	init_extension_funtion(m);
-
+	init_hamiltoniansimulation(m);
+	
 	m.doc() = "";
 
 	m.def("init",
@@ -1125,7 +1128,12 @@ PYBIND11_MODULE(pyQPanda, m)
 		py::return_value_policy::automatic
 	);
 
-
+	m.def("QOracle", [](const QVec& qubits, const EigenMatrixXc& matrix) {
+		return QOracle(qubits, matrix);
+	},
+		"qubit"_a, "matrix"_a,
+		py::return_value_policy::automatic
+	);
 	m.def("print_matrix", [](QStat& mat, const int precision) {
 		auto mat_str = matrix_to_string(mat, precision);
 		std::cout << mat_str << endl;
@@ -1706,17 +1714,18 @@ PYBIND11_MODULE(pyQPanda, m)
 
 	m.def("draw_qprog_text", [](QProg prg, uint32_t auto_wrap_len, const std::string& output_file, 
 		const NodeIter itr_start, const NodeIter itr_end) {
-		return draw_qprog(prg, PIC_TYPE::TEXT, auto_wrap_len, output_file, itr_start, itr_end);
+		return draw_qprog(prg, PIC_TYPE::TEXT, false, auto_wrap_len, output_file, itr_start, itr_end);
 	}, py::arg("prog"), py::arg("auto_wrap_len") = 100, py::arg("output_file") = "", py::arg("itr_start") = NodeIter(), py::arg("itr_end") = NodeIter(),
 		"Convert a quantum prog/circuit to text-pic(UTF-8 code), \
         and will save the text-pic in file named QCircuitTextPic.txt in the same time in current path",
 		py::return_value_policy::automatic
 		);
 
-	m.def("draw_qprog_latex", [](QProg prg, uint32_t auto_wrap_len, const std::string& output_file, 
+	m.def("draw_qprog_latex", [](QProg prg, uint32_t auto_wrap_len, const std::string& output_file, bool with_logo,
 		const NodeIter itr_start, const NodeIter itr_end) {
-		return draw_qprog(prg, PIC_TYPE::LATEX, auto_wrap_len, output_file, itr_start, itr_end);
-	}, py::arg("prog"), py::arg("auto_wrap_len") = 100, py::arg("output_file") = "", py::arg("itr_start") = NodeIter(), py::arg("itr_end") = NodeIter(),
+		return draw_qprog(prg, PIC_TYPE::LATEX, with_logo, auto_wrap_len, output_file, itr_start, itr_end);
+	}, py::arg("prog"), py::arg("auto_wrap_len") = 100, py::arg("output_file") = "", py::arg("with_logo") = false, 
+	   py::arg("itr_start") = NodeIter(), py::arg("itr_end") = NodeIter(),
 		"Convert a quantum prog/circuit to text-pic(UTF-8 code), \
         and will save the text-pic in file named QCircuitTextPic.txt in the same time in current path",
 		py::return_value_policy::automatic
@@ -1733,7 +1742,7 @@ PYBIND11_MODULE(pyQPanda, m)
 
 	m.def("draw_qprog_text_with_clock", [](QProg prog, const std::string config_data, uint32_t auto_wrap_len,
 		const std::string& output_file, const NodeIter itr_start, const NodeIter itr_end) {
-		return draw_qprog_with_clock(prog, PIC_TYPE::TEXT, config_data, auto_wrap_len, output_file, itr_start, itr_end);
+		return draw_qprog_with_clock(prog, PIC_TYPE::TEXT, config_data, false, auto_wrap_len, output_file, itr_start, itr_end);
 	}, py::arg("prog"), py::arg("config_data") = CONFIG_PATH, py::arg("auto_wrap_len") = 100,
 		py::arg("output_file") = "",
 		py::arg("itr_start") = NodeIter(), py::arg("itr_end") = NodeIter(),
@@ -1742,11 +1751,11 @@ PYBIND11_MODULE(pyQPanda, m)
 		py::return_value_policy::automatic
 		);
 	
-	m.def("draw_qprog_latex_with_clock", [](QProg prog, const std::string config_data, uint32_t auto_wrap_len,
+	m.def("draw_qprog_latex_with_clock", [](QProg prog, const std::string config_data, bool with_logo, uint32_t auto_wrap_len,
 		const std::string& output_file, const NodeIter itr_start, const NodeIter itr_end) {
-		return draw_qprog_with_clock(prog, PIC_TYPE::LATEX, config_data, auto_wrap_len, output_file, itr_start, itr_end);
+		return draw_qprog_with_clock(prog, PIC_TYPE::LATEX, config_data, with_logo, auto_wrap_len, output_file, itr_start, itr_end);
 	}, py::arg("prog"), py::arg("config_data") = CONFIG_PATH, py::arg("auto_wrap_len") = 100,
-		py::arg("output_file") = "",
+		py::arg("output_file") = "", py::arg("with_logo") = false, 
 		py::arg("itr_start") = NodeIter(), py::arg("itr_end") = NodeIter(),
 		"Convert a quantum prog/circuit to text-pic(UTF-8 code) with time sequence, \
         and will save the text-pic in file named QCircuitTextPic.txt in the same time in current path",
@@ -1933,6 +1942,23 @@ PYBIND11_MODULE(pyQPanda, m)
 		py::return_value_policy::automatic
 		);
 
+	m.def("average_gate_fidelity", [](const qmatrix_t& matrix, const QStat& state)
+		{
+			return average_gate_fidelity(matrix, state);
+		}, "state1"_a, "state2"_a,
+		"Get average_gate_fidelity",
+			py::return_value_policy::automatic
+			);
+
+	m.def("average_gate_fidelity", [](const qmatrix_t& matrix, const qmatrix_t& state)
+		{
+			return average_gate_fidelity(matrix, state);
+		}, "state1"_a, "state2"_a,
+		"Get average_gate_fidelity",
+			py::return_value_policy::automatic
+			);
+
+
 	m.def("get_circuit_optimal_topology", [](QProg& prog, QuantumMachine* quantum_machine,
 		const size_t max_connect_degree, const std::string config_data) {
 		return get_circuit_optimal_topology(prog, quantum_machine, max_connect_degree, config_data);
@@ -2069,7 +2095,6 @@ PYBIND11_MODULE(pyQPanda, m)
 		"double qubit rb with noise quantum virtual machine",
 		py::return_value_policy::automatic
 		);
-
 
 	m.def("single_qubit_rb", [](QCloudMachine* qvm, Qubit* qbit, const std::vector<int>& clifford_range, \
 		int num_circuits, int shots, const std::vector<QGate>& interleaved_gates) {

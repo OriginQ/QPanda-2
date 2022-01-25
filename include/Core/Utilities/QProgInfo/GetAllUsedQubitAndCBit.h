@@ -30,7 +30,7 @@ public:
 	QVec get_used_qubits() { 
 		QVec qv;
 		for (const auto& _q : m_used_qubits){
-			qv.emplace_back(_q);
+			qv += { _q };
 		}
 		sort(qv.begin(), qv.end(), [](const Qubit* a, const Qubit* b) {
 			return a->get_phy_addr() < b->get_phy_addr(); });
@@ -102,7 +102,6 @@ private:
 	std::set<Qubit *> m_used_qubits;
 	std::set<std::shared_ptr<AbstractQuantumMeasure>> m_measure_nodes;
 };
-
 
 QPANDA_END
 #endif // _GET_ALL_USED_QUBIT_AND_CBIT_H

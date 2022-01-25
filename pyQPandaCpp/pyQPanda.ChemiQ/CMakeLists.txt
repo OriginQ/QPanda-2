@@ -30,3 +30,13 @@ add_custom_command(OUTPUT ${PYCHEMIQ_OUT_LIB}
    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}/${PYCHEMIQ_OUT_LIB} ${PYCHEMIQ_OUT_PATH}/${PYCHEMIQ_OUT_LIB}
  )
 add_custom_target(CopyQPandaTaskChemiQ ALL DEPENDS ${PYCHEMIQ_OUT_LIB} ${LIB_PYQPANDA_CHEMIQ})
+
+# generate stub file for IDE intelliSense
+# add_custom_command(TARGET CopyQPandaTaskChemiQ 
+#     POST_BUILD
+#     COMMAND pip install -r ${PYQPANDA_POST_BUILD_TOOL_DIR}/requirements.txt
+#     COMMAND python ${PYQPANDA_POST_BUILD_TOOL_DIR}/stubgen.py --search-path ${PYQPANDA_OUT_PATH} -m ${LIB_PYQPANDA_CHEMIQ} -o ${PYCHEMIQ_OUT_PATH}
+#     WORKING_DIRECTORY ${PYCHEMIQ_OUT_PATH}
+#     VERBATIM
+#     USES_TERMINAL
+# )

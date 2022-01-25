@@ -2225,6 +2225,7 @@ QGate QPanda::Toffoli(int qaddr0, int qaddr1, int target_qaddr)
 }
 
 
+
 QGate QPanda::QOracle(const QVec &qubits, const QStat &matrix)
 {
 	if (!is_unitary_matrix_by_eigen(matrix))

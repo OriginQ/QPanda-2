@@ -1,6 +1,9 @@
-#include "Components/HamiltonianSimulation/HamiltonianSimulation.h"
 #include "Core/QuantumCircuit/QGate.h"
 #include "Core/Utilities/Tools/Utils.h"
+#include <Core/Utilities/QProgInfo/QCircuitInfo.h>
+#include "Core/Utilities/Compiler/QProgToQASM.h"
+#include <Core/Core.h>
+#include "Components/HamiltonianSimulation/HamiltonianSimulation.h"
 
 namespace QPanda
 {
@@ -210,4 +213,95 @@ namespace QPanda
         return circuit;
     }
 
+
+    qmatrix_t expMat(
+        const qcomplex_t& conf,
+        const qmatrix_t& Mat,
+        double number)
+    {
+        qmatrix_t expmatrix(Mat.rows(), Mat.cols());
+        expmatrix.setZero();
+        int i = 0;
+        qcomplex_t conf_new{ conf };
+        qmatrix_t mat_val;
+        /*if (number)
+        {
+            conf_new = conf * PI;
+        }
+        else
+        {
+            conf_new = conf;
+        }*/
+        conf_new = conf * number;
+        mat_val = conf_new * Mat;
+        qmatrix_t mx(mat_val.rows(), mat_val.cols());
+        mx.setIdentity();
+        /*Accuracy control of this complex matrix is prone to insufficient accuracy, 
+        so use the number to control the -while loop */
+        do
+        {
+            expmatrix += mx;
+            ++i;
+            mx *= (mat_val / i);
+        } while (i < 1024);
+        return expmatrix;
+    }
 }
+
+USING_QPANDA
+using namespace std;
+using namespace Eigen;
+
+
+QOperator::QOperator()
+{
+    QCircuit tmp;
+    m_pQuantumCircuitOperator = tmp;
+}
+
+
+QOperator::QOperator(QGate& gate)
+{
+    QCircuit tmp;
+    tmp << gate;
+    m_pQuantumCircuitOperator = tmp;
+}
+
+QOperator::QOperator(QCircuit& circuit)
+{
+    QCircuit tmp;
+    tmp << circuit;
+    m_pQuantumCircuitOperator = tmp;
+}
+
+QStat QOperator::get_matrix()
+{
+    QProg prog(this->m_pQuantumCircuitOperator);
+    return getCircuitMatrix(prog);
+}
+
+
+std::string QOperator::to_instruction(std::string ir_type)
+{
+    std::string ir_instruction = "";
+    auto machine = initQuantumMachine(QMachineType::CPU);
+    QProg prog(this->m_pQuantumCircuitOperator);
+    if (ir_type == "OriginIR")
+    {
+        ir_instruction = transformQProgToOriginIR(prog, machine);
+    }
+    else if (ir_type == "Quil")
+    {
+        ir_instruction = transformQProgToQuil(prog, machine);
+    }
+    else if (ir_type == "QASM")
+    {
+        ir_instruction = convert_qprog_to_qasm(prog, machine);
+    }
+    else
+    {
+        QCERR_AND_THROW(runtime_error, "Input IR Type ERROR");
+    }
+    return ir_instruction;
+}
+

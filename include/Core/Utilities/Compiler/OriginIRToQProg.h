@@ -18,12 +18,107 @@
 #include "Core/Utilities/Compiler/QASMToQProg.h"
 #include <Core/Utilities/Compiler/OriginIRCompiler/originirParser.h>
 #include <Core/Utilities/Compiler/OriginIRCompiler/originirParser.h>
+#include <include/Core/Utilities/Tools/Utils.h>
 #include <algorithm>
 #include <numeric>
 #include <string>
 
 
 QPANDA_BEGIN
+
+/**
+* @brief  repalce A with X in define_gate_declaration statement
+* @ingroup Utilities
+* @param[in]  std::string& src_str  source string
+* @param[in]  std::string strA:  string to be replaced
+* @param[in]  std::string strX:  string to replace
+* @return   std::string: the replaced string
+*/
+std::string replaceAWithX(std::string& src_str, std::string strA, std::string strX)
+{
+	std::string aim_result;
+	std::string::size_type pos;
+	std::vector<std::string> result = split(src_str, " ");
+	std::string remaining = accumulate(result.begin() + 1, result.end(), aim_result);
+	int left_bracket = remaining.find_last_of('(');
+	std::vector<std::string> aim_context_info;
+	std::string before_bracket_context = remaining.substr(0, left_bracket - 1);
+	std::string target_bracket_info;
+	if (left_bracket != -1)
+	{
+		std::string bracket_context = remaining.substr(left_bracket, remaining.size() - left_bracket);
+		std::string bracket_context_info = bracket_context.substr(1, bracket_context.size() - 2);
+		std::vector<std::string> bracket_context_info_vector = split(bracket_context_info, ",");
+		aim_context_info.push_back("(");
+		for (int i = 0; i < bracket_context_info_vector.size(); i++)
+		{
+			std::string tmp = bracket_context_info_vector[i];
+			size_t size = tmp.size();
+			if (tmp[size - 1] == '\n')
+			{
+				int first_line_feed = tmp.find_first_of('\n');
+				tmp = tmp.substr(0, first_line_feed);
+			}
+			if (tmp == strA)
+			{
+				aim_context_info.push_back(strX);
+			}
+			else
+			{
+				aim_context_info.push_back(tmp);
+			}
+		}
+		aim_context_info.push_back(")");
+		target_bracket_info.assign("," + aim_context_info[0]);
+		for (int i = 1; i < aim_context_info.size() - 1; i++)
+		{
+			if (i != aim_context_info.size() - 2)
+				target_bracket_info += (aim_context_info[i] + ",");
+			else
+				target_bracket_info += (aim_context_info[i] + ")");
+		}
+	}
+	else
+	{
+		target_bracket_info += " ";
+	}
+	std::vector<std::string> remaining_str = split(before_bracket_context, ",");
+	int flag;
+	for (int i = 0; i < remaining_str.size(); i++)
+	{
+		flag = 0;
+		std::string tmp = remaining_str[i];
+		size_t size = tmp.size();
+		if (tmp[size - 1] == '\n')
+		{
+			int first_line_feed = tmp.find_first_of('\n');
+			tmp = tmp.substr(0, first_line_feed);
+		}
+		if (tmp[0] == '(' && tmp[size - 1] == ')')
+		{
+			flag = 1;
+			tmp = tmp.substr(1, size - 2);
+		}
+		if (tmp == strA)
+		{
+			if (flag == 1)
+				remaining_str[i].assign("(" + strX + ")");
+			else if (flag == 0)
+				remaining_str[i].assign(strX);
+		}
+	}
+	aim_result.erase();
+	aim_result.assign(result[0] + " ");
+	for (int i = 0; i < remaining_str.size(); i++)
+	{
+		if (i != remaining_str.size() - 1)
+			aim_result += (remaining_str[i] + ",");
+		else
+			aim_result += (remaining_str[i]);
+	}
+	aim_result += target_bracket_info;
+	return aim_result;
+}
 
 
 /**
@@ -652,29 +747,12 @@ public:
 			idx++;
 		}
 
-		auto replaceAWithX = [](std::string& src_str, std::string strA, std::string strX)
-		{
-			int pos;
-			pos = src_str.find(strA);
-			while (pos != -1) {
-				src_str.replace(pos, std::string(strA).length(), strX);
-				pos = src_str.find(strA);
-			}
-		};
 
 		for (auto& str : gate_bodys)
 		{
 			for (auto& it : formal2actual_map)
 			{
-				std::string s;
-				std::stringstream linestream;
-				linestream.str(str);
-				while (linestream >> s) {
-					std::string temp = s;
-					int pos = temp.find(it.first);
-					if (pos != -1)
-						replaceAWithX(str, it.first, it.second);
-				}
+				str = replaceAWithX(str, it.first, it.second);
 			}
 
 			antlr4::ANTLRInputStream input(str);
@@ -686,7 +764,7 @@ public:
 			size_t _tmp_id = visit(tree);
 			builder.insert_subprog(prog_id, _tmp_id);
 		}
-		
+
 		return prog_id;
 	}
 
@@ -1083,7 +1161,7 @@ public:
 	antlrcpp::Any visitStatement(originirParser::StatementContext* ctx) {
 		return visit(ctx->children[0]);
 	}
-	
+
 
 	antlrcpp::Any visitUser_defined_gate(originirParser::User_defined_gateContext* ctx) {
 		auto startToken = ctx->start;
@@ -1419,7 +1497,7 @@ public:
 
 		UserDefineGateInfo defined_gate;
 		std::string userDefinedGateName = ctx->id()->getText();
-		std::vector<std::string> tobe_replaced_par= visit(ctx->id_list(0));
+		std::vector<std::string> tobe_replaced_par = visit(ctx->id_list(0));
 
 		std::vector<std::string> str_body_vect;
 		for (int i = 0; i < ctx->user_defined_gate().size(); i++)

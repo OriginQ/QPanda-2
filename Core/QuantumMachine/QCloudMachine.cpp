@@ -144,7 +144,8 @@ std::string QCloudMachine::post_json(const std::string &sUrl, std::string & sJso
     headers = curl_slist_append(headers,"Content-Type: application/json;charset=UTF-8");
     headers = curl_slist_append(headers, "Connection: keep-alive");
     headers = curl_slist_append(headers, "Server: nginx/1.16.1");
-    headers = curl_slist_append(headers,"Transfer-Encoding: chunked"); 
+    headers = curl_slist_append(headers, "Transfer-Encoding: chunked");
+    headers = curl_slist_append(headers, "origin-language: en");
 
     curl_easy_setopt(pCurl, CURLOPT_HTTPHEADER, headers);
     curl_easy_setopt(pCurl, CURLOPT_TIMEOUT, 30);
@@ -704,12 +705,19 @@ bool QCloudMachine::parser_submit_json(std::string &recv_json, std::string& task
         {
             if (m_is_logged) std::cout << recv_json << std::endl;
 
-            const rapidjson::Value &message = recv_doc["enMessage"];
-            std::string error_msg = message.GetString();
+            if (!recv_doc.HasMember("success"))
+            {
+                QCERR_AND_THROW(run_fail, "parser_submit_json error");
+            }
+            else
+            {
+                const rapidjson::Value &message = recv_doc["message"];
+                std::string error_msg = message.GetString();
 
-            m_error_info = error_msg;
-            QCERR(error_msg.c_str());
-            throw run_fail(error_msg);
+                m_error_info = error_msg;
+                QCERR(error_msg.c_str());
+                throw run_fail(error_msg);
+            }
         }
         else
         {

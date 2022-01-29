@@ -258,6 +258,18 @@ QError CPUImplQPUSingleThread::initState(size_t qubit_num, const QStat &state)
         }
 
     }
+    else
+    {
+        qubit2stat.erase(qubit2stat.begin(), qubit2stat.end());
+        qubit2stat.resize(qubit_num);
+        for (auto i = 0; i < qubit_num; i++)
+        {
+            qubit2stat[i].qVec.push_back(i);
+            qubit2stat[i].qstate.push_back(1);
+            qubit2stat[i].qstate.push_back(0);
+            qubit2stat[i].qubitnumber = 1;
+        }
+    }
 
     return qErrorNone;
 }

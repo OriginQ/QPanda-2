@@ -801,7 +801,7 @@ protected:
 				break;
 			}
 
-			while (candidate_special_gate.size() > 1)
+			while (candidate_special_gate.size() > 0)
 			{
 				std::vector<std::pair<pOptimizerNodeInfo, QVec>> tmp_special_gate;
 				tmp_special_gate.push_back(candidate_special_gate.back());

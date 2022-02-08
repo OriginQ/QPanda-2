@@ -20,10 +20,10 @@ jobs:
     vmImage: 'macOS-10.14'
   steps:
   - script: 
-     pwd
-     gcc -v
-     cmake -version
-     python -V
+    # pwd
+    # gcc -v
+    # cmake -version
+    # python -V
      mkdir build 
      cd build
      cmake  ..

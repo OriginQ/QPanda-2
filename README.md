@@ -7,7 +7,7 @@
 QPanda2 is an open source quantum computing framework developed by Origin Quantum, which can be used to build, run and optimize quantum algorithms.
 QPanda2 is the basic library of a series of software developped by  Origin Quantum, which provides core components for QRunes, Qurator and quantum computing services.
 
-| Linux                | Windows and MacOS|
+| Linux                | Windows |
 |-------------------------|------------------|
 [![Build Status](https://travis-ci.org/OriginQ/QPanda-2.svg?branch=master)](https://travis-ci.org/OriginQ/QPanda-2)        |    [![Build Status](https://dev.azure.com/yekongxiaogang/QPanda2/_apis/build/status/OriginQ.QPanda-2?branchName=master)](https://dev.azure.com/yekongxiaogang/QPanda2/_build/latest?definitionId=4&branchName=master)   
 

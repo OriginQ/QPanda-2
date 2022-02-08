@@ -90,9 +90,9 @@ void QPanda::construct_real_chip_task_json(
 {
     doc.insert("code", prog_str);
     doc.insert("apiKey", token);
-    doc.insert("isAmend", !is_amend);
-    doc.insert("mappingFlag", !is_mapping);
-    doc.insert("circuitOptimization", !is_optimization);
+    doc.insert("isAmend", (int)!is_amend);
+    doc.insert("mappingFlag", (int)!is_mapping);
+    doc.insert("circuitOptimization", (int)!is_optimization);
     doc.insert("QMachineType", qvm_type);
     doc.insert("codeLen", prog_str.size());
     doc.insert("qubitNum", qubit_num);

@@ -132,11 +132,13 @@ static bool probcompare(pair<size_t, double> a, pair<size_t, double> b)
 QError NoisyCPUImplQPU::pMeasure
 (Qnum& qnum, prob_tuple &mResult, int select_max)
 {
+    throw std::runtime_error("NoisyCPUImplQPU do not support pmeasure.");
     return undefineError;
 }
 
 QError NoisyCPUImplQPU::pMeasure(Qnum& qnum, prob_vec &mResult)
 {
+    throw std::runtime_error("NoisyCPUImplQPU do not support pmeasure.");
     return undefineError;
 }
 
@@ -206,6 +208,18 @@ QError NoisyCPUImplQPU::initState(size_t qubit_num, const QStat &state)
             init_qubit2stat[i].enable = false;
         }
 
+    }
+    else
+    {
+        qubit2stat.erase(qubit2stat.begin(), qubit2stat.end());
+        qubit2stat.resize(qubit_num);
+        for (auto i = 0; i < qubit_num; i++)
+        {
+            qubit2stat[i].qVec.push_back(i);
+            qubit2stat[i].qstate.push_back(1);
+            qubit2stat[i].qstate.push_back(0);
+            qubit2stat[i].qubitnumber = 1;
+        }
     }
 
     return qErrorNone;

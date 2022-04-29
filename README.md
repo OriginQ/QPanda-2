@@ -76,4 +76,4 @@ OriginQ Cloud service platform, OriginQ Education cloud and other products.
  ## License
  Apache License 2.0
 
- Copyright (c) 2017-2021 By Origin Quantum Computing. All Right Reserved.
+ Copyright (c) 2017-2022 By Origin Quantum Computing. All Right Reserved

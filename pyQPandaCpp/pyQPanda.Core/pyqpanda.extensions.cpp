@@ -13,7 +13,6 @@
 #include "pybind11/operators.h"
 #include "QPandaConfig.h"
 #include "QPanda.h"
-#include "Extensions/VirtualZTransfer/VirtualZTransfer.h"
 #include "Extensions/Extensions.h"
 
 

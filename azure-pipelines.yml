@@ -14,18 +14,3 @@ jobs:
      call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86_amd64
      cmake --build . -- /p:Configuration=Release
   displayName: 'build QPanda on Windows vm'
-
-- job: Macos
-  pool:
-    vmImage: 'macOS-10.14'
-  steps:
-  - script: 
-     pwd
-     gcc -v
-     cmake -version
-     python -V
-     mkdir build 
-     cd build
-     cmake  ..
-     make 
-  displayName: 'make QPanda2 available on mac os vm'

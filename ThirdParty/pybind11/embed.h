@@ -18,11 +18,13 @@
 
 #if PY_MAJOR_VERSION >= 3
 #  define PYBIND11_EMBEDDED_MODULE_IMPL(name)            \
+      extern "C" PyObject *pybind11_init_impl_##name();  \
       extern "C" PyObject *pybind11_init_impl_##name() { \
           return pybind11_init_wrapper_##name();         \
       }
 #else
 #  define PYBIND11_EMBEDDED_MODULE_IMPL(name)            \
+      extern "C" void pybind11_init_impl_##name();       \
       extern "C" void pybind11_init_impl_##name() {      \
           pybind11_init_wrapper_##name();                \
       }
@@ -32,7 +34,7 @@
     Add a new module to the table of builtins for the interpreter. Must be
     defined in global scope. The first macro parameter is the name of the
     module (without quotes). The second parameter is the variable which will
-    be used as the interface for add functions and classes to the module.
+    be used as the interface to add functions and classes to the module.
 
     .. code-block:: cpp
 
@@ -90,8 +92,14 @@ NAMESPACE_END(detail)
     Initialize the Python interpreter. No other pybind11 or CPython API functions can be
     called before this is done; with the exception of `PYBIND11_EMBEDDED_MODULE`. The
     optional parameter can be used to skip the registration of signal handlers (see the
-    Python documentation for details). Calling this function again after the interpreter
+    `Python documentation`_ for details). Calling this function again after the interpreter
     has already been initialized is a fatal error.
+
+    If initializing the Python interpreter fails, then the program is terminated.  (This
+    is controlled by the CPython runtime and is an exception to pybind11's normal behavior
+    of throwing exceptions on errors.)
+
+    .. _Python documentation: https://docs.python.org/3/c-api/init.html#c.Py_InitializeEx
  \endrst */
 inline void initialize_interpreter(bool init_signal_handlers = true) {
     if (Py_IsInitialized())

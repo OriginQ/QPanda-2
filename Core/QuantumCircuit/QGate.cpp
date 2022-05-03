@@ -4,9 +4,10 @@
 #include <type_traits>
 #include "Core/Utilities/Tools/QStatMatrix.h"
 
+USING_QPANDA
 using namespace QGATE_SPACE;
 using namespace std;
-USING_QPANDA
+
 static QGateNodeFactory* _gs_pGateNodeFactory = QGateNodeFactory::getInstance();
 QGATE_FUN_MAP QGateParseMap::m_qgate_function_map = {};
 QGate::~QGate()
@@ -2182,6 +2183,317 @@ QCircuit QPanda::CU(const std::vector<int>& control_qaddrs, const std::vector<in
 
 	return cir;
 }
+QGate QPanda::RXX(Qubit* control_qubit, Qubit* target_qubit, double angle)
+{
+    string name = "RXX";
+    return _gs_pGateNodeFactory->getGateNode(name, { control_qubit, target_qubit }, angle);
+}
+
+QCircuit QPanda::RXX(const QVec& control_qubits, const QVec &target_qubits, double angle)
+{
+    if (control_qubits.size() == 0 || target_qubits.size() == 0)
+    {
+        QCERR("qubit_vector err");
+        throw invalid_argument("qubit_vector err");
+    }
+
+    string name = "RXX";
+    QCircuit cir = QCircuit();
+    if (control_qubits.size() == target_qubits.size())
+    {
+        for (int i = 0; i < control_qubits.size(); ++i)
+        {
+            if (control_qubits[i] != target_qubits[i])
+            {
+                cir << _gs_pGateNodeFactory->getGateNode(name, { control_qubits[i], target_qubits[i] }, angle);
+            }
+            else
+            {
+                QCERR("double_gate qubit err");
+                throw invalid_argument("double_gate qubit");
+            }
+        }
+    }
+    else
+    {
+        QCERR("qubit_vector size err");
+        throw invalid_argument("qubit_vector size");
+    }
+
+    return cir;
+}
+
+QGate QPanda::RXX(int control_qaddr, int target_qaddr, double angle)
+{
+    return RXX(get_qubit_by_phyaddr(control_qaddr), get_qubit_by_phyaddr(target_qaddr), angle);
+}
+
+QCircuit QPanda::RXX(const std::vector<int>& control_qaddrs, const std::vector<int>& target_qaddrs, double angle)
+{
+    if (control_qaddrs.size() == 0 || target_qaddrs.size() == 0)
+    {
+        QCERR("qubit_vector err");
+        throw invalid_argument("qubit_vector err");
+    }
+
+    QCircuit cir = QCircuit();
+    if (control_qaddrs.size() == target_qaddrs.size())
+    {
+        for (int i = 0; i < control_qaddrs.size(); ++i)
+        {
+            if (control_qaddrs[i] != target_qaddrs[i])
+            {
+                cir << RXX(get_qubit_by_phyaddr(control_qaddrs[i]), get_qubit_by_phyaddr(target_qaddrs[i]), angle);
+            }
+            else
+            {
+                QCERR("double_gate qubit err");
+                throw invalid_argument("double_gate qubit");
+            }
+        }
+    }
+    else
+    {
+        QCERR("qubit_vector size err");
+        throw invalid_argument("qubit_vector size");
+    }
+
+    return cir;
+}
+
+QGate QPanda::RYY(Qubit* control_qubit, Qubit* target_qubit, double angle)
+{
+    string name = "RYY";
+    return _gs_pGateNodeFactory->getGateNode(name, { control_qubit, target_qubit }, angle);
+}
+
+QCircuit QPanda::RYY(const QVec& control_qubits, const QVec &target_qubits, double angle)
+{
+    if (control_qubits.size() == 0 || target_qubits.size() == 0)
+    {
+        QCERR("qubit_vector err");
+        throw invalid_argument("qubit_vector err");
+    }
+
+    string name = "RYY";
+    QCircuit cir = QCircuit();
+    if (control_qubits.size() == target_qubits.size())
+    {
+        for (int i = 0; i < control_qubits.size(); ++i)
+        {
+            if (control_qubits[i] != target_qubits[i])
+            {
+                cir << _gs_pGateNodeFactory->getGateNode(name, { control_qubits[i], target_qubits[i] }, angle);
+            }
+            else
+            {
+                QCERR("double_gate qubit err");
+                throw invalid_argument("double_gate qubit");
+            }
+        }
+    }
+    else
+    {
+        QCERR("qubit_vector size err");
+        throw invalid_argument("qubit_vector size");
+    }
+
+    return cir;
+}
+
+QGate QPanda::RYY(int control_qaddr, int target_qaddr, double angle)
+{
+    return RYY(get_qubit_by_phyaddr(control_qaddr), get_qubit_by_phyaddr(target_qaddr), angle);
+}
+
+QCircuit QPanda::RYY(const std::vector<int>& control_qaddrs, const std::vector<int>& target_qaddrs, double angle)
+{
+    if (control_qaddrs.size() == 0 || target_qaddrs.size() == 0)
+    {
+        QCERR("qubit_vector err");
+        throw invalid_argument("qubit_vector err");
+    }
+
+    QCircuit cir = QCircuit();
+    if (control_qaddrs.size() == target_qaddrs.size())
+    {
+        for (int i = 0; i < control_qaddrs.size(); ++i)
+        {
+            if (control_qaddrs[i] != target_qaddrs[i])
+            {
+                cir << RYY(get_qubit_by_phyaddr(control_qaddrs[i]), get_qubit_by_phyaddr(target_qaddrs[i]), angle);
+            }
+            else
+            {
+                QCERR("double_gate qubit err");
+                throw invalid_argument("double_gate qubit");
+            }
+        }
+    }
+    else
+    {
+        QCERR("qubit_vector size err");
+        throw invalid_argument("qubit_vector size");
+    }
+
+    return cir;
+}
+
+QGate QPanda::RZZ(Qubit* control_qubit, Qubit* target_qubit, double angle)
+{
+    string name = "RZZ";
+    return _gs_pGateNodeFactory->getGateNode(name, { control_qubit, target_qubit }, angle);
+}
+
+QCircuit QPanda::RZZ(const QVec& control_qubits, const QVec &target_qubits, double angle)
+{
+    if (control_qubits.size() == 0 || target_qubits.size() == 0)
+    {
+        QCERR("qubit_vector err");
+        throw invalid_argument("qubit_vector err");
+    }
+
+    string name = "RZZ";
+    QCircuit cir = QCircuit();
+    if (control_qubits.size() == target_qubits.size())
+    {
+        for (int i = 0; i < control_qubits.size(); ++i)
+        {
+            if (control_qubits[i] != target_qubits[i])
+            {
+                cir << _gs_pGateNodeFactory->getGateNode(name, { control_qubits[i], target_qubits[i] }, angle);
+            }
+            else
+            {
+                QCERR("double_gate qubit err");
+                throw invalid_argument("double_gate qubit");
+            }
+        }
+    }
+    else
+    {
+        QCERR("qubit_vector size err");
+        throw invalid_argument("qubit_vector size");
+    }
+
+    return cir;
+}
+
+QGate QPanda::RZZ(int control_qaddr, int target_qaddr, double angle)
+{
+    return RZZ(get_qubit_by_phyaddr(control_qaddr), get_qubit_by_phyaddr(target_qaddr), angle);
+}
+
+QCircuit QPanda::RZZ(const std::vector<int>& control_qaddrs, const std::vector<int>& target_qaddrs, double angle)
+{
+    if (control_qaddrs.size() == 0 || target_qaddrs.size() == 0)
+    {
+        QCERR("qubit_vector err");
+        throw invalid_argument("qubit_vector err");
+    }
+
+    QCircuit cir = QCircuit();
+    if (control_qaddrs.size() == target_qaddrs.size())
+    {
+        for (int i = 0; i < control_qaddrs.size(); ++i)
+        {
+            if (control_qaddrs[i] != target_qaddrs[i])
+            {
+                cir << RZZ(get_qubit_by_phyaddr(control_qaddrs[i]), get_qubit_by_phyaddr(target_qaddrs[i]), angle);
+            }
+            else
+            {
+                QCERR("double_gate qubit err");
+                throw invalid_argument("double_gate qubit");
+            }
+        }
+    }
+    else
+    {
+        QCERR("qubit_vector size err");
+        throw invalid_argument("qubit_vector size");
+    }
+
+    return cir;
+}
+
+QGate QPanda::RZX(Qubit* control_qubit, Qubit* target_qubit, double angle)
+{
+    string name = "RZX";
+    return _gs_pGateNodeFactory->getGateNode(name, { control_qubit, target_qubit }, angle);
+}
+
+QCircuit QPanda::RZX(const QVec& control_qubits, const QVec &target_qubits, double angle)
+{
+    if (control_qubits.size() == 0 || target_qubits.size() == 0)
+    {
+        QCERR("qubit_vector err");
+        throw invalid_argument("qubit_vector err");
+    }
+
+    string name = "RZX";
+    QCircuit cir = QCircuit();
+    if (control_qubits.size() == target_qubits.size())
+    {
+        for (int i = 0; i < control_qubits.size(); ++i)
+        {
+            if (control_qubits[i] != target_qubits[i])
+            {
+                cir << _gs_pGateNodeFactory->getGateNode(name, { control_qubits[i], target_qubits[i] }, angle);
+            }
+            else
+            {
+                QCERR("double_gate qubit err");
+                throw invalid_argument("double_gate qubit");
+            }
+        }
+    }
+    else
+    {
+        QCERR("qubit_vector size err");
+        throw invalid_argument("qubit_vector size");
+    }
+
+    return cir;
+}
+
+QGate QPanda::RZX(int control_qaddr, int target_qaddr, double angle)
+{
+    return RZX(get_qubit_by_phyaddr(control_qaddr), get_qubit_by_phyaddr(target_qaddr), angle);
+}
+
+QCircuit QPanda::RZX(const std::vector<int>& control_qaddrs, const std::vector<int>& target_qaddrs, double angle)
+{
+    if (control_qaddrs.size() == 0 || target_qaddrs.size() == 0)
+    {
+        QCERR("qubit_vector err");
+        throw invalid_argument("qubit_vector err");
+    }
+
+    QCircuit cir = QCircuit();
+    if (control_qaddrs.size() == target_qaddrs.size())
+    {
+        for (int i = 0; i < control_qaddrs.size(); ++i)
+        {
+            if (control_qaddrs[i] != target_qaddrs[i])
+            {
+                cir << RZX(get_qubit_by_phyaddr(control_qaddrs[i]), get_qubit_by_phyaddr(target_qaddrs[i]), angle);
+            }
+            else
+            {
+                QCERR("double_gate qubit err");
+                throw invalid_argument("double_gate qubit");
+            }
+        }
+    }
+    else
+    {
+        QCERR("qubit_vector size err");
+        throw invalid_argument("qubit_vector size");
+    }
+
+    return cir;
+}
 
 QGate QPanda::U4(int qaddr, double alpha, double beta, double gamma, double delta)
 {
@@ -2240,6 +2552,18 @@ QGate QPanda::QOracle(const QVec &qubits, const QStat &matrix)
     }
     QPANDA_ASSERT(1 != value, "Error: QOracle matrix size");
 
+    for (auto qv_idx = qubits.begin(); qv_idx != qubits.end(); qv_idx++)
+    {
+        auto result = count(qubits.begin(), qubits.end(), *qv_idx);
+
+        if (result > 1)
+        {
+            QCERR("the QOracle qubit_vector has duplicate members");
+            throw invalid_argument("the QOracle qubit_vector has duplicate members");
+            
+        }
+
+    }
 
     string name = "OracularGate";
     return _gs_pGateNodeFactory->getGateNode(name, qubits, matrix);

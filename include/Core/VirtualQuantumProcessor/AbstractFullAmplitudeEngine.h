@@ -8,6 +8,7 @@
 #include "Core/QuantumCircuit/ControlFlow.h"
 #include "Core/QuantumMachine/QuantumMachineInterface.h"
 
+QPANDA_BEGIN
 
 /** 
 * @brief Distributed full amplitude engine  abstract class
@@ -52,6 +53,8 @@ class DistributedFullAmplitudeEngine :public QPUImpl
 public:
     bool qubitMeasure(size_t qn);
 
+    void set_parallel_threads_size(size_t size);
+    
     QError pMeasure(Qnum& qnum, prob_vec &mResult);
 
     QError initState(size_t head_rank, size_t rank_size, size_t qubit_num);
@@ -76,6 +79,10 @@ public:
         QStat& matrix,
         bool isConjugate,
         GateType);
+    
+    virtual QError process_noise(Qnum& qnum, QStat& matrix){
+        QCERR_AND_THROW(std::runtime_error, "Not implemented yet");
+    }
 
     QStat getQState();
 
@@ -85,7 +92,6 @@ private:
     AbstractDistributedFullAmplitudeEngine * _PQGates = nullptr;
 };
 
-
-
+QPANDA_END
 
 #endif

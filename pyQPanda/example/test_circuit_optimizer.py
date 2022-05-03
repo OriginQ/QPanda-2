@@ -65,4 +65,4 @@ class Test_circuit_optimizer(unittest.TestCase):
         # plt.show()
 
 if __name__=="__main__":
-    Test_circuit_optimizer.test_layer1()
+    unittest.main(verbosity=2)

@@ -1,5 +1,7 @@
 #include "TensorEngine.h"
+
 using namespace std;
+USING_QPANDA
 
 void sort(edge_map_t* edge_map, vector<qsize_t>& vector)
 {

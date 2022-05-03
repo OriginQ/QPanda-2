@@ -458,6 +458,497 @@ private:
 	const std::string &m_name;
 };
 
+class BoxTopWire : public DrawBox
+{
+public:
+    BoxTopWire(const std::string &top_format_str, const std::string &mid_format_str, const std::string &bot_format_str, const std::string &pad_str)
+        :DrawBox(
+            std::string(top_format_str),
+            std::string(mid_format_str),
+            std::string(bot_format_str))
+        , m_pad_str(pad_str), m_len(0)
+    {}
+
+    void setName(const std::string& name, const char *qbit_index) {
+        std::string pad_str;
+        for (size_t i = 0; i < name.size() + 4; i++)
+        {
+            pad_str.append(m_pad_str);
+        }
+        std::string index_str;
+        index_str.append(qbit_index);
+        for (size_t i = 0; i < name.size() + 3; i++)
+        {
+            index_str.append(" ");
+        }
+        std::string space_str;
+        for (size_t i = 0; i < name.size() + 4; i++)
+        {
+            space_str.append(" ");
+        }
+
+        char *buf = new char[(name.size() + 4) * 3 + 8];
+        sprintf(buf, m_top_format.c_str(), pad_str.c_str());
+        m_top_format = buf;
+
+        sprintf(buf, m_mid_format.c_str(), index_str.c_str());
+        m_mid_format = buf;
+
+        sprintf(buf, m_bot_format.c_str(), space_str.c_str());
+        m_bot_format = buf;
+        m_len = name.size() + 6; // 2 = sizeof("┌┐") / sizeof("┌")
+        delete[] buf;
+    }
+
+    virtual int getLen() const { return m_len; }
+
+    virtual void setStr(std::string &target_str, const int pos, const std::string &str) {
+
+        int char_start_pos = (pos) * 3; //because the size of utf8-char is 3 Bytes
+        for (size_t i = 0; i < str.length(); i++)
+        {
+            target_str.at(char_start_pos + i) = str.at(i);
+        }
+    }
+
+protected:
+    const std::string m_pad_str;
+    int m_len;
+};
+
+class BoxMidTopWire : public DrawBox
+{
+public:
+    BoxMidTopWire(const std::string &top_format_str, const std::string &mid_format_str, const std::string &bot_format_str, const std::string &pad_str)
+        :DrawBox(
+            std::string(top_format_str),
+            std::string(mid_format_str),
+            std::string(bot_format_str))
+        , m_pad_str(pad_str), m_len(0)
+    {}
+
+    void setName(const std::string& name, const char* qbit_index) {
+        std::string pad_str;
+        for (size_t i = 0; i < name.size() + 4; i++)
+        {
+            pad_str.append(m_pad_str);
+        }
+
+        std::string index_str;
+        index_str.append(qbit_index);
+        for (size_t i = 0; i < name.size() + 3; i++)
+        {
+            index_str.append(" ");
+        }
+
+        std::string space_str;
+        for (size_t i = 0; i < name.size() + 4; i++)
+        {
+            space_str.append(" ");
+        }
+        std::string name_str;
+        name_str.append(" ");
+        name_str.append(" ");
+        name_str.append(name);
+        name_str.append(" ");
+        name_str.append(" ");
+
+        char *buf = new char[(name.size() + 4) * 3 + 8];
+        sprintf(buf, m_top_format.c_str(), name_str.c_str());
+        m_top_format = buf;
+
+        sprintf(buf, m_mid_format.c_str(), index_str.c_str());
+        m_mid_format = buf;
+
+        sprintf(buf, m_bot_format.c_str(), space_str.c_str());
+        m_bot_format = buf;
+
+        m_len = name.size() + 6; // 2 = sizeof("┌┐") / sizeof("┌")
+        delete[] buf;
+    }
+
+    virtual int getLen() const { return m_len; }
+
+    virtual void setStr(std::string &target_str, const int pos, const std::string &str) {
+
+        int char_start_pos = (pos) * 3; //because the size of utf8-char is 3 Bytes
+        for (size_t i = 0; i < str.length(); i++)
+        {
+            target_str.at(char_start_pos + i) = str.at(i);
+        }
+    }
+
+protected:
+    const std::string m_pad_str;
+    int m_len;
+};
+
+class BoxMidWire : public DrawBox
+{
+public:
+    BoxMidWire(const std::string &top_format_str, const std::string &mid_format_str, const std::string &bot_format_str, const std::string &pad_str)
+        :DrawBox(
+            std::string(top_format_str),
+            std::string(mid_format_str),
+            std::string(bot_format_str))
+        , m_pad_str(pad_str), m_len(0)
+    {}
+
+    void setName(const std::string& name, const char* qbit_index) {
+        std::string pad_str;
+        for (size_t i = 0; i < name.size() + 4; i++)
+        {
+            pad_str.append(m_pad_str);
+        }
+        std::string space_str;
+        for (size_t i = 0; i < name.size() + 4; i++)
+        {
+            space_str.append(" ");
+        }
+        std::string index_str;
+
+        index_str.append(qbit_index);
+        index_str.append(" ");
+        index_str.append(name);
+        index_str.append(" ");
+        index_str.append(" ");
+
+        char *buf = new char[(name.size() + 4) * 3 + 8];
+        sprintf(buf, m_top_format.c_str(), space_str.c_str());
+        m_top_format = buf;
+
+        sprintf(buf, m_mid_format.c_str(), index_str.c_str());
+        m_mid_format = buf;
+
+        sprintf(buf, m_bot_format.c_str(), space_str.c_str());
+        m_bot_format = buf;
+        m_len = name.size() + 6; // 2 = sizeof("┌┐") / sizeof("┌")
+        delete[] buf;
+    }
+
+    virtual int getLen() const { return m_len; }
+
+    virtual void setStr(std::string &target_str, const int pos, const std::string &str) {
+
+        int char_start_pos = (pos) * 3; //because the size of utf8-char is 3 Bytes
+        for (size_t i = 0; i < str.length(); i++)
+        {
+            target_str.at(char_start_pos + i) = str.at(i);
+        }
+    }
+
+protected:
+    const std::string m_pad_str;
+    int m_len;
+};
+
+class BoxMidBotWire : public DrawBox
+{
+public:
+    BoxMidBotWire(const std::string &top_format_str, const std::string &mid_format_str, const std::string &bot_format_str, const std::string &pad_str)
+        :DrawBox(
+            std::string(top_format_str),
+            std::string(mid_format_str),
+            std::string(bot_format_str))
+        , m_pad_str(pad_str), m_len(0)
+    {}
+
+    void setName(const std::string& name, const char* qbit_index) {
+        std::string pad_str;
+        for (size_t i = 0; i < name.size() + 4; i++)
+        {
+            pad_str.append(m_pad_str);
+        }
+
+        std::string space_str;
+        for (size_t i = 0; i < name.size() + 4; i++)
+        {
+            space_str.append(" ");
+        }
+        std::string index_str;
+
+        index_str.append(qbit_index);
+        for (size_t i = 0; i < name.size() + 3; i++)
+        {
+            index_str.append(" ");
+        }
+
+        char *buf = new char[(name.size() + 4) * 3 + 8];
+        sprintf(buf, m_top_format.c_str(), space_str.c_str());
+        m_top_format = buf;
+
+        sprintf(buf, m_mid_format.c_str(), index_str.c_str());
+        m_mid_format = buf;
+
+        sprintf(buf, m_bot_format.c_str(), space_str.c_str());
+        m_bot_format = buf;
+
+        m_len = name.size() + 6; // 2 = sizeof("┌┐") / sizeof("┌")
+        delete[] buf;
+    }
+
+    virtual int getLen() const { return m_len; }
+
+    virtual void setStr(std::string &target_str, const int pos, const std::string &str) {
+
+        int char_start_pos = (pos) * 3; //because the size of utf8-char is 3 Bytes
+        for (size_t i = 0; i < str.length(); i++)
+        {
+            target_str.at(char_start_pos + i) = str.at(i);
+        }
+    }
+
+protected:
+    const std::string m_pad_str;
+    int m_len;
+};
+
+
+class BoxBotWire : public DrawBox
+{
+public:
+    BoxBotWire(const std::string &top_format_str, const std::string &mid_format_str, const std::string &bot_format_str, const std::string &pad_str)
+        :DrawBox(
+            std::string(top_format_str),
+            std::string(mid_format_str),
+            std::string(bot_format_str))
+        , m_pad_str(pad_str), m_len(0)
+    {}
+
+    void setName(const std::string& name, const char* qbit_index) {
+        std::string pad_str;
+        for (size_t i = 0; i < name.size() + 4; i++)
+        {
+            pad_str.append(m_pad_str);
+        }
+        std::string space_str;
+        for (size_t i = 0; i < name.size() + 4; i++)
+        {
+            space_str.append(" ");
+        }
+        std::string name_str;
+        name_str.append(" ");
+        name_str.append(" ");
+        name_str.append(name);
+        name_str.append(" ");
+        name_str.append(" ");
+
+        char *buf = new char[(name.size() + 4) * 3 + 8];
+        sprintf(buf, m_top_format.c_str(), name_str.c_str());
+        m_top_format = buf;
+        std::string index_str;
+        index_str.append(qbit_index);
+        for (size_t i = 0; i < name.size() + 3; i++)
+        {
+            index_str.append(" ");
+        }
+        sprintf(buf, m_mid_format.c_str(), index_str.c_str());
+        m_mid_format = buf;
+
+        sprintf(buf, m_bot_format.c_str(), pad_str.c_str());
+        m_bot_format = buf;
+
+        m_len = name.size() + 6; // 2 = sizeof("┌┐") / sizeof("┌")
+        delete[] buf;
+    }
+
+    virtual int getLen() const { return m_len; }
+
+    virtual void setStr(std::string &target_str, const int pos, const std::string &str) {
+
+        int char_start_pos = (pos) * 3; //because the size of utf8-char is 3 Bytes
+        for (size_t i = 0; i < str.length(); i++)
+        {
+            target_str.at(char_start_pos + i) = str.at(i);
+        }
+    }
+
+protected:
+    const std::string m_pad_str;
+    int m_len;
+};
+
+
+class BoxBotOraWire : public DrawBox
+{
+public:
+    BoxBotOraWire(const std::string &top_format_str, const std::string &mid_format_str, const std::string &bot_format_str, const std::string &pad_str)
+        :DrawBox(
+            std::string(top_format_str),
+            std::string(mid_format_str),
+            std::string(bot_format_str))
+        , m_pad_str(pad_str), m_len(0)
+    {}
+
+    void setName(const std::string& name, const char* qbit_index) {
+        std::string pad_str;
+        for (size_t i = 0; i < name.size() + 4; i++)
+        {
+            pad_str.append(m_pad_str);
+        }
+
+        std::string index_str;
+        index_str.append(qbit_index);
+        for (size_t i = 0; i < name.size() + 3; i++)
+        {
+            index_str.append(" ");
+        }
+
+        std::string space_str;
+        for (size_t i = 0; i < name.size() + 4; i++)
+        {
+            space_str.append(" ");
+        }
+
+        char *buf = new char[(name.size() + 4) * 3 + 8];
+        sprintf(buf, m_top_format.c_str(), space_str.c_str());
+        m_top_format = buf;
+
+        sprintf(buf, m_mid_format.c_str(), index_str.c_str());
+        m_mid_format = buf;;
+
+        sprintf(buf, m_bot_format.c_str(), pad_str.c_str());
+        m_bot_format = buf;
+
+        m_len = name.size() + 6; // 2 = sizeof("┌┐") / sizeof("┌")
+        delete[] buf;
+    }
+
+    virtual int getLen() const { return m_len; }
+
+    virtual void setStr(std::string &target_str, const int pos, const std::string &str) {
+
+        int char_start_pos = (pos) * 3; //because the size of utf8-char is 3 Bytes
+        for (size_t i = 0; i < str.length(); i++)
+        {
+            target_str.at(char_start_pos + i) = str.at(i);
+        }
+    }
+
+protected:
+    const std::string m_pad_str;
+    int m_len;
+};
+
+
+class BoxMoreTopWire : public BoxTopWire
+{
+public:
+    BoxMoreTopWire(const std::string& name, const char* qbit_index)
+        :BoxTopWire(
+            ulongToUtf8(BOX_LEFT_TOP_CHAR) + std::string("%s") + ulongToUtf8(BOX_RIGHT_TOP_CHAR),
+            ulongToUtf8(BOX_LEFT_CONNECT_CHAR) + std::string("%s") + ulongToUtf8(BOX_RIGHT_CONNECT_CHAR),
+            ulongToUtf8(SINGLE_VERTICAL_LINE) + std::string("%s") + ulongToUtf8(SINGLE_VERTICAL_LINE),
+            ulongToUtf8(SINGLE_HORIZONTAL_LINE))
+        , m_name(name)
+    {
+        setName(m_name, qbit_index);
+    }
+    ~BoxMoreTopWire() {}
+
+
+private:
+    const std::string &m_name;
+};
+
+class BoxMoreMidTWire : public BoxMidTopWire
+{
+public:
+    BoxMoreMidTWire(const std::string& name, const char* qbit_index)
+        :BoxMidTopWire(
+            ulongToUtf8(SINGLE_VERTICAL_LINE) + std::string("%s") + ulongToUtf8(SINGLE_VERTICAL_LINE),
+            ulongToUtf8(BOX_LEFT_CONNECT_CHAR) + std::string("%s") + ulongToUtf8(BOX_RIGHT_CONNECT_CHAR),
+            ulongToUtf8(SINGLE_VERTICAL_LINE) + std::string("%s") + ulongToUtf8(SINGLE_VERTICAL_LINE),
+            ulongToUtf8(SINGLE_HORIZONTAL_LINE))
+        , m_name(name)
+    {
+        setName(m_name, qbit_index);
+    }
+    ~BoxMoreMidTWire() {}
+
+
+private:
+    const std::string &m_name;
+};
+
+class BoxMoreMidWire : public BoxMidWire
+{
+public:
+    BoxMoreMidWire(const std::string& name, const char* qbit_index)
+        :BoxMidWire(
+            ulongToUtf8(SINGLE_VERTICAL_LINE) + std::string("%s") + ulongToUtf8(SINGLE_VERTICAL_LINE),
+            ulongToUtf8(BOX_LEFT_CONNECT_CHAR) + std::string("%s") + ulongToUtf8(BOX_RIGHT_CONNECT_CHAR),
+            ulongToUtf8(SINGLE_VERTICAL_LINE) + std::string("%s") + ulongToUtf8(SINGLE_VERTICAL_LINE),
+            ulongToUtf8(SINGLE_HORIZONTAL_LINE))
+        , m_name(name)
+    {
+        setName(m_name, qbit_index);
+    }
+    ~BoxMoreMidWire() {}
+
+
+private:
+    const std::string &m_name;
+};
+
+class BoxMoreMidBWire : public BoxMidBotWire
+{
+public:
+    BoxMoreMidBWire(const std::string& name, const char *qbit_index)
+        :BoxMidBotWire(
+            ulongToUtf8(SINGLE_VERTICAL_LINE) + std::string("%s") + ulongToUtf8(SINGLE_VERTICAL_LINE),
+            ulongToUtf8(BOX_LEFT_CONNECT_CHAR) + std::string("%s") + ulongToUtf8(BOX_RIGHT_CONNECT_CHAR),
+            ulongToUtf8(SINGLE_VERTICAL_LINE) + std::string("%s") + ulongToUtf8(SINGLE_VERTICAL_LINE),
+            ulongToUtf8(SINGLE_HORIZONTAL_LINE))
+        , m_name(name)
+    {
+        setName(m_name, qbit_index);
+    }
+    ~BoxMoreMidBWire() {}
+
+
+private:
+    const std::string &m_name;
+};
+
+class BoxMoreBotWire : public BoxBotWire
+{
+public:
+    BoxMoreBotWire(const std::string& name, const char *qbit_index)
+        :BoxBotWire(
+            ulongToUtf8(SINGLE_VERTICAL_LINE) + std::string("%s") + ulongToUtf8(SINGLE_VERTICAL_LINE),
+            ulongToUtf8(BOX_LEFT_CONNECT_CHAR) + std::string("%s") + ulongToUtf8(BOX_RIGHT_CONNECT_CHAR),
+            ulongToUtf8(BOX_LEFT_BOTTOM_CHAR) + std::string("%s") + ulongToUtf8(BOX_RIGHT_BOTTOM_CHAR),
+            ulongToUtf8(SINGLE_HORIZONTAL_LINE))
+        , m_name(name)
+    {
+        setName(m_name, qbit_index);
+    }
+    ~BoxMoreBotWire() {}
+
+private:
+    const std::string &m_name;
+};
+
+class BoxMoreOraBotWire : public BoxBotOraWire
+{
+public:
+    BoxMoreOraBotWire(const std::string& name, const char* qbit_index)
+        :BoxBotOraWire(
+            ulongToUtf8(SINGLE_VERTICAL_LINE) + std::string("%s") + ulongToUtf8(SINGLE_VERTICAL_LINE),
+            ulongToUtf8(BOX_LEFT_CONNECT_CHAR) + std::string("%s") + ulongToUtf8(BOX_RIGHT_CONNECT_CHAR),
+            ulongToUtf8(BOX_LEFT_BOTTOM_CHAR) + std::string("%s") + ulongToUtf8(BOX_RIGHT_BOTTOM_CHAR),
+            ulongToUtf8(SINGLE_HORIZONTAL_LINE))
+        , m_name(name)
+    {
+        setName(m_name, qbit_index);
+    }
+    ~BoxMoreOraBotWire() {}
+
+private:
+    const std::string &m_name;
+};
+
 class ClassWire : public Wire
 {
 public:
@@ -715,6 +1206,246 @@ void DrawPicture::set_connect_direction(const int& qubit, const std::vector<int>
 	}
 }
 
+void DrawPicture::append_double_gate(string gate_name, QVec &qubits_vector)
+{
+    std::vector<int> all_qubits;
+    std::vector<int> all_pass_qubits;
+    if (gate_name == "OracularGate")
+    {
+        gate_name = "Unitary";
+    }
+    for (int i = 0; i < qubits_vector.size(); i++)
+    {
+        all_qubits.push_back(qubits_vector[i]->get_phy_addr());
+    }
+    //sort(all_qubits.begin(), all_qubits.end(), [](int a, int b) {return a < b; });
+    int max_bit = *max_element(all_qubits.begin(), all_qubits.end());
+    int min_bit = *min_element(all_qubits.begin(), all_qubits.end());
+    for (auto bit : m_quantum_bit_wires)
+    {
+        if (bit.first >= min_bit && bit.first <= max_bit)
+        {
+            all_pass_qubits.push_back(bit.first);
+        }
+    }
+    int mid_index = all_pass_qubits[all_pass_qubits.size() / 2];
+    int append_pos = getMaxQuWireLength(m_quantum_bit_wires.find(all_pass_qubits.front()), ++(m_quantum_bit_wires.find(all_pass_qubits.back())));
+
+    for (auto index = 0; index < all_pass_qubits.size(); ++index)
+    {
+        int q_index = all_pass_qubits[index];
+        if (q_index == all_pass_qubits[0])
+        {
+            auto real_index_iter = std::find(all_qubits.begin(), all_qubits.end(), q_index) - all_qubits.begin();
+            char char_index[2];
+            sprintf(char_index, "%d", real_index_iter);
+            //itoa(real_index_iter, char_index, 10);
+            BoxMoreTopWire topBox(gate_name, char_index);
+            m_quantum_bit_wires[q_index].back()->append(topBox, append_pos);
+            update_time_sequence(m_quantum_bit_wires[q_index].back(), get_ctrl_node_time_sequence());
+        }
+        else if (q_index == all_pass_qubits.back())
+        {
+            if (all_pass_qubits.size() == 2)
+            {
+                auto real_index_iter = std::find(all_qubits.begin(), all_qubits.end(), q_index) - all_qubits.begin();
+                char char_index[2];
+                sprintf(char_index, "%d", real_index_iter);
+                //itoa(real_index_iter, char_index, 10);
+                BoxMoreBotWire botBox(gate_name, char_index);
+                m_quantum_bit_wires[q_index].back()->append(botBox, append_pos);
+                update_time_sequence(m_quantum_bit_wires[q_index].back(), get_ctrl_node_time_sequence());
+            }
+            else
+            {
+                auto real_index_iter = std::find(all_qubits.begin(), all_qubits.end(), q_index) - all_qubits.begin();
+                char char_index[2];
+                sprintf(char_index, "%d", real_index_iter);
+                //itoa(real_index_iter, char_index, 10);
+                BoxMoreOraBotWire botBox(gate_name, char_index);
+                m_quantum_bit_wires[q_index].back()->append(botBox, append_pos);
+                update_time_sequence(m_quantum_bit_wires[q_index].back(), get_ctrl_node_time_sequence());
+            }
+
+        }
+        else
+        {
+            if ((std::find(all_qubits.begin(), all_qubits.end(), q_index) == all_qubits.end())
+                && q_index != mid_index)
+            {
+                BoxMoreMidBWire midBotBox(gate_name, " ");
+                m_quantum_bit_wires[q_index].back()->append(midBotBox, append_pos);
+                update_time_sequence(m_quantum_bit_wires[q_index].back(), get_ctrl_node_time_sequence());
+            }
+            else if (q_index == mid_index)
+            {
+                if (all_pass_qubits.size() % 2 == 0)
+                {
+                    BoxMoreMidTWire midTBox(gate_name, " ");
+                    m_quantum_bit_wires[q_index].back()->append(midTBox, append_pos);
+                    update_time_sequence(m_quantum_bit_wires[q_index].back(), get_ctrl_node_time_sequence());
+                }
+                else
+                {
+                    BoxMoreMidWire midBox(gate_name, " ");
+                    m_quantum_bit_wires[q_index].back()->append(midBox, append_pos);
+                    update_time_sequence(m_quantum_bit_wires[q_index].back(), get_ctrl_node_time_sequence());
+                }
+
+            }
+            else
+            {
+                auto real_index_iter = std::find(all_qubits.begin(), all_qubits.end(), q_index) - all_qubits.begin();
+                char char_index[2];
+                sprintf(char_index, "%d", real_index_iter);
+                //itoa(real_index_iter, char_index, 10);
+                BoxMoreMidBWire midBotBox(gate_name, char_index);
+                m_quantum_bit_wires[q_index].back()->append(midBotBox, append_pos);
+                update_time_sequence(m_quantum_bit_wires[q_index].back(), get_ctrl_node_time_sequence());
+            }
+        }
+    }
+
+
+}
+
+void DrawPicture::append_oracle_gate(string gate_name, QVec &qubits_vector)
+{
+    gate_name = "Unitary";
+    std::vector<int> all_qubits;
+    std::vector<int> all_pass_qubits;
+    for (int i = 0; i < qubits_vector.size(); i++)
+    {
+        all_qubits.push_back(qubits_vector[i]->get_phy_addr());
+    }
+    int max_bit = *max_element(all_qubits.begin(), all_qubits.end());
+    int min_bit = *min_element(all_qubits.begin(), all_qubits.end());
+    for (auto bit : m_quantum_bit_wires)
+    {
+        if (bit.first >= min_bit && bit.first <= max_bit)
+        {
+            all_pass_qubits.push_back(bit.first);
+        }
+    }
+    //sort(all_qubits.begin(), all_qubits.end(), [](int a, int b) {return a < b; });
+
+    int append_pos = getMaxQuWireLength(m_quantum_bit_wires.find(all_pass_qubits.front()), ++(m_quantum_bit_wires.find(all_pass_qubits.back())));
+    int mid_index = all_pass_qubits[all_pass_qubits.size() / 2];
+
+    for (auto index = 0; index < all_pass_qubits.size(); ++index)
+    {
+        int q_index = all_pass_qubits[index];
+        if (q_index == all_pass_qubits[0])
+        {
+            if (std::find(all_qubits.begin(), all_qubits.end(), q_index) == all_qubits.end())
+            {
+                BoxMoreTopWire topBox(gate_name, " ");
+                m_quantum_bit_wires[q_index].back()->append(topBox, append_pos);
+                update_time_sequence(m_quantum_bit_wires[q_index].back(), get_ctrl_node_time_sequence());
+            }
+            else
+            {
+                auto real_index_iter = std::find(all_qubits.begin(), all_qubits.end(), q_index) - all_qubits.begin();
+                char char_index[2];
+                sprintf(char_index, "%d", real_index_iter);
+                //itoa(real_index_iter, char_index, 10);
+                BoxMoreTopWire topBox(gate_name, char_index);
+                m_quantum_bit_wires[q_index].back()->append(topBox, append_pos);
+                update_time_sequence(m_quantum_bit_wires[q_index].back(), get_ctrl_node_time_sequence());
+            }
+
+
+        }
+        else if (q_index == all_pass_qubits.back())
+        {
+            if (std::find(all_qubits.begin(), all_qubits.end(), q_index) == all_qubits.end())
+            {
+                BoxMoreOraBotWire botBox(gate_name, " ");
+                m_quantum_bit_wires[q_index].back()->append(botBox, append_pos);
+                update_time_sequence(m_quantum_bit_wires[q_index].back(), get_ctrl_node_time_sequence());
+            }
+            else
+            {
+                auto real_index_iter = std::find(all_qubits.begin(), all_qubits.end(), q_index) - all_qubits.begin();
+                char char_index[2];
+                sprintf(char_index, "%d", real_index_iter);
+                //itoa(real_index_iter, char_index, 10);
+                BoxMoreOraBotWire botBox(gate_name, char_index);
+                m_quantum_bit_wires[q_index].back()->append(botBox, append_pos);
+                update_time_sequence(m_quantum_bit_wires[q_index].back(), get_ctrl_node_time_sequence());
+            }
+
+        }
+        else
+        {
+            if ((q_index == mid_index) && (all_pass_qubits.size() % 2 == 0))
+            {
+                if (std::find(all_qubits.begin(), all_qubits.end(), q_index) == all_qubits.end())
+                {
+                    BoxMoreMidTWire midTBox(gate_name, " ");
+                    m_quantum_bit_wires[q_index].back()->append(midTBox, append_pos);
+                    update_time_sequence(m_quantum_bit_wires[q_index].back(), get_ctrl_node_time_sequence());
+                }
+                else
+                {
+                    auto real_index_iter = std::find(all_qubits.begin(), all_qubits.end(), q_index) - all_qubits.begin();
+                    char char_index[2];
+                    sprintf(char_index, "%d", real_index_iter);
+                    //itoa(real_index_iter, char_index, 10);
+                    BoxMoreMidTWire midTBox(gate_name, char_index);
+                    m_quantum_bit_wires[q_index].back()->append(midTBox, append_pos);
+                    update_time_sequence(m_quantum_bit_wires[q_index].back(), get_ctrl_node_time_sequence());
+                }
+
+
+            }
+            else if ((q_index == mid_index) && (all_pass_qubits.size() % 2 != 0))
+            {
+                if (std::find(all_qubits.begin(), all_qubits.end(), q_index) == all_qubits.end())
+                {
+                    BoxMoreMidWire midBox(gate_name, " ");
+                    m_quantum_bit_wires[q_index].back()->append(midBox, append_pos);
+                    update_time_sequence(m_quantum_bit_wires[q_index].back(), get_ctrl_node_time_sequence());
+                }
+                else
+                {
+                    auto real_index_iter = std::find(all_qubits.begin(), all_qubits.end(), q_index) - all_qubits.begin();
+                    char char_index[2];
+                    sprintf(char_index, "%d", real_index_iter);
+                    //itoa(real_index_iter, char_index, 10);
+                    BoxMoreMidWire midBox(gate_name, char_index);
+                    m_quantum_bit_wires[q_index].back()->append(midBox, append_pos);
+                    update_time_sequence(m_quantum_bit_wires[q_index].back(), get_ctrl_node_time_sequence());
+                }
+
+            }
+            else
+            {
+                if (std::find(all_qubits.begin(), all_qubits.end(), q_index) == all_qubits.end())
+                {
+                    BoxMoreMidBWire midBotBox(gate_name, " ");
+                    m_quantum_bit_wires[q_index].back()->append(midBotBox, append_pos);
+                    update_time_sequence(m_quantum_bit_wires[q_index].back(), get_ctrl_node_time_sequence());
+                }
+                else
+                {
+                    auto real_index_iter = std::find(all_qubits.begin(), all_qubits.end(), q_index) - all_qubits.begin();
+                    char char_index[2];
+                    sprintf(char_index, "%d", real_index_iter);
+                    //itoa(real_index_iter, char_index, 10);
+                    BoxMoreMidBWire midBotBox(gate_name, char_index);
+                    m_quantum_bit_wires[q_index].back()->append(midBotBox, append_pos);
+                    update_time_sequence(m_quantum_bit_wires[q_index].back(), get_ctrl_node_time_sequence());
+                }
+
+            }
+
+        }
+
+    }
+
+}
+
 void DrawPicture::append_swap_gate(string gate_name, QVec &qubits_vector, QVec &circuit_control_qubits_vec)
 {
 	// get all the qubits
@@ -840,6 +1571,16 @@ void DrawByLayer::handle_gate_node(std::shared_ptr<QNode>& p_node, pOptimizerNod
 		}
 		break;
 
+        case RXX_GATE:
+        case RYY_GATE:
+        case RZZ_GATE:
+        case RZX_GATE:
+        case TWO_QUBIT_GATE:
+        case ORACLE_GATE:
+        {
+            m_parent.append_double_gate(gate_name, qubits_vector);
+        }
+
 		default:
 			break;
 		}
@@ -847,7 +1588,15 @@ void DrawByLayer::handle_gate_node(std::shared_ptr<QNode>& p_node, pOptimizerNod
 	}
 	else
 	{
-		//other gate type
+        switch (gate_type)
+        {
+        case ORACLE_GATE:
+        {
+            m_parent.append_oracle_gate(gate_name, qubits_vector);
+        }
+        default:
+            break;
+        }
 	}
 }
 
@@ -1346,19 +2095,51 @@ void DrawPicture::merge(const std::string& up_wire, std::string& down_wire)
 		}
 		else if ((' ' == p_upside_str[upside_char_index]))
 		{
-			wide_char_buf[0] = p_downside_str[downside_char_index];
-			wide_char_buf[1] = p_downside_str[++downside_char_index];
-			wide_char_buf[2] = p_downside_str[++downside_char_index];
-			tmp_str.append(wide_char_buf);
-			continue;
+            unsigned long downside_wide_ul = getWideCharVal((unsigned char*)p_downside_str + downside_char_index);
+            if (downside_wide_ul >= SINGLE_HORIZONTAL_LINE
+                && downside_wide_ul <= BLACK_PRISMATIC_CHAR)
+            {
+                wide_char_buf[0] = p_downside_str[downside_char_index];
+                wide_char_buf[1] = p_downside_str[++downside_char_index];
+                wide_char_buf[2] = p_downside_str[++downside_char_index];
+
+                tmp_str.append(wide_char_buf);
+                //upside_char_index += 2;
+                continue;
+            }
+            else
+            {
+                wide_char_buf[0] = p_downside_str[downside_char_index];
+                wide_char_buf[1] = p_downside_str[++downside_char_index];
+                wide_char_buf[2] = p_downside_str[++downside_char_index];
+                upside_char_index += 2;
+                tmp_str.append(wide_char_buf);
+                continue;
+            }
+			
 		}
 		else if ((' ' == p_downside_str[downside_char_index]))
 		{
-			wide_char_buf[0] = p_upside_str[upside_char_index];
-			wide_char_buf[1] = p_upside_str[++upside_char_index];
-			wide_char_buf[2] = p_upside_str[++upside_char_index];
-			tmp_str.append(wide_char_buf);
-			continue;
+            unsigned long upside_wide_ul = getWideCharVal((unsigned char*)p_upside_str + upside_char_index);
+            if (upside_wide_ul >= SINGLE_HORIZONTAL_LINE
+                && upside_wide_ul <= BLACK_PRISMATIC_CHAR)
+            {
+                wide_char_buf[0] = p_upside_str[upside_char_index];
+                wide_char_buf[1] = p_upside_str[++upside_char_index];
+                wide_char_buf[2] = p_upside_str[++upside_char_index];
+                tmp_str.append(wide_char_buf);
+                continue;
+
+            }
+            else
+            {
+                wide_char_buf[0] = p_upside_str[upside_char_index];
+                wide_char_buf[1] = p_upside_str[++upside_char_index];
+                wide_char_buf[2] = p_upside_str[++upside_char_index];
+                downside_char_index += 2;
+                tmp_str.append(wide_char_buf);
+                continue;
+            }
 		}
 		else
 		{

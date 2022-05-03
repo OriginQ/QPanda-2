@@ -22,8 +22,6 @@
 using namespace std;
 using namespace rapidjson;
 
-constexpr size_t SHOTS = 100;
-
 QCircuit qft_prog(const QVec& qvec)
 {
     QCircuit qft = CreateEmptyCircuit();
@@ -109,29 +107,40 @@ static std::string build_chain_typed_quantum_chip_config_data(size_t qubit_num)
 
     return buffer.GetString();
 }
-#if 0
+#if 1
 void test_real_chip()
 {
     QCloudMachine QCM;;
 
-    QCM.init("A0D08FA558CE45B2AF4F1DC122CF2589", true);
+    //QCM.init("C60FBD87EF084DBA820945D052218AA8", true);
+    QCM.init("E02BB115D5294012AA88D4BE82603984", true);
 
-    QCM.set_qcloud_api("http://www.72bit.com");
-    auto q = QCM.allocateQubits(6);
-    auto c = QCM.allocateCBits(6);
+    //QCM.set_qcloud_api("http://10.10.10.197:8060");
+    auto q = QCM.allocateQubits(4);
+    auto c = QCM.allocateCBits(4);
 
-    //构建量子程序
     auto measure_prog = QProg();
     measure_prog << HadamardQCircuit(q)
         << RX(q[1], PI / 4)
-        << RX(q[2], PI / 4)
-        << RX(q[1], PI / 4)
         << CZ(q[0], q[1])
-        << CZ(q[1], q[2])
         << Measure(q[0], c[0])
         << Measure(q[1], c[1]);
 
-    auto result = QCM.real_chip_measure(measure_prog, 1000, RealChipType::ORIGIN_WUYUAN_D4,true, true);
+    std::vector<QProg> progs(3, measure_prog);
+
+    /*auto result = QCM.real_chip_measure_batch(progs, 1000, RealChipType::ORIGIN_WUYUAN_D4, true, true);
+    for (auto val : result)
+    {
+        for (auto val1 : val)
+        {
+            std::cout << val1.first << " : " << val1.second << std::endl;
+        }
+    }*/
+
+    auto result3 = QCM.get_state_fidelity(measure_prog, 1000, RealChipType::ORIGIN_WUYUAN_D4);
+    cout << result3 << endl;
+
+    auto result = QCM.real_chip_measure(measure_prog, 1000, RealChipType::ORIGIN_WUYUAN_D5,true, true);
     for (auto val : result)
     {
         std::cout << val.first << " : " << val.second << std::endl;
@@ -143,32 +152,8 @@ void test_real_chip()
         cout << val << endl;
     }
 
-    auto result3 = QCM.get_state_fidelity(measure_prog, 1000, RealChipType::ORIGIN_WUYUAN_D4);
-    cout << result3 << endl;
 
 
-    QCM.finalize();
-    return;
-}
-
-void test_partial()
-{
-    MPSQVM QCM;;
-
-    QCM.init();
-    auto q = QCM.allocateQubits(6);
-    auto c = QCM.allocateCBits(6);
-
-    auto measure_prog = QProg();
-    auto measure_prog1 = QProg();
-    measure_prog1 << X(q[0])
-    << CZ(q[1], q[2])
-    << CZ(q[0], q[1])
-    << CZ(q[1], q[2])
-    << MeasureAll(q,c);
-
-    QCM.set_noise_model(BIT_PHASE_FLIP_OPRATOR, GateType::CZ_GATE, 0.799);
-    auto result = QCM.runWithConfiguration(measure_prog1, c, 10000);
 
     QCM.finalize();
     return;
@@ -179,9 +164,9 @@ void test_qcloud()
     try
     {
         QCloudMachine QCM;
-        QCM.init("A0D08FA558CE45B2AF4F1DC122CF2589", true);
+        QCM.init("E02BB115D5294012AA88D4BE82603984", true);
 
-        QCM.set_qcloud_api("http://www.72bit.com");
+        //QCM.set_qcloud_api("http://www.72bit.com");
         //QCM.set_qcloud_api("http://10.10.10.39:8060");
 
         auto q = QCM.allocateQubits(4);
@@ -197,10 +182,12 @@ void test_qcloud()
         pmeasure_prog_array[1] << H(q[0]) << CNOT(q[0], q[1]);
         pmeasure_prog_array[2] << H(q[0]) << H(q[1]) << H(q[2]);
 
+
         //auto measure_result = QCM.full_amplitude_measure_batch(measure_prog_array, 10000);
+        auto measure_result = QCM.full_amplitude_measure(measure_prog_array[0], 10000);
         //TaskStatus status;
         //auto taskids = QCM.real_chip_measure_batch_commit(measure_prog_array, 10000, status);
-        auto real_result = QCM.real_chip_measure_batch(measure_prog_array, 10000);
+        //auto real_result = QCM.real_chip_measure_batch(measure_prog_array, 10000);
         //auto a = QCM.real_chip_measure_batch_query(taskids);
         //auto pmeasure_result = QCM.full_amplitude_pmeasure_batch(pmeasure_prog_array, { 0,1,2,3,4,5 });
         //auto partial_pmeasure_result = QCM.partial_amplitude_pmeasure_batch(pmeasure_prog_array, { "0","1","2" });
@@ -273,10 +260,10 @@ void test_qcloud()
 
 TEST(MPS, test)
 {
-    //test_partial();
+    //test_real_chip();
     cout << 1222 << endl;
 
-    test_partial();
+    test_qcloud();
     
     MPSQVM qvm;
     qvm.init();

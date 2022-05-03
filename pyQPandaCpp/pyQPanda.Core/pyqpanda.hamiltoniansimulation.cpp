@@ -14,21 +14,14 @@ using namespace pybind11::literals;
 using std::map;
 namespace py = pybind11;
 
-
-void init_hamiltoniansimulation(py::module& m)
+void export_hamiltoniansimulation(py::module &m)
 {
 	m.def("expMat", &expMat, "calculate the matrix power of e", py::return_value_policy::reference);
-	
+
 	py::class_<QOperator>(m, "QOperator")
 		.def(py::init<>())
-		.def(py::init<>([](QGate& gate)
-			{ return QOperator(gate); }))
-		.def(py::init<>([](QCircuit& cir)
-			{ return QOperator(cir); }))
+		.def(py::init<QGate &>())
+		.def(py::init<QCircuit &>())
 		.def("get_matrix", &QOperator::get_matrix)
-		.def("to_instruction",&QOperator::to_instruction)
-		;
-	
+		.def("to_instruction", &QOperator::to_instruction);
 }
-
-

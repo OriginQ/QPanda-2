@@ -107,7 +107,7 @@ QProg quantum_walk_alg_search_from_vector(const std::vector<T> &data_vec,
 	auto c = qvm->allocateCBits(measure_qubits.size());
 	quantum_walk_prog << MeasureAll(measure_qubits, c);
 	//measure
-	PTrace("Strat pmeasure.\n");
+	//PTrace("Strat pmeasure.\n");
 	const double _shot = 2048;
 	auto result = qvm->runWithConfiguration(quantum_walk_prog, c, _shot);
 	prob_dict _double_result;

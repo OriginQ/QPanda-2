@@ -3,12 +3,13 @@ project(QPANDA)
 
 set(QPANDA_MAJOR_VERSION 2)
 set(QPANDA_MINOR_VERSION 1)
-set(QPANDA_PATCH_VERSION 11)
+set(QPANDA_PATCH_VERSION 12)
 set(QPANDA_VERSION "${QPANDA_MAJOR_VERSION}.${QPANDA_MINOR_VERSION}.${QPANDA_PATCH_VERSION}")
 message(STATUS "QPANDA VERSION = " "[${QPANDA_VERSION}]")
+# disable compiler verbose output, default is off, enable it when want to check compiler/linker option
+set(CMAKE_VERBOSE_MAKEFILE OFF)
 
-include_directories(
-                    ${PROJECT_SOURCE_DIR}/Extensions
+include_directories(${PROJECT_SOURCE_DIR}/Extensions
                     ${PROJECT_SOURCE_DIR}/include
                     ${PROJECT_SOURCE_DIR}/include/Applications
                     ${PROJECT_SOURCE_DIR}/include/QAlg
@@ -41,7 +42,6 @@ include_directories(
                     ${PROJECT_SOURCE_DIR}/ThirdParty/rabbit
                     ${PROJECT_SOURCE_DIR})
 
-
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${PROJECT_BINARY_DIR}/bin)
@@ -51,6 +51,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${PROJECT_BINARY_DIR}/lib)
 set(TARGETS_EXPORT_NAME "${PROJECT_NAME}Targets")
 
 set(LIB_LIST)
+set(LIB_DIR_LIST)
 set(EXTRA_LDFLAGS)
 
 set(LIB_QPANDA QPanda2)
@@ -65,10 +66,15 @@ set(LIB_PYQPANDA pyQPanda)
 set(LIB_PYQPANDA_PAUL pyQPandaPauliOperator)
 set(LIB_PYQPANDA_CHEMIQ pyQPandaChemiQ)
 
+option(FIND_MPI "find MPI" OFF)
+option(FIND_CUDA "find cuda" OFF)
+option(USE_CHEMIQ "use ChemiQ" OFF)
+option(FIND_OPENMP "find openMP" ON)
+option(USE_PYQPANDA "Enable pyQPanda" OFF)
 option(USE_EXTENSION "EXTENSION FUNTIONS" OFF)
+option(USE_CURL "Enable the QCloudMachine" ON)
 option(USE_MSVC_RUNTIME_LIBRARY_DLL "MD/MT" OFF)
-
-
+option(PYQPANDA_STUBGEN "generate stub file for pyQPanda" ON)
 
 if(NOT CMAKE_BUILD_TYPE)
    message(STATUS ":  No build type selected, default is Release")
@@ -145,18 +151,21 @@ if(APPLE)
     find_library(COREFOUNDATION_LIBRARY CoreFoundation)
 endif()
 
-option(FIND_CUDA "find cuda" ON)
 if (FIND_CUDA)
     find_package(CUDA)
 endif(FIND_CUDA)
 if(CUDA_FOUND)
     option (USE_CUDA "Use cuda" ON)
     include_directories(${CUDA_INCLUDE_DIRS})
+    foreach(CUDA_LIB_DIR ${CUDA_LIBRARIES})
+		get_filename_component(CUDA_LIB_DIR ${CUDA_LIB_DIR} DIRECTORY)
+		list(APPEND LIB_DIR_LIST ${CUDA_LIB_DIR})
+	endforeach()
+	link_directories(${LIB_DIR_LIST})
 else(CUDA_FOUND)
     option (USE_CUDA "Use cuda" OFF)
 endif(CUDA_FOUND)
 
-option(FIND_OPENMP "find openMP" ON)
 if (FIND_OPENMP)
     find_package(OpenMP)
 endif(FIND_OPENMP)
@@ -170,17 +179,30 @@ else(OPENMP_FOUND)
     option(USE_OPENMP "not find OpenMP" OFF)
 endif(OPENMP_FOUND)
 
-find_package(CURL)
-if (CURL_FOUND)
-    option(USE_CURL "find Curl" ON)
-    include_directories(${CURL_INCLUDE_DIR})
-    list(APPEND LIB_LIST
-        ${CURL_LIBRARY})
-else (CURL_FOUND)
-    option(USE_CURL "not find Curl" OFF)
-endif (CURL_FOUND)
+list(APPEND CMAKE_FIND_LIBRARY_SUFFIXES ".dll" ".a")
+if (USE_CURL)
+    find_package(CURL)
+    if (CURL_FOUND)
+        option(USE_CURL "find Curl" ON)
+        include_directories(${CURL_INCLUDE_DIR})
+        list(APPEND LIB_LIST
+            ${CURL_LIBRARY})
 
-option(FIND_MPI "find MPI" OFF)
+		if (MSVC)
+			find_library(CURL_DLL "libcurl.dll" REQUIRED)
+            message(${CURL_DLL})
+			set(CURL_DLL_OUTPUT "libcurl.dll")
+			add_custom_command(OUTPUT ${CURL_DLL_OUTPUT}
+			   COMMAND ${CMAKE_COMMAND} -E copy ${CURL_DLL} ${EXECUTABLE_OUTPUT_PATH}/${CURL_DLL_OUTPUT})
+			add_custom_target(CopyCurlTask ALL DEPENDS ${CURL_DLL_OUTPUT})
+		endif()
+    else (CURL_FOUND)
+        # as use OPTION command, CMakeCahe have saved USE_CURL = ON, cmake then will read CMakeCache
+        # use FORCE to turnoff  USE_CURL in CMakeCache
+        set(USE_CURL OFF CACHE BOOL "not find Curl" FORCE)
+    endif (CURL_FOUND)
+endif(USE_CURL)
+
 if (FIND_MPI)
     find_package(MPI)
 endif(FIND_MPI)
@@ -193,7 +215,6 @@ elseif(MPI_FOUND)
     option(USE_MPI "not find MPI" OFF)
 endif (MPI_FOUND)
 
-option(USE_CHEMIQ "use ChemiQ" OFF)
 
 add_subdirectory(ThirdParty)
 add_subdirectory(Core)
@@ -202,11 +223,27 @@ add_subdirectory(QAlg)
 add_subdirectory(Applications)
 add_subdirectory(test)
 
-option(USE_PYQPANDA "use pyQPanda" OFF)
 if(USE_PYQPANDA)
     include_directories(${PROJECT_SOURCE_DIR}/pyQPandaCpp)
     add_subdirectory(pyQPandaCpp)
 endif(USE_PYQPANDA)
+
+
+if(NOT (WINDOWS OR CYGWIN))
+	set(prefix ${CMAKE_INSTALL_PREFIX})
+	set(exec_prefix "\${prefix}")
+	set(libdir "\${exec_prefix}/lib${LIB_SUFFIX}")
+	set(bindir "\${exec_prefix}/bin")
+	set(includedir "\${prefix}/include")
+	set(QPANDA_LIBS "-lComponents -lQAlg -lQPanda2 -lantlr4")
+	set(QPANDA_CFLAGS "")
+	configure_file("${PROJECT_SOURCE_DIR}/qpanda-config.in"
+			        "${PROJECT_BINARY_DIR}/qpanda-config")
+	configure_file("${PROJECT_SOURCE_DIR}/qpanda-config.in"
+			        "${PROJECT_BINARY_DIR}/qpanda-config" @ONLY)
+	install(PROGRAMS ${PROJECT_BINARY_DIR}/qpanda-config DESTINATION bin)
+endif()
+
 
 configure_file("${PROJECT_SOURCE_DIR}/config.h.in"
                 "${PROJECT_SOURCE_DIR}/include/QPandaConfig.h")
@@ -219,15 +256,14 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}ConfigVersion.cmake.in
 
 
 #add extra search paths for libraries and includes
-set(INCLUDE_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/include" CACHE PATH "The directory the headers are installed in")
-set(LIB_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/lib" CACHE STRING "Directory where lib will install")
-
+set(INCLUDE_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/include")
+set(LIB_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/lib")
 if(UNIX OR CYGWIN)
     set(_CMAKE_INSTALL_DIR "${LIB_INSTALL_DIR}/cmake/${PROJECT_NAME}")
 elseif(WIN32)
     SET(_CMAKE_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/cmake")
 endif()
-set(CMAKE_INSTALL_DIR "${_CMAKE_INSTALL_DIR}" CACHE PATH "The directory cmake files are installed in")
+set(CMAKE_INSTALL_DIR "${_CMAKE_INSTALL_DIR}")
 
 
 set(QPANDA_CONFIG "QPandaConfig.json")
@@ -238,7 +274,6 @@ add_custom_target(CopyQPandaConfig ALL DEPENDS ${QPANDA_CONFIG})
 
 install(DIRECTORY include/
     DESTINATION "${INCLUDE_INSTALL_DIR}/qpanda2")
-
 if (USE_EXTENSION)
     install(DIRECTORY Extensions/
             DESTINATION "${INCLUDE_INSTALL_DIR}/qpanda2/Extensions"

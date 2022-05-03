@@ -8,15 +8,15 @@
 namespace py = pybind11;
 USING_QPANDA
 
-void initVarFermionOperator(py::module& m)
+void export_VarFermionOperator(py::module &m)
 {
 	py::class_<VarFermionOperator>(m, "VarFermionOperator")
 		.def(py::init<>())
-		.def(py::init<const complex_var&>())
-		.def(py::init<const std::string&, const complex_var&>())
-		.def(py::init<const VarFermionOperator::FermionMap&>())
+		.def(py::init<double>())
+		.def(py::init<const complex_var &>())
+		.def(py::init<const std::string &, const complex_var &>())
+		.def(py::init<const VarFermionOperator::FermionMap &>())
 		.def("normal_ordered", &VarFermionOperator::normal_ordered)
-		.def("error_threshold", &VarFermionOperator::error_threshold)
 		.def("data", &VarFermionOperator::data)
 		.def(py::self + py::self)
 		.def(py::self - py::self)

@@ -109,15 +109,15 @@ void curl_test()
 
 void ttt()
 {
-    //Í¨¹ýQCloudMachine´´½¨Á¿×ÓÔÆÐéÄâ»ú
+    //Í¨ï¿½ï¿½QCloudMachineï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     QCloudMachine QCM;;
 
-    //Í¨¹ý´«Èëµ±Ç°ÓÃ»§µÄtokenÀ´³õÊ¼»¯
+    //Í¨ï¿½ï¿½ï¿½ï¿½ï¿½ëµ±Ç°ï¿½Ã»ï¿½ï¿½ï¿½tokenï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½
     QCM.init("592AA472AF7B40749FE9075BC7C97FAE");
     auto qlist = QCM.allocateQubits(6);
     auto clist = QCM.allocateCBits(6);
 
-    //¹¹½¨Á¿×Ó³ÌÐò
+    //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó³ï¿½ï¿½ï¿½
     auto measure_prog = QProg();
     measure_prog << HadamardQCircuit(qlist)
         << CZ(qlist[1], qlist[5])
@@ -135,7 +135,7 @@ void ttt()
         << RX(qlist[2], PI / 4)
         << RX(qlist[1], PI / 4);
 
-    //µ÷ÓÃÕæÊµÐ¾Æ¬¼ÆËã½Ó¿Ú£¬ÐèÒªÁ¿×Ó³ÌÐòºÍ²âÁ¿´ÎÊýÁ½¸ö²ÎÊý
+    //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÊµÐ¾Æ¬ï¿½ï¿½ï¿½ï¿½Ó¿Ú£ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½Ó³ï¿½ï¿½ï¿½Í²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     auto result = QCM.real_chip_measure(measure_prog, 100);
     for (auto val : result)
     {

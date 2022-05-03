@@ -32,6 +32,10 @@
 #include <string_view>
 #endif
 
+#if defined(__cpp_lib_char8_t) && __cpp_lib_char8_t >= 201811L
+#  define PYBIND11_HAS_U8STRING
+#endif
+
 NAMESPACE_BEGIN(PYBIND11_NAMESPACE)
 NAMESPACE_BEGIN(detail)
 
@@ -204,10 +208,10 @@ PYBIND11_NOINLINE inline handle get_type_handle(const std::type_info &tp, bool t
 }
 
 struct value_and_holder {
-    instance *inst;
-    size_t index;
-    const detail::type_info *type;
-    void **vh;
+    instance *inst = nullptr;
+    size_t index = 0u;
+    const detail::type_info *type = nullptr;
+    void **vh = nullptr;
 
     // Main constructor for a found value/holder:
     value_and_holder(instance *i, const detail::type_info *type, size_t vpos, size_t index) :
@@ -216,7 +220,7 @@ struct value_and_holder {
     {}
 
     // Default constructor (used to signal a value-and-holder not found by get_value_and_holder())
-    value_and_holder() : inst{nullptr} {}
+    value_and_holder() {}
 
     // Used for past-the-end iterator
     value_and_holder(size_t index) : index{index} {}
@@ -270,8 +274,8 @@ public:
 
     struct iterator {
     private:
-        instance *inst;
-        const type_vec *types;
+        instance *inst = nullptr;
+        const type_vec *types = nullptr;
         value_and_holder curr;
         friend struct values_and_holders;
         iterator(instance *inst, const type_vec *tinfo)
@@ -533,9 +537,17 @@ public:
             case return_value_policy::copy:
                 if (copy_constructor)
                     valueptr = copy_constructor(src);
-                else
-                    throw cast_error("return_value_policy = copy, but the "
-                                     "object is non-copyable!");
+                else {
+#if defined(NDEBUG)
+                    throw cast_error("return_value_policy = copy, but type is "
+                                     "non-copyable! (compile in debug mode for details)");
+#else
+                    std::string type_name(tinfo->cpptype->name());
+                    detail::clean_type_id(type_name);
+                    throw cast_error("return_value_policy = copy, but type " +
+                                     type_name + " is non-copyable!");
+#endif
+                }
                 wrapper->owned = true;
                 break;
 
@@ -544,9 +556,18 @@ public:
                     valueptr = move_constructor(src);
                 else if (copy_constructor)
                     valueptr = copy_constructor(src);
-                else
-                    throw cast_error("return_value_policy = move, but the "
-                                     "object is neither movable nor copyable!");
+                else {
+#if defined(NDEBUG)
+                    throw cast_error("return_value_policy = move, but type is neither "
+                                     "movable nor copyable! "
+                                     "(compile in debug mode for details)");
+#else
+                    std::string type_name(tinfo->cpptype->name());
+                    detail::clean_type_id(type_name);
+                    throw cast_error("return_value_policy = move, but type " +
+                                     type_name + " is neither movable nor copyable!");
+#endif
+                }
                 wrapper->owned = true;
                 break;
 
@@ -571,7 +592,17 @@ public:
         // Lazy allocation for unallocated values:
         if (vptr == nullptr) {
             auto *type = v_h.type ? v_h.type : typeinfo;
-            vptr = type->operator_new(type->type_size);
+            if (type->operator_new) {
+                vptr = type->operator_new(type->type_size);
+            } else {
+                #if defined(__cpp_aligned_new) && (!defined(_MSC_VER) || _MSC_VER >= 1912)
+                    if (type->type_align > __STDCPP_DEFAULT_NEW_ALIGNMENT__)
+                        vptr = ::operator new(type->type_size,
+                                              std::align_val_t(type->type_align));
+                    else
+                #endif
+                vptr = ::operator new(type->type_size);
+            }
         }
         value = vptr;
     }
@@ -765,15 +796,25 @@ template <typename T, typename SFINAE = void> struct is_copy_constructible : std
 // so, copy constructability depends on whether the value_type is copy constructible.
 template <typename Container> struct is_copy_constructible<Container, enable_if_t<all_of<
         std::is_copy_constructible<Container>,
-        std::is_same<typename Container::value_type &, typename Container::reference>
+        std::is_same<typename Container::value_type &, typename Container::reference>,
+        // Avoid infinite recursion
+        negation<std::is_same<Container, typename Container::value_type>>
     >::value>> : is_copy_constructible<typename Container::value_type> {};
 
-#if !defined(PYBIND11_CPP17)
-// Likewise for std::pair before C++17 (which mandates that the copy constructor not exist when the
-// two types aren't themselves copy constructible).
+// Likewise for std::pair
+// (after C++17 it is mandatory that the copy constructor not exist when the two types aren't themselves
+// copy constructible, but this can not be relied upon when T1 or T2 are themselves containers).
 template <typename T1, typename T2> struct is_copy_constructible<std::pair<T1, T2>>
     : all_of<is_copy_constructible<T1>, is_copy_constructible<T2>> {};
-#endif
+
+// The same problems arise with std::is_copy_assignable, so we use the same workaround.
+template <typename T, typename SFINAE = void> struct is_copy_assignable : std::is_copy_assignable<T> {};
+template <typename Container> struct is_copy_assignable<Container, enable_if_t<all_of<
+        std::is_copy_assignable<Container>,
+        std::is_same<typename Container::value_type &, typename Container::reference>
+    >::value>> : is_copy_assignable<typename Container::value_type> {};
+template <typename T1, typename T2> struct is_copy_assignable<std::pair<T1, T2>>
+    : all_of<is_copy_assignable<T1>, is_copy_assignable<T2>> {};
 
 NAMESPACE_END(detail)
 
@@ -951,6 +992,9 @@ public:
 
 template <typename CharT> using is_std_char_type = any_of<
     std::is_same<CharT, char>, /* std::string */
+#if defined(PYBIND11_HAS_U8STRING)
+    std::is_same<CharT, char8_t>, /* std::u8string */
+#endif
     std::is_same<CharT, char16_t>, /* std::u16string */
     std::is_same<CharT, char32_t>, /* std::u32string */
     std::is_same<CharT, wchar_t> /* std::wstring */
@@ -985,9 +1029,11 @@ public:
         }
 
         bool py_err = py_value == (py_type) -1 && PyErr_Occurred();
+
+        // Protect std::numeric_limits::min/max with parentheses
         if (py_err || (std::is_integral<T>::value && sizeof(py_type) != sizeof(T) &&
-                       (py_value < (py_type) std::numeric_limits<T>::min() ||
-                        py_value > (py_type) std::numeric_limits<T>::max()))) {
+                       (py_value < (py_type) (std::numeric_limits<T>::min)() ||
+                        py_value > (py_type) (std::numeric_limits<T>::max)()))) {
             bool type_error = py_err && PyErr_ExceptionMatches(
 #if PY_VERSION_HEX < 0x03000000 && !defined(PYPY_VERSION)
                 PyExc_SystemError
@@ -1133,6 +1179,8 @@ public:
             if (res == 0 || res == 1) {
                 value = (bool) res;
                 return true;
+            } else {
+                PyErr_Clear();
             }
         }
         return false;
@@ -1150,6 +1198,9 @@ template <typename StringType, bool IsView = false> struct string_caster {
     // Simplify life by being able to assume standard char sizes (the standard only guarantees
     // minimums, but Python requires exact sizes)
     static_assert(!std::is_same<CharT, char>::value || sizeof(CharT) == 1, "Unsupported char size != 1");
+#if defined(PYBIND11_HAS_U8STRING)
+    static_assert(!std::is_same<CharT, char8_t>::value || sizeof(CharT) == 1, "Unsupported char8_t size != 1");
+#endif
     static_assert(!std::is_same<CharT, char16_t>::value || sizeof(CharT) == 2, "Unsupported char16_t size != 2");
     static_assert(!std::is_same<CharT, char32_t>::value || sizeof(CharT) == 4, "Unsupported char32_t size != 4");
     // wchar_t can be either 16 bits (Windows) or 32 (everywhere else)
@@ -1168,7 +1219,7 @@ template <typename StringType, bool IsView = false> struct string_caster {
 #if PY_MAJOR_VERSION >= 3
             return load_bytes(load_src);
 #else
-            if (sizeof(CharT) == 1) {
+            if (std::is_same<CharT, char>::value) {
                 return load_bytes(load_src);
             }
 
@@ -1228,7 +1279,7 @@ private:
     // without any encoding/decoding attempt).  For other C++ char sizes this is a no-op.
     // which supports loading a unicode from a str, doesn't take this path.
     template <typename C = CharT>
-    bool load_bytes(enable_if_t<sizeof(C) == 1, handle> src) {
+    bool load_bytes(enable_if_t<std::is_same<C, char>::value, handle> src) {
         if (PYBIND11_BYTES_CHECK(src.ptr())) {
             // We were passed a Python 3 raw bytes; accept it into a std::string or char*
             // without any encoding attempt.
@@ -1243,7 +1294,7 @@ private:
     }
 
     template <typename C = CharT>
-    bool load_bytes(enable_if_t<sizeof(C) != 1, handle>) { return false; }
+    bool load_bytes(enable_if_t<!std::is_same<C, char>::value, handle>) { return false; }
 };
 
 template <typename CharT, class Traits, class Allocator>
@@ -1381,9 +1432,14 @@ protected:
 
     template <size_t... Is>
     bool load_impl(const sequence &seq, bool convert, index_sequence<Is...>) {
+#ifdef __cpp_fold_expressions
+        if ((... || !std::get<Is>(subcasters).load(seq[Is], convert)))
+            return false;
+#else
         for (bool r : {std::get<Is>(subcasters).load(seq[Is], convert)...})
             if (!r)
                 return false;
+#endif
         return true;
     }
 
@@ -1601,7 +1657,8 @@ template <typename T> using move_never = none_of<move_always<T>, move_if_unrefer
 // everything else returns a reference/pointer to a local variable.
 template <typename type> using cast_is_temporary_value_reference = bool_constant<
     (std::is_reference<type>::value || std::is_pointer<type>::value) &&
-    !std::is_base_of<type_caster_generic, make_caster<type>>::value
+    !std::is_base_of<type_caster_generic, make_caster<type>>::value &&
+    !std::is_same<intrinsic_t<type>, void>::value
 >;
 
 // When a value returned from a C++ function is being cast back to Python, we almost always want to
@@ -1614,8 +1671,9 @@ template <typename Return, typename SFINAE = void> struct return_value_policy_ov
 template <typename Return> struct return_value_policy_override<Return,
         detail::enable_if_t<std::is_base_of<type_caster_generic, make_caster<Return>>::value, void>> {
     static return_value_policy policy(return_value_policy p) {
-        return !std::is_lvalue_reference<Return>::value && !std::is_pointer<Return>::value
-            ? return_value_policy::move : p;
+        return !std::is_lvalue_reference<Return>::value &&
+               !std::is_pointer<Return>::value
+                   ? return_value_policy::move : p;
     }
 };
 
@@ -1843,7 +1901,7 @@ struct function_record;
 
 /// Internal data associated with a single function call
 struct function_call {
-    function_call(function_record &f, handle p); // Implementation in attr.h
+    function_call(const function_record &f, handle p); // Implementation in attr.h
 
     /// The function data:
     const function_record &func;
@@ -1908,14 +1966,19 @@ private:
 
     template <size_t... Is>
     bool load_impl_sequence(function_call &call, index_sequence<Is...>) {
+#ifdef __cpp_fold_expressions
+        if ((... || !std::get<Is>(argcasters).load(call.args[Is], call.args_convert[Is])))
+            return false;
+#else
         for (bool r : {std::get<Is>(argcasters).load(call.args[Is], call.args_convert[Is])...})
             if (!r)
                 return false;
+#endif
         return true;
     }
 
     template <typename Return, typename Func, size_t... Is, typename Guard>
-    Return call_impl(Func &&f, index_sequence<Is...>, Guard &&) {
+    Return call_impl(Func &&f, index_sequence<Is...>, Guard &&) && {
         return std::forward<Func>(f)(cast_op<Args>(std::move(std::get<Is>(argcasters)))...);
     }
 

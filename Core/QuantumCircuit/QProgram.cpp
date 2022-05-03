@@ -25,9 +25,11 @@ limitations under the License.
 #include "Core/QuantumCircuit/QProgram.h"
 #include "Core/QuantumCircuit/QuantumMeasure.h"
 #include "Core/QuantumCircuit/QReset.h"
+
+USING_QPANDA
 using namespace QGATE_SPACE;
 using namespace std;
-USING_QPANDA
+
 QProg  QPanda::CreateEmptyQProg()
 {
 	QProg temp;
@@ -424,7 +426,9 @@ bool OriginProgram::check_insert_node_type(std::shared_ptr<QNode> node)
 	}
 	break;
 	case CLASS_COND_NODE:
-	case	QWAIT_NODE:
+	case QWAIT_NODE:
+	case NOISE_NODE:
+	case DEBUG_NODE:
 		break;
 
 	default:

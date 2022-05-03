@@ -1,8 +1,8 @@
 #include <fstream>
 #include <algorithm>
-#include <Core/Core.h>
-#include "ThirdParty/rabbit/rabbit.hpp"
+#include "Core/Core.h"
 #include "Core/QuantumMachine/QCloudMachine.h"
+#include "ThirdParty/rabbit/rabbit.hpp"
 
 #ifdef USE_CURL
 #include <curl/curl.h>
@@ -151,7 +151,7 @@ std::string QCloudMachine::post_json(const std::string &sUrl, std::string & sJso
     curl_easy_setopt(pCurl, CURLOPT_TIMEOUT, 30);
     curl_easy_setopt(pCurl, CURLOPT_CONNECTTIMEOUT, 0);
     curl_easy_setopt(pCurl, CURLOPT_URL, sUrl.c_str());
-    curl_easy_setopt(pCurl, CURLOPT_HEADER, true);
+    curl_easy_setopt(pCurl, CURLOPT_HEADER, false);
     curl_easy_setopt(pCurl, CURLOPT_POST, true);
     curl_easy_setopt(pCurl, CURLOPT_SSL_VERIFYHOST, false);
     curl_easy_setopt(pCurl, CURLOPT_SSL_VERIFYPEER, false);
@@ -166,8 +166,8 @@ std::string QCloudMachine::post_json(const std::string &sUrl, std::string & sJso
 
     if (CURLE_OK != res)
     {
-        QCERR(curl_easy_strerror(res));
-        throw run_fail("QCloudMachine::post_json");
+        std::string error_msg = curl_easy_strerror(res);
+        QCERR_AND_THROW(run_fail, error_msg);
     }
 
     curl_slist_free_all(headers);
@@ -175,13 +175,11 @@ std::string QCloudMachine::post_json(const std::string &sUrl, std::string & sJso
                     
     try
     {
-        std::string result =  out.str().substr(out.str().find("{"));;
-        return result;
+        return out.str();
     }
     catch (...)
     {
         if (m_is_logged) std::cout << out.str() << endl;
-
         QCERR_AND_THROW(run_fail, "catch exception in recv json");
     }
 #else
@@ -461,9 +459,7 @@ std::map<std::string, qcomplex_t> QCloudMachine::full_amplitude_pmeasure_query(s
     try
     {
         auto result_json = get_result_json(taskid, m_inquire_url, CloudQMchineType::Full_AMPLITUDE);
-
         bool is_retry_again = parser_result_json(result_json, taskid);
-
         status = m_task_status;
         return is_retry_again ? std::map<std::string, qcomplex_t>() : m_pmeasure_result;
     }
@@ -483,9 +479,7 @@ std::map<std::string, qcomplex_t> QCloudMachine::full_amplitude_pmeasure_exec(st
         do
         {
             std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-
             auto result_json = get_result_json(taskid, m_inquire_url, CloudQMchineType::Full_AMPLITUDE);
-
             is_retry_again = parser_result_json(result_json, taskid);
 
         } while (is_retry_again);
@@ -648,7 +642,6 @@ double QCloudMachine::get_expectation_query(std::string taskid, TaskStatus& stat
     try
     {
         auto result_json = get_result_json(taskid, m_inquire_url, CloudQMchineType::Full_AMPLITUDE);
-
         bool is_retry_again = parser_result_json(result_json, taskid);
 
         status = m_task_status;
@@ -670,9 +663,7 @@ double QCloudMachine::get_expectation_exec(std::string taskid, TaskStatus& statu
         do
         {
             std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-
             auto result_json = get_result_json(taskid, m_inquire_url, CloudQMchineType::Full_AMPLITUDE);
-
             is_retry_again = parser_result_json(result_json, taskid);
 
         } while (is_retry_again);
@@ -689,55 +680,28 @@ double QCloudMachine::get_expectation_exec(std::string taskid, TaskStatus& statu
 
 bool QCloudMachine::parser_submit_json(std::string &recv_json, std::string& taskid)
 {
-    Document recv_doc;
-    if (recv_doc.Parse(recv_json.c_str()).HasParseError() || !recv_doc.HasMember("success"))
+    try
     {
-        if(m_is_logged) std::cout << recv_json << std::endl;
+        rabbit::document doc;
+        doc.parse(recv_json);
 
-        m_error_info = "server connection failed";
-        QCERR("server connection failed");
-        throw run_fail("server connection failed");
-    }
-    else
-    {
-        const rapidjson::Value &success = recv_doc["success"];
-        if (!success.GetBool())
+        auto success = doc["success"].as_bool();
+        if (!success)
         {
             if (m_is_logged) std::cout << recv_json << std::endl;
 
-            if (!recv_doc.HasMember("success"))
-            {
-                QCERR_AND_THROW(run_fail, "parser_submit_json error");
-            }
-            else
-            {
-                const rapidjson::Value &message = recv_doc["message"];
-                std::string error_msg = message.GetString();
-
-                m_error_info = error_msg;
-                QCERR(error_msg.c_str());
-                throw run_fail(error_msg);
-            }
+            auto message = doc["message"].as_string();
+            QCERR_AND_THROW(run_fail, message);
         }
         else
         {
-            const rapidjson::Value &Obj = recv_doc["obj"];
-            if (!Obj.IsObject() ||
-                !Obj.HasMember("taskId") ||
-                !Obj.HasMember("id"))
-            {
-                if (m_is_logged) std::cout << recv_json << std::endl;
-
-                QCERR("json object error");
-                throw run_fail("json object error");
-            }
-            else
-            {
-                const rapidjson::Value &task_value = Obj["taskId"];
-				taskid = task_value.GetString();
-				return true;
-            }
+            taskid = doc["obj"]["taskId"].as_string();
+            return true;
         }
+    }
+    catch (const std::exception& e)
+    {
+        QCERR_AND_THROW(run_fail, e.what());
     }
 }
 
@@ -1477,7 +1441,6 @@ std::map<size_t, std::string> QCloudMachine::full_amplitude_pmeasure_batch_commi
 
     try
     {
-
         std::map<size_t, std::string> taskid_map;
         parser_submit_json_batch(recv_json_str, taskid_map);
 

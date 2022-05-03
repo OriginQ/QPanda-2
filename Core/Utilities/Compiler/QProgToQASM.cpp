@@ -3,10 +3,9 @@
 #include "Core/Utilities/QProgTransform/TransformDecomposition.h"
 #include "Core/Core.h"
 
+USING_QPANDA
 using namespace std;
 using namespace QGATE_SPACE;
-
-USING_QPANDA
 
 #ifndef MAX_PATH
 #define MAX_PATH 260

@@ -38,4 +38,4 @@ class Test_clock_layer(unittest.TestCase):
         #print(pq.fit_to_gbk(text))
 
 if __name__=="__main__":
-    Test_clock_layer.test_layer1()
+    unittest.main(verbosity=2)

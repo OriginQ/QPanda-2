@@ -6,15 +6,15 @@ Date:2017-12-13
 Description: Definition of Encapsulation of GPU gates
 ************************************************************************/
 
-#include <cuda_device_runtime_api.h>
-#include <device_launch_parameters.h>
 #include <cuda_runtime.h>
-#include "Core/VirtualQuantumProcessor/GPUGates/GPUGatesWrapper.cuh"
-#include "Core/VirtualQuantumProcessor/GPUGates/GPUGates.cuh"
+#include <cuda_device_runtime_api.h>
 #include <thrust/transform_reduce.h>
+#include <device_launch_parameters.h>
 #include "Core/Utilities/Tools/Utils.h"
+#include "Core/VirtualQuantumProcessor/GPUGates/GPUGates.cuh"
+#include "Core/VirtualQuantumProcessor/GPUGates/GPUGatesWrapper.cuh"
 
-
+USING_QPANDA
 using namespace std;
 
 DeviceQPU::DeviceQPU()
@@ -50,6 +50,11 @@ bool DeviceQPU::init()
     m_type_gate_fun.insert({GateType::RY_GATE, std::shared_ptr<BaseGateFun>(new SingleGateFun())});
     m_type_gate_fun.insert({GateType::RZ_GATE, std::shared_ptr<BaseGateFun>(new RZFun())});
 
+    m_type_gate_fun.insert({ GateType::RXX_GATE, std::shared_ptr<BaseGateFun>(new DoubleGateFun()) });
+    m_type_gate_fun.insert({ GateType::RYY_GATE, std::shared_ptr<BaseGateFun>(new DoubleGateFun()) });
+    m_type_gate_fun.insert({ GateType::RZZ_GATE, std::shared_ptr<BaseGateFun>(new DoubleGateFun()) });
+    m_type_gate_fun.insert({ GateType::RZX_GATE, std::shared_ptr<BaseGateFun>(new DoubleGateFun()) });
+
     m_type_gate_fun.insert({GateType::S_GATE, std::shared_ptr<BaseGateFun>(new SFun())});
     m_type_gate_fun.insert({GateType::T_GATE, std::shared_ptr<BaseGateFun>(new U1Fun())});
     m_type_gate_fun.insert({GateType::P_GATE, std::shared_ptr<BaseGateFun>(new PFun())});
@@ -81,23 +86,20 @@ bool DeviceQPU::init()
 
 bool DeviceQPU::init_state(size_t qnum, const QStat &state)
 {
-    auto ret = cudaGetDeviceCount(&m_device_num);
-    QPANDA_ASSERT(cudaSuccess != ret, "Error: get device num.");
-    m_device_id = 0;
     set_device();
-    ret = cudaStreamCreateWithFlags(&m_cuda_stream, cudaStreamNonBlocking);
+    auto ret = cudaStreamCreateWithFlags(&m_cuda_stream, cudaStreamNonBlocking);
     QPANDA_ASSERT(cudaSuccess != ret, "Error: cudaStreamCreateWithFlags.");
-
-    m_qubit_num = qnum;
 
     if (0 == state.size())
     {
+		m_qubit_num = qnum;
         m_device_state.resize(1ll << m_qubit_num);
         thrust::fill(m_device_state.begin(), m_device_state.end(), 0);
         m_device_state[0] = 1;
     }
     else
     {
+		m_qubit_num = (int)std::log2(state.size());
         m_device_state = state;
     }
 
@@ -108,9 +110,9 @@ bool DeviceQPU::init_state(size_t qnum, const QStat &state)
 
 void DeviceQPU::set_device()
 {
-    auto ret = cudaSetDevice(m_device_id);
+    this->m_device_id = 0;
+    auto ret = cudaSetDevice(this->m_device_id);
     QPANDA_ASSERT(cudaSuccess != ret, "Error: cudaSetDevice.");
-    return ;
 }
 
 void DeviceQPU::device_barrier()
@@ -143,7 +145,7 @@ void DeviceQPU::exec_gate(std::shared_ptr<BaseGateFun> fun, GateType type, QStat
     size_t dim;
     int64_t size = 1ll << (m_qubit_num - num);
     dim = size / kThreadDim;
-    dim = 0 == dim ? 1 : dim;
+    dim = size % kThreadDim ? dim + 1 : dim;
 
     switch (type)
     {
@@ -212,6 +214,10 @@ void DeviceQPU::exec_gate(std::shared_ptr<BaseGateFun> fun, GateType type, QStat
     case GateType::CU_GATE:
         exec_gate_kernel<CUFun><<<dim, kThreadDim, 0, m_cuda_stream>>>(*dynamic_pointer_cast<CUFun>(fun), size);
         break;
+    case GateType::RXX_GATE:
+    case GateType::RYY_GATE:
+    case GateType::RZZ_GATE:
+    case GateType::RZX_GATE:
     case GateType::TWO_QUBIT_GATE:
         exec_gate_kernel<DoubleGateFun><<<dim, kThreadDim, 0, m_cuda_stream>>>(*dynamic_pointer_cast<DoubleGateFun>(fun), size);
         break;

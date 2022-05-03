@@ -1,5 +1,8 @@
 #include "Core/VirtualQuantumProcessor/SingleAmplitude/QuantumGates.h"
 #include "Core/QuantumCircuit/QGlobalVariable.h"
+
+USING_QPANDA
+
 void H_Gate(qstate_t& gate_tensor, bool isDagger)
 {
 	gate_tensor.assign(4, 0);

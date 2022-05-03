@@ -39,7 +39,7 @@ QPANDA_BEGIN
 * @brief Qunatum QProgCheck
 * @ingroup QuantumMachine
 */
-class QProgCheck
+class QProgCheck:public TraversalInterface<TraversalConfig &>
 {
 public:
 
@@ -134,6 +134,14 @@ public:
     {
         cur_node->get_val();
     }
+
+    virtual void execute(std::shared_ptr<AbstractQNoiseNode> cur_node,
+        std::shared_ptr<QNode> parent_node,
+        TraversalConfig & param);
+    
+    virtual void execute(std::shared_ptr<AbstractQDebugNode> cur_node,
+        std::shared_ptr<QNode> parent_node,
+        TraversalConfig & param);
 
 protected:
     void is_can_optimize_measure(const QVec &controls, const QVec &targets, TraversalConfig &param);

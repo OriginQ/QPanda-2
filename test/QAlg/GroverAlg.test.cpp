@@ -71,7 +71,7 @@ bool gorver_test_fun1()
 	std::vector<size_t> result_index_vec;
 	//cout << "Start grover search algorithm:" << endl;
 	QProg grover_Qprog = grover_alg_search_from_vector(search_sapce, x == 6, result_index_vec, machine, 2);
-	
+	cout << grover_Qprog << endl;
 	//for test
 	//write_to_originir_file(grover_Qprog, machine, "grover_prog_0.txt");
 	
@@ -136,7 +136,7 @@ bool gorver_test_fun2()
 	//cout << "Start grover search algorithm:" << endl;
 	QVec measure_qubits;
 	QProg grover_Qprog = build_grover_alg_prog(search_sapce, x == 6, machine, measure_qubits, 1);
-
+	cout << grover_Qprog << endl;
 	//cout << "grover_Qprog" << grover_Qprog << endl;
 
 	//for test
@@ -217,7 +217,7 @@ bool gorver_test_fun4()
 	QVec measure_qubits;
 	//QProg grover_Qprog = grover_alg_search_from_vector(search_sapce, x == 5, result_index_vec, machine, 2);
 	QProg grover_Qprog = grover_search_alg(search_sapce, "Bob", result_index_vec, machine, 1);
-
+	cout << grover_Qprog << endl;
 	//std::cout << grover_Qprog << std::endl;
 	//QProg grover_Qprog = build_grover_prog(search_sapce, x==5, machine, measure_qubits, 1);
 	//decompose_multiple_control_qgate(grover_Qprog, machine);

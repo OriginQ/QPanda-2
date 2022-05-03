@@ -12,14 +12,17 @@ with open(README_PATH) as readme_file:
 
 setup(  
     name = "pyqpanda",  
-    version = "3.7.8",  
+    version = "3.7.12",  
     license = "Apache Licence",  
     author = "OriginQ",
     install_requires=requirements,
     description="pyQPanda is Python wrapper of QPanda.",    
     packages = find_packages(),  
+    
     py_modules = ['psi4_wrapper'],
-    #data_files=[(['psi4_wrapper.py'])],
+    package_data={
+        '':['*.dll', '*.pyi']
+    },
     include_package_data = True,  
     classifiers=[
 	"Development Status :: 4 - Beta",

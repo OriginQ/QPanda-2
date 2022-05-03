@@ -13,7 +13,7 @@ static bool qw_gorver_test_1()
 	auto x = machine->allocateCBit();
 	std::vector<SearchDataByUInt> search_vec = { 6, 6, 6, 15, 16, 6, 6, 4, 6, 6, 6, 6, 14, 6, 0 };
 	std::vector<size_t> result_index_vec;
-	const int search_data = 0;
+	const int search_data = 6;
 
 	size_t indexx = 0;
 	for (const auto &item : search_vec)
@@ -28,14 +28,15 @@ static bool qw_gorver_test_1()
 	QProg quantum_walk_prog =
 		quantum_walk_alg_search_from_vector(search_vec, x == search_data, machine, result_index_vec_qw, 2);
 
-	uint32_t i = 0;
+	
 	if (result_index_vec_qw.size() != result_index_vec.size()){
 		return false;
 	}
 
+	uint32_t i = 0;
 	for (const auto &result_item : result_index_vec)
 	{
-		if (result_item != result_index_vec_qw[i]){
+		if (result_item != result_index_vec_qw[i++]){
 			return false;
 		}
 	}

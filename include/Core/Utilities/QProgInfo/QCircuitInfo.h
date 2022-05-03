@@ -473,6 +473,7 @@ size_t get_all_used_qubits(QProg prog, QVec &vecQuBitsInUse);
 * @return return the size of used class bits
 */
 size_t get_all_used_class_bits(QProg prog, std::vector<int> &vecClBitsInUse);
+size_t get_all_used_class_bits(QProg prog, std::vector<ClassicalCondition> &vecClBitsInUse);
 
 /**
 * @brief  Get all the measure-info in the input prog

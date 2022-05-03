@@ -115,3 +115,8 @@ QError DistributedFullAmplitudeEngine::controlunitaryDoubleQubitGate(size_t qn_0
 
     return QError::qErrorNone;
 }
+
+void DistributedFullAmplitudeEngine::set_parallel_threads_size(size_t size)
+{
+
+}

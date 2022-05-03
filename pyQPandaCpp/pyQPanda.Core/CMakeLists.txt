@@ -30,12 +30,17 @@ add_custom_command(OUTPUT ${PYQPANDA_OUT_LIB}
  )
 add_custom_target(CopyQPandaTask ALL DEPENDS ${PYQPANDA_OUT_LIB} ${LIB_PYQPANDA})
 
-# generate stub file for IDE intelliSense
-# add_custom_command(TARGET CopyQPandaTask 
-#     POST_BUILD
-#     COMMAND pip install -r ${PYQPANDA_POST_BUILD_TOOL_DIR}/requirements.txt
-#     COMMAND python ${PYQPANDA_POST_BUILD_TOOL_DIR}/stubgen.py --search-path ${PYQPANDA_OUT_PATH} -m ${LIB_PYQPANDA} -o ${PYQPANDA_OUT_PATH}
-#     WORKING_DIRECTORY ${PYQPANDA_OUT_PATH}
-#     VERBATIM
-#     USES_TERMINAL
-# )
+if (USE_CURL AND CURL_FOUND AND MSVC)
+	add_custom_command(TARGET ${LIB_PYQPANDA} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CURL_DLL} ${PYQPANDA_OUT_PATH}/)
+endif()
+
+# generate stub file for IDE intelliSense after target CopyQPandaTask finished
+if(PYQPANDA_STUBGEN)
+    add_custom_command(TARGET CopyQPandaTask
+        POST_BUILD
+        COMMAND ${PYTHON_EXECUTABLE} ${PYQPANDA_POST_BUILD_TOOL_DIR}/stubgen/stubgen.py --search-path ${PYQPANDA_OUT_PATH} -m ${LIB_PYQPANDA} -o ${PYQPANDA_OUT_PATH}
+        WORKING_DIRECTORY ${PYQPANDA_OUT_PATH}
+        VERBATIM
+        USES_TERMINAL
+    )
+endif(PYQPANDA_STUBGEN)

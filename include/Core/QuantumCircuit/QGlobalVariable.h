@@ -21,6 +21,8 @@ limitations under the License.
 #include <vector>
 #include <float.h>
 
+QPANDA_BEGIN
+
 /*
 *  @brief   QPanda2 node type
 */
@@ -35,7 +37,9 @@ enum NodeType
     QIF_START_NODE,/**< Quantum if controlflow start node */
     CLASS_COND_NODE,/**< Quantum classical condition node */
     QWAIT_NODE,     /**< QWait node */
-	RESET_NODE      /**< QReset node */
+	RESET_NODE,     /**< QReset node */
+    NOISE_NODE,     /**< Noise simulate virtual node */
+    DEBUG_NODE      /**< Debug qubit state vector node */
 };
 
 /*
@@ -68,6 +72,10 @@ enum GateType {
     CNOT_GATE,/**< Quantum control-not gate */
     CZ_GATE,/**< Quantum control-z gate */
 	CP_GATE,/**<Quantum control-p gate>*/
+    RYY_GATE,/**<Quantum ryy gate>*/
+    RXX_GATE,/**<Quantum rxx gate>*/
+    RZZ_GATE,/**<Quantum rzz gate>*/
+    RZX_GATE,/**<Quantum rzx gate>*/
     CPHASE_GATE,/**< Quantum control-rotation gate */
     ISWAP_THETA_GATE,/**< Quantum iswap-theta gate */
     ISWAP_GATE,/**< Quantum iswap gate */
@@ -126,9 +134,12 @@ enum MetadataGateType {
 
 
 /**< @brief Circumference ratio   */
-const qstate_type PI = 3.14159265358979323846;
+const qstate_type PI = 3.141592653589793238462643383279502884;
 
 /**< @brief Square root of two   */
-constexpr qstate_type SQRT2 = 1.4142135623731;
+const qstate_type SQRT2 = 1.414213562373095048801688724209698079;
+const qstate_type SQ2 = 0.707106781186547524400844362104849039;
+
+QPANDA_END
 
 #endif

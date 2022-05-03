@@ -16,7 +16,7 @@ elseif(WIN32)
     set_target_properties(${LIB_PYQPANDA_CHEMIQ} PROPERTIES SUFFIX ".pyd")
 endif(UNIX)
 
-target_link_libraries(${LIB_PYQPANDA_CHEMIQ} ${LIB_QALG})
+target_link_libraries(${LIB_PYQPANDA_CHEMIQ} ${LIB_QALG} ${PYTHON_LIBRARIES})
 
 set(PYCHEMIQ_OUT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../pyQPanda/pyqpanda/ChemiQ")
 if (UNIX)
@@ -31,12 +31,15 @@ add_custom_command(OUTPUT ${PYCHEMIQ_OUT_LIB}
  )
 add_custom_target(CopyQPandaTaskChemiQ ALL DEPENDS ${PYCHEMIQ_OUT_LIB} ${LIB_PYQPANDA_CHEMIQ})
 
-# generate stub file for IDE intelliSense
-# add_custom_command(TARGET CopyQPandaTaskChemiQ 
-#     POST_BUILD
-#     COMMAND pip install -r ${PYQPANDA_POST_BUILD_TOOL_DIR}/requirements.txt
-#     COMMAND python ${PYQPANDA_POST_BUILD_TOOL_DIR}/stubgen.py --search-path ${PYQPANDA_OUT_PATH} -m ${LIB_PYQPANDA_CHEMIQ} -o ${PYCHEMIQ_OUT_PATH}
-#     WORKING_DIRECTORY ${PYCHEMIQ_OUT_PATH}
-#     VERBATIM
-#     USES_TERMINAL
-# )
+# generate stub file for IDE intelliSense after target CopyQPandaTaskChemiQ finished
+if(PYQPANDA_STUBGEN)
+    add_custom_command(TARGET CopyQPandaTaskChemiQ
+        POST_BUILD
+        COMMAND ${PYTHON_EXECUTABLE} ${PYQPANDA_POST_BUILD_TOOL_DIR}/stubgen/stubgen.py --search-path ${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE} -m ${LIB_PYQPANDA_CHEMIQ} -o ${PYCHEMIQ_OUT_PATH}
+        WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}
+        VERBATIM
+        USES_TERMINAL
+    )
+
+
+endif(PYQPANDA_STUBGEN)

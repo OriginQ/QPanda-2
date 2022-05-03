@@ -132,7 +132,14 @@ QGate Fusion::_generate_oracle_gate(const std::vector<QGate>& fusion_gates,
             }
             else
             {
-                cpu.three_qubit_gate_fusion(phy_qv[0], phy_qv[1], matrix);
+                if (gate_type == GateType::CNOT_GATE)
+                {
+                    cpu.unitaryDoubleQubitGate(phy_qv[0], phy_qv[1], matrix, false, (GateType)gate_type);
+                }
+                else
+                {
+                    cpu.three_qubit_gate_fusion(phy_qv[0], phy_qv[1], matrix);
+                }
             }
         }
     }
@@ -347,12 +354,12 @@ void Fusion::_fusion_gate(T& src_prog, const int fusion_bit, QuantumMachine* qvm
 		if ((*gate_tmp).getNodeType() != NodeType::GATE_NODE) {
 			continue;
 		}
-
+        
 		auto gate_node = std::dynamic_pointer_cast<AbstractQGateNode>(gate_tmp);
 		if (gate_node->getControlQubitNum() > 0) {
 			continue;
 		}
-
+        
 		QVec qubit_vec;
 		gate_node->getQuBitVector(qubit_vec);
 		if (qubit_vec.size() != fusion_bit) {

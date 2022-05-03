@@ -18,6 +18,7 @@ public:
 	}
 };
 
+
 QProg QPanda::convert_originir_to_qprog(std::string file_path, QuantumMachine* qm)
 {
 	QVec qv;

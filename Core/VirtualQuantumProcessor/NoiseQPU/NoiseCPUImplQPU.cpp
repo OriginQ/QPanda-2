@@ -136,6 +136,11 @@ QError NoisyCPUImplQPU::pMeasure
     return undefineError;
 }
 
+void NoisyCPUImplQPU::set_parallel_threads_size(size_t size)
+{
+    m_max_threads_size = size;
+}
+
 QError NoisyCPUImplQPU::pMeasure(Qnum& qnum, prob_vec &mResult)
 {
     throw std::runtime_error("NoisyCPUImplQPU do not support pmeasure.");
@@ -415,6 +420,165 @@ QError NoisyCPUImplQPU::unitary_qubit_gate_standard(size_t qn0, size_t qn1,
             + matrix[14] * phi10 + matrix[15] * phi11;
     }
 
+    return QError::qErrorNone;
+}
+
+QError NoisyCPUImplQPU::unitary_qubit_gate_standard(size_t qn, QStat &matrix,
+                                                    bool is_conjugate, const Qnum &controls)
+{
+    QGateParam& qgroup0 = findgroup(qn);
+    for (auto iter = controls.begin(); iter != controls.end(); iter++)
+    {
+        TensorProduct(qgroup0, findgroup(*iter));
+    }
+    size_t len = 1ull << (qgroup0.qVec.size() - controls.size());
+    size_t x;
+
+    size_t n = qgroup0.qVec.size();
+    size_t ststep = 1ull << (find(qgroup0.qVec.begin(), qgroup0.qVec.end(), qn)
+        - qgroup0.qVec.begin());
+    size_t index = 0;
+    size_t block = 0;
+
+    qcomplex_t alpha, beta;
+    if (is_conjugate)
+    {
+        qcomplex_t temp;
+        temp = matrix[1];
+        matrix[1] = matrix[2];
+        matrix[2] = temp;  //转置
+        for (size_t i = 0; i < 4; i++)
+        {
+            matrix[i] = qcomplex_t(matrix[i].real(), -matrix[i].imag());
+        }//共轭
+    }
+
+    Qnum qvtemp;
+    for (auto iter = controls.begin(); iter != controls.end(); iter++)
+    {
+        size_t stemp = (find(qgroup0.qVec.begin(), qgroup0.qVec.end(), *iter)
+            - qgroup0.qVec.begin());
+        block += 1ull << stemp;
+        qvtemp.push_back(stemp);
+    }
+    sort(qvtemp.begin(), qvtemp.end());
+    Qnum::iterator qiter;
+    size_t j;
+
+    for (long long i = 0; i < (long long)len; i++)
+    {
+        index = 0;
+        x = i;
+        qiter = qvtemp.begin();
+
+        for (j = 0; j < n; j++)
+        {
+            while (qiter != qvtemp.end() && *qiter == j)
+            {
+                qiter++;
+                j++;
+            }
+            //index += ((x % 2)*(1ull << j));
+            index += ((x & 1) << j);
+            x >>= 1;
+        }
+
+        /*
+        * control qubits are 1,target qubit is 0
+        */
+        index = index + block - ststep;
+        alpha = qgroup0.qstate[index];
+        beta = qgroup0.qstate[index + ststep];
+        qgroup0.qstate[index] = alpha * matrix[0] + beta * matrix[1];
+        qgroup0.qstate[index + ststep] = alpha * matrix[2] + beta * matrix[3];
+    }
+    return QError::qErrorNone;
+}
+
+QError NoisyCPUImplQPU::unitary_qubit_gate_standard(size_t qn0, size_t qn1, QStat &matrix,
+                                                    bool is_conjugate, const Qnum &controls)
+{
+    QGateParam& qgroup0 = findgroup(qn0);
+    QGateParam& qgroup1 = findgroup(qn1);
+    TensorProduct(qgroup0, qgroup1);
+    for (auto iter = controls.begin(); iter != controls.end(); iter++)
+    {
+        TensorProduct(qgroup0, findgroup(*iter));
+    }
+    qcomplex_t temp;
+    if (is_conjugate)
+    {
+        for (size_t i = 0; i < 4; i++)
+        {
+            for (size_t j = i + 1; j < 4; j++)
+            {
+                temp = matrix[4 * i + j];
+                matrix[4 * i + j] = matrix[4 * j + i];
+                matrix[4 * j + i] = temp;
+            }
+        }
+        for (size_t i = 0; i < 16; i++)
+        {
+            matrix[i] = qcomplex_t(matrix[i].real(), -matrix[i].imag());
+        }
+    }//dagger
+
+        //combine all qubits;
+    size_t M = 1ull << (qgroup0.qVec.size() - controls.size());
+
+    size_t ststep0 = 1ull << (find(qgroup0.qVec.begin(), qgroup0.qVec.end(), qn0)
+        - qgroup0.qVec.begin());
+    size_t ststep1 = 1ull << (find(qgroup0.qVec.begin(), qgroup0.qVec.end(), qn1)
+        - qgroup0.qVec.begin());
+    size_t block = 0;
+    qcomplex_t phi00, phi01, phi10, phi11;
+    Qnum qvtemp;
+    for (auto iter = controls.begin(); iter != controls.end(); iter++)
+    {
+        size_t stemp = (find(qgroup0.qVec.begin(), qgroup0.qVec.end(), *iter)
+            - qgroup0.qVec.begin());
+        block += 1ull << stemp;
+        qvtemp.push_back(stemp);
+    }
+    //block: all related qubits are 1,others are 0
+    sort(qvtemp.begin(), qvtemp.end());
+    Qnum::iterator qiter;
+    size_t j;
+    size_t index = 0;
+    size_t x;
+    size_t n = qgroup0.qVec.size();
+
+    for (long long i = 0; i < (long long)M; i++)
+    {
+        index = 0;
+        x = i;
+        qiter = qvtemp.begin();
+
+        for (j = 0; j < n; j++)
+        {
+            while (qiter != qvtemp.end() && *qiter == j)
+            {
+                qiter++;
+                j++;
+            }
+            //index += ((x % 2)*(1ull << j));
+            index += ((x & 1) << j);
+            x >>= 1;
+        }
+        index = index + block - ststep0 - ststep1;                             /*control qubits are 1,target qubit are 0 */
+        phi00 = qgroup0.qstate[index];             //00
+        phi01 = qgroup0.qstate[index + ststep1];   //01
+        phi10 = qgroup0.qstate[index + ststep0];   //10
+        phi11 = qgroup0.qstate[index + ststep0 + ststep1];  //11
+        qgroup0.qstate[index] = matrix[0] * phi00 + matrix[1] * phi01
+            + matrix[2] * phi10 + matrix[3] * phi11;
+        qgroup0.qstate[index + ststep1] = matrix[4] * phi00 + matrix[5] * phi01
+            + matrix[6] * phi10 + matrix[7] * phi11;
+        qgroup0.qstate[index + ststep0] = matrix[8] * phi00 + matrix[9] * phi01
+            + matrix[10] * phi10 + matrix[11] * phi11;
+        qgroup0.qstate[index + ststep0 + ststep1] = matrix[12] * phi00 + matrix[13] * phi01
+            + matrix[14] * phi10 + matrix[15] * phi11;
+    }
     return QError::qErrorNone;
 }
 
@@ -702,7 +866,7 @@ size_t choose_operator(prob_vec & probabilities, qstate_type drand)
     return number;
 }
 
-QStat matrix_multiply(const QStat &matrix_left, const QStat &matrix_right)
+QStat QPanda::matrix_multiply(const QStat &matrix_left, const QStat &matrix_right)
 {
     int size = (int)matrix_left.size();
     QStat matrix_result(size, 0);
@@ -884,6 +1048,7 @@ controlunitarySingleQubitGate(size_t qn,
     bool isConjugate,
     GateType type)
 {
+    unitary_qubit_gate_standard(qn, matrix, isConjugate, vControlBit);
     return qErrorNone;
 }
 
@@ -990,6 +1155,7 @@ controlunitaryDoubleQubitGate(size_t qn_0,
     bool isConjugate,
     GateType type)
 {
+    unitary_qubit_gate_standard(qn_0, qn_1, matrix, isConjugate, vControlBit);
     return qErrorNone;
 }
 
@@ -1322,4 +1488,28 @@ QError NoisyCPUImplQPU::P1(
     double error_rate)
 {
     return undefineError;
+}
+
+
+int NoisyCPUImplQPU::_omp_thread_num(size_t size)
+{
+    if (size > m_threshold)
+    {
+#ifdef USE_OPENMP
+        if (m_max_threads_size > 0)
+        {
+            return m_max_threads_size;
+        }
+        else
+        {
+            return omp_get_max_threads();
+        }
+#else
+        return 1;
+#endif
+    }
+    else
+    {
+        return 1;
+    }
 }

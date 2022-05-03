@@ -105,6 +105,16 @@ public:
         throw run_fail("node error");
     }
 
+    virtual void execute(std::shared_ptr<AbstractQNoiseNode> cur_node, std::shared_ptr<QNode> parent_node, QCircuit & circuit)
+    {
+        QCERR_AND_THROW(std::invalid_argument, "node error");
+    }
+
+    virtual void execute(std::shared_ptr<AbstractQDebugNode> cur_node, std::shared_ptr<QNode> parent_node, QCircuit & circuit)
+    {
+        QCERR_AND_THROW(std::invalid_argument, "node error");
+    }
+
 };
 
 /**

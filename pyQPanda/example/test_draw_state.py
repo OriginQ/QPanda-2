@@ -1,3 +1,9 @@
+import sys
+import os.path
+dir = os.path.abspath(__file__)
+model_path = os.path.abspath(os.path.join(dir, "../.."))
+sys.path.insert(0, model_path)
+
 from pyqpanda import *
 from numpy import pi
 from matplotlib import pyplot as plt

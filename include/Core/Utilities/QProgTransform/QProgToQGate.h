@@ -121,6 +121,18 @@ public:
 		throw run_fail("cast qprog to qgate fail!");
 	}
 
+    virtual void execute(std::shared_ptr<AbstractQNoiseNode>  cur_node, std::shared_ptr<QNode> parent_node)
+	{
+		QCERR("cast qprog to qgate fail!");
+		throw run_fail("cast qprog to qgate fail!");
+	}
+
+    virtual void execute(std::shared_ptr<AbstractQDebugNode>  cur_node, std::shared_ptr<QNode> parent_node)
+	{
+		QCERR("cast qprog to qgate fail!");
+		throw run_fail("cast qprog to qgate fail!");
+	}
+
 	std::shared_ptr<AbstractQGateNode> get_qgate()
 	{
 		if (!m_qgate_node)

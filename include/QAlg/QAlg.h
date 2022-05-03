@@ -35,5 +35,6 @@ limitations under the License.
 #include "QAlg/QARM/QARMAlgorithm.h"
 #include "QAlg/QSVM/QSVMAlgorithm.h"
 #include "QAlg/Shor/Shor.h"
+#include "QAlg/IQAE/IterativeQuantumAmplitudeEstimation.h"
 
 #endif // !_QALG_H

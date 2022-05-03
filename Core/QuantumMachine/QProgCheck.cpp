@@ -152,6 +152,22 @@ void QProgCheck::execute(std::shared_ptr<AbstractQuantumProgram> cur_node,
 }
 
 
+void QProgCheck::execute(std::shared_ptr<AbstractQNoiseNode> cur_node,
+        std::shared_ptr<QNode> parent_node,
+        TraversalConfig & param)
+{
+    param.m_can_optimize_measure = false;
+    return ;
+}
+
+void QProgCheck::execute(std::shared_ptr<AbstractQDebugNode> cur_node,
+        std::shared_ptr<QNode> parent_node,
+        TraversalConfig & param)
+{
+    param.m_can_optimize_measure = false;
+    return ;
+}
+
 void QProgCheck::is_can_optimize_measure(const QVec &controls, const QVec &targets, TraversalConfig &param)
 {
     if (0 == param.m_measure_qubits.size() || !param.m_can_optimize_measure)

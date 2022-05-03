@@ -554,6 +554,16 @@ void QProgStored::execute(std::shared_ptr<AbstractQuantumProgram>  cur_node, std
 	Traversal::traversal(cur_node, *this);
 }
 
+void QProgStored::execute(std::shared_ptr<AbstractQNoiseNode> cur_node, std::shared_ptr<QNode> parent_node)
+{
+    QCERR_AND_THROW(std::invalid_argument, "QProgStored should not store virtual noise node");
+}
+
+void QProgStored::execute(std::shared_ptr<AbstractQDebugNode> cur_node, std::shared_ptr<QNode> parent_node)
+{
+    QCERR_AND_THROW(std::invalid_argument, "QProgStored should not store debug node");
+}
+
 void QProgStored::execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std::shared_ptr<QNode> parent_node)
 {
 	QVec ctrl_qubits_vector;

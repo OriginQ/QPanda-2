@@ -25,6 +25,9 @@ limitations under the License.
 #include "Core/VirtualQuantumProcessor/QError.h"
 #include "Core/Utilities/Tools/RandomEngine/RandomEngine.h"
 #include "Core/QuantumCircuit/QGlobalVariable.h"
+#include "Core/Debugger/AbstractQDebugNode.h"
+
+QPANDA_BEGIN
 
 typedef std::vector<QGateParam> vQParam;
 
@@ -112,6 +115,10 @@ public:
                                      QStat &matrix, bool isConjugate)
                                      {return QError::qErrorNone;}
 
+    virtual QError process_noise(Qnum& qnum, QStat& matrix) = 0;
+
+    virtual QError debug(std::shared_ptr<QPanda::AbstractQDebugNode> debugger) = 0;
+
 	/**
 	* @brief get quantum states
 	*/
@@ -132,6 +139,8 @@ public:
 	* @param[in]  size_t  qubit address
 	*/
 	virtual QError Reset(size_t qn) = 0;
+
+    virtual void set_parallel_threads_size(size_t size) = 0;
 
 };
 
@@ -256,6 +265,6 @@ public:
         double error_rate) = 0;
 };
 
-
+QPANDA_END
 #endif
 

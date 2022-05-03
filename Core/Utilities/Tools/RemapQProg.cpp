@@ -69,7 +69,7 @@ QProg RemapQProg::remap(QProg src_prog, QVec target_qv, std::vector<ClassicalCon
 	get_qubit_object.traversal(src_prog);
 
 	const auto src_qubit_vec = get_qubit_object.get_used_qubits();
-	const auto src_cbit_vec = get_qubit_object.get_used_cbits();
+	const auto src_cbit_vec = get_qubit_object.get_used_cbits_i();
 	const auto qubit_cnt = src_qubit_vec.size();
 	const auto cbit_cnt = src_cbit_vec.size();
 	if ((target_qv.size() < qubit_cnt) || (target_cv.size() < cbit_cnt)){

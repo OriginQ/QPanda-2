@@ -6,11 +6,9 @@
 #include "Core/Utilities/Tools/QProgFlattening.h"
 #include "Core/Utilities/QProgTransform/TopologyMatch.h"
 
-
+USING_QPANDA
 using namespace std;
 using namespace QGATE_SPACE;
-
-USING_QPANDA
 
 #define PRINT_TRACE 0
 #if PRINT_TRACE

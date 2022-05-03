@@ -3,9 +3,9 @@ using namespace std;
 
 int main(int argc, char** argv) 
 {
-#if 1
+#if 0
 	//Run a single test of Alg Part
-	::testing::GTEST_FLAG(filter) = "MPS.test";
+	::testing::GTEST_FLAG(filter) = "RxxRyyRzzRzxGate.test1";
 #else
 	//Run All Core Part
 #endif

@@ -17,99 +17,14 @@ limitations under the License.
 #ifndef CPU_QUANTUM_GATE_H
 #define CPU_QUANTUM_GATE_H
 
-#include "Core/VirtualQuantumProcessor/QPUImpl.h"
-#include "Core/Utilities/Tools/Utils.h"
+#include <vector>
 #include <stdio.h>
 #include <iostream>
-#include <vector>
+#include "Core/Utilities/Tools/Utils.h"
+#include "Core/VirtualQuantumProcessor/QPUImpl.h"
 
 
-#ifndef SQ2
-#define SQ2 (1 / 1.4142135623731)
-#endif
-
-#ifndef PI
-#define PI 3.14159265358979323846
-#endif
-
-#define DECL_GATE_MATRIX(NAME)\
-extern const qcomplex_t NAME##00;\
-extern const qcomplex_t NAME##01;\
-extern const qcomplex_t NAME##10;\
-extern const qcomplex_t NAME##11;
-#define DECL_ANGLE_GATE_MATRIX(NAME)\
-extern const double NAME##_Nx;\
-extern const double NAME##_Ny;\
-extern const double NAME##_Nz;\
-
-#define REGISTER_GATE_MATRIX(NAME,U00,U01,U10,U11)\
-extern const qcomplex_t NAME##00 = U00;\
-extern const qcomplex_t NAME##01 = U01;\
-extern const qcomplex_t NAME##10 = U10;\
-extern const qcomplex_t NAME##11 = U11;
-
-#define REGISTER_ANGLE_GATE_MATRIX(NAME,Nx,Ny,Nz)\
-extern const double NAME##_Nx = Nx;\
-extern const double NAME##_Ny = Ny;\
-extern const double NAME##_Nz = Nz;\
-
-#define CONST_GATE(NAME) \
-QError                                          \
-NAME(size_t qn, bool isConjugate, double error_rate)\
-{                                                    \
-    const_single_qubit_gate(NAME, qn,isConjugate,error_rate);\
-    return  qErrorNone;                      \
-}
-#define CONTROL_CONST_GATE(NAME) \
-QError                                          \
-NAME(size_t qn, Qnum& vControlBit,bool isConjugate , double error_rate)\
-{                                                    \
-    control_const_single_qubit_gate(NAME, qn,vControlBit,isConjugate,error_rate);\
-    return  qErrorNone;                      \
-}
-
-#define SINGLE_ANGLE_GATE(NAME) \
-QError                                          \
-NAME(size_t qn,double theta,bool isConjugate, double error_rate)\
-{                                                    \
-    single_qubit_angle_gate(NAME, qn,theta,isConjugate,error_rate);\
-    return  qErrorNone;                      \
-}
-
-#define CONTROL_SINGLE_ANGLE_GATE(NAME)    \
-QError                                          \
-NAME(size_t qn, double theta,Qnum& vControlBit,bool isConjugate, double error_rate)\
-{                                                    \
-    control_single_qubit_angle_gate(NAME, qn, theta,vControlBit,isConjugate, error_rate); \
-    return  qErrorNone;                      \
-}
-
-#define const_single_qubit_gate(GATE_NAME,qn,isConjugate,error_rate) \
-single_gate<GATE_NAME##00,GATE_NAME##01,GATE_NAME##10,GATE_NAME##11>(qn,isConjugate,error_rate)
-
-#define control_const_single_qubit_gate(GATE_NAME,qn,vControlBit,isConjugate,error_rate) \
-control_single_gate<GATE_NAME##00,GATE_NAME##01,GATE_NAME##10,GATE_NAME##11>\
-(qn,vControlBit,isConjugate,error_rate)
-
-#define single_qubit_angle_gate(GATE_NAME,qn,theta,isConjugate,error_rate) \
-single_angle_gate<GATE_NAME##_Nx,GATE_NAME##_Ny,GATE_NAME##_Nz>(qn,theta,isConjugate,error_rate)
-
-#define control_single_qubit_angle_gate(GATE_NAME,qn,theta,vControlBit,isConjugate,error_rate) \
-control_single_angle_gate<GATE_NAME##_Nx,GATE_NAME##_Ny,GATE_NAME##_Nz>     \
-(qn,theta,vControlBit,isConjugate,error_rate)
-
-DECL_GATE_MATRIX(Hadamard)
-DECL_GATE_MATRIX(X)
-DECL_GATE_MATRIX(Y)
-DECL_GATE_MATRIX(Z)
-DECL_GATE_MATRIX(T)
-DECL_GATE_MATRIX(S)
-DECL_GATE_MATRIX(P0)
-DECL_GATE_MATRIX(P1)
-DECL_ANGLE_GATE_MATRIX(RX_GATE)
-DECL_ANGLE_GATE_MATRIX(RY_GATE)
-DECL_ANGLE_GATE_MATRIX(RZ_GATE)
-
+QPANDA_BEGIN
 
 /**
 * @brief QPU implementation by  CPU model
@@ -218,6 +133,9 @@ public:
                       bool is_dagger);
     QError controlOracleGate(Qnum& qubits, const Qnum &controls,
                              QStat &matrix, bool is_dagger);
+    
+    virtual QError process_noise(Qnum& qnum, QStat& matrix);
+    virtual QError debug(std::shared_ptr<QPanda::AbstractQDebugNode> debugger);
 
     QStat getQState();
     QError Reset(size_t qn);
@@ -228,33 +146,6 @@ public:
     QError initState(size_t head_rank, size_t rank_size, size_t qubit_num);
     QError initState(size_t qubit_num, const QStat &state = {});
 	QError initMatrixState(size_t qubit_num, const QStat& state = {});
-
-    inline QError P00(size_t qn_0, size_t qn_1, bool isConjugate, double error_rate)
-    {
-        QStat P00_matrix = { 1,0,0,0,
-            0,1,0,0,
-            0,0,1,0,
-            0,0,0,0 };
-        return unitaryDoubleQubitGate(qn_0, qn_1, P00_matrix, isConjugate, GateType::P00_GATE);
-    }
-
-    inline QError SWAP(size_t qn_0, size_t qn_1, bool isConjugate, double error_rate)
-    {
-        QStat P00_matrix = { 1,0,0,0,
-            0,0,1,0,
-            0,1,0,0,
-            0,0,0,1 };
-        return unitaryDoubleQubitGate(qn_0, qn_1, P00_matrix, isConjugate, GateType::SWAP_GATE);
-    }
-
-    inline QError P11(size_t qn_0, size_t qn_1, bool isConjugate, double error_rate)
-    {
-        QStat P11_matrix = { 0,0,0,0,
-            0,0,0,0,
-            0,0,0,0,
-            0,0,0,1 };
-        return unitaryDoubleQubitGate(qn_0, qn_1, P11_matrix, isConjugate, GateType::P11_GATE);
-    }
 
 protected:
 	
@@ -301,7 +192,7 @@ protected:
     QError _iSWAP(size_t qn_0, size_t qn_1, QStat &matrix, bool is_dagger, Qnum &controls);
     QError _iSWAP_theta(size_t qn_0, size_t qn_1, QStat &matrix, bool is_dagger, Qnum &controls);
     QError _CU(size_t qn_0, size_t qn_1, QStat &matrix, bool is_dagger, Qnum &controls);
-
+    void set_parallel_threads_size(size_t size);
 	inline int64_t _insert(int64_t value, size_t n1, size_t n2, size_t n3, size_t n4, size_t n5)
 	{
 		int64_t mask1 = (1ll << n1) - 1;
@@ -405,10 +296,23 @@ protected:
     inline int _omp_thread_num(size_t size);
 private:
     bool m_is_init_state{false};
+    /* 
+      qubits state vetor of tensor product, 
+      
+      qubit (ax, bx are complex):
+      q0 = a0|0> + b0|1>
+      q1 = a1|0> + b1|1>
+      ...
+      qn = an|0> + bn|1>    
+
+      qubits state vetor of tensor product is arraged as sequence:
+      m_state = [an...a1a0, an...a1b0, an...b1a0, an...b1b0, ..., bn...b1b0]
+    */
     QStat m_state;
     QStat m_init_state;
     size_t m_qubit_num;
     const int64_t m_threshold = 1ll << 9;
+    int64_t m_max_threads_size = 0;
 };
 
 class CPUImplQPUWithOracle : public CPUImplQPU {
@@ -418,5 +322,7 @@ public:
         bool is_dagger,
         std::string name);
 };
+
+QPANDA_END
 
 #endif

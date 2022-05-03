@@ -1389,6 +1389,146 @@ QGate CP(int control_qaddr, int target_qaddr, double theta);
 */
 QCircuit CP(const std::vector<int>& control_qaddrs, const std::vector<int>& target_qaddrs, double theta);
 
+/**
+* @brief  Construct a new quantum RXX gate
+* @param[in]  Qubit* control qubit
+* @param[in]  Qubit* target qubit
+* @param[in]  double angle target qubit
+* @return     QPanda::QGate  quantum gate
+* @ingroup QuantumCircuit
+*/
+QGate RXX(Qubit*, Qubit*, double angle);
+
+/**
+* @brief  Construct a new quantum RXX gate
+* @param[in]  QVec& control qubit
+* @param[in]  QVec& target qubit
+* @param[in]  double angle target qubit
+* @return     QPanda::QGate  quantum gate
+* @ingroup QuantumCircuit
+*/
+QCircuit RXX(const QVec&, const QVec&, double angle);
+
+/**
+* @brief  Construct a new quantum RXX gate
+* @param[in]  int  qaddr  control qubit phy addr
+* @param[in]  int  qaddr  target qubit phy addr
+* @param[in]  double theta
+* @return     QPanda::QGate  quantum gate
+* @ingroup QuantumCircuit
+*/
+QGate RXX(int , int , double angle);
+
+/**
+* @brief  Construct control_qaddrs.size() new quantum RXX gate
+* @param[in]  int  qaddr  control qubit phy addr
+* @param[in]  int  qaddr  target qubit phy addr
+* @param[in]  double theta
+* @return     QPanda::QGate  quantum gate
+* @ingroup QuantumCircuit
+*/
+QCircuit RXX(const std::vector<int>& , const std::vector<int>& , double angle);
+
+/**
+* @brief  Construct a new quantum RYY gate
+* @param[in]  Qubit* control qubit
+* @param[in]  Qubit* target qubit
+* @param[in]  double angle target qubit
+* @return     QPanda::QGate  quantum gate
+* @ingroup QuantumCircuit
+*/
+QGate RYY(Qubit*, Qubit*, double angle);
+
+/**
+* @brief  Construct a new quantum RYY gate
+* @param[in]  int  qaddr  control qubit phy addr
+* @param[in]  int  qaddr  target qubit phy addr
+* @param[in]  double theta
+* @return     QPanda::QGate  quantum gate
+* @ingroup QuantumCircuit
+*/
+QGate RYY(int, int, double angle);
+
+/**
+* @brief  Construct a new quantum RYY gate
+* @param[in]  QVec& control qubit
+* @param[in]  QVec& target qubit
+* @param[in]  double angle target qubit
+* @return     QPanda::QGate  quantum gate
+* @ingroup QuantumCircuit
+*/
+QCircuit RYY(const QVec&, const QVec&, double angle);
+
+/**
+* @brief  Construct control_qaddrs.size() new quantum RYY gate
+* @param[in]  int  qaddr  control qubit phy addr
+* @param[in]  int  qaddr  target qubit phy addr
+* @param[in]  double theta
+* @return     QPanda::QGate  quantum gate
+* @ingroup QuantumCircuit
+*/
+QCircuit RYY(const std::vector<int>&, const std::vector<int>&, double angle);
+
+/**
+* @brief  Construct a new quantum RZZ gate
+* @param[in]  Qubit* control qubit
+* @param[in]  Qubit* target qubit
+* @param[in]  double angle target qubit
+* @return     QPanda::QGate  quantum gate
+* @ingroup QuantumCircuit
+*/
+QGate RZZ(Qubit*, Qubit*, double angle);
+
+/**
+* @brief  Construct a new quantum RZZ gate
+* @param[in]  QVec& control qubit
+* @param[in]  QVec& target qubit
+* @param[in]  double angle target qubit
+* @return     QPanda::QGate  quantum gate
+* @ingroup QuantumCircuit
+*/
+QCircuit RZZ(const QVec&, const QVec&, double angle);
+
+
+/**
+* @brief  Construct a new quantum RZZ gate
+* @param[in]  int  qaddr  control qubit phy addr
+* @param[in]  int  qaddr  target qubit phy addr
+* @param[in]  double theta
+* @return     QPanda::QGate  quantum gate
+* @ingroup QuantumCircuit
+*/
+QGate RZZ(int, int, double angle);
+
+/**
+* @brief  Construct control_qaddrs.size() new quantum RZZ gate
+* @param[in]  int  qaddr  control qubit phy addr
+* @param[in]  int  qaddr  target qubit phy addr
+* @param[in]  double theta
+* @return     QPanda::QGate  quantum gate
+* @ingroup QuantumCircuit
+*/
+QCircuit RZZ(const std::vector<int>&, const std::vector<int>&, double angle);
+
+/**
+* @brief  Construct a new quantum RZX gate
+* @param[in]  Qubit* control qubit
+* @param[in]  Qubit* target qubit
+* @param[in]  double angle target qubit
+* @return     QPanda::QGate  quantum gate
+* @ingroup QuantumCircuit
+*/
+QGate RZX(Qubit*, Qubit*, double angle);
+
+/**
+* @brief  Construct a new quantum RZX gate
+* @param[in]  QVec& control qubit
+* @param[in]  QVec& target qubit
+* @param[in]  double angle target qubit
+* @return     QPanda::QGate  quantum gate
+* @ingroup QuantumCircuit
+*/
+QCircuit RZX(const QVec&, const QVec&, double angle);
 
 /**
 * @brief  Construct a new quantum SqiSWAP gate
@@ -1397,6 +1537,27 @@ QCircuit CP(const std::vector<int>& control_qaddrs, const std::vector<int>& targ
 * @return     QPanda::QGate  quantum gate
 * @ingroup QuantumCircuit
 */
+
+/**
+* @brief  Construct a new quantum RZX gate
+* @param[in]  int  qaddr  control qubit phy addr
+* @param[in]  int  qaddr  target qubit phy addr
+* @param[in]  double theta
+* @return     QPanda::QGate  quantum gate
+* @ingroup QuantumCircuit
+*/
+QGate RZX(int, int, double angle);
+
+/**
+* @brief  Construct control_qaddrs.size() new quantum RZZ gate
+* @param[in]  int  qaddr  control qubit phy addr
+* @param[in]  int  qaddr  target qubit phy addr
+* @param[in]  double theta
+* @return     QPanda::QGate  quantum gate
+* @ingroup QuantumCircuit
+*/
+QCircuit RZX(const std::vector<int>&, const std::vector<int>&, double angle);
+
 QGate SqiSWAP(Qubit * targitBit_fisrt, Qubit * targitBit_second);
 
 /**

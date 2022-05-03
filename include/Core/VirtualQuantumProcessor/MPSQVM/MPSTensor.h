@@ -14,9 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-
 #ifndef _MPSTENSOR_H_
 #define _MPSTENSOR_H_
+
 #include "Core/Utilities/Tools/Utils.h"
 #include <stdio.h>
 #include <iostream>
@@ -24,6 +24,8 @@ limitations under the License.
 #include <random>
 #include "ThirdParty/Eigen/Eigen"
 #include <iomanip>
+
+QPANDA_BEGIN
 
 using rvector_t = Eigen::Matrix<qstate_type, Eigen::Dynamic, 1>;
 using cvector_t = Eigen::Matrix<qcomplex_t, Eigen::Dynamic, 1>;
@@ -147,5 +149,7 @@ private:
     void handle_gamma_by_lambda(const rvector_t &Lambda, bool right, /* or left */  bool mul    /* or div */);
 
 };
+
+QPANDA_END
 
 #endif  //!_MPSTENSOR_H_

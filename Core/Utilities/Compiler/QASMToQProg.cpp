@@ -1,9 +1,9 @@
 #include "Core/Utilities/Compiler/QASMToQProg.h"
 #include "Core/Utilities/Tools/Utils.h"
 #include <queue>
+
 using namespace std;
 USING_QPANDA
-
 
 static QCircuit _qasm_cy(Qubit *ctrl, Qubit *target)
 {
@@ -93,42 +93,42 @@ QASMToQProg::QASMToQProg(QuantumMachine* qvm,  QVec &qv, std::vector<ClassicalCo
 	m_qasm_gate_type.insert(make_pair("CX", QASMGateType::CX_BASE_GATE));
 
 	typedef QGate(*gate_f1)(Qubit*);
-	m_zero_param_single_gate_func.insert(make_pair(QASMGateType::ID_GATE, (gate_f1)I));
-	m_zero_param_single_gate_func.insert(make_pair(QASMGateType::X_GATE, (gate_f1)X));
-	m_zero_param_single_gate_func.insert(make_pair(QASMGateType::Y_GATE, (gate_f1)Y));
-	m_zero_param_single_gate_func.insert(make_pair(QASMGateType::Z_GATE, (gate_f1)Z));
-	m_zero_param_single_gate_func.insert(make_pair(QASMGateType::H_GATE, (gate_f1)H));
-	m_zero_param_single_gate_func.insert(make_pair(QASMGateType::S_GATE, (gate_f1)S));
-	m_zero_param_single_gate_func.insert(make_pair(QASMGateType::SDG_GATE, (gate_f1)S));
-	m_zero_param_single_gate_func.insert(make_pair(QASMGateType::T_GATE, (gate_f1)T));
-	m_zero_param_single_gate_func.insert(make_pair(QASMGateType::TDG_GATE, (gate_f1)T));
+	m_zero_param_single_gate_func.insert(make_pair((int)(QASMGateType::ID_GATE), (gate_f1)I));
+	m_zero_param_single_gate_func.insert(make_pair((int)(QASMGateType::X_GATE), (gate_f1)X));
+	m_zero_param_single_gate_func.insert(make_pair((int)(QASMGateType::Y_GATE), (gate_f1)Y));
+	m_zero_param_single_gate_func.insert(make_pair((int)(QASMGateType::Z_GATE), (gate_f1)Z));
+	m_zero_param_single_gate_func.insert(make_pair((int)(QASMGateType::H_GATE), (gate_f1)H));
+	m_zero_param_single_gate_func.insert(make_pair((int)(QASMGateType::S_GATE), (gate_f1)S));
+	m_zero_param_single_gate_func.insert(make_pair((int)(QASMGateType::SDG_GATE), (gate_f1)S));
+	m_zero_param_single_gate_func.insert(make_pair((int)(QASMGateType::T_GATE), (gate_f1)T));
+	m_zero_param_single_gate_func.insert(make_pair((int)(QASMGateType::TDG_GATE), (gate_f1)T));
 
 	typedef QGate(*gate_f2)(Qubit*, double);
-	m_one_param_single_gate_func.insert(make_pair(QASMGateType::U1_GATE, (gate_f2)U1));
-	m_one_param_single_gate_func.insert(make_pair(QASMGateType::RX_GATE, (gate_f2)RX));
-	m_one_param_single_gate_func.insert(make_pair(QASMGateType::RY_GATE, (gate_f2)RY));
-	m_one_param_single_gate_func.insert(make_pair(QASMGateType::RZ_GATE, (gate_f2)U1));
+	m_one_param_single_gate_func.insert(make_pair((int)(QASMGateType::U1_GATE), (gate_f2)U1));
+	m_one_param_single_gate_func.insert(make_pair((int)(QASMGateType::RX_GATE), (gate_f2)RX));
+	m_one_param_single_gate_func.insert(make_pair((int)(QASMGateType::RY_GATE), (gate_f2)RY));
+	m_one_param_single_gate_func.insert(make_pair((int)(QASMGateType::RZ_GATE), (gate_f2)U1));
 
 	typedef QGate(*gate_f3)(Qubit*, double, double);
-	m_two_param_single_gate_func.insert(make_pair(QASMGateType::U2_GATE, (gate_f3)U2));
+	m_two_param_single_gate_func.insert(make_pair((int)(QASMGateType::U2_GATE), (gate_f3)U2));
 
 	typedef QGate(*gate_f4)(Qubit*, double, double, double);
-	m_three_param_single_gate_func.insert(make_pair(QASMGateType::U_BASE_GATE, (gate_f4)U3));
-	m_three_param_single_gate_func.insert(make_pair(QASMGateType::U3_GATE, (gate_f4)U3));
+	m_three_param_single_gate_func.insert(make_pair((int)(QASMGateType::U_BASE_GATE), (gate_f4)U3));
+	m_three_param_single_gate_func.insert(make_pair((int)(QASMGateType::U3_GATE), (gate_f4)U3));
 
 	typedef QGate(*gate_f5)(Qubit*, Qubit*);
-	m_zero_param_double_gate_func.insert(make_pair(QASMGateType::CX_BASE_GATE, (gate_f5)CNOT));
-	m_zero_param_double_gate_func.insert(make_pair(QASMGateType::CX_GATE, (gate_f5)CNOT));
-	m_zero_param_double_gate_func.insert(make_pair(QASMGateType::CZ_GATE, (gate_f5)CZ));
+	m_zero_param_double_gate_func.insert(make_pair((int)(QASMGateType::CX_BASE_GATE), (gate_f5)CNOT));
+	m_zero_param_double_gate_func.insert(make_pair((int)(QASMGateType::CX_GATE), (gate_f5)CNOT));
+	m_zero_param_double_gate_func.insert(make_pair((int)(QASMGateType::CZ_GATE), (gate_f5)CZ));
 
 	typedef QGate(*gate_f6)(Qubit*, Qubit*, Qubit*);
-	m_zero_param_triple_gate_func.insert(make_pair(QASMGateType::CCX_GATE, (gate_f6)Toffoli));
+	m_zero_param_triple_gate_func.insert(make_pair((int)(QASMGateType::CCX_GATE), (gate_f6)Toffoli));
 
-	m_zero_param_double_circuit_func.insert(make_pair(QASMGateType::CY_GATE, _qasm_cy));
-	m_zero_param_double_circuit_func.insert(make_pair(QASMGateType::CH_GATE, _qasm_ch));
-	m_one_param_double_circuit_func.insert(make_pair(QASMGateType::CRZ_GATE, _qasm_crz));
-	m_one_param_double_circuit_func.insert(make_pair(QASMGateType::CU1_GATE, _qasm_cu1));
-	m_three_param_double_circuit_func.insert(make_pair(QASMGateType::CU3_GATE, _qasm_cu3));
+	m_zero_param_double_circuit_func.insert(make_pair((int)(QASMGateType::CY_GATE), _qasm_cy));
+	m_zero_param_double_circuit_func.insert(make_pair((int)(QASMGateType::CH_GATE), _qasm_ch));
+	m_one_param_double_circuit_func.insert(make_pair((int)(QASMGateType::CRZ_GATE), _qasm_crz));
+	m_one_param_double_circuit_func.insert(make_pair((int)(QASMGateType::CU1_GATE), _qasm_cu1));
+	m_three_param_double_circuit_func.insert(make_pair((int)(QASMGateType::CU3_GATE), _qasm_cu3));
 }
 
 QASMToQProg::~QASMToQProg()
@@ -619,7 +619,7 @@ std::vector<ClassicalCondition> QASMToQProg::find_cvec_map_value(std::string str
 
 void QASMToQProg::build_zero_param_single_gate(QASMGateType type, bool is_dagger, GateOperationInfo op_info, QProg  &prog)
 {
-	auto iter_func = m_zero_param_single_gate_func.find(type);
+	auto iter_func = m_zero_param_single_gate_func.find((int)type);
 	if (iter_func == m_zero_param_single_gate_func.end())
 	{
 		QCERR("gate type is not supported!");
@@ -651,11 +651,11 @@ void QASMToQProg::build_zero_param_single_gate(QASMGateType type, bool is_dagger
 
 void QASMToQProg::build_three_param_single_gate(QASMGateType type, GateOperationInfo op_info, QProg  &prog)
 {
-	auto iter_func = m_three_param_single_gate_func.find(type);
+	auto iter_func = m_three_param_single_gate_func.find((int)type);
 	if (iter_func == m_three_param_single_gate_func.end())
 	{
-		QCERR(type + " gate type is not supported!");
-		throw runtime_error(type + " gate type is not supported!");
+		QCERR((int)type + " gate type is not supported!");
+		throw runtime_error((int)type + " gate type is not supported!");
 	}
 	if (1 != op_info.regs_vec.size() || 3 != op_info.angles_vec.size())
 	{
@@ -682,11 +682,11 @@ void QASMToQProg::build_three_param_single_gate(QASMGateType type, GateOperation
 
 void QASMToQProg::build_two_param_single_gate_func(QASMGateType type, GateOperationInfo op_info, QProg  &prog)
 {
-	auto iter_func = m_two_param_single_gate_func.find(type);
+	auto iter_func = m_two_param_single_gate_func.find((int)type);
 	if (iter_func == m_two_param_single_gate_func.end())
 	{
-		QCERR(type + " gate type is not supported!");
-		throw runtime_error(type + " gate type is not supported!");
+		QCERR((int)type + " gate type is not supported!");
+		throw runtime_error((int)type + " gate type is not supported!");
 	}
 	if (1 != op_info.regs_vec.size() || 2 != op_info.angles_vec.size())
 	{
@@ -712,11 +712,11 @@ void QASMToQProg::build_two_param_single_gate_func(QASMGateType type, GateOperat
 
 void QASMToQProg::build_one_param_single_gate(QASMGateType type, GateOperationInfo op_info, QProg  &prog)
 {
-	auto iter_func = m_one_param_single_gate_func.find(type);
+	auto iter_func = m_one_param_single_gate_func.find((int)type);
 	if (iter_func == m_one_param_single_gate_func.end())
 	{
-		QCERR(type + " gate type is not supported!");
-		throw runtime_error(type + " gate type is not supported!");
+		QCERR((int)type + " gate type is not supported!");
+		throw runtime_error((int)type + " gate type is not supported!");
 	}
 	if (1 != op_info.regs_vec.size() || 1 != op_info.angles_vec.size())
 	{
@@ -741,11 +741,11 @@ void QASMToQProg::build_one_param_single_gate(QASMGateType type, GateOperationIn
 
 void QASMToQProg::build_zero_param_double_gate(QASMGateType type, GateOperationInfo op_info, QProg  &prog)
 {
-	auto iter_func = m_zero_param_double_gate_func.find(type);
+	auto iter_func = m_zero_param_double_gate_func.find((int)type);
 	if (iter_func == m_zero_param_double_gate_func.end())
 	{
-		QCERR(type + " gate type is not supported!");
-		throw runtime_error(type + " gate type is not supported!");
+		QCERR((int)type + " gate type is not supported!");
+		throw runtime_error((int)type + " gate type is not supported!");
 	}
 	if (2 != op_info.regs_vec.size())
 	{
@@ -793,11 +793,11 @@ void QASMToQProg::build_zero_param_double_gate(QASMGateType type, GateOperationI
 
 void QASMToQProg::build_zero_param_double_circuit(QASMGateType type, GateOperationInfo op_info, QProg  &prog)
 {
-	auto iter_func = m_zero_param_double_circuit_func.find(type);
+	auto iter_func = m_zero_param_double_circuit_func.find((int)type);
 	if (iter_func == m_zero_param_double_circuit_func.end())
 	{
-		QCERR(type + " gate type is not supported!");
-		throw runtime_error(type + " gate type is not supported!");
+		QCERR((int)type + " gate type is not supported!");
+		throw runtime_error((int)type + " gate type is not supported!");
 	}
 	if (2 != op_info.regs_vec.size())
 	{
@@ -845,11 +845,11 @@ void QASMToQProg::build_zero_param_double_circuit(QASMGateType type, GateOperati
 
 void QASMToQProg::build_one_param_double_circuit(QASMGateType type, GateOperationInfo op_info, QProg  &prog)
 {
-	auto iter_func = m_one_param_double_circuit_func.find(type);
+	auto iter_func = m_one_param_double_circuit_func.find((int)type);
 	if (iter_func == m_one_param_double_circuit_func.end())
 	{
-		QCERR(type + " gate type is not supported!");
-		throw runtime_error(type + " gate type is not supported!");
+		QCERR((int)type + " gate type is not supported!");
+		throw runtime_error((int)type + " gate type is not supported!");
 	}
 	if (2 != op_info.regs_vec.size() || 1 != op_info.angles_vec.size())
 	{
@@ -897,11 +897,11 @@ void QASMToQProg::build_one_param_double_circuit(QASMGateType type, GateOperatio
 
 void QASMToQProg::build_three_param_double_circuit(QASMGateType type, GateOperationInfo op_info, QProg  &prog)
 {
-	auto iter_func = m_three_param_double_circuit_func.find(type);
+	auto iter_func = m_three_param_double_circuit_func.find((int)type);
 	if (iter_func == m_three_param_double_circuit_func.end())
 	{
-		QCERR(type + " gate type is not supported!");
-		throw runtime_error(type + " gate type is not supported!");
+		QCERR((int)type + " gate type is not supported!");
+		throw runtime_error((int)type + " gate type is not supported!");
 	}
 	if (2 != op_info.regs_vec.size() || 3 != op_info.angles_vec.size())
 	{
@@ -952,7 +952,7 @@ void QASMToQProg::build_three_param_double_circuit(QASMGateType type, GateOperat
 
 void QASMToQProg::build_zero_param_triple_gate(QASMGateType type, GateOperationInfo op_info, QProg  &prog)
 {
-	auto iter_func = m_zero_param_triple_gate_func.find(type);
+	auto iter_func = m_zero_param_triple_gate_func.find((int)type);
 	if (iter_func == m_zero_param_triple_gate_func.end())
 	{
 		QCERR("gate type is not supported!");

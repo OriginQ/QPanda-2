@@ -8,17 +8,13 @@
 USING_QPANDA
 namespace py = pybind11;
 
-
-void initPauliOperator(py::module& m)
+void export_PauliOperator(py::module &m)
 {
 	py::class_<PauliOperator>(m, "PauliOperator")
 		.def(py::init<>())
-		.def(py::init<>([](const complex_d &val)
-	        { return PauliOperator(val); }))
-		.def(py::init<>([](const std::string &key, const complex_d &val)
-	        { return PauliOperator(key, val); }))
-		.def(py::init<>([](const PauliOperator::PauliMap &map)
-	        { return PauliOperator(map); }))
+		.def(py::init<const complex_d &>())
+		.def(py::init<const std::string &, const complex_d &>())
+		.def(py::init<const PauliOperator::PauliMap &>())
 		.def("dagger", &PauliOperator::dagger)
 		.def("data", &PauliOperator::data)
 		.def("error_threshold", &PauliOperator::error_threshold)
@@ -41,7 +37,7 @@ void initPauliOperator(py::module& m)
 		.def("getMaxIndex", &PauliOperator::getMaxIndex)
 		.def("isEmpty", &PauliOperator::isEmpty)
 		.def("isAllPauliZorI", &PauliOperator::isAllPauliZorI)
-		.def("setErrorThreshold", &PauliOperator::setErrorThreshold)		
+		.def("setErrorThreshold", &PauliOperator::setErrorThreshold)
 		.def("remapQubitIndex", &PauliOperator::remapQubitIndex)
 		.def("toString", &PauliOperator::toString)
 		/*new interface*/
@@ -53,7 +49,6 @@ void initPauliOperator(py::module& m)
 		.def("remap_qubit_index", &PauliOperator::remapQubitIndex)
 		.def("to_string", &PauliOperator::toString);
 
-	m.def("trans_vec_to_Pauli_operator", &transVecToPauliOperator<double>, "Transfrom vector to pauli operator", py::return_value_policy::reference);
-	m.def("trans_Pauli_operator_to_vec", &transPauliOperatorToVec, "Transfrom Pauli operator to vector", py::return_value_policy::reference);
-
+	m.def("trans_vec_to_Pauli_operator", &transVecToPauliOperator<double>, "Transfrom vector to pauli operator");
+	m.def("trans_Pauli_operator_to_vec", &transPauliOperatorToVec, "Transfrom Pauli operator to vector");
 }

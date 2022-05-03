@@ -82,6 +82,12 @@ var &var::operator=(const double& num) {
     return *this;
 };
 
+var &var::operator-()
+{
+    this->pimpl->val = -this->pimpl->val;
+    return *this;
+}
+
 
 op_type var::getOp() const { return pimpl->op; }
 

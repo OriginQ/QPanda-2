@@ -8,18 +8,14 @@
 namespace py = pybind11;
 USING_QPANDA
 
-void initVarPauliOperator(py::module& m)
+void export_VarPauliOperator(py::module& m)
 {
     py::class_<VarPauliOperator>(m, "VarPauliOperator")
         .def(py::init<>())
-        .def(py::init<>([](double& val)
-            { return VarPauliOperator(val); }))
-        .def(py::init<>([](const complex_var &val)
-            { return VarPauliOperator(val); }))
-        .def(py::init<>([](const std::string &key, const complex_var&val)
-            { return VarPauliOperator(key, val); }))
-        .def(py::init<>([](const VarPauliOperator::PauliMap &map)
-            { return VarPauliOperator(map); }))
+        .def(py::init<double>())
+        .def(py::init<const complex_var &>())
+        .def(py::init<const std::string &, const complex_var&>())
+        .def(py::init<const VarPauliOperator::PauliMap &>())
         .def("dagger", &VarPauliOperator::dagger)
 		.def("data", &VarPauliOperator::data)
         .def(py::self + py::self)

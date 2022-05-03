@@ -2,9 +2,9 @@
 #include <iostream>
 #include <fstream>
 
+USING_QPANDA
 using namespace std;
 using namespace QGATE_SPACE;
-USING_QPANDA
 
 static void traversalInOrderPCtr(const CExpr* pCtrFlow, string &ctr_statement)
 {
@@ -78,7 +78,10 @@ QProgToOriginIR::QProgToOriginIR(QuantumMachine * quantum_machine)
 	m_gatetype.insert(pair<int, string>(SWAP_GATE, "SWAP"));
 	m_gatetype.insert(pair<int, string>(SQISWAP_GATE, "SQISWAP"));
 	m_gatetype.insert(pair<int, string>(TWO_QUBIT_GATE, "QDoubleGate"));
-
+    m_gatetype.insert(pair<int, string>(GateType::RXX_GATE, "RXX"));
+    m_gatetype.insert(pair<int, string>(GateType::RYY_GATE, "RYY"));
+    m_gatetype.insert(pair<int, string>(GateType::RZZ_GATE, "RZZ"));
+    m_gatetype.insert(pair<int, string>(GateType::RZX_GATE, "RZX"));
 	m_gatetype.insert(pair<int, string>(TOFFOLI_GATE, "TOFFOLI"));
 	m_gatetype.insert(pair<int, string>(ORACLE_GATE, "ORACLE_GATE"));
 
@@ -157,8 +160,10 @@ void QProgToOriginIR::transformQGate(AbstractQGateNode * pQGate, bool is_dagger)
 	{
 	case ORACLE_GATE:
 	{
-		QGATE_SPACE::OracularGate *oracle_gate = dynamic_cast<QGATE_SPACE::OracularGate*>(pQGate->getQGate());
-		m_OriginIR.emplace_back(oracle_gate->get_name() + " " + all_qubits);
+        QCERR("QOracle_GATE unable to convert originir");
+        throw runtime_error("QOracle_GATE unable to convert originir");
+		/*QGATE_SPACE::OracularGate *oracle_gate = dynamic_cast<QGATE_SPACE::OracularGate*>(pQGate->getQGate());
+		m_OriginIR.emplace_back(oracle_gate->get_name() + " " + all_qubits);*/
 	}
 	break;
 	case PAULI_X_GATE:
@@ -245,19 +250,27 @@ void QProgToOriginIR::transformQGate(AbstractQGateNode * pQGate, bool is_dagger)
 		m_OriginIR.emplace_back(item + " " + all_qubits + "," + "(" + gate_three_angle + ")");
 	}
 	break;
-
+    case TWO_QUBIT_GATE:
+    {
+        QCERR("TWO_QUBIT_GATE unable to convert originir");
+        throw runtime_error("TWO_QUBIT_GATE unable to convert originir");
+    }
+    break;
 	case CNOT_GATE:
 	case CZ_GATE:
 	case ISWAP_GATE:
 	case SQISWAP_GATE:
 	case SWAP_GATE:
-	case TWO_QUBIT_GATE:
 	{
 		m_OriginIR.emplace_back(item + " " + all_qubits);
 	}
 	break;
 
 	case ISWAP_THETA_GATE:
+    case RXX_GATE:
+    case RYY_GATE:
+    case RZZ_GATE:
+    case RZX_GATE:
 	case CPHASE_GATE:
 	{
 		auto gate_parameter = dynamic_cast<AbstractSingleAngleParameter *>(pQGate->getQGate());
@@ -447,6 +460,17 @@ void QProgToOriginIR::execute(std::shared_ptr<AbstractClassicalProg>  cur_node, 
 {
 	transformClassicalProg(cur_node.get());
 }
+
+void QProgToOriginIR::execute(std::shared_ptr<AbstractQNoiseNode>  cur_node, std::shared_ptr<QNode> parent_node)
+{
+	QCERR_AND_THROW(std::invalid_argument, "QProgToOriginIR should not convert virtual noise node");
+}
+
+void QProgToOriginIR::execute(std::shared_ptr<AbstractQDebugNode>  cur_node, std::shared_ptr<QNode> parent_node)
+{
+	QCERR_AND_THROW(std::invalid_argument, "QProgToOriginIR should not convert debug node");
+}
+
 
 string QProgToOriginIR::getInsturctions()
 {

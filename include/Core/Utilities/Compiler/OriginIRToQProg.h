@@ -6,6 +6,11 @@
 #include "Core/Utilities/Compiler/OriginIRCompiler/originirParser.h"
 #include "Core/Utilities/Compiler/OriginIRCompiler/originirVisitor.h"
 #include "Core/Utilities/Compiler/OriginIRCompiler/originirListener.h"
+#include "Core/Utilities/Compiler/OriginIRCompiler/statementBaseVisitor.h"
+#include "Core/Utilities/Compiler/OriginIRCompiler/statementLexer.h"
+#include "Core/Utilities/Compiler/OriginIRCompiler/statementParser.h"
+#include "Core/Utilities/Compiler/OriginIRCompiler/statementVisitor.h"
+#include "Core/Utilities/Compiler/OriginIRCompiler/statementListener.h"
 #include "Core/QuantumCircuit/QProgram.h"
 #include "Core/QuantumCircuit/QCircuit.h"
 #include "Core/QuantumCircuit/QGate.h"
@@ -16,15 +21,47 @@
 #include "Core/QuantumCircuit/ClassicalProgram.h"
 #include "Core/QuantumCircuit/QGlobalVariable.h"
 #include "Core/Utilities/Compiler/QASMToQProg.h"
+#include "include/Core/Utilities/Tools/QString.h"
 #include <Core/Utilities/Compiler/OriginIRCompiler/originirParser.h>
 #include <Core/Utilities/Compiler/OriginIRCompiler/originirParser.h>
 #include <include/Core/Utilities/Tools/Utils.h>
+#include "Core/Utilities/QProgTransform/QProgToQCircuit.h"
+#include "Core/Utilities/Tools/QPandaException.h"
+
 #include <algorithm>
 #include <numeric>
 #include <string>
+#include <regex>
 
 
 QPANDA_BEGIN
+
+class StatementErrorListener : public antlr4::BaseErrorListener {
+public:
+	void syntaxError(antlr4::Recognizer* recognizer, antlr4::Token* offendingSymbol, size_t line,
+		size_t charPositionInLine, const std::string& msg,
+		std::exception_ptr e) override {
+		std::ostringstream output;
+		output << "Invalid UserDefinedGate source ---> parameter error";
+		output << ":" << charPositionInLine << " " << msg;
+		QCERR_AND_THROW(run_fail, output.str());
+	}
+};
+
+std::vector<std::string> all_supported_gate =
+{
+	"H","T","S","X","Y","Z","X1","Y1","Z1","I","ECHO",
+	"RX","RY","RZ","U1",
+	"U2","RPhi",
+	"U3",
+	"U4",
+	"CNOT","CZ","ISWAP","SQISWAP","SWAP",
+	"CR","ISWAPTHETA",
+	"CU",
+	"TOFFOLI"
+};
+
+std::regex id("[a-zA-Z_][a-zA-Z0-9_]*");
 
 /**
 * @brief  repalce A with X in define_gate_declaration statement
@@ -36,6 +73,10 @@ QPANDA_BEGIN
 */
 std::string replaceAWithX(std::string& src_str, std::string strA, std::string strX)
 {
+	if (src_str[src_str.size() - 1] != '\n')
+	{
+		src_str += "\n";
+	}
 	std::string aim_result;
 	std::string::size_type pos;
 	std::vector<std::string> result = split(src_str, " ");
@@ -47,7 +88,7 @@ std::string replaceAWithX(std::string& src_str, std::string strA, std::string st
 	if (left_bracket != -1)
 	{
 		std::string bracket_context = remaining.substr(left_bracket, remaining.size() - left_bracket);
-		std::string bracket_context_info = bracket_context.substr(1, bracket_context.size() - 2);
+		std::string bracket_context_info = bracket_context.substr(1, bracket_context.size() - 3);
 		std::vector<std::string> bracket_context_info_vector = split(bracket_context_info, ",");
 		aim_context_info.push_back("(");
 		for (int i = 0; i < bracket_context_info_vector.size(); i++)
@@ -102,7 +143,7 @@ std::string replaceAWithX(std::string& src_str, std::string strA, std::string st
 		if (tmp == strA)
 		{
 			if (flag == 1)
-				remaining_str[i].assign("(" + strX + ")");
+				remaining_str[i].assign("(" + strX);
 			else if (flag == 0)
 				remaining_str[i].assign(strX);
 		}
@@ -116,10 +157,35 @@ std::string replaceAWithX(std::string& src_str, std::string strA, std::string st
 		else
 			aim_result += (remaining_str[i]);
 	}
+	//target_bracket_info += ")";
 	aim_result += target_bracket_info;
 	return aim_result;
 }
 
+
+bool is_element_in_vector(std::vector<std::string> v, std::string element) 
+{
+	std::vector<std::string>::iterator it;
+	it = find(v.begin(), v.end(), element);
+	if (it != v.end()) 
+	{
+		return true;
+	}
+	else 
+	{
+		return false;
+	}
+}
+
+
+//template<class src_type>
+//std::string type2str(src_type src) {
+//	std::strstream  ss;
+//	ss << src;
+//	string ret;
+//	ss >> ret;
+//	return ret;
+//}
 
 /**
 * @brief  Convert OriginIR  To  Quantum Program
@@ -187,12 +253,23 @@ struct CallGateInfo
 	std::vector<std::shared_ptr<Exp>> angles;
 };
 
+struct FunctionDetailedInfo
+{
+	std::string function_name;
+	std::vector<std::string> par_info;
+	std::vector<std::string> par_info_angle;
+	std::vector<std::pair<std::string, std::vector<std::string>>> sub_function_info;
+	std::vector<std::pair<std::string, std::vector<std::string>>> sub_function_info_angle;
+};
+
 
 struct UserDefineGateInfo {
 	std::vector<std::string> gate_bodys;
 	std::vector<std::string> tobe_replaced_par;
 };
 
+
+std::vector<FunctionDetailedInfo> functionSymtab;
 
 /**
 * @brief  Quantum Program Builder
@@ -710,62 +787,6 @@ public:
 	{
 		std::string gatename = ctx->children[0]->getText();
 		return QProgBuilder::get_gatetype(gatename);
-	}
-
-	antlrcpp::Any visitDefine_gate_declaration(originirParser::Define_gate_declarationContext* ctx) {
-
-		auto prog_id = builder.add_prog();
-
-		antlr4::Token* tk = ctx->getStart();
-		size_t line = tk->getLine();
-		auto func_name = ctx->id()->getText();
-		std::string error_inf = "line" + std::to_string(line) + ":" + "UserDefinedGate " + func_name + " undefined error!";
-
-		if (UserDefinedGateInf.find(func_name) == UserDefinedGateInf.end())
-		{
-			QCERR_AND_THROW_ERRSTR(run_fail, error_inf);
-		}
-
-		auto information = UserDefinedGateInf[func_name];
-
-		std::vector<std::string> gate_bodys = information.gate_bodys;
-		std::vector<std::string> tobe_replaced_par = information.tobe_replaced_par;
-
-		std::map < std::string, std::string> formal2actual_map;
-		int idx = 0;
-		for (int i = 0; i < ctx->q_KEY_declaration().size(); i++)
-		{
-			std::string str_shi_id = ctx->q_KEY_declaration(i)->getText();
-			formal2actual_map[tobe_replaced_par[idx]] = str_shi_id;
-			idx++;
-		}
-
-		for (int i = 0; i < ctx->expression().size(); i++)
-		{
-			std::string str_shi_id = ctx->expression(i)->getText();
-			formal2actual_map[tobe_replaced_par[idx]] = str_shi_id;
-			idx++;
-		}
-
-
-		for (auto& str : gate_bodys)
-		{
-			for (auto& it : formal2actual_map)
-			{
-				str = replaceAWithX(str, it.first, it.second);
-			}
-
-			antlr4::ANTLRInputStream input(str);
-			originirLexer lexer(&input);
-			antlr4::CommonTokenStream tokens(&lexer);
-			originirParser parser(&tokens);
-			parser.removeErrorListeners();
-			antlr4::tree::ParseTree* tree = parser.statement();
-			size_t _tmp_id = visit(tree);
-			builder.insert_subprog(prog_id, _tmp_id);
-		}
-
-		return prog_id;
 	}
 
 	antlrcpp::Any visitPri_ckey(originirParser::Pri_ckeyContext* ctx) {
@@ -1408,10 +1429,33 @@ public:
 		return builder.add_expr_stat(retcontext.ccid);
 	}
 
+	//antlrcpp::Any visitGate_func_statement(originirParser::Gate_func_statementContext* ctx)
+	//{
+	//	FunctionDetailedInfo inf_;
+	//	inf_.function_name = ctx->id()->getText();
+	//	inf_.par_num = ctx->id_list().size() / 2;
+	//	/*if (ctx->user_defined_gate()
+	//	{
+
+	//	}*/
+	//	for (int i = 0; i < ctx->user_defined_gate().size(); i++)
+	//	{
+	//		//std::unordered_map<std::string,int> sub_info=
+	//	}
+	//	
+
+
+	//}
+
+
 	antlrcpp::Any visitDefine_gate_statement(originirParser::Define_gate_statementContext* ctx) {
+
 		CallGateInfo call_gate;
+
 		call_gate.gate_name = ctx->gate_name()->getText();
 		std::vector<std::string> qubits = visit(ctx->id_list());
+		//inf_.par_num = qubits.size();
+
 		call_gate.qubits = qubits;
 
 		if (ctx->explist())
@@ -1419,9 +1463,9 @@ public:
 			std::vector<std::shared_ptr<Exp>> angles = visit(ctx->explist());
 			call_gate.angles = angles;
 		}
+
 		return call_gate;
 	}
-
 
 	antlrcpp::Any visitExplist(originirParser::ExplistContext* ctx) {
 		std::vector<std::shared_ptr<Exp>>angel_params_vec;
@@ -1499,17 +1543,161 @@ public:
 		std::string userDefinedGateName = ctx->id()->getText();
 		std::vector<std::string> tobe_replaced_par = visit(ctx->id_list(0));
 
+		FunctionDetailedInfo present_info;
+		present_info.function_name = userDefinedGateName;
+		present_info.par_info = tobe_replaced_par;
+
+		if (ctx->id_list(1))
+		{
+			std::vector<std::string> tmp= visit(ctx->id_list(1));
+			present_info.par_info_angle = tmp;
+			for (int i = 0; i < tmp.size(); i++)
+			{
+				tobe_replaced_par.push_back(tmp[i]);
+			}
+		}
+
 		std::vector<std::string> str_body_vect;
 		for (int i = 0; i < ctx->user_defined_gate().size(); i++)
 		{
+			std::vector<std::string>::iterator it;
+			it = find(all_supported_gate.begin(), all_supported_gate.end(), ctx->user_defined_gate(i)->define_gate_statement()->gate_name()->getText());
+			if (it == all_supported_gate.end()) //user_defined
+			{
+				std::string sub_fun_name = ctx->user_defined_gate(i)->define_gate_statement()->gate_name()->getText();
+				std::vector<std::string> sub_par_info = visit(ctx->user_defined_gate(i)->define_gate_statement()->id_list());
+				//std::vector<std::shared_ptr<Exp>> angles = visit(ctx->user_defined_gate(i)->define_gate_statement()->explist()->exp());
+				present_info.sub_function_info.push_back(make_pair(sub_fun_name, sub_par_info));
+				if (ctx->user_defined_gate(i)->define_gate_statement()->explist())
+				{
+					std::vector<std::string> sub_angles_info;
+					std::string tmp = ctx->user_defined_gate(i)->define_gate_statement()->explist()->getText();
+					sub_angles_info = split(tmp, ",");
+					//sub_angles_info.push_back(ctx->user_defined_gate(i)->define_gate_statement()->explist()->getText());
+					present_info.sub_function_info_angle.push_back(make_pair(sub_fun_name, sub_angles_info));
+				}
+			}
 			str_body_vect.push_back(visit(ctx->user_defined_gate(i)));
 		}
-
 		defined_gate.gate_bodys = str_body_vect;
 		defined_gate.tobe_replaced_par = tobe_replaced_par;
 		UserDefinedGateInf.insert(make_pair(userDefinedGateName, defined_gate));
-
+		functionSymtab.push_back(present_info);
 		return builder.add_prog();
+	}
+
+	antlrcpp::Any visitDefine_gate_declaration(originirParser::Define_gate_declarationContext* ctx) {
+
+		auto prog_id = builder.add_prog();
+
+		antlr4::Token* tk = ctx->getStart();
+		size_t line = tk->getLine();
+		auto func_name = ctx->id()->getText();
+		std::string error_inf = "line" + std::to_string(line) + ":" + "UserDefinedGate " + func_name + " undefined error!";
+
+		if (UserDefinedGateInf.find(func_name) == UserDefinedGateInf.end())
+		{
+			QCERR_AND_THROW_ERRSTR(run_fail, error_inf);
+		}
+		
+		for (int i = 0; i < functionSymtab.size(); i++)
+		{
+			if (functionSymtab[i].function_name == func_name)
+			{
+				std::vector<std::string> standard_par_info = functionSymtab[i].par_info;
+				std::vector<std::pair<std::string, std::vector<std::string>>> sub_par_info(functionSymtab[i].sub_function_info);
+				for (int k = 0; k < sub_par_info.size(); k++)
+				{
+					if (sub_par_info[k].second.size() > standard_par_info.size())
+					{
+						QCERR_AND_THROW_ERRSTR(run_fail, "the number of parameters of the invoked logical gate should be smaller than the number of parameters of the main logical gate !!");
+					}
+					for (int s = 0; s < sub_par_info[k].second.size(); s++)
+					{
+						if (!is_element_in_vector(standard_par_info, sub_par_info[k].second.at(s)))
+						{
+							QCERR_AND_THROW_ERRSTR(run_fail, "the number of parameters of the invoked logical gate should from the parameters of the main logical gate !!");
+						}
+					}
+				}
+				if (functionSymtab[i].par_info_angle.size() != 0)
+				{
+					std::vector<std::string>  standard_par_angle_info = functionSymtab[i].par_info_angle;
+					std::vector<std::pair<std::string, std::vector<std::string>>> sub_par_angle_info(functionSymtab[i].sub_function_info_angle);
+					for (int s = 0; s < sub_par_angle_info.size(); s++)
+					{
+						for (int t = 0; t < sub_par_angle_info[s].second.size(); t++)
+						{
+							if (!is_element_in_vector(standard_par_angle_info, sub_par_angle_info[s].second.at(t))
+								&& std::regex_match(sub_par_angle_info[s].second.at(t), id))
+							{
+								QCERR_AND_THROW_ERRSTR(run_fail, "Wrong Angle parameter occurs !!");
+							}
+						}
+					}
+				}
+			}
+		}
+
+		auto information = UserDefinedGateInf[func_name];
+		std::vector<std::string> gate_bodys = information.gate_bodys;
+		std::vector<std::string> tobe_replaced_par = information.tobe_replaced_par;
+
+		std::map < std::string, std::string> formal2actual_map;
+		int idx = 0;
+		for (int i = 0; i < ctx->q_KEY_declaration().size(); i++)
+		{
+			std::string str_shi_id = ctx->q_KEY_declaration(i)->getText();
+			formal2actual_map[tobe_replaced_par[idx]] = str_shi_id;
+			idx++;
+		}
+
+		for (int i = 0; i < ctx->expression().size(); i++)
+		{
+			std::string str_shi_id = ctx->expression(i)->getText();
+			formal2actual_map[tobe_replaced_par[idx]] = str_shi_id;
+			idx++;
+		}
+
+		for (auto& str : gate_bodys)
+		{
+			std::vector<QString> detail_str = QString(str).splitByStr(" ");
+			if (detail_str.front().data() == func_name)
+			{
+				QCERR_AND_THROW_ERRSTR(run_fail, " user defined gate cannot call itself!");
+			}
+
+			for (auto& it : formal2actual_map)
+			{
+				str = replaceAWithX(str, it.first, it.second);
+			}
+
+			std::vector<std::string>::iterator it;
+			it = find(all_supported_gate.begin(), all_supported_gate.end(), detail_str[0]);
+			if (it != all_supported_gate.end())
+			{
+				str += "\r\n";
+				antlr4::ANTLRInputStream input_statement(str);
+				statement::statementLexer lexer_statement(&input_statement);
+				antlr4::CommonTokenStream tokens_statement(&lexer_statement);
+				statement::statementParser parser_statement(&tokens_statement);
+				parser_statement.removeErrorListeners();
+				StatementErrorListener _e;
+				parser_statement.addErrorListener(&_e);
+				antlr4::tree::ParseTree* tree_ = parser_statement.translationunit_s();
+			}
+
+			antlr4::ANTLRInputStream input(str);
+			originirLexer lexer(&input);
+			antlr4::CommonTokenStream tokens(&lexer);
+			originirParser parser(&tokens);
+			parser.removeErrorListeners();
+			antlr4::tree::ParseTree* tree = parser.statement();
+			size_t _tmp_id = visit(tree);
+			builder.insert_subprog(prog_id, _tmp_id);
+		}
+
+		return prog_id;
 	}
 
 	antlrcpp::Any visitId_list(originirParser::Id_listContext* ctx) {

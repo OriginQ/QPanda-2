@@ -87,7 +87,10 @@ public:
 	void execute(std::shared_ptr<AbstractQuantumReset>, std::shared_ptr<QNode>);
     void execute(std::shared_ptr<AbstractControlFlowNode>, std::shared_ptr<QNode>);
     void execute(std::shared_ptr<AbstractQuantumProgram>, std::shared_ptr<QNode>);
-private:
+    void execute(std::shared_ptr<AbstractQNoiseNode>, std::shared_ptr<QNode>);
+    void execute(std::shared_ptr<AbstractQDebugNode>, std::shared_ptr<QNode>);
+
+protected:
     void insert(std::shared_ptr<QNode>, std::shared_ptr<QNode>);
 };
 

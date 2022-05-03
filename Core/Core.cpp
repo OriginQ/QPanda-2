@@ -27,6 +27,7 @@ limitations under the License.
 #include "Core/QuantumMachine/Factory.h"
 #include "Core/QuantumMachine/QuantumMachineFactory.h"
 #include "Core/QuantumMachine/QCloudMachine.h"
+#include "Core/QuantumNoise/NoiseModelV2.h"
 
 
 USING_QPANDA
@@ -184,16 +185,6 @@ void QPanda::cFree(ClassicalCondition& classical_cond)
     global_quantum_machine->Free_CBit(classical_cond);
 }
 
-void QPanda::cFreeAll(vector<ClassicalCondition> vCBit)
-{
-    if (nullptr == global_quantum_machine)
-    {
-        QCERR("global_quantum_machine init fail");
-        throw init_fail("global_quantum_machine init fail");
-    }
-    global_quantum_machine->Free_CBits(vCBit);
-}
-
 QMachineStatus* QPanda::getstat()
 {
     if (nullptr == global_quantum_machine)
@@ -204,14 +195,14 @@ QMachineStatus* QPanda::getstat()
     return global_quantum_machine->getStatus();
 }
 
-map<string, bool> QPanda::directlyRun(QProg & qProg)
+map<string, bool> QPanda::directlyRun(QProg & qProg, const NoiseModel& noise_model)
 {
     if (nullptr == global_quantum_machine)
     {
         QCERR("global_quantum_machine init fail");
         throw init_fail("global_quantum_machine init fail");
     }
-    return global_quantum_machine->directlyRun(qProg);
+    return global_quantum_machine->directlyRun(qProg, noise_model);
 }
 
 prob_tuple QPanda::getProbTupleList(QVec vQubit, int selectMax)
@@ -405,7 +396,7 @@ map<string, size_t> QPanda::quick_measure(QVec qubit_vector, int shots,
     return meas_result;
 }
 
-map<string, size_t> QPanda::runWithConfiguration(QProg & qProg, vector<ClassicalCondition>& vCBit, int shots)
+map<string, size_t> QPanda::runWithConfiguration(QProg & qProg, vector<ClassicalCondition>& vCBit, int shots, const NoiseModel& noise_model)
 {
     if (nullptr == global_quantum_machine)
     {
@@ -417,7 +408,7 @@ map<string, size_t> QPanda::runWithConfiguration(QProg & qProg, vector<Classical
     doc.AddMember("shots",
         shots,
         doc.GetAllocator());
-    return global_quantum_machine->runWithConfiguration(qProg, vCBit, doc);
+    return global_quantum_machine->runWithConfiguration(qProg, vCBit, doc, noise_model);
 }
 
 map<string, size_t> QPanda::quickMeasure(QVec vQubit, int shots)
@@ -446,4 +437,86 @@ QStat QPanda::getQState()
 QGate QPanda::QOracle(const QVec& qubits, const EigenMatrixXc& matrix)
 {
     return(QOracle(qubits, Eigen_to_QStat(matrix)));
+}
+
+void QPanda::cFreeAll()
+{
+    if (nullptr == global_quantum_machine)
+    {
+        QCERR("global_quantum_machine init fail");
+        throw init_fail("global_quantum_machine init fail");
+    }
+
+    global_quantum_machine->cFreeAll();
+    return ;
+}
+
+void QPanda::qFree(Qubit *q)
+{
+    if (nullptr == global_quantum_machine)
+    {
+        QCERR("global_quantum_machine init fail");
+        throw init_fail("global_quantum_machine init fail");
+    }
+
+    global_quantum_machine->qFree(q);
+    return ;
+}
+
+void QPanda::qFreeAll(QVec &qv)
+{
+    if (nullptr == global_quantum_machine)
+    {
+        QCERR("global_quantum_machine init fail");
+        throw init_fail("global_quantum_machine init fail");
+    }
+
+    global_quantum_machine->qFreeAll(qv);
+    return ;
+}
+
+void QPanda::qFreeAll()
+{
+    if (nullptr == global_quantum_machine)
+    {
+        QCERR("global_quantum_machine init fail");
+        throw init_fail("global_quantum_machine init fail");
+    }
+
+    global_quantum_machine->qFreeAll();
+    return ;
+}
+
+void QPanda::cFreeAll(std::vector<ClassicalCondition> &vCBit)
+{
+    if (nullptr == global_quantum_machine)
+    {
+        QCERR("global_quantum_machine init fail");
+        throw init_fail("global_quantum_machine init fail");
+    }
+
+    global_quantum_machine->cFreeAll(vCBit);
+}
+
+
+size_t QPanda::get_allocate_qubits(QVec &qubits)
+{
+    if (nullptr == global_quantum_machine)
+    {
+        QCERR("global_quantum_machine init fail");
+        throw init_fail("global_quantum_machine init fail");
+    }
+
+    return global_quantum_machine->get_allocate_qubits(qubits);
+}
+
+size_t QPanda:: get_allocate_cbits(std::vector<ClassicalCondition> &cc_vec)
+{
+    if (nullptr == global_quantum_machine)
+    {
+        QCERR("global_quantum_machine init fail");
+        throw init_fail("global_quantum_machine init fail");
+    }
+
+    return global_quantum_machine->get_allocate_cbits(cc_vec);
 }

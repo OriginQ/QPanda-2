@@ -27,6 +27,7 @@ limitations under the License.
 #endif
 #include "ThirdParty/Eigen/Eigen"
 
+USING_QPANDA
 using namespace std;
 using namespace Eigen;
 
@@ -37,23 +38,7 @@ using qmatrix_t = Eigen::Matrix<qcomplex_t, Eigen::Dynamic,
                                 Eigen::Dynamic, Eigen::RowMajor>;
 using qvector_t = Eigen::Matrix<qcomplex_t, 1, Eigen::Dynamic, Eigen::RowMajor>;
 
-
-REGISTER_GATE_MATRIX(X, 0, 1, 1, 0)
-REGISTER_GATE_MATRIX(Hadamard, SQ2, SQ2, SQ2, -SQ2)
-REGISTER_GATE_MATRIX(Y, 0, -iunit, iunit, 0)
-REGISTER_GATE_MATRIX(Z, 1, 0, 0, -1)
-REGISTER_GATE_MATRIX(P0, 1, 0, 0, 0)
-REGISTER_GATE_MATRIX(P1, 0, 0, 0, 1)
-REGISTER_GATE_MATRIX(T, 1, 0, 0, (qstate_type)SQ2 + iunit * (qstate_type)SQ2)
-REGISTER_GATE_MATRIX(S, 1, 0, 0, iunit)
-REGISTER_ANGLE_GATE_MATRIX(RX_GATE, 1, 0, 0)
-REGISTER_ANGLE_GATE_MATRIX(RY_GATE, 0, 1, 0)
-REGISTER_ANGLE_GATE_MATRIX(RZ_GATE, 0, 0, 1)
-
 const double kStateEpSilon = 1.0e-010;
-
-
-
 
 CPUImplQPU::CPUImplQPU()
 {
@@ -1504,6 +1489,24 @@ QError CPUImplQPU::_single_qubit_normal_unitary(size_t qn, QStat &matrix, bool i
         }//dagger
     }
 
+    /* 
+      form tensor product linear map rule:
+      (A⊗B)(|v>⊗|w>) = (A|v>)⊗(B|w>)
+      operator on single qubit can be implemented as(a for alpha, b for beta):
+      (I⊗I⊗M)(|q2>⊗|q1>⊗|q0>) = (I|q2>)⊗(I|q1>)⊗(M|q0>) = |q2>⊗|q1>⊗((M[0][0]*a0 + M[0][1]*b0)|0> + (M[1][0]*a0 + M[1][1]*b0)|1>)
+
+      so here we only pick out alpha and beta of qn
+      for example:
+      m_state = [an...a1a0, an...a1b0, an...b1a0, an...b1b0, ..., bn...b1b0]
+      qn = 1
+      we pick out each element contains a1 and b1, multiply by matrix
+      
+      an...a1'a0 = M[0][0]*an...a1a0 + M[0][1]* an..b1a0
+      an...b1'a0 = M[1][0]*an...a1a0 + M[1][1]* an..b1a0
+      an...a1'b0 = M[0][0]*an...a1b0 + M[0][1]* an..b1b0
+      an...b1'b0 = M[1][0]*an...a1b0 + M[1][1]* an..b1b0
+      ...
+    */
     int64_t size = 1ll << (m_qubit_num - 1);
     int64_t offset = 1ll << qn;
 
@@ -1899,6 +1902,10 @@ unitaryDoubleQubitGate(size_t qn_0,
         break;
     case GateType::P00_GATE:
     case GateType::P11_GATE:
+    case GateType::RXX_GATE:
+    case GateType::RYY_GATE:
+    case GateType::RZZ_GATE:
+    case GateType::RZX_GATE:
     case GateType::TWO_QUBIT_GATE:
         _double_qubit_normal_unitary(qn_0, qn_1, matrix, is_dagger);
         break;
@@ -2130,12 +2137,45 @@ QError CPUImplQPU::controlOracleGate(Qnum &qubits, const Qnum &controls,
     return qErrorNone;
 }
 
+QError CPUImplQPU::process_noise(Qnum &qnum, QStat &matrix)
+{
+    if (1 == qnum.size())
+    {
+        return _single_qubit_normal_unitary(qnum.front(), matrix, false);
+    }
+    else if (2 == qnum.size())
+    {
+        return _double_qubit_normal_unitary(qnum[0], qnum[1], matrix, false);
+    }
+    else
+    {
+        QCERR_AND_THROW(std::invalid_argument, "Qnum for noise above 2");
+    }
+}
+
+QError CPUImplQPU::debug(std::shared_ptr<QPanda::AbstractQDebugNode> debugger)
+{
+    debugger->save_qstate(m_state);
+    return QError::qErrorNone;
+}
+void CPUImplQPU::set_parallel_threads_size(size_t size)
+{
+    m_max_threads_size = size;
+}
+
 int CPUImplQPU::_omp_thread_num(size_t size)
 {
     if (size > m_threshold)
     {
 #ifdef USE_OPENMP
-        return omp_get_max_threads();
+        if (m_max_threads_size > 0)
+        {
+            return m_max_threads_size;
+        }
+        else
+        {
+            return omp_get_max_threads();
+        }
 #else
         return 1;
 #endif
@@ -2270,13 +2310,10 @@ QError CPUImplQPU::_three_qubit_gate(Qnum& qubits, QStat& matrix, bool is_dagger
     {
         mat_eigen.adjointInPlace();
     }
+
     qvector_t state_bak(dim);
     state_bak.setZero();
-    /*Eigen::VectorXcd state_bak(dim);
-    state_bak.setZero(dim);*/
-
     std::vector<int64_t> realxx_idxes(dim);
-
     if (controls.size() > 3)
     {
         for_each(controls.begin(), controls.end() - 3, [&](size_t q) {
@@ -2334,8 +2371,6 @@ QError CPUImplQPU::_four_qubit_gate(Qnum &qubits, QStat& matrix, bool is_dagger,
 
     qvector_t state_bak(dim);
     state_bak.setZero();
-    /*Eigen::VectorXcd state_bak(dim);
-    state_bak.setZero(dim);*/
 	std::vector<int64_t> realxx_idxes(dim);
 	if (controls.size() > 4)
 	{
@@ -2401,8 +2436,6 @@ QError CPUImplQPU::_five_qubit_gate(Qnum &qubits, QStat& matrix, bool is_dagger,
 		mat_eigen.adjointInPlace();
 	}
 
-    /*Eigen::VectorXcd state_bak(dim);
-    state_bak.setZero(dim);*/
     qvector_t state_bak(dim);
     state_bak.setZero();
 	std::vector<int64_t> realxx_idxes(dim);

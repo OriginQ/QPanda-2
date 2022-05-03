@@ -22,6 +22,7 @@ limitations under the License.
 #include <iostream>
 #include <sstream>
 
+USING_QPANDA
 using namespace std;
 
 CPUImplQPUSingleThread::CPUImplQPUSingleThread()
@@ -1042,4 +1043,8 @@ QError CPUImplQPUSingleThreadWithOracle::controlOracularGate(
     }
 }
 
+void CPUImplQPUSingleThread::set_parallel_threads_size(size_t size)
+{
+
+}
 

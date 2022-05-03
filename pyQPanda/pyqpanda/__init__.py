@@ -3,9 +3,15 @@ QPanda Python\n
 Copyright (C) Origin Quantum 2017-2018\n
 Licensed Under Apache Licence 2.0
 '''
+# keep import Operator.pyQPandaOperator first if runtime error occure
+# this runtime error is from cases like this: QPanda and pyQPanda is linked with option /Mt instead of /Md
+# then if use pybind11 above version 2.5.0, pybind11 will do garbage_collection to free pybind11 internal type info object
+# this will cause error of "allocate object in one thread heap but dellocate it from another thread"
+# change link option back to /Md will fix this bug, but let QPanda depends on system dynamic thread dll
 
-from .utils import *
 from .pyQPanda import *
+from .Operator.pyQPandaOperator import *
+from .utils import *
 from .Variational import back
 from .Visualization import *
 import warnings
@@ -48,8 +54,7 @@ from .pyQPanda import QVec
 from .pyQPanda import QWhileProg
 from .pyQPanda import SingleAmpQVM
 from .pyQPanda import SingleGateTransferType
-from .pyQPanda import Encode 
-from .pyQPanda import complex_var
+from .pyQPanda import Encode
 from .pyQPanda import expression
 from .pyQPanda import MomentumOptimizer
 from .pyQPanda import Optimizer
@@ -79,8 +84,9 @@ from .pyQPanda import average_gate_fidelity
 
 from .pyQPanda import Fusion
 
-from .Operator.pyQPandaOperator import *
+
 # pyQPandaOperator class
+from .Operator.pyQPandaOperator import complex_var
 from .Operator.pyQPandaOperator import FermionOperator
 from .Operator.pyQPandaOperator import PauliOperator
 from .Operator.pyQPandaOperator import VarFermionOperator
@@ -295,41 +301,42 @@ except ImportError as e:
     warnings.warn("No module named QCloud")
 
 try:
-	# classes
-	from .ChemiQ.pyQPandaChemiQ import ChemiQ
-	from .ChemiQ.pyQPandaChemiQ import TransFormType
-	from .ChemiQ.pyQPandaChemiQ import UccType
+    # classes
+    from .ChemiQ.pyQPandaChemiQ import *
+    from .ChemiQ.pyQPandaChemiQ import ChemiQ
+    from .ChemiQ.pyQPandaChemiQ import TransFormType
+    from .ChemiQ.pyQPandaChemiQ import UccType
 
-	# funtions
+    # funtions
 
-	from .ChemiQ.pyQPandaChemiQ import getCCSD_N_Trem
-	from .ChemiQ.pyQPandaChemiQ import getCCSD_Var
-	from .ChemiQ.pyQPandaChemiQ import getCCS_Normal
-	from .ChemiQ.pyQPandaChemiQ import getCCS_N_Trem
-	from .ChemiQ.pyQPandaChemiQ import getCCS_Var
-	from .ChemiQ.pyQPandaChemiQ import getElectronNum
-	from .ChemiQ.pyQPandaChemiQ import get_ccsd_normal
-	from .ChemiQ.pyQPandaChemiQ import get_ccsd_n_trem
-	from .ChemiQ.pyQPandaChemiQ import get_ccsd_var
-	from .ChemiQ.pyQPandaChemiQ import get_ccs_normal
-	from .ChemiQ.pyQPandaChemiQ import get_ccs_n_trem
-	from .ChemiQ.pyQPandaChemiQ import get_ccs_var
-	from .ChemiQ.pyQPandaChemiQ import get_electron_num
-	from .ChemiQ.pyQPandaChemiQ import JordanWignerTransform
-	from .ChemiQ.pyQPandaChemiQ import JordanWignerTransformVar
-	from .ChemiQ.pyQPandaChemiQ import jordan_wigner_transform
-	from .ChemiQ.pyQPandaChemiQ import jordan_wigner_transform_var
-	from .ChemiQ.pyQPandaChemiQ import parsePsi4DataToFermion
-	from .ChemiQ.pyQPandaChemiQ import parse_psi4_data_to_fermion
-	from .ChemiQ.pyQPandaChemiQ import simulateHamiltonian_Var
-	from .ChemiQ.pyQPandaChemiQ import simulate_hamiltonian_var
-	from .ChemiQ.pyQPandaChemiQ import transCC2UCC_Normal
-	from .ChemiQ.pyQPandaChemiQ import transCC2UCC_Var
-	from .ChemiQ.pyQPandaChemiQ import trans_cc_2_ucc_normal
-	from .ChemiQ.pyQPandaChemiQ import trans_cc_2_ucc_var
+    from .ChemiQ.pyQPandaChemiQ import getCCSD_N_Trem
+    from .ChemiQ.pyQPandaChemiQ import getCCSD_Var
+    from .ChemiQ.pyQPandaChemiQ import getCCS_Normal
+    from .ChemiQ.pyQPandaChemiQ import getCCS_N_Trem
+    from .ChemiQ.pyQPandaChemiQ import getCCS_Var
+    from .ChemiQ.pyQPandaChemiQ import getElectronNum
+    from .ChemiQ.pyQPandaChemiQ import get_ccsd_normal
+    from .ChemiQ.pyQPandaChemiQ import get_ccsd_n_trem
+    from .ChemiQ.pyQPandaChemiQ import get_ccsd_var
+    from .ChemiQ.pyQPandaChemiQ import get_ccs_normal
+    from .ChemiQ.pyQPandaChemiQ import get_ccs_n_trem
+    from .ChemiQ.pyQPandaChemiQ import get_ccs_var
+    from .ChemiQ.pyQPandaChemiQ import get_electron_num
+    from .ChemiQ.pyQPandaChemiQ import JordanWignerTransform
+    from .ChemiQ.pyQPandaChemiQ import JordanWignerTransformVar
+    from .ChemiQ.pyQPandaChemiQ import jordan_wigner_transform
+    from .ChemiQ.pyQPandaChemiQ import jordan_wigner_transform_var
+    from .ChemiQ.pyQPandaChemiQ import parsePsi4DataToFermion
+    from .ChemiQ.pyQPandaChemiQ import parse_psi4_data_to_fermion
+    from .ChemiQ.pyQPandaChemiQ import simulateHamiltonian_Var
+    from .ChemiQ.pyQPandaChemiQ import simulate_hamiltonian_var
+    from .ChemiQ.pyQPandaChemiQ import transCC2UCC_Normal
+    from .ChemiQ.pyQPandaChemiQ import transCC2UCC_Var
+    from .ChemiQ.pyQPandaChemiQ import trans_cc_2_ucc_normal
+    from .ChemiQ.pyQPandaChemiQ import trans_cc_2_ucc_var
 
 except ImportError as e:
-	warnings.warn("No module named ChemiQ")
+    warnings.warn("No module named ChemiQ")
 
 
 One = True

@@ -44,6 +44,12 @@ public:
 	*/
 	void run(QProg& prog, QVec& qv, size_t max_rank, const std::vector<qprog_sequence_t>& sequences);
 
+    /**
+    * @brief  directlyRun
+    * @param[in]  QProg& quantum program
+    * @param[in]  Noise model
+    */
+    std::map<std::string, bool> directlyRun(QProg& qProg, const NoiseModel& = NoiseModel());
 	/**
 	* @brief  get quantum program contraction sequence
 	* @param[in]  const std::vector<size_t>& quickbb vertice
@@ -108,6 +114,10 @@ public:
 	virtual void execute(std::shared_ptr<AbstractQuantumMeasure> cur_node,
 		std::shared_ptr<QNode> parent_node, bool& is_dagger);
 	virtual void execute(std::shared_ptr<AbstractQuantumReset> cur_node,
+		std::shared_ptr<QNode> parent_node, bool& is_dagger);
+	virtual void execute(std::shared_ptr<AbstractQNoiseNode> cur_node,
+		std::shared_ptr<QNode> parent_node, bool& is_dagger);
+	virtual void execute(std::shared_ptr<AbstractQDebugNode> cur_node,
 		std::shared_ptr<QNode> parent_node, bool& is_dagger);
 
 protected:

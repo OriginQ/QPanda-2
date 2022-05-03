@@ -8,30 +8,28 @@
 USING_QPANDA
 namespace py = pybind11;
 
-
-void initFermionOperator(py::module& m)
+void export_FermionOperator(py::module &m)
 {
-    m.doc() = "";
-
 	py::class_<FermionOperator>(m, "FermionOperator")
 		.def(py::init<>())
-		.def(py::init<const complex_d&>())
-		.def(py::init<const std::string&, const complex_d&>())
-		.def(py::init<const FermionOperator::FermionMap&>())
+		.def(py::init<double>())
+		.def(py::init<const complex_d &>())
+		.def(py::init<const std::string &, const complex_d &>())
+		.def(py::init<const FermionOperator::FermionMap &>())
 		.def("normal_ordered", &FermionOperator::normal_ordered)
 		.def("error_threshold", &FermionOperator::error_threshold)
 		.def("data", &FermionOperator::data)
 		.def(py::self + py::self)
 		.def(py::self - py::self)
-		.def(py::self* py::self)
+		.def(py::self * py::self)
 		.def(py::self += py::self)
 		.def(py::self -= py::self)
 		.def(py::self *= py::self)
 		.def(py::self + QPanda::complex_d())
-		.def(py::self* QPanda::complex_d())
+		.def(py::self * QPanda::complex_d())
 		.def(py::self - QPanda::complex_d())
 		.def(QPanda::complex_d() + py::self)
-		.def(QPanda::complex_d()* py::self)
+		.def(QPanda::complex_d() * py::self)
 		.def(QPanda::complex_d() - py::self)
 		.def("__str__", &FermionOperator::toString)
 

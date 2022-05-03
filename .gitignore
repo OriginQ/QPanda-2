@@ -21,3 +21,6 @@ CMakeSettings.json
 /CMakeLists.txt.user
 out/*
 *.py[cod]
+pyQPanda/pyqpanda/*.pyi
+pyQPanda/pyqpanda/ChemiQ/*.pyi
+pyQPanda/pyqpanda/Operator/*.pyi

@@ -10,9 +10,6 @@
 
 #ifdef USE_EXTENSION
 
-#ifndef PI
-#define PI 3.1415926
-#endif // !PI
 
 const size_t kShots = 2048;
 const size_t kEpsion = kShots * 0.07;
@@ -48,6 +45,13 @@ X q[2]
 X q[3]
 CNOT q[3],q[1]
 MEASURE q[1],c[0]
+)";
+
+const std::string test_IR_3 = R"(QINIT 1 
+CREG 1
+H q[0]
+X q[0]
+MEASURE q[0],c[0]
 )";
 
 USING_QPANDA
@@ -534,13 +538,14 @@ static bool test_mapping_overall_1(const std::string& ir_str)
 
 TEST(QubitMapping, test1)
 {
-	bool test_val = false;
+	bool test_val = true;
 	try
 	{
 		for (size_t i = 0; i < 10; ++i)
 		{
-			test_val = test_mapping_overall_1(test_IR_1);
+			test_val = test_val && test_mapping_overall_1(test_IR_1);
 			test_val = test_val && test_mapping_overall_1(test_IR_2);
+			test_val = test_val && test_mapping_overall_1(test_IR_3);
 			/*test_val = test_val && test_opt_BMT_qubit_allocator_3();
 			test_val = test_val && test_SABRE_qubit_mapping_1();
 			test_val = test_val && test_opt_BMT_qubit_allocator_1();*/

@@ -25,6 +25,8 @@ limitations under the License.
 #include "Core/QuantumMachine/QubitFactory.h"
 #include "Core/Utilities/QPandaNamespace.h"
 
+QPANDA_BEGIN
+
 #define iunit qcomplex_t(0,1)
 
 struct QGateParam
@@ -48,4 +50,5 @@ struct QGateParam
 
 };
 
+QPANDA_END
 #endif

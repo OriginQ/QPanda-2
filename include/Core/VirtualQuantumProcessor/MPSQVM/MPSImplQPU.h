@@ -113,6 +113,14 @@ public:
 		bool isConjugate,
 		GateType);
 	
+	virtual QError process_noise(Qnum& qnum, QStat& matrix){
+        QCERR_AND_THROW(std::runtime_error, "Not implemented yet");
+    }
+
+	virtual QError debug(std::shared_ptr<QPanda::AbstractQDebugNode> debugger){
+        QCERR_AND_THROW(std::runtime_error, "Not implemented yet");
+    }
+	
 	/**
 	* @brief get quantum states
 	* @return QStat  quantum states
@@ -252,6 +260,8 @@ public:
 
     QStat pmeasure_dec_subset(const std::vector<std::string>& dec_strs);
 
+    void set_parallel_threads_size(size_t size);
+    
 private:
     
     QStat m_init_state;

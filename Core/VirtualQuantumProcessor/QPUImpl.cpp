@@ -16,13 +16,13 @@ limitations under the License.
 
 #include "QPUImpl.h"
 #include <time.h>
-using namespace std;
-QPUImpl::QPUImpl()
-{
-}
 
+USING_QPANDA
+using namespace std;
+
+QPUImpl::QPUImpl()
+{}
 
 QPUImpl::~QPUImpl()
-{
-}
+{}
 

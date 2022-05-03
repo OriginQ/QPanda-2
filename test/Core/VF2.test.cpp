@@ -602,12 +602,12 @@ static bool test_vf5_0()
 
 	return true;
 }
+
 TEST(VF2, test1)
 {
 	bool test_val = false;
 	try
 	{
-		test_val = test_vf2_1();
 		test_val = test_vf2_3();
 		test_val = test_vf2_1_2();
         

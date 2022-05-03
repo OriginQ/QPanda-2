@@ -29,21 +29,29 @@ enum class BackendType
     MPS
 };
 
-class PartialAmplitudeQVM : public QVM, TraversalInterface<>
+class PartialAmplitudeQVM : public QVM, public TraversalInterface<>
 {
 public:
 	PartialAmplitudeGraph m_graph_backend;
 
     void init(BackendType type = BackendType::CPU);
 
-    std::map<std::string, bool> directlyRun(QProg &prog)
+    std::map<std::string, bool> directlyRun(QProg &prog, const NoiseModel& noise_model= NoiseModel()) override
     {
         run(prog);
         return std::map<std::string, bool>();
     }
 
+    int get_spilt_num(QProg &node)
+    {
+        auto qubit_num = getAllocateQubitNum();
+        m_graph_backend.reset(qubit_num);
+        execute(node.getImplementationPtr(), nullptr);
+        return m_graph_backend.m_spilt_num;
+    }
+
 	template <typename _Ty>
-	void run(_Ty &node)
+	void run(_Ty &node, const NoiseModel& noise_model= NoiseModel())
 	{
 		auto qubit_num = getAllocateQubitNum();
 		m_graph_backend.reset(qubit_num);
@@ -90,9 +98,11 @@ public:
     void execute(std::shared_ptr<AbstractQuantumCircuit>, std::shared_ptr<QNode>);
     void execute(std::shared_ptr<AbstractQuantumProgram>, std::shared_ptr<QNode>);
     void execute(std::shared_ptr<AbstractControlFlowNode>, std::shared_ptr<QNode>);
+    void execute(std::shared_ptr<AbstractQNoiseNode>, std::shared_ptr<QNode>);
+    void execute(std::shared_ptr<AbstractQDebugNode>, std::shared_ptr<QNode>);
 
     virtual size_t get_processed_qgate_num() override { throw std::runtime_error("not implementd yet"); }
-	virtual void async_run(QProg& qProg) override { throw std::runtime_error("not implementd yet"); }
+	virtual void async_run(QProg& qProg, const NoiseModel& = NoiseModel()) override { throw std::runtime_error("not implementd yet"); }
 	virtual bool is_async_finished() override { throw std::runtime_error("not implementd yet"); }
     virtual std::map<std::string, bool> get_async_result() override { throw std::runtime_error("not implementd yet"); }
 

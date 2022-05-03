@@ -151,8 +151,8 @@ protected:
 //using OptimizerSink = std::map<size_t, std::vector<pOptimizerNodeInfo>>;
 using OptimizerSink = QubitNodesSink;
 using LayeredTopoSeq = TopologSequence<pOptimizerNodeInfo>;
-
-class ProcessOnTraversing : protected TraverseByNodeIter
+/* gcc can't get protected base class, change protected to public */
+class ProcessOnTraversing : public TraverseByNodeIter
 {
 public:
 	using layer_iter_seq = TopologSequence<std::pair<size_t, NodeIter>>; //size_t: layer index

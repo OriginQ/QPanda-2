@@ -1,9 +1,7 @@
 #include "Components/NodeSortProblemGenerator/NodeSortProblemGenerator.h"
 #include <time.h>
+#include "Core/QuantumCircuit/QGlobalVariable.h"
 
-#ifndef PI
-#define PI 3.14159265358979
-#endif
 
 QPANDA_BEGIN
 

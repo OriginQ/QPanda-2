@@ -4,12 +4,10 @@
 
 #ifdef USE_CUDA
 
+#include "Core/Utilities/Tools/Traversal.h"
 #include "Core/VirtualQuantumProcessor/QPUImpl.h"
 #include "Core/VirtualQuantumProcessor/GPUGates/GPUStruct.cuh"
-#include "Core/Utilities/Tools/Traversal.h"
 #include "Core/VirtualQuantumProcessor/GPUGates/GPUGatesWrapper.cuh"
-
-
 
 class GPUImplQPU : public QPUImpl
 {
@@ -51,6 +49,15 @@ public:
     QError controlOracleGate(Qnum& qubits, const Qnum &controls,
                              QStat &matrix, bool is_dagger);
 
+    virtual QError process_noise(Qnum& qnum, QStat& matrix){
+        QCERR_AND_THROW(std::runtime_error, "Not implemented yet");
+    }
+
+    virtual QError debug(std::shared_ptr<QPanda::AbstractQDebugNode> debugger){
+        QCERR_AND_THROW(std::runtime_error, "Not implemented yet");
+    }
+
+    virtual void set_parallel_threads_size(size_t size) {};
 };
 
 

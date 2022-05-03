@@ -762,6 +762,15 @@ size_t QPanda::get_all_used_class_bits(QProg prog, std::vector<int> &vecClBitsIn
 {
 	GetAllUsedQubitAndCBit get_cbit_object;
 	get_cbit_object.traversal(prog);
+	vecClBitsInUse = get_cbit_object.get_used_cbits_i();
+
+	return vecClBitsInUse.size();
+}
+
+size_t QPanda::get_all_used_class_bits(QProg prog, std::vector<ClassicalCondition> &vecClBitsInUse)
+{
+	GetAllUsedQubitAndCBit get_cbit_object;
+	get_cbit_object.traversal(prog);
 	vecClBitsInUse = get_cbit_object.get_used_cbits();
 
 	return vecClBitsInUse.size();
@@ -839,6 +848,10 @@ std::vector<double> QPanda::get_gate_parameter(std::shared_ptr<AbstractQGateNode
 	case RX_GATE:
 	case RY_GATE:
 	case RZ_GATE:
+    case RXX_GATE:
+    case RYY_GATE:
+    case RZZ_GATE:
+    case RZX_GATE:
 	case CPHASE_GATE:
 	{
 		auto single_angle_gate = dynamic_cast<QGATE_SPACE::AbstractSingleAngleParameter*>(pGate->getQGate());

@@ -37,7 +37,7 @@ public:
 
 	void load_search_condition() {}
 
-	QCircuit build_to_circuit(QVec oracle_qubits, QVec ancilla_qubits, const AbstractSearchData &mini_data, QCircuit cir_mark) {
+	QCircuit build_to_circuit(QVec oracle_qubits, const AbstractSearchData &mini_data) {
 		auto ret_cir = QCircuit();
 		std::string left_str = m_condition.getExprPtr()->getLeftExpr()->getName();
 		std::string operator_str = m_condition.getExprPtr()->getName();
@@ -49,7 +49,7 @@ public:
 		{
 			T search_data;
 			search_data.set_val(right_str.c_str());
-			condition_cir = search_data.build_to_condition_circuit(oracle_qubits, cir_mark, mini_data);
+			condition_cir = search_data.build_to_condition_circuit(oracle_qubits, mini_data);
 		}
 		else
 		{

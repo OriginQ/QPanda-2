@@ -18,6 +18,7 @@ limitations under the License.
 #define QUBIT_POOL_FACTORY_H
 
 #include "Core/QuantumMachine/QubitFactory.h"
+#include "Core/QuantumMachine/QVec.h"
 #include <functional>
 #include <stack>
 QPANDA_BEGIN
@@ -98,6 +99,7 @@ public:
      * @return size_t
      */
     virtual size_t get_allocate_qubits(std::vector<Qubit*>&) const = 0;
+
 };
 
 

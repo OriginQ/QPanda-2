@@ -24,14 +24,7 @@ limitations under the License.
 #include <iostream>
 #include <vector>
 
-
-#ifndef SQ2
-#define SQ2 (1 / 1.4142135623731)
-#endif
-
-#ifndef PI
-#define PI 3.14159265358979
-#endif
+QPANDA_BEGIN
 
 //#define NoiseOp std::vector<std::vector<qcomplex_t>>
 
@@ -88,7 +81,16 @@ public:
         QStat& matrix,
         bool isConjugate,
         GateType type);
+    
+    virtual QError process_noise(Qnum& qnum, QStat& matrix) {
+        QCERR_AND_THROW(std::runtime_error, "NoiseCPUImplQPU only support own way noise set by NoiseQVM");
+    }
 
+    virtual QError debug(std::shared_ptr<QPanda::AbstractQDebugNode> debugger){
+        QCERR_AND_THROW(std::runtime_error, "Not implemented yet");
+    }
+
+    void set_parallel_threads_size(size_t size);
     virtual QError Hadamard(size_t qn, bool isConjugate,
         double error_rate);
 
@@ -244,12 +246,19 @@ public:
                                        bool is_conjugate);
     QError unitary_qubit_gate_standard(size_t qn0 ,size_t qn1, QStat& matrix,
                                        bool is_conjugate);
+
+    QError unitary_qubit_gate_standard(size_t qn, QStat& matrix,
+                                       bool is_conjugate, const Qnum &controls);
+    QError unitary_qubit_gate_standard(size_t qn0 ,size_t qn1, QStat& matrix,
+                                       bool is_conjugate, const Qnum &controls);
+
     QError reset_standard(size_t qn);
     bool measure_standard(size_t qn);
     bool readout(bool measure, size_t qn);
 
     void normlize(QStat &matrix, double p);
     double unitary_kraus(const Qnum &qns, const QStat &op);
+    int _omp_thread_num(size_t size);
 private:
     QError singleQubitGateNoise(size_t qn, NoiseOp &noise);
     QError doubleQubitGateNoise(size_t qn_0, size_t qn_1, NoiseOp &noise);
@@ -263,6 +272,10 @@ private:
     // new noise model
     NoisyQuantum m_quantum_noise;
     RandomEngine19937 m_rng;
+    const int64_t m_threshold = 1ll << 9;
+    int64_t m_max_threads_size = 0;
 };
+
+QPANDA_END
 
 #endif // ! NOISY_CPU_QUANTUM_GATE_SINGLE_THREAD_H

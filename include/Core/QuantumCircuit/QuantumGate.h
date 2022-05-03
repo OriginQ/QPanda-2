@@ -23,6 +23,9 @@ Update by code specification
 #ifdef __GNUC__
 #include <cxxabi.h>
 #endif
+
+QPANDA_BEGIN
+
 /**
 * @namespace QGATE_SPACE
 * @brief QGATE namespace
@@ -144,13 +147,11 @@ namespace QGATE_SPACE
 #endif
 				if (nullptr != initial_name)
 				{
-					char *real_pos = strstr(initial_name, "::");
-					if (nullptr != real_pos)
-					{
-						type_name = real_pos + 2;
+					char *real_pos = strrchr(initial_name, ':');
+					if (nullptr != real_pos){
+						type_name = real_pos + 1;
 					}
-					else
-					{
+					else{
 						type_name = initial_name;
 					}
 #ifdef __GNUC__
@@ -600,7 +601,7 @@ namespace QGATE_SPACE
 	public:
 		P(QuantumGate  * gate_old) :U4(gate_old)
 		{
-			if (gate_old->getGateType() != GateType::U1_GATE)
+			if (gate_old->getGateType() != GateType::P_GATE)
 			{
 				QCERR("Parameter qgate_old error");
 				throw std::invalid_argument("Parameter qgate_old error");
@@ -850,6 +851,7 @@ namespace QGATE_SPACE
     };
 
 	class CP :public CU,
+        public AbstractSingleAngleParameter,
 		public DynamicCreator<CP,double&>,
 		public DynamicCreator<CP, QuantumGate*>
 	{
@@ -945,6 +947,112 @@ namespace QGATE_SPACE
             return GateType::SWAP_GATE;
         }
     };
+
+    class RXX : public QDoubleGate,
+        public AbstractSingleAngleParameter,
+        public DynamicCreator<RXX, double&>,
+        public DynamicCreator<RXX, QuantumGate *>
+    {
+    protected:
+        double alpha{ 0 };
+    public:
+        RXX(QuantumGate  * gate_old) :QDoubleGate(gate_old)
+        {
+            if (gate_old->getGateType() != GateType::RXX_GATE)
+            {
+                QCERR("Parameter qgate_old error");
+                throw std::invalid_argument("Parameter qgate_old error");
+            }
+            gate_type = gate_old->getGateType();
+            alpha = dynamic_cast<QGATE_SPACE::RXX*>(gate_old)->alpha;
+        }
+        RXX(double);
+
+        inline double getParameter() const
+        {
+            return this->alpha;
+        }
+    };
+
+    class RYY : public QDoubleGate,
+        public AbstractSingleAngleParameter,
+        public DynamicCreator<RYY, double&>,
+        public DynamicCreator<RYY, QuantumGate *>
+    {
+    protected:
+        double alpha{ 0 };
+    public:
+        RYY(QuantumGate  * gate_old) :QDoubleGate(gate_old)
+        {
+            if (gate_old->getGateType() != GateType::RYY_GATE)
+            {
+                QCERR("Parameter qgate_old error");
+                throw std::invalid_argument("Parameter qgate_old error");
+            }
+            gate_type = gate_old->getGateType();
+            alpha = dynamic_cast<QGATE_SPACE::RYY*>(gate_old)->alpha;
+        }
+        RYY(double);
+
+        inline double getParameter() const
+        {
+            return this->alpha;
+        }
+    };
+
+    class RZZ : public QDoubleGate,
+        public AbstractSingleAngleParameter,
+        public DynamicCreator<RZZ, double&>,
+        public DynamicCreator<RZZ, QuantumGate *>
+    {
+    protected:
+        double alpha{ 0 };
+    public:
+        RZZ(QuantumGate  * gate_old) :QDoubleGate(gate_old)
+        {
+            if (gate_old->getGateType() != GateType::RZZ_GATE)
+            {
+                QCERR("Parameter qgate_old error");
+                throw std::invalid_argument("Parameter qgate_old error");
+            }
+            gate_type = gate_old->getGateType();
+            alpha = dynamic_cast<QGATE_SPACE::RZZ*>(gate_old)->alpha;
+        }
+        RZZ(double);
+
+        inline double getParameter() const
+        {
+            return this->alpha;
+        }
+    };
+
+    class RZX : public QDoubleGate,
+        public AbstractSingleAngleParameter,
+        public DynamicCreator<RZX, double&>,
+        public DynamicCreator<RZX, QuantumGate *>
+    {
+    protected:
+        double alpha{ 0 };
+    public:
+        RZX(QuantumGate  * gate_old) :QDoubleGate(gate_old)
+        {
+            if (gate_old->getGateType() != GateType::RZX_GATE)
+            {
+                QCERR("Parameter qgate_old error");
+                throw std::invalid_argument("Parameter qgate_old error");
+            }
+            gate_type = gate_old->getGateType();
+            alpha = dynamic_cast<QGATE_SPACE::RZX*>(gate_old)->alpha;
+        }
+        RZX(double);
+
+        inline double getParameter() const
+        {
+            return this->alpha;
+        }
+    };
 }
+
+QPANDA_END
 
 #endif

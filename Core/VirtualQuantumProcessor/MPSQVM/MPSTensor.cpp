@@ -1,5 +1,7 @@
 #include "Core/VirtualQuantumProcessor/MPSQVM/MPSTensor.h"
 
+USING_QPANDA
+
 void MPS_Tensor::handle_gamma_by_lambda(const rvector_t &Lambda,
     bool right, /* or left */
     bool mul    /* or div */)

@@ -3,10 +3,10 @@
 #include <string>
 #include "Core/Utilities/QPandaNamespace.h"
 #include "Core/Module/DataStruct.h"
-#include "ThirdParty/rabbit/rabbit.hpp"
 #include "Core/QuantumCircuit/QProgram.h"
 #include "Core/Utilities/QProgInfo/QCircuitInfo.h"
 #include "Core/QuantumMachine/OriginQuantumMachine.h"
+#include "ThirdParty/rabbit/rabbit.hpp"
 
 QPANDA_BEGIN
 

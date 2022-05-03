@@ -44,7 +44,6 @@ QProg QPanda::quantum_walk_alg(QCircuit cir_oracle,
 	quantum_walk_prog << circuit_prepare;
 
 	//anclilla qubits
-	//quantum_walk_prog << X(ancilla_qubits.front()) << H(ancilla_qubits.front()) << X(ancilla_qubits.back());
 	quantum_walk_prog << X(ancilla_qubits.back()) << H(ancilla_qubits.back());
 
 	//repeat oracle

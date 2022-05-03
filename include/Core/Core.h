@@ -89,6 +89,9 @@ limitations under the License.
 #include "Core/VirtualQuantumProcessor/MPSQVM/MPSQVM.h"
 #include "Core/Utilities/Tools/QuantumStateTomography.h"
 
+#include "Core/QuantumNoise/NoiseModelV2.h" 
+
+#include "Core/Debugger/QPUDebugger.h"
 
 QPANDA_BEGIN
 /**
@@ -130,9 +133,10 @@ Qubit* qAlloc(size_t stQubitAddr);
 * @brief  Directly run a quantum program
 * @ingroup Core
 * @param[in]  QProg& Quantum program
+* @param[in]  const NoiseModel& Noise model for QVM
 * @return     std::map<std::string, bool>   result
 */
-std::map<std::string, bool> directlyRun(QProg & qProg);
+std::map<std::string, bool> directlyRun(QProg & qProg, const NoiseModel& noise_model= NoiseModel());
 
 /**
 * @brief  Allocate many qubits
@@ -183,9 +187,36 @@ void cFree(ClassicalCondition &);
 * @param[in]  std::vector<ClassicalCondition>    a list of cbits
 * @return     void  
 */
-void cFreeAll(std::vector<ClassicalCondition> vCBit);
+void cFreeAll(std::vector<ClassicalCondition> &vCBit);
+
+/**
+* @brief  Free all ClassicalCondition
+* @ingroup Core
+* @return     void
+*/
+void cFreeAll();
 
 
+/**
+* @brief  Free a qubit
+* @ingroup Core
+* @param[in]  Qubit*
+* @return     void
+*/
+void qFree(Qubit*);
+/**
+* @brief  Free a list of cbits
+* @ingroup Core
+* @param[in]  QVec&
+* @return     void
+*/
+void qFreeAll(QVec&);
+/**
+* @brief  Free all qubits
+* @ingroup Core
+* @return     void
+*/
+void qFreeAll();
 
 /**
 * @brief  Get the status(ptr) of the Quantum machine
@@ -195,12 +226,21 @@ void cFreeAll(std::vector<ClassicalCondition> vCBit);
 QMachineStatus* getstat();
 
 
+/**
+* @brief  get allocate qubits
+* @ingroup Core
+* @param[out]  QVec  all of allocated qubits
+* @return     size_t  number of allocated qubits
+*/
+ size_t get_allocate_qubits(QVec &qubits);
+
  /**
- * @brief  Get all allocate qubit num
+ * @brief  get allocate cbits
  * @ingroup Core
- * @return     size_t  Qubit num
+ * @param[out]  std::vector<ClassicalCondition>  all of allocated cbits
+ * @return     size_t  number of allocated cbits
  */
- size_t getAllocateQubitNum();
+size_t get_allocate_cbits(std::vector<ClassicalCondition> &cc_vec);
 
 /**
 * @brief  Get pmeasure result as tuple list
@@ -272,9 +312,10 @@ prob_dict  probRunDict(QProg &, QVec , int selectMax = -1);
 * @param[in]  QProg&  Quantum program
 * @param[in]  std::vector<ClassicalCondition>&  cbits vector
 * @param[in]  int Shots:the repeat num  of measure operate
+* @param[in]  const NoiseModel& Noise model for QVM
 * @return     std::map<std::string, size_t>   result
 */
-std::map<std::string, size_t> runWithConfiguration(QProg &, std::vector<ClassicalCondition> &, int);
+std::map<std::string, size_t> runWithConfiguration(QProg &, std::vector<ClassicalCondition> &, int, const NoiseModel& = NoiseModel());
 
 /**
 * @brief  Quick measure operate
@@ -348,6 +389,7 @@ extern QProg convert_qasm_string_to_qprog(std::string qasm_str, QuantumMachine* 
 
 /*will delete*/
 size_t getAllocateCMem();
+size_t getAllocateQubitNum();
 prob_tuple PMeasure(QVec qubit_vector, int select_max);
 prob_vec PMeasure_no_index(QVec qubit_vector);
 

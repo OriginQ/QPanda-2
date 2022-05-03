@@ -19,10 +19,10 @@ class QProgProgress
 {
 private:
     QProgProgress() = default;
+    ~QProgProgress() = default;
     std::unordered_map<uint64_t, std::atomic<size_t>> m_prog_exec_gates;
 
 public:
-    ~QProgProgress() = default;
 
     static QProgProgress &getInstance()
     {

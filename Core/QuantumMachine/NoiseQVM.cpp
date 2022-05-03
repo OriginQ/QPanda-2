@@ -42,7 +42,7 @@ void NoiseQVM::init(rapidjson::Document &)
 }
 
 std::map<string, size_t> NoiseQVM::runWithConfiguration(QProg &prog, std::vector<ClassicalCondition> &cbits,
-                                                          rapidjson::Document &doc)
+                                                          rapidjson::Document &doc, const NoiseModel&)
 {
     QPANDA_ASSERT(doc.HasParseError() || !doc.HasMember("shots") || !doc["shots"].IsUint64(),
                   "runWithConfiguration param don't  have shots");
@@ -50,7 +50,7 @@ std::map<string, size_t> NoiseQVM::runWithConfiguration(QProg &prog, std::vector
     return runWithConfiguration(prog, cbits, shots);
 }
 
-std::map<std::string, size_t> NoiseQVM::runWithConfiguration(QProg& prog, std::vector<int>& cibts_addr, int shots)
+std::map<std::string, size_t> NoiseQVM::runWithConfiguration(QProg& prog, std::vector<int>& cibts_addr, int shots, const NoiseModel&)
 {
     std::vector<ClassicalCondition> cbits_vect;
 	auto cmem = OriginCMem::get_instance();
@@ -61,7 +61,7 @@ std::map<std::string, size_t> NoiseQVM::runWithConfiguration(QProg& prog, std::v
 }
 
 
-std::map<string, size_t> NoiseQVM::runWithConfiguration(QProg &prog, std::vector<ClassicalCondition> &cbits, int shots)
+std::map<string, size_t> NoiseQVM::runWithConfiguration(QProg &prog, std::vector<ClassicalCondition> &cbits, int shots, const NoiseModel&)
 {
     auto qpu = dynamic_cast<NoisyCPUImplQPU *>(_pGates);
     QPANDA_ASSERT(nullptr == qpu, "Error: NoisyCPUImplQPU.");
@@ -87,7 +87,7 @@ std::map<string, size_t> NoiseQVM::runWithConfiguration(QProg &prog, std::vector
     return mResult;
 }
 
-std::map<std::string, bool> NoiseQVM::directlyRun(QProg &prog)
+std::map<std::string, bool> NoiseQVM::directlyRun(QProg &prog, const NoiseModel&)
 {
     auto qpu = dynamic_cast<NoisyCPUImplQPU *>(_pGates);
     QPANDA_ASSERT(nullptr == qpu, "Error: NoisyCPUImplQPU.");
@@ -97,7 +97,7 @@ std::map<std::string, bool> NoiseQVM::directlyRun(QProg &prog)
     return _QResult->getResultMap();
 }
 
-void NoiseQVM::run(QProg & prog)
+void NoiseQVM::run(QProg & prog, const NoiseModel&)
 {
     try
     {
@@ -396,12 +396,26 @@ void NoiseQVM::set_readout_error(const std::vector<std::vector<double> > &probs_
     {
         auto addr = qubits.at(i)->get_phy_addr();
         QuantumError quantum_error;
-        auto iter = probs_list.begin() + 2 * i;
+        //auto iter = probs_list.begin() + 2*i;
+        auto iter = probs_list.begin();
         quantum_error.set_readout_error({iter, iter + 2}, 1);
         m_quantum_noise.add_quamtum_error(GATE_TYPE_READOUT, quantum_error, {{addr}});
     }
 
     return ;
+}
+
+void NoiseQVM::set_parallel_threads(size_t size) {
+
+    if (size > 0)
+    {
+        _pGates->set_parallel_threads_size(size);
+    }
+    else
+    {
+        QCERR("_Set max thread is zero");
+        throw qvm_attributes_error("_Set max thread is zero");
+    }
 }
 
 void NoiseQVM::set_rotation_error(double error)

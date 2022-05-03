@@ -18,8 +18,13 @@ Classes for get the shortes path of graph
 #include "Core/QuantumCircuit/QuantumMeasure.h"
 #include "Core/QuantumCircuit/QReset.h"
 #include "Core/QuantumCircuit/ClassicalProgram.h"
+#include "Core/QuantumNoise/AbstractNoiseNode.h"
+#include "Core/Debugger/AbstractQDebugNode.h"
 #include <memory>
 QPANDA_BEGIN
+/* for gcc, template prototype should be declared before use */
+template<typename... Args >
+class TraversalInterface;
 
 /**
 * @class TraversalConfig
@@ -311,6 +316,34 @@ public:
             }
             func_class.execute(classical_node, parent_node, std::forward<Args>(func_args)...);
         }
+        else if (NOISE_NODE == iNodeType)
+        {
+            auto noise_node = std::dynamic_pointer_cast<AbstractQNoiseNode>(node);
+            if(!noise_node)
+            {
+                QCERR("Unknown internal error");
+                throw std::runtime_error("Unknown internal error");
+            }
+            /*
+              must convert to base class reference, if some overload functions of derive class are not overwrited 
+              
+              compiler see "func_class.execute" first will find the overload function declaration of class type "func_class"
+              if overload function not be overwrited, compiler can't tell which function should be used
+              and here "execute" is a virtual overload function, after found the overload declaration, compiler will turn to looking for vtable virtual func address
+              so use reference for polymorphism, compiler will first found the overload declaration in TraversalInterface, then the real virtual function
+            */
+            dynamic_cast<TraversalInterface<Args...>&>(func_class).execute(noise_node, parent_node, std::forward<Args>(func_args)...);
+        }
+        else if (DEBUG_NODE == iNodeType)
+        {
+            auto debug_node = std::dynamic_pointer_cast<AbstractQDebugNode>(node);
+            if(!debug_node)
+            {
+                QCERR("Unknown internal error");
+                throw std::runtime_error("Unknown internal error");
+            }
+            dynamic_cast<TraversalInterface<Args...>&>(func_class).execute(debug_node, parent_node, std::forward<Args>(func_args)...);
+        }
         else
         {
             QCERR("iNodeType error");
@@ -397,6 +430,10 @@ public:
     virtual void execute(std::shared_ptr<AbstractClassicalProg>  cur_node,
         std::shared_ptr<QNode> parent_node,
         Args&& ... func_args) {};
+    
+    virtual void execute(std::shared_ptr<AbstractQNoiseNode>  cur_node, std::shared_ptr<QNode> parent_node, Args&& ... func_args) {}
+
+    virtual void execute(std::shared_ptr<AbstractQDebugNode>  cur_node, std::shared_ptr<QNode> parent_node, Args&& ... func_args) {}
 };
 
 

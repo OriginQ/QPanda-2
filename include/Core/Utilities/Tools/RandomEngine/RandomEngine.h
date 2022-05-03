@@ -120,7 +120,7 @@ public:
     }
 
     template<typename Float = double>
-    inline int random_discrete(const std::vector<Float> &probs)
+    inline size_t random_discrete(const std::vector<Float> &probs)
     {
         return std::discrete_distribution<size_t>(probs.begin(), probs.end())(m_mt);
     }

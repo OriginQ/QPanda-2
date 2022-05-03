@@ -48,6 +48,10 @@ static uint64_t insert(const int iValue, const int &iQn1, const int &iQn2)
 
         return ((x << 2) | (y << 1) | z);
     }
+    else
+    {
+        QCERR_AND_THROW(run_fail, "insert error");
+    }
 }
 
 static void squeeze_qubits(const Qnum &original_qubits, Qnum &squeezed_qubits)
@@ -1358,4 +1362,9 @@ qcomplex_t MPSImplQPU::pmeasure_dec_index(std::string str)
     std::string bin_str = integerToBinary(index, m_qubits_num);
 
     return pmeasure_bin_index(bin_str);
+}
+
+void MPSImplQPU::set_parallel_threads_size(size_t size)
+{
+
 }

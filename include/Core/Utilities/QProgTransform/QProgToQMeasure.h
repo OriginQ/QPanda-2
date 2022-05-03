@@ -122,6 +122,18 @@ public:
 		throw run_fail("cast qprog to qmeasure fail!");
 	}
 
+	virtual void execute(std::shared_ptr<AbstractQNoiseNode>  cur_node, std::shared_ptr<QNode> parent_node)
+	{
+		QCERR("cast qprog to qmeasure fail!");
+		throw run_fail("cast qprog to qmeasure fail!");
+	}
+
+	virtual void execute(std::shared_ptr<AbstractQDebugNode>  cur_node, std::shared_ptr<QNode> parent_node)
+	{
+		QCERR("cast qprog to qmeasure fail!");
+		throw run_fail("cast qprog to qmeasure fail!");
+	}
+
 	std::shared_ptr<AbstractQuantumMeasure> get_qmeasure()
 	{
 		if (!m_qmeasure_node)

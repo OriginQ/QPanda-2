@@ -38,13 +38,24 @@ public:
 		return qv;
 	}
 
-	std::vector<int> get_used_cbits() { 
+	std::vector<int> get_used_cbits_i() { 
 		std::vector<int> cv;
 		for (const auto& _m : m_measure_nodes) {
 			cv.emplace_back(_m->getCBit()->get_addr());
 		}
 		sort(cv.begin(), cv.end(), [](const int& a, const int& b) { return a < b; });
 
+		return cv;
+	}
+
+	std::vector<ClassicalCondition> get_used_cbits()
+	{
+		std::vector<ClassicalCondition> cv;
+		for (const auto& _m : m_measure_nodes) {
+			cv.emplace_back(_m->getCBit());
+		}
+		sort(cv.begin(), cv.end(), [](auto& a, auto& b) {
+			return a.getExprPtr()->getCBit()->get_addr() < b.getExprPtr()->getCBit()->get_addr(); });
 		return cv;
 	}
 

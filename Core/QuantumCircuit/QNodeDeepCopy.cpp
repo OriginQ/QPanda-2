@@ -255,6 +255,19 @@ void QNodeDeepCopy::execute(shared_ptr<AbstractQuantumProgram> cur_node, shared_
     insert(dynamic_pointer_cast<QNode>(pQProg.getImplementationPtr()), parent_node);
 }
 
+void QNodeDeepCopy::execute(std::shared_ptr<AbstractQNoiseNode>, std::shared_ptr<QNode>){
+    QCERR_AND_THROW(std::invalid_argument, "QNodeDeepCopy can not copy virtual Noise Node")
+}
+
+void QNodeDeepCopy::execute(std::shared_ptr<AbstractQDebugNode> cur_node, std::shared_ptr<QNode> parent_node){
+    if (nullptr == cur_node || nullptr == parent_node)
+    {
+        QCERR("node is nullptr");
+        throw invalid_argument("node is nullptr");
+    }
+    insert(dynamic_pointer_cast<QNode>(cur_node), parent_node);
+}
+
 void QNodeDeepCopy::execute(shared_ptr<AbstractQGateNode>  cur_node, shared_ptr<QNode> parent_node)
 {
     if (nullptr == cur_node || nullptr == parent_node)

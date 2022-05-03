@@ -266,10 +266,22 @@ void OriginQubitPool::qFree(Qubit* qubit)
 
 void OriginQubitPool::qFreeAll(QVec& qubits_vect)
 {
-	for (auto iter : qubits_vect)
+    for (auto &iter : qubits_vect)
 	{
 		qFree(iter);
-	}
+    }
+}
+
+void OriginQubitPool::qFreeAll()
+{
+    for (auto &q : vecQubit)
+    {
+        if (q->getOccupancy())
+        {
+            q->setOccupancy(false);
+        }
+    }
+    return ;
 }
 
 Qubit * OriginQubitPool::get_qubit_by_addr(size_t qaddr)

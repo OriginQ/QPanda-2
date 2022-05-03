@@ -22,7 +22,7 @@ static bool Qubitequal(Qubit * a, Qubit * b)
 void QProgExecution::execute(std::shared_ptr<AbstractQGateNode> cur_node,
     std::shared_ptr<QNode> parent_node,
     TraversalConfig & param,
-	QPUImpl* qpu)
+	QPUImpl*& qpu)
 {
     QPANDA_OP(GateType::BARRIER_GATE == cur_node->getQGate()->getGateType(), return);
 
@@ -95,6 +95,7 @@ void QProgExecution::execute(std::shared_ptr<AbstractQGateNode> cur_node,
         delete new_quantum_gate;
     }
     
+    /* update qprog exec progress, use QProgExecution address as process id */
     uint64_t exec_id = (uint64_t)this;
     QProgProgress::getInstance().update_processed_gate_num(exec_id);
 }
@@ -103,7 +104,7 @@ void QProgExecution::execute(std::shared_ptr<AbstractQGateNode> cur_node,
 void QProgExecution::execute(std::shared_ptr<AbstractQuantumMeasure> cur_node,
 	std::shared_ptr<QNode> parent_node,
 	TraversalConfig & param,
-	QPUImpl* qpu)
+	QPUImpl*& qpu)
 {
     if (!param.m_can_optimize_measure)
     {
@@ -137,12 +138,12 @@ void QProgExecution::execute(std::shared_ptr<AbstractQuantumMeasure> cur_node,
 void QProgExecution::execute(std::shared_ptr<AbstractQuantumReset> cur_node,
 	std::shared_ptr<QNode> parent_node,
 	TraversalConfig & param,
-	QPUImpl* qpu)
+	QPUImpl*& qpu)
 {
     qpu->Reset(cur_node->getQuBit()->getPhysicalQubitPtr()->getQubitAddr());
 }
 
-void QProgExecution::execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node, TraversalConfig &param, QPUImpl *qpu)
+void QProgExecution::execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node, TraversalConfig &param, QPUImpl *&qpu)
 {
     if (nullptr == cur_node)
     {
@@ -190,7 +191,7 @@ void QProgExecution::execute(std::shared_ptr<AbstractControlFlowNode> cur_node, 
 void QProgExecution::execute(std::shared_ptr<AbstractQuantumCircuit> cur_node,
     std::shared_ptr<QNode> parent_node,
     TraversalConfig & param,
-    QPUImpl* qpu)
+    QPUImpl*& qpu)
 {
     bool save_dagger = param.m_is_dagger;
     param.m_is_dagger = cur_node->isDagger() ^ param.m_is_dagger;
@@ -238,6 +239,32 @@ void QProgExecution::execute(std::shared_ptr<AbstractQuantumCircuit> cur_node,
     return;
 }
 
+void QProgExecution::execute(std::shared_ptr<AbstractQNoiseNode> cur_node,
+	std::shared_ptr<QNode> parent_node,
+	TraversalConfig & param,
+	QPUImpl*& qpu)
+{
+    QVec qvec = cur_node->get_qvec();
+    auto matrix = cur_node->get_ops();
+    if (qvec.size() <= 0)
+    {
+        QCERR("Unknown internal error");
+        throw runtime_error("Unknown internal error");
+    }
+
+    Qnum qnum;
+    for_each(qvec.begin(), qvec.end(), [&](Qubit* qubit){ qnum.push_back(qubit->get_phy_addr()); });
+
+    qpu->process_noise(qnum, matrix);
+}
+
+void QProgExecution::execute(std::shared_ptr<AbstractQDebugNode> cur_node,
+	std::shared_ptr<QNode> parent_node,
+	TraversalConfig & param,
+	QPUImpl*& qpu)
+{
+    qpu->debug(cur_node);
+}
 
 QProgExecution::QProgExecution()
 {

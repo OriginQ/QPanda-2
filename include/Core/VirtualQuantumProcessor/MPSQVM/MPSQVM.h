@@ -12,18 +12,18 @@ QPANDA_BEGIN
 * @brief MPS quantum virtual machine
 * @ingroup VirtualQuantumProcessor
 */
-class MPSQVM : public IdealQVM, TraversalInterface<QCircuitConfig&>
+class MPSQVM : public IdealQVM, public TraversalInterface<QCircuitConfig&>
 {
 public:
     virtual void init();
     virtual void initState(const QStat &state = {}, const QVec &qlist = {});
-    virtual std::map<std::string, bool> directlyRun(QProg &prog);
+    virtual std::map<std::string, bool> directlyRun(QProg &prog, const NoiseModel& = NoiseModel()) override;
     std::map<std::string, size_t> quickMeasure(QVec vQubit, size_t shots);
 
     virtual std::map<std::string, size_t> runWithConfiguration(QProg &prog,
-        std::vector<ClassicalCondition> &cbits, int shots);
+        std::vector<ClassicalCondition> &cbits, int shots, const NoiseModel& = NoiseModel()) override;
     virtual std::map<std::string, size_t> runWithConfiguration(QProg &prog,
-        std::vector<ClassicalCondition> &cbits, rapidjson::Document &doc);
+        std::vector<ClassicalCondition> &cbits, rapidjson::Document &doc, const NoiseModel& = NoiseModel()) override;
     virtual QStat getQState();
     virtual prob_tuple pMeasure(QVec qubits, int select_max = -1);
     virtual prob_tuple PMeasure(QVec qubits, int select_max = -1);
@@ -51,9 +51,11 @@ public:
     void execute(std::shared_ptr<AbstractQuantumCircuit>, std::shared_ptr<QNode>, QCircuitConfig &config);
     void execute(std::shared_ptr<AbstractQuantumProgram>, std::shared_ptr<QNode>, QCircuitConfig &config);
     void execute(std::shared_ptr<AbstractControlFlowNode>, std::shared_ptr<QNode>, QCircuitConfig &config);
+    void execute(std::shared_ptr<AbstractQNoiseNode>, std::shared_ptr<QNode>, QCircuitConfig &config);
+    void execute(std::shared_ptr<AbstractQDebugNode>, std::shared_ptr<QNode>, QCircuitConfig &config);
 
     virtual size_t get_processed_qgate_num() override { throw std::runtime_error("not implementd yet"); }
-	virtual void async_run(QProg& qProg) override { throw std::runtime_error("not implementd yet"); }
+	virtual void async_run(QProg& qProg, const NoiseModel& = NoiseModel()) override { throw std::runtime_error("not implementd yet"); }
 	virtual bool is_async_finished() override { throw std::runtime_error("not implementd yet"); }
     virtual std::map<std::string, bool> get_async_result() override { throw std::runtime_error("not implementd yet"); }
 
@@ -110,7 +112,7 @@ public:
 protected:
     void handle_one_target(std::shared_ptr<AbstractQGateNode> gate, const QCircuitConfig &config);
     void handle_two_targets(std::shared_ptr<AbstractQGateNode> gate, const QCircuitConfig &config);
-    virtual void run(QProg &prog);
+    virtual void run(QProg &prog, const NoiseModel& = NoiseModel()) override;
     void run_cannot_optimize_measure(QProg &prog);
 
     std::map<std::string, size_t> run_configuration_with_noise(QProg &prog, std::vector<ClassicalCondition> &cbits, int shots);

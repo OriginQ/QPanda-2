@@ -28,9 +28,13 @@ limitations under the License.
 #include "Core/Utilities/Tools/Uinteger.h"
 #include "Core/QuantumMachine/QProgCheck.h"
 #include "Core/Utilities/QProgInfo/QProgProgress.h"
+#include "Core/Utilities/Tools/QStatMatrix.h"
+#include "Core/Utilities/Tools/QProgFlattening.h"
 #include <set>
 #include <thread>
-
+#ifdef USE_OPENMP
+#include <omp.h>
+#endif
 
 
 USING_QPANDA
@@ -56,6 +60,19 @@ void QVM::setConfig(const Configuration& config)
 	_Config.maxQubit = config.maxQubit;
 	_Config.maxCMem = config.maxCMem;
 	init();
+}
+
+void QVM::set_parallel_threads(size_t size){
+
+    if (size > 0)
+    {
+        _pGates->set_parallel_threads_size(size);
+    }
+    else
+    {
+        QCERR("_Set max thread is zero");
+        throw qvm_attributes_error("_Set max thread is zero");
+    }
 }
 
 void QVM::initState(const QStat& state, const QVec& qlist)
@@ -181,12 +198,12 @@ std::map<string, size_t> QVM::run_with_optimizing(QProg& prog, std::vector<Class
 	return result_map;
 }
 
-std::map<string, size_t> QVM::run_with_normal(QProg& prog, std::vector<ClassicalCondition>& cbits, int shots)
+std::map<string, size_t> QVM::run_with_normal(QProg& prog, std::vector<ClassicalCondition>& cbits, int shots, const NoiseModel& noise_model)
 {
 	map<string, size_t> mResult;
 	for (size_t i = 0; i < shots; i++)
 	{
-		run(prog);
+		run(prog, noise_model);
 		string sResult = _ResultToBinaryString(cbits);
 
 		std::reverse(sResult.begin(), sResult.end());
@@ -454,23 +471,42 @@ void QVM::Free_CBits(vector<ClassicalCondition>& vCBit)
 	}
 }
 
-void QVM::run(QProg& node)
+void QVM::run(QProg& qprog, const NoiseModel& noise_model)
 {
 	try
 	{
-		TraversalConfig config;
+		TraversalConfig config(noise_model.rotation_error());
 		config.m_can_optimize_measure = false;
+		
+		std::shared_ptr<AbstractQuantumProgram> qp =nullptr;
+		if (noise_model.enabled())
+		{
+			/* generate simulate prog contains virtual noise gate */
+			auto noise_qprog = NoiseProgGenerator().generate_noise_prog(noise_model, qprog.getImplementationPtr());
+			qp = noise_qprog.getImplementationPtr();
+		}else{
+			qp = qprog.getImplementationPtr();
+		}
+		QPANDA_ASSERT(qp == nullptr, "Error: not valid quantum program");
+		
 		//_pGates->initState(0, 1, _Qubit_Pool->get_max_usedqubit_addr() + 1);
-		_pGates->initState(0, 1, node.get_max_qubit_addr() + 1);
+		_pGates->initState(0, 1, qp->get_max_qubit_addr() + 1);
 
 		QProgExecution prog_exec;
+		/* use QProgExecution object address(uniqe in process) as qprog process id _ExecId for recording execute progress */
 		_ExecId = uint64_t(&prog_exec);
 		QProgProgress::getInstance().prog_start(_ExecId);
-		prog_exec.execute(node.getImplementationPtr(), nullptr, config, _pGates);
+		prog_exec.execute(qp, nullptr, config, _pGates);
 		QProgProgress::getInstance().prog_end(_ExecId);
 
 		std::map<string, bool>result;
 		prog_exec.get_return_value(result);
+
+		/* add readout error */
+		if (noise_model.readout_error_enabled())
+		{
+			NoiseReadOutGenerator::append_noise_readout(noise_model, result);
+		}
 
 		/* aiter has been used in line 120 */
 		for (auto aiter : result)
@@ -483,6 +519,67 @@ void QVM::run(QProg& node)
 		QCERR(e.what());
 		throw run_fail(e.what());
 	}
+}
+
+void CPUQVM::run(QProg& qprog, const NoiseModel& noise_model)
+{
+    QVec used_qv;
+    this->get_allocate_qubits(used_qv);
+    QProg prog;
+    QNodeDeepCopy deep_copy;
+    auto prog_node = qprog.getImplementationPtr();
+    prog = deep_copy.copy_node(prog_node);
+    if ((!used_qv.empty()))
+    {
+        merge_QGate(prog);
+    }
+    try
+    {
+        TraversalConfig config(noise_model.rotation_error());
+        config.m_can_optimize_measure = false;
+
+        std::shared_ptr<AbstractQuantumProgram> qp = nullptr;
+        if (noise_model.enabled())
+        {
+            /* generate simulate prog contains virtual noise gate */
+            auto noise_qprog = NoiseProgGenerator().generate_noise_prog(noise_model, qprog.getImplementationPtr());
+            qp = noise_qprog.getImplementationPtr();
+        }
+        else {
+            qp = qprog.getImplementationPtr();
+        }
+        QPANDA_ASSERT(qp == nullptr, "Error: not valid quantum program");
+
+        //_pGates->initState(0, 1, _Qubit_Pool->get_max_usedqubit_addr() + 1);
+        _pGates->initState(0, 1, qp->get_max_qubit_addr() + 1);
+
+        QProgExecution prog_exec;
+        /* use QProgExecution object address(uniqe in process) as qprog process id _ExecId for recording execute progress */
+        _ExecId = uint64_t(&prog_exec);
+        QProgProgress::getInstance().prog_start(_ExecId);
+        prog_exec.execute(qp, nullptr, config, _pGates);
+        QProgProgress::getInstance().prog_end(_ExecId);
+
+        std::map<string, bool>result;
+        prog_exec.get_return_value(result);
+
+        /* add readout error */
+        if (noise_model.readout_error_enabled())
+        {
+            NoiseReadOutGenerator::append_noise_readout(noise_model, result);
+        }
+
+        /* aiter has been used in line 120 */
+        for (auto aiter : result)
+        {
+            _QResult->append(aiter);
+        }
+    }
+    catch (const std::exception& e)
+    {
+        QCERR(e.what());
+        throw run_fail(e.what());
+    }
 }
 
 QMachineStatus* QVM::getStatus() const
@@ -555,10 +652,7 @@ void QVM::finalize()
 {
 	if (nullptr != _AsyncTask)
 	{	
-		// if( !_AsyncTask->is_finished())
-		// {
-			_AsyncTask->wait();
-		// }
+        _AsyncTask->wait();
 		delete _AsyncTask;
 	}
 
@@ -709,9 +803,441 @@ prob_vec IdealQVM::PMeasure_no_index(QVec qubit_vector)
 	}
 }
 
-map<string, bool> QVM::directlyRun(QProg& qProg)
+void QVM::merge_QGate(QProg& src_prog)
 {
-	run(qProg);
+    flatten(src_prog, true);
+    /* for (auto gate_tmp = prog_node->getFirstNodeIter(); gate_tmp != prog_node->getEndNodeIter();gate_tmp++)
+     {
+         auto gate_itr = std::dynamic_pointer_cast<QNode>(*gate_tmp);
+         copy_prog.insertQNode(copy_prog.getLastNodeIter(), std::dynamic_pointer_cast<QNode>(gate_itr));
+     }*/
+    _fusion_gate(src_prog, 1);
+    _fusion_gate(src_prog, 2);
+}
+
+void  QVM::_fusion_gate(QProg& src_prog, const int fusion_bit)
+{
+    auto prog_node = src_prog.getImplementationPtr();
+    for (auto itr = prog_node->getLastNodeIter(); itr != prog_node->getHeadNodeIter(); --itr)
+    {
+        if (itr == nullptr) {
+            break;
+        }
+
+        auto gate_tmp = std::dynamic_pointer_cast<QNode>(*itr);
+        if ((*gate_tmp).getNodeType() != NodeType::GATE_NODE) {
+            continue;
+        }
+
+        auto gate_node = std::dynamic_pointer_cast<AbstractQGateNode>(gate_tmp);
+        if (gate_node->getControlQubitNum() > 0) {
+            continue;
+        }
+        if (gate_node->getQGate()->getGateType() == GateType::RXX_GATE ||
+            gate_node->getQGate()->getGateType() == GateType::RYY_GATE ||
+            gate_node->getQGate()->getGateType() == GateType::RZZ_GATE ||
+            gate_node->getQGate()->getGateType() == GateType::RZX_GATE)
+        {
+            continue;
+        }
+
+        QVec qubit_vec;
+        gate_node->getQuBitVector(qubit_vec);
+        if (qubit_vec.size() != fusion_bit) {
+            continue;
+        }
+
+        std::vector<NodeIter> fusing_gate_idxs = { itr };
+        std::vector<int> fusing_qubits;
+        for (const auto qbit : qubit_vec) {
+            fusing_qubits.insert(fusing_qubits.end(), qbit->get_phy_addr());
+        }
+
+        /*2.Fuse gate with backwarding*/
+        if (itr != prog_node->getLastNodeIter())
+        {
+            auto fusion_gate_itr = itr;
+            ++fusion_gate_itr;
+            for (; fusion_gate_itr != prog_node->getEndNodeIter(); ++fusion_gate_itr)
+            {
+                auto q_gate = std::dynamic_pointer_cast<QNode>(*fusion_gate_itr);
+                if (q_gate->getNodeType() != NodeType::GATE_NODE) {
+                    continue;
+                }
+
+                auto gate_tmp = std::dynamic_pointer_cast<AbstractQGateNode>(q_gate);
+                if (gate_tmp->getControlQubitNum() > 0) {
+                    break;
+                }
+                if (gate_tmp->getQGate()->getGateType() == GateType::RXX_GATE ||
+                    gate_tmp->getQGate()->getGateType() == GateType::RYY_GATE ||
+                    gate_tmp->getQGate()->getGateType() == GateType::RZZ_GATE ||
+                    gate_tmp->getQGate()->getGateType() == GateType::RZX_GATE)
+                {
+                    continue;
+                }
+
+                auto &t_gate = gate_tmp;
+                if (!_exclude_escaped_qubits(fusing_qubits, t_gate)) {
+                    fusing_gate_idxs.push_back(fusion_gate_itr); /*All the qubits of tgt_op are in fusing_qubits*/
+                }
+
+                else if (fusing_qubits.empty()) {
+                    break;
+                }
+            }
+        }
+
+        std::reverse(fusing_gate_idxs.begin(), fusing_gate_idxs.end());
+        fusing_qubits.clear();
+        for (auto &qbit : qubit_vec) {
+            fusing_qubits.insert(fusing_qubits.end(), qbit->get_phy_addr());
+        }
+
+        /*3.fuse gate with forwarding */
+        if (itr != prog_node->getFirstNodeIter())
+        {
+            auto fusion_gate_itr = itr;
+            --fusion_gate_itr;
+            for (; fusion_gate_itr != prog_node->getHeadNodeIter(); --fusion_gate_itr)
+            {
+                auto q_gate = std::dynamic_pointer_cast<QNode>(*fusion_gate_itr);
+                if (q_gate->getNodeType() != NodeType::GATE_NODE) {
+                    continue;
+                }
+                auto gate_tmp = std::dynamic_pointer_cast<AbstractQGateNode>(q_gate);
+                if (gate_tmp->getControlQubitNum() > 0) {
+                    break;
+                }
+
+                if (gate_tmp->getQGate()->getGateType() == GateType::RXX_GATE ||
+                    gate_tmp->getQGate()->getGateType() == GateType::RYY_GATE ||
+                    gate_tmp->getQGate()->getGateType() == GateType::RZZ_GATE ||
+                    gate_tmp->getQGate()->getGateType() == GateType::RZX_GATE)
+                {
+                    continue;
+                }
+
+                auto &t_gate = gate_tmp;
+                if (!_exclude_escaped_qubits(fusing_qubits, t_gate)) {
+                    fusing_gate_idxs.push_back(fusion_gate_itr); /*All the qubits of tgt_op are in fusing_qubits*/
+                }
+                else if (fusing_qubits.empty()) {
+                    break;
+                }
+            }
+        }
+
+        if (fusing_gate_idxs.size() <= 1) {
+            continue;
+        }
+
+        /*4.generate a fused gate*/
+        _allocate_new_operation(src_prog, itr, fusing_gate_idxs);
+    }
+
+}
+
+bool QVM::_exclude_escaped_qubits(std::vector<int>& fusion_qubits,
+    const QGate& tgt_op)  const
+{
+
+    bool included = true;
+    QVec used_qv;
+    tgt_op.getQuBitVector(used_qv);
+    if (tgt_op.getControlQubitNum() > 0)
+        return true;
+    for (const auto qubit : used_qv) {
+        included &= (std::find(fusion_qubits.begin(), fusion_qubits.end(), qubit->get_phy_addr()) != fusion_qubits.end());
+
+    }
+
+    if (included) {
+        return false;
+    }
+
+    for (const auto op_qubit : used_qv) {
+        auto found = std::find(fusion_qubits.begin(), fusion_qubits.end(), op_qubit->get_phy_addr());
+        if (found != fusion_qubits.end())
+            fusion_qubits.erase(found);
+    }
+    return true;
+}
+
+void QVM::_allocate_new_operation(QProg& prog, NodeIter& index_itr,
+    std::vector<NodeIter>& fusing_gate_itrs)
+{
+    std::vector<QGate> fusion_gates;
+    for (auto& itr : fusing_gate_itrs) {
+        auto p_gate = std::dynamic_pointer_cast<AbstractQGateNode>(*itr);
+        fusion_gates.push_back(p_gate);
+    }
+
+    auto q_gate = _generate_operation(fusion_gates);
+    prog.insertQNode(index_itr, std::dynamic_pointer_cast<QNode>(q_gate.getImplementationPtr()));
+    index_itr++;
+    for (auto &itr : fusing_gate_itrs) {
+        prog.deleteQNode(itr);
+    }
+}
+
+QGate QVM::_generate_operation(std::vector<QGate>& fusion_gates)
+{
+    std::set<int> fusioned_qubits;
+    std::vector<QVec> tmp;
+    for (auto &t_gate : fusion_gates)
+    {
+        QVec t_vec;
+        t_gate.getQuBitVector(t_vec);
+        for (int i = 0; i < t_vec.size(); i++)
+            fusioned_qubits.insert(t_vec[i]->get_phy_addr());
+    }
+
+    std::vector<int> remapped2orig(fusioned_qubits.begin(), fusioned_qubits.end());
+    std::unordered_map<int, int> orig2remapped;
+    std::vector<int> arg_qubits;
+
+    arg_qubits.resize(fusioned_qubits.size(), 0);
+
+    for (int i = 0; i < remapped2orig.size(); i++)
+    {
+        orig2remapped[remapped2orig[i]] = i;
+        arg_qubits[i] = i;
+    }
+    std::map<int, Qubit*> tmp_map;
+    QVec used_qv;
+    this->get_allocate_qubits(used_qv);
+    //qvm->get_allocate_qubits(used_qv);
+
+    for (auto &it : used_qv)
+    {
+        tmp_map[it->get_phy_addr()] = it;
+    }
+    for (auto &op : fusion_gates)
+    {
+        QVec tmp_qv;
+        op.getQuBitVector(tmp_qv);
+        for (int i = 0; i < tmp_qv.size(); i++)
+        {
+            tmp_qv[i] = tmp_map[orig2remapped[tmp_qv[i]->get_phy_addr()]];
+
+        }
+        op.remap(tmp_qv);
+    }
+
+    if (arg_qubits.size() > 2)
+    {
+        auto fusioned_op = _generate_oracle_gate(fusion_gates, arg_qubits);
+        QVec gate_qv;
+        fusioned_op.getQuBitVector(gate_qv);
+
+        for (auto &it : used_qv)
+        {
+            tmp_map[it->get_phy_addr()] = it;
+        }
+        for (size_t i = 0; i < gate_qv.size(); i++)
+        {
+
+            gate_qv[i] = tmp_map[remapped2orig[i]];
+        }
+
+        fusioned_op.remap(gate_qv);
+        return fusioned_op;
+    }
+    else
+    {
+        auto fusioned_op = _generate_operation_internal(fusion_gates, arg_qubits);
+        QVec gate_qv;
+        fusioned_op.getQuBitVector(gate_qv);
+
+        for (auto &it : used_qv)
+        {
+            tmp_map[it->get_phy_addr()] = it;
+        }
+        for (size_t i = 0; i < gate_qv.size(); i++)
+        {
+
+            gate_qv[i] = tmp_map[remapped2orig[i]];
+        }
+
+        fusioned_op.remap(gate_qv);
+        return fusioned_op;
+    }
+}
+
+QGate QVM::_generate_operation_internal(const std::vector<QGate> &fusion_gates,
+    const std::vector<int> &qubits)
+{
+    CPUImplQPU cpu;
+    QStat state;
+    cpu.initMatrixState(qubits.size() * 2, state);
+    for (int i = 0; i < fusion_gates.size(); i++)
+    {
+        QStat matrix;
+        fusion_gates[i].getQGate()->getMatrix(matrix);
+        if (fusion_gates[i].isDagger()) {
+            dagger(matrix);
+        }
+
+        QStat tmp_matrix;
+        tmp_matrix.resize(16);
+        QStat temp_init = { qcomplex_t(1,0), qcomplex_t(0,0),qcomplex_t(0,0),
+        qcomplex_t(1,0) };
+
+        QVec qubit_vector;
+        fusion_gates[i].getQuBitVector(qubit_vector);
+        Qubit* qubit = *(qubit_vector.begin());
+        size_t bit = qubit->getPhysicalQubitPtr()->getQubitAddr();
+        auto gate_type = fusion_gates[i].getQGate()->getGateType();
+
+        std::vector<size_t> phy_qv;
+        for (auto &i : qubit_vector) {
+            phy_qv.push_back(i->get_phy_addr());
+        }
+
+        if (gate_type == GateType::ORACLE_GATE) {
+            cpu.OracleGate(phy_qv, matrix, false);
+        }
+        else
+        {
+            if (qubit_vector.size() > 1) {
+                cpu.double_qubit_gate_fusion(phy_qv[0], phy_qv[1], matrix);
+            }
+            else
+            {
+                if (qubit_vector.size() > 1) {
+                    cpu.double_qubit_gate_fusion(qubits[0], qubits[1], matrix);
+                }
+                else
+                {
+                    if (qubits.size() > 1)
+                    {
+                        if (bit == qubits[0])
+                        {
+                            tmp_matrix = tensor(matrix, temp_init);
+                        }
+                        else
+                        {
+                            tmp_matrix = tensor(temp_init, matrix);
+                        }
+                        cpu.double_qubit_gate_fusion(qubits[0], qubits[1], tmp_matrix);
+                    }
+                    else
+                    {
+                        cpu.single_qubit_gate_fusion(bit, matrix);
+                    }
+                }
+            }
+        }
+
+    }
+
+    QStat data = cpu.getQState();
+    QVec gate_qv;
+    gate_qv.resize(qubits.size(), 0);
+    std::map<int, Qubit*> tmp_map;
+    QVec used_qv;
+    this->get_allocate_qubits(used_qv);
+
+    for (auto &qv : used_qv) {
+        tmp_map[qv->get_phy_addr()] = qv;
+    }
+
+    for (int i = 0; i < qubits.size(); i++) {
+        gate_qv[i] = tmp_map[qubits[i]];
+    }
+
+    if (gate_qv.size() > 1)
+    {
+        for (int j = 0; j < 4; j++)
+        {
+            qcomplex_t tmp = data[j * 4 + 1];
+            data[j * 4 + 1] = data[j * 4 + 2];
+            data[j * 4 + 2] = tmp;
+        }
+        for (int j = 0; j < 4; j++)
+        {
+            qcomplex_t tmp = data[4 + j];
+            data[4 + j] = data[8 + j];
+            data[8 + j] = tmp;
+        }
+        return QDouble(gate_qv[0], gate_qv[1], data);
+    }
+    else
+    {
+        return U4(gate_qv[0], data);
+    }
+
+}
+
+QGate QVM::_generate_oracle_gate(const std::vector<QGate>& fusion_gates,
+    const std::vector<int>& qubits)
+{
+    CPUImplQPU cpu;
+    QStat state;
+    cpu.initMatrixState(qubits.size() * 2, state);
+    for (int i = fusion_gates.size() - 1; i >= 0; i--)
+    {
+        QStat matrix;
+        fusion_gates[i].getQGate()->getMatrix(matrix);
+        if (fusion_gates[i].isDagger()) {
+            dagger(matrix);
+        }
+
+        QVec qubit_vector;
+        fusion_gates[i].getQuBitVector(qubit_vector);
+        Qubit* qubit = *(qubit_vector.begin());
+        size_t bit = qubit->getPhysicalQubitPtr()->getQubitAddr();
+        auto gate_type = fusion_gates[i].getQGate()->getGateType();
+
+        std::vector<size_t> phy_qv;
+        for (auto &i : qubit_vector) {
+            phy_qv.push_back(i->get_phy_addr());
+        }
+
+        if (gate_type == GateType::ORACLE_GATE) {
+            cpu.OracleGate(phy_qv, matrix, false);
+        }
+        else
+        {
+            if (qubit_vector.size() == 1)
+            {
+                cpu.unitarySingleQubitGate(phy_qv[0], matrix, false, (GateType)gate_type);
+            }
+            else
+            {
+                if (gate_type == GateType::CNOT_GATE)
+                {
+                    cpu.unitaryDoubleQubitGate(phy_qv[0], phy_qv[1], matrix, false, (GateType)gate_type);
+                }
+                else
+                {
+                    cpu.three_qubit_gate_fusion(phy_qv[0], phy_qv[1], matrix);
+                }
+            }
+        }
+    }
+
+    QStat data = cpu.getQState();
+    QVec gate_qv;
+    gate_qv.resize(qubits.size(), 0);
+    std::map<int, Qubit*> tmp_map;
+    QVec used_qv;
+
+    this->get_allocate_qubits(used_qv);
+    for (auto &qv : used_qv) {
+        tmp_map[qv->get_phy_addr()] = qv;
+    }
+    for (int i = 0; i < qubits.size(); i++) {
+        gate_qv[i] = tmp_map[qubits[i]];
+    }
+
+    return QOracle(gate_qv, data);
+}
+
+map<string, bool> QVM::directlyRun(QProg& qProg, const NoiseModel& noise_model)
+{
+	run(qProg, noise_model);
 	return _QResult->getResultMap();
 }
 
@@ -851,6 +1377,19 @@ prob_dict IdealQVM::getProbDict(QVec vQubit, int selectMax)
 	prob_dict mResult;
 
 	size_t stLength = vQubit.size();
+
+    for (auto qv_idx = vQubit.begin(); qv_idx != vQubit.end(); qv_idx++)
+    {
+        auto result= count(vQubit.begin(), vQubit.end(), *qv_idx);
+        
+        if (result > 1)
+        {
+            QCERR("the getProbDict qubit_vector has duplicate members");
+            throw invalid_argument("the getProbDict squbit_vector has duplicate members");
+        }
+   
+    }
+   
 	auto vTemp = PMeasure(vQubit, selectMax);
 	for (auto iter : vTemp)
 	{
@@ -896,28 +1435,28 @@ prob_dict IdealQVM::probRunDict(QProg& qProg, const std::vector<int>& qubits_add
 
 
 map<string, size_t> QVM::
-runWithConfiguration(QProg& qProg, vector<ClassicalCondition>& vCBit, int shots)
+runWithConfiguration(QProg& qProg, vector<ClassicalCondition>& vCBit, int shots, const NoiseModel& noise_model)
 {
 	rapidjson::Document doc;
 	doc.Parse("{}");
 	auto& alloc = doc.GetAllocator();
 	doc.AddMember("shots", shots, alloc);
-	return runWithConfiguration(qProg, vCBit, doc);
+	return runWithConfiguration(qProg, vCBit, doc, noise_model);
 }
 
 map<string, size_t> QVM::
-runWithConfiguration(QProg& qProg, vector<int>& cibts_addr, int shots)
+runWithConfiguration(QProg& qProg, vector<int>& cibts_addr, int shots, const NoiseModel& noise_model)
 {
 	vector<ClassicalCondition> cbits_vect;
 	auto cmem = OriginCMem::get_instance();
 	for (auto addr : cibts_addr)
 		cbits_vect.push_back(cmem->get_cbit_by_addr(addr));
 
-	return runWithConfiguration(qProg, cbits_vect, shots);
+	return runWithConfiguration(qProg, cbits_vect, shots, noise_model);
 }
 
 map<string, size_t> QVM::
-runWithConfiguration(QProg& qProg, vector<ClassicalCondition>& vCBit, rapidjson::Document& param)
+runWithConfiguration(QProg& qProg, vector<ClassicalCondition>& vCBit, rapidjson::Document& param, const NoiseModel& noise_model)
 {
 	if (!param.HasMember("shots"))
 	{
@@ -946,13 +1485,13 @@ runWithConfiguration(QProg& qProg, vector<ClassicalCondition>& vCBit, rapidjson:
 	QProgCheck prog_check;
 	prog_check.execute(qProg.getImplementationPtr(), nullptr, traver_param);
 
-	if (traver_param.m_can_optimize_measure && shots > 1)
+	if (traver_param.m_can_optimize_measure && shots > 1 && !noise_model.enabled() && !noise_model.readout_error_enabled())
 	{
 		return run_with_optimizing(qProg, vCBit, shots, traver_param);
 	}
 	else
 	{
-		return run_with_normal(qProg, vCBit, shots);
+		return run_with_normal(qProg, vCBit, shots, noise_model);
 	}
 }
 
@@ -1078,9 +1617,9 @@ size_t QVM::get_processed_qgate_num()
 	return _AsyncTask->get_process(QProgProgress::getInstance(), _ExecId);
 }
 
-void QVM::async_run(QProg& qProg)
+void QVM::async_run(QProg& qProg, const NoiseModel& noise_model)
 {
-	_AsyncTask->run(this, qProg);
+	_AsyncTask->run(this, qProg, noise_model);
 }
 
 bool QVM::is_async_finished()
@@ -1090,7 +1629,8 @@ bool QVM::is_async_finished()
 
 std::map<std::string, bool> QVM::get_async_result()
 {
-	return _AsyncTask->result();
+	_AsyncTask->result();
+	return _QResult->getResultMap();
 }
 
 static void accumulateProbability(prob_vec& probList, prob_vec& accumulateProb)
@@ -1147,7 +1687,9 @@ QStat IdealQVM::getQStat()
 		QCERR("_pGates is null");
 		throw qvm_attributes_error("_pGates is null");
 	}
-	return _pGates->getQState();
+    
+    return _pGates->getQState();
+    
 }
 
 QStat IdealQVM::getQState()
@@ -1245,21 +1787,67 @@ std::vector<ClassicalCondition> QVM::cAllocMany(size_t count)
 
 void QVM::qFree(Qubit* qubit)
 {
-	return Free_Qubit(qubit);
+    if (qubit == nullptr)
+    {
+        return;
+    }
+    this->_Qubit_Pool->Free_Qubit(qubit);
+    delete qubit;
 }
 
 void QVM::qFreeAll(QVec& qubit_vec)
 {
-	return Free_Qubits(qubit_vec);
+    for (auto iter : qubit_vec)
+    {
+        if (iter == nullptr)
+        {
+            break;
+        }
+        this->_Qubit_Pool->Free_Qubit(iter);
+        //delete iter;
+        //iter = nullptr;
+    }
 }
 
-void QVM::cFree(ClassicalCondition& cbit)
+void QVM::qFreeAll()
 {
-	return Free_CBit(cbit);
+    QVec qubit_vec;
+    get_allocate_qubits(qubit_vec);
+    this->qFreeAll(qubit_vec);
+
+    return ;
+}
+
+void QVM::cFree(ClassicalCondition& class_cond)
+{
+    auto cbit = class_cond.getExprPtr()->getCBit();
+    if (nullptr == cbit)
+    {
+        QCERR("cbit is null");
+        throw invalid_argument("cbit is null");
+    }
+    _CMem->Free_CBit(cbit);
 }
 void QVM::cFreeAll(std::vector<ClassicalCondition >& cbit_vec)
 {
-	return Free_CBits(cbit_vec);
+    for (auto &iter : cbit_vec)
+    {
+        auto cbit = iter.getExprPtr()->getCBit();
+        if (nullptr == cbit)
+        {
+            QCERR("cbit is null");
+            throw invalid_argument("cbit is null");
+        }
+        this->_CMem->Free_CBit(cbit);
+    }
+}
+
+void QVM::cFreeAll()
+{
+    std::vector<ClassicalCondition> cc_vec;
+    get_allocate_cbits(cc_vec);
+    cFreeAll(cc_vec);
+    return ;
 }
 
 size_t QVM::getAllocateQubitNum()

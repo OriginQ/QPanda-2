@@ -343,7 +343,9 @@ namespace DRAW_TEXT_PIC
 		void append_barrier_line(int line_start, int line_end, int pos);
 		void append_swap_gate(std::string gate_name, QVec &qubits_vector, QVec &circuit_control_qubits_vec);
 		void append_single_gate(std::string gate_name, QVec &qubits_vector, QVec &circuit_control_qubits_vec);
-		void merge(const std::string& up_wire, std::string& down_wire);
+        void append_double_gate(std::string gate_name, QVec &qubits_vector);
+        void append_oracle_gate(std::string gate_name, QVec &qubits_vector);
+        void merge(const std::string& up_wire, std::string& down_wire);
 		void set_connect_direction(const int& qubit, const std::vector<int>& vec_qubits, DrawBox& box);
 		void append_ctrl_line(int line_start, int line_end, int pos);
 		bool is_qubit_in_vec(const int qubit, const QVec& vec);

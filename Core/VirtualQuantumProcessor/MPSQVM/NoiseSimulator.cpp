@@ -189,7 +189,7 @@ static bool is_rotation_gate(GateType type)
            GateType::ISWAP_THETA_GATE == type;
 }
 
-static int random_discrete(const std::vector<double> &probs)
+static size_t random_discrete(const std::vector<double> &probs)
 { 
     static RandomEngine19937 rng;
     return rng.random_discrete(probs);
@@ -500,6 +500,17 @@ void NoiseSimulator::execute(std::shared_ptr<AbstractControlFlowNode> cur_node,
     QCERR("not support controlflow");
     throw std::runtime_error("not support controlflow");
 }
+
+void NoiseSimulator::execute(std::shared_ptr<AbstractQNoiseNode>, std::shared_ptr<QNode>, QCircuitConfig &config)
+{
+    QCERR_AND_THROW(std::runtime_error, "not support virtual nosie node")
+}
+
+void NoiseSimulator::execute(std::shared_ptr<AbstractQDebugNode>, std::shared_ptr<QNode>, QCircuitConfig &config)
+{
+    QCERR_AND_THROW(std::runtime_error, "not support debug node")
+}
+
 
 void NoiseSimulator::execute(std::shared_ptr<AbstractQuantumCircuit> cur_node,
     std::shared_ptr<QNode> parent_node, QCircuitConfig &config)

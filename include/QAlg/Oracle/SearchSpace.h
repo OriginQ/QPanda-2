@@ -10,17 +10,6 @@
 
 QPANDA_BEGIN
 
-#define PRINT_TRACE 0
-#if PRINT_TRACE
-#define PTrace printf
-#define PTraceMat(mat) (std::cout << (mat) << endl)
-#define PTraceQCircuit(string, cir) (std::cout << string << endl << cir << endl)
-#else
-#define PTrace
-#define PTraceMat(mat)
-#define PTraceMat(string, cir)
-#endif
-
 template <class T>
 class SearchSpace
 {

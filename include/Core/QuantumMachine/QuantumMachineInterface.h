@@ -27,6 +27,7 @@ limitations under the License.
 #include "Core/QuantumMachine/QVec.h"
 #include "Core/Utilities/Tools/OriginCollection.h"
 #include "Core/Module/DataStruct.h"
+#include "Core/QuantumNoise/NoiseModelV2.h"
 
 QPANDA_BEGIN
 
@@ -154,7 +155,7 @@ public:
     * @param[in]  bg_run will run in background, default is not
     * @return     std::map<std::string, bool>
     */
-    virtual std::map<std::string, bool> directlyRun(QProg & qProg) = 0;
+    virtual std::map<std::string, bool> directlyRun(QProg & qProg, const NoiseModel& = NoiseModel()) = 0;
 
     /**
     * @brief  runWithConfiguration
@@ -163,7 +164,7 @@ public:
     * @param[in]  rapidjson::Document&
     * @return     std::map<std::string, Eigen::size_t>
     */
-    virtual std::map<std::string, size_t> runWithConfiguration(QProg &, std::vector<ClassicalCondition> &, rapidjson::Document&) = 0;
+    virtual std::map<std::string, size_t> runWithConfiguration(QProg &, std::vector<ClassicalCondition> &, rapidjson::Document&, const NoiseModel& = NoiseModel()) = 0;
 
 	/**
     * @brief  runWithConfiguration
@@ -172,16 +173,16 @@ public:
     * @param[in]  int
     * @return     std::map<std::string, Eigen::size_t>
     */
-	virtual std::map<std::string, size_t> runWithConfiguration(QProg &, std::vector<ClassicalCondition> &, int) = 0;
+	virtual std::map<std::string, size_t> runWithConfiguration(QProg &, std::vector<ClassicalCondition> &, int, const NoiseModel& = NoiseModel()) = 0;
    
     /**
-* @brief  runWithConfiguration
-* @param[in]  QProg& quantum program
-* @param[in]  std::vector<int>& cbit addrs
-* @param[in]  int
-* @return     std::map<std::string, Eigen::size_t>
-*/
-    virtual std::map<std::string, size_t> runWithConfiguration(QProg&, std::vector<int>&, int) = 0;
+    * @brief  runWithConfiguration
+    * @param[in]  QProg& quantum program
+    * @param[in]  std::vector<int>& cbit addrs
+    * @param[in]  int
+    * @return     std::map<std::string, Eigen::size_t>
+    */
+    virtual std::map<std::string, size_t> runWithConfiguration(QProg&, std::vector<int>&, int, const NoiseModel& = NoiseModel()) = 0;
     
     /**
     * @brief  getGateTimeMap
@@ -280,6 +281,12 @@ public:
 
     /**
     * @brief  qFreeAll
+    * @return     void
+    */
+    virtual void qFreeAll() = 0;
+
+    /**
+    * @brief  qFreeAll
     * @param[in]  QVec&
     * @return     void
     */
@@ -298,6 +305,12 @@ public:
     * @return     void
     */
     virtual void cFreeAll(std::vector<ClassicalCondition > &) = 0;
+
+    /**
+    * @brief  cFreeAll
+    * @return     void
+    */
+    virtual void cFreeAll() = 0;
 
     /**
     * @brief  getAllocateQubitNum
@@ -356,7 +369,7 @@ public:
      * @brief like @direclyRun but run prog async
      * 
      */
-    virtual void async_run(QProg & qProg) = 0;
+    virtual void async_run(QProg & qProg, const NoiseModel& = NoiseModel()) = 0;
 
     /**
      * @brief check async_run is finished

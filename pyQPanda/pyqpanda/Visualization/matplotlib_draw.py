@@ -134,8 +134,8 @@ class Anchor:
         # if h_pos + (gate_width - 1) > self.__fold:
         #     _index = index + self.__fold - (h_pos - 1)
         # else:
-        #     _index = index
-        _index = index - self.__fold
+        _index = index
+        #_index = index - self.__fold
         for ii in range(math.floor(gate_width)):
             if _index + ii not in self.__gate_placed:
                 self.__gate_placed.append(_index + ii)
@@ -281,11 +281,11 @@ class MatplotlibDrawer:
 
             disp_text = text
             if subtext:
-                self.ax.text(xpos, ypos + 0.5 * height, disp_text, ha='center',
+                self.ax.text(xpos, ypos + 0.4 * height, disp_text, ha='center',
                              va='center', fontsize=self._style.fs,
                              color=self._style.gt, clip_on=True,
                              zorder=PORDER_TEXT)
-                self.ax.text(xpos, ypos + 0.3 * height, subtext, ha='center',
+                self.ax.text(xpos, ypos + 0.2 * height, subtext, ha='center',
                              va='center', fontsize=self._style.sfs,
                              color=self._style.sc, clip_on=True,
                              zorder=PORDER_TEXT)
@@ -914,7 +914,9 @@ class MatplotlibDrawer:
 
     def _draw_ops(self, verbose=False):
         _wide_gate = [pq.GateType.RX_GATE, pq.GateType.RY_GATE, pq.GateType.RZ_GATE, pq.GateType.U1_GATE, pq.GateType.U2_GATE, 
-        pq.GateType.U3_GATE, pq.GateType.U4_GATE, pq.GateType.CU_GATE, pq.GateType.CPHASE_GATE, pq.GateType.ISWAP_THETA_GATE]
+        pq.GateType.U3_GATE, pq.GateType.U4_GATE, pq.GateType.CU_GATE, pq.GateType.CPHASE_GATE, pq.GateType.ISWAP_THETA_GATE,
+         pq.GateType.U3_GATE, pq.GateType.U4_GATE, pq.GateType.CU_GATE, pq.GateType.CPHASE_GATE, pq.GateType.ISWAP_THETA_GATE,
+        pq.GateType.RXX_GATE,pq.GateType.RYY_GATE,pq.GateType.RZZ_GATE,pq.GateType.RZX_GATE]
         _barriers = {'coord': [], 'group': []}
 
         #
@@ -1060,10 +1062,12 @@ class MatplotlibDrawer:
                 lmax = max(list) + 1
                 if op.m_node_type == pq.NodeType.MEASURE_GATE:
                     lmax = len(q_anchors)
+                if op.m_gate_type in [pq.GateType.ORACLE_GATE, pq.GateType.TWO_QUBIT_GATE] :
+                    layer_width = 2
 
                 for hh in range(lmin,lmax):
                     if hh in occupied_qubits:
-                        my_offset_tmp += 0.45*layer_width
+                        my_offset_tmp += 0.9*layer_width
                         my_offset += my_offset_tmp
                         break
 
@@ -1275,12 +1279,15 @@ class MatplotlibDrawer:
                             #                              text=op.m_name)
 
                         # Custom gate
+                        elif  op.m_gate_type in [pq.GateType.RXX_GATE,pq.GateType.RYY_GATE,pq.GateType.RZZ_GATE,pq.GateType.RZX_GATE]:
+                             self._custom_multiqubit_gate(q_xy, c_xy, wide=True,
+                                                      text=op.m_gate_type,subtext=f"{param}")
                         else:
-                            self._custom_multiqubit_gate(q_xy, c_xy, wide=_iswide,
-                                                     text='op.custom')
+                            self._custom_multiqubit_gate(q_xy, c_xy, wide=True,
+                                                     text='Unitary')
                     else:
                         self._custom_multiqubit_gate(
-                            q_xy[num_ctrl_qubits:], wide=_iswide, fc=self._style.dispcol['multi'],
+                             q_xy[num_ctrl_qubits:], wide=True, fc=self._style.dispcol['Unitary'],
                             text=disp)
 
                 #
@@ -1339,14 +1346,21 @@ class MatplotlibDrawer:
                         self._line(qreg_b, qreg_t, lc=self._style.dispcol['ISWAP'])
 
                     # Custom gate
+                    elif  op.m_gate_type in [pq.GateType.RXX_GATE,pq.GateType.RYY_GATE,pq.GateType.RZZ_GATE,pq.GateType.RZX_GATE]:
+                        disp = op.m_name
+                        self._custom_multiqubit_gate(q_xy, c_xy, wide=True,
+                        text=disp,subtext=str(param))
+
                     else:
-                        self._custom_multiqubit_gate(q_xy, c_xy, wide=_iswide,
-                                                     text='op.custom')
+                        self._custom_multiqubit_gate(q_xy, c_xy, wide=True,
+                                                     text='Unitary')
                 #
                 # draw multi-qubit gates (n=3)
                 #
                 elif len(q_xy) in range(3, 6):
-                    # cswap gate
+                    # Unitary
+                    self._custom_multiqubit_gate(q_xy, c_xy, wide=True,
+                                                 text='Unitary')
                     '''
                     if op.m_name == 'cswap':
                         self._ctrl_qubit(q_xy[0],
@@ -1378,8 +1392,8 @@ class MatplotlibDrawer:
                     '''
                 # draw custom multi-qubit gate
                 elif len(q_xy) > 5:
-                    self._custom_multiqubit_gate(q_xy, c_xy, wide=_iswide,
-                                                 text='custom-multi-qubit')
+                    self._custom_multiqubit_gate(q_xy, c_xy, wide=True,
+                                                 text='Unitary')
                 else:
                     print('Invalid gate %s', op.m_name)
 

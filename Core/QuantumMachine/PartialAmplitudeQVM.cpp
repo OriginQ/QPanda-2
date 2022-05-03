@@ -1,8 +1,9 @@
 #include "Core/QuantumMachine/PartialAmplitudeQVM.h"
 #include <set>
+
+USING_QPANDA
 using angleParameter = QGATE_SPACE::AbstractSingleAngleParameter;
 using namespace std;
-USING_QPANDA
 
 static void get_dec_index(std::vector<string> &bin_index, std::vector<uint128_t> &dec_index)
 {
@@ -277,6 +278,15 @@ void PartialAmplitudeQVM::execute(std::shared_ptr<AbstractQuantumMeasure>  cur_n
 void PartialAmplitudeQVM::execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node)
 {
 	QCERR("ignore controlflow");
+}
+
+void PartialAmplitudeQVM::execute(std::shared_ptr<AbstractQNoiseNode> cur_node, std::shared_ptr<QNode> parent_node)
+{
+	QCERR_AND_THROW(std::invalid_argument, "PartialAmplitudeQVM not support execute Virtual Noise Node");
+}
+
+void PartialAmplitudeQVM::execute(std::shared_ptr<AbstractQDebugNode> cur_node, std::shared_ptr<QNode> parent_node){
+	QCERR_AND_THROW(std::invalid_argument, "PartialAmplitudeQVM not support Debug");
 }
 
 void PartialAmplitudeQVM::execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std::shared_ptr<QNode> parent_node)

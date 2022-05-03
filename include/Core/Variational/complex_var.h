@@ -57,6 +57,19 @@ public:
             m_real*value.m_imag + m_imag*value.m_real);
     }
 
+    friend const complex_var operator * (const complex_var& lhs, const int64_t& rhs)
+    {
+        return complex_var(lhs.m_real *rhs, lhs.m_imag * rhs);
+    }
+
+    complex_var operator*= (const complex_var& lhs)
+    {
+        m_real = m_real * lhs.m_real - m_imag * lhs.m_imag;
+        m_imag = m_real * lhs.m_imag + m_imag * lhs.m_real;
+        return *this;
+    }
+
+
     // (a+bi)/(c+di) = (ac+bd)/(c*c+d*d)+(bc-ad)i/(c*c+d*d)
     const complex_var operator / (const complex_var &value)
     {

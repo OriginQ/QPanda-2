@@ -41,8 +41,6 @@ bool QPanda::is_single_gate(const GateType gt_type) {
     case U2_GATE:
     case U3_GATE:
     case U4_GATE:
-    case P00_GATE:
-    case P11_GATE:
     case I_GATE:
     case ECHO_GATE:
         return true;
@@ -79,6 +77,11 @@ TransformQGateType::TransformQGateType()
 
     m_qgate_type_map.insert({ GATE_CU, CU_GATE });
     m_qgate_type_map.insert({ GATE_CP, CP_GATE });
+	m_qgate_type_map.insert({ GATE_RYY, RYY_GATE });
+	m_qgate_type_map.insert({ GATE_RXX, RXX_GATE });
+	m_qgate_type_map.insert({ GATE_RZZ, RZZ_GATE });
+	m_qgate_type_map.insert({ GATE_RZX, RZX_GATE });
+
     m_qgate_type_map.insert({ GATE_CNOT, CNOT_GATE });
     m_qgate_type_map.insert({ GATE_CZ, CZ_GATE });
     m_qgate_type_map.insert({ GATE_CPHASE, CPHASE_GATE });

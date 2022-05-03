@@ -8,19 +8,6 @@
 
 QPANDA_BEGIN
 
-#define PRINT_TRACE 0
-#if PRINT_TRACE
-#define PTrace printf
-#define PTraceMat(mat) (std::cout << (mat) << endl)
-#define PTraceQCircuit(string, cir) (std::cout << string << endl << cir << endl)
-#define PTraceQCirMat(string, cir) {auto m = getCircuitMatrix(cir); std::cout << string << endl << m << endl;}
-#else
-#define PTrace
-#define PTraceMat(mat)
-#define PTraceMat(string, cir)
-#define PTraceQCirMat(string, cir)
-#endif
-
 class AbstractQuantumCounting
 {
 public:

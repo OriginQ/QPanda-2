@@ -248,6 +248,7 @@ namespace Variational {
         var(const var&);
         var& operator=(const double& num);
         var& operator=(const var&);
+        var& operator-();
         var clone();
         virtual size_t getNumOpArgs();
         MatrixXd getValue() const;

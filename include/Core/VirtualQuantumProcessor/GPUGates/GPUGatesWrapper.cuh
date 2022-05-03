@@ -37,6 +37,7 @@ public:
 
     virtual ~DeviceQPU();
 private:
+    int m_device_id = { 0 };
     device_qsize_t m_qubit_num{0};
     device_state_t m_device_state;
     device_state_t m_device_matrix;
@@ -46,7 +47,6 @@ private:
     const size_t m_max_matrix_size = 1024;
 
     qstate_type* m_reduce_buffer;
-    int m_device_id{ 0 };
     std::vector<bool> m_peer_access;
     int m_device_num{ 0 };
     cudaStream_t m_cuda_stream{nullptr};

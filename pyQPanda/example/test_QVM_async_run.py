@@ -1,3 +1,10 @@
+# code for inplace run test, add \qpanda-2.\pyQPanda to module search paths
+import sys
+import os.path
+dir = os.path.abspath(__file__)
+model_path = os.path.abspath(os.path.join(dir, "../.."))
+sys.path.insert(0, model_path)
+
 from pyqpanda import *
 import unittest
 

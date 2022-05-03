@@ -2,8 +2,10 @@
 #include "QPanda.h"
 #include <bitset>
 #include<algorithm>
-QPANDA_BEGIN
+#include <iomanip>
+
 using namespace std;
+USING_QPANDA
 
 StateNode::StateNode(int out_index, int out_level, double out_amplitude, StateNode* out_left, StateNode* out_right):index(out_index),level(out_level),amplitude(out_amplitude)
 {
@@ -903,6 +905,7 @@ void Encode::iqp_encode(const QVec &q, const vector<double>& data, const std::ve
 
 void Encode::ds_quantum_state_preparation(const QVec &q, const std::map<std::string, double>& data) 
 {
+
 	if (data.empty()){
 
 		QCERR_AND_THROW_ERRSTR(run_fail, "Error: The input map data must not null.");
@@ -953,28 +956,46 @@ void Encode::ds_quantum_state_preparation(const QVec &q, const std::map<std::str
 	int k = 0;
 	auto iter = data.begin();
 	int numqubits = (*iter).first.size();
-
+	QVec u = q[0];
+	QVec a;
+	QVec m;
+	for (int i = 1; i < numqubits; ++i) {
+		a.push_back(q[i]);
+	}
+	for (int i = numqubits; i < 2 * numqubits; ++i) {
+		m.push_back(q[i]);
+	}
 	for (auto i : data) 
 	{
 		string binary_string = i.first;
 		double feature = i.second;
 		vector<int>control = _select_controls(binary_string);
-		_flip_flop(q,control,numqubits);
-		_load_superposition(q,control,numqubits,feature,norm);
+		_flip_flop(u,m,control,numqubits);
+		_load_superposition(u,a,m,control,numqubits,feature,norm);
 		if (k < data.size() - 1) {
-			_flip_flop(q,control, numqubits);
+			_flip_flop(u,m,control, numqubits);
 		}
 		else {
 			break;
 		}
 		k++;
 	}
+	m_out_qubits = m;
+}
+void Encode::ds_quantum_state_preparation(const QVec &q, const std::vector<double>&data) {
 
-	for (int i = numqubits; i < 2 * numqubits; ++i) {
-		m_out_qubits.push_back(q[i]);
-	}
+	map<string, double>state = _build_state_dict(data);
+	return ds_quantum_state_preparation(q, state);
+}
+
+void Encode::ds_quantum_state_preparation(const QVec &q, const std::vector<std::complex<double>>&data) 
+{
+
+	map<string, complex<double>>state = _build_state_dict(data);
+	return ds_quantum_state_preparation(q, state);
 }
 void Encode::ds_quantum_state_preparation(const QVec &q, const std::map<std::string, std::complex<double>>& data) {
+
 	if (data.empty()) 
 	{
 		QCERR_AND_THROW_ERRSTR(run_fail, "Error: The input map data must not null.");
@@ -1010,7 +1031,6 @@ void Encode::ds_quantum_state_preparation(const QVec &q, const std::map<std::str
 	{
 		tmp_sum += (i.second.real()*i.second.real())+(i.second.imag()*i.second.imag());
 	}
-
 	if (std::abs(1.0 - tmp_sum) > max_precision)
 	{
 		if (std::abs(tmp_sum) < max_precision)
@@ -1027,51 +1047,57 @@ void Encode::ds_quantum_state_preparation(const QVec &q, const std::map<std::str
 	int k = 0;
 	auto iter = data.begin();
 	int numqubits = (*iter).first.size();
-
+	QVec u = q[0];
+	QVec a;
+	QVec m;
+	for (int i = 1; i < numqubits; ++i) {
+		a.push_back(q[i]);
+	}
+	for (int i = numqubits; i < 2 * numqubits; ++i) {
+		m.push_back(q[i]);
+	}
 	for (auto i : data)
 	{
 		string binary_string = i.first;
 		complex<double> feature = i.second;
 		vector<int>control = _select_controls(binary_string);
-		_flip_flop(q, control, numqubits);
-		_load_superposition(q, control, numqubits, feature, norm);
+		_flip_flop(u,m, control, numqubits);
+		_load_superposition(u,a,m, control, numqubits, feature, norm);
 		if (k < data.size() - 1) {
-			_flip_flop(q, control, numqubits);
+			_flip_flop(u,m, control, numqubits);
 		}
 		else {
 			break;
 		}
 		k++;
 	}
-
-	for (int i = numqubits; i < 2 * numqubits; ++i) {
-		m_out_qubits.push_back(q[i]);
-	}
+	m_out_qubits = m;
+	
 }
-void Encode::_flip_flop(const QVec& q,std::vector<int>control,int numqbits) 
+void Encode::_flip_flop(const QVec& u, const QVec& m,std::vector<int>control,int numqbits)
 {
 	for (int i : control) 
 	{
-		m_qcircuit << CNOT(q[0], q[i+numqbits]);
+		m_qcircuit << CNOT(u[0], m[i]);
 	}
 }
 
 template<typename T>
-void Encode::_load_superposition(const QVec& q, std::vector<int>control, int numqbits, T feature, double& norm)
+void Encode::_load_superposition(const QVec& u, const QVec& a,const QVec& m, std::vector<int>control, int numqbits, T feature, double& norm)
 {
 	vector<double>angle = _compute_matrix_angles(feature, norm);
 
 	if (control.size() == 0)
 	{
-		m_qcircuit << U3(q[0], angle[0],angle[1],angle[2]);
+		m_qcircuit << U3(u[0], angle[0],angle[1],angle[2]);
 	}
 	else if (control.size() == 1)
 	{
-		m_qcircuit << U3(q[0], angle[0], angle[1], angle[2]).control(q[control[0] + numqbits]);
+		m_qcircuit << U3(u[0], angle[0], angle[1], angle[2]).control(m[control[0]]);
 	}
 	else
 	{
-		_mcuvchain(q, control, angle, numqbits);
+		_mcuvchain(u,a,m, control, angle, numqbits);
 	}
 
 	norm = norm - std::abs(feature*feature);
@@ -1091,39 +1117,44 @@ std::vector<int> Encode::_select_controls(string binary_string)
 
 	return control_qubits;
 }
-void Encode::_mcuvchain(const QVec &q,std::vector<int>control, std::vector<double> angle,int numqbits)
+void Encode::_mcuvchain(const QVec &u,const QVec a,const QVec m,std::vector<int>control, std::vector<double> angle,int numqbits)
 {
 	vector<int>reverse_control(control);
 	reverse(reverse_control.begin(), reverse_control.end());
-	m_qcircuit << X(q[numqbits - 1]).control({q[reverse_control[0] + numqbits], q[reverse_control[1] + numqbits]});
+	m_qcircuit << X(a[numqbits - 2]).control({m[reverse_control[0]], m[reverse_control[1]]});
 	std::vector<std::vector<int>>tof;
 	tof.resize(numqbits);
-	int k = numqbits;
-
+	int k = numqbits-1;
+	
 	for (int i = 2; i < reverse_control.size(); ++i) 
 	{
-		m_qcircuit << X(q[k - 2]).control({q[reverse_control[i] + numqbits], q[k-1]});
+		m_qcircuit << X(a[k - 2]).control({m[i], a[k-1]});
 		tof[reverse_control[i]].push_back(k-1);
 		tof[reverse_control[i]].push_back(k - 2);
 		k -= 1;
 	}
 
-	m_qcircuit << U3(q[0], angle[0], angle[1], angle[2]).control(q[k - 1]);
+	m_qcircuit << U3(u[0], angle[0], angle[1], angle[2]).control(a[k - 1]);
 
 	for (int i = control.size()-3; i >=0; i-=2)
 	{
-		m_qcircuit << X(q[tof[control[i]][1]]).control({ q[control[i] + numqbits], q[tof[control[i]][0]] });
+		m_qcircuit << X(a[tof[control[i]][1]]).control({ m[control[i]], a[tof[control[i]][0]] });
 	}
 
-	m_qcircuit << X(q[numqbits-1]).control({ q[control[control.size() - 1]+numqbits], q[control[control.size() - 2]+numqbits] });
+	m_qcircuit << X(a[numqbits-2]).control({ m[control[control.size() - 1]], m[control[control.size() - 2]] });
 
 	return;
 }
 std::vector<double> Encode::_compute_matrix_angles(std::complex<double> feature, double norm)
 {
-	double alpha = 0.0, beta = 0.0, phi = 0.0;
+	double alpha = 0.0, beta = 0.0, phi = 0.0, cos_value = 0.0;
 	double phase = std::abs(feature*feature);
-	double cos_value = std::sqrt((norm - phase) / norm);
+	if (norm - phase < 1e-6) {
+		cos_value = 0.0;
+	}
+	else {
+		cos_value = std::sqrt((norm - phase) / norm);
+	}
 	double value = std::min(cos_value, 1.0);
 
 	if (value < -1)
@@ -1161,6 +1192,7 @@ std::vector<double> Encode::_compute_matrix_angles(double feature, double norm)
 }
 void Encode::sparse_isometry(const QVec &q, const std::map<std::string, double>& data) 
 {
+	
 	if (data.empty())
 	{
 		QCERR_AND_THROW_ERRSTR(run_fail, "Error: The input map data must not null.");
@@ -1189,6 +1221,7 @@ void Encode::sparse_isometry(const QVec &q, const std::map<std::string, double>&
 
 	for (const auto i : data)
 	{
+
 		tmp_sum += i.second*i.second;
 	}
 
@@ -1298,9 +1331,18 @@ std::string Encode::_get_index_nz(std::map<std::string, T>data, int target_size)
 
 	return index_nonzero;
 }
+void Encode::sparse_isometry(const QVec &q, const std::vector<double>& data) {
+	map<string,double>state=_build_state_dict(data);
+	return sparse_isometry(q, state);
+}
 
+void Encode::sparse_isometry(const QVec &q, const std::vector<complex<double>> &data) {
+	map<string, complex<double>>state = _build_state_dict(data);
+	return sparse_isometry(q, state);
+}
 void Encode::sparse_isometry(const QVec &q, const std::map<std::string, complex<double>>& data)
 {
+
 	if (data.empty())
 	{
 		QCERR_AND_THROW_ERRSTR(run_fail, "Error: The input map data must not null.");
@@ -1583,6 +1625,24 @@ void Encode::schmidt_encode(const QVec &q, const std::vector<double>& data)
 		throw run_fail("Schmidt_encode parameter error.");
 	}
 
+	_schmidt(q, data_temp);
+
+	int count = log2(data_temp.size());
+	int cnt = 0;
+	for (auto i : q) 
+	{
+		if (cnt < count) {
+			m_out_qubits.push_back(i);
+		}
+		cnt++;
+	}
+
+	return;
+}
+void Encode::_schmidt(const QVec &q, const std::vector<double>& data) {
+
+	vector<double>data_temp = data;
+
 	QVec qubits;
 	int k = 0;
 
@@ -1595,10 +1655,14 @@ void Encode::schmidt_encode(const QVec &q, const std::vector<double>& data)
 	if (qubits.size() == 1) {
 
 		if (data_temp[0] < 0) {
-			m_qcircuit << RY(qubits[0], 2 * PI - 2 * acos(data_temp[0]));
+			
+				m_qcircuit << RY(qubits[0], 2 * PI - 2 * acos(fminl(fmaxl(data_temp[0], -1.0), 1.0)));
+			
 		}
 		else {
-			m_qcircuit << RY(qubits, 2 * acos(data_temp[0]));
+			
+				m_qcircuit << RY(qubits[0], 2 * acos(fminl(fmaxl(data_temp[0], -1.0), 1.0)));
+
 		}
 
 		return;
@@ -1612,8 +1676,8 @@ void Encode::schmidt_encode(const QVec &q, const std::vector<double>& data)
 	int size = data_temp.size();
 	int n_qubits = log2(size);
 	int	r = n_qubits % 2;
-	int row = 1<<(n_qubits>>1);
-	int col = 1 << ((n_qubits >> 1)+r);
+	int row = 1 << (n_qubits >> 1);
+	int col = 1 << ((n_qubits >> 1) + r);
 	EigenMatrixXc eigen_matrix = EigenMatrixXc::Zero(row, col);
 	k = 0;
 
@@ -1658,15 +1722,20 @@ void Encode::schmidt_encode(const QVec &q, const std::vector<double>& data)
 
 	if (A_vec.size() > 2)
 	{
-		schmidt_encode(B_qubits, A_vec);
+		_schmidt(B_qubits, A_vec);
 	}
 	else
 	{
 		if (A_vec[0] < 0) {
-			m_qcircuit << RY(B_qubits, 2 * PI - 2 * acos(A_vec[0]));
+
+				m_qcircuit << RY(B_qubits, 2 * PI - 2 * acos(fminl(fmaxl(A_vec[0], -1.0), 1.0)));
+
+			
 		}
 		else {
-			m_qcircuit << RY(B_qubits, 2 * acos(A_vec[0]));
+
+				m_qcircuit << RY(B_qubits, 2 * acos(fminl(fmaxl(A_vec[0], -1.0), 1.0)));
+	
 		}
 	}
 
@@ -1679,16 +1748,6 @@ void Encode::schmidt_encode(const QVec &q, const std::vector<double>& data)
 
 	_unitary(A_qubits, V);
 
-	for (auto i : A_qubits) 
-	{
-		m_out_qubits.push_back(i);
-	}
-
-	for (auto i : B_qubits)
-	{
-		m_out_qubits.push_back(i);
-	}
-
 	return;
 }
 void Encode::_unitary(const QVec &q, EigenMatrixXc gate) {
@@ -1696,12 +1755,543 @@ void Encode::_unitary(const QVec &q, EigenMatrixXc gate) {
 	const QStat mat = Eigen_to_QStat(gate);
 
 
-	//QCircuit circuit = matrix_decompose_qr(q, gate,false);
-
-	m_qcircuit << QOracle(q, mat);
+	QCircuit circuit = matrix_decompose_qr(q, gate,false);
+	m_qcircuit << circuit;
+	//m_qcircuit << QOracle(q, mat);
 
 	return;
 }
+
+void Encode::efficient_sparse(const QVec &q, const std::vector<double>& data)
+{
+	
+	map<string, double>state = _build_state_dict(data);
+
+	efficient_sparse(q, state);
+
+}
+
+void Encode::efficient_sparse(const QVec &q, const std::map<string, double>&data)
+{
+	if (data.empty())
+	{
+		QCERR_AND_THROW_ERRSTR(run_fail, "Error: The input map data must not null.");
+	}
+
+	int size = (*data.begin()).first.size();
+
+
+	for (auto i : data)
+	{
+		if (i.first.size() != size)
+		{
+			QCERR_AND_THROW_ERRSTR(run_fail, "Error: The input map data.key must have same dimension.");
+		}
+		for (char c : i.first)
+		{
+			if (c != '0'&&c != '1')
+			{
+				QCERR_AND_THROW_ERRSTR(run_fail, "Error: The input map data.key must be binary string.");
+			}
+		}
+
+	}
+
+	if (1 << (*data.begin()).first.size() > 1 << (int)(q.size())) {
+
+		QCERR_AND_THROW_ERRSTR(run_fail, "Error: The input qubits size error.");
+	}
+
+	const double max_precision = 1e-13;
+	double tmp_sum = 0.0;
+
+	for (const auto i : data)
+	{
+		tmp_sum += (i.second*i.second);
+	}
+
+	if (std::abs(1.0 - tmp_sum) > max_precision)
+	{
+		if (std::abs(tmp_sum) < max_precision)
+		{
+			QCERR("Error: The input vector b is zero.");
+			return;
+		}
+
+		QCERR_AND_THROW_ERRSTR(run_fail, "Error: The input vector b must satisfy the normalization condition.");
+	}
+
+	QVec reverse_q;
+	for (int i = q.size() - 1; i >= 0; --i) {
+		reverse_q.push_back(q[i]);
+	}
+
+	map<string, double>state(data);
+	int n_qubits = (*data.begin()).first.size();
+	while (state.size() > 1) {
+		state = _merging_procedure(state, reverse_q);
+	}
+
+	string b_string = (*state.begin()).first;
+
+	for (int i = 0; i < b_string.size(); ++i)
+	{
+		if (b_string[i] == '1') {
+			m_qcircuit << X(reverse_q[i]);
+		}
+	}
+
+	m_qcircuit = m_qcircuit.dagger();
+	for (int i = n_qubits - 1; i >= 0; --i) {
+		m_out_qubits.push_back(reverse_q[i]);
+	}
+	
+	return;
+}
+
+void Encode::efficient_sparse(const QVec &q, const std::vector<qcomplex_t>& data) 
+{
+	map<string, qcomplex_t>state = _build_state_dict(data);
+
+	efficient_sparse(q,state);
+	
+}
+
+
+void Encode::efficient_sparse(const QVec &q, const std::map<string, qcomplex_t>&data) 
+{
+	if (data.empty())
+	{
+		QCERR_AND_THROW_ERRSTR(run_fail, "Error: The input map data must not null.");
+	}
+
+	int size = (*data.begin()).first.size();
+
+
+	for (auto i : data)
+	{
+		if (i.first.size() != size)
+		{
+			QCERR_AND_THROW_ERRSTR(run_fail, "Error: The input map data.key must have same dimension.");
+		}
+		for (char c : i.first)
+		{
+			if (c != '0'&&c != '1')
+			{
+				QCERR_AND_THROW_ERRSTR(run_fail, "Error: The input map data.key must be binary string.");
+			}
+		}
+
+	}
+
+	if (1 << (*data.begin()).first.size() > 1 << (int)(q.size())) {
+
+		QCERR_AND_THROW_ERRSTR(run_fail, "Error: The input qubits size error.");
+	}
+
+	const double max_precision = 1e-13;
+	double tmp_sum = 0.0;
+
+	for (const auto i : data)
+	{
+		tmp_sum += (i.second.real()*i.second.real()) + (i.second.imag()*i.second.imag());
+	}
+
+	if (std::abs(1.0 - tmp_sum) > max_precision)
+	{
+		if (std::abs(tmp_sum) < max_precision)
+		{
+			QCERR("Error: The input vector b is zero.");
+			return;
+		}
+
+		QCERR_AND_THROW_ERRSTR(run_fail, "Error: The input vector b must satisfy the normalization condition.");
+	}
+
+	QVec reverse_q;
+	for (int i = q.size() - 1; i >= 0; --i) {
+		reverse_q.push_back(q[i]);
+	}
+
+	map<string, qcomplex_t>state(data);
+	int n_qubits = (*data.begin()).first.size();
+	while (state.size() > 1) {
+		state = _merging_procedure(state, reverse_q);
+	}
+
+	string b_string = (*state.begin()).first;
+
+
+	for (int i = 0; i < b_string.size(); ++i)
+	{
+		if (b_string[i] == '1') {
+			m_qcircuit << X(reverse_q[i]);
+		}
+	}
+
+	m_qcircuit = m_qcircuit.dagger();
+	for (int i = n_qubits - 1; i >= 0; --i) {
+		m_out_qubits.push_back(reverse_q[i]);
+	}
+
+	return;
+}
+std::map<std::string, double> Encode::_build_state_dict(const std::vector<double> &state)
+{
+
+	int n_qubits = (int)ceil(log2(state.size()));
+	std::map<std::string, double> state_dict;
+	int cnt = 0;
+	for (auto i : state) {
+		if (i != 0) {
+			bitset<32> temp(cnt);
+			std::string str = temp.to_string();
+			string binary_string(str.begin() + 32 - n_qubits, str.end());
+			state_dict[binary_string] = i;
+		}
+		++cnt;
+	}
+	return state_dict;
+}
+std::map<std::string, qcomplex_t> Encode::_build_state_dict(const std::vector<qcomplex_t> &state) 
+{
+	int n_qubits = (int)ceil(log2(state.size()));
+	std::map<std::string, qcomplex_t> state_dict;
+	int cnt = 0;
+	for (auto i : state) {
+		if (i.real()*i.real()+i.imag()*i.imag()!=0) {
+			bitset<32> temp(cnt);
+			std::string str = temp.to_string();
+			string binary_string(str.begin() + 32 - n_qubits, str.end());
+			state_dict[binary_string] = i;
+		}
+		++cnt;
+	}
+	return state_dict;
+}
+
+int Encode::_maximizing_difference_bit_search(vector<string> &b_strings, std::vector<std::string> &t0, std::vector<std::string> &t1, std::vector<int> &dif_qubits) 
+{
+	
+	int bit_index = 0;
+	int set_difference = 0;
+	vector<int> bit_search_space;
+	int cnt = 0;
+	for (int i = 0; i < b_strings[0].size();++i) {
+		bool flag = true;
+		for (int j : dif_qubits) {
+			if (i - '0' == j) {
+				flag = false;
+				break;
+			}
+		}
+		if (flag) bit_search_space.push_back(cnt);
+		++cnt;
+	}
+	for (int bit : bit_search_space) {
+		vector<string> temp_t0;
+		vector<string> temp_t1;
+		for (string bit_string : b_strings) {
+			if (bit_string[bit] == '0') {
+				temp_t0.push_back(bit_string);
+			}
+			else {
+				temp_t1.push_back(bit_string);
+			}
+		}
+		if (!temp_t0.empty() && !temp_t1.empty()) {
+			int temp_difference = abs((int)(temp_t0.size() - temp_t1.size()));
+			if (temp_difference == 0 && t0.empty() && t1.empty()) {
+				t0 = temp_t0;
+				t1 = temp_t1;
+				bit_index = bit;
+			}
+			else if (temp_difference > set_difference) {
+				t0 = temp_t0;
+				t1 = temp_t1;
+				bit_index = bit;
+				set_difference = temp_difference;
+			}
+		}
+	}
+	return bit_index;
+}
+
+std::vector<string> Encode::_build_bit_string_set(const std::vector<string> &b_strings, const std::string bitstr1, std::vector<int> &dif_qubits, std::vector<int> &dif_values) 
+{
+	vector<string> bit_string_set;
+
+	for (auto b_string : b_strings) {
+		bool include_string = true;
+		int cnt = 0;
+		for (auto i : dif_qubits) {
+			if (b_string[i] != dif_values[cnt] + '0') {
+				include_string = false;
+				break;
+			}
+			cnt++;
+		}
+		if (include_string&&b_string!=bitstr1) bit_string_set.push_back(b_string);
+	}
+	
+	return bit_string_set;
+}
+
+vector<string> Encode::_bit_string_search(std::vector<string> b_strings, std::vector<int> &dif_qubits, std::vector<int> &dif_values) 
+{
+	vector<string> temp_strings = b_strings;
+	while (temp_strings.size() > 1) {
+		vector<string> t0;
+		vector<string> t1;
+		int bit = _maximizing_difference_bit_search(temp_strings, t0,t1,dif_qubits);
+		if (find(dif_qubits.begin(), dif_qubits.end(), bit)==dif_qubits.end()) {
+			dif_qubits.push_back(bit);
+		}
+		if (t0.size() < t1.size()) {
+			dif_values.push_back(0);
+			temp_strings = t0;
+		}
+		else {
+			dif_values.push_back(1);
+			temp_strings = t1;
+		}
+	}
+	return temp_strings;
+
+}
+
+template<typename T>
+void Encode::_search_bit_strings_for_merging(std::string &bitstr1, std::string &bitstr2, int &dif_qubit, std::vector<int> &dif_qubits, const std::map<std::string, T> &state)
+{
+	vector<string>t0;
+	vector<string>t1;
+	vector<string>b_strings1,b_strings2;
+	vector<int>dif_values;
+	for (auto it : state) {
+		b_strings1.push_back(it.first);
+		b_strings2.push_back(it.first);
+	}
+	if (b_strings1.size() == 2) {
+		int bit = _maximizing_difference_bit_search(b_strings1, t0,t1,dif_qubits);
+		dif_qubit = bit;
+		bitstr1 = t1[0];
+		bitstr2 = t0[0];
+	}
+	else {
+		b_strings1 = _bit_string_search(b_strings1, dif_qubits, dif_values);
+		dif_qubit = dif_qubits.back();
+		dif_qubits.pop_back();
+		dif_values.pop_back();
+		bitstr1 = b_strings1[0];
+
+		//b_strings2.erase(bitstr1);
+		b_strings2 = _build_bit_string_set(b_strings2, bitstr1,dif_qubits, dif_values);
+		vector<string>::iterator itr = b_strings2.begin();
+		while (itr != b_strings2.end())
+		{
+			if (*itr == bitstr1)
+			{
+				b_strings2.erase(itr);
+				break;
+			}
+			itr++;
+
+		}
+		b_strings1 = _bit_string_search(b_strings2, dif_qubits, dif_values);
+		bitstr2 = b_strings1[0];
+	}
+	return;
+
+}
+std::string Encode::_apply_x_operation_to_bit_string(const std::string &b_string, const int &qubit_indexes) 
+{
+	string temp=b_string;
+	if (temp[qubit_indexes] == '0') {
+		temp[qubit_indexes] = '1';
+	}
+	else {
+		temp[qubit_indexes] = '0';
+	}
+
+	return temp;
+}
+
+std::string Encode::_apply_cx_operation_to_bit_string(const std::string &b_string, const std::vector<int>qubit_indexes) 
+{
+	string temp = b_string;
+	if (b_string[qubit_indexes[0]] == '1') 
+	{
+		if (temp[qubit_indexes[1]] == '0') {
+			temp[qubit_indexes[1]] = '1';
+		}
+		else {
+			temp[qubit_indexes[1]] = '0';
+		}
+	}
+	return temp;
+}
+
+template<typename T>
+std::map<std::string, T> Encode::_update_state_dict_according_to_operation(std::map<std::string, T>state_dict, const std::string &operation,
+	const int &qubit_index, const vector<std::string>& merge_strings) 
+{
+	map<std::string, T>new_state_dict;
+	if (operation == "merge") {
+		if (!merge_strings.empty()) {
+			new_state_dict = state_dict;
+			vector<T>merge_data(2);
+			merge_data[0] = state_dict[merge_strings[0]];
+			merge_data[1] = state_dict[merge_strings[1]];
+			double norm = compute_norm(merge_data);
+			new_state_dict.erase(merge_strings[1]);
+			new_state_dict[merge_strings[0]] = norm;
+		}
+	}
+	else {
+		for (auto i : state_dict) {
+
+			string temp_string;
+			temp_string = _apply_x_operation_to_bit_string(i.first, qubit_index);
+			new_state_dict[temp_string] = i.second;
+
+		}
+
+	}
+	return new_state_dict;
+
+}
+double Encode::compute_norm(const vector<qcomplex_t> &data) {
+	double norm = 0.0;
+	for (int i = 0; i < data.size(); ++i) {
+		norm += data[i].real()*data[i].real() + data[i].imag()*data[i].imag();
+	}
+	return sqrt(norm);
+}
+
+double Encode::compute_norm(const vector<double> &data) {
+	double norm = 0.0;
+	for (int i = 0; i < data.size(); ++i) {
+		norm += data[i]*data[i];
+	}
+	return sqrt(norm);
+}
+template<typename T>
+std::map<std::string, T> Encode::_update_state_dict_according_to_operation(std::map<std::string, T>state_dict, const std::string &operation,
+	const std::vector<int> &qubit_indexes, const vector<std::string>& merge_strings) 
+{
+
+	map<std::string, T>new_state_dict;
+	if (operation == "merge") {
+		if (!merge_strings.empty()) {
+			new_state_dict = state_dict;
+			vector<T>merge_data(2);
+			merge_data[0] = state_dict[merge_strings[0]];
+			merge_data[1] = state_dict[merge_strings[1]];
+			double norm = compute_norm(merge_data);
+			new_state_dict.erase(merge_strings[1]);
+			new_state_dict[merge_strings[0]] = norm;
+		}
+	}
+	else {
+		for (auto i:state_dict) {
+
+			string temp_string;
+			temp_string = _apply_cx_operation_to_bit_string(i.first, qubit_indexes);
+			new_state_dict[temp_string] = i.second;
+
+			}
+			
+		}
+	return new_state_dict;
+}
+
+template<typename T>
+std::map<std::string, T> Encode::_equalize_bit_string_states(std::string &bitstr1, std::string & bitstr2, int &dif,
+	std::map<std::string, T> &state_dict, QVec &q) 
+{
+	vector<int>b_index_list;
+	for (int i = 0; i < bitstr1.size(); ++i) {
+		if (i != dif)b_index_list.push_back(i);
+	}
+	for (int b_index : b_index_list) {
+		if (bitstr1[b_index] != bitstr2[b_index]) {
+			m_qcircuit << CNOT(q[dif], q[b_index]);
+			bitstr1 = _apply_cx_operation_to_bit_string(bitstr1, { dif,b_index });
+			bitstr2 = _apply_cx_operation_to_bit_string(bitstr2, { dif,b_index });
+			state_dict = _update_state_dict_according_to_operation(state_dict, "cx", {dif, b_index});
+		}
+	}
+	return state_dict;
+}
+
+template<typename T>
+std::map<std::string, T> Encode::_apply_not_gates_to_qubit_index_list(std::string &bitstr1, std::string & bitstr2, const std::vector<int> dif_qubits, std::map<std::string, T> &state_dict, QVec &q) 
+{
+	for (int b_index : dif_qubits) {
+		if (bitstr2[b_index] != '1') {
+			m_qcircuit << X(q[b_index]);
+			bitstr1 = _apply_x_operation_to_bit_string(bitstr1, b_index);
+			bitstr2 = _apply_x_operation_to_bit_string(bitstr2, b_index);
+			state_dict = _update_state_dict_according_to_operation(state_dict, "x", b_index);
+		}
+	}
+	return state_dict;
+}
+
+template<typename T>
+std::map<std::string, T> Encode::_preprocess_states_for_merging(std::string &bitstr1, std::string & bitstr2, int &dif, const std::vector<int> dif_qubits, std::map<std::string, T> &state_dict, QVec &q)
+{
+	if (bitstr1[dif] != '1') {
+		m_qcircuit << X(q[dif]);
+		bitstr1 = _apply_x_operation_to_bit_string(bitstr1, dif);
+		bitstr2 = _apply_x_operation_to_bit_string(bitstr2, dif);
+		state_dict = _update_state_dict_according_to_operation(state_dict, "x", dif);
+	}
+	state_dict = _equalize_bit_string_states(bitstr1, bitstr2, dif, state_dict, q);
+	state_dict = _apply_not_gates_to_qubit_index_list(bitstr1, bitstr2, dif_qubits, state_dict, q);
+	return state_dict;
+}
+
+std::vector<double> Encode::_compute_angles(qcomplex_t amplitude_1, qcomplex_t amplitude_2) 
+{
+	vector<double> angles(3);
+	double norm = sqrt(amplitude_1.real()*amplitude_1.real() + amplitude_1.imag()*amplitude_1.imag() + amplitude_2.real()*amplitude_2.real() + amplitude_2.imag()*amplitude_2.imag());
+		angles[0] = 2 * asin(abs(amplitude_2 / norm));
+		angles[1] = -log(amplitude_2 / norm).imag();
+		angles[2] = -log(amplitude_1 / norm).imag() - angles[1];
+		return angles;
+}
+
+vector<double> Encode::_compute_angles(double amplitude_1, double amplitude_2) 
+{
+	double norm = sqrt(amplitude_1*amplitude_1 + amplitude_2 * amplitude_2);
+	if (amplitude_1 < 0) {
+		return {2*PI-2 * asin(amplitude_2 / norm),0.0,0.0 };
+	}
+	return {2 * asin(amplitude_2 / norm),0.0,0.0 };
+}
+
+template<typename T>
+std::map<std::string, T> Encode::_merging_procedure(std::map<std::string, T> &state_dict, QVec &q)
+{
+
+	string bitstr1, bitstr2;
+	int dif=0;
+	vector<int> dif_qubits;
+	vector<double>angles(3);
+	_search_bit_strings_for_merging(bitstr1, bitstr2, dif, dif_qubits, state_dict);
+	state_dict = _preprocess_states_for_merging(bitstr1, bitstr2, dif, dif_qubits, state_dict, q);
+	angles = _compute_angles(state_dict[bitstr1], state_dict[bitstr2]);
+	QVec control_qubits;
+	for (int i : dif_qubits) {
+		control_qubits.push_back(q[i]);
+	}
+	m_qcircuit << U3(q[dif], angles[0], angles[1], angles[2]).control(control_qubits);
+	vector<int> qubit_indexes;
+	state_dict = _update_state_dict_according_to_operation(state_dict, "merge", qubit_indexes, { bitstr1, bitstr2 });
+	return state_dict;
+}
+
 QCircuit Encode::get_circuit() {
 
 	return m_qcircuit;
@@ -1714,4 +2304,3 @@ double Encode::get_normalization_constant() {
 
 	return m_data_std;
 }
-QPANDA_END

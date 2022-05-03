@@ -22,13 +22,7 @@ limitations under the License.
 #include <iostream>
 #include <vector>
 
-#ifndef SQ2
-#define SQ2 (1 / 1.4142135623731)
-#endif
-
-#ifndef PI
-#define PI 3.14159265358979
-#endif
+QPANDA_BEGIN
 
 class CPUImplQPUSingleThread : public QPUImpl
 {
@@ -58,13 +52,22 @@ public:
         QStat& matrix, 
         bool isConjugate, 
         GateType);
-   
+    void set_parallel_threads_size(size_t size);
+
     QError controlunitaryDoubleQubitGate(size_t qn_0,
         size_t qn_1,
         Qnum& vControlBit,
         QStat& matrix,
         bool isConjugate,
         GateType);
+    
+    virtual QError process_noise(Qnum& qnum, QStat& matrix){
+        QCERR_AND_THROW(std::runtime_error, "Not implemented yet");
+    }
+
+    virtual QError debug(std::shared_ptr<QPanda::AbstractQDebugNode> debugger){
+        QCERR_AND_THROW(std::runtime_error, "Not implemented yet");
+    }
 
     virtual QError P0(size_t qn, bool isConjugate,
         double error_rate);
@@ -223,4 +226,5 @@ public:
 		std::string name);
 };
 
+QPANDA_END
 #endif

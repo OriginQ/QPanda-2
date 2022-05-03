@@ -134,18 +134,18 @@ size_t OriginCMem::getIdleMem() const
 
 void OriginCMem::Free_CBit(CBit *cbit)
 {
-    for (auto iter = vecBit.begin(); iter != vecBit.end(); ++iter)
+    for (auto &c : vecBit)
     {
-        if ((*iter)==cbit)
+        if (c == cbit)
         {
-            if (!(*iter)->getOccupancy())
+            if (!c->getOccupancy())
             {
                 QCERR("CMem duplicate free");
                 throw runtime_error("CMem duplicate free");
             }
             else
             {
-                ((*iter)->setOccupancy(false));
+                c->setOccupancy(false);
                 return;
             }
         }
@@ -169,17 +169,27 @@ void OriginCMem::clearAll()
 
 size_t OriginCMem::get_allocate_cbits(std::vector<CBit *>& cbit_vect)
 {
-	size_t allocate_size = 0;
-	for (auto iter = vecBit.begin(); iter != vecBit.end(); ++iter)
-	{
-		if ((*iter)->getOccupancy())
-		{
-            allocate_size++;
-			auto new_cbit = CBitFactory::GetFactoryInstance().CreateCBitFromName((*iter)->getName());
-            cbit_vect.push_back(new_cbit);
-		}
-	}
-	return allocate_size;
+    for (auto &c : vecBit)
+    {
+        if (c->getOccupancy())
+        {
+            cbit_vect.push_back(c);
+        }
+    }
+
+    return cbit_vect.size();
+}
+
+size_t OriginCMem::get_allocate_cbits(std::vector<ClassicalCondition> &cc_vec)
+{
+    for (auto &c : vecBit)
+    {
+        if (c->getOccupancy())
+        {
+            cc_vec.push_back(c);
+        }
+    }
+    return cc_vec.size();
 }
 
 CBit* OriginCMem::cAlloc()
@@ -217,17 +227,32 @@ std::vector<ClassicalCondition> OriginCMem::cAllocMany(size_t count)
 
 }
 
-void OriginCMem::cFree(CBit* cbit)
+void OriginCMem::cFree(ClassicalCondition& c)
 {
-    Free_CBit(cbit);
+    Free_CBit(c.getExprPtr()->getCBit());
 }
 
-void OriginCMem::cFreeAll(std::vector< CBit* >& cbits_vect)
+void OriginCMem::cFreeAll(std::vector<ClassicalCondition>& cc_vec)
 {
-    for (auto it : cbits_vect)
+    for (auto &c : cc_vec)
     {
-		Free_CBit(it);
+        cFree(c);
     }
+
+    return ;
+}
+
+void OriginCMem::cFreeAll()
+{
+    for (auto &c : vecBit)
+    {
+        if (c->getOccupancy())
+        {
+            c->setOccupancy(false);
+        }
+    }
+
+    return ;
 }
 
 OriginCMem::~OriginCMem()
@@ -295,22 +320,22 @@ size_t OriginCMemv2::getIdleMem() const
 
 void OriginCMemv2::Free_CBit(CBit* cbit)
 {
-	for (auto iter = vecBit.begin(); iter != vecBit.end(); ++iter)
-	{
-		if ((*iter) == cbit)
-		{
-			if (!(*iter)->getOccupancy())
-			{
-				QCERR("CMem duplicate free");
-				throw runtime_error("CMem duplicate free");
-			}
-			else
-			{
-				((*iter)->setOccupancy(false));
-				return;
-			}
-		}
-	}
+    for (auto &c : vecBit)
+    {
+        if (c == cbit)
+        {
+            if (!c->getOccupancy())
+            {
+                QCERR("CMem duplicate free");
+                throw runtime_error("CMem duplicate free");
+            }
+            else
+            {
+                c->setOccupancy(false);
+                return;
+            }
+        }
+    }
 	// if not any matched
 	QCERR("Cbit argument error");
 	throw invalid_argument("Cbit argument error");
@@ -330,17 +355,15 @@ void OriginCMemv2::clearAll()
 
 size_t OriginCMemv2::get_allocate_cbits(std::vector<CBit*>& cbit_vect)
 {
-	size_t allocate_size = 0;
-	for (auto iter = vecBit.begin(); iter != vecBit.end(); ++iter)
-	{
-		if ((*iter)->getOccupancy())
-		{
-			allocate_size++;
-			auto new_cbit = CBitFactory::GetFactoryInstance().CreateCBitFromName((*iter)->getName());
-			cbit_vect.push_back(new_cbit);
-		}
-	}
-	return allocate_size;
+    for (auto &c : vecBit)
+    {
+        if (c->getOccupancy())
+        {
+            cbit_vect.push_back(c);
+        }
+    }
+
+    return cbit_vect.size();
 }
 
 OriginCMemv2::~OriginCMemv2()

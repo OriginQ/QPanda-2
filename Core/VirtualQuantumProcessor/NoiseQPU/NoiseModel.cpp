@@ -37,7 +37,7 @@ static string qubits_to_string(const Qnum &qns)
 }
 
 
-QStat matrix_tensor(const QStat &matrix_left, const QStat &matrix_right)
+QStat QPanda::matrix_tensor(const QStat &matrix_left, const QStat &matrix_right)
 {
     int size = (int)matrix_left.size();
     QStat matrix_result(size*size, 0);
@@ -52,7 +52,7 @@ QStat matrix_tensor(const QStat &matrix_left, const QStat &matrix_right)
     return matrix_result;
 }
 
-bool equal(const QStat &lhs, const QStat &rhs)
+bool QPanda::equal(const QStat &lhs, const QStat &rhs)
 {
     QPANDA_RETURN(lhs.size() != rhs.size(), false);
 
@@ -66,7 +66,7 @@ bool equal(const QStat &lhs, const QStat &rhs)
 }
 
 
-bool damping_kraus_operator(Value &value, NoiseOp & noise)
+bool QPanda::damping_kraus_operator(Value &value, NoiseOp & noise)
 {
     if ((!value.IsArray()) || (value.Size()!=2))
     {
@@ -93,7 +93,7 @@ bool damping_kraus_operator(Value &value, NoiseOp & noise)
     noise[1] = { 0,(qstate_type)sqrt(probability),0,0 };
     return 1;
 }
-bool dephasing_kraus_operator(Value & value, NoiseOp & noise)
+bool QPanda::dephasing_kraus_operator(Value & value, NoiseOp & noise)
 {
     if ((!value.IsArray()) || (value.Size()!=2))
     {
@@ -121,7 +121,7 @@ bool dephasing_kraus_operator(Value & value, NoiseOp & noise)
 //gamma_phi -= float(gate_time) / float(2 * T1)
 //p=.5 * (1 - np.exp(-2 * gamma_phi))
 //bool decoherence_kraus_operator(double t1, double t2, double gate_time, NoiseOp & noise)
-bool decoherence_kraus_operator(Value & value, NoiseOp & noise)
+bool QPanda::decoherence_kraus_operator(Value & value, NoiseOp & noise)
 {
     if ((!value.IsArray())||(value.Size()!=4))
     {
@@ -174,7 +174,7 @@ bool decoherence_kraus_operator(Value & value, NoiseOp & noise)
     return 1;
 }
 
-bool double_damping_kraus_operator(Value & value, NoiseOp & noise)
+bool QPanda::double_damping_kraus_operator(Value & value, NoiseOp & noise)
 {
     NoiseOp ntemp;
     if ((!value.IsArray()) || (value.Size() != 2))
@@ -209,7 +209,7 @@ bool double_damping_kraus_operator(Value & value, NoiseOp & noise)
     return 1;
 }
 
-bool double_dephasing_kraus_operator(Value & value, NoiseOp & noise)
+static bool double_dephasing_kraus_operator(Value & value, NoiseOp & noise)
 {
     NoiseOp ntemp;
     if ((!value.IsArray()) || (value.Size() != 2))
@@ -242,7 +242,7 @@ bool double_dephasing_kraus_operator(Value & value, NoiseOp & noise)
     return 1;
 }
 
-bool double_decoherence_kraus_operator(Value & value, NoiseOp & noise)
+bool QPanda::double_decoherence_kraus_operator(Value & value, NoiseOp & noise)
 {
     NoiseOp ntemp;
     if ((!value.IsArray()) || (value.Size() != 4))
@@ -303,7 +303,7 @@ bool double_decoherence_kraus_operator(Value & value, NoiseOp & noise)
     return 1;
 }
 
-bool pauli_kraus_map(Value & value, NoiseOp & noise)
+bool QPanda::pauli_kraus_map(Value & value, NoiseOp & noise)
 {
     if (!value.IsArray())
     {
@@ -371,7 +371,7 @@ bool pauli_kraus_map(Value & value, NoiseOp & noise)
     return 1;
 }
 
-SingleGateNoiseModeMap & SingleGateNoiseModeMap::getInstance()
+SingleGateNoiseModeMap& SingleGateNoiseModeMap::getInstance()
 {
     static SingleGateNoiseModeMap map;
     return map;
@@ -442,7 +442,7 @@ DoubleGateNoiseModeMap::DoubleGateNoiseModeMap()
 }
 
 
-bool bitflip_kraus_operator(Value &value, NoiseOp &noise)
+bool QPanda::bitflip_kraus_operator(Value &value, NoiseOp &noise)
 {
     if ((!value.IsArray()) || (value.Size() != 2))
     {
@@ -470,7 +470,7 @@ bool bitflip_kraus_operator(Value &value, NoiseOp &noise)
     return true;
 }
 
-bool depolarizing_kraus_operator(Value &value, NoiseOp &noise)
+bool QPanda::depolarizing_kraus_operator(Value &value, NoiseOp &noise)
 {
     if ((!value.IsArray()) || (value.Size() != 2))
     {
@@ -505,7 +505,7 @@ bool depolarizing_kraus_operator(Value &value, NoiseOp &noise)
     return true;
 }
 
-bool bit_phase_flip_operator(Value &value, NoiseOp &noise)
+bool QPanda::bit_phase_flip_operator(Value &value, NoiseOp &noise)
 {
     if ((!value.IsArray()) || (value.Size() != 2))
     {
@@ -533,7 +533,7 @@ bool bit_phase_flip_operator(Value &value, NoiseOp &noise)
     return true;
 }
 
-bool phase_damping_oprator(Value &value, NoiseOp &noise)
+bool QPanda::phase_damping_oprator(Value &value, NoiseOp &noise)
 {
     if ((!value.IsArray()) || (value.Size() != 2))
     {
@@ -562,7 +562,7 @@ bool phase_damping_oprator(Value &value, NoiseOp &noise)
 }
 
 
-bool double_bitflip_kraus_operator(Value &value, NoiseOp &noise)
+bool QPanda::double_bitflip_kraus_operator(Value &value, NoiseOp &noise)
 {
     NoiseOp ntemp;
     if ((!value.IsArray()) || (value.Size() != 2))
@@ -599,7 +599,7 @@ bool double_bitflip_kraus_operator(Value &value, NoiseOp &noise)
     return true;
 }
 
-bool double_depolarizing_kraus_operator(Value &value, NoiseOp &noise)
+bool QPanda::double_depolarizing_kraus_operator(Value &value, NoiseOp &noise)
 {
     NoiseOp ntemp;
     if ((!value.IsArray()) || (value.Size() != 2))
@@ -643,7 +643,7 @@ bool double_depolarizing_kraus_operator(Value &value, NoiseOp &noise)
     return true;
 }
 
-bool double_bit_phase_flip_operator(Value &value, NoiseOp &noise)
+bool QPanda::double_bit_phase_flip_operator(Value &value, NoiseOp &noise)
 {
     if ((!value.IsArray()) || (value.Size() != 2))
     {
@@ -679,7 +679,7 @@ bool double_bit_phase_flip_operator(Value &value, NoiseOp &noise)
     return true;
 }
 
-bool double_phase_damping_oprator(Value &value, NoiseOp &noise)
+bool QPanda::double_phase_damping_oprator(Value &value, NoiseOp &noise)
 {
     if ((!value.IsArray()) || (value.Size() != 2))
     {
@@ -715,7 +715,7 @@ bool double_phase_damping_oprator(Value &value, NoiseOp &noise)
     return true;
 }
 
-bool kraus_matrix_oprator(rapidjson::Value &value, NoiseOp &noise)
+bool QPanda::kraus_matrix_oprator(rapidjson::Value &value, NoiseOp &noise)
 {
     if ((!value.IsArray()) || (value.Size() == 1))
     {
@@ -1034,7 +1034,7 @@ void QuantumError::set_readout_error(const std::vector<std::vector<double> > &pr
         return true;
     };
 
-    for (auto probs : probs_list)
+    for (auto &probs : probs_list)
     {
         QPANDA_ASSERT(!check_probs(probs), "Error: readout paramters.");
     }

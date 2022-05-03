@@ -16,20 +16,6 @@
 
 QPANDA_BEGIN
 
-#define PRINT_TRACE 0
-#if PRINT_TRACE
-#define PTrace printf
-#define PTraceMat(mat) (std::cout << (mat) << endl)
-#define PTraceQCircuit(string, cir) (std::cout << string << endl << cir << endl)
-#define PTraceQCirMat(string, cir) {auto m = getCircuitMatrix(cir); std::cout << string << endl << m << endl;}
-#else
-#define PTrace
-#define PTraceMat(mat)
-#define PTraceMat(string, cir)
-#define PTraceQCirMat(string, cir)
-#define PTraceQCircuit(string, cir)
-#endif
-
 using grover_oracle = Oracle<QVec, Qubit*>;
 
 /**
@@ -59,7 +45,7 @@ inline QProg grover_alg(QCircuit cir_oracle,
 	grover_prog << circuit_prepare;
 
 	//anclilla qubits
-	//grover_prog << X(ancilla_qubits.back()) << H(ancilla_qubits.back());
+	grover_prog << X(ancilla_qubits.back()) << H(ancilla_qubits.back());
 	/*for (const auto qubit : ancilla_qubits)
 	{
 		grover_prog << X(qubit) << H(qubit);
@@ -99,18 +85,18 @@ QProg build_grover_alg_prog(const std::vector<T> &data_vec,
 	//oracle
 	OracleBuilder<T> oracle_builder(data_vec, condition, qvm);
 	const QVec &ancilla_qubits = oracle_builder.get_ancilla_qubits();
-	//QCircuit mark_cir = get_mark_circuit(static_cast<QGate(*)(Qubit *)>(&X), ancilla_qubits.back());
-	QCircuit mark_cir;
+	QCircuit mark_cir = get_mark_circuit(static_cast<QGate(*)(Qubit *)>(&X), ancilla_qubits.back());
 	QCircuit cir_oracle = oracle_builder.build_oracle_circuit(mark_cir);
+
 	//diffusion
 	DiffusionCirBuilder diffusion_op;
 	QCircuit cir_diffusion = build_diffusion_circuit(oracle_builder.get_index_qubits(), diffusion_op);
-	PTraceQCircuit("cir_diffusion", cir_diffusion);
+	//PTraceQCircuit("cir_diffusion", cir_diffusion);
 
 	//quantum counting
 	if (0 == repeat)
 	{
-		PTrace("Strat quantum-counting.\n");
+		//PTrace("Strat quantum-counting.\n");
 		QuantumCounting quantum_count_alg(qvm, cir_oracle, cir_diffusion, oracle_builder.get_index_qubits(), oracle_builder.get_ancilla_qubits());
 		repeat = quantum_count_alg.qu_counting();
 	}
@@ -158,7 +144,7 @@ inline QProg grover_search_alg(const std::vector<std::string> &data_vec,
 	auto c = qvm->allocateCBits(measure_qubits.size());
 	grover_prog << MeasureAll(measure_qubits, c);
 	//measure
-	PTrace("Strat pmeasure.\n");
+	//PTrace("Strat pmeasure.\n");
 	const double _shot = 2048;
 	auto result = qvm->runWithConfiguration(grover_prog, c, _shot);
 	prob_dict _double_result;
@@ -197,7 +183,7 @@ QProg grover_alg_search_from_vector(const std::vector<T> &data_vec,
 	auto c = qvm->allocateCBits(measure_qubits.size());
 	grover_prog << MeasureAll(measure_qubits, c);
 	//measure
-	PTrace("Strat pmeasure.\n");
+	//PTrace("Strat pmeasure.\n");
 	const double _shot = 2048;
 	auto result = qvm->runWithConfiguration(grover_prog, c, _shot);
 	prob_dict _double_result;

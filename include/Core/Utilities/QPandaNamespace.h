@@ -9,6 +9,16 @@
 #include <unordered_map>
 #include <cstring>
 
+/**
+* @namespace QPanda
+* @brief QPanda2 base namespace
+*/
+#define QPANDA_BEGIN namespace QPanda {
+#define QPANDA_END }
+#define USING_QPANDA using namespace QPanda;
+
+QPANDA_BEGIN
+
 inline std::string _file_name(const char* file = "") {
 	const auto _p_linux = strrchr(file, '/');
 	const auto _p_win = strrchr(file, '\\');
@@ -16,7 +26,7 @@ inline std::string _file_name(const char* file = "") {
 	return file;
 }
 
-#define __FILENAME__ _file_name(__FILE__)
+#define __FILENAME__ QPanda::_file_name(__FILE__)
 
 /**
 * @def QCERR
@@ -83,13 +93,6 @@ using stat_map = std::unordered_map<std::string, qcomplex_t>;
 using prob_dict = std::map<std::string, double>;
 using prob_tuple = std::vector<std::pair<size_t, double>>;
 
+QPANDA_END
 
-/**
-* @namespace QPanda
-* @brief QPanda2 base namespace
-*/
-#define QPANDA_BEGIN namespace QPanda {
-#define QPANDA_END }
-#define USING_QPANDA using namespace QPanda;
 #endif // !QPANDA_NAMESPACE
-

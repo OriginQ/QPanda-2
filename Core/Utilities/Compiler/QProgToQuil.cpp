@@ -161,6 +161,16 @@ void QProgToQuil::execute(std::shared_ptr<AbstractClassicalProg>  cur_node, std:
 	throw invalid_argument("transform error, there shouldn't be classicalProg here.");
 }
 
+void QProgToQuil::execute(std::shared_ptr<AbstractQNoiseNode> cur_node, std::shared_ptr<QNode> parent_node, bool &)
+{
+    QCERR_AND_THROW(std::invalid_argument, "transform error, there shouldn't be virtual noise node here");
+}
+
+void QProgToQuil::execute(std::shared_ptr<AbstractQDebugNode> cur_node, std::shared_ptr<QNode> parent_node, bool &)
+{
+    QCERR_AND_THROW(std::invalid_argument, "transform error, there shouldn't be debug node here");
+}
+
 void QProgToQuil::transformQGate(AbstractQGateNode *gate, bool is_dagger)
 {
     if (nullptr == gate)

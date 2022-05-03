@@ -6,6 +6,7 @@
 #include "ThirdParty/Eigen/src/Cholesky/LLT.h"
 
 using namespace std;
+USING_QPANDA
 
 using  qvector_t = Eigen::Matrix<qcomplex_t, 1, Eigen::Dynamic, Eigen::RowMajor>;
 using  qmatrix_t = Eigen::Matrix<qcomplex_t, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;

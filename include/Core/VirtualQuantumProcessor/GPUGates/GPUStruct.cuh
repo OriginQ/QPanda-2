@@ -1,16 +1,17 @@
 #ifndef _GPU_STRUCT_H
 #define _GPU_STRUCT_H
 
-#include "Core/QuantumCircuit/QGlobalVariable.h"
-#include <thrust/host_vector.h>
-#include <thrust/device_vector.h>
 #include <thrust/copy.h>
 #include <thrust/fill.h>
+#include <thrust/complex.h>
 #include <thrust/sequence.h>
 #include <thrust/functional.h>
-#include <thrust/complex.h>
+#include <thrust/host_vector.h>
+#include <thrust/device_vector.h>
+#include "Core/QuantumCircuit/QGlobalVariable.h"
 
 
+USING_QPANDA
 
 typedef size_t gpu_qsize_t;
 typedef double gpu_qstate_t;

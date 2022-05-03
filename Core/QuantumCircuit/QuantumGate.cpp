@@ -20,10 +20,9 @@ Update by code specification
 #include "Core/Utilities/Tools/QStatMatrix.h"
 #include <float.h>
 
+USING_QPANDA
 using namespace QGATE_SPACE;
 using namespace std;
-USING_QPANDA
-
 
 QuantumGate::QuantumGate()
 {
@@ -607,9 +606,77 @@ CP::CP(double angle)
 	beta = angle;
 	gamma = 0;
 	delta = 0;
-	gate_matrix[15].real(cos(angle));
+	gate_matrix[15] = cos(angle);
 	gate_matrix[15].imag(1 * sin(angle));
 	gate_type = GateType::CP_GATE;
+}
+
+RXX::RXX(double angle)
+    :alpha(angle/2)
+{
+    operation_num = 2;
+    const double cost = std::cos(0.5 * angle);
+    const double sint = std::sin(0.5 * angle);
+    qcomplex_t i(0, 1);
+    gate_matrix[0] = cost;
+    gate_matrix[3] = -i * sint;
+    gate_matrix[5] = cost;
+    gate_matrix[6] = -i * sint;
+    gate_matrix[9] = -i * sint;
+    gate_matrix[10] = cost;
+    gate_matrix[12] = -i * sint;
+    gate_matrix[15] = cost;
+    gate_type = GateType::RXX_GATE;
+}
+
+RYY::RYY(double angle)
+    :alpha(angle / 2)
+{
+    operation_num = 2;
+    const double cost = std::cos(0.5 * angle);
+    const double sint = std::sin(0.5 * angle);
+    qcomplex_t i(0, 1);
+    gate_matrix[0] = cost;
+    gate_matrix[3] = i * sint;
+    gate_matrix[5] = cost;
+    gate_matrix[6] = -i * sint;
+    gate_matrix[9] = -i * sint;
+    gate_matrix[10] = cost;
+    gate_matrix[12] = i * sint;
+    gate_matrix[15] = cost;
+    gate_type = GateType::RYY_GATE;
+}
+
+RZZ::RZZ(double angle)
+    :alpha(angle / 2)
+{
+    operation_num = 2;
+    qcomplex_t i(0, 1);
+    const qcomplex_t exp_p = std::exp(i * 0.5 * angle);
+    const qcomplex_t exp_m = std::exp(-i * 0.5 * angle);
+    gate_matrix[0] = exp_m;
+    gate_matrix[5] = exp_p;
+    gate_matrix[10] = exp_p;
+    gate_matrix[15] = exp_m;
+    gate_type = GateType::RZZ_GATE;
+}
+
+RZX::RZX(double angle)
+    :alpha(angle / 2)
+{
+    operation_num = 2;
+    const double cost = std::cos(0.5 * angle);
+    const double sint = std::sin(0.5 * angle);
+    qcomplex_t i(0, 1);
+    gate_matrix[0] = cost;
+    gate_matrix[2] = -i * sint;
+    gate_matrix[5] = cost;
+    gate_matrix[7] = i * sint;
+    gate_matrix[8] = -i * sint;
+    gate_matrix[10] = cost;
+    gate_matrix[13] = i * sint;
+    gate_matrix[15] = cost;
+    gate_type = GateType::RZX_GATE;
 }
 
 ISWAPTheta::ISWAPTheta(QuantumGate  * gate_old) :QDoubleGate(gate_old)

@@ -179,7 +179,7 @@ static void get_gate_paramter(std::shared_ptr<AbstractQGateNode> gate, const QCi
     }
 }
 
-std::map<std::string, bool> MPSQVM::directlyRun(QProg &prog)
+std::map<std::string, bool> MPSQVM::directlyRun(QProg &prog, const NoiseModel&)
 {
     run(prog);
     for (auto &val : m_measure_obj)
@@ -266,7 +266,7 @@ std::map<std::string, size_t> MPSQVM::run_configuration_with_noise(QProg &prog, 
     return  result_map;
 }   
 
-std::map<string, size_t> MPSQVM::runWithConfiguration(QProg &prog, std::vector<ClassicalCondition> &cbits, int shots)
+std::map<string, size_t> MPSQVM::runWithConfiguration(QProg &prog, std::vector<ClassicalCondition> &cbits, int shots, const NoiseModel&)
 {
     if (m_noise_simulator.has_quantum_error())
     {
@@ -278,7 +278,7 @@ std::map<string, size_t> MPSQVM::runWithConfiguration(QProg &prog, std::vector<C
     }
 }
 
-std::map<string, size_t> MPSQVM::runWithConfiguration(QProg &prog, std::vector<ClassicalCondition> &cbits, rapidjson::Document &doc)
+std::map<string, size_t> MPSQVM::runWithConfiguration(QProg &prog, std::vector<ClassicalCondition> &cbits, rapidjson::Document &doc, const NoiseModel&)
 {
     if (!doc.HasMember("shots"))
     {
@@ -490,7 +490,7 @@ void MPSQVM::run_cannot_optimize_measure_with_noise(QProg &prog)
     m_noise_simulator.execute(prog.getImplementationPtr(), nullptr, config);
 }
 
-void MPSQVM::run(QProg &prog)
+void MPSQVM::run(QProg &prog, const NoiseModel&)
 {
     m_qubit_num = getAllocateQubitNum();
     m_simulator->initState(0, 1, m_qubit_num);
@@ -542,6 +542,15 @@ void MPSQVM::execute(std::shared_ptr<AbstractControlFlowNode> cur_node,
     throw std::runtime_error("not support controlflow");
 }
 
+void MPSQVM::execute(std::shared_ptr<AbstractQNoiseNode>, std::shared_ptr<QNode>, QCircuitConfig &config)
+{
+    QCERR_AND_THROW(std::runtime_error, "not support virtual noise node");
+}
+
+void MPSQVM::execute(std::shared_ptr<AbstractQDebugNode>, std::shared_ptr<QNode>, QCircuitConfig &config)
+{
+    QCERR_AND_THROW(std::runtime_error, "not support debug node");
+}
 
 void MPSQVM::execute(std::shared_ptr<AbstractQuantumCircuit> cur_node,
     std::shared_ptr<QNode> parent_node, QCircuitConfig &config)

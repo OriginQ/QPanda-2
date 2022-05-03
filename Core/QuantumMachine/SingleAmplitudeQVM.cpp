@@ -87,6 +87,12 @@ void SingleAmplitudeQVM::run(QProg& prog, QVec& qv, size_t max_rank,
 	execute(prog.getImplementationPtr(), nullptr, is_dagger);
 }
 
+map<string, bool> SingleAmplitudeQVM::directlyRun(QProg& qProg, const NoiseModel& noise_model)
+{
+    QCERR("SingleAmplitudeQVM have no directlyRun");
+    throw qprog_syntax_error("SingleAmplitudeQVM have no directlyRun");
+}
+
 qstate_type SingleAmplitudeQVM::singleAmpBackEnd(const string& bin_index)
 {
 	if (m_prog_map.isEmptyQProg())
@@ -381,6 +387,18 @@ void SingleAmplitudeQVM::execute(shared_ptr<AbstractQuantumReset> cur_node,
 {
 	QCERR("execute node error");
 	throw std::runtime_error("execute node error");
+}
+
+void SingleAmplitudeQVM::execute(std::shared_ptr<AbstractQNoiseNode> cur_node,
+		std::shared_ptr<QNode> parent_node, bool& is_dagger)
+{
+	QCERR_AND_THROW(std::invalid_argument, "SingleAmplitudeQVM not support execute Virtual Noise Node");
+}
+
+void SingleAmplitudeQVM::execute(std::shared_ptr<AbstractQDebugNode> cur_node,
+		std::shared_ptr<QNode> parent_node, bool& is_dagger)
+{
+	QCERR_AND_THROW(std::invalid_argument, "SingleAmplitudeQVM not support debug");
 }
 
 void SingleAmplitudeQVM::execute(shared_ptr<AbstractControlFlowNode> cur_node,

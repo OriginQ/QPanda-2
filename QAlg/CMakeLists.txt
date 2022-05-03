@@ -4,6 +4,7 @@ project(QAlg)
 file(GLOB_RECURSE ALG_SRC_CPP ${CMAKE_CURRENT_SOURCE_DIR}/B_V_Algorithm/*.cpp
                               ${CMAKE_CURRENT_SOURCE_DIR}/DJ_Algorithm/*.cpp
                               ${CMAKE_CURRENT_SOURCE_DIR}/Grover/*.cpp
+                              ${CMAKE_CURRENT_SOURCE_DIR}/IQAE/*.cpp
                               ${CMAKE_CURRENT_SOURCE_DIR}/QAOA/*.cpp
                               ${CMAKE_CURRENT_SOURCE_DIR}/QITE/*.cpp
 							  ${CMAKE_CURRENT_SOURCE_DIR}/HHL/*.cpp

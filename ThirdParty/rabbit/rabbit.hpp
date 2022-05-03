@@ -815,7 +815,7 @@ public:
   {
     type_check<object_tag>();
     if (!has(name))
-      throw std::out_of_range("'" + string_type(name.data(), name.size()) + "' not found");
+      throw std::out_of_range("key: " + string_type(name.data(), name.size()) + ", not found");
     return const_value_ref_type(&((*value_)[name.data()]), alloc_);
   }
 

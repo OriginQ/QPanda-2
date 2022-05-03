@@ -13,14 +13,13 @@
 #include "pybind11/operators.h"
 #include "QPanda.h"
 
-
 USING_QPANDA
 using namespace std;
 using namespace pybind11::literals;
 using std::map;
 namespace py = pybind11;
 
-void init_components(py::module& m)
+void export_components(py::module &m)
 {
     py::enum_<OptimizerType>(m, "OptimizerType", py::arithmetic())
         .value("NELDER_MEAD", OptimizerType::NELDER_MEAD)
@@ -43,21 +42,18 @@ void init_components(py::module& m)
 
     py::class_<OptimizerFactory>(m, "OptimizerFactory")
         .def(py::init<>())
-        .def("makeOptimizer", py::overload_cast<const OptimizerType&>
-            (&OptimizerFactory::makeOptimizer), "Please input OptimizerType ")
-        .def("makeOptimizer", py::overload_cast<const std::string&>
-            (&OptimizerFactory::makeOptimizer), "Please input the Optimizer's name(string)")
-        ;
+        .def("makeOptimizer", py::overload_cast<const OptimizerType &>(&OptimizerFactory::makeOptimizer), "Please input OptimizerType ")
+        .def("makeOptimizer", py::overload_cast<const std::string &>(&OptimizerFactory::makeOptimizer), "Please input the Optimizer's name(string)");
 
     py::class_<QOptimizationResult>(m, "QOptimizationResult")
-        .def(py::init<std::string&, size_t&, size_t&, std::string&, double&, vector_d&>())
+        .def(py::init<std::string &, size_t &, size_t &, std::string &, double &, vector_d &>())
         .def_readwrite("message", &QOptimizationResult::message)
         .def_readwrite("fcalls", &QOptimizationResult::fcalls)
         .def_readwrite("fun_val", &QOptimizationResult::fun_val)
         .def_readwrite("iters", &QOptimizationResult::iters)
         .def_readwrite("key", &QOptimizationResult::key)
         .def_readwrite("para", &QOptimizationResult::para);
-        
+
     py::class_<NodeSortProblemGenerator>(m, "NodeSortProblemGenerator")
         .def(py::init<>())
         .def("set_problem_graph", &NodeSortProblemGenerator::setProblemGraph)

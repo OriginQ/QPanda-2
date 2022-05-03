@@ -24,6 +24,7 @@ limitations under the License.
 #include "Core/QuantumCircuit/QProgram.h"
 #include "Core/QuantumCircuit/QReset.h"
 #include "Core/QuantumCircuit/QGlobalVariable.h"
+#include "Core/QuantumNoise/AbstractNoiseNode.h"
 #include "Core/Utilities/Tools/Traversal.h"
 #include <map>
 #include <type_traits>
@@ -36,7 +37,7 @@ QPANDA_BEGIN
 * @brief Qunatum Execution 
 * @ingroup QuantumMachine
 */
-class QProgExecution 
+class QProgExecution : public TraversalInterface<TraversalConfig&, QPUImpl*&>
 {
 public:
 
@@ -52,7 +53,7 @@ public:
 	virtual void execute(std::shared_ptr<AbstractQGateNode> cur_node, 
 		std::shared_ptr<QNode> parent_node,
 		TraversalConfig & param,
-		QPUImpl* qpu);
+		QPUImpl*& qpu);
 
 	/*!
 	* @brief  Execution traversal measure node
@@ -66,7 +67,7 @@ public:
 	virtual void execute(std::shared_ptr<AbstractQuantumMeasure> cur_node,
 		std::shared_ptr<QNode> parent_node,
 		TraversalConfig & param,
-		QPUImpl* qpu);
+		QPUImpl*& qpu);
 
 	/*!
 	* @brief  Execution traversal reset node
@@ -80,7 +81,7 @@ public:
 	virtual void execute(std::shared_ptr<AbstractQuantumReset> cur_node,
 		std::shared_ptr<QNode> parent_node,
 		TraversalConfig & param,
-		QPUImpl* qpu);
+		QPUImpl*& qpu);
 
 	/*!
 	* @brief  Execution traversal control flow node
@@ -94,7 +95,7 @@ public:
 	virtual void execute(std::shared_ptr<AbstractControlFlowNode> cur_node,
 		std::shared_ptr<QNode> parent_node,
 		TraversalConfig & param,
-        QPUImpl* qpu);
+        QPUImpl*& qpu);
 
 
 	/*!
@@ -109,7 +110,7 @@ public:
 	virtual void execute(std::shared_ptr<AbstractQuantumCircuit> cur_node,
 		std::shared_ptr<QNode> parent_node,
 		TraversalConfig & param,
-		QPUImpl* qpu);
+		QPUImpl*& qpu);
 	/*!
 	* @brief  Execution traversal qprog
 	* @param[in,out]  AbstractQuantumProgram*  quantum prog
@@ -121,7 +122,7 @@ public:
 	virtual void execute(std::shared_ptr<AbstractQuantumProgram> cur_node,
 		std::shared_ptr<QNode> parent_node,
 		TraversalConfig & param,
-		QPUImpl* qpu)
+		QPUImpl*& qpu)
 	{
 		Traversal::traversal(cur_node, *this, param, qpu);
 	}
@@ -136,10 +137,28 @@ public:
 	virtual void execute(std::shared_ptr<AbstractClassicalProg> cur_node,
 		std::shared_ptr<QNode> parent_node,
 		TraversalConfig & param,
-		QPUImpl* qpu)
+		QPUImpl*& qpu)
 	{
 		cur_node->get_val();
 	}
+
+	/**
+	 * @brief Execution traversal qprog
+	 * 
+	 * @param cur_node 		quantum noise node
+	 * @param parent_node 
+	 * @param param 
+	 * @param qpu 
+	 */
+	virtual void execute(std::shared_ptr<AbstractQNoiseNode> cur_node,
+		std::shared_ptr<QNode> parent_node,
+		TraversalConfig & param,
+		QPUImpl*& qpu);
+	
+	virtual void execute(std::shared_ptr<AbstractQDebugNode> cur_node,
+		std::shared_ptr<QNode> parent_node,
+		TraversalConfig & param,
+		QPUImpl*& qpu);
 
 	/**
 	* @brief  get result value

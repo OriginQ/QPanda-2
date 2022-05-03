@@ -33,7 +33,6 @@ limitations under the License.
 
 QPANDA_BEGIN
 
-
 static std::map<std::string, std::function<double(double , double)>> _binary_operation =
 {
 	{"+", [](double  lval,double rval) {return lval + rval; }},
@@ -174,7 +173,7 @@ struct GataFuncInfo
 /**
 * @brief QASM quantum gate type
 */
-enum  QASMGateType
+enum class QASMGateType
 {
 	ID_GATE=0,
 	X_GATE,

@@ -11,20 +11,6 @@
 
 QPANDA_BEGIN
 
-#define PRINT_TRACE 0
-#if PRINT_TRACE
-#define PTrace printf
-#define PTraceMat(mat) (std::cout << (mat) << endl)
-#define PTraceQCircuit(string, cir) (std::cout << string << endl << cir << endl)
-#else
-#define PTrace
-#define PTraceMat(mat)
-#define PTraceMat(string, cir)
-#endif
-
-#ifndef PI
-#define PI 3.1415926
-#endif 
 
 template <class gate_fun, class... Args>
 QCircuit get_mark_circuit(gate_fun &&op_gate, Args && ... args) {
@@ -42,9 +28,10 @@ public:
 	:m_data_vec(data_vec), m_condition(condition), m_qvm(*qvm)
 		, m_search_space(qvm, condition), m_search_condition(qvm, condition)
 	{
+		/* 辅助qubit可提高Grover算法成功率，不可省略! */
 		create_ancilla_qubits();
 
-		//build U circuit
+		// build U circuit
 		m_cir_u = m_search_space.build_to_circuit(m_data_vec);
 	}
 
@@ -54,14 +41,12 @@ public:
 		QCircuit circuit_oracle;
 
 		//build search circuit
-		auto data_qubits = m_search_space.get_data_qubits();
-		QVec controller(data_qubits.begin(), data_qubits.end() - 1);
-		QCircuit cir_search = m_search_condition.build_to_circuit(data_qubits, m_ancilla_qubits, m_search_space.get_mini_data(), cir_mark);
+		QVec data_qubits = m_search_space.get_data_qubits();
+		QCircuit target_mark_cir = cir_mark.control(data_qubits);
 
-		QCircuit circuit;
-		circuit << H(data_qubits.back()) << X(data_qubits.back()).control(controller) << H(data_qubits.back());
+		QCircuit cir_search = m_search_condition.build_to_circuit(data_qubits, m_search_space.get_mini_data());
 
-		m_cir_search << cir_search << circuit << cir_search;
+		m_cir_search << cir_search << target_mark_cir << cir_search;
 
 		//build oracle
 		circuit_oracle << m_cir_u << m_cir_search << m_cir_u.dagger();

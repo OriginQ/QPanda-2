@@ -81,11 +81,19 @@ ClassicalCondition::operator=(const ClassicalCondition& old)
         return *this;
     }
 
-    expr = shared_ptr<CExpr>(old.expr->deepcopy());
-    //auto &fac = CExprFactory::GetFactoryInstance();
-    //fac.GetCExprByOperation(expr->deepcopy(),
-    //                        old.expr->deepcopy(),
-    //                        ASSIGN);
+    auto type = old.getExprPtr()->getContentSpecifier();
+    if (0 == type)
+    {
+        expr = shared_ptr<CExpr>(old.expr->deepcopy());
+    }
+    else
+    {
+        auto &fac = CExprFactory::GetFactoryInstance();
+        fac.GetCExprByOperation(expr->deepcopy(),
+            old.expr->deepcopy(),
+            ASSIGN);
+    }
+    
     return *this;
 }
 
@@ -97,12 +105,11 @@ ClassicalCondition::operator=(const cbit_size_t value)
 
     auto &fac = CExprFactory::GetFactoryInstance();
     auto value_expr = fac.GetCExprByValue(value);
-    expr = shared_ptr<CExpr>(value_expr);
-/*
+    //expr = shared_ptr<CExpr>(value_expr);
     CExprFactory::GetFactoryInstance().GetCExprByOperation(expr->deepcopy(),
                         value_expr->deepcopy(),
                         ASSIGN);
-*/
+
     return *this;
 }
 

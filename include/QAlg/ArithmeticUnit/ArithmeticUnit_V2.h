@@ -80,6 +80,7 @@ QCircuit QComplement_V2(QVec &a, QVec &aux);
  *       if origin a is negative zero, output will be |000...00>, but aux will be tagged |1>. Else aux not changed.
  */
 QCircuit QComplement_V2(QVec &a, Qubit* aux);
+// TODO: need to implement interface below
 #if 0
 /**
 * @brief Quantum subtraction

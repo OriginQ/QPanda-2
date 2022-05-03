@@ -222,6 +222,15 @@ void QProgFlattening::execute(std::shared_ptr<AbstractQuantumProgram>  cur_node,
 	Traversal::traversal(cur_node, *this, prog);
 }
 
+void QProgFlattening::execute(std::shared_ptr<AbstractQNoiseNode> cur_node, std::shared_ptr<QNode> parent_node, QProg &prog)
+{
+	prog.pushBackNode(std::dynamic_pointer_cast<QNode>(cur_node));
+}
+
+void QProgFlattening::execute(std::shared_ptr<AbstractQDebugNode> cur_node, std::shared_ptr<QNode> parent_node, QProg &prog)
+{
+	prog.pushBackNode(std::dynamic_pointer_cast<QNode>(cur_node));
+}
 
 QVec QProgFlattening::get_two_qvec_union(QVec qv_1, QVec qv_2)
 {

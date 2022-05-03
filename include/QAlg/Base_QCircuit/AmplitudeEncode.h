@@ -135,8 +135,7 @@ public:
 * @brief  double sparse quantum state preparation
 * @ingroup quantum Algorithm.
 * @param[in] QVec& Available qubits.
-* @param[in] std::map<std::string, double>& or std::map<std::string, std::complex<double>> a unit vector representing a quantum state,
-* Keys are binary strings and values are amplitudes.
+* @param[in] std::map<std::string, double>& or std::map<std::string, std::complex<double>> Sparse array or map with real values.
 * @note The data must meet normalization conditions.
 * @note The algorithm can prepare the corresponding quantum state according to the input data.
 * @note This concrete implementation is from https://arxiv.org/pdf/2108.13527.pdf.
@@ -146,18 +145,26 @@ public:
 
 	void ds_quantum_state_preparation(const QVec &q, const std::map<std::string, std::complex<double>>&);
 
+	void ds_quantum_state_preparation(const QVec &q, const std::vector<double>&);
+
+	void ds_quantum_state_preparation(const QVec &q, const std::vector<std::complex<double>>&);
+
 /**
 * @brief sparse isometries quantum state preparation
 * @ingroup quantum Algorithm.
 * @param[in] QVec& Available qubits.
-* @param[in] std::map<std::string, double>& or std::map<std::string, std::complex<double>> a unit vector representing a quantum state,
-* Keys are binary strings and values are amplitudes.
+* @param[in] std::map<std::string, double>& or std::map<std::string, std::complex<double>> Sparse array or map with real values.
 * @note The data must meet normalization conditions.
 * @note The algorithm can prepare the corresponding quantum state according to the input data without auxiliary  quantum bits.
 * @note This concrete implementation is from https://arxiv.org/pdf/2006.00016.pdf.
 */
 	void sparse_isometry(const QVec &q, const std::map<std::string, double>&);
+
 	void sparse_isometry(const QVec &q, const std::map<std::string, complex<double>>&);
+
+	void sparse_isometry(const QVec &q, const std::vector<double>&);
+
+	void sparse_isometry(const QVec &q, const std::vector<complex<double>>&);
 
 /**
 * @brief schmidt decomposition encode
@@ -168,6 +175,22 @@ public:
 * @note This concrete implementation is from https://arxiv.org/pdf/2107.09155.pdf.
 */
 	void schmidt_encode(const QVec &q, const std::vector<double>& data);
+
+/**
+* @brief an efficient quantum state preparation of sparse vector
+* @ingroup quantum Algorithm.
+* @param[in] QVec& Available qubits.
+* @param[in] std::map<std::string, double>& or std::map<std::string, std::complex<double>> Sparse array or map with real values.
+* @note The coding data must meet normalization conditions.
+* @note This concrete implementation is from https://ieeexplore.ieee.org/document/9586240.
+*/
+	void efficient_sparse(const QVec &q, const std::vector<double>& data);
+
+	void efficient_sparse(const QVec &q, const std::map<string, double>&data);
+
+	void efficient_sparse(const QVec &q, const std::vector<qcomplex_t>& data);
+
+	void efficient_sparse(const QVec &q, const std::map<string, qcomplex_t>&data);
 
 /**
 * @brief  get the corresponding quantum circuit
@@ -218,12 +241,12 @@ protected:
 
 	std::vector<int> _select_controls(std::string binary_string);
 
-	void _flip_flop(const QVec &q, std::vector<int>control, int numqbits);
+	void _flip_flop(const QVec& u, const QVec& m, std::vector<int>control, int numqbits);
 
 	template<typename T>
-	void _load_superposition(const QVec &q, std::vector<int>control, int numqubits, T feature, double& norm);
+	void _load_superposition(const QVec& u, const QVec& a, const QVec& m,std::vector<int>control, int numqubits, T feature, double& norm);
 
-	void _mcuvchain(const QVec &q, std::vector<int>control, std::vector<double> angle, int numqbits);
+	void _mcuvchain(const QVec &u, const QVec a, const QVec m, std::vector<int>control, std::vector<double> angle, int numqbits);
 
 	std::vector<double> _compute_matrix_angles(double feature, double norm);
 
@@ -245,7 +268,55 @@ protected:
 
 	void _unitary(const QVec &q, EigenMatrixXc gate);
 
+
+	std::map<std::string, qcomplex_t> _build_state_dict(const std::vector<qcomplex_t> &state);
+
+	std::map<std::string, double> _build_state_dict(const std::vector<double> &state);
+
+	int _maximizing_difference_bit_search(vector<string> &b_strings, std::vector<std::string> &t0, std::vector<std::string> &t1, std::vector<int> &dif_qubits);
+
+	std::vector<string> _build_bit_string_set(const std::vector<string> &b_strings, const std::string bitstr1, std::vector<int> &dif_qubits, std::vector<int> &dif_values);
+
+	std::vector<std::string> _bit_string_search(std::vector<string> b_strings, std::vector<int> &dif_qubits, std::vector<int> &dif_values);
+
+	template<typename T>
+	void _search_bit_strings_for_merging(std::string &bitstr1, std::string &bitstr2, int &dif_qubit,std::vector<int> &dif_qubits, const std::map<std::string, T> &state);
+	
+	std::string _apply_x_operation_to_bit_string(const std::string &b_string, const int &qubit_indexes);
+	
+	std::string _apply_cx_operation_to_bit_string(const std::string &b_string, const std::vector<int>qubit_indexes);
+
+	template<typename T>
+	std::map<std::string, T> _update_state_dict_according_to_operation(std::map<std::string, T>state_dict, const std::string &operation,
+		const std::vector<int> &qubit_indexes, const vector<std::string>& merge_strings = {});
+
+	template<typename T>
+	std::map<std::string, T> _update_state_dict_according_to_operation(std::map<std::string, T>state_dict, const std::string &operation,
+		const int &qubit_index, const vector<std::string>& merge_strings = {});
+
+	template<typename T>
+	std::map<std::string, T> _equalize_bit_string_states(std::string &bitstr1, std::string & bitstr2, int &dif, 
+		                         std::map<std::string, T> &state_dict, QVec &q);
+	template<typename T>
+	std::map<std::string, T> _apply_not_gates_to_qubit_index_list(std::string &bitstr1, std::string & bitstr2, const std::vector<int> dif_qubits, std::map<std::string, T> &state_dict, QVec &q);
+	
+	template<typename T>
+	std::map<std::string, T> _preprocess_states_for_merging(std::string &bitstr1, std::string & bitstr2, int &dif, const std::vector<int> dif_qubits, std::map<std::string, T> &state_dict, QVec &q);
+	
+	std::vector<double>_compute_angles(qcomplex_t amplitude_1, qcomplex_t amplitude_2);
+	
+	std::vector<double> _compute_angles(double amplitude_1, double amplitude_2);
+
+	template<typename T>
+	std::map<std::string, T> _merging_procedure(std::map<std::string, T> &state_dict, QVec &q);
+
+	double compute_norm(const vector<qcomplex_t> &data);
+	
+	double compute_norm(const vector<double> &data);
+
 	void normalized(std::vector<double>&data);
+
+	void _schmidt(const QVec &q, const std::vector<double>& data);
 
 private:
 

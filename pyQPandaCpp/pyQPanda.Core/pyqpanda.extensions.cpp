@@ -21,7 +21,7 @@ namespace py = pybind11;
 
 USING_QPANDA
 
-#include "Extensions/VirtualZTransfer/VirtualZTransfer.h"
+
 
 void export_extension_class(py::module &m)
 {
@@ -175,7 +175,7 @@ void export_extension_funtion(py::module &m)
             return linearcom;
         },
         py::return_value_policy::automatic);
-#endif
+
     m.def(
         "matrix_decompose",
         [](QVec &qubits, QStat &src_mat, const DecompositionMode mode, bool b_positive_seq)
@@ -207,4 +207,5 @@ void export_extension_funtion(py::module &m)
         "Returns:\n"
         "    QCircuit The quantum circuit for target matrix",
         py::return_value_policy::automatic);
+ #endif
 }

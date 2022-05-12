@@ -5,7 +5,8 @@ trigger:
 jobs:
 - job: Windows
   pool:
-    vmImage: 'vs2017-win2019'
+    vmImage: 'windows-latest'
+    name: Hosted VS2017
 
   steps:
   - script: |

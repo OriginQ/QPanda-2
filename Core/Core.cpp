@@ -184,7 +184,7 @@ void QPanda::cFree(ClassicalCondition& classical_cond)
     }
     global_quantum_machine->Free_CBit(classical_cond);
 }
-
+    
 QMachineStatus* QPanda::getstat()
 {
     if (nullptr == global_quantum_machine)

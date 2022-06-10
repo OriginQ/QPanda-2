@@ -149,7 +149,6 @@ from .pyQPanda import fit_to_gbk
 from .pyQPanda import quantum_chip_adapter
 from .pyQPanda import get_all_used_qubits
 from .pyQPanda import get_all_used_qubits_to_int
-from .pyQPanda import decompose_multiple_control_qgate
 from .pyQPanda import dropout
 from .pyQPanda import equal
 from .pyQPanda import eval

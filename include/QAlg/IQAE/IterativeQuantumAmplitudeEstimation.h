@@ -20,7 +20,6 @@ limitations under the License.
 #include <vector>
 #include "Core/QuantumMachine/OriginQuantumMachine.h"
 #include "Core/Utilities/Tools/Utils.h"
-#include "Core/Utilities/QPandaNamespace.h"
 
 
 QPANDA_BEGIN

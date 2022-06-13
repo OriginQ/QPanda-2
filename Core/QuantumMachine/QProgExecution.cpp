@@ -18,6 +18,29 @@ static bool Qubitequal(Qubit * a, Qubit * b)
         b->getPhysicalQubitPtr()->getQubitAddr();
 }
 
+static void _check_repetitive_qubit(const QVec& target_qv, const QVec& ctrl_qv)
+{
+	auto total_size = target_qv.size() + ctrl_qv.size();
+	auto qv = target_qv + ctrl_qv;
+	if (total_size != qv.size())
+	{
+		QCERR("target_qv == ctrl_qv ");
+		throw invalid_argument("target_qv == ctrl_qv");
+	}
+
+	for (int i = 0; i < ctrl_qv.size(); i++)
+	{
+		for (int j = i + 1; j < ctrl_qv.size(); j++)
+		{
+			if (qv[i]->get_phy_addr() == qv[j]->get_phy_addr())
+			{
+				QCERR("gate have the same qubit ");
+				throw invalid_argument("gate have the same qubit ");
+			}
+		}
+	}
+}
+
 
 void QProgExecution::execute(std::shared_ptr<AbstractQGateNode> cur_node,
     std::shared_ptr<QNode> parent_node,
@@ -55,17 +78,7 @@ void QProgExecution::execute(std::shared_ptr<AbstractQGateNode> cur_node,
 	QVec target_qubit;
 	cur_node->getQuBitVector(target_qubit);
 
-    for (auto aQIter : target_qubit)
-    {
-        for (auto aCIter : control_qubit_vector)
-        {
-            if (Qubitequal(aQIter, aCIter))
-            {
-                QCERR("targitQubit == controlQubit");
-                throw invalid_argument("targitQubit == controlQubit");
-            }
-        }
-    }
+    _check_repetitive_qubit(target_qubit, control_qubit_vector);
 
     auto qgate = cur_node->getQGate();
     auto aiter = QGateParseMap::getFunction(qgate->getOperationNum());

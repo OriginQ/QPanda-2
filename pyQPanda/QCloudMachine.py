@@ -5,6 +5,95 @@ from pyqpanda import *
 import time
 PI = 3.1415926535898
 
+def test_init_state():
+
+    qvm = init_quantum_machine()
+    qvm.initQVM()
+
+    prog = QProg()
+
+    q = qvm.qAlloc_many(3)
+    c = qvm.cAlloc_many(3)
+
+    prog.insert(H(q[0]))\
+        .insert(CNOT(q[0], q[1]))\
+        .insert(CNOT(q[1], q[2]))\
+        .insert(measure_all(q, c))
+
+    qvm.directly_run(prog)
+    state = qvm.get_qstate()
+
+
+
+    print(state)
+
+def test_cpu_run_with_no_cbits_args():
+
+    qvm = CPUQVM()
+    qvm.initQVM()
+
+    prog = QProg()
+
+    q = qvm.qAlloc_many(4)
+    c = qvm.cAlloc_many(4)
+
+    prog.insert(H(q[0]))\
+        .insert(CNOT(q[0], q[1]))\
+        .insert(CNOT(q[1], q[2]))\
+        .insert(CNOT(q[2], q[3]))\
+        .insert(measure_all(q, c))
+
+    result0 = qvm.run_with_configuration(prog, c, 10000)
+    result1 = qvm.run_with_configuration(prog, 10000)
+
+    print(result0)
+    print(result1)
+
+def test_mps_run_with_no_cbits_args():
+
+    qvm = MPSQVM()
+    qvm.initQVM()
+
+    prog = QProg()
+
+    q = qvm.qAlloc_many(4)
+    c = qvm.cAlloc_many(4)
+
+    prog.insert(H(q[0]))\
+        .insert(CNOT(q[0], q[1]))\
+        .insert(CNOT(q[1], q[2]))\
+        .insert(CNOT(q[2], q[3]))\
+        .insert(measure_all(q, c))
+
+    result0 = qvm.run_with_configuration(prog, c, 10000)
+    result1 = qvm.run_with_configuration(prog, 10000)
+
+    print(result0)
+    print(result1)
+
+def test_noise_run_with_no_cbits_args():
+
+    qvm = NoiseQVM()
+    qvm.init_qvm()
+
+    prog = QProg()
+
+    q = qvm.qAlloc_many(4)
+    c = qvm.cAlloc_many(4)
+
+    prog.insert(H(q[0]))\
+        .insert(CNOT(q[0], q[1]))\
+        .insert(CNOT(q[1], q[2]))\
+        .insert(CNOT(q[2], q[3]))\
+        .insert(measure_all(q, c))
+
+    qvm.set_noise_model(NoiseModel.BITFLIP_KRAUS_OPERATOR, GateType.PAULI_X_GATE, 0.01)
+    result0 = qvm.run_with_configuration(prog, c, 100000)
+    result1 = qvm.run_with_configuration(prog, 100000)
+
+    print(result0)
+    print(result1)
+
 
 def utilities_fun():
 
@@ -587,12 +676,16 @@ def plot_bloch_vectors():
 
 if __name__ == "__main__":
 
+    test_global_cpu_run_with_no_cbits_args()
+    test_cpu_run_with_no_cbits_args()
+    test_mps_run_with_no_cbits_args()
+    test_noise_run_with_no_cbits_args()
     # partialAmp_fun()
     # MPS_fun()
     # cpu_qvm_fun()
     # singleAmp_fun()
     # partialAmp_fun()
-    Cluster_Cloud()
+    # Cluster_Cloud()
     # graph_match_fun()
     # noise_fun()
     # jkuqvm_fun()

@@ -1070,6 +1070,15 @@ void MPSImplQPU::unitaryQubitGate(Qnum qubits, QStat matrix, bool isConjugate)
     }
 }
 
+QError MPSImplQPU::OracleGate(Qnum& qubits, QStat &matrix, bool isConjugate)
+{
+    auto cmatrix = QStat_to_Eigen(matrix);
+    execute_multi_qubit_gate(qubits, cmatrix);
+
+    return qErrorNone;
+}
+
+
 cmatrix_t MPSImplQPU::density_matrix(const Qnum &qubits)
 {
     Qnum internal_qubits(qubits.size());

@@ -357,12 +357,11 @@ QCircuit & QCircuit::operator<<(T node)
     return *this;
 }
 
-
 #define REGISTER_QCIRCUIT(className)                                           \
     AbstractQuantumCircuit* QCircuitCreator##className(){                           \
         return new className();                                                   \
     }                                                                           \
-    QuantumCircuitRegisterAction g_qCircuitCreatorDoubleRegister##className(     \
+    INIT_PRIORITY QuantumCircuitRegisterAction g_qCircuitCreatorDoubleRegister##className(     \
         #className,(CreateQCircuit)QCircuitCreator##className)
 
 QPANDA_END

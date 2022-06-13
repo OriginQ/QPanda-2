@@ -22,7 +22,6 @@ namespace py = pybind11;
 USING_QPANDA
 
 
-
 void export_extension_class(py::module &m)
 {
 #ifdef USE_EXTENSION
@@ -167,11 +166,11 @@ void export_extension_funtion(py::module &m)
           py::return_value_policy::automatic);
 
     m.def(
-        "matrix_decompose_pualis",
+        "matrix_decompose_paulis",
         [](QuantumMachine *qvm, const EigenMatrixX &mat)
         {
             PualiOperatorLinearCombination linearcom;
-            matrix_decompose_pualis(qvm, mat, linearcom);
+            matrix_decompose_paulis(qvm, mat, linearcom);
             return linearcom;
         },
         py::return_value_policy::automatic);
@@ -207,5 +206,5 @@ void export_extension_funtion(py::module &m)
         "Returns:\n"
         "    QCircuit The quantum circuit for target matrix",
         py::return_value_policy::automatic);
- #endif
+#endif
 }

@@ -483,6 +483,8 @@ bool OriginProgram::is_measure_last_pos()
 	return true;
 }
 
+INIT_SEG
+
 REGISTER_QPROGRAM(OriginProgram);
 
 void QuantumProgramFactory::registClass(string name, CreateQProgram method)

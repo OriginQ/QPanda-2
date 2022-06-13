@@ -111,8 +111,12 @@ PYBIND11_MODULE(pyQPanda, m)
 		  "                     first is the final qubit register state, second is it's measure probability");
 
 	m.def("qAlloc_many",
-		  &qAllocMany,
-		  py::arg("qubit_num"),
+          [](size_t qubit_num)
+          {
+                auto qv = static_cast<std::vector<Qubit*>>(qAllocMany(qubit_num));
+                return qv;
+          },
+          py::arg("qubit_num"),
 		  "Allocate several qubits\n"
 		  "After init()\n"
 		  "\n"
@@ -315,23 +319,48 @@ PYBIND11_MODULE(pyQPanda, m)
 		  "    measure result of quantum machine",
 		  py::return_value_policy::reference);
 
-	m.def("run_with_configuration",
-		  &runWithConfiguration,
-		  py::arg("program"),
-		  py::arg("cbit_list"),
-		  py::arg("shots"),
-		  py::arg_v("noise_model", NoiseModel(), "NoiseModel()"),
-		  "Run quantum program with configuration\n"
-		  "\n"
-		  "Args:\n"
-		  "    program: quantum program\n"
-		  "    cbit_list: classic cbits list\n"
-		  "    shots: repeate run quantum program times\n"
-		  "    noise_model: noise model, default is no noise. noise model only work on CPUQVM now\n"
-		  "\n"
-		  "Returns:\n"
-		  "    result of quantum program execution in shots.\n"
-		  "    first is the final qubit register state, second is it's hit shot");
+    m.def(
+        "run_with_configuration",
+        [](QProg &prog, std::vector<ClassicalCondition> &cbits, int shots, const NoiseModel& model= NoiseModel())
+        {
+            return runWithConfiguration(prog, cbits, shots, model);
+        },
+        py::arg("program"),
+        py::arg("cbit_list"),
+        py::arg("shots"),
+        py::arg_v("noise_model", NoiseModel(), "NoiseModel()"),
+        "Run quantum program with configuration\n"
+        "\n"
+        "Args:\n"
+        "    program: quantum program\n"
+        "    cbit_list: classic cbits list\n"
+        "    shots: repeate run quantum program times\n"
+        "    noise_model: noise model, default is no noise. noise model only work on CPUQVM now\n"
+        "\n"
+        "Returns:\n"
+        "    result of quantum program execution in shots.\n"
+        "    first is the final qubit register state, second is it's hit shot");
+
+    m.def(
+        "run_with_configuration",
+        [](QProg &prog, int shots, const NoiseModel& model = NoiseModel())
+        {
+        return runWithConfiguration(prog, shots, model);
+        },
+        py::arg("program"),
+        py::arg("shots"),
+        py::arg_v("noise_model", NoiseModel(), "NoiseModel()"),
+        "Run quantum program with configuration\n"
+        "\n"
+        "Args:\n"
+        "    program: quantum program\n"
+        "    cbit_list: classic cbits list\n"
+        "    shots: repeate run quantum program times\n"
+        "    noise_model: noise model, default is no noise. noise model only work on CPUQVM now\n"
+        "\n"
+        "Returns:\n"
+        "    result of quantum program execution in shots.\n"
+        "    first is the final qubit register state, second is it's hit shot");
 
 	m.def("quick_measure",
 		  &quickMeasure,
@@ -2038,6 +2067,15 @@ PYBIND11_MODULE(pyQPanda, m)
 		py::arg("config_file") = CONFIG_PATH,
 		"Decompose multiple control QGate",
 		py::return_value_policy::automatic);
+
+    /* #include "Core/Utilities/Tools/MultiControlGateDecomposition.h" */
+    m.def("ldd_decompose",[](QProg prog)
+        {
+            return ldd_decompose(prog);
+        },
+        py::arg("qprog"),
+        "Decompose multiple control QGate",
+        py::return_value_policy::automatic);
 
 	m.def(
 		"transform_to_base_qgate",

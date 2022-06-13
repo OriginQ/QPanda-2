@@ -42,10 +42,12 @@ static bool test_topology_match_1()
 
     for (const auto& i : src_result)
     {
-        if (abs((long)i.second < 50))
+        if (abs((long)i.second < 80))
             continue;
-        if (abs((long)i.second - (long)matched_prog_result.at(i.first)) > 50) {
+        if (abs((long)i.second - (long)matched_prog_result.at(i.first)) > 80) {
+			cout << "=========" << endl;
             return false;
+			
         }
     }
 

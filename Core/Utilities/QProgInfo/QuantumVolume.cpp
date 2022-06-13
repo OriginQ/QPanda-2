@@ -1,4 +1,3 @@
-#include "Core/Utilities/QProgInfo/QuantumVolume.h"
 #include "Core/Utilities/QProgInfo/QCircuitInfo.h"
 #include "Core/Utilities/QProgInfo/KAK.h"
 #include "Core/Utilities/Compiler/QASMToQProg.h"
@@ -6,7 +5,7 @@
 #include "ThirdParty/Eigen/Eigen"
 #include <numeric>
 #include <algorithm>
-
+#include "Core/Utilities/QProgInfo/QuantumVolume.h"
 
 
 

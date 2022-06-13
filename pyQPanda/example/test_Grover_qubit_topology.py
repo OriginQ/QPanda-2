@@ -64,29 +64,29 @@ class Test_Grover_qubit_topology(unittest.TestCase):
         #draw_graph(topo_matrix)
 
         #method 2
-        sub_graph = pq.get_sub_graph(topo_matrix)
-        optimizered_topo = pq.del_weak_edge2(topo_matrix, g_max_connect_degree, sub_graph)
+        #sub_graph = pq.get_sub_graph(topo_matrix)
+        #optimizered_topo = pq.del_weak_edge2(topo_matrix, g_max_connect_degree, sub_graph)
         # print(optimizered_topo[1])
         # draw_graph(optimizered_topo[0])
 
         #method 3
-        # sub_graph = pq.get_sub_graph(topo_matrix)
-        # optimizered_topo = pq.del_weak_edge3(topo_matrix, sub_graph, 0.5, 0.5, 0.5)
+        sub_graph = pq.get_sub_graph(topo_matrix)
+        optimizered_topo = pq.del_weak_edge2(topo_matrix, g_max_connect_degree, sub_graph)
         # print(optimizered_topo[1])
-        # draw_graph(optimizered_topo[0])
+        #draw_graph(optimizered_topo[0])
 
         # for test
         # tmp_topo = pq.recover_edges(optimizered_topo[0], g_max_connect_degree, optimizered_topo[2])
         # draw_graph(tmp_topo)
 
-        complex_points = pq.get_complex_points(optimizered_topo[0], g_max_connect_degree)
+        complex_points = pq.get_complex_points(topo_matrix, g_max_connect_degree)
 
-        complex_point_sub_graph = pq.split_complex_points(complex_points, g_max_connect_degree, optimizered_topo[0], 0)
+        complex_point_sub_graph = pq.split_complex_points(complex_points, g_max_connect_degree, topo_matrix)
 
-        new_topology = pq.replace_complex_points(optimizered_topo[0], g_max_connect_degree, complex_point_sub_graph)
+        new_topology = pq.replace_complex_points(topo_matrix, g_max_connect_degree, complex_point_sub_graph)
         # draw_graph(new_topology)
 
-        new_topology = pq.recover_edges(new_topology, g_max_connect_degree, optimizered_topo[2])
+        new_topology = pq.recover_edges(topo_matrix, g_max_connect_degree, optimizered_topo[2])
         # draw_graph(new_topology)
         # print(new_topology)
 

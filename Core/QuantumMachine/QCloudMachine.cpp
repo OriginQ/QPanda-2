@@ -4,9 +4,7 @@
 #include "Core/QuantumMachine/QCloudMachine.h"
 #include "ThirdParty/rabbit/rabbit.hpp"
 
-#ifdef USE_CURL
-#include <curl/curl.h>
-#endif
+
 
 USING_QPANDA
 using namespace std;
@@ -30,23 +28,45 @@ static std::map<NOISE_MODEL, std::string> noise_model_mapping =
 QCloudMachine::QCloudMachine()
 {
 #ifdef USE_CURL
+
     curl_global_init(CURL_GLOBAL_ALL);
+
+    m_post_curl = curl_easy_init();
+    m_headers = curl_slist_append(m_headers, "Content-Type: application/json;charset=UTF-8");
+    m_headers = curl_slist_append(m_headers, "Connection: keep-alive");
+    m_headers = curl_slist_append(m_headers, "Server: nginx/1.16.1");
+    m_headers = curl_slist_append(m_headers, "Transfer-Encoding: chunked");
+    m_headers = curl_slist_append(m_headers, "origin-language: en");
+
+    curl_easy_setopt(m_post_curl, CURLOPT_HTTPHEADER, m_headers);
+    curl_easy_setopt(m_post_curl, CURLOPT_TIMEOUT, 60);
+    curl_easy_setopt(m_post_curl, CURLOPT_CONNECTTIMEOUT, 30);
+    curl_easy_setopt(m_post_curl, CURLOPT_HEADER, 0);
+    curl_easy_setopt(m_post_curl, CURLOPT_POST, 1);
+    curl_easy_setopt(m_post_curl, CURLOPT_SSL_VERIFYHOST, 0);
+    curl_easy_setopt(m_post_curl, CURLOPT_SSL_VERIFYPEER, 0);
+
+    curl_easy_setopt(m_post_curl, CURLOPT_READFUNCTION, nullptr);
+    curl_easy_setopt(m_post_curl, CURLOPT_NOSIGNAL, 1);
+    curl_easy_setopt(m_post_curl, CURLOPT_WRITEFUNCTION, recv_json_data);
 #else
     QCERR_AND_THROW(run_fail, "Need support the curl libray");
 #endif
 }
 
-QCloudMachine::~QCloudMachine()        
+QCloudMachine::~QCloudMachine()
 {
 #ifdef USE_CURL
+    curl_slist_free_all(m_headers);
+    curl_easy_cleanup(m_post_curl);
     curl_global_cleanup();
 #else
-	QCERR_AND_THROW(run_fail, "Need support the curl libray");
+    QCERR_AND_THROW(run_fail, "need support the curl libray");
 #endif
 }
 
-void QCloudMachine::set_qcloud_api(std::string url) 
-{ 
+void QCloudMachine::set_qcloud_api(std::string url)
+{
     m_compute_url = url + QCLOUD_COMPUTE_API_POSTFIX;
     m_inquire_url = url + QCLOUD_INQUIRE_API_POSTFIX;
 
@@ -133,36 +153,24 @@ void QCloudMachine::set_noise_model(NOISE_MODEL model, const std::vector<double>
     return;
 }
 
-std::string QCloudMachine::post_json(const std::string &sUrl, std::string & sJson) 
+std::string QCloudMachine::post_json(const std::string &sUrl, std::string & sJson)
 {
 #ifdef USE_CURL
     std::stringstream out;
+    curl_easy_setopt(m_post_curl, CURLOPT_URL, sUrl.c_str());
+    //curl_easy_setopt(m_post_curl, CURLOPT_VERBOSE, 1);
+    curl_easy_setopt(m_post_curl, CURLOPT_WRITEDATA, &out);
+    curl_easy_setopt(m_post_curl, CURLOPT_POSTFIELDS, sJson.c_str());
+    curl_easy_setopt(m_post_curl, CURLOPT_POSTFIELDSIZE, sJson.size());
 
-    auto pCurl = curl_easy_init();
-
-    struct curl_slist* headers = NULL;
-    headers = curl_slist_append(headers,"Content-Type: application/json;charset=UTF-8");
-    headers = curl_slist_append(headers, "Connection: keep-alive");
-    headers = curl_slist_append(headers, "Server: nginx/1.16.1");
-    headers = curl_slist_append(headers, "Transfer-Encoding: chunked");
-    headers = curl_slist_append(headers, "origin-language: en");
-
-    curl_easy_setopt(pCurl, CURLOPT_HTTPHEADER, headers);
-    curl_easy_setopt(pCurl, CURLOPT_TIMEOUT, 30);
-    curl_easy_setopt(pCurl, CURLOPT_CONNECTTIMEOUT, 0);
-    curl_easy_setopt(pCurl, CURLOPT_URL, sUrl.c_str());
-    curl_easy_setopt(pCurl, CURLOPT_HEADER, false);
-    curl_easy_setopt(pCurl, CURLOPT_POST, true);
-    curl_easy_setopt(pCurl, CURLOPT_SSL_VERIFYHOST, false);
-    curl_easy_setopt(pCurl, CURLOPT_SSL_VERIFYPEER, false);
-    curl_easy_setopt(pCurl, CURLOPT_READFUNCTION, NULL);
-    curl_easy_setopt(pCurl, CURLOPT_NOSIGNAL, 1);
-    curl_easy_setopt(pCurl, CURLOPT_POSTFIELDS, sJson.c_str());
-    curl_easy_setopt(pCurl, CURLOPT_POSTFIELDSIZE, sJson.size());
-    curl_easy_setopt(pCurl, CURLOPT_WRITEFUNCTION, recv_json_data);
-    //curl_easy_setopt(pCurl, CURLOPT_VERBOSE, 1);
-    curl_easy_setopt(pCurl, CURLOPT_WRITEDATA, &out);
-    auto res = curl_easy_perform(pCurl);
+    CURLcode res;
+    for (size_t i = 0; i < m_cur_reperform_time; i++)
+    {
+        res = curl_easy_perform(m_post_curl);
+        if (CURLE_OK == res)
+            break;
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    }
 
     if (CURLE_OK != res)
     {
@@ -170,9 +178,6 @@ std::string QCloudMachine::post_json(const std::string &sUrl, std::string & sJso
         QCERR_AND_THROW(run_fail, error_msg);
     }
 
-    curl_slist_free_all(headers);
-    curl_easy_cleanup(pCurl);
-                    
     try
     {
         return out.str();
@@ -260,13 +265,13 @@ std::vector<QStat> QCloudMachine::get_state_tomography_density(
 
     std::string post_json_str = doc.str();
     std::string recv_json_str = post_json(m_compute_url, post_json_str);
-    
+
     inquire_result(recv_json_str, m_inquire_url, CloudQMchineType::QST);
 
     return m_qst_result;
 }
 
-std::map<std::string, double> QCloudMachine::real_chip_measure( 
+std::map<std::string, double> QCloudMachine::real_chip_measure(
     QProg &prog,
     int shots,
     RealChipType chip_id,
@@ -303,8 +308,8 @@ std::map<std::string, double> QCloudMachine::noise_measure(QProg &prog, int shot
     rabbit::document doc;
     doc.parse("{}");
 
-    construct_cluster_task_json(doc, prog_str, m_token, (size_t)CloudQMchineType::NOISE_QMACHINE, 
-        getAllocateQubitNum(), getAllocateCMem(), 
+    construct_cluster_task_json(doc, prog_str, m_token, (size_t)CloudQMchineType::NOISE_QMACHINE,
+        getAllocateQubitNum(), getAllocateCMem(),
         (size_t)ClusterTaskType::CLUSTER_MEASURE, task_name);
 
     doc.insert("shot", (size_t)shot);
@@ -403,7 +408,7 @@ std::string QCloudMachine::full_amplitude_pmeasure_commit(QProg &prog, Qnum qubi
         status = TaskStatus::COMPUTING;
         return taskid;
     }
-    catch (...) 
+    catch (...)
     {
         status = TaskStatus::FAILED;
         return "";
@@ -521,6 +526,8 @@ std::map<std::string, qcomplex_t> QCloudMachine::partial_amplitude_pmeasure(QPro
     //convert prog to originir 
     auto prog_str = convert_qprog_to_originir(prog, this);
 
+    params_verification(amplitude_vec, getAllocateQubitNum());
+
     //construct json
     rabbit::document doc;
     doc.parse("{}");
@@ -532,7 +539,7 @@ std::map<std::string, qcomplex_t> QCloudMachine::partial_amplitude_pmeasure(QPro
 
     std::string post_json_str = doc.str();
     std::string recv_json_str = post_json(m_compute_url, post_json_str);
-	
+
     inquire_result(recv_json_str, m_inquire_url, CloudQMchineType::PARTIAL_AMPLITUDE);
     return m_pmeasure_result;
 }
@@ -541,6 +548,8 @@ qcomplex_t QCloudMachine::single_amplitude_pmeasure(QProg &prog, std::string amp
 {
     //convert prog to originir 
     auto prog_str = convert_qprog_to_originir(prog, this);
+
+    params_verification(amplitude, getAllocateQubitNum());
 
     //construct json
     rabbit::document doc;
@@ -709,195 +718,172 @@ bool QCloudMachine::parser_result_json(std::string &recv_json, std::string& task
 {
     json_string_transfer_encoding(recv_json);
 
-    Document recv_doc;
-	if (recv_doc.Parse(recv_json.c_str()).HasParseError() || !recv_doc.HasMember("success"))
-	{
-        QCERR(recv_json.c_str());
-        throw run_fail("result json parse error or has no member 'success' ");
-	}
+    rabbit::document recv_doc;
+    recv_doc.parse(recv_json.c_str());
 
-    const rapidjson::Value &success = recv_doc["success"];
-    if (!success.GetBool())
+    if (!recv_doc["success"].as_bool())
     {
-        const rapidjson::Value &message = recv_doc["enMessage"];
-        std::string error_msg = message.GetString();
-
-        m_error_info = error_msg;
-        QCERR(error_msg.c_str());
-        throw run_fail(error_msg);
+        m_error_info = recv_doc["enMessage"].as_string();
+        QCERR_AND_THROW(run_fail, m_error_info);
     }
 
-	try
-	{
-		const rapidjson::Value &Obj = recv_doc["obj"];
-		const rapidjson::Value &Val = Obj["qcodeTaskNewVo"];
-		const rapidjson::Value &List = Val["taskResultList"];
-		const rapidjson::Value &result = List[0]["taskResult"];
-
-		std::string state = List[0]["taskState"].GetString();
-		std::string qtype = List[0]["rQMachineType"].GetString();
+    try
+    {
+        auto list = recv_doc["obj"]["qcodeTaskNewVo"]["taskResultList"];
+        std::string state = list[0]["taskState"].as_string();
+        std::string qtype = list[0]["rQMachineType"].as_string();
 
         auto status = static_cast<TaskStatus>(atoi(state.c_str()));
         auto backend_type = static_cast<CloudQMchineType>(atoi(qtype.c_str()));
-		switch (status)
-		{
-			case TaskStatus::FINISHED:
-			{
-				Document result_doc;
-				result_doc.Parse(result.GetString());
+        switch (status)
+        {
+        case TaskStatus::FINISHED:
+        {
+            auto result_string = list[0]["taskResult"].as_string();
 
-				switch (backend_type)
-				{
-                    case CloudQMchineType::REAL_CHIP:
-                    {
-                        Value &key = result_doc["key"];
-                        Value &value = result_doc["value"];
+            rabbit::document result_doc;
+            result_doc.parse(result_string.c_str());
 
-                        m_measure_result.clear();
-                        for (SizeType i = 0; i < key.Size(); ++i)
-                        {
-                            std::string bin_amplitude = key[i].GetString();
-                            m_measure_result.insert(make_pair(bin_amplitude, value[i].GetDouble()));
-                        }
+            switch (backend_type)
+            {
+            case CloudQMchineType::REAL_CHIP:
+            {
+                m_measure_result.clear();
+                for (auto i = 0; i < result_doc["key"].size(); ++i)
+                {
+                    auto key = result_doc["key"][i].as_string();
+                    auto val = result_doc["value"][i].is_double() ?
+                        result_doc["value"][i].as_double() : (double)result_doc["value"][i].as_int();
 
-                        break;
-                    }
+                    m_measure_result.insert(make_pair(key, val));
+                }
 
-                    case CloudQMchineType::NOISE_QMACHINE:
-                    case CloudQMchineType::Full_AMPLITUDE:
-					{
-
-                        Value &result_type = result_doc["ResultType"];
-
-                        if (result_type.GetInt() == (int)ClusterResultType::EXPECTATION)
-                        {
-                            Value &value = result_doc["Value"];
-                            m_expectation = value.GetDouble();
-                        }
-                        else
-                        {
-                            Value &key = result_doc["Key"];
-                            Value &value = result_doc["Value"];
-
-                            m_measure_result.clear();
-                            for (SizeType i = 0; i < key.Size(); ++i)
-                            {
-                                std::string bin_amplitude = key[i].GetString();
-                                m_measure_result.insert(make_pair(bin_amplitude, value[i].GetDouble()));
-                            }
-                        }
-
-                        break;
-					}
-
-					case CloudQMchineType::PARTIAL_AMPLITUDE:
-					{
-                        Value &key = result_doc["Key"];
-						Value &value_real = result_doc["ValueReal"];
-						Value &value_imag = result_doc["ValueImag"];
-
-                        m_pmeasure_result.clear();
-						for (SizeType i = 0; i < key.Size(); ++i)
-						{
-                            std::string bin_amplitude = key[i].GetString();
-                            auto amplitude = qcomplex_t(value_real[i].GetDouble(), value_imag[i].GetDouble());
-                            m_pmeasure_result.insert(make_pair(bin_amplitude, amplitude));
-						}
-
-                        break;
-					}
-
-                    case CloudQMchineType::SINGLE_AMPLITUDE:
-                    {
-                        Value &value_real = result_doc["ValueReal"];
-                        Value &value_imag = result_doc["ValueImag"];
-
-                        m_single_result = qcomplex_t(value_real[0].GetDouble(), value_imag[0].GetDouble());
-                        break;
-                    }
-
-                    case CloudQMchineType::QST:
-                    {
-                        const rapidjson::Value &qst_result = List[0]["qstresult"];
-
-                        Document qst_result_doc;
-                        qst_result_doc.Parse(qst_result.GetString());
-
-                        m_qst_result.clear();
-                        int rank = (int)std::sqrt(qst_result_doc.Size());
-
-                        for (auto i = 0; i < rank; ++i)
-                        {
-                            QStat row_value;
-                            for (auto j = 0; j < rank; ++j)
-                            {
-                                auto real_val = qst_result_doc[i*rank + j]["r"].GetDouble();
-                                auto imag_val = qst_result_doc[i*rank + j]["i"].GetDouble();
-
-                                row_value.emplace_back(qcomplex_t(real_val, imag_val));
-                            }
-
-                            m_qst_result.emplace_back(row_value);
-                        }
-
-                        break;
-                    }
-
-                    case CloudQMchineType::FIDELITY:
-                    {
-                        const rapidjson::Value &qst_fidelity = List[0]["qstfidelity"];
-
-                        std::string qst_fidelity_str = qst_fidelity.GetString();
-
-                        m_qst_fidelity = stod(qst_fidelity_str);
-
-                        break;
-                    }
-
-                    default: QCERR("quantum machine type error"); throw run_fail("quantum machine type error"); break;
-				}
-
-                return false;
+                break;
             }
 
-			case TaskStatus::FAILED:
+            case CloudQMchineType::NOISE_QMACHINE:
+            case CloudQMchineType::Full_AMPLITUDE:
             {
-                if (CloudQMchineType::REAL_CHIP == backend_type)
+
+                auto result_type = result_doc["ResultType"].as_int();
+
+                if (result_type == (int)ClusterResultType::EXPECTATION)
                 {
-                    Document result_doc;
-                    result_doc.Parse(result.GetString());
-
-                    Value &value = result_doc["Value"];
-
-                    QCERR(value.GetString());
-                    throw run_fail(value.GetString());
+                    m_expectation = result_doc["Value"].is_double() ?
+                        result_doc["Value"].as_double() : (double)result_doc["Value"].as_int();
                 }
                 else
                 {
-                    QCERR("Task status failed");
-                    throw run_fail("Task status failed");
+                    m_measure_result.clear();
+                    for (auto i = 0; i < result_doc["Key"].size(); ++i)
+                    {
+                        auto key = result_doc["Key"][i].as_string();
+                        auto val = result_doc["Value"][i].is_double() ?
+                            result_doc["Value"][i].as_double() : (double)result_doc["Value"][i].as_int();
+
+                        m_measure_result.insert(make_pair(key, val));
+                    }
                 }
+
+                break;
             }
 
-			case TaskStatus::WAITING:
-            case TaskStatus::COMPUTING:
-            case TaskStatus::QUEUING: m_task_status = status;
+            case CloudQMchineType::PARTIAL_AMPLITUDE:
+            {
+                m_pmeasure_result.clear();
+                for (SizeType i = 0; i < result_doc["Key"].size(); ++i)
+                {
+                    auto key = result_doc["Key"][i].as_string();
+                    auto val_real = result_doc["ValueReal"][i].is_double() ?
+                        result_doc["ValueReal"][i].as_double() : (double)result_doc["ValueReal"][i].as_int();
+                    auto val_imag = result_doc["ValueImag"][i].is_double() ?
+                        result_doc["ValueImag"][i].as_double() : (double)result_doc["ValueImag"][i].as_int();
+
+                    m_pmeasure_result.insert(make_pair(key, qcomplex_t(val_real, val_imag)));
+                }
+
+                break;
+            }
+
+            case CloudQMchineType::SINGLE_AMPLITUDE:
+            {
+                auto val_real = result_doc["ValueReal"][0].is_double() ?
+                    result_doc["ValueReal"][0].as_double() : (double)result_doc["ValueReal"][0].as_int();
+                auto val_imag = result_doc["ValueImag"][0].is_double() ?
+                    result_doc["ValueImag"][0].as_double() : (double)result_doc["ValueImag"][0].as_int();
+
+                m_single_result = qcomplex_t(val_real, val_imag);
+                break;
+            }
+
+            case CloudQMchineType::QST:
+            {
+                rabbit::document qst_result_doc;
+                qst_result_doc.parse(list[0]["qstresult"].as_string());
+
+                m_qst_result.clear();
+                int rank = (int)std::sqrt(qst_result_doc.size());
+
+                for (auto i = 0; i < rank; ++i)
+                {
+                    QStat row_value;
+                    for (auto j = 0; j < rank; ++j)
+                    {
+                        auto qst_result_real_value = qst_result_doc[i*rank + j]["r"];
+                        auto qst_result_imag_value = qst_result_doc[i*rank + j]["i"];
+
+                        auto real_val = qst_result_real_value.is_double() ?
+                            qst_result_real_value.as_double() : (double)qst_result_real_value.as_int();
+                        auto imag_val = qst_result_imag_value.is_double() ?
+                            qst_result_imag_value.as_double() : (double)qst_result_imag_value.as_int();
+
+                        row_value.emplace_back(qcomplex_t(real_val, imag_val));
+                    }
+
+                    m_qst_result.emplace_back(row_value);
+                }
+
+                break;
+            }
+
+            case CloudQMchineType::FIDELITY:
+            {
+                std::string qst_fidelity_str = list[0]["qstfidelity"].as_string();
+                m_qst_fidelity = stod(qst_fidelity_str);
+
+                break;
+            }
+
+            default: QCERR_AND_THROW(run_fail, "quantum machine type error");
+            }
+
+            return false;
+        }
+
+        case TaskStatus::FAILED:
+        {
+            QCERR_AND_THROW(run_fail, "Task run failed");
+        }
+
+        case TaskStatus::WAITING:
+        case TaskStatus::COMPUTING:
+        case TaskStatus::QUEUING: m_task_status = status;
 
             //The next status only appear in real chip backend
-            case TaskStatus::SENT_TO_BUILD_SYSTEM:
-            case TaskStatus::BUILD_SYSTEM_RUN: return true;
-            case TaskStatus::BUILD_SYSTEM_ERROR: QCERR_AND_THROW(run_fail, "build system error");
-            case TaskStatus::SEQUENCE_TOO_LONG: QCERR_AND_THROW(run_fail, "exceeding maximum timing sequence");
+        case TaskStatus::SENT_TO_BUILD_SYSTEM:
+        case TaskStatus::BUILD_SYSTEM_RUN: return true;
+        case TaskStatus::BUILD_SYSTEM_ERROR: QCERR_AND_THROW(run_fail, "build system error");
+        case TaskStatus::SEQUENCE_TOO_LONG: QCERR_AND_THROW(run_fail, "exceeding maximum timing sequence");
 
-            default: return true;
-		}
-	}
-	catch (const std::exception&e)
-	{
+        default: return true;
+        }
+    }
+    catch (const std::exception&e)
+    {
         if (m_is_logged) std::cout << recv_json << std::endl;
         QCERR("parse result exception error");
         throw run_fail("parse result exception error");
-	}
+    }
 
     return false;
 }
@@ -907,13 +893,13 @@ std::string QCloudMachine::get_result_json(std::string taskid, std::string url, 
     rabbit::document doc;
     doc.parse("{}");
 
-    doc.insert("taskId",   taskid);
+    doc.insert("taskId", taskid);
     doc.insert("apiKey", m_token);
     doc.insert("QMachineType", (size_t)type);
 
     std::string post_json_str = doc.str();
     std::string recv_json_str = post_json(url, post_json_str);
-	return recv_json_str;
+    return recv_json_str;
 }
 
 std::vector<std::map<std::string, double>> QCloudMachine::full_amplitude_measure_batch(std::vector<QProg>& prog_array, int shot, std::string task_name)
@@ -1101,7 +1087,7 @@ std::vector<std::map<std::string, double>> QCloudMachine::noise_measure_batch(
 
 std::vector<std::map<std::string, double>> QCloudMachine::real_chip_measure_batch(
     std::vector<QProg>& prog_array,
-    int shot, 
+    int shot,
     RealChipType chip_id,
     bool is_amend,
     bool is_mapping,
@@ -1185,7 +1171,7 @@ std::string QCloudMachine::get_result_json_batch(std::map<size_t, std::string> t
     doc.parse("{}");
 
     std::string string_array;
-    for (auto val: taskid_map)
+    for (auto val : taskid_map)
     {
         string_array.append(val.second);
         string_array.append(";");
@@ -1251,75 +1237,75 @@ bool QCloudMachine::parser_result_json_batch(std::string &recv_json, std::map<si
                 auto result_type = result_doc["ResultType"].as_int();
                 switch ((ReasultType)result_type)
                 {
-                    case ReasultType::PROBABILITY_MAP:
-                    {
-                        m_measure_result.clear();
+                case ReasultType::PROBABILITY_MAP:
+                {
+                    m_measure_result.clear();
 
-                        for (int j = 0; j < result_doc["Value"].size(); j++)
+                    for (int j = 0; j < result_doc["Value"].size(); j++)
+                    {
+                        auto key = result_doc["Key"][j].as_string();
+                        auto val = result_doc["Value"][j].is_double() ?
+                            result_doc["Value"][j].as_double() : (double)result_doc["Value"][j].as_int();
+
+                        m_measure_result.insert(make_pair(key, val));
+                    }
+
+                    m_batch_measure_result[stoi(result_step)] = m_measure_result;
+                    break;
+                }
+
+                case ReasultType::SINGLE_PROBABILITY:
+                {
+                    m_expectation = result_doc["Value"].is_double() ?
+                        result_doc["Value"].as_double() : (double)result_doc["Value"].as_int();
+                }
+
+                case ReasultType::MULTI_AMPLITUDE:
+                {
+                    m_pmeasure_result.clear();
+
+                    if (result_doc["Key"].is_array())   //partial amplitude
+                    {
+                        for (int j = 0; j < result_doc["Key"].size(); j++)
                         {
                             auto key = result_doc["Key"][j].as_string();
-                            auto val = result_doc["Value"][j].is_double() ?
-                                result_doc["Value"][j].as_double() : (double)result_doc["Value"][j].as_int();
+                            auto val_real = result_doc["ValueReal"][j].is_double() ?
+                                result_doc["ValueReal"][j].as_double() : (double)result_doc["ValueReal"][j].as_int();
+                            auto val_imag = result_doc["ValueImag"][j].is_double() ?
+                                result_doc["ValueImag"][j].as_double() : (double)result_doc["ValueImag"][j].as_int();
 
-                            m_measure_result.insert(make_pair(key, val));
+                            m_pmeasure_result.insert(make_pair(key, qcomplex_t(val_real, val_imag)));
                         }
 
-                        m_batch_measure_result[stoi(result_step)] = m_measure_result;
-                        break;
+                        m_batch_pmeasure_result[stoi(result_step)] = m_pmeasure_result;
                     }
-
-                    case ReasultType::SINGLE_PROBABILITY:
+                    else  //single amplitude
                     {
-                        m_expectation = result_doc["Value"].is_double() ?
-                            result_doc["Value"].as_double() : (double)result_doc["Value"].as_int();
+                        auto key = result_doc["Key"].as_string();
+                        auto val_real = result_doc["ValueReal"][0].is_double() ?
+                            result_doc["ValueReal"][0].as_double() : (double)result_doc["ValueReal"][0].as_int();
+                        auto val_imag = result_doc["ValueImag"][0].is_double() ?
+                            result_doc["ValueImag"][0].as_double() : (double)result_doc["ValueImag"][0].as_int();
+
+                        m_batch_single_result.insert(make_pair(stoi(result_step), qcomplex_t(val_real, val_imag)));
                     }
 
-                    case ReasultType::MULTI_AMPLITUDE:
-                    {
-                        m_pmeasure_result.clear();
+                    break;
+                }
 
-                        if (result_doc["Key"].is_array())   //partial amplitude
-                        {
-                            for (int j = 0; j < result_doc["Key"].size(); j++)
-                            {
-                                auto key = result_doc["Key"][j].as_string();
-                                auto val_real = result_doc["ValueReal"][j].is_double() ?
-                                    result_doc["ValueReal"][j].as_double() : (double)result_doc["ValueReal"][j].as_int();
-                                auto val_imag = result_doc["ValueImag"][j].is_double() ?
-                                    result_doc["ValueImag"][j].as_double() : (double)result_doc["ValueImag"][j].as_int();
+                case ReasultType::SINGLE_AMPLTUDE:
+                {
+                    auto val_real = result_doc["ValueReal"].is_double() ?
+                        result_doc["ValueReal"].as_double() : (double)result_doc["ValueReal"].as_int();
+                    auto val_imag = result_doc["ValueImag"].is_double() ?
+                        result_doc["ValueImag"].as_double() : (double)result_doc["ValueImag"].as_int();
 
-                                m_pmeasure_result.insert(make_pair(key, qcomplex_t(val_real, val_imag)));
-                            }
+                    m_batch_single_result[stoi(result_step)] = (qcomplex_t(val_real, val_imag));
+                    break;
+                }
 
-                            m_batch_pmeasure_result[stoi(result_step)] = m_pmeasure_result;
-                        }
-                        else  //single amplitude
-                        {
-                            auto key = result_doc["Key"].as_string();
-                            auto val_real = result_doc["ValueReal"][0].is_double() ?
-                                result_doc["ValueReal"][0].as_double() : (double)result_doc["ValueReal"][0].as_int();
-                            auto val_imag = result_doc["ValueImag"][0].is_double() ?
-                                result_doc["ValueImag"][0].as_double() : (double)result_doc["ValueImag"][0].as_int();
-
-                            m_batch_single_result.insert(make_pair(stoi(result_step), qcomplex_t(val_real, val_imag)));
-                        }
-
-                        break;
-                    }
-
-                    case ReasultType::SINGLE_AMPLTUDE:
-                    {
-                        auto val_real = result_doc["ValueReal"].is_double() ?
-                            result_doc["ValueReal"].as_double() : (double)result_doc["ValueReal"].as_int();
-                        auto val_imag = result_doc["ValueImag"].is_double() ?
-                            result_doc["ValueImag"].as_double() : (double)result_doc["ValueImag"].as_int();
-
-                        m_batch_single_result[stoi(result_step)] = (qcomplex_t(val_real, val_imag));
-                        break;
-                    }
-
-                    default: QCERR_AND_THROW(run_fail, "quantum machine type error");
-                    }
+                default: QCERR_AND_THROW(run_fail, "quantum machine type error");
+                }
             }break;
 
 
@@ -1327,7 +1313,7 @@ bool QCloudMachine::parser_result_json_batch(std::string &recv_json, std::map<si
             case TaskStatus::COMPUTING:
             case TaskStatus::QUEUING:
 
-            //The next status only appear in real chip backend
+                //The next status only appear in real chip backend
             case TaskStatus::SENT_TO_BUILD_SYSTEM:
             case TaskStatus::BUILD_SYSTEM_RUN: return true;
 

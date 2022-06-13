@@ -7,6 +7,6 @@
 #cmakedefine USE_CURL
 #cmakedefine USE_MPI
 #cmakedefine USE_EXTENSION
-
+#cmakedefine USE_SIMD
 
 #endif

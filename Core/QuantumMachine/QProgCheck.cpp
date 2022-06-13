@@ -37,12 +37,26 @@ void QProgCheck::execute(std::shared_ptr<AbstractQGateNode> cur_node, std::share
 void QProgCheck::execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, std::shared_ptr<QNode> parent_node, TraversalConfig &param)
 {
     auto qubit_addr = cur_node->getQuBit()->getPhysicalQubitPtr()->getQubitAddr();
-    param.m_measure_qubits.push_back(qubit_addr);
 
-    auto cbit_name = cur_node->getCBit()->getName();
     auto cbit = cur_node->getCBit();
-    string cbit_number_str = cbit_name.substr(1);
-    size_t cbit_addr = stoul(cbit_number_str);
+
+    auto current_cbit_name = cur_node->getCBit()->getName();
+    string current_cbit_number_str = current_cbit_name.substr(1);
+    size_t current_cbit_addr = stoul(current_cbit_number_str);
+
+    for (auto i = 0; i < param.m_measure_cc.size(); ++i)
+    {
+        string cbit_num_str = param.m_measure_cc[i]->getName().substr(1);
+        size_t cbit_addr = stoul(cbit_num_str);
+
+        if (current_cbit_addr == cbit_addr)
+        {
+            param.m_measure_qubits[i] = qubit_addr;
+            return;
+        }
+    }
+
+    param.m_measure_qubits.push_back(qubit_addr);
     param.m_measure_cc.push_back(cbit);
 
     return ;

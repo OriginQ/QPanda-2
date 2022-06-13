@@ -250,13 +250,13 @@ private:
 };
 
 /**
-* @brief  matrix_decompose_pualis
+* @brief  matrix_decompose_paulis
 * @ingroup Utilities
 * @param[in]  QuantumMachine* qvm: QuantumMachine
 * @param[in]  EigenMatrixX& mat: the matrix
 * @param[in]  PualiOperatorLinearCombination& linearcom
 */
-void matrix_decompose_pualis(QuantumMachine* qvm, const EigenMatrixX& mat, PualiOperatorLinearCombination& linearcom);
+void matrix_decompose_paulis(QuantumMachine* qvm, const EigenMatrixX& mat, PualiOperatorLinearCombination& linearcom);
 
 QPANDA_END
 #endif // MATRIX_DECOMPOSITION_H

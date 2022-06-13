@@ -621,7 +621,11 @@ void export_core_class(py::module &m)
 
         .def("qAlloc", &OriginQubitPool::qAlloc, py::return_value_policy::reference_internal)
         .def("qAlloc_many",
-             &OriginQubitPool::qAllocMany,
+            [](OriginQubitPool &self, size_t qubit_num)
+            {
+                auto qv = static_cast<std::vector<Qubit*>>(self.qAllocMany(qubit_num));
+                return qv;
+            },
              py::arg("qubit_num"),
              "Allocate a list of qubits",
              py::return_value_policy::reference_internal)

@@ -590,7 +590,7 @@ QCircuit QPanda::diagonal_matrix_decompose(const QVec& qubits, const QStat& src_
 
 
 /*******************************************************************
-*                    puali-XYZ  decomposition
+*                    pauli-XYZ  decomposition
 ********************************************************************/
 
 MatrixToPauli::MatrixToPauli(QuantumMachine* qvm)
@@ -994,7 +994,7 @@ void MatrixToPauli::addtoSimplyCircuit(int i, const std::vector<int>& index, int
 }
 
 
-void QPanda::matrix_decompose_pualis(QuantumMachine* qvm, const EigenMatrixX& mat, PualiOperatorLinearCombination& linearcom)
+void QPanda::matrix_decompose_paulis(QuantumMachine* qvm, const EigenMatrixX& mat, PualiOperatorLinearCombination& linearcom)
 {
 	if (mat.size() == 0 ||
 		(mat.rows() != mat.cols()) ||

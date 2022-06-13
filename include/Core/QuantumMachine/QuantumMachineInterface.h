@@ -178,6 +178,14 @@ public:
     /**
     * @brief  runWithConfiguration
     * @param[in]  QProg& quantum program
+    * @param[in]  int shots
+    * @return     std::map<std::string, Eigen::size_t>
+    */
+    virtual std::map<std::string, size_t> runWithConfiguration(QProg &, int, const NoiseModel& = NoiseModel()) = 0;
+
+    /**
+    * @brief  runWithConfiguration
+    * @param[in]  QProg& quantum program
     * @param[in]  std::vector<int>& cbit addrs
     * @param[in]  int
     * @return     std::map<std::string, Eigen::size_t>

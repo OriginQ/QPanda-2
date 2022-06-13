@@ -6,6 +6,52 @@ import unittest
 PI = 3.1415926535898
 
 class QCloudMachine(unittest.TestCase):
+
+    def test_global_cpu_run_with_no_cbits_args(self):
+
+        qvm = init_quantum_machine()
+        qvm.initQVM()
+
+        prog = QProg()
+
+        q = qvm.qAlloc_many(4)
+        c = qvm.cAlloc_many(4)
+
+        prog.insert(H(q[0]))\
+            .insert(CNOT(q[0], q[1]))\
+            .insert(CNOT(q[1], q[2]))\
+            .insert(CNOT(q[2], q[3]))\
+            .insert(measure_all(q, c))
+
+        result0 = qvm.run_with_configuration(prog, c, 10000)
+        result1 = qvm.run_with_configuration(prog, 10000)
+
+        print(result0)
+        print(result1)
+
+    def test_cpu_run_with_no_cbits_args(self):
+
+        qvm = CPUQVM()
+        qvm.initQVM()
+
+        prog = QProg()
+
+        q = qvm.qAlloc_many(4)
+        c = qvm.cAlloc_many(4)
+
+        prog.insert(H(q[0]))\
+            .insert(CNOT(q[0], q[1]))\
+            .insert(CNOT(q[1], q[2]))\
+            .insert(CNOT(q[2], q[3]))\
+            .insert(measure_all(q, c))
+
+        result0 = qvm.run_with_configuration(prog, c, 10000)
+        result1 = qvm.run_with_configuration(prog, 10000)
+
+        print(result0)
+        print(result1)
+
+
     def draw(self):
 
         qvm = CPUQVM()

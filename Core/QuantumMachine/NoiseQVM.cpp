@@ -60,6 +60,22 @@ std::map<std::string, size_t> NoiseQVM::runWithConfiguration(QProg& prog, std::v
 	return runWithConfiguration(prog, cbits_vect, shots);
 }
 
+std::map<std::string, size_t> NoiseQVM::runWithConfiguration(QProg& prog, int shots, const NoiseModel&)
+{
+    if (shots < 1)
+        QCERR_AND_THROW(run_fail, "shots data error");
+
+    TraversalConfig traver_param;
+    QProgCheck prog_check;
+    prog_check.execute(prog.getImplementationPtr(), nullptr, traver_param);
+
+    vector<ClassicalCondition> cbits_vector;
+    for (auto cbit : traver_param.m_measure_cc)
+        cbits_vector.push_back(ClassicalCondition(cbit));
+
+    return runWithConfiguration(prog, cbits_vector, shots);
+}
+
 
 std::map<string, size_t> NoiseQVM::runWithConfiguration(QProg &prog, std::vector<ClassicalCondition> &cbits, int shots, const NoiseModel&)
 {

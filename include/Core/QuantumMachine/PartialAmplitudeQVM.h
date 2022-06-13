@@ -42,7 +42,7 @@ public:
         return std::map<std::string, bool>();
     }
 
-    int get_spilt_num(QProg &node)
+    int get_split_num(QProg &node)
     {
         auto qubit_num = getAllocateQubitNum();
         m_graph_backend.reset(qubit_num);

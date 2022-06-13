@@ -87,8 +87,12 @@ bool DeviceQPU::init()
 bool DeviceQPU::init_state(size_t qnum, const QStat &state)
 {
     set_device();
-    auto ret = cudaStreamCreateWithFlags(&m_cuda_stream, cudaStreamNonBlocking);
-    QPANDA_ASSERT(cudaSuccess != ret, "Error: cudaStreamCreateWithFlags.");
+    if (nullptr == m_cuda_stream)
+    {
+        auto ret = cudaStreamCreateWithFlags(&m_cuda_stream, cudaStreamNonBlocking);
+        QPANDA_ASSERT(cudaSuccess != ret, "Error: cudaStreamCreateWithFlags.");
+    }
+    
 
     if (0 == state.size())
     {

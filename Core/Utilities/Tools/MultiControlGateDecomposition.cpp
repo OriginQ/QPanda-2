@@ -1,9 +1,7 @@
 #include <Eigen/Eigen>
 #include <Eigen/Dense>
-#include "Core/Utilities/Tools/Uinteger.h"
 #include "Core/Utilities/Tools/QStatMatrix.h"
 #include "Core/Utilities/Tools/QProgFlattening.h"
-#include <EigenUnsupported/Eigen/KroneckerProduct>
 #include "Core/Utilities/Tools/MultiControlGateDecomposition.h"
 
 USING_QPANDA
@@ -312,92 +310,4 @@ void LinearDepthDecomposition::execute(std::shared_ptr<AbstractQGateNode>  cur_n
         case GateType::BARRIER_GATE:
         default: return QNodeDeepCopy::execute(cur_node, parent_node);
     }
-}
-
-QCircuit QPanda::ucry_circuit(QVec controls, Qubit* target, prob_vec params)
-{
-    auto control_num = controls.size();
-    auto indices_num = 1ull << control_num;
-
-    std::vector<std::string> binary_indices;
-    for (size_t i = 0; i < indices_num; ++i)
-        binary_indices.emplace_back(integerToBinary(i, control_num));
-
-    QCircuit ucry_circuit;
-    for (auto index = 0; index < indices_num; ++index)
-    {
-        auto binary_string = binary_indices[index];
-
-        QCircuit filp_circuit;
-        for (auto i = 0; i < binary_string.size(); ++i)
-        {
-            if (binary_string[i] == '0')
-                filp_circuit << X(controls[i]);
-        }
-
-        ucry_circuit << filp_circuit;
-        ucry_circuit << RY(target, params[index]).control(controls);
-        ucry_circuit << filp_circuit;
-    }
-
-    return ucry_circuit;
-}
-
-
-QCircuit QPanda::ucry_decompose(QVec controls, Qubit* target, prob_vec params)
-{
-    std::sort(controls.begin(), controls.end(), [&](Qubit* a, Qubit* b)
-    {
-        return a->get_phy_addr() < b->get_phy_addr(); 
-    });
-
-    auto control_num = controls.size();
-    auto indices_num = 1ull << control_num;
-    
-    MatrixXd matrix(2, 2);
-    matrix << 1, 1, 1, -1;
-
-    MatrixXd Mk = MatrixXd::Identity(1, 1);
-    for (auto i = 0; i < control_num; ++i)
-    {
-        Mk = Eigen::kroneckerProduct(Mk, matrix).eval();
-    }
-
-    Mk /= indices_num;
-    VectorXd param_out_vector = Mk * VectorXd::Map(params.data(), params.size());
-
-    std::function<Qnum(size_t)> func = [&](size_t num)
-    {
-        if (1 == num)
-        {
-            return Qnum({ 0, 0 });
-        }
-        else
-        {
-            auto part_a = func(num - 1);
-
-            auto part_b = part_a;
-            part_b.back() += 1;
-
-            Qnum result;
-            result.insert(result.end(), part_b.begin(), part_b.end());
-            result.insert(result.end(), part_b.begin(), part_b.end());
-
-            return result;
-        }
-    };
-
-    Qnum control_indices = func(control_num);
-
-    QCircuit ucry_result;
-    for (auto i = 0; i < param_out_vector.size(); ++i)
-    {
-        ucry_result << RY(target, param_out_vector[i]);
-
-        auto control_qubit = controls[control_num - 1 - control_indices[i]];
-
-        ucry_result << CNOT(control_qubit, target);
-    }
-
-    return ucry_result;
 }

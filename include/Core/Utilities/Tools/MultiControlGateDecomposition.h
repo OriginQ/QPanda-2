@@ -50,8 +50,5 @@ QProg ldd_decompose(T& node)
     return ldd.decompose(temp);
 }
 
-QCircuit ucry_circuit(QVec controls, Qubit* target, prob_vec params);
-QCircuit ucry_decompose(QVec controls, Qubit* target, prob_vec params);
-
 QPANDA_END
 #endif // MULTI_CONTROL_GATE_DECOMPOSITION_H

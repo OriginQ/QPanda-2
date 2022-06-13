@@ -51,7 +51,7 @@ void NodeInfo::init(const int type, const QVec& target_qubits, const QVec& contr
 		case MEASURE:
 		{
 			auto p_measure = std::dynamic_pointer_cast<AbstractQuantumMeasure>(*m_iter);
-			m_cbits.push_back(p_measure->getCBit()->get_addr());
+			m_cbits.push_back(p_measure->getCBit()->getValue());
 			m_node_type = MEASURE_GATE;
 		}
 		break;

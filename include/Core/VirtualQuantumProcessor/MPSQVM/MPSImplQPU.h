@@ -96,8 +96,6 @@ public:
 		bool isConjugate,
 		GateType);
 
-    QError OracleGate(Qnum& qubits, QStat &matrix, bool isConjugate);
-
 	/**
 	* @brief  controlunitary double qubit gate
 	* @param[in]  size_t  first qubit address

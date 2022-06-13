@@ -99,7 +99,7 @@ bool Fusion::aggreate(std::vector<QGate>& gate_v, QuantumMachine* qvm)
 QGate Fusion::_generate_oracle_gate(const std::vector<QGate>& fusion_gates,
     const std::vector<int>& qubits, QuantumMachine* qvm)
 {
-    CPUImplQPU<double> cpu;
+    CPUImplQPU cpu;
     QStat state;
     cpu.initMatrixState(qubits.size() * 2, state);
     for (int i = fusion_gates.size() - 1; i >= 0; i--)
@@ -166,7 +166,7 @@ QGate Fusion::_generate_oracle_gate(const std::vector<QGate>& fusion_gates,
 QGate Fusion::_generate_operation_internal(const std::vector<QGate> &fusion_gates,
 	const std::vector<int> &qubits, QuantumMachine *qvm)
 {
-	CPUImplQPU<double> cpu;
+	CPUImplQPU cpu;
 	QStat state;
 	cpu.initMatrixState(qubits.size() * 2, state);
 	for (int i = 0; i < fusion_gates.size(); i++)

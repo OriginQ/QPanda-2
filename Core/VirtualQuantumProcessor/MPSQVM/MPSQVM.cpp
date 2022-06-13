@@ -52,7 +52,7 @@ static std::vector<Qnum> get_qubits_addr(const std::vector<QVec>& qvs)
         Qnum qubits_addr;
         for_each(qvec.begin(), qvec.end(), [&](Qubit* qubit)
         {
-            qubits_addr.emplace_back(qubit->get_phy_addr());
+            qubits_addr.emplace_back(qubit->get_phy_addr()); 
         });
 
         qubits_addrs.emplace_back(qubits_addr);
@@ -71,30 +71,6 @@ static Qnum get_qubits_addr(const QVec &qvs)
 
     return qubits_addrs;
 }
-
-static void _check_repetitive_qubit(const QVec& target_qv, const QVec& ctrl_qv)
-{
-	auto total_size = target_qv.size() + ctrl_qv.size();
-	auto qv = target_qv + ctrl_qv;
-	if (total_size != qv.size())
-	{
-		QCERR("target_qv == ctrl_qv ");
-		throw std::runtime_error("target_qv == ctrl_qv");
-	}
-
-	for (int i = 0; i < ctrl_qv.size(); i++)
-	{
-		for (int j = i + 1; j < ctrl_qv.size(); j++)
-		{
-			if (qv[i]->get_phy_addr() == qv[j]->get_phy_addr())
-			{
-				QCERR("gate have the same qubit ");
-				throw std::runtime_error("gate have the same qubit ");
-			}
-		}
-	}
-}
-
 
 void MPSQVM::init()
 {
@@ -120,9 +96,9 @@ void MPSQVM::initState(const QStat &state, const QVec &qlist)
     {
         auto qubit_alloc_size = getAllocateQubitNum();
         QPANDA_ASSERT(qlist.size() > qubit_alloc_size || (1ull << qlist.size()) != state.size(),
-            "Error: initState state and qlist size.");
+                      "Error: initState state and qlist size.");
         set<size_t> qubit_set;
-        for_each(qlist.begin(), qlist.end(), [&](Qubit *q) {
+        for_each(qlist.begin(), qlist.end(), [&](Qubit *q){
             qubit_set.insert(q->get_phy_addr());
         });
         QPANDA_ASSERT(qlist.size() != qubit_set.size(), "Error: initState state qlist.");
@@ -140,11 +116,11 @@ void MPSQVM::initState(const QStat &state, const QVec &qlist)
                 init_state_index += base * (1ll << qlist[j]->get_phy_addr());
                 index >>= 1;
                 j++;
-            } while (index != 0);
+            }while(index != 0);
 
             init_state[init_state_index] = state[i];
         }
-        m_simulator->initState(qubit_alloc_size, init_state);
+         m_simulator->initState(qubit_alloc_size, init_state);
     }
 
     return;
@@ -158,7 +134,6 @@ static void get_gate_paramter(std::shared_ptr<AbstractQGateNode> gate, const QCi
     QVec control_qubits;
     gate->getQuBitVector(qubits);
     gate->getControlVector(control_qubits);
-    _check_repetitive_qubit(qubits, control_qubits);
 
     merge_qvec(control_qubits, config._contorls);
 
@@ -187,7 +162,6 @@ static void get_gate_paramter(std::shared_ptr<AbstractQGateNode> gate, const QCi
     QVec control_qubits;
     gate->getQuBitVector(qubits);
     gate->getControlVector(control_qubits);
-	_check_repetitive_qubit(qubits, control_qubits);
 
     merge_qvec(control_qubits, config._contorls);
     unique_qvec(control_qubits);
@@ -278,7 +252,7 @@ std::map<std::string, size_t> MPSQVM::run_configuration_with_noise(QProg &prog, 
     map<string, size_t> result_map;
 
     for (int i = 0; i < shots; i++)
-    {
+    { 
         run_cannot_optimize_measure_with_noise(prog);
         std::string result_bin_str = _ResultToBinaryString(cbits);
         std::reverse(result_bin_str.begin(), result_bin_str.end());
@@ -290,7 +264,7 @@ std::map<std::string, size_t> MPSQVM::run_configuration_with_noise(QProg &prog, 
     }
 
     return  result_map;
-}
+}   
 
 std::map<string, size_t> MPSQVM::runWithConfiguration(QProg &prog, std::vector<ClassicalCondition> &cbits, int shots, const NoiseModel&)
 {
@@ -303,44 +277,6 @@ std::map<string, size_t> MPSQVM::runWithConfiguration(QProg &prog, std::vector<C
         return run_configuration_without_noise(prog, cbits, shots);
     }
 }
-
-std::map<string, size_t> MPSQVM::runWithConfiguration(QProg &prog, int shots, const NoiseModel&)
-{
-    if (shots < 1)
-        QCERR_AND_THROW(run_fail, "shots data error");
-
-    TraversalConfig traver_param;
-    QProgCheck prog_check;
-    prog_check.execute(prog.getImplementationPtr(), nullptr, traver_param);
-
-    std::sort(traver_param.m_measure_cc.begin(), traver_param.m_measure_cc.end(), [&](CBit* a, CBit* b)
-    {
-        auto current_cbit_a_name = a->getName();
-        auto current_cbit_b_name = b->getName();
-
-        string current_cbit_a_number_str = current_cbit_a_name.substr(1);
-        string current_cbit_b_number_str = current_cbit_b_name.substr(1);
-
-        size_t current_a_cbit_addr = stoul(current_cbit_a_number_str);
-        size_t current_b_cbit_addr = stoul(current_cbit_b_number_str);
-
-        return current_a_cbit_addr < current_b_cbit_addr;
-    });
-
-    vector<ClassicalCondition> cbits_vector;
-    for (auto cbit : traver_param.m_measure_cc)
-        cbits_vector.push_back(ClassicalCondition(cbit));
-
-    if (m_noise_simulator.has_quantum_error())
-    {
-        return run_configuration_with_noise(prog, cbits_vector, shots);
-    }
-    else
-    {
-        return run_configuration_without_noise(prog, cbits_vector, shots);
-    }
-}
-
 
 std::map<string, size_t> MPSQVM::runWithConfiguration(QProg &prog, std::vector<ClassicalCondition> &cbits, rapidjson::Document &doc, const NoiseModel&)
 {
@@ -387,7 +323,7 @@ prob_vec MPSQVM::PMeasure_no_index(QVec qubits)
 
 prob_vec MPSQVM::pMeasureNoIndex(QVec qubit_vector)
 {
-    return PMeasure_no_index(qubit_vector);
+	return PMeasure_no_index(qubit_vector);
 }
 
 prob_tuple MPSQVM::PMeasure(QVec qubits, int select_max)
@@ -518,31 +454,9 @@ void MPSQVM::handle_one_target(std::shared_ptr<AbstractQGateNode> gate, const QC
     return;
 }
 
-void MPSQVM::handle_oracle_gate(std::shared_ptr<AbstractQGateNode> gate, const QCircuitConfig &config)
-{
-    auto gate_type = gate->getQGate()->getGateType();
-
-    QStat gate_matrix;
-    gate->getQGate()->getMatrix(gate_matrix);
-
-    QVec qubits;
-    gate->getQuBitVector(qubits);
-
-    auto qubits_addrs = get_qubits_addr(qubits);
-
-    bool is_dagger = gate->isDagger() ^ config._is_dagger;
-    if (is_dagger)
-        dagger(gate_matrix);
-
-    auto matrix = QStat_to_Eigen(gate_matrix);
-    m_simulator->execute_multi_qubit_gate(qubits_addrs, matrix);
-
-    return;
-}
-
 
 void MPSQVM::handle_two_targets(std::shared_ptr<AbstractQGateNode> gate, const QCircuitConfig &config)
-{
+{ 
     auto gate_type = gate->getQGate()->getGateType();
 
     QStat gate_matrix;
@@ -561,27 +475,6 @@ void MPSQVM::handle_two_targets(std::shared_ptr<AbstractQGateNode> gate, const Q
 
     return;
 }
-
-void MPSQVM::handle_multi_rotation(std::shared_ptr<AbstractQGateNode> gate, const QCircuitConfig &config)
-{
-    auto gate_type = gate->getQGate()->getGateType();
-
-    QStat gate_matrix;
-    gate->getQGate()->getMatrix(gate_matrix);
-
-    bool is_dagger = gate->isDagger() ^ config._is_dagger;
-
-    std::vector<unsigned short> targets;
-    std::vector<size_t> controls;
-    get_gate_paramter(gate, config, targets, controls);
-
-    if (controls.size() > 0)
-        m_simulator->controlunitaryDoubleQubitGate(targets[1], targets[0], controls, gate_matrix, is_dagger, static_cast<GateType>(gate_type));
-    else
-        m_simulator->unitaryDoubleQubitGate(targets[1], targets[0], gate_matrix, is_dagger, static_cast<GateType>(gate_type));
-    return;
-}
-
 
 void MPSQVM::run_cannot_optimize_measure_with_noise(QProg &prog)
 {
@@ -774,16 +667,7 @@ void MPSQVM::execute(std::shared_ptr<AbstractQGateNode>  cur_node,
     case TWO_QUBIT_GATE:
         handle_two_targets(cur_node, config);
         break;
-    case RXX_GATE:
-    case RYY_GATE:
-    case RZX_GATE:
-    case RZZ_GATE:
-        handle_multi_rotation(cur_node, config);
-        break;
     case BARRIER_GATE:
-        break;
-    case ORACLE_GATE:
-        handle_oracle_gate(cur_node, config);
         break;
     default:
         QCERR("QGate type error");
@@ -803,7 +687,7 @@ qcomplex_t MPSQVM::pmeasure_dec_index(QProg prog, std::string str)
     return m_simulator->pmeasure_dec_index(str);
 }
 
-QStat MPSQVM::pmeasure_bin_subset(QProg prog, const std::vector<std::string>& bin_strs)
+QStat MPSQVM::pmeasure_bin_subset(QProg prog,const std::vector<std::string>& bin_strs)
 {
     run(prog);
     return m_simulator->pmeasure_bin_subset(bin_strs);
@@ -816,15 +700,15 @@ QStat MPSQVM::pmeasure_dec_subset(QProg prog, const std::vector<std::string>& de
 }
 
 //The all next functions are only for noise simulation
+ 
+void MPSQVM::set_reset_error(double reset_0_param, double reset_1_param) 
+{ 
+    return m_noise_simulator.set_reset_error(reset_0_param, reset_1_param); 
+} 
 
-void MPSQVM::set_reset_error(double reset_0_param, double reset_1_param)
+void MPSQVM::set_rotation_error(double param) 
 {
-    return m_noise_simulator.set_reset_error(reset_0_param, reset_1_param);
-}
-
-void MPSQVM::set_rotation_error(double param)
-{
-    return m_noise_simulator.set_rotation_error(param);
+    return m_noise_simulator.set_rotation_error(param); 
 }
 
 void MPSQVM::set_measure_error(NOISE_MODEL model, double param)

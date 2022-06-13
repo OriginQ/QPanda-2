@@ -184,7 +184,7 @@ void QPanda::cFree(ClassicalCondition& classical_cond)
     }
     global_quantum_machine->Free_CBit(classical_cond);
 }
-
+    
 QMachineStatus* QPanda::getstat()
 {
     if (nullptr == global_quantum_machine)
@@ -409,25 +409,6 @@ map<string, size_t> QPanda::runWithConfiguration(QProg & qProg, vector<Classical
         shots,
         doc.GetAllocator());
     return global_quantum_machine->runWithConfiguration(qProg, vCBit, doc, noise_model);
-}
-
-map<string, size_t> QPanda::runWithConfiguration(QProg & prog, int shots, const NoiseModel& noise_model)
-{
-    if (shots < 1)
-        QCERR_AND_THROW(run_fail, "shots data error");
-
-    if (nullptr == global_quantum_machine)
-        QCERR_AND_THROW(init_fail, "global_quantum_machine init fail");
-    
-    TraversalConfig traver_param;
-    QProgCheck prog_check;
-    prog_check.execute(prog.getImplementationPtr(), nullptr, traver_param);
-
-    vector<ClassicalCondition> cbits_vector;
-    for (auto cbit : traver_param.m_measure_cc)
-        cbits_vector.push_back(ClassicalCondition(cbit));
-
-    return global_quantum_machine->runWithConfiguration(prog, cbits_vector, shots, noise_model);
 }
 
 map<string, size_t> QPanda::quickMeasure(QVec vQubit, int shots)

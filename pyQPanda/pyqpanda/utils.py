@@ -40,6 +40,15 @@ def meas_all(qubits, cbits):
 
     return prog
 
+def Toffoli(control1,control2,target):
+    '''
+    `Extended QPanda API`\n
+    Create foffoli gate\n
+    Qubit(control1), Qubit(control2), Qubit(target) -> QGate
+    '''
+
+    return pywrap.X(target).control([control1,control2])
+
 def get_fidelity(result, shots, target_result):
     correct_shots=0
     for term in target_result:

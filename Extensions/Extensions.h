@@ -12,7 +12,6 @@
 #include "QCircuitOptimize/QCircuitRewrite.h"
 #include "QAlg/HHL.h"
 #include "CutQC/CutQC.h"
-#include "VirtualZTransfer/VirtualZTransfer.h"
 
 #endif
 

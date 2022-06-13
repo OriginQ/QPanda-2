@@ -2,7 +2,6 @@
 #include "ThirdParty/rapidjson/document.h"
 #include "ThirdParty/rapidjson/writer.h"
 #include "ThirdParty/rapidjson/stringbuffer.h"
-#include "Core/Utilities/Tools/Uinteger.h"
 #include "Core/Utilities/Compiler/QProgToOriginIR.h"
 
 USING_QPANDA
@@ -19,29 +18,6 @@ void QPanda::json_string_transfer_encoding(std::string& str)
     }
 
     return;
-}
-
-void QPanda::params_verification(std::string dec_amplitude, size_t qubits_num)
-{
-    uint128_t amplitude(dec_amplitude.c_str());
-
-    uint128_t max_amplitude = (uint128_t("1") << qubits_num) - 1;
-
-    if (max_amplitude < amplitude)
-        QCERR_AND_THROW(run_fail, "amplitude params > max_amplitude");
-}
-
-void QPanda::params_verification(std::vector<std::string> dec_amplitudes, size_t qubits_num)
-{
-    for (size_t i = 0; i < dec_amplitudes.size(); i++)
-    {
-        uint128_t amplitude(dec_amplitudes[i].c_str());
-
-        uint128_t max_amplitude = (uint128_t("1") << qubits_num) - 1;
-
-        if (max_amplitude < amplitude)
-            QCERR_AND_THROW(run_fail, "amplitude params > max_amplitude");
-    }
 }
 
 

@@ -111,12 +111,10 @@ public:
 			return;
 		}
 
-		QVec use_qubits;
-		cur_node->getControlVector(use_qubits);
-		cur_node->getQuBitVector(use_qubits);
-		use_qubits += cir_param.m_control_qubits;
+		QVec control_qubits;
+		cur_node->getControlVector(control_qubits);
 
-		if (use_qubits.size() > 2)
+		if ((control_qubits.size() > 0) || (cir_param.m_control_qubits.size() > 0))
 		{
 			m_b_exist_multiple_gate = true;
 		}
@@ -289,13 +287,8 @@ void DecomposeDoubleQGate::execute(std::shared_ptr<AbstractQGateNode>  cur_node,
 
 	for (auto aiter : m_valid_qgate_matrix[1])
 	{
-		if (((cur_node->getQGate()->getGateType() == type[aiter]) || (qGate->getGateType() == CNOT_GATE)) 
-			&& (ctrl_qubits.size() == 0 ))
+		if ((cur_node->getQGate()->getGateType() == type[aiter]) && (ctrl_qubits.size() == 0 ))
 		{
-			/* Single CNOT logic gate is not processed, 
-			 * which can reduce the number of double gates (currently mainly CZ gates) generated during 
-			 * the conversion of basic logic gates.
-			 */
 			return;
 		}
 	}
@@ -318,6 +311,9 @@ void DecomposeDoubleQGate::execute(std::shared_ptr<AbstractQGateNode>  cur_node,
 		}
 
 		replace_qcircuit(cur_node.get(), qCircuit, parent_node.get());
+		return;
+	}
+	else if (qGate->getGateType() == CNOT_GATE){
 		return;
 	}
 

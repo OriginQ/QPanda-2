@@ -53,6 +53,7 @@ public:
 
     TraversalConfig(double rotation_angle_error = 0)
         : m_qubit_number(0), m_is_dagger(false)
+
     {
         m_rotation_angle_error = rotation_angle_error / 2;
     }

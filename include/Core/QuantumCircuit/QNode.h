@@ -10,18 +10,6 @@
 #include <map>
 #include <memory>
 
-#ifdef _MSC_VER
-#pragma warning(disable : 4073)
-#define INIT_SEG  __pragma(init_seg(lib))
-#define INIT_PRIORITY 
-#elif defined(__linux__) ||  defined(__FreeBSD__) || defined(__APPLE__)
-#define INIT_SEG 
-#define INIT_PRIORITY __attribute__((init_priority(1000)))
-#else
-#define INIT_SEG
-#define INIT_PRIORITY 
-#endif
-
 QPANDA_BEGIN
 
 typedef int64_t qmap_size_t;

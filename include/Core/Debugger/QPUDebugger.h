@@ -12,21 +12,15 @@ QPANDA_BEGIN
 class QPUDebugger
 {
 public:
-    struct State{
-        std::vector<std::complex<float>>* float_state{nullptr}; 
-        QStat *double_state{nullptr};
-    };
-
     static QPUDebugger &instance();
-    void save_qstate_ref(std::vector<std::complex<double>> &stat);
-    void save_qstate_ref(std::vector<std::complex<float>> &stat);
-    const State &get_qstate() const;
+    void save_qstate(QStat &stat);
+    const QStat &get_qtate() const;
 
 private:
     QPUDebugger() = default;
     ~QPUDebugger() = default;
 
-    State m_qstate;
+    QStat *m_qstate{nullptr};
 };
 
 QPANDA_END

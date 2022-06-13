@@ -16,14 +16,9 @@ public:
     {
     }
     virtual ~QDebug() {}
-    virtual void save_qstate_ref(std::vector<std::complex<double>>& stat) override
+    virtual void save_qstate(QStat& stat) override
     {
-        m_debug_node->save_qstate_ref(stat);
-    }
-
-    virtual void save_qstate_ref(std::vector<std::complex<float>>& stat) override
-    {
-        m_debug_node->save_qstate_ref(stat);
+        m_debug_node->save_qstate(stat);
     }
 
     std::shared_ptr<AbstractQDebugNode> getImplementationPtr()

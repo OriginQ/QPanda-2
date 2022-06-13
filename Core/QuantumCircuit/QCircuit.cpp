@@ -338,10 +338,8 @@ AbstractQuantumCircuit * QuantumCircuitFactory::getQuantumCircuit(std::string & 
     }
     return nullptr;
 }
-
-INIT_SEG
-
 REGISTER_QCIRCUIT(OriginCircuit);
+
 
 
 HadamardQCircuit::HadamardQCircuit(QVec& qubit_vector)

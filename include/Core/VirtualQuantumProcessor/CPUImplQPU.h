@@ -18,22 +18,18 @@ limitations under the License.
 #define CPU_QUANTUM_GATE_H
 
 #include <vector>
-#include <cstdint>
-#include <immintrin.h>
 #include <stdio.h>
-#include <array>
-#include <bitset>
 #include <iostream>
 #include "Core/Utilities/Tools/Utils.h"
 #include "Core/VirtualQuantumProcessor/QPUImpl.h"
-#include "include/Core/VirtualQuantumProcessor/CPUSupportAvx2.h"
+
+
 QPANDA_BEGIN
 
 /**
 * @brief QPU implementation by  CPU model
 * @ingroup VirtualQuantumProcessor
 */
-template <typename data_t = double>
 class CPUImplQPU : public QPUImpl
 {
 public:
@@ -112,7 +108,6 @@ public:
         return qErrorNone;
     }
 
-    std::vector<std::complex<data_t>> convert(const QStat& v) const;
 	QError single_qubit_gate_fusion(size_t qn, QStat& matrix);
 	QError double_qubit_gate_fusion(size_t qn_0, size_t qn_1, QStat &matrix);
     QError three_qubit_gate_fusion(size_t qn_0, size_t qn_1, QStat &matrix);
@@ -152,7 +147,6 @@ public:
     QError initState(size_t qubit_num, const QStat &state = {});
 	QError initMatrixState(size_t qubit_num, const QStat& state = {});
 
-
 protected:
 	
     QError _single_qubit_normal_unitary(size_t qn, QStat& matrix, bool is_dagger);
@@ -160,9 +154,9 @@ protected:
 
     QError _double_qubit_normal_unitary(size_t qn_0, size_t qn_1, QStat& matrix, bool is_dagger);
     QError _double_qubit_normal_unitary(size_t qn_0, size_t qn_1, Qnum& controls, QStat& matrix, bool is_dagger);
-    QError _three_qubit_gate(Qnum &qubits, QStat& matrix, bool is_dagger, const Qnum& controls = {});
-    QError _four_qubit_gate(Qnum &qubits, QStat& matrix, bool is_dagger, const Qnum& controls = {});
-    QError _five_qubit_gate(Qnum &qubits, QStat& matrix, bool is_dagger, const Qnum& controls = {});
+	QError _three_qubit_gate(Qnum &qubits, QStat& matrix, bool is_dagger, const Qnum& controls = {});
+	QError _four_qubit_gate(Qnum &qubits, QStat& matrix, bool is_dagger, const Qnum& controls = {});
+	QError _five_qubit_gate(Qnum &qubits, QStat& matrix, bool is_dagger, const Qnum& controls = {});
 	QError _X(size_t qn);
     QError _Y(size_t qn);
     QError _Z(size_t qn);
@@ -199,8 +193,6 @@ protected:
     QError _iSWAP_theta(size_t qn_0, size_t qn_1, QStat &matrix, bool is_dagger, Qnum &controls);
     QError _CU(size_t qn_0, size_t qn_1, QStat &matrix, bool is_dagger, Qnum &controls);
     void set_parallel_threads_size(size_t size);
-
-
 	inline int64_t _insert(int64_t value, size_t n1, size_t n2, size_t n3, size_t n4, size_t n5)
 	{
 		int64_t mask1 = (1ll << n1) - 1;
@@ -300,35 +292,6 @@ protected:
 		return offset;
 	}
 
-    int64_t _insert(Qnum &sorted_qubits, int num_qubits, const int64_t k)
-    {
-        int64_t lowbits, retval = k;
-        for (size_t j = 0; j < num_qubits; j++) {
-            lowbits = retval & ((1 << sorted_qubits[j]) - 1);
-            retval >>= sorted_qubits[j];
-            retval <<= sorted_qubits[j] + 1;
-            retval |= lowbits;
-        }
-        return retval;
-    }
-
-    inline void load_index(int64_t index0, int num_qubits, int64_t* indexes,
-        const size_t indexes_size, const Qnum& qregs)
-    {
-        for (size_t i = 0; i < indexes_size; ++i) {
-            indexes[i] = index0;
-        }
-
-        for (size_t n = 0; n < num_qubits; ++n) {
-            for (size_t i = 0; i < indexes_size; i += (1ull << (n + 1))) {
-                for (size_t j = 0; j < (1ull << n); ++j) {
-                    indexes[i + j + (1ull << n)] += (1ull << qregs[n]);
-
-                }
-            }
-        }
-    }
-
     void _verify_state(const QStat &state);
     inline int _omp_thread_num(size_t size);
 private:
@@ -345,14 +308,14 @@ private:
       qubits state vetor of tensor product is arraged as sequence:
       m_state = [an...a1a0, an...a1b0, an...b1a0, an...b1b0, ..., bn...b1b0]
     */
-    std::vector<std::complex<data_t>> m_state;
-    std::vector<std::complex<data_t>> m_init_state;
+    QStat m_state;
+    QStat m_init_state;
     size_t m_qubit_num;
     const int64_t m_threshold = 1ll << 9;
     int64_t m_max_threads_size = 0;
 };
 
-class CPUImplQPUWithOracle : public CPUImplQPU<double> {
+class CPUImplQPUWithOracle : public CPUImplQPU {
 public:
     QError controlOracularGate(std::vector<size_t> bits,
         std::vector<size_t> controlbits,

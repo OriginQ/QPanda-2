@@ -22,7 +22,6 @@ public:
 
     virtual std::map<std::string, size_t> runWithConfiguration(QProg &prog,
         std::vector<ClassicalCondition> &cbits, int shots, const NoiseModel& = NoiseModel()) override;
-    virtual std::map<std::string, size_t> runWithConfiguration(QProg &prog, int shots, const NoiseModel& = NoiseModel()) override;
     virtual std::map<std::string, size_t> runWithConfiguration(QProg &prog,
         std::vector<ClassicalCondition> &cbits, rapidjson::Document &doc, const NoiseModel& = NoiseModel()) override;
     virtual QStat getQState();
@@ -31,6 +30,7 @@ public:
 
     prob_vec PMeasure_no_index(QVec qubits);
     prob_vec pMeasureNoIndex(QVec qubit_vector);
+
 
     qcomplex_t pmeasure_bin_index(QProg prog, std::string str);
     qcomplex_t pmeasure_dec_index(QProg prog, std::string str);
@@ -112,8 +112,6 @@ public:
 protected:
     void handle_one_target(std::shared_ptr<AbstractQGateNode> gate, const QCircuitConfig &config);
     void handle_two_targets(std::shared_ptr<AbstractQGateNode> gate, const QCircuitConfig &config);
-    void handle_multi_rotation(std::shared_ptr<AbstractQGateNode> gate, const QCircuitConfig &config);
-    void handle_oracle_gate(std::shared_ptr<AbstractQGateNode> gate, const QCircuitConfig &config);
     virtual void run(QProg &prog, const NoiseModel& = NoiseModel()) override;
     void run_cannot_optimize_measure(QProg &prog);
 

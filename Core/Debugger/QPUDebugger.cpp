@@ -8,21 +8,13 @@ QPUDebugger &QPUDebugger::instance()
   return debugger;
 }
 
-void QPUDebugger::save_qstate_ref(std::vector<std::complex<double>> &state)
+void QPUDebugger::save_qstate(QStat &stat)
 {
-  m_qstate.double_state = &state;
-  m_qstate.float_state = nullptr;
+  m_qstate = &stat;
 }
 
-void QPUDebugger::save_qstate_ref(std::vector<std::complex<float>> &state)
+const QStat &QPUDebugger::get_qtate() const
 {
-  m_qstate.float_state = &state;
-  m_qstate.double_state = nullptr;
-}
-
-const QPUDebugger::State &QPUDebugger::get_qstate() const
-{
-  QPANDA_ASSERT(m_qstate.double_state && m_qstate.float_state, "QVM state vector saved double complex same time.");
-  QPANDA_ASSERT((!m_qstate.double_state) && (!m_qstate.float_state), "QVM state vector not saved yet.");
-  return m_qstate;
+  QPANDA_ASSERT(m_qstate == nullptr, "QVM state vector not saved yet.");
+  return *m_qstate;
 }

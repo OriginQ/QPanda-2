@@ -15,15 +15,9 @@ public:
     {
         return NodeType::DEBUG_NODE;
     }
-    
-    virtual void save_qstate_ref(std::vector<std::complex<double>> &stat)
+    virtual void save_qstate(QStat& stat)
     {
-        QPUDebugger::instance().save_qstate_ref(stat);
-    }
-
-    virtual void save_qstate_ref(std::vector<std::complex<float>> &stat)
-    {
-        QPUDebugger::instance().save_qstate_ref(stat);
+        QPUDebugger::instance().save_qstate(stat);
     }
 };
 

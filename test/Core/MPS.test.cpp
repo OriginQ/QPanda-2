@@ -121,8 +121,7 @@ void test_real_chip()
 
     auto measure_prog = QProg();
     measure_prog << HadamardQCircuit(q)
-        << RX(q[1], PI / 4)
-        << CZ(q[0], q[1])
+        << CNOT(q[1], q[2]).control({q[0]})
         << Measure(q[0], c[0])
         << Measure(q[1], c[1]);
 
@@ -137,8 +136,8 @@ void test_real_chip()
         }
     }*/
 
-    auto result3 = QCM.get_state_fidelity(measure_prog, 1000, RealChipType::ORIGIN_WUYUAN_D4);
-    cout << result3 << endl;
+    //auto result3 = QCM.get_state_fidelity(measure_prog, 1000, RealChipType::ORIGIN_WUYUAN_D4);
+    //cout << result3 << endl;
 
     auto result = QCM.real_chip_measure(measure_prog, 1000, RealChipType::ORIGIN_WUYUAN_D5,true, true);
     for (auto val : result)
@@ -184,7 +183,7 @@ void test_qcloud()
 
 
         //auto measure_result = QCM.full_amplitude_measure_batch(measure_prog_array, 10000);
-        auto measure_result = QCM.full_amplitude_measure(measure_prog_array[0], 10000);
+        //auto measure_result = QCM.full_amplitude_measure(measure_prog_array[0], 10000);
         //TaskStatus status;
         //auto taskids = QCM.real_chip_measure_batch_commit(measure_prog_array, 10000, status);
         //auto real_result = QCM.real_chip_measure_batch(measure_prog_array, 10000);
@@ -260,10 +259,10 @@ void test_qcloud()
 
 TEST(MPS, test)
 {
-    //test_real_chip();
+    test_real_chip();
     cout << 1222 << endl;
 
-    test_qcloud();
+    //test_qcloud();
     
     MPSQVM qvm;
     qvm.init();

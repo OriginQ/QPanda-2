@@ -707,6 +707,7 @@ class MatplotlibDrawer:
         if filename:
             self.figure.savefig(filename, dpi=self._style.dpi,
                                 bbox_inches='tight')
+            plt.close(self.figure)
 
         if self.return_fig:
             if get_backend() in ['module://ipykernel.pylab.backend_inline',

@@ -3,9 +3,8 @@
 #include <bitset>
 #include<algorithm>
 #include <iomanip>
-
+QPANDA_BEGIN
 using namespace std;
-USING_QPANDA
 
 StateNode::StateNode(int out_index, int out_level, double out_amplitude, StateNode* out_left, StateNode* out_right):index(out_index),level(out_level),amplitude(out_amplitude)
 {
@@ -2304,3 +2303,4 @@ double Encode::get_normalization_constant() {
 
 	return m_data_std;
 }
+QPANDA_END

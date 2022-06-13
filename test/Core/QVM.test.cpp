@@ -193,6 +193,194 @@ TEST(QVM, GPUQVM)
 }
 #endif
 
+void GHZ(int a)
+{
+    CPUQVM qvm;
+    qvm.setConfigure({ 64,64 });
+    qvm.init();
+
+    auto q = qvm.qAllocMany(a);
+    auto c = qvm.cAllocMany(a);
+
+    auto prog = QProg();
+    prog << H(q[0]);
+
+    for (auto i = 0; i < a - 1; ++i)
+    {
+        prog << CNOT(q[i], q[i + 1]);
+    }
+    prog << MeasureAll(q, c);
+
+
+    const string ss = "GHZ_" + to_string(a);
+    write_to_originir_file(prog, &qvm, ss);
+}
+
+bool compare_map_result(map<string, size_t> result1, map<string, size_t> result2 , int shots)
+{
+    for (auto val : result1)
+    {
+        auto iter = result2.find(val.first);
+
+        if (iter == result2.end())
+            return false;
+
+        if (1e-2 < std::fabs((double)(((int)val.second - (int)iter->second) / shots)))
+            return false;
+    }
+
+    return true;
+}
+
+TEST(QVM, cpu_run_with_no_cbits_args)
+{
+    CPUQVM machine;
+    machine.setConfigure({ 64,64 });
+    machine.init();
+
+    auto q = machine.qAllocMany(4);
+    auto c = machine.cAllocMany(4);
+
+    auto prog = QProg();
+    prog << H(q[0]);
+
+    for (auto i = 0; i < 3; ++i)
+    {
+        prog << CNOT(q[i], q[i + 1]);
+    }
+    prog << Measure(q[0], c[0]);
+    prog << Measure(q[1], c[3]);
+    prog << Measure(q[2], c[2]);
+    prog << Measure(q[3], c[1]);
+
+    auto result1 = machine.runWithConfiguration(prog, 100000);
+    auto result2 = machine.runWithConfiguration(prog, c, 100000);
+
+    ASSERT_EQ(compare_map_result(result1, result2, 100000), true);
+}
+
+TEST(QVM, noise_run_with_no_cbits_args)
+{
+    CPUQVM machine;
+    machine.setConfigure({ 64,64 });
+    machine.init();
+
+    auto q = machine.qAllocMany(4);
+    auto c = machine.cAllocMany(4);
+
+    auto prog = QProg();
+    prog << H(q[0]);
+
+    for (auto i = 0; i < 3; ++i)
+    {
+        prog << CNOT(q[i], q[i + 1]);
+    }
+    prog << MeasureAll(q, c);
+
+    auto result1 = machine.runWithConfiguration(prog, 100000);
+    auto result2 = machine.runWithConfiguration(prog, c, 100000);
+
+    ASSERT_EQ(compare_map_result(result1, result2, 100000), true);
+}
+
+TEST(QVM, mps_run_with_no_cbits_args)
+{
+    for (auto i = 0; i < 50; ++i)
+    {
+        MPSQVM machine;
+        machine.setConfigure({ 64,64 });
+        machine.init();
+
+        auto qubits = machine.qAllocMany(10);
+        auto c = machine.cAllocMany(4);
+
+        QStat matrix = { 1.0,0,0,0,
+            0,1,0,0,
+            0,0,1,0,
+            0,0,0,1 };
+
+        auto prog = QProg();
+        prog //<< H(qubits[0])
+            /*<< S(qubits[3])
+            << X(qubits[1]).control({ qubits[3], qubits[2], qubits[0] })
+            << T(qubits[0])
+            << Y(qubits[2])
+            << Z(qubits[3])
+            << X1(qubits[0])
+            << Z1(qubits[2]).control({ qubits[1] })
+            << Y1(qubits[3])
+            << U1(qubits[0], 1.570796).control({ qubits[3], qubits[2], qubits[1] })
+            << U3(qubits[0], 1.570796, 4.712389, 1.570796).control({ qubits[2] })
+            << RX(qubits[0], 0.785398)
+            << U2(qubits[3], 1.570796, -3.141593).control({ qubits[2], qubits[1] })
+            << RY(qubits[1], 0.785398)
+            << RZ(qubits[3], 0.785398)
+            << CNOT(qubits[0], qubits[3])
+            << iSWAP(qubits[2], qubits[1])
+            << SqiSWAP(qubits[0], qubits[3])
+            << SWAP(qubits[2], qubits[3])
+            << Toffoli(qubits[1], qubits[0], qubits[2])
+            << CZ(qubits[1], qubits[0])
+            << CR(qubits[2], qubits[3], 1.570796)*/
+            << RZX(qubits[9], qubits[5], 20)
+            //<< RXX(qubits[2], qubits[5], 20)
+            //<< RYY(qubits[7], qubits[0], 20)
+            //<< RZZ(qubits[6], qubits[1], 20)
+            //<< QOracle({ qubits[0], qubits[2] }, matrix)
+            << Measure(qubits[9], c[0])
+            << Measure(qubits[2], c[1])
+            << Measure(qubits[7], c[2])
+            << Measure(qubits[6], c[3]);
+
+        auto result2 = machine.runWithConfiguration(prog, c, 1000);
+        auto result1 = machine.runWithConfiguration(prog, 1000);
+
+        for (auto val : result2)
+        {
+            cout << val.first << " : " << val.second << endl;
+        }
+
+        cout << " ************* " << endl;
+
+
+        for (auto val : result1)
+        {
+            cout << val.first << " : " << val.second << endl;
+        }
+
+        cout << " ==================== " << endl;
+
+
+        //ASSERT_EQ(compare_map_result(result1, result2, 1000), true);
+    }
+
+    getchar();
+}
+
+TEST(QVM, global_run_with_no_cbits_args)
+{
+    auto machine = initQuantumMachine();
+    machine->setConfigure({ 64,64 });
+    machine->init();
+
+    auto q = machine->qAllocMany(4);
+    auto c = machine->cAllocMany(4);
+
+    auto prog = QProg();
+    prog << H(q[0]);
+
+    for (auto i = 0; i < 3; ++i)
+    {
+        prog << CNOT(q[i], q[i + 1]);
+    }
+    prog << MeasureAll(q, c);
+
+    auto result1 = machine->runWithConfiguration(prog, 100000);
+    auto result2 = machine->runWithConfiguration(prog, c, 100000);
+
+    ASSERT_EQ(compare_map_result(result1, result2, 100000), true);
+}
+
 TEST(QVM, QHamiltonian)
 {
     CPUQVM machine;
@@ -212,9 +400,8 @@ TEST(QVM, QHamiltonian)
 
     auto prog = convert_originir_string_to_qprog(originir, &machine, qv, cv);
     auto expectation = machine.get_expectation(prog, get_test_hamiltonian(), qv);
-    EXPECT_NEAR(expectation, -0.097066, 1e-7);
+    EXPECT_NEAR(expectation, 0.134744, 1e-7);
 }
-
 
 TEST(CPUQVMTest, testInit)
 {
@@ -334,7 +521,7 @@ TEST(QVM, PartialAmplitudeQVM)
         << CR(qv[7], qv[8], PI);
 	//<< Toffoli;
 
-    cout << machine->get_spilt_num(prog) << endl;;
+    cout << machine->get_split_num(prog) << endl;;
 
 	std::vector<string> subSet = { "0000000000000000000001000000000000000000" ,
 								   "0000000000000000000010000000000000000000" ,
@@ -472,30 +659,6 @@ TEST(QubitAddr, test_0)
 	//ASSERT_EQ(res_2.size(), 48);
 
 	//getchar();
-}
-
-
-void GHZ(int a)
-{
-	CPUQVM qvm;
-	qvm.setConfigure({ 64,64 });
-	qvm.init();
-
-	auto q = qvm.qAllocMany(a);
-	auto c = qvm.cAllocMany(a);
-
-	auto prog = QProg();
-	prog << H(q[0]);
-
-	for (auto i = 0; i < a - 1; ++i)
-	{
-		prog << CNOT(q[i], q[i + 1]);
-	}
-	prog << MeasureAll(q, c);
-
-
-	const string ss = "GHZ_" + to_string(a);
-	write_to_originir_file(prog, &qvm, ss);
 }
 
 static double state_probs(QStat& state)

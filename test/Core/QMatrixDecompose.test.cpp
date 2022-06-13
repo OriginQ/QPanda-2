@@ -91,7 +91,7 @@ bool test_matrix_decompose2pualis()
 	cout << mat << endl;
 	EigenMatrixX eigMat = mat;
 	PualiOperatorLinearCombination res;
-	matrix_decompose_pualis(machine, eigMat, res);
+	matrix_decompose_paulis(machine, eigMat, res);
 	cout << endl << "**************************************************" << endl;
 	cout << "The linear combination of unitaries(coefficient) is:" << endl;
 	for (auto& val : res)

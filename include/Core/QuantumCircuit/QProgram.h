@@ -180,7 +180,7 @@ public:
     AbstractQuantumProgram* QProgCreator##className(){                           \
         return new className();                                                   \
     }                                                                          \
-    QuantumProgramRegisterAction g_qProgCreatorDoubleRegister##className(      \
+    INIT_PRIORITY QuantumProgramRegisterAction g_qProgCreatorDoubleRegister##className(      \
         #className,(CreateQProgram)QProgCreator##className)
 
 

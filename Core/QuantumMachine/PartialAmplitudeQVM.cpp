@@ -38,7 +38,7 @@ static void get_couple_state_index(uint128_t num, uint64_t& under_index, uint64_
 void PartialAmplitudeQVM::init(BackendType type)
 {
     if (BackendType::CPU == type)
-        m_simulator = std::make_unique<CPUImplQPU>();
+        m_simulator = std::make_unique<CPUImplQPU<double>>();
     else if (BackendType::MPS == type)
         m_simulator = std::make_unique<MPSImplQPU>();
 #ifdef USE_CUDA

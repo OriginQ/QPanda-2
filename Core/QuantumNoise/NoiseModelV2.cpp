@@ -532,8 +532,23 @@ double NoiseGateGenerator::KrausOpGenerator::kraus_expectation(const Qnum &qns,
   /* multiply kraus op with statvcter to get expected probability */
   double p = 0;
   qcomplex_t alpha, beta, gamma, phi;
-  const QStat &qstate = QPUDebugger::instance().get_qtate();
-  int64_t qubit_num = std::log2(qstate.size());
+  const auto &qstate_container = QPUDebugger::instance().get_qstate();
+  std::vector<std::complex<double>> *double_qstate = qstate_container.double_state;
+  std::vector<std::complex<float>> *float_qstate = qstate_container.float_state;
+
+  int64_t qubit_num = 0;
+  if (double_qstate)
+  {
+    qubit_num = std::log2(double_qstate->size());
+  }
+  else if (float_qstate)
+  {
+    qubit_num = std::log2(float_qstate->size());
+  }
+  else
+  {
+    throw std::runtime_error("no valid qstate to calculate kraus noise");
+  }
 
   if (1 == qns.size())
   {
@@ -547,8 +562,17 @@ double NoiseGateGenerator::KrausOpGenerator::kraus_expectation(const Qnum &qns,
       int64_t real00_idx = _insert(i, qn);
       int64_t real01_idx = real00_idx | offset;
 
-      alpha = op[0] * qstate[real00_idx] + op[1] * qstate[real01_idx];
-      beta = op[2] * qstate[real00_idx] + op[3] * qstate[real01_idx];
+      if (double_qstate)
+      {
+        alpha = op[0] * (*double_qstate)[real00_idx] + op[1] * (*double_qstate)[real01_idx];
+        beta = op[2] * (*double_qstate)[real00_idx] + op[3] * (*double_qstate)[real01_idx];
+      }
+      else if (float_qstate)
+      {
+        alpha = op[0] * (qcomplex_t)(*float_qstate)[real00_idx] + op[1] * (qcomplex_t)(*float_qstate)[real01_idx];
+        beta = op[2] * (qcomplex_t)(*float_qstate)[real00_idx] + op[3] * (qcomplex_t)(*float_qstate)[real01_idx];
+      }
+
       p += std::norm(alpha) + std::norm(beta);
     }
   }
@@ -568,10 +592,21 @@ double NoiseGateGenerator::KrausOpGenerator::kraus_expectation(const Qnum &qns,
     for (int64_t i = 0; i < size; i++)
     {
       int64_t real00_idx = _insert(i, qn_0, qn_1);
-      auto phi00 = qstate[real00_idx];
-      auto phi01 = qstate[real00_idx | offset0];
-      auto phi10 = qstate[real00_idx | offset1];
-      auto phi11 = qstate[real00_idx | offset0 | offset1];
+      qcomplex_t phi00, phi01, phi10, phi11;
+      if (double_qstate)
+      {
+        phi00 = (*double_qstate)[real00_idx];
+        phi01 = (*double_qstate)[real00_idx | offset0];
+        phi10 = (*double_qstate)[real00_idx | offset1];
+        phi11 = (*double_qstate)[real00_idx | offset0 | offset1];
+      }
+      else if (float_qstate)
+      {
+        phi00 = (qcomplex_t)(*float_qstate)[real00_idx];
+        phi01 = (qcomplex_t)(*float_qstate)[real00_idx | offset0];
+        phi10 = (qcomplex_t)(*float_qstate)[real00_idx | offset1];
+        phi11 = (qcomplex_t)(*float_qstate)[real00_idx | offset0 | offset1];
+      }
 
       alpha = op[0] * phi00 + op[1] * phi01 + op[2] * phi10 + op[3] * phi11;
       beta = op[4] * phi00 + op[5] * phi01 + op[6] * phi10 + op[7] * phi11;

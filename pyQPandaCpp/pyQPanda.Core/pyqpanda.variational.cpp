@@ -343,6 +343,13 @@ void export_variational(py::module &m)
     m.def("log", Var::log);
     m.def("poly", Var::poly);
     m.def("dot", Var::dot);
+  // add trigonometric function
+    m.def("sin", Var::sin);
+    m.def("cos", Var::cos);
+    m.def("tan", Var::tan);
+    m.def("asin", Var::asin);
+    m.def("acos", Var::acos);
+    m.def("atan", Var::atan);
     m.def("inverse", Var::inverse);
     m.def("transpose", Var::transpose);
     m.def("sum", Var::sum);

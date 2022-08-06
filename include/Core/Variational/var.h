@@ -50,6 +50,13 @@ namespace Variational {
         log,
         polynomial,
         dot,
+        // add trigonometric function
+        sin,
+        cos,
+        tan,
+        asin,
+        acos,
+        atan,
         inverse,
         transpose,
         sum,
@@ -2091,7 +2098,31 @@ namespace Variational {
     inline const var dot(var lhs, var rhs) {
         return pack_expression(op_type::dot, lhs, rhs);
     }
+    
+    inline const var sin(var v) {
+        return pack_expression(op_type::sin, v);
+    }
 
+    inline const var cos(var v) {
+        return pack_expression(op_type::cos, v);
+    }
+
+    inline const var tan(var v) {
+        return pack_expression(op_type::tan, v);
+    }
+
+    inline const var asin(var v) {
+        return pack_expression(op_type::asin, v);
+    }
+
+    inline const var acos(var v) {
+        return pack_expression(op_type::acos, v);
+    }
+
+    inline const var atan(var v) {
+        return pack_expression(op_type::atan, v);
+    }
+    
     inline const var inverse(var v) {
         return pack_expression(op_type::inverse, v);
     }

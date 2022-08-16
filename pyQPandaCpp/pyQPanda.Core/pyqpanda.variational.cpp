@@ -343,12 +343,12 @@ void export_variational(py::module &m)
     m.def("log", Var::log);
     m.def("poly", Var::poly);
     m.def("dot", Var::dot);
-    m.def("sin", Var::sin);
-    m.def("cos", Var::cos);
-    m.def("tan", Var::tan);
-    m.def("asin", Var::asin);
-    m.def("acos", Var::acos);
-    m.def("atan", Var::atan);
+    m.def("var_sin", Var::var_sin);
+    m.def("var_cos", Var::var_cos);
+    m.def("var_tan", Var::var_tan);
+    m.def("var_asin", Var::var_asin);
+    m.def("var_acos", Var::var_acos);
+    m.def("var_atan", Var::var_atan);
     m.def("inverse", Var::inverse);
     m.def("transpose", Var::transpose);
     m.def("sum", Var::sum);

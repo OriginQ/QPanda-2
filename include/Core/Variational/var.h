@@ -50,12 +50,12 @@ namespace Variational {
         log,
         polynomial,
         dot,
-        sin,
-        cos,
-        tan,
-        asin,
-        acos,
-        atan,
+        var_sin,
+        var_cos,
+        var_tan,
+        var_asin,
+        var_acos,
+        var_atan,
         inverse,
         transpose,
         sum,
@@ -2098,28 +2098,28 @@ namespace Variational {
         return pack_expression(op_type::dot, lhs, rhs);
     }
     
-    inline const var sin(var v) {
-        return pack_expression(op_type::sin, v);
+    inline const var var_sin(var v) {
+        return pack_expression(op_type::var_sin, v);
     }
 
-    inline const var cos(var v) {
-        return pack_expression(op_type::cos, v);
+    inline const var var_cos(var v) {
+        return pack_expression(op_type::var_cos, v);
     }
 
-    inline const var tan(var v) {
-        return pack_expression(op_type::tan, v);
+    inline const var var_tan(var v) {
+        return pack_expression(op_type::var_tan, v);
     }
 
-    inline const var asin(var v) {
-        return pack_expression(op_type::asin, v);
+    inline const var var_asin(var v) {
+        return pack_expression(op_type::var_asin, v);
     }
 
-    inline const var acos(var v) {
-        return pack_expression(op_type::acos, v);
+    inline const var var_acos(var v) {
+        return pack_expression(op_type::var_acos, v);
     }
 
-    inline const var atan(var v) {
-        return pack_expression(op_type::atan, v);
+    inline const var var_atan(var v) {
+        return pack_expression(op_type::var_atan, v);
     }
 
     inline const var inverse(var v) {

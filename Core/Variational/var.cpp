@@ -20,12 +20,12 @@ int numOpArgs(op_type op) {
         { op_type::log, 1 },
         { op_type::polynomial, 2 },
         { op_type::dot, 2 },
-	{ op_type::sin, 1},
-        { op_type::cos, 1},
-        { op_type::tan, 1},
-        { op_type::asin, 1},
-        { op_type::acos, 1},
-        { op_type::atan, 1},
+	{ op_type::var_sin, 1},
+        { op_type::var_cos, 1},
+        { op_type::var_tan, 1},
+        { op_type::var_asin, 1},
+        { op_type::var_acos, 1},
+        { op_type::var_atan, 1},
         { op_type::inverse, 1 },
         { op_type::transpose, 1 },
         { op_type::sum, 1 },
@@ -172,22 +172,22 @@ MatrixXd var::_eval()
     case op_type::dot: {
         return _mval(operands[0]) * _mval(operands[1]);
     }
-    case op_type::sin: {
+    case op_type::var_sin: {
         return _mval(operands[0]).array().sin();
     }
-    case op_type::cos: {
+    case op_type::var_cos: {
         return _mval(operands[0]).array().cos();
     }
-    case op_type::tan: {
+    case op_type::var_tan: {
         return _mval(operands[0]).array().tan();
     }
-    case op_type::asin: {
+    case op_type::var_asin: {
         return _mval(operands[0]).array().asin();
     }
-    case op_type::acos: {
+    case op_type::var_acos: {
         return _mval(operands[0]).array().acos();
     }
-    case op_type::atan: {
+    case op_type::var_atan: {
         return _mval(operands[0]).array().atan();
     }
     case op_type::inverse: {
@@ -396,27 +396,27 @@ MatrixXd var::_back_single(const MatrixXd & dx, size_t op_idx)
         else
             return _mval(operands[0]).transpose() * dx;
     }
-    case op_type::sin: {
+    case op_type::var_sin: {
         return dx.array() *
             _mval(operands[0]).array().sin();
     }
-    case op_type::cos: {
+    case op_type::var_cos: {
         return dx.array() *
             _mval(operands[0]).array().cos();
     }
-    case op_type::tan: {
+    case op_type::var_tan: {
         return dx.array() *
             _mval(operands[0]).array().tan();
     }
-    case op_type::asin: {
+    case op_type::var_asin: {
         return dx.array() *
             _mval(operands[0]).array().asin();
     }
-    case op_type::acos: {
+    case op_type::var_acos: {
         return dx.array() *
             _mval(operands[0]).array().acos();
     }
-    case op_type::atan: {
+    case op_type::var_atan: {
         return dx.array() *
             _mval(operands[0]).array().atan();
     }

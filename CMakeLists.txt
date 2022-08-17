@@ -3,7 +3,7 @@ project(QPANDA)
 
 set(QPANDA_MAJOR_VERSION 2)
 set(QPANDA_MINOR_VERSION 1)
-set(QPANDA_PATCH_VERSION 11)
+set(QPANDA_PATCH_VERSION 14)
 set(QPANDA_VERSION "${QPANDA_MAJOR_VERSION}.${QPANDA_MINOR_VERSION}.${QPANDA_PATCH_VERSION}")
 message(STATUS "QPANDA VERSION = " "[${QPANDA_VERSION}]")
 # disable compiler verbose output, default is off, enable it when want to check compiler/linker option

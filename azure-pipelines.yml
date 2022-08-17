@@ -9,6 +9,6 @@ jobs:
   steps:
   - script: |
      mkdir build & cd build
-     cmake -G "Visual Studio 15 2017" -A "x64" ..
+     cmake -A "x64" ..
      cmake --build . --target ALL_BUILD --config Release  --
   displayName: 'build QPanda on Windows vm'

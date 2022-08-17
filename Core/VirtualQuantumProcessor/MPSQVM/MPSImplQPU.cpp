@@ -72,12 +72,12 @@ static void squeeze_qubits(const Qnum &original_qubits, Qnum &squeezed_qubits)
 	}
 }
 
-static cmatrix_t matrix_element_multiplication(const cmatrix_t &A, const cmatrix_t &B)
+static QMatrixXcd matrix_element_multiplication(const QMatrixXcd &A, const QMatrixXcd &B)
 {
     size_t rows = A.rows();
     size_t cols = A.cols();
 
-    cmatrix_t result(rows, cols);
+    QMatrixXcd result(rows, cols);
     for (size_t i = 0; i < rows; i++)
     {
         for (size_t j = 0; j < cols; j++)
@@ -226,7 +226,7 @@ QError MPSImplQPU::pMeasure(Qnum& qnum, prob_vec &mResult)
 	MPS_Tensor mps = temp.convert_qstate_to_mps_form(new_qubits.front(), new_qubits.back());
 
 	prob_vec probs(length);
-	cmatrix_t mat, mat_conj;
+	QMatrixXcd mat, mat_conj;
 #pragma omp parallel for private(mat, mat_conj)
 	for (int64_t i = 0; i < length; i++)
 	{
@@ -263,10 +263,10 @@ QError MPSImplQPU::initState(size_t head_rank, size_t rank_size, size_t qubit_nu
     {
         m_qubits_num = qubit_num;
 
-        cmatrix_t data0(1, 1), data1(1, 1);
+        QMatrixXcd data0(1, 1), data1(1, 1);
         data0(0, 0) = 1.0;
         data1(0, 0) = 0.0;
-        rvector_t initial_val(1);
+        QVectorXd initial_val = QVectorXd(1);
         initial_val[0] = 1.0;
 
         m_qubits_tensor.clear();
@@ -286,14 +286,14 @@ QError MPSImplQPU::initState(size_t head_rank, size_t rank_size, size_t qubit_nu
     }
     else
     {
-        cmatrix_t statevector_as_matrix(1, m_init_state.size());
+        QMatrixXcd statevector_as_matrix(1, m_init_state.size());
 
         for (auto i = 0; i < m_init_state.size(); i++)
         {
             statevector_as_matrix(0, i) = m_init_state[i];
         }
 
-        //cmatrix_t mat = Map<cmatrix_t>(m_init_state.data(), 1, m_init_state.size());
+        //QMatrixXcd mat = Map<QMatrixXcd>(m_init_state.data(), 1, m_init_state.size());
         initState_from_matrix(qubit_num, statevector_as_matrix);
 
         std::reverse(m_qubits_order.begin(), m_qubits_order.end());
@@ -342,7 +342,7 @@ QError MPSImplQPU::initState(size_t qubit_num,const QStat &state)
     return qErrorNone;
 }
 
-void MPSImplQPU::initState_from_matrix(size_t num_qubits, const cmatrix_t &mat)
+void MPSImplQPU::initState_from_matrix(size_t num_qubits, const QMatrixXcd &mat)
 {
 	m_qubits_tensor.clear();
 	m_lambdas.clear();
@@ -354,9 +354,9 @@ void MPSImplQPU::initState_from_matrix(size_t num_qubits, const cmatrix_t &mat)
 
 	// remaining_matrix is the matrix that remains after each iteration
 	// It is initialized to the input statevector after reshaping
-	cmatrix_t remaining_matrix, A;
-	cmatrix_t U, V, reduce_U, reduce_V;
-	rvector_t S, reduce_S;
+	QMatrixXcd remaining_matrix, A;
+	QMatrixXcd U, V, reduce_U, reduce_V;
+	QVectorXd S, reduce_S;
 
 	bool first_iter = true;
     
@@ -373,12 +373,12 @@ void MPSImplQPU::initState_from_matrix(size_t num_qubits, const cmatrix_t &mat)
 			remaining_matrix.rightCols(remaining_matrix.cols() / 2);
 
 		// SVD
-		JacobiSVD<cmatrix_t> svd(A, ComputeThinU | ComputeThinV);
+		JacobiSVD<QMatrixXcd> svd(A, ComputeThinU | ComputeThinV);
 		V = svd.matrixV();
 		U = svd.matrixU();
 		S = svd.singularValues();
 
-		//cmatrix_t temp_A = U * S.asDiagonal() * V.adjoint();
+		//QMatrixXcd temp_A = U * S.asDiagonal() * V.adjoint();
 		//bool is_valid_svd = A.isApprox(temp_A, 1e-9);
 
 		size_t valid_size = 0;
@@ -400,7 +400,7 @@ void MPSImplQPU::initState_from_matrix(size_t num_qubits, const cmatrix_t &mat)
 		reduce_V = V.leftCols(valid_size);
 
 		// update m_qubits_tensor  m_lambdas
-		std::vector<cmatrix_t> left_data(2);
+		std::vector<QMatrixXcd> left_data(2);
 		left_data[0] = reduce_U.topRows(U.rows() / 2);
 		left_data[1] = reduce_U.bottomRows(U.rows() / 2);
 
@@ -416,8 +416,8 @@ void MPSImplQPU::initState_from_matrix(size_t num_qubits, const cmatrix_t &mat)
 	}
 
 	// create the rightmost gamma and update m_qubits_tensor
-	std::vector<cmatrix_t> right_data(2); 
-	cmatrix_t reduce_dagger_V = reduce_V.adjoint();
+	std::vector<QMatrixXcd> right_data(2); 
+	QMatrixXcd reduce_dagger_V = reduce_V.adjoint();
 	right_data[0] = reduce_dagger_V.leftCols(reduce_dagger_V.cols() / 2);
 	right_data[1] = reduce_dagger_V.rightCols(reduce_dagger_V.cols() / 2);
 
@@ -429,7 +429,7 @@ void MPSImplQPU::initState_from_matrix(size_t num_qubits, const cmatrix_t &mat)
 QError MPSImplQPU::unitarySingleQubitGate(size_t qn, QStat& matrix, bool isConjugate, GateType)
 {
 	int dim = sqrt(matrix.size());
-	cmatrix_t mat = cmatrix_t::Map(&matrix[0], dim, dim);
+	QMatrixXcd mat = QMatrixXcd::Map(&matrix[0], dim, dim);
 	if (isConjugate)
 		mat.adjointInPlace();
 
@@ -445,7 +445,7 @@ QError MPSImplQPU::controlunitarySingleQubitGate(size_t qn, Qnum& qnum,
 	int target_dim = sqrt(matrix.size());
 	int dim = 1ULL << qnum.size();
 
-	cmatrix_t mat = cmatrix_t::Identity(dim, dim);
+	QMatrixXcd mat = QMatrixXcd::Identity(dim, dim);
 	int index = 0;
 	for (int i = dim - target_dim; i < dim; i++)
 	{
@@ -471,7 +471,7 @@ QError MPSImplQPU::unitaryDoubleQubitGate(size_t qn_0, size_t qn_1,
 	QStat& matrix, bool isConjugate, GateType)
 {
 	int dim = sqrt(matrix.size());
-	cmatrix_t mat = cmatrix_t::Map(&matrix[0], dim, dim);
+	QMatrixXcd mat = QMatrixXcd::Map(&matrix[0], dim, dim);
 
 	if (isConjugate)
 		mat.adjointInPlace();
@@ -488,7 +488,7 @@ QError MPSImplQPU::controlunitaryDoubleQubitGate(size_t qn_0, size_t qn_1, Qnum&
 	qnum.push_back(qn_1);
 	int target_dim = sqrt(matrix.size());
 	int dim = 1ULL << qnum.size();
-	cmatrix_t mat = cmatrix_t::Identity(dim, dim);
+	QMatrixXcd mat = QMatrixXcd::Identity(dim, dim);
 	int index = 0;
 	for (int i = dim - target_dim; i < dim; i++)
 	{
@@ -572,14 +572,14 @@ void MPSImplQPU::change_qubits_location(size_t src, size_t dst)
 	}
 }
 
-void MPSImplQPU::execute_one_qubit_gate(size_t qn, const cmatrix_t &mat)
+void MPSImplQPU::execute_one_qubit_gate(size_t qn, const QMatrixXcd &mat)
 {
 	size_t index = get_qubit_index(qn);
 	MPS_Tensor &tensor = m_qubits_tensor[index];
 	tensor.apply_matrix(mat);
 }
 
-void MPSImplQPU::execute_two_qubit_gate(size_t qn_0, size_t qn_1, const cmatrix_t &mat)
+void MPSImplQPU::execute_two_qubit_gate(size_t qn_0, size_t qn_1, const QMatrixXcd &mat)
 {
 	size_t index_A = get_qubit_index(qn_0);
 	size_t index_B = get_qubit_index(qn_1);
@@ -598,9 +598,9 @@ void MPSImplQPU::execute_two_qubit_gate(size_t qn_0, size_t qn_1, const cmatrix_
 		swapped = true;
 	}
 
-	rvector_t left_lambda, right_lambda;
+	QVectorXd left_lambda, right_lambda;
 
-	rvector_t initial_val(1);
+	QVectorXd initial_val(1);
 	initial_val[0] = 1.0;
 	left_lambda = (A != 0) ? m_lambdas[A - 1] : initial_val;
 	right_lambda = (A + 1 != m_qubits_num - 1) ? m_lambdas[A + 1] : initial_val;
@@ -613,7 +613,7 @@ void MPSImplQPU::execute_two_qubit_gate(size_t qn_0, size_t qn_1, const cmatrix_
 	temp.apply_matrix(mat, swapped);
 
 	MPS_Tensor left_gamma, right_gamma;
-	rvector_t lambda;
+	QVectorXd lambda;
 	MPS_Tensor::decompose(temp, left_gamma, lambda, right_gamma);
 	left_gamma.div_gamma_by_left_lambda(left_lambda);
 	right_gamma.div_gamma_by_right_lambda(right_lambda);
@@ -622,7 +622,7 @@ void MPSImplQPU::execute_two_qubit_gate(size_t qn_0, size_t qn_1, const cmatrix_
 	m_qubits_tensor[A + 1] = right_gamma;
 }
 
-void MPSImplQPU::execute_multi_qubit_gate(const Qnum &qubits, const cmatrix_t &mat)
+void MPSImplQPU::execute_multi_qubit_gate(const Qnum &qubits, const QMatrixXcd &mat)
 {
 	Qnum actual_qubits(qubits.size());
 	for (int i = 0; i < qubits.size(); i++)
@@ -647,10 +647,10 @@ void MPSImplQPU::execute_multi_qubit_gate(const Qnum &qubits, const cmatrix_t &m
 
 	sub_tensor.apply_matrix(mat);
 
-	cmatrix_t state_mat = sub_tensor.get_data(0);
+	QMatrixXcd state_mat = sub_tensor.get_data(0);
 	for (int i = 1; i < sub_tensor.get_data().size(); i++)
 	{
-		cmatrix_t temp(state_mat.rows(), state_mat.cols() + sub_tensor.get_data(i).cols());
+		QMatrixXcd temp(state_mat.rows(), state_mat.cols() + sub_tensor.get_data(i).cols());
 		temp << state_mat, sub_tensor.get_data(i);
 		state_mat = temp;
 	}
@@ -714,13 +714,13 @@ void MPSImplQPU::move_qubits_to_right_end(const Qnum &qubits, Qnum &target_qubit
 	std::iota(std::begin(target_qubits), std::end(target_qubits), right_end + 1 - num_target_qubits);
 }
 
-cmatrix_t MPSImplQPU::mul_v_by_s(const cmatrix_t &mat, const rvector_t &lambda)
+QMatrixXcd MPSImplQPU::mul_v_by_s(const QMatrixXcd &mat, const QVectorXd &lambda)
 {
-	rvector_t initial_val(1);
+	QVectorXd initial_val(1);
 	initial_val[0] = 1.0;
 	if (lambda.size() == 1 && lambda == initial_val) return mat;
 
-	cmatrix_t res_mat(mat);
+	QMatrixXcd res_mat(mat);
 	int num_rows = mat.rows(), num_cols = mat.cols();
 
 #pragma omp parallel for 
@@ -735,8 +735,8 @@ cmatrix_t MPSImplQPU::mul_v_by_s(const cmatrix_t &mat, const rvector_t &lambda)
 MPS_Tensor MPSImplQPU::convert_qstate_to_mps_form(size_t first_index, size_t last_index)
 {
 	MPS_Tensor temp = m_qubits_tensor[first_index];
-	rvector_t left_lambda, right_lambda;
-	rvector_t initial_val(1);
+	QVectorXd left_lambda, right_lambda;
+	QVectorXd initial_val(1);
 	initial_val[0] = 1.0;
 	left_lambda = (first_index != 0) ? m_lambdas[first_index - 1] : initial_val;
 	right_lambda = (last_index != m_qubits_num - 1) ? m_lambdas[last_index] : initial_val;
@@ -777,8 +777,8 @@ void MPSImplQPU::swap_qubits_location(size_t index_A, size_t index_B)
 	}
 
 	MPS_Tensor A = m_qubits_tensor[actual_A], B = m_qubits_tensor[actual_B];
-	rvector_t left_lambda, right_lambda;
-	rvector_t initial_val(1);
+	QVectorXd left_lambda, right_lambda;
+	QVectorXd initial_val(1);
 	initial_val[0] = 1.0;
 	left_lambda = (actual_A != 0) ? m_lambdas[actual_A - 1] : initial_val;
 	right_lambda = (actual_B != m_qubits_num - 1) ? m_lambdas[actual_B] : initial_val;
@@ -790,7 +790,7 @@ void MPSImplQPU::swap_qubits_location(size_t index_A, size_t index_B)
 	temp.apply_swap();
 
 	MPS_Tensor left_gamma, right_gamma;
-	rvector_t lambda;
+	QVectorXd lambda;
 	MPS_Tensor::decompose(temp, left_gamma, lambda, right_gamma);
 	left_gamma.div_gamma_by_left_lambda(left_lambda);
 	right_gamma.div_gamma_by_right_lambda(right_lambda);
@@ -865,12 +865,12 @@ bool MPSImplQPU::apply_measure(size_t qubit)
 
 	double rnd = random_generator19937(0.0, 1.0);
 	bool measurement;
-	cmatrix_t measurement_matrix(2, 2);
+	QMatrixXcd measurement_matrix(2, 2);
 
-	cmatrix_t zero_measure(2, 2);
+	QMatrixXcd zero_measure(2, 2);
 	zero_measure << qcomplex_t(1, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0);
 
-	cmatrix_t one_measure(2, 2);
+	QMatrixXcd one_measure(2, 2);
 	one_measure << qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(0, 0), qcomplex_t(1, 0);
 
 	if (rnd < prob0)
@@ -891,7 +891,7 @@ bool MPSImplQPU::apply_measure(size_t qubit)
 	m_qubits_tensor[qindex].apply_matrix(measurement_matrix);
 
 	//step 4 - propagate the changes to all qubits to the right
-	cmatrix_t id_mat = cmatrix_t::Identity(4, 4);
+	QMatrixXcd id_mat = QMatrixXcd::Identity(4, 4);
 
 	for (size_t i = qubit; i < m_qubits_num - 1; i++)
 	{
@@ -1007,7 +1007,7 @@ qcomplex_t MPSImplQPU::expectation_value_pauli_internal(const Qnum &qubits, cons
 	// Step 4 - contract Gamma0' with Gamma0 over dimensions a0 and i
 	// Before contraction, Gamma0' has size a1 x a0 x i, Gamma0 has size i x a0 x a1
 	// result = left_contract is a matrix of size a1 x a1
-	cmatrix_t final_contract;
+	QMatrixXcd final_contract;
 	MPS_Tensor::contract_2_dimensions(left_tensor_dagger, left_tensor, final_contract);
 	for (size_t qubit_num = first_index + 1; qubit_num <= last_index; qubit_num++)
 	{
@@ -1070,7 +1070,16 @@ void MPSImplQPU::unitaryQubitGate(Qnum qubits, QStat matrix, bool isConjugate)
     }
 }
 
-cmatrix_t MPSImplQPU::density_matrix(const Qnum &qubits)
+QError MPSImplQPU::OracleGate(Qnum& qubits, QStat &matrix, bool isConjugate)
+{
+    auto cmatrix = QStat_to_Eigen(matrix);
+    execute_multi_qubit_gate(qubits, cmatrix);
+
+    return qErrorNone;
+}
+
+
+QMatrixXcd MPSImplQPU::density_matrix(const Qnum &qubits)
 {
     Qnum internal_qubits(qubits.size());
     for (size_t i = 0; i < qubits.size(); i++)
@@ -1086,7 +1095,7 @@ cmatrix_t MPSImplQPU::density_matrix(const Qnum &qubits)
     MPS_Tensor mps_vec = temp.convert_qstate_to_mps_form(new_qubits.front(), new_qubits.back());
 
     size_t dims = mps_vec.get_dim();
-    cmatrix_t rho(dims, dims);
+    QMatrixXcd rho(dims, dims);
 
     for (size_t i = 0; i < dims; i++) 
     {
@@ -1106,7 +1115,7 @@ cmatrix_t MPSImplQPU::density_matrix(const Qnum &qubits)
 }
 
 
-double MPSImplQPU::single_expectation_value(const Qnum &qubits, const cmatrix_t &matrix)
+double MPSImplQPU::single_expectation_value(const Qnum &qubits, const QMatrixXcd &matrix)
 {
 
 #ifdef USE_DENSITY_MATRIX
@@ -1136,7 +1145,7 @@ double MPSImplQPU::single_expectation_value(const Qnum &qubits, const cmatrix_t 
     Qnum reversed_qubits = qubits;
     std::reverse(reversed_qubits.begin(), reversed_qubits.end());
 
-    cmatrix_t rho;
+    QMatrixXcd rho;
 
     Qnum target_qubits(qubits.size());
     if (is_ordered(reversed_qubits))
@@ -1170,7 +1179,7 @@ double MPSImplQPU::single_expectation_value(const Qnum &qubits, const cmatrix_t 
 }
 
 
-double MPSImplQPU::double_expectation_value(const Qnum &qubits, const cmatrix_t &matrix)
+double MPSImplQPU::double_expectation_value(const Qnum &qubits, const QMatrixXcd &matrix)
 {
     auto ctr_qubit = qubits[0];
     auto tar_qubit = qubits[1];
@@ -1224,7 +1233,7 @@ double MPSImplQPU::double_expectation_value(const Qnum &qubits, const cmatrix_t 
     return P;
 }
 
-double MPSImplQPU::expectation_value(const Qnum& qubits, const cmatrix_t& matrix)
+double MPSImplQPU::expectation_value(const Qnum& qubits, const QMatrixXcd& matrix)
 {
     if (1 == qubits.size())
     {
@@ -1260,7 +1269,7 @@ QStat MPSImplQPU::pmeasure_bin_subset(const std::vector<std::string>& bin_strs)
         QPANDA_ASSERT(qubits_tensor.size() != str.size(), "pmeasure_bin_index str size error");
     }
 
-    rvector_t initial_val(1);
+    QVectorXd initial_val(1);
     initial_val[0] = 1.0;
     m_qubits_tensor.front().mul_gamma_by_left_lambda(initial_val);
     m_qubits_tensor.back().mul_gamma_by_right_lambda(initial_val);
@@ -1285,7 +1294,7 @@ QStat MPSImplQPU::pmeasure_bin_subset(const std::vector<std::string>& bin_strs)
     {
         auto str = bin_strs[i];
 
-        cmatrix_t result = cmatrix_t::Identity(1, 1);
+        QMatrixXcd result = QMatrixXcd::Identity(1, 1);
 
         std::reverse(str.begin(), str.end());
         for (auto i = 0; i < str.size(); ++i)
@@ -1326,7 +1335,7 @@ qcomplex_t MPSImplQPU::pmeasure_bin_index(std::string str)
     std::vector<MPS_Tensor> qubits_tensor = m_qubits_tensor;
     QPANDA_ASSERT(qubits_tensor.size() != str.size(), "pmeasure_bin_index str size error");
 
-    rvector_t initial_val(1); 
+    QVectorXd initial_val(1); 
     initial_val[0] = 1.0;
     m_qubits_tensor.front().mul_gamma_by_left_lambda(initial_val);
     m_qubits_tensor.back().mul_gamma_by_right_lambda(initial_val);
@@ -1341,7 +1350,7 @@ qcomplex_t MPSImplQPU::pmeasure_bin_index(std::string str)
         qubits_tensor[i].mul_gamma_by_right_lambda(m_lambdas[i]);
     }
 
-    cmatrix_t result = cmatrix_t::Identity(1, 1);
+    QMatrixXcd result = QMatrixXcd::Identity(1, 1);
 
     std::reverse(str.begin(), str.end());
     for (auto i = 0; i < str.size(); ++i)

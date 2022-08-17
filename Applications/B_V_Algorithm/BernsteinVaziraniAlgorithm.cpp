@@ -42,7 +42,7 @@ BV_Oracle generate_bv_oracle(vector<bool> oracle_function) {
 int main()
 {
     while (1)
-    {
+    {   
         auto qvm = initQuantumMachine();
         cout << "Bernstein Vazirani Algorithm\n" << endl;
         cout << "f(x)=a*x+b\n" << endl;

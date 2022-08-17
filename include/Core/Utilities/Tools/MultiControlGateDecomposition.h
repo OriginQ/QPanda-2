@@ -2,7 +2,7 @@
 #define MULTI_CONTROL_GATE_DECOMPOSITION_H
 
 #include "Core/QuantumMachine/OriginQuantumMachine.h"
-
+#include "QProgFlattening.h"
 QPANDA_BEGIN
 
 /**
@@ -24,7 +24,7 @@ public:
         m_ldd_prog.clear();
 
         execute(std::dynamic_pointer_cast<QNode>(node.getImplementationPtr()),
-                std::dynamic_pointer_cast<QNode>(m_ldd_prog.getImplementationPtr()));
+            std::dynamic_pointer_cast<QNode>(m_ldd_prog.getImplementationPtr()));
         return m_ldd_prog;
     }
 
@@ -49,6 +49,7 @@ QProg ldd_decompose(T& node)
     LinearDepthDecomposition ldd;
     return ldd.decompose(temp);
 }
+
 
 QPANDA_END
 #endif // MULTI_CONTROL_GATE_DECOMPOSITION_H

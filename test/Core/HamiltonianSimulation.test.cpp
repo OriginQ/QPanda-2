@@ -5,9 +5,9 @@
 #include <stdio.h>
 #include <memory>
 
-using namespace std;
 USING_QPANDA
-
+using namespace std;
+using namespace Eigen;
 #define PRINT_INFORMATION 1
 
 bool test_pauliXSimulation()
@@ -32,7 +32,7 @@ bool test_pauliXSimulation()
 	QOperator sss(circuit);
 	QStat unitary = sss.get_matrix();
 	std::complex<double> conf(0, -1);
-	qmatrix_t U = expMat(conf, mat_operator, PI);
+	QMatrixXcd U = expMat(conf, mat_operator, PI);
 
 	double www = average_gate_fidelity(U, unitary);
 #ifdef PRINT_INFORMATION
@@ -71,7 +71,7 @@ bool test_pauliYSimulation()
 	QStat unitary = sss.get_matrix();
 
 	qcomplex_t conf(0, 1);
-	qmatrix_t U = expMat(conf, mat_operator, PI);
+	QMatrixXcd U = expMat(conf, mat_operator, PI);
 
 	double www = average_gate_fidelity(U, unitary);
 #ifdef PRINT_INFORMATION
@@ -108,7 +108,7 @@ bool test_pauliZSimulation()
 	QStat unitary = sss.get_matrix();
 
 	std::complex<double> conf(0, -1);
-	qmatrix_t U = expMat(conf, mat_operator, PI);
+	QMatrixXcd U = expMat(conf, mat_operator, PI);
 
 	double www = average_gate_fidelity(U, unitary);
 #ifdef PRINT_INFORMATION
@@ -146,7 +146,7 @@ bool test_RandomSimulation()
 	QStat unitary = sss.get_matrix();
 
 	std::complex<double> conf(0, -1);
-	qmatrix_t U = expMat(conf, mat_operator, PI);
+	QMatrixXcd U = expMat(conf, mat_operator, PI);
 
 	double www = average_gate_fidelity(U, unitary);
 #ifdef PRINT_INFORMATION

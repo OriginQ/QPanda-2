@@ -86,7 +86,6 @@ namespace QPanda
         m_fcalls = nlopt_get_numevals(&opter);
         m_dimension = nlopt_get_dimension(&opter);
         m_result.message = nlopt_get_errmsg(&opter) == NULL ? "No Error" : nlopt_get_errmsg(&opter);
-        dispResult();
         outputResult();
     }
 

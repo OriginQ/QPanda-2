@@ -1,14 +1,14 @@
+#include "Core/Core.h"
+#include "Core/QuantumMachine/SingleAmplitudeQVM.h"
+#include "Core/QuantumMachine/PartialAmplitudeQVM.h"
+#include "Core/QuantumMachine/QCloudMachine.h"
+#include "Core/VirtualQuantumProcessor/NoiseQPU/NoiseModel.h"
 #include <map>
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
 #include "pybind11/complex.h"
 #include "pybind11/functional.h"
 #include "pybind11/chrono.h"
-#include "Core/Core.h"
-#include "Core/QuantumMachine/SingleAmplitudeQVM.h"
-#include "Core/QuantumMachine/PartialAmplitudeQVM.h"
-#include "Core/QuantumMachine/QCloudMachine.h"
-#include "Core/VirtualQuantumProcessor/NoiseQPU/NoiseModel.h"
 #include "template_generator.h"
 USING_QPANDA
 namespace py = pybind11;
@@ -16,7 +16,6 @@ using namespace pybind11::literals;
 
 // template<>
 // struct py::detail::type_caster<QVec>  : py::detail::list_caster<QVec, Qubit*> {};
-
 void export_quantum_machine(py::module &m)
 {
      py::class_<QuantumMachine>(m, "QuantumMachine")
@@ -33,11 +32,25 @@ void export_quantum_machine(py::module &m)
          .def("finalize", &QuantumMachine::finalize, "finalize")
          .def("get_qstate", &QuantumMachine::getQState, "getState", py::return_value_policy::automatic)
          .def("qAlloc", &QuantumMachine::allocateQubit, "Allocate a qubit", py::return_value_policy::reference)
-         .def("qAlloc_many",
+         /*.def("qAlloc_many",
               &QuantumMachine::allocateQubits,
               py::arg("qubit_num"),
               "Allocate a list of qubits",
-              py::return_value_policy::reference)
+             [](QuantumMachine &self, int qubit_num)
+             {
+                  std::vector<Qubit*> qv = self.qAllocMany(qubit_num);
+                 return qv;
+             },
+             py::return_value_policy::reference)*/
+         .def("qAlloc_many", 
+             [](QuantumMachine &self, size_t qubit_num) 
+             {
+                auto qv = static_cast<std::vector<Qubit*>>(self.qAllocMany(qubit_num));
+                return qv;
+             },
+             py::arg("qubit_num"),
+             "Allocate a list of qubits",
+             py::return_value_policy::reference)
          .def("cAlloc",
               py::overload_cast<>(&QuantumMachine::allocateCBit),
               "Allocate a cbit",
@@ -148,6 +161,7 @@ void export_quantum_machine(py::module &m)
               &QuantumMachine::directlyRun,
               py::arg("qprog"),
               py::arg_v("noise_model", NoiseModel(), "NoiseModel()"),
+              py::call_guard<py::gil_scoped_release>(),
               py::return_value_policy::reference)
          .def(
              "run_with_configuration",
@@ -165,6 +179,7 @@ void export_quantum_machine(py::module &m)
              py::arg("cbit_list"),
              py::arg("data"),
              py::arg_v("noise_model", NoiseModel(), "NoiseModel()"),
+             py::call_guard<py::gil_scoped_release>(),
              py::return_value_policy::automatic)
 
          .def("run_with_configuration",
@@ -173,6 +188,14 @@ void export_quantum_machine(py::module &m)
               py::arg("cbit_list"),
               py::arg("shot"),
               py::arg_v("noise_model", NoiseModel(), "NoiseModel()"),
+              py::call_guard<py::gil_scoped_release>(),
+              py::return_value_policy::automatic)
+        .def("run_with_configuration",
+              py::overload_cast<QProg &, int, const NoiseModel &>(&QuantumMachine::runWithConfiguration),
+              py::arg("qprog"),
+              py::arg("shot"),
+              py::arg_v("noise_model", NoiseModel(), "NoiseModel()"),
+              py::call_guard<py::gil_scoped_release>(),
               py::return_value_policy::automatic)
          .def("run_with_configuration",
               py::overload_cast<QProg &, vector<int> &, int, const NoiseModel &>(&QuantumMachine::runWithConfiguration),
@@ -180,13 +203,21 @@ void export_quantum_machine(py::module &m)
               py::arg("cbit_list"),
               py::arg("shot"),
               py::arg_v("noise_model", NoiseModel(), "NoiseModel()"),
+              py::call_guard<py::gil_scoped_release>(),
               py::return_value_policy::automatic);
 
      /*
        just inherit abstract base class wrappered by trampoline class, will implement C++ like polymorphism in python
        no neeed use another trampoline class wrapper child, unless children have derived children class
      */
-     py::class_<CPUQVM, QuantumMachine> cpu_qvm(m, "CPUQVM");
+    py::class_<CPUQVM, QuantumMachine> cpu_qvm(m, "CPUQVM");
+    cpu_qvm.def("init_qvm", py::overload_cast<bool>(&CPUQVM::init));
+    cpu_qvm.def("init_qvm", py::overload_cast<>(&CPUQVM::init));
+    cpu_qvm.def("set_max_threads",
+        &CPUQVM::set_parallel_threads,
+        py::arg("size"),
+        "set CPUQVM max thread size",
+        py::return_value_policy::automatic);
      /*
        we should declare these function in py::class_<IdealQVM>, then CPUQVM inherit form it,
        but as we won't want to export IdealQVM to user, this may the only way

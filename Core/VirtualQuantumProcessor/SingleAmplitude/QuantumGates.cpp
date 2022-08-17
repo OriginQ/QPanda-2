@@ -342,4 +342,107 @@ void TOFFOLI_Gate(qstate_t& gate_tensor, bool isDagger)
 	gate_tensor[62] = 1;
 }
 
+void RXX_Gate(qstate_t& gate_tensor, double angle, bool isDagger)
+{
+    const double cost = std::cos(angle);
+    const double sint = std::sin(angle);
 
+    gate_tensor.assign(16, 0);
+    gate_tensor[0] = qcomplex_data_t(cost, 0);
+    gate_tensor[5] = qcomplex_data_t(cost, 0);
+    gate_tensor[10] = qcomplex_data_t(cost, 0);
+    gate_tensor[15] = qcomplex_data_t(cost, 0);
+
+    if (isDagger)
+    {
+        gate_tensor[3] = qcomplex_data_t(0, sint);
+        gate_tensor[6] = qcomplex_data_t(0, sint);
+        gate_tensor[9] = qcomplex_data_t(0, sint);
+        gate_tensor[12] = qcomplex_data_t(0, sint);
+    }
+    else
+    {
+        gate_tensor[3] = qcomplex_data_t(0, -sint);
+        gate_tensor[6] = qcomplex_data_t(0, -sint);
+        gate_tensor[9] = qcomplex_data_t(0, -sint);
+        gate_tensor[12] = qcomplex_data_t(0, -sint);
+    }
+}
+
+void RYY_Gate(qstate_t& gate_tensor, double angle, bool isDagger)
+{
+    const double cost = std::cos(angle);
+    const double sint = std::sin(angle);
+
+    gate_tensor.assign(16, 0);
+    gate_tensor[0] = qcomplex_data_t(cost, 0);
+    gate_tensor[5] = qcomplex_data_t(cost, 0);
+    gate_tensor[10] = qcomplex_data_t(cost, 0);
+    gate_tensor[15] = qcomplex_data_t(cost, 0);
+
+    if (isDagger)
+    {
+        gate_tensor[3] = qcomplex_data_t(0, -sint);
+        gate_tensor[6] = qcomplex_data_t(0, sint);
+        gate_tensor[9] = qcomplex_data_t(0, sint);
+        gate_tensor[12] = qcomplex_data_t(0, -sint);
+    }
+    else
+    {
+        gate_tensor[3] = qcomplex_data_t(0, sint);
+        gate_tensor[6] = qcomplex_data_t(0, -sint);
+        gate_tensor[9] = qcomplex_data_t(0, -sint);
+        gate_tensor[12] = qcomplex_data_t(0, sint);
+    }
+}
+
+void RZX_Gate(qstate_t& gate_tensor, double angle, bool isDagger)
+{
+    const double cost = std::cos(angle);
+    const double sint = std::sin(angle);
+
+    gate_tensor.assign(16, 0);
+    gate_tensor[0] = qcomplex_data_t(cost, 0);
+    gate_tensor[5] = qcomplex_data_t(cost, 0);
+    gate_tensor[10] = qcomplex_data_t(cost, 0);
+    gate_tensor[15] = qcomplex_data_t(cost, 0);
+
+    if (isDagger)
+    {
+        gate_tensor[2] = qcomplex_data_t(0, sint);
+        gate_tensor[7] = qcomplex_data_t(0, -sint);
+        gate_tensor[8] = qcomplex_data_t(0, sint);
+        gate_tensor[13] = qcomplex_data_t(0, -sint);
+    }
+    else
+    {
+        gate_tensor[2] = qcomplex_data_t(0, -sint);
+        gate_tensor[7] = qcomplex_data_t(0, sint);
+        gate_tensor[8] = qcomplex_data_t(0, -sint);
+        gate_tensor[13] = qcomplex_data_t(0, sint);
+    }
+}
+
+void RZZ_Gate(qstate_t& gate_tensor, double angle, bool isDagger)
+{
+    const qcomplex_data_t i(0., 1.);
+    const qcomplex_data_t exp_p = std::exp(i * (qcomplex_data_t)angle);
+    const qcomplex_data_t exp_m = std::exp(-i * (qcomplex_data_t)angle);
+
+    gate_tensor.assign(4, 0);
+
+    if (isDagger)
+    {
+        gate_tensor[0] = exp_p;
+        gate_tensor[1] = exp_m;
+        gate_tensor[2] = exp_m;
+        gate_tensor[3] = exp_p;
+    }
+    else
+    {
+        gate_tensor[0] = exp_m;
+        gate_tensor[1] = exp_p;
+        gate_tensor[2] = exp_p;
+        gate_tensor[3] = exp_m;
+    }
+}

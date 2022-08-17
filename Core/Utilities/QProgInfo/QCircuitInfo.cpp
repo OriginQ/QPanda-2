@@ -51,7 +51,7 @@ void NodeInfo::init(const int type, const QVec& target_qubits, const QVec& contr
 		case MEASURE:
 		{
 			auto p_measure = std::dynamic_pointer_cast<AbstractQuantumMeasure>(*m_iter);
-			m_cbits.push_back(p_measure->getCBit()->getValue());
+			m_cbits.push_back(p_measure->getCBit()->get_addr());
 			m_node_type = MEASURE_GATE;
 		}
 		break;
@@ -117,6 +117,11 @@ void TraverseByNodeIter::execute(std::shared_ptr<AbstractQuantumCircuit> cur_nod
 	bool cur_node_is_dagger = cur_node->isDagger() ^ (cir_param.m_is_dagger);
 	QVec ctrl_qubits;
 	cur_node->getControlVector(ctrl_qubits);
+
+	auto _earse_check_fun = [](Qubit*a, Qubit* b) {return a->getPhysicalQubitPtr()->getQubitAddr() == b->getPhysicalQubitPtr()->getQubitAddr(); };
+	ctrl_qubits.erase(unique(ctrl_qubits.begin(),
+		ctrl_qubits.end(), _earse_check_fun),
+		ctrl_qubits.end());
 
 	auto tmp_param = cir_param.clone();
 	tmp_param->m_is_dagger = cur_node_is_dagger;

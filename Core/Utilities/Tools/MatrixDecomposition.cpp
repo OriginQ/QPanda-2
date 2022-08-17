@@ -159,11 +159,11 @@ static void under_partition(int order, MatrixOperator& entries)
 	return;
 }
 
-static void controller(MatrixSequence& sequence, const EigenMatrix2c U2, EigenMatrixXc& matrix)
+static void controller(MatrixSequence& sequence, const QMatrix2cd U2, QMatrixXcd& matrix)
 {
-	EigenMatrix2c P0;
-	EigenMatrix2c P1;
-	EigenMatrix2c I2;
+	QMatrix2cd P0;
+	QMatrix2cd P1;
+	QMatrix2cd I2;
 
 	P0 << Eigen::dcomplex(1, 0), Eigen::dcomplex(0, 0),
 		Eigen::dcomplex(0, 0), Eigen::dcomplex(0, 0);
@@ -172,7 +172,7 @@ static void controller(MatrixSequence& sequence, const EigenMatrix2c U2, EigenMa
 	I2 << Eigen::dcomplex(1, 0), Eigen::dcomplex(0, 0),
 		Eigen::dcomplex(0, 0), Eigen::dcomplex(1, 0);
 
-	std::map<MatrixUnit, std::function<EigenMatrix2c()>> mapping =
+	std::map<MatrixUnit, std::function<QMatrix2cd()>> mapping =
 	{
 		{ MatrixUnit::SINGLE_P0, [&]() {return P0; } },
 		{ MatrixUnit::SINGLE_P1, [&]() {return P1; } },
@@ -181,12 +181,12 @@ static void controller(MatrixSequence& sequence, const EigenMatrix2c U2, EigenMa
 	};
 
 	auto order = sequence.size();
-	EigenMatrixXc Un = EigenMatrixXc::Identity(1, 1);
-	EigenMatrixXc In = EigenMatrixXc::Identity(1ull << order, 1ull << order);
+	QMatrixXcd Un = QMatrixXcd::Identity(1, 1);
+	QMatrixXcd In = QMatrixXcd::Identity(1ull << order, 1ull << order);
 
 	for (const auto& val : sequence)
 	{
-		EigenMatrix2c M2 = mapping.find(val)->second();
+		QMatrix2cd M2 = mapping.find(val)->second();
 		Un = Eigen::kroneckerProduct(Un, M2).eval();
 	}
 
@@ -194,7 +194,7 @@ static void controller(MatrixSequence& sequence, const EigenMatrix2c U2, EigenMa
 	return;
 }
 
-static void recursive_partition(const EigenMatrixXc& sub_matrix, MatrixOperator& entries)
+static void recursive_partition(const QMatrixXcd& sub_matrix, MatrixOperator& entries)
 {
 	Eigen::Index order = sub_matrix.rows();
 	if (1 == order)
@@ -203,7 +203,7 @@ static void recursive_partition(const EigenMatrixXc& sub_matrix, MatrixOperator&
 	}
 	else
 	{
-		EigenMatrixXc corner = sub_matrix.topLeftCorner(order / 2, order / 2);
+		QMatrixXcd corner = sub_matrix.topLeftCorner(order / 2, order / 2);
 
 		recursive_partition(corner, entries);
 
@@ -214,7 +214,7 @@ static void recursive_partition(const EigenMatrixXc& sub_matrix, MatrixOperator&
 	return;
 }
 
-static void decomposition(EigenMatrixXc& matrix, MatrixOperator& entries, std::vector<SingleGateUnit>& cir_units)
+static void decomposition(QMatrixXcd& matrix, MatrixOperator& entries, std::vector<SingleGateUnit>& cir_units)
 {
 	for (auto cdx = 0; cdx < entries.size(); ++cdx)
 	{
@@ -224,33 +224,33 @@ static void decomposition(EigenMatrixXc& matrix, MatrixOperator& entries, std::v
 			auto rdx = entries[cdx][idx].first;
 			auto opt = entries[cdx][idx].second;
 
-			if ((EigenComplexT(0, 0) == matrix(rdx, cdx) && (idx != opts - 1)) ||
-				(EigenComplexT(1, 0) == matrix(cdx, cdx) && (idx == opts - 1)))
+			if ((std::complex<double>(0, 0) == matrix(rdx, cdx) && (idx != opts - 1)) ||
+				(std::complex<double>(1, 0) == matrix(cdx, cdx) && (idx == opts - 1)))
 			{
 				continue;
 			}
 			else
 			{
-				EigenMatrix2c C2; /*placeholder*/
-				C2 << EigenComplexT(0, 1), EigenComplexT(0, 1),
-					EigenComplexT(0, 1), EigenComplexT(0, 1);
+				QMatrix2cd C2; /*placeholder*/
+				C2 << std::complex<double>(0, 1), std::complex<double>(0, 1),
+					std::complex<double>(0, 1), std::complex<double>(0, 1);
 
-				EigenMatrixXc Cn;
+				QMatrixXcd Cn;
 				controller(opt, C2, Cn);
 
 				Qnum indices(2);
 				for (Eigen::Index index = 0; index < (1ull << opt.size()); ++index)
 				{
-					if (Cn(rdx, index) != EigenComplexT(0, 0))
+					if (Cn(rdx, index) != std::complex<double>(0, 0))
 					{
 						indices[index == rdx] = index;
 					}
 				}
 
-				EigenComplexT C0 = matrix(indices[0], cdx);  /*The entry to be eliminated */
-				EigenComplexT C1 = matrix(indices[1], cdx);  /*The corresponding entry */
+				std::complex<double> C0 = matrix(indices[0], cdx);  /*The entry to be eliminated */
+				std::complex<double> C1 = matrix(indices[1], cdx);  /*The corresponding entry */
 
-				EigenComplexT V11, V12, V21, V22;
+				std::complex<double> V11, V12, V21, V22;
 
 				if (indices[0] < indices[1])
 				{
@@ -267,10 +267,10 @@ static void decomposition(EigenMatrixXc& matrix, MatrixOperator& entries, std::v
 					V22 = std::conj(C0) / std::sqrt(std::norm(C0) + std::norm(C1));
 				}
 
-				EigenMatrix2c V2;
+				QMatrix2cd V2;
 				V2 << V11, V12, V21, V22;
 
-				EigenMatrixXc Un;
+				QMatrixXcd Un;
 				controller(opt, V2, Un);
 
 				matrix = Un * matrix;
@@ -281,8 +281,8 @@ static void decomposition(EigenMatrixXc& matrix, MatrixOperator& entries, std::v
 		}
 	}
 
-	EigenMatrix2c V2 = matrix.bottomRightCorner(2, 2);
-	if (EigenMatrixXc::Identity(2, 2) != V2)
+	QMatrix2cd V2 = matrix.bottomRightCorner(2, 2);
+	if (QMatrixXcd::Identity(2, 2) != V2)
 	{
 		QPANDA_ASSERT((V2(0, 0) * V2(1, 1)) == (V2(0, 1) * V2(1, 0)), "decomposition error on matrix.bottomRightCorner(2, 2)");
 
@@ -298,7 +298,7 @@ static void decomposition(EigenMatrixXc& matrix, MatrixOperator& entries, std::v
 	}
 }
 
-static void initialize(EigenMatrixXc& matrix, MatrixOperator& entries)
+static void initialize(QMatrixXcd& matrix, MatrixOperator& entries)
 {
 	auto qubits = (int)std::log2(matrix.rows());
 
@@ -334,7 +334,7 @@ static void initialize(EigenMatrixXc& matrix, MatrixOperator& entries)
 	return;
 }
 
-static void general_scheme(EigenMatrixXc& matrix, std::vector<SingleGateUnit>& cir_units)
+static void general_scheme(QMatrixXcd& matrix, std::vector<SingleGateUnit>& cir_units)
 {
 	MatrixOperator entries;
 	for (auto idx = 1; idx < matrix.cols(); ++idx)
@@ -557,12 +557,12 @@ private:
 QCircuit QPanda::matrix_decompose_qr(QVec qubits, const QStat& src_mat, const bool b_positive_seq)
 {
 	auto order = std::sqrt(src_mat.size());
-	EigenMatrixXc tmp_mat = EigenMatrixXc::Map(&src_mat[0], order, order);
+	QMatrixXcd tmp_mat = QMatrixXcd::Map(&src_mat[0], order, order);
 
 	return matrix_decompose_qr(qubits, tmp_mat, b_positive_seq);
 }
 
-QCircuit QPanda::matrix_decompose_qr(QVec qubits, EigenMatrixXc& src_mat, const bool b_positive_seq)
+QCircuit QPanda::matrix_decompose_qr(QVec qubits, QMatrixXcd& src_mat, const bool b_positive_seq)
 {
 	if (!src_mat.isUnitary(MAX_MATRIX_PRECISION))
 	{
@@ -590,7 +590,7 @@ QCircuit QPanda::diagonal_matrix_decompose(const QVec& qubits, const QStat& src_
 
 
 /*******************************************************************
-*                    puali-XYZ  decomposition
+*                    pauli-XYZ  decomposition
 ********************************************************************/
 
 MatrixToPauli::MatrixToPauli(QuantumMachine* qvm)
@@ -994,7 +994,7 @@ void MatrixToPauli::addtoSimplyCircuit(int i, const std::vector<int>& index, int
 }
 
 
-void QPanda::matrix_decompose_pualis(QuantumMachine* qvm, const EigenMatrixX& mat, PualiOperatorLinearCombination& linearcom)
+void QPanda::matrix_decompose_paulis(QuantumMachine* qvm, const QMatrixXd& mat, PualiOperatorLinearCombination& linearcom)
 {
 	if (mat.size() == 0 ||
 		(mat.rows() != mat.cols()) ||

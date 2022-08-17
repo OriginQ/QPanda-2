@@ -1934,6 +1934,11 @@ QGate QPanda::QDouble(QStat& matrix, Qubit* qubit1, Qubit* qubit2)
 QGate QPanda::Toffoli(Qubit * control_fisrt, Qubit * control_second, Qubit * target)
 {
     auto gate = X(target);
+	if (control_fisrt->get_phy_addr() == control_second->get_phy_addr())
+	{
+		QCERR("control second addr == control fisrt addr ");
+		throw invalid_argument("control second addr == control fisrt addr ");
+	}
     gate.setControl({ control_fisrt, control_second });
     return gate;
 }

@@ -15,6 +15,7 @@ Created in 2020-08-07
 #include "Core/Core.h"
 #include "QAlg/ArithmeticUnit/ArithmeticUnit.h"
 #include "QAlg/Base_QCircuit/base_circuit.h"
+#include <numeric>
 
 QPANDA_BEGIN
 

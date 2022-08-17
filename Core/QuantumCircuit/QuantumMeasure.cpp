@@ -32,6 +32,17 @@ QMeasure  QPanda::Measure(Qubit * target_qubit,ClassicalCondition  classical_con
     return measure;
 }
 
+QMeasure  QPanda::Measure(Qubit * target_qubit, CBit*  classical_cond)
+{
+    if (nullptr == classical_cond)
+    {
+        QCERR("param error");
+        throw invalid_argument("param error");
+    }
+    QMeasure measure(target_qubit, classical_cond);
+    return measure;
+}
+
 QMeasure QPanda::Measure(int qaddr, int  classical_addr)
 {
     auto target_cbit = OriginCMem::get_instance()->get_cbit_by_addr(classical_addr);

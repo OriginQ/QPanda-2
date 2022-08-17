@@ -180,7 +180,7 @@ public:
     AbstractQuantumProgram* QProgCreator##className(){                           \
         return new className();                                                   \
     }                                                                          \
-    QuantumProgramRegisterAction g_qProgCreatorDoubleRegister##className(      \
+    INIT_PRIORITY QuantumProgramRegisterAction g_qProgCreatorDoubleRegister##className(      \
         #className,(CreateQProgram)QProgCreator##className)
 
 
@@ -231,7 +231,10 @@ public:
     * @brief  Clear all node in current quantum program node
     * @return     void
     */
-    void clear() { m_node_manager.clear(); }
+    void clear() { 
+        m_qgate_num = 0;
+        m_node_manager.clear(); 
+    }
 
     bool check_insert_node_type(std::shared_ptr<QNode> node);
 

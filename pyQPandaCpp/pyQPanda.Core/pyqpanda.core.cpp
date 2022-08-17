@@ -1,3 +1,6 @@
+#include "QPandaConfig.h"
+#include "QPanda.h"
+#include "template_generator.h"
 #include <math.h>
 #include <map>
 #include "pybind11/pybind11.h"
@@ -11,9 +14,7 @@
 #include <pybind11/stl_bind.h>
 #include "pybind11/eigen.h"
 #include "pybind11/operators.h"
-#include "QPandaConfig.h"
-#include "QPanda.h"
-#include "template_generator.h"
+
 
 USING_QPANDA
 using namespace std;
@@ -111,8 +112,12 @@ PYBIND11_MODULE(pyQPanda, m)
 		  "                     first is the final qubit register state, second is it's measure probability");
 
 	m.def("qAlloc_many",
-		  &qAllocMany,
-		  py::arg("qubit_num"),
+          [](size_t qubit_num)
+          {
+                auto qv = static_cast<std::vector<Qubit*>>(qAllocMany(qubit_num));
+                return qv;
+          },
+          py::arg("qubit_num"),
 		  "Allocate several qubits\n"
 		  "After init()\n"
 		  "\n"
@@ -315,23 +320,48 @@ PYBIND11_MODULE(pyQPanda, m)
 		  "    measure result of quantum machine",
 		  py::return_value_policy::reference);
 
-	m.def("run_with_configuration",
-		  &runWithConfiguration,
-		  py::arg("program"),
-		  py::arg("cbit_list"),
-		  py::arg("shots"),
-		  py::arg_v("noise_model", NoiseModel(), "NoiseModel()"),
-		  "Run quantum program with configuration\n"
-		  "\n"
-		  "Args:\n"
-		  "    program: quantum program\n"
-		  "    cbit_list: classic cbits list\n"
-		  "    shots: repeate run quantum program times\n"
-		  "    noise_model: noise model, default is no noise. noise model only work on CPUQVM now\n"
-		  "\n"
-		  "Returns:\n"
-		  "    result of quantum program execution in shots.\n"
-		  "    first is the final qubit register state, second is it's hit shot");
+    m.def(
+        "run_with_configuration",
+        [](QProg &prog, std::vector<ClassicalCondition> &cbits, int shots, const NoiseModel& model= NoiseModel())
+        {
+            return runWithConfiguration(prog, cbits, shots, model);
+        },
+        py::arg("program"),
+        py::arg("cbit_list"),
+        py::arg("shots"),
+        py::arg_v("noise_model", NoiseModel(), "NoiseModel()"),
+        "Run quantum program with configuration\n"
+        "\n"
+        "Args:\n"
+        "    program: quantum program\n"
+        "    cbit_list: classic cbits list\n"
+        "    shots: repeate run quantum program times\n"
+        "    noise_model: noise model, default is no noise. noise model only work on CPUQVM now\n"
+        "\n"
+        "Returns:\n"
+        "    result of quantum program execution in shots.\n"
+        "    first is the final qubit register state, second is it's hit shot");
+
+    m.def(
+        "run_with_configuration",
+        [](QProg &prog, int shots, const NoiseModel& model = NoiseModel())
+        {
+        return runWithConfiguration(prog, shots, model);
+        },
+        py::arg("program"),
+        py::arg("shots"),
+        py::arg_v("noise_model", NoiseModel(), "NoiseModel()"),
+        "Run quantum program with configuration\n"
+        "\n"
+        "Args:\n"
+        "    program: quantum program\n"
+        "    cbit_list: classic cbits list\n"
+        "    shots: repeate run quantum program times\n"
+        "    noise_model: noise model, default is no noise. noise model only work on CPUQVM now\n"
+        "\n"
+        "Returns:\n"
+        "    result of quantum program execution in shots.\n"
+        "    first is the final qubit register state, second is it's hit shot");
 
 	m.def("quick_measure",
 		  &quickMeasure,
@@ -612,7 +642,7 @@ PYBIND11_MODULE(pyQPanda, m)
 		  py::return_value_policy::automatic);
 
 	m.def("QOracle",
-		  py::overload_cast<const QVec &, const EigenMatrixXc &>(&QOracle),
+		  py::overload_cast<const QVec &, const QMatrixXcd &>(&QOracle),
 		  py::arg("qubit_list"),
 		  py::arg("matrix"),
 		  "Generate QOracle Gate\n"
@@ -650,6 +680,35 @@ PYBIND11_MODULE(pyQPanda, m)
 		  py::arg("quantum_circuit"),
 		  "Count quantum gate num under quantum program, quantum circuit",
 		  py::return_value_policy::automatic);
+
+	/* new interface*/
+	m.def("count_qgate_num",
+		py::overload_cast<QProg&, const GateType> (&count_qgate_num<QProg>),
+		py::arg("quantum_prog"),
+		py::arg("gtype") = GateType::GATE_UNDEFINED,
+		"Count quantum gate num under quantum program\n"
+		"Args:\n"
+		"    quantum_prog: QProg&\n"
+		"    gtype: const GateType\n"
+		"\n"
+		"Returns:\n"
+		"    this GateType quantum gate num",
+		py::return_value_policy::automatic);
+
+	m.def("count_qgate_num",
+		py::overload_cast<QCircuit&, const GateType> (&count_qgate_num<QCircuit>),
+		py::arg("quantum_circuit"),
+		py::arg("gtype") = GateType::GATE_UNDEFINED,
+		"Count quantum gate num under quantum circuit\n"
+		"Args:\n"
+		"    quantum_circuit: QCircuit&\n"
+		"    gtype: const GateType\n"
+		"\n"
+		"Returns:\n"
+		"    this GateType quantum gate num",
+		py::return_value_policy::automatic);
+
+
 
 	//---------------------------------------------------------------------------------------------------------------------
 	/* include\Core\QuantumCircuit\QProgram.h */
@@ -1012,6 +1071,13 @@ PYBIND11_MODULE(pyQPanda, m)
 		  py::arg("cbit"),
 		  "Create a Measure operation",
 		  py::return_value_policy::automatic);
+
+    m.def("Measure",
+        py::overload_cast<Qubit *, CBit*>(&Measure),
+        py::arg("qubit"),
+        py::arg("cbit"),
+        "Create a Measure operation",
+        py::return_value_policy::automatic);
 
 	m.def("Measure",
 		  py::overload_cast<int, int>(&Measure),
@@ -2039,6 +2105,15 @@ PYBIND11_MODULE(pyQPanda, m)
 		"Decompose multiple control QGate",
 		py::return_value_policy::automatic);
 
+    /* #include "Core/Utilities/Tools/MultiControlGateDecomposition.h" */
+    m.def("ldd_decompose",[](QProg prog)
+        {
+            return ldd_decompose(prog);
+        },
+        py::arg("qprog"),
+        "Decompose multiple control QGate",
+        py::return_value_policy::automatic);
+
 	m.def(
 		"transform_to_base_qgate",
 		[](QProg prog, QuantumMachine *quantum_machine, const std::string config_data = CONFIG_PATH)
@@ -2136,7 +2211,7 @@ PYBIND11_MODULE(pyQPanda, m)
 
 	m.def(
 		"average_gate_fidelity",
-		[](const qmatrix_t &matrix, const QStat &state)
+		[](const QMatrixXcd &matrix, const QStat &state)
 		{
 			return average_gate_fidelity(matrix, state);
 		},
@@ -2147,7 +2222,7 @@ PYBIND11_MODULE(pyQPanda, m)
 
 	m.def(
 		"average_gate_fidelity",
-		[](const qmatrix_t &matrix, const qmatrix_t &state)
+		[](const QMatrixXcd &matrix, const QMatrixXcd &state)
 		{
 			return average_gate_fidelity(matrix, state);
 		},

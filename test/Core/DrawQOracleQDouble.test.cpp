@@ -12,6 +12,7 @@
 #include "Core/Utilities/Tools/MatrixDecomposition.h"
 #include "Core/Utilities/QProgTransform/QProgToDAG/GraphMatch.h"
 #include "Core/Utilities/Tools/QCircuitGenerator.h"
+#include "Core/Utilities/QProgInfo/QCircuitInfo.h"
 #include "Core/Variational/var.h"
 #include "Variational/expression.h"
 #include "Variational/utils.h"
@@ -77,6 +78,7 @@ static bool test_vf1_0()
             << RZZ(qubits[3], qubits[5], 20)
             << RZX(qubits[2], qubits[0], 20); 
         cout << prog << endl;
+
         auto prog_text = convert_qprog_to_originir(prog, &qvm);
         std::cout << prog << std::endl;
         std::cout << "===============================" << std::endl;
@@ -89,32 +91,44 @@ static bool test_vf1_0()
 static bool test_vf1_1()
 {
     
-    auto cpu_qvm = CPUQVM();
-    cpu_qvm.init();
-    
-    var x(MatrixXd::Zero(1, 3));
-    var y(MatrixXd::Zero(1, 3));
-    MatrixXd tmp1(1, 3);
-    tmp1 << 1, 1, 2;
-    MatrixXd tmp2(1, 3);
-    tmp2 << 0.8, 0.8, 0.8; // p is probability
-    x.setValue(tmp1);
-    y.setValue(tmp2);
-    complex_var a(1,2);
-    complex_var b(3,4);
-    auto c = a.real();
-    auto d = a.imag();
-    std::cout << "a,real: " << c.getValue() << ", a.imag: " << d.getValue() << endl;
-    a=a*2;
-    auto e = a.real();
-    auto f = a.imag();
-    std::cout << "a,real: " << e.getValue() << ", a.imag: " << f.getValue() << endl;
+    auto qvm = CPUQVM();
+    qvm.init();
+    auto q = qvm.qAllocMany(10);
+    auto c = qvm.cAllocMany(10);
+    auto prog = QProg();
+    prog << H(q[0]);
+    for (int i = 0; i < 9; i++)
+    {
+        prog << CNOT(q[i], q[i+1]);
+    }
 
+    for (int i = 1; i < 10; i += 2)
+    {
+        prog << Measure(q[i], c[i]);
+    }
+
+
+    auto res = qvm.runWithConfiguration(prog, c, 1000);
+    for (auto &re : res)
+    {
+        std::cout << re.first << ", " << re.second << std::endl;
+    }
+    //auto res = qvm.probRunDict(prog, q);
     
-    
-    std::cout << "x=" << "\n" << x.getValue() << std::endl;
-    x = -x;
-    std::cout << "x=" << "\n" << x.getValue() << std::endl;
+    return true;
+}
+static bool test_vf1_2()
+{
+
+    auto qvm = CPUQVM();
+    qvm.init();
+    auto q = qvm.qAllocMany(10);
+    auto c = qvm.cAllocMany(10);
+    auto prog = QProg();
+    prog << H(q[0]).dagger();
+
+    cout << prog << endl;
+
     return true;
 }
 
@@ -125,7 +139,7 @@ TEST(DrawQOracleQDouble, test1)
     bool test_val = false;
     try
     {
-        test_val = test_vf1_1();
+        test_val = test_vf1_2();
 
     }
     catch (const std::exception& e)

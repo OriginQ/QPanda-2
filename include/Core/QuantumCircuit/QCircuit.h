@@ -260,7 +260,10 @@ public:
 	* @brief  Clear all node in current quantum program node
 	* @return     void
 	*/
-	void clear() { m_node_manager.clear(); }
+	void clear() { 
+        m_qgate_num = 0;
+        m_node_manager.clear(); 
+    }
 
     void clearControl();
 
@@ -357,12 +360,11 @@ QCircuit & QCircuit::operator<<(T node)
     return *this;
 }
 
-
 #define REGISTER_QCIRCUIT(className)                                           \
     AbstractQuantumCircuit* QCircuitCreator##className(){                           \
         return new className();                                                   \
     }                                                                           \
-    QuantumCircuitRegisterAction g_qCircuitCreatorDoubleRegister##className(     \
+    INIT_PRIORITY QuantumCircuitRegisterAction g_qCircuitCreatorDoubleRegister##className(     \
         #className,(CreateQCircuit)QCircuitCreator##className)
 
 QPANDA_END

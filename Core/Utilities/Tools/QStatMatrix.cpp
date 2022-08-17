@@ -233,7 +233,7 @@ QStat QPanda::tensor(const QStat& leftMatrix, const QStat& rightMatrix)
 }
 
 
-int QPanda::partition(qmatrix_t& srcMatrix, int partitionRowNum, int partitionColumnNum, blockedMatrix_t& blockedMat)
+int QPanda::partition(QMatrixXcd& srcMatrix, int partitionRowNum, int partitionColumnNum, blockedMatrix_t& blockedMat)
 {
 	blockedMat.m_vec_block.clear();
 
@@ -278,7 +278,7 @@ int QPanda::partition(qmatrix_t& srcMatrix, int partitionRowNum, int partitionCo
 	return 0;
 }
 
-int QPanda::blockMultip(qmatrix_t& leftMatrix, const blockedMatrix_t& blockedMat, qmatrix_t& resultMatrix)
+int QPanda::blockMultip(QMatrixXcd& leftMatrix, const blockedMatrix_t& blockedMat, QMatrixXcd& resultMatrix)
 {
 	if ((0 == leftMatrix.size()) || (blockedMat.m_vec_block.size() == 0))
 	{
@@ -431,6 +431,10 @@ int QPanda::mat_compare(const QStat& mat1, const QStat& mat2, const double preci
 		if ((abs(mat2.at(i).real() - 0.0) > precision) || (abs(mat2.at(i).imag() - 0.0) > precision))
 		{
 			ratio = mat1.at(i) / mat2.at(i);
+			if (!isfinite(ratio.real()) || !isfinite(ratio.imag()))
+			{
+				return -1;
+			}
 			if (precision < abs(sqrt(ratio.real()*ratio.real() + ratio.imag()*ratio.imag()) - 1.0))
 			{
 				return -1;
@@ -446,6 +450,9 @@ int QPanda::mat_compare(const QStat& mat1, const QStat& mat2, const double preci
 		if ((abs(mat1.at(i).real() - tmp_val.real()) > precision) ||
 			(abs(mat1.at(i).imag() - tmp_val.imag()) > precision))
 		{
+			//std::cout << abs(mat1.at(i).real() - tmp_val.real()) << std::endl;
+			//std::cout << abs(mat1.at(i).imag() - tmp_val.imag()) << std::endl;
+
 			return -1;
 		}
 	}
@@ -463,11 +470,11 @@ bool QPanda::operator!=(const QStat &matrix_left, const QStat &matrix_right)
 	return (0 != mat_compare(matrix_left, matrix_right, MAX_COMPARE_PRECISION));
 }
 
-EigenMatrixXc QPanda::QStat_to_Eigen(const QStat& src_mat)
+QMatrixXcd QPanda::QStat_to_Eigen(const QStat& src_mat)
 {
 	auto n = std::sqrt(src_mat.size());
 
-	EigenMatrixXc eigen_matrix = EigenMatrixXc::Zero(n, n);
+	QMatrixXcd eigen_matrix = QMatrixXcd::Zero(n, n);
 	for (auto rdx = 0; rdx < n; ++rdx)
 	{
 		for (auto cdx = 0; cdx < n; ++cdx)
@@ -479,7 +486,7 @@ EigenMatrixXc QPanda::QStat_to_Eigen(const QStat& src_mat)
 	return eigen_matrix;
 }
 
-QStat QPanda::Eigen_to_QStat(const EigenMatrixXc& eigen_mat)
+QStat QPanda::Eigen_to_QStat(const QMatrixXcd& eigen_mat)
 {
 	QStat q_mat;
 	size_t rows = eigen_mat.rows();
@@ -517,11 +524,11 @@ bool QPanda::is_unitary_matrix(const QStat &circuit_matrix, const double precisi
 bool QPanda::is_unitary_matrix_by_eigen(const QStat& circuit_matrix, const double precision /*= MAX_COMPARE_PRECISION*/)
 {
 	auto order = std::sqrt(circuit_matrix.size());
-	EigenMatrixXc tmp_mat = EigenMatrixXc::Map(&circuit_matrix[0], order, order);
+	QMatrixXcd tmp_mat = QMatrixXcd::Map(&circuit_matrix[0], order, order);
 	return is_unitary_matrix_by_eigen(tmp_mat, precision);
 }
 
-bool QPanda::is_unitary_matrix_by_eigen(const EigenMatrixXc& circuit_matrix, const double precision /*= MAX_COMPARE_PRECISION*/)
+bool QPanda::is_unitary_matrix_by_eigen(const QMatrixXcd& circuit_matrix, const double precision /*= MAX_COMPARE_PRECISION*/)
 {
 	return circuit_matrix.isUnitary(precision);
 }

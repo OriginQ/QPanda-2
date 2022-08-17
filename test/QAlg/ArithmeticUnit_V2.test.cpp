@@ -3,6 +3,19 @@
 #include "QPanda.h"
 
 USING_QPANDA
+// compare tools for test
+template <typename value_t>
+bool euqal_in_tolerance(const value_t &r1, const value_t &r2, double allowed_error = 3e-12)
+{
+
+    if (std::abs((r1 - r2) / r1) > allowed_error)
+    {
+        std::cout << "***ERROR:*** |r1 " << r1 << " - r2 " << r2 << "|/" << r1 << " > " << allowed_error << std::endl;
+        return false;
+    }
+    return true;
+}
+
 // use DDT test Adder
 
 void checkAdder(int bit_len, int a_value, int b_value)
@@ -107,10 +120,10 @@ void checkAdder(int bit_len, int a_value, int b_value)
         //           << " " << r_qlc.at(it.first)
         //           << std::endl;
 
-        ASSERT_DOUBLE_EQ(it.second, r_cdkm.at(it.first));
-        ASSERT_DOUBLE_EQ(it.second, r_vbe.at(it.first));
-        ASSERT_TRUE((it.second - r_qft.at(it.first) < 1e-9) && (r_qft.at(it.first) - it.second > -1e-9));
-        ASSERT_DOUBLE_EQ(it.second, r_qlc.at(it.first));
+        ASSERT_TRUE(euqal_in_tolerance(it.second, r_cdkm.at(it.first)));
+        ASSERT_TRUE(euqal_in_tolerance(it.second, r_vbe.at(it.first)));
+        ASSERT_TRUE(euqal_in_tolerance(it.second, r_qft.at(it.first)));
+        ASSERT_TRUE(euqal_in_tolerance(it.second, r_qlc.at(it.first)));
     }
 
     for (auto it : r_cdkm_anc)
@@ -124,9 +137,9 @@ void checkAdder(int bit_len, int a_value, int b_value)
         //           << " " << r_qlc_anc.at(it.first)
         //           << std::endl;
 
-        ASSERT_DOUBLE_EQ(it.second, r_vbe_anc.at(it.first));
-        ASSERT_TRUE((it.second - r_qft_anc.at(it.first) < 1e-9) && (r_qft_anc.at(it.first) - it.second > -1e-9));
-        ASSERT_DOUBLE_EQ(it.second, r_qlc_anc.at(it.first));
+        ASSERT_TRUE(euqal_in_tolerance(it.second, r_vbe_anc.at(it.first)));
+        ASSERT_TRUE(euqal_in_tolerance(it.second, r_qft_anc.at(it.first)));
+        ASSERT_TRUE(euqal_in_tolerance(it.second, r_qlc_anc.at(it.first)));
     }
 
     destroyQuantumMachine(qvm);
@@ -202,8 +215,8 @@ void checkQComplement(int bit_len, int value)
         double total = it.second + result_qcla.at(it.first) + result_qft.at(it.first);
         if (total <= 0.01)
             continue;
-        ASSERT_DOUBLE_EQ(result_qcla.at(it.first), it.second);
-        ASSERT_TRUE((it.second - result_qft.at(it.first) < 1e-9) && (result_qft.at(it.first) - it.second > -1e-9));
+        ASSERT_TRUE(euqal_in_tolerance(it.second, result_qcla.at(it.first)));
+        ASSERT_TRUE(euqal_in_tolerance(it.second, result_qft.at(it.first)));
     }
 
     for (auto it : result_anc)
@@ -211,8 +224,8 @@ void checkQComplement(int bit_len, int value)
         double total = it.second + result_qcla_anc.at(it.first) + result_qft_anc.at(it.first);
         if (total <= 0.01)
             continue;
-        ASSERT_DOUBLE_EQ(result_qcla_anc.at(it.first), it.second);
-        ASSERT_TRUE((it.second - result_qft_anc.at(it.first) < 1e-9) && (result_qft_anc.at(it.first) - it.second > -1e-9));
+        ASSERT_TRUE(euqal_in_tolerance(it.second, result_qcla_anc.at(it.first)));
+        ASSERT_TRUE(euqal_in_tolerance(it.second, result_qft_anc.at(it.first)));
     }
 
     destroyQuantumMachine(qvm);

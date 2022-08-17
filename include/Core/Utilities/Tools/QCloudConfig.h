@@ -19,8 +19,8 @@ QPANDA_BEGIN
 #define  QCLOUD_COMPUTE_API_POSTFIX  "/api/taskApi/submitTask.json"
 #define  QCLOUD_INQUIRE_API_POSTFIX  "/api/taskApi/getTaskDetail.json"
 
-#define DEFAULT_CLUSTER_COMPUTEAPI    "https://qcloud.originqc.com.cn/api/taskApi/submitTask.json"
-#define DEFAULT_CLUSTER_INQUIREAPI     "https://qcloud.originqc.com.cn/api/taskApi/getTaskDetail.json"
+#define DEFAULT_CLUSTER_COMPUTEAPI    "http://pyqanda-admin.qpanda.cn/api/taskApi/submitTask.json"
+#define DEFAULT_CLUSTER_INQUIREAPI     "http://pyqanda-admin.qpanda.cn/api/taskApi/getTaskDetail.json"
 
 #define DEFAULT_REAL_CHIP_TASK_COMPUTEAPI     "https://qcloud.originqc.com.cn/api/taskApi/submitTask.json"
 #define DEFAULT_REAL_CHIP_TASK_INQUIREAPI      "https://qcloud.originqc.com.cn/api/taskApi/getTaskDetail.json"
@@ -85,6 +85,9 @@ std::string to_string_array(const Qnum values);
 std::string to_string_array(const std::vector<std::string> values);
 
 void real_chip_task_validation(int shots, QProg &prog);
+
+void params_verification(std::string dec_amplitude, size_t qubits_num);
+void params_verification(std::vector<std::string> dec_amplitudes, size_t qubits_num);
 
 size_t recv_json_data(void *ptr, size_t size, size_t nmemb, void *stream);
 

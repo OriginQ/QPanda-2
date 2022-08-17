@@ -5,7 +5,6 @@
 
 #include "Core/QuantumCircuit/QGate.h"
 #include "Core/QuantumCircuit/QCircuit.h"
-#include "Core/QuantumMachine/QCloudMachine.h"
 #include "Core/QuantumMachine/OriginQuantumMachine.h"
 #include "Core/Utilities/QProgInfo/CrossEntropyBenchmarking.h"
 
@@ -102,6 +101,12 @@ std::map<int, double> double_qubit_rb(NoiseQVM* qvm, Qubit* qbit0, Qubit* qbit1,
  */
 std::map<int, double> single_qubit_rb(QCloudMachine* qvm, Qubit* qbit, const std::vector<int>& clifford_range, int num_circuits, int shots, const std::vector<QGate>& interleaved_gates = {});
 
+/*
+* @brief get single qubit fidelity by fitting rb_result with y = a\times b^x + c
+* @param[in] rb_result
+* @return double fidelity
+*/
+double calc_single_qubit_fidelity(const std::map<int, double>& rb_result);
 
 /**
  * @brief  single gate rb experiment

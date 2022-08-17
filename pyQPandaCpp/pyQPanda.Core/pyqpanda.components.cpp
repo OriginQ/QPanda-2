@@ -1,3 +1,4 @@
+#include "QPanda.h"
 #include <math.h>
 #include <map>
 #include "pybind11/pybind11.h"
@@ -11,7 +12,7 @@
 #include <pybind11/stl_bind.h>
 #include "pybind11/eigen.h"
 #include "pybind11/operators.h"
-#include "QPanda.h"
+
 
 USING_QPANDA
 using namespace std;

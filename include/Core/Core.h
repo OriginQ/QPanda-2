@@ -72,12 +72,14 @@ limitations under the License.
 #include "Core/Utilities/Tools/JsonConfigParam.h"  
 #include "Core/Utilities/Tools/FillQProg.h"
 #include "Core/Utilities/Tools/MatrixDecomposition.h"
+#include "Core/Utilities/Tools/MultiControlGateDecomposition.h"
 #include "Core/Utilities/Tools/RandomCircuit.h"
 #include "Core/Utilities/Tools/QCircuitOptimize.h"
 #include "Core/Utilities/Tools/Fidelity.h"
 #include "Core/Utilities/Tools/GetQubitTopology.h"
 #include "Core/Utilities/Tools/RemapQProg.h"
 #include "Core/Utilities/Tools/QCircuitFusion.h"
+#include "Core/Utilities/Tools/QMatrixDef.h"
 
 #include "Core/Variational/var.h"
 #include "Core/Variational/Optimizer.h"  
@@ -318,6 +320,15 @@ prob_dict  probRunDict(QProg &, QVec , int selectMax = -1);
 std::map<std::string, size_t> runWithConfiguration(QProg &, std::vector<ClassicalCondition> &, int, const NoiseModel& = NoiseModel());
 
 /**
+* @brief  Measure run with configuration
+* @ingroup Core
+* @param[in]  QProg&  Quantum program
+* @param[in]  int Shots:the repeat num  of measure operate
+* @param[in]  const NoiseModel& Noise model for QVM
+* @return     std::map<std::string, size_t>   result
+*/
+std::map<std::string, size_t> runWithConfiguration(QProg &, int, const NoiseModel& = NoiseModel());
+/**
 * @brief  Quick measure operate
 * @ingroup Core
 * @param[in]  QVec  qubits vector
@@ -420,7 +431,7 @@ prob_tuple pMeasure(QVec qubit_vector, int select_max);
 prob_vec pMeasureNoIndex(QVec qubit_vector);
 
 
-QGate QOracle(const QVec& qubits, const EigenMatrixXc& matrix);
+QGate QOracle(const QVec& qubits, const QMatrixXcd& matrix);
 
 QPANDA_END
 #endif // !_CORE_H

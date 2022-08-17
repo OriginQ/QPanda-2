@@ -1,12 +1,12 @@
 #include "Core/VirtualQuantumProcessor/MPSQVM/MPSTensor.h"
 
 USING_QPANDA
-
-void MPS_Tensor::handle_gamma_by_lambda(const rvector_t &Lambda,
+using namespace Eigen;
+void MPS_Tensor::handle_gamma_by_lambda(const QVectorXd &Lambda,
     bool right, /* or left */
     bool mul    /* or div */)
 {
-    rvector_t initial_val(1);
+    QVectorXd initial_val= QVectorXd(1);
     initial_val[0] = 1.0;
     if (Lambda.size() == 1 && Lambda == initial_val) return;
 
@@ -30,7 +30,7 @@ void MPS_Tensor::handle_gamma_by_lambda(const rvector_t &Lambda,
 }
 
 MPS_Tensor MPS_Tensor::contract(const MPS_Tensor &left_gamma, 
-	const rvector_t &lambda, const MPS_Tensor &right_gamma)
+	const QVectorXd &lambda, const MPS_Tensor &right_gamma)
 {
     MPS_Tensor result;
     MPS_Tensor new_left = left_gamma;
@@ -48,7 +48,7 @@ MPS_Tensor MPS_Tensor::contract(const MPS_Tensor &left_gamma,
 
 
 void MPS_Tensor::contract_2_dimensions(const MPS_Tensor &left_gamma, 
-	const MPS_Tensor &right_gamma, cmatrix_t &result)
+	const MPS_Tensor &right_gamma, QMatrixXcd &result)
 {
 	size_t left_rows = left_gamma.m_physical_index[0].rows();
 	size_t left_columns = left_gamma.m_physical_index[0].cols();
@@ -64,7 +64,7 @@ void MPS_Tensor::contract_2_dimensions(const MPS_Tensor &left_gamma,
 	if (left_size != right_size)
 		throw std::runtime_error("left_size != right_size");
 
-	result = cmatrix_t::Zero(left_rows, right_columns);
+	result = QMatrixXcd::Zero(left_rows, right_columns);
 
 	size_t omp_limit = left_rows * right_columns;
 
@@ -87,27 +87,27 @@ void MPS_Tensor::contract_2_dimensions(const MPS_Tensor &left_gamma,
 
 
 void MPS_Tensor::decompose(MPS_Tensor &temp, MPS_Tensor &left_gamma, 
-	rvector_t &lambda, MPS_Tensor &right_gamma)
+	QVectorXd &lambda, MPS_Tensor &right_gamma)
 {
 	// reshape before SVD
-	cmatrix_t temp1(temp.m_physical_index[0].rows(), temp.m_physical_index[0].cols() + temp.m_physical_index[1].cols());
+	QMatrixXcd temp1(temp.m_physical_index[0].rows(), temp.m_physical_index[0].cols() + temp.m_physical_index[1].cols());
 	temp1 << temp.m_physical_index[0], temp.m_physical_index[1];
-	cmatrix_t temp2(temp.m_physical_index[2].rows(), temp.m_physical_index[2].cols() + temp.m_physical_index[3].cols());
+	QMatrixXcd temp2(temp.m_physical_index[2].rows(), temp.m_physical_index[2].cols() + temp.m_physical_index[3].cols());
 	temp2 << temp.m_physical_index[2], temp.m_physical_index[3];
-	cmatrix_t A(temp1.rows() + temp2.rows(), temp1.cols());
+	QMatrixXcd A(temp1.rows() + temp2.rows(), temp1.cols());
 	A << temp1, temp2;
 
 	// use BDCSVD to SVD
 
-	rvector_t S;
-	cmatrix_t U, V;
+	QVectorXd S;
+	QMatrixXcd U, V;
 
-	JacobiSVD<cmatrix_t> svd(A, ComputeThinU | ComputeThinV);
+	JacobiSVD<QMatrixXcd> svd(A, ComputeThinU | ComputeThinV);
 	V = svd.matrixV();
 	U = svd.matrixU();
 	S = svd.singularValues();
 
-	cmatrix_t temp_A = U * S.asDiagonal() * V.adjoint();
+	QMatrixXcd temp_A = U * S.asDiagonal() * V.adjoint();
 	bool is_valid_svd = A.isApprox(temp_A, 1e-9);
 
 	// reduce invalid data
@@ -125,9 +125,9 @@ void MPS_Tensor::decompose(MPS_Tensor &temp, MPS_Tensor &left_gamma,
 		throw std::runtime_error("svd  error");
 	}
 
-    cmatrix_t reduce_U = U.leftCols(valid_size);
-	rvector_t reduce_S = S.head(valid_size);
-	cmatrix_t reduce_V = V.leftCols(valid_size);
+    QMatrixXcd reduce_U = U.leftCols(valid_size);
+	QVectorXd reduce_S = S.head(valid_size);
+	QMatrixXcd reduce_V = V.leftCols(valid_size);
 
 	// calc Gamma and Lambda by  U S V 
 	left_gamma.m_physical_index.resize(2);

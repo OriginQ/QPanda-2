@@ -3,8 +3,9 @@
 #include "Core/Utilities/Tools/Utils.h"
 #include <cmath>
 
+
+USING_QPANDA
 using namespace std;
-using namespace QPanda;
 
 IterativeAmplitudeEstimation::IterativeAmplitudeEstimation(
 	const QCircuit& cir, // Quantum Circuit 
@@ -311,10 +312,10 @@ IterativeAmplitudeEstimation::~IterativeAmplitudeEstimation()
 }
 
 double QPanda::iterative_amplitude_estimation(
-    const QCircuit& cir,
-    const QVec& qvec,
-    const double epsilon,
-    const double confidence
+	const QCircuit& cir,
+	const QVec& qvec,
+	const double epsilon,
+	const double confidence
 )
 {
 	int q_num = qvec.size();

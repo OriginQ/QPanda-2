@@ -1293,7 +1293,7 @@ void NoiseSimulator::handle_karus_matrices(std::vector<QStat>& matrixs, const QV
     double sum_probs = .0;
     for (size_t j = 0; j < matrixs.size() - 1; j++)
     {
-        cmatrix_t matrix = QStat_to_Eigen(matrixs[j]);
+        QMatrixXcd matrix = QStat_to_Eigen(matrixs[j]);
         double p = m_mps_qpu->expectation_value(qubits_addr, matrix);
         sum_probs += p;
 

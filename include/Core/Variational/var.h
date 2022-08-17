@@ -203,6 +203,12 @@ namespace Variational {
     class var {
     public:
 
+
+        /**
+         * @brief Construct a new var object by null
+         *
+         */
+        var();
         /**
          * @brief Construct a new var object by the impl object
          *

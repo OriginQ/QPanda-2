@@ -233,58 +233,64 @@ QError NoisyCPUImplQPU::initState(size_t qubit_num, const QStat &state)
 QError NoisyCPUImplQPU::unitary_noise_qubit_gate(const Qnum &qns, const QStat &matrix,
                                                  bool is_conjugate, GateType type)
 {
-    NOISE_MODEL noise_model;
-    NoiseOp ops;
-    Qnum effect_qubits;
-    auto is_noise = m_quantum_noise.sample_noisy_op(type, qns, noise_model, ops, effect_qubits, m_rng);
+    std::vector<NOISE_MODEL> noise_model_v;
+    std::vector<NoiseOp> ops_v;
+    std::vector<Qnum> effect_qubits_v;
+    auto is_noise = m_quantum_noise.sample_noisy_op(type, qns, noise_model_v, ops_v, effect_qubits_v, m_rng);
 
     if (!is_noise)
     {
         return QError::qErrorNone;
     }
 
-    switch (noise_model)
+    for (size_t n = 0; n < noise_model_v.size(); n++)
     {
-    case NOISE_MODEL::BITFLIP_KRAUS_OPERATOR: // X
-    case NOISE_MODEL::BIT_PHASE_FLIP_OPRATOR: // Y
-    case NOISE_MODEL::DEPHASING_KRAUS_OPERATOR: // Z
-    case NOISE_MODEL::DEPOLARIZING_KRAUS_OPERATOR:
-    case NOISE_MODEL::PHASE_DAMPING_OPRATOR:
-        QPANDA_ASSERT(ops.size() != effect_qubits.size(), "Error: noise kruas");
-        for (size_t i = 0; i < ops.size(); i++)
+        auto& noise_model = noise_model_v.at(n);
+        auto &ops = ops_v.at(n);
+        auto &effect_qubits = effect_qubits_v.at(n);
+        switch (noise_model)
         {
-            unitary_qubit_gate_standard(effect_qubits[i], ops[i], false);
-        }
-        break;
-    case NOISE_MODEL::DAMPING_KRAUS_OPERATOR:
-    case NOISE_MODEL::DECOHERENCE_KRAUS_OPERATOR:
+        case NOISE_MODEL::BITFLIP_KRAUS_OPERATOR: // X
+        case NOISE_MODEL::BIT_PHASE_FLIP_OPRATOR: // Y
+        case NOISE_MODEL::DEPHASING_KRAUS_OPERATOR: // Z
+        case NOISE_MODEL::DEPOLARIZING_KRAUS_OPERATOR:
+        case NOISE_MODEL::PHASE_DAMPING_OPRATOR:
+            QPANDA_ASSERT(ops.size() != effect_qubits.size(), "Error: noise kruas");
+            for (size_t i = 0; i < ops.size(); i++)
+            {
+                unitary_qubit_gate_standard(effect_qubits[i], ops[i], false);
+            }
+            break;
+        case NOISE_MODEL::DAMPING_KRAUS_OPERATOR:
+        case NOISE_MODEL::DECOHERENCE_KRAUS_OPERATOR:
+            {
+                QStat standard_matrix;
+                unitary_noise_qubit_kraus(effect_qubits, ops, standard_matrix);
+                if (1 == qns.size())
+                {
+                    unitary_qubit_gate_standard(effect_qubits[0], standard_matrix, false);
+                }
+                else
+                {
+                    unitary_qubit_gate_standard(effect_qubits[0], effect_qubits[1], standard_matrix, false);
+                }
+            }
+            break;
+        case NOISE_MODEL::MIXED_UNITARY_OPRATOR:
         {
-            QStat standard_matrix;
-            unitary_noise_qubit_kraus(effect_qubits, ops, standard_matrix);
             if (1 == qns.size())
             {
-                unitary_qubit_gate_standard(effect_qubits[0], standard_matrix, false);
+                unitary_qubit_gate_standard(effect_qubits[0], ops[0], false);
             }
             else
             {
-                unitary_qubit_gate_standard(effect_qubits[0], effect_qubits[1], standard_matrix, false);
+                unitary_qubit_gate_standard(effect_qubits[0], effect_qubits[1], ops[0], false);
             }
         }
-        break;
-    case NOISE_MODEL::MIXED_UNITARY_OPRATOR:
-    {
-        if (1 == qns.size())
-        {
-            unitary_qubit_gate_standard(effect_qubits[0], ops[0], false);
+            break;
+        default:
+            throw std::runtime_error("Error: noise model");
         }
-        else
-        {
-            unitary_qubit_gate_standard(effect_qubits[0], effect_qubits[1], ops[0], false);
-        }
-    }
-        break;
-    default:
-        throw std::runtime_error("Error: noise model");
     }
 
     return QError::qErrorNone;
@@ -1438,14 +1444,17 @@ QStat NoisyCPUImplQPU::getQState()
 
 QError NoisyCPUImplQPU::Reset(size_t qn)
 {
-    NoiseOp ops;
-    Qnum effect_qubits;
-    auto is_noise = m_quantum_noise.sample_noisy_op(GATE_TYPE_RESET, {qn}, ops, effect_qubits, m_rng);
+    std::vector<NoiseOp> ops_v;
+    std::vector<Qnum> effect_qubits_v;
+    auto is_noise = m_quantum_noise.sample_noisy_op(GATE_TYPE_RESET, {qn}, ops_v, effect_qubits_v, m_rng);
 
     if (!is_noise)
     {
         return reset_standard(qn);
     }
+
+    auto &ops = ops_v.back();
+    auto &effect_qubits = effect_qubits_v.back();
 
     if (2 == ops.size())
     {

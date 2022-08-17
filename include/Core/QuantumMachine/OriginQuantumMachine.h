@@ -376,6 +376,7 @@ public:
 	virtual std::map<std::string, size_t> runWithConfiguration(QProg&, std::vector<ClassicalCondition>&, rapidjson::Document&, const NoiseModel& = NoiseModel()) override;
 	virtual std::map<std::string, size_t> runWithConfiguration(QProg&, std::vector<ClassicalCondition>&, int, const NoiseModel& = NoiseModel()) override;
 	virtual std::map<std::string, size_t> runWithConfiguration(QProg&, std::vector<int>&, int, const NoiseModel& = NoiseModel()) override;
+    virtual std::map<std::string, size_t> runWithConfiguration(QProg &, int, const NoiseModel& = NoiseModel()) override;
 
 	virtual std::map<GateType, size_t> getGateTimeMap() const;
 	virtual QStat getQState() const;
@@ -460,7 +461,8 @@ public:
 class CPUQVM : public IdealQVM {
 public:
 	CPUQVM() {}
-	void init();
+    void init(bool is_double_precision);
+    void init();
 
 protected:
     void run(QProg&, const NoiseModel& = NoiseModel()) override ;
@@ -500,7 +502,8 @@ public:
 	void init();
 	void init(rapidjson::Document&);
 	virtual std::map<std::string, size_t> runWithConfiguration(QProg&, std::vector<ClassicalCondition>&, rapidjson::Document&, const NoiseModel& = NoiseModel()) override;
-	virtual std::map<std::string, size_t> runWithConfiguration(QProg&, std::vector<ClassicalCondition>&, int, const NoiseModel& = NoiseModel()) override;
+    virtual std::map<std::string, size_t> runWithConfiguration(QProg&, std::vector<ClassicalCondition>&, int, const NoiseModel& = NoiseModel()) override;
+    virtual std::map<std::string, size_t> runWithConfiguration(QProg&, int, const NoiseModel& = NoiseModel()) override;
 	virtual std::map<std::string, size_t> runWithConfiguration(QProg& prog, std::vector<int>&, int, const NoiseModel& = NoiseModel()) override;
 
 	std::map<std::string, bool> directlyRun(QProg& prog, const NoiseModel& = NoiseModel()) override;

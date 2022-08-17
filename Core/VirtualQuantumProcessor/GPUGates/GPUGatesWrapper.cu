@@ -79,6 +79,9 @@ bool DeviceQPU::init()
 
     m_type_gate_fun.insert({GateType::CU_GATE, std::shared_ptr<BaseGateFun>(new CUFun())});
     m_type_gate_fun.insert({GateType::TWO_QUBIT_GATE, std::shared_ptr<BaseGateFun>(new DoubleGateFun())});
+
+    m_type_gate_fun.insert({ GateType::NoiseSingle_GATE, std::shared_ptr<BaseGateFun>(new SingleGateFun()) });
+    m_type_gate_fun.insert({ GateType::NoiseDouble_GATE, std::shared_ptr<BaseGateFun>(new DoubleGateFun()) });
     m_measure_fun = std::shared_ptr<MeasureFun>(new MeasureFun());
     m_norm_fun = std::shared_ptr<NormlizeFun>(new NormlizeFun());
     return true;
@@ -87,8 +90,12 @@ bool DeviceQPU::init()
 bool DeviceQPU::init_state(size_t qnum, const QStat &state)
 {
     set_device();
-    auto ret = cudaStreamCreateWithFlags(&m_cuda_stream, cudaStreamNonBlocking);
-    QPANDA_ASSERT(cudaSuccess != ret, "Error: cudaStreamCreateWithFlags.");
+    if (nullptr == m_cuda_stream)
+    {
+        auto ret = cudaStreamCreateWithFlags(&m_cuda_stream, cudaStreamNonBlocking);
+        QPANDA_ASSERT(cudaSuccess != ret, "Error: cudaStreamCreateWithFlags.");
+    }
+    
 
     if (0 == state.size())
     {
@@ -187,6 +194,7 @@ void DeviceQPU::exec_gate(std::shared_ptr<BaseGateFun> fun, GateType type, QStat
     case GateType::U3_GATE:
     case GateType::U4_GATE:
     case GateType::RPHI_GATE:
+    case GateType::NoiseSingle_GATE:
         exec_gate_kernel<SingleGateFun><<<dim, kThreadDim, 0, m_cuda_stream>>>(*dynamic_pointer_cast<SingleGateFun>(fun), size);
         break;
     case GateType::CNOT_GATE:
@@ -219,6 +227,7 @@ void DeviceQPU::exec_gate(std::shared_ptr<BaseGateFun> fun, GateType type, QStat
     case GateType::RZZ_GATE:
     case GateType::RZX_GATE:
     case GateType::TWO_QUBIT_GATE:
+    case GateType::NoiseDouble_GATE:
         exec_gate_kernel<DoubleGateFun><<<dim, kThreadDim, 0, m_cuda_stream>>>(*dynamic_pointer_cast<DoubleGateFun>(fun), size);
         break;
     default:

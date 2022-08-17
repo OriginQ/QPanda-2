@@ -3,7 +3,7 @@ project(QPANDA)
 
 set(QPANDA_MAJOR_VERSION 2)
 set(QPANDA_MINOR_VERSION 1)
-set(QPANDA_PATCH_VERSION 12)
+set(QPANDA_PATCH_VERSION 14)
 set(QPANDA_VERSION "${QPANDA_MAJOR_VERSION}.${QPANDA_MINOR_VERSION}.${QPANDA_PATCH_VERSION}")
 message(STATUS "QPANDA VERSION = " "[${QPANDA_VERSION}]")
 # disable compiler verbose output, default is off, enable it when want to check compiler/linker option
@@ -40,6 +40,7 @@ include_directories(${PROJECT_SOURCE_DIR}/Extensions
                     ${PROJECT_SOURCE_DIR}/ThirdParty/bplus-tree/include
                     ${PROJECT_SOURCE_DIR}/ThirdParty/antlr4/runtime/src
                     ${PROJECT_SOURCE_DIR}/ThirdParty/rabbit
+                    ${PROJECT_SOURCE_DIR}/ThirdParty/mpfit/include
                     ${PROJECT_SOURCE_DIR})
 
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
@@ -59,6 +60,7 @@ set(LIB_GTEST gtest)
 set(LIB_BPLUSTREE BplusTree)
 set(LIB_COMPONENTS Components)
 set(LIB_NLOPT nlopt)
+set(LIB_MPFIT mpfit)
 set(LIB_ANTLR4 antlr4)
 set(LIB_QALG QAlg)
 
@@ -75,6 +77,7 @@ option(USE_EXTENSION "EXTENSION FUNTIONS" OFF)
 option(USE_CURL "Enable the QCloudMachine" ON)
 option(USE_MSVC_RUNTIME_LIBRARY_DLL "MD/MT" OFF)
 option(PYQPANDA_STUBGEN "generate stub file for pyQPanda" ON)
+option(USE_SIMD "use simd  " OFF)
 
 if(NOT CMAKE_BUILD_TYPE)
    message(STATUS ":  No build type selected, default is Release")
@@ -83,12 +86,29 @@ endif()
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+if(USE_SIMD)
+    include(${CMAKE_SOURCE_DIR}/cmake/FindAVX2.cmake)
+    CHECK_SUPPORT_AVX2()
+    if(AVX2_FOUND)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${AVX2_FLAGS}")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${AVX2_FLAGS}")
+        option (USE_SIMD "use simd" ON)
+        message("found AVX2")
+        message("use flags ${AVX2_FLAGS}")
+    else()
+        option (USE_SIMD "use simd" OFF)
+        message("not found AVX2")
+    endif()
+endif()
+
 if (MSVC)
     list(APPEND EXTRA_LDFLAGS
         -D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING
         -D_CRT_SECURE_NO_WARNINGS
         -DNOMINMAX 
-        /bigobj)
+        /bigobj) 
+
+
 
     foreach (flag
         CMAKE_C_FLAGS
@@ -121,9 +141,8 @@ elseif (MINGW)
         -w
         -DGTEST_USE_OWN_TR1_TUPLE=1
         -fpermissive)
-
     set(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -g -Og -ggdb -m64 -Wa, -mbig-obj")
-    set(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -DNDEBUG")
+    set(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3  -DNDEBUG")
 elseif (UNIX)
     list(APPEND EXTRA_LDFLAGS
         -w
@@ -137,11 +156,11 @@ elseif (UNIX)
             pthread)
     endif ()
 
-    set(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -g -ggdb")
+    set(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -g  -ggdb")
     set(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -DNDEBUG")
 endif()
-add_definitions(${EXTRA_LDFLAGS})
 
+add_definitions(${EXTRA_LDFLAGS} ${SIMD_FLAGS})
 
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")
     find_package(PkgConfig REQUIRED)
@@ -189,8 +208,7 @@ if (USE_CURL)
             ${CURL_LIBRARY})
 
 		if (MSVC)
-			find_library(CURL_DLL "libcurl.dll" REQUIRED)
-            message(${CURL_DLL})
+			find_library(CURL_DLL "libcurl.dll")
 			set(CURL_DLL_OUTPUT "libcurl.dll")
 			add_custom_command(OUTPUT ${CURL_DLL_OUTPUT}
 			   COMMAND ${CMAKE_COMMAND} -E copy ${CURL_DLL} ${EXECUTABLE_OUTPUT_PATH}/${CURL_DLL_OUTPUT})

@@ -1,6 +1,7 @@
 #pragma once
-#include "pybind11/pybind11.h"
 #include "QPanda.h"
+#include "pybind11/pybind11.h"
+
 
 USING_QPANDA
 namespace py = pybind11;
@@ -9,19 +10,19 @@ namespace py = pybind11;
 template <typename T>
 void export_transformQProgToOriginIR(py::module &m)
 {
-      m.def("to_originir",
-            py::overload_cast<T &, QuantumMachine *>(&transformQProgToOriginIR<T>),
-            py::arg("qprog"),
-            py::arg("machine"),
-            "Transform QProg to OriginIR string\n"
-            "\n"
-            "Args:\n"
-            "    qprog: QProg or QCircute\n"
-            "    machine: quantum machine\n"
-            "\n"
-            "Returns:\n"
-            "    QriginIR string",
-            py::return_value_policy::automatic_reference);
+	m.def("to_originir",
+		py::overload_cast<T &, QuantumMachine *>(&transformQProgToOriginIR<T>),
+		py::arg("qprog"),
+		py::arg("machine"),
+		"Transform QProg to OriginIR string\n"
+		"\n"
+		"Args:\n"
+		"    qprog: QProg or QCircute\n"
+		"    machine: quantum machine\n"
+		"\n"
+		"Returns:\n"
+		"    QriginIR string",
+		py::return_value_policy::automatic_reference);
 }
 
 /* include\Core\QuantumCircuit\QGate.h */
@@ -114,7 +115,7 @@ GEN_singleBitGate_TEMPLATE(U3, py::arg("theta_angle"), py::arg("phi_angle"), py:
             }                                                                                                    \
       }
 
-/* linux not support empty __VA_ARGS__, use empty comment as position token. in pybind11 comment later will overwrite this empyt comment */
+ /* linux not support empty __VA_ARGS__, use empty comment as position token. in pybind11 comment later will overwrite this empyt comment */
 GEN_doubleBitGate_TEMPLATE(CNOT, CNOT, "control_qubit", "target_qubit", "");
 GEN_doubleBitGate_TEMPLATE(CZ, CZ, "control_qubit", "target_qubit", "");
 GEN_doubleBitGate_TEMPLATE(CP, CP, "control_qubit", "target_qubit", py::arg("theta_angle"));
@@ -130,76 +131,88 @@ template <typename Cls_t>
 class export_idealqvm_func
 {
 public:
-      template <typename PyCls_t>
-      static void export_func(PyCls_t &cls)
-      {
-            cls.def(py::init<>())
-                .def("pmeasure",
-                     &Cls_t::PMeasure,
-                     py::arg("qubit_list"),
-                     py::arg("select_max") = -1,
-                     "Get the probability distribution over qubits",
-                     py::return_value_policy::reference)
-                .def("pmeasure_no_index",
-                     &Cls_t::PMeasure_no_index,
-                     py::arg("qubit_list"),
-                     "Get the probability distribution over qubits",
-                     py::return_value_policy::reference)
-                .def("get_prob_tuple_list",
-                     &Cls_t::getProbTupleList,
-                     py::arg("qubit_list"),
-                     py::arg("select_max") = -1,
-                     py::return_value_policy::reference)
-                .def("get_prob_list",
-                     &Cls_t::getProbList,
-                     py::arg("qubit_list"),
-                     py::arg("select_max") = -1,
-                     py::return_value_policy::reference)
-                .def("get_prob_dict",
-                     &Cls_t::getProbDict,
-                     py::arg("qubit_list"),
-                     py::arg("select_max") = -1,
-                     py::return_value_policy::reference)
-                .def("prob_run_tuple_list",
-                     py::overload_cast<QProg &, QVec, int>(&Cls_t::probRunTupleList),
-                     py::arg("program"),
-                     py::arg("qubit_list"),
-                     py::arg("select_max") = -1,
-                     py::return_value_policy::automatic)
-                .def("prob_run_tuple_list",
-                     py::overload_cast<QProg &, const std::vector<int> &, int>(&Cls_t::probRunTupleList),
-                     py::arg("program"),
-                     py::arg("qubit_addr_list"),
-                     py::arg("select_max") = -1,
-                     py::return_value_policy::automatic)
-                .def("prob_run_list",
-                     py::overload_cast<QProg &, QVec, int>(&Cls_t::probRunList),
-                     py::arg("program"),
-                     py::arg("qubit_list"),
-                     py::arg("select_max") = -1,
-                     py::return_value_policy::automatic)
-                .def("prob_run_list",
-                     py::overload_cast<QProg &, const std::vector<int> &, int>(&Cls_t::probRunList),
-                     py::arg("program"),
-                     py::arg("qubit_addr_list"),
-                     py::arg("select_max") = -1,
-                     py::return_value_policy::automatic)
-                .def("prob_run_dict",
-                     py::overload_cast<QProg &, QVec, int>(&Cls_t::probRunDict),
-                     py::arg("program"),
-                     py::arg("qubit_list"),
-                     py::arg("select_max") = -1,
-                     py::return_value_policy::automatic)
-                .def("prob_run_dict",
-                     py::overload_cast<QProg &, const std::vector<int> &, int>(&Cls_t::probRunDict),
-                     py::arg("program"),
-                     py::arg("qubit_addr_list"),
-                     py::arg("select_max") = -1,
-                     py::return_value_policy::automatic)
-                .def("quick_measure",
-                     &Cls_t::quickMeasure,
-                     py::arg("qubit_list"),
-                     py::arg("shots"),
-                     py::return_value_policy::reference);
-      }
+	template <typename PyCls_t>
+	static void export_func(PyCls_t& cls)
+	{
+		cls.def(py::init<>())
+			.def("pmeasure",
+				&Cls_t::PMeasure,
+				py::arg("qubit_list"),
+				py::arg("select_max") = -1,
+				py::call_guard<py::gil_scoped_release>(),
+				"Get the probability distribution over qubits",
+				py::return_value_policy::reference)
+			.def("pmeasure_no_index",
+				&Cls_t::PMeasure_no_index,
+				py::arg("qubit_list"),
+				py::call_guard<py::gil_scoped_release>(),
+				"Get the probability distribution over qubits",
+				py::return_value_policy::reference)
+			.def("get_prob_tuple_list",
+				&Cls_t::getProbTupleList,
+				py::arg("qubit_list"),
+				py::arg("select_max") = -1,
+				py::call_guard<py::gil_scoped_release>(),
+				py::return_value_policy::reference)
+			.def("get_prob_list",
+				&Cls_t::getProbList,
+				py::arg("qubit_list"),
+				py::arg("select_max") = -1,
+				py::call_guard<py::gil_scoped_release>(),
+				py::return_value_policy::reference)
+			.def("get_prob_dict",
+				&Cls_t::getProbDict,
+				py::arg("qubit_list"),
+				py::arg("select_max") = -1,
+				py::call_guard<py::gil_scoped_release>(),
+				py::return_value_policy::reference)
+			.def("prob_run_tuple_list",
+				py::overload_cast<QProg&, QVec, int>(&Cls_t::probRunTupleList),
+				py::arg("program"),
+				py::arg("qubit_list"),
+				py::arg("select_max") = -1,
+				py::call_guard<py::gil_scoped_release>(),
+				py::return_value_policy::automatic)
+			.def("prob_run_tuple_list",
+				py::overload_cast<QProg&, const std::vector<int>&, int>(&Cls_t::probRunTupleList),
+				py::arg("program"),
+				py::arg("qubit_addr_list"),
+				py::arg("select_max") = -1,
+				py::call_guard<py::gil_scoped_release>(),
+				py::return_value_policy::automatic)
+			.def("prob_run_list",
+				py::overload_cast<QProg&, QVec, int>(&Cls_t::probRunList),
+				py::arg("program"),
+				py::arg("qubit_list"),
+				py::arg("select_max") = -1,
+				py::call_guard<py::gil_scoped_release>(),
+				py::return_value_policy::automatic)
+			.def("prob_run_list",
+				py::overload_cast<QProg&, const std::vector<int>&, int>(&Cls_t::probRunList),
+				py::arg("program"),
+				py::arg("qubit_addr_list"),
+				py::arg("select_max") = -1,
+				py::call_guard<py::gil_scoped_release>(),
+				py::return_value_policy::automatic)
+			.def("prob_run_dict",
+				py::overload_cast<QProg&, QVec, int>(&Cls_t::probRunDict),
+				py::arg("program"),
+				py::arg("qubit_list"),
+				py::arg("select_max") = -1,
+				py::call_guard<py::gil_scoped_release>(),
+				py::return_value_policy::automatic)
+			.def("prob_run_dict",
+				py::overload_cast<QProg&, const std::vector<int>&, int>(&Cls_t::probRunDict),
+				py::arg("program"),
+				py::arg("qubit_addr_list"),
+				py::arg("select_max") = -1,
+				py::call_guard<py::gil_scoped_release>(),
+				py::return_value_policy::automatic)
+			.def("quick_measure",
+				&Cls_t::quickMeasure,
+				py::arg("qubit_list"),
+				py::arg("shots"),
+				py::call_guard<py::gil_scoped_release>(),
+				py::return_value_policy::reference);
+	}
 };

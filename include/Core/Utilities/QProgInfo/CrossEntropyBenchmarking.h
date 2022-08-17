@@ -8,7 +8,6 @@
 
 
 
-
 QPANDA_BEGIN
 
 /**

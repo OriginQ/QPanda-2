@@ -3,4 +3,4 @@ add_subdirectory(gtest)
 add_subdirectory(antlr4)
 add_subdirectory(bplus-tree)
 add_subdirectory(nlopt)
-
+add_subdirectory(mpfit)

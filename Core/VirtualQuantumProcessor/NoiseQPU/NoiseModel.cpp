@@ -757,8 +757,8 @@ NoisyQuantum::NoisyQuantum()
 
 
 bool NoisyQuantum::sample_noisy_op(GateType type, const Qnum &qns,
-                                   NOISE_MODEL &model, NoiseOp &ops,
-                                   Qnum &effect_qubits, RandomEngine19937 &rng)
+                                   std::vector<NOISE_MODEL> &model, std::vector<NoiseOp> &ops,
+                                   std::vector<Qnum> &effect_qubits, RandomEngine19937 &rng)
 {
     auto gate_type_noise_iter_map = m_noisy.find(type);
     QPANDA_RETURN(m_noisy.end() == gate_type_noise_iter_map, false);
@@ -771,31 +771,37 @@ bool NoisyQuantum::sample_noisy_op(GateType type, const Qnum &qns,
     }
     QPANDA_RETURN(gate_type_noise_iter_map->second.end() == gate_qubit_noise_iter, false);
 
-    auto quantum_idx = gate_qubit_noise_iter->second;
-    Qnum noise_qubits;
-
-    QuantumError quantum_error = m_quamtum_error.at(quantum_idx);
-    model = quantum_error.get_noise_model();
-    if (NOISE_MODEL::MIXED_UNITARY_OPRATOR == quantum_error.get_noise_model())
+    size_t noise_count = gate_qubit_noise_iter->second.size();
+    ops.resize(noise_count);
+    effect_qubits.resize(noise_count);
+    model.resize(noise_count);
+    for (size_t i = 0; i<noise_count; i++)
     {
-        m_quamtum_error.at(quantum_idx).sample_noise(ops, noise_qubits, rng);
-    }
-    else
-    {
-        m_quamtum_error.at(quantum_idx).sample_noise(model, ops, noise_qubits, rng);
-    }
+        auto quantum_idx = gate_qubit_noise_iter->second.at(i);
+        Qnum noise_qubits;
+        QuantumError quantum_error = m_quamtum_error.at(quantum_idx);
+        model.at(i) = quantum_error.get_noise_model();
+        if (NOISE_MODEL::MIXED_UNITARY_OPRATOR == quantum_error.get_noise_model())
+        {
+            m_quamtum_error.at(quantum_idx).sample_noise(ops.at(i), noise_qubits, rng);
+        }
+        else
+        {
+            m_quamtum_error.at(quantum_idx).sample_noise(model.at(i), ops.at(i), noise_qubits, rng);
+        }
 
-    effect_qubits.reserve(noise_qubits.size());
+        effect_qubits.at(i).reserve(noise_qubits.size());
 
-    for (auto & idx : noise_qubits)
-    {
-        effect_qubits.push_back(qns[idx]);
+        for (auto & idx : noise_qubits)
+        {
+            effect_qubits.at(i).push_back(qns.at(idx));
+        }
     }
 
     return true;
 }
 
-bool NoisyQuantum::sample_noisy_op(GateType type, const Qnum &qns, NoiseOp &ops, Qnum &effect_qubits, RandomEngine19937 &rng)
+bool NoisyQuantum::sample_noisy_op(GateType type, const Qnum &qns, std::vector<NoiseOp> &ops, std::vector<Qnum> &effect_qubits, RandomEngine19937 &rng)
 {
     auto gate_type_noise_iter_map = m_noisy.find(type);
     QPANDA_RETURN(m_noisy.end() == gate_type_noise_iter_map, false);
@@ -808,16 +814,22 @@ bool NoisyQuantum::sample_noisy_op(GateType type, const Qnum &qns, NoiseOp &ops,
     }
     QPANDA_RETURN(gate_type_noise_iter_map->second.end() == gate_qubit_noise_iter, false);
 
-    auto quantum_idx = gate_qubit_noise_iter->second;
-    Qnum noise_qubits;
-    m_quamtum_error.at(quantum_idx).sample_noise(ops, noise_qubits, rng);
-    effect_qubits.reserve(noise_qubits.size());
-
-    for (auto & idx : noise_qubits)
+    size_t noise_count = gate_qubit_noise_iter->second.size();
+    ops.resize(noise_count);
+    effect_qubits.reserve(noise_count);
+    
+    for (size_t i = 0; i<noise_count; i++)
     {
-        effect_qubits.push_back(qns[idx]);
-    }
+        auto quantum_idx = gate_qubit_noise_iter->second.at(i);
+        Qnum noise_qubits;
+        m_quamtum_error.at(quantum_idx).sample_noise(ops.at(i), noise_qubits, rng);
+        effect_qubits.reserve(noise_qubits.size());
 
+        for (auto & idx : noise_qubits)
+        {
+            effect_qubits.at(i).push_back(qns.at(idx));
+        }
+    }
     return true;
 }
 
@@ -834,7 +846,8 @@ bool NoisyQuantum::sample_noisy_op(size_t qn, std::vector<std::vector<double> > 
     }
     QPANDA_RETURN(gate_type_noise_iter_map->second.end() == gate_qubit_noise_iter, false);
 
-    auto quantum_idx = gate_qubit_noise_iter->second;
+    QPANDA_ASSERT(gate_qubit_noise_iter->second.size() != 1, "readout error should only be set once");
+    auto quantum_idx = gate_qubit_noise_iter->second.front();
     Qnum noise_qubits;
     m_quamtum_error.at(quantum_idx).sample_readout(readout);
     return true;
@@ -854,7 +867,7 @@ void NoisyQuantum::add_quamtum_error(GateType type, const QuantumError &quantum_
         {
             m_quamtum_error.push_back(quantum_error);
             qubit_quantum_error_map_t new_qubit_quantum_error;
-            new_qubit_quantum_error.insert({ qubits_str, m_quamtum_error.size() - 1 });
+            new_qubit_quantum_error.insert({ qubits_str, {m_quamtum_error.size() - 1} });
             m_noisy.insert({ type, new_qubit_quantum_error });
         }
         else
@@ -863,11 +876,12 @@ void NoisyQuantum::add_quamtum_error(GateType type, const QuantumError &quantum_
             if (noise_type_iter->second.end() == quantum_error_iter)
             {
                 m_quamtum_error.push_back(quantum_error);
-                noise_type_iter->second.insert({ qubits_str, m_quamtum_error.size() - 1 });
+                noise_type_iter->second.insert({ qubits_str, {m_quamtum_error.size() - 1} });
             }
             else
             {
-                m_quamtum_error[quantum_error_iter->second] = quantum_error;
+                m_quamtum_error.push_back(quantum_error);
+                noise_type_iter->second.at(qubits_str).push_back(m_quamtum_error.size() - 1);
             }
         }
     };

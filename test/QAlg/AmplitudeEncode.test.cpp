@@ -251,7 +251,7 @@ static bool test_schmidt_encoding()
 	//std::vector<double>data{ 0.6793113376921358, 0.1376859100584252, 0.720435424880283, 0.02348393561289133};
 	
 	QProg prog;
-	auto q = qvm->qAllocMany(5);
+	auto q = qvm->qAllocMany(4);
 	//auto circuit = QCircuit();
 	//circuit << H(q[0]);
 	//QStat q_mat(16);
@@ -264,15 +264,17 @@ static bool test_schmidt_encoding()
 	encode_b.schmidt_encode(q, data);
 	prog << encode_b.get_circuit() << BARRIER(q);
 	std::cout << prog << std::endl;
-	std::cout<< convert_qprog_to_originir(prog, qvm)<<std::endl;
+	//std::cout<< convert_qprog_to_originir(prog, qvm)<<std::endl;
 	QVec out_qubits = encode_b.get_out_qubits();
-	auto result = qvm->probRunDict(prog, q, -1);
+	//auto result = qvm->probRunDict(prog, q, -1);
+	qvm->directlyRun(prog);
+	auto result = qvm->getQState();
 	int k = 0;
 	/*double normalization_constant = encode_b.get_normalization_constant();*/
 	for (auto &val : result)
 	{
-		double temp = k >= (int)data.size() ? 0 : data[k];
-		std::cout << "Amplitude:" << val.first << ":" << val.second << "," << "Originial value:" << temp * temp << std::endl;
+		//double temp = k >= (int)data.size() ? 0 : data[k];
+		std::cout << "Amplitude:" << val<< "," << "Originial value:" << data[k] << std::endl;
 		++k;
 	}
 	destroyQuantumMachine(qvm);

@@ -477,18 +477,30 @@ void QVM::run(QProg& qprog, const NoiseModel& noise_model)
 	{
 		TraversalConfig config(noise_model.rotation_error());
 		config.m_can_optimize_measure = false;
-		
-		std::shared_ptr<AbstractQuantumProgram> qp =nullptr;
+
+		std::shared_ptr<AbstractQuantumProgram> qp = nullptr;
 		if (noise_model.enabled())
 		{
 			/* generate simulate prog contains virtual noise gate */
 			auto noise_qprog = NoiseProgGenerator().generate_noise_prog(noise_model, qprog.getImplementationPtr());
 			qp = noise_qprog.getImplementationPtr();
-		}else{
-			qp = qprog.getImplementationPtr();
+		}
+		else {
+            QVec used_qv;
+            this->get_allocate_qubits(used_qv);
+            if (used_qv.size() > 18)
+            {
+                QProg prog = deepCopy(qprog);
+                merge_QGate(prog);
+                qp = prog.getImplementationPtr();
+            }
+            else
+            {
+                qp = qprog.getImplementationPtr();
+            }
 		}
 		QPANDA_ASSERT(qp == nullptr, "Error: not valid quantum program");
-		
+
 		//_pGates->initState(0, 1, _Qubit_Pool->get_max_usedqubit_addr() + 1);
 		_pGates->initState(0, 1, qp->get_max_qubit_addr() + 1);
 
@@ -523,16 +535,6 @@ void QVM::run(QProg& qprog, const NoiseModel& noise_model)
 
 void CPUQVM::run(QProg& qprog, const NoiseModel& noise_model)
 {
-    QVec used_qv;
-    this->get_allocate_qubits(used_qv);
-    QProg prog;
-    QNodeDeepCopy deep_copy;
-    auto prog_node = qprog.getImplementationPtr();
-    prog = deep_copy.copy_node(prog_node);
-    if ((!used_qv.empty()))
-    {
-        merge_QGate(prog);
-    }
     try
     {
         TraversalConfig config(noise_model.rotation_error());
@@ -546,7 +548,19 @@ void CPUQVM::run(QProg& qprog, const NoiseModel& noise_model)
             qp = noise_qprog.getImplementationPtr();
         }
         else {
-            qp = qprog.getImplementationPtr();
+            
+            QVec used_qv;
+            this->get_allocate_qubits(used_qv);
+            if (used_qv.size() > 18)
+            {
+                QProg prog = deepCopy(qprog);
+                merge_QGate(prog);
+                qp = prog.getImplementationPtr();
+            }
+            else
+            {
+                 qp = qprog.getImplementationPtr();
+            }
         }
         QPANDA_ASSERT(qp == nullptr, "Error: not valid quantum program");
 
@@ -989,8 +1003,19 @@ QGate QVM::_generate_operation(std::vector<QGate>& fusion_gates)
     {
         QVec t_vec;
         t_gate.getQuBitVector(t_vec);
-        for (int i = 0; i < t_vec.size(); i++)
-            fusioned_qubits.insert(t_vec[i]->get_phy_addr());
+		for (int i = 0; i < t_vec.size(); i++) 
+		{
+			for (int j = i + 1; j < t_vec.size(); j++)
+			{
+				if (t_vec[i]->get_phy_addr() ==  t_vec[j]->get_phy_addr())
+				{
+					QCERR("have the same qubit ");
+					throw invalid_argument("have the same qubit ");
+				}
+			}
+
+			fusioned_qubits.insert(t_vec[i]->get_phy_addr());
+		}
     }
 
     std::vector<int> remapped2orig(fusioned_qubits.begin(), fusioned_qubits.end());
@@ -1068,7 +1093,7 @@ QGate QVM::_generate_operation(std::vector<QGate>& fusion_gates)
 QGate QVM::_generate_operation_internal(const std::vector<QGate> &fusion_gates,
     const std::vector<int> &qubits)
 {
-    CPUImplQPU cpu;
+    CPUImplQPU<double> cpu;
     QStat state;
     cpu.initMatrixState(qubits.size() * 2, state);
     for (int i = 0; i < fusion_gates.size(); i++)
@@ -1173,7 +1198,7 @@ QGate QVM::_generate_operation_internal(const std::vector<QGate> &fusion_gates,
 QGate QVM::_generate_oracle_gate(const std::vector<QGate>& fusion_gates,
     const std::vector<int>& qubits)
 {
-    CPUImplQPU cpu;
+    CPUImplQPU<double> cpu;
     QStat state;
     cpu.initMatrixState(qubits.size() * 2, state);
     for (int i = fusion_gates.size() - 1; i >= 0; i--)
@@ -1456,6 +1481,47 @@ runWithConfiguration(QProg& qProg, vector<int>& cibts_addr, int shots, const Noi
 }
 
 map<string, size_t> QVM::
+runWithConfiguration(QProg& prog, int shots, const NoiseModel& noise_model)
+{
+    if (shots < 1)
+        QCERR_AND_THROW(run_fail,"shots data error");
+
+    TraversalConfig traver_param;
+    QProgCheck prog_check;
+    prog_check.execute(prog.getImplementationPtr(), nullptr, traver_param);
+
+    auto measure_cbits_vector = traver_param.m_measure_cc;
+    std::sort(measure_cbits_vector.begin(), measure_cbits_vector.end(), [&](CBit* a, CBit* b)
+    {
+        auto current_cbit_a_name = a->getName();
+        auto current_cbit_b_name = b->getName();
+
+        string current_cbit_a_number_str = current_cbit_a_name.substr(1);
+        string current_cbit_b_number_str = current_cbit_b_name.substr(1);
+
+        size_t current_a_cbit_addr = stoul(current_cbit_a_number_str);
+        size_t current_b_cbit_addr = stoul(current_cbit_b_number_str);
+
+        return current_a_cbit_addr < current_b_cbit_addr;
+    });
+
+    vector<ClassicalCondition> cbits_vector;
+    for (auto cbit : measure_cbits_vector)
+        cbits_vector.push_back(ClassicalCondition(cbit));
+
+    if (traver_param.m_can_optimize_measure && shots > 1 && !noise_model.enabled() && !noise_model.readout_error_enabled())
+    {
+        return run_with_optimizing(prog, cbits_vector, shots, traver_param);
+    }
+    else
+    {
+        return run_with_normal(prog, cbits_vector, shots, noise_model);
+    }
+}
+
+
+
+map<string, size_t> QVM::
 runWithConfiguration(QProg& qProg, vector<ClassicalCondition>& vCBit, rapidjson::Document& param, const NoiseModel& noise_model)
 {
 	if (!param.HasMember("shots"))
@@ -1702,13 +1768,22 @@ QStat IdealQVM::getQState()
 	return _pGates->getQState();
 }
 
-void CPUQVM::init()
+void CPUQVM::init(bool is_double_precision)
 {
 	try
 	{
 		_start();
-		_pGates = new CPUImplQPU();
-		_ptrIsNull(_pGates, "CPUImplQPU");
+        if (is_double_precision == true)
+        {
+            _pGates = new CPUImplQPU<double>();
+            _ptrIsNull(_pGates, "CPUImplQPU");
+        }
+        else 
+        {
+            _pGates = new CPUImplQPU<float>();
+            _ptrIsNull(_pGates, "CPUImplQPU");
+        }
+       
 	}
 	catch (const std::exception& e)
 	{
@@ -1716,6 +1791,22 @@ void CPUQVM::init()
 		throw init_fail(e.what());
 	}
 }
+
+void CPUQVM::init()
+{
+    try
+    {
+        _start();
+        _pGates = new CPUImplQPU<double>();
+        _ptrIsNull(_pGates, "CPUImplQPU");
+    }
+    catch (const std::exception& e)
+    {
+        QCERR(e.what());
+        throw init_fail(e.what());
+    }
+}
+
 
 void GPUQVM::init()
 {

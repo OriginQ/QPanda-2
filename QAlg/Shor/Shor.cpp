@@ -11,34 +11,34 @@ int ShorAlg::_gcd(int a, int b)
 
 int ShorAlg::_continuous_frac_expan(int target, int result)
 {
-    int Q = 1 << (int)ceil(log(target) / log(2)) * 2;
-    int cof[5] = {}, len = 0, d = 0;
+    int Q = 1 << (int)ceil(log(target) / log(2)) * 2, d = 0;
+    vector<int> cof, cof_d;
     double target_value = result * 1. / Q, tol = 1. / (2. * Q), residual = 1;
 
     // find the integer of the fraction unless close enough
-    cof[len++] = (int)(1. / target_value);
-    residual = 1. / cof[len - 1];
+    cof.emplace_back((1. / target_value));
+    residual = 1. / cof[cof.size() - 1];
     while (abs(residual - target_value) > tol)
     {
         residual = target_value;
-        for (int i = 0; i < len; i++) {
-            residual = 1. / residual - cof[i];
-        }
-        cof[len++] = (int)(1. / residual);
+        accumulate(cof.begin(), cof.end(), residual, [](double x, double y) {return 1. / x - y; });
+        cof.emplace_back(1. / residual);
 
         residual = 0;
-        for (int i = len - 1; i >= 0; i--)
+        for (int i = cof.size() - 1; i >= 0; i--)
         {
             residual = 1. / (cof[i] + residual);
         }
     }
 
     // regenerate the denominator
-    d = cof[len--];
-    while (len >= 0)
+    for (int i = cof.size() - 1; i >= 0; i--)
     {
-        d = 0 == d ? cof[len--] : cof[len--] * d + 1;
+        int last_d = cof_d.size() > 1 ? cof_d[cof_d.size() - 2] : 1;
+        int cur_denominator = cof_d.size() ? cof[i] * cof_d[cof_d.size() - 1] + last_d : cof[i];
+        cof_d.emplace_back(cur_denominator);
     }
+    d = cof_d[cof_d.size() - 1];
 
     return d;
 }
@@ -46,7 +46,7 @@ int ShorAlg::_continuous_frac_expan(int target, int result)
 int ShorAlg::_measure_result_parse(int target, vector<int> max_result)
 {
     int r;
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < max_result.size(); i++)
     {
         if (0 == max_result[i])
         {
@@ -69,7 +69,7 @@ int ShorAlg::_measure_result_parse(int target, vector<int> max_result)
 int ShorAlg::_period_finding(int base, int target)
 {
     int q = ceil(log(target) / log(2)), p = 2 * q, max_prob;
-    vector<int> max_result(5), prob(5);
+    vector<int> max_result;
     auto qvm = initQuantumMachine();
     QVec cqv = qvm->qAllocMany(p), tqv = qvm->qAllocMany(q), qvec1 = qvm->
         qAllocMany(q), qvec2 = qvm->qAllocMany(q), qvec3 = qvm->qAllocMany(2);
@@ -88,21 +88,13 @@ int ShorAlg::_period_finding(int base, int target)
 
     // get the state with probability larger than max_prob/2
     max_prob = 0;
-    for (auto val : result)
+    for (auto& val : result)
     {
         max_prob = val.second > max_prob ? val.second : max_prob;
     }
-    for (auto val : result) {
+    for (auto& val : result) {
         if (0 == stoi(val.first, 0, 2)) continue;
-        for (int i = 0; i < 5; i++)
-        {
-            if (prob[i] < max_prob / 2 && val.second > max_prob / 2)
-            {
-                max_result[i] = stoi(val.first, 0, 2);
-                prob[i] = val.second;
-                break;
-            }
-        }
+        if (val.second > max_prob / 2) max_result.emplace_back(stoi(val.first, 0, 2));
     }
 
     // get the LCM of denominators of the state of high probability
@@ -143,7 +135,7 @@ bool ShorAlg::exec()
     return false;
 }
 
-std::pair<int,int> ShorAlg::get_results()
+std::pair<int, int> ShorAlg::get_results()
 {
     return std::make_pair(m_factor_1, m_factor_2);
 }
@@ -165,12 +157,12 @@ ShorAlg::ShorAlg(int target)
 
 
 
-std::pair<bool, std::pair<int,int>> Shor_factorization(int target)
+std::pair<bool, std::pair<int, int>> Shor_factorization(int target)
 {
     ShorAlg sample = ShorAlg(target);
     bool sucess = sample.exec();
     auto factors = sample.get_results();
-    return std::make_pair(sucess,factors);
+    return std::make_pair(sucess, factors);
 }
 
 QPANDA_END

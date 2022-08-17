@@ -175,7 +175,7 @@ protected:
 				item *= qcomplex_t(0, m_t0 / min);
 			}
 
-			EigenMatrixXc eigen_mat = QStat_to_Eigen(tmp_A);
+			QMatrixXcd eigen_mat = QStat_to_Eigen(tmp_A);
 			auto exp_matrix = eigen_mat.exp().eval();
 
 			//PTrace("On matrix decompose: " << min);

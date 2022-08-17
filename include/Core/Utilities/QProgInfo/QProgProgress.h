@@ -20,7 +20,8 @@ class QProgProgress
 private:
     QProgProgress() = default;
     ~QProgProgress() = default;
-    std::unordered_map<uint64_t, std::atomic<size_t>> m_prog_exec_gates;
+    std::unordered_map<uint64_t, size_t> m_prog_exec_gates;
+    std::mutex m_mutex;
 
 public:
 

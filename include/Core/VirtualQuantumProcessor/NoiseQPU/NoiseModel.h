@@ -136,14 +136,15 @@ private:
 class NoisyQuantum
 {
 public:
-    using qubit_quantum_error_map_t = std::map<std::string, size_t>; // effect qubit & index
+    using quantum_error_idx = size_t;
+    using qubit_quantum_error_map_t = std::map<std::string, std::vector<quantum_error_idx>>; // effect qubit & index
     using gate_noisy_map_t = std::map<GateType, qubit_quantum_error_map_t>;
 
     NoisyQuantum();
-    bool sample_noisy_op(GateType type, const Qnum &qns, NOISE_MODEL &model, NoiseOp &ops,
-                           Qnum &effect_qubits, RandomEngine19937 &rng);
-    bool sample_noisy_op(GateType type, const Qnum &qns, NoiseOp &ops,
-                         Qnum &effect_qubits, RandomEngine19937 &rng);
+    bool sample_noisy_op(GateType type, const Qnum &qns, std::vector<NOISE_MODEL> &model, std::vector<NoiseOp> &ops,
+                           std::vector<Qnum> &effect_qubits, RandomEngine19937 &rng);
+    bool sample_noisy_op(GateType type, const Qnum &qns, std::vector<NoiseOp> &ops,
+                         std::vector<Qnum> &effect_qubits, RandomEngine19937 &rng);
     bool sample_noisy_op(size_t qn, std::vector<std::vector<double>> &readout, RandomEngine19937 &rng);
     void add_quamtum_error(GateType type, const QuantumError &quantum_error,
                            const QuantumError::noise_qubits_t &noise_qubits = {});

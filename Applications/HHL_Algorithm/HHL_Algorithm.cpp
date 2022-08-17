@@ -16,7 +16,7 @@ limitations under the License.
 
 #include "Core/Core.h"
 #include "QAlg/QAlg.h"
-
+#include "preconditionByOrigin.h"
 #include "Extensions/Extensions.h"
 
 using namespace std;
@@ -122,6 +122,38 @@ static void HHL_run(const std::string& data_file)
 	std::vector<double> A;
 	std::vector<double> b;
 	uint32_t A_dimension = load_data_file(data_file, A, b);
+	MatrixXd A_bad(b.size(), b.size());
+    VectorXd b_bad(b.size());
+	for (int i = 0; i < b.size(); ++i) {
+			for (int j = 0; j < b.size(); ++j) {
+					A_bad(i, j) = A[i * b.size() + j];
+			}
+			b_bad(i) = b[i];
+	}
+
+	//A'
+	MatrixXd M;
+	auto result = DynamicSparseApproximateInverse(A_bad, b_bad, 0.2, b.size(), M);
+	MatrixXd A_prime(2*b.size(), 2*b.size());
+	A_prime.topLeftCorner(b.size(), b.size()) = A_prime.bottomRightCorner(b.size(), b.size()) = MatrixXd::Zero(4, 4);
+	A_prime.topRightCorner(b.size(), b.size()) = result.first;
+	A_prime.bottomLeftCorner(b.size(), b.size()) = result.first.transpose();
+
+	//b'
+	auto b_good = result.second;
+	std::vector<double> b2;
+	for (int i = 0; i < b_good.size(); ++i)
+	{
+			b2.push_back(b_good(i));
+	}
+
+	std::vector<double> b_prime;
+	for (int i = 0; i < b.size(); ++i)
+			b_prime.push_back(b2[i]);
+	for (int i = 0; i < b.size(); ++i)
+			b_prime.push_back(0);
+
+	auto A_prime_mat = Eigen_to_QStat(A_prime);
 
 	QStat Q_A;
 	for (const auto& i : A){
@@ -135,7 +167,8 @@ static void HHL_run(const std::string& data_file)
 	}
 	cout << "\n";*/
 
-	QStat result = HHL_solve_linear_equations(Q_A, b, g_precision);
+	//QStat result = HHL_solve_linear_equations(Q_A, b, g_precision);
+	QStat result_prime = HHL_solve_linear_equations(A_prime_mat, b_prime, g_precision);
 	int w = 0;
 
 	auto _file_name_pos = g_hhl_data_file.find_last_of('/');
@@ -163,10 +196,10 @@ static void HHL_run(const std::string& data_file)
 
 	cout << "HHL_result of " << g_hhl_data_file << ": " << A_dimension << "-dimensional matrix:\n";
 	outfile << "HHL_result of " << g_hhl_data_file << ": " << A_dimension << "-dimensional matrix:\n";
-	for (auto &val : result)
+	for (int i = result_prime.size()/2; i < result_prime.size(); ++i)
 	{
-		std::cout << val << " ";
-		outfile << _tostring(val.real()).c_str() << ", " << _tostring(val.imag());
+		std::cout << result_prime[i] << " ";
+		outfile << _tostring(result_prime[i].real()).c_str() << ", " << _tostring(result_prime[i].imag());
 		//if (++w == 2)
 		{
 			//w = 0;

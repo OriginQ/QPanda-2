@@ -79,6 +79,7 @@ limitations under the License.
 #include "Core/Utilities/Tools/GetQubitTopology.h"
 #include "Core/Utilities/Tools/RemapQProg.h"
 #include "Core/Utilities/Tools/QCircuitFusion.h"
+#include "Core/Utilities/Tools/QMatrixDef.h"
 
 #include "Core/Variational/var.h"
 #include "Core/Variational/Optimizer.h"  
@@ -430,7 +431,7 @@ prob_tuple pMeasure(QVec qubit_vector, int select_max);
 prob_vec pMeasureNoIndex(QVec qubit_vector);
 
 
-QGate QOracle(const QVec& qubits, const EigenMatrixXc& matrix);
+QGate QOracle(const QVec& qubits, const QMatrixXcd& matrix);
 
 QPANDA_END
 #endif // !_CORE_H

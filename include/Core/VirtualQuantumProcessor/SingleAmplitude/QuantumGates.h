@@ -27,7 +27,13 @@ void ISWAP_Gate(qstate_t& gate_tensor, bool isDagger);
 void SQISWAP_Gate(qstate_t& gate_tensor, bool isDagger);
 void SWAP_Gate(qstate_t& gate_tensor, bool isDagger);
 
-void CR_Gate(qstate_t& gate_tensor, double angle, bool isDagger);
 void TOFFOLI_Gate(qstate_t& gate_tensor, bool isDagger);
+
+void CR_Gate(qstate_t& gate_tensor, double angle, bool isDagger);
+void RXX_Gate(qstate_t& gate_tensor, double angle, bool isDagger);
+void RYY_Gate(qstate_t& gate_tensor, double angle, bool isDagger);
+void RZZ_Gate(qstate_t& gate_tensor, double angle, bool isDagger);
+void RZX_Gate(qstate_t& gate_tensor, double angle, bool isDagger);
+
 
 #endif // !QUANTUMGATES_H

@@ -19,8 +19,8 @@ QPANDA_BEGIN
 #define  QCLOUD_COMPUTE_API_POSTFIX  "/api/taskApi/submitTask.json"
 #define  QCLOUD_INQUIRE_API_POSTFIX  "/api/taskApi/getTaskDetail.json"
 
-#define DEFAULT_CLUSTER_COMPUTEAPI    "https://qcloud.originqc.com.cn/api/taskApi/submitTask.json"
-#define DEFAULT_CLUSTER_INQUIREAPI     "https://qcloud.originqc.com.cn/api/taskApi/getTaskDetail.json"
+#define DEFAULT_CLUSTER_COMPUTEAPI    "http://pyqanda-admin.qpanda.cn/api/taskApi/submitTask.json"
+#define DEFAULT_CLUSTER_INQUIREAPI     "http://pyqanda-admin.qpanda.cn/api/taskApi/getTaskDetail.json"
 
 #define DEFAULT_REAL_CHIP_TASK_COMPUTEAPI     "https://qcloud.originqc.com.cn/api/taskApi/submitTask.json"
 #define DEFAULT_REAL_CHIP_TASK_INQUIREAPI      "https://qcloud.originqc.com.cn/api/taskApi/getTaskDetail.json"

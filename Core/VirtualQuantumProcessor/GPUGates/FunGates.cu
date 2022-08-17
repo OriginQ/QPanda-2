@@ -391,15 +391,15 @@ __device__ double DoubleGateFun::operator()(int64_t i)
         return 0.0;
 
     device_complex_t phi00 = m_state[i];
-    device_complex_t phi01 = m_state[i | m_offset1];
-    device_complex_t phi10 = m_state[i | m_offset0];
+    device_complex_t phi01 = m_state[i | m_offset0];
+    device_complex_t phi10 = m_state[i | m_offset1];
     device_complex_t phi11 = m_state[i | m_offset0 | m_offset1];
 
     m_state[i] = m_device_matrix[0] * phi00 + m_device_matrix[1] * phi01
         + m_device_matrix[2] * phi10 + m_device_matrix[3] * phi11;
-    m_state[i | m_offset1] = m_device_matrix[4] * phi00 + m_device_matrix[5] * phi01
+    m_state[i | m_offset0] = m_device_matrix[4] * phi00 + m_device_matrix[5] * phi01
         + m_device_matrix[6] * phi10 + m_device_matrix[7] * phi11;
-    m_state[i | m_offset0] = m_device_matrix[8] * phi00 + m_device_matrix[9] * phi01
+    m_state[i | m_offset1] = m_device_matrix[8] * phi00 + m_device_matrix[9] * phi01
         + m_device_matrix[10] * phi10 + m_device_matrix[11] * phi11;
     m_state[i | m_offset0 | m_offset1] = m_device_matrix[12] * phi00 + m_device_matrix[13] * phi01
         + m_device_matrix[14] * phi10 + m_device_matrix[15] * phi11;

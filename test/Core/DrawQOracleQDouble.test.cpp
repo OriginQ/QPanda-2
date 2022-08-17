@@ -117,6 +117,20 @@ static bool test_vf1_1()
     
     return true;
 }
+static bool test_vf1_2()
+{
+
+    auto qvm = CPUQVM();
+    qvm.init();
+    auto q = qvm.qAllocMany(10);
+    auto c = qvm.cAllocMany(10);
+    auto prog = QProg();
+    prog << H(q[0]).dagger();
+
+    cout << prog << endl;
+
+    return true;
+}
 
 
 
@@ -125,7 +139,7 @@ TEST(DrawQOracleQDouble, test1)
     bool test_val = false;
     try
     {
-        test_val = test_vf1_1();
+        test_val = test_vf1_2();
 
     }
     catch (const std::exception& e)

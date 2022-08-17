@@ -496,9 +496,11 @@ void OriginQubitPoolv2::clearAll()
 	for (auto pq : vecQubit) {
 		delete pq;
 	}
+	vecQubit.clear();
 	for (auto q : allocated_qubit) {
 		delete q.first;
 	}
+	allocated_qubit.clear();
 }
 
 size_t OriginQubitPoolv2::getMaxQubit() const

@@ -245,6 +245,56 @@ TEST(CPUImplQPUwithNoise, PHASE_DAMPING_OPRATOR)
   cmem->cFreeAll();
 }
 
+TEST(CPUImplQPUwithNoise, MULTI_NOISE)
+{
+
+  auto qpool = OriginQubitPool::get_instance();
+  auto cmem = OriginCMem::get_instance();
+
+  auto qvec = qpool->qAllocMany(bit_len);
+  auto cvec = cmem->cAllocMany(bit_len);
+
+  QProg prog = createEmptyQProg();
+
+  prog << X(qvec[1]) << SWAP(qvec[2], qvec[1]) << CNOT(qvec[2], qvec[0]) << MeasureAll(qvec, cvec);
+
+  std::vector<std::vector<double>> prob_lists{{0.9, 0.1}, {0.1, 0.9}};
+
+  auto noise_qvm = NoiseQVM();
+  noise_qvm.init();
+  noise_qvm.set_noise_model(NOISE_MODEL::DAMPING_KRAUS_OPERATOR, GateType::PAULI_X_GATE, 0.1);
+  noise_qvm.set_noise_model(NOISE_MODEL::BITFLIP_KRAUS_OPERATOR, GateType::PAULI_X_GATE, 0.5);
+  noise_qvm.set_noise_model(NOISE_MODEL::DAMPING_KRAUS_OPERATOR, GateType::SWAP_GATE, 0.3);
+  noise_qvm.set_noise_model(NOISE_MODEL::DAMPING_KRAUS_OPERATOR, GateType::CNOT_GATE, 0.5);
+  noise_qvm.set_readout_error(prob_lists, qvec[2]);
+  noise_qvm.set_measure_error(NOISE_MODEL::BITFLIP_KRAUS_OPERATOR, 0.5, qvec[2]);
+  noise_qvm.set_reset_error(0.5, 0.5, qvec[1]);
+
+  auto cpu_qvm = CPUQVM();
+  cpu_qvm.init();
+  NoiseModel noise;
+  // we swap noise sequnce on purpose to verify mulit noise works
+  noise.add_noise_model(NOISE_MODEL::BITFLIP_KRAUS_OPERATOR, GateType::PAULI_X_GATE, 0.5);
+  noise.add_noise_model(NOISE_MODEL::DAMPING_KRAUS_OPERATOR, GateType::PAULI_X_GATE, 0.1);
+  noise.add_noise_model(NOISE_MODEL::DAMPING_KRAUS_OPERATOR, GateType::SWAP_GATE, 0.3);
+  noise.add_noise_model(NOISE_MODEL::DAMPING_KRAUS_OPERATOR, GateType::CNOT_GATE, 0.5);
+  noise.set_readout_error(prob_lists, qvec[2]);
+  noise.set_measure_error(NOISE_MODEL::BITFLIP_KRAUS_OPERATOR, 0.5, qvec[2]);
+  noise.set_reset_error(0.5, 0.5, qvec[1]);
+
+  auto r1 = noise_qvm.runWithConfiguration(prog, cvec, shot);
+  auto r2 = cpu_qvm.runWithConfiguration(prog, cvec, shot, noise);
+  // print_result(r1, r2);
+  ASSERT_TRUE(compare_result(r1, r2, allowed_error, shot));
+
+  noise_qvm.finalize();
+  cpu_qvm.finalize();
+
+  qpool->qFreeAll();
+  cmem->cFreeAll();
+}
+
+
 TEST(CPUImplQPUwithNoise, MIX_ALL_NOISE)
 {
 
@@ -277,9 +327,9 @@ TEST(CPUImplQPUwithNoise, MIX_ALL_NOISE)
   noise.add_noise_model(NOISE_MODEL::DAMPING_KRAUS_OPERATOR, GateType::PAULI_X_GATE, 0.1);
   noise.add_noise_model(NOISE_MODEL::DAMPING_KRAUS_OPERATOR, GateType::SWAP_GATE, 0.3);
   noise.add_noise_model(NOISE_MODEL::DAMPING_KRAUS_OPERATOR, GateType::CNOT_GATE, 0.5);
-  noise.add_readout_error(prob_lists, qvec[2]);
-  noise.add_measure_error(NOISE_MODEL::BITFLIP_KRAUS_OPERATOR, 0.5, qvec[2]);
-  noise.add_reset_error(0.5, 0.5, qvec[1]);
+  noise.set_readout_error(prob_lists, qvec[2]);
+  noise.set_measure_error(NOISE_MODEL::BITFLIP_KRAUS_OPERATOR, 0.5, qvec[2]);
+  noise.set_reset_error(0.5, 0.5, qvec[1]);
 
   auto r1 = noise_qvm.runWithConfiguration(prog, cvec, shot);
   auto r2 = cpu_qvm.runWithConfiguration(prog, cvec, shot, noise);

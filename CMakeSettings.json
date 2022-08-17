@@ -40,7 +40,7 @@
       "remoteCopySourcesExclusionList": [ ".vs", ".git", "build " ],
       "rsyncCommandArgs": "-t --delete --delete-excluded",
       "remoteCopyBuildOutput": false,
-      "cmakeCommandArgs": "-DUSE_PYQPANDA=OFF -DFIND_CUDA=OFF -DUSE_CHEMIQ=OFF -DUSE_EXTENSION=ON",
+      "cmakeCommandArgs": "-DUSE_PYQPANDA=OFF -DFIND_CUDA=OFF -DUSE_CHEMIQ=OFF -DUSE_EXTENSION=OFF",
       "buildCommandArgs": "-j4",
       "ctestCommandArgs": "",
       "inheritEnvironments": [ "linux_x64" ]

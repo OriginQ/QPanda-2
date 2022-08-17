@@ -1,13 +1,12 @@
+#include "Core/Core.h"
 #include "Core/QuantumCircuit/QGate.h"
 #include "Core/Utilities/Tools/Utils.h"
-#include <Core/Utilities/QProgInfo/QCircuitInfo.h>
+#include "Core/Utilities/QProgInfo/QCircuitInfo.h"
 #include "Core/Utilities/Compiler/QProgToQASM.h"
-#include <Core/Core.h>
 #include "Components/HamiltonianSimulation/HamiltonianSimulation.h"
 
 namespace QPanda
 {
-
     QCircuit simulateZTerm(
         std::vector<Qubit*> &qubit_vec,
         double coef,
@@ -214,16 +213,16 @@ namespace QPanda
     }
 
 
-    qmatrix_t expMat(
+    QMatrixXcd expMat(
         const qcomplex_t& conf,
-        const qmatrix_t& Mat,
+        const QMatrixXcd& Mat,
         double number)
     {
-        qmatrix_t expmatrix(Mat.rows(), Mat.cols());
+        QMatrixXcd expmatrix(Mat.rows(), Mat.cols());
         expmatrix.setZero();
         int i = 0;
         qcomplex_t conf_new{ conf };
-        qmatrix_t mat_val;
+        QMatrixXcd mat_val;
         /*if (number)
         {
             conf_new = conf * PI;
@@ -234,7 +233,7 @@ namespace QPanda
         }*/
         conf_new = conf * number;
         mat_val = conf_new * Mat;
-        qmatrix_t mx(mat_val.rows(), mat_val.cols());
+        QMatrixXcd mx(mat_val.rows(), mat_val.cols());
         mx.setIdentity();
         /*Accuracy control of this complex matrix is prone to insufficient accuracy, 
         so use the number to control the -while loop */

@@ -118,6 +118,11 @@ void TraverseByNodeIter::execute(std::shared_ptr<AbstractQuantumCircuit> cur_nod
 	QVec ctrl_qubits;
 	cur_node->getControlVector(ctrl_qubits);
 
+	auto _earse_check_fun = [](Qubit*a, Qubit* b) {return a->getPhysicalQubitPtr()->getQubitAddr() == b->getPhysicalQubitPtr()->getQubitAddr(); };
+	ctrl_qubits.erase(unique(ctrl_qubits.begin(),
+		ctrl_qubits.end(), _earse_check_fun),
+		ctrl_qubits.end());
+
 	auto tmp_param = cir_param.clone();
 	tmp_param->m_is_dagger = cur_node_is_dagger;
 	tmp_param->append_control_qubits(QCircuitParam::get_real_append_qubits(ctrl_qubits, cir_param.m_control_qubits));

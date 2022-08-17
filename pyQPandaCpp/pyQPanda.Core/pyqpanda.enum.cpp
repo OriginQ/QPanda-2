@@ -1,10 +1,11 @@
+#include "Core/Core.h"
+#include "Core/Utilities/QProgInfo/MetadataValidity.h"
+#include "QPanda.h"
 #include "pybind11/pybind11.h"
 #include "pybind11/operators.h"
 #include "pybind11/stl.h"
 #include "pybind11/complex.h"
-#include "Core/Core.h"
-#include "Core/Utilities/QProgInfo/MetadataValidity.h"
-#include "QPanda.h"
+
 
 USING_QPANDA
 namespace py = pybind11;
@@ -29,6 +30,8 @@ void export_enum(py::module &m)
         .value("PHASE_DAMPING_OPRATOR", NOISE_MODEL::PHASE_DAMPING_OPRATOR);
 
     py::enum_<GateType>(m, "GateType")
+        .value("GATE_NOP", GateType::GATE_NOP)
+        .value("GATE_UNDEFINED", GateType::GATE_UNDEFINED)
         .value("P0_GATE", GateType::P0_GATE)
         .value("P1_GATE", GateType::P1_GATE)
         .value("PAULI_X_GATE", GateType::PAULI_X_GATE)

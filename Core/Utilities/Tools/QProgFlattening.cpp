@@ -33,7 +33,17 @@ void QProgFlattening::execute(std::shared_ptr<AbstractQGateNode>  cur_node, std:
 		// parent_qv_ctrl - curnode_qv_ctrl
 		auto sort_fun = [](Qubit*a, Qubit* b) {return a->getPhysicalQubitPtr()->getQubitAddr() < b->getPhysicalQubitPtr()->getQubitAddr(); };
 		std::sort(parent_qv_ctrl.begin(), parent_qv_ctrl.end(), sort_fun);
+
+		auto _earse_check_fun = [](Qubit*a, Qubit* b) {return a->getPhysicalQubitPtr()->getQubitAddr() == b->getPhysicalQubitPtr()->getQubitAddr(); };
+		parent_qv_ctrl.erase(unique(parent_qv_ctrl.begin(),
+			parent_qv_ctrl.end(), _earse_check_fun),
+			parent_qv_ctrl.end());
+
 		std::sort(curnode_qv_ctrl.begin(), curnode_qv_ctrl.end(), sort_fun);
+		curnode_qv_ctrl.erase(unique(curnode_qv_ctrl.begin(),
+			curnode_qv_ctrl.end(), _earse_check_fun),
+			curnode_qv_ctrl.end());
+
 		QVec result_vec;
 		set_difference(parent_qv_ctrl.begin(), parent_qv_ctrl.end(), curnode_qv_ctrl.begin(), curnode_qv_ctrl.end(), std::back_inserter(result_vec), sort_fun);
 		

@@ -424,13 +424,13 @@ protected:
 	QStat get_matrix_of_index_vec(const std::vector<std::vector<pOptimizerNodeInfo>::iterator>& continues_itr_vec,
 		const std::vector<pOptimizerNodeInfo> &node_vec) {
 		QStat _src_gate_mat;
-		qmatrix_t total_mat = qmatrix_t::Identity(2, 2);
+		QMatrixXcd total_mat = QMatrixXcd::Identity(2, 2);
 		for (const auto& i : continues_itr_vec)
 		{
 			auto p_node = *((*i)->m_iter);
 			auto p_gate = std::dynamic_pointer_cast<AbstractQGateNode>(p_node);
 			p_gate->getQGate()->getMatrix(_src_gate_mat);
-			qmatrix_t _eigen_mat = qmatrix_t::Map(&_src_gate_mat[0], 2, 2);
+			QMatrixXcd _eigen_mat = QMatrixXcd::Map(&_src_gate_mat[0], 2, 2);
 
 			if (((*i)->m_is_dagger) ^ (p_gate->isDagger()))
 			{

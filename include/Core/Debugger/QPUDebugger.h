@@ -14,7 +14,7 @@ class QPUDebugger
 public:
     struct State{
         std::vector<std::complex<float>>* float_state{nullptr}; 
-        QStat *double_state{nullptr};
+        std::vector<std::complex<double>> *double_state{nullptr};
     };
 
     static QPUDebugger &instance();

@@ -24,13 +24,24 @@ std::string integerToBinary(const UnsignedIntegralType &number, int ret_len)
     static_assert(((std::numeric_limits<UnsignedIntegralType>::is_integer == true) 
                 && (std::numeric_limits<UnsignedIntegralType>::is_signed  == false)),
                     "bad unsigned integral type");
-
-    std::stringstream ss;
-    for (int i = ret_len - 1; i > -1; i--)
-    {
+    
+#if 0
+    // stringstream doesn't scale on parallelization
+    // see https://github.com/PointCloudLibrary/pcl/issues/4333
+    std::stringstream ss(ret_len);
+    for (int i = ret_len - 1; i > -1; i--){
         ss << ((number >> i) & 1);
     }
     return ss.str();
+
+#else
+
+    std::string str;
+	for (int i = ret_len - 1; i > -1; i--){
+        str += std::to_string(static_cast<size_t>((number >> i) & 1));
+	}
+	return str;
+#endif
 }
 
 /**

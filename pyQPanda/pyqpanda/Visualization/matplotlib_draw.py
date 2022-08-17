@@ -1220,18 +1220,18 @@ class MatplotlibDrawer:
                             
                         # cz for latexmode
                         elif op.m_gate_type == pq.GateType.CZ_GATE:
-                        #     disp = op.m_name
-                        #     if self._style.name != 'Q1':
-                        #         color = self._style.dispcol['CZ']
-                        #         self._ctrl_qubit(q_xy[num_ctrl_qubits],
-                        #                      fc=color,
-                        #                      ec=color)
-                        #         self._ctrl_qubit(q_xy[num_ctrl_qubits + 1],
-                        #                      fc=color,
-                        #                      ec=color)
-                        #     else:
-                        #         self._ctrl_qubit(q_xy[num_ctrl_qubits])
-                        #         self._ctrl_qubit(q_xy[num_ctrl_qubits + 1])
+                            disp = op.m_name
+                            if self._style.name != 'Q1':
+                                color = self._style.dispcol['CZ']
+                                self._ctrl_qubit(q_xy[num_ctrl_qubits],
+                                             fc=color,
+                                             ec=color)
+                                self._ctrl_qubit(q_xy[num_ctrl_qubits + 1],
+                                             fc=color,
+                                             ec=color)
+                            else:
+                                self._ctrl_qubit(q_xy[num_ctrl_qubits])
+                                self._ctrl_qubit(q_xy[num_ctrl_qubits + 1])
                             # add qubit-qubit wiring
                             if self._style.name != 'Q1':
                                 self._line(qreg_b, qreg_t,

@@ -4,6 +4,7 @@
 #include "Core/VirtualQuantumProcessor/MPSQVM/MPSTensor.h"
 #include "Core/Utilities/Tools/QStatMatrix.h"
 #include "Core/Utilities/QPandaNamespace.h"
+#include <ThirdParty/mpfit/include/mpfit.h>
 #include <set>
 #include <vector>
 #include <map>
@@ -159,10 +160,10 @@ QCircuit RandomizedBenchmarking::_random_single_q_clifford(Qubit* qbit, int num_
 	}
 
 	QStat  cir_qstat = getCircuitMatrix(gen_cir);
-	cmatrix_t cir_mat = cmatrix_t::Map(&cir_qstat[0], 2, 2);
+	QMatrixXcd cir_mat = QMatrixXcd::Map(&cir_qstat[0], 2, 2);
 	for (int i = 0; i < cfd_matrices.size(); i++)
 	{
-		cmatrix_t tmp = cmatrix_t::Map(&cfd_matrices[i][0], 2, 2);
+		QMatrixXcd tmp = QMatrixXcd::Map(&cfd_matrices[i][0], 2, 2);
 		auto mat = tmp * cir_mat;
 		if (abs(mat.trace()) / 2 > 0.999)
 		{
@@ -272,10 +273,10 @@ QCircuit RandomizedBenchmarking::_random_two_q_clifford(Qubit* q_0, Qubit* q_1, 
 	}
 
 	auto mat_qstat = getCircuitMatrix(gen_cir);
-	MatrixXcd cir_mat = cmatrix_t::Map(&mat_qstat[0], 4, 4);
+	QMatrixXcd cir_mat = QMatrixXcd::Map(&mat_qstat[0], 4, 4);
 	for (int i = 0; i < cfd_matrices.size(); i++)
 	{
-		cmatrix_t tmp = cmatrix_t::Map(&cfd_matrices[i][0], 4, 4);
+		QMatrixXcd tmp = QMatrixXcd::Map(&cfd_matrices[i][0], 4, 4);
 		auto mat = tmp * cir_mat;
 		if (abs(mat.trace()) / 4 > 0.999)
 		{
@@ -455,4 +456,65 @@ std::map<int, double> QPanda::double_qubit_rb(QCloudMachine* qvm, Qubit* qbit0, 
 {
 	RandomizedBenchmarking rb(MeasureQVMType::WU_YUAN, qvm);
 	return rb.two_qubit_rb(qbit0, qbit1, clifford_range, num_circuits, shots, interleaved_gates);
+}
+
+struct vars_struct {
+	double* x;
+	double* y;
+	double* ey;
+};
+int expfunc(int m, int n, double* p, double* dy, double** dvec, void* vars) {
+	int i;
+	struct vars_struct* v = (struct vars_struct*)vars;
+	double* x, * y, * ey;
+
+	x = v->x;
+	y = v->y;
+	ey = v->ey;
+
+	for (i = 0; i < m; i++) {
+		dy[i] = (y[i] - p[0] * pow(p[1], x[i]) - p[2]) / ey[i];
+	}
+
+	return 0;
+}
+
+double calc_single_qubit_fidelity(const std::map<int, double>& rb_result)
+{
+	const int NUM_PARAM = 3;
+	double* x = new double[rb_result.size()];
+	double* y = new double[rb_result.size()];
+	double p[NUM_PARAM] = { 0.0, 0.5, 0.0 };       /* Initial conditions */
+	//double pactual[NUM_PARAM] = {3.0, 0.70, 2.0};/* Actual values used to make data*/
+	double perror[NUM_PARAM];                      /* Returned parameter errors */
+	mp_par pars[NUM_PARAM];                        /* Parameter constraints */
+	int i;
+	struct vars_struct v;
+	int status;
+	mp_result result;
+
+	memset(&result, 0, sizeof(result));  /* Zero results structure */
+	result.xerror = perror;
+
+	memset(pars, 0, sizeof(pars));    /* Initialize constraint structure */
+	pars[1].limited[0] = 1;
+	pars[1].limited[1] = 1;
+	pars[1].limits[0] = 0.0;
+	pars[1].limits[1] = 1.0;
+
+	double* ey = new double[rb_result.size()];
+	//double* ey = malloc(sizeof(double) * n);
+	for (i = 0; i < rb_result.size(); ++i) ey[i] = 0.1;
+
+	v.x = x;
+	v.y = y;
+	v.ey = ey;
+
+	/* Call fitting function for 10 data points and 4 parameters (2
+	   parameters fixed) */
+
+	status = mpfit(expfunc, rb_result.size(), NUM_PARAM, p, pars, 0, (void*)&v, &result);
+
+	double fidelity = 0.5 * (1 - p[1]);
+	return fidelity;
 }

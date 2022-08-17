@@ -18,6 +18,11 @@ public:
 
     /**
      * @brief Construct a new expression object
+     */
+    expression() {};
+
+    /**
+     * @brief Construct a new expression object
      * 
      * @param root the root variable, denoting the y in dy/dx.
      */

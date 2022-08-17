@@ -52,8 +52,8 @@ var::var(std::shared_ptr<impl> _pimpl) : pimpl(_pimpl) {};
 var::var(const MatrixXd& _val)
     : pimpl(new impl(_val)) {}
 
-//var::var()
-//    : pimpl(new impl(scalar(0))) {}
+var::var()
+    : pimpl(new impl(scalar(0))) {}
 var::var(double _val)
     : pimpl(new impl(scalar(_val))) {}
 

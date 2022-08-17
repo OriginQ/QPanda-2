@@ -1,9 +1,10 @@
+#include "Core/Core.h"
+#include "QPanda.h"
 #include <math.h>
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
 #include "pybind11/complex.h"
-#include "Core/Core.h"
-#include "QPanda.h"
+
 
 USING_QPANDA
 
@@ -79,13 +80,13 @@ void export_noise_model(py::module &m)
              py::arg("t2"),
              py::arg("t_gate"),
              py::arg("qubits"))
-        .def("add_measure_error",
-             pybind11::overload_cast<const NOISE_MODEL &, double, const QVec &>(&NoiseModel::add_measure_error),
+        .def("set_measure_error",
+             pybind11::overload_cast<const NOISE_MODEL &, double, const QVec &>(&NoiseModel::set_measure_error),
              py::arg("noise_model"),
              py::arg("prob"),
              py::arg("qubits") = QVec())
-        .def("add_measure_error",
-             pybind11::overload_cast<const NOISE_MODEL &, double, double, double, const QVec &>(&NoiseModel::add_measure_error),
+        .def("set_measure_error",
+             pybind11::overload_cast<const NOISE_MODEL &, double, double, double, const QVec &>(&NoiseModel::set_measure_error),
              py::arg("noise_model"),
              py::arg("t1"),
              py::arg("t2"),
@@ -108,13 +109,13 @@ void export_noise_model(py::module &m)
              py::arg("unitary_matrices"),
              py::arg("probs"),
              py::arg("qubits"))
-        .def("add_reset_error",
-             &NoiseModel::add_reset_error,
+        .def("set_reset_error",
+             &NoiseModel::set_reset_error,
              py::arg("p0"),
              py::arg("p1"),
              py::arg("qubits"))
-        .def("add_readout_error",
-             &NoiseModel::add_readout_error,
+        .def("set_readout_error",
+             &NoiseModel::set_readout_error,
              py::arg("prob_list"),
              py::arg("qubits") = QVec())
         .def("set_rotation_error",

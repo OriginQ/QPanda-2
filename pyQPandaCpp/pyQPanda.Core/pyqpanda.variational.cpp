@@ -1,3 +1,4 @@
+#include "Components/Operator/FermionOperator.h"
 #include <math.h>
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
@@ -9,7 +10,7 @@
 #include "Variational/complex_var.h"
 #include "pybind11/eigen.h"
 #include "pybind11/operators.h"
-#include "Components/Operator/FermionOperator.h"
+
 USING_QPANDA
 using namespace std;
 using namespace pybind11::literals;

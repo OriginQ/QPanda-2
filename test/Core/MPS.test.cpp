@@ -107,7 +107,7 @@ static std::string build_chain_typed_quantum_chip_config_data(size_t qubit_num)
 
     return buffer.GetString();
 }
-#if 1
+#if 0
 void test_real_chip()
 {
     QCloudMachine QCM;;
@@ -257,45 +257,123 @@ void test_qcloud()
     return;
 }
 
-TEST(MPS, test)
+void curl_post_and_recv()
 {
-    test_real_chip();
-    cout << 1222 << endl;
+    //curl_global_init(CURL_GLOBAL_ALL);
 
-    //test_qcloud();
-    
-    MPSQVM qvm;
-    qvm.init();
+    cout << "start curl_post_and_recv" << endl;
 
-    auto q = qvm.qAllocMany(2);
-    auto c = qvm.cAllocMany(2);
+    std::string url = "https://qcloud.originqc.com.cn/api/taskApi/getTaskDetail.json";
 
-    qvm.add_single_noise_model(NOISE_MODEL::PHASE_DAMPING_OPRATOR, GateType::PAULI_X_GATE, 0.8);
-    qvm.add_single_noise_model(NOISE_MODEL::BITFLIP_KRAUS_OPERATOR, GateType::PAULI_X_GATE, 0.8);
-    //qvm.add_single_noise_model(NOISE_MODEL::DEPOLARIZING_KRAUS_OPERATOR, GateType::PAULI_X_GATE, 0.99);
-    //qvm.add_single_noise_model(NOISE_MODEL::DEPHASING_KRAUS_OPERATOR, GateType::PAULI_X_GATE, 0.49);
-    //qvm.add_single_noise_model(NOISE_MODEL::DECOHERENCE_KRAUS_OPERATOR, GateType::PAULI_X_GATE, 5, 5, 0.9);
-    //qvm.set_noise_model(NOISE_MODEL::BITFLIP_KRAUS_OPERATOR, GateType::CNOT_GATE, 0.1);
-    //QVec qv0 = { q[0], q[1] };
-    //qvm.set_noise_model(NOISE_MODEL::DEPHASING_KRAUS_OPERATOR, GateType::HADAMARD_GATE, 0.1, qv0);
-    //std::vector<QVec> qves = { {q[0], q[1]}, {q[1], q[2]} };
-    //qvm.set_noise_model(NOISE_MODEL::DAMPING_KRAUS_OPERATOR, GateType::CNOT_GATE, 0.1, qves);
+    rabbit::document doc;
+    doc.parse("{}");
 
-    QProg prog;
-    //prog << X(q[0]) << MeasureAll(q, c);
-    prog << H(q[0]) << X(q[1]) << H(q[1]) << CNOT(q[0],q[1]) << H(q[0]) << Measure(q[0], c[0]);
+    doc.insert("taskId", "865D1C7D6DF94C2EA7229912529EADE4");
+    doc.insert("QMachineType", "5");
 
-    //auto noise_ptr = (NoiseQVM*)(&qvm);
-    //auto noise_ptr = dynamic_cast<NoiseQVM*>(&qvm);
-    //single_qubit_rb(&qvm, q[0], {6}, 1, 100);
+    std::string post_string = doc.str();
 
-    auto result = qvm.runWithConfiguration(prog, c, 10000);
-    for (auto &item : result)
+    auto post_curl = curl_easy_init();
+    curl_slist * headers = nullptr;
+
+    headers = curl_slist_append(headers, "Content-Type: application/json;charset=UTF-8");
+    headers = curl_slist_append(headers, "Connection: keep-alive");
+    headers = curl_slist_append(headers, "Server: nginx/1.16.1");
+    headers = curl_slist_append(headers, "Transfer-Encoding: chunked");
+    headers = curl_slist_append(headers, "origin-language: en");
+
+    curl_easy_setopt(post_curl, CURLOPT_HTTPHEADER, headers);
+    curl_easy_setopt(post_curl, CURLOPT_TIMEOUT, 60);
+    curl_easy_setopt(post_curl, CURLOPT_CONNECTTIMEOUT, 30);
+    curl_easy_setopt(post_curl, CURLOPT_HEADER, 0);
+    curl_easy_setopt(post_curl, CURLOPT_POST, 1);
+    curl_easy_setopt(post_curl, CURLOPT_SSL_VERIFYHOST, 0);
+    curl_easy_setopt(post_curl, CURLOPT_SSL_VERIFYPEER, 0);
+
+    curl_easy_setopt(post_curl, CURLOPT_READFUNCTION, nullptr);
+    curl_easy_setopt(post_curl, CURLOPT_NOSIGNAL, 1);
+    curl_easy_setopt(post_curl, CURLOPT_WRITEFUNCTION, recv_json_data);
+
+    std::stringstream out;
+    curl_easy_setopt(post_curl, CURLOPT_URL, url.c_str());
+    //curl_easy_setopt(m_post_curl, CURLOPT_VERBOSE, 1);
+    curl_easy_setopt(post_curl, CURLOPT_WRITEDATA, &out);
+    curl_easy_setopt(post_curl, CURLOPT_POSTFIELDS, post_string.c_str());
+    curl_easy_setopt(post_curl, CURLOPT_POSTFIELDSIZE, post_string.size());
+
+    cout << "curl_easy_setopt end" << endl;
+
+    CURLcode res;
+    res = curl_easy_perform(post_curl);
+
+    cout << "curl_easy_perform end" << res  << endl;
+
+    if (CURLE_OK != res)
     {
-        std::cout << item.first << " : " << item.second << std::endl;
+        std::string error_msg = curl_easy_strerror(res);
+        QCERR_AND_THROW(run_fail, error_msg);
     }
 
+    cout << out.str() << endl;
+
+    curl_slist_free_all(headers);
+    curl_easy_cleanup(post_curl);
+
+    //curl_global_cleanup();
+
     return;
+}
+
+void qcloud_post_and_recv()
+{
+    QCloudMachine QCM;;
+
+    QCM.init("E02BB115D5294012AA88D4BE82603984", true); // online
+    //QCM.init("A774C41F15E44FA19EF2171AA82003E9", true); //test
+    
+    QCM.set_qcloud_api("http://pyqanda-admin.qpanda.cn");
+    auto q = QCM.allocateQubits(4);
+    auto c = QCM.allocateCBits(4);
+
+    auto measure_prog = QProg();
+    measure_prog << HadamardQCircuit(q)
+        << CNOT(q[1], q[2]).control({ q[0] })
+        << Measure(q[0], c[0])
+        << Measure(q[1], c[1]);
+
+    auto result = QCM.real_chip_measure(measure_prog, 1000, RealChipType::ORIGIN_WUYUAN_D5, true, true);
+    for (auto val : result)
+    {
+        std::cout << val.first << " : " << val.second << std::endl;
+    }
+
+    QCM.finalize();
+    return;
+}
+
+#include <thread>
+#include "Core/Utilities/Tools/ThreadPool.h"
+TEST(MPS, test)
+{
+    std::thread threads[10];
+    std::cout << "spawning threads..." << endl;
+
+    //curl_global_init(CURL_GLOBAL_ALL);
+
+    for (int i = 0; i < 10; i++) 
+    {
+        threads[i] = std::thread(qcloud_post_and_recv);
+    }
+
+    //curl_global_cleanup();
+
+    for (auto& t : threads) 
+        t.join();
+
+    std::cout << "all threads joined.";
+
+    //curl_post_and_recv(post_json, url);
+
 }
 
 #endif

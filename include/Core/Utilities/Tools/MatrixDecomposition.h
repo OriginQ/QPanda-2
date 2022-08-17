@@ -33,10 +33,12 @@ enum class MatrixUnit
 	SINGLE_V2
 };
 
-enum DecompositionMode
+enum class DecompositionMode
 {
 	QR = 0,
-	HOUSEHOLDER_QR
+	HOUSEHOLDER_QR =1,
+	QSD = 2,
+	CSD =3
 };
 
 
@@ -53,7 +55,7 @@ enum DecompositionMode
 		Un，Un-1，，，U1，U = I
 */
 QCircuit matrix_decompose_qr(QVec qubits, const QStat& src_mat, const bool b_positive_seq = true);
-QCircuit matrix_decompose_qr(QVec qubits, EigenMatrixXc& src_mat, const bool b_positive_seq = true);
+QCircuit matrix_decompose_qr(QVec qubits, QMatrixXcd& src_mat, const bool b_positive_seq = true);
 QCircuit diagonal_matrix_decompose(const QVec& qubits, const QStat& src_mat);
 
 
@@ -253,10 +255,10 @@ private:
 * @brief  matrix_decompose_paulis
 * @ingroup Utilities
 * @param[in]  QuantumMachine* qvm: QuantumMachine
-* @param[in]  EigenMatrixX& mat: the matrix
+* @param[in]  QMatrixXd& mat: the matrix
 * @param[in]  PualiOperatorLinearCombination& linearcom
 */
-void matrix_decompose_paulis(QuantumMachine* qvm, const EigenMatrixX& mat, PualiOperatorLinearCombination& linearcom);
+void matrix_decompose_paulis(QuantumMachine* qvm, const QMatrixXd& mat, PualiOperatorLinearCombination& linearcom);
 
 QPANDA_END
 #endif // MATRIX_DECOMPOSITION_H

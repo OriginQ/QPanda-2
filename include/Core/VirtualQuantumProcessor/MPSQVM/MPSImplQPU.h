@@ -52,9 +52,9 @@ public:
 	/**
 	* @brief  init state from matrix
 	* @param[in]  size_t number of qubits
-	* @param[in]  cmatrix_t  matrix
+	* @param[in]  QMatrixXcd  matrix
 	*/
-    void initState_from_matrix(size_t num_qubits, const cmatrix_t &mat);
+    void initState_from_matrix(size_t num_qubits, const QMatrixXcd &mat);
 
 	/**
 	* @brief  unitary single qubit gate
@@ -177,11 +177,11 @@ public:
 
 	/**
 	* @brief after the SVD decomposition , The product of S and V
-	* @param[in]  cmatrix_t  V matrix
-	* @param[in]  rvector_t  S vector
-	* @return cmatrix_t product
+	* @param[in]  QMatrixXcd  V matrix
+	* @param[in]  QVectorXd  S vector
+	* @return QMatrixXcd product
 	*/
-	cmatrix_t mul_v_by_s(const cmatrix_t &mat, const rvector_t &lambda);
+	QMatrixXcd mul_v_by_s(const QMatrixXcd &mat, const QVectorXd &lambda);
 
 
 	/**
@@ -217,24 +217,24 @@ public:
 	/**
 	* @brief execute one qubit gate
 	* @param[in]  size_t target qubit
-	* @param[in]  cmatrix_t gate matrix
+	* @param[in]  QMatrixXcd gate matrix
 	*/
-	void execute_one_qubit_gate(size_t qn, const cmatrix_t &mat);
+	void execute_one_qubit_gate(size_t qn, const QMatrixXcd &mat);
 
 	/**
 	* @brief execute two qubits gate
 	* @param[in]  size_t control qubit
 	* @param[in]  size_t target qubit
-	* @param[in]  cmatrix_t gate matrix
+	* @param[in]  QMatrixXcd gate matrix
 	*/
-	void execute_two_qubit_gate(size_t qn_0, size_t qn_1, const cmatrix_t &mat);
+	void execute_two_qubit_gate(size_t qn_0, size_t qn_1, const QMatrixXcd &mat);
 
 	/**
 	* @brief execute multi qubits gate
 	* @param[in]  size_t control and target qubits, target qubit  in the tail
-	* @param[in]  cmatrix_t gate matrix
+	* @param[in]  QMatrixXcd gate matrix
 	*/
-	void execute_multi_qubit_gate(const Qnum &qubits, const cmatrix_t &mat);
+	void execute_multi_qubit_gate(const Qnum &qubits, const QMatrixXcd &mat);
 	
 	qcomplex_t expectation_value_pauli(const Qnum &qubits);
 
@@ -245,12 +245,12 @@ public:
 
 	Qnum apply_measure(Qnum qubits);
 
-    cmatrix_t density_matrix(const Qnum &qubits);
+    QMatrixXcd density_matrix(const Qnum &qubits);
 
-    double expectation_value(const Qnum &qubits, const cmatrix_t &matrix);
+    double expectation_value(const Qnum &qubits, const QMatrixXcd &matrix);
 
-    double single_expectation_value(const Qnum &qubits, const cmatrix_t &matrix);
-    double double_expectation_value(const Qnum &qubits, const cmatrix_t &matrix);
+    double single_expectation_value(const Qnum &qubits, const QMatrixXcd &matrix);
+    double double_expectation_value(const Qnum &qubits, const QMatrixXcd &matrix);
 
     void unitaryQubitGate(Qnum qubits, QStat matrix, bool isConjugate);
 
@@ -278,7 +278,7 @@ public:
 
 	std::vector<MPS_Tensor> m_qubits_tensor;  /**< the tensor of qubits.   */
 
-	std::vector<rvector_t> m_lambdas;  /**< lambdas between tensors.   */
+	std::vector<QVectorXd> m_lambdas;  /**< lambdas between tensors.   */
 };
 
 QPANDA_END

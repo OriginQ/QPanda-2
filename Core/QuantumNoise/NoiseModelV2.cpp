@@ -269,13 +269,13 @@ void NoiseModel::add_noise_model(const NOISE_MODEL &model, const GateType &type,
   m_enable = true;
 }
 
-void NoiseModel::add_measure_error(const NOISE_MODEL &model, double prob, const QVec &qubits)
+void NoiseModel::set_measure_error(const NOISE_MODEL &model, double prob, const QVec &qubits)
 {
   add_noise_model(model, GATE_TYPE_MEASURE, prob, qubits);
   m_enable = true;
 }
 
-void NoiseModel::add_measure_error(const NOISE_MODEL &model, double T1, double T2, double t_gate, const QVec &qubits)
+void NoiseModel::set_measure_error(const NOISE_MODEL &model, double T1, double T2, double t_gate, const QVec &qubits)
 {
   add_noise_model(model, GATE_TYPE_MEASURE, T1, T2, t_gate, qubits);
   m_enable = true;
@@ -334,7 +334,7 @@ void NoiseModel::add_mixed_unitary_error(const GateType &type, const std::vector
   m_enable = true;
 }
 
-void NoiseModel::add_reset_error(double p0, double p1, const QVec &qubits)
+void NoiseModel::set_reset_error(double p0, double p1, const QVec &qubits)
 {
   QuantumError quantum_error;
   quantum_error.set_reset_error(p0, p1);
@@ -350,7 +350,7 @@ void NoiseModel::add_reset_error(double p0, double p1, const QVec &qubits)
   m_enable = true;
 }
 
-void NoiseModel::add_readout_error(const std::vector<std::vector<double>> &probs_list, const QVec &qubits)
+void NoiseModel::set_readout_error(const std::vector<std::vector<double>> &probs_list, const QVec &qubits)
 {
   QPANDA_ASSERT(0 == qubits.size() && 2 != probs_list.size(), "Error: readout paramters.");
   if (0 == qubits.size())
@@ -405,85 +405,91 @@ void NoiseGateGenerator::append_noise_gate(GateType gate_type, QVec target, Nois
 {
   Qnum qnum = QVec_to_Qnum(target);
 
-  NoiseOp ops;
-  Qnum effect_qubits;
-  NOISE_MODEL noise_type;
+  std::vector<NoiseOp> ops_v;
+  std::vector<Qnum> effect_qubits_v;
+  std::vector<NOISE_MODEL> noise_type_v;
   /* get gate noise ops, insert to new qprog as noise node */
-  auto is_noise = noise.sample_noisy_op(gate_type, qnum, noise_type, ops, effect_qubits, m_rng);
+  auto is_noise = noise.sample_noisy_op(gate_type, qnum, noise_type_v, ops_v, effect_qubits_v, m_rng);
 
   if (is_noise)
   {
-    switch (noise_type)
+    for (size_t n = 0; n < noise_type_v.size(); n++)
     {
-    /* for these casese, kraus operator is unitary */
-    case NOISE_MODEL::BITFLIP_KRAUS_OPERATOR:   // X
-    case NOISE_MODEL::BIT_PHASE_FLIP_OPRATOR:   // Y
-    case NOISE_MODEL::DEPHASING_KRAUS_OPERATOR: // Z
-    case NOISE_MODEL::DEPOLARIZING_KRAUS_OPERATOR:
-    case NOISE_MODEL::PHASE_DAMPING_OPRATOR:
-      QPANDA_ASSERT(ops.size() != effect_qubits.size(), "Error: noise kruas");
-      for (size_t i = 0; i < ops.size(); i++)
+      auto &noise_type = noise_type_v.at(n);
+      auto &ops = ops_v.at(n);
+      auto &effect_qubits = effect_qubits_v.at(n);
+      switch (noise_type)
       {
-        auto noise_target = pick_qubit_by_addr(target, {effect_qubits[i]});
-        std::shared_ptr<OriginNoise> noise = std::make_shared<OriginNoise>(noise_target, ops[i]);
+      /* for these casese, kraus operator is unitary */
+      case NOISE_MODEL::BITFLIP_KRAUS_OPERATOR:   // X
+      case NOISE_MODEL::BIT_PHASE_FLIP_OPRATOR:   // Y
+      case NOISE_MODEL::DEPHASING_KRAUS_OPERATOR: // Z
+      case NOISE_MODEL::DEPOLARIZING_KRAUS_OPERATOR:
+      case NOISE_MODEL::PHASE_DAMPING_OPRATOR:
+        QPANDA_ASSERT(ops.size() != effect_qubits.size(), "Error: noise kruas");
+        for (size_t i = 0; i < ops.size(); i++)
+        {
+          auto noise_target = pick_qubit_by_addr(target, {effect_qubits[i]});
+          std::shared_ptr<OriginNoise> noise = std::make_shared<OriginNoise>(noise_target, ops[i]);
+          noise_qc.pushBackNode(std::dynamic_pointer_cast<QNode>(noise));
+        }
+        break;
+
+      /* for these casese, kraus operator is not unitary, we need chose operator base on qubit state dynamically */
+      case NOISE_MODEL::DAMPING_KRAUS_OPERATOR:
+      case NOISE_MODEL::DECOHERENCE_KRAUS_OPERATOR:
+      {
+        /* insert debug node before dynamic noise node to get current qubit state */
+        noise_qc.pushBackNode(g_origin_debug);
+
+        QVec noise_target;
+        if (1 == target.size())
+        {
+          noise_target = pick_qubit_by_addr(target, {effect_qubits[0]});
+        }
+        else if (2 == target.size())
+        {
+          noise_target = pick_qubit_by_addr(target, {effect_qubits[0], effect_qubits[1]});
+        }
+        else
+        {
+          throw std::runtime_error(
+              "Error: noise model canot support above two bits");
+        }
+
+        /* DynamicOriginNoise will pick out kraus operator on runtime base on current qubit state */
+        auto noise = std::make_shared<DynamicOriginNoise<KrausOpGenerator>>(noise_target, KrausOpGenerator(effect_qubits, ops));
         noise_qc.pushBackNode(std::dynamic_pointer_cast<QNode>(noise));
-      }
-      break;
 
-    /* for these casese, kraus operator is not unitary, we need chose operator base on qubit state dynamically */
-    case NOISE_MODEL::DAMPING_KRAUS_OPERATOR:
-    case NOISE_MODEL::DECOHERENCE_KRAUS_OPERATOR:
-    {
-      /* insert debug node before dynamic noise node to get current qubit state */
-      noise_qc.pushBackNode(g_origin_debug);
-
-      QVec noise_target;
-      if (1 == target.size())
-      {
-        noise_target = pick_qubit_by_addr(target, {effect_qubits[0]});
-      }
-      else if (2 == target.size())
-      {
-        noise_target = pick_qubit_by_addr(target, {effect_qubits[0], effect_qubits[1]});
-      }
-      else
-      {
-        throw std::runtime_error(
-            "Error: noise model canot support above two bits");
+        break;
       }
 
-      /* DynamicOriginNoise will pick out kraus operator on runtime base on current qubit state */
-      auto noise = std::make_shared<DynamicOriginNoise<KrausOpGenerator>>(noise_target, KrausOpGenerator(effect_qubits, ops));
-      noise_qc.pushBackNode(std::dynamic_pointer_cast<QNode>(noise));
-
-      break;
-    }
-
-    case NOISE_MODEL::MIXED_UNITARY_OPRATOR:
-    {
-      if (1 == target.size())
+      case NOISE_MODEL::MIXED_UNITARY_OPRATOR:
       {
-        std::shared_ptr<OriginNoise> noise = std::make_shared<OriginNoise>(target, ops[0]);
-        noise_qc.pushBackNode(std::dynamic_pointer_cast<QNode>(noise));
+        if (1 == target.size())
+        {
+          std::shared_ptr<OriginNoise> noise = std::make_shared<OriginNoise>(target, ops[0]);
+          noise_qc.pushBackNode(std::dynamic_pointer_cast<QNode>(noise));
+        }
+        else if (2 == target.size())
+        {
+          QPANDA_ASSERT(4 != ops[0].size(),
+                        "mixed noise ops of two bits shoulde be dimesion 4");
+          /* effect_qubits always in targets'id */
+          auto noise_target = pick_qubit_by_addr(target, {effect_qubits[0], effect_qubits[1]});
+          std::shared_ptr<OriginNoise> noise = std::make_shared<OriginNoise>(noise_target, ops[0]);
+          noise_qc.pushBackNode(std::dynamic_pointer_cast<QNode>(noise));
+        }
+        else
+        {
+          throw std::runtime_error("Error: mixed noise only support two bits");
+        }
+        break;
       }
-      else if (2 == target.size())
-      {
-        QPANDA_ASSERT(4 != ops[0].size(),
-                      "mixed noise ops of two bits shoulde be dimesion 4");
-        /* effect_qubits always in targets'id */
-        auto noise_target = pick_qubit_by_addr(target, {effect_qubits[0], effect_qubits[1]});
-        std::shared_ptr<OriginNoise> noise = std::make_shared<OriginNoise>(noise_target, ops[0]);
-        noise_qc.pushBackNode(std::dynamic_pointer_cast<QNode>(noise));
-      }
-      else
-      {
-        throw std::runtime_error("Error: mixed noise only support two bits");
-      }
-      break;
-    }
 
-    default:
-      throw std::runtime_error("Error: noise model not supported");
+      default:
+        throw std::runtime_error("Error: noise model not supported");
+      }
     }
   }
 }
@@ -628,13 +634,15 @@ void NoiseResetGenerator::append_noise_reset(GateType gate_type, QVec target, No
 {
   Qnum qnum = QVec_to_Qnum(target);
 
-  NoiseOp ops;
-  Qnum effect_qubits;
+  std::vector<NoiseOp> ops_v;
+  std::vector<Qnum> effect_qubits_v;
   /* get gate noise ops, insert to new qprog as noise gate */
-  auto is_noise = noise.sample_noisy_op(GATE_TYPE_RESET, qnum, ops, effect_qubits, m_rng);
+  auto is_noise = noise.sample_noisy_op(GATE_TYPE_RESET, qnum, ops_v, effect_qubits_v, m_rng);
 
   if (is_noise)
   {
+    /* only use the reset parament last seted */
+    auto & ops = ops_v.back();
     QPANDA_ASSERT(2 != ops.size(), "Reset error ops error");
     std::shared_ptr<OriginNoise> noise = std::make_shared<OriginNoise>(target, ops[0]);
     noise_qc.pushBackNode(std::dynamic_pointer_cast<QNode>(noise));

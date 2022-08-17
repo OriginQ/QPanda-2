@@ -16,7 +16,7 @@ using namespace std;
 #define PTraceCircuit(cir)
 #endif
 
-#define MAX_INCLUDE_LAYERS 1024
+#define MAX_INCLUDE_LAYERS 2048
 #define MAX_BUF_SIZE 5000
 #define MIN_INCLUDE_LAYERS 10
 #define COMPENSATE_GATE_TYPE 0XFFFF
@@ -877,7 +877,8 @@ protected:
 							}
 
 							//get seccessor nodes
-							append_successor_nodes(_node, candidate_double_gate[i].second, tmp_layer, gate_buf, cur_gate_buf_pos);
+							append_successor_nodes(_node, candidate_double_gate[i].second, tmp_layer,
+								gate_buf, cur_gate_buf_pos, max_output_layer);
 							candidate_double_gate.erase(candidate_double_gate.begin() + j);
 							break;
 						}
@@ -944,7 +945,7 @@ protected:
 	}
 
 	void append_successor_nodes(pPressedCirNode pressed_node, std::pair<size_t, size_t>& qubits, PressedLayer &cur_seq_layer,
-		OptimizerSink& gate_buf, std::map<size_t, size_t>& cur_gate_buf_pos) {
+		OptimizerSink& gate_buf, std::map<size_t, size_t>& cur_gate_buf_pos, const uint32_t& max_output_layer) {
 		auto& gate_vec_1 = gate_buf.at(qubits.first);
 		auto& cur_pos_1 = cur_gate_buf_pos.at(qubits.first);
 		const auto& max_pos_1 = m_cur_gates_buffer.get_target_qubit_sink_size(qubits.first);
@@ -958,6 +959,10 @@ protected:
 				if (p >= max_pos) { return; }
 
 				auto& g = gates_vec[p];
+
+				if (g->m_layer >= max_output_layer){
+					break;
+				}
 
 				if (BARRIER_GATE == g->m_gate_type)
 				{
@@ -1322,4 +1327,35 @@ LayeredTopoSeq QPanda::get_clock_layer(QProg src_prog, const std::string config_
 	layer_obj.layer_by_clock(src_prog, config_data);
 
 	return layer_obj.get_topo_seq();
+}
+
+LayerInfo QPanda::circuit_layer(QProg src_prog) {
+	auto layer_info = prog_layer(src_prog);
+	std::vector<std::vector<NodeInfo>> tmp_layer(layer_info.size());
+	size_t layer_index = 0;
+
+	for (auto& cur_layer : layer_info)
+	{
+		for (auto& node_item : cur_layer)
+		{
+			const pOptimizerNodeInfo& n = node_item.first;
+			// single gate first
+			if ((node_item.first->m_control_qubits.size() == 0) && (node_item.first->m_target_qubits.size() == 1))
+			{
+				tmp_layer[layer_index].insert(tmp_layer[layer_index].begin(),
+					NodeInfo(n->m_iter, n->m_target_qubits,
+						n->m_control_qubits, n->m_type,
+						n->m_is_dagger));
+			}
+			else
+			{
+				tmp_layer[layer_index].emplace_back(NodeInfo(n->m_iter, n->m_target_qubits,
+					n->m_control_qubits, n->m_type,
+					n->m_is_dagger));
+			}
+		}
+
+		++layer_index;
+	}
+	return make_pair<>(layer_index, tmp_layer);
 }

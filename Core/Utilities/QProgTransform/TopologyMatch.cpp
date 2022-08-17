@@ -694,12 +694,6 @@ void TopologyMatch::buildResultingQProg(const vector<gate>& resulting_gates, vec
 					prog << BARRIER(barrier_qv_map[g.barrier_id]);
 				}
 			}
-			else if (_v.m_type == MEASURE)
-			{
-				auto pgate = dynamic_pointer_cast<AbstractQuantumMeasure>(*(_v.m_node->m_itr));
-				auto cbit = pgate->getCBit();
-				prog << Measure(q_tar, cbit);
-			}
 			else
 			{
 				auto pgate = dynamic_pointer_cast<AbstractQGateNode>(*(_v.m_node->m_itr));
@@ -726,8 +720,16 @@ void TopologyMatch::buildResultingQProg(const vector<gate>& resulting_gates, vec
 				prog << new_gate;
 			}
 		}
-		}
 	}
+
+    // rebuild measure
+    auto mea_info = m_prog.get_measure_qubits_cbits();
+    for (const auto& iter : mea_info)
+    {
+        auto q_tar = qv[iter.first->get_phy_addr()]; 
+        prog << Measure(q_tar, iter.second);
+    }
+}
 
 void TopologyMatch::traversalQProgToLayers()
 {
@@ -748,8 +750,14 @@ void TopologyMatch::traversalQProgToLayers()
 		{
 			auto _v_id = seq.first.m_vertex_num;
 			auto tmp_qv = getGateQaddrs(m_dag->get_vertex(_v_id));
-			if (m_dag->get_vertex(_v_id).m_type == BARRIER_GATE)
-			{
+            int type = m_dag->get_vertex(_v_id).m_type;
+            if (type == (int)DAGNodeType::MEASURE)
+            {
+                // the measurement operation is in the last layer
+                continue;
+            }
+            else if (type == (int)GateType::BARRIER_GATE)
+            {
 				for (auto& qaddr : tmp_qv)
 				{
 					gate g;

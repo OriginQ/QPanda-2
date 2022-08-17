@@ -25,10 +25,10 @@ void checkAdder(int bit_len, int a_value, int b_value)
 
     QVec a = qvm->qAllocMany(bit_len);
     QVec b = qvm->qAllocMany(bit_len);
-    int ancil_size = std::max({ CDKMRippleAdder().auxBitSize(bit_len),
+    int ancil_size = std::max({CDKMRippleAdder().auxBitSize(bit_len),
                                VBERippleAdder().auxBitSize(bit_len),
                                DraperQFTAdder().auxBitSize(bit_len),
-                               DraperQCLAAdder().auxBitSize(bit_len) });
+                               DraperQCLAAdder().auxBitSize(bit_len)});
     QVec ancil = qvm->qAllocMany(ancil_size);
 
     // cdkm
@@ -148,7 +148,7 @@ void checkAdder(int bit_len, int a_value, int b_value)
 TEST(QAdd_V2, DDT_test_compare_with_original_QAdd)
 {
     int bit_len = 2;
-    for (; bit_len <= 4; bit_len++)
+    for (; bit_len <= 5; bit_len++)
     {
         int max_value = std::pow(2, bit_len - 1);
 
@@ -234,7 +234,7 @@ void checkQComplement(int bit_len, int value)
 TEST(QComplement_V2, DDT_test_compare_with_original_QComplement)
 {
     int bit_len = 2;
-    for (; bit_len <= 4; bit_len++)
+    for (; bit_len <= 5; bit_len++)
     {
         int max_value = std::pow(2, bit_len - 1);
 

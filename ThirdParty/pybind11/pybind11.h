@@ -21,6 +21,9 @@
 #  pragma warning disable 1875  // offsetof applied to non-POD (Plain Old Data) types is nonstandard
 #  pragma warning disable 2196  // warning #2196: routine is both "inline" and "noinline"
 #elif defined(_MSC_VER)
+    #if _MSC_VER >= 1930
+        #include <corecrt.h>    // solve vs2022 bug when used pybind11 
+    #endif
 #  pragma warning(push)
 #  pragma warning(disable: 4100) // warning C4100: Unreferenced formal parameter
 #  pragma warning(disable: 4127) // warning C4127: Conditional expression is constant

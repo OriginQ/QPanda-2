@@ -89,7 +89,10 @@ enum GateType {
 	I_GATE,
 
     ECHO_GATE,  /**< Only for 6 qubit online projects */
-    BARRIER_GATE  /**< Only for 6 qubit online projects */
+    BARRIER_GATE,  /**< Only for 6 qubit online projects */
+
+    NoiseSingle_GATE,
+    NoiseDouble_GATE
 };
 
 /*

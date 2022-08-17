@@ -1,7 +1,7 @@
 #ifndef _CPUSupportAvx2_H
 #define _CPUSupportAvx2_H
 
-#include "QPandaNamespace.h"
+#include "Core/Utilities/QPandaNamespace.h"
 
 #if defined(__GNUC__) && defined(__x86_64__)
 #define GNUC_AVX2

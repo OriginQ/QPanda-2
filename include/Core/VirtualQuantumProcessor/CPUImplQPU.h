@@ -26,7 +26,8 @@ limitations under the License.
 #include <iostream>
 #include "Core/Utilities/Tools/Utils.h"
 #include "Core/VirtualQuantumProcessor/QPUImpl.h"
-#include "include/Core/VirtualQuantumProcessor/CPUSupportAvx2.h"
+#include "Core/VirtualQuantumProcessor/CPUSupportAvx2.h"
+#include "ThirdParty/Eigen/Eigen"
 QPANDA_BEGIN
 
 /**
@@ -37,6 +38,9 @@ template <typename data_t = double>
 class CPUImplQPU : public QPUImpl
 {
 public:
+	using QMatrixXcT = Eigen::Matrix<std::complex<data_t>, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
+	using QVectorXcT = Eigen::Matrix<std::complex<data_t>, 1, Eigen::Dynamic, Eigen::RowMajor>;
+
     CPUImplQPU();
     CPUImplQPU(size_t qubit_num);
     ~CPUImplQPU();

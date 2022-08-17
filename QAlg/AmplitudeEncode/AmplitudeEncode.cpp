@@ -1,10 +1,13 @@
 #include "QAlg/Base_QCircuit/AmplitudeEncode.h"
 #include "QPanda.h"
 #include <bitset>
-#include<algorithm>
+#include <algorithm>
 #include <iomanip>
-QPANDA_BEGIN
+#include "Core/Utilities/UnitaryDecomposer/QSDecomposition.h"
+
+USING_QPANDA
 using namespace std;
+using namespace Eigen;
 
 StateNode::StateNode(int out_index, int out_level, double out_amplitude, StateNode* out_left, StateNode* out_right):index(out_index),level(out_level),amplitude(out_amplitude)
 {
@@ -1677,7 +1680,7 @@ void Encode::_schmidt(const QVec &q, const std::vector<double>& data) {
 	int	r = n_qubits % 2;
 	int row = 1 << (n_qubits >> 1);
 	int col = 1 << ((n_qubits >> 1) + r);
-	EigenMatrixXc eigen_matrix = EigenMatrixXc::Zero(row, col);
+	QMatrixXcd eigen_matrix = QMatrixXcd::Zero(row, col);
 	k = 0;
 
 	for (auto rdx = 0; rdx < row; ++rdx)
@@ -1688,8 +1691,8 @@ void Encode::_schmidt(const QVec &q, const std::vector<double>& data) {
 		}
 	}
 
-	JacobiSVD<EigenMatrixXc> svd(eigen_matrix, ComputeFullU | ComputeFullV);
-	EigenMatrixXc V = svd.matrixV(), U = svd.matrixU();
+	JacobiSVD<QMatrixXcd> svd(eigen_matrix, ComputeFullU | ComputeFullV);
+	QMatrixXcd V = svd.matrixV(), U = svd.matrixU();
 	auto A = svd.singularValues();
 	std::vector<std::vector<double>>U_vec, V_vec;
 	std::vector<double>A_vec;
@@ -1749,12 +1752,13 @@ void Encode::_schmidt(const QVec &q, const std::vector<double>& data) {
 
 	return;
 }
-void Encode::_unitary(const QVec &q, EigenMatrixXc gate) {
+void Encode::_unitary(const QVec &q, QMatrixXcd gate) {
 
 	const QStat mat = Eigen_to_QStat(gate);
 
+	QCircuit circuit = unitary_decomposer_nq(gate, q, DecompositionMode::QSD, true);
 
-	QCircuit circuit = matrix_decompose_qr(q, gate,false);
+	//QCircuit circuit = matrix_decompose_qr(q, gate,true);
 	m_qcircuit << circuit;
 	//m_qcircuit << QOracle(q, mat);
 
@@ -2303,4 +2307,3 @@ double Encode::get_normalization_constant() {
 
 	return m_data_std;
 }
-QPANDA_END

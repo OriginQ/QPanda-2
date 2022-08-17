@@ -17,22 +17,11 @@ Classes for get the shortes path of graph
 #include <complex>
 #include <vector>
 #include "ThirdParty/Eigen/Eigen"
+#include "Core/Utilities/Tools/QMatrixDef.h"
 
 QPANDA_BEGIN
 
 #define MAX_COMPARE_PRECISION 1e-10
-
-typedef double EigneDataType;
-typedef std::complex <EigneDataType> EigenComplexT;
-typedef Eigen::Matrix<EigenComplexT, -1, -1, Eigen::RowMajor> EigenMatrixXc;
-typedef Eigen::Matrix<EigenComplexT, 2, 2> EigenMatrix2c;
-typedef Eigen::Matrix<EigneDataType, -1, -1> EigenMatrixX;
-typedef Eigen::Matrix<EigneDataType, 2, 2> EigenMatrix2;
-
-
-/** \defgroup OriginQ matrixtypedefs Global matrix typedefs
-*/
-using  qmatrix_t = Eigen::Matrix<qcomplex_t, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
 
 typedef struct _matrix_block
 {
@@ -42,7 +31,7 @@ typedef struct _matrix_block
 
 	int m_row_index;
 	int m_column_index;
-	qmatrix_t m_mat;
+	QMatrixXcd m_mat;
 }matrixBlock_t;
 
 typedef struct _blocked_matrix
@@ -79,7 +68,7 @@ std::ostream& operator<<(std::ostream &out, QStat mat);
 * @param[out] blockedMat The separated matrix
 * @return Execution successfully returns 0, otherwise returns to other.
 */
-int partition(qmatrix_t& srcMatrix, int partitionRowNum, int partitionColumnNum, blockedMatrix_t& blockedMat);
+int partition(QMatrixXcd& srcMatrix, int partitionRowNum, int partitionColumnNum, blockedMatrix_t& blockedMat);
 
 /**
 * @brief  Block Multiplication of Matrix
@@ -89,7 +78,7 @@ int partition(qmatrix_t& srcMatrix, int partitionRowNum, int partitionColumnNum,
 * @param[out] resultMatrix The result of Block Multiplication
 * @return Execution successfully returns 0, otherwise returns to other.
 */
-int blockMultip(qmatrix_t& leftMatrix, const blockedMatrix_t& blockedMat, qmatrix_t& resultMatrix);
+int blockMultip(QMatrixXcd& leftMatrix, const blockedMatrix_t& blockedMat, QMatrixXcd& resultMatrix);
 
 /**
 * @brief Getting the Inverted Conjugate Matrix of the target Matrix
@@ -136,15 +125,15 @@ bool operator!=(const QStat &matrix_left, const QStat &matrix_right);
 * @param[in] "const QStat&" the input matrix
 * @return Eigen matrix data
 */
-EigenMatrixXc QStat_to_Eigen(const QStat& mat);
+QMatrixXcd QStat_to_Eigen(const QStat& mat);
 
 /**
 * @brief Convert Eigen data type to QStat
 * @ingroup Utilities
-* @param[in] EigenMatrixXc the input Eigen matrix
+* @param[in] QMatrixXcd the input Eigen matrix
 * @return Corresponding QStat
 */
-QStat Eigen_to_QStat(const EigenMatrixXc& mat);
+QStat Eigen_to_QStat(const QMatrixXcd& mat);
 
 /**
 * @brief check whether the input matrix is a unitary matrix
@@ -155,7 +144,7 @@ QStat Eigen_to_QStat(const EigenMatrixXc& mat);
 */
 bool is_unitary_matrix(const QStat &circuit_matrix, const double precision = MAX_COMPARE_PRECISION);
 bool is_unitary_matrix_by_eigen(const QStat& circuit_matrix, const double precision = MAX_COMPARE_PRECISION);
-bool is_unitary_matrix_by_eigen(const EigenMatrixXc& circuit_matrix, const double precision = MAX_COMPARE_PRECISION);
+bool is_unitary_matrix_by_eigen(const QMatrixXcd& circuit_matrix, const double precision = MAX_COMPARE_PRECISION);
 
 QPANDA_END
 #endif // QSTATMATRIX_H

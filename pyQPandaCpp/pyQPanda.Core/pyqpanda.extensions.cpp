@@ -1,3 +1,6 @@
+#include "QPandaConfig.h"
+#include "QPanda.h"
+#include "Extensions/Extensions.h"
 #include <math.h>
 #include <map>
 #include "pybind11/pybind11.h"
@@ -11,9 +14,7 @@
 #include <pybind11/stl_bind.h>
 #include "pybind11/eigen.h"
 #include "pybind11/operators.h"
-#include "QPandaConfig.h"
-#include "QPanda.h"
-#include "Extensions/Extensions.h"
+
 
 using namespace std;
 using namespace pybind11::literals;
@@ -21,6 +22,9 @@ namespace py = pybind11;
 
 USING_QPANDA
 
+#ifdef USE_EXTENSION
+#include "Extensions/VirtualZTransfer/VirtualZTransfer.h"
+#endif
 
 void export_extension_class(py::module &m)
 {
@@ -164,10 +168,10 @@ void export_extension_funtion(py::module &m)
           py::arg("b_del_rz_gate") = false,
           py::arg("config_data") = CONFIG_PATH,
           py::return_value_policy::automatic);
-
+#endif
     m.def(
         "matrix_decompose_paulis",
-        [](QuantumMachine *qvm, const EigenMatrixX &mat)
+        [](QuantumMachine *qvm, const QMatrixXd &mat)
         {
             PualiOperatorLinearCombination linearcom;
             matrix_decompose_paulis(qvm, mat, linearcom);
@@ -184,10 +188,12 @@ void export_extension_funtion(py::module &m)
             case DecompositionMode::QR:
                 return matrix_decompose_qr(qubits, src_mat, b_positive_seq);
                 // break;
+#ifdef USE_EXTENSION
             case DecompositionMode::HOUSEHOLDER_QR:
                 return matrix_decompose_householder(qubits, src_mat, b_positive_seq);
                 // break;
             default:
+#endif
                 throw std::runtime_error("Error: DecompositionMode");
             }
         },
@@ -206,5 +212,4 @@ void export_extension_funtion(py::module &m)
         "Returns:\n"
         "    QCircuit The quantum circuit for target matrix",
         py::return_value_policy::automatic);
-#endif
 }

@@ -190,3 +190,43 @@ double QPanda::average_gate_fidelity(const qmatrix_t& matrix, const qmatrix_t& s
     auto state_new = Eigen_to_QStat(state);
     return average_gate_fidelity(matrix, state_new);
 }
+
+double QPanda::hellinger_fidelity(const std::map<std::string, size_t> result_f, const std::map<std::string, size_t> result_s, int shots)
+{
+    std::map<std::string, double> f_normed;
+    std::map<std::string, double> s_normed;
+
+    for (auto &res : result_f)
+    {
+        f_normed[res.first] = ((double)res.second) / ((double)shots);
+    }
+
+    for (auto &res : result_s)
+    {
+        s_normed[res.first] = ((double)res.second) / ((double)shots);
+    }
+
+    double total = 0;
+    for (auto &res : f_normed)
+    {
+        if (s_normed.find(res.first) != s_normed.end())
+        {
+            total += (sqrt(res.second) - sqrt(s_normed[res.first])) *(sqrt(res.second) - sqrt(s_normed[res.first]));
+            s_normed.erase(res.first);
+        }
+        else
+        {
+            total += res.second;
+        }
+    }
+    if (s_normed.size() != 0)
+    {
+        for (auto &res : s_normed)
+        {
+            total += res.second;
+        }
+    }
+    auto dist = sqrt(total) / sqrt(2);
+    auto fidelity = (1 - dist * dist)*(1 - dist * dist);
+    return fidelity;
+}

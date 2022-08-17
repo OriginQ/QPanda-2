@@ -31,7 +31,11 @@ SingleAmplitudeQVM::SingleAmplitudeQVM()
 	m_double_gate_none_angle.insert({ GateType::ISWAP_GATE,    ISWAP_Gate });
 	m_double_gate_none_angle.insert({ GateType::SQISWAP_GATE, SQISWAP_Gate });
 
-	m_double_gate_and_angle.insert({ GateType::CPHASE_GATE, CR_Gate });
+    m_double_gate_and_angle.insert({ GateType::CPHASE_GATE, CR_Gate });
+    m_double_gate_and_angle.insert({ GateType::RXX_GATE, RXX_Gate });
+    m_double_gate_and_angle.insert({ GateType::RYY_GATE, RYY_Gate });
+    m_double_gate_and_angle.insert({ GateType::RZZ_GATE, RZZ_Gate });
+    m_double_gate_and_angle.insert({ GateType::RZX_GATE, RZX_Gate });
 }
 
 void SingleAmplitudeQVM::init()
@@ -340,8 +344,8 @@ void SingleAmplitudeQVM::execute(shared_ptr<AbstractQGateNode> cur_node,
 	case ISWAP_GATE:
 	case SQISWAP_GATE:
 	case CNOT_GATE:
-	case SWAP_GATE:
-	case CZ_GATE:
+    case SWAP_GATE:
+    case CZ_GATE:
 	{
 		auto qubit_addr0 = qubits[0]->getPhysicalQubitPtr()->getQubitAddr();
 		auto qubit_addr1 = qubits[1]->getPhysicalQubitPtr()->getQubitAddr();
@@ -359,6 +363,19 @@ void SingleAmplitudeQVM::execute(shared_ptr<AbstractQGateNode> cur_node,
 		addVerticeAndEdge(gate_tensor, gate_type, qubit_addr0, qubit_addr1);
 		break;
 	}
+    case RXX_GATE:
+    case RYY_GATE:
+    case RZZ_GATE:
+    case RZX_GATE:
+    {
+        auto qubit_addr0 = qubits[1]->getPhysicalQubitPtr()->getQubitAddr();
+        auto qubit_addr1 = qubits[0]->getPhysicalQubitPtr()->getQubitAddr();
+        auto angle = dynamic_cast<QGATE_SPACE::AbstractSingleAngleParameter*>(cur_node->getQGate());
+        auto angle_value = angle->getParameter();
+        m_double_gate_and_angle[gate_type](gate_tensor, angle_value, cur_node->isDagger());
+        addVerticeAndEdge(gate_tensor, gate_type, qubit_addr0, qubit_addr1);
+        break;
+    }
 	case GateType::I_GATE:
 	case GateType::BARRIER_GATE:
 		break;
@@ -448,13 +465,17 @@ void SingleAmplitudeQVM::addVerticeAndEdge(qstate_t& gate_tensor, GateType gate_
 		addSingleGateNonDiagonalVerticeAndEdge(gate_tensor, qubit1);
 		break;
 	case GateType::CZ_GATE:
-	case GateType::CPHASE_GATE:
+    case GateType::RZZ_GATE:
+    case GateType::CPHASE_GATE:
 		addDoubleDiagonalGateVerticeAndEdge(gate_tensor, qubit1, qubit2);
 		break;
 	case GateType::CNOT_GATE:
 	case GateType::ISWAP_GATE:
 	case GateType::SQISWAP_GATE:
-	case GateType::SWAP_GATE:
+    case GateType::SWAP_GATE:
+    case GateType::RXX_GATE:
+    case GateType::RYY_GATE:
+    case GateType::RZX_GATE:
 		addDoubleNonDiagonalGateVerticeAndEdge(gate_tensor, qubit1, qubit2);
 		break;
 

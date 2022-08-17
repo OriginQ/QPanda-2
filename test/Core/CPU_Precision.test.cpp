@@ -107,57 +107,82 @@ static bool test_vf1_0()
 static bool test_vf1_1()
 {
     // time test
-    int deepth = 9;
-    for (int i = 5; i < 26; i++)
+    int deepth = 50;
+    std::vector<std::vector<double>> time_save;
+    time_save.resize(10);
+    for (int i = 0; i < time_save.size(); i++)
     {
-        auto qvm = CPUQVM();
-        qvm.init(false);
-        auto qubits = qvm.qAllocMany(i);
-        auto c = qvm.cAllocMany(i);
+        time_save[i].resize(17);
+    }
+    for (int x = 0; x < 10; x++)
+    {
+        for (int i = 3; i < 20; i++)
+        {
+            auto qvm = CPUQVM();
+            qvm.init();
+            auto qubits = qvm.qAllocMany(i);
+            auto c = qvm.cAllocMany(i);
 
-        auto circuit = QCircuit();
-        auto prog = QProg();
-        for (auto &qbit : qubits) {
-            circuit << RX(qbit, rand());
-        }
-        for (auto &qbit : qubits) {
-            circuit << RY(qbit, rand());
-        }
-        for (size_t j = 0; j < i; ++j) {
-            circuit << CNOT(qubits[j], qubits[(j + 1) % i]);
-        }
-        for (size_t k = 0; k < deepth; ++k) {
+            auto circuit = QCircuit();
+            auto prog = QProg();
             for (auto &qbit : qubits) {
-                circuit << RZ(qbit, rand()).dagger();
+                circuit << RX(qbit, rand());
             }
             for (auto &qbit : qubits) {
-                circuit << RX(qbit, rand()).dagger();
-            }
-            for (auto &qbit : qubits) {
-                circuit << RZ(qbit, rand()).dagger();
+                circuit << RY(qbit, rand());
             }
             for (size_t j = 0; j < i; ++j) {
                 circuit << CNOT(qubits[j], qubits[(j + 1) % i]);
             }
-        }
-        for (auto &qbit : qubits) {
-            circuit << RZ(qbit, rand());
-        }
-        for (auto &qbit : qubits) {
-            circuit << RX(qbit, rand());
-        }
-        prog << circuit;
-        Fusion fuser;
-        fuser.aggregate_operations(prog, &qvm);
+            for (size_t k = 0; k < deepth; ++k) {
+                for (auto &qbit : qubits) {
+                    circuit << RZ(qbit, rand()).dagger();
+                }
+                for (auto &qbit : qubits) {
+                    circuit << RX(qbit, rand()).dagger();
+                }
+                for (auto &qbit : qubits) {
+                    circuit << RZ(qbit, rand()).dagger();
+                }
+                for (size_t j = 0; j < i; ++j) {
+                    circuit << CNOT(qubits[j], qubits[(j + 1) % i]);
+                }
+            }
+            for (auto &qbit : qubits) {
+                circuit << RZ(qbit, rand());
+            }
+            for (auto &qbit : qubits) {
+                circuit << RX(qbit, rand());
+            }
+            prog << circuit;
+            /*Fusion fuser;
+            fuser.aggregate_operations(prog, &qvm);*/
 
-        std::cout << "===============================" << std::endl;
-        auto start = std::chrono::system_clock::now();
-        qvm.directlyRun(prog);
-        auto end = std::chrono::system_clock::now();
-        std::chrono::duration<double>elapsed_seconds = end - start;
-        std::cout << "qbit: " << i << ", Time used:  " << elapsed_seconds.count() << std::endl;
-
+            //std::cout << "===============================" << std::endl;
+            auto start = std::chrono::system_clock::now();
+            qvm.directlyRun(prog);
+            auto end = std::chrono::system_clock::now();
+            std::chrono::duration<double>elapsed_seconds = end - start;
+            time_save[x][i - 3] = elapsed_seconds.count();
+            //std::cout << "qbit: " << i << ", Time used:  " << elapsed_seconds.count() << std::endl;
+        }
     }
+
+    std::vector<double> average_time;
+    average_time.resize(17);
+    for (int i = 0; i < 17; i++)
+    {
+        for (int j = 0; j < 10; j++)
+        {
+            average_time[i] += time_save[j][i];
+        }
+        average_time[i] = average_time[i] / 10;
+    }
+    for (int i = 0; i < 17; i++)
+    {
+        std::wcout << "qbit: " << i+3 << ", average time used: " << average_time[i] << std::endl;
+    }
+
     return true;
 }
 
@@ -166,7 +191,7 @@ TEST(CPU_Precison, test1)
     bool test_val = false;
     try
     {
-        test_val = test_vf1_0();
+        //test_val = test_vf1_0();
         test_val = test_vf1_1();
     }
     catch (const std::exception& e)

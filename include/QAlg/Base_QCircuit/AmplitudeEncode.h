@@ -266,7 +266,7 @@ protected:
 	std::map<std::string, T> _pivoting(QCircuit& qcir,const QVec &qubits, std::string index_zero, 
 		            std::string index_nonzero, int target_size, std::map<std::string, T> state);
 
-	void _unitary(const QVec &q, EigenMatrixXc gate);
+	void _unitary(const QVec &q, QMatrixXcd gate);
 
 
 	std::map<std::string, qcomplex_t> _build_state_dict(const std::vector<qcomplex_t> &state);

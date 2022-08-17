@@ -3,7 +3,7 @@ project(QPANDA)
 
 set(QPANDA_MAJOR_VERSION 2)
 set(QPANDA_MINOR_VERSION 1)
-set(QPANDA_PATCH_VERSION 13)
+set(QPANDA_PATCH_VERSION 14)
 set(QPANDA_VERSION "${QPANDA_MAJOR_VERSION}.${QPANDA_MINOR_VERSION}.${QPANDA_PATCH_VERSION}")
 message(STATUS "QPANDA VERSION = " "[${QPANDA_VERSION}]")
 # disable compiler verbose output, default is off, enable it when want to check compiler/linker option
@@ -40,6 +40,7 @@ include_directories(${PROJECT_SOURCE_DIR}/Extensions
                     ${PROJECT_SOURCE_DIR}/ThirdParty/bplus-tree/include
                     ${PROJECT_SOURCE_DIR}/ThirdParty/antlr4/runtime/src
                     ${PROJECT_SOURCE_DIR}/ThirdParty/rabbit
+                    ${PROJECT_SOURCE_DIR}/ThirdParty/mpfit/include
                     ${PROJECT_SOURCE_DIR})
 
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
@@ -59,6 +60,7 @@ set(LIB_GTEST gtest)
 set(LIB_BPLUSTREE BplusTree)
 set(LIB_COMPONENTS Components)
 set(LIB_NLOPT nlopt)
+set(LIB_MPFIT mpfit)
 set(LIB_ANTLR4 antlr4)
 set(LIB_QALG QAlg)
 

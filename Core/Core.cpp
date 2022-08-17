@@ -453,7 +453,7 @@ QStat QPanda::getQState()
     return global_quantum_machine->getQState();
 }
 
-QGate QPanda::QOracle(const QVec& qubits, const EigenMatrixXc& matrix)
+QGate QPanda::QOracle(const QVec& qubits, const QMatrixXcd& matrix)
 {
     return(QOracle(qubits, Eigen_to_QStat(matrix)));
 }

@@ -477,18 +477,30 @@ void QVM::run(QProg& qprog, const NoiseModel& noise_model)
 	{
 		TraversalConfig config(noise_model.rotation_error());
 		config.m_can_optimize_measure = false;
-		
-		std::shared_ptr<AbstractQuantumProgram> qp =nullptr;
+
+		std::shared_ptr<AbstractQuantumProgram> qp = nullptr;
 		if (noise_model.enabled())
 		{
 			/* generate simulate prog contains virtual noise gate */
 			auto noise_qprog = NoiseProgGenerator().generate_noise_prog(noise_model, qprog.getImplementationPtr());
 			qp = noise_qprog.getImplementationPtr();
-		}else{
-			qp = qprog.getImplementationPtr();
+		}
+		else {
+            QVec used_qv;
+            this->get_allocate_qubits(used_qv);
+            if (used_qv.size() > 18)
+            {
+                QProg prog = deepCopy(qprog);
+                merge_QGate(prog);
+                qp = prog.getImplementationPtr();
+            }
+            else
+            {
+                qp = qprog.getImplementationPtr();
+            }
 		}
 		QPANDA_ASSERT(qp == nullptr, "Error: not valid quantum program");
-		
+
 		//_pGates->initState(0, 1, _Qubit_Pool->get_max_usedqubit_addr() + 1);
 		_pGates->initState(0, 1, qp->get_max_qubit_addr() + 1);
 
@@ -523,16 +535,6 @@ void QVM::run(QProg& qprog, const NoiseModel& noise_model)
 
 void CPUQVM::run(QProg& qprog, const NoiseModel& noise_model)
 {
-    QVec used_qv;
-    this->get_allocate_qubits(used_qv);
-    QProg prog;
-    QNodeDeepCopy deep_copy;
-    auto prog_node = qprog.getImplementationPtr();
-    prog = deep_copy.copy_node(prog_node);
-    if ((!used_qv.empty()))
-    {
-        merge_QGate(prog);
-    }
     try
     {
         TraversalConfig config(noise_model.rotation_error());
@@ -546,7 +548,19 @@ void CPUQVM::run(QProg& qprog, const NoiseModel& noise_model)
             qp = noise_qprog.getImplementationPtr();
         }
         else {
-            qp = prog.getImplementationPtr();
+            
+            QVec used_qv;
+            this->get_allocate_qubits(used_qv);
+            if (used_qv.size() > 18)
+            {
+                QProg prog = deepCopy(qprog);
+                merge_QGate(prog);
+                qp = prog.getImplementationPtr();
+            }
+            else
+            {
+                 qp = qprog.getImplementationPtr();
+            }
         }
         QPANDA_ASSERT(qp == nullptr, "Error: not valid quantum program");
 

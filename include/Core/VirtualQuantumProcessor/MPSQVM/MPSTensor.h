@@ -22,26 +22,19 @@ limitations under the License.
 #include <iostream>
 #include <vector>
 #include <random>
-#include "ThirdParty/Eigen/Eigen"
+#include "Core/Utilities/Tools/QMatrixDef.h"
 #include <iomanip>
 
 QPANDA_BEGIN
-
-using rvector_t = Eigen::Matrix<qstate_type, Eigen::Dynamic, 1>;
-using cvector_t = Eigen::Matrix<qcomplex_t, Eigen::Dynamic, 1>;
-using cmatrix_t = Eigen::Matrix<qcomplex_t, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
-
-using namespace Eigen;
-
 class MPS_Tensor
 {
 public:
-    std::vector<cmatrix_t> m_physical_index;
+    std::vector<QMatrixXcd> m_physical_index;
 
 public:
 	MPS_Tensor() {}
 
-	MPS_Tensor(const cmatrix_t& data0, const cmatrix_t& data1) 
+	MPS_Tensor(const QMatrixXcd& data0, const QMatrixXcd& data1) 
 	{
 		m_physical_index.clear();
 		m_physical_index.push_back(data0);
@@ -56,12 +49,12 @@ public:
         return m_physical_index.size();
     }
 
-	std::vector <cmatrix_t>  get_data() const 
+	std::vector <QMatrixXcd>  get_data() const 
 	{ 
 		return m_physical_index;
 	}
 
-    cmatrix_t get_data(size_t i) const
+    QMatrixXcd get_data(size_t i) const
 	{ 
 		return m_physical_index[i];
 	}
@@ -71,7 +64,7 @@ public:
         std::swap(m_physical_index[1], m_physical_index[2]);
     }
 
-    void apply_matrix(const cmatrix_t &mat, bool swapped = false)
+    void apply_matrix(const QMatrixXcd &mat, bool swapped = false)
     {
 		if (mat.isIdentity())
 			return;
@@ -96,31 +89,31 @@ public:
 			swap(m_physical_index[1], m_physical_index[2]);
     }
 
-    void mul_gamma_by_left_lambda(const rvector_t &Lambda)
+    void mul_gamma_by_left_lambda(const QVectorXd &Lambda)
     {
         handle_gamma_by_lambda(Lambda, false,/*left*/ true /*mul*/);
     }
 
-    void mul_gamma_by_right_lambda(const rvector_t &Lambda)
+    void mul_gamma_by_right_lambda(const QVectorXd &Lambda)
     {
         handle_gamma_by_lambda(Lambda, true,/*right*/ true /*mul*/);
     }
 
-    void div_gamma_by_left_lambda(const rvector_t &Lambda)
+    void div_gamma_by_left_lambda(const QVectorXd &Lambda)
     {
         handle_gamma_by_lambda(Lambda, false,/*left*/ false /*div*/);
     }
 
-    void div_gamma_by_right_lambda(const rvector_t &Lambda)
+    void div_gamma_by_right_lambda(const QVectorXd &Lambda)
     {
         handle_gamma_by_lambda(Lambda, true,/*right*/ false /*div*/);
     }
 
-    static MPS_Tensor contract(const MPS_Tensor &left_gamma, const rvector_t &lambda, const MPS_Tensor &right_gamma);
+    static MPS_Tensor contract(const MPS_Tensor &left_gamma, const QVectorXd &lambda, const MPS_Tensor &right_gamma);
 
-    static void decompose(MPS_Tensor &temp, MPS_Tensor &left_gamma, rvector_t &lambda, MPS_Tensor &right_gamma);
+    static void decompose(MPS_Tensor &temp, MPS_Tensor &left_gamma, QVectorXd &lambda, MPS_Tensor &right_gamma);
 
-    static void contract_2_dimensions(const MPS_Tensor &left_gamma, const MPS_Tensor &right_gamma, cmatrix_t &result);
+    static void contract_2_dimensions(const MPS_Tensor &left_gamma, const MPS_Tensor &right_gamma, QMatrixXcd &result);
 
     void apply_pauli(GateType gate)
 	{
@@ -146,7 +139,7 @@ public:
     }
 
 private:
-    void handle_gamma_by_lambda(const rvector_t &Lambda, bool right, /* or left */  bool mul    /* or div */);
+    void handle_gamma_by_lambda(const QVectorXd &Lambda, bool right, /* or left */  bool mul    /* or div */);
 
 };
 

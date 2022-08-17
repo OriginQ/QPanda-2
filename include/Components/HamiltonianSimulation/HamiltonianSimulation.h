@@ -20,13 +20,11 @@ Created in 2018-09-19
 #include "Core/QuantumCircuit/QCircuit.h"
 #include "Core/Module/DataStruct.h"
 #include "Core/Utilities/QProgInfo/ConfigMap.h"
-#include "ThirdParty/Eigen/Dense"
+#include "Core/Utilities/Tools/QMatrixDef.h"
+
 #include <complex>
-#include "ThirdParty/Eigen/Eigen"
 
 QPANDA_BEGIN
-
-using  qmatrix_t = Eigen::Matrix<qcomplex_t, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
 
 
 class QOperator : public QCircuit
@@ -84,9 +82,9 @@ namespace QPanda
         Euler's identity (exp(i*theta) = cos(theta) + i*sin(theta))
         applied to a matrix 
     *************************************************************/
-    qmatrix_t expMat(
+    QMatrixXcd expMat(
         const qcomplex_t& conf,
-        const qmatrix_t& Mat,
+        const QMatrixXcd& Mat,
         double number = PI);
 
     /**

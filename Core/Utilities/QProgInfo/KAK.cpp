@@ -1,21 +1,13 @@
 
 #include "Core/Utilities/QProgInfo/KAK.h"
+#include "Core/Utilities/UnitaryDecomposer/MatrixUtil.h"
 #include "Core/Utilities/QProgInfo/QCircuitInfo.h"
 #include "Core/Utilities/Tools/QStatMatrix.h"
 #include "ThirdParty/EigenUnsupported/Eigen/KroneckerProduct"
 #include "ThirdParty/EigenUnsupported/Eigen/MatrixFunctions"
 
 constexpr std::complex<double> CPX_I{ 0.0, 1.0 };
-const  double PRECISION = 1e-9;
 #define  SQRT1_2  0.707106781186547524401  // 1/sqrt(2)
-
-#define _ASSERT(con, argv)    do{											\
-                                        if (!con)												\
-                                        {														\
-                                            throw std::runtime_error(argv);	\
-                                        }														\
-                                    }while(0)
-
 
 USING_QPANDA
 using namespace std;
@@ -61,14 +53,6 @@ const static Eigen::MatrixXcd& GAMMA()
 	return GAMMA;
 }
 
-Eigen::Matrix4cd generate_random_unitary()
-{
-	// Using QR decomposition to generate a random unitary
-	Eigen::Matrix4cd mat = Eigen::Matrix4cd::Random();
-	auto QR = mat.householderQr();
-	Eigen::Matrix4cd qMat = QR.householderQ() * Eigen::Matrix4cd::Identity();
-	return qMat;
-}
 
 // Splits i = 0...length into approximate equivalence classes
 // determine by the predicate
@@ -97,97 +81,19 @@ Eigen::MatrixXd block_diagonal(const Eigen::MatrixXd& in_first, const Eigen::Mat
 	return bdm;
 }
 
-inline bool is_square(const Eigen::MatrixXcd& in_mat)
-{
-	return in_mat.rows() == in_mat.cols();
-}
-
-bool is_approx(const Eigen::MatrixXcd& in_mat1, const Eigen::MatrixXcd& in_mat2, double perc = 1e-9)
-{
-	if (!in_mat1.allFinite() || !in_mat2.allFinite())
-		return false;
-
-	if (in_mat1.rows() == in_mat2.rows() && in_mat1.cols() == in_mat2.cols())
-	{
-		for (int i = 0; i < in_mat1.rows(); ++i)
-		{
-			for (int j = 0; j < in_mat1.cols(); ++j)
-			{
-				if (std::abs(in_mat1(i, j) - in_mat2(i, j)) > perc)
-					return false;
-			}
-		}
-		return true;
-	}
-	return false;
-}
-
-bool is_hermitian(const Eigen::MatrixXcd& in_mat)
-{
-	if (!is_square(in_mat) || !in_mat.allFinite())
-		return false;
-
-	return is_approx(in_mat, in_mat.adjoint());
-}
-
-bool is_orthogonal(const Eigen::MatrixXcd& in_mat, double perc = 1e-9)
-{
-	if (!is_square(in_mat) || !in_mat.allFinite())
-		return false;
-
-	// Is real 
-	for (int i = 0; i < in_mat.rows(); ++i)
-	{
-		for (int j = 0; j < in_mat.cols(); ++j)
-		{
-			if (std::abs(in_mat(i, j).imag()) > perc)
-				return false;
-		}
-	}
-	// its transpose is its inverse
-	return is_approx(in_mat.inverse(), in_mat.transpose());
-}
-
-// Is Orthogonal and determinant == 1
-bool is_special_orthogonal(const Eigen::MatrixXcd& in_mat, double perc = 1e-9)
-{
-	return is_orthogonal(in_mat) && (std::abs(std::abs(in_mat.determinant()) - 1.0) < perc);
-}
-
-bool is_canonicalized(double x, double y, double z, double perc = 1e-9)
+bool is_canonicalized(double x, double y, double z)
 {
 	// 0 ¡Ü abs(z) ¡Ü y ¡Ü x ¡Ü pi/4 , if x = pi/4, z >= 0
-	if (std::abs(z) >= 0 && y >= std::abs(z) && x >= y && x <= (PI / 4.0 + perc))
+	const double TOL = 1e-8;
+	if (std::abs(z) >= 0 && y >= std::abs(z) && x >= y && x <= (PI / 4.0 + TOL))
 	{
-		if (std::abs(x - PI / 4.0) < perc)
+		if (std::abs(x - PI / 4.0) < TOL)
 			return (z >= 0);
 
 		return true;
 	}
 	return false;
 }
-
-bool is_diagonal(const Eigen::MatrixXcd& in_mat, double perc = 1e-9)
-{
-	if (!in_mat.allFinite())
-		return false;
-
-	for (int i = 0; i < in_mat.rows(); ++i)
-	{
-		for (int j = 0; j < in_mat.cols(); ++j)
-		{
-			if (i != j)
-			{
-				if (std::abs(in_mat(i, j)) > perc)
-					return false;
-			}
-		}
-	}
-	return true;
-}
-
-
-
 
 // Compute exp(i(x XX + y YY + z ZZ)) matrix
 Eigen::Matrix4cd exp_xyz_matrix(double x, double y, double z)
@@ -208,18 +114,18 @@ Eigen::Matrix4cd exp_xyz_matrix(double x, double y, double z)
 }
 
 
-QCircuit ZYZ_decomposition(double zAngleBefore, double yAngle, double zAngleAfter, Qubit * in_qubit)
+QCircuit simplify_single_qubit_seq(double zAngleBefore, double yAngle, double zAngleAfter, Qubit* in_qubit)
 {
 	auto zExpBefore = zAngleBefore / PI - 0.5;
 	auto  middleExp = yAngle / PI;
-	QGate (*GATE_FUNC)(Qubit*, double)  = RX;
+	QGate(*GATE_FUNC)(Qubit*, double) = RX;
 
 	auto  zExpAfter = zAngleAfter / PI + 0.5;
 
 	const auto is_near_zeromod = [](double a, double period) -> bool {
 		const auto halfPeriod = period / 2;
-		const double perc = 1e-8;
-		return std::abs(fmod(a + halfPeriod, period) - halfPeriod) < perc;
+		const double TOL = 1e-8;
+		return std::abs(fmod(a + halfPeriod, period) - halfPeriod) < TOL;
 	};
 
 	const auto to_quarter_turns = [](double in_exp) -> int {
@@ -285,32 +191,36 @@ QCircuit ZYZ_decomposition(double zAngleBefore, double yAngle, double zAngleAfte
 	return cir;
 }
 
-QCircuit generate_single_gate(const Eigen::Matrix2cd& in_mat, Qubit * in_qubit)
+
+/*
+*	Use Z-Y decomposition of Nielsen and Chuang (Theorem 4.1).
+*	An arbitrary one qubit gate matrix can be written as
+*  U = [ exp(j*(a-b/2-d/2))*cos(c/2), -exp(j*(a-b/2+d/2))*sin(c/2)
+*			exp(j*(a+b/2-d/2))*sin(c/2), exp(j*(a+b/2+d/2))*cos(c/2)]
+*		where a,b,c,d are real numbers.
+*/
+QCircuit simplify_zyz_decomposition(const Eigen::Matrix2cd& in_mat, Qubit* in_qubit)
 {
-	// Use Z-Y decomposition of Nielsen and Chuang (Theorem 4.1).
-	// An arbitrary one qubit gate matrix can be written as
-	// U = [ exp(j*(a-b/2-d/2))*cos(c/2), -exp(j*(a-b/2+d/2))*sin(c/2)
-	//       exp(j*(a+b/2-d/2))*sin(c/2), exp(j*(a+b/2+d/2))*cos(c/2)]
-	// where a,b,c,d are real numbers.
+	_ASSERT(is_unitary(in_mat), "not unitary");
+
 	auto matrix = in_mat;
 	double a = 0.0, bHalf = 0.0, cHalf = 0.0, dHalf = 0.0;
-
 	if (!is_approx(matrix, Eigen::Matrix2cd::Identity()))
 	{
 		const auto checkParams = [&matrix](double a, double bHalf, double cHalf, double dHalf) {
 			Eigen::Matrix2cd U;
-			U << std::exp(CPX_I*(a - bHalf - dHalf))*std::cos(cHalf),
-				-std::exp(CPX_I*(a - bHalf + dHalf))*std::sin(cHalf),
-				std::exp(CPX_I*(a + bHalf - dHalf))*std::sin(cHalf),
-				std::exp(CPX_I*(a + bHalf + dHalf))*std::cos(cHalf);
+			U << std::exp(CPX_I * (a - bHalf - dHalf)) * std::cos(cHalf),
+				-std::exp(CPX_I * (a - bHalf + dHalf)) * std::sin(cHalf),
+				std::exp(CPX_I * (a + bHalf - dHalf))* std::sin(cHalf),
+				std::exp(CPX_I * (a + bHalf + dHalf))* std::cos(cHalf);
 
 			return is_approx(U, matrix);
 		};
-
-		if (std::abs(matrix(0, 1)) < PRECISION)
+		const double TOL = 1e-9;
+		if (std::abs(matrix(0, 1)) < TOL)
 		{
-			auto two_a = fmod(std::arg(matrix(0, 0)*matrix(1, 1)), 2 * PI);
-			a = (std::abs(two_a) < PRECISION || std::abs(two_a) > 2 * PI - PRECISION) ? 0 : two_a / 2.0;
+			auto two_a = fmod(std::arg(matrix(0, 0) * matrix(1, 1)), 2 * PI);
+			a = (std::abs(two_a) < TOL || std::abs(two_a) > 2 * PI - TOL) ? 0 : two_a / 2.0;
 			auto dHalf = 0.0;
 			auto b = std::arg(matrix(1, 1)) - std::arg(matrix(0, 0));
 			std::vector<double> possibleBhalf{ fmod(b / 2.0, 2 * PI), fmod(b / 2.0 + PI, 2.0 * PI) };
@@ -333,14 +243,14 @@ QCircuit generate_single_gate(const Eigen::Matrix2cd& in_mat, Qubit * in_qubit)
 			}
 			_ASSERT(found, "not found");
 		}
-		else if (std::abs(matrix(0, 0)) < PRECISION)
+		else if (std::abs(matrix(0, 0)) < TOL)
 		{
-			auto two_a = fmod(std::arg(-matrix(0, 1)*matrix(1, 0)), 2 * PI);
-			a = (std::abs(two_a) < PRECISION || std::abs(two_a) > 2 * PI - PRECISION) ? 0 : two_a / 2.0;
+			auto two_a = fmod(std::arg(-matrix(0, 1) * matrix(1, 0)), 2 * PI);
+			a = (std::abs(two_a) < TOL || std::abs(two_a) > 2 * PI - TOL) ? 0 : two_a / 2.0;
 			dHalf = 0;
 			auto b = std::arg(matrix(1, 0)) - std::arg(matrix(0, 1)) + PI;
 			std::vector<double> possibleBhalf{ fmod(b / 2., 2 * PI), fmod(b / 2. + PI, 2 * PI) };
-			std::vector<double> possibleChalf{ PI / 2., 3. / 2.*PI };
+			std::vector<double> possibleChalf{ PI / 2., 3. / 2. * PI };
 			bool found = false;
 			for (int i = 0; i < possibleBhalf.size(); ++i)
 			{
@@ -363,23 +273,23 @@ QCircuit generate_single_gate(const Eigen::Matrix2cd& in_mat, Qubit * in_qubit)
 		}
 		else
 		{
-			auto two_a = fmod(std::arg(matrix(0, 0)*matrix(1, 1)), 2 * PI);
-			a = (std::abs(two_a) < PRECISION || std::abs(two_a) > 2 * PI - PRECISION) ? 0 : two_a / 2.0;
-			auto two_d = 2.*std::arg(matrix(0, 1)) - 2.*std::arg(matrix(0, 0));
+			auto two_a = fmod(std::arg(matrix(0, 0) * matrix(1, 1)), 2 * PI);
+			a = (std::abs(two_a) < TOL || std::abs(two_a) > 2 * PI - TOL) ? 0 : two_a / 2.0;
+			auto two_d = 2. * std::arg(matrix(0, 1)) - 2. * std::arg(matrix(0, 0));
 			std::vector<double> possibleDhalf{ fmod(two_d / 4., 2 * PI),
 							  fmod(two_d / 4. + PI / 2., 2 * PI),
 							  fmod(two_d / 4. + PI, 2 * PI),
-							  fmod(two_d / 4. + 3. / 2.*PI, 2 * PI) };
-			auto two_b = 2.*std::arg(matrix(1, 0)) - 2.*std::arg(matrix(0, 0));
+							  fmod(two_d / 4. + 3. / 2. * PI, 2 * PI) };
+			auto two_b = 2. * std::arg(matrix(1, 0)) - 2. * std::arg(matrix(0, 0));
 			std::vector<double> possibleBhalf{ fmod(two_b / 4., 2 * PI),
 							  fmod(two_b / 4. + PI / 2., 2 * PI),
 							  fmod(two_b / 4. + PI, 2 * PI),
-							  fmod(two_b / 4. + 3. / 2.*PI, 2 * PI) };
+							  fmod(two_b / 4. + 3. / 2. * PI, 2 * PI) };
 			auto tmp = std::acos(std::abs(matrix(1, 1)));
 			std::vector<double> possibleChalf{ fmod(tmp, 2 * PI),
 							  fmod(tmp + PI, 2 * PI),
-							  fmod(-1.*tmp, 2 * PI),
-							  fmod(-1.*tmp + PI, 2 * PI) };
+							  fmod(-1. * tmp, 2 * PI),
+							  fmod(-1. * tmp + PI, 2 * PI) };
 			bool found = false;
 			for (int i = 0; i < possibleBhalf.size(); ++i)
 			{
@@ -405,34 +315,22 @@ QCircuit generate_single_gate(const Eigen::Matrix2cd& in_mat, Qubit * in_qubit)
 			}
 			_ASSERT(found, "not found");
 		}
-
-		_ASSERT(checkParams(a, bHalf, cHalf, dHalf), "check param error");
 	}
-	// Final check:
 
 	// Validate U = exp(j*a) Rz(b) Ry(c) Rz(d).
 	const auto validate = [](const Eigen::Matrix2cd& in_mat, double a, double b, double c, double d) {
 		Eigen::Matrix2cd Rz_b, Ry_c, Rz_d;
-		Rz_b << std::exp(-CPX_I * b / 2.0), 0, 0, std::exp(CPX_I*b / 2.0);
-		Rz_d << std::exp(-CPX_I * d / 2.0), 0, 0, std::exp(CPX_I*d / 2.0);
+		Rz_b << std::exp(-CPX_I * b / 2.0), 0, 0, std::exp(CPX_I * b / 2.0);
+		Rz_d << std::exp(-CPX_I * d / 2.0), 0, 0, std::exp(CPX_I * d / 2.0);
 		Ry_c << std::cos(c / 2), -std::sin(c / 2), std::sin(c / 2), std::cos(c / 2);
-		auto mat = std::exp(CPX_I*a)*Rz_b*Ry_c*Rz_d;
+		auto mat = std::exp(CPX_I * a) * Rz_b * Ry_c * Rz_d;
 		return is_approx(in_mat, mat);
 	};
-	// Validate the *raw* decomposition
-	_ASSERT(validate(in_mat, a, 2 * bHalf, 2 * cHalf, 2 * dHalf),  "not validate decomposition");
+	_ASSERT(validate(in_mat, a, 2 * bHalf, 2 * cHalf, 2 * dHalf), "not validate decomposition");
 
 	// Simplify/optimize the sequence:
-	std::vector < std::pair<std::string, double > > test_gates;
-	QCircuit cir = ZYZ_decomposition(2 * dHalf, 2 * cHalf, 2 * bHalf, in_qubit);
+	QCircuit cir = simplify_single_qubit_seq(2 * dHalf, 2 * cHalf, 2 * bHalf, in_qubit);
 
-	QStat mat_1 = getCircuitMatrix(cir);
-	QStat  mat_2 = Eigen_to_QStat(in_mat);
-	if (mat_1 != mat_2)
-	{
-		QCERR("mat_1  mat_2  not unequal !");
-		throw invalid_argument("mat_1  mat_2  not unequal !");
-	}
 	return cir;
 }
 
@@ -445,72 +343,53 @@ Eigen::MatrixXcd KakDescription::to_matrix() const
 	return total;
 }
 
-QCircuit KakDescription::to_qcircuit(Qubit *  in_bit1, Qubit * in_bit2) const
+QCircuit KakDescription::to_qcircuit(Qubit* in_bit1, Qubit* in_bit2) const
 {
 	QCircuit interaction_gates;
-	const double perc = 1e-8;
-	auto target = exp_xyz_matrix(x, y, z);
+	const double TOL = 1e-8;
 
-	if (std::abs(z) >= perc)   	// Full decomposition is required
+	if (std::abs(z) >= TOL)   	// Full decomposition is required
 	{
 		const double xAngle = PI * (x * -2 / PI + 0.5);
 		const double yAngle = PI * (y * -2 / PI + 0.5);
 		const double zAngle = PI * (z * -2 / PI + 0.5);
-		interaction_gates << H(in_bit1)
-			<< CZ(in_bit2, in_bit1)
-			<< H(in_bit1)
+		interaction_gates << CNOT(in_bit2, in_bit1)
 			<< RZ(in_bit1, zAngle)
 			<< RX(in_bit1, PI / 2.0)
-			<< H(in_bit2)
-			<< CZ(in_bit1, in_bit2)
-			<< H(in_bit2)
+			<< CNOT(in_bit1, in_bit2)
 			<< RY(in_bit1, yAngle)
 			<< RX(in_bit2, xAngle)
-			<< H(in_bit1)
-			<< CZ(in_bit1, in_bit2)
-			<< H(in_bit1)
+			<< CNOT(in_bit2, in_bit1)
 			<< RX(in_bit2, -PI / 2.0)
 			;
 	}
-	else if (y >= perc) 	// ZZ interaction is near zero: only XX and YY
+	else if (y >= TOL) 	// ZZ interaction is near zero: only XX and YY
 	{
 		const double xAngle = -2 * x;
 		const double yAngle = -2 * y;
-		interaction_gates << RX(in_bit1, PI / 2.0)
-			<< H(in_bit1)
-			<< CZ(in_bit2, in_bit1)
-			<< H(in_bit1)
+		interaction_gates << RX(in_bit2, PI / 2.0)
+			<< CNOT(in_bit2, in_bit1)
 			<< RY(in_bit1, yAngle)
 			<< RX(in_bit2, xAngle)
-			<< H(in_bit1)
-			<< CZ(in_bit1, in_bit2)
-			<< H(in_bit1)
+			<< CNOT(in_bit2, in_bit1)
 			<< RX(in_bit2, -PI / 2.0)
 			;
 	}
 	else  // only XX is significant
 	{
 		const double xAngle = -2 * x;
-		interaction_gates << H(in_bit1)
-			<< CZ(in_bit2, in_bit1)
-			<< RX(in_bit2, xAngle)
-			<< CZ(in_bit1, in_bit2)
+		interaction_gates << CNOT(in_bit2, in_bit1)
 			<< H(in_bit1)
+			<< RX(in_bit2, xAngle)
+			<< H(in_bit1)
+			<< CNOT(in_bit2, in_bit1)
 			;
 	}
 
-	auto mat_1 = getCircuitMatrix(interaction_gates);
-	auto mat_2 = Eigen_to_QStat(target);
-	if (mat_1 != mat_2)
-	{
-		QCERR("  decomposition error !");
-		throw invalid_argument("  decomposition error !");
-	}
-
-	auto a0_gates = generate_single_gate(a0, in_bit2);
-	auto a1_gates = generate_single_gate(a1, in_bit1);
-	auto b0_gates = generate_single_gate(b0, in_bit2);
-	auto b1_gates = generate_single_gate(b1, in_bit1);
+	auto a0_gates = simplify_zyz_decomposition(a0, in_bit2);
+	auto a1_gates = simplify_zyz_decomposition(a1, in_bit1);
+	auto b0_gates = simplify_zyz_decomposition(b0, in_bit2);
+	auto b1_gates = simplify_zyz_decomposition(b1, in_bit1);
 
 	// U = g x (Gate A1 Gate A0) x exp(i(xXX + yYY + zZZ))x(Gate b1 Gate b0)
 	QCircuit total_qcir;
@@ -526,8 +405,9 @@ QCircuit KakDescription::to_qcircuit(Qubit *  in_bit1, Qubit * in_bit2) const
 
 KakDescription KAK::decompose(const Eigen::Matrix4cd& in_matrix)
 {
-	_ASSERT(in_matrix.isUnitary(), "not unitary");
 	Eigen::MatrixXcd mInMagicBasis = MAGIC_DAG() * in_matrix * MAGIC();
+	_ASSERT(is_unitary(mInMagicBasis), "not unitary");
+
 	Eigen::Matrix4cd left, right;
 	std::vector<std::complex<double>>  diag;
 
@@ -536,10 +416,6 @@ KakDescription KAK::decompose(const Eigen::Matrix4cd& in_matrix)
 	Eigen::Matrix2cd a1, a0, b1, b0;
 	so4_to_magic_su2s(left.transpose(), a1, a0);
 	so4_to_magic_su2s(right.transpose(), b1, b0);
-	_ASSERT(a0.isUnitary(), "not unitary");
-	_ASSERT(a1.isUnitary(), "not unitary");
-	_ASSERT(b0.isUnitary(), "not unitary");
-	_ASSERT(b1.isUnitary(), "not unitary");
 
 	Eigen::Vector4cd angles;
 	for (size_t i = 0; i < 4; ++i)
@@ -563,13 +439,6 @@ KakDescription KAK::decompose(const Eigen::Matrix4cd& in_matrix)
 		_ASSERT(std::abs(factors(3).imag()) < 1e-9, "error");
 	}
 
-	// Failed to validate
-	if (!is_approx(result.to_matrix(), in_matrix))
-	{
-		QCERR("validateMatrix error !");
-		throw invalid_argument("validateMatrix  error !");
-	}
-
 	auto canon = canonicalize(result.x, result.y, result.z);
 
 	// Combine the single-qubit blocks:
@@ -583,12 +452,13 @@ KakDescription KAK::decompose(const Eigen::Matrix4cd& in_matrix)
 	result.z = canon.z;
 
 	_ASSERT(is_canonicalized(result.x, result.y, result.z), "not canonicalized");
-	_ASSERT(is_approx(result.to_matrix(), in_matrix), "not approx");
+	_ASSERT(is_approx(result.to_matrix(), in_matrix, 1e-3), "not approx");
+
 	return result;
 }
 
 void KAK::bidiagonalize(const Eigen::Matrix4cd& in_matrix,
-	Eigen::Matrix4cd&out_left, std::vector<std::complex<double>> & diagVec, Eigen::Matrix4cd &out_right) const
+	Eigen::Matrix4cd& out_left, std::vector<std::complex<double>>& diagVec, Eigen::Matrix4cd& out_right) const
 {
 	Eigen::Matrix4d realMat;
 	Eigen::Matrix4d imagMat;
@@ -625,9 +495,7 @@ void KAK::bidiagonalize(const Eigen::Matrix4cd& in_matrix,
 	}
 
 	auto diag = left * in_matrix * right;
-	// Validate:
-	_ASSERT(is_diagonal(diag), "not diagonal" );
-
+	_ASSERT(is_diagonal(diag), "not diagonal");
 	for (int i = 0; i < diag.rows(); ++i)
 	{
 		diagVec.emplace_back(diag(i, i));
@@ -636,7 +504,7 @@ void KAK::bidiagonalize(const Eigen::Matrix4cd& in_matrix,
 	out_right = right;
 }
 
-void KAK::kron_factor(const Eigen::Matrix4cd& in_matrix, std::complex<double> &out_g, Eigen::Matrix2cd& out_f1, Eigen::Matrix2cd &out_f2) const
+void KAK::kron_factor(const Eigen::Matrix4cd& in_matrix, std::complex<double>& out_g, Eigen::Matrix2cd& out_f1, Eigen::Matrix2cd& out_f2) const
 {
 	Eigen::Matrix2cd f1 = Eigen::Matrix2cd::Zero();
 	Eigen::Matrix2cd f2 = Eigen::Matrix2cd::Zero();
@@ -680,17 +548,17 @@ void KAK::kron_factor(const Eigen::Matrix4cd& in_matrix, std::complex<double> &o
 		g = -g;
 	}
 
-	Eigen::Matrix4cd testMat = g * Eigen::kroneckerProduct(f1, f2);
-	_ASSERT(is_approx(testMat, in_matrix), "not approx");
+	//Eigen::Matrix4cd testMat = g * Eigen::kroneckerProduct(f1, f2);
+	//_ASSERT(is_approx(testMat, in_matrix), "not approx");
 
 	out_g = g;
 	out_f1 = f1;
 	out_f2 = f2;
 }
 
-void KAK::so4_to_magic_su2s(const Eigen::Matrix4cd& in_matrix, Eigen::Matrix2cd &f1, Eigen::Matrix2cd &f2) const
+void KAK::so4_to_magic_su2s(const Eigen::Matrix4cd& in_matrix, Eigen::Matrix2cd& f1, Eigen::Matrix2cd& f2) const
 {
-	_ASSERT(is_special_orthogonal(in_matrix), "not pecial_orthogonal" );
+	_ASSERT(is_special_orthogonal(in_matrix), "not pecial_orthogonal");
 	auto matInMagicBasis = MAGIC() * in_matrix * MAGIC_DAG();
 	std::complex<double> g;
 	kron_factor(matInMagicBasis, g, f1, f2);
@@ -698,15 +566,15 @@ void KAK::so4_to_magic_su2s(const Eigen::Matrix4cd& in_matrix, Eigen::Matrix2cd 
 
 Eigen::MatrixXd KAK::diagonalize_rsm(const Eigen::MatrixXd& in_mat) const
 {
-	_ASSERT(is_hermitian(in_mat), "not hermitian" );
+	//_ASSERT(is_hermitian(in_mat), "not hermitian");
 	Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> solver(in_mat);
 	Eigen::MatrixXd p = solver.eigenvectors();
 
 	// Orthogonal basis (Hermitian/symmetric matrix)  
-	_ASSERT(is_orthogonal(p), "not orthogonal");
+	//_ASSERT(is_orthogonal(p), "not orthogonal");
 
 	// An orthogonal matrix P such that PT x matrix x P is diagonal.
-	_ASSERT(is_diagonal(p.transpose() * in_mat * p), "not diagonal");
+	//_ASSERT(is_diagonal(p.transpose() * in_mat * p), "not diagonal");
 	return p;
 }
 
@@ -748,16 +616,16 @@ Eigen::MatrixXd KAK::diagonalize_rsm_sorted_diagonal(const Eigen::MatrixXd& in_s
 	}
 
 	// P.T x symmetric_matrix x P is diagonal
-	_ASSERT(is_diagonal(p.transpose() * in_symMat * p), "not diagonal");
+	//_ASSERT(is_diagonal(p.transpose() * in_symMat * p), "not diagonal");
 
 	// and P.T x diagonal_matrix x P = diagonal_matrix
-	_ASSERT(is_approx(p.transpose() * in_diagMat * p, in_diagMat), "not approx");
+	//_ASSERT(is_approx(p.transpose() * in_diagMat * p, in_diagMat), "not approx");
 	return p;
 }
 
 
 void KAK::bidiagonalize_rsm_products(const Eigen::Matrix4d& in_mat1, const Eigen::Matrix4d& in_mat2,
-	Eigen::Matrix4d &left, Eigen::Matrix4d &right) const
+	Eigen::Matrix4d& left, Eigen::Matrix4d& right) const
 {
 	// Use SVD to bi-diagonalize the first matrix.
 	Eigen::JacobiSVD<Eigen::MatrixXd> svd(in_mat1, Eigen::ComputeThinU | Eigen::ComputeThinV);
@@ -810,9 +678,10 @@ void KAK::bidiagonalize_rsm_products(const Eigen::Matrix4d& in_mat1, const Eigen
 			extra(i, j) = semiCorrected(i + rank, j + rank);
 		}
 	}
-	Eigen::MatrixXd extraLeftAdjust;
-	Eigen::VectorXd extraDiag;
-	Eigen::MatrixXd extraRightAdjust;
+
+	Eigen::MatrixXd extraLeftAdjust = Eigen::MatrixXd::Zero(0, 0);
+	Eigen::VectorXd extraDiag= Eigen::VectorXd::Zero(0);
+	Eigen::MatrixXd extraRightAdjust= Eigen::MatrixXd::Zero(0, 0);
 	if (dim > rank)
 	{
 		Eigen::JacobiSVD<Eigen::MatrixXd> svd2(extra, Eigen::ComputeThinU | Eigen::ComputeThinV);
@@ -826,8 +695,8 @@ void KAK::bidiagonalize_rsm_products(const Eigen::Matrix4d& in_mat1, const Eigen
 	left = leftAdjust.transpose() * baseLeft.transpose();
 	right = baseRight.transpose() * rightAdjust.transpose();
 	// L x mat1 x R and L x mat2 x R are diagonal matrices.
-	_ASSERT(is_diagonal(left * in_mat1 * right), "not diagonal");
-	_ASSERT(is_diagonal(left * in_mat2 * right), "not diagonal");
+	//_ASSERT(is_diagonal(left * in_mat1 * right), "not diagonal");
+	//_ASSERT(is_diagonal(left * in_mat2 * right), "not diagonal");
 }
 
 KakDescription KAK::canonicalize(double x, double y, double z) const
@@ -849,8 +718,8 @@ KakDescription KAK::canonicalize(double x, double y, double z) const
 
 	std::vector<Eigen::Matrix2cd> swappers{
 	  (Eigen::Matrix2cd() << CPX_I * SQRT1_2, SQRT1_2, -SQRT1_2, -CPX_I * SQRT1_2).finished(),
-	  (Eigen::Matrix2cd() << CPX_I * SQRT1_2, CPX_I*SQRT1_2, CPX_I*SQRT1_2, -CPX_I * SQRT1_2).finished(),
-	  (Eigen::Matrix2cd() << 0, CPX_I*SQRT1_2 + SQRT1_2, CPX_I*SQRT1_2 - SQRT1_2, 0).finished()
+	  (Eigen::Matrix2cd() << CPX_I * SQRT1_2, CPX_I * SQRT1_2, CPX_I * SQRT1_2, -CPX_I * SQRT1_2).finished(),
+	  (Eigen::Matrix2cd() << 0, CPX_I * SQRT1_2 + SQRT1_2, CPX_I * SQRT1_2 - SQRT1_2, 0).finished()
 	};
 
 	const auto shift = [&](int k, int step) {
@@ -927,7 +796,6 @@ KakDescription KAK::canonicalize(double x, double y, double z) const
 		negate(0, 2);
 	}
 
-	_ASSERT(is_canonicalized(v[0], v[1], v[2]), "not canonicalized");
 	KakDescription result;
 	{
 		result.global_phase = phase;
@@ -939,15 +807,34 @@ KakDescription KAK::canonicalize(double x, double y, double z) const
 		result.y = v[1];
 		result.z = v[2];
 	}
-
-	_ASSERT(is_approx(result.to_matrix(), exp_xyz_matrix(x, y, z)), "not approx");
 	return result;
 }
 
-QCircuit QPanda::random_kak_qcircuit(Qubit *in_qubit1, Qubit *in_qubit2)
+QCircuit QPanda::random_kak_qcircuit(Qubit* in_qubit1, Qubit* in_qubit2)
 {
 	KAK kak;
-	Eigen::Matrix4cd mat = generate_random_unitary();
+	Eigen::Matrix4cd mat = random_unitary(4);
 	KakDescription kak_desc = kak.decompose(mat);
 	return kak_desc.to_qcircuit(in_qubit1, in_qubit2);
+}
+
+QCircuit QPanda::unitary_decomposer_1q(const Eigen::Matrix2cd& in_mat, Qubit* in_qubit)
+{
+	return simplify_zyz_decomposition(in_mat, in_qubit);
+}
+
+QCircuit QPanda::unitary_decomposer_2q(const Eigen::Matrix4cd& in_mat, const QVec& qv, bool is_positive_seq)
+{
+	KAK kak;
+	KakDescription kak_desc = kak.decompose(in_mat);
+	QVec tmp_qv;
+	tmp_qv += qv;
+
+	_ASSERT((tmp_qv.size() == 2), "qubits not equal to  2 ");
+	if (!is_positive_seq)
+	{
+		std::swap(tmp_qv[0], tmp_qv[1]);
+	}
+
+	return kak_desc.to_qcircuit(tmp_qv[1], tmp_qv[0]);
 }

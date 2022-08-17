@@ -145,6 +145,16 @@ qcomplex_t PartialAmplitudeQVM::pmeasure_dec_index(std::string amplitude)
 
 stat_map PartialAmplitudeQVM::pmeasure_subset(const std::vector<std::string>& amplitude)
 {
+    uint128_t max_index = (uint128_t)1 << getAllocateQubitNum();
+
+    for (auto val : amplitude)
+    {
+        auto temp_amplitude = uint128_t(val.c_str());
+
+        if (max_index <= temp_amplitude)
+            QCERR_AND_THROW(run_fail, "current pmeasure amplitude > max_amplitude");
+    }
+
 	std::vector<uint128_t> dec_state;
 	for (auto state : amplitude)
 	{
@@ -545,12 +555,107 @@ void PartialAmplitudeQVM::execute(std::shared_ptr<AbstractQGateNode>  cur_node, 
         }
         break;
 
+        case GateType::RXX_GATE:
+        {
+            //RXX(0, 1, theta) => 
+            //H(0) + H(1) + 
+            //CNOT(0, 1) + 
+            //RZ(1, theta) +
+            //CNOT(0, 1) +
+            //H(1) + H(0)
+
+            auto ctr_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
+            auto tar_qubit = qubits_vector[1]->getPhysicalQubitPtr()->getQubitAddr();
+
+            auto angle_param = dynamic_cast<angleParameter*>(cur_node->getQGate())->getParameter();
+
+            construct_qnode(GateType::HADAMARD_GATE, cur_node->isDagger(), { ctr_qubit }, {});
+            construct_qnode(GateType::HADAMARD_GATE, cur_node->isDagger(), { tar_qubit }, {});
+            construct_qnode(GateType::CNOT_GATE, cur_node->isDagger(), { tar_qubit,ctr_qubit }, {});
+            construct_qnode(GateType::RZ_GATE, cur_node->isDagger(), { tar_qubit }, { 2 * angle_param });
+            construct_qnode(GateType::CNOT_GATE, cur_node->isDagger(), { tar_qubit,ctr_qubit }, {});
+            construct_qnode(GateType::HADAMARD_GATE, cur_node->isDagger(), { tar_qubit }, {});
+            construct_qnode(GateType::HADAMARD_GATE, cur_node->isDagger(), { ctr_qubit }, {});
+
+            m_graph_backend.m_spilt_num += 2;
+        }
+        break;
+
+        case GateType::RYY_GATE:
+        {
+            //RYY(0, 1, theta) => 
+            //RX(0, PI / 2) + RX(1, PI / 2) + 
+            //CNOT(0, 1) + 
+            //RZ(1, theta) +
+            //CNOT(0, 1) + 
+            //RX(0, -PI / 2) + RX(1, -PI / 2) + 
+
+            auto ctr_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
+            auto tar_qubit = qubits_vector[1]->getPhysicalQubitPtr()->getQubitAddr();
+
+            auto angle_param = dynamic_cast<angleParameter*>(cur_node->getQGate())->getParameter();
+
+            construct_qnode(GateType::RX_GATE, cur_node->isDagger(), { ctr_qubit }, { PI / 2 });
+            construct_qnode(GateType::RX_GATE, cur_node->isDagger(), { tar_qubit }, { PI / 2 });
+            construct_qnode(GateType::CNOT_GATE, cur_node->isDagger(), { tar_qubit,ctr_qubit }, {});
+            construct_qnode(GateType::RZ_GATE, cur_node->isDagger(), { tar_qubit }, { 2 * angle_param });
+            construct_qnode(GateType::CNOT_GATE, cur_node->isDagger(), { tar_qubit,ctr_qubit }, {});
+            construct_qnode(GateType::RX_GATE, cur_node->isDagger(), { ctr_qubit }, { -PI / 2 });
+            construct_qnode(GateType::RX_GATE, cur_node->isDagger(), { tar_qubit }, { -PI / 2 });
+
+            m_graph_backend.m_spilt_num += 2;
+        }
+        break;
+
+        case GateType::RZZ_GATE:
+        {
+            //RZZ(0, 1, theta) => 
+            //CNOT(0, 1) + 
+            //RZ(1, theta) +
+            //CNOT(0, 1) + 
+
+            auto ctr_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
+            auto tar_qubit = qubits_vector[1]->getPhysicalQubitPtr()->getQubitAddr();
+
+            auto angle_param = dynamic_cast<angleParameter*>(cur_node->getQGate())->getParameter();
+
+            construct_qnode(GateType::CNOT_GATE, cur_node->isDagger(), { tar_qubit,ctr_qubit }, {});
+            construct_qnode(GateType::RZ_GATE, cur_node->isDagger(), { tar_qubit }, { 2 * angle_param });
+            construct_qnode(GateType::CNOT_GATE, cur_node->isDagger(), { tar_qubit,ctr_qubit }, {});
+
+            m_graph_backend.m_spilt_num += 2;
+        }
+        break;
+
+        case GateType::RZX_GATE:
+        {
+            //RXX(0, 1, theta) => 
+            //H(1) + 
+            //CNOT(0, 1) + 
+            //RZ(1, theta) +
+            //CNOT(0, 1) +
+            //H(1)
+
+            auto ctr_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
+            auto tar_qubit = qubits_vector[1]->getPhysicalQubitPtr()->getQubitAddr();
+
+            auto angle_param = dynamic_cast<angleParameter*>(cur_node->getQGate())->getParameter();
+
+            construct_qnode(GateType::HADAMARD_GATE, cur_node->isDagger(), { tar_qubit }, {});
+            construct_qnode(GateType::CNOT_GATE, cur_node->isDagger(), { tar_qubit,ctr_qubit }, {});
+            construct_qnode(GateType::RZ_GATE, cur_node->isDagger(), { tar_qubit }, { 2 * angle_param });
+            construct_qnode(GateType::CNOT_GATE, cur_node->isDagger(), { tar_qubit,ctr_qubit }, {});
+            construct_qnode(GateType::HADAMARD_GATE, cur_node->isDagger(), { tar_qubit }, {});
+
+            m_graph_backend.m_spilt_num += 2;
+        }
+        break;
+
         case GateType::BARRIER_GATE:break;
         default:
         {
             string erroe_msg = "UnSupported QGate Node, Gate Type : " + to_string(gate_type);
-            QCERR(erroe_msg);
-            throw undefine_error("QGate");
+            QCERR_AND_THROW(undefine_error, erroe_msg);
         }
         break;
     }

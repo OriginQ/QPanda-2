@@ -19,7 +19,7 @@ using namespace Eigen;
 QProgToMatrix::MatrixOfOneLayer::MatrixOfOneLayer(QProgToMatrix& parent, SeqLayer<pOptimizerNodeInfo>& layer, std::vector<int> &qubits_in_use)
 	:m_parent(parent), m_qubits_in_use(qubits_in_use)
 {
-	m_mat_I = qmatrix_t::Identity(2, 2);
+	m_mat_I = QMatrixXcd::Identity(2, 2);
 	for (auto &node_item : layer)
 	{
 		auto p_node = *(node_item.first->m_iter);
@@ -72,17 +72,17 @@ QProgToMatrix::MatrixOfOneLayer::MatrixOfOneLayer(QProgToMatrix& parent, SeqLaye
 	std::sort(m_single_qubit_gates.begin(), m_single_qubit_gates.end(), sorfFun);
 }
 
-qmatrix_t QProgToMatrix::MatrixOfOneLayer::reverse_ctrl_gate_matrix_CX(qmatrix_t& src_mat)
+QMatrixXcd QProgToMatrix::MatrixOfOneLayer::reverse_ctrl_gate_matrix_CX(QMatrixXcd& src_mat)
 {
 	auto q = m_parent.allocate_qubits(2);
 	QGate gate_H = H(q[0]);
 	QStat gate_mat;
 	gate_H.getQGate()->getMatrix(gate_mat);
 	int dim = sqrt(gate_mat.size());
-	qmatrix_t mat_H = qmatrix_t::Map(&gate_mat[0], dim, dim);
+	QMatrixXcd mat_H = QMatrixXcd::Map(&gate_mat[0], dim, dim);
 
-	qmatrix_t result_mat;
-	qmatrix_t mat_of_zhang_multp_two_H = kroneckerProduct(mat_H, mat_H);
+	QMatrixXcd result_mat;
+	QMatrixXcd mat_of_zhang_multp_two_H = kroneckerProduct(mat_H, mat_H);
 
 	result_mat = (mat_of_zhang_multp_two_H * src_mat);
 	result_mat = (result_mat * mat_of_zhang_multp_two_H);
@@ -92,16 +92,16 @@ qmatrix_t QProgToMatrix::MatrixOfOneLayer::reverse_ctrl_gate_matrix_CX(qmatrix_t
 	return result_mat;
 }
 
-qmatrix_t QProgToMatrix::MatrixOfOneLayer::reverse_ctrl_gate_matrix_CU(qmatrix_t& src_mat)
+QMatrixXcd QProgToMatrix::MatrixOfOneLayer::reverse_ctrl_gate_matrix_CU(QMatrixXcd& src_mat)
 {
 	auto q = m_parent.allocate_qubits(2);
 	QGate gate_swap = SWAP(q[0], q[1]);
 	QStat gate_mat;
 	gate_swap.getQGate()->getMatrix(gate_mat);
 	int dim = sqrt(gate_mat.size());
-	qmatrix_t mat_swap = qmatrix_t::Map(&gate_mat[0], dim, dim);
+	QMatrixXcd mat_swap = QMatrixXcd::Map(&gate_mat[0], dim, dim);
 
-	qmatrix_t result_mat;
+	QMatrixXcd result_mat;
 
 	result_mat = (mat_swap * src_mat * mat_swap);
 
@@ -114,10 +114,10 @@ void QProgToMatrix::MatrixOfOneLayer::merge_two_crossed_matrix(const calcUintIte
 {
 	int qubit_start = (calc_unit_1.second[0] < calc_unit_2.second[0]) ? calc_unit_1.second[0] : calc_unit_2.second[0];
 	int qubit_end = (calc_unit_1.second[1] > calc_unit_2.second[1]) ? calc_unit_1.second[1] : calc_unit_2.second[1];
-	qmatrix_t tensored_calc_unit_1;
-	qmatrix_t tensored_calc_unit_2;
+	QMatrixXcd tensored_calc_unit_1;
+	QMatrixXcd tensored_calc_unit_2;
 
-	auto tensor_func = [this](const size_t &qubit_index, const calcUintItem_t &calc_unit, qmatrix_t &tensor_result) {
+	auto tensor_func = [this](const size_t &qubit_index, const calcUintItem_t &calc_unit, QMatrixXcd &tensor_result) {
 		if (qubit_index < calc_unit.second[0])
 		{
 			tensor_by_matrix(tensor_result, m_mat_I);
@@ -167,7 +167,7 @@ bool QProgToMatrix::MatrixOfOneLayer::check_cross_calc_unit(calcUnitVec_t& calc_
 	return false;
 }
 
-void QProgToMatrix::MatrixOfOneLayer::tensor_by_QGate(qmatrix_t &src_mat, std::shared_ptr<AbstractQGateNode> &pGate)
+void QProgToMatrix::MatrixOfOneLayer::tensor_by_QGate(QMatrixXcd &src_mat, std::shared_ptr<AbstractQGateNode> &pGate)
 {
 	if (nullptr == pGate)
 	{
@@ -179,7 +179,7 @@ void QProgToMatrix::MatrixOfOneLayer::tensor_by_QGate(qmatrix_t &src_mat, std::s
 		pGate->getQGate()->getMatrix(gate_mat);
 		int dim = sqrt(gate_mat.size());
 		
-		src_mat = qmatrix_t::Map(&gate_mat[0], dim, dim);
+		src_mat = QMatrixXcd::Map(&gate_mat[0], dim, dim);
 		if (pGate->isDagger())
 		{
 			src_mat.adjointInPlace();
@@ -190,19 +190,19 @@ void QProgToMatrix::MatrixOfOneLayer::tensor_by_QGate(qmatrix_t &src_mat, std::s
 		QStat gate_mat;
 		pGate->getQGate()->getMatrix(gate_mat);
 		int dim = sqrt(gate_mat.size());
-		qmatrix_t single_gate_mat = qmatrix_t::Map(&gate_mat[0], dim, dim);
+		QMatrixXcd single_gate_mat = QMatrixXcd::Map(&gate_mat[0], dim, dim);
 
 
 		if (pGate->isDagger())
 		{
 			single_gate_mat.adjointInPlace();
 		}
-		qmatrix_t temp = kroneckerProduct(src_mat, single_gate_mat);
+		QMatrixXcd temp = kroneckerProduct(src_mat, single_gate_mat);
 		src_mat = temp;
 	}
 }
 
-void QProgToMatrix::MatrixOfOneLayer::tensor_by_matrix(qmatrix_t& src_mat, const qmatrix_t& tensor_mat)
+void QProgToMatrix::MatrixOfOneLayer::tensor_by_matrix(QMatrixXcd& src_mat, const QMatrixXcd& tensor_mat)
 {
 	if (src_mat.size() == 0)
 	{
@@ -210,7 +210,7 @@ void QProgToMatrix::MatrixOfOneLayer::tensor_by_matrix(qmatrix_t& src_mat, const
 	}
 	else
 	{
-		qmatrix_t temp = kroneckerProduct(src_mat, tensor_mat);
+		QMatrixXcd temp = kroneckerProduct(src_mat, tensor_mat);
 		src_mat = temp;
 	}
 }
@@ -228,7 +228,7 @@ void QProgToMatrix::MatrixOfOneLayer::get_stride_over_qubits(const std::vector<i
 	}
 }
 
-void QProgToMatrix::MatrixOfOneLayer::merge_to_calc_unit(std::vector<int>& qubits, qmatrix_t& gate_mat, calcUnitVec_t &calc_unit_vec, gateQubitInfo_t &single_qubit_gates)
+void QProgToMatrix::MatrixOfOneLayer::merge_to_calc_unit(std::vector<int>& qubits, QMatrixXcd& gate_mat, calcUnitVec_t &calc_unit_vec, gateQubitInfo_t &single_qubit_gates)
 {
 	//auto &qubits = curGareItem.second;
 	std::sort(qubits.begin(), qubits.end(), [](int &a, int &b) {return a < b; });
@@ -237,7 +237,7 @@ void QProgToMatrix::MatrixOfOneLayer::merge_to_calc_unit(std::vector<int>& qubit
 	if (stride_over_qubits.empty())
 	{
 		//serial qubits
-		calc_unit_vec.insert(calc_unit_vec.begin(), std::pair<qmatrix_t, std::vector<int>>(gate_mat, qubits));
+		calc_unit_vec.insert(calc_unit_vec.begin(), std::pair<QMatrixXcd, std::vector<int>>(gate_mat, qubits));
 	}
 	else
 	{
@@ -278,7 +278,7 @@ void QProgToMatrix::MatrixOfOneLayer::merge_to_calc_unit(std::vector<int>& qubit
 		}
 
 		//zhang multiply
-		qmatrix_t filled_matrix;
+		QMatrixXcd filled_matrix;
 		for (auto &in_used_qubit_val : m_qubits_in_use)
 		{
 			if (in_used_qubit_val > qubits[0])
@@ -331,13 +331,13 @@ void QProgToMatrix::MatrixOfOneLayer::merge_to_calc_unit(std::vector<int>& qubit
 		}
 
 		//blockMultip
-		qmatrix_t filled_double_gate_matrix;
+		QMatrixXcd filled_double_gate_matrix;
 		blockedMatrix_t blocked_mat;
 		partition(gate_mat, 2, 2, blocked_mat);
 		blockMultip(filled_matrix, blocked_mat, filled_double_gate_matrix);
 
 		//insert into calc_unit_vec
-		calc_unit_vec.insert(calc_unit_vec.begin(), std::pair<qmatrix_t, std::vector<int>>(filled_double_gate_matrix, qubits));
+		calc_unit_vec.insert(calc_unit_vec.begin(), std::pair<QMatrixXcd, std::vector<int>>(filled_double_gate_matrix, qubits));
 	}
 }
 
@@ -346,7 +346,7 @@ void  QProgToMatrix::MatrixOfOneLayer::merge_double_gate()
 	GateType gate_T = GATE_UNDEFINED;
 	for (auto &double_gate : m_double_qubit_gates)
 	{
-		qmatrix_t gate_mat;
+		QMatrixXcd gate_mat;
 		gate_T = (GateType)(double_gate.first->getQGate()->getGateType());
 		if (2 == double_gate.second.size())
 		{
@@ -354,7 +354,7 @@ void  QProgToMatrix::MatrixOfOneLayer::merge_double_gate()
 			QStat gate_mat_temp;
 			double_gate.first->getQGate()->getMatrix(gate_mat_temp);
 			int dim = sqrt(gate_mat_temp.size());
-			gate_mat = qmatrix_t::Map(&gate_mat_temp[0], dim, dim);
+			gate_mat = QMatrixXcd::Map(&gate_mat_temp[0], dim, dim);
 
 			if (qubits[0] > qubits[1])
 			{
@@ -390,7 +390,7 @@ void  QProgToMatrix::MatrixOfOneLayer::merge_calc_unit()
 	for (auto &itr_calc_unit_vec : m_calc_unit_vec)
 	{
 		//calc all the qubits to get the final matrix
-		qmatrix_t final_mat_of_one_calc_unit;
+		QMatrixXcd final_mat_of_one_calc_unit;
 		for (auto &in_used_qubit_val : m_qubits_in_use)
 		{
 			bool b_no_gate_on_this_qubit = true;
@@ -438,9 +438,9 @@ void  QProgToMatrix::MatrixOfOneLayer::merge_calc_unit()
 	}
 }
 
-void QProgToMatrix::MatrixOfOneLayer::reverse_ctrl_gate_matrix(qmatrix_t& src_mat, const GateType &gate_T)
+void QProgToMatrix::MatrixOfOneLayer::reverse_ctrl_gate_matrix(QMatrixXcd& src_mat, const GateType &gate_T)
 {
-	qmatrix_t result;
+	QMatrixXcd result;
 	switch (gate_T)
 	{
 	case CNOT_GATE:
@@ -478,7 +478,7 @@ void  QProgToMatrix::MatrixOfOneLayer::merge_controled_gate()
 		QStat gate_mat;
 		controled_gate.first->getQGate()->getMatrix(gate_mat);
 		int dim = sqrt(gate_mat.size());
-		qmatrix_t base_gate_mat = qmatrix_t::Map(&gate_mat[0], dim, dim);
+		QMatrixXcd base_gate_mat = QMatrixXcd::Map(&gate_mat[0], dim, dim);
 
 
 		if (controled_gate.first->isDagger())
@@ -506,19 +506,19 @@ void  QProgToMatrix::MatrixOfOneLayer::merge_controled_gate()
 		}
 
 		int all_control_gate_qubits = all_gate_qubits_vec.size();
-		qmatrix_t standard_mat;
+		QMatrixXcd standard_mat;
 		build_standard_control_gate_matrix(base_gate_mat, all_control_gate_qubits, standard_mat);
 
 		//tensor
 		int idle_qubits = m_qubits_in_use.size() - all_control_gate_qubits;
-		qmatrix_t tmp_idle_mat;
+		QMatrixXcd tmp_idle_mat;
 		if (idle_qubits > 0)
 		{
 			for (size_t i = 0; i < idle_qubits; i++)
 			{
 				tensor_by_matrix(tmp_idle_mat, m_mat_I);
 			}
-			qmatrix_t temp = kroneckerProduct(tmp_idle_mat, standard_mat);
+			QMatrixXcd temp = kroneckerProduct(tmp_idle_mat, standard_mat);
 			standard_mat = temp;
 		}
 
@@ -605,7 +605,7 @@ void QProgToMatrix::MatrixOfOneLayer::remove_same_control_qubits(std::vector<int
 	}
 }
 
-void QProgToMatrix::MatrixOfOneLayer::swap_two_qubit_on_matrix(qmatrix_t& src_mat, const int mat_qubit_start, const int mat_qubit_end, const int qubit_1, const int qubit_2)
+void QProgToMatrix::MatrixOfOneLayer::swap_two_qubit_on_matrix(QMatrixXcd& src_mat, const int mat_qubit_start, const int mat_qubit_end, const int qubit_1, const int qubit_2)
 {
 	if (qubit_1 == qubit_2)
 	{
@@ -617,9 +617,9 @@ void QProgToMatrix::MatrixOfOneLayer::swap_two_qubit_on_matrix(qmatrix_t& src_ma
 	QStat gate_mat;
 	swap_gate.getQGate()->getMatrix(gate_mat);
 	int dim = sqrt(gate_mat.size());
-	qmatrix_t swap_gate_matrix = qmatrix_t::Map(&gate_mat[0], dim, dim);
+	QMatrixXcd swap_gate_matrix = QMatrixXcd::Map(&gate_mat[0], dim, dim);
 
-	qmatrix_t tmp_tensor_mat;
+	QMatrixXcd tmp_tensor_mat;
 	int tensor_start_qubit = qubit_1 < qubit_2 ? qubit_1 : qubit_2;
 	int tensor_end_qubit = qubit_1 < qubit_2 ? qubit_2 : qubit_1;
 
@@ -637,7 +637,7 @@ void QProgToMatrix::MatrixOfOneLayer::swap_two_qubit_on_matrix(qmatrix_t& src_ma
 #endif // PRINT_TRACE
 
 	//blockMultip
-	qmatrix_t tensored_swap_gate_matrix;
+	QMatrixXcd tensored_swap_gate_matrix;
 	if (tmp_tensor_mat.size() > 0)
 	{
 		blockedMatrix_t blocked_mat;
@@ -649,7 +649,7 @@ void QProgToMatrix::MatrixOfOneLayer::swap_two_qubit_on_matrix(qmatrix_t& src_ma
 		tensored_swap_gate_matrix.swap(swap_gate_matrix);
 	}
 
-	qmatrix_t tmp_mat;
+	QMatrixXcd tmp_mat;
 	for (auto used_qubit_itr = m_qubits_in_use.begin(); used_qubit_itr != m_qubits_in_use.end(); ++used_qubit_itr)
 	{
 		const auto& qubit_tmp = *used_qubit_itr;
@@ -666,7 +666,7 @@ void QProgToMatrix::MatrixOfOneLayer::swap_two_qubit_on_matrix(qmatrix_t& src_ma
 	src_mat = tmp_mat * src_mat * tmp_mat;
 }
 
-void QProgToMatrix::MatrixOfOneLayer::build_standard_control_gate_matrix(const qmatrix_t& src_mat, const int qubit_number, qmatrix_t& result_mat)
+void QProgToMatrix::MatrixOfOneLayer::build_standard_control_gate_matrix(const QMatrixXcd& src_mat, const int qubit_number, QMatrixXcd& result_mat)
 {
 	size_t rows = 1; // rows of the standard matrix
 	size_t columns = 1;// columns of the standard matrix
@@ -708,7 +708,7 @@ void QProgToMatrix::MatrixOfOneLayer::merge_sing_gate()
 {
 	if (m_single_qubit_gates.size() > 0)
 	{
-		qmatrix_t all_single_gate_matrix;
+		QMatrixXcd all_single_gate_matrix;
 		for (auto &in_used_qubit_val : m_qubits_in_use)
 		{
 			bool b_no_gate_on_this_qubit = true;
@@ -747,7 +747,7 @@ void QProgToMatrix::MatrixOfOneLayer::merge_sing_gate()
 QStat QProgToMatrix::get_matrix()
 {
 	Eigen::initParallel();
-	qmatrix_t result_matrix;
+	QMatrixXcd result_matrix;
 	
 	//get quantumBits number
 	QVec all_used_qubits;
@@ -794,7 +794,7 @@ QStat QProgToMatrix::get_matrix()
 	return result_qstat;
 }
 
-qmatrix_t QProgToMatrix::get_matrix_of_one_layer(SeqLayer<pOptimizerNodeInfo>& layer)
+QMatrixXcd QProgToMatrix::get_matrix_of_one_layer(SeqLayer<pOptimizerNodeInfo>& layer)
 {
 	MatrixOfOneLayer get_one_layer_matrix(*this, layer, m_qubits_in_use);
 

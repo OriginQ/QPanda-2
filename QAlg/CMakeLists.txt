@@ -1,18 +1,7 @@
 cmake_minimum_required(VERSION 3.1)
 project(QAlg)
 
-file(GLOB_RECURSE ALG_SRC_CPP ${CMAKE_CURRENT_SOURCE_DIR}/B_V_Algorithm/*.cpp
-                              ${CMAKE_CURRENT_SOURCE_DIR}/DJ_Algorithm/*.cpp
-                              ${CMAKE_CURRENT_SOURCE_DIR}/Grover/*.cpp
-                              ${CMAKE_CURRENT_SOURCE_DIR}/IQAE/*.cpp
-                              ${CMAKE_CURRENT_SOURCE_DIR}/QAOA/*.cpp
-                              ${CMAKE_CURRENT_SOURCE_DIR}/QITE/*.cpp
-							  ${CMAKE_CURRENT_SOURCE_DIR}/HHL/*.cpp
-							  ${CMAKE_CURRENT_SOURCE_DIR}/ArithmeticUnit/*.cpp
-							  ${CMAKE_CURRENT_SOURCE_DIR}/QARM/*.cpp
-							  ${CMAKE_CURRENT_SOURCE_DIR}/QSVM/*.cpp
-							  ${CMAKE_CURRENT_SOURCE_DIR}/AmplitudeEncode/*.cpp
-                              ${CMAKE_CURRENT_SOURCE_DIR}/Shor/*.cpp)
+file(GLOB_RECURSE ALG_SRC_CPP ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 
 file(GLOB_RECURSE ALG_CHEMIQ_SRC_CPP ${CMAKE_CURRENT_SOURCE_DIR}/ChemiQ/*.cpp)
 

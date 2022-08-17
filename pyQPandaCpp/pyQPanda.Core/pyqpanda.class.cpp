@@ -1,3 +1,5 @@
+#include "QPandaConfig.h"
+#include "QPanda.h"
 #include <math.h>
 #include <map>
 #include "pybind11/pybind11.h"
@@ -11,8 +13,7 @@
 #include <pybind11/stl_bind.h>
 #include "pybind11/eigen.h"
 #include "pybind11/operators.h"
-#include "QPandaConfig.h"
-#include "QPanda.h"
+
 
 using namespace std;
 using namespace pybind11::literals;
@@ -417,6 +418,29 @@ void export_core_class(py::module &m)
         .def("__lshift__", &QProg::operator<<<ClassicalCondition>, py::return_value_policy::reference)
 
         .def("is_empty", &QProg::is_empty, py::return_value_policy::automatic_reference)
+        .def("get_max_qubit_addr", &QProg::get_max_qubit_addr, py::return_value_policy::automatic_reference)
+        .def("get_qgate_num", &QProg::get_qgate_num, py::return_value_policy::automatic_reference)
+        .def("get_used_qubits", 
+            [](QProg &self, QVec& qv) 
+            {
+                self.get_used_qubits(qv);
+                return qv;
+                
+            },
+            py::arg("qubit_vector"),
+            "get a list qubits of prog",
+            py::return_value_policy::reference)
+        .def("get_used_cbits",
+             [](QProg &self, std::vector<ClassicalCondition>& cv)
+             {
+                self.get_used_cbits(cv);
+                return cv;
+
+             },
+             py::arg("cbit_vector"),
+             "get a list cbits of prog",
+             py::return_value_policy::reference)
+        .def("is_measure_last_pos", &QProg::is_measure_last_pos, py::return_value_policy::automatic_reference)
         .def("insert", &QProg::operator<<<QProg>, py::return_value_policy::reference)
         .def("insert", &QProg::operator<<<QGate>, py::return_value_policy::reference)
         .def("insert", &QProg::operator<<<QCircuit>, py::return_value_policy::reference)

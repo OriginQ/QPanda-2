@@ -41,13 +41,14 @@ def runCPUQVM(shots: int) -> Dict[str, int]:
     cbit = qvm.cAlloc_many(3)
 
     noise = Noise()
-    noise.add_noise_model(NoiseModel.BIT_PHASE_FLIP_OPRATOR, GateType.PAULI_X_GATE, 0.7)
+    # we swap noise sequnce on purpose to verify mulit noise works
     noise.add_noise_model(NoiseModel.DAMPING_KRAUS_OPERATOR, GateType.PAULI_X_GATE, 0.1)
+    noise.add_noise_model(NoiseModel.BIT_PHASE_FLIP_OPRATOR, GateType.PAULI_X_GATE, 0.7)
     noise.add_noise_model(NoiseModel.DAMPING_KRAUS_OPERATOR, GateType.SWAP_GATE, 0.3)
     noise.add_noise_model(NoiseModel.DAMPING_KRAUS_OPERATOR, GateType.CNOT_GATE, 0.5)
-    noise.add_readout_error(prob_list, QVec(qbit[2]))
-    noise.add_measure_error(NoiseModel.BITFLIP_KRAUS_OPERATOR, 0.5, QVec(qbit[2]))
-    noise.add_reset_error(0.5, 0.5, QVec(qbit[1]))
+    noise.set_readout_error(prob_list, QVec(qbit[2]))
+    noise.set_measure_error(NoiseModel.BITFLIP_KRAUS_OPERATOR, 0.5, QVec(qbit[2]))
+    noise.set_reset_error(0.5, 0.5, QVec(qbit[1]))
 
     qc = QProg()
 

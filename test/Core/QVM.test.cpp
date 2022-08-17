@@ -216,7 +216,7 @@ void GHZ(int a)
     write_to_originir_file(prog, &qvm, ss);
 }
 
-bool compare_map_result(map<string, size_t> result1, map<string, size_t> result2 , int shots)
+static bool compare_map_result(map<string, size_t> result1, map<string, size_t> result2 , int shots)
 {
     for (auto val : result1)
     {
@@ -226,6 +226,51 @@ bool compare_map_result(map<string, size_t> result1, map<string, size_t> result2
             return false;
 
         if (1e-2 < std::fabs((double)(((int)val.second - (int)iter->second) / shots)))
+            return false;
+    }
+
+    return true;
+}
+
+static bool compare_probs_result(const prob_vec& result1,const prob_vec& result2)
+{
+    QPANDA_RETURN(result1.size() != result2.size(), false);
+
+    for (auto i = 0; i < result1.size(); ++i)
+    {
+        auto prob1 = result1[i];
+        auto prob2 = result2[i];
+
+        if (1e-6 < std::fabs(prob1 - prob2))
+            return false;
+    }
+
+    return true;
+}
+
+static bool matrix_compare(const QStat& mat1, const QStat& mat2, const double precision /*= 0.000001*/)
+{
+    if (mat1.size() != mat2.size())
+        return false;
+
+    qcomplex_t ratio; // constant value
+    for (size_t i = 0; i < mat1.size(); ++i)
+    {
+        if ((abs(mat2.at(i).real() - 0.0) > precision) || (abs(mat2.at(i).imag() - 0.0) > precision))
+        {
+            ratio = mat1.at(i) / mat2.at(i);
+            if (precision < abs(sqrt(ratio.real()*ratio.real() + ratio.imag()*ratio.imag()) - 1.0))
+                return false;
+            break;
+        }
+    }
+
+    qcomplex_t tmp_val;
+    for (size_t i = 0; i < mat1.size(); ++i)
+    {
+        tmp_val = ratio * mat2.at(i);
+        if ((abs(mat1.at(i).real() - tmp_val.real()) > precision) ||
+            (abs(mat1.at(i).imag() - tmp_val.imag()) > precision))
             return false;
     }
 
@@ -285,14 +330,12 @@ TEST(QVM, noise_run_with_no_cbits_args)
 
 TEST(QVM, mps_run_with_no_cbits_args)
 {
-    for (auto i = 0; i < 50; ++i)
-    {
         MPSQVM machine;
         machine.setConfigure({ 64,64 });
         machine.init();
 
-        auto qubits = machine.qAllocMany(10);
-        auto c = machine.cAllocMany(4);
+        auto qubits = machine.qAllocMany(6);
+        auto c = machine.cAllocMany(6);
 
         QStat matrix = { 1.0,0,0,0,
             0,1,0,0,
@@ -322,15 +365,15 @@ TEST(QVM, mps_run_with_no_cbits_args)
             << Toffoli(qubits[1], qubits[0], qubits[2])
             << CZ(qubits[1], qubits[0])
             << CR(qubits[2], qubits[3], 1.570796)*/
-            << RZX(qubits[9], qubits[5], 20)
+            << RZX(qubits[4], qubits[5], 20)
             //<< RXX(qubits[2], qubits[5], 20)
             //<< RYY(qubits[7], qubits[0], 20)
             //<< RZZ(qubits[6], qubits[1], 20)
             //<< QOracle({ qubits[0], qubits[2] }, matrix)
-            << Measure(qubits[9], c[0])
-            << Measure(qubits[2], c[1])
-            << Measure(qubits[7], c[2])
-            << Measure(qubits[6], c[3]);
+            << Measure(qubits[0], c[0])
+            << Measure(qubits[1], c[2])
+            << Measure(qubits[5], c[1])
+            << Measure(qubits[1], c[1]);
 
         auto result2 = machine.runWithConfiguration(prog, c, 1000);
         auto result1 = machine.runWithConfiguration(prog, 1000);
@@ -352,9 +395,8 @@ TEST(QVM, mps_run_with_no_cbits_args)
 
 
         //ASSERT_EQ(compare_map_result(result1, result2, 1000), true);
-    }
 
-    getchar();
+    //getchar();
 }
 
 TEST(QVM, global_run_with_no_cbits_args)
@@ -380,6 +422,141 @@ TEST(QVM, global_run_with_no_cbits_args)
 
     ASSERT_EQ(compare_map_result(result1, result2, 100000), true);
 }
+
+TEST(QVM, partial_amplitude_with_rxx_ryy_rzz_rzx)
+{
+    PartialAmplitudeQVM machine;
+    machine.setConfigure({ 64,64 });
+    machine.init();
+
+    auto q = machine.qAllocMany(2);
+    auto c = machine.cAllocMany(2);
+
+    prob_vec params(4);
+    for (auto &val : params)
+    {
+        val = random_generator19937(0.0, PI);
+    }
+
+    auto prog = QProg();
+    prog << RXX(q[0], q[1], params[0]);
+    prog << RYY(q[0], q[1], params[1]);
+    prog << RZZ(q[0], q[1], params[2]);
+    prog << RZX(q[0], q[1], params[3]);
+
+    cout << convert_qprog_to_originir(prog, &machine);
+
+    auto circuit = QCircuit();
+    circuit << H(q[0]) << H(q[1]) << CNOT(q[0], q[1])
+        << RZ(q[1], 20) << CNOT(q[0], q[1]) << H(q[1]) << H(q[0]);
+
+    cout << getCircuitMatrix(prog) << endl;
+    cout << getCircuitMatrix(circuit) << endl;
+
+    machine.run(prog);
+
+    vector_s indices = { "0","1","2","3" };
+
+    auto result1 = machine.pmeasure_subset(indices);
+
+    QStat result;
+    for (auto &key : indices)
+    {
+        for (auto val : result1)
+        {
+            if (key == val.first)
+            {
+                result.emplace_back(val.second);
+            }
+        }
+    }
+
+    CPUQVM qvm;
+    qvm.setConfigure({ 64,64 });
+    qvm.init();
+
+    auto qlist = qvm.qAllocMany(2);
+    auto clist = qvm.cAllocMany(2);
+
+    auto cpu_prog = QProg();
+    cpu_prog << RXX(qlist[0], qlist[1], params[0]);
+    cpu_prog << RYY(qlist[0], qlist[1], params[1]);
+    cpu_prog << RZZ(qlist[0], qlist[1], params[2]);
+    cpu_prog << RZX(qlist[0], qlist[1], params[3]);
+
+    qvm.directlyRun(prog);
+    auto result_state = qvm.getQState();
+
+    ASSERT_EQ(matrix_compare(result, result_state, 1e-6), true);
+}
+
+TEST(QVM, single_amplitude_with_rxx_ryy_rzz_rzx)
+{
+    SingleAmplitudeQVM machine;
+    machine.setConfigure({ 64,64 });
+    machine.init();
+
+    auto q = machine.qAllocMany(3);
+    auto c = machine.cAllocMany(3);
+
+    prob_vec params(4);
+    for (auto &val : params)
+    {
+        val = random_generator19937(0.0, PI);
+    }
+
+    auto prog = QProg();
+    prog << RXX(q[0], q[1], params[0]);
+    prog << RYY(q[0], q[1], params[1]);
+    prog << RZZ(q[1], q[2], params[2]);
+    prog << RZX(q[1], q[2], params[3]);
+
+    cout << getCircuitMatrix(prog) << endl;
+
+    vector_s indices = { "0","1","2","3","4","5","6","7" };
+
+    prob_vec result;
+    for (auto val : indices)
+    {
+        machine.run(prog, q);
+        result.emplace_back(machine.pMeasureDecindex(val));
+    }
+
+    const double cost = std::cos(0.5 * 20);
+    const double sint = std::sin(0.5 * 20);
+
+    QStat rxx_matrix =
+    {
+        qcomplex_t(cost, 0), qcomplex_t(0,0), qcomplex_t(0,0), qcomplex_t(0,-sint),
+        qcomplex_t(0,0), qcomplex_t(cost, 0), qcomplex_t(0,-sint), qcomplex_t(0,0),
+        qcomplex_t(0,0), qcomplex_t(0,-sint), qcomplex_t(cost, 0), qcomplex_t(0,0),
+        qcomplex_t(0,-sint), qcomplex_t(0,0), qcomplex_t(0,0), qcomplex_t(cost, 0)
+    };
+
+    CPUQVM qvm;
+    qvm.init();
+
+    auto qlist = qvm.qAllocMany(3);
+    auto clist = qvm.cAllocMany(3);
+
+    auto cpu_prog = QProg();
+    cpu_prog << RXX(qlist[0], qlist[1], params[0]);
+    cpu_prog << RYY(qlist[0], qlist[1], params[1]);
+    cpu_prog << RZZ(qlist[1], qlist[2], params[2]);
+    cpu_prog << RZX(qlist[1], qlist[2], params[3]);
+
+    qvm.directlyRun(prog);
+    auto result_state = qvm.getQState();
+
+    prob_vec probs;
+    for (auto state : result_state)
+    {
+        probs.emplace_back(std::norm(state));
+    }
+
+    ASSERT_EQ(compare_probs_result(result, probs), true);
+}
+
 
 TEST(QVM, QHamiltonian)
 {

@@ -13,19 +13,17 @@
 using namespace QPanda;
 using namespace std;
 
-using  qvector_t = Eigen::Matrix<qcomplex_t, 1, Eigen::Dynamic, Eigen::RowMajor>;
-using  qmatrix_t = Eigen::Matrix<qcomplex_t, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
 const double kEpsion = 1e-8;
 
 using namespace QPanda;
 using namespace std;
 
 
-static void _mle(qmatrix_t &m)
+static void _mle(QMatrixXcd &m)
 {
     int64_t dim = m.rows();
-    Eigen::ComplexEigenSolver<qmatrix_t> es(m);
-    qvector_t v = es.eigenvalues();
+    Eigen::ComplexEigenSolver<QMatrixXcd> es(m);
+    QVectorXcd v = es.eigenvalues();
     auto s = es.eigenvectors();
     bool is_positive_semidefinite = true;
 
@@ -51,7 +49,7 @@ static void _mle(qmatrix_t &m)
     m.setZero();
     for (int64_t i = 0; i < dim; i++)
     {
-        qmatrix_t left_cols = s.col(i);
+        QMatrixXcd left_cols = s.col(i);
         m += v(0, i) * (left_cols * left_cols.conjugate().transpose());
     }
 
@@ -100,17 +98,17 @@ void QuantumStateTomography::set_qprog_results(size_t opt_num, const std::vector
 std::vector<QStat> QuantumStateTomography::caculate_tomography_density()
 {
     _get_s();
-    qmatrix_t gate_i(2, 2);
-    qmatrix_t gate_x(2, 2);
-    qmatrix_t gate_y(2, 2);
-    qmatrix_t gate_z(2, 2);
+    QMatrixXcd gate_i(2, 2);
+    QMatrixXcd gate_x(2, 2);
+    QMatrixXcd gate_y(2, 2);
+    QMatrixXcd gate_z(2, 2);
 
     gate_i << 1, 0, 0, 1;
     gate_x << 0, 1, 1, 0;
     gate_y << 0, qcomplex_t(0, -1), qcomplex_t(0, 1), 0;
     gate_z << 1, 0, 0, -1;
 
-    vector<qmatrix_t> kraus;
+    vector<QMatrixXcd> kraus;
     kraus.push_back(gate_i);
     kraus.push_back(gate_x);
     kraus.push_back(gate_y);
@@ -130,14 +128,14 @@ std::vector<QStat> QuantumStateTomography::caculate_tomography_density()
         return res;
     };
 
-    auto tensor_kraus = [&](size_t idx)->qmatrix_t
+    auto tensor_kraus = [&](size_t idx)->QMatrixXcd
     {
         auto ary = uint_to_ary(idx, 4, m_opt_num);
-        qmatrix_t ret_kraus = kraus[ary[0]];
+        QMatrixXcd ret_kraus = kraus[ary[0]];
 
         for (size_t i = 1; i < ary.size(); i++)
         {
-            qmatrix_t tmp = kroneckerProduct(ret_kraus, kraus[ary[i]]);
+            QMatrixXcd tmp = kroneckerProduct(ret_kraus, kraus[ary[i]]);
             ret_kraus.resize(tmp.rows(), tmp.cols());
             ret_kraus = tmp;
         }
@@ -146,14 +144,14 @@ std::vector<QStat> QuantumStateTomography::caculate_tomography_density()
     };
 
     size_t dim = 1ull << m_opt_num;
-    qmatrix_t eigen_density(dim, dim);
+    QMatrixXcd eigen_density(dim, dim);
     eigen_density.setZero();
 
     for (size_t i = 0; i < m_s.size(); i++)
     {
         double fact = 1. / (1ull << m_opt_num);
         fact *= m_s[i];
-        qmatrix_t tmp_density = tensor_kraus(i);
+        QMatrixXcd tmp_density = tensor_kraus(i);
         eigen_density += fact * tmp_density;
     }
 

@@ -26,7 +26,7 @@ public:
         execute(node.getImplementationPtr(), nullptr);
     }
     size_t count();
-
+    const std::map<GateType, size_t> getGateMap();
     /*!
     * @brief  Execution traversal qgatenode
     * @param[in,out]  AbstractQGateNode*  quantum gate
@@ -95,6 +95,7 @@ public:
 
 private:
     size_t m_count;
+    std::map<GateType, size_t> m_qgate_num_map;
 };
 
 /*will delete*/
@@ -112,22 +113,27 @@ size_t getQGateNumber(_Ty &node)
 * @brief  Count quantum gate num under quantum program, quantum circuit, quantum while, quantum if
 * @ingroup Utilities
 * @param[in]  _Ty& quantum program, quantum circuit, quantum while or quantum if
+* @param[in]  const GateType gtype
 * @return     size_t  Quantum gate num
-* @see
-	* @code
-			init();
-			auto qubits = qAllocMany(4);
-			auto cbits = cAllocMany(4);
-
-			auto circuit = CreateEmptyCircuit();
-			circuit << H(qubits[0]) << X(qubits[1]) << S(qubits[2])
-			<< iSWAP(qubits[1], qubits[2]) << RX(qubits[3], PI/4);
-			auto count = getQGateNumber(&circuit);
-			std::cout << "QCircuit count: " << count << std::endl;
-
-			finalize();
-	* @endcode
 */
+
+template <typename _Ty>
+size_t count_qgate_num(_Ty& node, const GateType gtype = GATE_UNDEFINED) {
+
+    QGateCounter counter;
+    counter.traversal(node);
+    if (GATE_UNDEFINED == gtype || GATE_NOP == gtype) {
+        return counter.count();
+    }
+    else {
+        auto gatemap = counter.getGateMap();
+        if (gatemap.find(gtype) != gatemap.end()) {
+            return gatemap.at(gtype);
+        }
+    }
+    return 0;
+}
+
 template <typename _Ty>
 size_t getQGateNum(_Ty &node)
 {

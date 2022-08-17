@@ -22,25 +22,14 @@ limitations under the License.
 #include <map>
 #include <iostream>
 #include <sstream>
-#include "include/Core/VirtualQuantumProcessor/CPUSupportAvx2.h"
+#include "Core/VirtualQuantumProcessor/CPUSupportAvx2.h"
 #ifdef USE_OPENMP
 #include <omp.h>
 #endif
-#include "ThirdParty/Eigen/Eigen"
 
 USING_QPANDA
 using namespace std;
 using namespace Eigen;
-
-template<typename data_t>
-using qmatrix2cf_t = Eigen::Matrix<std::complex<data_t>, 2, 2, Eigen::RowMajor>;
-template<typename data_t>
-using qmatrix4cf_t = Eigen::Matrix<std::complex<data_t>, 4, 4, Eigen::RowMajor>;
-template<typename data_t>
-using qmatrix_t = Eigen::Matrix<std::complex<data_t>, Eigen::Dynamic,
-    Eigen::Dynamic, Eigen::RowMajor>;
-template<typename data_t>
-using qvector_t = Eigen::Matrix<std::complex<data_t>, 1, Eigen::Dynamic, Eigen::RowMajor>;
 
 const double kStateEpSilon = 1.0e-010;
 
@@ -2096,7 +2085,7 @@ QError CPUImplQPU<data_t>::OracleGate(Qnum &qubits, QStat &matrix, bool is_dagge
 	
     auto matrix_f = convert(matrix);
     auto dim = 1ll << qubits.size();
-    qmatrix_t<data_t> mat_eigen = qmatrix_t<data_t>::Map(&matrix_f[0], dim, dim);
+    QMatrixXcT mat_eigen = QMatrixXcT::Map(&matrix_f[0], dim, dim);
 
     if (is_dagger)
     {
@@ -2104,7 +2093,7 @@ QError CPUImplQPU<data_t>::OracleGate(Qnum &qubits, QStat &matrix, bool is_dagge
     }
 
     int64_t size = 1ll << (m_qubit_num - qubits.size());
-    qvector_t<data_t> state_bak(dim);
+    QVectorXcT state_bak(dim);
     std::vector<int64_t> realxx_idxes(dim);
 
     //std::reverse(qubits.begin(), qubits.end());
@@ -2160,7 +2149,7 @@ QError CPUImplQPU<data_t>::controlOracleGate(Qnum &qubits, const Qnum &controls,
             return qErrorNone;
         }
 
-        _three_qubit_gate(qubits, matrix, is_dagger);
+        _three_qubit_gate(qubits, matrix, is_dagger, controls);
         return qErrorNone;
     }
     else if (qubits.size() == 4)
@@ -2171,7 +2160,7 @@ QError CPUImplQPU<data_t>::controlOracleGate(Qnum &qubits, const Qnum &controls,
             return qErrorNone;
         }
 
-        _four_qubit_gate(qubits, matrix, is_dagger);
+        _four_qubit_gate(qubits, matrix, is_dagger, controls);
         return qErrorNone;
     }
     else if (qubits.size() == 5)
@@ -2181,12 +2170,12 @@ QError CPUImplQPU<data_t>::controlOracleGate(Qnum &qubits, const Qnum &controls,
             cpu_avx._five_qubit_gate_simd(m_state, qubits, matrix, is_dagger, m_qubit_num, controls);
             return qErrorNone;
         }
-        _five_qubit_gate(qubits, matrix, is_dagger);
+        _five_qubit_gate(qubits, matrix, is_dagger, controls);
         return qErrorNone;
     }
     auto matrix_f = convert(matrix); 
     auto dim = 1ll << qubits.size();
-    qmatrix_t<data_t> mat_eigen = qmatrix_t<data_t>::Map(&matrix_f[0], dim, dim);
+    QMatrixXcT mat_eigen = QMatrixXcT::Map(&matrix_f[0], dim, dim);
 
     if (is_dagger)
     {
@@ -2199,7 +2188,7 @@ QError CPUImplQPU<data_t>::controlOracleGate(Qnum &qubits, const Qnum &controls,
     });
 
     int64_t size = 1ll << (m_qubit_num - qubits.size());
-    qvector_t<data_t> state_bak(dim);
+    QVectorXcT state_bak(dim);
     std::vector<int64_t> realxx_idxes(dim);
 
     //std::reverse(qubits.begin(), qubits.end());
@@ -2423,13 +2412,13 @@ QError CPUImplQPU<data_t>::_three_qubit_gate(Qnum& qubits, QStat& matrix, bool i
     std::sort(qubits.begin(), qubits.end());
     auto dim = 1ll << qubits.size();
     auto matrix_f = convert(matrix);
-    qmatrix_t<data_t> mat_eigen = qmatrix_t<data_t>::Map(&matrix_f[0], dim, dim);
+    QMatrixXcT mat_eigen = QMatrixXcT::Map(&matrix_f[0], dim, dim);
     if (is_dagger)
     {
         mat_eigen.adjointInPlace();
     }
 
-    qvector_t<data_t> state_bak(dim);
+    QVectorXcT state_bak(dim);
     state_bak.setZero();
     std::vector<int64_t> realxx_idxes(dim);
     if (controls.size() > 3)
@@ -2482,13 +2471,13 @@ QError CPUImplQPU<data_t>::_four_qubit_gate(Qnum& qubits, QStat& matrix, bool is
     std::sort(qubits.begin(), qubits.end());
     auto dim = 1ll << qubits.size();
     auto matrix_f = convert(matrix);
-    qmatrix_t<data_t> mat_eigen = qmatrix_t<data_t>::Map(&matrix_f[0], dim, dim);
+    QMatrixXcT mat_eigen = QMatrixXcT::Map(&matrix_f[0], dim, dim);
     if (is_dagger)
     {
         mat_eigen.adjointInPlace();
     }
 
-    qvector_t<data_t> state_bak(dim);
+    QVectorXcT state_bak(dim);
     state_bak.setZero();
     std::vector<int64_t> realxx_idxes(dim);
     if (controls.size() > 4)
@@ -2549,13 +2538,13 @@ QError CPUImplQPU<data_t>::_five_qubit_gate(Qnum& qubits, QStat& matrix, bool is
     std::sort(qubits.begin(), qubits.end());
     auto dim = 1ll << qubits.size();
     auto matrix_f = convert(matrix);
-    qmatrix_t<data_t> mat_eigen = qmatrix_t<data_t>::Map(&matrix_f[0], dim, dim);
+    QMatrixXcT mat_eigen = QMatrixXcT::Map(&matrix_f[0], dim, dim);
     if (is_dagger)
     {
         mat_eigen.adjointInPlace();
     }
 
-    qvector_t<data_t> state_bak(dim);
+    QVectorXcT state_bak(dim);
     state_bak.setZero();
     std::vector<int64_t> realxx_idxes(dim);
     if (controls.size() > 5)

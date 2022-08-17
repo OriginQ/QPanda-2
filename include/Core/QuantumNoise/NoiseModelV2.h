@@ -101,9 +101,6 @@ public:
     void add_noise_model(const NOISE_MODEL &model, const std::vector<GateType> &types, double T1, double T2, double t_gate, const QVec &qubits);
     void add_noise_model(const NOISE_MODEL &model, const GateType &type, double T1, double T2, double t_gate, const std::vector<QVec> &qubits);
 
-    void add_measure_error(const NOISE_MODEL &model, double prob, const QVec &qubits = {});
-    void add_measure_error(const NOISE_MODEL &model, double T1, double T2, double t_gate, const QVec &qubits = {});
-
     void add_mixed_unitary_error(const GateType &type, const std::vector<QStat> &unitary_matrices,
                                  const std::vector<double> &probs);
     void add_mixed_unitary_error(const GateType &type, const std::vector<QStat> &unitary_matrices,
@@ -111,8 +108,11 @@ public:
     void add_mixed_unitary_error(const GateType &type, const std::vector<QStat> &unitary_matrices,
                                  const std::vector<double> &probs, const std::vector<QVec> &qubits);
 
-    void add_reset_error(double p0, double p1, const QVec &qubits = {});
-    void add_readout_error(const std::vector<std::vector<double>> &probs_list, const QVec &qubits = {});
+    void set_measure_error(const NOISE_MODEL &model, double prob, const QVec &qubits = {});
+    void set_measure_error(const NOISE_MODEL &model, double T1, double T2, double t_gate, const QVec &qubits = {});
+
+    void set_reset_error(double p0, double p1, const QVec &qubits = {});
+    void set_readout_error(const std::vector<std::vector<double>> &probs_list, const QVec &qubits = {});
 
     void set_rotation_error(double error);
 

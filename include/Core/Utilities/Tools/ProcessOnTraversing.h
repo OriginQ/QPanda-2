@@ -269,5 +269,18 @@ LayeredTopoSeq prog_layer(QProg src_prog);
 
 LayeredTopoSeq get_clock_layer(QProg src_prog, const std::string config_data = CONFIG_PATH);
 
+/*new interface*/
+/**
+* @brief circuit_layer
+* @ingroup Utilities
+* @param[in] prog  the source prog
+* @return  LayerInfo include circuit  total layer and every layer NodeInfo
+*/
+
+using LayerInfo = std::pair <size_t, std::vector<std::vector<NodeInfo>>>;
+
+LayerInfo circuit_layer(QProg src_prog);
+
+
 QPANDA_END
 #endif // PROCESS_ON_TRAVERSING_H

@@ -15,6 +15,7 @@ endif()
 
 add_library(${LIB_QPANDA} STATIC ${QPandaCore_SRCS_CPP} )
 list(APPEND LIB_LIST ${LIB_ANTLR4})
+list(APPEND LIB_LIST ${LIB_MPFIT})
 target_link_libraries(${LIB_QPANDA} ${LIB_LIST})
 
 if (UNIX)

@@ -113,6 +113,12 @@
 #include <frameobject.h>
 #include <pythread.h>
 
+#if defined(__MINGW32__)
+// Handle program for `cmath:1121:11 : error : '::hypot' has not been declared`
+// QPanda Mingw32 not define hypot
+#include <cmath>
+#endif
+
 /* Python #defines overrides on all sorts of core functions, which
    tends to weak havok in C++ codebases that expect these to work
    like regular functions (potentially with several overloads) */

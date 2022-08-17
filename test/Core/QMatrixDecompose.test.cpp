@@ -5,9 +5,13 @@
 #include <stdio.h>
 #include <memory>
 #include "Extensions/Extensions.h"
+#include "Core/Utilities/UnitaryDecomposer/QSDecomposition.h"
+#include "Core/Utilities/UnitaryDecomposer/MatrixUtil.h"
 
 USING_QPANDA
 using namespace std;
+using namespace Eigen;
+
 bool test_matrix_decompose_1()
 {
 	auto qvm = initQuantumMachine(QMachineType::CPU);
@@ -89,7 +93,7 @@ bool test_matrix_decompose2pualis()
 	mat *= (1 / 4.0);
 	cout << "The matrix is:" << endl;
 	cout << mat << endl;
-	EigenMatrixX eigMat = mat;
+	QMatrixXd eigMat = mat;
 	PualiOperatorLinearCombination res;
 	matrix_decompose_paulis(machine, eigMat, res);
 	cout << endl << "**************************************************" << endl;
@@ -105,6 +109,77 @@ bool test_matrix_decompose2pualis()
 		cout << val.second << endl;
 	}
 	return true;
+}
+
+bool test_unitary_decomposer_nq(int qnum, DecompositionMode type, bool is_positive_seq)
+{
+	std::cout << "qnum : " << qnum << std::endl;
+	std::cout << "decomposition mode : " << (int)type << std::endl;
+
+	int ret = true;
+	auto qvm = new CPUQVM();
+	qvm->init();
+
+	auto qv = qvm->qAllocMany(qnum);
+	int dim = pow(2, qnum);
+
+	Eigen::MatrixXcd in_mat = random_unitary(dim);
+	auto start = std::chrono::steady_clock::now();
+	
+	auto cir_dec_nq = unitary_decomposer_nq(in_mat, qv,type , is_positive_seq);
+
+	auto end = std::chrono::steady_clock::now();
+	auto used_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+	std::cout << "unitary_decomposer_nq use milliseconds : " << used_time << std::endl;
+
+	int cnot_num = count_qgate_num(cir_dec_nq, GateType::CNOT_GATE);
+	std::cout << "cnot num :" << cnot_num << std::endl;
+
+	auto mat_out = getCircuitMatrix(cir_dec_nq, is_positive_seq);
+	auto mat_src = eigen2qstat(in_mat);
+	if (mat_compare(mat_src, mat_out, 1e-5) !=0){
+		std::cout << "unitary_decomposer_nq fail\n";
+		ret = false;
+	}
+
+	qvm->finalize();
+	delete qvm;
+
+	return ret;
+}
+
+
+TEST(QMatrixDecompose, test2)
+{
+	try
+	{
+		/*	int qnum = 3;
+			auto type = DecompositionMode::QSD;
+			bool is_positive_seq = false;
+			ret = test_unitary_decomposer_nq(qnum, type, is_positive_seq);*/
+		for (int i = 3; i < 7; i++)
+		{
+			int qnum = i;
+			for (int j = 0; j < (int)DecompositionMode::CSD; j++)
+			{
+				DecompositionMode type = static_cast<DecompositionMode>(j);
+				if (type == DecompositionMode::HOUSEHOLDER_QR || type == DecompositionMode::QR)
+				{
+					std::cout << "pass HOUSEHOLDER_QR or QR \n" << std::endl;
+					continue;
+				}
+				bool ret=test_unitary_decomposer_nq(qnum, type, true);
+				ASSERT_TRUE(ret);
+			}
+		}
+		
+	}
+	catch (const std::exception& e)
+	{
+		cout << "Got a exception: " << e.what() << endl;
+		ASSERT_TRUE(false);
+	}
+
 }
 
 TEST(QMatrixDecompose, test1)

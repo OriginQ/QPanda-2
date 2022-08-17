@@ -260,7 +260,10 @@ public:
 	* @brief  Clear all node in current quantum program node
 	* @return     void
 	*/
-	void clear() { m_node_manager.clear(); }
+	void clear() { 
+        m_qgate_num = 0;
+        m_node_manager.clear(); 
+    }
 
     void clearControl();
 

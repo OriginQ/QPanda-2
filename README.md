@@ -53,6 +53,7 @@ See more [examples](https://github.com/OriginQ/QPanda-Example)。
 
 ## Other informations
 
+ - [Introduction to Quantum Computing and Programming](https://quantum-book-by-originq.readthedocs.io/en/latest/#)
  - [Official website of Origin Quantum](http://originqc.com.cn/)
  - [OriginQ Cloud](http://www.qubitonline.cn/)
  - [OriginQ Education](https://learn-quantum.com/EDU/index.html)

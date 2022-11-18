@@ -52,15 +52,16 @@ The following example can be used to construct quantum entanglement in a quantum
 See more [examples](https://github.com/OriginQ/QPanda-Example)。
 
 ## Other informations
-
- - [Introduction to Quantum Computing and Programming](https://quantum-book-by-originq.readthedocs.io/en/latest/#)
- - [Official website of Origin Quantum](http://originqc.com.cn/)
- - [OriginQ Cloud](http://www.qubitonline.cn/)
- - [OriginQ Education](https://learn-quantum.com/EDU/index.html)
  - [ReadTheDocs(C++)](https://qpanda-tutorial.readthedocs.io/zh/latest/)
  - [ReadTheDocs(Python)](https://pyqpanda-tutorial-en.readthedocs.io/en/latest/)
  - [QRunes](https://qrunes-tutorial.readthedocs.io/en/latest/)
  - [Qurator-VSCode](https://qurator-vscode.readthedocs.io/zh_CN/latest/)
+ - [VQNet](https://vqnet20-tutorial.readthedocs.io/en/main/index.html)
+ - [Introduction to Quantum Computing and Programming](https://quantum-book-by-originq.readthedocs.io/en/latest/#)
+ - [Official website of Origin Quantum](http://originqc.com.cn/)
+ - [OriginQ Cloud](http://www.qubitonline.cn/)
+ - [OriginQ Education](https://learn-quantum.com/EDU/index.html)
+
 
 
 ## About

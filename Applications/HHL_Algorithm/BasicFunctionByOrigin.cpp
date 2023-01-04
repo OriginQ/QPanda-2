@@ -577,7 +577,7 @@ vector<double> read_vqls_theta() {
 	FILE* f_r = fopen("vqls_theta.txt", "rb");
 	vector<double> theta;
 	if (f_r == NULL) {
-		cout << "Error occured when QCFD read vqls_theta\n";
+		cout << "Error occurred when QCFD read vqls_theta\n";
 		exit(0);
 	}
 	else {
@@ -602,7 +602,7 @@ vector<vector<int>> read_sparsity() {
 	FILE* f_n = fopen("sparsity_num.txt", "rb");
 	vector<vector<int>> sparI_s;
 	if (f_r == NULL || f_n == NULL) {
-		cout << "Error occured when QCFD read sparsity data\n";
+		cout << "Error occurred when QCFD read sparsity data\n";
 		exit(0);
 	}
 	else {
@@ -730,7 +730,7 @@ pair<MatrixXd, vector<double>> read_jacobi_res() {
 		cout << "dimension = " << dim << endl;
 	}
 	else {
-		cout << "Error occured when QCFD read residual data\n";
+		cout << "Error occurred when QCFD read residual data\n";
 		exit(0);
 	}
 	delete[] p1;
@@ -746,7 +746,7 @@ pair<MatrixXd, vector<double>> read_jacobi_res() {
 	ifstream infile(infilename, std::ios::in);
 	size_t num;
 	if (infile.fail()) {
-		cout << "Error occured when QCFD read jacobian numbers data\n";
+		cout << "Error occurred when QCFD read jacobian numbers data\n";
 		exit(0);
 	}
 	else {
@@ -773,7 +773,7 @@ pair<MatrixXd, vector<double>> read_jacobi_res() {
 		delete[] rj;
 	}
 	else {
-		cout << "Error occured when QCFD read jacobian data\n";
+		cout << "Error occurred when QCFD read jacobian data\n";
 		exit(0);
 	}
 	fclose(f_j);
@@ -811,7 +811,7 @@ vector<vector<int>> read_N0index() {
 	FILE* f_n = fopen("N0index_num.txt", "rb");
 	vector<vector<int>> sparI_s;
 	if (f_r == NULL || f_n == NULL) {
-		cout << "Error occured when QCFD read sparsity data\n";
+		cout << "Error occurred when QCFD read sparsity data\n";
 		exit(0);
 	}
 	else {

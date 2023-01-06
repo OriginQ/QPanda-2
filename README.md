@@ -64,7 +64,7 @@ See more [examples](https://github.com/OriginQ/QPanda-Example)。
 
 ## How to cite
 
-[Please cite this arXiv paper: QPanda: high-performance quantum computing framework for multiple application scenarios](https://arxiv.org/abs/2212.14201)
+Please cite this arXiv paper: [QPanda: high-performance quantum computing framework for multiple application scenarios](https://arxiv.org/abs/2212.14201)
 
 ```
 @article{dou2022qpanda,

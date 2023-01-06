@@ -53,6 +53,7 @@ See more [examples](https://github.com/OriginQ/QPanda-Example)。
 
 ## Other informations
 
+ - [Introduction to Quantum Computing and Programming](https://quantum-book-by-originq.readthedocs.io/en/latest/#)
  - [Official website of Origin Quantum](http://originqc.com.cn/)
  - [OriginQ Cloud](http://www.qubitonline.cn/)
  - [OriginQ Education](https://learn-quantum.com/EDU/index.html)
@@ -61,6 +62,18 @@ See more [examples](https://github.com/OriginQ/QPanda-Example)。
  - [QRunes](https://qrunes-tutorial.readthedocs.io/en/latest/)
  - [Qurator-VSCode](https://qurator-vscode.readthedocs.io/zh_CN/latest/)
 
+## How to cite
+
+Please cite this arXiv paper: [QPanda: high-performance quantum computing framework for multiple application scenarios](https://arxiv.org/abs/2212.14201)
+
+```
+@article{dou2022qpanda,
+  title={QPanda: high-performance quantum computing framework for multiple application scenarios},
+  author={Dou, Menghan and Zou, Tianrui and Fang, Yuan and Wang, Jing and Zhao, Dongyi and Yu, Lei and Chen, Boying and Guo, Wenbo and Li, Ye and Chen, Zhaoyun and others},
+  journal={arXiv preprint arXiv:2212.14201},
+  year={2022}
+}
+```
 
 ## About
 

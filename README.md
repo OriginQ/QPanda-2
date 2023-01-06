@@ -69,7 +69,7 @@ Please cite this arXiv paper: [QPanda: high-performance quantum computing framew
 ```
 @article{dou2022qpanda,
   title={QPanda: high-performance quantum computing framework for multiple application scenarios},
-  author={Dou, Menghan and Zou, Tianrui and Fang, Yuan and Wang, Jing and Zhao, Dongyi and Yu, Lei and Chen, Boying and Guo, Wenbo and Li, Ye and Chen, Zhaoyun and others},
+  author={Dou, Menghan and Zou, Tianrui and Fang, Yuan and Wang, Jing and Zhao, Dongyi and Yu, Lei and Chen, Boying and Guo, Wenbo and Li, Ye and Chen, Zhaoyun and Guo, Guoping},
   journal={arXiv preprint arXiv:2212.14201},
   year={2022}
 }

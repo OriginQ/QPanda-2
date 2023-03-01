@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2017-2020 Origin Quantum Computing. All Right Reserved.
+Copyright (c) 2017-2023 Origin Quantum Computing. All Right Reserved.
 Licensed under the Apache License 2.0
 
 QstatMatrix.h
@@ -134,6 +134,25 @@ QMatrixXcd QStat_to_Eigen(const QStat& mat);
 * @return Corresponding QStat
 */
 QStat Eigen_to_QStat(const QMatrixXcd& mat);
+
+/**
+* @brief Convert a QStat unitary_matrix
+* @ingroup Utilities
+* @param[in] matrix rows or cols
+* @return Corresponding QStat
+*/
+QStat qstat_zero_matrix(size_t rows);
+QStat qstat_unitary_matrix(size_t rows);
+
+
+/**
+* @brief Convert a QMatrixXcd unitary_matrix
+* @ingroup Utilities
+* @param[in] matrix rows or cols
+* @return Corresponding QMatrixXcd
+*/
+QMatrixXcd eigen_zero_matrix(size_t rows);
+QMatrixXcd eigen_unitary_matrix(size_t rows);
 
 /**
 * @brief check whether the input matrix is a unitary matrix

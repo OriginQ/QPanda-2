@@ -1,6 +1,7 @@
 #include <set>
 #include <numeric>
 #include "Core/Utilities/Tools/Uinteger.h"
+#include "Core/Utilities/Tools/QStatMatrix.h"
 #include "Core/Utilities/Tools/TranformQGateTypeStringAndEnum.h"
 #include "Core/VirtualQuantumProcessor/MPSQVM/NoiseSimulator.h"
 #include "Core/VirtualQuantumProcessor/MPSQVM/NoiseDefinition.h"
@@ -8,9 +9,38 @@
 USING_QPANDA
 using namespace std;
 using namespace QGATE_SPACE;
+using namespace NoiseUtils;
 using SINGLE_GATE_FUNC = std::function<QGate(Qubit*)>;
 
-static Qnum get_qnum(const std::vector<Qnum>& qnums)
+std::vector<Qnum> NoiseUtils::get_qubits_addr(const std::vector<QVec>& qvs)
+{
+    std::vector<Qnum> qubits_addrs;
+    for (const auto& qvec : qvs)
+    {
+        Qnum qubits_addr;
+        for_each(qvec.begin(), qvec.end(), [&](Qubit* qubit)
+        {
+            qubits_addr.emplace_back(qubit->get_phy_addr());
+        });
+
+        qubits_addrs.emplace_back(qubits_addr);
+    }
+
+    return qubits_addrs;
+}
+
+Qnum NoiseUtils::get_qubits_addr(const QVec &qvs)
+{
+    Qnum qubits_addrs;
+    for (const auto& qubit : qvs)
+    {
+        qubits_addrs.emplace_back(qubit->get_phy_addr());
+    }
+
+    return qubits_addrs;
+}
+
+Qnum NoiseUtils::get_qnum(const std::vector<Qnum>& qnums)
 {
     Qnum qubits;
     for (const auto &qvec : qnums)
@@ -21,13 +51,13 @@ static Qnum get_qnum(const std::vector<Qnum>& qnums)
     return qubits;
 }
 
-static void assert_probs_equal_to_one(const std::vector<double> &probs)
+void NoiseUtils::assert_probs_equal_to_one(const std::vector<double> &probs)
 {
     double sum_probs = accumulate(probs.begin(), probs.end(), .0);
     QPANDA_ASSERT(FLT_EPSILON < std::fabs(1. - sum_probs), "The sum of probabilities is not equal to 1");
 }
 
-static bool matrix_equal(const QStat &lhs, const QStat &rhs) 
+bool NoiseUtils::matrix_equal(const QStat &lhs, const QStat &rhs)
 {
     QPANDA_RETURN(lhs.size() != rhs.size(), false);
     for (size_t i = 0; i < lhs.size(); i++) 
@@ -38,14 +68,14 @@ static bool matrix_equal(const QStat &lhs, const QStat &rhs)
     return true;
 }
 
-static void unique_vector(Qnum &qubits)
+void NoiseUtils::unique_vector(Qnum &qubits)
 {
     std::set<int> qubits_set(qubits.begin(), qubits.end());
     qubits.assign(qubits_set.begin(), qubits_set.end());
     return;
 }
 
-static bool optimize_karus_matrices(std::vector<QStat> &ops) 
+bool NoiseUtils::optimize_karus_matrices(std::vector<QStat> &ops)
 {
     auto is_zero_matrix = [](const QStat &matrix)->bool 
     {        
@@ -102,7 +132,7 @@ static bool optimize_karus_matrices(std::vector<QStat> &ops)
     return true;
 }
 
-static std::vector<QStat> get_tensor_matrices(const std::vector<QStat>& matrices_a, const std::vector<QStat>& matrices_b)
+std::vector<QStat> NoiseUtils::get_tensor_matrices(const std::vector<QStat>& matrices_a, const std::vector<QStat>& matrices_b)
 {
     for (const auto& val : matrices_a)
     {
@@ -124,10 +154,11 @@ static std::vector<QStat> get_tensor_matrices(const std::vector<QStat>& matrices
         }
     }
 
+    optimize_karus_matrices(tensor_results);
     return tensor_results;
 }
 
-static size_t get_karus_error_qubit_num(const std::vector<QStat>& matrices)
+size_t NoiseUtils::get_karus_error_qubit_num(const std::vector<QStat>& matrices)
 {
     QPANDA_ASSERT(matrices.empty(), "karus matrices is empty");
 
@@ -142,7 +173,7 @@ static size_t get_karus_error_qubit_num(const std::vector<QStat>& matrices)
     return qubit_num;
 }
 
-static std::vector<double> get_tensor_probs(const std::vector<double>& probs_a, const std::vector<double>& probs_b)
+std::vector<double> NoiseUtils::get_tensor_probs(const std::vector<double>& probs_a, const std::vector<double>& probs_b)
 {
     assert_probs_equal_to_one(probs_a);
     assert_probs_equal_to_one(probs_b);
@@ -162,7 +193,7 @@ static std::vector<double> get_tensor_probs(const std::vector<double>& probs_a, 
     return tensor_results;
 }
 
-static std::vector<QStat> get_compose_karus_matrices(const std::vector<QStat>& karus_matrices_a,
+std::vector<QStat> NoiseUtils::get_compose_karus_matrices(const std::vector<QStat>& karus_matrices_a,
     const std::vector<QStat>& karus_matrices_b)
 {
     QPANDA_RETURN(karus_matrices_a.empty(), karus_matrices_b);
@@ -182,14 +213,14 @@ static std::vector<QStat> get_compose_karus_matrices(const std::vector<QStat>& k
     return karus_compose_results;
 }
 
-static bool is_rotation_gate(GateType type)
+bool NoiseUtils::is_rotation_gate(GateType type)
 {
     return GateType::RX_GATE == type     || GateType::RY_GATE == type || 
            GateType::RZ_GATE == type     || GateType::CPHASE_GATE == type || 
            GateType::ISWAP_THETA_GATE == type;
 }
 
-static size_t random_discrete(const std::vector<double> &probs)
+size_t NoiseUtils::random_discrete(const std::vector<double> &probs)
 { 
     static RandomEngine19937 rng;
     return rng.random_discrete(probs);
@@ -244,7 +275,7 @@ void NonKarusError::set_measure_qubit(const Qnum& qubits)
         m_measure_qubits.emplace_back(qubit);
     }
    
-    unique_vector(m_measure_qubits);
+    NoiseUtils::unique_vector(m_measure_qubits);
 }
 
 bool NonKarusError::has_non_karus_error()
@@ -314,6 +345,23 @@ KarusError::KarusError(const std::vector<QStat>& unitary_matrices, const std::ve
     m_qubit_num = get_karus_error_qubit_num(unitary_matrices);
 }
 
+KarusError::KarusError(const std::vector<QStat>& karus_matrices, NOISE_MODEL model)
+{
+    m_noise_model = model;
+    m_karus_matrices = karus_matrices;
+    m_karus_error_type = KarusErrorType::KARUS_MATRIICES;
+    m_qubit_num = get_karus_error_qubit_num(karus_matrices);
+}
+
+KarusError::KarusError(const std::vector<QStat>& unitary_matrices, const std::vector<double>& probs_vec, NOISE_MODEL model)
+{
+    m_noise_model = model;
+    m_unitary_probs = probs_vec;
+    m_unitary_matrices = unitary_matrices;
+    m_karus_error_type = KarusErrorType::UNITARY_MATRIICES;
+    m_qubit_num = get_karus_error_qubit_num(unitary_matrices);
+}
+
 void KarusError::set_unitary_probs(std::vector<double>& probs_vec)
 { 
     m_unitary_probs.swap(probs_vec);
@@ -364,6 +412,69 @@ void KarusError::get_karus_matrices(std::vector<QStat>& karus_matrices) const
     }
 }
 
+void KarusError::get_two_qubit_karus_matrices(std::vector<QStat>& karus_matrices) const
+{
+    std::vector<QStat> one_qubit_karus_matrices;
+    get_one_qubit_karus_matrices(one_qubit_karus_matrices);
+
+    if (m_noise_model != DEPOLARIZING_KRAUS_OPERATOR)
+    {
+        karus_matrices = NoiseUtils::get_tensor_matrices(one_qubit_karus_matrices, one_qubit_karus_matrices);
+    }
+    else
+    {
+        if (4 != one_qubit_karus_matrices.size())
+            QCERR_AND_THROW(std::runtime_error, "get karus matrices error");
+
+        auto param = one_qubit_karus_matrices.back()[0];
+        auto one_qubit_param = 4. * (1. - param * param) / 3.;
+
+        std::vector<QStat> depolarizing_karus(4);
+
+        depolarizing_karus[0] = { 1, 0, 0, 1 };
+        depolarizing_karus[1] = { 0, 1, 1, 0 };
+        depolarizing_karus[2] = { 0, qcomplex_t(0, -1), qcomplex_t(0, 1), 0 };
+        depolarizing_karus[3] = { 1, 0, 0, -1 };
+
+        karus_matrices = NoiseUtils::get_tensor_matrices(depolarizing_karus, depolarizing_karus);
+        
+        auto two_qubit_param0 = std::sqrt(1. - one_qubit_param * 15. / 16.);
+        auto two_qubit_param1 = std::sqrt((one_qubit_param * 15. / 16.) / 15.);
+
+        for (auto i = 0; i < karus_matrices.size(); ++i)
+        {
+            for (auto& val : karus_matrices[i])
+            {
+                if (i == 0)
+                    val *= two_qubit_param0;
+                else
+                    val *= two_qubit_param1;
+            }
+        }
+    }
+
+    return;
+}
+
+void KarusError::get_one_qubit_karus_matrices(std::vector<QStat>& karus_matrices) const
+{
+    if (KarusErrorType::KARUS_MATRIICES == m_karus_error_type)
+    {
+        karus_matrices = m_karus_matrices;
+    }
+    else
+    {
+        QPANDA_ASSERT(m_unitary_matrices.size() != m_unitary_probs.size(), "unitary matrices size error");
+
+        std::vector<QStat> result_karus_matrices;
+        for (int i = 0; i < m_unitary_matrices.size(); i++)
+        {
+            result_karus_matrices.emplace_back(m_unitary_matrices[i] * sqrt(m_unitary_probs[i]));
+        }
+
+        karus_matrices = result_karus_matrices;
+    }
+}
 
 KarusError KarusError::tensor(const KarusError& karus_error)
 {
@@ -1032,7 +1143,12 @@ void NoiseSimulator::set_noise_model(NOISE_MODEL model, GateType gate_type, doub
 
     if (model == NOISE_MODEL::DAMPING_KRAUS_OPERATOR)
     {
-        auto karus_matrices = get_noise_model_karus_matrices(DAMPING_KRAUS_OPERATOR, { param });
+        std::vector<QStat> karus_matrices(2);
+
+        karus_matrices[0] = { 1,0,0,(qstate_type)sqrt(1 - param) };
+        karus_matrices[1] = { 0,(qstate_type)sqrt(param),0,0 };
+
+        //auto karus_matrices = get_noise_model_karus_matrices(DAMPING_KRAUS_OPERATOR, { param });
         auto karus_error = KarusError(karus_matrices);
 
         set_gate_and_qnums(gate_type, {});
@@ -1244,7 +1360,7 @@ void NoiseSimulator::set_mixed_unitary_error(GateType gate_type, const std::vect
 void NoiseSimulator::set_mps_qpu_and_result(std::shared_ptr<MPSImplQPU> mps_qpu, QResult* result) 
 { 
     QPANDA_ASSERT(nullptr == mps_qpu, "mps_qpu is nullptr");
-    QPANDA_ASSERT(nullptr == result , "m_esult is nullptr");
+    QPANDA_ASSERT(nullptr == result , "m_result is nullptr");
 
     m_mps_qpu = mps_qpu; 
     m_result = result; 

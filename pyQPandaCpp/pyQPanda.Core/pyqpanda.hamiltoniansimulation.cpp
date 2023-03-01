@@ -18,7 +18,7 @@ void export_hamiltoniansimulation(py::module &m)
 {
 	m.def("expMat", &expMat, "calculate the matrix power of e", py::return_value_policy::reference);
 
-	py::class_<QOperator>(m, "QOperator")
+	py::class_<QOperator>(m, "QOperator", "quantum operator class")
 		.def(py::init<>())
 		.def(py::init<QGate &>())
 		.def(py::init<QCircuit &>())

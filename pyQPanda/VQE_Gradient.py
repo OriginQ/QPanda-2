@@ -252,7 +252,7 @@ if __name__=="__main__":
         fermion_op = parsePsi4DataToFermion(data[1])
         pauli_op = JordanWignerTransform(fermion_op)
 
-        n_qubit = pauli_op.getMaxIndex()
+        n_qubit = pauli_op.getMaxIndex()+1
 
         energies.append(GradientDescent(pauli_op, n_qubit, n_electron, 30))
 

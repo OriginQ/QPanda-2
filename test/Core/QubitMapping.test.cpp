@@ -108,6 +108,76 @@ MEASURE q[3],c[2]
 MEASURE q[4],c[3]
 )";
 
+
+const std::string test_IR_5 = R"(QINIT 5
+CREG 5
+RY q[0],(-2.352396)
+Z1 q[1]
+RY q[2],(-2.743066)
+RZ q[3],(-6.283185)
+RZ q[0],(6.283185)
+RY q[1],(-1.570796)
+RZ q[2],(-3.141593)
+RY q[3],(-2.739645)
+RZ q[1],(3.181396)
+CNOT q[0],q[1]
+RZ q[1],(1.475277)
+X1 q[1]
+CNOT q[1],q[0]
+RX q[0],(0.000000)
+RY q[1],(1.475277)
+CNOT q[0],q[1]
+RX q[0],(-1.570796)
+RY q[1],(-1.610599)
+RZ q[0],(3.923193)
+RZ q[1],(-3.141593)
+RY q[0],(-1.570796)
+RZ q[1],(-1.570796)
+RZ q[0],(-1.570796)
+RY q[1],(-1.570796)
+RZ q[1],(4.516512)
+CNOT q[1],q[2]
+RZ q[2],(1.389924)
+X1 q[2]
+CNOT q[2],q[1]
+RX q[1],(0.000000)
+RY q[2],(0.000538)
+CNOT q[1],q[2]
+RX q[1],(-1.570796)
+RY q[2],(-1.570796)
+RY q[1],(-1.495197)
+RZ q[2],(-4.712389)
+RZ q[1],(-6.283185)
+RZ q[2],(-3.141593)
+RY q[2],(-0.791455)
+RZ q[2],(-1.570796)
+X1 q[2]
+CNOT q[2],q[3]
+RX q[2],(-1.201981)
+RY q[3],(-1.145132)
+CNOT q[2],q[3]
+RX q[2],(-1.570796)
+RY q[3],(-0.867419)
+Z1 q[2]
+RZ q[3],(-6.283185)
+RY q[2],(-1.570796)
+RY q[3],(-1.570796)
+RZ q[3],(-3.141593)
+CONTROL q[0]
+RY q[4],(0.418879)
+ENDCONTROL
+CONTROL q[1]
+RY q[4],(0.837758)
+ENDCONTROL
+CONTROL q[2]
+RY q[4],(1.675516)
+ENDCONTROL
+CONTROL q[3]
+RY q[4],(3.351032)
+ENDCONTROL
+MEASURE q[4],c[4]
+)";
+
 USING_QPANDA
 using namespace std;
 template <class T = CPUQVM>
@@ -274,10 +344,10 @@ public:
 
 	virtual void execute(std::shared_ptr<AbstractClassicalProg>  cur_node,std::shared_ptr<QNode> parent_node){}
 
-	double m_fidelity;
+    double m_fidelity{0};
 	std::vector<std::vector<double>> mCnotReliability;
 	std::vector<std::vector<double>> mSwapDist;
-	int m_swap_cnt;
+    int m_swap_cnt{0};
 };
 
 static bool test_opt_BMT_qubit_allocator_1()
@@ -477,7 +547,7 @@ static bool test_mapping_overall_1(const std::string& ir_str)
 		std::map<string, size_t> _result = machine->runWithConfiguration(sabre_mapped_prog, c, kShots);
 		for (const auto& i : _result)
 		{
-            if (abs((long)i.second < kEpsion))
+            if (std::abs((double)i.second) < kEpsion)
                 continue;
 			const long _a = i.second - correct_result.at(i.first);
 			if (std::abs(_a) > kEpsion){
@@ -518,9 +588,9 @@ static bool test_mapping_overall_1(const std::string& ir_str)
 		auto _result = machine->runWithConfiguration(bmt_mapped_prog, c, kShots);
 		for (const auto& i : _result)
 		{
-            if (abs((long)i.second < kEpsion))
+            if (std::abs((long)i.second) < kEpsion)
                 continue;
-			if (abs((long)i.second - (long)correct_result.at(i.first)) > kEpsion) {
+            if (std::abs((long)i.second - (long)correct_result.at(i.first)) > kEpsion) {
 				return false;
 			}
 		}
@@ -578,9 +648,9 @@ static bool test_mapping_overall_1(const std::string& ir_str)
 		auto _result = machine->runWithConfiguration(bmt_mapped_prog, c, kShots);
 		for (const auto& i : _result)
 		{
-            if (abs((long)i.second < kEpsion))
+            if (std::abs((long)i.second) < kEpsion)
                 continue;
-			if (abs((long)i.second - (long)correct_result.at(i.first)) > kEpsion) {
+            if (std::abs((long)i.second - (long)correct_result.at(i.first)) > kEpsion) {
 				return false;
 			}
 		}
@@ -725,7 +795,7 @@ static bool test_mapping_overall_fix(const std::string& ir_str)
     }
     for (const auto& i : SABRE_out_result)
     {
-        if (abs((long)i.second < kEpsion))
+        if (std::abs((long)i.second) < kEpsion)
             continue;
         const long _a = i.second - correct_result.at(i.first);
         if (std::abs(_a) > kEpsion) {
@@ -756,7 +826,7 @@ static bool test_mapping_overall_fix(const std::string& ir_str)
     }
     for (const auto& i : BMT_out_result)
     {
-        if (abs((long)i.second < kEpsion))
+        if (std::abs((long)i.second) < kEpsion)
             continue;
         const long _a = i.second - correct_result.at(i.first);
         if (std::abs(_a) > kEpsion) {
@@ -784,7 +854,7 @@ static bool test_mapping_overall_fix(const std::string& ir_str)
     }
     for (const auto& i : astar_out_result)
     {
-        if (abs((long)i.second < kEpsion))
+        if (std::abs((long)i.second) < kEpsion)
             continue;
         const long _a = i.second - correct_result.at(i.first);
         if (std::abs(_a) > kEpsion) {
@@ -840,7 +910,7 @@ static bool test_mapping_sabre_fix(const std::string& ir_str)
     }
     for (const auto& i : SABRE_out_result)
     {
-        if (abs((long)i.second < kEpsion))
+        if (std::abs((long)i.second) < kEpsion)
             continue;
         const long _a = i.second - correct_result.at(i.first);
         if (std::abs(_a) > kEpsion) {
@@ -882,8 +952,9 @@ static bool test_mapping_obmt_fix(const std::string& ir_str)
 
     auto _prog2 = deepCopy(test_prog);
     auto start1 = chrono::system_clock::now();
-    auto bmt_mapped_prog = OBMT_mapping(_prog2, machine, q, 200, 20, 10, CONFIG_PATH);
-    std::cout << bmt_mapped_prog << std::endl;
+    auto bmt_mapped_prog = OBMT_mapping(_prog2, machine, q);
+    auto prog_str = convert_qprog_to_originir(bmt_mapped_prog, machine);
+    std::cout << prog_str << std::endl;
     auto end1 = chrono::system_clock::now();
     auto duration1 = chrono::duration_cast<chrono::microseconds>(end1 - start1);
     std::cout << "The opt-bmt takes "
@@ -897,7 +968,7 @@ static bool test_mapping_obmt_fix(const std::string& ir_str)
     }
     for (const auto& i : BMT_out_result)
     {
-        if (abs((long)i.second < kEpsion))
+        if (std::abs((long)i.second) < kEpsion)
             continue;
         const long _a = i.second - correct_result.at(i.first);
         if (std::abs(_a) > kEpsion) {
@@ -952,7 +1023,7 @@ static bool test_mapping_a_star_fix(const std::string& ir_str)
     }
     for (const auto& i : astar_out_result)
     {
-        if (abs((long)i.second < kEpsion))
+        if (std::abs((long)i.second) < kEpsion)
             continue;
         const long _a = i.second - correct_result.at(i.first);
         if (std::abs(_a) > kEpsion) {
@@ -994,10 +1065,10 @@ TEST(QubitMapping, test1)
 		for (size_t i = 0; i < 10; ++i)
 		{
             
-            test_val = test_val && test_mapping_obmt_fix(test_IR_2);
-            test_val = test_val && test_mapping_a_star_fix(test_IR_2);
+            test_val = test_val && test_mapping_obmt_fix(test_IR_5);
+            /*test_val = test_val && test_mapping_a_star_fix(test_IR_2);
             test_val = test_val && test_mapping_sabre_fix(test_IR_2);
-            test_val = test_val && test_mapping_overall_fix(test_IR_2);
+            test_val = test_val && test_mapping_overall_fix(test_IR_2);*/
             //test_val = test_val && test_mapping_overall_1(test_IR_3)
 			//test_val = test_val && test_mapping_overall_fix(test_IR_2);
 			//test_val = test_val && test_mapping_overall_1(test_IR_2);

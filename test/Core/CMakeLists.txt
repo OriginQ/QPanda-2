@@ -7,4 +7,3 @@ if (CURL_FOUND)
 else (CURL_FOUND)
     target_link_libraries(${PROJECT_NAME} ${LIB_QPANDA} ${LIB_GTEST} ${LIB_QALG})
 endif (CURL_FOUND)
-

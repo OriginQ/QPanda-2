@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2017-2019 Origin Quantum Computing. All Right Reserved.
+Copyright (c) 2017-2023 Origin Quantum Computing. All Right Reserved.
 Licensed under the Apache License 2.0
 
 Traversal.h

@@ -1,4 +1,4 @@
-numpy
-matplotlib>=2.1
+numpy>=1.17
+matplotlib>=3.3
 pydot
 scipy

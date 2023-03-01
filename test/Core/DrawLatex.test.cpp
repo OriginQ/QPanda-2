@@ -73,13 +73,13 @@ TEST(DrawLatex, output_latex_source)
     destroyQuantumMachine(qvm);
 
     auto latex_drawer = std::make_shared<LatexMatrix>();
-    latex_drawer->setLogo("TestLogo");
-    latex_drawer->insertGate({2, 3}, {}, 3, LATEX_GATE_TYPE::GENERAL_GATE, "MAJ");
-    latex_drawer->insertBarrier({1, 3}, 3);
-    latex_drawer->insertGate({3, 4}, {}, 3, LATEX_GATE_TYPE::GENERAL_GATE, "MAJ");
-    latex_drawer->insertReset(4, 4);
-    latex_drawer->setLabel({{0, "a_0"}, {1, "a_1"}}, {{2, "c_2"}});
-    latex_drawer->setLabel({{0, "s_0"}, {1, "s_1"}}, {}, "", false);
+    latex_drawer->set_logo("TestLogo");
+    latex_drawer->insert_gate({2, 3}, {}, 3, LATEX_GATE_TYPE::GENERAL_GATE, "MAJ");
+    latex_drawer->insert_barrier({ 1, 3 }, 3);
+    latex_drawer->insert_gate({3, 4}, {}, 3, LATEX_GATE_TYPE::GENERAL_GATE, "MAJ");
+    latex_drawer->insert_reset(4, 4);
+    latex_drawer->set_label({{0, "a_0"}, {1, "a_1"}}, {{2, "c_2"}});
+    latex_drawer->set_label({{0, "s_0"}, {1, "s_1"}}, {}, "", false);
     latex_str = latex_drawer->str();
 
     std::fstream f_test("test.tex", std::ios_base::out);

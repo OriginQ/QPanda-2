@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2017-2020 Origin Quantum Computing. All Right Reserved.
+Copyright (c) 2017-2023 Origin Quantum Computing. All Right Reserved.
 Licensed under the Apache License 2.0
 
 FermionOperator.h
@@ -58,9 +58,9 @@ QPANDA_BEGIN
 /*
  * first: orbital index; second: action, true create, false annihilation
  */
-using OrbitalAct = std::pair<size_t, bool>;
-using OrbitalActVec = std::vector<OrbitalAct>;
-using FermionPair = std::pair<OrbitalActVec, std::string>;
+using OrbitalAct = std::pair<size_t, bool>; // 2+
+using OrbitalActVec = std::vector<OrbitalAct>; // [3+, 2+, 0, 1]
+using FermionPair = std::pair<OrbitalActVec, std::string>; // ([3+, 2+, 0, 1], "3+ 2+ 0 1") 
 
 /**
 * @brief Fermion operator class
@@ -70,8 +70,8 @@ template<class T>
 class FermionOp
 {
 public:
-    using FermionItem = std::pair<FermionPair, T>;
-    using FermionData = std::vector<FermionItem>;
+    using FermionItem = std::pair<FermionPair, T>; // (([3+, 2+, 0, 1], "3+ 2+ 0 1"), T)
+    using FermionData = std::vector<FermionItem>; // m_data= [(([3+, 2+, 0, 1], "3+ 2+ 0 1"), T), ()]
 
     using FermionMap = std::map<std::string, T>;
 public:
@@ -101,19 +101,19 @@ public:
             insertData(iter->first, iter->second);
         }
 
-        reduceDuplicates();
+        //reduceDuplicates();
     }
 
     FermionOp(FermionData &&fermion_data):
         m_data(std::move(fermion_data))
     {
-        reduceDuplicates();
+        //reduceDuplicates();
     }
 
     FermionOp(const FermionData &fermion_data):
         m_data(fermion_data)
     {
-        reduceDuplicates();
+        //reduceDuplicates();
     }
 
     FermionOp(FermionOp &&op):
@@ -159,6 +159,8 @@ public:
                         i.second);
         }
 
+        data.reduceDuplicates();
+
         return data;
     }
 
@@ -182,7 +184,7 @@ public:
             }
         }
 
-        max_index++;
+        //max_index++;
 
         return max_index;
     }
@@ -263,6 +265,33 @@ public:
 	*/
     double error_threshold() const { return m_error_threshold; }
 
+    void reOrderIndex(void)
+    {
+        //printf("NOTE: The orbitals are rearranged\n");
+
+        size_t qn = getMaxIndex() + 1, q2 = qn / 2;
+
+        std::string fi_str; size_t o1, o2;
+        for (auto& fi: m_data) // FermionItem=(([3+, 2+, 0, 1], "3+ 2+ 0 1"), T)
+        {
+            fi_str = "";
+            for (auto& o: fi.first.first) // OrbitalAct= 3+
+            {
+                o1 = o.first;
+                if (o1 % 2 == 0)
+                    o2 = o1 / 2;
+                else // o1 % 2 == 1
+                    o2 = q2 + o1 / 2;
+                if (o.second)
+                    fi_str += std::to_string(o2) + "+ ";
+                else 
+                    fi_str += std::to_string(o2) + " ";
+                o.first = o2;
+            }
+            fi.first.second = fi_str;
+        }
+    }
+
 	/**
 	* @brief get data
 	* @return FermionData return fermion data
@@ -319,7 +348,7 @@ public:
         }
 
         FermionOp tmp_fermion(std::move(tmp_data));
-        tmp_fermion.reduceDuplicates();
+        //tmp_fermion.reduceDuplicates();
 
         return tmp_fermion;
     }
@@ -333,7 +362,7 @@ public:
         auto &cdata = rhs.m_data;
 
         m_data.insert(m_data.end(), cdata.begin(), cdata.end());
-        reduceDuplicates();
+        //reduceDuplicates();
 
         return *this;
     }
@@ -360,7 +389,7 @@ public:
         FermionOp tmp(std::move(m_data));
         auto result = tmp * rhs;
 
-        result.reduceDuplicates();
+        //result.reduceDuplicates();
         m_data = std::move(result.m_data);
 
         return *this;
@@ -405,6 +434,46 @@ public:
     {
         out << rhs.toString();
         return out;
+    }
+
+    void reduceDuplicates()
+    {
+        std::map<std::string, T> data_map;
+        std::map<std::string, OrbitalActVec> term_map;
+
+        for (auto iter = m_data.begin(); iter != m_data.end(); iter++)
+        {
+            auto pair = iter->first;
+            T value = iter->second;
+            OrbitalActVec oa_vec = pair.first;
+            std::string str = pair.second;
+
+            if (data_map.find(str) != data_map.end())
+            {
+                data_map[str] += value;
+            }
+            else
+            {
+                data_map.insert(std::make_pair(str, value));
+                term_map.insert(std::make_pair(str, oa_vec));
+            }
+        }
+
+        FermionData fermion_data;
+        for (auto iter = data_map.begin(); iter != data_map.end(); iter++)
+        {
+            auto err = std::abs(iter->second);
+            if (fabs(err) > fabs(m_error_threshold))
+            {
+                FermionPair pair;
+                pair.first = term_map[iter->first];
+                pair.second = iter->first;
+
+                fermion_data.push_back(std::make_pair(pair, iter->second));
+            }
+        }
+
+        m_data = std::move(fermion_data);
     }
 private:
     OrbitalAct getOrbitalAct(const QString &item)
@@ -529,46 +598,6 @@ private:
 
         FermionPair item = std::make_pair(oa_vec, str);
         m_data.emplace_back(std::make_pair(item, value));
-    }
-
-    void reduceDuplicates()
-    {
-        std::map<std::string, T> data_map;
-        std::map<std::string, OrbitalActVec> term_map;
-
-        for (auto iter = m_data.begin(); iter != m_data.end(); iter++)
-        {
-            auto pair = iter->first;
-            T value = iter->second;
-            OrbitalActVec oa_vec = pair.first;
-            std::string str = pair.second;
-
-            if (data_map.find(str) != data_map.end())
-            {
-                data_map[str] += value;
-            }
-            else
-            {
-                data_map.insert(std::make_pair(str, value));
-                term_map.insert(std::make_pair(str, oa_vec));
-            }
-        }
-
-        FermionData fermion_data;
-        for (auto iter = data_map.begin(); iter != data_map.end(); iter++)
-        {
-            auto err = std::abs(iter->second);
-            if (fabs(err) > fabs(m_error_threshold))
-            {
-                FermionPair pair;
-                pair.first = term_map[iter->first];
-                pair.second = iter->first;
-
-                fermion_data.push_back(std::make_pair(pair, iter->second));
-            }
-        }
-
-        m_data = std::move(fermion_data);
     }
 
     FermionOp normal_ordered_ladder_term(

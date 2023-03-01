@@ -3,7 +3,8 @@
 #include "pybind11/stl.h"
 #include "pybind11/complex.h"
 #include "pybind11/operators.h"
-#include "Variational/VarFermionOperator.h"
+#include "Components/Operator/VarFermionOperator.h"
+
 
 namespace py = pybind11;
 USING_QPANDA

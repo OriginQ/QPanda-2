@@ -258,8 +258,8 @@ static bool test_fun6()
 	auto machine = initQuantumMachine(CPU);
 
 	QStat A = {
-        qcomplex_t(1.0 / 1.0, 0), qcomplex_t(-1.0 / 3.0, 0),
-        qcomplex_t(-1.0 / 3.0, 0), qcomplex_t(1.0 / 1.0, 0)
+        qcomplex_t(1.0, 0), qcomplex_t(-1.0 / 3.0, 0),
+        qcomplex_t(-1.0 / 3.0, 0), qcomplex_t(1.0, 0)
 	};
 
 	std::vector<double> b = { 1, 0 };

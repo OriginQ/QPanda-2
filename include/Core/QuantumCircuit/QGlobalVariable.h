@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2017-2020 Origin Quantum Computing. All Right Reserved.
+Copyright (c) 2017-2023 Origin Quantum Computing. All Right Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -86,6 +86,7 @@ enum GateType {
     P11_GATE,
     TOFFOLI_GATE,
 	ORACLE_GATE,
+    CORACLE_GATE,
 	I_GATE,
 
     ECHO_GATE,  /**< Only for 6 qubit online projects */

@@ -113,38 +113,6 @@ static void _check_uc(QCircuit uc_circ,
 }
 
 
-QCircuit zyz_decomposition(const Eigen::MatrixXcd& matrix, Qubit* in_q)
-{
-	std::complex<double> det = matrix.determinant();
-	double delta = atan2(det.imag(), det.real()) / matrix.rows();
-	std::complex<double> A = exp(std::complex<double>(0, -1) * delta) * matrix(0, 0);
-	std::complex<double> B = exp(std::complex<double>(0, -1) * delta) * matrix(0, 1);
-
-	double sw = sqrt(pow((double)B.imag(), 2) + pow((double)B.real(), 2) + pow((double)A.imag(), 2));
-	double wx = 0;
-	double wy = 0;
-	double wz = 0;
-
-	if (sw > 0) {
-		wx = B.imag() / sw;
-		wy = B.real() / sw;
-		wz = A.imag() / sw;
-	}
-
-	double t1 = atan2(A.imag(), A.real());
-	double t2 = atan2(B.imag(), B.real());
-	double alpha = t1 + t2;
-	double gamma = t1 - t2;
-	double beta = 2 * atan2(sw * sqrt(pow((double)wx, 2) + pow((double)wy, 2)), sqrt(pow((double)A.real(), 2) + pow((wz * sw), 2)));
-	QCircuit circ;
-	circ << RZ(in_q, -gamma)
-		<< RY(in_q, -beta)
-		<< RZ(in_q, -alpha)
-		;
-	return circ;
-}
-
-
 #if 0
 // Decomposition is fast, but occasionally fail.  need debug.
 void QSDecomposition::_cosine_sine_decomposition(const Eigen::MatrixXcd& U,
@@ -310,7 +278,7 @@ QCircuit QSDecomposition::synthesize_qcircuit(
 	_ASSERT(tmp_qv.size() == qv.size(), "input repeated qubits, need check");
 	_ASSERT(qnum == qv.size(), "matrix dim not matching qubits size");
 	_ASSERT(pow(2,qnum) == in_matrix.rows(), "matrix dim need 2**qnum");
-	_ASSERT(is_unitary(in_matrix, 1e-11), "is not a unitary matrix");
+	_ASSERT(is_unitary(in_matrix), "is not a unitary matrix");
 
 	if (!is_positive_seq) {
 		std::reverse(tmp_qv.begin(), tmp_qv.end());
@@ -328,7 +296,7 @@ QCircuit QSDecomposition::_decompose(const Eigen::MatrixXcd& in_matrix, const QV
 	Eigen::MatrixXcd identity = Eigen::MatrixXcd::Identity(dim, dim);
 	if (is_approx(in_matrix, identity))
 	{
-		std::cout << "is identity,  return null circuit" << std::endl;
+		//std::cout << "is identity,  return null circuit" << std::endl;
 		return circ;
 	}
 
@@ -529,7 +497,7 @@ QCircuit QSDecomposition::_cs_demultiplex(
 }
 
 /*
-*  Quantum Shannon  Demultiplex
+*  Quantum Shannon Demultiplex
 * 	[um0 0 ]  = [V 0][D 0 ][W 0]
 *	[0  um1]     [0 V][0 D*][0 W]
 */
@@ -546,11 +514,18 @@ QCircuit QSDecomposition::_qs_demultiplex(
 	Eigen::MatrixXcd um1 = um_vec[1];
 	Eigen::MatrixXcd um0um1 = um0 * um1.adjoint();
 
+    //Eigen::ComplexSchur<Eigen::MatrixXcd> schur_solver(um0um1);
+    //D = schur_solver.matrixT().diagonal().cwiseSqrt();
+    //V = schur_solver.matrixU();
+
 	if (um0um1 == um0um1.adjoint())
 	{
 		Eigen::SelfAdjointEigenSolver<Eigen::MatrixXcd> esolver(um0um1);
-		D = esolver.eigenvalues().cwiseSqrt();
+		D = esolver.eigenvalues();
 		V = esolver.eigenvectors();
+
+        for (uint64_t i = 0; i < D.size(); ++i)
+            D(i) = std::sqrt(D(i));
 	}
 	else
 	{
@@ -615,7 +590,7 @@ QCircuit QPanda::unitary_decomposer_nq(const Eigen::MatrixXcd& in_matrix,
 	{
 	case DecompositionMode::QR:
 	case DecompositionMode::HOUSEHOLDER_QR:
-		QCERR_AND_THROW(std::runtime_error, "HOUSEHOLDER_QR is not supported");
+		QCERR_AND_THROW(std::runtime_error, "QR or HOUSEHOLDER_QR is not supported");
 
 	case DecompositionMode::QSD:
 	case DecompositionMode::CSD:

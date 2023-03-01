@@ -72,7 +72,47 @@ void QProgCheck::execute(std::shared_ptr<AbstractQuantumReset> cur_node,
 void QProgCheck::execute(std::shared_ptr<AbstractControlFlowNode> cur_node, std::shared_ptr<QNode> parent_node, TraversalConfig &param)
 {
     param.m_can_optimize_measure = false;
-    return ;
+    if (nullptr == cur_node)
+    {
+        QCERR("control_flow_node is nullptr");
+        throw std::invalid_argument("control_flow_node is nullptr");
+    }
+
+    auto node = std::dynamic_pointer_cast<QNode>(cur_node);
+    if (nullptr == node)
+    {
+        QCERR("Unknown internal error");
+        throw std::runtime_error("Unknown internal error");
+    }
+    auto node_type = node->getNodeType();
+
+    auto cexpr = cur_node->getCExpr();
+    if (WHILE_START_NODE == node_type)
+    {
+        while (cexpr.get_val())
+        {
+            auto true_branch_node = cur_node->getTrueBranch();
+            Traversal::traversalByType(true_branch_node, node, *this, param);
+        }
+    }
+    else if (QIF_START_NODE == node_type)
+    {
+        if (cexpr.get_val())
+        {
+            auto true_branch_node = cur_node->getTrueBranch();
+            Traversal::traversalByType(true_branch_node, node, *this, param);
+        }
+        else
+        {
+            auto false_branch_node = cur_node->getFalseBranch();
+            if (nullptr != false_branch_node)
+            {
+                Traversal::traversalByType(false_branch_node, node, *this, param);
+            }
+        }
+    }
+
+    return;
 }
 
 void QProgCheck::execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std::shared_ptr<QNode> parent_node,
@@ -89,7 +129,7 @@ void QProgCheck::execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std::
     if (param.m_is_dagger)
     {
         auto iter = cur_node->getLastNodeIter();
-        for (; iter != cur_node->getHeadNodeIter() && param.m_can_optimize_measure; --iter)
+        for (; iter != cur_node->getHeadNodeIter(); --iter)
         {
             auto node = *iter;
             if (nullptr == node)
@@ -105,7 +145,7 @@ void QProgCheck::execute(std::shared_ptr<AbstractQuantumCircuit> cur_node, std::
     else
     {
         auto iter = cur_node->getFirstNodeIter();
-        for (; iter != cur_node->getEndNodeIter() && param.m_can_optimize_measure; ++iter)
+        for (; iter != cur_node->getEndNodeIter(); ++iter)
         {
             auto node = *iter;
             if (nullptr == node)
@@ -155,7 +195,7 @@ void QProgCheck::execute(std::shared_ptr<AbstractQuantumProgram> cur_node,
         throw std::invalid_argument("pNode is nullptr");
     }
 
-    while (aiter != end_iter && paramu.m_can_optimize_measure)
+    while (aiter != end_iter)
     {
         auto next = aiter.getNextIter();
         Traversal::traversalByType(*aiter,dynamic_pointer_cast<QNode>(cur_node),*this, paramu);
@@ -184,7 +224,7 @@ void QProgCheck::execute(std::shared_ptr<AbstractQDebugNode> cur_node,
 
 void QProgCheck::is_can_optimize_measure(const QVec &controls, const QVec &targets, TraversalConfig &param)
 {
-    if (0 == param.m_measure_qubits.size() || !param.m_can_optimize_measure)
+    if (0 == param.m_measure_qubits.size())
         return ;
 
     for (auto &control : controls)

@@ -592,7 +592,7 @@ static bool test_vf5_0()
 		prog << circuit;
 		std::cout << "===============================" << std::endl;
 		Fusion fuser;
-		fuser.aggregate_operations(prog, qvm);		
+		fuser.aggregate_operations(prog);		
 		auto start = std::chrono::system_clock::now();
 		qvm->directlyRun(prog);
 		auto end = std::chrono::system_clock::now();

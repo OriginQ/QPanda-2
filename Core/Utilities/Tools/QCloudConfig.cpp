@@ -90,6 +90,7 @@ void QPanda::construct_cluster_task_json(
     doc.insert("QMachineType", qvm_type);
     doc.insert("codeLen", prog_str.size());
     doc.insert("qubitNum", qubit_num);
+    doc.insert("taskFrom", 4);
     doc.insert("measureType", measure_type);
     doc.insert("classicalbitNum", cbit_num);
     doc.insert("taskName", task_name);
@@ -120,6 +121,7 @@ void QPanda::construct_real_chip_task_json(
     doc.insert("QMachineType", qvm_type);
     doc.insert("codeLen", prog_str.size());
     doc.insert("qubitNum", qubit_num);
+    doc.insert("taskFrom", 4);
     doc.insert("measureType", measure_type);
     doc.insert("classicalbitNum", cbit_num);
     doc.insert("shot", (size_t)shots);
@@ -161,45 +163,36 @@ size_t QPanda::recv_json_data(void *ptr, size_t size, size_t nmemb, void *stream
 
 string QPanda::hamiltonian_to_json(const QHamiltonian& hamiltonian)
 {
-    //construct json
     Document doc;
     doc.SetObject();
     Document::AllocatorType &alloc = doc.GetAllocator();
 
-    Value hamiltonian_value_array(rapidjson::kObjectType);
-    Value hamiltonian_param_array(rapidjson::kArrayType);
-
-    Value pauli_parm_array(rapidjson::kArrayType);
-    Value pauli_type_array(rapidjson::kArrayType);
+    Value hamilton_arr(kArrayType);
 
     for (auto i = 0; i < hamiltonian.size(); ++i)
     {
         const auto& item = hamiltonian[i];
 
-        Value temp_pauli_parm_array(rapidjson::kArrayType);
+        Value hamilton_item(kObjectType);
+        Value temp_pauli_param_array(rapidjson::kArrayType);
         Value temp_pauli_type_array(rapidjson::kArrayType);
 
         for (auto val : item.first)
         {
-            temp_pauli_parm_array.PushBack(val.first, alloc);
+            temp_pauli_param_array.PushBack(val.first, alloc);
 
             rapidjson::Value string_key(kStringType);
             string_key.SetString(std::string(1, val.second).c_str(), 1, alloc);
-
             temp_pauli_type_array.PushBack(string_key, alloc);
         }
 
-        pauli_parm_array.PushBack(temp_pauli_parm_array, alloc);
-        pauli_type_array.PushBack(temp_pauli_type_array, alloc);
-
-        hamiltonian_param_array.PushBack(item.second, alloc);
+        hamilton_item.AddMember("pauli_type", temp_pauli_type_array, alloc);
+        hamilton_item.AddMember("pauli_param", temp_pauli_param_array, alloc);
+        hamilton_item.AddMember("hamiltonian_param", item.second, alloc);
+        hamilton_arr.PushBack(hamilton_item, alloc);
     }
 
-    hamiltonian_value_array.AddMember("pauli_type", pauli_type_array, alloc);
-    hamiltonian_value_array.AddMember("pauli_parm", pauli_parm_array, alloc);
-
-    doc.AddMember("hamiltonian_value", hamiltonian_value_array, alloc);
-    doc.AddMember("hamiltonian_param", hamiltonian_param_array, alloc);
+    doc.AddMember("hamiltonian", hamilton_arr, alloc);
 
     StringBuffer buffer;
     Writer<StringBuffer> writer(buffer);
@@ -208,47 +201,30 @@ string QPanda::hamiltonian_to_json(const QHamiltonian& hamiltonian)
     std::string hamiltonian_str = buffer.GetString();
     return hamiltonian_str;
 }
-
 QHamiltonian QPanda::json_to_hamiltonian(const std::string& hamiltonian_json)
 {
-    Document doc;
-    if (doc.Parse(hamiltonian_json.c_str()).HasParseError())
-    {
-        QCERR(hamiltonian_json.c_str());
-        throw run_fail("result json parse error");
-    }
-
     try
     {
+        rabbit::document cfg_doc;
+        cfg_doc.parse(hamiltonian_json);
+        const rabbit::array hamiltonion_arr = cfg_doc["hamiltonian"];
         QHamiltonian result;
-
-        const rapidjson::Value& hamiltonian_value_array = doc["hamiltonian_value"];
-        const rapidjson::Value& hamiltonian_param_array = doc["hamiltonian_param"];
-
-        const rapidjson::Value& pauli_type_array = hamiltonian_value_array["pauli_type"];
-        const rapidjson::Value& pauli_parm_array = hamiltonian_value_array["pauli_parm"];
-
-        QPANDA_ASSERT(pauli_type_array.Size() != pauli_parm_array.Size(), "hamiltonian json error");
-
-        for (SizeType i = 0; i < pauli_type_array.Size(); ++i)
+        for (auto &ele : hamiltonion_arr)
         {
             QTerm qterm;
-
-            const rapidjson::Value &pauli_type_value = pauli_type_array[i];
-            const rapidjson::Value &pauli_parm_value = pauli_parm_array[i];
-
-            const rapidjson::Value &hamiltonian_parm = hamiltonian_param_array[i];
-
-            QPANDA_ASSERT(pauli_type_value.Size() != pauli_parm_value.Size(), "hamiltonian json error");
-
-            for (SizeType j = 0; j < pauli_type_value.Size(); ++j)
+            auto &pauli_type_arr = ele["pauli_type"];
+            auto &pauli_param_arr = ele["pauli_param"];
+            size_t type_size = pauli_type_arr.size();
+            size_t param_size = pauli_param_arr.size();
+            if (type_size != param_size)
             {
-                size_t pauli_parm = pauli_parm_value[j].GetInt();
-                string pauli_type = pauli_type_value[j].GetString();
-                qterm.insert(std::make_pair(pauli_parm, pauli_type[0]));
+                QCERR_AND_THROW(run_fail, "parse json error");
             }
-
-            result.emplace_back(std::make_pair(qterm, hamiltonian_parm.GetDouble()));
+            for (auto i = 0; i < type_size; ++i)
+            {
+                qterm.insert(std::make_pair(pauli_param_arr[i].as_uint(), pauli_type_arr[i].as_string().at(0)));
+            }
+            result.emplace_back(qterm, ele["hamiltonian_param"].as_double());
         }
 
         return result;
@@ -259,7 +235,6 @@ QHamiltonian QPanda::json_to_hamiltonian(const std::string& hamiltonian_json)
         throw run_fail("hamiltonian json error");
     }
 }
-
 void QPanda::construct_multi_prog_json(QuantumMachine* qvm, rabbit::array& code_array, size_t& code_len, std::vector<QProg>& prog_array)
 {
     //convert prog to originir 

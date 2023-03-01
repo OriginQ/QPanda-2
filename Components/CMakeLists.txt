@@ -8,31 +8,18 @@ file(GLOB_RECURSE COMPONENTS_SRC_CPP ${CMAKE_CURRENT_SOURCE_DIR}/HamiltonianSimu
                                      ${CMAKE_CURRENT_SOURCE_DIR}/Operator/*.cpp
                                      ${CMAKE_CURRENT_SOURCE_DIR}/Utils/*.cpp)
 
-file(GLOB_RECURSE COMPONENTS_CHEMIQ_SRC_CPP ${CMAKE_CURRENT_SOURCE_DIR}/ChemiQ/*.cpp)
-
 if (USE_CHEMIQ)
-    find_package(PythonInterp REQUIRED)
-    find_package(PythonLibs 3 REQUIRED)
+    # use pybind11 find PythonInterp anda PythonLibs
+    #find_package(PythonInterp 3 REQUIRED)
+    #find_package(PythonLibs 3 REQUIRED)
     include_directories(${PYTHON_INCLUDE_DIRS})
-    add_library(${LIB_COMPONENTS} STATIC ${COMPONENTS_SRC_CPP} ${COMPONENTS_CHEMIQ_SRC_CPP})
-    target_link_libraries(${LIB_COMPONENTS} ${LIB_QPANDA} ${LIB_NLOPT} ${PYTHON_LIBRARIES})  
+    add_library(${LIB_COMPONENTS} STATIC ${COMPONENTS_SRC_CPP})
+    target_link_libraries(${LIB_COMPONENTS} ${LIB_QPANDA} ${LIB_NLOPT})
 else ()
     add_library(${LIB_COMPONENTS} STATIC ${COMPONENTS_SRC_CPP})
-    target_link_libraries(${LIB_COMPONENTS} ${LIB_QPANDA} ${LIB_NLOPT} ${PYTHON_LIBRARIES}) 
+    target_link_libraries(${LIB_COMPONENTS} ${LIB_QPANDA} ${LIB_NLOPT})
 endif()
 
-
-
-if (UNIX)
-    set(LIB_SHARED_COMPONENTS DLL_COMPONENTS)
-    add_library(${LIB_SHARED_COMPONENTS} SHARED ${COMPONENTS_SRC_CPP})
-    target_link_libraries(${LIB_SHARED_COMPONENTS} ${LIB_QPANDA} ${LIB_NLOPT} ${PYTHON_LIBRARIES}) 
-    set_target_properties(${LIB_SHARED_COMPONENTS} PROPERTIES
-                          VERSION ${QPANDA_VERSION} SOVERSION ${QPANDA_MAJOR_VERSION})
-    set_target_properties(${LIB_SHARED_COMPONENTS} PROPERTIES OUTPUT_NAME "${LIB_COMPONENTS}")
-    set_target_properties(${DLL_COMPONENTS} PROPERTIES CLEAN_DIRECT_OUTPUT 1)
-    set_target_properties(${DLL_COMPONENTS} PROPERTIES CLEAN_DIRECT_OUTPUT 1)
-endif()
 
 INSTALL(TARGETS ${LIB_COMPONENTS}
         EXPORT  ${TARGETS_EXPORT_NAME}

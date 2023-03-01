@@ -1,11 +1,11 @@
 #ifndef CHEMIQUTIL_H
 #define CHEMIQUTIL_H
 
-#include "Core/Module/DataStruct.h"
+//#include "Core/Module/DataStruct.h"
 #include "Components/Operator/PauliOperator.h"
 #include "Components/Operator/FermionOperator.h"
-#include "Core/Variational/VarPauliOperator.h"
-#include "Core/Variational/VarFermionOperator.h"
+#include "Components/Operator/VarPauliOperator.h"
+#include "Components/Operator/VarFermionOperator.h"
 
 QPANDA_BEGIN
 

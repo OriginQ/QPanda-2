@@ -16,6 +16,7 @@ typedef Eigen::Matrix<Type, 1, Size, Eigen::ColMajor> QRowVector##SizeSuffix##Ty
 typedef Eigen::Matrix<Type, Size, Eigen::Dynamic, Eigen::RowMajor> QMatrix##Size##X##TypeSuffix;  \
 typedef Eigen::Matrix<Type, Eigen::Dynamic, Size,  Eigen::RowMajor> QMatrix##X##Size##TypeSuffix;
 
+
 #define Q_MAKE_TYPEDEFS_ALL_SIZES(Type, TypeSuffix) \
 Q_MAKE_TYPEDEFS(Type, TypeSuffix, 2, 2) \
 Q_MAKE_TYPEDEFS(Type, TypeSuffix, 3, 3) \

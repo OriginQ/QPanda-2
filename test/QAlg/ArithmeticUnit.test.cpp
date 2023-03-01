@@ -316,6 +316,39 @@ void test_QDivWithAccuracy()
     }
 }
 
+static bool test_ADD()
+{
+    int n = 5, m = 4;
+    int N = 7;
+    n = ceil(log2(N)) + 1;
+    auto qvm = CPUQVM();
+    qvm.init();
+    auto q = qvm.qAllocMany(n);
+    auto q1 = qvm.qAllocMany(n);
+    auto q2 = qvm.qAllocMany(n);
+    auto q3 = qvm.qAllocMany(n);
+    auto auxadd = qvm.qAllocMany(1);
+    auto prog = QProg();
+    int b = 2;
+    int a = 3;
+    int x = 4;
+    prog << bind_nonnegative_data(x, q3);
+    std::cout << prog << std::endl;
+    prog << FourierADD(q, a, b);
+    //prog << Modexp(a, N, q1, q2, auxadd, q3, n);
+    std::cout << prog << std::endl;
+    /*prog << bind_nonnegative_data(b, q1)
+        << bind_nonnegative_data(x, q2) 
+        << conModMul(a, N, q1, q2, auxadd, n);*/
+    /*prog << bind_nonnegative_data(b, q)
+        << conModADD(a, N, q, auxadd, n);*/
+   /* prog << bind_nonnegative_data(b, q)
+        << conModADD(a, N, q, auxadd, n).dagger();*/
+    auto result = qvm.probRunDict(prog, q2,1);
+    return true;
+}
+
+
 TEST(ArithmeticUnit, test1)
 {
     //do
@@ -341,8 +374,8 @@ TEST(ArithmeticUnit, test1)
     try
     {
         // special algorithm cases , you should run a test case individually
-        init();
-        test_val = test_QAdder();
+        //at();
+        test_val = test_ADD();
         //test_val = test_QAdd();
         //test_val = test_QSub();
         //test_val = test_QMultiplier();

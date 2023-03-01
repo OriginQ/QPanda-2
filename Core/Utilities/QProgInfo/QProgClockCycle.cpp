@@ -138,3 +138,36 @@ size_t QPanda::get_qprog_clock_cycle(QProg & prog, QuantumMachine * qm, bool opt
     QProgClockCycle counter(qm);
     return counter.count(prog, optimize);
 }
+
+size_t QPanda::get_qprog_clock_cycle_chip(LayeredTopoSeq &layer_info, std::map<GateType, size_t> gate_time_map)
+{
+    size_t clock_cycle = 0;
+    for (auto &layer : layer_info)
+    {
+        size_t clock_cycle_layer = 0;
+        for (auto &gate : layer)
+        {
+            auto node = gate.first;
+            if (node->m_type < 0 || node->m_type > DAGNodeType::MAX_GATE_TYPE){
+                if ((0 == clock_cycle) && (DAGNodeType::MEASURE == node->m_type)) {
+                    clock_cycle = 1;
+                }
+                continue;
+            }
+
+            GateType gate_type = static_cast<GateType>(gate.first->m_gate_type);
+            auto time_gate = gate_time_map.find(gate_type);
+            if (time_gate == gate_time_map.end())
+            {
+                std::string error_msg = "Bad nodeType -> " + to_string(gate_type) + ", for chip.";
+                QCERR_AND_THROW(run_fail, error_msg);
+            }
+
+            clock_cycle_layer = clock_cycle_layer > time_gate->second ? clock_cycle_layer : time_gate->second;
+        }
+
+        clock_cycle += clock_cycle_layer;
+    }
+
+    return clock_cycle;
+}

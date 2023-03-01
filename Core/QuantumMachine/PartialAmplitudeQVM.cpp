@@ -454,9 +454,9 @@ void PartialAmplitudeQVM::execute(std::shared_ptr<AbstractQGateNode>  cur_node, 
         {
             // iSWAP(0, 1) => 
             // CU(0, 1)(1.570796, 3.141593, 0.000000, 0.000000).dag + 
-            // CU(0, 1)(1.570796, 6.283185, 3.141593, 0.000000).dag +
+            // CU(0, 1)(-1.570796, 6.283185, 3.141593, 0.000000).dag +
             // CU(1, 0)(-1.570796, 3.141593, 3.141593, 0.000000).dag +
-            // CU(0, 1)(-1.570796, 6.283185, 3.141593, 0.000000).dag
+            // CU(0, 1)(1.570796, 6.283185, 3.141593, 0.000000).dag
            
             auto ctr_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
             auto tar_qubit = qubits_vector[1]->getPhysicalQubitPtr()->getQubitAddr();
@@ -464,9 +464,9 @@ void PartialAmplitudeQVM::execute(std::shared_ptr<AbstractQGateNode>  cur_node, 
             if (m_graph_backend.is_corss_node(ctr_qubit, tar_qubit))
             {
                 prob_vec params0 = { PI / 2, PI, 0, 0 };
-                prob_vec params1 = { PI / 2, 2 * PI, PI, 0 };
+                prob_vec params1 = { -PI / 2, 2 * PI, PI, 0 };
                 prob_vec params2 = { -PI / 2, PI, PI, 0 };
-                prob_vec params3 = { -PI / 2, 2 * PI, PI, 0 };
+                prob_vec params3 = { PI / 2, 2 * PI, PI, 0 };
 
                 construct_qnode(CU_GATE, !cur_node->isDagger(), { tar_qubit,ctr_qubit }, params0);
                 construct_qnode(CU_GATE, !cur_node->isDagger(), { tar_qubit,ctr_qubit }, params1);

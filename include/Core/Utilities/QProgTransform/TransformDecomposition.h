@@ -246,7 +246,7 @@ class DecomposeControlSingleQGateIntoMetadataDoubleQGate : public TraversalInter
 		SpecialSingGate() 
 			:m_alpha(UNDEF_DOUBLE), m_beta(UNDEF_DOUBLE), m_delta(UNDEF_DOUBLE), m_gamma(UNDEF_DOUBLE){}
 
-		std::vector<double> parse_angle(double alpha, double beta, double delta, double gamma) const;
+		bool parse_angle(double alpha, double beta, double delta, double gamma, std::vector<double>& match_angle) const;
 	};
 
 	static const std::string key_name;

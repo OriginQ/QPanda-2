@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2017-2020 Origin Quantum Computing. All Right Reserved.
+Copyright (c) 2017-2023 Origin Quantum Computing. All Right Reserved.
 Licensed under the Apache License 2.0
 
 OriginNelderMead.h
@@ -68,7 +68,7 @@ namespace QPanda
         Eigen::VectorXd m_fsim;
         Eigen::MatrixXd m_sim;
 
-        vector_s m_key;
+        std::vector<std::string> m_key;
     };
 }
 

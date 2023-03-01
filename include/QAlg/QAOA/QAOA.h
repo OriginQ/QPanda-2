@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2017-2020 Origin Quantum Computing. All Right Reserved.
+Copyright (c) 2017-2023 Origin Quantum Computing. All Right Reserved.
 Licensed under the Apache License 2.0
 
 QAOA.h
@@ -21,10 +21,37 @@ Created in 2018-09-06
 #include "Core/QuantumCircuit/QGate.h"
 #include "Core/QuantumMachine/OriginQuantumMachine.h"
 #include "Components/Operator/PauliOperator.h"
-#include "Core/Module/DataStruct.h"
+#include "Components/Optimizer/OptimizerDataStruct.h"
 
 namespace QPanda
 {
+    using QUserDefinedFunc = std::function<double(const std::string &)>;
+
+    /**
+    * @brief Two Para structure
+    */
+    struct QTwoPara
+    {
+        double x_min;
+        double x_max;
+        double x_step;
+        double y_min;
+        double y_max;
+        double y_step;
+    };
+
+    /**
+    * @brief Scan Para structure
+    */
+    struct QScanPara
+    {
+        QTwoPara two_para;
+        size_t pos1;
+        size_t pos2;
+        vector_i keys;
+        std::string filename;
+    };
+
     class AbstractOptimizer;
 	
 	/**
@@ -154,14 +181,14 @@ namespace QPanda
         QResultPair callQAOA(const vector_d& para, vector_d para1);
         void insertSampleCircuit(
             QProg &prog,
-            const std::vector<Qubit*> &vec,
+            const QVec &vec,
             const double &gamma);
         void insertComplexCircuit(
             QProg &prog,
-            const std::vector<Qubit*> &vec,
+            const QVec &vec,
             const double &gamma);
         void insertPaulixModel(QProg &prog,
-            const std::vector<Qubit*> &vec,
+            const QVec &vec,
             const double &beta);
 
         QResultPair getResult(const std::map<std::string, size_t> &result);

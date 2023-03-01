@@ -75,7 +75,7 @@ int TopologyMatch::breadthFirstSearch(int start, int goal, const set<edge>& grap
 	queue.push(v);
 	vector<vector<int> > solutions;
 
-	int length;
+	int length = 0;
 	set<int> successors;
 	while (!queue.empty())
 	{

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2017-2020 Origin Quantum Computing. All Right Reserved.
+Copyright (c) 2017-2023 Origin Quantum Computing. All Right Reserved.
 Licensed under the Apache License 2.0
 
 Author: LiYe
@@ -7,14 +7,18 @@ Created in 2019-01-22
 
 */
 
-#ifndef PAULIROPERATOR_H
-#define PAULIROPERATOR_H
+#ifndef _PAULIROPERATOR_H_
+#define _PAULIROPERATOR_H_
 
 #include <map>
 #include <vector>
+#include <algorithm>
+#include "Core/Module/DataStruct.h"
 #include "Core/Utilities/Tools/QString.h"
 #include "Core/Utilities/QPandaNamespace.h"
-#include "Core/Module/DataStruct.h"
+#include "Core/Utilities/QProgInfo/QCircuitInfo.h"
+#include "Core/Utilities/Tools/MatrixDecomposition.h"
+#include "Components/HamiltonianSimulation/HamiltonianSimulation.h"
 
 QPANDA_BEGIN
 
@@ -26,9 +30,10 @@ template<class T>
 class PauliOp
 {
 public:
-    using PauliItem = std::pair<QPauliPair, T>;
-    using PauliData = std::vector<PauliItem>;
+    using PauliItem = std::pair<QPauliPair, T>; // <[3X, 4Y], "3X 4Y">, T>
+    using PauliData = std::vector<PauliItem>;  // [<[3X, 4Y], "3X 4Y">, T>, <<>,>]
     using PauliMap = std::map<std::string, T>;
+    using PauliMatrix = std::vector<T>;
 
 public:
 	/**
@@ -58,7 +63,7 @@ public:
             insertData(iter->first, iter->second);
         }
 
-        reduceDuplicates();
+        //reduceDuplicates();
     }
 
     PauliOp(PauliOp &&op):
@@ -74,13 +79,49 @@ public:
     PauliOp(PauliData &&pauli):
         m_data(std::move(pauli))
     {
-        reduceDuplicates();
+        //reduceDuplicates();
     }
 
     PauliOp(const PauliData &pauli):
         m_data(pauli)
     {
-        reduceDuplicates();
+        //reduceDuplicates();
+    }
+
+    PauliOp(EigenMatrixX &matrix)
+    {
+        if (std::is_same<T, complex_d>::value)
+        {
+            CPUQVM machine; 
+            machine.init();
+            PualiOperatorLinearCombination linear_result;
+            matrix_decompose_paulis(&machine, matrix, linear_result);
+
+            std::map<std::string, complex_d> pauli_map;
+            for (auto item : linear_result)
+            {
+                double val = item.first;
+                QCircuit cir = item.second;
+
+                QCircuitToPauliOperator cir_to_opt(val);
+                auto pauli_value = cir_to_opt.traversal(cir);
+
+                pauli_map.insert(pauli_value);
+            }
+
+            for (auto iter = pauli_map.begin(); iter != pauli_map.end(); iter++)
+            {
+                insertData(iter->first, iter->second);
+            }
+
+            machine.finalize();
+        }
+        else
+        {
+            QCERR_AND_THROW(run_fail, "matrix data type error")
+        }
+       
+        //reduceDuplicates();
     }
 
     PauliOp &operator = (const PauliOp &op)
@@ -94,6 +135,7 @@ public:
         m_data = std::move(op.m_data);
         return *this;
     }
+
 
 	/**
 	* @brief  get the Transposed conjugate matrix
@@ -111,18 +153,85 @@ public:
         return PauliOp(tmp_data);
     }
 
+    void reorderReduce(const size_t ne)
+    {
+        if (ne % 2)  return;
+        using pairPTerm = std::pair<size_t, char>;
+
+        //printf("NOTE: The number of qubits has been reduced by two\n");
+
+        size_t nbit = getMaxIndex(), nb2 = nbit / 2; bool fg = (ne / 2) % 2;
+        std::string snd; QTerm fst;
+        size_t o; char v;
+
+        for (PauliItem& pi : m_data) // <[3X, 4Y], "3X 4Y">, T>,
+        {
+            QPauliPair pif = pi.first; // <[3X, 4Y], "3X 4Y">
+            if (!pif.second.size()) continue;
+
+            fst.clear(); snd = ""; // "3X 4Y"
+            for (auto& p : pif.first) // [3X, 4Y]
+            {
+                o = p.first; v = p.second;
+
+                if (o < nb2)
+                {
+                    fst.insert(p);
+                    snd += v + std::to_string(o) + " ";
+                }
+                else if (o == nb2)
+                {
+                    if (fg) pi.second = pi.second * (-1.0);
+                }
+                else if (o < nbit)
+                {
+                    fst.insert(pairPTerm(o - 1, v));
+                    snd += v + std::to_string(o - 1) + " ";
+                }
+            }
+            pi.first = QPauliPair(fst, snd);
+        }
+
+        reduceDuplicates();
+    }
+
 	/**
-	* @brief  remap qubit index
-	* @param[in] std::map<size_t, size_t>& qubit index map
-	* @return PauliOp return remapped qubit index map
+	* @brief get the max index
+	* @return size_t the max index
 	*/
-    PauliOp remapQubitIndex(std::map<size_t, size_t> &index_map)
+    size_t getMaxIndex() const
+    {
+        int max_index = -1;
+        for (size_t i = 0; i < m_data.size(); i++)
+        {
+            auto index_map = m_data[i].first.first;
+            auto iter = index_map.rbegin();
+            if (iter != index_map.rend())
+            {
+                if (int(iter->first) > max_index)
+                {
+                    max_index = iter->first;
+                }
+            }
+        }
+
+        //max_index++;
+
+        return max_index;
+    }
+
+      /**
+    * @brief  remap qubit index
+    * @param[in] std::map<size_t, size_t>& qubit index map
+    * @return PauliOp return remapped qubit index map
+    */
+    PauliOp remapQubitIndex(std::map<size_t, size_t> &index_map) const
     {
         index_map.clear();
         for (size_t i = 0; i < m_data.size(); i++)
         {
             auto pair = m_data[i].first;
-            QTerm term = pair.first;
+            auto term = pair.first;
             for (auto iter = term.begin(); iter != term.end(); iter++)
             {
                 index_map.insert(std::make_pair(iter->first, 1));
@@ -157,42 +266,18 @@ public:
         return PauliOp(pauli_data);
     }
 
-	/**
-	* @brief get the max index
-	* @return size_t the max index
-	*/
-    size_t getMaxIndex()
-    {
-        int max_index = -1;
-        for (size_t i = 0; i < m_data.size(); i++)
-        {
-            auto index_map = m_data[i].first.first;
-            auto iter = index_map.rbegin();
-            if (iter != index_map.rend())
-            {
-                if (int(iter->first) > max_index)
-                {
-                    max_index = iter->first;
-                }
-            }
-        }
-
-        max_index++;
-
-        return max_index;
-    }
 
 	/**
 	* @brief Judge whether it is empty
 	* @return bool if data is empty, return true, or else return false
 	*/
-    bool isEmpty() { return m_data.empty(); }
+    bool isEmpty() const { return m_data.empty(); }
 
 	/**
 	* @brief Judge whether all of data is "Z"
 	* @return bool if all data is "Z", return true, or else return false
 	*/
-    bool isAllPauliZorI()
+    bool isAllPauliZorI() const
     {
         for (size_t i = 0; i < m_data.size(); i++)
         {
@@ -241,7 +326,8 @@ public:
             auto pair = item.first;
             auto value = item.second;
 
-            str += pair.second + " : ";
+            //str += pair.second + " : ";
+            str += "\"" + pair.second + "\"" + " : ";
 
             if (fabs(value.real()) < m_error_threshold)
             {
@@ -264,6 +350,11 @@ public:
                         std::to_string(value.imag()) + "i)";
                 }
             }
+
+            if (i != m_data.size() - 1)
+            {
+                str += ",";
+            }
         }
 
         if (!m_data.empty())
@@ -273,6 +364,84 @@ public:
 
         str += "}";
         return str;
+    }
+
+    /**
+* @brief number of gate
+* @return size_t 
+*/
+    size_t ngate() const
+    {
+        size_t n = 0;
+
+        for (size_t i = 0; i < m_data.size(); i++)
+        {
+            auto item = m_data[i];
+            auto pair = item.first;
+
+            n += count(pair.second.begin(), pair.second.end(), ' ');
+
+        }
+
+        return n;
+    }
+
+    QMatrixXcd to_matrix()
+    {
+        auto max_idx = getMaxIndex();
+        if (std::is_same<T, complex_d>::value)
+        {
+            auto qubit_pool = OriginQubitPool::get_instance();
+            qubit_pool->set_capacity(30);
+
+            auto full_matrix = qstat_zero_matrix(1ull << (max_idx + 1));
+
+            for (const auto& val : m_data)
+            {
+                QCircuit circuit;
+                auto pauli_pair = val.first;
+                auto item = val.second;
+
+                auto pauli_map = pauli_pair.first;
+                for (const auto& pauli: pauli_map)
+                {
+                    auto qubit = qubit_pool->allocateQubitThroughPhyAddress(pauli.first);
+
+                    if (pauli.second == 'X')
+                    {
+                        circuit << X(qubit);
+                    }
+                    else if (pauli.second == 'Y')
+                    {
+                        circuit << Y(qubit);
+                    }
+                    else if (pauli.second == 'Z')
+                    {
+                        circuit << Z(qubit);
+                    }
+                    else
+                    {
+                        QCERR_AND_THROW(run_fail, "pauli type error");
+                    }
+                }
+
+                for (auto i = 0; i < max_idx + 1; ++i)
+                {
+                    auto qubit = qubit_pool->allocateQubitThroughPhyAddress(i);
+                    circuit << BARRIER(qubit);
+                }
+                
+                auto matrix = item * QPanda::getCircuitMatrix(circuit);
+                full_matrix = full_matrix + matrix;
+
+            }
+
+            return QStat_to_Eigen(full_matrix);
+        }
+        else
+        {
+            QCERR_AND_THROW(run_fail, "matrix data type error")
+        }
     }
 
 	/**
@@ -392,7 +561,7 @@ public:
     PauliOp &operator +=(const PauliOp &rhs)
     {
         m_data.insert(m_data.end(), rhs.m_data.begin(), rhs.m_data.end());
-        reduceDuplicates();
+        //reduceDuplicates();
 
         return *this;
     }
@@ -410,7 +579,7 @@ public:
         }
 
         m_data.insert(m_data.end(), tmp_data.begin(), tmp_data.end());
-        reduceDuplicates();
+        //reduceDuplicates();
 
         return *this;
     }
@@ -441,7 +610,7 @@ public:
         }
 
         m_data = std::move(tmp_data);
-        reduceDuplicates();
+        //reduceDuplicates();
 
         return *this;
     }
@@ -533,14 +702,131 @@ public:
         return out;
     }
 
+    void reduceDuplicates()
+    {
+        std::map<std::string, T> data_map;
+        std::map<std::string, QTerm> term_map;
+
+        for (size_t i = 0; i < m_data.size(); i++)
+        {
+            auto item = m_data[i];
+            auto pair = item.first;
+            auto value = item.second;
+            QTerm term = pair.first;
+            std::string str = pair.second;
+
+            if (data_map.find(str) != data_map.end())
+            {
+                data_map[str] = data_map[str] + value;
+            }
+            else
+            {
+                data_map.insert(std::make_pair(str, value));
+                term_map.insert(std::make_pair(str, term));
+            }
+        }
+
+
+        PauliData pauli_data;
+        for (auto iter = data_map.begin(); iter != data_map.end(); iter++)
+        {
+            auto err = std::abs(iter->second);
+            if (err > fabs(m_error_threshold))
+            {
+                QPauliPair pair;
+                pair.first = term_map[iter->first];
+                pair.second = iter->first;
+
+                pauli_data.emplace_back(std::make_pair(pair, iter->second));
+            }
+        }
+
+        m_data = std::move(pauli_data);
+    }
+
+    void delSimilar()
+    {
+        std::map<std::string, T> value_map;
+        std::map<std::string, QPauliPair> pair_map;
+
+        for (size_t i = 0; i < m_data.size(); ++i)
+        {
+            auto item = m_data[i]; // [3X, 4Y], "3X 4Y">, T
+            auto pair = item.first; // [3X, 4Y], "3X 4Y"
+            auto value = item.second; // T
+            QTerm term = pair.first; // [3X, 4Y], 
+
+            std::string XY = "", sn = ""; char c;
+            for (auto& t : term)
+            {
+                sn += std::to_string(t.first);
+                if (t.second!='X')
+                {
+                    XY += 'X';
+                }
+                else
+                {
+                    XY += t.second;
+                }
+            }
+            std::sort(sn.begin(), sn.end());
+            std::string snXY = sn + XY;
+            auto result = value_map.find(snXY);
+            if (result == value_map.end())
+            {
+                value_map.insert(std::make_pair(snXY, value));
+                pair_map.insert(std::make_pair(snXY, pair));
+            }
+        }
+
+        PauliData pauli_data;
+        for (auto iter = value_map.begin(); iter != value_map.end(); iter++)
+        {
+            auto r = iter->second.real();
+            auto i = iter->second.imag();
+            if (fabs(r) < m_error_threshold && fabs(i) < m_error_threshold)
+            {
+                continue;
+            }
+
+            QPauliPair pair = pair_map[iter->first];
+            pauli_data.emplace_back(std::make_pair(pair, iter->second));
+        }
+
+        m_data = std::move(pauli_data);
+    }
+
 private:
+
+    std::string QTerm2StdString(const QTerm &map) const
+    {
+        std::string str;
+        bool next = false;
+
+        for (auto iter = map.begin(); iter != map.end(); iter++)
+        {
+            if (!next)
+            {
+                next = true;
+            }
+            else
+            {
+                str += " ";
+            }
+
+            char ch = static_cast<char>(toupper(iter->second));
+            str += ch + std::to_string(iter->first);
+        }
+
+        return str;
+    }
+
     QTermPair genQTermPair(const QString &str) const
     {
         if (str.size() < 2)
         {
             std::string err = "size < 2.";
-            std::cout << err << std::endl;
-            throw err;
+            QCERR_AND_THROW(std::invalid_argument, "pauli size not complete");
         }
 
         char ch = static_cast<char>(toupper(str.at(0)));
@@ -585,12 +871,7 @@ private:
             QTermPair one_pair = genQTermPair(str_vec[i]);
 
             if (one_term.find(one_pair.first) != one_term.end())
-            {
-                std::string err = "Bad param in QPuliMap: Index repeat.";
-                std::cout << err << std::endl;
-                QCERR(err);
-                throw std::invalid_argument(err);
-            }
+                QCERR_AND_THROW(std::invalid_argument, "Bad param in QPuliMap: Index repeat.");
             one_term.insert(one_pair);
         }
 
@@ -674,76 +955,18 @@ private:
 
         return item;
     }
-    std::string QTerm2StdString(const QTerm &map) const
-    {
-        std::string str;
-        bool next = false;
-
-        for (auto iter = map.begin(); iter != map.end(); iter++)
-        {
-            if (!next)
-            {
-                next = true;
-            }
-            else
-            {
-                str += " ";
-            }
-
-            char ch = static_cast<char>(toupper(iter->second));
-            str += ch + std::to_string(iter->first);
-        }
-
-        return str;
-    }
-
-    void reduceDuplicates()
-    {
-        std::map<std::string, T> data_map;
-        std::map<std::string, QTerm> term_map;
-
-        for (size_t i = 0; i < m_data.size(); i++)
-        {
-            auto item = m_data[i];
-            auto pair = item.first;
-            auto value = item.second;
-            QTerm term = pair.first;
-            std::string str = pair.second;
-
-            if (data_map.find(str) != data_map.end())
-            {
-                data_map[str] = data_map[str] + value;
-            }
-            else
-            {
-                data_map.insert(std::make_pair(str, value));
-                term_map.insert(std::make_pair(str, term));
-            }
-        }
-
-        PauliData pauli_data;
-        for (auto iter = data_map.begin(); iter != data_map.end(); iter++)
-        {
-            auto err = std::abs(iter->second);
-            if (err > fabs(m_error_threshold))
-            {
-                QPauliPair pair;
-                pair.first = term_map[iter->first];
-                pair.second = iter->first;
-
-                pauli_data.emplace_back(std::make_pair(pair, iter->second));
-            }
-        }
-
-        m_data = std::move(pauli_data);
-    }
 
 private:
     PauliData m_data;
-    double m_error_threshold{1e-6};
+    double m_error_threshold{1.0e-6};
 };
 
 using PauliOperator = PauliOp<complex_d>;
+
+PauliOperator x(int index);
+PauliOperator y(int index);
+PauliOperator z(int index);
+PauliOperator i(int index);
 
 /*
 * @brief Transfrom vector to pauli operator
@@ -792,6 +1015,11 @@ PauliOperator transVecToPauliOperator(const std::vector<T>& data_vec)
     return result;
 }
 
+std::vector<double> kron(const std::vector<double>& vec1, const std::vector<double>& vec2);
+std::vector<double> dot(const std::vector<double>& vec1, const std::vector<double>& vec2);
+std::vector<double> operator +(const std::vector<double>& vec1, const std::vector<double>& vec2);
+std::vector<double> operator *(const std::vector<double>& vec, double value);
+
 /*
 * @brief Transfrom Pauli operator to vector
 * @param[in]  pauli Pauli operator
@@ -799,6 +1027,7 @@ PauliOperator transVecToPauliOperator(const std::vector<T>& data_vec)
 * @note The subterms of the Pauli operator must be I and Z
 */
 std::vector<double> transPauliOperatorToVec(PauliOperator pauli);
-
+void matrix_decompose_hamiltonian(QuantumMachine* qvm, EigenMatrixX& mat, PauliOperator& hamiltonian);
+std::vector<complex_d> transPauliOperatorToMatrix(const PauliOperator& opt);
 QPANDA_END
-#endif // PAULIROPERATOR_H
+#endif // _PAULIROPERATOR_H_

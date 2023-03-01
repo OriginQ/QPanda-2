@@ -114,6 +114,12 @@ bool QGate::setControl(QVec qubit_vector)
 		QCERR("Unknown internal error");
 		throw runtime_error("Unknown internal error");
 	}
+
+    if (0 == qubit_vector.size())
+    {
+        return true;
+    }
+
 	return m_qgate_node->setControl(qubit_vector);
 }
 
@@ -441,7 +447,6 @@ void QGateParseOracleBit(QuantumGate* qgate,
         controls.insert(controls.end(), targets.begin(), targets.end());
         qgates->controlOracleGate(targets, controls, matrix, is_dagger);
     }
-
 }
 
 #define REGISTER_QGATE_PARSE(BitCount,FunctionName) \
@@ -1158,6 +1163,11 @@ QGate QPanda::BARRIER(std::vector<int> qaddrs)
 QGate QPanda::iSWAP(Qubit* targitBit_fisrt, Qubit* targitBit_second)
 {
 	string name = "ISWAP";
+    if (targitBit_fisrt == targitBit_second)
+    {
+        QCERR(" target bit is the same as the control bit");
+        throw invalid_argument(" target bit is the same as the control bit");
+    }
 	return _gs_pGateNodeFactory->getGateNode(name, { targitBit_fisrt, targitBit_second });
 }
 
@@ -1223,8 +1233,8 @@ QCircuit QPanda::iSWAP(const QVec& targitBits_first, const QVec& targitBits_seco
 			}
 			else
 			{
-				QCERR("double_gate qubit err");
-				throw invalid_argument("double_gate qubit");
+				QCERR("target bit is the same as the control bit");
+				throw invalid_argument("target bit is the same as the control bit");
 			}
 		}
 	}
@@ -1240,6 +1250,11 @@ QCircuit QPanda::iSWAP(const QVec& targitBits_first, const QVec& targitBits_seco
 QGate QPanda::CR(Qubit* control_qubit, Qubit* targit_qubit, double theta)
 {
 	string name = "CPHASE";
+    if (control_qubit == targit_qubit)
+    {
+        QCERR(" target bit is the same as the control bit");
+        throw invalid_argument(" target bit is the same as the control bit");
+    }
 	return _gs_pGateNodeFactory->getGateNode(name, { control_qubit, targit_qubit }, theta);
 }
 
@@ -1263,8 +1278,8 @@ QCircuit QPanda::CR(const QVec& targitBits_first, const QVec& targitBits_second,
 			}
 			else
 			{
-				QCERR("double_gate qubit err");
-				throw invalid_argument("double_gate qubit");
+				QCERR("target bit is the same as the control bit");
+				throw invalid_argument("target bit is the same as the control bit");
 			}
 		}
 	}
@@ -1279,6 +1294,11 @@ QCircuit QPanda::CR(const QVec& targitBits_first, const QVec& targitBits_second,
 
 QGate QPanda::CR(int control_qaddr, int target_qaddr, double theta)
 {
+    if (control_qaddr == target_qaddr)
+    {
+        QCERR(" target bit is the same as the control bit");
+        throw invalid_argument(" target bit is the same as the control bit");
+    }
 	return CR(get_qubit_by_phyaddr(control_qaddr), get_qubit_by_phyaddr(target_qaddr), theta);
 }
 
@@ -1301,8 +1321,8 @@ QCircuit QPanda::CR(const std::vector<int>& control_qaddrs, const std::vector<in
 			}
 			else
 			{
-				QCERR("double_gate qubit err");
-				throw invalid_argument("double_gate qubit");
+				QCERR("target bit is the same as the control bit");
+				throw invalid_argument("target bit is the same as the control bit");
 			}
 		}
 	}
@@ -1318,6 +1338,11 @@ QCircuit QPanda::CR(const std::vector<int>& control_qaddrs, const std::vector<in
 QGate QPanda::SqiSWAP(Qubit* targitBit_fisrt, Qubit* targitBit_second)
 {
 	string name = "SQISWAP";
+    if (targitBit_fisrt == targitBit_second)
+    {
+        QCERR(" target bit is the same as the control bit");
+        throw invalid_argument(" target bit is the same as the control bit");
+    }
 	return _gs_pGateNodeFactory->getGateNode(name,
 		{ targitBit_fisrt,targitBit_second });
 }
@@ -1358,6 +1383,11 @@ QCircuit QPanda::SqiSWAP(const QVec& targitBits_first, const QVec& targitBits_se
 
 QGate QPanda::SqiSWAP(int control_qaddr, int target_qaddr)
 {
+    if (control_qaddr == target_qaddr)
+    {
+        QCERR(" target bit is the same as the control bit");
+        throw invalid_argument(" target bit is the same as the control bit");
+    }
 	return SqiSWAP(get_qubit_by_phyaddr(control_qaddr), get_qubit_by_phyaddr(target_qaddr));
 }
 
@@ -1397,6 +1427,11 @@ QCircuit QPanda::SqiSWAP(const std::vector<int>& control_qaddrs, const std::vect
 QGate QPanda::SWAP(Qubit* targitBit_fisrt, Qubit* targitBit_second)
 {
 	string name = "SWAP";
+    if (targitBit_fisrt == targitBit_second)
+    {
+        QCERR(" target bit is the same as the control bit");
+        throw invalid_argument(" target bit is the same as the control bit");
+    }
 	return _gs_pGateNodeFactory->getGateNode(name,
 		{ targitBit_fisrt,targitBit_second });
 }
@@ -1437,6 +1472,11 @@ QCircuit QPanda::SWAP(const QVec& targitBits_first, const QVec& targitBits_secon
 
 QGate QPanda::SWAP(int control_qaddr, int target_qaddr)
 {
+    if (control_qaddr == target_qaddr)
+    {
+        QCERR(" target bit is the same as the control bit");
+        throw invalid_argument(" target bit is the same as the control bit");
+    }
 	return SWAP(get_qubit_by_phyaddr(control_qaddr), get_qubit_by_phyaddr(target_qaddr));
 }
 
@@ -1475,6 +1515,11 @@ QCircuit QPanda::SWAP(const std::vector<int>& control_qaddrs, const std::vector<
 
 QGate QPanda::iSWAP(int control_qaddr, int target_qaddr)
 {
+    if (control_qaddr == target_qaddr)
+    {
+        QCERR(" target bit is the same as the control bit");
+        throw invalid_argument(" target bit is the same as the control bit");
+    }
 	return iSWAP(get_qubit_by_phyaddr(control_qaddr), get_qubit_by_phyaddr(target_qaddr));
 }
 
@@ -1513,6 +1558,11 @@ QCircuit QPanda::iSWAP(const std::vector<int>& control_qaddrs, const std::vector
 
 QGate QPanda::iSWAP(int control_qaddr, int target_qaddr, double theta)
 {
+    if (control_qaddr == target_qaddr)
+    {
+        QCERR(" target bit is the same as the control bit");
+        throw invalid_argument(" target bit is the same as the control bit");
+    }
 	return iSWAP(get_qubit_by_phyaddr(control_qaddr), get_qubit_by_phyaddr(target_qaddr), theta);
 }
 
@@ -1553,6 +1603,11 @@ QCircuit QPanda::iSWAP(const std::vector<int>& control_qaddrs, const std::vector
 QGate  QPanda::CNOT(Qubit* control_qubit, Qubit* target_qubit)
 {
 	string name = "CNOT";
+    if (control_qubit == target_qubit)
+    {
+        QCERR(" target bit is the same as the control bit");
+        throw invalid_argument(" target bit is the same as the control bit");
+    }
 	return _gs_pGateNodeFactory->getGateNode(name, { control_qubit, target_qubit });
 }
 
@@ -1591,6 +1646,11 @@ QCircuit  QPanda::CNOT(const QVec &control_qubits, const QVec &target_qubits)
 
 QGate QPanda::CNOT(int control_qaddr, int target_qaddr)
 {
+    if (control_qaddr == target_qaddr)
+    {
+        QCERR(" target bit is the same as the control bit");
+        throw invalid_argument(" target bit is the same as the control bit");
+    }
 	return CNOT(get_qubit_by_phyaddr(control_qaddr), get_qubit_by_phyaddr(target_qaddr));
 }
 
@@ -1631,6 +1691,11 @@ QCircuit QPanda::CNOT(const std::vector<int>& control_qaddrs, const std::vector<
 QGate QPanda::CZ(Qubit* control_qubit, Qubit* target_qubit)
 {
 	string name = "CZ";
+    if (control_qubit == target_qubit)
+    {
+        QCERR(" target bit is the same as the control bit");
+        throw invalid_argument(" target bit is the same as the control bit");
+    }
 	return _gs_pGateNodeFactory->getGateNode(name, { control_qubit, target_qubit });
 }
 
@@ -1670,6 +1735,11 @@ QCircuit QPanda::CZ(const QVec& control_qubits, const QVec &target_qubits)
 
 QGate QPanda::CZ(int control_qaddr, int target_qaddr)
 {
+    if (control_qaddr == target_qaddr)
+    {
+        QCERR(" target bit is the same as the control bit");
+        throw invalid_argument(" target bit is the same as the control bit");
+    }
 	return CZ(get_qubit_by_phyaddr(control_qaddr), get_qubit_by_phyaddr(target_qaddr));
 }
 
@@ -1709,6 +1779,11 @@ QCircuit QPanda::CZ(const std::vector<int>& control_qaddrs, const std::vector<in
 QGate QPanda::CP(Qubit* control_qubit, Qubit* target_qubit, double theta)
 {
 	string name = "CP";
+    if (control_qubit == target_qubit)
+    {
+        QCERR(" target bit is the same as the control bit");
+        throw invalid_argument(" target bit is the same as the control bit");
+    }
 	return _gs_pGateNodeFactory->getGateNode(name, { control_qubit, target_qubit }, theta);
 }
 
@@ -1748,6 +1823,11 @@ QCircuit QPanda::CP(const QVec& control_qubits, const QVec &target_qubits, doubl
 
 QGate QPanda::CP(int control_qaddr, int target_qaddr, double theta)
 {
+    if (control_qaddr == target_qaddr)
+    {
+        QCERR(" target bit is the same as the control bit");
+        throw invalid_argument(" target bit is the same as the control bit");
+    }
 	return CP(get_qubit_by_phyaddr(control_qaddr), get_qubit_by_phyaddr(target_qaddr), theta);
 }
 
@@ -1844,6 +1924,11 @@ QGate QPanda::CU(double alpha,
 	Qubit* target_qubit)
 {
 	string name = "CU";
+    if (control_qubit == target_qubit)
+    {
+        QCERR(" target bit is the same as the control bit");
+        throw invalid_argument(" target bit is the same as the control bit");
+    }
 	return _gs_pGateNodeFactory->getGateNode(name, { control_qubit, target_qubit }, alpha, beta, gamma, delta);
 }
 
@@ -1889,6 +1974,11 @@ QCircuit QPanda::CU(double alpha,
 QGate QPanda::CU(QStat& matrix, Qubit* control_qubit, Qubit* target_qubit)
 {
 	string name = "CU";
+    if (control_qubit == target_qubit)
+    {
+        QCERR(" target bit is the same as the control bit");
+        throw invalid_argument(" target bit is the same as the control bit");
+    }
 	return _gs_pGateNodeFactory->getGateNode(name, { control_qubit, target_qubit }, matrix);
 }
 
@@ -1928,6 +2018,11 @@ QCircuit QPanda::CU(QStat& matrix, const QVec& control_qubits, const QVec& targe
 QGate QPanda::QDouble(QStat& matrix, Qubit* qubit1, Qubit* qubit2)
 {
 	string name = "QDoubleGate";
+    if (qubit1 == qubit2)
+    {
+        QCERR(" target bit is the same as the control bit");
+        throw invalid_argument(" target bit is the same as the control bit");
+    }
 	return _gs_pGateNodeFactory->getGateNode(name, { qubit1, qubit2 }, matrix);
 }
 
@@ -1952,6 +2047,11 @@ QGate QPanda::oracle(QVec qubits, std::string oracle_name)
 QGate QPanda::QDouble(Qubit* qubit1, Qubit* qubit2, QStat& matrix)
 {
 	string name = "QDoubleGate";
+    if (qubit1 == qubit2)
+    {
+        QCERR(" target bit is the same as the control bit");
+        throw invalid_argument(" target bit is the same as the control bit");
+    }
 	return _gs_pGateNodeFactory->getGateNode(name, { qubit1, qubit2 }, matrix);
 }
 
@@ -1991,6 +2091,11 @@ QCircuit QPanda::QDouble(const QVec& qubit1, const QVec& qubit2, QStat& matrix)
 
 QGate QPanda::QDouble(int control_qaddr, int target_qaddr, QStat& matrix)
 {
+    if (control_qaddr == target_qaddr)
+    {
+        QCERR(" target bit is the same as the control bit");
+        throw invalid_argument(" target bit is the same as the control bit");
+    }
 	return QDouble(get_qubit_by_phyaddr(control_qaddr), get_qubit_by_phyaddr(target_qaddr), matrix);
 }
 
@@ -2034,6 +2139,11 @@ QGate QPanda::CU(Qubit* control_qubit,
 	double gamma, double delta)
 {
 	string name = "CU";
+    if (control_qubit == target_qubit)
+    {
+        QCERR(" target bit is the same as the control bit");
+        throw invalid_argument(" target bit is the same as the control bit");
+    }
 	return _gs_pGateNodeFactory->getGateNode(name, { control_qubit, target_qubit }, alpha, beta, gamma, delta);
 }
 
@@ -2077,6 +2187,11 @@ QCircuit QPanda::CU(const QVec& control_qubits,
 QGate QPanda::CU(Qubit* control_qubit, Qubit* target_qubit, QStat& matrix)
 {
 	string name = "CU";
+    if (control_qubit == target_qubit)
+    {
+        QCERR(" target bit is the same as the control bit");
+        throw invalid_argument(" target bit is the same as the control bit");
+    }
 	return _gs_pGateNodeFactory->getGateNode(name, { control_qubit, target_qubit }, matrix);
 }
 
@@ -2116,6 +2231,11 @@ QCircuit QPanda::CU(const QVec& control_qubits, const QVec& target_qubits, QStat
 
 QGate QPanda::CU(int control_qaddr, int target_qaddr, double alpha, double beta, double gamma, double delta)
 {
+    if (control_qaddr == target_qaddr)
+    {
+        QCERR(" target bit is the same as the control bit");
+        throw invalid_argument(" target bit is the same as the control bit");
+    }
 	return CU(get_qubit_by_phyaddr(control_qaddr), get_qubit_by_phyaddr(target_qaddr), alpha, beta, gamma, delta);
 }
 
@@ -2154,6 +2274,11 @@ QCircuit QPanda::CU(const std::vector<int>& control_qaddrs, const std::vector<in
 
 QGate QPanda::CU(int control_qaddr, int target_qaddr, QStat& matrix)
 {
+    if (control_qaddr == target_qaddr)
+    {
+        QCERR(" target bit is the same as the control bit");
+        throw invalid_argument(" target bit is the same as the control bit");
+    }
 	return CU(get_qubit_by_phyaddr(control_qaddr), get_qubit_by_phyaddr(target_qaddr), matrix);
 }
 
@@ -2191,6 +2316,11 @@ QCircuit QPanda::CU(const std::vector<int>& control_qaddrs, const std::vector<in
 QGate QPanda::RXX(Qubit* control_qubit, Qubit* target_qubit, double angle)
 {
     string name = "RXX";
+    if (control_qubit == target_qubit)
+    {
+        QCERR(" target bit is the same as the control bit");
+        throw invalid_argument(" target bit is the same as the control bit");
+    }
     return _gs_pGateNodeFactory->getGateNode(name, { control_qubit, target_qubit }, angle);
 }
 
@@ -2230,6 +2360,11 @@ QCircuit QPanda::RXX(const QVec& control_qubits, const QVec &target_qubits, doub
 
 QGate QPanda::RXX(int control_qaddr, int target_qaddr, double angle)
 {
+    if (control_qaddr == target_qaddr)
+    {
+        QCERR(" target bit is the same as the control bit");
+        throw invalid_argument(" target bit is the same as the control bit");
+    }
     return RXX(get_qubit_by_phyaddr(control_qaddr), get_qubit_by_phyaddr(target_qaddr), angle);
 }
 
@@ -2269,6 +2404,11 @@ QCircuit QPanda::RXX(const std::vector<int>& control_qaddrs, const std::vector<i
 QGate QPanda::RYY(Qubit* control_qubit, Qubit* target_qubit, double angle)
 {
     string name = "RYY";
+    if (control_qubit == target_qubit)
+    {
+        QCERR(" target bit is the same as the control bit");
+        throw invalid_argument(" target bit is the same as the control bit");
+    }
     return _gs_pGateNodeFactory->getGateNode(name, { control_qubit, target_qubit }, angle);
 }
 
@@ -2308,6 +2448,11 @@ QCircuit QPanda::RYY(const QVec& control_qubits, const QVec &target_qubits, doub
 
 QGate QPanda::RYY(int control_qaddr, int target_qaddr, double angle)
 {
+    if (control_qaddr == target_qaddr)
+    {
+        QCERR(" target bit is the same as the control bit");
+        throw invalid_argument(" target bit is the same as the control bit");
+    }
     return RYY(get_qubit_by_phyaddr(control_qaddr), get_qubit_by_phyaddr(target_qaddr), angle);
 }
 
@@ -2347,6 +2492,11 @@ QCircuit QPanda::RYY(const std::vector<int>& control_qaddrs, const std::vector<i
 QGate QPanda::RZZ(Qubit* control_qubit, Qubit* target_qubit, double angle)
 {
     string name = "RZZ";
+    if (control_qubit == target_qubit)
+    {
+        QCERR(" target bit is the same as the control bit");
+        throw invalid_argument(" target bit is the same as the control bit");
+    }
     return _gs_pGateNodeFactory->getGateNode(name, { control_qubit, target_qubit }, angle);
 }
 
@@ -2386,6 +2536,11 @@ QCircuit QPanda::RZZ(const QVec& control_qubits, const QVec &target_qubits, doub
 
 QGate QPanda::RZZ(int control_qaddr, int target_qaddr, double angle)
 {
+    if (control_qaddr == target_qaddr)
+    {
+        QCERR(" target bit is the same as the control bit");
+        throw invalid_argument(" target bit is the same as the control bit");
+    }
     return RZZ(get_qubit_by_phyaddr(control_qaddr), get_qubit_by_phyaddr(target_qaddr), angle);
 }
 
@@ -2425,6 +2580,11 @@ QCircuit QPanda::RZZ(const std::vector<int>& control_qaddrs, const std::vector<i
 QGate QPanda::RZX(Qubit* control_qubit, Qubit* target_qubit, double angle)
 {
     string name = "RZX";
+    if (control_qubit == target_qubit)
+    {
+        QCERR(" target bit is the same as the control bit");
+        throw invalid_argument(" target bit is the same as the control bit");
+    }
     return _gs_pGateNodeFactory->getGateNode(name, { control_qubit, target_qubit }, angle);
 }
 
@@ -2464,6 +2624,11 @@ QCircuit QPanda::RZX(const QVec& control_qubits, const QVec &target_qubits, doub
 
 QGate QPanda::RZX(int control_qaddr, int target_qaddr, double angle)
 {
+    if (control_qaddr == target_qaddr)
+    {
+        QCERR(" target bit is the same as the control bit");
+        throw invalid_argument(" target bit is the same as the control bit");
+    }
     return RZX(get_qubit_by_phyaddr(control_qaddr), get_qubit_by_phyaddr(target_qaddr), angle);
 }
 
@@ -2543,9 +2708,9 @@ QGate QPanda::Toffoli(int qaddr0, int qaddr1, int target_qaddr)
 
 
 
-QGate QPanda::QOracle(const QVec &qubits, const QStat &matrix)
+QGate QPanda::QOracle(const QVec &qubits, const QStat &matrix, const double TOL)
 {
-	if (!is_unitary_matrix_by_eigen(matrix))
+	if (!is_unitary_matrix_by_eigen(matrix,TOL))
 	{
 		QCERR_AND_THROW_ERRSTR(invalid_argument, "Non-unitary matrix for QOracle-gate.");
 	}

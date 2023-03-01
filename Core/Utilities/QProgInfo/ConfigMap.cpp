@@ -27,7 +27,7 @@ ConfigMap::ConfigMap(const string &filename)
     insert(CONFIGPAIR("QMeasure", "OriginMeasure"));
 	insert(CONFIGPAIR("QReset", "OriginReset"));
     insert(CONFIGPAIR("QuantumMachine", "CPUQVM"));
-    insert(CONFIGPAIR("QubitPool", "OriginQubitPoolv1"));
+    insert(CONFIGPAIR("QubitPool", "OriginQubitPoolv2"));
     insert(CONFIGPAIR("Qubit", "OriginQubit"));
     insert(CONFIGPAIR("PhysicalQubit", "OriginPhysicalQubit"));
     insert(CONFIGPAIR("CBit", "OriginCBit"));

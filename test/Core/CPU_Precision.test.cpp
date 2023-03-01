@@ -13,13 +13,6 @@
 #include "Core/Utilities/QProgTransform/QProgToDAG/GraphMatch.h"
 #include "Core/Utilities/Tools/QCircuitGenerator.h"
 #include "Core/Utilities/QProgInfo/QCircuitInfo.h"
-#include "Core/Variational/var.h"
-#include "Variational/expression.h"
-#include "Variational/utils.h"
-#include "Variational/Optimizer.h"
-#include "Variational/VarFermionOperator.h"
-#include "Variational/VarPauliOperator.h"
-
 #include "Extensions/Extensions.h"
 #ifdef USE_EXTENSION
 
@@ -69,7 +62,7 @@ prob_dict precision_test(bool precison)
         }
         prog << circuit;
         Fusion fuser;
-        fuser.aggregate_operations(prog, &qvm);
+        fuser.aggregate_operations(prog);
         auto res = qvm.probRunDict(prog, qubits);
         return res;
     }
@@ -107,16 +100,16 @@ static bool test_vf1_0()
 static bool test_vf1_1()
 {
     // time test
-    int deepth = 50;
+    int deepth = 15;
     std::vector<std::vector<double>> time_save;
     time_save.resize(10);
     for (int i = 0; i < time_save.size(); i++)
     {
-        time_save[i].resize(17);
+        time_save[i].resize(22);
     }
     for (int x = 0; x < 10; x++)
     {
-        for (int i = 3; i < 20; i++)
+        for (int i = 3; i < 25; i++)
         {
             auto qvm = CPUQVM();
             qvm.init();
@@ -155,22 +148,21 @@ static bool test_vf1_1()
                 circuit << RX(qbit, rand());
             }
             prog << circuit;
+            Fusion fuser;
+            fuser.aggregate_operations(prog);
             /*Fusion fuser;
-            fuser.aggregate_operations(prog, &qvm);*/
-
-            //std::cout << "===============================" << std::endl;
+            fuser.multi_bit_gate_fusion(prog, &qvm);*/
             auto start = std::chrono::system_clock::now();
             qvm.directlyRun(prog);
             auto end = std::chrono::system_clock::now();
             std::chrono::duration<double>elapsed_seconds = end - start;
             time_save[x][i - 3] = elapsed_seconds.count();
-            //std::cout << "qbit: " << i << ", Time used:  " << elapsed_seconds.count() << std::endl;
         }
     }
 
     std::vector<double> average_time;
-    average_time.resize(17);
-    for (int i = 0; i < 17; i++)
+    average_time.resize(22);
+    for (int i = 0; i < 22; i++)
     {
         for (int j = 0; j < 10; j++)
         {
@@ -178,7 +170,7 @@ static bool test_vf1_1()
         }
         average_time[i] = average_time[i] / 10;
     }
-    for (int i = 0; i < 17; i++)
+    for (int i = 0; i < 22; i++)
     {
         std::wcout << "qbit: " << i+3 << ", average time used: " << average_time[i] << std::endl;
     }

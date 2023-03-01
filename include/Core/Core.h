@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2017-2020 Origin Quantum Computing. All Right Reserved.
+Copyright (c) 2017-2023 Origin Quantum Computing. All Right Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -27,11 +27,12 @@ limitations under the License.
 #include "Core/QuantumCircuit/QuantumMeasure.h"
 #include "Core/QuantumCircuit/QReset.h"
 
+#include "Core/QuantumMachine/QVec.h"	
 #include "Core/QuantumMachine/OriginQuantumMachine.h"
 #include "Core/QuantumMachine/SingleAmplitudeQVM.h" 
 #include "Core/QuantumMachine/PartialAmplitudeQVM.h"
 #include "Core/QuantumMachine/QuantumMachineInterface.h"
-#include "Core/QuantumMachine/QVec.h"	
+#include "Core/VirtualQuantumProcessor/DensityMatrix/DensityMatrixSimulator.h"
 
 #include "Core/Utilities/Compiler/QProgDataParse.h"
 #include "Core/Utilities/Compiler/QProgStored.h"
@@ -431,7 +432,7 @@ prob_tuple pMeasure(QVec qubit_vector, int select_max);
 prob_vec pMeasureNoIndex(QVec qubit_vector);
 
 
-QGate QOracle(const QVec& qubits, const QMatrixXcd& matrix);
+QGate QOracle(const QVec& qubits, const QMatrixXcd& matrix,const double TOL=1e-10);
 
 QPANDA_END
 #endif // !_CORE_H

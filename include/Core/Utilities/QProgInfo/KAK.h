@@ -3,6 +3,8 @@
 #include <vector>
 #include "ThirdParty/Eigen/Eigen"
 #include "Core/QuantumCircuit/QCircuit.h"
+#include "include/Core/Utilities/Tools/QMatrixDef.h"
+
 QPANDA_BEGIN
 
 /**
@@ -14,6 +16,7 @@ QPANDA_BEGIN
 *					Two single-qubit operations (after): Gate a0, a1
 * @ingroup Utilities
 */
+
 struct KakDescription
 {
 	Eigen::Matrix4cd in_matrix;
@@ -38,8 +41,15 @@ struct KakDescription
 class KAK
 {
 public:
-	KAK() {}
+	KAK(double _tol=1e-7):m_tol(_tol)
+	{
+	}
+
 	KakDescription decompose(const Eigen::Matrix4cd& in_matrix);
+
+private:
+	double m_tol{ 1e-7 };
+
 private:
 	/**
 	* @brief 	 Returns a canonicalized interaction plus before and after corrections.
@@ -86,6 +96,8 @@ private:
 	*/
 	void bidiagonalize_rsm_products(const Eigen::Matrix4d& in_mat1, const Eigen::Matrix4d& in_mat2,
 		Eigen::Matrix4d& left, Eigen::Matrix4d& right) const;
+
+
 };
 
 
@@ -110,7 +122,9 @@ QCircuit unitary_decomposer_1q(const Eigen::Matrix2cd& in_mat, Qubit* in_qubit);
 * @param[in]  const bool true for positive sequence(q0q1q2), false for inverted order(q2q1q0), default is true
 * @return			QCircuit The quantum circuit for target matrix
 */
-QCircuit unitary_decomposer_2q(const Eigen::Matrix4cd& in_mat, const QVec& qv, bool is_positive_seq = true);
+
+QCircuit unitary_decomposer_2q(const Eigen::Matrix4cd& in_mat, const QVec& qv, bool is_positive_seq = true, double _tol = 1e-7);
+
 
 QPANDA_END
 #endif // !_KAK_H_

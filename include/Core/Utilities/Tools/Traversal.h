@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2017-2019 Origin Quantum Computing. All Right Reserved.
+Copyright (c) 2017-2023 Origin Quantum Computing. All Right Reserved.
 Licensed under the Apache License 2.0
 
 Traversal.h
@@ -213,6 +213,43 @@ public:
             auto next = aiter.getNextIter();
             traversalByType(*aiter, pNode, func_class, std::forward<Args>(func_args)...);
             aiter = next;
+        }
+    }
+
+    /*!
+   * @brief  Traversing qprog
+   * @param[in]  AbstractQuantumProgram*  QProg nodes that need to be traversed
+   * @param[in]  TraversalInterface*  The method object needed for traversal
+   * @return     void
+   */
+    template<typename T, typename... Args>
+    static void traversal_reverse(std::shared_ptr<AbstractQuantumProgram> qprog_node, T & func_class, Args&& ... func_args)
+    {
+        if (nullptr == qprog_node)
+        {
+            QCERR("param error");
+            throw std::invalid_argument("param error");
+        }
+
+        auto aiter = qprog_node->getLastNodeIter();
+        auto begin_iter = qprog_node->getHeadNodeIter();
+        if (aiter == qprog_node->getHeadNodeIter())
+            return;
+
+
+        auto pNode = std::dynamic_pointer_cast<QNode>(qprog_node);
+
+        if (nullptr == pNode)
+        {
+            QCERR("pNode is nullptr");
+            throw std::invalid_argument("pNode is nullptr");
+        }
+
+        while (aiter != begin_iter)
+        {
+            auto pre = aiter.getPreIter();
+            traversalByType(*aiter, pNode, func_class, std::forward<Args>(func_args)...);
+            aiter = pre;
         }
     }
 

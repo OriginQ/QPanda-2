@@ -129,7 +129,7 @@ PauliOperator ParityTransform(const OrbitalActVec &fermion_item, size_t maxqubit
 PauliOperator ParityTransform(const FermionOperator &fermion)
 {
 	auto data = fermion.data();
-	auto maxqubit = fermion.getMaxIndex();
+	auto maxqubit = fermion.getMaxIndex()+1;
 
 	PauliOperator pauli;
 	for (auto &i : data)
@@ -143,7 +143,7 @@ PauliOperator ParityTransform(const FermionOperator &fermion)
 VarPauliOperator ParityTransform(const VarFermionOperator &fermion)
 {
 	auto data = fermion.data();
-	auto maxqubit = fermion.getMaxIndex();
+	auto maxqubit = fermion.getMaxIndex()+1;
 
 	VarPauliOperator pauli;
 	for (auto &i : data)
@@ -300,7 +300,7 @@ PauliOperator BravyiKitaevTransform(const OrbitalActVec &fermion_item, size_t ma
 PauliOperator BravyiKitaevTransform(const FermionOperator &fermion, std::vector<Eigen::MatrixXi> BK)
 {
 	auto data = fermion.data();
-	auto maxqubit = fermion.getMaxIndex();
+	auto maxqubit = fermion.getMaxIndex()+1;
 	PauliOperator pauli;
 	for (auto &i : data)
 	{
@@ -313,7 +313,7 @@ PauliOperator BravyiKitaevTransform(const FermionOperator &fermion, std::vector<
 VarPauliOperator BravyiKitaevTransform(const VarFermionOperator &fermion, std::vector<Eigen::MatrixXi> BK)
 {
 	auto data = fermion.data();
-	auto maxqubit = fermion.getMaxIndex();
+	auto maxqubit = fermion.getMaxIndex()+1;
 	VarPauliOperator pauli;
 	for (auto &i : data)
 	{

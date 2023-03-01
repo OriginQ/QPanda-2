@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2017-2020 Origin Quantum Computing. All Right Reserved.
+Copyright (c) 2017-2023 Origin Quantum Computing. All Right Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -51,6 +51,12 @@ CPUImplQPU<data_t>::CPUImplQPU(size_t qubit_num)
 static bool probcompare(pair<size_t, double> a, pair<size_t, double> b)
 {
     return a.second > b.second;
+}
+
+template <typename data_t >
+void CPUImplQPU<data_t>::is_calc_unitary(bool flag)
+{
+    is_unitary = flag;
 }
 
 template <typename data_t >
@@ -157,58 +163,33 @@ bool CPUImplQPU<data_t>::qubitMeasure(size_t qn)
     }
 
 
-    bool measure_out = false;
-    double fi = random_generator19937();
-    if (fi > dprob)
-    {
-        measure_out = true;
-    }
+    bool measure_out = random_generator19937() > dprob?true:false;
 
     if (!measure_out)
     {
         dprob = 1 / sqrt(dprob);
-        if (size > m_threshold)
+
+#pragma omp parallel for num_threads(_omp_thread_num(size))
+        for (int64_t i = 0; i < size; i++)
         {
-#pragma omp parallel for
-            for (int64_t i = 0; i < size; i++)
-            {
-                int64_t real00_idx = _insert(i, qn);
-                m_state[real00_idx] *= dprob;
-                m_state[real00_idx | offset] = 0;
-            }
+            int64_t real00_idx = _insert(i, qn);
+            m_state[real00_idx] *= dprob;
+            m_state[real00_idx | offset] = 0;
         }
-        else
-        {
-            for (int64_t i = 0; i < size; i++)
-            {
-                int64_t real00_idx = _insert(i, qn);
-                m_state[real00_idx] *= dprob;
-                m_state[real00_idx | offset] = 0;
-            }
-        }
+       
     }
     else
     {
         dprob = 1 / sqrt(1 - dprob);
-        if (size > m_threshold)
+
+#pragma omp parallel for num_threads(_omp_thread_num(size))
+        for (int64_t i = 0; i < size; i++)
         {
-#pragma omp parallel for
-            for (int64_t i = 0; i < size; i++)
-            {
-                int64_t real00_idx = _insert(i, qn);
-                m_state[real00_idx] = 0;
-                m_state[real00_idx | offset] *= dprob;
-            }
+            int64_t real00_idx = _insert(i, qn);
+            m_state[real00_idx] = 0;
+            m_state[real00_idx | offset] *= dprob;
         }
-        else
-        {
-            for (int64_t i = 0; i < size; i++)
-            {
-                int64_t real00_idx = _insert(i, qn);
-                m_state[real00_idx] = 0;
-                m_state[real00_idx | offset] *= dprob;
-            }
-        }
+        
     }
     return measure_out;
 }
@@ -228,21 +209,13 @@ QError CPUImplQPU<data_t>::initState(size_t head_rank, size_t rank_size, size_t 
     if (m_is_init_state)
     {
         m_state.resize(m_init_state.size());
-        if (m_init_state.size() > m_threshold)
+
+#pragma omp parallel for num_threads(_omp_thread_num(m_init_state.size()))
+        for (int64_t i = 0; i < m_init_state.size(); i++)
         {
-        #pragma omp parallel for
-            for (int64_t i = 0; i < m_init_state.size(); i++)
-            {
-                m_state[i] = m_init_state[i];
-            }
+            m_state[i] = m_init_state[i];
         }
-        else
-        {
-            for (int64_t i = 0; i < m_init_state.size(); i++)
-            {
-                m_state[i] = m_init_state[i];
-            }
-        }
+
     }
     else
     {
@@ -269,21 +242,13 @@ QError CPUImplQPU<data_t>::initState(size_t qubit_num, const QStat &state)
         QPANDA_ASSERT(1ll << m_qubit_num != state.size(), "Error: initState size.");
         m_is_init_state = true;
         auto state_d = convert(state);
-        if (state_d.size() > m_threshold)
+
+#pragma omp parallel for num_threads(_omp_thread_num(state_d.size()))
+        for (int64_t i = 0; i < state_d.size(); i++)
         {
-#pragma omp parallel for
-            for (int64_t i = 0; i < state_d.size(); i++)
-            {
-                m_init_state[i] = state_d[i];
-            }
+            m_init_state[i] = state_d[i];
         }
-        else
-        {
-            for (int64_t i = 0; i < state.size(); i++)
-            {
-                m_init_state[i] = state[i];
-            }
-        }
+        
     }
 
     return qErrorNone;
@@ -312,23 +277,13 @@ QError CPUImplQPU<data_t>::_X(size_t qn)
     int64_t size = 1ll << (m_qubit_num - 1);
     int64_t offset = 1ll << qn;
 
-    if (size > m_threshold)
+#pragma omp parallel for num_threads(_omp_thread_num(size))
+    for (int64_t i = 0; i < size; i++)
     {
-#pragma omp parallel for
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn);
-            std::swap(m_state[real00_idx], m_state[real00_idx | offset]);
-        }
+        int64_t real00_idx = _insert(i, qn);
+        std::swap(m_state[real00_idx], m_state[real00_idx | offset]);
     }
-    else
-    {
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn);
-            std::swap(m_state[real00_idx], m_state[real00_idx | offset]);
-        }
-    }
+   
     return qErrorNone;
 }
 
@@ -338,31 +293,18 @@ QError CPUImplQPU<data_t>::_Y(size_t qn)
     int64_t size = 1ll << (m_qubit_num - 1);
     int64_t offset = 1ll << qn;
 
-    if (size > m_threshold)
+
+#pragma omp parallel for num_threads(_omp_thread_num(size))
+    for (int64_t i = 0; i < size; i++)
     {
-#pragma omp parallel for
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn);
-            int64_t real01_idx = real00_idx | offset;
-            auto alpha = m_state[real00_idx];
-            auto beta = m_state[real01_idx];
-            m_state[real00_idx] = { beta.imag(), -beta.real() };
-            m_state[real01_idx] = { -alpha.imag(), alpha.real() };
-        }
+        int64_t real00_idx = _insert(i, qn);
+        int64_t real01_idx = real00_idx | offset;
+        auto alpha = m_state[real00_idx];
+        auto beta = m_state[real01_idx];
+        m_state[real00_idx] = { beta.imag(), -beta.real() };
+        m_state[real01_idx] = { -alpha.imag(), alpha.real() };
     }
-    else
-    {
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn);
-            int64_t real01_idx = real00_idx | offset;
-            auto alpha = m_state[real00_idx];
-            auto beta = m_state[real01_idx];
-            m_state[real00_idx] = { beta.imag(), -beta.real() };
-            m_state[real01_idx] = { -alpha.imag(), alpha.real() };
-        }
-    }
+   
 
     return qErrorNone;
 }
@@ -373,23 +315,13 @@ QError CPUImplQPU<data_t>::_Z(size_t qn)
     int64_t size = 1ll << (m_qubit_num - 1);
     int64_t offset = 1ll << qn;
 
-    if (size > m_threshold)
+#pragma omp parallel for num_threads(_omp_thread_num(size))
+    for (int64_t i = 0; i < size; i++)
     {
-#pragma omp parallel for
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn);
-            m_state[real00_idx | offset] = -m_state[real00_idx | offset];
-        }
+        int64_t real00_idx = _insert(i, qn);
+        m_state[real00_idx | offset] = -m_state[real00_idx | offset];
     }
-    else
-    {
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn);
-            m_state[real00_idx | offset] = -m_state[real00_idx | offset];
-        }
-    }
+   
 
     return qErrorNone;
 }
@@ -400,39 +332,22 @@ QError CPUImplQPU<data_t>::_S(size_t qn, bool is_dagger)
     int64_t size = 1ll << (m_qubit_num - 1);
     int64_t offset = 1ll << qn;
 
-    if (size > m_threshold)
+
+#pragma omp parallel for num_threads(_omp_thread_num(size))
+    for (int64_t i = 0; i < size; i++)
     {
-#pragma omp parallel for
-        for (int64_t i = 0; i < size; i++)
+        int64_t real00_idx = _insert(i, qn);
+        int64_t real01_idx = real00_idx | offset;
+        if (is_dagger)
         {
-            int64_t real00_idx = _insert(i, qn);
-            int64_t real01_idx = real00_idx | offset;
-            if (is_dagger)
-            {
-                m_state[real01_idx] = { m_state[real01_idx].imag(), -m_state[real01_idx].real() };
-            }
-            else
-            {
-                m_state[real01_idx] = { -m_state[real01_idx].imag(), m_state[real01_idx].real() };
-            }
+            m_state[real01_idx] = { m_state[real01_idx].imag(), -m_state[real01_idx].real() };
+        }
+        else
+        {
+            m_state[real01_idx] = { -m_state[real01_idx].imag(), m_state[real01_idx].real() };
         }
     }
-    else
-    {
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn);
-            int64_t real01_idx = real00_idx | offset;
-            if (is_dagger)
-            {
-                m_state[real01_idx] = { m_state[real01_idx].imag(), -m_state[real01_idx].real() };
-            }
-            else
-            {
-                m_state[real01_idx] = { -m_state[real01_idx].imag(), m_state[real01_idx].real() };
-            }
-        }
-    }
+    
 
     return qErrorNone;
 }
@@ -449,27 +364,16 @@ QError CPUImplQPU<data_t>::_RZ(size_t qn, QStat &matrix, bool is_dagger)
         matrix[3] = qcomplex_t(matrix[3].real(), -matrix[3].imag());
     }
     auto matrix_f = convert(matrix);
-    if (size > m_threshold)
+
+#pragma omp parallel for num_threads(_omp_thread_num(size))
+    for (int64_t i = 0; i < size; i++)
     {
-#pragma omp parallel for
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn);
-            int64_t real01_idx = real00_idx | offset;
-            m_state[real00_idx] *= matrix_f[0];
-            m_state[real01_idx] *= matrix_f[3];
-        }
+        int64_t real00_idx = _insert(i, qn);
+        int64_t real01_idx = real00_idx | offset;
+        m_state[real00_idx] *= matrix_f[0];
+        m_state[real01_idx] *= matrix_f[3];
     }
-    else
-    {
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn);
-            int64_t real01_idx = real00_idx | offset;
-            m_state[real00_idx] *= matrix_f[0];
-            m_state[real01_idx] *= matrix_f[3];
-        }
-    }
+   
     return qErrorNone;
 }
 
@@ -479,33 +383,20 @@ QError CPUImplQPU<data_t>::_H(size_t qn, QStat &matrix)
     int64_t size = 1ll << (m_qubit_num - 1);
     int64_t offset = 1ll << qn;
 
-    if (size > m_threshold)
-    {
-#pragma omp parallel for
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn);
-            int64_t real01_idx = real00_idx | offset;
 
-            auto alpha = m_state[real00_idx];
-            auto beta = m_state[real01_idx];
-            m_state[real00_idx] = (alpha + beta) * (data_t)SQ2;
-            m_state[real01_idx] = (alpha - beta) * (data_t)SQ2;
-        }
-    }
-    else
+#pragma omp parallel for num_threads(_omp_thread_num(size))
+    for (int64_t i = 0; i < size; i++)
     {
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn);
-            int64_t real01_idx = real00_idx | offset;
+        int64_t real00_idx = _insert(i, qn);
+        int64_t real01_idx = real00_idx | offset;
 
-            auto alpha = m_state[real00_idx];
-            auto beta = m_state[real01_idx];
-            m_state[real00_idx] = (alpha + beta) * (data_t)SQ2;
-            m_state[real01_idx] = (alpha - beta) * (data_t)SQ2;
-        }
+        auto alpha = m_state[real00_idx];
+        auto beta = m_state[real01_idx];
+        m_state[real00_idx] = (alpha + beta) * (data_t)SQ2;
+        m_state[real01_idx] = (alpha - beta) * (data_t)SQ2;
     }
+
+
     return qErrorNone;
 }
 
@@ -516,23 +407,14 @@ QError CPUImplQPU<data_t>::_CNOT(size_t qn_0, size_t qn_1)
     int64_t offset0 = 1ll << qn_0;
     int64_t offset1 = 1ll << qn_1;
 
-    if (size > m_threshold)
+
+#pragma omp parallel for num_threads(_omp_thread_num(size))
+    for (int64_t i = 0; i < size; i++)
     {
-#pragma omp parallel for
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn_1, qn_0);
-            std::swap(m_state[real00_idx | offset0], m_state[real00_idx | offset0 | offset1]);
-        }
+        int64_t real00_idx = _insert(i, qn_1, qn_0);
+        std::swap(m_state[real00_idx | offset0], m_state[real00_idx | offset0 | offset1]);
     }
-    else
-    {
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn_1, qn_0);
-            std::swap(m_state[real00_idx | offset0], m_state[real00_idx | offset0 | offset1]);
-        }
-    }
+  
     return qErrorNone;
 }
 
@@ -547,27 +429,16 @@ QError CPUImplQPU<data_t>::_CZ(size_t qn_0, size_t qn_1, Qnum &controls)
         mask |= 1ll << q;
     });
 
-    if (size > m_threshold)
+
+#pragma omp parallel for num_threads(_omp_thread_num(size))
+    for (int64_t i = 0; i < size; i++)
     {
-#pragma omp parallel for
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn_1, qn_0);
-            if (mask != (mask & real00_idx))
-                continue;
-            m_state[real00_idx | offset0 | offset1] = -m_state[real00_idx | offset0 | offset1];
-        }
+        int64_t real00_idx = _insert(i, qn_1, qn_0);
+        if (mask != (mask & real00_idx))
+            continue;
+        m_state[real00_idx | offset0 | offset1] = -m_state[real00_idx | offset0 | offset1];
     }
-    else
-    {
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn_1, qn_0);
-            if (mask != (mask & real00_idx))
-                continue;
-            m_state[real00_idx | offset0 | offset1] = -m_state[real00_idx | offset0 | offset1];
-        }
-    }
+   
     return qErrorNone;
 }
 
@@ -582,23 +453,14 @@ QError CPUImplQPU<data_t>::_CR(size_t qn_0, size_t qn_1, QStat &matrix, bool is_
         matrix[15] = { matrix[15].real(), -matrix[15].imag() };
     }
     auto matrix_f = convert(matrix);
-    if (size > m_threshold)
+
+#pragma omp parallel for num_threads(_omp_thread_num(size))
+    for (int64_t i = 0; i < size; i++)
     {
-#pragma omp parallel for
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn_1, qn_0);
-            m_state[real00_idx | offset0 | offset1] *= matrix_f[15];
-        }
+        int64_t real00_idx = _insert(i, qn_1, qn_0);
+        m_state[real00_idx | offset0 | offset1] *= matrix_f[15];
     }
-    else
-    {
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn_1, qn_0);
-            m_state[real00_idx | offset0 | offset1] *= matrix_f[15];
-        }
-    }
+   
     return qErrorNone;
 }
 
@@ -613,23 +475,14 @@ QError CPUImplQPU<data_t>::_CP(size_t qn_0, size_t qn_1, QStat &matrix, bool is_
 		matrix[15] = { matrix[15].real(), -matrix[15].imag() };
 	}
     auto matrix_f = convert(matrix);
-	if (size > m_threshold)
+
+#pragma omp parallel for num_threads(_omp_thread_num(size))
+	for (int64_t i = 0; i < size; i++)
 	{
-#pragma omp parallel for
-		for (int64_t i = 0; i < size; i++)
-		{
-			int64_t real00_idx = _insert(i, qn_1, qn_0);
-			m_state[real00_idx | offset0 | offset1] *= matrix_f[15];
-		}
+		int64_t real00_idx = _insert(i, qn_1, qn_0);
+		m_state[real00_idx | offset0 | offset1] *= matrix_f[15];
 	}
-	else
-	{
-		for (int64_t i = 0; i < size; i++)
-		{
-			int64_t real00_idx = _insert(i, qn_1, qn_0);
-			m_state[real00_idx | offset0 | offset1] *= matrix_f[15];
-		}
-	}
+	
 	return qErrorNone;
 }
 
@@ -640,23 +493,13 @@ QError CPUImplQPU<data_t>::_SWAP(size_t qn_0, size_t qn_1)
     int64_t offset0 = 1ll << qn_0;
     int64_t offset1 = 1ll << qn_1;
 
-    if (size > m_threshold)
+#pragma omp parallel for num_threads(_omp_thread_num(size))
+    for (int64_t i = 0; i < size; i++)
     {
-#pragma omp parallel for
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn_1, qn_0);
-            std::swap(m_state[real00_idx | offset1], m_state[real00_idx | offset0]);
-        }
+        int64_t real00_idx = _insert(i, qn_1, qn_0);
+        std::swap(m_state[real00_idx | offset1], m_state[real00_idx | offset0]);
     }
-    else
-    {
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn_1, qn_0);
-            std::swap(m_state[real00_idx | offset1], m_state[real00_idx | offset0]);
-        }
-    }
+
     return qErrorNone;
 }
 
@@ -673,29 +516,17 @@ QError CPUImplQPU<data_t>::_iSWAP(size_t qn_0, size_t qn_1, QStat &matrix, bool 
         matrix[9] = { 0, 1 };
     }
     auto matrix_f = convert(matrix);
-    if (size > m_threshold)
+
+#pragma omp parallel for num_threads(_omp_thread_num(size))
+    for (int64_t i = 0; i < size; i++)
     {
-#pragma omp parallel for
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn_1, qn_0);
-            auto phi01 = m_state[real00_idx | offset1];
-            auto phi10 = m_state[real00_idx | offset0];
-            m_state[real00_idx | offset1] = matrix_f[6] * phi10;
-            m_state[real00_idx | offset0] = matrix_f[9] * phi01;
-        }
+        int64_t real00_idx = _insert(i, qn_1, qn_0);
+        auto phi01 = m_state[real00_idx | offset1];
+        auto phi10 = m_state[real00_idx | offset0];
+        m_state[real00_idx | offset1] = matrix_f[6] * phi10;
+        m_state[real00_idx | offset0] = matrix_f[9] * phi01;
     }
-    else
-    {
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn_1, qn_0);
-            auto phi01 = m_state[real00_idx | offset1];
-            auto phi10 = m_state[real00_idx | offset0];
-            m_state[real00_idx | offset1] = matrix_f[6] * phi10;
-            m_state[real00_idx | offset0] = matrix_f[9] * phi01;
-        }
-    }
+   
     return qErrorNone;
 }
 
@@ -712,29 +543,17 @@ QError CPUImplQPU<data_t>::_iSWAP_theta(size_t qn_0, size_t qn_1, QStat &matrix,
         matrix[9] = { matrix[9].real(), -matrix[9].imag() };
     }
     auto matrix_f = convert(matrix);
-    if (size > m_threshold)
+
+#pragma omp parallel for num_threads(_omp_thread_num(size))
+    for (int64_t i = 0; i < size; i++)
     {
-#pragma omp parallel for
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn_1, qn_0);
-            auto phi01 = m_state[real00_idx | offset1];
-            auto phi10 = m_state[real00_idx | offset0];
-            m_state[real00_idx | offset1] = matrix_f[5] * phi01 + matrix_f[6] * phi10;
-            m_state[real00_idx | offset0] = matrix_f[9] * phi01 + matrix_f[10] * phi10;
-        }
+        int64_t real00_idx = _insert(i, qn_1, qn_0);
+        auto phi01 = m_state[real00_idx | offset1];
+        auto phi10 = m_state[real00_idx | offset0];
+        m_state[real00_idx | offset1] = matrix_f[5] * phi01 + matrix_f[6] * phi10;
+        m_state[real00_idx | offset0] = matrix_f[9] * phi01 + matrix_f[10] * phi10;
     }
-    else
-    {
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn_1, qn_0);
-            auto phi01 = m_state[real00_idx | offset1];
-            auto phi10 = m_state[real00_idx | offset0];
-            m_state[real00_idx | offset1] = matrix_f[5] * phi01 + matrix_f[6] * phi10;
-            m_state[real00_idx | offset0] = matrix_f[9] * phi01 + matrix_f[10] * phi10;
-        }
-    }
+   
     return qErrorNone;
 }
 
@@ -755,29 +574,17 @@ QError CPUImplQPU<data_t>::_CU(size_t qn_0, size_t qn_1, QStat &matrix, bool is_
         matrix[15] = { matrix[15].real(), -matrix[15].imag() };
     }
     auto matrix_f = convert(matrix);
-    if (size > m_threshold)
+
+#pragma omp parallel for num_threads(_omp_thread_num(size))
+    for (int64_t i = 0; i < size; i++)
     {
-#pragma omp parallel for
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn_1, qn_0);
-            auto phi10 = m_state[real00_idx | offset0];
-            auto phi11 = m_state[real00_idx | offset0 | offset1];
-            m_state[real00_idx | offset0] = matrix_f[10] * phi10 + matrix_f[11] * phi11;
-            m_state[real00_idx | offset0 | offset1] = matrix_f[14] * phi10 + matrix_f[15] * phi11;
-        }
+        int64_t real00_idx = _insert(i, qn_1, qn_0);
+        auto phi10 = m_state[real00_idx | offset0];
+        auto phi11 = m_state[real00_idx | offset0 | offset1];
+        m_state[real00_idx | offset0] = matrix_f[10] * phi10 + matrix_f[11] * phi11;
+        m_state[real00_idx | offset0 | offset1] = matrix_f[14] * phi10 + matrix_f[15] * phi11;
     }
-    else
-    {
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn_1, qn_0);
-            auto phi10 = m_state[real00_idx | offset0];
-            auto phi11 = m_state[real00_idx | offset0 | offset1];
-            m_state[real00_idx | offset0] = matrix_f[10] * phi10 + matrix_f[11] * phi11;
-            m_state[real00_idx | offset0 | offset1] = matrix_f[14] * phi10 + matrix_f[15] * phi11;
-        }
-    }
+  
     return qErrorNone;
 }
 
@@ -791,25 +598,15 @@ QError CPUImplQPU<data_t>::_U1(size_t qn, QStat &matrix, bool is_dagger)
         matrix[3] = qcomplex_t(matrix[3].real(), -matrix[3].imag());
     }
     auto matrix_f = convert(matrix);
-    if (size > m_threshold)
+
+#pragma omp parallel for num_threads(_omp_thread_num(size))
+    for (int64_t i = 0; i < size; i++)
     {
-#pragma omp parallel for
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn);
-            int64_t real01_idx = real00_idx | offset;
-            m_state[real01_idx] *= matrix_f[3];
-        }
+        int64_t real00_idx = _insert(i, qn);
+        int64_t real01_idx = real00_idx | offset;
+        m_state[real01_idx] *= matrix_f[3];
     }
-    else
-    {
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn);
-            int64_t real01_idx = real00_idx | offset;
-            m_state[real01_idx] *= matrix_f[3];
-        }
-    }
+  
     return qErrorNone;
 }
 
@@ -823,25 +620,15 @@ QError CPUImplQPU<data_t>::_P(size_t qn, QStat &matrix, bool is_dagger)
 		matrix[3] = qcomplex_t(matrix[3].real(), -matrix[3].imag());
 	}
     auto matrix_f = convert(matrix);
-	if (size > m_threshold)
+
+#pragma omp parallel for num_threads(_omp_thread_num(size))
+	for (int64_t i = 0; i < size; i++)
 	{
-#pragma omp parallel for
-		for (int64_t i = 0; i < size; i++)
-		{
-			int64_t real00_idx = _insert(i, qn);
-			int64_t real01_idx = real00_idx | offset;
-			m_state[real01_idx] *= matrix_f[3];
-		}
+		int64_t real00_idx = _insert(i, qn);
+		int64_t real01_idx = real00_idx | offset;
+		m_state[real01_idx] *= matrix_f[3];
 	}
-	else
-	{
-		for (int64_t i = 0; i < size; i++)
-		{
-			int64_t real00_idx = _insert(i, qn);
-			int64_t real01_idx = real00_idx | offset;
-			m_state[real01_idx] *= matrix_f[3];
-		}
-	}
+
 	return qErrorNone;
 }
 
@@ -855,29 +642,16 @@ QError CPUImplQPU<data_t>::_X(size_t qn, Qnum &controls)
         mask |= 1ll << q;
     });
 
-    if (size > m_threshold)
+#pragma omp parallel for num_threads(_omp_thread_num(size))
+    for (int64_t i = 0; i < size; i++)
     {
-#pragma omp parallel for
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn);
-            if (mask != (mask & real00_idx))
-                continue;
-            int64_t real01_idx = real00_idx | offset;
-            std::swap(m_state[real00_idx], m_state[real01_idx]);
-        }
+        int64_t real00_idx = _insert(i, qn);
+        if (mask != (mask & real00_idx))
+            continue;
+        int64_t real01_idx = real00_idx | offset;
+        std::swap(m_state[real00_idx], m_state[real01_idx]);
     }
-    else
-    {
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn);
-            if (mask != (mask & real00_idx))
-                continue;
-            int64_t real01_idx = real00_idx | offset;
-            std::swap(m_state[real00_idx], m_state[real01_idx]);
-        }
-    }
+    
 
     return qErrorNone;
 }
@@ -892,35 +666,20 @@ QError CPUImplQPU<data_t>::_Y(size_t qn, Qnum &controls)
         mask |= 1ll << q;
     });
 
-    if (size > m_threshold)
+
+#pragma omp parallel for num_threads(_omp_thread_num(size))
+    for (int64_t i = 0; i < size; i++)
     {
-#pragma omp parallel for
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn);
-            if (mask != (mask & real00_idx))
-                continue;
-            int64_t real01_idx = real00_idx | offset;
-            auto alpha = m_state[real00_idx];
-            auto beta = m_state[real01_idx];
-            m_state[real00_idx] = { beta.imag(), -beta.real() };
-            m_state[real01_idx] = { -alpha.imag(), alpha.real() };
-        }
+        int64_t real00_idx = _insert(i, qn);
+        if (mask != (mask & real00_idx))
+            continue;
+        int64_t real01_idx = real00_idx | offset;
+        auto alpha = m_state[real00_idx];
+        auto beta = m_state[real01_idx];
+        m_state[real00_idx] = { beta.imag(), -beta.real() };
+        m_state[real01_idx] = { -alpha.imag(), alpha.real() };
     }
-    else
-    {
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn);
-            if (mask != (mask & real00_idx))
-                continue;
-            int64_t real01_idx = real00_idx | offset;
-            auto alpha = m_state[real00_idx];
-            auto beta = m_state[real01_idx];
-            m_state[real00_idx] = { beta.imag(), -beta.real() };
-            m_state[real01_idx] = { -alpha.imag(), alpha.real() };
-        }
-    }
+    
 
     return qErrorNone;
 }
@@ -935,29 +694,17 @@ QError CPUImplQPU<data_t>::_Z(size_t qn, Qnum &controls)
         mask |= 1ll << q;
     });
 
-    if (size > m_threshold)
+
+#pragma omp parallel for num_threads(_omp_thread_num(size))
+    for (int64_t i = 0; i < size; i++)
     {
-#pragma omp parallel for
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn);
-            if (mask != (mask & real00_idx))
-                continue;
-            int64_t real01_idx = real00_idx | offset;
-            m_state[real01_idx] = -m_state[real01_idx];
-        }
+        int64_t real00_idx = _insert(i, qn);
+        if (mask != (mask & real00_idx))
+            continue;
+        int64_t real01_idx = real00_idx | offset;
+        m_state[real01_idx] = -m_state[real01_idx];
     }
-    else
-    {
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn);
-            if (mask != (mask & real00_idx))
-                continue;
-            int64_t real01_idx = real00_idx | offset;
-            m_state[real01_idx] = -m_state[real01_idx];
-        }
-    }
+ 
 
     return qErrorNone;
 }
@@ -972,43 +719,24 @@ QError CPUImplQPU<data_t>::_S(size_t qn, bool is_dagger, Qnum &controls)
         mask |= 1ll << q;
     });
 
-    if (size > m_threshold)
+
+#pragma omp parallel for num_threads(_omp_thread_num(size))
+    for (int64_t i = 0; i < size; i++)
     {
-#pragma omp parallel for
-        for (int64_t i = 0; i < size; i++)
+        int64_t real00_idx = _insert(i, qn);
+        if (mask != (mask & real00_idx))
+            continue;
+        int64_t real01_idx = real00_idx | offset;
+        if (is_dagger)
         {
-            int64_t real00_idx = _insert(i, qn);
-            if (mask != (mask & real00_idx))
-                continue;
-            int64_t real01_idx = real00_idx | offset;
-            if (is_dagger)
-            {
-                m_state[real01_idx] = { m_state[real01_idx].imag(), -m_state[real01_idx].real() };
-            }
-            else
-            {
-                m_state[real01_idx] = { -m_state[real01_idx].imag(), m_state[real01_idx].real() };
-            }
+            m_state[real01_idx] = { m_state[real01_idx].imag(), -m_state[real01_idx].real() };
+        }
+        else
+        {
+            m_state[real01_idx] = { -m_state[real01_idx].imag(), m_state[real01_idx].real() };
         }
     }
-    else
-    {
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn);
-            if (mask != (mask & real00_idx))
-                continue;
-            int64_t real01_idx = real00_idx | offset;
-            if (is_dagger)
-            {
-                m_state[real01_idx] = { m_state[real01_idx].imag(), -m_state[real01_idx].real() };
-            }
-            else
-            {
-                m_state[real01_idx] = { -m_state[real01_idx].imag(), m_state[real01_idx].real() };
-            }
-        }
-    }
+   
 
     return qErrorNone;
 }
@@ -1030,31 +758,18 @@ QError CPUImplQPU<data_t>::_RZ(size_t qn, QStat &matrix, bool is_dagger, Qnum &c
         matrix[3] = qcomplex_t(matrix[3].real(), -matrix[3].imag());
     }
     auto matrix_f = convert(matrix);
-    if (size > m_threshold)
+
+#pragma omp parallel for num_threads(_omp_thread_num(size))
+    for (int64_t i = 0; i < size; i++)
     {
-#pragma omp parallel for
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn);
-            if (mask != (mask & real00_idx))
-                continue;
-            int64_t real01_idx = real00_idx | offset;
-            m_state[real00_idx] *= matrix_f[0];
-            m_state[real01_idx] *= matrix_f[3];
-        }
+        int64_t real00_idx = _insert(i, qn);
+        if (mask != (mask & real00_idx))
+            continue;
+        int64_t real01_idx = real00_idx | offset;
+        m_state[real00_idx] *= matrix_f[0];
+        m_state[real01_idx] *= matrix_f[3];
     }
-    else
-    {
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn);
-            if (mask != (mask & real00_idx))
-                continue;
-            int64_t real01_idx = real00_idx | offset;
-            m_state[real00_idx] *= matrix_f[0];
-            m_state[real01_idx] *= matrix_f[3];
-        }
-    }
+    
     return qErrorNone;
 }
 
@@ -1068,37 +783,21 @@ QError CPUImplQPU<data_t>::_H(size_t qn, QStat &matrix, Qnum &controls)
         mask |= 1ll << q;
     });
 
-    if (size > m_threshold)
-    {
-#pragma omp parallel for
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn);
-            if (mask != (mask & real00_idx))
-                continue;
-            int64_t real01_idx = real00_idx | offset;
 
-            auto alpha = m_state[real00_idx];
-            auto beta = m_state[real01_idx];
-            m_state[real00_idx] = (alpha + beta) * (data_t)SQ2;
-            m_state[real01_idx] = (alpha - beta) * (data_t)SQ2;
-        }
-    }
-    else
+#pragma omp parallel for num_threads(_omp_thread_num(size))
+    for (int64_t i = 0; i < size; i++)
     {
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn);
-            if (mask != (mask & real00_idx))
-                continue;
-            int64_t real01_idx = real00_idx | offset;
+        int64_t real00_idx = _insert(i, qn);
+        if (mask != (mask & real00_idx))
+            continue;
+        int64_t real01_idx = real00_idx | offset;
 
-            auto alpha = m_state[real00_idx];
-            auto beta = m_state[real01_idx];
-            m_state[real00_idx] = (alpha + beta) * (data_t)SQ2;
-            m_state[real01_idx] = (alpha - beta) * (data_t)SQ2;
-        }
+        auto alpha = m_state[real00_idx];
+        auto beta = m_state[real01_idx];
+        m_state[real00_idx] = (alpha + beta) * (data_t)SQ2;
+        m_state[real01_idx] = (alpha - beta) * (data_t)SQ2;
     }
+    
     return qErrorNone;
 }
 
@@ -1113,27 +812,16 @@ QError CPUImplQPU<data_t>::_CNOT(size_t qn_0, size_t qn_1, Qnum &controls)
         mask |= 1ll << q;
     });
 
-    if (size > m_threshold)
+
+#pragma omp parallel for num_threads(_omp_thread_num(size))
+    for (int64_t i = 0; i < size; i++)
     {
-#pragma omp parallel for
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn_1, qn_0);
-            if (mask != (mask & real00_idx))
-                continue;
-            std::swap(m_state[real00_idx | offset0], m_state[real00_idx | offset0 | offset1]);
-        }
+        int64_t real00_idx = _insert(i, qn_1, qn_0);
+        if (mask != (mask & real00_idx))
+            continue;
+        std::swap(m_state[real00_idx | offset0], m_state[real00_idx | offset0 | offset1]);
     }
-    else
-    {
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn_1, qn_0);
-            if (mask != (mask & real00_idx))
-                continue;
-            std::swap(m_state[real00_idx | offset0], m_state[real00_idx | offset0 | offset1]);
-        }
-    }
+
     return qErrorNone;
 }
 
@@ -1144,23 +832,14 @@ QError CPUImplQPU<data_t>::_CZ(size_t qn_0, size_t qn_1)
     int64_t offset0 = 1ll << qn_0;
     int64_t offset1 = 1ll << qn_1;
 
-    if (size > m_threshold)
+
+#pragma omp parallel for num_threads(_omp_thread_num(size))
+    for (int64_t i = 0; i < size; i++)
     {
-#pragma omp parallel for
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn_1, qn_0);
-            m_state[real00_idx | offset0 | offset1] = -m_state[real00_idx | offset0 | offset1];
-        }
+        int64_t real00_idx = _insert(i, qn_1, qn_0);
+        m_state[real00_idx | offset0 | offset1] = -m_state[real00_idx | offset0 | offset1];
     }
-    else
-    {
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn_1, qn_0);
-            m_state[real00_idx | offset0 | offset1] = -m_state[real00_idx | offset0 | offset1];
-        }
-    }
+    
     return qErrorNone;
 }
 
@@ -1180,27 +859,16 @@ QError CPUImplQPU<data_t>::_CR(size_t qn_0, size_t qn_1, QStat &matrix, bool is_
         matrix[15] = { matrix[15].real(), -matrix[15].imag() };
     }
     auto matrix_f = convert(matrix);
-    if (size > m_threshold)
+
+#pragma omp parallel for num_threads(_omp_thread_num(size))
+    for (int64_t i = 0; i < size; i++)
     {
-#pragma omp parallel for
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn_1, qn_0);
-            if (mask != (mask & real00_idx))
-                continue;
-            m_state[real00_idx | offset0 | offset1] *= matrix_f[15];
-        }
+        int64_t real00_idx = _insert(i, qn_1, qn_0);
+        if (mask != (mask & real00_idx))
+            continue;
+        m_state[real00_idx | offset0 | offset1] *= matrix_f[15];
     }
-    else
-    {
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn_1, qn_0);
-            if (mask != (mask & real00_idx))
-                continue;
-            m_state[real00_idx | offset0 | offset1] *= matrix_f[15];
-        }
-    }
+
     return qErrorNone;
 }
 
@@ -1220,27 +888,16 @@ QError CPUImplQPU<data_t>::_CP(size_t qn_0, size_t qn_1, QStat &matrix, bool is_
 		matrix[15] = { matrix[15].real(), -matrix[15].imag() };
 	}
     auto matrix_f = convert(matrix);
-	if (size > m_threshold)
+
+#pragma omp parallel for num_threads(_omp_thread_num(size))
+	for (int64_t i = 0; i < size; i++)
 	{
-#pragma omp parallel for
-		for (int64_t i = 0; i < size; i++)
-		{
-			int64_t real00_idx = _insert(i, qn_1, qn_0);
-			if (mask != (mask & real00_idx))
-				continue;
-			m_state[real00_idx | offset0 | offset1] *= matrix_f[15];
-		}
+		int64_t real00_idx = _insert(i, qn_1, qn_0);
+		if (mask != (mask & real00_idx))
+			continue;
+		m_state[real00_idx | offset0 | offset1] *= matrix_f[15];
 	}
-	else
-	{
-		for (int64_t i = 0; i < size; i++)
-		{
-			int64_t real00_idx = _insert(i, qn_1, qn_0);
-			if (mask != (mask & real00_idx))
-				continue;
-			m_state[real00_idx | offset0 | offset1] *= matrix_f[15];
-		}
-	}
+
 	return qErrorNone;
 }
 
@@ -1255,27 +912,16 @@ QError CPUImplQPU<data_t>::_SWAP(size_t qn_0, size_t qn_1, Qnum &controls)
         mask |= 1ll << q;
     });
 
-    if (size > m_threshold)
+
+#pragma omp parallel for num_threads(_omp_thread_num(size))
+    for (int64_t i = 0; i < size; i++)
     {
-#pragma omp parallel for
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn_1, qn_0);
-            if (mask != (mask & real00_idx))
-                continue;
-            std::swap(m_state[real00_idx | offset1], m_state[real00_idx | offset0]);
-        }
+        int64_t real00_idx = _insert(i, qn_1, qn_0);
+        if (mask != (mask & real00_idx))
+            continue;
+        std::swap(m_state[real00_idx | offset1], m_state[real00_idx | offset0]);
     }
-    else
-    {
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn_1, qn_0);
-            if (mask != (mask & real00_idx))
-                continue;
-            std::swap(m_state[real00_idx | offset1], m_state[real00_idx | offset0]);
-        }
-    }
+   
     return qErrorNone;
 }
 
@@ -1296,33 +942,19 @@ QError CPUImplQPU<data_t>::_iSWAP(size_t qn_0, size_t qn_1, QStat &matrix, bool 
         matrix[9] = { 0, 1 };
     }
     auto matrix_f = convert(matrix);
-    if (size > m_threshold)
+
+#pragma omp parallel for num_threads(_omp_thread_num(size))
+    for (int64_t i = 0; i < size; i++)
     {
-#pragma omp parallel for
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn_1, qn_0);
-            if (mask != (mask & real00_idx))
-                continue;
-            auto phi01 = m_state[real00_idx | offset1];
-            auto phi10 = m_state[real00_idx | offset0];
-            m_state[real00_idx | offset1] = matrix_f[6] * phi10;
-            m_state[real00_idx | offset0] = matrix_f[9] * phi01;
-        }
+        int64_t real00_idx = _insert(i, qn_1, qn_0);
+        if (mask != (mask & real00_idx))
+            continue;
+        auto phi01 = m_state[real00_idx | offset1];
+        auto phi10 = m_state[real00_idx | offset0];
+        m_state[real00_idx | offset1] = matrix_f[6] * phi10;
+        m_state[real00_idx | offset0] = matrix_f[9] * phi01;
     }
-    else
-    {
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn_1, qn_0);
-            if (mask != (mask & real00_idx))
-                continue;
-            auto phi01 = m_state[real00_idx | offset1];
-            auto phi10 = m_state[real00_idx | offset0];
-            m_state[real00_idx | offset1] = matrix_f[6] * phi10;
-            m_state[real00_idx | offset0] = matrix_f[9] * phi01;
-        }
-    }
+   
     return qErrorNone;
 }
 
@@ -1343,33 +975,19 @@ QError CPUImplQPU<data_t>::_iSWAP_theta(size_t qn_0, size_t qn_1, QStat &matrix,
         matrix[9] = { matrix[9].real(), -matrix[9].imag() };
     }
     auto matrix_f = convert(matrix);
-    if (size > m_threshold)
+   
+#pragma omp parallel for num_threads(_omp_thread_num(size))
+    for (int64_t i = 0; i < size; i++)
     {
-#pragma omp parallel for
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn_1, qn_0);
-            if (mask != (mask & real00_idx))
-                continue;
-            auto phi01 = m_state[real00_idx | offset1];
-            auto phi10 = m_state[real00_idx | offset0];
-            m_state[real00_idx | offset1] = matrix_f[5] * phi01 + matrix_f[6] * phi10;
-            m_state[real00_idx | offset0] = matrix_f[9] * phi01 + matrix_f[10] * phi10;
-        }
+        int64_t real00_idx = _insert(i, qn_1, qn_0);
+        if (mask != (mask & real00_idx))
+            continue;
+        auto phi01 = m_state[real00_idx | offset1];
+        auto phi10 = m_state[real00_idx | offset0];
+        m_state[real00_idx | offset1] = matrix_f[5] * phi01 + matrix_f[6] * phi10;
+        m_state[real00_idx | offset0] = matrix_f[9] * phi01 + matrix_f[10] * phi10;
     }
-    else
-    {
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn_1, qn_0);
-            if (mask != (mask & real00_idx))
-                continue;
-            auto phi01 = m_state[real00_idx | offset1];
-            auto phi10 = m_state[real00_idx | offset0];
-            m_state[real00_idx | offset1] = matrix_f[5] * phi01 + matrix_f[6] * phi10;
-            m_state[real00_idx | offset0] = matrix_f[9] * phi01 + matrix_f[10] * phi10;
-        }
-    }
+   
     return qErrorNone;
 }
 
@@ -1394,33 +1012,19 @@ QError CPUImplQPU<data_t>::_CU(size_t qn_0, size_t qn_1, QStat &matrix, bool is_
         matrix[15] = { matrix[15].real(), -matrix[15].imag() };
     }
     auto matrix_f = convert(matrix);
-    if (size > m_threshold)
+
+#pragma omp parallel for num_threads(_omp_thread_num(size))
+    for (int64_t i = 0; i < size; i++)
     {
-#pragma omp parallel for
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn_1, qn_0);
-            if (mask != (mask & real00_idx))
-                continue;
-            auto phi10 = m_state[real00_idx | offset0];
-            auto phi11 = m_state[real00_idx | offset0 | offset1];
-            m_state[real00_idx | offset0] = matrix_f[10] * phi10 + matrix_f[11] * phi11;
-            m_state[real00_idx | offset0 | offset1] = matrix_f[14] * phi10 + matrix_f[15] * phi11;
-        }
+        int64_t real00_idx = _insert(i, qn_1, qn_0);
+        if (mask != (mask & real00_idx))
+            continue;
+        auto phi10 = m_state[real00_idx | offset0];
+        auto phi11 = m_state[real00_idx | offset0 | offset1];
+        m_state[real00_idx | offset0] = matrix_f[10] * phi10 + matrix_f[11] * phi11;
+        m_state[real00_idx | offset0 | offset1] = matrix_f[14] * phi10 + matrix_f[15] * phi11;
     }
-    else
-    {
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn_1, qn_0);
-            if (mask != (mask & real00_idx))
-                continue;
-            auto phi10 = m_state[real00_idx | offset0];
-            auto phi11 = m_state[real00_idx | offset0 | offset1];
-            m_state[real00_idx | offset0] = matrix_f[10] * phi10 + matrix_f[11] * phi11;
-            m_state[real00_idx | offset0 | offset1] = matrix_f[14] * phi10 + matrix_f[15] * phi11;
-        }
-    }
+
     return qErrorNone;
 }
 
@@ -1452,29 +1056,17 @@ QError CPUImplQPU<data_t>::_U1(size_t qn, QStat &matrix, bool is_dagger, Qnum &c
         matrix[3] = qcomplex_t(matrix[3].real(), -matrix[3].imag());
     }
     auto matrix_f = convert(matrix);
-    if (size > m_threshold)
+
+#pragma omp parallel for num_threads(_omp_thread_num(size))
+    for (int64_t i = 0; i < size; i++)
     {
-#pragma omp parallel for
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn);
-            if (mask != (mask & real00_idx))
-                continue;
-            int64_t real01_idx = real00_idx | offset;
-            m_state[real01_idx] *= matrix_f[3];
-        }
+        int64_t real00_idx = _insert(i, qn);
+        if (mask != (mask & real00_idx))
+            continue;
+        int64_t real01_idx = real00_idx | offset;
+        m_state[real01_idx] *= matrix_f[3];
     }
-    else
-    {
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn);
-            if (mask != (mask & real00_idx))
-                continue;
-            int64_t real01_idx = real00_idx | offset;
-            m_state[real01_idx] *= matrix_f[3];
-        }
-    }
+
     return qErrorNone;
 }
 
@@ -1493,29 +1085,17 @@ QError CPUImplQPU<data_t>::_P(size_t qn, QStat &matrix, bool is_dagger, Qnum &co
 		matrix[3] = qcomplex_t(matrix[3].real(), -matrix[3].imag());
 	}
     auto matrix_f = convert(matrix);
-	if (size > m_threshold)
+
+#pragma omp parallel for num_threads(_omp_thread_num(size))
+	for (int64_t i = 0; i < size; i++)
 	{
-#pragma omp parallel for
-		for (int64_t i = 0; i < size; i++)
-		{
-			int64_t real00_idx = _insert(i, qn);
-			if (mask != (mask & real00_idx))
-				continue;
-			int64_t real01_idx = real00_idx | offset;
-			m_state[real01_idx] *= matrix_f[3];
-		}
+		int64_t real00_idx = _insert(i, qn);
+		if (mask != (mask & real00_idx))
+			continue;
+		int64_t real01_idx = real00_idx | offset;
+		m_state[real01_idx] *= matrix_f[3];
 	}
-	else
-	{
-		for (int64_t i = 0; i < size; i++)
-		{
-			int64_t real00_idx = _insert(i, qn);
-			if (mask != (mask & real00_idx))
-				continue;
-			int64_t real01_idx = real00_idx | offset;
-			m_state[real01_idx] *= matrix_f[3];
-		}
-	}
+
 	return qErrorNone;
 }
 
@@ -1555,33 +1135,19 @@ QError CPUImplQPU<data_t>::_single_qubit_normal_unitary(size_t qn, QStat &matrix
     int64_t size = 1ll << (m_qubit_num - 1);
     int64_t offset = 1ll << qn;
     auto matrix_f = convert(matrix);
-    if (size > m_threshold)
-    {
-#pragma omp parallel for
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn);
-            int64_t real01_idx = real00_idx | offset;
 
-            auto alpha = m_state[real00_idx];
-            auto beta = m_state[real01_idx];
-            m_state[real00_idx] = matrix_f[0] * alpha + matrix_f[1] * beta;
-            m_state[real01_idx] = matrix_f[2] * alpha + matrix_f[3] * beta;
-        }
-    }
-    else
+#pragma omp parallel for num_threads(_omp_thread_num(size))
+    for (int64_t i = 0; i < size; i++)
     {
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn);
-            int64_t real01_idx = real00_idx | offset;
+        int64_t real00_idx = _insert(i, qn);
+        int64_t real01_idx = real00_idx | offset;
 
-            auto alpha = m_state[real00_idx];
-            auto beta = m_state[real01_idx];
-            m_state[real00_idx] = matrix_f[0] * alpha + matrix_f[1] * beta;
-            m_state[real01_idx] = matrix_f[2] * alpha + matrix_f[3] * beta;
-        }
+        auto alpha = m_state[real00_idx];
+        auto beta = m_state[real01_idx];
+        m_state[real00_idx] = matrix_f[0] * alpha + matrix_f[1] * beta;
+        m_state[real01_idx] = matrix_f[2] * alpha + matrix_f[3] * beta;
     }
+   
     return qErrorNone;
 }
 
@@ -1609,33 +1175,19 @@ QError CPUImplQPU<data_t>::_single_qubit_normal_unitary(size_t qn, Qnum &control
     int64_t size = 1ll << (m_qubit_num - 1);
     int64_t offset = 1ll << qn;
 
-    if (size > m_threshold)
+
+#pragma omp parallel for num_threads(_omp_thread_num(size))
+    for (int64_t i = 0; i < size; i++)
     {
-#pragma omp parallel for
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn);
-            if (mask != (mask & real00_idx))
-                continue;
-            auto alpha = m_state[real00_idx];
-            auto beta = m_state[real00_idx | offset];
-            m_state[real00_idx] = matrix_f[0] * alpha + matrix_f[1] * beta;
-            m_state[real00_idx | offset] = matrix_f[2] * alpha + matrix_f[3] * beta;
-        }
+        int64_t real00_idx = _insert(i, qn);
+        if (mask != (mask & real00_idx))
+            continue;
+        auto alpha = m_state[real00_idx];
+        auto beta = m_state[real00_idx | offset];
+        m_state[real00_idx] = matrix_f[0] * alpha + matrix_f[1] * beta;
+        m_state[real00_idx | offset] = matrix_f[2] * alpha + matrix_f[3] * beta;
     }
-    else
-    {
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn);
-            if (mask != (mask & real00_idx))
-                continue;
-            auto alpha = m_state[real00_idx];
-            auto beta = m_state[real00_idx | offset];
-            m_state[real00_idx] = matrix_f[0] * alpha + matrix_f[1] * beta;
-            m_state[real00_idx | offset] = matrix_f[2] * alpha + matrix_f[3] * beta;
-        }
-    }
+    
 
     return qErrorNone;
 }
@@ -1668,47 +1220,26 @@ QError CPUImplQPU<data_t>::_double_qubit_normal_unitary(size_t qn_0, size_t qn_1
         }//dagger
     }
     auto matrix_f = convert(matrix);
-    if (size > m_threshold)
-    {
-#pragma omp parallel for
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn_0, qn_1);
-            auto phi00 = m_state[real00_idx];
-            auto phi01 = m_state[real00_idx | offset0];
-            auto phi10 = m_state[real00_idx | offset1];
-            auto phi11 = m_state[real00_idx | offset0 | offset1];
 
-            m_state[real00_idx] = matrix_f[0] * phi00 + matrix_f[1] * phi01
-                + matrix_f[2] * phi10 + matrix_f[3] * phi11;
-			m_state[real00_idx | offset0] = matrix_f[4] * phi00 + matrix_f[5] * phi01
-                + matrix_f[6] * phi10 + matrix_f[7] * phi11;
-			m_state[real00_idx | offset1] = matrix_f[8] * phi00 + matrix_f[9] * phi01
-                + matrix_f[10] * phi10 + matrix_f[11] * phi11;
-            m_state[real00_idx | offset0 | offset1] = matrix_f[12] * phi00 + matrix_f[13] * phi01
-                + matrix_f[14] * phi10 + matrix_f[15] * phi11;
-        }
-    }
-    else
+#pragma omp parallel for num_threads(_omp_thread_num(size))
+    for (int64_t i = 0; i < size; i++)
     {
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn_0, qn_1);
-            auto phi00 = m_state[real00_idx];
-            auto phi01 = m_state[real00_idx | offset0];
-            auto phi10 = m_state[real00_idx | offset1];
-            auto phi11 = m_state[real00_idx | offset0 | offset1];
+        int64_t real00_idx = _insert(i, qn_0, qn_1);
+        auto phi00 = m_state[real00_idx];
+        auto phi01 = m_state[real00_idx | offset0];
+        auto phi10 = m_state[real00_idx | offset1];
+        auto phi11 = m_state[real00_idx | offset0 | offset1];
 
-            m_state[real00_idx] = matrix_f[0] * phi00 + matrix_f[1] * phi01
-                + matrix_f[2] * phi10 + matrix_f[3] * phi11;
-			m_state[real00_idx | offset0] = matrix_f[4] * phi00 + matrix_f[5] * phi01
-                + matrix_f[6] * phi10 + matrix_f[7] * phi11;
-			m_state[real00_idx | offset1] = matrix_f[8] * phi00 + matrix_f[9] * phi01
-                + matrix_f[10] * phi10 + matrix_f[11] * phi11;
-            m_state[real00_idx | offset0 | offset1] = matrix_f[12] * phi00 + matrix_f[13] * phi01
-                + matrix_f[14] * phi10 + matrix_f[15] * phi11;
-        }
+        m_state[real00_idx] = matrix_f[0] * phi00 + matrix_f[1] * phi01
+            + matrix_f[2] * phi10 + matrix_f[3] * phi11;
+		m_state[real00_idx | offset0] = matrix_f[4] * phi00 + matrix_f[5] * phi01
+            + matrix_f[6] * phi10 + matrix_f[7] * phi11;
+		m_state[real00_idx | offset1] = matrix_f[8] * phi00 + matrix_f[9] * phi01
+            + matrix_f[10] * phi10 + matrix_f[11] * phi11;
+        m_state[real00_idx | offset0 | offset1] = matrix_f[12] * phi00 + matrix_f[13] * phi01
+            + matrix_f[14] * phi10 + matrix_f[15] * phi11;
     }
+    
 
     return qErrorNone;
 }
@@ -1747,9 +1278,8 @@ QError CPUImplQPU<data_t>::_double_qubit_normal_unitary(size_t qn_0, size_t qn_1
         mask |= 1ll << q;
     });
     auto matrix_f = convert(matrix);
-    if (size > m_threshold)
-    {
-#pragma omp parallel for
+
+#pragma omp parallel for num_threads(_omp_thread_num(size))
         for (int64_t i = 0; i < size; i++)
         {
             int64_t real00_idx = _insert(i, qn_0, qn_1);
@@ -1770,32 +1300,24 @@ QError CPUImplQPU<data_t>::_double_qubit_normal_unitary(size_t qn_0, size_t qn_1
             m_state[real00_idx | offset0 | offset1] = matrix_f[12] * phi00 + matrix_f[13] * phi01
                 + matrix_f[14] * phi10 + matrix_f[15] * phi11;
         }
-    }
-    else
-    {
-        for (int64_t i = 0; i < size; i++)
-        {
-            int64_t real00_idx = _insert(i, qn_0, qn_1);
-            if (mask != (mask & real00_idx))
-                continue;
-
-            auto phi00 = m_state[real00_idx];
-            auto phi01 = m_state[real00_idx | offset0];
-            auto phi10 = m_state[real00_idx | offset1];
-            auto phi11 = m_state[real00_idx | offset0 + offset1];
-
-            m_state[real00_idx] = matrix_f[0] * phi00 + matrix_f[1] * phi01
-                + matrix_f[2] * phi10 + matrix_f[3] * phi11;
-			m_state[real00_idx | offset0] = matrix_f[4] * phi00 + matrix_f[5] * phi01
-                + matrix_f[6] * phi10 + matrix_f[7] * phi11;
-			m_state[real00_idx | offset1] = matrix_f[8] * phi00 + matrix_f[9] * phi01
-                + matrix_f[10] * phi10 + matrix_f[11] * phi11;
-            m_state[real00_idx | offset0 | offset1] = matrix_f[12] * phi00 + matrix_f[13] * phi01
-                + matrix_f[14] * phi10 + matrix_f[15] * phi11;
-        }
-    }
+    
 
     return qErrorNone;
+}
+
+template <typename data_t >
+QStat  CPUImplQPU<data_t>::vectorize_matrix(const QStat& mat) {
+    QStat vec;
+    vec.resize(mat.size(), 0.);
+    size_t nrows = sqrt(mat.size());
+    size_t ncols = nrows;
+    for (size_t col = 0; col < ncols; col++) {
+        for (size_t row = 0; row < nrows; row++) {
+            vec[nrows * col + row] = mat[row * ncols + col];
+        }
+    }
+
+    return vec;
 }
 
 template <typename data_t >
@@ -1805,11 +1327,17 @@ unitarySingleQubitGate(size_t qn,
     bool is_dagger,
     GateType type)
 {
+    if (is_unitary)
+    {
+        matrix = vectorize_matrix(matrix);
+        _single_qubit_normal_unitary(qn, matrix, is_dagger);
+        return qErrorNone;
+    }
     switch (type)
     {
     case GateType::I_GATE:
-    case GateType::BARRIER_GATE:
     case GateType::ECHO_GATE:
+    case GateType::BARRIER_GATE:
         break;
     case GateType::PAULI_X_GATE:
         _X(qn);
@@ -1840,20 +1368,19 @@ unitarySingleQubitGate(size_t qn,
 
     case GateType::P0_GATE:
     case GateType::P1_GATE:
-    case GateType::X_HALF_PI:
-    case GateType::Y_HALF_PI:
     case GateType::RX_GATE:
     case GateType::RY_GATE:
     case GateType::U2_GATE:
     case GateType::U3_GATE:
     case GateType::U4_GATE:
+    case GateType::X_HALF_PI:
+    case GateType::Y_HALF_PI:
     case GateType::RPHI_GATE:
         _single_qubit_normal_unitary(qn, matrix, is_dagger);
         break;
     default:
         throw std::runtime_error("Error: gate type: " + std::to_string(type));
     }
-
     return qErrorNone;
 }
 
@@ -1865,11 +1392,17 @@ controlunitarySingleQubitGate(size_t qn,
     bool is_dagger,
     GateType type)
 {
+    if (is_unitary)
+    {
+        matrix = vectorize_matrix(matrix);
+        _single_qubit_normal_unitary(qn, controls, matrix, is_dagger);
+        return qErrorNone;
+    }
     switch (type)
     {
     case GateType::I_GATE:
-    case GateType::BARRIER_GATE:
     case GateType::ECHO_GATE:
+    case GateType::BARRIER_GATE:
         break;
     case GateType::PAULI_X_GATE:
         _X(qn, controls);
@@ -1899,13 +1432,13 @@ controlunitarySingleQubitGate(size_t qn,
         break;
     case GateType::P0_GATE:
     case GateType::P1_GATE:
-    case GateType::X_HALF_PI:
-    case GateType::Y_HALF_PI:
     case GateType::RX_GATE:
     case GateType::RY_GATE:
     case GateType::U2_GATE:
     case GateType::U3_GATE:
     case GateType::U4_GATE:
+    case GateType::X_HALF_PI:
+    case GateType::Y_HALF_PI:
     case GateType::RPHI_GATE:
         _single_qubit_normal_unitary(qn, controls, matrix, is_dagger);
         break;
@@ -1924,6 +1457,12 @@ unitaryDoubleQubitGate(size_t qn_0,
     bool is_dagger,
     GateType type)
 {
+    if (is_unitary && type != CNOT_GATE)
+    {
+        matrix = vectorize_matrix(matrix);
+        _double_qubit_normal_unitary(qn_0, qn_1, matrix, is_dagger);
+        return qErrorNone;
+    }
     switch (type)
     {
     case GateType::CNOT_GATE:
@@ -1944,8 +1483,8 @@ unitaryDoubleQubitGate(size_t qn_0,
     case GateType::ISWAP_GATE:
         _iSWAP(qn_0, qn_1, matrix, is_dagger);
         break;
-    case GateType::ISWAP_THETA_GATE:
     case GateType::SQISWAP_GATE:
+    case GateType::ISWAP_THETA_GATE:
         _iSWAP_theta(qn_0, qn_1, matrix, is_dagger);
         break;
     case GateType::CU_GATE:
@@ -1975,6 +1514,12 @@ controlunitaryDoubleQubitGate(size_t qn_0,
     bool is_dagger,
     GateType type)
 {
+    if (is_unitary && type != CNOT_GATE)
+    {
+        matrix = vectorize_matrix(matrix);
+        _double_qubit_normal_unitary(qn_0, qn_1, controls, matrix, is_dagger);
+        return qErrorNone;
+    }
     switch (type)
     {
     case GateType::CNOT_GATE:
@@ -2053,22 +1598,31 @@ QError CPUImplQPU<data_t>::controlDiagonalGate(Qnum & vQubit, QStat & matrix, Qn
 template <typename data_t >
 QError CPUImplQPU<data_t>::OracleGate(Qnum &qubits, QStat &matrix, bool is_dagger)
 {
+    if (is_unitary)
+    {
+        matrix = vectorize_matrix(matrix);
+    }
+
     CPUAvx2<std::vector<std::complex<data_t>>, data_t> cpu_avx;
     if (qubits.size() == 3)
     {
-        if (is_supported_avx2()){
+        if (is_supported_avx2())
+        {
             return cpu_avx._three_qubit_gate_simd(m_state, qubits, matrix, is_dagger, m_qubit_num);
         }
-        else{
+        else
+        {
             return _three_qubit_gate(qubits, matrix, is_dagger);
         }
     }
     else if (qubits.size() == 4)
     {
-        if (is_supported_avx2()){
+        if (is_supported_avx2())
+        {
             return cpu_avx._four_qubit_gate_simd(m_state, qubits, matrix, is_dagger, m_qubit_num);
         }
-        else{
+        else
+        {
             return _four_qubit_gate(qubits, matrix, is_dagger);
         }
     }
@@ -2140,6 +1694,11 @@ template <typename data_t >
 QError CPUImplQPU<data_t>::controlOracleGate(Qnum &qubits, const Qnum &controls,
                                      QStat &matrix, bool is_dagger)
 {
+    if (is_unitary)
+    {
+        matrix = vectorize_matrix(matrix);
+    }
+
     CPUAvx2<std::vector<std::complex<data_t>>, data_t> cpu_avx;
     if (qubits.size() == 3)
     {
@@ -2148,7 +1707,6 @@ QError CPUImplQPU<data_t>::controlOracleGate(Qnum &qubits, const Qnum &controls,
             cpu_avx._three_qubit_gate_simd(m_state, qubits, matrix, is_dagger, m_qubit_num, controls);
             return qErrorNone;
         }
-
         _three_qubit_gate(qubits, matrix, is_dagger, controls);
         return qErrorNone;
     }
@@ -2159,7 +1717,6 @@ QError CPUImplQPU<data_t>::controlOracleGate(Qnum &qubits, const Qnum &controls,
             cpu_avx._four_qubit_gate_simd(m_state, qubits, matrix, is_dagger, m_qubit_num, controls);
             return qErrorNone;
         }
-
         _four_qubit_gate(qubits, matrix, is_dagger, controls);
         return qErrorNone;
     }
@@ -2173,6 +1730,7 @@ QError CPUImplQPU<data_t>::controlOracleGate(Qnum &qubits, const Qnum &controls,
         _five_qubit_gate(qubits, matrix, is_dagger, controls);
         return qErrorNone;
     }
+
     auto matrix_f = convert(matrix); 
     auto dim = 1ll << qubits.size();
     QMatrixXcT mat_eigen = QMatrixXcT::Map(&matrix_f[0], dim, dim);
@@ -2267,25 +1825,23 @@ void CPUImplQPU<data_t>::set_parallel_threads_size(size_t size)
 template <typename data_t >
 int CPUImplQPU<data_t>::_omp_thread_num(size_t size)
 {
+
+    int ret = 1;
+#ifdef USE_OPENMP
     if (size > m_threshold)
     {
-#ifdef USE_OPENMP
         if (m_max_threads_size > 0)
         {
-            return m_max_threads_size;
+            ret= m_max_threads_size;
         }
         else
         {
-            return omp_get_max_threads();
+            ret= omp_get_max_threads();
         }
-#else
-        return 1;
+
+    }
 #endif
-    }
-    else
-    {
-        return 1;
-    }
+    return ret;
 }
 
 QError CPUImplQPUWithOracle::controlOracularGate(std::vector<size_t> bits, std::vector<size_t> controlbits, bool is_dagger, std::string name)
@@ -2310,8 +1866,8 @@ QError CPUImplQPU<data_t>::single_qubit_gate_fusion(size_t qn, QStat& matrix)
 #pragma omp parallel for
 		for (int64_t i = 0; i < size; i++)
 		{
-			int64_t real00_idx = i;
-			int64_t real01_idx = i + 1;
+            int64_t real00_idx = _insert(i, qn);
+            int64_t real01_idx = real00_idx | offset;
 
 			auto alpha = m_state[real00_idx];
 			auto beta = m_state[real01_idx];

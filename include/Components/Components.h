@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2017-2020 Origin Quantum Computing. All Right Reserved.
+Copyright (c) 2017-2023 Origin Quantum Computing. All Right Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -28,9 +28,8 @@ limitations under the License.
 #include "Components/Optimizer/OptimizerFactory.h"
 #include "Components/Optimizer/OriginNelderMead.h"
 #include "Components/Optimizer/OriginPowell.h"
-#include "Components/Optimizer/OriginCOBYLA.h"
-#include "Components/Optimizer/OriginLBFGSB.h"
-#include "Components/Optimizer/OriginSLSQP.h"
+#include "Components/Optimizer/OriginBasicOptNL.h"
+#include "Components/Optimizer/OriginGradient.h"
 #include "Components/Utils/RJson/RJson.h"
 #include "Components/macro.h"
 

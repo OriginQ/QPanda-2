@@ -1,6 +1,6 @@
 
 /*
-Copyright (c) 2017-2020 Origin Quantum Computing. All Right Reserved.
+Copyright (c) 2017-2023 Origin Quantum Computing. All Right Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -1272,11 +1272,24 @@ void QuantumError::_set_decoherence_noise(NOISE_MODEL model, double T1, double T
     double p_damping = 1. - std::exp(-(t_gate / T1));
     double p_dephasing = 0.5 * (1. - std::exp(-(t_gate / T2 - t_gate / (2 * T1))));
 
+    QStat k1_damping = { 1,0,0,(qstate_type)sqrt(1 - p_damping) };
+    QStat k2_damping = { 0,(qstate_type)sqrt(p_damping),0,0};
+
+    QStat k1_dephasing = { (qstate_type)sqrt(1 - p_dephasing),0,0,(qstate_type)sqrt(1 - p_dephasing) };
+    QStat k2_dephasing = { (qstate_type)sqrt(p_dephasing),0,0,-(qstate_type)sqrt(p_dephasing) };
+
+    //const NoiseOp ops = {
+    //    { std::sqrt(1 - p_dephasing), 0, 0, std::sqrt((1 - p_damping)*(1 - p_dephasing)) },
+    //    { 0, std::sqrt(p_damping*(1 - p_dephasing)), 0, 0 },
+    //    { 0, std::sqrt(p_damping*(1 - p_dephasing)), 0, 0 },
+    //    { 0, -std::sqrt(p_damping*p_dephasing), 0, 0 }
+    //};
+
     const NoiseOp ops = {
-        { std::sqrt(1 - p_dephasing), 0, 0, std::sqrt((1 - p_damping)*(1 - p_dephasing)) },
-        { 0, std::sqrt(p_damping*(1 - p_dephasing)), 0, 0 },
-        { 0, std::sqrt(p_damping*(1 - p_dephasing)), 0, 0 },
-        { 0, -std::sqrt(p_damping*p_dephasing), 0, 0 }
+    { k1_damping * k1_dephasing },
+    { k1_damping * k2_dephasing  },
+    { k2_damping * k1_dephasing  },
+    { k2_damping * k2_dephasing  }
     };
 
     noise_lamda(1, ops);

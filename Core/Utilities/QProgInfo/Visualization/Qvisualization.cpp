@@ -33,14 +33,17 @@ std::string QPanda::draw_qprog(QProg prog, LayeredTopoSeq &m_layer_info, PIC_TYP
 	{
 		drawer = new DrawLatex(prog, m_layer_info, length);
 	}
+    else
+    {
+        throw std::invalid_argument("Error: PIC_TYPE");
+    }
 
-	drawer->init(quantum_bits_in_use, class_bits_in_use);
-
-	drawer->draw_by_layer();
+    drawer->init(quantum_bits_in_use, class_bits_in_use);
+    drawer->draw_by_layer();
 
 	if (PIC_TYPE::LATEX == p && with_logo)
 	{
-		dynamic_cast<DrawLatex *>(drawer)->setLogo();
+        dynamic_cast<DrawLatex *>(drawer)->set_logo();
 	}
 
 	auto text_pic_str = drawer->present(output_file);

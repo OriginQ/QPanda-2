@@ -22,13 +22,14 @@ namespace py = pybind11;
 
 void export_components(py::module &m)
 {
-    py::enum_<OptimizerType>(m, "OptimizerType", py::arithmetic())
+    py::enum_<OptimizerType>(m, "OptimizerType", "quantum OptimizerType"
+        , py::arithmetic())
         .value("NELDER_MEAD", OptimizerType::NELDER_MEAD)
         .value("POWELL", OptimizerType::POWELL)
         .value("GRADIENT", OptimizerType::GRADIENT)
         .export_values();
 
-    py::class_<AbstractOptimizer>(m, "AbstractOptimizer")
+    py::class_<AbstractOptimizer>(m, "AbstractOptimizer", "quantum AbstractOptimizer class")
         .def("registerFunc", &AbstractOptimizer::registerFunc)
         .def("setXatol", &AbstractOptimizer::setXatol)
         .def("exec", &AbstractOptimizer::exec)
@@ -41,12 +42,12 @@ void export_components(py::module &m)
         .def("setRestoreFromCacheFile", &AbstractOptimizer::setRestoreFromCacheFile)
         .def("setCacheFile", &AbstractOptimizer::setCacheFile);
 
-    py::class_<OptimizerFactory>(m, "OptimizerFactory")
+    py::class_<OptimizerFactory>(m, "OptimizerFactory", "quantum OptimizerFactory class")
         .def(py::init<>())
         .def("makeOptimizer", py::overload_cast<const OptimizerType &>(&OptimizerFactory::makeOptimizer), "Please input OptimizerType ")
         .def("makeOptimizer", py::overload_cast<const std::string &>(&OptimizerFactory::makeOptimizer), "Please input the Optimizer's name(string)");
 
-    py::class_<QOptimizationResult>(m, "QOptimizationResult")
+    py::class_<QOptimizationResult>(m, "QOptimizationResult", "quantum QOptimizationResult class")
         .def(py::init<std::string &, size_t &, size_t &, std::string &, double &, vector_d &>())
         .def_readwrite("message", &QOptimizationResult::message)
         .def_readwrite("fcalls", &QOptimizationResult::fcalls)
@@ -55,7 +56,7 @@ void export_components(py::module &m)
         .def_readwrite("key", &QOptimizationResult::key)
         .def_readwrite("para", &QOptimizationResult::para);
 
-    py::class_<NodeSortProblemGenerator>(m, "NodeSortProblemGenerator")
+    py::class_<NodeSortProblemGenerator>(m, "NodeSortProblemGenerator", "quantum NodeSortProblemGenerator class")
         .def(py::init<>())
         .def("set_problem_graph", &NodeSortProblemGenerator::setProblemGraph)
         .def("exec", &NodeSortProblemGenerator::exec)

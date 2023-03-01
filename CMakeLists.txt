@@ -3,7 +3,7 @@ project(QPANDA)
 
 set(QPANDA_MAJOR_VERSION 2)
 set(QPANDA_MINOR_VERSION 1)
-set(QPANDA_PATCH_VERSION 14)
+set(QPANDA_PATCH_VERSION 16)
 set(QPANDA_VERSION "${QPANDA_MAJOR_VERSION}.${QPANDA_MINOR_VERSION}.${QPANDA_PATCH_VERSION}")
 message(STATUS "QPANDA VERSION = " "[${QPANDA_VERSION}]")
 # disable compiler verbose output, default is off, enable it when want to check compiler/linker option
@@ -32,7 +32,6 @@ include_directories(${PROJECT_SOURCE_DIR}/Extensions
                     ${PROJECT_SOURCE_DIR}/include/Core/Utilities/Transform
                     ${PROJECT_SOURCE_DIR}/include/Core/Utilities/Transform/OriginIRCompiler
                     ${PROJECT_SOURCE_DIR}/include/Variational
-                    ${PROJECT_SOURCE_DIR}/include/ThirdParty/nlopt
                     ${PROJECT_SOURCE_DIR}/ThirdParty
                     ${PROJECT_SOURCE_DIR}/ThirdParty/gtest
                     ${PROJECT_SOURCE_DIR}/ThirdParty/gtest/include
@@ -40,7 +39,14 @@ include_directories(${PROJECT_SOURCE_DIR}/Extensions
                     ${PROJECT_SOURCE_DIR}/ThirdParty/bplus-tree/include
                     ${PROJECT_SOURCE_DIR}/ThirdParty/antlr4/runtime/src
                     ${PROJECT_SOURCE_DIR}/ThirdParty/rabbit
+                    ${PROJECT_SOURCE_DIR}/ThirdParty/pybind11/include
                     ${PROJECT_SOURCE_DIR}/ThirdParty/mpfit/include
+                    ${PROJECT_SOURCE_DIR}/ThirdParty/cmdline
+                    ${PROJECT_SOURCE_DIR}/ThirdParty/Eigen
+                    ${PROJECT_SOURCE_DIR}/ThirdParty/EigenUnsupported
+                    ${PROJECT_SOURCE_DIR}/ThirdParty/nlopt/include
+                    ${PROJECT_SOURCE_DIR}/ThirdParty/rapidjson
+                    ${PROJECT_SOURCE_DIR}/ThirdParty/uintwide
                     ${PROJECT_SOURCE_DIR})
 
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
@@ -69,6 +75,7 @@ set(LIB_PYQPANDA_PAUL pyQPandaPauliOperator)
 set(LIB_PYQPANDA_CHEMIQ pyQPandaChemiQ)
 
 option(FIND_MPI "find MPI" OFF)
+option(DOCKER "Open Docker" OFF)
 option(FIND_CUDA "find cuda" OFF)
 option(USE_CHEMIQ "use ChemiQ" OFF)
 option(FIND_OPENMP "find openMP" ON)
@@ -107,8 +114,6 @@ if (MSVC)
         -D_CRT_SECURE_NO_WARNINGS
         -DNOMINMAX 
         /bigobj) 
-
-
 
     foreach (flag
         CMAKE_C_FLAGS
@@ -198,28 +203,42 @@ else(OPENMP_FOUND)
     option(USE_OPENMP "not find OpenMP" OFF)
 endif(OPENMP_FOUND)
 
-list(APPEND CMAKE_FIND_LIBRARY_SUFFIXES ".dll" ".a")
 if (USE_CURL)
     find_package(CURL)
     if (CURL_FOUND)
         option(USE_CURL "find Curl" ON)
-        include_directories(${CURL_INCLUDE_DIR})
-        list(APPEND LIB_LIST
-            ${CURL_LIBRARY})
+        include_directories(${CURL_INCLUDE_DIRS})
+        list(APPEND LIB_LIST ${CURL_LIBRARIES})
 
-		if (MSVC)
-			find_library(CURL_DLL "libcurl.dll")
-			set(CURL_DLL_OUTPUT "libcurl.dll")
-			add_custom_command(OUTPUT ${CURL_DLL_OUTPUT}
-			   COMMAND ${CMAKE_COMMAND} -E copy ${CURL_DLL} ${EXECUTABLE_OUTPUT_PATH}/${CURL_DLL_OUTPUT})
-			add_custom_target(CopyCurlTask ALL DEPENDS ${CURL_DLL_OUTPUT})
-		endif()
+    if (MSVC)
+            get_filename_component(CURL_NAME "${CURL_LIBRARIES}" NAME_WE)
+            get_filename_component(CURL_PATH "${CURL_INCLUDE_DIRS}" DIRECTORY)
+            find_file(CURL_DLL 
+                names "${CURL_NAME}.dll"
+                PATHS "${CURL_PATH}/bin/" "${CURL_PATH}/debug/bin/" "${CURL_PATH}/lib/"
+                NO_DEFAULT_PATH
+            )
+            message("CURL_DLL  :" ${CURL_DLL})
+            add_custom_command(OUTPUT COPY_RES
+               COMMAND ${CMAKE_COMMAND} -E copy ${CURL_DLL} ${EXECUTABLE_OUTPUT_PATH}
+                )
+           add_custom_target(CopyCurlTask ALL DEPENDS COPY_RES)
+    endif()
     else (CURL_FOUND)
         # as use OPTION command, CMakeCahe have saved USE_CURL = ON, cmake then will read CMakeCache
         # use FORCE to turnoff  USE_CURL in CMakeCache
         set(USE_CURL OFF CACHE BOOL "not find Curl" FORCE)
     endif (CURL_FOUND)
 endif(USE_CURL)
+
+# Gcov
+option(ENABLE_COVERAGE "Use gcov" OFF)
+MESSAGE(STATUS ENABLE_COVERAGE=${ENABLE_COVERAGE})
+if(ENABLE_COVERAGE)
+    message(STATUS "gcov enabled!")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fprofile-arcs -ftest-coverage")
+endif()
 
 if (FIND_MPI)
     find_package(MPI)

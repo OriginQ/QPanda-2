@@ -50,6 +50,13 @@ namespace Variational {
         log,
         polynomial,
         dot,
+        // add trigonometric function
+        sin,
+        cos,
+        tan,
+        asin,
+        acos,
+        atan,
         inverse,
         transpose,
         sum,
@@ -1746,6 +1753,45 @@ namespace Variational {
         }
     };
 
+    class VariationalQuantumGate_SpecialA : public VariationalQuantumGate
+    {
+    private:
+        Qubit* m_q1;
+        Qubit* m_q2;
+    public:
+        explicit VariationalQuantumGate_SpecialA(Qubit*, Qubit*, var);
+        VariationalQuantumGate_SpecialA(const VariationalQuantumGate_SpecialA& gate) :
+            m_q1(gate.m_q1), m_q2(gate.m_q2)
+        {
+            m_vars = gate.m_vars;
+            m_constants = gate.m_constants;
+            m_control_qubit = gate.m_control_qubit;
+            m_is_dagger = gate.m_is_dagger;
+        }
+        inline QGate feed();
+        inline QGate feed(std::map<size_t, double> offset);
+        inline std::shared_ptr<VariationalQuantumGate> copy()
+        {
+            auto shared_ptr_a = std::make_shared<VariationalQuantumGate_SpecialA>(m_q1, m_q2, m_vars[0]);
+            copy_dagger_and_control_qubit(shared_ptr_a);
+            return shared_ptr_a;
+        }
+
+        inline VariationalQuantumGate_SpecialA dagger()
+        {
+            auto temp = VariationalQuantumGate_SpecialA(*this);
+            temp.m_is_dagger = temp.m_is_dagger ^ true;
+            return temp;
+        }
+
+        inline VariationalQuantumGate_SpecialA control(QVec qv)
+        {
+            auto temp = VariationalQuantumGate_SpecialA(*this);
+            temp.m_control_qubit.assign(qv.begin(), qv.end());
+            return temp;
+        }
+    };
+
     class VariationalQuantumCircuit
     {
         std::vector<var> m_vars;
@@ -1937,6 +1983,7 @@ namespace Variational {
     typedef VariationalQuantumGate_CRX VQG_CRX;
     typedef VariationalQuantumGate_CRY VQG_CRY;
     typedef VariationalQuantumGate_CRZ VQG_CRZ;
+    typedef VariationalQuantumGate_SpecialA VQG_A;
 
     typedef VariationalQuantumGate VQG;
     typedef VariationalQuantumCircuit VQC;
@@ -2096,6 +2143,30 @@ namespace Variational {
 
     inline const var dot(var lhs, var rhs) {
         return pack_expression(op_type::dot, lhs, rhs);
+    }
+
+    inline const var sin(var v) {
+        return pack_expression(op_type::sin, v);
+    }
+
+    inline const var cos(var v) {
+        return pack_expression(op_type::cos, v);
+    }
+
+    inline const var tan(var v) {
+        return pack_expression(op_type::tan, v);
+    }
+
+    inline const var asin(var v) {
+        return pack_expression(op_type::asin, v);
+    }
+
+    inline const var acos(var v) {
+        return pack_expression(op_type::acos, v);
+    }
+
+    inline const var atan(var v) {
+        return pack_expression(op_type::atan, v);
     }
 
     inline const var inverse(var v) {

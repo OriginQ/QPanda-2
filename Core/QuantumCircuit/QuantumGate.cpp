@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2017-2019 Origin Quantum Computing. All Right Reserved.
+Copyright (c) 2017-2023 Origin Quantum Computing. All Right Reserved.
 Licensed under the Apache License 2.0
 
 QGate.cpp
@@ -714,8 +714,8 @@ ISWAP::ISWAP()
 {
 	operation_num = 2;
     gate_matrix[5] = 0;
-    gate_matrix[6].imag(-1);
-    gate_matrix[9].imag(-1);
+    gate_matrix[6].imag(1);
+    gate_matrix[9].imag(1);
     gate_matrix[10] = 0;
 	gate_type = GateType::ISWAP_GATE;
 }

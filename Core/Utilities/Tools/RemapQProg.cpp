@@ -40,7 +40,7 @@ void RemapQProg::execute(std::shared_ptr<AbstractQGateNode> cur_node, std::share
 void RemapQProg::execute(std::shared_ptr<AbstractQuantumMeasure> cur_node, std::shared_ptr<QNode> parent_node, QCircuitParam &cir_param, NodeIter& cur_node_iter)
 {
 	const auto src_qubit_i = cur_node->getQuBit()->get_phy_addr();
-	const auto src_cbit_i = cur_node->getCBit()->getValue();
+	const auto src_cbit_i = cur_node->getCBit()->get_addr();
 	auto new_measure = Measure(m_qubit_map.at(src_qubit_i), m_cbit_map.at(src_cbit_i));
 	m_out_prog << new_measure;
 }

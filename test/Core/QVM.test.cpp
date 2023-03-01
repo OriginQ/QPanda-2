@@ -328,6 +328,27 @@ TEST(QVM, noise_run_with_no_cbits_args)
     ASSERT_EQ(compare_map_result(result1, result2, 100000), true);
 }
 
+TEST(QVM, noise_run_with_no_cbits_args1)
+{
+    NoiseQVM machine;
+    machine.setConfigure({ 64,64 });
+    machine.init();
+
+    auto q = machine.qAllocMany(2);
+    auto c = machine.cAllocMany(2);
+
+    auto prog = QProg();
+    prog << H(q[0]) << X(q[1]);
+    prog << Measure(q[0], c[0]);
+    prog << Measure(q[1], c[1]);
+
+    auto result1 = machine.runWithConfiguration(prog, 10000);
+    auto result2 = machine.runWithConfiguration(prog, c, 10000);
+
+    ASSERT_EQ(compare_map_result(result1, result2, 10000), true);
+}
+
+
 TEST(QVM, mps_run_with_no_cbits_args)
 {
         MPSQVM machine;
@@ -859,5 +880,67 @@ static prob_vec state_to_probs(QStat& state)
 
 	return probs;
 }
+void test_CPU(std::map<std::string, size_t>& result)
+{
+    CPUQVM machine;
+    machine.setConfigure({ 64,64 });
+    machine.init();
 
+    auto qlist = machine.qAllocMany(4);
+    auto clist = machine.cAllocMany(4);
+
+    /*auto qpool = OriginQubitPool::get_instance();
+    auto cmem = OriginCMem::get_instance();
+
+    qpool->set_capacity(20);
+
+    auto qv = qpool->qAllocMany(6);
+    auto cv = cmem->cAllocMany(6);*/
+
+    auto prog = QProg();
+    prog << H(qlist[0])
+        << CNOT(qlist[0], qlist[1]);
+    auto mat = getCircuitMatrix(prog);
+    std::cout << mat << std::endl;
+        /*<< CNOT(qlist[1], qlist[2])
+        << CNOT(qlist[2], qlist[3])
+        << Measure(qlist[0], clist[0])
+        << Measure(qlist[1], clist[1])
+        << Measure(qlist[2], clist[2])
+        << Measure(qlist[3], clist[3])*/;
+
+    result = machine.runWithConfiguration(prog, 1000);
+}
+
+TEST(QubitAddr, ArithmeticUnit)
+{
+    NoiseQVM machine;
+    machine.setConfigure({ 64,64 });
+    machine.init();
+
+    auto qlist = machine.qAllocMany(4);
+    auto clist = machine.cAllocMany(4);
+
+    /*auto qpool = OriginQubitPool::get_instance();
+    auto cmem = OriginCMem::get_instance();
+
+    qpool->set_capacity(20);
+
+    auto qv = qpool->qAllocMany(6);
+    auto cv = cmem->cAllocMany(6);*/
+    auto prog1 = QProg();
+    prog1 << H(qlist[0]);
+    auto mat1 = getCircuitMatrix(prog1);
+    auto prog2 = QProg();
+    prog2 << H(qlist[0]) << CNOT(qlist[0], qlist[1])
+        << CNOT(qlist[1], qlist[2]);
+    auto mat2 = getCircuitMatrix(prog2);
+    auto prog = QProg();
+    prog << QOracle({qlist[0]},mat1).dagger()
+        << QOracle({ qlist[0] , qlist[1],qlist[2]},mat2).dagger();
+    std::cout << prog << std::endl;
+    std::map<std::string, size_t> result1;
+    test_CPU(result1);
+    auto result = machine.runWithConfiguration(prog, 1000);
+}
 

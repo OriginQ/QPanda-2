@@ -2,10 +2,10 @@
 #include "Components/Optimizer/OptimizerFactory.h"
 #include "Components/Optimizer/OriginNelderMead.h"
 #include "Components/Optimizer/OriginPowell.h"
-#include "Components/Optimizer/OriginCOBYLA.h"
-#include "Components/Optimizer/OriginLBFGSB.h"
-#include "Components/Optimizer/OriginSLSQP.h"
+#include "Components/Optimizer/OriginBasicOptNL.h"
+#include "Components/Optimizer/OriginGradient.h"
 #include "Core/Utilities/QPandaNamespace.h"
+
 using std::invalid_argument;
 
 namespace QPanda
@@ -23,42 +23,52 @@ namespace QPanda
         case OptimizerType::POWELL:
             return std::unique_ptr<AbstractOptimizer>(new OriginPowell);
         case OptimizerType::COBYLA:
-            return std::unique_ptr<AbstractOptimizer>(new OriginCOBYLA);
-        case OptimizerType::LBFGSB:
-            return std::unique_ptr<AbstractOptimizer>(new OriginLBFGSB);
+            return std::unique_ptr<AbstractOptimizer>(new OriginBasicOptNL(OptimizerType::COBYLA));
+        case OptimizerType::L_BFGS_B:
+            return std::unique_ptr<AbstractOptimizer>(new OriginBasicOptNL(OptimizerType::L_BFGS_B));
         case OptimizerType::SLSQP:
-            return std::unique_ptr<AbstractOptimizer>(new OriginSLSQP);
+            return std::unique_ptr<AbstractOptimizer>(new OriginBasicOptNL(OptimizerType::SLSQP));
+        case OptimizerType::GRADIENT:
+            return std::unique_ptr<AbstractOptimizer>(new OriginGradient);
         default:
-            return std::unique_ptr<AbstractOptimizer>(nullptr);
+            QCERR_AND_THROW_ERRSTR(
+                std::runtime_error, 
+                "Unrecognized optimizer type");
         }
     }
 
     std::unique_ptr<AbstractOptimizer>
         OptimizerFactory::makeOptimizer(const std::string &optimizer)
     {
-        if ("Nelder-Mead" == optimizer)
+        if (DEF_NELDER_MEAD == optimizer)
         {
             return std::unique_ptr<AbstractOptimizer>(new OriginNelderMead);
         }
-        else if ("Powell" == optimizer)
+        else if (DEF_POWELL == optimizer)
         {
             return std::unique_ptr<AbstractOptimizer>(new OriginPowell);
         }
-        else if ("COBYLA" == optimizer)
+        else if (DEF_COBYLA == optimizer)
         {
-            return std::unique_ptr<AbstractOptimizer>(new OriginCOBYLA);
+            return std::unique_ptr<AbstractOptimizer>(new OriginBasicOptNL(OptimizerType::COBYLA));
         }
-        else if ("LBFGSB" == optimizer)
+        else if (DEF_LBFGSB == optimizer)
         {
-            return std::unique_ptr<AbstractOptimizer>(new OriginLBFGSB);
+            return std::unique_ptr<AbstractOptimizer>(new OriginBasicOptNL(OptimizerType::L_BFGS_B));
         }
-        else if ("SLSQP" == optimizer)
+        else if (DEF_SLSQP == optimizer)
         {
-            return std::unique_ptr<AbstractOptimizer>(new OriginSLSQP);
+            return std::unique_ptr<AbstractOptimizer>(new OriginBasicOptNL(OptimizerType::SLSQP));
+        }
+        else if (DEF_GRADIENT_DESCENT == optimizer)
+        {
+            return std::unique_ptr<AbstractOptimizer>(new OriginGradient);
         }
         else
         {
-            return std::unique_ptr<AbstractOptimizer>(new OriginNelderMead);
+            QCERR_AND_THROW_ERRSTR(
+                std::runtime_error,
+                "Unrecognized optimizer type");
         }
     }
 

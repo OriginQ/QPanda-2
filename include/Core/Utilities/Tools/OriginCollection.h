@@ -684,7 +684,9 @@ public:
         if(!m_doc.HasMember(name.c_str()))
         {
             QCERR("Object does not contain this name");
-            throw std::invalid_argument("Object does not contain this name");
+            return std::vector<std::string>();
+            
+            //throw std::invalid_argument("Object does not contain this name");
         }
         
         Value & name_value = m_doc[name.c_str()];
@@ -753,6 +755,7 @@ public:
             throw std::invalid_argument("there is no value");
         }
         
+        bool find_flag = false;
         for (rapidjson::SizeType i = 0; i < value.Size();i++)
         {
             if (value[i].IsString())
@@ -760,12 +763,13 @@ public:
                 if (strcmp(value[i].GetString(), key_value.c_str()) == 0)
                 {
                     num = (long long)i;
+                    find_flag = true;
                     break;
                 }
             }
         }
         
-        if (num == -1)
+        if (!find_flag)
         {
             return temp;
         }
@@ -809,7 +813,7 @@ public:
             throw std::invalid_argument("there is no value");
         }
 
-
+        bool find_flag = false;
         for (rapidjson::SizeType i = 0; i < value.Size(); i++)
         {
             if (value[i].IsInt64())
@@ -817,12 +821,13 @@ public:
                 if (value[i].GetInt64() == key_value)
                 {
                     num = (long long)i;
+                    find_flag = true;
                     break;
                 }
             }
         }
 
-        if (num == -1)
+        if (!find_flag)
         {
             return temp;
         }
@@ -842,6 +847,93 @@ public:
         temp_value.Accept(write);
         temp.append(buffer.GetString());
         return temp;
+    }
+
+    std::vector<std::string> getValueByKey(int key_value, const std::string &name)
+    {
+        std::vector<std::string> value_vector;
+        if (m_key_vector.size() <= 0)
+        {
+            QCERR("m_key_vector error");
+            throw std::invalid_argument("m_key_vector error");
+        }
+
+        auto &value = m_doc[m_key_vector[0].c_str()];
+        long long  num = 0;
+        if (value.Empty())
+        {
+            QCERR("there is no value");
+            // throw std::invalid_argument("there is no value");
+            return value_vector;
+        }
+
+        bool find_flag = false;
+        for (rapidjson::SizeType i = 0; i < value.Size(); i++)
+        {
+            if (value[i].IsInt64())
+            {
+                if (value[i].GetInt64() == key_value)
+                {
+                    num = (long long)i;
+                    find_flag = true;
+                    break;
+                }
+            }
+        }
+
+        if (!find_flag)
+        {
+            return value_vector;
+        }
+
+        Value temp_value(rapidjson::kObjectType);
+        auto & allocator = m_doc.GetAllocator();
+        for (size_t i = 0; i < m_key_vector.size(); i++)
+        {
+            if (m_key_vector[i] == name)
+            {
+                auto &name_value = m_doc[m_key_vector[i].c_str()][(rapidjson::SizeType)num];
+                if((name_value.IsArray()) && (!name_value.Empty()))
+                {
+                    if(name_value[0].IsString())
+                    {
+                        for(rapidjson::SizeType i = 0 ;i<name_value.Size();i++)
+                        {
+                            value_vector.push_back(name_value[i].GetString());
+                        }
+                    }
+                    else
+                    {
+                        for(rapidjson::SizeType i = 0 ;i<name_value.Size();i++)
+                        {
+                            rapidjson::StringBuffer buffer;
+                            rapidjson::Writer<rapidjson::StringBuffer> write(buffer);
+                            name_value[i].Accept(write);
+                            value_vector.push_back(buffer.GetString());
+                        }
+                    }
+
+                }
+                else if(!name_value.Empty())
+                {
+                    if(name_value.IsString())
+                    {
+                        value_vector.push_back(name_value.GetString());
+                    }
+                    else
+                    {
+                        rapidjson::StringBuffer buffer;
+                        rapidjson::Writer<rapidjson::StringBuffer> write(buffer);
+                        name_value.Accept(write);
+                        value_vector.push_back(buffer.GetString());
+                    }
+                }
+
+                break;
+            }
+        }
+
+        return value_vector;
     }
 
     /**
@@ -871,7 +963,8 @@ public:
         if (!ifs)
         {
             QCERR("file error");
-            throw std::invalid_argument("file error");
+            //throw std::invalid_argument("file error");
+            return false;
         }
 
         rapidjson::WIStreamWrapper isw(ifs);
@@ -882,7 +975,8 @@ public:
         if (!ifs)
         {
             QCERR("file error");
-            throw std::invalid_argument("file error");
+            //throw std::invalid_argument("file error");
+            return false;
         }
 
         rapidjson::IStreamWrapper isw(ifs);
@@ -892,7 +986,8 @@ public:
         if (m_doc.HasParseError())
         {
             QCERR("Json pase error");
-            throw std::runtime_error("Json pase error");
+            //throw std::runtime_error("Json pase error");
+            return false;
         }
         m_key_vector.resize(0);
         for (auto aiter = m_doc.MemberBegin();aiter != m_doc.MemberEnd();aiter++)
@@ -902,7 +997,8 @@ public:
             else
             {
                 QCERR("Json name type error");
-                throw std::runtime_error("Json name type error");
+                //throw std::runtime_error("Json name type error");
+                return false;
             }
         }
         

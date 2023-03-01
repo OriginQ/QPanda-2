@@ -14,7 +14,6 @@ DLLEXPORT void finalize(ChemiQ* chemiq)
         std::cout << "deleting..." << std::endl;
         chemiq->finalize();
         delete chemiq;
-        chemiq = NULL;
     }
 
     std::cout << "delete success" << std::endl;

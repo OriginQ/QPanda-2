@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Core/Module/Ansatz.h"
 #include "Core/Module/DataStruct.h"
 #include "Components/Operator/PauliOperator.h"
 #include "ThirdParty/Eigen/Dense"

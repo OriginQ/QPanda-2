@@ -1,7 +1,11 @@
 #include "Core/Utilities/Tools/ProcessOnTraversing.h"
 #include "Core/Utilities/QProgInfo/Visualization/QVisualization.h"
 #include <chrono>
-
+#include "QPandaConfig.h"
+#ifdef USE_EXTENSION
+#include "Extensions/VirtualZTransfer/VirtualZTransfer.h"
+#include "Extensions/QMapping/SabreQMapping.h"
+#endif
 USING_QPANDA
 using namespace std;
 
@@ -20,7 +24,8 @@ using namespace std;
 #define MAX_BUF_SIZE 5000
 #define MIN_INCLUDE_LAYERS 10
 #define COMPENSATE_GATE_TYPE 0XFFFF
-
+std::string TopoString = "{\"QuantumChipArch\":{\"QubitCount\":8,\"HighFrequencyQubit\":[0,2,4],\"CompensateAngle\":{\"CZ(0,1)\":[-3.59064208,-0.12094442,0],\"CZ(2,1)\":[-0.30938149,-0.22914852,0],\"CZ(2,3)\":[-5.71829,-0.083,0],\"CZ(4,3)\":[4.5868,-6.614,0],\"CZ(4,5)\":[5.94575,-4.7209,2.52]},\"DoubleGateClock\":3,\"SingleGateClock\":1,\"adj\":{\"0\":[{\"v\":1,\"w\":0.9},{\"v\":4,\"w\":0.9}],\"1\":[{\"v\":0,\"w\":0.9},{\"v\":2,\"w\":0.8},{\"v\":5,\"w\":0.9}],\"2\":[{\"v\":1,\"w\":0.8},{\"v\":3,\"w\":0.9},{\"v\":6,\"w\":0.7}],\"3\":[{\"v\":2,\"w\":0.9},{\"v\":7,\"w\":0.8}],\"4\":[{\"v\":0,\"w\":0.9},{\"v\":5,\"w\":0.9}],\"5\":[{\"v\":1,\"w\":0.9},{\"v\":4,\"w\":0.9},{\"v\":6,\"w\":0.8}],\"6\":[{\"v\":2,\"w\":0.7},{\"v\":5,\"w\":0.8},{\"v\":7,\"w\":0.9}],\"7\":[{\"v\":3,\"w\":0.8},{\"v\":6,\"w\":0.9}]}}}";
+std::string ConfigString = "{\"QGate\":{\"SingleGate\":{\"U3\":{\"time\":2}},\"DoubleGate\":{\"CNOT\":{\"time\":5},\"CZ\":{\"time\":5}}},\"ControlGateOptimizer\":{\"replace\":[{\"@brief\":\"replase control-X gate to CZ\",\"qubits\":2,\"src\":{\"C_X\":[0,1]},\"dst\":{\"H\":[1],\"CZ\":[1,0],\"H\":[1]}},{\"@brief\":\"replase control-Z gate to CZ\",\"qubits\":2,\"src\":{\"C_Z\":[0,1]},\"dst\":{\"CZ\":[0,1]}},{\"qubits\":2,\"src\":{\"CRX\":[0,1,\"theta_1\"]},\"dst\":{\"RX\":[1,\"theta_1/2\"],\"CZ\":[0,1],\"RX\":[1,\"-theta_1/2\"],\"CZ\":[0,1]}},{\"qubits\":2,\"src\":{\"CRY\":[0,1,\"theta_1\"]},\"dst\":{\"RY\":[1,\"theta_1/2\"],\"CZ\":[0,1],\"RY\":[1,\"-theta_1/2\"],\"CZ\":[0,1]}},{\"qubits\":2,\"src\":{\"CR\":[0,1,\"theta_1\"]},\"dst\":{\"RZ\":[1,\"theta_1/2\"],\"CNOT\":[0,1],\"RZ\":[1,\"-theta_1/2\"],\"CNOT\":[0,1]}}]}}";
 /*******************************************************************
 *                      class ProcessOnTraversing
 ********************************************************************/
@@ -634,6 +639,137 @@ void QProgLayer::add_gate_to_buffer(NodeIter iter, QCircuitParam &cir_param,
 	}
 }
 
+void QProgLayer::move_measure_to_last(LayeredTopoSeq& seq) {
+    if (seq.size() == 0)
+    {
+        return;
+    }
+
+    auto& last_layer = seq.back();
+    //bool b_exist_measure_node = false;
+    bool b_exist_gate_node = false;
+    for (const auto& gate_item : last_layer)
+    {
+        const NodeType tmp_node_type = (*gate_item.first->m_iter)->getNodeType();
+        if (tmp_node_type == MEASURE_GATE)
+        {
+            //b_exist_gate_node = true;
+        }
+        else if (tmp_node_type == GATE_NODE)
+        {
+            b_exist_gate_node = true;
+        }
+        else
+        {
+            QCERR_AND_THROW(run_fail, "Error: error node type in last layer.");
+        }
+    }
+
+    if (b_exist_gate_node)
+    {
+        seq.push_back(SeqLayer<pOptimizerNodeInfo>());
+    }
+
+    auto& real_last_layer = seq.back();
+
+    for (auto layer_iter = seq.begin(); layer_iter != (--seq.end()); ++layer_iter)
+    {
+        auto& cur_layer = *layer_iter;
+        for (auto gate_itr = cur_layer.begin(); gate_itr != cur_layer.end();)
+        {
+            const NodeType t = (*(gate_itr->first->m_iter))->getNodeType();
+            if (t == MEASURE_GATE)
+            {
+                real_last_layer.push_back(*gate_itr);
+                gate_itr = cur_layer.erase(gate_itr);
+            }
+            else
+            {
+                ++gate_itr;
+            }
+        }
+    }
+}
+
+void QProgLayer::prog_layer_by_double_gate(LayeredTopoSeq& seq)
+{
+    for (auto itr_single_layer = seq.begin(); itr_single_layer != seq.end(); ++itr_single_layer)
+    {
+        auto& cur_layer = *itr_single_layer;
+        if (cur_layer.size() == 0)
+        {
+            continue;
+        }
+
+        std::vector<SeqLayer<pOptimizerNodeInfo>> new_layer_vec;
+        QVec cur_layer_used_qubits;
+        for (auto itr_seq_node_item = cur_layer.begin(); itr_seq_node_item != cur_layer.end(); )
+        {
+            if ((itr_seq_node_item->first->m_control_qubits.size() > 0)
+                && (BARRIER_GATE != itr_seq_node_item->first->m_gate_type)) {
+                QCERR_AND_THROW(run_fail, "Error: Illegal control-gate.");
+            }
+
+            if (itr_seq_node_item->first->m_target_qubits.size() == 1) {
+                cur_layer_used_qubits += itr_seq_node_item->first->m_target_qubits;
+                cur_layer_used_qubits += itr_seq_node_item->first->m_control_qubits;
+            }
+
+            if ((itr_seq_node_item->first->m_target_qubits.size() > 1) && (cur_layer.size() > 1))
+            {
+                SeqLayer<pOptimizerNodeInfo> new_layer;
+                new_layer.push_back(*itr_seq_node_item);
+                itr_seq_node_item = cur_layer.erase(itr_seq_node_item);
+                new_layer_vec.push_back(new_layer);                 
+            }
+            else
+            {
+                ++itr_seq_node_item;
+            }
+        }
+
+        if ((cur_layer_used_qubits.size() != 0)
+            && (seq.end() != (itr_single_layer + 1)))
+        {
+            auto& next_layer = *(itr_single_layer + 1);
+            for (auto itr_seq_node_item_next_layer = next_layer.begin(); itr_seq_node_item_next_layer != next_layer.end(); )
+            {
+                QVec tmp_qv = itr_seq_node_item_next_layer->first->m_target_qubits
+                    + itr_seq_node_item_next_layer->first->m_control_qubits;
+                if ((tmp_qv.size() == 1)
+                    && ((tmp_qv - cur_layer_used_qubits).size() == tmp_qv.size()))
+                {
+                    cur_layer.push_back(*itr_seq_node_item_next_layer);
+                    itr_seq_node_item_next_layer = next_layer.erase(itr_seq_node_item_next_layer);
+                }
+                else
+                {
+                    ++itr_seq_node_item_next_layer;
+                }
+            }
+        }
+
+        for (auto& new_layer : new_layer_vec) {
+            itr_single_layer = seq.insert(itr_single_layer, new_layer);
+            ++itr_single_layer;
+        }
+    }
+
+    for (auto itr_single_layer = seq.begin(); itr_single_layer != seq.end(); )
+    {
+        auto& cur_layer = *itr_single_layer;
+        if (cur_layer.size() == 0)
+        {
+            itr_single_layer = seq.erase(itr_single_layer);
+        }
+        else
+        {
+            ++itr_single_layer;
+        }
+
+    }
+}
+
 #if 1
 /*******************************************************************
 *                      class QPressedLayer
@@ -1009,12 +1145,12 @@ protected:
 	}
 
 private:
-	bool m_b_double_gate_one_layer;
+    bool m_b_double_gate_one_layer{false};
 	const std::string m_config_data;
 	PressedTopoSeq m_topolog_sequence;
 	std::vector<std::vector<int>> m_qubit_topo_matrix;
 	std::vector<int> m_high_frequency_qubits;
-	size_t m_qubit_size;
+    size_t m_qubit_size{0};
 };
 #endif
 
@@ -1307,10 +1443,65 @@ private:
 ********************************************************************/
 LayeredTopoSeq QPanda::prog_layer(QProg src_prog)
 {
-	QProgLayer q_layer;
-	q_layer.layer(src_prog);
+    QProgLayer q_layer;
+    q_layer.layer(src_prog);
+    return q_layer.get_topo_seq();
+}
 
-	return q_layer.get_topo_seq();
+LayeredTopoSeq QPanda::get_chip_layer(QProg src_prog, ChipID chip_id /* chip_id = WUYUAN_1*/, QuantumMachine *qvm)
+{
+    QProg prog = deepCopy(src_prog);
+    QProgLayer q_layer;
+    QProg sabre_mapped_prog;
+    std::string mapping_map;
+    if (nullptr == qvm)
+    {
+        q_layer.layer(prog);
+        return q_layer.get_topo_seq();
+    }
+    else if (chip_id != ChipID::Simulation)
+    {
+
+#ifdef USE_EXTENSION
+        switch (chip_id)
+        {
+        case ChipID::WUYUAN_1:
+            mapping_map = TopoString;
+            break;
+        case ChipID::WUYUAN_2:
+            mapping_map = TopoString;
+            break;
+        case ChipID::WUYUAN_3:
+            mapping_map = TopoString;
+            break;
+        default:
+            throw std::runtime_error("Error: chip type: " + std::to_string(chip_id));
+        }
+        decompose_multiple_control_qgate(prog, qvm, ConfigString);
+        transfer_to_u3_gate(prog, qvm);
+        decompose_U3(prog, ConfigString);
+        flatten(prog, true);
+        move_rz_backward(prog, true);
+        QVec qv;
+        prog.get_used_qubits(qv);
+        sabre_mapped_prog = SABRE_mapping(prog, qvm, qv, 20, 10, mapping_map);
+#else
+        QCERR_AND_THROW(run_fail, "Error: Not have adapter chip.");
+#endif
+
+        q_layer.layer(prog);
+        LayeredTopoSeq seq = q_layer.get_topo_seq();
+        q_layer.prog_layer_by_double_gate(seq);
+
+        q_layer.move_measure_to_last(seq);
+
+
+        return seq;
+    }
+    else
+    {
+        throw std::runtime_error("Error: chip type: " + std::to_string(chip_id));
+    }
 }
 
 PressedTopoSeq QPanda::get_pressed_layer(QProg src_prog)

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2017-2020 Origin Quantum Computing. All Right Reserved.
+Copyright (c) 2017-2023 Origin Quantum Computing. All Right Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -453,9 +453,9 @@ QStat QPanda::getQState()
     return global_quantum_machine->getQState();
 }
 
-QGate QPanda::QOracle(const QVec& qubits, const QMatrixXcd& matrix)
+QGate QPanda::QOracle(const QVec& qubits, const QMatrixXcd& matrix,const double TOL)
 {
-    return(QOracle(qubits, Eigen_to_QStat(matrix)));
+    return(QOracle(qubits, Eigen_to_QStat(matrix), TOL));
 }
 
 void QPanda::cFreeAll()

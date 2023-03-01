@@ -12,14 +12,14 @@ namespace py = pybind11;
 
 void export_enum(py::module &m)
 {
-    py::enum_<QMachineType>(m, "QMachineType")
+    py::enum_<QMachineType>(m, "QMachineType", "Quantum machine type")
         .value("CPU", QMachineType::CPU)
         .value("GPU", QMachineType::GPU)
         .value("CPU_SINGLE_THREAD", QMachineType::CPU_SINGLE_THREAD)
         .value("NOISE", QMachineType::NOISE)
         .export_values();
 
-    py::enum_<NOISE_MODEL>(m, "NoiseModel")
+    py::enum_<NOISE_MODEL>(m, "NoiseModel", "noise model type")
         .value("DAMPING_KRAUS_OPERATOR", NOISE_MODEL::DAMPING_KRAUS_OPERATOR)
         .value("DECOHERENCE_KRAUS_OPERATOR", NOISE_MODEL::DECOHERENCE_KRAUS_OPERATOR)
         .value("DEPHASING_KRAUS_OPERATOR", NOISE_MODEL::DEPHASING_KRAUS_OPERATOR)
@@ -29,7 +29,7 @@ void export_enum(py::module &m)
         .value("BIT_PHASE_FLIP_OPRATOR", NOISE_MODEL::BIT_PHASE_FLIP_OPRATOR)
         .value("PHASE_DAMPING_OPRATOR", NOISE_MODEL::PHASE_DAMPING_OPRATOR);
 
-    py::enum_<GateType>(m, "GateType")
+    py::enum_<GateType>(m, "GateType", "quantum gate type")
         .value("GATE_NOP", GateType::GATE_NOP)
         .value("GATE_UNDEFINED", GateType::GATE_UNDEFINED)
         .value("P0_GATE", GateType::P0_GATE)
@@ -74,7 +74,14 @@ void export_enum(py::module &m)
         .value("RPHI_GATE", GateType::RPHI_GATE)
         .export_values();
 
-    py::enum_<NodeType>(m, "NodeType")
+    py::enum_<ChipID>(m, "ChipID", "origin quantum real chip type")
+        .value("Simulation", ChipID::Simulation)
+        .value("WUYUAN_1", ChipID::WUYUAN_1)
+        .value("WUYUAN_2", ChipID::WUYUAN_2)
+        .value("WUYUAN_3", ChipID::WUYUAN_3)
+        .export_values();
+
+    py::enum_<NodeType>(m, "NodeType", "quantum node type")
         .value("NODE_UNDEFINED", NodeType::NODE_UNDEFINED)
         .value("GATE_NODE", NodeType::GATE_NODE)
         .value("CIRCUIT_NODE", NodeType::CIRCUIT_NODE)
@@ -85,7 +92,7 @@ void export_enum(py::module &m)
         .value("CLASS_COND_NODE", NodeType::CLASS_COND_NODE)
         .value("RESET_NODE", NodeType::RESET_NODE);
 
-    py::enum_<SingleGateTransferType>(m, "SingleGateTransferType")
+    py::enum_<SingleGateTransferType>(m, "SingleGateTransferType", "Quantum single gate transfer type")
         .value("SINGLE_GATE_INVALID", SINGLE_GATE_INVALID)
         .value("ARBITRARY_ROTATION", ARBITRARY_ROTATION)
         .value("DOUBLE_CONTINUOUS", DOUBLE_CONTINUOUS)
@@ -93,12 +100,12 @@ void export_enum(py::module &m)
         .value("DOUBLE_DISCRETE", DOUBLE_DISCRETE)
         .export_values();
 
-    py::enum_<DoubleGateTransferType>(m, "DoubleGateTransferType")
+    py::enum_<DoubleGateTransferType>(m, "DoubleGateTransferType", "Quantum double gate transfer type")
         .value("DOUBLE_GATE_INVALID", DOUBLE_GATE_INVALID)
         .value("DOUBLE_BIT_GATE", DOUBLE_BIT_GATE)
         .export_values();
 
-    py::enum_<QError>(m, "QError")
+    py::enum_<QError>(m, "QError", "Quantum QError Type")
         .value("UndefineError", QError::undefineError)
         .value("qErrorNone", QError::qErrorNone)
         .value("qParameterError", QError::qParameterError)
@@ -111,7 +118,7 @@ void export_enum(py::module &m)
         .value("getResultError", QError::getResultError)
         .value("getQStateError", QError::getQStateError);
 
-    py::enum_<QCircuitOPtimizerMode>(m, "QCircuitOPtimizerMode")
+    py::enum_<QCircuitOPtimizerMode>(m, "QCircuitOPtimizerMode", "Quantum circuit optimize mode")
         .value("Merge_H_X", QCircuitOPtimizerMode::Merge_H_X)
         .value("Merge_U3", QCircuitOPtimizerMode::Merge_U3)
         .value("Merge_RX", QCircuitOPtimizerMode::Merge_RX)
@@ -126,17 +133,17 @@ void export_enum(py::module &m)
             "bitwise or",
             py::return_value_policy::reference);
 
-    py::enum_<DecompositionMode>(m, "DecompositionMode")
+    py::enum_<DecompositionMode>(m, "DecompositionMode", "Quantum matrix decomposition mode")
         .value("QR", DecompositionMode::QR)
-        .value("HOUSEHOLDER_QR", DecompositionMode::HOUSEHOLDER_QR);
-
-    py::enum_<LATEX_GATE_TYPE>(m, "LATEX_GATE_TYPE")
+        .value("HOUSEHOLDER_QR", DecompositionMode::HOUSEHOLDER_QR)
+		.value("QSDecomposition", DecompositionMode::QSD);
+    py::enum_<LATEX_GATE_TYPE>(m, "LATEX_GATE_TYPE", "Quantum latex gate type")
         .value("GENERAL_GATE", LATEX_GATE_TYPE::GENERAL_GATE)
-        .value("CNOT_GATE", LATEX_GATE_TYPE::CNOT)
+        .value("CNOT_GATE", LATEX_GATE_TYPE::X)
         .value("SWAP_GATE", LATEX_GATE_TYPE::SWAP)
         .export_values();
 
-    py::enum_<BackendType>(m, "BackendType")
+    py::enum_<BackendType>(m, "BackendType", "Quantum machine backend type")
         .value("CPU", BackendType::CPU)
         .value("GPU", BackendType::GPU)
         .value("CPU_SINGLE_THREAD", BackendType::CPU_SINGLE_THREAD)
@@ -144,10 +151,18 @@ void export_enum(py::module &m)
         .value("MPS", BackendType::MPS)
         .export_values();
 
-    py::enum_<DAGNodeType>(m, "DAGNodeType")
+    py::enum_<DAGNodeType>(m, "DAGNodeType", "Quantum dag node type")
         .value("NUKNOW_SEQ_NODE_TYPE", DAGNodeType::NUKNOW_SEQ_NODE_TYPE)
         .value("MAX_GATE_TYPE", DAGNodeType::MAX_GATE_TYPE)
         .value("MEASURE", DAGNodeType::MEASURE)
         .value("QUBIT", DAGNodeType::QUBIT)
         .value("RESET", DAGNodeType::RESET);
+
+    py::enum_<AnsatzGateType>(m, "AnsatzGateType", "Quantum ansatz gate type")
+        .value("AGT_X", AnsatzGateType::AGT_X)
+        .value("AGT_H", AnsatzGateType::AGT_H)
+        .value("AGT_RX", AnsatzGateType::AGT_RX)
+        .value("AGT_RY", AnsatzGateType::AGT_RY)
+        .value("AGT_RZ", AnsatzGateType::AGT_RZ)
+        .export_values();
 }

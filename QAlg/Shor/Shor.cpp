@@ -11,7 +11,7 @@ int ShorAlg::_gcd(int a, int b)
 
 int ShorAlg::_continuous_frac_expan(int target, int result)
 {
-    int Q = 1 << (int)ceil(log(target) / log(2)) * 2, d = 0;
+    int Q = 1 << (int)ceil(log2(target)) * 2, d = 0;
     vector<int> cof, cof_d;
     double target_value = result * 1. / Q, tol = 1. / (2. * Q), residual = 1;
 
@@ -21,7 +21,7 @@ int ShorAlg::_continuous_frac_expan(int target, int result)
     while (abs(residual - target_value) > tol)
     {
         residual = target_value;
-        accumulate(cof.begin(), cof.end(), residual, [](double x, double y) {return 1. / x - y; });
+        residual = accumulate(cof.begin(), cof.end(), residual, [](double x, double y) {return 1. / x - y; });
         cof.emplace_back(1. / residual);
 
         residual = 0;

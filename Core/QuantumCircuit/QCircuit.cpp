@@ -89,11 +89,7 @@ QCircuit QCircuit::dagger()
     }
 
 	QCircuit qCircuit = deepCopy(*this);
-
     qCircuit.setDagger(true ^ this->isDagger());
-    QVec control_qubits;
-    m_pQuantumCircuit->getControlVector(control_qubits);
-    QPANDA_OP(control_qubits.size() > 0, qCircuit.setControl(control_qubits));
     return qCircuit;
 }
 
@@ -106,9 +102,19 @@ QCircuit  QCircuit::control(const QVec qubit_vector)
     }
 
 	QCircuit qcircuit = deepCopy(*this);
+    for (auto qv_idx = qubit_vector.begin(); qv_idx != qubit_vector.end(); qv_idx++)
+    {
+        auto result = count(qubit_vector.begin(), qubit_vector.end(), *qv_idx);
 
+        if (result > 1)
+        {
+            QCERR("the control qubit_vector has duplicate members");
+            throw invalid_argument("the control qubit_vector has duplicate members");
+
+        }
+
+    }
     qcircuit.setControl(qubit_vector);
-    qcircuit.setDagger(m_pQuantumCircuit->isDagger());
     return qcircuit;
 }
 
@@ -238,6 +244,17 @@ NodeIter QCircuit::deleteQNode(NodeIter & iter)
     return m_pQuantumCircuit->deleteQNode(iter);
 }
 
+void QCircuit::clear()
+{
+    if (!m_pQuantumCircuit)
+    {
+        QCERR("Unknown internal error");
+        throw runtime_error("Unknown internal error");
+    }
+
+    return m_pQuantumCircuit->clear();
+}
+
 void QCircuit::setDagger(bool is_dagger)
 {
     if (!m_pQuantumCircuit)
@@ -257,6 +274,11 @@ void QCircuit::setControl(const QVec control_qubit_vector)
         throw runtime_error("Unknown internal error");
     }
 
+    if (0 == control_qubit_vector.size())
+    {
+        return;
+    }
+
     m_pQuantumCircuit->setControl(control_qubit_vector);
 }
 
@@ -271,7 +293,19 @@ void OriginCircuit::setDagger(bool is_dagger)
 
 void OriginCircuit::setControl(const QVec qubit_vector)
 {
-    for (auto aiter : qubit_vector)
+    for (auto qv_idx = qubit_vector.begin(); qv_idx != qubit_vector.end(); qv_idx++)
+    {
+        auto result = count(qubit_vector.begin(), qubit_vector.end(), *qv_idx);
+
+        if (result > 1)
+        {
+            QCERR("the control qubit_vector has duplicate members");
+            throw invalid_argument("the control qubit_vector has duplicate members");
+
+        }
+
+    }
+    for (auto &aiter : qubit_vector)
     {
         m_control_qubit_vector.push_back(aiter);
     }
@@ -289,17 +323,22 @@ bool OriginCircuit::isDagger() const
 
 bool OriginCircuit::getControlVector(QVec& qubit_vector)
 {
-    for (auto aiter : m_control_qubit_vector)
+    for (auto &aiter : m_control_qubit_vector)
     {
         qubit_vector.push_back(aiter);
     }
-    return m_control_qubit_vector.size();
+
+    if (0 == m_control_qubit_vector.size())
+    {
+        return false;
+    }
+
+    return true;
 }
 
 void OriginCircuit::clearControl()
 {
-    m_control_qubit_vector.clear();
-    m_control_qubit_vector.resize(0);
+    m_control_qubit_vector.erase(m_control_qubit_vector.begin(), m_control_qubit_vector.end());
 }
 
 size_t OriginCircuit::get_used_qubits(QVec& qubit_vector) const

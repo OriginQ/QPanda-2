@@ -1,5 +1,7 @@
 #pragma once
+#include "Core/Module/Ansatz.h"
 #include "Core/QuantumCircuit/QCircuit.h"
+#include "Core/Utilities/Tools/MatrixDecomposition.h"
 #include "Core/QuantumMachine/QuantumMachineInterface.h"
 #include "Components/Operator/PauliOperator.h"
 #include "ThirdParty/Eigen/Dense"
@@ -34,6 +36,8 @@ public:
         m_pauli = h;
     }
 
+    void setPauliMatrix(QuantumMachine* qvm, EigenMatrixX matrix);
+
     /**
     * @brief  Set ansatz gate
     * @param[in]  const std::vector<AnsatzGate>& ansatz gate vector
@@ -43,6 +47,9 @@ public:
     {
         m_ansatz = ansatz_gate;
     }
+
+    void setAnsatz(AnsatzCircuit& ansatz_circuit);
+    void setAnsatz(QCircuit& ansatz_circuit);
 
     /**
     * @brief  Set delta tau value
@@ -122,21 +129,40 @@ public:
     * @brief  Execute algorithem
     * @return  int  success flag, 0: success, -1: fail
     */
-    int exec();
+    int exec(bool is_optimization = true);
 
     /**
     * @brief  Get calculation result of the algorithem
     * @return  prob_tuple  calculation result
     */
     prob_tuple getResult();
+
+    /**
+    * @brief  Get calculation result of the algorithem
+    * @return  prob_tuple  calculation result
+    */
+    prob_tuple get_exec_result(bool reverse = false, bool sort = false);
+    std::vector<prob_tuple> get_all_exec_result(bool reverse = false, bool sort = false);
+
+    std::vector<std::vector<AnsatzGate>> get_ansatz_list()
+    {
+        return m_ansatz_list;
+    }
+    std::vector<std::vector<double>> get_ansatz_theta_list()
+    {
+        return m_ansatz_theta_list;
+    }
+
 private:
     void initEnvironment();
     double getExpectation(const std::vector<AnsatzGate>& ansatz);
+    double getExpectation(AnsatzCircuit& ansatz);
     double getExpectationOneTerm(QCircuit c, const QHamiltonianItem& component);
     bool ParityCheck(size_t state, const QTerm& paulis) const;
 
     void calcParaA();
     void calcParaC();
+    void calcParaC_by_pauli();
     QCircuit constructCircuit(const std::vector<AnsatzGate>& ansatz);
     std::complex<double> complexDagger(std::complex<double> &value);
     
@@ -145,6 +171,7 @@ private:
     std::complex<double> getAnsatzDerivativePara(int i, int cnt);
     double getHamiltonianItemPara(int i);
     QCircuit getAnsatzDerivativeCircuit(int i, int cnt);
+    QCircuit getAnsatzDerivativeReverseCircuit(int i, int cnt);
     QCircuit getHamiltonianItemCircuit(int cnt);
     double calcSubCircuit(
         int index1,
@@ -152,15 +179,23 @@ private:
         double theta,
         QCircuit cir1,
         QCircuit cir2);
+    double calcCParaSubCircuit(
+        int index1,
+        int index2,
+        double theta,
+        QCircuit cir1,
+        QCircuit cir2);
     QCircuit convertAnsatzToCircuit(const AnsatzGate &u);
+    QCircuit convertAnsatzToReverseCircuit(const AnsatzGate& u);
     Eigen::MatrixXd pseudoinverse(Eigen::MatrixXd matrix);
+
 private:
     std::vector<AnsatzGate> m_ansatz;
     PauliOperator m_pauli;
     QVec m_qlist; // the last qubit is auxiliary qubit 
     double m_delta_tau{ 0.1 };
     size_t m_iter_num{ 100 };
-    double m_arbitary_cofficient{ 1e-6 };
+    double m_arbitary_cofficient{ 0.01 };
     double m_Q{ 0.95 };
     size_t m_upthrow_num{ 1 };
     UpdateMode m_update_mode{ UpdateMode::GD_DIRECTION };
@@ -176,6 +211,10 @@ private:
     Eigen::VectorXd m_C;
     std::string m_log_file;
     std::fstream m_log_writer;
+
+    std::vector<std::vector<AnsatzGate>> m_ansatz_list;
+    std::vector<std::vector<double>> m_ansatz_theta_list;
+    PualiOperatorLinearCombination m_pauli_combination;
 };
 
 /*

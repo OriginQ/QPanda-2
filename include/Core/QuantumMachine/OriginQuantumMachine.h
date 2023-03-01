@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2017-2020 Origin Quantum Computing. All Right Reserved.
+Copyright (c) 2017-2023 Origin Quantum Computing. All Right Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -420,6 +420,8 @@ public:
 	virtual size_t get_allocate_cbits(std::vector<ClassicalCondition>&);
 	virtual double get_expectation(QProg, const QHamiltonian&, const QVec&);
 	virtual double get_expectation(QProg, const QHamiltonian&, const QVec&, int);
+	virtual void get_expectation_vector(QProg, const QHamiltonian&, const QVec&, vector_d&);
+	virtual void get_expectation_vector(QProg, const QHamiltonian&, const QVec&, vector_d&, int);
 	virtual size_t get_processed_qgate_num();
 	virtual void async_run(QProg& qProg, const NoiseModel& = NoiseModel()) override;
 	virtual bool is_async_finished();
@@ -463,6 +465,7 @@ public:
 	CPUQVM() {}
     void init(bool is_double_precision);
     void init();
+    void set_parallel_threads(size_t);
 
 protected:
     void run(QProg&, const NoiseModel& = NoiseModel()) override ;
@@ -494,7 +497,7 @@ private:
 	std::vector <std::vector <double>> m_params_vecs;
 	double m_rotation_angle_error{ 0 };
 
-	std::vector<std::vector <QStat> >  m_kraus_mats_vec;
+	std::vector<std::vector <QStat>>  m_kraus_mats_vec;
 	std::vector<std::string > m_kraus_gates_vec;
 	NoisyQuantum m_quantum_noise;
 public:
@@ -544,6 +547,8 @@ public:
 	void set_reset_error(double p0, double p1, const QVec& qubits = {});
 	void set_readout_error(const std::vector<std::vector<double>>& probs_list, const QVec& qubits = {});
     virtual void set_parallel_threads(size_t size);
+
+    double get_expectation(QProg, const QHamiltonian&, const QVec&, int) override;
 
 	/**
 	* @brief  set QGate rotation angle errors

@@ -255,7 +255,7 @@ namespace QPanda
         m_sim = Eigen::MatrixXd::Zero(m_n + 1, m_n);
         m_sim.row(0) = m_x0;
 
-        for (auto i = 0; i < m_n; i++)
+        for (size_t i = 0; i < m_n; i++)
         {
             Eigen::VectorXd y = m_x0;
             if (0.0 != y[i])
@@ -272,7 +272,7 @@ namespace QPanda
 
         m_key.resize(m_n + 1);
         m_fsim = Eigen::VectorXd::Zero(m_n + 1);
-        for (auto i = 0; i < m_n + 1; i++)
+        for (size_t i = 0; i < m_n + 1; i++)
         {
             Eigen::VectorXd tmp = m_sim.row(i);
             QResultPair result = callFunc(tmp);
@@ -289,8 +289,9 @@ namespace QPanda
     {
         m_fcalls++;
 
-        vector_d optimized_para(para.data(), para.data() + para.size());
-        vector_d blank;
+        std::vector<double> optimized_para(para.data(),
+                                           para.data() + para.size());
+        std::vector<double> blank;
         return m_func(optimized_para, blank, m_iter, m_fcalls);
     }
 
@@ -333,7 +334,7 @@ namespace QPanda
     {
         std::vector<size_t> ind = sortVector(m_fsim);
         Eigen::MatrixXd tmp_sim = m_sim;
-        vector_s tmp_key = m_key;
+        auto tmp_key = m_key;
         for (size_t i = 0; i < ind.size(); i++)
         {
             m_key[i] = tmp_key[ind[i]];
@@ -439,7 +440,7 @@ namespace QPanda
         }
 
         std::string tmp_fsim;
-        for (size_t i = 0; i < m_fsim.size(); i++)
+        for (auto i = 0; i < m_fsim.size(); i++)
         {
             if (i == 0)
             {

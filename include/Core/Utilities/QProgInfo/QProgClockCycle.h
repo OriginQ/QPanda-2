@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2017-2020 Origin Quantum Computing. All Right Reserved.
+Copyright (c) 2017-2023 Origin Quantum Computing. All Right Reserved.
 Licensed under the Apache License 2.0
 
 QGateTypeCounter.h
@@ -21,6 +21,7 @@ update comment
 #include "Core/QuantumCircuit/QGate.h"
 #include "Core/QuantumMachine/OriginQuantumMachine.h"
 #include "Core/Utilities/Tools/Traversal.h"
+#include "Core/Utilities/Tools/ProcessOnTraversing.h"
 #include <map>
 QPANDA_BEGIN
 
@@ -71,6 +72,12 @@ size_t getQProgClockCycle(QProg &prog, QuantumMachine *qm, bool optimize = false
 */
 size_t get_qprog_clock_cycle(QProg &prog, QuantumMachine *qm, bool optimize = false);
 
+/**
+* @brief  Get  quantum program clock cycle by chip
+* @param[in]  LayeredTopoSeq &   quantum program layer
+* @ingroup Utilities
+*/
+size_t get_qprog_clock_cycle_chip(LayeredTopoSeq &layer_info, std::map<GateType, size_t> gate_time_map);
 
 QPANDA_END
 #endif // _QPROG_CLOCK_CYCLE_H

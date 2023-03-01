@@ -370,7 +370,7 @@ std::vector<AnsatzGate> NodeSortProblemGenerator::genAnsatz(
     for (int i = 0; i < result_vec.size(); i++)
     {
         ansatz_vec.push_back({
-            AnsatzGateType::AGT_NOT,
+            AnsatzGateType::AGT_X,
             result_vec[i].first });
     }
 

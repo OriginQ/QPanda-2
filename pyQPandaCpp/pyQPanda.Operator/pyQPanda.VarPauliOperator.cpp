@@ -3,7 +3,7 @@
 #include "pybind11/stl.h"
 #include "pybind11/complex.h"
 #include "pybind11/operators.h"
-#include "Variational/VarPauliOperator.h"
+#include "Components/Operator/VarPauliOperator.h"
 
 namespace py = pybind11;
 USING_QPANDA

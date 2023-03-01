@@ -294,7 +294,7 @@ protected:
 
 private:
 	const GateType m_gate_type;
-	bool m_continue_gate;
+    bool m_continue_gate{false};
 	QCircuit m_tmp_cir;
 	std::vector<std::vector<pOptimizerNodeInfo>::iterator> m_continues_iter_vec;
 };

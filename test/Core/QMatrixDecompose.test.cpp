@@ -1,4 +1,4 @@
-﻿#include "gtest/gtest.h"
+#include "gtest/gtest.h"
 #include "QPanda.h"
 #include <iostream>
 #include <vector>
@@ -7,6 +7,7 @@
 #include "Extensions/Extensions.h"
 #include "Core/Utilities/UnitaryDecomposer/QSDecomposition.h"
 #include "Core/Utilities/UnitaryDecomposer/MatrixUtil.h"
+#include "Core/Utilities/UnitaryDecomposer/IsometryDecomposition.h"
 
 USING_QPANDA
 using namespace std;
@@ -82,9 +83,10 @@ bool test_matrix_decompose_2()
 	return false;
 }
 
-bool test_matrix_decompose2pualis()
+bool test_matrix_decompose2paulis()
 {
-	QuantumMachine* machine = initQuantumMachine(CPU);
+	CPUQVM machine;
+	machine.init();
 	Matrix4d mat;
 	mat << 15, 9, 5, -3,
 		9, 15, 3, 2,
@@ -93,9 +95,9 @@ bool test_matrix_decompose2pualis()
 	mat *= (1 / 4.0);
 	cout << "The matrix is:" << endl;
 	cout << mat << endl;
-	QMatrixXd eigMat = mat;
+    EigenMatrixX eigMat = mat;
 	PualiOperatorLinearCombination res;
-	matrix_decompose_paulis(machine, eigMat, res);
+	matrix_decompose_paulis(&machine, eigMat, res);
 	cout << endl << "**************************************************" << endl;
 	cout << "The linear combination of unitaries(coefficient) is:" << endl;
 	for (auto& val : res)
@@ -182,6 +184,68 @@ TEST(QMatrixDecompose, test2)
 
 }
 
+// test for isometry_decomposition
+TEST(QMatrixDecompose, test3)
+{
+	try
+	{
+		
+		auto qvm = new CPUQVM();
+		qvm->init();
+		auto qv = qvm->qAllocMany(2);
+		MatrixXcd isometry(4, 2);
+		//isometry << -0.5391073, -0.12662419, -0.73739705, -0.38674956,
+		//	0.15705405, 0.20566939, 0.32663193, -0.9090356,
+		//	-0.77065035, -0.23739918, 0.59084039, 0.02544217,
+		//	-0.30132273, 0.9409081, -0.02155946, 0.15307435;
+
+		isometry << -0.5391073, -0.12662419,
+			0.15705405, 0.20566939,
+			-0.77065035, -0.23739918,
+			-0.30132273, 0.9409081;
+
+		//IsoScheme scheme = IsoScheme::KNILL;
+		IsoScheme scheme = IsoScheme::CCD;
+
+		auto circ = isometry_decomposition(isometry, qv, scheme);
+		bool ret = true;
+		int qbs_size = qv.size();
+		for (int i = 0; i < qbs_size; i++)
+		{
+			QProg prog;
+			auto bin = integerToBinary((size_t)i, qbs_size);
+			std::reverse(bin.begin(), bin.end());
+			for (int j = 0; j < bin.size(); j++)
+			{
+				if (bin[j] == '1') {
+					prog << X(qv[j]);
+				}
+			}
+			prog << circ;
+			qvm->directlyRun(prog);
+			auto out_state = qvm->getQState();
+			auto src_state = eigen2qstat(isometry.col(i));
+			if (0 != mat_compare(src_state, out_state, 1e-6)) 
+			{
+				std::cout << "isometry_decomposition fail!" << std::endl;
+				ret = false;
+				break;
+			}
+		}
+
+		qvm->finalize();
+		delete qvm;
+		ASSERT_TRUE(ret);
+	}
+	catch (const std::exception& e)
+	{
+		cout << "Got a exception: " << e.what() << endl;
+		ASSERT_TRUE(false);
+	}
+}
+
+
+
 TEST(QMatrixDecompose, test1)
 {
 	bool test_val = false;
@@ -189,7 +253,7 @@ TEST(QMatrixDecompose, test1)
 	{
 		test_val = test_matrix_decompose_1();
 		test_val = (test_val && test_matrix_decompose_2());
-		test_val = (test_val && test_matrix_decompose2pualis());
+		test_val = (test_val && test_matrix_decompose2paulis());
 	}
 	catch (const std::exception& e)
 	{

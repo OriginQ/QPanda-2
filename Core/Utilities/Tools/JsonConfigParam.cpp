@@ -757,9 +757,10 @@ void QCircuitConfigReader::read_cir()
 		{
 			m_cir_generator.append_cir_node(gate_name, { gate_para[0].GetUint(), gate_para[1].GetUint() }, { gate_para[2].GetString() });
 		}
-        else if (0 == strcmp(gate_name.c_str(), "CCX"))
+        else if ((0 == strcmp(gate_name.c_str(), "C_X"))
+			|| (0 == strcmp(gate_name.c_str(), "C_Z")))
         {
-            m_cir_generator.append_cir_node(gate_name, { gate_para[0].GetUint(), gate_para[1].GetUint(), gate_para[2].GetUint() });
+			m_cir_generator.append_cir_node(gate_name, { gate_para[0].GetUint() }, {}, {gate_para[1].GetUint()});
         }
 		else
 		{

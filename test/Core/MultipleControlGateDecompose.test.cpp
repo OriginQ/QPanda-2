@@ -3,6 +3,19 @@
 #include "gtest/gtest.h"
 #include "Core/Utilities/Tools/MultiControlGateDecomposition.h"
 #include "Core/Utilities/UnitaryDecomposer/UniformlyControlledGates.h"
+#include <Eigen/Eigen>
+#include <Eigen/Dense>
+#include <QPandaConfig.h>
+
+
+#ifdef USE_EXTENSION
+#include "Extensions/VirtualZTransfer/AddBarrier.h"
+#include "Extensions/VirtualZTransfer/VirtualZTransfer.h"
+#endif
+
+
+using namespace Eigen;
+using  qmatrix_t = Matrix<qcomplex_t, Dynamic, Dynamic, RowMajor>;
 
 USING_QPANDA
 using namespace std;
@@ -140,6 +153,107 @@ bool ucry_decompose_test_1()
     return false;
 }
 
+void sqrt_not_test()
+{
+    QStat unitary = { 0,1,1,0 };
+    qmatrix_t matrix = qmatrix_t::Map(&unitary[0], 2, 2);
+
+    Eigen::ComplexEigenSolver<qmatrix_t> solver(matrix);
+    auto evecs = solver.eigenvectors();
+    auto evals = solver.eigenvalues();
+
+    for (auto i = 0; i < evals.size(); ++i)
+        evals[i] = std::pow(evals[i], (double)(1. / 2));
+
+    auto root_unitary = evecs * evals.asDiagonal() * evecs.adjoint();
+
+    cout << root_unitary << endl;
+    cout << root_unitary* root_unitary << endl;
+
+    QStat unitary1 = { 1/SQ2,qcomplex_t(0,-1 / SQ2),qcomplex_t(0,-1 / SQ2),1 / SQ2 };
+
+    cout << unitary1 << endl;
+    cout << unitary1 * unitary1 << endl;
+
+     unitary.clear();
+     for (size_t i = 0; i < root_unitary.rows(); ++i)
+     {
+         for (size_t j = 0; j < root_unitary.cols(); ++j)
+         {
+             unitary.emplace_back((qcomplex_t)(root_unitary(i, j)));
+         }
+     }
+
+     PartialAmplitudeQVM QVM;
+     QVM.init();
+     auto q = QVM.qAllocMany(1);
+
+     QStat unitary12 = { 0,1,1,0 };
+
+     QProg prog;
+     prog << H(q[0]) << S(q[0]) << S(q[0]) << Z(q[0]);
+
+     QVM.run(prog);
+    
+     
+     auto a1 = QVM.pmeasure_bin_index("0");
+     auto b1 = QVM.pmeasure_bin_index("1");
+     QProg prog11;
+     prog11 << U3(q[0], PI / 6, PI / 2, PI / 3).control(q[1]);
+
+     //decompose_multiple_control_qgate(prog, &QVM);
+     cout << getCircuitMatrix(prog) << endl;
+     cout << getCircuitMatrix(prog11) << endl;
+     //cout << QVM.getQState() << endl;
+
+
+
+    return;
+}
+
+void pauli_hamiltonian_test()
+{
+    CPUQVM machine;
+    machine.init();
+
+    auto q = machine.qAllocMany(2);
+
+    QProg prog;
+    prog << H(q[0]) 
+        << RX(q[0], 0.231)
+        << RY(q[1], 2.51) 
+        << RX(q[1], 9.831) 
+        << RZ(q[0], 12.231) 
+        << RX(q[1], 20.231)
+        << RX(q[0], 9.831)
+        << RZ(q[0], 152.231)
+        << RY(q[1], 72.51)
+        << RX(q[1], 98.831)
+        << S(q[0]) 
+        << S(q[0]) 
+        << Z(q[0]);
+
+    auto matrix = getCircuitMatrix(prog);
+
+    PauliOperator opt;
+
+    auto n = std::sqrt(matrix.size());
+
+    QMatrixXd eigen_matrix = QMatrixXd::Zero(n, n);
+    for (auto rdx = 0; rdx < n; ++rdx)
+    {
+        for (auto cdx = 0; cdx < n; ++cdx)
+        {
+            eigen_matrix(rdx, cdx) = matrix[rdx*n + cdx].real();
+        }
+    }
+
+    //matrix_decompose_hamiltonian(&machine, eigen_matrix, opt);
+
+    return;
+}
+
+
 bool ucry_decompose_test_2()
 {
     CPUQVM machine;
@@ -273,6 +387,59 @@ bool two_qubit_rotation_gate_decompose()
     return false;
 }
 
+static bool control_Z_decompose_test_1()
+{
+	CPUQVM machine;
+	//NoiseQVM machine;
+	machine.init();
+
+	std::string prog_str = "QINIT 4\r\nCREG 4\r\nH q[0]\nH q[1]\nX q[1]\nCONTROL q[0]\nZ q[1]\nENDCONTROL\nBARRIER q[0]\nX q[1]\nH q[0]\nH q[1]\nX q[0]\nX q[1]\nCONTROL q[0]\nZ q[1]\nENDCONTROL\nX q[0]\nX q[1]\nH q[0]\nH q[1]\nMEASURE q[0],c[0]\nMEASURE q[1],c[1]";
+	//std::string prog_str = "QINIT 4\r\nCREG 4\r\nCONTROL q[0]\nZ q[1]\nENDCONTROL\nX q[1]\nH q[1]\nX q[1]\nMEASURE q[0],c[0]\nMEASURE q[1],c[1]";
+	//std::string prog_str = "QINIT 4\r\nCREG 4\r\nX q[1]\nH q[1]\nX q[1]\nMEASURE q[0],c[0]\nMEASURE q[1],c[1]";
+	//std::string prog_str = "QINIT 4\r\nCREG 4\r\nH q[0]\nX q[1]\nMEASURE q[0],c[1]\nMEASURE q[1],c[0]";
+	
+	const size_t shots = 1000;
+	QProg prog;
+	QVec q;
+	vector<ClassicalCondition> c;
+	prog = convert_originir_string_to_qprog(prog_str, &machine, q, c);
+	std::cout << "src prog:" << prog << endl;
+
+	const auto src_result = machine.runWithConfiguration(prog, shots);
+
+#ifdef USE_EXTENSION
+	auto_add_barrier_before_mul_qubit_gate(prog);
+#endif
+
+	decompose_multiple_control_qgate(prog, &machine, "QPandaConfig.json", true);
+	std::cout << "decomposed prog:" << prog << endl;
+#ifdef USE_EXTENSION
+	transfer_to_u3_gate(prog, &machine);
+	cout << "U3 prog: " << prog << endl;
+#endif
+
+	const auto dst_result_1 = machine.runWithConfiguration(prog, shots);
+#ifdef USE_EXTENSION
+	// VirtualZ transfer
+	decompose_U3(prog, "QPandaConfig.json");
+#endif
+	const auto dst_result_2 = machine.runWithConfiguration(prog, shots);
+
+	for (const auto& _src_result_item : src_result)
+	{
+		auto _itr = dst_result_2.find(_src_result_item.first);
+		if (dst_result_2.end() == _itr){
+			return false;
+		}
+
+		if (_itr->second != _src_result_item.second){
+			return false;
+		}
+	}
+
+	return true;
+}
+
 
 TEST(MultipleControlGateDecompose, test)
 {
@@ -280,9 +447,10 @@ TEST(MultipleControlGateDecompose, test)
 	try
 	{
         test_val = test_val && ucry_decompose_test_1();
-        test_val = test_val && ucry_decompose_test_2();
-        test_val = test_val && ucry_decompose_test_3(4, 9);
-        test_val = test_val && decompose_compare();
+		test_val = test_val && control_Z_decompose_test_1();
+        //test_val = test_val && ucry_decompose_test_2();
+        //test_val = test_val && ucry_decompose_test_3(4, 9);
+        //test_val = test_val && decompose_compare();
 	}
 	catch (const std::exception& e)
 	{

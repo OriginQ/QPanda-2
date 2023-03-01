@@ -173,6 +173,76 @@ qstate_type SingleAmplitudeQVM::pMeasureBinindex(std::string index)
 	return singleAmpBackEnd(index);
 }
 
+
+qcomplex_t SingleAmplitudeQVM::pmeasure_bin_index(std::string bin_index)
+{
+    if (m_prog_map.isEmptyQProg())
+        QCERR_AND_THROW(qprog_syntax_error, "PMeasure error");
+
+    auto vertice = m_prog_map.getVerticeMatrix();
+    qubit_vertice_t qubit_vertice_end, qubit_vertice_begin;
+    auto size = vertice->getQubitCount();
+    for (size_t i = 0; i < size; i++)
+    {
+        auto iter = vertice->getQubitMapIter(i);
+        if (0 == iter->size())
+        {
+            continue;
+        }
+
+        auto vertice_map_iter_b = (*iter).begin();
+        qubit_vertice_begin.m_qubit_id = i;
+        qubit_vertice_begin.m_num = (*vertice_map_iter_b).first;
+        TensorEngine::dimDecrementbyValue(m_prog_map, qubit_vertice_begin, 0);
+    }
+
+    auto check = [](char bin)
+    {
+        if ('1' != bin && '0' != bin)
+        {
+            QCERR("PMeasure parm error");
+            throw qprog_syntax_error("PMeasure parm");
+        }
+        else
+        {
+            return bin == '0' ? 0 : 1;
+        }
+    };
+    qsize_t flag = 1;
+    for (size_t i = 0; i < size; i++)
+    {
+        auto iter = m_prog_map.getVerticeMatrix()->getQubitMapIter(i);
+        auto vertice_map_iter = (*iter).end();
+        size_t value = check(bin_index[size - i - 1]);
+        if (vertice_map_iter == iter->begin())
+        {
+            if (value == 1)
+            {
+                flag = 0;
+            }
+            continue;
+        }
+        vertice_map_iter--;
+
+        qubit_vertice_end.m_qubit_id = i;
+        qubit_vertice_end.m_num = (*vertice_map_iter).first;
+        TensorEngine::dimDecrementbyValue(m_prog_map, qubit_vertice_end, value);
+    }
+    auto flag_complex = qcomplex_data_t(flag, 0);
+
+    TensorEngine::MergeByVerticeVector(m_prog_map, m_sequences[0]);    //TensorEngine::MergeByVerticeVector(m_prog_map,vertice_vector);
+    qcomplex_data_t result = flag_complex * TensorEngine::Merge(m_prog_map, m_sequences[1]);
+    return result;
+}
+
+qcomplex_t SingleAmplitudeQVM::pmeasure_dec_index(std::string index)
+{
+    uint256_t dec_index(index.c_str());
+    auto qubit_num = m_prog_map.getQubitNum();
+    auto bin_index = integerToBinary(dec_index, qubit_num);
+    return pmeasure_bin_index(bin_index);
+}
+
 qstate_type SingleAmplitudeQVM::pMeasureDecindex(std::string index)
 {
 	uint256_t dec_index(index.c_str());

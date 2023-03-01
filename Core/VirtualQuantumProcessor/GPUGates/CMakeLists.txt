@@ -15,8 +15,8 @@ else()
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++14 -w -Xcompiler -fPIC")   
 endif()
 
-file(GLOB_RECURSE CURRENT_HEADERS ${PROJECT_SOURCE_DIR}/include/Core/VirtualQuantumProcessor/GPUGates/"*.cuh")
-file(GLOB_RECURSE CURRENT_SOURCES "*.cu" "*.cpp")
+file(GLOB_RECURSE CURRENT_HEADERS ${PROJECT_SOURCE_DIR}/include/Core/VirtualQuantumProcessor/GPUGates/*.cuh)
+file(GLOB_RECURSE CURRENT_SOURCES *.cu *.cpp)
 cuda_add_library(${LIB_GPUGATES} STATIC ${CURRENT_HEADERS} ${CURRENT_SOURCES})
 set_target_properties(${LIB_GPUGATES} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 
@@ -34,7 +34,3 @@ export(TARGETS ${LIB_GPUGATES}
        APPEND FILE ${PROJECT_BINARY_DIR}/qpanda2.0.gpugates-target.cmake
        NAMESPACE QPANDA::
        )
-
-
-
-

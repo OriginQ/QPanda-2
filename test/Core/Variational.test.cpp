@@ -10,8 +10,8 @@
 #include "Variational/expression.h"
 #include "Variational/utils.h"
 #include "Variational/Optimizer.h"
-#include "Variational/VarFermionOperator.h"
-#include "Variational/VarPauliOperator.h"
+#include "Components/Operator/VarFermionOperator.h"
+#include "Components/Operator/VarPauliOperator.h"
 
 using namespace QPanda::Variational;
 using namespace QPanda;
@@ -119,7 +119,7 @@ TEST(Variational, QAOATest)
 
     QuantumMachine *machine = initQuantumMachine();
     QVec qlist;
-    for (int i = 0; i < op.getMaxIndex(); ++i)
+    for (int i = 0; i < op.getMaxIndex()+1; ++i)
         qlist.push_back(machine->allocateQubit());
 
     VQC vqc;

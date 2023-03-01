@@ -1,9 +1,11 @@
+from platform import machine
 from pyqpanda import NoiseModel
 from pyqpanda import GateType
 from numpy import pi
 from pyqpanda import *
 import time
 PI = 3.1415926535898
+
 
 def test_init_state():
 
@@ -23,9 +25,8 @@ def test_init_state():
     qvm.directly_run(prog)
     state = qvm.get_qstate()
 
-
-
     print(state)
+
 
 def test_cpu_run_with_no_cbits_args():
 
@@ -49,6 +50,7 @@ def test_cpu_run_with_no_cbits_args():
     print(result0)
     print(result1)
 
+
 def test_mps_run_with_no_cbits_args():
 
     qvm = MPSQVM()
@@ -71,6 +73,7 @@ def test_mps_run_with_no_cbits_args():
     print(result0)
     print(result1)
 
+
 def test_noise_run_with_no_cbits_args():
 
     qvm = NoiseQVM()
@@ -87,7 +90,8 @@ def test_noise_run_with_no_cbits_args():
         .insert(CNOT(q[2], q[3]))\
         .insert(measure_all(q, c))
 
-    qvm.set_noise_model(NoiseModel.BITFLIP_KRAUS_OPERATOR, GateType.PAULI_X_GATE, 0.01)
+    qvm.set_noise_model(NoiseModel.BITFLIP_KRAUS_OPERATOR,
+                        GateType.PAULI_X_GATE, 0.01)
     result0 = qvm.run_with_configuration(prog, c, 100000)
     result1 = qvm.run_with_configuration(prog, 100000)
 
@@ -451,8 +455,6 @@ def Cluster_Cloud():
     QCM = QCloud()
     QCM.init_qvm("E02BB115D5294012AA88D4BE82603984", True)
 
-    QCM.set_qcloud_api("https://qcloud.originqc.com.cn")
-
     qlist = QCM.qAlloc_many(10)
     clist = QCM.cAlloc_many(10)
 
@@ -519,27 +521,6 @@ def noise_fun():
     print(result)
 
     qvm.finalize()
-
-
-def jkuqvm_fun():
-
-    machine = JKUQVM()
-    machine.set_configure(50, 50)
-    machine.init_qvm()
-
-    q = machine.qAlloc_many(1)
-    c = machine.cAlloc_many(1)
-
-    prog = QProg()
-    prog.insert(X1(q[0]))\
-        .insert(Z1(q[0]))\
-        .insert(Y1(q[0]))\
-        .insert(Measure(q[0], c[0]))
-
-    result = machine.run_with_configuration(prog, c, 100)
-    print(result)
-
-    machine.finalize()
 
 
 def mps_noise():
@@ -674,12 +655,49 @@ def plot_bloch_vectors():
     machine.finalize()
 
 
+def deep_copy_test():
+
+    machine = CPUQVM()
+
+    machine.init_qvm()
+
+    q = machine.qAlloc_many(6)
+    c = machine.cAlloc_many(6)
+
+    h_gate = H(q[0])
+
+    circuit = QCircuit()
+    circuit.insert(CR(q[0], q[1], PI))\
+           .insert(RY(q[1], PI / 2))\
+           .insert(RY(q[2], PI / 2))\
+           .insert(RZ(q[3], PI / 4))
+
+    prog = QProg()
+    prog << circuit
+    prog.insert(RX(q[4], PI / 2))\
+        .insert(RX(q[5], PI / 2))\
+        .insert(CR(q[2], q[1], PI))\
+        .insert(measure_all(q, c))
+
+    node1 = deep_copy(h_gate)
+    # node2 = deep_copy(circuit)
+    node2 = prog
+    node3 = deep_copy(prog)
+
+    print(node2)
+    # print(node3)
+    prog << circuit
+    prog << circuit
+
+    print(node2)
+
+    draw_qprog(prog, 'pic', filename='D:/cir_draw.png')
+
+
 if __name__ == "__main__":
 
-    test_global_cpu_run_with_no_cbits_args()
-    test_cpu_run_with_no_cbits_args()
-    test_mps_run_with_no_cbits_args()
-    test_noise_run_with_no_cbits_args()
+    deep_copy_test()
+
     # partialAmp_fun()
     # MPS_fun()
     # cpu_qvm_fun()
@@ -692,6 +710,5 @@ if __name__ == "__main__":
     # plot_state()
     # plot_density()
     # plot_bloch_vectors()
-    # mps_noise()
     # plot_bloch_cir()
     # plot_density()

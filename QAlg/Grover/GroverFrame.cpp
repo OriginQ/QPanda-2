@@ -124,23 +124,17 @@ QProg grover_search(QCircuit in_operate,
 
 	//repeat  
 	QProg grover_prog;
-
 	double search_num = n_len;
 	int Num = in_qubits.size();
-	const double max_repeat = floor(PI * sqrt((2 << Num) / (search_num)) / 4.0);
-	// cout << max_repeat << endl;
+	const double max_repeat = floor(PI * sqrt((1 << Num) / (search_num)) / 4.0);
 
-	   /* QProg grover;
-		for (size_t i = 0; i < max_repeat; ++i)
-		{
-			grover << cir_flip << cir_amp;
-		}
+	 QProg grover;
+	for (size_t i = 0; i < max_repeat; ++i)
+	{
+        grover << state_operate << cir_flip << state_operate.dagger() << cir_amp;
+	}
 
-		grover_prog << circuit_prepare << grover;
-	   */
-
-	grover_prog << circuit_prepare << cir_flip << cir_amp;
-
+	grover_prog << circuit_prepare << grover;
 	return grover_prog;
 }
 

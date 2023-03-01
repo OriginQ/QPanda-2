@@ -125,7 +125,15 @@ public:
     bool enabled() const;
     bool readout_error_enabled() const;
 
+    uint32_t get_noise_model_type() const;
+    std::vector<double> get_single_params() const;
+    std::vector<double> get_double_params() const;
+
 private:
+    uint32_t noise_model_type;
+    std::vector<double> single_params;
+    std::vector<double> double_params;
+
     double m_rotation_angle_error{0};
     bool m_enable{false};
     bool m_readout_error_enable{false};

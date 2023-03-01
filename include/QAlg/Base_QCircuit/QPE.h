@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2017-2020 Origin Quantum Computing. All Right Reserved.
+Copyright (c) 2017-2023 Origin Quantum Computing. All Right Reserved.
 Licensed under the Apache License 2.0
 
 Quanatum Phase estimation
@@ -46,7 +46,7 @@ public:
 #if PRINT_TRACE
 			auto start = chrono::system_clock::now();
 #endif
-            m_unitary_mat_cir = matrix_decompose_qr(target_qubits, matrix);
+			m_unitary_mat_cir = matrix_decompose_qr(target_qubits, matrix);
 #if PRINT_TRACE
 			auto end = chrono::system_clock::now();
 			auto duration = chrono::duration_cast<chrono::microseconds>(end - start);
@@ -134,13 +134,13 @@ public:
 		return m_qpe_cir;
 	}
 
-	QCircuit get_qpe_circuit(){
+	QCircuit get_qpe_circuit() {
 		return m_qpe_cir;
 	}
 
 protected:
-	QCircuit unitary_power(size_t min){
-		QCircuit cir_u  = CreateEmptyCircuit();
+	QCircuit unitary_power(size_t min) {
+		QCircuit cir_u = CreateEmptyCircuit();
 		//PTrace("on unitary power.");
 
 		QCircuit cir_swap_qubits_b;
@@ -177,13 +177,12 @@ protected:
 
 			QMatrixXcd eigen_mat = QStat_to_Eigen(tmp_A);
 			auto exp_matrix = eigen_mat.exp().eval();
+			/*QCircuit decomposed_cir = matrix_decompose_qr(m_target_qubits, exp_matrix);
+			cir_u << cir_swap_qubits_b<< decomposed_cir << cir_swap_qubits_b;*/
 
-			//PTrace("On matrix decompose: " << min);
-            QCircuit decomposed_cir = matrix_decompose_qr(m_target_qubits, exp_matrix);
-            //decomposed_cir << QOracle(m_target_qubits, Eigen_to_QStat(exp_matrix));
-			//QCircuit decomposed_cir = Householder_qr_matrix_decompose(m_target_qubits, exp_matrix);
-			//PTrace("Finished matrix decompose: " << min);
-			cir_u << cir_swap_qubits_b << decomposed_cir << cir_swap_qubits_b;
+			QCircuit decomposed_cir;
+			decomposed_cir << QOracle(m_target_qubits, Eigen_to_QStat(exp_matrix));
+			cir_u << decomposed_cir;
 		}
 		else
 		{
@@ -193,7 +192,7 @@ protected:
 		return cir_u;
 	}
 
-	QCircuit control_unitary_power(Qubit *ControlQubit, const size_t min, const int index){
+	QCircuit control_unitary_power(Qubit* ControlQubit, const size_t min, const int index) {
 		//PTrace("Start control unitary power on: " << index);
 		QCircuit qCircuit = unitary_power(min);
 		qCircuit.setControl({ ControlQubit });
@@ -221,7 +220,7 @@ protected:
 		return qft;
 	}
 
-	QCircuit QFT_dagger(QVec qvec){
+	QCircuit QFT_dagger(QVec qvec) {
 		QCircuit qft = QFT_builder(qvec);
 		return qft.dagger();
 	}
@@ -247,8 +246,8 @@ private:
 * @param[in]  QVec& the control qubits
 * @param[in]  QVec& the target qubits
 * @param[in]  Template parameters support the following types:
-              1) QStat& a unitary matrix or Hermitian N*N matrix with N=2^n
-              2) QPEAlg::generate_cir_U Generating function of corresponding circuit of unitary matrix
+			  1) QStat& a unitary matrix or Hermitian N*N matrix with N=2^n
+			  2) QPEAlg::generate_cir_U Generating function of corresponding circuit of unitary matrix
 * @param[in]  bool Estimate eigenvalue or not
 * @return    QCircuit Quantum Phase Estimation circuit
 */

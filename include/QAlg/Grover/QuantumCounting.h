@@ -53,7 +53,7 @@ public:
 
 		double v = pow(2, m_index_qubit_size);
 		double theta = ((double)target_result_index / v)*PI * 2;
-		double M = v * (pow(sin(theta / 2), 2));
+		double M = v * (std::sin(theta / 2) * std::sin(theta / 2));
 		double rs = v - M;
 		std::cout << "counting result: " << rs << std::endl;
 

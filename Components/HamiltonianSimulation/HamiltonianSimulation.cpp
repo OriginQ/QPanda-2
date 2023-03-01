@@ -8,7 +8,7 @@
 namespace QPanda
 {
     QCircuit simulateZTerm(
-        std::vector<Qubit*> &qubit_vec,
+        QVec &qubit_vec,
         double coef,
         double t)
     {
@@ -32,7 +32,7 @@ namespace QPanda
     }
 
     QCircuit simulateOneTerm(
-        const std::vector<Qubit*> &qubit_vec,
+        const QVec &qubit_vec,
         const QTerm &hamiltonian_term,
         double coef,
         double t)
@@ -45,7 +45,7 @@ namespace QPanda
         }
 
         QCircuit transform;
-        std::vector<Qubit*> tmp_vec;
+        QVec tmp_vec;
         auto iter = hamiltonian_term.begin();
         for (; iter != hamiltonian_term.end(); iter++)
         {
@@ -80,7 +80,7 @@ namespace QPanda
     }
 
     QCircuit simulateHamiltonian(
-        const std::vector<Qubit*> &qubit_vec,
+        const QVec &qubit_vec,
         const QHamiltonian &hamiltonian,
         double t,
         size_t slices)
@@ -109,7 +109,7 @@ namespace QPanda
     }
 
     QCircuit simulatePauliZHamiltonian(
-        const std::vector<Qubit*>& qubit_vec, 
+        const QVec& qubit_vec, 
         const QHamiltonian & hamiltonian, 
         double t)
     {
@@ -117,7 +117,7 @@ namespace QPanda
 
         for (auto j = 0; j < hamiltonian.size(); j++)
         {
-            std::vector<Qubit*> tmp_vec;
+            QVec tmp_vec;
             auto item = hamiltonian[j];
             auto map = item.first;
 
@@ -144,7 +144,7 @@ namespace QPanda
 
     QCircuit applySingleGateToAll(
         const std::string &gate, 
-        const std::vector<Qubit*> &qubit_vec)
+        const QVec &qubit_vec)
     {
         QCircuit circuit;
         for_each(qubit_vec.begin(), qubit_vec.end(), [&](Qubit* qubit)
@@ -157,7 +157,7 @@ namespace QPanda
 
     void applySingleGateToAll(
         const std::string & gate, 
-        const std::vector<Qubit*>& qubit_vec, 
+        const QVec& qubit_vec, 
         QCircuit & circuit)
     {
         for_each(qubit_vec.begin(), qubit_vec.end(), [&](Qubit* qubit)
@@ -167,7 +167,7 @@ namespace QPanda
     }
 
     QCircuit ising_model(
-        const std::vector<Qubit*> &qubit_vec, 
+        const QVec &qubit_vec, 
         const QGraph &graph, 
         const vector_d &gamma)
     {
@@ -193,7 +193,7 @@ namespace QPanda
     }
 
     QCircuit pauliX_model(
-        const std::vector<Qubit*> &qubit_vec, 
+        const QVec &qubit_vec, 
         const vector_d &beta)
     {
         QCircuit circuit;

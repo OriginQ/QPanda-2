@@ -110,7 +110,7 @@ bool gorver_test_fun2()
 	search_sapce.push_back(9);
 	search_sapce.push_back(7);
 
-	for (size_t i = 0; i < 0; i++)
+    for (size_t i = 0; i < 2; i++)
 	{
 		search_sapce.insert(search_sapce.end(), search_sapce.begin(), search_sapce.end());
 	}

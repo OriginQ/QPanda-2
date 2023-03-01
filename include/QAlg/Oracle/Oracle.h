@@ -28,9 +28,7 @@ public:
 	:m_data_vec(data_vec), m_condition(condition), m_qvm(*qvm)
 		, m_search_space(qvm, condition), m_search_condition(qvm, condition)
 	{
-		/* 辅助qubit可提高Grover算法成功率，不可省略! */
 		create_ancilla_qubits();
-
 		// build U circuit
 		m_cir_u = m_search_space.build_to_circuit(m_data_vec);
 	}

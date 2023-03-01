@@ -91,7 +91,7 @@ string DrawQProg::textDraw(const LAYER_TYPE t, PIC_TYPE p /*= PIC_TYPE::TEXT*/, 
 
 	if (PIC_TYPE::LATEX == p && with_logo)
 	{
-		dynamic_cast<DrawLatex *>(m_drawer)->setLogo();
+        dynamic_cast<DrawLatex *>(m_drawer)->set_logo();
 	}
 	
 	

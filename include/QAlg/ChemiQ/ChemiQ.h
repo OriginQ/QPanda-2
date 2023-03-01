@@ -6,6 +6,7 @@
 #include "Core/QuantumMachine/QVec.h"
 #include "Core/Utilities/Tools/OriginCollection.h"
 #include "Core/Variational/Optimizer.h"
+#include "Components/Optimizer/OptimizerDataStruct.h"
 
 QPANDA_BEGIN
 

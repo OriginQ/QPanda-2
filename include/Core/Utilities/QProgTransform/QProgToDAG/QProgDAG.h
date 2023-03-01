@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2017-2019 Origin Quantum Computing. All Right Reserved.
+Copyright (c) 2017-2023 Origin Quantum Computing. All Right Reserved.
 Licensed under the Apache License 2.0
 
 QProgDAG.h
@@ -71,8 +71,8 @@ struct QProgDAGEdge
 	uint32_t m_to;
 	uint32_t m_qubit;
 
-	QProgDAGEdge(uint32_t from, uint32_t to, uint32_t qubit)
-		:m_from(from), m_to(to), m_qubit(qubit)
+	QProgDAGEdge(uint32_t from_val, uint32_t to_val, uint32_t qubit_val)
+		:m_from(from_val), m_to(to_val), m_qubit(qubit_val)
 	{}
 
 	bool operator <  (const QProgDAGEdge& e) const { 

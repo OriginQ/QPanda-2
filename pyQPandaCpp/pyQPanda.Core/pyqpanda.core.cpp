@@ -14,6 +14,7 @@
 #include <pybind11/stl_bind.h>
 #include "pybind11/eigen.h"
 #include "pybind11/operators.h"
+#include "pybind11/numpy.h"
 
 
 USING_QPANDA
@@ -69,9 +70,14 @@ PYBIND11_MODULE(pyQPanda, m)
 		  "    bool: ture if initialization success");
 
 	m.def("finalize",
-		  py::overload_cast<>(&finalize),
-		  "Finalize the environment and destory global unique quantum machine.\n"
-		  "Use this before exit.");
+        py::overload_cast<>(&finalize),
+        "Finalize the environment and destory global unique quantum machine.\n"
+        "\n"
+        "Args:\n"
+        "    none\n"
+        "\n"
+        "Returns:\n"
+        "    none");
 
 	m.def("qAlloc",
 		  py::overload_cast<>(&qAlloc),
@@ -164,51 +170,101 @@ PYBIND11_MODULE(pyQPanda, m)
 		  py::return_value_policy::reference);
 
 	m.def("cFree",
-		  &cFree,
-		  py::arg("cbit"),
-		  "Free a cbit");
+            &cFree,
+            py::arg("cbit"),
+            "Free a CBit\n"
+            "\n"
+            "Args:\n"
+            "    CBit: a CBit\n"
+            "\n"
+            "Returns:\n"
+            "    none\n");
 
 	m.def("cFree_all",
-		  py::overload_cast<>(&cFreeAll),
-		  "Free all cbits");
+        py::overload_cast<>(&cFreeAll),
+        "Free all cbits\n"
+        "\n"
+        "Args:\n"
+        "    none\n"
+        "\n"
+        "Returns:\n"
+        "    none\n");
 
 	m.def("cFree_all",
 		  py::overload_cast<vector<ClassicalCondition> &>(&cFreeAll),
 		  py::arg("cbit_list"),
-		  "Free a list of cbits");
+          "Free all cbits\n"
+          "\n"
+          "Args:\n"
+          "    a list of cbits\n"
+          "\n"
+          "Returns:\n"
+          "    none\n");
 
 	m.def("qFree",
 		  &qFree,
 		  py::arg("qubit"),
-		  "Free a qubit");
+          "Free a qubit\n"
+          "\n"
+          "Args:\n"
+          "    Qubit: a qubit\n"
+          "\n"
+          "Returns:\n"
+          "    none\n");
 
 	m.def("qFree_all",
-		  py::overload_cast<>(&qFreeAll),
-		  "Free all qbits");
+        py::overload_cast<>(&qFreeAll),
+        "Free all qubits\n"
+        "\n"
+        "Args:\n"
+        "    none\n"
+        "\n"
+        "Returns:\n"
+        "    none\n");
 
 	m.def("qFree_all",
-		  py::overload_cast<QVec &>(&qFreeAll),
-		  py::arg("qubit_list"),
-		  "Free a list of qubits");
+        py::overload_cast<QVec &>(&qFreeAll),
+        py::arg("qubit_list"),
+        "Free a list of qubits\n"
+        "\n"
+        "Args:\n"
+        "    a list of qubits\n"
+        "\n"
+        "Returns:\n"
+        "    none\n");
 
 	m.def("getstat",
-		  &getstat,
-		  "Get the status of the Quantum machine\n",
-		  py::return_value_policy::reference);
+        &getstat,
+        "Get the status of the Quantum machine\n"
+        "\n"
+        "Args:\n"
+        "    none\n"
+        "\n"
+        "Returns:\n"
+        "    the status of the Quantum machine, see QMachineStatus\n"
+        "\n"
+        "Raises:\n"
+        "    init_fail: An error occurred\n",
+        py::return_value_policy::reference);
 
-	m.def(
-		"get_allocate_qubits",
+	m.def("get_allocate_qubits",
 		[]()
 		{
 			QVec qv;
 			get_allocate_qubits(qv);
 			return qv;
 		},
-		"Get allocated qubits of QuantumMachine\n"
-		"\n"
-		"Returns:\n"
-		"    qubits list",
-		py::return_value_policy::reference);
+        "Get allocated qubits of QuantumMachine\n"
+        "\n"
+        "Args:\n"
+        "    none\n"
+        "\n"
+        "Returns:\n"
+        "    qubit list\n"
+        "\n"
+        "Raises:\n"
+        "    run_fail: An error occurred in allocated qubits of QuantumMachine\n",
+        py::return_value_policy::reference);
 
 	m.def(
 		"get_allocate_cbits",
@@ -218,10 +274,16 @@ PYBIND11_MODULE(pyQPanda, m)
 			get_allocate_cbits(cv);
 			return cv;
 		},
-		"Get allocate cbits of QuantumMachine"
-		"\n"
-		"Returns:\n"
-		"    cbits list",
+        "Get allocated cbits of QuantumMachine\n"
+        "\n"
+        "Args:\n"
+        "    none\n"
+        "\n"
+        "Returns:\n"
+        "    cbit list\n"
+        "\n"
+        "Raises:\n"
+        "    run_fail: An error occurred in allocated cbits of QuantumMachine\n",
 		py::return_value_policy::reference);
 
 	m.def("get_tuple_list",
@@ -236,7 +298,9 @@ PYBIND11_MODULE(pyQPanda, m)
 		  "                default is -1, means no limit"
 		  "\n"
 		  "Returns:\n"
-		  "    measure result of quantum machine",
+		  "    measure result of quantum machine\n"
+          "Raises:\n"
+          "    run_fail: An error occurred in get_tuple_list\n",
 		  py::return_value_policy::reference);
 
 	m.def("get_prob_list",
@@ -251,7 +315,9 @@ PYBIND11_MODULE(pyQPanda, m)
 		  "                default is -1, means no limit"
 		  "\n"
 		  "Returns:\n"
-		  "    measure result of quantum machine",
+		  "    measure result of quantum machine\n"
+         "Raises:\n"
+         "    run_fail: An error occurred in get_prob_list\n",
 		  py::return_value_policy::reference);
 
 	m.def("get_prob_dict",
@@ -266,7 +332,9 @@ PYBIND11_MODULE(pyQPanda, m)
 		  "                default is -1, means no limit"
 		  "\n"
 		  "Returns:\n"
-		  "    measure result of quantum machine",
+		  "    measure result of quantum machine\n"
+          "Raises:\n"
+          "    run_fail: An error occurred in get_prob_dict\n",
 		  py::return_value_policy::reference);
 
 	m.def("prob_run_tuple_list",
@@ -283,7 +351,9 @@ PYBIND11_MODULE(pyQPanda, m)
 		  "              default is -1, means no limit"
 		  "\n"
 		  "Returns:\n"
-		  "  measure result of quantum machine",
+		  "  measure result of quantum machine\n"
+          "Raises:\n"
+          "    run_fail: An error occurred in prob_run_tuple_list\n",
 		  py::return_value_policy::reference);
 
 	m.def("prob_run_list",
@@ -300,7 +370,9 @@ PYBIND11_MODULE(pyQPanda, m)
 		  "                default is -1, means no limit"
 		  "\n"
 		  "Returns:\n"
-		  "    measure result of quantum machine",
+		  "    measure result of quantum machine\n"
+          "Raises:\n"
+          "    run_fail: An error occurred in measure quantum program\n",
 		  py::return_value_policy::reference);
 
 	m.def("prob_run_dict",
@@ -317,7 +389,9 @@ PYBIND11_MODULE(pyQPanda, m)
 		  "                default is -1, means no limit"
 		  "\n"
 		  "Returns:\n"
-		  "    measure result of quantum machine",
+		  "    measure result of quantum machine\n"
+          "Raises:\n"
+          "    run_fail: An error occurred in measure quantum program\n",
 		  py::return_value_policy::reference);
 
     m.def(
@@ -340,7 +414,9 @@ PYBIND11_MODULE(pyQPanda, m)
         "\n"
         "Returns:\n"
         "    result of quantum program execution in shots.\n"
-        "    first is the final qubit register state, second is it's hit shot");
+        "    first is the final qubit register state, second is it's hit shot"
+        "Raises:\n"
+        "    run_fail: An error occurred in measure quantum program\n");
 
     m.def(
         "run_with_configuration",
@@ -361,7 +437,9 @@ PYBIND11_MODULE(pyQPanda, m)
         "\n"
         "Returns:\n"
         "    result of quantum program execution in shots.\n"
-        "    first is the final qubit register state, second is it's hit shot");
+        "    first is the final qubit register state, second is it's hit shot"
+        "Raises:\n"
+        "    run_fail: An error occurred in measure quantum program\n");
 
 	m.def("quick_measure",
 		  &quickMeasure,
@@ -374,7 +452,9 @@ PYBIND11_MODULE(pyQPanda, m)
 		  "    shots: the repeat num  of measure operate\n"
 		  "\n"
 		  "Returns:\n"
-		  "    result of quantum program");
+		  "    result of quantum program"
+          "Raises:\n"
+          "    run_fail: An error occurred in measure quantum program\n");
 
 	m.def("accumulate_probabilities",
 		  &accumulateProbability,
@@ -385,7 +465,9 @@ PYBIND11_MODULE(pyQPanda, m)
 		  "    probability_list: measured result in probability list form\n"
 		  "\n"
 		  "Returns:\n"
-		  "    accumulated result");
+		  "    accumulated result"
+          "Raises:\n"
+          "    run_fail: An error occurred in accumulate_probabilities\n");
 
 	m.def("accumulateProbability",
 		  &accumulateProbability,
@@ -396,7 +478,9 @@ PYBIND11_MODULE(pyQPanda, m)
 		  "    probability_list: measured result in probability list form\n"
 		  "\n"
 		  "Returns:\n"
-		  "    accumulated result");
+		  "    accumulated result"
+          "Raises:\n"
+          "    run_fail: An error occurred in accumulateProbability\n");
 
 	m.def("accumulate_probability",
 		  &accumulateProbability,
@@ -407,11 +491,24 @@ PYBIND11_MODULE(pyQPanda, m)
 		  "    probability_list: measured result in probability list form\n"
 		  "\n"
 		  "Returns:\n"
-		  "    accumulated result");
+		  "    accumulated result"
+          "Raises:\n"
+          "    run_fail: An error occurred in accumulate_probability\n");
 
 	m.def("get_qstate",
-		  &getQState,
-		  "Get quantum machine state vector");
+        &getQState,
+        "Get quantum machine state vector\n"
+        "\n"
+        "Args:\n"
+        "    none\n"
+        "\n"
+        "Returns:\n"
+        "    state vector list result"
+        "Raises:\n"
+        "    run_fail: An error occurred in get_qstate\n"
+        "Examples:\n"
+        "   >>> print(machine.get_qstate()"
+        "   [0.707+0j, 0.707+0j, 0, 0])");
 
 	m.def("init_quantum_machine",
 		  /*
@@ -433,7 +530,9 @@ PYBIND11_MODULE(pyQPanda, m)
 		  "    QMachineType.GPU               --> pyQPanda.GPUQVM (if pyQPanda is build with GPU)\n"
 		  "    QMachineType.NOISE             --> pyQPanda.NoiseQVM\n"
 		  //   "    QMachineType.QCloud            --> pyQPanda.CloudQVM\n"
-		  "    return None if initial machine faild",
+		  "    return None if initial machine faild\n"
+          "Raises:\n"
+          "    init_fail: An error occurred in init_quantum_machine\n",
 		  /*
 			if py::return_value_policy::reference, python object won't take ownership of returned C++ object, C++ should manage resources
 		  */
@@ -446,7 +545,12 @@ PYBIND11_MODULE(pyQPanda, m)
 		  "Destroy a quantum machine\n"
 		  "\n"
 		  "Args:\n"
-		  "    machine: type should be one of CPUQVM, CPUSingleThreadQVM, GPUQVM, NoiseQVM");
+		  "    machine: type should be one of CPUQVM, CPUSingleThreadQVM, GPUQVM, NoiseQVM"
+          "\n"
+          "Returns:\n"
+          "    none"
+          "Raises:\n"
+          "    run_fail: An error occurred in destroy_quantum_machine\n");
 
 	/* will delete */
 	m.def(
@@ -466,7 +570,9 @@ PYBIND11_MODULE(pyQPanda, m)
 		"    machine: initialized quantum machine\n"
 		"\n"
 		"Returns:\n"
-		"    Transformed QProg",
+		"    Transformed QProg"
+        "Raises:\n"
+        "    run_fail: An error occurred in originir_to_qprog\n",
 		py::return_value_policy::automatic_reference);
 
 	m.def(
@@ -496,7 +602,9 @@ PYBIND11_MODULE(pyQPanda, m)
 		"    machine: initialized quantum machine\n"
 		"\n"
 		"Returns:\n"
-		"    list cotains QProg, qubit_list, cbit_list",
+		"    list cotains QProg, qubit_list, cbit_list"
+        "Raises:\n"
+        "    run_fail: An error occurred in convert_originir_to_qprog\n",
 		py::return_value_policy::automatic_reference);
 
 	m.def(
@@ -526,7 +634,9 @@ PYBIND11_MODULE(pyQPanda, m)
 		"    machine: initialized quantum machine\n"
 		"\n"
 		"Returns:\n"
-		"    list cotains QProg, qubit_list, cbit_list",
+		"    list cotains QProg, qubit_list, cbit_list"
+        "Raises:\n"
+        "    run_fail: An error occurred in convert_originir_str_to_qprog\n",
 		py::return_value_policy::automatic_reference);
 
 	m.def(
@@ -555,7 +665,9 @@ PYBIND11_MODULE(pyQPanda, m)
 		"    machine: initialized quantum machine\n"
 		"\n"
 		"Returns:\n"
-		"    list cotains QProg, qubit_list, cbit_list",
+		"    list cotains QProg, qubit_list, cbit_list"
+        "Raises:\n"
+        "    run_fail: An error occurred in convert_qasm_to_qprog\n",
 		py::return_value_policy::automatic_reference);
 
 	m.def(
@@ -589,31 +701,74 @@ PYBIND11_MODULE(pyQPanda, m)
 
 	/*will delete*/
 	m.def("getAllocateCMem",
-		  &getAllocateCMemNum,
-		  "Deprecated, use get_allocate_qubit_num instead");
+        &getAllocateCMemNum,
+        "Deprecated, use get_allocate_cmem_num instead"
+        "\n"
+        "Args:\n"
+        "   none\n"
+        "Returns:\n"
+        "    allocate qubit num\n"
+        "Raises:\n"
+        "    run_fail: An error occurred in get_allocate_cmem_num\n");
 
 	m.def("getAllocateQubitNum",
-		  &getAllocateQubitNum,
-		  "Deprecated, use get_allocate_cmem_num instead");
+            &getAllocateQubitNum,
+            "Deprecated, use get_allocate_qubit_num instead"
+            "\n"
+            "Args:\n"
+            "   none\n"
+            "Returns:\n"
+            "    allocate cbit num\n"
+            "Raises:\n"
+            "    run_fail: An error occurred in get_allocate_qubit_num\n");
 
 	m.def("PMeasure",
-		  &PMeasure,
-		  "Deprecated, use pmeasure instead");
+        &PMeasure,
+        "Deprecated, use pmeasure instead\n"
+        "\n"
+        "Args:\n"
+        "   QVec : pmeasure qubits list\n"
+        "   select_num : result select num\n"
+        "Returns:\n"
+        "    result: pmeasure qubits result\n"
+        "Raises:\n"
+        "    run_fail: An error occurred in pmeasure\n");
 
 	m.def("PMeasure_no_index",
-		  &PMeasure_no_index,
-		  "Deprecated, use pmeasure_no_index instead");
+        &PMeasure_no_index,
+        "Deprecated, use pmeasure_no_index instead\n"
+        "\n"
+        "Args:\n"
+        "   QVec : pmeasure qubits list\n"
+        "Returns:\n"
+        "    result: pmeasure qubits result\n"
+        "Raises:\n"
+        "    run_fail: An error occurred in pmeasure_no_index\n");
 
 	/* new interface */
 	m.def("get_allocate_qubit_num",
-		  &getAllocateQubitNum,
-		  "get allocate qubit num",
-		  py::return_value_policy::automatic);
+        &getAllocateQubitNum,
+        "get allocate qubit num\n"
+        "\n"
+        "Args:\n"
+        "   none\n"
+        "Returns:\n"
+        "    qubit_num : allocate qubit num\n"
+        "Raises:\n"
+        "    run_fail: An error occurred in get_allocate_qubit_num\n",
+        py::return_value_policy::automatic);
 
 	m.def("get_allocate_cmem_num",
-		  &getAllocateCMem,
-		  "get allocate cmemnum",
-		  py::return_value_policy::automatic);
+        &getAllocateCMem,
+        "get allocate cmem num"
+        "\n"
+        "Args:\n"
+        "   none\n"
+        "Returns:\n"
+        "    qubit_num : allocate cbit num\n"
+        "Raises:\n"
+        "    run_fail: An error occurred in get_allocate_cmem_num\n",
+        py::return_value_policy::automatic);
 
 	m.def("pmeasure", &pMeasure,
 		  py::arg("qubit_list"),
@@ -642,9 +797,10 @@ PYBIND11_MODULE(pyQPanda, m)
 		  py::return_value_policy::automatic);
 
 	m.def("QOracle",
-		  py::overload_cast<const QVec &, const QMatrixXcd &>(&QOracle),
+		py::overload_cast<const QVec &, const QMatrixXcd &, const double> (&QOracle),
 		  py::arg("qubit_list"),
 		  py::arg("matrix"),
+		  py::arg("tol")= 1e-10,
 		  "Generate QOracle Gate\n"
 		  "\n"
 		  "Args:"
@@ -658,28 +814,56 @@ PYBIND11_MODULE(pyQPanda, m)
 	/* include\Core\Utilities\QProgInfo\QGateCounter.h */
 	/* getQGateNumber is a template function,*/
 	m.def("get_qgate_num",
-		  py::overload_cast<QProg &>(&getQGateNum<QProg>),
-		  py::arg("quantum_prog"),
-		  "Count quantum gate num under quantum program, quantum circuit",
-		  py::return_value_policy::automatic);
+        py::overload_cast<QProg &>(&getQGateNum<QProg>),
+        py::arg("quantum_prog"),
+        "Count quantum gate num under quantum program, quantum circuit"
+        "\n"
+        "Args:\n"
+        "   prog : quantum_prog\n"
+        "Returns:\n"
+        "    result: gate count\n"
+        "Raises:\n"
+        "    run_fail: An error occurred in get_qgate_num\n",
+        py::return_value_policy::automatic);
 
 	m.def("get_qgate_num",
-		  py::overload_cast<QCircuit &>(&getQGateNum<QCircuit>),
-		  py::arg("quantum_circuit"),
-		  "Count quantum gate num under quantum program, quantum circuit",
-		  py::return_value_policy::automatic);
+        py::overload_cast<QCircuit &>(&getQGateNum<QCircuit>),
+        py::arg("quantum_circuit"),
+        "Count quantum gate num under quantum program, quantum circuit\n"
+        "\n"
+        "Args:\n"
+        "   circuit : quantum_circuit\n"
+        "Returns:\n"
+        "    result: gate count\n"
+        "Raises:\n"
+        "    run_fail: An error occurred in get_qgate_num\n",
+        py::return_value_policy::automatic);
 
 	m.def("count_gate",
-		  py::overload_cast<QProg &>(&getQGateNum<QProg>),
-		  py::arg("quantum_prog"),
-		  "Count quantum gate num under quantum program, quantum circuit",
-		  py::return_value_policy::automatic);
+        py::overload_cast<QProg &>(&getQGateNum<QProg>),
+        py::arg("quantum_prog"),
+        "Count quantum gate num under quantum program, quantum circuit\n"
+        "\n"
+        "Args:\n"
+        "   prog : quantum_prog\n"
+        "Returns:\n"
+        "    result: gate count\n"
+        "Raises:\n"
+        "    run_fail: An error occurred in get_qgate_num\n",
+        py::return_value_policy::automatic);
 
 	m.def("count_gate",
-		  py::overload_cast<QCircuit &>(&getQGateNum<QCircuit>),
-		  py::arg("quantum_circuit"),
-		  "Count quantum gate num under quantum program, quantum circuit",
-		  py::return_value_policy::automatic);
+        py::overload_cast<QCircuit &>(&getQGateNum<QCircuit>),
+        py::arg("quantum_circuit"),
+        "Count quantum gate num under quantum program, quantum circuit"
+        "\n"
+        "Args:\n"
+        "   circuit : quantum_circuit\n"
+        "Returns:\n"
+        "    result: gate count\n"
+        "Raises:\n"
+        "    run_fail: An error occurred in get_qgate_num\n",
+        py::return_value_policy::automatic);
 
 	/* new interface*/
 	m.def("count_qgate_num",
@@ -687,6 +871,7 @@ PYBIND11_MODULE(pyQPanda, m)
 		py::arg("quantum_prog"),
 		py::arg("gtype") = GateType::GATE_UNDEFINED,
 		"Count quantum gate num under quantum program\n"
+        "\n"
 		"Args:\n"
 		"    quantum_prog: QProg&\n"
 		"    gtype: const GateType\n"
@@ -700,6 +885,7 @@ PYBIND11_MODULE(pyQPanda, m)
 		py::arg("quantum_circuit"),
 		py::arg("gtype") = GateType::GATE_UNDEFINED,
 		"Count quantum gate num under quantum circuit\n"
+        "\n"
 		"Args:\n"
 		"    quantum_circuit: QCircuit&\n"
 		"    gtype: const GateType\n"
@@ -715,6 +901,9 @@ PYBIND11_MODULE(pyQPanda, m)
 	m.def("CreateEmptyQProg",
 		  &CreateEmptyQProg,
 		  "Create an empty QProg Container\n"
+          "\n"
+          "Args:\n"
+          "    none\n"
 		  "\n"
 		  "Returns:\n"
 		  "    a empty QProg",
@@ -730,11 +919,17 @@ PYBIND11_MODULE(pyQPanda, m)
 	export_transformQProgToOriginIR<QMeasure>(m);
 
 	m.def("convert_qprog_to_originir",
-		  &convert_qprog_to_originir<QProg>,
-		  py::arg("qprog"),
-		  py::arg("machine"),
-		  "Convert QProg to OriginIR",
-		  py::return_value_policy::automatic_reference);
+        py::overload_cast<QProg &, QuantumMachine *>(&convert_qprog_to_originir<QProg>),
+        py::arg("qprog"),
+        py::arg("machine"),
+        "Convert QProg to OriginIR string",
+        "Args:\n"
+        "    qprog: quantum prog\n"
+        "    machine: quantum machine\n"
+        "\n"
+        "Returns:\n"
+        "    originir : originir string , see originir indroduction :https://pyqpanda-toturial.readthedocs.io/zh/latest/QProgToOriginIR.html\n",
+        py::return_value_policy::automatic_reference);
 
 	//---------------------------------------------------------------------------------------------------------------------
 	/* include\Core\Utilities\Compiler\QProgToQuil.h */
@@ -770,7 +965,14 @@ PYBIND11_MODULE(pyQPanda, m)
 		  &convert_qprog_to_quil,
 		  py::arg("qprog"),
 		  py::arg("machine"),
-		  "Convert QProg to Quil",
+          "convert QProg to Quil instruction\n"
+          "\n"
+          "Args:\n"
+          "    qprog: QProg\n"
+          "    machine: quantum machine\n"
+          "\n"
+          "Returns:\n"
+          "    Quil instruction string",
 		  py::return_value_policy::automatic_reference);
 
 	//---------------------------------------------------------------------------------------------------------------------
@@ -799,7 +1001,13 @@ PYBIND11_MODULE(pyQPanda, m)
 			return getQProgClockCycle(prog, global_quantum_machine);
 		},
 		py::arg("qpog"),
-		"Get quantum program clock cycle",
+		"Get quantum program clock cycle"
+        "\n"
+        "Args:\n"
+        "    qprog: QProg\n"
+        "\n"
+        "Returns:\n"
+        "    clock_cycle",
 		py::return_value_policy::automatic_reference);
 
 	//---------------------------------------------------------------------------------------------------------------------
@@ -838,7 +1046,14 @@ PYBIND11_MODULE(pyQPanda, m)
 			return transformQProgToBinary(prog, global_quantum_machine);
 		},
 		py::arg("qprog"),
-		"Get quantum program binary data",
+        "Get quantum program binary data\n"
+        "\n"
+        "Args:\n"
+        "    qprog: QProg\n"
+        "    machine: quantum machine\n"
+        "\n"
+        "Returns:\n"
+        "    binary data in list",
 		py::return_value_policy::automatic_reference);
 
 	m.def(
@@ -852,7 +1067,16 @@ PYBIND11_MODULE(pyQPanda, m)
 		py::arg("qubit_list"),
 		py::arg("cbit_list"),
 		py::arg("qprog"),
-		"Parse binary data transfor to quantum program",
+		"Parse binary data transfor to quantum program"
+        "\n"
+        "Args:\n"
+        "    bin_data: binary data stores quantum prog information\n"
+        "    qubit_list: quantum qubits list \n"
+        "    cbit_list: quantum cbits list\n"
+        "    qprog: quantum prog\n"
+        "\n"
+        "Returns:\n"
+        "    prog\n",
 		py::return_value_policy::automatic_reference);
 
 	m.def(
@@ -866,23 +1090,45 @@ PYBIND11_MODULE(pyQPanda, m)
 		},
 		py::arg("qprog"),
 		py::arg("machine"),
-		"Transfor quantum program to string",
+		"Transfor quantum program to string"
+        "\n"
+        "Args:\n"
+        "    machine: quantum machine\n"
+        "    qprog: quantum prog\n"
+        "\n"
+        "Returns:\n"
+        "    string for bin_str\n",
 		py::return_value_policy::automatic);
 
 	m.def("convert_qprog_to_binary",
-		  py::overload_cast<QProg &, QuantumMachine *>(&convert_qprog_to_binary),
-		  py::arg("qprog"),
-		  py::arg("machine"),
-		  "Trans quantum program to binary data",
-		  py::return_value_policy::automatic_reference);
+        py::overload_cast<QProg &, QuantumMachine *>(&convert_qprog_to_binary),
+        py::arg("qprog"),
+        py::arg("machine"),
+        "Trans quantum program to binary data"
+        "\n"
+        "Args:\n"
+        "    machine: quantum machine\n"
+        "    qprog: quantum prog\n"
+        "\n"
+        "Returns:\n"
+        "    string for binary data\n",
+        py::return_value_policy::automatic_reference);
 
 	m.def("convert_qprog_to_binary",
-		  py::overload_cast<QProg &, QuantumMachine *, const string &>(&convert_qprog_to_binary),
-		  py::arg("qprog"),
-		  py::arg("machine"),
-		  py::arg("fname"),
-		  "Store quantum program in binary file ",
-		  py::return_value_policy::automatic_reference);
+        py::overload_cast<QProg &, QuantumMachine *, const string &>(&convert_qprog_to_binary),
+        py::arg("qprog"),
+        py::arg("machine"),
+        py::arg("fname"),
+        "Store quantum program in binary file "
+        "\n"
+        "Args:\n"
+        "    machine: quantum machine\n"
+        "    qprog: quantum prog\n"
+        "    fname: binary data file name\n"
+        "\n"
+        "Returns:\n"
+        "    none\n",
+        py::return_value_policy::automatic_reference);
 
 	//---------------------------------------------------------------------------------------------------------------------
 	/* include\Core\Utilities\Compiler\QProgDataParse.h */
@@ -998,40 +1244,76 @@ PYBIND11_MODULE(pyQPanda, m)
 	/* include\Core\QuantumCircuit\ControlFlow.h */
 	/* will delete */
 	m.def("CreateWhileProg",
-		  &CreateWhileProg,
-		  py::arg("classical_condition"),
-		  py::arg("true_node"),
-		  "Create a WhileProg",
-		  py::return_value_policy::automatic);
+        &CreateWhileProg,
+        py::arg("classical_condition"),
+        py::arg("true_node"),
+        "Create a WhileProg"
+        "\n"
+        "Args:\n"
+        "    classical_condition: quatum cbit\n"
+        "    true_node: quantum QWhile qnode\n"
+        "\n"
+        "Returns:\n"
+        "    a WhileProg",
+        py::return_value_policy::automatic);
 
 	m.def("CreateIfProg",
-		  py::overload_cast<ClassicalCondition, QProg>(&CreateIfProg),
-		  py::arg("classical_condition"),
-		  py::arg("true_node"),
-		  "Create a classical quantum IfProg",
-		  py::return_value_policy::automatic);
+        py::overload_cast<ClassicalCondition, QProg>(&CreateIfProg),
+        py::arg("classical_condition"),
+        py::arg("true_node"),
+        "Create a classical quantum IfProg\n"
+        "\n"
+        "Args:\n"
+        "    classical_condition: quatum cbit\n"
+        "    true_node: quantum IfProg qnode\n"
+        "\n"
+        "Returns:\n"
+        "    a classical quantum IfProg",
+        py::return_value_policy::automatic);
 
 	m.def("CreateIfProg",
-		  py::overload_cast<ClassicalCondition, QProg, QProg>(&CreateIfProg),
-		  py::arg("classical_condition"),
-		  py::arg("true_node"),
-		  py::arg("false_node"),
-		  "Create a IfProg",
-		  py::return_value_policy::automatic);
+        py::overload_cast<ClassicalCondition, QProg, QProg>(&CreateIfProg),
+        py::arg("classical_condition"),
+        py::arg("true_node"),
+        py::arg("false_node"),
+        "Create a classical quantum IfProg\n"
+        "\n"
+        "Args:\n"
+        "    classical_condition: quatum cbit\n"
+        "    true_node: quantum IfProg true qnode\n"
+        "    false_node: quantum IfProg false qnode\n"
+        "\n"
+        "Returns:\n"
+        "    a classical quantum IfProg",
+        py::return_value_policy::automatic);
 
 	/* new interface */
 	m.def("create_while_prog",
 		  &createWhileProg,
 		  py::arg("classical_condition"),
 		  py::arg("true_node"),
-		  "Create a WhileProg",
+        "Create a WhileProg\n"
+        "\n"
+        "Args:\n"
+        "    classical_condition: quatum cbit\n"
+        "    true_node: quantum QWhile qnode\n"
+        "\n"
+        "Returns:\n"
+        "    a WhileProg",
 		  py::return_value_policy::automatic);
 
 	m.def("create_if_prog",
 		  py::overload_cast<ClassicalCondition, QProg>(&CreateIfProg),
 		  py::arg("classical_condition"),
 		  py::arg("true_node"),
-		  "Create a IfProg",
+        "Create a classical quantum IfProg\n"
+        "\n"
+        "Args:\n"
+        "    classical_condition: quatum cbit\n"
+        "    true_node: quantum IfProg qnode\n"
+        "\n"
+        "Returns:\n"
+        "    a classical quantum IfProg",
 		  py::return_value_policy::automatic);
 
 	m.def("create_if_prog",
@@ -1039,7 +1321,15 @@ PYBIND11_MODULE(pyQPanda, m)
 		  py::arg("classical_condition"),
 		  py::arg("true_node"),
 		  py::arg("false_node"),
-		  "Create a IfProg",
+        "Create a classical quantum IfProg\n"
+        "\n"
+        "Args:\n"
+        "    classical_condition: quatum cbit\n"
+        "    true_node: quantum IfProg true qnode\n"
+        "    false_node: quantum IfProg false qnode\n"
+        "\n"
+        "Returns:\n"
+        "    a classical quantum IfProg",
 		  py::return_value_policy::automatic);
 
 	//---------------------------------------------------------------------------------------------------------------------
@@ -1047,20 +1337,38 @@ PYBIND11_MODULE(pyQPanda, m)
 	/* will delete */
 	m.def("CreateEmptyCircuit",
 		  &CreateEmptyCircuit,
-		  "Create an empty QCircuit Container",
+		  "Create an empty QCircuit Container\n"
+        "\n"
+        "Args:\n"
+        "    none\n"
+        "\n"
+        "Returns:\n"
+        "    a empty QCircuit",
 		  py::return_value_policy::automatic);
 
 	/* new interface */
 	m.def("create_empty_circuit",
 		  &createEmptyCircuit,
-		  "Create an empty QCircuit Container",
+        "Create an empty QCircuit Container\n"
+        "\n"
+        "Args:\n"
+        "    none\n"
+        "\n"
+        "Returns:\n"
+        "    a empty QCircuit",
 		  py::return_value_policy::automatic);
 
 	//---------------------------------------------------------------------------------------------------------------------
 	/* include\Core\QuantumCircuit\QProgram.h */
 	m.def("create_empty_qprog",
 		  &createEmptyQProg,
-		  "Create an empty QProg Container",
+        "Create an empty QProg Container\n"
+        "\n"
+        "Args:\n"
+        "    none\n"
+        "\n"
+        "Returns:\n"
+        "    a empty QProg",
 		  py::return_value_policy::automatic);
 
 	//---------------------------------------------------------------------------------------------------------------------
@@ -1069,61 +1377,128 @@ PYBIND11_MODULE(pyQPanda, m)
 		  py::overload_cast<Qubit *, ClassicalCondition>(&Measure),
 		  py::arg("qubit"),
 		  py::arg("cbit"),
-		  "Create a Measure operation",
+        "Create an measure node\n"
+        "\n"
+        "Args:\n"
+        "    qubit : measure qubit\n"
+        "    cbit : cbit stores quantum measure result\n"
+        "\n"
+        "Returns:\n"
+        "    a quantum measure node",
 		  py::return_value_policy::automatic);
 
     m.def("Measure",
         py::overload_cast<Qubit *, CBit*>(&Measure),
         py::arg("qubit"),
         py::arg("cbit"),
-        "Create a Measure operation",
+        "Create an measure node\n"
+        "\n"
+        "Args:\n"
+        "    qubit : measure qubit\n"
+        "    cbit : cbit stores quantum measure result\n"
+        "\n"
+        "Returns:\n"
+        "    a quantum measure node",
         py::return_value_policy::automatic);
 
 	m.def("Measure",
 		  py::overload_cast<int, int>(&Measure),
 		  py::arg("qubit_addr"),
 		  py::arg("cbit_addr"),
-		  "Create a Measure operation",
+        "Create an measure node\n"
+        "\n"
+        "Args:\n"
+        "    qubit : measure qubit\n"
+        "    cbit : cbit stores quantum measure result\n"
+        "\n"
+        "Returns:\n"
+        "    a quantum measure node",
 		  py::return_value_policy::automatic);
 
 	m.def("measure_all",
 		  py::overload_cast<const QVec &, const std::vector<ClassicalCondition> &>(&MeasureAll),
 		  py::arg("qubit_list"),
 		  py::arg("cbit_list"),
-		  "Create a Measure operation",
+        "Create a list of measure node\n"
+        "\n"
+        "Args:\n"
+        "    qubit_list : measure qubits\n"
+        "    cbit_list : cbits stores quantum measure result\n"
+        "\n"
+        "Returns:\n"
+        "    a list of measure node",
 		  py::return_value_policy::automatic);
 
 	m.def("measure_all",
 		  py::overload_cast<const std::vector<int> &, const std::vector<int> &>(&MeasureAll),
 		  py::arg("qubit_addr_list"),
 		  py::arg("cbit_addr_list"),
-		  "Create a Measure operation",
+        "Create a list of measure node\n"
+        "\n"
+        "Args:\n"
+        "    qubit_list : measure qubits list\n"
+        "    cbit_list : cbits stores quantum measure result\n"
+        "\n"
+        "Returns:\n"
+        "    a list of measure node",
 		  py::return_value_policy::automatic);
 
 	//---------------------------------------------------------------------------------------------------------------------
 	/* include\Core\QuantumCircuit\QGate.h */
 
 #define EXPORT_singleBitGate(gate_name)                            \
-	m.def(#gate_name,                                              \
-		  py::overload_cast<Qubit *>(&gate_name),                  \
-		  py::arg("qubit"),                                        \
-		  "Create a " #gate_name " gate",                          \
-		  py::return_value_policy::automatic);                     \
-	m.def(#gate_name,                                              \
-		  py::overload_cast<const QVec &>(&gate_name),             \
-		  py::arg("qubit_list"),                                   \
-		  "Create a " #gate_name " gate",                          \
-		  py::return_value_policy::automatic);                     \
-	m.def(#gate_name,                                              \
-		  py::overload_cast<int>(&gate_name),                      \
-		  py::arg("qubit_addr"),                                   \
-		  "Create a " #gate_name " gate",                          \
-		  py::return_value_policy::automatic);                     \
-	m.def(#gate_name,                                              \
-		  py::overload_cast<const std::vector<int> &>(&gate_name), \
-		  py::arg("qubit_addr_list"),                              \
-		  "Create a " #gate_name " gate",                          \
-		  py::return_value_policy::automatic)
+	    m.def(#gate_name,                                              \
+		    py::overload_cast<Qubit *>(&gate_name),                  \
+		    py::arg("qubit"),                                        \
+		    "Create a " #gate_name " gate\n"                         \
+		    "\n"                                                     \
+            "Args:\n"                                                \
+            "    qubit : quantum gate operate qubit\n"     \
+		    "\n"                                                     \
+            "Returns:\n"                                             \
+            "    a " #gate_name " gate node\n"                       \
+            "Raises:\n"                                              \
+            "    run_fail: An error occurred in construct gate node\n", \
+            py::return_value_policy::automatic);                     \
+        m.def(#gate_name, \
+            py::overload_cast<const QVec &>(&gate_name), \
+            py::arg("qubit_list"), \
+            "Create a " #gate_name " gate\n"                         \
+            "\n"                                                     \
+            "Args:\n"                                                \
+            "    qubit_list: quantum gate operate qubits list\n"     \
+            "\n" \
+            "Returns:\n"                                             \
+            "    a " #gate_name " gate node\n"                       \
+            "Raises:\n"                                              \
+            "    run_fail: An error occurred construct in gate node\n", \
+            py::return_value_policy::automatic);                     \
+        m.def(#gate_name, \
+            py::overload_cast<int>(&gate_name), \
+            py::arg("qubit_addr"), \
+            "Create a " #gate_name " gate\n"                         \
+            "\n"                                                     \
+            "Args:\n"                                                \
+            "    qubit_addr: quantum gate operate qubits addr\n"     \
+            "\n"                                                     \
+            "Returns:\n"                                             \
+            "    a " #gate_name " gate node\n"                       \
+            "Raises:\n"                                              \
+            "    run_fail: An error occurred in construct gate node\n", \
+            py::return_value_policy::automatic);                     \
+        m.def(#gate_name, \
+            py::overload_cast<const std::vector<int> &>(&gate_name), \
+            py::arg("qubit_addr_list"), \
+            "Create a " #gate_name " gate\n"                         \
+            "\n" \
+            "Args:\n"                                                \
+            "    qubit_list_addr: quantum gate  qubits list addr\n"  \
+            "\n"                                                     \
+            "Returns:\n"                                             \
+            "    a " #gate_name " gate node\n"                       \
+            "Raises:\n"                                              \
+            "    run_fail: An error occurred in construct gate node\n", \
+            py::return_value_policy::automatic);
 
 	EXPORT_singleBitGate(H);
 	EXPORT_singleBitGate(T);
@@ -1137,28 +1512,52 @@ PYBIND11_MODULE(pyQPanda, m)
 	EXPORT_singleBitGate(Z1);
 
 	m.def("BARRIER",
-		  py::overload_cast<Qubit *>(&BARRIER),
-		  py::arg("qubit"),
-		  "Create an BARRIER gate",
-		  py::return_value_policy::automatic);
+        py::overload_cast<Qubit *>(&BARRIER),
+        py::arg("qubit"),
+        "Create a BARRIER gate\n"
+        "\n"
+        "Args:\n"
+        "    qubit : measure qubit\n"
+        "\n"
+        "Returns:\n"
+        "    a BARRIER node",
+        py::return_value_policy::automatic);
 
 	m.def("BARRIER",
-		  py::overload_cast<int>(&BARRIER),
-		  py::arg("qubit_list"),
-		  "Create an BARRIER gate",
-		  py::return_value_policy::automatic);
+        py::overload_cast<int>(&BARRIER),
+        py::arg("qubit_list"),
+        "Create a BARRIER gate\n"
+        "\n"
+        "Args:\n"
+        "    qubit : measure qubit\n"
+        "\n"
+        "Returns:\n"
+        "    a BARRIER node",
+        py::return_value_policy::automatic);
 
 	m.def("BARRIER",
-		  py::overload_cast<QVec>(&BARRIER),
-		  py::arg("qubit_list"),
-		  "Create an BARRIER gate",
-		  py::return_value_policy::automatic);
+        py::overload_cast<QVec>(&BARRIER),
+        py::arg("qubit_list"),
+        "Create a BARRIER gate\n"
+        "\n"
+        "Args:\n"
+        "    qubit_list : measure qubits list\n"
+        "\n"
+        "Returns:\n"
+        "    a BARRIER node",
+        py::return_value_policy::automatic);
 
 	m.def("BARRIER",
-		  py::overload_cast<std::vector<int>>(&BARRIER),
-		  py::arg("qubit_addr_list"),
-		  "Create an BARRIER gate",
-		  py::return_value_policy::automatic);
+        py::overload_cast<std::vector<int>>(&BARRIER),
+        py::arg("qubit_addr_list"),
+        "Create a BARRIER gate\n"
+        "\n"
+        "Args:\n"
+        "    qubit_list : measure qubits list\n"
+        "\n"
+        "Returns:\n"
+        "    a BARRIER node",
+        py::return_value_policy::automatic);
 
 	TempHelper_RX<double>::export_singleBitGate(m);
 	TempHelper_RY<double>::export_singleBitGate(m);
@@ -1172,127 +1571,250 @@ PYBIND11_MODULE(pyQPanda, m)
 	TempHelper_CZ<>::export_doubleBitGate(m);
 
 	m.def("U4",
-		  py::overload_cast<QStat &, Qubit *>(&U4),
-		  py::arg("matrix"),
-		  py::arg("qubit"),
-		  "Create a U4 gate",
-		  py::return_value_policy::automatic);
+        py::overload_cast<QStat &, Qubit *>(&U4),
+        py::arg("matrix"),
+        py::arg("qubit"),
+        "Create a U4 gate\n"
+        "\n"
+        "Args:\n"
+        "    matrix : U4 gate matrix\n"
+        "    qubit : U4 gate target qubit\n"
+        "\n"
+        "Returns:\n"
+        "    a U4 node",
+        py::return_value_policy::automatic);
 
 	m.def("U4",
-		  py::overload_cast<double, double, double, double, Qubit *>(&U4),
-		  py::arg("alpha_angle"),
-		  py::arg("beta_angle"),
-		  py::arg("gamma_angle"),
-		  py::arg("delta_angle"),
-		  py::arg("qubit"),
-		  "Create a U4 gate",
-		  py::return_value_policy::automatic);
+        py::overload_cast<double, double, double, double, Qubit *>(&U4),
+        py::arg("alpha_angle"),
+        py::arg("beta_angle"),
+        py::arg("gamma_angle"),
+        py::arg("delta_angle"),
+        py::arg("qubit"),
+        "Create a U4 gate\n"
+        "\n"
+        "Args:\n"
+        "    double : u4 gate alpha angle\n"
+        "    double : u4 gate beta angle\n"
+        "    double : u4 gate gamma angle\n"
+        "    double : u4 gate delta angle\n"
+        "    qubit : U4 gate target qubit\n"
+        "\n"
+        "Returns:\n"
+        "    a U4 node",
+        py::return_value_policy::automatic);
 
 	m.def("U4",
-		  py::overload_cast<Qubit *, QStat &>(&U4),
-		  py::arg("qubit"),
-		  py::arg("matrix"),
-		  "Create a U4 gate",
-		  py::return_value_policy::automatic);
+        py::overload_cast<Qubit *, QStat &>(&U4),
+        py::arg("qubit"),
+        py::arg("matrix"),
+        "Create a U4 gate\n"
+        "\n"
+        "Args:\n"
+        "    matrix : U4 gate matrix\n"
+        "    qubit : U4 gate target qubit\n"
+        "\n"
+        "Returns:\n"
+        "    a U4 node",
+        py::return_value_policy::automatic);
 
 	m.def("U4",
-		  py::overload_cast<const QVec &, QStat &>(&U4),
-		  py::arg("qubit_list"),
-		  py::arg("matrix"),
-		  "Create a U4 gate",
-		  py::return_value_policy::automatic);
+        py::overload_cast<const QVec &, QStat &>(&U4),
+        py::arg("qubit_list"),
+        py::arg("matrix"),
+        "Create a U4 gate\n"
+        "\n"
+        "Args:\n"
+        "    matrix : U4 gate matrix\n"
+        "    qubit_list : U4 gate target qubit_list\n"
+        "\n"
+        "Returns:\n"
+        "    a U4 node",
+        py::return_value_policy::automatic);
 
 	m.def("U4",
-		  py::overload_cast<int, QStat &>(&U4),
-		  py::arg("qubit_addr"),
-		  py::arg("matrix"),
-		  "Create a U4 gate",
-		  py::return_value_policy::automatic);
+        py::overload_cast<int, QStat &>(&U4),
+        py::arg("qubit_addr"),
+        py::arg("matrix"),
+        "Create a U4 gate\n"
+        "\n"
+        "Args:\n"
+        "    matrix : U4 gate matrix\n"
+        "    qubit : U4 gate target qubit\n"
+        "\n"
+        "Returns:\n"
+        "    a U4 node",
+        py::return_value_policy::automatic);
 
 	m.def("U4",
-		  py::overload_cast<const std::vector<int> &, QStat &>(&U4),
-		  py::arg("qubit_addr_list"),
-		  py::arg("matrix"),
-		  "Create a U4 gate",
-		  py::return_value_policy::automatic);
+        py::overload_cast<const std::vector<int> &, QStat &>(&U4),
+        py::arg("qubit_addr_list"),
+        py::arg("matrix"),
+        "Create a U4 gate\n"
+        "\n"
+        "Args:\n"
+        "    matrix : U4 gate matrix\n"
+        "    qubit_list : U4 gate target qubit_list\n"
+        "\n"
+        "Returns:\n"
+        "    a U4 node",
+        py::return_value_policy::automatic);
 
 	m.def("U4",
-		  py::overload_cast<Qubit *, double, double, double, double>(&U4),
-		  py::arg("qubit"),
-		  py::arg("alpha_anlge"),
-		  py::arg("beta_anlge"),
-		  py::arg("gamma_anlge"),
-		  py::arg("delta_anlge"),
-		  "Create a U4 gate",
-		  py::return_value_policy::automatic);
+        py::overload_cast<Qubit *, double, double, double, double>(&U4),
+        py::arg("qubit"),
+        py::arg("alpha_anlge"),
+        py::arg("beta_anlge"),
+        py::arg("gamma_anlge"),
+        py::arg("delta_anlge"),
+        "Create a U4 gate\n"
+        "\n"
+        "Args:\n"
+        "    double : u4 gate alpha angle\n"
+        "    double : u4 gate beta angle\n"
+        "    double : u4 gate gamma angle\n"
+        "    double : u4 gate delta angle\n"
+        "    qubit : U4 gate target qubit\n"
+        "\n"
+        "Returns:\n"
+        "    a U4 node",
+        py::return_value_policy::automatic);
 
 	m.def("U4",
-		  py::overload_cast<const QVec &, double, double, double, double>(&U4),
-		  py::arg("qubit_list"),
-		  py::arg("alpha_angle"),
-		  py::arg("beta_angle"),
-		  py::arg("gamma_angle"),
-		  py::arg("delta_angle"),
-		  "Create a U4 gate",
-		  py::return_value_policy::automatic);
+        py::overload_cast<const QVec &, double, double, double, double>(&U4),
+        py::arg("qubit_list"),
+        py::arg("alpha_angle"),
+        py::arg("beta_angle"),
+        py::arg("gamma_angle"),
+        py::arg("delta_angle"),
+        "Create a U4 gate\n"
+        "\n"
+        "Args:\n"
+        "    double : u4 gate alpha angle\n"
+        "    double : u4 gate beta angle\n"
+        "    double : u4 gate gamma angle\n"
+        "    double : u4 gate delta angle\n"
+        "    qubit_list : U4 gate target qubit_list\n"
+        "\n"
+        "Returns:\n"
+        "    a U4 node",
+        py::return_value_policy::automatic);
 
 	m.def("U4",
-		  py::overload_cast<int, double, double, double, double>(&U4),
-		  py::arg("qubit_addr"),
-		  py::arg("alpha_anlge"),
-		  py::arg("beta_anlge"),
-		  py::arg("gamma_anlge"),
-		  py::arg("delta_anlge"),
-		  "Create a U4 gate",
-		  py::return_value_policy::automatic);
+        py::overload_cast<int, double, double, double, double>(&U4),
+        py::arg("qubit_addr"),
+        py::arg("alpha_anlge"),
+        py::arg("beta_anlge"),
+        py::arg("gamma_anlge"),
+        py::arg("delta_anlge"),
+        "Create a U4 gate\n"
+        "\n"
+        "Args:\n"
+        "    double : u4 gate alpha angle\n"
+        "    double : u4 gate beta angle\n"
+        "    double : u4 gate gamma angle\n"
+        "    double : u4 gate delta angle\n"
+        "    qubit : U4 gate target qubit\n"
+        "\n"
+        "Returns:\n"
+        "    a U4 node",
+        py::return_value_policy::automatic);
 
 	m.def("U4",
-		  py::overload_cast<const std::vector<int> &, double, double, double, double>(&U4),
-		  py::arg("qubit_addr_list"),
-		  py::arg("alpha_anlge"),
-		  py::arg("beta_anlge"),
-		  py::arg("gamma_anlge"),
-		  py::arg("delta_anlge"),
-		  "Create a U4 gate",
-		  py::return_value_policy::automatic);
+        py::overload_cast<const std::vector<int> &, double, double, double, double>(&U4),
+        py::arg("qubit_addr_list"),
+        py::arg("alpha_anlge"),
+        py::arg("beta_anlge"),
+        py::arg("gamma_anlge"),
+        py::arg("delta_anlge"),
+        "Create a U4 gate\n"
+        "\n"
+        "Args:\n"
+        "    double : u4 gate alpha angle\n"
+        "    double : u4 gate beta angle\n"
+        "    double : u4 gate gamma angle\n"
+        "    double : u4 gate delta angle\n"
+        "    qubit_addr_list : U4 gate target qubit_addr_list\n"
+        "\n"
+        "Returns:\n"
+        "    a U4 node",
+        py::return_value_policy::automatic);
 
 	m.def("CU",
-		  py::overload_cast<double, double, double, double, Qubit *, Qubit *>(&CU),
-		  py::arg("alpha_angle"),
-		  py::arg("beta_angle"),
-		  py::arg("gamma_angle"),
-		  py::arg("delta_angle"),
-		  py::arg("control_qubit"),
-		  py::arg("target_qubit"),
-		  "Create a CU gate",
-		  py::return_value_policy::automatic);
+        py::overload_cast<double, double, double, double, Qubit *, Qubit *>(&CU),
+        py::arg("alpha_angle"),
+        py::arg("beta_angle"),
+        py::arg("gamma_angle"),
+        py::arg("delta_angle"),
+        py::arg("control_qubit"),
+        py::arg("target_qubit"),
+        "Create a CU gate\n"
+        "\n"
+        "Args:\n"
+        "    double : u4 gate alpha angle\n"
+        "    double : u4 gate beta angle\n"
+        "    double : u4 gate gamma angle\n"
+        "    double : u4 gate delta angle\n"
+        "    qubit : control qubit \n"
+        "    qubit : target qubit\n"
+        "\n"
+        "Returns:\n"
+        "    a CU node",
+        py::return_value_policy::automatic);
 
 	m.def("CU",
-		  py::overload_cast<double, double, double, double, const QVec &, const QVec &>(&CU),
-		  py::arg("alpha_angle"),
-		  py::arg("beta_angle"),
-		  py::arg("gamma_angle"),
-		  py::arg("delta_angle"),
-		  py::arg("control_qubit_list"),
-		  py::arg("target_qubi_list"),
-		  "Create a CU gate",
-		  py::return_value_policy::automatic);
+        py::overload_cast<double, double, double, double, const QVec &, const QVec &>(&CU),
+        py::arg("alpha_angle"),
+        py::arg("beta_angle"),
+        py::arg("gamma_angle"),
+        py::arg("delta_angle"),
+        py::arg("control_qubit_list"),
+        py::arg("target_qubi_list"),
+        "Create a CU gate\n"
+        "\n"
+        "Args:\n"
+        "    double : u4 gate alpha angle\n"
+        "    double : u4 gate beta angle\n"
+        "    double : u4 gate gamma angle\n"
+        "    double : u4 gate delta angle\n"
+        "    control_qubit_list : control qubit list \n"
+        "    target_qubi_list : target qubit list\n"
+        "\n"
+        "Returns:\n"
+        "    a CU node",
+        py::return_value_policy::automatic);
 
 	m.def("CU",
-		  py::overload_cast<QStat &, Qubit *, Qubit *>(&CU),
-		  py::arg("matrix"),
-		  py::arg("control_qubit"),
-		  py::arg("target_qubit"),
-		  "Create a CU gate",
-		  py::return_value_policy::automatic);
+        py::overload_cast<QStat &, Qubit *, Qubit *>(&CU),
+        py::arg("matrix"),
+        py::arg("control_qubit"),
+        py::arg("target_qubit"),
+        "Create a CU gate\n"
+        "\n"
+        "Args:\n"
+        "    matrix : CU gate matrix\n"
+        "    qubit : control qubit \n"
+        "    qubit : target qubit\n"
+        "\n"
+        "Returns:\n"
+        "    a CU node",
+        py::return_value_policy::automatic);
 
 	m.def("CU",
-		  py::overload_cast<QStat &, const QVec &, const QVec &>(&CU),
-		  py::arg("matrix"),
-		  py::arg("control_qubit_list"),
-		  py::arg("target_qubit_list"),
-		  "Create a CU gate",
-		  py::return_value_policy::automatic);
+        py::overload_cast<QStat &, const QVec &, const QVec &>(&CU),
+        py::arg("matrix"),
+        py::arg("control_qubit_list"),
+        py::arg("target_qubit_list"),
+        "Create a CU gate\n"
+        "\n"
+        "Args:\n"
+        "    matrix : CU gate matrix\n"
+        "    control_qubit_list : control qubit list \n"
+        "    target_qubi_list : target qubit list\n"
+        "\n"
+        "Returns:\n"
+        "    a CU node",
+        py::return_value_policy::automatic);
 
 	TempHelper_SWAP<>::export_doubleBitGate(m);
 	TempHelper_iSWAP<>::export_doubleBitGate(m);
@@ -1303,208 +1825,231 @@ PYBIND11_MODULE(pyQPanda, m)
 	TempHelper_CR<double>::export_doubleBitGate(m);
 
 	m.def("CU",
-		  py::overload_cast<Qubit *, Qubit *, double, double, double, double>(&CU),
-		  py::arg("control_qubit"),
-		  py::arg("target_qubit"),
-		  py::arg("alpha_angle"),
-		  py::arg("beta_angle"),
-		  py::arg("gamma_angle"),
-		  py::arg("delta_angle"),
-		  "Create a CU gate",
-		  py::return_value_policy::automatic);
-
-	m.def("CU",
-		  py::overload_cast<const QVec &, const QVec &, double, double, double, double>(&CU),
-		  py::arg("control_qubit_list"),
-		  py::arg("target_qubit_list"),
-		  py::arg("alpha_angle"),
-		  py::arg("beta_angle"),
-		  py::arg("gamma_angle"),
-		  py::arg("delta_angle"),
-		  "Create a CU gate",
-		  py::return_value_policy::automatic);
-
-	m.def("CU",
-		  py::overload_cast<int, int, double, double, double, double>(&CU),
-		  py::arg("control_qubit_addr"),
-		  py::arg("target_qubit_addr"),
-		  py::arg("alpha_angle"),
-		  py::arg("beta_angle"),
-		  py::arg("gamma_angle"),
-		  py::arg("delta_angle"),
-		  "Create a CU gate",
-		  py::return_value_policy::automatic);
-
-	m.def("CU",
-		  py::overload_cast<const std::vector<int> &, const std::vector<int> &, double, double, double, double>(&CU),
-		  py::arg("control_qubit_addr_list"),
-		  py::arg("target_qubit_addr_list"),
-		  py::arg("alpha_angle"),
-		  py::arg("beta_angle"),
-		  py::arg("gamma_angle"),
-		  py::arg("delta_angle"),
-		  "Create a CU gate",
-		  py::return_value_policy::automatic);
-
-	m.def("CU",
-		  py::overload_cast<Qubit *, Qubit *, QStat &>(&CU),
-		  py::arg("control_qubit"),
-		  py::arg("target_qubit"),
-		  py::arg("matrix"),
-		  "Create a CU gate",
-		  py::return_value_policy::automatic);
-
-	m.def("CU",
-		  py::overload_cast<const QVec &, const QVec &, QStat &>(&CU),
-		  py::arg("control_qubit_list"),
-		  py::arg("target_qubit_list"),
-		  py::arg("matrix"),
-		  "Create a CU gate",
-		  py::return_value_policy::automatic);
-
-	m.def("CU",
-		  py::overload_cast<int, int, QStat &>(&CU),
-		  py::arg("control_qubit_addr"),
-		  py::arg("target_qubit_addr"),
-		  py::arg("matrix"),
-		  "Create a CU gate",
-		  py::return_value_policy::automatic);
-
-	m.def("CU",
-		  py::overload_cast<const std::vector<int> &, const std::vector<int> &, QStat &>(&CU),
-		  py::arg("control_qubit_addr_list"),
-		  py::arg("target_qubit_addr_list"),
-		  py::arg("matrix"),
-		  "Create a CU gate",
-		  py::return_value_policy::automatic);
-
-    m.def("RXX",
-        py::overload_cast<Qubit *, Qubit *, double>(&RXX),
+        py::overload_cast<Qubit *, Qubit *, double, double, double, double>(&CU),
         py::arg("control_qubit"),
         py::arg("target_qubit"),
         py::arg("alpha_angle"),
-        "Create a RXX gate",
+        py::arg("beta_angle"),
+        py::arg("gamma_angle"),
+        py::arg("delta_angle"),
+        "Create a CU gate\n"
+        "\n"
+        "Args:\n"
+        "    double : u4 gate alpha angle\n"
+        "    double : u4 gate beta angle\n"
+        "    double : u4 gate gamma angle\n"
+        "    double : u4 gate delta angle\n"
+        "    qubit : control qubit \n"
+        "    qubit : target qubit\n"
+        "\n"
+        "Returns:\n"
+        "    a CU node",
         py::return_value_policy::automatic);
 
-    m.def("RXX",
-        py::overload_cast<const QVec &, const QVec &, double>(&RXX),
+	m.def("CU",
+        py::overload_cast<const QVec &, const QVec &, double, double, double, double>(&CU),
         py::arg("control_qubit_list"),
         py::arg("target_qubit_list"),
         py::arg("alpha_angle"),
-        "Create a RXX circuit",
+        py::arg("beta_angle"),
+        py::arg("gamma_angle"),
+        py::arg("delta_angle"),
+        "Create a CU gate\n"
+        "\n"
+        "Args:\n"
+        "    double : u4 gate alpha angle\n"
+        "    double : u4 gate beta angle\n"
+        "    double : u4 gate gamma angle\n"
+        "    double : u4 gate delta angle\n"
+        "    control_qubit_list : control qubit list \n"
+        "    target_qubi_list : target qubit list\n"
+        "\n"
+        "Returns:\n"
+        "    a CU node",
         py::return_value_policy::automatic);
 
-    m.def("RXX",
-        py::overload_cast<int, int, double>(&RXX),
+	m.def("CU",
+        py::overload_cast<int, int, double, double, double, double>(&CU),
         py::arg("control_qubit_addr"),
         py::arg("target_qubit_addr"),
-        py::arg("matrix"),
-        "Create a RXX gate",
+        py::arg("alpha_angle"),
+        py::arg("beta_angle"),
+        py::arg("gamma_angle"),
+        py::arg("delta_angle"),
+        "Create a CU gate\n"
+        "\n"
+        "Args:\n"
+        "    double : u4 gate alpha angle\n"
+        "    double : u4 gate beta angle\n"
+        "    double : u4 gate gamma angle\n"
+        "    double : u4 gate delta angle\n"
+        "    qubit addr: control qubit addr\n"
+        "    qubit addr: target qubit addr\n"
+        "\n"
+        "Returns:\n"
+        "    a CU node",
         py::return_value_policy::automatic);
 
-    m.def("RXX",
-        py::overload_cast<const std::vector<int> &, const std::vector<int> &, double>(&RXX),
+	m.def("CU",
+        py::overload_cast<const std::vector<int> &, const std::vector<int> &, double, double, double, double>(&CU),
         py::arg("control_qubit_addr_list"),
         py::arg("target_qubit_addr_list"),
-        py::arg("matrix"),
-        "Create a RXX circuit",
+        py::arg("alpha_angle"),
+        py::arg("beta_angle"),
+        py::arg("gamma_angle"),
+        py::arg("delta_angle"),
+        "Create a CU gate\n"
+        "\n"
+        "Args:\n"
+        "    double : u4 gate alpha angle\n"
+        "    double : u4 gate beta angle\n"
+        "    double : u4 gate gamma angle\n"
+        "    double : u4 gate delta angle\n"
+        "    qubit addr list: control qubit addr list\n"
+        "    qubit addr list: target qubit addr list\n"
+        "\n"
+        "Returns:\n"
+        "    a CU node",
         py::return_value_policy::automatic);
 
-    m.def("RYY",
-        py::overload_cast<Qubit *, Qubit *, double>(&RYY),
+	m.def("CU",
+        py::overload_cast<Qubit *, Qubit *, QStat &>(&CU),
         py::arg("control_qubit"),
         py::arg("target_qubit"),
-        py::arg("alpha_angle"),
-        "Create a RYY gate",
+        py::arg("matrix"),
+        "Create a CU gate\n"
+        "\n"
+        "Args:\n"
+        "    matrix : CU gate matrix\n"
+        "    qubit : control qubit \n"
+        "    qubit : target qubit\n"
+        "\n"
+        "Returns:\n"
+        "    a CU node",
         py::return_value_policy::automatic);
 
-    m.def("RYY",
-        py::overload_cast<const QVec &, const QVec &, double>(&RYY),
+	m.def("CU",
+        py::overload_cast<const QVec &, const QVec &, QStat &>(&CU),
         py::arg("control_qubit_list"),
         py::arg("target_qubit_list"),
-        py::arg("alpha_angle"),
-        "Create a RYY circuit",
+        py::arg("matrix"),
+        "Create a CU gate\n"
+        "\n"
+        "Args:\n"
+        "    matrix : CU gate matrix\n"
+        "    qubit list: control qubit list\n"
+        "    qubit list: target qubit list\n"
+        "\n"
+        "Returns:\n"
+        "    a CU node",
         py::return_value_policy::automatic);
 
-    m.def("RYY",
-        py::overload_cast<int, int, double>(&RYY),
+	m.def("CU",
+        py::overload_cast<int, int, QStat &>(&CU),
         py::arg("control_qubit_addr"),
         py::arg("target_qubit_addr"),
         py::arg("matrix"),
-        "Create a RYY gate",
+        "Create a CU gate\n"
+        "\n"
+        "Args:\n"
+        "    matrix : CU gate matrix\n"
+        "    qubit addr: control qubit addr\n"
+        "    qubit addr: target qubit addr\n"
+        "\n"
+        "Returns:\n"
+        "    a CU node",
         py::return_value_policy::automatic);
 
-    m.def("RYY",
-        py::overload_cast<const std::vector<int> &, const std::vector<int> &, double>(&RYY),
+	m.def("CU",
+        py::overload_cast<const std::vector<int> &, const std::vector<int> &, QStat &>(&CU),
         py::arg("control_qubit_addr_list"),
         py::arg("target_qubit_addr_list"),
         py::arg("matrix"),
-        "Create a RYY circuit",
+        "Create a CU gate\n"
+        "\n"
+        "Args:\n"
+        "    matrix : CU gate matrix\n"
+        "    qubit addr list: control qubit addr list\n"
+        "    qubit addr list: target qubit addr list\n"
+        "\n"
+        "Returns:\n"
+        "    a CU node",
         py::return_value_policy::automatic);
 
-    m.def("RZZ",
-        py::overload_cast<Qubit *, Qubit *, double>(&RZZ),
-        py::arg("control_qubit"),
-        py::arg("target_qubit"),
-        py::arg("alpha_angle"),
-        "Create a RZZ gate",
-        py::return_value_policy::automatic);
+#define EXPORT_MULTI_ROTATION_GATE_NTES(gate_name)                 \
+    m.def(#gate_name,                                              \
+        py::overload_cast<Qubit *, Qubit *, double>(&gate_name),   \
+        py::arg("control_qubit"),                                  \
+        py::arg("target_qubit"),                                   \
+        py::arg("alpha_angle"),                                    \
+        "Create a " #gate_name " gate\n"                           \
+        "\n"                                                       \
+        "Args:\n"                                                  \
+        "    Qubit : control qubit\n"                              \
+        "    Qubit : target qubit\n"                               \
+        "    double: gate rotation angle theta\n"                  \
+        "\n"                                                       \
+        "Returns:\n"                                               \
+        "    a " #gate_name " gate node\n"                         \
+        "Raises:\n"                                                \
+        "    run_fail: An error occurred in construct gate node\n",\
+        py::return_value_policy::automatic);                       \
+    m.def(#gate_name,                                              \
+        py::overload_cast<const QVec &, const QVec &, double>(&gate_name), \
+        py::arg("control_qubit_list"),                             \
+        py::arg("target_qubit_list"),                              \
+        py::arg("alpha_angle"),                                    \
+        "Create a " #gate_name " gate\n"                           \
+        "\n"                                                       \
+        "Args:\n"                                                  \
+        "    control_qubit_list : control qubit list\n"            \
+        "    target_qubit_list : target qubit list\n"              \
+        "    double: gate rotation angle theta\n"                  \
+        "\n"                                                       \
+        "Returns:\n"                                               \
+        "    a " #gate_name " gate node\n"                         \
+        "Raises:\n"                                                \
+        "    run_fail: An error occurred in construct gate node\n",\
+        py::return_value_policy::automatic);                       \
+    m.def(#gate_name,                                              \
+        py::overload_cast<int, int, double>(&gate_name),           \
+        py::arg("control_qubit_addr"),                             \
+        py::arg("target_qubit_addr"),                              \
+        py::arg("alpha_angle"),                                    \
+        "Create a " #gate_name " gate\n"                           \
+        "\n"                                                       \
+        "Args:\n"                                                  \
+        "    qubit addr : control qubit addr \n"                   \
+        "    qubit addr : target qubit addr \n"                    \
+        "    double: gate rotation angle theta\n"                  \
+        "\n"                                                       \
+        "Returns:\n"                                               \
+        "    a " #gate_name " gate node\n"                         \
+        "Raises:\n"                                                \
+        "    run_fail: An error occurred in construct gate node\n",\
+        py::return_value_policy::automatic);                       \
+    m.def(#gate_name,                                              \
+        py::overload_cast<const std::vector<int> &, const std::vector<int> &, double>(&gate_name),           \
+        py::arg("control_qubit_addr_list"),                        \
+        py::arg("target_qubit_addr_list"),                         \
+        py::arg("alpha_angle"),                                    \
+        "Create a " #gate_name " gate\n"                           \
+        "\n"                                                       \
+        "Args:\n"                                                  \
+        "    qubit addr list : control qubit addr list\n"          \
+        "    qubit addr list : target qubit addr list\n"           \
+        "    double: gate rotation angle theta\n"                  \
+        "\n"                                                       \
+        "Returns:\n"                                               \
+        "    a " #gate_name " gate node\n"                         \
+        "Raises:\n"                                                \
+        "    run_fail: An error occurred in construct gate node\n",\
+        py::return_value_policy::automatic);                       \
 
-    m.def("RZZ",
-        py::overload_cast<const QVec &, const QVec &, double>(&RZZ),
-        py::arg("control_qubit_list"),
-        py::arg("target_qubit_list"),
-        py::arg("alpha_angle"),
-        "Create a RZZ circuit",
-        py::return_value_policy::automatic);
-
-    m.def("RZZ",
-        py::overload_cast<int, int, double>(&RZZ),
-        py::arg("control_qubit_addr"),
-        py::arg("target_qubit_addr"),
-        py::arg("matrix"),
-        "Create a RZZ gate",
-        py::return_value_policy::automatic);
-
-    m.def("RZZ",
-        py::overload_cast<const std::vector<int> &, const std::vector<int> &, double>(&RZZ),
-        py::arg("control_qubit_addr_list"),
-        py::arg("target_qubit_addr_list"),
-        py::arg("matrix"),
-        "Create a RZZ circuit",
-        py::return_value_policy::automatic);
-
-    m.def("RZX",
-        py::overload_cast<Qubit *, Qubit *, double>(&RZX),
-        py::arg("control_qubit"),
-        py::arg("target_qubit"),
-        py::arg("alpha_angle"),
-        "Create a RZX gate",
-        py::return_value_policy::automatic);
-
-    m.def("RZX",
-        py::overload_cast<const QVec &, const QVec &, double>(&RZX),
-        py::arg("control_qubit_list"),
-        py::arg("target_qubit_list"),
-        py::arg("alpha_angle"),
-        "Create a RZX circuit",
-        py::return_value_policy::automatic);
-
-    m.def("RZX",
-        py::overload_cast<int, int, double>(&RZX),
-        py::arg("control_qubit_addr"),
-        py::arg("target_qubit_addr"),
-        py::arg("matrix"),
-        "Create a RZX gate",
-        py::return_value_policy::automatic);
-
-    m.def("RZX",
-        py::overload_cast<const std::vector<int> &, const std::vector<int> &, double>(&RZX),
-        py::arg("control_qubit_addr_list"),
-        py::arg("target_qubit_addr_list"),
-        py::arg("matrix"),
-        "Create a RZX circuit",
-        py::return_value_policy::automatic);
+    EXPORT_MULTI_ROTATION_GATE_NTES(RXX);
+    EXPORT_MULTI_ROTATION_GATE_NTES(RYY);
+    EXPORT_MULTI_ROTATION_GATE_NTES(RZX);
+    EXPORT_MULTI_ROTATION_GATE_NTES(RZZ);
 
 	m.def("Toffoli",
 		  py::overload_cast<Qubit *, Qubit *, Qubit *>(&Toffoli),
@@ -1597,18 +2142,32 @@ PYBIND11_MODULE(pyQPanda, m)
 		py::return_value_policy::automatic);
 
 	m.def("is_swappable",
-		  &isSwappable,
-		  py::arg("prog"),
-		  py::arg("nodeitr_1"),
-		  py::arg("nodeitr_2"),
-		  "Judge the specialed two NodeIters in qprog whether can be exchanged",
-		  py::return_value_policy::automatic);
+        &isSwappable,
+        py::arg("prog"),
+        py::arg("nodeitr_1"),
+        py::arg("nodeitr_2"),
+        "Judge the specialed two NodeIters in qprog whether can be exchanged\n"
+        "\n"
+        "Args:\n"
+        "    qprog: target quantum program\n"
+        "    node_iter1:  node iter 1 in qprog\n"
+        "    node_iter2:  node iter 2 in qprog\n"
+        "\n"
+        "Returns:\n"
+        "    true ir false for two NodeIters in qprog whether can be exchanged",
+        py::return_value_policy::automatic);
 
 	m.def("is_supported_qgate_type",
-		  &isSupportedGateType,
-		  py::arg("nodeitr"),
-		  "Judge if the target node is a QGate type",
-		  py::return_value_policy::automatic);
+        &isSupportedGateType,
+        py::arg("nodeitr"),
+        "Judge if the target node is a QGate type\n"
+        "\n"
+        "Args:\n"
+        "    node_iter:  node iter  in qprog\n"
+        "\n"
+        "Returns:\n"
+        "    true ir false if the target node is a QGate type",
+        py::return_value_policy::automatic);
 
 	m.def("get_matrix",
 		  &getCircuitMatrix,
@@ -1629,17 +2188,42 @@ PYBIND11_MODULE(pyQPanda, m)
 		  "    target matrix include all the QGate's matrix (multiply)",
 		  py::return_value_policy::automatic);
 
+    m.def("get_unitary",
+        &get_unitary,
+        py::arg("qprog"),
+        py::arg("positive_seq") = false,
+        py::arg_v("nodeitr_start", NodeIter(), "NodeIter()"),
+        py::arg_v("nodeitr_end", NodeIter(), "NodeIter()"),
+        "Get the target matrix between the input two Nodeiters\n"
+        "\n"
+        "Args:\n"
+        "    qprog: quantum program\n"
+        "    positive_seq: Qubit order of output matrix\n"
+        "                  true for positive sequence(q0q1q2), false for inverted order(q2q1q0), default is false\n"
+        "    nodeiter_start: the start NodeIter\n"
+        "    nodeiter_end: the end NodeIter\n"
+        "\n"
+        "Returns:\n"
+        "    target matrix include all the QGate's matrix (multiply)",
+        py::return_value_policy::automatic);
+
 	m.def(
-		"get_all_used_qubits",
-		[](QProg prog)
-		{
-			QVec vec_qubits_in_use;
-			get_all_used_qubits(prog, vec_qubits_in_use);
-			return vec_qubits_in_use;
-		},
-		py::arg("qprog"),
-		"Get all the used quantum bits in the input prog",
-		py::return_value_policy::automatic);
+        "get_all_used_qubits",
+        [](QProg prog)
+        {
+	        QVec vec_qubits_in_use;
+	        get_all_used_qubits(prog, vec_qubits_in_use);
+	        return vec_qubits_in_use;
+        },
+        py::arg("qprog"),
+        "Get all the used quantum bits in the input prog"
+            "\n"
+            "Args:\n"
+            "    qprog: quantum program\n"
+            "\n"
+            "Returns:\n"
+            "    all used qubits",
+        py::return_value_policy::automatic);
 
 	m.def(
 		"get_all_used_qubits_to_int",
@@ -1650,25 +2234,37 @@ PYBIND11_MODULE(pyQPanda, m)
 			return vec_qubits_in_use;
 		},
 		py::arg("qprog"),
-		"Get all the used quantum bits addr in the input prog",
-		py::return_value_policy::automatic);
+        "Get all the used quantum bits addr in the input prog"
+        "\n"
+        "Args:\n"
+        "    qprog: quantum program\n"
+        "\n"
+        "Returns:\n"
+        "    all used qubits",
+        py::return_value_policy::automatic);
 
 	//---------------------------------------------------------------------------------------------------------------------
 	/* include\Core\Utilities\QProgInfo\MetadataValidity.h */
 	m.def(
-		"validate_single_qgate_type",
-		[](std::vector<string> single_gates)
-		{
-			py::list ret_date;
-			std::vector<string> valid_gates;
-			auto type = validateSingleQGateType(single_gates, valid_gates);
-			ret_date.append(static_cast<SingleGateTransferType>(type));
-			ret_date.append(valid_gates);
-			return ret_date;
-		},
-		py::arg("gate_str_list"),
-		"Get valid QGates and valid single bit QGate type",
-		py::return_value_policy::automatic);
+        "validate_single_qgate_type",
+        [](std::vector<string> single_gates)
+        {
+	        py::list ret_date;
+	        std::vector<string> valid_gates;
+	        auto type = validateSingleQGateType(single_gates, valid_gates);
+	        ret_date.append(static_cast<SingleGateTransferType>(type));
+	        ret_date.append(valid_gates);
+	        return ret_date;
+        },
+        py::arg("gate_str_list"),
+        "Get valid QGates and valid single bit QGate type\n"
+        "\n"
+        "Args:\n"
+        "    single_gates: single gates list\n"
+        "\n"
+        "Returns:\n"
+        "    result list\n",
+        py::return_value_policy::automatic);
 
 	m.def(
 		"validate_double_qgate_type",
@@ -1682,7 +2278,13 @@ PYBIND11_MODULE(pyQPanda, m)
 			return ret_data;
 		},
 		py::arg("gate_str_list"),
-		"Get valid QGates and valid double QGate type",
+        "Get valid QGates and valid double bit QGate type\n"
+        "\n"
+        "Args:\n"
+        "    double_gates: double gates list\n"
+        "\n"
+        "Returns:\n"
+        "    result list\n",
 		py::return_value_policy::automatic_reference);
 
 	//---------------------------------------------------------------------------------------------------------------------
@@ -1691,88 +2293,155 @@ PYBIND11_MODULE(pyQPanda, m)
 		  &getUnsupportQGateNum<QProg>,
 		  py::arg("qprog"),
 		  py::arg("support_gates"),
-		  "Count quantum program unsupported gate numner",
+		  "Count quantum program unsupported gate numner\n"
+          "\n"
+          "Args:\n"
+          "    qprog: quantum prog\n"
+          "    support_gates: support_gates\n"
+          "\n"
+          "Returns:\n"
+          "    unsupported gate numner\n",
 		  py::return_value_policy::automatic);
 
 	m.def("get_qgate_num",
-		  &getQGateNum<QProg>,
-		  py::arg("qprog"),
-		  "Count quantum gate num under quantum program",
-		  py::return_value_policy::automatic);
+        &getQGateNum<QProg>,
+        py::arg("qprog"),
+        "Count quantum gate num under quantum program\n"
+        "\n"
+        "Args:\n"
+        "    qprog: quantum prog\n"
+        "\n"
+        "Returns:\n"
+        "    quantum gate num under quantum program\n",
+        py::return_value_policy::automatic);
 
 	//---------------------------------------------------------------------------------------------------------------------
 	/* include\Core\Utilities\Tools\QProgFlattening.h */
 	m.def(
-		"flatten",
-		[](QProg &prog)
-		{
-			flatten(prog);
-		},
-		py::arg("qprog"),
-		"Flatten quantum program",
-		py::return_value_policy::automatic);
+        "flatten",
+        [](QProg &prog)
+        {
+	        flatten(prog);
+        },
+        py::arg("qprog"),
+        "Flatten quantum program\n"
+        "\n"
+        "Args:\n"
+        "    qprog: quantum prog\n"
+        "\n"
+        "Returns:\n"
+        "    none\n",
+        py::return_value_policy::automatic);
 
 	m.def("flatten",
-		  py::overload_cast<QCircuit &>(&flatten),
-		  py::arg("qcircuit"),
-		  "Flatten quantum circuit",
-		  py::return_value_policy::automatic);
+        py::overload_cast<QCircuit &>(&flatten),
+        py::arg("qcircuit"),
+        "Flatten quantum circuit\n"
+        "\n"
+        "Args:\n"
+        "    qprog: quantum circuit\n"
+        "\n"
+        "Returns:\n"
+        "    none\n",
+        py::return_value_policy::automatic);
 
 	//---------------------------------------------------------------------------------------------------------------------
 	/* include\Core\Utilities\Compiler\QProgDataParse.h */
 	m.def(
-		"convert_binary_data_to_qprog",
-		[](QuantumMachine *qm, std::vector<uint8_t> data)
-		{
-			QVec qubits;
-			std::vector<ClassicalCondition> cbits;
-			QProg prog;
-			convert_binary_data_to_qprog(qm, data, qubits, cbits, prog);
-			return prog;
-		},
-		py::arg("machine"),
-		py::arg("data"),
-		"Parse  binary data to quantum program",
-		py::return_value_policy::automatic_reference);
+        "convert_binary_data_to_qprog",
+        [](QuantumMachine *qm, std::vector<uint8_t> data)
+        {
+	        QVec qubits;
+	        std::vector<ClassicalCondition> cbits;
+	        QProg prog;
+	        convert_binary_data_to_qprog(qm, data, qubits, cbits, prog);
+	        return prog;
+        },
+        py::arg("machine"),
+        py::arg("data"),
+        "Parse  binary data to quantum program\n"
+        "\n"
+        "Args:\n"
+        "    machine: quantum machine\n"
+        "    data: quantum prog data\n"
+        "\n"
+        "Returns:\n"
+        "    quantum prog\n"
+        "Raises:\n"
+        "    run_fail: An error occurred in convert_binary_data_to_qprog\n",
+        py::return_value_policy::automatic_reference);
 
 	//---------------------------------------------------------------------------------------------------------------------
 	/* include\Core\Utilities\Compiler\QProgToQASM.h */
 	m.def("convert_qprog_to_qasm",
-		  &convert_qprog_to_qasm,
-		  py::arg("qprog"),
-		  py::arg("machine"),
-		  "Convert QProg to QASM instruction string",
-		  py::return_value_policy::automatic_reference);
+        &convert_qprog_to_qasm,
+        py::arg("qprog"),
+        py::arg("machine"),
+        "Convert QProg to QASM instruction string\n"
+        "\n"
+        "Args:\n"
+        "    machine: quantum machine\n"
+        "    qprog: quantum prog \n"
+        "\n"
+        "Returns:\n"
+        "    qsm string stores prog\n"
+        "Raises:\n"
+        "    run_fail: An error occurred in convert_qprog_to_qasm\n",
+        py::return_value_policy::automatic_reference);
 
 	//---------------------------------------------------------------------------------------------------------------------
 	/* include\Core\Utilities\QProgTransform\QProgToQGate.h */
 	m.def("cast_qprog_qgate",
-		  &cast_qprog_qgate,
-		  py::arg("qprog"),
-		  "Cast QProg to QGate",
-		  py::return_value_policy::automatic_reference);
+        &cast_qprog_qgate,
+        py::arg("qprog"),
+        "Cast QProg to QGate\n"
+        "\n"
+        "Args:\n"
+        "    qprog: quantum prog \n"
+        "\n"
+        "Returns:\n"
+        "    none\n"
+        "Raises:\n"
+        "    run_fail: An error occurred in cast_qprog_qgate\n",
+        py::return_value_policy::automatic_reference);
 
 	//---------------------------------------------------------------------------------------------------------------------
 	/* include\Core\Utilities\QProgTransform\QProgToQMeasure.h */
 	m.def("cast_qprog_qmeasure",
-		  &cast_qprog_qmeasure,
-		  py::arg("qprog"),
-		  "Cast QProg to QMeasure",
-		  py::return_value_policy::automatic_reference);
+        &cast_qprog_qmeasure,
+        py::arg("qprog"),
+        "Cast QProg to QMeasure\n"
+        "\n"
+        "Args:\n"
+        "    qprog: quantum prog \n"
+        "\n"
+        "Returns:\n"
+        "    none\n"
+        "Raises:\n"
+        "    run_fail: An error occurred in cast_qprog_qmeasure\n",
+        py::return_value_policy::automatic_reference);
 
 	//---------------------------------------------------------------------------------------------------------------------
 	/* include\Core\Utilities\QProgTransform\QProgToQCircuit.h */
 	m.def(
-		"cast_qprog_qcircuit",
-		[](QProg prog)
-		{
-			QCircuit cir;
-			cast_qprog_qcircuit(prog, cir);
-			return cir;
-		},
-		py::arg("qprog"),
-		"Cast QProg to QCircuit",
-		py::return_value_policy::automatic_reference);
+        "cast_qprog_qcircuit",
+        [](QProg prog)
+        {
+	        QCircuit cir;
+	        cast_qprog_qcircuit(prog, cir);
+	        return cir;
+        },
+        py::arg("qprog"),
+        "Cast QProg to QCircuit\n"
+        "\n"
+        "Args:\n"
+        "    qprog: quantum prog \n"
+        "\n"
+        "Returns:\n"
+        "    none\n"
+        "Raises:\n"
+        "    run_fail: An error occurred in cast_qprog_qcircuit\n",
+        py::return_value_policy::automatic_reference);
 
 	//---------------------------------------------------------------------------------------------------------------------
 	/* include\Core\Utilities\QProgTransform\TopologyMatch.h */
@@ -1794,7 +2463,18 @@ PYBIND11_MODULE(pyQPanda, m)
 		py::arg("qubit_list"),
 		py::arg("machine"),
 		py::arg("confing_file") = CONFIG_PATH,
-		"Judge QProg/QCircuit matches the topology of the physical qubits",
+		"Judge QProg/QCircuit matches the topology of the physical qubits\n"
+        "\n"
+        "Args:\n"
+        "    qprog: quantum prog \n"
+        "    qubit_list: qubits list in quantum prog \n"
+        "    machine: quantum machine \n"
+        "    confing_file: match configfilepath, default is QPandaConfig.json \n"
+        "\n"
+        "Returns:\n"
+        "    result data\n"
+        "Raises:\n"
+        "    run_fail: An error occurred in topology_match\n",
 		py::return_value_policy::automatic_reference);
 
 	m.def("add",
@@ -1901,22 +2581,40 @@ PYBIND11_MODULE(pyQPanda, m)
 	//---------------------------------------------------------------------------------------------------------------------
 	/* include\Components\MaxCutProblemGenerator\MaxCutProblemGenerator.h */
 	m.def("vector_dot",
-		  &vector_dot,
-		  py::arg("x"),
-		  py::arg("y"),
-		  "Inner product of vector x and y");
+        &vector_dot,
+        py::arg("x"),
+        py::arg("y"),
+        "Inner product of vector x and y\n"
+        "\n"
+        "Args:\n"
+        "    x: list x \n"
+        "    y: list y  \n"
+        "\n"
+        "Returns:\n"
+        "    dot result \n"
+        "Raises:\n"
+        "    run_fail: An error occurred in vector_dot\n");
 
 	m.def("all_cut_of_graph",
-		  &all_cut_of_graph,
-		  py::arg("adjacent_matrix"),
-		  py::arg("all_cut_list"),
-		  py::arg("target_value_list"),
-		  "Generate graph of maxcut problem");
+        &all_cut_of_graph,
+        py::arg("adjacent_matrix"),
+        py::arg("all_cut_list"),
+        py::arg("target_value_list"),
+        "Generate graph of maxcut problem\n"
+        "\n"
+        "Args:\n"
+        "    adjacent_matrix: adjacent_matrix for quantum prog \n"
+        "    all_cut_list: all cut graph list in quantum prog \n"
+        "    target_value_list: target cut value list \n"
+        "\n"
+        "Returns:\n"
+        "    max value\n"
+        "Raises:\n"
+        "    run_fail: An error occurred in all_cut_of_graph\n");
 
 	//---------------------------------------------------------------------------------------------------------------------
 	/* include\Core\Utilities\Tools\ProcessOnTraversing.h */
-	m.def(
-		"circuit_layer",
+	m.def("circuit_layer",
 		[](QProg prg)
 		{
 			py::list ret_data;
@@ -1959,7 +2657,15 @@ PYBIND11_MODULE(pyQPanda, m)
 			return ret_data;
 		},
 		py::arg("qprog"),
-		"Quantum circuit layering",
+		"Quantum circuit layering\n"
+        "\n"
+        "Args:\n"
+        "    QProg: quantum prog \n"
+        "\n"
+        "Returns:\n"
+        "    result data tuple contains layer info\n"
+        "Raises:\n"
+        "    run_fail: An error occurred in get circuit_layer\n",
 		py::return_value_policy::automatic);
 
 	//---------------------------------------------------------------------------------------------------------------------
@@ -1976,7 +2682,19 @@ PYBIND11_MODULE(pyQPanda, m)
 		py::arg_v("itr_start", NodeIter(), "NodeIter()"),
 		py::arg_v("itr_end", NodeIter(), "NodeIter()"),
 		"Convert a quantum prog/circuit to text-pic(UTF-8 code),\n"
-		"and will save the text-pic in file named QCircuitTextPic.txt in the same time in current path",
+		"and will save the text-pic in file named QCircuitTextPic.txt in the same time in current path"
+        "\n"
+        "Args:\n"
+        "    QProg: quantum prog \n"
+        "    auto_wrap_len: defaut is 100 \n"
+        "    output_file: result output file name \n"
+        "    itr_start: nodeiter start \n"
+        "    itr_end: nodeiter end \n"
+        "\n"
+        "Returns:\n"
+        "    result data tuple contains prog info\n"
+        "Raises:\n"
+        "    run_fail: An error occurred in get draw_qprog_text\n",
 		py::return_value_policy::automatic);
 
 	m.def(
@@ -1991,7 +2709,19 @@ PYBIND11_MODULE(pyQPanda, m)
 		py::arg("with_logo") = false,
 		py::arg_v("itr_start", NodeIter(), "NodeIter()"),
 		py::arg_v("itr_end", NodeIter(), "NodeIter()"),
-		"Convert a quantum prog/circuit to latex source code, and save the source code to file in current path with name QCircuit.tex",
+		"Convert a quantum prog/circuit to latex source code, and save the source code to file in current path with name QCircuit.tex"
+        "\n"
+        "Args:\n"
+        "    QProg: quantum prog \n"
+        "    auto_wrap_len: defaut is 100 \n"
+        "    output_file: result output file name \n"
+        "    itr_start: nodeiter start \n"
+        "    itr_end: nodeiter end \n"
+        "\n"
+        "Returns:\n"
+        "    result data tuple contains prog info\n"
+        "Raises:\n"
+        "    run_fail: An error occurred in get draw_qprog_text\n",
 		py::return_value_policy::automatic);
 
 	m.def(
@@ -2007,7 +2737,19 @@ PYBIND11_MODULE(pyQPanda, m)
 		py::arg_v("itr_start", NodeIter(), "NodeIter()"),
 		py::arg_v("itr_end", NodeIter(), "NodeIter()"),
 		"Convert a quantum prog/circuit to text-pic(UTF-8 code) with time sequence,\n"
-		"and will save the text-pic in file named QCircuitTextPic.txt in the same time in current path",
+		"and will save the text-pic in file named QCircuitTextPic.txt in the same time in current path"
+        "\n"
+        "Args:\n"
+        "    QProg: quantum prog \n"
+        "    auto_wrap_len: defaut is 100 \n"
+        "    output_file: result output file name \n"
+        "    itr_start: nodeiter start \n"
+        "    itr_end: nodeiter end \n"
+        "\n"
+        "Returns:\n"
+        "    result data tuple contains prog info\n"
+        "Raises:\n"
+        "    run_fail: An error occurred in get draw_qprog_text\n",
 		py::return_value_policy::automatic);
 
 	m.def(
@@ -2023,16 +2765,37 @@ PYBIND11_MODULE(pyQPanda, m)
 		py::arg("with_logo") = false,
 		py::arg_v("itr_start", NodeIter(), "NodeIter()"),
 		py::arg_v("itr_end", NodeIter(), "NodeIter()"),
-		"Convert a quantum prog/circuit to latex source code with time sequence, and save the source code to file in current path with name QCircuit.tex",
+		"Convert a quantum prog/circuit to latex source code with time sequence, and save the source code to file in current path with name QCircuit.tex"
+        "\n"
+        "Args:\n"
+        "    QProg: quantum prog \n"
+        "    config_data: default config file is QPandaConfig.json \n"
+        "    auto_wrap_len: defaut is 100 \n"
+        "    output_file: result output file name \n"
+        "    itr_start: nodeiter start \n"
+        "    itr_end: nodeiter end \n"
+        "\n"
+        "Returns:\n"
+        "    result data tuple contains prog info\n"
+        "Raises:\n"
+        "    run_fail: An error occurred in get draw_qprog_text\n",
 		py::return_value_policy::automatic);
 
 	//---------------------------------------------------------------------------------------------------------------------
 	/* include\Core\Utilities\QProgInfo\Visualization\CharsTransform.h */
 	m.def("fit_to_gbk",
-		  &fit_to_gbk,
-		  py::arg("utf8_str"),
-		  "Special character conversion",
-		  py::return_value_policy::automatic);
+        &fit_to_gbk,
+        py::arg("utf8_str"),
+        "Special character conversion\n"
+        "\n"
+        "Args:\n"
+        "    utf8_str: string using utf-8 encode \n"
+        "\n"
+        "Returns:\n"
+        "    result string\n"
+        "Raises:\n"
+        "    run_fail: An error occurred in get fit_to_gbk\n",
+        py::return_value_policy::automatic);
 
 	//---------------------------------------------------------------------------------------------------------------------
 	/* include\Core\Utilities\Tools\FillQProg.h */
@@ -2043,7 +2806,15 @@ PYBIND11_MODULE(pyQPanda, m)
 			return fill_qprog_by_I(prg);
 		},
 		py::arg("qprog"),
-		"Fill the input QProg by I gate, return a new quantum program",
+		"Fill the input QProg by I gate, return a new quantum program\n"
+        "\n"
+        "Args:\n"
+        "    prog: quantum prog \n"
+        "\n"
+        "Returns:\n"
+        "    a new quantum program\n"
+        "Raises:\n"
+        "    run_fail: An error occurred in get fill_qprog_by_I\n",
 		py::return_value_policy::automatic);
 
 	//#define QUERY_REPLACE(GRAPH_NODE,QUERY_NODE,REPLACE_NODE) \
@@ -2102,7 +2873,15 @@ PYBIND11_MODULE(pyQPanda, m)
 		py::arg("qprog"),
 		py::arg("machine"),
 		py::arg("config_file") = CONFIG_PATH,
-		"Decompose multiple control QGate",
+		"Decompose multiple control QGate\n"
+        "\n"
+        "Args:\n"
+        "    qprog: quantum program\n"
+        "    machine: quantum machine\n"
+        "    config_file: config file\n"
+        "\n"
+        "Returns:\n"
+        "    a new prog after decomposition",
 		py::return_value_policy::automatic);
 
     /* #include "Core/Utilities/Tools/MultiControlGateDecomposition.h" */
@@ -2111,7 +2890,13 @@ PYBIND11_MODULE(pyQPanda, m)
             return ldd_decompose(prog);
         },
         py::arg("qprog"),
-        "Decompose multiple control QGate",
+        "Decompose multiple control QGate\n"
+        "\n"
+        "Args:\n"
+        "    qprog: quantum program\n"
+        "\n"
+        "Returns:\n"
+        "    a new prog after decomposition",
         py::return_value_policy::automatic);
 
 	m.def(
@@ -2124,7 +2909,15 @@ PYBIND11_MODULE(pyQPanda, m)
 		py::arg("qprog"),
 		py::arg("machine"),
 		py::arg("config_file") = CONFIG_PATH,
-		"Basic quantum - gate conversion",
+		"Basic quantum - gate conversion\n"
+        "\n"
+        "Args:\n"
+        "    qprog: quantum program\n"
+        "    machine: quantum machine\n"
+        "    config_file: config file\n"
+        "\n"
+        "Returns:\n"
+        "    a new prog after transform_to_base_qgate",
 		py::return_value_policy::automatic);
 
 	m.def(
@@ -2142,7 +2935,15 @@ PYBIND11_MODULE(pyQPanda, m)
 		py::arg("qprog"),
 		py::arg("optimizer_cir_vec") = std::vector<std::pair<QCircuit, QCircuit>>(),
 		py::arg("mode_list") = std::vector<QCircuitOPtimizerMode>(0),
-		"Optimize QCircuit",
+		"Optimize QCircuit\n"
+        "\n"
+        "Args:\n"
+        "    qprog: quantum program\n"
+        "    optimizer_cir_vec: quantum circuit list \n"
+        "    mode_list: optimize mode list\n"
+        "\n"
+        "Returns:\n"
+        "    a new prog after optimize",
 		py::return_value_policy::automatic);
 
 	m.def(
@@ -2160,7 +2961,15 @@ PYBIND11_MODULE(pyQPanda, m)
 		py::arg("qprog"),
 		py::arg("config_file") = CONFIG_PATH,
 		py::arg("mode_list") = std::vector<QCircuitOPtimizerMode>(0),
-		"QCircuit optimizer",
+		"QCircuit optimizer\n"
+        "\n"
+        "Args:\n"
+        "    qprog: quantum program\n"
+        "    config_file: optimize config \n"
+        "    mode_list: optimize mode list\n"
+        "\n"
+        "Returns:\n"
+        "    a new prog after optimize",
 		py::return_value_policy::automatic);
 
 	//---------------------------------------------------------------------------------------------------------------------
@@ -2173,7 +2982,14 @@ PYBIND11_MODULE(pyQPanda, m)
 		},
 		py::arg("state1"),
 		py::arg("state2"),
-		"Get state fidelity",
+		"compare two quantum states , Get the state fidelity\n"
+        "\n"
+        "Args:\n"
+        "    state1: quantum state list 1\n"
+        "    state2: quantum state list 2\n"
+        "\n"
+        "Returns:\n"
+        "    state fidelity bewteen [0,1]",
 		py::return_value_policy::automatic);
 
 	m.def(
@@ -2184,7 +3000,14 @@ PYBIND11_MODULE(pyQPanda, m)
 		},
 		py::arg("matrix1"),
 		py::arg("matrix2"),
-		"Get matrix fidelity",
+        "compare two quantum states matrix, Get the state fidelity\n"
+        "\n"
+        "Args:\n"
+        "    state1: quantum state matrix 1\n"
+        "    state2: quantum state matrix 2\n"
+        "\n"
+        "Returns:\n"
+        "    state fidelity bewteen [0,1]",
 		py::return_value_policy::automatic);
 
 	m.def(
@@ -2195,7 +3018,14 @@ PYBIND11_MODULE(pyQPanda, m)
 		},
 		py::arg("state1"),
 		py::arg("state2"),
-		"Get state fidelity",
+        "compare two quantum states , Get the state fidelity\n"
+        "\n"
+        "Args:\n"
+        "    state1: quantum state list 1\n"
+        "    state2: quantum state matrix 2\n"
+        "\n"
+        "Returns:\n"
+        "    state fidelity bewteen [0,1]",
 		py::return_value_policy::automatic);
 
 	m.def(
@@ -2206,7 +3036,14 @@ PYBIND11_MODULE(pyQPanda, m)
 		},
 		py::arg("state1"),
 		py::arg("state2"),
-		"Get state fidelity",
+        "compare two quantum states , Get the state fidelity\n"
+        "\n"
+        "Args:\n"
+        "    state1: quantum state matrix 1\n"
+        "    state2: quantum state list 2\n"
+        "\n"
+        "Returns:\n"
+        "    state fidelity bewteen [0,1]",
 		py::return_value_policy::automatic);
 
 	m.def(
@@ -2217,7 +3054,14 @@ PYBIND11_MODULE(pyQPanda, m)
 		},
 		py::arg("state1"),
 		py::arg("state2"),
-		"Get average_gate_fidelity",
+        "compare two quantum states , Get the state fidelity\n"
+        "\n"
+        "Args:\n"
+        "    state1: quantum state matrix 1\n"
+        "    state2: quantum state list 2\n"
+        "\n"
+        "Returns:\n"
+        "    state fidelity bewteen [0,1]",
 		py::return_value_policy::automatic);
 
 	m.def(
@@ -2228,31 +3072,65 @@ PYBIND11_MODULE(pyQPanda, m)
 		},
 		py::arg("state1"),
 		py::arg("state2"),
-		"Get average_gate_fidelity",
+        "compare two quantum states , Get the state fidelity\n"
+        "\n"
+        "Args:\n"
+        "    state1: quantum state matrix 1\n"
+        "    state2: quantum state list 2\n"
+        "\n"
+        "Returns:\n"
+        "    state fidelity bewteen [0,1]",
 		py::return_value_policy::automatic);
 
 	//---------------------------------------------------------------------------------------------------------------------
 	/* include\Core\Utilities\Tools\GetQubitTopology.h */
 	m.def("get_circuit_optimal_topology",
-		  &get_circuit_optimal_topology,
-		  py::arg("qprog"),
-		  py::arg("machine"),
-		  py::arg("max_connect_degree"),
-		  py::arg("config_file") = CONFIG_PATH,
-		  "Get the optimal topology of the input circuit",
-		  py::return_value_policy::automatic);
+        &get_circuit_optimal_topology,
+        py::arg("qprog"),
+        py::arg("machine"),
+        py::arg("max_connect_degree"),
+        py::arg("config_file") = CONFIG_PATH,
+        "Get the optimal topology of the input circuit\n"
+        "\n"
+        "Args:\n"
+        "    qprog: quantum program\n"
+        "    machine: quantum machine\n"
+        "    max_connect_degree: max value of connect degree\n"
+        "    config_file: config file\n"
+        "\n"
+        "Returns:\n"
+        "    Topology prog Data"
+        "Raises:\n"
+        "    run_fail: An error occurred in get_circuit_optimal_topology\n",
+        py::return_value_policy::automatic);
 
 	m.def("get_double_gate_block_topology",
-		  &get_double_gate_block_topology,
-		  py::arg("qprog"),
-		  "get double gate block topology",
-		  py::return_value_policy::automatic);
+        &get_double_gate_block_topology,
+        py::arg("qprog"),
+        "get double gate block topology\n"
+        "\n"
+        "Args:\n"
+        "    qprog: quantum program\n"
+        "\n"
+        "Returns:\n"
+        "    Topology prog Data"
+        "Raises:\n"
+        "    run_fail: An error occurred in get_double_gate_block_topology\n",
+        py::return_value_policy::automatic);
 
 	m.def(
 		"del_weak_edge",
 		py::overload_cast<TopologyData &>(&del_weak_edge),
 		py::arg("topo_data"),
-		"Delete weakly connected edges",
+		"Delete weakly connected edges\n"
+        "\n"
+        "Args:\n"
+        "    topo_data: quantum program topo_data\n"
+        "\n"
+        "Returns:\n"
+        "    none\n"
+        "Raises:\n"
+        "    run_fail: An error occurred in del_weak_edge\n",
 		py::return_value_policy::automatic);
 
 	m.def(
@@ -2272,7 +3150,17 @@ PYBIND11_MODULE(pyQPanda, m)
 		py::arg("topo_data"),
 		py::arg("max_connect_degree"),
 		py::arg("sub_graph_set"),
-		"Delete weakly connected edges",
+		"Delete weakly connected edges\n"
+        "\n"
+        "Args:\n"
+        "    topo_data: quantum program topo_data\n"
+        "    max_connect_degree: max value of connect degree\n"
+        "    sub_graph_set: sub graph set list\n"
+        "\n"
+        "Returns:\n"
+        "    result data \n"
+        "Raises:\n"
+        "    run_fail: An error occurred in del_weak_edge2\n",
 		py::return_value_policy::automatic);
 
 	m.def(
@@ -2293,7 +3181,20 @@ PYBIND11_MODULE(pyQPanda, m)
 		py::arg("lamda1"),
 		py::arg("lamda2"),
 		py::arg("lamda3"),
-		"Delete weakly connected edges",
+		"Delete weakly connected edges\n"
+        "\n"
+        "Args:\n"
+        "    topo_data: quantum program topo_data\n"
+        "    max_connect_degree: max value of connect degree\n"
+        "    sub_graph_set: sub graph set list\n"
+        "    lamda1: lamda1\n"
+        "    lamda2: lamda2\n"
+        "    lamda3: lamda3\n"
+        "\n"
+        "Returns:\n"
+        "    result data \n"
+        "Raises:\n"
+        "    run_fail: An error occurred in del_weak_edge3\n",
 		py::return_value_policy::automatic);
 
 	m.def(
@@ -2306,121 +3207,252 @@ PYBIND11_MODULE(pyQPanda, m)
 		py::arg("topo_data"),
 		py::arg("max_connect_degree"),
 		py::arg("candidate_edges"),
-		"Recover edges from the candidate edges",
+		"Recover edges from the candidate edges\n"
+        "\n"
+        "Args:\n"
+        "    topo_data: quantum program topo_data\n"
+        "    max_connect_degree: max value of connect degree\n"
+        "    candidate_edges: candidate edges\n"
+        "\n"
+        "Returns:\n"
+        "    topo data \n"
+        "Raises:\n"
+        "    run_fail: An error occurred in recover_edges\n",
 		py::return_value_policy::automatic);
 
 	m.def("get_complex_points",
-		  &get_complex_points,
-		  py::arg("topo_data"),
-		  py::arg("max_connect_degree"),
-		  "Get complex points",
-		  py::return_value_policy::automatic);
+        &get_complex_points,
+        py::arg("topo_data"),
+        py::arg("max_connect_degree"),
+        "Get complex points\n"
+        "\n"
+        "Args:\n"
+        "    topo_data: quantum program topo_data\n"
+        "    max_connect_degree: max value of connect degree\n"
+        "\n"
+        "Returns:\n"
+        "    complex points list \n"
+        "Raises:\n"
+        "    run_fail: An error occurred in get_complex_points\n",
+        py::return_value_policy::automatic);
 
-	py::enum_<ComplexVertexSplitMethod>(m, "ComplexVertexSplitMethod")
+	py::enum_<ComplexVertexSplitMethod>(m, "ComplexVertexSplitMethod", "quantum complex vertex split method")
 		.value("METHOD_UNDEFINED", ComplexVertexSplitMethod::METHOD_UNDEFINED)
 		.value("LINEAR", ComplexVertexSplitMethod::LINEAR)
 		.value("RING", ComplexVertexSplitMethod::RING)
 		.export_values();
 
 	m.def("split_complex_points",
-		  &split_complex_points,
-		  py::arg("complex_points"),
-		  py::arg("max_connect_degree"),
-		  py::arg("topo_data"),
-		  py::arg_v("split_method", ComplexVertexSplitMethod::LINEAR, "ComplexVertexSplitMethod.LINEAR"),
-		  "Splitting complex points into multiple points",
-		  py::return_value_policy::automatic);
+        &split_complex_points,
+        py::arg("complex_points"),
+        py::arg("max_connect_degree"),
+        py::arg("topo_data"),
+        py::arg_v("split_method", ComplexVertexSplitMethod::LINEAR, "ComplexVertexSplitMethod.LINEAR"),
+        "Splitting complex points into multiple points\n"
+        "\n"
+        "Args:\n"
+        "    topo_data: quantum program topo_data\n"
+        "    max_connect_degree: max value of connect degree\n"
+        "    complex_points: complex points list\n"
+        "    split_method: see ComplexVertexSplitMethod, default is ComplexVertexSplitMethod.LINEAR\n"
+        "\n"
+        "Returns:\n"
+        "    none \n"
+        "Raises:\n"
+        "    run_fail: An error occurred in split_complex_points\n",
+        py::return_value_policy::automatic);
 
 	m.def("replace_complex_points",
-		  &replace_complex_points,
-		  py::arg("src_topo_data"),
-		  py::arg("max_connect_degree"),
-		  py::arg("sub_topo_vec"),
-		  "Replacing complex points with subgraphs",
-		  py::return_value_policy::automatic);
+        &replace_complex_points,
+        py::arg("src_topo_data"),
+        py::arg("max_connect_degree"),
+        py::arg("sub_topo_vec"),
+        "Replacing complex points with subgraphs\n"
+        "\n"
+        "Args:\n"
+        "    src_topo_data: quantum program source topo data\n"
+        "    max_connect_degree: max value of connect degree\n"
+        "    sub_topo_vec: sub topo list\n"
+        "\n"
+        "Returns:\n"
+        "    none \n"
+        "Raises:\n"
+        "    run_fail: An error occurred in replace_complex_points\n",
+        py::return_value_policy::automatic);
 
 	m.def("get_sub_graph",
-		  &get_sub_graph,
-		  py::arg("topo_data"),
-		  "Get sub graph",
-		  py::return_value_policy::automatic);
+        &get_sub_graph,
+        py::arg("topo_data"),
+        "Get sub graph\n"
+        "\n"
+        "Args:\n"
+        "    topo_data: quantum program topo data\n"
+        "\n"
+        "Returns:\n"
+        "    sub graph \n"
+        "Raises:\n"
+        "    run_fail: An error occurred in sub graph\n",
+        py::return_value_policy::automatic);
 
 	m.def("estimate_topology",
-		  &estimate_topology,
-		  py::arg("topo_data"),
-		  "Evaluate topology performance",
-		  py::return_value_policy::automatic);
+        &estimate_topology,
+        py::arg("topo_data"),
+        "Evaluate topology performance\n"
+        "\n"
+        "Args:\n"
+        "    topo_data: quantum program topo data\n"
+        "\n"
+        "Returns:\n"
+        "    result data \n"
+        "Raises:\n"
+        "    run_fail: An error occurred in estimate_topology\n",
+        py::return_value_policy::automatic);
 
 	m.def("planarity_testing",
-		  &planarity_testing,
-		  py::arg("topo_data"),
-		  "planarity testing",
-		  py::return_value_policy::automatic);
+        &planarity_testing,
+        py::arg("topo_data"),
+        "planarity testing\n"
+        "\n"
+        "Args:\n"
+        "    topo_data: quantum program topo data\n"
+        "\n"
+        "Returns:\n"
+        "    result data \n"
+        "Raises:\n"
+        "    run_fail: An error occurred in planarity_testing\n",
+        py::return_value_policy::automatic);
 
 	//---------------------------------------------------------------------------------------------------------------------
 	/* include\Core\Utilities\QProgInfo\RandomizedBenchmarking.h */
 	m.def("single_qubit_rb",
-		  py::overload_cast<NoiseQVM *, Qubit *, const std::vector<int> &, int, int, const std::vector<QGate> &>(&single_qubit_rb),
-		  py::arg("qvm"),
-		  py::arg("qubit"),
-		  py::arg("clifford_range"),
-		  py::arg("num_circuits"),
-		  py::arg("shots"),
-		  py::arg("interleaved_gates") = std::vector<QGate>(),
-		  "Single qubit rb with noise quantum virtual machine",
-		  py::return_value_policy::automatic);
+        py::overload_cast<NoiseQVM *, Qubit *, const std::vector<int> &, int, int, const std::vector<QGate> &>(&single_qubit_rb),
+        py::arg("qvm"),
+        py::arg("qubit"),
+        py::arg("clifford_range"),
+        py::arg("num_circuits"),
+        py::arg("shots"),
+        py::arg("interleaved_gates") = std::vector<QGate>(),
+        "Single qubit rb with noise quantum virtual machine\n"
+        "\n"
+        "Args:\n"
+        "    qvm: quantum machine\n"
+        "    qubit: single qubit\n"
+        "    clifford_range: clifford range list\n"
+        "    num_circuits: the num of circuits\n"
+        "    shots: measure shots\n"
+        "    interleaved_gates: interleaved gates list\n"
+        "\n"
+        "Returns:\n"
+        "    result data dict\n"
+        "Raises:\n"
+        "    run_fail: An error occurred in single_qubit_rb\n",
+        py::return_value_policy::automatic);
 
 	m.def("single_qubit_rb",
-		  py::overload_cast<QCloudMachine *, Qubit *, const std::vector<int> &, int, int, const std::vector<QGate> &>(&single_qubit_rb),
-		  py::arg("qvm"),
-		  py::arg("qubit"),
-		  py::arg("clifford_range"),
-		  py::arg("num_circuits"),
-		  py::arg("shots"),
-		  py::arg("interleaved_gates") = std::vector<QGate>(),
-		  "Single qubit rb with WU YUAN chip",
-		  py::return_value_policy::automatic);
+        py::overload_cast<QCloudMachine *, Qubit *, const std::vector<int> &, int, int, const std::vector<QGate> &>(&single_qubit_rb),
+        py::arg("qvm"),
+        py::arg("qubit"),
+        py::arg("clifford_range"),
+        py::arg("num_circuits"),
+        py::arg("shots"),
+        py::arg("interleaved_gates") = std::vector<QGate>(),
+        "Single qubit rb with WU YUAN chip\n"
+        "\n"
+        "Args:\n"
+        "    qvm: quantum machine\n"
+        "    qubit: single qubit\n"
+        "    clifford_range: clifford range list\n"
+        "    num_circuits: the num of circuits\n"
+        "    shots: measure shots\n"
+        "    interleaved_gates: interleaved gates list\n"
+        "\n"
+        "Returns:\n"
+        "    result data dict\n"
+        "Raises:\n"
+        "    run_fail: An error occurred in single_qubit_rb\n",
+        py::return_value_policy::automatic);
 
 	m.def("double_qubit_rb",
-		  py::overload_cast<NoiseQVM *, Qubit *, Qubit *, const std::vector<int> &, int, int, const std::vector<QGate> &>(&double_qubit_rb),
-		  py::arg("qvm"),
-		  py::arg("qubit0"),
-		  py::arg("qubit1"),
-		  py::arg("clifford_range"),
-		  py::arg("num_circuits"),
-		  py::arg("shots"),
-		  py::arg("interleaved_gates") = std::vector<QGate>(),
-		  "double qubit rb with noise quantum virtual machine",
-		  py::return_value_policy::automatic);
+        py::overload_cast<NoiseQVM *, Qubit *, Qubit *, const std::vector<int> &, int, int, const std::vector<QGate> &>(&double_qubit_rb),
+        py::arg("qvm"),
+        py::arg("qubit0"),
+        py::arg("qubit1"),
+        py::arg("clifford_range"),
+        py::arg("num_circuits"),
+        py::arg("shots"),
+        py::arg("interleaved_gates") = std::vector<QGate>(),
+        "double qubit rb with noise quantum virtual machine\n"
+        "\n"
+        "Args:\n"
+        "    qvm: quantum machine\n"
+        "    qubit0: double qubit 0\n"
+        "    qubit1: double qubit 1\n"
+        "    clifford_range: clifford range list\n"
+        "    num_circuits: the num of circuits\n"
+        "    shots: measure shots\n"
+        "    interleaved_gates: interleaved gates list\n"
+        "\n"
+        "Returns:\n"
+        "    result data dict\n"
+        "Raises:\n"
+        "    run_fail: An error occurred in double_qubit_rb\n",
+        py::return_value_policy::automatic);
 
 	m.def("double_qubit_rb",
-		  py::overload_cast<QCloudMachine *, Qubit *, Qubit *, const std::vector<int> &, int, int, const std::vector<QGate> &>(&double_qubit_rb),
-		  py::arg("qvm"),
-		  py::arg("qubit0"),
-		  py::arg("qubit1"),
-		  py::arg("clifford_range"),
-		  py::arg("num_circuits"),
-		  py::arg("shots"),
-		  py::arg("interleaved_gates") = std::vector<QGate>(),
-		  "double qubit rb with WU YUAN chip",
-		  py::return_value_policy::automatic);
+        py::overload_cast<QCloudMachine *, Qubit *, Qubit *, const std::vector<int> &, int, int, const std::vector<QGate> &>(&double_qubit_rb),
+        py::arg("qvm"),
+        py::arg("qubit0"),
+        py::arg("qubit1"),
+        py::arg("clifford_range"),
+        py::arg("num_circuits"),
+        py::arg("shots"),
+        py::arg("interleaved_gates") = std::vector<QGate>(),
+        "double qubit rb with WU YUAN chip"
+        "\n"
+        "Args:\n"
+        "    qvm: quantum machine\n"
+        "    qubit0: double qubit 0\n"
+        "    qubit1: double qubit 1\n"
+        "    clifford_range: clifford range list\n"
+        "    num_circuits: the num of circuits\n"
+        "    shots: measure shots\n"
+        "    interleaved_gates: interleaved gates list\n"
+        "\n"
+        "Returns:\n"
+        "    result data dict\n"
+        "Raises:\n"
+        "    run_fail: An error occurred in double_qubit_rb\n",
+        py::return_value_policy::automatic);
 
 	//---------------------------------------------------------------------------------------------------------------------
 	/* include\Core\Utilities\QProgInfo\CrossEntropyBenchmarking.h */
 	m.def("double_gate_xeb",
-		  py::overload_cast<QCloudMachine *, Qubit *, Qubit *, const std::vector<int> &, int, int, GateType>(&double_gate_xeb),
-		  py::arg("cloud_qvm"),
-		  py::arg("qubit0"),
-		  py::arg("qubit1"),
-		  py::arg("clifford_range"),
-		  py::arg("num_circuits"),
-		  py::arg("shots"),
-		  py::arg_v("gate_type", GateType::CZ_GATE, "GateType.CZ_GATE"),
-		  "double gate xeb with WU YUAN chip",
-		  py::return_value_policy::automatic);
+        py::overload_cast<QCloudMachine *, Qubit *, Qubit *, const std::vector<int> &, int, int, GateType>(&double_gate_xeb),
+        py::arg("cloud_qvm"),
+        py::arg("qubit0"),
+        py::arg("qubit1"),
+        py::arg("clifford_range"),
+        py::arg("num_circuits"),
+        py::arg("shots"),
+        py::arg_v("gate_type", GateType::CZ_GATE, "GateType.CZ_GATE"),
+        "double gate xeb with WU YUAN chip\n"
+        "\n"
+        "Args:\n"
+        "    qvm: quantum machine\n"
+        "    qubit0: double qubit 0\n"
+        "    qubit1: double qubit 1\n"
+        "    clifford_range: clifford range list\n"
+        "    num_circuits: the num of circuits\n"
+        "    shots: measure shots\n"
+        "    interleaved_gates: interleaved gates list\n"
+        "\n"
+        "Returns:\n"
+        "    result data dict\n"
+        "Raises:\n"
+        "    run_fail: An error occurred in double_gate_xeb\n",
+        py::return_value_policy::automatic);
 
-	m.def(
-		"double_gate_xeb",
+	m.def("double_gate_xeb",
 		py::overload_cast<NoiseQVM *, Qubit *, Qubit *, const std::vector<int> &, int, int, GateType>(&double_gate_xeb),
 		py::arg("noise_qvm"),
 		py::arg("qubit0"),
@@ -2429,47 +3461,114 @@ PYBIND11_MODULE(pyQPanda, m)
 		py::arg("num_circuits"),
 		py::arg("shots"),
 		py::arg_v("gate_type", GateType::CZ_GATE, "GateType.CZ_GATE"),
-		"double gate xeb with WU YUAN chip",
+		"double gate xeb with WU YUAN chip\n"
+        "\n"
+        "Args:\n"
+        "    qvm: quantum machine\n"
+        "    qubit0: double qubit 0\n"
+        "    qubit1: double qubit 1\n"
+        "    clifford_range: clifford range list\n"
+        "    num_circuits: the num of circuits\n"
+        "    shots: measure shots\n"
+        "    interleaved_gates: interleaved gates list\n"
+        "\n"
+        "Returns:\n"
+        "    result data dict\n"
+        "Raises:\n"
+        "    run_fail: An error occurred in double_gate_xeb\n",
 		py::return_value_policy::automatic);
 
 	//---------------------------------------------------------------------------------------------------------------------
 	/* include\Core\Utilities\QProgInfo\QuantumVolume.h */
 	m.def("calculate_quantum_volume",
-		  py::overload_cast<NoiseQVM *, std::vector<std::vector<int>>, int, int>(&calculate_quantum_volume),
-		  py::arg("noise_qvm"),
-		  py::arg("qubit_list"),
-		  py::arg("ntrials"),
-		  py::arg("shots") = 1000,
-		  "calculate quantum volume",
-		  py::return_value_policy::automatic);
+        py::overload_cast<NoiseQVM *, std::vector<std::vector<int>>, int, int>(&calculate_quantum_volume),
+        py::arg("noise_qvm"),
+        py::arg("qubit_list"),
+        py::arg("ntrials"),
+        py::arg("shots") = 1000,
+        "calculate quantum volume\n"
+        "\n"
+        "Args:\n"
+        "    noise_qvm: noise quantum machine\n"
+        "    qubit_list: qubit list \n"
+        "    ntrials: ntrials\n"
+        "    shots: measure shots\n"
+        "\n"
+        "Returns:\n"
+        "    result data dict\n"
+        "Raises:\n"
+        "    run_fail: An error occurred in calculate_quantum_volume\n",
+        py::return_value_policy::automatic);
 
 	m.def("calculate_quantum_volume",
-		  py::overload_cast<QCloudMachine *, std::vector<std::vector<int>>, int, int>(&calculate_quantum_volume),
-		  py::arg("cloud_qvm"),
-		  py::arg("qubit_list"),
-		  py::arg("ntrials"),
-		  py::arg("shots") = 1000,
-		  "calculate quantum volume",
-		  py::return_value_policy::automatic);
+        py::overload_cast<QCloudMachine *, std::vector<std::vector<int>>, int, int>(&calculate_quantum_volume),
+        py::arg("cloud_qvm"),
+        py::arg("qubit_list"),
+        py::arg("ntrials"),
+        py::arg("shots") = 1000,
+        "calculate quantum volume\n"
+        "\n"
+        "Args:\n"
+        "    noise_qvm: noise quantum machine\n"
+        "    qubit_list: qubit list \n"
+        "    ntrials: ntrials\n"
+        "    shots: measure shots\n"
+        "\n"
+        "Returns:\n"
+        "    result data dict\n"
+        "Raises:\n"
+        "    run_fail: An error occurred in calculate_quantum_volume\n",
+        py::return_value_policy::automatic);
 
 	//---------------------------------------------------------------------------------------------------------------------
 	/* include\Core\Utilities\Tools\RandomCircuit.h */
 	m.def("random_qprog",
-		  &random_qprog,
-		  py::arg("qubit_row"),
-		  py::arg("qubit_col"),
-		  py::arg("depth"),
-		  py::arg("qvm"),
-		  py::arg("qvec"),
-		  "Generate random quantum program");
+        &random_qprog,
+        py::arg("qubit_row"),
+        py::arg("qubit_col"),
+        py::arg("depth"),
+        py::arg("qvm"),
+        py::arg("qvec"),
+        "Generate random quantum program\n"
+        "\n"
+        "Args:\n"
+        "    qubit_row: circuit qubit row value\n"
+        "    qubit_col: circuit qubit col value\n"
+        "    depth: circuit depth\n"
+        "    qvm: quantum machine\n"
+        "    qvec: out put circuits for random qprog\n"
+        "\n"
+        "Returns:\n"
+        "    random quantum program\n"
+        "Raises:\n"
+        "    run_fail: An error occurred in generate random qprog\n");
 
 	m.def("random_qcircuit",
-		  &random_qcircuit,
-		  py::arg("qvec"),
-		  py::arg("depth") = 100,
-		  py::arg("gate_type") = std::vector<std::string>(),
-		  "Generate random quantum circuit");
+        &random_qcircuit,
+        py::arg("qvec"),
+        py::arg("depth") = 100,
+        py::arg("gate_type") = std::vector<std::string>(),
+        "Generate random quantum circuit\n"
+        "\n"
+        "Args:\n"
+        "    qubit_row: circuit qubit row value\n"
+        "    qubit_col: circuit qubit col value\n"
+        "    depth: circuit depth\n"
+        "    qvm: quantum machine\n"
+        "    qvec: out put circuits for random circuit\n"
+        "\n"
+        "Returns:\n"
+        "    random quantum program\n"
+        "Raises:\n"
+        "    run_fail: An error occurred in generate random circuit\n");
 
+    m.def("deep_copy", [](QProg& node) { return deepCopy(node);}, py::arg("node"), py::return_value_policy::automatic);
+    m.def("deep_copy", [](QCircuit& node) { return deepCopy(node); }, py::arg("node"), py::return_value_policy::automatic);
+    m.def("deep_copy", [](QGate& node) { return deepCopy(node); }, py::arg("node"), py::return_value_policy::automatic);
+    m.def("deep_copy", [](QMeasure& node) { return deepCopy(node); }, py::arg("node"), py::return_value_policy::automatic);
+    m.def("deep_copy", [](ClassicalProg& node) { return deepCopy(node); }, py::arg("node"), py::return_value_policy::automatic);
+    m.def("deep_copy", [](QIfProg& node) { return deepCopy(node); }, py::arg("node"), py::return_value_policy::automatic);
+    m.def("deep_copy", [](QWhileProg& node) { return deepCopy(node); }, py::arg("node"), py::return_value_policy::automatic);
 	/* =============================test end =============================*/
 
 	/*QUERY_REPLACE(QProg, QCircuit, QCircuit)

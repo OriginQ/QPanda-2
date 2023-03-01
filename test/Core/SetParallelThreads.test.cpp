@@ -64,7 +64,7 @@ static bool test_vf1_0()
 
     prog << circuit;
     Fusion fuser;
-    fuser.aggregate_operations(prog, &qvm);
+    fuser.aggregate_operations(prog);
     qvm.directlyRun(prog);
     return true;
 }

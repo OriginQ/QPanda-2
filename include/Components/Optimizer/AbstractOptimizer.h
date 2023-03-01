@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2017-2020 Origin Quantum Computing. All Right Reserved.
+Copyright (c) 2017-2023 Origin Quantum Computing. All Right Reserved.
 Licensed under the Apache License 2.0
 
 AbstractOptimizer.h
@@ -7,6 +7,7 @@ AbstractOptimizer.h
 Author: LiYe
 Created in 2018-09-06
 
+Alter by LiYe in 2021-1-21
 
 */
 
@@ -15,7 +16,7 @@ Created in 2018-09-06
 
 #include <vector>
 #include <functional>
-#include "Core/Module/DataStruct.h"
+#include "OptimizerDataStruct.h"
 
 namespace QPanda
 {
@@ -35,11 +36,13 @@ namespace QPanda
         virtual ~AbstractOptimizer();
 
 		/**
-	    * @brief register a user defined function and set some Optimizer parameters
+	    * @brief register a user defined function and set Optimizer parameters
 	    * @param[in] QFunc& user defined function
 		* @param[in] vector_d& Optimizer parameters
 	    */
-        virtual void registerFunc(const QOptFunc&func, const vector_d &optimized_para)
+        virtual void registerFunc(
+            const QOptFunc &func, 
+            const std::vector<double> &optimized_para)
         {
             m_func = func;
             m_optimized_para = optimized_para;
@@ -64,7 +67,8 @@ namespace QPanda
         }
 
 		/**
-		* @brief set absolute error in xopt between iterations that is acceptable for convergence
+		* @brief set absolute error in xopt between iterations 
+        *        that is acceptable for convergence
 		* @param[in] double
 		*/
         virtual void setXatol(double xatol)
@@ -73,7 +77,8 @@ namespace QPanda
         }
 
 		/**
-		* @brief set Absolute error in func(xopt) between iterations that is acceptable for convergence
+		* @brief set Absolute error in func(xopt) between iterations 
+                 that is acceptable for convergence
 		* @param[in] double
 		*/
         virtual void setFatol(double fatol)
@@ -92,16 +97,26 @@ namespace QPanda
 
 		/**
 		* @brief set the max iter times
-		* @param[in] size_t
+		* @param[in] size_t max iter
 		*/
         virtual void setMaxIter(size_t max_iter)
         {
             m_max_iter = max_iter;
         }
 
+        /**
+        * @brief set optional paraments
+        * @param[in] std::map<std::string, std::string> optional paraments
+        */
+        virtual void setOptionalPara(const std::map<std::string, std::string>&
+                                     optional_para)
+        {
+            m_optional_para = optional_para;
+        }
+
 		/**
 		* @brief set whether or not restore from cache file
-		* @param[in] bool
+		* @param[in] bool restore flag
 		*/
         virtual void setRestoreFromCacheFile(bool restore)
         {
@@ -115,17 +130,6 @@ namespace QPanda
         virtual void setCacheFile(const std::string& cache_file)
         {
             m_cache_file = cache_file;
-        }
-
-		/**
-		* @brief only for test
-		* @param[in] double test value
-		* @param[in] std::string& file name
-		*/
-        virtual void setTestValueAndParaFile(double test_value, const std::string &filename)
-        {
-            m_test_value = test_value;
-            m_para_file = filename;
         }
 
 		/**
@@ -143,9 +147,9 @@ namespace QPanda
         }
 
     protected:
-        QOptFunc m_func; /**< user defined function */
+        QOptFunc m_func; /**< user defined loss function */
 
-        vector_d m_optimized_para; /**< optimized parameter */
+        std::vector<double> m_optimized_para; /**< optimized parameter */
 
         bool m_disp;        /**< Whether to print the log to the terminal */
         bool m_adaptive;    /**< Para of Nelder-Mead.
@@ -153,19 +157,24 @@ namespace QPanda
                              of problem.Useful for high-dimensional
                              minimization. [Optional]*/
 
-        double m_xatol;     /**< Absolute error in xopt between iterations that is
-                             acceptable for convergence. [Optional] */
+        double m_xatol;     /**< Absolute error in xopt between iterations that 
+                            is acceptable for convergence. [Optional] */
 
-        double m_fatol;     /**< Absolute error in func(xopt) between iterations that is
-                             acceptable for convergence. [Optional]*/
+        double m_fatol;     /**< Absolute error in func(xopt) between 
+                            iterations that is acceptable for convergence. 
+                            [Optional]*/
 
         double m_test_value;/**<  user test value*/
         std::string m_para_file; /**< parameter file */
 
-        size_t m_max_fcalls;/**<  Maximum allowed number of function evaluations*/
+        size_t m_max_fcalls;/**<  Maximum allowed number 
+                                  of function evaluations*/
         size_t m_max_iter;  /**<  Maximum allowed number of iterations*/
 
-        bool m_restore_from_cache_file; /**< Whether to restore_from_cache_file */
+        std::map<std::string, std::string> m_optional_para;/**< Optional paraments*/
+
+        bool m_restore_from_cache_file; /**< Whether to restore data 
+                                             from cache file */
         std::string m_cache_file; /**< cache file */
 
         QOptimizationResult m_result; /**< optimization result */

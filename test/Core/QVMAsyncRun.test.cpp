@@ -34,7 +34,6 @@ TEST(CPUQVMTest, testAsyncRunAndGetProcess)
     {
         processed_gate_num = qvm.get_processed_qgate_num();
         std::cout << "processed_gate_num : " << processed_gate_num << "/" << total_num << std::endl;
-        ASSERT_TRUE(processed_gate_num >= 0);
         ASSERT_TRUE(processed_gate_num <= total_num);
     }
 

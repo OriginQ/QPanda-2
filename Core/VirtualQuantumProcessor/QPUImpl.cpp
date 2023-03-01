@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2017-2020 Origin Quantum Computing. All Right Reserved.
+Copyright (c) 2017-2023 Origin Quantum Computing. All Right Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,9 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include "QPUImpl.h"
-#include <time.h>
 
+#include <time.h>
+#include "QPUImpl.h"
 USING_QPANDA
 using namespace std;
 

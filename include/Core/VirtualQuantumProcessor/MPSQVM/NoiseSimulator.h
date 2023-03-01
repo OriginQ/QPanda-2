@@ -8,6 +8,36 @@ QPANDA_BEGIN
 
 using DoubleQubits = std::pair<size_t, size_t>;
 
+namespace NoiseUtils
+{
+    Qnum get_qnum(const std::vector<Qnum>& qnums);
+
+    void assert_probs_equal_to_one(const std::vector<double> &probs);
+
+    bool matrix_equal(const QStat &lhs, const QStat &rhs);
+
+    void unique_vector(Qnum &qubits);
+
+    bool optimize_karus_matrices(std::vector<QStat> &ops);
+
+    std::vector<QStat> get_tensor_matrices(const std::vector<QStat>& matrices_a, const std::vector<QStat>& matrices_b);
+
+    size_t get_karus_error_qubit_num(const std::vector<QStat>& matrices);
+
+    std::vector<double> get_tensor_probs(const std::vector<double>& probs_a, const std::vector<double>& probs_b);
+
+    std::vector<QStat> get_compose_karus_matrices(const std::vector<QStat>& karus_matrices_a,
+        const std::vector<QStat>& karus_matrices_b);
+
+    bool is_rotation_gate(GateType type);
+
+    size_t random_discrete(const std::vector<double> &probs);
+
+    std::vector<Qnum> get_qubits_addr(const std::vector<QVec>& qvs);
+
+    Qnum get_qubits_addr(const QVec &qvs);
+}
+
 enum class KarusErrorType
 {
     KARUS_MATRIICES,
@@ -48,7 +78,7 @@ private:
 
     //reset error param
     double m_reset_p0 = .0;  /*probabilities for reset to |0>*/
-    double m_reset_p1 = .0;  /*probabilities for reset to |1>*/ 
+    double m_reset_p1 = .0;  /*probabilities for reset to |1>*/
 
     //measure error param
     Qnum m_measure_qubits;
@@ -65,6 +95,8 @@ public:
     KarusError() {}
     KarusError(const std::vector<QStat>&);
     KarusError(const std::vector<QStat>&, const std::vector<double>&);
+    KarusError(const std::vector<QStat>&, NOISE_MODEL model);
+    KarusError(const std::vector<QStat>&, const std::vector<double>&, NOISE_MODEL model);
 
     bool has_karus_error();
 
@@ -79,18 +111,24 @@ public:
     void set_karus_matrices(std::vector<QStat>& karus_matrices);
     void get_karus_matrices(std::vector<QStat>& karus_matrices) const;
 
+    void get_one_qubit_karus_matrices(std::vector<QStat>& karus_matrices) const;
+    void get_two_qubit_karus_matrices(std::vector<QStat>& karus_matrices) const;
+
     KarusError tensor(const KarusError& karus_error);
     KarusError expand(const KarusError& karus_error);
     KarusError compose(const KarusError& karus_error);
-    
+
     size_t get_qubit_num() const { return m_qubit_num; }
+    NOISE_MODEL get_noise_model() { return m_noise_model; }
     KarusErrorType get_karus_error_type() { return m_karus_error_type; }
 
 private:
 
+    NOISE_MODEL m_noise_model;
+
     //1 qubit error or 2 qubit error
     size_t m_qubit_num = 1;
-     
+
     //KARUS_MATRIICES or UNITARY_MATRIICES
     KarusErrorType  m_karus_error_type = KarusErrorType::KARUS_MATRIICES;
 
@@ -113,7 +151,7 @@ public:
 
     //rotation error
     void set_rotation_error(double);
-     
+
     //measure error
     void set_measure_error(NOISE_MODEL model, double param);
     void set_measure_error(NOISE_MODEL model, double param, const Qnum& qubits_vec);
@@ -136,7 +174,7 @@ public:
 
     void set_mixed_unitary_error(GateType gate_type, const std::vector<QStat>& karus_matrices, const std::vector<Qnum>& qubits_vecs);
     void set_mixed_unitary_error(GateType gate_type, const std::vector<QStat>& unitary_matrices, const std::vector<double>& probs_vec, const std::vector<Qnum>& qubits_vecs);
-    
+
     /*combining error*/
 
     /* bit-flip,phase-flip,bit-phase-flip,phase-damping,amplitude-damping,depolarizing*/
@@ -166,9 +204,9 @@ public:
     void execute(std::shared_ptr<AbstractQDebugNode>, std::shared_ptr<QNode>, QCircuitConfig &config);
 
 private:
-     
+
     QResult* m_result;
-    std::shared_ptr<MPSImplQPU> m_mps_qpu; 
+    std::shared_ptr<MPSImplQPU> m_mps_qpu;
 
     //qubits config for GateType
     std::map<GateType, Qnum> m_single_qubits;
@@ -197,13 +235,13 @@ private:
     void set_double_karus_error_tuple(GateType gate_type, const KarusError &karus_error, const std::vector<Qnum>& qubits);
 
     void handle_quantum_gate(std::shared_ptr<AbstractQGateNode> gate_type, bool is_dagger);
-    
+
     void update_karus_error_tuple(GateType gate_type, int tar_qubit, const KarusError& karus_error);
     void update_karus_error_tuple(GateType gate_type, int ctr_qubit, int tar_qubit, const KarusError& karus_error);
 
     std::shared_ptr<AbstractQGateNode> handle_rotation_error(std::shared_ptr<AbstractQGateNode>);
 
-    KarusError get_karus_error(GateType gate_type,const QVec& qubits);
+    KarusError get_karus_error(GateType gate_type, const QVec& qubits);
 };
 
 QPANDA_END

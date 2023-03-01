@@ -8,7 +8,7 @@
 #include <complex>
 #include <unordered_map>
 #include <cstring>
-
+#include <bitset>
 /**
 * @namespace QPanda
 * @brief QPanda2 base namespace
@@ -86,6 +86,18 @@ typedef double qstate_type;
 typedef std::complex <qstate_type> qcomplex_t;
 typedef std::vector <qcomplex_t> QStat;
 typedef std::vector<size_t> Qnum;
+
+template <size_t num_qubits>
+using qubit_label_type = std::bitset<num_qubits>;
+
+// Wavefunctions are hash maps of some key (std::bitset or a string)
+template <typename key>
+using abstract_wavefunction = std::unordered_map<key, qcomplex_t>;
+
+// Wavefunctions with strings as keys are "universal" in that they do not depend
+// on the total number of qubits
+using universal_wavefunction = abstract_wavefunction<std::string>;
+
 
 using prob_vec = std::vector<double>;
 using prob_map = std::unordered_map<std::string, qstate_type>;

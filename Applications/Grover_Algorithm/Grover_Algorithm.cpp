@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2017-2020 Origin Quantum Computing. All Right Reserved.
+Copyright (c) 2017-2023 Origin Quantum Computing. All Right Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -159,7 +159,7 @@ static uint32_t quantum_walk_search(const std::vector<uint32_t>& search_space, c
 	QVec measure_qubits;
 	uint32_t qubit_size = 0;
 	vector<ClassicalCondition> c;
-	const double max_repeat = 3.1415926 * sqrt(((double)search_space.size()) / ((double)search_result_for_check.size())) / 4.0;
+//	const double max_repeat = 3.1415926 * sqrt(((double)search_space.size()) / ((double)search_result_for_check.size())) / 4.0;
 	while (true)
 	{
 		measure_qubits.clear();

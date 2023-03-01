@@ -238,8 +238,9 @@ namespace QPanda
     {
         m_fcalls++;
 
-        vector_d optimized_para(para.data(), para.data() + para.size());
-        vector_d blank;
+        std::vector<double> optimized_para(para.data(),
+                                           para.data() + para.size());
+        std::vector<double> blank;
         return m_func(optimized_para, blank, m_iter, m_fcalls);
     }
 
@@ -277,7 +278,7 @@ namespace QPanda
                 << m_fcalls << std::endl;
 
             std::cout << "         Optimized para: " << std::endl;
-            for (auto i = 0; i < m_n; i++)
+            for (size_t i = 0; i < m_n; i++)
             {
                 std::cout << "             " << m_x[i] << std::endl;
             }
@@ -327,7 +328,7 @@ namespace QPanda
 
 
         std::string tmp_x;
-        for (size_t i = 0; i < m_x.size(); i++)
+        for (auto i = 0; i < m_x.size(); i++)
         {
             if (i == 0)
             {

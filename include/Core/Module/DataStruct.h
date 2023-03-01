@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2017-2020 Origin Quantum Computing. All Right Reserved.
+Copyright (c) 2017-2023 Origin Quantum Computing. All Right Reserved.
 Licensed under the Apache License 2.0
 
 DataStruct.h
@@ -77,23 +77,8 @@ QPANDA_BEGIN
     using vector_s = std::vector<std::string>;
     using QGraph = std::vector<QGraphItem>;
 
-	/**
-	* @brief optimization result structure
-	*/
-    struct QOptimizationResult
-    {
-        std::string message;
-        size_t iters;           /**< iteration count. */
-        size_t fcalls;          /**< function call count. */
-        std::string key;        /**< problem solution. */
-        double fun_val;         /**< minimun value of the problem. */
-        vector_d para;          /**< optimized para */ 
-    };
+    //typedef QResultPair(*QOptFunc_c)(const vector_d &x, vector_d& grad, int, int);
 
-    using QResultPair = std::pair<std::string, double>; 
-    using QFunc = std::function<QResultPair(vector_d)>;
-    using QOptFunc = std::function < QResultPair(vector_d x, vector_d& grad, int, int)>;
-    using QUserDefinedFunc = std::function<double(const std::string &)>;
     using QProbMap = std::map<std::string, double>;
 
     /**
@@ -139,19 +124,6 @@ QPANDA_BEGIN
     };
 
 	/**
-	* @brief Optimizer Type
-	*/
-    enum class OptimizerType
-    {
-        NELDER_MEAD,
-        POWELL,
-        COBYLA,
-        GRADIENT,
-        LBFGSB,
-        SLSQP
-    };
-
-	/**
 	* @brief TransForm Type
 	*/
     enum class TransFormType
@@ -170,41 +142,21 @@ QPANDA_BEGIN
         UCCSD
     };
 
-	/**
-	* @brief Two Para structure
-	*/
-    struct QTwoPara
-    {
-        double x_min;
-        double x_max;
-        double x_step;
-        double y_min;
-        double y_max;
-        double y_step;
-    };
-
-	/**
-	* @brief Scan Para structure
-	*/
-    struct QScanPara
-    {
-        QTwoPara two_para;
-        size_t pos1;
-        size_t pos2;
-        vector_i keys;
-        std::string filename;
-    };
-
     /**
     * @brief Ansatz gate type
     */
     enum class AnsatzGateType
     {
-        AGT_NOT,
+        AGT_X,
         AGT_H,
         AGT_RX,
         AGT_RY,
-        AGT_RZ
+        AGT_RZ,
+        AGT_X1,
+        AGT_Y1,
+        AGT_Z1,
+        AGT_Z,
+        AGT_Y
     };
 
     /**
@@ -216,30 +168,22 @@ QPANDA_BEGIN
         int target;
         double theta;
         int control;
+        bool constant;
 
         AnsatzGate(
             AnsatzGateType type_,
             int target_,
             double theta_ = -1,
-            int control_ = -1) :
+            int control_ = -1,
+            bool constant_ = false) :
             type(type_),
-            target(target_),
+            target(target_),  
             theta(theta_),
-            control(control_)
-        {
-        }
+            control(control_),
+            constant(constant_)
+        {}
     };
-
-    extern bool operator < (const QResultPair &p1, const QResultPair &p2);
-    extern bool operator < (const QResultPair &p1, const double &coef);
-    extern bool operator <= (const QResultPair &p1, const QResultPair &p2);
-    extern bool operator <= (const QResultPair &p1, const double &coef);
-    extern bool operator > (const QResultPair &p1, const QResultPair &p2);
-    extern bool operator >= (const QResultPair &p1, const QResultPair &p2);
-    extern double operator - (const QResultPair &p1, const QResultPair &p2);
-    extern double operator + (const QResultPair &p1, const QResultPair &p2);
-    extern double operator * (const double &coef, const QResultPair &p);
-    extern double operator * (const QResultPair &p, const double &coef);
+    
 QPANDA_END
 
 #endif // DATASTRUCT_H

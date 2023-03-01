@@ -1,17 +1,9 @@
 try:
-    import matplotlib as mpl
     from matplotlib import animation
-    from matplotlib import cm
-    from matplotlib import colors as mcolors
-    from matplotlib.colors import Normalize, LightSource
     import matplotlib.pyplot as plt
     from matplotlib import get_backend
-    from matplotlib.patches import FancyArrowPatch
-    from matplotlib.patches import Circle
-    import matplotlib.gridspec as gridspec
-    from mpl_toolkits.mplot3d import proj3d
-    from mpl_toolkits.mplot3d.art3d import Poly3DCollection
     from mpl_toolkits.mplot3d import Axes3D
+    plt.switch_backend('TKAgg')
     HAS_MATPLOTLIB = True
 except:
     HAS_MATPLOTLIB = False
@@ -24,9 +16,7 @@ from .quantum_state_plot import state_to_density_matrix
 from pyqpanda import circuit_layer
 from math import sin, cos, acos, sqrt
 from .bloch import Bloch
-import scipy.sparse as sp
-import scipy.linalg as la
-
+import matplotlib
 
 def count_pauli(i):
 
@@ -87,6 +77,17 @@ def get_single_paulis(num_qubits, index):
 
 
 def plot_bloch_vector(bloch, title="bloch", axis_obj=None, fig_size=None):
+    """Draw a quantum state bloch view
+
+    Args:
+        state : the quantum state 
+        title : the figure title 
+        fig_size : the figure size 
+
+    Returns: 
+        bloch figure shows quantum state
+
+    """
     if not HAS_MATPLOTLIB:
         raise ImportError('Must have Matplotlib installed')
     if fig_size is None:
@@ -106,6 +107,17 @@ def plot_bloch_vector(bloch, title="bloch", axis_obj=None, fig_size=None):
 
 
 def plot_bloch_multivector(state, title='', fig_size=None):
+    """Draw a quantum state bloch view
+
+    Args:
+        state : the quantum state 
+        title : the figure title 
+        fig_size : the figure size 
+
+    Returns: 
+        bloch figure shows quantum state
+
+    """
 
     if not HAS_MATPLOTLIB:
         raise ImportError('Must have Matplotlib installed')
@@ -307,6 +319,17 @@ def plot_bloch_circuit(circuit,
                        saveas=None,
                        fps=20,
                        secs_per_gate=1):
+    """Draw a quantum circuit bloch view , only support one qubit
+
+    Args:
+        circuit : the quantum circuit 
+        trace : whether shows the trace 
+        fps : flash fps 
+
+    Returns: 
+        bloch figure shows quantum circuit
+
+    """
 
     if not HAS_MATPLOTLIB:
         raise ImportError("Must have Matplotlib installed.")
@@ -351,11 +374,20 @@ def plot_bloch_circuit(circuit,
         raise RuntimeError("Nothing to visualize.")
 
     starting_pos = normalize(np.array([0, 0, 1]))
-
+    view=[-60,30]
     fig = plt.figure(figsize=(6, 6))
-    _ax = Axes3D(fig)
-    _ax.set_xlim(-10, 10)
-    _ax.set_ylim(-10, 10)
+    if tuple(int(x) for x in matplotlib.__version__.split(".")) >= (3, 4, 0):
+        _ax = Axes3D(
+            fig, azim=view[0], elev=view[1], auto_add_to_figure=False
+        )
+        fig.add_axes(_ax)
+    else:
+        _ax = Axes3D(
+            fig,
+            azim=view[0],
+            elev=view[1],
+        )
+
     sphere = Bloch(axes=_ax)
 
     class PlotParams:

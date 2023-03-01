@@ -1,10 +1,9 @@
 #include <fstream>
 #include <algorithm>
+#include <string.h>
 #include "Core/Core.h"
 #include "Core/QuantumMachine/QCloudMachine.h"
 #include "ThirdParty/rabbit/rabbit.hpp"
-
-
 
 USING_QPANDA
 using namespace std;
@@ -19,11 +18,28 @@ static std::map<NOISE_MODEL, std::string> noise_model_mapping =
   {NOISE_MODEL::DECOHERENCE_KRAUS_OPERATOR,"DECOHERENCE_KRAUS_OPERATOR"},
   {NOISE_MODEL::DEPHASING_KRAUS_OPERATOR,"DEPHASING_KRAUS_OPERATOR"},
   {NOISE_MODEL::DEPOLARIZING_KRAUS_OPERATOR,"DEPOLARIZING_KRAUS_OPERATOR"},
-  {NOISE_MODEL::KRAUS_MATRIX_OPRATOR,"KRAUS_MATRIX_OPRATOR"},
-  {NOISE_MODEL::MIXED_UNITARY_OPRATOR,"MIXED_UNITARY_OPRATOR"},
-  {NOISE_MODEL::PAULI_KRAUS_MAP,"PAULI_KRAUS_MAP"},
+  //{NOISE_MODEL::KRAUS_MATRIX_OPRATOR,"KRAUS_MATRIX_OPRATOR"},
+  //{NOISE_MODEL::MIXED_UNITARY_OPRATOR,"MIXED_UNITARY_OPRATOR"},
+  //{NOISE_MODEL::PAULI_KRAUS_MAP,"PAULI_KRAUS_MAP"},
   {NOISE_MODEL::PHASE_DAMPING_OPRATOR,"PHASE_DAMPING_OPRATOR"}
 };
+
+static std::string  rabbit_json_extract(const rabbit::document& result_doc, std::string value)
+{
+    transform(value.begin(), value.end(), value.begin(), ::toupper);
+
+    for (auto iter = result_doc.member_begin(); iter != result_doc.member_end(); ++iter)
+    {
+        std::string iter_name = iter->name();
+        std::string iter_name_upper = iter->name();
+
+        transform(iter_name_upper.begin(), iter_name_upper.end(), iter_name_upper.begin(), ::toupper);
+        if (0 == strcmp(iter_name_upper.c_str(), value.c_str()))
+            return std::string(iter_name);
+    }
+
+    QCERR_AND_THROW(std::runtime_error, "result json incorrect,no key or value found");
+}
 
 QCloudMachine::QCloudMachine()
 {
@@ -608,6 +624,34 @@ double QCloudMachine::get_expectation(QProg prog, const QHamiltonian& hamiltonia
     }
 }
 
+double QCloudMachine::get_expectation(QProg prog, const QHamiltonian& hamiltonian, const QVec& qvec, std::string task_name)
+{
+    //convert prog to originir 
+    auto prog_str = convert_qprog_to_originir(prog, this);
+
+    Qnum qubits;
+    for (auto qubit : qvec)
+        qubits.emplace_back(qubit->get_phy_addr());
+
+    //construct json
+    rabbit::document doc;
+    doc.parse("{}");
+
+    construct_cluster_task_json(doc, prog_str, m_token, (size_t)CloudQMchineType::Full_AMPLITUDE,
+        getAllocateQubitNum(), getAllocateCMem(),
+        (size_t)ClusterTaskType::CLUSTER_EXPECTATION, task_name);
+
+    doc.insert("qubits", to_string_array(qubits));
+    doc.insert("hamiltonian", hamiltonian_to_json(hamiltonian));
+
+    std::string post_json_str = doc.str();
+    std::string recv_json_str = post_json(m_compute_url, post_json_str);
+
+    inquire_result(recv_json_str, m_inquire_url, CloudQMchineType::Full_AMPLITUDE);
+    return m_expectation;
+}
+
+
 std::string QCloudMachine::get_expectation_commit(QProg prog, const QHamiltonian& hamiltonian, const QVec& qvec, TaskStatus& status, std::string task_name)
 {
     //convert prog to originir 
@@ -710,6 +754,7 @@ bool QCloudMachine::parser_submit_json(std::string &recv_json, std::string& task
     }
     catch (const std::exception& e)
     {
+        if (m_is_logged) std::cout << recv_json << std::endl;
         QCERR_AND_THROW(run_fail, e.what());
     }
 }
@@ -723,7 +768,7 @@ bool QCloudMachine::parser_result_json(std::string &recv_json, std::string& task
 
     if (!recv_doc["success"].as_bool())
     {
-        m_error_info = recv_doc["enMessage"].as_string();
+        m_error_info = recv_doc["message"].as_string();
         QCERR_AND_THROW(run_fail, m_error_info);
     }
 
@@ -747,42 +792,41 @@ bool QCloudMachine::parser_result_json(std::string &recv_json, std::string& task
             switch (backend_type)
             {
             case CloudQMchineType::REAL_CHIP:
-            {
-                m_measure_result.clear();
-                for (auto i = 0; i < result_doc["key"].size(); ++i)
-                {
-                    auto key = result_doc["key"][i].as_string();
-                    auto val = result_doc["value"][i].is_double() ?
-                        result_doc["value"][i].as_double() : (double)result_doc["value"][i].as_int();
-
-                    m_measure_result.insert(make_pair(key, val));
-                }
-
-                break;
-            }
-
             case CloudQMchineType::NOISE_QMACHINE:
             case CloudQMchineType::Full_AMPLITUDE:
             {
-
-                auto result_type = result_doc["ResultType"].as_int();
-
-                if (result_type == (int)ClusterResultType::EXPECTATION)
+                if (result_doc.has("ResultType") && 
+                    result_doc["ResultType"].as_int() == (int)ClusterResultType::EXPECTATION)
                 {
-                    m_expectation = result_doc["Value"].is_double() ?
-                        result_doc["Value"].as_double() : (double)result_doc["Value"].as_int();
+                    auto exp_value_str = rabbit_json_extract(result_doc, "value");
+                    
+                    m_expectation = result_doc[exp_value_str.c_str()].is_double() ?
+                        result_doc[exp_value_str.c_str()].as_double() : (double)result_doc[exp_value_str.c_str()].as_int();
                 }
                 else
                 {
                     m_measure_result.clear();
-                    for (auto i = 0; i < result_doc["Key"].size(); ++i)
-                    {
-                        auto key = result_doc["Key"][i].as_string();
-                        auto val = result_doc["Value"][i].is_double() ?
-                            result_doc["Value"][i].as_double() : (double)result_doc["Value"][i].as_int();
+                    std::vector<std::string> key_list;
+                    std::vector<double> value_list;
 
-                        m_measure_result.insert(make_pair(key, val));
+                    auto key_string = rabbit_json_extract(result_doc, "key");
+                    auto value_string = rabbit_json_extract(result_doc, "value");
+
+                    for (auto i = 0; i < result_doc[key_string.c_str()].size(); ++i)
+                        key_list.emplace_back(result_doc[key_string.c_str()][i].as_string());
+
+                    for (auto i = 0; i < result_doc[value_string.c_str()].size(); ++i)
+                    {
+                        auto val = result_doc[value_string.c_str()][i].is_double() ?
+                            result_doc[value_string.c_str()][i].as_double() : (double)result_doc[value_string.c_str()][i].as_int();
+                        value_list.emplace_back(val);
                     }
+
+                    if (key_list.size() != value_list.size())
+                        QCERR_AND_THROW(std::runtime_error, "reasult json size incorrect");
+
+                    for (size_t i = 0; i < key_list.size(); i++)
+                        m_measure_result.insert(make_pair(key_list[i], value_list[i]));
                 }
 
                 break;
@@ -791,9 +835,12 @@ bool QCloudMachine::parser_result_json(std::string &recv_json, std::string& task
             case CloudQMchineType::PARTIAL_AMPLITUDE:
             {
                 m_pmeasure_result.clear();
-                for (SizeType i = 0; i < result_doc["Key"].size(); ++i)
+
+                auto key_string = rabbit_json_extract(result_doc, "key");
+
+                for (auto i = 0; i < result_doc[key_string.c_str()].size(); ++i)
                 {
-                    auto key = result_doc["Key"][i].as_string();
+                    auto key = result_doc[key_string.c_str()][i].as_string();
                     auto val_real = result_doc["ValueReal"][i].is_double() ?
                         result_doc["ValueReal"][i].as_double() : (double)result_doc["ValueReal"][i].as_int();
                     auto val_imag = result_doc["ValueImag"][i].is_double() ?
@@ -881,8 +928,8 @@ bool QCloudMachine::parser_result_json(std::string &recv_json, std::string& task
     catch (const std::exception&e)
     {
         if (m_is_logged) std::cout << recv_json << std::endl;
-        QCERR("parse result exception error");
-        throw run_fail("parse result exception error");
+        std::string err_info = "task execute failed : " + std::string(e.what());
+        QCERR_AND_THROW(run_fail, err_info);
     }
 
     return false;
@@ -1140,7 +1187,7 @@ bool QCloudMachine::parser_submit_json_batch(std::string &recv_json, std::map<si
         auto success = doc["success"].as_bool();
         if (!success)
         {
-            m_error_info = doc["enMessage"].as_string();
+            m_error_info = doc["message"].as_string();
             QCERR_AND_THROW(run_fail, m_error_info);
         }
         else
@@ -1198,7 +1245,7 @@ bool QCloudMachine::parser_result_json_batch(std::string &recv_json, std::map<si
         bool success = doc["success"].as_bool();
         if (!success)
         {
-            string message = doc["enMessage"].as_string();
+            string message = doc["message"].as_string();
             QCERR_AND_THROW(run_fail, message.c_str());
         }
 
@@ -1221,11 +1268,14 @@ bool QCloudMachine::parser_result_json_batch(std::string &recv_json, std::map<si
                 {
                     m_measure_result.clear();
 
-                    for (int j = 0; j < result_doc["value"].size(); j++)
+                    auto key_string = rabbit_json_extract(result_doc, "key");
+                    auto value_string = rabbit_json_extract(result_doc, "value");
+
+                    for (int j = 0; j < result_doc[value_string.c_str()].size(); j++)
                     {
-                        auto key = result_doc["key"][j].as_string();
-                        auto val = result_doc["value"][j].is_double() ?
-                            result_doc["value"][j].as_double() : (double)result_doc["value"][j].as_int();
+                        auto key = result_doc[key_string.c_str()][j].as_string();
+                        auto val = result_doc[value_string.c_str()][j].is_double() ?
+                            result_doc[value_string.c_str()][j].as_double() : (double)result_doc[value_string.c_str()][j].as_int();
 
                         m_measure_result.insert(make_pair(key, val));
                     }
@@ -1241,11 +1291,14 @@ bool QCloudMachine::parser_result_json_batch(std::string &recv_json, std::map<si
                 {
                     m_measure_result.clear();
 
-                    for (int j = 0; j < result_doc["Value"].size(); j++)
+                    auto key_string = rabbit_json_extract(result_doc, "key");
+                    auto value_string = rabbit_json_extract(result_doc, "value");
+
+                    for (int j = 0; j < result_doc[value_string.c_str()].size(); j++)
                     {
-                        auto key = result_doc["Key"][j].as_string();
-                        auto val = result_doc["Value"][j].is_double() ?
-                            result_doc["Value"][j].as_double() : (double)result_doc["Value"][j].as_int();
+                        auto key = result_doc[key_string.c_str()][j].as_string();
+                        auto val = result_doc[value_string.c_str()][j].is_double() ?
+                            result_doc[value_string.c_str()][j].as_double() : (double)result_doc[value_string.c_str()][j].as_int();
 
                         m_measure_result.insert(make_pair(key, val));
                     }
@@ -1256,19 +1309,23 @@ bool QCloudMachine::parser_result_json_batch(std::string &recv_json, std::map<si
 
                 case ReasultType::SINGLE_PROBABILITY:
                 {
-                    m_expectation = result_doc["Value"].is_double() ?
-                        result_doc["Value"].as_double() : (double)result_doc["Value"].as_int();
+                    auto value_string = rabbit_json_extract(result_doc, "value");
+
+                    m_expectation = result_doc[value_string.c_str()].is_double() ?
+                        result_doc[value_string.c_str()].as_double() : (double)result_doc[value_string.c_str()].as_int();
                 }
 
                 case ReasultType::MULTI_AMPLITUDE:
                 {
                     m_pmeasure_result.clear();
 
-                    if (result_doc["Key"].is_array())   //partial amplitude
+                    auto key_string = rabbit_json_extract(result_doc, "key");
+
+                    if (result_doc[key_string.c_str()].is_array())   //partial amplitude
                     {
-                        for (int j = 0; j < result_doc["Key"].size(); j++)
+                        for (int j = 0; j < result_doc[key_string.c_str()].size(); j++)
                         {
-                            auto key = result_doc["Key"][j].as_string();
+                            auto key = result_doc[key_string.c_str()][j].as_string();
                             auto val_real = result_doc["ValueReal"][j].is_double() ?
                                 result_doc["ValueReal"][j].as_double() : (double)result_doc["ValueReal"][j].as_int();
                             auto val_imag = result_doc["ValueImag"][j].is_double() ?
@@ -1281,7 +1338,8 @@ bool QCloudMachine::parser_result_json_batch(std::string &recv_json, std::map<si
                     }
                     else  //single amplitude
                     {
-                        auto key = result_doc["Key"].as_string();
+                        auto key_string = rabbit_json_extract(result_doc, "key");
+                        auto key = result_doc[key_string.c_str()].as_string();
                         auto val_real = result_doc["ValueReal"][0].is_double() ?
                             result_doc["ValueReal"][0].as_double() : (double)result_doc["ValueReal"][0].as_int();
                         auto val_imag = result_doc["ValueImag"][0].is_double() ?

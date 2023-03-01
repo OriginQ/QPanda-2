@@ -40,7 +40,9 @@ public:
 
 	void set_param(const QVec& qubits, const std::vector<double>& angle) {
 		m_qubit = qubits;
-		m_angle_vec = angle;
+		if (angle.size() > 0){
+			m_angle_vec = angle;
+		}
 	}
 
 	CircuitNodeRef build_cir_node(std::string op, const std::vector<uint32_t>& target_q,

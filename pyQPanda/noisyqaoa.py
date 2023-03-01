@@ -36,7 +36,7 @@ def simulatePauliZHamiltonian_VQC(qubit_list,Hamiltonian,time):
 def noisy_qaoa(Hamiltonian,noise,step):
     machine=NoiseQVM()
     machine.initQVM(noise)
-    qlist=machine.qAlloc_many(H1.getMaxIndex())
+    qlist=machine.qAlloc_many(H1.getMaxIndex()+1)
 
     gamma = var(np.ones((step,1), dtype = 'float64')*(0.01))
     beta = var(np.ones((step,1), dtype = 'float64')*0.01)
@@ -96,7 +96,7 @@ if __name__=="__main__":
     'Z1 Z5':0.36,'Z2 Z5':0.88,'Z2 Z6':0.58,'Z3 Z5':0.67,'Z3 Z6':0.43})
     # H2=q.PauliOperator({"Z0 Z4":0.73+0.1j})
     # machine=q.init_quantum_machine(q.QMachineType.CPU_SINGLE_THREAD)
-    # qlist=machine.qAlloc_many(H1.getMaxIndex())
+    # qlist=machine.qAlloc_many(H1.getMaxIndex()+1)
     singlenoise=[2,5,2,0.03]
 
     noise={"RY":[2,5.0,2.0,0.03],

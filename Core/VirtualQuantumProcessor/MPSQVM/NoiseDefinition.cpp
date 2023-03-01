@@ -73,7 +73,11 @@ static std::vector<QStat> get_amplitude_damping_flip_karus_matrices(const prob_v
     double probability = params[0];
 
     karus_matrices[0] = { 1,0,0,(qstate_type)sqrt(1 - probability) };
-    karus_matrices[1] = { 0,(qstate_type)sqrt(probability),0,0 };
+
+    //karus_matrices[1] = { 0,(qstate_type)sqrt(probability),0,0 };
+
+    //optimized for density matrix
+    karus_matrices[1] = { 0,0,(qstate_type)sqrt(probability),0 };
     return karus_matrices;
 }
 
@@ -86,12 +90,25 @@ static std::vector<QStat> get_decoherence_karus_matrices(const prob_vec& params)
     double p_damping = 1. - std::exp(-(t_gate_time / T1));
     double p_dephasing = 0.5 * (1. - std::exp(-(t_gate_time / T2 - t_gate_time / (2 * T1))));
 
-    QStat K1 = { std::sqrt(1 - p_dephasing), 0,0,std::sqrt((1 - p_damping)*(1 - p_dephasing)) };
-    QStat K2 = { 0, std::sqrt(p_damping*(1 - p_dephasing)), 0, 0 };
-    QStat K3 = { 0, std::sqrt(p_damping*(1 - p_dephasing)), 0, 0 };
-    QStat K4 = { 0, -std::sqrt(p_damping*p_dephasing), 0, 0 };
+    auto damping_karus = get_amplitude_damping_flip_karus_matrices({ p_damping });
+    auto dephasing_karus = get_dephasing_karus_matrices({ p_dephasing });
 
-    std::vector<QStat> karus_matrices{ K1,K2,K3,K4 };
+    QStat K1 = { std::sqrt(1 - p_dephasing), 0,0,std::sqrt((1 - p_damping)*(1 - p_dephasing)) };
+    //QStat K2 = { 0, std::sqrt(p_damping*(1 - p_dephasing)), 0, 0 };
+    //QStat K3 = { 0, std::sqrt(p_damping*(1 - p_dephasing)), 0, 0 };
+    //QStat K4 = { 0, -std::sqrt(p_damping*p_dephasing), 0, 0 };
+
+    //optimized for density matrix
+    QStat K2 = { 0, 0, std::sqrt(p_damping*(1 - p_dephasing)), 0 };
+    QStat K3 = { 0, 0, std::sqrt(p_damping*(1 - p_dephasing)), 0 };
+    QStat K4 = { 0, 0, -std::sqrt(p_damping*p_dephasing), 0 };
+
+    std::vector<QStat> karus_matrices(4);
+    karus_matrices[0] = damping_karus[0] * dephasing_karus[0];
+    karus_matrices[1] = damping_karus[0] * dephasing_karus[1];
+    karus_matrices[2] = damping_karus[1] * dephasing_karus[0];
+    karus_matrices[3] = damping_karus[1] * dephasing_karus[1];
+
     return karus_matrices;
 }
 
@@ -108,7 +125,7 @@ karus_matrices_map =
 };
 
 
-static std::map<NOISE_MODEL, QStat> 
+static std::map<NOISE_MODEL, QStat>
 flip_model_mapping_map =
 {
     {NOISE_MODEL::BITFLIP_KRAUS_OPERATOR, {0., 1., 1., 0.}},
@@ -139,28 +156,28 @@ std::vector<double> QPanda::get_noise_model_unitary_probs(NOISE_MODEL model, dou
 {
     switch (model)
     {
-        case NOISE_MODEL::BITFLIP_KRAUS_OPERATOR:
-        case NOISE_MODEL::BIT_PHASE_FLIP_OPRATOR:
-        case NOISE_MODEL::DEPHASING_KRAUS_OPERATOR:
-        {
-            return { param,1 - param };
-        }
-        case NOISE_MODEL::DEPOLARIZING_KRAUS_OPERATOR:
-        {
-            param /=  4.0;
-            return { param, param, param, 1 - 3 * param };
-        }
-        case NOISE_MODEL::PHASE_DAMPING_OPRATOR:
-        {
-            double alpha = (1 + std::sqrt(param)) / 2;
-            return { alpha,1 - alpha };
-        }
-        default:
-        {
-            QCERR("unsupported noise model");
-            throw run_fail("unsupported noise model");
-            break;
-        }
+    case NOISE_MODEL::BITFLIP_KRAUS_OPERATOR:
+    case NOISE_MODEL::BIT_PHASE_FLIP_OPRATOR:
+    case NOISE_MODEL::DEPHASING_KRAUS_OPERATOR:
+    {
+        return { param,1 - param };
+    }
+    case NOISE_MODEL::DEPOLARIZING_KRAUS_OPERATOR:
+    {
+        param /= 4.0;
+        return { param, param, param, 1 - 3 * param };
+    }
+    case NOISE_MODEL::PHASE_DAMPING_OPRATOR:
+    {
+        double alpha = (1 + std::sqrt(1 - param)) / 2;
+        return { 1 - alpha, alpha };
+    }
+    default:
+    {
+        QCERR("unsupported noise model");
+        throw run_fail("unsupported noise model");
+        break;
+    }
     }
 }
 
@@ -182,12 +199,12 @@ std::vector<QStat> QPanda::get_noise_model_unitary_matrices(NOISE_MODEL model, d
             QStat pauli_X_unitary = flip_model_mapping_map.at(BITFLIP_KRAUS_OPERATOR);
             QStat pauli_Y_unitary = flip_model_mapping_map.at(BIT_PHASE_FLIP_OPRATOR);
             QStat pauli_Z_unitary = flip_model_mapping_map.at(DEPHASING_KRAUS_OPERATOR);
-            
+
             return { pauli_X_unitary, pauli_Y_unitary, pauli_Z_unitary, {1.,0.,0.,1.} };
         }
         case NOISE_MODEL::PHASE_DAMPING_OPRATOR:
         {
-            double alpha = (1 + std::sqrt(param)) / 2;
+            double alpha = (1 + std::sqrt(1 - param)) / 2;
             return QPanda::get_noise_model_unitary_matrices(NOISE_MODEL::DEPHASING_KRAUS_OPERATOR, alpha);
         }
         default:

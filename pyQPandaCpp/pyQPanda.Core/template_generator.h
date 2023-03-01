@@ -37,25 +37,61 @@ void export_transformQProgToOriginIR(py::module &m)
                         py::overload_cast<Qubit *, T...>(&gate_name),                  \
                         py::arg("qubit"),                                              \
                         __VA_ARGS__,                                                   \
-                        "Create a " #gate_name " gate",                                \
+                        "Create a " #gate_name " gate"                                 \
+                        "\n"                                                           \
+                        "Args:\n"                                                      \
+                        "    qubit : quantum gate operate qubit\n"                     \
+                        "    args : quantum gate angles\n"                             \
+                        "\n",                                                          \
+                        "Returns:\n"                                                   \
+                        "    a " #gate_name " gate node\n"                             \
+                        "Raises:\n"                                                    \
+                        "    run_fail: An error occurred in construct gate node\n",    \
                         py::return_value_policy::automatic);                           \
                   m.def(#gate_name,                                                    \
                         py::overload_cast<const QVec &, T...>(&gate_name),             \
                         py::arg("qubit_list"),                                         \
                         __VA_ARGS__,                                                   \
-                        "Create a " #gate_name " gate",                                \
+                        "Create a " #gate_name " gate"                                 \
+                        "\n"                                                           \
+                        "Args:\n"                                                      \
+                        "    qubit_list: quantum gate operate qubits list\n"           \
+                        "    args : quantum gate angles\n"                             \
+                        "\n"                                                           \
+                        "Returns:\n"                                                   \
+                        "    a " #gate_name " gate node\n"                             \
+                        "Raises:\n"                                                    \
+                        "    run_fail: An error occurred construct in gate node\n",    \
                         py::return_value_policy::automatic);                           \
                   m.def(#gate_name,                                                    \
                         py::overload_cast<int, T...>(&gate_name),                      \
                         py::arg("qubit_addr"),                                         \
-                        "Create a " #gate_name " gate",                                \
+                        "Create a " #gate_name " gate"                                 \
+                        "\n"                                                           \
+                        "Args:\n"                                                      \
+                        "    qubit_addr: quantum gate operate qubits addr\n"           \
+                        "    args : quantum gate angles\n"                             \
+                        "\n"                                                           \
+                        "Returns:\n"                                                   \
+                        "    a " #gate_name " gate node\n"                             \
+                        "Raises:\n"                                                    \
+                        "    run_fail: An error occurred in construct gate node\n",    \
                         __VA_ARGS__,                                                   \
                         py::return_value_policy::automatic);                           \
                   m.def(#gate_name,                                                    \
                         py::overload_cast<const std::vector<int> &, T...>(&gate_name), \
                         py::arg("qubit_addr_list"),                                    \
                         __VA_ARGS__,                                                   \
-                        "Create a " #gate_name " gate",                                \
+                        "Create a " #gate_name " gate"                                 \
+                        "\n"                                                           \
+                        "Args:\n"                                                      \
+                        "    qubit_list_addr: quantum gate  qubits list addr\n"        \
+                        "    args : quantum gate angles\n"                             \
+                        "\n"                                                           \
+                        "Returns:\n"                                                   \
+                        "    a " #gate_name " gate node\n"                             \
+                        "Raises:\n"                                                    \
+                        "    run_fail: An error occurred in construct gate node\n",    \
                         py::return_value_policy::automatic);                           \
             }                                                                          \
       }
@@ -89,20 +125,50 @@ GEN_singleBitGate_TEMPLATE(U3, py::arg("theta_angle"), py::arg("phi_angle"), py:
                         py::arg(first_arg),                                                                      \
                         py::arg(second_arg),                                                                     \
                         __VA_ARGS__,                                                                             \
-                        "Create a " #gate_name " gate",                                                          \
+                        "Create a " #gate_name " gate"                                                           \
+                        "\n"                                                                                     \
+                        "Args:\n"                                                                                \
+                        "    control qubit : quantum gate control qubit\n"                                       \
+                        "    target qubit : quantum gate target qubit\n"                                         \
+                        "    args : quantum gate angles\n"                                                       \
+                        "\n",                                                                                    \
+                        "Returns:\n"                                                                             \
+                        "    a " #gate_name " gate node\n"                                                       \
+                        "Raises:\n"                                                                              \
+                        "    run_fail: An error occurred in construct gate node\n",                              \
                         py::return_value_policy::automatic);                                                     \
                   m.def(#gate_name,                                                                              \
                         py::overload_cast<const QVec &, const QVec &, T...>(&gate_name),                         \
                         py::arg(first_arg "_list"),                                                              \
                         py::arg(second_arg "_list"),                                                             \
                         __VA_ARGS__,                                                                             \
-                        "Create a " #gate_name " gate",                                                          \
+                        "Create a " #gate_name " gate"                                                           \
+                        "\n"                                                                                     \
+                        "Args:\n"                                                                                \
+                        "    control qubit : quantum gate control qubit\n"                                       \
+                        "    target qubit : quantum gate target qubit\n"                                         \
+                        "    args : quantum gate angles\n"                                                       \
+                        "\n",                                                                                    \
+                        "Returns:\n"                                                                             \
+                        "    a " #gate_name " gate node\n"                                                       \
+                        "Raises:\n"                                                                              \
+                        "    run_fail: An error occurred in construct gate node\n",                              \
                         py::return_value_policy::automatic);                                                     \
                   m.def(#gate_name,                                                                              \
                         py::overload_cast<int, int, T...>(&gate_name),                                           \
                         py::arg(first_arg "_addr"),                                                              \
                         py::arg(second_arg "_addr"),                                                             \
-                        "Create a " #gate_name " gate",                                                          \
+                        "Create a " #gate_name " gate"                                                           \
+                        "\n"                                                                                     \
+                        "Args:\n"                                                                                \
+                        "    control qubit : quantum gate control qubit\n"                                       \
+                        "    target qubit : quantum gate target qubit\n"                                         \
+                        "    args : quantum gate angles\n"                                                       \
+                        "\n",                                                                                    \
+                        "Returns:\n"                                                                             \
+                        "    a " #gate_name " gate node\n"                                                       \
+                        "Raises:\n"                                                                              \
+                        "    run_fail: An error occurred in construct gate node\n",                              \
                         __VA_ARGS__,                                                                             \
                         py::return_value_policy::automatic);                                                     \
                   m.def(#gate_name,                                                                              \
@@ -110,7 +176,17 @@ GEN_singleBitGate_TEMPLATE(U3, py::arg("theta_angle"), py::arg("phi_angle"), py:
                         py::arg(first_arg "_addr_list"),                                                         \
                         py::arg(second_arg "_addr_list"),                                                        \
                         __VA_ARGS__,                                                                             \
-                        "Create a " #gate_name " gate",                                                          \
+                        "Create a " #gate_name " gate"                                                           \
+                        "\n"                                                                                     \
+                        "Args:\n"                                                                                \
+                        "    control qubit : quantum gate control qubit\n"                                       \
+                        "    target qubit : quantum gate target qubit\n"                                         \
+                        "    args : quantum gate angles\n"                                                       \
+                        "\n",                                                                                    \
+                        "Returns:\n"                                                                             \
+                        "    a " #gate_name " gate node\n"                                                       \
+                        "Raises:\n"                                                                              \
+                        "    run_fail: An error occurred in construct gate node\n",                              \
                         py::return_value_policy::automatic);                                                     \
             }                                                                                                    \
       }

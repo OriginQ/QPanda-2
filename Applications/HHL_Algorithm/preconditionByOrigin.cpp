@@ -119,76 +119,76 @@ SparseQMatrix<double> StaticSparseApproximateInverse(SparseQMatrix<double>& Ae, 
 }
 
 SparseQMatrix<double> DynamicSparseApproximateInverse(SparseQMatrix<double>& Ae, SparseQMatrix<double>& M, double epsilon, int SparseIndex) {
-	auto start0 = clock();
-	sparI = read_sparsity();
-	auto end0 = clock();
-	double endtime = (double)(end0 - start0) / CLOCKS_PER_SEC;
-	cout << "Total read_sparsity time:" << endtime << endl;	
+    auto start0 = clock();
+    sparI = read_sparsity();
+    auto end0 = clock();
+    double endtime = (double)(end0 - start0) / CLOCKS_PER_SEC;
+    cout << "Total read_sparsity time:" << endtime << endl;
 
-	int size = Ae.size;
-	if (SparseIndex > size)
-	{
-		cout << "-- Error Exit --: Matrix dimension is " << size << "-----" << endl;
-		cout << "-- Error Exit --: SparseIndex is bigger than matrix dimension-----" << endl;
-		exit(100);
-	}
+    int size = Ae.size;
+    if (SparseIndex > size)
+    {
+        cout << "-- Error Exit --: Matrix dimension is " << size << "-----" << endl;
+        cout << "-- Error Exit --: SparseIndex is bigger than matrix dimension-----" << endl;
+        exit(100);
+    }
 
-	SparseQMatrix<double> MA;
-	vector<vector<pair<int, double>>> sparse_dataM(size);
-	vector<vector<pair<int, double>>> sparse_dataMA(size);
+    SparseQMatrix<double> MA;
+    vector<vector<pair<int, double>>> sparse_dataM(size);
+    vector<vector<pair<int, double>>> sparse_dataMA(size);
 
-#pragma omp parallel for num_threads(8)  
-	for (int i = 0; i < size; i++)
-	{
-		auto tempSp = sparI[i];
-		double rnorm = 10.0;
-		int count = 0;
-		int jnew = 0;
-		VectorXd x;
-		VectorXd Amk;
-		MatrixXd subA;
-		auto No0Ind = getNZeroIndex(tempSp.data(), tempSp.size());
+    #pragma omp parallel for num_threads(8)
+    for (int i = 0; i < size; i++)
+    {
+        auto tempSp = sparI[i];
+        double rnorm = 10.0;
+        int count = 0;
+        int jnew = 0;
+        VectorXd x;
+        VectorXd Amk;
+        MatrixXd subA;
+        auto No0Ind = getNZeroIndex(tempSp.data(), tempSp.size());
 
-		while (rnorm > epsilon) {
-			if (count != 0) {
-				tempSp.push_back(jnew);
-				AddNZeroIndex(No0Ind, jnew);
-			}
-			sort(tempSp.begin(), tempSp.end());
+        while (rnorm > epsilon) {
+            if (count != 0) {
+                tempSp.push_back(jnew);
+                AddNZeroIndex(No0Ind, jnew);
+            }
+            sort(tempSp.begin(), tempSp.end());
 
-			int size_Sp = tempSp.size();
-			int size_NNZ = No0Ind.size();
+            int size_Sp = tempSp.size();
+            int size_NNZ = No0Ind.size();
 
-			subA = FastGetSubMatrix(No0Ind.data(), tempSp.data(), size_NNZ, size_Sp, Ae);
+            subA = FastGetSubMatrix(No0Ind.data(), tempSp.data(), size_NNZ, size_Sp, Ae);
 
-			VectorXd b = getb(i, No0Ind);
-			x = subA.colPivHouseholderQr().solve(b);
+            VectorXd b = getb(i, No0Ind);
+            x = subA.colPivHouseholderQr().solve(b);
 
-			Amk = subA * x;
-			VectorXd r = Amk - b;
-			rnorm = r.norm();
+            Amk = subA * x;
+            VectorXd r = Amk - b;
+            rnorm = r.norm();
 
-			if (rnorm < epsilon || tempSp.size() >= SparseIndex)
-			{
-				sparI[i] = tempSp;
-				break;
-			}
-			jnew = getRhoJ(r, rnorm, No0Ind, tempSp, Ae);
-			count++;
-		}
-		
-		for (int k = 0; k < tempSp.size(); k++) {
-			sparse_dataM[i].emplace_back(make_pair(tempSp[k], x(k)));
-		}
-		for (int k = 0; k < No0Ind.size(); k++) {
-			sparse_dataMA[i].emplace_back(make_pair(No0Ind[k], Amk(k)));
-		}
-	}
-	FastTransfer2SparseQMat(sparse_dataM.data(), size, M);
-	FastTransfer2SparseQMat(sparse_dataMA.data(), size, MA);
-	write_sparsity();
-	sparI.clear();
-	return MA;
+            if (rnorm < epsilon || tempSp.size() >= SparseIndex)
+            {
+                sparI[i] = tempSp;
+                break;
+            }
+            jnew = getRhoJ(r, rnorm, No0Ind, tempSp, Ae);
+            count++;
+        }
+
+        for (int k = 0; k < tempSp.size(); k++) {
+            sparse_dataM[i].emplace_back(make_pair(tempSp[k], x(k)));
+        }
+        for (int k = 0; k < No0Ind.size(); k++) {
+            sparse_dataMA[i].emplace_back(make_pair(No0Ind[k], Amk(k)));
+        }
+    }
+    FastTransfer2SparseQMat(sparse_dataM.data(), size, M);
+    FastTransfer2SparseQMat(sparse_dataMA.data(), size, MA);
+    write_sparsity();
+    sparI.clear();
+    return MA;
 }
 
 

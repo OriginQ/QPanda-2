@@ -2,7 +2,12 @@
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
 #include "pybind11/complex.h"
+#include "pybind11/functional.h"
+#include "pybind11/chrono.h"
+#include "pybind11/numpy.h"
 #include "pybind11/operators.h"
+#include <pybind11/stl_bind.h>
+#include "pybind11/eigen.h"
 #include "Components/Operator/PauliOperator.h"
 
 USING_QPANDA
@@ -12,9 +17,10 @@ void export_PauliOperator(py::module &m)
 {
 	py::class_<PauliOperator>(m, "PauliOperator")
 		.def(py::init<>())
-		.def(py::init<const complex_d &>())
+        .def(py::init<const complex_d &>())
+        .def(py::init<EigenMatrixX &>())
 		.def(py::init<const std::string &, const complex_d &>())
-		.def(py::init<const PauliOperator::PauliMap &>())
+        .def(py::init<const PauliOperator::PauliMap &>())
 		.def("dagger", &PauliOperator::dagger)
 		.def("data", &PauliOperator::data)
 		.def("error_threshold", &PauliOperator::error_threshold)
@@ -47,8 +53,70 @@ void export_PauliOperator(py::module &m)
 		.def("is_all_pauli_z_or_i", &PauliOperator::isAllPauliZorI)
 		.def("set_error_threshold", &PauliOperator::setErrorThreshold)
 		.def("remap_qubit_index", &PauliOperator::remapQubitIndex)
-		.def("to_string", &PauliOperator::toString);
+        .def("to_string", &PauliOperator::toString)
+        .def("to_matrix", &PauliOperator::to_matrix);    
 
-	m.def("trans_vec_to_Pauli_operator", &transVecToPauliOperator<double>, "Transfrom vector to pauli operator");
-	m.def("trans_Pauli_operator_to_vec", &transPauliOperatorToVec, "Transfrom Pauli operator to vector");
+    m.def("x", &x,
+        py::arg("index"),
+        "construct a pauli x operator\n"
+        "\n"
+        "Args:\n"
+        "    int: pauli operate index\n"
+        "\n"
+        "Returns:\n"
+        "    pauli operator x  \n"
+        "Raises:\n"
+        "    run_fail: An error occurred in construct a pauli x operator\n",
+        py::return_value_policy::automatic);
+    m.def("y", &y, 
+        "construct a pauli y operator\n"
+        "\n"
+        "Args:\n"
+        "    int: pauli operate index\n"
+        "\n"
+        "Returns:\n"
+        "    pauli operator y  \n"
+        "Raises:\n"
+        "    run_fail: An error occurred in construct a pauli y operator\n",
+        py::return_value_policy::automatic);
+    m.def("z", &z,
+        "construct a pauli z operator\n"
+        "\n"
+        "Args:\n"
+        "    int: pauli operate index\n"
+        "\n"
+        "Returns:\n"
+        "    pauli operator z  \n"
+        "Raises:\n"
+        "    run_fail: An error occurred in construct a pauli z operator\n",
+        py::return_value_policy::automatic);
+    m.def("i", &i, 
+        "construct a pauli i operator\n"
+        "\n"
+        "Args:\n"
+        "    int: pauli operate index\n"
+        "\n"
+        "Returns:\n"
+        "    pauli operator i  \n"
+        "Raises:\n"
+        "    run_fail: An error occurred in construct a pauli i operator\n",
+        py::return_value_policy::automatic);
+
+    m.def("matrix_decompose_hamiltonian",
+        [](QuantumMachine* qvm, EigenMatrixX& mat, PauliOperator& opt)
+        {
+            //PauliOperator opt;
+            matrix_decompose_hamiltonian(qvm, mat, opt);
+            //return opt;
+        },
+        "decompose matrix into hamiltonian\n"
+        "\n"
+        "Args:\n"
+        "    quantum_machine: quantum machine\n"
+        "    matrix: 2^N *2^N double matrix \n"
+        "\n"
+        "Returns:\n"
+        "    result : hamiltonian", py::return_value_policy::automatic);
+    m.def("trans_vec_to_Pauli_operator", &transVecToPauliOperator<double>, "Transfrom vector to pauli operator");
+    m.def("trans_Pauli_operator_to_vec", &transPauliOperatorToVec, "Transfrom Pauli operator to vector");
 }

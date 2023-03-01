@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2017-2020 Origin Quantum Computing. All Right Reserved.
+Copyright (c) 2017-2023 Origin Quantum Computing. All Right Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -22,8 +22,9 @@ limitations under the License.
 using namespace std;
 using namespace QPanda;
 
-static uint32_t g_precision = 0;
+extern std::string noise_json;
 static string g_hhl_data_file;
+static uint32_t g_precision = 0;
 static const string g_result_file_prefix = "HHL_result_";
 
 static uint32_t load_data_file(const std::string& data_file, std::vector<double>& A, std::vector<double>& b)
@@ -58,21 +59,21 @@ static uint32_t load_data_file(const std::string& data_file, std::vector<double>
 				{
 					break;
 				}
-				
+
 			}
 
 			auto _data_str = line_str.substr(offset, _pos_1 - offset);
 			//trim(complex_data_str);
 			offset = _pos_1 + 1;
-			if (_data_str.length() == 0){
+			if (_data_str.length() == 0) {
 				continue;
 			}
 
-            const auto _c = _data_str.at(0);
-            if((_c < '0' || _c > '9') && (_c != '-'))
-            {
-                break;
-            }
+			const auto _c = _data_str.at(0);
+			if ((_c < '0' || _c > '9') && (_c != '-'))
+			{
+				break;
+			}
 
 			data_vec.push_back(atof(_data_str.c_str()));
 		}
@@ -83,14 +84,14 @@ static uint32_t load_data_file(const std::string& data_file, std::vector<double>
 	uint32_t A_dimension = 0;
 	bool b_read_A_end = false;
 	while (getline(data_file_reader, line_data)) {
-		if (b_read_A_end){
+		if (b_read_A_end) {
 			get_line_data_fun(line_data, b);
 			break;
 		}
-		else{
+		else {
 			get_line_data_fun(line_data, A);
 		}
-		
+
 		if (++line_index == 1)
 		{
 			A_dimension = A.size();
@@ -123,18 +124,18 @@ static void HHL_run(const std::string& data_file)
 	std::vector<double> b;
 	uint32_t A_dimension = load_data_file(data_file, A, b);
 	MatrixXd A_bad(b.size(), b.size());
-    VectorXd b_bad(b.size());
+	VectorXd b_bad(b.size());
 	for (int i = 0; i < b.size(); ++i) {
-			for (int j = 0; j < b.size(); ++j) {
-					A_bad(i, j) = A[i * b.size() + j];
-			}
-			b_bad(i) = b[i];
+		for (int j = 0; j < b.size(); ++j) {
+			A_bad(i, j) = A[i * b.size() + j];
+		}
+		b_bad(i) = b[i];
 	}
 
 	//A'
 	MatrixXd M;
 	auto result = DynamicSparseApproximateInverse(A_bad, b_bad, 0.2, b.size(), M);
-	MatrixXd A_prime(2*b.size(), 2*b.size());
+	MatrixXd A_prime(2 * b.size(), 2 * b.size());
 	A_prime.topLeftCorner(b.size(), b.size()) = A_prime.bottomRightCorner(b.size(), b.size()) = MatrixXd::Zero(4, 4);
 	A_prime.topRightCorner(b.size(), b.size()) = result.first;
 	A_prime.bottomLeftCorner(b.size(), b.size()) = result.first.transpose();
@@ -144,19 +145,19 @@ static void HHL_run(const std::string& data_file)
 	std::vector<double> b2;
 	for (int i = 0; i < b_good.size(); ++i)
 	{
-			b2.push_back(b_good(i));
+		b2.push_back(b_good(i));
 	}
 
 	std::vector<double> b_prime;
 	for (int i = 0; i < b.size(); ++i)
-			b_prime.push_back(b2[i]);
+		b_prime.push_back(b2[i]);
 	for (int i = 0; i < b.size(); ++i)
-			b_prime.push_back(0);
+		b_prime.push_back(0);
 
 	auto A_prime_mat = Eigen_to_QStat(A_prime);
 
 	QStat Q_A;
-	for (const auto& i : A){
+	for (const auto& i : A) {
 		Q_A.push_back(i);
 	}
 
@@ -175,19 +176,19 @@ static void HHL_run(const std::string& data_file)
 	if (_file_name_pos == (std::numeric_limits<size_t>::max)())
 	{
 		_file_name_pos = g_hhl_data_file.find_last_of('\\');
-		if (_file_name_pos == (std::numeric_limits<size_t>::max)()){
+		if (_file_name_pos == (std::numeric_limits<size_t>::max)()) {
 			_file_name_pos = 0;
 		}
 	}
 
 	string output_file;
-	if (0 == _file_name_pos){
+	if (0 == _file_name_pos) {
 		output_file = g_result_file_prefix + g_hhl_data_file;
 	}
-	else{
+	else {
 		output_file = g_result_file_prefix + g_hhl_data_file.substr(_file_name_pos + 1);
 	}
-	
+
 	ofstream outfile(ofstream(output_file, ios::out | ios::binary));
 	if (!outfile.is_open())
 	{
@@ -196,7 +197,7 @@ static void HHL_run(const std::string& data_file)
 
 	cout << "HHL_result of " << g_hhl_data_file << ": " << A_dimension << "-dimensional matrix:\n";
 	outfile << "HHL_result of " << g_hhl_data_file << ": " << A_dimension << "-dimensional matrix:\n";
-	for (int i = result_prime.size()/2; i < result_prime.size(); ++i)
+	for (int i = result_prime.size() / 2; i < result_prime.size(); ++i)
 	{
 		std::cout << result_prime[i] << " ";
 		outfile << _tostring(result_prime[i].real()).c_str() << ", " << _tostring(result_prime[i].imag());
@@ -210,14 +211,14 @@ static void HHL_run(const std::string& data_file)
 	std::cout << std::endl;
 	outfile << std::endl;
 	if (outfile.is_open()) { outfile.close(); }
-	
+
 	return;
 }
 
 int main(int argc, char* argv[])
 {
-	const std::string parameter_descr_str = R"(
-    Version: 2.2
+	std::cout << "Version: 2.3.220713" << std::endl;
+	const std::string parameter_descr_str = R"(    
     The legal parameter form is as follows:
     HHL_Algorithm [data-file] [precision]
     data-file: configure A and b for linear-system-equation: Ax=b.
@@ -240,16 +241,26 @@ int main(int argc, char* argv[])
     )";
 
 	//std::string data_file = "data.txt";
-#if 0
+#if 1
 	try
 	{
-		if (argc == 3){
+		if (argc == 3) {
 			g_hhl_data_file = argv[1];
 			g_precision = atoi(argv[2]);
-			cout << "got param, data file: " << g_hhl_data_file << 
-				", precision: " << 1.0/(double)pow(10, g_precision) << endl;
+			cout << "got param, data file: " << g_hhl_data_file <<
+				", precision: " << 1.0 / (double)pow(10, g_precision) << endl;
 		}
-		else{
+		else if (argc == 4)
+		{
+			noise_json = argv[3];
+			g_hhl_data_file = argv[1];
+			g_precision = atoi(argv[2]);
+			cout << "got param, data file: " << g_hhl_data_file <<
+				", precision: " << 1.0 / (double)pow(10, g_precision) << endl;
+
+			std::cout << "noise file:" << noise_json << std::endl;
+		}
+		else {
 			QCERR_AND_THROW(init_fail, "Error: parameter error: Incomplete parameters.");
 		}
 	}
@@ -266,8 +277,6 @@ int main(int argc, char* argv[])
 
 	HHL_run(g_hhl_data_file);
 
-	cout << "HHL_Algorithm run over, press Enter to continue." << endl;
-	getchar();
-
+	cout << "HHL_Algorithm run over." << endl;
 	return 0;
 }

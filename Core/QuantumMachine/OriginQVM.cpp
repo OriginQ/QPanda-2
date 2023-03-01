@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2017-2020 Origin Quantum Computing. All Right Reserved.
+Copyright (c) 2017-2023 Origin Quantum Computing. All Right Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ limitations under the License.
 #include "VirtualQuantumProcessor/GPUImplQPU.h"
 #include "VirtualQuantumProcessor/CPUImplQPU.h"
 #include "VirtualQuantumProcessor/CPUImplQPUSingleThread.h"
+#include "Core/Utilities/QProgInfo/Visualization/QVisualization.h"
 #include "Core/Utilities/Tools/QPandaException.h"
 #include "Core/Utilities/Tools/Utils.h"
 #include "Core/Utilities/QProgInfo/QuantumMetadata.h"
@@ -510,7 +511,6 @@ void QVM::run(QProg& qprog, const NoiseModel& noise_model)
 		QProgProgress::getInstance().prog_start(_ExecId);
 		prog_exec.execute(qp, nullptr, config, _pGates);
 		QProgProgress::getInstance().prog_end(_ExecId);
-
 		std::map<string, bool>result;
 		prog_exec.get_return_value(result);
 
@@ -573,7 +573,6 @@ void CPUQVM::run(QProg& qprog, const NoiseModel& noise_model)
         QProgProgress::getInstance().prog_start(_ExecId);
         prog_exec.execute(qp, nullptr, config, _pGates);
         QProgProgress::getInstance().prog_end(_ExecId);
-
         std::map<string, bool>result;
         prog_exec.get_return_value(result);
 
@@ -1624,6 +1623,69 @@ double QVM::get_expectation(QProg prog, const QHamiltonian& hamiltonian, const Q
 	return total_expectation;
 }
 
+void QVM::get_expectation_vector(QProg prog, const QHamiltonian& hamiltonian, const QVec& qv, vector_d& measure_probably)
+{
+	directlyRun(prog);
+	auto qstate = getQState();
+	initState(qstate);
+
+	auto _parity_check = [](size_t number)
+	{
+		bool label = true;
+		size_t i = 0;
+		while ((number >> i) != 0)
+		{
+			if ((number >> i) % 2 == 1)
+				label = !label;
+
+			++i;
+		}
+		return label;
+	};
+
+
+	for (size_t i = 0; i < hamiltonian.size(); i++)
+	{
+		auto component = hamiltonian[i];
+		if (component.first.empty())
+		{
+			measure_probably[i] = 1.0;
+			continue;
+		}
+
+		QProg qprog;
+		Qnum vqubit;
+		for (auto iter : component.first)
+		{
+			vqubit.push_back(qv[iter.first]->get_phy_addr());
+			if (iter.second == 'X')
+				qprog << H(qv[iter.first]);
+			else if (iter.second == 'Y')
+				qprog << RX(qv[iter.first], PI / 2);
+		}
+
+		directlyRun(qprog);
+		prob_vec pmeasure_vector;
+		_pGates->pMeasure(vqubit, pmeasure_vector);
+
+		double expectation = 0;
+#pragma omp parallel for reduction(+:expectation)
+		for (auto i = 0; i < pmeasure_vector.size(); i++)
+		{
+			if (_parity_check(i))
+			{
+				expectation += pmeasure_vector[i];
+			}
+			else
+			{
+				expectation -= pmeasure_vector[i];
+			}
+		}
+		measure_probably[i] = expectation;
+	}
+	initState();
+}
+
 double QVM::get_expectation(QProg prog, const QHamiltonian& hamiltonian, const QVec& qv, int shots)
 {
 	double total_expectation = 0;
@@ -1675,7 +1737,69 @@ double QVM::get_expectation(QProg prog, const QHamiltonian& hamiltonian, const Q
 		}
 		total_expectation += component.second * expectation;
 	}
+	initState();
 	return total_expectation;
+}
+
+void QVM::get_expectation_vector(QProg prog, const QHamiltonian& hamiltonian, const QVec& qv, vector_d& measure_probably, int shots)
+{
+	directlyRun(prog);
+	auto qstate = getQState();
+	initState(qstate);
+
+	for (size_t i = 0; i < hamiltonian.size(); i++)
+	{
+		auto component = hamiltonian[i];
+		if (component.first.empty())
+		{
+			measure_probably[i] = 1.0;
+			continue;
+		}
+		QProg qprog;
+		QVec vqubit;
+		vector<ClassicalCondition> vcbit;
+
+		for (auto iter : component.first)
+		{
+			vqubit.push_back(qv[iter.first]);
+			vcbit.push_back(cAlloc(iter.first));
+			if (iter.second == 'X')
+				qprog << H(qv[iter.first]);
+			else if (iter.second == 'Y')
+				qprog << RX(qv[iter.first], PI / 2);
+
+		}
+		for (auto i = 0; i < vqubit.size(); i++)
+			qprog << Measure(vqubit[i], vcbit[i]);
+
+		double expectation = 0;
+		auto outcome = runWithConfiguration(qprog, vcbit, shots);
+		auto comp_tmp = component.first;
+
+		size_t label = 0;
+		for (auto iter : outcome)
+		{
+			double tmp1 = 0;
+			label = 0;
+			for (auto iter1 : iter.first)
+			{
+				if (iter1 == '1')
+					label++;
+			}
+
+			tmp1 = iter.second * 1.0 / shots;
+			if (label % 2 == 0)
+			{
+				expectation += tmp1;
+			}
+			else
+			{
+				expectation -= tmp1;
+			}
+		}
+		measure_probably[i] = expectation;
+	}
+	initState();
 }
 
 size_t QVM::get_processed_qgate_num()
@@ -1766,6 +1890,19 @@ QStat IdealQVM::getQState()
 		throw qvm_attributes_error("_pGates is null");
 	}
 	return _pGates->getQState();
+}
+
+void CPUQVM::set_parallel_threads(size_t size) {
+
+    if (size > 0)
+    {
+        _pGates->set_parallel_threads_size(size);
+    }
+    else
+    {
+        QCERR("_Set max thread is zero");
+        throw qvm_attributes_error("_Set max thread is zero");
+    }
 }
 
 void CPUQVM::init(bool is_double_precision)

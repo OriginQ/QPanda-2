@@ -5,6 +5,8 @@
 #include "Core/VirtualQuantumProcessor/SingleAmplitude/QuantumGates.h"
 #include "Core/Utilities/Tools/Traversal.h"
 #include "Core/VirtualQuantumProcessor/SingleAmplitude/Tensor.h"
+#include "Core/QuantumMachine/OriginQuantumMachine.h"
+
 QPANDA_BEGIN
 
 /**
@@ -75,6 +77,10 @@ public:
 	* @note  example: pMeasureDecindex("1")
 	*/
 	qstate_type pMeasureDecindex(std::string index);
+
+    qcomplex_t pmeasure_bin_index(std::string index);
+
+    qcomplex_t pmeasure_dec_index(std::string index);
 
 	/**
 	* @brief  get probability by qubits 

@@ -90,6 +90,54 @@ QProgToOriginIR::QProgToOriginIR(QuantumMachine * quantum_machine)
 	m_quantum_machine = quantum_machine;
 }
 
+QProgToOriginIR::QProgToOriginIR()
+{
+    m_gatetype.insert(pair<int, string>(PAULI_X_GATE, "X"));
+    m_gatetype.insert(pair<int, string>(PAULI_Y_GATE, "Y"));
+    m_gatetype.insert(pair<int, string>(PAULI_Z_GATE, "Z"));
+
+    m_gatetype.insert(pair<int, string>(X_HALF_PI, "X1"));
+    m_gatetype.insert(pair<int, string>(Y_HALF_PI, "Y1"));
+    m_gatetype.insert(pair<int, string>(Z_HALF_PI, "Z1"));
+    m_gatetype.insert(pair<int, string>(I_GATE, "I"));
+    m_gatetype.insert(pair<int, string>(HADAMARD_GATE, "H"));
+    m_gatetype.insert(pair<int, string>(T_GATE, "T"));
+    m_gatetype.insert(pair<int, string>(S_GATE, "S"));
+
+    m_gatetype.insert(pair<int, string>(ECHO_GATE, "ECHO"));
+    m_gatetype.insert(pair<int, string>(BARRIER_GATE, "BARRIER"));
+
+    m_gatetype.insert(pair<int, string>(RX_GATE, "RX"));
+    m_gatetype.insert(pair<int, string>(RY_GATE, "RY"));
+    m_gatetype.insert(pair<int, string>(RZ_GATE, "RZ"));
+
+    m_gatetype.insert(pair<int, string>(U1_GATE, "U1"));
+    m_gatetype.insert(pair<int, string>(U2_GATE, "U2"));
+    m_gatetype.insert(pair<int, string>(U3_GATE, "U3"));
+    m_gatetype.insert(pair<int, string>(U4_GATE, "U4"));
+
+    m_gatetype.insert(pair<int, string>(RPHI_GATE, "RPhi"));
+
+    m_gatetype.insert(pair<int, string>(CU_GATE, "CU"));
+    m_gatetype.insert(pair<int, string>(CNOT_GATE, "CNOT"));
+    m_gatetype.insert(pair<int, string>(CZ_GATE, "CZ"));
+    m_gatetype.insert(pair<int, string>(CPHASE_GATE, "CR"));
+    m_gatetype.insert(pair<int, string>(ISWAP_THETA_GATE, "ISWAPTHETA"));
+    m_gatetype.insert(pair<int, string>(ISWAP_GATE, "ISWAP"));
+    m_gatetype.insert(pair<int, string>(SWAP_GATE, "SWAP"));
+    m_gatetype.insert(pair<int, string>(SQISWAP_GATE, "SQISWAP"));
+    m_gatetype.insert(pair<int, string>(TWO_QUBIT_GATE, "QDoubleGate")); 
+    m_gatetype.insert(pair<int, string>(GateType::RXX_GATE, "RXX"));
+    m_gatetype.insert(pair<int, string>(GateType::RYY_GATE, "RYY"));
+    m_gatetype.insert(pair<int, string>(GateType::RZZ_GATE, "RZZ"));
+    m_gatetype.insert(pair<int, string>(GateType::RZX_GATE, "RZX"));
+    m_gatetype.insert(pair<int, string>(TOFFOLI_GATE, "TOFFOLI"));
+    m_gatetype.insert(pair<int, string>(ORACLE_GATE, "ORACLE_GATE"));
+
+    m_OriginIR.clear();
+
+}
+
 static std::string double_tostring(const double val)
 {
 	std::ostringstream out;

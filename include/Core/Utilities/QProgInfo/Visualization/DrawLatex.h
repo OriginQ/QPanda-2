@@ -1,4 +1,7 @@
-#pragma once
+#ifndef _DRAW_LATEX_H_
+#define _DRAW_LATEX_H_
+
+
 #include "Core/Utilities/QPandaNamespace.h"
 #include "Core/Utilities/QProgInfo/Visualization/AbstractDraw.h"
 #include "Core/Utilities/QProgTransform/QProgToDAG/QProgDAG.h"
@@ -47,11 +50,12 @@ public:
 		m_col_size = col >= m_col_size ? col + 1 : m_col_size;
 		if (!overwrite && m_matrix.count(row) && m_matrix.at(row).count(col))
 		{
-			std::stringstream ss;
-			ss << "ERROR: overwrite element in (" << row << ", " << col << ")";
-			throw std::runtime_error(ss.str());
+			return ;
 		}
-		m_matrix[row][col] = elem;
+        else
+        {
+           m_matrix[row][col] = elem;
+        }
 	}
 
 	/**
@@ -220,8 +224,9 @@ QPANDA_BEGIN
 enum class LATEX_GATE_TYPE
 {
 	GENERAL_GATE,
-	CNOT,
-	SWAP
+    X,
+    Z,
+    SWAP
 };
 
 /**
@@ -251,9 +256,12 @@ public:
 	 * @param time_seq_label
 	 * @param head if true, label append head; false, append at tail
 	 */
-	void setLabel(const Label &qubit_label, const Label &cbit_label = {}, const TimeSeqLabel &time_seq_label = "", bool head = true);
+    void set_row(uint64_t row_qubit, uint64_t row_cbit);
+    uint64_t get_qubit_row();
+    uint64_t get_cbit_row();
 
-	void setLogo(const std::string &logo);
+    void set_label(const Label &qubit_label, const Label &cbit_label = {}, const TimeSeqLabel &time_seq_label = "", bool head = true);
+    void set_logo(const std::string &logo);
 
 	/**
 	 * @brief  
@@ -268,31 +276,34 @@ public:
 	 * @return if there is no enough zone to put gate at 'from_col', we will find suitable col to put gate after 'from_col',
 	 * 		   the real col placed the gate will be return
 	 */
-	Col insertGate(const std::set<Row> &target_rows,
-				   const std::set<Row> &ctrl_rows,
-				   Col from_col,
-				   LATEX_GATE_TYPE type,
-				   const std::string &gate_name = "",
-				   bool dagger = false,
-				   const std::string &param = "");
+    Col insert_gate(const std::vector<Row> &target_rows,
+                    const std::vector<Row> &ctrl_rows,
+                    Col from_col,
+                    LATEX_GATE_TYPE type,
+                    const std::string &gate_name,
+                    bool dagger = false,
+                    const std::string &param = "");
 
-	/**
-	 * @brief 
-	 * 
-	 * @param rows rows need be barriered, may not continus
-	 * @param from_col 
-	 * @return Col 
-	 */
-	Col insertBarrier(const std::set<Row> &rows, Col from_col); 
+    /**
+     * @brief
+     *
+     * @param qubits gate targets row of latex matrix
+     * @param from_col 	  gate wanted col pos, but there may be not enough zone to put gate
+     * @param type
+     * @return if there is no enough zone to put gate at 'from_col', we will find suitable col to put gate after 'from_col',
+     * 		   the real col placed the gate will be return
+     */
+    Col insert_barrier(const std::vector<Row> &rows,
+                       Col from_col);
 
-	Col insertMeasure(Row q_row, Row c_row, Col from_col);
+    Col insert_measure(Row q_row, Row c_row, Col from_col);
 
-	Col insertReset(Row q_row, Col from_col);
+    Col insert_reset(Row q_row, Col from_col);
 
 	/**
 	 * @note we do not check col num, may cause overwrite. user must take care col num self.
 	 */
-	void insertTimeSeq(Col t_col, uint64_t time_seq);
+    void insert_time_seq(Col t_col, uint64_t time_seq);
 	
 	/**
 	 * @brief return final latex source code, can be called at any time
@@ -301,7 +312,6 @@ public:
 	 * @return std::string 
 	 */
 	std::string str(bool with_time = false);
-
 private:
 	/**
 	 * @brief find valid col to put gate from start_row row to end_row row
@@ -311,7 +321,7 @@ private:
 	 * @param from_col   try destiny col
 	 * @return size_t return col of valid zone can place whole gate
 	 */
-	Col validColForRowRange(Row start_row, Row end_row, Col from_col);
+    Col valid_col_for_row_range(Row start_row, Row end_row, Col from_col);
 	
 	/**
 	 * @brief 
@@ -320,7 +330,7 @@ private:
 	 * @param row2 
 	 * @return return rows span lowest and highest row of row1 and row2
 	 */
-	std::pair<Row, Row> rowRange(const std::set<Row> &row1, const std::set<Row> &row2);
+    std::pair<Row, Row> row_range(const std::vector<Row> &row1, const std::vector<Row> &row2);
 
 	/**
 	 * @brief align inner latex matrix row and col
@@ -346,6 +356,8 @@ private:
 
 	SpareMatrix<std::string> m_barrier_mark_head; /**< marker to mark right place put barrier latex code, case it's synatex odd */
 	SpareMatrix<std::string> m_barrier_mark_qwire;
+    uint64_t m_row_qubit{0};
+    uint64_t m_row_cbit{0};
 };
 
 /**
@@ -396,7 +408,7 @@ public:
 	 */
 	virtual std::string present(const std::string &file_name) override;
 
-	void setLogo(const std::string &logo = "");
+    void set_logo(const std::string &logo = "");
 
 	/**
 	 * @brief return layer start col position
@@ -410,17 +422,18 @@ public:
 	 * @param qbits 
 	 * @return std::set<uint64_t> 
 	 */
-	std::set<uint64_t> qvecRows(QVec qbits);
-	uint64_t qidRow(int qid);
-	uint64_t cidRow(int cid);
+    std::vector<uint64_t> qvec_rows(QVec qbits);
+    uint64_t qid_row(int qid);
+    uint64_t cid_row(int cid);
 
 private:
 	void append_node(DAGNodeType t, pOptimizerNodeInfo &node_info, uint64_t layer_id);
 	void append_gate(pOptimizerNodeInfo &node_info, uint64_t layer_id);
 	void append_measure(pOptimizerNodeInfo &node_info, uint64_t layer_id);
 	void append_reset(pOptimizerNodeInfo &node_info, uint64_t layer_id);
-	void append_barrier(pOptimizerNodeInfo &node_info, uint64_t layer_id);
 
+    size_t get_time_sequence(GateType type, const QVec &ctrls, const QVec &tags);
+    std::string get_gate_name(GateType type);
 	int update_layer_time_seq(int time_seq);
 
 	std::unordered_map<uint64_t, uint64_t> m_qid_row; /**< qubit id map to latex matrix row number */
@@ -434,3 +447,6 @@ private:
 };
 
 QPANDA_END
+
+
+#endif

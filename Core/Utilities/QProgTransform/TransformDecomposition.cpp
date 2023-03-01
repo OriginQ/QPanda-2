@@ -994,7 +994,7 @@ void DecomposeControlSingleQGateIntoMetadataDoubleQGate ::
 		sGateName = "ISWAP";
 	}
 
-    if (sGateName.size() <= 0)
+    if (0 == sGateName.size())
     {
 		QCERR_AND_THROW_ERRSTR(runtime_error, "the size of sGateName is error");
     }
@@ -1112,9 +1112,10 @@ QCircuit DecomposeControlSingleQGateIntoMetadataDoubleQGate::single_angle_gate_r
 	QCircuit equ_cir;
 	for (const auto& replace_cir_pair : m_special_gate_replace_vec)
 	{
-		auto angle_vec = replace_cir_pair.first.parse_angle(dAlpha, dBeta, dDelta, dGamma);
-		if (angle_vec.size() > 0){
-			replace_cir_pair.second->set_param({ control_qubit, target_qubit }, angle_vec);
+		std::vector<double> match_angle;
+		const auto b_match = replace_cir_pair.first.parse_angle(dAlpha, dBeta, dDelta, dGamma, match_angle);
+		if (b_match){
+			replace_cir_pair.second->set_param({ control_qubit, target_qubit }, match_angle);
 			return replace_cir_pair.second->get_cir();
 		}
 	}
@@ -1122,9 +1123,10 @@ QCircuit DecomposeControlSingleQGateIntoMetadataDoubleQGate::single_angle_gate_r
 	return equ_cir;
 }
 
-std::vector<double> DecomposeControlSingleQGateIntoMetadataDoubleQGate::SpecialSingGate::
-parse_angle(double alpha, double beta, double delta, double gamma) const {
+bool DecomposeControlSingleQGateIntoMetadataDoubleQGate::SpecialSingGate::
+parse_angle(double alpha, double beta, double delta, double gamma, std::vector<double>& match_angle) const {
 	auto is_equ = [](const double& _a, double _b, const double precision = ANGLE_COMPARE_PRECISION) ->bool {
+		/* 该方法主要用于解决角度回环问题 */
 		if (abs(_b) < DBL_EPSILON) {
 			_b = PI;
 		}
@@ -1132,6 +1134,7 @@ parse_angle(double alpha, double beta, double delta, double gamma) const {
 		return abs(_c - int(_c)) <= precision;
 	};
 
+	match_angle.clear();
 	if (abs(m_gamma - UNDEF_DOUBLE) < DBL_EPSILON)
 	{
 		if (is_equ(alpha, m_alpha)
@@ -1156,7 +1159,8 @@ parse_angle(double alpha, double beta, double delta, double gamma) const {
 					gamma = (PI * 2) - gamma;
 				}
 
-				return { gamma };
+				match_angle.emplace_back(gamma);
+				return true;
 			}
 			else if ((abs(m_beta + m_delta) < ANGLE_COMPARE_PRECISION) 
 				&& ((abs(beta + delta) < ANGLE_COMPARE_PRECISION))
@@ -1181,7 +1185,8 @@ parse_angle(double alpha, double beta, double delta, double gamma) const {
 					}
 				}
 
-				return { gamma };
+				match_angle.emplace_back(gamma);
+				return true;
 			}
 
 			/* unsupport gate-type */
@@ -1198,10 +1203,19 @@ parse_angle(double alpha, double beta, double delta, double gamma) const {
 			beta += (PI * 2);
 		}
 
-		return { beta };
+		match_angle.emplace_back(beta);
+		return true;
+	}
+	else if ((abs(m_alpha - alpha) < ANGLE_COMPARE_PRECISION)
+		&& ((abs(m_beta - beta) < ANGLE_COMPARE_PRECISION))
+		&& (abs(m_delta - delta) < ANGLE_COMPARE_PRECISION)
+		&& (abs(m_gamma - gamma) < ANGLE_COMPARE_PRECISION))
+	{
+		// C_X or C_Z
+		return true;
 	}
 
-	return std::vector<double>();
+	return false;
 }
 
 void DecomposeControlSingleQGateIntoMetadataDoubleQGate::read_special_ctrl_single_gate(
@@ -1262,6 +1276,20 @@ void DecomposeControlSingleQGateIntoMetadataDoubleQGate::read_special_ctrl_singl
 			special_gate_para.m_alpha = 0;
 			special_gate_para.m_delta = 0;
 			special_gate_para.m_gamma = 0;
+		}
+		else if (0 == special_gate->m_op.compare("C_Z"))
+		{
+			special_gate_para.m_alpha = PI / 2;
+			special_gate_para.m_beta = PI;
+			special_gate_para.m_gamma = 0;
+			special_gate_para.m_delta = 0;
+		}
+		else if (0 == special_gate->m_op.compare("C_X"))
+		{
+			special_gate_para.m_alpha = PI / 2.0;
+			special_gate_para.m_beta = 0;
+			special_gate_para.m_delta = PI;
+			special_gate_para.m_gamma = PI;
 		}
 		else
 		{

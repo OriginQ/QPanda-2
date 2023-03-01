@@ -27,7 +27,7 @@ def get_dense_pauli(qindex, pauli_char, n_qubit):
 
 def get_matrix(pauliOperator):
     op=pauliOperator.toHamiltonian(1)
-    n_qubit=pauliOperator.getMaxIndex()
+    n_qubit=pauliOperator.getMaxIndex()+1
     
     #preparation for numpy array
     I_=np.eye(1<<n_qubit,dtype='complex128')

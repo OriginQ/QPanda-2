@@ -46,7 +46,7 @@ void Fusion::add_optimize_qubits(std::vector<int>& fusion_qubits, const QGate& g
     }
 }
 
-bool Fusion::aggreate(std::vector<QGate>& gate_v, QuantumMachine* qvm)
+bool Fusion::aggreate(std::vector<QGate>& gate_v, QVec& used_qv)
 {
     std::vector<double> distances;
     std::vector<int> optimize_index;
@@ -89,7 +89,7 @@ bool Fusion::aggreate(std::vector<QGate>& gate_v, QuantumMachine* qvm)
             for (int j = start; j <= i; ++j)
                 opt_gate_idxs.push_back(j);
             if (!opt_gate_idxs.empty())
-                _allocate_new_gate(gate_v, i, opt_gate_idxs, qvm);
+                _allocate_new_gate(gate_v, i, opt_gate_idxs, used_qv);
         }
         i = start - 1;
     }
@@ -97,7 +97,7 @@ bool Fusion::aggreate(std::vector<QGate>& gate_v, QuantumMachine* qvm)
 }
 
 QGate Fusion::_generate_oracle_gate(const std::vector<QGate>& fusion_gates,
-    const std::vector<int>& qubits, QuantumMachine* qvm)
+    const std::vector<int>& qubits, QVec& used_qv)
 {
     CPUImplQPU<double> cpu;
     QStat state;
@@ -122,6 +122,7 @@ QGate Fusion::_generate_oracle_gate(const std::vector<QGate>& fusion_gates,
         }
 
         if (gate_type == GateType::ORACLE_GATE) {
+            matrix = cpu.vectorize_matrix(matrix);
             cpu.OracleGate(phy_qv, matrix, false);
         }
         else
@@ -148,9 +149,7 @@ QGate Fusion::_generate_oracle_gate(const std::vector<QGate>& fusion_gates,
     QVec gate_qv;
     gate_qv.resize(qubits.size(), 0);
     std::map<int, Qubit*> tmp_map;
-    QVec used_qv;
 
-    qvm->get_allocate_qubits(used_qv);
     for (auto &qv : used_qv) {
         tmp_map[qv->get_phy_addr()] = qv;
     }
@@ -158,13 +157,13 @@ QGate Fusion::_generate_oracle_gate(const std::vector<QGate>& fusion_gates,
         gate_qv[i] = tmp_map[qubits[i]];
     }
 
-    return QOracle(gate_qv, data);
+    return QOracle(gate_qv, data,1e-6);
 }
 
 
 
 QGate Fusion::_generate_operation_internal(const std::vector<QGate> &fusion_gates,
-	const std::vector<int> &qubits, QuantumMachine *qvm)
+	const std::vector<int> &qubits, QVec& used_qv)
 {
 	CPUImplQPU<double> cpu;
 	QStat state;
@@ -193,39 +192,20 @@ QGate Fusion::_generate_operation_internal(const std::vector<QGate> &fusion_gate
 			phy_qv.push_back(i->get_phy_addr());
 		}
 
-		if (gate_type == GateType::ORACLE_GATE) {
-			cpu.OracleGate(phy_qv, matrix, false);
+		if (qubit_vector.size() > 1) {
+            if (gate_type == GateType::CNOT_GATE)
+            {
+                cpu.unitaryDoubleQubitGate(phy_qv[0], phy_qv[1], matrix, false, (GateType)gate_type);
+            }
+            else
+            {
+                cpu.three_qubit_gate_fusion(phy_qv[0], phy_qv[1], matrix);
+            }
+				
 		}
-		else
+		else 
 		{
-			if (qubit_vector.size() > 1) {
-				cpu.double_qubit_gate_fusion(phy_qv[0], phy_qv[1], matrix);
-			}
-			else 
-			{
-				if (qubit_vector.size() > 1) {
-					cpu.double_qubit_gate_fusion(qubits[0], qubits[1], matrix);
-				}
-				else
-				{
-					if (qubits.size() > 1)
-					{
-						if (bit == qubits[0])
-						{
-							tmp_matrix = tensor(matrix, temp_init);
-						}
-						else
-						{
-							tmp_matrix = tensor(temp_init, matrix);
-						}
-						cpu.double_qubit_gate_fusion(qubits[0], qubits[1], tmp_matrix);
-					}
-					else
-					{
-						cpu.single_qubit_gate_fusion(bit, matrix);
-					}
-				}
-			}
+            cpu.single_qubit_gate_fusion(bit, matrix);
 		}
 
 	}
@@ -234,8 +214,6 @@ QGate Fusion::_generate_operation_internal(const std::vector<QGate> &fusion_gate
 	QVec gate_qv;
 	gate_qv.resize(qubits.size(), 0);
 	std::map<int, Qubit*> tmp_map;
-	QVec used_qv;
-	qvm->get_allocate_qubits(used_qv);
 
 	for (auto &qv : used_qv) {
 		tmp_map[qv->get_phy_addr()] = qv;
@@ -247,18 +225,6 @@ QGate Fusion::_generate_operation_internal(const std::vector<QGate> &fusion_gate
 
 	if (gate_qv.size() > 1)
 	{
-		for (int j = 0; j < 4; j++)
-		{
-			qcomplex_t tmp = data[j * 4 + 1];
-			data[j * 4 + 1] = data[j * 4 + 2];
-			data[j * 4 + 2] = tmp;
-		}
-		for (int j = 0; j < 4; j++)
-		{
-			qcomplex_t tmp = data[4 + j];
-			data[4 + j] = data[8 + j];
-			data[8 + j] = tmp;
-		}
 		return QDouble(gate_qv[0], gate_qv[1], data);
 	}
 	else
@@ -295,29 +261,57 @@ bool Fusion::_exclude_escaped_qubits(std::vector<int>& fusion_qubits,
 }
 
 
-void Fusion::aggregate_operations(QCircuit &cir, QuantumMachine *qvm)
+void Fusion::aggregate_operations(QCircuit &cir)
 {
 	if (cir.is_empty())
 		return ;
-
+    QVec used_qv;
+    cir.get_used_qubits(used_qv);
 	flatten(cir);
-	_fusion_gate(cir, 1, qvm);
-	_fusion_gate(cir, 2, qvm);
-}
-
-void  Fusion::aggregate_operations(QProg& src_prog, QuantumMachine* qvm)
-{
-
-	if (src_prog.is_empty()) {
-		return;
-	}
-
-	flatten(src_prog, true);
-	_fusion_gate(src_prog, 1, qvm);
-	_fusion_gate(src_prog, 2, qvm);
+    if (used_qv.size() < 18)
+    {
+        _fusion_gate(cir, 1, used_qv);
+        _fusion_gate(cir, 2, used_qv);
+    }
 
     std::vector<QGate> gate_list;
-    for (auto gate_itr = src_prog.getFirstNodeIter(); gate_itr != src_prog.getEndNodeIter(); ++gate_itr)
+    for (auto gate_itr = cir.getFirstNodeIter(); gate_itr != cir.getEndNodeIter(); ++gate_itr)
+    {
+        auto gate_tmp = std::dynamic_pointer_cast<QNode>(*gate_itr);
+        if ((*gate_tmp).getNodeType() != NodeType::GATE_NODE) {
+            continue;
+        }
+
+        auto p_gate = std::dynamic_pointer_cast<AbstractQGateNode>(*gate_itr);
+        if (p_gate->getControlQubitNum())
+        {
+            return;
+        }
+        gate_list.push_back(p_gate);
+
+    }
+    cir.clear();
+    aggreate(gate_list, used_qv);
+    for (int i = 0; i < gate_list.size(); i++)
+    {
+        if (gate_list[i].getQGate()->getGateType() == GateType::GATE_NOP)
+            continue;
+        cir.insertQNode(cir.getLastNodeIter(), std::dynamic_pointer_cast<QNode>(gate_list[i].getImplementationPtr()));
+    }
+
+}
+
+void Fusion::multi_bit_gate_fusion(QProg& prog)
+{
+    if (prog.is_empty()) {
+        return;
+    }
+    QVec used_qv;
+    prog.get_used_qubits(used_qv);
+    flatten(prog, true);
+
+    std::vector<QGate> gate_list;
+    for (auto gate_itr = prog.getFirstNodeIter(); gate_itr != prog.getEndNodeIter(); ++gate_itr)
     {
         auto gate_tmp = std::dynamic_pointer_cast<QNode>(*gate_itr);
         if ((*gate_tmp).getNodeType() != NodeType::GATE_NODE) {
@@ -328,8 +322,50 @@ void  Fusion::aggregate_operations(QProg& src_prog, QuantumMachine* qvm)
         gate_list.push_back(p_gate);
 
     }
+    prog.clear();
+    aggreate(gate_list, used_qv);
+
+    for (int i = 0; i < gate_list.size(); i++)
+    {
+        if (gate_list[i].getQGate()->getGateType() == GateType::GATE_NOP)
+            continue;
+        prog.insertQNode(prog.getLastNodeIter(), std::dynamic_pointer_cast<QNode>(gate_list[i].getImplementationPtr()));
+    }
+}
+
+void  Fusion::aggregate_operations(QProg& src_prog)
+{
+
+	if (src_prog.is_empty()) {
+		return;
+	}
+
+	flatten(src_prog, true);
+    QVec used_qv;
+    src_prog.get_used_qubits(used_qv);
+    if (used_qv.size() < 18)
+    {
+        _fusion_gate(src_prog, 1, used_qv);
+        _fusion_gate(src_prog, 2, used_qv);
+    }
+    std::vector<QGate> gate_list;
+    for (auto gate_itr = src_prog.getFirstNodeIter(); gate_itr != src_prog.getEndNodeIter(); ++gate_itr)
+    {
+        auto gate_tmp = std::dynamic_pointer_cast<QNode>(*gate_itr);
+        if ((*gate_tmp).getNodeType() != NodeType::GATE_NODE) {
+            continue;
+        }
+
+        auto p_gate = std::dynamic_pointer_cast<AbstractQGateNode>(*gate_itr);
+        if (p_gate->getControlQubitNum())
+        {
+            return;
+        }
+        gate_list.push_back(p_gate);
+
+    }
     src_prog.clear();
-    aggreate(gate_list, qvm);
+    aggreate(gate_list, used_qv);
 
     for (int i = 0; i < gate_list.size(); i++)
     {
@@ -341,7 +377,7 @@ void  Fusion::aggregate_operations(QProg& src_prog, QuantumMachine* qvm)
 }
 
 template<class T>
-void Fusion::_fusion_gate(T& src_prog, const int fusion_bit, QuantumMachine* qvm)
+void Fusion::_fusion_gate(T& src_prog, const int fusion_bit, QVec& used_qv)
 {
 	auto prog_node = src_prog.getImplementationPtr();
 	for (auto itr = prog_node->getLastNodeIter(); itr != prog_node->getHeadNodeIter(); --itr)
@@ -437,13 +473,13 @@ void Fusion::_fusion_gate(T& src_prog, const int fusion_bit, QuantumMachine* qvm
 		}
 
 		/*4.generate a fused gate*/
-		_allocate_new_operation(src_prog, itr, fusing_gate_idxs, qvm);
+		_allocate_new_operation(src_prog, itr, fusing_gate_idxs,used_qv);
 	}
 }
 
 template<class T>
 void Fusion::_allocate_new_operation(T& prog, NodeIter& index_itr,
-	std::vector<NodeIter>& fusing_gate_itrs, QuantumMachine* qvm)
+	std::vector<NodeIter>& fusing_gate_itrs, QVec& used_qv)
 {
 	std::vector<QGate> fusion_gates;
 	for (auto& itr : fusing_gate_itrs) {
@@ -451,7 +487,7 @@ void Fusion::_allocate_new_operation(T& prog, NodeIter& index_itr,
 		fusion_gates.push_back(p_gate);
 	}
 
-	auto q_gate = _generate_operation(fusion_gates, qvm);
+	auto q_gate = _generate_operation(fusion_gates, used_qv);
 	prog.insertQNode(index_itr, std::dynamic_pointer_cast<QNode>(q_gate.getImplementationPtr()));
 	index_itr++;
 	for (auto &itr : fusing_gate_itrs) {
@@ -460,21 +496,21 @@ void Fusion::_allocate_new_operation(T& prog, NodeIter& index_itr,
 }
 
 void  Fusion::_allocate_new_gate(std::vector<QGate>& gate_v, int index,
-    std::vector<int>& fusing_op_indexs, QuantumMachine* qvm)
+    std::vector<int>& fusing_op_indexs, QVec& used_qv)
 {
     std::vector<QGate> fusion_gates;
     for (auto itr : fusing_op_indexs) {
         fusion_gates.push_back(gate_v[itr]);
     }
 
-    gate_v[index] = _generate_operation(fusion_gates, qvm);
+    gate_v[index] = _generate_operation(fusion_gates, used_qv);
     for (auto i : fusing_op_indexs)
         if (i != index)
             gate_v[i].getQGate()->setGateType(GateType::GATE_NOP);
 
 }
 
-QGate Fusion::_generate_operation(std::vector<QGate>& fusion_gates, QuantumMachine* qvm)
+QGate Fusion::_generate_operation(std::vector<QGate>& fusion_gates, QVec& used_qv)
 {
 	std::set<int> fusioned_qubits;
 	std::vector<QVec> tmp;
@@ -498,8 +534,6 @@ QGate Fusion::_generate_operation(std::vector<QGate>& fusion_gates, QuantumMachi
 		arg_qubits[i] = i;
 	}
 	std::map<int, Qubit*> tmp_map;
-	QVec used_qv;
-	qvm->get_allocate_qubits(used_qv);
 
 	for (auto &it : used_qv)
 	{
@@ -519,7 +553,7 @@ QGate Fusion::_generate_operation(std::vector<QGate>& fusion_gates, QuantumMachi
 
     if (arg_qubits.size() > 2)
     {
-        auto fusioned_op = _generate_oracle_gate(fusion_gates, arg_qubits, qvm);
+        auto fusioned_op = _generate_oracle_gate(fusion_gates, arg_qubits, used_qv);
         QVec gate_qv;
         fusioned_op.getQuBitVector(gate_qv);
 
@@ -538,7 +572,7 @@ QGate Fusion::_generate_operation(std::vector<QGate>& fusion_gates, QuantumMachi
     }
     else
     {
-        auto fusioned_op = _generate_operation_internal(fusion_gates, arg_qubits, qvm);
+        auto fusioned_op = _generate_operation_internal(fusion_gates, arg_qubits, used_qv);
         QVec gate_qv;
         fusioned_op.getQuBitVector(gate_qv);
 

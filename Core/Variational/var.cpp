@@ -20,6 +20,13 @@ int numOpArgs(op_type op) {
         { op_type::log, 1 },
         { op_type::polynomial, 2 },
         { op_type::dot, 2 },
+        // add trigonometric function
+        { op_type::sin, 1},
+        { op_type::cos, 1},
+        { op_type::tan, 1},
+        { op_type::asin, 1},
+        { op_type::acos, 1},
+        { op_type::atan, 1},
         { op_type::inverse, 1 },
         { op_type::transpose, 1 },
         { op_type::sum, 1 },
@@ -166,6 +173,27 @@ MatrixXd var::_eval()
     case op_type::dot: {
         return _mval(operands[0]) * _mval(operands[1]);
     }
+
+    // add trigonometric function
+    case op_type::sin: {
+        return _mval(operands[0]).array().sin();
+    }
+    case op_type::cos: {
+        return _mval(operands[0]).array().cos();
+    }
+    case op_type::tan: {
+        return _mval(operands[0]).array().tan();
+    }
+    case op_type::asin: {
+        return _mval(operands[0]).array().asin();
+    }
+    case op_type::acos: {
+        return _mval(operands[0]).array().acos();
+    }
+    case op_type::atan: {
+        return _mval(operands[0]).array().atan();
+    }
+
     case op_type::inverse: {
         return _mval(operands[0]).inverse();
     }
@@ -371,6 +399,30 @@ MatrixXd var::_back_single(const MatrixXd & dx, size_t op_idx)
             return dx * _mval(operands[1]).transpose();
         else
             return _mval(operands[0]).transpose() * dx;
+    }
+    case op_type::sin: {
+        return dx.array() *
+            _mval(operands[0]).array().sin();
+    }
+    case op_type::cos: {
+        return dx.array() *
+            _mval(operands[0]).array().cos();
+    }
+    case op_type::tan: {
+        return dx.array() *
+            _mval(operands[0]).array().tan();
+    }
+    case op_type::asin: {
+        return dx.array() *
+            _mval(operands[0]).array().asin();
+    }
+    case op_type::acos: {
+        return dx.array() *
+            _mval(operands[0]).array().acos();
+    }
+    case op_type::atan: {
+        return dx.array() *
+            _mval(operands[0]).array().atan();
     }
     case op_type::inverse: {
         // (I)' = (AA^{-1})' = A(A^{-1}') + A'(A^{-1})
@@ -1296,6 +1348,55 @@ VariationalQuantumGate_CZ::VariationalQuantumGate_CZ(Qubit* q1, Qubit* q2)
 VariationalQuantumGate_CNOT::VariationalQuantumGate_CNOT(Qubit* q1, Qubit* q2)
     : m_q1(q1), m_q2(q2)
 {}
+
+VariationalQuantumGate_SpecialA::VariationalQuantumGate_SpecialA(Qubit* q1, Qubit* q2, var _var)
+    : m_q1(q1), m_q2(q2)
+{
+    m_vars.push_back(_var);
+}
+
+QGate VariationalQuantumGate_SpecialA::feed()
+{
+    auto mat_func = [](double theta) {
+        return QStat{ 1, 0, 0, 0,
+            0, std::cos(theta), std::sin(theta), 0,
+            0, std::sin(theta), -1 * std::cos(theta), 0,
+            0,0,0,1 };
+    };
+    if (m_vars.size() == 1)
+    {
+        double theta =  _sval(m_vars[0]);
+        auto mat = mat_func(theta);
+        auto a_gate = QDouble(m_q1, m_q2, mat);
+        copy_dagger_and_control_qubit(a_gate);
+        return a_gate;
+    }
+    else throw exception();
+}
+
+QGate VariationalQuantumGate_SpecialA::feed(map<size_t, double> offset)
+{
+    auto mat_func = [](double theta) {
+        return QStat{ 1, 0, 0, 0,
+            0, std::cos(theta), std::sin(theta), 0,
+            0, std::sin(theta), -1 * std::cos(theta), 0,
+            0,0,0,1 };
+    };
+
+    if (m_vars.size() == 1)
+    {
+        if (offset.find(0) == offset.end())
+            throw exception();
+
+        double theta = _sval(m_vars[0]) + offset[0];
+//        auto a_gate = QDouble(m_q1, m_q2, mat_func(theta));
+        auto mat = mat_func(theta);
+        auto a_gate = QDouble(m_q1, m_q2, mat);
+        copy_dagger_and_control_qubit(a_gate);
+        return a_gate;
+    }
+    else 	throw exception();
+}
 
 void VariationalQuantumCircuit::_insert_copied_gate(std::shared_ptr<VariationalQuantumGate> gate)
 {

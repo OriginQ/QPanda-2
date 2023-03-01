@@ -39,7 +39,7 @@ if __name__ == "__main__":
    
     H1 = q.PauliOperator({'Z0 Z4':0.73,'Z0 Z5':0.33,'Z0 Z6':0.5,'Z1 Z4':0.69,
     'Z1 Z5':0.36,'Z2 Z5':0.88,'Z2 Z6':0.58,'Z3 Z5':0.67,'Z3 Z6':0.43})
-    qlist=machine.qAlloc_many(H1.getMaxIndex())
+    qlist=machine.qAlloc_many(H1.getMaxIndex()+1)
 
     step=2
     gamma = q.var(np.ones((step,1), dtype = 'float64')*(0.01))

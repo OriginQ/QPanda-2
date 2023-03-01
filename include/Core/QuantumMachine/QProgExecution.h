@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2017-2019 Origin Quantum Computing. All Right Reserved.
+Copyright (c) 2017-2023 Origin Quantum Computing. All Right Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -126,6 +126,23 @@ public:
 	{
 		Traversal::traversal(cur_node, *this, param, qpu);
 	}
+
+    /*!
+   * @brief  Execution traversal qprog
+   * @param[in,out]  AbstractQuantumProgram*  quantum prog
+   * @param[in]  AbstractQGateNode*  quantum gate
+   * @param[in]  TraversalConfig  traversal config
+   * @param[in]  QPUImpl*  virtual quantum processor
+   * @return     void
+   */
+    virtual void execute_reverse(std::shared_ptr<AbstractQuantumProgram> cur_node,
+        std::shared_ptr<QNode> parent_node,
+        TraversalConfig & param,
+        QPUImpl*& qpu)
+    {
+        Traversal::traversal_reverse(cur_node, *this, param, qpu);
+    }
+
 	/*!
 	* @brief  Execution traversal qprog
 	* @param[in,out]  AbstractClassicalProg*  quantum prog

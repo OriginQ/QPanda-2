@@ -56,7 +56,7 @@ void export_fundament_class(py::module &m)
              py::arg("qubit"))
         .def("pop", &QVec::pop_back);
 
-    py::class_<CBit>(m, "CBit")
+    py::class_<CBit>(m, "CBit", "quantum classical bit")
         .def("getName", &CBit::getName);
 
     py::class_<ClassicalCondition>(m, "ClassicalCondition", "Classical condition class  Proxy class of cexpr class")
@@ -72,7 +72,7 @@ void export_fundament_class(py::module &m)
         .BIND_CLASSICALCOND_OPERATOR_OVERLOAD(/)
         .BIND_CLASSICALCOND_OPERATOR_OVERLOAD(==);
 
-    py::class_<NodeIter>(m, "NodeIter")
+    py::class_<NodeIter>(m, "NodeIter", "quantum node iter")
         .def(py::init<>())
         .def(py::self == py::self)
         .def(py::self != py::self)

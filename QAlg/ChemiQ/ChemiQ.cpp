@@ -76,11 +76,11 @@ namespace QPanda {
         }
         else if (m_transform_type == TransFormType::Bravyi_Ktaev)
         {
-            size_t m_q = fermion_data.getMaxIndex();
+            size_t m_q = fermion_data.getMaxIndex()+1;
             pauli = BravyiKitaevTransform(fermion_data, BKMatrix(m_q));
         }
 
-        return pauli.getMaxIndex();
+        return pauli.getMaxIndex()+1;
     }
 
 	bool ChemiQ::exec()
@@ -155,7 +155,7 @@ namespace QPanda {
 				}
 			}
 
-			m_qn = m_pauli.getMaxIndex();
+			m_qn = m_pauli.getMaxIndex()+1;
 
 			if (m_transform_type == TransFormType::Bravyi_Ktaev)
 			{
@@ -885,7 +885,7 @@ namespace QPanda {
 		}
 		else if (m_transform_type == TransFormType::Bravyi_Ktaev)
 		{
-			size_t m_q = fermion_data.getMaxIndex();
+			size_t m_q = fermion_data.getMaxIndex()+1;
 			m_pauli = BravyiKitaevTransform(fermion_data, BKMatrix(m_q));
 		}
 

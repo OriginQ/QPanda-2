@@ -107,8 +107,9 @@ std::string Graph::dotify(std::string name) const
         if (!isDirected) adjacent = adj(i);
 
         for (uint32_t j : adjacent) {
-            if (isDirected || (!isDirected && j >= i))
-                dot += "    " + edgeToString(i, j, edgeOp) + ";\n";
+            if (!isDirected && j < i)
+                continue;
+            dot += "    " + edgeToString(i, j, edgeOp) + ";\n";
         }
     }
     dot += "}";

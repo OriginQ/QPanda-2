@@ -12,7 +12,7 @@ namespace py = pybind11;
 
 void export_noise_model(py::module &m)
 {
-    py::class_<NoiseModel>(m, "Noise")
+    py::class_<NoiseModel>(m, "Noise","Quantum machine for noise simulation")
         .def(py::init<>())
         .def("add_noise_model",
              pybind11::overload_cast<const NOISE_MODEL &, const GateType &, double>(&NoiseModel::add_noise_model),

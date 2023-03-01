@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2017-2020 Origin Quantum Computing. All Right Reserved.
+Copyright (c) 2017-2023 Origin Quantum Computing. All Right Reserved.
 Licensed under the Apache License 2.0
 
 OptimizerFactor.h
@@ -14,7 +14,7 @@ Created in 2018-09-06
 #define OPTIMIZERFACTOR_H
 
 #include <memory>
-#include "Core/Module/DataStruct.h"
+#include "OptimizerDataStruct.h"
 
 namespace QPanda
 {

@@ -12,17 +12,97 @@ namespace LATEX_SYNTAX
       latex syntax based on qcircuit package
       see qcircuit tutorial [https://physics.unm.edu/CQuIC/Qcircuit/Qtutorial.pdf]
     */
-    const std::string LATEX_QWIRE = "\\qw";
-    const std::string LATEX_CWIRE = "\\cw";
 
-    /* special gate symbol */
-    const std::string LATEX_SWAP = "\\qswap";
-    const std::string LATEX_CNOT = "\\targ";
-    const std::string LATEX_MEASURE = "\\meter";
-    const std::string LATEX_RESET = "\\gate{\\mathrm{\\left|0\\right\\rangle}}";
+    // qcircuit
+    const std::string k_circuit_qcircuit = "Qciruit";
 
-    const std::string LATEX_FOOTER = "\\\\ }}\n"
-                                     "\\end{document}\n";
+    // wire
+    const std::string k_wire_qw = "\\qw";
+    const std::string k_wire_cw = "\\cw";
+    const std::string k_wire_qw_x = "\\qwx";
+    const std::string k_wire_cw_x = "\\cwx";
+
+    // gate
+    const std::string k_gate_gate = "\\gate";
+    const std::string k_gate_ghost = "\\ghost";
+    const std::string k_gate_nghost = "\\nghost";
+    const std::string k_gate_multigate = "\\multigate";
+    const std::string k_gate_swap = "\\qswap";
+    const std::string k_gate_x = "\\gate{\\mathrm{X}}";
+    const std::string k_gate_z = "\\gate{\\mathrm{Z}}";
+    const std::string k_gate_barrier = "\\barrier[0em]";
+    const std::string k_gate_cx = "\\targ";
+    const std::string k_gate_dagger = "^\\dagger";
+    const std::string k_gate_measure = "\\meter";
+    const std::string k_gate_reset = "\\gate{\\mathrm{\\left|0\\right\\rangle}}";
+
+    // control
+    const std::string k_control_ctrl = "\\ctrl";
+    const std::string k_control_control = "\\control";
+
+    // lable
+    const std::string k_lable_ket = "\\ket";
+    const std::string k_lable_lstick = "\\lstick";
+    const std::string k_lable_rstick = "\\rstick";
+    const std::string k_lable_mathrm = "\\mathrm";
+    const std::string k_lable_hspace = "\\hspace";
+    const std::string k_lable_dstick = "\\dstick";
+
+    // general
+    const std::string k_symbol_brace_left = "{";
+    const std::string k_symbol_brace_right = "}";
+    const std::string k_symbol_bracket_left = "[";
+    const std::string k_symbol_bracket_right = "]";
+    const std::string k_symbol_parenthesis_left = "(";
+    const std::string k_symbol_parenthesis_right = ")";
+
+    const std::string k_symbol_underline = "_";
+    const std::string k_symbol_zero = "0";
+    const std::string k_symbol_and = "&";
+    const std::string k_symbol_space = " ";
+    const std::string k_symbol_backslash = "\\";
+    const std::string k_symbol_comma = ",";
+    const std::string k_symbol_enter = "\\\\\n";
+    const std::string k_symbol_quotation = "\"";
+    const std::string k_symbol_spacil = "_<<<";
+    const std::string k_symbol_footer = "\\\\ }}\n"
+                                        "\\end{document}\n";
+    const std::string k_symbol_em = "0em";
+    const std::string k_symbol_q = "q";
+    const std::string k_symbol_colon = ":";
+
+    static std::string latex_header(const std::string &logo);
+    static std::string latex_qwire_head_label(const std::string &label);
+    static std::string latex_cwire_head_label(const std::string &label);
+    static std::string latex_time_head_label(const std::string &label);
+    static std::string latex_qwire_tail_label(const std::string &label, const std::string &sub_symbol = "");
+    static std::string latex_cwire_tail_label(const std::string &main_symbol, const std::string &sub_symbol = "");
+    static std::string latex_time_tail_label(const std::string &label);
+    static void add_ctrl(std::unordered_map<uint64_t, std::string> &latex, uint64_t tag_min, uint64_t tag_max, std::vector<uint64_t> &ctrls);
+
+
+    static std::unordered_map<uint64_t, std::string> latex_single_bit_gate(const std::string &gate_name,
+                                                                 std::vector<uint64_t> tag_rows,
+                                                                 std::vector<uint64_t> ctrl_rows,
+                                                                 const std::string &param = "",
+                                                                 bool is_dagger = false);
+
+    static std::unordered_map<uint64_t, std::string> latex_multi_bits_gate(const std::string &gate_name,
+                                                                 std::vector<uint64_t> tag_rows,
+                                                                 std::vector<uint64_t> ctrl_rows,
+                                                                 const std::string &param = "",
+                                                                 bool is_dagger = false);
+
+    static std::unordered_map<uint64_t, std::string> latex_x_gate(std::vector<uint64_t> tag_rows,
+                                                        std::vector<uint64_t> ctrl_rows);
+    static std::unordered_map<uint64_t, std::string> latex_swap_gate(std::vector<uint64_t> tag_rows,
+                                                           std::vector<uint64_t> ctrl_rows);
+    static std::unordered_map<uint64_t, std::string> latex_z_gate(std::vector<uint64_t> tag_rows,
+                                                        std::vector<uint64_t> ctrl_rows);
+    static std::string latex_measure_to(uint64_t c_row, uint64_t q_row, uint64_t row_size);
+    static std::string latex_barrier(size_t row_start, size_t row_end);
+
+
 
     std::string latex_header(const std::string &logo)
     {
@@ -34,7 +114,7 @@ namespace LATEX_SYNTAX
                "\\begin{document}\n" +
                (logo.empty() ? "" : logo + "\\\\\n\\\\\n\\\\\n\\\\\n") +
                "\\scalebox{1.0}{\n"
-               "\\Qcircuit @C = 1.0em @R = 0.2em @!R{ \\\\\n";
+               "\\Qcircuit @C = 1.0em @R = 0.5em @!R{ \\\\\n";
     }
 
     std::string latex_qwire_head_label(const std::string &label)
@@ -56,58 +136,88 @@ namespace LATEX_SYNTAX
 
           see latex package qcircuit tutorial [https://physics.unm.edu/CQuIC/Qcircuit/Qtutorial.pdf]
         */
-        std::string s = "\\nghost{" + label + "  \\ket{0}}" +
-                        " & " +
-                        "\\lstick{" + label + "  \\ket{0}}";
 
-        return s;
+        std::string head_wire = k_gate_nghost + k_symbol_brace_left + label +
+                k_lable_ket + k_symbol_brace_left + k_symbol_zero +
+                k_symbol_brace_right + k_symbol_brace_right +
+                k_symbol_and +
+                k_lable_lstick + k_symbol_brace_left +
+                label + k_lable_ket + k_symbol_brace_left +
+                k_symbol_zero + k_symbol_brace_right + k_symbol_brace_right;
+        return head_wire;
     }
 
     std::string latex_cwire_head_label(const std::string &label)
     {
-        std::string s = "\\nghost{" + label + "  0}" +
-                        " & " +
-                        "\\lstick{\\mathrm{" + label + "  0}}";
-        return s;
+        std::string cwire_head = k_gate_nghost + k_symbol_brace_left +
+                label + k_symbol_zero + k_symbol_brace_right +
+                k_symbol_and +
+                k_lable_lstick + k_symbol_brace_left + k_lable_mathrm +
+                k_symbol_brace_left + label + k_symbol_colon + k_symbol_zero +
+                k_symbol_brace_right + k_symbol_brace_right;
+        return cwire_head;
     }
 
     std::string latex_time_head_label(const std::string &label)
     {
-        std::string s = "\\nghost{" + label + "}" +
-                        " & " +
-                        "\\lstick{\\mathrm{" + label + "}}";
-        return s;
+        std::string time_head = k_gate_nghost + k_symbol_brace_left +
+                label + k_symbol_brace_right +
+                k_symbol_and +
+                k_lable_lstick + k_symbol_brace_left + k_lable_mathrm +
+                k_symbol_brace_left + label + k_symbol_brace_right +
+                k_symbol_brace_right;
+        return time_head;
     }
 
-    std::string latex_qwire_tail_label(const std::string &label, const std::string &sub_symbol = "")
+    std::string latex_qwire_tail_label(const std::string &label, const std::string &sub_symbol)
     {
-        std::string s = "\\rstick{" + label + "}\\qw" +
-                        " & " +
-                        "\\nghost{" + label + "}";
-        return s;
+        std::string qwire_tail = k_lable_rstick + k_symbol_brace_left + label +
+                k_symbol_brace_right + k_wire_qw +
+                k_symbol_and +
+                k_gate_nghost + k_symbol_brace_left + label + k_symbol_brace_right;
+        return qwire_tail;
     }
 
-    std::string latex_cwire_tail_label(const std::string &main_symbol, const std::string &sub_symbol = "")
+    std::string latex_cwire_tail_label(const std::string &main_symbol, const std::string &sub_symbol)
     {
-        std::string s = "\\rstick{\\mathrm{" + main_symbol + "}}\\cw" +
-                        " & " +
-                        "\\nghost{" + main_symbol + "}";
-        return s;
+        std::string cwire_tail = k_lable_rstick + k_symbol_brace_left + k_lable_mathrm +
+                k_symbol_brace_left + main_symbol + k_symbol_brace_right + k_symbol_brace_right +
+                k_wire_cw +
+                k_symbol_and +
+                k_gate_nghost + k_symbol_brace_left + main_symbol + k_symbol_brace_right;
+        return cwire_tail;
     }
 
     std::string latex_time_tail_label(const std::string &label)
     {
-        std::string s = "\\rstick{\\mathrm{" + label + "}}" +
-                        " & " +
-                        "\\nghost{" + label + "}";
-        return s;
+        std::string time_tail = k_lable_rstick + k_symbol_brace_left + k_lable_mathrm + k_symbol_brace_left +
+                label + k_symbol_brace_right + k_symbol_brace_right +
+                k_symbol_and +
+                k_gate_nghost + k_symbol_brace_left + label + k_symbol_brace_right;
+        return time_tail;
     }
 
-    std::string latex_ctrl(uint64_t ctrl_row, uint64_t target_row)
+
+    static void add_ctrl(std::unordered_map<uint64_t, std::string> &latex, uint64_t tag_min, uint64_t tag_max, std::vector<uint64_t> &ctrls)
     {
-        std::stringstream ss;
-        ss << "\\ctrl{" << (int)target_row - (int)ctrl_row << "}";
-        return std::move(ss.str());
+        std::sort(ctrls.begin(), ctrls.end());
+        ctrls.erase(unique(ctrls.begin(), ctrls.end()), ctrls.end());
+
+        for (auto &ctrl : ctrls)
+        {
+            uint64_t tag = tag_max;
+            if (ctrl < tag_min)
+            {
+                tag = tag_min;
+            }
+
+            auto offset = static_cast<int>(tag) - static_cast<int>(ctrl);
+            std::string string_ctrl = k_control_ctrl + k_symbol_brace_left +
+                std::to_string(offset) + k_symbol_brace_right;
+            latex.insert({ ctrl, string_ctrl });
+        }
+
+        return;
     }
 
     /**
@@ -120,24 +230,23 @@ namespace LATEX_SYNTAX
      * @return gate latex string
      */
     std::unordered_map<uint64_t, std::string> latex_single_bit_gate(const std::string &gate_name,
-                                                                    std::set<uint64_t> tag_rows,
-                                                                    std::set<uint64_t> ctrl_rows,
-                                                                    const std::string &param = "",
-                                                                    bool is_dagger = false)
+                                                                    std::vector<uint64_t> tag_rows,
+                                                                    std::vector<uint64_t> ctrl_rows,
+                                                                    const std::string &param,
+                                                                    bool is_dagger)
     {
         assert(tag_rows.size() == 1);
         std::unordered_map<uint64_t, std::string> gate_latex;
         uint64_t tag_row = *tag_rows.begin();
-        std::string tag_latex = "\\gate{\\mathrm{" + gate_name + "}" +
-                                (!param.empty() ? "\\,\\mathrm{" + param + "}" : "") +
-                                (is_dagger ? "^\\dagger" : "") + "}";
-        gate_latex[tag_row] = tag_latex;
+        std::string lable_param = !param.empty() ? (k_symbol_backslash + k_symbol_comma + k_lable_mathrm +
+                                                    k_symbol_brace_left + param + k_symbol_brace_right) :
+                                                    std::string();
+        std::string lable_dagger = is_dagger ? k_gate_dagger : std::string();
+        std::string tag_latex = k_gate_gate + k_symbol_brace_left + k_lable_mathrm + 
+            k_symbol_brace_left + gate_name + k_symbol_brace_right + lable_param + lable_dagger + k_symbol_brace_right;
 
-        for (auto row : ctrl_rows)
-        {
-            gate_latex[row] = latex_ctrl(row, tag_row);
-        }
-
+        gate_latex.insert({tag_row, tag_latex});
+        add_ctrl(gate_latex, tag_row, tag_row, ctrl_rows);
         return gate_latex;
     }
 
@@ -151,54 +260,52 @@ namespace LATEX_SYNTAX
      * @return gate latex string, matchs qbits
      */
     std::unordered_map<uint64_t, std::string> latex_multi_bits_gate(const std::string &gate_name,
-                                                                    std::set<uint64_t> tag_rows,
-                                                                    std::set<uint64_t> ctrl_rows,
-                                                                    const std::string &param = "",
-                                                                    bool is_dagger = false)
+                                                          std::vector<uint64_t> tag_rows,
+                                                          std::vector<uint64_t> ctrl_rows,
+                                                          const std::string &param,
+                                                          bool is_dagger)
     {
-
         assert(tag_rows.size() > 1);
-
         std::unordered_map<uint64_t, std::string> gate_latex;
+        std::string lable_param = !param.empty() ? (k_symbol_backslash + k_symbol_comma + k_lable_mathrm +
+                                                    k_symbol_brace_left + param + k_symbol_brace_right ) :
+                                                    std::string();
+        std::string lable_dagger = is_dagger ? k_gate_dagger : std::string();
+        auto min = *std::min_element(tag_rows.begin(), tag_rows.end());
+        auto max = *std::max_element(tag_rows.begin(), tag_rows.end());
+        auto offset = max - min;
 
-        uint64_t tag_first = *tag_rows.begin();
-        uint64_t tag_last = *tag_rows.rbegin();
-        int tag_span_offset = int(tag_last) - int(tag_first);
-
-        for (uint64_t row = tag_first; row <= tag_last; row++)
+        for (size_t tag = min; tag <= max; tag++)
         {
-            std::stringstream ss;
-            if (row == tag_first)
+            std::string str;
+            auto iter = std::find(tag_rows.begin(), tag_rows.end(), tag);
+            if (tag_rows.end() == iter)
             {
-                ss << "\\multigate{" << tag_span_offset << "}"
-                   << "{\\mathrm{" + gate_name + "}"
-                   << (!param.empty() ? "\\,(\\mathrm{" + param + "})" : "")
-                   << (is_dagger ? "^\\dagger" : "")
-                   << "}"
-                   /* label row id at multigate input qwire */
-                   << "_<<<{" << row << "}";
-                gate_latex[row] = ss.str();
+                str = k_gate_ghost + k_symbol_brace_left + k_lable_mathrm + k_symbol_brace_left +
+                      gate_name + k_symbol_brace_right + lable_param + lable_dagger + k_symbol_brace_right;
             }
             else
             {
-                ss << "\\ghost{\\mathrm{" + gate_name + "}"
-                   << (!param.empty() ? "\\,(\\mathrm{" + param + "})" : "")
-                   << (is_dagger ? "^\\dagger" : "")
-                   << "}";
-                if (tag_rows.count(row))
+                auto index = std::distance(tag_rows.begin(), iter);
+                if (*iter == min)
                 {
-                    ss << "_<<<{" << row << "}";
+                    str = k_gate_multigate + k_symbol_brace_left + std::to_string(offset) + k_symbol_brace_right +
+                            k_symbol_brace_left + k_lable_mathrm + k_symbol_brace_left + gate_name + k_symbol_brace_right +
+                            lable_param + lable_dagger + k_symbol_brace_right +
+                            k_symbol_spacil + k_symbol_brace_left + std::to_string(index) + k_symbol_brace_right;
+                    gate_latex.insert({tag, str});
                 }
-
-                gate_latex[row] = ss.str();
+                else
+                {
+                    str = k_gate_ghost + k_symbol_brace_left + k_lable_mathrm + k_symbol_brace_left +
+                          gate_name + k_symbol_brace_right + lable_param + lable_dagger + k_symbol_brace_right;
+                    str +=  k_symbol_spacil + k_symbol_brace_left + std::to_string(index) + k_symbol_brace_right;
+                }
             }
+            gate_latex.insert({tag, str});
         }
 
-        for (auto row : ctrl_rows)
-        {
-            gate_latex[row] = latex_ctrl(row, tag_first);
-        }
-
+        add_ctrl(gate_latex, min, max, ctrl_rows);
         return gate_latex;
     }
 
@@ -211,26 +318,28 @@ namespace LATEX_SYNTAX
      * @param[in] is_dagger gate is dagger
      * @return gate latex string, matchs qbits
      */
-    std::unordered_map<uint64_t, std::string> latex_cnot_gate(const std::string &gate_name,
-                                                              std::set<uint64_t> tag_rows,
-                                                              std::set<uint64_t> ctrl_rows,
-                                                              const std::string &param = "",
-                                                              bool is_dagger = false)
+    std::unordered_map<uint64_t, std::string> latex_x_gate(std::vector<uint64_t> tag_rows,
+                                                           std::vector<uint64_t> ctrl_rows)
     {
         assert(tag_rows.size() == 1);
-
         std::unordered_map<uint64_t, std::string> gate_latex;
-        uint64_t tag_row = *tag_rows.begin();
+        std::string tag_latex;
 
-        gate_latex[tag_row] = LATEX_CNOT;
-
-        for (auto row : ctrl_rows)
+        if (0 == ctrl_rows.size())
         {
-            gate_latex[row] = latex_ctrl(row, tag_row);
+            tag_latex = k_gate_x + k_wire_qw;
+        }
+        else
+        {
+            tag_latex = k_gate_cx + k_wire_qw;
         }
 
+        uint64_t tag_row = *tag_rows.begin();
+        gate_latex.insert({tag_row, tag_latex});
+        add_ctrl(gate_latex, tag_row, tag_row, ctrl_rows);
         return gate_latex;
     }
+
 
     /**
      * @brief generate swap gate latex str
@@ -241,31 +350,52 @@ namespace LATEX_SYNTAX
      * @param[in] is_dagger gate is dagger
      * @return gate latex string, matchs qbits
      */
-    std::unordered_map<uint64_t, std::string> latex_swap_gate(const std::string &gate_name,
-                                                              std::set<uint64_t> tag_rows,
-                                                              std::set<uint64_t> ctrl_rows,
-                                                              const std::string &param = "",
-                                                              bool is_dagger = false)
+    std::unordered_map<uint64_t, std::string> latex_swap_gate(std::vector<uint64_t> tag_rows,
+                                                    std::vector<uint64_t> ctrl_rows)
     {
         assert(tag_rows.size() == 2);
 
         std::unordered_map<uint64_t, std::string> gate_latex;
-        uint64_t tag_row_1 = *tag_rows.begin();
-        uint64_t tag_row_2 = *tag_rows.rbegin();
+        auto min = *std::min_element(tag_rows.begin(), tag_rows.end());
+        auto max = *std::max_element(tag_rows.begin(), tag_rows.end());
+        auto offset = static_cast<int>(max) - static_cast<int>(min);
 
-        int offset = (int)tag_row_1 - (int)tag_row_2;
-        assert(offset < 0);
-        std::stringstream ss;
-        ss << "\\qwx[" << offset << "]";
-        std::string swap_qwx = LATEX_SWAP + ss.str();
-        gate_latex[tag_row_1] = LATEX_SWAP;
-        gate_latex[tag_row_2] = swap_qwx;
+        std::string swap_qwx = k_gate_swap + k_wire_qw_x + k_symbol_bracket_left +
+                std::to_string(offset) + k_symbol_bracket_right;
+        gate_latex.insert({max, k_gate_swap});
+        gate_latex.insert({min, swap_qwx});
+        add_ctrl(gate_latex, min, max, ctrl_rows);
+        return gate_latex;
+    }
 
-        for (auto row : ctrl_rows)
+    /**
+     * @brief generate cz gate latex str
+     *
+     * @param[in] gate_name name of gate
+     * @param[in] qbits     gate qbits id
+     * @param[in] param     gate param
+     * @param[in] is_dagger gate is dagger
+     * @return gate latex string, matchs qbits
+     */
+    std::unordered_map<uint64_t, std::string> latex_z_gate(std::vector<uint64_t> tag_rows,
+                                                           std::vector<uint64_t> ctrl_rows)
+    {
+        assert(tag_rows.size() == 1);
+        std::unordered_map<uint64_t, std::string> gate_latex;
+        std::string tag_latex;
+
+        if (0 == ctrl_rows.size())
         {
-            gate_latex[row] = latex_ctrl(row, tag_row_1);
+            tag_latex = k_gate_z + k_wire_qw;
+        }
+        else
+        {
+            tag_latex = k_control_control + k_wire_qw;
         }
 
+        uint64_t tag_row = *tag_rows.begin();
+        gate_latex.insert({tag_row, tag_latex});
+        add_ctrl(gate_latex, tag_row, tag_row, ctrl_rows);
         return gate_latex;
     }
 
@@ -279,42 +409,49 @@ namespace LATEX_SYNTAX
      */
     std::string latex_measure_to(uint64_t c_row, uint64_t q_row, uint64_t row_size)
     {
-        std::stringstream ss;
-        ss << "\\dstick{_{_{\\hspace{0.0em}" << c_row << "}}} \\cw \\ar @{<=} ["
-           << (int)q_row - (int)row_size - (int)c_row << ", 0]";
-        return std::move(ss.str());
+        int offset = static_cast<int>(q_row) - static_cast<int>(row_size) - static_cast<int>(c_row);
+        std::string str = k_lable_dstick + k_symbol_brace_left + k_symbol_underline +
+                k_symbol_brace_left + k_symbol_underline +
+                k_symbol_brace_left +
+                k_symbol_brace_right + k_symbol_brace_right + k_symbol_brace_right +
+                k_wire_cw + " \\ar @{<=} " + k_symbol_bracket_left +
+                std::to_string(offset) + k_symbol_comma + k_symbol_zero +
+                k_symbol_bracket_right;
+
+        return str;
     }
 
     std::string latex_barrier(size_t row_start, size_t row_end)
     {
-        std::stringstream ss;
-        ss << "\\barrier[0em]{" << row_end - row_start << "}";
-        return std::move(ss.str());
+        int offset = static_cast<int>(row_end) - static_cast<int>(row_start);
+        std::string barrier = k_gate_barrier + k_symbol_brace_left +
+                std::to_string(offset) + k_symbol_brace_right;
+        return barrier;
     }
 
 } // namespace
 
 namespace // namespace utils
 {
-    std::vector<std::set<uint64_t>> sliceToContinuousSeq(std::set<uint64_t> vec)
+    std::vector<std::vector<uint64_t>> slice_to_continuous_seq(std::vector<uint64_t> vec)
     {
-        std::vector<std::set<uint64_t>> sliced_seq;
+        std::vector<std::vector<uint64_t>> sliced_seq;
         for (auto it : vec)
         {
             if (sliced_seq.empty())
             {
-                sliced_seq.emplace_back(std::set<uint64_t>{it});
+                sliced_seq.emplace_back(std::vector<uint64_t>{it});
             }
             else
             {
                 bool continus = (1 == it - *sliced_seq.back().rbegin());
                 if (continus)
                 {
-                    sliced_seq.back().insert(it);
+                    sliced_seq.back().push_back(it);
                 }
                 else
                 {
-                    sliced_seq.emplace_back(std::set<uint64_t>{it});
+                    sliced_seq.emplace_back(std::vector<uint64_t>{it});
                 }
             }
         }
@@ -325,8 +462,8 @@ namespace // namespace utils
 QPANDA_BEGIN
 
 LatexMatrix::LatexMatrix()
-    : m_latex_qwire(LATEX_SYNTAX::LATEX_QWIRE),
-      m_latex_cwire(LATEX_SYNTAX::LATEX_CWIRE),
+    : m_latex_qwire(LATEX_SYNTAX::k_wire_qw),
+      m_latex_cwire(LATEX_SYNTAX::k_wire_cw),
       m_latex_time_seq(""),
       m_latex_qwire_head(LATEX_SYNTAX::latex_qwire_head_label("")),
       m_latex_cwire_head(LATEX_SYNTAX::latex_cwire_head_label("")),
@@ -339,7 +476,23 @@ LatexMatrix::LatexMatrix()
 {
 }
 
-void LatexMatrix::setLabel(const Label &qubit_label, const Label &cbit_label /* ={}*/, const TimeSeqLabel &time_seq_label /* = ""*/, bool head /*=true*/)
+void LatexMatrix::set_row(uint64_t row_qubit, uint64_t row_cbit)
+{
+    m_row_qubit = row_qubit;
+    m_row_cbit = row_cbit;
+    return;
+}
+
+uint64_t LatexMatrix::get_qubit_row()
+{
+    return m_row_qubit;
+}
+uint64_t LatexMatrix::get_cbit_row()
+{
+    return m_row_cbit;
+}
+
+void LatexMatrix::set_label(const Label &qubit_label, const Label &cbit_label /* ={}*/, const TimeSeqLabel &time_seq_label /* = ""*/, bool head /*=true*/)
 {
 
     for (auto it : qubit_label)
@@ -383,13 +536,13 @@ void LatexMatrix::setLabel(const Label &qubit_label, const Label &cbit_label /* 
     }
 }
 
-void LatexMatrix::setLogo(const std::string &logo)
+void LatexMatrix::set_logo(const std::string &logo)
 {
     m_logo = logo;
 }
 
-LatexMatrix::Col LatexMatrix::insertGate(const std::set<Row> &target_rows,
-                                         const std::set<Row> &ctrl_rows,
+LatexMatrix::Col LatexMatrix::insert_gate(const std::vector<Row> &target_rows,
+                                         const std::vector<Row> &ctrl_rows,
                                          Col from_col,
                                          LATEX_GATE_TYPE type,
                                          const std::string &gate_name,
@@ -398,13 +551,13 @@ LatexMatrix::Col LatexMatrix::insertGate(const std::set<Row> &target_rows,
 {
     /* get gate latex matrix dst row */
     assert(target_rows.size() > 0);
-    Row tag_row = *target_rows.begin();
 
     /* get gate latex matrix dst col */
-    auto row_range = rowRange(target_rows, ctrl_rows);
-    Row span_start = row_range.first;
-    Row span_end = row_range.second;
-    Col tag_col = validColForRowRange(span_start, span_end, from_col);
+    auto row_of_range = row_range(target_rows, ctrl_rows);
+    Row span_start = row_of_range.first;
+    Row span_end = row_of_range.second;
+    Col tag_col = valid_col_for_row_range(span_start, span_end, from_col);
+
 
     std::unordered_map<uint64_t, std::string> gate_latex_str;
     switch (type)
@@ -419,11 +572,14 @@ LatexMatrix::Col LatexMatrix::insertGate(const std::set<Row> &target_rows,
             gate_latex_str = LATEX_SYNTAX::latex_multi_bits_gate(gate_name, target_rows, ctrl_rows, param, dagger);
         }
         break;
-    case LATEX_GATE_TYPE::CNOT:
-        gate_latex_str = LATEX_SYNTAX::latex_cnot_gate(gate_name, target_rows, ctrl_rows, param, dagger);
+    case LATEX_GATE_TYPE::X:
+        gate_latex_str = LATEX_SYNTAX::latex_x_gate(target_rows, ctrl_rows);
+        break;
+    case LATEX_GATE_TYPE::Z:
+        gate_latex_str = LATEX_SYNTAX::latex_z_gate(target_rows, ctrl_rows);
         break;
     case LATEX_GATE_TYPE::SWAP:
-        gate_latex_str = LATEX_SYNTAX::latex_swap_gate(gate_name, target_rows, ctrl_rows, param, dagger);
+        gate_latex_str = LATEX_SYNTAX::latex_swap_gate(target_rows, ctrl_rows);
         break;
     default:
         QCERR_AND_THROW(std::runtime_error, "Unknown gate");
@@ -440,115 +596,110 @@ LatexMatrix::Col LatexMatrix::insertGate(const std::set<Row> &target_rows,
         /* else marked gate span zone with \qw */
         else
         {
-            m_latex_qwire.insert(row, tag_col, LATEX_SYNTAX::LATEX_QWIRE);
+            m_latex_qwire.insert(row, tag_col, LATEX_SYNTAX::k_wire_qw);
         }
     }
 
     return tag_col;
 }
 
-LatexMatrix::Col LatexMatrix::insertBarrier(const std::set<uint64_t> &rows, uint64_t from_col)
+
+LatexMatrix::Col LatexMatrix::insert_barrier(const std::vector<Row> &rows, Col from_col)
 {
-    Col dst_col = 0;
-    auto continus_rows = sliceToContinuousSeq(rows);
-    for (auto rows : continus_rows)
+    Col dst_col = valid_col_for_row_range(rows.front(), rows.back(), from_col);
+    auto continus_rows = slice_to_continuous_seq(rows);
+
+    for (size_t i = 0; i < continus_rows.size(); i++)
     {
-        auto row_range = rowRange(rows, {});
-        Row span_start = row_range.first;
-        Row span_end = row_range.second;
-        Col barrier_col = validColForRowRange(span_start, span_end, from_col);
+        Row span_start = continus_rows[i].front();
+        Row span_end = i < continus_rows.size() - 1 ? continus_rows[i + 1].front() : continus_rows[i].back();
+        std::string barrier_latex = LATEX_SYNTAX::latex_barrier(continus_rows[i].front(), continus_rows[i].back());
 
-        /*
-          barrier is special in latex.
-          for current col barrier, it's latex statment "\barrier" is append to gate or qwire last col
-          like "\qw \barrier[0em]{1}" instead of "\qw & \barrier[0em]{1}"
-          barrier always append to latex content before current col,
-          so we just record gate dest position and append latex code later
-          mark barrier zone with \qw as placeholder to forbiden place other gates
-        */
-        Row barrier_row = span_start;
-
-        std::string barrier_latex = LATEX_SYNTAX::latex_barrier(span_start, span_end);
-
-        if (0 == barrier_col)
+        if (0 == dst_col)
         {
-            m_barrier_mark_head.insert(barrier_row, 0, barrier_latex);
+            m_barrier_mark_head.insert(span_start, 0, barrier_latex);
         }
         else
         {
-            m_barrier_mark_qwire.insert(barrier_row, barrier_col - 1, barrier_latex);
+            m_barrier_mark_qwire.insert(span_start, dst_col - 1, barrier_latex);
         }
 
         for (size_t row = span_start; row <= span_end; row++)
         {
-            m_latex_qwire.insert(row, barrier_col, LATEX_SYNTAX::LATEX_QWIRE);
+            m_latex_qwire.insert(row, dst_col, LATEX_SYNTAX::k_wire_qw);
         }
-
-        dst_col = std::max(dst_col, barrier_col);
     }
+
     return dst_col;
 }
 
-LatexMatrix::Col LatexMatrix::insertMeasure(Row q_row, Row c_row, Col from_col)
+
+LatexMatrix::Col LatexMatrix::insert_measure(Row q_row, Row c_row, Col from_col)
 {
-    Row row_size = m_latex_qwire.row();
-    Row span_end = row_size - 1;
-
-    Col measure_col = validColForRowRange(q_row, span_end, from_col);
-
-    m_latex_qwire.insert(q_row, measure_col, LATEX_SYNTAX::LATEX_MEASURE);
+    Row span_end = m_row_qubit - 1;
+    Col measure_col = valid_col_for_row_range(q_row, span_end, from_col);
+    m_latex_qwire.insert(q_row, measure_col, LATEX_SYNTAX::k_gate_measure);
 
     /* mark all measure span qwires with \qw as placeholder */
-    for (Row r = q_row + 1; r < row_size; r++)
+    for (Row r = q_row + 1; r < m_row_qubit; r++)
     {
-        m_latex_qwire.insert(r, measure_col, LATEX_SYNTAX::LATEX_QWIRE);
+        m_latex_qwire.insert(r, measure_col, LATEX_SYNTAX::k_wire_qw);
     }
 
-    m_latex_cwire.insert(c_row, measure_col, LATEX_SYNTAX::latex_measure_to(c_row, q_row, row_size));
-
+    m_latex_cwire.insert(c_row, measure_col, LATEX_SYNTAX::latex_measure_to(c_row, q_row, m_row_qubit));
     return measure_col;
 }
 
-LatexMatrix::Col LatexMatrix::insertReset(Row q_row, Col from_col)
+LatexMatrix::Col LatexMatrix::insert_reset(Row q_row, Col from_col)
 {
-    Col q_col = validColForRowRange(q_row, q_row, from_col);
-    m_latex_qwire.insert(q_row, q_col, LATEX_SYNTAX::LATEX_RESET);
+    Col q_col = valid_col_for_row_range(q_row, q_row, from_col);
+    m_latex_qwire.insert(q_row, q_col, LATEX_SYNTAX::k_gate_reset);
     return q_col;
 }
 
-void LatexMatrix::insertTimeSeq(Col t_col, uint64_t time_seq)
+void LatexMatrix::insert_time_seq(Col t_col, uint64_t time_seq)
 {
-    std::stringstream ss;
-    ss << time_seq;
-    m_latex_time_seq.insert(0, t_col, ss.str());
+    std::string str = std::to_string(time_seq);
+    m_latex_time_seq.insert(0, t_col, str);
 }
 
-std::pair<LatexMatrix::Row, LatexMatrix::Row> LatexMatrix::rowRange(const std::set<Row> &row1, const std::set<Row> &row2)
+std::pair<LatexMatrix::Row, LatexMatrix::Row> LatexMatrix::row_range(const std::vector<Row> &row1, const std::vector<Row> &row2)
 {
-    assert(!row1.empty() | !row2.empty());
+    if (row1.empty() && row2.empty())
+    {
+        throw std::invalid_argument("Error: row_range");
+    }
+
+    Row row1_min = 0, row1_max = 0, row2_min = 0, row2_max = 0;
     if (row1.empty())
     {
-        return {*row2.begin(), *row2.rbegin()};
+        row2_min = *std::min_element(row2.begin(), row2.end());
+        row2_max = *std::max_element(row2.begin(), row2.end());
+        return { row2_min , row2_max };
     }
     else if (row2.empty())
     {
-        return {*row1.begin(), *row1.rbegin()};
+        row1_min = *std::min_element(row1.begin(), row1.end());
+        row1_max = *std::max_element(row1.begin(), row1.end());
+        return { row1_min , row1_max };
     }
     else
     {
-        Row start_row = (std::min)(*row1.begin(), *row2.begin());
-        Row end_row = (std::max)(*row1.rbegin(), *row2.rbegin());
-        return {start_row, end_row};
+        row1_min = *std::min_element(row1.begin(), row1.end());
+        row1_max = *std::max_element(row1.begin(), row1.end());
+        row2_min = *std::min_element(row2.begin(), row2.end());
+        row2_max = *std::max_element(row2.begin(), row2.end());
+        return { std::min(row1_min, row2_min), std::max(row1_max, row2_max) };
     }
 }
 
-LatexMatrix::Col LatexMatrix::validColForRowRange(uint64_t start_row, uint64_t end_row, uint64_t from_col)
+LatexMatrix::Col LatexMatrix::valid_col_for_row_range(Row start_row, Row end_row, Col from_col)
 {
     for (uint64_t row = start_row; row <= end_row; row++)
     {
         if (m_latex_qwire.isOccupied(row, from_col))
         {
-            return validColForRowRange(start_row, end_row, ++from_col);
+            return valid_col_for_row_range(start_row, end_row, ++from_col);
         }
     }
     return from_col;
@@ -588,7 +739,6 @@ void LatexMatrix::align_matrix(bool with_time /* = false*/)
 std::string LatexMatrix::str(bool with_time /* = false */)
 {
     align_matrix(with_time);
-
     std::string out_str(LATEX_SYNTAX::latex_header(m_logo));
 
     for (Row row = 0; row < m_latex_qwire.row(); row++)
@@ -601,28 +751,28 @@ std::string LatexMatrix::str(bool with_time /* = false */)
                 out_str += m_latex_qwire_head[row][0];
                 if (m_barrier_mark_head.isOccupied(row, 0))
                 {
-                    out_str += " " + m_barrier_mark_head[row][0];
+                    out_str += LATEX_SYNTAX::k_symbol_space + m_barrier_mark_head[row][0];
                 }
                 /* add "&" seperate matrix element to format latex array */
-                out_str += "&";
+                out_str += LATEX_SYNTAX::k_symbol_and;
             }
 
             out_str += m_latex_qwire[row][col];
             if (m_barrier_mark_qwire.isOccupied(row, col))
             {
-                out_str += " " + m_barrier_mark_qwire[row][col];
+                out_str += LATEX_SYNTAX::k_symbol_space + m_barrier_mark_qwire[row][col];
             }
-            out_str += "&";
+            out_str += LATEX_SYNTAX::k_symbol_and;
 
             if (m_latex_qwire.col() == col + 1)
             {
-                out_str += m_latex_qwire_tail[row][0] + "&";
+                out_str += m_latex_qwire_tail[row][0] + LATEX_SYNTAX::k_symbol_and;
             }
         }
 
         /* array row finished, pop out last redundancy '&', change to '\n' */
         out_str.pop_back();
-        out_str += "\\\\\n";
+        out_str += LATEX_SYNTAX::k_symbol_enter;
     }
 
     for (Row row = 0; row < m_latex_cwire.row(); row++)
@@ -631,30 +781,30 @@ std::string LatexMatrix::str(bool with_time /* = false */)
         {
             if (0 == col)
             {
-                out_str += m_latex_cwire_head[row][0] + "&";
+                out_str += m_latex_cwire_head[row][0] + LATEX_SYNTAX::k_symbol_and;
             }
-            out_str += m_latex_cwire[row][col] + "&";
+            out_str += m_latex_cwire[row][col] + LATEX_SYNTAX::k_symbol_and;
 
             if (m_latex_cwire.col() == col + 1)
             {
-                out_str += m_latex_cwire_tail[row][0] + "&";
+                out_str += m_latex_cwire_tail[row][0] + LATEX_SYNTAX::k_symbol_and;
             }
         }
         out_str.pop_back();
-        out_str += "\\\\\n";
+        out_str += LATEX_SYNTAX::k_symbol_enter;
     }
 
     if (with_time)
     {
-        out_str += m_latex_time_seq_head[0][0] + "&";
+        out_str += m_latex_time_seq_head[0][0] + LATEX_SYNTAX::k_symbol_and;
         for (Col col = 0; col < m_latex_time_seq.col(); col++)
         {
-            out_str += m_latex_time_seq[0][col] + "&";
+            out_str += m_latex_time_seq[0][col] + LATEX_SYNTAX::k_symbol_and;
         }
-        out_str += m_latex_time_seq_tail[0][0] + "\\\\\n";
+        out_str += m_latex_time_seq_tail[0][0] + LATEX_SYNTAX::k_symbol_enter;
     }
 
-    out_str += LATEX_SYNTAX::LATEX_FOOTER;
+    out_str += LATEX_SYNTAX::k_symbol_footer;
     return out_str;
 }
 
@@ -672,10 +822,8 @@ void DrawLatex::init(std::vector<int> &qbits, std::vector<int> &cbits)
     for (size_t i = 0; i < qbits.size(); i++)
     {
         m_qid_row[qbits[i]] = i;
-
-        std::stringstream ss;
-        ss << "q_{" << qbits[i] << "}";
-        ss >> q_label[i];
+        q_label[i] = LATEX_SYNTAX::k_symbol_q + LATEX_SYNTAX::k_symbol_underline +
+                 LATEX_SYNTAX::k_symbol_brace_left + std::to_string(qbits[i]) + LATEX_SYNTAX::k_symbol_brace_right;
     }
 
     for (size_t i = 0; i < cbits.size(); i++)
@@ -686,7 +834,8 @@ void DrawLatex::init(std::vector<int> &qbits, std::vector<int> &cbits)
         ss >> c_label[i];
     }
 
-    m_latex_matrix.setLabel(q_label, c_label);
+    m_latex_matrix.set_row(qbits.size(), cbits.size());
+    m_latex_matrix.set_label(q_label, c_label);
 }
 
 void DrawLatex::draw_by_layer()
@@ -725,7 +874,7 @@ void DrawLatex::draw_by_time_sequence(const std::string config_data /*= CONFIG_P
         }
         time_seq += m_layer_max_time_seq;
         size_t time_col = m_layer_col_range.at(layer_id);
-        m_latex_matrix.insertTimeSeq(time_col, time_seq);
+        m_latex_matrix.insert_time_seq(time_col, time_seq);
     }
 }
 
@@ -762,28 +911,25 @@ int DrawLatex::update_layer_time_seq(int time_seq)
 void DrawLatex::append_gate(pOptimizerNodeInfo &node_info, uint64_t layer_id)
 {
     GateType gate_type = (GateType)(node_info->m_type);
-
-    if (BARRIER_GATE == gate_type)
-    {
-        /*
-          in qpanda barrier is a special single bit gate
-          we process barrier in different way
-          and barrier won't comsume time
-        */
-        return append_barrier(node_info, layer_id);
-    }
-
-    QVec tag_vec = node_info->m_target_qubits;
+    QVec tag_vec;
     QVec ctrl_vec = node_info->m_control_qubits;
 
-    std::set<uint64_t> tag_rows = qvecRows(tag_vec);
-    std::set<uint64_t> ctrl_rows = qvecRows(ctrl_vec);
+    if (CZ_GATE == gate_type || CNOT_GATE == gate_type ||
+        CU_GATE == gate_type || CP_GATE == gate_type ||
+        CPHASE_GATE == gate_type)
+    {
+        tag_vec = node_info->m_target_qubits.back();
+        ctrl_vec.push_back(node_info->m_target_qubits.front());
+    }
+    else
+    {
+         tag_vec = node_info->m_target_qubits;
+    }
+
+    std::vector<uint64_t> tag_rows = qvec_rows(tag_vec);
+    std::vector<uint64_t> ctrl_rows = qvec_rows(ctrl_vec);
 
     std::shared_ptr<AbstractQGateNode> p_gate = std::dynamic_pointer_cast<AbstractQGateNode>(*(node_info->m_iter));
-
-    /* get gate name */
-    std::string gate_name = TransformQGateType::getInstance()[gate_type];
-
     /* get gate parameter */
     std::string gate_param;
     get_gate_parameter(p_gate, gate_param);
@@ -791,7 +937,10 @@ void DrawLatex::append_gate(pOptimizerNodeInfo &node_info, uint64_t layer_id)
     /* get dagger */
     bool is_dagger = check_dagger(p_gate, p_gate->isDagger());
 
-    int gate_time_seq = 0;
+
+    int gate_time_seq = get_time_sequence(gate_type, ctrl_vec, tag_vec);
+    /* get gate name */
+    std::string gate_name = get_gate_name(gate_type);
     std::vector<std::string> gate_latex_str;
 
     /* get gate latex matrix dst col */
@@ -800,97 +949,27 @@ void DrawLatex::append_gate(pOptimizerNodeInfo &node_info, uint64_t layer_id)
 
     switch (gate_type)
     {
-    case ISWAP_THETA_GATE:
-    case ISWAP_GATE:
-    case SQISWAP_GATE:
     case SWAP_GATE:
-    {
-        gate_col = m_latex_matrix.insertGate(tag_rows, ctrl_rows, layer_col, LATEX_GATE_TYPE::SWAP, gate_name, is_dagger, gate_param);
-        /*
-          record layer time sequnce
-          FIXME:this time calcutaion code is from DraPicture, I can't explain why,
-          why add control bits size multiplied with swap gate time?
-        */
-        gate_time_seq = m_time_sequence_conf.get_swap_gate_time_sequence() * (ctrl_vec.size() + 1);
+        gate_col = m_latex_matrix.insert_gate(tag_rows, ctrl_rows, layer_col, LATEX_GATE_TYPE::SWAP, gate_name, is_dagger, gate_param);
         break;
-    }
-    case CU_GATE:
-    case CNOT_GATE:
+    case PAULI_Z_GATE:
     case CZ_GATE:
-    case CP_GATE:
-    case CPHASE_GATE:
-    {
-        /* in QPanda, control gate is special designed. last qid of tag_vec is target, others is ctrol */
-        tag_rows = {qidRow(tag_vec.back()->get_phy_addr())};
-        QVec real_ctrl_vec(tag_vec);
-        real_ctrl_vec.pop_back();
-        real_ctrl_vec += ctrl_vec;
-        ctrl_rows = qvecRows(real_ctrl_vec);
-
-        if (CPHASE_GATE == gate_type)
-        {
-            gate_name = "CR";
-        }
-
-        if (CNOT_GATE == gate_type)
-        {
-
-            gate_col = m_latex_matrix.insertGate(tag_rows, ctrl_rows, layer_col, LATEX_GATE_TYPE::CNOT, gate_name, is_dagger, gate_param);
-        }
-        else
-        {
-            gate_col = m_latex_matrix.insertGate(tag_rows, ctrl_rows, layer_col, LATEX_GATE_TYPE::GENERAL_GATE, gate_name, is_dagger, gate_param);
-        }
-
-        gate_time_seq = m_time_sequence_conf.get_ctrl_node_time_sequence() * (ctrl_vec.size() + 1);
+        gate_col = m_latex_matrix.insert_gate(tag_rows, ctrl_rows, layer_col, LATEX_GATE_TYPE::Z, gate_name, is_dagger, gate_param);
         break;
-    }
-    case TWO_QUBIT_GATE:
-    case TOFFOLI_GATE:
-    case ORACLE_GATE:
-    {
-        gate_col = m_latex_matrix.insertGate(tag_rows, ctrl_rows, layer_col, LATEX_GATE_TYPE::GENERAL_GATE, gate_name, is_dagger, gate_param);
-        /* TODO: how to calculate multi bits gate gate_time_seq */
+    case PAULI_X_GATE:
+    case CNOT_GATE:
+        gate_col = m_latex_matrix.insert_gate(tag_rows, ctrl_rows, layer_col, LATEX_GATE_TYPE::X, gate_name, is_dagger, gate_param);
         break;
-    }
     case BARRIER_GATE:
     {
-        QCERR_AND_THROW(std::runtime_error, "BARRIER_GATE should be processd in another way");
-        break;
+        std::vector<uint64_t> all_qubits(tag_rows);
+        all_qubits.insert(all_qubits.end(), ctrl_rows.begin(), ctrl_rows.end());
+        std::sort(all_qubits.begin(), all_qubits.end());
+        gate_col = m_latex_matrix.insert_barrier(all_qubits, layer_col);
     }
-        /*
-          single target bit gate:
-
-          TWO_QUBIT_GATE,
-          TOFFOLI_GATE,
-          ORACLE_GATE,
-          P0_GATE,
-          P1_GATE,
-          PAULI_X_GATE,
-          PAULI_Y_GATE,
-          PAULI_Z_GATE,
-          X_HALF_PI,
-          Y_HALF_PI,
-          Z_HALF_PI,
-          P_GATE,
-          HADAMARD_GATE,
-          T_GATE,
-          S_GATE,
-          RX_GATE,
-          RY_GATE,
-          RZ_GATE,
-          RPHI_GATE,
-          U1_GATE,
-          U2_GATE,
-          U3_GATE,
-          U4_GATE,
-          P00_GATE,
-          P11_GATE,
-          I_GATE,
-          ECHO_GATE,
-        */
+        break;
     default:
-        gate_col = m_latex_matrix.insertGate(tag_rows, ctrl_rows, layer_col, LATEX_GATE_TYPE::GENERAL_GATE, gate_name, is_dagger, gate_param);
+        gate_col = m_latex_matrix.insert_gate(tag_rows, ctrl_rows, layer_col, LATEX_GATE_TYPE::GENERAL_GATE, gate_name, is_dagger, gate_param);
         gate_time_seq = ctrl_vec.size() > 0 ? (m_time_sequence_conf.get_ctrl_node_time_sequence() * ctrl_vec.size()) : m_time_sequence_conf.get_single_gate_time_sequence();
         break;
     }
@@ -901,41 +980,77 @@ void DrawLatex::append_gate(pOptimizerNodeInfo &node_info, uint64_t layer_id)
     update_layer_time_seq(gate_time_seq);
 }
 
-void DrawLatex::append_barrier(pOptimizerNodeInfo &node_info, uint64_t layer_id)
+
+size_t DrawLatex::get_time_sequence(GateType type, const QVec &ctrls, const QVec &tags)
 {
-    /* get target bits */
-    QVec target_vec = node_info->m_target_qubits;
-    QPANDA_ASSERT(target_vec.size() != 1, "barrier should only have one target bit");
+    size_t time_seq = 0;
+    switch (type) {
+    case SWAP_GATE:
+    case ISWAP_GATE:
+    case SQISWAP_GATE:
+    case ISWAP_THETA_GATE:
+    case TWO_QUBIT_GATE:
+    case ORACLE_GATE:
+        time_seq = m_time_sequence_conf.get_swap_gate_time_sequence() * (ctrls.size() + 1);
+        break;
+    case CZ_GATE:
+    case CNOT_GATE:
+    case CP_GATE:
+    case CPHASE_GATE:
+    case CU_GATE:
+    case TOFFOLI_GATE:
+        time_seq = m_time_sequence_conf.get_ctrl_node_time_sequence() * (ctrls.size() + 1);
+        break;
+    default:
+        time_seq = 0;
+        break;
+    }
 
-    /* get control info */
-    QVec ctrl_vec = node_info->m_control_qubits;
+    return time_seq;
+}
 
-    /*
-      barrier is special single bit gate in qpanda, qubits_vec and ctrl_vec contains all qibits are barriered.
-      and all bits may not be continuous nor in ascending order
-      so we first sort all bits then slice continuous sequence, finally write to latex matrix
-    */
-    auto all_rows = qvecRows(target_vec + ctrl_vec);
+std::string DrawLatex::get_gate_name(GateType type)
+{
+    std::string gate_name;
+    switch (type) {
+    case CZ_GATE:
+        gate_name = TransformQGateType::getInstance()[GateType::PAULI_Z_GATE];
+        break;
+    case CNOT_GATE:
+    case TOFFOLI_GATE:
+        gate_name = TransformQGateType::getInstance()[GateType::PAULI_X_GATE];
+        break;
+    case CP_GATE:
+        gate_name = TransformQGateType::getInstance()[GateType::P_GATE];
+        break;
+    case CPHASE_GATE:
+        gate_name = "Phase";
+        break;
+    case CU_GATE:
+        gate_name = TransformQGateType::getInstance()[GateType::U1_GATE];
+        break;
+    case ORACLE_GATE:
+    case CORACLE_GATE:
+        gate_name = "Unitary";
+        break;
+    default:
+        gate_name = TransformQGateType::getInstance()[type];
+        break;
+    }
 
-    uint64_t try_col = layer_start_col(layer_id);
-
-    auto barrier_col = m_latex_matrix.insertBarrier(all_rows, try_col);
-    m_layer_col_range[layer_id] = std::max(barrier_col, m_layer_col_range[layer_id]);
+    return gate_name;
 }
 
 void DrawLatex::append_measure(pOptimizerNodeInfo &node_info, uint64_t layer_id)
 {
     std::shared_ptr<AbstractQuantumMeasure> p_measure = std::dynamic_pointer_cast<AbstractQuantumMeasure>(*(node_info->m_iter));
-
     size_t qbit_id = p_measure->getQuBit()->getPhysicalQubitPtr()->getQubitAddr();
     size_t cbit_id = p_measure->getCBit()->get_addr();
 
     size_t layer_col = layer_start_col(layer_id);
-
-    auto q_row = qidRow(qbit_id);
-    auto c_row = cidRow(cbit_id);
-
-    auto meas_col = m_latex_matrix.insertMeasure(q_row, c_row, layer_col);
+    auto q_row = qid_row(qbit_id);
+    auto c_row = cid_row(cbit_id);
+    auto meas_col = m_latex_matrix.insert_measure(q_row, c_row, layer_col);
 
     /* record curent layer end at latex matrix col */
     m_layer_col_range[layer_id] = std::max(meas_col, m_layer_col_range[layer_id]);
@@ -949,11 +1064,11 @@ void DrawLatex::append_reset(pOptimizerNodeInfo &node_info, uint64_t layer_id)
 
     int qubit_index = p_reset->getQuBit()->getPhysicalQubitPtr()->getQubitAddr();
 
-    uint64_t q_row = qidRow(qubit_index);
+    uint64_t q_row = qid_row(qubit_index);
 
     uint64_t from_col = layer_start_col(layer_id);
 
-    auto q_col = m_latex_matrix.insertReset(q_row, from_col);
+    auto q_col = m_latex_matrix.insert_reset(q_row, from_col);
 
     /* record curent layer end at latex matrix col */
     m_layer_col_range[layer_id] = std::max(q_col, m_layer_col_range[layer_id]);
@@ -978,29 +1093,29 @@ uint64_t DrawLatex::layer_start_col(size_t layer_id /*, size_t span_start, size_
     return gate_col;
 }
 
-void DrawLatex::setLogo(const std::string &logo /* = ""*/)
+void DrawLatex::set_logo(const std::string &logo /* = ""*/)
 {
-    m_latex_matrix.setLogo(logo.empty() ? m_logo : logo);
+    m_latex_matrix.set_logo(logo.empty() ? m_logo : logo);
 }
 
-std::set<uint64_t> DrawLatex::qvecRows(QVec qbits)
+std::vector<uint64_t> DrawLatex::qvec_rows(QVec qbits)
 {
-    std::set<uint64_t> rows;
+    std::vector<uint64_t> rows;
     std::for_each(qbits.begin(), qbits.end(),
                   [&](const Qubit *qbit)
                   {
                       int qid = qbit->get_phy_addr();
-                      rows.insert(m_qid_row.at(qid));
+                      rows.push_back(m_qid_row.at(qid));
                   });
     return rows;
 }
 
-uint64_t DrawLatex::qidRow(int qid)
+uint64_t DrawLatex::qid_row(int qid)
 {
     return m_qid_row.at(qid);
 }
 
-uint64_t DrawLatex::cidRow(int cid)
+uint64_t DrawLatex::cid_row(int cid)
 {
     return m_cid_row.at(cid);
 }

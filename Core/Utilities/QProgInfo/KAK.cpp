@@ -191,6 +191,94 @@ QCircuit simplify_single_qubit_seq(double zAngleBefore, double yAngle, double zA
 	return cir;
 }
 
+QCircuit zyz_decomposition(const Eigen::MatrixXcd& matrix, Qubit* in_q)
+{
+	//bool real_flag = true;
+	//for (int i = 0; i < matrix.rows(); ++i) {
+	//	for (int j = 0; j < matrix.cols(); ++j) {
+	//		if (std::abs(matrix(i, j).imag()) - 0 > 1e-8) {
+	//			real_flag = false;
+	//			break;
+	//		}
+	//	}
+	//}
+
+	std::complex<double> det = matrix.determinant();
+	double delta = atan2(det.imag(), det.real()) / matrix.rows();
+	std::complex<double> A = exp(std::complex<double>(0, -1) * delta) * matrix(0, 0);
+	std::complex<double> B = exp(std::complex<double>(0, -1) * delta) * matrix(0, 1);
+
+	double sw = sqrt(pow((double)B.imag(), 2) + pow((double)B.real(), 2) + pow((double)A.imag(), 2));
+	double wx = 0;
+	double wy = 0;
+	double wz = 0;
+
+	if (sw > 0) {
+		wx = B.imag() / sw;
+		wy = B.real() / sw;
+		wz = A.imag() / sw;
+	}
+
+	double t1 = atan2(A.imag(), A.real());
+	double t2 = atan2(B.imag(), B.real());
+	double alpha = t1 + t2;
+	double gamma = t1 - t2;
+	double beta = 2 * atan2(sw * sqrt(pow((double)wx, 2) + pow((double)wy, 2)), sqrt(pow((double)A.real(), 2) + pow((wz * sw), 2)));
+	QCircuit circ;
+	//if (real_flag) {
+	//	Eigen::MatrixXcd Z_(2, 2);
+	//	Z_(0, 0) = qcomplex_t(1, 0);
+	//	Z_(0, 1) = qcomplex_t(0, 0);
+	//	Z_(1, 0) = qcomplex_t(0, 0);
+	//	Z_(1, 1) = qcomplex_t(-1, 0);
+	//	Eigen::MatrixXcd v1_, v1;
+	//	v1 = matrix;
+	//	double theta = 0;
+	//	if (std::abs(v1(0, 0).real() - v1(1, 1).real()) > 1e-8) {
+	//		v1_ = Z_ * v1;
+	//		//std::cout << v1_ << std::endl;		
+	//	}
+	//	else {
+	//		v1_ = v1;
+	//	}
+	//	if (v1_(0, 0).real()*v1_(0, 1).real() < 0) {
+	//		if (v1_(0, 0).real() < 0) {
+	//			theta = -2 * (PI - asin(v1_(0, 1).real()));
+	//		}
+	//		else {
+	//			theta = 2 * (acos(v1_(0, 0).real()));
+	//		}
+	//	}
+	//	else {
+	//		if (v1_(0, 0).real() < 0) {
+	//			theta = 2 * (PI - asin(v1_(1, 0).real()));
+	//		}
+	//		else {
+	//			theta = -2 * (acos(v1_(0, 0).real()));
+	//		}
+	//	}
+	//	if (v1_ != v1) {
+	//		circ << RY(in_q, theta) << Z(in_q);
+	//	}
+	//	else {
+	//		circ << RY(in_q, theta);
+	//	}
+	//}
+	//else {
+	if (std::abs(gamma) > 1e-8) {
+		circ << RZ(in_q, -gamma);
+	}
+
+	if (std::abs(beta) > 1e-8) {
+		circ << RY(in_q, -beta);
+	}
+
+	if (std::abs(alpha) > 1e-8) {
+		circ << RZ(in_q, -alpha);
+	}
+	return circ;
+}
+
 
 /*
 *	Use Z-Y decomposition of Nielsen and Chuang (Theorem 4.1).
@@ -379,17 +467,15 @@ QCircuit KakDescription::to_qcircuit(Qubit* in_bit1, Qubit* in_bit2) const
 	{
 		const double xAngle = -2 * x;
 		interaction_gates << CNOT(in_bit2, in_bit1)
-			<< H(in_bit1)
 			<< RX(in_bit2, xAngle)
-			<< H(in_bit1)
 			<< CNOT(in_bit2, in_bit1)
 			;
 	}
 
-	auto a0_gates = simplify_zyz_decomposition(a0, in_bit2);
-	auto a1_gates = simplify_zyz_decomposition(a1, in_bit1);
-	auto b0_gates = simplify_zyz_decomposition(b0, in_bit2);
-	auto b1_gates = simplify_zyz_decomposition(b1, in_bit1);
+	auto a0_gates = zyz_decomposition(a0, in_bit2);
+	auto a1_gates = zyz_decomposition(a1, in_bit1);
+	auto b0_gates = zyz_decomposition(b0, in_bit2);
+	auto b1_gates = zyz_decomposition(b1, in_bit1);
 
 	// U = g x (Gate A1 Gate A0) x exp(i(xXX + yYY + zZZ))x(Gate b1 Gate b0)
 	QCircuit total_qcir;
@@ -400,13 +486,30 @@ QCircuit KakDescription::to_qcircuit(Qubit* in_bit1, Qubit* in_bit2) const
 		<< a1_gates
 		;
 
+	auto stat = getCircuitMatrix(total_qcir, true);
+
+	double g_angle = 0.0;
+	for (int i = 0; i < stat.size(); ++i) {
+		if (std::abs(stat[i].real()) > 1e-8 || std::abs(stat[i].imag()) > 1e-8) {
+			g_angle = std::arg(stat[i]) - std::arg(in_matrix(i / 4, i % 4));
+			break;
+		}
+	}
+
+	g_angle = -g_angle;
+
+	if (std::abs(g_angle) - 0 > 1e-8) {
+
+		total_qcir << U1(in_bit2, 2 * g_angle) << RZ(in_bit2, (-2 * g_angle));
+	}
+
 	return total_qcir;
 }
 
 KakDescription KAK::decompose(const Eigen::Matrix4cd& in_matrix)
 {
 	Eigen::MatrixXcd mInMagicBasis = MAGIC_DAG() * in_matrix * MAGIC();
-	_ASSERT(is_unitary(mInMagicBasis), "not unitary");
+	_ASSERT(is_unitary(mInMagicBasis, m_tol), "not unitary");
 
 	Eigen::Matrix4cd left, right;
 	std::vector<std::complex<double>>  diag;
@@ -495,7 +598,7 @@ void KAK::bidiagonalize(const Eigen::Matrix4cd& in_matrix,
 	}
 
 	auto diag = left * in_matrix * right;
-	_ASSERT(is_diagonal(diag), "not diagonal");
+	_ASSERT(is_diagonal(diag, m_tol), "not diagonal");
 	for (int i = 0; i < diag.rows(); ++i)
 	{
 		diagVec.emplace_back(diag(i, i));
@@ -580,8 +683,8 @@ Eigen::MatrixXd KAK::diagonalize_rsm(const Eigen::MatrixXd& in_mat) const
 
 Eigen::MatrixXd KAK::diagonalize_rsm_sorted_diagonal(const Eigen::MatrixXd& in_symMat, const Eigen::MatrixXd& in_diagMat) const
 {
-	_ASSERT(is_diagonal(in_diagMat), "not diagonal");
-	_ASSERT(is_hermitian(in_symMat), "not hermitian");
+	_ASSERT(is_diagonal(in_diagMat, m_tol), "not diagonal");
+	_ASSERT(is_hermitian(in_symMat, m_tol), "not hermitian");
 	const auto similarSingular = [&in_diagMat](int i, int j) {
 		return std::abs(in_diagMat(i, i) - in_diagMat(j, j)) < 1e-5;
 	};
@@ -680,8 +783,8 @@ void KAK::bidiagonalize_rsm_products(const Eigen::Matrix4d& in_mat1, const Eigen
 	}
 
 	Eigen::MatrixXd extraLeftAdjust = Eigen::MatrixXd::Zero(0, 0);
-	Eigen::VectorXd extraDiag= Eigen::VectorXd::Zero(0);
-	Eigen::MatrixXd extraRightAdjust= Eigen::MatrixXd::Zero(0, 0);
+	Eigen::VectorXd extraDiag = Eigen::VectorXd::Zero(0);
+	Eigen::MatrixXd extraRightAdjust = Eigen::MatrixXd::Zero(0, 0);
 	if (dim > rank)
 	{
 		Eigen::JacobiSVD<Eigen::MatrixXd> svd2(extra, Eigen::ComputeThinU | Eigen::ComputeThinV);
@@ -820,12 +923,12 @@ QCircuit QPanda::random_kak_qcircuit(Qubit* in_qubit1, Qubit* in_qubit2)
 
 QCircuit QPanda::unitary_decomposer_1q(const Eigen::Matrix2cd& in_mat, Qubit* in_qubit)
 {
-	return simplify_zyz_decomposition(in_mat, in_qubit);
+	return zyz_decomposition(in_mat, in_qubit);
 }
 
-QCircuit QPanda::unitary_decomposer_2q(const Eigen::Matrix4cd& in_mat, const QVec& qv, bool is_positive_seq)
+QCircuit QPanda::unitary_decomposer_2q(const Eigen::Matrix4cd& in_mat, const QVec& qv, bool is_positive_seq, double _tol)
 {
-	KAK kak;
+	KAK kak(_tol);
 	KakDescription kak_desc = kak.decompose(in_mat);
 	QVec tmp_qv;
 	tmp_qv += qv;
@@ -838,3 +941,4 @@ QCircuit QPanda::unitary_decomposer_2q(const Eigen::Matrix4cd& in_mat, const QVe
 
 	return kak_desc.to_qcircuit(tmp_qv[1], tmp_qv[0]);
 }
+

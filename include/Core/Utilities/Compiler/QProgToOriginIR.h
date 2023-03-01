@@ -9,7 +9,7 @@
 #include "Core/QuantumCircuit/ControlFlow.h"
 #include "Core/QuantumMachine/QuantumMachineInterface.h"
 #include "Core/Utilities/Tools/Traversal.h"
-
+#include "Core/QuantumMachine/OriginQuantumMachine.h"
 QPANDA_BEGIN
 
 /**
@@ -21,6 +21,7 @@ class QProgToOriginIR : public TraversalInterface<>
 {
 public:
     QProgToOriginIR(QuantumMachine * quantum_machine);
+    QProgToOriginIR();
     ~QProgToOriginIR() {};
 
     /**
@@ -37,6 +38,18 @@ public:
         m_OriginIR.emplace_back("CREG " + std::to_string(m_quantum_machine->getAllocateCMem()));
 
 		execute(node.getImplementationPtr(), nullptr);
+    }
+
+    template<typename _Ty>
+    void traversal_qubit_pool(_Ty &node)
+    {
+        auto qpool = OriginQubitPool::get_instance();
+        QVec used_qv;
+        auto cmem = OriginCMem::get_instance();
+        std::vector<CBit *> cbit_vect;
+        m_OriginIR.emplace_back("QINIT " + std::to_string(qpool->get_allocate_qubits(used_qv)));
+        m_OriginIR.emplace_back("CREG " + std::to_string(cmem->get_allocate_cbits(cbit_vect)));
+        execute(node.getImplementationPtr(), nullptr);
     }
 
 	virtual void execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node);
@@ -102,6 +115,49 @@ std::string transformQProgToOriginIR(_Ty &node,QuantumMachine *machine)
 
 
 /**
+
+* @brief  Quantum Program Transform To OriginIR To OriginIR And Qubit is QubitPool
+* @ingroup Utilities
+* @param[in]  _Ty& quantum program, quantum circuit, quantum while or quantum if
+* @return     std::string    OriginIR instruction set
+* @see
+      @code
+          auto qpool = OriginQubitPool::get_instance();
+          auto cmem = OriginCMem::get_instance();
+          qpool->set_capacity(20);
+          auto qv = qpool->qAllocMany(6);
+          auto cv = cmem->cAllocMany(6);
+
+          auto qvm = new CPUQVM();
+          qvm->init();
+          auto prog = QProg();
+          prog << H(0) << H(1)
+              << H(2)
+              << H(4)
+              << X(5)
+              << X1(2)
+              << CZ(2, 3)
+              << RX(3, PI / 4)
+              << CR(4, 5, PI / 2)
+              << SWAP(3, 5)
+              << CU(1, 3, PI / 2, PI / 3, PI / 4, PI / 5)
+              << U4(4, 2.1, 2.2, 2.3, 2.4)
+              << BARRIER({ 0, 1,2,3,4,5 })
+              <<Measure(0,0)
+           std::cout << transformQProgToOriginIR(prog) << std::endl;
+      @endcode
+*/
+template<typename _Ty>
+std::string transformQProgToOriginIR(_Ty &node)
+{
+
+    QProgToOriginIR OriginIRTraverse;
+    OriginIRTraverse.traversal_qubit_pool(node);
+    return OriginIRTraverse.getInsturctions();
+}
+
+
+/**
 * @brief  Convert Quantum Program  To OriginIR
 * @ingroup Utilities
 * @param[in]  _Ty& quantum program, quantum circuit, quantum while or quantum if
@@ -112,6 +168,18 @@ template<typename _Ty>
 std::string convert_qprog_to_originir(_Ty &node, QuantumMachine *machine)
 {
 	return transformQProgToOriginIR(node, machine);
+}
+
+/**
+* @brief  Convert Quantum Program  
+* @ingroup Utilities
+* @param[in]  _Ty& quantum program, quantum circuit, quantum while or quantum if
+* @return     std::string   OriginIR instruction set
+*/
+template<typename _Ty>
+std::string convert_qprog_to_originir(_Ty &node)
+{
+    return transformQProgToOriginIR(node);
 }
 
 /**

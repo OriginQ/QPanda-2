@@ -51,6 +51,11 @@ public:
     */
     virtual void  setControl(QVec ) = 0;
 
+    /**
+    * @brief  Clear all node in current quantum circuit node
+    */
+    virtual void  clear() = 0;
+
 	/**
     * @brief  Clear the control qubits for current quantum circuit
     * @see QVec
@@ -126,6 +131,8 @@ public:
     */
     NodeType getNodeType() const;
 
+
+    void clear();
     /**
     * @brief  Judge current quantum circuit is dagger
 	* @return  bool
@@ -224,8 +231,6 @@ public:
         m_node_type(CIRCUIT_NODE),
         m_Is_dagger(false)
     {
-        m_control_qubit_vector.resize(0);
-        m_used_qubit_vector.resize(0);
         m_qgate_num = 0;
     }
     ~OriginCircuit();
@@ -299,6 +304,9 @@ public:
             m_qgate_num += qcircuit_node->get_qgate_num();
         }
 		break;
+        case QWAIT_NODE:
+        case NOISE_NODE:
+        case DEBUG_NODE:
 		case CLASS_COND_NODE:
 			break;
 

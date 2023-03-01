@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2017-2020 Origin Quantum Computing. All Right Reserved.
+Copyright (c) 2017-2023 Origin Quantum Computing. All Right Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -352,7 +352,7 @@ QError NoisyCPUImplQPU::unitary_qubit_gate_standard(size_t qn, QStat &matrix,
         }//dagger
     }
 
-#pragma omp parallel for private(alpha, beta)
+#pragma omp parallel for private(alpha, beta) num_threads(_omp_thread_num(qgroup.qstate.size() >>1))
     for (int64_t i = 0; i < (qgroup.qstate.size() >> 1); i++)
     {
         int64_t real00_idx = insert(i, n);
@@ -407,20 +407,20 @@ QError NoisyCPUImplQPU::unitary_qubit_gate_standard(size_t qn0, size_t qn1,
         }//dagger
     }
 
-#pragma omp parallel for private(phi00, phi01, phi10, phi11)
+#pragma omp parallel for private(phi00, phi01, phi10, phi11) num_threads(_omp_thread_num(stateSize >> 2))
     for (int64_t i = 0; i < (stateSize >> 2); i++)
     {
         int64_t real00_idx = insert(i, n2, n1);
         phi00 = qgroup0.qstate[real00_idx];
-        phi01 = qgroup0.qstate[real00_idx + ststep2];
-        phi10 = qgroup0.qstate[real00_idx + ststep1];
+        phi01 = qgroup0.qstate[real00_idx + ststep1];
+        phi10 = qgroup0.qstate[real00_idx + ststep2];
         phi11 = qgroup0.qstate[real00_idx + ststep1 + ststep2];
 
         qgroup0.qstate[real00_idx] = matrix[0] * phi00 + matrix[1] * phi01
             + matrix[2] * phi10 + matrix[3] * phi11;
-        qgroup0.qstate[real00_idx + ststep2] = matrix[4] * phi00 + matrix[5] * phi01
+        qgroup0.qstate[real00_idx + ststep1] = matrix[4] * phi00 + matrix[5] * phi01
             + matrix[6] * phi10 + matrix[7] * phi11;
-        qgroup0.qstate[real00_idx + ststep1] = matrix[8] * phi00 + matrix[9] * phi01
+        qgroup0.qstate[real00_idx + ststep2] = matrix[8] * phi00 + matrix[9] * phi01
             + matrix[10] * phi10 + matrix[11] * phi11;
         qgroup0.qstate[real00_idx + ststep1 + ststep2] = matrix[12] * phi00 + matrix[13] * phi01
             + matrix[14] * phi10 + matrix[15] * phi11;
@@ -622,7 +622,7 @@ bool NoisyCPUImplQPU::measure_standard(size_t qn)
     size_t ststep = 1ull << n;
     double dprob(0);
 
-#pragma omp parallel for reduction(+:dprob)
+#pragma omp parallel for reduction(+:dprob) num_threads(_omp_thread_num(qgroup.qstate.size() >> 1))
     for (int64_t i = 0; i < (qgroup.qstate.size() >> 1); i++)
     {
         int64_t real00_idx = insert(i, n);
@@ -640,7 +640,7 @@ bool NoisyCPUImplQPU::measure_standard(size_t qn)
     if (ioutcome == 0)
     {
         dprob = 1 / sqrt(dprob);
-#pragma omp parallel for
+#pragma omp parallel for num_threads(_omp_thread_num(qgroup.qstate.size() >> 1))
         for (int64_t i = 0; i < (qgroup.qstate.size() >> 1); i++)
         {
             int64_t real00_idx = insert(i, n);
@@ -651,7 +651,7 @@ bool NoisyCPUImplQPU::measure_standard(size_t qn)
     else
     {
         dprob = 1 / sqrt(1 - dprob);
-#pragma omp parallel for
+#pragma omp parallel for num_threads(_omp_thread_num(qgroup.qstate.size() >> 1))
         for (int64_t i = 0; i < (qgroup.qstate.size() >> 1); i++)
         {
             int64_t real00_idx = insert(i, n);
@@ -706,7 +706,7 @@ double NoisyCPUImplQPU::unitary_kraus(const Qnum & qns, const QStat & op)
         size_t n = find(qgroup.qVec.begin(), qgroup.qVec.end(), qns[0]) - qgroup.qVec.begin();
         size_t ststep = 1ull << n;
 
-#pragma omp parallel for private(alpha, beta) reduction(+:p)
+#pragma omp parallel for private(alpha, beta) reduction(+:p) num_threads(_omp_thread_num(qgroup.qstate.size() >> 1))
         for (int64_t i = 0; i < (qgroup.qstate.size() >> 1); i++)
         {
             int64_t real00_idx = insert(i, n);
@@ -738,20 +738,20 @@ double NoisyCPUImplQPU::unitary_kraus(const Qnum & qns, const QStat & op)
         }
         auto stateSize = qgroup0.qstate.size();
 
-#pragma omp parallel for private(alpha, beta, gamma, phi) reduction(+:p)
+#pragma omp parallel for private(alpha, beta, gamma, phi) reduction(+:p) num_threads(_omp_thread_num(stateSize >> 2))
         for (int64_t i = 0; i < (stateSize >> 2); i++)
         {
             int64_t real00_idx = insert(i, n2, n1);
 
-            alpha = op[0] * qgroup0.qstate[real00_idx] + op[1] * qgroup0.qstate[real00_idx + ststep2]
-                + op[2] * qgroup0.qstate[real00_idx + ststep1] + op[3] * qgroup0.qstate[real00_idx + ststep2 + ststep1];
-            beta = op[4] * qgroup0.qstate[real00_idx] + op[5] * qgroup0.qstate[real00_idx + ststep2]
-                + op[6] * qgroup0.qstate[real00_idx + ststep1] + op[7] * qgroup0.qstate[real00_idx + ststep2 + ststep1];
+            alpha = op[0] * qgroup0.qstate[real00_idx] + op[1] * qgroup0.qstate[real00_idx + ststep1]
+                + op[2] * qgroup0.qstate[real00_idx + ststep2] + op[3] * qgroup0.qstate[real00_idx + ststep2 + ststep1];
+            beta = op[4] * qgroup0.qstate[real00_idx] + op[5] * qgroup0.qstate[real00_idx + ststep1]
+                + op[6] * qgroup0.qstate[real00_idx + ststep2] + op[7] * qgroup0.qstate[real00_idx + ststep2 + ststep1];
 
-            gamma = op[8] * qgroup0.qstate[real00_idx] + op[9] * qgroup0.qstate[real00_idx + ststep2]
-                + op[10] * qgroup0.qstate[real00_idx + ststep1] + op[11] * qgroup0.qstate[real00_idx + ststep2 + ststep1];
-            phi = op[12] * qgroup0.qstate[real00_idx] + op[13] * qgroup0.qstate[real00_idx + ststep2]
-                + op[14] * qgroup0.qstate[real00_idx + ststep1] + op[15] * qgroup0.qstate[real00_idx + ststep2 + ststep1];
+            gamma = op[8] * qgroup0.qstate[real00_idx] + op[9] * qgroup0.qstate[real00_idx + ststep1]
+                + op[10] * qgroup0.qstate[real00_idx + ststep2] + op[11] * qgroup0.qstate[real00_idx + ststep2 + ststep1];
+            phi = op[12] * qgroup0.qstate[real00_idx] + op[13] * qgroup0.qstate[real00_idx + ststep1]
+                + op[14] * qgroup0.qstate[real00_idx + ststep2] + op[15] * qgroup0.qstate[real00_idx + ststep2 + ststep1];
 
             p += std::norm(alpha) + std::norm(beta) + std::norm(gamma) + std::norm(phi);
         }
@@ -783,7 +783,7 @@ QError NoisyCPUImplQPU::_get_probabilities(prob_vec& probabilities, size_t qn, N
         //qstat.assign(qgroup.qstate.begin(), qgroup.qstate.end());
 
         double p = 0;
-#pragma omp parallel for private(alpha, beta) reduction(+:p)
+#pragma omp parallel for private(alpha, beta) reduction(+:p) num_threads(_omp_thread_num(qgroup.qstate.size() >> 1))
         for (int64_t i = 0; i < (qgroup.qstate.size() >> 1); i++)
         {
             int64_t real00_idx = insert(i, n);
@@ -836,7 +836,7 @@ QError NoisyCPUImplQPU::_get_probabilities(prob_vec& probabilities, size_t qn_0,
 
         int64_t j, l;
         double p = 0;
-#pragma omp parallel for private(phi00, phi01, phi10, phi11) reduction(+:p)
+#pragma omp parallel for private(phi00, phi01, phi10, phi11) reduction(+:p) num_threads(_omp_thread_num(stateSize >> 2))
         for (int64_t i = 0; i < (stateSize >> 2); i++)
         {
             int64_t real00_idx = insert(i, n2, n1);
@@ -1016,7 +1016,7 @@ QError NoisyCPUImplQPU::noisyUnitarySingleQubitGate
     QStat matrix_new = matrix_multiply(matrix, noise[op_number]);
     double dsum = 0;
 
-    #pragma omp parallel for private(alpha, beta) reduction(+:dsum)
+    #pragma omp parallel for private(alpha, beta) reduction(+:dsum) num_threads(_omp_thread_num(qgroup.qstate.size() >>1))
         for (int64_t i = 0; i < (qgroup.qstate.size() >> 1); i++)
         {
             int64_t real00_idx = insert(i, n);
@@ -1031,7 +1031,7 @@ QError NoisyCPUImplQPU::noisyUnitarySingleQubitGate
 
         dsum = sqrt(dsum);
 
-#pragma omp parallel for
+#pragma omp parallel for num_threads(_omp_thread_num(qgroup.qstate.size()))
     for (int64_t i = 0; i < qgroup.qstate.size(); i++)
     {
         qgroup.qstate[i] /= dsum;
@@ -1065,6 +1065,10 @@ unitaryDoubleQubitGate(size_t qn_0,
     bool isConjugate,
     GateType type)
 {
+    if (type == GateType::CNOT_GATE)
+    {
+        std::swap(qn_0, qn_1);
+    }
     unitary_qubit_gate_standard(qn_0, qn_1, matrix, isConjugate);
     return unitary_noise_qubit_gate({qn_0, qn_1}, matrix, isConjugate, type);
 }
@@ -1122,7 +1126,7 @@ noisyUnitaryDoubleQubitGate(size_t qn_0,
     QStat matrix_new = matrix_multiply(matrix, noise[op_number]);
     int64_t j, k;
 
-#pragma omp parallel for private(phi00, phi01, phi10, phi11) reduction(+:dsum)
+#pragma omp parallel for private(phi00, phi01, phi10, phi11) reduction(+:dsum) num_threads(_omp_thread_num(stateSize >> 2))
     for (int64_t i = 0; i < (stateSize >> 2); i++)
     {
         int64_t real00_idx = insert(i, n2, n1);
@@ -1145,7 +1149,7 @@ noisyUnitaryDoubleQubitGate(size_t qn_0,
     }
 
     dsum = sqrt(dsum);
-#pragma omp parallel for
+#pragma omp parallel for num_threads(_omp_thread_num(qgroup0.qstate.size()))
     for (int64_t i = 0; i < qgroup0.qstate.size(); i++)
     {
         qgroup0.qstate[i] /= dsum;

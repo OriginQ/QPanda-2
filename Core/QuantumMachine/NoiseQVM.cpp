@@ -50,6 +50,61 @@ std::map<string, size_t> NoiseQVM::runWithConfiguration(QProg &prog, std::vector
     return runWithConfiguration(prog, cbits, shots);
 }
 
+double NoiseQVM::get_expectation(QProg prog, const QHamiltonian& hamiltonian, const QVec& qv, int shots)
+{
+    double total_expectation = 0;
+
+    for (size_t i = 0; i < hamiltonian.size(); i++)
+    {
+        auto component = hamiltonian[i];
+        if (component.first.empty())
+        {
+            total_expectation += component.second;
+            continue;
+        }
+
+        QProg qprog;
+        qprog << prog;
+
+        QVec vqubit;
+        vector<ClassicalCondition> vcbit;
+
+        for (auto iter : component.first)
+        {
+            vqubit.push_back(qv[iter.first]);
+            vcbit.push_back(cAlloc(iter.first));
+            if (iter.second == 'X')
+                qprog << H(qv[iter.first]);
+            else if (iter.second == 'Y')
+                qprog << RX(qv[iter.first], PI / 2);
+
+        }
+        for (auto i = 0; i < vqubit.size(); i++)
+            qprog << Measure(vqubit[i], vcbit[i]);
+
+        double expectation = 0;
+        auto outcome = runWithConfiguration(qprog, vcbit, shots);
+        size_t label = 0;
+        for (auto iter : outcome)
+        {
+            label = 0;
+            for (auto iter1 : iter.first)
+            {
+                if (iter1 == '1')
+                    label++;
+            }
+
+            if (label % 2 == 0)
+                expectation += iter.second * 1.0 / shots;
+            else
+                expectation -= iter.second * 1.0 / shots;
+        }
+        total_expectation += component.second * expectation;
+    }
+
+    return total_expectation;
+}
+
 std::map<std::string, size_t> NoiseQVM::runWithConfiguration(QProg& prog, std::vector<int>& cibts_addr, int shots, const NoiseModel&)
 {
     std::vector<ClassicalCondition> cbits_vect;
@@ -69,8 +124,23 @@ std::map<std::string, size_t> NoiseQVM::runWithConfiguration(QProg& prog, int sh
     QProgCheck prog_check;
     prog_check.execute(prog.getImplementationPtr(), nullptr, traver_param);
 
+    auto measure_cbits_vector = traver_param.m_measure_cc;
+    std::sort(measure_cbits_vector.begin(), measure_cbits_vector.end(), [&](CBit* a, CBit* b)
+    {
+        auto current_cbit_a_name = a->getName();
+        auto current_cbit_b_name = b->getName();
+
+        string current_cbit_a_number_str = current_cbit_a_name.substr(1);
+        string current_cbit_b_number_str = current_cbit_b_name.substr(1);
+
+        size_t current_a_cbit_addr = stoul(current_cbit_a_number_str);
+        size_t current_b_cbit_addr = stoul(current_cbit_b_number_str);
+
+        return current_a_cbit_addr < current_b_cbit_addr;
+    });
+
     vector<ClassicalCondition> cbits_vector;
-    for (auto cbit : traver_param.m_measure_cc)
+    for (auto cbit : measure_cbits_vector)
         cbits_vector.push_back(ClassicalCondition(cbit));
 
     return runWithConfiguration(prog, cbits_vector, shots);

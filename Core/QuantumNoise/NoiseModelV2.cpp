@@ -114,14 +114,21 @@ void NoiseModel::add_noise_model(const NOISE_MODEL &model,
 
 void NoiseModel::add_noise_model(const NOISE_MODEL &model, const GateType &type, double prob, const std::vector<QVec> &qubits)
 {
-  size_t type_qubit_num = 0;
+	noise_model_type = model;
+	size_t type_qubit_num = 0;
   if ((type >= GateType::P0_GATE && type <= U4_GATE) || GateType::I_GATE == type || GATE_TYPE_MEASURE == type || GATE_TYPE_RESET == type)
   {
-    type_qubit_num = 1;
+		single_params.clear();
+		single_params.push_back(prob);
+		single_params.shrink_to_fit();
+		type_qubit_num = 1;
   }
   else if (type >= CU_GATE && type <= P11_GATE)
   {
-    type_qubit_num = 2;
+		double_params.clear();
+		double_params.push_back(prob);
+		double_params.shrink_to_fit();
+		type_qubit_num = 2;
   }
   else
   {
@@ -235,16 +242,21 @@ void NoiseModel::add_noise_model(const NOISE_MODEL &model, const GateType &type,
                                  double T1, double T2, double t_gate,
                                  const std::vector<QVec> &qubits)
 {
-  size_t type_qubit_num = 0;
-  if ((type >= GateType::P0_GATE && type <= U4_GATE) ||
+	noise_model_type = model;
+	size_t type_qubit_num = 0;
+	if ((type >= GateType::P0_GATE && type <= U4_GATE) ||
       GateType::I_GATE == type || GATE_TYPE_MEASURE == type ||
       GATE_TYPE_RESET == type)
   {
-    type_qubit_num = 1;
+		single_params.clear(), single_params.shrink_to_fit();
+		single_params.push_back(T1), single_params.push_back(T2), single_params.push_back(t_gate);
+		type_qubit_num = 1;
   }
   else if (type >= CU_GATE && type <= P11_GATE)
   {
-    type_qubit_num = 2;
+		double_params.clear(), double_params.shrink_to_fit();
+		double_params.push_back(T1), double_params.push_back(T2), double_params.push_back(t_gate);
+		type_qubit_num = 2;
   }
   else
   {
@@ -398,6 +410,20 @@ const NoisyQuantum &NoiseModel::quantum_noise() const
   return m_quantum_noise;
 }
 
+uint32_t NoiseModel::get_noise_model_type() const
+{
+	return noise_model_type;
+}
+
+std::vector<double> NoiseModel::get_single_params() const
+{
+	return single_params;
+}
+
+std::vector<double> NoiseModel::get_double_params() const
+{
+	return double_params;
+}
 //--------------------------------------------------------------------------------------------------------------
 RandomEngine19937 NoiseGateGenerator::m_rng;
 

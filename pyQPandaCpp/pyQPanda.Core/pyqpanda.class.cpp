@@ -2,6 +2,7 @@
 #include "QPanda.h"
 #include <math.h>
 #include <map>
+#include "include/QAlg/Encode/Encode.h"
 #include "pybind11/pybind11.h"
 #include "pybind11/cast.h"
 #include "pybind11/stl.h"
@@ -13,6 +14,7 @@
 #include <pybind11/stl_bind.h>
 #include "pybind11/eigen.h"
 #include "pybind11/operators.h"
+#include "pybind11/numpy.h"
 
 
 using namespace std;
@@ -96,10 +98,10 @@ void export_core_class(py::module &m)
     py::class_<QResult>(m, "QResult", "QResult abstract class, this class contains the result of the quantum measurement")
         .def("getResultMap", &QResult::getResultMap, py::return_value_policy::reference);
 
-    py::class_<ClassicalProg>(m, "ClassicalProg")
+    py::class_<ClassicalProg>(m, "ClassicalProg", "quantum ClassicalProg")
         .def(py::init<ClassicalCondition &>());
 
-    py::class_<QGate>(m, "QGate")
+    py::class_<QGate>(m, "QGate", "quantum gate node")
         .def(py::init(
             [](NodeIter &iter)
             {
@@ -169,7 +171,7 @@ void export_core_class(py::module &m)
     /* QIfProg and QWhileProg will use QProg type, so we declare QProg type here, define it's function later, like C++ Forward declarations */
     py::class_<QProg> PyQProgClass(m, "QProg", "Quantum program,can construct quantum circuit,data struct is linked list");
 
-    py::class_<QIfProg>(m, "QIfProg")
+    py::class_<QIfProg>(m, "QIfProg", "quantum if prog node")
         .def(py::init(
             [](NodeIter &iter)
             {
@@ -240,7 +242,7 @@ void export_core_class(py::module &m)
             py::return_value_policy::automatic)
         .def("get_classical_condition", &QIfProg::getClassicalCondition, py::return_value_policy::automatic);
 
-    py::class_<QWhileProg>(m, "QWhileProg")
+    py::class_<QWhileProg>(m, "QWhileProg", "quantum while node")
         .def(py::init(
             [](NodeIter &iter)
             {
@@ -285,7 +287,7 @@ void export_core_class(py::module &m)
         .def("get_classical_condition", &QWhileProg::getClassicalCondition, py::return_value_policy::automatic);
     ;
 
-    py::class_<QMeasure>(m, "QMeasure")
+    py::class_<QMeasure>(m, "QMeasure", "quantum measure node")
         .def(py::init(
             [](NodeIter &iter)
             {
@@ -307,7 +309,7 @@ void export_core_class(py::module &m)
                 }
             }));
 
-    py::class_<QReset>(m, "QReset")
+    py::class_<QReset>(m, "QReset", "quantum reset node")
         .def(py::init(
             [](NodeIter &iter)
             {
@@ -329,7 +331,7 @@ void export_core_class(py::module &m)
                 }
             }));
 
-    py::class_<QCircuit>(m, "QCircuit")
+    py::class_<QCircuit>(m, "QCircuit", "quantum circuit node")
         .def(py::init<>())
         .def(py::init(
             [](NodeIter &iter)
@@ -379,14 +381,70 @@ void export_core_class(py::module &m)
             py::return_value_policy::reference);
 
     PyQProgClass.def(py::init<>())
-        .def(py::init<QProg &>())
-        .def(py::init<QCircuit &>())
-        .def(py::init<QIfProg &>())
-        .def(py::init<QWhileProg &>())
-        .def(py::init<QGate &>())
-        .def(py::init<QMeasure &>())
-        .def(py::init<QReset &>())
-        .def(py::init<ClassicalCondition &>())
+        .def(py::init<QProg &>(),
+            "construct a prog node"
+            "\n"
+            "Args:\n"
+            "    none\n"
+            "\n"
+            "Returns:\n"
+            "    a prog node")
+        .def(py::init<QCircuit &>(),
+            "construct a prog node from QCircuit node\n"
+            "\n"
+            "Args:\n"
+            "    QCircuit\n"
+            "\n"
+            "Returns:\n"
+            "    a prog node")
+        .def(py::init<QIfProg &>(),
+            "construct a prog node from QIfProg node\n"
+            "\n"
+            "Args:\n"
+            "    QIfProg\n"
+            "\n"
+            "Returns:\n"
+            "    a prog node")
+        .def(py::init<QWhileProg &>(),
+            "construct a prog node from QWhileProg node\n"
+            "\n"
+            "Args:\n"
+            "    QWhileProg\n"
+            "\n"
+            "Returns:\n"
+            "    a prog node")
+        .def(py::init<QGate &>(),
+            "construct a prog node from QGate node\n"
+            "\n"
+            "Args:\n"
+            "    QGate\n"
+            "\n"
+            "Returns:\n"
+            "    a prog node")
+        .def(py::init<QMeasure &>(),
+            "construct a prog node from QMeasure node\n"
+            "\n"
+            "Args:\n"
+            "    QMeasure\n"
+            "\n"
+            "Returns:\n"
+            "    a prog node")
+        .def(py::init<QReset &>(),
+            "construct a prog node from QReset node\n"
+            "\n"
+            "Args:\n"
+            "    QReset\n"
+            "\n"
+            "Returns:\n"
+            "    a prog node")
+        .def(py::init<ClassicalCondition &>(),
+            "construct a prog node from ClassicalCondition node\n"
+            "\n"
+            "Args:\n"
+            "    ClassicalCondition\n"
+            "\n"
+            "Returns:\n"
+            "    a prog node")
         .def(py::init(
             [](NodeIter &iter)
             {
@@ -406,7 +464,14 @@ void export_core_class(py::module &m)
                     QCERR("node type error");
                     throw runtime_error("node type error");
                 }
-            }))
+            }),
+            "construct a prog node from ClassicalCondition node\n"
+                "\n"
+                "Args:\n"
+                "    ClassicalCondition\n"
+                "\n"
+                "Returns:\n"
+                "    a prog node")
         /* template function should be instance explicit */
         .def("__lshift__", &QProg::operator<<<QProg>, py::return_value_policy::reference)
         .def("__lshift__", &QProg::operator<<<QGate>, py::return_value_policy::reference)
@@ -471,10 +536,10 @@ void export_core_class(py::module &m)
     py::implicitly_convertible<ClassicalCondition, QProg>();
 
     /* hide */
-    py::class_<HadamardQCircuit, QCircuit>(m, "hadamard_circuit")
+    py::class_<HadamardQCircuit, QCircuit>(m, "hadamard_circuit","hadamard circuit class")
         .def(py::init<QVec &>());
 
-    py::class_<Encode>(m, "Encode")
+    py::class_<Encode>(m, "Encode", "quantum amplitude encode")
         .def(py::init<>())
         .def("amplitude_encode",
              py::overload_cast<const QVec &, const std::vector<double> &>(&Encode::amplitude_encode),
@@ -529,6 +594,7 @@ void export_core_class(py::module &m)
              &Encode::schmidt_encode,
              py::arg("qubit"),
              py::arg("data"),
+			 py::arg("cutoff"),
              py::return_value_policy::automatic)
         .def("bid_amplitude_encode",
              &Encode::bid_amplitude_encode,
@@ -596,12 +662,57 @@ void export_core_class(py::module &m)
              py::arg("qubit"),
              py::arg("data"),
              py::return_value_policy::automatic)
-        .def("get_circuit", &Encode::get_circuit)
-        .def("get_out_qubits", &Encode::get_out_qubits)
-        .def("get_normalization_constant", &Encode::get_normalization_constant);
+		.def("approx_mps", [](Encode &self, const QVec &q, const std::vector<double>& data,
+				const int &layers = 3, const int &step = 100, const bool double2float = false) {
+			if (double2float) {
+				vector<float>data_tmp(data.size());
+				for (int i = 0; i < data_tmp.size(); ++i) {
+					data_tmp[i] = static_cast<float>(data[i]);
+				}
+				return self.approx_mps_encode<float>(q, data_tmp, layers, step);
+			}
+			return self.approx_mps_encode<double>(q, data, layers, step);
+
+		},
+		py::arg("qubit"),
+		py::arg("data"),
+		py::arg("layers") = 3,
+		py::arg("sweeps") = 100,
+		py::arg("double2float") = false,
+		py::return_value_policy::automatic
+		)
+		.def("approx_mps",
+		[](Encode self, const QVec &q, const std::vector<qcomplex_t>& data,
+			const int &layers = 3, const int &step = 100) {
+			return self.approx_mps_encode<qcomplex_t>(q, data, layers, step);
+		},
+		py::arg("qubit"),
+		py::arg("data"),
+		py::arg("layers") = 3,
+		py::arg("sweeps") = 100,
+		py::return_value_policy::automatic
+		)
+		.def("get_circuit", &Encode::get_circuit)
+		.def("get_out_qubits", &Encode::get_out_qubits)
+		.def("get_fidelity",
+			py::overload_cast<const vector<double> &>(&Encode::get_fidelity),
+			py::arg("data"),
+			py::return_value_policy::automatic
+		)
+		.def("get_fidelity",
+			py::overload_cast<const vector<qcomplex_t> &>(&Encode::get_fidelity),
+			py::arg("data"),
+			py::return_value_policy::automatic
+		)
+		.def("get_fidelity",
+			py::overload_cast<const vector<float> &>(&Encode::get_fidelity),
+			py::arg("data"),
+			py::return_value_policy::automatic
+		);
+
 
     /* use std::unique_ptr with py::nodelete as python object holder guarantee python object not own the C++ object */
-    py::class_<OriginQubitPool, std::unique_ptr<OriginQubitPool, py::nodelete>>(m, "OriginQubitPool")
+    py::class_<OriginQubitPool, std::unique_ptr<OriginQubitPool, py::nodelete>>(m, "OriginQubitPool", "quantum qubit pool")
         .def(py::init(
             []()
             {
@@ -657,7 +768,7 @@ void export_core_class(py::module &m)
         .def("qFree_all", py::overload_cast<QVec &>(&OriginQubitPool::qFreeAll))
         .def("qFree_all", py::overload_cast<>(&OriginQubitPool::qFreeAll));
 
-    py::class_<OriginCMem, std::unique_ptr<OriginCMem, py::nodelete>>(m, "OriginCMem")
+    py::class_<OriginCMem, std::unique_ptr<OriginCMem, py::nodelete>>(m, "OriginCMem", "origin quantum cmem")
         .def(py::init(
             []()
             {
@@ -713,16 +824,16 @@ void export_core_class(py::module &m)
     /*******************************************************************
      *                           QProgDAG
      */
-    py::class_<QProgDAGEdge>(m, "QProgDAGEdge")
+    py::class_<QProgDAGEdge>(m, "QProgDAGEdge", "quantum prog dag edge")
         .def(py::init<uint32_t, uint32_t, uint32_t>(),
-             py::arg("from"),
-             py::arg("to"),
-             py::arg("qubit"))
+             py::arg("from_arg"),
+             py::arg("to_arg"),
+             py::arg("qubit_arg"))
         .def_readwrite("m_from", &QProgDAGEdge::m_from)
         .def_readwrite("m_to", &QProgDAGEdge::m_to)
         .def_readwrite("m_qubit", &QProgDAGEdge::m_qubit);
 
-    py::class_<QProgDAGVertex>(m, "QProgDAGVertex")
+    py::class_<QProgDAGVertex>(m, "QProgDAGVertex", "quantum prog dag vertex node")
         .def(py::init<>())
         .def_readwrite("m_id", &QProgDAGVertex::m_id)
         .def_readwrite("m_type", &QProgDAGVertex::m_type)
@@ -758,7 +869,7 @@ void export_core_class(py::module &m)
             },
             py::return_value_policy::reference_internal);
 
-    py::class_<QProgDAG>(m, "QProgDAG")
+    py::class_<QProgDAG>(m, "QProgDAG", "quantum prog dag class")
         .def(py::init<>())
         .def("get_vertex_set",
              py::overload_cast<>(&QProgDAG::get_vertex),
@@ -782,7 +893,7 @@ void export_core_class(py::module &m)
             },
             py::return_value_policy::automatic);
 
-    py::class_<QuantumStateTomography>(m, "QuantumStateTomography")
+    py::class_<QuantumStateTomography>(m, "QuantumStateTomography", "quantum state tomography class")
         .def(py::init<>())
         .def("combine_qprogs",
              py::overload_cast<const QProg &, const QVec &>(&QuantumStateTomography::combine_qprogs<QProg>),
@@ -824,17 +935,15 @@ void export_core_class(py::module &m)
              "caculate tomography density",
              py::return_value_policy::reference_internal);
 
-    py::class_<Fusion>(m, "Fusion")
+    py::class_<Fusion>(m, "Fusion", "quantum fusion operation")
         .def(py::init<>())
         .def("aggregate_operations",
-             py::overload_cast<QCircuit &, QuantumMachine *>(&Fusion::aggregate_operations),
+             py::overload_cast<QCircuit &>(&Fusion::aggregate_operations),
              py::arg("circuit"),
-             py::arg("qvm"),
              py::return_value_policy::automatic)
         .def("aggregate_operations",
-             py::overload_cast<QProg &, QuantumMachine *>(&Fusion::aggregate_operations),
-             py::arg("circuit"),
-             py::arg("qvm"),
+             py::overload_cast<QProg &>(&Fusion::aggregate_operations),
+             py::arg("qprog"),
              py::return_value_policy::automatic);
 
     py::class_<LatexMatrix>(m, "LatexMatrix",
@@ -844,7 +953,7 @@ void export_core_class(py::module &m)
                             "qcircuit package tutorial [https://physics.unm.edu/CQuIC/Qcircuit/Qtutorial.pdf]")
         .def(py::init<>())
         .def("set_label",
-             &LatexMatrix::setLabel,
+             &LatexMatrix::set_label,
              py::arg("qubit_label"),
              py::arg("cbit_label") = LatexMatrix::Label(),
              py::arg("time_seq_label") = "",
@@ -859,11 +968,11 @@ void export_core_class(py::module &m)
              "    time_seq_label: if given, set time squence lable\n"
              "    head: if true, label append head; false, append at tail")
         .def("set_logo",
-             &LatexMatrix::setLogo,
+             &LatexMatrix::set_logo,
              py::arg("logo") = "",
              "Add a logo string")
         .def("insert_gate",
-             &LatexMatrix::insertGate,
+             &LatexMatrix::insert_gate,
              py::arg("target_rows"),
              py::arg("ctrl_rows"),
              py::arg("from_col"),
@@ -885,23 +994,23 @@ void export_core_class(py::module &m)
              "Returns:\n"
              "    int: real col num. if there is no enough zone to put gate at 'from_col', we will find suitable col to put gate after 'from_col'")
         .def("insert_barrier",
-             &LatexMatrix::insertBarrier,
+             &LatexMatrix::insert_barrier,
              py::arg("rows"),
              py::arg("from_col"),
              "\n"
              "Args:\n"
              "    rows: rows need be barriered, may not continus")
         .def("insert_measure",
-             &LatexMatrix::insertMeasure,
+             &LatexMatrix::insert_measure,
              py::arg("q_row"),
              py::arg("c_row"),
              py::arg("from_col"))
         .def("insert_reset",
-             &LatexMatrix::insertReset,
+             &LatexMatrix::insert_reset,
              py::arg("q_row"),
              py::arg("from_col"))
         .def("insert_timeseq",
-             &LatexMatrix::insertTimeSeq,
+             &LatexMatrix::insert_time_seq,
              py::arg("t_col"),
              py::arg("time_seq"),
              "Beware we do not check col num, may cause overwrite. user must take care col num self")

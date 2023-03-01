@@ -8,7 +8,6 @@
 #include "Core/Utilities/Tools/JsonConfigParam.h"
 #include "Core/QuantumMachine/OriginQuantumMachine.h"
 
-
 #ifdef USE_CURL
 #include <curl/curl.h>
 using pcurl_t = CURL * ;
@@ -134,6 +133,7 @@ public:
         bool is_optimization = true,
         std::string task_name = "QPanda Experiment");
 
+    double get_expectation(QProg, const QHamiltonian&, const QVec&, std::string task_name = "QPanda Experiment");
     double get_expectation(QProg, const QHamiltonian&, const QVec&, TaskStatus& status, std::string task_name = "QPanda Experiment");
     std::string get_expectation_commit(QProg, const QHamiltonian&, const QVec&, TaskStatus& status, std::string task_name = "QPanda Experiment");
     double get_expectation_exec(std::string taskid, TaskStatus& status);
@@ -231,8 +231,6 @@ private:
     pcurl_slist_t m_headers{ nullptr };
 
     const size_t m_cur_reperform_time = 3;
-    //CURL *m_post_curl{ nullptr };
-    //curl_slist *m_headers{ nullptr };
     TaskStatus m_task_status = TaskStatus::WAITING;
 
     //Whether to print log

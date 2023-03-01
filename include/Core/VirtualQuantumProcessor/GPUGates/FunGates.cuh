@@ -1,274 +1,232 @@
 ﻿#ifndef _FUN_GATES_H_
 #define _FUN_GATES_H_
 
+#include "Core/Utilities/Tools/Macro.h"
 #include "Core/VirtualQuantumProcessor/GPUGates/GPUStruct.cuh"
 
-
-
-class BaseGateFun {
+class BaseGateFun
+{
 protected:
-    device_complex_t* m_state = nullptr;
-    qstate_type* m_param = nullptr;
-    device_complex_t* m_device_matrix = nullptr;
-    device_qsize_t* m_device_opt_qubits = nullptr;
-
-    device_qsize_t m_qubit_num = 0;
-    device_qsize_t m_opt_num = 0;
-    int64_t m_offset0 = 0;
-    int64_t m_offset1 = 0;
-
+    size_t m_cmask = 0;
+    size_t m_offset0 = 0;
+    size_t m_offset1 = 0;
     bool m_is_dagger = false;
-    int64_t m_cmask = 0;
+    device_qsize_t m_opt_num = 0;
+    device_qsize_t m_qubit_num = 0;
+    qstate_type *m_param = nullptr;
+    cuda::device_data_ptr *device_data_ptr;
+    device_complex_t *data_vector = nullptr;
+    device_complex_t *m_device_matrix = nullptr;
+    device_qsize_t *m_device_opt_qubits = nullptr;
+
 public:
     BaseGateFun();
-    void set_state(device_state_t& state);
-    void set_qubit_num(device_qsize_t qubit_num);
-    void set_device_prams(device_qubit_t& device_qubits,
-                          device_state_t& device_matrix);
-
-    virtual void set_matrix(host_state_t &matrix, bool is_dagger, cudaStream_t stream) = 0;
-    virtual void set_qubits(const host_qubit_t &qubits, device_qsize_t opt_num, cudaStream_t stream) = 0;
-    virtual __device__ int64_t insert(int64_t) = 0;
-    virtual __device__ double operator()(int64_t i) = 0;
-
     virtual ~BaseGateFun();
+    void set_qubit_num(device_qsize_t qubit_num);
+
+    virtual __device__ size_t insert(size_t) = 0;
+    virtual __device__ double operator()(size_t i) = 0;
+    virtual __device__ double operator[](size_t i) = 0;
+    virtual void set_matrix(host_state_t &matrix, bool is_dagger, cudaStream_t &stream) = 0;
+    virtual void set_qubits(const host_qubit_t &qubits, device_qsize_t opt_num, cudaStream_t &stream) = 0;
+    virtual void set_qubits(const host_qubit_t& qubits, const host_qubit_t& control, cudaStream_t& stream) {};
+
+    void set_ptr(device_complex_t *data_ptr, device_qubit_t &device_qubits, device_state_t &device_matrix);
+    void set_ptr(cuda::device_data_ptr *data_ptr, device_qubit_t &device_qubits, device_state_t &device_matrix);
 };
 
 class SingleGateFun : public BaseGateFun
 {
 public:
-    virtual void set_matrix(host_state_t &matrix, bool is_dagger, cudaStream_t stream);
-    virtual void set_qubits(const host_qubit_t &qubits, device_qsize_t opt_num, cudaStream_t stream);
-    virtual __device__ int64_t insert(int64_t i);
-    virtual __device__ double operator()(int64_t i);
+    virtual __device__ size_t insert(size_t i);
+    virtual __device__ double operator()(size_t i);
+    virtual __device__ double operator[](size_t i);
+    virtual void set_matrix(host_state_t &matrix, bool is_dagger, cudaStream_t &stream);
+    virtual void set_qubits(const host_qubit_t &qubits, device_qsize_t opt_num, cudaStream_t &stream);
 };
-
 
 class XFun : public SingleGateFun
 {
 public:
-    virtual void set_matrix(host_state_t &matrix, bool is_dagger, cudaStream_t stream);
-    virtual __device__  double operator()(int64_t i);
+    virtual __device__ double operator()(size_t i);
+    virtual __device__ double operator[](size_t i);
+    virtual void set_matrix(host_state_t &matrix, bool is_dagger, cudaStream_t &stream);
 };
 
 class YFun : public SingleGateFun
 {
 public:
-    virtual void set_matrix(host_state_t &matrix, bool is_dagger, cudaStream_t stream);
-    virtual __device__  double operator()(int64_t i);
+    virtual __device__ double operator()(size_t i);
+    virtual __device__ double operator[](size_t i);
+    virtual void set_matrix(host_state_t &matrix, bool is_dagger, cudaStream_t &stream);
 };
 
 class ZFun : public SingleGateFun
 {
 public:
-    virtual void set_matrix(host_state_t &matrix, bool is_dagger, cudaStream_t stream);
-    virtual __device__  double operator()(int64_t i);
+    virtual __device__ double operator()(size_t i);
+    virtual __device__ double operator[](size_t i);
+    virtual void set_matrix(host_state_t &matrix, bool is_dagger, cudaStream_t &stream);
 };
-
 
 class RZFun : public SingleGateFun
 {
 public:
-    virtual void set_matrix(host_state_t &matrix, bool is_dagger, cudaStream_t stream);
-    virtual __device__  double operator()(int64_t i);
+    virtual __device__ double operator()(size_t i);
+    virtual __device__ double operator[](size_t i);
+    virtual void set_matrix(host_state_t &matrix, bool is_dagger, cudaStream_t &stream);
 };
 
 class SFun : public SingleGateFun
 {
 public:
-    virtual void set_matrix(host_state_t &matrix, bool is_dagger, cudaStream_t stream);
-    virtual __device__  double operator()(int64_t i);
+    virtual __device__ double operator()(size_t i);
+    virtual __device__ double operator[](size_t i);
+    virtual void set_matrix(host_state_t &matrix, bool is_dagger, cudaStream_t &stream);
 };
 
 class HFun : public SingleGateFun
 {
 public:
-    virtual void set_matrix(host_state_t &matrix, bool is_dagger, cudaStream_t stream);
-    virtual __device__  double operator()(int64_t i);
+    virtual __device__ double operator()(size_t i);
+    virtual __device__ double operator[](size_t i);
+    virtual void set_matrix(host_state_t &matrix, bool is_dagger, cudaStream_t &stream);
 };
 
 class U1Fun : public SingleGateFun
 {
 public:
-    virtual void set_matrix(host_state_t &matrix, bool is_dagger, cudaStream_t stream);
-    virtual __device__  double operator()(int64_t i);
+    virtual __device__ double operator()(size_t i);
+    virtual __device__ double operator[](size_t i);
+    virtual void set_matrix(host_state_t &matrix, bool is_dagger, cudaStream_t &stream);
 };
-
 
 class PFun : public SingleGateFun
 {
 public:
-    virtual void set_matrix(host_state_t &matrix, bool is_dagger, cudaStream_t stream);
-    virtual __device__  double operator()(int64_t i);
+    virtual __device__ double operator()(size_t i);
+    virtual __device__ double operator[](size_t i);
+    virtual void set_matrix(host_state_t &matrix, bool is_dagger, cudaStream_t &stream);
 };
-
 
 class DoubleGateFun : public BaseGateFun
 {
 public:
-    virtual void set_matrix(host_state_t &matrix, bool is_dagger, cudaStream_t stream);
-    virtual void set_qubits(const host_qubit_t &qubits, device_qsize_t opt_num, cudaStream_t stream);
-    virtual __device__ int64_t insert(int64_t i);
-    virtual __device__ double operator()(int64_t i);
+    virtual __device__ size_t insert(size_t i);
+    virtual __device__ double operator()(size_t i);
+    virtual __device__ double operator[](size_t i);
+    virtual void set_matrix(host_state_t &matrix, bool is_dagger, cudaStream_t &stream);
+    virtual void set_qubits(const host_qubit_t &qubits, device_qsize_t opt_num, cudaStream_t &stream);
 };
 
 class CNOTFun : public DoubleGateFun
 {
 public:
-    virtual void set_matrix(host_state_t &matrix, bool is_dagger, cudaStream_t stream);
-    virtual __device__ double operator()(int64_t i);
+    virtual __device__ double operator()(size_t i);
+    virtual __device__ double operator[](size_t i);
+    virtual void set_matrix(host_state_t &matrix, bool is_dagger, cudaStream_t &stream);
 };
 
 class CZFun : public DoubleGateFun
 {
 public:
-    virtual void set_matrix(host_state_t &matrix, bool is_dagger, cudaStream_t stream);
-    virtual __device__ double operator()(int64_t i);
+    virtual __device__ double operator()(size_t i);
+    virtual __device__ double operator[](size_t i);
+    virtual void set_matrix(host_state_t &matrix, bool is_dagger, cudaStream_t &stream);
 };
 
 class CRFun : public DoubleGateFun
 {
 public:
-    virtual void set_matrix(host_state_t &matrix, bool is_dagger, cudaStream_t stream);
-    virtual __device__ double operator()(int64_t i);
+    virtual __device__ double operator()(size_t i);
+    virtual __device__ double operator[](size_t i);
+    virtual void set_matrix(host_state_t &matrix, bool is_dagger, cudaStream_t &stream);
 };
 
 class CPFun : public DoubleGateFun
 {
 public:
-    virtual void set_matrix(host_state_t &matrix, bool is_dagger, cudaStream_t stream);
-    virtual __device__ double operator()(int64_t i);
+    virtual __device__ double operator()(size_t i);
+    virtual __device__ double operator[](size_t i);
+    virtual void set_matrix(host_state_t &matrix, bool is_dagger, cudaStream_t &stream);
 };
-
 
 class SWAPFun : public DoubleGateFun
 {
 public:
-    virtual void set_matrix(host_state_t &matrix, bool is_dagger, cudaStream_t stream);
-    virtual __device__ double operator()(int64_t i);
+    virtual __device__ double operator()(size_t i);
+    virtual __device__ double operator[](size_t i);
+    virtual void set_matrix(host_state_t &matrix, bool is_dagger, cudaStream_t &stream);
 };
 
 class ISWAPFun : public DoubleGateFun
 {
 public:
-    virtual void set_matrix(host_state_t &matrix, bool is_dagger, cudaStream_t stream);
-    virtual __device__ double operator()(int64_t i);
+    virtual __device__ double operator()(size_t i);
+    virtual __device__ double operator[](size_t i);
+    virtual void set_matrix(host_state_t &matrix, bool is_dagger, cudaStream_t &stream);
 };
 
 class ISWAPThetaFun : public DoubleGateFun
 {
 public:
-    virtual void set_matrix(host_state_t &matrix, bool is_dagger, cudaStream_t stream);
-    virtual __device__ double operator()(int64_t i);
+    virtual __device__ double operator()(size_t i);
+    virtual __device__ double operator[](size_t i);
+    virtual void set_matrix(host_state_t &matrix, bool is_dagger, cudaStream_t &stream);
 };
 
 class CUFun : public DoubleGateFun
 {
 public:
-    virtual void set_matrix(host_state_t &matrix, bool is_dagger, cudaStream_t stream);
-    virtual __device__ double operator()(int64_t i);
+    virtual __device__ double operator()(size_t i);
+    virtual __device__ double operator[](size_t i);
+    virtual void set_matrix(host_state_t &matrix, bool is_dagger, cudaStream_t &stream);
 };
 
-
-
-class ProbFun
+class ORACLEFun : public DoubleGateFun
 {
-protected:
-    int64_t m_mask = 0;
-    int64_t m_cmask = 0;
-    int64_t m_idx;
-    device_complex_t* m_state = nullptr;
-
-    device_qsize_t* m_device_opt_qubits = nullptr;
-    device_qsize_t m_qubit_num = 0;
-    device_qsize_t m_opt_num = 0;
 public:
-    ProbFun();
-    void set_state(device_complex_ptr_t state);
-    void set_idx(int64_t idx);
-    void set_qubits(const host_qubit_t &qubits, device_qsize_t *opt_qubits,
-                    device_qsize_t opt_num, cudaStream_t stream);
-    __device__ double operator()(int64_t);
+    virtual __device__ size_t insert(size_t i);
+    virtual __device__ double operator()(size_t i);
+    virtual __device__ double operator[](size_t i);
+    virtual void set_matrix(host_state_t& matrix, bool is_dagger, cudaStream_t& stream);
+    virtual void set_qubits(const host_qubit_t& qubits, device_qsize_t opt_num, cudaStream_t& stream);
+};
+
+class CORACLEFun : public ORACLEFun
+{
+public:
+    virtual __device__ double operator()(size_t i);
+    virtual __device__ double operator[](size_t i);
+    virtual void set_qubits(const host_qubit_t& qubits, const host_qubit_t& control, cudaStream_t& stream);
 };
 
 class MeasureFun : public SingleGateFun
 {
 public:
-   __device__ double operator()(int64_t i);
-private:
+    __device__ double operator()(size_t i);
 };
-
 
 class NormlizeFun : public SingleGateFun
 {
 public:
     NormlizeFun();
+    __device__ double operator()(size_t i);
     NormlizeFun(double prob, bool measure_out);
     void set_measure_out(double prob, bool measure_out);
-    __device__ double operator()(int64_t i);
+
 private:
-    double m_prob;
-    bool m_measure_out;
+    double m_prob{0.0};
+    bool m_measure_out{false};
 };
 
+double exec_measure(MeasureFun &fun, size_t size, cudaStream_t &stream);
+void exec_normalize(NormlizeFun &fun, size_t size, cudaStream_t &stream);
 
-void exec_probs_measure(const host_qubit_t &qubits,
-                           device_state_t &state,
-                           int64_t qubit_num,
-                           cudaStream_t &stream,
-                           prob_vec &probs);
-void exec_probs_measure(const host_qubit_t &qubits,
-                           device_state_t &state,
-                           int64_t qubit_num,
-                           cudaStream_t &stream,
-                           prob_tuple &probs,
-                           int select_max);
+template <typename FunGate>
+__global__ void exec_gate_kernel(FunGate fun, size_t size, size_t thread_start, size_t thread_count);
 
-double exec_measure(MeasureFun &fun, int64_t size, cudaStream_t &stream);
-void exec_normalize(NormlizeFun &fun, int64_t size, cudaStream_t &stream);
+template <typename FunGate>
+__global__ void exec_gate_kernel_multi(FunGate fun, size_t size, size_t thread_start, size_t thread_count);
 
-
-template <typename FunGate> __global__
-void exec_gate_kernel(FunGate fun, int64_t size);
-
-#endif // !_FUN_GATES_H_
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#endif

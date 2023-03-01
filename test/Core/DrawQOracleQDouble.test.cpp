@@ -13,12 +13,7 @@
 #include "Core/Utilities/QProgTransform/QProgToDAG/GraphMatch.h"
 #include "Core/Utilities/Tools/QCircuitGenerator.h"
 #include "Core/Utilities/QProgInfo/QCircuitInfo.h"
-#include "Core/Variational/var.h"
-#include "Variational/expression.h"
-#include "Variational/utils.h"
-#include "Variational/Optimizer.h"
-#include "Variational/VarFermionOperator.h"
-#include "Variational/VarPauliOperator.h"
+
 
 #include "Extensions/Extensions.h"
 #ifdef USE_EXTENSION
@@ -72,7 +67,7 @@ static bool test_vf1_0()
         std::cout << "===============================" << std::endl;
         
         Fusion fuser;
-        fuser.aggregate_operations(prog, &qvm);
+        fuser.aggregate_operations(prog);
         prog << RXX(qubits[0], qubits[2], 20)
             << RYY(qubits[1], qubits[4], 20) 
             << RZZ(qubits[3], qubits[5], 20)

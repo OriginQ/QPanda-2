@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2017-2020 Origin Quantum Computing. All Right Reserved.
+Copyright (c) 2017-2023 Origin Quantum Computing. All Right Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -365,6 +365,27 @@ public:
     * @return double  expectation
     */
     virtual double get_expectation(QProg, const QHamiltonian&, const QVec&, int) = 0;
+
+    /**
+    * @brief  gets the probably [P1, P2, ... , Pn] of the all Hamiltonian Subitem of the circuit
+    * @param[in] QProg quantum program
+    * @param[in] QHamiltonian hamiltonian
+    * @param[in] QVec qubits
+    * @param[in] vector_d measure probably
+    * @return void
+    */
+    virtual void get_expectation_vector(QProg, const QHamiltonian&, const QVec&, vector_d&) = 0;
+
+    /**
+    * @brief  gets the probably [P1, P2, ... , Pn] of the all Hamiltonian Subitem of the circuit
+    * @param[in] QProg quantum program
+    * @param[in] QHamiltonian hamiltonian
+    * @param[in] QVec qubits
+    * @param[in] vector_d measure probably
+    * @param[in] int run shots
+    * @return void
+    */
+    virtual void get_expectation_vector(QProg, const QHamiltonian&, const QVec& qv, vector_d&, int) = 0;
 
     /**
      * @brief get gate num have been processed while machine running prog async

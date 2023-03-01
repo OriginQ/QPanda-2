@@ -484,11 +484,6 @@ qsize_t VerticeMatrix::getEmptyVertice()
 
 void VerticeMatrix::setVerticeValue(qsize_t qubit, qsize_t num, int value)
 {
-    if (value > 1 && value < -1)
-    {
-        throw exception();
-    }
-
     try
     {
         return m_vertice_matrix[qubit][num].setValue(value);

@@ -3,13 +3,22 @@
 #include "Core/Utilities/QPandaNamespace.h"
 #include <iostream>
 #include <complex>
+#include <string>
 #include <vector>
 #include "Core/Utilities/QProgInfo/QCircuitInfo.h"
 #include "Core/Utilities/QProgTransform/QProgToDAG/TopologSequence.h"
 #include <memory>
 #include "Core/Utilities/QProgInfo/QGateCounter.h"
 #include "Core/Utilities//Tools/JsonConfigParam.h"
-
+#include "Core/Utilities/Tools/QProgFlattening.h"
+#include "Core/Utilities/QProgTransform/TransformDecomposition.h"
+enum  ChipID
+{
+    Simulation = 0,
+    WUYUAN_1 = 1,
+    WUYUAN_2 = 2,
+    WUYUAN_3 = 3
+};
 QPANDA_BEGIN
 
 #define MAX_LAYER (std::numeric_limits<uint32_t>::max)()
@@ -244,6 +253,10 @@ public:
 
 	virtual const LayeredTopoSeq& get_topo_seq() { return m_topolog_sequence; }
 
+    void move_measure_to_last(LayeredTopoSeq& seq);
+
+    void prog_layer_by_double_gate(LayeredTopoSeq& seq);
+
 protected:
 	void process(const bool on_travel_end = false) override;
 	void append_topolog_seq(LayeredTopoSeq& tmp_seq);
@@ -267,6 +280,13 @@ PressedTopoSeq get_pressed_layer(QProg src_prog);
 */
 LayeredTopoSeq prog_layer(QProg src_prog);
 
+/**
+* @brief Program layering.
+* @ingroup Utilities
+* @param[in] prog  the source prog
+* @return the TopologSequence
+*/
+LayeredTopoSeq get_chip_layer(QProg src_prog, ChipID chip_id = ChipID::Simulation, QuantumMachine *quantum_machine = nullptr);
 LayeredTopoSeq get_clock_layer(QProg src_prog, const std::string config_data = CONFIG_PATH);
 
 /*new interface*/

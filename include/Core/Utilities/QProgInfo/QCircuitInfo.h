@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2017-2020 Origin Quantum Computing. All Right Reserved.
+Copyright (c) 2017-2023 Origin Quantum Computing. All Right Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ limitations under the License.
 #include "Core/Utilities/QProgTransform/QProgToDAG/QProgDAG.h"
 #include "Core/Utilities/Tools/TranformQGateTypeStringAndEnum.h"
 #include "Core/QuantumCircuit/QuantumGate.h"
-
+#include "Core/VirtualQuantumProcessor/CPUImplQPU.h"
 QPANDA_BEGIN
 
 /**
@@ -509,6 +509,18 @@ std::vector<double> get_gate_parameter(std::shared_ptr<AbstractQGateNode> pGate)
 * @return bool true for valid dagger
 */
 bool check_dagger(std::shared_ptr<AbstractQGateNode> p_gate, const bool& b_dagger);
+
+
+/**
+* @brief  get the prog matrix
+* @ingroup Utilities
+* @param[in] QProg
+* @return QStat, the circuit matrix
+*/
+QStat get_unitary(QProg &srcProg, const bool b_positive_seq = false, const NodeIter nodeItrStart = NodeIter(), const NodeIter nodeItrEnd = NodeIter());
+
+
+QStat get_partial_unitary(QProg &srcProg, const bool b_positive_seq = false, const NodeIter nodeItrStart = NodeIter(), const NodeIter nodeItrEnd = NodeIter());
 
 QPANDA_END
 #endif

@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <stdio.h>
 #include <array>
+#include <typeinfo>
 #include <bitset>
 #include <algorithm>
 #include "QPandaConfig.h"

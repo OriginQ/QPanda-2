@@ -151,7 +151,7 @@ namespace QPanda
                 break;
             }
 
-            m_qn = m_pauli.getMaxIndex();
+            m_qn = m_pauli.getMaxIndex()+1;
             m_simple_construct = m_pauli.isAllPauliZorI();
 
             return true;
@@ -173,8 +173,7 @@ namespace QPanda
                 break;
             }
 
-            if ((m_delta_t < 0) ||
-                (m_delta_t < 1e-6))
+            if (m_delta_t < 0)
             {
                 err_msg = "Delta T is closed to Zero.";
                 break;
@@ -285,7 +284,7 @@ namespace QPanda
 
     void QAOA::insertSampleCircuit(
         QProg &prog,
-        const std::vector<Qubit*> &vec,
+        const QVec &vec,
         const double &gamma)
     {
         prog << simulatePauliZHamiltonian(vec, m_hamiltonia, gamma);
@@ -293,7 +292,7 @@ namespace QPanda
 
     void QAOA::insertComplexCircuit(
         QProg &prog, 
-        const std::vector<Qubit*> &vec, 
+        const QVec &vec, 
         const double &gamma)
     {
         size_t slices = static_cast<size_t>(std::ceil(gamma / m_delta_t));
@@ -305,7 +304,7 @@ namespace QPanda
     }
 
     void QAOA::insertPaulixModel(QProg &prog,
-        const std::vector<Qubit*> &vec,
+        const QVec &vec,
         const double &beta)
     {
         for (size_t i = 0; i < vec.size(); i++)

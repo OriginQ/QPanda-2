@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2017-2020 Origin Quantum Computing. All Right Reserved.
+Copyright (c) 2017-2023 Origin Quantum Computing. All Right Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -24,6 +24,8 @@ limitations under the License.
 #include "Core/Utilities/QProgInfo/GetAdjacentNodes.h"
 #include "Core/Utilities/QProgInfo/QProgToMatrix.h"
 #include "Core/Utilities/QProgInfo/GetAllUsedQubitAndCBit.h"
+#include "Core/Utilities/Tools/QCircuitFusion.h"
+#include "Core/QuantumCircuit/QNodeDeepCopy.h"
 
 USING_QPANDA
 using namespace std;
@@ -853,6 +855,7 @@ std::vector<double> QPanda::get_gate_parameter(std::shared_ptr<AbstractQGateNode
 	case RX_GATE:
 	case RY_GATE:
 	case RZ_GATE:
+    case CP_GATE:
     case RXX_GATE:
     case RYY_GATE:
     case RZZ_GATE:
@@ -937,11 +940,243 @@ bool QPanda::check_dagger(std::shared_ptr<AbstractQGateNode> p_gate, const bool&
 	case I_GATE:
 	case BARRIER_GATE:
 		return false;
-		break;
-
 	default:
 		break;
 	}
 
 	return b_dagger;
 }
+
+
+QStat QPanda::get_unitary(QProg &srcProg, const bool b_positive_seq /*= false*/, const NodeIter nodeItrStart, const NodeIter nodeItrEnd)
+{
+    QProg tmp_prog;
+
+    pickUpNode(tmp_prog, srcProg, { MEASURE_GATE, RESET_NODE }, nodeItrStart == NodeIter() ? srcProg.getFirstNodeIter() : nodeItrStart,
+        nodeItrEnd == NodeIter() ? srcProg.getEndNodeIter() : nodeItrEnd);
+    QVec tmp_qv;
+    tmp_prog.get_used_qubits(tmp_qv);
+    bool prog_used_qbit = tmp_qv.size() == tmp_prog.get_max_qubit_addr()+1 ? 1 : 0;
+   
+    if (prog_used_qbit)
+    {
+        Fusion f;
+        f.aggregate_operations(tmp_prog);
+    }
+    
+    QVec all_used_qubits;
+    auto qubit_num = get_all_used_qubits(tmp_prog, all_used_qubits);
+    QCircuit cir_swap_qubits;
+    if (b_positive_seq)
+    {
+        for (size_t i = 0; (i * 2) < (all_used_qubits.size() - 1); ++i)
+        {
+            cir_swap_qubits << SWAP(all_used_qubits[i], all_used_qubits[all_used_qubits.size() - 1 - i]);
+        }
+    }
+
+    //layer
+    QProg unitary_prog;
+    if (b_positive_seq)
+    {
+        unitary_prog << cir_swap_qubits << tmp_prog << cir_swap_qubits;
+    }
+    else
+    {
+        unitary_prog << tmp_prog;
+    }
+    flatten(unitary_prog);
+    QStat unitary;
+    CPUImplQPU<double> calc_matrix;
+    
+    calc_matrix.is_calc_unitary(true);
+    try
+    {
+        TraversalConfig config(0);
+        config.m_can_optimize_measure = false;
+        std::shared_ptr<AbstractQuantumProgram> qp = nullptr;
+        qp = unitary_prog.getImplementationPtr();
+        QPANDA_ASSERT(qp == nullptr, "Error: not valid quantum program");
+
+        QVec used_qv;
+        unitary_prog.get_used_qubits(used_qv);
+
+        if (prog_used_qbit)
+        {
+            calc_matrix.initMatrixState(used_qv.size() * 2, unitary);
+        }
+        else
+        {
+            calc_matrix.initMatrixState((tmp_prog.get_max_qubit_addr() + 1) * 2, unitary);
+        }
+        
+
+        uint64_t _ExecId{ 0 };
+        QProgExecution prog_exec;
+        _ExecId = uint64_t(&prog_exec);
+
+        QProgProgress::getInstance().prog_start(_ExecId);
+        auto calc = dynamic_cast<QPUImpl*>(&calc_matrix);
+        prog_exec.execute_reverse(qp, nullptr, config, calc);      
+        QProgProgress::getInstance().prog_end(_ExecId);
+        std::map<string, bool>result;
+        prog_exec.get_return_value(result);
+    }
+    catch (const std::exception& e)
+    {
+        QCERR(e.what());
+        throw run_fail(e.what());
+    }
+
+    unitary = calc_matrix.getQState();
+    return unitary;
+
+}
+
+QStat  QPanda::get_partial_unitary(QProg &srcProg, const bool b_positive_seq /*= false*/, const NodeIter nodeItrStart, const NodeIter nodeItrEnd)
+{
+    QProg tmp_prog;
+
+    pickUpNode(tmp_prog, srcProg, { MEASURE_GATE, RESET_NODE }, nodeItrStart == NodeIter() ? srcProg.getFirstNodeIter() : nodeItrStart,
+        nodeItrEnd == NodeIter() ? srcProg.getEndNodeIter() : nodeItrEnd);
+    auto qvm = CPUQVM();
+    qvm.init();
+    auto new_qv = qvm.qAllocMany(tmp_prog.get_max_qubit_addr());
+    QVec tmp_qv;
+    tmp_prog.get_used_qubits(tmp_qv);
+    bool prog_used_qbit = tmp_qv.size() == tmp_prog.get_max_qubit_addr() + 1 ? 1 : 0;
+    QProg mapping_prog;
+    if (prog_used_qbit)
+    {
+        Fusion f;
+        f.aggregate_operations(tmp_prog);
+    }
+    else
+    {
+
+        /*QVec used_qv;
+        tmp_prog.get_used_qubits(used_qv);*/
+        std::vector<QGate> gate_list;
+        for (auto gate_itr = tmp_prog.getFirstNodeIter(); gate_itr != tmp_prog.getEndNodeIter(); ++gate_itr)
+        {
+            auto gate_tmp = std::dynamic_pointer_cast<QNode>(*gate_itr);
+            if ((*gate_tmp).getNodeType() != NodeType::GATE_NODE) {
+                continue;
+            }
+
+            auto p_gate = std::dynamic_pointer_cast<AbstractQGateNode>(*gate_itr);
+            gate_list.push_back(p_gate);
+
+        }
+        tmp_prog.clear();
+        std::set<int> fusioned_qubits;
+        for (auto &t_gate : gate_list)
+        {
+            QVec t_vec;
+            t_gate.getQuBitVector(t_vec);
+            for (int i = 0; i < t_vec.size(); i++)
+                fusioned_qubits.insert(t_vec[i]->get_phy_addr());
+        }
+
+        std::vector<int> remapped2orig(fusioned_qubits.begin(), fusioned_qubits.end());
+        std::unordered_map<int, int> orig2remapped;
+        std::vector<int> arg_qubits;
+
+        arg_qubits.resize(fusioned_qubits.size(), 0);
+
+        for (int i = 0; i < remapped2orig.size(); i++)
+        {
+            orig2remapped[remapped2orig[i]] = i;
+            arg_qubits[i] = i;
+        }
+        std::map<int, Qubit*> tmp_map;
+
+        for (auto &it : new_qv)
+        {
+            tmp_map[it->get_phy_addr()] = it;
+        }
+        for (auto &op : gate_list)
+        {
+            QVec tmp_qv;
+            op.getQuBitVector(tmp_qv);
+            for (int i = 0; i < tmp_qv.size(); i++)
+            {
+                tmp_qv[i] = tmp_map[orig2remapped[tmp_qv[i]->get_phy_addr()]];
+
+            }
+            op.remap(tmp_qv);
+            mapping_prog << op;
+        }
+        tmp_prog.clear();
+        tmp_prog = deepCopy(mapping_prog);
+
+    }
+
+    QVec all_used_qubits;
+    auto qubit_num = get_all_used_qubits(tmp_prog, all_used_qubits);
+    QCircuit cir_swap_qubits;
+    if (b_positive_seq)
+    {
+        for (size_t i = 0; (i * 2) < (all_used_qubits.size() - 1); ++i)
+        {
+            cir_swap_qubits << SWAP(all_used_qubits[i], all_used_qubits[all_used_qubits.size() - 1 - i]);
+        }
+    }
+
+    //layer
+    QProg unitary_prog;
+    if (b_positive_seq)
+    {
+        unitary_prog << cir_swap_qubits << tmp_prog << cir_swap_qubits;
+    }
+    else
+    {
+        unitary_prog << tmp_prog;
+    }
+    flatten(unitary_prog);
+    QStat unitary;
+    CPUImplQPU<double> calc_matrix;
+
+    calc_matrix.is_calc_unitary(true);
+    try
+    {
+        TraversalConfig config(0);
+        config.m_can_optimize_measure = false;
+        std::shared_ptr<AbstractQuantumProgram> qp = nullptr;
+        qp = unitary_prog.getImplementationPtr();
+        QPANDA_ASSERT(qp == nullptr, "Error: not valid quantum program");
+
+        QVec used_qv;
+        unitary_prog.get_used_qubits(used_qv);
+
+        if (prog_used_qbit)
+        {
+            calc_matrix.initMatrixState(used_qv.size() * 2, unitary);
+        }
+        else
+        {
+            calc_matrix.initMatrixState((tmp_prog.get_max_qubit_addr() + 1) * 2, unitary);
+        }
+
+
+        uint64_t _ExecId{ 0 };
+        QProgExecution prog_exec;
+        _ExecId = uint64_t(&prog_exec);
+
+        QProgProgress::getInstance().prog_start(_ExecId);
+        auto calc = dynamic_cast<QPUImpl*>(&calc_matrix);
+        prog_exec.execute_reverse(qp, nullptr, config, calc);
+        QProgProgress::getInstance().prog_end(_ExecId);
+        std::map<string, bool>result;
+        prog_exec.get_return_value(result);
+    }
+    catch (const std::exception& e)
+    {
+        QCERR(e.what());
+        throw run_fail(e.what());
+    }
+
+    unitary = calc_matrix.getQState();
+    return unitary;
+}
+

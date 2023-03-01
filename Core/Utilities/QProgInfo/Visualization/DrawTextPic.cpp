@@ -1210,10 +1210,6 @@ void DrawPicture::append_double_gate(string gate_name, QVec &qubits_vector)
 {
     std::vector<int> all_qubits;
     std::vector<int> all_pass_qubits;
-    if (gate_name == "OracularGate")
-    {
-        gate_name = "Unitary";
-    }
     for (int i = 0; i < qubits_vector.size(); i++)
     {
         all_qubits.push_back(qubits_vector[i]->get_phy_addr());
@@ -1311,7 +1307,6 @@ void DrawPicture::append_double_gate(string gate_name, QVec &qubits_vector)
 
 void DrawPicture::append_oracle_gate(string gate_name, QVec &qubits_vector)
 {
-    gate_name = "Unitary";
     std::vector<int> all_qubits;
     std::vector<int> all_pass_qubits;
     for (int i = 0; i < qubits_vector.size(); i++)
@@ -1510,6 +1505,11 @@ void DrawPicture::append_gate_param(string &gate_name, pOptimizerNodeInfo node_i
 	get_gate_parameter(p_gate, gateParamStr);
 	gate_name = TransformQGateType::getInstance()[(GateType)(node_info->m_type)];
 	if (0 == gate_name.compare("CPHASE")) { gate_name = "CR"; }
+    if (gate_name == "OracularGate")
+    {
+        gate_name.clear();
+        gate_name = "Unitary";
+    }
 
 	gate_name.append(gateParamStr);
 	if (check_dagger(p_gate, node_info->m_is_dagger))
@@ -1545,8 +1545,8 @@ void DrawByLayer::handle_gate_node(std::shared_ptr<QNode>& p_node, pOptimizerNod
 
 	if (1 == qubits_vector.size())
 	{
-		// single gate
-		m_parent.append_single_gate(gate_name, qubits_vector, control_qubits_vec);
+         // single gate
+         m_parent.append_single_gate(gate_name, qubits_vector, control_qubits_vec);
 	}
 	else if (2 == qubits_vector.size())
 	{

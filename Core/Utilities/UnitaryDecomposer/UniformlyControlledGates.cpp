@@ -4,12 +4,13 @@
 #include "Core/Utilities/QProgInfo/KAK.h"
 #include "Core/Utilities/Tools/Uinteger.h"
 USING_QPANDA
+using namespace std;
 
 static Eigen::Matrix2cd _rz(double angle)
 {
 	Eigen::Matrix2cd   mat;
-	auto val0 = exp(qcomplex_t(0, 1) * angle / 2.0);
-	auto val3 = exp(qcomplex_t(0, -1) * angle / 2.0);
+    auto val0 = exp(qcomplex_t(0, 1) * angle / 2.0);
+    auto val3 = exp(qcomplex_t(0, -1) * angle / 2.0);
 	mat << val0, 0, 0, val3;
 	return mat;
 }
@@ -18,7 +19,7 @@ static Eigen::Matrix2cd _h()
 {
 	Eigen::Matrix2cd mat;
 	mat << 1, 1, 1, -1;
-	mat = mat * sqrt(2) / 2.0;
+    mat = mat * sqrt(2) / 2.0;
 	return mat;
 }
 
@@ -27,7 +28,7 @@ static std::string _int2binarystr(int num)
 	std::string res;
 	while (true)
 	{
-		res += std::to_string(num % 2);
+        res += std::to_string(num % 2);
 		num = num / 2;
 		if (num == 0)
 			break;
@@ -41,15 +42,15 @@ void _dec_uc_sqg(const std::vector<Eigen::MatrixXcd>& um_vec,
 	Eigen::VectorXcd& diag)
 {
 	const double TOL = 1e-9;
-	int num_contr = log2(um_vec.size());
+    int num_contr = log2(um_vec.size());
 	single_qubit_gates = um_vec;
 	diag = Eigen::VectorXcd::Ones(pow(2, num_contr + 1));
 	for (int dec_step = 0; dec_step < num_contr; dec_step++)
 	{
-		int num_ucgs = pow(2, dec_step);
+        int num_ucgs = pow(2, dec_step);
 		for (int ucg_idx = 0; ucg_idx < num_ucgs; ucg_idx++)
 		{
-			int len_ucg = pow(2, (num_contr - dec_step));
+            int len_ucg = pow(2, (num_contr - dec_step));
 			for (int i = 0; i < (int)len_ucg / 2; i++)
 			{
 				int shift = ucg_idx * len_ucg;
@@ -128,7 +129,7 @@ int _matrix_M_entry(const int row, const int col)
 		b_and_g = b_and_g >> 1;
 	}
 
-	return  sum_of_ones & 1 == 1 ? -1 : 1;
+    return  sum_of_ones & 1 ? -1 : 1;
 }
 
 std::vector<double> _compute_theta(prob_vec alpha)
@@ -207,7 +208,7 @@ QCircuit QPanda::diagonal_decomposition(QVec qv, std::vector<qcomplex_t> diag_ve
 * Decomposition see: https://arxiv.org/pdf/quant-ph/0410066.pdf
 */
 QCircuit QPanda::uc_decomposition(QVec ctrl_qv, Qubit* target_q,
-	const std::vector<Eigen::MatrixXcd>& um_vec)
+	const std::vector<Eigen::MatrixXcd>& um_vec, bool up_to_diagonal)
 {
 	QCircuit circ;
 	QVec qv = QVec(target_q) + ctrl_qv;
@@ -262,7 +263,10 @@ QCircuit QPanda::uc_decomposition(QVec ctrl_qv, Qubit* target_q,
 		}
 	}
 	std::vector<qcomplex_t> diag_vec(_diag.data(), _diag.data() + _diag.size());
-	circ << diagonal_decomposition(qv, diag_vec);
+
+	if (!up_to_diagonal){
+		circ << diagonal_decomposition(qv, diag_vec);
+	}
 
 	return circ;
 }

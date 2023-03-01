@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2017-2020 Origin Quantum Computing. All Right Reserved.
+Copyright (c) 2017-2023 Origin Quantum Computing. All Right Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ limitations under the License.
 
 #include <vector>
 #include <cstdint>
-#include <immintrin.h>
 #include <stdio.h>
 #include <array>
 #include <bitset>
@@ -147,6 +146,7 @@ public:
     virtual QError debug(std::shared_ptr<QPanda::AbstractQDebugNode> debugger);
 
     QStat getQState();
+    QStat vectorize_matrix(const QStat& mat);
     QError Reset(size_t qn);
     bool qubitMeasure(size_t qn);
     QError pMeasure(Qnum& qnum, prob_tuple &probs,
@@ -155,7 +155,7 @@ public:
     QError initState(size_t head_rank, size_t rank_size, size_t qubit_num);
     QError initState(size_t qubit_num, const QStat &state = {});
 	QError initMatrixState(size_t qubit_num, const QStat& state = {});
-
+    void is_calc_unitary(bool flag);
 
 protected:
 	
@@ -300,7 +300,6 @@ protected:
 		{
 			offset += tmp[i] << i;
 		}
-
 		return offset;
 	}
 
@@ -354,6 +353,7 @@ private:
     size_t m_qubit_num;
     const int64_t m_threshold = 1ll << 9;
     int64_t m_max_threads_size = 0;
+    bool is_unitary = false;
 };
 
 class CPUImplQPUWithOracle : public CPUImplQPU<double> {

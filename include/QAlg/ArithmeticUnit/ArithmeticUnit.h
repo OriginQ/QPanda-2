@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2017-2020 Origin Quantum Computing. All Right Reserved.
+Copyright (c) 2017-2023 Origin Quantum Computing. All Right Reserved.
 Licensed under the Apache License 2.0
 
 ArithmeticUnit.h
@@ -20,7 +20,8 @@ Modified in 2020-08-07
 #include "Core/Utilities/QPandaNamespace.h"
 #include "Core/QuantumCircuit/QCircuit.h"
 #include "Core/QuantumCircuit/QProgram.h"
-
+#include "QAlg/Base_QCircuit/base_circuit.h"
+#include "Core/Utilities/Tools/Uinteger.h"
 QPANDA_BEGIN
 
 
@@ -355,6 +356,40 @@ QCircuit constModExp(
     QVec &qvec1,
     QVec &qvec2,
     QVec &qvec3);
+
+/**
+* @brief Extended Euclidean algorithm
+* @ingroup ArithmeticUnit
+* @param[in] need to find the common divisor a
+* @param[in] need to find the common divisor b
+* @param[in] the x shoude passed by reference
+* @param[in] the y shoude passed by reference
+* @note ax+by=gcd(a,b)
+*/
+int egcd(int a, int b, int &x, int &y);
+
+/**
+* @brief Euclidean algorithm
+* @ingroup ArithmeticUnit
+* @param[in] need to find the common divisor a
+* @param[in] need to find the common divisor n
+* @note Find the greatest common divisor 
+*/
+int modinv(int a, int N);
+
+void getAngles(size_t a, size_t n, std::vector<double> &angles);
+double getAngle(size_t a, size_t n);
+
+/**
+* @brief An adder using the Fourier transform
+* @ingroup ArithmeticUnit
+* @param[in] adder  result qubit
+* @param[in] a  
+* @param[in] b  base integer
+* @note qvec can be divided into binary, rlt should be one state at the beginning
+* @note multi exponent is equal to exponent multi
+*/
+QCircuit FourierADD(QVec &result, size_t a, size_t b);
 
 QPANDA_END
 

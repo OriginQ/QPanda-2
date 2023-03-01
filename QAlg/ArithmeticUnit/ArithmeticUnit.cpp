@@ -413,6 +413,7 @@ QCircuit bind_data(int value, QVec& qvec)
 
 QCircuit bind_nonnegative_data(size_t value, QVec& qvec)
 {
+    if (value == 0) return QCircuit();
     size_t qnum = std::floor(std::log(value) / std::log(2) + 1);
     if (qvec.size() < qnum)
     {
@@ -550,5 +551,86 @@ QCircuit constModExp(QVec &qvec, QVec &result, int base, int module_Num, QVec &q
     }
     return circuit;
 }
+
+
+int egcd(int a, int b, int &x, int &y)
+{
+    if (b == 0)
+    {
+        x = 1;
+        y = 0;
+        return a;
+    }
+    int ret = egcd(b, a%b, x, y);
+    int t = x;
+    x = y;
+    y = t - a / b * (y);
+    return ret;
+}
+
+int modinv(int a, int N)
+{
+    int x, y = 0;
+    int g = egcd(a, N, x, y);
+    if (g != 1)
+    {
+        QCERR("Modular inverse does not exist");
+        throw runtime_error("Modular inverse does not exist");
+    }
+    else
+    {
+        return x % N;
+    }
+}
+
+void getAngles(size_t a, size_t n, std::vector<double> &angles)
+{
+    auto bin_string = integerToBinary(a, n);
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = i; j < n; j++)
+        {
+            if (bin_string[j] == '1')
+            {
+                angles[n - i - 1] += pow(2, -(j - i));
+            }
+
+        }
+        angles[n - i - 1] *= PI;
+    }
+
+}
+
+double getAngle(size_t a, size_t n)
+{
+    auto bin_string = integerToBinary(a, n);
+    double angle = 0;
+    for (int i = 0; i < n; i++)
+    {
+        if (bin_string[n - 1 - i] == '1')
+        {
+            angle += pow(2, -(n - i));
+        }
+
+        angle *= PI;
+    }
+    return angle;
+}
+
+QCircuit FourierADD(QVec &result, size_t a, size_t b)
+{
+    auto circuit = QCircuit();
+    std::vector<double> angles(b, 0);
+    getAngles(a, b, angles);
+    circuit << QFT(result);
+
+    for (int i = 0; i < result.size(); i++)
+    {
+        circuit << RZ(result[i], angles[b - i - 1]);
+    }
+    circuit << QFT(result).dagger();
+    return circuit;
+}
+
 
 QPANDA_END

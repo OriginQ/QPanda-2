@@ -513,12 +513,7 @@ bool QPanda::is_unitary_matrix(const QStat &circuit_matrix, const double precisi
 		mat_I[i*matrix_dimension + i] = 1;
 	}
 
-	if (tmp_mat == mat_I)
-	{
-		return true;
-	}
-
-	return false;
+    return (0 == mat_compare(tmp_mat, mat_I, precision));
 }
 
 bool QPanda::is_unitary_matrix_by_eigen(const QStat& circuit_matrix, const double precision /*= MAX_COMPARE_PRECISION*/)
@@ -532,3 +527,39 @@ bool QPanda::is_unitary_matrix_by_eigen(const QMatrixXcd& circuit_matrix, const 
 {
 	return circuit_matrix.isUnitary(precision);
 }
+
+/**
+* @brief Convert a QMatrixXcd unitary_matrix
+* @ingroup Utilities
+* @param[in] matrix rows or cols
+* @return Corresponding QMatrixXcd
+*/
+QMatrixXcd QPanda::eigen_unitary_matrix(size_t rows)
+{
+    return QMatrixXcd::Identity(rows, rows);
+}
+
+QMatrixXcd QPanda::eigen_zero_matrix(size_t rows)
+{
+    return QMatrixXcd::Zero(rows, rows);
+}
+
+/**
+* @brief Convert a QStat unitary_matrix
+* @ingroup Utilities
+* @param[in] matrix rows or cols
+* @return Corresponding QStat
+*/
+QStat QPanda::qstat_unitary_matrix(size_t rows)
+{
+    auto unitary = QPanda::eigen_unitary_matrix(rows);
+    return Eigen_to_QStat(unitary);
+}
+
+QStat QPanda::qstat_zero_matrix(size_t rows)
+{
+    auto unitary = QPanda::eigen_zero_matrix(rows);
+    return Eigen_to_QStat(unitary);
+}
+
+

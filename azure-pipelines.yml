@@ -3,9 +3,9 @@ trigger:
 
 jobs:
 - job: Windows
-  timeoutInMinutes: 10
+  timeoutInMinutes: 120
   pool:
-    vmImage: 'windows-2023'
+    vmImage: 'windows-2022'
 
   steps:
   - script: |

@@ -4,7 +4,7 @@ trigger:
 jobs:
 - job: Windows
   pool:
-    vmImage: 'windows-2022'
+    vmImage: 'windows-2023'
 
   steps:
   - script: |

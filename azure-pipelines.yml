@@ -3,7 +3,7 @@ trigger:
 
 jobs:
 - job: Windows
- timeoutInMinutes: 5
+  timeoutInMinutes: 10
   pool:
     vmImage: 'windows-2023'
 

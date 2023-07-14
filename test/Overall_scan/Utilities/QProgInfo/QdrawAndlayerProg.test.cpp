@@ -1,6 +1,8 @@
 #include "QPanda.h"
 #include "gtest/gtest.h"
 
+USING_QPANDA
+
 TEST(drawAndlayerPro,test) {
     auto qvm = CPUQVM();
     qvm.init();

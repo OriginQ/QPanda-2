@@ -259,7 +259,7 @@ static void _TOFFOLI(QGateNode &node, QPUImpl *qpu)
 {
     QStat _x = { 0, 1, 1, 0 };
     Qnum control_qubits = { node.qubits[1],node.qubits[2] };
-    qpu->controlunitarySingleQubitGate(node.qubits[0], control_qubits, _x, node.is_dagger, GateType::TOFFOLI_GATE);
+    qpu->controlunitarySingleQubitGate(node.qubits[0], control_qubits, _x, node.is_dagger, GateType::PAULI_X_GATE);
 }
 
 
@@ -304,6 +304,7 @@ PartialAmplitudeGraph::PartialAmplitudeGraph()
     m_key_map.insert(make_pair(GateType::CNOT_GATE, GateType::PAULI_X_GATE));
     m_key_map.insert(make_pair(GateType::CZ_GATE, GateType::PAULI_Z_GATE));
     m_key_map.insert(make_pair(GateType::CPHASE_GATE, GateType::U1_GATE));
+    m_key_map.insert(make_pair(GateType::CU_GATE, GateType::U4_GATE));
     m_key_map.insert(make_pair(GateType::TOFFOLI_GATE, GateType::CNOT_GATE));
 }
 
@@ -560,6 +561,7 @@ void PartialAmplitudeGraph::split_circuit(std::vector<QGateNode> &circuit)
             }
             break;
 
+            case GateType::CU_GATE:
             case GateType::CPHASE_GATE:
             {
                 node.qubits.resize(2);

@@ -222,6 +222,9 @@ inline double argc(qcomplex_t num)
 	return ret;
 }
 
+std::string hamiltonian_to_json(const QHamiltonian& hamiltonian);
+QHamiltonian json_to_hamiltonian(const std::string& hamiltonian_json);
+
 QPANDA_END
 
 #endif // !1

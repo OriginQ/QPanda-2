@@ -276,7 +276,7 @@ namespace Variational {
         bool getValueType() const;
         MatrixXd _eval();
         MatrixXd _back_single(const MatrixXd& dx, size_t op_idx);
-        std::vector<MatrixXd> _back(const MatrixXd& dx, const std::unordered_set<var>& nonconsts);
+        std::vector<MatrixXd> _back(const MatrixXd& dx, const std::vector<var>& nonconsts);
         std::vector<MatrixXd> _back(const MatrixXd& dx);
         bool operator==(const var& rhs) const;
         friend struct std::hash<var>;

@@ -18,13 +18,13 @@ class Optimizer
 public:
     Optimizer(var lost_function, double learning_rate = 0.01);
     virtual ~Optimizer(){}
-    virtual std::unordered_set<var> get_variables() = 0;
+    virtual std::vector<var> get_variables() = 0;
     virtual std::unordered_map<var, MatrixXd>
-        compute_gradients(std::unordered_set<var> &var_set) = 0;
+        compute_gradients(std::vector<var> &var_set) = 0;
     virtual double get_loss() = 0;
 
     /* t is the time step */
-    virtual bool run(std::unordered_set<var> &leaves, size_t t = 0) = 0;
+    virtual bool run(std::vector<var> &leaves, size_t t = 0) = 0;
 
 protected:
     expression m_cost_function;
@@ -48,11 +48,11 @@ public:
     static std::shared_ptr<Optimizer>
         minimize(var,double,double);
 
-    virtual std::unordered_set<var> get_variables();
+    virtual std::vector<var> get_variables();
     virtual std::unordered_map<var, MatrixXd>
-        compute_gradients(std::unordered_set<var> &var_set);
+        compute_gradients(std::vector<var> &var_set);
     virtual double get_loss();
-    virtual bool run(std::unordered_set<var> &leaves, size_t t = 0);
+    virtual bool run(std::vector<var> &leaves, size_t t = 0);
 
 
 
@@ -84,10 +84,10 @@ public:
                  double momentum = 0.9);
 
     virtual std::unordered_map<var, MatrixXd>
-        compute_gradients(std::unordered_set<var> &var_set);
-    virtual std::unordered_set<var> get_variables();
+        compute_gradients(std::vector<var> &var_set);
+    virtual std::vector<var> get_variables();
     virtual double get_loss();
-    virtual bool run(std::unordered_set<var> &leaves, size_t t = 0);
+    virtual bool run(std::vector<var> &leaves, size_t t = 0);
 
 private:
     double m_momentum;
@@ -127,10 +127,10 @@ public:
                  double epsilon = 1e-10);
 
     virtual std::unordered_map<var, MatrixXd>
-        compute_gradients(std::unordered_set<var> &var_set);
-    virtual std::unordered_set<var> get_variables();
+        compute_gradients(std::vector<var> &var_set);
+    virtual std::vector<var> get_variables();
     virtual double get_loss();
-    virtual bool run(std::unordered_set<var> &leaves, size_t t = 0);
+    virtual bool run(std::vector<var> &leaves, size_t t = 0);
 
 private:
     double m_initial_accumulator_value;
@@ -168,10 +168,10 @@ public:
                  double epsilon = 1e-10);
 
     virtual std::unordered_map<var, MatrixXd>
-        compute_gradients(std::unordered_set<var> &var_set);
-    virtual std::unordered_set<var> get_variables();
+        compute_gradients(std::vector<var> &var_set);
+    virtual std::vector<var> get_variables();
     virtual double get_loss();
-    virtual bool run(std::unordered_set<var> &leaves, size_t t = 0);
+    virtual bool run(std::vector<var> &leaves, size_t t = 0);
 
 private:
     double m_decay;
@@ -209,10 +209,10 @@ public:
                  double epsilon = 1e-10);
 
     virtual std::unordered_map<var, MatrixXd>
-        compute_gradients(std::unordered_set<var> &var_set);
-    virtual std::unordered_set<var> get_variables();
+        compute_gradients(std::vector<var> &var_set);
+    virtual std::vector<var> get_variables();
     virtual double get_loss();
-    virtual bool run(std::unordered_set<var> &leaves, size_t t = 0);
+    virtual bool run(std::vector<var> &leaves, size_t t = 0);
 
 private:
     double m_beta1;

@@ -155,13 +155,11 @@ void DensityMatrixSimulator::apply_gate(std::shared_ptr<AbstractQGateNode> gate_
             {
                 m_simulator->apply_mcphase(qubits, std::complex<double>(0., -1.));
                 m_simulator->apply_mcphase(conj_qubits, std::complex<double>(0., 1.));
-                //m_simulator->apply_Phase(targets[0], std::complex<double>(0., -1.));
             }
             else
             {
                 m_simulator->apply_mcphase(qubits, std::complex<double>(0., 1.));
                 m_simulator->apply_mcphase(conj_qubits, std::complex<double>(0., -1.));
-                //m_simulator->apply_Phase(targets[0], std::complex<double>(0., 1.));
             }
 
             break;
@@ -512,6 +510,7 @@ void DensityMatrixSimulator::set_noise_model(const NOISE_MODEL& model, const std
 
     return;
 }
+
 void DensityMatrixSimulator::set_noise_model(const NOISE_MODEL& model, const GateType& type, double T1, double T2, double t_gate, const QVec& qubits)
 {
     m_noisy.set_noise_model(model, type, T1, T2, t_gate, NoiseUtils::get_qubits_addr(qubits));

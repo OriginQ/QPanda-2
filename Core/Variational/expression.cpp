@@ -1,6 +1,7 @@
 #include "Core/Variational/expression.h"
 #include <cmath>
 #include <exception>
+#include <algorithm>
 
 using namespace QPanda::Variational;
 
@@ -11,14 +12,14 @@ var expression::getRoot() const{
 }
 
 std::vector<var> expression::findLeaves(){
-    std::unordered_set<var> leaves;
+    std::vector<var> leaves;
     std::queue<var> q;
     q.push(root);
 
     while(!q.empty()){
         var v = q.front();
         if(v.getChildren().empty()){
-            leaves.insert(v);
+            leaves.emplace_back(v);
         }
         else{
             std::vector<var> children = v.getChildren();
@@ -32,15 +33,15 @@ std::vector<var> expression::findLeaves(){
     return ans;
 }
 
-std::unordered_set<var> expression::findVariables() {
-    std::unordered_set<var> leaves;
+std::vector<var> expression::findVariables() {
+    std::vector<var> leaves;
     std::queue<var> q;
     q.push(root);
 
     while (!q.empty()) {
         var v = q.front();
         if (v.getChildren().empty() && v.getValueType()) {
-            leaves.insert(v);
+            leaves.emplace_back(v);
         }
         else {
             std::vector<var> children = v.getChildren();
@@ -88,8 +89,8 @@ MatrixXd expression::propagate(const std::vector<var>& leaves){
     return root.getValue();
 }
 
-std::unordered_set<var> expression::findNonConsts(const std::vector<var>& leaves){
-    std::unordered_set<var> nonconsts;
+std::vector<var> expression::findNonConsts(const std::vector<var>& leaves){
+    std::vector<var> nonconsts;
     std::queue<var> q; 
     for(const var& v : leaves)
         q.push(v); 
@@ -98,10 +99,10 @@ std::unordered_set<var> expression::findNonConsts(const std::vector<var>& leaves
         var v = q.front();
         q.pop();
 
-        if(nonconsts.find(v) != nonconsts.end())
+        if (std::end(nonconsts) != std::find(std::begin(nonconsts), std::end(nonconsts), v))
             continue;
         
-        nonconsts.insert(v);
+        nonconsts.emplace_back(v);
         std::vector<var> parents = v.getParents();
         for(const var& parent : parents){
             q.push(parent);
@@ -110,9 +111,9 @@ std::unordered_set<var> expression::findNonConsts(const std::vector<var>& leaves
     return nonconsts;
 }
 
-//copied from std::unordered_set<var> expression::findNonConsts(const std::vector<var>& leaves)
-std::unordered_set<var> expression::findNonConsts(const std::unordered_set<var>& leaves) {
-    std::unordered_set<var> nonconsts;
+//copied from std::vector<var> expression::findNonConsts(const std::vector<var>& leaves)
+std::vector<var> expression::findNonConsts(const std::unordered_set<var>& leaves) {
+    std::vector<var> nonconsts;
     std::queue<var> q;
     for (const var& v : leaves)
         q.push(v);
@@ -122,10 +123,10 @@ std::unordered_set<var> expression::findNonConsts(const std::unordered_set<var>&
         q.pop();
 
         // We should not traverse this if it has already been visited.
-        if (nonconsts.find(v) != nonconsts.end())
+        if (std::end(nonconsts) != std::find(std::begin(nonconsts), std::end(nonconsts), v))
             continue;
 
-        nonconsts.insert(v);
+        nonconsts.emplace_back(v);
         std::vector<var> parents = v.getParents();
         for (const var& parent : parents) {
             q.push(parent);
@@ -165,7 +166,7 @@ void expression::backpropagate(std::unordered_map<var, MatrixXd>& leaves){
 }
 
 void expression::backpropagate(std::unordered_map<var, MatrixXd>& leaves, 
-        const std::unordered_set<var>& nonconsts){
+        const std::vector<var>& nonconsts){
     std::queue<var> q;
     std::unordered_map<var, MatrixXd> derivatives;
     std::unordered_map<var, size_t> explored;
@@ -176,8 +177,10 @@ void expression::backpropagate(std::unordered_map<var, MatrixXd>& leaves,
     while(!q.empty()){
         var v = q.front();
         q.pop();
-        if(nonconsts.find(v) == nonconsts.end())
+
+        if (std::end(nonconsts) == std::find(std::begin(nonconsts), std::end(nonconsts), v))
             continue;
+
         std::vector<var>& children = v.getChildren();
         std::vector<MatrixXd> child_derivs = v._back(derivatives[v], nonconsts);
 		for(size_t i = 0; i < children.size(); i++){

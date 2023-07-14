@@ -1624,6 +1624,9 @@ QGate SWAP(int control_qaddr, int target_qaddr);
 QCircuit SWAP(const std::vector<int>& control_qaddrs, const std::vector<int>& target_qaddrs);
 
 QGate oracle(QVec qubits, std::string oracle_name);
+QGate oracle(QVec qubits, std::string oracle_name, std::vector<double> &user_data);
+QGate oracle(QVec qubits, std::string oracle_name, std::vector<std::vector<size_t>>& user_data); //Ol
+QGate oracle(QVec qubits, std::string oracle_name, std::vector<std::vector<double>>& user_data);//OM
 
 /**
 * @brief  Construct a new quantum U4 gate

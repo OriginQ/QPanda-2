@@ -4,6 +4,8 @@
 #include "gtest/gtest.h"
 #include <OriginClassicalExpression.h>
 
+USING_QPANDA
+
 TEST(OriginClassExpInfaceText, test) {
     CPUQVM* m_qvm = new CPUQVM();
     m_qvm->init();

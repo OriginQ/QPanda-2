@@ -853,6 +853,7 @@ std::vector<double> QPanda::get_gate_parameter(std::shared_ptr<AbstractQGateNode
 
 	case U1_GATE:
 	case RX_GATE:
+    case P_GATE:
 	case RY_GATE:
 	case RZ_GATE:
     case CP_GATE:

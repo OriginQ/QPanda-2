@@ -7,7 +7,7 @@
       "inheritEnvironments": [ "msvc_x64_x64" ],
       "buildRoot": "${projectDir}\\build\\${name}",
       "installRoot": "C:\\QPanda2",
-      "cmakeCommandArgs": "-DUSE_PYQPANDA=ON -DFIND_CUDA=OFF -DUSE_CHEMIQ=OFF -DUSE_EXTENSION=OFF",
+      "cmakeCommandArgs": "-DUSE_PYQPANDA=OFF -DFIND_CUDA=OFF -DUSE_EXTENSION=ON -DDOCKER=OFF",
       "buildCommandArgs": "-j4",
       "ctestCommandArgs": ""
     },
@@ -18,7 +18,7 @@
       "inheritEnvironments": [ "msvc_x64_x64" ],
       "buildRoot": "${projectDir}\\build\\${name}",
       "installRoot": "C:\\QPanda2",
-      "cmakeCommandArgs": "-DUSE_PYQPANDA=OFF -DFIND_CUDA=OFF -DUSE_CHEMIQ=OFF -DUSE_EXTENSION=OFF",
+      "cmakeCommandArgs": "-DUSE_PYQPANDA=ON -DFIND_CUDA=OFF -DUSE_EXTENSION=OFF",
       "buildCommandArgs": "-j4",
       "ctestCommandArgs": ""
     },
@@ -40,7 +40,7 @@
       "remoteCopySourcesExclusionList": [ ".vs", ".git", "build " ],
       "rsyncCommandArgs": "-t --delete --delete-excluded",
       "remoteCopyBuildOutput": false,
-      "cmakeCommandArgs": "-DUSE_PYQPANDA=OFF -DFIND_CUDA=OFF -DUSE_CHEMIQ=OFF -DUSE_EXTENSION=OFF",
+      "cmakeCommandArgs": "-DUSE_PYQPANDA=OFF -DFIND_CUDA=OFF -DUSE_EXTENSION=ON",
       "buildCommandArgs": "-j4",
       "ctestCommandArgs": "",
       "inheritEnvironments": [ "linux_x64" ]
@@ -63,7 +63,7 @@
       "remoteCopySourcesExclusionList": [ ".vs", ".git", "build " ],
       "rsyncCommandArgs": "-t --delete --delete-excluded",
       "remoteCopyBuildOutput": false,
-      "cmakeCommandArgs": "-DUSE_PYQPANDA=OFF -DFIND_CUDA=OFF -DUSE_CHEMIQ=OFF -DUSE_EXTENSION=ON",
+      "cmakeCommandArgs": "-DUSE_PYQPANDA=OFF -DFIND_CUDA=OFF -DUSE_EXTENSION=ON",
       "buildCommandArgs": "-j4",
       "ctestCommandArgs": "",
       "inheritEnvironments": [ "linux_x64" ]

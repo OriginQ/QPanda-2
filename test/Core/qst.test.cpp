@@ -1,6 +1,7 @@
 #include "QPanda.h"
 #include "gtest/gtest.h"
 
+USING_QPANDA
 
 static void test1()
 {

@@ -8,6 +8,7 @@ USING_QPANDA
 using namespace std;
 #define BIT_SIZE 32
 
+#if defined(USE_OPENSSL) && defined(USE_CURL)
 
 const static std::vector<QStat>& _single_gates_params()
 {
@@ -140,7 +141,14 @@ CrossEntropyBenchmarking::~CrossEntropyBenchmarking()
 	m_exp_qvm->finalize();
 	delete m_exp_qvm;
 }
-std::map<int, double> CrossEntropyBenchmarking::calculate_xeb_fidelity(GateType gt, Qubit * qbit0, Qubit  *qbit1, const std::vector<int>& cycle_range, int num_circuits, int shots)
+std::map<int, double> CrossEntropyBenchmarking::calculate_xeb_fidelity(
+    GateType gt, 
+    Qubit * qbit0, 
+    Qubit  *qbit1, 
+    const std::vector<int>& cycle_range, 
+    int num_circuits, 
+    int shots,
+    RealChipType chip_type)
 {
 	m_cycle_range = cycle_range;
 	m_num_circuits = num_circuits;
@@ -176,7 +184,7 @@ std::map<int, double> CrossEntropyBenchmarking::calculate_xeb_fidelity(GateType 
 			vector<double> mea_probs(pow(m_mea_qubits.size(), 2), 0.0);
 			if (m_mea_qvm_type ==MeasureQVMType::WU_YUAN)
 			{
-				auto mea_result = m_cloud_qvm->real_chip_measure(mea_all_progs[i], shots);
+                auto mea_result = m_cloud_qvm->real_chip_measure(mea_all_progs[i], shots, chip_type, false, false, false);
 				for (auto val : mea_result)
 				{
 					bitset<BIT_SIZE> temp_bit(val.first);
@@ -234,8 +242,17 @@ std::map<int, double> QPanda::double_gate_xeb(NoiseQVM* qvm, Qubit* qbit0, Qubit
 	return cb.calculate_xeb_fidelity(gt, qbit0, qbit1, range, num_circuits, shots);
 }
 
-std::map<int, double> QPanda::double_gate_xeb(QCloudMachine* qvm, Qubit* qbit0, Qubit* qbit1, const std::vector<int>& range, int num_circuits, int shots, GateType gt )
+std::map<int, double> QPanda::double_gate_xeb(QCloudMachine* qvm, 
+    Qubit* qbit0, 
+    Qubit* qbit1, 
+    const std::vector<int>& range, 
+    int num_circuits, 
+    int shots,
+    RealChipType type,
+    GateType gt )
 {
 	CrossEntropyBenchmarking cb(MeasureQVMType::WU_YUAN, qvm);
-	return cb.calculate_xeb_fidelity(gt, qbit0, qbit1, range, num_circuits, shots);
+	return cb.calculate_xeb_fidelity(gt, qbit0, qbit1, range, num_circuits, shots, type);
 }
+
+#endif

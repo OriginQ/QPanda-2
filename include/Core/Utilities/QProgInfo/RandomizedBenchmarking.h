@@ -11,6 +11,7 @@
 
 QPANDA_BEGIN
 
+#if defined(USE_OPENSSL) && defined(USE_CURL)
 
 class RBGate
 {
@@ -40,9 +41,21 @@ public:
 
     RandomizedBenchmarking(MeasureQVMType type, QuantumMachine* qvm);
     ~RandomizedBenchmarking();
-    std::map<int, double>single_qubit_rb(Qubit* qbit, const std::vector<int>& clifford_range, int num_circuits, int shots, const std::vector<QGate>& interleaved_gates = {});
 
-    std::map<int, double> two_qubit_rb(Qubit* qbit0, Qubit* qbit1, const std::vector<int>& clifford_range, int num_circuits, int shots, const std::vector<QGate>& interleaved_gates = {});
+    std::map<int, double>single_qubit_rb(Qubit* qbit, 
+        const std::vector<int>& clifford_range, 
+        int num_circuits, 
+        int shots,
+        RealChipType chip_type = RealChipType::ORIGIN_WUYUAN_D5,
+        const std::vector<QGate>& interleaved_gates = {});
+
+    std::map<int, double> two_qubit_rb(Qubit* qbit0, 
+        Qubit* qbit1, 
+        const std::vector<int>& clifford_range, 
+        int num_circuits, 
+        int shots,
+        RealChipType chip_type = RealChipType::ORIGIN_WUYUAN_D5,
+        const std::vector<QGate>& interleaved_gates = {});
 
 private:
     Cliffords _single_qubit_cliffords();
@@ -72,7 +85,12 @@ private:
  * @param[in] const std::vector<QGate>  interleaved gates
  * @return std::map<int, double>  rb result of each layer
  */
-std::map<int, double> single_qubit_rb(NoiseQVM* qvm, Qubit* qbit, const std::vector<int>& clifford_range, int num_circuits, int shots, const std::vector<QGate>& interleaved_gates = {});
+std::map<int, double> single_qubit_rb(NoiseQVM* qvm, 
+    Qubit* qbit, 
+    const std::vector<int>& clifford_range, 
+    int num_circuits, 
+    int shots, 
+    const std::vector<QGate>& interleaved_gates = {});
 
 
 /**
@@ -86,20 +104,13 @@ std::map<int, double> single_qubit_rb(NoiseQVM* qvm, Qubit* qbit, const std::vec
  * @param[in] const std::vector<QGate>  interleaved gates
  * @return std::map<int, double>  rb result of each layer
  */
-std::map<int, double> double_qubit_rb(NoiseQVM* qvm, Qubit* qbit0, Qubit* qbit1, const std::vector<int>& clifford_range, int num_circuits, int shots, const std::vector<QGate>& interleaved_gates = {});
-
-
-/**
- * @brief  single gate rb experiment
- * @param[in] QCloudMachine*  cloud quantum machine
- * @param[in] Qubit* qubit
- * @param[in] const std::vector<int>&   number of layer
- * @param[in] int number of circuit per layer
- * @param[in] int run number
- * @param[in] const std::vector<QGate>  interleaved gates
- * @return std::map<int, double>  rb result of each layer
- */
-std::map<int, double> single_qubit_rb(QCloudMachine* qvm, Qubit* qbit, const std::vector<int>& clifford_range, int num_circuits, int shots, const std::vector<QGate>& interleaved_gates = {});
+std::map<int, double> double_qubit_rb(NoiseQVM* qvm, 
+    Qubit* qbit0, 
+    Qubit* qbit1, 
+    const std::vector<int>& clifford_range, 
+    int num_circuits, 
+    int shots, 
+    const std::vector<QGate>& interleaved_gates = {});
 
 /*
 * @brief get single qubit fidelity by fitting rb_result with y = a\times b^x + c
@@ -111,6 +122,25 @@ double calc_single_qubit_fidelity(const std::map<int, double>& rb_result);
 /**
  * @brief  single gate rb experiment
  * @param[in] QCloudMachine*  cloud quantum machine
+ * @param[in] Qubit* qubit
+ * @param[in] const std::vector<int>&   number of layer
+ * @param[in] int number of circuit per layer
+ * @param[in] int run number
+ * @param[in] const std::vector<QGate>  interleaved gates
+ * @return std::map<int, double>  rb result of each layer
+ */
+std::map<int, double> single_qubit_rb(QCloudMachine* qvm, 
+    Qubit* qbit, 
+    const std::vector<int>& clifford_range, 
+    int num_circuits, 
+    int shots,
+    RealChipType chip_type = RealChipType::ORIGIN_WUYUAN_D5,
+    const std::vector<QGate>& interleaved_gates = {});
+
+
+/**
+ * @brief  double gate rb experiment
+ * @param[in] QCloudMachine*  cloud quantum machine
  * @param[in] Qubit* qubit0
  * @param[in] Qubit* qubit1
  * @param[in] const std::vector<int>&   number of layer
@@ -119,7 +149,16 @@ double calc_single_qubit_fidelity(const std::map<int, double>& rb_result);
  * @param[in] const std::vector<QGate>  interleaved gates
  * @return std::map<int, double>  rb result of each layer
  */
-std::map<int, double> double_qubit_rb(QCloudMachine* qvm, Qubit* qbit0, Qubit* qbit1, const std::vector<int>& clifford_range, int num_circuits, int shots, const std::vector<QGate>& interleaved_gates = {});
+std::map<int, double> double_qubit_rb(QCloudMachine* qvm, 
+    Qubit* qbit0, 
+    Qubit* qbit1, 
+    const std::vector<int>& clifford_range, 
+    int num_circuits, 
+    int shots, 
+    RealChipType chip_type = RealChipType::ORIGIN_WUYUAN_D5,
+    const std::vector<QGate>& interleaved_gates = {});
+
+#endif
 
 QPANDA_END
 #endif

@@ -65,8 +65,7 @@ public:
 			QCERR_AND_THROW_ERRSTR(std::invalid_argument, "Error: The input matrix for QPE must be a unitary matrix or Hermitian N*N matrix with N=2^n.");
 		}
 
-		const uint32_t thread_cnt = 1;
-		m_thread_pool.init_thread_pool(thread_cnt);
+        init_thread_pool();
 
 #if PRINT_TRACE
 		std::cout << "on run QPEAlg in thread_pool: " << thread_cnt << std::endl;
@@ -76,7 +75,7 @@ public:
 	QPEAlg(const QVec& control_qubits, const QVec& target_qubits, generate_cir_U cir_fun)
 		:m_control_qubits(control_qubits), m_target_qubits(target_qubits), m_cir_fun(cir_fun)
 	{
-		m_thread_pool.init_thread_pool(4);
+        init_thread_pool();
 	}
 
 	~QPEAlg() {}
@@ -224,6 +223,10 @@ protected:
 		QCircuit qft = QFT_builder(qvec);
 		return qft.dagger();
 	}
+
+    void init_thread_pool(const uint32_t& thread_num = std::thread::hardware_concurrency()) { 
+        m_thread_pool.init_thread_pool(thread_num); 
+    }
 
 private:
 	QVec m_control_qubits;

@@ -3,6 +3,8 @@
 #include "QPanda.h"
 #include "gtest/gtest.h"
 
+USING_QPANDA
+
 TEST(OriginQubitPoolTest, test) {
 	auto qpool = OriginQubitPool::get_instance();
 	qpool->set_capacity(20);

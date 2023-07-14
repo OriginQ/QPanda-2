@@ -4,6 +4,7 @@
 #include <Eigen/KroneckerProduct>
 #include "Core/Utilities/QProgInfo/Visualization/QVisualization.h"
 #include "Core/Utilities/Tools/QProgFlattening.h"
+#include <stdlib.h>
 USING_QPANDA
 
 
@@ -353,8 +354,12 @@ std::vector<int> Mitigation::sample_circuit(const std::tuple<double, std::vector
 			}
 			else
 			{
+#ifdef USE_RANDOM_DEVICE
 				std::random_device rd;  //Will be used to obtain a seed for the random number engine
 				std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+#else
+				std::mt19937 gen(rand()); //Standard mersenne_twister_engine seeded with rand()
+#endif 
 				std::uniform_int_distribution<> distrib(1, 15);
 				int j = distrib(gen);
 				//std::cout << j << std::endl;

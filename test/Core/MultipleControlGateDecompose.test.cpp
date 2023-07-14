@@ -1,24 +1,17 @@
-#include <iostream>
-#include "QPanda.h"
 #include "gtest/gtest.h"
 #include "Core/Utilities/Tools/MultiControlGateDecomposition.h"
 #include "Core/Utilities/UnitaryDecomposer/UniformlyControlledGates.h"
 #include <Eigen/Eigen>
 #include <Eigen/Dense>
 #include <QPandaConfig.h>
+#include "Core/Core.h"
+#include "Core/Utilities/QPandaNamespace.h"
 
-
-#ifdef USE_EXTENSION
-#include "Extensions/VirtualZTransfer/AddBarrier.h"
-#include "Extensions/VirtualZTransfer/VirtualZTransfer.h"
-#endif
-
+using namespace std;
+USING_QPANDA
 
 using namespace Eigen;
 using  qmatrix_t = Matrix<qcomplex_t, Dynamic, Dynamic, RowMajor>;
-
-USING_QPANDA
-using namespace std;
 
 bool state_compare(const QStat& state1, const QStat& state2)
 {
@@ -406,11 +399,6 @@ static bool control_Z_decompose_test_1()
 	std::cout << "src prog:" << prog << endl;
 
 	const auto src_result = machine.runWithConfiguration(prog, shots);
-
-#ifdef USE_EXTENSION
-	auto_add_barrier_before_mul_qubit_gate(prog);
-#endif
-
 	decompose_multiple_control_qgate(prog, &machine, "QPandaConfig.json", true);
 	std::cout << "decomposed prog:" << prog << endl;
 #ifdef USE_EXTENSION

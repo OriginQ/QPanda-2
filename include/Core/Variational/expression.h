@@ -65,10 +65,10 @@ public:
      * if there is some variable not related in the path from the
      * root to the leaves, it will not be added into the set
      * 
-     * @return std::unordered_set<var> All non-constants variables.
+     * @return std::vector<var> All non-constants variables.
      */
-    std::unordered_set<var> findNonConsts(const std::vector<var>&);    
-    std::unordered_set<var> findNonConsts(const std::unordered_set<var>&);
+    std::vector<var> findNonConsts(const std::vector<var>&);    
+    std::vector<var> findNonConsts(const std::unordered_set<var>&);
     
     /**
      * @brief backpropagation and evalute all gradients.
@@ -87,9 +87,9 @@ public:
      * nodes from the gradient-evaluation.
      */
     void backpropagate(std::unordered_map<var, MatrixXd>& leaves,
-     const std::unordered_set<var>& nonconsts);
+     const std::vector<var>& nonconsts);
     
-	std::unordered_set<var> findVariables();
+	std::vector<var> findVariables();
 
 private:
     var root;

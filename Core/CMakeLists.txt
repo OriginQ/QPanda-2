@@ -6,12 +6,13 @@ if(CUDA_FOUND)
     list(APPEND LIB_LIST ${LIB_GPUGATES})
 endif (CUDA_FOUND)
 
-if (USE_EXTENSION)
-    file(GLOB_RECURSE QPandaCore_SRCS_CPP ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp ${PROJECT_SOURCE_DIR}/Extensions/*.cpp)
-else()
-    file(GLOB_RECURSE QPandaCore_SRCS_CPP ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp )
-endif()
+set(QPandaCore_SRCS_SEARCH_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
+if (USE_EXTENSION)
+    file(GLOB_RECURSE QPandaCore_SRCS_CPP ${QPandaCore_SRCS_SEARCH_DIR}/*.cpp ${PROJECT_SOURCE_DIR}/Extensions/*.cpp)
+else()
+    file(GLOB_RECURSE QPandaCore_SRCS_CPP ${QPandaCore_SRCS_SEARCH_DIR}/*.cpp )
+endif()
 
 add_library(${LIB_QPANDA} STATIC ${QPandaCore_SRCS_CPP} )
 list(APPEND LIB_LIST ${LIB_ANTLR4})
@@ -43,7 +44,3 @@ export(TARGETS ${LIB_QPANDA}
        APPEND FILE ${PROJECT_BINARY_DIR}/qpanda2.0-target.cmake
        NAMESPACE QPANDA::
        )
-
-
-
-

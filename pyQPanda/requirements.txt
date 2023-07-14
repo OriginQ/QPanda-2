@@ -2,3 +2,4 @@ numpy>=1.17
 matplotlib>=3.3
 pydot
 scipy
+mypy<=0.971

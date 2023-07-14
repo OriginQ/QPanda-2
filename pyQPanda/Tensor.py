@@ -1,48 +1,21 @@
 import pyqpanda as pq
 import numpy as np
 
-a = [1, 2]
-b = [3, 4]
-c = [5, 6]
-d = [7, 8]
+#默认不合并同类项
+operator = pq.PauliOperator({"X0 Y2" : -0.044750,
+                            "Z0 Z1" : 0.189766,
+                            "Z1 Z0" : 0.270597,
+                            "Z3" : -0.242743})
 
-array2xd = np.array([a, b])
-array3xd = np.array([[a, b], [c, d]])
-array4xd = np.array([[[a, b], [c, d]]])
+print(operator)
 
-def pyqpanda_circuit():
+#合并同类项
+operator = pq.PauliOperator({"X0 Y2" : -0.044750,
+                            "Z0 Z1" : 0.189766,
+                            "Z1 Z0" : 0.270597,
+                            "Z3" : -0.242743},True)
 
-    machine = pq.CPUQVM()
-    machine.init_qvm()
-    qubits = machine.qAlloc_many(3)
+print(operator)
 
-    # hamiltonian = 0.5 * x(0) * y(1) + 2.2 * x(1) * z(2)
-    hamiltonian = 1.
-
-    prog = pq.QProg()
-    prog << pq.X(qubits[0:2])\
-         << pq.Z(qubits[:2])\
-         << pq.H(qubits[:])
-
-    print(prog)
-
-    result = machine.get_expectation(
-        prog, hamiltonian.to_hamiltonian(True), [qubits[0], qubits[1]])
-    print(result)
-
-if __name__ == "__main__":
-
-    x = np.array([[0., 1.], [1., 0.]])
-
-    op1 = pq.PauliOperator(x)
-    op2 = pq.PauliOperator(1.)
-    op3 = pq.PauliOperator("Z1",0.8)
-
-    op = op1 + op2 + op3
-
-    print(array3xd)
-    tensor = pq.tensor3xd(array4xd)
-    print(tensor)
-
-    tensor1 = pq.tensor4xd(array4xd)
-    print(tensor1)
+#手动合并
+operator.reduce_duplicates()

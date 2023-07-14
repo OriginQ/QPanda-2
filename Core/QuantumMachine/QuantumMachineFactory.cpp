@@ -16,7 +16,12 @@ limitations under the License.
 
 #include "QuantumMachineFactory.h"
 #include "OriginQuantumMachine.h"
-#include "Core/QuantumMachine/QCloudMachine.h"
+
+#include "QPandaConfig.h"
+#if defined(USE_OPENSSL) && defined(USE_CURL)
+#include "Core/QuantumCloud/QCloudMachine.h"
+#endif
+
 using namespace std;
 USING_QPANDA
 QMachineStatus * QMachineStatusFactory::GetQMachineStatus()
@@ -85,7 +90,8 @@ CreateByType(QMachineType type)
         qm = new NoiseQVM();
         break;
     case QMachineType::QCloud:
-#ifdef USE_CURL
+
+#if defined(USE_OPENSSL) && defined(USE_CURL)
         qm = new QCloudMachine();
 #else
         throw init_fail("no libcurl found");

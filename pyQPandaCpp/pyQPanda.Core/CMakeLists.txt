@@ -22,8 +22,12 @@ set(PYQPANDA_OUT_LIB
 
 if (USE_CURL AND CURL_FOUND AND MSVC)
     add_custom_command(TARGET ${LIB_PYQPANDA} POST_BUILD
-                    COMMAND ${CMAKE_COMMAND} -E copy ${CURL_DLL} ${PYQPANDA_OUT_PATH})
-                    
+                    COMMAND ${CMAKE_COMMAND} -E copy ${CURL_DLL} ${PYQPANDA_OUT_PATH})                    
+endif()
+
+if (USE_OPENSSL AND OPENSSL_FOUND AND MSVC)
+    add_custom_command(TARGET ${LIB_PYQPANDA} POST_BUILD
+                    COMMAND ${CMAKE_COMMAND} -E copy ${OPENSSL_DLL} ${PYQPANDA_OUT_PATH})                  
 endif()
 
 add_custom_command(OUTPUT COPY_RES

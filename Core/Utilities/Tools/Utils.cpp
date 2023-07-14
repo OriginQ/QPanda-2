@@ -1,8 +1,8 @@
-#include "Core/Utilities/Tools/Utils.h"
 #include <time.h>
-
-#include "Core/QuantumCircuit/QuantumMeasure.h"
 #include "ControlFlow.h"
+#include "Core/Utilities/Tools/Utils.h"
+#include "Core/QuantumCircuit/QuantumMeasure.h"
+#include "ThirdParty/rabbit/rabbit.hpp"
 
 #if defined(WIN32) || defined(_WIN32)
 #define localtime_r(_Time, _Tm) localtime_s(_Tm, _Time)
@@ -243,4 +243,60 @@ QCircuit QPanda::parityCheckCircuit(std::vector<Qubit*> qubit_vec)
 		circuit << CNOT(qubit_vec[i], qubit_vec[qubit_vec.size() - 1]);
 	}
 	return circuit;
+}
+
+
+std::string QPanda::hamiltonian_to_json(const QHamiltonian& hamiltonian)
+{
+    rabbit::object obj;
+
+    rabbit::array hamilton_arr;
+
+    for (auto i = 0; i < hamiltonian.size(); ++i)
+    {
+        const auto& item = hamiltonian[i];
+
+        rabbit::object hamilton_item;
+
+        rabbit::array temp_pauli_param_array;
+        rabbit::array temp_pauli_type_array;
+
+        for (auto val : item.first)
+        {
+            temp_pauli_param_array.push_back(val.first);
+            temp_pauli_type_array.push_back(std::string(1, val.second));
+        }
+
+        hamilton_item.insert("pauli_type", temp_pauli_type_array);
+        hamilton_item.insert("pauli_param", temp_pauli_param_array);
+        hamilton_item.insert("hamiltonian_param", item.second);
+        hamilton_arr.push_back(hamilton_item);
+    }
+
+    obj.insert("hamiltonian", hamilton_arr);
+    return obj.str();
+}
+
+QHamiltonian QPanda::json_to_hamiltonian(const std::string& hamiltonian_json)
+{
+    rabbit::document cfg_doc;
+    cfg_doc.parse(hamiltonian_json);
+    const rabbit::array hamiltonion_arr = cfg_doc["hamiltonian"];
+    QHamiltonian result;
+    for (auto &ele : hamiltonion_arr)
+    {
+        QTerm qterm;
+        auto &pauli_type_arr = ele["pauli_type"];
+        auto &pauli_param_arr = ele["pauli_param"];
+        size_t type_size = pauli_type_arr.size();
+        size_t param_size = pauli_param_arr.size();
+
+        for (auto i = 0; i < type_size; ++i)
+        {
+            qterm.insert(std::make_pair(pauli_param_arr[i].as_uint(), pauli_type_arr[i].as_string().at(0)));
+        }
+        result.emplace_back(qterm, ele["hamiltonian_param"].as_double());
+    }
+
+    return result;
 }

@@ -5,7 +5,7 @@ add_subdirectory(bplus-tree)
 add_subdirectory(nlopt)
 add_subdirectory(mpfit)
 
-if(USE_PYQPANDA OR USE_CHEMIQ)
+if(USE_PYQPANDA)
     add_subdirectory(pybind11)
 endif()
 

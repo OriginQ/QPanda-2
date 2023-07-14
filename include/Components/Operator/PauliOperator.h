@@ -51,19 +51,23 @@ public:
         insertData("", T(value));
     }
 
-    PauliOp(const std::string &key, const T &value)
+    PauliOp(const std::string &key, const T &value, bool is_reduce_duplicates = false)
     {
         insertData(key, value);
+
+        if (is_reduce_duplicates)
+            reduceDuplicates();
     }
 
-    PauliOp(const PauliMap &map)
+    PauliOp(const PauliMap &map, bool is_reduce_duplicates = false)
     {
         for (auto iter = map.begin(); iter != map.end(); iter++)
         {
             insertData(iter->first, iter->second);
         }
 
-        //reduceDuplicates();
+        if (is_reduce_duplicates)
+            reduceDuplicates();
     }
 
     PauliOp(PauliOp &&op):
@@ -76,19 +80,21 @@ public:
     {
     }
 
-    PauliOp(PauliData &&pauli):
+    PauliOp(PauliData &&pauli, bool is_reduce_duplicates = false):
         m_data(std::move(pauli))
     {
-        //reduceDuplicates();
+        if (is_reduce_duplicates)
+            reduceDuplicates();
     }
 
-    PauliOp(const PauliData &pauli):
+    PauliOp(const PauliData &pauli, bool is_reduce_duplicates = false):
         m_data(pauli)
     {
-        //reduceDuplicates();
+        if (is_reduce_duplicates)
+            reduceDuplicates();
     }
 
-    PauliOp(EigenMatrixX &matrix)
+    PauliOp(EigenMatrixX &matrix, bool is_reduce_duplicates = false)
     {
         if (std::is_same<T, complex_d>::value)
         {
@@ -121,7 +127,8 @@ public:
             QCERR_AND_THROW(run_fail, "matrix data type error")
         }
        
-        //reduceDuplicates();
+        if (is_reduce_duplicates)
+            reduceDuplicates();
     }
 
     PauliOp &operator = (const PauliOp &op)
@@ -192,7 +199,7 @@ public:
             pi.first = QPauliPair(fst, snd);
         }
 
-        reduceDuplicates();
+        //reduceDuplicates();
     }
 
 	/**
@@ -216,6 +223,9 @@ public:
         }
 
         //max_index++;
+        if (m_data.size() == 0) {
+            return SIZE_MAX;
+        }
 
         return max_index;
     }
@@ -1027,7 +1037,7 @@ std::vector<double> operator *(const std::vector<double>& vec, double value);
 * @note The subterms of the Pauli operator must be I and Z
 */
 std::vector<double> transPauliOperatorToVec(PauliOperator pauli);
-void matrix_decompose_hamiltonian(QuantumMachine* qvm, EigenMatrixX& mat, PauliOperator& hamiltonian);
+PauliOperator matrix_decompose_hamiltonian(EigenMatrixX& matrix);
 std::vector<complex_d> transPauliOperatorToMatrix(const PauliOperator& opt);
 QPANDA_END
 #endif // _PAULIROPERATOR_H_

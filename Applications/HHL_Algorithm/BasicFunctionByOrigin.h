@@ -23,6 +23,7 @@
 
 using namespace Eigen;
 using namespace std;
+USING_QPANDA
 
 extern vector<vector<int> > sparI;
 extern vector<vector<int> > No0Index;

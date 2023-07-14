@@ -156,10 +156,13 @@ std::vector<double> QPanda::transPauliOperatorToVec(PauliOperator pauli)
 
 
 
-void QPanda::matrix_decompose_hamiltonian(QuantumMachine* qvm, EigenMatrixX& mat, PauliOperator& hamiltonian)
+PauliOperator QPanda::matrix_decompose_hamiltonian(EigenMatrixX& matrix)
 {
+    CPUQVM machine;
+    machine.setConfigure({ 64,64 });
+    machine.init();
     PualiOperatorLinearCombination linear_result;
-    matrix_decompose_paulis(qvm, mat, linear_result);
+    matrix_decompose_paulis(&machine, matrix, linear_result);
 
     PauliOperator::PauliMap pauli_map;
     for (auto item : linear_result)
@@ -173,8 +176,7 @@ void QPanda::matrix_decompose_hamiltonian(QuantumMachine* qvm, EigenMatrixX& mat
         pauli_map.insert(pauli_value);
     }
 
-    hamiltonian = PauliOperator(pauli_map);
-    return;
+    return PauliOperator(pauli_map);
 }
 
 std::vector<complex_d> QPanda::transPauliOperatorToMatrix(const PauliOperator& opt)

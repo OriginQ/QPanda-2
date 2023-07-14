@@ -14,6 +14,7 @@
 #include <memory>
 #include "Core/Utilities/QPandaNamespace.h"
 #include "Core/VirtualQuantumProcessor/SparseQVM/BasicSparseState.h"
+#include <stdlib.h>
 
 
 
@@ -57,8 +58,12 @@ public:
         _qubit_data = wavefunction();
         _qubit_data.max_load_factor(_load_factor);
         _qubit_data.emplace((size_t)0, 1);
+#ifdef USE_RANDOM_DEVICE
         std::random_device rd;
         std::mt19937 gen(rd());
+#else   
+        std::mt19937 gen(rand());
+#endif
         std::uniform_real_distribution<double> dist(0, 1);
         _rng = [gen, dist]() mutable { return dist(gen); };
     }
@@ -1020,6 +1025,31 @@ public:
             universal_qubit_data.emplace(current_state->first.to_string(), current_state->second);
         }
         return universal_qubit_data;
+    }
+
+
+    void init_state(universal_wavefunction& new_qubit_data)
+    {
+        _qubit_data.clear();
+        _qubit_data = wavefunction(new_qubit_data.size());
+        for (auto current_state = new_qubit_data.begin(); current_state != new_qubit_data.end(); ++current_state) {
+            _qubit_data.emplace(qubit_label(current_state->first), current_state->second);
+        }
+
+        /*for (auto &r : new_qubit_data)
+        {
+            auto bits = r.first;
+            for (auto &q : _qubit_data)
+            {
+                if (q.first.to_string() == bits)
+                {
+                    q.second = r.second;
+                }
+            }
+
+        }*/
+        //_qubit_data(new_qubit_data);
+        //_qubit_data = std::move(new_qubit_data);
     }
 
     // Returns the rng from this simulator

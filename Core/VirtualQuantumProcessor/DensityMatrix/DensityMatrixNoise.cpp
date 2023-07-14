@@ -280,15 +280,30 @@ void DensityMatrixNoise::set_noise_model(const NOISE_MODEL& model, const GateTyp
 {
     QPANDA_ASSERT(0. > prob || prob > 1., "prob range error");
 
-    set_gate_and_qnums(gate_type, qubits_vecs);
+    if (model == NOISE_MODEL::DAMPING_KRAUS_OPERATOR)
+    {
+        auto karus_matrices = get_noise_model_karus_matrices(model, { prob });
+        auto karus_error = KarusError(karus_matrices, model);
 
-    auto unitary_probs = get_noise_model_unitary_probs(model, prob);
-    auto unitary_matrices = get_noise_model_unitary_matrices(model, prob);
+        set_gate_and_qnums(gate_type, qubits_vecs);
 
-    auto karus_error = KarusError(unitary_matrices, unitary_probs);
+        QPANDA_OP(is_single_gate(gate_type), set_single_karus_error_tuple(gate_type, karus_error, get_qnum(qubits_vecs)));
+        QPANDA_OP(!is_single_gate(gate_type), set_double_karus_error_tuple(gate_type, karus_error, qubits_vecs));
+       
+        return;
+    }
+    else
+    {
+        set_gate_and_qnums(gate_type, qubits_vecs);
 
-    QPANDA_OP(is_single_gate(gate_type), set_single_karus_error_tuple(gate_type, karus_error, get_qnum(qubits_vecs)));
-    QPANDA_OP(!is_single_gate(gate_type), set_double_karus_error_tuple(gate_type, karus_error, qubits_vecs));
+        auto unitary_probs = get_noise_model_unitary_probs(model, prob);
+        auto unitary_matrices = get_noise_model_unitary_matrices(model, prob);
+
+        auto karus_error = KarusError(unitary_matrices, unitary_probs);
+
+        QPANDA_OP(is_single_gate(gate_type), set_single_karus_error_tuple(gate_type, karus_error, get_qnum(qubits_vecs)));
+        QPANDA_OP(!is_single_gate(gate_type), set_double_karus_error_tuple(gate_type, karus_error, qubits_vecs));
+    }
 
     return;
 }
@@ -298,14 +313,28 @@ void DensityMatrixNoise::set_noise_model(const NOISE_MODEL& model, const GateTyp
     QPANDA_ASSERT(0. > prob || prob > 1., "prob range error");
     QPANDA_ASSERT(!is_single_gate(gate_type), "set_noise_model gate type error");
 
-    auto unitary_probs = get_noise_model_unitary_probs(model, prob);
-    auto unitary_matrices = get_noise_model_unitary_matrices(model, prob);
+    if (model == NOISE_MODEL::DAMPING_KRAUS_OPERATOR)
+    {
+        auto karus_matrices = get_noise_model_karus_matrices(model, { prob });
+        auto karus_error = KarusError(karus_matrices, model);
 
-    auto karus_error = KarusError(unitary_matrices, unitary_probs);
+        set_gate_and_qnum(gate_type, qubits_vec);
 
-    set_gate_and_qnum(gate_type, qubits_vec);
+        set_single_karus_error_tuple(gate_type, karus_error, qubits_vec);
 
-    set_single_karus_error_tuple(gate_type, karus_error, qubits_vec);
+        return;
+    }
+    else
+    {
+        auto unitary_probs = get_noise_model_unitary_probs(model, prob);
+        auto unitary_matrices = get_noise_model_unitary_matrices(model, prob);
+
+        auto karus_error = KarusError(unitary_matrices, unitary_probs);
+
+        set_gate_and_qnum(gate_type, qubits_vec);
+
+        set_single_karus_error_tuple(gate_type, karus_error, qubits_vec);
+    }
 
     return;
 }

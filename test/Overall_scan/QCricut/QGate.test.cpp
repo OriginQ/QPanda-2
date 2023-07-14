@@ -4,6 +4,7 @@
 #include "gtest/gtest.h"
 
 //using namespace std;
+USING_QPANDA
 
 
 TEST(QGateInfaceTest,test) {

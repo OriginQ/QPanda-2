@@ -149,6 +149,17 @@ void SparseSimulator::dump_ids(void(*callback)(size_t))
     }
 }
 
+universal_wavefunction SparseSimulator::get_state()
+{
+    auto res = _quantum_state->get_universal_wavefunction();
+    return res;
+}
+
+void SparseSimulator::set_state(universal_wavefunction& data)
+{
+    _quantum_state->init_state(data);
+}
+
 void SparseSimulator::handle_prog_to_queue(QProg &prog)
 {
     flatten(prog);
@@ -849,19 +860,12 @@ void SparseSimulator::CSWAP(std::vector<size_t> const& controls, size_t index_1,
 
 prob_dict SparseSimulator::probRunDict(QProg &prog)
 {
-    /*auto mesure_map = prog.get_measure_pos();
-    if (mesure_map.size() != 0)
-    {
-        QCERR("the size of qubit_vector is zero");
-        throw invalid_argument("the size of qubit_vector is zero");
-    }*/
     handle_prog_to_queue(prog);
     _execute_queued_ops();
 
     auto m_state = _quantum_state->get_universal_wavefunction();
     QVec used_qv;
     auto size = prog.get_max_qubit_addr() + 1;
-    QVec used_qv1;
     prob_dict mResult;
 
     prob_vec probs;

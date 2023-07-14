@@ -15,6 +15,7 @@
 
 USING_QPANDA
 using namespace std;
+#if defined(USE_OPENSSL) && defined(USE_CURL)
 
 class YGate : public RBGate
 {
@@ -84,8 +85,12 @@ RandomizedBenchmarking::~RandomizedBenchmarking()
 {
 }
 
-std::map<int, double> RandomizedBenchmarking::single_qubit_rb(Qubit* qbit, const std::vector<int>& clifford_range, 
-	int num_circuits, int shots, const std::vector<QGate> &interleaved_gates)
+std::map<int, double> RandomizedBenchmarking::single_qubit_rb(Qubit* qbit, 
+    const std::vector<int>& clifford_range, 
+	int num_circuits, 
+    int shots,
+    RealChipType chip_type,
+    const std::vector<QGate> &interleaved_gates)
 {
 	auto cliffords = _single_qubit_cliffords();
 	auto c1 = cliffords.c1_in_xy;
@@ -120,7 +125,7 @@ std::map<int, double> RandomizedBenchmarking::single_qubit_rb(Qubit* qbit, const
 			prog << Measure(qbit, cbits[0]);
 			if (m_qvm_type == MeasureQVMType::WU_YUAN)
 			{
-				auto res = m_cloud_qvm->real_chip_measure(prog, shots);
+				auto res = m_cloud_qvm->real_chip_measure(prog, shots, chip_type, false, false, false);
 				if (res.find("0") != res.end())
 					total_probs += res["0"];
 			}
@@ -390,8 +395,13 @@ std::vector <QStat>RandomizedBenchmarking::_two_qubit_clifford_matrices(Qubit* q
 }
 
 
-std::map<int, double> RandomizedBenchmarking::two_qubit_rb(Qubit* qbit0, Qubit* qbit1, const std::vector<int>& clifford_range, 
-	int num_circuits, int shots, const std::vector<QGate>& interleaved_gates )
+std::map<int, double> RandomizedBenchmarking::two_qubit_rb(Qubit* qbit0, 
+    Qubit* qbit1, 
+    const std::vector<int>& clifford_range, 
+	int num_circuits, 
+    int shots,
+    RealChipType chip_type,
+    const std::vector<QGate>& interleaved_gates )
 {
 	std::map<int, double> rb_result;
 	auto cfds = _single_qubit_cliffords();
@@ -416,7 +426,7 @@ std::map<int, double> RandomizedBenchmarking::two_qubit_rb(Qubit* qbit0, Qubit* 
 				<< Measure(qbit1, cbits[1]);
 			if (m_qvm_type == MeasureQVMType::WU_YUAN)
 			{
-				auto res = m_cloud_qvm->real_chip_measure(prog, shots);
+				auto res = m_cloud_qvm->real_chip_measure(prog, shots, chip_type, false, false, false);
 				if (res.find("00") != res.end())
 					total_probs += res["00"];
 			}
@@ -437,25 +447,38 @@ std::map<int, double> RandomizedBenchmarking::two_qubit_rb(Qubit* qbit0, Qubit* 
 std::map<int, double> QPanda::single_qubit_rb(NoiseQVM* qvm, Qubit* qbit, const std::vector<int>& clifford_range, int num_circuits, int shots, const std::vector<QGate>& interleaved_gates)
 {
 	RandomizedBenchmarking rb(MeasureQVMType::NOISE, qvm);
-	return rb.single_qubit_rb(qbit, clifford_range, num_circuits, shots, interleaved_gates);
+	return rb.single_qubit_rb(qbit, clifford_range, num_circuits, shots, RealChipType::ORIGIN_WUYUAN_D5, interleaved_gates);
 }
 
 std::map<int, double> QPanda::double_qubit_rb(NoiseQVM* qvm, Qubit* qbit0, Qubit* qbit1, const std::vector<int>& clifford_range, int num_circuits, int shots, const std::vector<QGate>& interleaved_gates )
 {
 	RandomizedBenchmarking rb(MeasureQVMType::NOISE, qvm);
-	return rb.two_qubit_rb(qbit0, qbit1, clifford_range, num_circuits, shots, interleaved_gates);
+	return rb.two_qubit_rb(qbit0, qbit1, clifford_range, num_circuits, shots, RealChipType::ORIGIN_WUYUAN_D5, interleaved_gates);
 }
 
-std::map<int, double> QPanda::single_qubit_rb(QCloudMachine* qvm, Qubit* qbit, const std::vector<int>& clifford_range, int num_circuits, int shots, const std::vector<QGate>& interleaved_gates )
+std::map<int, double> QPanda::single_qubit_rb(QCloudMachine* qvm, 
+    Qubit* qbit, 
+    const std::vector<int>& clifford_range, 
+    int num_circuits, 
+    int shots,
+    RealChipType chip_type,
+    const std::vector<QGate>& interleaved_gates )
 {
 	RandomizedBenchmarking rb(MeasureQVMType::WU_YUAN, qvm);
-	return rb.single_qubit_rb(qbit, clifford_range, num_circuits, shots, interleaved_gates);
+	return rb.single_qubit_rb(qbit, clifford_range, num_circuits, shots, chip_type, interleaved_gates);
 }
 
-std::map<int, double> QPanda::double_qubit_rb(QCloudMachine* qvm, Qubit* qbit0, Qubit* qbit1, const std::vector<int>& clifford_range, int num_circuits, int shots, const std::vector<QGate>& interleaved_gates)
+std::map<int, double> QPanda::double_qubit_rb(QCloudMachine* qvm, 
+    Qubit* qbit0, 
+    Qubit* qbit1, 
+    const std::vector<int>& clifford_range, 
+    int num_circuits, 
+    int shots,
+    RealChipType chip_type,
+    const std::vector<QGate>& interleaved_gates)
 {
 	RandomizedBenchmarking rb(MeasureQVMType::WU_YUAN, qvm);
-	return rb.two_qubit_rb(qbit0, qbit1, clifford_range, num_circuits, shots, interleaved_gates);
+	return rb.two_qubit_rb(qbit0, qbit1, clifford_range, num_circuits, shots, chip_type, interleaved_gates);
 }
 
 struct vars_struct {
@@ -518,3 +541,5 @@ double calc_single_qubit_fidelity(const std::map<int, double>& rb_result)
 	double fidelity = 0.5 * (1 - p[1]);
 	return fidelity;
 }
+
+#endif

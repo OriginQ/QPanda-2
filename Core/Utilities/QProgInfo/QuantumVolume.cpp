@@ -12,6 +12,8 @@
 
 USING_QPANDA
 
+#if defined(USE_OPENSSL) && defined(USE_CURL)
+
 using namespace std;
 Eigen::Matrix4cd randomUnitary()
 {
@@ -362,3 +364,5 @@ size_t QPanda::calculate_quantum_volume(QCloudMachine* qvm, std::vector <std::ve
 	QuantumVolume qv(MeasureQVMType::WU_YUAN, qvm);
 	return qv.calcQuantumVolume(qubit_lists, ntrials, shots);
 }
+
+#endif

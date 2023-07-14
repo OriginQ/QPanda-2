@@ -291,6 +291,7 @@ public:
 			QVec temp_qv;
             auto qgate_node = std::dynamic_pointer_cast<AbstractQGateNode>(node);
             qgate_node->getQuBitVector(temp_qv);
+            qgate_node->getControlVector(temp_qv);
             m_used_qubit_vector += temp_qv;
             m_qgate_num++;
         }

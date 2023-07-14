@@ -17,8 +17,6 @@ limitations under the License.
 #ifndef _COMPONENTS_H
 #define _COMPONENTS_H
 
-#include "Components/ChemiQ/ChemiqUtil.h"
-#include "Components/ChemiQ/Psi4Wrapper.h"
 #include "Components/HamiltonianSimulation/HamiltonianSimulation.h"
 #include "Components/MaxCutProblemGenerator/MaxCutProblemGenerator.h"
 #include "Components/NodeSortProblemGenerator/NodeSortProblemGenerator.h"

@@ -3,6 +3,8 @@
 #include "QPanda.h"
 #include "gtest/gtest.h"
 
+USING_QPANDA
+
 TEST(CMemFactoryInfaceTest, test) {
 
 	CMemFactory memFac = CMemFactory::GetFactoryInstance();

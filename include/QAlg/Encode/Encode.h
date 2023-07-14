@@ -262,7 +262,10 @@ public:
 		{
 			data_temp.push_back(0);
 		}
-
+		if (data_temp.size() <= 2)
+		{
+			throw run_fail("Two elements data is not suitable for MPS");
+		}
 		size_t N = data_temp.size();
 
 		N = ceil(log2(N));

@@ -334,7 +334,8 @@ protected:
 
     void _verify_state(const QStat &state);
     inline int _omp_thread_num(size_t size);
-private:
+
+protected:
     bool m_is_init_state{false};
     /* 
       qubits state vetor of tensor product, 

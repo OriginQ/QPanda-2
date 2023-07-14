@@ -259,7 +259,7 @@ TEST(Variational, sigmoidTest)
 	x.setValue(tmp);
 
 	expression exp(z);
-	std::unordered_set<var> leaf_set = exp.findNonConsts(leaves); //?
+	std::vector<var> leaf_set = exp.findNonConsts(leaves); //?
 	eval(z, true);
 	eval(z1, true);
 	eval(dz1, true);
@@ -303,7 +303,7 @@ TEST(Variational, softmaxTest)
 	x.setValue(tmp);
 
 	expression exp(z);
-	std::unordered_set<var> leaf_set = exp.findNonConsts(leaves);
+	std::vector<var> leaf_set = exp.findNonConsts(leaves);
 	eval(z, true);
 	eval(z1, true);
 
@@ -365,7 +365,7 @@ TEST(Variational, crossEntropyTest) {
 	y.setValue(tmp2);
 
 	expression exp(z);
-	std::unordered_set<var> leaf_set = exp.findNonConsts(leaves);
+	std::vector<var> leaf_set = exp.findNonConsts(leaves);
 	eval(z, true);
 	eval(z1, true);
 	back(exp, grad, leaf_set);
@@ -428,7 +428,7 @@ TEST(Variational, dropoutTest) {
 	p.setValue(tmp2);
 
 	expression exp(z);
-	std::unordered_set<var> leaf_set = exp.findNonConsts(leaves);
+	std::vector<var> leaf_set = exp.findNonConsts(leaves);
 	eval(z, true);
 	back(exp, grad, leaf_set);
 

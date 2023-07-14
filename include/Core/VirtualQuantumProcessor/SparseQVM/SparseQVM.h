@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <iomanip>
 #include <iostream>
+#include <unordered_map>
 #include <list>
 #include <set>
 #include "Core/Utilities/QPandaNamespace.h"
@@ -70,6 +71,10 @@ public:
         _execute_queued_ops();
         finalize();
     }
+
+    universal_wavefunction get_state();
+
+    void set_state(universal_wavefunction& data);
 
     prob_dict probRunDict(QProg &prog);
 
@@ -161,6 +166,9 @@ protected:
     unsigned Measure(std::vector<Basis_Gate> const& axes, std::vector<size_t> const& qubits);
 
     qcomplex_t probe(QProg& prog, std::string const& label);
+
+
+
 
     std::string Sample();
 

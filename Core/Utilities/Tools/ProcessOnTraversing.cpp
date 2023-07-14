@@ -279,15 +279,14 @@ void ProcessOnTraversing::gates_sink_to_topolog_sequence(OptimizerSink& gate_buf
 	{
 		QCERR_AND_THROW(run_fail, "Error: unknown error on gates_sink_to_topolog_sequence.");
 	}
-	size_t min_layer = gate_buf.begin()->second.front()->m_layer;
+	size_t min_layer = (std::numeric_limits<uint32_t>::max)();
 	for (auto &item : gate_buf)
 	{
-		if (item.second.size() == 0)
-		{
-			QCERR_AND_THROW(run_fail, "Error: unknown error on gates_sink_to_topolog_sequence.");
+		if ((item.second.size() == 0) || (nullptr == item.second.front())){
+            continue;
 		}
-		if (item.second.front()->m_layer < min_layer)
-		{
+
+		if (item.second.front()->m_layer < min_layer){
 			min_layer = item.second.front()->m_layer;
 		}
 	}
@@ -296,6 +295,10 @@ void ProcessOnTraversing::gates_sink_to_topolog_sequence(OptimizerSink& gate_buf
 	for (auto &item : gate_buf)
 	{
 		const auto& tmp_pos = gate_buf.get_target_qubit_sink_size(item.first);
+        if (tmp_pos == 0){
+            continue;
+        }
+
 		const size_t max_layer = item.second.at(tmp_pos-1)->m_layer - min_layer + 1;
 		if (seq.size() < max_layer)
 		{
@@ -1092,7 +1095,9 @@ protected:
 		auto get_successor_single_gate = [&, this](std::vector<pOptimizerNodeInfo>& gates_vec, size_t& p, const size_t& max_pos) {
 			while (true)
 			{
-				if (p >= max_pos) { return; }
+				if (p >= max_pos) { 
+					return;
+				}
 
 				auto& g = gates_vec[p];
 
@@ -1105,8 +1110,12 @@ protected:
 					break;
 				}
 
-				if (g->m_target_qubits.size() == 1){ pressed_node->m_relation_successor_nodes.push_back(g); }
-				else { break; }
+				if ((g->m_target_qubits.size() + g->m_control_qubits.size()) == 1){
+					pressed_node->m_relation_successor_nodes.push_back(g); 
+				}
+				else { 
+					break; 
+				}
 		
 				++p;
 			}

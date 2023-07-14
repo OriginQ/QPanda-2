@@ -2,6 +2,9 @@
 #include "QPanda.h"
 #include "gtest/gtest.h"
 
+USING_QPANDA
+
+
 TEST(CBitFactoryInfaceTest, test) {
 	CBitFactory cbitFac =  CBitFactory::GetFactoryInstance();
 	auto cbit = cbitFac.CreateCBitFromName("c1");

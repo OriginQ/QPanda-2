@@ -1,7 +1,10 @@
 #include "Components/Operator/FermionOperator.h"
 #include <math.h>
+#include "pybind11/numpy.h"
+#include "pybind11/cast.h"
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
+#include <pybind11/stl_bind.h>
 #include "pybind11/complex.h"
 #include "pybind11/functional.h"
 #include "pybind11/chrono.h"
@@ -382,17 +385,17 @@ void export_variational(py::module &m)
         .def("propagate", py::overload_cast<>(&Var::expression::propagate))
         .def("propagate", py::overload_cast<const std::vector<Var::var> &>(&Var::expression::propagate))
         .def("backprop", py::overload_cast<std::unordered_map<Var::var, MatrixXd> &>(&Var::expression::backpropagate))
-        .def("backprop", py::overload_cast<std::unordered_map<Var::var, MatrixXd> &, const std::unordered_set<Var::var> &>(&Var::expression::backpropagate))
+        .def("backprop", py::overload_cast<std::unordered_map<Var::var, MatrixXd> &, const std::vector<Var::var> &>(&Var::expression::backpropagate))
         .def("get_root", &Var::expression::getRoot);
 
     m.def("eval", Var::eval);
     m.def("eval", [](Var::var v)
           { return eval(v, true); });
 
-    m.def("_back", py::overload_cast<Var::expression &, std::unordered_map<Var::var, MatrixXd> &, const std::unordered_set<Var::var> &>(&Var::back));
+    m.def("_back", py::overload_cast<Var::expression &, std::unordered_map<Var::var, MatrixXd> &, const std::vector<Var::var> &>(&Var::back));
     m.def("_back", py::overload_cast<Var::expression &, std::unordered_map<Var::var, MatrixXd> &>(&Var::back));
     m.def("_back", py::overload_cast<const Var::var &, std::unordered_map<Var::var, MatrixXd> &>(&Var::back));
-    m.def("_back", py::overload_cast<const Var::var &, std::unordered_map<Var::var, MatrixXd> &, const std::unordered_set<Var::var> &>(&Var::back));
+    m.def("_back", py::overload_cast<const Var::var &, std::unordered_map<Var::var, MatrixXd> &, const std::vector<Var::var> &>(&Var::back));
 
     m.def("exp", Var::exp);
     m.def("log", Var::log);

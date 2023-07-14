@@ -3,6 +3,7 @@
 
 #ifdef USE_EXTENSION
 
+USING_QPANDA
 using namespace std;
 static bool test_func_1()
 {

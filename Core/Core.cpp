@@ -26,9 +26,11 @@ limitations under the License.
 #include "Core/Utilities/Tools/OriginCollection.h"
 #include "Core/QuantumMachine/Factory.h"
 #include "Core/QuantumMachine/QuantumMachineFactory.h"
-#include "Core/QuantumMachine/QCloudMachine.h"
 #include "Core/QuantumNoise/NoiseModelV2.h"
 
+#include "QPandaConfig.h"
+#if defined(USE_OPENSSL) && defined(USE_CURL)
+#endif
 
 USING_QPANDA
 using namespace std;

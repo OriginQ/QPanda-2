@@ -15,13 +15,6 @@
 #include "pybind11/eigen.h"
 #include "Core/Utilities/UnitaryDecomposer/QSDecomposition.h"
 
-
-#ifdef USE_EXTENSION
-#include "Extensions/EigenTensor/EigenTensor.h"
-#include "Extensions/VirtualZTransfer/VirtualZTransfer.h"
-#include "Extensions/PilotOSMachine/QPilotMachine.h"
-#endif
-
 using namespace std;
 using namespace pybind11::literals;
 namespace py = pybind11;
@@ -33,6 +26,11 @@ USING_QPANDA
 void export_extension_class(py::module& m)
 {
 #ifdef USE_EXTENSION
+
+#include "Extensions/PilotOSMachine/QPilotMachine.h"
+#include "Extensions/PilotOSMachine/data_struct.h"
+#include "Extensions/VirtualZTransfer/VirtualZTransfer.h"
+
     py::class_<HHLAlg>(m, "HHLAlg"," quantum hhl algorithm class")
         .def(py::init<QuantumMachine*>())
         .def("get_hhl_circuit",
@@ -64,7 +62,8 @@ void export_extension_class(py::module& m)
         py::return_value_policy::reference)
         .def("query_uesed_qubit_num", &HHLAlg::query_uesed_qubit_num, "query_uesed_qubit_num");
 
-#ifdef USE_CURL
+#if /*defined(USE_OPENSSL) && */defined(USE_CURL)
+
     py::class_<PilotQVM::PilotNoiseParams>(m, "PilotNoiseParams", "pliot noise simulate params")
         .def_readwrite("noise_model", &PilotQVM::PilotNoiseParams::noise_model)
         .def_readwrite("single_gate_param", &PilotQVM::PilotNoiseParams::single_gate_param)
@@ -132,9 +131,16 @@ void export_extension_class(py::module& m)
             py::arg("config_path")="pilotmachine.conf",
             py::return_value_policy::automatic)
         .def("execute_measure_task",
-            [&](PilotQVM::QPilotMachine& self, const std::string& prog_str, const uint32_t& chip_id = ANY_CLUSTER_BACKEND, const bool& b_mapping=true, const bool& b_optimization=true, const uint32_t& shots = 1000)->std::map<std::string, double>{
+            [&](PilotQVM::QPilotMachine& self, const std::string& prog_str, const uint32_t& chip_id = ANY_CLUSTER_BACKEND, const bool& b_mapping=true, const bool& b_optimization=true, const uint32_t& shots = 1000, const std::vector<uint32_t> &specified_block = {})->std::map<std::string, double>{
                 std::map<std::string, double> result;
-                auto ErrInfo = self.execute_measure_task(prog_str, result, chip_id, b_mapping, b_optimization, shots);
+                CalcConfig config;
+                config.backend_id = chip_id;
+                config.shot = shots;
+                config.is_mapping = b_mapping;
+                config.is_optimization = b_optimization;
+                config.ir = prog_str;
+                config.specified_block = specified_block;
+                auto ErrInfo = self.execute_measure_task(config, result);
                 if (ErrInfo != PilotQVM::ErrorCode::NO_ERROR_FOUND)
                 {
                     throw::runtime_error("execute_measure_task run error:" + std::to_string(uint32_t(ErrInfo)));
@@ -146,10 +152,19 @@ void export_extension_class(py::module& m)
             py::arg("b_mapping") = true,
             py::arg("b_optimization") = true,
             py::arg("shots") = 1000,
+            py::arg("specified_block") = std::vector<uint32_t> {},
             py::return_value_policy::reference)
         .def("execute_callback_measure_task",
-            [&](PilotQVM::QPilotMachine& self, const std::string& prog_str, std::function<void(PilotQVM::ErrorCode, const std::map<std::string, double>&)>cb_func, const uint32_t& chip_id = ANY_CLUSTER_BACKEND, const bool& b_mapping = true, const bool& b_optimization = true, const uint32_t& shots = 1000)->PilotQVM::ErrorCode {
-                return self.execute_measure_task(prog_str, cb_func, chip_id, b_mapping, b_optimization, shots);
+            [&](PilotQVM::QPilotMachine& self, const std::string& prog_str, std::function<void(PilotQVM::ErrorCode, const std::map<std::string, double>&)>cb_func, const uint32_t& chip_id = ANY_CLUSTER_BACKEND,
+                    const bool& b_mapping = true, const bool& b_optimization = true, const uint32_t& shots = 1000, const std::vector<uint32_t> &specified_block = std::vector<uint32_t> {})->PilotQVM::ErrorCode {
+                    CalcConfig config;
+                    config.backend_id = chip_id;
+                    config.shot = shots;
+                    config.is_mapping = b_mapping;
+                    config.is_optimization = b_optimization;
+                    config.ir = prog_str;
+                    config.specified_block = specified_block;
+                return self.execute_measure_task(config, cb_func);
             },
             py::arg("prog_str"),
             py::arg("cb_func"),
@@ -157,6 +172,7 @@ void export_extension_class(py::module& m)
             py::arg("b_mapping") = true,
             py::arg("b_optimization") = true,
             py::arg("shots") = 1000,
+            py::arg("specified_block") = std::vector<uint32_t> {},
             py::return_value_policy::reference)
         .def("execute_full_amplitude_measure_task",
             [&](PilotQVM::QPilotMachine &self,const std::string& prog_str, const uint32_t& chip_id = ANY_CLUSTER_BACKEND, const uint32_t& shots = 1000)->std::map<std::string, double>{
@@ -316,7 +332,7 @@ void export_extension_class(py::module& m)
             py::arg("chip_id") = ANY_CLUSTER_BACKEND,
             py::return_value_policy::reference);
 #endif //DOCKER
-    py::class_<QPanda::QPilotOSMachine>(m, "QPilotOSMachine","origin quantum pilot OS Machine")
+    py::class_<QPanda::QPilotOSMachine, QuantumMachine>(m, "QPilotOSMachine","origin quantum pilot OS Machine")
         .def(py::init<std::string>(),
             py::arg("machine_type")="CPU",
             py::return_value_policy::reference)
@@ -324,11 +340,15 @@ void export_extension_class(py::module& m)
             &QPanda::QPilotOSMachine::init,
             py::arg("url") = "",
             py::arg("log_cout") = false,
+            py::arg("username") = "",
+            py::arg("password") = "",
             py::return_value_policy::automatic)
         .def("init_qvm", 
             &QPanda::QPilotOSMachine::init,
             py::arg("url") = "",
             py::arg("log_cout") = false,
+            py::arg("username") = "",
+            py::arg("password") = "",
             py::return_value_policy::automatic)
         .def("pMeasureBinindex",
             &QPanda::QPilotOSMachine::pMeasureBinindex,
@@ -348,6 +368,30 @@ void export_extension_class(py::module& m)
             py::arg("amplitude"),
             py::arg("backendID") = ANY_CLUSTER_BACKEND,
             py::return_value_policy::automatic)
+        .def("real_chip_expectation",
+            &QPanda::QPilotOSMachine::real_chip_expectation,
+            py::arg("prog"),
+            py::arg("hamiltonian"),
+            py::arg("qubits"),
+            py::arg("shot") = 1000,
+            py::arg("chip_id") = ANY_QUANTUM_CHIP,
+            py::arg("is_amend") = true,
+            py::arg("is_mapping") = true,
+            py::arg("is_optimization") = true,
+            py::arg("specified_block") = std::vector<uint32_t> {},
+            py::return_value_policy::automatic)
+        .def("async_real_chip_expectation",
+            &QPanda::QPilotOSMachine::async_real_chip_expectation,
+            py::arg("prog"),
+            py::arg("hamiltonian"),
+            py::arg("qubits"),
+            py::arg("shot") = 1000,
+            py::arg("chip_id") = ANY_QUANTUM_CHIP,
+            py::arg("is_amend") = true,
+            py::arg("is_mapping") = true,
+            py::arg("is_optimization") = true,
+            py::arg("specified_block") = std::vector<uint32_t> {},
+            py::return_value_policy::automatic)
         .def("real_chip_measure",
             &QPanda::QPilotOSMachine::real_chip_measure,
             py::arg("prog"),
@@ -356,6 +400,80 @@ void export_extension_class(py::module& m)
             py::arg("is_amend") = true,
             py::arg("is_mapping") = true,
             py::arg("is_optimization") = true,
+            py::arg("specified_block") = std::vector<uint32_t> {},
+            py::return_value_policy::automatic)
+        .def("async_real_chip_measure",
+            &QPanda::QPilotOSMachine::async_real_chip_measure,
+            py::arg("prog"),
+            py::arg("shot") = 1000,
+            py::arg("chip_id") = ANY_QUANTUM_CHIP,
+            py::arg("is_amend") = true,
+            py::arg("is_mapping") = true,
+            py::arg("is_optimization") = true,
+            py::arg("specified_block") = std::vector<uint32_t> {},
+            py::return_value_policy::automatic)
+        .def("query_task_state",
+            [&](QPanda::QPilotOSMachine& self, const string& task_id){
+                PilotQVM::PilotTaskQueryResult query_result;
+                self.query_task_state(task_id, query_result);
+
+                py::list result_data_list;
+                result_data_list.append(query_result.m_state);
+                result_data_list.append(query_result.m_result);
+                result_data_list.append(query_result.m_errCode);
+                result_data_list.append(query_result.m_errInfo);
+                return result_data_list;
+            },
+            py::arg("task_id"),
+                "Query Task State by task_id\n"
+                "Args:\n"
+                "    task_id: Taeget task id, got by async_real_chip_measure\n"
+                "\n"
+                "Returns:\n"
+                "    string: task state: 2: Running; 3: Finished; 4: Failed\n"
+                "    string: task result string\n"
+                "Raises:\n"
+                "    none\n",
+            py::return_value_policy::automatic)
+        .def("query_compile_prog",
+            [&](QPanda::QPilotOSMachine& self, const std::string task_id, bool& without_compensate) {
+                std::string errCode;
+                std::string errInfo;
+                std::string compile_prog;
+                self.query_compile_prog(task_id, compile_prog, without_compensate);
+
+                py::list result_data_list;
+                result_data_list.append(errCode);
+                result_data_list.append(errInfo);
+                result_data_list.append(compile_prog);
+                return result_data_list;
+            },          
+            py::arg("task_id"),
+                "Query Task compile prog by task_id\n"
+                "Args:\n"
+                "    without_compensate: whether return the prog without angle compensate\n"
+                "\n"
+                "Returns:\n"
+                "    bool: whether find compile prog success\n"
+                "Raises:\n"
+                "    none\n",
+                py::return_value_policy::automatic,
+                py::arg("without_compensate") = true)
+        .def("parse_task_result",
+            [&](QPanda::QPilotOSMachine& self, const string& result_str) {
+                std::map<std::string, double> result_val;
+                self.parse_task_result(result_str, result_val);
+                return result_val;
+            },
+            py::arg("result_str"),
+                "Parse result str to map<string, double>\n"
+                "Args:\n"
+                "    result_str: Taeget result string\n"
+                "\n"
+                "Returns:\n"
+                "    dict: map<string, double>\n"
+                "Raises:\n"
+                "    none\n",
             py::return_value_policy::automatic)
         .def("probRunDict",
             &QPanda::QPilotOSMachine::probRunDict,
@@ -395,6 +513,25 @@ void export_extension_class(py::module& m)
             py::arg("cbit"),
             "Allocate a cbit",
             py::return_value_policy::reference)
+        .def(
+            "set_config",
+            [](QPilotOSMachine &qvm, size_t max_qubit, size_t max_cbit)
+            {
+                Configuration config = { max_qubit, max_cbit };
+                qvm.setConfig(config);
+            },
+            py::arg("max_qubit"),
+                py::arg("max_cbit"),
+                "set QVM max qubit and max cbit\n"
+                "\n"
+                "Args:\n"
+                "    max_qubit: quantum machine max qubit num \n"
+                "    max_cbit: quantum machine max cbit num \n"
+                "\n"
+                "Returns:\n"
+                "    none\n"
+                "Raises:\n"
+                "    run_fail: An error occurred in set_configure\n")
         .def("cAlloc_many",
             &QPanda::QPilotOSMachine::allocateCBits,
             py::arg("cbit_num"),
@@ -526,7 +663,13 @@ void export_extension_funtion(py::module& m)
             py::return_value_policy::automatic);
 
     m.def("virtual_z_transform",
-        py::overload_cast<QProg&, QuantumMachine*, const bool, const std::string&>(&virtual_z_transform),
+        [](QPanda::QProg &prog, QPanda::QuantumMachine* quantum_machine, bool b_del_rz_gate = false,const std::string& config_data = CONFIG_PATH)
+        {
+
+            virtual_z_transform(prog, quantum_machine,b_del_rz_gate, config_data);
+            return prog;
+
+        },
         py::arg("prog"),
         py::arg("quantum_machine"),
         py::arg("b_del_rz_gate") = false,
@@ -585,7 +728,6 @@ void export_extension_funtion(py::module& m)
         "transfrom pauli operator to matrix\n"
         "\n"
         "Args:\n"
-        "    quantum_machine: quantum machine\n"
         "    matrix: 2^N *2^N double matrix \n"
         "\n"
         "Returns:\n"
@@ -605,6 +747,8 @@ void export_extension_funtion(py::module& m)
             case DecompositionMode::QSD:
                 return unitary_decomposer_nq(src_mat, qubits, mode, true);
                 // break;
+            case DecompositionMode::CSD:
+                return unitary_decomposer_nq(src_mat, qubits, DecompositionMode::CSD, true);
             default:
                 throw std::runtime_error("Error: DecompositionMode");
             }
@@ -639,6 +783,8 @@ void export_extension_funtion(py::module& m)
             case DecompositionMode::QSD:
                 return unitary_decomposer_nq(mat, qubits, DecompositionMode::QSD, true);
                 // break;
+            case DecompositionMode::CSD:
+                return unitary_decomposer_nq(mat, qubits, DecompositionMode::CSD, true);
             default:
                 throw std::runtime_error("Error: DecompositionMode");
             }
@@ -679,32 +825,6 @@ void export_extension_funtion(py::module& m)
         "    matrix: the source matrix, which will be extend to N*N, N = 2 ^ n\n"
         "    list: the source vector b, which will be extend to 2 ^ n",
         py::return_value_policy::automatic_reference);
-
-#ifndef EIGEN_TENSOR_EXAMPLE
-        //convert python.numpy.ndarray args to Eigen::Tensor 
-        //convert Eigen::Tensor return values to python.numpy.ndarray 
-        m.def("tensor3xd", [](pybind11::array_t<double> array)
-        {
-            auto tensor = to_tensor3x(array);
-            std::cout << "Tensor Dims " << tensor.NumDimensions << std::endl;
-            std::cout << tensor << std::endl;
-
-            //return type : pybind11::array_t<double> array
-            return to_array3x(tensor);
-        }, py::return_value_policy::automatic);
-
-        m.def("tensor4xd", [](pybind11::array_t<double> array)
-        {
-            auto tensor = to_tensor4x(array);
-            std::cout << "Tensor Dims " << tensor.NumDimensions << std::endl;
-            std::cout << tensor << std::endl;
-
-            //return type : pybind11::array_t<double> array
-            return to_array4x(tensor);
-        }, py::return_value_policy::automatic);
-
-#endif
-
 
 #endif
 }

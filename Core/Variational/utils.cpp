@@ -1,6 +1,7 @@
 #include "Core/Variational/utils.h"
 
-namespace QPanda {
+namespace QPanda 
+{
 namespace Variational {
 
 MatrixXd eval(var root, bool iter){
@@ -24,18 +25,21 @@ void back(expression& exp,
 
 void back(expression& exp, 
         std::unordered_map<var, MatrixXd>& derivative,
-        const std::unordered_set<var>& leaves)
+        const std::vector<var>& leaves)
 {
     exp.backpropagate(derivative, leaves);
 }
 
 void back(const var& root,
     std::unordered_map<var, MatrixXd>& derivative,
-    const std::unordered_set<var>& leaves)
+    const std::vector<var>& leaves)
 {
     expression exp(root);
     exp.backpropagate(derivative, leaves);
 }
 
 }
+
+
+
 }

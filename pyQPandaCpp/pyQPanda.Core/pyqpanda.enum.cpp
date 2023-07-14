@@ -136,7 +136,8 @@ void export_enum(py::module &m)
     py::enum_<DecompositionMode>(m, "DecompositionMode", "Quantum matrix decomposition mode")
         .value("QR", DecompositionMode::QR)
         .value("HOUSEHOLDER_QR", DecompositionMode::HOUSEHOLDER_QR)
-		.value("QSDecomposition", DecompositionMode::QSD);
+		.value("QSDecomposition", DecompositionMode::QSD)
+        .value("CSDecomposition", DecompositionMode::CSD);
     py::enum_<LATEX_GATE_TYPE>(m, "LATEX_GATE_TYPE", "Quantum latex gate type")
         .value("GENERAL_GATE", LATEX_GATE_TYPE::GENERAL_GATE)
         .value("CNOT_GATE", LATEX_GATE_TYPE::X)

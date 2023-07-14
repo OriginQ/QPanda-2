@@ -18,12 +18,13 @@ void export_PauliOperator(py::module &m)
 	py::class_<PauliOperator>(m, "PauliOperator")
 		.def(py::init<>())
         .def(py::init<const complex_d &>())
-        .def(py::init<EigenMatrixX &>())
-		.def(py::init<const std::string &, const complex_d &>())
-        .def(py::init<const PauliOperator::PauliMap &>())
+        .def(py::init<EigenMatrixX &, bool>(), py::arg("matrix"), py::arg("is_reduce_duplicates") = false)
+        .def(py::init<const std::string &, const complex_d &, bool>(), py::arg("key"), py::arg("value"), py::arg("is_reduce_duplicates") = false)
+        .def(py::init<const PauliOperator::PauliMap&, bool>(), py::arg("pauli_map"), py::arg("is_reduce_duplicates") = false)
 		.def("dagger", &PauliOperator::dagger)
 		.def("data", &PauliOperator::data)
-		.def("error_threshold", &PauliOperator::error_threshold)
+        .def("reduce_duplicates", &PauliOperator::reduceDuplicates)
+        .def("error_threshold", &PauliOperator::error_threshold)
 		.def(py::self + py::self)
 		.def(py::self - py::self)
 		.def(py::self * py::self)
@@ -103,11 +104,9 @@ void export_PauliOperator(py::module &m)
         py::return_value_policy::automatic);
 
     m.def("matrix_decompose_hamiltonian",
-        [](QuantumMachine* qvm, EigenMatrixX& mat, PauliOperator& opt)
+        [](EigenMatrixX& matrix)
         {
-            //PauliOperator opt;
-            matrix_decompose_hamiltonian(qvm, mat, opt);
-            //return opt;
+            return matrix_decompose_hamiltonian(matrix);
         },
         "decompose matrix into hamiltonian\n"
         "\n"

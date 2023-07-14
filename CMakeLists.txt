@@ -3,7 +3,7 @@ project(QPANDA)
 
 set(QPANDA_MAJOR_VERSION 2)
 set(QPANDA_MINOR_VERSION 1)
-set(QPANDA_PATCH_VERSION 16)
+set(QPANDA_PATCH_VERSION 17)
 set(QPANDA_VERSION "${QPANDA_MAJOR_VERSION}.${QPANDA_MINOR_VERSION}.${QPANDA_PATCH_VERSION}")
 message(STATUS "QPANDA VERSION = " "[${QPANDA_VERSION}]")
 # disable compiler verbose output, default is off, enable it when want to check compiler/linker option
@@ -72,19 +72,19 @@ set(LIB_QALG QAlg)
 
 set(LIB_PYQPANDA pyQPanda)
 set(LIB_PYQPANDA_PAUL pyQPandaPauliOperator)
-set(LIB_PYQPANDA_CHEMIQ pyQPandaChemiQ)
 
 option(FIND_MPI "find MPI" OFF)
 option(DOCKER "Open Docker" OFF)
 option(FIND_CUDA "find cuda" OFF)
-option(USE_CHEMIQ "use ChemiQ" OFF)
 option(FIND_OPENMP "find openMP" ON)
 option(USE_PYQPANDA "Enable pyQPanda" OFF)
 option(USE_EXTENSION "EXTENSION FUNTIONS" OFF)
-option(USE_CURL "Enable the QCloudMachine" ON)
+option(USE_CURL "Enable the QCloudMachine" OFF)
+option(USE_OPENSSL "Enable the QCloudMachine" OFF)
 option(USE_MSVC_RUNTIME_LIBRARY_DLL "MD/MT" OFF)
 option(PYQPANDA_STUBGEN "generate stub file for pyQPanda" ON)
 option(USE_SIMD "use simd  " OFF)
+option(USE_RANDOM_DEVICE "use random device " ON)
 
 if(NOT CMAKE_BUILD_TYPE)
    message(STATUS ":  No build type selected, default is Release")
@@ -166,6 +166,12 @@ elseif (UNIX)
 endif()
 
 add_definitions(${EXTRA_LDFLAGS} ${SIMD_FLAGS})
+if(USE_RANDOM_DEVICE)
+    message(STATUS "use random device")
+    add_definitions("-DUSE_RANDOM_DEVICE")
+else()
+    message(STATUS "use rand() to produce random numbers")
+endif()
 
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")
     find_package(PkgConfig REQUIRED)
@@ -213,12 +219,13 @@ if (USE_CURL)
     if (MSVC)
             get_filename_component(CURL_NAME "${CURL_LIBRARIES}" NAME_WE)
             get_filename_component(CURL_PATH "${CURL_INCLUDE_DIRS}" DIRECTORY)
+
             find_file(CURL_DLL 
                 names "${CURL_NAME}.dll"
                 PATHS "${CURL_PATH}/bin/" "${CURL_PATH}/debug/bin/" "${CURL_PATH}/lib/"
                 NO_DEFAULT_PATH
             )
-            message("CURL_DLL  :" ${CURL_DLL})
+            message(" -- Found CURL_DLL: " ${CURL_DLL})
             add_custom_command(OUTPUT COPY_RES
                COMMAND ${CMAKE_COMMAND} -E copy ${CURL_DLL} ${EXECUTABLE_OUTPUT_PATH}
                 )
@@ -252,6 +259,45 @@ elseif(MPI_FOUND)
     option(USE_MPI "not find MPI" OFF)
 endif (MPI_FOUND)
 
+if (USE_OPENSSL)
+    
+    if (NOT MSVC)
+        set(OPENSSL_USE_STATIC_LIBS TRUE)
+    endif()
+    find_package(OpenSSL 1.1 COMPONENTS Crypto)
+
+    if(OPENSSL_FOUND)
+        option(USE_OPENSSL "find OPENSSL" ON)
+
+        include_directories(${OPENSSL_INCLUDE_DIR})
+        list(APPEND LIB_LIST ${OPENSSL_LIBRARIES})
+        list(APPEND LIB_LIST ${OPENSSL_CRYPTO_LIBRARY})
+        
+        if (MSVC)
+            set(OPENSSL_NAME "libcrypto")
+            get_filename_component(OPENSSL_PATH "${OPENSSL_INCLUDE_DIR}" DIRECTORY)
+            file(GLOB OPENSSL_DLL_LIST 
+                "${OPENSSL_PATH}/bin/${OPENSSL_NAME}*.dll"
+                "${OPENSSL_PATH}/debug/bin/${OPENSSL_NAME}*.dll"
+                "${OPENSSL_PATH}/lib/${OPENSSL_NAME}*.dll")
+
+            if(OPENSSL_DLL_LIST)
+                list(GET OPENSSL_DLL_LIST 0 OPENSSL_DLL)
+                message(" -- Found OpenSSL DLL: " ${OPENSSL_DLL})
+            else()
+                message("OpenSSL DLL not found.")
+            endif()
+
+            add_custom_command(OUTPUT COPY_OPENSSL_RES
+                COMMAND ${CMAKE_COMMAND} -E copy ${OPENSSL_DLL} ${EXECUTABLE_OUTPUT_PATH})
+            add_custom_target(CopyOpensslTask ALL DEPENDS COPY_OPENSSL_RES)        
+        endif()
+    else (OPENSSL_FOUND)
+    # as use OPTION command, CMakeCahe have saved OPENSSL_FOUND = ON, cmake then will read CMakeCache
+    # use FORCE to turnoff  OPENSSL_FOUND in CMakeCache
+    set(USE_OPENSSL OFF CACHE BOOL "not find Curl" FORCE)
+    endif (OPENSSL_FOUND)
+endif()
 
 add_subdirectory(ThirdParty)
 add_subdirectory(Core)
@@ -264,7 +310,6 @@ if(USE_PYQPANDA)
     include_directories(${PROJECT_SOURCE_DIR}/pyQPandaCpp)
     add_subdirectory(pyQPandaCpp)
 endif(USE_PYQPANDA)
-
 
 if(NOT (WINDOWS OR CYGWIN))
 	set(prefix ${CMAKE_INSTALL_PREFIX})

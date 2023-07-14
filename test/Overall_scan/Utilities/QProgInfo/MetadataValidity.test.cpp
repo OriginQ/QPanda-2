@@ -2,7 +2,7 @@
 #include "QPanda.h"
 #include "gtest/gtest.h"
 
-
+USING_QPANDA
 
 TEST(judgeQvialdCase,test) {
     std::vector<std::string> single_gate;

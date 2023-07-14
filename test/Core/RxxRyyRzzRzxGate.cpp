@@ -103,12 +103,24 @@ static bool test_vf1_0()
     return true;
 }
 
+static bool test_vf1_1()
+{
+    auto qvm = CPUQVM();
+    qvm.init();
+    auto q = qvm.qAllocMany(3);
+    auto prog = QProg();
+    prog  << P(q[0], 0.5) << CP(q[0], q[1], 0.5);
+    std::cout << prog << std::endl;
+
+    return true;
+}
+
 TEST(RxxRyyRzzRzxGate, test1)
 {
     bool test_val = false;
     try
     {
-        test_val = test_vf1_0();
+        test_val = test_vf1_1();
 
     }
     catch (const std::exception& e)

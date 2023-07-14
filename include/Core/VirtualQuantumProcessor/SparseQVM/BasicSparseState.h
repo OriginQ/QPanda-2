@@ -179,7 +179,7 @@ class BasicSparseState
 public:
 
     virtual size_t get_num_qubits() = 0;
-
+    virtual void init_state(universal_wavefunction& new_qubit_data) = 0;
     virtual void dump_wavefunction(size_t indent = 0) = 0;
 
     virtual void set_random_seed(std::mt19937::result_type seed = std::mt19937::default_seed) = 0;

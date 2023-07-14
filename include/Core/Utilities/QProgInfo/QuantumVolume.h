@@ -8,6 +8,8 @@
 
 QPANDA_BEGIN
 
+#if defined(USE_OPENSSL) && defined(USE_CURL)
+
 /**
 * @class QuantumVolume
 * @ingroup Utilities
@@ -89,6 +91,7 @@ size_t calculate_quantum_volume(NoiseQVM * qvm, std::vector <std::vector<int> >q
  */
 size_t calculate_quantum_volume(QCloudMachine* qvm, std::vector <std::vector<int> >qubit_lists, int ntrials, int shots = 1000);
 
+#endif
 
 QPANDA_END
 #endif // !_QUANTUM_VOLUME_H_

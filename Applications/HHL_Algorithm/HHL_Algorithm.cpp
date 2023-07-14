@@ -118,30 +118,99 @@ static std::string _tostring(const double val, const int precision = 15)
 	return out.str();
 }
 
-static void HHL_run(const std::string& data_file)
+static QStat HHL_run(const std::vector<double>& A, const std::vector<double>& b)
+{
+    QStat Q_A;
+    for (const auto& i : A) {
+        Q_A.push_back(i);
+    }
+
+    return HHL_solve_linear_equations(Q_A, b, g_precision);
+}
+
+static QStat HHL_run_with_preprocess(const std::vector<double>& A, const std::vector<double>& b)
+{
+    MatrixXd A_bad(b.size(), b.size());
+    VectorXd b_bad(b.size());
+    for (int i = 0; i < b.size(); ++i)
+    {
+        for (int j = 0; j < b.size(); ++j) {
+            A_bad(i, j) = A[i * b.size() + j];
+        }
+        b_bad(i) = b[i];
+    }
+
+    //A'
+    MatrixXd M;
+    auto result = DynamicSparseApproximateInverse(A_bad, b_bad, 0.2, b.size(), M);
+    MatrixXd A_prime(2 * b.size(), 2 * b.size());
+    A_prime.topLeftCorner(b.size(), b.size()) = A_prime.bottomRightCorner(b.size(), b.size()) = MatrixXd::Zero(4, 4);
+    A_prime.topRightCorner(b.size(), b.size()) = result.first;
+    A_prime.bottomLeftCorner(b.size(), b.size()) = result.first.transpose();
+
+    //b'
+    auto b_good = result.second;
+    std::vector<double> b2;
+    for (int i = 0; i < b_good.size(); ++i){
+        b2.push_back(b_good(i));
+    }
+
+    std::vector<double> b_prime;
+    for (int i = 0; i < b.size(); ++i){
+        b_prime.push_back(b2[i]);
+    }
+
+    for (int i = 0; i < b.size(); ++i){
+        b_prime.push_back(0);
+    }
+
+    auto A_prime_mat = Eigen_to_QStat(A_prime);
+
+    QStat Q_A;
+    for (const auto& i : A) {
+        Q_A.push_back(i);
+    }
+
+    /*cout << "A:\n" << Q_A << "\n";
+    cout << "b:\n";
+    for (const auto& i : b) {
+        cout << _tostring(i) << " ";
+    }
+    cout << "\n";*/
+
+    //QStat result = HHL_solve_linear_equations(Q_A, b, g_precision);
+    QStat result_prime = HHL_solve_linear_equations(A_prime_mat, b_prime, g_precision);
+    result_prime.erase(result_prime.begin(), result_prime.begin() + (result_prime.size() / 2));
+
+    return result_prime;
+}
+
+static void run(const std::string& data_file)
 {
 	std::vector<double> A;
 	std::vector<double> b;
 	uint32_t A_dimension = load_data_file(data_file, A, b);
-	MatrixXd A_bad(b.size(), b.size());
+#if 0
+	/*MatrixXd A_bad(b.size(), b.size());
 	VectorXd b_bad(b.size());
-	for (int i = 0; i < b.size(); ++i) {
+	for (int i = 0; i < b.size(); ++i) 
+    {
 		for (int j = 0; j < b.size(); ++j) {
 			A_bad(i, j) = A[i * b.size() + j];
 		}
 		b_bad(i) = b[i];
-	}
+	}*/
 
 	//A'
-	MatrixXd M;
+	/*MatrixXd M;
 	auto result = DynamicSparseApproximateInverse(A_bad, b_bad, 0.2, b.size(), M);
 	MatrixXd A_prime(2 * b.size(), 2 * b.size());
 	A_prime.topLeftCorner(b.size(), b.size()) = A_prime.bottomRightCorner(b.size(), b.size()) = MatrixXd::Zero(4, 4);
 	A_prime.topRightCorner(b.size(), b.size()) = result.first;
-	A_prime.bottomLeftCorner(b.size(), b.size()) = result.first.transpose();
+	A_prime.bottomLeftCorner(b.size(), b.size()) = result.first.transpose();*/
 
 	//b'
-	auto b_good = result.second;
+	/*auto b_good = result.second;
 	std::vector<double> b2;
 	for (int i = 0; i < b_good.size(); ++i)
 	{
@@ -154,12 +223,12 @@ static void HHL_run(const std::string& data_file)
 	for (int i = 0; i < b.size(); ++i)
 		b_prime.push_back(0);
 
-	auto A_prime_mat = Eigen_to_QStat(A_prime);
+	auto A_prime_mat = Eigen_to_QStat(A_prime);*/
 
-	QStat Q_A;
+	/*QStat Q_A;
 	for (const auto& i : A) {
 		Q_A.push_back(i);
-	}
+	}*/
 
 	/*cout << "A:\n" << Q_A << "\n";
 	cout << "b:\n";
@@ -169,8 +238,10 @@ static void HHL_run(const std::string& data_file)
 	cout << "\n";*/
 
 	//QStat result = HHL_solve_linear_equations(Q_A, b, g_precision);
-	QStat result_prime = HHL_solve_linear_equations(A_prime_mat, b_prime, g_precision);
-	int w = 0;
+	//QStat result_prime = HHL_solve_linear_equations(A_prime_mat, b_prime, g_precision);
+#endif
+    QStat result = HHL_run(A, b);
+    //QStat result = HHL_run_with_preprocess(A, b);
 
 	auto _file_name_pos = g_hhl_data_file.find_last_of('/');
 	if (_file_name_pos == (std::numeric_limits<size_t>::max)())
@@ -190,17 +261,16 @@ static void HHL_run(const std::string& data_file)
 	}
 
 	ofstream outfile(ofstream(output_file, ios::out | ios::binary));
-	if (!outfile.is_open())
-	{
+	if (!outfile.is_open()){
 		QCERR("Can NOT open the output file: " << output_file);
 	}
 
 	cout << "HHL_result of " << g_hhl_data_file << ": " << A_dimension << "-dimensional matrix:\n";
 	outfile << "HHL_result of " << g_hhl_data_file << ": " << A_dimension << "-dimensional matrix:\n";
-	for (int i = result_prime.size() / 2; i < result_prime.size(); ++i)
+	for (int i = 0, w = 0; i < result.size(); ++i)
 	{
-		std::cout << result_prime[i] << " ";
-		outfile << _tostring(result_prime[i].real()).c_str() << ", " << _tostring(result_prime[i].imag());
+		std::cout << result[i] << " ";
+		outfile << _tostring(result[i].real()).c_str() << ", " << _tostring(result[i].imag());
 		//if (++w == 2)
 		{
 			//w = 0;
@@ -215,9 +285,74 @@ static void HHL_run(const std::string& data_file)
 	return;
 }
 
+#define MAX_PRECISION 1e-10
+static int test_hhl_luojg(void)
+{
+    auto qvm = CPUQVM();
+    qvm.init();
+    QVec qvec = qvm.qAllocMany(4);
+    auto circuit = QCircuit();
+    auto prog = QProg();
+    circuit << H(qvec[1])
+        << H(qvec[2])
+        << RX(qvec[0], -PI / 2).control(qvec[1])
+        << U1(qvec[1], 3 * PI / 4)
+        << CNOT(qvec[2], qvec[0])
+        << SWAP(qvec[1], qvec[2])
+        << H(qvec[1])
+        << U1(qvec[1], -PI / 2).control(qvec[2])
+        << H(qvec[2]);
+
+    prog << RY(qvec[0], PI)
+        << circuit
+        << SWAP(qvec[1], qvec[2])
+        << RY(qvec[3], PI / 1024).control(qvec[2])
+        << RY(qvec[3], PI / 2048).control(qvec[1])
+        /*<< RY(qvec[3], PI / 16).control(qvec[2])
+        << RY(qvec[3], PI / 32).control(qvec[1])*/
+        << SWAP(qvec[2], qvec[1])
+        << circuit.dagger();
+
+    qvm.directlyRun(prog);
+    double C_coeff = 1 / (sin(PI / 2048));
+    //double C_coeff = 1 / (sin(PI / 16));
+    cout << C_coeff << endl;
+    auto stat = qvm.getQState();
+    qvm.finalize();
+    stat.erase(stat.begin(), stat.begin() + (stat.size() / 2));
+    QStat stat_normed;
+    for (auto& val : stat)
+    {
+        stat_normed.push_back(val * C_coeff);
+    }
+    for (auto& val : stat_normed)
+    {
+        qcomplex_t tmp_val((abs(val.real()) < MAX_PRECISION ? 0.0 : val.real()), (abs(val.imag()) < MAX_PRECISION ? 0.0 : val.imag()));
+        val = tmp_val;
+    }
+    // get solution
+    QStat result;
+    for (size_t i = 0; i < 2; ++i)
+    {
+        result.push_back(stat_normed.at(i));
+
+    }
+    for (auto& val : result)
+    {
+        cout << val << endl;
+    }
+    return 0;
+}
+
 int main(int argc, char* argv[])
 {
-	std::cout << "Version: 2.3.220713" << std::endl;
+    {
+        /* just for test */
+        //test_hhl_luojg();
+        //return 0;
+    }
+
+	std::cout << "Version: 2.3.230403" << std::endl;
 	const std::string parameter_descr_str = R"(    
     The legal parameter form is as follows:
     HHL_Algorithm [data-file] [precision]
@@ -241,7 +376,7 @@ int main(int argc, char* argv[])
     )";
 
 	//std::string data_file = "data.txt";
-#if 1
+#if 0
 	try
 	{
 		if (argc == 3) {
@@ -271,12 +406,14 @@ int main(int argc, char* argv[])
 	}
 #else
 	//g_hhl_data_file = "11HHL_test_data.txt";
-	g_hhl_data_file = "E://tmp//HHL_test//QuntumLY32.txt";
-	g_precision = 1;
+	//g_hhl_data_file = "E://tmp//HHL_test//QuntumLY32.txt";
+    g_hhl_data_file = "E:\\tmp\\HHL_test_DiLiSuo\\HHL_Ab_liuyi0402-test3u.txt";
+	g_precision = 2;
 #endif
 
-	HHL_run(g_hhl_data_file);
+	run(g_hhl_data_file);
 
 	cout << "HHL_Algorithm run over." << endl;
+    getchar();
 	return 0;
 }

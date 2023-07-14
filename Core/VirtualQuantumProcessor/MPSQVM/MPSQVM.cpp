@@ -761,6 +761,7 @@ void MPSQVM::execute(std::shared_ptr<AbstractQGateNode>  cur_node,
     case U2_GATE:
     case U3_GATE:
     case U4_GATE:
+    case RPHI_GATE:
         handle_one_target(cur_node, config);
         break;
     case CNOT_GATE:

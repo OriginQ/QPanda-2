@@ -1312,8 +1312,21 @@ prob_vec IdealQVM::getProbList(QVec vQubit, int selectMax)
 		{
 			vqubitAddr.push_back((*aiter)->getPhysicalQubitPtr()->getQubitAddr());
 		}
+
 		_pGates->pMeasure(vqubitAddr, vResult);
-		return vResult;
+
+        std::sort(vResult.begin(), vResult.end(),
+            [=](double a, double b) {return a > b ; });
+
+        if ((selectMax == -1) || (vResult.size() <= selectMax))
+        {
+            return vResult;
+        }
+        else
+        {
+            vResult.erase(vResult.begin() + selectMax, vResult.end());
+            return vResult;
+        }
 	}
 	catch (const std::exception& e)
 	{

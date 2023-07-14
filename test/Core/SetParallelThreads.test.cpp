@@ -26,10 +26,10 @@ static bool test_vf1_0()
 {
     auto qvm = CPUQVM();
     qvm.init();
-    cout << "111111111" << endl;
+    cout << "SetParallelThreads Test " << endl;
     qvm.set_parallel_threads(5);
-    auto q = qvm.qAllocMany(20);
-    auto c = qvm.cAllocMany(20);
+    auto q = qvm.qAllocMany(15);
+    auto c = qvm.cAllocMany(15);
     auto circuit = QCircuit();
     auto prog = QProg();
     for (auto &qbit : q) {
@@ -75,8 +75,8 @@ static bool test_vf1_1()
     auto qvm = NoiseQVM();
     qvm.init();
     qvm.set_parallel_threads(5);
-    auto q = qvm.qAllocMany(20);
-    auto c = qvm.cAllocMany(20);
+    auto q = qvm.qAllocMany(15);
+    auto c = qvm.cAllocMany(15);
     auto circuit = QCircuit();
     auto prog = QProg();
     for (auto &qbit : q) {

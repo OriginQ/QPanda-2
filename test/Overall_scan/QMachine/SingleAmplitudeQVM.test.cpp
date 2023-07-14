@@ -3,6 +3,7 @@
 #include "QPanda.h"
 #include "gtest/gtest.h"
 
+USING_QPANDA
 
 TEST(SingleAmplitudeQVMCase,test) {
 	SingleAmplitudeQVM saqvm;

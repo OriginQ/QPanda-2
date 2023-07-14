@@ -20,7 +20,7 @@ else :
 
 setup(  
     name = "pyqpanda",  
-    version = "3.7.12",  
+    version = "3.7.17",  
     license = "Apache Licence",  
     author = "OriginQ",
     install_requires=requirements,

@@ -25,9 +25,6 @@ limitations under the License.
 * @defgroup Components
 * @brief QPanda2  Components  Group
 *
-* @defgroup ChemiQ
-* @ingroup Components
-*
 * @defgroup HamiltonianSimulation
 * @ingroup Components
 *
@@ -80,10 +77,6 @@ limitations under the License.
 *
 * @defgroup B_V_Algorithm
 * @brief  Bernstein-Vazirani algorithm
-* @ingroup QAlg
-*
-* @defgroup QAlgChemiQ
-* @brief ChemiQ
 * @ingroup QAlg
 *
 * @defgroup DJ_Algorithm

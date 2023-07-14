@@ -2,6 +2,8 @@
 #include "QPanda.h"
 #include "gtest/gtest.h"
 
+USING_QPANDA
+
 //TEST(ClassicalConditionCon, test) {
 //
 //    CPUQVM* m_qvm = new CPUQVM();

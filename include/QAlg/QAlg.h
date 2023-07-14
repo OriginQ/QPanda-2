@@ -19,8 +19,6 @@ limitations under the License.
 #define _QALG_H
 
 #include "QAlg/B_V_Algorithm/BernsteinVaziraniAlgorithm.h"
-#include "QAlg/ChemiQ/ChemiQ.h"
-#include "QAlg/ChemiQ/ChemiQIFC.h"
 #include "QAlg/DJ_Algorithm/DJ_Algorithm.h"
 #include "QAlg/Grover/GroverAlgorithm.h"
 #include "QAlg/Grover/QuantumWalkGroverAlg.h"
@@ -36,5 +34,6 @@ limitations under the License.
 #include "QAlg/QSVM/QSVMAlgorithm.h"
 #include "QAlg/Shor/Shor.h"
 #include "QAlg/IQAE/IterativeQuantumAmplitudeEstimation.h"
+#include "QAlg/Encode/Encode.h"
 
 #endif // !_QALG_H

@@ -572,7 +572,7 @@ void PartialAmplitudeQVM::execute(std::shared_ptr<AbstractQGateNode>  cur_node, 
             construct_qnode(GateType::HADAMARD_GATE, cur_node->isDagger(), { ctr_qubit }, {});
             construct_qnode(GateType::HADAMARD_GATE, cur_node->isDagger(), { tar_qubit }, {});
             construct_qnode(GateType::CNOT_GATE, cur_node->isDagger(), { tar_qubit,ctr_qubit }, {});
-            construct_qnode(GateType::RZ_GATE, cur_node->isDagger(), { tar_qubit }, { 2 * angle_param });
+            construct_qnode(GateType::RZ_GATE, cur_node->isDagger(), { tar_qubit }, { angle_param });
             construct_qnode(GateType::CNOT_GATE, cur_node->isDagger(), { tar_qubit,ctr_qubit }, {});
             construct_qnode(GateType::HADAMARD_GATE, cur_node->isDagger(), { tar_qubit }, {});
             construct_qnode(GateType::HADAMARD_GATE, cur_node->isDagger(), { ctr_qubit }, {});
@@ -598,7 +598,7 @@ void PartialAmplitudeQVM::execute(std::shared_ptr<AbstractQGateNode>  cur_node, 
             construct_qnode(GateType::RX_GATE, cur_node->isDagger(), { ctr_qubit }, { PI / 2 });
             construct_qnode(GateType::RX_GATE, cur_node->isDagger(), { tar_qubit }, { PI / 2 });
             construct_qnode(GateType::CNOT_GATE, cur_node->isDagger(), { tar_qubit,ctr_qubit }, {});
-            construct_qnode(GateType::RZ_GATE, cur_node->isDagger(), { tar_qubit }, { 2 * angle_param });
+            construct_qnode(GateType::RZ_GATE, cur_node->isDagger(), { tar_qubit }, { angle_param });
             construct_qnode(GateType::CNOT_GATE, cur_node->isDagger(), { tar_qubit,ctr_qubit }, {});
             construct_qnode(GateType::RX_GATE, cur_node->isDagger(), { ctr_qubit }, { -PI / 2 });
             construct_qnode(GateType::RX_GATE, cur_node->isDagger(), { tar_qubit }, { -PI / 2 });
@@ -620,7 +620,7 @@ void PartialAmplitudeQVM::execute(std::shared_ptr<AbstractQGateNode>  cur_node, 
             auto angle_param = dynamic_cast<angleParameter*>(cur_node->getQGate())->getParameter();
 
             construct_qnode(GateType::CNOT_GATE, cur_node->isDagger(), { tar_qubit,ctr_qubit }, {});
-            construct_qnode(GateType::RZ_GATE, cur_node->isDagger(), { tar_qubit }, { 2 * angle_param });
+            construct_qnode(GateType::RZ_GATE, cur_node->isDagger(), { tar_qubit }, { angle_param });
             construct_qnode(GateType::CNOT_GATE, cur_node->isDagger(), { tar_qubit,ctr_qubit }, {});
 
             m_graph_backend.m_spilt_num += 2;
@@ -643,7 +643,7 @@ void PartialAmplitudeQVM::execute(std::shared_ptr<AbstractQGateNode>  cur_node, 
 
             construct_qnode(GateType::HADAMARD_GATE, cur_node->isDagger(), { tar_qubit }, {});
             construct_qnode(GateType::CNOT_GATE, cur_node->isDagger(), { tar_qubit,ctr_qubit }, {});
-            construct_qnode(GateType::RZ_GATE, cur_node->isDagger(), { tar_qubit }, { 2 * angle_param });
+            construct_qnode(GateType::RZ_GATE, cur_node->isDagger(), { tar_qubit }, { angle_param });
             construct_qnode(GateType::CNOT_GATE, cur_node->isDagger(), { tar_qubit,ctr_qubit }, {});
             construct_qnode(GateType::HADAMARD_GATE, cur_node->isDagger(), { tar_qubit }, {});
 

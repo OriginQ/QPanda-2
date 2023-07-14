@@ -600,20 +600,18 @@ CZ::CZ()
 }
 
 CP::CP(double angle)
+    :alpha(angle / 2)
 {
 	operation_num = 2;
-	alpha = angle / 2;
-	beta = angle;
-	gamma = 0;
-	delta = 0;
 	gate_matrix[15] = cos(angle);
 	gate_matrix[15].imag(1 * sin(angle));
 	gate_type = GateType::CP_GATE;
 }
 
 RXX::RXX(double angle)
-    :alpha(angle/2)
+    
 {
+    alpha = angle;
     operation_num = 2;
     const double cost = std::cos(0.5 * angle);
     const double sint = std::sin(0.5 * angle);
@@ -632,6 +630,7 @@ RXX::RXX(double angle)
 RYY::RYY(double angle)
     :alpha(angle / 2)
 {
+    alpha = angle;
     operation_num = 2;
     const double cost = std::cos(0.5 * angle);
     const double sint = std::sin(0.5 * angle);
@@ -650,6 +649,7 @@ RYY::RYY(double angle)
 RZZ::RZZ(double angle)
     :alpha(angle / 2)
 {
+    alpha = angle;
     operation_num = 2;
     qcomplex_t i(0, 1);
     const qcomplex_t exp_p = std::exp(i * 0.5 * angle);
@@ -664,6 +664,7 @@ RZZ::RZZ(double angle)
 RZX::RZX(double angle)
     :alpha(angle / 2)
 {
+    alpha = angle;
     operation_num = 2;
     const double cost = std::cos(0.5 * angle);
     const double sint = std::sin(0.5 * angle);

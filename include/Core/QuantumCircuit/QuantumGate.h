@@ -850,26 +850,29 @@ namespace QGATE_SPACE
         CZ();
     };
 
-	class CP :public CU,
+	class CP :public QDoubleGate,
         public AbstractSingleAngleParameter,
 		public DynamicCreator<CP,double&>,
 		public DynamicCreator<CP, QuantumGate*>
 	{
+    protected:
+        double alpha{ 0 };
 	public:
-		CP(QuantumGate  * gate_old) :CU(gate_old)
+		CP(QuantumGate  * gate_old) :QDoubleGate(gate_old)
 		{
-			if (gate_old->getGateType() != GateType::CP_GATE)
-			{
-				QCERR("Parameter qgate_old error");
-				throw std::invalid_argument("Parameter qgate_old error");
-			}
-			gate_type = gate_old->getGateType();
+            if (gate_old->getGateType() != GateType::CP_GATE)
+            {
+                QCERR("Parameter qgate_old error");
+                throw std::invalid_argument("Parameter qgate_old error");
+            }
+            gate_type = gate_old->getGateType();
+            alpha = dynamic_cast<QGATE_SPACE::CP*>(gate_old)->alpha;
 		}
 
 		CP(double);
 		inline double getParameter() const
 		{
-			return this->beta;
+            return this->alpha;
 		}
 
 	};

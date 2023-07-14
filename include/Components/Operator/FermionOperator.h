@@ -185,6 +185,9 @@ public:
         }
 
         //max_index++;
+        if (m_data.size() == 0) {
+            return SIZE_MAX;
+        }
 
         return max_index;
     }

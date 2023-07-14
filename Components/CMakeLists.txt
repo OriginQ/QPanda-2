@@ -8,18 +8,8 @@ file(GLOB_RECURSE COMPONENTS_SRC_CPP ${CMAKE_CURRENT_SOURCE_DIR}/HamiltonianSimu
                                      ${CMAKE_CURRENT_SOURCE_DIR}/Operator/*.cpp
                                      ${CMAKE_CURRENT_SOURCE_DIR}/Utils/*.cpp)
 
-if (USE_CHEMIQ)
-    # use pybind11 find PythonInterp anda PythonLibs
-    #find_package(PythonInterp 3 REQUIRED)
-    #find_package(PythonLibs 3 REQUIRED)
-    include_directories(${PYTHON_INCLUDE_DIRS})
-    add_library(${LIB_COMPONENTS} STATIC ${COMPONENTS_SRC_CPP})
-    target_link_libraries(${LIB_COMPONENTS} ${LIB_QPANDA} ${LIB_NLOPT})
-else ()
-    add_library(${LIB_COMPONENTS} STATIC ${COMPONENTS_SRC_CPP})
-    target_link_libraries(${LIB_COMPONENTS} ${LIB_QPANDA} ${LIB_NLOPT})
-endif()
-
+add_library(${LIB_COMPONENTS} STATIC ${COMPONENTS_SRC_CPP})
+target_link_libraries(${LIB_COMPONENTS} ${LIB_QPANDA} ${LIB_NLOPT})
 
 INSTALL(TARGETS ${LIB_COMPONENTS}
         EXPORT  ${TARGETS_EXPORT_NAME}

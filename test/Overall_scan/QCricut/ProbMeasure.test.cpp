@@ -3,6 +3,7 @@
 #include "QPanda.h"
 #include "gtest/gtest.h"
 
+USING_QPANDA
 
 TEST(ProbMeasureCase,test) {
     auto qvm = CPUQVM();

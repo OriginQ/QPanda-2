@@ -3,6 +3,8 @@
 #include "QPanda.h"
 #include "gtest/gtest.h"
 
+USING_QPANDA
+
 TEST(QuantMachineFactoryTest, test) {
 	QuantumMachineFactory qmfac = QuantumMachineFactory::GetFactoryInstance();
 //	QuantumMachine* cpuqm = qmfac.CreateByName("CPU");

@@ -32,6 +32,7 @@ limitations under the License.
 #include "Core/QuantumMachine/SingleAmplitudeQVM.h" 
 #include "Core/QuantumMachine/PartialAmplitudeQVM.h"
 #include "Core/QuantumMachine/QuantumMachineInterface.h"
+#include "Core/VirtualQuantumProcessor/Stabilizer/Stabilizer.h" 
 #include "Core/VirtualQuantumProcessor/DensityMatrix/DensityMatrixSimulator.h"
 
 #include "Core/Utilities/Compiler/QProgDataParse.h"

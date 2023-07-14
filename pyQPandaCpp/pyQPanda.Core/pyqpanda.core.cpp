@@ -869,7 +869,7 @@ PYBIND11_MODULE(pyQPanda, m)
 	m.def("count_qgate_num",
 		py::overload_cast<QProg&, const GateType> (&count_qgate_num<QProg>),
 		py::arg("quantum_prog"),
-		py::arg("gtype") = GateType::GATE_UNDEFINED,
+		py::arg("gtype") = (int)GateType::GATE_UNDEFINED,
 		"Count quantum gate num under quantum program\n"
         "\n"
 		"Args:\n"
@@ -883,7 +883,7 @@ PYBIND11_MODULE(pyQPanda, m)
 	m.def("count_qgate_num",
 		py::overload_cast<QCircuit&, const GateType> (&count_qgate_num<QCircuit>),
 		py::arg("quantum_circuit"),
-		py::arg("gtype") = GateType::GATE_UNDEFINED,
+		py::arg("gtype") = (int)GateType::GATE_UNDEFINED,
 		"Count quantum gate num under quantum circuit\n"
         "\n"
 		"Args:\n"
@@ -3322,6 +3322,8 @@ PYBIND11_MODULE(pyQPanda, m)
         "    run_fail: An error occurred in planarity_testing\n",
         py::return_value_policy::automatic);
 
+    #if defined(USE_OPENSSL) && defined(USE_CURL)
+
 	//---------------------------------------------------------------------------------------------------------------------
 	/* include\Core\Utilities\QProgInfo\RandomizedBenchmarking.h */
 	m.def("single_qubit_rb",
@@ -3349,12 +3351,23 @@ PYBIND11_MODULE(pyQPanda, m)
         py::return_value_policy::automatic);
 
 	m.def("single_qubit_rb",
-        py::overload_cast<QCloudMachine *, Qubit *, const std::vector<int> &, int, int, const std::vector<QGate> &>(&single_qubit_rb),
+        [](QCloudMachine* qvm,
+           Qubit* qbit,
+           const std::vector<int>& clifford_range,
+           int num_circuits,
+           int shots,
+           int chip_id = (int)RealChipType::ORIGIN_WUYUAN_D5,
+           const std::vector<QGate>& interleaved_gates = {})
+        {
+            auto real_chip_type = static_cast<RealChipType>(chip_id);
+            return single_qubit_rb(qvm, qbit, clifford_range, num_circuits, shots, real_chip_type, interleaved_gates);
+        },
         py::arg("qvm"),
         py::arg("qubit"),
         py::arg("clifford_range"),
         py::arg("num_circuits"),
         py::arg("shots"),
+        py::arg("chip_id") = (int)RealChipType::ORIGIN_WUYUAN_D5,
         py::arg("interleaved_gates") = std::vector<QGate>(),
         "Single qubit rb with WU YUAN chip\n"
         "\n"
@@ -3364,6 +3377,7 @@ PYBIND11_MODULE(pyQPanda, m)
         "    clifford_range: clifford range list\n"
         "    num_circuits: the num of circuits\n"
         "    shots: measure shots\n"
+        "    chip type: RealChipType\n"
         "    interleaved_gates: interleaved gates list\n"
         "\n"
         "Returns:\n"
@@ -3399,13 +3413,25 @@ PYBIND11_MODULE(pyQPanda, m)
         py::return_value_policy::automatic);
 
 	m.def("double_qubit_rb",
-        py::overload_cast<QCloudMachine *, Qubit *, Qubit *, const std::vector<int> &, int, int, const std::vector<QGate> &>(&double_qubit_rb),
+        [](QCloudMachine* qvm,
+           Qubit* qbit0,
+           Qubit* qbit1,
+           const std::vector<int>& clifford_range,
+           int num_circuits,
+           int shots,
+           int chip_id = (int)RealChipType::ORIGIN_WUYUAN_D5,
+           const std::vector<QGate>& interleaved_gates = {})
+        {
+            auto real_chip_type = static_cast<RealChipType>(chip_id);
+            return double_qubit_rb(qvm, qbit0, qbit1, clifford_range, num_circuits, shots, real_chip_type, interleaved_gates);
+        },
         py::arg("qvm"),
         py::arg("qubit0"),
         py::arg("qubit1"),
         py::arg("clifford_range"),
         py::arg("num_circuits"),
         py::arg("shots"),
+        py::arg("chip_id") = (int)RealChipType::ORIGIN_WUYUAN_D5,
         py::arg("interleaved_gates") = std::vector<QGate>(),
         "double qubit rb with WU YUAN chip"
         "\n"
@@ -3416,6 +3442,7 @@ PYBIND11_MODULE(pyQPanda, m)
         "    clifford_range: clifford range list\n"
         "    num_circuits: the num of circuits\n"
         "    shots: measure shots\n"
+        "    chip type: RealChipType\n"
         "    interleaved_gates: interleaved gates list\n"
         "\n"
         "Returns:\n"
@@ -3427,13 +3454,25 @@ PYBIND11_MODULE(pyQPanda, m)
 	//---------------------------------------------------------------------------------------------------------------------
 	/* include\Core\Utilities\QProgInfo\CrossEntropyBenchmarking.h */
 	m.def("double_gate_xeb",
-        py::overload_cast<QCloudMachine *, Qubit *, Qubit *, const std::vector<int> &, int, int, GateType>(&double_gate_xeb),
+        [](QCloudMachine* qvm,
+           Qubit* qbit0,
+           Qubit* qbit1,
+           const std::vector<int>& range,
+           int num_circuits,
+           int shots,
+           int chip_id = (int)RealChipType::ORIGIN_WUYUAN_D5,
+           GateType gt = GateType::CZ_GATE)
+        {
+            auto real_chip_type = static_cast<RealChipType>(chip_id);
+            return double_gate_xeb(qvm, qbit0, qbit1, range, num_circuits, shots, real_chip_type, gt);
+        },
         py::arg("cloud_qvm"),
         py::arg("qubit0"),
         py::arg("qubit1"),
         py::arg("clifford_range"),
         py::arg("num_circuits"),
         py::arg("shots"),
+        py::arg("chip_id") = (int)RealChipType::ORIGIN_WUYUAN_D5,
         py::arg_v("gate_type", GateType::CZ_GATE, "GateType.CZ_GATE"),
         "double gate xeb with WU YUAN chip\n"
         "\n"
@@ -3444,6 +3483,7 @@ PYBIND11_MODULE(pyQPanda, m)
         "    clifford_range: clifford range list\n"
         "    num_circuits: the num of circuits\n"
         "    shots: measure shots\n"
+        "    chip type: RealChipType\n"
         "    interleaved_gates: interleaved gates list\n"
         "\n"
         "Returns:\n"
@@ -3519,6 +3559,8 @@ PYBIND11_MODULE(pyQPanda, m)
         "Raises:\n"
         "    run_fail: An error occurred in calculate_quantum_volume\n",
         py::return_value_policy::automatic);
+
+    #endif
 
 	//---------------------------------------------------------------------------------------------------------------------
 	/* include\Core\Utilities\Tools\RandomCircuit.h */

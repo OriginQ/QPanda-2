@@ -1,9 +1,9 @@
 #include "Core/Core.h"
 #include "Core/QuantumMachine/SingleAmplitudeQVM.h"
 #include "Core/QuantumMachine/PartialAmplitudeQVM.h"
-#include "Core/QuantumMachine/QCloudMachine.h"
 #include "Core/VirtualQuantumProcessor/NoiseQPU/NoiseModel.h"
 #include "Core/VirtualQuantumProcessor/SparseQVM/SparseQVM.h"
+#include "Core/VirtualQuantumProcessor/Stabilizer/Stabilizer.h"
 #include "Core/VirtualQuantumProcessor/DensityMatrix/DensityMatrixSimulator.h"
 #include <map>
 #include <math.h>
@@ -18,6 +18,11 @@
 #include <pybind11/stl_bind.h>
 #include "pybind11/eigen.h"
 #include "template_generator.h"
+
+#if defined(USE_OPENSSL) && defined(USE_CURL)
+#include "Core/QuantumCloud/QCloudMachine.h"
+#endif
+
 USING_QPANDA
 namespace py = pybind11;
 using namespace pybind11::literals;
@@ -30,10 +35,10 @@ void export_quantum_machine(py::module &m)
         .def(
             "set_configure",
             [](QuantumMachine &qvm, size_t max_qubit, size_t max_cbit)
-    {
-        Configuration config = { max_qubit, max_cbit };
-        qvm.setConfig(config);
-    },
+            {
+                Configuration config = { max_qubit, max_cbit };
+                qvm.setConfig(config);
+            },
             py::arg("max_qubit"),
         py::arg("max_cbit"),
         "set QVM max qubit and max cbit\n"
@@ -897,6 +902,27 @@ void export_quantum_machine(py::module &m)
             "    measure result of quantum machine\n"
             "Raises:\n"
             "    run_fail: An error occurred in measure quantum program\n")
+        .def("directlyRun", &SparseSimulator::directlyRun,
+            "Run quantum program and get pmeasure result as dict\n"
+            "\n"
+            "Args:\n"
+            "    qprog: quantum program\n"
+            "\n"
+            "Returns:\n"
+            "     Dict[str, bool]: result of quantum program execution one shot.\n"
+            "Raises:\n"
+            "    run_fail: An error occurred in measure quantum program\n")
+
+        .def("directly_run", &SparseSimulator::directlyRun,
+            "Run quantum program and get pmeasure result as dict\n"
+            "\n"
+            "Args:\n"
+            "    qprog: quantum program\n"
+            "\n"
+            "Returns:\n"
+            "    measure result of quantum machine\n"
+            "Raises:\n"
+            "    run_fail: An error occurred in measure quantum program\n")
 
         .def("run_with_configuration", &SparseSimulator::runWithConfiguration,
             "Run quantum program and get pmeasure result as dict\n"
@@ -1101,6 +1127,44 @@ void export_quantum_machine(py::module &m)
         .def("set_noise_model", py::overload_cast<const NOISE_MODEL &, const std::vector<GateType> &, double, double, double, const QVec &>(&DensityMatrixSimulator::set_noise_model))
         .def("set_noise_model", py::overload_cast<const NOISE_MODEL &, const GateType &, double, double, double, const std::vector<QVec> &>(&DensityMatrixSimulator::set_noise_model));
 
+        py::class_<Stabilizer, QuantumMachine>(m, "Stabilizer", "simulator for basic clifford simulator")
+            .def(py::init<>())
+            .def("init_qvm",
+                &Stabilizer::init,
+                "init quantum virtual machine")
+            .def("run_with_configuration",
+                &Stabilizer::runWithConfiguration,
+                py::arg("qprog"),
+                py::arg("shot"),
+                py::arg_v("noise_model", NoiseModel(), "NoiseModel()"),
+
+                "Run quantum program and get shots result \n"
+                "\n"
+                "Args:\n"
+                "    prog: quantum program \n"
+                "    int: measure shots\n"
+                "\n"
+                "Returns:\n"
+                "    shots result of quantum program \n"
+                "Raises:\n"
+                "    run_fail: An error occurred in run_with_configuration\n")
+
+            .def("prob_run_dict",
+                &Stabilizer::probRunDict,
+                py::arg("qprog"),
+                py::arg("qubits"),
+                py::arg_v("select_max", -1, "-1"),
+                "Run quantum program and get probabilities\n"
+                "\n"
+                "Args:\n"
+                "    prog: quantum program \n"
+                "    qubits: pmeasure qubits\n"
+                "\n"
+                "Returns:\n"
+                "    probabilities result of quantum program \n"
+                "Raises:\n"
+                "    run_fail: An error occurred in prob_run_dict\n");
+
     py::class_<MPSQVM, QuantumMachine> mps_qvm(m, "MPSQVM", "quantum matrix product state machine class");
     mps_qvm.def(py::init<>())
         .def("pmeasure", &MPSQVM::PMeasure, "qubit_list"_a, "select_max"_a = -1,
@@ -1297,35 +1361,13 @@ void export_quantum_machine(py::module &m)
 
     /*combine error*/
 
-#ifdef USE_CURL
+#if defined(USE_OPENSSL) && defined(USE_CURL)
 
     py::enum_<RealChipType>(m, "real_chip_type", "origin quantum real chip type enum")
         .value("origin_wuyuan_d3", RealChipType::ORIGIN_WUYUAN_D3)
         .value("origin_wuyuan_d4", RealChipType::ORIGIN_WUYUAN_D4)
         .value("origin_wuyuan_d5", RealChipType::ORIGIN_WUYUAN_D5)
         .export_values();
-
-    py::enum_<TaskStatus>(m, "task_status", "origin quantum cloud task status")
-        .value("waiting", TaskStatus::WAITING)
-        .value("computing", TaskStatus::COMPUTING)
-        .value("finished", TaskStatus::FINISHED)
-        .value("failed", TaskStatus::FAILED)
-        .value("queuing", TaskStatus::QUEUING)
-        .export_values();
-
-    // py::enum_<RealChipType>(m, "RealChipType")
-    //     .value("origin_wuyuan_d3", RealChipType::ORIGIN_WUYUAN_D3)
-    //     .value("origin_wuyuan_d4", RealChipType::ORIGIN_WUYUAN_D4)
-    //     .value("origin_wuyuan_d5", RealChipType::ORIGIN_WUYUAN_D5)
-    //     .export_values();
-
-    // py::enum_<TaskStatus>(m, "TaskStatus")
-    //     .value("waiting", TaskStatus::WAITING)
-    //     .value("computing", TaskStatus::COMPUTING)
-    //     .value("finished", TaskStatus::FINISHED)
-    //     .value("failed", TaskStatus::FAILED)
-    //     .value("queuing", TaskStatus::QUEUING)
-    //     .export_values();
 
     py::class_<QCloudMachine, QuantumMachine>(m, "QCloud", "origin quantum cloud machine")
         .def(py::init<>())
@@ -1337,11 +1379,6 @@ void export_quantum_machine(py::module &m)
 
         // url setting
         .def("set_qcloud_api", &QCloudMachine::set_qcloud_api)
-
-        .def("set_inquire_url", &QCloudMachine::set_inquire_url)
-        .def("set_compute_url", &QCloudMachine::set_compute_url)
-        .def("set_batch_inquire_url", &QCloudMachine::set_batch_inquire_url)
-        .def("set_batch_compute_url", &QCloudMachine::set_batch_compute_url)
 
         // noise
         .def("set_noise_model", &QCloudMachine::set_noise_model)
@@ -1377,13 +1414,108 @@ void export_quantum_machine(py::module &m)
             py::arg("prog"),
             py::arg("amplitude"),
             py::arg("task_name") = "QPanda Experiment")
+/*
+        // real chip expectation!
+        .def("real_chip_expectation",
+            [](QCloudMachine& machine,
+               QProg& prog,
+               const std::string &hamiltonian,
+               const std::vector<uint32_t> qubits,
+               int shot,
+               int chip_id = (int)RealChipType::ORIGIN_WUYUAN_D5,
+               bool is_amend = true,
+               bool is_mapping = true,
+               bool is_optimization = true,
+               std::string task_name = "QPanda Experiment")
+            {
+                auto real_chip_type = static_cast<RealChipType>(chip_id);
+                return machine.real_chip_expectation(prog, hamiltonian, qubits, shot, real_chip_type, is_amend, is_mapping, is_optimization, task_name);
+            },
+            py::arg("prog"),
+            py::arg("hamiltonian"),
+            py::arg("qubits"),
+            py::arg("shot"),
+            py::arg("chip_id") = (int)RealChipType::ORIGIN_WUYUAN_D5,
+            py::arg("is_amend") = true,
+            py::arg("is_mapping") = true,
+            py::arg("is_optimization") = true,
+            py::arg("task_name") = "QPanda Experiment")
+*/
+        // real chip measure
+        .def("real_chip_measure",
+            [](QCloudMachine& machine,
+               QProg& prog, 
+               int shot, 
+               int chip_id = (int)RealChipType::ORIGIN_WUYUAN_D5,
+               bool is_amend = true,
+               bool is_mapping = true,
+               bool is_optimization = true,
+               std::string task_name = "QPanda Experiment")
+            {
+                auto real_chip_type = static_cast<RealChipType>(chip_id);
+                return machine.real_chip_measure(prog, shot, real_chip_type, is_amend, is_mapping, is_optimization, task_name);
+            },
+            py::arg("prog"),
+            py::arg("shot"),
+            py::arg("chip_id") = (int)RealChipType::ORIGIN_WUYUAN_D5,
+            py::arg("is_amend") = true,
+            py::arg("is_mapping") = true,
+            py::arg("is_optimization") = true,
+            py::arg("task_name") = "QPanda Experiment")
+
+        // get state fidelity
+        .def("get_state_fidelity",
+            [](QCloudMachine& machine,
+               QProg& prog,
+               int shot,
+               int chip_id = (int)RealChipType::ORIGIN_WUYUAN_D5,
+               bool is_amend = true,
+               bool is_mapping = true,
+               bool is_optimization = true,
+               std::string task_name = "QPanda Experiment")
+            {
+                auto real_chip_type = static_cast<RealChipType>(chip_id);
+                return machine.get_state_fidelity(prog, shot, real_chip_type, is_amend, is_mapping, is_optimization, task_name);
+            },
+            py::arg("prog"),
+            py::arg("shot"),
+            py::arg("chip_id") = (int)RealChipType::ORIGIN_WUYUAN_D5,
+            py::arg("is_amend") = true,
+            py::arg("is_mapping") = true,
+            py::arg("is_optimization") = true,
+            py::arg("task_name") = "QPanda Experiment")
+
+
+        // real chip get_state_tomography_density
+        .def("get_state_tomography_density",
+            [](QCloudMachine& machine,
+               QProg& prog,
+               int shot,
+               int chip_id = (int)RealChipType::ORIGIN_WUYUAN_D5,
+               bool is_amend = true,
+               bool is_mapping = true,
+               bool is_optimization = true,
+               std::string task_name = "QPanda Experiment")
+            {
+                auto real_chip_type = static_cast<RealChipType>(chip_id);
+                return machine.get_state_tomography_density(prog, shot, real_chip_type, is_amend, is_mapping, is_optimization, task_name);
+            },
+            py::arg("prog"),
+            py::arg("shot"),
+            py::arg("chip_id") = (int)RealChipType::ORIGIN_WUYUAN_D5,
+            py::arg("is_amend") = true,
+            py::arg("is_mapping") = true,
+            py::arg("is_optimization") = true,
+            py::arg("task_name") = "QPanda Experiment")
+
+#if 0
 
         // real chip measure
         .def("real_chip_measure",
             &QCloudMachine::real_chip_measure,
             py::arg("prog"),
             py::arg("shot"),
-            py::arg_v("chip_id", RealChipType::ORIGIN_WUYUAN_D5, "real_chip_type.origin_wuyuan_d5"),
+            py::arg_v("chip_id", (size_t)RealChipType::ORIGIN_WUYUAN_D5, "real_chip_type.origin_wuyuan_d5"),
             py::arg("is_amend") = true,
             py::arg("is_mapping") = true,
             py::arg("is_optimization") = true,
@@ -1394,7 +1526,7 @@ void export_quantum_machine(py::module &m)
             &QCloudMachine::get_state_fidelity,
             py::arg("prog"),
             py::arg("shot"),
-            py::arg_v("chip_id", RealChipType::ORIGIN_WUYUAN_D5, "real_chip_type.origin_wuyuan_d5"),
+            py::arg_v("chip_id", (size_t)RealChipType::ORIGIN_WUYUAN_D5, "real_chip_type.origin_wuyuan_d5"),
             py::arg("is_amend") = true,
             py::arg("is_mapping") = true,
             py::arg("is_optimization") = true,
@@ -1405,49 +1537,20 @@ void export_quantum_machine(py::module &m)
             &QCloudMachine::get_state_tomography_density,
             py::arg("prog"),
             py::arg("shot"),
-            py::arg_v("chip_id", RealChipType::ORIGIN_WUYUAN_D5, "real_chip_type.origin_wuyuan_d5"),
+            py::arg_v("chip_id", (size_t)RealChipType::ORIGIN_WUYUAN_D5, "real_chip_type.origin_wuyuan_d5"),
             py::arg("is_amend") = true,
             py::arg("is_mapping") = true,
             py::arg("is_optimization") = true,
             py::arg("task_name") = "QPanda Experiment")
+#endif
 
         // get_expectation
         .def("get_expectation",
-            py::overload_cast<QProg, const QHamiltonian&, const QVec&, TaskStatus&, std::string>(&QCloudMachine::get_expectation),
-            py::arg("prog"),
-            py::arg("hamiltonian"),
-            py::arg("qvec"),
-            py::arg("status"),
-            py::arg("task_name") = "QPanda Experiment")
-
-        // get_expectation
-        .def("get_expectation",
-            py::overload_cast<QProg, const QHamiltonian&, const QVec&, std::string>(&QCloudMachine::get_expectation),
+            &QCloudMachine::get_expectation,
             py::arg("prog"),
             py::arg("hamiltonian"),
             py::arg("qvec"),
             py::arg("task_name") = "QPanda Experiment")
-
-        // get_expectation commit
-        .def("get_expectation_commit",
-            &QCloudMachine::get_expectation_commit,
-            py::arg("prog"),
-            py::arg("hamiltonian"),
-            py::arg("qvec"),
-            py::arg("status"),
-            py::arg("task_name") = "QPanda Experiment")
-
-        // get_expectation_exec
-        .def("get_expectation_exec",
-            &QCloudMachine::get_expectation_exec,
-            py::arg("taskid"),
-            py::arg("status"))
-
-        // get_expectation_query
-        .def("get_expectation_query",
-            &QCloudMachine::get_expectation_query,
-            py::arg("taskid"),
-            py::arg("status"))
 
         // full_amplitude
         .def("full_amplitude_measure_batch",
@@ -1488,49 +1591,13 @@ void export_quantum_machine(py::module &m)
             &QCloudMachine::real_chip_measure_batch,
             py::arg("prog_array"),
             py::arg("shot"),
-            py::arg_v("chip_id", RealChipType::ORIGIN_WUYUAN_D3, "real_chip_type.origin_wuyuan_d3"),
+            py::arg_v("chip_id", (size_t)RealChipType::ORIGIN_WUYUAN_D3, "real_chip_type.origin_wuyuan_d3"),
             py::arg("is_amend") = true,
             py::arg("is_mapping") = true,
             py::arg("is_optimization") = true,
-            py::arg("task_name") = "QPanda Experiment")
+            py::arg("task_name") = "QPanda Experiment");
 
-        .def("full_amplitude_measure_batch_commit",
-            &QCloudMachine::full_amplitude_measure_batch_commit,
-            py::arg("prog_array"),
-            py::arg("shot"),
-            py::arg("status"),
-            py::arg("task_name") = "QPanda Experiment")
-
-        .def("full_amplitude_pmeasure_batch_commit",
-            &QCloudMachine::full_amplitude_pmeasure_batch_commit,
-            py::arg("prog_array"),
-            py::arg("qvec"),
-            py::arg("status"),
-            py::arg("task_name") = "QPanda Experiment")
-
-        .def("real_chip_measure_batch_commit",
-            &QCloudMachine::real_chip_measure_batch_commit,
-            py::arg("prog_array"),
-            py::arg("shot"),
-            py::arg("status"),
-            py::arg_v("chip_id", RealChipType::ORIGIN_WUYUAN_D3, "real_chip_type.origin_wuyuan_d3"),
-            py::arg("is_amend") = true,
-            py::arg("is_mapping") = true,
-            py::arg("is_optimization") = true,
-            py::arg("task_name") = "QPanda Experiment")
-
-        .def("full_amplitude_measure_batch_query",
-            &QCloudMachine::full_amplitude_measure_batch_query,
-            py::arg("taskid_map"))
-
-        .def("full_amplitude_pmeasure_batch_query",
-            &QCloudMachine::full_amplitude_pmeasure_batch_query,
-            py::arg("taskid_map"))
-
-        .def("real_chip_measure_batch_query",
-            &QCloudMachine::real_chip_measure_batch_query,
-            py::arg("taskid_map"));
-
+   
 #endif // USE_CURL
 
     py::implicitly_convertible<CPUQVM, QuantumMachine>();
@@ -1539,5 +1606,6 @@ void export_quantum_machine(py::module &m)
     py::implicitly_convertible<NoiseQVM, QuantumMachine>();
     py::implicitly_convertible<SingleAmplitudeQVM, QuantumMachine>();
     py::implicitly_convertible<PartialAmplitudeQVM, QuantumMachine>();
+    py::implicitly_convertible<Stabilizer, QuantumMachine>();
     py::implicitly_convertible<DensityMatrixSimulator, QuantumMachine>();
 }

@@ -1,0 +1,191 @@
+#pragma once
+
+#include "QPandaConfig.h"
+#include "Core/QuantumCloud/QCloudMachineImp.h"
+#include "Core/QuantumMachine/OriginQuantumMachine.h"
+
+#if defined(USE_OPENSSL) && defined(USE_CURL)
+
+QPANDA_BEGIN
+
+/*
+* @class QCloudMachine
+* @brief Quantum Cloud Machine For Connecting Origin QCloud
+* @ingroup QuantumMachine
+*/
+class QCloudMachine :public QVM
+{
+public:
+    QCloudMachine();
+    ~QCloudMachine();
+
+    void init(std::string token, bool is_logged = false);
+
+    void set_qcloud_api(std::string url);
+    void set_noise_model(NOISE_MODEL model, const std::vector<double> single_params, const std::vector<double> double_params);
+
+    /**
+    * @brief  run a measure quantum program
+    * @param[in]  QProg& the reference to a quantum program
+    * @param[in]  int&   shot
+    * @param[out] std::map<std::string, double>
+    * @return     measure result
+    */
+    std::map<std::string, double> noise_measure(
+        QProg& prog,
+        int shots,
+        std::string task_name = "QPanda Experiment");
+
+    /**
+    * @brief  run a measure quantum program
+    * @param[in]  QProg& the reference to a quantum program
+    * @param[in]  int&   shot
+    * @param[out] std::map<std::string, double>
+    * @return     measure result
+    */
+    std::map<std::string, double> full_amplitude_measure(
+        QProg& prog, 
+        int shot, 
+        std::string task_name = "QPanda Experiment");
+
+    /**
+    * @brief  run a pmeasure quantum program
+    * @param[in]  QProg& the reference to a quantum program
+    * @param[in]  Qnum & qubit address vector
+    * @param[out] std::map<std::string, double>
+    * @return     pmeasure result
+    */
+    std::map<std::string, double> full_amplitude_pmeasure(
+        QProg& prog, 
+        Qnum qubit_vec, 
+        std::string task_name = "QPanda Experiment");
+
+    /**
+    * @brief  run a pmeasure quantum program with partial amplitude backend
+    * @param[in]  QProg& the reference to a quantum program
+    * @param[in]  std::vector<std::string> & amplitude subset
+    * @param[out] std::map<std::string, qcomplex_t>
+    * @return     pmeasure result
+    */
+    std::map<std::string, qcomplex_t> partial_amplitude_pmeasure(
+        QProg& prog, 
+        std::vector<std::string> amplitudes, 
+        std::string task_name = "QPanda Experiment");
+
+    /**
+    * @brief  run a pmeasure quantum program with single amplitude backend
+    * @param[in]  QProg& the reference to a quantum program
+    * @param[in]  std::string amplitude
+    * @param[out] qcomplex_t
+    * @return     pmeasure result
+    */
+    qcomplex_t single_amplitude_pmeasure(
+        QProg& prog, 
+        std::string amplitude, 
+        std::string task_name = "QPanda Experiment");
+
+    /**
+    * @brief  run a measure quantum program
+    * @param[in]  QProg& the reference to a quantum program
+    * @param[in]  int&   shot
+    * @param[out] std::map<std::string, double>
+    * @return     measure result
+    */
+    std::map<std::string, double> real_chip_measure(
+        QProg& prog,
+        int shot,
+        RealChipType chip_id = RealChipType::ORIGIN_WUYUAN_D5,
+        bool is_amend = true,
+        bool is_mapping = true,
+        bool is_optimization = true,
+        std::string task_name = "QPanda Experiment");
+
+    /**
+    * @brief  get real chip qst matrix
+    * @param[in]  QProg& the reference to a quantum program
+    * @param[in]  int&   shot
+    * @param[out] QStat matrix
+    * @return     matrix
+    */
+    std::vector<QStat> get_state_tomography_density(
+        QProg& prog,
+        int shot,
+        RealChipType chip_id = RealChipType::ORIGIN_WUYUAN_D5,
+        bool is_amend = true,
+        bool is_mapping = true,
+        bool is_optimization = true,
+        std::string task_name = "QPanda Experiment");
+
+    /**
+    * @brief  get real chip qst fidelity
+    * @param[in]  QProg& the reference to a quantum program
+    * @param[in]  int&   shot
+    * @param[out] QStat matrix
+    * @return     matrix
+    */
+    double get_state_fidelity(
+        QProg& prog,
+        int shot,
+        RealChipType chip_id = RealChipType::ORIGIN_WUYUAN_D5,
+        bool is_amend = true,
+        bool is_mapping = true,
+        bool is_optimization = true,
+        std::string task_name = "QPanda Experiment");
+
+    /**
+    * @brief  get expectation
+    * @param[in]  QProg& the reference to a quantum program
+    * @param[in]  QHamiltonian& hamiltonian
+    * @param[in]  QVec& qubits
+    * @return     expectation
+    */
+    double get_expectation(
+        QProg& prog, 
+        const QHamiltonian& hamiltonian,
+        const QVec& qubits,
+        std::string task_name = "QPanda Experiment");
+
+    std::vector<std::map<std::string, double>> full_amplitude_measure_batch(
+        std::vector<QProg>& prog_vector,
+        int shot,
+        std::string task_name = "QPanda Experiment");
+
+    std::vector<std::map<std::string, double>> full_amplitude_pmeasure_batch(
+        std::vector<QProg>& prog_vector,
+        Qnum qubits,
+        std::string task_name = "QPanda Experiment");
+
+    std::vector<std::map<std::string, qcomplex_t>> partial_amplitude_pmeasure_batch(
+        std::vector<QProg>& prog_vector,
+        std::vector<std::string> amplitudes,
+        std::string task_name = "QPanda Experiment");
+
+    std::vector<qcomplex_t> single_amplitude_pmeasure_batch(
+        std::vector<QProg>& prog_vector,
+        std::string amplitudes,
+        std::string task_name = "QPanda Experiment");
+
+    std::vector<std::map<std::string, double>> noise_measure_batch(
+        std::vector<QProg>& prog_vector,
+        int shot,
+        std::string task_name = "QPanda Experiment");
+
+    std::vector<std::map<std::string, double>> real_chip_measure_batch(
+        std::vector<QProg>& prog_vector,
+        int shot,
+        RealChipType chip_id = RealChipType::ORIGIN_WUYUAN_D5,
+        bool is_amend = true,
+        bool is_mapping = true,
+        bool is_optimization = true,
+        std::string task_name = "QPanda Experiment");
+
+private:
+
+    NoiseConfigs m_noisy_args;
+    std::shared_ptr<QCloudMachineImp> m_cloud_imp;
+
+};
+
+QPANDA_END
+
+#endif

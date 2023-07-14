@@ -1,14 +1,13 @@
 #ifndef _CROSS_ENTROPY_BENCHMARKING_H
 #define _CROSS_ENTROPY_BENCHMARKING_H
 
-
-#include "Core/QuantumMachine/OriginQuantumMachine.h"
 #include "Core/QuantumCircuit/QCircuit.h"
-#include "Core/QuantumMachine/QCloudMachine.h"
-
-
+#include "Core/QuantumCloud/QCloudMachine.h"
+#include "Core/QuantumMachine/OriginQuantumMachine.h"
 
 QPANDA_BEGIN
+
+#if defined(USE_OPENSSL) && defined(USE_CURL)
 
 /**
 * @class MeasureQVMType
@@ -42,7 +41,7 @@ public:
 	 * @param[in] int  measure shot number
 	 * @return std::map<int, double>  xeb result of each layer
 	 */
-	std::map<int, double> calculate_xeb_fidelity(GateType gt, Qubit* qbit0, Qubit* qbit1, const std::vector<int>& cycle_range, int num_circuits, int shots);
+    std::map<int, double> calculate_xeb_fidelity(GateType gt, Qubit* qbit0, Qubit* qbit1, const std::vector<int>& cycle_range, int num_circuits, int shots, RealChipType chip_type = RealChipType::ORIGIN_WUYUAN_D5);
 
 private:
 
@@ -115,10 +114,20 @@ std::map<int, double> double_gate_xeb(NoiseQVM* qvm, Qubit* qbit0, Qubit* qbit1,
  * @param[in] const std::vector<int>&   number of layer
  * @param[in] int number of circuit per layer
  * @param[in] int run number
+ * @param[in] RealChipType type
  * @param[in] GateType  gate type
  * @return std::map<int, double>  xeb result of each layer
  */
-std::map<int, double> double_gate_xeb(QCloudMachine* qvm,  Qubit* qbit0, Qubit* qbit1, const std::vector<int>& range, int num_circuits, int shots, GateType gt = GateType::CZ_GATE);
+std::map<int, double> double_gate_xeb(QCloudMachine* qvm,  
+    Qubit* qbit0, 
+    Qubit* qbit1, 
+    const std::vector<int>& range, 
+    int num_circuits, 
+    int shots, 
+    RealChipType type = RealChipType::ORIGIN_WUYUAN_D5,
+    GateType gt = GateType::CZ_GATE);
+
+#endif
 
 QPANDA_END
 #endif

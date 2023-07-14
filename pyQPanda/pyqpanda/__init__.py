@@ -25,12 +25,5 @@ try:
 except ImportError as e:
     warnings.warn("No module named QCloud")
 
-try:
-    # classes
-    from .ChemiQ.pyQPandaChemiQ import *
-except ImportError as e:
-    warnings.warn("No module named ChemiQ")
-
-
 One = True
 Zero = False

@@ -1563,6 +1563,7 @@ void DrawByLayer::handle_gate_node(std::shared_ptr<QNode>& p_node, pOptimizerNod
 		case CU_GATE:
 		case CNOT_GATE:
 		case CZ_GATE:
+        case CP_GATE:
 		case CPHASE_GATE:
 		{
 			int target_qubit = qubits_vector.back()->getPhysicalQubitPtr()->getQubitAddr();

@@ -224,6 +224,12 @@ public:
 		std::vector<size_t> controlbits,
 		bool is_dagger,
 		std::string name);
+
+    QError controlOracularGate(std::vector<size_t> bits,
+        std::vector<size_t> controlbits,
+        bool is_dagger,
+        std::string name,
+        OracleUserData &user_data);
 };
 
 QPANDA_END

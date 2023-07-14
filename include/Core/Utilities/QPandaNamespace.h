@@ -105,6 +105,18 @@ using stat_map = std::unordered_map<std::string, qcomplex_t>;
 using prob_dict = std::map<std::string, double>;
 using prob_tuple = std::vector<std::pair<size_t, double>>;
 
+
+/*struct for QSolver Oracle*/
+struct OracleUserData
+{
+    std::vector<double> vd;
+    std::vector<std::vector<double>> mat;
+    std::vector<std::vector<size_t>> mNonzero;
+    //std::vector<double> vd;
+    //std::vector<std::vector<size_t>> vvi;
+    //std::vector<std::vector<size_t>> vvj;
+};
+
 QPANDA_END
 
 #endif // !QPANDA_NAMESPACE

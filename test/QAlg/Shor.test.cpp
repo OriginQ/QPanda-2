@@ -1,6 +1,9 @@
 #include "gtest/gtest.h"
 #include "QPanda.h"
+
 using namespace std;
+USING_QPANDA
+
 bool test_Shor()
 {
 	int N = 6;

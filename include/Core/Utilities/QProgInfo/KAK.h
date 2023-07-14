@@ -3,7 +3,7 @@
 #include <vector>
 #include "ThirdParty/Eigen/Eigen"
 #include "Core/QuantumCircuit/QCircuit.h"
-#include "include/Core/Utilities/Tools/QMatrixDef.h"
+#include "Core/Utilities/Tools/QMatrixDef.h"
 
 QPANDA_BEGIN
 

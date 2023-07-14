@@ -1043,6 +1043,281 @@ QError CPUImplQPUSingleThreadWithOracle::controlOracularGate(
     }
 }
 
+QError CPUImplQPUSingleThreadWithOracle::controlOracularGate(
+    vector<size_t> bits,
+    vector<size_t> controlbits,
+    bool is_dagger,
+    string name,
+    OracleUserData &user_data) {
+
+    vector<size_t> name_qubits;
+    string oracle_name;
+    QPanda::parse_oracle_name(name, oracle_name, name_qubits);
+
+    QGateParam& qgroup0 = findgroup(bits[0]);
+    for (auto iter = bits.begin() + 1; iter != bits.end(); iter++)
+    {
+        TensorProduct(qgroup0, findgroup(*iter));
+    }
+    for (auto iter = controlbits.begin(); iter != controlbits.end(); iter++)
+    {
+        TensorProduct(qgroup0, findgroup(*iter));
+    }
+
+    size_t controller_mask = 0;
+    for (size_t i = 0; i < controlbits.size(); ++i) {
+        controller_mask += (1ull << controlbits[i]);
+    }
+    size_t remain_mask = controller_mask;
+    for (size_t i = 0; i < bits.size(); ++i) {
+        remain_mask += (1ull << bits[i]);
+    }
+    remain_mask = ~remain_mask;
+
+    if (oracle_name == "add") {
+        assert(name_qubits.size() == 2);
+        assert(name_qubits[0] == name_qubits[1]);
+        assert(name_qubits[0] + name_qubits[1] == bits.size());
+
+        size_t qubitnumber = qgroup0.qubitnumber;
+        Qnum qVec = qgroup0.qVec;
+        QGateParam newgroup(qubitnumber, qVec);
+        newgroup.qstate[0] = 0;
+        for (size_t i = 0; i < (1ull << qubitnumber); ++i) {
+            if ((i & controller_mask) == controller_mask) {
+                continue;
+            }
+            size_t remain_i = i & remain_mask;
+            size_t x = 0;
+            size_t y = 0;
+            Qnum qvecx = { bits.begin(), bits.begin() + name_qubits[0] };
+            Qnum qvecy = { bits.begin() + name_qubits[0], bits.end() };
+            x = extract_bit(i, qvecx);
+            y = extract_bit(i, qvecy);
+            size_t x_plus_y = (x + y) % (1ull << name_qubits[1]);
+            size_t new_i = 0;
+            new_i += remain_i;
+            new_i += reconstruct_number(x, qvecx);
+            new_i += reconstruct_number(x_plus_y, qvecy);
+
+            newgroup.qstate[new_i] += qgroup0.qstate[i];
+        }
+        qgroup0.qstate = newgroup.qstate;
+    }
+    else if (oracle_name == "truncation")
+    {
+        size_t qnum = name_qubits[0];
+        assert(qnum == bits.size());
+        QGateParam newgroup(qgroup0.qubitnumber, qgroup0.qVec);
+        double sum = 0;
+        size_t qubitnumber = qgroup0.qubitnumber;
+        for (auto i = 0u; i < (1ull << qubitnumber); i++)
+        {
+            if ((i & controller_mask) != controller_mask) {
+                newgroup.qstate[i] = qgroup0.qstate[i];
+                continue;
+            }
+            size_t truncate = extract_bit(i, bits);
+            if (truncate == 0)
+            {
+                newgroup.qstate[i] = qgroup0.qstate[i];
+                sum += abs(qgroup0.qstate[i])*abs(qgroup0.qstate[i]);
+            }
+        }
+        sum = sqrt(sum);
+        //for (auto i = 0; i < newgroup.qstate.size(); i++)
+        //{
+        //    newgroup.qstate[i] = newgroup.qstate[i] / qcomplex_t(sum, 0);
+        //}
+        qgroup0.qstate = newgroup.qstate;
+    }
+    else if (oracle_name == "OL")
+    {
+        // row:high bit; col:low bit;
+        assert(name_qubits.size() == 2);
+        size_t qnum = name_qubits[0];
+        assert((qnum == bits.size()) && (qnum % 2 == 0));
+        //assert((1 << (qnum/2)) >= (user_data.vvi.size()));
+        //assert((1 << (qnum - 1)) < user_data.vvi.size()*4*4);
+
+        QGateParam newgroup(qgroup0.qubitnumber, qgroup0.qVec);
+        newgroup.qstate[0] = 0;
+        Qnum qveci = { bits.begin(), bits.begin() + qnum / 2 };
+        Qnum qvecj = { bits.begin() + qnum / 2, bits.end() };
+
+        size_t qubitnumber = qgroup0.qubitnumber;
+        if (is_dagger)
+        {
+            for (auto i = 0u; i < (1ull << qubitnumber); i++)
+            {
+                if ((i & controller_mask) != controller_mask) {
+                    newgroup.qstate[i] = qgroup0.qstate[i];
+                    continue;
+                }
+
+                size_t remain_i = i & remain_mask;
+                size_t x = 0;
+                size_t f_i_j = 0;
+
+                x = extract_bit(i, qveci); //x:[0,N-1]
+                f_i_j = extract_bit(i, qvecj); //f_i_j:[0,N-1]
+                auto iter = find(user_data.mNonzero[x].begin(), user_data.mNonzero[x].end(), f_i_j);
+                if (x < user_data.mNonzero.size())
+                {
+                    size_t y = distance(user_data.mNonzero[x].begin(), iter);
+                    size_t new_i = 0;
+                    new_i += remain_i;
+                    new_i += reconstruct_number(x, qveci);
+                    new_i += reconstruct_number(y, qvecj);
+                    newgroup.qstate[new_i] = qgroup0.qstate[i];
+                }
+            }
+
+        }
+        else
+        {
+            for (auto i = 0u; i < (1ull << qubitnumber); i++)
+            {
+                if ((i & controller_mask) != controller_mask) {
+                    newgroup.qstate[i] = qgroup0.qstate[i];
+                    continue;
+                }
+                size_t remain_i = i & remain_mask;
+                size_t x = 0;
+                size_t y = 0;
+                x = extract_bit(i, qveci); //x:[0,4N-1]
+                y = extract_bit(i, qvecj);
+                //vvi.size():N
+                if (x < user_data.mNonzero.size() && y < user_data.mNonzero.size())
+                {
+                    size_t f_i_j = user_data.mNonzero[x][y];
+                    size_t new_i = 0;
+                    new_i += remain_i;
+                    new_i += reconstruct_number(x, qveci);
+                    new_i += reconstruct_number(f_i_j, qvecj);
+                    newgroup.qstate[new_i] = qgroup0.qstate[i];
+                }
+            }
+        }
+        qgroup0.qstate = newgroup.qstate;
+    }
+    else if (oracle_name == "OM")
+    {
+        // row:high bit; col:low bit; anc: bit 0.
+        assert(name_qubits.size() == 2);
+        size_t qnum = name_qubits[0];
+        assert(qnum == bits.size());
+        assert((qnum % 2) == 1);
+        auto rc_bit_num = (qnum - 1) / 2;
+
+        auto iter = find(qgroup0.qVec.begin(), qgroup0.qVec.end(), bits[bits.size() - 1]);
+        auto pos = distance(qgroup0.qVec.begin(), iter);
+        auto ststep = 1 << pos;
+
+        Qnum qvec_row = { bits.begin(), bits.begin() + qnum / 2 };
+        Qnum qvec_col = { bits.begin() + qnum / 2, bits.end() - 1 };
+
+        QGateParam newgroup(qgroup0.qubitnumber, qgroup0.qVec);
+        newgroup.qstate[0] = 0;
+        for (size_t j = 0; j < (1ull << qgroup0.qubitnumber); j = j + 2 * ststep)
+        {
+            for (size_t i = j; i < j + ststep; ++i)
+            {
+                if ((i & controller_mask) != controller_mask) {
+                    newgroup.qstate[i] = qgroup0.qstate[i];
+                    newgroup.qstate[i + ststep] = qgroup0.qstate[i + ststep];
+                    continue;
+                }
+                size_t remain_i = i & remain_mask;
+                auto col = extract_bit(i, qvec_col);
+                auto row = extract_bit(i, qvec_row);
+                //auto iter = std::find(user_data.vvj[row / 4].begin(), user_data.vvj[row / 4].end(), col / 4);
+
+                double Aij = user_data.mat[row][col];
+                qcomplex_t aij_complex(0, 0);
+                /*if (abs(Aij) > 1e-20)
+                {
+                    aij_complex = qcomplex_t(sqrt(abs(Aij)), 0);
+                    if (Aij < -1e-20 && col != row)
+                    {
+                        aij_complex = row > col ? qcomplex_t(0, sqrt(abs(Aij))) : qcomplex_t(0, -sqrt(abs(Aij)));
+                    }
+                    else if (Aij < -1e-20 && col == row)
+                    {
+                        aij_complex = qcomplex_t(-sqrt(abs(Aij)), 0);
+                    }
+                    if (is_dagger)
+                    {
+                        newgroup.qstate[i] = (aij_complex*qgroup0.qstate[i] +
+                            std::sqrt(1 - abs(Aij))*qgroup0.qstate[i + ststep]);
+                        newgroup.qstate[i + ststep] = (aij_complex*qgroup0.qstate[i + ststep]
+                            - std::sqrt(1 - abs(Aij))*qgroup0.qstate[i]);
+                    }
+                    else
+                    {
+                        newgroup.qstate[i] = (aij_complex*qgroup0.qstate[i]
+                            - std::sqrt(1 - abs(Aij))*qgroup0.qstate[i + ststep]);
+                        newgroup.qstate[i + ststep] = (aij_complex*qgroup0.qstate[i + ststep]
+                            + std::sqrt(1 - abs(Aij))*qgroup0.qstate[i]);
+                    }
+                }*/
+
+                aij_complex = qcomplex_t(sqrt(abs(Aij)), 0);
+                if (Aij < -1e-20 && col != row)
+                {
+                    aij_complex = row > col ? qcomplex_t(0, sqrt(abs(Aij))) : qcomplex_t(0, -sqrt(abs(Aij)));
+                }
+                else if (Aij < -1e-20 && col == row)
+                {
+                    aij_complex = qcomplex_t(-sqrt(abs(Aij)), 0);
+                }
+                qcomplex_t aij_complex_conj = qcomplex_t(aij_complex.real(), -aij_complex.imag());
+                if (is_dagger)
+                {
+                    newgroup.qstate[i] = (aij_complex_conj*qgroup0.qstate[i] +
+                        std::sqrt(1 - abs(Aij))*qgroup0.qstate[i + ststep]);
+                    newgroup.qstate[i + ststep] = (aij_complex*qgroup0.qstate[i + ststep]
+                        - std::sqrt(1 - abs(Aij))*qgroup0.qstate[i]);
+                }
+                else
+                {
+                    newgroup.qstate[i] = (aij_complex*qgroup0.qstate[i]
+                        - std::sqrt(1 - abs(Aij))*qgroup0.qstate[i + ststep]);
+                    newgroup.qstate[i + ststep] = (aij_complex_conj*qgroup0.qstate[i + ststep]
+                        + std::sqrt(1 - abs(Aij))*qgroup0.qstate[i]);
+                }
+
+                /*else
+                {
+                    newgroup.qstate[i] = qgroup0.qstate[i + ststep];
+                    newgroup.qstate[ststep+i] = qgroup0.qstate[i ];
+                }*/
+            }
+        }
+        qgroup0.qstate = newgroup.qstate;
+    }
+    else if (oracle_name == "pause") {
+        int i = 0;
+        for (auto &group : this->qubit2stat) {
+            if (group.enable == false)
+                continue;
+            cout << "group: " << i << "   size: " << group.qubitnumber << endl;
+            i++;
+            int j = 0;
+            for (auto s : group.qstate) {
+                cout << "q[" << j << "]=" << s << endl;
+                ++j;
+            }
+        }
+        cout << endl;
+    }
+
+
+    else {
+        throw runtime_error("Not Implemented.");
+    }
+}
+
 void CPUImplQPUSingleThread::set_parallel_threads_size(size_t size)
 {
 

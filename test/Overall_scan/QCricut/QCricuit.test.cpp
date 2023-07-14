@@ -2,6 +2,7 @@
 #include "QPanda.h"
 #include "gtest/gtest.h"
 
+USING_QPANDA
 
 TEST(QCricuitInfaceTest, test) {
     auto qvm = CPUQVM();

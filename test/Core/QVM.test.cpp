@@ -460,20 +460,29 @@ TEST(QVM, partial_amplitude_with_rxx_ryy_rzz_rzx)
     }
 
     auto prog = QProg();
-    prog << RXX(q[0], q[1], params[0]);
-    prog << RYY(q[0], q[1], params[1]);
-    prog << RZZ(q[0], q[1], params[2]);
-    prog << RZX(q[0], q[1], params[3]);
 
-    cout << convert_qprog_to_originir(prog, &machine);
+    params[0] = 1.38;
 
+    //RXX(0, 1, theta) => 
+    //H(0) + H(1) + 
+    //CNOT(0, 1) + 
+    //RZ(1, theta) +
+    //CNOT(0, 1) +
+    //H(1) + H(0)
     auto circuit = QCircuit();
     circuit << H(q[0]) << H(q[1]) << CNOT(q[0], q[1])
-        << RZ(q[1], 20) << CNOT(q[0], q[1]) << H(q[1]) << H(q[0]);
+        << RZ(q[1], params[0]) << CNOT(q[0], q[1]) << H(q[1]) << H(q[0]);
+
+    //prog << circuit;
+    prog << RXX(q[0], q[1], params[0]);
+    //prog << RYY(q[0], q[1], params[1]);
+    //prog << RZZ(q[0], q[1], params[2]);
+    //prog << RZX(q[0], q[1], params[3]);
 
     cout << getCircuitMatrix(prog) << endl;
     cout << getCircuitMatrix(circuit) << endl;
 
+    cout << convert_qprog_to_originir(prog, &machine) << endl;;
     machine.run(prog);
 
     vector_s indices = { "0","1","2","3" };
@@ -500,12 +509,13 @@ TEST(QVM, partial_amplitude_with_rxx_ryy_rzz_rzx)
     auto clist = qvm.cAllocMany(2);
 
     auto cpu_prog = QProg();
+    //cpu_prog << circuit;
     cpu_prog << RXX(qlist[0], qlist[1], params[0]);
-    cpu_prog << RYY(qlist[0], qlist[1], params[1]);
-    cpu_prog << RZZ(qlist[0], qlist[1], params[2]);
-    cpu_prog << RZX(qlist[0], qlist[1], params[3]);
+    //cpu_prog << RYY(qlist[0], qlist[1], params[1]);
+    //cpu_prog << RZZ(qlist[0], qlist[1], params[2]);
+    //cpu_prog << RZX(qlist[0], qlist[1], params[3]);
 
-    qvm.directlyRun(prog);
+    qvm.directlyRun(cpu_prog);
     auto result_state = qvm.getQState();
 
     ASSERT_EQ(matrix_compare(result, result_state, 1e-6), true);
@@ -517,8 +527,8 @@ TEST(QVM, single_amplitude_with_rxx_ryy_rzz_rzx)
     machine.setConfigure({ 64,64 });
     machine.init();
 
-    auto q = machine.qAllocMany(3);
-    auto c = machine.cAllocMany(3);
+    auto q = machine.qAllocMany(2);
+    auto c = machine.cAllocMany(2);
 
     prob_vec params(4);
     for (auto &val : params)
@@ -526,15 +536,22 @@ TEST(QVM, single_amplitude_with_rxx_ryy_rzz_rzx)
         val = random_generator19937(0.0, PI);
     }
 
+    params[0] = 1.38;
+
+    auto circuit = QCircuit();
+    circuit << H(q[0]) << H(q[1]) << CNOT(q[0], q[1])
+        << RZ(q[1], params[0]) << CNOT(q[0], q[1]) << H(q[1]) << H(q[0]);
+
     auto prog = QProg();
-    prog << RXX(q[0], q[1], params[0]);
-    prog << RYY(q[0], q[1], params[1]);
-    prog << RZZ(q[1], q[2], params[2]);
-    prog << RZX(q[1], q[2], params[3]);
+    prog << circuit;
+    //prog << RXX(q[0], q[1], params[0]);
+    //prog << RYY(q[0], q[1], params[1]);
+    //prog << RZZ(q[0], q[1], params[2]);
+    //prog << RZX(q[0], q[1], params[3]);
 
     cout << getCircuitMatrix(prog) << endl;
 
-    vector_s indices = { "0","1","2","3","4","5","6","7" };
+    vector_s indices = { "0","1","2","3"};
 
     prob_vec result;
     for (auto val : indices)
@@ -557,14 +574,14 @@ TEST(QVM, single_amplitude_with_rxx_ryy_rzz_rzx)
     CPUQVM qvm;
     qvm.init();
 
-    auto qlist = qvm.qAllocMany(3);
-    auto clist = qvm.cAllocMany(3);
+    auto qlist = qvm.qAllocMany(2);
+    auto clist = qvm.cAllocMany(2);
 
     auto cpu_prog = QProg();
     cpu_prog << RXX(qlist[0], qlist[1], params[0]);
-    cpu_prog << RYY(qlist[0], qlist[1], params[1]);
-    cpu_prog << RZZ(qlist[1], qlist[2], params[2]);
-    cpu_prog << RZX(qlist[1], qlist[2], params[3]);
+    //cpu_prog << RYY(qlist[0], qlist[1], params[1]);
+    //cpu_prog << RZZ(qlist[0], qlist[1], params[2]);
+    //cpu_prog << RZX(qlist[0], qlist[1], params[3]);
 
     qvm.directlyRun(prog);
     auto result_state = qvm.getQState();

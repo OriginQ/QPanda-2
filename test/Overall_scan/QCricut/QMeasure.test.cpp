@@ -3,6 +3,9 @@
 #include "QPanda.h"
 #include "gtest/gtest.h"
 
+USING_QPANDA
+
+
 TEST(QMeasureInfaceTest, test) {
     auto qvm = CPUQVM();
     qvm.init();

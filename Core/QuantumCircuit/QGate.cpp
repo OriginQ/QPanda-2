@@ -2040,8 +2040,26 @@ QGate QPanda::Toffoli(Qubit * control_fisrt, Qubit * control_second, Qubit * tar
 
 QGate QPanda::oracle(QVec qubits, std::string oracle_name)
 {
-	string name = "OracularGate";
-	return _gs_pGateNodeFactory->getGateNode(name, qubits, oracle_name);
+    string name = "OracularGate";
+    return _gs_pGateNodeFactory->getGateNode(name, qubits, oracle_name);
+}
+
+QGate QPanda::oracle(QVec qubits, std::string oracle_name, std::vector<double>& user_data)
+{
+    string name = "OracularGate";
+    return _gs_pGateNodeFactory->getGateNode(name, qubits, oracle_name, user_data);
+}
+
+QGate QPanda::oracle(QVec qubits, std::string oracle_name, std::vector<std::vector<size_t>>& user_data)
+{
+    string name = "OracularGate";
+    return _gs_pGateNodeFactory->getGateNode(name, qubits, oracle_name, user_data);
+}
+
+QGate QPanda::oracle(QVec qubits, std::string oracle_name, std::vector<std::vector<double>>& user_data)
+{
+    string name = "OracularGate";
+    return _gs_pGateNodeFactory->getGateNode(name, qubits, oracle_name, user_data);
 }
 
 QGate QPanda::QDouble(Qubit* qubit1, Qubit* qubit2, QStat& matrix)

@@ -12,13 +12,13 @@ Optimizer::Optimizer(var lost_function, double learning_rate) :
 
 }
 
-std::unordered_set<var> Optimizer::get_variables()
+std::vector<var> Optimizer::get_variables()
 {
     return m_cost_function.findVariables();
 }
 
 std::unordered_map<var, Eigen::MatrixXd>
-    Optimizer::compute_gradients(std::unordered_set<var> &var_set)
+    Optimizer::compute_gradients(std::vector<var> &var_set)
 {
     std::unordered_map<var, MatrixXd> gradient;
     for (auto iter : var_set)
@@ -69,14 +69,14 @@ std::shared_ptr<Optimizer> VanillaGradientDescentOptimizer::minimize(
             (lost_function, learning_rate, stop_condition);
 }
 
-std::unordered_set<var> VanillaGradientDescentOptimizer::get_variables()
+std::vector<var> VanillaGradientDescentOptimizer::get_variables()
 {
     return Optimizer::get_variables();
 }
 
 std::unordered_map<var, MatrixXd>
     VanillaGradientDescentOptimizer::compute_gradients(
-        std::unordered_set<var> &var_set)
+        std::vector<var> &var_set)
 {
     return Optimizer::compute_gradients(var_set);
 }
@@ -87,7 +87,7 @@ double VanillaGradientDescentOptimizer::get_loss()
 }
 
 bool VanillaGradientDescentOptimizer::run(
-        std::unordered_set<var> &leaves,
+        std::vector<var> &leaves,
         size_t t)
 {    
     (void)(t);
@@ -130,12 +130,12 @@ std::shared_ptr<Optimizer> MomentumOptimizer::minimize(
 }
 
 std::unordered_map<var, Eigen::MatrixXd>
-    MomentumOptimizer::compute_gradients(std::unordered_set<var> &var_set)
+    MomentumOptimizer::compute_gradients(std::vector<var> &var_set)
 {
     return Optimizer::compute_gradients(var_set);
 }
 
-std::unordered_set<var> MomentumOptimizer::get_variables()
+std::vector<var> MomentumOptimizer::get_variables()
 {
     return Optimizer::get_variables();
 }
@@ -145,7 +145,7 @@ double MomentumOptimizer::get_loss()
     return Optimizer::get_loss();
 }
 
-bool MomentumOptimizer::run(std::unordered_set<var> &leaves, size_t t)
+bool MomentumOptimizer::run(std::vector<var> &leaves, size_t t)
 {
     (void)(t);
 
@@ -205,12 +205,12 @@ std::shared_ptr<Optimizer> AdaGradOptimizer::minimize(
 }
 
 std::unordered_map<var, Eigen::MatrixXd>
-    AdaGradOptimizer::compute_gradients(std::unordered_set<var> &var_set)
+    AdaGradOptimizer::compute_gradients(std::vector<var> &var_set)
 {
     return Optimizer::compute_gradients(var_set);
 }
 
-std::unordered_set<var> AdaGradOptimizer::get_variables()
+std::vector<var> AdaGradOptimizer::get_variables()
 {
     return Optimizer::get_variables();
 }
@@ -220,7 +220,7 @@ double AdaGradOptimizer::get_loss()
     return Optimizer::get_loss();
 }
 
-bool AdaGradOptimizer::run(std::unordered_set<var> &leaves, size_t t)
+bool AdaGradOptimizer::run(std::vector<var> &leaves, size_t t)
 {
     (void)(t);
 
@@ -282,12 +282,12 @@ std::shared_ptr<Optimizer> RMSPropOptimizer::minimize(
 }
 
 std::unordered_map<var, Eigen::MatrixXd>
-    RMSPropOptimizer::compute_gradients(std::unordered_set<var> &var_set)
+    RMSPropOptimizer::compute_gradients(std::vector<var> &var_set)
 {
     return Optimizer::compute_gradients(var_set);
 }
 
-std::unordered_set<var> RMSPropOptimizer::get_variables()
+std::vector<var> RMSPropOptimizer::get_variables()
 {
     return Optimizer::get_variables();
 }
@@ -297,7 +297,7 @@ double RMSPropOptimizer::get_loss()
     return Optimizer::get_loss();
 }
 
-bool RMSPropOptimizer::run(std::unordered_set<var> &leaves, size_t t)
+bool RMSPropOptimizer::run(std::vector<var> &leaves, size_t t)
 {
     (void)(t);
 
@@ -362,12 +362,12 @@ std::shared_ptr<Optimizer> AdamOptimizer::minimize(
 }
 
 std::unordered_map<var, Eigen::MatrixXd>
-    AdamOptimizer::compute_gradients(std::unordered_set<var> &var_set)
+    AdamOptimizer::compute_gradients(std::vector<var> &var_set)
 {
     return Optimizer::compute_gradients(var_set);
 }
 
-std::unordered_set<var> AdamOptimizer::get_variables()
+std::vector<var> AdamOptimizer::get_variables()
 {
     return Optimizer::get_variables();
 }
@@ -377,7 +377,7 @@ double AdamOptimizer::get_loss()
     return Optimizer::get_loss();
 }
 
-bool AdamOptimizer::run(std::unordered_set<var> &leaves, size_t t)
+bool AdamOptimizer::run(std::vector<var> &leaves, size_t t)
 {
     t = t+1;
 

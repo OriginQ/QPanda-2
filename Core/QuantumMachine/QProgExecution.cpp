@@ -2,6 +2,7 @@
 #include "Core/Utilities/QProgInfo/QProgProgress.h"
 #include <float.h>
 #include <random>
+#include <stdlib.h>
 
 USING_QPANDA
 using namespace std;
@@ -281,7 +282,11 @@ void QProgExecution::execute(std::shared_ptr<AbstractQDebugNode> cur_node,
 
 QProgExecution::QProgExecution()
 {
+#ifdef USE_RANDOM_DEVICE
     m_rng.seed(std::random_device()());
+#else 
+    m_rng.seed(rand());
+#endif
 }
 
 

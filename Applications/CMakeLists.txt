@@ -13,7 +13,3 @@ if (USE_EXTENSION)
     add_subdirectory(NodeSort)
     add_subdirectory(HHL_Algorithm)
 endif(USE_EXTENSION)
-
-if(USE_CHEMIQ)
-    add_subdirectory(ChemiQCalc)
-endif(USE_CHEMIQ)

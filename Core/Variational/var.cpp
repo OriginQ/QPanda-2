@@ -561,12 +561,13 @@ MatrixXd var::_back_single(const MatrixXd & dx, size_t op_idx)
     throw exception();
 }
 
-std::vector<MatrixXd> var::_back(const MatrixXd & dx, const std::unordered_set<var>& nonconsts)
+std::vector<MatrixXd> var::_back(const MatrixXd & dx, const std::vector<var>& nonconsts)
 {
     auto operands = getChildren();
     std::vector<MatrixXd> derivatives;
     for (size_t i = 0; i < operands.size(); i++) {
-        if (nonconsts.find(operands[i]) == nonconsts.end())
+
+        if (std::end(nonconsts) == std::find(std::begin(nonconsts), std::end(nonconsts), operands[i]))
             derivatives.push_back(zeros_like(operands[i])); // no gradient flow.
         else
             derivatives.push_back(_back_single(dx, i));

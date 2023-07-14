@@ -2,6 +2,8 @@
 #include "QPanda.h"
 #include "gtest/gtest.h"
 
+USING_QPANDA
+
 TEST(ControlFlowInfaceTest, test) {
     
     CPUQVM* m_qvm = new CPUQVM();

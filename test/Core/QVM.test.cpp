@@ -901,7 +901,7 @@ void test_CPU(std::map<std::string, size_t>& result)
 {
     CPUQVM machine;
     machine.setConfigure({ 64,64 });
-    machine.init();
+    //machine.init();
 
     auto qlist = machine.qAllocMany(4);
     auto clist = machine.cAllocMany(4);

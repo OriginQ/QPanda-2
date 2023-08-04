@@ -212,6 +212,66 @@ void stabilizer_measure()
     return;
 }
 
+
+void stabilizer_demo()
+{
+    Stabilizer simulator;
+    simulator.init();
+
+    auto q = simulator.qAllocMany(3);
+    auto c = simulator.cAllocMany(3);
+
+    auto prog = QProg();
+    prog << H(q[0])
+         << CNOT(q[0], q[1])
+         << Measure(q[0], c[0]);
+
+    auto result = simulator.runWithConfiguration(prog, 1);
+
+    for (auto val : result)
+    {
+        std::cout << val.first << " : " << val.second << std::endl;
+    }
+
+    return;
+}
+
+
+void stabilizer_noise()
+{
+    Stabilizer simulator;
+    simulator.init();
+
+    auto q = simulator.qAllocMany(6);
+    auto c = simulator.cAllocMany(6);
+
+    simulator.set_noise_model(NOISE_MODEL::BITFLIP_KRAUS_OPERATOR, GateType::PAULI_X_GATE, 0.5);
+
+    auto prog = QProg();
+    prog<< X(q[0])
+        << X(q[1])
+        << X(q[2])
+
+        << X(q[3])
+        << X(q[4])
+        << X(q[5])
+        << Measure(q[0], c[0])
+        << Measure(q[1], c[1])
+        << Measure(q[2], c[2]);
+
+    CHECK_RUN_TIME_BEGIN;
+    auto result = simulator.runWithConfiguration(prog, 1000);
+    //auto result = simulator.probRunDict(prog, q);
+    CHECK_RUN_TIME_END_AND_COUT_SECONDS;
+
+    for (auto val : result)
+    {
+        std::cout << val.first << " : " << val.second << std::endl;
+    }
+
+    return;
+}
+
 void stabilizer_pmeasure()
 {
     Stabilizer simulator;
@@ -256,12 +316,112 @@ void stabilizer_pmeasure()
     return;
 }
 
+#include <Eigen/Dense>
+using namespace Eigen;
+
+void cpu_oracle()
+{
+    CPUQVM simulator;
+    simulator.setConfigure({ 72,72 });
+    simulator.init();
+
+
+    auto q = simulator.qAllocMany(25);
+    auto c = simulator.cAllocMany(25);
+
+    MatrixXcd matrix(4, 4);
+    matrix << 1,0,0,0,
+            0,1,0,0,
+            0,0,1,0,
+            0,0,0,1;
+
+    auto prog = QProg();
+    prog << QOracle({ q[0],q[1] }, matrix);
+
+    simulator.directlyRun(prog);
+
+    auto result = simulator.getQState();
+    return;
+}
+
+void matrix_to_pauli()
+{
+    using namespace Eigen;
+
+    EigenMatrixX m(4, 4);
+    m << 15, 9, 5, -3,
+        9, 15, 3, 2,
+        5, 3, 4, 96,
+        -3, 96, -9, 6;
+
+    m = (1.0 / 4.0) * m;
+
+    CPUQVM simulator;
+    simulator.setConfigure({ 72,72 });
+    simulator.init();
+
+    //auto q = simulator.qAllocMany(6);
+    //auto c = simulator.cAllocMany(6);
+
+    PualiOperatorLinearCombination opt;
+    matrix_decompose_paulis(&simulator, m, opt);
+
+    return;
+}
+
+
+void Fullamplitude_CPU_Test()
+{
+    FullAmplitudeQVM machine;
+    machine.init(BackendType::GPU);
+    //machine.init(BackendType::CPU);
+
+    auto q = machine.qAllocMany(4);
+    auto c = machine.cAllocMany(4);
+
+    auto prog = QProg();
+    prog << H(q[0])
+        << CNOT(q[0], q[1])
+        << CNOT(q[1], q[2])
+        << CNOT(q[2], q[3])
+        << MeasureAll(q, c);
+
+    auto measure_result = machine.runWithConfiguration(prog, 10000);
+
+    auto test_prog = QProg();
+    test_prog << H(q[0])
+        << CNOT(q[0], q[1])
+        << CNOT(q[1], q[2])
+        << CNOT(q[2], q[3]);
+
+    machine.directlyRun(prog);
+    auto probs = machine.probRunDict(test_prog, q);
+
+    for (auto val : measure_result)
+        std::cout << val.first << " : " << val.second << std::endl;
+
+    std::cout << " ------------------- " << std::endl;
+
+    for (auto val : probs)
+        std::cout << val.first << " : " << val.second << std::endl;
+
+    auto hamiltonian = test_hamiltonian_data();
+    auto exp = machine.get_expectation(test_prog, hamiltonian, q);
+
+    std::cout << " get_expectation : " << exp << std::endl;
+
+    return;
+}
+
 TEST(Stabilizer, test)
 {
-    stabilizer_measure();
-    stabilizer_pmeasure();
+    Fullamplitude_CPU_Test();
+    //stabilizer_noise();
+    //cpu_oracle();
+    //stabilizer_measure();
+    //stabilizer_pmeasure();
 
-    cout << "stabilizer.test test..." << endl;
+    cout << "stabilizer.test passed." << endl;
     return;
 }
 

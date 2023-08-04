@@ -5,15 +5,16 @@ USING_QPANDA
 using namespace std;
 using namespace DRAW_TEXT_PIC;
 
-string QPanda::draw_qprog(QProg prog, PIC_TYPE p /* = PIC_TYPE::TEXT */, bool with_logo /* = false */, uint32_t length /*= 100*/, const std::string &output_file /*= ""*/,
-						  const NodeIter itr_start /* = NodeIter()*/, const NodeIter itr_end /* = NodeIter()*/)
+
+string QPanda::draw_qprog(QProg prog, PIC_TYPE p /* = PIC_TYPE::TEXT */, bool with_logo /* = false */,bool with_gate_params/*=false*/, uint32_t length /*= 100*/, const std::string& output_file /*= ""*/,
+	const NodeIter itr_start /* = NodeIter()*/, const NodeIter itr_end /* = NodeIter()*/)
 {
-	DrawQProg test_text_pic(prog, itr_start, itr_end, output_file);
+	DrawQProg test_text_pic(prog, itr_start, itr_end, with_gate_params,output_file);
 	return test_text_pic.textDraw(LAYER, p, with_logo, length);
 }
 
-std::string QPanda::draw_qprog(QProg prog, LayeredTopoSeq &m_layer_info, PIC_TYPE p /* = PIC_TYPE::TEXT */, bool with_logo /* = false */, uint32_t length /*= 100*/,
-							   const std::string &output_file /*= ""*/)
+std::string QPanda::draw_qprog(QProg prog, LayeredTopoSeq& m_layer_info, PIC_TYPE p /* = PIC_TYPE::TEXT */, bool with_logo /* = false */,bool with_gate_params/*=false*/, uint32_t length /*= 100*/,
+	const std::string& output_file /*= ""*/)
 {
 	std::vector<int> quantum_bits_in_use;
 	std::vector<int> class_bits_in_use;
@@ -24,26 +25,26 @@ std::string QPanda::draw_qprog(QProg prog, LayeredTopoSeq &m_layer_info, PIC_TYP
 		return "Null";
 	}
 
-	AbstractDraw *drawer = nullptr;
+	AbstractDraw* drawer = nullptr;
 	if (PIC_TYPE::TEXT == p)
 	{
-		drawer = new DrawPicture(prog, m_layer_info, length);
+		drawer = new DrawPicture(prog, m_layer_info, length,with_gate_params);
 	}
 	else if (PIC_TYPE::LATEX == p)
 	{
-		drawer = new DrawLatex(prog, m_layer_info, length);
+		drawer = new DrawLatex(prog, m_layer_info, length,with_gate_params);
 	}
-    else
-    {
-        throw std::invalid_argument("Error: PIC_TYPE");
-    }
+	else
+	{
+		throw std::invalid_argument("Error: PIC_TYPE");
+	}
 
-    drawer->init(quantum_bits_in_use, class_bits_in_use);
-    drawer->draw_by_layer();
+	drawer->init(quantum_bits_in_use, class_bits_in_use);
+	drawer->draw_by_layer();
 
 	if (PIC_TYPE::LATEX == p && with_logo)
 	{
-        dynamic_cast<DrawLatex *>(drawer)->set_logo();
+		dynamic_cast<DrawLatex*>(drawer)->set_logo();
 	}
 
 	auto text_pic_str = drawer->present(output_file);
@@ -54,8 +55,8 @@ std::string QPanda::draw_qprog(QProg prog, LayeredTopoSeq &m_layer_info, PIC_TYP
 }
 
 std::string QPanda::draw_qprog_with_clock(QProg prog, PIC_TYPE p /* = PIC_TYPE::TEXT */, const std::string config_data /*= CONFIG_PATH*/, bool with_logo /* = false */,
-										  uint32_t length /*= 100*/, const std::string &output_file /*= ""*/, const NodeIter itr_start /* = NodeIter()*/, const NodeIter itr_end /*= NodeIter()*/)
+	bool with_gate_params/*=false*/,uint32_t length /*= 100*/, const std::string& output_file /*= ""*/, const NodeIter itr_start /* = NodeIter()*/, const NodeIter itr_end /*= NodeIter()*/)
 {
-	DrawQProg test_text_pic(prog, itr_start, itr_end, output_file);
+	DrawQProg test_text_pic(prog, itr_start, itr_end, with_gate_params,output_file);
 	return test_text_pic.textDraw(TIME_SEQUENCE, p, with_logo, length, config_data);
 }

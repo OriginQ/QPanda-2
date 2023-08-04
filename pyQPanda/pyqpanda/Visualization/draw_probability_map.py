@@ -4,15 +4,26 @@ import matplotlib as mpl
 plt.switch_backend('agg')
 
 
-def draw_probaility(list):
-    """Draw a quantum state probaility dict
+def draw_probability(list):
+    """
+    Generate a bar plot visualizing the probabilities of a quantum state.
+
+    The function takes a dictionary containing quantum state keys and their corresponding
+    probabilities, normalizes the probabilities, and plots them using a bar chart.
 
     Args:
-        list : the quantum state probaility dict
+        probability_dict (dict): A dictionary where keys represent the quantum states and
+                                 values represent their respective probabilities.
 
-    Returns: 
-        no return
+    Returns:
+        None: This function does not return a value. It plots the probabilities directly.
 
+    Notes:
+        - The bar plot uses the Chinese font 'SimHei' and ensures that negative symbols are
+          not displayed in the axes.
+        - The x-axis represents the quantum states, while the y-axis represents the
+          probabilities.
+        - The function includes a grid on the y-axis for better readability.
     """
     mpl.rcParams["font.sans-serif"] = ["SimHei"]
     mpl.rcParams["axes.unicode_minus"] = False
@@ -24,16 +35,20 @@ def draw_probaility(list):
     plt.grid(True, axis="y", ls=":", color="r", alpha=0.3)
     plt.show()
 
-
-def draw_probaility_dict(prob_dict):
-    """Draw a quantum state probaility dict
+def draw_probability_dict(prob_dict):
+    """
+    Generate a bar plot representing the probabilities of a quantum state from a given dictionary.
 
     Args:
-        list : the quantum state probaility dict
+        prob_dict (dict): A dictionary where keys are quantum state labels and values are their corresponding probabilities.
 
-    Returns: 
-        no return
+    Returns:
+        None: This function does not return a value; it displays a bar plot.
 
+    The function configures Matplotlib to use SimHei font for better readability in Chinese characters.
+    It filters out non-positive probabilities, calculates normalized probabilities, and then plots them as a bar chart.
+    The plot includes a grid and labeled axes for clarity.
+    This utility is intended for use within the pyQPanda package, which is designed for programming quantum computers.
     """
     mpl.rcParams["font.sans-serif"] = ["SimHei"]
     mpl.rcParams["axes.unicode_minus"] = False

@@ -4,8 +4,9 @@
 
 using namespace std;
 using namespace antlr4;
-USING_QPANDA
 
+
+QPANDA_BEGIN
 class OriginIRErrorListener : public BaseErrorListener {
 public:
 	void syntaxError(Recognizer* recognizer, Token* offendingSymbol, size_t line,
@@ -19,14 +20,14 @@ public:
 };
 
 
-QProg QPanda::convert_originir_to_qprog(std::string file_path, QuantumMachine* qm)
+QProg convert_originir_to_qprog(std::string file_path, QuantumMachine* qm)
 {
 	QVec qv;
 	std::vector<ClassicalCondition> cv;
 	return convert_originir_to_qprog(file_path, qm, qv, cv);
 }
 
-QProg QPanda::convert_originir_to_qprog(std::string file_path, QuantumMachine* qm, QVec& qv, std::vector<ClassicalCondition>& cv)
+QProg convert_originir_to_qprog(std::string file_path, QuantumMachine* qm, QVec& qv, std::vector<ClassicalCondition>& cv)
 {
 	std::ifstream stream;
 	stream.open(file_path);
@@ -40,16 +41,16 @@ QProg QPanda::convert_originir_to_qprog(std::string file_path, QuantumMachine* q
 	return convert_originir_string_to_qprog(str_originir, qm, qv, cv);
 }
 
-QProg QPanda::convert_originir_string_to_qprog(std::string str_originir, QuantumMachine* qm)
+QProg convert_originir_string_to_qprog(std::string str_originir, QuantumMachine* qm)
 {
 	QVec qv;
 	std::vector<ClassicalCondition> cv;
 	return convert_originir_string_to_qprog(str_originir, qm, qv, cv);
 }
 
-QProg QPanda::convert_originir_string_to_qprog(std::string str_originir, QuantumMachine* qm, QVec& qv, std::vector<ClassicalCondition>& cv)
+QProg convert_originir_string_to_qprog(std::string str_originir, QuantumMachine* qm, QVec& qv, std::vector<ClassicalCondition>& cv)
 {
-	str_originir += "\r\n";  
+	str_originir += "\r\n";
 	antlr4::ANTLRInputStream input(str_originir);
 	originirLexer lexer(&input);
 	antlr4::CommonTokenStream tokens(&lexer);
@@ -63,7 +64,7 @@ QProg QPanda::convert_originir_string_to_qprog(std::string str_originir, Quantum
 	return visitor.get_qprog(fullprog);
 }
 
-QProg QPanda::transformOriginIRToQProg(std::string filePath, QuantumMachine* qm, QVec& qv, std::vector<ClassicalCondition>& cv)
+QProg transformOriginIRToQProg(std::string filePath, QuantumMachine* qm, QVec& qv, std::vector<ClassicalCondition>& cv)
 {
 	std::ifstream stream;
 	stream.open(filePath);
@@ -181,6 +182,10 @@ size_t QProgBuilder::add_qgate_cc(
 	case GateType::I:
 		m_progid_set[progid] << I(qubits[0]);
 		break;
+
+	case GateType::P:
+		m_progid_set[progid] << P(qubits[0], parameters[0]);
+		break;
 	case GateType::RX:
 		m_progid_set[progid] << RX(qubits[0], parameters[0]);
 		break;
@@ -222,7 +227,7 @@ size_t QProgBuilder::add_qgate_cc(
 		break;
 	case GateType::SWAP:
 		m_progid_set[progid] << SWAP(qubits[0], qubits[1]);
-		break;
+        break;
 
 	case GateType::ISWAPTHETA:
 		m_progid_set[progid] << iSWAP(qubits[0], qubits[1], parameters[0]);
@@ -230,9 +235,27 @@ size_t QProgBuilder::add_qgate_cc(
 	case GateType::CR:
 		m_progid_set[progid] << CR(qubits[0], qubits[1], parameters[0]);
 		break;
+
+	case GateType::RZZ:
+		m_progid_set[progid] << RZZ(qubits[0], qubits[1], parameters[0]);
+		break;
+	case GateType::RXX:
+		m_progid_set[progid] << RXX(qubits[0], qubits[1], parameters[0]);
+		break;
+	case GateType::RYY:
+		m_progid_set[progid] << RYY(qubits[0], qubits[1], parameters[0]);
+		break;
+	case GateType::RZX:
+		m_progid_set[progid] << RZX(qubits[0], qubits[1], parameters[0]);
+		break;
 	case GateType::CU:
 		m_progid_set[progid] << CU(parameters[0], parameters[1],
 			parameters[2], parameters[3], qubits[0], qubits[1]);
+		break;
+
+
+	case GateType::MS:
+		m_progid_set[progid] << MS(qubits[0], qubits[1]);
 		break;
 	case GateType::TOFFOLI:
 	{
@@ -604,3 +627,4 @@ size_t QProgBuilder::make_control_cc_new(size_t progid, std::vector<size_t> expr
 	}
 }
 
+QPANDA_END

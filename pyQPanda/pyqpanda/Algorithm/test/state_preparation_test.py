@@ -10,7 +10,24 @@ from .test_utils import test_begin_str, test_end_str
 
 def entanglement_test():
     """
-    Test a two qubit entanglement state
+    Execute a test to verify the entanglement of a two-qubit state using the pyQPanda quantum computing framework.
+    
+    This function initializes a quantum environment, allocates qubits and classical bits, constructs a quantum circuit
+    with Hadamard gates, a controlled-Z gate, and a measurement, and then runs the circuit with a specified number of shots.
+    It prints the number of shots and the results of the measurement, and finally finalizes the environment.
+    
+        Args:
+            None
+    
+        Returns:
+            None
+    
+        Raises:
+            Any exceptions raised by the pyQPanda API during the execution of the quantum circuit.
+    
+        Note:
+            This function is designed to be used within the pyQPanda package and relies on the internal API for quantum
+            circuit simulation and execution.
     """
     print(test_begin_str('Entanglement Test'))
     # init the environment
@@ -40,7 +57,24 @@ def entanglement_test():
 
 def qif_test():
     """
-    The the qif module test
+    Executes a Q-If test within the pyQPanda framework, simulating quantum computing operations using a circuit
+    simulator. The test initializes the environment, allocates resources, constructs a quantum circuit with
+    conditional statements, runs the circuit for a specified number of shots, and then finalizes the
+    environment.
+
+    The function performs the following steps:
+    - Prints the beginning of the Q-If test.
+    - Initializes the simulation environment.
+    - Allocates quantum and classical bits.
+    - Sets up the true and false branches for the conditional quantum operation.
+    - Constructs the quantum circuit with the conditional operation and measures the outcomes.
+    - Runs the circuit for a predefined number of shots.
+    - Prints the number of shots and the results.
+    - Finalizes the simulation environment.
+    - Prints the end of the Q-If test.
+
+    This function is designed to be run on a quantum circuit simulator or quantum cloud service within the
+    pyQPanda package.
     """
     print(test_begin_str('Q-If Test'))
     
@@ -72,6 +106,22 @@ def qif_test():
 
 
 def full_test():
+    """
+    Execute a suite of tests within the state preparation module of the pyQPanda package.
+    
+    This function sequentially runs all available tests in the `test_list`, which includes
+    various quantum circuit simulation tests. It is designed to validate the correctness
+    of state preparation functionalities within the quantum computing framework.
+
+    The tests are executed in order, and upon completion of each test, the function prints
+    a progress update indicating the number of tests passed out of the total number of tests.
+    
+        Args:
+            None
+
+        Returns:
+            None
+    """
     test_list=[entanglement_test, qif_test]
 
     for i in range(len(test_list)):

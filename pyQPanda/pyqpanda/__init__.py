@@ -14,16 +14,8 @@ from .Operator.pyQPandaOperator import *
 from .utils import *
 from .Variational import back
 from .Visualization import *
+from .OriginService import *
 import warnings
-
-
-# pyQPandaOperator
-
-try:
-    from .pyQPanda import QCloud
-    from .pyQPanda import real_chip_type
-except ImportError as e:
-    warnings.warn("No module named QCloud")
 
 One = True
 Zero = False

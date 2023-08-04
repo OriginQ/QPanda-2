@@ -69,7 +69,7 @@ namespace GATEGPU
     };
 }
 
-namespace cuda
+namespace QCuda
 {
     struct device_status
     {
@@ -100,7 +100,7 @@ namespace cuda
         device_state_t data_vector;
         device_state_t m_device_matrix;
         device_qubit_t m_device_qubits;
-        thrust::device_vector<cuda::device_data_ptr> device_data_ptr;
+        thrust::device_vector<QCuda::device_data_ptr> device_data_ptr;
     };
 }
 #endif

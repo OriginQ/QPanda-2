@@ -2,6 +2,13 @@
 
 USING_QPANDA
 
+static void swap_bool(std::vector<bool>::reference a, std::vector<bool>::reference b) 
+{
+    bool temp = a;
+    a = b;
+    b = temp;
+}
+
 void SparseSimulator::_start()
 {
     _Qubit_Pool =
@@ -115,7 +122,6 @@ QVec SparseSimulator::allocateQubits(size_t qubitNumber)
         QCERR(e.what());
         throw(qalloc_fail(e.what()));
     }
-
 }
 
 QVec SparseSimulator::qAllocMany(size_t qubit_count)
@@ -825,12 +831,12 @@ void SparseSimulator::SWAP(size_t index_1, size_t index_2)
         std::swap(index_2, index_1);
     }
     // Everything commutes nicely with a swap
-    std::swap(_queue_Ry[index_1], _queue_Ry[index_2]);
+    swap_bool(_queue_Ry[index_1], _queue_Ry[index_2]);
     std::swap(_angles_Ry[index_1], _angles_Ry[index_2]);
-    std::swap(_queue_Rx[index_1], _queue_Rx[index_2]);
+    swap_bool(_queue_Rx[index_1], _queue_Rx[index_2]);
     std::swap(_angles_Rx[index_1], _angles_Rx[index_2]);
-    std::swap(_queue_H[index_1], _queue_H[index_2]);
-    std::swap(_occupied_qubits[index_1], _occupied_qubits[index_2]);
+    swap_bool(_queue_H[index_1], _queue_H[index_2]);
+    swap_bool(_occupied_qubits[index_1], _occupied_qubits[index_2]);
     size_t shift = index_2 - index_1;
     _queued_operations.push_back(operation(OP::SWAP, index_1, shift, index_2));
 }

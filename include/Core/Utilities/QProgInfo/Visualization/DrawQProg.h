@@ -25,7 +25,7 @@ namespace DRAW_TEXT_PIC
 		/**
 		* @brief  Constructor of DrawQProg
 		*/
-		DrawQProg(QProg &prg, const NodeIter node_itr_start, const NodeIter node_itr_end, const std::string &output_file = "");
+		DrawQProg(QProg& prg, const NodeIter node_itr_start, const NodeIter node_itr_end, bool b_draw_with_gate_params, const std::string& output_file = "");
 		~DrawQProg();
 
 		/**
@@ -47,6 +47,7 @@ namespace DRAW_TEXT_PIC
 		std::vector<int> m_class_bits_in_use;
 		LayeredTopoSeq m_layer_info;
 		const std::string &m_output_file;
+		bool m_draw_with_gate_params;
 	};
 }
 

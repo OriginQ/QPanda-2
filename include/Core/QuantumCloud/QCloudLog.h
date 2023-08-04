@@ -52,9 +52,9 @@ private:
 
 void qcloud_log_out(LogLevel level, const std::string& message, const std::string& file, int line);
 
-#define LOG_WARNING(message) qcloud_log_out(LogLevel::CLOUD_WARNING, message, __FILENAME__, __LINE__)
-#define LOG_DEBUG(message)   qcloud_log_out(LogLevel::CLOUD_DEBUG,   message, __FILENAME__, __LINE__)
-#define LOG_INFO(message)    qcloud_log_out(LogLevel::CLOUD_INFO,    message, __FILENAME__, __LINE__)
-#define LOG_ERROR(message)   qcloud_log_out(LogLevel::CLOUD_ERROR,   message, __FILENAME__, __LINE__)
+#define QCLOUD_LOG_WARNING(message) qcloud_log_out(LogLevel::CLOUD_WARNING, message, __FILENAME__, __LINE__)
+#define QCLOUD_LOG_DEBUG(message)   qcloud_log_out(LogLevel::CLOUD_DEBUG,   message, __FILENAME__, __LINE__)
+#define QCLOUD_LOG_INFO(message)    qcloud_log_out(LogLevel::CLOUD_INFO,    message, __FILENAME__, __LINE__)
+#define QCLOUD_LOG_ERROR(message)   qcloud_log_out(LogLevel::CLOUD_ERROR,   message, __FILENAME__, __LINE__)
 
 QPANDA_END

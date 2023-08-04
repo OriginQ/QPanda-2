@@ -14,6 +14,30 @@ class InitQMachine:
 
 # 筛选出辅助比特测量结果是 1的态
 def postselect(statevector, qubit_index, value):
+    """
+    Extracts a sub-vector from the state vector based on the specified qubit index and value.
+    
+    This function is designed to be used within the pyQPanda package for quantum computing applications.
+    It is intended to facilitate the manipulation of quantum state vectors during quantum circuit simulations.
+    
+    Parameters:
+    - statevector (np.ndarray): The complete quantum state vector from which a sub-vector is to be extracted.
+    - qubit_index (int): The index of the qubit for which the value is being postselected.
+    - value (int): The specific value to postselect on the qubit; typically 0 or 1.
+    
+    Returns:
+    - np.ndarray: A sub-vector of the original state vector, postselected to only include amplitudes with the specified value for the specified qubit.
+    
+    Note: This function assumes that the state vector is properly formatted and that the qubit index is within the valid range.
+    
+    Example usage:
+        # Assuming a state vector with a length that is a power of 2, and a qubit index of 2:
+        state = np.array([1, 0, 0, 1])
+        qubit_idx = 2
+        postselect_val = 1
+        result = postselect(state, qubit_idx, postselect_val)
+        # Result will be the sub-vector [1, 0, 0, 1] if postselect_val is 1.
+    """
     array_mask = int((len(statevector)) / 2)
 
     def normalise(vec: np.ndarray):
@@ -26,6 +50,16 @@ def postselect(statevector, qubit_index, value):
 
 # 近似运算
 def round_to_zero(vec, tol=2e-6):
+    """
+    Rounds the real and imaginary parts of a complex number vector to zero if their absolute values are below a specified tolerance.
+
+    Parameters:
+    vec (complex): The complex number vector to be rounded.
+    tol (float, optional): The tolerance level below which the real and imaginary parts will be set to zero. Default is 2e-6.
+
+    Returns:
+    complex: The input vector with its real and imaginary parts rounded to zero if they fall below the specified tolerance.
+    """
     vec.real[abs(vec.real) < tol] = 0.0
     vec.imag[abs(vec.imag) < tol] = 0.0
     return vec

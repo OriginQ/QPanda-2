@@ -4,6 +4,7 @@
 #include <vector>
 #include <stdio.h>
 #include <memory>
+#include "QAlg/Base_QCircuit/base_circuit.h"
 
 #define PRINT_TRACE 0
 
@@ -33,20 +34,22 @@ static bool test_layer_1()
 	QProg prog;
     prog << QFT(qv);
     auto layer_info = prog_layer(prog);
-    auto layer_info1 = get_chip_layer(prog, ChipID::WUYUAN_1, &qvm);
     std::cout << layer_info.size() << std::endl;
-    std::cout << layer_info1.size() << std::endl;
+
+    //auto layer_info1 = get_chip_layer(prog, ChipID::WUYUAN_1, &qvm);
+    //std::cout << layer_info1.size() << std::endl;
+    
     std::map<GateType, size_t> gate_time_map;
     gate_time_map.insert(std::make_pair<GateType, size_t>(GateType::U3_GATE, 3));
     gate_time_map.insert(std::make_pair<GateType, size_t>(GateType::RPHI_GATE, 1));
     gate_time_map.insert(std::make_pair<GateType, size_t>(GateType::CNOT_GATE, 6));
     gate_time_map.insert(std::make_pair<GateType, size_t>(GateType::CZ_GATE, 2));
-    auto size = get_qprog_clock_cycle_chip(layer_info1, gate_time_map);
+    auto size = get_qprog_clock_cycle_chip(layer_info, gate_time_map);
     auto size1 = get_qprog_clock_cycle(prog, &qvm);
     std::cout << "The src prog:" << size << std::endl;
     {
         /* output layer info */
-        auto _layer_text = draw_qprog(prog, layer_info1);
+        auto _layer_text = draw_qprog(prog, layer_info);
 
 #if defined(WIN32) || defined(_WIN32)
         _layer_text = fit_to_gbk(_layer_text);

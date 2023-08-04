@@ -3,6 +3,7 @@
 #include "QPanda.h"
 #include <time.h>
 #include "Extensions/Extensions.h"
+#include "Extensions/QAlg/HHL/HHL.h"
 
 #ifdef USE_EXTENSION
 

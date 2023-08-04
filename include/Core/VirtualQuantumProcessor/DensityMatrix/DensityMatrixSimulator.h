@@ -11,7 +11,8 @@ class DensityMatrixSimulator : public QVM
 {
 public:
 
-    void init(bool is_double_precision = true);
+    void init(bool is_double_precision);
+    void init() override;
 
     double get_probability(QProg& node, size_t index);
     double get_probability(QProg& node, std::string bin_index);
@@ -30,6 +31,11 @@ public:
     cmatrix_t  get_reduced_density_matrix(QProg& node, const Qnum&);
 
     /* bit-flip, phase-flip, bit-phase-flip, phase-damping, amplitude-damping, depolarizing*/
+    void set_noise_model(const cmatrix_t& karus_matrix);
+    void set_noise_model(const cmatrix_t& karus_matrix, const std::vector<GateType> &types);
+    void set_noise_model(const std::vector<cmatrix_t>& karus_matrices);
+    void set_noise_model(const std::vector<cmatrix_t>& karus_matrices, const std::vector<GateType> &types);
+
     void set_noise_model(const NOISE_MODEL& model, const GateType& type, double prob);
     void set_noise_model(const NOISE_MODEL& model, const std::vector<GateType> &types, double prob);
     void set_noise_model(const NOISE_MODEL& model, const GateType& type, double prob, const QVec& qubits);

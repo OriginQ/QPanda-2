@@ -7,15 +7,53 @@ import numpy as np
 from pyqpanda.pyQPanda import *
 
 def parity_check(number):
+    """
+    Calculate the parity of a given integer.
+
+    This function computes the parity of the binary representation of a number. It
+    counts the number of '1's in the binary string and returns `1` if the count is
+    odd (indicating odd parity) and `0` if the count is even (indicating even parity).
+    The result is modulo 2 to ensure the return value is either 0 or 1.
+
+        Args:
+            number (int): The integer whose parity is to be determined.
+
+        Returns:
+            int: The parity of the input number, `1` for odd and `0` for even.
+
+        Example:
+            >>> parity_check(3)
+            1
+            >>> parity_check(4)
+            0
+    """
     check=0
     for i in bin(number):
         if i=='1':
             check+=1
     return check%2
 def get_one_expectation_component(program,qubit_list):
-    '''
-    get expectation of operator ZiZj....Zm
-    '''
+    """
+    Calculate the expectation value for the operator product of Pauli Z gates on the specified qubits.
+
+        Args:
+            program (object): The quantum program containing the circuit to evaluate.
+            qubit_list (list): A list of qubit indices for which the Pauli Z gates are applied.
+
+        Returns:
+            float: The computed expectation value of the operator product.
+
+    The function employs a quantum simulation to evaluate the expectation value of the
+    operator product ZiZj...Zm, where each Zi represents a Pauli Z gate applied to
+    the qubit indexed by i. The result is obtained by running the quantum program on the
+    specified qubits and analyzing the outcomes. The expectation value is calculated
+    by summing or subtracting the probabilities based on the parity of the index in the
+    result list.
+
+    This function is intended for use within the pyQPanda package, which facilitates
+    quantum programming and supports quantum circuit simulation or execution on quantum
+    cloud services.
+    """
     expectation=0
     result=prob_run_list(program=prog,qubit_list=qubit_list,select_max=-1) 
     #print(result)
@@ -27,9 +65,23 @@ def get_one_expectation_component(program,qubit_list):
     return expectation   
 
 def get_expectation(qubit_list,program,PauliOperator):
-    '''
-    get Hamiltonian's expectation
-    '''
+    """
+    Calculate the expectation value of a Hamiltonian for a given quantum circuit.
+
+    This function computes the expectation value of a Hamiltonian, which is a linear combination of Pauli operators,
+    on a specified quantum circuit. It uses the provided PauliOperator to construct the Hamiltonian, and then iterates
+    over the Hamiltonian's terms. For each term, it either adds the corresponding coefficient directly to the expectation
+    value if the term is a constant, or constructs a sub-circuit to evaluate the expectation value if the term contains
+    qubit-specific operations.
+
+        Args:
+            qubit_list (list): A list of qubits representing the physical qubits in the quantum system.
+            program (QProg): The quantum circuit for which the Hamiltonian's expectation value is to be computed.
+            PauliOperator (object): An instance of a PauliOperator class that represents the Hamiltonian.
+
+        Returns:
+            float: The computed expectation value of the Hamiltonian.
+    """
     expectation=0
     Hamiltonian=PauliOperator.toHamiltonian(0)
     for op in Hamiltonian:
@@ -73,8 +125,30 @@ class qaoa:
         self.all_cut_value_list=all_cut_value_list
         self.target_value=target_value
         self.target_str_list=target_str_list
-    
+        """Initialize the QAOA class.
+
+            Args:
+                qubitnumber: Number of qubits.
+                step: Number of steps in the QAOA.
+                gamma: List of gamma parameters for each step.
+                beta: List of beta parameters for each step.
+                Hp: Problem Hamiltonian.
+                Hd: Driver Hamiltonian.
+                all_cut_value_list: List of cut values (default: empty list).
+                target_value: Target value for optimization (default: 0).
+                target_str_list: List of target strings (default: empty list).
+        """
     def prog_generation(self,qubit_list):
+        """Generate the quantum program for QAOA.
+
+        This method constructs the quantum program by applying the necessary gates.
+
+            Args:
+                qubit_list: List of qubits to apply the gates to.
+
+            Returns:
+                A QProg object representing the generated quantum program.
+        """
         prog=QProg()
         prog.insert(single_gate_apply_to_all(gate=H, qubit_list=qubit_list))
         for i in range(self.step):
@@ -105,8 +179,6 @@ class qaoa:
             cost_value=get_expectation(qubit_list,prog,self.Hp)
 
         return cost_value
-
-
 
 
 
@@ -202,9 +274,17 @@ class qaoa:
 
     def get_one_parameter_partial_derivative(self,qubit_list,label,method=1,delta=1e-6):
         '''
-        label[0]:gamma or beta
-        label[1]:step number
-        return:d<E>/d(theta_i)
+        Calculate the partial derivative of the cost function with respect to one parameter (gamma or beta).
+
+            Args:
+                qubit_list: List of qubits.
+                label: A tuple where label[0] indicates whether it's gamma (0) or beta (1),
+                    and label[1] indicates the step number.
+                method: Method to calculate the derivative (default is 1).
+                delta: Small change to approximate the derivative (default is 1e-6).
+
+            Returns:
+                The partial derivative d<E>/d(theta_i).
         '''
         partial_derivative=0
         if method==0:
@@ -231,7 +311,15 @@ class qaoa:
 
     def get_gradient(self,qubit_list,method=0,delta=1e-6):
         '''
-        compute gradient
+        Compute the gradient of the cost function with respect to parameters.
+
+            Args:
+                qubit_list: List of qubits.
+                method: Method to calculate the derivative (default is 0).
+                delta: Small change to approximate the derivative (default is 1e-6).
+
+            Returns:
+                The gradient magnitude.
         '''
         gradient=0
         for i in range(self.step):
@@ -242,7 +330,17 @@ class qaoa:
         return gradient
     
     def get_partial_derivative(self,qubit_list,method=0,delta=1e-6):
-        
+        '''
+        Compute the partial derivatives of the cost function with respect to all parameters.
+
+            Args:
+                qubit_list: List of qubits.
+                method: Method to calculate the derivative (default is 0).
+                delta: Small change to approximate the derivative (default is 1e-6).
+
+            Returns:
+                A 2D array of partial derivatives for each parameter (gamma and beta).
+        '''
         partial_derivative_list=np.zeros((self.step,2))
 
         for i in range(self.step):
@@ -251,7 +349,15 @@ class qaoa:
         return partial_derivative_list
     
     def target_state_proability(self,qubit_list):
+        '''
+        Calculate the probability of measuring the target states.
 
+            Args:
+                qubit_list: List of qubits.
+
+            Returns:
+                The probability of measuring the target states.
+        '''
         
         sum=0
         qprog=QProg()
@@ -265,6 +371,16 @@ class qaoa:
 
 
     def bulit_in_optimizer(self,qubit_list,method='Powell'):
+        '''
+        Optimize the parameters using a specified method.
+
+        Args:
+            qubit_list: List of qubits.
+            method: Optimization method (default is 'Powell').
+
+        Returns:
+            A dictionary containing optimization results and parameters.
+        '''
         def cost_function(parameter):
             self.gamma=parameter[0:self.step]
             self.beta=parameter[self.step:]
@@ -291,9 +407,20 @@ class qaoa:
 
     def momentum_optimizer(self,qubit_list,max_times=200, threshold_value=0.01,learning_rate=0.01,momentum=0.9,method=1,delta=1e-6,is_test=False):
         '''
-        momentum algorithm
-        method=0: pi/2 and -pi/2
-        method=1: (f(x+delta)-f(x-delta))/2*delta
+        Momentum algorithm for optimizing parameters in a quantum circuit.
+
+            Args:
+                qubit_list: List of qubits.
+                max_times: Maximum number of iterations.
+                threshold_value: Convergence threshold.
+                learning_rate: Step size for updates.
+                momentum: Momentum factor.
+                method: Method for calculating derivatives.
+                delta: Small value to prevent numerical issues.
+                is_test: Flag for enabling debug output.
+
+            Returns:
+                A dictionary containing optimization results and parameters.
         '''
         momentum_list=np.zeros((self.step,2))
         optimize_times=0
@@ -349,9 +476,22 @@ class qaoa:
        
     def Adam_optimizer(self,qubit_list,max_times=200, threshold_value=0.01,learning_rate=0.01,decay_rate_1=0.9,decay_rate_2=0.999,method=1,delta=1e-8,is_test=False):
         '''
-        Adam algorithm
-        
-        '''
+        Adam algorithm for optimizing parameters in a quantum circuit.
+
+            Args:
+                qubit_list: List of qubits.
+                max_times: Maximum number of iterations.
+                threshold_value: Convergence threshold.
+                learning_rate: Step size for updates.
+                decay_rate_1: Decay rate for the first moment estimate.
+                decay_rate_2: Decay rate for the second moment estimate.
+                method: Method for calculating derivatives.
+                delta: Small value to prevent division by zero.
+                is_test: Flag for enabling debug output.
+
+            Returns:
+                A dictionary containing optimization results and parameters.
+    '''
         first_order=np.zeros((self.step,2))
         second_order=np.zeros((self.step,2))
         optimize_times=0
@@ -409,9 +549,21 @@ class qaoa:
 
         
     def gradient_descent_optimizer(self,qubit_list,max_times=200, threshold_value=0.01,learning_rate=0.001,method=0,delta=1e-6,is_test=False):
+        '''
+        Optimize parameters using gradient descent.
 
+            Args:
+                qubit_list: List of qubits.
+                max_times: Maximum number of iterations.
+                threshold_value: Convergence threshold.
+                learning_rate: Step size for updates.
+                method: Method for calculating derivatives.
+                delta: Small value for numerical derivative.
+                is_test: Flag for enabling debug output.
 
-
+            Returns:
+                A dictionary containing optimization results and parameters.
+        '''
 
         optimize_times=0
         target_probability=0

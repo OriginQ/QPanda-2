@@ -24,6 +24,7 @@ limitations under the License.
 #include "Core/Utilities/QProgInfo/GetAdjacentNodes.h"
 #include "Core/Utilities/QProgInfo/QProgToMatrix.h"
 #include "Core/Utilities/QProgInfo/GetAllUsedQubitAndCBit.h"
+#include "Core/Utilities/QProgInfo/GetSimpleCircuitTopo.h"
 #include "Core/Utilities/Tools/QCircuitFusion.h"
 #include "Core/QuantumCircuit/QNodeDeepCopy.h"
 
@@ -169,7 +170,6 @@ void TraverseByNodeIter::execute(std::shared_ptr<AbstractQuantumProgram>  cur_no
 
 	if (aiter == cur_node->getEndNodeIter())
 		return;
-
 
 	auto pNode = std::dynamic_pointer_cast<QNode>(cur_node);
 
@@ -745,6 +745,11 @@ void QPanda::pickUpNode(QProg &outPutProg, QProg srcProg, const std::vector<Node
 	}
 }
 
+
+/*
+ * @brief Get the number of qubits
+ * @param[in, out] vecQuBitsInUse : A vector that holds qubits
+ */
 size_t QPanda::get_all_used_qubits(QProg prog, QVec &vecQuBitsInUse)
 {
 	GetAllUsedQubitAndCBit get_qubit_object;
@@ -754,6 +759,10 @@ size_t QPanda::get_all_used_qubits(QProg prog, QVec &vecQuBitsInUse)
 	return vecQuBitsInUse.size();
 }
 
+/*
+ * @brief Get the number of qubits
+ * @param[in, out] vecQuBitsInUse : A vector that holds the address of a qubit
+ */
 size_t QPanda::get_all_used_qubits(QProg prog, std::vector<int> &vecQuBitsInUse)
 {
 	QVec vec_all_qubits;
@@ -792,6 +801,18 @@ size_t QPanda::get_measure_info(QProg prog, std::vector<std::pair<uint32_t, uint
 	return measure_info.size();
 }
 
+/*
+ * @brief Get the topo of quantum circuit!
+ * @param[in] QProg : qprog
+ * @return map: key: qubit, val: serialized gate string!
+ */
+std::map<uint32_t, std::string> QPanda::get_circuit_topo(QProg prog)
+{
+	GetSimpleCircuitTopo get_qubit_object;
+	get_qubit_object.traversal(prog);
+	return get_qubit_object.get_topo_by_qubit();
+}
+
 string QPanda::printAllNodeType(QProg prog)
 {
 	GetAllNodeType print_node_type;
@@ -824,6 +845,7 @@ std::vector<double> QPanda::get_gate_parameter(std::shared_ptr<AbstractQGateNode
 	case ISWAP_GATE:
 	case SQISWAP_GATE:
 	case ORACLE_GATE:
+    case MS_GATE:
 		break;
 
 	case ISWAP_THETA_GATE:

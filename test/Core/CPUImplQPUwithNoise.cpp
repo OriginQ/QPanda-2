@@ -1,5 +1,6 @@
 #include "QPanda.h"
 #include "gtest/gtest.h"
+#include "QAlg/Base_QCircuit/QPE.h"
 #include <cmath>
 
 USING_QPANDA
@@ -62,6 +63,7 @@ TEST(CPUImplQPUwithNoise, BITFLIP_KRAUS_OPERATOR_compare)
   noise_qvm.init();
   noise_qvm.set_noise_model(NOISE_MODEL::BITFLIP_KRAUS_OPERATOR, GateType::PAULI_X_GATE, 0.3);
   noise_qvm.set_noise_model(NOISE_MODEL::BITFLIP_KRAUS_OPERATOR, GateType::CNOT_GATE, 0.1);
+  noise_qvm.set_noise_model(NOISE_MODEL::BITFLIP_KRAUS_OPERATOR, GateType::MS_GATE, 0.1);
 
   auto cpu_qvm = CPUQVM();
   cpu_qvm.init();

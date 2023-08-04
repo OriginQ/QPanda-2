@@ -512,8 +512,8 @@ QError CPUImplQPU<data_t>::_iSWAP(size_t qn_0, size_t qn_1, QStat &matrix, bool 
 
     if (is_dagger)
     {
-        matrix[6] = { 0, 1 };
-        matrix[9] = { 0, 1 };
+        matrix[6] = { 0, -1 };
+        matrix[9] = { 0, -1 };
     }
     auto matrix_f = convert(matrix);
 
@@ -938,8 +938,8 @@ QError CPUImplQPU<data_t>::_iSWAP(size_t qn_0, size_t qn_1, QStat &matrix, bool 
 
     if (is_dagger)
     {
-        matrix[6] = { 0, 1 };
-        matrix[9] = { 0, 1 };
+        matrix[6] = { 0, -1 };
+        matrix[9] = { 0, -1 };
     }
     auto matrix_f = convert(matrix);
 
@@ -1496,6 +1496,7 @@ unitaryDoubleQubitGate(size_t qn_0,
     case GateType::RYY_GATE:
     case GateType::RZZ_GATE:
     case GateType::RZX_GATE:
+    case GateType::MS_GATE:
     case GateType::TWO_QUBIT_GATE:
         _double_qubit_normal_unitary(qn_0, qn_1, matrix, is_dagger);
         break;
@@ -1553,6 +1554,7 @@ controlunitaryDoubleQubitGate(size_t qn_0,
     case GateType::RYY_GATE:
     case GateType::RZZ_GATE:
     case GateType::RZX_GATE:
+    case GateType::MS_GATE:
     case GateType::TWO_QUBIT_GATE:
         _double_qubit_normal_unitary(qn_0, qn_1, controls, matrix, is_dagger);
         break;

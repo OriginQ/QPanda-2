@@ -11,10 +11,10 @@
 #   QPANDA_INCLUDE_DIR    - QPanda-2 include  etc.
 #   THIRD_INCLUDE_DIR     - ThirdParty include
 #   QPANDA_LIBRARIES      - List of libraries when using QPanda.
-#   QALG_LIBRARY          - QAlg library
 #   COMPONENTS_LIBRARY    - Variational library
 #   ANTLR4_LIBRARY        - antlr4 library
-#   NLOPT_LIBRARY        - antlr4 library
+#   NLOPT_LIBRARY         - nlopt library
+#   BZ2_LIBRARY           - bz2 library
 #   QPANDA_LIBRARY        - QPanda-2 library
 #   QPANDA_FOUND          - True if curl found.
 #   
@@ -31,22 +31,16 @@ find_path(THIRD_INCLUDE_DIR NAMES qpanda2/ThirdParty/rapidjson/rapidjson.h
           ${QPANDA_INSTALL_DIR}/include)
 
 include_directories(${THIRD_INCLUDE_DIR}/qpanda2/ThirdParty)
+include_directories(${THIRD_INCLUDE_DIR}/qpanda2/Extensions)
 mark_as_advanced(QPANDA_INCLUDE_DIR)
 
 # Look for the library (sorted from most current/relevant entry to least).
-find_library(QALG_LIBRARY NAMES QAlg 
-             PATHS 
-             ${QPANDA_INSTALL_DIR}/lib)
 find_library(QPANDA_LIBRARY NAMES QPanda2 
              PATHS 
              ${QPANDA_INSTALL_DIR}/lib)
 find_library(COMPONENTS_LIBRARY NAMES Components 
              PATHS 
              ${QPANDA_INSTALL_DIR}/lib)
-
-#find_library(TINY_LIBRARY NAMES TinyXML 
-#             PATHS 
-#             ${QPANDA_INSTALL_DIR}/lib)
 
 find_library(ANTLR4_LIBRARY NAMES antlr4 
              PATHS 
@@ -59,22 +53,26 @@ find_library(NLOPT_LIBRARY NAMES nlopt
 find_library(GPUBACKEND_LIBRARY NAMES GPUQGates 
              PATHS 
              ${QPANDA_INSTALL_DIR}/lib)
+ 
+ find_library(BZ2_LIBRARY NAMES bz2 
+             PATHS 
+             ${QPANDA_INSTALL_DIR}/lib)
 
 mark_as_advanced(QPANDA_LIBRARY)
 mark_as_advanced(QALG_LIBRARY)
 mark_as_advanced(COMPONENTS_LIBRARY)
-#mark_as_advanced(TINY_LIBRARY)
 mark_as_advanced(ANTLR4_LIBRARY)
 mark_as_advanced(NLOPT_LIBRARY)
+mark_as_advanced(BZ2_LIBRARY)
 
 set(QPANDA_LIBRARIES)
 list(APPEND QPANDA_LIBRARIES 
             ${QALG_LIBRARY}
             ${COMPONENTS_LIBRARY}
             ${QPANDA_LIBRARY}
-            #${TINY_LIBRARY}
             ${ANTLR4_LIBRARY}
-            ${NLOPT_LIBRARY})
+            ${NLOPT_LIBRARY}
+			${BZ2_LIBRARY})
 
 if (GPUBACKEND_LIBRARY)
     find_package(CUDA)

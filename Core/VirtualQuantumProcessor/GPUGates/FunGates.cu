@@ -73,7 +73,7 @@ template __global__ void exec_gate_kernel_multi<CORACLEFun>(CORACLEFun, size_t, 
 template __global__ void exec_gate_kernel_multi<ISWAPThetaFun>(ISWAPThetaFun, size_t, size_t, size_t);
 template __global__ void exec_gate_kernel_multi<DoubleGateFun>(DoubleGateFun, size_t, size_t, size_t);
 
-namespace cuda
+namespace QCuda
 {
     device_data_ptr::device_data_ptr() { PRINT_DEBUG_MESSAGE }
 
@@ -102,7 +102,7 @@ void BaseGateFun::set_ptr(device_complex_t* data_ptr, device_qubit_t& device_qub
     m_device_opt_qubits = thrust::raw_pointer_cast(device_qubits.data());
 }
 
-void BaseGateFun::set_ptr(cuda::device_data_ptr* data_ptr, device_qubit_t& device_qubits, device_state_t& device_matrix)
+void BaseGateFun::set_ptr(QCuda::device_data_ptr* data_ptr, device_qubit_t& device_qubits, device_state_t& device_matrix)
 {
     PRINT_DEBUG_MESSAGE
     device_data_ptr = data_ptr;

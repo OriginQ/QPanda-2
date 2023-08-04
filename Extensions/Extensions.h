@@ -5,12 +5,11 @@
 
 #ifdef USE_EXTENSION
 
-#include "QAlg/HHL.h"
+#include "QAlg/QAlg.h"
 #include "CutQC/CutQC.h"
 
 #include "QMapping/QCodarMatch.h"
-#include "QMapping/OBMTQMapping.h"
-#include "QMapping/SabreQMapping.h"
+#include "QMapping/MappingAdapter.h"
 
 #include "VirtualZTransfer/VirtualZTransfer.h"
 

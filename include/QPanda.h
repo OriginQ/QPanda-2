@@ -19,8 +19,15 @@ limitations under the License.
 #define _QPANDA_H
 
 #include "Core/Core.h"
+#include "QPandaConfig.h"
 #include "Components/Components.h"
-#include "QAlg/QAlg.h"
+
+#if defined(USE_EXTENSION)
+
+#include "Extensions/QAlg/QAlg.h"
+
+#endif
+
 /**
 * @defgroup Components
 * @brief QPanda2  Components  Group
@@ -87,9 +94,6 @@ limitations under the License.
 * @brief Grover Algorithm
 * @ingroup QAlg
 *
-* @defgroup QAOA
-* @brief QAOA
-* @ingroup QAlg
 *
 */
 

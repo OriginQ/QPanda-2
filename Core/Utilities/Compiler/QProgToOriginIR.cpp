@@ -6,6 +6,9 @@ USING_QPANDA
 using namespace std;
 using namespace QGATE_SPACE;
 
+
+const size_t kOriginirPrecision = 15;
+
 static void traversalInOrderPCtr(const CExpr* pCtrFlow, string &ctr_statement)
 {
 	if (nullptr != pCtrFlow)
@@ -63,6 +66,7 @@ QProgToOriginIR::QProgToOriginIR(QuantumMachine * quantum_machine)
 	m_gatetype.insert(pair<int, string>(RZ_GATE, "RZ"));
 
 	m_gatetype.insert(pair<int, string>(U1_GATE, "U1"));
+	m_gatetype.insert(pair<int, string>(P_GATE, "P"));
 	m_gatetype.insert(pair<int, string>(U2_GATE, "U2"));
 	m_gatetype.insert(pair<int, string>(U3_GATE, "U3"));
 	m_gatetype.insert(pair<int, string>(U4_GATE, "U4"));
@@ -82,6 +86,7 @@ QProgToOriginIR::QProgToOriginIR(QuantumMachine * quantum_machine)
     m_gatetype.insert(pair<int, string>(GateType::RYY_GATE, "RYY"));
     m_gatetype.insert(pair<int, string>(GateType::RZZ_GATE, "RZZ"));
     m_gatetype.insert(pair<int, string>(GateType::RZX_GATE, "RZX"));
+    m_gatetype.insert(pair<int, string>(GateType::MS_GATE, "MS"));
 	m_gatetype.insert(pair<int, string>(TOFFOLI_GATE, "TOFFOLI"));
 	m_gatetype.insert(pair<int, string>(ORACLE_GATE, "ORACLE_GATE"));
 
@@ -112,6 +117,7 @@ QProgToOriginIR::QProgToOriginIR()
     m_gatetype.insert(pair<int, string>(RZ_GATE, "RZ"));
 
     m_gatetype.insert(pair<int, string>(U1_GATE, "U1"));
+	m_gatetype.insert(pair<int, string>(P_GATE, "P"));
     m_gatetype.insert(pair<int, string>(U2_GATE, "U2"));
     m_gatetype.insert(pair<int, string>(U3_GATE, "U3"));
     m_gatetype.insert(pair<int, string>(U4_GATE, "U4"));
@@ -131,6 +137,7 @@ QProgToOriginIR::QProgToOriginIR()
     m_gatetype.insert(pair<int, string>(GateType::RYY_GATE, "RYY"));
     m_gatetype.insert(pair<int, string>(GateType::RZZ_GATE, "RZZ"));
     m_gatetype.insert(pair<int, string>(GateType::RZX_GATE, "RZX"));
+     m_gatetype.insert(pair<int, string>(GateType::MS_GATE, "MS"));
     m_gatetype.insert(pair<int, string>(TOFFOLI_GATE, "TOFFOLI"));
     m_gatetype.insert(pair<int, string>(ORACLE_GATE, "ORACLE_GATE"));
 
@@ -141,8 +148,7 @@ QProgToOriginIR::QProgToOriginIR()
 static std::string double_tostring(const double val)
 {
 	std::ostringstream out;
-	unsigned int precision = 8;
-	out.precision(precision);
+	out.precision(kOriginirPrecision);
 	out << val;
 	return out.str();
 }
@@ -265,6 +271,7 @@ void QProgToOriginIR::transformQGate(AbstractQGateNode * pQGate, bool is_dagger)
 	break;
 
 	case U1_GATE:
+	case P_GATE:
 	case RX_GATE:
 	case RY_GATE:
 	case RZ_GATE:
@@ -309,6 +316,7 @@ void QProgToOriginIR::transformQGate(AbstractQGateNode * pQGate, bool is_dagger)
 	case ISWAP_GATE:
 	case SQISWAP_GATE:
 	case SWAP_GATE:
+    case MS_GATE:
 	{
 		m_OriginIR.emplace_back(item + " " + all_qubits);
 	}

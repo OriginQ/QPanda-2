@@ -1,6 +1,8 @@
 #pragma once
 
 #include <iostream>
+#include <stdint.h>
+#include <stdlib.h>
 #include "Core/Utilities/QPandaNamespace.h"
 
 QPANDA_BEGIN

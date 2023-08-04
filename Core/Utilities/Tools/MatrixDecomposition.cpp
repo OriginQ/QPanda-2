@@ -982,9 +982,27 @@ bool MatrixToPauli::matchIndex(int k, const std::vector<int>& repeatedindex)
 
 bool MatrixToPauli::matchTwoCircuit(const QCircuit& a, const QCircuit& b, bool criteria_matrix_circuit)
 {
+    QVec a_qubits, b_qubits;
+
+    QProg prog_a;
+    QProg prog_b;
+
+    prog_a << a;
+    prog_b << b;
+
+    get_all_used_qubits(prog_a, a_qubits);
+    get_all_used_qubits(prog_b, b_qubits);
+
+    if (a_qubits.size() != b_qubits.size())
+        return false;
+
     auto mach = CPUQVM();
     mach.init();
     bool matched = false;
+
+    mach.qAllocMany(a_qubits.size());
+    mach.cAllocMany(a_qubits.size());
+
     if (!criteria_matrix_circuit)
     {
         //QuantumMachine* mach = initQuantumMachine(CPU);

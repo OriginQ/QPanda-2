@@ -5,7 +5,7 @@
 #include "Core/Utilities/QPandaNamespace.h"
 
 #include "QPandaConfig.h"
-#if defined(USE_OPENSSL) && defined(USE_CURL)
+#if defined(USE_CURL)
 
 #include <curl/curl.h>
 using pcurl_t = CURL * ;
@@ -25,7 +25,7 @@ public:
     QCurl();
     ~QCurl();
 
-    void init();
+    void init(std::string user_token);
 
     template<typename T>
     void set_curl_handle(CURLoption option, T data)
@@ -42,6 +42,31 @@ public:
         m_headers = curl_slist_append(m_headers, header.c_str());
         if (!m_headers)
             throw std::runtime_error("Failed to add header");
+
+        return;
+    }
+
+    void del_curl_header(const std::string& header)
+    {
+        struct curl_slist *current = m_headers;
+        struct curl_slist *previous = nullptr;
+
+        while (current != nullptr) 
+        {
+            if (std::string(current->data).compare(0, strlen("configuration"), "configuration") == 0) 
+            {
+                if (previous != nullptr)
+                    previous->next = current->next;
+                else
+                    m_headers = current->next;
+
+                curl_slist_free_all(current);
+                break;
+            }
+
+            previous = current;
+            current = current->next;
+        }
 
         return;
     }
@@ -71,7 +96,7 @@ public:
         return m_response_body;
     }
 
-    //void get(const std::string url, const std::string& json);
+    void get(const std::string url);
     void post(const std::string url, const std::string& json);
 
 private:

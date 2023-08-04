@@ -14,7 +14,7 @@ protected:
     device_qsize_t m_opt_num = 0;
     device_qsize_t m_qubit_num = 0;
     qstate_type *m_param = nullptr;
-    cuda::device_data_ptr *device_data_ptr;
+    QCuda::device_data_ptr *device_data_ptr;
     device_complex_t *data_vector = nullptr;
     device_complex_t *m_device_matrix = nullptr;
     device_qsize_t *m_device_opt_qubits = nullptr;
@@ -32,7 +32,7 @@ public:
     virtual void set_qubits(const host_qubit_t& qubits, const host_qubit_t& control, cudaStream_t& stream) {};
 
     void set_ptr(device_complex_t *data_ptr, device_qubit_t &device_qubits, device_state_t &device_matrix);
-    void set_ptr(cuda::device_data_ptr *data_ptr, device_qubit_t &device_qubits, device_state_t &device_matrix);
+    void set_ptr(QCuda::device_data_ptr *data_ptr, device_qubit_t &device_qubits, device_state_t &device_matrix);
 };
 
 class SingleGateFun : public BaseGateFun

@@ -80,10 +80,12 @@ void export_variational(py::module &m)
         .BIND_VAR_OPERATOR_OVERLOAD(+)
         .BIND_VAR_OPERATOR_OVERLOAD(-)
         .BIND_VAR_OPERATOR_OVERLOAD(*)
-        .BIND_VAR_OPERATOR_OVERLOAD(/)
+        .BIND_VAR_OPERATOR_OVERLOAD(/ )
 
-        .def(
-            "__getitem__",
+        .def("__hash__", &var::_hash)
+        .def("__eq__", &var::operator==)
+
+        .def("__getitem__",
             [](Var::var &v, int idx)
             { return v[idx]; },
             py::is_operator())
@@ -98,77 +100,77 @@ void export_variational(py::module &m)
         .def("is_dagger", &Var::VariationalQuantumGate::is_dagger, py::return_value_policy::automatic)
         .def("get_control_qubit", &Var::VariationalQuantumGate::get_control_qubit, py::return_value_policy::automatic);
 
-    py::class_<Var::VariationalQuantumGate_I, Var::VariationalQuantumGate>(m, 
+    py::class_<Var::VariationalQuantumGate_I, Var::VariationalQuantumGate>(m,
         "VariationalQuantumGate_I",
         "variational quantum  I gate class")
         .def(py::init<QPanda::Qubit *>())
         .def("dagger", &Var::VariationalQuantumGate_I::dagger, py::return_value_policy::automatic)
         .def("control", &Var::VariationalQuantumGate_I::control, py::return_value_policy::automatic);
 
-    py::class_<Var::VariationalQuantumGate_H, Var::VariationalQuantumGate>(m, 
+    py::class_<Var::VariationalQuantumGate_H, Var::VariationalQuantumGate>(m,
         "VariationalQuantumGate_H",
         "variational quantum  H gate class")
         .def(py::init<QPanda::Qubit *>())
         .def("dagger", &Var::VariationalQuantumGate_H::dagger, py::return_value_policy::automatic)
         .def("control", &Var::VariationalQuantumGate_H::control, py::return_value_policy::automatic);
 
-    py::class_<Var::VariationalQuantumGate_S, Var::VariationalQuantumGate>(m, 
+    py::class_<Var::VariationalQuantumGate_S, Var::VariationalQuantumGate>(m,
         "VariationalQuantumGate_S",
         "variational quantum S gate class")
         .def(py::init<QPanda::Qubit *>())
         .def("dagger", &Var::VariationalQuantumGate_S::dagger, py::return_value_policy::automatic)
         .def("control", &Var::VariationalQuantumGate_S::control, py::return_value_policy::automatic);
 
-    py::class_<Var::VariationalQuantumGate_T, Var::VariationalQuantumGate>(m, 
+    py::class_<Var::VariationalQuantumGate_T, Var::VariationalQuantumGate>(m,
         "VariationalQuantumGate_T",
         "variational quantum T gate class")
         .def(py::init<QPanda::Qubit *>())
         .def("dagger", &Var::VariationalQuantumGate_T::dagger, py::return_value_policy::automatic)
         .def("control", &Var::VariationalQuantumGate_T::control, py::return_value_policy::automatic);
 
-    py::class_<Var::VariationalQuantumGate_X, Var::VariationalQuantumGate>(m, 
+    py::class_<Var::VariationalQuantumGate_X, Var::VariationalQuantumGate>(m,
         "VariationalQuantumGate_X",
         "variational quantum X gate class")
         .def(py::init<QPanda::Qubit *>())
         .def("dagger", &Var::VariationalQuantumGate_X::dagger, py::return_value_policy::automatic)
         .def("control", &Var::VariationalQuantumGate_X::control, py::return_value_policy::automatic);
 
-    py::class_<Var::VariationalQuantumGate_Y, Var::VariationalQuantumGate>(m, 
+    py::class_<Var::VariationalQuantumGate_Y, Var::VariationalQuantumGate>(m,
         "VariationalQuantumGate_Y",
         "variational quantum Y gate class")
         .def(py::init<QPanda::Qubit *>())
         .def("dagger", &Var::VariationalQuantumGate_Y::dagger, py::return_value_policy::automatic)
         .def("control", &Var::VariationalQuantumGate_Y::control, py::return_value_policy::automatic);
 
-    py::class_<Var::VariationalQuantumGate_Z, Var::VariationalQuantumGate>(m, 
+    py::class_<Var::VariationalQuantumGate_Z, Var::VariationalQuantumGate>(m,
         "VariationalQuantumGate_Z",
         "variational quantum Z gate class")
         .def(py::init<QPanda::Qubit *>())
         .def("dagger", &Var::VariationalQuantumGate_Z::dagger, py::return_value_policy::automatic)
         .def("control", &Var::VariationalQuantumGate_Z::control, py::return_value_policy::automatic);
 
-    py::class_<Var::VariationalQuantumGate_X1, Var::VariationalQuantumGate>(m, 
+    py::class_<Var::VariationalQuantumGate_X1, Var::VariationalQuantumGate>(m,
         "VariationalQuantumGate_X1",
         "variational quantum X1 gate class")
         .def(py::init<QPanda::Qubit *>())
         .def("dagger", &Var::VariationalQuantumGate_X1::dagger, py::return_value_policy::automatic)
         .def("control", &Var::VariationalQuantumGate_X1::control, py::return_value_policy::automatic);
 
-    py::class_<Var::VariationalQuantumGate_Y1, Var::VariationalQuantumGate>(m, 
+    py::class_<Var::VariationalQuantumGate_Y1, Var::VariationalQuantumGate>(m,
         "VariationalQuantumGate_Y1",
         "variational quantum Y1 gate class")
         .def(py::init<QPanda::Qubit *>())
         .def("dagger", &Var::VariationalQuantumGate_Y1::dagger, py::return_value_policy::automatic)
         .def("control", &Var::VariationalQuantumGate_Y1::control, py::return_value_policy::automatic);
 
-    py::class_<Var::VariationalQuantumGate_Z1, Var::VariationalQuantumGate>(m, 
+    py::class_<Var::VariationalQuantumGate_Z1, Var::VariationalQuantumGate>(m,
         "VariationalQuantumGate_Z1",
         "variational quantum Z1 gate class")
         .def(py::init<QPanda::Qubit *>())
         .def("dagger", &Var::VariationalQuantumGate_Z1::dagger, py::return_value_policy::automatic)
         .def("control", &Var::VariationalQuantumGate_Z1::control, py::return_value_policy::automatic);
 
-    py::class_<Var::VariationalQuantumGate_RX, Var::VariationalQuantumGate>(m, 
+    py::class_<Var::VariationalQuantumGate_RX, Var::VariationalQuantumGate>(m,
         "VariationalQuantumGate_RX",
         "variational quantum RX gate class")
         .def(py::init<QPanda::Qubit *, Var::var>())
@@ -176,7 +178,7 @@ void export_variational(py::module &m)
         .def("dagger", &Var::VariationalQuantumGate_RX::dagger, py::return_value_policy::automatic)
         .def("control", &Var::VariationalQuantumGate_RX::control, py::return_value_policy::automatic);
 
-    py::class_<Var::VariationalQuantumGate_RY, Var::VariationalQuantumGate>(m, 
+    py::class_<Var::VariationalQuantumGate_RY, Var::VariationalQuantumGate>(m,
         "VariationalQuantumGate_RY",
         "variational quantum RY gate class")
         .def(py::init<QPanda::Qubit *, Var::var>())
@@ -184,7 +186,7 @@ void export_variational(py::module &m)
         .def("dagger", &Var::VariationalQuantumGate_RY::dagger, py::return_value_policy::automatic)
         .def("control", &Var::VariationalQuantumGate_RY::control, py::return_value_policy::automatic);
 
-    py::class_<Var::VariationalQuantumGate_RZ, Var::VariationalQuantumGate>(m, 
+    py::class_<Var::VariationalQuantumGate_RZ, Var::VariationalQuantumGate>(m,
         "VariationalQuantumGate_RZ",
         "variational quantum RZ gate class")
         .def(py::init<QPanda::Qubit *, Var::var>())
@@ -192,7 +194,7 @@ void export_variational(py::module &m)
         .def("dagger", &Var::VariationalQuantumGate_RZ::dagger, py::return_value_policy::automatic)
         .def("control", &Var::VariationalQuantumGate_RZ::control, py::return_value_policy::automatic);
 
-    py::class_<Var::VariationalQuantumGate_U1, Var::VariationalQuantumGate>(m, 
+    py::class_<Var::VariationalQuantumGate_U1, Var::VariationalQuantumGate>(m,
         "VariationalQuantumGate_U1",
         "variational quantum U1 gate class")
         .def(py::init<QPanda::Qubit *, Var::var>())
@@ -200,7 +202,7 @@ void export_variational(py::module &m)
         .def("dagger", &Var::VariationalQuantumGate_U1::dagger, py::return_value_policy::automatic)
         .def("control", &Var::VariationalQuantumGate_U1::control, py::return_value_policy::automatic);
 
-    py::class_<Var::VariationalQuantumGate_U2, Var::VariationalQuantumGate>(m, 
+    py::class_<Var::VariationalQuantumGate_U2, Var::VariationalQuantumGate>(m,
         "VariationalQuantumGate_U2",
         "variational quantum U2 gate class")
         .def(py::init<QPanda::Qubit *, Var::var, Var::var>())
@@ -208,7 +210,7 @@ void export_variational(py::module &m)
         .def("dagger", &Var::VariationalQuantumGate_U2::dagger, py::return_value_policy::automatic)
         .def("control", &Var::VariationalQuantumGate_U2::control, py::return_value_policy::automatic);
 
-    py::class_<Var::VariationalQuantumGate_U3, Var::VariationalQuantumGate>(m, 
+    py::class_<Var::VariationalQuantumGate_U3, Var::VariationalQuantumGate>(m,
         "VariationalQuantumGate_U3",
         "variational quantum U3 gate class")
         .def(py::init<QPanda::Qubit *, Var::var, Var::var, Var::var>())
@@ -216,7 +218,7 @@ void export_variational(py::module &m)
         .def("dagger", &Var::VariationalQuantumGate_U3::dagger, py::return_value_policy::automatic)
         .def("control", &Var::VariationalQuantumGate_U3::control, py::return_value_policy::automatic);
 
-    py::class_<Var::VariationalQuantumGate_U4, Var::VariationalQuantumGate>(m, 
+    py::class_<Var::VariationalQuantumGate_U4, Var::VariationalQuantumGate>(m,
         "VariationalQuantumGate_U4",
         "variational quantum U4 gate class")
         .def(py::init<QPanda::Qubit *, Var::var, Var::var, Var::var, Var::var>())
@@ -224,7 +226,7 @@ void export_variational(py::module &m)
         .def("dagger", &Var::VariationalQuantumGate_U4::dagger, py::return_value_policy::automatic)
         .def("control", &Var::VariationalQuantumGate_U4::control, py::return_value_policy::automatic);
 
-    py::class_<Var::VariationalQuantumGate_CR, Var::VariationalQuantumGate>(m, 
+    py::class_<Var::VariationalQuantumGate_CR, Var::VariationalQuantumGate>(m,
         "VariationalQuantumGate_CR",
         "variational quantum CR gate class")
         .def(py::init<QPanda::Qubit *, QPanda::Qubit *, double>())
@@ -233,7 +235,7 @@ void export_variational(py::module &m)
         .def("dagger", &Var::VariationalQuantumGate_CR::dagger, py::return_value_policy::automatic)
         .def("control", &Var::VariationalQuantumGate_CR::control, py::return_value_policy::automatic);
 
-    py::class_<Var::VariationalQuantumGate_CRX, Var::VariationalQuantumGate>(m, 
+    py::class_<Var::VariationalQuantumGate_CRX, Var::VariationalQuantumGate>(m,
         "VariationalQuantumGate_CRX",
         "variational quantum CRX gate class")
         .def(py::init<QPanda::Qubit *, QVec &, double>())
@@ -242,7 +244,7 @@ void export_variational(py::module &m)
         .def("dagger", &Var::VariationalQuantumGate_CRX::dagger, py::return_value_policy::automatic)
         .def("control", &Var::VariationalQuantumGate_CRX::control, py::return_value_policy::automatic);
 
-    py::class_<Var::VariationalQuantumGate_CRY, Var::VariationalQuantumGate>(m, 
+    py::class_<Var::VariationalQuantumGate_CRY, Var::VariationalQuantumGate>(m,
         "VariationalQuantumGate_CRY",
         "variational quantum CRY gate class")
         .def(py::init<QPanda::Qubit *, QVec &, double>())
@@ -251,7 +253,7 @@ void export_variational(py::module &m)
         .def("dagger", &Var::VariationalQuantumGate_CRY::dagger, py::return_value_policy::automatic)
         .def("control", &Var::VariationalQuantumGate_CRY::control, py::return_value_policy::automatic);
 
-    py::class_<Var::VariationalQuantumGate_CRZ, Var::VariationalQuantumGate>(m, 
+    py::class_<Var::VariationalQuantumGate_CRZ, Var::VariationalQuantumGate>(m,
         "VariationalQuantumGate_CRZ",
         "variational quantum CRZ gate class")
         .def(py::init<QPanda::Qubit *, QVec &, double>())
@@ -260,42 +262,42 @@ void export_variational(py::module &m)
         .def("dagger", &Var::VariationalQuantumGate_CRZ::dagger, py::return_value_policy::automatic)
         .def("control", &Var::VariationalQuantumGate_CRZ::control, py::return_value_policy::automatic);
 
-    py::class_<Var::VariationalQuantumGate_CNOT, Var::VariationalQuantumGate>(m, 
+    py::class_<Var::VariationalQuantumGate_CNOT, Var::VariationalQuantumGate>(m,
         "VariationalQuantumGate_CNOT",
         "variational quantum CNOT gate class")
         .def(py::init<QPanda::Qubit *, QPanda::Qubit *>())
         .def("dagger", &Var::VariationalQuantumGate_CNOT::dagger, py::return_value_policy::automatic)
         .def("control", &Var::VariationalQuantumGate_CNOT::control, py::return_value_policy::automatic);
 
-    py::class_<Var::VariationalQuantumGate_CZ, Var::VariationalQuantumGate>(m, 
+    py::class_<Var::VariationalQuantumGate_CZ, Var::VariationalQuantumGate>(m,
         "VariationalQuantumGate_CZ",
         "variational quantum CZ gate class")
         .def(py::init<QPanda::Qubit *, QPanda::Qubit *>())
         .def("dagger", &Var::VariationalQuantumGate_CZ::dagger, py::return_value_policy::automatic)
         .def("control", &Var::VariationalQuantumGate_CZ::control, py::return_value_policy::automatic);
 
-    py::class_<Var::VariationalQuantumGate_SWAP, Var::VariationalQuantumGate>(m, 
+    py::class_<Var::VariationalQuantumGate_SWAP, Var::VariationalQuantumGate>(m,
         "VariationalQuantumGate_SWAP",
         "variational quantum SWAP gate class")
         .def(py::init<QPanda::Qubit *, QPanda::Qubit *>())
         .def("dagger", &Var::VariationalQuantumGate_SWAP::dagger, py::return_value_policy::automatic)
         .def("control", &Var::VariationalQuantumGate_SWAP::control, py::return_value_policy::automatic);
 
-    py::class_<Var::VariationalQuantumGate_iSWAP, Var::VariationalQuantumGate>(m, 
+    py::class_<Var::VariationalQuantumGate_iSWAP, Var::VariationalQuantumGate>(m,
         "VariationalQuantumGate_iSWAP",
         "variational quantum iSWAP gate class")
         .def(py::init<QPanda::Qubit *, QPanda::Qubit *>())
         .def("dagger", &Var::VariationalQuantumGate_iSWAP::dagger, py::return_value_policy::automatic)
         .def("control", &Var::VariationalQuantumGate_iSWAP::control, py::return_value_policy::automatic);
 
-    py::class_<Var::VariationalQuantumGate_SqiSWAP, Var::VariationalQuantumGate>(m, 
+    py::class_<Var::VariationalQuantumGate_SqiSWAP, Var::VariationalQuantumGate>(m,
         "VariationalQuantumGate_SqiSWAP",
         "variational quantum SqiSWAP gate class")
         .def(py::init<QPanda::Qubit *, QPanda::Qubit *>())
         .def("dagger", &Var::VariationalQuantumGate_SqiSWAP::dagger, py::return_value_policy::automatic)
         .def("control", &Var::VariationalQuantumGate_SqiSWAP::control, py::return_value_policy::automatic);
 
-    py::class_<Var::VariationalQuantumGate_CU, Var::VariationalQuantumGate>(m, 
+    py::class_<Var::VariationalQuantumGate_CU, Var::VariationalQuantumGate>(m,
         "VariationalQuantumGate_CU",
         "variational quantum CU gate class")
         .def(py::init<QPanda::Qubit *, QPanda::Qubit *, double, double, double, double>())
@@ -390,7 +392,7 @@ void export_variational(py::module &m)
 
     m.def("eval", Var::eval);
     m.def("eval", [](Var::var v)
-          { return eval(v, true); });
+        { return eval(v, true); });
 
     m.def("_back", py::overload_cast<Var::expression &, std::unordered_map<Var::var, MatrixXd> &, const std::vector<Var::var> &>(&Var::back));
     m.def("_back", py::overload_cast<Var::expression &, std::unordered_map<Var::var, MatrixXd> &>(&Var::back));
@@ -414,32 +416,32 @@ void export_variational(py::module &m)
     m.def("sum", Var::sum);
 
     m.def("stack",
-          [](int axis, py::args args)
-          {
-              std::vector<Var::var> vars;
-              for (auto arg : args)
-              {
-                  vars.push_back(py::cast<Var::var>(arg));
-              }
-              return py_stack(axis, vars);
-          });
+        [](int axis, py::args args)
+        {
+            std::vector<Var::var> vars;
+            for (auto arg : args)
+            {
+                vars.push_back(py::cast<Var::var>(arg));
+            }
+            return py_stack(axis, vars);
+        });
     m.def("sigmoid", Var::sigmoid);
     m.def("softmax", Var::softmax);
     m.def("crossEntropy", Var::crossEntropy);
     m.def("dropout", Var::dropout);
 
     m.def("qop",
-          py::overload_cast<Var::VariationalQuantumCircuit &, QPanda::PauliOperator, QPanda::QuantumMachine *, std::vector<Qubit *>>(&Var::qop),
-          "VariationalQuantumCircuit"_a,
-          "Hamiltonian"_a,
-          "QuantumMachine"_a,
-          "qubitList"_a);
+        py::overload_cast<Var::VariationalQuantumCircuit &, QPanda::PauliOperator, QPanda::QuantumMachine *, std::vector<Qubit *>>(&Var::qop),
+        "VariationalQuantumCircuit"_a,
+        "Hamiltonian"_a,
+        "QuantumMachine"_a,
+        "qubitList"_a);
     m.def("qop",
-          py::overload_cast<Var::VariationalQuantumCircuit &, QPanda::PauliOperator, QPanda::QuantumMachine *, std::map<size_t, Qubit *>>(&Var::qop),
-          "VariationalQuantumCircuit"_a,
-          "Hamiltonian"_a,
-          "QuantumMachine"_a,
-          "qubitList"_a);
+        py::overload_cast<Var::VariationalQuantumCircuit &, QPanda::PauliOperator, QPanda::QuantumMachine *, std::map<size_t, Qubit *>>(&Var::qop),
+        "VariationalQuantumCircuit"_a,
+        "Hamiltonian"_a,
+        "QuantumMachine"_a,
+        "qubitList"_a);
     m.def("qop_pmeasure", Var::qop_pmeasure);
 
     py::implicitly_convertible<double, Var::var>();
@@ -451,13 +453,13 @@ void export_variational(py::module &m)
 
     py::enum_<Var::OptimizerMode>(m, "OptimizerMode", "variational quantum OptimizerMode");
 
-    py::class_<Var::VanillaGradientDescentOptimizer, std::shared_ptr<Var::VanillaGradientDescentOptimizer>>(m, 
+    py::class_<Var::VanillaGradientDescentOptimizer, std::shared_ptr<Var::VanillaGradientDescentOptimizer>>(m,
         "VanillaGradientDescentOptimizer", "variational quantum VanillaGradientDescentOptimizer")
         .def(py::init<>(
             [](Var::var lost_function,
-               double learning_rate = 0.01,
-               double stop_condition = 1.e-6,
-               Var::OptimizerMode mode = Var::OptimizerMode::MINIMIZE)
+                double learning_rate = 0.01,
+                double stop_condition = 1.e-6,
+                Var::OptimizerMode mode = Var::OptimizerMode::MINIMIZE)
             { return Var::VanillaGradientDescentOptimizer(lost_function, learning_rate, stop_condition, mode); }))
         .def("minimize", &Var::VanillaGradientDescentOptimizer::minimize)
         .def("get_variables", &Var::VanillaGradientDescentOptimizer::get_variables)
@@ -467,49 +469,49 @@ void export_variational(py::module &m)
     py::class_<Var::MomentumOptimizer, std::shared_ptr<Var::MomentumOptimizer>>(m, "MomentumOptimizer", "variational quantum MomentumOptimizer")
         .def(py::init<>(
             [](Var::var lost,
-               double learning_rate = 0.01,
-               double momentum = 0.9)
+                double learning_rate = 0.01,
+                double momentum = 0.9)
             { return Var::MomentumOptimizer(lost, learning_rate, momentum); }))
         .def("minimize", &Var::MomentumOptimizer::minimize)
         .def("get_variables", &Var::MomentumOptimizer::get_variables)
         .def("get_loss", &Var::MomentumOptimizer::get_loss)
         .def("run", &Var::MomentumOptimizer::run);
 
-    py::class_<Var::AdaGradOptimizer, std::shared_ptr<Var::AdaGradOptimizer>>(m, 
+    py::class_<Var::AdaGradOptimizer, std::shared_ptr<Var::AdaGradOptimizer>>(m,
         "AdaGradOptimizer", "variational quantum AdaGradOptimizer")
         .def(py::init<>(
             [](Var::var lost,
-               double learning_rate = 0.01,
-               double initial_accumulator_value = 0.0,
-               double epsilon = 1e-10)
+                double learning_rate = 0.01,
+                double initial_accumulator_value = 0.0,
+                double epsilon = 1e-10)
             { return Var::AdaGradOptimizer(lost,
-                                           learning_rate, initial_accumulator_value, epsilon); }))
+                learning_rate, initial_accumulator_value, epsilon); }))
         .def("minimize", &Var::AdaGradOptimizer::minimize)
         .def("get_variables", &Var::AdaGradOptimizer::get_variables)
         .def("get_loss", &Var::AdaGradOptimizer::get_loss)
         .def("run", &Var::AdaGradOptimizer::run);
 
-    py::class_<Var::RMSPropOptimizer, std::shared_ptr<Var::RMSPropOptimizer>>(m, 
+    py::class_<Var::RMSPropOptimizer, std::shared_ptr<Var::RMSPropOptimizer>>(m,
         "RMSPropOptimizer", "variational quantum RMSPropOptimizer")
         .def(py::init<>(
             [](Var::var lost,
-               double learning_rate = 0.001,
-               double decay = 0.9,
-               double epsilon = 1e-10)
+                double learning_rate = 0.001,
+                double decay = 0.9,
+                double epsilon = 1e-10)
             { return Var::RMSPropOptimizer(lost, learning_rate, decay, epsilon); }))
         .def("minimize", &Var::RMSPropOptimizer::minimize)
         .def("get_variables", &Var::RMSPropOptimizer::get_variables)
         .def("get_loss", &Var::RMSPropOptimizer::get_loss)
         .def("run", &Var::RMSPropOptimizer::run);
 
-    py::class_<Var::AdamOptimizer, std::shared_ptr<Var::AdamOptimizer>>(m, 
+    py::class_<Var::AdamOptimizer, std::shared_ptr<Var::AdamOptimizer>>(m,
         "AdamOptimizer", "variational quantum AdamOptimizer")
         .def(py::init<>(
             [](Var::var lost,
-               double learning_rate = 0.001,
-               double beta1 = 0.9,
-               double beta2 = 0.999,
-               double epsilon = 1e-8)
+                double learning_rate = 0.001,
+                double beta1 = 0.9,
+                double beta2 = 0.999,
+                double epsilon = 1e-8)
             { return Var::AdamOptimizer(lost, learning_rate, beta1, beta2, epsilon); }))
         .def("minimize", &Var::AdamOptimizer::minimize)
         .def("get_variables", &Var::AdamOptimizer::get_variables)

@@ -432,7 +432,7 @@ protected:
 			p_gate->getQGate()->getMatrix(_src_gate_mat);
 			QMatrixXcd _eigen_mat = QMatrixXcd::Map(&_src_gate_mat[0], 2, 2);
 
-			if (((*i)->m_is_dagger) ^ (p_gate->isDagger()))
+			if (((*i)->m_is_dagger)/* ^ (p_gate->isDagger())*/)
 			{
 				_eigen_mat.adjointInPlace();
 			}
@@ -760,6 +760,13 @@ void FindSubCircuit::match_layer(SeqLayer<pOptimizerNodeInfo>& sub_seq_layer,
 	}
 }
 
+static double _to_real_angle(const double& src_angle)
+{
+    const double base = 2.0 * PI;
+    const uint32_t loop = src_angle / base;
+    return src_angle - ((double)loop * base);
+}
+
 bool FindSubCircuit::check_angle(const pOptimizerNodeInfo node_1, const pOptimizerNodeInfo node_2)
 {
 	if ((node_1 == nullptr) || (node_2 == nullptr))
@@ -773,10 +780,18 @@ bool FindSubCircuit::check_angle(const pOptimizerNodeInfo node_1, const pOptimiz
 	}
 
 	auto angle_check_fun = [](const double target_angle, const double matched_angle) {
-		if ((target_angle < ANGLE_VAR_BASE) && (abs(target_angle - matched_angle) > ANGLE_COMPARE_PRECISION))
-		{
-			return false;
-		}
+        if (((uint32_t)target_angle == ANGLE_VAR_BASE) && (0 == ((uint32_t)target_angle % ANGLE_VAR_BASE))){
+            return true; /* arbitrary angle variable */
+        }
+
+        /*const int32_t _tmp = (matched_angle / PI);
+        if ((abs(target_angle) < ANGLE_COMPARE_PRECISION) && (abs(_tmp) > 1) && (0 == (_tmp) % 2)) {
+            return true;
+        }*/
+
+        if (abs(target_angle - _to_real_angle(matched_angle)) > ANGLE_COMPARE_PRECISION){
+            return false;
+        }
 
 		return true;
 	};
@@ -935,6 +950,9 @@ bool FindSubCircuit::check_next_layer(const SeqNode<pOptimizerNodeInfo>& target_
 	return true;
 }
 
+/* graph_node: src_graph noe;
+ * target_seq_node: sub_graph node 
+ */
 bool FindSubCircuit::node_match(const SeqNode<pOptimizerNodeInfo>& target_seq_node, const SeqNode<pOptimizerNodeInfo>& graph_node)
 {
 	if ((target_seq_node.first->m_type != graph_node.first->m_type)
@@ -943,10 +961,17 @@ bool FindSubCircuit::node_match(const SeqNode<pOptimizerNodeInfo>& target_seq_no
 		return false;
 	}
 
-	if ((graph_node.first->m_control_qubits.size() > 0) || (graph_node.first->m_is_dagger))
+	if ((graph_node.first->m_control_qubits.size() > 0) 
+        || ((graph_node.first->m_is_dagger) && (((uint32_t)GateType::S_GATE) != target_seq_node.first->m_type)))
 	{
 		return false;
 	}
+
+    /* For EM_compute */
+    if (target_seq_node.first->m_is_dagger != graph_node.first->m_is_dagger)
+    {
+        return false;
+    }
 
 	//check angle
 	if (!(check_angle(target_seq_node.first, graph_node.first)))
@@ -1088,6 +1113,8 @@ void QCircuitOPtimizer::do_optimizer()
 	for (m_cur_optimizer_sub_cir_index = 0;
 		m_cur_optimizer_sub_cir_index < m_optimizer_cir_vec.size(); ++m_cur_optimizer_sub_cir_index)
 	{
+        //std::cout << "src cir:" << m_optimizer_cir_vec[m_cur_optimizer_sub_cir_index].target_sub_cir << endl;
+        //std::cout << "target cir:" << m_optimizer_cir_vec[m_cur_optimizer_sub_cir_index].replace_to_sub_cir << endl;
 		m_angle_vec.clear();
 		sub_cir_optimizer(m_cur_optimizer_sub_cir_index);
 	}

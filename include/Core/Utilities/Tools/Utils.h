@@ -225,6 +225,10 @@ inline double argc(qcomplex_t num)
 std::string hamiltonian_to_json(const QHamiltonian& hamiltonian);
 QHamiltonian json_to_hamiltonian(const std::string& hamiltonian_json);
 
+QStat sparse_state_to_full_amplitude(const std::map<std::string, std::complex<double>>& sparse_amplitude_map);
+
+std::string generate_random_hex(int num_bytes);
+
 QPANDA_END
 
 #endif // !1

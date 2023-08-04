@@ -296,7 +296,7 @@ public:
     Col insert_barrier(const std::vector<Row> &rows,
                        Col from_col);
 
-    Col insert_measure(Row q_row, Row c_row, Col from_col);
+    Col insert_measure(Row q_row, Row c_row, Col from_col, uint64_t cbit_id);
 
     Col insert_reset(Row q_row, Col from_col);
 
@@ -374,7 +374,7 @@ private:
 class DrawLatex : public AbstractDraw
 {
 public:
-	DrawLatex(const QProg &prog, LayeredTopoSeq &layer_info, uint32_t length);
+	DrawLatex(const QProg& prog, LayeredTopoSeq& layer_info, uint32_t length,bool b_with_gate_params);
 	virtual ~DrawLatex() {}
 
 	/**

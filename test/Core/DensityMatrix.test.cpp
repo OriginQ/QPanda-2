@@ -346,6 +346,43 @@ void density_matrix_bitflip()
     return;
 }
 
+
+void density_matrix_karus()
+{
+    DensityMatrixSimulator simulator;
+    simulator.init();
+
+    auto q = simulator.qAllocMany(2);
+    auto c = simulator.cAllocMany(2);
+
+    auto prog = QProg();
+    //prog << H(q[0]) << H(q[1]) << H(q[2]) << H(q[3]) << H(q[4]) << H(q[5]);
+    //prog << T(q[0]);
+    //prog << S(q[1]);
+    prog << X(q[0]);
+    prog << X(q[1]);
+
+    auto density_matrix = simulator.get_density_matrix(prog);
+    std::cout << density_matrix << std::endl;
+
+    const QVec noise_qubits = { q[0] };
+
+    cmatrix_t karus_k1 = cmatrix_t::Zero(2, 2);
+    cmatrix_t karus_k2 = cmatrix_t::Zero(2, 2);
+
+    karus_k1(0, 0) = karus_k1(1, 1) = 0.8;
+    karus_k2(0, 1) = karus_k2(1, 0) = 0.6;
+
+    std::vector<cmatrix_t> karus_vector = { karus_k1 ,karus_k2 };
+
+    simulator.set_noise_model(karus_vector);
+
+    auto karus_density_matrix = simulator.get_density_matrix(prog);
+    std::cout << karus_density_matrix << std::endl;
+
+    return;
+}
+
 void density_matrix_damping()
 {
     DensityMatrixSimulator simulator;
@@ -495,6 +532,7 @@ void density_matrix_multi_control()
 
 TEST(DensityMatrix, test)
 {
+    density_matrix_karus();
     density_matrix_expval();
     density_matrix_result();
     density_matrix_assert();

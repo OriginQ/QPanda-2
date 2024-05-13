@@ -825,12 +825,12 @@ void SparseSimulator::SWAP(size_t index_1, size_t index_2)
         std::swap(index_2, index_1);
     }
     // Everything commutes nicely with a swap
-    std::swap(_queue_Ry[index_1], _queue_Ry[index_2]);
+    std::vector<bool>::swap(_queue_Ry[index_1], _queue_Ry[index_2]);
     std::swap(_angles_Ry[index_1], _angles_Ry[index_2]);
-    std::swap(_queue_Rx[index_1], _queue_Rx[index_2]);
+    std::vector<bool>::swap(_queue_Rx[index_1], _queue_Rx[index_2]);
     std::swap(_angles_Rx[index_1], _angles_Rx[index_2]);
-    std::swap(_queue_H[index_1], _queue_H[index_2]);
-    std::swap(_occupied_qubits[index_1], _occupied_qubits[index_2]);
+    std::vector<bool>::swap(_queue_H[index_1], _queue_H[index_2]);
+    std::vector<bool>::swap(_occupied_qubits[index_1], _occupied_qubits[index_2]);
     size_t shift = index_2 - index_1;
     _queued_operations.push_back(operation(OP::SWAP, index_1, shift, index_2));
 }

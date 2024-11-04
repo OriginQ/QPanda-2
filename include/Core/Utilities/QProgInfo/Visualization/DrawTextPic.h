@@ -248,7 +248,7 @@ namespace DRAW_TEXT_PIC
 		/**
 		* @brief  Constructor of DrawPicture
 		*/
-		DrawPicture(const QProg& prog, LayeredTopoSeq& layer_info, uint32_t length);
+		DrawPicture(const QProg& prog, LayeredTopoSeq& layer_info, uint32_t length,bool b_with_gate_params);
 		virtual ~DrawPicture() {}
 
 		/**

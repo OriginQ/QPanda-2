@@ -4,6 +4,7 @@
 #include "Core/VirtualQuantumProcessor/NoiseQPU/NoiseModel.h"
 #include "Core/VirtualQuantumProcessor/SparseQVM/SparseQVM.h"
 #include "Core/VirtualQuantumProcessor/Stabilizer/Stabilizer.h"
+#include "Core/QuantumCloud/QCloudService.h"
 #include "Core/VirtualQuantumProcessor/DensityMatrix/DensityMatrixSimulator.h"
 #include <map>
 #include <math.h>
@@ -19,10 +20,6 @@
 #include "pybind11/eigen.h"
 #include "template_generator.h"
 
-#if defined(USE_OPENSSL) && defined(USE_CURL)
-#include "Core/QuantumCloud/QCloudMachine.h"
-#endif
-
 USING_QPANDA
 namespace py = pybind11;
 using namespace pybind11::literals;
@@ -31,448 +28,598 @@ using namespace pybind11::literals;
 // struct py::detail::type_caster<QVec>  : py::detail::list_caster<QVec, Qubit*> {};
 void export_quantum_machine(py::module &m)
 {
+
     py::class_<QuantumMachine>(m, "QuantumMachine", "quantum machine base class")
-        .def(
-            "set_configure",
-            [](QuantumMachine &qvm, size_t max_qubit, size_t max_cbit)
-            {
+        .def("set_configure",
+            [](QuantumMachine &qvm, size_t max_qubit, size_t max_cbit){
                 Configuration config = { max_qubit, max_cbit };
                 qvm.setConfig(config);
             },
             py::arg("max_qubit"),
-        py::arg("max_cbit"),
-        "set QVM max qubit and max cbit\n"
-        "\n"
-        "Args:\n"
-        "    max_qubit: quantum machine max qubit num \n"
-        "    max_cbit: quantum machine max cbit num \n"
-        "\n"
-        "Returns:\n"
-        "    none\n"
-        "Raises:\n"
-        "    run_fail: An error occurred in set_configure\n")
+            py::arg("max_cbit"),
+            "Set the maximum qubit and cbit numbers for the QVM.\n"
+            "\n"
+            "Args:\n"
+            "     max_qubit: Maximum number of qubits in the quantum machine.\n"
+            "\n"
+            "     max_cbit: Maximum number of cbits in the quantum machine.\n"
+            "\n"
+            "Returns:\n"
+            "     None\n")
+
         .def("finalize", &QuantumMachine::finalize,
-            "finalize quantum machine\n"
+            "Finalize the quantum machine.\n"
             "\n"
             "Args:\n"
-            "    none\n"
+            "     None\n"
             "\n"
             "Returns:\n"
-            "    none\n"
-            "Raises:\n"
-            "    run_fail: An error occurred in finalize\n"
-        )
+            "     None\n")
+
         .def("get_qstate", &QuantumMachine::getQState,
-            "Get the status of the Quantum machine\n"
+            "Get the status of the quantum machine.\n"
             "\n"
             "Args:\n"
-            "    none\n"
+            "     None\n"
             "\n"
             "Returns:\n"
-            "    the status of the Quantum machine, see QMachineStatus\n"
-            "\n"
-            "Raises:\n"
-            "    init_fail: An error occurred\n",
+            "     QMachineStatus: The current status of the quantum machine.\n",
             py::return_value_policy::automatic)
+
         .def("qAlloc", &QuantumMachine::allocateQubit,
-            "Allocate a qubits\n"
-            "After init()\n"
+            "Allocate a qubit.\n"
+            "\n"
+            "This function must be called after init().\n"
             "\n"
             "Args:\n"
-            "    qubit_addr: qubit physic address, should in [0,29)\n"
-            "\n"
-            "Returns:\n"
-            "    pyQPanda.Qubit: None, if qubit_addr error, or reached max number of allowed qubit",
+            "     qubit_addr: The physical address of the qubit, should be in the range [0, 29).\n",
             py::return_value_policy::reference)
+
         /*.def("qAlloc_many",
-             &QuantumMachine::allocateQubits,
-             py::arg("qubit_num"),
-             "Allocate a list of qubits",
-            [](QuantumMachine &self, int qubit_num)
-            {
-                 std::vector<Qubit*> qv = self.qAllocMany(qubit_num);
-                return qv;
-            },
-            py::return_value_policy::reference)*/
+        &QuantumMachine::allocateQubits,
+        py::arg("qubit_num"),
+        "Allocate a list of qubits",
+        [](QuantumMachine &self, int qubit_num)
+        {
+        std::vector<Qubit*> qv = self.qAllocMany(qubit_num);
+        return qv;
+        },
+        py::return_value_policy::reference)*/
+
         .def("qAlloc_many",
             [](QuantumMachine &self, size_t qubit_num)
-    {
-        auto qv = static_cast<std::vector<Qubit*>>(self.qAllocMany(qubit_num));
-        return qv;
-    },
+            {
+                auto qv = static_cast<std::vector<Qubit*>>(self.qAllocMany(qubit_num));
+                return qv;
+            },
             py::arg("qubit_num"),
-        "Allocate several qubits\n"
-        "After init()\n"
-        "\n"
-        "Args:\n"
-        "    qubit_num: numbers of qubit want to be created\n"
-        "\n"
-        "Returns:\n"
-        "    list[pyQPanda.Qubit]: list of qubit",
-        py::return_value_policy::reference)
+            "Allocate multiple qubits.\n"
+            "\n"
+            "This function must be called after init().\n"
+            "\n"
+            "Args:\n"
+            "     qubit_num: The number of qubits to allocate.\n"
+            "\n"
+            "Returns:\n"
+            "     list[Qubit]: A list of allocated qubits.\n",
+            py::return_value_policy::reference)
+
         .def("cAlloc",
             py::overload_cast<>(&QuantumMachine::allocateCBit),
-            "Allocate a CBit\n"
-            "After init()\n"
+            "Allocate a classical bit (CBit).\n"
+            "\n"
+            "This function must be called after init().\n"
             "\n"
             "Args:\n"
-            "    cbit_addr: cbit address, should in [0,29)"
+            "     None\n"
             "\n"
             "Returns:\n"
-            "    classic result cbit",
-            py::return_value_policy::reference)
-        .def("cAlloc_many",
-            &QuantumMachine::allocateCBits,
+            "     CBit: A reference to the allocated classical bit.\n",
+            py::return_value_policy::reference
+        )
+
+        .def("cAlloc_many", &QuantumMachine::allocateCBits,
             py::arg("cbit_num"),
-            "Allocate several CBits\n"
-            "After init()\n"
+            "Allocate multiple classical bits (CBits).\n"
+            "\n"
+            "This function must be called after init().\n"
             "\n"
             "Args:\n"
-            "    cbit_num: numbers of cbit want to be created\n"
+            "     cbit_num: The number of classical bits to allocate.\n"
             "\n"
             "Returns:\n"
-            "    list of cbit",
-            py::return_value_policy::reference)
+            "     list[CBit]: A list of allocated classical bits.\n",
+            py::return_value_policy::reference
+        )
+
         .def("qFree",
             &QuantumMachine::Free_Qubit,
             py::arg("qubit"),
-            "Free a CBit\n"
+            "Free a qubit.\n"
+            "\n"
+            "This function deallocates a previously allocated qubit.\n"
             "\n"
             "Args:\n"
-            "    CBit: a CBit\n"
+            "     qubit: The Qubit to be freed.\n"
             "\n"
             "Returns:\n"
-            "    none\n")
+            "     None: This function does not return a value.\n"
+        )
+
         .def("qFree_all",
             &QuantumMachine::Free_Qubits,
             py::arg("qubit_list"),
-            "Free all cbits\n"
+            "Free all allocated qubits.\n"
+            "\n"
+            "This function deallocates all qubits that have been previously allocated.\n"
             "\n"
             "Args:\n"
-            "    none\n"
+            "     None\n"
             "\n"
             "Returns:\n"
-            "    none\n")
+            "     None: This function does not return a value.\n"
+        )
+
         .def("qFree_all", py::overload_cast<QVec &>(&QuantumMachine::qFreeAll),
-            "Free all qubits\n"
+            "Free all qubits.\n"
+            "\n"
+            "This function deallocates all qubits provided in the input vector.\n"
             "\n"
             "Args:\n"
-            "    none\n"
+            "     None\n"
             "\n"
             "Returns:\n"
-            "    none\n")
+            "     None: This function does not return a value.\n"
+        )
 
         .def("cFree", &QuantumMachine::Free_CBit,
-            "Free a CBit\n"
+            "Free a classical bit (CBit).\n"
+            "\n"
+            "This function deallocates a previously allocated classical bit.\n"
             "\n"
             "Args:\n"
-            "    CBit: a CBit\n"
+            "     CBit: The classical bit to be freed.\n"
             "\n"
             "Returns:\n"
-            "    none\n")
+            "     None: This function does not return a value.\n"
+        )
+
         .def("cFree_all",
             &QuantumMachine::Free_CBits,
             py::arg("cbit_list"),
-            "Free all cbits\n"
-            "\n"
-            "Args:\n"
-            "    none\n"
-            "\n"
-            "Returns:\n"
-            "    none\n")
+                "Free all allocated classical bits (CBits).\n"
+                "\n"
+                "This function deallocates all classical bits provided in the input list.\n"
+                "\n"
+                "Args:\n"
+                "     None\n"
+                "\n"
+                "Returns:\n"
+                "     None: This function does not return a value.\n"
+            )
+
         .def("cFree_all", py::overload_cast<>(&QuantumMachine::cFreeAll),
-            "Free all cbits\n"
+            "Free all classical bits (CBits).\n"
+            "\n"
+            "This function deallocates all classical bits that have been previously allocated.\n"
             "\n"
             "Args:\n"
-            "    none\n"
+            "     None\n"
             "\n"
             "Returns:\n"
-            "    none\n")
+            "     None: This function does not return a value.\n"
+        )
+
         .def("getStatus", &QuantumMachine::getStatus,
-            "Get the status of the Quantum machine\n"
+            "Get the status of the Quantum machine.\n"
+            "\n"
+            "This function retrieves the current status of the Quantum machine.\n"
             "\n"
             "Args:\n"
-            "    none\n"
+            "     None\n"
             "\n"
             "Returns:\n"
-            "    the status of the Quantum machine, see QMachineStatus\n"
-            "\n"
-            "Raises:\n"
-            "    init_fail: An error occurred\n",
-            py::return_value_policy::reference_internal)
+            "     QMachineStatus: The status of the Quantum machine.\n",
+            py::return_value_policy::reference_internal
+        )
 
         /*will delete*/
         .def("initQVM", &QuantumMachine::init,
-            "Init the global unique quantum machine at background.\n"
+            "Initialize the global unique quantum machine in the background.\n"
+            "\n"
+            "This function sets up the quantum machine based on the specified type.\n"
             "\n"
             "Args:\n"
-            "    machine_type: quantum machine type, see pyQPanda.QMachineType\n"
+            "     machine_type: The type of quantum machine to initialize, as defined in pyQPanda.QMachineType.\n"
             "\n"
             "Returns:\n"
-            "    bool: ture if initialization success")
+            "     bool: True if the initialization is successful, otherwise false.\n"
+        )
+
         .def("getAllocateQubitNum", &QuantumMachine::getAllocateQubit,
-            "Get allocated qubits of QuantumMachine\n"
+            "Get the list of allocated qubits in the QuantumMachine.\n"
+            "\n"
+            "This function retrieves the qubits that have been allocated for use in the quantum machine.\n"
             "\n"
             "Args:\n"
-            "    none\n"
+            "     None\n"
             "\n"
             "Returns:\n"
-            "    qubit list\n"
-            "\n"
-            "Raises:\n"
-            "    run_fail: An error occurred in allocated qubits of QuantumMachine\n",
-            py::return_value_policy::reference)
+            "     List of allocated qubits.\n",
+            py::return_value_policy::reference
+        )
+
         .def("getAllocateCMem", &QuantumMachine::getAllocateCMem,
-            "Get allocated cbits of QuantumMachine\n"
+            "Get the list of allocated classical bits (cbits) in the QuantumMachine.\n"
+            "\n"
+            "This function retrieves the cbits that have been allocated for use in the quantum machine.\n"
             "\n"
             "Args:\n"
-            "    none\n"
+            "     None\n"
             "\n"
             "Returns:\n"
-            "    cbit list\n"
-            "\n"
-            "Raises:\n"
-            "    run_fail: An error occurred in allocated cbits of QuantumMachine\n",
-            py::return_value_policy::reference)
+            "     List of allocated cbits.\n",
+            py::return_value_policy::reference
+        )
 
         /* new interface */
         .def("init_qvm", &QuantumMachine::init,
-            "Init the global unique quantum machine at background.\n"
+            "Initialize the global unique quantum machine in the background.\n"
+            "\n"
+            "This function sets up the quantum machine based on the specified type.\n"
             "\n"
             "Args:\n"
-            "    machine_type: quantum machine type, see pyQPanda.QMachineType\n"
+            "     machine_type: The type of quantum machine to initialize, as defined in pyQPanda.QMachineType.\n"
             "\n"
             "Returns:\n"
-            "    bool: ture if initialization success")
+            "     bool: True if the initialization is successful, otherwise false.\n"
+        )
+
         .def("init_state",
             &QuantumMachine::initState,
             py::arg_v("state", QStat(), "QStat()"),
             py::arg_v("qlist", QVec(), "QVec()"),
-            "Get allocated cbits of QuantumMachine\n"
+            py::return_value_policy::reference,
+            "Initialize the quantum state of the QuantumMachine.\n"
+            "\n"
+            "This function sets the initial state of the quantum machine.\n"
             "\n"
             "Args:\n"
-            "    none\n"
+            "     state: The initial quantum state, represented as a QStat object. Defaults to QStat().\n"
+            "\n"
+            "     qlist: The list of qubits to which the state will be applied, represented as a QVec object. Defaults to QVec().\n"
             "\n"
             "Returns:\n"
-            "    cbit list\n"
+            "     Reference to the updated quantum machine.\n"
+        )
+
+        .def("init_sparse_state",
+            &QuantumMachine::initSparseState,
+            py::arg_v("state", std::map<std::string, qcomplex_t>(), "std::map<std::string, qcomplex_t>()"),
+            py::arg_v("qlist", QVec(), "QVec()"),
+            py::return_value_policy::reference,
+            "Initialize a sparse quantum state for the QuantumMachine.\n"
             "\n"
-            "Raises:\n"
-            "    run_fail: An error occurred in allocated cbits of QuantumMachine\n",
-            py::return_value_policy::reference)
-        .def("cAlloc",
-            py::overload_cast<size_t>(&QuantumMachine::allocateCBit),
+            "This function sets the initial sparse state of the quantum machine.\n"
+            "\n"
+            "Args:\n"
+            "     state: A map representing the sparse state, where keys are state identifiers and values are qcomplex_t. Defaults to an empty map.\n"
+            "\n"
+            "     qlist: The list of qubits to which the sparse state will be applied, represented as a QVec object. Defaults to QVec().\n"
+            "\n"
+            "Returns:\n"
+            "     Reference to the updated quantum machine.\n"
+        )
+
+        .def("cAlloc", py::overload_cast<size_t>(&QuantumMachine::allocateCBit),
             py::arg("cbit"),
-            "Allocate a CBit\n"
-            "After init()\n"
+            "Allocate a classical bit (CBit) in the QuantumMachine.\n"
+            "\n"
+            "This function allocates a CBit after the quantum machine has been initialized.\n"
             "\n"
             "Args:\n"
-            "    cbit_addr: cbit address, should in [0,29)"
+            "     cbit_addr: The address of the CBit to allocate, which should be in the range [0, 29).\n"
             "\n"
             "Returns:\n"
-            "    classic result cbit",
-            py::return_value_policy::reference)
+            "     Reference to the allocated CBit.\n",
+            py::return_value_policy::reference
+        )
+
         .def("get_status", &QuantumMachine::getStatus,
-            "Get the status of the Quantum machine\n"
+            "Retrieve the status of the QuantumMachine.\n"
+            "\n"
+            "This function returns the current status of the quantum machine.\n"
             "\n"
             "Args:\n"
-            "    none\n"
+            "     None\n"
             "\n"
             "Returns:\n"
-            "    the status of the Quantum machine, see QMachineStatus\n"
-            "\n"
-            "Raises:\n"
-            "    init_fail: An error occurred\n", py::return_value_policy::reference_internal)
+            "     The status of the Quantum machine, represented as a QMachineStatus.\n",
+            py::return_value_policy::reference_internal
+        )
+
         .def("get_allocate_qubit_num", &QuantumMachine::getAllocateQubit,
-            "Get allocated qubits of QuantumMachine\n"
+            "Retrieve the list of allocated qubits in the QuantumMachine.\n"
+            "\n"
+            "This function returns the currently allocated qubits.\n"
             "\n"
             "Args:\n"
-            "    none\n"
+            "     None\n"
             "\n"
             "Returns:\n"
-            "    qubit list\n"
-            "\n"
-            "Raises:\n"
-            "    run_fail: An error occurred in allocated qubits of QuantumMachine\n",
-            py::return_value_policy::reference)
+            "     A list of allocated qubits.\n",
+            py::return_value_policy::reference
+        )
+
         .def("get_allocate_cmem_num", &QuantumMachine::getAllocateCMem,
-            "Get allocated cbits of QuantumMachine\n"
+            "Retrieve the list of allocated cbits in the QuantumMachine.\n"
+            "\n"
+            "This function returns the currently allocated cbits.\n"
             "\n"
             "Args:\n"
-            "    none\n"
+            "     None\n"
             "\n"
             "Returns:\n"
-            "    cbit list\n"
-            "\n"
-            "Raises:\n"
-            "    run_fail: An error occurred in allocated cbits of QuantumMachine\n", py::return_value_policy::reference)
-        .def("allocate_qubit_through_phy_address",
-            &QuantumMachine::allocateQubitThroughPhyAddress,
+            "     A list of allocated cbits.\n",
+            py::return_value_policy::reference
+        )
+
+        .def("allocate_qubit_through_phy_address", &QuantumMachine::allocateQubitThroughPhyAddress,
             py::arg("address"),
-            "allocate qubits through phy address\n"
+            "Allocate qubits through physical address.\n"
+            "\n"
+            "This function allocates qubits using the specified physical address.\n"
             "\n"
             "Args:\n"
-            "    address: qubit phy address\n"
+            "     address: The physical address of the qubit.\n"
             "\n"
             "Returns:\n"
-            "    Qubit\n"
-            "\n"
-            "Raises:\n"
-            "    run_fail: An error occurred in allocated qubits of QuantumMachine\n",
-            py::return_value_policy::reference)
-        .def("allocate_qubit_through_vir_address",
-            &QuantumMachine::allocateQubitThroughVirAddress,
+            "     The allocated qubit.\n",
+            py::return_value_policy::reference
+        )
+
+        .def("allocate_qubit_through_vir_address", &QuantumMachine::allocateQubitThroughVirAddress,
             py::arg("address"),
-            "allocate qubits through vir address\n"
+            "Allocate a qubit using its physical address.\n"
+            "\n"
+            "This function allocates a qubit based on the specified physical address.\n"
             "\n"
             "Args:\n"
-            "    address: qubit vir address\n"
+            "     address: The physical address of the qubit to allocate.\n"
             "\n"
             "Returns:\n"
-            "    Qubit\n"
+            "     A reference to the allocated Qubit.\n",
+            py::return_value_policy::reference
+        )
+
+        .def("get_gate_time_map", &QuantumMachine::getGateTimeMap,
+            "Retrieve the gate time mapping for the QuantumMachine.\n"
             "\n"
-            "Raises:\n"
-            "    run_fail: An error occurred in allocated qubits of QuantumMachine\n",
-            py::return_value_policy::reference)
-        .def("get_gate_time_map", &QuantumMachine::getGateTimeMap, py::return_value_policy::reference)
-        //.def("get_allocate_qubits", get_allocate_qubits, "qubit vector"_a,  py::return_value_policy::reference)
-        //.def("get_allocate_cbits", get_allocate_cbits, "cbit vector"_a,  py::return_value_policy::reference)
+            "This function returns a map of gates to their corresponding execution times.\n"
+            "\n"
+            "Args:\n"
+            "     None\n"
+            "\n"
+            "Returns:\n"
+            "     A reference to the gate time map.\n",
+            py::return_value_policy::reference
+        )
+
+//.def("get_allocate_qubits", get_allocate_qubits, "qubit vector"_a,  py::return_value_policy::reference)
+//.def("get_allocate_cbits", get_allocate_cbits, "cbit vector"_a,  py::return_value_policy::reference)
 
         .def(
             "get_allocate_qubits",
             [](QuantumMachine &self)
-    {
-        QVec qv;
-        self.get_allocate_qubits(qv);
-        return qv;
-    },
-            "Get allocated qubits of QuantumMachine\n"
-        "\n"
-        "Args:\n"
-        "    none\n"
-        "\n"
-        "Returns:\n"
-        "    qubit list\n"
-        "\n"
-        "Raises:\n"
-        "    run_fail: An error occurred in allocated qubits of QuantumMachine\n",
-        py::return_value_policy::reference)
+            {
+                QVec qv;
+                self.get_allocate_qubits(qv);
+                return static_cast<std::vector<Qubit*>>(qv);
+            },
+            "Retrieve the list of allocated qubits in the QuantumMachine.\n"
+            "\n"
+            "This function returns a list of currently allocated qubits.\n"
+            "\n"
+            "Args:\n"
+            "     None\n"
+            "\n"
+            "Returns:\n"
+            "     A list of allocated qubits.\n",
+            py::return_value_policy::reference
+        )
 
         .def(
-            "get_allocate_cbits",
+        "get_allocate_cbits",
             [](QuantumMachine &self)
-    {
-        std::vector<ClassicalCondition> cv;
-        self.get_allocate_cbits(cv);
-        return cv;
-    },
-            "Get allocated cbits of QuantumMachine\n"
-        "\n"
-        "Args:\n"
-        "    none\n"
-        "\n"
-        "Returns:\n"
-        "    cbit list\n"
-        "\n"
-        "Raises:\n"
-        "    run_fail: An error occurred in allocated cbits of QuantumMachine\n",
-        py::return_value_policy::reference)
+            {
+                std::vector<ClassicalCondition> cv;
+                self.get_allocate_cbits(cv);
+                return cv;
+            },
+            "Retrieve the list of allocated cbits in the QuantumMachine.\n"
+            "\n"
+            "This function returns a list of currently allocated cbits.\n"
+            "\n"
+            "Args:\n"
+            "     None\n"
+            "\n"
+            "Returns:\n"
+            "     A list of allocated cbits.\n",
+            py::return_value_policy::reference
+        )
 
         .def("get_expectation",
             py::overload_cast<QProg, const QHamiltonian &, const QVec &>(&QuantumMachine::get_expectation),
             py::arg("qprog"),
             py::arg("hamiltonian"),
             py::arg("qubit_list"),
-            "get expectation of current hamiltonian\n"
+            "Calculate the expectation value of the given Hamiltonian.\n"
+            "\n"
+            "This function computes the expectation value based on the provided quantum program,\n"
+            "\n"
+            "Hamiltonian, and list of qubits to measure.\n"
             "\n"
             "Args:\n"
-            "    qprog : quantum prog \n"
-            "    hamiltonian: selected hamiltonian \n"
-            "    qubit_list : measure qubit list \n"
+            "     qprog: The quantum program to execute.\n"
+            "\n"
+            "     hamiltonian: The Hamiltonian for which the expectation is calculated.\n"
+            "\n"
+            "     qubit_list: A list of qubits to measure.\n"
             "\n"
             "Returns:\n"
-            "    double : expectation of current hamiltonian\n"
-            "\n"
-            "Raises:\n"
-            "    run_fail: An error occurred in get_expectation\n",
-            py::return_value_policy::reference)
+            "     A double representing the expectation value of the current Hamiltonian.\n",
+            py::return_value_policy::reference
+        )
+
         .def("get_expectation",
             py::overload_cast<QProg, const QHamiltonian &, const QVec &, int>(&QuantumMachine::get_expectation),
             py::arg("qprog"),
             py::arg("hamiltonian"),
             py::arg("qubit_list"),
             py::arg("shots"),
-            "get expectation of current hamiltonian\n"
+            "Calculate the expectation value of the given Hamiltonian with specified measurement shots.\n"
+            "\n"
+            "This function computes the expectation value based on the provided quantum program,\n"
+            "\n"
+            "Hamiltonian, list of qubits to measure, and the number of measurement shots.\n"
             "\n"
             "Args:\n"
-            "    qprog : quantum prog \n"
-            "    hamiltonian: selected hamiltonian \n"
-            "    qubit_list : measure qubit list \n"
-            "    shots : measure shots \n"
+            "     qprog: The quantum program to execute.\n"
+            "\n"
+            "     hamiltonian: The Hamiltonian for which the expectation is calculated.\n"
+            "\n"
+            "     qubit_list: A list of qubits to measure.\n"
+            "\n"
+            "     shots: The number of measurement shots to perform.\n"
             "\n"
             "Returns:\n"
-            "    double : expectation of current hamiltonian\n"
+            "     A double representing the expectation value of the current Hamiltonian.\n",
+            py::return_value_policy::reference
+        )
+
+        .def("get_processed_qgate_num", &QuantumMachine::get_processed_qgate_num, 
+            py::return_value_policy::reference,
+            "Retrieve the number of processed quantum gates.\n"
             "\n"
-            "Raises:\n"
-            "    run_fail: An error occurred in get_expectation\n",
-            py::return_value_policy::reference)
-        .def("get_processed_qgate_num", &QuantumMachine::get_processed_qgate_num, py::return_value_policy::reference)
+            "This function returns the total count of quantum gates that have been processed\n"
+            "\n"
+            "by the QuantumMachine.\n"
+            "\n"
+            "Returns:\n"
+            "     An integer representing the number of processed quantum gates.\n"
+        )
+
         .def("async_run",
             &QuantumMachine::async_run,
             py::arg("qprog"),
             py::arg_v("noise_model", NoiseModel(), "NoiseModel()"),
-            "Run quantum prog asynchronously at background\n"
-            "Use get_processed_qgate_num() to get check the asynchronous process progress\n"
-            "Use is_async_finished() check whether asynchronous process finished\n"
-            "Use get_async_result() block current code and get asynchronous process result unitll it finished",
-            py::return_value_policy::reference)
-        .def("is_async_finished", &QuantumMachine::is_async_finished, py::return_value_policy::reference)
-        .def("get_async_result", &QuantumMachine::get_async_result, py::return_value_policy::reference)
+            "Execute the quantum program asynchronously in the background.\n"
+            "\n"
+            "This function runs the specified quantum program without blocking the main thread.\n"
+            "\n"
+            "You can check the progress using get_processed_qgate_num(), determine if the process\n"
+            "\n"
+            "is finished with is_async_finished(), and retrieve results with get_async_result().\n"
+            "\n"
+            "Args:\n"
+            "     qprog: The quantum program to run.\n"
+            "\n"
+            "     noise_model: (optional) The noise model to apply (default is NoiseModel()).\n"
+            "\n"
+            "Returns:\n"
+            "     A reference indicating the status of the asynchronous operation.\n",
+            py::return_value_policy::reference
+        )
+
+        .def("is_async_finished", &QuantumMachine::is_async_finished, 
+            py::return_value_policy::reference,
+            "Check if the asynchronous quantum program execution is complete.\n"
+            "\n"
+            "This function returns a boolean indicating whether the asynchronous process\n"
+            "\n"
+            "initiated by async_run() has finished.\n"
+            "\n"
+            "Returns:\n"
+            "     True if the process is complete, False otherwise.\n"
+        )
+
+        .def("get_async_result", &QuantumMachine::get_async_result, 
+            py::return_value_policy::reference,
+            "Retrieve the result of the asynchronous quantum program execution.\n"
+            "\n"
+            "This function blocks the current code until the asynchronous process initiated\n"
+            "\n"
+            "by async_run() is complete, then returns the results.\n"
+            "\n"
+            "Returns:\n"
+            "     The result of the asynchronous execution.\n"
+        )
+
         .def("directly_run",
             &QuantumMachine::directlyRun,
             py::arg("qprog"),
             py::arg_v("noise_model", NoiseModel(), "NoiseModel()"),
             py::call_guard<py::gil_scoped_release>(),
-            "Directly run quantum prog\n"
-            "After init()\n"
+            py::return_value_policy::reference,
+            "Directly execute the quantum program.\n"
+            "\n"
+            "This function runs the specified quantum program immediately after the\n"
+            "\n"
+            "initialization (init()). It supports an optional noise model, which is\n"
+            "\n"
+            "currently only applicable to CPUQVM.\n"
             "\n"
             "Args:\n"
-            "    qprog: quantum program\n"
-            "    noise_model: noise model, default is no noise. noise model only work on CPUQVM now\n"
+            "     qprog: The quantum program to run.\n"
+            "\n"
+            "     noise_model: (optional) The noise model to apply (default is no noise).\n"
             "\n"
             "Returns:\n"
-            "    Dict[str, bool]: result of quantum program execution one shot.\n"
-            "                     first is the final qubit register state, second is it's measure probability",
-            py::return_value_policy::reference)
+            "     A dictionary with the execution results:\n"
+            "         The final qubit register state.\n"
+            "         The measurement probabilities.\n"
+        )
+
         .def("run_with_configuration",
-            [](QuantumMachine &qvm, QProg &prog, vector<ClassicalCondition> &cc_vector, py::dict param, NoiseModel noise_model = NoiseModel())
-    {
-        py::object json = py::module::import("json");
-        py::object dumps = json.attr("dumps");
-        auto json_string = std::string(py::str(dumps(param)));
-        rapidjson::Document doc;
-        auto &alloc = doc.GetAllocator();
-        doc.Parse(json_string.c_str());
-        return qvm.runWithConfiguration(prog, cc_vector, doc, noise_model);
-    },
+            [](QuantumMachine &qvm, QProg &prog, vector<ClassicalCondition> &cc_vector, 
+                py::dict param, NoiseModel noise_model)
+            {
+                py::object json = py::module::import("json");
+                py::object dumps = json.attr("dumps");
+                auto json_string = std::string(py::str(dumps(param)));
+                rapidjson::Document doc;
+                auto &alloc = doc.GetAllocator();
+                doc.Parse(json_string.c_str());
+                return qvm.runWithConfiguration(prog, cc_vector, doc, noise_model);
+            },
             py::arg("qprog"),
-        py::arg("cbit_list"),
-        py::arg("data"),
-        py::arg_v("noise_model", NoiseModel(), "NoiseModel()"),
-        py::call_guard<py::gil_scoped_release>(),
-        "Run quantum program with configuration\n"
-        "\n"
-        "Args:\n"
-        "    program: quantum program\n"
-        "    cbit_list: classic cbits list\n"
-        "    shots: repeate run quantum program times\n"
-        "    noise_model: noise model, default is no noise. noise model only work on CPUQVM now\n"
-        "\n"
-        "Returns:\n"
-        "    result of quantum program execution in shots.\n"
-        "    first is the final qubit register state, second is it's hit shot"
-        "Raises:\n"
-        "    run_fail: An error occurred in measure quantum program\n",
-        py::return_value_policy::automatic)
+            py::arg("cbit_list"),
+            py::arg("data"),
+            py::arg_v("noise_model", NoiseModel(), "NoiseModel()"),
+            py::call_guard<py::gil_scoped_release>(),
+            "Execute the quantum program with a specified configuration.\n"
+            "\n"
+            "This function runs the quantum program using the provided classical bits,\n"
+            "\n"
+            "parameters, and an optional noise model. It supports multiple shots for\n"
+            "\n"
+            "repeated execution.\n"
+            "\n"
+            "Args:\n"
+            "     qprog: The quantum program to execute.\n"
+            "\n"
+            "     cbit_list: The list of classical bits.\n"
+            "\n"
+            "     data: Parameters for the execution in dictionary form.\n"
+            "\n"
+            "     noise_model: (optional) The noise model to apply (default is no noise).\n"
+            "\n"
+            "Returns:\n"
+            "     The execution results over the specified shots, including:\n"
+            "         The final qubit register state.\n"
+            "         The count of hits for each outcome.\n",
+            py::return_value_policy::automatic
+        )
 
         .def("run_with_configuration",
             py::overload_cast<QProg &, vector<ClassicalCondition> &, int, const NoiseModel &>(&QuantumMachine::runWithConfiguration),
@@ -481,39 +628,60 @@ void export_quantum_machine(py::module &m)
             py::arg("shot"),
             py::arg_v("noise_model", NoiseModel(), "NoiseModel()"),
             py::call_guard<py::gil_scoped_release>(),
-            "Run quantum program with configuration\n"
+            "Execute the quantum program with a specified configuration.\n"
+            "\n"
+            "This function runs the quantum program using the provided classical bits,\n"
+            "\n"
+            "parameters, and an optional noise model. It supports multiple shots for\n"
+            "\n"
+            "repeated execution.\n"
             "\n"
             "Args:\n"
-            "    program: quantum program\n"
-            "    cbit_list: classic cbits list\n"
-            "    shots: repeate run quantum program times\n"
-            "    noise_model: noise model, default is no noise. noise model only work on CPUQVM now\n"
+            "     qprog: The quantum program to execute.\n"
+            "\n"
+            "     cbit_list: The list of classical bits.\n"
+            "\n"
+            "     shot: The number of times to repeat the execution.\n"
+            "\n"
+            "     noise_model: (optional) The noise model to apply (default is no noise).\n"
+            "\n"
+            "Note: Noise models currently only work on CPUQVM.\n"
             "\n"
             "Returns:\n"
-            "    result of quantum program execution in shots.\n"
-            "    first is the final qubit register state, second is it's hit shot"
-            "Raises:\n"
-            "    run_fail: An error occurred in measure quantum program\n",
-            py::return_value_policy::automatic)
+            "     A tuple containing the results of the quantum program execution:\n"
+            "         The final qubit register state.\n"
+            "         The count of hits for each outcome.\n",
+            py::return_value_policy::automatic
+        )
+
         .def("run_with_configuration",
             py::overload_cast<QProg &, int, const NoiseModel &>(&QuantumMachine::runWithConfiguration),
             py::arg("qprog"),
             py::arg("shot"),
             py::arg_v("noise_model", NoiseModel(), "NoiseModel()"),
             py::call_guard<py::gil_scoped_release>(),
-            "Run quantum program with configuration\n"
+            "Execute the quantum program with a specified configuration.\n"
+            "\n"
+            "This function runs the quantum program using the provided quantum program,\n"
+            "\n"
+            "number of shots, and an optional noise model. It supports multiple shots\n"
+            "\n"
+            "for repeated execution.\n"
             "\n"
             "Args:\n"
-            "    program: quantum program\n"
-            "    shots: repeate run quantum program times\n"
-            "    noise_model: noise model, default is no noise. noise model only work on CPUQVM now\n"
+            "     qprog: The quantum program to execute.\n"
+            "\n"
+            "     shot: The number of times to repeat the execution.\n"
+            "\n"
+            "     noise_model: (optional) The noise model to apply (default is no noise).\n"
             "\n"
             "Returns:\n"
-            "    result of quantum program execution in shots.\n"
-            "    first is the final qubit register state, second is it's hit shot"
-            "Raises:\n"
-            "    run_fail: An error occurred in measure quantum program\n",
-            py::return_value_policy::automatic)
+            "     The execution results over the specified shots, including:\n"
+            "         The final qubit register state.\n"
+            "         The count of hits for each outcome.\n",
+            py::return_value_policy::automatic
+        )
+
         .def("run_with_configuration",
             py::overload_cast<QProg &, vector<int> &, int, const NoiseModel &>(&QuantumMachine::runWithConfiguration),
             py::arg("qprog"),
@@ -521,20 +689,27 @@ void export_quantum_machine(py::module &m)
             py::arg("shot"),
             py::arg_v("noise_model", NoiseModel(), "NoiseModel()"),
             py::call_guard<py::gil_scoped_release>(),
-            "Run quantum program with configuration\n"
+            "Execute the quantum program with a specified configuration.\n"
+            "\n"
+            "This function runs the quantum program using the provided classical bits,\n"
+            "\n"
+            "the number of shots for repeated execution, and an optional noise model.\n"
             "\n"
             "Args:\n"
-            "    program: quantum program\n"
-            "    cbit_list: classic cbits list\n"
-            "    shots: repeate run quantum program times\n"
-            "    noise_model: noise model, default is no noise. noise model only work on CPUQVM now\n"
+            "     qprog: The quantum program to execute.\n"
+            "\n"
+            "     cbit_list: The list of classical bits.\n"
+            "\n"
+            "     shot: The number of times to repeat the execution.\n"
+            "\n"
+            "     noise_model: (optional) The noise model to apply (default is no noise). Note: Noise models currently work only on CPUQVM.\n"
             "\n"
             "Returns:\n"
-            "    result of quantum program execution in shots.\n"
-            "    first is the final qubit register state, second is it's hit shot"
-            "Raises:\n"
-            "    run_fail: An error occurred in measure quantum program\n",
-            py::return_value_policy::automatic);
+            "     A tuple containing the execution results over the specified shots:\n"
+            "         The final qubit register state.\n"
+            "         The count of hits for each outcome.\n",
+            py::return_value_policy::automatic
+        );
 
     /*
       just inherit abstract base class wrappered by trampoline class, will implement C++ like polymorphism in python
@@ -546,8 +721,17 @@ void export_quantum_machine(py::module &m)
     cpu_qvm.def("set_max_threads",
         &CPUQVM::set_parallel_threads,
         py::arg("size"),
-        "set CPUQVM max thread size",
-        py::return_value_policy::automatic);
+        "Set the maximum number of threads for the CPU quantum virtual machine (QVM).\n"
+        "\n"
+        "Args:\n"
+        "     size: The maximum number of threads to use.\n"
+        "\n"
+        "Returns:\n"
+        "     None: This method does not return a value.\n",
+        py::return_value_policy::automatic
+    );
+
+
     /*
       we should declare these function in py::class_<IdealQVM>, then CPUQVM inherit form it,
       but as we won't want to export IdealQVM to user, this may the only way
@@ -558,334 +742,660 @@ void export_quantum_machine(py::module &m)
     export_idealqvm_func<CPUSingleThreadQVM>::export_func(cpu_single_thread_qvm);
 
 #ifdef USE_CUDA
+
+
+    py::class_<FullAmplitudeQVM, QuantumMachine> full_qvm(m, "FullAmplitudeQVM");
+    export_idealqvm_func<FullAmplitudeQVM>::export_func(full_qvm);
+    full_qvm.def("init_qvm", [](FullAmplitudeQVM& qvm, std::string backend)
+        {
+            if ("CPU" == backend || "cpu" == backend)
+            {
+                return qvm.init(BackendType::CPU);
+            }
+            else if ("GPU" == backend || "gpu" == backend)
+            {
+                return qvm.init(BackendType::GPU);
+
+            }
+            else
+            {
+                QCERR_AND_THROW(std::runtime_error, "FullAmplitudeQVM init only support 'CPU' or 'GPU'.");
+            }
+        });
+
+    full_qvm.def("init_qvm", [](FullAmplitudeQVM& qvm)
+        {
+            return qvm.init(BackendType::CPU);
+        });
+
+
     py::class_<GPUQVM, QuantumMachine> gpu_qvm(m, "GPUQVM");
     export_idealqvm_func<GPUQVM>::export_func(gpu_qvm);
 #endif // USE_CUDA
 
     py::class_<NoiseQVM, QuantumMachine>(m, "NoiseQVM", "quantum machine class for simulate noise prog")
         .def(py::init<>())
+
         .def("set_max_threads",
             &NoiseQVM::set_parallel_threads,
             py::arg("size"),
-            "set NoiseQVM max thread size",
+            "Set the maximum number of threads for the noise quantum virtual machine (NoiseQVM).\n"
+            "\n"
+            "Args:\n"
+            "     size: The maximum number of threads to utilize.\n"
+            "\n"
+            "Returns:\n"
+            "     None: This method does not return a value.\n",
             py::return_value_policy::automatic)
-        .def("set_noise_model", py::overload_cast<const NOISE_MODEL &, const GateType &, double>(&NoiseQVM::set_noise_model))
-        .def("set_noise_model", py::overload_cast<const NOISE_MODEL &, const std::vector<GateType> &, double>(&NoiseQVM::set_noise_model))
-        .def("set_noise_model", py::overload_cast<const NOISE_MODEL &, const GateType &, double, const QVec &>(&NoiseQVM::set_noise_model))
-        .def("set_noise_model", py::overload_cast<const NOISE_MODEL &, const std::vector<GateType> &, double, const QVec &>(&NoiseQVM::set_noise_model))
-        .def("set_noise_model", py::overload_cast<const NOISE_MODEL &, const GateType &, double, const std::vector<QVec> &>(&NoiseQVM::set_noise_model))
-        .def("set_noise_model", py::overload_cast<const NOISE_MODEL &, const GateType &, double, double, double>(&NoiseQVM::set_noise_model))
-        .def("set_noise_model", py::overload_cast<const NOISE_MODEL &, const std::vector<GateType> &, double, double, double>(&NoiseQVM::set_noise_model))
-        .def("set_noise_model", py::overload_cast<const NOISE_MODEL &, const GateType &, double, double, double, const QVec &>(&NoiseQVM::set_noise_model))
-        .def("set_noise_model", py::overload_cast<const NOISE_MODEL &, const std::vector<GateType> &, double, double, double, const QVec &>(&NoiseQVM::set_noise_model))
-        .def("set_noise_model", py::overload_cast<const NOISE_MODEL &, const GateType &, double, double, double, const std::vector<QVec> &>(&NoiseQVM::set_noise_model))
+
+        .def("set_noise_model", py::overload_cast<const NOISE_MODEL &, const GateType &, double>(&NoiseQVM::set_noise_model),
+            "Set the noise model for the quantum virtual machine.\n"
+            "\n"
+            "Args:\n"
+            "     noise_model: The noise model to be applied.\n"
+            "\n"
+            "     gate_type: The type of gate for which the noise model is relevant.\n"
+            "\n"
+            "     noise_level: A double representing the level of noise to apply.\n"
+            "\n"
+            "Returns:\n"
+            "     None, as the function configures the noise model in place.\n")
+
+        .def("set_noise_model", py::overload_cast<const NOISE_MODEL &, const std::vector<GateType> &, double>
+            (&NoiseQVM::set_noise_model),
+            "Set the noise model for multiple gate types in the quantum virtual machine.\n"
+            "\n"
+            "Args:\n"
+            "     noise_model: The noise model to be applied.\n"
+            "\n"
+            "     gate_types: A vector of gate types for which the noise model is relevant.\n"
+            "\n"
+            "     noise_level: A double representing the level of noise to apply.\n"
+            "\n"
+            "Returns:\n"
+            "     None, as the function configures the noise model in place for the specified gate types.\n")
+
+        .def("set_noise_model", py::overload_cast<const NOISE_MODEL &, const GateType &, double, const QVec &>
+            (&NoiseQVM::set_noise_model),
+            "Set the noise model for a specific gate type and qubit vector in the quantum virtual machine.\n"
+            "\n"
+            "Args:\n"
+            "     noise_model: The noise model to be applied.\n"
+            "\n"
+            "     gate_type: The type of gate for which the noise model is relevant.\n"
+            "\n"
+            "     noise_level: A double representing the level of noise to apply.\n"
+            "\n"
+            "     qubits: A vector of qubits (QVec) affected by the noise model.\n"
+            "\n"
+            "Returns:\n"
+            "     None, as the function configures the noise model in place for the specified gate type and qubits.\n")
+
+        .def("set_noise_model", py::overload_cast<const NOISE_MODEL &, const std::vector<GateType> &, double, const QVec &>
+            (&NoiseQVM::set_noise_model),
+            "Set the noise model for multiple gate types and a specific qubit vector in the quantum virtual machine.\n"
+            "\n"
+            "Args:\n"
+            "     noise_model: The noise model to be applied.\n"
+            "\n"
+            "     gate_types: A vector of gate types for which the noise model is relevant.\n"
+            "\n"
+            "     noise_level: A double representing the level of noise to apply.\n"
+            "\n"
+            "     qubits: A vector of qubits (QVec) affected by the noise model.\n"
+            "\n"
+            "Returns:\n"
+            "     None, as the function configures the noise model in place for the specified gate types and qubits.\n")
+
+        .def("set_noise_model", py::overload_cast<const NOISE_MODEL &, const GateType &, double, const std::vector<QVec> &>
+            (&NoiseQVM::set_noise_model),
+            "Set the noise model for a specific gate type and multiple qubit vectors in the quantum virtual machine.\n"
+            "\n"
+            "Args:\n"
+            "     noise_model: The noise model to be applied.\n"
+            "\n"
+            "     gate_type: The type of gate for which the noise model is relevant.\n"
+            "\n"
+            "     noise_level: A double representing the level of noise to apply.\n"
+            "\n"
+            "     qubits: A vector of qubit vectors (std::vector<QVec>) affected by the noise model.\n"
+            "\n"
+            "Returns:\n"
+            "     None, as the function configures the noise model in place for the specified gate type and qubit vectors.\n"
+            )
+
+        .def("set_noise_model", py::overload_cast<const NOISE_MODEL &, const GateType &, double, double, double>
+            (&NoiseQVM::set_noise_model),
+            "Set the noise model for a specific gate type with multiple noise parameters in the quantum virtual machine.\n"
+            "\n"
+            "Args:\n"
+            "     noise_model: The noise model to be applied.\n"
+            "\n"
+            "     gate_type: The type of gate for which the noise model is relevant.\n"
+            "\n"
+            "     noise_level1: A double representing the first level of noise to apply.\n"
+            "\n"
+            "     noise_level2: A double representing the second level of noise to apply.\n"
+            "\n"
+            "     noise_level3: A double representing the third level of noise to apply.\n"
+            "\n"
+            "Returns:\n"
+            "     None, as the function configures the noise model in place for the specified gate type with the given noise parameters.\n"
+            )
+
+        .def("set_noise_model", py::overload_cast<const NOISE_MODEL &, const std::vector<GateType> &, double, double, double>
+            (&NoiseQVM::set_noise_model),
+            "Set the noise model for multiple gate types with various noise parameters in the quantum virtual machine.\n"
+            "\n"
+            "Args:\n"
+            "     noise_model: The noise model to be applied.\n"
+            "\n"
+            "     gate_types: A vector of gate types for which the noise model is relevant.\n"
+            "\n"
+            "     noise_level1: A double representing the first level of noise to apply.\n"
+            "\n"
+            "     noise_level2: A double representing the second level of noise to apply.\n"
+            "\n"
+            "     noise_level3: A double representing the third level of noise to apply.\n"
+            "\n"
+            "Returns:\n"
+            "     None, as the function configures the noise model in place for the specified gate types with the given noise parameters.\n"
+            )
+
+        .def("set_noise_model", py::overload_cast<const NOISE_MODEL &, const GateType &, double, double, double, const QVec &>
+            (&NoiseQVM::set_noise_model),
+            "Set the noise model for a specific gate type with multiple noise parameters affecting a specific qubit vector in the quantum virtual machine.\n"
+            "\n"
+            "Args:\n"
+            "     noise_model: The noise model to be applied.\n"
+            "\n"
+            "     gate_type: The type of gate for which the noise model is relevant.\n"
+            "\n"
+            "     noise_level1: A double representing the first level of noise to apply.\n"
+            "\n"
+            "     noise_level2: A double representing the second level of noise to apply.\n"
+            "\n"
+            "     noise_level3: A double representing the third level of noise to apply.\n"
+            "\n"
+            "     qubits: A specific qubit vector (QVec) affected by the noise model.\n"
+            "\n"
+            "Returns:\n"
+            "     None, as the function configures the noise model in place for the specified gate type and qubit vector.\n"
+            )
+
+        .def("set_noise_model", py::overload_cast<const NOISE_MODEL &, const std::vector<GateType> &, double, double, double, const QVec &>
+            (&NoiseQVM::set_noise_model),
+            "Set the noise model for multiple gate types with various noise parameters affecting a specific qubit vector in the quantum virtual machine.\n"
+            "\n"
+            "Args:\n"
+            "     noise_model: The noise model to be applied.\n"
+            "\n"
+            "     gate_types: A vector of gate types for which the noise model is relevant.\n"
+            "\n"
+            "     noise_level1: A double representing the first level of noise to apply.\n"
+            "\n"
+            "     noise_level2: A double representing the second level of noise to apply.\n"
+            "\n"
+            "     noise_level3: A double representing the third level of noise to apply.\n"
+            "\n"
+            "     qubits: A specific qubit vector (QVec) affected by the noise model.\n"
+            "\n"
+            "Returns:\n"
+            "     None, as the function configures the noise model in place for the specified gate types and qubit vector.\n"
+            )
+
+        .def("set_noise_model", py::overload_cast<const NOISE_MODEL &, const GateType &, double, double, double, const std::vector<QVec> &>
+            (&NoiseQVM::set_noise_model),
+            "Set the noise model for a specific gate type with multiple noise parameters affecting a vector of qubit vectors in the quantum virtual machine.\n"
+            "\n"
+            "Args:\n"
+            "     noise_model: The noise model to be applied.\n"
+            "\n"
+            "     gate_type: The type of gate for which the noise model is relevant.\n"
+            "\n"
+            "     noise_level1: A double representing the first level of noise to apply.\n"
+            "\n"
+            "     noise_level2: A double representing the second level of noise to apply.\n"
+            "\n"
+            "     noise_level3: A double representing the third level of noise to apply.\n"
+            "\n"
+            "     qubits_list: A vector of qubit vectors (QVec) affected by the noise model.\n"
+            "\n"
+            "Returns:\n"
+            "     None, as the function configures the noise model in place for the specified gate type and qubit vectors.\n"
+            )
+
         .def("set_measure_error",
             py::overload_cast<const NOISE_MODEL &, double, const QVec &>(&NoiseQVM::set_measure_error),
             py::arg("model"),
             py::arg("prob"),
-            py::arg("qubits") = QVec())
+            py::arg("qubits") = QVec(),
+            "Set the measurement error model in the quantum virtual machine.\n"
+            "\n"
+            "Args:\n"
+            "     model: The noise model to be applied for measurement errors.\n"
+            "\n"
+            "     prob: A double representing the probability of measurement error.\n"
+            "\n"
+            "     qubits: A specific qubit vector (QVec) for which the measurement error applies (default is an empty QVec).\n"
+            "\n"
+            "Returns:\n"
+            "     None, as the function configures the measurement error model in place for the specified qubit vector.\n"
+            )
+
         .def("set_measure_error",
             py::overload_cast<const NOISE_MODEL &, double, double, double, const QVec &>(&NoiseQVM::set_measure_error),
             py::arg("model"),
             py::arg("T1"),
             py::arg("T2"),
             py::arg("t_gate"),
-            py::arg("qubits") = QVec())
-        .def("set_mixed_unitary_error", py::overload_cast<const GateType &, const std::vector<QStat> &, const std::vector<double> &>(&NoiseQVM::set_mixed_unitary_error))
-        .def("set_mixed_unitary_error", py::overload_cast<const GateType &, const std::vector<QStat> &, const std::vector<double> &, const QVec &>(&NoiseQVM::set_mixed_unitary_error))
-        .def("set_mixed_unitary_error", py::overload_cast<const GateType &, const std::vector<QStat> &, const std::vector<double> &, const std::vector<QVec> &>(&NoiseQVM::set_mixed_unitary_error))
-        .def("set_reset_error",
-            &NoiseQVM::set_reset_error,
+            py::arg("qubits") = QVec(),
+            "Set the measurement error model in the quantum virtual machine with specific error parameters.\n"
+            "\n"
+            "Args:\n"
+            "     model: The noise model to be applied for measurement errors.\n"
+            "\n"
+            "     T1: A double representing the relaxation time constant for the qubits.\n"
+            "\n"
+            "     T2: A double representing the dephasing time constant for the qubits.\n"
+            "\n"
+            "     t_gate: A double representing the time duration of the gate operation.\n"
+            "\n"
+            "     qubits: A specific qubit vector (QVec) for which the measurement error applies (default is an empty QVec).\n"
+            "\n"
+            "Returns:\n"
+            "     None, as the function configures the measurement error model in place for the specified qubit vector.\n"
+            )
+
+        .def("set_mixed_unitary_error", py::overload_cast<const GateType &, const std::vector<QStat> &, const std::vector<double> &>
+            (&NoiseQVM::set_mixed_unitary_error),
+            "Set a mixed unitary error model for a specific gate type in the quantum virtual machine.\n"
+            "\n"
+            "Args:\n"
+            "     gate_type: The type of gate for which the mixed unitary error model applies.\n"
+            "\n"
+            "     unitary_ops: A vector of unitary operations (QStat) representing the error model.\n"
+            "\n"
+            "     probabilities: A vector of doubles representing the probabilities associated with each unitary operation.\n"
+            "\n"
+            "Returns:\n"
+            "     None, as the function configures the mixed unitary error model in place for the specified gate type.\n"
+            )
+
+        .def("set_mixed_unitary_error", py::overload_cast<const GateType &, const std::vector<QStat> &,
+            const std::vector<double> &, const QVec &>
+            (&NoiseQVM::set_mixed_unitary_error),
+            "Set a mixed unitary error model for a specific gate type in the quantum virtual machine with specific qubits.\n"
+            "\n"
+            "Args:\n"
+            "     gate_type: The type of gate for which the mixed unitary error model applies.\n"
+            "\n"
+            "     unitary_ops: A vector of unitary operations (QStat) representing the error model.\n"
+            "\n"
+            "     probabilities: A vector of doubles representing the probabilities associated with each unitary operation.\n"
+            "\n"
+            "     qubits: A specific qubit vector (QVec) for which the mixed unitary error applies.\n"
+            "\n"
+            "Returns:\n"
+            "     None, as the function configures the mixed unitary error model in place for the specified gate type and qubits.\n"
+            )
+
+        .def("set_mixed_unitary_error", py::overload_cast<const GateType &, const std::vector<QStat> &, 
+            const std::vector<double> &, const std::vector<QVec> &>
+            (&NoiseQVM::set_mixed_unitary_error),
+            "Set a mixed unitary error model for a specific gate type in the quantum virtual machine, targeting multiple qubits.\n"
+            "\n"
+            "Args:\n"
+            "     gate_type: The type of gate for which the mixed unitary error model applies.\n"
+            "\n"
+            "     unitary_ops: A vector of unitary operations (QStat) representing the error model.\n"
+            "\n"
+            "     probabilities: A vector of doubles representing the probabilities associated with each unitary operation.\n"
+            "\n"
+            "     qubit_groups: A vector of qubit vectors (QVec) specifying the qubits affected by the error model.\n"
+            "\n"
+            "Returns:\n"
+            "     None, as the function configures the mixed unitary error model in place for the specified gate type and qubit groups.\n"
+            )
+                
+
+        .def("set_reset_error", (&NoiseQVM::set_reset_error),
             py::arg("p0"),
             py::arg("p1"),
-            py::arg("qubits") = QVec())
+            py::arg("qubits") = QVec(),
+            "Set a reset error model for the quantum virtual machine.\n"
+            "\n"
+            "Args:\n"
+            "     p0: Probability of the qubit resetting to state 0.\n"
+            "\n"
+            "     p1: Probability of the qubit resetting to state 1.\n"
+            "\n"
+            "     qubits: A vector of qubits (QVec) for which the reset error model applies. Defaults to all qubits if not specified.\n"
+            "\n"
+            "Returns:\n"
+            "     None, as this function configures the reset error model in place for the specified qubits.\n"
+            )
 
         .def("set_readout_error",
             &NoiseQVM::set_readout_error,
             py::arg("probs_list"),
-            py::arg("qubits") = QVec())
+            py::arg("qubits") = QVec(),
+            "Set a readout error model for the quantum virtual machine.\n"
+            "\n"
+            "Args:\n"
+            "     probs_list: A list of probabilities for readout errors associated with each qubit.\n"
+            "\n"
+            "     qubits: A vector of qubits (QVec) for which the readout error model applies. Defaults to all qubits if not specified.\n"
+            "\n"
+            "Returns:\n"
+            "     None, as this function configures the readout error model in place for the specified qubits.\n"
+            )
 
-        .def("set_rotation_error", &NoiseQVM::set_rotation_error)
+        .def("set_rotation_error", &NoiseQVM::set_rotation_error,
+            "Set a rotation error model for the quantum virtual machine.\n"
+            "\n"
+            "Args:\n"
+            "     None specified in the function signature, but typically would include error parameters for the rotation.\n"
+            "\n"
+            "Returns:\n"
+            "     None, as this function configures the rotation error model in place for the quantum operations.\n"
+            )
 
         /*will delete*/
         .def(
             "initQVM",
             [](NoiseQVM &qvm, py::dict param)
-    {
-        py::object json = py::module::import("json");
-        py::object dumps = json.attr("dumps");
-        auto json_string = std::string(py::str(dumps(param)));
-        rapidjson::Document doc(rapidjson::kObjectType);
-        doc.Parse(json_string.c_str());
-        qvm.init(doc);
-    },
+            {
+                py::object json = py::module::import("json");
+                py::object dumps = json.attr("dumps");
+                auto json_string = std::string(py::str(dumps(param)));
+                rapidjson::Document doc(rapidjson::kObjectType);
+                doc.Parse(json_string.c_str());
+                qvm.init(doc);
+            },
             "init quantum virtual machine")
 
         /* new interface */
-        .def(
-            "init_qvm",
+        .def("init_qvm",
             [](NoiseQVM &qvm, py::dict param)
-    {
-        py::object json = py::module::import("json");
-        py::object dumps = json.attr("dumps");
-        auto json_string = std::string(py::str(dumps(param)));
-        rapidjson::Document doc(rapidjson::kObjectType);
-        doc.Parse(json_string.c_str());
-        qvm.init(doc);
-    },
+            {
+                py::object json = py::module::import("json");
+                py::object dumps = json.attr("dumps");
+                auto json_string = std::string(py::str(dumps(param)));
+                rapidjson::Document doc(rapidjson::kObjectType);
+                doc.Parse(json_string.c_str());
+                qvm.init(doc);
+            },
             py::arg("json_config"),
-        "init quantum virtual machine")
-        .def("init_qvm", py::overload_cast<>(&NoiseQVM::init), "init quantum virtual machine");
-    // .def(
-    //     "directly_run",
-    //     [](NoiseQVM &qvm, QProg &prog)
-    //     { qvm.directlyRun(prog); },
-    //     "directly_run a prog", "program"_a, py::return_value_policy::reference)
-    //     .def(
-    //         "init_state",
-    //         [](NoiseQVM &self, const QStat &state, const QVec &qlist)
-    //         { self.initState(state, qlist); },
-    //         py::arg("state") = QStat(),
-    //         py::arg("qlist") = QVec(),
-    //         py::return_value_policy::reference);
+                "init quantum virtual machine")
 
-    // .def(
-    //     "run_with_configuration",
-    //      [](NoiseQVM &qvm, QProg &prog, vector<ClassicalCondition> &cc_vector, py::dict param)
-    //     {
-    // py::object json = py::module::import("json");
-    // py::object dumps = json.attr("dumps");
-    // auto json_string = std::string(py::str(dumps(param)));
-    // rapidjson::Document doc;
-    // auto &alloc = doc.GetAllocator();
-    // doc.Parse(json_string.c_str());
-    // return qvm.runWithConfiguration(prog, cc_vector, doc); },
-    //     "program"_a, "cbit_list"_a, "data"_a, py::return_value_policy::automatic)
-    // .def(
-    //     "run_with_configuration", [](NoiseQVM &qvm, QProg &prog, vector<ClassicalCondition> &cc_vector, int shots)
-    //     { return qvm.runWithConfiguration(prog, cc_vector, shots); },
-    //     "program"_a, "cbit_list"_a, "data"_a, py::return_value_policy::automatic)
-    // .def(
-    //     "run_with_configuration", [](QuantumMachine &qvm, QProg &prog, vector<int> &cbit_addrs, int shots)
-    //     { return qvm.runWithConfiguration(prog, cbit_addrs, shots); },
-    //     "program"_a, "cbit_addr_list"_a, "data"_a, py::return_value_policy::automatic);
+        .def("init_qvm", py::overload_cast<>(&NoiseQVM::init),
+            "init quantum virtual machine");
+
+        // .def(
+        //     "directly_run",
+        //     [](NoiseQVM &qvm, QProg &prog)
+        //     { qvm.directlyRun(prog); },
+        //     "directly_run a prog", "program"_a, py::return_value_policy::reference)
+        //     .def(
+        //         "init_state",
+        //         [](NoiseQVM &self, const QStat &state, const QVec &qlist)
+        //         { self.initState(state, qlist); },
+        //         py::arg("state") = QStat(),
+        //         py::arg("qlist") = QVec(),
+        //         py::return_value_policy::reference);
+
+        // .def(
+        //     "run_with_configuration",
+        //      [](NoiseQVM &qvm, QProg &prog, vector<ClassicalCondition> &cc_vector, py::dict param)
+        //     {
+        // py::object json = py::module::import("json");
+        // py::object dumps = json.attr("dumps");
+        // auto json_string = std::string(py::str(dumps(param)));
+        // rapidjson::Document doc;
+        // auto &alloc = doc.GetAllocator();
+        // doc.Parse(json_string.c_str());
+        // return qvm.runWithConfiguration(prog, cc_vector, doc); },
+        //     "program"_a, "cbit_list"_a, "data"_a, py::return_value_policy::automatic)
+        // .def(
+        //     "run_with_configuration", [](NoiseQVM &qvm, QProg &prog, vector<ClassicalCondition> &cc_vector, int shots)
+        //     { return qvm.runWithConfiguration(prog, cc_vector, shots); },
+        //     "program"_a, "cbit_list"_a, "data"_a, py::return_value_policy::automatic)
+        // .def(
+        //     "run_with_configuration", [](QuantumMachine &qvm, QProg &prog, vector<int> &cbit_addrs, int shots)
+        //     { return qvm.runWithConfiguration(prog, cbit_addrs, shots); },
+        //     "program"_a, "cbit_addr_list"_a, "data"_a, py::return_value_policy::automatic);
 
     py::class_<SingleAmplitudeQVM, QuantumMachine>(m, "SingleAmpQVM", "quantum single amplitude machine class")
         .def(py::init<>())
 
-        //     .def("init_qvm", &SingleAmplitudeQVM::init, "init quantum virtual machine")
+    //     .def("init_qvm", &SingleAmplitudeQVM::init, "init quantum virtual machine")
         .def("run",
-            py::overload_cast<QProg &, QVec &, size_t, size_t>(&SingleAmplitudeQVM::run),
+            py::overload_cast<QProg&, QVec&, size_t, size_t>(&SingleAmplitudeQVM::run),
             py::arg("prog"),
             py::arg("qv"),
             py::arg("max_rank") = 30,
             py::arg("alloted_time") = 5,
-            "run the quantum program\n"
+            "Run the quantum program.\n"
             "\n"
             "Args:\n"
-            "    QProg: quantum prog \n"
-            "    QVec: qubits list\n"
-            "    size_t: max_rank\n"
-            "    size_t: alloted_time\n"
+            "     prog: A quantum program (QProg) to be executed.\n"
+            "\n"
+            "     qv: A list of qubits (QVec) involved in the program.\n"
+            "\n"
+            "     max_rank: The maximum rank to consider during execution (default is 30).\n"
+            "\n"
+            "     alloted_time: The time allocated for execution (default is 5 seconds).\n"
             "\n"
             "Returns:\n"
-            "    none\n"
-            "Raises:\n"
-            "    run_fail: An error occurred in run\n",
+            "     None, as the function executes the program in place.\n",
             py::return_value_policy::automatic_reference)
+
         .def("run",
-            py::overload_cast<QProg &, QVec &, size_t, const std::vector<qprog_sequence_t> &>(&SingleAmplitudeQVM::run),
-            "run the quantum program\n"
+            py::overload_cast<QProg&, QVec&, size_t, const std::vector<qprog_sequence_t>&>
+            (&SingleAmplitudeQVM::run),
+            "Run the quantum program.\n"
             "\n"
             "Args:\n"
-            "    QProg: quantum prog \n"
-            "    QVec: qubits list\n"
-            "    size_t: max_rank\n"
-            "    list: sequences\n"
+            "     prog: A quantum program (QProg) to be executed.\n"
+            "\n"
+            "     qv: A list of qubits (QVec) involved in the program.\n"
+            "\n"
+            "     max_rank: The maximum rank to consider during execution.\n"
+            "\n"
+            "     sequences: A list of sequences (std::vector<qprog_sequence_t>).\n"
             "\n"
             "Returns:\n"
-            "    none\n"
-            "Raises:\n"
-            "    run_fail: An error occurred in run\n")
-        .def("get_sequence", &SingleAmplitudeQVM::getSequence, "get prog sequence", py::return_value_policy::automatic_reference)
-        .def("get_quick_map_vertice", &SingleAmplitudeQVM::getQuickMapVertice, "get quick map vertice", py::return_value_policy::automatic_reference)
+            "     None, as the function executes the program in place.\n"
+            )
+
+        .def("get_sequence", &SingleAmplitudeQVM::getSequence,
+            "Get the program sequence.\n"
+            "\n"
+            "Returns:\n"
+            "     A reference to the current program sequence.\n",
+            py::return_value_policy::automatic_reference)
+
+        .def("get_quick_map_vertice", &SingleAmplitudeQVM::getQuickMapVertice,
+            "Get the quick map vertices.\n"
+            "\n"
+            "Returns:\n"
+            "     A reference to the quick map vertices.\n",
+            py::return_value_policy::automatic_reference)
 
         .def("pmeasure_bin_index", &SingleAmplitudeQVM::pMeasureBinindex,
-            "pmeasure bin index quantum state amplitude\n"
+            "Measure the bin index of the quantum state amplitude.\n"
             "\n"
             "Args:\n"
-            "    string : bin string\n"
+            "     bin_string: A string representing the bin.\n"
             "\n"
             "Returns:\n"
-            "    double : bin amplitude prob\n"
-            "Raises:\n"
-            "    run_fail: An error occurred in pmeasure_bin_index\n", py::return_value_policy::automatic_reference)
+            "     A double representing the amplitude probability of the bin.\n",
+            py::return_value_policy::automatic_reference)
+
+
         .def("pmeasure_dec_index", &SingleAmplitudeQVM::pMeasureDecindex,
-            "pmeasure dec index quantum state amplitude\n"
+            "Measure the dec index of the quantum state amplitude.\n"
             "\n"
             "Args:\n"
-            "    string : dec string\n"
+            "     dec_string: A string representing the dec.\n"
             "\n"
             "Returns:\n"
-            "    double : dec amplitude prob\n"
-            "Raises:\n"
-            "    run_fail: An error occurred in pmeasure_dec_index\n", py::return_value_policy::automatic_reference)
+            "     A double representing the amplitude probability of the dec.\n",
+            py::return_value_policy::automatic_reference)
 
         .def("pmeasure_bin_amplitude", &SingleAmplitudeQVM::pmeasure_bin_index,
-            "pmeasure bin index quantum state amplitude\n"
+            "Measure the bin amplitude of the quantum state.\n"
             "\n"
             "Args:\n"
-            "    string : bin string\n"
+            "     bin_string: A string representing the bin.\n"
             "\n"
             "Returns:\n"
-            "    complex : bin amplitude\n"
-            "Raises:\n"
-            "    run_fail: An error occurred in pmeasure_bin_index\n", py::return_value_policy::automatic_reference)
-        
+            "     A complex number representing the bin amplitude.\n",
+            py::return_value_policy::automatic_reference)
+
         .def("pmeasure_dec_amplitude", &SingleAmplitudeQVM::pmeasure_dec_index,
-            "pmeasure dec index quantum state amplitude\n"
+            "Measure the dec amplitude of the quantum state.\n"
             "\n"
             "Args:\n"
-            "    string : dec string\n"
+            "     dec_string: A string representing the dec.\n"
             "\n"
             "Returns:\n"
-            "    complex : dec amplitude amplitude\n"
-            "Raises:\n"
-            "    run_fail: An error occurred in pmeasure_dec_index\n", py::return_value_policy::automatic_reference)
+            "     A complex number representing the dec amplitude.\n",
+            py::return_value_policy::automatic_reference)
 
         .def("get_prob_dict", py::overload_cast<QVec>(&SingleAmplitudeQVM::getProbDict),
-            "Get pmeasure result as dict\n"
+            "Get the pmeasure result as a dictionary.\n"
             "\n"
             "Args:\n"
-            "    qubit_list: pmeasure qubits list\n"
+            "     qubit_list: A list of qubits for pmeasure.\n"
             "\n"
             "Returns:\n"
-            "    measure result of quantum machine\n"
-            "Raises:\n"
-            "    run_fail: An error occurred in get_prob_dict\n")
-        .def("get_prob_dict", py::overload_cast<const std::vector<int> &>(&SingleAmplitudeQVM::getProbDict),
-            "Get pmeasure result as dict\n"
-            "\n"
-            "Args:\n"
-            "    qubit_list: pmeasure qubits list\n"
-            "\n"
-            "Returns:\n"
-            "    measure result of quantum machine"
-            "Raises:\n"
-            "    run_fail: An error occurred in get_prob_dict\n")
-        .def("prob_run_dict", py::overload_cast<QProg &, QVec>(&SingleAmplitudeQVM::probRunDict),
-            "Run quantum program and get pmeasure result as dict\n"
-            "\n"
-            "Args:\n"
-            "    qprog: quantum program\n"
-            "    qubit_list: pmeasure qubits list\n"
-            "\n"
-            "Returns:\n"
-            "    measure result of quantum machine\n"
-            "Raises:\n"
-            "    run_fail: An error occurred in measure quantum program\n")
-        .def("prob_run_dict", py::overload_cast<QProg &, const std::vector<int> &>(&SingleAmplitudeQVM::probRunDict),
-            "Run quantum program and get pmeasure result as dict\n"
-            "\n"
-            "Args:\n"
-            "    qprog: quantum program\n"
-            "    qubit_list: pmeasure qubits list\n"
-            "\n"
-            "Returns:\n"
-            "    measure result of quantum machine\n"
-            "Raises:\n"
-            "    run_fail: An error occurred in measure quantum program\n");
+            "     A dictionary containing the measurement results of the quantum machine.\n")
 
-    py::class_<PartialAmplitudeQVM, QuantumMachine>(m, "PartialAmpQVM", "quantum partial amplitude machine class")
+        .def("get_prob_dict", py::overload_cast<const std::vector<int>&>(&SingleAmplitudeQVM::getProbDict),
+            "Get the pmeasure result as a dictionary.\n"
+            "\n"
+            "Args:\n"
+            "     qubit_list: A list of qubits for pmeasure.\n"
+            "\n"
+            "Returns:\n"
+            "     A dictionary containing the measurement results of the quantum machine.\n")
+
+        .def("prob_run_dict", py::overload_cast<QProg&, QVec>(&SingleAmplitudeQVM::probRunDict),
+            "Run the quantum program and get the pmeasure result as a dictionary.\n"
+            "\n"
+            "Args:\n"
+            "     qprog: The quantum program to run.\n"
+            "\n"
+            "     qubit_list: A list of qubits for pmeasure.\n"
+            "\n"
+            "Returns:\n"
+            "     A dictionary containing the measurement results of the quantum machine.\n")
+
+        .def("prob_run_dict", py::overload_cast<QProg&, const std::vector<int>&>(&SingleAmplitudeQVM::probRunDict),
+            "Run the quantum program and get the pmeasure result as a dictionary.\n"
+            "\n"
+            "Args:\n"
+            "     qprog: The quantum program to run.\n"
+            "\n"
+            "     qubit_list: A list of qubits for pmeasure.\n"
+            "\n"
+            "Returns:\n"
+            "     A dictionary containing the measurement results of the quantum machine.\n");
+
+
+    py::class_<PartialAmplitudeQVM, QuantumMachine>(m, "PartialAmpQVM", "quantum partial amplitude machine class\n")
         .def(py::init<>())
 
         .def("init_qvm",
-            &PartialAmplitudeQVM::init,
-            py::arg_v("type", BackendType::CPU, "BackendType.CPU"),
-            "init quantum virtual machine")
+            [](PartialAmplitudeQVM& machine, int type)
+            {
+                auto backend_type = static_cast<BackendType>(type);
+                return machine.init(backend_type);
+            },
+            py::arg("backend_type") = (int)BackendType::CPU)
 
         .def("run",
             py::overload_cast<QProg &, const NoiseModel &>(&PartialAmplitudeQVM::run<QProg>),
             py::arg("qprog"),
             py::arg_v("noise_model", NoiseModel(), "NoiseModel()"),
-            "run the quantum program\n"
+            "Run the quantum program.\n"
             "\n"
             "Args:\n"
-            "    QProg: quantum prog \n"
-            "    size_t : NoiseModel\n"
+            "     qprog: The quantum program to execute.\n"
+            "\n"
+            "     noise_model: An optional noise model (default is NoiseModel()).\n"
             "\n"
             "Returns:\n"
-            "    none\n"
-            "Raises:\n"
-            "    run_fail: An error occurred in run\n")
+            "     None.\n")
+
         .def("run",
             py::overload_cast<QCircuit &, const NoiseModel &>(&PartialAmplitudeQVM::run<QCircuit>),
             py::arg("qprog"),
             py::arg_v("noise_model", NoiseModel(), "NoiseModel()"),
-            "run the quantum program\n"
+            "Run the quantum program.\n"
             "\n"
             "Args:\n"
-            "    QProg: quantum prog \n"
-            "    size_t : NoiseModel\n"
+            "     qprog: The quantum circuit to execute.\n"
+            "\n"
+            "     noise_model: An optional noise model (default is NoiseModel()).\n"
             "\n"
             "Returns:\n"
-            "    none\n"
-            "Raises:\n"
-            "    run_fail: An error occurred in run\n")
+            "     None.\n")
 
         .def("pmeasure_bin_index", &PartialAmplitudeQVM::pmeasure_bin_index, "bin_index"_a,
-            "pmeasure bin index quantum state amplitude\n"
+            "Get the amplitude of the quantum state for the specified bin index.\n"
             "\n"
             "Args:\n"
-            "    string : bin string\n"
+            "     bin_index: A string representing the bin.\n"
             "\n"
             "Returns:\n"
-            "    complex : bin amplitude\n"
-            "Raises:\n"
-            "    run_fail: An error occurred in pmeasure_bin_index\n", py::return_value_policy::automatic_reference)
-        .def("pmeasure_dec_index", &PartialAmplitudeQVM::pmeasure_dec_index, "dec_index"_a,
-            "pmeasure dec index quantum state amplitude\n"
-            "\n"
-            "Args:\n"
-            "    string : dec string\n"
-            "\n"
-            "Returns:\n"
-            "    complex : dec amplitude\n"
-            "Raises:\n"
-            "    run_fail: An error occurred in pmeasure_dec_index\n", py::return_value_policy::automatic_reference)
-        .def("pmeasure_subset", &PartialAmplitudeQVM::pmeasure_subset, "index_list"_a,
-            "pmeasure quantum state amplitude subset\n"
-            "\n"
-            "Args:\n"
-            "    list : dec state string list\n"
-            "\n"
-            "Returns:\n"
-            "    list : dec amplitude result list\n"
-            "Raises:\n"
-            "    run_fail: An error occurred in pmeasure_dec_index\n", py::return_value_policy::automatic_reference)
-        .def("get_prob_dict", &PartialAmplitudeQVM::getProbDict,
-            "Get pmeasure result as dict\n"
-            "\n"
-            "Args:\n"
-            "    qubit_list: pmeasure qubits list\n"
-            "\n"
-            "Returns:\n"
-            "    measure result of quantum machine\n"
-            "Raises:\n"
-            "    run_fail: An error occurred in get_prob_dict\n")
-        .def("prob_run_dict", &PartialAmplitudeQVM::probRunDict,
-            "Run quantum program and get pmeasure result as dict\n"
-            "\n"
-            "Args:\n"
-            "    qprog: quantum program\n"
-            "    qubit_list: pmeasure qubits list\n"
-            "\n"
-            "Returns:\n"
-            "    measure result of quantum machine\n"
-            "Raises:\n"
-            "    run_fail: An error occurred in measure quantum program\n");
+            "     A complex number representing the amplitude of the bin.\n",
+            py::return_value_policy::automatic_reference)
 
-    py::class_<SparseSimulator, QuantumMachine>(m, "SparseQVM", "quantum sparse machine class")
+        .def("pmeasure_dec_index", &PartialAmplitudeQVM::pmeasure_dec_index, "dec_index"_a,
+            "Get the amplitude of the quantum state for the specified decimal index.\n"
+            "\n"
+            "Args:\n"
+            "     dec_index: A string representing the decimal.\n"
+            "\n"
+            "Returns:\n"
+            "     A complex number representing the amplitude of the decimal.\n",
+            py::return_value_policy::automatic_reference)
+
+        .def("pmeasure_subset", &PartialAmplitudeQVM::pmeasure_subset, "index_list"_a,
+            "Get the amplitudes of the quantum state for a subset of indices.\n"
+            "\n"
+            "Args:\n"
+            "     index_list: A list of strings representing decimal states.\n"
+            "\n"
+            "Returns:\n"
+            "     A list of complex numbers representing the amplitude results.\n",
+            py::return_value_policy::automatic_reference)
+
+        .def("get_prob_dict", &PartialAmplitudeQVM::getProbDict,
+            "Get the measurement results as a dictionary.\n"
+            "\n"
+            "Args:\n"
+            "     qubit_list: A list of qubits to measure.\n"
+            "\n"
+            "Returns:\n"
+            "     A dictionary containing the measurement results of the quantum machine.\n")
+
+        .def("prob_run_dict", &PartialAmplitudeQVM::probRunDict,
+            "Run the quantum program and get the measurement results as a dictionary.\n"
+            "\n"
+            "Args:\n"
+            "     qprog: The quantum program to execute.\n"
+            "\n"
+            "     qubit_list: A list of qubits to measure.\n"
+            "\n"
+            "Returns:\n"
+            "     A dictionary containing the measurement results of the quantum machine.\n"
+        );
+
+    py::class_<SparseSimulator, QuantumMachine>(m, "SparseQVM", "quantum sparse machine class\n")
         .def(py::init<>())
 
         .def("init_qvm",
@@ -893,712 +1403,1218 @@ void export_quantum_machine(py::module &m)
             "init quantum virtual machine")
 
         .def("prob_run_dict", &SparseSimulator::probRunDict,
-            "Run quantum program and get pmeasure result as dict\n"
+            "Run the quantum program and get the measurement results as a dictionary.\n"
             "\n"
             "Args:\n"
-            "    qprog: quantum program\n"
+            "     qprog: The quantum program to execute.\n"
             "\n"
             "Returns:\n"
-            "    measure result of quantum machine\n"
-            "Raises:\n"
-            "    run_fail: An error occurred in measure quantum program\n")
+            "     A dictionary containing the measurement results of the quantum machine.\n")
+
         .def("directlyRun", &SparseSimulator::directlyRun,
-            "Run quantum program and get pmeasure result as dict\n"
+            "Run the quantum program and get the measurement results as a dictionary.\n"
             "\n"
             "Args:\n"
-            "    qprog: quantum program\n"
+            "     qprog: The quantum program to execute.\n"
             "\n"
             "Returns:\n"
-            "     Dict[str, bool]: result of quantum program execution one shot.\n"
-            "Raises:\n"
-            "    run_fail: An error occurred in measure quantum program\n")
+            "     Dict[str, bool]: The result of the quantum program execution in one shot.\n")
 
         .def("directly_run", &SparseSimulator::directlyRun,
-            "Run quantum program and get pmeasure result as dict\n"
+            "Run the quantum program and get the measurement results as a dictionary.\n"
             "\n"
             "Args:\n"
-            "    qprog: quantum program\n"
+            "     qprog: The quantum program to execute.\n"
             "\n"
             "Returns:\n"
-            "    measure result of quantum machine\n"
-            "Raises:\n"
-            "    run_fail: An error occurred in measure quantum program\n")
+            "     The measurement results of the quantum machine.\n")
 
         .def("run_with_configuration", &SparseSimulator::runWithConfiguration,
-            "Run quantum program and get pmeasure result as dict\n"
+            "Run the quantum program with the specified configuration and get the measurement results as a dictionary.\n"
             "\n"
             "Args:\n"
-            "    qprog: quantum program\n"
+            "     qprog: The quantum program to execute.\n"
             "\n"
-            "Args:\n"
-            "    cbits: quantum cbits\n"
+            "     cbits: The quantum classical bits.\n"
             "\n"
-            "Args:\n"
-            "    shots: samble shots\n"
+            "     shots: The number of sample shots.\n"
             "\n"
             "Returns:\n"
-            "    measure result of quantum machine\n"
-            "Raises:\n"
-            "    run_fail: An error occurred in measure quantum program\n");
+            "     The measurement results of the quantum machine.\n"
+        );
 
     py::class_<DensityMatrixSimulator, QuantumMachine>(m, "DensityMatrixSimulator", "simulator for density matrix")
         .def(py::init<>())
+
         .def("init_qvm",
-            &DensityMatrixSimulator::init,
-            py::arg("is_double_precision") = true,
-            "init quantum virtual machine")
+            [](DensityMatrixSimulator& machine, bool is_double_precision)
+            {
+                return machine.init(is_double_precision);
+            },
+            py::arg("is_double_precision") = true)
 
         .def("get_probability",
             py::overload_cast<QProg&, size_t>(&DensityMatrixSimulator::get_probability),
             py::arg("prog"),
             py::arg("index"),
-            "Run quantum program and get index probability\n"
+            "Run the quantum program and get the probability for the specified index.\n"
             "\n"
             "Args:\n"
-            "    prog: quantum program \n"
-            "    index: measure index in [0,2^N - 1] \n"
+            "     prog: The quantum program to execute.\n"
+            "\n"
+            "     index: The measurement index in [0, 2^N      1].\n"
             "\n"
             "Returns:\n"
-            "    probability result of quantum program \n"
-            "Raises:\n"
-            "    run_fail: An error occurred in get_probability\n")
+            "     The probability result of the quantum program.\n")
 
         .def("get_probability",
             py::overload_cast<QProg&, std::string>(&DensityMatrixSimulator::get_probability),
             py::arg("prog"),
             py::arg("index"),
-            "Run quantum program and get index probability\n"
+            "Run the quantum program and get the probability for the specified index.\n"
             "\n"
             "Args:\n"
-            "    prog: quantum program \n"
-            "    index: measure index in [0,2^N - 1] \n"
+            "     prog: The quantum program to execute.\n"
+            "\n"
+            "     index: The measurement index in [0, 2^N      1].\n"
             "\n"
             "Returns:\n"
-            "    probability result of quantum program \n"
-            "Raises:\n"
-            "    run_fail: An error occurred in get_probability\n")
+            "     The probability result of the quantum program.")
 
         .def("get_probabilities",
             py::overload_cast<QProg&>(&DensityMatrixSimulator::get_probabilities),
             py::arg("prog"),
-            "Run quantum program and get all indices probabilities\n"
+            "Run the quantum program and get the probabilities for all indices.\n"
             "\n"
             "Args:\n"
-            "    prog: quantum program \n"
+            "     prog: The quantum program to execute.\n"
             "\n"
             "Returns:\n"
-            "    probabilities result of quantum program \n"
-            "Raises:\n"
-            "    run_fail: An error occurred in get_probabilities\n")
+            "     The probabilities result of the quantum program.\n")
 
         .def("get_probabilities",
             py::overload_cast<QProg&, QVec>(&DensityMatrixSimulator::get_probabilities),
             py::arg("prog"),
             py::arg("qubits"),
-            "Run quantum program and get all indices probabilities for current qubits\n"
+            "Run the quantum program and get the probabilities for all indices for the specified qubits.\n"
             "\n"
             "Args:\n"
-            "    prog: quantum program \n"
-            "    qubits: select qubits \n"
+            "     prog: The quantum program to execute.\n"
+            "\n"
+            "     qubits: The selected qubits for measurement.\n"
             "\n"
             "Returns:\n"
-            "    probabilities result of quantum program \n"
-            "Raises:\n"
-            "    run_fail: An error occurred in get_probabilities\n")
+            "     The probabilities result of the quantum program.\n")
 
         .def("get_probabilities",
             py::overload_cast<QProg&, Qnum>(&DensityMatrixSimulator::get_probabilities),
             py::arg("prog"),
             py::arg("qubits"),
-            "Run quantum program and get all indices probabilities for current qubits\n"
+            "Run the quantum program and get the probabilities for all indices for the specified qubits.\n"
             "\n"
             "Args:\n"
-            "    prog: quantum program \n"
-            "    qubits: select qubits \n"
+            "     prog: The quantum program to execute.\n"
+            "\n"
+            "     qubits: The selected qubits for measurement.\n"
             "\n"
             "Returns:\n"
-            "    probabilities result of quantum program \n"
-            "Raises:\n"
-            "    run_fail: An error occurred in get_probabilities\n")
+            "     The probabilities result of the quantum program.\n")
 
         .def("get_probabilities",
             py::overload_cast<QProg&, std::vector<string>>(&DensityMatrixSimulator::get_probabilities),
             py::arg("prog"),
             py::arg("indices"),
-            "Run quantum program and get all indices probabilities for current binary indices\n"
+            "Run the quantum program and get the probabilities for the specified binary indices.\n"
             "\n"
             "Args:\n"
-            "    prog: quantum program \n"
-            "    indices: select binary indices \n"
+            "     prog: The quantum program to execute.\n"
+            "\n"
+            "     indices: The selected binary indices for measurement.\n"
             "\n"
             "Returns:\n"
-            "    probabilities result of quantum program \n"
-            "Raises:\n"
-            "    run_fail: An error occurred in get_probabilities\n")
+            "     The probabilities result of the quantum program.\n")
 
         .def("get_expectation",
             py::overload_cast<QProg&, const QHamiltonian&, const QVec&>(&DensityMatrixSimulator::get_expectation),
             py::arg("prog"),
             py::arg("hamiltonian"),
             py::arg("qubits"),
-            "Run quantum program and hamiltonian expection for current qubits\n"
+            "Run the quantum program and calculate the Hamiltonian expectation for the specified qubits.\n"
             "\n"
             "Args:\n"
-            "    prog: quantum program \n"
-            "    hamiltonian: QHamiltonian \n"
-            "    qubits: select qubits \n"
+            "     prog: The quantum program to execute.\n"
+            "\n"
+            "     hamiltonian: The QHamiltonian to use for the expectation value.\n"
+            "\n"
+            "     qubits: The selected qubits for measurement.\n"
             "\n"
             "Returns:\n"
-            "    hamiltonian expection for current qubits\n"
-            "Raises:\n"
-            "    run_fail: An error occurred in get_expectation\n")
+            "     The Hamiltonian expectation for the specified qubits.\n")
 
         .def("get_expectation",
             py::overload_cast<QProg&, const QHamiltonian&, const Qnum&>(&DensityMatrixSimulator::get_expectation),
             py::arg("prog"),
             py::arg("hamiltonian"),
             py::arg("qubits"),
-            "Run quantum program and hamiltonian expection for current qubits\n"
+            "Run the quantum program and calculate the Hamiltonian expectation for the specified qubits.\n"
             "\n"
             "Args:\n"
-            "    prog: quantum program \n"
-            "    hamiltonian: QHamiltonian \n"
-            "    qubits: select qubits \n"
+            "     prog: The quantum program to execute.\n"
+            "\n"
+            "     hamiltonian: The QHamiltonian to use for the expectation value.\n"
+            "\n"
+            "     qubits: The selected qubits for measurement.\n"
             "\n"
             "Returns:\n"
-            "    hamiltonian expection for current qubits\n"
-            "Raises:\n"
-            "    run_fail: An error occurred in get_expectation\n")
+            "     The Hamiltonian expectation for the specified qubits.\n")
 
         .def("get_density_matrix",
             py::overload_cast<QProg&>(&DensityMatrixSimulator::get_density_matrix),
             py::arg("prog"),
-            "Run quantum program and get full density matrix\n"
+            "Run quantum program and get the full density matrix.\n"
             "\n"
             "Args:\n"
-            "    prog: quantum program \n"
+            "     prog: The quantum program to execute.\n"
             "\n"
             "Returns:\n"
-            "    full density matrix \n"
-            "Raises:\n"
-            "    run_fail: An error occurred in get_density_matrix\n")
+            "     The full density matrix.\n")
 
         .def("get_reduced_density_matrix",
             py::overload_cast<QProg&, const QVec&>(&DensityMatrixSimulator::get_reduced_density_matrix),
             py::arg("prog"),
             py::arg("qubits"),
-            "Run quantum program and get density matrix for current qubits\n"
+            "Run quantum program and get the density matrix for current qubits.\n"
             "\n"
             "Args:\n"
-            "    prog: quantum program \n"
-            "    qubits: quantum program select qubits\n"
+            "     prog: The quantum program to execute.\n"
+            "\n"
+            "     qubits: The selected qubits from the quantum program.\n"
             "\n"
             "Returns:\n"
-            "    density matrix \n"
-            "Raises:\n"
-            "    run_fail: An error occurred in get_reduced_density_matrix\n")
+            "     The density matrix for the specified qubits.\n")
 
         .def("get_reduced_density_matrix",
             py::overload_cast<QProg&, const Qnum&>(&DensityMatrixSimulator::get_reduced_density_matrix),
             py::arg("prog"),
             py::arg("qubits"),
-            "Run quantum program and get density matrix for current qubits\n"
+            "Run quantum program and get the density matrix for current qubits.\n"
             "\n"
             "Args:\n"
-            "    prog: quantum program \n"
-            "    qubits: quantum program select qubits\n"
+            "     prog: The quantum program to execute.\n"
+            "\n"
+            "     qubits: The selected qubits from the quantum program.\n"
             "\n"
             "Returns:\n"
-            "    density matrix \n"
-            "Raises:\n"
-            "    run_fail: An error occurred in get_reduced_density_matrix\n")
+            "     The density matrix for the specified qubits.\n")
 
         /* bit-flip, phase-flip, bit-phase-flip, phase-damping, amplitude-damping, depolarizing*/
-        .def("set_noise_model", py::overload_cast<const NOISE_MODEL &, const GateType &, double>(&DensityMatrixSimulator::set_noise_model))
-        .def("set_noise_model", py::overload_cast<const NOISE_MODEL &, const std::vector<GateType> &, double>(&DensityMatrixSimulator::set_noise_model))
-        .def("set_noise_model", py::overload_cast<const NOISE_MODEL &, const GateType &, double, const QVec &>(&DensityMatrixSimulator::set_noise_model))
-        .def("set_noise_model", py::overload_cast<const NOISE_MODEL &, const std::vector<GateType> &, double, const QVec &>(&DensityMatrixSimulator::set_noise_model))
-        .def("set_noise_model", py::overload_cast<const NOISE_MODEL &, const GateType &, double, const std::vector<QVec> &>(&DensityMatrixSimulator::set_noise_model))
+        .def("set_noise_model", py::overload_cast<const cmatrix_t&>(&DensityMatrixSimulator::set_noise_model),
+            "Set the noise model for the density matrix simulator.\n"
+            "\n"
+            "Args:\n"
+            "     noise_model: The noise model represented as a complex matrix.\n"
+            "\n"
+            "Returns:\n"
+            "     None.\n")
 
-        /*decoherence error*/
-        .def("set_noise_model", py::overload_cast<const NOISE_MODEL &, const GateType &, double, double, double>(&DensityMatrixSimulator::set_noise_model))
-        .def("set_noise_model", py::overload_cast<const NOISE_MODEL &, const std::vector<GateType> &, double, double, double>(&DensityMatrixSimulator::set_noise_model))
-        .def("set_noise_model", py::overload_cast<const NOISE_MODEL &, const GateType &, double, double, double, const QVec &>(&DensityMatrixSimulator::set_noise_model))
-        .def("set_noise_model", py::overload_cast<const NOISE_MODEL &, const std::vector<GateType> &, double, double, double, const QVec &>(&DensityMatrixSimulator::set_noise_model))
-        .def("set_noise_model", py::overload_cast<const NOISE_MODEL &, const GateType &, double, double, double, const std::vector<QVec> &>(&DensityMatrixSimulator::set_noise_model));
+        .def("set_noise_model", py::overload_cast<const cmatrix_t&, const std::vector<GateType>&>
+            (&DensityMatrixSimulator::set_noise_model),
+            "Set the noise model for the density matrix simulator with specific gate types.\n"
+            "\n"
+            "Args:\n"
+            "     noise_model: The noise model represented as a complex matrix.\n"
+            "\n"
+            "     gate_types: A vector of gate types to which the noise model applies.\n"
+            "\n"
+            "Returns:\n"
+            "     None.\n")
 
-        py::class_<Stabilizer, QuantumMachine>(m, "Stabilizer", "simulator for basic clifford simulator")
-            .def(py::init<>())
-            .def("init_qvm",
-                &Stabilizer::init,
-                "init quantum virtual machine")
-            .def("run_with_configuration",
-                &Stabilizer::runWithConfiguration,
-                py::arg("qprog"),
-                py::arg("shot"),
-                py::arg_v("noise_model", NoiseModel(), "NoiseModel()"),
+        .def("set_noise_model", py::overload_cast<const std::vector<cmatrix_t>&>(&DensityMatrixSimulator::set_noise_model),
+            "Set multiple noise models for the density matrix simulator.\n"
+            "\n"
+            "Args:\n"
+            "     noise_models: A vector of noise models, each represented as a complex matrix.\n"
+            "\n"
+            "Returns:\n"
+            "     None.\n")
 
-                "Run quantum program and get shots result \n"
-                "\n"
-                "Args:\n"
-                "    prog: quantum program \n"
-                "    int: measure shots\n"
-                "\n"
-                "Returns:\n"
-                "    shots result of quantum program \n"
-                "Raises:\n"
-                "    run_fail: An error occurred in run_with_configuration\n")
+        .def("set_noise_model", py::overload_cast<const std::vector<cmatrix_t>&, const std::vector<GateType>&>
+            (&DensityMatrixSimulator::set_noise_model),
+            "Set multiple noise models for the density matrix simulator with specific gate types.\n"
+            "\n"
+            "Args:\n"
+            "     noise_models: A vector of noise models, each represented as a complex matrix.\n"
+            "\n"
+            "     gate_types: A vector of gate types to which the noise models apply.\n"
+            "\n"
+            "Returns:\n"
+            "     None.\n")
 
-            .def("prob_run_dict",
-                &Stabilizer::probRunDict,
-                py::arg("qprog"),
-                py::arg("qubits"),
-                py::arg_v("select_max", -1, "-1"),
-                "Run quantum program and get probabilities\n"
-                "\n"
-                "Args:\n"
-                "    prog: quantum program \n"
-                "    qubits: pmeasure qubits\n"
-                "\n"
-                "Returns:\n"
-                "    probabilities result of quantum program \n"
-                "Raises:\n"
-                "    run_fail: An error occurred in prob_run_dict\n");
+
+        /* bit-flip, phase-flip, bit-phase-flip, phase-damping, amplitude-damping, depolarizing*/
+        .def("set_noise_model", py::overload_cast<const NOISE_MODEL &, const GateType &, double>
+            (&DensityMatrixSimulator::set_noise_model),
+            "Set a specific noise model for the density matrix simulator with a given gate type and probability.\n"
+            "\n"
+            "Args:\n"
+            "     noise_model: The noise model to apply.\n"
+            "\n"
+            "     gate_type: The specific gate type associated with the noise model.\n"
+            "\n"
+            "     probability: The probability of the noise occurring.\n"
+            "\n"
+            "Returns:\n"
+            "     None.\n")
+
+        .def("set_noise_model", py::overload_cast<const NOISE_MODEL &, const std::vector<GateType> &, double>
+            (&DensityMatrixSimulator::set_noise_model),
+            "Set a specific noise model for the density matrix simulator with multiple gate types and a given probability.\n"
+            "\n"
+            "Args:\n"
+            "     noise_model: The noise model to apply.\n"
+            "\n"
+            "     gate_types: A vector of gate types associated with the noise model.\n"
+            "\n"
+            "     probability: The probability of the noise occurring.\n"
+            "\n"
+            "Returns:\n"
+            "     None.\n")
+
+        .def("set_noise_model", py::overload_cast<const NOISE_MODEL &, const GateType &, double, const QVec &>
+            (&DensityMatrixSimulator::set_noise_model),
+            "Set a specific noise model for the density matrix simulator with a given gate type, probability, and target qubits.\n"
+            "\n"
+            "Args:\n"
+            "     noise_model: The noise model to apply.\n"
+            "\n"
+            "     gate_type: The specific gate type associated with the noise model.\n"
+            "\n"
+            "     probability: The probability of the noise occurring.\n"
+            "\n"
+            "     qubits: The target qubits affected by the noise model.\n"
+            "\n"
+            "Returns:\n"
+            "     None.\n")
+
+        .def("set_noise_model", py::overload_cast<const NOISE_MODEL &, const std::vector<GateType> &, 
+            double, const QVec &>(&DensityMatrixSimulator::set_noise_model),
+            "Set a specific noise model for the density matrix simulator with multiple gate types, a given probability, and target qubits.\n"
+            "\n"
+            "Args:\n"
+            "     noise_model: The noise model to apply.\n"
+            "\n"
+            "     gate_types: A vector of gate types associated with the noise model.\n"
+            "\n"
+            "     probability: The probability of the noise occurring.\n"
+            "\n"
+            "     qubits: The target qubits affected by the noise model.\n"
+            "\n"
+            "Returns:\n"
+            "     None.\n")
+
+        .def("set_noise_model", py::overload_cast<const NOISE_MODEL &, const GateType &, double, 
+            const std::vector<QVec> &>(&DensityMatrixSimulator::set_noise_model),
+            "Set a specific noise model for the density matrix simulator with a given gate type, probability, and groups of target qubits.\n"
+            "\n"
+            "Args:\n"
+            "     noise_model: The noise model to apply.\n"
+            "\n"
+            "     gate_type: The specific gate type associated with the noise model.\n"
+            "\n"
+            "     probability: The probability of the noise occurring.\n"
+            "\n"
+            "     qubit_groups: A vector of QVecs representing groups of target qubits affected by the noise model.\n"
+            "\n"
+            "Returns:\n"
+            "     None.\n")
+
+
+            /*decoherence error*/
+        .def("set_noise_model", py::overload_cast<const NOISE_MODEL &, const GateType &, 
+            double, double, double>(&DensityMatrixSimulator::set_noise_model),
+            "Set a specific noise model for the density matrix simulator with a given gate type, probability, duration, and temperature.\n"
+            "\n"
+            "Args:\n"
+            "     noise_model: The noise model to apply.\n"
+            "\n"
+            "     gate_type: The specific gate type associated with the noise model.\n"
+            "\n"
+            "     probability: The probability of the noise occurring.\n"
+            "\n"
+            "     duration: The duration for which the noise model is applied.\n"
+            "\n"
+            "     temperature: The temperature affecting the noise characteristics.\n"
+            "\n"
+            "Returns:\n"
+            "     None.\n")
+
+        .def("set_noise_model", py::overload_cast<const NOISE_MODEL &, const std::vector<GateType> &,
+            double, double, double>(&DensityMatrixSimulator::set_noise_model),
+            "Set a specific noise model for the density matrix simulator with multiple gate types, a given probability, duration, and temperature.\n"
+            "\n"
+            "Args:\n"
+            "     noise_model: The noise model to apply.\n"
+            "\n"
+            "     gate_types: A vector of gate types associated with the noise model.\n"
+            "\n"
+            "     probability: The probability of the noise occurring.\n"
+            "\n"
+            "     duration: The duration for which the noise model is applied.\n"
+            "\n"
+            "     temperature: The temperature affecting the noise characteristics.\n"
+            "\n"
+            "Returns:\n"
+            "     None.\n")
+
+        .def("set_noise_model", py::overload_cast<const NOISE_MODEL &, const GateType &, 
+            double, double, double, const QVec &>(&DensityMatrixSimulator::set_noise_model),
+            "Set a specific noise model for the density matrix simulator with a given gate type, probability, duration, temperature, and a target qubit.\n"
+            "\n"
+            "Args:\n"
+            "     noise_model: The noise model to apply.\n"
+            "\n"
+            "     gate_type: The specific gate type associated with the noise model.\n"
+            "\n"
+            "     probability: The probability of the noise occurring.\n"
+            "\n"
+            "     duration: The duration for which the noise model is applied.\n"
+            "\n"
+            "     temperature: The temperature affecting the noise characteristics.\n"
+            "\n"
+            "     target_qubit: The specific qubit targeted by the noise model.\n"
+            "\n"
+            "Returns:\n"
+            "     None.\n")
+
+        .def("set_noise_model", py::overload_cast<const NOISE_MODEL &, const std::vector<GateType> &, 
+            double, double, double, const QVec &>(&DensityMatrixSimulator::set_noise_model),
+            "Set a specific noise model for the density matrix simulator with multiple gate types, probability, duration, temperature, and a target qubit.\n"
+            "\n"
+            "Args:\n"
+            "     noise_model: The noise model to apply.\n"
+            "\n"
+            "     gate_types: A vector of gate types associated with the noise model.\n"
+            "\n"
+            "     probability: The probability of the noise occurring.\n"
+            "\n"
+            "     duration: The duration for which the noise model is applied.\n"
+            "\n"
+            "     temperature: The temperature affecting the noise characteristics.\n"
+            "\n"
+            "     target_qubit: The specific qubit targeted by the noise model.\n"
+            "\n"
+            "Returns:\n"
+            "     None.\n")
+
+        .def("set_noise_model", py::overload_cast<const NOISE_MODEL &, const GateType &, 
+            double, double, double, const std::vector<QVec> &>(&DensityMatrixSimulator::set_noise_model),
+            "Set a specific noise model for the density matrix simulator with a given gate type, probability, duration, temperature, and multiple target qubits.\n"
+            "\n"
+            "Args:\n"
+            "     noise_model: The noise model to apply.\n"
+            "\n"
+            "     gate_type: The specific gate type associated with the noise model.\n"
+            "\n"
+            "     probability: The probability of the noise occurring.\n"
+            "\n"
+            "     duration: The duration for which the noise model is applied.\n"
+            "\n"
+            "     temperature: The temperature affecting the noise characteristics.\n"
+            "\n"
+            "     target_qubits: A vector of qubits targeted by the noise model.\n"
+            "\n"
+            "Returns:\n"
+            "     None.\n");
+
+    py::class_<Stabilizer, QuantumMachine>(m, "Stabilizer", "simulator for basic clifford simulator")
+        .def(py::init<>())
+        .def("init_qvm",
+            &Stabilizer::init,
+            "init quantum virtual machine")
+
+        /* bit-flip, phase-flip, bit-phase-flip, phase-damping, depolarizing*/
+        .def("set_noise_model", py::overload_cast<const NOISE_MODEL &, const GateType &, double>(&Stabilizer::set_noise_model),
+            "Set a noise model for the Stabilizer simulator with a specific gate type and probability.\n"
+            "\n"
+            "Args:\n"
+            "     noise_model: The noise model to apply (e.g., bit-flip, phase-flip, etc.).\n"
+            "\n"
+            "     gate_type: The specific gate type associated with the noise model.\n"
+            "\n"
+            "     probability: The probability of the noise occurring.\n"
+            "\n"
+            "Returns:\n"
+            "     None.\n")
+
+        .def("set_noise_model", py::overload_cast<const NOISE_MODEL &, const std::vector<GateType> &, 
+            double>(&Stabilizer::set_noise_model),
+            "Set a noise model for the Stabilizer simulator with multiple gate types and a specified probability.\n"
+            "\n"
+            "Args:\n"
+            "     noise_model: The noise model to apply (e.g., bit-flip, phase-flip, etc.).\n"
+            "\n"
+            "     gate_types: A vector of gate types associated with the noise model.\n"
+            "\n"
+            "     probability: The probability of the noise occurring.\n"
+            "\n"
+            "Returns:\n"
+            "     None.\n")
+
+        .def("set_noise_model", py::overload_cast<const NOISE_MODEL &, const GateType &, double,
+            const QVec &>(&Stabilizer::set_noise_model),
+            "Set a noise model for the Stabilizer simulator with a specific gate type, probability, and targeted qubits.\n"
+            "\n"
+            "Args:\n"
+            "     noise_model: The noise model to apply (e.g., bit-flip, phase-flip, etc.).\n"
+            "\n"
+            "     gate_type: The specific gate type associated with the noise model.\n"
+            "\n"
+            "     probability: The probability of the noise occurring.\n"
+            "\n"
+            "     target_qubits: The qubits targeted by the noise model.\n"
+            "\n"
+            "Returns:\n"
+            "     None.\n")
+
+        .def("set_noise_model", py::overload_cast<const NOISE_MODEL &, const std::vector<GateType> &,
+            double, const QVec &>(&Stabilizer::set_noise_model),
+            "Set a noise model for the Stabilizer simulator with multiple gate types, a specified probability, and targeted qubits.\n"
+            "\n"
+            "Args:\n"
+            "     noise_model: The noise model to apply (e.g., bit-flip, phase-flip, etc.).\n"
+            "\n"
+            "     gate_types: A vector of gate types associated with the noise model.\n"
+            "\n"
+            "     probability: The probability of the noise occurring.\n"
+            "\n"
+            "     target_qubits: The qubits targeted by the noise model.\n"
+            "\n"
+            "Returns:\n"
+            "     None.\n")
+
+        .def("set_noise_model", py::overload_cast<const NOISE_MODEL &, const GateType &, double,
+            const std::vector<QVec> &>(&Stabilizer::set_noise_model),
+            "Set a noise model for the Stabilizer simulator with a specific gate type, probability, and multiple targeted qubits.\n"
+            "\n"
+            "Args:\n"
+            "     noise_model: The noise model to apply (e.g., bit-flip, phase-flip, etc.).\n"
+            "\n"
+            "     gate_type: The specific gate type associated with the noise model.\n"
+            "\n"
+            "     probability: The probability of the noise occurring.\n"
+            "\n"
+            "     target_qubits: A vector of qubit vectors targeted by the noise model.\n"
+            "\n"
+            "Returns:\n"
+            "     None.\n")
+
+        .def("run_with_configuration",
+            &Stabilizer::runWithConfiguration,
+            py::arg("qprog"),
+            py::arg("shot"),
+            "Run quantum program and get shots result.\n"
+            "\n"
+            "Args:\n"
+            "     qprog: Quantum program to execute.\n"
+            "\n"
+            "     shot: Number of measurement shots.\n"
+            "\n"
+            "Returns:\n"
+            "     Shots result of the quantum program.\n")
+
+        .def("prob_run_dict",
+            &Stabilizer::probRunDict,
+            py::arg("qprog"),
+            py::arg("qubits"),
+            py::arg_v("select_max", -1, "-1"),
+            "Run quantum program and get probabilities.\n"
+            "\n"
+            "Args:\n"
+            "     qprog: Quantum program to execute.\n"
+            "\n"
+            "     qubits: Qubits to be measured for probabilities.\n"
+            "\n"
+            "     select_max: Optional, selects the maximum number of probabilities to return.\n"
+            "\n"
+            "Returns:\n"
+            "     Probabilities result of the quantum program.\n"
+        );
 
     py::class_<MPSQVM, QuantumMachine> mps_qvm(m, "MPSQVM", "quantum matrix product state machine class");
-    mps_qvm.def(py::init<>())
-        .def("pmeasure", &MPSQVM::PMeasure, "qubit_list"_a, "select_max"_a = -1,
-            "Get the probability distribution over qubits\n"
+        mps_qvm.def(py::init<>())
+
+        .def("pmeasure", &MPSQVM::PMeasure, 
+            "qubit_list"_a, "select_max"_a = -1,
+            "Get the probability distribution over qubits.\n"
             "\n"
             "Args:\n"
-            "    qubit_list: qubit list to measure\n"
-            "    select_max: max returned element num in returnd tuple, should in [-1, 1<<len(qubit_list)]\n"
-            "                default is -1, means no limit\n"
+            "     qubit_list: List of qubits to measure.\n"
+            "\n"
+            "     select_max: Maximum number of returned elements in the result tuple; should be in [-1, 1<<len(qubit_list)]. Default is -1, which means no limit.\n"
             "\n"
             "Returns:\n"
-            "    measure result of quantum machine in tuple form", py::return_value_policy::reference)
-        .def("pmeasure_no_index", &MPSQVM::PMeasure_no_index, "qubit_list"_a,
-            "Get the probability distribution over qubits\n"
-            "\n"
-            "Args:\n"
-            "    qubit_list: qubit list to measure\n"
-            "\n"
-            "Returns:\n"
-            "    measure result of quantum machine in list form", py::return_value_policy::reference)
-        .def("get_prob_tuple_list", &MPSQVM::getProbTupleList, "qubit_list"_a, "select_max"_a = -1,
-            "Get pmeasure result as list\n"
-            "\n"
-            "Args:\n"
-            "    qubit_list: pmeasure qubits list\n"
-            "    select_max: max returned element num in returnd tuple, should in [-1, 1<<len(qubit_list)]\n"
-            "                default is -1, means no limit"
-            "\n"
-            "Returns:\n"
-            "    measure result of quantum machine\n"
-            "Raises:\n"
-            "    run_fail: An error occurred in get_prob_tuple_list\n",
-            py::return_value_policy::reference)
-        .def("get_prob_list", &MPSQVM::getProbList, "qubit_list"_a, "select_max"_a = -1,
-            "Get pmeasure result as list\n"
-            "\n"
-            "Args:\n"
-            "    qubit_list: pmeasure qubits list\n"
-            "    select_max: max returned element num in returnd tuple, should in [-1, 1<<len(qubit_list)]\n"
-            "                default is -1, means no limit"
-            "\n"
-            "Returns:\n"
-            "    measure result of quantum machine\n"
-            "Raises:\n"
-            "    run_fail: An error occurred in get_prob_list\n",
-            py::return_value_policy::reference)
-        .def("get_prob_dict", &MPSQVM::getProbDict, "qubit_list"_a, "select_max"_a = -1,
-            "Get pmeasure result as dict\n"
-            "\n"
-            "Args:\n"
-            "    qubit_list: pmeasure qubits list\n"
-            "    select_max: max returned element num in returnd tuple, should in [-1, 1<<len(qubit_list)]\n"
-            "                default is -1, means no limit"
-            "\n"
-            "Returns:\n"
-            "    measure result of quantum machine\n"
-            "Raises:\n"
-            "    run_fail: An error occurred in get_prob_dict\n",
-            py::return_value_policy::reference)
-        .def("prob_run_tuple_list", &MPSQVM::probRunTupleList, "program"_a, "qubit_list"_a, "select_max"_a = -1,
-            "Run quantum program and get pmeasure result as tuple list\n"
-            "\n"
-            "Args:\n"
-            "    qprog: quantum program\n"
-            "    qubit_list: pmeasure qubits list\n"
-            "    select_max: max returned element num in returnd tuple, should in [-1, 1<<len(qubit_list)]\n"
-            "              default is -1, means no limit"
-            "\n"
-            "Returns:\n"
-            "  measure result of quantum machine\n"
-            "Raises:\n"
-            "    run_fail: An error occurred in prob_run_tuple_list\n",
-            py::return_value_policy::reference)
-        .def("prob_run_list", &MPSQVM::probRunList, "program"_a, "qubit_list"_a, "select_max"_a = -1,
-            "Run quantum program and get pmeasure result as list\n"
-            "\n"
-            "Args:\n"
-            "    qprog: quantum program\n"
-            "    qubit_list: pmeasure qubits list\n"
-            "    select_max: max returned element num in returnd tuple, should in [-1, 1<<len(qubit_list)]\n"
-            "                default is -1, means no limit"
-            "\n"
-            "Returns:\n"
-            "    measure result of quantum machine\n"
-            "Raises:\n"
-            "    run_fail: An error occurred in measure quantum program\n",
-            py::return_value_policy::reference)
-        .def("prob_run_dict", &MPSQVM::probRunDict, "program"_a, "qubit_list"_a, "select_max"_a = -1,
-            "Run quantum program and get pmeasure result as dict\n"
-            "\n"
-            "Args:\n"
-            "    qprog: quantum program\n"
-            "    qubit_list: pmeasure qubits list\n"
-            "    select_max: max returned element num in returnd tuple, should in [-1, 1<<len(qubit_list)]\n"
-            "                default is -1, means no limit"
-            "\n"
-            "Returns:\n"
-            "    measure result of quantum machine\n"
-            "Raises:\n"
-            "    run_fail: An error occurred in measure quantum program\n",
-            py::return_value_policy::reference)
-        .def("quick_measure", &MPSQVM::quickMeasure, "qubit_list"_a, "shots"_a,
-            "Quick measure\n"
-            "\n"
-            "Args:\n"
-            "    qubit_list: qubit list to measure\n"
-            "    shots: the repeat num  of measure operate\n"
-            "\n"
-            "Returns:\n"
-            "    result of quantum program\n"
-            "Raises:\n"
-            "    run_fail: An error occurred in measure quantum program\n",
+            "     Measure result of the quantum machine in tuple form.\n",
             py::return_value_policy::reference)
 
-        .def("pmeasure_bin_index", &MPSQVM::pmeasure_bin_index, "program"_a, "string"_a,
-            "pmeasure bin index quantum state amplitude\n"
+        .def("pmeasure_no_index", &MPSQVM::PMeasure_no_index, 
+            "qubit_list"_a,
+            "Get the probability distribution over qubits.\n"
             "\n"
             "Args:\n"
-            "    string : bin string\n"
+            "     qubit_list: List of qubits to measure.\n"
             "\n"
             "Returns:\n"
-            "    complex : bin amplitude\n"
-            "Raises:\n"
-            "    run_fail: An error occurred in pmeasure_bin_index\n",
+            "     Measure result of the quantum machine in list form.\n",
             py::return_value_policy::reference)
-        .def("pmeasure_dec_index", &MPSQVM::pmeasure_dec_index, "program"_a, "string"_a,
-            "pmeasure dec index quantum state amplitude\n"
+
+        .def("get_prob_tuple_list", &MPSQVM::getProbTupleList, 
+            "qubit_list"_a, "select_max"_a = -1,
+            "Get pmeasure result as list.\n"
             "\n"
             "Args:\n"
-            "    string : dec string\n"
+            "     qubit_list: List of qubits for pmeasure.\n"
+            "\n"
+            "     select_max: Maximum number of returned elements in the result tuple; should be in [-1, 1<<len(qubit_list)]. Default is -1, meaning no limit.\n"
             "\n"
             "Returns:\n"
-            "    complex : dec amplitude\n"
-            "Raises:\n"
-            "    run_fail: An error occurred in pmeasure_dec_index\n",
+            "     Measure result of the quantum machine.\n",
             py::return_value_policy::reference)
-        .def("pmeasure_bin_subset", &MPSQVM::pmeasure_bin_subset, "program"_a, "string_list"_a,
-            "pmeasure quantum state amplitude subset\n"
+
+        .def("get_prob_list", &MPSQVM::getProbList, 
+            "qubit_list"_a, "select_max"_a = -1,
+            "Get pmeasure result as list.\n"
             "\n"
             "Args:\n"
-            "    list : bin state string list\n"
+            "     qubit_list: List of qubits for pmeasure.\n"
+            "\n"
+            "     select_max: Maximum number of returned elements in the result tuple; should be in [-1, 1<<len(qubit_list)]. Default is -1, meaning no limit.\n"
             "\n"
             "Returns:\n"
-            "    list : bin amplitude result list\n"
-            "Raises:\n"
-            "    run_fail: An error occurred in pmeasure_bin_subset\n",
+            "     Measure result of the quantum machine.\n",
             py::return_value_policy::reference)
-        .def("pmeasure_dec_subset", &MPSQVM::pmeasure_dec_subset, "program"_a, "string_list"_a,
-            "pmeasure quantum state amplitude subset\n"
+
+        .def("get_prob_dict", &MPSQVM::getProbDict,
+            "qubit_list"_a, "select_max"_a = -1,
+            "Get pmeasure result as dict.\n"
             "\n"
             "Args:\n"
-            "    list : dec state string list\n"
+            "     qubit_list: List of qubits for pmeasure.\n"
+            "\n"
+            "     select_max: Maximum number of returned elements in the result tuple; should be in [-1, 1<<len(qubit_list)]. Default is -1, meaning no limit.\n"
             "\n"
             "Returns:\n"
-            "    list : dec amplitude result list\n"
-            "Raises:\n"
-            "    run_fail: An error occurred in pmeasure_dec_subset\n",
+            "     Measure result of the quantum machine.\n",
+            py::return_value_policy::reference)
+
+        .def("prob_run_tuple_list", &MPSQVM::probRunTupleList, 
+            "program"_a, "qubit_list"_a, "select_max"_a = -1,
+            "Run quantum program and get pmeasure result as tuple list.\n"
+            "\n"
+            "Args:\n"
+            "     program: Quantum program to run.\n"
+            "\n"
+            "     qubit_list: List of qubits for pmeasure.\n"
+            "\n"
+            "     select_max: Maximum number of returned elements in the result tuple; should be in [-1, 1<<len(qubit_list)]. Default is -1, meaning no limit.\n"
+            "\n"
+            "Returns:\n"
+            "     Measure result of the quantum machine.\n",
+            py::return_value_policy::reference)
+
+        .def("prob_run_list", &MPSQVM::probRunList, 
+            "program"_a, "qubit_list"_a, "select_max"_a = -1,
+            "Run quantum program and get pmeasure result as list.\n"
+            "\n"
+            "Args:\n"
+            "     program: Quantum program to run.\n"
+            "\n"
+            "     qubit_list: List of qubits for pmeasure.\n"
+            "\n"
+            "     select_max: Maximum number of returned elements in the result; should be in [-1, 1<<len(qubit_list)]. Default is -1, meaning no limit.\n"
+            "\n"
+            "Returns:\n"
+            "     Measure result of the quantum machine.\n",
+            py::return_value_policy::reference)
+
+        .def("prob_run_dict", &MPSQVM::probRunDict, 
+            "program"_a, "qubit_list"_a, "select_max"_a = -1,
+            "Run quantum program and get pmeasure result as dict.\n"
+            "Args:\n"
+            "     program: Quantum program to run.\n"
+            "\n"
+            "     qubit_list: List of qubits for pmeasure.\n"
+            "\n"
+            "     select_max: Maximum number of returned elements in the result; should be in [-1, 1<<len(qubit_list)]. Default is -1, meaning no limit.\n"
+            "Returns:\n"
+            "     Measure result of the quantum machine.\n",
+            py::return_value_policy::reference)
+
+        .def("quick_measure", &MPSQVM::quickMeasure, 
+            "qubit_list"_a, "shots"_a,
+            "Quick measure.\n"
+            "\n"
+            "Args:\n"
+            "     qubit_list: List of qubits to measure.\n"
+            "\n"
+            "     shots: The number of repetitions for the measurement operation.\n"
+            "\n"
+            "Returns:\n"
+            "     Result of the quantum program.\n",
+            py::return_value_policy::reference)
+
+        .def("pmeasure_bin_index", &MPSQVM::pmeasure_bin_index, 
+            "program"_a, "string"_a,
+            "Get pmeasure bin index quantum state amplitude.\n"
+            "\n"
+            "Args:\n"
+            "     string: Bin string.\n"
+            "\n"
+            "Returns:\n"
+            "     Complex: Bin amplitude.\n",
+            py::return_value_policy::reference)
+
+        .def("pmeasure_dec_index", &MPSQVM::pmeasure_dec_index, 
+            "program"_a, "string"_a,
+            "Get pmeasure decimal index quantum state amplitude.\n"
+            "\n"
+            "Args:\n"
+            "     string: Decimal string.\n"
+            "\n"
+            "Returns:\n"
+            "     Complex: Decimal amplitude.\n",
+            py::return_value_policy::reference)
+
+        .def("pmeasure_bin_subset", &MPSQVM::pmeasure_bin_subset, 
+            "program"_a, "string_list"_a,
+            "Get pmeasure quantum state amplitude subset.\n"
+            "\n"
+            "Args:\n"
+            "     list: List of bin state strings.\n"
+            "\n"
+            "Returns:\n"
+            "     List: Bin amplitude result list.\n",
+            py::return_value_policy::reference)
+
+        .def("pmeasure_dec_subset", &MPSQVM::pmeasure_dec_subset,
+            "program"_a, "string_list"_a,
+            "Get pmeasure quantum state amplitude subset.\n"
+            "\n"
+            "Args:\n"
+            "     list: List of decimal state strings.\n"
+            "\n"
+            "Returns:\n"
+            "     List: Decimal amplitude result list.\n",
             py::return_value_policy::reference)
 
         // The all next MPSQVM functions are only for noise simulation
 
         /* bit-flip,phase-flip,bit-phase-flip,phase-damping,amplitude-damping,depolarizing*/
-        .def("set_noise_model", py::overload_cast<NOISE_MODEL, GateType, double>(&MPSQVM::set_noise_model))
-        .def("set_noise_model", py::overload_cast<NOISE_MODEL, GateType, double, const std::vector<QVec> &>(&MPSQVM::set_noise_model))
+        .def("set_noise_model", py::overload_cast<NOISE_MODEL, GateType, double>(&MPSQVM::set_noise_model),
+            "Set the noise model for the quantum simulation.\n"
+            "\n"
+            "Args:\n"
+            "     noise_model: Type of noise model (bit-flip, phase-flip, etc.).\n"
+            "\n"
+            "     gate_type: Type of gate affected by the noise.\n"
+            "\n"
+            "     noise_level: Level of noise to apply.\n"
+            )
+
+        .def("set_noise_model", py::overload_cast<NOISE_MODEL, GateType, 
+            double, const std::vector<QVec> &>(&MPSQVM::set_noise_model),
+            "Set the noise model for the quantum simulation with specific qubits.\n"
+            "\n"
+            "Args:\n"
+            "     noise_model: Type of noise model (bit-flip, phase-flip, etc.).\n"
+            "\n"
+            "     gate_type: Type of gate affected by the noise.\n"
+            "\n"
+            "     noise_level: Level of noise to apply.\n"
+            "\n"
+            "     qubits: List of qubits to which the noise model will be applied.\n"
+            )
 
         /*decoherence error*/
-        .def("set_noise_model", py::overload_cast<NOISE_MODEL, GateType, double, double, double>(&MPSQVM::set_noise_model))
-        .def("set_noise_model", py::overload_cast<NOISE_MODEL, GateType, double, double, double, const std::vector<QVec> &>(&MPSQVM::set_noise_model))
+        .def("set_noise_model", py::overload_cast<NOISE_MODEL, GateType, 
+            double, double, double>(&MPSQVM::set_noise_model),
+            "Set the noise model for the quantum simulation with multiple noise levels.\n"
+            "\n"
+            "Args:\n"
+            "     noise_model: Type of noise model (bit-flip, phase-flip, etc.).\n"
+            "\n"
+            "     gate_type: Type of gate affected by the noise.\n"
+            "\n"
+            "     noise_level_1: First noise level to apply.\n"
+            "\n"
+            "     noise_level_2: Second noise level to apply.\n"
+            "\n"
+            "     noise_level_3: Third noise level to apply.\n"
+            )
+
+        .def("set_noise_model", py::overload_cast<NOISE_MODEL, GateType,
+            double, double, double, const std::vector<QVec> &>(&MPSQVM::set_noise_model),
+            "Set the noise model for the quantum simulation with specific noise levels and qubits.\n"
+            "\n"
+            "Args:\n"
+            "     noise_model: Type of noise model (bit-flip, phase-flip, etc.).\n"
+            "\n"
+            "     gate_type: Type of gate affected by the noise.\n"
+            "\n"
+            "     noise_level_1: First noise level to apply.\n"
+            "\n"
+            "     noise_level_2: Second noise level to apply.\n"
+            "\n"
+            "     noise_level_3: Third noise level to apply.\n"
+            "\n"
+            "     qubits: List of qubits to which the noise model will be applied.\n")
 
         /*mixed unitary error*/
-        .def("set_mixed_unitary_error", py::overload_cast<GateType, const std::vector<QStat> &, const std::vector<QVec> &>(&MPSQVM::set_mixed_unitary_error))
-        .def("set_mixed_unitary_error", py::overload_cast<GateType, const std::vector<QStat> &, const prob_vec &, const std::vector<QVec> &>(&MPSQVM::set_mixed_unitary_error))
-        .def("set_mixed_unitary_error", py::overload_cast<GateType, const std::vector<QStat> &>(&MPSQVM::set_mixed_unitary_error))
-        .def("set_mixed_unitary_error", py::overload_cast<GateType, const std::vector<QStat> &, const prob_vec &>(&MPSQVM::set_mixed_unitary_error))
+        .def("set_mixed_unitary_error", py::overload_cast<GateType, const std::vector<QStat> &, 
+            const std::vector<QVec> &>(&MPSQVM::set_mixed_unitary_error),
+            "Set mixed unitary errors for the specified gate type.\n"
+            "\n"
+            "Args:\n"
+            "     gate_type: Type of gate affected by the error.\n"
+            "\n"
+            "     unitary_errors: List of unitary error matrices.\n"
+            "\n"
+            "     qubits: List of qubits where the errors will be applied.\n")
+
+        .def("set_mixed_unitary_error", py::overload_cast<GateType, const std::vector<QStat> &,
+            const prob_vec &, const std::vector<QVec> &>(&MPSQVM::set_mixed_unitary_error),
+            "Set mixed unitary errors with associated probabilities for the specified gate type.\n"
+            "\n"
+            "Args:\n"
+            "     gate_type: Type of gate affected by the error.\n"
+            "\n"
+            "     unitary_errors: List of unitary error matrices.\n"
+            "\n"
+            "     probabilities: Probabilities associated with each unitary error.\n"
+            "\n"
+            "     qubits: List of qubits where the errors will be applied.\n")
+
+        .def("set_mixed_unitary_error", py::overload_cast<GateType, 
+            const std::vector<QStat> &>(&MPSQVM::set_mixed_unitary_error),
+            "Set mixed unitary errors for the specified gate type.\n"
+            "\n"
+            "Args:\n"
+            "     gate_type: Type of gate affected by the error.\n"
+            "\n"
+            "     unitary_errors: List of unitary error matrices to apply for the gate type.\n")
+
+        .def("set_mixed_unitary_error", py::overload_cast<GateType, const std::vector<QStat> &, 
+            const prob_vec &>(&MPSQVM::set_mixed_unitary_error),
+            "Set mixed unitary errors with associated probabilities for the specified gate type.\n"
+            "\n"
+            "Args:\n"
+            "     gate_type: Type of gate affected by the error.\n"
+            "\n"
+            "     unitary_errors: List of unitary error matrices.\n"
+            "\n"
+            "     probabilities: Probabilities associated with each unitary error.\n")
 
         /*readout error*/
-        .def("set_readout_error", &MPSQVM::set_readout_error, "readout_params"_a, "qubits"_a, py::return_value_policy::reference)
+        .def("set_readout_error", &MPSQVM::set_readout_error, 
+            "readout_params"_a, "qubits"_a,
+            "Set readout error parameters for the specified qubits.\n"
+            "\n"
+            "Args:\n"
+            "     readout_params: Parameters defining the readout errors.\n"
+            "\n"
+            "     qubits: List of qubits to which the readout errors apply.\n",
+            py::return_value_policy::reference)
 
         /*measurement error*/
-        .def("set_measure_error", py::overload_cast<NOISE_MODEL, double>(&MPSQVM::set_measure_error))
-        .def("set_measure_error", py::overload_cast<NOISE_MODEL, double, double, double>(&MPSQVM::set_measure_error))
+        .def("set_measure_error", py::overload_cast<NOISE_MODEL, double>(&MPSQVM::set_measure_error),
+            "Set the measurement error based on the specified noise model.\n"
+            "\n"
+            "Args:\n"
+            "     noise_model: The type of noise model to apply.\n"
+            "\n"
+            "     error_rate: The rate of measurement error to be set.\n"
+            )
+
+        .def("set_measure_error", py::overload_cast<NOISE_MODEL, double, double, double>(&MPSQVM::set_measure_error),
+            "Set the measurement error with multiple error rates for the specified noise model.\n"
+            "\n"
+            "Args:\n"
+            "     noise_model: The type of noise model to apply.\n"
+            "\n"
+            "     error_rate1: First error rate.\n"
+            "\n"
+            "     error_rate2: Second error rate.\n"
+            "\n"
+            "     error_rate3: Third error rate.\n"
+            )
 
         /*rotation error*/
-        .def("set_rotation_error", &MPSQVM::set_rotation_error, "param"_a, py::return_value_policy::reference)
+        .def("set_rotation_error", &MPSQVM::set_rotation_error, 
+            "param"_a, 
+            py::return_value_policy::reference,
+            "Set the rotation error parameters.\n"
+            "\n"
+            "Args:\n"
+            "     param: The parameters defining the rotation error.\n"
+            "\n"
+            "Returns:\n"
+            "     A reference to the updated instance of the class.\n"
+            )
 
         /*reset error*/
-        .def("set_reset_error", &MPSQVM::set_reset_error, "reset_0_param"_a, "reset_1_param"_a, py::return_value_policy::reference)
+        .def("set_reset_error", &MPSQVM::set_reset_error, 
+            "reset_0_param"_a, "reset_1_param"_a, 
+            py::return_value_policy::reference,
+            "Set the reset error for the quantum state.\n"
+            "\n"
+            "Args:\n"
+            "     reset_0_param: float, error probability for resetting qubit to 0.\n"
+            "\n"
+            "     reset_1_param: float, error probability for resetting qubit to 1.\n"
+            "\n"
+            "Returns:\n"
+            "     None.\n"
+            )
 
         /* bit-flip,phase-flip,bit-phase-flip,phase-damping,amplitude-damping,depolarizing*/
-        .def("add_single_noise_model", py::overload_cast<NOISE_MODEL, GateType, double>(&MPSQVM::add_single_noise_model))
+        .def("add_single_noise_model", py::overload_cast<NOISE_MODEL, GateType, double>(&MPSQVM::add_single_noise_model),
+            "Add a noise model to a specific gate.\n"
+            "\n"
+            "Args:\n"
+            "     noise_model: NOISE_MODEL, the type of noise model to apply.\n"
+            "\n"
+            "     gate_type: GateType, the type of gate affected by the noise.\n"
+            "\n"
+            "     error_rate: float, the rate of noise occurrence.\n"
+            "\n"
+            "Returns:\n"
+            "     None.\n"
+            )
+
         /*decoherence error*/
-        .def("add_single_noise_model", py::overload_cast<NOISE_MODEL, GateType, double, double, double>(&MPSQVM::add_single_noise_model));
-    // export_idealqvm_func<MPSQVM>::export_func(mps_qvm);
+        .def("add_single_noise_model", py::overload_cast<NOISE_MODEL, GateType, double, double, double>(&MPSQVM::add_single_noise_model),
+            "Add a noise model to a specific gate with multiple error rates.\n"
+            "\n"
+            "Args:\n"
+            "     noise_model: NOISE_MODEL, the type of noise model to apply.\n"
+            "\n"
+            "     gate_type: GateType, the type of gate affected by the noise.\n"
+            "\n"
+            "     error_rate_1: float, the first error rate.\n"
+            "\n"
+            "     error_rate_2: float, the second error rate.\n"
+            "\n"
+            "     error_rate_3: float, the third error rate.\n"
+            "\n"
+            "Returns:\n"
+            "     None.\n"
+            );
+// export_idealqvm_func<MPSQVM>::export_func(mps_qvm);
 
-    /*combine error*/
-
-#if defined(USE_OPENSSL) && defined(USE_CURL)
+/*combine error*/
 
     py::enum_<RealChipType>(m, "real_chip_type", "origin quantum real chip type enum")
         .value("origin_wuyuan_d3", RealChipType::ORIGIN_WUYUAN_D3)
         .value("origin_wuyuan_d4", RealChipType::ORIGIN_WUYUAN_D4)
         .value("origin_wuyuan_d5", RealChipType::ORIGIN_WUYUAN_D5)
+        .value("origin_72", RealChipType::ORIGIN_72)
         .export_values();
 
-    py::class_<QCloudMachine, QuantumMachine>(m, "QCloud", "origin quantum cloud machine")
+    py::enum_<EmMethod>(m, "em_method", "origin quantum real chip error_mitigation type")
+        .value("ZNE", EmMethod::ZNE)
+        .value("PEC", EmMethod::PEC)
+        .value("READ_OUT", EmMethod::READ_OUT)
+        .export_values();
+#if defined(USE_QHETU)
+    py::class_<QCloudService, QuantumMachine>(m, "QCloudService", "origin quantum cloud machine")
         .def(py::init<>())
-        .def("init_qvm",
-            &QCloudMachine::init,
-            py::arg("token"),
-            py::arg("is_logged") = false,
-            "init quantum virtual machine")
+        .def_readwrite("user_token", &QCloudService::m_user_token)
+        .def_readwrite("inquire_url", &QCloudService::m_inquire_url)
+        .def_readwrite("compute_url", &QCloudService::m_compute_url)
+        .def_readwrite("estimate_url", &QCloudService::m_estimate_url)
+        .def_readwrite("use_compress_data", &QCloudService::m_use_compress_data)
+        .def_readwrite("configuration_header_data", &QCloudService::m_configuration_header_data)
+        .def_readwrite("measure_qubits_num", &QCloudService::m_measure_qubits_num)
+        .def_readwrite("batch_compute_url", &QCloudService::m_batch_compute_url)
+        .def_readwrite("batch_inquire_url", &QCloudService::m_batch_inquire_url)
 
-        // url setting
-        .def("set_qcloud_api", &QCloudMachine::set_qcloud_api)
 
-        // noise
-        .def("set_noise_model", &QCloudMachine::set_noise_model)
-        .def("noise_measure",
-            &QCloudMachine::noise_measure,
-            py::arg("prog"),
-            py::arg("shot"),
-            py::arg("task_name") = "QPanda Experiment")
+        .def_readwrite("pqc_init_url", &QCloudService::m_pqc_init_url)
+        .def_readwrite("pqc_keys_url", &QCloudService::m_pqc_keys_url)
+        .def_readwrite("pqc_compute_url", &QCloudService::m_pqc_compute_url)
+        .def_readwrite("pqc_inquire_url", &QCloudService::m_pqc_inquire_url)
+        .def_readwrite("pqc_batch_compute_url", &QCloudService::m_pqc_batch_compute_url)
+        .def_readwrite("pqc_batch_inquire_url", &QCloudService::m_pqc_batch_inquire_url)
 
-        // full_amplitude
-        .def("full_amplitude_measure",
-            &QCloudMachine::full_amplitude_measure,
-            py::arg("prog"),
-            py::arg("shot"),
-            py::arg("task_name") = "QPanda Experiment")
+        .def_readwrite("big_data_batch_compute_url", &QCloudService::m_big_data_batch_compute_url)
+        .def("init",
+        &QCloudService::init,
+            py::arg("user_token"),
+            py::arg("is_logged") = false)
 
-        .def("full_amplitude_pmeasure",
-            &QCloudMachine::full_amplitude_pmeasure,
-            py::arg("prog"),
-            py::arg("qvec"),
-            py::arg("task_name") = "QPanda Experiment")
+        .def("set_qcloud_url",
+            &QCloudService::set_qcloud_url,
+            py::arg("cloud_url"))
 
-        // partial_amplitude
-        .def("partial_amplitude_pmeasure",
-            &QCloudMachine::partial_amplitude_pmeasure,
-            py::arg("prog"),
-            py::arg("amp_vec"),
-            py::arg("task_name") = "QPanda Experiment")
+        .def("build_full_amplitude_measure",
+            &QCloudService::build_full_amplitude_measure,
+            py::arg("shots"))
 
-        // single_amplitude
-        .def("single_amplitude_pmeasure",
-            &QCloudMachine::single_amplitude_pmeasure,
-            py::arg("prog"),
-            py::arg("amplitude"),
-            py::arg("task_name") = "QPanda Experiment")
-/*
-        // real chip expectation!
-        .def("real_chip_expectation",
-            [](QCloudMachine& machine,
-               QProg& prog,
-               const std::string &hamiltonian,
-               const std::vector<uint32_t> qubits,
-               int shot,
-               int chip_id = (int)RealChipType::ORIGIN_WUYUAN_D5,
-               bool is_amend = true,
-               bool is_mapping = true,
-               bool is_optimization = true,
-               std::string task_name = "QPanda Experiment")
+        .def("set_noise_model", &QCloudService::set_noise_model)
+
+        .def("build_noise_measure",
+            &QCloudService::build_noise_measure,
+            py::arg("shots"))
+
+        .def("build_full_amplitude_pmeasure",
+            &QCloudService::build_full_amplitude_pmeasure,
+            py::arg("qubit_vec"))
+
+        .def("build_partial_amplitude_pmeasure",
+            &QCloudService::build_partial_amplitude_pmeasure,
+            py::arg("amplitudes"))
+
+        .def("build_single_amplitude_pmeasure",
+            &QCloudService::build_single_amplitude_pmeasure,
+            py::arg("amplitude"))
+
+        .def("build_error_mitigation",
+            [](QCloudService& service,
+            int shots,
+            int chip_id,
+            std::vector<string> expectations,
+            std::vector<double>& noise_strength,
+            EmMethod qemMethod)
             {
                 auto real_chip_type = static_cast<RealChipType>(chip_id);
-                return machine.real_chip_expectation(prog, hamiltonian, qubits, shot, real_chip_type, is_amend, is_mapping, is_optimization, task_name);
+                return service.build_error_mitigation(shots, real_chip_type, expectations, noise_strength, qemMethod);
             },
-            py::arg("prog"),
-            py::arg("hamiltonian"),
-            py::arg("qubits"),
+            py::arg("shots"),
+            py::arg("chip_id"),
+            py::arg("expectations"),
+            py::arg("noise_strength"),
+            py::arg("qemMethod"))
+
+        .def("build_read_out_mitigation",
+            [](QCloudService& service,
+            int shots,
+            int chip_id,
+            std::vector<string> expectations,
+            std::vector<double>& noise_strength,
+            EmMethod qem_method)
+            {
+                auto real_chip_type = static_cast<RealChipType>(chip_id);
+                return service.build_read_out_mitigation(shots, real_chip_type, expectations, noise_strength, qem_method);
+            },
+            py::arg("shots"),
+            py::arg("chip_id"),
+            py::arg("expectations"),
+            py::arg("noise_strength"),
+            py::arg("qem_method"))
+
+        .def("build_real_chip_measure",
+            [](QCloudService& service,
+            int shots,
+            int chip_id = (int)RealChipType::ORIGIN_WUYUAN_D5,
+            bool is_amend = true,
+            bool is_mapping = true,
+            bool is_optimization = true)
+            {
+                auto real_chip_type = static_cast<RealChipType>(chip_id);
+                return service.build_real_chip_measure(shots,
+                real_chip_type,
+                is_amend,
+                is_mapping,
+                is_optimization);
+            },
+            py::arg("shots"),
+            py::arg("chip_id") = (int)RealChipType::ORIGIN_WUYUAN_D5,
+            py::arg("is_amend") = true,
+            py::arg("is_mapping") = true,
+            py::arg("is_optimization") = true)
+
+        .def("build_get_state_tomography_density",
+            [](QCloudService& service,
+            int shot,
+            int chip_id = (int)RealChipType::ORIGIN_WUYUAN_D5,
+            bool is_amend = true,
+            bool is_mapping = true,
+            bool is_optimization = true)
+            {
+                auto real_chip_type = static_cast<RealChipType>(chip_id);
+                return service.build_get_state_tomography_density(shot,
+                real_chip_type,
+                is_amend,
+                is_mapping,
+                is_optimization);
+            },
             py::arg("shot"),
             py::arg("chip_id") = (int)RealChipType::ORIGIN_WUYUAN_D5,
             py::arg("is_amend") = true,
             py::arg("is_mapping") = true,
-            py::arg("is_optimization") = true,
-            py::arg("task_name") = "QPanda Experiment")
-*/
-        // real chip measure
-        .def("real_chip_measure",
-            [](QCloudMachine& machine,
-               QProg& prog, 
-               int shot, 
-               int chip_id = (int)RealChipType::ORIGIN_WUYUAN_D5,
-               bool is_amend = true,
-               bool is_mapping = true,
-               bool is_optimization = true,
-               std::string task_name = "QPanda Experiment")
+            py::arg("is_optimization") = true)
+
+    .def("build_get_state_fidelity",
+        [](QCloudService& service,
+        int shot,
+        int chip_id = (int)RealChipType::ORIGIN_WUYUAN_D5,
+        bool is_amend = true,
+        bool is_mapping = true,
+        bool is_optimization = true)
+        {
+            auto real_chip_type = static_cast<RealChipType>(chip_id);
+            return service.build_get_state_fidelity(shot,
+            real_chip_type,
+            is_amend,
+            is_mapping,
+            is_optimization);
+        },
+        py::arg("shot"),
+        py::arg("chip_id") = (int)RealChipType::ORIGIN_WUYUAN_D5,
+        py::arg("is_amend") = true,
+        py::arg("is_mapping") = true,
+        py::arg("is_optimization") = true)
+
+    .def("build_get_expectation",
+        [](QCloudService& service,
+        const QHamiltonian& hamiltonian,
+        const Qnum& qubits)
+        {
+            return service.build_get_expectation(hamiltonian, qubits);
+        },
+        py::arg("hamiltonian"),
+        py::arg("qubits"))
+
+
+    .def("build_real_chip_measure_batch",
+        [](QCloudService& service,
+        std::vector<string>& originir_list,
+        int shots,
+        int chip_id = (int)RealChipType::ORIGIN_WUYUAN_D5,
+        bool is_amend = true,
+        bool is_mapping = true,
+        bool is_optimization = true,
+        bool enable_compress_check = false,
+        std::string batch_id = "",
+        int task_from = 4)
+        {
+            auto real_chip_type = static_cast<RealChipType>(chip_id);
+            return service.build_real_chip_measure_batch(originir_list,
+            shots,
+            real_chip_type,
+            is_amend,
+            is_mapping,
+            is_optimization,
+            enable_compress_check,
+            batch_id,
+            task_from);
+        },
+        py::arg("prog_list"),
+        py::arg("shots"),
+        py::arg("chip_id") = (int)RealChipType::ORIGIN_WUYUAN_D5,
+        py::arg("is_amend") = true,
+        py::arg("is_mapping") = true,
+        py::arg("is_optimization") = true,
+        py::arg("enable_compress_check") = false,
+        py::arg("batch_id") = "",
+        py::arg("task_from") = 4)
+
+        .def("build_real_chip_measure_batch",
+            [](QCloudService& service,
+            std::vector<QProg>& prog_vector,
+            int shots,
+            int chip_id = (int)RealChipType::ORIGIN_WUYUAN_D5,
+            bool is_amend = true,
+            bool is_mapping = true,
+            bool is_optimization = true,
+            bool enable_compress_check = false,
+            std::string batch_id = "",
+            int task_from = 4)
             {
                 auto real_chip_type = static_cast<RealChipType>(chip_id);
-                return machine.real_chip_measure(prog, shot, real_chip_type, is_amend, is_mapping, is_optimization, task_name);
+                return service.build_real_chip_measure_batch(prog_vector,
+                shots,
+                real_chip_type,
+                is_amend,
+                is_mapping,
+                is_optimization,
+                enable_compress_check,
+                batch_id,
+                task_from);
             },
-            py::arg("prog"),
-            py::arg("shot"),
+            py::arg("prog_list"),
+            py::arg("shots"),
             py::arg("chip_id") = (int)RealChipType::ORIGIN_WUYUAN_D5,
             py::arg("is_amend") = true,
             py::arg("is_mapping") = true,
             py::arg("is_optimization") = true,
-            py::arg("task_name") = "QPanda Experiment")
+            py::arg("enable_compress_check") = false,
+            py::arg("batch_id") = "",
+            py::arg("task_from") = 4)
 
-        // get state fidelity
-        .def("get_state_fidelity",
-            [](QCloudMachine& machine,
-               QProg& prog,
-               int shot,
-               int chip_id = (int)RealChipType::ORIGIN_WUYUAN_D5,
-               bool is_amend = true,
-               bool is_mapping = true,
-               bool is_optimization = true,
-               std::string task_name = "QPanda Experiment")
-            {
-                auto real_chip_type = static_cast<RealChipType>(chip_id);
-                return machine.get_state_fidelity(prog, shot, real_chip_type, is_amend, is_mapping, is_optimization, task_name);
-            },
-            py::arg("prog"),
-            py::arg("shot"),
-            py::arg("chip_id") = (int)RealChipType::ORIGIN_WUYUAN_D5,
-            py::arg("is_amend") = true,
-            py::arg("is_mapping") = true,
-            py::arg("is_optimization") = true,
-            py::arg("task_name") = "QPanda Experiment")
+    .def("build_init_object",
+        [](QCloudService& service,
+        QProg& prog,
+        std::string task_name = "QPanda Experiment",
+        int task_from = 4)
+        {
+            return service.build_init_object(prog, task_name, task_from);
+        },
+        py::arg("prog"),
+        py::arg("task_name") = "QPanda Experiment",
+        py::arg("task_from") = 4)
 
+        .def("build_init_object",
+            [](QCloudService& service,
+                std::string& prog_str,
+                std::string task_name = "QPanda Experiment",
+                int task_from = 4)
+                {
+                    return service.build_init_object(prog_str, task_name, task_from);
+                },
+                py::arg("prog_str"),
+                py::arg("task_name") = "QPanda Experiment",
+                py::arg("task_from") = 4)
 
-        // real chip get_state_tomography_density
-        .def("get_state_tomography_density",
-            [](QCloudMachine& machine,
-               QProg& prog,
-               int shot,
-               int chip_id = (int)RealChipType::ORIGIN_WUYUAN_D5,
-               bool is_amend = true,
-               bool is_mapping = true,
-               bool is_optimization = true,
-               std::string task_name = "QPanda Experiment")
-            {
-                auto real_chip_type = static_cast<RealChipType>(chip_id);
-                return machine.get_state_tomography_density(prog, shot, real_chip_type, is_amend, is_mapping, is_optimization, task_name);
-            },
-            py::arg("prog"),
-            py::arg("shot"),
-            py::arg("chip_id") = (int)RealChipType::ORIGIN_WUYUAN_D5,
-            py::arg("is_amend") = true,
-            py::arg("is_mapping") = true,
-            py::arg("is_optimization") = true,
-            py::arg("task_name") = "QPanda Experiment")
+            .def("parse_get_task_id", &QCloudService::parse_get_task_id)
+            .def("query_prob_dict_result", &QCloudService::query_prob_dict_result)
+            .def("query_comolex_result", &QCloudService::query_comolex_result)
+            .def("query_prob_result", &QCloudService::query_prob_result)
+            .def("query_prob_vec_result", &QCloudService::query_prob_vec_result)
+            .def("query_qst_result", &QCloudService::query_qst_result)
+            .def("query_state_dict_result", &QCloudService::query_state_dict_result)
+            .def("query_prob_dict_result_batch", &QCloudService::query_prob_dict_result_batch)
+                    
+            .def("cyclic_query", [](QCloudService& service, const std::string& recv_json)
+                {
+                    std::string result_string = "";
+                    bool is_retry_again = true;
+                    service.cyclic_query(recv_json, is_retry_again, result_string);
 
-#if 0
+        return std::make_tuple(is_retry_again, result_string);
+    })
+    .def("batch_cyclic_query", [](QCloudService& service, const std::string& recv_json)
+    {
+        std::vector<std::string> result_array;
+        bool is_retry_again = true;
+        service.batch_cyclic_query(recv_json, is_retry_again, result_array);
 
-        // real chip measure
-        .def("real_chip_measure",
-            &QCloudMachine::real_chip_measure,
-            py::arg("prog"),
-            py::arg("shot"),
-            py::arg_v("chip_id", (size_t)RealChipType::ORIGIN_WUYUAN_D5, "real_chip_type.origin_wuyuan_d5"),
-            py::arg("is_amend") = true,
-            py::arg("is_mapping") = true,
-            py::arg("is_optimization") = true,
-            py::arg("task_name") = "QPanda Experiment")
+        return std::make_tuple(is_retry_again, result_array);
+    })
 
-        // real chip get_state_fidelity
-        .def("get_state_fidelity",
-            &QCloudMachine::get_state_fidelity,
-            py::arg("prog"),
-            py::arg("shot"),
-            py::arg_v("chip_id", (size_t)RealChipType::ORIGIN_WUYUAN_D5, "real_chip_type.origin_wuyuan_d5"),
-            py::arg("is_amend") = true,
-            py::arg("is_mapping") = true,
-            py::arg("is_optimization") = true,
-            py::arg("task_name") = "QPanda Experiment")
+            .def("sm4_encode", &QCloudService::sm4_encode,
+                 "Encode data using SM4 algorithm",
+                 py::arg("key"), py::arg("IV"), py::arg("data"))
+            .def("sm4_decode", &QCloudService::sm4_decode,
+                 "Decode data using SM4 algorithm",
+                 py::arg("key"), py::arg("IV"), py::arg("enc_data"))
+            .def("enc_hybrid", [](QCloudService& self, std::string_view pk_str, std::string& rdnum) 
+                {
+                    auto enc_data = self.enc_hybrid(pk_str, rdnum);
+                    return py::make_tuple(enc_data[0], enc_data[1], enc_data[2], enc_data[3]);
 
-        // real chip get_state_tomography_density
-        .def("get_state_tomography_density",
-            &QCloudMachine::get_state_tomography_density,
-            py::arg("prog"),
-            py::arg("shot"),
-            py::arg_v("chip_id", (size_t)RealChipType::ORIGIN_WUYUAN_D5, "real_chip_type.origin_wuyuan_d5"),
-            py::arg("is_amend") = true,
-            py::arg("is_mapping") = true,
-            py::arg("is_optimization") = true,
-            py::arg("task_name") = "QPanda Experiment")
+                }, "Perform hybrid encryption and return a tuple",
+                   py::arg("pk_str"), py::arg("rdnum"));
 #endif
-
-        // get_expectation
-        .def("get_expectation",
-            &QCloudMachine::get_expectation,
-            py::arg("prog"),
-            py::arg("hamiltonian"),
-            py::arg("qvec"),
-            py::arg("task_name") = "QPanda Experiment")
-
-        // full_amplitude
-        .def("full_amplitude_measure_batch",
-            &QCloudMachine::full_amplitude_measure_batch,
-            py::arg("prog_array"),
-            py::arg("shot"),
-            py::arg("task_name") = "QPanda Experiment")
-
-        .def("full_amplitude_pmeasure_batch",
-            &QCloudMachine::full_amplitude_pmeasure_batch,
-            py::arg("prog_array"),
-            py::arg("qvec"),
-            py::arg("task_name") = "QPanda Experiment")
-
-        // partial_amplitude
-        .def("partial_amplitude_pmeasure_batch",
-            &QCloudMachine::partial_amplitude_pmeasure_batch,
-            py::arg("prog_array"),
-            py::arg("amp_vec"),
-            py::arg("task_name") = "QPanda Experiment")
-
-        // single_amplitude
-        .def("single_amplitude_pmeasure_batch",
-            &QCloudMachine::single_amplitude_pmeasure_batch,
-            py::arg("prog"),
-            py::arg("amplitude"),
-            py::arg("task_name") = "QPanda Experiment")
-
-        // noise
-        .def("noise_measure_batch",
-            &QCloudMachine::noise_measure_batch,
-            py::arg("prog_array"),
-            py::arg("shot"),
-            py::arg("task_name") = "QPanda Experiment")
-
-        // real chip measure
-        .def("real_chip_measure_batch",
-            &QCloudMachine::real_chip_measure_batch,
-            py::arg("prog_array"),
-            py::arg("shot"),
-            py::arg_v("chip_id", (size_t)RealChipType::ORIGIN_WUYUAN_D3, "real_chip_type.origin_wuyuan_d3"),
-            py::arg("is_amend") = true,
-            py::arg("is_mapping") = true,
-            py::arg("is_optimization") = true,
-            py::arg("task_name") = "QPanda Experiment");
-
-   
-#endif // USE_CURL
 
     py::implicitly_convertible<CPUQVM, QuantumMachine>();
     py::implicitly_convertible<GPUQVM, QuantumMachine>();
@@ -1608,4 +2624,5 @@ void export_quantum_machine(py::module &m)
     py::implicitly_convertible<PartialAmplitudeQVM, QuantumMachine>();
     py::implicitly_convertible<Stabilizer, QuantumMachine>();
     py::implicitly_convertible<DensityMatrixSimulator, QuantumMachine>();
+
 }

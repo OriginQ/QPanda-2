@@ -7,57 +7,61 @@ import pyqpanda as pywrap
 from json import JSONEncoder
 
 def single_gate_apply_to_all(gate,qubit_list):
-    '''
-    Apply single gates to all qubits in qubit_list
-    QGate(callback), list<Qubit> -> QCircuit
+    """
+    Applies a specified quantum gate to each qubit within the provided list.
 
-    Args:
-        gate : the quantum gate need to apply to all qubits
-        qubit_list : qubit list
+    This function is intended for use within the pyQPanda package, which facilitates
+    quantum computing with quantum circuits and gates. It operates on a quantum circuit
+    simulator or a quantum cloud service.
 
-    Returns: 
-        quantum circuit
-    '''
+        Args:
+            gate (pywrap.QGate): The quantum gate instance to be applied to each qubit.
+            qubit_list (list of pyQPanda.Qubit): A list of qubits to which the gate will be applied.
+
+        Returns:
+            pywrap.QCircuit: A quantum circuit object with the applied gates.
+    """
     qcirc=pywrap.QCircuit()
     for q in qubit_list:
         qcirc.insert(gate(q))
     return qcirc
 
 def single_gate(gate,qubit,angle=None):
-    '''
-    Apply a single gate to a qubit\n
-    Gate(callback), Qubit, angle(optional) -> QGate
+    """
+    Constructs a quantum gate operation on a specified qubit.
+
+    This function applies a quantum gate to a qubit, optionally rotating the gate's action around a specified angle for rotation gates.
 
     Args:
-        gate : the quantum gate need to apply qubit
-        qubit : single qubit
-        angle : theta for rotation gate
+        gate (callable): A quantum gate represented as a callable that takes a qubit and an optional angle.
+        qubit (int): The index of the qubit to which the gate will be applied.
+        angle (float, optional): The rotation angle for rotation gates. Defaults to None, which means no rotation is applied.
 
-    Returns: 
-        quantum circuit
+    Returns:
+        pyqpanda.QGate: The resulting quantum gate operation after applying to the qubit.
 
-    Raises:\n"
-        run_fail: An error occurred in construct single gate node
-    '''
+    Raises:
+        pyqpanda.run_fail: If an error occurs while constructing the single gate node.
+    """
     if angle is None:
         return gate(qubit)
     else:
         return gate(qubit,angle)
 
 def meas_all(qubits, cbits):
-    '''
-    Measure qubits mapping to cbits\n
-    list<Qubit>, list<CBit> -> QProg
-    Args:
-        qubit_list : measure qubits list 
-        cbits_list : measure cbits list 
+    """
+    Constructs a quantum program by measuring specified qubits and mapping their outcomes to classical bits.
 
-    Returns: 
-        quantum prog
+    Args:
+        qubits (list): A list of qubits to be measured.
+        cbits (list): A list of classical bits where the measurement outcomes will be stored.
+
+    Returns:
+        QProg: A quantum program object representing the measurement operation.
 
     Raises:
-        run_fail: An error occurred in construct measure all node
-    '''
+        run_fail: If an error occurs while constructing the measure all node within the quantum program.
+    """
     prog=pywrap.QProg()
     for i in range(len(qubits)):
         prog.insert(pywrap.Measure(qubits[i],cbits[i]))
@@ -65,19 +69,22 @@ def meas_all(qubits, cbits):
     return prog
 
 def get_fidelity(result, shots, target_result):
-    '''
-    get quantum state fidelity
+    """
+    Calculate the fidelity between a given quantum state and a target state.
+
     Args:
-        result : current quantum state 
-        shots : measure shots
-        target_result : compared state
+        result (dict): A dictionary representing the current quantum state,
+                       with terms as keys and probabilities as values.
+        shots (int): The number of measurement shots taken to observe the current state.
+        target_result (dict): A dictionary representing the target quantum state,
+                              with terms as keys and probabilities as values.
 
-    Returns: 
-        fidelity bewteen [0,1]
+    Returns:
+        float: The fidelity between the current and target states, ranging from 0 to 1.
 
-    Raises:\n"
-        run_fail: An error occurred in get_fidelity
-    '''
+    Raises:
+        run_fail: An error is encountered during the computation of fidelity.
+    """
     correct_shots=0
     for term in target_result:
         if term in result:
@@ -91,14 +98,18 @@ is an instance of an user-defined type and, if so, returns its name or value
 _saved_default = JSONEncoder().default  # Save default method.
 
 def _new_default(self, obj):
-    '''
-    convert enum to python int
+    """
+    Converts a specified enum object from the pyQPanda package to its corresponding Python integer representation.
+
     Args:
-        obj : qpanda enum
+        obj (enum): The enum object from the pyQPanda package to be converted. It can be either a QMachineType or a NoiseModel.
 
     Returns:
-        int
-    '''
+        int: The integer value of the converted enum object.
+
+    Raises:
+        TypeError: If the provided object is not an instance of QMachineType or NoiseModel.
+    """
     if isinstance(obj, pywrap.QMachineType):
         return int(obj)  # Could also be obj.value
     elif isinstance(obj, pywrap.NoiseModel):

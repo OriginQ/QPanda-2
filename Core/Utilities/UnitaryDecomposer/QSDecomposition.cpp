@@ -15,7 +15,7 @@ static void _check_demultiplex(const Eigen::MatrixXcd& um1,
 	const Eigen::MatrixXcd& um2,
 	const QCircuit& circ,
 	const bool& is_positive,
-	double _tol = TOL)
+	double _tol = tolerance)
 {
 	Eigen::MatrixXcd test_U = Eigen::MatrixXcd::Zero(um1.rows() + um2.rows(), um1.cols() + um2.cols());
 	test_U.block(0, 0, um1.rows(), um1.cols()) = um1;
@@ -36,7 +36,7 @@ static void _check_demultiplex(const Eigen::MatrixXcd& um1,
 
 static void _check_ucry(QCircuit ucry_circ,
 	std::vector<double> vtheta,
-	bool is_positive_seq, double _tol = TOL)
+	bool is_positive_seq, double _tol = tolerance)
 {
 	auto circ_mat = getCircuitMatrix(ucry_circ, is_positive_seq);
 	auto _temp_vec = vtheta;
@@ -60,7 +60,7 @@ static void _check_ucry(QCircuit ucry_circ,
 
 static void _check_ucrz(QCircuit ucry_circ,
 	std::vector<double> vtheta,
-	bool is_positive_seq, double _tol = TOL)
+	bool is_positive_seq, double _tol = tolerance)
 {
 	auto circ_mat = getCircuitMatrix(ucry_circ, is_positive_seq);
 	int n = vtheta.size();
@@ -94,7 +94,7 @@ static void _check_ucrz(QCircuit ucry_circ,
 
 static void _check_uc(QCircuit uc_circ,
 	const std::vector<Eigen::MatrixXcd>& um_vec,
-	bool is_positive_seq, double _tol = TOL)
+	bool is_positive_seq, double _tol = tolerance)
 {
 	auto uc_mat = getCircuitMatrix(uc_circ, is_positive_seq);
 

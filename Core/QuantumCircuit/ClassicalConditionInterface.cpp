@@ -73,7 +73,7 @@ ClassicalCondition::ClassicalCondition(CExpr *_Expr)
     expr = shared_ptr<CExpr>(_Expr);
 }
 
-ClassicalCondition&
+ClassicalCondition
 ClassicalCondition::operator=(const ClassicalCondition& old)
 {
     if (this == &old)
@@ -89,9 +89,9 @@ ClassicalCondition::operator=(const ClassicalCondition& old)
     else
     {
         auto &fac = CExprFactory::GetFactoryInstance();
-        fac.GetCExprByOperation(expr->deepcopy(),
+        return fac.GetCExprByOperation(expr->deepcopy(),
             old.expr->deepcopy(),
-            ASSIGN);
+            ASSIGN);;
     }
     
     return *this;
@@ -113,6 +113,75 @@ ClassicalCondition::operator=(const cbit_size_t value)
     return *this;
 }
 
+ClassicalCondition ClassicalCondition::c_and(const ClassicalCondition &other)
+{
+    return
+        CExprFactory::
+        GetFactoryInstance().GetCExprByOperation
+        (
+            this->getExprPtr()->deepcopy(),
+            other.getExprPtr()->deepcopy(),
+            AND
+        );
+}
+
+ClassicalCondition ClassicalCondition::c_and(cbit_size_t value)
+{
+    auto &fac = CExprFactory::GetFactoryInstance();
+    auto expr = fac.GetCExprByValue(value);
+    if (expr == nullptr)
+    {
+        QCERR("CExpr factory fails");
+        throw runtime_error("CExpr factory fails");
+    }
+
+    return CExprFactory::GetFactoryInstance().GetCExprByOperation(
+        this->getExprPtr()->deepcopy(),
+        expr->deepcopy(),
+        AND);
+}
+
+
+ClassicalCondition ClassicalCondition::c_or(const ClassicalCondition &other)
+{
+    return
+        CExprFactory::
+        GetFactoryInstance().GetCExprByOperation
+        (
+            this->getExprPtr()->deepcopy(),
+            other.getExprPtr()->deepcopy(),
+            OR
+        );
+}
+
+ClassicalCondition ClassicalCondition::c_or(cbit_size_t value)
+{
+    auto &fac = CExprFactory::GetFactoryInstance();
+    auto expr = fac.GetCExprByValue(value);
+    if (expr == nullptr)
+    {
+        QCERR("CExpr factory fails");
+        throw runtime_error("CExpr factory fails");
+    }
+
+    return CExprFactory::GetFactoryInstance().GetCExprByOperation(
+        this->getExprPtr()->deepcopy(),
+        expr->deepcopy(),
+        OR);
+
+}
+
+ClassicalCondition ClassicalCondition::c_not()
+{
+    return
+        CExprFactory::
+        GetFactoryInstance().GetCExprByOperation
+        (
+            this->getExprPtr()->deepcopy(),
+            nullptr,
+            NOT
+        );
+}
 
 
 

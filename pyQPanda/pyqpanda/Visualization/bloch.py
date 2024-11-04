@@ -98,7 +98,7 @@ class Arrow3D(Patch3D, FancyArrowPatch):
 class Bloch:
     """Class for plotting data on the Bloch sphere.  Valid data can be
     either points, vectors, or qobj objects.
-    Attributes:
+    Args:
         axes (instance):
             User supplied Matplotlib axes for Bloch sphere animation.
         fig (instance):
@@ -729,7 +729,12 @@ class Bloch:
 
 def _hide_tick_lines_and_labels(axis):
     """
-    Set visible property of ticklines and ticklabels of an axis to False
+    Disables the visibility of all tick lines and labels associated with the specified axis.
+    
+    Args:
+        axis (matplotlib.axes.Axes): The axis whose tick lines and labels are to be hidden.
+        
+    This utility function is designed for internal use within the pyQPanda package, specifically to manage the visualization aspects of quantum circuits in the context of quantum computing simulations.
     """
     for item in axis.get_ticklines() + axis.get_ticklabels():
         item.set_visible(False)

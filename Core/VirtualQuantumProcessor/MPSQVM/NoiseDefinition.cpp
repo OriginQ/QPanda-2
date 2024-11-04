@@ -43,17 +43,38 @@ static std::vector<QStat> get_phase_flip_karus_matrices(const prob_vec& params)
 static std::vector<QStat> get_depolarizing_karus_matrices(const prob_vec& params)
 {
     std::vector<QStat> karus_matrices(4);
-    double probability = params[0];
 
     QStat matrix_i = { 1, 0, 0, 1 };
     QStat matrix_x = { 0, 1, 1, 0 };
     QStat matrix_y = { 0, qcomplex_t(0, -1), qcomplex_t(0, 1), 0 };
     QStat matrix_z = { 1, 0, 0, -1 };
 
-    karus_matrices[0] = static_cast<qstate_type>(sqrt(1 - probability * 0.75)) * matrix_i;
-    karus_matrices[1] = static_cast<qstate_type>(sqrt(probability) / 2) * matrix_x;
-    karus_matrices[2] = static_cast<qstate_type>(sqrt(probability) / 2) * matrix_y;
-    karus_matrices[3] = static_cast<qstate_type>(sqrt(probability) / 2) * matrix_z;
+    if (1 == params.size())
+    {
+        double probability = params[0];
+
+        karus_matrices[0] = static_cast<qstate_type>(sqrt(1 - probability * 0.75)) * matrix_i;
+        karus_matrices[1] = static_cast<qstate_type>(sqrt(probability) / 2) * matrix_x;
+        karus_matrices[2] = static_cast<qstate_type>(sqrt(probability) / 2) * matrix_y;
+        karus_matrices[3] = static_cast<qstate_type>(sqrt(probability) / 2) * matrix_z;
+    }
+    else if (3 == params.size())
+    {
+        double identity_probability = 1 - params[0] - params[1] - params[2];
+
+        if (identity_probability < 0.0)
+            QCERR_AND_THROW(run_fail, "depolarizing noise model params value error");
+
+        karus_matrices[0] = static_cast<qstate_type>(sqrt(identity_probability * 0.75)) * matrix_i;
+        karus_matrices[1] = static_cast<qstate_type>(sqrt(params[0]) / 2) * matrix_x;
+        karus_matrices[2] = static_cast<qstate_type>(sqrt(params[1]) / 2) * matrix_y;
+        karus_matrices[3] = static_cast<qstate_type>(sqrt(params[2]) / 2) * matrix_z;
+    }
+    else
+    {
+        QCERR_AND_THROW(run_fail, "depolarizing noise model params size error");
+    }
+
     return karus_matrices;
 }
 

@@ -29,11 +29,11 @@ limitations under the License.
 #include "Core/QuantumNoise/NoiseModelV2.h"
 
 #include "QPandaConfig.h"
-#if defined(USE_OPENSSL) && defined(USE_CURL)
-#endif
 
 USING_QPANDA
 using namespace std;
+
+
 QuantumMachine* global_quantum_machine = nullptr;
 
 QuantumMachine *QPanda::initQuantumMachine(const QMachineType class_type)
@@ -455,11 +455,6 @@ QStat QPanda::getQState()
     return global_quantum_machine->getQState();
 }
 
-QGate QPanda::QOracle(const QVec& qubits, const QMatrixXcd& matrix,const double TOL)
-{
-    return(QOracle(qubits, Eigen_to_QStat(matrix), TOL));
-}
-
 void QPanda::cFreeAll()
 {
     if (nullptr == global_quantum_machine)
@@ -540,4 +535,20 @@ size_t QPanda:: get_allocate_cbits(std::vector<ClassicalCondition> &cc_vec)
     }
 
     return global_quantum_machine->get_allocate_cbits(cc_vec);
+}
+
+QGate QPanda::QOracle(const QVec& qubits, const Eigen::MatrixXcd& eigen_matrix, const double tolerance)
+{
+    QStat matrix;
+    matrix.resize(eigen_matrix.size());
+
+    for (int i = 0; i < eigen_matrix.rows(); ++i) 
+    {
+        for (int j = 0; j < eigen_matrix.cols(); ++j) 
+        {
+            matrix[i * eigen_matrix.cols() + j] = eigen_matrix(i, j);
+        }
+    }
+
+    return QOracle(qubits, matrix, tolerance);
 }

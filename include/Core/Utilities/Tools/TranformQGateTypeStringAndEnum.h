@@ -57,6 +57,7 @@ QPANDA_BEGIN
 #define GATE_BARRIER "BARRIER"
 #define GATE_QDoubleGate "QDoubleGate"
 #define GATE_ORACLE "OracularGate"
+#define GATE_MS "MS"
 
 /**
 * @brief Classes for tranform gate type  and gate name
@@ -78,6 +79,7 @@ private:
 
 
 bool is_single_gate(const GateType gt_type);
+bool is_double_gate(const GateType gt_type);
 
 
 QPANDA_END

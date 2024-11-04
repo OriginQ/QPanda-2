@@ -337,6 +337,20 @@ KarusError::KarusError(const std::vector<QStat>& karus_matrices)
     m_qubit_num = get_karus_error_qubit_num(karus_matrices);
 }
 
+KarusError::KarusError(const std::vector<cmatrix_t>& karus_matrices)
+{
+    std::vector<QStat> karus_qstat_matrices;
+
+    for (auto matrix : karus_matrices)
+    {
+        karus_qstat_matrices.emplace_back(Eigen_to_QStat(matrix));
+    }
+
+    m_karus_matrices = karus_qstat_matrices;
+    m_karus_error_type = KarusErrorType::KARUS_MATRIICES;
+    m_qubit_num = get_karus_error_qubit_num(karus_qstat_matrices);
+}
+
 KarusError::KarusError(const std::vector<QStat>& unitary_matrices, const std::vector<double>& probs_vec)
 {
     m_unitary_probs = probs_vec;
@@ -952,21 +966,19 @@ std::shared_ptr<AbstractQGateNode> NoiseSimulator::handle_rotation_error(std::sh
 
 void NoiseSimulator::execute(std::shared_ptr<AbstractQGateNode> cur_node, std::shared_ptr<QNode> parent_node, QCircuitConfig &config)
 {
+    //handle rotation error
+    auto gate_node = handle_rotation_error(cur_node);
+    //gate type
+    auto gate_type = (GateType)gate_node->getQGate()->getGateType();
+    bool is_dagger = gate_node->isDagger() ^ config._is_dagger;
+    if (GateType::BARRIER_GATE == gate_type) return;
+
     QVec controls;
     cur_node->getControlVector(controls);
     QPANDA_ASSERT(!controls.empty(), "unsupported control qubits");
 
     QVec targets;
     cur_node->getQuBitVector(targets);
-
-    //handle rotation error
-    auto gate_node = handle_rotation_error(cur_node);
-
-    //gate type
-    auto gate_type = (GateType)gate_node->getQGate()->getGateType();
-    bool is_dagger = gate_node->isDagger() ^ config._is_dagger;
-
-    if (GateType::BARRIER_GATE == gate_type) return;
     handle_quantum_gate(gate_node, is_dagger);
     QPANDA_OP(has_error_for_current_gate(gate_type, targets), handle_noise_gate(gate_type, targets));
 }

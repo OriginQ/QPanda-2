@@ -50,7 +50,7 @@ bool DensityMatrixNoise::enabled(GateType gate_type, Qnum qubits)
     return false;
 }
 
-KarusError DensityMatrixNoise::get_karus_error(GateType gate_type, const Qnum& qubits)
+std::vector<KarusError> DensityMatrixNoise::get_karus_error(GateType gate_type, const Qnum& qubits)
 {
     if (is_single_gate(gate_type))
     {
@@ -146,17 +146,18 @@ void DensityMatrixNoise::update_karus_error_tuple(GateType gate_type, int tar_qu
 
         if ((gate_type == type) && (-1 == tar_qubit))
         {
+            std::get<2>(val).emplace_back(karus_error);
             return;
         }
 
         if ((gate_type == type) && (tar_qubit == addr))
         {
-            std::get<2>(val) = karus_error;
+            std::get<2>(val).emplace_back(karus_error);
             return;
         }
     }
 
-    auto karus_error_tuple = std::make_tuple(gate_type, tar_qubit, karus_error);
+    auto karus_error_tuple = std::make_tuple(gate_type, tar_qubit, std::vector<KarusError>{ karus_error });
     m_one_qubit_karus_error_tuple.emplace_back(karus_error_tuple);
     return;
 }
@@ -173,17 +174,17 @@ void DensityMatrixNoise::update_karus_error_tuple(GateType gate_type, int ctr_qu
 
         if ((gate_type == type) && (-1 == ctr_qubit) && (-1 == tar_qubit))
         {
-            return;
+            std::get<3>(val).emplace_back(karus_error);
         }
 
         if ((gate_type == type) && (ctr_addr == ctr_qubit) && (tar_addr == tar_qubit))
         {
-            std::get<3>(val) = karus_error;
+            std::get<3>(val).emplace_back(karus_error);
             return;
         }
     }
 
-    auto karus_error_tuple = std::make_tuple(gate_type, ctr_qubit, tar_qubit, karus_error);
+    auto karus_error_tuple = std::make_tuple(gate_type, ctr_qubit, tar_qubit, std::vector<KarusError>{ karus_error });
     m_two_qubit_karus_error_tuple.emplace_back(karus_error_tuple);
     return;
 }
@@ -369,3 +370,98 @@ void DensityMatrixNoise::set_noise_model(const NOISE_MODEL& model, const GateTyp
 
     return;
 }
+
+void DensityMatrixNoise::set_noise_model(const std::vector<cmatrix_t>& karus_matrices)
+{
+    if (karus_matrices.empty())
+        return;
+
+    auto karus_rows = karus_matrices.front().rows();
+    auto karus_cols = karus_matrices.front().cols();
+
+    QPANDA_ASSERT(karus_rows != karus_cols, "karus_matrix error");
+
+   if (karus_rows == 2)
+    {
+        for (int i = static_cast<int>(GateType::P0_GATE); i <= static_cast<int>(GateType::I_GATE); i++)
+        {
+            auto gate_type = static_cast<GateType>(i);
+            if (is_single_gate(gate_type))
+            {
+                set_gate_and_qnum(gate_type, {});
+
+                auto karus_error = KarusError(karus_matrices);
+                set_single_karus_error_tuple(gate_type, karus_error, {});
+            }
+        }
+    }
+   else if (karus_rows == 4)
+   {
+       for (int i = static_cast<int>(GateType::P0_GATE); i <= static_cast<int>(GateType::I_GATE); i++)
+       {
+           auto gate_type = static_cast<GateType>(i);
+           if (!is_single_gate(gate_type))
+           {
+               set_gate_and_qnums(gate_type, {});
+
+               auto karus_error = KarusError(karus_matrices);
+               set_double_karus_error_tuple(gate_type, karus_error, {});
+           }
+
+       }
+   }
+   else
+   {
+       QCERR_AND_THROW(std::runtime_error, "karus matrix error");
+   }
+
+   return;
+}
+
+void DensityMatrixNoise::set_noise_model(const std::vector<cmatrix_t>& karus_matrices, const std::vector<GateType>& types)
+{
+    if (karus_matrices.empty())
+        return;
+
+    auto karus_rows = karus_matrices.front().rows();
+    auto karus_cols = karus_matrices.front().cols();
+
+    QPANDA_ASSERT(karus_rows != karus_cols, "karus_matrix error");
+
+    if (karus_rows == 2)
+    {
+        for (int i = 0; i <= types.size(); i++)
+        {
+            auto gate_type = types[i];
+            if (is_single_gate(gate_type))
+            {
+                set_gate_and_qnum(gate_type, {});
+
+                auto karus_error = KarusError(karus_matrices);
+                set_single_karus_error_tuple(gate_type, karus_error, {});
+            }
+        }
+    }
+    else if (karus_rows == 4)
+    {
+        for (int i = 0; i <= types.size(); i++)
+        {
+            auto gate_type = types[i];
+            if (!is_single_gate(gate_type))
+            {
+                set_gate_and_qnums(gate_type, {});
+
+                auto karus_error = KarusError(karus_matrices);
+                set_double_karus_error_tuple(gate_type, karus_error, {});
+            }
+
+        }
+    }
+    else
+    {
+        QCERR_AND_THROW(std::runtime_error, "karus matrix error");
+    }
+
+    return;
+}
+

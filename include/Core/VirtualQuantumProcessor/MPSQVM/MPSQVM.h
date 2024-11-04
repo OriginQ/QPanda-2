@@ -15,7 +15,7 @@ QPANDA_BEGIN
 class MPSQVM : public IdealQVM, public TraversalInterface<QCircuitConfig&>
 {
 public:
-    virtual void init();
+    void init() override;
     virtual void initState(const QStat &state = {}, const QVec &qlist = {});
     virtual std::map<std::string, bool> directlyRun(QProg &prog, const NoiseModel& = NoiseModel()) override;
     std::map<std::string, size_t> quickMeasure(QVec vQubit, size_t shots);

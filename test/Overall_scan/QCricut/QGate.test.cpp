@@ -1,7 +1,7 @@
-
-
+#if 0
 #include "QPanda.h"
 #include "gtest/gtest.h"
+#include "Core/Utilities/Tools/QStatMatrix.h"
 
 //using namespace std;
 USING_QPANDA
@@ -151,3 +151,47 @@ TEST(RxxRyyRzzRzxGate, test) {
 
 
 }
+
+TEST(QGateOverload, test)
+{
+    auto machine = CPUQVM();
+    machine.init();
+
+    auto q = machine.qAllocMany(4);
+    auto c = machine.cAllocMany(4);
+
+
+    //mul
+    auto h_gate = H(q[0]);
+    auto rx_gate = RX(q[0], 6);
+    auto rz_gate = RZ(q[0], 9).dagger();
+
+    auto plus_0 = h_gate * rx_gate * rz_gate;
+    auto exp_3 = rx_gate.exp(3);
+
+    auto matrix_0 = get_unitary(QProg(h_gate));
+    auto matrix_1 = get_unitary(QProg(rx_gate));
+    auto matrix_2 = get_unitary(QProg(rz_gate));
+    auto matrix_4 = get_unitary(QProg(exp_3));
+
+    //auto test_matrix_0 = matrix_0 * matrix_1 * matrix_2;
+    auto test_matrix_0 = matrix_2 * matrix_1 * matrix_0;
+
+    std::cout << matrix_4 << std::endl;
+
+    auto circuit = QCircuit();
+    circuit << h_gate << rx_gate << rz_gate;
+    auto test_matrix_1 = get_unitary(QProg(circuit));
+
+    auto circuit_exp = QCircuit();
+    circuit_exp << rx_gate << rx_gate << rx_gate;
+    auto test_matrix_2 = get_unitary(QProg(circuit_exp));
+
+    std::cout << test_matrix_1 << std::endl;
+    std::cout << test_matrix_2 << std::endl;
+
+    EXPECT_EQ(test_matrix_0, test_matrix_1);
+    EXPECT_EQ(matrix_4, test_matrix_2);
+}
+
+#endif

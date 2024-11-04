@@ -733,8 +733,10 @@ public:
 			m_depth_map.insert(std::make_pair(i, 0));
 		}
 
+		std::random_device rd;
+		std::mt19937 rng(rd());
 		//std::random_shuffle(rnd_seq.begin(), rnd_seq.end(), std::bind(&CustomQGateRandomCircuit::rnd, this, std::placeholders::_1));
-		std::random_shuffle(rnd_seq.begin(), rnd_seq.end(), Rnd::get_instance());
+		std::shuffle(rnd_seq.begin(), rnd_seq.end(), rng);
 
 		for (uint32_t i = 0; i < qubit_cnt; ++i){
 			m_qv.push_back(qv[rnd_seq[i]]);
@@ -750,7 +752,27 @@ public:
 				(0 == _gate_type_str.compare(GATE_T)) ||
 				(0 == _gate_type_str.compare(GATE_RX)) || 
 				(0 == _gate_type_str.compare(GATE_RY)) ||
-				(0 == _gate_type_str.compare(GATE_RZ)))
+				(0 == _gate_type_str.compare(GATE_RZ)) ||
+				(0 == _gate_type_str.compare(GATE_U1)) ||
+				(0 == _gate_type_str.compare(GATE_U2)) ||
+				(0 == _gate_type_str.compare(GATE_U3)) ||
+				(0 == _gate_type_str.compare(GATE_U4)) ||
+				(0 == _gate_type_str.compare(GATE_P)) ||
+				(0 == _gate_type_str.compare(GATE_I)) ||
+				(0 == _gate_type_str.compare(GATE_ISWAP)) ||
+				(0 == _gate_type_str.compare(GATE_SQISWAP)) ||
+				(0 == _gate_type_str.compare(GATE_CPHASE)) ||
+				(0 == _gate_type_str.compare(GATE_RPHI)) ||
+				(0 == _gate_type_str.compare(GATE_CU)) ||
+				(0 == _gate_type_str.compare(GATE_SWAP)) ||
+				(0 == _gate_type_str.compare(GATE_X1)) ||
+				(0 == _gate_type_str.compare(GATE_Y1)) ||
+				(0 == _gate_type_str.compare(GATE_Z1)) ||
+				(0 == _gate_type_str.compare(GATE_RZZ)) ||
+				(0 == _gate_type_str.compare(GATE_RYY)) ||
+				(0 == _gate_type_str.compare(GATE_RXX)) ||
+				(0 == _gate_type_str.compare(GATE_RZX))
+				)
 			{
 				m_gate_type.insert(m_gate_type.begin(), _gate_type_str);
 			}
@@ -767,8 +789,8 @@ public:
 
 		if (m_gate_type.size() == 0)
 		{
-			m_gate_type = { GATE_X, GATE_Y, GATE_Z, GATE_RX, GATE_RY, GATE_RZ, GATE_H, GATE_S, GATE_T, 
-				GATE_CNOT, GATE_CZ };
+			m_gate_type = {GATE_RZZ,GATE_RXX,GATE_RYY,GATE_RZX,GATE_X, GATE_Y, GATE_Z, GATE_RX, GATE_RY, GATE_RZ, GATE_H, GATE_S, GATE_T,
+				GATE_CNOT, GATE_CZ,GATE_RPHI,GATE_U1,GATE_U2,GATE_U3,GATE_U4,GATE_X1,GATE_Y1,GATE_Z1,GATE_ISWAP,GATE_SWAP,GATE_CU, GATE_SQISWAP,GATE_I,GATE_CPHASE };
 		}
 	}
 	~CustomQGateRandomCircuit() {}
@@ -811,21 +833,31 @@ protected:
 			(0 == gate_type.compare(GATE_Z)) ||
 			(0 == gate_type.compare(GATE_S)) ||
 			(0 == gate_type.compare(GATE_T)) ||
-			(0 == gate_type.compare(GATE_H)))
+			(0 == gate_type.compare(GATE_H)) ||
+			(0 == gate_type.compare(GATE_X1))||
+			(0 == gate_type.compare(GATE_Y1))||
+			(0 == gate_type.compare(GATE_Z1))||
+			(0 == gate_type.compare(GATE_I))
+			)
 		{
 			update_depth({ qubit_index });
 			return QGateNodeFactory::getInstance()->getGateNode(gate_type, { m_qv[qubit_index] });
 		}
 		else if ((0 == gate_type.compare(GATE_RX)) ||
 			(0 == gate_type.compare(GATE_RY)) ||
-			(0 == gate_type.compare(GATE_RZ)))
+			(0 == gate_type.compare(GATE_RZ)) ||
+			(0 == gate_type.compare(GATE_P)) ||
+			(0 == gate_type.compare(GATE_U1)))
 		{
 			update_depth({ qubit_index });
 			auto _angle = generate_random_angle();
 			return QGateNodeFactory::getInstance()->getGateNode(gate_type, { m_qv[qubit_index] }, _angle);
 		}
 		else if ((0 == gate_type.compare(GATE_CNOT)) ||
-			(0 == gate_type.compare(GATE_CZ)))
+			(0 == gate_type.compare(GATE_CZ))||
+			(0 == gate_type.compare(GATE_SWAP))||
+			(0 == gate_type.compare(GATE_ISWAP))||
+			(0 == gate_type.compare(GATE_SQISWAP)))
 		{
 			if ((m_qv.size() - 1) == qubit_index)
 			{
@@ -836,6 +868,66 @@ protected:
 			update_depth({ qubit_index, qubit_index + 1 });
 			return QGateNodeFactory::getInstance()->getGateNode(gate_type, { m_qv[qubit_index], m_qv[qubit_index + 1] });
 		}
+		else if ((0 == gate_type.compare(GATE_RPHI)) ||
+			(0 == gate_type.compare(GATE_U2)))
+		{
+			update_depth({ qubit_index });
+			auto _angle = generate_random_angle();
+			auto _phi = generate_random_angle();
+			return QGateNodeFactory::getInstance()->getGateNode(gate_type, { m_qv[qubit_index] }, _angle,_phi);
+		}
+		else if ((0 == gate_type.compare(GATE_U3))
+			)
+		{
+			update_depth({ qubit_index });
+			auto _angle = generate_random_angle();
+			auto _phi = generate_random_angle();
+			auto _lambda = generate_random_angle();
+			return QGateNodeFactory::getInstance()->getGateNode(gate_type, { m_qv[qubit_index] }, _angle, _phi,_lambda);
+		}
+		else if ((0 == gate_type.compare(GATE_U4))
+			)
+		{
+			update_depth({ qubit_index });
+			auto _angle = generate_random_angle();
+			auto _phi = generate_random_angle();
+			auto _lambda = generate_random_angle();
+			auto _delta = generate_random_angle();
+			return QGateNodeFactory::getInstance()->getGateNode(gate_type, { m_qv[qubit_index] }, _angle, _phi, _lambda,_delta);
+		}
+		else if ((0 == gate_type.compare(GATE_CPHASE)) ||
+			(0 == gate_type.compare(GATE_RZZ)) ||
+			(0 == gate_type.compare(GATE_RXX)) ||
+			(0 == gate_type.compare(GATE_RYY)) ||
+			(0 == gate_type.compare(GATE_RZX)))
+		{
+			auto _angle = generate_random_angle();
+			if ((m_qv.size() - 1) == qubit_index)
+			{
+				update_depth({ qubit_index, 0 });
+				return QGateNodeFactory::getInstance()->getGateNode(gate_type, { m_qv[qubit_index], m_qv[0] },_angle);
+			}
+
+			update_depth({ qubit_index, qubit_index + 1 });
+			return QGateNodeFactory::getInstance()->getGateNode(gate_type, { m_qv[qubit_index], m_qv[qubit_index + 1] }, _angle);
+		}
+		else if ((0 == gate_type.compare(GATE_CU)))
+		{
+			auto _angle = generate_random_angle();
+			auto _phi = generate_random_angle();
+			auto _lambda = generate_random_angle();
+			auto _delta = generate_random_angle();
+
+			if ((m_qv.size() - 1) == qubit_index)
+			{
+				update_depth({ qubit_index, 0 });
+				return QGateNodeFactory::getInstance()->getGateNode(gate_type, { m_qv[qubit_index], m_qv[0] }, _angle, _phi, _lambda, _delta);
+			}
+
+			update_depth({ qubit_index, qubit_index + 1 });
+			return QGateNodeFactory::getInstance()->getGateNode(gate_type, { m_qv[qubit_index], m_qv[qubit_index + 1] }, _angle, _phi, _lambda, _delta);
+		}
+
 	}
 
 	double generate_random_angle() {

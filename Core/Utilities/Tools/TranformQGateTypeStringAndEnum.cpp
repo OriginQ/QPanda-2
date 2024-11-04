@@ -49,6 +49,39 @@ bool QPanda::is_single_gate(const GateType gt_type) {
     return false;
 }
 
+
+bool QPanda::is_double_gate(const GateType gt_type) 
+{
+    if (gt_type < 0)
+    {
+        return false;
+    }
+
+    switch (gt_type)
+    {
+        case  CU_GATE:/**< Quantum control-u gate */
+        case  CNOT_GATE:/**< Quantum control-not gate */
+        case  CZ_GATE:/**< Quantum control-z gate */
+        case  CP_GATE:/**<Quantum control-p gate>*/
+        case  RYY_GATE:/**<Quantum ryy gate>*/
+        case  RXX_GATE:/**<Quantum rxx gate>*/
+        case  RZZ_GATE:/**<Quantum rzz gate>*/
+        case  RZX_GATE:/**<Quantum rzx gate>*/
+        case  CPHASE_GATE:/**< Quantum control-rotation gate */
+        case  ISWAP_THETA_GATE:/**< Quantum iswap-theta gate */
+        case  ISWAP_GATE:/**< Quantum iswap gate */
+        case  SQISWAP_GATE:/**< Quantum sqiswap gate */
+        case  SWAP_GATE:/**< Quantum swap gate */
+        case  TWO_QUBIT_GATE:/**< Quantum two-qubit gate */
+        case  P00_GATE:
+        case  P11_GATE:
+        return true;
+    }
+
+    return false;
+}
+
+
 TransformQGateType::TransformQGateType()
 {
     m_qgate_type_map.insert({ GATE_X, PAULI_X_GATE });
@@ -96,6 +129,7 @@ TransformQGateType::TransformQGateType()
     m_qgate_type_map.insert({ GATE_ECHO, ECHO_GATE });
     m_qgate_type_map.insert({ GATE_BARRIER, BARRIER_GATE });
 	m_qgate_type_map.insert({ GATE_ORACLE, ORACLE_GATE });
+    m_qgate_type_map.insert({ GATE_MS, MS_GATE });
 }
 
 TransformQGateType & TransformQGateType::getInstance()
@@ -110,7 +144,7 @@ std::string TransformQGateType::operator[](GateType type)
     {
         if (type == aiter.second)
         {
-            return aiter.first;
+           return aiter.first;
         }
     }
 

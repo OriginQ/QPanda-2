@@ -9,7 +9,10 @@ endif (CUDA_FOUND)
 set(QPandaCore_SRCS_SEARCH_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 if (USE_EXTENSION)
-    file(GLOB_RECURSE QPandaCore_SRCS_CPP ${QPandaCore_SRCS_SEARCH_DIR}/*.cpp ${PROJECT_SOURCE_DIR}/Extensions/*.cpp)
+
+    file(GLOB_RECURSE QPandaCore_SRCS_CPP ${QPandaCore_SRCS_SEARCH_DIR}/*.cpp 
+	                                      ${PROJECT_SOURCE_DIR}/Extensions/*.cpp
+										  ${PROJECT_SOURCE_DIR}/Extensions/*.c)
 else()
     file(GLOB_RECURSE QPandaCore_SRCS_CPP ${QPandaCore_SRCS_SEARCH_DIR}/*.cpp )
 endif()
@@ -17,6 +20,7 @@ endif()
 add_library(${LIB_QPANDA} STATIC ${QPandaCore_SRCS_CPP} )
 list(APPEND LIB_LIST ${LIB_ANTLR4})
 list(APPEND LIB_LIST ${LIB_MPFIT})
+list(APPEND LIB_LIST ${LIB_BZ2})
 target_link_libraries(${LIB_QPANDA} ${LIB_LIST})
 
 if (UNIX)

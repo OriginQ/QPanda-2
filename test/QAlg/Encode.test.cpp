@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 #include "QPanda.h"
-#include "QAlg/Encode/Encode.h"
+#include "Core/Utilities/Encode/Encode.h"
 USING_QPANDA
 using namespace std;
 

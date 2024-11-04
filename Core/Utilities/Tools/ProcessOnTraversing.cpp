@@ -131,7 +131,7 @@ void ProcessOnTraversing::add_gate_to_buffer(NodeIter iter, QCircuitParam &cir_p
 
 	pOptimizerNodeInfo tmp_node = std::make_shared<OptimizerNodeInfo>(iter, layer,
 		target_qubits_int, control_qubits_int, (GateType)(gate_node->getQGate()->getGateType()), parent_node,
-		check_dagger(gate_node, cir_param.m_is_dagger));
+		check_dagger(gate_node, gate_node->isDagger() ^ cir_param.m_is_dagger));
 	for (const auto& i : total_qubits)
 	{
 		gates_buffer.append_data(tmp_node, i->get_phy_addr());
@@ -694,6 +694,7 @@ void QProgLayer::move_measure_to_last(LayeredTopoSeq& seq) {
     }
 }
 
+#if 0
 void QProgLayer::prog_layer_by_double_gate(LayeredTopoSeq& seq)
 {
     for (auto itr_single_layer = seq.begin(); itr_single_layer != seq.end(); ++itr_single_layer)
@@ -772,6 +773,7 @@ void QProgLayer::prog_layer_by_double_gate(LayeredTopoSeq& seq)
 
     }
 }
+#endif
 
 #if 1
 /*******************************************************************
@@ -822,6 +824,24 @@ protected:
 	void append_topolog_seq(PressedTopoSeq& tmp_seq) {
 		m_topolog_sequence.insert(m_topolog_sequence.end(), tmp_seq.begin(), tmp_seq.end());
 	}
+
+    /**
+     * @brief Check for duplicate qubits
+     * @return If there are duplicate qubits, return true; otherwise, return false.
+     */
+    bool check_repeat_qubit(const QVec& qv){
+        for (size_t i = 0; i < qv.size() - 1; ++i)
+        {
+            for (size_t j = i + 1; j < qv.size(); ++j)
+            {
+                if (qv[i]->get_phy_addr() == qv[j]->get_phy_addr()){
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
 
 	void gates_sink_to_topolog_sequence(OptimizerSink& gate_buf, PressedTopoSeq& seq,
 		const size_t max_output_layer = MAX_LAYER) {
@@ -877,7 +897,12 @@ protected:
 
 					if (BARRIER_GATE == n->m_gate_type)
 					{
-						candidate_special_gate.push_back(std::make_pair(n, n->m_control_qubits + n->m_target_qubits));
+                        const QVec _target_qv = n->m_control_qubits + n->m_target_qubits;
+                        if (check_repeat_qubit(_target_qv)){
+                            QCERR_AND_THROW(run_fail, "Error: Illegal duplicate qubits.");
+                        }
+
+						candidate_special_gate.push_back(std::make_pair(n, _target_qv));
 						break;
 					}
 
@@ -1413,9 +1438,9 @@ protected:
 			case ISWAP_GATE:
 			case SQISWAP_GATE:
 			case SWAP_GATE:
+            case MS_GATE:
 				return get_swap_gate_time_sequence() + append_ctrl_qubit_clock;
 				break;
-
 			case CU_GATE:
 			case CNOT_GATE:
 			case CZ_GATE:
@@ -1457,6 +1482,7 @@ LayeredTopoSeq QPanda::prog_layer(QProg src_prog)
     return q_layer.get_topo_seq();
 }
 
+#if 0
 LayeredTopoSeq QPanda::get_chip_layer(QProg src_prog, ChipID chip_id /* chip_id = WUYUAN_1*/, QuantumMachine *qvm)
 {
     QProg prog = deepCopy(src_prog);
@@ -1512,6 +1538,7 @@ LayeredTopoSeq QPanda::get_chip_layer(QProg src_prog, ChipID chip_id /* chip_id 
         throw std::runtime_error("Error: chip type: " + std::to_string(chip_id));
     }
 }
+#endif
 
 PressedTopoSeq QPanda::get_pressed_layer(QProg src_prog)
 {

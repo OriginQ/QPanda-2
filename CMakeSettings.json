@@ -1,4 +1,4 @@
-﻿{
+{
   "configurations": [
     {
       "name": "x64-Debug",
@@ -7,8 +7,8 @@
       "inheritEnvironments": [ "msvc_x64_x64" ],
       "buildRoot": "${projectDir}\\build\\${name}",
       "installRoot": "C:\\QPanda2",
-      "cmakeCommandArgs": "-DUSE_PYQPANDA=OFF -DFIND_CUDA=OFF -DUSE_EXTENSION=ON -DDOCKER=OFF",
-      "buildCommandArgs": "-j4",
+      "cmakeCommandArgs": "-DUSE_PYQPANDA=ON -DFIND_CUDA=ON -DUSE_EXTENSION=ON -DDOCKER=OFF -DUSE_GTEST=ON -DUSE_APPLICATIONS=ON -DUSE_CURL=ON -DUSE_QHETU=OFF",
+      "buildCommandArgs": "-j8",
       "ctestCommandArgs": ""
     },
     {
@@ -18,7 +18,7 @@
       "inheritEnvironments": [ "msvc_x64_x64" ],
       "buildRoot": "${projectDir}\\build\\${name}",
       "installRoot": "C:\\QPanda2",
-      "cmakeCommandArgs": "-DUSE_PYQPANDA=ON -DFIND_CUDA=OFF -DUSE_EXTENSION=OFF",
+      "cmakeCommandArgs": "-DUSE_PYQPANDA=ON -DFIND_CUDA=OFF -DUSE_EXTENSION=ON -DUSE_GTEST=ON -DUSE_APPLICATIONS=ON -DUSE_CURL=ON -DUSE_QHETU=ON",
       "buildCommandArgs": "-j4",
       "ctestCommandArgs": ""
     },
@@ -40,7 +40,7 @@
       "remoteCopySourcesExclusionList": [ ".vs", ".git", "build " ],
       "rsyncCommandArgs": "-t --delete --delete-excluded",
       "remoteCopyBuildOutput": false,
-      "cmakeCommandArgs": "-DUSE_PYQPANDA=OFF -DFIND_CUDA=OFF -DUSE_EXTENSION=ON",
+      "cmakeCommandArgs": "-DUSE_PYQPANDA=OFF -DFIND_CUDA=OFF -DUSE_EXTENSION=ON -DUSE_GTEST=OFF -DUSE_APPLICATIONS=OFF  -DUSE_CURL=ON -DUSE_QHETU=ON",
       "buildCommandArgs": "-j4",
       "ctestCommandArgs": "",
       "inheritEnvironments": [ "linux_x64" ]
@@ -63,7 +63,7 @@
       "remoteCopySourcesExclusionList": [ ".vs", ".git", "build " ],
       "rsyncCommandArgs": "-t --delete --delete-excluded",
       "remoteCopyBuildOutput": false,
-      "cmakeCommandArgs": "-DUSE_PYQPANDA=OFF -DFIND_CUDA=OFF -DUSE_EXTENSION=ON",
+      "cmakeCommandArgs": "-DUSE_PYQPANDA=OFF -DFIND_CUDA=OFF -DUSE_EXTENSION=ON -DUSE_GTEST=OFF -DUSE_APPLICATIONS=OFF  -DUSE_CURL=ON -DUSE_QHETU=ON",
       "buildCommandArgs": "-j4",
       "ctestCommandArgs": "",
       "inheritEnvironments": [ "linux_x64" ]

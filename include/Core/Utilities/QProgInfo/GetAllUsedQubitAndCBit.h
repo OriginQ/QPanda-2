@@ -27,7 +27,7 @@ public:
 		TraverseByNodeIter::traverse_qprog(node);
 	}
 	
-	QVec get_used_qubits() { 
+	QVec get_used_qubits() {
 		QVec qv;
 		for (const auto& _q : m_used_qubits){
 			qv += { _q };
@@ -97,11 +97,11 @@ protected:
 	}
 
 	/*!
-   * @brief  Execution traversal reset node
-   * @param[in,out]  AbstractQuantumReset*  reset node
-   * @param[in]  AbstractQGateNode*  quantum gate
-   * @return     void
-   */
+    * @brief  Execution traversal reset node
+    * @param[in,out]  AbstractQuantumReset*  reset node
+    * @param[in]  AbstractQGateNode*  quantum gate
+    * @return     void
+    */
 	void execute(std::shared_ptr<AbstractQuantumReset> cur_node, std::shared_ptr<QNode> parent_node, QCircuitParam &cir_param, NodeIter& cur_node_iter)override {
 		if (cir_param.m_control_qubits.size() > 0) {
 			QCERR_AND_THROW(run_fail, "Error: illegal control-qubits on reset node.");

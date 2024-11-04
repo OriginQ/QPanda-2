@@ -92,7 +92,7 @@ struct OptimizerNodeInfo : public NodeInfo
 using pOptimizerNodeInfo = std::shared_ptr<OptimizerNodeInfo>;
 using SinkPos = std::map<size_t, size_t>;
 using GatesBufferType = std::pair<size_t, std::vector<pOptimizerNodeInfo>>;
-class QubitNodesSink : public std::map<size_t, std::vector<pOptimizerNodeInfo>>
+class QubitNodesSink : public std::map<size_t, std::vector<pOptimizerNodeInfo>, std::less<size_t>>
 {
 public:
 	using QubitNodesSinkItr = std::map<size_t, std::vector<pOptimizerNodeInfo>>::iterator;
@@ -153,7 +153,7 @@ public:
 	}
 
 protected:
-	SinkPos m_data_size;
+	SinkPos m_data_size; /**< Number of logic gates on each qubit */
 };
 
 
@@ -255,7 +255,7 @@ public:
 
     void move_measure_to_last(LayeredTopoSeq& seq);
 
-    void prog_layer_by_double_gate(LayeredTopoSeq& seq);
+    //void prog_layer_by_double_gate(LayeredTopoSeq& seq);
 
 protected:
 	void process(const bool on_travel_end = false) override;
@@ -286,7 +286,7 @@ LayeredTopoSeq prog_layer(QProg src_prog);
 * @param[in] prog  the source prog
 * @return the TopologSequence
 */
-LayeredTopoSeq get_chip_layer(QProg src_prog, ChipID chip_id = ChipID::Simulation, QuantumMachine *quantum_machine = nullptr);
+//LayeredTopoSeq get_chip_layer(QProg src_prog, ChipID chip_id = ChipID::Simulation, QuantumMachine *quantum_machine = nullptr);
 LayeredTopoSeq get_clock_layer(QProg src_prog, const std::string config_data = CONFIG_PATH);
 
 /*new interface*/

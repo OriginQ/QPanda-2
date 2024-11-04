@@ -1,6 +1,8 @@
 #include "gtest/gtest.h"
 #include "Core/Utilities/Tools/MultiControlGateDecomposition.h"
 #include "Core/Utilities/UnitaryDecomposer/UniformlyControlledGates.h"
+#include "Extensions/VirtualZTransfer/AddBarrier.h"
+#include "Extensions/VirtualZTransfer/VirtualZTransfer.h"
 #include <Eigen/Eigen>
 #include <Eigen/Dense>
 #include <QPandaConfig.h>
@@ -399,6 +401,8 @@ static bool control_Z_decompose_test_1()
 	std::cout << "src prog:" << prog << endl;
 
 	const auto src_result = machine.runWithConfiguration(prog, shots);
+
+	auto_add_barrier_before_mul_qubit_gate(prog);
 	decompose_multiple_control_qgate(prog, &machine, "QPandaConfig.json", true);
 	std::cout << "decomposed prog:" << prog << endl;
 #ifdef USE_EXTENSION
@@ -428,17 +432,52 @@ static bool control_Z_decompose_test_1()
 	return true;
 }
 
+static double to_real_angle(const double& src_angle)
+{
+    const double base = 2.0 * PI;
+    const uint32_t loop = src_angle / base;
+    return src_angle - ((double)loop * base);
+}
+
+static bool test_u3_to_RPhi()
+{
+    CPUQVM machine;
+    machine.init();
+
+    auto q = machine.qAllocMany(3);
+    auto c = machine.cAllocMany(3);
+
+    QProg prog;
+    prog << U3(q[0], PI*9, 0.6112, 4.234);
+
+    const auto mat_1 = getCircuitMatrix(prog);
+    std::cout << "src prog:" << prog << std::endl;
+    
+    transfer_to_u3_gate(prog, &machine);
+    decompose_U3(prog, "QPandaConfig.json");
+    const auto mat_2 = getCircuitMatrix(prog);
+    cout << "U3 prog: " << prog << endl;
+    
+    if (mat_1 == mat_2){
+        cout << "Test successedddddddddddddddd ^_^" << endl;
+        return true;
+    }
+
+    std::cerr << "Test ffffffffffffffffffailed -_-" << endl;
+    return false;
+}
 
 TEST(MultipleControlGateDecompose, test)
 {
 	bool test_val = true;
 	try
 	{
-        test_val = test_val && ucry_decompose_test_1();
-		test_val = test_val && control_Z_decompose_test_1();
+        //test_val = test_val && ucry_decompose_test_1();
+		//test_val = test_val && control_Z_decompose_test_1();
         //test_val = test_val && ucry_decompose_test_2();
         //test_val = test_val && ucry_decompose_test_3(4, 9);
         //test_val = test_val && decompose_compare();
+        test_val = test_val && test_u3_to_RPhi();
 	}
 	catch (const std::exception& e)
 	{

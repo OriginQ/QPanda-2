@@ -65,33 +65,48 @@ void RemapQProg::execute(std::shared_ptr<AbstractQuantumReset> cur_node, std::sh
 
 QProg RemapQProg::remap(QProg src_prog, QVec target_qv, std::vector<ClassicalCondition> target_cv)
 {
-	GetAllUsedQubitAndCBit get_qubit_object;
-	get_qubit_object.traversal(src_prog);
+    GetAllUsedQubitAndCBit get_qubit_object;
+    get_qubit_object.traversal(src_prog);
 
-	const auto src_qubit_vec = get_qubit_object.get_used_qubits();
-	const auto src_cbit_vec = get_qubit_object.get_used_cbits_i();
-	const auto qubit_cnt = src_qubit_vec.size();
-	const auto cbit_cnt = src_cbit_vec.size();
-	if ((target_qv.size() < qubit_cnt) || (target_cv.size() < cbit_cnt)){
-		QCERR_AND_THROW(run_fail, "Error: The number of target qubit or cbit is error.");
-	}
+    const auto src_qubit_vec = get_qubit_object.get_used_qubits();
+    const auto src_cbit_vec_i = get_qubit_object.get_used_cbits_i();
+    const auto src_cbit_vec = get_qubit_object.get_used_cbits();
 
-	for (size_t i = 0; i < qubit_cnt; ++i) {
-		m_qubit_map.insert(std::make_pair(src_qubit_vec[i]->get_phy_addr(), target_qv.at(i)));
-	}
+    const auto qubit_cnt = src_qubit_vec.size();
+    const auto cbit_cnt = src_cbit_vec_i.size();
 
-	for (auto i = 0; i < cbit_cnt; ++i) {
-		m_cbit_map.insert(std::make_pair(src_cbit_vec[i], target_cv.at(i)));
-	}
+    if (target_qv.size() < qubit_cnt) {
+        QCERR_AND_THROW(run_fail, "Error: The number of target qubit is error.");
+    }
 
-	traverse_qprog(src_prog);
-	return m_out_prog;
+    if (target_cv.size() != 0 && target_cv.size() < cbit_cnt)
+    {
+        QCERR_AND_THROW(run_fail, "Error: The number of target cbit is error.");
+    }
+
+    for (size_t i = 0; i < qubit_cnt; ++i) {
+        m_qubit_map.insert(std::make_pair(src_qubit_vec[i]->get_phy_addr(), target_qv.at(i)));
+    }
+
+    for (auto i = 0; i < cbit_cnt; ++i) {
+        if (target_cv.size() != 0)
+        {
+            m_cbit_map.insert(std::make_pair(src_cbit_vec_i[i], target_cv.at(i)));
+        }
+        else
+        {
+            m_cbit_map.insert(std::make_pair(src_cbit_vec_i[i], src_cbit_vec[i]));
+        }
+    }
+
+    traverse_qprog(src_prog);
+    return m_out_prog;
 }
 
 /*******************************************************************
 *                      public interface
 ********************************************************************/
-QProg QPanda::remap(QProg src_prog, const QVec& target_qv, const std::vector<ClassicalCondition>& target_cv)
+QProg QPanda::remap(QProg src_prog, const QVec& target_qv, const std::vector<ClassicalCondition>& target_cv = {})
 {
 	return RemapQProg().remap(src_prog, target_qv, target_cv);
 }

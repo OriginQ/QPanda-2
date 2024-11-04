@@ -7,7 +7,10 @@ USING_QPANDA
 QNodeManager::QNodeManager(const QNode* parent)
 	:m_parent(parent)
 {
-	m_head = new OriginItem();
+	if (!(m_head = new (std::nothrow) OriginItem()))
+	{
+		return;
+	}
 	m_head->setNext(m_head);
 	m_head->setPre(m_head);
 	m_end = m_head;

@@ -15,7 +15,7 @@ funtions for the simulation tomography
 #include "Core/QuantumMachine/OriginQuantumMachine.h"
 #include "Core/QuantumMachine/QuantumMachineInterface.h"
 #include "Core/QuantumCircuit/QNodeDeepCopy.h"
-#include "include/QAlg/Base_QCircuit/AmplitudeEncode.h"
+#include "QAlg/Base_QCircuit/AmplitudeEncode.h"
 
 QPANDA_BEGIN
 

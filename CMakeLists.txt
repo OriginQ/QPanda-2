@@ -2,24 +2,21 @@ cmake_minimum_required(VERSION 3.1)
 project(QPANDA)
 
 set(QPANDA_MAJOR_VERSION 2)
-set(QPANDA_MINOR_VERSION 1)
-set(QPANDA_PATCH_VERSION 17)
+set(QPANDA_MINOR_VERSION 8)
+set(QPANDA_PATCH_VERSION 10)
 set(QPANDA_VERSION "${QPANDA_MAJOR_VERSION}.${QPANDA_MINOR_VERSION}.${QPANDA_PATCH_VERSION}")
 message(STATUS "QPANDA VERSION = " "[${QPANDA_VERSION}]")
 # disable compiler verbose output, default is off, enable it when want to check compiler/linker option
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
 include_directories(${PROJECT_SOURCE_DIR}/Extensions
+                    ${PROJECT_SOURCE_DIR}/Components/Utils
+                    ${PROJECT_SOURCE_DIR}/Components/Operator
+                    ${PROJECT_SOURCE_DIR}/Components/Optimizer
+                    ${PROJECT_SOURCE_DIR}/Components/HamiltonianSimulation
+                    ${PROJECT_SOURCE_DIR}/Components/MaxCutProblemGenerator
                     ${PROJECT_SOURCE_DIR}/include
                     ${PROJECT_SOURCE_DIR}/include/Applications
-                    ${PROJECT_SOURCE_DIR}/include/QAlg
-                    ${PROJECT_SOURCE_DIR}/include/QAlg/Components
-                    ${PROJECT_SOURCE_DIR}/include/QAlg/Components/Optimizer
-                    ${PROJECT_SOURCE_DIR}/include/QAlg/Components/Operator
-                    ${PROJECT_SOURCE_DIR}/include/QAlg/Components/MaxCutProblemGenerator
-                    ${PROJECT_SOURCE_DIR}/include/QAlg/Components/HamiltonianSimulation
-                    ${PROJECT_SOURCE_DIR}/include/QAlg/Utils
-                    ${PROJECT_SOURCE_DIR}/include/QAlg/Utils/RJson
                     ${PROJECT_SOURCE_DIR}/include/Core
                     ${PROJECT_SOURCE_DIR}/include/Core/VirtualQuantumProcessor
                     ${PROJECT_SOURCE_DIR}/include/Core/VirtualQuantumProcessor/NoiseQPU
@@ -33,8 +30,10 @@ include_directories(${PROJECT_SOURCE_DIR}/Extensions
                     ${PROJECT_SOURCE_DIR}/include/Core/Utilities/Transform/OriginIRCompiler
                     ${PROJECT_SOURCE_DIR}/include/Variational
                     ${PROJECT_SOURCE_DIR}/ThirdParty
-                    ${PROJECT_SOURCE_DIR}/ThirdParty/gtest
-                    ${PROJECT_SOURCE_DIR}/ThirdParty/gtest/include
+                    # ${PROJECT_SOURCE_DIR}/ThirdParty/gtest
+                    # ${PROJECT_SOURCE_DIR}/ThirdParty/gtest/include
+                    ${PROJECT_SOURCE_DIR}/ThirdParty/googletest
+                    ${PROJECT_SOURCE_DIR}/ThirdParty/googletest/include
                     ${PROJECT_SOURCE_DIR}/ThirdParty/bplus-tree
                     ${PROJECT_SOURCE_DIR}/ThirdParty/bplus-tree/include
                     ${PROJECT_SOURCE_DIR}/ThirdParty/antlr4/runtime/src
@@ -63,12 +62,13 @@ set(EXTRA_LDFLAGS)
 
 set(LIB_QPANDA QPanda2)
 set(LIB_GTEST gtest)
+# set(LIB_GOOGLETEST googletest)
 set(LIB_BPLUSTREE BplusTree)
 set(LIB_COMPONENTS Components)
 set(LIB_NLOPT nlopt)
 set(LIB_MPFIT mpfit)
 set(LIB_ANTLR4 antlr4)
-set(LIB_QALG QAlg)
+set(LIB_BZ2 bz2)
 
 set(LIB_PYQPANDA pyQPanda)
 set(LIB_PYQPANDA_PAUL pyQPandaPauliOperator)
@@ -76,21 +76,38 @@ set(LIB_PYQPANDA_PAUL pyQPandaPauliOperator)
 option(FIND_MPI "find MPI" OFF)
 option(DOCKER "Open Docker" OFF)
 option(FIND_CUDA "find cuda" OFF)
-option(FIND_OPENMP "find openMP" ON)
-option(USE_PYQPANDA "Enable pyQPanda" OFF)
+option(FIND_OPENMP "find openMP" OFF)
+option(USE_PYQPANDA "Enable pyQPanda" ON)
+if(${USE_PYQPANDA})
+    message(STATUS "USE_PYQPANDA=ON")
+endif()
+
 option(USE_EXTENSION "EXTENSION FUNTIONS" OFF)
+if(${USE_EXTENSION})
+    message(STATUS "USE_EXTENSION=ON")
+endif()
 option(USE_CURL "Enable the QCloudMachine" OFF)
-option(USE_OPENSSL "Enable the QCloudMachine" OFF)
 option(USE_MSVC_RUNTIME_LIBRARY_DLL "MD/MT" OFF)
 option(PYQPANDA_STUBGEN "generate stub file for pyQPanda" ON)
+if(${PYQPANDA_STUBGEN})
+    message(STATUS "PYQPANDA_STUBGEN=ON")
+endif()
 option(USE_SIMD "use simd  " OFF)
 option(USE_RANDOM_DEVICE "use random device " ON)
+
+# QHetu
+option(USE_QHETU "Use the QHetu library" OFF)
+
+option(USE_GTEST "gtest funtions" ON)
+option(USE_APPLICATIONS "Applications funtions" OFF)
+option(USE_BOTAN "botan funtions" OFF)
 
 if(NOT CMAKE_BUILD_TYPE)
    message(STATUS ":  No build type selected, default is Release")
    set(CMAKE_BUILD_TYPE "Release")
 endif()
-set(CMAKE_CXX_STANDARD 14)
+
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if(USE_SIMD)
@@ -115,32 +132,32 @@ if (MSVC)
         -DNOMINMAX 
         /bigobj) 
 
-    foreach (flag
-        CMAKE_C_FLAGS
-        CMAKE_C_FLAGS_DEBUG
-        CMAKE_C_FLAGS_RELEASE
-        CMAKE_C_FLAGS_MINSIZEREL
-        CMAKE_C_FLAGS_RELWITHDEBINFO
-        CMAKE_CXX_FLAGS
-        CMAKE_CXX_FLAGS_DEBUG
-        CMAKE_CXX_FLAGS_RELEASE
-        CMAKE_CXX_FLAGS_MINSIZEREL
-        CMAKE_CXX_FLAGS_RELWITHDEBINFO)
+    if (NOT USE_MSVC_RUNTIME_LIBRARY_DLL)
+        foreach (flag
+            CMAKE_C_FLAGS
+            CMAKE_C_FLAGS_DEBUG
+            CMAKE_C_FLAGS_RELEASE
+            CMAKE_C_FLAGS_MINSIZEREL
+            CMAKE_C_FLAGS_RELWITHDEBINFO
+            CMAKE_CXX_FLAGS
+            CMAKE_CXX_FLAGS_DEBUG
+            CMAKE_CXX_FLAGS_RELEASE
+            CMAKE_CXX_FLAGS_MINSIZEREL
+            CMAKE_CXX_FLAGS_RELWITHDEBINFO)
 
-        if (NOT USE_MSVC_RUNTIME_LIBRARY_DLL)
             if (${flag} MATCHES "/MDd")
-                string(REGEX REPLACE "/MDd" "/MTd" ${flag} "${${flag}}")
+                string(REGEX REPLACE "/MDd" "/MT" ${flag} "${${flag}}")
             endif()
 
             if (${flag} MATCHES "/MD")
                 string(REGEX REPLACE "/MD" "/MT" ${flag} "${${flag}}")
             endif()
-        endif()
-
-        if (${flag} MATCHES "/W3")
-            string(REGEX REPLACE "/W3" "/W0" ${flag} "${${flag}}")
-        endif()
-    endforeach()
+            
+            if (${flag} MATCHES "/W3")
+                string(REGEX REPLACE "/W3" "/W0" ${flag} "${${flag}}")
+            endif()
+        endforeach()
+    endif()
 elseif (MINGW)
     list(APPEND EXTRA_LDFLAGS
         -w
@@ -166,6 +183,7 @@ elseif (UNIX)
 endif()
 
 add_definitions(${EXTRA_LDFLAGS} ${SIMD_FLAGS})
+set(USE_RANDOM_DEVICE OFF)
 if(USE_RANDOM_DEVICE)
     message(STATUS "use random device")
     add_definitions("-DUSE_RANDOM_DEVICE")
@@ -188,10 +206,10 @@ if(CUDA_FOUND)
     option (USE_CUDA "Use cuda" ON)
     include_directories(${CUDA_INCLUDE_DIRS})
     foreach(CUDA_LIB_DIR ${CUDA_LIBRARIES})
-		get_filename_component(CUDA_LIB_DIR ${CUDA_LIB_DIR} DIRECTORY)
-		list(APPEND LIB_DIR_LIST ${CUDA_LIB_DIR})
-	endforeach()
-	link_directories(${LIB_DIR_LIST})
+        get_filename_component(CUDA_LIB_DIR ${CUDA_LIB_DIR} DIRECTORY)
+        list(APPEND LIB_DIR_LIST ${CUDA_LIB_DIR})
+    endforeach()
+    link_directories(${LIB_DIR_LIST})
 else(CUDA_FOUND)
     option (USE_CUDA "Use cuda" OFF)
 endif(CUDA_FOUND)
@@ -214,7 +232,11 @@ if (USE_CURL)
     if (CURL_FOUND)
         option(USE_CURL "find Curl" ON)
         include_directories(${CURL_INCLUDE_DIRS})
-        list(APPEND LIB_LIST ${CURL_LIBRARIES})
+        if (NOT CURL_LIBRARIES)
+            list(APPEND LIB_LIST curl)
+        else ()
+            list(APPEND LIB_LIST ${CURL_LIBRARIES})
+        endif ()
 
     if (MSVC)
             get_filename_component(CURL_NAME "${CURL_LIBRARIES}" NAME_WE)
@@ -227,7 +249,8 @@ if (USE_CURL)
             )
             message(" -- Found CURL_DLL: " ${CURL_DLL})
             add_custom_command(OUTPUT COPY_RES
-               COMMAND ${CMAKE_COMMAND} -E copy ${CURL_DLL} ${EXECUTABLE_OUTPUT_PATH}
+                COMMAND ${CMAKE_COMMAND} -E make_directory ${EXECUTABLE_OUTPUT_PATH}
+                COMMAND ${CMAKE_COMMAND} -E copy ${CURL_DLL} ${EXECUTABLE_OUTPUT_PATH}
                 )
            add_custom_target(CopyCurlTask ALL DEPENDS COPY_RES)
     endif()
@@ -259,71 +282,80 @@ elseif(MPI_FOUND)
     option(USE_MPI "not find MPI" OFF)
 endif (MPI_FOUND)
 
-if (USE_OPENSSL)
-    
-    if (NOT MSVC)
-        set(OPENSSL_USE_STATIC_LIBS TRUE)
+if(USE_QHETU)
+
+    set(QHETU_PATH $ENV{QHETU_PATH})
+
+    if(NOT QHETU_PATH)
+        message(FATAL_ERROR "QHETU_PATH environment variable is not set")
     endif()
-    find_package(OpenSSL 1.1 COMPONENTS Crypto)
 
-    if(OPENSSL_FOUND)
-        option(USE_OPENSSL "find OPENSSL" ON)
+    if(NOT EXISTS "${QHETU_PATH}/include")
+        message(FATAL_ERROR "Include directory does not exist: ${QHETU_PATH}/include")
+    endif()
 
-        include_directories(${OPENSSL_INCLUDE_DIR})
-        list(APPEND LIB_LIST ${OPENSSL_LIBRARIES})
-        list(APPEND LIB_LIST ${OPENSSL_CRYPTO_LIBRARY})
-        
-        if (MSVC)
-            set(OPENSSL_NAME "libcrypto")
-            get_filename_component(OPENSSL_PATH "${OPENSSL_INCLUDE_DIR}" DIRECTORY)
-            file(GLOB OPENSSL_DLL_LIST 
-                "${OPENSSL_PATH}/bin/${OPENSSL_NAME}*.dll"
-                "${OPENSSL_PATH}/debug/bin/${OPENSSL_NAME}*.dll"
-                "${OPENSSL_PATH}/lib/${OPENSSL_NAME}*.dll")
+    if(NOT EXISTS "${QHETU_PATH}/lib")
+        message(FATAL_ERROR "Library directory does not exist: ${QHETU_PATH}/lib")
+    endif()
 
-            if(OPENSSL_DLL_LIST)
-                list(GET OPENSSL_DLL_LIST 0 OPENSSL_DLL)
-                message(" -- Found OpenSSL DLL: " ${OPENSSL_DLL})
-            else()
-                message("OpenSSL DLL not found.")
-            endif()
+    if(MSVC)
+        include_directories(${QHETU_PATH}/include)
+        set(QHETU_LIB "${QHETU_PATH}/lib/QHetu.lib")
 
-            add_custom_command(OUTPUT COPY_OPENSSL_RES
-                COMMAND ${CMAKE_COMMAND} -E copy ${OPENSSL_DLL} ${EXECUTABLE_OUTPUT_PATH})
-            add_custom_target(CopyOpensslTask ALL DEPENDS COPY_OPENSSL_RES)        
-        endif()
-    else (OPENSSL_FOUND)
-    # as use OPTION command, CMakeCahe have saved OPENSSL_FOUND = ON, cmake then will read CMakeCache
-    # use FORCE to turnoff  OPENSSL_FOUND in CMakeCache
-    set(USE_OPENSSL OFF CACHE BOOL "not find Curl" FORCE)
-    endif (OPENSSL_FOUND)
+        find_file(QHETU_DLL 
+            names "QHetu.dll"
+            PATHS "${QHETU_PATH}/lib/"
+            NO_DEFAULT_PATH)
+
+        message(" -- Found QHetu DLL: " ${QHETU_DLL})
+        add_custom_command(OUTPUT COPY_QHETU_RES
+            COMMAND ${CMAKE_COMMAND} -E make_directory ${EXECUTABLE_OUTPUT_PATH}
+            COMMAND ${CMAKE_COMMAND} -E copy ${QHETU_DLL} ${EXECUTABLE_OUTPUT_PATH}
+            )
+        add_custom_target(CopyQHetuTask ALL DEPENDS COPY_QHETU_RES)
+    elseif(UNIX)
+        include_directories(${QHETU_PATH}/include/QHetu-3)
+        set(QHETU_LIB "${QHETU_PATH}/lib/libQHetu-3.a")
+    endif()
+    list(APPEND LIB_LIST ${QHETU_LIB})
+
+    message(" -- Found QHetu Lib: ${QHETU_LIB}")
 endif()
 
 add_subdirectory(ThirdParty)
 add_subdirectory(Core)
 add_subdirectory(Components)
-add_subdirectory(QAlg)
-add_subdirectory(Applications)
-add_subdirectory(test)
+
+if(USE_APPLICATIONS)
+    add_subdirectory(Applications)
+endif()
+
+if(USE_GTEST)
+    message(STATUS "USE_GTEST")
+    add_subdirectory(test)
+endif()
 
 if(USE_PYQPANDA)
     include_directories(${PROJECT_SOURCE_DIR}/pyQPandaCpp)
     add_subdirectory(pyQPandaCpp)
 endif(USE_PYQPANDA)
+message(STATUS "USE_PYQPANDA" ${USE_PYQPANDA})
 
+
+get_property(include_dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
 if(NOT (WINDOWS OR CYGWIN))
-	set(prefix ${CMAKE_INSTALL_PREFIX})
-	set(exec_prefix "\${prefix}")
-	set(libdir "\${exec_prefix}/lib${LIB_SUFFIX}")
-	set(bindir "\${exec_prefix}/bin")
-	set(includedir "\${prefix}/include")
-	set(QPANDA_LIBS "-lComponents -lQAlg -lQPanda2 -lantlr4")
-	set(QPANDA_CFLAGS "")
-	configure_file("${PROJECT_SOURCE_DIR}/qpanda-config.in"
-			        "${PROJECT_BINARY_DIR}/qpanda-config")
-	configure_file("${PROJECT_SOURCE_DIR}/qpanda-config.in"
-			        "${PROJECT_BINARY_DIR}/qpanda-config" @ONLY)
-	install(PROGRAMS ${PROJECT_BINARY_DIR}/qpanda-config DESTINATION bin)
+    set(prefix ${CMAKE_INSTALL_PREFIX})
+    set(exec_prefix "\${prefix}")
+    set(libdir "\${exec_prefix}/lib${LIB_SUFFIX}")
+    set(bindir "\${exec_prefix}/bin")
+    set(includedir "\${prefix}/include")
+    set(QPANDA_LIBS "-lComponents -lQAlg -lQPanda2 -lantlr4")
+    set(QPANDA_CFLAGS "")
+    configure_file("${PROJECT_SOURCE_DIR}/qpanda-config.in"
+                    "${PROJECT_BINARY_DIR}/qpanda-config")
+    configure_file("${PROJECT_SOURCE_DIR}/qpanda-config.in"
+                    "${PROJECT_BINARY_DIR}/qpanda-config" @ONLY)
+    install(PROGRAMS ${PROJECT_BINARY_DIR}/qpanda-config DESTINATION bin)
 endif()
 
 
@@ -350,7 +382,8 @@ set(CMAKE_INSTALL_DIR "${_CMAKE_INSTALL_DIR}")
 
 set(QPANDA_CONFIG "QPandaConfig.json")
 add_custom_command(OUTPUT ${QPANDA_CONFIG}
-   COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/${QPANDA_CONFIG} ${EXECUTABLE_OUTPUT_PATH}/${QPANDA_CONFIG}
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${EXECUTABLE_OUTPUT_PATH}
+    COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/${QPANDA_CONFIG} ${EXECUTABLE_OUTPUT_PATH}/${QPANDA_CONFIG}
  )
 add_custom_target(CopyQPandaConfig ALL DEPENDS ${QPANDA_CONFIG})
 

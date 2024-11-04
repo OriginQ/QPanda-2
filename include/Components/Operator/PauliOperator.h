@@ -11,6 +11,7 @@ Created in 2019-01-22
 #define _PAULIROPERATOR_H_
 
 #include <map>
+#include <string>
 #include <vector>
 #include <algorithm>
 #include "Core/Module/DataStruct.h"
@@ -34,6 +35,15 @@ public:
     using PauliData = std::vector<PauliItem>;  // [<[3X, 4Y], "3X 4Y">, T>, <<>,>]
     using PauliMap = std::map<std::string, T>;
     using PauliMatrix = std::vector<T>;
+
+    /**
+    * @note
+        The QTerm_reversed value char only will be 'X','Y','Z', 'I'.
+    */
+    using QTerm_reversed = std::map<size_t, char, std::greater<size_t>>;
+    using QPauliPair_reversed = std::pair<QTerm_reversed, std::string>;
+    using PauliItem_reversed = std::pair<QPauliPair_reversed, T>; // <<[4X, 3Y], "4X 3Y">, T>
+    using PauliData_reversed = std::vector<PauliItem_reversed>;  // [<<[4X, 3Y], "4X 3Y">, T>, <<>,>]
 
 public:
 	/**
@@ -160,53 +170,11 @@ public:
         return PauliOp(tmp_data);
     }
 
-    void reorderReduce(const size_t ne)
-    {
-        if (ne % 2)  return;
-        using pairPTerm = std::pair<size_t, char>;
-
-        //printf("NOTE: The number of qubits has been reduced by two\n");
-
-        size_t nbit = getMaxIndex(), nb2 = nbit / 2; bool fg = (ne / 2) % 2;
-        std::string snd; QTerm fst;
-        size_t o; char v;
-
-        for (PauliItem& pi : m_data) // <[3X, 4Y], "3X 4Y">, T>,
-        {
-            QPauliPair pif = pi.first; // <[3X, 4Y], "3X 4Y">
-            if (!pif.second.size()) continue;
-
-            fst.clear(); snd = ""; // "3X 4Y"
-            for (auto& p : pif.first) // [3X, 4Y]
-            {
-                o = p.first; v = p.second;
-
-                if (o < nb2)
-                {
-                    fst.insert(p);
-                    snd += v + std::to_string(o) + " ";
-                }
-                else if (o == nb2)
-                {
-                    if (fg) pi.second = pi.second * (-1.0);
-                }
-                else if (o < nbit)
-                {
-                    fst.insert(pairPTerm(o - 1, v));
-                    snd += v + std::to_string(o - 1) + " ";
-                }
-            }
-            pi.first = QPauliPair(fst, snd);
-        }
-
-        //reduceDuplicates();
-    }
-
 	/**
-	* @brief get the max index
-	* @return size_t the max index
+	* @brief get the max index of pauli string
+	* @return size_t
 	*/
-    size_t getMaxIndex() const
+    size_t getMaxIndex()
     {
         int max_index = -1;
         for (size_t i = 0; i < m_data.size(); i++)
@@ -221,8 +189,6 @@ public:
                 }
             }
         }
-
-        //max_index++;
         if (m_data.size() == 0) {
             return SIZE_MAX;
         }
@@ -396,6 +362,11 @@ public:
         return n;
     }
 
+    /**
+    * @brief transform Pauli Hamiltonian to matrix by getCircuitMatrix
+    * @param[in] void
+    * @return QMatrixXcd
+    */
     QMatrixXcd to_matrix()
     {
         auto max_idx = getMaxIndex();
@@ -447,6 +418,131 @@ public:
             }
 
             return QStat_to_Eigen(full_matrix);
+        }
+        else
+        {
+            QCERR_AND_THROW(run_fail, "matrix data type error")
+        }
+    }
+
+    /**
+    * @brief transform Pauli Hamiltonian to matrix by kroneckerProduct
+    * @param[in] void
+    * @return QMatrixXcd
+    */
+    QMatrixXcd matrix()
+    {
+        // transform "X0 X3" to "X3 I2 I1 X0"
+        PauliData_reversed pauli_data;
+        size_t nbit = getMaxIndex() + 1;
+        for (size_t i = 0; i < m_data.size(); ++i)
+        {
+            auto item = m_data[i]; // [3X, 4Y], "3X 4Y">, T
+            auto pair = item.first; // [3X, 4Y], "3X 4Y"
+            auto value_T = item.second; // T
+            QTerm term = pair.first; // [3X, 4Y], 
+
+            QPauliPair_reversed pair_reversed;
+            QTerm_reversed term_reversed;
+            for (size_t j = 0; j < nbit; ++j)
+            {
+                bool find = false;
+                if (!term.empty())
+                {
+                    for (auto& t : term)
+                    {
+                        if (t.first == j)
+                        {
+                            term_reversed.insert(std::make_pair(t.first, t.second));
+                            find = true;
+                            break;
+                        }
+                    }
+                }
+                if (!find)
+                {
+                    term_reversed.insert(std::make_pair(j, 'I'));
+                }
+            }
+
+            std::string sn = "";
+            for (auto iter = term_reversed.begin(); iter != term_reversed.end(); iter++)
+            {
+                if (std::next(iter) == term_reversed.end())
+                {
+                    sn += (iter->second + std::to_string(iter->first));
+                }
+                else
+                {
+                    sn += (iter->second + std::to_string(iter->first) + " ");
+                }
+            }
+            pair_reversed.first = term_reversed;
+            pair_reversed.second = sn;
+
+            pauli_data.emplace_back(std::make_pair(pair_reversed, value_T));
+        }
+
+        // transform "X3 I2 I1 X0" to QMatrixXcd
+        QMatrixXcd I_matrix = QMatrixXcd::Identity(2, 2);
+        QMatrixXcd X_matrix(2, 2);  X_matrix << 0, 1, 1, 0;
+        QMatrixXcd Y_matrix(2, 2); Y_matrix << 0, complex_d(0, -1), complex_d(0, 1), 0;
+        QMatrixXcd Z_matrix(2, 2); Z_matrix << 1, 0, 0, -1;
+        QMatrixXcd full_matrix; bool full_empty = true;
+        if (std::is_same<T, complex_d>::value)
+        {
+            for (const auto& val : pauli_data)
+            {
+                auto t1 = std::chrono::steady_clock::now();
+                QMatrixXcd subitem_matrix; bool sub_empty = true;
+                auto pauli_pair = val.first;
+                auto item = val.second;
+
+                auto pauli_map = pauli_pair.first;
+                for (const auto& pauli : pauli_map)
+                {
+                    QMatrixXcd gate_mat;
+                    if (pauli.second == 'X')
+                    {
+                        gate_mat = X_matrix;
+                    }
+                    else if (pauli.second == 'Y')
+                    {
+                        gate_mat = Y_matrix;
+                    }
+                    else if (pauli.second == 'Z')
+                    {
+                        gate_mat = Z_matrix;
+                    }
+                    else if (pauli.second == 'I')
+                    {
+                        gate_mat = I_matrix;
+                    }
+                    else
+                    {
+                        QCERR_AND_THROW(run_fail, "pauli type error");
+                    }
+
+                    if (sub_empty)
+                    {
+                        subitem_matrix = gate_mat;  sub_empty = false;
+                    }
+                    else
+                    {
+                        QMatrixXcd temp = kroneckerProduct(subitem_matrix, gate_mat);
+                        subitem_matrix = temp;
+                    }
+                }
+                if (full_empty)
+                {
+                    full_matrix = item * subitem_matrix; full_empty = false;
+                }
+                else
+                {
+                    full_matrix = full_matrix + item * subitem_matrix;
+                }
+            }
+            return full_matrix;
         }
         else
         {
@@ -806,6 +902,139 @@ public:
         m_data = std::move(pauli_data);
     }
 
+    void reorderReduce(const size_t ne)
+    {
+        if (ne % 2)  return;
+        using pairPTerm = std::pair<size_t, char>;
+
+        //printf("NOTE: The number of qubits has been reduced by two\n");
+
+        size_t nbit = getMaxIndex(), nb2 = nbit / 2; bool fg = (ne / 2) % 2;
+        std::string snd; QTerm fst;
+        size_t o; char v;
+
+        for (PauliItem& pi : m_data) // <[3X, 4Y], "3X 4Y">, T>,
+        {
+            QPauliPair pif = pi.first; // <[3X, 4Y], "3X 4Y">
+            if (!pif.second.size()) continue;
+
+            fst.clear(); snd = ""; // "3X 4Y"
+            for (auto& p : pif.first) // [3X, 4Y]
+            {
+                o = p.first; v = p.second;
+
+                if (o < nb2)
+                {
+                    fst.insert(p);
+                    snd += v + std::to_string(o) + " ";
+                }
+                else if (o == nb2)
+                {
+                    if (fg) pi.second = pi.second * (-1.0);
+                }
+                else if (o < nbit)
+                {
+                    fst.insert(pairPTerm(o - 1, v));
+                    snd += v + std::to_string(o - 1) + " ";
+                }
+            }
+            pi.first = QPauliPair(fst, snd);
+        }
+
+        //reduceDuplicates();
+    }
+
+    /**
+    * @brief reduce two qubits when using parity mapping (even electorn)
+    * @param[in] size_t
+    * @return void
+    */
+    void twoQubitReduce(size_t nelec)
+    {
+        if (nelec % 2 == 1 )
+        {
+            QCERR_AND_THROW_ERRSTR(std::runtime_error, "electron number is odd, can't use qubit reducing!");
+        }
+        size_t nbit = getMaxIndex() + 1;
+        std::vector<size_t> reduced_qubits = {nbit/2 - 1, nbit - 1};
+        std::vector<size_t> reduced_qubit_state = {1, 0};
+        if ((nelec / 2) % 2 == 0)
+        {
+            reduced_qubit_state = {0, 0};
+        }
+        PauliData pauli_data;
+        for (size_t i = 0; i < m_data.size(); ++i)
+        {
+            auto item = m_data[i]; // [3X, 4Y], "3X 4Y">, T
+            auto pair = item.first; // [3X, 4Y], "3X 4Y"
+            auto value = item.second; // T
+            QTerm term = pair.first; // [3X, 4Y], 
+
+            std::vector<size_t> term_key;
+            for (auto& t : term)
+            {
+                size_t tmp = t.first;
+                for (size_t j = 0; j < reduced_qubits.size(); ++j)
+                {
+                    // find pauli char that will be deleted by qubit id
+                    if (t.first == reduced_qubits[j])
+                    {
+                        if (t.second != 'Z')
+                        {
+                            throw std::runtime_error("error in twoQubitReduce!\n");
+                        }
+                        // if reduced_qubit_state = 1, T * -1; else T invariability
+                        if (reduced_qubit_state[j] == 1)
+                        {
+                            auto re = -1 * value.real();
+                            auto im = -1 * value.imag();
+                            value = complex_d(re, im);
+                        }
+                        term_key.emplace_back(reduced_qubits[j]);
+                    }
+                }
+            }
+
+            // delete pauli char
+            if (term_key.size() > 0)
+            {
+                for (auto& key : term_key)
+                {
+                    term.erase(key);
+                }
+            }
+
+            QTerm term_map;
+            for (auto& t : term)
+            {
+                size_t tmp = t.first;
+                if (t.first > reduced_qubits[0] && t.first < reduced_qubits[1])
+                {
+                    tmp = t.first - 1;
+                }
+                term_map.insert(std::make_pair(tmp, t.second));
+            }
+
+            std::string sn = "";
+            for (auto iter = term_map.begin(); iter != term_map.end(); iter++)
+            {
+                if (std::next(iter) == term_map.end())
+                {
+                    sn += (iter->second + std::to_string(iter->first));
+                }
+                else
+                {
+                    sn += (iter->second + std::to_string(iter->first) + " ");
+                }
+            }
+            pair.first = term_map;
+            pair.second = sn;
+            pauli_data.emplace_back(std::make_pair(pair, value));
+        }
+        m_data = std::move(pauli_data);
+        reduceDuplicates();
+    }
+
 private:
 
     std::string QTerm2StdString(const QTerm &map) const
@@ -1040,4 +1269,5 @@ std::vector<double> transPauliOperatorToVec(PauliOperator pauli);
 PauliOperator matrix_decompose_hamiltonian(EigenMatrixX& matrix);
 std::vector<complex_d> transPauliOperatorToMatrix(const PauliOperator& opt);
 QPANDA_END
+
 #endif // _PAULIROPERATOR_H_

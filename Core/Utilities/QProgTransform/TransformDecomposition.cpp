@@ -317,8 +317,8 @@ void DecomposeDoubleQGate::execute(std::shared_ptr<AbstractQGateNode>  cur_node,
 			qCircuit.setControl(ctrl_qubits);
 		}
 
-		replace_qcircuit(cur_node.get(), qCircuit, parent_node.get());
-		return;
+        replace_qcircuit(cur_node.get(), qCircuit, parent_node.get());
+        return;
 	}
 
     QStat vMatrix;
@@ -865,13 +865,20 @@ void DecomposeControlUnitarySingleQGate::execute(std::shared_ptr<AbstractQGateNo
 
 	auto & type = TransformQGateType::getInstance();
 
-	for (auto aiter : m_valid_qgate_matrix[1])
-	{
-		if (cur_node->getQGate()->getGateType() == type[aiter])
-		{
-			return;
-		}
-	}
+    QVec ctrl_qv;
+    cur_node->getControlVector(ctrl_qv);
+    ctrl_qv += cir_param.m_control_qubits;
+
+    if (ctrl_qv.size() == 0)
+    {
+        for (auto aiter : m_valid_qgate_matrix[1])
+        {
+            if (cur_node->getQGate()->getGateType() == type[aiter])
+            {
+                return;
+            }
+        }
+    }
 
     if (cur_node->getTargetQubitNum() == 1)
     {
@@ -882,7 +889,7 @@ void DecomposeControlUnitarySingleQGate::execute(std::shared_ptr<AbstractQGateNo
 	auto control_qubit = cur_node->popBackQuBit();
 
 #if 1
-	if (gate_type == CNOT_GATE)
+	if ((gate_type == CNOT_GATE) && (ctrl_qv.size() == 0))
 	{
 		for (auto aiter : m_valid_qgate_matrix[1])
 		{
@@ -1910,7 +1917,7 @@ void TransformDecomposition::TraversalOptimizationMerge(QProg & prog)
 void TransformDecomposition::decompose_double_qgate(QProg & prog, bool b_decompose_multiple_gate /*= true*/)
 {
 	flatten(prog, true);
-
+    
 	//double gate to : x + cnot + cu
 	Traversal::traversal(prog.getImplementationPtr(), m_decompose_double_gate);
 
@@ -2218,7 +2225,10 @@ void QPanda::decompose_multiple_control_qgate(QProg& prog, QuantumMachine *quant
 {
 	if (!(CheckMultipleControlQGate().exist_multiple_gate(prog)))
 	{
-		transform_to_base_qgate(prog, quantum_machine, config_data);
+        if (b_transform_to_base_qgate){
+            transform_to_base_qgate(prog, quantum_machine, config_data);
+        }
+		
 		return;
 	}
 
@@ -2258,7 +2268,10 @@ void QPanda::decompose_multiple_control_qgate_withinarg(QProg& prog, QuantumMach
 {
     if (!(CheckMultipleControlQGate().exist_multiple_gate(prog)))
     {
-        transform_to_base_qgate_withinarg(prog, quantum_machine, q_gate);
+        if (b_transform_to_base_qgate){
+            transform_to_base_qgate_withinarg(prog, quantum_machine, q_gate);
+        }
+        
         return;
     }
 

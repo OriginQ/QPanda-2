@@ -7,7 +7,7 @@ using namespace std;
 USING_QPANDA
 #define  OUTPUT_MAX_QNUM 30
 
-SingleAmplitudeQVM::SingleAmplitudeQVM()
+SingleAmplitudeQVM::SingleAmplitudeQVM() : QVM()
 {
 	m_backend = ComputeBackend::CPU;
 	m_single_gate_none_angle.insert({ GateType::PAULI_X_GATE,      X_Gate });
@@ -40,11 +40,13 @@ SingleAmplitudeQVM::SingleAmplitudeQVM()
 
 void SingleAmplitudeQVM::init()
 {
+    finalize();
 	_start();
 }
 
 void SingleAmplitudeQVM::run(QProg& prog, QVec& qv, size_t max_rank, size_t alloted_time)
 {
+    flatten(prog);
 	/** 1. get QuickBB vertice  */
 	m_prog = prog;
 	m_prog_map.clear();
@@ -76,6 +78,7 @@ void SingleAmplitudeQVM::run(QProg& prog, QVec& qv, size_t max_rank, size_t allo
 void SingleAmplitudeQVM::run(QProg& prog, QVec& qv, size_t max_rank,
 	const std::vector<qprog_sequence_t>& sequences)
 {
+    flatten(prog);
 	m_prog = prog;
 	m_sequences = sequences;
 	m_prog_map.clear();

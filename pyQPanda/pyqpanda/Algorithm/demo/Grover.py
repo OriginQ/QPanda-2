@@ -11,16 +11,28 @@ from pyqpanda import *
 from pyqpanda.utils import *
 
 def Three_Qubit_Grover_Circuit(qubits, ancilla, data_pos):
-    '''
-    
-    Three Qubit Grover Circuit Generator\n
-    list<Qubit>, Qubit, int -> QCircuit\n
+    """
+    Constructs a three-qubit Grover circuit for searching an unsorted database.
 
-    Args:
-        qubits:   working qubits (len=2)
-        ancilla:  ancillary qubit
-        data_pos: suppose the data position
-    '''
+        Args:
+            qubits (list of Qubit): The two working qubits that will be used for the search process.
+            ancilla (Qubit): An auxiliary qubit used to assist in the search algorithm.
+            data_pos (int): The position of the marked item in the database.
+
+        Returns:
+            QCircuit: The constructed quantum circuit representing the Grover search algorithm.
+
+        Description:
+            This function generates a quantum circuit for the Grover's algorithm using three qubits:
+            two working qubits and one ancilla qubit. The algorithm is designed to find the marked item in
+            an unsorted database with a quadratic speedup compared to classical search methods.
+
+            The circuit performs a series of quantum gates including:
+            - NOT operation on the ancilla qubit.
+            - Hadamard (H) gates on all qubits to create superposition.
+            - A controlled phase shift (CNOT) gate that targets the ancilla qubit and the working qubits.
+            - The diffusion operator (T) on the working qubits to amplify the amplitude of the marked state.
+    """
     circ=QCircuit()
     
     
@@ -44,10 +56,30 @@ def Three_Qubit_Grover_Circuit(qubits, ancilla, data_pos):
     return circ
 
 def Three_Qubit_Grover_Demo():
-    '''
-    `QPanda Easy Demo`\n
-    Quantum algorithm easy demo : Grover's algorithm
-    '''
+    """
+    Demo for the Three-Qubit Grover's Algorithm Implementation in pyQPanda.
+
+    This function demonstrates the application of Grover's algorithm using a three-qubit system within the pyQPanda package. It initializes the quantum system, allocates qubits and ancillary qubits, constructs the Grover circuit, and performs measurements to find the marked state. The algorithm is executed for each of the four possible data positions, and the results are printed for analysis.
+
+        Usage:
+            The function runs Grover's algorithm on a quantum circuit simulator or quantum cloud service provided by pyQPanda.
+            It prints the position of the data to be searched and the results of the algorithm after 100 iterations.
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        Example:
+            Three_Qubit_Grover_Demo()
+
+        Details:
+            This function is designed to serve as an educational demonstration of Grover's algorithm in the context of pyQPanda.
+            The function iterates over all possible data positions, applying the Grover circuit and measurement process for each.
+            The `Three_Qubit_Grover_Circuit` function is used to construct the Grover circuit for the given data position.
+            The `run_with_configuration` function executes the quantum program and returns the measurement results.
+    """
 
     print("Demo for Grover Search\n")
     for data_position in range(4):

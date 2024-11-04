@@ -16,6 +16,7 @@ limitations under the License.
 
 #include "Core/Core.h"
 #include "QAlg/QAlg.h"
+#include "QAlg/HHL/HHL.h"
 #include "preconditionByOrigin.h"
 #include "Extensions/Extensions.h"
 

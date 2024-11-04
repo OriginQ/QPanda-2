@@ -1,5 +1,6 @@
 #include <set>
 #include <string>
+#include <Core/Core.h>
 #include "Core/Utilities/Tools/QStatMatrix.h"
 #include "Core/Utilities/Tools/QProgFlattening.h"
 #include "Core/Utilities/QProgInfo/QCircuitInfo.h"
@@ -59,7 +60,7 @@ void Stabilizer::init()
     return;
 }
 
-std::map<std::string, size_t> Stabilizer::runWithConfiguration(QProg &prog, int shots, const NoiseModel&)
+std::map<std::string, size_t> Stabilizer::runWithConfiguration(QProg &prog, int shots)
 {
     TraversalConfig traver_param;
     QProgCheck prog_check;
@@ -78,15 +79,35 @@ std::map<std::string, size_t> Stabilizer::runWithConfiguration(QProg &prog, int 
         cbits_vector.push_back(ClassicalCondition(cbit));
 
     std::map<string, size_t> result_map;
-    for (int i = 0; i < shots; i++)
+
+    if (m_noisy.enabled())
     {
-        run(prog);
-        std::string result_bin_str = _ResultToBinaryString(cbits_vector);
-        std::reverse(result_bin_str.begin(), result_bin_str.end());
-        if (result_map.find(result_bin_str) == result_map.end())
-            result_map[result_bin_str] = 1;
-        else
-            result_map[result_bin_str] += 1;
+        for (int i = 0; i < shots; i++)
+        {
+            auto noise_prog = m_noisy.generate_noise_prog(prog);
+            run(noise_prog);
+
+            std::string result_bin_str = _ResultToBinaryString(cbits_vector);
+            std::reverse(result_bin_str.begin(), result_bin_str.end());
+            if (result_map.find(result_bin_str) == result_map.end())
+                result_map[result_bin_str] = 1;
+            else
+                result_map[result_bin_str] += 1;
+        }
+    }
+    else
+    {
+        for (int i = 0; i < shots; i++)
+        {
+            run(prog);
+
+            std::string result_bin_str = _ResultToBinaryString(cbits_vector);
+            std::reverse(result_bin_str.begin(), result_bin_str.end());
+            if (result_map.find(result_bin_str) == result_map.end())
+                result_map[result_bin_str] = 1;
+            else
+                result_map[result_bin_str] += 1;
+        }
     }
 
     return result_map;
@@ -110,35 +131,40 @@ void Stabilizer::run(QProg& node, bool reset_state)
 
         switch (qnode->getNodeType())
         {
-        case NodeType::MEASURE_GATE:
-        {
-            auto measure_node = std::dynamic_pointer_cast<AbstractQuantumMeasure>(qnode);
-            auto qubit_addr = measure_node->getQuBit()->get_phy_addr();
-            auto cbit = measure_node->getCBit();
+            case NodeType::MEASURE_GATE:
+            {
+                auto measure_node = std::dynamic_pointer_cast<AbstractQuantumMeasure>(qnode);
+                auto qubit_addr = measure_node->getQuBit()->get_phy_addr();
+                auto cbit = measure_node->getCBit();
 
-            auto result = m_simulator->measure_and_update({ qubit_addr });
-            cbit->set_val(result[0]);
-            _QResult->append({ cbit->getName(), cbit->getValue() });
+                auto result = m_simulator->measure_and_update({ qubit_addr });
+                cbit->set_val(result[0]);
+                _QResult->append({ cbit->getName(), cbit->getValue() });
 
-            break;
-        }
+                break;
+            }
 
-        case NodeType::GATE_NODE:
-        {
-            auto gate_node = std::dynamic_pointer_cast<AbstractQGateNode>(qnode);
-            apply_gate(gate_node);
+            case NodeType::GATE_NODE:
+            {
+                auto gate_node = std::dynamic_pointer_cast<AbstractQGateNode>(qnode);
+                apply_gate(gate_node);
 
-            break;
-        }
-        case NodeType::RESET_NODE:
-        {
-            auto reset_node = std::dynamic_pointer_cast<AbstractQuantumReset>(qnode);
-            apply_reset(reset_node);
+                break;
+            }
+            case NodeType::RESET_NODE:
+            {
+                auto reset_node = std::dynamic_pointer_cast<AbstractQuantumReset>(qnode);
+                apply_reset(reset_node);
 
-            break;
-        }
+                break;
+            }
 
-        default:QCERR_AND_THROW(std::runtime_error, "invalid node for density matrix simulator");
+            default:
+            {
+                auto node_type = qnode->getNodeType();
+                QCERR_AND_THROW(std::runtime_error, "invalid node for stablizer simulator");
+            }
+            
         }
 
     }
@@ -288,4 +314,41 @@ prob_dict Stabilizer::probRunDict(QProg& prog, QVec qubits, int select_max)
         result_dict.insert({ dec2bin(i, qubits.size()), probs[i] });
 
     return result_dict;
+}
+
+
+/* bit-flip, phase-flip, bit-phase-flip, phase-damping, depolarizing*/
+void Stabilizer::set_noise_model(const NOISE_MODEL& model, const GateType& type, double prob)
+{
+    m_noisy.set_noise_model(model, type, prob);
+    return;
+}
+
+void Stabilizer::set_noise_model(const NOISE_MODEL& model, const std::vector<GateType> &types, double prob)
+{
+    for (const auto& val : types)
+        m_noisy.set_noise_model(model, val, prob);
+
+    return;
+}
+
+void Stabilizer::set_noise_model(const NOISE_MODEL& model, const GateType& type, double prob, const QVec& qubits)
+{
+    m_noisy.set_noise_model(model, type, prob, NoiseUtils::get_qubits_addr(qubits));
+    return;
+}
+
+void Stabilizer::set_noise_model(const NOISE_MODEL& model, const std::vector<GateType> &types, double prob, const QVec& qubits)
+{
+    for (const auto& val : types)
+        m_noisy.set_noise_model(model, val, prob, NoiseUtils::get_qubits_addr(qubits));
+
+    return;
+}
+
+
+void Stabilizer::set_noise_model(const NOISE_MODEL& model, const GateType& type, double prob, const std::vector<QVec>& qubits)
+{
+    m_noisy.set_noise_model(model, type, prob, NoiseUtils::get_qubits_addr(qubits));
+    return;
 }

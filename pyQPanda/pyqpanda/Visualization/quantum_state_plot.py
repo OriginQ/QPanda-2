@@ -15,6 +15,27 @@ from numpy import pi
 
 
 def config_colors(x, y, z, dx, dy, dz, color):
+    """
+    Configures the colors for a 3D visualization of a cuboid in the quantum state plot.
+
+    Args:
+        x (np.ndarray): The coordinates of the cuboid's base in the x-direction.
+        y (np.ndarray): The coordinates of the cuboid's base in the y-direction.
+        z (np.ndarray): The coordinates of the cuboid's base in the z-direction.
+        dx (np.ndarray): The dimensions of the cuboid in the x-direction.
+        dy (np.ndarray): The dimensions of the cuboid in the y-direction.
+        dz (np.ndarray): The dimensions of the cuboid in the z-direction.
+        color (list or np.ndarray): The color to be applied to the cuboid faces. 
+                                    If a list, the same color is applied to all faces. 
+                                    If an array, colors are assigned to each face.
+
+    Returns:
+        np.ndarray: An array of colors to be used for the cuboid visualization.
+    
+    This function is designed to be used within the quantum state visualization 
+    module of the pyQPanda package, which supports quantum circuit simulation 
+    and quantum cloud services.
+    """
     cuboid = np.array([
         # -z
         (
@@ -82,6 +103,24 @@ def config_colors(x, y, z, dx, dy, dz, color):
 
 
 def config_normals(polygons):
+    """
+    Calculate the normals for a set of polygons, assuming each polygon is defined by its vertices.
+
+    Args:
+        polygons (np.ndarray or list): An array or list of lists containing the vertices of the polygons.
+        When `np.ndarray` is used, it is expected to have the shape (N, 3, M), where N is the number of polygons,
+        3 is the dimension of the vertices (x, y, z), and M is the number of vertices per polygon.
+        If a list of lists is provided, each inner list represents the vertices of a polygon.
+
+    Returns:
+        np.ndarray: An array of shape (N, 3) containing the normals of the input polygons.
+        The i-th row of the array corresponds to the normal of the i-th polygon.
+
+    Notes:
+        - For `np.ndarray` input, the function computes normals for all polygons in a batch.
+        - For list of lists input, the function computes normals for each polygon individually.
+        - This function is used in the quantum computing library pyQPanda for visualizing quantum states.
+    """
     if isinstance(polygons, np.ndarray):
         n = polygons.shape[-2]
         i1, i2, i3 = 0, n//3, 2*n//3
@@ -100,6 +139,27 @@ def config_normals(polygons):
 
 
 def config_shade_colors(color, normals, lightsource=None):
+    """
+    Configures the shading of colors based on normal vectors and light source direction.
+    
+    This function computes the shading effect for a given color array and a set of normal vectors,
+    considering an optional light source. If no light source is provided, a default one is
+    used. The shading is applied to enhance the visual representation of the color array on a
+    quantum circuit plot.
+    
+    Args:
+        color (numpy.ndarray): An array of colors, where each color is represented as an RGB tuple
+                             or an RGBA tuple.
+        normals (numpy.ndarray): An array of normal vectors, where each vector is represented as a
+                               three-element tuple or array.
+        lightsource (LightSource, optional): A LightSource object representing the light source
+                                           direction. Defaults to a light source with a direction
+                                           of (225, 19.4712) degrees.
+
+    Returns:
+        numpy.ndarray: The color array with shading applied. If no shading is applicable, the original
+                     color array is returned.
+    """
     if lightsource is None:
         lightsource = LightSource(azdeg=225, altdeg=19.4712)
 
@@ -124,16 +184,17 @@ def config_shade_colors(color, normals, lightsource=None):
 
 
 def state_to_density_matrix(quantum_state):
-    """ convert quantum state to density matrix
+    """
+    Converts a given quantum state into its corresponding density matrix representation.
 
     Args:
-        quantum state: complex list
+        quantum_state (complex list): A list of complex numbers representing the quantum state vector.
 
     Returns:
-        density matrix
+        numpy.ndarray: The density matrix derived from the quantum state.
 
     Raises:
-        RuntimeError: if input is not a valid quantum state.
+        RuntimeError: If the provided quantum state is not valid (not a 2^n state vector or not complex).
     """
     rho = np.asarray(quantum_state)
     if rho.ndim == 1:
@@ -148,6 +209,18 @@ def state_to_density_matrix(quantum_state):
 
 
 def complex_phase_cmap():
+    """
+    Generate a colormap for visualizing complex phases in quantum states.
+
+    This function constructs a `LinearSegmentedColormap` named 'phase_colormap' with three
+    channels: blue, green, and red. The colormap is designed to represent complex phase
+    information, with specific color transitions that highlight phase changes in quantum
+    systems. The resulting colormap is intended for use within the pyQPanda package, which
+    facilitates programming quantum computers and simulating quantum circuits.
+
+    Returns:
+        A `LinearSegmentedColormap` object suitable for plotting complex phase information.
+    """
     cdict = {'blue': ((0.00, 0.0, 0.0),
                       (0.25, 0.0, 0.0),
                       (0.50, 1.0, 1.0),
@@ -170,6 +243,22 @@ def complex_phase_cmap():
 
 
 def config_color_array(color):
+    """
+    Ensures that the provided color list has exactly two elements. If the input is `None`, 
+    or contains `None` values, the function defaults to a specific color array.
+    
+    Args:
+        color (list): A list of two color strings in hexadecimal format, e.g., `["#648fff", "#648fff"]`.
+    
+    Returns:
+        list: A list of two valid color strings.
+    
+    Raises:
+        RuntimeError: If the input is not a list of exactly two elements, or if any element is `None`.
+    
+    This function is intended for use within the quantum state visualization tools of the pyQPanda package,
+    which facilitates programming quantum computers and executing quantum circuits on simulators or quantum cloud services.
+    """
     if color is None:
         color = ["#648fff", "#648fff"]
     else:
@@ -183,18 +272,29 @@ def config_color_array(color):
 
 
 def plot_state_city(state, title="", figsize=None, color=None, ax_real=None, ax_imag=None):
-    """ plot quantum state city 
+    """
+    Plots the real and imaginary parts of a quantum state in a 3D bar plot.
 
     Args:
-        quantum state: complex list
-        title : string for figure
-        color : color for figure
+        state (list of complex): The quantum state represented as a list of complex numbers.
+        title (str, optional): The title of the plot. Defaults to an empty string.
+        figsize (tuple, optional): The size of the figure in inches. Defaults to (15, 5).
+        color (list, optional): A list of colors to use for the real and imaginary parts. Defaults to None.
+        ax_real (matplotlib.axes.Axes, optional): The axes object for the real part plot. Defaults to None.
+        ax_imag (matplotlib.axes.Axes, optional): The axes object for the imaginary part plot. Defaults to None.
 
     Returns:
-        matplot figure
+        matplotlib.figure.Figure: The figure object containing the plots.
 
     Raises:
-        RuntimeError: if input is not a valid quantum state.
+        RuntimeError: If the input 'state' is not a valid quantum state.
+
+    Notes:
+        This function utilizes the pyQPanda package for quantum computing visualization.
+        The function assumes that the input 'state' is a list of complex numbers representing the density matrix of a quantum state.
+        The real and imaginary parts of the state are plotted side by side in a single figure.
+        The function supports custom titles, figure sizes, and color schemes.
+        The function also supports plotting directly onto existing axes objects for integration with other visualizations.
     """
     alpha = 1
     rho = state_to_density_matrix(state)
@@ -348,18 +448,26 @@ def plot_state_city(state, title="", figsize=None, color=None, ax_real=None, ax_
 def plot_density_matrix(M, xlabels=None, ylabels=None,
                         title=None, limits=None, phase_limits=None, fig=None, axis_vals=None,
                         threshold=None):
-    """ plot quantum state density matrix 
+    """
+    Plots the density matrix of a quantum state as a 3D bar plot, visualizing the
+    density of the quantum state and its phase information.
 
     Args:
-        quantum state: complex list
-        title : string for figure
-        color : color for figure
+        M (list): A list of complex numbers representing the density matrix.
+        xlabels (list, optional): Labels for the x-axis ticks.
+        ylabels (list, optional): Labels for the y-axis ticks.
+        title (str, optional): Title for the plot.
+        limits (list, optional): Limits for the z-axis.
+        phase_limits (list, optional): Limits for the phase angle visualization (default: -π to π).
+        fig (matplotlib.figure.Figure, optional): Existing figure object to plot on.
+        axis_vals (matplotlib.axes.Axes, optional): Existing 3D axis object to plot on.
+        threshold (float, optional): Threshold for highlighting density values above this value.
 
     Returns:
-        matplot figure
+        tuple: A tuple containing the `fig` and `axis_vals` objects.
 
     Raises:
-        RuntimeError: if input is not a valid quantum state.
+        RuntimeError: If the input `M` is not a valid quantum state density matrix.
     """
 
     # if isinstance(M, Qobj):

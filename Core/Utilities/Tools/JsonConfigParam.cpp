@@ -430,12 +430,22 @@ QCircuit QCircuitOptimizerConfig::read_cir(const rapidjson::Value& gates)
 			(0 == strcmp(gate_name.c_str(), "Z")) ||
 			(0 == strcmp(gate_name.c_str(), "T")) ||
 			(0 == strcmp(gate_name.c_str(), "X1")) ||
+            (0 == strcmp(gate_name.c_str(), "I")) ||
+            (0 == strcmp(gate_name.c_str(), "BARRIER")) ||
 			(0 == strcmp(gate_name.c_str(), "Y1")) ||
 			(0 == strcmp(gate_name.c_str(), "Z1")) ||
 			(0 == strcmp(gate_name.c_str(), "S")))
 		{
 			ret_cir << build_sing_gate(gate_name, { m_qubits[gate_para[0].GetInt()] });
 		}
+        else if (0 == strcmp(gate_name.c_str(), "S_DAG"))
+        {
+            const auto pos_1 = gate_name.find("_DAG");
+            const std::string real_gate_name = gate_name.substr(0, pos_1);
+            auto _gate = build_sing_gate(real_gate_name, { m_qubits[gate_para[0].GetInt()] });
+            _gate.setDagger(true);
+            ret_cir << _gate;
+        }
 		else if ((0 == strcmp(gate_name.c_str(), "CNOT")) ||
 			(0 == strcmp(gate_name.c_str(), "CZ")) ||
 			(0 == strcmp(gate_name.c_str(), "SWAP")) ||

@@ -43,6 +43,12 @@ limitations under the License.
 #include "Core/Utilities/Compiler/QRunesToQProg.h"
 #include "Core/Utilities/Compiler/QuantumChipAdapter.h"
 
+//#include "Core/Utilities/Compiler/Permutation.hpp"
+#include "Core/Utilities/Compiler/QASMToQProg.hpp"
+#include "Core/Utilities/Compiler/QASMToOriginIR.hpp"
+//#include "Core/Utilities/Compiler/QuantumComputation.hpp"
+
+
 #include "Core/Utilities/QProgInfo/MetadataValidity.h"
 #include "Core/Utilities/QProgInfo/QCircuitInfo.h"
 #include "Core/Utilities/QProgInfo/QGateCompare.h"
@@ -50,9 +56,9 @@ limitations under the License.
 #include "Core/Utilities/QProgInfo/QProgClockCycle.h"
 #include "Core/Utilities/QProgInfo/Visualization/QVisualization.h"
 #include "Core/Utilities/QProgInfo/QuantumMetadata.h"
-#include "Core/Utilities/QProgInfo/CrossEntropyBenchmarking.h"
-#include "Core/Utilities/QProgInfo/RandomizedBenchmarking.h"
-#include "Core/Utilities/QProgInfo/QuantumVolume.h"
+#include "Core/Utilities/Benchmark/CrossEntropyBenchmarking.h"
+#include "Core/Utilities/Benchmark/RandomizedBenchmarking.h"
+#include "Core/Utilities/Benchmark/QuantumVolume.h"
 
 #include "Core/Utilities/QProgTransform/QProgToDAG/GraphMatch.h"
 #include "Core/Utilities/QProgTransform/QProgToDAG/QProgToDAG.h"
@@ -96,8 +102,13 @@ limitations under the License.
 #include "Core/QuantumNoise/NoiseModelV2.h" 
 
 #include "Core/Debugger/QPUDebugger.h"
+#include "Core/Utilities/CommunicationProtocol/CommunicationProtocolEncode.h"
+#include "Core/Utilities/CommunicationProtocol/CommunicationProtocolDecode.h"
+
 
 QPANDA_BEGIN
+
+
 /**
 * @brief  Init the environment
 * @ingroup Core
@@ -394,12 +405,119 @@ extern QProg convert_originir_to_qprog(std::string file_path, QuantumMachine * q
 extern QProg convert_originir_string_to_qprog(std::string str_originir, QuantumMachine *qm);
 extern QProg convert_originir_string_to_qprog(std::string str_originir, QuantumMachine *qm, QVec &qv, std::vector<ClassicalCondition> &cv);
 
-extern QProg convert_qasm_to_qprog(std::string file_path, QuantumMachine* qvm);
-extern QProg convert_qasm_to_qprog(std::string file_path, QuantumMachine* qvm, QVec &qv, std::vector<ClassicalCondition> &cv);
+/**
+* @brief  Convert a file in format qasm to a string representing originir program
+* @ingroup Core
+* @param[in]  std::string   A file path corresponding to a file in qasm format
+* @return     std::string  result
+*/
+extern std::string convert_qasm_to_originir(std::string file_path);
 
-extern QProg convert_qasm_string_to_qprog(std::string qasm_str, QuantumMachine* qvm);
-extern QProg convert_qasm_string_to_qprog(std::string qasm_str, QuantumMachine* qvm, QVec &qv, std::vector<ClassicalCondition> &cv);
+/**
+* @brief  Convert a string in format qasm to a string representing originir program
+* @ingroup Core
+* @param[in]  std::string   A string corresponding to a file in qasm format
+* @return     std::string  result
+*/
+extern std::string convert_qasm_string_to_originir(std::string qasm_str);
 
+/**
+* @brief  Convert a file in format qasm to object QProg
+* @ingroup Core
+* @param[in]  std::string   A file path corresponding to a file in qasm format
+* @param[in]  QPanda::QuantumMachine*   Quantum machine pointer
+* @return     QProg   result
+*/
+extern QProg convert_qasm_to_qprog(std::string file_path, QPanda::QuantumMachine* qvm);
+
+/**
+* @brief  Convert a file in format qasm to object QProg
+* @ingroup Core
+* @param[in]  std::string   A file path corresponding to a file in qasm format
+* @param[in]  QPanda::QuantumMachine*   Quantum machine pointer
+* @param[in]  QVec qubit    vector
+* @param[in]  std::vector<ClassicalCondition>   all of allocated cbits
+* @return     QProg   result
+*/
+extern QProg convert_qasm_to_qprog(std::string file_path, QPanda::QuantumMachine* qvm, QPanda::QVec& qv, std::vector<QPanda::ClassicalCondition>& cv);
+
+/**
+* @brief  Convert a string in format qasm to object QProg
+* @ingroup Core
+* @param[in]  std::string   a string in format qasm
+* @param[in]  QPanda::QuantumMachine*   Quantum machine pointer
+* @return     QProg   result
+*/
+extern QProg convert_qasm_string_to_qprog(std::string qasm_str, QPanda::QuantumMachine* qvm);
+
+/**
+* @brief  Convert a string in format qasm to object QProg
+* @ingroup Core
+* @param[in]  std::string   a string in format qasm
+* @param[in]  QPanda::QuantumMachine*   Quantum machine pointer
+* @param[in]  QVec qubit    vector
+* @param[in]  std::vector<ClassicalCondition>   all of allocated cbits
+* @return     QProg   result
+*/
+extern QProg convert_qasm_string_to_qprog(std::string qasm_str, QPanda::QuantumMachine* qvm, QPanda::QVec& qv, std::vector<QPanda::ClassicalCondition>& cv);
+
+/**
+* @brief  Convert a file in format pyquil to a string representing originir program
+* @ingroup Core
+* @param[in]  std::string   A file path corresponding to a file in pyquil format
+* @return     std::string  result
+*/
+extern std::string convert_pyquil_string_to_originir(std::string pyquil_str);
+
+/**
+* @brief  Convert a string in format pyquil to object QProg
+* @ingroup Core
+* @param[in]  std::string   a string in format pyquil
+* @param[in]  QPanda::QuantumMachine*   Quantum machine pointer
+* @return     QProg   result
+*/
+extern QProg convert_pyquil_string_to_qprog(std::string pyquil_str, QuantumMachine* qm);
+
+/**
+* @brief  Convert a string in format pyquil to object QProg
+* @ingroup Core
+* @param[in]  std::string   a string in format pyquil
+* @param[in]  QPanda::QuantumMachine*   Quantum machine pointer
+* @param[in]  QVec qubit    vector
+* @param[in]  std::vector<ClassicalCondition>   all of allocated cbits
+* @return     QProg   result
+*/
+extern QProg convert_pyquil_string_to_qprog(std::string pyquil_str, QuantumMachine* qm, QVec& qv, std::vector<ClassicalCondition>& cv);
+
+/**
+* @brief  Convert a file in format pyquil to a string representing originir program
+* @ingroup Core
+* @param[in]  std::string   A file path corresponding to a file in pyquil format
+* @return     std::string  result
+*/
+extern std::string convert_pyquil_file_to_originir(std::string pyquil_filepath);
+
+/**
+* @brief  Convert a file in format pyquil to object QProg
+* @ingroup Core
+* @param[in]  std::string   A file path corresponding to a file in pyquil format
+* @param[in]  QPanda::QuantumMachine*   Quantum machine pointer
+* @return     QProg   result
+*/
+extern QProg convert_pyquil_file_to_qprog(std::string pyquil_filepath, QuantumMachine* qm);
+
+/**
+* @brief  Convert a file in format pyquil to object QProg
+* @ingroup Core
+* @param[in]  std::string   A file path corresponding to a file in pyquil format
+* @param[in]  QPanda::QuantumMachine*   Quantum machine pointer
+* @param[in]  QVec qubit    vector
+* @param[in]  std::vector<ClassicalCondition>   all of allocated cbits
+* @return     QProg   result
+*/
+extern QProg convert_pyquil_file_to_qprog(std::string pyquil_filepath, QuantumMachine* qm, QVec& qv, std::vector<ClassicalCondition>& cv);
+
+extern QProg convert_Umatrix_to_base_gate();
 /*will delete*/
 size_t getAllocateCMem();
 size_t getAllocateQubitNum();
@@ -432,8 +550,7 @@ prob_tuple pMeasure(QVec qubit_vector, int select_max);
 */
 prob_vec pMeasureNoIndex(QVec qubit_vector);
 
-
-QGate QOracle(const QVec& qubits, const QMatrixXcd& matrix,const double TOL=1e-10);
+QGate QOracle(const QVec& qubits, const Eigen::MatrixXcd& matrix, const double tolerance = 1e-10);
 
 QPANDA_END
 #endif // !_CORE_H

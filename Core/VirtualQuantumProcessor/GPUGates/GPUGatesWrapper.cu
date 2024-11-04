@@ -177,7 +177,7 @@ void DeviceQPU::device_status_init(void)
         if (m_used->m_device[i] >= 0)
         {
             CHECK_CUDA(cudaSetDevice(i));
-            cuda_device_status.push_back(cuda::device_status());
+            cuda_device_status.push_back(QCuda::device_status());
             cuda_device_status[cuda_device_status.size() - 1].m_device = i;
             CHECK_CUDA(cudaMemGetInfo(&cuda_device_status[cuda_device_status.size() - 1].free_size, &cuda_device_status[cuda_device_status.size() - 1].total_size));
         }
@@ -270,7 +270,7 @@ bool DeviceQPU::device_data_alloc(size_t data_count)
                     {
                         m_used->m_count -= 1;
                         CHECK_CUDA(cudaSetDevice(cuda_device_status[i].m_device));
-                        cuda_device_state.push_back(new cuda::device_state);
+                        cuda_device_state.push_back(new QCuda::device_state);
                         m_used->m_device[cuda_device_status[i].m_device] = -1;
                         m_device_used.push_back(cuda_device_status[i].m_device);
                         cuda_device_state[cuda_device_state.size() - 1]->device_data.device_id = cuda_device_status[i].m_device;
@@ -305,7 +305,7 @@ bool DeviceQPU::device_data_alloc(size_t data_count)
             {
                 CHECK_CUDA(cudaSetDevice(cuda_device_state[i]->device_data.device_id));
                 cuda_device_state[i]->device_data.device_data_ptr.resize(cuda_device_state.size());
-                thrust::host_vector<cuda::device_data_ptr> host_data_ptr(cuda_device_state.size());
+                thrust::host_vector<QCuda::device_data_ptr> host_data_ptr(cuda_device_state.size());
                 for (int j = 0; j < cuda_device_state.size(); j++)
                 {
                     host_data_ptr[j].data_count = cuda_device_state[j]->device_data.data_count;
@@ -388,7 +388,7 @@ bool DeviceQPU::device_data_alloc(size_t data_count)
                 for (int i = 0; i < device_malloc_used->size(); i++)
                 {
                     CHECK_CUDA(cudaSetDevice(device_malloc_used->operator[](i)));
-                    cuda_device_state.push_back(new cuda::device_state);
+                    cuda_device_state.push_back(new QCuda::device_state);
                     cuda_device_state[i]->device_data.device_id = device_malloc_used->operator[](i);
                     cuda_device_state[i]->device_data.device_data_ptr.resize(device_malloc_used->size());
                     CHECK_CUDA(cudaStreamCreateWithFlags(&cuda_device_state[i]->device_data.cuda_stream, cudaStreamNonBlocking))
@@ -410,7 +410,7 @@ bool DeviceQPU::device_data_alloc(size_t data_count)
 
                 for (int i = 0; i < device_malloc_used->size(); i++)
                 {
-                    thrust::host_vector<cuda::device_data_ptr> host_data_ptr(device_malloc_used->size());
+                    thrust::host_vector<QCuda::device_data_ptr> host_data_ptr(device_malloc_used->size());
                     CHECK_CUDA(cudaSetDevice(device_malloc_used->operator[](i)));
                     for (int j = 0; j < device_malloc_used->size(); j++)
                     {
@@ -554,6 +554,7 @@ bool DeviceQPU::init()
         cuda_device_state[i]->m_type_gate_fun.insert({ GateType::RZZ_GATE, std::shared_ptr<BaseGateFun>(new DoubleGateFun()) });
         cuda_device_state[i]->m_type_gate_fun.insert({ GateType::RZX_GATE, std::shared_ptr<BaseGateFun>(new DoubleGateFun()) });
         cuda_device_state[i]->m_type_gate_fun.insert({ GateType::TWO_QUBIT_GATE, std::shared_ptr<BaseGateFun>(new DoubleGateFun()) });
+        cuda_device_state[i]->m_type_gate_fun.insert({ GateType::MS_GATE, std::shared_ptr<BaseGateFun>(new DoubleGateFun()) });
 
         cuda_device_state[i]->m_type_gate_fun.insert({ GateType::ORACLE_GATE, std::shared_ptr<BaseGateFun>(new ORACLEFun()) });
         cuda_device_state[i]->m_type_gate_fun.insert({ GateType::CORACLE_GATE, std::shared_ptr<BaseGateFun>(new CORACLEFun()) });
@@ -611,6 +612,7 @@ bool DeviceQPU::init()
             cuda_device_state[i]->m_type_gate_fun[GateType::RYY_GATE]->set_ptr(thrust::raw_pointer_cast(cuda_device_state[i]->device_data.device_data_ptr.data()), cuda_device_state[i]->device_data.m_device_qubits, cuda_device_state[i]->device_data.m_device_matrix);
             cuda_device_state[i]->m_type_gate_fun[GateType::RZZ_GATE]->set_ptr(thrust::raw_pointer_cast(cuda_device_state[i]->device_data.device_data_ptr.data()), cuda_device_state[i]->device_data.m_device_qubits, cuda_device_state[i]->device_data.m_device_matrix);
             cuda_device_state[i]->m_type_gate_fun[GateType::RZX_GATE]->set_ptr(thrust::raw_pointer_cast(cuda_device_state[i]->device_data.device_data_ptr.data()), cuda_device_state[i]->device_data.m_device_qubits, cuda_device_state[i]->device_data.m_device_matrix);
+            cuda_device_state[i]->m_type_gate_fun[GateType::MS_GATE]->set_ptr(thrust::raw_pointer_cast(cuda_device_state[i]->device_data.device_data_ptr.data()), cuda_device_state[i]->device_data.m_device_qubits, cuda_device_state[i]->device_data.m_device_matrix);
             cuda_device_state[i]->m_type_gate_fun[GateType::TWO_QUBIT_GATE]->set_ptr(thrust::raw_pointer_cast(cuda_device_state[i]->device_data.device_data_ptr.data()), cuda_device_state[i]->device_data.m_device_qubits, cuda_device_state[i]->device_data.m_device_matrix);
 
             cuda_device_state[i]->m_type_gate_fun[GateType::ORACLE_GATE]->set_ptr(thrust::raw_pointer_cast(cuda_device_state[i]->device_data.device_data_ptr.data()), cuda_device_state[i]->device_data.m_device_qubits, cuda_device_state[i]->device_data.m_device_matrix);
@@ -669,6 +671,7 @@ bool DeviceQPU::init()
             cuda_device_state[i]->m_type_gate_fun[GateType::RYY_GATE]->set_ptr(thrust::raw_pointer_cast(cuda_device_state[i]->device_data.data_vector.data()), cuda_device_state[i]->device_data.m_device_qubits, cuda_device_state[i]->device_data.m_device_matrix);
             cuda_device_state[i]->m_type_gate_fun[GateType::RZZ_GATE]->set_ptr(thrust::raw_pointer_cast(cuda_device_state[i]->device_data.data_vector.data()), cuda_device_state[i]->device_data.m_device_qubits, cuda_device_state[i]->device_data.m_device_matrix);
             cuda_device_state[i]->m_type_gate_fun[GateType::RZX_GATE]->set_ptr(thrust::raw_pointer_cast(cuda_device_state[i]->device_data.data_vector.data()), cuda_device_state[i]->device_data.m_device_qubits, cuda_device_state[i]->device_data.m_device_matrix);
+            cuda_device_state[i]->m_type_gate_fun[GateType::MS_GATE]->set_ptr(thrust::raw_pointer_cast(cuda_device_state[i]->device_data.data_vector.data()), cuda_device_state[i]->device_data.m_device_qubits, cuda_device_state[i]->device_data.m_device_matrix);
             cuda_device_state[i]->m_type_gate_fun[GateType::TWO_QUBIT_GATE]->set_ptr(thrust::raw_pointer_cast(cuda_device_state[i]->device_data.data_vector.data()), cuda_device_state[i]->device_data.m_device_qubits, cuda_device_state[i]->device_data.m_device_matrix);
 
             cuda_device_state[i]->m_type_gate_fun[GateType::ORACLE_GATE]->set_ptr(thrust::raw_pointer_cast(cuda_device_state[i]->device_data.data_vector.data()), cuda_device_state[i]->device_data.m_device_qubits, cuda_device_state[i]->device_data.m_device_matrix);
@@ -835,6 +838,7 @@ void DeviceQPU::exec_gate(std::shared_ptr<BaseGateFun> fun, GateType type, QStat
         case GateType::RYY_GATE:
         case GateType::RZZ_GATE:
         case GateType::RZX_GATE:
+        case GateType::MS_GATE:
         case GateType::TWO_QUBIT_GATE:
         case GateType::NoiseDouble_GATE:
             exec_gate_kernel_multi<DoubleGateFun> << <grid, block, 0, cuda_device_state[id]->device_data.cuda_stream >> > (*dynamic_pointer_cast<DoubleGateFun>(fun), measure_size, thread_start, thread_count);
@@ -925,6 +929,7 @@ void DeviceQPU::exec_gate(std::shared_ptr<BaseGateFun> fun, GateType type, QStat
         case GateType::RYY_GATE:
         case GateType::RZZ_GATE:
         case GateType::RZX_GATE:
+        case GateType::MS_GATE:
         case GateType::TWO_QUBIT_GATE:
         case GateType::NoiseDouble_GATE:
             exec_gate_kernel<DoubleGateFun> << <grid, block, 0, cuda_device_state[id]->device_data.cuda_stream >> > (*dynamic_pointer_cast<DoubleGateFun>(fun), measure_size, thread_start, thread_count);

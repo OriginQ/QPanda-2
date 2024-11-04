@@ -19,7 +19,24 @@ from .bloch import Bloch
 import matplotlib
 
 def count_pauli(i):
+    """
+    Counts the number of set bits (1s) in the binary representation of the integer `i`.
 
+    This method utilizes bitwise operations to efficiently count the number of Pauli
+    spin flips, which is a concept relevant in quantum computing when analyzing quantum
+    states.
+
+    Args:
+        i (int): The integer whose set bits are to be counted.
+
+    Returns:
+        int: The count of set bits in the binary representation of `i`.
+
+    Note:
+        The function is optimized for performance using bitwise manipulation and is
+        specifically designed for use within the pyQPanda package, which facilitates
+        quantum computing programming and simulation.
+    """
     i = i - ((i >> 1) & 0x55555555)
     i = (i & 0x33333333) + ((i >> 2) & 0x33333333)
     return (((i + (i >> 4) & 0xF0F0F0F) * 0x1010101) & 0xffffffff) >> 24
@@ -47,6 +64,25 @@ class pauli(object):
 
 
 def get_single_paulis(num_qubits, index):
+    """
+    Generates a list of single-qubit Pauli operators for a specified number of qubits.
+
+    Each Pauli operator corresponds to the X, Y, or Z Pauli gate, and is represented as a tuple of two boolean arrays:
+    - The first array indicates the qubit indices where the Z component of the Pauli operator is non-zero.
+    - The second array indicates the qubit indices where the X component of the Pauli operator is non-zero.
+
+    Args:
+    - num_qubits (int): The total number of qubits in the quantum system.
+    - index (int): The index of the qubit for which the Pauli operator is to be generated.
+
+    Returns:
+    - list of tuples: A list containing tuples, each representing a single-qubit Pauli operator.
+
+    Raises:
+    - RuntimeError: If an invalid Pauli gate label ('Y' or 'I') is encountered.
+
+    The function is designed to be used within the pyQPanda package for quantum circuit simulations and quantum computations.
+    """
     labels = ['X', 'Y', 'Z']
 
     single_pauli = []
@@ -77,16 +113,22 @@ def get_single_paulis(num_qubits, index):
 
 
 def plot_bloch_vector(bloch, title="bloch", axis_obj=None, fig_size=None):
-    """Draw a quantum state bloch view
+    """
+    Visualizes the evolution of a quantum circuit on a Bloch sphere.
 
     Args:
-        state : the quantum state 
-        title : the figure title 
-        fig_size : the figure size 
+        circuit (object): The quantum circuit to be visualized.
+        trace (bool): Flag to indicate whether to display the path of the state vector.
+        saveas (str): The filename to save the animation. If None, the animation is displayed.
+        fps (int): The frames per second for the animation.
+        secs_per_gate (float): The duration in seconds for each gate operation.
 
-    Returns: 
-        bloch figure shows quantum state
+    Returns:
+        None: The function does not return a value; it generates a visualization.
 
+    Raises:
+        ImportError: If Matplotlib is not installed.
+        RuntimeError: If the circuit contains no gates that can be visualized on a Bloch sphere.
     """
     if not HAS_MATPLOTLIB:
         raise ImportError('Must have Matplotlib installed')
@@ -107,16 +149,25 @@ def plot_bloch_vector(bloch, title="bloch", axis_obj=None, fig_size=None):
 
 
 def plot_bloch_multivector(state, title='', fig_size=None):
-    """Draw a quantum state bloch view
+    """
+    Visualizes a quantum state on a Bloch sphere.
 
     Args:
-        state : the quantum state 
-        title : the figure title 
-        fig_size : the figure size 
+        state (list): The quantum state vector.
+        title (str): The title for the plot.
+        fig_size (tuple): The size of the figure in inches.
 
-    Returns: 
-        bloch figure shows quantum state
+    Returns:
+        matplotlib.figure.Figure: The created figure with the Bloch plot.
 
+    Raises:
+        ImportError: If Matplotlib is not installed.
+
+    Description:
+        This function converts a quantum state vector into a Bloch sphere representation.
+        It generates a figure showing the Bloch vector for each qubit in the state vector.
+        The figure size can be customized, and the plot includes a title. If the backend
+        is inline or notebook, the figure is automatically closed after display.
     """
 
     if not HAS_MATPLOTLIB:
@@ -147,6 +198,18 @@ def plot_bloch_multivector(state, title='', fig_size=None):
 
 
 def normalize(v, tolerance=0.00001):
+    """
+    Normalizes a given vector to have a magnitude of 1, using a specified tolerance for
+    determining the vector's magnitude. The vector is expected to be a tuple of numbers.
+
+    Args:
+    v (tuple): The vector to be normalized.
+    tolerance (float, optional): The tolerance level within which the vector's magnitude
+                                 is considered to be 1. Defaults to 0.00001.
+
+    Returns:
+    np.array: The normalized vector as a NumPy array.
+    """
     mag2 = sum(n * n for n in v)
     if abs(mag2 - 1.0) > tolerance:
         mag = sqrt(mag2)
@@ -244,6 +307,23 @@ class PlotVector:
 
 
 def bloch_plot_dict(frames_per_gate):
+    """
+    Generates a dictionary of PlotVector instances representing quantum states on the Bloch sphere.
+
+    Each key in the dictionary corresponds to a specific quantum state or operation, and the value is a tuple
+    containing the state name, the PlotVector object representing the state, and an associated color.
+
+    Args:
+    - frames_per_gate (int): The number of frames per gate used to define the rotation of quantum states on the
+                             Bloch sphere. This parameter affects the angle of rotation for each state.
+
+    Returns:
+    - dict: A dictionary where each key is a string representing a quantum state or operation, and the value
+            is a tuple with the state name, a PlotVector object, and its corresponding color.
+
+    The function is intended for use within the pyQPanda package, which is designed for programming quantum computers,
+    enabling quantum circuit simulation and operation via quantum virtual machines or quantum cloud services.
+    """
     bloch_dict = dict()
     bloch_dict['x'] = ('x', PlotVector.from_axisangle(
         np.pi / frames_per_gate, [1, 0, 0]), '#1a8bbc')
@@ -265,6 +345,22 @@ def bloch_plot_dict(frames_per_gate):
 
 
 def traversal_circuit(circuit):
+    """
+    Traverse a quantum circuit and construct a list of quantum gates based on the circuit's layers.
+
+    Args:
+    circuit (object): A quantum circuit object that contains the structure and operations of the quantum circuit.
+
+    Returns:
+    list: A list of quantum gates represented as objects, constructed from the input circuit.
+
+    Raises:
+    RuntimeError: If the input circuit is empty or contains unsupported gates, or if it does not support multiple qubits.
+
+    The function is designed to work within the pyQPanda package, which is utilized for programming quantum computers.
+    It processes the quantum circuit to convert it into a list of quantum gates that can be further used for simulation or
+    execution on quantum virtual machines or quantum cloud services.
+    """
 
     origin_gates = ['H', 'X', 'Y', 'Z', 'RX', 'RY', 'RZ', 'S', 'T', 'U1']
 
@@ -319,16 +415,22 @@ def plot_bloch_circuit(circuit,
                        saveas=None,
                        fps=20,
                        secs_per_gate=1):
-    """Draw a quantum circuit bloch view , only support one qubit
+    """
+    Visualizes the evolution of a quantum circuit on a Bloch sphere.
 
     Args:
-        circuit : the quantum circuit 
-        trace : whether shows the trace 
-        fps : flash fps 
+        circuit (object): The quantum circuit to be visualized.
+        trace (bool): Flag to indicate whether to display the path of the state vector.
+        saveas (str): The filename to save the animation. If None, the animation is displayed.
+        fps (int): The frames per second for the animation.
+        secs_per_gate (float): The duration in seconds for each gate operation.
 
-    Returns: 
-        bloch figure shows quantum circuit
+    Returns:
+        None: The function does not return a value; it generates a visualization.
 
+    Raises:
+        ImportError: If Matplotlib is not installed.
+        RuntimeError: If the circuit contains no gates that can be visualized on a Bloch sphere.
     """
 
     if not HAS_MATPLOTLIB:

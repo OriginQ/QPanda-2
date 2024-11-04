@@ -600,7 +600,7 @@ CZ::CZ()
 }
 
 CP::CP(double angle)
-    :alpha(angle / 2)
+    :alpha(angle)
 {
 	operation_num = 2;
 	gate_matrix[15] = cos(angle);
@@ -764,6 +764,7 @@ OracularGate::OracularGate(QuantumGate * qgate_old)
 		throw invalid_argument("static cast fail");
 	}
 
+    operation_num = -1;
 	oracle_name = oracular_ptr_old->oracle_name;
     oracular_ptr_old->getMatrix(gate_matrix);
         oracle_name = "Matrix";
@@ -772,7 +773,7 @@ OracularGate::OracularGate(QuantumGate * qgate_old)
 
 OracularGate::OracularGate(const QStat &matrix)
 {
-
+    operation_num = -1;
     gate_matrix = matrix;
     oracle_name = "Matrix";
     gate_type = GateType::ORACLE_GATE;
@@ -849,42 +850,89 @@ U3::U3(double theta, double phi, double lambda)
 
 U3::U3(QStat& matrix) 
 {
-	operation_num = 1;
-	gate_matrix.resize(4);
+    /* update U3 construct logic */
+    operation_num = 1;
+    gate_matrix.resize(4);
+    Eigen::Matrix2cd q_matrix = QStat_to_Eigen(matrix);
+    qcomplex_t phase = std::pow(q_matrix.determinant(), -0.5);
+    Eigen::Matrix2cd U = phase * q_matrix;
+    m_theta = 2 * std::atan2(std::abs(U(1, 0)), std::abs(U(0, 0)));
 
-	const auto r1 = abs(matrix[0]); // cos(theat/2)
-	qcomplex_t _coeff; /**< 全局系数 */
+    // Find phi and lambda
+    double phiplambda = 2 * std::arg(U(1, 1));
+    double phimlambda = 2 * std::arg(U(1, 0));
+    m_phi = (phiplambda + phimlambda) / 2.0;
+    m_lambda = (phiplambda - phimlambda) / 2.0;
+    double cos_val = cos(m_theta / 2);
+    double sin_val = sin(m_theta / 2);
+    gate_matrix[0] = cos_val;
+    gate_matrix[1] = -std::exp(qcomplex_t(0, m_lambda))*sin_val;
+    gate_matrix[2] = std::exp(qcomplex_t(0, m_phi))*sin_val;
+    gate_matrix[3] = std::exp(qcomplex_t(0, m_phi + m_lambda))*cos_val;
 
-	auto get_u3_matrix_func = [&]() {
-		gate_matrix[0] = matrix[0] / _coeff;
-		gate_matrix[1] = matrix[1] / _coeff;
-		gate_matrix[2] = matrix[2] / _coeff;
-		gate_matrix[3] = matrix[3] / _coeff;
-	};
+    /* origin logic */
+	//operation_num = 1;
+	//gate_matrix.resize(4);
 
-	if (r1 > (1.0 - DBL_EPSILON))
-	{
-		m_theta = 0.0;
-		m_lambda = 0.0;
-		_coeff = matrix[0] / r1;
-		get_u3_matrix_func();
-		m_phi = argc(gate_matrix[3]);
-	}
-	else
-	{
-		if (r1 > DBL_EPSILON) {
-			m_theta = 2 * acos(r1);
-			_coeff = matrix[0] / r1;
-		}
-		else{
-			m_theta = PI;
-			_coeff = matrix[2] / std::exp(qcomplex_t(0, m_phi));
-		}
+	//const auto r1 = abs(matrix[0]); // cos(theat/2)
+	//qcomplex_t _coeff; /**< 全局系数 */
 
-		get_u3_matrix_func();
-		m_lambda = argc(qcomplex_t(-1,0) * gate_matrix[1]);
-		m_phi = argc(gate_matrix[2]);
-	}
+	//auto get_u3_matrix_func = [&]() {
+	//	gate_matrix[0] = matrix[0] / _coeff;
+	//	gate_matrix[1] = matrix[1] / _coeff;
+	//	gate_matrix[2] = matrix[2] / _coeff;
+	//	gate_matrix[3] = matrix[3] / _coeff;
+	//};
+
+	//if (r1 > (1.0 - DBL_EPSILON))
+	//{
+	//	m_theta = 0.0;
+	//	m_lambda = 0.0;
+	//	_coeff = matrix[0] / r1;
+	//	get_u3_matrix_func();
+	//	m_phi = argc(gate_matrix[3]);
+	//}
+	//else
+	//{
+	//	if (r1 > DBL_EPSILON) {
+	//		m_theta = 2 * acos(r1);
+	//		_coeff = matrix[0] / r1;
+	//	}
+	//	else{
+	//		m_theta = PI;
+	//		_coeff = matrix[2] / std::exp(qcomplex_t(0, m_phi));
+	//	}
+
+	//	get_u3_matrix_func();
+	//	m_lambda = argc(qcomplex_t(-1,0) * gate_matrix[1]);
+	//	m_phi = argc(gate_matrix[2]);
+	//}
 
 	gate_type = GateType::U3_GATE;
+}
+
+MS::MS()
+{
+    operation_num = 2;
+    alpha = PI / 2;
+    beta = 0;
+    gamma = PI;
+    delta = PI;
+    gate_matrix[0] = SQ2;
+    gate_matrix[3] = -SQ2 * 1i;
+    gate_matrix[5] = SQ2;
+    gate_matrix[6] = -SQ2 * 1i;
+    gate_matrix[9] = -SQ2 * 1i;;
+    gate_matrix[10] = SQ2;
+    gate_matrix[12] = -SQ2 * 1i;;
+    gate_matrix[15] = SQ2;
+
+    gate_type = GateType::MS_GATE;
+}
+
+MS::MS(const MS & toCopy)
+{
+    operation_num = toCopy.operation_num;
+    this->gate_matrix = toCopy.gate_matrix;
+    gate_type = GateType::MS_GATE;
 }

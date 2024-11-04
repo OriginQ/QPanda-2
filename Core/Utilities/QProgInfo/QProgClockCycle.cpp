@@ -6,6 +6,7 @@
 #include "Core/Utilities/QProgTransform/TransformDecomposition.h"
 #include "Core/Utilities/Tools/QCircuitOptimize.h"
 #include "Core/Utilities/QProgInfo/Visualization/QVisualization.h"
+#include "Core/Utilities/QProgInfo/QuantumMetadata.h"
 
 
 using namespace std;
@@ -16,6 +17,12 @@ using sequence_gate_t = SeqNode<DAGSeqNode>;
 QPanda::QProgClockCycle::QProgClockCycle(QPanda::QuantumMachine *qm)
 {
     m_gate_time = qm->getGateTimeMap();
+}
+
+QPanda::QProgClockCycle::QProgClockCycle()
+{
+    QuantumMetadata metadata;
+    metadata.getGateTime(m_gate_time);
 }
 
 QProgClockCycle::~QProgClockCycle()
@@ -57,6 +64,12 @@ size_t QProgClockCycle::count(QProg &prog, bool optimize /* = false */)
     }
 
     return clock_cycle;
+}
+
+void QProgClockCycle::get_time_map()
+{
+    QuantumMetadata metadata;
+    metadata.getGateTime(m_gate_time);
 }
 
 size_t QProgClockCycle::getDefalutQGateTime(GateType gate_type)
@@ -138,6 +151,92 @@ size_t QPanda::get_qprog_clock_cycle(QProg & prog, QuantumMachine * qm, bool opt
     QProgClockCycle counter(qm);
     return counter.count(prog, optimize);
 }
+
+#include <algorithm>
+QProgInfoCount QProgClockCycle::count_layer_info(QProg &prog, std::vector<GateType> selected_types)
+{
+    /*QProgTopologSeq<GateNodeInfo, SequenceNode> m_prog_topo_seq;
+    m_prog_topo_seq.prog_to_topolog_seq(prog, SequenceNode::construct_sequence_node);
+    TopologSequence<SequenceNode>& graph_seq = m_prog_topo_seq.get_seq();*/
+    std::shared_ptr<QProgDAG> dag = qprog_to_DAG(prog);
+    TopologSequence<DAGSeqNode> graph_seq = dag->build_topo_sequence();
+
+    for (auto val : selected_types)
+        m_prog_info.selected_gate_nums[val] = 0;
+
+    for (auto &layer : graph_seq)
+    {
+        m_prog_info.layer_num++;
+
+        bool is_full_single_gate = true;
+        bool is_full_double_gate = true;
+
+        for (auto layer_iter = layer.begin(); layer_iter != layer.end(); layer_iter++)
+        {
+            m_prog_info.node_num++;
+
+            GateType gate_node_type = static_cast<GateType>(layer_iter->first.m_node_type);
+            auto control_qubits = layer_iter->first.m_node_ptr->m_control_vec;
+
+            auto selected_iter = std::find(selected_types.begin(), selected_types.end(), gate_node_type);
+
+            if (selected_iter != selected_types.end()) 
+            {
+                auto iter = m_prog_info.selected_gate_nums.find(gate_node_type);
+
+                if (iter != m_prog_info.selected_gate_nums.end())
+                    iter->second++;
+                else
+                    m_prog_info.selected_gate_nums[gate_node_type] = 1;
+            }
+
+            if ((DAGNodeType::MEASURE > gate_node_type) && (DAGNodeType::NUKNOW_SEQ_NODE_TYPE < gate_node_type))
+            {
+                m_prog_info.gate_num++;
+
+                //single gate with 0 control -> single gate 
+                if (is_single_gate(gate_node_type) && control_qubits.empty())
+                {
+                    is_full_double_gate = false;
+                    m_prog_info.single_gate_num++;
+                }
+                //single gate with 1 control -> double gate 
+                else if (is_single_gate(gate_node_type) && 1 == control_qubits.size())
+                {
+                    is_full_single_gate = false;
+                    m_prog_info.double_gate_num++;
+                }
+                //double gate with 0 control -> double gate 
+                else if (is_double_gate(gate_node_type) && control_qubits.empty())
+                {
+                    is_full_single_gate = false;
+                    m_prog_info.double_gate_num++;
+                }
+                else
+                {
+                    is_full_single_gate = false;
+                    is_full_double_gate = false;
+                    m_prog_info.multi_control_gate_num++;
+                }
+            }
+            else
+            {
+                is_full_single_gate = false;
+                is_full_double_gate = false;
+            }
+        }
+
+        if (is_full_single_gate && !is_full_double_gate)
+            m_prog_info.single_gate_layer_num++;
+
+        if (is_full_double_gate && !is_full_single_gate)
+            m_prog_info.double_gate_layer_num++;
+    }
+
+    return m_prog_info;
+}
+
+
 
 size_t QPanda::get_qprog_clock_cycle_chip(LayeredTopoSeq &layer_info, std::map<GateType, size_t> gate_time_map)
 {

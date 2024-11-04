@@ -27,14 +27,25 @@ def generate_stub_for_c_module_costum(module_name: str,
                                       target: str,
                                       sigs: Optional[Dict[str, str]] = None,
                                       class_sigs: Optional[Dict[str, str]] = None) -> None:
-    """Generate stub for C module.
-       (Custom modified version, prototype is mypy.stubgenc.generate_stub_for_c_module)
+    """
+    Constructs a stub for a C module, integrating runtime introspection and
+    .rst documentation signatures.
 
-    This combines simple runtime introspection (looking for docstrings and attributes
-    with simple builtin types) and signatures inferred from .rst documentation (if given).
+    The function imports the specified module, validates that it is a C module,
+    and generates stubs for its functions and types. It also handles imports
+    and exports necessary for the module's usage. If the target directory does
+    not exist, it is created. Existing stubs are overwritten.
 
-    If directory for target doesn't exist it will be created. Existing stub
-    will be overwritten.
+    Parameters:
+        module_name (str): The name of the module to generate stubs for.
+        target (str): The file path where the stubs will be written.
+        sigs (dict, optional): A dictionary mapping function names to their
+                              signature strings for explicit stub generation.
+        class_sigs (dict, optional): A dictionary mapping class names to their
+                                     signature strings for explicit stub generation.
+
+    Raises:
+        AssertionError: If the specified module is not a C module.
     """
     module = importlib.import_module(module_name)
     assert is_c_module(module), '%s is not a C module' % module_name
@@ -87,16 +98,17 @@ def generate_stub_for_c_module_costum(module_name: str,
 
 def refine_func_signature(docstr: str, func_name: str, is_overload: bool = False, sigid: int = 0) -> str:
     """
-    Trans docstring from c module to standard function signature 
+    Converts a docstring from a C module into a standard Python function signature.
 
-    Args:
-        docstr (str): docstring from c module
-        func_name (str): name of function
-        is_overload (bool, optional): function is overload . Defaults to False.
-        sigid (int, optional): if function is overload it's signature id in docstring. Defaults to 0.
+    Parameters:
+        docstr (str): The original docstring containing the function signature from a C module.
+        func_name (str): The name of the function to be converted.
+        is_overload (bool, optional): Indicates if the function is an overload. Defaults to False.
+        sigid (int, optional): The signature ID in the docstring if the function is an overload. Defaults to 0.
 
     Returns:
-        str: standard function signature like: def func_name(args...) -> ret_type : ...
+        str: A standard Python function signature string formatted as `def func_name(args...) -> ret_type : ...`.
+        If the signature cannot be found, returns None.
     """
     funcsig_reg = re.compile(
         (str(sigid) + ". " if is_overload else "") + func_name + r"\(.*?\) ->.*")
@@ -119,13 +131,25 @@ def generate_c_function_stub_costum(module: ModuleType,
                                     sigs: Optional[Dict[str, str]] = None,
                                     class_name: Optional[str] = None,
                                     class_sigs: Optional[Dict[str, str]] = None) -> None:
-    """Generate stub for a single function or method.
-       (Custom modified version, prototype is mypy.stubgenc.generate_c_function_stub)
+    """
+    Constructs a C function stub for a given Python function or method.
 
-    The result (always a single line) will be appended to 'output'.
-    If necessary, any required names will be added to 'imports'.
-    The 'class_name' is used to find signature of __init__ or __new__ in
-    'class_sigs'.
+    The stub generation process is tailored for the pyQPanda package, specifically designed for quantum computing applications.
+
+    Parameters:
+        module (ModuleType): The Python module where the function is defined.
+        name (str): The name of the function or method to generate a stub for.
+        obj (object): The object representing the function or method.
+        output (List[str]): List to append the generated stub line.
+        imports (List[str]): List to append any necessary import statements.
+        self_var (Optional[str]): The name of the 'self' variable for instance methods.
+        sigs (Optional[Dict[str, str]]): Predefined signatures for the function.
+        class_name (Optional[str]): The name of the class containing the method.
+        class_sigs (Optional[Dict[str, str]]): Predefined signatures for class methods.
+
+    The function analyzes the provided object and its documentation to infer the function signature. It then generates a C stub in the output list, handling overloaded functions and customizing imports as needed.
+
+    This function does not modify the original object or its attributes.
     """
     # insert Set type from type for mypy missed it
     imports.append("from typing import Set")
@@ -269,11 +293,27 @@ def generate_c_type_stub_custom(module: ModuleType,
                                 imports: List[str],
                                 sigs: Optional[Dict[str, str]] = None,
                                 class_sigs: Optional[Dict[str, str]] = None) -> None:
-    """Generate stub for a single class using runtime introspection.
-       (Custom modified version, prototype is mypy.stubgenc.generate_c_type_stub)
+    """
+    Generates a custom C type stub for a specified Python class using runtime introspection.
 
-    The result lines will be appended to 'output'. If necessary, any
-    required names will be added to 'imports'.
+    The stub is constructed based on the class's attributes and methods, and is appended to the
+    'output' list. This function also manages imports of necessary names if required.
+
+    Parameters:
+        module (ModuleType): The module in which the stub should be generated.
+        class_name (str): The name of the class for which the stub is being generated.
+        obj (type): The class object to introspect.
+        output (List[str]): The list to which the stub lines will be appended.
+        imports (List[str]): The list of imports to be added if new names are required.
+        sigs (Optional[Dict[str, str]]): Optional dictionary containing function signatures.
+        class_sigs (Optional[Dict[str, str]]): Optional dictionary containing class signatures.
+
+    Notes:
+        - This function is designed to handle various class attributes, including methods,
+          properties, and type annotations, and will add them to the stub accordingly.
+        - It manages the removal of redundant base classes and adjusts the Method Resolution
+          Order (MRO) to exclude certain base classes like 'pybind11_object'.
+        - It generates comments for the class based on the class's docstring.
     """
     # typeshed gives obj.__dict__ the not quite correct type Dict[str, Any]
     # (it could be a mappingproxy!), which makes mypyc mad, so obfuscate it.

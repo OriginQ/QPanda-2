@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 3.1)
-add_subdirectory(gtest)
+add_subdirectory(googletest)
 add_subdirectory(antlr4)
 add_subdirectory(bplus-tree)
 add_subdirectory(nlopt)
 add_subdirectory(mpfit)
+add_subdirectory(bz2)
 
 if(USE_PYQPANDA)
     add_subdirectory(pybind11)
@@ -23,4 +24,7 @@ install(DIRECTORY  ${CMAKE_CURRENT_SOURCE_DIR}/EigenUnsupported DESTINATION
 		${CMAKE_INSTALL_PREFIX}/include/qpanda2/ThirdParty)
 
 install(DIRECTORY  ${CMAKE_CURRENT_SOURCE_DIR}/uintwide DESTINATION 
+		${CMAKE_INSTALL_PREFIX}/include/qpanda2/ThirdParty)
+
+install(DIRECTORY  ${CMAKE_CURRENT_SOURCE_DIR}/bz2 DESTINATION 
 		${CMAKE_INSTALL_PREFIX}/include/qpanda2/ThirdParty)

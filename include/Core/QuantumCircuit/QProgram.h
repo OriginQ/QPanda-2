@@ -234,6 +234,7 @@ public:
     void clear() { 
         m_qgate_num = 0;
         m_node_manager.clear(); 
+        m_mea_qubits_cbits.clear();
     }
 
     bool check_insert_node_type(std::shared_ptr<QNode> node);

@@ -1,5 +1,5 @@
 
-// Generated from .\originir.g4 by ANTLR 4.8
+// Generated from originir.g4 by ANTLR 4.8
 
 #pragma once
 
@@ -17,16 +17,17 @@ public:
     NOT_GATE = 12, T_GATE = 13, S_GATE = 14, Y_GATE = 15, Z_GATE = 16, X1_GATE = 17, 
     Y1_GATE = 18, Z1_GATE = 19, I_GATE = 20, U2_GATE = 21, RPHI_GATE = 22, 
     U3_GATE = 23, U4_GATE = 24, RX_GATE = 25, RY_GATE = 26, RZ_GATE = 27, 
-    U1_GATE = 28, CNOT_GATE = 29, CZ_GATE = 30, CU_GATE = 31, ISWAP_GATE = 32, 
-    SQISWAP_GATE = 33, SWAPZ1_GATE = 34, ISWAPTHETA_GATE = 35, CR_GATE = 36, 
-    TOFFOLI_GATE = 37, DAGGER_KEY = 38, ENDDAGGER_KEY = 39, CONTROL_KEY = 40, 
-    ENDCONTROL_KEY = 41, QIF_KEY = 42, ELSE_KEY = 43, ENDIF_KEY = 44, QWHILE_KEY = 45, 
-    ENDQWHILE_KEY = 46, MEASURE_KEY = 47, RESET_KEY = 48, ASSIGN = 49, GT = 50, 
-    LT = 51, NOT = 52, EQ = 53, LEQ = 54, GEQ = 55, NE = 56, AND = 57, OR = 58, 
-    PLUS = 59, MINUS = 60, MUL = 61, DIV = 62, COMMA = 63, LPAREN = 64, 
-    RPAREN = 65, LBRACK = 66, RBRACK = 67, NEWLINE = 68, Identifier = 69, 
-    Integer_Literal = 70, Double_Literal = 71, Digit_Sequence = 72, REALEXP = 73, 
-    WhiteSpace = 74, SingleLineComment = 75
+    U1_GATE = 28, P_GATE = 29, CNOT_GATE = 30, CZ_GATE = 31, CU_GATE = 32, 
+    ISWAP_GATE = 33, SQISWAP_GATE = 34, SWAPZ1_GATE = 35, ISWAPTHETA_GATE = 36, 
+    CR_GATE = 37, RXX_GATE = 38, RYY_GATE = 39, RZZ_GATE = 40, RZX_GATE = 41, 
+    TOFFOLI_GATE = 42, DAGGER_KEY = 43, ENDDAGGER_KEY = 44, CONTROL_KEY = 45, 
+    ENDCONTROL_KEY = 46, QIF_KEY = 47, ELSE_KEY = 48, ENDIF_KEY = 49, QWHILE_KEY = 50, 
+    ENDQWHILE_KEY = 51, MEASURE_KEY = 52, RESET_KEY = 53, ASSIGN = 54, GT = 55, 
+    LT = 56, NOT = 57, EQ = 58, LEQ = 59, GEQ = 60, NE = 61, AND = 62, OR = 63, 
+    PLUS = 64, MINUS = 65, MUL = 66, DIV = 67, COMMA = 68, LPAREN = 69, 
+    RPAREN = 70, LBRACK = 71, RBRACK = 72, NEWLINE = 73, Identifier = 74, 
+    Integer_Literal = 75, Double_Literal = 76, Digit_Sequence = 77, REALEXP = 78, 
+    WhiteSpace = 79, SingleLineComment = 80
   };
 
   originirLexer(antlr4::CharStream *input);

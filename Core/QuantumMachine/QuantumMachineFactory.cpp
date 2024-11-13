@@ -18,7 +18,7 @@ limitations under the License.
 #include "OriginQuantumMachine.h"
 
 #include "QPandaConfig.h"
-#if defined(USE_OPENSSL) && defined(USE_CURL)
+#if defined(USE_CURL)
 #include "Core/QuantumCloud/QCloudMachine.h"
 #endif
 
@@ -91,7 +91,7 @@ CreateByType(QMachineType type)
         break;
     case QMachineType::QCloud:
 
-#if defined(USE_OPENSSL) && defined(USE_CURL)
+#if defined(USE_CURL)
         qm = new QCloudMachine();
 #else
         throw init_fail("no libcurl found");

@@ -145,13 +145,23 @@ std::unique_ptr<ArchGraph> JsonBackendParser<ArchGraph>::Parse(const rapidjson::
 
 	auto graph = ArchGraph::Create(qubits);
 	graph->putReg(name, std::to_string(qubits));
-    
-	if (!quantum_chip_arch.HasMember(JsonFields<ArchGraph>::_adj_list_label.c_str()))
+
+	std::string adj_mat;
+	if (quantum_chip_arch.HasMember(JsonFields<ArchGraph>::_adj_list_label.c_str()))
+	{
+		adj_mat = JsonFields<ArchGraph>::_adj_list_label;
+	}
+	else if (quantum_chip_arch.HasMember("AdjMatrix")) {
+		adj_mat = "AdjMatrix";
+	}
+	
+	if (adj_mat.empty())
 	{
 		QCERR_AND_THROW(run_fail, "Error: ArchGraph json error, no adjacent-matrix config.");
 	}
-    auto &adj = quantum_chip_arch[JsonFields<ArchGraph>::_adj_list_label.c_str()];
-	if (qubits != adj.MemberCount())
+    auto &adj = quantum_chip_arch[adj_mat.c_str()];
+
+	if (qubits < adj.MemberCount())
 	{
 		QCERR_AND_THROW(run_fail, "Error: ArchGraph json cofigure error.");
 	}
@@ -160,10 +170,13 @@ std::unique_ptr<ArchGraph> JsonBackendParser<ArchGraph>::Parse(const rapidjson::
 	for (rapidjson::Value::ConstMemberIterator iter = adj.MemberBegin(); iter != adj.MemberEnd(); ++iter, ++qubit_index)
 	{
 		std::string str_key = iter->name.GetString();
-		if (atoi(str_key.c_str()) != qubit_index)
+		uint32_t key = stoi(str_key);
+#if 0
+		if (key != qubit_index)
 		{
 			QCERR_AND_THROW(run_fail, "Error: ArchGraph json index error occurs.");
 		}
+#endif
 
 		auto &iList = iter->value;
 		if (!iList.IsArray())
@@ -181,10 +194,10 @@ std::unique_ptr<ArchGraph> JsonBackendParser<ArchGraph>::Parse(const rapidjson::
 
             auto v = jElem[JsonFields<ArchGraph>::_v_label.c_str()].GetUint();
 
-			if (qubit_index == v) {
+			if (key == v) {
 				QCERR_AND_THROW(run_fail, "Error: ArchGraph structure error, illegal spin edge.");
 			}
-            graph->putEdge(qubit_index, v, 1);//default
+            graph->putEdge(key, v, 1);//default
 
             if (jElem.HasMember(JsonFields<ArchGraph>::_weight_label.c_str()))
 			{
@@ -208,7 +221,7 @@ std::unique_ptr<ArchGraph> JsonBackendParser<ArchGraph>::Parse(const rapidjson::
 
                 // In the Json, the standard is to have the probability of error.
                 // What we want is the probability of succes.
-                graph->setW(qubit_index, v, w);
+                graph->setW(key, v, w);
             }
         }
     }

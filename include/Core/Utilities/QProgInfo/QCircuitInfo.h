@@ -485,6 +485,14 @@ size_t get_all_used_class_bits(QProg prog, std::vector<ClassicalCondition> &vecC
 size_t get_measure_info(QProg prog, std::vector<std::pair<uint32_t, uint32_t>> &measure_info);
 
 /**
+* @brief  Get topo of quantum circuit
+* @ingroup Utilities
+* @param[in] prog  the input prog
+* @return return key: qubit, val: serialized gate string!
+*/
+std::map<uint32_t, std::string> get_circuit_topo(QProg prog);
+
+/**
 * @brief  output all the node type of the target prog
 * @ingroup Utilities
 * @param[in] the target prog

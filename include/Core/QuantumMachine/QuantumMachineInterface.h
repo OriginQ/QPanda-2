@@ -36,11 +36,13 @@ QPANDA_BEGIN
 *  @brief   Quantum machine type
 */
 enum QMachineType {
-    CPU,  /**< Cpu quantum machine  */
-    GPU, /**< Gpu quantum machine  */
-    CPU_SINGLE_THREAD, /**< Cpu quantum machine with single thread */
-    NOISE,  /**< Cpu quantum machine with  noise */
-    QCloud
+    CPU,  /**< CPU quantum machine  */
+    GPU, /**< GPU quantum machine  */
+    CPU_SINGLE_THREAD, /**< CPU quantum machine with single thread */
+    NOISE,  /**< CPU quantum machine with noise */
+    QCloud,
+    DENSITY_MATRIX,
+    QPILOT_OS
 };
 /**
 * @class Configuration
@@ -333,6 +335,7 @@ public:
     virtual size_t getAllocateCMemNum() = 0;
 
     virtual void initState(const QStat &state = {}, const QVec &qlist = {}) = 0;
+    virtual void initSparseState(const std::map<std::string, qcomplex_t> &state = {}, const QVec &qlist = {}) = 0;
     /**
     * @brief  get allocate qubits
     * @param[out] QVec& 

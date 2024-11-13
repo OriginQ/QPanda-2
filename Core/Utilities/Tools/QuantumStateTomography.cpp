@@ -18,12 +18,14 @@ const double kEpsion = 1e-8;
 using namespace QPanda;
 using namespace std;
 
+using  qvector_t = Eigen::Matrix<qcomplex_t, 1, Eigen::Dynamic, Eigen::RowMajor>;
+using  qmatrix_t = Eigen::Matrix<qcomplex_t, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
 
-static void _mle(QMatrixXcd &m)
+static void _positive_tranform(QMatrixXcd &m)
 {
     int64_t dim = m.rows();
-    Eigen::ComplexEigenSolver<QMatrixXcd> es(m);
-    QVectorXcd v = es.eigenvalues();
+    Eigen::ComplexEigenSolver<qmatrix_t> es(m);
+    qvector_t v = es.eigenvalues();
     auto s = es.eigenvectors();
     bool is_positive_semidefinite = true;
 
@@ -49,10 +51,9 @@ static void _mle(QMatrixXcd &m)
     m.setZero();
     for (int64_t i = 0; i < dim; i++)
     {
-        QMatrixXcd left_cols = s.col(i);
+        qmatrix_t left_cols = s.col(i);
         m += v(0, i) * (left_cols * left_cols.conjugate().transpose());
     }
-
     return;
 }
 
@@ -156,7 +157,7 @@ std::vector<QStat> QuantumStateTomography::caculate_tomography_density()
     }
 
     // positive semidefinite tranform
-    _mle(eigen_density);
+    _positive_tranform(eigen_density);
     vector<QStat> res_density(dim, QStat(dim, 0));
 
     for (int64_t row = 0; row < eigen_density.rows(); row++)

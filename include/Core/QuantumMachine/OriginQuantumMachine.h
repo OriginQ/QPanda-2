@@ -31,6 +31,15 @@ limitations under the License.
 #include <map>
 QPANDA_BEGIN
 
+enum class BackendType
+{
+	CPU,
+	GPU,
+	CPU_SINGLE_THREAD,
+	NOISE,
+	MPS
+};
+
 /**
 * @brief Implementation  class of  PhysicalQubit
 * @ingroup QuantumMachine
@@ -319,6 +328,7 @@ public:
 class QVM : public QuantumMachine
 {
 protected:
+    QMachineType _QMachine_type;
 	RandomEngine* random_engine;
 	QubitPool* _Qubit_Pool = nullptr;
 	CMem* _CMem = nullptr;
@@ -358,14 +368,16 @@ protected:
 
     void _fusion_gate(QProg& prog, const int fusion_bit);
 
-	void _ptrIsNull(void* ptr, std::string name);
+    void _ptrIsNull(void* ptr, std::string name);
+
 	virtual ~QVM();
-	virtual void init() {}
+    virtual void init();
 	virtual std::map<std::string, size_t> run_with_optimizing(QProg& prog, std::vector<ClassicalCondition>& cbits,
 		int shots, TraversalConfig& traver_param);
 	virtual std::map<std::string, size_t> run_with_normal(QProg& prog, std::vector<ClassicalCondition>& cbits, int shots, const NoiseModel& = NoiseModel());
 public:
     virtual void initState(const QStat& state = {}, const QVec& qlist = {});
+    virtual void initSparseState(const std::map<std::string, qcomplex_t> &state = {}, const QVec &qlist = {});
 	virtual Qubit* allocateQubitThroughPhyAddress(size_t qubit_num);
 	virtual Qubit* allocateQubitThroughVirAddress(size_t qubit_num); // allocate and return a qubit
 	virtual QMachineStatus* getStatus() const;
@@ -427,7 +439,10 @@ public:
 	virtual bool is_async_finished();
     virtual std::map<std::string, bool> get_async_result();
     virtual void set_parallel_threads(size_t size);
-// sorry AsyncTask declaretion must be after function declaretion
+    // sorry AsyncTask declaretion must be after function declaretion
+
+    virtual QMachineType get_machine_type() { return _QMachine_type; };
+
 protected:
 	AsyncTask<decltype(&QVM::run), decltype(&QProgProgress::get_processed_gate_num)>* _AsyncTask{nullptr};
 };
@@ -440,9 +455,10 @@ public:
 	prob_vec getProbList(QVec, int selectMax = -1);
 	prob_dict getProbDict(QVec, int selectMax = -1);
 	prob_tuple probRunTupleList(QProg&, QVec, int selectMax = -1);
+	//std::vector<prob_vec> probRunList(std::vector<QProg> &QProgs, std::vector<QVec>&, std::vector<int> &selectMaxs, int threads = 4);
 	prob_vec probRunList(QProg&, QVec, int selectMax = -1);
 	prob_dict probRunDict(QProg&, QVec, int selectMax = -1);
-
+	//std::vector<prob_dict> probRunDict(std::vector<QProg>& QProgs, std::vector<QVec>&, std::vector<int>& selectMaxs, int threads = 4);
 	prob_tuple probRunTupleList(QProg&, const std::vector<int>&, int selectMax = -1);
 	prob_vec probRunList(QProg&, const std::vector<int>&, int selectMax = -1);
 	prob_dict probRunDict(QProg&, const std::vector<int>&, int selectMax = -1);
@@ -463,8 +479,9 @@ public:
 class CPUQVM : public IdealQVM {
 public:
 	CPUQVM() {}
+	~CPUQVM();
     void init(bool is_double_precision);
-    void init();
+    void init() override;
     void set_parallel_threads(size_t);
 
 protected:
@@ -475,14 +492,22 @@ class GPUQVM : public IdealQVM
 {
 public:
 	GPUQVM() {}
-	void init();
+    void init() override;
+};
+
+class FullAmplitudeQVM : public IdealQVM
+{
+public:
+	FullAmplitudeQVM() {}
+	void init(BackendType type);
+	void init() override;
 };
 
 class CPUSingleThreadQVM : public IdealQVM
 {
 public:
 	CPUSingleThreadQVM() { }
-	void init();
+    void init() override;
 };
 
 class NoiseQVM : public QVM
@@ -502,7 +527,7 @@ private:
 	NoisyQuantum m_quantum_noise;
 public:
 	NoiseQVM();
-	void init();
+    void init() override;
 	void init(rapidjson::Document&);
 	virtual std::map<std::string, size_t> runWithConfiguration(QProg&, std::vector<ClassicalCondition>&, rapidjson::Document&, const NoiseModel& = NoiseModel()) override;
     virtual std::map<std::string, size_t> runWithConfiguration(QProg&, std::vector<ClassicalCondition>&, int, const NoiseModel& = NoiseModel()) override;

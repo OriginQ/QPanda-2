@@ -36,7 +36,7 @@ QProgToQASM::QProgToQASM(QProg src_prog, QuantumMachine * quantum_machine)
     m_gatetype.insert(pair<int, string>(CZ_GATE, "CZ"));
 
     m_qasm.clear();
-    m_quantum_machine = quantum_machine;
+    m_quantum_machine  = quantum_machine;
 }
 
 void QProgToQASM::transform()
@@ -48,8 +48,20 @@ void QProgToQASM::transform()
 
     m_qasm.emplace_back(QASM_HEAD);
 	m_qasm.emplace_back("include \"qelib1.inc\";");
-    m_qasm.emplace_back("qreg q[" + to_string(m_quantum_machine->getAllocateQubit()) + "];");
-    m_qasm.emplace_back("creg c[" + to_string(m_quantum_machine->getAllocateCMem()) + "];");
+	try {
+
+		QVec q;
+		std::vector<ClassicalCondition> c;
+		//m_qasm.emplace_back("qreg q[" + std::to_string(m_src_prog.get_used_qubits(q)) + "];");
+		m_qasm.emplace_back("qreg q[" + std::to_string(m_src_prog.get_max_qubit_addr()+1) + "];");
+		m_qasm.emplace_back("creg c[" + std::to_string(m_src_prog.get_used_cbits(c)) + "];");
+		//m_qasm.emplace_back("creg c[" + std::to_string(m_src_prog.max+1) + "];");
+	}
+	catch (const std::exception& e) {
+		m_qasm.emplace_back("qreg q[" + to_string(m_quantum_machine->getAllocateQubit()) + "];");
+		m_qasm.emplace_back("creg c[" + to_string(m_quantum_machine->getAllocateCMem()) + "];");
+	}
+
 
     vector<vector<string>> ValidQGateMatrix(KMETADATA_GATE_TYPE_COUNT, vector<string>(0));
     vector<vector<string>> QGateMatrix(KMETADATA_GATE_TYPE_COUNT, vector<string>(0));

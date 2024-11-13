@@ -5,8 +5,7 @@ set(LIB_PYQPANDA_OPERATOR pyQPandaOperator)
 file(GLOB_RECURSE PYQPANDA_OPERATOR_SRC *.cpp)
 pybind11_add_module(${LIB_PYQPANDA_OPERATOR} SHARED ${PYQPANDA_OPERATOR_SRC})
 set_target_properties(${LIB_PYQPANDA_OPERATOR}  PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
-target_link_libraries(${LIB_PYQPANDA_OPERATOR} PRIVATE ${LIB_QPANDA} ${LIB_QALG} ${LIB_VAR})
-
+target_link_libraries(${LIB_PYQPANDA_OPERATOR} PRIVATE ${LIB_QPANDA}  ${LIB_VAR} ${LIB_COMPONENTS})
 
 set(PYOPERATOR_OUT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../pyQPanda/pyqpanda/Operator")
 set(PYOPERATOR_OUT_LIB
@@ -17,7 +16,7 @@ add_custom_command(OUTPUT COPY_RES
  )
 add_custom_target(CopyQPandaTaskOperator ALL DEPENDS COPY_RES ${LIB_PYQPANDA_OPERATOR})
 
-# generate stub file for IDE intelliSense 
+# generate stub file for IDE intelliSense
 if(PYQPANDA_STUBGEN)
     add_custom_command(TARGET CopyQPandaTaskOperator
         POST_BUILD

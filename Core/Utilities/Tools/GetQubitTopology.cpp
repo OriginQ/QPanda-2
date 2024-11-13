@@ -1981,27 +1981,8 @@ std::map<size_t, size_t> QPanda::map_to_continues_qubits(QProg prog, QuantumMach
 		for (const auto& node : layer)
 		{
 			bool b_need_remap = false;
-			auto& cur_control_qubits = node.first->m_control_qubits;
-			for (auto iter = cur_control_qubits.begin(); iter != cur_control_qubits.end(); ++iter)
-			{
-				const auto tmp_addr = (*iter)->get_phy_addr();
-				const auto mapped_addr = qubit_map.find(tmp_addr)->second;
-				if (tmp_addr != mapped_addr)
-				{
-					b_need_remap = true;
-					*iter = addr_qv_map.at(mapped_addr);
-				}
-			}
-
-			if (b_need_remap)
-			{
-				auto pgate = std::dynamic_pointer_cast<AbstractQGateNode>(*(node.first->m_iter));
-				pgate->clear_control();
-				pgate->setControl(cur_control_qubits);
-			}
 
 			auto& cur_node_qubits = node.first->m_target_qubits;
-			b_need_remap = false;
 			QVec new_gate_qv;
 			for (auto iter = cur_node_qubits.begin(); iter != cur_node_qubits.end(); ++iter)
 			{
@@ -2048,6 +2029,28 @@ std::map<size_t, size_t> QPanda::map_to_continues_qubits(QProg prog, QuantumMach
 					pgate->remap(new_gate_qv);
 				}
 			}
+
+
+            /* handle control-qubit */
+            b_need_remap = false;
+            auto& cur_control_qubits = node.first->m_control_qubits;
+            for (auto iter = cur_control_qubits.begin(); iter != cur_control_qubits.end(); ++iter)
+            {
+                const auto tmp_addr = (*iter)->get_phy_addr();
+                const auto mapped_addr = qubit_map.find(tmp_addr)->second;
+                if (tmp_addr != mapped_addr)
+                {
+                    b_need_remap = true;
+                    *iter = addr_qv_map.at(mapped_addr);
+                }
+            }
+
+            if (b_need_remap)
+            {
+                auto pgate = std::dynamic_pointer_cast<AbstractQGateNode>(*(node.first->m_iter));
+                pgate->clear_control();
+                pgate->setControl(cur_control_qubits);
+            }
 		}
 	}
 

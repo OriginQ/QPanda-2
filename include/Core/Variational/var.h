@@ -90,6 +90,8 @@ namespace std {
 
 
 QPANDA_BEGIN
+
+#include <functional>
 namespace Variational {
 
     /**
@@ -298,6 +300,22 @@ namespace Variational {
         }
         friend const var py_stack(int axis, std::vector<var>& args);
         std::shared_ptr<impl> pimpl;
+
+        std::size_t _hash() const 
+        {
+            auto matrix = pimpl->val;
+            std::hash<double> hash_fn;
+            std::size_t seed = 0;
+            for (int i = 0; i < matrix.rows(); i++) 
+            {
+                for (int j = 0; j < matrix.cols(); j++) 
+                {
+                    seed ^= hash_fn(matrix(i, j)) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+                }
+            }
+
+            return seed;
+        }
 
         ~var();
     };

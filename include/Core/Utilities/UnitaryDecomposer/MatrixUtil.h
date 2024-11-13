@@ -13,7 +13,7 @@ QPANDA_BEGIN
 										}	                \
 									}while(0)
 
-constexpr double TOL = 1e-6;  // see tolerance 
+constexpr double tolerance = 1e-6;  // see tolerance 
 
 inline QStat eigen2qstat(const Eigen::MatrixXcd & in_matrix)
 {
@@ -52,7 +52,7 @@ inline bool is_square(const Eigen::MatrixXcd& _mat)
 	return _mat.rows() == _mat.cols();
 }
 
-inline bool is_approx(const Eigen::MatrixXcd& _mat1, const Eigen::MatrixXcd& _mat2, double _tol = TOL)
+inline bool is_approx(const Eigen::MatrixXcd& _mat1, const Eigen::MatrixXcd& _mat2, double _tol = tolerance)
 {
 	if (!_mat1.allFinite() || !_mat2.allFinite()){
 		return false;
@@ -75,7 +75,7 @@ inline bool is_approx(const Eigen::MatrixXcd& _mat1, const Eigen::MatrixXcd& _ma
 	return false;
 }
 
-inline bool is_hermitian(const Eigen::MatrixXcd& _mat, double _tol = TOL)
+inline bool is_hermitian(const Eigen::MatrixXcd& _mat, double _tol = tolerance)
 {
 	if (!is_square(_mat) || !_mat.allFinite())
 		return false;
@@ -83,7 +83,7 @@ inline bool is_hermitian(const Eigen::MatrixXcd& _mat, double _tol = TOL)
 	return is_approx(_mat, _mat.adjoint(), _tol);
 }
 
-inline bool is_orthogonal(const Eigen::MatrixXcd& _mat, double _tol = TOL)
+inline bool is_orthogonal(const Eigen::MatrixXcd& _mat, double _tol = tolerance)
 {
 	if (!is_square(_mat) || !_mat.allFinite())
 		return false;
@@ -101,13 +101,13 @@ inline bool is_orthogonal(const Eigen::MatrixXcd& _mat, double _tol = TOL)
 	return is_approx(_mat.inverse(), _mat.transpose(), _tol);
 }
 
-inline bool is_special_orthogonal(const Eigen::MatrixXcd& _mat, double _tol = TOL)
+inline bool is_special_orthogonal(const Eigen::MatrixXcd& _mat, double _tol = tolerance)
 {
 	// is orthogonal and determinant == 1
 	return is_orthogonal(_mat) && (std::abs(std::abs(_mat.determinant()) - 1.0) < _tol);
 }
 
-inline bool is_diagonal(const Eigen::MatrixXcd& _mat, double _tol = TOL)
+inline bool is_diagonal(const Eigen::MatrixXcd& _mat, double _tol = tolerance)
 {
 	if (!_mat.allFinite()){
 		return false;
@@ -129,7 +129,7 @@ inline bool is_diagonal(const Eigen::MatrixXcd& _mat, double _tol = TOL)
 	return true;
 }
 
-inline bool is_unitary(const Eigen::MatrixXcd& in_mat, double _tol = TOL)
+inline bool is_unitary(const Eigen::MatrixXcd& in_mat, double _tol = tolerance)
 {
 	if (!is_square(in_mat)) 
 		return false;

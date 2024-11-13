@@ -6,6 +6,24 @@ import numpy as np
 from math import pi
 
 def generate_edge_library(dimension):
+    """
+    Generates a list of edge tuples for a complete graph of the specified dimension.
+    
+    The function computes all possible edges for a graph where nodes are labeled from 0 to
+    (dimension - 1). Each edge is represented as a tuple containing two integers (i, j),
+    indicating a connection between nodes i and j. The generated edges form a complete graph,
+    where every pair of distinct nodes is connected by exactly one edge.
+    
+        Args:
+            dimension (int): The number of nodes in the graph, which must be a non-negative integer.
+    
+        Returns:
+            list of tuples: A list containing tuples of edge connections.
+    
+        Usage:
+            edges = generate_edge_library(4)
+            print(edges)  # Output: [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]
+    """
     edge_lib=[]
     for i in range(dimension):
         for j in range(i+1,dimension):
@@ -13,9 +31,26 @@ def generate_edge_library(dimension):
     return edge_lib
 
 def generate_adjacent_matrix(dimension,n_edge):
-    '''
-    generate adjacent matrix of a graph
-    '''
+    """
+    Constructs an adjacency matrix for a graph with a specified dimension and number of edges.
+
+    This function generates an adjacency matrix representing a graph. The matrix dimensions are determined by
+    the 'dimension' parameter, and the number of edges is defined by 'n_edge'. The matrix elements are initialized
+    to zero, and non-zero values are assigned to represent existing edges with a random weight between 0 and 1.
+
+        Args:
+            dimension (int): The size of the graph, which corresponds to the number of vertices.
+            n_edge (int): The total number of edges to include in the graph.
+
+        Returns:
+            numpy.ndarray: An adjacency matrix with shape (dimension, dimension), where non-zero values indicate
+                         the presence of an edge between the corresponding vertices with a random weight.
+
+        Note: 
+            This function is intended for use within the pyQPanda package, which is designed for programming
+            quantum computers using quantum circuits and gates, and may be executed on quantum simulators or
+            quantum cloud services.
+    """
     edge_lib=generate_edge_library(dimension)
     adjacent_matrix=np.zeros((dimension,dimension))
     number=0
@@ -25,7 +60,21 @@ def generate_adjacent_matrix(dimension,n_edge):
             adjacent_matrix[edge_lib[edge_number][0]][edge_lib[edge_number][1]]=np.random.uniform(0,1)
             number+=1
     return adjacent_matrix
+
 def generate_maxcut_problem_Hamiltonian(adjacent_matrix):
+    """
+    Constructs a Hamiltonian representation for the Max-Cut problem suitable for quantum algorithms within the pyQPanda framework.
+
+    This function takes an adjacency matrix representing an undirected graph and generates a Hamiltonian object
+    that encapsulates the Max-Cut problem. The Hamiltonian is represented using Pauli operators, where the strength
+    of the interaction between nodes is half the value of the corresponding element in the adjacency matrix.
+
+        Args:
+            adjacent_matrix (list of list of float): A 2D list representing the adjacency matrix of the graph.
+
+        Returns:
+            PauliOperator: An instance of the PauliOperator class that represents the Hamiltonian for the Max-Cut problem.
+    """
     str_dict={}
     dimension=len(adjacent_matrix)
     for i in range(dimension):
@@ -35,7 +84,23 @@ def generate_maxcut_problem_Hamiltonian(adjacent_matrix):
                 str_dict[key]=adjacent_matrix[i][j]/2
     hamiltonian=PauliOperator(str_dict)
     return hamiltonian
+
 def generate_drive_hamiltonian(qubit_number):
+    """
+    Constructs a drive Hamiltonian for a quantum circuit with a specified number of qubits.
+    
+    The Hamiltonian is represented as a Pauli operator, where each qubit is associated with an
+    'X' operator with the corresponding qubit index. The 'X' operator is set to have a coefficient of
+    1 for each qubit. This function is intended for use within the pyQPanda package for simulating
+    quantum circuits and quantum algorithms.
+    
+        Args:
+            qubit_number (int): The number of qubits for which the drive Hamiltonian is to be generated.
+    
+        Returns:
+            PauliOperator: A Pauli operator representing the drive Hamiltonian with the specified number
+                           of qubits.
+    """
     str_dict={}
     for i in range(qubit_number):
         key='X%d'%i
@@ -44,9 +109,26 @@ def generate_drive_hamiltonian(qubit_number):
     return drive_hamiltonian    
     
 def max_cut(adjacent_matrix):
-    '''
-    to modify
-    '''
+    """
+    Computes the maximum cut in a given adjacency matrix for a quantum algorithm within the pyQPanda framework.
+    
+    This function performs a maximum cut operation on a weighted graph represented by an adjacency matrix.
+    It returns a dictionary containing the maximum cut sum, a list of indices representing the cut, and
+    the sum of all possible cuts.
+    
+        Args:
+            adjacent_matrix (list of list of float): A 2D list representing the adjacency matrix of the graph.
+    
+        Returns:
+        dict: A dictionary with the following keys:
+                'sum': The maximum cut sum.
+                'target_list': A list of indices representing the vertices on one side of the cut.
+                'all_cut': A list of sums representing the cut for all possible partitions.
+                'all_cut_sum': The sum of all possible cut sums.
+    
+    The function iterates over all possible partitions of the graph, calculating the cut sum for each
+    partition. It keeps track of the maximum cut sum and the corresponding partition indices.
+    """
     dimension=len(adjacent_matrix)
     max_sum={}
     max_sum['sum']=0
@@ -75,6 +157,21 @@ def max_cut(adjacent_matrix):
     return max_sum  
 
 def target_list_to_str_list(target_list,dimension):
+    """
+    Converts a list of integers to a list of binary strings, each padded to a specified dimension.
+
+    This function is designed to facilitate the creation of binary representations for integers within
+    a specified dimension, which is particularly useful in quantum computing applications for constructing
+    quantum circuits.
+
+        Args:
+            target_list (list of int): The list of integers to be converted.
+            dimension (int): The length to which each binary string should be padded.
+
+        Returns:
+            list of str: A list containing the binary string representations of the integers in `target_list`,
+                       with each string padded to the length specified by `dimension`.
+    """
     target_str_list=[]
     for i in target_list:
         temp_str=bin(i)[2:]
@@ -84,9 +181,25 @@ def target_list_to_str_list(target_list,dimension):
     return target_str_list
 
 def generate_graph(dimension,n_edge):
-    '''
-    max_cut_str's sequence: v0v1v2...vd
-    '''
+    """
+    Generates a graph dictionary containing various properties of the graph constructed for the Max-Cut problem.
+
+        Args:
+            dimension (int): The number of vertices in the graph.
+            n_edge (int): The number of edges in the graph.
+
+        Returns:
+            dict: A dictionary with the following keys:
+                'adjacent_matrix': The adjacency matrix of the graph.
+                'max_value': The maximum cut value.
+                'max_cut_str': The sequence of vertices in the maximum cut.
+                'n_vertex': The number of vertices.
+                'n_edge': The number of edges.
+                'all_cut': A list of all cut values.
+                'all_cut_sum': The sum of all cut values.
+
+    The function utilizes an adjacency matrix to represent the graph, where '1' indicates an edge between vertices and '0' indicates no edge. It computes the maximum cut and converts the target list of vertices into a string representation.
+    """
     graph_dict={}
     adjacent_matrix=generate_adjacent_matrix(dimension=dimension,n_edge=n_edge)
     max_sum=max_cut(adjacent_matrix)
@@ -139,7 +252,33 @@ def generate_graph(dimension,n_edge):
 #     return result
 
 def qaoa_maxcut_gradient_threshold(graph,step,threshold_value=0.05,optimize_times=300,use_GPU=False):
-    
+    """
+    Solve the maximum cut problem on a quantum circuit using the Quantum Approximate Optimization Algorithm (QAOA)
+    with a gradient threshold approach. This function is designed to be used within the pyQPanda package,
+    which facilitates quantum computing with quantum circuits and gates, running on quantum simulators or cloud services.
+
+        Args:
+            graph (dict): A dictionary containing the graph structure and necessary parameters for the QAOA algorithm.
+                    'n_vertex': Number of vertices in the graph.
+                    'max_value': Maximum value for the cut problem.
+                    'max_cut_str': String representation of the maximum cut.
+                    'all_cut': List of all possible cuts in the graph.
+                    'adjacent_matrix': Adjacency matrix of the graph.
+                    'all_cut_sum': Sum of all cuts in the graph.
+            step (int): The number of layers in the quantum circuit.
+            threshold_value (float, optional): The threshold for convergence during optimization. Defaults to 0.05.
+            optimize_times (int, optional): The maximum number of optimization iterations. Defaults to 300.
+            use_GPU (bool, optional): Flag to indicate whether to use GPU acceleration. Defaults to False.
+
+        Returns:
+            object: The result object containing the optimized solution and other relevant information.
+
+        Notes:
+                The function initializes the quantum machine according to the use_GPU flag.
+                It constructs the Hamiltonian for the QAOA algorithm and applies a driving Hamiltonian.
+                The learning rate and optimize_times are adjusted based on the number of qubits and the step size.
+                The QAOA algorithm is executed with momentum optimization and a specified threshold for convergence.
+    """
     qubit_number=graph['n_vertex']
     target_value=-graph['max_value']
     target_str_list=graph['max_cut_str']

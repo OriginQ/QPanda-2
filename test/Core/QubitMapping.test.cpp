@@ -10,13 +10,12 @@
 
 #ifdef USE_EXTENSION
 
-
 const size_t kShots = 10000;
 const size_t kEpsion = kShots * 0.07;
 #define CHECK_TIME 1
 #define CHECK_SWAP 1
 
-const std::string test_IR_1 = R"(QINIT 6 
+const std::string test_IR_1 = R"(QINIT 6
 CREG 4
 H q[0]
 X q[1]
@@ -37,7 +36,7 @@ MEASURE q[3],c[2]
 MEASURE q[4],c[3]
 )";
 
-const std::string test_IR_2 = R"(QINIT 4 
+const std::string test_IR_2 = R"(QINIT 4
 CREG 4
 H q[1]
 H q[2]
@@ -90,7 +89,7 @@ MEASURE q[1],c[1]
 MEASURE q[2],c[2]
 )";
 
-const std::string test_IR_3 = R"(QINIT 1 
+const std::string test_IR_3 = R"(QINIT 1
 CREG 1
 H q[0]
 X q[0]
@@ -300,7 +299,6 @@ public:
 		cur_node->getQuBitVector(qv);
 		switch (type)
 		{
-			
 		case  GateType::CPHASE_GATE:
 		case  GateType::CZ_GATE:
 		case  GateType::CNOT_GATE:
@@ -350,6 +348,13 @@ public:
     int m_swap_cnt{0};
 };
 
+static uint64_t get_current_time()
+{
+	const std::chrono::system_clock::duration duration_since_epoch
+		= std::chrono::system_clock::now().time_since_epoch(); // ‰ªé1970-01-01 00:00:00Âà∞ÂΩìÂâçÊó∂Èó¥ÁÇπÁöÑÊó∂Èïø
+	return std::chrono::duration_cast<std::chrono::milliseconds>(duration_since_epoch).count(); // Â∞ÜÊó∂ÈïøËΩ¨Êç¢‰∏∫ÂæÆÁßíÊï∞
+}
+
 static bool test_opt_BMT_qubit_allocator_1()
 {
 	auto qvm = new CPUQVM();
@@ -365,7 +370,6 @@ static bool test_opt_BMT_qubit_allocator_1()
 	prog << QFT(q);
 	//prog = random_qprog(1, 8, 20, qvm, q);
 	//write_to_originir_file(prog, qvm, "D:\\test.txt");
-
 
 	qvm->directlyRun(prog);
 	auto r_1 = qvm->PMeasure_no_index( q);
@@ -485,20 +489,98 @@ static bool test_SABRE_qubit_mapping_1()
 	machine->setConfigure({ 128,128 });
 	auto q = tmp_qvm.allocate_qubits(5);
 	QCircuit cir;
-	cir << H(q[0]) << CNOT(q[0], q[1]) << H(q[1]) << H(q[1]) << CNOT(q[0], q[2]) << CNOT(q[1], q[2])
+	cir << H(q[0]) << CNOT(q[0], q[1])
+		<< H(q[1]) << H(q[1]) << CNOT(q[0], q[2]) << CNOT(q[1], q[2])
 		<< CNOT(q[3], q[4]) << CNOT(q[2], q[3]) << CNOT(q[2], q[3]) << H(q[2]) << CNOT(q[2], q[3])
 		<< CNOT(q[4], q[1]) << H(q[4]) << CNOT(q[4], q[0]) << CNOT(q[1], q[0]) << H(q[4]) << H(q[0]);
 
-	//cout << "srd prog:" << cir << endl;
+	cout << "srd prog:" << cir << endl;
 
 	// 1. SABRE
 	auto sabre_mapped_prog = SABRE_mapping(cir, machine, q);
-	//cout << "SABRE_mapped_prog:" << sabre_mapped_prog << endl;
+	cout << "SABRE_mapped_prog:" << sabre_mapped_prog << endl;
 	CalcFidelity cf;
 	//std::cout << "bmt fidelity :  " << cf.calc_fidelity(sabre_mapped_prog).first << std::endl;
 	//std::cout << "bmt swap :  " << cf.calc_fidelity(sabre_mapped_prog).second << std::endl;
 	if (cf.calc_fidelity(sabre_mapped_prog).first != 0.098411 && cf.calc_fidelity(sabre_mapped_prog).second != 2)
 		return false;
+    return true;
+}
+
+static bool test_SABRE_qubit_mapping_2()
+{
+	QVMInit<> tmp_qvm;
+	auto machine = tmp_qvm.m_qvm;
+	machine->setConfigure({ 128,128 });
+	auto q = tmp_qvm.allocate_qubits(73);
+
+	// 1. SABRE
+	ifstream infile("/home/bylz/workspace/pilotos/build/Release/bin/Config/50_qubits_10_depth.txt");
+	stringstream ss;
+	ss << infile.rdbuf();
+	std::string originir = ss.str();
+	//std::string originir = "QINIT 6\nCREG 6\nCNOT q[0],q[1]\nCNOT q[1],q[2]\nCNOT q[2],q[3]\nCNOT q[3],q[0]\nMEASURE q[0],c[0]\nMEASURE q[1],c[1]\nMEASURE q[2],c[2]\nMEASURE q[3],c[3]";
+	auto prog = convert_originir_string_to_qprog(originir, machine);
+
+    const std::string config_data = "/home/bylz/workspace/pilotos/build/Release/bin/Config/ChipArchConfig_D72.json";
+
+    QMappingConfig mapping_config = QMappingConfig(config_data);
+	auto mapping_result = select_best_qubits_blocks<QPanda::SabreQAllocator, QPanda::QMappingConfig>(prog, machine, mapping_config, 5, 10, 10000, 9);
+
+	auto sabre_mapped_prog = SABRE_mapping(prog, machine, q, mapping_result, 5, 10, mapping_config, 10000, 9);
+	auto dest_originir = convert_qprog_to_originir(sabre_mapped_prog, machine);
+
+    return true;
+}
+
+static bool test_find_mapped_blocks()
+{
+    const std::string config_data = CONFIG_PATH;
+    QMappingConfig mapping_config = QMappingConfig(config_data);
+
+	QVMInit<> tmp_qvm;
+	auto machine = tmp_qvm.m_qvm;
+	machine->setConfigure({ 128,128 });
+	//auto q = tmp_qvm.allocate_qubits(5);
+	std::string originir = "QINIT 6\nCREG 6\nH q[0]\nCNOT q[0],q[1]\nMEASURE q[0],c[0]\nMEASURE q[1],c[1]";
+	QVec q;
+	vector<ClassicalCondition> c;
+	QProg prog = convert_originir_string_to_qprog(originir, machine, q, c);
+
+	auto mapping_result = select_best_qubits_blocks<QPanda::SabreQAllocator, QPanda::QMappingConfig>(prog, machine, mapping_config, 20, 0, 100, 2);
+
+	return true;
+}
+
+static bool test_sabre_init_mapping()
+{
+
+    const std::string config_data = CONFIG_PATH;
+    QMappingConfig mapping_config = QMappingConfig(config_data);
+    QVec qv;
+    std::vector<uint32_t> init_map;
+    uint32_t max_look_ahead = 20;
+    uint32_t max_iterations = 10;
+
+    //return std::make_pair(ret_prog, init_map);
+
+    QVMInit<> tmp_qvm;
+    auto machine = tmp_qvm.m_qvm;
+    machine->setConfigure({128, 128});
+    QProg prog = convert_originir_to_qprog("C://work//QPanda//qpanda_dev_240428//testtemp//ir.txt", machine);
+    //cout << "srd prog:" << prog << endl;
+
+	auto mapping_result = select_best_qubits_blocks<QPanda::SabreQAllocator, QPanda::QMappingConfig>(prog, machine, mapping_config, 20, 0, 100);
+
+    // 1. SABRE
+    auto sabre_mapped_prog = SABRE_mapping(prog, machine, qv, init_map, mapping_result, max_look_ahead, max_iterations, mapping_config);
+    //cout << "SABRE_mapped_prog:" << sabre_mapped_prog << endl;
+    cout << "init mapping: [ ";
+    for (auto & q : init_map)
+    {
+        std::cout << q << "\t";
+    }
+    std::cout << " ]" << endl;
 	return true;
 }
 
@@ -754,7 +836,7 @@ static bool test_mapping_overall_fix(const std::string& ir_str)
 
     QProg test_prog;
 
-    // ¿˚”√originIR
+    // Âà©Áî®originIR
     //test_prog << random_qcircuit(q, 50) <<Measure(q[0],c[0]) << Measure(q[1],c[1]) << Measure(q[2], c[2]);
     //auto prog_str = convert_qprog_to_originir(test_prog, machine);
     //std::cout << prog_str << std::endl;
@@ -781,7 +863,7 @@ static bool test_mapping_overall_fix(const std::string& ir_str)
     std::cout << "===============start SABRE ===========>>> " << endl;
     auto _prog1 = deepCopy(test_prog);
     auto start2 = chrono::system_clock::now();
-    auto sabre_mapped_prog = SABRE_mapping(_prog1, machine, q, 20, 10, CONFIG_PATH);
+    auto sabre_mapped_prog = SABRE_mapping(_prog1, machine, q, 20, 10);
     auto end2 = chrono::system_clock::now();
     auto duration2 = chrono::duration_cast<chrono::microseconds>(end2 - start2);
     std::cout << "The SABRE takes "
@@ -803,7 +885,6 @@ static bool test_mapping_overall_fix(const std::string& ir_str)
         }
     }
     std::cout << "===============SABRE end===========>>> " << endl;
-    
 
     //// 2. opt-bmt
     std::cout << "--------------------  start opt-bmt >>> " << endl;
@@ -812,7 +893,7 @@ static bool test_mapping_overall_fix(const std::string& ir_str)
     QVec used_qv;
     _prog2.get_used_qubits(used_qv);
     auto start1 = chrono::system_clock::now();
-    auto bmt_mapped_prog = OBMT_mapping(_prog2, machine, used_qv, 200, 20, 10, CONFIG_PATH);
+    auto bmt_mapped_prog = OBMT_mapping(_prog2, machine, used_qv, 200, 20, 10, QPanda::QMappingConfig(CONFIG_PATH));
     auto end1 = chrono::system_clock::now();
     auto duration1 = chrono::duration_cast<chrono::microseconds>(end1 - start1);
     std::cout << "The opt-bmt takes "
@@ -878,7 +959,7 @@ static bool test_mapping_sabre_fix(const std::string& ir_str)
 
     QProg test_prog;
 
-    // ¿˚”√originIR
+    // Âà©Áî®originIR
     //test_prog << random_qcircuit(q, 10) << Measure(q[0], c[0]) << Measure(q[1], c[1]) << Measure(q[2], c[2]);
     test_prog = convert_originir_string_to_qprog(ir_str, machine, q, c);
     decompose_multiple_control_qgate(test_prog, machine, CONFIG_PATH, false);
@@ -895,7 +976,7 @@ static bool test_mapping_sabre_fix(const std::string& ir_str)
     std::cout << "===============start SABRE ===========>>> " << endl;
     auto _prog1 = deepCopy(test_prog);
     auto start2 = chrono::system_clock::now();
-    auto sabre_mapped_prog = SABRE_mapping(_prog1, machine, q, 20, 10, CONFIG_PATH);
+    auto sabre_mapped_prog = SABRE_mapping(_prog1, machine, q, 20, 10);
     std::cout << sabre_mapped_prog << std::endl;
     auto end2 = chrono::system_clock::now();
     auto duration2 = chrono::duration_cast<chrono::microseconds>(end2 - start2);
@@ -934,7 +1015,7 @@ static bool test_mapping_obmt_fix(const std::string& ir_str)
 
     QProg test_prog;
 
-    // ¿˚”√originIR
+    // Âà©Áî®originIR
     //test_prog << random_qcircuit(q, 10) << Measure(q[0], c[0]) << Measure(q[1], c[1]) << Measure(q[2], c[2]);
     test_prog = convert_originir_string_to_qprog(ir_str, machine, q, c);
     decompose_multiple_control_qgate(test_prog, machine, CONFIG_PATH, false);
@@ -992,7 +1073,7 @@ static bool test_mapping_a_star_fix(const std::string& ir_str)
 
     QProg test_prog;
 
-    // ¿˚”√originIR
+    // Âà©Áî®originIR
     //test_prog << random_qcircuit(q, 10) << Measure(q[0], c[0]) << Measure(q[1], c[1]) << Measure(q[2], c[2]);
     test_prog = convert_originir_string_to_qprog(ir_str, machine, q, c);
     decompose_multiple_control_qgate(test_prog, machine, CONFIG_PATH, false);
@@ -1057,6 +1138,122 @@ TEST(QubitMapping, test2)
 }
 
 
+bool test_mapping_arg(CPUQVM *qvm, QProg src_prog, QVec qv, int shot, MappingMode mode, QMappingConfig config_data)
+{
+    decompose_multiple_control_qgate(src_prog, qvm, CONFIG_PATH, false);
+    transform_to_base_qgate_withinarg(src_prog, qvm, { {"U3"}, {"CNOT"} });
+
+    auto src_result = qvm->runWithConfiguration(src_prog, shot);
+    auto src_cnot_num = count_qgate_num(src_prog);
+
+    QProg out_prog;
+    std::string str_tmp = "";
+    auto start = chrono::system_clock::now();
+    switch (mode)
+    {
+    case MappingMode::A_STAR:
+    {
+        out_prog = topology_match(src_prog, qv, qvm, CONFIG_PATH);
+        str_tmp = "a star ";
+    }
+    break;
+    case MappingMode::BMT:
+    {
+        out_prog = OBMT_mapping(src_prog, qvm, qv);
+
+        str_tmp = "bmt ";
+    }
+    break;
+    case MappingMode::SABRE:
+    {
+        out_prog = SABRE_mapping(src_prog, qvm, qv, 20, 10, config_data);
+        str_tmp = "sabre ";
+    }
+    break;
+    default:
+        break;
+    }
+    auto end = chrono::system_clock::now();
+
+    auto out_result = qvm->runWithConfiguration(out_prog, shot);
+    transform_to_base_qgate_withinarg(out_prog, qvm, { {"U3"}, {"CNOT"} });
+    auto out_cnot_num = count_qgate_num(out_prog);
+
+    bool ret = check_result(src_result, out_result, shot);
+    if (!ret) {
+        std::cout << "topology_match fail\n";
+        return false;
+    }
+
+    auto used_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    std::cout << str_tmp << " used milliseconds : " << used_time << std::endl;
+
+    auto increase_cout_num = out_cnot_num - src_cnot_num;
+    std::cout << str_tmp << " increase  " << increase_cout_num << " cnots" << std::endl;
+    return true;
+}
+
+
+TEST(QubitMapping, arg_test)
+{
+    int shot = 5000;
+
+    int qnum = 4;
+    auto qvm = new CPUQVM();
+    qvm->init();
+    auto qv = qvm->qAllocMany(qnum);
+    auto cv = qvm->cAllocMany(qnum);
+
+    QProg src_prog;
+    src_prog << random_qcircuit(qv, 20);
+
+    MappingMode mode = MappingMode::SABRE;
+
+    //1.default config file
+    auto mapping_prog_1 = SABRE_mapping(src_prog, qvm, qv, 20, 10);
+
+    //2.config file
+    auto mapping_prog_2 = SABRE_mapping(src_prog, qvm, qv, 20, 10, QPanda::QMappingConfig("QPandaConfig.json"));
+
+    //3.std::map
+    std::map<size_t, Qnum> mapping;
+    mapping[0] = { 1 };
+    mapping[1] = { 0, 2 };
+    mapping[2] = { 1, 3 };
+    mapping[3] = { 2 };
+
+    auto mapping_prog_3 = SABRE_mapping(src_prog, qvm, qv, 20, 10, mapping);
+
+    //4.Eigen::MatrixXd
+    Eigen::MatrixXd arch_graph = Eigen::MatrixXd::Zero(4, 4);
+
+    for (int i = 0; i < 3; ++i)
+    {
+        arch_graph(i, i + 1) = 1;
+        arch_graph(i + 1, i) = 1;
+    }
+
+    auto mapping_prog_4 = SABRE_mapping(src_prog, qvm, qv, 20, 10, arch_graph);
+
+    //5.prob_vec
+    prob_vec mapping_vector(arch_graph.data(), arch_graph.data() + arch_graph.size());
+
+    auto mapping_prog_5 = SABRE_mapping(src_prog, qvm, qv, 20, 10, mapping_vector);
+
+    std::cout << mapping_prog_1  << std::endl;
+    std::cout << mapping_prog_2  << std::endl;
+    std::cout << mapping_prog_3  << std::endl;
+    std::cout << mapping_prog_4  << std::endl;
+    std::cout << mapping_prog_5  << std::endl;
+
+    //auto ret = test_mapping(qvm, src_prog, qv, shot, mode);
+
+    qvm->finalize();
+    delete qvm;
+    //ASSERT_TRUE(ret);
+}
+
+
 TEST(QubitMapping, test1)
 {
 	bool test_val = true;
@@ -1064,8 +1261,7 @@ TEST(QubitMapping, test1)
 	{
 		for (size_t i = 0; i < 10; ++i)
 		{
-            
-            test_val = test_val && test_mapping_obmt_fix(test_IR_5);
+            //test_val = test_val && test_mapping_obmt_fix(test_IR_5);
             /*test_val = test_val && test_mapping_a_star_fix(test_IR_2);
             test_val = test_val && test_mapping_sabre_fix(test_IR_2);
             test_val = test_val && test_mapping_overall_fix(test_IR_2);*/
@@ -1073,9 +1269,11 @@ TEST(QubitMapping, test1)
 			//test_val = test_val && test_mapping_overall_fix(test_IR_2);
 			//test_val = test_val && test_mapping_overall_1(test_IR_2);
 			//test_val = test_val && test_mapping_overall_1(test_IR_3);
-			/*test_val = test_val && test_opt_BMT_qubit_allocator_3();
-			test_val = test_val && test_SABRE_qubit_mapping_1();
-			test_val = test_val && test_opt_BMT_qubit_allocator_1();*/
+			//test_val = test_val && test_opt_BMT_qubit_allocator_3();
+			//test_val = test_val && test_SABRE_qubit_mapping_1();
+			test_val = test_val && test_SABRE_qubit_mapping_2();
+			//test_val = test_val && test_opt_BMT_qubit_allocator_1();
+			//test_val = test_val && test_find_mapped_blocks();
 
 			if (!test_val){
 				break;

@@ -35,8 +35,15 @@ static void get_couple_state_index(uint128_t num, uint64_t& under_index, uint64_
     return;
 }
 
+PartialAmplitudeQVM::PartialAmplitudeQVM() : QVM()
+{
+    _Config.maxQubit = 80;
+    _Config.maxCMem = 80;
+}
+
 void PartialAmplitudeQVM::init(BackendType type)
 {
+    finalize();
     if (BackendType::CPU == type)
         m_simulator = std::make_unique<CPUImplQPU<double>>();
     else if (BackendType::MPS == type)
@@ -47,10 +54,14 @@ void PartialAmplitudeQVM::init(BackendType type)
 #endif // USE_CUDA
     else
         QCERR_AND_THROW(run_fail, "PartialAmplitudeQVM::init");
+    _start();
+}
 
-	_Config.maxQubit = 80;
-	_Config.maxCMem = 80;
-	_start();
+void PartialAmplitudeQVM::init()
+{
+    finalize();
+    m_simulator = std::make_unique<CPUImplQPU<double>>();
+    _start();
 }
 
 void PartialAmplitudeQVM::computing_graph(int qubit_num,const cir_type& circuit, QStat& state)
@@ -416,7 +427,7 @@ void PartialAmplitudeQVM::execute(std::shared_ptr<AbstractQGateNode>  cur_node, 
         case GateType::U4_GATE:
         {
             auto tar_qubit = qubits_vector[0]->getPhysicalQubitPtr()->getQubitAddr();
-            auto angle_param = dynamic_cast<QGATE_SPACE::AbstractAngleParameter *>(cur_node->getQGate());
+            auto angle_param = dynamic_cast<QGATE_SPACE::U4 *>(cur_node->getQGate());
 
             prob_vec params;
             params.emplace_back(angle_param->getAlpha());
@@ -577,7 +588,8 @@ void PartialAmplitudeQVM::execute(std::shared_ptr<AbstractQGateNode>  cur_node, 
             construct_qnode(GateType::HADAMARD_GATE, cur_node->isDagger(), { tar_qubit }, {});
             construct_qnode(GateType::HADAMARD_GATE, cur_node->isDagger(), { ctr_qubit }, {});
 
-            m_graph_backend.m_spilt_num += 2;
+            if (m_graph_backend.is_corss_node(ctr_qubit, tar_qubit))
+                m_graph_backend.m_spilt_num += 2;
         }
         break;
 
@@ -603,7 +615,8 @@ void PartialAmplitudeQVM::execute(std::shared_ptr<AbstractQGateNode>  cur_node, 
             construct_qnode(GateType::RX_GATE, cur_node->isDagger(), { ctr_qubit }, { -PI / 2 });
             construct_qnode(GateType::RX_GATE, cur_node->isDagger(), { tar_qubit }, { -PI / 2 });
 
-            m_graph_backend.m_spilt_num += 2;
+            if (m_graph_backend.is_corss_node(ctr_qubit, tar_qubit))
+                m_graph_backend.m_spilt_num += 2;
         }
         break;
 
@@ -623,7 +636,8 @@ void PartialAmplitudeQVM::execute(std::shared_ptr<AbstractQGateNode>  cur_node, 
             construct_qnode(GateType::RZ_GATE, cur_node->isDagger(), { tar_qubit }, { angle_param });
             construct_qnode(GateType::CNOT_GATE, cur_node->isDagger(), { tar_qubit,ctr_qubit }, {});
 
-            m_graph_backend.m_spilt_num += 2;
+            if (m_graph_backend.is_corss_node(ctr_qubit, tar_qubit))
+                m_graph_backend.m_spilt_num += 2;
         }
         break;
 
@@ -647,7 +661,8 @@ void PartialAmplitudeQVM::execute(std::shared_ptr<AbstractQGateNode>  cur_node, 
             construct_qnode(GateType::CNOT_GATE, cur_node->isDagger(), { tar_qubit,ctr_qubit }, {});
             construct_qnode(GateType::HADAMARD_GATE, cur_node->isDagger(), { tar_qubit }, {});
 
-            m_graph_backend.m_spilt_num += 2;
+            if (m_graph_backend.is_corss_node(ctr_qubit, tar_qubit))
+                m_graph_backend.m_spilt_num += 2;
         }
         break;
 

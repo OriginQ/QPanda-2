@@ -49,7 +49,7 @@ void OriginQubitPool::set_capacity(size_t capacity_num)
 	}
 	else if(capacity_num > cur_cap)
 	{
-		for (size_t i = cur_cap; i < capacity_num; ++i)
+		for (size_t i = 0; i < capacity_num; ++i)
 		{
 			auto _New_Physical_Qubit =
 				PhysicalQubitFactory::GetFactoryInstance().

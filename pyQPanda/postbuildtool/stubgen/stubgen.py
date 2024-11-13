@@ -457,6 +457,17 @@ class ImportTracker:
 
 
 def find_defined_names(file: MypyFile) -> Set[str]:
+    """
+    Retrieve a set of names of defined elements from the given MypyFile.
+
+    The function traverses the file structure using a DefinitionFinder to identify all names that have been defined within the file. It is designed to be used within the pyQPanda package, which facilitates programming quantum computers using quantum circuits and gates.
+
+    Parameters:
+        file (MypyFile): An instance of MypyFile representing the source file to be analyzed.
+
+    Returns:
+        Set[str]: A collection of strings representing the names of all elements defined within the file.
+    """
     finder = DefinitionFinder()
     file.accept(finder)
     return finder.names
@@ -481,6 +492,20 @@ class DefinitionFinder(mypy.traverser.TraverserVisitor):
 
 
 def find_referenced_names(file: MypyFile) -> Set[str]:
+    """
+    Analyzes a quantum computing file to identify all names that are referenced within it.
+
+    Utilizes a custom reference finder to traverse the file's structure and gather all names
+    that are being referenced. This function is designed to be used in the stub generation
+    process for the pyQPanda package, which supports quantum computing with quantum circuits
+    and gates, either on a quantum circuit simulator or a quantum cloud service.
+
+    Parameters:
+    file (MypyFile): The input file object to be analyzed.
+
+    Returns:
+    Set[str]: A set containing all the referenced names found in the file.
+    """
     finder = ReferenceFinder()
     file.accept(finder)
     return finder.refs
@@ -1244,6 +1269,18 @@ class StubGenerator(mypy.traverser.TraverserVisitor):
 
 
 def find_method_names(defs: List[Statement]) -> Set[str]:
+    """
+    Recursively identifies and collects the names of methods within a list of definitions.
+    
+    Parameters:
+    - defs: A list of statement objects (usually function or method definitions)
+    
+    Returns:
+    - A set of method names found within the provided definitions.
+    
+    This function is designed to traverse nested definitions, ensuring that all methods,
+    including those within overloaded function definitions, are accounted for.
+    """
     # TODO: Traverse into nested definitions
     result = set()
     for defn in defs:
@@ -1270,9 +1307,17 @@ class SelfTraverser(mypy.traverser.TraverserVisitor):
 
 
 def find_self_initializers(fdef: FuncBase) -> List[Tuple[str, Expression]]:
-    """Find attribute initializers in a method.
+    """
+    Identifies attribute initializers within a method's definition.
 
-    Return a list of pairs (attribute name, r.h.s. expression).
+    This function traverses the method definition using a specialized traverser and compiles a list of tuples.
+    Each tuple consists of an attribute name and the corresponding right-hand side expression that initializes the attribute.
+
+    Args:
+        fdef (FuncBase): The method definition to be analyzed.
+
+    Returns:
+        List[Tuple[str, Expression]]: A list containing tuples with the attribute names and their initializer expressions.
     """
     traverser = SelfTraverser()
     fdef.accept(traverser)
@@ -1280,6 +1325,19 @@ def find_self_initializers(fdef: FuncBase) -> List[Tuple[str, Expression]]:
 
 
 def get_qualified_name(o: Expression) -> str:
+    """
+    Constructs the fully qualified name of an expression in the context of quantum circuits.
+
+    For a `NameExpr`, it returns the name directly.
+    For a `MemberExpr`, it concatenates the fully qualified name of the parent expression with the member name, separated by a dot.
+    For any other type of expression, it returns a predefined error marker.
+
+    Parameters:
+    o (Expression): The expression object to process.
+
+    Returns:
+    str: The fully qualified name of the expression or an error marker if the expression is not recognized.
+    """
     if isinstance(o, NameExpr):
         return o.name
     elif isinstance(o, MemberExpr):
@@ -1289,16 +1347,54 @@ def get_qualified_name(o: Expression) -> str:
 
 
 def remove_blacklisted_modules(modules: List[StubSource]) -> List[StubSource]:
+    """
+    Remove blacklisted modules from a list of StubSource objects.
+
+    This function filters out modules whose paths are either `None` or are considered blacklisted. It is designed to be used within the pyQPanda package, specifically in the `stubgen` module, for managing quantum circuit simulation resources.
+
+    Parameters:
+    - modules (List[StubSource]): A list of StubSource objects representing modules that may include blacklisted paths.
+
+    Returns:
+    - List[StubSource]: A list of filtered StubSource objects with blacklisted paths removed.
+    """
     return [module for module in modules
             if module.path is None or not is_blacklisted_path(module.path)]
 
 
 def is_blacklisted_path(path: str) -> bool:
+    """
+    Determines whether the provided file or directory path is contained within a predefined blacklist.
+
+    Parameters:
+        path (str): The path to check against the blacklist.
+
+    Returns:
+        bool: True if the path is found in the blacklist, False otherwise.
+
+    This function normalizes the path separators and checks if any substring from the blacklist is present in the normalized path.
+    The blacklist is used to identify paths that should be excluded from certain operations or checks within the pyQPanda package.
+    """
     return any(substr in (normalize_path_separators(path) + '\n')
                for substr in BLACKLIST)
 
 
 def normalize_path_separators(path: str) -> str:
+    """
+    Standardizes path separators to a forward slash ('/') across different operating systems.
+
+    This function is designed to convert all backslashes ('\\') in a given file path to
+    forward slashes ('/'), ensuring compatibility across platforms. It is particularly useful
+    when paths are to be used in a quantum computing context within the pyQPanda package,
+    which operates on a quantum circuit simulator or quantum cloud service where path consistency
+    is crucial.
+
+    Parameters:
+    - path (str): The original file path with potential mixed path separators.
+
+    Returns:
+    - str: The standardized file path with all separators normalized to forward slashes.
+    """
     if sys.platform == 'win32':
         return path.replace('\\', '/')
     return path
@@ -1306,9 +1402,23 @@ def normalize_path_separators(path: str) -> str:
 
 def collect_build_targets(options: Options, mypy_opts: MypyOptions) -> Tuple[List[StubSource],
                                                                              List[StubSource]]:
-    """Collect files for which we need to generate stubs.
+    """
+    Aggregate the Python and C modules that require stub generation based on specified options.
 
-    Return list of Python modules and C modules.
+    Parameters:
+        options (Options): Configuration options for the build process.
+        mypy_opts (MypyOptions): Options for integrating with the Mypy static type checker.
+
+    Returns:
+        Tuple[List[StubSource], List[StubSource]]:
+            A tuple containing two lists:
+            - The first list contains Python modules to be stubbed.
+            - The second list contains C modules to be stubbed.
+
+    The function utilizes different strategies to locate modules depending on the presence of specific
+    options, such as 'packages', 'modules', and 'no_import'. If no explicit options are given, it
+    defaults to using Mypy's native source collection. It also ensures that blacklisted modules are
+    excluded from the final list of modules to be stubbed.
     """
     if options.packages or options.modules:
         if options.no_import:
@@ -1346,9 +1456,26 @@ def find_module_paths_using_imports(modules: List[str],
                                     verbose: bool,
                                     quiet: bool) -> Tuple[List[StubSource],
                                                           List[StubSource]]:
-    """Find path and runtime value of __all__ (if possible) for modules and packages.
+    """
+    Inspects and retrieves the path and runtime `__all__` values for specified modules and packages.
 
-    This function uses runtime Python imports to get the information.
+    Utilizes dynamic imports to gather module information at runtime. The function is designed to work with
+    both Python 2 and Python 3 interpreters, adapting its behavior based on the specified Python version.
+
+    Parameters:
+    - modules: A list of module names to be inspected.
+    - packages: A list of package names whose contents will be scanned for additional modules.
+    - interpreter: The path to the Python interpreter to be used for imports.
+    - pyversion: A tuple containing the major and minor version numbers of the Python interpreter.
+    - verbose: A boolean indicating whether detailed output should be printed.
+    - quiet: A boolean indicating whether errors should be suppressed.
+
+    Returns:
+    A tuple containing two lists:
+    - py_modules: A list of `StubSource` objects for Python modules that were successfully located.
+    - c_modules: A list of `StubSource` objects for modules that could not be imported or were identified as non-library modules.
+
+    The function operates within the `pyQPanda.postbuildtool.stubgen.stubgen.py` directory structure.
     """
     with ModuleInspect() as inspect:
         py_modules: List[StubSource] = []
@@ -1380,7 +1507,20 @@ def find_module_paths_using_imports(modules: List[str],
 
 
 def is_non_library_module(module: str) -> bool:
-    """Does module look like a test module or a script?"""
+    """
+    Determines if a given module name appears to be a test module or a script.
+
+    The function checks for common patterns indicative of test modules, such as
+    suffixes like '.tests', '.test', '.testing', and module names starting with
+    'test_'. Additionally, it looks for specific substrings within the module name
+    that suggest it is a test or utility module.
+
+    Parameters:
+        module (str): The name of the module to be checked.
+
+    Returns:
+        bool: True if the module is identified as a test module or script, False otherwise.
+    """
     if module.endswith((
             '.tests',
             '.test',
@@ -1406,6 +1546,22 @@ def is_non_library_module(module: str) -> bool:
 
 
 def translate_module_name(module: str, relative: int) -> Tuple[str, int]:
+    """
+    Translates a module name by checking for vendor package suffixes and replacing them
+    with alternative module names based on predefined mappings.
+
+    Parameters:
+    - module (str): The module name to be translated.
+    - relative (int): A relative flag indicating whether to return the alternative module
+                      name directly or with additional suffixes.
+
+    Returns:
+    - Tuple[str, int]: A tuple containing the translated module name and the relative flag.
+
+    This function is designed to simplify module name resolution in the pyQPanda package,
+    which is utilized for programming quantum computers with quantum circuits and gates,
+    running on a quantum circuit simulator or quantum cloud service.
+    """
     for pkg in VENDOR_PACKAGES:
         for alt in 'six.moves', 'six':
             substr = '{}.{}'.format(pkg, alt)
@@ -1420,11 +1576,23 @@ def translate_module_name(module: str, relative: int) -> Tuple[str, int]:
 def find_module_paths_using_search(modules: List[str], packages: List[str],
                                    search_path: List[str],
                                    pyversion: Tuple[int, int]) -> List[StubSource]:
-    """Find sources for modules and packages requested.
+    """
+    Locate source files for specified modules and packages across the file system.
 
-    This function just looks for source files at the file system level.
-    This is used if user passes --no-import, and will not find C modules.
-    Exit if some of the modules or packages can't be found.
+    The function performs a file system search for source code and is intended to be used when the
+    user disables import functionality. It does not detect C modules. If a module or package cannot be
+    found, the function will terminate. This utility is integral to the build process within the
+    pyQPanda package, which is designed for programming quantum computers using quantum circuits and
+    gates, and operates on quantum circuit simulators or quantum cloud services.
+
+    Parameters:
+    - modules (List[str]): A list of module names to search for.
+    - packages (List[str]): A list of package names to search for.
+    - search_path (List[str]): A list of additional paths to include in the search.
+    - pyversion (Tuple[int, int]): A tuple representing the Python version for which to search.
+
+    Returns:
+    - List[StubSource]: A list of `StubSource` objects containing module names and their corresponding paths.
     """
     result: List[StubSource] = []
     typeshed_path = default_lib_path(mypy.build.default_data_dir(), pyversion, None)
@@ -1451,7 +1619,27 @@ def find_module_paths_using_search(modules: List[str], packages: List[str],
 
 
 def mypy_options(stubgen_options: Options) -> MypyOptions:
-    """Generate mypy options using the flag passed by user."""
+    """
+    Constructs and returns a MypyOptions object with predefined settings, tailored
+    to the user's specified Python version. This function is designed to facilitate
+    the generation of type stubs within the pyQPanda package, enhancing the development
+    experience for quantum computing applications.
+
+    The options are set to:
+    - Skip following imports recursively.
+    - Disable incremental analysis.
+    - Ignore errors during type checking.
+    - Perform only semantic analysis without generating type annotations.
+    - Set the Python version according to the user's stubgen options.
+    - Show detailed traceback for error messages.
+    - Apply a transformation to remove misplaced type comments from source code.
+
+    Parameters:
+    stubgen_options (Options): An instance of Options containing the user's Python version preference.
+
+    Returns:
+    MypyOptions: A configured MypyOptions object ready for use in type checking or stub generation processes.
+    """
     options = MypyOptions()
     options.follow_imports = 'skip'
     options.incremental = False
@@ -1464,10 +1652,13 @@ def mypy_options(stubgen_options: Options) -> MypyOptions:
 
 
 def parse_source_file(mod: StubSource, mypy_options: MypyOptions) -> None:
-    """Parse a source file.
+    """
+    Processes the source file of a module to extract Abstract Syntax Tree (AST).
 
-    On success, store AST in the corresponding attribute of the stub source.
-    If there are syntax errors, print them and exit.
+    Reads the source file from the specified path, decodes it according to the
+    specified Python version, and parses it to generate the AST. The AST is then
+    stored in the module's corresponding attribute. If syntax errors are encountered,
+    they are printed to standard error, and the program exits with a non-zero status.
     """
     assert mod.path is not None, "Not found module was not skipped"
     with open(mod.path, 'rb') as f:
@@ -1488,7 +1679,22 @@ def generate_asts_for_modules(py_modules: List[StubSource],
                               parse_only: bool,
                               mypy_options: MypyOptions,
                               verbose: bool) -> None:
-    """Use mypy to parse (and optionally analyze) source files."""
+    """
+    Invokes Mypy to parse Python source files and optionally perform semantic analysis.
+    
+    Parameters:
+        py_modules (List[StubSource]): A list of source modules to process.
+        parse_only (bool): Flag indicating whether to parse the modules without full analysis.
+        mypy_options (MypyOptions): Configuration options for the Mypy static type checker.
+        verbose (bool): Flag to enable verbose output, indicating the processing of files.
+        
+    Raises:
+        SystemExit: In case of a critical error during the semantic analysis phase.
+        
+    The function processes the specified modules, utilizing Mypy to generate Abstract Syntax Trees
+    (ASTs) and optionally performs full semantic analysis. If an error occurs during analysis, the
+    function terminates with a system exit and a detailed error message.
+    """
     if not py_modules:
         return  # Nothing to do here, but there may be C modules
     if verbose:
@@ -1516,10 +1722,23 @@ def generate_stub_from_ast(mod: StubSource,
                            pyversion: Tuple[int, int] = defaults.PYTHON3_VERSION,
                            include_private: bool = False,
                            export_less: bool = False) -> None:
-    """Use analysed (or just parsed) AST to generate type stub for single file.
+    """
+    Constructs a type stub for a specified module by utilizing an Abstract Syntax Tree (AST).
 
-    If directory for target doesn't exist it will created. Existing stub
-    will be overwritten.
+    The function generates stubs from the AST of a given module. It supports both parsing and analysis
+    of the module's code. If the target directory does not exist, it will be created. Existing stubs
+    in the target location will be overwritten.
+
+    Parameters:
+        mod (StubSource): The module object containing the source code and AST.
+        target (str): The file path where the generated stub should be written.
+        parse_only (bool): If True, the function will parse the module without performing analysis.
+        pyversion (Tuple[int, int]): The Python version for which the stub is generated.
+        include_private (bool): Whether to include private members in the generated stub.
+        export_less (bool): Whether to generate stubs with less detail.
+
+    Raises:
+        AssertionError: If the `mod.ast` is `None`, indicating that the function is not used with analyzed modules.
     """
     gen = StubGenerator(mod.runtime_all,
                         pyversion=pyversion,
@@ -1538,10 +1757,25 @@ def generate_stub_from_ast(mod: StubSource,
 
 
 def collect_docs_signatures(doc_dir: str) -> Tuple[Dict[str, str], Dict[str, str]]:
-    """Gather all function and class signatures in the docs.
-
-    Return a tuple (function signatures, class signatures).
-    Currently only used for C modules.
+    """
+    Scans and compiles unique function and class signatures from documentation files.
+    
+    The function iterates over `.rst` files within the specified directory, parses
+    their contents for signatures, and returns a tuple containing two dictionaries:
+    one for function signatures and another for class signatures.
+    
+    This utility is specifically designed for C modules documentation within the
+    pyQPanda package, which facilitates programming quantum computers and simulating
+    quantum circuits.
+    
+    Parameters:
+    - doc_dir: str
+        The directory path containing the documentation files in `.rst` format.
+    
+    Returns:
+    - Tuple[Dict[str, str], Dict[str, str]]
+        A tuple with two dictionaries: the first contains function signatures, and
+        the second contains class signatures.
     """
     all_sigs: List[Sig] = []
     all_class_sigs: List[Sig] = []
@@ -1556,7 +1790,30 @@ def collect_docs_signatures(doc_dir: str) -> Tuple[Dict[str, str], Dict[str, str
 
 
 def generate_stubs(options: Options) -> None:
-    """Main entry point for the program."""
+    """
+    Generates type stubs for Python and C modules within the pyQPanda package.
+    
+    This function serves as the primary interface for stub generation, orchestrating the
+    collection of build targets, documentation signatures, and the actual stub creation
+    process for Python and C modules. It handles module information extraction, stub file
+    generation, and ensures that stubs are created according to specified options and
+    configurations.
+
+    Parameters:
+    options (Options): An instance of Options that contains all necessary information for
+                       stub generation, such as paths, parsing preferences, and verbosity.
+
+    The function performs the following steps:
+    - Collects and configures mypy options based on the input options.
+    - Identifies Python and C modules to be stubbed.
+    - Retrieves class signatures from documentation if a documentation directory is specified.
+    - Generates abstract syntax trees (ASTs) for Python modules if parsing is required.
+    - Constructs stub files for both Python and C modules, handling initialization files and
+      other edge cases.
+    - Generates stubs for C modules with additional logic to handle dependencies.
+    - Outputs the total number of processed modules and details about generated stub files
+      if verbose mode is enabled.
+    """
     mypy_opts = mypy_options(options)
     py_modules, c_modules = collect_build_targets(options, mypy_opts)
 
@@ -1615,6 +1872,19 @@ manual changes.  This directory is assumed to exist.
 
 
 def parse_options(args: List[str]) -> Options:
+    """
+    Parses command-line arguments and constructs an `Options` object to configure the stub generation process.
+
+    Parameters:
+        args (List[str]): A list of command-line arguments provided to the program.
+
+    Returns:
+        Options: An instance of the `Options` class containing parsed configuration options.
+
+    The function initializes an argument parser, defines various command-line flags, and sets their descriptions.
+    It supports options for controlling the Python version, error handling, module parsing, output directory,
+    and other configurations. It validates the input arguments and creates the output directory if necessary.
+    """
     parser = argparse.ArgumentParser(prog='stubgen',
                                      usage=HEADER,
                                      description=DESCRIPTION)
@@ -1693,6 +1963,11 @@ def parse_options(args: List[str]) -> Options:
 
 
 def main() -> None:
+    """
+    Ensures compatibility with the 'stubgen' tool by checking the Python version.
+    Adds the current directory to sys.path to enable stub generation for local packages.
+    Parses command-line options and generates stubs for the pyQPanda package.
+    """
     mypy.util.check_python_version('stubgen')
     # Make sure that the current directory is in sys.path so that
     # stubgen can be run on packages in the current directory.

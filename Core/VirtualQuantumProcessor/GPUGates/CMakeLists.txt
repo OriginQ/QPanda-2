@@ -12,7 +12,7 @@ set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} ${CUDA_ARCH_FLAGS_EXPAND} -isystem -use_
 if (MSVC)
     list(APPEND CUDA_NVCC_FLAGS -Xcompiler /FS -Xcompiler /w)
 else()
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++14 -w -Xcompiler -fPIC")   
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++17 -w -Xcompiler -fPIC")   
 endif()
 
 file(GLOB_RECURSE CURRENT_HEADERS ${PROJECT_SOURCE_DIR}/include/Core/VirtualQuantumProcessor/GPUGates/*.cuh)

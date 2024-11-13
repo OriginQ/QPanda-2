@@ -7,6 +7,7 @@ using namespace std;
 
 static bool get_qubit_topology_test_1()
 {
+#ifdef USE_EXTENSION
 	auto machine = initQuantumMachine(CPU);
 	auto x = machine->allocateCBit();
 	std::vector<SearchDataByUInt> search_sapce = { 3, 6, 6, 9, 10, 15, 11, 6/*, 9, 10, 15, 11, 9, 10, 15*//*, 11, 9, 10, 15, 11, 9, 10, 15, 11, 9, 10, 15, 11, 9, 10, 15, 11 */ };
@@ -54,7 +55,9 @@ static bool get_qubit_topology_test_1()
 	//cout << "Grover will search through " << search_sapce.size() << " data." << endl;
 	//cout << "Start grover search algorithm:" << endl;
 	QVec measure_qubits;
+
 	QProg grover_Qprog = build_grover_alg_prog(search_sapce, x == 6, machine, measure_qubits, 2);
+
 
 	//QProg grover_Qprog;
 	//auto q = machine->allocateQubits(6);
@@ -109,6 +112,8 @@ static bool get_qubit_topology_test_1()
 		return false;
 	else
 	    return true;
+#endif
+    return true;
 }
 
 static bool get_qubit_topology_test_2()

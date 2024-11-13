@@ -1,4 +1,4 @@
-﻿{
+{
   "configurations": [
     {
       "name": "x64-Debug",
@@ -7,8 +7,8 @@
       "inheritEnvironments": [ "msvc_x64_x64" ],
       "buildRoot": "${projectDir}\\build\\${name}",
       "installRoot": "C:\\QPanda2",
-      "cmakeCommandArgs": "-DUSE_PYQPANDA=OFF -DFIND_CUDA=OFF -DUSE_EXTENSION=ON -DDOCKER=OFF",
-      "buildCommandArgs": "-j4",
+      "cmakeCommandArgs": "-DUSE_PYQPANDA=ON -DFIND_CUDA=ON -DUSE_EXTENSION=OFF -DDOCKER=OFF -DUSE_GTEST=ON -DUSE_APPLICATIONS=ON -DUSE_CURL=ON -DUSE_QHETU=OFF",
+      "buildCommandArgs": "-j8",
       "ctestCommandArgs": ""
     },
     {
@@ -18,55 +18,9 @@
       "inheritEnvironments": [ "msvc_x64_x64" ],
       "buildRoot": "${projectDir}\\build\\${name}",
       "installRoot": "C:\\QPanda2",
-      "cmakeCommandArgs": "-DUSE_PYQPANDA=ON -DFIND_CUDA=OFF -DUSE_EXTENSION=OFF",
+      "cmakeCommandArgs": "-DUSE_PYQPANDA=ON -DFIND_CUDA=ON -DUSE_EXTENSION=OFF -DUSE_GTEST=ON -DUSE_APPLICATIONS=ON -DUSE_CURL=ON -DUSE_QHETU=OFF",
       "buildCommandArgs": "-j4",
       "ctestCommandArgs": ""
-    },
-    {
-      "name": "Linux-Debug",
-      "generator": "Unix Makefiles",
-      "remoteMachineName": "10.10.128.41",
-      "configurationType": "Debug",
-      "remoteCMakeListsRoot": "/tmp/QPanda",
-      "cmakeExecutable": "/usr/local/bin/cmake",
-      "buildRoot": "${projectDir}\\build\\${name}",
-      "installRoot": "C:\\QPanda2",
-      "remoteBuildRoot": "/tmp/build/${workspaceHash}/build/${name}",
-      "remoteInstallRoot": "/tmp/build/${workspaceHash}/install/${name}",
-      "remoteCopySources": true,
-      "remoteCopySourcesOutputVerbosity": "Normal",
-      "remoteCopySourcesConcurrentCopies": "10",
-      "remoteCopySourcesMethod": "rsync",
-      "remoteCopySourcesExclusionList": [ ".vs", ".git", "build " ],
-      "rsyncCommandArgs": "-t --delete --delete-excluded",
-      "remoteCopyBuildOutput": false,
-      "cmakeCommandArgs": "-DUSE_PYQPANDA=OFF -DFIND_CUDA=OFF -DUSE_EXTENSION=ON",
-      "buildCommandArgs": "-j4",
-      "ctestCommandArgs": "",
-      "inheritEnvironments": [ "linux_x64" ]
-    },
-    {
-      "name": "Linux-Release",
-      "generator": "Unix Makefiles",
-      "remoteMachineName": "10.10.128.41",
-      "configurationType": "Release",
-      "remoteCMakeListsRoot": "/tmp/QPanda",
-      "cmakeExecutable": "/usr/local/bin/cmake",
-      "buildRoot": "${projectDir}\\build\\${name}",
-      "installRoot": "C:\\QPanda2",
-      "remoteBuildRoot": "/tmp/build/${workspaceHash}/build/${name}",
-      "remoteInstallRoot": "/tmp/build/${workspaceHash}/install/${name}",
-      "remoteCopySources": true,
-      "remoteCopySourcesOutputVerbosity": "Normal",
-      "remoteCopySourcesConcurrentCopies": "10",
-      "remoteCopySourcesMethod": "rsync",
-      "remoteCopySourcesExclusionList": [ ".vs", ".git", "build " ],
-      "rsyncCommandArgs": "-t --delete --delete-excluded",
-      "remoteCopyBuildOutput": false,
-      "cmakeCommandArgs": "-DUSE_PYQPANDA=OFF -DFIND_CUDA=OFF -DUSE_EXTENSION=ON",
-      "buildCommandArgs": "-j4",
-      "ctestCommandArgs": "",
-      "inheritEnvironments": [ "linux_x64" ]
     }
   ]
 }

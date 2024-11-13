@@ -5,8 +5,12 @@ int main(int argc, char** argv)
 {
 #if 1
 	//Run a single test of Alg Part
-    //::testing::GTEST_FLAG(filter) = "RxxRyyRzzRzxGate.test1";
-    ::testing::GTEST_FLAG(filter) = "QPilotOSMachine.test";
+    ::testing::GTEST_FLAG(filter) = "Stabilizer.test";
+    //::testing::GTEST_FLAG(filter) = "QPilotOSMachine.test";
+    //::testing::GTEST_FLAG(filter) = "QubitMapping.test1";
+	//::testing::FLAGS_gtest_filter("QASMToQProg2.test");
+	::testing::FLAGS_gtest_filter = "DrawLatex.test3";
+	
 #else
 	//Run All Core Part
 #endif

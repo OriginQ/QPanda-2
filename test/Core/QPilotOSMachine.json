@@ -1,0 +1,154 @@
+{
+	"server_ip": "10.10.7.45",
+	"server_port": 10080,
+	"qubits": 6,
+	"output": true,
+	"user": "yebin",
+	"pswd": "yebin",
+	"perform": [ "real_chip_measure" ],
+	"full_amplitude_measure": {
+		"default": true,
+		"shots": 1000,
+		"originir": "QINIT 12\nCREG 12\nH q[0]\nH q[1]\nH q[2]\nH q[3]\nH q[4]\nH q[5]\nH q[6]\nH q[7]\nH q[8]\nH q[9]\nH q[10]\nH q[11]\nCNOT q[0],q[1]\nCNOT q[1],q[2]\nCNOT q[2],q[3]\nCNOT q[3],q[4]\nCNOT q[4],q[5]\nCNOT q[5],q[6]\nCNOT q[6],q[7]\nCNOT q[7],q[8]\nCNOT q[8],q[9]\nCNOT q[9],q[10]\nCNOT q[10],q[11]\nMEASURE q[0],c[0]\nMEASURE q[1],c[1]\nMEASURE q[2],c[2]\nMEASURE q[3],c[3]\nMEASURE q[4],c[4]\nMEASURE q[5],c[5]\nMEASURE q[6],c [6]\nMEASURE q[7],c[7]\nMEASURE q[8],c[8]\nMEASURE q[9],c[9]\nMEASURE q[10],c[10]\nMEASURE q[11],c[11]"
+	},
+	"full_amplitude_pmeasure": {
+		"default": true,
+		"shots": 1000,
+		"originir": "QINIT 6\nCREG 6\nH q[0]\nH q[1]\nH q[2]\nH q[3]\nH q[4]\nH q[5]\nCZ q[1],q[5]\nRX q[2],(0.78539816)\nRX q[1],(0.78539816)",
+		"qubits": [ 0, 1, 2 ]
+	},
+	"partial_amplitude_pmeasure": {
+		"default": true,
+		"shots": 1000,
+		"originir": "QINIT 6\nCREG 6\nH q[0]\nH q[1]\nH q[2]\nH q[3]\nH q[4]\nH q[5]\nCZ q[1],q[5]\nRX q[2],(0.78539816)\nRX q[1],(0.78539816)",
+		"qubits": [ 0, 1, 2 ]
+	},
+	"single_amplitude_pmeasure": {
+		"default": true,
+		"shots": 256,
+		"samples": 100,
+		"originir": "QINIT 6\nCREG 6\nH q[0]\nH q[1]\nH q[2]\nH q[3]\nH q[4]\nH q[5]\nCZ q[1],q[5]\nRX q[2],(0.78539816)\nRX q[1],(0.78539816)",
+		"qubits": [ 0 ]
+	},
+	"noise_measure": {
+		"default": true,
+		"shots": 1000,
+		"originir": "QINIT 6\nCREG 6\nH q[0]\nH q[1]\nH q[2]\nH q[3]\nH q[4]\nH q[5]\nCZ q[2],q[3]\nMEASURE q[0],c[0]"
+	},
+	"real_chip_measure": {
+		"default": true,
+		"shots": 1000,
+		"backend_id": 72,
+		"originir": "QINIT 6\nCREG 6\nH q[0]\nH q[1]\nH q[2]\nH q[3]\nH q[4]\nX q[5]\nX q[0]\nX q[4]\nH q[5]\nCNOT q[0],q[5]\nX q[0]\nCNOT q[1],q[5]\nH q[0]\nH q[1]\nCNOT q[2],q[5]\nH q[2]\nCNOT q[3],q[5]\nH q[3]\nCNOT q[4],q[5]\nX q[4]\nH q[4]\nMEASURE q[0],c[0]\nMEASURE q[1],c[1]\nMEASURE q[2],c[2]\nMEASURE q[3],c[3]\nMEASURE q[4],c[4]\nMEASURE q[5],c[5]"
+	},
+	"real_chip_measure_vec": {
+		"default": false,
+		"shots": 1000,
+		"backend_id": 72,
+		"loop":  36,
+		"originir": [
+			"QINIT 6\nCREG 6\nH q[0]\nH q[1]\nH q[2]\nH q[3]\nH q[4]\nX q[5]\nX q[0]\nX q[4]\nH q[5]\nCNOT q[0],q[5]\nX q[0]\nCNOT q[1],q[5]\nH q[0]\nH q[1]\nCNOT q[2],q[5]\nH q[2]\nCNOT q[3],q[5]\nH q[3]\nCNOT q[4],q[5]\nX q[4]\nH q[4]\nMEASURE q[0],c[0]\nMEASURE q[1],c[1]\nMEASURE q[2],c[2]\nMEASURE q[3],c[3]\nMEASURE q[4],c[4]\nMEASURE q[5],c[5]"
+		]
+	},
+	"real_chip_measure_async": {
+		"default": true,
+		"shots": 1000,
+		"loop":  36,
+		"originir": [	
+			"QINIT 6\nCREG 6\nH q[0]\nH q[1]\nH q[2]\nH q[3]\nH q[4]\nH q[5]\nCZ q[2],q[3]\nMEASURE q[0],c[0]"
+		]
+	},
+	"real_chip_measure_async_vec": {
+		"default": true,
+		"shots": 1000,
+		"loop":  36,
+		"originir": [
+						"QINIT 6\nCREG 6\nH q[0]\nH q[1]\nH q[2]\nH q[3]\nH q[4]\nH q[5]\nCZ q[2],q[3]\nMEASURE q[0],c[0]"
+		]
+	},
+	"real_chip_expectation": {
+		"default": false,
+		"shots": 1000,
+		"backend_id": 72,
+		"originir": "QINIT 6\nCREG 6\nX q[0]\nBARRIER q[0],q[1]\nH q[0]\nRX q[1],(-1.570796)\nCNOT q[1],q[0]\nBARRIER q[0],q[1]\nRZ q[0],(0.226019)\nBARRIER q[0],q[1]\nCNOT q[1],q[0]\nBARRIER q[0],q[1]\nH q[0]\nRX q[1],(1.570796)",
+		"hamiltonian": "\"\": -1.0534210769165204,\"Z0\": 0.394844363355904,\"Z1\": -0.39484436335590417,\"Z0 Z1\": -0.01124615715082114,\"X0 X1\": 0.18121046201519694",
+		"qubits": [ 0, 1 ],
+		"specified_block": [ 52, 53, 54 ]
+	},
+	"real_chip_expectation_async": {
+		"default": true,
+		"shots": 1000,
+		"backend_id": 72,
+		"originir": "QINIT 6\nCREG 6\nX q[0]\nBARRIER q[0],q[1]\nH q[0]\nRX q[1],(-1.570796)\nCNOT q[1],q[0]\nBARRIER q[0],q[1]\nRZ q[0],(0.226019)\nBARRIER q[0],q[1]\nCNOT q[1],q[0]\nBARRIER q[0],q[1]\nH q[0]\nRX q[1],(1.570796)",
+		"hamiltonian": "\"\": -1.0534210769165204,\"Z0\": 0.394844363355904,\"Z1\": -0.39484436335590417,\"Z0 Z1\": -0.01124615715082114,\"X0 X1\": 0.18121046201519694",
+		"qubits": [ 0, 1 ]
+	},
+	"get_state_fidelity": {
+		"default": true,
+		"shots": 1000,
+		"originir": "QINIT 6\nCREG 6\nH q[0]\nH q[1]\nH q[2]\nH q[3]\nH q[4]\nH q[5]\nCZ q[2],q[3]\nMEASURE q[0],c[0]"
+	},
+	"test_parse": {
+		"default": true,
+		"shots": 1000,
+		"originir": "QINIT 6\nCREG 6\nH q[0]\nH q[1]\nH q[2]\nH q[3]\nH q[4]\nH q[5]\nCZ q[2],q[3]\nMEASURE q[0],c[0]"
+	},
+	"noise_learning": {
+		"default": false,
+		"shots": 256,
+		"samples": 10,
+		"pattern": 0,
+		"qem_base_method": 0,
+		"file": "common_generator.py",
+		"noise_model_file": "",
+		"originir": [ "QINIT 72\nCREG 72\nCZ q[45],q[46]\nCZ q[52],q[53]\nCZ q[46],q[52]\nCZ q[53],q[54]\nCZ q[54],q[48]" ],
+		"depths": [ 2, 4, 8 ]
+	},
+	"noise_learning_async": {
+		"default": false,
+		"shots": 256,
+		"samples": 10,
+		"pattern": 0,
+		"qem_base_method": 0,
+		"file": "common_generator.py",
+		"noise_model_file": "",
+		"originir": [ "QINIT 72\nCREG 72\nCZ q[45],q[46]\nCZ q[52],q[53]\nCZ q[46],q[52]\nCZ q[53],q[54]\nCZ q[54],q[48]" ],
+		"depths": [ 2, 4, 8, 16, 32 ]
+	},
+	"em_compute": {
+		"default": false,
+		"shots": 1000,
+		"samples": 40,
+		"pattern": 0,
+		"nl_shots": 1000,
+		"qem_base_method": 0,
+		"file": "common_generator.py",
+		"noise_model_file": "",
+		"originir": [ "QINIT 72\nCREG 72\nH q[45]\nCNOT q[45],q[46]" ],
+		"depths": [ 2, 4, 8, 16, 32 ],
+
+		"qem_method": 0,
+		"qem_samples": 300,
+		"qem_shots": 1000,
+		"expectations": [ "IZ", "ZI" ],
+		"noise_stength":  [0.0, 1.0, 2.0]
+	},
+	"em_compute_async": {
+		"default": false,
+		"shots": 256,
+		"samples": 10,
+		"pattern": 0,
+		"nl_shots": 256,
+		"qem_base_method": 0,
+		"file": "common_generator.py",
+		"noise_model_file": "common_PER_experiment.pkl",
+		"originir": [ "QINIT 72\nCREG 72\nCZ q[45],q[46]\nCZ q[52],q[53]\nCZ q[46],q[52]\nCZ q[53],q[54]\nCZ q[54],q[48]" ],
+		"depths": [ 2, 4, 8, 16, 32 ],
+
+		"expectations": [ "IZIIII", "IIZIII" ],
+		"qem_method": 0,
+		"qem_samples": 300,
+		"qem_shots": 256,
+		"noise_stength": [ 0.0, 1.0, 2.0 ]
+	}
+}

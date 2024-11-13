@@ -1,10 +1,12 @@
 #ifndef _QPANDA_CONFIG_H_
 #define _QPANDA_CONFIG_H_
 
+#cmakedefine DOCKER
 #cmakedefine USE_CUDA
 #cmakedefine USE_PYQPANDA
 #cmakedefine USE_OPENMP
 #cmakedefine USE_CURL
+#cmakedefine USE_QHETU
 #cmakedefine USE_MPI
 #cmakedefine USE_EXTENSION
 #cmakedefine USE_SIMD

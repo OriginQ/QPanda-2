@@ -1,16 +1,12 @@
-#ifndef  _ORIGINIR_TO_QPROG_H
-#define  _ORIGINIR_TO_QPROG_H
+#pragma once 
 #include "ThirdParty/antlr4/runtime/src/antlr4-runtime.h"
-#include "Core/Utilities/Compiler/OriginIRCompiler/originirBaseVisitor.h"
 #include "Core/Utilities/Compiler/OriginIRCompiler/originirLexer.h"
 #include "Core/Utilities/Compiler/OriginIRCompiler/originirParser.h"
-#include "Core/Utilities/Compiler/OriginIRCompiler/originirVisitor.h"
-#include "Core/Utilities/Compiler/OriginIRCompiler/originirListener.h"
-#include "Core/Utilities/Compiler/OriginIRCompiler/statementBaseVisitor.h"
-#include "Core/Utilities/Compiler/OriginIRCompiler/statementLexer.h"
-#include "Core/Utilities/Compiler/OriginIRCompiler/statementParser.h"
-#include "Core/Utilities/Compiler/OriginIRCompiler/statementVisitor.h"
-#include "Core/Utilities/Compiler/OriginIRCompiler/statementListener.h"
+#include "Core/Utilities/Compiler/OriginIRCompiler/originirParserBaseListener.h"
+#include "Core/Utilities/Compiler/OriginIRCompiler/originirParserBaseVisitor.h"
+#include "Core/Utilities/Compiler/OriginIRCompiler/originirParserListener.h"
+#include "Core/Utilities/Compiler/OriginIRCompiler/originirParserVisitor.h"
+
 #include "Core/QuantumCircuit/QProgram.h"
 #include "Core/QuantumCircuit/QCircuit.h"
 #include "Core/QuantumCircuit/QGate.h"
@@ -20,10 +16,10 @@
 #include "Core/QuantumCircuit/ControlFlow.h"
 #include "Core/QuantumCircuit/ClassicalProgram.h"
 #include "Core/QuantumCircuit/QGlobalVariable.h"
-#include "Core/Utilities/Compiler/QASMToQProg.h"
+
+#include "Core/Utilities/Compiler/Definitions.hpp"
+
 #include "include/Core/Utilities/Tools/QString.h"
-#include <Core/Utilities/Compiler/OriginIRCompiler/originirParser.h>
-#include <Core/Utilities/Compiler/OriginIRCompiler/originirParser.h>
 #include <include/Core/Utilities/Tools/Utils.h>
 #include "Core/Utilities/QProgTransform/QProgToQCircuit.h"
 #include "Core/Utilities/Tools/QPandaException.h"
@@ -35,7 +31,7 @@
 
 
 QPANDA_BEGIN
-
+using namespace qc;
 class StatementErrorListener : public antlr4::BaseErrorListener {
 public:
 	void syntaxError(antlr4::Recognizer* recognizer, antlr4::Token* offendingSymbol, size_t line,
@@ -55,10 +51,13 @@ std::vector<std::string> all_supported_gate =
 	"U2","RPhi",
 	"U3",
 	"U4",
-	"CNOT","CZ","ISWAP","SQISWAP","SWAP",
+    "CNOT","CZ","ISWAP","SQISWAP","SWAP", "MS",
 	"CR","ISWAPTHETA",
 	"CU",
-	"TOFFOLI"
+	"TOFFOLI",
+
+	// 
+	"P","RXX","RYY","RZZ","RZX"
 };
 
 std::regex id("[a-zA-Z_][a-zA-Z0-9_]*");
@@ -297,7 +296,7 @@ public:
 		U2, RPhi,
 		U3,
 		U4,
-		CNOT, CZ, ISWAP, SQISWAP, SWAP,
+		CNOT, CZ, ISWAP, SQISWAP, SWAP, MS,
 
 		ISWAPTHETA, CR,
 
@@ -305,6 +304,9 @@ public:
 		DAGGER, CONTROL,
 
 		TOFFOLI,
+
+		// 2023-12-18 ÐÂÔö
+		RXX, RYY, RZZ, RZX, P,
 		DEFINE_QAGE,
 	};
 
@@ -334,10 +336,17 @@ public:
 		MACRO_GET_GATETYPE(ISWAP);
 		MACRO_GET_GATETYPE(SQISWAP);
 		MACRO_GET_GATETYPE(SWAP);
+		MACRO_GET_GATETYPE(MS);
 		MACRO_GET_GATETYPE(ISWAPTHETA);
 		MACRO_GET_GATETYPE(CR);
 		MACRO_GET_GATETYPE(CU);
 		MACRO_GET_GATETYPE(TOFFOLI);
+
+		MACRO_GET_GATETYPE(RXX);
+		MACRO_GET_GATETYPE(RYY);
+		MACRO_GET_GATETYPE(RZZ);
+		MACRO_GET_GATETYPE(RZX);
+		MACRO_GET_GATETYPE(P);
 		return GateType::DEFINE_QAGE;
 	}
 
@@ -400,7 +409,7 @@ public:
 * @brief OriginIR  Visitor
 * @ingroup Utilities
 */
-class OriginIRVisitor : public originirBaseVisitor {
+class OriginIRVisitor : public originirParserBaseVisitor {
 
 	QProgBuilder builder;
 	int qinit = -1;
@@ -1673,19 +1682,19 @@ public:
 			}
 
 			std::vector<std::string>::iterator it;
-			it = find(all_supported_gate.begin(), all_supported_gate.end(), detail_str[0]);
-			if (it != all_supported_gate.end())
-			{
-				str += "\r\n";
-				antlr4::ANTLRInputStream input_statement(str);
-				statement::statementLexer lexer_statement(&input_statement);
-				antlr4::CommonTokenStream tokens_statement(&lexer_statement);
-				statement::statementParser parser_statement(&tokens_statement);
-				parser_statement.removeErrorListeners();
-				StatementErrorListener _e;
-				parser_statement.addErrorListener(&_e);
-				antlr4::tree::ParseTree* tree_ = parser_statement.translationunit_s();
-			}
+//			it = find(all_supported_gate.begin(), all_supported_gate.end(), detail_str[0]);
+//			if (it != all_supported_gate.end())
+//			{
+//				str += "\r\n";
+//				antlr4::ANTLRInputStream input_statement(str);
+//				statement::statementLexer lexer_statement(&input_statement);
+//				antlr4::CommonTokenStream tokens_statement(&lexer_statement);
+//				statement::statementParser parser_statement(&tokens_statement);
+//				parser_statement.removeErrorListeners();
+//				StatementErrorListener _e;
+//				parser_statement.addErrorListener(&_e);
+//				antlr4::tree::ParseTree* tree_ = parser_statement.translationunit_s();
+//			}
 
 			antlr4::ANTLRInputStream input(str);
 			originirLexer lexer(&input);
@@ -1712,4 +1721,4 @@ public:
 };
 
 QPANDA_END
-#endif
+

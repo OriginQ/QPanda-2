@@ -20,12 +20,12 @@ else :
 
 setup(  
     name = "pyqpanda",  
-    version = "3.7.17",  
+    version = "3.8.4",  
     license = "Apache Licence",  
     author = "OriginQ",
     install_requires=requirements,
     description="pyQPanda is Python wrapper of QPanda.",    
-    packages = find_packages(),  
+    packages = find_packages(),
     
     py_modules = ['psi4_wrapper'],
     package_data={
@@ -39,9 +39,9 @@ setup(
 	"Operating System :: POSIX :: Linux",
 	"Topic :: Software Development :: Libraries :: Python Modules",
 	"Programming Language :: Python",
-	"Programming Language :: Python :: 3.6",
-	"Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
 	],
 )

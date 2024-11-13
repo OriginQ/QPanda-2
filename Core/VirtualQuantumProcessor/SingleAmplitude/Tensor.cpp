@@ -20,7 +20,7 @@ static size_t getNum(long long src, size_t *mask_array, size_t size,size_t der_s
 static int get_num_threads(size_t rank)
 {
     int nthreds = 1;
-    if (rank > 9)
+    if (rank > 2)
     {
 #ifdef USE_OPENMP
         nthreds = omp_get_max_threads();

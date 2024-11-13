@@ -104,9 +104,15 @@ public:
 			ulongToUtf8(DOUBLE_HORIZONTAL_LINE) + ulongToUtf8(DOUBLE_LINE_UP_CONNECT_CHAR) + ulongToUtf8(DOUBLE_HORIZONTAL_LINE),
 			std::string("   "))
 	{}
+	MeasureTo(int index)
+		:DrawBox(
+			std::string(""),
+			  ulongToUtf8(DOUBLE_LINE_UP_CONNECT_CHAR)+ ulongToUtf8(DOUBLE_HORIZONTAL_LINE),
+			std::string( (index < 10 ? " " : "") + std::to_string(index) ))
+	{}
 	~MeasureTo() {}
 
-	int getLen() const { return 3; }
+	int getLen() const { return 2; }
 
 private:
 };
@@ -116,13 +122,13 @@ class MeasureFrom : public DrawBox
 public:
 	MeasureFrom()
 		:DrawBox(
-			ulongToUtf8(BOX_LEFT_TOP_CHAR) + ulongToUtf8(SINGLE_HORIZONTAL_LINE) + ulongToUtf8(BOX_RIGHT_TOP_CHAR),
-			ulongToUtf8(BOX_LEFT_CONNECT_CHAR) + std::string("M") + ulongToUtf8(BOX_RIGHT_CONNECT_CHAR),
-			ulongToUtf8(BOX_LEFT_BOTTOM_CHAR) + ulongToUtf8(BOX_DOWN_DOUBLE_CONNECT_CHAR) + ulongToUtf8(BOX_RIGHT_BOTTOM_CHAR))
+			std::string(" ")+ulongToUtf8(BOX_LEFT_TOP_CHAR) + ulongToUtf8(SINGLE_HORIZONTAL_LINE) + ulongToUtf8(BOX_RIGHT_TOP_CHAR),
+			ulongToUtf8(SINGLE_HORIZONTAL_LINE)+ulongToUtf8(BOX_LEFT_CONNECT_CHAR) + std::string("M") + ulongToUtf8(BOX_RIGHT_CONNECT_CHAR),
+			std::string(" ") + ulongToUtf8(BOX_LEFT_BOTTOM_CHAR) + ulongToUtf8(BOX_DOWN_DOUBLE_CONNECT_CHAR) + ulongToUtf8(BOX_RIGHT_BOTTOM_CHAR))
 	{}
 	~MeasureFrom() {}
 
-	int getLen() const { return 3; }
+	int getLen() const { return 4; }
 
 private:
 };
@@ -971,8 +977,9 @@ public:
 private:
 };
 
-DrawPicture::DrawPicture(const QProg& prog, LayeredTopoSeq& layer_info, uint32_t length)
-	: AbstractDraw(prog, layer_info, length)
+
+DrawPicture::DrawPicture(const QProg& prog, LayeredTopoSeq& layer_info, uint32_t length,bool b_with_gate_params)
+	: AbstractDraw(prog, layer_info, length,b_with_gate_params)
 	, m_text_len(0)
 	, m_max_time_sequence(0)
 {}
@@ -991,8 +998,8 @@ void DrawPicture::appendMeasure(std::shared_ptr<AbstractQuantumMeasure> pMeasure
 
 	update_time_sequence(start_quBit->second.back(), get_measure_time_sequence());
 
-	MeasureTo box_measure_to;
-	m_class_bit_wires[c_bit_index].back()->append(box_measure_to, (append_pos - (box_measure_to.getLen())));
+	MeasureTo box_measure_to(c_bit_index);
+	m_class_bit_wires[0].back()->append(box_measure_to, (append_pos - (box_measure_to.getLen())));
 
 	MeasureLine measure_line_on_qu_wire(MeasureLine::getMeasureLineCrossQuWire());
 	int offset = (box_measure_from.getLen() - measure_line_on_qu_wire.getLen()) / 2 + measure_line_on_qu_wire.getLen();
@@ -1001,15 +1008,17 @@ void DrawPicture::appendMeasure(std::shared_ptr<AbstractQuantumMeasure> pMeasure
 		itr->second.back()->append(measure_line_on_qu_wire, (append_pos - offset));
 	}
 
-	MeasureLine measure_line_on_cl_wire(MeasureLine::getMeasureLineCrossClWire());
-	offset = (box_measure_from.getLen() - measure_line_on_cl_wire.getLen()) / 2 + measure_line_on_cl_wire.getLen();
-	for (size_t i = 0; i < c_bit_index; i++)
-	{
-		if (m_class_bit_wires.find(i) != m_class_bit_wires.end())
-		{
-			m_class_bit_wires[i].back()->append(measure_line_on_cl_wire, (append_pos - (offset)));
-		}
-	}
+	// MeasureLine measure_line_on_cl_wire(MeasureLine::getMeasureLineCrossClWire());
+	// offset = (box_measure_from.getLen() - measure_line_on_cl_wire.getLen()) / 2 + measure_line_on_cl_wire.getLen();
+
+	// measure_line_on_cl_wire.getBotStr().append("1");
+	// for (size_t i = 0; i < c_bit_index; i++)
+	// {
+		// if (m_class_bit_wires.find(0) != m_class_bit_wires.end())
+		// {
+			// m_class_bit_wires[0].back()->append(measure_line_on_cl_wire, (append_pos - (offset)));
+		// }
+	// }
 }
 
 void DrawPicture::append_reset(std::shared_ptr<AbstractQuantumReset> pReset)
@@ -1502,7 +1511,9 @@ void DrawPicture::append_gate_param(string &gate_name, pOptimizerNodeInfo node_i
 {
 	string gateParamStr;
 	std::shared_ptr<AbstractQGateNode> p_gate = dynamic_pointer_cast<AbstractQGateNode>(*(node_info->m_iter));
-	get_gate_parameter(p_gate, gateParamStr);
+	if (m_draw_with_gate_params) {
+		get_gate_parameter(p_gate, gateParamStr);
+	}
 	gate_name = TransformQGateType::getInstance()[(GateType)(node_info->m_type)];
 	if (0 == gate_name.compare("CPHASE")) { gate_name = "CR"; }
     if (gate_name == "OracularGate")
@@ -1576,6 +1587,7 @@ void DrawByLayer::handle_gate_node(std::shared_ptr<QNode>& p_node, pOptimizerNod
         case RYY_GATE:
         case RZZ_GATE:
         case RZX_GATE:
+        case MS_GATE:
         case TWO_QUBIT_GATE:
         case ORACLE_GATE:
         {
@@ -1698,10 +1710,10 @@ void DrawPicture::append_wrap_line()
 		itr->second.back()->append(wrap_line, append_pos);
 	}
 
-	for (auto itr = m_class_bit_wires.begin(); itr != m_class_bit_wires.end(); ++itr)
-	{
-		itr->second.back()->append(wrap_line, append_pos);
-	}
+	//for (auto itr = m_class_bit_wires.begin(); itr != m_class_bit_wires.end(); ++itr)
+	//{
+	//	itr->second.back()->append(wrap_line, append_pos);
+	//}
 }
 
 void GetUsedQubits::handle_measure_node(std::shared_ptr<QNode>& p_node)
@@ -1987,7 +1999,7 @@ string DrawPicture::present(const std::string& file_name)
 void DrawPicture::init(std::vector<int>& quBits, std::vector<int>& clBits)
 {
 	const std::string quantum_wire_pad = string("|0>") + ulongToUtf8(SINGLE_HORIZONTAL_LINE);
-	const std::string class_wire_pad = string(" 0 ") + ulongToUtf8(DOUBLE_HORIZONTAL_LINE);
+	const std::string class_wire_pad = string(" / ") + ulongToUtf8(DOUBLE_HORIZONTAL_LINE);
 	char head_buf[WIRE_HEAD_LEN + 2] = "";
 	for (auto i : quBits)
 	{
@@ -2005,12 +2017,12 @@ void DrawPicture::init(std::vector<int>& quBits, std::vector<int>& clBits)
 	}
 
 	memset(head_buf, 0, sizeof(head_buf));
-	for (auto i : clBits)
-	{
+	// for (auto i : clBits)
+	// {
 		std::vector<Wire::sRef> wire_vec;
 		wire_vec.emplace_back(std::make_shared<ClassWire>());
 		const auto& p = wire_vec.front();
-		sprintf(head_buf, " c_%d:", i);
+		sprintf(head_buf, " c :");
 		for (size_t j = strlen(head_buf); j < WIRE_HEAD_LEN; j++)
 		{
 			head_buf[j] = ' ';
@@ -2018,8 +2030,8 @@ void DrawPicture::init(std::vector<int>& quBits, std::vector<int>& clBits)
 
 		string name = string(head_buf) + class_wire_pad;
 		p->setName(name, name.size() - 2);//because the size of utf8-char is 3 Bytes
-		m_class_bit_wires.insert(wireElement(i, wire_vec));
-	}
+		m_class_bit_wires.insert(wireElement(0, wire_vec));
+	// }
 
 	m_text_len = m_quantum_bit_wires.begin()->second.front()->getWireLength();
 

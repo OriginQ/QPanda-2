@@ -300,3 +300,91 @@ QHamiltonian QPanda::json_to_hamiltonian(const std::string& hamiltonian_json)
 
     return result;
 }
+
+static bool validate_bit_counts(const std::map<std::string, std::complex<double>>& amplitude_map)
+{
+    if (amplitude_map.empty())
+        return false;
+
+    size_t expected_bit_count = amplitude_map.begin()->first.size();
+
+    for (const auto& entry : amplitude_map) 
+    {
+        if (entry.first.size() != expected_bit_count)
+            return false;
+    }
+
+    return true;
+}
+
+static bool validate_probability(const std::map<std::string, std::complex<double>>& amplitude_map)
+{
+    double total_probability = 0.0;
+
+    for (const auto& entry : amplitude_map) 
+    {
+        total_probability += std::norm(entry.second);
+    }
+
+    return std::abs(total_probability - 1.0) < 1e-6;
+}
+
+static void complete_amplitude_map(std::map<std::string, std::complex<double>>& amplitude_map)
+{
+    size_t bit_count = amplitude_map.begin()->first.size();
+    size_t total_combinations = std::pow(2, bit_count);
+
+    for (size_t i = 0; i < total_combinations; ++i) 
+    {
+        std::string binary_str = std::bitset<64>(i).to_string().substr(64 - bit_count);
+        if (amplitude_map.find(binary_str) == amplitude_map.end()) 
+        {
+            amplitude_map[binary_str] = qcomplex_t(0.0, 0.0);
+        }
+    }
+}
+
+QStat QPanda::sparse_state_to_full_amplitude(const std::map<std::string, std::complex<double>>& sparse_amplitude_map)
+{
+    if (sparse_amplitude_map.empty())
+        return QStat();
+
+    for (const auto& entry : sparse_amplitude_map)
+    {
+        if (!entry.first.find_first_not_of("01") == std::string::npos)
+            throw std::invalid_argument("Invalid binary string: " + entry.first);
+    }
+
+    if (!validate_bit_counts(sparse_amplitude_map))
+        throw std::invalid_argument("Not all binary strings have the same bit count.");
+
+    if (!validate_probability(sparse_amplitude_map))
+        throw std::invalid_argument("Total probability is not 1.");
+
+    std::map<std::string, std::complex<double>> completed_map = sparse_amplitude_map;
+    complete_amplitude_map(completed_map);
+
+    std::vector<std::complex<double>> result_vector;
+    for (const auto& entry : completed_map)
+        result_vector.push_back(entry.second);
+
+    return result_vector;
+}
+
+#include <iomanip>
+std::string QPanda::generate_random_hex(int num_bytes)
+{
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> distrib(0, 255);
+
+    std::stringstream ss;
+
+    for (int i = 0; i < num_bytes; ++i)
+    {
+        int byte = distrib(gen);
+        ss << std::hex << std::setfill('0') << std::setw(2) << byte;
+    }
+
+    return ss.str();
+}

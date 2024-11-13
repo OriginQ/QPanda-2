@@ -10,8 +10,9 @@ using namespace DRAW_TEXT_PIC;
 
 #define PRINT_TRACE 0
 
-DrawQProg::DrawQProg(QProg &prg, const NodeIter node_itr_start, const NodeIter node_itr_end, const std::string& output_file /*= ""*/)
-	: m_drawer(nullptr), m_output_file(output_file)
+
+DrawQProg::DrawQProg(QProg& prg, const NodeIter node_itr_start, const NodeIter node_itr_end, bool b_draw_with_gate_params, const std::string& output_file /*= ""*/)
+	: m_drawer(nullptr), m_output_file(output_file),m_draw_with_gate_params(b_draw_with_gate_params)
 {
 	pickUpNode(m_prog, prg, {},
 		node_itr_start == NodeIter() ? prg.getFirstNodeIter() : node_itr_start,
@@ -61,9 +62,9 @@ string DrawQProg::textDraw(const LAYER_TYPE t, PIC_TYPE p /*= PIC_TYPE::TEXT*/, 
 
 	if (PIC_TYPE::TEXT == p)
 	{
-		m_drawer = new(std::nothrow) DrawPicture(m_prog, m_layer_info, length);
+		m_drawer = new(std::nothrow) DrawPicture(m_prog, m_layer_info, length,m_draw_with_gate_params);
 	}else if(PIC_TYPE::LATEX  == p){
-		m_drawer = new(std::nothrow) DrawLatex(m_prog, m_layer_info, length);
+		m_drawer = new(std::nothrow) DrawLatex(m_prog, m_layer_info, length,m_draw_with_gate_params);
 	}else
 	{
 		QCERR_AND_THROW(runtime_error, "Unknow text-pic type, failed to draw Pic.")
@@ -93,7 +94,6 @@ string DrawQProg::textDraw(const LAYER_TYPE t, PIC_TYPE p /*= PIC_TYPE::TEXT*/, 
 	{
         dynamic_cast<DrawLatex *>(m_drawer)->set_logo();
 	}
-	
 	
 	string outputStr = m_drawer->present(m_output_file);
 

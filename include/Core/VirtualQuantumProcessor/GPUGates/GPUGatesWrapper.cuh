@@ -8,11 +8,11 @@
 
 #define DEVICE_COUNT 32
 
-namespace cuda
+namespace QCuda
 {
     struct device_state
     {
-        cuda::device_data device_data;
+        QCuda::device_data device_data;
         std::shared_ptr<NormlizeFun> m_norm_fun;
         std::shared_ptr<MeasureFun> m_measure_fun;
         std::map<GateType, std::shared_ptr<BaseGateFun>> m_type_gate_fun;
@@ -82,7 +82,7 @@ private:
     int m_device_num = { 0 };
     size_t device_status_size;
     const size_t free_size = { 1024 * 1024 * 300 };
-    std::vector<cuda::device_state*> cuda_device_state;
-    std::vector<cuda::device_status> cuda_device_status;
+    std::vector<QCuda::device_state*> cuda_device_state;
+    std::vector<QCuda::device_status> cuda_device_status;
 };
 #endif

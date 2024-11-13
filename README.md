@@ -16,7 +16,7 @@ QPanda2 is the basic library of a series of software developped by  Origin Quant
 
 ## Install for Python
 
-### Python 3.8-3.11
+### Python 3.6-3.9
 
 Install using pip:
 
@@ -52,16 +52,15 @@ The following example can be used to construct quantum entanglement in a quantum
 See more [examples](https://github.com/OriginQ/QPanda-Example)。
 
 ## Other informations
- - [ReadTheDocs(C++)](https://qpanda-tutorial.readthedocs.io/zh/latest/)
- - [ReadTheDocs(Python)](https://pyqpanda-tutorial-en.readthedocs.io/en/latest/)
- - [QRunes](https://qrunes-tutorial.readthedocs.io/en/latest/)
- - [Qurator-VSCode](https://qurator-vscode.readthedocs.io/zh_CN/latest/)
- - [VQNet](https://vqnet20-tutorial.readthedocs.io/en/main/index.html)
+
  - [Introduction to Quantum Computing and Programming](https://quantum-book-by-originq.readthedocs.io/en/latest/#)
  - [Official website of Origin Quantum](http://originqc.com.cn/)
  - [OriginQ Cloud](http://www.qubitonline.cn/)
  - [OriginQ Education](https://learn-quantum.com/EDU/index.html)
-
+ - [ReadTheDocs(C++)](https://qpanda-tutorial.readthedocs.io/zh/latest/)
+ - [ReadTheDocs(Python)](https://pyqpanda-tutorial-en.readthedocs.io/en/latest/)
+ - [QRunes](https://qrunes-tutorial.readthedocs.io/en/latest/)
+ - [Qurator-VSCode](https://qurator-vscode.readthedocs.io/zh_CN/latest/)
 
 ## How to cite
 
@@ -79,11 +78,12 @@ Please cite this arXiv paper: [QPanda: high-performance quantum computing framew
 ## About
 
 QPanda is developed by Origin Quantum, which is committed to the development and application of quantum computers, 
-It has launched 6-Qubit superconducting quantum chip (KF C6-130) and 2-Qubit semi-conducting quantum chip (XW B2-100).
+It has launched 72-Qubit wukong quantum computer and 2-Qubit semi-conducting quantum chip (XW B2-100).
 The goal of the team is to produce more qubit chips in recent years, provide open cloud services, and realize quantum advantages and quantum applications.
 The software team underpins the hardware,In addition to QPanda, it has also developed QRunes, Qurator, 
 OriginQ Cloud service platform, OriginQ Education cloud and other products.
 
 
  ## License
+
  Apache License 2.0

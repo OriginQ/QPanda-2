@@ -52,12 +52,23 @@ static void parse_gate_node(std::shared_ptr<AbstractQGateNode> gate, Qnum &targe
 
 void DensityMatrixSimulator::init(bool is_double_precision)
 {
+    finalize();
     _start();
+    _QMachine_type = QMachineType::DENSITY_MATRIX;
     if (is_double_precision == true)
         m_simulator = std::make_shared<DensityMatrix<double>>();
     else
         m_simulator = std::make_shared<DensityMatrix<float>>();
     return;
+}
+
+void DensityMatrixSimulator::init()
+{
+     finalize();
+    _start();
+    _QMachine_type = QMachineType::DENSITY_MATRIX;
+    m_simulator = std::make_shared<DensityMatrix<double>>();
+    return ;
 }
 
 void DensityMatrixSimulator::run(QProg& node, bool reset_state)
@@ -218,6 +229,8 @@ void DensityMatrixSimulator::apply_gate(std::shared_ptr<AbstractQGateNode> gate_
         case GateType::SQISWAP_GATE:
         case GateType::TWO_QUBIT_GATE:
         case GateType::ISWAP_THETA_GATE:
+
+        case MS_GATE:
         {
             Qnum control_conj_qubits, target_conj_qubits;
 
@@ -282,16 +295,20 @@ void DensityMatrixSimulator::apply_gate_with_noisy(std::shared_ptr<AbstractQGate
     /* check if noisy enabled for current gate & qubits*/
     if (m_noisy.enabled(gate_type, targets))
     {
-        auto karus_error = m_noisy.get_karus_error(gate_type, targets);
+        auto karus_error_list = m_noisy.get_karus_error(gate_type, targets);
 
         std::vector<QStat> karus_matrices;
 
-        if (is_single_gate(gate_type))
-            karus_error.get_one_qubit_karus_matrices(karus_matrices);
-        else
-            karus_error.get_two_qubit_karus_matrices(karus_matrices);
+        for (auto& karus_error : karus_error_list)
+        {
+            if (is_single_gate(gate_type))
+                karus_error.get_one_qubit_karus_matrices(karus_matrices);
+            else
+                karus_error.get_two_qubit_karus_matrices(karus_matrices);
 
-        m_simulator->apply_karus(targets, karus_matrices);
+            m_simulator->apply_karus(targets, karus_matrices);
+        }
+
     }
 
     return;
@@ -528,5 +545,31 @@ void DensityMatrixSimulator::set_noise_model(const NOISE_MODEL& model, const std
 void DensityMatrixSimulator::set_noise_model(const NOISE_MODEL& model, const GateType& type, double T1, double T2, double t_gate, const std::vector<QVec>& qubits)
 {
     m_noisy.set_noise_model(model, type, T1, T2, t_gate, NoiseUtils::get_qubits_addr(qubits));
+    return;
+}
+
+void DensityMatrixSimulator::set_noise_model(const cmatrix_t& karus_matrix)
+{
+    std::vector<cmatrix_t> karus_matrices = { karus_matrix };
+    m_noisy.set_noise_model(karus_matrices);
+    return;
+}
+
+void DensityMatrixSimulator::set_noise_model(const cmatrix_t& karus_matrix, const std::vector<GateType> &types)
+{
+    std::vector<cmatrix_t> karus_matrices = { karus_matrix };
+    m_noisy.set_noise_model(karus_matrices, types);
+    return;
+}
+
+void DensityMatrixSimulator::set_noise_model(const std::vector<cmatrix_t>& karus_matrices)
+{
+    m_noisy.set_noise_model(karus_matrices);
+    return;
+}
+
+void DensityMatrixSimulator::set_noise_model(const std::vector<cmatrix_t>& karus_matrices, const std::vector<GateType>& types)
+{
+    m_noisy.set_noise_model(karus_matrices, types);
     return;
 }

@@ -49,6 +49,7 @@ namespace LATEX_SYNTAX
     const std::string k_lable_dstick = "\\dstick";
 
     // general
+    const std::string k_symbol_slash = "/";
     const std::string k_symbol_brace_left = "{";
     const std::string k_symbol_brace_right = "}";
     const std::string k_symbol_bracket_left = "[";
@@ -69,6 +70,7 @@ namespace LATEX_SYNTAX
                                         "\\end{document}\n";
     const std::string k_symbol_em = "0em";
     const std::string k_symbol_q = "q";
+    const std::string k_symbol_c = "c";
     const std::string k_symbol_colon = ":";
 
     static std::string latex_header(const std::string &logo);
@@ -150,10 +152,10 @@ namespace LATEX_SYNTAX
     std::string latex_cwire_head_label(const std::string &label)
     {
         std::string cwire_head = k_gate_nghost + k_symbol_brace_left +
-                label + k_symbol_zero + k_symbol_brace_right +
+                label + k_symbol_brace_right +
                 k_symbol_and +
                 k_lable_lstick + k_symbol_brace_left + k_lable_mathrm +
-                k_symbol_brace_left + label + k_symbol_colon + k_symbol_zero +
+                k_symbol_brace_left + k_symbol_c + k_symbol_colon + k_symbol_slash +
                 k_symbol_brace_right + k_symbol_brace_right;
         return cwire_head;
     }
@@ -407,11 +409,11 @@ namespace LATEX_SYNTAX
      * @param[in] total_qbit_size total quantum bit size
      * @return measure to cbit latex statement
      */
-    std::string latex_measure_to(uint64_t c_row, uint64_t q_row, uint64_t row_size)
+    std::string latex_measure_to(uint64_t c_row, uint64_t q_row, uint64_t row_size, uint64_t cbit_id)
     {
         int offset = static_cast<int>(q_row) - static_cast<int>(row_size) - static_cast<int>(c_row);
         std::string str = k_lable_dstick + k_symbol_brace_left + k_symbol_underline +
-                k_symbol_brace_left + k_symbol_underline +
+                k_symbol_brace_left + k_symbol_underline + k_symbol_brace_left + std::to_string(cbit_id) + k_symbol_brace_right +
                 k_symbol_brace_left +
                 k_symbol_brace_right + k_symbol_brace_right + k_symbol_brace_right +
                 k_wire_cw + " \\ar @{<=} " + k_symbol_bracket_left +
@@ -634,7 +636,7 @@ LatexMatrix::Col LatexMatrix::insert_barrier(const std::vector<Row> &rows, Col f
 }
 
 
-LatexMatrix::Col LatexMatrix::insert_measure(Row q_row, Row c_row, Col from_col)
+LatexMatrix::Col LatexMatrix::insert_measure(Row q_row, Row c_row, Col from_col, uint64_t cbit_id)
 {
     Row span_end = m_row_qubit - 1;
     Col measure_col = valid_col_for_row_range(q_row, span_end, from_col);
@@ -646,7 +648,7 @@ LatexMatrix::Col LatexMatrix::insert_measure(Row q_row, Row c_row, Col from_col)
         m_latex_qwire.insert(r, measure_col, LATEX_SYNTAX::k_wire_qw);
     }
 
-    m_latex_cwire.insert(c_row, measure_col, LATEX_SYNTAX::latex_measure_to(c_row, q_row, m_row_qubit));
+    m_latex_cwire.insert(c_row, measure_col, LATEX_SYNTAX::latex_measure_to(c_row, q_row, m_row_qubit,cbit_id));
     return measure_col;
 }
 
@@ -810,9 +812,9 @@ std::string LatexMatrix::str(bool with_time /* = false */)
 
 /*---------------------------------------------------------------------------*/
 
-DrawLatex::DrawLatex(const QProg &prog, LayeredTopoSeq &layer_info, uint32_t length)
-    : AbstractDraw(prog, layer_info, length),
-      m_logo("OriginQ")
+DrawLatex::DrawLatex(const QProg& prog, LayeredTopoSeq& layer_info, uint32_t length,bool b_with_gate_params)
+    : AbstractDraw(prog, layer_info, length,b_with_gate_params),
+    m_logo("OriginQ")
 {
 }
 
@@ -826,13 +828,19 @@ void DrawLatex::init(std::vector<int> &qbits, std::vector<int> &cbits)
                  LATEX_SYNTAX::k_symbol_brace_left + std::to_string(qbits[i]) + LATEX_SYNTAX::k_symbol_brace_right;
     }
 
-    for (size_t i = 0; i < cbits.size(); i++)
+    if (cbits.size() != 0) {
+        m_cid_row[cbits[0]] = 0;
+        std::stringstream ss;
+        ss << "c_{" << cbits[0] << "}";
+        ss >> c_label[0];
+    }
+ /*   for (size_t i = 0; i < cbits.size(); i++)
     {
         m_cid_row[cbits[i]] = i;
         std::stringstream ss;
         ss << "c_{" << cbits[i] << "}";
         ss >> c_label[i];
-    }
+    }*/
 
     m_latex_matrix.set_row(qbits.size(), cbits.size());
     m_latex_matrix.set_label(q_label, c_label);
@@ -932,7 +940,9 @@ void DrawLatex::append_gate(pOptimizerNodeInfo &node_info, uint64_t layer_id)
     std::shared_ptr<AbstractQGateNode> p_gate = std::dynamic_pointer_cast<AbstractQGateNode>(*(node_info->m_iter));
     /* get gate parameter */
     std::string gate_param;
-    get_gate_parameter(p_gate, gate_param);
+    if (m_draw_with_gate_params) {
+        get_gate_parameter(p_gate, gate_param);
+    }
 
     /* get dagger */
     bool is_dagger = check_dagger(p_gate, p_gate->isDagger());
@@ -981,6 +991,7 @@ void DrawLatex::append_gate(pOptimizerNodeInfo &node_info, uint64_t layer_id)
 }
 
 
+
 size_t DrawLatex::get_time_sequence(GateType type, const QVec &ctrls, const QVec &tags)
 {
     size_t time_seq = 0;
@@ -989,6 +1000,7 @@ size_t DrawLatex::get_time_sequence(GateType type, const QVec &ctrls, const QVec
     case ISWAP_GATE:
     case SQISWAP_GATE:
     case ISWAP_THETA_GATE:
+    case MS_GATE:
     case TWO_QUBIT_GATE:
     case ORACLE_GATE:
         time_seq = m_time_sequence_conf.get_swap_gate_time_sequence() * (ctrls.size() + 1);
@@ -1049,8 +1061,9 @@ void DrawLatex::append_measure(pOptimizerNodeInfo &node_info, uint64_t layer_id)
 
     size_t layer_col = layer_start_col(layer_id);
     auto q_row = qid_row(qbit_id);
-    auto c_row = cid_row(cbit_id);
-    auto meas_col = m_latex_matrix.insert_measure(q_row, c_row, layer_col);
+
+    auto c_row = cid_row(m_cid_row.begin()->first);
+    auto meas_col = m_latex_matrix.insert_measure(q_row, c_row, layer_col,cbit_id);
 
     /* record curent layer end at latex matrix col */
     m_layer_col_range[layer_id] = std::max(meas_col, m_layer_col_range[layer_id]);
@@ -1080,9 +1093,12 @@ std::string DrawLatex::present(const std::string &file_name)
 {
     auto latex_src = m_latex_matrix.str(m_output_time);
 
-    std::fstream f(file_name, std::ios_base::out);
-    f << latex_src;
-    f.close();
+    if (file_name.length() > 0) {
+        std::fstream f(file_name, std::ios_base::out);
+        f << latex_src;
+        f.close();
+    }
+
 
     return latex_src;
 }
@@ -1117,6 +1133,7 @@ uint64_t DrawLatex::qid_row(int qid)
 
 uint64_t DrawLatex::cid_row(int cid)
 {
+
     return m_cid_row.at(cid);
 }
 

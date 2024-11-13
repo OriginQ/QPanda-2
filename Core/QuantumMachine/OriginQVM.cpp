@@ -76,6 +76,18 @@ void QVM::set_parallel_threads(size_t size){
     }
 }
 
+void QVM::init() 
+{
+}
+
+void QVM::initSparseState(const std::map<std::string, qcomplex_t> &sparse_state, const QVec &qlist)
+{
+    auto state = sparse_state_to_full_amplitude(sparse_state);
+
+    return initState(state,qlist);
+}
+
+
 void QVM::initState(const QStat& state, const QVec& qlist)
 {
 	if (0 == qlist.size())
@@ -430,7 +442,6 @@ void QVM::Free_Qubit(Qubit* qubit)
 		return;
 	}
 	this->_Qubit_Pool->Free_Qubit(qubit);
-	delete qubit;
 }
 
 void QVM::Free_Qubits(QVec& vQubit)
@@ -1315,9 +1326,6 @@ prob_vec IdealQVM::getProbList(QVec vQubit, int selectMax)
 
 		_pGates->pMeasure(vqubitAddr, vResult);
 
-        std::sort(vResult.begin(), vResult.end(),
-            [=](double a, double b) {return a > b ; });
-
         if ((selectMax == -1) || (vResult.size() <= selectMax))
         {
             return vResult;
@@ -1448,12 +1456,53 @@ probRunList(QProg& qProg, QVec vQubit, int selectMax)
 	run(qProg);
 	return getProbList(vQubit, selectMax);
 }
+
+//vector<prob_vec> IdealQVM::
+//probRunList(vector<QProg>& QProgs, vector<QVec> &vQubits, vector<int> &selectMaxs,int threads)
+//{
+//	size_t size = QProgs.size();
+//	vector<prob_vec> results(size);
+//	size_t thread = omp_get_max_threads();
+//	if (thread > threads)
+//	{
+//		run_fail("Select threads overflow");
+//	}
+//#pragma omp parallel for num_threads(threads)
+//	for (int i = 0; i < QProgs.size(); ++i) 
+//	{
+//		run(QProgs[i]);
+//		results[i] = getProbList(vQubits[i], selectMaxs[i]);
+//	}
+//	
+//	return results;
+//}
+
 prob_dict IdealQVM::
 probRunDict(QProg& qProg, QVec vQubit, int selectMax)
 {
 	run(qProg);
 	return getProbDict(vQubit, selectMax);
 }
+
+//vector<prob_dict> IdealQVM::
+//probRunDict(vector<QProg>& QProgs, vector<QVec>& vQubits, vector<int>& selectMaxs, int threads)
+//{
+//	size_t size = QProgs.size();
+//	vector<prob_dict> results(size);
+//	size_t thread = omp_get_max_threads();
+//	if (thread > threads) 
+//	{
+//		run_fail("Select threads overflow");
+//	}
+//#pragma omp parallel for num_threads(threads)
+//	for (int i = 0; i < QProgs.size(); ++i)
+//	{
+//		run(QProgs[i]);
+//		results[i] = getProbDict(vQubits[i], selectMaxs[i]);
+//	}
+//
+//	return results;
+//}
 
 prob_tuple IdealQVM::probRunTupleList(QProg& qProg, const std::vector<int>& qubits_addr, int selectMax)
 {
@@ -1905,6 +1954,14 @@ QStat IdealQVM::getQState()
 	return _pGates->getQState();
 }
 
+CPUQVM::~CPUQVM()
+{
+	if(_CMem) {
+		delete _CMem;
+		_CMem = nullptr;
+	}
+}
+
 void CPUQVM::set_parallel_threads(size_t size) {
 
     if (size > 0)
@@ -1920,6 +1977,7 @@ void CPUQVM::set_parallel_threads(size_t size) {
 
 void CPUQVM::init(bool is_double_precision)
 {
+    QVM::finalize();
 	try
 	{
 		_start();
@@ -1940,10 +1998,12 @@ void CPUQVM::init(bool is_double_precision)
 		QCERR(e.what());
 		throw init_fail(e.what());
 	}
+
 }
 
 void CPUQVM::init()
 {
+    QVM::finalize();
     try
     {
         _start();
@@ -1955,11 +2015,13 @@ void CPUQVM::init()
         QCERR(e.what());
         throw init_fail(e.what());
     }
+
 }
 
 
 void GPUQVM::init()
 {
+    QVM::finalize();
 	try
 	{
 		_start();
@@ -1980,6 +2042,7 @@ void GPUQVM::init()
 
 void CPUSingleThreadQVM::init()
 {
+    QVM::finalize();
 	try
 	{
 		_start();
@@ -1999,7 +2062,8 @@ void CPUSingleThreadQVM::init()
 
 void QVM::setConfigure(const Configuration& config)
 {
-	return setConfig(config);
+    setConfig(config);
+    return ;
 }
 Qubit* QVM::qAlloc()
 {
@@ -2033,7 +2097,6 @@ void QVM::qFree(Qubit* qubit)
         return;
     }
     this->_Qubit_Pool->Free_Qubit(qubit);
-    delete qubit;
 }
 
 void QVM::qFreeAll(QVec& qubit_vec)

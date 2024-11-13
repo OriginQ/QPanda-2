@@ -3,6 +3,7 @@
 
 #include "Core/VirtualQuantumProcessor/MPSQVM/MPSImplQPU.h"
 #include "Core/Utilities/Tools/RandomEngine/RandomEngine.h"
+#include "Core/VirtualQuantumProcessor/DensityMatrix/VectorMatrix.h"
 
 QPANDA_BEGIN
 
@@ -94,6 +95,7 @@ class KarusError
 public:
     KarusError() {}
     KarusError(const std::vector<QStat>&);
+    KarusError(const std::vector<cmatrix_t>&);
     KarusError(const std::vector<QStat>&, const std::vector<double>&);
     KarusError(const std::vector<QStat>&, NOISE_MODEL model);
     KarusError(const std::vector<QStat>&, const std::vector<double>&, NOISE_MODEL model);

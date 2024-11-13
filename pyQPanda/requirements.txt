@@ -1,5 +1,11 @@
 numpy>=1.17
-matplotlib>=3.3
+matplotlib>=3.7
 pydot
 scipy
 mypy<=0.971
+requests
+snowland-smx
+Cython
+gmssl
+networkx
+

@@ -74,6 +74,16 @@ namespace QGATE_SPACE
 			return gate_type;
 		};
 
+
+        /*!
+         * @brief  Get the number of operations
+         * @return int The amount of operations!
+         */
+        virtual int getOperationNum()
+        {
+            return operation_num;
+        }
+
 		virtual void setGateType(GateType type)
 		{
 			gate_type = type;
@@ -1054,6 +1064,44 @@ namespace QGATE_SPACE
             return this->alpha;
         }
     };
+
+    //MS_GATE
+    class MS :public CU,
+        public DynamicCreator<MS>,
+        public DynamicCreator<MS, QuantumGate*>
+    {
+    public:
+        MS(QuantumGate  * gate_old) : CU(gate_old)
+        {
+            if (gate_old->getGateType() != GateType::MS_GATE)
+            {
+                QCERR("Parameter qgate_old error");
+                throw std::invalid_argument("Parameter qgate_old error");
+            }
+            gate_type = gate_old->getGateType();
+        }
+        MS();
+        MS(const MS &);
+        inline double get_phi0() const
+        {
+            return m_phi0;
+        }
+
+        inline double get_phi1() const 
+        {
+            return m_phi1;
+        }
+
+        inline double get_theta() const 
+        {
+            return m_theta;
+        }
+    protected:
+        double m_phi0{ 0 };
+        double m_phi1{ 0 };
+        double m_theta{ PI/4 };
+    };
+
 }
 
 QPANDA_END

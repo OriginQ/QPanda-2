@@ -98,6 +98,7 @@ static void _check_repetitive_qubit(const QVec& target_qv, const QVec& ctrl_qv)
 
 void MPSQVM::init()
 {
+    finalize();
     try
     {
         _start();
@@ -773,6 +774,7 @@ void MPSQVM::execute(std::shared_ptr<AbstractQGateNode>  cur_node,
     case SQISWAP_GATE:
     case ISWAP_THETA_GATE:
     case TWO_QUBIT_GATE:
+    case MS_GATE:
         handle_two_targets(cur_node, config);
         break;
     case RXX_GATE:

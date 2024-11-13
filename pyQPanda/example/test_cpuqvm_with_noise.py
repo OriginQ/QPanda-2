@@ -12,6 +12,21 @@ prob_list = [[0.9, 0.1], [0.1, 0.9]]
 
 
 def runNoiseQVM(shots: int) -> Dict[str, int]:
+    """
+    Simulates quantum operations on a virtual quantum machine with specified noise models,
+    executing a quantum circuit for a given number of shots and returning the measurement results.
+
+    Parameters:
+        shots (int): The number of times the quantum circuit is run.
+
+    Returns:
+        Dict[str, int]: A dictionary containing the counts of each measurement outcome.
+
+    The function initializes a quantum virtual machine, allocates qubits and classical bits,
+    sets noise models for various quantum gates, and defines a quantum circuit. It then runs the
+    circuit with the specified number of shots and returns the results. Finally, it finalizes the
+    quantum virtual machine to release resources.
+    """
     qvm = NoiseQVM()
     qvm.init_qvm()
 
@@ -34,6 +49,26 @@ def runNoiseQVM(shots: int) -> Dict[str, int]:
     return result
 
 def runCPUQVM(shots: int) -> Dict[str, int]:
+    """
+    Executes a quantum program on a CPU-based Quantum Virtual Machine (QVM) with specified noise models.
+
+    This function initializes a CPUQVM, allocates qubits and classical bits, and configures noise models to simulate
+    realistic quantum hardware errors. It then constructs a quantum circuit, runs the simulation with the given number
+    of shots, and returns the measurement results.
+
+    Parameters:
+        shots (int): The number of times the quantum circuit is executed.
+
+    Returns:
+        Dict[str, int]: A dictionary containing the measurement results for each output qubit.
+
+    The function incorporates various noise models, including damping, phase flips, and swap gate errors, to simulate
+    the effects of noise in a quantum system. It also adjusts for readout errors and bit flip errors on specific qubits.
+    The quantum circuit includes Pauli-X gates, a swap gate, a CNOT gate, and a measurement operation on all qubits.
+
+    Note: This function is part of the pyQPanda package, which is designed for programming quantum computers using
+    quantum circuits and gates, and is intended to run on quantum circuit simulators or quantum cloud services.
+    """
     qvm = CPUQVM()
     qvm.init_qvm()
 

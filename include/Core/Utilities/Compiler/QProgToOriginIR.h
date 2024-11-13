@@ -10,6 +10,7 @@
 #include "Core/QuantumMachine/QuantumMachineInterface.h"
 #include "Core/Utilities/Tools/Traversal.h"
 #include "Core/QuantumMachine/OriginQuantumMachine.h"
+#include <algorithm>
 QPANDA_BEGIN
 
 /**
@@ -34,9 +35,29 @@ public:
     template<typename _Ty>
     void traversal(_Ty &node)
     {
-        m_OriginIR.emplace_back("QINIT " + std::to_string(m_quantum_machine->getAllocateQubit()));
-        m_OriginIR.emplace_back("CREG " + std::to_string(m_quantum_machine->getAllocateCMem()));
+        QVec qubits;
+        std::vector<ClassicalCondition> cbits;
+        m_quantum_machine->get_allocate_qubits(qubits);
+        m_quantum_machine->get_allocate_cbits(cbits);
 
+        long max_qubit_addr = 0;
+
+        auto max_qubit_iter = std::max_element(qubits.begin(), qubits.end(), 
+            [](Qubit *a, Qubit *b) -> bool{
+                return a->get_phy_addr() < b->get_phy_addr();
+            });
+        max_qubit_addr = (*max_qubit_iter)->get_phy_addr();
+
+        long max_cbit_addr = 0;
+        for (const auto &c : cbits)
+        {
+            auto a_cbit_name = c.getExprPtr()->getName();
+            auto addr = std::stol(a_cbit_name.substr(1));
+            max_cbit_addr = std::max(max_cbit_addr, addr);
+        }
+
+        m_OriginIR.emplace_back("QINIT " + std::to_string(max_qubit_addr + 1));
+        m_OriginIR.emplace_back("CREG " + std::to_string(max_cbit_addr + 1));
 		execute(node.getImplementationPtr(), nullptr);
     }
 
@@ -44,11 +65,30 @@ public:
     void traversal_qubit_pool(_Ty &node)
     {
         auto qpool = OriginQubitPool::get_instance();
-        QVec used_qv;
+        QVec qubits;
         auto cmem = OriginCMem::get_instance();
-        std::vector<CBit *> cbit_vect;
-        m_OriginIR.emplace_back("QINIT " + std::to_string(qpool->get_allocate_qubits(used_qv)));
-        m_OriginIR.emplace_back("CREG " + std::to_string(cmem->get_allocate_cbits(cbit_vect)));
+        std::vector<CBit *> cbits;
+
+        qpool->get_allocate_qubits(qubits);
+        cmem->get_allocate_cbits(cbits);
+
+        long max_qubit_addr = 0;
+        auto max_qubit_iter = std::max_element(qubits.begin(), qubits.end(),
+            [](Qubit *a, Qubit *b) -> bool {
+                return a->get_phy_addr() < b->get_phy_addr();
+            });
+        max_qubit_addr = (*max_qubit_iter)->get_phy_addr();
+
+        long max_cbit_addr = 0;
+        for (const auto &c : cbits)
+        {
+            auto a_cbit_name = c->getName();
+            auto addr = std::stol(a_cbit_name.substr(1));
+            max_cbit_addr = std::max(max_cbit_addr, addr);
+        }
+
+        m_OriginIR.emplace_back("QINIT " + std::to_string(max_qubit_addr + 1));
+        m_OriginIR.emplace_back("CREG " + std::to_string(max_cbit_addr + 1));
         execute(node.getImplementationPtr(), nullptr);
     }
 
@@ -177,7 +217,7 @@ std::string convert_qprog_to_originir(_Ty &node, QuantumMachine *machine)
 * @return     std::string   OriginIR instruction set
 */
 template<typename _Ty>
-std::string convert_qprog_to_originir(_Ty &node)
+std::string convert_qprog_to_originir(_Ty& node)
 {
     return transformQProgToOriginIR(node);
 }

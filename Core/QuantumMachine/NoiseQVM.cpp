@@ -21,9 +21,11 @@ NoiseQVM::NoiseQVM()
 
 void NoiseQVM::init()
 {
+    QVM::finalize();
     try
     {
         _start();
+        _QMachine_type = QMachineType::NOISE;
         _pGates = new NoisyCPUImplQPU(m_quantum_noise);
         _ptrIsNull(_pGates, "NoisyCPUImplQPU");
     }
@@ -38,6 +40,7 @@ void NoiseQVM::init()
 
 void NoiseQVM::init(rapidjson::Document &)
 {
+    QVM::finalize();
     return ;
 }
 

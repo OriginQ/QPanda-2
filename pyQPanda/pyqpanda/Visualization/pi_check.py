@@ -24,22 +24,23 @@ FRAC_MESH = N / D * np.pi
 
 
 def pi_check(inpt, eps=1e-6, output='text', ndigits=5):
-    """ Computes if a number is close to an integer
-    fraction or multiple of PI and returns the
-    corresponding string.
+    """
+    Determines if a given number is nearly an integer multiple or fraction of π.
+    Provides a string representation based on the specified output format.
 
     Args:
-        inpt (float): Number to check.
-        eps (float): EPS to check against.
-        output (str): Options are 'text' (default), 'OriginalIR'.
-        ndigits (int): Number of digits to print
-                       if returning raw inpt.
+        inpt (float): The number to be checked.
+        eps (float): The tolerance for comparison, defaulting to 1e-6.
+        output (str): The format of the output. Options are 'text', 'latex', 'mpl', 'qasm'.
+        ndigits (int): The number of significant digits to display in the output, if applicable.
 
     Returns:
-        str: string representation of output.
+        str: A string that represents whether the input is close to an integer multiple or fraction of π.
 
     Raises:
-        QError: if output is not a valid option.
+        ValueError: If the input is not a number or a valid string representation of a number.
+        TypeError: If an invalid type is passed to the function.
+        QError: If the output format is not one of the supported options ('text', 'latex', 'mpl', 'qasm').
     """
     if isinstance(inpt, ParameterExpression):
         try:

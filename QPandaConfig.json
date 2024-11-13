@@ -32,10 +32,6 @@
     "CExpr": "OriginCExpr",
     "ClassicalProg": "OriginClassicalProg"
   },
-  "QuantumCloudConfig": {
-    "QCloudAPI": "https://qcloud.originqc.com.cn",
-    "RealChipAPI": "https://qcloud.originqc.com.cn"
-  },
   "QuantumChipArch": {
     "QubitCount": 8,
     "HighFrequencyQubit": [ 0, 2, 4 ],
@@ -147,54 +143,6 @@
       ]
     }
   },
-  "Micro_Architecture": {
-    "load": {
-      "opcode_4_3": 0,
-      "opcode_2_1": 0
-    },
-    "store": {
-      "opcode_4_3": 1,
-      "opcode_2_1": 0
-    },
-    "branch": {
-      "opcode_4_3": 3,
-      "opcode_2_1": 0,
-      "BEQ_fun_3": 0,
-      "BNE_fun_3": 1,
-      "BLT_fun_3": 2,
-      "BGT_fun_3": 3
-    },
-    "op_imm": {
-      "opcode_4_3": 0,
-      "opcode_2_1": 1,
-      "ADDI_fun_3": 0,
-      "XORI_fun_3": 1,
-      "ORI_fun_3": 2,
-      "ANDI_fun_3": 3
-    },
-    "op": {
-      "opcode_4_3": 1,
-      "opcode_2_1": 1,
-      "ADD_fun_3": 0,
-      "XOR_fun_3": 1,
-      "OR_fun_3": 2,
-      "AND_fun_3": 3
-    },
-    "qwait": {
-      "opcode_4_3": 2,
-      "opcode_2_1": 1
-    },
-    "fmr": {
-      "opcode_4_3": 3,
-      "opcode_2_1": 1,
-      "FMR_fun_3": 2,
-      "FMR_imm_9": 0
-    },
-    "smist": {
-      "opcode_4_3": 0,
-      "opcode_2_1": 3
-    }
-  },
   "QCircuitOptimizer": {
     "replace": [
       {
@@ -243,28 +191,25 @@
   "ControlGateOptimizer": {
     "replace": [
       {
-        "qubits": 3,
+        "@brief": "replase control-X gate to CZ",
+        "qubits": 2,
         "src": {
-          "CCX": [ 0, 1, 2 ]
+          "C_X": [ 0, 1 ]
         },
         "dst": {
-          "T": [ 0 ],
-          "T": [ 1 ],
-          "H": [ 2 ],
-          "CNOT": [ 0, 1 ],
-          "T": [ 2 ],
-          "CNOT": [ 1, 2 ],
-          "CNOT": [ 0, 1 ],
-          "T": [ 2 ],
-          "CNOT": [ 1, 2 ],
-          "CNOT": [ 0, 1 ],
-          "U1": [ 2, "-PI/4" ],
-          "U1": [ 1, "-PI/4" ],
-          "CNOT": [ 1, 2 ],
-          "CNOT": [ 0, 1 ],
-          "U1": [ 2, "-PI/4" ],
-          "CNOT": [ 1, 2 ],
-          "H": [ 2 ]
+          "H": [ 1 ],
+          "CZ": [ 1, 0 ],
+          "H": [ 1 ]
+        }
+      },
+      {
+        "@brief": "replase control-Z gate to CZ",
+        "qubits": 2,
+        "src": {
+          "C_Z": [ 0, 1 ]
+        },
+        "dst": {
+          "CZ": [ 0, 1 ]
         }
       },
       {
@@ -311,32 +256,31 @@
         "qubits": 1,
         "H": "",
         "src": {
-          "U3": [ 0, 1.5707963267949, 0, 3.1415926535898 ]
+          "U3": [ 0, "PI/2", 0, "PI" ]
         },
         "dst": {
-          "RZ": [ 0, 3.1415926535898 ],
-          "RPhi": [ 0, 1.5707963267949, 1.5707963267949 ]
+          "RZ": [ 0, "PI" ],
+          "RPhi": [ 0, "PI/2", "PI/2" ]
         }
       },
       {
         "qubits": 1,
         "RX": "pi/2.0",
         "src": {
-          "U3": [ 0, 1.5707963267949, -1.5707963267949, 1.5707963267949 ]
+          "U3": [ 0, "PI/2", "-PI/2", "PI/2" ]
         },
         "dst": {
-          "RPhi": [ 0, 1.5707963267949, 0 ]
+          "RPhi": [ 0, "PI/2", 0 ]
         }
       },
       {
         "qubits": 1,
         "X": "",
         "src": {
-          "U3": [ 0, 3.1415926535898, 3.1415926535898, 0 ]
+          "U3": [ 0, "PI", "PI", 0 ]
         },
         "dst": {
-          "RPhi": [ 0, 1.5707963267949, 0 ],
-          "RPhi": [ 0, 1.5707963267949, 0 ]
+          "RPhi": [ 0, "PI", 0 ]
         }
       },
       {
@@ -344,10 +288,10 @@
         "qubits": 1,
         "RY": "pi/2.0",
         "src": {
-          "U3": [ 0, 1.5707963267949, 0, 0 ]
+          "U3": [ 0, "PI/2", 0, 0 ]
         },
         "dst": {
-          "RPhi": [ 0, 1.5707963267949, 1.5707963267949 ]
+          "RPhi": [ 0, "PI/2", "PI/2" ]
         }
       },
       {
@@ -364,11 +308,10 @@
         "qubits": 1,
         "Y": "",
         "src": {
-          "U3": [ 0, 3.1415926535898, 6.2831853071796, 0 ]
+          "U3": [ 0, "PI", 0, 0 ]
         },
         "dst": {
-          "RPhi": [ 0, 1.5707963267949, 1.5707963267949 ],
-          "RPhi": [ 0, 1.5707963267949, 1.5707963267949 ]
+          "RPhi": [ 0, "PI", "PI/2" ]
         }
       }
     ]

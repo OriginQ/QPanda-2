@@ -18,15 +18,31 @@ def chem_client(geometry,
                 hamiltonian_type='pauli',
                 url='http://117.71.57.182:2222'
 ):    
-    '''
-    client for the quantum chemistry simulation.
-    Used to calculate the hamiltonian for a molecule.
+    """
+    Interface for quantum chemistry simulations, designed to compute the Hamiltonian of a molecular system.
 
-    hamiltonian_type:
-        'pauli' for PauliOperator representation.
-        'fermion' for FermionOperator representation.
-        'raw' for FermionOperator representation without simplification
-    '''
+    Parameters:
+        geometry (str): The molecular geometry data.
+        basis (str): The basis set information.
+        multiplicity (int): The electronic multiplicity of the molecule.
+        charge (int): The overall charge of the molecule.
+        run_mp2 (bool): Flag to indicate whether to run the MP2 calculation.
+        run_cisd (bool): Flag to indicate whether to run the CISD calculation.
+        run_ccsd (bool): Flag to indicate whether to run the CCSD calculation.
+        run_fci (bool): Flag to indicate whether to run the FCI calculation.
+        hamiltonian_type (str): Type of Hamiltonian representation:
+                                'pauli' for PauliOperator,
+                                'fermion' for FermionOperator,
+                                'raw' for FermionOperator without simplification.
+        url (str): The URL endpoint for the quantum chemistry simulation service.
+
+    Returns:
+        str: The JSON response from the quantum chemistry simulation service.
+
+    The function constructs a molecule dictionary from the input parameters,
+    serializes it to a JSON string, and sends it to a specified URL to perform
+    quantum chemistry calculations. The result is then returned as a string.
+    """
     molecule_dict={
         'molecule':geometry,
         'basis':basis,

@@ -28,7 +28,7 @@ Classes for QProgDAG.
 QPANDA_BEGIN
 
 
-enum DAGNodeType
+enum DAGNodeType : int
 {
 	NUKNOW_SEQ_NODE_TYPE = -1,
 
@@ -153,6 +153,7 @@ struct DAGSeqNode
 {
 	int m_node_type; // SequenceNodeType(on case of m_node_type < 0) and GateType
 	size_t m_vertex_num;
+    std::shared_ptr<QProgDAGNode> m_node_ptr;
 
 	/**
 	* @brief  construct sequence node
@@ -164,6 +165,7 @@ struct DAGSeqNode
 	{}
 
 	DAGSeqNode(const QProgDAGVertex& dag_vertex){
+        m_node_ptr = dag_vertex.m_node;
 		m_vertex_num = dag_vertex.m_id;
 		const auto& gate_node = *(dag_vertex.m_node);
 		auto node_ptr = (*(gate_node.m_itr));

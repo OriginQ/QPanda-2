@@ -48,6 +48,7 @@ enum NodeType
 enum GateType {
 	GATE_NOP = -2,
     GATE_UNDEFINED = -1,
+    I_GATE,
     P0_GATE,/**< Quantum p0 gate */
     P1_GATE,/**< Quantum p1 gate */
     PAULI_X_GATE,/**< Quantum pauli x  gate */
@@ -55,7 +56,7 @@ enum GateType {
     PAULI_Z_GATE,/**< Quantum pauli z  gate */
     X_HALF_PI,/**< Quantum x half gate */
     Y_HALF_PI,/**< Quantum y half gate */
-    Z_HALF_PI,/**< Quantum z half gate */
+    Z_HALF_PI = 8,/**< Quantum z half gate */
 	P_GATE,/**<Quantum p gate>*/
     HADAMARD_GATE,/**< Quantum hadamard gate */
     T_GATE,/**< Quantum t gate */
@@ -63,7 +64,7 @@ enum GateType {
     RX_GATE,/**< Quantum rotation x gate */
     RY_GATE,/**< Quantum rotation y gate */
     RZ_GATE,/**< Quantum rotation z gate */
-    RPHI_GATE,
+    RPHI_GATE = 16,
     U1_GATE,/**< Quantum u1 gate */
     U2_GATE,/**< Quantum u2 gate */
     U3_GATE,/**< Quantum u3 gate */
@@ -71,14 +72,15 @@ enum GateType {
     CU_GATE,/**< Quantum control-u gate */
     CNOT_GATE,/**< Quantum control-not gate */
     CZ_GATE,/**< Quantum control-z gate */
-	CP_GATE,/**<Quantum control-p gate>*/
+	CP_GATE = 24,/**<Quantum control-p gate>*/
+    MS_GATE, /**<Quantum ms gate>*/
     RYY_GATE,/**<Quantum ryy gate>*/
     RXX_GATE,/**<Quantum rxx gate>*/
     RZZ_GATE,/**<Quantum rzz gate>*/
     RZX_GATE,/**<Quantum rzx gate>*/
     CPHASE_GATE,/**< Quantum control-rotation gate */
     ISWAP_THETA_GATE,/**< Quantum iswap-theta gate */
-    ISWAP_GATE,/**< Quantum iswap gate */
+    ISWAP_GATE = 32,/**< Quantum iswap gate */
     SQISWAP_GATE,/**< Quantum sqiswap gate */
     SWAP_GATE,/**< Quantum swap gate */
     TWO_QUBIT_GATE,/**< Quantum two-qubit gate */
@@ -86,8 +88,7 @@ enum GateType {
     P11_GATE,
     TOFFOLI_GATE,
 	ORACLE_GATE,
-    CORACLE_GATE,
-	I_GATE,
+    CORACLE_GATE = 40,
 
     ECHO_GATE,  /**< Only for 6 qubit online projects */
     BARRIER_GATE,  /**< Only for 6 qubit online projects */

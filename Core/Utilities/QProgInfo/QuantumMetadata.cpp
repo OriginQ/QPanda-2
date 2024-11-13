@@ -27,9 +27,9 @@ bool QuantumMetadata::getMetadata(int &qubit_num, std::vector<std::vector<double
     {
         qubit_num = 4;
         matrix = { {0,1,1,0},
-                    {1,0,0,1},
-                    {1,0,0,1},
-                    {0,1,1,0} };
+                   {1,0,0,1},
+                   {1,0,0,1},
+                   {0,1,1,0} };
     }
     else
     {

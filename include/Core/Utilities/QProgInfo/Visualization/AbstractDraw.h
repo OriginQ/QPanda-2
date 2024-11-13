@@ -14,10 +14,16 @@ enum PIC_TYPE
 class AbstractDraw
 {
 public:
-	AbstractDraw(const QProg &prog, LayeredTopoSeq &layer_info, uint32_t length)
+	/*AbstractDraw(const QProg &prog, LayeredTopoSeq &layer_info, uint32_t length)
 		: m_prog(prog),
 		  m_layer_info(layer_info),
-		  m_wire_length(length) {}
+		  m_wire_length(length) {}*/
+	AbstractDraw(const QProg& prog, LayeredTopoSeq& layer_info, uint32_t length,bool b_with_gate_params)
+		: m_prog(prog),
+		m_layer_info(layer_info),
+		m_wire_length(length),
+		m_draw_with_gate_params(b_with_gate_params)
+	{}
 	virtual ~AbstractDraw() {}
 
 	/**
@@ -55,6 +61,7 @@ protected:
 	QProg m_prog;
 	LayeredTopoSeq &m_layer_info;
 	uint32_t m_wire_length;
+	bool m_draw_with_gate_params;
 };
 
 QPANDA_END

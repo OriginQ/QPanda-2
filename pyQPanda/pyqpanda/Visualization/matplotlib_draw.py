@@ -62,7 +62,7 @@ class Anchor:
         self.gate_anchor = 0
         self.b_fold = False
         self.last_h_pos = 0.0
-        self.max_x_pos = 30.0
+        self.max_x_pos = fold
         self.__flod_cnt = 0
 
     def get_fold_info(self):
@@ -151,7 +151,7 @@ class Anchor:
 class MatplotlibDrawer:
     def __init__(self, qregs, cregs, ops,
                  scale=1.0, style=None, plot_barriers=True,
-                 reverse_bits=False, layout=None, fold=25, ax=None):
+                 reverse_bits=False, layout=None, fold=25, ax=None,b_with_gate_params=False):
 
         if not HAS_MATPLOTLIB:
             raise ImportError('The class MatplotlibDrawer needs matplotlib. '
@@ -171,6 +171,7 @@ class MatplotlibDrawer:
             'xmax': 0,
             'ymax': 0,
         }
+        self.m_with_gate_params = b_with_gate_params
         '''
         config = user_config.get_config()
         if config and (style is None):
@@ -205,6 +206,10 @@ class MatplotlibDrawer:
             self.figure = plt.figure()
             self.figure.patch.set_facecolor(color=self._style.bg)
             self.ax = self.figure.add_subplot(111)
+        else:
+            self.return_fig = True
+            self.ax = ax
+            self.figure = ax.get_figure()
         '''else:
             self.return_fig = False
             self.ax = ax
@@ -247,6 +252,7 @@ class MatplotlibDrawer:
                 boxes_length = round(max([len(text), len(subtext)]) / 7) or 1
             else:
                 boxes_length = math.ceil(len(text) / 7) or 1
+                boxes_length = 1
             wid = WID * 2.5 * boxes_length
         else:
             wid = WID
@@ -280,7 +286,20 @@ class MatplotlibDrawer:
 
         if text:
 
-            disp_text = text
+            # If the string length is too long,
+            # use '\n' and  '...'
+            disp_text = ''
+            font_hight = self._style.fs *0.0351
+            text_hight = font_hight
+            for i in range(len(text)):
+                if i %5==0:
+                    disp_text +='\n'
+                    text_hight +=font_hight
+                if text_hight >=height:
+                    disp_text+='...'
+                    break
+                disp_text +=text[i]
+
             if subtext:
                 self.ax.text(xpos, ypos + 0.4 * height, disp_text, ha='center',
                              va='center', fontsize=self._style.fs,
@@ -507,9 +526,9 @@ class MatplotlibDrawer:
             color_str = 'X'
         elif tmp_op_name in ['I']:
             color_str = 'I'
-        elif tmp_op_name in ['X1', 'Y1', 'Z1', 'RX', 'RY', 'RZ']:
+        elif tmp_op_name in ['X1', 'Y1', 'Z1', 'RX', 'RY', 'RZ', 'RPhi']:
             color_str = 'X1'
-        elif tmp_op_name in ['CNOT', 'CPHASE', 'CZ']:
+        elif tmp_op_name in ['CNOT', 'CPHASE', 'CZ','CP']:
             color_str = 'CNOT'
         elif tmp_op_name in ['H', 'S', 'T']:
             color_str = 'H'
@@ -577,7 +596,8 @@ class MatplotlibDrawer:
     def _swap_gate(self, q_xy, gate_type, param, dagger, ctrl_qubits=0):
         font_size = self._style.sfs + 1
         if gate_type == GateType.ISWAP_THETA_GATE:
-            swap_sub_text = '{}'.format(param)
+            if self.m_with_gate_params:
+                swap_sub_text = '{}'.format(param)
             #font_size = self._style.sfs
         elif gate_type == GateType.ISWAP_GATE:
             swap_sub_text = 'iSWAP'
@@ -852,7 +872,7 @@ class MatplotlibDrawer:
 
         # lf line
         if feedline_r:
-            # self._linefeed_mark((self.fold + self.x_offset + 1 - 0.1 + self.layer_offset_recode[n_fold],
+            #self._linefeed_mark((self.fold + self.x_offset + 1 - 0.1 + self.layer_offset_recode[n_fold],
             #                      - n_fold * (self._cond['n_lines'] + 1)))
             self._linefeed_mark((self._cond['xmax'],
                                  - n_fold * (self._cond['n_lines'] + 1)))
@@ -864,7 +884,10 @@ class MatplotlibDrawer:
         color = self._style.dispcol['multi']
         self._ctrl_qubit(qxy[0], fc=color, ec=color)
         self._ctrl_qubit(qxy[1], fc=color, ec=color)
-        self._sidetext(qreg_b, text='zz({})'.format(param))
+        if self.m_with_gate_params:
+            self._sidetext(qreg_b, text='zz({})'.format(param))
+        else:
+            self._sidetext(qreg_b, text='zz')
         # add qubit-qubit wiring
         self._line(qreg_b, qreg_t, lc=color)
 
@@ -872,7 +895,10 @@ class MatplotlibDrawer:
         color = self._style.dispcol['multi']
         self._ctrl_qubit(qxy[0], fc=color, ec=color)
         self._ctrl_qubit(qxy[1], fc=color, ec=color)
-        self._sidetext(qreg_b, text='U1 ({})'.format(param))
+        if self.m_with_gate_params:
+            self._sidetext(qreg_b, text='U1 ({})'.format(param))
+        else:
+            self._sidetext(qreg_b, text='U1')
 
         # add qubit-qubit wiring
         self._line(qreg_b, qreg_t, lc=color)
@@ -905,6 +931,7 @@ class MatplotlibDrawer:
 
     def _cz(self, q_xy, qreg_b, qreg_t):
         disp = 'CZ'
+        color = self._style.dispcol['CZ']
         if self._style.name != 'Q1':
             color = self._style.dispcol['CZ']
             self._ctrl_qubit(q_xy[0], fc=color, ec=color)
@@ -923,7 +950,7 @@ class MatplotlibDrawer:
         _wide_gate = [GateType.RX_GATE, GateType.RY_GATE, GateType.RZ_GATE, GateType.U1_GATE, GateType.U2_GATE,
                       GateType.U3_GATE, GateType.U4_GATE, GateType.CU_GATE, GateType.CPHASE_GATE, GateType.ISWAP_THETA_GATE,
                       GateType.U3_GATE, GateType.U4_GATE, GateType.CU_GATE, GateType.CPHASE_GATE, GateType.ISWAP_THETA_GATE,
-                      GateType.RXX_GATE, GateType.RYY_GATE, GateType.RZZ_GATE, GateType.RZX_GATE]
+                      GateType.RXX_GATE, GateType.RYY_GATE, GateType.RZZ_GATE, GateType.RZX_GATE, GateType.RPHI_GATE]
         _barriers = {'coord': [], 'group': []}
 
         #
@@ -963,6 +990,7 @@ class MatplotlibDrawer:
                             len_param = len(param) - (4 * pi_count)
                         else:
                             len_param = len(param)
+
                         if len_param > len(op.m_name):
                             box_width = math.floor(len(param) / 10) + 0.25
                             #box_width = math.ceil(len(param) / 10)
@@ -979,7 +1007,7 @@ class MatplotlibDrawer:
                             continue
 
                 # If custom ControlledGate
-                elif op.m_gate_type in [GateType.RPHI_GATE, GateType.CPHASE_GATE]:
+                elif op.m_gate_type in [GateType.RPHI_GATE, GateType.CPHASE_GATE,GateType.CP_GATE]:
                     # if op.type == 'op' and hasattr(op.op, 'params'):
                     if int(op.m_gate_type) >= 0 and len(op.m_params) > 0:
                         param = self.param_parse(op.m_params)
@@ -1202,7 +1230,7 @@ class MatplotlibDrawer:
                     self._line(qreg_b, qreg_t,
                                lc=self._style.dispcol[color_str])
                     if num_qargs == 1:
-                        if param:
+                        if self.m_with_gate_params and param:
                             self._gate(q_xy[num_ctrl_qubits], wide=_iswide,
                                        text=disp,
                                        fc=self._style.dispcol[color_str],
@@ -1250,7 +1278,7 @@ class MatplotlibDrawer:
                             cz_xy = q_xy[num_ctrl_qubits:]
                             self._cz(cz_xy, qreg_b, qreg_t)
                         # control gate
-                        elif op.m_gate_type in [GateType.CU_GATE, GateType.CPHASE_GATE]:
+                        elif op.m_gate_type in [GateType.CU_GATE, GateType.CPHASE_GATE,GateType.CP_GATE]:
                             disp = op.m_name
 
                             color = None
@@ -1262,7 +1290,7 @@ class MatplotlibDrawer:
 
                             self._ctrl_qubit(
                                 q_xy[num_ctrl_qubits], fc=color, ec=color)
-                            if param:
+                            if self.m_with_gate_params and param:
                                 self._gate(q_xy[num_ctrl_qubits + 1], wide=_iswide,
                                            text=disp,
                                            fc=color,
@@ -1284,6 +1312,8 @@ class MatplotlibDrawer:
 
                         # iswap gate
                         elif op.m_gate_type in [GateType.ISWAP_THETA_GATE, GateType.ISWAP_GATE, GateType.SQISWAP_GATE]:
+                            if self.m_with_gate_params is False:
+                                param = ""
                             self._swap_gate(
                                 q_xy, op.m_gate_type, param, op.m_is_dagger, ctrl_qubits=num_ctrl_qubits)
                             # add qubit-qubit wiring
@@ -1295,6 +1325,8 @@ class MatplotlibDrawer:
 
                         # Custom gate
                         elif op.m_gate_type in [GateType.RXX_GATE, GateType.RYY_GATE, GateType.RZZ_GATE, GateType.RZX_GATE]:
+                            if self.m_with_gate_params is False:
+                                param = ""
                             self._custom_multiqubit_gate(q_xy, c_xy, wide=True,
                                                          text=op.m_gate_type, subtext=f"{param}")
                         else:
@@ -1310,7 +1342,7 @@ class MatplotlibDrawer:
                 #
                 elif len(q_xy) == 1:
                     disp = op.m_name
-                    if param:
+                    if self.m_with_gate_params and param:
                         self._gate(q_xy[0], wide=_iswide, text=disp,
                                    subtext=str(param))
                     else:
@@ -1326,7 +1358,7 @@ class MatplotlibDrawer:
                     elif op.m_gate_type == GateType.CZ_GATE:
                         self._cz(q_xy, qreg_b, qreg_t)
                     # control gate
-                    elif op.m_gate_type in [GateType.CU_GATE, GateType.CPHASE_GATE]:
+                    elif op.m_gate_type in [GateType.CU_GATE, GateType.CPHASE_GATE,GateType.CP_GATE]:
                         disp = op.m_name
 
                         color = None
@@ -1337,7 +1369,7 @@ class MatplotlibDrawer:
                                 color = self._style.dispcol['U4']
 
                         self._ctrl_qubit(q_xy[0], fc=color, ec=color)
-                        if param:
+                        if self.m_with_gate_params and param:
                             self._gate(q_xy[1], wide=_iswide,
                                        text=disp,
                                        fc=color,
@@ -1357,6 +1389,8 @@ class MatplotlibDrawer:
 
                     # iswap gate
                     elif op.m_gate_type in [GateType.ISWAP_THETA_GATE, GateType.ISWAP_GATE, GateType.SQISWAP_GATE]:
+                        if self.m_with_gate_params is False:
+                            param = ""
                         self._swap_gate(q_xy, op.m_gate_type,
                                         param, op.m_is_dagger)
                         # add qubit-qubit wiring
@@ -1366,6 +1400,8 @@ class MatplotlibDrawer:
                     # Custom gate
                     elif op.m_gate_type in [GateType.RXX_GATE, GateType.RYY_GATE, GateType.RZZ_GATE, GateType.RZX_GATE]:
                         disp = op.m_name
+                        if self.m_with_gate_params is False:
+                            param = ""
                         self._custom_multiqubit_gate(q_xy, c_xy, wide=True,
                                                      text=disp, subtext=str(param))
 
@@ -1375,6 +1411,10 @@ class MatplotlibDrawer:
                 #
                 # draw multi-qubit gates (n=3)
                 #
+                elif op.m_gate_type == GateType.ORACLE_GATE:
+                    self._custom_multiqubit_gate(q_xy, c_xy, wide=True,
+                                                     text=op.m_name)
+
                 elif len(q_xy) in range(3, 6):
                     # Unitary
                     self._custom_multiqubit_gate(q_xy, c_xy, wide=True,
@@ -1479,10 +1519,10 @@ class MatplotlibDrawer:
         else:
             max_anc = 0
         # n_fold = max(0, max_anc - 1) // self.fold
-        # window size
-        if max_anc > self.fold > 0:
-            #self._cond['xmax'] = self.fold + 1 + self.x_offset + my_offset
-            self._cond['xmax'] = 30.0
+        # window size if max_anc > self.fold > 0:
+        if max_anc > 20 > 0:
+            self._cond['xmax'] = self.fold + 1 + self.x_offset + my_offset
+            #self._cond['xmax'] = 30.0
             self._cond['ymax'] = (n_fold + 1) * (self._cond['n_lines'] + 1) - 1
         else:
             self._cond['xmax'] = max_anc + 1 + self.x_offset + my_offset

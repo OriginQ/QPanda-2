@@ -6,6 +6,7 @@
 #include "Core/Utilities/Tools/QStatMatrix.h"
 #include "Core/Utilities/Tools/QProgFlattening.h"
 #include <EigenUnsupported/Eigen/KroneckerProduct>
+#include "Core/Utilities/Tools/MatrixDecomposition.h"
 #include "Core/Utilities/Tools/MultiControlGateDecomposition.h"
 #ifdef USE_OPENMP
 #include <omp.h>
@@ -168,7 +169,8 @@ static QStat get_U4_matrix(prob_vec params, bool is_dagger)
     return _U4;
 }
 
-void LinearDepthDecomposition::execute(std::shared_ptr<AbstractQGateNode>  cur_node, std::shared_ptr<QNode> parent_node)
+void LinearDepthDecomposition::execute(std::shared_ptr<AbstractQGateNode> cur_node, 
+    std::shared_ptr<QNode> parent_node)
 {
     QVec qvec;
     cur_node->getQuBitVector(qvec);
@@ -212,6 +214,7 @@ void LinearDepthDecomposition::execute(std::shared_ptr<AbstractQGateNode>  cur_n
     case GateType::U2_GATE:
     case GateType::U3_GATE:
     case GateType::U4_GATE:
+    case GateType::RPHI_GATE:
     {
         QStat matrix;
         cur_node->getQGate()->getMatrix(matrix);
@@ -333,8 +336,34 @@ void LinearDepthDecomposition::execute(std::shared_ptr<AbstractQGateNode>  cur_n
         insert(std::dynamic_pointer_cast<QNode>(circuit.getImplementationPtr()), parent_node);
         break;
     }
-    case GateType::BARRIER_GATE:
-    default: return QNodeDeepCopy::execute(cur_node, parent_node);
+    case GateType::MS_GATE:
+    case GateType::RYY_GATE:
+    case GateType::RXX_GATE:
+    case GateType::RZZ_GATE:
+    case GateType::RZX_GATE:
+    case GateType::ORACLE_GATE:
+    default:
+    {
+        QStat matrix;
+        cur_node->getQGate()->getMatrix(matrix);
+
+        if (cur_node->isDagger()) dagger(matrix);
+
+        auto decomposed_circuit = matrix_decompose_qr(qvec, matrix, false);
+
+        decomposed_circuit.setControl(controls);
+
+        QProg node(decomposed_circuit);
+        flatten(node);
+
+        execute(std::dynamic_pointer_cast<QNode>(node.getImplementationPtr()),
+            parent_node);
+
+        break;
+    }
+
+    case GateType::I_GATE:
+    case GateType::BARRIER_GATE: break;
     }
 }
 

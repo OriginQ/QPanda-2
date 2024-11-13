@@ -9,7 +9,7 @@ USING_QPANDA
 using namespace Eigen;
 
 
-static bool _is_isometry(const MatrixXcd& isometry, size_t log_cols, double _tol = TOL)
+static bool _is_isometry(const MatrixXcd& isometry, size_t log_cols, double _tol = tolerance)
 {
 	MatrixXcd _mat = isometry.adjoint() * isometry;
 	return _mat.isIdentity(_tol);

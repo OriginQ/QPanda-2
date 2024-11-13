@@ -6,7 +6,6 @@ file(GLOB_RECURSE pyQPanda_SRC_CPP *.cpp)
 
 file(GLOB_RECURSE COMPONENTS_CPP ${CMAKE_SOURCE_DIR}/Components/HamiltonianSimulation/*.cpp
                                      ${CMAKE_SOURCE_DIR}/Components/MaxCutProblemGenerator/*.cpp
-                                     ${CMAKE_SOURCE_DIR}/Components/NodeSortProblemGenerator/*.cpp
                                      ${CMAKE_SOURCE_DIR}/Components/Optimizer/*.cpp
                                      ${CMAKE_SOURCE_DIR}/Components/Operator/*.cpp
                                      ${CMAKE_SOURCE_DIR}/Components/Utils/*.cpp)
@@ -14,7 +13,7 @@ file(GLOB_RECURSE COMPONENTS_CPP ${CMAKE_SOURCE_DIR}/Components/HamiltonianSimul
 
 pybind11_add_module(${LIB_PYQPANDA} SHARED ${pyQPanda_SRC_CPP})
 set_target_properties(${LIB_PYQPANDA}  PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
-target_link_libraries(${LIB_PYQPANDA} PRIVATE ${LIB_QPANDA} ${LIB_QALG} ${LIB_VAR})
+target_link_libraries(${LIB_PYQPANDA} PRIVATE ${LIB_QPANDA}  ${LIB_VAR} ${LIB_COMPONENTS})
 
 set(PYQPANDA_OUT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../pyQPanda/pyqpanda")
 set(PYQPANDA_OUT_LIB
@@ -22,12 +21,12 @@ set(PYQPANDA_OUT_LIB
 
 if (USE_CURL AND CURL_FOUND AND MSVC)
     add_custom_command(TARGET ${LIB_PYQPANDA} POST_BUILD
-                    COMMAND ${CMAKE_COMMAND} -E copy ${CURL_DLL} ${PYQPANDA_OUT_PATH})                    
+                COMMAND ${CMAKE_COMMAND} -E copy ${CURL_DLL} ${PYQPANDA_OUT_PATH})                    
 endif()
 
-if (USE_OPENSSL AND OPENSSL_FOUND AND MSVC)
+if (USE_QHETU AND MSVC)
     add_custom_command(TARGET ${LIB_PYQPANDA} POST_BUILD
-                    COMMAND ${CMAKE_COMMAND} -E copy ${OPENSSL_DLL} ${PYQPANDA_OUT_PATH})                  
+                COMMAND ${CMAKE_COMMAND} -E copy ${QHETU_DLL} ${PYQPANDA_OUT_PATH})                    
 endif()
 
 add_custom_command(OUTPUT COPY_RES

@@ -20,21 +20,14 @@ QPANDA_BEGIN
 * @brief Quantum machine for partial amplitude simulation
 */
 
-enum class BackendType 
-{
-    CPU,
-    GPU,
-    CPU_SINGLE_THREAD,
-    NOISE,
-    MPS
-};
-
 class PartialAmplitudeQVM : public QVM, public TraversalInterface<>
 {
 public:
 	PartialAmplitudeGraph m_graph_backend;
 
-    void init(BackendType type = BackendType::CPU);
+    PartialAmplitudeQVM();
+    void init(BackendType type);
+    void init() override;
 
     std::map<std::string, bool> directlyRun(QProg &prog, const NoiseModel& noise_model= NoiseModel()) override
     {

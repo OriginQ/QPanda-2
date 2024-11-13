@@ -1,4 +1,7 @@
-#pragma once
+#ifndef TEMPLATE_GENERATOR_H_
+#define TEMPLATE_GENERATOR_H_
+
+
 #include "QPanda.h"
 #include "pybind11/pybind11.h"
 
@@ -10,19 +13,20 @@ namespace py = pybind11;
 template <typename T>
 void export_transformQProgToOriginIR(py::module &m)
 {
-	m.def("to_originir",
-		py::overload_cast<T &, QuantumMachine *>(&transformQProgToOriginIR<T>),
-		py::arg("qprog"),
-		py::arg("machine"),
-		"Transform QProg to OriginIR string\n"
-		"\n"
-		"Args:\n"
-		"    qprog: QProg or QCircute\n"
-		"    machine: quantum machine\n"
-		"\n"
-		"Returns:\n"
-		"    QriginIR string",
-		py::return_value_policy::automatic_reference);
+    m.def("to_originir",
+        py::overload_cast<T &, QuantumMachine *>(&transformQProgToOriginIR<T>),
+        py::arg("qprog"),
+        py::arg("machine"),
+        "Transform QProg to OriginIR string.\n"
+        "\n"
+        "Args:\n"
+        "     qprog: T, the quantum program or circuit to transform.\n"
+        "\n"
+        "     machine: QuantumMachine*, the quantum machine being used.\n"
+        "\n"
+        "Returns:\n"
+        "     OriginIR string, the transformed representation of the quantum program.\n",
+        py::return_value_policy::automatic_reference);
 }
 
 /* include\Core\QuantumCircuit\QGate.h */
@@ -201,94 +205,234 @@ GEN_doubleBitGate_TEMPLATE(SWAP, SWAP, "first_qubit", "second_qubit", "");
 GEN_doubleBitGate_TEMPLATE(iSWAP, iSWAP, "first_qubit", "second_qubit", "");
 GEN_doubleBitGate_TEMPLATE(iSWAP_2, iSWAP, "first_qubit", "second_qubit", py::arg("theta_angle"));
 GEN_doubleBitGate_TEMPLATE(SqiSWAP, SqiSWAP, "first_qubit", "second_qubit", "");
+GEN_doubleBitGate_TEMPLATE(MS, MS, "first_qubit", "second_qubit", "");
 GEN_doubleBitGate_TEMPLATE(QDouble, QDouble, "first_qubit", "second_qubit", py::arg("matrix"));
 
 template <typename Cls_t>
 class export_idealqvm_func
 {
 public:
-	template <typename PyCls_t>
-	static void export_func(PyCls_t& cls)
-	{
-		cls.def(py::init<>())
-			.def("pmeasure",
-				&Cls_t::PMeasure,
-				py::arg("qubit_list"),
-				py::arg("select_max") = -1,
-				py::call_guard<py::gil_scoped_release>(),
-				"Get the probability distribution over qubits",
-				py::return_value_policy::reference)
-			.def("pmeasure_no_index",
-				&Cls_t::PMeasure_no_index,
-				py::arg("qubit_list"),
-				py::call_guard<py::gil_scoped_release>(),
-				"Get the probability distribution over qubits",
-				py::return_value_policy::reference)
-			.def("get_prob_tuple_list",
-				&Cls_t::getProbTupleList,
-				py::arg("qubit_list"),
-				py::arg("select_max") = -1,
-				py::call_guard<py::gil_scoped_release>(),
-				py::return_value_policy::reference)
-			.def("get_prob_list",
-				&Cls_t::getProbList,
-				py::arg("qubit_list"),
-				py::arg("select_max") = -1,
-				py::call_guard<py::gil_scoped_release>(),
-				py::return_value_policy::reference)
-			.def("get_prob_dict",
-				&Cls_t::getProbDict,
-				py::arg("qubit_list"),
-				py::arg("select_max") = -1,
-				py::call_guard<py::gil_scoped_release>(),
-				py::return_value_policy::reference)
-			.def("prob_run_tuple_list",
-				py::overload_cast<QProg&, QVec, int>(&Cls_t::probRunTupleList),
-				py::arg("program"),
-				py::arg("qubit_list"),
-				py::arg("select_max") = -1,
-				py::call_guard<py::gil_scoped_release>(),
-				py::return_value_policy::automatic)
-			.def("prob_run_tuple_list",
-				py::overload_cast<QProg&, const std::vector<int>&, int>(&Cls_t::probRunTupleList),
-				py::arg("program"),
-				py::arg("qubit_addr_list"),
-				py::arg("select_max") = -1,
-				py::call_guard<py::gil_scoped_release>(),
-				py::return_value_policy::automatic)
-			.def("prob_run_list",
-				py::overload_cast<QProg&, QVec, int>(&Cls_t::probRunList),
-				py::arg("program"),
-				py::arg("qubit_list"),
-				py::arg("select_max") = -1,
-				py::call_guard<py::gil_scoped_release>(),
-				py::return_value_policy::automatic)
-			.def("prob_run_list",
-				py::overload_cast<QProg&, const std::vector<int>&, int>(&Cls_t::probRunList),
-				py::arg("program"),
-				py::arg("qubit_addr_list"),
-				py::arg("select_max") = -1,
-				py::call_guard<py::gil_scoped_release>(),
-				py::return_value_policy::automatic)
-			.def("prob_run_dict",
-				py::overload_cast<QProg&, QVec, int>(&Cls_t::probRunDict),
-				py::arg("program"),
-				py::arg("qubit_list"),
-				py::arg("select_max") = -1,
-				py::call_guard<py::gil_scoped_release>(),
-				py::return_value_policy::automatic)
-			.def("prob_run_dict",
-				py::overload_cast<QProg&, const std::vector<int>&, int>(&Cls_t::probRunDict),
-				py::arg("program"),
-				py::arg("qubit_addr_list"),
-				py::arg("select_max") = -1,
-				py::call_guard<py::gil_scoped_release>(),
-				py::return_value_policy::automatic)
-			.def("quick_measure",
-				&Cls_t::quickMeasure,
-				py::arg("qubit_list"),
-				py::arg("shots"),
-				py::call_guard<py::gil_scoped_release>(),
-				py::return_value_policy::reference);
-	}
+    template <typename PyCls_t>
+    static void export_func(PyCls_t& cls)
+    {
+        cls.def(py::init<>())
+            .def("pmeasure",
+                &Cls_t::PMeasure,
+                py::arg("qubit_list"),
+                py::arg("select_max") = -1,
+                py::call_guard<py::gil_scoped_release>(),
+                "Get the probability distribution over qubits.\n"
+                "\n"
+                "Args:\n"
+                "     qubit_list: List of qubits to measure.\n"
+                "\n"
+                "     select_max: int, optional, maximum number of results to select (default: -1).\n"
+                "\n"
+                "Returns:\n"
+                "     Probability distribution as a reference.\n",
+                py::return_value_policy::reference)
+            .def("pmeasure_no_index",
+                &Cls_t::PMeasure_no_index,
+                py::arg("qubit_list"),
+                py::call_guard<py::gil_scoped_release>(),
+                "Get the probability distribution over qubits without index.\n"
+                "\n"
+                "Args:\n"
+                "     qubit_list: List of qubits to measure.\n"
+                "\n"
+                "Returns:\n"
+                "     Probability distribution as a reference.\n",
+                py::return_value_policy::reference)
+            .def("get_prob_tuple_list",
+                &Cls_t::getProbTupleList,
+                py::arg("qubit_list"),
+                py::arg("select_max") = -1,
+                py::call_guard<py::gil_scoped_release>(),
+                "Get a list of probability tuples for the specified qubits.\n"
+                "\n"
+                "Args:\n"
+                "     qubit_list: List of qubits to measure.\n"
+                "\n"
+                "     select_max: int, optional, maximum number of tuples to return (default: -1).\n"
+                "\n"
+                "Returns:\n"
+                "     List of probability tuples as a reference.\n",
+                py::return_value_policy::reference)
+            .def("get_prob_list",
+                &Cls_t::getProbList,
+                py::arg("qubit_list"),
+                py::arg("select_max") = -1,
+                py::call_guard<py::gil_scoped_release>(),
+                "Get a list of probabilities for the specified qubits.\n"
+                "\n"
+                "Args:\n"
+                "     qubit_list: List of qubits to measure.\n"
+                "\n"
+                "     select_max: int, optional, maximum number of probabilities to return (default: -1).\n"
+                "\n"
+                "Returns:\n"
+                "     List of probabilities as a reference.\n",
+                py::return_value_policy::reference)
+            .def("get_prob_dict",
+                &Cls_t::getProbDict,
+                py::arg("qubit_list"),
+                py::arg("select_max") = -1,
+                py::call_guard<py::gil_scoped_release>(),
+                "Get a dictionary of probabilities for the specified qubits.\n"
+                "\n"
+                "Args:\n"
+                "     qubit_list: List of qubits to measure.\n"
+                "\n"
+                "     select_max: int, optional, maximum number of entries to return (default: -1).\n"
+                "\n"
+                "Returns:\n"
+                "     Dictionary of probabilities as a reference.\n",
+                py::return_value_policy::reference)
+
+            .def("prob_run_tuple_list",
+                py::overload_cast<QProg&, QVec, int>(&Cls_t::probRunTupleList),
+                py::arg("program"),
+                py::arg("qubit_list"),
+                py::arg("select_max") = -1,
+                py::call_guard<py::gil_scoped_release>(),
+                "Execute a quantum program and get a list of probability tuples.\n"
+                "\n"
+                "Args:\n"
+                "     program: The quantum program to execute.\n"
+                "\n"
+                "     qubit_list: List of qubits to measure.\n"
+                "\n"
+                "     select_max: int, optional, maximum number of tuples to return (default: -1).\n"
+                "\n"
+                "Returns:\n"
+                "     List of probability tuples.\n",
+                py::return_value_policy::automatic)
+
+            .def("prob_run_tuple_list",
+                py::overload_cast<QProg&, const std::vector<int>&, int>(&Cls_t::probRunTupleList),
+                py::arg("program"),
+                py::arg("qubit_addr_list"),
+                py::arg("select_max") = -1,
+                py::call_guard<py::gil_scoped_release>(),
+                "Execute a quantum program and get a list of probability tuples using qubit addresses.\n"
+                "\n"
+                "Args:\n"
+                "     program: The quantum program to execute.\n"
+                "\n"
+                "     qubit_addr_list: List of qubit addresses to measure.\n"
+                "\n"
+                "     select_max: int, optional, maximum number of tuples to return (default: -1).\n"
+                "\n"
+                "Returns:\n"
+                "     List of probability tuples.\n",
+                py::return_value_policy::automatic)
+
+            .def("prob_run_list",
+                py::overload_cast<QProg&, QVec, int>(&Cls_t::probRunList),
+                py::arg("program"),
+                py::arg("qubit_list"),
+                py::arg("select_max") = -1,
+                py::call_guard<py::gil_scoped_release>(),
+                "Execute a quantum program and retrieve a list of probabilities for the specified qubits.\n"
+                "\n"
+                "Args:\n"
+                "     program: The quantum program to execute.\n"
+                "\n"
+                "     qubit_list: List of qubits to measure.\n"
+                "\n"
+                "     select_max: int, optional, maximum number of probabilities to return (default: -1).\n"
+                "\n"
+                "Returns:\n"
+                "     List of probabilities.\n",
+                py::return_value_policy::automatic)
+
+            .def("prob_run_list",
+                py::overload_cast<QProg&, const std::vector<int>&, int>(&Cls_t::probRunList),
+                py::arg("program"),
+                py::arg("qubit_addr_list"),
+                py::arg("select_max") = -1,
+                py::call_guard<py::gil_scoped_release>(),
+                "Execute a quantum program and retrieve a list of probabilities using qubit addresses.\n"
+                "\n"
+                "Args:\n"
+                "     program: The quantum program to execute.\n"
+                "\n"
+                "     qubit_addr_list: List of qubit addresses to measure.\n"
+                "\n"
+                "     select_max: int, optional, maximum number of probabilities to return (default: -1).\n"
+                "\n"
+                "Returns:\n"
+                "     List of probabilities.\n",
+                py::return_value_policy::automatic)
+            //.def("prob_run_list",
+            //    py::overload_cast<std::vector<QProg>&, std::vector<QVec>&, std::vector<int>&, int>(&Cls_t::probRunList),
+            //    py::arg("qprogs"),
+            //    py::arg("qubit_list"),
+            //    py::arg("select_max"),
+            //    py::arg("select_thread") = 4,
+            //    py::call_guard<py::gil_scoped_release>(),
+            //    py::return_value_policy::automatic)
+            .def("prob_run_dict",
+                py::overload_cast<QProg&, QVec, int>(&Cls_t::probRunDict),
+                py::arg("program"),
+                py::arg("qubit_list"),
+                py::arg("select_max") = -1,
+                py::call_guard<py::gil_scoped_release>(),
+                "Execute a quantum program and retrieve a dictionary of probabilities for the specified qubits.\n"
+                "\n"
+                "Args:\n"
+                "     program: The quantum program to execute.\n"
+                "\n"
+                "     qubit_list: List of qubits to measure.\n"
+                "\n"
+                "     select_max: int, optional, maximum number of entries in the dictionary to return (default: -1).\n"
+                "\n"
+                "Returns:\n"
+                "     Dictionary of probabilities.\n",
+                py::return_value_policy::automatic)
+            //.def("prob_run_dict",
+            //    py::overload_cast<std::vector<QProg>&, std::vector<QVec>&, std::vector<int>&,int>(&Cls_t::probRunDict),
+            //    py::arg("qprogs"),
+            //    py::arg("qubit_list"),
+            //    py::arg("select_max"),
+            //    py::arg("select_thread") = 4,
+            //    py::call_guard<py::gil_scoped_release>(),
+            //    py::return_value_policy::automatic)
+            .def("prob_run_dict",
+                py::overload_cast<QProg&, const std::vector<int>&, int>(&Cls_t::probRunDict),
+                py::arg("program"),
+                py::arg("qubit_addr_list"),
+                py::arg("select_max") = -1,
+                py::call_guard<py::gil_scoped_release>(),
+                "Execute a quantum program and retrieve a dictionary of probabilities using qubit addresses.\n"
+                "\n"
+                "Args:\n"
+                "     program: The quantum program to execute.\n"
+                "\n"
+                "     qubit_addr_list: List of qubit addresses to measure.\n"
+                "\n"
+                "     select_max: int, optional, maximum number of entries in the dictionary to return (default: -1).\n"
+                "\n"
+                "Returns:\n"
+                "     Dictionary of probabilities.\n",
+                py::return_value_policy::automatic)
+
+            .def("quick_measure",
+                &Cls_t::quickMeasure,
+                py::arg("qubit_list"),
+                py::arg("shots"),
+                py::call_guard<py::gil_scoped_release>(),
+                "Perform a quick measurement on the specified qubits.\n"
+                "\n"
+                "Args:\n"
+                "     qubit_list: List of qubits to measure.\n"
+                "\n"
+                "     shots: Number of measurement shots to perform.\n"
+                "\n"
+                "Returns:\n"
+                "     Reference to the measurement results.\n",
+                py::return_value_policy::reference);
+    }
 };
+
+#endif

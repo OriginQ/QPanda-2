@@ -84,10 +84,10 @@ Eigen::MatrixXd block_diagonal(const Eigen::MatrixXd& in_first, const Eigen::Mat
 bool is_canonicalized(double x, double y, double z)
 {
 	// 0 ¡Ü abs(z) ¡Ü y ¡Ü x ¡Ü pi/4 , if x = pi/4, z >= 0
-	const double TOL = 1e-8;
-	if (std::abs(z) >= 0 && y >= std::abs(z) && x >= y && x <= (PI / 4.0 + TOL))
+	const double tolerance = 1e-8;
+	if (std::abs(z) >= 0 && y >= std::abs(z) && x >= y && x <= (PI / 4.0 + tolerance))
 	{
-		if (std::abs(x - PI / 4.0) < TOL)
+		if (std::abs(x - PI / 4.0) < tolerance)
 			return (z >= 0);
 
 		return true;
@@ -124,8 +124,8 @@ QCircuit simplify_single_qubit_seq(double zAngleBefore, double yAngle, double zA
 
 	const auto is_near_zeromod = [](double a, double period) -> bool {
 		const auto halfPeriod = period / 2;
-		const double TOL = 1e-8;
-		return std::abs(fmod(a + halfPeriod, period) - halfPeriod) < TOL;
+		const double tolerance = 1e-8;
+		return std::abs(fmod(a + halfPeriod, period) - halfPeriod) < tolerance;
 	};
 
 	const auto to_quarter_turns = [](double in_exp) -> int {
@@ -304,11 +304,11 @@ QCircuit simplify_zyz_decomposition(const Eigen::Matrix2cd& in_mat, Qubit* in_qu
 
 			return is_approx(U, matrix);
 		};
-		const double TOL = 1e-9;
-		if (std::abs(matrix(0, 1)) < TOL)
+		const double tolerance = 1e-9;
+		if (std::abs(matrix(0, 1)) < tolerance)
 		{
 			auto two_a = fmod(std::arg(matrix(0, 0) * matrix(1, 1)), 2 * PI);
-			a = (std::abs(two_a) < TOL || std::abs(two_a) > 2 * PI - TOL) ? 0 : two_a / 2.0;
+			a = (std::abs(two_a) < tolerance || std::abs(two_a) > 2 * PI - tolerance) ? 0 : two_a / 2.0;
 			auto dHalf = 0.0;
 			auto b = std::arg(matrix(1, 1)) - std::arg(matrix(0, 0));
 			std::vector<double> possibleBhalf{ fmod(b / 2.0, 2 * PI), fmod(b / 2.0 + PI, 2.0 * PI) };
@@ -331,10 +331,10 @@ QCircuit simplify_zyz_decomposition(const Eigen::Matrix2cd& in_mat, Qubit* in_qu
 			}
 			_ASSERT(found, "not found");
 		}
-		else if (std::abs(matrix(0, 0)) < TOL)
+		else if (std::abs(matrix(0, 0)) < tolerance)
 		{
 			auto two_a = fmod(std::arg(-matrix(0, 1) * matrix(1, 0)), 2 * PI);
-			a = (std::abs(two_a) < TOL || std::abs(two_a) > 2 * PI - TOL) ? 0 : two_a / 2.0;
+			a = (std::abs(two_a) < tolerance || std::abs(two_a) > 2 * PI - tolerance) ? 0 : two_a / 2.0;
 			dHalf = 0;
 			auto b = std::arg(matrix(1, 0)) - std::arg(matrix(0, 1)) + PI;
 			std::vector<double> possibleBhalf{ fmod(b / 2., 2 * PI), fmod(b / 2. + PI, 2 * PI) };
@@ -362,7 +362,7 @@ QCircuit simplify_zyz_decomposition(const Eigen::Matrix2cd& in_mat, Qubit* in_qu
 		else
 		{
 			auto two_a = fmod(std::arg(matrix(0, 0) * matrix(1, 1)), 2 * PI);
-			a = (std::abs(two_a) < TOL || std::abs(two_a) > 2 * PI - TOL) ? 0 : two_a / 2.0;
+			a = (std::abs(two_a) < tolerance || std::abs(two_a) > 2 * PI - tolerance) ? 0 : two_a / 2.0;
 			auto two_d = 2. * std::arg(matrix(0, 1)) - 2. * std::arg(matrix(0, 0));
 			std::vector<double> possibleDhalf{ fmod(two_d / 4., 2 * PI),
 							  fmod(two_d / 4. + PI / 2., 2 * PI),
@@ -434,9 +434,9 @@ Eigen::MatrixXcd KakDescription::to_matrix() const
 QCircuit KakDescription::to_qcircuit(Qubit* in_bit1, Qubit* in_bit2) const
 {
 	QCircuit interaction_gates;
-	const double TOL = 1e-8;
+	const double tolerance = 1e-8;
 
-	if (std::abs(z) >= TOL)   	// Full decomposition is required
+	if (std::abs(z) >= tolerance)   	// Full decomposition is required
 	{
 		const double xAngle = PI * (x * -2 / PI + 0.5);
 		const double yAngle = PI * (y * -2 / PI + 0.5);
@@ -451,7 +451,7 @@ QCircuit KakDescription::to_qcircuit(Qubit* in_bit1, Qubit* in_bit2) const
 			<< RX(in_bit2, -PI / 2.0)
 			;
 	}
-	else if (y >= TOL) 	// ZZ interaction is near zero: only XX and YY
+	else if (y >= tolerance) 	// ZZ interaction is near zero: only XX and YY
 	{
 		const double xAngle = -2 * x;
 		const double yAngle = -2 * y;

@@ -16,6 +16,9 @@ template<>
 std::map<std::string, double> get_parse_result<std::map<std::string, double>>(const std::string& result_json);
 
 template<>
+std::vector<double> get_parse_result<std::vector<double>>(const std::string& result_json);
+
+template<>
 std::map<std::string, qcomplex_t> get_parse_result<std::map<std::string, qcomplex_t>>(const std::string& result_json);
 
 template<>

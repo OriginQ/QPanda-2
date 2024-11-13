@@ -21,9 +21,17 @@ static std::string rabbit_json_extract(const rabbit::document& result_doc, std::
 }
 
 template<>
-std::map<std::string, double> QPanda::get_parse_result<std::map<std::string, double>>(const std::string& result_json)
+std::map<std::string, double> QPanda::get_parse_result<std::map<std::string, double>>(const std::string& recv_result_json)
 {
     std::map<std::string, double> result;
+
+    std::string result_json = recv_result_json;
+
+    rabbit::document result_doc_parser;
+    result_doc_parser.parse(result_json.c_str());
+
+    if (result_doc_parser.is_array())
+        result_json = result_doc_parser[0].str();
 
     rabbit::document result_doc;
     result_doc.parse(result_json.c_str());
@@ -49,6 +57,24 @@ std::map<std::string, double> QPanda::get_parse_result<std::map<std::string, dou
 
     for (size_t i = 0; i < key_list.size(); i++)
         result.insert(make_pair(key_list[i], value_list[i]));
+
+    return result;
+}
+
+template<>
+std::vector<double> QPanda::get_parse_result<std::vector<double>>(const std::string& result_json)
+{
+    std::vector<double> result;
+
+    rabbit::document result_doc;
+    result_doc.parse(result_json.c_str());
+
+    for (auto i = 0; i < result_doc.size(); ++i)
+    {
+        auto val = result_doc[i].is_double() ?
+            result_doc[i].as_double() : (double)result_doc[i].as_int();
+        result.emplace_back(val);
+    }
 
     return result;
 }

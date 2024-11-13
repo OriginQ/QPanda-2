@@ -1,10 +1,11 @@
 
-// Generated from .\originir.g4 by ANTLR 4.8
+// Generated from originir.g4 by ANTLR 4.8
 
 #pragma once
 
 
 #include "antlr4-runtime.h"
+
 
 
 
@@ -17,16 +18,17 @@ public:
     NOT_GATE = 12, T_GATE = 13, S_GATE = 14, Y_GATE = 15, Z_GATE = 16, X1_GATE = 17, 
     Y1_GATE = 18, Z1_GATE = 19, I_GATE = 20, U2_GATE = 21, RPHI_GATE = 22, 
     U3_GATE = 23, U4_GATE = 24, RX_GATE = 25, RY_GATE = 26, RZ_GATE = 27, 
-    U1_GATE = 28, CNOT_GATE = 29, CZ_GATE = 30, CU_GATE = 31, ISWAP_GATE = 32, 
-    SQISWAP_GATE = 33, SWAPZ1_GATE = 34, ISWAPTHETA_GATE = 35, CR_GATE = 36, 
-    TOFFOLI_GATE = 37, DAGGER_KEY = 38, ENDDAGGER_KEY = 39, CONTROL_KEY = 40, 
-    ENDCONTROL_KEY = 41, QIF_KEY = 42, ELSE_KEY = 43, ENDIF_KEY = 44, QWHILE_KEY = 45, 
-    ENDQWHILE_KEY = 46, MEASURE_KEY = 47, RESET_KEY = 48, ASSIGN = 49, GT = 50, 
-    LT = 51, NOT = 52, EQ = 53, LEQ = 54, GEQ = 55, NE = 56, AND = 57, OR = 58, 
-    PLUS = 59, MINUS = 60, MUL = 61, DIV = 62, COMMA = 63, LPAREN = 64, 
-    RPAREN = 65, LBRACK = 66, RBRACK = 67, NEWLINE = 68, Identifier = 69, 
-    Integer_Literal = 70, Double_Literal = 71, Digit_Sequence = 72, REALEXP = 73, 
-    WhiteSpace = 74, SingleLineComment = 75
+    U1_GATE = 28, P_GATE = 29, CNOT_GATE = 30, CZ_GATE = 31, CU_GATE = 32, 
+    ISWAP_GATE = 33, SQISWAP_GATE = 34, SWAPZ1_GATE = 35, ISWAPTHETA_GATE = 36, 
+    CR_GATE = 37, RXX_GATE = 38, RYY_GATE = 39, RZZ_GATE = 40, RZX_GATE = 41, 
+    TOFFOLI_GATE = 42, DAGGER_KEY = 43, ENDDAGGER_KEY = 44, CONTROL_KEY = 45, 
+    ENDCONTROL_KEY = 46, QIF_KEY = 47, ELSE_KEY = 48, ENDIF_KEY = 49, QWHILE_KEY = 50, 
+    ENDQWHILE_KEY = 51, MEASURE_KEY = 52, RESET_KEY = 53, ASSIGN = 54, GT = 55, 
+    LT = 56, NOT = 57, EQ = 58, LEQ = 59, GEQ = 60, NE = 61, AND = 62, OR = 63, 
+    PLUS = 64, MINUS = 65, MUL = 66, DIV = 67, COMMA = 68, LPAREN = 69, 
+    RPAREN = 70, LBRACK = 71, RBRACK = 72, NEWLINE = 73, Identifier = 74, 
+    Integer_Literal = 75, Double_Literal = 76, Digit_Sequence = 77, REALEXP = 78, 
+    WhiteSpace = 79, SingleLineComment = 80
   };
 
   enum {
@@ -42,16 +44,17 @@ public:
     RuleSingle_gate_with_three_parameter_type = 21, RuleSingle_gate_with_four_parameter_type = 22, 
     RuleDouble_gate_without_parameter_type = 23, RuleDouble_gate_with_one_parameter_type = 24, 
     RuleDouble_gate_with_four_parameter_type = 25, RuleTriple_gate_without_parameter_type = 26, 
-    RulePrimary_expression = 27, RuleUnary_expression = 28, RuleMultiplicative_expression = 29, 
-    RuleAddtive_expression = 30, RuleRelational_expression = 31, RuleEquality_expression = 32, 
-    RuleLogical_and_expression = 33, RuleLogical_or_expression = 34, RuleAssignment_expression = 35, 
-    RuleExpression = 36, RuleControlbit_list = 37, RuleStatement = 38, RuleDagger_statement = 39, 
-    RuleControl_statement = 40, RuleQelse_statement_fragment = 41, RuleQif_statement = 42, 
-    RuleQwhile_statement = 43, RuleMeasure_statement = 44, RuleReset_statement = 45, 
-    RuleBarrier_statement = 46, RuleExpression_statement = 47, RuleDefine_gate_statement = 48, 
-    RuleDefine_dagger_statement = 49, RuleDefine_control_statement = 50, 
-    RuleUser_defined_gate = 51, RuleExplist = 52, RuleExp = 53, RuleGate_func_statement = 54, 
-    RuleId = 55, RuleId_list = 56, RuleGate_name = 57, RuleConstant = 58
+    RulePrimary_expression = 27, RuleConstant = 28, RuleUnary_expression = 29, 
+    RuleMultiplicative_expression = 30, RuleAddtive_expression = 31, RuleRelational_expression = 32, 
+    RuleEquality_expression = 33, RuleLogical_and_expression = 34, RuleLogical_or_expression = 35, 
+    RuleAssignment_expression = 36, RuleExpression = 37, RuleControlbit_list = 38, 
+    RuleStatement = 39, RuleDagger_statement = 40, RuleControl_statement = 41, 
+    RuleQelse_statement_fragment = 42, RuleQif_statement = 43, RuleQwhile_statement = 44, 
+    RuleMeasure_statement = 45, RuleReset_statement = 46, RuleBarrier_statement = 47, 
+    RuleExpression_statement = 48, RuleDefine_gate_statement = 49, RuleDefine_dagger_statement = 50, 
+    RuleDefine_control_statement = 51, RuleUser_defined_gate = 52, RuleExplist = 53, 
+    RuleExp = 54, RuleGate_func_statement = 55, RuleId = 56, RuleId_list = 57, 
+    RuleGate_name = 58
   };
 
   originirParser(antlr4::TokenStream *input);
@@ -92,6 +95,7 @@ public:
   class Double_gate_with_four_parameter_typeContext;
   class Triple_gate_without_parameter_typeContext;
   class Primary_expressionContext;
+  class ConstantContext;
   class Unary_expressionContext;
   class Multiplicative_expressionContext;
   class Addtive_expressionContext;
@@ -121,18 +125,18 @@ public:
   class Gate_func_statementContext;
   class IdContext;
   class Id_listContext;
-  class Gate_nameContext;
-  class ConstantContext; 
+  class Gate_nameContext; 
 
   class  TranslationunitContext : public antlr4::ParserRuleContext {
   public:
     TranslationunitContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
-    DeclarationContext *declaration();
     std::vector<antlr4::tree::TerminalNode *> NEWLINE();
     antlr4::tree::TerminalNode* NEWLINE(size_t i);
     std::vector<Gate_func_statementContext *> gate_func_statement();
     Gate_func_statementContext* gate_func_statement(size_t i);
+    std::vector<DeclarationContext *> declaration();
+    DeclarationContext* declaration(size_t i);
     std::vector<StatementContext *> statement();
     StatementContext* statement(size_t i);
 
@@ -513,6 +517,7 @@ public:
     antlr4::tree::TerminalNode *RY_GATE();
     antlr4::tree::TerminalNode *RZ_GATE();
     antlr4::tree::TerminalNode *U1_GATE();
+    antlr4::tree::TerminalNode *P_GATE();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -578,6 +583,7 @@ public:
     antlr4::tree::TerminalNode *ISWAP_GATE();
     antlr4::tree::TerminalNode *SQISWAP_GATE();
     antlr4::tree::TerminalNode *SWAPZ1_GATE();
+    antlr4::tree::TerminalNode *MS_GATE();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -594,6 +600,10 @@ public:
     virtual size_t getRuleIndex() const override;
     antlr4::tree::TerminalNode *ISWAPTHETA_GATE();
     antlr4::tree::TerminalNode *CR_GATE();
+    antlr4::tree::TerminalNode *RXX_GATE();
+    antlr4::tree::TerminalNode *RYY_GATE();
+    antlr4::tree::TerminalNode *RZZ_GATE();
+    antlr4::tree::TerminalNode *RZX_GATE();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -683,6 +693,23 @@ public:
   };
 
   Primary_expressionContext* primary_expression();
+
+  class  ConstantContext : public antlr4::ParserRuleContext {
+  public:
+    ConstantContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *Integer_Literal();
+    antlr4::tree::TerminalNode *Double_Literal();
+    antlr4::tree::TerminalNode *PI();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
+  };
+
+  ConstantContext* constant();
 
   class  Unary_expressionContext : public antlr4::ParserRuleContext {
   public:
@@ -1295,23 +1322,6 @@ public:
   };
 
   Gate_nameContext* gate_name();
-
-  class  ConstantContext : public antlr4::ParserRuleContext {
-  public:
-    ConstantContext(antlr4::ParserRuleContext *parent, size_t invokingState);
-    virtual size_t getRuleIndex() const override;
-    antlr4::tree::TerminalNode *Integer_Literal();
-    antlr4::tree::TerminalNode *Double_Literal();
-    antlr4::tree::TerminalNode *PI();
-
-    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
-    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
-
-    virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
-   
-  };
-
-  ConstantContext* constant();
 
 
   virtual bool sempred(antlr4::RuleContext *_localctx, size_t ruleIndex, size_t predicateIndex) override;

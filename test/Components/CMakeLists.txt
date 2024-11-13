@@ -1,7 +1,12 @@
 cmake_minimum_required(VERSION 3.1)
 project(Components.test)
+
+
 file(GLOB_RECURSE ComponentsTestSrc ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
+
 add_executable(${PROJECT_NAME} ${ComponentsTestSrc})
+
+
 if (CURL_FOUND)
     target_link_libraries(${PROJECT_NAME} ${LIB_QPANDA} ${LIB_GTEST} ${CURL_LIBRARY} ${LIB_COMPONENTS})
 else (CURL_FOUND)

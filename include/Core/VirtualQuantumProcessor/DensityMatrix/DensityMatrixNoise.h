@@ -1,5 +1,6 @@
 #pragma once
 #include "Core/VirtualQuantumProcessor/MPSQVM/NoiseSimulator.h"
+#include "Core/VirtualQuantumProcessor/DensityMatrix/VectorMatrix.h"
 
 QPANDA_BEGIN
 
@@ -10,9 +11,14 @@ public:
     bool enabled();
     bool enabled(GateType type, Qnum qubits);
 
-    KarusError get_karus_error(GateType type, const Qnum& qubits);
+    std::vector<KarusError> get_karus_error(GateType type, const Qnum& qubits);
+
+    /* karus matrix error */
+    void set_noise_model(const std::vector<cmatrix_t>& karus_matrices);
+    void set_noise_model(const std::vector<cmatrix_t>& karus_matrices, const std::vector<GateType>& types);
 
     /* bit-flip, phase-flip, bit-phase-flip, phase-damping, amplitude-damping, depolarizing*/
+
     void set_noise_model(const NOISE_MODEL& model, const GateType& type, double prob);
     void set_noise_model(const NOISE_MODEL& model, const GateType& type, double prob, const Qnum& qubits_vec);
     void set_noise_model(const NOISE_MODEL& model, const GateType& type, double prob, const std::vector<Qnum>& qubits_vecs);
@@ -30,8 +36,8 @@ private:
 
 private:
 
-    std::vector<std::tuple<GateType, int, KarusError>> m_one_qubit_karus_error_tuple;
-    std::vector<std::tuple<GateType, int, int, KarusError>> m_two_qubit_karus_error_tuple;
+    std::vector<std::tuple<GateType, int, std::vector<KarusError>>> m_one_qubit_karus_error_tuple;
+    std::vector<std::tuple<GateType, int, int, std::vector<KarusError>>> m_two_qubit_karus_error_tuple;
 
     void set_gate_and_qnum(GateType type, const Qnum& qubits);
     void set_gate_and_qnums(GateType type, const std::vector<Qnum>& qubits);

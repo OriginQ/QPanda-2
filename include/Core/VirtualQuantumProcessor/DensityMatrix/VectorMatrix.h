@@ -18,6 +18,7 @@ QPANDA_BEGIN
 template <typename T> 
 using cvector_t = std::vector<std::complex<T>>;
 
+using dmatrix_t = Eigen::MatrixXd;
 using cmatrix_t = Eigen::MatrixXcd;
 
 // The vector is formed using column-stacking vectorization

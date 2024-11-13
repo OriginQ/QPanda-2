@@ -45,11 +45,7 @@ public:
 		m_qgate_count++;
 		m_qgate_node = cur_node;
 		if (m_qgate_count > 1)
-		{
-			
-			QCERR("cast qprog to qgate fail!");
-			throw run_fail("cast qprog to qgate fail!");
-		}
+            QCERR_AND_THROW(std::runtime_error, "Transforming a prog into a quantum gate interface only supports programs containing a single quantum gate.");
     }
 
     /*!

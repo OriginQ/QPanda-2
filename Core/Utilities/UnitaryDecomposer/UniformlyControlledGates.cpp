@@ -41,7 +41,7 @@ void _dec_uc_sqg(const std::vector<Eigen::MatrixXcd>& um_vec,
 	std::vector <Eigen::MatrixXcd>& single_qubit_gates,
 	Eigen::VectorXcd& diag)
 {
-	const double TOL = 1e-9;
+	const double tolerance = 1e-9;
     int num_contr = log2(um_vec.size());
 	single_qubit_gates = um_vec;
 	diag = Eigen::VectorXcd::Ones(pow(2, num_contr + 1));
@@ -68,7 +68,7 @@ void _dec_uc_sqg(const std::vector<Eigen::MatrixXcd>& um_vec,
 				Eigen::ComplexEigenSolver<Eigen::Matrix2cd> esolver(r * x * r);
 				Eigen::Vector2cd d = esolver.eigenvalues();
 				Eigen::Matrix2cd u = esolver.eigenvectors();
-				if (std::abs(d[0] + qcomplex_t(0, 1)) < TOL)
+				if (std::abs(d[0] + qcomplex_t(0, 1)) < tolerance)
 				{
 					d.colwise().reverseInPlace();
 					u.rowwise().reverseInPlace();
@@ -307,11 +307,11 @@ QCircuit QPanda::ucry_circuit(QVec controls, Qubit* target, prob_vec params)
 
 QCircuit QPanda::ucry_decomposition(QVec controls, Qubit* target, prob_vec params)
 {
-	const double TOL = 1e-10;
+	const double tolerance = 1e-10;
 	QCircuit ucry_result;
 	if (controls.empty())
 	{
-		if (std::abs(params[0]) > TOL) {
+		if (std::abs(params[0]) > tolerance) {
 			ucry_result << RY(target, params[0]);
 		}
 		return ucry_result;
@@ -332,7 +332,7 @@ QCircuit QPanda::ucry_decomposition(QVec controls, Qubit* target, prob_vec param
 
 	for (int i = 0; i < control_indices.size(); ++i)
 	{
-		if (std::abs(theta[i]) > TOL) {
+		if (std::abs(theta[i]) > tolerance) {
 			ucry_result << RY(target, theta[i]);
 		}
 
@@ -345,11 +345,11 @@ QCircuit QPanda::ucry_decomposition(QVec controls, Qubit* target, prob_vec param
 
 QCircuit QPanda::ucrz_decomposition(QVec controls, Qubit* target, prob_vec params)
 {
-	const double TOL = 1e-10;
+	const double tolerance = 1e-10;
 	QCircuit ucrz_result;
 	if (controls.empty())
 	{
-		if (std::abs(params[0]) > TOL) {
+		if (std::abs(params[0]) > tolerance) {
 			ucrz_result << RZ(target, params[0]);
 		}
 		return ucrz_result;
@@ -370,7 +370,7 @@ QCircuit QPanda::ucrz_decomposition(QVec controls, Qubit* target, prob_vec param
 
 	for (int i = 0; i < control_indices.size(); ++i)
 	{
-		if (std::abs(theta[i]) > TOL) {
+		if (std::abs(theta[i]) > tolerance) {
 			ucrz_result << RZ(target, theta[i]);
 		}
 

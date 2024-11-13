@@ -16,7 +16,7 @@ QPanda2 作为本源量子计算系列软件的基础库，为QRunes、Qurator�
  | [![Documentation Status](https://readthedocs.org/projects/qpanda-tutorial/badge/?version=latest)](https://qpanda-tutorial.readthedocs.io/zh/latest/?badge=latest)      | [![Documentation Status](https://readthedocs.org/projects/pyqpanda-toturial/badge/?version=latest)](https://pyqpanda-toturial.readthedocs.io/zh/latest/?badge=latest)    
 
 ## 安装
-### Python 3.6-3.9
+### Python 3.8-3.11
 通过pip进行安装：
 
     pip install pyqpanda
@@ -65,4 +65,4 @@ QPanda由本源量子开发，本源量子致力于量子计算机的研发与�
  ## License
  Apache License 2.0
 
- Copyright (c) 2017-2023 By Origin Quantum Computing. All Right Reserved.
+ Copyright (c) 2017-2024 By Origin Quantum Computing. All Right Reserved.

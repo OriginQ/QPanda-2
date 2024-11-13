@@ -1,9 +1,6 @@
 #include "QPandaConfig.h"
 #include "QPanda.h"
 #include "Extensions/Extensions.h"
-#include "Extensions/QAlg/HHL/HHL.h"
-#include "Extensions/PilotOSMachine/QPilotMachine.h"
-#include "Extensions/PilotOSMachine/data_struct.h"
 #include <math.h>
 #include <map>
 #include "pybind11/pybind11.h"
@@ -24,7 +21,12 @@ namespace py = pybind11;
 
 USING_QPANDA
 
+#ifdef USE_EXTENSION
+#include "Extensions/QAlg/HHL/HHL.h"
+#include "Extensions/PilotOSMachine/QPilotMachine.h"
+#include "Extensions/PilotOSMachine/data_struct.h"
 #include "Extensions/VirtualZTransfer/VirtualZTransfer.h"
+#endif // USE_EXTENSION
 
 void export_extension_class(py::module& m)
 {

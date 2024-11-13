@@ -19,6 +19,6 @@
 #include "PilotOSMachine/OSDef.h"
 #include "PilotOSMachine/QPilotOSMachine.h"
 
-#endif
+#endif //USE_EXTENSION
 
 #endif // ! __EXTENSIONS_H_

@@ -1,13 +1,20 @@
 #include "gtest/gtest.h"
 #include "Core/Utilities/Tools/MultiControlGateDecomposition.h"
 #include "Core/Utilities/UnitaryDecomposer/UniformlyControlledGates.h"
-#include "Extensions/VirtualZTransfer/AddBarrier.h"
-#include "Extensions/VirtualZTransfer/VirtualZTransfer.h"
 #include <Eigen/Eigen>
 #include <Eigen/Dense>
 #include <QPandaConfig.h>
 #include "Core/Core.h"
 #include "Core/Utilities/QPandaNamespace.h"
+
+#ifdef USE_EXTENSION
+
+
+#include "Extensions/VirtualZTransfer/AddBarrier.h"
+#include "Extensions/VirtualZTransfer/VirtualZTransfer.h"
+
+#endif
+
 
 using namespace std;
 USING_QPANDA
@@ -402,7 +409,10 @@ static bool control_Z_decompose_test_1()
 
 	const auto src_result = machine.runWithConfiguration(prog, shots);
 
+#ifdef USE_EXTENSION
 	auto_add_barrier_before_mul_qubit_gate(prog);
+#endif
+
 	decompose_multiple_control_qgate(prog, &machine, "QPandaConfig.json", true);
 	std::cout << "decomposed prog:" << prog << endl;
 #ifdef USE_EXTENSION
@@ -452,9 +462,11 @@ static bool test_u3_to_RPhi()
 
     const auto mat_1 = getCircuitMatrix(prog);
     std::cout << "src prog:" << prog << std::endl;
-    
+   
+#ifdef USE_EXTENSION
     transfer_to_u3_gate(prog, &machine);
     decompose_U3(prog, "QPandaConfig.json");
+#endif
     const auto mat_2 = getCircuitMatrix(prog);
     cout << "U3 prog: " << prog << endl;
     

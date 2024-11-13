@@ -75,7 +75,7 @@ set(LIB_PYQPANDA_PAUL pyQPandaPauliOperator)
 
 option(FIND_MPI "find MPI" OFF)
 option(DOCKER "Open Docker" OFF)
-option(FIND_CUDA "find cuda" OFF)
+option(FIND_CUDA "find cuda" ON)
 option(FIND_OPENMP "find openMP" OFF)
 option(USE_PYQPANDA "Enable pyQPanda" ON)
 if(${USE_PYQPANDA})
